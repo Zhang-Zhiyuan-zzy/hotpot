@@ -6,93 +6,167 @@ python v3.7.9
 @Date   : 2023/3/14
 @Time   : 4:18
 """
-from abc import ABCMeta, ABC, abstractmethod
-import re
-import json
+from os import PathLike
 from typing import *
-from openbabel import openbabel as ob, pybel as pb
-from cheminfo import Molecule
-
-# get list of elemental periodic table
-_elements = json.load(open('../data/periodic_table.json', encoding='utf-8'))['elements']
-_elements = {d['symbol']: d for d in _elements}
-
-
-class FormatDefinedError(Exception):
-    """ Raise when a format name have been defined """
+from abc import ABC, ABCMeta, abstractmethod
+from copy import copy
+import re
+from functools import wraps
+from openbabel import openbabel as ob, pybel
 
 
-class FormatNotDefineError(Exception):
-    """ Raise when a Process not define the format method """
+class Register:
+    # serve as a handle to store the custom formats of dumpers
+    custom_dumpers = {}
+    postprocessing = {}
+
+    def __call__(self, fmt: str, types: str = "dumper"):
+        """
+        To register any function as a dumper or a postprocess to convert mol to formats
+        Args:
+            fmt:
+            types:
+
+        Returns:
+
+        """
+
+        def decorator(func: Callable):
+
+            if types == 'dumper':
+                self.custom_dumpers[fmt] = func
+            elif types == 'postprocess':
+                self.postprocessing[fmt] = func
+            else:
+                raise TypeError('the type of register is not supported')
+
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
 
 
-class _MetaProcess(ABCMeta):
-    """
-    Abstract Meta class to record the `format`: `Process` pair.
-    Make the defined `Process` could be called by `format`
-    """
-    __defined_process = {}
+# Retrieve the IO class by it's format name
+def retrieve_format(fmt: str = None):
+    return _MoleculeIO.registered_format().get(fmt)
+
+
+# Get all registered format name
+def registered_format_name():
+    return tuple(_MoleculeIO.registered_format().keys())
+
+
+class _MoleculeIO(ABCMeta):
+    """    Metaclass for registration of IO class format """
+    _registered_format = {}
 
     def __new__(mcs, name, bases, namespace, **kwargs):
-        """"""
-        # Get the format name
-        fmt = namespace.get('format')()
+        # Get the format keywords
+        fmt = namespace.get('format')(mcs)
 
-        # If the format name have not been defined
-        if fmt not in mcs.__defined_process:
-            cls = ABCMeta(name, bases, namespace, **kwargs)
-            mcs.__defined_process[fmt] = cls
+        if not fmt:
+            return super(_MoleculeIO, mcs).__new__(mcs, name, bases, namespace, **kwargs)
+        elif not isinstance(fmt, str):
+            raise TypeError('the defined format should be a string')
+        elif fmt in mcs._registered_format:
+            raise ValueError(f'the format {fmt} have been defined before')
+        else:
+            cls = super(_MoleculeIO, mcs).__new__(mcs, name, bases, namespace, **kwargs)
+            mcs._registered_format[fmt] = cls
+            return cls
 
-        else:  # If the format name have been defined
-            raise FormatDefinedError
+    @classmethod
+    def registered_format(mcs):
+        return copy(mcs._registered_format)
 
-        return ABCMeta(name, bases, namespace, **kwargs)
 
-
-class Process(metaclass=_MetaProcess):
-    """"""
-    def __new__(cls, *args, **kwargs):
-        return super(Process, cls).__new__(cls)
+class MoleculeIO(metaclass=_MoleculeIO):
+    """ The abstract base class for all IO class """
 
     @abstractmethod
     def format(self) -> str:
-        """    Abstract method to defined the format to call this class    """
-        raise FormatNotDefineError(f"{self.__class__.__name__} not define the 'format' method")
-
-
-class MolProcess(Process, ABC):
-    """    Base class to process between the Molecule and specific Format    """
-    def __init__(self, mol: Molecule = None):
-        self._mol = mol
-
-    def make_mol(self, **kwargs):
-        """"""
-        mol = ob.OBMol()
-
-    @property
-    def _set_atom(self):
-        return {
-            'number': self._set_atomic_number,
-            'coords': self._set_coordinates
-        }
+        return None
 
     @staticmethod
-    def _set_atomic_number(atom: ob.OBAtom, number: int):
-        atom.SetAtomicNum(number)
+    @abstractmethod
+    def dump(mol, *args, **kwargs) -> Union[str, bytes]:
+        """"""
 
     @staticmethod
-    def _set_coordinates(atom: ob.OBAtom, coordinates):
-        atom.SetVector(*coordinates)
-
-
-
-class MolGJFProcess(MolProcess, ABC):
-    """"""
-    def format(self) -> str:
-        return "gaussian/gjf"
-
-    def parse(self, info):
+    @abstractmethod
+    def parse(info) -> Dict:
         """"""
+
+    def write(self, mol, path_file: Union[str, PathLike], *args, **kwargs):
+        """"""
+        script = self.dump(mol, *args, **kwargs)
+
+        if isinstance(script, str):
+            mode = 'w'
+        elif isinstance(script, bytes):
+            mode = 'b'
+        else:
+            raise TypeError('the type of dumping valve is not supported')
+
+        with open(path_file, mode) as writer:
+            writer.write(script)
+
+    def read(self, path_file: Union[str, PathLike], *args, **kwargs) -> Dict:
+        """"""
+        with open(path_file) as file:
+            data = self.parse(file.read())
+        return data
+
+
+class GaussianGJF(MoleculeIO, ABC):
+
+    @staticmethod
+    def dump(mol, *args, **kwargs) -> Union[str, bytes]:
+
+        # separate keyword arguments:
+        link0 = kwargs['link0']
+        route = kwargs['route']
+        custom_charge = kwargs.get('charge')
+        custom_spin = kwargs.get('spin')
+
+        pybal_mol = pybel.Molecule(mol._OBMol)
+
+        script = pybal_mol.write('gjf')
+        assert isinstance(script, str)
+
+        lines = script.splitlines()
+
+        lines[0] = f'%{link0}'
+        lines[1] = f'#{route}'
+
+        charge, spin = lines[5].split()
+        if custom_charge:
+            charge = str(custom_charge)
+        if custom_spin:
+            spin = str(custom_spin)
+
+        script = '\n'.join(lines)
+
+        return script
+
+    @staticmethod
+    def parse(info) -> Dict:
+        """
+        Returns:
+            {
+                'identifier': ...,
+                'charge': ...,
+                'spin': ...,
+                atoms: [
+                    {'symbol': .., 'label': .., 'coordinates': ..},
+                    {'symbol': .., 'label': .., 'coordinates': ..},
+                    ...,
+                }
+            }
+        """
         partition = [p for p in info.split("\n\n") if p]
 
         # Parse the link0 and route lines
@@ -116,15 +190,111 @@ class MolGJFProcess(MolProcess, ABC):
         # TODO: the more optional properties might be specified ,such as charge, spin,
         # TODO: more subtle process should be designed to parse the optional properties.
         mol_spec_lines = partition[2].split('\n')
-        mol_charge, spin_multiplicity = map(int, mol_spec_lines[0].split())
+        charge, spin = map(int, mol_spec_lines[0].split())
 
-        labels, atomic_number, coords, charge = [], [], [], []
+        atoms = []
         for line in mol_spec_lines[1:]:
             atom_info = line.split()
             atomic_label = atom_info[0]
             x, y, z = map(float, atom_info[1:4])
             atomic_symbol = regx_ele_sym.findall(atomic_label)[0]
 
-            labels.append(atomic_label)
-            atomic_number.append(_elements[atomic_symbol]['number'])
-            coords.append([x, y, z])
+            atoms.append({'symbol': atomic_symbol, 'label': atomic_label, 'coordinates': (x, y, z)})
+
+        return {
+            'identifier': title,
+            'charge': charge,
+            'spin': spin,
+            'atoms': atoms
+        }
+
+    def format(self) -> str:
+        return 'gjf'
+
+
+class Dumper:
+    """
+    Dump the Molecule information into specific format.
+    The output in general is the string or bytes
+    """
+    # Initialize the register
+    register = Register()
+
+    def __init__(self, fmt: str, mol, *args, **kwargs):
+        self.fmt = fmt
+        self.mol = mol
+
+        self.args = args
+        self.kwargs = kwargs
+
+    def dump(self) -> Union[str, bytes]:
+        """
+        Try, in turn, to dump the Molecule to the specified format by various method:
+            1) the 'openbabel.pybal' module
+            2) 'cclib' library
+            3) coutom dumper
+        """
+
+        # Trying dump by pybel
+        script = None
+
+        try:
+            pb_mol = pybel.Molecule(self.mol._OBMol)
+            script = pb_mol.write(self.fmt)
+
+            success = True
+
+        except ValueError:
+            success = False
+
+        if not success:
+            # TODO: try to dump by cclib
+            pass
+
+        if not success:
+            custom_dumper = self.register.custom_dumpers.get(self.fmt)
+
+            if custom_dumper:
+                script = custom_dumper(self.mol)
+            else:
+                raise ValueError(f'the format {self.fmt} cannot support!!')
+
+        assert isinstance(script, str)
+
+        # Try to perform the postprocessing
+        processor = self.register.postprocessing.get(self.fmt)
+        if processor:
+            script = processor(self, script)
+
+        return script
+
+    @staticmethod
+    @register(fmt='gjf', types='postprocess')
+    def _gjf_post_processor(self: 'Dumper', script: str):
+        """"""
+        # separate keyword arguments:
+        link0 = self.kwargs['link0']
+        route = self.kwargs['route']
+        custom_charge = self.kwargs.get('charge')
+        custom_spin = self.kwargs.get('spin')
+
+        lines = script.splitlines()
+
+        lines[0] = f'%{link0}'
+        lines[1] = f'# {route}'
+
+        charge, spin = lines[5].split()
+        if custom_charge:
+            charge = str(custom_charge)
+        if custom_spin:
+            spin = str(custom_spin)
+
+        lines[5] = f'{charge} {spin}'
+
+        script = '\n'.join(lines)
+
+        # End black line
+        script += '\n\n'
+
+        return script
+

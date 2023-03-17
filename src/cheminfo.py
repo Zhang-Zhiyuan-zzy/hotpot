@@ -14,6 +14,8 @@ import json
 from typing import *
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
+from src._io import retrieve_format, Dumper
+import subprocess
 
 dir_root = os.path.join(os.path.dirname(__file__))
 _elements = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -26,46 +28,6 @@ _bond_type = {
     'Triple': 3,
     'Aromatic': 5,
 }
-
-
-class FormatNotSupport(BaseException):
-    """ Raise when the specified format is not supported """
-
-
-class _Convertor:
-    """ Base class to convert between cheminfo object and the literal(str or byte) with specific format """
-    def __init__(self, fmt: str, mol: "Molecule"):
-        self.format = fmt
-        self.mol = mol
-        self.conv = ob.OBConversion()
-
-
-class Output(_Convertor, ABC):
-    """ Writer Molecule object to specific format file or literal """
-    def dump(self) -> Union[str, bytes]:
-        success = self.conv.SetOutFormat(self.format)
-        if success:
-            script = self.conv.WriteString(self.mol._OBMol)
-        else:
-            raise FormatNotSupport
-
-        return self.post_process(script)
-
-    @abstractmethod
-    def post_process(self, script) -> Union[str, bytes]:
-        """ Specify the processing after the convert from third-part packages, like openbabel or cclib """
-        raise NotImplemented
-
-    def write(self, path_file: Union[str, PathLike]):
-        """ Write the converted script to a file """
-        script = self.dump()
-        if not isinstance(script, (str, bytes)):
-            raise IOError("the the script going to write into file is neither str or bytes")
-
-        mode = "w" if isinstance(script, str) else 'b'
-
-        with open(path_file, mode) as writer:
-            writer.write(script)
 
 
 class Wrapper(ABC):
@@ -134,14 +96,29 @@ class Molecule(Wrapper, ABC):
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
             "identifier": self._set_identifier,
-            "energy": self._set_mol_energy
+            "energy": self._set_mol_energy,
+            'charge': self._set_mol_charge,
+            'spin': self._set_spin_multiplicity,
+            'atoms': self._set_atoms
         }
+
+    def _set_atoms(self, atoms_kwargs: List[Dict[str, Any]]):
+        """ add a list of atoms by a list atoms attributes dict """
+        for atom_kwarg in atoms_kwargs:
+            a = Atom(**atom_kwarg)
+            self.add_atom(a)
+
+    def _set_mol_charge(self, charge: int):
+        self._OBMol.SetTotalCharge(charge)
 
     def _set_mol_energy(self, energy: float):
         self._OBMol.SetEnergy(energy)
 
     def _set_identifier(self, identifier):
         self._OBMol.SetTitle(identifier)
+
+    def _set_spin_multiplicity(self, spin):
+        self._OBMol.SetTotalSpinMultiplicity(spin)
 
     def add_atom(self, atom: "Atom"):
         """
@@ -175,7 +152,8 @@ class Molecule(Wrapper, ABC):
             atom._replace_attr_data(new_atom_data)
 
             # add the new atom into atoms list directly
-            self._data['atoms'].append(atom)
+            atoms = self._data.setdefault('atoms', [])
+            atoms.append(atom)
 
             return atom
 
@@ -298,6 +276,14 @@ class Molecule(Wrapper, ABC):
         return [a.label for a in self.atoms]
 
     @property
+    def charge(self):
+        return self._OBMol.GetTotalCharge()
+
+    @charge.setter
+    def charge(self, charge):
+        self._set_mol_charge(charge)
+
+    @property
     def coord_matrix(self) -> np.ndarray:
         """
         Get the matrix of all atoms coordinates,
@@ -354,10 +340,49 @@ class Molecule(Wrapper, ABC):
 
         return atom
 
+    def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes]:
+        """"""
+        dumper = Dumper(fmt=fmt, mol=self, *args, **kwargs)
+        return dumper.dump()
+
     @property
     def energy(self):
         """ Return energy with kcal/mol as default """
         return self._OBMol.GetEnergy()
+
+    def gaussian(
+            self,
+            link0: str,
+            route: str,
+            path_log_file: Union[str, PathLike] = None,
+            *args, **kwargs
+    ) -> (Union[None, str], str):
+        """
+        calculation by gaussion.
+        for running the method normally, MAKE SURE THE Gaussian16 HAVE BEEN INSTALLED AND ALL ENV VAR SET RITHT !!
+        Args:
+            link0:
+            route:
+            path_log_file:
+            *args:
+            **kwargs:
+
+        Returns:
+
+        """
+
+        script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
+
+        # Run Gaussian using subprocess
+        g16_process = subprocess.Popen(['g16'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       universal_newlines=True)
+        stdout, stderr = g16_process.communicate(script)
+
+        if path_log_file:
+            with open(path_log_file, 'w') as writer:
+                writer.write(stdout)
+        else:
+            return stdout, stderr
 
     @property
     def identifier(self):
@@ -456,36 +481,69 @@ class Molecule(Wrapper, ABC):
             yield perturbed_mol(new_coord)
 
     @classmethod
-    def readfile(cls, path_file: Union[str, PathLike], fmt=None,  **kwargs):
-        """"""
+    def readfile(cls, path_file: Union[str, PathLike], fmt=None, *args, **kwargs):
+        """
+        Construct Molecule by read file.
+        This will in turn to try several method to Construct from several packages:
+            1) `openbabel.pybel` module
+            2) 'cclib' module
+            3) custom mothod define by method
+        Args:
+            path_file:
+            fmt:
+            **kwargs:
+
+        Returns:
+
+        """
         if not fmt:
             if isinstance(path_file, str):
                 path_file = Path(path_file)
 
             fmt = path_file.suffix.strip('.')
 
-        try:  # Try to read file by `openbabel`
+        # Try to read file by `openbabel`
+        try:
             OBMol = next(pb.readfile(fmt, str(path_file), **kwargs)).OBMol
-            success = True
-        except ValueError:
-            success = False
+            return cls(OBMol, **kwargs)
 
-        # Try to read file by 'cclib
-        if not success:
-            raise RuntimeError
+        except ValueError:
+            """ Fail to read file by 'pybel' module """
+
+        # TODO:Try to read file by 'cclib'
 
         # Try to read file by custom reader
-        if not success:
-            raise RuntimeError
-
-        return cls(OBMol, **kwargs)
+        custom_reader = retrieve_format(fmt)()
+        mol_kwargs = custom_reader.read(path_file, *args, **kwargs)
+        return cls(**mol_kwargs)
 
     def set_label(self, idx: int, label: str):
         self.atoms[idx].label = label
 
     @property
+    def spin(self):
+        return self._OBMol.GetTotalSpinMultiplicity()
+
+    @spin.setter
+    def spin(self, spin: int):
+        self._set_spin_multiplicity(spin)
+
+    @property
     def weight(self):
         return self._OBMol.GetExactMass()
+
+    def writefile(self, fmt: str, path_file, *args, **kwargs):
+        """Write the Molecule Info into a file with specific format(fmt)"""
+        script = self.dump(fmt=fmt, *args, **kwargs)
+        if isinstance(script, str):
+            mode = 'w'
+        elif isinstance(script, bytes):
+            mode = 'b'
+        else:
+            raise IOError(f'the {type(script)} type for script is not supported to write into file')
+
+        with open(path_file, 'w') as writer:
+            writer.write(script)
 
 
 class Atom(Wrapper, ABC):
@@ -626,9 +684,6 @@ class Atom(Wrapper, ABC):
 
 class Bond(Wrapper, ABC):
     """"""
-
-    _bond_type = {0: 'Unknown', 1: 'Single', 2: 'Double', }
-
     def __init__(self, _OBBond: ob.OBBond, _mol: Molecule):
         self._data = {
             "OBBond": _OBBond,
@@ -636,9 +691,7 @@ class Bond(Wrapper, ABC):
         }
 
     def __repr__(self):
-        return f"Bond({self.atoms[0].label}[{self.atoms[0].idx}], " \
-               f"{self.atoms[1].label}[{self.atoms[1].idx}], " \
-               f"{self.type})"
+        return f"Bond({self.atoms[0].label}, {self.atoms[1].label}, {self.type_name})" \
 
     @property
     def _OBBond(self):
@@ -647,7 +700,6 @@ class Bond(Wrapper, ABC):
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
-
         }
 
     @property
@@ -690,7 +742,7 @@ class Bond(Wrapper, ABC):
 
     @property
     def type_name(self):
-        return self._bond_type[self.type]
+        return _bond_type[self.type]
 
     @property
     def type(self):

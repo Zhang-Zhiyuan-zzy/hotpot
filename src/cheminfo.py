@@ -29,6 +29,14 @@ _bond_type = {
     'Aromatic': 5,
 }
 
+_type_bond = {
+    0: 'Unknown',
+    1: 'Single',
+    2: 'Double',
+    3: 'Triple',
+    5: 'Aromatic'
+}
+
 
 class Wrapper(ABC):
     """
@@ -92,6 +100,12 @@ class Molecule(Wrapper, ABC):
     def _OBMol(self):
         return self._data['OBMol']
 
+    @staticmethod
+    def _assign_atom_coords(the_mol: 'Molecule', coord_matrix: np.ndarray):
+        """ Assign coordinates for all atoms in the Molecule """
+        for new_mol_atom, new_atom_coord in zip(the_mol.atoms, coord_matrix):
+            new_mol_atom.coordinates = new_atom_coord
+
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
@@ -101,6 +115,19 @@ class Molecule(Wrapper, ABC):
             'spin': self._set_spin_multiplicity,
             'atoms': self._set_atoms
         }
+
+    def _pert_mol_generate(self, coord_matrix: np.ndarray):
+        """
+        Generate new molecule obj according to new given coordinate
+        Args:
+            coord_matrix: New coordinates matrix
+
+        Returns:
+            Molecule, copy of this molecule with new coordinates
+        """
+        clone_mol = self.copy()
+        self._assign_atom_coords(clone_mol, coord_matrix)
+        return clone_mol
 
     def _set_atoms(self, atoms_kwargs: List[Dict[str, Any]]):
         """ add a list of atoms by a list atoms attributes dict """
@@ -167,7 +194,7 @@ class Molecule(Wrapper, ABC):
             bond_type: Union[str, int],
             **kwargs
     ):
-        """"""
+        """ Add a new bond into the molecule """
         atoms = (atom1, atom2)
         atom_idx = []
         for a in atoms:
@@ -262,14 +289,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def bonds(self):
-        bonds = self._data.get('bonds')
-        if not bonds:
-            bonds = self._data['bonds'] = [
-                Bond(self._OBMol.GetBondById(i), _mol=self)
-                for i in range(self._OBMol.NumBonds())
-            ]
-
-        return bonds
+        return [Bond(self._OBMol.GetBondById(i), _mol=self) for i in range(self._OBMol.NumBonds())]
 
     @property
     def atom_labels(self):
@@ -282,6 +302,23 @@ class Molecule(Wrapper, ABC):
     @charge.setter
     def charge(self, charge):
         self._set_mol_charge(charge)
+
+    @property
+    def configure_number(self):
+        coordinate_matrix_collection = self._data.get('_coord_collect')
+        if isinstance(coordinate_matrix_collection, np.ndarray):
+            return coordinate_matrix_collection.shape[0]
+        else:
+            return 1
+
+    def configure_select(self, config_idx: int):
+        """ select specific configure by index """
+        coordinate_matrix_collection = self._data.get('_coord_collect')
+        if coordinate_matrix_collection is None:
+            raise IndexError('Only one configure here!')
+
+        config_coord_matrix = coordinate_matrix_collection[config_idx]
+        self._assign_atom_coords(self, config_coord_matrix)
 
     @property
     def coord_matrix(self) -> np.ndarray:
@@ -321,6 +358,12 @@ class Molecule(Wrapper, ABC):
             new_bond = clone_mol.add_bond(*bond.atoms, bond_type=bond.type)
 
         return clone_mol
+
+    def clean_configures(self, pop: bool = False):
+        """ clean all config save inside the molecule """
+        coord_collect = self._data.pop('_coord_collect')
+        if pop:
+            return coord_collect
 
     def create_atom(self, symbol: str, **kwargs):
         """
@@ -423,7 +466,8 @@ class Molecule(Wrapper, ABC):
             mol_distance=0.5,
             lattice_fraction=0.05,
             freeze_dim: Sequence[int] = (),
-            max_generate_num: int = 1000
+            max_generate_num: int = 1000,
+            inplace: bool = False
     ) -> Generator["Molecule", None, None]:
         """
         Perturb the coordinate of atom in the mol or the lattice parameters
@@ -434,6 +478,7 @@ class Molecule(Wrapper, ABC):
             lattice_fraction: the percentage of the lattice perturbation
             freeze_dim: tuple of int or str, 0 = x, 1 = y, 2 = z
             max_generate_num: the maximum of generated molecule
+            inplace
 
         Returns:
             Generator of perturbed molecule
@@ -443,42 +488,35 @@ class Molecule(Wrapper, ABC):
         coord_matrix_shape = (len(self.atoms), 3)  # the shape of coordinates matrix (atom counts, 3 dimension)
         origin_coord_matrix = self.coord_matrix
 
-        def perturbed_mol(nc: np.ndarray):
-            """
-            Generate new
-            Args:
-                nc: New coordinates
+        def coordinates_generator():
+            """ Generating """
+            for _ in range(max_generate_num):
+                if random_style == 'uniform':
+                    perturb_matrix = np.float64(np.random.uniform(-mol_distance, mol_distance, coord_matrix_shape))
+                elif random_style == 'normal':
+                    perturb_matrix = np.float64(np.random.normal(0, mol_distance, coord_matrix_shape))
+                else:
+                    raise ValueError('the perturb style is not defined!')
 
-            Returns:
+                if freeze_dim:
+                    dim = [
+                        i if (isinstance(i, int) and 0 <= i <= 3) else dim_transform[i]
+                        for i in freeze_dim
+                    ]
 
-            """
-            clone_mol = self.copy()
+                    perturb_matrix[:, dim] = 0.
 
-            for new_mol_atom, new_atom_coord in zip(clone_mol.atoms, nc):
-                new_mol_atom.coordinates = new_atom_coord
+                new_coord = origin_coord_matrix + perturb_matrix
 
-            return clone_mol
+                yield new_coord
 
-        # Generating
-        for _ in range(max_generate_num):
-            if random_style == 'uniform':
-                perturb_matrix = np.float64(np.random.uniform(-mol_distance, mol_distance, coord_matrix_shape))
-            elif random_style == 'normal':
-                perturb_matrix = np.float64(np.random.normal(0, mol_distance, coord_matrix_shape))
-            else:
-                raise ValueError('the perturb style is not defined!')
+        def lattice_generator():
+            """ TODO: this function is prepare to generate the new lattice """
 
-            if freeze_dim:
-                dim = [
-                    i if (isinstance(i, int) and 0 <= i <= 3) else dim_transform[i]
-                    for i in freeze_dim
-                ]
-
-                perturb_matrix[:, dim] = 0.
-
-            new_coord = origin_coord_matrix + perturb_matrix
-
-            yield perturbed_mol(new_coord)
+        if inplace:
+            self._data['_coord_collect'] = np.array([origin_coord_matrix]+[c for c in coordinates_generator()])
+        else:
+            return (self._pert_mol_generate(c) for c in coordinates_generator())
 
     @classmethod
     def readfile(cls, path_file: Union[str, PathLike], fmt=None, *args, **kwargs):
@@ -538,11 +576,11 @@ class Molecule(Wrapper, ABC):
         if isinstance(script, str):
             mode = 'w'
         elif isinstance(script, bytes):
-            mode = 'b'
+            mode = 'wb'
         else:
             raise IOError(f'the {type(script)} type for script is not supported to write into file')
 
-        with open(path_file, 'w') as writer:
+        with open(path_file, mode) as writer:
             writer.write(script)
 
 
@@ -691,7 +729,7 @@ class Bond(Wrapper, ABC):
         }
 
     def __repr__(self):
-        return f"Bond({self.atoms[0].label}, {self.atoms[1].label}, {self.type_name})" \
+        return f"Bond({self.atoms[0].label}, {self.atoms[1].label}, {self.type_name})"
 
     @property
     def _OBBond(self):
@@ -742,7 +780,7 @@ class Bond(Wrapper, ABC):
 
     @property
     def type_name(self):
-        return _bond_type[self.type]
+        return _type_bond[self.type]
 
     @property
     def type(self):

@@ -12,7 +12,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 import re
 from functools import wraps
-from openbabel import openbabel as ob, pybel
+from openbabel import pybel
 
 
 class Register:
@@ -297,4 +297,3 @@ class Dumper:
         script += '\n\n'
 
         return script
-

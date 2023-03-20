@@ -8,7 +8,7 @@ python v3.7.9
 """
 from pathlib import Path
 from src.cheminfo import Molecule as Mol, Atom
-
+import time
 
 def discarded():
     # Read molecule from mol2 file
@@ -75,11 +75,26 @@ if __name__ == '__main__':
     script = dump_mol_to_gjf(mols[1])
     write_mol_to_file(mols[1])
 
-    mol = mols[1]
+    mol = mols[0]
 
-    result = mol.gaussian(
-        link0='nproc=32',
-        route='M062X/Def2SVP ADMP(MaxPoints=10) SCRF Temperature=325',
-        g16root='/home/pub',
-        gauss_scrdir='/home/zzy/M062X/g16_scrat'
-    )
+    mols_gen = mol.perturb_mol_lattice()
+
+    path_gen_mol2 = Path('D:/hotpot/test/output/gen_mol2')
+
+    t1 = time.time()
+
+    for a in mol.atoms:
+        a.neighbours
+
+    t2 = time.time()
+
+    print(t2 - t1)
+
+    # for i, mol in enumerate(mols_gen):
+    #     mol.writefile('mol2', path_gen_mol2.joinpath(f"{i}.mol2"))
+    # result = mol.gaussian(
+    #     link0='nproc=32',
+    #     route='M062X/Def2SVP ADMP(MaxPoints=10) SCRF Temperature=325',
+    #     g16root='/home/pub',
+    #     gauss_scrdir='/home/zzy/M062X/g16_scrat'
+    # )

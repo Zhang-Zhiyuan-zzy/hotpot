@@ -1,0 +1,156 @@
+"""
+python v3.7.9
+@Project: hotpot
+@File   : quantum.py
+@Author : Zhiyuan Zhang
+@Date   : 2023/3/20
+@Time   : 2:44
+"""
+import os
+import resource
+import subprocess
+from pathlib import Path
+from typing import *
+
+
+class Gaussian:
+    """
+    A class for setting up and running Gaussian 16 calculations.
+
+    Attributes:
+        g16root (str): The path to the Gaussian 16 root directory.
+
+    """
+    def __init__(self, g16root: Union[str, os.PathLike]):
+        """
+        This method sets up the required environment variables and resource limits for Gaussian 16.
+        Args:
+            g16root (Union[str, os.PathLike]): The path to the Gaussian 16 root directory.
+
+        Raises:
+            TypeError: If `g16root` is not a string or a path-like object.
+        """
+        if isinstance(g16root, str):
+            self.g16root = g16root
+        elif isinstance(g16root, os.PathLike):
+            self.g16root = str(g16root)
+        else:
+            raise TypeError('the g16root should be str or os.PathLike type!')
+
+        self.envs = self._set_environs()
+        self._set_resource_limits()
+
+    def _set_environs(self):
+        """Sets up the environment variables required for running Gaussian 16.
+
+        This method sets the environment variables required for Gaussian 16 to function correctly. If the
+        `g16root` attribute is not set, the method sets it to the user's home directory.
+
+        Returns:
+            Dict[str, str]: A dictionary of the updated environment variables."""
+
+        if self.g16root:
+            g16root = self.g16root
+        else:
+            g16root = os.path.expanduser("~")
+
+        # Setting environment for gaussian 16
+        gr = g16root
+        env_vars = {
+            'g16root': gr,
+            'GAUSS_EXEDIR': f"{gr}/g16/bsd:{gr}/g16",
+            'GAUSS_LEXEDIR': f"{gr}/g16/linda-exe",
+            'GAUSS_ARCHDIR': f"{gr}/g16/arch",
+            'GAUSS_BSDDIR': f"{gr}/g16/bsd",
+            'GV_DIR': f"{gr}/gv",
+            'PATH': f"{os.environ['PATH']}:{gr}/gauopen:{gr}/g16/bsd:{gr}/g16",
+            'PERLLIB': f"{os.environ['PERLLIB']}:{gr}/gauopen:{gr}/g16/bsd:{gr}/g16" if 'PERLLIB' in os.environ else f"{gr}/gauopen:{gr}/g16/bsd:{gr}/g16",
+            'PYTHONPATH': f"{os.environ['PYTHONPATH']}:{gr}/gauopen:{gr}/g16/bsd:{gr}/g16" if 'PYTHONPATH' in os.environ else f"{gr}/gauopen:{gr}/g16/bsd:{gr}/g16",
+            '_DSM_BARRIER': 'SHM',
+            'LD_LIBRARY64_PATH': f"{gr}/g16/bsd:{gr}/gv/lib:{os.environ['LD_LIBRARY64_PATH']}" if 'LD_LIBRARY64_PATH' in os.environ else "",
+            'LD_LIBRARY_PATH': f"{gr}/g16/bsd:{os.environ['LD_LIBRARY_PATH']}:{gr}/gv/lib" if 'LD_LIBRARY_PATH' in os.environ else f"{gr}/g16/bsd:{gr}/gv/lib",
+            'G16BASIS': f"{gr}/g16/basis",
+            'PGI_TERM': 'trace,abort'
+        }
+
+        # Merge the environment variables with the current environment
+        updated_env = os.environ.copy()
+        updated_env.update(env_vars)
+
+        return updated_env
+
+    @staticmethod
+    def _set_resource_limits():
+        """Sets resource limits for the Gaussian 16 process to avoid system crashes.
+
+        This method sets resource limits for the Gaussian 16 process to avoid system crashes. Specifically,
+        it sets the limits for the following resources: core dump size, data segment size, file size,
+        locked-in-memory address space, resident set size, number of open files, stack size, CPU time,
+        and number of processes.
+        """
+        try:
+            resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_CORE limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_DATA, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_DATA limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_FSIZE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_FSIZE limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_MEMLOCK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_MEMLOCK limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_RSS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_RSS limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_NOFILE limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_STACK limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_CPU, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_CPU limit.'))
+
+        try:
+            resource.setrlimit(resource.RLIMIT_NPROC, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except ValueError:
+            print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
+
+    def run(self, script: str, *args, **kwargs):
+        """Runs the Gaussian 16 process with the given script and additional arguments.
+
+        This method sets up the required environment variables and resource limits for Gaussian 16 before
+        running the process using `subprocess.Popen`. It takes an input script and any additional arguments
+        to pass to `Popen`, and returns a tuple of the standard output and standard error of the process.
+
+        Args:
+            script (str): The input script for the Gaussian 16 process.
+            *args: Additional arguments to pass to subprocess.Popen.
+            **kwargs: Additional keyword arguments to pass to subprocess.Popen.
+
+        Returns:
+            Tuple[str, str]: A tuple of the standard output and standard error of the process.
+        """
+        # Run Gaussian using subprocess
+        g16_process = subprocess.Popen(['g16'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       universal_newlines=True, env=self.envs, *args, **kwargs)
+        stdout, stderr = g16_process.communicate(script)
+
+        return stdout, stderr

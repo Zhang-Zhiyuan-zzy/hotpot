@@ -9,7 +9,8 @@ python v3.7.9
 import os
 import resource
 import subprocess
-from pathlib import Path
+import io
+import cclib
 from typing import *
 
 
@@ -39,6 +40,8 @@ class Gaussian:
 
         self.envs = self._set_environs()
         self._set_resource_limits()
+
+        self.data = None
 
     def _set_environs(self):
         """Sets up the environment variables required for running Gaussian 16.
@@ -149,8 +152,30 @@ class Gaussian:
             Tuple[str, str]: A tuple of the standard output and standard error of the process.
         """
         # Run Gaussian using subprocess
-        g16_process = subprocess.Popen(['g16'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                       universal_newlines=True, env=self.envs, *args, **kwargs)
+        g16_process = subprocess.Popen(
+            'g16', bufsize=-1, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env=self.envs, universal_newlines=True
+        )
         stdout, stderr = g16_process.communicate(script)
 
+        self.parse_log(stdout)
+
         return stdout, stderr
+
+    def parse_log(self, stdout: str):
+        """ Parse the gaussian log file and save them into self """
+        string_buffer = io.StringIO(stdout)
+        self.data: cclib.parser.data.ccData_optdone_bool = cclib.ccopen(string_buffer).parse()
+
+    @property
+    def molecule_setter_dict(self):
+        """ Prepare the property dict for Molecule setters """
+        return {
+            'atoms.partial_charge': self.data.atomcharges['mulliken'],
+            'energy': self.data.scfenergies,
+            'spin': self.data.mult,
+            'charge': self.data.charge,
+            'mol_orbital_energies': self.data.moenergies  # eV
+        }
+

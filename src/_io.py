@@ -272,6 +272,9 @@ class Dumper:
     @register(fmt='gjf', types='postprocess')
     def _gjf_post_processor(self: 'Dumper', script: str):
         """"""
+        # To count the insert lines
+        inserted_lines = 0
+
         # separate keyword arguments:
         link0 = self.kwargs['link0']
         route = self.kwargs['route']
@@ -280,16 +283,41 @@ class Dumper:
 
         lines = script.splitlines()
 
-        lines[0] = f'%{link0}'
-        lines[1] = f'# {route}'
+        # Write link0 command
+        if isinstance(link0, str):
+            lines[0] = f'%{link0}'
+        elif isinstance(link0, list):
+            for i, stc in enumerate(link0):  # stc=sentence
+                assert isinstance(stc, str)
+                if not i:  # For the first line of link0, replace the the original line in raw script
+                    lines[0] = f'%{stc}'
+                else:  # For the other lines, insert into after the 1st line
+                    inserted_lines += 1
+                    lines.insert(inserted_lines, f'%{stc}')
+        else:
+            raise TypeError('the link0 should be string or list of string')
 
-        charge, spin = lines[5].split()
+        # Write route command
+        if isinstance(route, str):
+            lines[1+inserted_lines] = f'# {route}'
+        elif isinstance(route, list):
+            for i, stc in enumerate(route):
+                assert isinstance(stc, str)
+                if not i:  # For the first line of link0, replace the the original line in raw script
+                    lines[1+inserted_lines] = f'#{stc}'
+                else:  # For the other lines, insert into after the original route line.
+                    inserted_lines += 1
+                    lines.insert(inserted_lines+1, f'%{stc}')
+        else:
+            raise TypeError('the route should be string or list of string')
+
+        charge, spin = lines[5+inserted_lines].split()
         if custom_charge:
             charge = str(custom_charge)
         if custom_spin:
             spin = str(custom_spin)
 
-        lines[5] = f'{charge} {spin}'
+        lines[5+inserted_lines] = f'{charge} {spin}'
 
         script = '\n'.join(lines)
 

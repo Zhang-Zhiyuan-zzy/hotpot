@@ -15,7 +15,7 @@ from typing import *
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper
-import subprocess
+from src.tanks.quantum import Gaussian
 
 dir_root = os.path.join(os.path.dirname(__file__))
 _elements = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -109,11 +109,13 @@ class Molecule(Wrapper, ABC):
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
+            'atoms.partial_charge': self._set_atoms_partial_charge,
             "identifier": self._set_identifier,
             "energy": self._set_mol_energy,
             'charge': self._set_mol_charge,
             'spin': self._set_spin_multiplicity,
-            'atoms': self._set_atoms
+            'atoms': self._set_atoms,
+            'mol_orbital_energies': self._set_mol_orbital_energies
         }
 
     def _pert_mol_generate(self, coord_matrix: np.ndarray):
@@ -135,11 +137,30 @@ class Molecule(Wrapper, ABC):
             a = Atom(**atom_kwarg)
             self.add_atom(a)
 
+    def _set_atoms_partial_charge(self, partial_charges: [np.ndarray, Sequence[float]]):
+        """ Set partial charges for all atoms in the molecule """
+        if not isinstance(partial_charges, (np.ndarray, Sequence[int])):
+            raise TypeError(
+                f'the `partial_charges` should be np.ndarray or Sequence of float, not {type(partial_charges)}'
+            )
+
+        if len(self.atoms) != len(partial_charges):
+            raise ValueError('the given partial charges should have same numbers with the number of atoms')
+
+        for atom, partial_charge in zip(self.atoms, partial_charges):
+            atom.partial_charge = partial_charge
+
     def _set_mol_charge(self, charge: int):
         self._OBMol.SetTotalCharge(charge)
 
-    def _set_mol_energy(self, energy: float):
-        self._OBMol.SetEnergy(energy)
+    def _set_mol_orbital_energies(self, orbital_energies: list[np.ndarray]):
+        self._data['mol_orbital_energies'] = orbital_energies[0]
+
+    def _set_mol_energy(self, energy: Union[float, np.ndarray]):
+        if isinstance(energy, float):
+            self._OBMol.SetEnergy(energy)
+        else:
+            self._OBMol.SetEnergy(energy.flatten()[0])
 
     def _set_identifier(self, identifier):
         self._OBMol.SetTitle(identifier)
@@ -395,18 +416,22 @@ class Molecule(Wrapper, ABC):
 
     def gaussian(
             self,
+            g16root: Union[str, PathLike],
             link0: str,
             route: str,
             path_log_file: Union[str, PathLike] = None,
+            inplace_attrs: bool = False,
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
         calculation by gaussion.
         for running the method normally, MAKE SURE THE Gaussian16 HAVE BEEN INSTALLED AND ALL ENV VAR SET RITHT !!
         Args:
+            g16root:
             link0:
             route:
             path_log_file:
+            inplace_attrs: Whether to inplace self attribute according to the results from attributes
             *args:
             **kwargs:
 
@@ -414,12 +439,20 @@ class Molecule(Wrapper, ABC):
 
         """
 
+        # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
 
-        # Run Gaussian using subprocess
-        g16_process = subprocess.Popen(['g16'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                       universal_newlines=True)
-        stdout, stderr = g16_process.communicate(script)
+        # Run Gaussian16
+        gaussian = Gaussian(g16root)
+        stdout, stderr = gaussian.run(script, args, **kwargs)
+
+        # save the calculate result into the molecule data dict
+        self._data['gaussian_output'] = stdout
+        self._data['gaussian_parse_data'] = gaussian.data
+
+        # Inplace the self attribute according to the result from gaussian
+        if inplace_attrs:
+            self._set_attrs(**gaussian.molecule_setter_dict)
 
         if path_log_file:
             with open(path_log_file, 'w') as writer:
@@ -450,6 +483,14 @@ class Molecule(Wrapper, ABC):
     @property
     def link_matrix(self):
         return np.array([[b.atom1_idx, b.atom2_idx] for b in self.bonds]).T
+
+    @property
+    def mol_orbital_energies(self):
+        energies = self._data.get('mol_orbital_energies')
+        if energies:
+            return energies
+        else:
+            return None
 
     def normalize_labels(self):
         """ Reorder the atoms labels in the molecule """
@@ -714,6 +755,10 @@ class Atom(Wrapper, ABC):
     @property
     def partial_charge(self):
         return self._OBAtom.GetPartialCharge()
+
+    @partial_charge.setter
+    def partial_charge(self, value: float):
+        self._set_partial_charge(value)
 
     @property
     def symbol(self):

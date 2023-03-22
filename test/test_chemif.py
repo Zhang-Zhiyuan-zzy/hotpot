@@ -8,7 +8,7 @@ python v3.7.9
 """
 import io
 from pathlib import Path
-from src.cheminfo import Molecule as Mol, Atom
+from src.cheminfo import Molecule as Mol, Atom, ob
 import os
 import cclib
 import time
@@ -95,4 +95,9 @@ if __name__ == '__main__':
     string_buffer = io.StringIO(out)
     data = cclib.ccopen(string_buffer)
 
+    mol = mols[0]
+    mol.normalize_labels()
+    b = mol.bonds[20]
+    gb = mol.bond(b.atom2.label, b.atom1.label)
+    mol.clean_bonds()
 

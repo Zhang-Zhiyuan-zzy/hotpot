@@ -224,7 +224,7 @@ class Molecule(Wrapper, ABC):
             if isinstance(a, Atom):
                 atom_idx.append(a.idx)
             if isinstance(a, str):
-                atom_idx.append(self.atom_from_label(a).idx)
+                atom_idx.append(self.atom(a).idx)
 
         # Represent the bond type by int, refer to _bond_type dict
         bond_type = bond_type if isinstance(bond_type, int) else _bond_type[bond_type]
@@ -258,13 +258,21 @@ class Molecule(Wrapper, ABC):
         # Return the bond have add into the molecule
         return bond
 
-    def atom_from_label(self, label: str) -> 'Atom':
-        """ get atom by label """
+    def assign_bond_types(self):
+        self._OBMol.PerceiveBondOrders()
+
+    def atom(self, idx_label: Union[int, str]) -> 'Atom':
+        """ get atom by label or idx """
         if not self.is_labels_unique:
             print(AttributeError('the molecule atoms labels are not unique!'))
             return
 
-        return self.atoms[self.labels.index(label)]
+        if isinstance(idx_label, str):
+            return self.atoms[self.labels.index(idx_label)]
+        elif isinstance(idx_label, int):
+            return self.atoms[idx_label]
+        else:
+            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(idx_label)}')
 
     @property
     def atoms(self):
@@ -309,12 +317,40 @@ class Molecule(Wrapper, ABC):
         return [a.idx for a in self.atoms]
 
     @property
-    def bonds(self):
-        return [Bond(self._OBMol.GetBondById(i), _mol=self) for i in range(self._OBMol.NumBonds())]
-
-    @property
     def atom_labels(self):
         return [a.label for a in self.atoms]
+
+    def bond(self, atom1: Union[int, str], atom2: Union[int, str], miss_raise: bool = False) -> 'Bond':
+        """
+        Return the Bond by given atom index labels in the bond ends
+        if the bond is missing in the molecule, return None if given miss_raise is False else raise a KeyError
+        Args:
+            atom1(int|str): index or label of atom in one of the bond end
+            atom2(int|str): index or label of atom in the other end of the bond
+            miss_raise(bool): Whether to raise error when can't find the bond
+
+        Returns:
+            Bond
+
+        Raises:
+            KeyError: when can't find the bond, and the miss_raise passing True
+
+        """
+        atom1: Atom = self.atom(atom1)
+        atom2: Atom = self.atom(atom2)
+        OBBond = self._OBMol.GetBond(atom1._OBAtom, atom2._OBAtom)
+
+        if OBBond:
+            return Bond(OBBond, self)
+        else:
+            return None
+
+    @property
+    def bonds(self):
+        return [Bond(OBBond, _mol=self) for OBBond in ob.OBMolBondIter(self._OBMol)]
+
+    def build_bonds(self):
+        self._OBMol.ConnectTheDots()
 
     @property
     def charge(self):
@@ -323,6 +359,19 @@ class Molecule(Wrapper, ABC):
     @charge.setter
     def charge(self, charge):
         self._set_mol_charge(charge)
+
+    def clean_bonds(self):
+        """ Remove all bonds """
+        # Iterate directly will fail.
+        OBBonds = [OBBond for OBBond in ob.OBMolBondIter(self._OBMol)]
+        for OBBond in OBBonds:
+            self._OBMol.DeleteBond(OBBond)
+
+    @property
+    def components(self):
+        """ TODO: complete this method """
+        separated_obmol = self._OBMol.Separate()
+        return separated_obmol
 
     @property
     def configure_number(self):
@@ -735,6 +784,18 @@ class Atom(Wrapper, ABC):
     @property
     def idx(self):
         return self._OBAtom.GetId()
+
+    @property
+    def is_aromatic(self):
+        return self._OBAtom.IsAromatic()
+
+    @property
+    def is_metal(self):
+        return self._OBAtom.IsMetal()
+
+    @property
+    def is_chiral(self):
+        return self._OBAtom.IsChiral()
 
     @property
     def label(self):

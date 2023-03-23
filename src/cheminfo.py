@@ -7,6 +7,7 @@ python v3.7.9
 @Time   : 4:09
 """
 import os
+import re
 from os import PathLike
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -117,6 +118,14 @@ class Molecule(Wrapper, ABC):
             'atoms': self._set_atoms,
             'mol_orbital_energies': self._set_mol_orbital_energies
         }
+
+    @property
+    def _coord_collect(self):
+        coord_collect = self._data.get('_coord_collect')
+        if coord_collect:
+            return coord_collect
+        else:
+            return self.coord_matrix
 
     def _pert_mol_generate(self, coord_matrix: np.ndarray):
         """
@@ -453,15 +462,27 @@ class Molecule(Wrapper, ABC):
 
         return atom
 
+    @property
+    def crystal(self):
+        return self._data.get('crystal')
+
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes]:
         """"""
         dumper = Dumper(fmt=fmt, mol=self, *args, **kwargs)
         return dumper.dump()
 
     @property
+    def elements(self) -> list[str]:
+        return re.findall(r'[A-Z][a-z]*', self.formula)
+
+    @property
     def energy(self):
         """ Return energy with kcal/mol as default """
         return self._OBMol.GetEnergy()
+
+    @property
+    def formula(self) -> str:
+        return self._OBMol.GetFormula()
 
     def gaussian(
             self,
@@ -645,6 +666,23 @@ class Molecule(Wrapper, ABC):
         mol_kwargs = custom_reader.read(path_file, *args, **kwargs)
         return cls(**mol_kwargs)
 
+    @property
+    def rotatable_bonds_number(self):
+        return self._OBMol.NumRotors()
+
+    def save_coord_matrix_to_npy(
+            self, save_path: Union[str, PathLike],
+            which: Literal['present', 'all'] = 'present',
+            **kwargs
+    ):
+        """"""
+        if which == 'present':
+            np.save(save_path, self.coord_matrix, **kwargs)
+        elif which == 'all':
+            np.save(save_path, self._coord_collect, **kwargs)
+        else:
+            return ValueError(f"the which should be `present` or `all`, instead of `{which}`")
+
     def set_label(self, idx: int, label: str):
         self.atoms[idx].label = label
 
@@ -655,6 +693,15 @@ class Molecule(Wrapper, ABC):
     @spin.setter
     def spin(self, spin: int):
         self._set_spin_multiplicity(spin)
+
+    def to_deepmd_train_data(
+            self, path_save: Union[str, PathLike],
+            valid_set_size: Union[int, float] = 0.2,
+            is_test_set: bool = False,
+            _call_by_bundle: bool = False
+    ):
+        """"""
+
 
     @property
     def weight(self):
@@ -892,3 +939,69 @@ class Bond(Wrapper, ABC):
     def type(self):
         return self._OBBond.GetBondOrder()
 
+
+class Crystal(Wrapper, ABC):
+    """"""
+    _lattice_type = (
+        'Undefined', 'Triclinic', 'Monoclinic', 'Orthorhombic', 'Tetragonal', 'Rhombohedral', 'Hexagonal', 'Cubic'
+    )
+
+    def __init__(self, _OBUnitCell: ob.OBUnitCell = None, mol: Molecule = None, **kwargs):
+        if mol.crystal and isinstance(mol.crystal, Crystal):
+            raise AttributeError("the Molecule have been stored in a Crystal, "
+                                 "can't save the same Molecule into two Crystals")
+
+        self._data = {
+            'OBUnitCell': _OBUnitCell if _OBUnitCell else ob.OBUnitCell(),
+            'mol': mol
+        }
+
+        self._set_attrs(**kwargs)
+
+    @property
+    def _OBUnitCell(self) -> ob.OBUnitCell:
+        return self._data.get('OBUnitCell')
+
+    def _set_space_group(self, space_group: str):
+        self._OBUnitCell.SetSpaceGroup(space_group)
+
+    def _attr_setters(self) -> Dict[str, Callable]:
+        return {
+            'space_group': self._set_space_group
+        }
+
+    @property
+    def lattice_type(self) -> str:
+        return self._lattice_type[self._OBUnitCell.GetLatticeType()]
+
+    @property
+    def lattice_params(self) -> np.ndarray[2, 3]:
+        a = self._OBUnitCell.GetA()
+        b = self._OBUnitCell.GetB()
+        c = self._OBUnitCell.GetC()
+        alpha = self._OBUnitCell.GetAlpha()
+        beta = self._OBUnitCell.GetBeta()
+        gamma = self._OBUnitCell.GetGamma()
+        return np.ndarray([[a, b, c], [alpha, beta, gamma]])
+
+    @property
+    def molecule(self):
+        return self._data.get('mol')
+
+    def set_lattice(
+            self,
+            a: float, b: float, c: float,
+            alpha: float, beta: float, gamma: float
+    ):
+        self._OBUnitCell.SetData(a, b, c, alpha, beta, gamma)
+
+    @property
+    def space_group(self):
+        return self._OBUnitCell.GetSpaceGroup()
+
+    @space_group.setter
+    def space_group(self, value: str):
+        self._set_space_group(value)
+
+    def zeo_plus_plus(self):
+        """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """

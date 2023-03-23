@@ -99,5 +99,5 @@ if __name__ == '__main__':
     mol.normalize_labels()
     b = mol.bonds[20]
     gb = mol.bond(b.atom2.label, b.atom1.label)
-    mol.clean_bonds()
+    # mol.clean_bonds()
 

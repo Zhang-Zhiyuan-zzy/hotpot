@@ -6,6 +6,7 @@ python v3.7.9
 @Date   : 2023/3/14
 @Time   : 4:09
 """
+import copy
 import os
 import re
 from os import PathLike
@@ -60,6 +61,10 @@ class Wrapper(ABC):
     @abstractmethod
     def _attr_setters(self) -> Dict[str, Callable]:
         raise NotImplemented
+
+    @property
+    def setter_keys(self):
+        return list(self._attr_setters.keys())
 
 
 class Molecule(Wrapper, ABC):
@@ -304,6 +309,9 @@ class Molecule(Wrapper, ABC):
             ]
 
         # If the order of atom index by atoms is non-match with the order by OBAtoms
+        # the atom indices and OBAtom indices are NOT required to be complete, but MUST be consistent.
+        # for example, the atom indices and the OBAtom indices might be [1, 2, 4, 6], simultaneously,
+        # however, the situation that the atom indices are [1, 2] and the OBAtom indices are [1, 2, 3] is not allowed!!
         elif len(atoms) != len(OBAtom_indices) or any(ai != Ai for ai, Ai in zip(atoms_indices, OBAtom_indices)):
             new_atoms = []
             for OBAtom_idx in OBAtom_indices:
@@ -313,13 +321,13 @@ class Molecule(Wrapper, ABC):
                     new_atoms.append(atoms[atom_idx])
 
                 # If the atom doesn't exist in the old atom, create a new atoms and append to new list
-                except ImportError:
+                except ValueError:
                     new_atoms.append(Atom(self._OBMol.GetAtomById(OBAtom_idx), _mol=self))
 
             # Update the atoms list
             atoms = self._data['atoms'] = new_atoms
 
-        return atoms
+        return copy.copy(atoms)  # Copy the atoms list
 
     @property
     def atoms_indices(self) -> list[int]:
@@ -380,7 +388,7 @@ class Molecule(Wrapper, ABC):
     def components(self):
         """ TODO: complete this method """
         separated_obmol = self._OBMol.Separate()
-        return separated_obmol
+        return [Molecule(obmol) for obmol in separated_obmol]
 
     @property
     def configure_number(self):
@@ -408,7 +416,7 @@ class Molecule(Wrapper, ABC):
         """
         return np.array([atom.coordinates for atom in self.atoms], dtype=np.float64)
 
-    def copy(self):
+    def copy(self) -> 'Molecule':
         """ Copy the Molecule """
         # Create the new data sheet
         new_data = {
@@ -417,10 +425,10 @@ class Molecule(Wrapper, ABC):
             'bonds': []
         }
 
-        # Copy all attribute out the
+        # Copy all attribute except fro 'OBMol', 'atoms' and 'bonds'
         for name, value in self._data.items():
             if name not in new_data:
-                new_data[name] = value
+                new_data[name] = copy.copy(value)
 
         # Create new Molecule
         clone_mol = Molecule()
@@ -666,6 +674,32 @@ class Molecule(Wrapper, ABC):
         mol_kwargs = custom_reader.read(path_file, *args, **kwargs)
         return cls(**mol_kwargs)
 
+    def remove_atoms(self, *atoms: Union[int, str, 'Atom']) -> None:
+        """
+        Remove atom according to given atom index, label or the atoms self.
+        Args:
+            atom(int|str|Atom): the index, label or self of Removed atom
+
+        Returns:
+            None
+        """
+        for atom in atoms:
+
+            # Check and locate the atom
+            if isinstance(atom, int):
+                atom = self.atoms[atom]
+            elif isinstance(atom, str):
+                atom = self.atoms[self.atom_labels.index(atom)]
+            elif isinstance(atom, Atom):
+                if not(atom.molecule is self):
+                    raise AttributeError('the given atom not in the molecule')
+            else:
+                raise TypeError('the given atom should be int, str or Atom')
+
+            # Removing atom
+            self._OBMol.DeleteAtom(atom._OBAtom)
+            atom._data['_mol'] = None
+
     @property
     def rotatable_bonds_number(self):
         return self._OBMol.NumRotors()
@@ -726,13 +760,13 @@ class Atom(Wrapper, ABC):
     def __init__(
         self,
         OBAtom: ob.OBAtom = None,
-        _mol: Molecule = None,
+        # _mol: Molecule = None,  # TODO: Remove later
         **kwargs
     ):
         # Contain all data to reappear this Atom
         self._data = {
             'OBAtom': OBAtom if OBAtom else ob.OBAtom(),
-            '_mol': _mol,
+            # '_mol': _mol,
         }
 
         self._set_attrs(**kwargs)
@@ -743,7 +777,7 @@ class Atom(Wrapper, ABC):
 
     @property
     def _mol(self):
-        return self._data['_mol']
+        return self._data.get('_mol')
 
     def __repr__(self):
         return f"Atom({self.label if self.label else self.symbol})"
@@ -751,6 +785,9 @@ class Atom(Wrapper, ABC):
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
+            "_mol": self._set_molecule,
+            "mol": self._set_molecule,
+            'molecule': self._set_molecule,
             "atomic_number": self._set_atomic_number,
             'symbol': self._set_atomic_symbol,
             "coordinates": self._set_coordinate,
@@ -776,8 +813,7 @@ class Atom(Wrapper, ABC):
         self._data['label'] = label
 
     def _set_molecule(self, molecule: Molecule):
-        atom_property = getattr(self._OBAtom, 'property')
-        atom_property['molecule'] = molecule
+        self._data['_mol'] = molecule
 
     def _set_partial_charge(self, charge):
         self._OBAtom.SetPartialCharge(charge)
@@ -946,27 +982,35 @@ class Crystal(Wrapper, ABC):
         'Undefined', 'Triclinic', 'Monoclinic', 'Orthorhombic', 'Tetragonal', 'Rhombohedral', 'Hexagonal', 'Cubic'
     )
 
-    def __init__(self, _OBUnitCell: ob.OBUnitCell = None, mol: Molecule = None, **kwargs):
-        if mol.crystal and isinstance(mol.crystal, Crystal):
-            raise AttributeError("the Molecule have been stored in a Crystal, "
-                                 "can't save the same Molecule into two Crystals")
+    def __init__(self, _OBUnitCell: ob.OBUnitCell = None, **kwargs):
 
         self._data = {
             'OBUnitCell': _OBUnitCell if _OBUnitCell else ob.OBUnitCell(),
-            'mol': mol
         }
 
         self._set_attrs(**kwargs)
 
+    def __repr__(self):
+        return f'Crystal({self.lattice_type}, {self.space_group}, {self.molecule})'
+
     @property
     def _OBUnitCell(self) -> ob.OBUnitCell:
         return self._data.get('OBUnitCell')
+
+    def _set_molecule(self, molecule: Molecule):
+        if molecule.crystal and isinstance(molecule.crystal, Crystal):
+            print(AttributeError("the Molecule have been stored in a Crystal, "
+                                 "can't save the same Molecule into two Crystals"))
+        else:
+            self._data['mol'] = molecule
 
     def _set_space_group(self, space_group: str):
         self._OBUnitCell.SetSpaceGroup(space_group)
 
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
+            'mol': self._set_molecule,
+            'molecule': self._set_molecule,
             'space_group': self._set_space_group
         }
 
@@ -985,8 +1029,21 @@ class Crystal(Wrapper, ABC):
         return np.ndarray([[a, b, c], [alpha, beta, gamma]])
 
     @property
-    def molecule(self):
+    def molecule(self) -> Molecule:
         return self._data.get('mol')
+
+    @property
+    def pack_molecule(self) -> Molecule:
+        mol = self.molecule  # Get the contained Molecule
+
+        if not mol:  # If get None
+            print(RuntimeWarning("the crystal doesn't contain any Molecule!"))
+            return None
+
+        pack_mol = mol.copy()
+        self._OBUnitCell.FillUnitCell(pack_mol._OBMol)  # Full the crystal
+
+        return pack_mol
 
     def set_lattice(
             self,
@@ -1002,6 +1059,10 @@ class Crystal(Wrapper, ABC):
     @space_group.setter
     def space_group(self, value: str):
         self._set_space_group(value)
+
+    @property
+    def volume(self):
+        return self._OBUnitCell.GetCellVolume()
 
     def zeo_plus_plus(self):
         """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """

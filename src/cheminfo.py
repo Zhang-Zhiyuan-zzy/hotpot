@@ -401,7 +401,7 @@ class Molecule(Wrapper, ABC):
     def configure_select(self, config_idx: int):
         """ select specific configure by index """
         coordinate_matrix_collection = self._data.get('_coord_collect')
-        if coordinate_matrix_collection is None:
+        if coordinate_matrix_collection is None and config_idx:
             raise IndexError('Only one configure here!')
 
         config_coord_matrix = coordinate_matrix_collection[config_idx]
@@ -448,7 +448,11 @@ class Molecule(Wrapper, ABC):
 
     def clean_configures(self, pop: bool = False):
         """ clean all config save inside the molecule """
-        coord_collect = self._data.pop('_coord_collect')
+        try:
+            coord_collect = self._data.pop('_coord_collect')
+        except KeyError:
+            coord_collect = None
+
         if pop:
             return coord_collect
 
@@ -495,9 +499,10 @@ class Molecule(Wrapper, ABC):
     def gaussian(
             self,
             g16root: Union[str, PathLike],
-            link0: str,
-            route: str,
+            link0: Union[str, List[str]],
+            route: Union[str, List[str]],
             path_log_file: Union[str, PathLike] = None,
+            path_err_file: Union[str, PathLike] = None,
             inplace_attrs: bool = False,
             *args, **kwargs
     ) -> (Union[None, str], str):
@@ -508,7 +513,8 @@ class Molecule(Wrapper, ABC):
             g16root:
             link0:
             route:
-            path_log_file:
+            path_log_file: the path to save the out.log file
+            path_err_file: the path to save the error log file
             inplace_attrs: Whether to inplace self attribute according to the results from attributes
             *args:
             **kwargs:
@@ -532,11 +538,18 @@ class Molecule(Wrapper, ABC):
         if inplace_attrs:
             self._set_attrs(**gaussian.molecule_setter_dict)
 
+        # Save log file
         if path_log_file:
             with open(path_log_file, 'w') as writer:
                 writer.write(stdout)
-        else:
-            return stdout, stderr
+
+        # Save error file
+        if path_err_file:
+            with open(path_err_file, 'w') as writer:
+                writer.write(stderr)
+
+        # return results and error info
+        return stdout, stderr
 
     @property
     def identifier(self):
@@ -633,7 +646,15 @@ class Molecule(Wrapper, ABC):
             """ TODO: this function is prepare to generate the new lattice """
 
         if inplace:
-            self._data['_coord_collect'] = np.array([origin_coord_matrix]+[c for c in coordinates_generator()])
+            origin_coord_collect = self._data.get('_coord_collect')
+            new_coord_collect = np.array([c for c in coordinates_generator()])
+
+            # TODO: test changes
+            if origin_coord_collect:
+                self._data['_coord_collect'] = np.concatenate([origin_coord_collect, new_coord_collect])
+            else:
+                self._data['_coord_collect'] = np.concatenate(np.array([origin_coord_matrix]), new_coord_collect)
+
         else:
             return (self._pert_mol_generate(c) for c in coordinates_generator())
 
@@ -663,6 +684,10 @@ class Molecule(Wrapper, ABC):
         try:
             OBMol = next(pb.readfile(fmt, str(path_file), **kwargs)).OBMol
             return cls(OBMol, **kwargs)
+
+        except StopIteration:
+            # in the case, got Nothing from pybel.readfile.
+            return None
 
         except ValueError:
             """ Fail to read file by 'pybel' module """

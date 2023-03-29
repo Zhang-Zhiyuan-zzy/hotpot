@@ -22,7 +22,7 @@ class Gaussian:
         g16root (str): The path to the Gaussian 16 root directory.
 
     """
-    def __init__(self, g16root: Union[str, os.PathLike]):
+    def __init__(self, g16root: Union[str, os.PathLike], report_set_resource_error: bool = False):
         """
         This method sets up the required environment variables and resource limits for Gaussian 16.
         Args:
@@ -39,7 +39,7 @@ class Gaussian:
             raise TypeError('the g16root should be str or os.PathLike type!')
 
         self.envs = self._set_environs()
-        self._set_resource_limits()
+        self._set_resource_limits(report_set_resource_error)
 
         self.data = None
 
@@ -83,7 +83,7 @@ class Gaussian:
         return updated_env
 
     @staticmethod
-    def _set_resource_limits():
+    def _set_resource_limits(report_error: bool):
         """Sets resource limits for the Gaussian 16 process to avoid system crashes.
 
         This method sets resource limits for the Gaussian 16 process to avoid system crashes. Specifically,
@@ -94,47 +94,56 @@ class Gaussian:
         try:
             resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_CORE limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_CORE limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_DATA, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_DATA limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_DATA limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_FSIZE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_FSIZE limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_FSIZE limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_MEMLOCK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_MEMLOCK limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_MEMLOCK limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_RSS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_RSS limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_RSS limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_NOFILE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_NOFILE limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_NOFILE limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_STACK limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_STACK limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_CPU, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_CPU limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_CPU limit.'))
 
         try:
             resource.setrlimit(resource.RLIMIT_NPROC, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except ValueError:
-            print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
+            if report_error:
+                print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
 
     def run(self, script: str, *args, **kwargs):
         """Runs the Gaussian 16 process with the given script and additional arguments.

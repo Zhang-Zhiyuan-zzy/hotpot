@@ -145,6 +145,11 @@ class Molecule(Wrapper, ABC):
         self._assign_atom_coords(clone_mol, coord_matrix)
         return clone_mol
 
+    def _reorganize_atom_indices(self):
+        """ reorganize or rearrange the indices for all atoms """
+        for i, OBAtom in enumerate(ob.OBMolAtomIter(self._OBMol)):
+            OBAtom.SetId(i)
+
     def _set_atoms(self, atoms_kwargs: List[Dict[str, Any]]):
         """ add a list of atoms by a list atoms attributes dict """
         for atom_kwarg in atoms_kwargs:
@@ -386,7 +391,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def components(self):
-        """ TODO: complete this method """
+        """ get all fragments don't link each by any bonds """
         separated_obmol = self._OBMol.Separate()
         return [Molecule(obmol) for obmol in separated_obmol]
 
@@ -435,6 +440,11 @@ class Molecule(Wrapper, ABC):
         clone_mol._data = new_data
         clone_mol.identifier = f"{self.identifier}_clone"
 
+        # Clone the old UnitCell data into new
+        cell_data = self._OBMol.GetData(12)  # the UnitCell of OBmol save with idx 12
+        if cell_data:
+            clone_mol._OBMol.CloneData(cell_data)
+
         # copy, in turn, each Atom in this molecule and add them into new Molecule
         for atom in self.atoms:
             clone_atom = atom.copy()
@@ -474,9 +484,16 @@ class Molecule(Wrapper, ABC):
 
         return atom
 
-    @property
     def crystal(self):
-        return self._data.get('crystal')
+        """ Get the Crystal containing the Molecule """
+        cell_index = ob.UnitCell  # Get the index the UnitCell data save
+        cell_data = self._OBMol.GetData(cell_index)
+
+        if cell_data:
+            OBUnitCell = ob.toUnitCell(cell_data)
+            return Crystal(OBUnitCell, molecule=self)
+        else:
+            return None
 
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes]:
         """"""
@@ -785,7 +802,6 @@ class Atom(Wrapper, ABC):
     def __init__(
         self,
         OBAtom: ob.OBAtom = None,
-        # _mol: Molecule = None,  # TODO: Remove later
         **kwargs
     ):
         # Contain all data to reappear this Atom
@@ -1032,6 +1048,7 @@ class Crystal(Wrapper, ABC):
     def _set_space_group(self, space_group: str):
         self._OBUnitCell.SetSpaceGroup(space_group)
 
+    @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
             'mol': self._set_molecule,
@@ -1051,7 +1068,7 @@ class Crystal(Wrapper, ABC):
         alpha = self._OBUnitCell.GetAlpha()
         beta = self._OBUnitCell.GetBeta()
         gamma = self._OBUnitCell.GetGamma()
-        return np.ndarray([[a, b, c], [alpha, beta, gamma]])
+        return np.array([[a, b, c], [alpha, beta, gamma]])
 
     @property
     def molecule(self) -> Molecule:
@@ -1067,6 +1084,7 @@ class Crystal(Wrapper, ABC):
 
         pack_mol = mol.copy()
         self._OBUnitCell.FillUnitCell(pack_mol._OBMol)  # Full the crystal
+        pack_mol._reorganize_atom_indices()  # Rearrange the atom indices.
 
         return pack_mol
 
@@ -1079,7 +1097,7 @@ class Crystal(Wrapper, ABC):
 
     @property
     def space_group(self):
-        return self._OBUnitCell.GetSpaceGroup()
+        return self._OBUnitCell.GetSpaceGroup().GetHMName()
 
     @space_group.setter
     def space_group(self, value: str):

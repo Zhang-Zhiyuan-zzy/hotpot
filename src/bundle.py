@@ -34,7 +34,23 @@ class MolBundle:
             ranges: Union[Sequence[int], range] = None,
             condition: Callable = None
     ):
+        """
+        Read Molecule objects from a directory.
 
+        Args:
+            fmt(str): read file with the specified-format method.
+            read_dir(str|PathLike): the directory all file put
+            match_pattern(str): the file name pattern
+            generate(bool): read file to a generator of Molecule object
+            ranges(Sequence[int]|range): A list or range of integers representing the indices of
+                the input files to read. Defaults to None.
+            condition(Callable): A callable object that takes two arguments (the path of the input file
+                and the corresponding Molecule object) and returns a boolean value indicating whether to include the
+                Molecule object in the output. Defaults to None.
+
+        Returns:
+
+        """
         def mol_generator():
             nonlocal read_dir
 

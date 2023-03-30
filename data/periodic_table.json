@@ -41,7 +41,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Hydrogenglow.jpg",
                 "attribution": "User:Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/hydrogen.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 31,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Helium",
@@ -85,7 +87,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Helium-glow.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/helium.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 28,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Lithium",
@@ -106,7 +110,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_003_lithium/element_003_lithium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_003_lithium/element_003_lithium.glb",
             "spectral_img": null,
-            "summary": "Lithium (from Greek:λίθος lithos, \"stone\") is a chemical element with the symbol Li and atomic number 3. It is a soft, silver-white metal belonging to the alkali metal group of chemical elements. Under standard conditions it is the lightest metal and the least dense solid element.",
+            "summary": "Lithium (from Greek:\u03bb\u03af\u03b8\u03bf\u03c2 lithos, \"stone\") is a chemical element with the symbol Li and atomic number 3. It is a soft, silver-white metal belonging to the alkali metal group of chemical elements. Under standard conditions it is the lightest metal and the least dense solid element.",
             "symbol": "Li",
             "xpos": 1,
             "ypos": 2,
@@ -131,7 +135,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/0.5_grams_lithium_under_argon.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/lithium.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 128,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Beryllium",
@@ -178,7 +184,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Beryllium_%28Be%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/beryllium.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 96,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Boron",
@@ -226,7 +234,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Boron.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/boron.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 84,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Carbon",
@@ -247,7 +257,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_006_carbon/element_006_carbon_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_006_carbon/element_006_carbon.glb",
             "spectral_img": "https://en.wikipedia.org/wiki/File:Carbon_Spectra.jpg",
-            "summary": "Carbon (from Latin:carbo \"coal\") is a chemical element with symbol C and atomic number 6. On the periodic table, it is the first (row 2) of six elements in column (group) 14, which have in common the composition of their outer electron shell. It is nonmetallic and tetravalent—making four electrons available to form covalent chemical bonds.",
+            "summary": "Carbon (from Latin:carbo \"coal\") is a chemical element with symbol C and atomic number 6. On the periodic table, it is the first (row 2) of six elements in column (group) 14, which have in common the composition of their outer electron shell. It is nonmetallic and tetravalent\u2014making four electrons available to form covalent chemical bonds.",
             "symbol": "C",
             "xpos": 14,
             "ypos": 2,
@@ -275,7 +285,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Pure_Carbon.png",
                 "attribution": "Texas Lane, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 76,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Nitrogen",
@@ -325,7 +337,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Nitrogen-glow.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/nitrogen.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 71,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Oxygen",
@@ -376,7 +390,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Liquid_oxygen_in_a_beaker_%28cropped_and_retouched%29.jpg",
                 "attribution": "Staff Sgt. Nika Glover, U.S. Air Force, Public domain, via Wikimedia Commons"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 66,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Fluorine",
@@ -385,7 +401,7 @@
             "boil": 85.03,
             "category": "diatomic nonmetal",
             "density": 1.696,
-            "discovered_by": "André-Marie Ampère",
+            "discovered_by": "Andr\u00e9-Marie Amp\u00e8re",
             "melt": 53.48,
             "molar_heat": null,
             "named_by": "Humphry Davy",
@@ -424,11 +440,13 @@
             ],
             "cpk-hex": "90e050",
             "image": {
-                "title": "Liquid Fluorine at -196°C",
+                "title": "Liquid Fluorine at -196\u00b0C",
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Fluoro_liquido_a_-196%C2%B0C_1.jpg",
                 "attribution": "Fulvio314, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 57,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Neon",
@@ -481,7 +499,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Neon-glow.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/neon.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 58,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Sodium",
@@ -502,7 +522,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_011_sodium/element_011_sodium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_011_sodium/element_011_sodium.glb",
             "spectral_img": "https://en.wikipedia.org/wiki/File:Sodium_Spectra.jpg",
-            "summary": "Sodium /ˈsoʊdiəm/ is a chemical element with symbol Na (from Ancient Greek Νάτριο) and atomic number 11. It is a soft, silver-white, highly reactive metal. In the Periodic table it is in column 1 (alkali metals), and shares with the other six elements in that column that it has a single electron in its outer shell, which it readily donates, creating a positively charged atom - a cation.",
+            "summary": "Sodium /\u02c8so\u028adi\u0259m/ is a chemical element with symbol Na (from Ancient Greek \u039d\u03ac\u03c4\u03c1\u03b9\u03bf) and atomic number 11. It is a soft, silver-white, highly reactive metal. In the Periodic table it is in column 1 (alkali metals), and shares with the other six elements in that column that it has a single electron in its outer shell, which it readily donates, creating a positively charged atom - a cation.",
             "symbol": "Na",
             "xpos": 1,
             "ypos": 3,
@@ -536,7 +556,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/27/Na_%28Sodium%29.jpg",
                 "attribution": "The original uploader was Dnn87 at English Wikipedia., CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 166,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Magnesium",
@@ -592,7 +614,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Magnesium_crystals.jpg",
                 "attribution": "Warut Roonguthai, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 141,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Aluminium",
@@ -649,7 +673,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Aluminium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/aluminium.php "
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 121,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Silicon",
@@ -658,7 +684,7 @@
             "boil": 3538,
             "category": "metalloid",
             "density": 2.329,
-            "discovered_by": "Jöns Jacob Berzelius",
+            "discovered_by": "J\u00f6ns Jacob Berzelius",
             "melt": 1687,
             "molar_heat": 19.789,
             "named_by": "Thomas Thomson (chemist)",
@@ -707,7 +733,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Silicon.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/silicon.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 111,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Phosphorus",
@@ -728,7 +756,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_015_phosphorus/element_015_phosphorus_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_015_phosphorus/element_015_phosphorus.glb",
             "spectral_img": null,
-            "summary": "Phosphorus is a chemical element with symbol P and atomic number 15. As an element, phosphorus exists in two major forms—white phosphorus and red phosphorus—but due to its high reactivity, phosphorus is never found as a free element on Earth. Instead phosphorus-containing minerals are almost always present in their maximally oxidised state, as inorganic phosphate rocks.",
+            "summary": "Phosphorus is a chemical element with symbol P and atomic number 15. As an element, phosphorus exists in two major forms\u2014white phosphorus and red phosphorus\u2014but due to its high reactivity, phosphorus is never found as a free element on Earth. Instead phosphorus-containing minerals are almost always present in their maximally oxidised state, as inorganic phosphate rocks.",
             "symbol": "P",
             "xpos": 15,
             "ypos": 3,
@@ -766,7 +794,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Phosphorus-purple.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/phosphorus.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 107,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Sulfur",
@@ -826,7 +856,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Native_sulfur_%28Vodinskoe_Deposit%3B_quarry_near_Samara%2C_Russia%29_9.jpg",
                 "attribution": "James St. John, CC BY 2.0 <https://creativecommons.org/licenses/by/2.0>, via Wikimedia Commons"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 105,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Chlorine",
@@ -887,7 +919,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Chlorine-sample-flip.jpg",
                 "attribution": "Benjah-bmm27, Public domain, via Wikimedia Commons"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 102,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Argon",
@@ -949,7 +983,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Argon-glow.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/argon.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 106,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Potassium",
@@ -1013,7 +1049,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Potassium.JPG",
                 "attribution": "Dnn87, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 203,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Calcium",
@@ -1078,7 +1116,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/7/72/Calcium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/calcium.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 176,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Scandium",
@@ -1144,7 +1184,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Scandium%2C_Sc.jpg",
                 "attribution": "JanDerChemiker, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 170,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Titanium",
@@ -1211,7 +1253,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Titanium.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/titanium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 160,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Vanadium",
@@ -1220,7 +1264,7 @@
             "boil": 3680,
             "category": "transition metal",
             "density": 6,
-            "discovered_by": "Andrés Manuel del Río",
+            "discovered_by": "Andr\u00e9s Manuel del R\u00edo",
             "melt": 2183,
             "molar_heat": 24.89,
             "named_by": "Isotopes of vanadium",
@@ -1279,7 +1323,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Vanadium-pieces.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/vanadium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 153,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Chromium",
@@ -1348,7 +1394,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Chromium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/chromium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 139,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Manganese",
@@ -1418,7 +1466,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/64/Manganese_element.jpg",
                 "attribution": "W. Oelen, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 139,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Iron",
@@ -1489,7 +1539,9 @@
                 "url": "https://images-of-elements.com/iron-2.jpg",
                 "attribution": "Chemical ELements A Virtual Museum, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0> source: https://images-of-elements.com/iron.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 132,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Cobalt",
@@ -1561,7 +1613,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Cobalt_ore_2.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/cobalt.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 126,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Nickel",
@@ -1634,7 +1688,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/57/Nickel_chunk.jpg",
                 "attribution": "Materialscientist at English Wikipedia, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 121,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Copper",
@@ -1704,11 +1760,13 @@
             ],
             "cpk-hex": "c88033",
             "image": {
-                "title": "Macro of Native Copper about 1 ½ inches (4 cm) in size",
+                "title": "Macro of Native Copper about 1 \u00bd inches (4 cm) in size",
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/NatCopper.jpg",
                 "attribution": "Native_Copper_Macro_Digon3.jpg: 'Jonathan Zander (Digon3)' derivative work: Materialscientist, CC BY-SA 2.5 <https://creativecommons.org/licenses/by-sa/2.5>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 138,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Zinc",
@@ -1774,7 +1832,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Zinc_%2830_Zn%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/zinc.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 131,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Gallium",
@@ -1795,7 +1855,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_031_gallium/element_031_gallium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_031_gallium/element_031_gallium.glb",
             "spectral_img": null,
-            "summary": "Gallium is a chemical element with symbol Ga and atomic number 31. Elemental gallium does not occur in free form in nature, but as the gallium(III) compounds that are in trace amounts in zinc ores and in bauxite. Gallium is a soft, silvery metal, and elemental gallium is a brittle solid at low temperatures, and melts at 29.76 °C (85.57 °F) (slightly above room temperature).",
+            "summary": "Gallium is a chemical element with symbol Ga and atomic number 31. Elemental gallium does not occur in free form in nature, but as the gallium(III) compounds that are in trace amounts in zinc ores and in bauxite. Gallium is a soft, silvery metal, and elemental gallium is a brittle solid at low temperatures, and melts at 29.76 \u00b0C (85.57 \u00b0F) (slightly above room temperature).",
             "symbol": "Ga",
             "xpos": 13,
             "ypos": 4,
@@ -1823,7 +1883,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Solid_gallium_%28Ga%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/gallium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 126,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Germanium",
@@ -1873,7 +1935,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/0/08/Polycrystalline-germanium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/germanium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 122,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Arsenic",
@@ -1924,7 +1988,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Arsenic_%2833_As%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/arsenic.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 121,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Selenium",
@@ -1933,7 +1999,7 @@
             "boil": 958,
             "category": "polyatomic nonmetal",
             "density": 4.81,
-            "discovered_by": "Jöns Jakob Berzelius",
+            "discovered_by": "J\u00f6ns Jakob Berzelius",
             "melt": 494,
             "molar_heat": 25.363,
             "named_by": null,
@@ -1976,7 +2042,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Selenium.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/selenium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 120,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Bromine",
@@ -1985,7 +2053,7 @@
             "boil": 332,
             "category": "diatomic nonmetal",
             "density": 3.1028,
-            "discovered_by": "Antoine Jérôme Balard",
+            "discovered_by": "Antoine J\u00e9r\u00f4me Balard",
             "melt": 265.8,
             "molar_heat": null,
             "named_by": null,
@@ -1997,7 +2065,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_035_bromine/element_035_bromine_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_035_bromine/element_035_bromine.glb",
             "spectral_img": null,
-            "summary": "Bromine (from Ancient Greek:βρῶμος, brómos, meaning \"stench\") is a chemical element with symbol Br, and atomic number 35. It is a halogen. The element was isolated independently by two chemists, Carl Jacob Löwig and Antoine Jerome Balard, in 1825–1826.",
+            "summary": "Bromine (from Ancient Greek:\u03b2\u03c1\u1ff6\u03bc\u03bf\u03c2, br\u00f3mos, meaning \"stench\") is a chemical element with symbol Br, and atomic number 35. It is a halogen. The element was isolated independently by two chemists, Carl Jacob L\u00f6wig and Antoine Jerome Balard, in 1825\u20131826.",
             "symbol": "Br",
             "xpos": 17,
             "ypos": 4,
@@ -2029,7 +2097,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Bromine-ampoule.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/bromine.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 120,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Krypton",
@@ -2050,7 +2120,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_036_krypton/element_036_krypton_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_036_krypton/element_036_krypton.glb",
             "spectral_img": "https://en.wikipedia.org/wiki/File:Krypton_Spectrum.jpg",
-            "summary": "Krypton (from Greek:κρυπτός kryptos \"the hidden one\") is a chemical element with symbol Kr and atomic number 36. It is a member of group 18 (noble gases) elements. A colorless, odorless, tasteless noble gas, krypton occurs in trace amounts in the atmosphere, is isolated by fractionally distilling liquefied air, and is often used with other rare gases in fluorescent lamps.",
+            "summary": "Krypton (from Greek:\u03ba\u03c1\u03c5\u03c0\u03c4\u03cc\u03c2 kryptos \"the hidden one\") is a chemical element with symbol Kr and atomic number 36. It is a member of group 18 (noble gases) elements. A colorless, odorless, tasteless noble gas, krypton occurs in trace amounts in the atmosphere, is isolated by fractionally distilling liquefied air, and is often used with other rare gases in fluorescent lamps.",
             "symbol": "Kr",
             "xpos": 18,
             "ypos": 4,
@@ -2104,7 +2174,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Krypton-glow.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/krypton.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 116,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Rubidium",
@@ -2160,7 +2232,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Rb5.JPG",
                 "attribution": "Dnn87, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 220,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Strontium",
@@ -2217,7 +2291,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Strontium-1.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/strontium.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 195,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Yttrium",
@@ -2275,7 +2351,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Piece_of_Yttrium.jpg",
                 "attribution": "Jan Anskeit, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 190,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Zirconium",
@@ -2296,7 +2374,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_040_zirconium/element_040_zirconium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_040_zirconium/element_040_zirconium.glb",
             "spectral_img": null,
-            "summary": "Zirconium is a chemical element with symbol Zr and atomic number 40. The name of zirconium is taken from the name of the mineral zircon, the most important source of zirconium. The word zircon comes from the Persian word zargun زرگون, meaning \"gold-colored\".",
+            "summary": "Zirconium is a chemical element with symbol Zr and atomic number 40. The name of zirconium is taken from the name of the mineral zircon, the most important source of zirconium. The word zircon comes from the Persian word zargun \u0632\u0631\u06af\u0648\u0646, meaning \"gold-colored\".",
             "symbol": "Zr",
             "xpos": 4,
             "ypos": 5,
@@ -2327,7 +2405,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Zirconium-pieces.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/zirconium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 175,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Niobium",
@@ -2380,7 +2460,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Niobium_strips.JPG",
                 "attribution": "Mauro Cateb, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 164,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Molybdenum",
@@ -2401,7 +2483,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_042_molybdenum/element_042_molybdenum_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_042_molybdenum/element_042_molybdenum.glb",
             "spectral_img": null,
-            "summary": "Molybdenum is a chemical element with symbol Mo and atomic number 42. The name is from Neo-Latin molybdaenum, from Ancient Greek Μόλυβδος molybdos, meaning lead, since its ores were confused with lead ores. Molybdenum minerals have been known throughout history, but the element was discovered (in the sense of differentiating it as a new entity from the mineral salts of other metals) in 1778 by Carl Wilhelm Scheele.",
+            "summary": "Molybdenum is a chemical element with symbol Mo and atomic number 42. The name is from Neo-Latin molybdaenum, from Ancient Greek \u039c\u03cc\u03bb\u03c5\u03b2\u03b4\u03bf\u03c2 molybdos, meaning lead, since its ores were confused with lead ores. Molybdenum minerals have been known throughout history, but the element was discovered (in the sense of differentiating it as a new entity from the mineral salts of other metals) in 1778 by Carl Wilhelm Scheele.",
             "symbol": "Mo",
             "xpos": 6,
             "ypos": 5,
@@ -2456,7 +2538,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Molybdenum.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/molybdenum.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 154,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Technetium",
@@ -2465,7 +2549,7 @@
             "boil": 4538,
             "category": "transition metal",
             "density": 11,
-            "discovered_by": "Emilio Segrè",
+            "discovered_by": "Emilio Segr\u00e8",
             "melt": 2430,
             "molar_heat": 24.27,
             "named_by": null,
@@ -2477,7 +2561,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_043_technetium/element_043_technetium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_043_technetium/element_043_technetium.glb",
             "spectral_img": null,
-            "summary": "Technetium (/tɛkˈniːʃiəm/) is a chemical element with symbol Tc and atomic number 43. It is the element with the lowest atomic number in the periodic table that has no stable isotopes:every form of it is radioactive. Nearly all technetium is produced synthetically, and only minute amounts are found in nature.",
+            "summary": "Technetium (/t\u025bk\u02c8ni\u02d0\u0283i\u0259m/) is a chemical element with symbol Tc and atomic number 43. It is the element with the lowest atomic number in the periodic table that has no stable isotopes:every form of it is radioactive. Nearly all technetium is produced synthetically, and only minute amounts are found in nature.",
             "symbol": "Tc",
             "xpos": 7,
             "ypos": 5,
@@ -2505,7 +2589,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Technetium-sample-cropped.jpg",
                 "attribution": "GFDL, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 147,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Ruthenium",
@@ -2554,7 +2640,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Ruthenium_crystal.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/ruthenium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 146,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Rhodium",
@@ -2603,7 +2691,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Rhodium_%28Rh%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/rhodium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 142,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Palladium",
@@ -2651,7 +2741,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Palladium_%2846_Pd%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/palladium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 139,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Silver",
@@ -2672,7 +2764,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_047_silver/element_047_silver_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_047_silver/element_047_silver.glb",
             "spectral_img": null,
-            "summary": "Silver is a chemical element with symbol Ag (Greek:άργυρος árguros, Latin:argentum, both from the Indo-European root *h₂erǵ- for \"grey\" or \"shining\") and atomic number 47. A soft, white, lustrous transition metal, it possesses the highest electrical conductivity, thermal conductivity and reflectivity of any metal. The metal occurs naturally in its pure, free form (native silver), as an alloy with gold and other metals, and in minerals such as argentite and chlorargyrite.",
+            "summary": "Silver is a chemical element with symbol Ag (Greek:\u03ac\u03c1\u03b3\u03c5\u03c1\u03bf\u03c2 \u00e1rguros, Latin:argentum, both from the Indo-European root *h\u2082er\u01f5- for \"grey\" or \"shining\") and atomic number 47. A soft, white, lustrous transition metal, it possesses the highest electrical conductivity, thermal conductivity and reflectivity of any metal. The metal occurs naturally in its pure, free form (native silver), as an alloy with gold and other metals, and in minerals such as argentite and chlorargyrite.",
             "symbol": "Ag",
             "xpos": 11,
             "ypos": 5,
@@ -2700,7 +2792,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Silver-nugget.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: http://images-of-elements.com/silver.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 145,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Cadmium",
@@ -2749,7 +2843,9 @@
                 "url": "https://images-of-elements.com/cadmium-4.jpg",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/cadmium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 144,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Indium",
@@ -2799,11 +2895,13 @@
                 "url": "https://images-of-elements.com/indium-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: http://images-of-elements.com/indium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 142,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Tin",
-            "appearance": "silvery-white (beta, β) or gray (alpha, α)",
+            "appearance": "silvery-white (beta, \u03b2) or gray (alpha, \u03b1)",
             "atomic_mass": 118.7107,
             "boil": 2875,
             "category": "post-transition metal",
@@ -2850,7 +2948,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Tin-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: http://images-of-elements.com/tin.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 139,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Antimony",
@@ -2902,7 +3002,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Antimony-4.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/antimony.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 139,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Tellurium",
@@ -2911,7 +3013,7 @@
             "boil": 1261,
             "category": "metalloid",
             "density": 6.24,
-            "discovered_by": "Franz-Joseph Müller von Reichenstein",
+            "discovered_by": "Franz-Joseph M\u00fcller von Reichenstein",
             "melt": 722.66,
             "molar_heat": 25.73,
             "named_by": null,
@@ -2955,7 +3057,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Tellurium2.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/tellurium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 138,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Iodine",
@@ -2976,7 +3080,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_053_iodine/element_053_iodine_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_053_iodine/element_053_iodine.glb",
             "spectral_img": null,
-            "summary": "Iodine is a chemical element with symbol I and atomic number 53. The name is from Greek ἰοειδής ioeidēs, meaning violet or purple, due to the color of iodine vapor. Iodine and its compounds are primarily used in nutrition, and industrially in the production of acetic acid and certain polymers.",
+            "summary": "Iodine is a chemical element with symbol I and atomic number 53. The name is from Greek \u1f30\u03bf\u03b5\u03b9\u03b4\u03ae\u03c2 ioeid\u0113s, meaning violet or purple, due to the color of iodine vapor. Iodine and its compounds are primarily used in nutrition, and industrially in the production of acetic acid and certain polymers.",
             "symbol": "I",
             "xpos": 17,
             "ypos": 5,
@@ -3004,7 +3108,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Iodine-sample.jpg",
                 "attribution": "Benjah-bmm27, Public domain, via Wikimedia Commons"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 139,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Xenon",
@@ -3053,7 +3159,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Xenon-glow.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/xenon.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 140,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Cesium",
@@ -3074,7 +3182,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_055_cesium/element_055_cesium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_055_cesium/element_055_cesium.glb",
             "spectral_img": null,
-            "summary": "Caesium or cesium is a chemical element with symbol Cs and atomic number 55. It is a soft, silvery-gold alkali metal with a melting point of 28 °C (82 °F), which makes it one of only five elemental metals that are liquid at or near room temperature. Caesium is an alkali metal and has physical and chemical properties similar to those of rubidium and potassium.",
+            "summary": "Caesium or cesium is a chemical element with symbol Cs and atomic number 55. It is a soft, silvery-gold alkali metal with a melting point of 28 \u00b0C (82 \u00b0F), which makes it one of only five elemental metals that are liquid at or near room temperature. Caesium is an alkali metal and has physical and chemical properties similar to those of rubidium and potassium.",
             "symbol": "Cs",
             "xpos": 1,
             "ypos": 6,
@@ -3103,7 +3211,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Cesium.jpg",
                 "attribution": "Dnn87 Contact email: Dnn87yahoo.dk, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 244,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Barium",
@@ -3153,7 +3263,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Barium_%2856_Ba%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/barium.php"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": 215,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Lanthanum",
@@ -3205,7 +3317,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Lanthanum.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/lanthanum.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 207,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Cerium",
@@ -3258,7 +3372,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Cerium2.jpg",
                 "attribution": "Jurii, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/cerium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 204,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Praseodymium",
@@ -3310,7 +3426,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Praseodymium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/praseodymium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 203,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Neodymium",
@@ -3361,7 +3479,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Neodymium_%2860_Nd%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/neodymium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 201,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Promethium",
@@ -3412,7 +3532,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Promethium.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/promethium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 199,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Samarium",
@@ -3463,7 +3585,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/8/88/Samarium-2.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/samarium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 198,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Europium",
@@ -3472,7 +3596,7 @@
             "boil": 1802,
             "category": "lanthanide",
             "density": 5.264,
-            "discovered_by": "Eugène-Anatole Demarçay",
+            "discovered_by": "Eug\u00e8ne-Anatole Demar\u00e7ay",
             "melt": 1099,
             "molar_heat": 27.66,
             "named_by": null,
@@ -3514,7 +3638,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Europium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/europium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 198,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Gadolinium",
@@ -3561,11 +3687,13 @@
             ],
             "cpk-hex": "45ffc7",
             "image": {
-                "title": "Pure (99.95%) Amorphous Gadolinium, about 12 grams, 2 × 1.5 × 0.5 cm, cast in acrylic glass",
+                "title": "Pure (99.95%) Amorphous Gadolinium, about 12 grams, 2 \u00d7 1.5 \u00d7 0.5 cm, cast in acrylic glass",
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Gadolinium-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/gadolinium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 196,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Terbium",
@@ -3616,7 +3744,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Terbium-2.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/terbium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 194,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Dysprosium",
@@ -3667,7 +3797,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/55/Dysprosium-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/dysprosium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 192,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Holmium",
@@ -3718,7 +3850,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Holmium2.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/holmium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 192,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Erbium",
@@ -3769,7 +3903,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Erbium-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/erbium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 189,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Thulium",
@@ -3816,11 +3952,13 @@
             ],
             "cpk-hex": "00d452",
             "image": {
-                "title": "Ultrapure (99.997%) Crystalline Thulium, 22.3 grams, 3 × 3 × 2 cm in size",
+                "title": "Ultrapure (99.997%) Crystalline Thulium, 22.3 grams, 3 \u00d7 3 \u00d7 2 cm in size",
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Thulium-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/thulium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 190,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Ytterbium",
@@ -3871,7 +4009,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Ytterbium-3.jpg",
                 "attribution": "Jurii, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/ytterbium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 187,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Lutetium",
@@ -3923,7 +4063,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Lutetium.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/lutetium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 187,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Hafnium",
@@ -3974,7 +4116,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/1/17/Hafnium_%2872_Hf%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/hafnium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 175,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Tantalum",
@@ -4023,7 +4167,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Tantalum.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/tantalum.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 170,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Tungsten",
@@ -4072,7 +4218,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Tungsten_rod_with_oxidised_surface.jpg",
                 "attribution": "Jurii, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/tungsten.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 162,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Rhenium",
@@ -4119,11 +4267,13 @@
             ],
             "cpk-hex": "267dab",
             "image": {
-                "title": "Pure Rhenium Bead, arc melted, 21 grams. Original size in cm: 1.5 x 1.7. Measured radiation dose <0.05 μS/h.",
+                "title": "Pure Rhenium Bead, arc melted, 21 grams. Original size in cm: 1.5 x 1.7. Measured radiation dose <0.05 \u03bcS/h.",
                 "url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Pure_rhenium_bead%2C_arc_melted%2C_21_grams._Original_size_in_cm_-_1.5_x_1.7.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/rhenium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 151,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Osmium",
@@ -4144,7 +4294,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_076_osmium/element_076_osmium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_076_osmium/element_076_osmium.glb",
             "spectral_img": null,
-            "summary": "Osmium (from Greek osme (ὀσμή) meaning \"smell\") is a chemical element with symbol Os and atomic number 76. It is a hard, brittle, bluish-white transition metal in the platinum group that is found as a trace element in alloys, mostly in platinum ores. Osmium is the densest naturally occurring element, with a density of 22.59 g/cm3.",
+            "summary": "Osmium (from Greek osme (\u1f40\u03c3\u03bc\u03ae) meaning \"smell\") is a chemical element with symbol Os and atomic number 76. It is a hard, brittle, bluish-white transition metal in the platinum group that is found as a trace element in alloys, mostly in platinum ores. Osmium is the densest naturally occurring element, with a density of 22.59 g/cm3.",
             "symbol": "Os",
             "xpos": 8,
             "ypos": 6,
@@ -4172,7 +4322,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Osmium-bead.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/osmium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 144,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Iridium",
@@ -4193,7 +4345,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_077_iridium/element_077_iridium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_077_iridium/element_077_iridium.glb",
             "spectral_img": null,
-            "summary": "Iridium is a chemical element with symbol Ir and atomic number 77. A very hard, brittle, silvery-white transition metal of the platinum group, iridium is generally credited with being the second densest element (after osmium) based on measured density, although calculations involving the space lattices of the elements show that iridium is denser. It is also the most corrosion-resistant metal, even at temperatures as high as 2000 °C. Although only certain molten salts and halogens are corrosive to solid iridium, finely divided iridium dust is much more reactive and can be flammable.",
+            "summary": "Iridium is a chemical element with symbol Ir and atomic number 77. A very hard, brittle, silvery-white transition metal of the platinum group, iridium is generally credited with being the second densest element (after osmium) based on measured density, although calculations involving the space lattices of the elements show that iridium is denser. It is also the most corrosion-resistant metal, even at temperatures as high as 2000 \u00b0C. Although only certain molten salts and halogens are corrosive to solid iridium, finely divided iridium dust is much more reactive and can be flammable.",
             "symbol": "Ir",
             "xpos": 9,
             "ypos": 6,
@@ -4221,7 +4373,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Iridium-2.jpg",
                 "attribution": "Unknown authorUnknown author, CC BY 1.0 <https://creativecommons.org/licenses/by/1.0>, via Wikimedia Commons, source: https://images-of-elements.com/iridium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 141,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Platinum",
@@ -4270,7 +4424,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Platinum_crystals.jpg",
                 "attribution": "Periodictableru, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 136,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Gold",
@@ -4319,7 +4475,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Gold_%2879_Au%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/gold.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 136,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Mercury",
@@ -4340,7 +4498,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_080_mercury/element_080_mercury_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_080_mercury/element_080_mercury.glb",
             "spectral_img": null,
-            "summary": "Mercury is a chemical element with symbol Hg and atomic number 80. It is commonly known as quicksilver and was formerly named hydrargyrum (/haɪˈdrɑːrdʒərəm/). A heavy, silvery d-block element, mercury is the only metallic element that is liquid at standard conditions for temperature and pressure; the only other element that is liquid under these conditions is bromine, though metals such as caesium, gallium, and rubidium melt just above room temperature.",
+            "summary": "Mercury is a chemical element with symbol Hg and atomic number 80. It is commonly known as quicksilver and was formerly named hydrargyrum (/ha\u026a\u02c8dr\u0251\u02d0rd\u0292\u0259r\u0259m/). A heavy, silvery d-block element, mercury is the only metallic element that is liquid at standard conditions for temperature and pressure; the only other element that is liquid under these conditions is bromine, though metals such as caesium, gallium, and rubidium melt just above room temperature.",
             "symbol": "Hg",
             "xpos": 12,
             "ypos": 6,
@@ -4369,7 +4527,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/b/be/Hydrargyrum_%2880_Hg%29.jpg",
                 "attribution": "Hi-Res Images of Chemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/mercury.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": 132,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Thallium",
@@ -4419,7 +4579,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/55/Thallium_%2881_Tl%29.jpg",
                 "attribution": "Hi-Res Images ofChemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/thallium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 145,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Lead",
@@ -4440,7 +4602,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_082_lead/element_082_lead_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_082_lead/element_082_lead.glb",
             "spectral_img": null,
-            "summary": "Lead (/lɛd/) is a chemical element in the carbon group with symbol Pb (from Latin:plumbum) and atomic number 82. Lead is a soft, malleable and heavy post-transition metal. Metallic lead has a bluish-white color after being freshly cut, but it soon tarnishes to a dull grayish color when exposed to air.",
+            "summary": "Lead (/l\u025bd/) is a chemical element in the carbon group with symbol Pb (from Latin:plumbum) and atomic number 82. Lead is a soft, malleable and heavy post-transition metal. Metallic lead has a bluish-white color after being freshly cut, but it soon tarnishes to a dull grayish color when exposed to air.",
             "symbol": "Pb",
             "xpos": 14,
             "ypos": 6,
@@ -4471,7 +4633,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Lead-2.jpg",
                 "attribution": "Chemical Elements, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/lead.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 146,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Bismuth",
@@ -4480,7 +4644,7 @@
             "boil": 1837,
             "category": "post-transition metal",
             "density": 9.78,
-            "discovered_by": "Claude François Geoffroy",
+            "discovered_by": "Claude Fran\u00e7ois Geoffroy",
             "melt": 544.7,
             "molar_heat": 25.52,
             "named_by": null,
@@ -4524,7 +4688,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Bismuth-2.jpg",
                 "attribution": "Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/bismuth.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 148,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Polonium",
@@ -4572,7 +4738,9 @@
                 "url": "https://images-of-elements.com/polonium.jpg",
                 "attribution": "Chemical ELements A Virtual Museum, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0> source: https://images-of-elements.com/polonium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 140,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Astatine",
@@ -4620,7 +4788,9 @@
                 "url": "https://images-of-elements.com/astatine.jpg",
                 "attribution": "Chemical ELements A Virtual Museum, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0> source: https://images-of-elements.com/astatine.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 141,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Radon",
@@ -4668,7 +4838,9 @@
                 "url": "https://images-of-elements.com/radon.jpg",
                 "attribution": "Chemical ELements A Virtual Museum, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0> source: https://images-of-elements.com/radon.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": 145,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Francium",
@@ -4717,7 +4889,9 @@
                 "url": "https://images-of-elements.com/francium.jpg",
                 "attribution": "Chemical ELements A Virtual Museum, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0> source: https://images-of-elements.com/francium.jpg"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Radium",
@@ -4767,7 +4941,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Radium226.jpg",
                 "attribution": "grenadier, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Actinium",
@@ -4817,7 +4993,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/2/27/Actinium_sample_%2831481701837%29.png",
                 "attribution": "Oak Ridge National Laboratory, CC BY 2.0 <https://creativecommons.org/licenses/by/2.0>, via Wikimedia Commons, source: https://www.flickr.com/photos/oakridgelab/31481701837/"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Thorium",
@@ -4826,7 +5004,7 @@
             "boil": 5061,
             "category": "actinide",
             "density": 11.724,
-            "discovered_by": "Jöns Jakob Berzelius",
+            "discovered_by": "J\u00f6ns Jakob Berzelius",
             "melt": 2023,
             "molar_heat": 26.23,
             "named_by": null,
@@ -4838,7 +5016,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_090_thorium/element_090_thorium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_090_thorium/element_090_thorium.glb",
             "spectral_img": null,
-            "summary": "Thorium is a chemical element with symbol Th and atomic number 90. A radioactive actinide metal, thorium is one of only two significantly radioactive elements that still occur naturally in large quantities as a primordial element (the other being uranium). It was discovered in 1828 by the Norwegian Reverend and amateur mineralogist Morten Thrane Esmark and identified by the Swedish chemist Jöns Jakob Berzelius, who named it after Thor, the Norse god of thunder.",
+            "summary": "Thorium is a chemical element with symbol Th and atomic number 90. A radioactive actinide metal, thorium is one of only two significantly radioactive elements that still occur naturally in large quantities as a primordial element (the other being uranium). It was discovered in 1828 by the Norwegian Reverend and amateur mineralogist Morten Thrane Esmark and identified by the Swedish chemist J\u00f6ns Jakob Berzelius, who named it after Thor, the Norse god of thunder.",
             "symbol": "Th",
             "xpos": 4,
             "ypos": 10,
@@ -4869,7 +5047,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Thorium-1.jpg",
                 "attribution": "W. Oelen, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 206,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Protactinium",
@@ -4918,7 +5098,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/a/af/Protactinium-233.jpg",
                 "attribution": "ENERGY.GOV, Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 200,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Uranium",
@@ -4968,7 +5150,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Ames_Process_uranium_biscuit.jpg",
                 "attribution": "Unknown authorUnknown author, Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 196,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Neptunium",
@@ -5017,7 +5201,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Neptunium2.jpg",
                 "attribution": "Los Alamos National Laboratory,, Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 190,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Plutonium",
@@ -5066,7 +5252,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Plutonium_ring.jpg",
                 "attribution": "Los Alamos National Laboratory, Attribution, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 186,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Americium",
@@ -5115,7 +5303,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Americium_microscope.jpg",
                 "attribution": "Bionerd, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 184,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Curium",
@@ -5136,7 +5326,7 @@
             "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_096_curium/element_096_curium_srp_th.png",
             "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_096_curium/element_096_curium.glb",
             "spectral_img": null,
-            "summary": "Curium is a transuranic radioactive chemical element with symbol Cm and atomic number 96. This element of the actinide series was named after Marie and Pierre Curie – both were known for their research on radioactivity. Curium was first intentionally produced and identified in July 1944 by the group of Glenn T. Seaborg at the University of California, Berkeley.",
+            "summary": "Curium is a transuranic radioactive chemical element with symbol Cm and atomic number 96. This element of the actinide series was named after Marie and Pierre Curie \u2013 both were known for their research on radioactivity. Curium was first intentionally produced and identified in July 1944 by the group of Glenn T. Seaborg at the University of California, Berkeley.",
             "symbol": "Cm",
             "xpos": 10,
             "ypos": 10,
@@ -5164,7 +5354,9 @@
                 "url": "https://images-of-elements.com/s/curium-glow.jpg",
                 "attribution": "European Union, The Actinide Group, Institute for Transuranium Elements (JRC-ITU), source: https://images-of-elements.com/curium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 181,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Berkelium",
@@ -5213,7 +5405,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Berkelium.jpg",
                 "attribution": "ORNL, Department of Energy, Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 180,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Californium",
@@ -5262,7 +5456,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/9/93/Californium.jpg",
                 "attribution": "United States Department of Energy (see File:Einsteinium.jpg), Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": 174,
+            "covalent radius unit": "pm"
         },
         {
             "name": "Einsteinium",
@@ -5311,7 +5507,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/55/Einsteinium.jpg",
                 "attribution": "Haire, R. G., US Department of Energy.Touched up by Materialscientist at en.wikipedia., Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Fermium",
@@ -5360,7 +5558,9 @@
                 "url": "https://upload.wikimedia.org/wikipedia/commons/5/58/Ivy_Mike_-_mushroom_cloud.jpg",
                 "attribution": "U.S. Department of Energy, Public domain, via Wikimedia Commons"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Mendelevium",
@@ -5405,11 +5605,13 @@
             ],
             "cpk-hex": "b30da6",
             "image": {
-                "title": "This is only an illustration, not mendelevium itself. Chemically similar to Thulium, the highly radioactive heavy metal emits very energetic α-radiation.",
+                "title": "This is only an illustration, not mendelevium itself. Chemically similar to Thulium, the highly radioactive heavy metal emits very energetic \u03b1-radiation.",
                 "url": "https://images-of-elements.com/s/mendelevium.jpg",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/mendelevium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Nobelium",
@@ -5458,7 +5660,9 @@
                 "url": "https://images-of-elements.com/nobelium.jpg",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/nobelium.php"
             },
-            "block": "f"
+            "block": "f",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Lawrencium",
@@ -5507,7 +5711,9 @@
                 "url": "https://images-of-elements.com/lawrencium.jpg",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/lawrencium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Rutherfordium",
@@ -5554,9 +5760,11 @@
             "image": {
                 "title": "Decay traces in a spark chamber, not of rutherfordium, but of a pion. This is a completely different, unrelated particle, but the decay of rutherfordium would make streaks there, too.",
                 "url": "https://images-of-elements.com/s/rutherfordium.jpg",
-                "attribution": "Image © CERN, Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/rutherfordium.php"
+                "attribution": "Image \u00a9 CERN, Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/rutherfordium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Dubnium",
@@ -5603,7 +5811,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/dubnium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Seaborgium",
@@ -5650,7 +5860,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/seaborgium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Bohrium",
@@ -5659,7 +5871,7 @@
             "boil": null,
             "category": "transition metal",
             "density": 37.1,
-            "discovered_by": "Gesellschaft für Schwerionenforschung",
+            "discovered_by": "Gesellschaft f\u00fcr Schwerionenforschung",
             "melt": null,
             "molar_heat": null,
             "named_by": null,
@@ -5697,7 +5909,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/bohrium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Hassium",
@@ -5706,7 +5920,7 @@
             "boil": null,
             "category": "transition metal",
             "density": 40.7,
-            "discovered_by": "Gesellschaft für Schwerionenforschung",
+            "discovered_by": "Gesellschaft f\u00fcr Schwerionenforschung",
             "melt": 126,
             "molar_heat": null,
             "named_by": null,
@@ -5744,7 +5958,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/hassium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Meitnerium",
@@ -5753,7 +5969,7 @@
             "boil": null,
             "category": "unknown, probably transition metal",
             "density": 37.4,
-            "discovered_by": "Gesellschaft für Schwerionenforschung",
+            "discovered_by": "Gesellschaft f\u00fcr Schwerionenforschung",
             "melt": null,
             "molar_heat": null,
             "named_by": null,
@@ -5791,7 +6007,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/meitnerium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Darmstadtium",
@@ -5800,7 +6018,7 @@
             "boil": null,
             "category": "unknown, probably transition metal",
             "density": 34.8,
-            "discovered_by": "Gesellschaft für Schwerionenforschung",
+            "discovered_by": "Gesellschaft f\u00fcr Schwerionenforschung",
             "melt": null,
             "molar_heat": null,
             "named_by": null,
@@ -5838,7 +6056,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/darmstadtium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Roentgenium",
@@ -5847,7 +6067,7 @@
             "boil": null,
             "category": "unknown, probably transition metal",
             "density": 28.7,
-            "discovered_by": "Gesellschaft für Schwerionenforschung",
+            "discovered_by": "Gesellschaft f\u00fcr Schwerionenforschung",
             "melt": null,
             "molar_heat": null,
             "named_by": null,
@@ -5885,7 +6105,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/roentgenium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Copernicium",
@@ -5894,7 +6116,7 @@
             "boil": 3570,
             "category": "transition metal",
             "density": 14.0,
-            "discovered_by": "Gesellschaft für Schwerionenforschung",
+            "discovered_by": "Gesellschaft f\u00fcr Schwerionenforschung",
             "melt": null,
             "molar_heat": null,
             "named_by": null,
@@ -5932,7 +6154,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/copernicium.php"
             },
-            "block": "d"
+            "block": "d",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Nihonium",
@@ -5979,7 +6203,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/nihonium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Flerovium",
@@ -6026,7 +6252,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/flerovium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Moscovium",
@@ -6073,7 +6301,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/moscovium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Livermorium",
@@ -6120,7 +6350,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/livermorium.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Tennessine",
@@ -6167,7 +6399,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/tenessine.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Oganesson",
@@ -6214,7 +6448,9 @@
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com/oganesson.php"
             },
-            "block": "p"
+            "block": "p",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         },
         {
             "name": "Ununennium",
@@ -6232,8 +6468,8 @@
             "group": 1,
             "phase": "Solid",
             "source": "https://en.wikipedia.org/wiki/Ununennium",
-            "bohr_model_image":null,
-            "bohr_model_3d":null,
+            "bohr_model_image": null,
+            "bohr_model_3d": null,
             "spectral_img": null,
             "summary": "Ununennium, also known as eka-francium or simply element 119, is the hypothetical chemical element with symbol Uue and atomic number 119. Ununennium and Uue are the temporary systematic IUPAC name and symbol respectively, until a permanent name is decided upon. In the periodic table of the elements, it is expected to be an s-block element, an alkali metal, and the first element in the eighth period.",
             "symbol": "Uue",
@@ -6257,12 +6493,14 @@
             "electronegativity_pauling": null,
             "ionization_energies": [],
             "cpk-hex": null,
-            "image":{
+            "image": {
                 "title": "No Image Found",
                 "url": "https://images-of-elements.com/s/transactinoid.png",
                 "attribution": "Chemical Elments A Virtual Museum under a Creative Commons Attribution 3.0 Unported License, source: https://images-of-elements.com"
             },
-            "block": "s"
+            "block": "s",
+            "covalent radius": "n/a",
+            "covalent radius unit": "pm"
         }
     ]
 }

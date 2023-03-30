@@ -509,6 +509,9 @@ class Molecule(Wrapper, ABC):
         """ Return energy with kcal/mol as default """
         return self._OBMol.GetEnergy()
 
+    def feature_matrix(self, *feature_names):
+        """"""
+
     @property
     def formula(self) -> str:
         return self._OBMol.GetFormula()
@@ -892,6 +895,9 @@ class Atom(Wrapper, ABC):
         }
 
         return Atom(**new_attrs)
+
+    def element_feature(self, *feature_name: str):
+        """输入以列特征名称， 返回这些特征值的向量"""
 
     @property
     def kwargs_attributes(self):

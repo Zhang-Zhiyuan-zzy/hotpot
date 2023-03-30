@@ -18,6 +18,10 @@ from src._utils import check_path
 # Typing Annotations
 GraphFormatName = Literal['Pytorch', 'numpy']
 
+feature_formats = {
+    'basic': ['atomic_number', 's', 'p', 'f']
+}
+
 
 class MolBundle:
     """"""
@@ -77,6 +81,8 @@ class MolBundle:
     def graph_represent(self, graph_fmt: GraphFormatName):
         """ Transform mols to the molecule to graph representation,
         the transformed graph with 'numpy.ndarray' or 'PyTorch.Tensor' format """
+        for mol in self.mols:
+            pass
 
     def gaussian(
             self, g16root: Union[str, PathLike], dir_out: Union[str, PathLike],

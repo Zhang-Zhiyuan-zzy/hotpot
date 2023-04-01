@@ -497,7 +497,7 @@ class Molecule(Wrapper, ABC):
 
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes]:
         """"""
-        dumper = Dumper(fmt=fmt, mol=self, *args, **kwargs)
+        dumper = Dumper(fmt=fmt, source=self, *args, **kwargs)
         return dumper.dump()
 
     @property

@@ -11,6 +11,7 @@ from typing import *
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 import re
+import types
 from functools import wraps
 from openbabel import pybel
 
@@ -60,21 +61,26 @@ Following the steps to customise your IO function:
         ---------------------------------- END ---------------------------------------
 """
 
+# Define the IO function types
+IOFuncPrefix = Literal['pre', 'io', 'post']
+
 
 class Register:
     """
     Register the IO function for Dumper, Parser or so on
     """
-    # serve as a handle to store the custom formats of dumpers
-    custom_dumpers = {}
-    postprocessing = {}
+    # these dicts are container to store the custom io functions
+    # the keys of the dict are serve as the have to get the mapped io functions(the values)
+    pre_methods = {}
+    io_methods = {}
+    post_methods = {}
 
-    def __call__(self, fmt: str, types: str = "dumper"):
+    def __call__(self, io_cls: type, fmt: str, prefix: IOFuncPrefix):
         """
         To register any function as a dumper or a postprocess to convert mol to formats
         Args:
             fmt:
-            types:
+            prefix:
 
         Returns:
 
@@ -82,20 +88,27 @@ class Register:
 
         def decorator(func: Callable):
 
-            if types == 'dumper':
-                self.custom_dumpers[fmt] = func
-            elif types == 'postprocess':
-                self.postprocessing[fmt] = func
+            if prefix == 'pre':
+                self.pre_methods[fmt] = func
+            elif prefix == 'io':
+                self.io_methods[fmt] = func
+            elif prefix == 'post':
+                self.post_methods[fmt] = func
             else:
                 raise TypeError('the type of register is not supported')
 
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            return wrapper
+            return func
 
         return decorator
+
+    def pre(self, fmt: str):
+        return self.pre_methods.get(fmt)
+
+    def io(self, fmt: str):
+        return self.io_methods.get(fmt)
+
+    def post(self, fmt: str):
+        return self.post_methods.get(fmt)
 
 
 # Retrieve the IO class by it's format name
@@ -172,6 +185,7 @@ class MoleculeIO(metaclass=_MoleculeIO):
         return data
 
 
+# TODO: deprecated in the later version
 class GaussianGJF(MoleculeIO, ABC):
 
     @staticmethod
@@ -263,73 +277,166 @@ class GaussianGJF(MoleculeIO, ABC):
         return 'gjf'
 
 
+class MetaIO(type):
+    """
+    Meta class to specify how to construct the IO class
+    This Meta class is defined to register IO function conveniently.
+
+    The IO functions are divided into three categories:
+        - preprocess: do something before performing any of IO operation, with prefix '_pre'
+        - io: performing the IO operation, with prefix '_io'
+        - postprocess: do something after preforming IO operation, with prefix '_post'
+
+    This Meta class offer two approach to defined and register the IO functions:
+        - Define inside the IO class (IOClass)
+        - Define outside the IO class and decorate the defined function by IOClass.register function
+
+    To define inside the IOClass, one should name the IO function with the pattern:
+        def _prefix_keys():
+            ...
+    where, the prefix is one of 'pre', 'io' or 'post'; the keys is the handle name to retrieve the
+    IO functions.
+
+    To define outside the IOClass, one should applied the class method register as the decorator of the
+    IO functions, specified the prefix and the handle name as the decorator arguments, like:
+        @IOClass.register(fmt='keys', types='prefix')
+        def outside_io_func(*args, **kwargs):
+            ...
+    where the IOClass is one of Reader, Writer, Dumper, Parser or other custom IOClass, the 'key' and 'prefix'
+    should be replace to the handle name and prefix you specified.
+    """
+
+    def __new__(mcs, name: str, bases: tuple, namespace: dict, **kwargs):
+        """ If the subclasses contain methods with the prefix of '_pre', '_io' or '_post'
+        they are seen as the IO function, that the preprocess, io or postprocess functions, respectively
+        """
+        _register = Register()
+
+        for attr_name, attr in namespace.items():
+
+            # Make sure the io function is a Callable obj
+            if not isinstance(attr, Callable):
+                continue
+
+            split_names = attr_name.split('_')
+
+            # the custom IO function should with prefix: '_pre', '_io' and '_post'
+            # the handle keys of these function are follow the above prefix and separate be '_'
+            # for example:
+            #     def _pre_gjf(*args, **kwargs):
+            #         ...
+            # this is a preprocess IO function with a handle key: 'gjf' to retrieve the function.
+            if len(split_names) <= 2:
+                continue
+
+            io_type = split_names[1]
+
+            # Register the io functions:
+            # if a define methods with the prefix '_pre', '_io' or '_post'
+            # these methods are seen as preprocess, io or postprocess functions, respectively
+            if io_type == 'pre':
+                _register.pre_methods['_'.join(split_names[2:])] = attr
+            if io_type == 'io':
+                _register.io_methods['_'.join(split_names[2:])] = attr
+            if io_type == 'post':
+                _register.post_methods['_'.join(split_names[2:])] = attr
+
+        namespace['_register'] = _register
+
+        return type(name, bases, namespace, **kwargs)
+
+
 class IOBase:
     """ The base IO class """
     # Initialize the register function, which is a callable obj embed in IO classes
     # When to register new IO function, apply the register function as decorator
-    register = Register()
 
+    _register = None
 
-class Dumper:
-    """
-    Dump the Molecule information into specific format.
-    The output in general is the string or bytes
-    """
-    # Initialize the register
-    register = Register()
-
-    def __init__(self, fmt: str, mol, *args, **kwargs):
+    def __init__(self, fmt: str, source, *args, **kwargs):
+        """"""
         self.fmt = fmt
-        self.mol = mol
+        self.src = source
 
         self.args = args
         self.kwargs = kwargs
 
+    def _get_pre(self) -> Callable:
+        return self.register.pre(self.fmt)
+
+    def _get_io(self) -> Callable:
+        return self.register.io(self.fmt)
+
+    def _get_post(self) -> Callable:
+        return self.register.post(self.fmt)
+
+    @abstractmethod
+    def _pre(self, *args, **kwargs):
+        """ Regulate the method of preprocess """
+        raise NotImplemented
+
+    @abstractmethod
+    def _io(self, *args, **kwargs):
+        """ Regulate the main io method """
+        raise NotImplemented
+
+    @abstractmethod
+    def _post(self, *args, **kwargs):
+        """ Regulate the method of postprocess """
+        raise NotImplemented
+
+    @property
+    def register(self) -> Register:
+        return self._register
+
+
+class Dumper(IOBase, metaclass=MetaIO):
+    """
+    Dump the Molecule information into specific format.
+    The output in general is the string or bytes
+    """
+
     def dump(self) -> Union[str, bytes]:
-        """
-        Try, in turn, to dump the Molecule to the specified format by various method:
-            1) the 'openbabel.pybal' module
-            2) 'cclib' library
-            3) coutom dumper
-        """
-
-        # Trying dump by pybel
-        script = None
-
-        try:
-            pb_mol = pybel.Molecule(self.mol._OBMol)
-            script = pb_mol.write(self.fmt)
-
-            success = True
-
-        except ValueError:
-            success = False
-
-        if not success:
-            # TODO: try to dump by cclib
-            pass
-
-        if not success:
-            custom_dumper = self.register.custom_dumpers.get(self.fmt)
-
-            if custom_dumper:
-                script = custom_dumper(self.mol)
-            else:
-                raise ValueError(f'the format {self.fmt} cannot support!!')
-
-        assert isinstance(script, str)
-
-        # Try to perform the postprocessing
-        processor = self.register.postprocessing.get(self.fmt)
-        if processor:
-            script = processor(self, script)
-
-        return script
-
-    @staticmethod
-    @register(fmt='gjf', types='postprocess')
-    def _gjf_post_processor(self: 'Dumper', script: str):
         """"""
+        self._pre()
+        script = self._io()
+        return self._post(script)
+
+    def _pre(self):
+        """ Preprocess the Molecule obj before performing the dumping """
+        pre_func = self._get_pre()
+        if pre_func:
+            self.src = pre_func(self)
+
+    def _io(self):
+        """ Performing the IO operation, convert the Molecule obj to Literal obj """
+        io_func = self._get_io()
+        if io_func:
+            return io_func(self)  # TODO: check
+        else:
+
+            # Try to dump by openbabel.pybel
+            try:
+                pb_mol = pybel.Molecule(self.src._OBMol)
+                return pb_mol.write(self.fmt)
+
+            except ValueError:
+                print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
+                return None
+
+    def _post(self, script: Union[str, bytes]):
+        post_func = self._get_post()
+        if post_func:
+            return post_func(self, script)
+        else:
+            raise script
+
+    # Define the dumper functions
+    # The dumper functions should have two passing args
+    # the first is the Dumper self obj and the second is the strings
+
+    def _post_gjf(self, script):
+        """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
         # To count the insert lines
         inserted_lines = 0
 

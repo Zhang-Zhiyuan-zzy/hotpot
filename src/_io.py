@@ -14,8 +14,57 @@ import re
 from functools import wraps
 from openbabel import pybel
 
+"""
+Notes:
+This module contain Classes to IO between the Molecule object and various file formats.
+the main classes are:
+    - Reader: from Formatted files to Molecule, called by the Molecule.read() method.
+    - Writer: from Molecule to formatted files, called by the Molecule.write() method.
+    - Dumper: from Molecule to formatted Literals(str or bytes), called by the Molecule.dump() method.
+    - Parser: from formatted Literals to the Molecule obj, called by the Molecule.parse() method.
+all of them are inherit from the _IOBase class.
+
+For the implementation of dump and parse:
+    - some third-part package are used, like openbabel, cclib and so on.
+    - there are some self own IO function be defined too.
+    - the user also custom and register to the Dumper and Parser too.
+
+When implementing the IO: 
+    1) the IO class will firstly check whether a custom IO function is defined and register, if the IO function 
+        are defined and registered, the IO are implemented by the registered.
+    2) else, the IO class will try to call, in turn, try to call some third-part packages,
+    3) finally, if all third-part packages fail to complement IO, Raise the IOError !!!
+
+Following the steps to customise your IO function:
+    1) determine which IO operation(read, write, dump or parse) you want to define， import the relevant IO class
+        into your own python modules.
+    2) define the IO function which customises your IO implementation, the custom function should meet the base
+        requirements demand by the corresponding IO class. When the IO functions are defined, applying the
+        `IOClass`.register decorator to register the IO function into the `IOClass`, the `IOClass`.register should
+        pass some args. This is a example:
+        --------------------------------- Example ------------------------------------
+        Examples:
+        # importing the relevant IO classes
+        from hotpot.io import Dumper, Reader
+        
+        # define and register a read function
+        # the fmt defined the format key to handle the custom IO function
+        # the types defined where the IO function will be applied, pre: preprocess, io: main io, post: postprocess
+        @Reader.register(fmt='the/format/key', types='pre|io|post')
+        def my_read_func(*arg, **kwargs)  # the args should meet the Reader demand
+            ...
+            
+        # define and register a dump function
+        def my_dump_func(*arg, **kwargs) # the args should meet the Dumper demand
+            ...
+        ---------------------------------- END ---------------------------------------
+"""
+
 
 class Register:
+    """
+    Register the IO function for Dumper, Parser or so on
+    """
     # serve as a handle to store the custom formats of dumpers
     custom_dumpers = {}
     postprocessing = {}
@@ -59,6 +108,7 @@ def registered_format_name():
     return tuple(_MoleculeIO.registered_format().keys())
 
 
+# TODO: deprecated in the later version
 class _MoleculeIO(ABCMeta):
     """    Metaclass for registration of IO class format """
     _registered_format = {}
@@ -83,6 +133,7 @@ class _MoleculeIO(ABCMeta):
         return copy(mcs._registered_format)
 
 
+# TODO: deprecated in the later version
 class MoleculeIO(metaclass=_MoleculeIO):
     """ The abstract base class for all IO class """
 
@@ -212,6 +263,13 @@ class GaussianGJF(MoleculeIO, ABC):
         return 'gjf'
 
 
+class IOBase:
+    """ The base IO class """
+    # Initialize the register function, which is a callable obj embed in IO classes
+    # When to register new IO function, apply the register function as decorator
+    register = Register()
+
+
 class Dumper:
     """
     Dump the Molecule information into specific format.
@@ -325,3 +383,7 @@ class Dumper:
         script += '\n\n'
 
         return script
+
+
+class Parser:
+    """"""

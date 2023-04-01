@@ -670,10 +670,12 @@ class Molecule(Wrapper, ABC):
             new_coord_collect = np.array([c for c in coordinates_generator()])
 
             # TODO: test changes
-            if origin_coord_collect:
+            if origin_coord_collect is not None:
                 self._data['_coord_collect'] = np.concatenate([origin_coord_collect, new_coord_collect])
             else:
-                self._data['_coord_collect'] = np.concatenate(np.array([origin_coord_matrix]), new_coord_collect)
+                self._data['_coord_collect'] = np.concatenate(
+                    [np.reshape(origin_coord_matrix, (1,) + origin_coord_matrix.shape), new_coord_collect]
+                )
 
         else:
             return (self._pert_mol_generate(c) for c in coordinates_generator())

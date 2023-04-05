@@ -47,6 +47,7 @@ class Wrapper(ABC):
     by the keys from returned dict of _attr_setters; the values of the returned dict of _attr_setters are a collection
     of specific private method to wrapper and call openbabel method to set the attributes in openbabel object.
     """
+
     def _set_attrs(self, **kwargs):
         """    Set any atomic attributes by name    """
         attr_setters = self._attr_setters
@@ -69,6 +70,7 @@ class Wrapper(ABC):
 
 class Molecule(Wrapper, ABC):
     """"""
+
     def __init__(self, OBMol: ob.OBMol = None, **kwargs):
         self._data = {
             'OBMol': OBMol if OBMol else ob.OBMol()
@@ -254,7 +256,7 @@ class Molecule(Wrapper, ABC):
         # To meet the convention, the `Id` is selected to be the unique `index` to specify `Atom`.
         # However, when try to add a `OBBond` to link each two `OBAtoms`, the `Idx` is the only method
         # to specify the atoms, so our `index` in `Atom` are added 1 to match the 'Idx'
-        success = self._OBMol.AddBond(atom_idx[0]+1, atom_idx[1]+1, bond_type)
+        success = self._OBMol.AddBond(atom_idx[0] + 1, atom_idx[1] + 1, bond_type)
 
         if success:
             new_bond_idx = self._OBMol.NumBonds() - 1
@@ -733,7 +735,7 @@ class Molecule(Wrapper, ABC):
             elif isinstance(atom, str):
                 atom = self.atoms[self.atom_labels.index(atom)]
             elif isinstance(atom, Atom):
-                if not(atom.molecule is self):
+                if not (atom.molecule is self):
                     raise AttributeError('the given atom not in the molecule')
             else:
                 raise TypeError('the given atom should be int, str or Atom')
@@ -778,7 +780,6 @@ class Molecule(Wrapper, ABC):
     ):
         """"""
 
-
     @property
     def weight(self):
         return self._OBMol.GetExactMass()
@@ -796,13 +797,34 @@ class Molecule(Wrapper, ABC):
         with open(path_file, mode) as writer:
             writer.write(script)
 
+    def feature_matrix(self, feature_names):
+        n = len(self.atoms)
+        m = len(feature_names)
+        np.set_printoptions(suppress=True, precision=6)
+        feature_matrix = np.zeros((n, m+3))
+
+        for i, atom in enumerate(self.atoms):
+            atom_features = atom.element_features(output_type='dict', *feature_names)
+            for j, feature_name in enumerate(feature_names):
+                if feature_name == 'atom_orbital_feature':
+                    ao_features = atom_features[feature_name]
+                    feature_matrix[i, j] = ao_features['s']
+                    feature_matrix[i, j + 1] = ao_features['p']
+                    feature_matrix[i, j + 2] = ao_features['d']
+                    feature_matrix[i, j + 3] = ao_features['f']
+                    j += 3
+                else:
+                    feature_matrix[i, j] = atom_features[feature_name]
+        return feature_matrix
+
 
 class Atom(Wrapper, ABC):
     """ The Atom wrapper for OBAtom class in openbabel """
+
     def __init__(
-        self,
-        OBAtom: ob.OBAtom = None,
-        **kwargs
+            self,
+            OBAtom: ob.OBAtom = None,
+            **kwargs
     ):
         # Contain all data to reappear this Atom
         self._data = {
@@ -893,6 +915,92 @@ class Atom(Wrapper, ABC):
 
         return Atom(**new_attrs)
 
+    def element_features(self, *feature_names, output_type='dict'):
+        atom_feature = _elements.get(self.symbol)
+        features = {}
+        for name in feature_names:
+            if name == "atom_orbital_feature":
+                features['atom_orbital_feature'] = self._atomic_orbital_feature()
+            else:
+                features[name] = atom_feature[name]
+        if output_type == 'list':
+            features = [features[name] for name in feature_names]
+
+        return features
+
+    def _atomic_orbital_feature(self, outermost_layer=True, nonexistent_orbit=0):
+        """    Calculating the feature about atomic orbital structures    """
+        _atomic_orbital_structure_max = {
+            "1s": 2,
+            "2s": 2, "2p": 6,
+            "3s": 2, "3p": 6,
+            "4s": 2, "3d": 10, "4p": 6,
+            "5s": 2, "4d": 10, "5p": 6,
+            "6s": 2, "4f": 14, "5d": 10, "6p": 6,
+            "7s": 2, "5f": 14, "6d": 10, "7p": 6
+        }
+        atomic_orbital_structure = {
+            "1s": 0,
+            "2s": 0, "2p": 0,
+            "3s": 0, "3p": 0,
+            "4s": 0, "3d": 0, "4p": 0,
+            "5s": 0, "4d": 0, "5p": 0,
+            "6s": 0, "4f": 0, "5d": 0, "6p": 0,
+            "7s": 0, "5f": 0, "6d": 0, "7p": 0
+        }
+
+        # Calculating atomic orbital structure
+        residual_electron = self.atomic_number
+        n_osl = 0  # Principal quantum number (n) of open shell layers (osl)
+        for orbital_name, men in _atomic_orbital_structure_max.items():  # max electron number (men)
+
+            # Update Principal quantum number (n)
+            if orbital_name[1] == "s":
+                n_osl = int(orbital_name[0])
+
+            # Filled atomic orbital
+            if residual_electron - men >= 0:
+                residual_electron = residual_electron - men
+                atomic_orbital_structure[orbital_name] = men
+            else:
+                atomic_orbital_structure[orbital_name] = residual_electron
+                break
+
+        # Readout and return outermost electron structure
+        atom_orbital_feature = {"atomic_number": self.atomic_number, "n_osl": n_osl}
+        if outermost_layer:
+            diff_max_n = {"s": 0, "p": 0, "d": -1, "f": -2}
+            for layer, diff in diff_max_n.items():  # Angular momentum quantum number (l)
+                electron_number = atomic_orbital_structure.get(f"{n_osl + diff}{layer}", nonexistent_orbit)
+                atom_orbital_feature[layer] = electron_number
+        else:
+            atom_orbital_feature.update(atomic_orbital_structure)
+
+        # return whole electron structure directly
+        return atom_orbital_feature
+
+    # def _rings_feature(self):
+    #     """    Calculating feature about the rings    """
+    #     atom_rings_feature = {
+    #         "is_aromatic": 0,  # Whether the atoms on aromatic rings
+    #         3: 0,  # How many 3-members rings is the atom on
+    #         4: 0,  # How many 4-members rings is the atom on
+    #         5: 0,  # How many 5-members rings is the atom on
+    #         6: 0,  # How many 6-members rings is the atom on
+    #         7: 0,  # How many 7-members rings is the atom on
+    #         8: 0  # How many 8-members rings is the atom on
+    #     }
+    #     if self.is_cyclic:
+    #         rings = self.rings
+    #         if any(ring.is_aromatic for ring in rings):
+    #             atom_rings_feature["is_aromatic"] = 1
+    #         list_ring_member = [len(ring.bonds) for ring in rings]
+    #         for rmb in list_ring_member:  # for each ring members
+    #             if rmb in [3, 4, 5, 6, 7, 8]:
+    #                 atom_rings_feature[rmb] += 1
+    #
+    #     return atom_rings_feature
+
     @property
     def kwargs_attributes(self):
         return tuple(self._attr_setters.keys())
@@ -934,10 +1042,6 @@ class Atom(Wrapper, ABC):
         return self._OBAtom.GetAtomicMass()
 
     @property
-    def molecule(self):
-        return self._mol
-
-    @property
     def partial_charge(self):
         return self._OBAtom.GetPartialCharge()
 
@@ -952,6 +1056,7 @@ class Atom(Wrapper, ABC):
 
 class Bond(Wrapper, ABC):
     """"""
+
     def __init__(self, _OBBond: ob.OBBond, _mol: Molecule):
         self._data = {
             "OBBond": _OBBond,
@@ -994,7 +1099,7 @@ class Bond(Wrapper, ABC):
 
     @property
     def begin_end_idx(self):
-        return self._OBBond.GetBeginAtomIdx()-1, self._OBBond.GetEndAtomIdx()-1
+        return self._OBBond.GetBeginAtomIdx() - 1, self._OBBond.GetEndAtomIdx() - 1
 
     @property
     def ideal_length(self):
@@ -1109,3 +1214,9 @@ class Crystal(Wrapper, ABC):
 
     def zeo_plus_plus(self):
         """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """
+
+
+atom = Atom(symbol='O')
+print(atom.element_features('melt', 'atom_orbital_feature'))
+mol = Molecule.readfile('/home/dy/sw/structure_11660/ZUZZEB_clean.cif')
+print(mol.feature_matrix(('melt', 'boil', 'density', 'atom_orbital_feature')))

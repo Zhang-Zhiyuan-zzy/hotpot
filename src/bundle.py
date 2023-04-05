@@ -10,10 +10,13 @@ import copy
 from os import PathLike
 from typing import *
 from pathlib import Path
+
+import torch
 from tqdm import tqdm
 import numpy as np
-from src.cheminfo import Molecule
+from src.cheminfo import Molecule, Atom
 from src._utils import check_path
+import pandas as pd
 
 # Typing Annotations
 GraphFormatName = Literal['Pytorch', 'numpy']
@@ -21,9 +24,16 @@ GraphFormatName = Literal['Pytorch', 'numpy']
 
 class MolBundle:
     """"""
+
     def __init__(self, mols: Union[list[Molecule], Generator[Molecule, None, None]] = None):
         self.mols = mols
         self.mols_generator = True if isinstance(mols, Generator) else False
+
+    def __iter__(self):
+        if self.mols_generator:
+            return self.mols
+        else:
+            return iter(self.mols)
 
     @classmethod
     def read_from_dir(
@@ -51,6 +61,7 @@ class MolBundle:
         Returns:
 
         """
+
         def mol_generator():
             nonlocal read_dir
 
@@ -74,9 +85,18 @@ class MolBundle:
         else:
             return cls([m for m in tqdm(mol_generator(), 'reading molecules')])
 
-    def graph_represent(self, graph_fmt: GraphFormatName):
-        """ Transform mols to the molecule to graph representation,
+    def graph_represent(self, graph_fmt: GraphFormatName, *feature_type):
+        """ Transform molecules to the molecule to graph representation,
         the transformed graph with 'numpy.ndarray' or 'PyTorch.Tensor' format """
+        feature_matrices = []
+        for mol in self.mols:
+            feature_matrix = mol.feature_matrix(feature_names=feature_type)
+            feature_matrices.append(feature_matrix)
+
+        if graph_fmt == 'numpy':
+            return feature_matrices
+        elif graph_fmt == 'Pytorch':
+            return [torch.tensor(matrix) for matrix in feature_matrices]
 
     def gaussian(
             self, g16root: Union[str, PathLike], dir_out: Union[str, PathLike],
@@ -178,3 +198,5 @@ class MolBundle:
                     *args, **kwargs
                 )
 
+
+mol_list = MolBundle.read_from_dir('cif', '/home/dy/sw/123')

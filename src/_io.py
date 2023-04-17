@@ -6,14 +6,17 @@ python v3.7.9
 @Date   : 2023/3/14
 @Time   : 4:18
 """
+import os
 from os import PathLike
 from typing import *
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 import re
-import types
-from functools import wraps
+import io
+from io import IOBase
 from openbabel import pybel
+import cclib
+import src.cheminfo as ci
 
 """
 Notes:
@@ -63,6 +66,7 @@ Following the steps to customise your IO function:
 
 # Define the IO function types
 IOFuncPrefix = Literal['pre', 'io', 'post']
+IOStream = Union[IOBase, str, bytes]
 
 
 class Register:
@@ -146,135 +150,135 @@ class _MoleculeIO(ABCMeta):
         return copy(mcs._registered_format)
 
 
-# TODO: deprecated in the later version
-class MoleculeIO(metaclass=_MoleculeIO):
-    """ The abstract base class for all IO class """
+# # TODO: deprecated in the later version
+# class MoleculeIO(metaclass=_MoleculeIO):
+#     """ The abstract base class for all IO class """
+#
+#     @abstractmethod
+#     def format(self) -> str:
+#         return None
+#
+#     @staticmethod
+#     @abstractmethod
+#     def dump(mol, *args, **kwargs) -> Union[str, bytes]:
+#         """"""
+#
+#     @staticmethod
+#     @abstractmethod
+#     def parse(info) -> Dict:
+#         """"""
+#
+#     def write(self, mol, path_file: Union[str, PathLike], *args, **kwargs):
+#         """"""
+#         script = self.dump(mol, *args, **kwargs)
+#
+#         if isinstance(script, str):
+#             mode = 'w'
+#         elif isinstance(script, bytes):
+#             mode = 'b'
+#         else:
+#             raise TypeError('the type of dumping valve is not supported')
+#
+#         with open(path_file, mode) as writer:
+#             writer.write(script)
+#
+#     def read(self, path_file: Union[str, PathLike], *args, **kwargs) -> Dict:
+#         """"""
+#         with open(path_file) as file:
+#             data = self.parse(file.read())
+#         return data
 
-    @abstractmethod
-    def format(self) -> str:
-        return None
 
-    @staticmethod
-    @abstractmethod
-    def dump(mol, *args, **kwargs) -> Union[str, bytes]:
-        """"""
-
-    @staticmethod
-    @abstractmethod
-    def parse(info) -> Dict:
-        """"""
-
-    def write(self, mol, path_file: Union[str, PathLike], *args, **kwargs):
-        """"""
-        script = self.dump(mol, *args, **kwargs)
-
-        if isinstance(script, str):
-            mode = 'w'
-        elif isinstance(script, bytes):
-            mode = 'b'
-        else:
-            raise TypeError('the type of dumping valve is not supported')
-
-        with open(path_file, mode) as writer:
-            writer.write(script)
-
-    def read(self, path_file: Union[str, PathLike], *args, **kwargs) -> Dict:
-        """"""
-        with open(path_file) as file:
-            data = self.parse(file.read())
-        return data
-
-
-# TODO: deprecated in the later version
-class GaussianGJF(MoleculeIO, ABC):
-
-    @staticmethod
-    def dump(mol, *args, **kwargs) -> Union[str, bytes]:
-
-        # separate keyword arguments:
-        link0 = kwargs['link0']
-        route = kwargs['route']
-        custom_charge = kwargs.get('charge')
-        custom_spin = kwargs.get('spin')
-
-        pybal_mol = pybel.Molecule(mol._OBMol)
-
-        script = pybal_mol.write('gjf')
-        assert isinstance(script, str)
-
-        lines = script.splitlines()
-
-        lines[0] = f'%{link0}'
-        lines[1] = f'#{route}'
-
-        charge, spin = lines[5].split()
-        if custom_charge:
-            charge = str(custom_charge)
-        if custom_spin:
-            spin = str(custom_spin)
-
-        script = '\n'.join(lines)
-
-        return script
-
-    @staticmethod
-    def parse(info) -> Dict:
-        """
-        Returns:
-            {
-                'identifier': ...,
-                'charge': ...,
-                'spin': ...,
-                atoms: [
-                    {'symbol': .., 'label': .., 'coordinates': ..},
-                    {'symbol': .., 'label': .., 'coordinates': ..},
-                    ...,
-                }
-            }
-        """
-        partition = [p for p in info.split("\n\n") if p]
-
-        # Parse the link0 and route lines
-        link0, route = [], []
-        for line in partition[0].split('\n'):
-            if line[0] == '%':
-                link0.append(line)
-            elif line[0] == '#':
-                route.append(line)
-            else:
-                raise IOError("the format of gjf file error")
-
-        # Parse the title line
-        title = partition[1]
-
-        # molecule specification
-        # regular expression for elemental symbols
-        regx_ele_sym = re.compile(r'[A-Z][a-z]?')
-
-        # TODO: Now, the method parses only the first-four required atomic properties,
-        # TODO: the more optional properties might be specified ,such as charge, spin,
-        # TODO: more subtle process should be designed to parse the optional properties.
-        mol_spec_lines = partition[2].split('\n')
-        charge, spin = map(int, mol_spec_lines[0].split())
-
-        atoms = []
-        for line in mol_spec_lines[1:]:
-            atom_info = line.split()
-            atomic_label = atom_info[0]
-            x, y, z = map(float, atom_info[1:4])
-            atomic_symbol = regx_ele_sym.findall(atomic_label)[0]
-
-            atoms.append({'symbol': atomic_symbol, 'label': atomic_label, 'coordinates': (x, y, z)})
-
-        return {
-            'identifier': title,
-            'charge': charge,
-            'spin': spin,
-            'atoms': atoms
-        }
-
-    def format(self) -> str:
-        return 'gjf'
+# # TODO: deprecated in the later version
+# class GaussianGJF(MoleculeIO, ABC):
+#
+#     @staticmethod
+#     def dump(mol, *args, **kwargs) -> Union[str, bytes]:
+#
+#         # separate keyword arguments:
+#         link0 = kwargs['link0']
+#         route = kwargs['route']
+#         custom_charge = kwargs.get('charge')
+#         custom_spin = kwargs.get('spin')
+#
+#         pybal_mol = pybel.Molecule(mol._OBMol)
+#
+#         script = pybal_mol.write('gjf')
+#         assert isinstance(script, str)
+#
+#         lines = script.splitlines()
+#
+#         lines[0] = f'%{link0}'
+#         lines[1] = f'#{route}'
+#
+#         charge, spin = lines[5].split()
+#         if custom_charge:
+#             charge = str(custom_charge)
+#         if custom_spin:
+#             spin = str(custom_spin)
+#
+#         script = '\n'.join(lines)
+#
+#         return script
+#
+#     @staticmethod
+#     def parse(info) -> Dict:
+#         """
+#         Returns:
+#             {
+#                 'identifier': ...,
+#                 'charge': ...,
+#                 'spin': ...,
+#                 atoms: [
+#                     {'symbol': .., 'label': .., 'coordinates': ..},
+#                     {'symbol': .., 'label': .., 'coordinates': ..},
+#                     ...,
+#                 }
+#             }
+#         """
+#         partition = [p for p in info.split("\n\n") if p]
+#
+#         # Parse the link0 and route lines
+#         link0, route = [], []
+#         for line in partition[0].split('\n'):
+#             if line[0] == '%':
+#                 link0.append(line)
+#             elif line[0] == '#':
+#                 route.append(line)
+#             else:
+#                 raise IOError("the format of gjf file error")
+#
+#         # Parse the title line
+#         title = partition[1]
+#
+#         # molecule specification
+#         # regular expression for elemental symbols
+#         regx_ele_sym = re.compile(r'[A-Z][a-z]?')
+#
+#         # TODO: Now, the method parses only the first-four required atomic properties,
+#         # TODO: the more optional properties might be specified ,such as charge, spin,
+#         # TODO: more subtle process should be designed to parse the optional properties.
+#         mol_spec_lines = partition[2].split('\n')
+#         charge, spin = map(int, mol_spec_lines[0].split())
+#
+#         atoms = []
+#         for line in mol_spec_lines[1:]:
+#             atom_info = line.split()
+#             atomic_label = atom_info[0]
+#             x, y, z = map(float, atom_info[1:4])
+#             atomic_symbol = regx_ele_sym.findall(atomic_label)[0]
+#
+#             atoms.append({'symbol': atomic_symbol, 'label': atomic_label, 'coordinates': (x, y, z)})
+#
+#         return {
+#             'identifier': title,
+#             'charge': charge,
+#             'spin': spin,
+#             'atoms': atoms
+#         }
+#
+#     def format(self) -> str:
+#         return 'gjf'
 
 
 class MetaIO(type):
@@ -353,13 +357,38 @@ class IOBase:
 
     _register = None
 
-    def __init__(self, fmt: str, source, *args, **kwargs):
+    def __init__(self, fmt: str, source: Union['ci.Molecule', IOStream], *args, **kwargs):
         """"""
         self.fmt = fmt
         self.src = source
 
         self.args = args
         self.kwargs = kwargs
+
+        # override this methods to check the
+        self.result = self._checks()
+
+    def __call__(self):
+        """ Call for the performing of IO """
+        self._pre()
+        # For dumper, the obj is Literal str or bytes obj
+        # For parser, the obj is Molecule obj
+        io_func = self._get_io()
+        if io_func:  # If a custom io function have been defined, run custom functions
+            obj = io_func(self)
+        else:  # else get the general io function define in class
+            obj = self._io()
+
+        return self._post(obj)
+
+    @abstractmethod
+    def _checks(self) -> Dict[str, Any]:
+        """
+        This method should be override when definition of new IO class
+        The purpose of this class is to check the regulation of initialized arguments.
+        If not any arguments should be check, return None directly.
+        """
+        raise NotImplemented()
 
     def _get_pre(self) -> Callable:
         return self.register.pre(self.fmt)
@@ -370,20 +399,24 @@ class IOBase:
     def _get_post(self) -> Callable:
         return self.register.post(self.fmt)
 
-    @abstractmethod
     def _pre(self, *args, **kwargs):
         """ Regulate the method of preprocess """
-        raise NotImplemented
+        pre_func = self._get_pre()
+        if pre_func:
+            self.src = pre_func(self)
 
     @abstractmethod
     def _io(self, *args, **kwargs):
         """ Regulate the main io method """
         raise NotImplemented
 
-    @abstractmethod
-    def _post(self, *args, **kwargs):
+    def _post(self, obj, *args, **kwargs):
         """ Regulate the method of postprocess """
-        raise NotImplemented
+        post_func = self._get_post()
+        if post_func:
+            return post_func(self, obj)
+        else:
+            return obj
 
     @property
     def register(self) -> Register:
@@ -396,44 +429,45 @@ class Dumper(IOBase, metaclass=MetaIO):
     The output in general is the string or bytes
     """
 
-    def dump(self) -> Union[str, bytes]:
-        """"""
-        self._pre()
-        script = self._io()
-        return self._post(script)
+    # def __call__(self) -> Union[str, bytes]:
+    #     """"""
+    #     self._pre()
+    #     script = self._io()
+    #     return self._post(script)
 
-    def _pre(self):
-        """ Preprocess the Molecule obj before performing the dumping """
-        pre_func = self._get_pre()
-        if pre_func:
-            self.src = pre_func(self)
+    # def _pre(self):
+    #     """ Preprocess the Molecule obj before performing the dumping """
+    #     pre_func = self._get_pre()
+    #     if pre_func:
+    #         self.src = pre_func(self)
 
     def _io(self):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
-        io_func = self._get_io()
-        if io_func:
-            return io_func(self)  # TODO: check
-        else:
+        # Try to dump by openbabel.pybel
+        try:
+            pb_mol = pybel.Molecule(self.src._OBMol)
+            return pb_mol.write(self.fmt)
 
-            # Try to dump by openbabel.pybel
-            try:
-                pb_mol = pybel.Molecule(self.src._OBMol)
-                return pb_mol.write(self.fmt)
+        except ValueError:
+            print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
+            return None
 
-            except ValueError:
-                print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
-                return None
-
-    def _post(self, script: Union[str, bytes]):
-        post_func = self._get_post()
-        if post_func:
-            return post_func(self, script)
-        else:
-            raise script
+    # def _post(self, script: Union[str, bytes]):
+    #     post_func = self._get_post()
+    #     if post_func:
+    #         return post_func(self, script)
+    #     else:
+    #         raise script
 
     # Define the dumper functions
     # The dumper functions should have two passing args
     # the first is the Dumper self obj and the second is the strings
+
+    def _checks(self) -> Dict[str, Any]:
+        if self.src.__class__.__name__ != 'Molecule':
+            raise TypeError(f'the dumped object should be hotpot.cheminfo.Molecule, instead of {type(self.src)}')
+
+        return {}
 
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
@@ -492,5 +526,97 @@ class Dumper(IOBase, metaclass=MetaIO):
         return script
 
 
-class Parser:
-    """"""
+class Parser(IOBase, metaclass=MetaIO):
+    """ Parse the str or bytes obj to Molecule obj """
+    _pybel_fmt_convert = {
+        'g16log': 'g16'
+    }
+
+    def _checks(self) -> Dict[str, Any]:
+        if not isinstance(self.src, (IOBase, str, bytes, PathLike)):
+            raise TypeError(f'the parsed object should be IOBase, str or bytes, instead of {type(self.src)}')
+
+        if isinstance(self.src, str):
+            if os.path.exists(self.src):
+                return {'src_type': 'path'}
+            else:
+                return {'src_type': 'str'}
+
+        if isinstance(self.src, PathLike):
+            return {'src_type': 'path'}
+
+        if isinstance(self.src, bytes):
+            return {'src_type': 'bytes'}
+        if isinstance(self.src, io.StringIO):
+            return {'src_type': 'StringIO'}
+        if isinstance(self.src, io.BytesIO):
+            return {'src_type': 'BytesIO'}
+        if isinstance(self.src, io.FileIO):
+            return {'src_type': 'FileIO'}
+        print(f'the get source type is {type(self.src)}')
+        return {'src_type': type(self.src)}
+
+    def _io(self, *args, **kwargs):
+        # Get the source type name
+        src_type = self.result.get('src_type')
+
+        # Try parse the log file by openbabel.pybel file firstly
+        try:
+            if src_type == 'str':
+                pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src)
+            elif src_type == 'path':
+                pybel_mol = next(pybel.readfile(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src))
+            elif src_type == 'IOString':
+                pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src.read())
+            else:
+                raise RuntimeError(f'the source type {type(self.src)} have not been supported')
+
+            obj = ci.Molecule(pybel_mol.OBMol)
+
+        except RuntimeError:
+            obj = None
+
+        # Try to supplementary Molecule data by cclib
+        try:
+            if src_type == 'str':
+                data = cclib.ccopen(io.FileIO(self.src)).parse()
+            elif src_type == 'path':
+                data = cclib.ccopen(self.src).parse()
+            elif src_type == 'IOString':
+                data = cclib.ccopen(self.src).parse()
+            else:
+                raise RuntimeError(f'the source type {type(self.src)} have not been supported in cclib')
+
+        except RuntimeError:
+            data = None
+
+        if data:
+            if not obj:
+                # if get information about the atoms species
+                if hasattr(data, 'atomnos'):
+                    atoms_attrs = [{'atomic_number': an} for an in getattr(data, 'atomnos')]
+                    obj = ci.Molecule(atoms=atoms_attrs)
+                else:
+                    print(IOError(f'the parsing of {self.src} is not successful!'))
+                    return obj  # Return None
+
+            # if get information about the coordination collections
+            if hasattr(data, 'atomcoords'):
+                obj.set(coord_collect=getattr(data, 'atomcoords'))
+
+            # if get information about the energy (SCF energies) vector
+            if hasattr(data, 'scfenergies'):
+                obj.set(energies=getattr(data, 'scfenergies'))
+
+            # assign the first configure for the molecule
+            obj.configure_select(0)
+
+        return obj
+
+    # Start to the prefix IO functions
+
+    # postprocess for g16log file
+    def _post_g16log(self, obj: 'ci.Molecule'):
+        """"""
+        src_type = self.result.get('src_type')
+        return obj

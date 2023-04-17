@@ -7,6 +7,7 @@ python v3.7.9
 @Time   : 3:47
 """
 import src.cheminfo as ci
+from src._io import Parser
 
 
 def mol_io():
@@ -33,5 +34,10 @@ def dump_gjf():
     print(script)
 
 
+def parse_g16log():
+    path_mol2 = 'examples/struct/0.log'
+    return ci.Molecule.read_from(path_mol2, 'g16log')
+
+
 if __name__ == '__main__':
-    dump_gjf()
+    mol = parse_g16log()

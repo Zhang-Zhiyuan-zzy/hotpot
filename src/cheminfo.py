@@ -9,6 +9,7 @@ python v3.7.9
 import copy
 import os
 import re
+from io import IOBase
 from os import PathLike
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -16,7 +17,7 @@ import json
 from typing import *
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
-from src._io import retrieve_format, Dumper
+from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
 
 dir_root = os.path.join(os.path.dirname(__file__))
@@ -61,6 +62,10 @@ class Wrapper(ABC):
     @abstractmethod
     def _attr_setters(self) -> Dict[str, Callable]:
         raise NotImplemented
+
+    def kwargs_setters(self):
+        list_setters = [f'{k}: {s.__doc__}' for k, s in self._attr_setters.items()]
+        print("\n".join(list_setters))
 
     @property
     def setter_keys(self):
@@ -109,6 +114,9 @@ class Molecule(Wrapper, ABC):
     @staticmethod
     def _assign_atom_coords(the_mol: 'Molecule', coord_matrix: np.ndarray):
         """ Assign coordinates for all atoms in the Molecule """
+        if len(the_mol.atoms) != coord_matrix.shape[-2]:
+            raise AttributeError('the coordinate matrix do not match the number of atoms')
+
         for new_mol_atom, new_atom_coord in zip(the_mol.atoms, coord_matrix):
             new_mol_atom.coordinates = new_atom_coord
 
@@ -118,10 +126,12 @@ class Molecule(Wrapper, ABC):
             'atoms.partial_charge': self._set_atoms_partial_charge,
             "identifier": self._set_identifier,
             "energy": self._set_mol_energy,
+            'energies': self._set_mol_energies,
             'charge': self._set_mol_charge,
             'spin': self._set_spin_multiplicity,
             'atoms': self._set_atoms,
-            'mol_orbital_energies': self._set_mol_orbital_energies
+            'mol_orbital_energies': self._set_mol_orbital_energies,
+            'coord_collect': self._set_coord_collect,
         }
 
     @property
@@ -169,17 +179,57 @@ class Molecule(Wrapper, ABC):
         for atom, partial_charge in zip(self.atoms, partial_charges):
             atom.partial_charge = partial_charge
 
+    def _set_coord_collect(self, coord_collect: np.ndarray):
+        """
+        Assign the coordinates collection directly
+        Args:
+            coord_collect: numpy array with the shape (M, N, 3), where the M is the number of coordinates
+            in the collection, the N is the number of atoms of the molecule.
+
+        Returns:
+            None
+        """
+        if not isinstance(coord_collect, np.ndarray):
+            raise ValueError(f'the given coord_collect must be a numpy.ndarray class, instead of {type(coord_collect)}')
+
+        if coord_collect.shape[-1] != 3:
+            raise ValueError(f'the coordinate must be 3 dimension, instead of {coord_collect.shape[-1]}')
+
+        if len(coord_collect.shape) == 2:
+            # if only give a group of coordinates
+            coord_collect = coord_collect.reshape((-1, coord_collect.shape[-2], 3))
+        elif len(coord_collect.shape) != 3:
+            raise ValueError(
+                f'the shape of given coord_collect should with length 2 or 3, now is {len(coord_collect.shape)}'
+            )
+
+        self._data['_coord_collect'] = coord_collect
+
     def _set_mol_charge(self, charge: int):
         self._OBMol.SetTotalCharge(charge)
 
     def _set_mol_orbital_energies(self, orbital_energies: list[np.ndarray]):
         self._data['mol_orbital_energies'] = orbital_energies[0]
 
-    def _set_mol_energy(self, energy: Union[float, np.ndarray]):
-        if isinstance(energy, float):
-            self._OBMol.SetEnergy(energy)
+    def _set_mol_energy(self, energy: float):
+        """ set the energy """
+        self._OBMol.SetEnergy(energy)
+
+    def _set_mol_energies(self, energies: Union[float, np.ndarray], config_index: Optional[int] = None):
+        """ set the energies vector """
+        if isinstance(energies, float):
+            self._data['energies'] = np.array([energies])
         else:
-            self._OBMol.SetEnergy(energy.flatten()[0])
+            energies = energies.flatten()
+            self._data['energies'] = energies
+
+        if isinstance(config_index, int):
+            try:
+                energy = energies[config_index]
+            except IndexError:
+                energy = 0.0
+
+            self._set_mol_energy(energy)
 
     def _set_identifier(self, identifier):
         self._OBMol.SetTitle(identifier)
@@ -187,7 +237,7 @@ class Molecule(Wrapper, ABC):
     def _set_spin_multiplicity(self, spin):
         self._OBMol.SetTotalSpinMultiplicity(spin)
 
-    def add_atom(self, atom: "Atom"):
+    def add_atom(self, atom: Union["Atom", str, int]):
         """
         Add a new atom out of the molecule into the molecule.
         Args:
@@ -196,6 +246,11 @@ class Molecule(Wrapper, ABC):
         Returns:
 
         """
+        if isinstance(atom, str):
+            atom = Atom(symbol=atom)
+        elif isinstance(atom, int):
+            atom = Atom(atomic_number=atom)
+
         # Avoid add a existed atom into the molecule
         if atom.molecule and (atom.molecule is self or atom.molecule._OBMol is self._OBMol):
             raise AttributeError("This atom have exist in the molecule")
@@ -409,8 +464,22 @@ class Molecule(Wrapper, ABC):
         if coordinate_matrix_collection is None and config_idx:
             raise IndexError('Only one configure here!')
 
+        # assign the coordinates for the molecule
         config_coord_matrix = coordinate_matrix_collection[config_idx]
         self._assign_atom_coords(self, config_coord_matrix)
+
+        energies = self._data.get('energies')
+        if isinstance(energies, np.ndarray):
+            try:
+                energy = energies[config_idx]
+            except IndexError:
+                # if can't find corresponding energy
+                energy = 0.0
+
+            self._set_mol_energy(energy)
+
+        else:
+            self._set_mol_energy(0.0)
 
     @property
     def coord_matrix(self) -> np.ndarray:
@@ -498,11 +567,15 @@ class Molecule(Wrapper, ABC):
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes]:
         """"""
         dumper = Dumper(fmt=fmt, source=self, *args, **kwargs)
-        return dumper.dump()
+        return dumper()
 
     @property
     def elements(self) -> list[str]:
         return re.findall(r'[A-Z][a-z]*', self.formula)
+
+    @property
+    def energies_vector(self):
+        return self._data.get('energies')
 
     @property
     def energy(self):
@@ -721,6 +794,31 @@ class Molecule(Wrapper, ABC):
         mol_kwargs = custom_reader.read(path_file, *args, **kwargs)
         return cls(**mol_kwargs)
 
+    @classmethod
+    def read_from(cls, source: Union[str, PathLike, IOBase], fmt=None, *args, **kwargs):
+        """
+        read source to the Molecule obj by call _io.Parser class
+        Args:
+            source(str, PathLike, IOBase): the formatted source
+            fmt:
+            *args:
+            **kwargs:
+
+        Returns:
+
+        """
+        if not fmt:
+            if isinstance(source, str):
+                source = Path(source)
+
+            if isinstance(source, Path):
+                fmt = source.suffix.strip('.')
+            else:
+                raise ValueError(f'the arguments should be specified for {type(source)} source')
+
+        parser = Parser(fmt, source, *args, **kwargs)
+        return parser()
+
     def remove_atoms(self, *atoms: Union[int, str, 'Atom']) -> None:
         """
         Remove atom according to given atom index, label or the atoms self.
@@ -764,6 +862,10 @@ class Molecule(Wrapper, ABC):
         else:
             return ValueError(f"the which should be `present` or `all`, instead of `{which}`")
 
+    def set(self, **kwargs):
+        """ Set the attributes directly """
+        self._set_attrs(**kwargs)
+
     def set_label(self, idx: int, label: str):
         self.atoms[idx].label = label
 
@@ -782,7 +884,6 @@ class Molecule(Wrapper, ABC):
             _call_by_bundle: bool = False
     ):
         """"""
-
 
     @property
     def weight(self):
@@ -839,7 +940,8 @@ class Atom(Wrapper, ABC):
             "coordinates": self._set_coordinate,
             'partial_charge': self._set_partial_charge,
             'label': self._set_label,
-            'idx': self._set_idx
+            'idx': self._set_idx,
+            'spin_density': self._set_spin_density
         }
 
     def _replace_attr_data(self, data: Dict):
@@ -847,6 +949,10 @@ class Atom(Wrapper, ABC):
         self._data = data
 
     def _set_atomic_number(self, atomic_number: int):
+        self._OBAtom.SetAtomicNum(int(atomic_number))
+
+    def _set_atomic_symbol(self, symbol):
+        atomic_number = _elements[symbol]['number']
         self._OBAtom.SetAtomicNum(atomic_number)
 
     def _set_coordinate(self, coordinates):
@@ -864,9 +970,8 @@ class Atom(Wrapper, ABC):
     def _set_partial_charge(self, charge):
         self._OBAtom.SetPartialCharge(charge)
 
-    def _set_atomic_symbol(self, symbol):
-        atomic_number = _elements[symbol]['number']
-        self._OBAtom.SetAtomicNum(atomic_number)
+    def _set_spin_density(self, spin_density: float):
+        self._data['spin_density'] = spin_density
 
     @property
     def atom_type(self):
@@ -906,14 +1011,6 @@ class Atom(Wrapper, ABC):
         return tuple(self._attr_setters.keys())
 
     @property
-    def neighbours(self):
-        """ Get all atoms bond with this atom in same molecule """
-        if self._mol:
-            return [self._mol.atoms[OBAtom.GetId()] for OBAtom in ob.OBAtomAtomIter(self._OBAtom)]
-        else:
-            return []
-
-    @property
     def idx(self):
         return self._OBAtom.GetId()
 
@@ -946,12 +1043,28 @@ class Atom(Wrapper, ABC):
         return self._mol
 
     @property
+    def neighbours(self):
+        """ Get all atoms bond with this atom in same molecule """
+        if self._mol:
+            return [self._mol.atoms[OBAtom.GetId()] for OBAtom in ob.OBAtomAtomIter(self._OBAtom)]
+        else:
+            return []
+
+    @property
     def partial_charge(self):
         return self._OBAtom.GetPartialCharge()
 
     @partial_charge.setter
     def partial_charge(self, value: float):
         self._set_partial_charge(value)
+
+    @property
+    def spin_density(self):
+        self._data.get('spin_density')
+
+    @spin_density.setter
+    def spin_density(self, spin_density: float):
+        self._set_spin_density(spin_density)
 
     @property
     def symbol(self):

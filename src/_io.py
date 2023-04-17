@@ -616,6 +616,69 @@ class Parser(IOBase, metaclass=MetaIO):
 
     # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):
-        """"""
+        """
+        post process for g16log format, to extract:
+            1) Mulliken charge
+            2) Spin densities
+        """
         src_type = self.result.get('src_type')
+
+        if src_type == 'str':
+            lines = self.src.split('\n')
+
+        elif src_type == 'path':
+            with open(self.src) as file:
+                lines = file.readlines()
+
+        elif src_type == 'IOString':
+            lines = self.src.readlines()
+
+        else:
+            raise RuntimeError('the source type {type(self.src)} have not been supported')
+
+        # Get the line index of Mulliken charges
+        head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
+
+        # Extract the Mulliken charge and spin densities
+        charges, spin_densities = [], []
+        for i in head_lines:
+            # Enhance inspection
+            col1, col2 = lines[i+1].strip().split()
+            assert col1 == '1' and col2 == '2'
+
+            sheet_idx = 2
+            charge, spin_density = [], []
+
+            while True:
+                split_line = lines[i+sheet_idx].strip().split()
+                if len(split_line) != 4:
+                    break
+                else:
+                    row, syb, c, s = split_line  # row number, symbol, charges, spin density
+
+                try:
+                    row, c, s = int(row), float(c), float(s)
+                    # check the sheet row number
+                    if row != sheet_idx-1:
+                        break
+
+                # Inspect the types of values
+                except ValueError:
+                    break
+
+                # record the charge and spin density
+                charge.append(c)
+                spin_densities.append(s)
+
+            # store the extracted
+            if charge and spin_densities:
+                charges.append(charge)
+                spin_densities.append(spin_density)
+            else:
+                raise ValueError('get a empty charge and spin list, check the input!!')
+
+        if charges and spin_densities:
+            for chs, sps in zip(charges, spin_densities):
+                pass
+
         return obj

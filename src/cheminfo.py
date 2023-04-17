@@ -586,8 +586,25 @@ class Molecule(Wrapper, ABC):
         """ Return energy with kcal/mol as default """
         return self.ob_mol.GetEnergy()
 
-    def feature_matrix(self, *feature_names):
-        """"""
+    def feature_matrix(self, feature_names):
+        n = len(self.atoms)
+        m = len(feature_names)
+        np.set_printoptions(suppress=True, precision=6)
+        feature_matrix = np.zeros((n, m+3))
+
+        for i, atom in enumerate(self.atoms):
+            atom_features = atom.element_features(output_type='dict', *feature_names)
+            for j, feature_name in enumerate(feature_names):
+                if feature_name == 'atom_orbital_feature':
+                    ao_features = atom_features[feature_name]
+                    feature_matrix[i, j] = ao_features['s']
+                    feature_matrix[i, j + 1] = ao_features['p']
+                    feature_matrix[i, j + 2] = ao_features['d']
+                    feature_matrix[i, j + 3] = ao_features['f']
+                    j += 3
+                else:
+                    feature_matrix[i, j] = atom_features[feature_name]
+        return feature_matrix
 
     @property
     def formula(self) -> str:
@@ -905,26 +922,6 @@ class Molecule(Wrapper, ABC):
 
         with open(path_file, mode) as writer:
             writer.write(script)
-
-    def feature_matrix(self, feature_names):
-        n = len(self.atoms)
-        m = len(feature_names)
-        np.set_printoptions(suppress=True, precision=6)
-        feature_matrix = np.zeros((n, m+3))
-
-        for i, atom in enumerate(self.atoms):
-            atom_features = atom.element_features(output_type='dict', *feature_names)
-            for j, feature_name in enumerate(feature_names):
-                if feature_name == 'atom_orbital_feature':
-                    ao_features = atom_features[feature_name]
-                    feature_matrix[i, j] = ao_features['s']
-                    feature_matrix[i, j + 1] = ao_features['p']
-                    feature_matrix[i, j + 2] = ao_features['d']
-                    feature_matrix[i, j + 3] = ao_features['f']
-                    j += 3
-                else:
-                    feature_matrix[i, j] = atom_features[feature_name]
-        return feature_matrix
 
 
 class Atom(Wrapper, ABC):

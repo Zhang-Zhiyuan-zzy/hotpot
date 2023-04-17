@@ -21,6 +21,10 @@ import pandas as pd
 # Typing Annotations
 GraphFormatName = Literal['Pytorch', 'numpy']
 
+feature_formats = {
+    'basic': ['atomic_number', 's', 'p', 'f']
+}
+
 
 class MolBundle:
     """"""

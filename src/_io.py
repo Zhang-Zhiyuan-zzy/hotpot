@@ -445,7 +445,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
         # Try to dump by openbabel.pybel
         try:
-            pb_mol = pybel.Molecule(self.src._OBMol)
+            pb_mol = pybel.Molecule(self.src.ob_mol)
             return pb_mol.write(self.fmt)
 
         except ValueError:

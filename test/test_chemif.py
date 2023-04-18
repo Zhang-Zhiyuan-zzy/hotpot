@@ -39,5 +39,16 @@ def parse_g16log():
     return ci.Molecule.read_from(path_mol2, 'g16log')
 
 
+def perturb_cif():
+    path_cif = 'examples/struct/aCarbon.cif'
+    mol = ci.Molecule.read_from(path_cif, 'cif')
+    gen = mol.perturb_mol_lattice(mol_distance=0.05, max_generate_num=2)
+
+    for i, gen_mol in enumerate(gen):
+        gen_mol.writefile('cif', f'output/gen_cif/aCarbon_{i}.cif')
+
+
 if __name__ == '__main__':
     mol = parse_g16log()
+    for a in mol.atoms:
+        print(a.partial_charge, a.spin_density)

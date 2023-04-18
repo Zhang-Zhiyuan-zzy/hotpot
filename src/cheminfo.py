@@ -130,6 +130,8 @@ class Molecule(Wrapper, ABC):
             "energy": self._set_mol_energy,
             'energies': self._set_mol_energies,
             'charge': self._set_mol_charge,
+            'atom_charges': self._set_atom_charges,
+            'atom_spin_densities': self._set_atom_spin_densities,
             'spin': self._set_spin_multiplicity,
             'atoms': self._set_atoms,
             'mol_orbital_energies': self._set_mol_orbital_energies,
@@ -206,6 +208,67 @@ class Molecule(Wrapper, ABC):
             )
 
         self._data['_coord_collect'] = coord_collect
+
+    def _set_atom_charge(self, charge: Union[Sequence, np.ndarray]):
+        """ Set partial charge for each atoms in the mol """
+        if not isinstance(charge, (Sequence, np.ndarray)):
+            raise TypeError(f'the charge should be a sequence or np.ndarray, got {type(charge)}')
+
+        if isinstance(charge, np.ndarray):
+            charge = charge.flatten()
+
+        if len(charge) != len(self.atoms):
+            raise ValueError('the number of charges do not match with the atom charge')
+
+        for atom, ch in zip(self.atoms, charge):
+            atom.partial_charge = ch
+
+    def _set_atom_charges(self, charges: np.ndarray):
+        """
+        set groups of charges for each atoms in the mol, and each group of charges are corresponding to a
+        conformer of the mol
+        Args:
+            charges: group of atoms with the shape of (C, N), where the C is the number of the conformer
+             and the N is the number of the atom in the molecule
+        """
+        if not isinstance(charges, np.ndarray):
+            raise TypeError('the arg charges should be np.ndarray')
+
+        if len(charges.shape) != 2 and charges.shape[1] != len(self.atoms):
+            raise ValueError('the shape of the arg: charge should be (number_of_conformer, number_of_atoms),'
+                             f'got the value with shape {charges.shape}')
+
+        self._data['atom_charges'] = charges
+
+    def _set_atom_spin_densities(self, group_spd: np.ndarray) -> None:
+        """
+        assign groups of spin densities for all atom in molecule, each group is corresponding to a conformer
+        Args:
+            group_spd(np.ndarray): group of spin densities, the numpy array with the (C, N) shape,
+             where the C is the number of conformer, the N is the number of atoms
+        """
+        if not isinstance(group_spd, np.ndarray):
+            raise TypeError('the arg group_spd should be np.ndarray')
+
+        if len(group_spd.shape) != 2 and group_spd.shape[1] != len(self.atoms):
+            raise ValueError('the shape of the arg: group_spd should be (number_of_conformer, number_of_atoms),'
+                             f'got the value with shape {group_spd.shape}')
+
+        self._data['atom_spin_densities'] = group_spd
+
+    def _set_atom_spin_density(self, spd: Union[Sequence, np.ndarray]):
+        """ assign the spin density for each of atoms in the mol """
+        if not isinstance(spd, (Sequence, np.ndarray)):
+            raise TypeError(f'the charge should be a sequence or np.ndarray, got {type(spd)}')
+
+        if isinstance(spd, np.ndarray):
+            spd = spd.flatten()
+
+        if len(spd) != len(self.atoms):
+            raise ValueError('the number of charges do not match with the atom charge')
+
+        for atom, sp in zip(self.atoms, spd):
+            atom.spin_density = sp
 
     def _set_mol_charge(self, charge: int):
         self.ob_mol.SetTotalCharge(charge)
@@ -461,6 +524,19 @@ class Molecule(Wrapper, ABC):
 
     def configure_select(self, config_idx: int):
         """ select specific configure by index """
+
+        def assign_numpy_attrs(attrs_name: str):
+            attrs = self._data.get(attrs_name)
+            if isinstance(attrs, np.ndarray):
+                try:
+                    attr = attrs[config_idx]
+                except IndexError:
+                    attr = None
+            else:
+                attr = None
+
+            return attr
+
         coordinate_matrix_collection = self._data.get('_coord_collect')
         if coordinate_matrix_collection is None and config_idx:
             raise IndexError('Only one configure here!')
@@ -469,18 +545,30 @@ class Molecule(Wrapper, ABC):
         config_coord_matrix = coordinate_matrix_collection[config_idx]
         self._assign_atom_coords(self, config_coord_matrix)
 
-        energies = self._data.get('energies')
-        if isinstance(energies, np.ndarray):
-            try:
-                energy = energies[config_idx]
-            except IndexError:
-                # if can't find corresponding energy
-                energy = 0.0
+        # energies = self._data.get('energies')
+        # if isinstance(energies, np.ndarray):
+        #     try:
+        #         energy = energies[config_idx]
+        #     except IndexError:
+        #         # if can't find corresponding energy
+        #         energy = 0.0
+        #
+        #     self._set_mol_energy(energy)
+        #
+        # else:
+        #     self._set_mol_energy(0.0)
 
+        energy = assign_numpy_attrs('energies')
+        if isinstance(energy, np.ndarray) or energy:
             self._set_mol_energy(energy)
 
-        else:
-            self._set_mol_energy(0.0)
+        atom_charge = assign_numpy_attrs('atom_charges')
+        if isinstance(atom_charge, np.ndarray) or atom_charge:
+            self._set_atom_charge(atom_charge)
+
+        atom_spin_density = assign_numpy_attrs('atom_spin_densities')
+        if isinstance(atom_spin_density, np.ndarray) or atom_spin_density:
+            self._set_atom_spin_density(atom_spin_density)
 
     @property
     def coord_matrix(self) -> np.ndarray:
@@ -816,7 +904,7 @@ class Molecule(Wrapper, ABC):
         return cls(**mol_kwargs)
 
     @classmethod
-    def read_from(cls, source: Union[str, PathLike, IOBase], fmt=None, *args, **kwargs):
+    def read_from(cls, source: Union[str, PathLike, IOBase], fmt=None, *args, **kwargs) -> 'Molecule':
         """
         read source to the Molecule obj by call _io.Parser class
         Args:
@@ -844,7 +932,7 @@ class Molecule(Wrapper, ABC):
         """
         Remove atom according to given atom index, label or the atoms self.
         Args:
-            atom(int|str|Atom): the index, label or self of Removed atom
+            atoms(int|str|Atom): the index, label or self of Removed atom
 
         Returns:
             None
@@ -1161,11 +1249,14 @@ class Atom(Wrapper, ABC):
 
     @partial_charge.setter
     def partial_charge(self, value: float):
+        # This is necessary to take effect to the assignment.
+        # the reason is unknown
+        self.ob_atom.GetPartialCharge()
         self._set_partial_charge(value)
 
     @property
     def spin_density(self):
-        return self._data.get('spin_density')
+        return self._data.get('spin_density', 0.0)
 
     @spin_density.setter
     def spin_density(self, spin_density: float):

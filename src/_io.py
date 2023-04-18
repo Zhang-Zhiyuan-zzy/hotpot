@@ -15,6 +15,7 @@ import io
 from io import IOBase
 from openbabel import pybel
 import cclib
+import numpy as np
 import src.cheminfo as ci
 
 """
@@ -586,7 +587,7 @@ class Parser(IOBase, metaclass=MetaIO):
             else:
                 raise RuntimeError(f'the source type {type(self.src)} have not been supported in cclib')
 
-        except RuntimeError:
+        except (RuntimeError, AttributeError):
             data = None
 
         if data:
@@ -668,17 +669,23 @@ class Parser(IOBase, metaclass=MetaIO):
 
                 # record the charge and spin density
                 charge.append(c)
-                spin_densities.append(s)
+                spin_density.append(s)
+                sheet_idx += 1
 
             # store the extracted
-            if charge and spin_densities:
-                charges.append(charge)
-                spin_densities.append(spin_density)
+            if charge and spin_density:
+                if len(charge) == len(spin_density) == len(obj.atoms):
+                    charges.append(charge)
+                    spin_densities.append(spin_density)
+                else:
+                    raise ValueError('the number of charges do not match to the number of atoms')
             else:
                 raise ValueError('get a empty charge and spin list, check the input!!')
 
-        if charges and spin_densities:
-            for chs, sps in zip(charges, spin_densities):
-                pass
+        obj.set(atom_charges=np.array(charges))
+        obj.set(atom_spin_densities=np.array(spin_densities))
+
+        # assign the first configure for the molecule
+        obj.configure_select(0)
 
         return obj

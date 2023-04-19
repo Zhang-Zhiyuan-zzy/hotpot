@@ -347,7 +347,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         share_same_configures = ['coord', 'energy', 'force', 'charge', 'virial']
         need_reshape = ['coord', 'force']
 
-        conf_num = len(self.src.coord_matrix_collect)
+        conf_num = len(self.src.all_coordinates)
         crystal = self.src.crystal()
         if crystal:
             box = self.src.crystal().vector  # angstrom
@@ -363,11 +363,11 @@ class Dumper(IOBase, metaclass=MetaIO):
             'type': self.src.atomic_numbers,
             'type_map': ['-'] + list(ci.periodic_table.keys()),
             'nopbc': not is_periodic,
-            'coord': self.src.coord_matrix_collect,  # angstrom,
+            'coord': self.src.all_coordinates,  # angstrom,
             'box': box,
-            'energy': self.src.energies_vector,  # eV
-            'force': self.src.forces_matrix,  # Hartree/Bohr,
-            'charge': self.src.atom_charges,  # q
+            'energy': self.src.all_energy,  # eV
+            'force': self.src.all_forces,  # Hartree/Bohr,
+            'charge': self.src.all_atom_charges,  # q
             'virial': None,
             'atom_ener': None,
             'atom_pref': None,
@@ -533,7 +533,7 @@ class Parser(IOBase, metaclass=MetaIO):
             if src_type == 'str':
                 pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src)
             elif src_type == 'path':
-                pybel_mol = next(pybel.readfile(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src))
+                pybel_mol = next(pybel.readfile(self._pybel_fmt_convert.get(self.fmt, self.fmt), str(self.src)))
             elif src_type == 'IOString':
                 pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src.read())
             else:
@@ -570,11 +570,11 @@ class Parser(IOBase, metaclass=MetaIO):
 
             # if get information about the coordination collections
             if hasattr(data, 'atomcoords'):
-                obj.set(coord_collect=getattr(data, 'atomcoords'))
+                obj.set(all_coordinates=getattr(data, 'atomcoords'))
 
             # if get information about the energy (SCF energies) vector
             if hasattr(data, 'scfenergies'):
-                obj.set(energies=getattr(data, 'scfenergies'))
+                obj.set(all_energy=getattr(data, 'scfenergies'))
 
             # assign the first configure for the molecule
             obj.configure_select(0)
@@ -674,7 +674,7 @@ class Parser(IOBase, metaclass=MetaIO):
 
         head_lines = [i for i, line in enumerate(lines) if force_head1.match(line)]
 
-        forces_matrix = []
+        all_forces = []
         for i in head_lines:
             # enhance the inspection of Force sheet head
             assert force_head2.match(lines[i+1])
@@ -686,7 +686,7 @@ class Parser(IOBase, metaclass=MetaIO):
 
                 if sheet_line.match(lines[i+HEAD_LINES_NUM+rows]):
                     if len(forces) == obj.atom_num:
-                        forces_matrix.append(forces)
+                        all_forces.append(forces)
                         break
                     else:
                         raise ValueError('the number of force vector do not match the number of atoms')
@@ -705,9 +705,9 @@ class Parser(IOBase, metaclass=MetaIO):
 
                 rows += 1
 
-        obj.set(atom_charges=np.array(charges))
-        obj.set(atom_spin_densities=np.array(spin_densities))
-        obj.set(forces_matrix=np.array(forces_matrix))  # the units is Hartree/Bohr
+        obj.set(all_atom_charges=np.array(charges))
+        obj.set(all_atom_spin_densities=np.array(spin_densities))
+        obj.set(all_forces=np.array(all_forces))  # the units is Hartree/Bohr
 
         # assign the first configure for the molecule
         obj.configure_select(0)

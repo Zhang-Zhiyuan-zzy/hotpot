@@ -50,5 +50,7 @@ def perturb_cif():
 
 if __name__ == '__main__':
     mol = parse_g16log()
-    for a in mol.atoms:
-        print(a.partial_charge, a.spin_density)
+    data = mol.dump('dpmd_sys', path_save='output/dpmd_sys')
+    # for a in mol.atoms:
+    #     print(a.partial_charge, a.spin_density, a.force_vector.shape)
+    # perturb_cif()

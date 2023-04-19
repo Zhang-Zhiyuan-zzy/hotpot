@@ -7,6 +7,8 @@ python v3.7.9
 @Time   : 4:18
 """
 import os
+import re
+from pathlib import Path
 from os import PathLike
 from typing import *
 from abc import ABCMeta, abstractmethod
@@ -333,10 +335,107 @@ class Dumper(IOBase, metaclass=MetaIO):
     # the first is the Dumper self obj and the second is the strings
 
     def _checks(self) -> Dict[str, Any]:
-        if self.src.__class__.__name__ != 'Molecule':
+        if not isinstance(self.src, ci.Molecule):
             raise TypeError(f'the dumped object should be hotpot.cheminfo.Molecule, instead of {type(self.src)}')
 
         return {}
+
+    def _io_dpmd_sys(self):
+        """ convert molecule information to numpy arrays """
+        required_items = ['coord', 'type']
+        check_atom_num = ['coord', 'force', 'charge']
+        share_same_configures = ['coord', 'energy', 'force', 'charge', 'virial']
+        need_reshape = ['coord', 'force']
+
+        conf_num = len(self.src.coord_matrix_collect)
+        crystal = self.src.crystal()
+        if crystal:
+            box = self.src.crystal().vector  # angstrom
+            is_periodic = True
+        else:
+            box = np.zeros((3, 3))
+            for i in range(3):
+                box[i, i] = 100.
+            is_periodic = False
+        box = box.reshape(-1, 9).repeat(conf_num, axis=0)
+
+        data = {
+            'type': self.src.atomic_numbers,
+            'type_map': ['-'] + list(ci.periodic_table.keys()),
+            'nopbc': not is_periodic,
+            'coord': self.src.coord_matrix_collect,  # angstrom,
+            'box': box,
+            'energy': self.src.energies_vector,  # eV
+            'force': self.src.forces_matrix,  # Hartree/Bohr,
+            'charge': self.src.atom_charges,  # q
+            'virial': None,
+            'atom_ener': None,
+            'atom_pref': None,
+            'dipole': None,
+            'atom_dipole': None,
+            'polarizability': None,
+            'atomic_polarizability': None
+        }
+
+        for name in required_items:
+            if data.get(name) is None:
+                raise ValueError('the required composition to make the dpmd system is incomplete!')
+
+        # Check whether the number of conformers are matching among data
+        if any(len(data[n]) != conf_num for n in share_same_configures if data[n] is not None):
+            raise ValueError('the number of conformers is not match')
+
+        # Check whether the number of atoms in data are matching to the molecular atoms
+        if any(data[n].shape[1] != self.src.atom_num for n in check_atom_num if data[n] is not None):
+            raise ValueError('the number of atoms is not matching the number of atom is the molecule')
+
+        for name in need_reshape:
+            item = data.get(name)
+            if isinstance(item, np.ndarray):
+                shape = item.shape
+
+                assert len(shape) == 3
+
+                data[name] = item.reshape((shape[0], shape[1]*shape[2]))
+
+        return data
+
+    def _post_dpmd_sys(self, data: Dict[str, Union[List, np.ndarray, None]]):
+        """"""
+        mapping_items = ['type', 'type_map']
+        path_save = self.kwargs.get('path_save')
+        if path_save:
+            if isinstance(path_save, str):
+                path_save = Path(path_save)
+            if path_save.is_file():
+                raise NotADirectoryError('the given path_save to dpmd_sys should be an empty dir, not a existed file')
+
+            if not path_save.exists():
+                path_save.mkdir()
+
+            if [p for p in path_save.glob('*')]:
+                raise IOError('the given path_save should be a empty dir, files or dirs have exist in the dir')
+
+            dir_npy = path_save.joinpath('set.000')
+            dir_npy.mkdir()
+
+            for name, value in data.items():
+                if name == 'nopbc' and value:
+                    with open(path_save.joinpath('nopbc'), 'w') as writer:
+                        writer.write('')
+
+                elif name in mapping_items:
+                    with open(path_save.joinpath(f'{name}.raw'), 'w') as writer:
+                        writer.write('\n'.join(map(str, value)))
+
+                else:
+                    if value is not None:
+                        if not isinstance(value, np.ndarray):
+                            raise ValueError(f'the data to set.*** must be np.ndarray, instead of {type(value)}')
+
+                        np.save(dir_npy.joinpath(f'{name}.npy'), value)
+
+        return data
 
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
@@ -508,6 +607,8 @@ class Parser(IOBase, metaclass=MetaIO):
 
         # Get the line index of Mulliken charges
         head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
+        if len(head_lines) == obj.configure_number + 1:
+            head_lines = head_lines[1:]
 
         # Extract the Mulliken charge and spin densities
         charges, spin_densities = [], []
@@ -516,11 +617,11 @@ class Parser(IOBase, metaclass=MetaIO):
             col1, col2 = lines[i+1].strip().split()
             assert col1 == '1' and col2 == '2'
 
-            sheet_idx = 2
+            HEAD_LINES_NUM = 2
             charge, spin_density = [], []
 
             while True:
-                split_line = lines[i+sheet_idx].strip().split()
+                split_line = lines[i+HEAD_LINES_NUM].strip().split()
                 if len(split_line) != 4:
                     break
                 else:
@@ -529,7 +630,7 @@ class Parser(IOBase, metaclass=MetaIO):
                 try:
                     row, c, s = int(row), float(c), float(s)
                     # check the sheet row number
-                    if row != sheet_idx-1:
+                    if row != HEAD_LINES_NUM-1:
                         break
 
                 # Inspect the types of values
@@ -539,7 +640,7 @@ class Parser(IOBase, metaclass=MetaIO):
                 # record the charge and spin density
                 charge.append(c)
                 spin_density.append(s)
-                sheet_idx += 1
+                HEAD_LINES_NUM += 1
 
             # store the extracted
             if charge and spin_density:
@@ -551,8 +652,62 @@ class Parser(IOBase, metaclass=MetaIO):
             else:
                 raise ValueError('get a empty charge and spin list, check the input!!')
 
+        # Define the format of force sheet
+        # the Force sheet like this:
+        #  -------------------------------------------------------------------
+        #  Center     Atomic                   Forces (Hartrees/Bohr)
+        #  Number     Number              X              Y              Z
+        #  -------------------------------------------------------------------
+        #       1        8           0.039901671    0.000402574    0.014942530
+        #       2        8           0.017381613    0.001609531    0.006381231
+        #       3        6          -0.092853735   -0.025654844   -0.005885898
+        #       4        6           0.067801154    0.024130172   -0.022794721
+        #       5        8          -0.023702905    0.005486251   -0.004938175
+        #       6        8          -0.006359715   -0.008543465    0.010350815
+        #       7       55          -0.002168084    0.002569781    0.001944217
+        #  -------------------------------------------------------------------
+        force_head1 = re.compile(r'\s*Center\s+Atomic\s+Forces\s\(Hartrees/Bohr\)\s*')
+        force_head2 = re.compile(r'\s*Number\s+Number\s+X\s+Y\s+Z\s*')
+        sheet_line = re.compile(r'\s*----+\s*')
+
+        HEAD_LINES_NUM = 3  # the offset line to write the header
+
+        head_lines = [i for i, line in enumerate(lines) if force_head1.match(line)]
+
+        forces_matrix = []
+        for i in head_lines:
+            # enhance the inspection of Force sheet head
+            assert force_head2.match(lines[i+1])
+            assert sheet_line.match(lines[i+2])
+
+            rows = 0
+            forces = []
+            while True:
+
+                if sheet_line.match(lines[i+HEAD_LINES_NUM+rows]):
+                    if len(forces) == obj.atom_num:
+                        forces_matrix.append(forces)
+                        break
+                    else:
+                        raise ValueError('the number of force vector do not match the number of atoms')
+
+                ac, an, x, y, z = map(
+                    lambda v: int(v[1]) if v[0] < 2 else float(v[1]),
+                    enumerate(lines[i+HEAD_LINES_NUM+rows].split())
+                )
+
+                # Enhance the inspection
+                assert ac == rows+1
+                if obj.atoms[rows].atomic_number != an:
+                    raise ValueError('the atomic number do not match')
+
+                forces.append([x, y, z])
+
+                rows += 1
+
         obj.set(atom_charges=np.array(charges))
         obj.set(atom_spin_densities=np.array(spin_densities))
+        obj.set(forces_matrix=np.array(forces_matrix))  # the units is Hartree/Bohr
 
         # assign the first configure for the molecule
         obj.configure_select(0)

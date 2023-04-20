@@ -57,9 +57,12 @@ def perturb_cif():
 
 
 if __name__ == '__main__':
+    import time
     m1, m2, m3 = parse_g16log()
+    m1.dump('smi')
+    m3.dump('smi')
     # data = mol.dump('dpmd_sys', path_save='output/dpmd_sys')
-    m = m1 + m3
+    # m = m1 + m3
     # for a in mol.atoms:
     #     print(a.partial_charge, a.spin_density, a.force_vector.shape)
     # perturb_cif()

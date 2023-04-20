@@ -10,15 +10,14 @@ import copy
 from os import PathLike
 from typing import *
 from pathlib import Path
-
+from tqdm import tqdm
 import torch
 from tqdm import tqdm
-import numpy as np
 from src.cheminfo import Molecule, Atom
-from src._utils import check_path
-import pandas as pd
+from src.tools import check_path
 
-# Typing Annotations
+
+# Typing AnnotationsG
 GraphFormatName = Literal['Pytorch', 'numpy']
 
 feature_formats = {
@@ -31,13 +30,12 @@ class MolBundle:
 
     def __init__(self, mols: Union[list[Molecule], Generator[Molecule, None, None]] = None):
         self.mols = mols
-        self.mols_generator = True if isinstance(mols, Generator) else False
 
     def __iter__(self):
-        if self.mols_generator:
-            return self.mols
+        if isinstance(self.mols, Generator):
+            return tqdm(self.mols, 'Process Molecules')
         else:
-            return iter(self.mols)
+            return tqdm(self.mols, 'Process Molecules')
 
     @classmethod
     def read_from_dir(
@@ -77,7 +75,7 @@ class MolBundle:
             for i, path_mol in enumerate(read_dir.glob(match_pattern)):
 
                 if not ranges or i in ranges:
-                    mol = Molecule.readfile(path_mol, fmt)
+                    mol = Molecule.read_from(path_mol, fmt)
                 else:
                     continue
 
@@ -202,5 +200,16 @@ class MolBundle:
                     *args, **kwargs
                 )
 
-
-mol_list = MolBundle.read_from_dir('cif', '/home/dy/sw/123')
+    def sum_conformers(self):
+        """
+        Get the sum of conformers for all molecule in the mol bundle "self.mols"
+        This method can only be successfully executed
+        when all molecules in the molecular bundle can be added to each other
+        Returns:
+            a Molecule object with all of conformers in the self.mols
+        """
+        if isinstance(self.mols, Generator):
+            start_mol = next(self.mols)
+            return sum(tqdm(self.mols, 'sum conformers'), start=start_mol)
+        else:
+            return sum(tqdm(self.mols[1:], 'sum conformers'), start=self.mols[0])

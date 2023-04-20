@@ -66,6 +66,12 @@ Following the steps to customise your IO function:
         ---------------------------------- END ---------------------------------------
 """
 
+
+# Define custom Exceptions
+class IOEarlyStop(BaseException):
+    """ monitor the situation that the IO should early stop and return None a the IO result """
+
+
 # Define the IO function types
 IOFuncPrefix = Literal['pre', 'io', 'post']
 IOStream = Union[IOBase, str, bytes]
@@ -241,16 +247,20 @@ class IOBase:
 
     def __call__(self):
         """ Call for the performing of IO """
-        self._pre()
-        # For dumper, the obj is Literal str or bytes obj
-        # For parser, the obj is Molecule obj
-        io_func = self._get_io()
-        if io_func:  # If a custom io function have been defined, run custom functions
-            obj = io_func(self)
-        else:  # else get the general io function define in class
-            obj = self._io()
+        try:
+            self._pre()
+            # For dumper, the obj is Literal str or bytes obj
+            # For parser, the obj is Molecule obj
+            io_func = self._get_io()
+            if io_func:  # If a custom io function have been defined, run custom functions
+                obj = io_func(self)
+            else:  # else get the general io function define in class
+                obj = self._io()
 
-        return self._post(obj)
+            return self._post(obj)
+
+        except IOEarlyStop:
+            return None
 
     @abstractmethod
     def _checks(self) -> Dict[str, Any]:
@@ -274,7 +284,7 @@ class IOBase:
         """ Regulate the method of preprocess """
         pre_func = self._get_pre()
         if pre_func:
-            self.src = pre_func(self)
+            pre_func(self)
 
     @abstractmethod
     def _io(self, *args, **kwargs):
@@ -500,6 +510,44 @@ class Parser(IOBase, metaclass=MetaIO):
         'g16log': 'g16'
     }
 
+    def _open_source_to_string_lines(self, *which_allowed: str, output_type: Literal['lines', 'script'] = 'lines'):
+        """
+        Open the source file to string lines
+        Args:
+            which_allowed: which types of source are allowed to process to string lines
+
+        Returns:
+            (List of string|string)
+        """
+        src_type = self.result.get('src_type')
+        if src_type not in which_allowed:
+            raise RuntimeError(f'the source type {type(self.src)} have not been supported')
+        else:
+            if src_type == 'str':
+                script = self.src
+
+            elif src_type == 'path':
+                with open(self.src) as file:
+                    try:
+                        script = file.read()
+                    # If the file pointed by the path is not a text file
+                    # such as a bytes file
+                    except UnicodeDecodeError:
+                        raise IOEarlyStop()
+
+            elif src_type == 'IOString':
+                script = self.src.read()
+
+            else:
+                raise RuntimeError(f'the source type {type(self.src)} have not been supported')
+
+            if output_type == 'lines':
+                return script.split('\n')
+            elif output_type == 'script':
+                return script
+            else:
+                raise ValueError('the arg output_type given a wrong values, lines or script allow only')
+
     def _checks(self) -> Dict[str, Any]:
         if not isinstance(self.src, (IOBase, str, bytes, PathLike)):
             raise TypeError(f'the parsed object should be IOBase, str or bytes, instead of {type(self.src)}')
@@ -583,6 +631,21 @@ class Parser(IOBase, metaclass=MetaIO):
 
     # Start to the prefix IO functions
 
+    # preprocess for g16log file
+    # This preprocess is used to judge whether a Error happened when perform g16 calculate
+    def _pre_g16log(self):
+        """ g16log preprocess to judge whether some Error happened """
+        def is_convergence_failure():
+            if 'Convergence failure -- run terminated.' in script:
+                return True
+            return False
+
+        script = self._open_source_to_string_lines('str', 'path', "IOString", output_type='script')
+
+        # Check whether a failure have happened when calculation.
+        if is_convergence_failure():
+            raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
+
     # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):
         """
@@ -590,21 +653,7 @@ class Parser(IOBase, metaclass=MetaIO):
             1) Mulliken charge
             2) Spin densities
         """
-        src_type = self.result.get('src_type')
-
-        if src_type == 'str':
-            lines = self.src.split('\n')
-
-        elif src_type == 'path':
-            with open(self.src) as file:
-                lines = file.readlines()
-
-        elif src_type == 'IOString':
-            lines = self.src.readlines()
-
-        else:
-            raise RuntimeError('the source type {type(self.src)} have not been supported')
-
+        lines = self._open_source_to_string_lines('str', 'path', 'IOString')
         # Get the line index of Mulliken charges
         head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
         if len(head_lines) == obj.configure_number + 1:

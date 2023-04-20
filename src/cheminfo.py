@@ -19,6 +19,7 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
+from src.bundle import MolBundle
 
 dir_root = os.path.join(os.path.dirname(__file__))
 periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -110,10 +111,24 @@ class Molecule(Wrapper, ABC):
         Returns:
             Molecule
         """
-        clone = self.copy()
-        clone += other
+        if not isinstance(other, (Molecule, MolBundle)):
+            raise TypeError('the Molecule only add with Molecule or MolBundle')
 
-        return clone
+        if isinstance(other, Molecule):
+            if self.atomic_numbers == other.atomic_numbers:
+                clone = self.copy()
+                clone += other
+
+                return clone
+
+            elif self.atom_num == self.atom_num:
+                pass
+
+            else:
+                raise AttributeError('Two Molecules are additive, when they, at least, have some of atom number')
+
+        else:
+            pass
 
     def __iadd__(self, other):
         """
@@ -146,7 +161,7 @@ class Molecule(Wrapper, ABC):
         # Check whether left and right Molecules have consist atom list
         if self.atomic_numbers != other.atomic_numbers:
             raise AttributeError(
-                'the addition cannot be performed among molecules with different atoms list!'
+                'the self addition cannot be performed among molecules with different atoms list!'
             )
 
         for i, items in enumerate(self.conformer_items):
@@ -1090,6 +1105,10 @@ class Molecule(Wrapper, ABC):
 
     def set_label(self, idx: int, label: str):
         self.atoms[idx].label = label
+
+    @property
+    def smiles(self):
+        return self.dump('smi').strip().split('\t')[0]
 
     @property
     def spin(self):

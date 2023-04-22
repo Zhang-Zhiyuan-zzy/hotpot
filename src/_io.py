@@ -572,11 +572,10 @@ class Parser(IOBase, metaclass=MetaIO):
         print(f'the get source type is {type(self.src)}')
         return {'src_type': type(self.src)}
 
-    def _io(self, *args, **kwargs):
+    def _ob_io(self):
+        """ IO by openbabel.pybel """
         # Get the source type name
         src_type = self.result.get('src_type')
-
-        # Try parse the log file by openbabel.pybel file firstly
         try:
             if src_type == 'str':
                 pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src)
@@ -592,7 +591,12 @@ class Parser(IOBase, metaclass=MetaIO):
         except RuntimeError:
             obj = None
 
-        # Try to supplementary Molecule data by cclib
+        return obj
+
+    def _cclib_io(self, obj):
+        """ IO by cclib package """
+        src_type = self.result.get('src_type')
+
         try:
             if src_type == 'str':
                 data = cclib.ccopen(io.FileIO(self.src)).parse()
@@ -624,10 +628,15 @@ class Parser(IOBase, metaclass=MetaIO):
             if hasattr(data, 'scfenergies'):
                 obj.set(all_energy=getattr(data, 'scfenergies'))
 
-            # assign the first configure for the molecule
-            obj.configure_select(0)
+            return obj
 
-        return obj
+    def _io(self, *args, **kwargs):
+        """ Standard IO process """
+        # Try parse the log file by openbabel.pybel file firstly
+        obj = self._ob_io()
+
+        # Try to supplementary Molecule data by cclib
+        return self._cclib_io(obj)
 
     # Start to the prefix IO functions
 
@@ -653,110 +662,124 @@ class Parser(IOBase, metaclass=MetaIO):
             1) Mulliken charge
             2) Spin densities
         """
-        lines = self._open_source_to_string_lines('str', 'path', 'IOString')
-        # Get the line index of Mulliken charges
-        head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
-        if len(head_lines) == obj.configure_number + 1:
-            head_lines = head_lines[1:]
+        def extract_charges_spin():
+            """ Extract charges and spin information from g16.log file """
+            # Get the line index of Mulliken charges
+            head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
+            
+            if not head_lines:
+                raise IOEarlyStop
+            elif len(head_lines) == obj.configure_number + 1:
+                head_lines = head_lines[1:]
 
-        # Extract the Mulliken charge and spin densities
-        charges, spin_densities = [], []
-        for i in head_lines:
-            # Enhance inspection
-            col1, col2 = lines[i+1].strip().split()
-            assert col1 == '1' and col2 == '2'
+            # Extract the Mulliken charge and spin densities
+            charges, spin_densities = [], []  # changes(cgs) spin_densities(sds)
+            for i in head_lines:
+                # Enhance inspection
+                col1, col2 = lines[i + 1].strip().split()
+                assert col1 == '1' and col2 == '2'
 
-            HEAD_LINES_NUM = 2
-            charge, spin_density = [], []
+                HEAD_LINES_NUM = 2
+                cg, sd = [], []  # change, spin_density
 
-            while True:
-                split_line = lines[i+HEAD_LINES_NUM].strip().split()
-                if len(split_line) != 4:
-                    break
-                else:
-                    row, syb, c, s = split_line  # row number, symbol, charges, spin density
-
-                try:
-                    row, c, s = int(row), float(c), float(s)
-                    # check the sheet row number
-                    if row != HEAD_LINES_NUM-1:
-                        break
-
-                # Inspect the types of values
-                except ValueError:
-                    break
-
-                # record the charge and spin density
-                charge.append(c)
-                spin_density.append(s)
-                HEAD_LINES_NUM += 1
-
-            # store the extracted
-            if charge and spin_density:
-                if len(charge) == len(spin_density) == len(obj.atoms):
-                    charges.append(charge)
-                    spin_densities.append(spin_density)
-                else:
-                    raise ValueError('the number of charges do not match to the number of atoms')
-            else:
-                raise ValueError('get a empty charge and spin list, check the input!!')
-
-        # Define the format of force sheet
-        # the Force sheet like this:
-        #  -------------------------------------------------------------------
-        #  Center     Atomic                   Forces (Hartrees/Bohr)
-        #  Number     Number              X              Y              Z
-        #  -------------------------------------------------------------------
-        #       1        8           0.039901671    0.000402574    0.014942530
-        #       2        8           0.017381613    0.001609531    0.006381231
-        #       3        6          -0.092853735   -0.025654844   -0.005885898
-        #       4        6           0.067801154    0.024130172   -0.022794721
-        #       5        8          -0.023702905    0.005486251   -0.004938175
-        #       6        8          -0.006359715   -0.008543465    0.010350815
-        #       7       55          -0.002168084    0.002569781    0.001944217
-        #  -------------------------------------------------------------------
-        force_head1 = re.compile(r'\s*Center\s+Atomic\s+Forces\s\(Hartrees/Bohr\)\s*')
-        force_head2 = re.compile(r'\s*Number\s+Number\s+X\s+Y\s+Z\s*')
-        sheet_line = re.compile(r'\s*----+\s*')
-
-        HEAD_LINES_NUM = 3  # the offset line to write the header
-
-        head_lines = [i for i, line in enumerate(lines) if force_head1.match(line)]
-
-        all_forces = []
-        for i in head_lines:
-            # enhance the inspection of Force sheet head
-            assert force_head2.match(lines[i+1])
-            assert sheet_line.match(lines[i+2])
-
-            rows = 0
-            forces = []
-            while True:
-
-                if sheet_line.match(lines[i+HEAD_LINES_NUM+rows]):
-                    if len(forces) == obj.atom_num:
-                        all_forces.append(forces)
+                while True:
+                    split_line = lines[i + HEAD_LINES_NUM].strip().split()
+                    if len(split_line) != 4:
                         break
                     else:
-                        raise ValueError('the number of force vector do not match the number of atoms')
+                        row, syb, c, s = split_line  # row number, symbol, charges, spin density
 
-                ac, an, x, y, z = map(
-                    lambda v: int(v[1]) if v[0] < 2 else float(v[1]),
-                    enumerate(lines[i+HEAD_LINES_NUM+rows].split())
-                )
+                    try:
+                        row, c, s = int(row), float(c), float(s)
+                        # check the sheet row number
+                        if row != HEAD_LINES_NUM - 1:
+                            break
 
-                # Enhance the inspection
-                assert ac == rows+1
-                if obj.atoms[rows].atomic_number != an:
-                    raise ValueError('the atomic number do not match')
+                    # Inspect the types of values
+                    except ValueError:
+                        break
 
-                forces.append([x, y, z])
+                    # record the charge and spin density
+                    cg.append(c)
+                    sd.append(s)
+                    HEAD_LINES_NUM += 1
 
-                rows += 1
+                # store the extracted
+                if cg and sd:
+                    if len(cg) == len(sd) == len(obj.atoms):
+                        charges.append(cg)
+                        spin_densities.append(sd)
+                    else:
+                        raise ValueError('the number of charges do not match to the number of atoms')
+                else:
+                    raise ValueError('get a empty charge and spin list, check the input!!')
 
-        obj.set(all_atom_charges=np.array(charges))
-        obj.set(all_atom_spin_densities=np.array(spin_densities))
-        obj.set(all_forces=np.array(all_forces))  # the units is Hartree/Bohr
+            obj.set(all_atom_charges=np.array(charges))
+            obj.set(all_atom_spin_densities=np.array(spin_densities))
+                
+        def extract_force_matrix():
+            # Define the format of force sheet
+            # the Force sheet like this:
+            #  -------------------------------------------------------------------
+            #  Center     Atomic                   Forces (Hartrees/Bohr)
+            #  Number     Number              X              Y              Z
+            #  -------------------------------------------------------------------
+            #       1        8           0.039901671    0.000402574    0.014942530
+            #       2        8           0.017381613    0.001609531    0.006381231
+            #       3        6          -0.092853735   -0.025654844   -0.005885898
+            #       4        6           0.067801154    0.024130172   -0.022794721
+            #       5        8          -0.023702905    0.005486251   -0.004938175
+            #       6        8          -0.006359715   -0.008543465    0.010350815
+            #       7       55          -0.002168084    0.002569781    0.001944217
+            #  -------------------------------------------------------------------
+            force_head1 = re.compile(r'\s*Center\s+Atomic\s+Forces\s\(Hartrees/Bohr\)\s*')
+            force_head2 = re.compile(r'\s*Number\s+Number\s+X\s+Y\s+Z\s*')
+            sheet_line = re.compile(r'\s*----+\s*')
+
+            HEAD_LINES_NUM = 3  # the offset line to write the header
+
+            head_lines = [i for i, line in enumerate(lines) if force_head1.match(line)]
+
+            all_forces = []
+            for i in head_lines:
+                # enhance the inspection of Force sheet head
+                assert force_head2.match(lines[i + 1])
+                assert sheet_line.match(lines[i + 2])
+
+                rows = 0
+                forces = []
+                while True:
+
+                    if sheet_line.match(lines[i + HEAD_LINES_NUM + rows]):
+                        if len(forces) == obj.atom_num:
+                            all_forces.append(forces)
+                            break
+                        else:
+                            raise ValueError('the number of force vector do not match the number of atoms')
+
+                    ac, an, x, y, z = map(
+                        lambda v: int(v[1]) if v[0] < 2 else float(v[1]),
+                        enumerate(lines[i + HEAD_LINES_NUM + rows].split())
+                    )
+
+                    # Enhance the inspection
+                    assert ac == rows + 1
+                    if obj.atoms[rows].atomic_number != an:
+                        raise ValueError('the atomic number do not match')
+
+                    forces.append([x, y, z])
+
+                    rows += 1
+
+            obj.set(all_forces=np.array(all_forces))
+
+        lines = self._open_source_to_string_lines('str', 'path', 'IOString')
+
+        try:  # TODO: For now, this is the case, the spin densities may lost in some case  # the units is Hartree/Bohr
+            extract_charges_spin()
+            extract_force_matrix()
+        except IndexError:
+            raise IOEarlyStop
 
         # assign the first configure for the molecule
         obj.configure_select(0)

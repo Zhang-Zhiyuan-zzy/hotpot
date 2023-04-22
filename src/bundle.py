@@ -10,10 +10,10 @@ import copy
 from os import PathLike
 from typing import *
 from pathlib import Path
-from tqdm import tqdm
+import numpy as np
 import torch
 from tqdm import tqdm
-from src.cheminfo import Molecule, Atom
+import src.cheminfo as ci
 from src.tools import check_path
 
 
@@ -28,14 +28,56 @@ feature_formats = {
 class MolBundle:
     """"""
 
-    def __init__(self, mols: Union[list[Molecule], Generator[Molecule, None, None]] = None):
+    def __init__(self, mols: Union[list[ci.Molecule], Generator[ci.Molecule, None, None]] = None):
         self.mols = mols
+        self._data = {}
 
     def __iter__(self):
-        if isinstance(self.mols, Generator):
-            return tqdm(self.mols, 'Process Molecules')
+        return iter(tqdm(self.mols, 'Process Molecule'))
+
+    def __add__(self, other: Union['MolBundle', ci.Molecule]):
+        """"""
+        if isinstance(other, MolBundle):
+            return MolBundle(self.to_list() + other.to_list())
+        elif isinstance(other, ci.Molecule):
+            return MolBundle(self.to_list() + [other])
         else:
-            return tqdm(self.mols, 'Process Molecules')
+            raise TypeError('the MolBundle is only allowed to add with Molecule or MolBundle object')
+
+    def __len__(self):
+        return len(self.mols)
+
+    def __getitem__(self, item: int):
+        return self.mols[int]
+
+    def __bundle_mol_indices_with_same_attr(self, attr_name: str):
+        self.to_list()
+
+        dict_attrs = {}
+        for i, mol in enumerate(self):
+            list_indices = dict_attrs.setdefault(getattr(mol, attr_name), [])
+            list_indices.append(i)
+
+        if not dict_attrs:
+            return 0
+        if len(dict_attrs) == 1:
+            return getattr(self.mols[0], attr_name)
+        else:
+            return dict_attrs
+
+    @property
+    def atom_num(self) -> Dict[int, List[int]]:
+        """
+        Notes:
+            if the Bundle is a generator, convert to a list of Molecule first.
+        Returns:
+            returns a dict with the key is the number of the atoms and the key is the indices of Molecules
+        """
+        return self.__bundle_mol_indices_with_same_attr('atom_num')
+
+    @property
+    def atomic_numbers(self):
+        return self.__bundle_mol_indices_with_same_attr('atomic_numbers')
 
     @classmethod
     def read_from_dir(
@@ -63,7 +105,6 @@ class MolBundle:
         Returns:
 
         """
-
         def mol_generator():
             nonlocal read_dir
 
@@ -72,10 +113,11 @@ class MolBundle:
             elif not isinstance(read_dir, PathLike):
                 raise TypeError(f'the read_dir should be a str or PathLike, instead of {type(read_dir)}')
 
+            processes = []
             for i, path_mol in enumerate(read_dir.glob(match_pattern)):
 
                 if not ranges or i in ranges:
-                    mol = Molecule.read_from(path_mol, fmt)
+                    mol = ci.Molecule.read_from(path_mol, fmt)
                 else:
                     continue
 
@@ -138,7 +180,7 @@ class MolBundle:
         dir_chk: Optional[Path] = check_path(dir_chk, mkdir=True)
 
         for mol in self.mols:
-            assert isinstance(mol, Molecule)
+            assert isinstance(mol, ci.Molecule)
 
             # Clean before perturb configures
             if clean_configure:
@@ -200,7 +242,7 @@ class MolBundle:
                     *args, **kwargs
                 )
 
-    def sum_conformers(self):
+    def merge_conformers(self):
         """
         Get the sum of conformers for all molecule in the mol bundle "self.mols"
         This method can only be successfully executed
@@ -208,8 +250,44 @@ class MolBundle:
         Returns:
             a Molecule object with all of conformers in the self.mols
         """
+        atomic_numbers = self.atomic_numbers
+
+        if isinstance(atomic_numbers, tuple):
+            return sum(self.mols[1:], start=self.mols[0])
+        elif isinstance(atomic_numbers, dict):
+            mol_array = np.array(self.mols)
+            return MolBundle([mol_array[i].sum() for ans, i in self.atomic_numbers.items()])
+
+    def merge_atoms_same_mols(self):
+        """ Merge Molecules with same atoms to a MixSameAtomMol """
+        bundle = self.to_mix_mols()
+        atom_num = bundle.atom_num
+
+        if isinstance(atom_num, tuple):
+            return sum(bundle.mols[1:], start=bundle.mols[0])
+        elif isinstance(atom_num, dict):
+            mol_array = np.array(bundle.mols)
+            return MolBundle([mol_array[i].sum() for ans, i in atom_num.items()])
+
+    def to_list(self) -> List[ci.Molecule]:
+        """ Convert the molecule container (self.mol) to list """
         if isinstance(self.mols, Generator):
-            start_mol = next(self.mols)
-            return sum(tqdm(self.mols, 'sum conformers'), start=start_mol)
-        else:
-            return sum(tqdm(self.mols[1:], 'sum conformers'), start=self.mols[0])
+            self.mols = list(self)
+
+        return self.mols
+
+    def to_mix_mols(self):
+        """
+        Return a new MolBundle, in which Molecule objects in container are converted to MixSameAtomMol
+        Returns:
+            MolBundle(MixSameAtomMol)
+        """
+        return MolBundle([m if isinstance(m, ci.Molecule) else m.to_mix_mols() for m in self])
+
+    def to_mols(self):
+        """
+        Return a new MolBundle, in which MixSameAtomMol objects in container are converted to Molecule
+        Returns:
+            MolBundle(Molecule)
+        """
+        return MolBundle([m if isinstance(m, ci.MixSameAtomMol) else m.to_mols() for m in self])

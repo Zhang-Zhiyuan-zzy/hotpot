@@ -19,7 +19,7 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
-from src.bundle import MolBundle
+# from src import bundle as bd
 
 dir_root = os.path.join(os.path.dirname(__file__))
 periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -91,16 +91,19 @@ class Molecule(Wrapper, ABC):
         ('all_coordinates', 'all_forces')
     )
 
-    def __init__(self, ob_mol: ob.OBMol = None, **kwargs):
-        self._data = {
-            'ob_mol': ob_mol if ob_mol else ob.OBMol()
-        }
+    def __init__(self, ob_mol: ob.OBMol = None, _data: dict = None,**kwargs):
+        if _data:
+            self._data = _data
+        else:
+            self._data = {
+                'ob_mol': ob_mol if ob_mol else ob.OBMol()
+            }
         self._set_attrs(**kwargs)
 
     def __repr__(self):
         return f'Mol({self.ob_mol.GetFormula()})'
 
-    def __add__(self, other: 'Molecule'):
+    def __add__(self, other: ['Molecule']):
         """
         Two Molecule objects could add to a new one to merge all of their conformers.
         All of information about the conformer will be merged to one.
@@ -111,24 +114,34 @@ class Molecule(Wrapper, ABC):
         Returns:
             Molecule
         """
-        if not isinstance(other, (Molecule, MolBundle)):
-            raise TypeError('the Molecule only add with Molecule or MolBundle')
-
+        # When other obj is a Molecule or a child of Molecule
         if isinstance(other, Molecule):
-            if self.atomic_numbers == other.atomic_numbers:
+            # If this one is compatible to the other
+            if self.iadd_accessible(other):
                 clone = self.copy()
                 clone += other
 
                 return clone
 
-            elif self.atom_num == self.atom_num:
-                pass
+            # If the other one is compatible to this one
+            if other.iadd_accessible(self):
+                clone = other.copy()
+                clone += self
 
-            else:
-                raise AttributeError('Two Molecules are additive, when they, at least, have some of atom number')
+                return clone
+
+            # If they are compatible, but are Molecule or child of Molecule
+            return MolBundle([self, other])
+
+        # if isinstance(other, MixSameAtomMol):
+        #     return self.to_mix_mol() + other
+
+        # When other obj is a MolBundle
+        if isinstance(other, MolBundle):
+            return MolBundle([self] + other.mols)
 
         else:
-            pass
+            raise TypeError('the Molecule only add with Molecule or MolBundle')
 
     def __iadd__(self, other):
         """
@@ -141,7 +154,22 @@ class Molecule(Wrapper, ABC):
         Returns:
             None
         """
+        if not isinstance(other, Molecule):
+            raise TypeError('the Molecule object is only allowed to add with other Molecule')
+
+        # Check whether left and right Molecules have consist atom list
+        if not self.iadd_accessible(other):
+            raise AttributeError(
+                'the self addition cannot be performed among molecules with different atoms list!'
+            )
+
+        return self._merge_conformer_attr(other)
+
+    def _merge_conformer_attr(self, other: 'Molecule'):
+        """ Merge attributes, relate to molecule conformer, in other Molecule into this Molecule """
+
         def merge_attr(attr_name: str):
+            """ Merge single conformer attr """
             left_attr = getattr(self, attr_name)
             right_attr = getattr(other, attr_name)
 
@@ -157,12 +185,6 @@ class Molecule(Wrapper, ABC):
                     f'  - {other}_identifier: {other.identifier}'
                     'they cannot to perform addition operation'
                 )
-
-        # Check whether left and right Molecules have consist atom list
-        if self.atomic_numbers != other.atomic_numbers:
-            raise AttributeError(
-                'the self addition cannot be performed among molecules with different atoms list!'
-            )
 
         for i, items in enumerate(self.conformer_items):
             for item in items:
@@ -589,7 +611,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def atomic_numbers(self):
-        return [a.atomic_number for a in self.atoms]
+        return tuple(a.atomic_number for a in self.atoms)
 
     def bond(self, atom1: Union[int, str], atom2: Union[int, str], miss_raise: bool = False) -> 'Bond':
         """
@@ -902,6 +924,12 @@ class Molecule(Wrapper, ABC):
     def identifier(self, value):
         self.ob_mol.SetTitle(value)
 
+    def iadd_accessible(self, other):
+        if self.atomic_numbers == self.atomic_numbers:
+            return True
+        return False
+
+
     @property
     def is_labels_unique(self):
         """ Determine whether all atom labels are unique """
@@ -1126,6 +1154,12 @@ class Molecule(Wrapper, ABC):
     ):
         """"""
 
+    def to_mix_mol(self):
+        return MixSameAtomMol(_data=self._data)
+
+    def to_mol(self):
+        return Molecule(self.copy_data())
+
     @property
     def weight(self):
         return self.ob_mol.GetExactMass()
@@ -1142,6 +1176,15 @@ class Molecule(Wrapper, ABC):
 
         with open(path_file, mode) as writer:
             writer.write(script)
+
+
+class MixSameAtomMol(Molecule):
+    """ the only difference to the Molecule class is the method of their addition  """
+
+    def iadd_accessible(self, other):
+        if self.atom_num == other.atom_num:
+            return True
+        return False
 
 
 class Atom(Wrapper, ABC):
@@ -1588,3 +1631,6 @@ class Crystal(Wrapper, ABC):
 
     def zeo_plus_plus(self):
         """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """
+
+
+from src.bundle import MolBundle

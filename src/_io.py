@@ -81,11 +81,21 @@ class Register:
     """
     Register the IO function for Dumper, Parser or so on
     """
-    # these dicts are container to store the custom io functions
-    # the keys of the dict are serve as the have to get the mapped io functions(the values)
-    pre_methods = {}
-    io_methods = {}
-    post_methods = {}
+    def __init__(self):
+        # these dicts are container to store the custom io functions
+        # the keys of the dict are serve as the have to get the mapped io functions(the values)
+        self.pre_methods = {}
+        self.io_methods = {}
+        self.post_methods = {}
+
+    def __repr__(self):
+        return f"Register:\n" + \
+               f"pre_method:\n" + \
+               f"\n\t".join([n for n in self.pre_methods]) + "\n\n" + \
+               f"io methods:\n" + \
+               f"\n\t".join([n for n in self.io_methods]) + '\n\n' + \
+               f"post methods:\n" + \
+               f"\n\t".join([n for n in self.post_methods])
 
     def __call__(self, io_cls: type, fmt: str, prefix: IOFuncPrefix):
         """
@@ -222,7 +232,7 @@ class MetaIO(type):
             if io_type == 'post':
                 _register.post_methods['_'.join(split_names[2:])] = attr
 
-        namespace['_register'] = _register
+        namespace[f'_register'] = _register
 
         return type(name, bases, namespace, **kwargs)
 
@@ -232,7 +242,7 @@ class IOBase:
     # Initialize the register function, which is a callable obj embed in IO classes
     # When to register new IO function, apply the register function as decorator
 
-    _register = None
+    # _register = None
 
     def __init__(self, fmt: str, source: Union['ci.Molecule', IOStream], *args, **kwargs):
         """"""
@@ -301,7 +311,7 @@ class IOBase:
 
     @property
     def register(self) -> Register:
-        return self._register
+        return getattr(self, f'_register')
 
 
 class Dumper(IOBase, metaclass=MetaIO):
@@ -349,6 +359,15 @@ class Dumper(IOBase, metaclass=MetaIO):
             raise TypeError(f'the dumped object should be hotpot.cheminfo.Molecule, instead of {type(self.src)}')
 
         return {}
+
+    def _pre_cif(self):
+        """
+        pre-process for Molecule object to convert to cif file.
+        if the src object do not place in a Crystal, create a P1 compact Crystal for it
+        """
+        crystal = self.src.crystal()
+        if not isinstance(crystal, ci.Crystal):
+            self.src.generate_compact_lattice(inplace=True)
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """
@@ -599,7 +618,7 @@ class Parser(IOBase, metaclass=MetaIO):
 
         try:
             if src_type == 'str':
-                data = cclib.ccopen(io.FileIO(self.src)).parse()
+                data = cclib.ccopen(io.StringIO(self.src)).parse()
             elif src_type == 'path':
                 data = cclib.ccopen(self.src).parse()
             elif src_type == 'IOString':
@@ -628,7 +647,7 @@ class Parser(IOBase, metaclass=MetaIO):
             if hasattr(data, 'scfenergies'):
                 obj.set(all_energy=getattr(data, 'scfenergies'))
 
-            return obj
+        return obj
 
     def _io(self, *args, **kwargs):
         """ Standard IO process """
@@ -785,3 +804,5 @@ class Parser(IOBase, metaclass=MetaIO):
         obj.configure_select(0)
 
         return obj
+
+

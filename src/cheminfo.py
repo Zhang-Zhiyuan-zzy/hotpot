@@ -19,7 +19,7 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
-# from src import bundle as bd
+import tanks.lmp as lmp
 
 dir_root = os.path.join(os.path.dirname(__file__))
 periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -861,6 +861,18 @@ class Molecule(Wrapper, ABC):
     def formula(self) -> str:
         return self.ob_mol.GetFormula()
 
+    def generate_compact_lattice(self, inplace=False):
+        """"""
+        ob_unit_cell = ob.OBUnitCell()
+        lattice_params = np.concatenate((self.xyz_diff, [90., 90., 90.]))
+        ob_unit_cell.SetData(*lattice_params)
+        ob_unit_cell.SetSpaceGroup('P1')
+
+        mol = self if inplace else self.copy()
+        mol.ob_mol.CloneData(ob_unit_cell)
+
+        return mol
+
     def gaussian(
             self,
             g16root: Union[str, PathLike],
@@ -941,6 +953,17 @@ class Molecule(Wrapper, ABC):
     @property
     def labels(self):
         return [a.label for a in self.atoms]
+
+    @property
+    def lmp(self):
+        """ handle to operate the Lammps object """
+        return self._data.setdefault('lmp', lmp.Lammps(self))
+
+    def lmp_close(self):
+        self._data.pop('lmp')
+
+    def lmp_restart(self):
+        self._data['lmp'] = lmp.Lammps(self)
 
     @property
     def link_matrix(self):
@@ -1176,6 +1199,19 @@ class Molecule(Wrapper, ABC):
 
         with open(path_file, mode) as writer:
             writer.write(script)
+
+    @property
+    def xyz_min(self) -> np.ndarray:
+        """ Return the minimum of x coordinates wreathing all atoms """
+        return self.coordinates.min(axis=0)
+
+    @property
+    def xyz_max(self) -> np.ndarray:
+        return self.coordinates.max(axis=0)
+
+    @property
+    def xyz_diff(self):
+        return self.xyz_max - self.xyz_min
 
 
 class MixSameAtomMol(Molecule):
@@ -1610,7 +1646,11 @@ class Crystal(Wrapper, ABC):
 
     @property
     def space_group(self):
-        return self._OBUnitCell.GetSpaceGroup().GetHMName()
+        space_group = self._OBUnitCell.GetSpaceGroup()
+        if space_group:
+            return space_group.GetHMName()
+        else:
+            return None
 
     @space_group.setter
     def space_group(self, value: str):

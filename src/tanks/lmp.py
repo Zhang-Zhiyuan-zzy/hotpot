@@ -65,7 +65,6 @@ class Lammps(object):
 
     def _make_script(self):
 
-
     def _minimize(self):
         pass
 

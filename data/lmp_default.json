@@ -2,5 +2,8 @@
   "units": "metal",
   "dimension": 3,
   "boundary": "p p p",
-  "pair_style": "lj/cut 2.5"
+  "atom_style": "atomic",
+  "pair_style": "lj/cut 2.5",
+  "ensemble": "nvt",
+  "temp": 298.15
 }

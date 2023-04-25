@@ -674,6 +674,10 @@ class Parser(IOBase, metaclass=MetaIO):
         if is_convergence_failure():
             raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
 
+    # Parse the XYZ file
+    def _io_xyz(self):
+        """ Parse the XYZ file """
+
     # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):
         """

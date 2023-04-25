@@ -19,7 +19,7 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
-import tanks.lmp as lmp
+import src.tanks.lmp as lmp
 
 dir_root = os.path.join(os.path.dirname(__file__))
 periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -193,7 +193,7 @@ class Molecule(Wrapper, ABC):
         return self
 
     @property
-    def _OBAtom_indices(self):
+    def _ob_atom_indices(self):
         """ Get the indices for all OBAtom """
         indices = []
 
@@ -259,6 +259,17 @@ class Molecule(Wrapper, ABC):
         clone_mol = self.copy()
         self._assign_coordinates(clone_mol, coordinates)
         return clone_mol
+    #
+    # def _remake_atoms(self, atomic_numbers: np.ndarray):
+    #     """ Remake all atoms in the molecule according to given atoms_numbers """
+    #     ob_mol = ob.OBMol()
+    #     self._data['ob_mol'] = ob_mol
+    #     atomic_numbers = atomic_numbers.flatten()
+    #
+    #     for an in atomic_numbers:
+    #         ob_mol.AddAtom(an)
+    #
+    #     print(f'Remade molecule with {len(self.atoms)} atoms')
 
     def _reorganize_atom_indices(self):
         """ reorganize or rearrange the indices for all atoms """
@@ -548,7 +559,7 @@ class Molecule(Wrapper, ABC):
         """
         atoms = self._data.get('atoms')  # existed atoms list
         atoms_indices = [a.idx for a in atoms] if atoms else []  # the indices list of existed atoms
-        ob_atom_indices = self._OBAtom_indices  # the sorted indices list for OBAtom in OBMol
+        ob_atom_indices = self._ob_atom_indices  # the sorted indices list for OBAtom in OBMol
 
         if not atoms:
             atoms = self._data['atoms'] = [
@@ -957,13 +968,14 @@ class Molecule(Wrapper, ABC):
     @property
     def lmp(self):
         """ handle to operate the Lammps object """
-        return self._data.setdefault('lmp', lmp.Lammps(self))
+        return self._data.get('lmp')
 
     def lmp_close(self):
-        self._data.pop('lmp')
+        pop_lmp = self._data.pop('lmp')
+        pop_lmp.close()
 
-    def lmp_restart(self):
-        self._data['lmp'] = lmp.Lammps(self)
+    def lmp_setup(self, *args, **kwargs):
+        self._data['lmp'] = lmp.HpLammps(self, *args, **kwargs)
 
     @property
     def link_matrix(self):

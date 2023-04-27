@@ -35,9 +35,15 @@ def dump_gjf():
 
 
 def parse_g16log():
-    path_mol2 = 'examples/struct/0.log'
-    return ci.Molecule.read_from(path_mol2, 'g16log')
+    path_mol1 = 'examples/struct/0.log'
+    path_mol2 = 'examples/struct/222.log'
+    path_mol3 = 'examples/struct/Cs-VOHSAM-5.mol2'
 
+    mol1 = ci.Molecule.read_from(path_mol1, 'g16log')
+    mol2 = ci.Molecule.read_from(path_mol2, 'g16log')
+    mol3 = ci.Molecule.read_from(path_mol3)
+
+    return mol1, mol2, mol3
 
 def perturb_cif():
     path_cif = 'examples/struct/aCarbon.cif'
@@ -49,6 +55,15 @@ def perturb_cif():
 
 
 if __name__ == '__main__':
-    mol = parse_g16log()
-    for a in mol.atoms:
-        print(a.partial_charge, a.spin_density)
+    import time
+    # m1, m2, m3 = parse_g16log()
+    # m1.dump('smi')
+    # m3.dump('smi')
+    # data = mol.dump('dpmd_sys', path_save='output/dpmd_sys')
+    # m = m1 + m3
+    # for a in mol.atoms:
+    #     print(a.partial_charge, a.spin_density, a.force_vector.shape)
+    # perturb_cif()
+    # m1 = ci.Molecule.read_from('examples/struct/aCarbon.cif')
+    m2 = ci.Molecule.read_from('examples/struct/aCarbon.xyz')
+    # cif = m2.dump('cif')

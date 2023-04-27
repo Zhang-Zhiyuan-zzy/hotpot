@@ -7,6 +7,8 @@ python v3.7.9
 @Time   : 4:18
 """
 import os
+import re
+from pathlib import Path
 from os import PathLike
 from typing import *
 from abc import ABCMeta, abstractmethod
@@ -64,6 +66,12 @@ Following the steps to customise your IO function:
         ---------------------------------- END ---------------------------------------
 """
 
+
+# Define custom Exceptions
+class IOEarlyStop(BaseException):
+    """ monitor the situation that the IO should early stop and return None a the IO result """
+
+
 # Define the IO function types
 IOFuncPrefix = Literal['pre', 'io', 'post']
 IOStream = Union[IOBase, str, bytes]
@@ -73,11 +81,21 @@ class Register:
     """
     Register the IO function for Dumper, Parser or so on
     """
-    # these dicts are container to store the custom io functions
-    # the keys of the dict are serve as the have to get the mapped io functions(the values)
-    pre_methods = {}
-    io_methods = {}
-    post_methods = {}
+    def __init__(self):
+        # these dicts are container to store the custom io functions
+        # the keys of the dict are serve as the have to get the mapped io functions(the values)
+        self.pre_methods = {}
+        self.io_methods = {}
+        self.post_methods = {}
+
+    def __repr__(self):
+        return f"Register:\n" + \
+               f"pre_method:\n" + \
+               f"\n\t".join([n for n in self.pre_methods]) + "\n\n" + \
+               f"io methods:\n" + \
+               f"\n\t".join([n for n in self.io_methods]) + '\n\n' + \
+               f"post methods:\n" + \
+               f"\n\t".join([n for n in self.post_methods])
 
     def __call__(self, io_cls: type, fmt: str, prefix: IOFuncPrefix):
         """
@@ -150,137 +168,6 @@ class _MoleculeIO(ABCMeta):
         return copy(mcs._registered_format)
 
 
-# # TODO: deprecated in the later version
-# class MoleculeIO(metaclass=_MoleculeIO):
-#     """ The abstract base class for all IO class """
-#
-#     @abstractmethod
-#     def format(self) -> str:
-#         return None
-#
-#     @staticmethod
-#     @abstractmethod
-#     def dump(mol, *args, **kwargs) -> Union[str, bytes]:
-#         """"""
-#
-#     @staticmethod
-#     @abstractmethod
-#     def parse(info) -> Dict:
-#         """"""
-#
-#     def write(self, mol, path_file: Union[str, PathLike], *args, **kwargs):
-#         """"""
-#         script = self.dump(mol, *args, **kwargs)
-#
-#         if isinstance(script, str):
-#             mode = 'w'
-#         elif isinstance(script, bytes):
-#             mode = 'b'
-#         else:
-#             raise TypeError('the type of dumping valve is not supported')
-#
-#         with open(path_file, mode) as writer:
-#             writer.write(script)
-#
-#     def read(self, path_file: Union[str, PathLike], *args, **kwargs) -> Dict:
-#         """"""
-#         with open(path_file) as file:
-#             data = self.parse(file.read())
-#         return data
-
-
-# # TODO: deprecated in the later version
-# class GaussianGJF(MoleculeIO, ABC):
-#
-#     @staticmethod
-#     def dump(mol, *args, **kwargs) -> Union[str, bytes]:
-#
-#         # separate keyword arguments:
-#         link0 = kwargs['link0']
-#         route = kwargs['route']
-#         custom_charge = kwargs.get('charge')
-#         custom_spin = kwargs.get('spin')
-#
-#         pybal_mol = pybel.Molecule(mol._OBMol)
-#
-#         script = pybal_mol.write('gjf')
-#         assert isinstance(script, str)
-#
-#         lines = script.splitlines()
-#
-#         lines[0] = f'%{link0}'
-#         lines[1] = f'#{route}'
-#
-#         charge, spin = lines[5].split()
-#         if custom_charge:
-#             charge = str(custom_charge)
-#         if custom_spin:
-#             spin = str(custom_spin)
-#
-#         script = '\n'.join(lines)
-#
-#         return script
-#
-#     @staticmethod
-#     def parse(info) -> Dict:
-#         """
-#         Returns:
-#             {
-#                 'identifier': ...,
-#                 'charge': ...,
-#                 'spin': ...,
-#                 atoms: [
-#                     {'symbol': .., 'label': .., 'coordinates': ..},
-#                     {'symbol': .., 'label': .., 'coordinates': ..},
-#                     ...,
-#                 }
-#             }
-#         """
-#         partition = [p for p in info.split("\n\n") if p]
-#
-#         # Parse the link0 and route lines
-#         link0, route = [], []
-#         for line in partition[0].split('\n'):
-#             if line[0] == '%':
-#                 link0.append(line)
-#             elif line[0] == '#':
-#                 route.append(line)
-#             else:
-#                 raise IOError("the format of gjf file error")
-#
-#         # Parse the title line
-#         title = partition[1]
-#
-#         # molecule specification
-#         # regular expression for elemental symbols
-#         regx_ele_sym = re.compile(r'[A-Z][a-z]?')
-#
-#         # TODO: Now, the method parses only the first-four required atomic properties,
-#         # TODO: the more optional properties might be specified ,such as charge, spin,
-#         # TODO: more subtle process should be designed to parse the optional properties.
-#         mol_spec_lines = partition[2].split('\n')
-#         charge, spin = map(int, mol_spec_lines[0].split())
-#
-#         atoms = []
-#         for line in mol_spec_lines[1:]:
-#             atom_info = line.split()
-#             atomic_label = atom_info[0]
-#             x, y, z = map(float, atom_info[1:4])
-#             atomic_symbol = regx_ele_sym.findall(atomic_label)[0]
-#
-#             atoms.append({'symbol': atomic_symbol, 'label': atomic_label, 'coordinates': (x, y, z)})
-#
-#         return {
-#             'identifier': title,
-#             'charge': charge,
-#             'spin': spin,
-#             'atoms': atoms
-#         }
-#
-#     def format(self) -> str:
-#         return 'gjf'
-
-
 class MetaIO(type):
     """
     Meta class to specify how to construct the IO class
@@ -345,7 +232,7 @@ class MetaIO(type):
             if io_type == 'post':
                 _register.post_methods['_'.join(split_names[2:])] = attr
 
-        namespace['_register'] = _register
+        namespace[f'_register'] = _register
 
         return type(name, bases, namespace, **kwargs)
 
@@ -355,7 +242,7 @@ class IOBase:
     # Initialize the register function, which is a callable obj embed in IO classes
     # When to register new IO function, apply the register function as decorator
 
-    _register = None
+    # _register = None
 
     def __init__(self, fmt: str, source: Union['ci.Molecule', IOStream], *args, **kwargs):
         """"""
@@ -370,16 +257,20 @@ class IOBase:
 
     def __call__(self):
         """ Call for the performing of IO """
-        self._pre()
-        # For dumper, the obj is Literal str or bytes obj
-        # For parser, the obj is Molecule obj
-        io_func = self._get_io()
-        if io_func:  # If a custom io function have been defined, run custom functions
-            obj = io_func(self)
-        else:  # else get the general io function define in class
-            obj = self._io()
+        try:
+            self._pre()
+            # For dumper, the obj is Literal str or bytes obj
+            # For parser, the obj is Molecule obj
+            io_func = self._get_io()
+            if io_func:  # If a custom io function have been defined, run custom functions
+                obj = io_func(self)
+            else:  # else get the general io function define in class
+                obj = self._io()
 
-        return self._post(obj)
+            return self._post(obj)
+
+        except IOEarlyStop:
+            return None
 
     @abstractmethod
     def _checks(self) -> Dict[str, Any]:
@@ -403,7 +294,7 @@ class IOBase:
         """ Regulate the method of preprocess """
         pre_func = self._get_pre()
         if pre_func:
-            self.src = pre_func(self)
+            pre_func(self)
 
     @abstractmethod
     def _io(self, *args, **kwargs):
@@ -420,7 +311,7 @@ class IOBase:
 
     @property
     def register(self) -> Register:
-        return self._register
+        return getattr(self, f'_register')
 
 
 class Dumper(IOBase, metaclass=MetaIO):
@@ -464,10 +355,116 @@ class Dumper(IOBase, metaclass=MetaIO):
     # the first is the Dumper self obj and the second is the strings
 
     def _checks(self) -> Dict[str, Any]:
-        if self.src.__class__.__name__ != 'Molecule':
+        if not isinstance(self.src, ci.Molecule):
             raise TypeError(f'the dumped object should be hotpot.cheminfo.Molecule, instead of {type(self.src)}')
 
         return {}
+
+    def _pre_cif(self):
+        """
+        pre-process for Molecule object to convert to cif file.
+        if the src object do not place in a Crystal, create a P1 compact Crystal for it
+        """
+        crystal = self.src.crystal()
+        if not isinstance(crystal, ci.Crystal):
+            self.src.generate_compact_lattice(inplace=True)
+
+    def _io_dpmd_sys(self):
+        """ convert molecule information to numpy arrays """
+        required_items = ['coord', 'type']
+        check_atom_num = ['coord', 'force', 'charge']
+        share_same_configures = ['coord', 'energy', 'force', 'charge', 'virial']
+        need_reshape = ['coord', 'force']
+
+        conf_num = len(self.src.all_coordinates)
+        crystal = self.src.crystal()
+        if crystal:
+            box = self.src.crystal().vector  # angstrom
+            is_periodic = True
+        else:
+            box = np.zeros((3, 3))
+            for i in range(3):
+                box[i, i] = 100.
+            is_periodic = False
+        box = box.reshape(-1, 9).repeat(conf_num, axis=0)
+
+        data = {
+            'type': self.src.atomic_numbers,
+            'type_map': ['-'] + list(ci.periodic_table.keys()),
+            'nopbc': not is_periodic,
+            'coord': self.src.all_coordinates,  # angstrom,
+            'box': box,
+            'energy': self.src.all_energy,  # eV
+            'force': self.src.all_forces,  # Hartree/Bohr,
+            'charge': self.src.all_atom_charges,  # q
+            'virial': None,
+            'atom_ener': None,
+            'atom_pref': None,
+            'dipole': None,
+            'atom_dipole': None,
+            'polarizability': None,
+            'atomic_polarizability': None
+        }
+
+        for name in required_items:
+            if data.get(name) is None:
+                raise ValueError('the required composition to make the dpmd system is incomplete!')
+
+        # Check whether the number of conformers are matching among data
+        if any(len(data[n]) != conf_num for n in share_same_configures if data[n] is not None):
+            raise ValueError('the number of conformers is not match')
+
+        # Check whether the number of atoms in data are matching to the molecular atoms
+        if any(data[n].shape[1] != self.src.atom_num for n in check_atom_num if data[n] is not None):
+            raise ValueError('the number of atoms is not matching the number of atom is the molecule')
+
+        for name in need_reshape:
+            item = data.get(name)
+            if isinstance(item, np.ndarray):
+                shape = item.shape
+
+                assert len(shape) == 3
+
+                data[name] = item.reshape((shape[0], shape[1]*shape[2]))
+
+        return data
+
+    def _post_dpmd_sys(self, data: Dict[str, Union[List, np.ndarray, None]]):
+        """"""
+        mapping_items = ['type', 'type_map']
+        path_save = self.kwargs.get('path_save')
+        if path_save:
+            if isinstance(path_save, str):
+                path_save = Path(path_save)
+            if path_save.is_file():
+                raise NotADirectoryError('the given path_save to dpmd_sys should be an empty dir, not a existed file')
+
+            if not path_save.exists():
+                path_save.mkdir()
+
+            if [p for p in path_save.glob('*')]:
+                raise IOError('the given path_save should be a empty dir, files or dirs have exist in the dir')
+
+            dir_npy = path_save.joinpath('set.000')
+            dir_npy.mkdir()
+
+            for name, value in data.items():
+                if name == 'nopbc' and value:
+                    with open(path_save.joinpath('nopbc'), 'w') as writer:
+                        writer.write('')
+
+                elif name in mapping_items:
+                    with open(path_save.joinpath(f'{name}.raw'), 'w') as writer:
+                        writer.write('\n'.join(map(str, value)))
+
+                else:
+                    if value is not None:
+                        if not isinstance(value, np.ndarray):
+                            raise ValueError(f'the data to set.*** must be np.ndarray, instead of {type(value)}')
+
+                        np.save(dir_npy.joinpath(f'{name}.npy'), value)
+
+        return data
 
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
@@ -532,6 +529,44 @@ class Parser(IOBase, metaclass=MetaIO):
         'g16log': 'g16'
     }
 
+    def _open_source_to_string_lines(self, *which_allowed: str, output_type: Literal['lines', 'script'] = 'lines'):
+        """
+        Open the source file to string lines
+        Args:
+            which_allowed: which types of source are allowed to process to string lines
+
+        Returns:
+            (List of string|string)
+        """
+        src_type = self.result.get('src_type')
+        if src_type not in which_allowed:
+            raise RuntimeError(f'the source type {type(self.src)} have not been supported')
+        else:
+            if src_type == 'str':
+                script = self.src
+
+            elif src_type == 'path':
+                with open(self.src) as file:
+                    try:
+                        script = file.read()
+                    # If the file pointed by the path is not a text file
+                    # such as a bytes file
+                    except UnicodeDecodeError:
+                        raise IOEarlyStop()
+
+            elif src_type == 'IOString':
+                script = self.src.read()
+
+            else:
+                raise RuntimeError(f'the source type {type(self.src)} have not been supported')
+
+            if output_type == 'lines':
+                return script.split('\n')
+            elif output_type == 'script':
+                return script
+            else:
+                raise ValueError('the arg output_type given a wrong values, lines or script allow only')
+
     def _checks(self) -> Dict[str, Any]:
         if not isinstance(self.src, (IOBase, str, bytes, PathLike)):
             raise TypeError(f'the parsed object should be IOBase, str or bytes, instead of {type(self.src)}')
@@ -556,16 +591,15 @@ class Parser(IOBase, metaclass=MetaIO):
         print(f'the get source type is {type(self.src)}')
         return {'src_type': type(self.src)}
 
-    def _io(self, *args, **kwargs):
+    def _ob_io(self):
+        """ IO by openbabel.pybel """
         # Get the source type name
         src_type = self.result.get('src_type')
-
-        # Try parse the log file by openbabel.pybel file firstly
         try:
             if src_type == 'str':
                 pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src)
             elif src_type == 'path':
-                pybel_mol = next(pybel.readfile(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src))
+                pybel_mol = next(pybel.readfile(self._pybel_fmt_convert.get(self.fmt, self.fmt), str(self.src)))
             elif src_type == 'IOString':
                 pybel_mol = pybel.readstring(self._pybel_fmt_convert.get(self.fmt, self.fmt), self.src.read())
             else:
@@ -576,10 +610,15 @@ class Parser(IOBase, metaclass=MetaIO):
         except RuntimeError:
             obj = None
 
-        # Try to supplementary Molecule data by cclib
+        return obj
+
+    def _cclib_io(self, obj):
+        """ IO by cclib package """
+        src_type = self.result.get('src_type')
+
         try:
             if src_type == 'str':
-                data = cclib.ccopen(io.FileIO(self.src)).parse()
+                data = cclib.ccopen(io.StringIO(self.src)).parse()
             elif src_type == 'path':
                 data = cclib.ccopen(self.src).parse()
             elif src_type == 'IOString':
@@ -602,18 +641,38 @@ class Parser(IOBase, metaclass=MetaIO):
 
             # if get information about the coordination collections
             if hasattr(data, 'atomcoords'):
-                obj.set(coord_collect=getattr(data, 'atomcoords'))
+                obj.set(all_coordinates=getattr(data, 'atomcoords'))
 
             # if get information about the energy (SCF energies) vector
             if hasattr(data, 'scfenergies'):
-                obj.set(energies=getattr(data, 'scfenergies'))
-
-            # assign the first configure for the molecule
-            obj.configure_select(0)
+                obj.set(all_energy=getattr(data, 'scfenergies'))
 
         return obj
 
+    def _io(self, *args, **kwargs):
+        """ Standard IO process """
+        # Try parse the log file by openbabel.pybel file firstly
+        obj = self._ob_io()
+
+        # Try to supplementary Molecule data by cclib
+        return self._cclib_io(obj)
+
     # Start to the prefix IO functions
+
+    # preprocess for g16log file
+    # This preprocess is used to judge whether a Error happened when perform g16 calculate
+    def _pre_g16log(self):
+        """ g16log preprocess to judge whether some Error happened """
+        def is_convergence_failure():
+            if 'Convergence failure -- run terminated.' in script:
+                return True
+            return False
+
+        script = self._open_source_to_string_lines('str', 'path', "IOString", output_type='script')
+
+        # Check whether a failure have happened when calculation.
+        if is_convergence_failure():
+            raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
 
     # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):
@@ -622,70 +681,128 @@ class Parser(IOBase, metaclass=MetaIO):
             1) Mulliken charge
             2) Spin densities
         """
-        src_type = self.result.get('src_type')
+        def extract_charges_spin():
+            """ Extract charges and spin information from g16.log file """
+            # Get the line index of Mulliken charges
+            head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
+            
+            if not head_lines:
+                raise IOEarlyStop
+            elif len(head_lines) == obj.configure_number + 1:
+                head_lines = head_lines[1:]
 
-        if src_type == 'str':
-            lines = self.src.split('\n')
+            # Extract the Mulliken charge and spin densities
+            charges, spin_densities = [], []  # changes(cgs) spin_densities(sds)
+            for i in head_lines:
+                # Enhance inspection
+                col1, col2 = lines[i + 1].strip().split()
+                assert col1 == '1' and col2 == '2'
 
-        elif src_type == 'path':
-            with open(self.src) as file:
-                lines = file.readlines()
+                HEAD_LINES_NUM = 2
+                cg, sd = [], []  # change, spin_density
 
-        elif src_type == 'IOString':
-            lines = self.src.readlines()
+                while True:
+                    split_line = lines[i + HEAD_LINES_NUM].strip().split()
+                    if len(split_line) != 4:
+                        break
+                    else:
+                        row, syb, c, s = split_line  # row number, symbol, charges, spin density
 
-        else:
-            raise RuntimeError('the source type {type(self.src)} have not been supported')
+                    try:
+                        row, c, s = int(row), float(c), float(s)
+                        # check the sheet row number
+                        if row != HEAD_LINES_NUM - 1:
+                            break
 
-        # Get the line index of Mulliken charges
-        head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
-
-        # Extract the Mulliken charge and spin densities
-        charges, spin_densities = [], []
-        for i in head_lines:
-            # Enhance inspection
-            col1, col2 = lines[i+1].strip().split()
-            assert col1 == '1' and col2 == '2'
-
-            sheet_idx = 2
-            charge, spin_density = [], []
-
-            while True:
-                split_line = lines[i+sheet_idx].strip().split()
-                if len(split_line) != 4:
-                    break
-                else:
-                    row, syb, c, s = split_line  # row number, symbol, charges, spin density
-
-                try:
-                    row, c, s = int(row), float(c), float(s)
-                    # check the sheet row number
-                    if row != sheet_idx-1:
+                    # Inspect the types of values
+                    except ValueError:
                         break
 
-                # Inspect the types of values
-                except ValueError:
-                    break
+                    # record the charge and spin density
+                    cg.append(c)
+                    sd.append(s)
+                    HEAD_LINES_NUM += 1
 
-                # record the charge and spin density
-                charge.append(c)
-                spin_density.append(s)
-                sheet_idx += 1
-
-            # store the extracted
-            if charge and spin_density:
-                if len(charge) == len(spin_density) == len(obj.atoms):
-                    charges.append(charge)
-                    spin_densities.append(spin_density)
+                # store the extracted
+                if cg and sd:
+                    if len(cg) == len(sd) == len(obj.atoms):
+                        charges.append(cg)
+                        spin_densities.append(sd)
+                    else:
+                        raise ValueError('the number of charges do not match to the number of atoms')
                 else:
-                    raise ValueError('the number of charges do not match to the number of atoms')
-            else:
-                raise ValueError('get a empty charge and spin list, check the input!!')
+                    raise ValueError('get a empty charge and spin list, check the input!!')
 
-        obj.set(atom_charges=np.array(charges))
-        obj.set(atom_spin_densities=np.array(spin_densities))
+            obj.set(all_atom_charges=np.array(charges))
+            obj.set(all_atom_spin_densities=np.array(spin_densities))
+                
+        def extract_force_matrix():
+            # Define the format of force sheet
+            # the Force sheet like this:
+            #  -------------------------------------------------------------------
+            #  Center     Atomic                   Forces (Hartrees/Bohr)
+            #  Number     Number              X              Y              Z
+            #  -------------------------------------------------------------------
+            #       1        8           0.039901671    0.000402574    0.014942530
+            #       2        8           0.017381613    0.001609531    0.006381231
+            #       3        6          -0.092853735   -0.025654844   -0.005885898
+            #       4        6           0.067801154    0.024130172   -0.022794721
+            #       5        8          -0.023702905    0.005486251   -0.004938175
+            #       6        8          -0.006359715   -0.008543465    0.010350815
+            #       7       55          -0.002168084    0.002569781    0.001944217
+            #  -------------------------------------------------------------------
+            force_head1 = re.compile(r'\s*Center\s+Atomic\s+Forces\s\(Hartrees/Bohr\)\s*')
+            force_head2 = re.compile(r'\s*Number\s+Number\s+X\s+Y\s+Z\s*')
+            sheet_line = re.compile(r'\s*----+\s*')
+
+            HEAD_LINES_NUM = 3  # the offset line to write the header
+
+            head_lines = [i for i, line in enumerate(lines) if force_head1.match(line)]
+
+            all_forces = []
+            for i in head_lines:
+                # enhance the inspection of Force sheet head
+                assert force_head2.match(lines[i + 1])
+                assert sheet_line.match(lines[i + 2])
+
+                rows = 0
+                forces = []
+                while True:
+
+                    if sheet_line.match(lines[i + HEAD_LINES_NUM + rows]):
+                        if len(forces) == obj.atom_num:
+                            all_forces.append(forces)
+                            break
+                        else:
+                            raise ValueError('the number of force vector do not match the number of atoms')
+
+                    ac, an, x, y, z = map(
+                        lambda v: int(v[1]) if v[0] < 2 else float(v[1]),
+                        enumerate(lines[i + HEAD_LINES_NUM + rows].split())
+                    )
+
+                    # Enhance the inspection
+                    assert ac == rows + 1
+                    if obj.atoms[rows].atomic_number != an:
+                        raise ValueError('the atomic number do not match')
+
+                    forces.append([x, y, z])
+
+                    rows += 1
+
+            obj.set(all_forces=np.array(all_forces))
+
+        lines = self._open_source_to_string_lines('str', 'path', 'IOString')
+
+        try:  # TODO: For now, this is the case, the spin densities may lost in some case  # the units is Hartree/Bohr
+            extract_charges_spin()
+            extract_force_matrix()
+        except IndexError:
+            raise IOEarlyStop
 
         # assign the first configure for the molecule
         obj.configure_select(0)
 
         return obj
+
+

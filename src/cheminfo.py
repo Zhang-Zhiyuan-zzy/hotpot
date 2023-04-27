@@ -19,10 +19,11 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
+import src.tanks.lmp as lmp
 
 dir_root = os.path.join(os.path.dirname(__file__))
-_elements = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
-_elements = {d['symbol']: d for d in _elements}
+periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
+periodic_table = {d['symbol']: d for d in periodic_table}
 
 _bond_type = {
     'Unknown': 0,
@@ -75,15 +76,121 @@ class Wrapper(ABC):
 
 class Molecule(Wrapper, ABC):
     """"""
+    # All Molecule attribute's items relating to molecule conformers
+    conformer_items = (
+        # the items are ranked by the number of values for each atom, for example:
+        #   - the all_atom_charges and atom_spin_densities have 1 value for each atom, so they are placed in the second
+        #     item (with the index 1)
+        #   - the coordinates have 3 values for each atom, i.e., [x, y, z], so it is placed in the forth
+        #     item (with the index 3）
+        # For the molecular attributes, which have only one value for each conformer and represent the attribute
+        # of whole molecule, they are place in the first item (with the index 0)
+        ('all_energy',),
+        ('all_atom_charges', 'all_atom_spin_densities'),
+        (),
+        ('all_coordinates', 'all_forces')
+    )
 
-    def __init__(self, ob_mol: ob.OBMol = None, **kwargs):
-        self._data = {
-            'ob_mol': ob_mol if ob_mol else ob.OBMol()
-        }
+    def __init__(self, ob_mol: ob.OBMol = None, _data: dict = None,**kwargs):
+        if _data:
+            self._data = _data
+        else:
+            self._data = {
+                'ob_mol': ob_mol if ob_mol else ob.OBMol()
+            }
         self._set_attrs(**kwargs)
 
     def __repr__(self):
         return f'Mol({self.ob_mol.GetFormula()})'
+
+    def __add__(self, other: ['Molecule']):
+        """
+        Two Molecule objects could add to a new one to merge all of their conformers.
+        All of information about the conformer will be merged to one.
+        the other information will reserve the one in the left item
+        Args:
+            other: the right item
+
+        Returns:
+            Molecule
+        """
+        # When other obj is a Molecule or a child of Molecule
+        if isinstance(other, Molecule):
+            # If this one is compatible to the other
+            if self.iadd_accessible(other):
+                clone = self.copy()
+                clone += other
+
+                return clone
+
+            # If the other one is compatible to this one
+            if other.iadd_accessible(self):
+                clone = other.copy()
+                clone += self
+
+                return clone
+
+            # If they are compatible, but are Molecule or child of Molecule
+            return MolBundle([self, other])
+
+        # if isinstance(other, MixSameAtomMol):
+        #     return self.to_mix_mol() + other
+
+        # When other obj is a MolBundle
+        if isinstance(other, MolBundle):
+            return MolBundle([self] + other.mols)
+
+        else:
+            raise TypeError('the Molecule only add with Molecule or MolBundle')
+
+    def __iadd__(self, other):
+        """
+        Self add with other Molecule object with consist atoms list,
+        The attributes or information about conformers will merge with the other,
+        other attributes or information will be reserved
+        Args:
+            other: the merged Molecule object
+
+        Returns:
+            None
+        """
+        if not isinstance(other, Molecule):
+            raise TypeError('the Molecule object is only allowed to add with other Molecule')
+
+        # Check whether left and right Molecules have consist atom list
+        if not self.iadd_accessible(other):
+            raise AttributeError(
+                'the self addition cannot be performed among molecules with different atoms list!'
+            )
+
+        return self._merge_conformer_attr(other)
+
+    def _merge_conformer_attr(self, other: 'Molecule'):
+        """ Merge attributes, relate to molecule conformer, in other Molecule into this Molecule """
+
+        def merge_attr(attr_name: str):
+            """ Merge single conformer attr """
+            left_attr = getattr(self, attr_name)
+            right_attr = getattr(other, attr_name)
+
+            if isinstance(left_attr, np.ndarray) and isinstance(right_attr, np.ndarray):
+                self._data[attr_name] = np.concatenate([left_attr, right_attr])
+            elif not (  # If the left and right values are not both empty, raise Attributes error.
+                (left_attr is None) or (isinstance(left_attr, np.ndarray) and (not left_attr.all())) and
+                (right_attr is None) or (isinstance(right_attr, np.ndarray) and (not right_attr.all()))
+            ):
+                raise AttributeError(
+                    f'the configure relational attribute {attr_name} is different in:\n'
+                    f'  - {self}_identifier: {self.identifier}\n'
+                    f'  - {other}_identifier: {other.identifier}'
+                    'they cannot to perform addition operation'
+                )
+
+        for i, items in enumerate(self.conformer_items):
+            for item in items:
+                merge_attr(item)
+
+        return self
 
     @property
     def _OBAtom_indices(self):
@@ -114,12 +221,12 @@ class Molecule(Wrapper, ABC):
         return self._data['ob_mol']
 
     @staticmethod
-    def _assign_atom_coords(the_mol: 'Molecule', coord_matrix: np.ndarray):
+    def _assign_coordinates(the_mol: 'Molecule', coordinates: np.ndarray):
         """ Assign coordinates for all atoms in the Molecule """
-        if len(the_mol.atoms) != coord_matrix.shape[-2]:
+        if len(the_mol.atoms) != coordinates.shape[-2]:
             raise AttributeError('the coordinate matrix do not match the number of atoms')
 
-        for new_mol_atom, new_atom_coord in zip(the_mol.atoms, coord_matrix):
+        for new_mol_atom, new_atom_coord in zip(the_mol.atoms, coordinates):
             new_mol_atom.coordinates = new_atom_coord
 
     @property
@@ -127,36 +234,30 @@ class Molecule(Wrapper, ABC):
         return {
             'atoms.partial_charge': self._set_atoms_partial_charge,
             "identifier": self._set_identifier,
-            "energy": self._set_mol_energy,
-            'energies': self._set_mol_energies,
+            "energy": self._set_energy,
+            'all_energy': self._set_all_energy,
             'charge': self._set_mol_charge,
-            'atom_charges': self._set_atom_charges,
-            'atom_spin_densities': self._set_atom_spin_densities,
+            'all_atom_charges': self._set_all_atom_charges,
+            'all_atom_spin_densities': self._set_all_atom_spin_densities,
             'spin': self._set_spin_multiplicity,
             'atoms': self._set_atoms,
             'mol_orbital_energies': self._set_mol_orbital_energies,
-            'coord_collect': self._set_coord_collect,
+            'all_coordinates': self._set_all_coordinates,
+            'all_forces': self._set_all_forces,
+            'forces': self._set_forces
         }
 
-    @property
-    def _coord_collect(self):
-        coord_collect = self._data.get('_coord_collect')
-        if isinstance(coord_collect, np.ndarray):
-            return coord_collect
-        else:
-            return self.coord_matrix
-
-    def _pert_mol_generate(self, coord_matrix: np.ndarray):
+    def _pert_mol_generate(self, coordinates: np.ndarray):
         """
         Generate new molecule obj according to new given coordinate
         Args:
-            coord_matrix: New coordinates matrix
+            coordinates: New coordinates matrix
 
         Returns:
             Molecule, copy of this molecule with new coordinates
         """
         clone_mol = self.copy()
-        self._assign_atom_coords(clone_mol, coord_matrix)
+        self._assign_coordinates(clone_mol, coordinates)
         return clone_mol
 
     def _reorganize_atom_indices(self):
@@ -177,39 +278,39 @@ class Molecule(Wrapper, ABC):
                 f'the `partial_charges` should be np.ndarray or Sequence of float, not {type(partial_charges)}'
             )
 
-        if len(self.atoms) != len(partial_charges):
+        if self.atom_num != len(partial_charges):
             raise ValueError('the given partial charges should have same numbers with the number of atoms')
 
         for atom, partial_charge in zip(self.atoms, partial_charges):
             atom.partial_charge = partial_charge
 
-    def _set_coord_collect(self, coord_collect: np.ndarray):
+    def _set_all_coordinates(self, all_coordinates: np.ndarray):
         """
         Assign the coordinates collection directly
         Args:
-            coord_collect: numpy array with the shape (M, N, 3), where the M is the number of coordinates
+            all_coordinates: numpy array with the shape (M, N, 3), where the M is the number of coordinates
             in the collection, the N is the number of atoms of the molecule.
 
         Returns:
             None
         """
-        if not isinstance(coord_collect, np.ndarray):
-            raise ValueError(f'the given coord_collect must be a numpy.ndarray class, instead of {type(coord_collect)}')
+        if not isinstance(all_coordinates, np.ndarray):
+            raise ValueError(f'the given all_coordinates must be a numpy.ndarray class, instead of {type(all_coordinates)}')
 
-        if coord_collect.shape[-1] != 3:
-            raise ValueError(f'the coordinate must be 3 dimension, instead of {coord_collect.shape[-1]}')
+        if all_coordinates.shape[-1] != 3:
+            raise ValueError(f'the coordinate must be 3 dimension, instead of {all_coordinates.shape[-1]}')
 
-        if len(coord_collect.shape) == 2:
+        if len(all_coordinates.shape) == 2:
             # if only give a group of coordinates
-            coord_collect = coord_collect.reshape((-1, coord_collect.shape[-2], 3))
-        elif len(coord_collect.shape) != 3:
+            all_coordinates = all_coordinates.reshape((-1, all_coordinates.shape[-2], 3))
+        elif len(all_coordinates.shape) != 3:
             raise ValueError(
-                f'the shape of given coord_collect should with length 2 or 3, now is {len(coord_collect.shape)}'
+                f'the shape of given all_coordinates should with length 2 or 3, now is {len(all_coordinates.shape)}'
             )
 
-        self._data['_coord_collect'] = coord_collect
+        self._data['all_coordinates'] = all_coordinates
 
-    def _set_atom_charge(self, charge: Union[Sequence, np.ndarray]):
+    def _set_atom_charges(self, charge: Union[Sequence, np.ndarray]):
         """ Set partial charge for each atoms in the mol """
         if not isinstance(charge, (Sequence, np.ndarray)):
             raise TypeError(f'the charge should be a sequence or np.ndarray, got {type(charge)}')
@@ -217,13 +318,13 @@ class Molecule(Wrapper, ABC):
         if isinstance(charge, np.ndarray):
             charge = charge.flatten()
 
-        if len(charge) != len(self.atoms):
+        if len(charge) != self.atom_num:
             raise ValueError('the number of charges do not match with the atom charge')
 
         for atom, ch in zip(self.atoms, charge):
             atom.partial_charge = ch
 
-    def _set_atom_charges(self, charges: np.ndarray):
+    def _set_all_atom_charges(self, charges: np.ndarray):
         """
         set groups of charges for each atoms in the mol, and each group of charges are corresponding to a
         conformer of the mol
@@ -234,13 +335,13 @@ class Molecule(Wrapper, ABC):
         if not isinstance(charges, np.ndarray):
             raise TypeError('the arg charges should be np.ndarray')
 
-        if len(charges.shape) != 2 and charges.shape[1] != len(self.atoms):
+        if len(charges.shape) != 2 and charges.shape[1] != self.atom_num:
             raise ValueError('the shape of the arg: charge should be (number_of_conformer, number_of_atoms),'
                              f'got the value with shape {charges.shape}')
 
-        self._data['atom_charges'] = charges
+        self._data['all_atom_charges'] = charges
 
-    def _set_atom_spin_densities(self, group_spd: np.ndarray) -> None:
+    def _set_all_atom_spin_densities(self, group_spd: np.ndarray) -> None:
         """
         assign groups of spin densities for all atom in molecule, each group is corresponding to a conformer
         Args:
@@ -250,13 +351,13 @@ class Molecule(Wrapper, ABC):
         if not isinstance(group_spd, np.ndarray):
             raise TypeError('the arg group_spd should be np.ndarray')
 
-        if len(group_spd.shape) != 2 and group_spd.shape[1] != len(self.atoms):
+        if len(group_spd.shape) != 2 and group_spd.shape[1] != self.atom_num:
             raise ValueError('the shape of the arg: group_spd should be (number_of_conformer, number_of_atoms),'
                              f'got the value with shape {group_spd.shape}')
 
-        self._data['atom_spin_densities'] = group_spd
+        self._data['all_atom_spin_densities'] = group_spd
 
-    def _set_atom_spin_density(self, spd: Union[Sequence, np.ndarray]):
+    def _set_atom_spin_densities(self, spd: Union[Sequence, np.ndarray]):
         """ assign the spin density for each of atoms in the mol """
         if not isinstance(spd, (Sequence, np.ndarray)):
             raise TypeError(f'the charge should be a sequence or np.ndarray, got {type(spd)}')
@@ -264,11 +365,38 @@ class Molecule(Wrapper, ABC):
         if isinstance(spd, np.ndarray):
             spd = spd.flatten()
 
-        if len(spd) != len(self.atoms):
+        if len(spd) != self.atom_num:
             raise ValueError('the number of charges do not match with the atom charge')
 
         for atom, sp in zip(self.atoms, spd):
             atom.spin_density = sp
+
+    def _set_forces(self, forces: np.ndarray):
+        """ Set the force vectors for each atoms in the molecule """
+        if not isinstance(forces, np.ndarray):
+            raise TypeError('the forces should be np.ndarray')
+
+        if len(forces.shape) != 2:
+            raise ValueError('the length of shape of forces should be 2')
+
+        if forces.shape[-2] != self.atom_num:
+            raise ValueError('the give forces do not match to the number of atoms')
+
+        for atom, force_vector in zip(self.atoms, forces):
+            atom.force_vector = force_vector
+
+    def _set_all_forces(self, all_forces: np.ndarray):
+        """ Store the force matrix into the attribute dict """
+        if not isinstance(all_forces, np.ndarray):
+            raise TypeError('the all_forces should be np.ndarray')
+
+        if len(all_forces.shape) != 3:
+            raise ValueError('the length of shape of all_forces should be 3')
+
+        if all_forces.shape[-2] != self.atom_num:
+            raise ValueError('the give all_forces do not match to the number of atoms')
+
+        self._data['all_forces'] = all_forces
 
     def _set_mol_charge(self, charge: int):
         self.ob_mol.SetTotalCharge(charge)
@@ -276,25 +404,17 @@ class Molecule(Wrapper, ABC):
     def _set_mol_orbital_energies(self, orbital_energies: list[np.ndarray]):
         self._data['mol_orbital_energies'] = orbital_energies[0]
 
-    def _set_mol_energy(self, energy: float):
+    def _set_energy(self, energy: float):
         """ set the energy """
         self.ob_mol.SetEnergy(energy)
 
-    def _set_mol_energies(self, energies: Union[float, np.ndarray], config_index: Optional[int] = None):
-        """ set the energies vector """
-        if isinstance(energies, float):
-            self._data['energies'] = np.array([energies])
+    def _set_all_energy(self, all_energy: Union[float, np.ndarray], config_index: Optional[int] = None):
+        """ set the energy for all configures """
+        if isinstance(all_energy, float):
+            self._data['all_energy'] = np.array([all_energy])
         else:
-            energies = energies.flatten()
-            self._data['energies'] = energies
-
-        if isinstance(config_index, int):
-            try:
-                energy = energies[config_index]
-            except IndexError:
-                energy = 0.0
-
-            self._set_mol_energy(energy)
+            all_energy = all_energy.flatten()
+            self._data['all_energy'] = all_energy
 
     def _set_identifier(self, identifier):
         self.ob_mol.SetTitle(identifier)
@@ -384,10 +504,10 @@ class Molecule(Wrapper, ABC):
             bonds = self._data.setdefault('bonds', [])
             bonds.append(bond)
 
-        elif atom_idx[0] not in self.atoms_indices:
+        elif atom_idx[0] not in self.atom_indices:
             raise KeyError("the start atom1 doesn't exist in molecule")
 
-        elif atom_idx[1] not in self.atoms_indices:
+        elif atom_idx[1] not in self.atom_indices:
             raise KeyError("the end atom2 doesn't exist in molecule")
 
         else:
@@ -411,6 +531,10 @@ class Molecule(Wrapper, ABC):
             return self.atoms[idx_label]
         else:
             raise TypeError(f'the given idx_label is expected to be int or string, but given {type(idx_label)}')
+        
+    @property
+    def atom_num(self):
+        return self.ob_mol.NumAtoms()
 
     @property
     def atoms(self):
@@ -454,12 +578,40 @@ class Molecule(Wrapper, ABC):
         return copy.copy(atoms)  # Copy the atoms list
 
     @property
-    def atoms_indices(self) -> list[int]:
+    def atom_charges(self) -> np.ndarray:
+        """ Return all atoms charges as a numpy array """
+        return np.array([a.partial_charge for a in self.atoms])
+
+    @property
+    def all_atom_charges(self) -> np.ndarray:
+        """ Return all atoms charges as a numpy array for every conformers """
+        all_atom_charges = self._data.get('all_atom_charges')
+        if isinstance(all_atom_charges, np.ndarray):
+            return all_atom_charges
+        return self.atom_charges.reshape((-1, self.atom_num))
+
+    @property
+    def atom_indices(self) -> list[int]:
         return [a.idx for a in self.atoms]
 
     @property
-    def atom_labels(self):
+    def atom_labels(self) -> list[str]:
         return [a.label for a in self.atoms]
+
+    @property
+    def atom_spin_densities(self) -> np.ndarray:
+        return np.array([a.spin_density for a in self.atoms])
+
+    @property
+    def all_atom_spin_densities(self):
+        all_atom_spin_densities = self._data.get('all_atom_spin_densities')
+        if all_atom_spin_densities is not None:
+            return all_atom_spin_densities
+        return self.atom_spin_densities.reshape((-1, self.atom_num))
+
+    @property
+    def atomic_numbers(self):
+        return tuple(a.atomic_number for a in self.atoms)
 
     def bond(self, atom1: Union[int, str], atom2: Union[int, str], miss_raise: bool = False) -> 'Bond':
         """
@@ -516,16 +668,16 @@ class Molecule(Wrapper, ABC):
 
     @property
     def configure_number(self):
-        coordinate_matrix_collection = self._data.get('_coord_collect')
-        if isinstance(coordinate_matrix_collection, np.ndarray):
-            return coordinate_matrix_collection.shape[0]
+        all_coordinates = self._data.get('all_coordinates')
+        if isinstance(all_coordinates, np.ndarray):
+            return all_coordinates.shape[0]
         else:
             return 1
 
     def configure_select(self, config_idx: int):
         """ select specific configure by index """
 
-        def assign_numpy_attrs(attrs_name: str):
+        def assign_numpy_attrs(attrs_name: str, setter: Callable):
             attrs = self._data.get(attrs_name)
             if isinstance(attrs, np.ndarray):
                 try:
@@ -535,49 +687,47 @@ class Molecule(Wrapper, ABC):
             else:
                 attr = None
 
-            return attr
+            if isinstance(attr, np.ndarray) or attr:
+                setter(attr)
 
-        coordinate_matrix_collection = self._data.get('_coord_collect')
-        if coordinate_matrix_collection is None and config_idx:
+        all_coordinates = self._data.get('all_coordinates')
+        if all_coordinates is None and config_idx:
             raise IndexError('Only one configure here!')
 
         # assign the coordinates for the molecule
-        config_coord_matrix = coordinate_matrix_collection[config_idx]
-        self._assign_atom_coords(self, config_coord_matrix)
+        coordinates = all_coordinates[config_idx]
+        self._assign_coordinates(self, coordinates)
 
-        # energies = self._data.get('energies')
-        # if isinstance(energies, np.ndarray):
-        #     try:
-        #         energy = energies[config_idx]
-        #     except IndexError:
-        #         # if can't find corresponding energy
-        #         energy = 0.0
-        #
-        #     self._set_mol_energy(energy)
-        #
-        # else:
-        #     self._set_mol_energy(0.0)
+        assign_numpy_attrs('all_energy', self._set_energy)
 
-        energy = assign_numpy_attrs('energies')
-        if isinstance(energy, np.ndarray) or energy:
-            self._set_mol_energy(energy)
+        assign_numpy_attrs('all_atom_charges', self._set_atom_charges)
 
-        atom_charge = assign_numpy_attrs('atom_charges')
-        if isinstance(atom_charge, np.ndarray) or atom_charge:
-            self._set_atom_charge(atom_charge)
+        assign_numpy_attrs('all_atom_spin_densities', self._set_atom_spin_densities)
 
-        atom_spin_density = assign_numpy_attrs('atom_spin_densities')
-        if isinstance(atom_spin_density, np.ndarray) or atom_spin_density:
-            self._set_atom_spin_density(atom_spin_density)
+        assign_numpy_attrs('all_forces', self._set_forces)
 
     @property
-    def coord_matrix(self) -> np.ndarray:
+    def coordinates(self) -> np.ndarray:
         """
         Get the matrix of all atoms coordinates,
         where the row index point to the atom index;
         the column index point to the (x, y, z)
         """
         return np.array([atom.coordinates for atom in self.atoms], dtype=np.float64)
+
+    @property
+    def all_coordinates(self) -> np.ndarray:
+        """
+        Get the collections of the matrix of all atoms coordinates,
+        each matrix represents a configure.
+        The return array with shape of (C, N, 3),
+        where the C is the number of conformers, the N is the number of atoms
+        """
+        all_coordinates = self._data.get('all_coordinates')
+        if isinstance(all_coordinates, np.ndarray):
+            return all_coordinates
+        else:
+            return self.coordinates.reshape((-1, self.atom_num, 3))
 
     def copy(self) -> 'Molecule':
         """ Copy the Molecule """
@@ -620,12 +770,12 @@ class Molecule(Wrapper, ABC):
     def clean_configures(self, pop: bool = False):
         """ clean all config save inside the molecule """
         try:
-            coord_collect = self._data.pop('_coord_collect')
+            all_coordinates = self._data.pop('all_coordinates')
         except KeyError:
-            coord_collect = None
+            all_coordinates = None
 
         if pop:
-            return coord_collect
+            return all_coordinates
 
     def create_atom(self, symbol: str, **kwargs):
         """
@@ -639,7 +789,7 @@ class Molecule(Wrapper, ABC):
             the created atom in the molecule
         """
         OBAtom: ob.OBAtom = self.ob_mol.NewAtom()
-        atomic_number = _elements[symbol]['number']
+        atomic_number = periodic_table[symbol]['number']
         OBAtom.SetAtomicNum(atomic_number)
         atom = Atom(OBAtom, mol=self, **kwargs)
 
@@ -666,8 +816,8 @@ class Molecule(Wrapper, ABC):
         return re.findall(r'[A-Z][a-z]*', self.formula)
 
     @property
-    def energies_vector(self):
-        return self._data.get('energies')
+    def all_energy(self):
+        return self._data.get('all_energy')
 
     @property
     def energy(self):
@@ -675,7 +825,7 @@ class Molecule(Wrapper, ABC):
         return self.ob_mol.GetEnergy()
 
     def feature_matrix(self, feature_names):
-        n = len(self.atoms)
+        n = self.atom_num
         m = len(feature_names)
         np.set_printoptions(suppress=True, precision=6)
         feature_matrix = np.zeros((n, m+3))
@@ -695,8 +845,33 @@ class Molecule(Wrapper, ABC):
         return feature_matrix
 
     @property
+    def forces(self):
+        """ return the all force vectors for all atoms in the molecule """
+        return np.vstack((atom.force_vector for atom in self.atoms))
+
+    @property
+    def all_forces(self):
+        """ the force matrix for all configure """
+        force_matrix = self._data.get("all_forces")
+        if isinstance(force_matrix, np.ndarray):
+            return force_matrix
+        return self.forces
+
+    @property
     def formula(self) -> str:
         return self.ob_mol.GetFormula()
+
+    def generate_compact_lattice(self, inplace=False):
+        """"""
+        ob_unit_cell = ob.OBUnitCell()
+        lattice_params = np.concatenate((self.xyz_diff, [90., 90., 90.]))
+        ob_unit_cell.SetData(*lattice_params)
+        ob_unit_cell.SetSpaceGroup('P1')
+
+        mol = self if inplace else self.copy()
+        mol.ob_mol.CloneData(ob_unit_cell)
+
+        return mol
 
     def gaussian(
             self,
@@ -761,17 +936,34 @@ class Molecule(Wrapper, ABC):
     def identifier(self, value):
         self.ob_mol.SetTitle(value)
 
+    def iadd_accessible(self, other):
+        if self.atomic_numbers == self.atomic_numbers:
+            return True
+        return False
+
+
     @property
     def is_labels_unique(self):
         """ Determine whether all atom labels are unique """
         labels = set(self.labels)
-        if len(labels) == len(self.atoms):
+        if len(labels) == self.atom_num:
             return True
         return False
 
     @property
     def labels(self):
         return [a.label for a in self.atoms]
+
+    @property
+    def lmp(self):
+        """ handle to operate the Lammps object """
+        return self._data.setdefault('lmp', lmp.Lammps(self))
+
+    def lmp_close(self):
+        self._data.pop('lmp')
+
+    def lmp_restart(self):
+        self._data['lmp'] = lmp.Lammps(self)
 
     @property
     def link_matrix(self):
@@ -819,16 +1011,16 @@ class Molecule(Wrapper, ABC):
         """
         dim_transform = {'x': 0, 'y': 1, 'z': 2}
 
-        coord_matrix_shape = (len(self.atoms), 3)  # the shape of coordinates matrix (atom counts, 3 dimension)
-        origin_coord_matrix = self.coord_matrix
+        coordinates_shape = (self.atom_num, 3)  # the shape of coordinates matrix (atom counts, 3 dimension)
+        origin_coordinates = self.coordinates
 
         def coordinates_generator():
             """ Generating """
             for _ in range(max_generate_num):
                 if random_style == 'uniform':
-                    perturb_matrix = np.float64(np.random.uniform(-mol_distance, mol_distance, coord_matrix_shape))
+                    perturb_matrix = np.float64(np.random.uniform(-mol_distance, mol_distance, coordinates_shape))
                 elif random_style == 'normal':
-                    perturb_matrix = np.float64(np.random.normal(0, mol_distance, coord_matrix_shape))
+                    perturb_matrix = np.float64(np.random.normal(0, mol_distance, coordinates_shape))
                 else:
                     raise ValueError('the perturb style is not defined!')
 
@@ -840,7 +1032,7 @@ class Molecule(Wrapper, ABC):
 
                     perturb_matrix[:, dim] = 0.
 
-                new_coord = origin_coord_matrix + perturb_matrix
+                new_coord = origin_coordinates + perturb_matrix
 
                 yield new_coord
 
@@ -848,15 +1040,15 @@ class Molecule(Wrapper, ABC):
             """ TODO: this function is prepare to generate the new lattice """
 
         if inplace:
-            origin_coord_collect = self._data.get('_coord_collect')
-            new_coord_collect = np.array([c for c in coordinates_generator()])
+            origin_all_coordinates = self._data.get('all_coordinates')
+            new_all_coordinates = np.array([c for c in coordinates_generator()])
 
             # TODO: test changes
-            if origin_coord_collect is not None:
-                self._data['_coord_collect'] = np.concatenate([origin_coord_collect, new_coord_collect])
+            if origin_all_coordinates is not None:
+                self._data['all_coordinates'] = np.concatenate([origin_all_coordinates, new_all_coordinates])
             else:
-                self._data['_coord_collect'] = np.concatenate(
-                    [np.reshape(origin_coord_matrix, (1,) + origin_coord_matrix.shape), new_coord_collect]
+                self._data['all_coordinates'] = np.concatenate(
+                    [np.reshape(origin_coordinates, (1,) + origin_coordinates.shape), new_all_coordinates]
                 )
 
         else:
@@ -958,25 +1150,16 @@ class Molecule(Wrapper, ABC):
     def rotatable_bonds_number(self):
         return self.ob_mol.NumRotors()
 
-    def save_coord_matrix_to_npy(
-            self, save_path: Union[str, PathLike],
-            which: Literal['present', 'all'] = 'present',
-            **kwargs
-    ):
-        """"""
-        if which == 'present':
-            np.save(save_path, self.coord_matrix, **kwargs)
-        elif which == 'all':
-            np.save(save_path, self._coord_collect, **kwargs)
-        else:
-            return ValueError(f"the which should be `present` or `all`, instead of `{which}`")
-
     def set(self, **kwargs):
         """ Set the attributes directly """
         self._set_attrs(**kwargs)
 
     def set_label(self, idx: int, label: str):
         self.atoms[idx].label = label
+
+    @property
+    def smiles(self):
+        return self.dump('smi').strip().split('\t')[0]
 
     @property
     def spin(self):
@@ -994,6 +1177,12 @@ class Molecule(Wrapper, ABC):
     ):
         """"""
 
+    def to_mix_mol(self):
+        return MixSameAtomMol(_data=self._data)
+
+    def to_mol(self):
+        return Molecule(self.copy_data())
+
     @property
     def weight(self):
         return self.ob_mol.GetExactMass()
@@ -1010,6 +1199,28 @@ class Molecule(Wrapper, ABC):
 
         with open(path_file, mode) as writer:
             writer.write(script)
+
+    @property
+    def xyz_min(self) -> np.ndarray:
+        """ Return the minimum of x coordinates wreathing all atoms """
+        return self.coordinates.min(axis=0)
+
+    @property
+    def xyz_max(self) -> np.ndarray:
+        return self.coordinates.max(axis=0)
+
+    @property
+    def xyz_diff(self):
+        return self.xyz_max - self.xyz_min
+
+
+class MixSameAtomMol(Molecule):
+    """ the only difference to the Molecule class is the method of their addition  """
+
+    def iadd_accessible(self, other):
+        if self.atom_num == other.atom_num:
+            return True
+        return False
 
 
 class Atom(Wrapper, ABC):
@@ -1062,11 +1273,24 @@ class Atom(Wrapper, ABC):
         self.ob_atom.SetAtomicNum(int(atomic_number))
 
     def _set_atomic_symbol(self, symbol):
-        atomic_number = _elements[symbol]['number']
+        atomic_number = periodic_table[symbol]['number']
         self.ob_atom.SetAtomicNum(atomic_number)
 
     def _set_coordinate(self, coordinates):
         self.ob_atom.SetVector(*coordinates)
+
+    def _set_force_vector(self, force_vector: Union[Sequence, np.ndarray]):
+        if isinstance(force_vector, Sequence):
+            if all(isinstance(f, float) for f in force_vector):
+                force_vector = np.array(force_vector)
+            else:
+                ValueError('the give force_vector must float vector with dimension 3')
+        elif isinstance(force_vector, np.ndarray):
+            force_vector = force_vector.flatten()
+        else:
+            raise TypeError('the force vector should be Sequence or np.ndarray')
+
+        self._data['force_vector'] = force_vector
 
     def _set_idx(self, idx):
         self.ob_atom.SetId(idx)
@@ -1114,7 +1338,7 @@ class Atom(Wrapper, ABC):
         return Atom(**new_attrs)
 
     def element_features(self, *feature_names, output_type='dict'):
-        atom_feature = _elements.get(self.symbol)
+        atom_feature = periodic_table.get(self.symbol)
         features = {}
         for name in feature_names:
             if name == "atom_orbital_feature":
@@ -1198,6 +1422,13 @@ class Atom(Wrapper, ABC):
     #                 atom_rings_feature[rmb] += 1
     #
     #     return atom_rings_feature
+    @property
+    def force_vector(self):
+        return self._data.get('force_vector', np.zeros(3, dtype=float))
+
+    @force_vector.setter
+    def force_vector(self, force_vector: Union[Sequence, np.ndarray]):
+        self._set_force_vector(force_vector)
 
     @property
     def kwargs_attributes(self):
@@ -1264,7 +1495,7 @@ class Atom(Wrapper, ABC):
 
     @property
     def symbol(self):
-        return list(_elements.keys())[self.atomic_number - 1]
+        return list(periodic_table.keys())[self.atomic_number - 1]
 
 
 class Bond(Wrapper, ABC):
@@ -1415,7 +1646,11 @@ class Crystal(Wrapper, ABC):
 
     @property
     def space_group(self):
-        return self._OBUnitCell.GetSpaceGroup().GetHMName()
+        space_group = self._OBUnitCell.GetSpaceGroup()
+        if space_group:
+            return space_group.GetHMName()
+        else:
+            return None
 
     @space_group.setter
     def space_group(self, value: str):
@@ -1425,5 +1660,17 @@ class Crystal(Wrapper, ABC):
     def volume(self):
         return self._OBUnitCell.GetCellVolume()
 
+    @property
+    def vector(self):
+        v1, v2, v3 = self._OBUnitCell.GetCellVectors()
+        return np.array([
+            [v1.GetX(), v1.GetY(), v1.GetZ()],
+            [v2.GetX(), v2.GetY(), v2.GetZ()],
+            [v3.GetX(), v3.GetY(), v3.GetZ()]
+        ])
+
     def zeo_plus_plus(self):
         """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """
+
+
+from src.bundle import MolBundle

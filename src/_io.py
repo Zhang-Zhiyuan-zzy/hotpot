@@ -8,6 +8,7 @@ python v3.7.9
 """
 import os
 import re
+import time
 from pathlib import Path
 from os import PathLike
 from typing import *
@@ -366,8 +367,10 @@ class Dumper(IOBase, metaclass=MetaIO):
         if the src object do not place in a Crystal, create a P1 compact Crystal for it
         """
         crystal = self.src.crystal()
-        if not isinstance(crystal, ci.Crystal):
-            self.src.generate_compact_lattice(inplace=True)
+        if not isinstance(crystal, ci.Crystal) or (
+                np.logical_not(crystal.vector >= 0.).any() and np.logical_not(crystal.vector < 0.).any()
+        ):
+            self.src.compact_crystal(inplace=True)
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """
@@ -522,6 +525,23 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return script
 
+    def _post_lmpdat(self, script):
+        """ post-process for LAMMPS data file """
+        body_keyword = re.compile(r"[A-Z].+s")
+
+        lines = script.split('\n')
+
+        body_split_point = [i for i, lin in enumerate(lines) if body_keyword.match(lin.strip())] + [len(lines)]
+
+        processed_lines = lines[:body_split_point[0]]
+        for start, end in zip(body_split_point[:-1], body_split_point[1:]):
+            if any(lin for lin in lines[start+1:end]):
+                processed_lines.extend(lines[start:end])
+
+        script = '\n'.join(processed_lines)
+
+        return script
+
 
 class Parser(IOBase, metaclass=MetaIO):
     """ Parse the str or bytes obj to Molecule obj """
@@ -673,6 +693,47 @@ class Parser(IOBase, metaclass=MetaIO):
         # Check whether a failure have happened when calculation.
         if is_convergence_failure():
             raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
+
+    # Parse the XYZ file
+    def _io_xyz(self):
+        """ Parse the XYZ file """
+        src_type = self.result['src_type']
+        if src_type != 'path':
+            return self._io()
+        else:
+            from ase import io
+            from openbabel import openbabel as ob
+            data_generator = io.iread(self.src)
+
+            # atomic_numbers, coordinates, cell_params
+            atomic_numbers, all_coordinates, cell_matrix = [], [], None
+            for data in data_generator:
+                atomic_numbers.append(data.numbers)
+                all_coordinates.append(data.positions)
+                if cell_matrix is None:
+                    cell_matrix = data.cell.array
+
+            atomic_numbers = np.stack(atomic_numbers)
+            all_coordinates = np.stack(all_coordinates)
+
+            number_min = atomic_numbers.min(axis=0)
+            number_max = atomic_numbers.max(axis=0)
+
+            # the values in same columns should be same.
+            assert all(number_max == number_min)
+
+            obj = ci.Molecule()
+            obj.quick_build_atoms(number_min)
+            # for atomic_number in number_max:
+            #     ob_atom = ob.OBAtom()
+            #     ob_atom.SetAtomicNum(int(atomic_number))
+            #     obj.ob_mol.AddAtom(ob_atom)
+
+            obj.set(all_coordinates=all_coordinates)
+            obj.set(crystal=cell_matrix)
+            obj.configure_select(0)
+
+            return obj
 
     # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):

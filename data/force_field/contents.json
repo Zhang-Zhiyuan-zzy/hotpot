@@ -1,0 +1,7 @@
+{
+  "aMaterials": {
+    "SiC.tersoff": {
+      "elements": ["Si", "C"]
+    }
+  }
+}

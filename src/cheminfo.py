@@ -7,6 +7,7 @@ python v3.7.9
 @Time   : 4:09
 """
 import copy
+import itertools
 import os
 import re
 from io import IOBase
@@ -19,7 +20,7 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
-import src.tanks.lmp as lmp
+from src.tanks import lmp
 
 dir_root = os.path.join(os.path.dirname(__file__))
 periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
@@ -101,7 +102,7 @@ class Molecule(Wrapper, ABC):
         self._set_attrs(**kwargs)
 
     def __repr__(self):
-        return f'Mol({self.ob_mol.GetFormula()})'
+        return f'Mol({self.ob_mol.GetSpacedFormula()})'
 
     def __add__(self, other: ['Molecule']):
         """
@@ -165,6 +166,24 @@ class Molecule(Wrapper, ABC):
 
         return self._merge_conformer_attr(other)
 
+    def __iter__(self):
+        """ Return self with different configures """
+        def configure_generator():
+            for i in range(self.configure_number):
+                self.configure_select(i)
+                yield self
+
+        return iter(configure_generator())
+
+    def __next__(self):
+        config_idx = self._data.get('config_idx', 0)
+        try:
+            self.configure_select(config_idx)
+            self._data['config_idx'] = config_idx + 1
+            return self
+        except IndexError:
+            raise StopIteration
+
     def _merge_conformer_attr(self, other: 'Molecule'):
         """ Merge attributes, relate to molecule conformer, in other Molecule into this Molecule """
 
@@ -193,7 +212,7 @@ class Molecule(Wrapper, ABC):
         return self
 
     @property
-    def _OBAtom_indices(self):
+    def _ob_atom_indices(self):
         """ Get the indices for all OBAtom """
         indices = []
 
@@ -244,10 +263,46 @@ class Molecule(Wrapper, ABC):
             'mol_orbital_energies': self._set_mol_orbital_energies,
             'all_coordinates': self._set_all_coordinates,
             'all_forces': self._set_all_forces,
-            'forces': self._set_forces
+            'forces': self._set_forces,
+            'crystal': self.create_crystal_by_matrix
         }
 
-    def _pert_mol_generate(self, coordinates: np.ndarray):
+    def _create_ob_unit_cell(self):
+        """ Create New OBUnitCell for the Molecule """
+        ob_unit_cell = ob.OBUnitCell()
+        self.ob_mol.CloneData(ob_unit_cell)
+
+    @staticmethod
+    def _melt_quench(
+        elements: Dict[str, float], force_field: Union[str, os.PathLike], mol: "Molecule" = None,
+        density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
+        alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
+        origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
+        ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
+        dump_every: int = 100, fmt: Optional[str] = None
+    ):
+        """ to perform the melt-quench by call lmp.AmorphousMaker """
+        if not fmt:
+            split_file_name = os.path.split(path_writefile)[-1].split('.')
+            if len(split_file_name) == 2:
+                fmt = split_file_name[-1]
+
+        am = lmp.AmorphousMaker(elements, force_field, density, a, b, c, alpha, beta, gamma)
+        if fmt:
+            mol = am.melt_quench(
+                *ff_args, mol=mol, path_writefile=path_writefile, output_format=fmt, path_dump_to=path_dump_to,
+                origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step,
+                dump_every=dump_every
+            )
+        else:
+            mol = am.melt_quench(
+                *ff_args, mol=mol, path_writefile=path_writefile, output_format=fmt, dump_every=dump_every,
+                origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step
+            )
+
+        return mol
+
+    def _pert_mol_generate(self, coordinates: Union[Sequence, np.ndarray]):
         """
         Generate new molecule obj according to new given coordinate
         Args:
@@ -451,7 +506,7 @@ class Molecule(Wrapper, ABC):
             # The 'OBAtom' is the OBAtom has been stored in the self(Molecule)
             # The '_mol' is the self(Molecule)
             new_atom_data = atom._data
-            new_atom_data['OBAtom'] = ob_atom_in_ob_mol
+            # new_atom_data['OBAtom'] = ob_atom_in_ob_mol
             new_atom_data['_mol'] = self
 
             # replace the attr data dict
@@ -516,6 +571,24 @@ class Molecule(Wrapper, ABC):
         # Return the bond have add into the molecule
         return bond
 
+    @property
+    def all_coordinates(self) -> np.ndarray:
+        """
+        Get the collections of the matrix of all atoms coordinates,
+        each matrix represents a configure.
+        The return array with shape of (C, N, 3),
+        where the C is the number of conformers, the N is the number of atoms
+        """
+        all_coordinates = self._data.get('all_coordinates')
+        if isinstance(all_coordinates, np.ndarray):
+            return all_coordinates
+        else:
+            return self.coordinates.reshape((-1, self.atom_num, 3))
+
+    @property
+    def all_energy(self):
+        return self._data.get('all_energy')
+
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
 
@@ -548,7 +621,7 @@ class Molecule(Wrapper, ABC):
         """
         atoms = self._data.get('atoms')  # existed atoms list
         atoms_indices = [a.idx for a in atoms] if atoms else []  # the indices list of existed atoms
-        ob_atom_indices = self._OBAtom_indices  # the sorted indices list for OBAtom in OBMol
+        ob_atom_indices = self._ob_atom_indices  # the sorted indices list for OBAtom in OBMol
 
         if not atoms:
             atoms = self._data['atoms'] = [
@@ -560,7 +633,7 @@ class Molecule(Wrapper, ABC):
         # the atom indices and OBAtom indices are NOT required to be complete, but MUST be consistent.
         # for example, the atom indices and the OBAtom indices might be [1, 2, 4, 6], simultaneously,
         # however, the situation that the atom indices are [1, 2] and the OBAtom indices are [1, 2, 3] is not allowed!!
-        elif len(atoms) != len(ob_atom_indices) or any(ai != Ai for ai, Ai in zip(atoms_indices, ob_atom_indices)):
+        elif len(atoms) != len(ob_atom_indices) or atoms_indices != ob_atom_indices:
             new_atoms = []
             for OBAtom_idx in ob_atom_indices:
 
@@ -613,6 +686,10 @@ class Molecule(Wrapper, ABC):
     def atomic_numbers(self):
         return tuple(a.atomic_number for a in self.atoms)
 
+    @property
+    def atomic_symbols(self):
+        return tuple(a.symbol for a in self.atoms)
+
     def bond(self, atom1: Union[int, str], atom2: Union[int, str], miss_raise: bool = False) -> 'Bond':
         """
         Return the Bond by given atom index labels in the bond ends
@@ -659,6 +736,16 @@ class Molecule(Wrapper, ABC):
         ob_bonds = [OBBond for OBBond in ob.OBMolBondIter(self.ob_mol)]
         for OBBond in ob_bonds:
             self.ob_mol.DeleteBond(OBBond)
+
+    def clean_configures(self, pop: bool = False):
+        """ clean all config save inside the molecule """
+        try:
+            all_coordinates = self._data.pop('all_coordinates')
+        except KeyError:
+            all_coordinates = None
+
+        if pop:
+            return all_coordinates
 
     @property
     def components(self):
@@ -715,20 +802,6 @@ class Molecule(Wrapper, ABC):
         """
         return np.array([atom.coordinates for atom in self.atoms], dtype=np.float64)
 
-    @property
-    def all_coordinates(self) -> np.ndarray:
-        """
-        Get the collections of the matrix of all atoms coordinates,
-        each matrix represents a configure.
-        The return array with shape of (C, N, 3),
-        where the C is the number of conformers, the N is the number of atoms
-        """
-        all_coordinates = self._data.get('all_coordinates')
-        if isinstance(all_coordinates, np.ndarray):
-            return all_coordinates
-        else:
-            return self.coordinates.reshape((-1, self.atom_num, 3))
-
     def copy(self) -> 'Molecule':
         """ Copy the Molecule """
         # Create the new data sheet
@@ -767,15 +840,14 @@ class Molecule(Wrapper, ABC):
     def copy_data(self):
         return copy.copy(self._data)
 
-    def clean_configures(self, pop: bool = False):
-        """ clean all config save inside the molecule """
-        try:
-            all_coordinates = self._data.pop('all_coordinates')
-        except KeyError:
-            all_coordinates = None
+    def compact_crystal(self, inplace=False):
+        """"""
+        mol = self if inplace else self.copy()
+        lattice_params = np.concatenate((self.xyz_diff, [90., 90., 90.]))
 
-        if pop:
-            return all_coordinates
+        mol.make_crystal(*lattice_params)
+
+        return mol
 
     def create_atom(self, symbol: str, **kwargs):
         """
@@ -794,6 +866,69 @@ class Molecule(Wrapper, ABC):
         atom = Atom(OBAtom, mol=self, **kwargs)
 
         return atom
+
+    def create_crystal_by_vectors(
+        self,
+        va: Union[Sequence, np.ndarray],
+        vb: Union[Sequence, np.ndarray],
+        vc: Union[Sequence, np.ndarray]
+    ):
+        """ Create a new crystal with specified cell vectors for the Molecule """
+        self._create_ob_unit_cell()
+        self.crystal().set_vectors(va, vb, vc)
+
+    def create_crystal_by_matrix(self, matrix: np.ndarray):
+        """ Create a new crystal with specified cell matrix for the molecule """
+        if not (np.logical_not(matrix >= 0.).any() and np.logical_not(matrix < 0.).any()) and np.linalg.det(matrix):
+            self._create_ob_unit_cell()
+            self.crystal().set_matrix(matrix)
+            # self.crystal().space_group = 'P1'
+
+    @classmethod
+    def create_aCryst_by_mq(
+        cls, elements: Dict[str, float], force_field: Union[str, os.PathLike],
+        density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
+        alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
+        origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
+        ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
+        dump_every: int = 100, fmt: Optional[str] = None
+    ):
+        """
+        Create a Amorphous crystal materials by Melt-Quench process.
+        This process is performed by LAMMPS package, make sure the LAMMPS is accessible.
+        A suitable force field is required for the process are performed correctly.
+        Args:
+            elements(dict[str, float]): Dict of elements and their composition ratio
+            force_field(str, os.PathLike): The name of force filed or the path to load a force filed. The name
+             of the force filed is refer to the relative path to the 'hotpot_root/data/force_field'.
+            density: the demand density for the created amorphous crystal
+            a: the length of a vector in the crystal
+            b: the length of b vector in the crystal
+            c: the length of c vector in the crystal
+            alpha: alpha angle of crystal param.
+            beta: beta angle of crystal param.
+            gamma: gamma angle of crystal param
+            time_step: time interval between path integrals when performing melt-quench
+            origin_temp: the initial temperature before melt
+            melt_temp: the round melting point to the materials
+            highest_temp: the highest temperature to liquefy the materials
+            ff_args: the arguments the force file requried, refering the LAMMPS pair_coeff:
+             "pair_coeff I J args" url: https://docs.lammps.org/pair_coeff.html
+            path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
+            path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
+            dump_every: the step interval between each dump operations
+            fmt: the format to save the materials and trajectory.
+
+        Returns:
+            Molecule, a created amorphous material
+        """
+        return cls._melt_quench(
+            elements=elements, force_field=force_field, density=density,
+            a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma, time_step=time_step,
+            origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp,
+            ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
+            dump_every=dump_every, fmt=fmt
+        )
 
     def crystal(self):
         """ Get the Crystal containing the Molecule """
@@ -814,10 +949,6 @@ class Molecule(Wrapper, ABC):
     @property
     def elements(self) -> list[str]:
         return re.findall(r'[A-Z][a-z]*', self.formula)
-
-    @property
-    def all_energy(self):
-        return self._data.get('all_energy')
 
     @property
     def energy(self):
@@ -859,29 +990,17 @@ class Molecule(Wrapper, ABC):
 
     @property
     def formula(self) -> str:
-        return self.ob_mol.GetFormula()
-
-    def generate_compact_lattice(self, inplace=False):
-        """"""
-        ob_unit_cell = ob.OBUnitCell()
-        lattice_params = np.concatenate((self.xyz_diff, [90., 90., 90.]))
-        ob_unit_cell.SetData(*lattice_params)
-        ob_unit_cell.SetSpaceGroup('P1')
-
-        mol = self if inplace else self.copy()
-        mol.ob_mol.CloneData(ob_unit_cell)
-
-        return mol
+        return self.ob_mol.GetSpacedFormula()
 
     def gaussian(
-            self,
-            g16root: Union[str, PathLike],
-            link0: Union[str, List[str]],
-            route: Union[str, List[str]],
-            path_log_file: Union[str, PathLike] = None,
-            path_err_file: Union[str, PathLike] = None,
-            inplace_attrs: bool = False,
-            *args, **kwargs
+        self,
+        g16root: Union[str, PathLike],
+        link0: Union[str, List[str]],
+        route: Union[str, List[str]],
+        path_log_file: Union[str, PathLike] = None,
+        path_err_file: Union[str, PathLike] = None,
+        inplace_attrs: bool = False,
+        *args, **kwargs
     ) -> (Union[None, str], str):
         """
         calculation by gaussion.
@@ -941,7 +1060,6 @@ class Molecule(Wrapper, ABC):
             return True
         return False
 
-
     @property
     def is_labels_unique(self):
         """ Determine whether all atom labels are unique """
@@ -957,17 +1075,73 @@ class Molecule(Wrapper, ABC):
     @property
     def lmp(self):
         """ handle to operate the Lammps object """
-        return self._data.setdefault('lmp', lmp.Lammps(self))
+        return self._data.get('lmp')
 
     def lmp_close(self):
-        self._data.pop('lmp')
+        pop_lmp = self._data.pop('lmp')
+        pop_lmp.close()
 
-    def lmp_restart(self):
-        self._data['lmp'] = lmp.Lammps(self)
+    def lmp_setup(self, *args, **kwargs):
+        self._data['lmp'] = lmp.HpLammps(self, *args, **kwargs)
 
     @property
     def link_matrix(self):
         return np.array([[b.atom1_idx, b.atom2_idx] for b in self.bonds]).T
+
+    def make_crystal(self, a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> 'Crystal':
+        """ Put this molecule into the specified crystal """
+        ob_unit_cell = ob.OBUnitCell()
+
+        self.ob_mol.CloneData(ob_unit_cell)
+        self.crystal().ob_unit_cell.SetData(a, b, c, alpha, beta, gamma)
+        self.crystal().ob_unit_cell.SetSpaceGroup('P1')
+
+        return self.crystal()
+
+    def melt_quench(
+        self, elements: Dict[str, float], force_field: Union[str, os.PathLike],
+        density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
+        alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
+        origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
+        ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
+        dump_every: int = 100, fmt: Optional[str] = None
+    ):
+        """
+        Create a Amorphous crystal materials by performing Melt-Quench process for this materials.
+        This process is performed by LAMMPS package, make sure the LAMMPS is accessible.
+        A suitable force field is required for the process are performed correctly.
+        Args:
+            elements(dict[str, float]): Dict of elements and their composition ratio
+            force_field(str, os.PathLike): The name of force filed or the path to load a force filed. The name
+             of the force filed is refer to the relative path to the 'hotpot_root/data/force_field'.
+            density: the demand density for the created amorphous crystal
+            a: the length of a vector in the crystal
+            b: the length of b vector in the crystal
+            c: the length of c vector in the crystal
+            alpha: alpha angle of crystal param.
+            beta: beta angle of crystal param.
+            gamma: gamma angle of crystal param
+            time_step: time interval between path integrals when performing melt-quench
+            origin_temp: the initial temperature before melt
+            melt_temp: the round melting point to the materials
+            highest_temp: the highest temperature to liquefy the materials
+            ff_args: the arguments the force file requried, refering the LAMMPS pair_coeff:
+             "pair_coeff I J args" url: https://docs.lammps.org/pair_coeff.html
+            path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
+            path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
+            dump_every: the step interval between each dump operations
+            fmt: the format to save the materials and trajectory.
+
+        Returns:
+            Molecule, a created amorphous material
+        """
+        return self._melt_quench(
+            elements=elements, force_field=force_field, density=density,
+            a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma, time_step=time_step,
+            origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp,
+            ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
+            dump_every=dump_every, fmt=fmt, mol=self
+        )
 
     @property
     def mol_orbital_energies(self):
@@ -1053,6 +1227,28 @@ class Molecule(Wrapper, ABC):
 
         else:
             return (self._pert_mol_generate(c) for c in coordinates_generator())
+
+    def quick_build_atoms(self, atomic_numbers: np.ndarray):
+        """
+        This method to quick build atoms according a array of atomic numbers.
+        The method bypass to calling more time-consumed method: add_atom().
+        However, the method only assign the elements or atomic number for atoms,
+        more fine attributes like coordinates, can't be specified.
+        Args:
+            atomic_numbers(np.ndarray): 1-D numpy array to add new atoms into the molecule
+
+        Returns:
+            None
+        """
+        if not isinstance(atomic_numbers, (np.ndarray, Sequence)):
+            raise TypeError('the atomic_numbers should be np.ndarray or Sequence')
+        if isinstance(atomic_numbers, np.ndarray) and len(atomic_numbers.shape) != 1:
+            raise ValueError('the numpy array must be 1-D')
+
+        for atomic_number in atomic_numbers:
+            ob_atom = ob.OBAtom()
+            ob_atom.SetAtomicNum(int(atomic_number))
+            self.ob_mol.AddAtom(ob_atom)
 
     @classmethod
     def readfile(cls, path_file: Union[str, PathLike], fmt=None, *args, **kwargs):
@@ -1168,14 +1364,6 @@ class Molecule(Wrapper, ABC):
     @spin.setter
     def spin(self, spin: int):
         self._set_spin_multiplicity(spin)
-
-    def to_deepmd_train_data(
-            self, path_save: Union[str, PathLike],
-            valid_set_size: Union[int, float] = 0.2,
-            is_test_set: bool = False,
-            _call_by_bundle: bool = False
-    ):
-        """"""
 
     def to_mix_mol(self):
         return MixSameAtomMol(_data=self._data)
@@ -1584,8 +1772,22 @@ class Crystal(Wrapper, ABC):
         return f'Crystal({self.lattice_type}, {self.space_group}, {self.molecule})'
 
     @property
-    def _OBUnitCell(self) -> ob.OBUnitCell:
+    def ob_unit_cell(self) -> ob.OBUnitCell:
         return self._data.get('OBUnitCell')
+
+    @staticmethod
+    def _matrix_to_params(matrix: np.ndarray):
+        """ Covert the cell matrix to cell parameters: a, b, c, alpha, beta, gamma """
+        va, vb, vc = matrix
+        a = sum(va ** 2) ** 0.5
+        b = sum(vb ** 2) ** 0.5
+        c = sum(vc ** 2) ** 0.5
+
+        alpha = np.arccos(np.dot(va, vb) / (a * b)) / np.pi * 180
+        beta = np.arccos(np.dot(va, vc) / (a * c)) / np.pi * 180
+        gamma = np.arccos(np.dot(vb, vc) / (b * c)) / np.pi * 180
+
+        return a, b, c, alpha, beta, gamma
 
     def _set_molecule(self, molecule: Molecule):
         if molecule.crystal and isinstance(molecule.crystal, Crystal):
@@ -1595,7 +1797,7 @@ class Crystal(Wrapper, ABC):
             self._data['mol'] = molecule
 
     def _set_space_group(self, space_group: str):
-        self._OBUnitCell.SetSpaceGroup(space_group)
+        self.ob_unit_cell.SetSpaceGroup(space_group)
 
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
@@ -1607,16 +1809,16 @@ class Crystal(Wrapper, ABC):
 
     @property
     def lattice_type(self) -> str:
-        return self._lattice_type[self._OBUnitCell.GetLatticeType()]
+        return self._lattice_type[self.ob_unit_cell.GetLatticeType()]
 
     @property
     def lattice_params(self) -> np.ndarray[2, 3]:
-        a = self._OBUnitCell.GetA()
-        b = self._OBUnitCell.GetB()
-        c = self._OBUnitCell.GetC()
-        alpha = self._OBUnitCell.GetAlpha()
-        beta = self._OBUnitCell.GetBeta()
-        gamma = self._OBUnitCell.GetGamma()
+        a = self.ob_unit_cell.GetA()
+        b = self.ob_unit_cell.GetB()
+        c = self.ob_unit_cell.GetC()
+        alpha = self.ob_unit_cell.GetAlpha()
+        beta = self.ob_unit_cell.GetBeta()
+        gamma = self.ob_unit_cell.GetGamma()
         return np.array([[a, b, c], [alpha, beta, gamma]])
 
     @property
@@ -1632,7 +1834,7 @@ class Crystal(Wrapper, ABC):
             return None
 
         pack_mol = mol.copy()
-        self._OBUnitCell.FillUnitCell(pack_mol.ob_mol)  # Full the crystal
+        self.ob_unit_cell.FillUnitCell(pack_mol.ob_mol)  # Full the crystal
         pack_mol._reorganize_atom_indices()  # Rearrange the atom indices.
 
         return pack_mol
@@ -1642,11 +1844,31 @@ class Crystal(Wrapper, ABC):
             a: float, b: float, c: float,
             alpha: float, beta: float, gamma: float
     ):
-        self._OBUnitCell.SetData(a, b, c, alpha, beta, gamma)
+        self.ob_unit_cell.SetData(a, b, c, alpha, beta, gamma)
+
+    def set_vectors(
+            self,
+            va: Union[np.ndarray, Sequence],
+            vb: Union[np.ndarray, Sequence],
+            vc: Union[np.ndarray, Sequence]
+    ):
+        """"""
+        vectors = [va, vb, vc]
+        matrix = np.array(vectors)
+        self.set_matrix(matrix)
+
+    def set_matrix(self, matrix: np.ndarray):
+        """ Set cell matrix for the crystal """
+        if matrix.shape != (3, 3):
+            raise AttributeError('the shape of cell_vectors should be [3, 3]')
+
+        cell_params = map(float, self._matrix_to_params(matrix))
+
+        self.ob_unit_cell.SetData(*cell_params)
 
     @property
     def space_group(self):
-        space_group = self._OBUnitCell.GetSpaceGroup()
+        space_group = self.ob_unit_cell.GetSpaceGroup()
         if space_group:
             return space_group.GetHMName()
         else:
@@ -1658,11 +1880,11 @@ class Crystal(Wrapper, ABC):
 
     @property
     def volume(self):
-        return self._OBUnitCell.GetCellVolume()
+        return self.ob_unit_cell.GetCellVolume()
 
     @property
     def vector(self):
-        v1, v2, v3 = self._OBUnitCell.GetCellVectors()
+        v1, v2, v3 = self.ob_unit_cell.GetCellVectors()
         return np.array([
             [v1.GetX(), v1.GetY(), v1.GetZ()],
             [v2.GetX(), v2.GetY(), v2.GetZ()],

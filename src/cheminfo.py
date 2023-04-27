@@ -7,7 +7,6 @@ python v3.7.9
 @Time   : 4:09
 """
 import copy
-import itertools
 import os
 import re
 from io import IOBase

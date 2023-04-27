@@ -8,7 +8,6 @@ python v3.7.9
 """
 import os
 import re
-import time
 from pathlib import Path
 from os import PathLike
 from typing import *
@@ -321,18 +320,6 @@ class Dumper(IOBase, metaclass=MetaIO):
     The output in general is the string or bytes
     """
 
-    # def __call__(self) -> Union[str, bytes]:
-    #     """"""
-    #     self._pre()
-    #     script = self._io()
-    #     return self._post(script)
-
-    # def _pre(self):
-    #     """ Preprocess the Molecule obj before performing the dumping """
-    #     pre_func = self._get_pre()
-    #     if pre_func:
-    #         self.src = pre_func(self)
-
     def _io(self):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
         # Try to dump by openbabel.pybel
@@ -343,17 +330,6 @@ class Dumper(IOBase, metaclass=MetaIO):
         except ValueError:
             print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
             return None
-
-    # def _post(self, script: Union[str, bytes]):
-    #     post_func = self._get_post()
-    #     if post_func:
-    #         return post_func(self, script)
-    #     else:
-    #         raise script
-
-    # Define the dumper functions
-    # The dumper functions should have two passing args
-    # the first is the Dumper self obj and the second is the strings
 
     def _checks(self) -> Dict[str, Any]:
         if not isinstance(self.src, ci.Molecule):
@@ -371,6 +347,9 @@ class Dumper(IOBase, metaclass=MetaIO):
                 np.logical_not(crystal.vector >= 0.).any() and np.logical_not(crystal.vector < 0.).any()
         ):
             self.src.compact_crystal(inplace=True)
+
+        if self.src.crystal().space_group:
+            self.src.crystal().space_group = 'P1'
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """

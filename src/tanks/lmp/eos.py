@@ -1,7 +1,7 @@
 """
 python v3.7.9
 @Project: hotpot
-@File   : mc.py
+@File   : eos.py
 @Author : Zhiyuan Zhang
 @Date   : 2023/4/27
 @Time   : 8:08
@@ -10,7 +10,58 @@ Notes:
     Pv=RT
 """
 from typing import *
+
+import numpy as np
 from scipy.optimize import fsolve
+
+# Ideal gas constant
+R = 8.3144626181532  # J/(mol.k)
+
+
+def solve_ideal_gas_equation(
+        p: Union[np.ndarray, float] = None, v: Union[np.ndarray, float] = None, t: Union[np.ndarray, float] = None
+):
+    if p is not None and t is not None and v is None:
+        which = 'v'
+    elif p is not None and v is not None and t is None:
+        which = 't'
+    elif t is not None and v is not None and p is None:
+        which = 'p'
+    else:
+        raise ValueError('the two of p, t, v should be given')
+
+    if which == 'v':
+        if isinstance(p, float) and isinstance(t, float):
+            return 'v', (R * t) / p
+        elif isinstance(p, np.ndarray) and isinstance(t, np.ndarray):
+            if len(p) == len(t):
+                return 'v', (R * t) / p
+            else:
+                raise AttributeError('the given values of temperature and pressure should have same length')
+        else:
+            raise TypeError('the temperature(t) and pressure(p) should either be both float or both np.ndarray')
+
+    if which == 'p':
+        if isinstance(t, float) and isinstance(v, float):
+            return 'p', (R * t) / v
+        elif isinstance(t, np.ndarray) and isinstance(v, np.ndarray):
+            if len(t) == len(v):
+                return 'p', (R * t) / v
+            else:
+                raise AttributeError('the given values of temperature(t) and volume(v) should have same length')
+        else:
+            raise TypeError('the temperature(t) and volume(v) should either be both float or both np.ndarray')
+
+    if which == 't':
+        if isinstance(p, float) and isinstance(v, float):
+            return 't', (p * v) / R
+        elif isinstance(t, np.ndarray) and isinstance(v, np.ndarray):
+            if len(t) == len(v):
+                return 't', (p * v) / R
+            else:
+                raise AttributeError('the given values of volume(v) and pressure(p) should have same length')
+        else:
+            raise TypeError('the pressure(p) and volume(v) should either be both float or both np.ndarray')
 
 
 class PengRobinson:
@@ -24,11 +75,9 @@ class PengRobinson:
 
     def __call__(self, **kwargs):
         f: Callable = self._equations(**kwargs)
-        x_name, x = self._solve_ideal_gas_equation(**kwargs)
+        x_name, x = solve_ideal_gas_equation(**kwargs)
 
-        res = fsolve(f, x0=x, args=(x_name,))
-
-        return res
+        return x_name, fsolve(f, x0=x, args=(x_name,))
 
     def _equations(self, **kwargs):
         def PR_eqa(x, which):
@@ -46,76 +95,17 @@ class PengRobinson:
             tc = self.tc
             pc = self.pc
             w = self.w
-            r = 8.3144626181532  # J/(mol.k)
             tr = t / tc
             k = 0.37464 + (1.54226 * w) - 0.26992 * (w ** 2)
 
-            a = 0.457235 * (((r ** 2) * (tc ** 2)) / pc)
-            b = 0.077796 * ((r * tc) / pc)
+            a = 0.457235 * (((R ** 2) * (tc ** 2)) / pc)
+            b = 0.077796 * ((R * tc) / pc)
             alpha = (1 + k * (1 - (tr ** 0.5))) ** 2
 
-            return p - ((r * t) / (v - b)) + ((a * alpha) / ((v ** 2) + (2 * b * v) - (b ** 2)))
+            return p - ((R * t) / (v - b)) + ((a * alpha) / ((v ** 2) + (2 * b * v) - (b ** 2)))
 
         p = kwargs.get('p')  # real pressure
         t = kwargs.get('t')  # temperature
         v = kwargs.get('v')  # molar volume
 
         return PR_eqa
-
-    def _solve_ideal_gas_equation(self, **kwargs):
-        """ Given two of p v t, solve the rest one by ideal gas state equation: P(V/n)=RT """
-
-        p = kwargs.get('p')  # real pressure
-        t = kwargs.get('t')  # temperature
-        v = kwargs.get('v')  # real molar volume
-
-        if p and t and not v:
-            which = 'v'
-        elif p and v and not t:
-            which = 't'
-        elif t and v and not p:
-            which = 'p'
-        else:
-            raise ValueError('the two of p, t, v should be given')
-
-        v = 0.0224  # m^3/mol, ideal molar volume
-        if which == 'v':
-            return 'v', v
-        if which == 'p':
-            if not t:
-                raise ValueError('the temperature(t) should give for the calculation of pressure')
-            return 'p', (self.r*t)/v
-        if which == 't':
-            if not p:
-                raise ValueError('the pressure(p) should give for the calculation of temperature')
-            return 't', p*v/self.r
-
-
-def peng_robinson(tc, pc, w, t=None, p=None, v=None):
-    """"""
-    r = 8.3144626181532  # J/(mol.k)
-
-
-
-    def t_equation(x):
-        """"""
-
-
-
-    vm_iso = 0.0224  # m^3/mol, the molar volume of ideal gas in iso state
-
-    # vm = (p/101325)*(298.15/t)*vm_iso
-    vm = vm_iso
-    tr = t/tc
-    k = 0.37464 + (1.54226*w) - 0.26992*(w ** 2)
-
-    a = 0.457235*(((r ** 2) * (tc ** 2)) / pc)
-    b = 0.077796 * ((r * tc) / pc)
-    alpha = (1 + k*(1-(tr ** 0.5))) ** 2
-
-    fugacity = (r * t)/(vm - b) - ((a * alpha) / ((vm ** 2) + (2*b*vm) - (b ** 2)))
-
-    return fugacity
-
-
-

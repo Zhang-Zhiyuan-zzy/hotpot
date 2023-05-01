@@ -164,9 +164,9 @@ class AmorphousMaker:
         return mol
 
     def melt_quench(
-            self, *ff_args, mol=None, path_writefile: Optional[str] = None, output_format: str = 'xyz',
+            self, *ff_args, mol=None, path_writefile: Optional[str] = None,
             origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000,
-            time_step: float = 0.0001, path_dump_to: Optional[str] = None, dump_every: int = 100
+            time_step: float = 0.0001, path_dump_to: Optional[str] = None, dump_every: int = 100,
     ):
         """
         Perform melt-quench process to manufacture a amorphous materials
@@ -176,7 +176,6 @@ class AmorphousMaker:
             mol: the molecule to be performed melt-quench. if not given, initialize according to elemental
              compositions
             path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
-            output_format: the format to save the materials and trajectory.
             origin_temp: the initial temperature before melt
             melt_temp: the round melting point to the materials
             highest_temp: the highest temperature to liquefy the materials
@@ -216,7 +215,8 @@ class AmorphousMaker:
 
         # Specify the dump configuration
         if path_dump_to:
-            mol.lmp.command(f'dump {output_format} all xyz {dump_every} {path_dump_to}')
+            dump_fmt = path_dump_to.split('.')[-1]  # the dump fmt is the suffix of file name
+            mol.lmp.command(f'dump {dump_fmt} all xyz {dump_every} {path_dump_to}')
             mol.lmp.command(f'dump_modify xyz element {" ".join(set(mol.atomic_symbols))}')
 
         # Initialize the temperature for system
@@ -253,8 +253,14 @@ class AmorphousMaker:
             )
             mol.lmp.command(f'run 2000')
 
-        pwf = path_writefile if path_writefile else ptj(src.tmp_root, 'write_dump.xyz')
-        mol.lmp.command(f'write_dump all {output_format} {pwf} modify element {" ".join(set(mol.atomic_symbols))}')
+        if not path_writefile:
+            pwf = ptj(os.getcwd(), 'write_dump.xyz')
+            write_fmt = 'xyz'
+        else:
+            pwf = path_writefile
+            write_fmt = path_writefile.split('.')[-1]
+
+        mol.lmp.command(f'write_dump all {write_fmt} {pwf} modify element {" ".join(set(mol.atomic_symbols))}')
         made_mol = ci.Molecule.read_from(pwf)
         if not path_writefile:
             os.remove(pwf)

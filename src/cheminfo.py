@@ -278,26 +278,15 @@ class Molecule(Wrapper, ABC):
         alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
         origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
         ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100, fmt: Optional[str] = None
+        dump_every: int = 100,
     ):
         """ to perform the melt-quench by call lmp.AmorphousMaker """
-        if not fmt:
-            split_file_name = os.path.split(path_writefile)[-1].split('.')
-            if len(split_file_name) == 2:
-                fmt = split_file_name[-1]
 
         am = lmp.AmorphousMaker(elements, force_field, density, a, b, c, alpha, beta, gamma)
-        if fmt:
-            mol = am.melt_quench(
-                *ff_args, mol=mol, path_writefile=path_writefile, output_format=fmt, path_dump_to=path_dump_to,
-                origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step,
-                dump_every=dump_every
-            )
-        else:
-            mol = am.melt_quench(
-                *ff_args, mol=mol, path_writefile=path_writefile, output_format=fmt, dump_every=dump_every,
-                origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step
-            )
+        mol = am.melt_quench(
+            *ff_args, mol=mol, path_writefile=path_writefile, path_dump_to=path_dump_to, origin_temp=origin_temp,
+            melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step, dump_every=dump_every
+        )
 
         return mol
 
@@ -890,7 +879,7 @@ class Molecule(Wrapper, ABC):
         alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
         origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
         ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100, fmt: Optional[str] = None
+        dump_every: int = 100
     ):
         """
         Create a Amorphous crystal materials by Melt-Quench process.
@@ -916,7 +905,6 @@ class Molecule(Wrapper, ABC):
             path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
             path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
             dump_every: the step interval between each dump operations
-            fmt: the format to save the materials and trajectory.
 
         Returns:
             Molecule, a created amorphous material
@@ -926,7 +914,7 @@ class Molecule(Wrapper, ABC):
             a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma, time_step=time_step,
             origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp,
             ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
-            dump_every=dump_every, fmt=fmt
+            dump_every=dump_every
         )
 
     def crystal(self):
@@ -1103,7 +1091,7 @@ class Molecule(Wrapper, ABC):
         alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
         origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
         ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100, fmt: Optional[str] = None
+        dump_every: int = 100
     ):
         """
         Create a Amorphous crystal materials by performing Melt-Quench process for this materials.
@@ -1129,7 +1117,6 @@ class Molecule(Wrapper, ABC):
             path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
             path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
             dump_every: the step interval between each dump operations
-            fmt: the format to save the materials and trajectory.
 
         Returns:
             Molecule, a created amorphous material
@@ -1139,7 +1126,7 @@ class Molecule(Wrapper, ABC):
             a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma, time_step=time_step,
             origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp,
             ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
-            dump_every=dump_every, fmt=fmt, mol=self
+            dump_every=dump_every, mol=self
         )
 
     @property

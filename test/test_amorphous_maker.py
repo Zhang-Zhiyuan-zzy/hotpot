@@ -10,7 +10,6 @@ from src.cheminfo import Molecule as Mol
 
 mol = Mol.create_aCryst_by_mq(
     elements={'C': 1.0}, force_field='aMaterials/SiC.tersoff',
-    ff_args=('C',), path_dump_to='/home/zz1/qyq/melt-quench.xyz',
-    fmt='xyz', density=0.8, path_writefile='/home/zz1/qyq/write_mq.xyz'
+    ff_args=('C',), density=0.8,
 )
-mol.writefile('cif', 'path/to/save')
+# mol.writefile('cif', 'path/to/save')

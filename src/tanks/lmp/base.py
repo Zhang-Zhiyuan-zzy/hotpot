@@ -19,7 +19,7 @@ class HpLammps:
     """
     A wrapper to run LAMMPS tasks
     """
-    _dir_tmp: str = src.pkg_root + '/tmp'
+    _dir_cmd: str = os.getcwd()
 
     def __init__(self, main, *args, **kwargs):
         """"""
@@ -108,7 +108,7 @@ class HpLammps:
         return self.pylmp.lmp
 
     def read_main_data(self, **kwargs):
-        path_main_data = os.path.join(self._dir_tmp, 'main.data')
+        path_main_data = os.path.join(self._dir_cmd, 'main.data')
 
         # to the main.data file
         self.main.writefile('lmpdat', path_main_data)
@@ -125,7 +125,7 @@ class HpLammps:
         return self.pylmp.runs
 
     def script(self):
-        path_tmp_script = os.path.join(self._dir_tmp, 'script.in')
+        path_tmp_script = os.path.join(self._dir_cmd, 'script.in')
         self.pylmp.write_script(path_tmp_script)
         with open(path_tmp_script) as file:
             script = file.read()

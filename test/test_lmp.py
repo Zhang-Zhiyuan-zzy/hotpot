@@ -8,6 +8,9 @@ python v3.7.9
 """
 import math
 import random
+
+import numpy as np
+
 import src.cheminfo as ci
 
 
@@ -145,6 +148,32 @@ def melt_quench(
     return m
 
 
+def solve_Peng_Robinson():
+    import pandas as pd
+    from src.tanks.lmp.eos import PengRobinson, solve_ideal_gas_equation
+
+    critical_params = dict(
+        water={'tc': 647.096, 'pc': 22064000.0, 'w': 0.3442920843},
+        iodine={'tc': 819, 'pc': 11700000, 'w': 0.123},
+        ammonia={'tc': 405.4, 'pc': 11333000, 'w': 0.25601},
+        co2={'tc': 304.21, 'pc': 7375000, 'w': 0.225},
+    )
+
+    with pd.ExcelWriter("/home/zz1/qyq/pt_curve.xlsx") as writer:
+        for gas, params in critical_params.items():
+            water_sheet = pd.read_excel('/home/zz1/qyq/saturation_vapor.xlsx', sheet_name=gas).values
+            t = water_sheet[:, 0]
+            p = water_sheet[:, 1]
+
+            pr = PengRobinson(**params)
+            name, vm = pr(t=t, p=p)
+            name, f = solve_ideal_gas_equation(v=vm, t=t)
+
+            sheet = np.array([t, p, f]).T
+
+            df = pd.DataFrame(sheet, columns=['Temperature', 'Pressure', 'Fugacity'])
+            df.to_excel(writer, sheet_name=gas)
+
+
 if __name__ == '__main__':
-    mol = ci.Molecule.read_from('examples/struct/aCarbon.xyz')
-    result_mol = melt_quench(mol.copy(), '/home/zz1/qyq/mq.xyz')
+    solve_Peng_Robinson()

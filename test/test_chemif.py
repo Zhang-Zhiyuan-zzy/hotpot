@@ -45,6 +45,7 @@ def parse_g16log():
 
     return mol1, mol2, mol3
 
+
 def perturb_cif():
     path_cif = 'examples/struct/aCarbon.cif'
     mol = ci.Molecule.read_from(path_cif, 'cif')

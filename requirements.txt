@@ -3,4 +3,7 @@ numpy~=1.24.2
 cclib~=1.7.2
 torch='2.0.0+cu118'
 LibTorch
-lammps
+lammps~=2022.6.23
+torch~=2.0.0+cu118
+scipy~=1.10.1
+tqdm~=4.64.1

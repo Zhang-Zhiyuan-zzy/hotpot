@@ -1,6 +1,6 @@
 {
-  "water": {"temperature": 647.096, "pressure": 22064000.0, "acentric factor": 0.3442920843},
-  "iodine": {"temperature": 819.0, "pressure": 11700000, "acentric factor": 0.123},
-  "ammonia": {"temperature": 405.4, "pressure": 11333000, "acentric factor": 0.25601},
-  "co2": {"temperature": 304.21, "pressure": 7375000, "acentric factor": 0.225}
+  "O": {"name": "water", "temperature": 647.096, "pressure": 22064000.0, "acentric_factor": 0.3442920843},
+  "II": {"name": "iodine", "temperature": 819.0, "pressure": 11700000, "acentric_factor": 0.123},
+  "N": {"name": "ammonia", "temperature": 405.4, "pressure": 11333000, "acentric_factor": 0.25601},
+  "O=C=O": {"name": "carbon dioxide","temperature": 304.21, "pressure": 7375000, "acentric_factor": 0.225}
 }

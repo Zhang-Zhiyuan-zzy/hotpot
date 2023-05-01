@@ -6,7 +6,6 @@ python v3.7.9
 @Date   : 2023/4/24
 @Time   : 21:42
 """
-import math
 import random
 
 import numpy as np
@@ -173,6 +172,10 @@ def solve_Peng_Robinson():
 
             df = pd.DataFrame(sheet, columns=['Temperature', 'Pressure', 'Fugacity'])
             df.to_excel(writer, sheet_name=gas)
+
+
+def gcmc():
+    """"""
 
 
 if __name__ == '__main__':

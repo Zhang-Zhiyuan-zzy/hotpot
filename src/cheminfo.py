@@ -11,18 +11,19 @@ import os
 import re
 from io import IOBase
 from os import PathLike
+from os.path import join as ptj
 from pathlib import Path
 from abc import ABC, abstractmethod
 import json
 from typing import *
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
+from src import data_root
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
 from src.tanks import lmp
 
-dir_root = os.path.join(os.path.dirname(__file__))
-periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
+periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))['elements']
 periodic_table = {d['symbol']: d for d in periodic_table}
 
 _bond_type = {
@@ -271,6 +272,20 @@ class Molecule(Wrapper, ABC):
         ob_unit_cell = ob.OBUnitCell()
         self.ob_mol.CloneData(ob_unit_cell)
 
+    def _get_critical_params(self, name: str):
+        critical_params = self._data.get('critical_params')
+        if critical_params is None:
+            critical_params = json.load(open(ptj(data_root, 'thermo', 'critical.json'))).get(self.smiles)
+            if critical_params:
+                self._data['critical_params'] = critical_params
+                return critical_params[name]
+            else:
+                self._data['critical_params'] = False
+                return False
+
+        else:
+            return critical_params[name]
+
     @staticmethod
     def _melt_quench(
         elements: Dict[str, float], force_field: Union[str, os.PathLike], mol: "Molecule" = None,
@@ -465,6 +480,10 @@ class Molecule(Wrapper, ABC):
     def _set_spin_multiplicity(self, spin):
         self.ob_mol.SetTotalSpinMultiplicity(spin)
 
+    @property
+    def acentric_factor(self):
+        return self._get_critical_params('acentric_factor')
+
     def add_atom(self, atom: Union["Atom", str, int]):
         """
         Add a new atom out of the molecule into the molecule.
@@ -558,6 +577,17 @@ class Molecule(Wrapper, ABC):
 
         # Return the bond have add into the molecule
         return bond
+
+    def add_hydrogens(self, ph: float = None):
+        """
+        add hydrogens for the molecule
+        Args:
+            ph: add hydrogen in which PH environment
+        """
+        if ph:
+            self.ob_mol.AddHydrogens(False, False, ph)
+        else:
+            self.ob_mol.AddHydrogens()
 
     @property
     def all_coordinates(self) -> np.ndarray:
@@ -709,6 +739,11 @@ class Molecule(Wrapper, ABC):
 
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
+
+    def build_conformer(self, force_field: str = 'mmff94', steps: int = 50):
+        """ build 3D coordinates for the molecule """
+        pymol = pb.Molecule(self.ob_mol)
+        pymol.make3D(force_field, steps)
 
     @property
     def charge(self):
@@ -917,6 +952,14 @@ class Molecule(Wrapper, ABC):
             dump_every=dump_every
         )
 
+    @property
+    def critical_pressure(self):
+        return self._get_critical_params('pressure')
+
+    @property
+    def critical_temperature(self):
+        return self._get_critical_params('temperature')
+
     def crystal(self):
         """ Get the Crystal containing the Molecule """
         cell_index = ob.UnitCell  # Get the index the UnitCell data save
@@ -1074,6 +1117,11 @@ class Molecule(Wrapper, ABC):
     @property
     def link_matrix(self):
         return np.array([[b.atom1_idx, b.atom2_idx] for b in self.bonds]).T
+
+    def localed_optimize(self, force_field: str = 'mmff94', steps: int = 500):
+        """ Locally optimize the coordinates. seeing openbabel.pybel package """
+        pymol = pb.Molecule(self.ob_mol)
+        pymol.localopt(force_field, steps)
 
     def make_crystal(self, a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> 'Crystal':
         """ Put this molecule into the specified crystal """
@@ -1302,6 +1350,13 @@ class Molecule(Wrapper, ABC):
         parser = Parser(fmt, source, *args, **kwargs)
         return parser()
 
+    def register_critical_params(self, name: str, temperature: float, pressure: float, acentric: float):
+        """ Register new critical parameters into the critical parameters sheet """
+        data = json.load(open(ptj(data_root, 'thermo', 'critical.json')))
+        data[self.smiles] = {'name': name, 'temperature': temperature, 'pressure': pressure, 'acentric': acentric}
+        with open(ptj(data_root, 'thermo', 'critical.json'), 'w') as writer:
+            json.dump(data, writer, indent=True)
+
     def remove_atoms(self, *atoms: Union[int, str, 'Atom']) -> None:
         """
         Remove atom according to given atom index, label or the atoms self.
@@ -1327,6 +1382,9 @@ class Molecule(Wrapper, ABC):
             # Removing atom
             self.ob_mol.DeleteAtom(atom.ob_atom)
             atom._data['_mol'] = None
+
+    def remove_hydrogens(self):
+        self.ob_mol.DeleteHydrogens()
 
     @property
     def rotatable_bonds_number(self):
@@ -1575,27 +1633,6 @@ class Atom(Wrapper, ABC):
         # return whole electron structure directly
         return atom_orbital_feature
 
-    # def _rings_feature(self):
-    #     """    Calculating feature about the rings    """
-    #     atom_rings_feature = {
-    #         "is_aromatic": 0,  # Whether the atoms on aromatic rings
-    #         3: 0,  # How many 3-members rings is the atom on
-    #         4: 0,  # How many 4-members rings is the atom on
-    #         5: 0,  # How many 5-members rings is the atom on
-    #         6: 0,  # How many 6-members rings is the atom on
-    #         7: 0,  # How many 7-members rings is the atom on
-    #         8: 0  # How many 8-members rings is the atom on
-    #     }
-    #     if self.is_cyclic:
-    #         rings = self.rings
-    #         if any(ring.is_aromatic for ring in rings):
-    #             atom_rings_feature["is_aromatic"] = 1
-    #         list_ring_member = [len(ring.bonds) for ring in rings]
-    #         for rmb in list_ring_member:  # for each ring members
-    #             if rmb in [3, 4, 5, 6, 7, 8]:
-    #                 atom_rings_feature[rmb] += 1
-    #
-    #     return atom_rings_feature
     @property
     def force_vector(self):
         return self._data.get('force_vector', np.zeros(3, dtype=float))

@@ -74,6 +74,16 @@ class PengRobinson:
         self.r = 8.3144626181532
 
     def __call__(self, **kwargs):
+        """
+
+        Keyword Args:
+            p: pressure of system
+            t: temperature of system
+            v: volume of system
+
+        Returns:
+
+        """
         f: Callable = self._equations(**kwargs)
         x_name, x = solve_ideal_gas_equation(**kwargs)
 

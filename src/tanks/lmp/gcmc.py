@@ -15,3 +15,4 @@ class GCMC(HpLammps):
     """ Performing the Grand-Canonical Monte Carlo (GCMC) simulation """
     def __call__(self, guests: Dict[str, float], facucity):
         """"""
+        self.initialize()

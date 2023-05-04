@@ -179,4 +179,41 @@ def gcmc():
 
 
 if __name__ == '__main__':
-    solve_Peng_Robinson()
+
+    iodine = ci.Molecule()
+    iodine.add_pseudo_atom('iodine', 253.808946, (0., 0., 0.))
+
+    mol = ci.Molecule.read_from('/home/zz1/qyq/mq.cif')
+    mol.lmp_setup()
+
+    mol.lmp('units real')
+    mol.lmp('dimension 3')
+    mol.lmp('atom_style full')
+
+    mol.lmp('read_data /home/zz1/qyq/main.data group frame extra/atom/types 1')
+    mol.lmp('mass 2 253.808946')
+    # mol.lmp.read_main_data(group='frame')
+
+    # write molecule read file
+    # iodine.writefile('lmpmol', '/home/zz1/qyq/lmpmol')
+    mol.lmp('molecule iodine /home/zz1/qyq/lmpmol toff 1')
+    mol.lmp('group Ig empty')
+
+    mol.lmp('pair_style lj/cut 12.5')
+    mol.lmp('pair_coeff 1 1 52.83 3.43')
+    mol.lmp('pair_coeff 2 2 550.0 4.982')
+
+    mol.lmp('fix stand frame setforce 0.0 0.0 0.0')
+
+    mol.lmp('fix gcmc Ig gcmc 10 100 100 0 354568 298.15 1 10 mol iodine pressure 5800')
+    mol.lmp('fix ber all temp/berendsen 298.15 298.15 0.1')
+    mol.lmp('fix nvt Ig nvt temp 298.15 298.15 10000')
+
+    mol.lmp('thermo_style    custom step temp pe etotal press vol density')
+    mol.lmp('thermo          1000')
+
+    mol.lmp(f'dump mq all xyz 100 /home/zz1/qyq/gcmc.xyz')
+    # mol.lmp.command(f'dump_modify mq element C I')
+
+    mol.lmp('timestep 0.0001')
+    mol.lmp('run 100000')

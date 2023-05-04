@@ -77,6 +77,57 @@ IOFuncPrefix = Literal['pre', 'io', 'post']
 IOStream = Union[IOBase, str, bytes]
 
 
+def _parse_lmp_data_script(script: str):
+    """ Parse the LAMMPS data script to two dict, header and body"""
+    # Define_body_title
+    bt_name = (
+        # atom-property sections
+        'Atoms', 'Velocities', 'Masses', 'Ellipsoids', 'Lines', 'Triangles', 'Bodies',
+        # molecular topology sections
+        'Bonds', 'Angles', 'Dihedrals', 'Impropers',
+        # force field sections
+        'Pair Coeffs', 'PairIJ Coeffs', 'Bond Coeffs', 'Angle Coeffs', 'Dihedral Coeffs', 'Improper Coeffs',
+        # class 2 force field sections
+        'BondBond Coeffs', 'BondAngle Coeffs', 'MiddleBondTorsion Coeffs', 'EndBondTorsion Coeffs',
+        'AngleTorsion Coeffs', 'AngleAngleTorsion Coeffs', 'BondBond13 Coeffs', 'AngleAngle Coeffs'
+    )
+
+    # Compile the body and header pattern
+    header_title = re.compile(r'[a-z]+')
+    header_int = re.compile(r'[0-9]+')
+    header_float = re.compile(r'-?[0-9]+\.[0-9]*')
+
+    lines = script.split('\n')
+    body_split_point = [i for i, lin in enumerate(lines) if lin in bt_name] + [len(lines)]
+
+    # Extract header info
+    headers = {}
+    for line in lines[1:body_split_point[0]]:
+        line = line.strip()
+        if line:
+            ht = ' '.join(header_title.findall(line))
+            hvs = line[:line.find(ht)].strip()  # header values
+            header_values = []
+            for hv in re.split(r'\s+', hvs):
+                if header_int.fullmatch(hv):
+                    header_values.append(int(hv))
+                elif header_float.fullmatch(hv):
+                    header_values.append(float(hv))
+                else:
+                    raise ValueError('the header line not match well')
+
+            headers[ht] = header_values
+
+    # Extract bodies info
+    bodies = {}
+    for sl_idx, el_idx in zip(body_split_point[:-1], body_split_point[1:]):
+        bt = lines[sl_idx].strip()  # body title
+        bc = [line.strip() for line in lines[sl_idx+1: el_idx] if line.strip()]  # body content
+        bodies[bt] = bc
+
+    return lines[0], headers, bodies
+
+
 class Register:
     """
     Register the IO function for Dumper, Parser or so on
@@ -320,12 +371,16 @@ class Dumper(IOBase, metaclass=MetaIO):
     The output in general is the string or bytes
     """
 
+    _pybel_fmt_convert = {
+        'lmpmol': 'lmpdat'
+    }
+
     def _io(self):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
         # Try to dump by openbabel.pybel
         try:
             pb_mol = pybel.Molecule(self.src.ob_mol)
-            return pb_mol.write(self.fmt)
+            return pb_mol.write(self._pybel_fmt_convert.get(self.fmt, self.fmt))
 
         except ValueError:
             print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
@@ -504,20 +559,97 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return script
 
-    def _post_lmpdat(self, script):
+    def _post_lmpdat(self, script: str):
         """ post-process for LAMMPS data file """
-        body_keyword = re.compile(r"[A-Z].+s")
 
-        lines = script.split('\n')
+        # body_keyword = re.compile(r"[A-Z].+s")
+        # lines = script.split('\n')
+        # body_split_point = [i for i, lin in enumerate(lines) if body_keyword.match(lin.strip())] + [len(lines)]
+        #
+        # # Performing function
+        # processed_lines = lines[:body_split_point[0]]  # Add headers lines
+        #
+        # for start, end in zip(body_split_point[:-1], body_split_point[1:]):
+        #     if any(lin for lin in lines[start + 1:end]):
+        #         processed_lines.extend(lines[start:end])
 
-        body_split_point = [i for i, lin in enumerate(lines) if body_keyword.match(lin.strip())] + [len(lines)]
+        title, headers, bodies = _parse_lmp_data_script(script)
+        script = title + '\n'
 
-        processed_lines = lines[:body_split_point[0]]
-        for start, end in zip(body_split_point[:-1], body_split_point[1:]):
-            if any(lin for lin in lines[start+1:end]):
-                processed_lines.extend(lines[start:end])
+        for ht, hvs in headers.items():  # header title, header values
+            script += ' '.join(map(str, hvs)) + ' ' + ht + '\n'
 
-        script = '\n'.join(processed_lines)
+        script += '\n' * 3
+
+        for bt, bcs in bodies.items():  # body title, body contents
+            if bcs:  # if the body contents exist
+                script += bt + '\n' * 2
+                script += '\n'.join(bcs)
+                script += '\n' * 3
+
+            # TODO: add this partition after the next LAMMPS version.
+            # # if the encounter partition is the Masses
+            # # add Atom Type Labels into the data file
+            # if lines[start].strip() == "Masses":
+            #     processed_lines.append('Atom Type Labels')
+            #     processed_lines.append('')
+            #     for lin in lines[start + 1: end]:
+            #         lin = lin.strip()
+            #         if lin:
+            #             type_num, _, _, type_label = lin.split()
+            #             processed_lines.append(f'{type_num} {type_label}')
+            #
+            #     processed_lines.append('')
+            #     processed_lines.append('')
+
+        # Reassembling the script
+        # script = '\n'.join(processed_lines)
+
+        return script
+
+    def _post_lmpmol(self, script: str):
+        """ post process for LAMMPS molecule command read file """
+        title, headers, bodies = _parse_lmp_data_script(script)
+        script = title + '\n'
+        box_header = re.compile(r'[xyz]lo [xyz]hi')
+
+        # Add pseudo atoms
+        patoms = self.src.pseudo_atoms
+        if patoms:
+            patom_mass = {pa.symbol: pa.mass for pa in patoms}
+            patom_types = {sym: i + len(bodies['Masses']) + 1 for i, sym in enumerate(patom_mass)}
+
+            # add the number of atoms and atom types into header
+            atom_num = headers.get('atoms', [0])
+            atom_num[0] += len(patoms)
+            headers['atoms'] = atom_num
+
+            atom_types = headers.get('atom types', [0])
+            atom_types[0] += len(patom_mass)
+            headers['atom types'] = atom_types
+
+            # add Masses and Atoms information into body
+            for sym, mass in patom_mass.items():
+                bodies['Masses'].append(f"{patom_types[sym]} {mass} # {sym}")
+
+            for atom in patoms:
+                bodies['Atoms'].append(
+                    f'{len(bodies["Atoms"]) + 1} 1 {patom_types[atom.symbol]} '
+                    f'{atom.charge} {" ".join(map(str, atom.coordinates))} '
+                    f'# {atom.symbol}'
+                )
+
+        for ht, hvs in headers.items():  # header title, header values
+            if not box_header.fullmatch(ht):
+                script += ' '.join(map(str, hvs)) + ' ' + ht + '\n'
+
+        script += '\n' * 3
+
+        for bt, bcs in bodies.items():  # body title, body contents
+            if bcs:  # if the body contents exist
+                script += bt + '\n' * 2
+                script += '\n'.join(bcs)
+                script += '\n' * 3
 
         return script
 
@@ -651,10 +783,7 @@ class Parser(IOBase, metaclass=MetaIO):
     def _io(self, *args, **kwargs):
         """ Standard IO process """
         # Try parse the log file by openbabel.pybel file firstly
-        obj = self._ob_io()
-
-        # Try to supplementary Molecule data by cclib
-        return self._cclib_io(obj)
+        return self._ob_io()
 
     # Start to the prefix IO functions
 
@@ -703,10 +832,6 @@ class Parser(IOBase, metaclass=MetaIO):
 
             obj = ci.Molecule()
             obj.quick_build_atoms(number_min)
-            # for atomic_number in number_max:
-            #     ob_atom = ob.OBAtom()
-            #     ob_atom.SetAtomicNum(int(atomic_number))
-            #     obj.ob_mol.AddAtom(ob_atom)
 
             obj.set(all_coordinates=all_coordinates)
             obj.set(crystal=cell_matrix)
@@ -831,6 +956,8 @@ class Parser(IOBase, metaclass=MetaIO):
                     rows += 1
 
             obj.set(all_forces=np.array(all_forces))
+
+        obj = self._cclib_io(obj)  # Try to supplementary Molecule data by cclib
 
         lines = self._open_source_to_string_lines('str', 'path', 'IOString')
 

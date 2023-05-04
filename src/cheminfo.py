@@ -45,7 +45,7 @@ _type_bond = {
 
 class Wrapper(ABC):
     """
-    A wrapper for openbabel object.
+    A wrapper of chemical information and data.
     The _set_attrs method is used to set any keyword attribute, the attribute names, in the wrapper context, are defined
     by the keys from returned dict of _attr_setters; the values of the returned dict of _attr_setters are a collection
     of specific private method to wrapper and call openbabel method to set the attributes in openbabel object.
@@ -589,6 +589,12 @@ class Molecule(Wrapper, ABC):
         else:
             self.ob_mol.AddHydrogens()
 
+    def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
+        """ Add pseudo atom into the molecule """
+        list_pseudo_atom = self._data.setdefault('pseudo_atoms', [])
+        pa = PseudoAtom(symbol, mass, coordinates, **kwargs)
+        list_pseudo_atom.append(pa)
+
     @property
     def all_coordinates(self) -> np.ndarray:
         """
@@ -744,6 +750,14 @@ class Molecule(Wrapper, ABC):
         """ build 3D coordinates for the molecule """
         pymol = pb.Molecule(self.ob_mol)
         pymol.make3D(force_field, steps)
+
+    @property
+    def center_of_masses(self):
+        return (self.masses * self.coordinates.T).T.sum(axis=0) / self.masses.sum()
+
+    @property
+    def center_of_shape(self):
+        return self.coordinates.mean(axis=0)
 
     @property
     def charge(self):
@@ -1133,6 +1147,10 @@ class Molecule(Wrapper, ABC):
 
         return self.crystal()
 
+    @property
+    def masses(self) -> np.ndarray:
+        return np.array([a.mass for a in self.atoms])
+
     def melt_quench(
         self, elements: Dict[str, float], force_field: Union[str, os.PathLike],
         density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
@@ -1261,6 +1279,10 @@ class Molecule(Wrapper, ABC):
 
         else:
             return (self._pert_mol_generate(c) for c in coordinates_generator())
+
+    @property
+    def pseudo_atoms(self):
+        return self._data.get('pseudo_atoms')
 
     def quick_build_atoms(self, atomic_numbers: np.ndarray):
         """
@@ -1419,7 +1441,7 @@ class Molecule(Wrapper, ABC):
     def weight(self):
         return self.ob_mol.GetExactMass()
 
-    def writefile(self, fmt: str, path_file, *args, **kwargs):
+    def writefile(self, fmt: str, path_file, retrieve_script=False, *args, **kwargs):
         """Write the Molecule Info into a file with specific format(fmt)"""
         script = self.dump(fmt=fmt, *args, **kwargs)
         if isinstance(script, str):
@@ -1431,6 +1453,9 @@ class Molecule(Wrapper, ABC):
 
         with open(path_file, mode) as writer:
             writer.write(script)
+
+        if retrieve_script:
+            return script
 
     @property
     def xyz_min(self) -> np.ndarray:
@@ -1707,6 +1732,29 @@ class Atom(Wrapper, ABC):
     @property
     def symbol(self):
         return list(periodic_table.keys())[self.atomic_number - 1]
+
+
+class PseudoAtom(Wrapper, ABC):
+    """ A data wrapper for pseudo atom """
+    def __init__(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
+        if isinstance(coordinates, Sequence):
+            coordinates = np.array(coordinates)
+
+        assert isinstance(coordinates, np.ndarray) and coordinates.shape == (3,)
+
+        self._data = dict(symbol=symbol, mass=mass, coordinates=coordinates, **kwargs)
+
+    def _attr_setters(self) -> Dict[str, Callable]:
+        return {}
+
+    def __repr__(self):
+        return f'PseudoAtom({self.symbol})'
+
+    def __dir__(self) -> Iterable[str]:
+        return list(self._data.keys())
+
+    def __getattr__(self, item):
+        return self._data.get(item, 0.)
 
 
 class Bond(Wrapper, ABC):

@@ -188,7 +188,7 @@ class AmorphousMaker:
         if not isinstance(mol, ci.Molecule):
             mol = self.load_atoms()
 
-        mol.lmp_setup()
+        mol.lmp_setup(units='metal')
 
         # initialization
         mol.lmp.commands_string(
@@ -216,8 +216,8 @@ class AmorphousMaker:
         # Specify the dump configuration
         if path_dump_to:
             dump_fmt = path_dump_to.split('.')[-1]  # the dump fmt is the suffix of file name
-            mol.lmp.command(f'dump {dump_fmt} all xyz {dump_every} {path_dump_to}')
-            mol.lmp.command(f'dump_modify xyz element {" ".join(set(mol.atomic_symbols))}')
+            mol.lmp.command(f'dump mq all {dump_fmt} {dump_every} {path_dump_to}')
+            mol.lmp.command(f'dump_modify mq element {" ".join(set(mol.atomic_symbols))}')
 
         # Initialize the temperature for system
         mol.lmp.command(f'velocity all create {origin_temp} {random.randint(100000, 999999)}')

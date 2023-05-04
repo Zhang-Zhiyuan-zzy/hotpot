@@ -7,6 +7,8 @@ python v3.7.9
 @Time   : 3:43
 """
 import os
+import re
+from os.path import join as ptj
 import json
 
 import numpy as np
@@ -19,24 +21,53 @@ class HpLammps:
     """
     A wrapper to run LAMMPS tasks
     """
-    _dir_tmp: str = src.pkg_root + '/tmp'
+    _dir_cmd: str = os.getcwd()
 
     def __init__(self, main, *args, **kwargs):
         """"""
         self.main: ci.Molecule = main
         self.pylmp = PyLammps()
-        self.defaults: dict = json.load(open('../data/lmp_default.json'))
         self._data = {
             'elements': main.elements
         }  # store any data
         self.args = args
         self.kwargs = kwargs
 
+    def __call__(self, cmd: str):
+        self.command(cmd)
+
     def __dir__(self) -> Iterable[str]:
         return self.pylmp.__dir__() + ["commands_list", "commands_string", 'read_main_data', "script"]
 
     def __getattr__(self, item):
         return self.pylmp.__getattr__(item)
+
+    def data_to_type_map(self, script: str, offset: int = 0):
+        """ Convert the LAMMPS data format script (string) to data map dict """
+        pattern = re.compile(r"[A-Z].+s")
+        data_body_headers = pattern.findall(script)
+        masses_idx = data_body_headers.index('Masses')
+        masses_body_contents: List[str] = pattern.split(script)[masses_idx+1].split('\n')
+
+        type_map = self._data.setdefault('type_map', {})
+        for line in masses_body_contents:
+            line = line.strip()
+            if line:
+                type_num, _, _, type_label = line.split()
+                type_num = int(type_num) + offset  # offset
+                former_label = type_map.get(type_num)
+
+                if not former_label:  # if the atom type have not been recorded
+                    type_map[type_num] = type_label
+                else:
+                    # Never allow to change the type_map for defined atom type
+                    # if the current type label is different from the former, raise error
+                    # if the current type label is same with the former, keeping still.
+                    if former_label != type_label:
+                        raise RuntimeError(
+                            f'the the type_map for atom type {type_num} is attempt to change '
+                            f'from {former_label} to {type_label}, Never allowed!!'
+                        )
 
     @property
     def box(self):
@@ -94,27 +125,19 @@ class HpLammps:
     def file(self, filepath: str):
         self.pylmp.file(filepath)
 
-    def initialize(self):
-        init_item = ('units', 'dimension', 'boundary', 'atom_type', 'pair_style')
-        for name in init_item:
-            cmd = self.kwargs.get(name)
-            if cmd:
-                self.command(f'{name} {cmd}')
-            else:
-                self.command(f'{name} {self.defaults[name]}')
-
     @property
     def lmp(self):
         return self.pylmp.lmp
 
-    def read_main_data(self, **kwargs):
-        path_main_data = os.path.join(self._dir_tmp, 'main.data')
+    def read_main_data(self, atom_offset=0, **kwargs):
+        path_main_data = os.path.join(self._dir_cmd, 'main.data')
 
         # to the main.data file
-        self.main.writefile('lmpdat', path_main_data)
+        script = self.main.writefile('lmpdat', path_main_data, retrieve_script=True)
+        self.data_to_type_map(script, atom_offset)
 
         # read to LAMMPS
-        cmd = f'read_data {path_main_data}' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
+        cmd = f'read_data {path_main_data} extra/atom/types 1' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
         self.command(cmd)
 
     def run(self, *args, **kwargs):
@@ -125,12 +148,16 @@ class HpLammps:
         return self.pylmp.runs
 
     def script(self):
-        path_tmp_script = os.path.join(self._dir_tmp, 'script.in')
+        path_tmp_script = os.path.join(self._dir_cmd, 'script.in')
         self.pylmp.write_script(path_tmp_script)
         with open(path_tmp_script) as file:
             script = file.read()
 
         return script
+
+    @property
+    def type_map(self):
+        return self._data.get('type_map')
 
     @property
     def variables(self):

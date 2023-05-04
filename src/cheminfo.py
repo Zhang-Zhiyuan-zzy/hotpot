@@ -7,23 +7,23 @@ python v3.7.9
 @Time   : 4:09
 """
 import copy
-import itertools
 import os
 import re
 from io import IOBase
 from os import PathLike
+from os.path import join as ptj
 from pathlib import Path
 from abc import ABC, abstractmethod
 import json
 from typing import *
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
+from src import data_root
 from src._io import retrieve_format, Dumper, Parser
 from src.tanks.quantum import Gaussian
 from src.tanks import lmp
 
-dir_root = os.path.join(os.path.dirname(__file__))
-periodic_table = json.load(open(f'{dir_root}/../data/periodic_table.json', encoding='utf-8'))['elements']
+periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))['elements']
 periodic_table = {d['symbol']: d for d in periodic_table}
 
 _bond_type = {
@@ -45,7 +45,7 @@ _type_bond = {
 
 class Wrapper(ABC):
     """
-    A wrapper for openbabel object.
+    A wrapper of chemical information and data.
     The _set_attrs method is used to set any keyword attribute, the attribute names, in the wrapper context, are defined
     by the keys from returned dict of _attr_setters; the values of the returned dict of _attr_setters are a collection
     of specific private method to wrapper and call openbabel method to set the attributes in openbabel object.
@@ -272,6 +272,20 @@ class Molecule(Wrapper, ABC):
         ob_unit_cell = ob.OBUnitCell()
         self.ob_mol.CloneData(ob_unit_cell)
 
+    def _get_critical_params(self, name: str):
+        critical_params = self._data.get('critical_params')
+        if critical_params is None:
+            critical_params = json.load(open(ptj(data_root, 'thermo', 'critical.json'))).get(self.smiles)
+            if critical_params:
+                self._data['critical_params'] = critical_params
+                return critical_params[name]
+            else:
+                self._data['critical_params'] = False
+                return False
+
+        else:
+            return critical_params[name]
+
     @staticmethod
     def _melt_quench(
         elements: Dict[str, float], force_field: Union[str, os.PathLike], mol: "Molecule" = None,
@@ -279,26 +293,15 @@ class Molecule(Wrapper, ABC):
         alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
         origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
         ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100, fmt: Optional[str] = None
+        dump_every: int = 100,
     ):
         """ to perform the melt-quench by call lmp.AmorphousMaker """
-        if not fmt:
-            split_file_name = os.path.split(path_writefile)[-1].split('.')
-            if len(split_file_name) == 2:
-                fmt = split_file_name[-1]
 
         am = lmp.AmorphousMaker(elements, force_field, density, a, b, c, alpha, beta, gamma)
-        if fmt:
-            mol = am.melt_quench(
-                *ff_args, mol=mol, path_writefile=path_writefile, output_format=fmt, path_dump_to=path_dump_to,
-                origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step,
-                dump_every=dump_every
-            )
-        else:
-            mol = am.melt_quench(
-                *ff_args, mol=mol, path_writefile=path_writefile, output_format=fmt, dump_every=dump_every,
-                origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step
-            )
+        mol = am.melt_quench(
+            *ff_args, mol=mol, path_writefile=path_writefile, path_dump_to=path_dump_to, origin_temp=origin_temp,
+            melt_temp=melt_temp, highest_temp=highest_temp, time_step=time_step, dump_every=dump_every
+        )
 
         return mol
 
@@ -477,6 +480,10 @@ class Molecule(Wrapper, ABC):
     def _set_spin_multiplicity(self, spin):
         self.ob_mol.SetTotalSpinMultiplicity(spin)
 
+    @property
+    def acentric_factor(self):
+        return self._get_critical_params('acentric_factor')
+
     def add_atom(self, atom: Union["Atom", str, int]):
         """
         Add a new atom out of the molecule into the molecule.
@@ -570,6 +577,23 @@ class Molecule(Wrapper, ABC):
 
         # Return the bond have add into the molecule
         return bond
+
+    def add_hydrogens(self, ph: float = None):
+        """
+        add hydrogens for the molecule
+        Args:
+            ph: add hydrogen in which PH environment
+        """
+        if ph:
+            self.ob_mol.AddHydrogens(False, False, ph)
+        else:
+            self.ob_mol.AddHydrogens()
+
+    def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
+        """ Add pseudo atom into the molecule """
+        list_pseudo_atom = self._data.setdefault('pseudo_atoms', [])
+        pa = PseudoAtom(symbol, mass, coordinates, **kwargs)
+        list_pseudo_atom.append(pa)
 
     @property
     def all_coordinates(self) -> np.ndarray:
@@ -721,6 +745,19 @@ class Molecule(Wrapper, ABC):
 
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
+
+    def build_conformer(self, force_field: str = 'mmff94', steps: int = 50):
+        """ build 3D coordinates for the molecule """
+        pymol = pb.Molecule(self.ob_mol)
+        pymol.make3D(force_field, steps)
+
+    @property
+    def center_of_masses(self):
+        return (self.masses * self.coordinates.T).T.sum(axis=0) / self.masses.sum()
+
+    @property
+    def center_of_shape(self):
+        return self.coordinates.mean(axis=0)
 
     @property
     def charge(self):
@@ -891,7 +928,7 @@ class Molecule(Wrapper, ABC):
         alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
         origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
         ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100, fmt: Optional[str] = None
+        dump_every: int = 100
     ):
         """
         Create a Amorphous crystal materials by Melt-Quench process.
@@ -917,7 +954,6 @@ class Molecule(Wrapper, ABC):
             path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
             path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
             dump_every: the step interval between each dump operations
-            fmt: the format to save the materials and trajectory.
 
         Returns:
             Molecule, a created amorphous material
@@ -927,8 +963,16 @@ class Molecule(Wrapper, ABC):
             a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma, time_step=time_step,
             origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp,
             ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
-            dump_every=dump_every, fmt=fmt
+            dump_every=dump_every
         )
+
+    @property
+    def critical_pressure(self):
+        return self._get_critical_params('pressure')
+
+    @property
+    def critical_temperature(self):
+        return self._get_critical_params('temperature')
 
     def crystal(self):
         """ Get the Crystal containing the Molecule """
@@ -1088,6 +1132,11 @@ class Molecule(Wrapper, ABC):
     def link_matrix(self):
         return np.array([[b.atom1_idx, b.atom2_idx] for b in self.bonds]).T
 
+    def localed_optimize(self, force_field: str = 'mmff94', steps: int = 500):
+        """ Locally optimize the coordinates. seeing openbabel.pybel package """
+        pymol = pb.Molecule(self.ob_mol)
+        pymol.localopt(force_field, steps)
+
     def make_crystal(self, a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> 'Crystal':
         """ Put this molecule into the specified crystal """
         ob_unit_cell = ob.OBUnitCell()
@@ -1098,13 +1147,17 @@ class Molecule(Wrapper, ABC):
 
         return self.crystal()
 
+    @property
+    def masses(self) -> np.ndarray:
+        return np.array([a.mass for a in self.atoms])
+
     def melt_quench(
         self, elements: Dict[str, float], force_field: Union[str, os.PathLike],
         density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
         alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
         origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
         ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100, fmt: Optional[str] = None
+        dump_every: int = 100
     ):
         """
         Create a Amorphous crystal materials by performing Melt-Quench process for this materials.
@@ -1130,7 +1183,6 @@ class Molecule(Wrapper, ABC):
             path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
             path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
             dump_every: the step interval between each dump operations
-            fmt: the format to save the materials and trajectory.
 
         Returns:
             Molecule, a created amorphous material
@@ -1140,7 +1192,7 @@ class Molecule(Wrapper, ABC):
             a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma, time_step=time_step,
             origin_temp=origin_temp, melt_temp=melt_temp, highest_temp=highest_temp,
             ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
-            dump_every=dump_every, fmt=fmt, mol=self
+            dump_every=dump_every, mol=self
         )
 
     @property
@@ -1227,6 +1279,10 @@ class Molecule(Wrapper, ABC):
 
         else:
             return (self._pert_mol_generate(c) for c in coordinates_generator())
+
+    @property
+    def pseudo_atoms(self):
+        return self._data.get('pseudo_atoms')
 
     def quick_build_atoms(self, atomic_numbers: np.ndarray):
         """
@@ -1316,6 +1372,13 @@ class Molecule(Wrapper, ABC):
         parser = Parser(fmt, source, *args, **kwargs)
         return parser()
 
+    def register_critical_params(self, name: str, temperature: float, pressure: float, acentric: float):
+        """ Register new critical parameters into the critical parameters sheet """
+        data = json.load(open(ptj(data_root, 'thermo', 'critical.json')))
+        data[self.smiles] = {'name': name, 'temperature': temperature, 'pressure': pressure, 'acentric': acentric}
+        with open(ptj(data_root, 'thermo', 'critical.json'), 'w') as writer:
+            json.dump(data, writer, indent=True)
+
     def remove_atoms(self, *atoms: Union[int, str, 'Atom']) -> None:
         """
         Remove atom according to given atom index, label or the atoms self.
@@ -1341,6 +1404,9 @@ class Molecule(Wrapper, ABC):
             # Removing atom
             self.ob_mol.DeleteAtom(atom.ob_atom)
             atom._data['_mol'] = None
+
+    def remove_hydrogens(self):
+        self.ob_mol.DeleteHydrogens()
 
     @property
     def rotatable_bonds_number(self):
@@ -1375,7 +1441,7 @@ class Molecule(Wrapper, ABC):
     def weight(self):
         return self.ob_mol.GetExactMass()
 
-    def writefile(self, fmt: str, path_file, *args, **kwargs):
+    def writefile(self, fmt: str, path_file, retrieve_script=False, *args, **kwargs):
         """Write the Molecule Info into a file with specific format(fmt)"""
         script = self.dump(fmt=fmt, *args, **kwargs)
         if isinstance(script, str):
@@ -1387,6 +1453,9 @@ class Molecule(Wrapper, ABC):
 
         with open(path_file, mode) as writer:
             writer.write(script)
+
+        if retrieve_script:
+            return script
 
     @property
     def xyz_min(self) -> np.ndarray:
@@ -1589,27 +1658,6 @@ class Atom(Wrapper, ABC):
         # return whole electron structure directly
         return atom_orbital_feature
 
-    # def _rings_feature(self):
-    #     """    Calculating feature about the rings    """
-    #     atom_rings_feature = {
-    #         "is_aromatic": 0,  # Whether the atoms on aromatic rings
-    #         3: 0,  # How many 3-members rings is the atom on
-    #         4: 0,  # How many 4-members rings is the atom on
-    #         5: 0,  # How many 5-members rings is the atom on
-    #         6: 0,  # How many 6-members rings is the atom on
-    #         7: 0,  # How many 7-members rings is the atom on
-    #         8: 0  # How many 8-members rings is the atom on
-    #     }
-    #     if self.is_cyclic:
-    #         rings = self.rings
-    #         if any(ring.is_aromatic for ring in rings):
-    #             atom_rings_feature["is_aromatic"] = 1
-    #         list_ring_member = [len(ring.bonds) for ring in rings]
-    #         for rmb in list_ring_member:  # for each ring members
-    #             if rmb in [3, 4, 5, 6, 7, 8]:
-    #                 atom_rings_feature[rmb] += 1
-    #
-    #     return atom_rings_feature
     @property
     def force_vector(self):
         return self._data.get('force_vector', np.zeros(3, dtype=float))
@@ -1684,6 +1732,29 @@ class Atom(Wrapper, ABC):
     @property
     def symbol(self):
         return list(periodic_table.keys())[self.atomic_number - 1]
+
+
+class PseudoAtom(Wrapper, ABC):
+    """ A data wrapper for pseudo atom """
+    def __init__(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
+        if isinstance(coordinates, Sequence):
+            coordinates = np.array(coordinates)
+
+        assert isinstance(coordinates, np.ndarray) and coordinates.shape == (3,)
+
+        self._data = dict(symbol=symbol, mass=mass, coordinates=coordinates, **kwargs)
+
+    def _attr_setters(self) -> Dict[str, Callable]:
+        return {}
+
+    def __repr__(self):
+        return f'PseudoAtom({self.symbol})'
+
+    def __dir__(self) -> Iterable[str]:
+        return list(self._data.keys())
+
+    def __getattr__(self, item):
+        return self._data.get(item, 0.)
 
 
 class Bond(Wrapper, ABC):

@@ -45,6 +45,7 @@ def parse_g16log():
 
     return mol1, mol2, mol3
 
+
 def perturb_cif():
     path_cif = 'examples/struct/aCarbon.cif'
     mol = ci.Molecule.read_from(path_cif, 'cif')
@@ -56,7 +57,7 @@ def perturb_cif():
 
 if __name__ == '__main__':
     import time
-    # m1, m2, m3 = parse_g16log()
+    m1, m2, m3 = parse_g16log()
     # m1.dump('smi')
     # m3.dump('smi')
     # data = mol.dump('dpmd_sys', path_save='output/dpmd_sys')
@@ -66,4 +67,4 @@ if __name__ == '__main__':
     # perturb_cif()
     # m1 = ci.Molecule.read_from('examples/struct/aCarbon.cif')
     m2 = ci.Molecule.read_from('examples/struct/aCarbon.xyz')
-    # cif = m2.dump('cif')
+

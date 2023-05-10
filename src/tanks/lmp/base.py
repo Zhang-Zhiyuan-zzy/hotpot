@@ -137,7 +137,7 @@ class HpLammps:
         self.data_to_type_map(script, atom_offset)
 
         # read to LAMMPS
-        cmd = f'read_data {path_main_data} extra/atom/types 1' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
+        cmd = f'read_data {path_main_data}' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
         self.command(cmd)
 
     def run(self, *args, **kwargs):

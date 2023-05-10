@@ -29,13 +29,13 @@ from src.cheminfo import Molecule as Mol
 import random
 for d in range(6, 11, 2):  #0.8, 2.5, 0.1; 100
     dens = d / 10
-    for i in range(3):
+    for i in range(200):
         rand_melt = random.randint(3000, 5000)
         rand_highest = random.randint(9000, 10000)
         mol = Mol.create_aCryst_by_mq(
             elements={'C': 1.0}, force_field='aMaterials/SiC.tersoff',
-            ff_args=('C',), path_dump_to=f'/home/qyq/proj/lammps/mq_test_random/try5/mq_{dens}_{rand_melt}_{rand_highest}_{i}.xyz',
-            fmt='xyz', density=dens, melt_temp=rand_melt, highest_temp=rand_highest
+            ff_args=('C',), path_dump_to=f'/home/qyq/proj/lammps/mq_test_random/try13/mq_{dens}_{rand_melt}_{rand_highest}_{i}.xyz',
+            density=dens, melt_temp=rand_melt, highest_temp=rand_highest
         )
         mol.crystal().space_group = 'P1'
-        mol.writefile('cif', f'/home/qyq/proj/lammps/mq_test_random/try5/mq_{dens}_{rand_melt}_{rand_highest}.cif')
+        mol.writefile('cif', f'/home/qyq/proj/lammps/mq_test_random/try13/mq_{dens}_{rand_melt}_{rand_highest}_{i}.cif')

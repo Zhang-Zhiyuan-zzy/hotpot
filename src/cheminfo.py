@@ -613,6 +613,10 @@ class Molecule(Wrapper, ABC):
     def all_energy(self):
         return self._data.get('all_energy')
 
+    @property
+    def angles(self):
+        return [Angle(self, a_idx) for a_idx in ob.OBMolAngleIter(self.ob_mol)]
+
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
 
@@ -1105,6 +1109,10 @@ class Molecule(Wrapper, ABC):
         return False
 
     @property
+    def inchi(self):
+        return self.dump('inchi').strip()
+
+    @property
     def is_labels_unique(self):
         """ Determine whether all atom labels are unique """
         labels = set(self.labels)
@@ -1421,7 +1429,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def smiles(self):
-        return self.dump('smi').strip().split('\t')[0]
+        return self.dump('smi').strip().strip()
 
     @property
     def spin(self):
@@ -1430,6 +1438,33 @@ class Molecule(Wrapper, ABC):
     @spin.setter
     def spin(self, spin: int):
         self._set_spin_multiplicity(spin)
+
+    def thermo_init(self, **kwargs):
+        """
+        If certain substance don't retrieve information from current database, some required thermodynamical
+        parameters should pass into equation_of_state to initialization
+        Keyword Args:
+            T: the ambient temperature for thermodynamical system
+            P: the ambient pressure for thermodynamical system
+            V: the volume of thermodynamical system
+            Tc: the critical temperature of the molecule
+            Pc: the critical pressure of the molecule
+            omega: acentric factor of the molecule
+
+        Returns:
+            Thermo class
+        """
+        from tmo import Thermo
+        self._data['thermo'] = Thermo(self, **kwargs)
+        return self._data['thermo']
+
+    @property
+    def thermo(self):
+        return self._data.setdefault('thermo', self.thermo_init())
+
+    def thermo_close(self):
+        thermo = self._data.pop('thermo')
+        del thermo
 
     def to_mix_mol(self):
         return MixSameAtomMol(_data=self._data)
@@ -1823,6 +1858,37 @@ class Bond(Wrapper, ABC):
     @property
     def type(self):
         return self._OBBond.GetBondOrder()
+
+
+class Angle:
+    """ Data wrapper of angle in molecule """
+    def __init__(self, mol: 'Molecule', atoms_idx: tuple):
+        self._data = {
+            'mol': mol,
+            'atoms_idx': atoms_idx
+        }
+
+    def __repr__(self):
+        a, b, c = self.atoms
+        return f'Angle({a.label}, {b.label}, {c.label}, {round(self.degree,2)}°)'
+
+    @property
+    def molecule(self):
+        return self._data.get('mol')
+
+    @property
+    def atoms(self):
+        mas = self.molecule.atoms  # atom in the molecule
+        return [mas[i] for i in self.atoms_idx]
+
+    @property
+    def atoms_idx(self):
+        return self._data.get('atoms_idx')
+
+    @property
+    def degree(self):
+        ob_atoms = [a.ob_atom for a in self.atoms]
+        return self.molecule.ob_mol.GetAngle(*ob_atoms)
 
 
 class Crystal(Wrapper, ABC):

@@ -21,7 +21,6 @@ import src.cheminfo as ci
 
 
 dir_force_field = osp.abspath(ptj(src.data_root, 'force_field'))
-contents_force_field: dict = json.load(open(ptj(dir_force_field, 'contents.json')))
 
 # Constants
 avogadro = 6.02214076e23  # Avogadro numbers
@@ -53,27 +52,6 @@ class AmorphousMaker:
             raise FileNotFoundError('the given force field file is not found!')
 
         pff = osp.abspath(pff)
-        path_found = pff.find(dir_force_field)
-        if path_found == 0:
-            built_in_names = pff[len(dir_force_field):].split(os.sep)
-
-            # Check if a specification for the force field about its applicable elements in the contents
-            contents = contents_force_field
-            for name in built_in_names:
-                contents = contents.get(name)
-                # if not have specification
-                if not contents:
-                    break
-
-                # Get the specification about the applicable elements
-                if contents:
-                    app_ele = contents.get('elements')
-                    # if given elements are not compatible for force field
-                    if app_ele and any(e not in app_ele for e in element_composition):
-                        raise AttributeError(
-                            'the specified force field is inapplicable to all demanded elements'
-                            f'the force field {"/".join(built_in_names)} just apply for {",".join(app_ele)}'
-                        )
 
         # assign attrs
         sum_freq = sum(f for f in element_composition.values())
@@ -203,55 +181,51 @@ class AmorphousMaker:
         mol.lmp.read_main_data()
 
         # Configure the force field
-        mol.lmp.command("pair_style tersoff")
-        mol.lmp.command(f"pair_coeff * * {self.path_force_field} {' '.join(ff_args)}""")
+        mol.lmp("pair_style tersoff")
+        mol.lmp(f"pair_coeff * * {self.path_force_field} {' '.join(ff_args)}")
 
         # Specify the thermodynamical output to screen
-        mol.lmp.command('thermo_style    custom step temp pe etotal press vol density')
-        mol.lmp.command('thermo          1000')
+        mol.lmp('thermo_style    custom step temp pe etotal press vol density')
+        mol.lmp('thermo          1000')
 
         # the step interval of integral
-        mol.lmp.command(f'timestep {time_step}')
+        mol.lmp(f'timestep {time_step}')
 
         # Specify the dump configuration
         if path_dump_to:
             dump_fmt = path_dump_to.split('.')[-1]  # the dump fmt is the suffix of file name
-            mol.lmp.command(f'dump mq all {dump_fmt} {dump_every} {path_dump_to}')
-            mol.lmp.command(f'dump_modify mq element {" ".join(set(mol.atomic_symbols))}')
+            mol.lmp(f'dump mq all {dump_fmt} {dump_every} {path_dump_to}')
+            mol.lmp(f'dump_modify mq element {" ".join(set(mol.atomic_symbols))}')
 
         # Initialize the temperature for system
-        mol.lmp.command(f'velocity all create {origin_temp} {random.randint(100000, 999999)}')
+        mol.lmp(f'velocity all create {origin_temp} {random.randint(100000, 999999)}')
 
         # Melt
-        mol.lmp.command(f'fix 0 all nvt temp {origin_temp} {highest_temp} 0.7')
-        mol.lmp.command(f'run 10000')
+        mol.lmp(f'fix 0 all nvt temp {origin_temp} {highest_temp} 0.7')
+        mol.lmp(f'run 10000')
 
-        mol.lmp.command(f'fix 0 all nvt temp {highest_temp} {highest_temp} 1000')
+        mol.lmp(f'fix 0 all nvt temp {highest_temp} {highest_temp} 1000')
         while mol.lmp.eval('temp') < highest_temp * 0.95:
-            mol.lmp.command(f'run 1000')
+            mol.lmp(f'run 1000')
 
-        mol.lmp.command(f'run 10000')
+        mol.lmp(f'run 10000')
 
         # Relax
-        mol.lmp.command('thermo          250')
-        mol.lmp.command(f'fix 0 all nvt temp {melt_temp} {melt_temp} 1000.0')
+        mol.lmp('thermo          250')
+        mol.lmp(f'fix 0 all nvt temp {melt_temp} {melt_temp} 1000.0')
         while mol.lmp.eval('temp') > melt_temp * 1.05:
-            mol.lmp.command(
-                f'velocity all scale {melt_temp}'
-            )
-            mol.lmp.command(f'run 2000')
+            mol.lmp(f'velocity all scale {melt_temp}')
+            mol.lmp(f'run 2000')
 
-        mol.lmp.command('thermo          1000')
-        mol.lmp.command(f'run 20000')
+        mol.lmp('thermo          1000')
+        mol.lmp(f'run 20000')
 
         # Quench
-        mol.lmp.command('thermo          250')
-        mol.lmp.command(f'fix 0 all nvt temp {origin_temp} {origin_temp} 1000.0')
+        mol.lmp('thermo          250')
+        mol.lmp(f'fix 0 all nvt temp {origin_temp} {origin_temp} 1000.0')
         while mol.lmp.eval('temp') > origin_temp*1.05:
-            mol.lmp.command(
-                f'velocity all scale {(mol.lmp.eval("temp") - origin_temp) / 2 + origin_temp}'
-            )
-            mol.lmp.command(f'run 2000')
+            mol.lmp(f'velocity all scale {(mol.lmp.eval("temp") - origin_temp) / 2 + origin_temp}')
+            mol.lmp(f'run 2000')
 
         if not path_writefile:
             pwf = ptj(os.getcwd(), 'write_dump.xyz')
@@ -260,7 +234,7 @@ class AmorphousMaker:
             pwf = path_writefile
             write_fmt = path_writefile.split('.')[-1]
 
-        mol.lmp.command(f'write_dump all {write_fmt} {pwf} modify element {" ".join(set(mol.atomic_symbols))}')
+        mol.lmp(f'write_dump all {write_fmt} {pwf} modify element {" ".join(set(mol.atomic_symbols))}')
         made_mol = ci.Molecule.read_from(pwf)
         if not path_writefile:
             os.remove(pwf)

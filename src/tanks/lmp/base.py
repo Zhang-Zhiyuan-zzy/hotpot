@@ -12,7 +12,7 @@ from os.path import join as ptj
 import json
 
 import numpy as np
-from lammps import PyLammps
+from lammps import PyLammps, Atom
 from typing import *
 import src
 
@@ -42,32 +42,17 @@ class HpLammps:
     def __getattr__(self, item):
         return self.pylmp.__getattr__(item)
 
-    def data_to_type_map(self, script: str, offset: int = 0):
-        """ Convert the LAMMPS data format script (string) to data map dict """
-        pattern = re.compile(r"[A-Z].+s")
-        data_body_headers = pattern.findall(script)
-        masses_idx = data_body_headers.index('Masses')
-        masses_body_contents: List[str] = pattern.split(script)[masses_idx+1].split('\n')
+    def atom(self, idx: int):
+        """ retrieve the LAMMPS atom object by atom index """
+        return Atom(self, idx)
 
-        type_map = self._data.setdefault('type_map', {})
-        for line in masses_body_contents:
-            line = line.strip()
-            if line:
-                type_num, _, _, type_label = line.split()
-                type_num = int(type_num) + offset  # offset
-                former_label = type_map.get(type_num)
+    @property
+    def atoms(self):
+        return [self.atom(i) for i in range(self.atom_number)]
 
-                if not former_label:  # if the atom type have not been recorded
-                    type_map[type_num] = type_label
-                else:
-                    # Never allow to change the type_map for defined atom type
-                    # if the current type label is different from the former, raise error
-                    # if the current type label is same with the former, keeping still.
-                    if former_label != type_label:
-                        raise RuntimeError(
-                            f'the the type_map for atom type {type_num} is attempt to change '
-                            f'from {former_label} to {type_label}, Never allowed!!'
-                        )
+    @property
+    def atom_number(self):
+        return len(self.pylmp.atoms)
 
     @property
     def box(self):
@@ -107,6 +92,38 @@ class HpLammps:
         yz = self.eval('yz')  # the project v_c to y axis
         return np.array([[xl, 0., 0.], [xy, yl, 0.], [xz, yz, zl]])
 
+    def data_to_labelmap(self, script: str, offset: int = 0):
+        """ Convert the LAMMPS data format script (string) to labelmap dict """
+        pattern = re.compile(r"[A-Z].+s")
+        data_body_headers = pattern.findall(script)
+        masses_idx = data_body_headers.index('Masses')
+        masses_body_contents: List[str] = pattern.split(script)[masses_idx+1].split('\n')
+
+        type_map = self._data.setdefault('type_map', {})
+        for line in masses_body_contents:
+            line = line.strip()
+            if line:
+                type_num, _, _, type_label = line.split()
+                type_num = int(type_num) + offset  # offset
+                former_label = type_map.get(type_num)
+
+                if not former_label:  # if the atom type have not been recorded
+                    type_map[type_num] = type_label
+                else:
+                    # Never allow to change the type_map for defined atom type
+                    # if the current type label is different from the former, raise error
+                    # if the current type label is same with the former, keeping still.
+                    if former_label != type_label:
+                        raise RuntimeError(
+                            f'the the type_map for atom type {type_num} is attempt to change '
+                            f'from {former_label} to {type_label}, Never allowed!!'
+                        )
+
+        return type_map
+
+    def mol_to_labelmap(self, script: str, offset: int = 0):
+        """"""
+
     @property
     def dumps(self):
         return self.pylmp.dumps
@@ -134,10 +151,10 @@ class HpLammps:
 
         # to the main.data file
         script = self.main.writefile('lmpdat', path_main_data, retrieve_script=True)
-        self.data_to_type_map(script, atom_offset)
+        self.data_to_labelmap(script, atom_offset)
 
         # read to LAMMPS
-        cmd = f'read_data {path_main_data} extra/atom/types 1' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
+        cmd = f'read_data {path_main_data}' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
         self.command(cmd)
 
     def run(self, *args, **kwargs):
@@ -169,6 +186,12 @@ class HpLammps:
 
     def write_script(self, filepath: str):
         self.pylmp.write_script(filepath)
+
+
+class LmpTask:
+    """ The base class for performing LAMMPS tasks with Molecule objects """
+    def __init__(self, mol: 'ci.Molecule'):
+        self.mol = mol
 
 
 import src.cheminfo as ci

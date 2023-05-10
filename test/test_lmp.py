@@ -147,39 +147,9 @@ def melt_quench(
     return m
 
 
-def solve_Peng_Robinson():
-    import pandas as pd
-    from src.tanks.lmp.eos import PengRobinson, solve_ideal_gas_equation
-
-    critical_params = dict(
-        water={'tc': 647.096, 'pc': 22064000.0, 'w': 0.3442920843},
-        iodine={'tc': 819, 'pc': 11700000, 'w': 0.123},
-        ammonia={'tc': 405.4, 'pc': 11333000, 'w': 0.25601},
-        co2={'tc': 304.21, 'pc': 7375000, 'w': 0.225},
-    )
-
-    with pd.ExcelWriter("/home/zz1/qyq/pt_curve.xlsx") as writer:
-        for gas, params in critical_params.items():
-            water_sheet = pd.read_excel('/home/zz1/qyq/saturation_vapor.xlsx', sheet_name=gas).values
-            t = water_sheet[:, 0]
-            p = water_sheet[:, 1]
-
-            pr = PengRobinson(**params)
-            name, vm = pr(t=t, p=p)
-            name, f = solve_ideal_gas_equation(v=vm, t=t)
-
-            sheet = np.array([t, p, f]).T
-
-            df = pd.DataFrame(sheet, columns=['Temperature', 'Pressure', 'Fugacity'])
-            df.to_excel(writer, sheet_name=gas)
-
-
 def gcmc():
     """"""
-
-
-if __name__ == '__main__':
-
+    p = 52.5573
     iodine = ci.Molecule()
     iodine.add_pseudo_atom('iodine', 253.808946, (0., 0., 0.))
 
@@ -197,23 +167,40 @@ if __name__ == '__main__':
     # write molecule read file
     # iodine.writefile('lmpmol', '/home/zz1/qyq/lmpmol')
     mol.lmp('molecule iodine /home/zz1/qyq/lmpmol toff 1')
-    mol.lmp('group Ig empty')
+    mol.lmp('group Igas empty')
 
-    mol.lmp('pair_style lj/cut 12.5')
-    mol.lmp('pair_coeff 1 1 52.83 3.43')
-    mol.lmp('pair_coeff 2 2 550.0 4.982')
+    mol.lmp('pair_style lj/cut 5.5')
+    mol.lmp(f'pair_coeff 1 1 {52.83*0.001987} 3.43')
+    mol.lmp(f'pair_coeff 2 2 {550.0*0.001987} 4.982')
 
     mol.lmp('fix stand frame setforce 0.0 0.0 0.0')
 
-    mol.lmp('fix gcmc Ig gcmc 10 100 100 0 354568 298.15 1 10 mol iodine pressure 5800')
-    mol.lmp('fix ber all temp/berendsen 298.15 298.15 0.1')
-    mol.lmp('fix nvt Ig nvt temp 298.15 298.15 10000')
+    mol.lmp(
+        'fix gcmc Igas gcmc 1 $((20+abs(count(Igas)-20))/2) $((20+abs(count(Igas)-20))/2)'
+        ' 0 354568 298.15 100 10 mol iodine pressure 52.5573 tfac_insert 15'
+    )
+
+    mol.lmp(
+        f'fix out all print 1 "$(step),$(count(Igas)),$(mass(Igas)),$(mass(Igas)/mass(frame))" '
+        f'file /home/zz1/qyq/I2.csv '
+        'title "step,I2_count,I2_mass,uptake(g/g)" screen no'
+    )
+    mol.lmp('variable uptake equal mass(Igas)/mass(frame)')
+    mol.lmp('fix ave all ave/time 1 50 50 v_uptake file /home/zz1/qyq/ave')
 
     mol.lmp('thermo_style    custom step temp pe etotal press vol density')
     mol.lmp('thermo          1000')
+    mol.lmp('compute_modify thermo_temp dynamic/dof yes')
 
-    mol.lmp(f'dump mq all xyz 100 /home/zz1/qyq/gcmc.xyz')
-    # mol.lmp.command(f'dump_modify mq element C I')
+    mol.lmp(f'dump mq all xyz 100 /home/zz1/qyq/I2.xyz')
+    mol.lmp.command(f'dump_modify mq element C, I')
 
     mol.lmp('timestep 0.0001')
-    mol.lmp('run 100000')
+    mol.lmp('run 15000')
+
+    return mol
+
+
+if __name__ == '__main__':
+    # solve_Peng_Robinson()
+    m = gcmc()

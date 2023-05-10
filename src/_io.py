@@ -372,7 +372,6 @@ class Dumper(IOBase, metaclass=MetaIO):
     """
 
     _pybel_fmt_convert = {
-        'lmpmol': 'lmpdat'
     }
 
     def _io(self):
@@ -380,7 +379,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         # Try to dump by openbabel.pybel
         try:
             pb_mol = pybel.Molecule(self.src.ob_mol)
-            return pb_mol.write(self._pybel_fmt_convert.get(self.fmt, self.fmt))
+            return pb_mol.write(self._pybel_fmt_convert.get(self.fmt, self.fmt), **self.kwargs)
 
         except ValueError:
             print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
@@ -604,52 +603,6 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         # Reassembling the script
         # script = '\n'.join(processed_lines)
-
-        return script
-
-    def _post_lmpmol(self, script: str):
-        """ post process for LAMMPS molecule command read file """
-        title, headers, bodies = _parse_lmp_data_script(script)
-        script = title + '\n'
-        box_header = re.compile(r'[xyz]lo [xyz]hi')
-
-        # Add pseudo atoms
-        patoms = self.src.pseudo_atoms
-        if patoms:
-            patom_mass = {pa.symbol: pa.mass for pa in patoms}
-            patom_types = {sym: i + len(bodies['Masses']) + 1 for i, sym in enumerate(patom_mass)}
-
-            # add the number of atoms and atom types into header
-            atom_num = headers.get('atoms', [0])
-            atom_num[0] += len(patoms)
-            headers['atoms'] = atom_num
-
-            atom_types = headers.get('atom types', [0])
-            atom_types[0] += len(patom_mass)
-            headers['atom types'] = atom_types
-
-            # add Masses and Atoms information into body
-            for sym, mass in patom_mass.items():
-                bodies['Masses'].append(f"{patom_types[sym]} {mass} # {sym}")
-
-            for atom in patoms:
-                bodies['Atoms'].append(
-                    f'{len(bodies["Atoms"]) + 1} 1 {patom_types[atom.symbol]} '
-                    f'{atom.charge} {" ".join(map(str, atom.coordinates))} '
-                    f'# {atom.symbol}'
-                )
-
-        for ht, hvs in headers.items():  # header title, header values
-            if not box_header.fullmatch(ht):
-                script += ' '.join(map(str, hvs)) + ' ' + ht + '\n'
-
-        script += '\n' * 3
-
-        for bt, bcs in bodies.items():  # body title, body contents
-            if bcs:  # if the body contents exist
-                script += bt + '\n' * 2
-                script += '\n'.join(bcs)
-                script += '\n' * 3
 
         return script
 

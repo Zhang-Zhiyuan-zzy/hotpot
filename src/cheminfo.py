@@ -592,7 +592,7 @@ class Molecule(Wrapper, ABC):
     def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         """ Add pseudo atom into the molecule """
         list_pseudo_atom = self._data.setdefault('pseudo_atoms', [])
-        pa = PseudoAtom(symbol, mass, coordinates, **kwargs)
+        pa = PseudoAtom(symbol, mass, coordinates, mol=self, molecule=self, **kwargs)
         list_pseudo_atom.append(pa)
 
     @property
@@ -1290,7 +1290,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def pseudo_atoms(self):
-        return self._data.get('pseudo_atoms')
+        return self._data.get('pseudo_atoms', [])
 
     def quick_build_atoms(self, atomic_numbers: np.ndarray):
         """

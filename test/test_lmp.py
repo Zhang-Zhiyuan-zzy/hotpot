@@ -202,5 +202,13 @@ def gcmc():
 
 
 if __name__ == '__main__':
-    # solve_Peng_Robinson()
-    m = gcmc()
+    from src.tanks.lmp.gcmc import LjGCMC
+    frame = ci.Molecule.read_from('/home/zz1/qyq/mq.cif')
+    g1 = ci.Molecule.read_from('II', 'smi')
+    g2 = ci.Molecule.read_from('O', 'smi')
+    g3 = ci.Molecule.read_from('c1ccc(O)cc1', 'smi')
+
+    g3.add_pseudo_atom('A', 265.4, (0.3, 0.4, 0.5))
+
+    gc = LjGCMC(frame, 'UFF/LJ.json', g1, g2, g3)
+    gc.run()

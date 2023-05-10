@@ -121,9 +121,6 @@ class HpLammps:
 
         return type_map
 
-    def mol_to_labelmap(self, script: str, offset: int = 0):
-        """"""
-
     @property
     def dumps(self):
         return self.pylmp.dumps
@@ -146,7 +143,7 @@ class HpLammps:
     def lmp(self):
         return self.pylmp.lmp
 
-    def read_main_data(self, atom_offset=0, **kwargs):
+    def read_main_data(self, atom_offset=0, extra_atoms=0, **kwargs):
         path_main_data = os.path.join(self._dir_cmd, 'main.data')
 
         # to the main.data file
@@ -155,6 +152,11 @@ class HpLammps:
 
         # read to LAMMPS
         cmd = f'read_data {path_main_data}' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
+
+        # add keywords to specify the extra atoms
+        if extra_atoms:
+            cmd += f' extra/atom/types {extra_atoms}'
+
         self.command(cmd)
 
     def run(self, *args, **kwargs):

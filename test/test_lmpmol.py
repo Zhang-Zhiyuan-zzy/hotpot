@@ -6,19 +6,19 @@ from src.cheminfo import Molecule as Mol
 from src._io import Dumper
 
 if __name__ == '__main__':
-    # mol = Mol.read_from('[Br:1][CH2:2][CH2:3][CH2:4][O:5][S:7]([CH3:6])(=[O:8])=[O:9]', 'smi')
-    # mol.build_conformer()
-    # mol.add_pseudo_atom('T', 15.0, mol.center_of_masses, charge=0.5)
-    # mol.add_pseudo_atom('D', 25.0, mol.center_of_shape, charge=0.4)
-    # mol.add_pseudo_atom('D', 25.0, (0.5, 0.7, 1.4), charge=-1.2)
-    # script = mol.dump('lmpmol', atom_style='full', mol_name='C4H9Br1O3S1')
+    mol = Mol.read_from('[Br:1][CH2:2][CH2:3][CH2:4][O:5][S:7]([CH3:6])(=[O:8])=[O:9]', 'smi')
+    mol.build_conformer()
+    mol.add_pseudo_atom('T', 15.0, mol.center_of_masses, charge=0.5)
+    mol.add_pseudo_atom('D', 25.0, mol.center_of_shape, charge=0.4)
+    mol.add_pseudo_atom('D', 25.0, (0.5, 0.7, 1.4), charge=-1.2)
+    script = mol.dump('lmpmol', atom_style='full', mol_name='C4H9Br1O3S1')
     # mol.writefile('lmpmol', path_file='/home/qyq/proj/lammps/mol_test/C4H9Br1O3S1.txt', atom_style='full')
 
 
     #write a carbon dioxide molecule
-    mol = Mol.read_from('[O:1]=[C:2]=[O:3]', 'smi')
-    mol.build_conformer()
-    script = mol.dump('lmpmol', atom_style='atomic', mol_name='CO2')
+    # mol = Mol.read_from('[O:1]=[C:2]=[O:3]', 'smi')
+    # mol.build_conformer()
+    # script = mol.dump('lmpmol', atom_style='atomic')
     # mol.writefile('lmpmol', path_file='/home/qyq/proj/lammps/mol_test/CO2.txt', atom_style='atomic')
     #
     # #run lmp

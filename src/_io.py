@@ -474,17 +474,65 @@ class Dumper(IOBase, metaclass=MetaIO):
         additional attributes for full: Bonds + molecular + charge
         """
 
+        def bonds(m):   #??????怎么判断两个键是不是一样的（单双键；第一个原子元素符号；第二个原子元素符号：三者对应）？？？？？bond type????还需要把数字都增加1，即从1开始!!!!!!!!!
+            """ Add bond body """
+            bond_str = 'Bonds' + '\n\n'  # bond body title
+
+            # the formula of bond_type key: atom1[bond_type]atom2
+            bond_types = ('?', '-', '=', '#')  # TODO: other bond type add later
+            b_type_dict = {}  # store bonds type
+            t_b = 0   # set the initial bond type
+            for j, bond in enumerate(m.bonds, 1):
+
+                a1, a2 = bond.atoms  # a1: atom1, a2: atom2
+                bond_type = bond_types[bond.type]
+
+                if a1.atomic_number < a2.atomic_number:
+                    key = f'{a1.symbol}{bond_type}{a2.symbol}'
+                else:
+                    key = f'{a2.symbol}{bond_type}{a1.symbol}'
+
+                a1_type = atoms_list.index(a1) + 1
+                a2_type = atoms_list.index(a2) + 1
+
+                bt_id = b_type_dict.setdefault(key, len(b_type_dict) + 1)
+
+                bond_str += f'{j} {bt_id} {a1_type} {a2_type}\n'
+
+            bond_str += '\n'
+
+            return bond_str
+
+        def charge():
+            """ Retrieve atom charge information """
+            charge_str = '\n' + 'Charges' + '\n\n'
+
+            for ic, a in enumerate(atoms_list, 1):  # ID of charge, atom
+                if isinstance(a, ci.Atom):
+                    charge_str += f'{ic} {a.partial_charge}\n'
+                else:
+                    assert isinstance(a, ci.PseudoAtom)
+                    charge_str += f'{ic} {a.charge}\n'
+
+            charge_str += '\n'
+
+            return charge_str
+
         mol = self.src
         kwargs = self.kwargs  # keywords arguments
 
-        # default values: coordinates, velocities, atom IDs and types; additional attributes for atomic: None; additional attributes for full: molecular + charge
+        # default values: coordinates, velocities, atom IDs and types;
+        # additional attributes for atomic: None;
+        # additional attributes for full: molecular + charge
         atom_style = kwargs.get('atom_style', 'atomic')   # default atom_style is atomic
-        mol_name = kwargs.get('mol_name', 'CO2')
+        mol_name = kwargs.get('mol_name', mol.smiles)
 
-        atoms_list = []  # combine real atoms with pseudo atoms in a list
+        # combine real atoms with pseudo atoms in a list
+        atoms_list = []
         for m_a in mol.atoms:
             atoms_list.append(m_a)
-        if isinstance(mol.pseudo_atoms, list):   # determine if there are pseudo_atoms0
+
+        if mol.pseudo_atoms:   # determine if there are pseudo_atoms
             for pse_a in mol.pseudo_atoms:
                 atoms_list.append(pse_a)
 
@@ -492,129 +540,50 @@ class Dumper(IOBase, metaclass=MetaIO):
         title = f"Create by hotpot package, convert from {mol_name}"
         script = title + '\n\n'   # write the molecular script for lammps
 
-        # header information??????还缺一些信息？？？？angle
+        # TODO: some header information missing
+        # Header partition
+        # add atom header
         num_atoms = len(atoms_list)
-        num_bonds = len(mol.bonds)
         num_atoms_str = f'{num_atoms}  atoms'
+        script += num_atoms_str + '\n'
+
+        # add bond header
+        num_bonds = len(mol.bonds)
         num_bonds_str = f'{num_bonds}  bonds'
-        script += num_atoms_str + '\n' + num_bonds_str + '\n'
+        script += num_bonds_str + '\n'
 
-        #basis body information
-        id_list = []                                              # store id information in list[(tuple)]
-        for id_a in mol.atoms:
-            id_list.append(id_a.idx)
-        id_ip = id_a.idx + 1
-        if isinstance(mol.pseudo_atoms, list):   # determine if there are pseudo_atoms1
-            for p, id_p in enumerate(mol.pseudo_atoms):
-                id_list.append(id_ip)
-                id_ip += 1
+        # Add new blank line to end the header partition
+        script += '\n'
 
-        for n, id_a in enumerate(atoms_list):
-            id_list.append((n + 1, id_a.atom_type))
-        script += '\n' + 'Coords' + '\n\n'    # write coordinates information for molecular script
-        for j, c_a in enumerate(atoms_list):
-            j += 1
-            output_str = '  '.join(map(str, c_a.coordinates))
-            script += f'{j}' + '  ' + output_str + '\n'
-        script += '\n' + 'Types' + '\n\n'  # write Types information for molecular script
-        atoms_dict = {}
-        type_num = 1
-        for i, t_a in enumerate(atoms_list):
-            i += 1
-            symbol = t_a.symbol
-            if symbol not in atoms_dict:
-                atoms_dict[symbol] = type_num
-                type_str = '{}  {}  #{}'.format(i, type_num, symbol)
-                script += type_str + '\n'
-                type_num += 1
-            else:
-                type_number = atoms_dict[symbol]
-                type_str = '{}  {}  #{}'.format(i, type_number, symbol)
-                script += type_str + '\n'
-        #print('write coordes and types information' + '\n')
+        # Body partition
+        # Coords body
+        script += 'Coords' + '\n\n'
+        for i, atom in enumerate(atoms_list, 1):
+            script += f'{i}' + '  ' + '  '.join(map(str, atom.coordinates)) + '\n'
+        script += '\n'
 
-        # determine some functions for additional attributes
-        def bonds(mol):   #??????怎么判断两个键是不是一样的（单双键；第一个原子元素符号；第二个原子元素符号：三者对应）？？？？？bond type????还需要把数字都增加1，即从1开始!!!!!!!!!
-            bond_str = '\n' + 'Bonds' + '\n\n'
-            b_type_dict = {}  #store bonds type, 单双键type, 第一个原子元素符号；第二个原子元素符号
-            t_b = 0   # set the initial bond type
-            for b, b_bond in enumerate(mol.bonds):
-                b1 = b_bond.type
-                b2 = b_bond.atom1.symbol   # eg. 'C'
-                b2_id = b_bond.atom1.idx    #eg. 1
-                b3 = b_bond.atom2.symbol
-                b3_id = b_bond.atom2.idx
-                b_set = frozenset({b1, b2, b3})   #为了把set写入dict
-                if b_set not in b_type_dict.values():   #determine whether the bond type is existed
-                    t_b += 1
-                    b_type_dict[t_b] = b_set
-                    b_str = '{}  {}  {}  {}'.format(b+1, t_b, b2_id+1, b3_id+1)
-                else:
-                    for key, value in b_type_dict.items():   #get id of the exist bond type
-                        if value == b_set:
-                            k_t_b = key
-                            break
-                    b_str = '{}  {}  {}  {}'.format(b+1, k_t_b, b2_id+1, b3_id+1)
-                bond_str += b_str + '\n'
-            return bond_str
+        # Types body
+        script += 'Types' + '\n\n'
 
-        def mass(mol):               # masses of real atoms
-            mass_str = '\n' + 'Masses' + '\n\n'
+        dict_types = {}
+        for i, atom in enumerate(atoms_list, 1):
+            atom_type = dict_types.setdefault(atom.symbol, len(dict_types)+1)
+            script += f'{i} {atom_type}  # {atom.symbol}\n'
 
-            for y, ma_a in enumerate(mol.atoms):
-                ma_str = '{}  {}'.format(y + 1, ma_a.mass)
-                mass_str += ma_str + '\n'
-            return mass_str
+        script += '\n'
 
-        def charge(mol):              #charge function
-            charge_str = '\n' + 'Charges' + '\n\n'
-
-            for g, ch_a in enumerate(mol.atom_charges):
-                ch_str = '{}  {}'.format(g + 1, ch_a)
-                charge_str += ch_str + '\n'
-
-            # determine if there are pseudo_atoms3
-            if isinstance(mol.pseudo_atoms, list):
-                for ch_pse_a in mol.pseudo_atoms:
-                    g += 1
-                    ch_pse_str = '{}  {}'.format(g, ch_pse_a.charge)
-                    charge_str += ch_pse_str + '\n'
-            return charge_str
-
-
-
-        def molecules(mol):          # matching molecules to real atoms and pseudo-atoms, respectively
-            molecules_str = '\n' +'Molecules' + '\n\n'
-            mol_id_dict = {}
-            count_mol = 1
-            for k, mol_a in enumerate(mol.atoms):
-                k += 1
-                if str(mol_a.molecule) not in mol_id_dict:
-                    mol_id_dict[str(mol_a.molecule)] = count_mol
-                    mol_str = '{}  {}'.format(k, count_mol)
-                    molecules_str += mol_str + '\n'
-                    count_mol += 1
-                else:
-                    mol_num = mol_id_dict[str(mol_a.molecule)]
-                    mol_str = '{}  {}'.format(k, mol_num)
-                    molecules_str += mol_str + '\n'
-            last_num = max(count_mol - 1, mol_num)
-            if isinstance(mol.pseudo_atoms, list):      # determine if there are pseudo_atoms2
-                for pm in range(len(mol.pseudo_atoms)):                         #add pseudo atoms of molecular information for molecular script？？？？？只是把伪原子的分子划分给了最后一个真实原子对应的分子
-                    pk = pm + k + 1
-                    mol_str = '{}  {}'.format(pk, last_num)
-                    molecules_str += mol_str + '\n'
-            return molecules_str
-
-
+        # Addition information
         # additional attributes
-        if atom_style == 'atomic':   # to atomic style, only basis information (ID，Coords, types, velocitier)
+
+        # to atomic style, only basis information (ID，Coords, types, velocitier)
+        if atom_style == 'atomic':
             script += bonds(mol)
-        elif atom_style == 'full':     # to full style, basis information + molecular + charge
+
+        # to full style, basis information + molecular + charge
+        elif atom_style == 'full':
             script += bonds(mol)
-            script += molecules(mol)
-            script += charge(mol)
-            script += mass(mol)
+            script += charge()
+
         print(script)
         return script
 

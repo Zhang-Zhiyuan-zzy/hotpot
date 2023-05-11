@@ -465,6 +465,125 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return data
 
+    def _io_lmpmol(self):
+        """
+        write a molecule script
+        default values: coordinates, velocities, atom IDs and types
+        additional attributes for atomic: Bonds
+        additional attributes for full: Bonds + molecular + charge
+        """
+
+        def bonds(m):
+            """ Add bond body """
+            bond_str = 'Bonds' + '\n\n'  # bond body title
+
+            # the formula of bond_type key: atom1[bond_type]atom2
+            bond_types = ('?', '-', '=', '#')  # TODO: other bond type add later
+            b_type_dict = {}  # store bonds type
+            t_b = 0   # set the initial bond type
+            for j, bond in enumerate(m.bonds, 1):
+
+                a1, a2 = bond.atoms  # a1: atom1, a2: atom2
+                bond_type = bond_types[bond.type]
+
+                if a1.atomic_number < a2.atomic_number:
+                    key = f'{a1.symbol}{bond_type}{a2.symbol}'
+                else:
+                    key = f'{a2.symbol}{bond_type}{a1.symbol}'
+
+                a1_type = atoms_list.index(a1) + 1
+                a2_type = atoms_list.index(a2) + 1
+
+                bt_id = b_type_dict.setdefault(key, len(b_type_dict) + 1)
+
+                bond_str += f'{j} {bt_id} {a1_type} {a2_type}\n'
+
+            bond_str += '\n'
+
+            return bond_str
+
+        def charge():
+            """ Retrieve atom charge information """
+            charge_str = '\n' + 'Charges' + '\n\n'
+
+            for ic, a in enumerate(atoms_list, 1):  # ID of charge, atom
+                if isinstance(a, ci.Atom):
+                    charge_str += f'{ic} {a.partial_charge}\n'
+                else:
+                    assert isinstance(a, ci.PseudoAtom)
+                    charge_str += f'{ic} {a.charge}\n'
+
+            charge_str += '\n'
+
+            return charge_str
+
+        mol = self.src
+        kwargs = self.kwargs  # keywords arguments
+
+        # default values: coordinates, velocities, atom IDs and types;
+        # additional attributes for atomic: None;
+        # additional attributes for full: molecular + charge
+        atom_style = kwargs.get('atom_style', 'atomic')   # default atom_style is atomic
+        mol_name = kwargs.get('mol_name', mol.smiles)
+
+        # combine real atoms with pseudo atoms in a list
+        atoms_list = []
+        for m_a in mol.atoms:
+            atoms_list.append(m_a)
+
+        if mol.pseudo_atoms:   # determine if there are pseudo_atoms
+            for pse_a in mol.pseudo_atoms:
+                atoms_list.append(pse_a)
+
+        # title information
+        title = f"Create by hotpot package, convert from {mol_name}"
+        script = title + '\n\n'   # write the molecular script for lammps
+
+        # TODO: some header information missing
+        # Header partition
+        # add atom header
+        num_atoms = len(atoms_list)
+        num_atoms_str = f'{num_atoms}  atoms'
+        script += num_atoms_str + '\n'
+
+        # add bond header
+        num_bonds = len(mol.bonds)
+        num_bonds_str = f'{num_bonds}  bonds'
+        script += num_bonds_str + '\n'
+
+        # Add new blank line to end the header partition
+        script += '\n'
+
+        # Body partition
+        # Coords body
+        script += 'Coords' + '\n\n'
+        for i, atom in enumerate(atoms_list, 1):
+            script += f'{i}' + '  ' + '  '.join(map(str, atom.coordinates)) + '\n'
+        script += '\n'
+
+        # Types body
+        script += 'Types' + '\n\n'
+
+        dict_types = {}
+        for i, atom in enumerate(atoms_list, 1):
+            atom_type = dict_types.setdefault(atom.symbol, len(dict_types)+1)
+            script += f'{i} {atom_type}  # {atom.symbol}\n'
+
+        script += '\n'
+
+        # additional attributes
+        # to atomic style, only basis information (ID，Coords, types, velocitier)
+        if atom_style == 'atomic':
+            script += bonds(mol)
+
+        # to full style, basis information + molecular + charge
+        elif atom_style == 'full':
+            script += bonds(mol)
+            script += charge()
+
+        print(script)
+        return script
+
     def _post_dpmd_sys(self, data: Dict[str, Union[List, np.ndarray, None]]):
         """"""
         mapping_items = ['type', 'type_map']

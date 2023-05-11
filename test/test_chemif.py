@@ -66,5 +66,5 @@ if __name__ == '__main__':
     #     print(a.partial_charge, a.spin_density, a.force_vector.shape)
     # perturb_cif()
     # m1 = ci.Molecule.read_from('examples/struct/aCarbon.cif')
-    # m2 = ci.Molecule.read_from('examples/struct/Cs-VOHSAM-5.mol2')
-    # cif = m2.dump('cif')
+    m2 = ci.Molecule.read_from('examples/struct/aCarbon.xyz')
+

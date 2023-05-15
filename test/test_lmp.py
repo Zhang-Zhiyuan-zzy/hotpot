@@ -14,7 +14,7 @@ import src.cheminfo as ci
 
 
 def melt():
-    mol = ci.Molecule.readfile('examples/struct/aCarbon.xyz')
+    mol = ci.Molecule.read_from('examples/struct/aCarbon.xyz')
 
     mol.lmp_setup()
 
@@ -203,12 +203,26 @@ def gcmc():
 
 if __name__ == '__main__':
     from src.tanks.lmp.gcmc import LjGCMC
+    import os
+    import tqdm
+    from time import time as t
     frame = ci.Molecule.read_from('/home/zz1/qyq/mq.cif')
-    g1 = ci.Molecule.read_from('II', 'smi')
-    g2 = ci.Molecule.read_from('O', 'smi')
-    g3 = ci.Molecule.read_from('c1ccc(O)cc1', 'smi')
+    frame.build_bonds()
+    # ff = frame + frame
 
-    g3.add_pseudo_atom('A', 265.4, (0.3, 0.4, 0.5))
+    # script = frame.dump('lmpdat')
+    #
+    # g1 = ci.Molecule.read_from('O=O', 'smi')
+    # g1.build_conformer()
+    g2 = ci.Molecule.read_from('O=C=O', 'smi')
+    g2.build_conformer()
 
-    gc = LjGCMC(frame, 'UFF/LJ.json', g1, g2, g3)
-    gc.run()
+    g2 + frame
+    # g3 = ci.Molecule.read_from('N#N', 'smi')
+    # g3.build_conformer()
+    # g4 = ci.Molecule.read_from('O', 'smi')
+    # g4.build_conformer()
+    #
+    # work_dir = f'/home/zz1/qyq/g1g2g3'
+    # gc = LjGCMC(frame, 'UFF/LJ.json', g2, g4, work_dir=work_dir, T=298.15, P=0.00001)
+    # gc.run()

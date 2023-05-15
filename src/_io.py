@@ -374,6 +374,18 @@ class Dumper(IOBase, metaclass=MetaIO):
     _pybel_fmt_convert = {
     }
 
+    def _process_lmpdat_bonds(self, bond_contents: list):
+        """"""
+        uni_bonds = tuple(self.src.unique_bonds)
+        bonds = self.src.bonds
+        sep = re.compile(r'\s+')
+        for i, bc in enumerate(bond_contents):
+            split_bc = sep.split(bc)
+            split_bc[1] = str(uni_bonds.index(bonds[i]) + 1)
+            bond_contents[i] = '  '.join(split_bc)
+
+        return bond_contents
+
     def _io(self):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
         # Try to dump by openbabel.pybel
@@ -478,25 +490,14 @@ class Dumper(IOBase, metaclass=MetaIO):
             bond_str = 'Bonds' + '\n\n'  # bond body title
 
             # the formula of bond_type key: atom1[bond_type]atom2
-            bond_types = ('?', '-', '=', '#')  # TODO: other bond type add later
-            b_type_dict = {}  # store bonds type
-            t_b = 0   # set the initial bond type
+            uni_bonds = tuple(m.unique_bonds)  # store bonds type
             for j, bond in enumerate(m.bonds, 1):
+                a1_idx = atoms_list.index(bond.atom1) + 1
+                a2_idx = atoms_list.index(bond.atom2) + 1
 
-                a1, a2 = bond.atoms  # a1: atom1, a2: atom2
-                bond_type = bond_types[bond.type]
+                bt_id = uni_bonds.index(bond) + 1
 
-                if a1.atomic_number < a2.atomic_number:
-                    key = f'{a1.symbol}{bond_type}{a2.symbol}'
-                else:
-                    key = f'{a2.symbol}{bond_type}{a1.symbol}'
-
-                a1_type = atoms_list.index(a1) + 1
-                a2_type = atoms_list.index(a2) + 1
-
-                bt_id = b_type_dict.setdefault(key, len(b_type_dict) + 1)
-
-                bond_str += f'{j} {bt_id} {a1_type} {a2_type}\n'
+                bond_str += f'{j} {bt_id} {a1_idx} {a2_idx}\n'
 
             bond_str += '\n'
 
@@ -574,14 +575,15 @@ class Dumper(IOBase, metaclass=MetaIO):
         # additional attributes
         # to atomic style, only basis information (ID，Coords, types, velocitier)
         if atom_style == 'atomic':
-            script += bonds(mol)
+            if num_bonds:
+                script += bonds(mol)
 
         # to full style, basis information + molecular + charge
         elif atom_style == 'full':
-            script += bonds(mol)
+            if num_bonds:
+                script += bonds(mol)
             script += charge()
 
-        print(script)
         return script
 
     def _post_dpmd_sys(self, data: Dict[str, Union[List, np.ndarray, None]]):
@@ -680,48 +682,25 @@ class Dumper(IOBase, metaclass=MetaIO):
     def _post_lmpdat(self, script: str):
         """ post-process for LAMMPS data file """
 
-        # body_keyword = re.compile(r"[A-Z].+s")
-        # lines = script.split('\n')
-        # body_split_point = [i for i, lin in enumerate(lines) if body_keyword.match(lin.strip())] + [len(lines)]
-        #
-        # # Performing function
-        # processed_lines = lines[:body_split_point[0]]  # Add headers lines
-        #
-        # for start, end in zip(body_split_point[:-1], body_split_point[1:]):
-        #     if any(lin for lin in lines[start + 1:end]):
-        #         processed_lines.extend(lines[start:end])
-
         title, headers, bodies = _parse_lmp_data_script(script)
         script = title + '\n'
 
-        for ht, hvs in headers.items():  # header title, header values
+        for ht, hvs in headers.items():
+            if ht == 'bond types':  # header title, header values
+                hvs[0] = len(self.src.unique_bonds)
+
             script += ' '.join(map(str, hvs)) + ' ' + ht + '\n'
 
         script += '\n' * 3
 
         for bt, bcs in bodies.items():  # body title, body contents
+            if bt == 'Bonds':
+                bcs = self._process_lmpdat_bonds(bcs)
+
             if bcs:  # if the body contents exist
                 script += bt + '\n' * 2
                 script += '\n'.join(bcs)
                 script += '\n' * 3
-
-            # TODO: add this partition after the next LAMMPS version.
-            # # if the encounter partition is the Masses
-            # # add Atom Type Labels into the data file
-            # if lines[start].strip() == "Masses":
-            #     processed_lines.append('Atom Type Labels')
-            #     processed_lines.append('')
-            #     for lin in lines[start + 1: end]:
-            #         lin = lin.strip()
-            #         if lin:
-            #             type_num, _, _, type_label = lin.split()
-            #             processed_lines.append(f'{type_num} {type_label}')
-            #
-            #     processed_lines.append('')
-            #     processed_lines.append('')
-
-        # Reassembling the script
-        # script = '\n'.join(processed_lines)
 
         return script
 

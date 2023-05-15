@@ -15,6 +15,7 @@ import torch
 from tqdm import tqdm
 import src.cheminfo as ci
 from src.tools import check_path
+import multiprocessing as mp
 
 
 # Typing AnnotationsG
@@ -86,7 +87,8 @@ class MolBundle:
             match_pattern: str = '*',
             generate: bool = False,
             ranges: Union[Sequence[int], range] = None,
-            condition: Callable = None
+            condition: Callable = None,
+            num_proc: int = None
     ):
         """
         Read Molecule objects from a directory.
@@ -101,9 +103,10 @@ class MolBundle:
             condition(Callable): A callable object that takes two arguments (the path of the input file
                 and the corresponding Molecule object) and returns a boolean value indicating whether to include the
                 Molecule object in the output. Defaults to None.
+            num_proc: the number of process to read
 
         Returns:
-
+            List(Molecule) or Generator(Molecule)
         """
         def mol_generator():
             nonlocal read_dir
@@ -113,7 +116,6 @@ class MolBundle:
             elif not isinstance(read_dir, PathLike):
                 raise TypeError(f'the read_dir should be a str or PathLike, instead of {type(read_dir)}')
 
-            processes = []
             for i, path_mol in enumerate(read_dir.glob(match_pattern)):
 
                 if not ranges or i in ranges:
@@ -123,6 +125,12 @@ class MolBundle:
 
                 if mol and (not condition or condition(path_mol, mol)):
                     yield mol
+
+        def mol_mp_generator():
+            nonlocal read_dir
+
+            if isinstance(read_dir, str):
+                pass
 
         if generate:
             return cls(mol_generator())
@@ -282,7 +290,7 @@ class MolBundle:
         Returns:
             MolBundle(MixSameAtomMol)
         """
-        return MolBundle([m if isinstance(m, ci.Molecule) else m.to_mix_mols() for m in self])
+        return MolBundle([m if isinstance(m, ci.MixSameAtomMol) else m.to_mix_mols() for m in self])
 
     def to_mols(self):
         """
@@ -290,4 +298,4 @@ class MolBundle:
         Returns:
             MolBundle(Molecule)
         """
-        return MolBundle([m if isinstance(m, ci.MixSameAtomMol) else m.to_mols() for m in self])
+        return MolBundle([m if isinstance(m, ci.Molecule) else m.to_mols() for m in self])

@@ -21,26 +21,29 @@ class HpLammps:
     """
     A wrapper to run LAMMPS tasks
     """
-    _dir_cmd: str = os.getcwd()
+    def __init__(self, main, **kwargs):
+        """
 
-    def __init__(self, main, *args, **kwargs):
-        """"""
-        self.main: ci.Molecule = main
-        self.pylmp = PyLammps()
+        Args:
+            main: the main Molecule object
+
+        Keyword Args:
+            work_dir: the work dir, where the io operations are performed
+        """
         self._data = {
-            'elements': main.elements
+            'main': main,
+            'pylmp': PyLammps()
         }  # store any data
-        self.args = args
-        self.kwargs = kwargs
+        self._data.update(kwargs)
 
     def __call__(self, cmd: str):
         self.command(cmd)
 
-    def __dir__(self) -> Iterable[str]:
-        return self.pylmp.__dir__() + ["commands_list", "commands_string", 'read_main_data', "script"]
-
-    def __getattr__(self, item):
-        return self.pylmp.__getattr__(item)
+    # def __dir__(self) -> Iterable[str]:
+    #     return self.pylmp.__dir__() + ["commands_list", "commands_string", 'read_main_data', "script"]
+    #
+    # def __getattr__(self, item):
+    #     return self.pylmp.__getattr__(item)
 
     def atom(self, idx: int):
         """ retrieve the LAMMPS atom object by atom index """
@@ -143,19 +146,66 @@ class HpLammps:
     def lmp(self):
         return self.pylmp.lmp
 
-    def read_main_data(self, atom_offset=0, extra_atoms=0, **kwargs):
-        path_main_data = os.path.join(self._dir_cmd, 'main.data')
+    @property
+    def main(self):
+        return self._data.get('main')
+
+    @property
+    def pylmp(self):
+        return self._data.get('pylmp')
+
+    def read_main_data(
+            self, add: str = None, offset: Sequence[int] = (), shift: Sequence[int] = (),
+            extra_atom_types=0, extra_bond_types=0, extra_angle_types=0, extra_dihedral_types=0,
+            extra_improper_types=0, extra_bond_per_atom=0, extra_angle_per_atom=0, extra_dihedral_per_atom=0,
+            extra_improper_per_atom=0, extra_special_per_atom=0, group: str = None, nocoeff: bool = False,
+            fix: str = None
+    ):
+        """"""
+        path_main_data = os.path.join(self.work_dir, 'main.data')
 
         # to the main.data file
-        script = self.main.writefile('lmpdat', path_main_data, retrieve_script=True)
-        self.data_to_labelmap(script, atom_offset)
+        self.main.writefile('lmpdat', path_main_data, retrieve_script=False)
+        # self.data_to_labelmap(script, atom_offset)
 
         # read to LAMMPS
-        cmd = f'read_data {path_main_data}' + ' ' + ' '.join(f'{k} {v}' for k, v in kwargs.items())
+        cmd = f'read_data {path_main_data}'
 
         # add keywords to specify the extra atoms
-        if extra_atoms:
-            cmd += f' extra/atom/types {extra_atoms}'
+        if add:
+            cmd += f' add {add}'
+        if offset:
+            assert len(offset) == 5
+            cmd += f' offset ' + ' '.join(offset)
+        if shift:
+            assert len(shift) == 3
+            cmd += f' shift ' + ' '.join(shift)
+        if extra_atom_types:
+            cmd += f' extra/atom/types {extra_atom_types}'
+        if extra_bond_types:
+            cmd += f' extra/bond/types {extra_bond_types}'
+        if extra_angle_types:
+            cmd += f' extra/angle/types {extra_angle_types}'
+        if extra_dihedral_types:
+            cmd += f' extra/dihedral_types {extra_dihedral_types}'
+        if extra_improper_types:
+            cmd += f' extra/improper/types {extra_improper_types}'
+        if extra_bond_per_atom:
+            cmd += f' extra/bond/per/atom {extra_bond_per_atom}'
+        if extra_angle_per_atom:
+            cmd += f' extra/angle/per/atom {extra_angle_per_atom}'
+        if extra_dihedral_per_atom:
+            cmd += f' extra/dihedral_per_atom {extra_dihedral_per_atom}'
+        if extra_improper_per_atom:
+            cmd += f' extra/improper/per/atom {extra_improper_per_atom}'
+        if extra_special_per_atom:
+            cmd += f' extra/special/per/atom {extra_special_per_atom}'
+        if group:
+            cmd += f' group {group}'
+        if nocoeff:
+            cmd += f' group true'
+        if fix:
+            cmd += f' fix {fix}'
 
         self.command(cmd)
 
@@ -167,7 +217,7 @@ class HpLammps:
         return self.pylmp.runs
 
     def script(self):
-        path_tmp_script = os.path.join(self._dir_cmd, 'script.in')
+        path_tmp_script = os.path.join(os.getcwd(), 'script.in')
         self.pylmp.write_script(path_tmp_script)
         with open(path_tmp_script) as file:
             script = file.read()
@@ -185,6 +235,13 @@ class HpLammps:
     @property
     def version(self):
         return self.pylmp.version()
+
+    @property
+    def work_dir(self):
+        work_dir = self._data.get('work_dir', os.getcwd())
+        if not work_dir:
+            os.mkdir(work_dir)
+        return work_dir
 
     def write_script(self, filepath: str):
         self.pylmp.write_script(filepath)

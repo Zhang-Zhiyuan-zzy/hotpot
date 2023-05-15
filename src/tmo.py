@@ -12,7 +12,7 @@ import thermo.chemical as cmc
 
 
 class Thermo:
-    """ To determine thermodynamical properties for pure substance """
+    """ To determine thermodynamical properties of Csubstance """
     def __init__(self, mol, **kwargs):
         """"""
         self._data = {

@@ -9,22 +9,16 @@ python v3.7.9
 import src.cheminfo as ci
 from src._io import Parser
 
-
-def mol_io():
-    """ Test the whether IO classes and io function work """
-    pass
-
-
 def mol2_read():
     path_mol2 = 'examples/struct/mol.mol2'
-    mol = ci.Molecule.readfile(path_mol2)
+    mol = ci.Molecule.read_from(path_mol2)
 
     return mol
 
 
 def dump_gjf():
     path_mol2 = 'examples/struct/mol.mol2'
-    mol = ci.Molecule.readfile(path_mol2)
+    mol = ci.Molecule.read_from(path_mol2)
 
     script = mol.dump('gjf',
                       link0='CPU=0-48',

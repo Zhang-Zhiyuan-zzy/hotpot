@@ -10,7 +10,7 @@ import random
 
 import numpy as np
 
-import src.cheminfo as ci
+import hotpot.cheminfo as ci
 
 
 def melt():
@@ -202,22 +202,22 @@ def gcmc():
 
 
 if __name__ == '__main__':
-    from src.tanks.lmp.gcmc import LjGCMC
+    from hotpot.tanks.lmp.gcmc import LjGCMC
     import os
     import tqdm
     from time import time as t
     frame = ci.Molecule.read_from('/home/zz1/qyq/mq.cif')
-    frame.build_bonds()
-    # ff = frame + frame
-
-    # script = frame.dump('lmpdat')
+    # frame.build_bonds()
+    # # ff = frame + frame
     #
-    # g1 = ci.Molecule.read_from('O=O', 'smi')
-    # g1.build_conformer()
-    g2 = ci.Molecule.read_from('O=C=O', 'smi')
-    g2.build_conformer()
-
-    g2 + frame
+    # # script = frame.dump('lmpdat')
+    # #
+    # # g1 = ci.Molecule.read_from('O=O', 'smi')
+    # # g1.build_conformer()
+    # g2 = ci.Molecule.read_from('O=C=O', 'smi')
+    # g2.build_conformer()
+    #
+    # g2 + frame
     # g3 = ci.Molecule.read_from('N#N', 'smi')
     # g3.build_conformer()
     # g4 = ci.Molecule.read_from('O', 'smi')

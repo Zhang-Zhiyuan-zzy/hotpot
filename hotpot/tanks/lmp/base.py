@@ -14,7 +14,7 @@ import json
 import numpy as np
 from lammps import PyLammps, Atom
 from typing import *
-import src
+import hotpot
 
 
 class HpLammps:
@@ -253,4 +253,4 @@ class LmpTask:
         self.mol = mol
 
 
-import src.cheminfo as ci
+import hotpot.cheminfo as ci

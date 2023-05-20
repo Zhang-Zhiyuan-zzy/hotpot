@@ -18,7 +18,7 @@ from io import IOBase
 from openbabel import pybel
 import cclib
 import numpy as np
-import src.cheminfo as ci
+import hotpot.cheminfo as ci
 
 """
 Notes:
@@ -406,7 +406,7 @@ class Dumper(IOBase, metaclass=MetaIO):
     def _pre_cif(self):
         """
         pre-process for Molecule object to convert to cif file.
-        if the src object do not place in a Crystal, create a P1 compact Crystal for it
+        if the hotpot object do not place in a Crystal, create a P1 compact Crystal for it
         """
         crystal = self.src.crystal()
         if not isinstance(crystal, ci.Crystal) or (
@@ -421,7 +421,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         """ convert molecule information to numpy arrays """
         required_items = ['coord', 'type']
         check_atom_num = ['coord', 'force', 'charge']
-        share_same_configures = ['coord', 'energy', 'force', 'charge', 'virial']
+        share_same_configures = ['type', 'coord', 'energy', 'force', 'charge', 'virial']
         need_reshape = ['coord', 'force']
 
         conf_num = len(self.src.all_coordinates)
@@ -437,7 +437,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         box = box.reshape(-1, 9).repeat(conf_num, axis=0)
 
         data = {
-            'type': self.src.atomic_numbers,
+            'type': np.array(self.src.atomic_numbers).reshape(1, -1).repeat(conf_num, axis=0),
             'type_map': ['-'] + list(ci.periodic_table.keys()),
             'nopbc': not is_periodic,
             'coord': self.src.all_coordinates,  # angstrom,
@@ -847,11 +847,20 @@ class Parser(IOBase, metaclass=MetaIO):
                 return True
             return False
 
+        def is_hessian_no_longer_linear_valid():
+            march_pattern = re.compile(r'Error termination via Lnk1e in (/.+)*/l103\.exe')
+
+            if any (march_pattern.match(line.strip()) for line in script.splitlines()[-5:]):
+                return True
+            return False
+
         script = self._open_source_to_string_lines('str', 'path', "IOString", output_type='script')
 
         # Check whether a failure have happened when calculation.
         if is_convergence_failure():
             raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
+        if is_hessian_no_longer_linear_valid():
+            raise IOEarlyStop('Gaussian16 Hessian no longer linear valid')
 
     # Parse the XYZ file
     def _io_xyz(self):
@@ -1006,7 +1015,10 @@ class Parser(IOBase, metaclass=MetaIO):
 
                     rows += 1
 
-            obj.set(all_forces=np.array(all_forces))
+            try:
+                obj.set(all_forces=np.array(all_forces))
+            except ValueError:
+                return
 
         obj = self._cclib_io(obj)  # Try to supplementary Molecule data by cclib
 

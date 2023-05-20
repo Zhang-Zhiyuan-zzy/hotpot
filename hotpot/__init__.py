@@ -12,6 +12,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 src_root = os.path.abspath(os.path.dirname(__file__))
-pkg_root = os.path.abspath(f'{src_root}/..')
-data_root = os.path.abspath(os.path.join(pkg_root, 'data'))
-tmp_root = os.path.abspath(os.path.join(pkg_root, 'tmp'))
+data_root = os.path.abspath(os.path.join(src_root, 'data'))
+
+from cheminfo import Molecule
+from bundle import MolBundle

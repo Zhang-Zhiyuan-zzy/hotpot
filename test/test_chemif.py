@@ -6,8 +6,8 @@ python v3.7.9
 @Date   : 2023/3/15
 @Time   : 3:47
 """
-import src.cheminfo as ci
-from src._io import Parser
+import hotpot.cheminfo as ci
+from hotpot._io import Parser
 
 def mol2_read():
     path_mol2 = 'examples/struct/mol.mol2'

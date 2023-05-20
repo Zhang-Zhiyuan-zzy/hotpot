@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Hotpot"
+version = "0.2.0"
+dependencies = [
+    "numpy",
+    "pandas",
+    "thermo"
+]
+
+[tool.setuptools]
+include-package-data = true

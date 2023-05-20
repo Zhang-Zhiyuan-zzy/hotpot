@@ -16,11 +16,11 @@ from typing import *
 import math
 import random
 import numpy as np
-import src
-import src.cheminfo as ci
+import hotpot
+import hotpot.cheminfo as ci
 
 
-dir_force_field = osp.abspath(ptj(src.data_root, 'force_field'))
+dir_force_field = osp.abspath(ptj(hotpot.data_root, 'force_field'))
 
 # Constants
 avogadro = 6.02214076e23  # Avogadro numbers

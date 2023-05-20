@@ -12,9 +12,9 @@ import os.path as osp
 import random
 from os.path import join as ptj
 from typing import *
-import src
+import hotpot
 
-dir_force_field = osp.abspath(ptj(src.data_root, 'force_field'))
+dir_force_field = osp.abspath(ptj(hotpot.data_root, 'force_field'))
 
 
 class LjGCMC:
@@ -240,5 +240,5 @@ class LjGCMC:
         return self._data.get('work_dir', os.getcwd())
 
 
-import src.cheminfo as ci
-from src.tanks.lmp.base import HpLammps
+import hotpot.cheminfo as ci
+from hotpot.tanks.lmp.base import HpLammps

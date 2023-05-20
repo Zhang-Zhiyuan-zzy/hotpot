@@ -6,7 +6,7 @@ python v3.7.9
 @Date   : 2023/4/26
 @Time   : 5:09
 """
-from src.cheminfo import Molecule as Mol
+from hotpot.cheminfo import Molecule as Mol
 
 mol = Mol.create_aCryst_by_mq(
     elements={'C': 1.0}, force_field='aMaterials/SiC.tersoff',

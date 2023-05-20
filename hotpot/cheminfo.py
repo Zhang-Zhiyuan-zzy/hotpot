@@ -9,7 +9,6 @@ python v3.7.9
 import copy
 import os
 import re
-import time
 from io import IOBase
 from os import PathLike
 from os.path import join as ptj
@@ -19,10 +18,9 @@ import json
 from typing import *
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
-from src import data_root
-from src._io import retrieve_format, Dumper, Parser
-from src.tanks.quantum import Gaussian
-from src.tanks import lmp
+from hotpot import data_root
+from hotpot.tanks.quantum import Gaussian
+from hotpot.tanks import lmp
 
 periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))['elements']
 periodic_table = {d['symbol']: d for d in periodic_table}
@@ -676,7 +674,6 @@ class Molecule(Wrapper, ABC):
         """ get atom by label or idx """
         if not self.is_labels_unique:
             print(AttributeError('the molecule atoms labels are not unique!'))
-            return
 
         if isinstance(idx_label, str):
             return self.atoms[self.labels.index(idx_label)]
@@ -768,8 +765,6 @@ class Molecule(Wrapper, ABC):
 
         if ob_bond:
             return Bond(ob_bond, self)
-        else:
-            return None
 
     @property
     def bond_pair_keys(self):
@@ -807,9 +802,9 @@ class Molecule(Wrapper, ABC):
     def clean_bonds(self):
         """ Remove all bonds """
         # Iterate directly will fail.
-        ob_bonds = [OBBond for OBBond in ob.OBMolBondIter(self.ob_mol)]
-        for OBBond in ob_bonds:
-            self.ob_mol.DeleteBond(OBBond)
+        ob_bonds = [ob_bond for ob_bond in ob.OBMolBondIter(self.ob_mol)]
+        for ob_bond in ob_bonds:
+            self.ob_mol.DeleteBond(ob_bond)
 
     def clean_configures(self, pop: bool = False):
         """ clean all config save inside the molecule """
@@ -885,13 +880,13 @@ class Molecule(Wrapper, ABC):
             'bonds': {}
         }
 
-        # Copy all attribute except fro 'OBMol', 'atoms' and 'bonds'
+        # Copy all attribute except for 'OBMol', 'atoms' and 'bonds'
         for name, value in self._data.items():
             if name not in new_data:
                 new_data[name] = copy.copy(value)
 
         # Create new Molecule
-        clone_mol = Molecule()
+        clone_mol = self.__class__()
         clone_mol._data = new_data
         clone_mol.identifier = self.identifier
 
@@ -1022,7 +1017,7 @@ class Molecule(Wrapper, ABC):
         else:
             return None
 
-    def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes]:
+    def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes, dict]:
         """"""
         dumper = Dumper(fmt=fmt, source=self, *args, **kwargs)
         return dumper()
@@ -1160,6 +1155,42 @@ class Molecule(Wrapper, ABC):
     def ob_mol(self):
         return self._data['ob_mol']
 
+    def ob_mol_pop(self):
+        data = self._data
+
+        atoms: Dict[int, Atom] = data.get('atoms')
+        if atoms:
+            for ob_id, atom in atoms.items():
+                atom.ob_atom_pop()
+
+        bonds: Dict[int, Bond] = data.get('bonds')
+        if bonds:
+            for ob_idx, bond in bonds.items():
+                bond.ob_bond_pop()
+
+        return self._data.pop('ob_mol')
+
+    def ob_mol_rewrap(self, ob_mol: ob.OBMol):
+        if not isinstance(ob_mol, ob.OBMol):
+            raise TypeError('the ob_mol should be OBMol object')
+
+        atoms: Dict[int, Atom] = self._data.get('atoms')
+        bonds: Dict[int, Bond] = self._data.get('bonds')
+
+        if any(oba.GetId() not in atoms for oba in ob.OBMolAtomIter(ob_mol)):
+            raise ValueError('the atom number between the wrapper and the core OBMol is not match')
+        if any(obb.GetIdx() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
+            raise ValueError('the bond number between the wrapper and the core OBMol is not match')
+
+        self._data['ob_mol'] = ob_mol
+        for ob_atom in ob.OBMolAtomIter(ob_mol):
+            atom = atoms.get(ob_atom.GetId())
+            atom.ob_atom_rewrap(ob_atom)
+
+        for ob_bond in ob.OBMolBondIter(ob_mol):
+            bond = bonds.get(ob_bond.GetIdx())
+            bond.ob_bond_rewrap(ob_bond)
+
     @property
     def labels(self):
         return [a.label for a in self.atoms]
@@ -1174,7 +1205,7 @@ class Molecule(Wrapper, ABC):
         pop_lmp.close()
 
     def lmp_setup(self, *args, **kwargs):
-        self._data['lmp'] = lmp.HpLammps(self, *args, **kwargs)
+        self._data['lmp'] = lmp.HpLammps(self, **kwargs)
 
     @property
     def link_matrix(self):
@@ -1459,11 +1490,64 @@ class Molecule(Wrapper, ABC):
 
     @property
     def thermo(self):
-        return self._data.setdefault('thermo', self.thermo_init())
+        return self._data.get('thermo')
 
     def thermo_close(self):
-        thermo = self._data.pop('thermo')
-        del thermo
+        _ = self._data.pop('thermo')
+        del _
+
+    def to_dpmd_sys(self, dpmd_sys_root: Union[str, os.PathLike], mode: Literal['std', 'att'] = 'std'):
+        """
+        convert to DeePMD-Kit System, there are two system mode, that `standard` (std) and `attention` (att)
+            1) standard: https://docs.deepmodeling.com/projects/deepmd/en/master/data/system.html
+            2) attention: https://docs.deepmodeling.com/projects/deepmd/en/master/model/train-se-atten.html#data-format
+
+        Args:
+            dpmd_sys_root: the dir for all system data store
+            mode: the system mode, choose from att or std
+        """
+        dpmd_sys_root = Path(dpmd_sys_root)
+        if not dpmd_sys_root.exists():
+            dpmd_sys_root.mkdir()
+
+        # the dir of set data
+        set_root = dpmd_sys_root.joinpath('set.000')
+        if not set_root.exists():
+            set_root.mkdir()
+
+        data = self.dump('dpmd_sys')
+
+        for name, value in data.items():
+
+            # if the value is None, go to next
+            if value is None:
+                continue
+
+            # Write the type raw
+            if name == 'type':
+                if mode == 'std':
+                    type_raw = value[0]
+                elif mode == 'att':
+                    type_raw = np.zeros(value[0].shape, dtype=int)
+                    np.save(set_root.joinpath("real_atom_types.npy"), value)
+                else:
+                    raise ValueError('the mode just allows to be "std" or "att"')
+
+                with open(dpmd_sys_root.joinpath('type.raw'), 'w') as writer:
+                    writer.write('\n'.join([str(i) for i in type_raw]))
+
+            elif name == 'type_map':
+                with open(dpmd_sys_root.joinpath('type_map.raw'), 'w') as writer:
+                    writer.write('\n'.join([str(i) for i in value]))
+
+            # Create an empty 'nopbc', when the system is not periodical
+            elif name == 'nopbc' and value is True:
+                with open(dpmd_sys_root.joinpath('nopbc'), 'w') as writer:
+                    writer.write('')
+
+            # Save the numpy format data
+            elif isinstance(value, np.ndarray):
+                np.save(set_root.joinpath(f'{name}.npy'), value)
 
     def to_mix_mol(self):
         return MixSameAtomMol(_data=self._data)
@@ -1492,7 +1576,7 @@ class Molecule(Wrapper, ABC):
         return uni
 
     @property
-    def unique_bond_pairs(self) -> List[str]:
+    def unique_bond_pairs(self) -> List[Tuple[int, int, int]]:
         """ Retrieve unique bond pair in the molecule, i.e. a bond with same atoms element combination and bond type """
         return [b.pair_key for b in self.unique_bonds]
 
@@ -1540,6 +1624,8 @@ class Molecule(Wrapper, ABC):
 
 class MixSameAtomMol(Molecule):
     """ the only difference to the Molecule class is the method of their addition  """
+    def __repr__(self):
+        return f'MixMol({self.formula})'
 
     def iadd_accessible(self, other):
         if self.atom_num == other.atom_num:
@@ -1578,6 +1664,12 @@ class Atom(Wrapper, ABC):
     @property
     def ob_atom(self):
         return self._data['ob_atom']
+
+    def ob_atom_pop(self):
+        return self._data.pop('ob_atom')
+
+    def ob_atom_rewrap(self, ob_atom):
+        self._data['ob_atom'] = ob_atom
 
     @property
     def mol(self) -> Molecule:
@@ -1863,7 +1955,7 @@ class Bond(Wrapper, ABC):
 
     def __init__(self, ob_bond: ob.OBBond, _mol: Molecule):
         self._data = {
-            "OBBond": ob_bond,
+            "ob_bond": ob_bond,
             'mol': _mol
         }
 
@@ -1878,8 +1970,14 @@ class Bond(Wrapper, ABC):
         return hash(self.pair_key)
 
     @property
-    def _OBBond(self):
-        return self._data['OBBond']
+    def ob_bond(self):
+        return self._data['ob_bond']
+
+    def ob_bond_pop(self):
+        return self._data.pop('ob_bond')
+
+    def ob_bond_rewrap(self, ob_bond):
+        self._data['ob_bond'] = ob_bond
 
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
@@ -1896,11 +1994,11 @@ class Bond(Wrapper, ABC):
 
     @property
     def atomic_number1(self):
-        return self._OBBond.GetBeginAtom().GetAtomicNum()
+        return self.ob_bond.GetBeginAtom().GetAtomicNum()
 
     @property
     def atomic_number2(self):
-        return self._OBBond.GetEndAtom().GetAtomicNum()
+        return self.ob_bond.GetEndAtom().GetAtomicNum()
 
     @property
     def atoms(self):
@@ -1908,27 +2006,27 @@ class Bond(Wrapper, ABC):
 
     @property
     def begin_end_ob_id(self):
-        return self._OBBond.GetBeginAtom().GetId(), self._OBBond.GetEndAtom().GetId()
+        return self.ob_bond.GetBeginAtom().GetId(), self.ob_bond.GetEndAtom().GetId()
 
     @property
     def begin_end_atomic_number(self):
-        return self._OBBond.GetBeginAtom().GetAtomicNum(), self._OBBond.GetEndAtom().GetAtomicNum()
+        return self.ob_bond.GetBeginAtom().GetAtomicNum(), self.ob_bond.GetEndAtom().GetAtomicNum()
 
     @property
     def ideal_length(self):
-        return self._OBBond.GetEquibLength()
+        return self.ob_bond.GetEquibLength()
 
     @property
     def idx(self):
-        return self._OBBond.GetIdx()
+        return self.ob_bond.GetIdx()
 
     @property
     def ob_atom1(self):
-        return self._OBBond.GetBeginAtom()
+        return self.ob_bond.GetBeginAtom()
 
     @property
     def ob_atom2(self):
-        return self._OBBond.GetEndAtom()
+        return self.ob_bond.GetEndAtom()
 
     @property
     def ob_atom1_id(self):
@@ -1948,7 +2046,7 @@ class Bond(Wrapper, ABC):
 
     @property
     def length(self):
-        return self._OBBond.GetLength()
+        return self.ob_bond.GetLength()
 
     @property
     def molecule(self):
@@ -1960,7 +2058,7 @@ class Bond(Wrapper, ABC):
 
     @property
     def type(self):
-        return self._OBBond.GetBondOrder()
+        return self.ob_bond.GetBondOrder()
 
 
 class Angle:
@@ -2071,7 +2169,6 @@ class Crystal(Wrapper, ABC):
 
         if not mol:  # If get None
             print(RuntimeWarning("the crystal doesn't contain any Molecule!"))
-            return None
 
         pack_mol = mol.copy()
         self.ob_unit_cell.FillUnitCell(pack_mol.ob_mol)  # Full the crystal
@@ -2135,4 +2232,5 @@ class Crystal(Wrapper, ABC):
         """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """
 
 
-import src.bundle as bd
+import hotpot.bundle as bd
+from hotpot._io import Dumper, Parser

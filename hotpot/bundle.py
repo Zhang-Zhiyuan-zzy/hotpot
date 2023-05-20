@@ -7,14 +7,16 @@ python v3.7.9
 @Time   : 3:18
 """
 import copy
+import time
 from os import PathLike
 from typing import *
 from pathlib import Path
 import numpy as np
 import torch
 from tqdm import tqdm
-import src.cheminfo as ci
-from src.tools import check_path
+from openbabel import pybel as pb
+import hotpot.cheminfo as ci
+from hotpot.tools import check_path
 import multiprocessing as mp
 
 
@@ -33,8 +35,11 @@ class MolBundle:
         self.mols = mols
         self._data = {}
 
+    def __repr__(self):
+        return f"MolBundle[{', '.join([str(m) for m in self.mols])}]"
+
     def __iter__(self):
-        return iter(tqdm(self.mols, 'Process Molecule'))
+        return iter(tqdm(self.mols))
 
     def __add__(self, other: Union['MolBundle', ci.Molecule]):
         """"""
@@ -49,7 +54,7 @@ class MolBundle:
         return len(self.mols)
 
     def __getitem__(self, item: int):
-        return self.mols[int]
+        return self.mols[item]
 
     def __bundle_mol_indices_with_same_attr(self, attr_name: str):
         self.to_list()
@@ -108,14 +113,24 @@ class MolBundle:
         Returns:
             List(Molecule) or Generator(Molecule)
         """
+        def read_mol(pm: Path, conn):
+
+            try:
+                mol = ci.Molecule.read_from(pm, fmt)
+
+                # the OBMol, OBAtom, OBBond are C++ objects wrapped by SWIG,
+                # they can't be pickle, so pop them from Molecule and convert their info to .mol2 string
+                pmol = pb.Molecule(mol.ob_mol_pop())
+                script = pmol.write('mol2')  # Write to the mol2 script to allow it to pickle
+
+                # communicate with the main process
+                conn.send((mol, script, pm))
+
+            except AttributeError:
+                conn.send((None, None, pm))
+
         def mol_generator():
             nonlocal read_dir
-
-            if isinstance(read_dir, str):
-                read_dir = Path(read_dir)
-            elif not isinstance(read_dir, PathLike):
-                raise TypeError(f'the read_dir should be a str or PathLike, instead of {type(read_dir)}')
-
             for i, path_mol in enumerate(read_dir.glob(match_pattern)):
 
                 if not ranges or i in ranges:
@@ -127,15 +142,69 @@ class MolBundle:
                     yield mol
 
         def mol_mp_generator():
-            nonlocal read_dir
+            mols_info = []
 
-            if isinstance(read_dir, str):
-                pass
+            parent_conn, child_conn = mp.Pipe()
+            ps = []  # list of Process: Queue pairs
+
+            for i, path_file in enumerate(read_dir.glob(match_pattern)):
+
+                # if the number of process more than num_proc, get the read molecule info and stop to start new process
+                while len(ps) >= num_proc:
+                    for p in ps:
+                        if not p.is_alive():
+                            mols_info.append(parent_conn.recv())
+                            p.terminate()
+                            ps.remove(p)
+
+                # When received some Molecule info, reorganize these info and yield
+                while mols_info:
+                    mol, script, pf = mols_info.pop()  # hotpot Molecule, mol2_script, path_file of Molecule
+
+                    # if get a valid Molecule info, re-wrap to be hotpot Molecule
+                    if mol and script:
+                        pmol = pb.readstring('mol2', script)  # pybel Molecule object
+                        mol.ob_mol_rewrap(pmol.OBMol)  # re-wrap OBMol by hotpot Molecule
+
+                        # if the reorganized Molecule is expected, yield
+                        if not condition or condition(mol, pf):
+                            yield mol
+
+                # Start new process to read Molecule from file
+                if not ranges or i in ranges:
+                    p = mp.Process(target=read_mol, args=(path_file, child_conn))
+                    p.start()
+                    ps.append(p)
+
+            # After all path_file have pass into process to read
+            while ps:
+                for p in ps:
+                    if not p.is_alive():
+                        mols_info.append(parent_conn.recv())
+                        p.terminate()
+                        ps.remove(p)
+
+            for mol, script, pf in mols_info:
+                # if get a valid Molecule info, re-wrap to be hotpot Molecule
+                if mol and script:
+                    pmol = pb.readstring('mol2', script)  # pybel Molecule object
+                    mol.ob_mol_rewrap(pmol.OBMol)  # re-wrap OBMol by hotpot Molecule
+
+                    # if the reorganized Molecule is expected, yield
+                    if not condition or condition(mol, pf):
+                        yield mol
+
+        if isinstance(read_dir, str):
+            read_dir = Path(read_dir)
+        elif not isinstance(read_dir, PathLike):
+            raise TypeError(f'the read_dir should be a str or PathLike, instead of {type(read_dir)}')
+
+        generator = mol_mp_generator() if num_proc else mol_generator()
 
         if generate:
-            return cls(mol_generator())
+            return cls(generator)
         else:
-            return cls([m for m in tqdm(mol_generator(), 'reading molecules')])
+            return cls([m for m in tqdm(generator, 'reading molecules')])
 
     def graph_represent(self, graph_fmt: GraphFormatName, *feature_type):
         """ Transform molecules to the molecule to graph representation,
@@ -277,6 +346,9 @@ class MolBundle:
             mol_array = np.array(bundle.mols)
             return MolBundle([mol_array[i].sum() for ans, i in atom_num.items()])
 
+    def to_dpmd_sys(self, sys_root):
+        """"""
+
     def to_list(self) -> List[ci.Molecule]:
         """ Convert the molecule container (self.mol) to list """
         if isinstance(self.mols, Generator):
@@ -290,7 +362,7 @@ class MolBundle:
         Returns:
             MolBundle(MixSameAtomMol)
         """
-        return MolBundle([m if isinstance(m, ci.MixSameAtomMol) else m.to_mix_mols() for m in self])
+        return MolBundle([m.to_mix_mol() if not isinstance(m, ci.MixSameAtomMol) else m for m in self])
 
     def to_mols(self):
         """
@@ -298,4 +370,4 @@ class MolBundle:
         Returns:
             MolBundle(Molecule)
         """
-        return MolBundle([m if isinstance(m, ci.Molecule) else m.to_mols() for m in self])
+        return MolBundle([m.to_mol() if isinstance(m, ci.MixSameAtomMol) else m for m in self])

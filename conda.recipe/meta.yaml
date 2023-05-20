@@ -1,0 +1,19 @@
+package:
+  name: hotpot
+  version: 0.2.0
+
+source:
+  path: /home/zz1/hotpot
+
+build:
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python==3.9
+    - pip
+  run:
+    - python==3.9
+    - openbabel
+    - cclib
+    - lammpsexit

@@ -8,7 +8,7 @@ python v3.7.9
 """
 import sys
 sys.path.append('/home/zz1/hotpot')
-from src.bundle import MolBundle
+from hotpot.bundle import MolBundle
 from pathlib import Path
 
 

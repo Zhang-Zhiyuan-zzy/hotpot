@@ -1040,30 +1040,26 @@ class Molecule(Wrapper, ABC):
         """ Return energy with kcal/mol as default """
         return self.ob_mol.GetEnergy()
 
-    def feature_matrix(self, feature_names):
-        n = self.atom_num
-        m = len(feature_names)
-        np.set_printoptions(suppress=True, precision=6)
-        feature_matrix = np.zeros((n, m+3))
+    def feature_matrix(self, *feature_names: Sequence) -> np.ndarray:
+        """ Retrieve the feature matrix (collections of feature vector for every atoms),
+         The default feature is `atomic_orbital`, if the feature names not be specified, the `atomic_orbital` will be
+         retrieved.
+         Args:
+             feature_names: the feature names are offered in hotpot/data/periodic_table.json
+         """
+        if not feature_names:
+            feature_names = ('atomic_orbital',)
 
-        for i, atom in enumerate(self.atoms):
-            atom_features = atom.element_features(output_type='dict', *feature_names)
-            for j, feature_name in enumerate(feature_names):
-                if feature_name == 'atom_orbital_feature':
-                    ao_features = atom_features[feature_name]
-                    feature_matrix[i, j] = ao_features['s']
-                    feature_matrix[i, j + 1] = ao_features['p']
-                    feature_matrix[i, j + 2] = ao_features['d']
-                    feature_matrix[i, j + 3] = ao_features['f']
-                    j += 3
-                else:
-                    feature_matrix[i, j] = atom_features[feature_name]
-        return feature_matrix
+        # Matrix with shape (atom_numbers, feature_length)
+        return np.stack([atom.element_features(*feature_names) for atom in self.atoms])
 
     @property
     def forces(self):
         """ return the all force vectors for all atoms in the molecule """
         return np.vstack((atom.force_vector for atom in self.atoms))
+
+    def graph_representation(self, *feature_names):
+        return self.identifier, self.feature_matrix(*feature_names), self.link_matrix
 
     @property
     def all_forces(self):
@@ -1426,8 +1422,13 @@ class Molecule(Wrapper, ABC):
             else:
                 raise ValueError(f'the arguments should be specified for {type(source)} source')
 
-        parser = Parser(fmt, source, *args, **kwargs)
-        return parser()
+        mol = Parser(fmt, source, *args, **kwargs)()  # initialize parser object and call self
+
+        # Specify the mol identifier if it's None
+        if not mol.identifier:
+            mol.identifier = source
+
+        return mol
 
     def register_critical_params(self, name: str, temperature: float, pressure: float, acentric: float):
         """ Register new critical parameters into the critical parameters sheet """
@@ -1802,18 +1803,20 @@ class Atom(Wrapper, ABC):
         """ Make a copy of its data """
         return copy.copy(self._data)
 
-    def element_features(self, *feature_names, output_type='dict'):
+    def element_features(self, *feature_names) -> np.ndarray:
+        """ Retrieve the feature vector """
         atom_feature = periodic_table.get(self.symbol)
-        features = {}
-        for name in feature_names:
-            if name == "atom_orbital_feature":
-                features['atom_orbital_feature'] = self._atomic_orbital_feature()
-            else:
-                features[name] = atom_feature[name]
-        if output_type == 'list':
-            features = [features[name] for name in feature_names]
 
-        return features
+        features = []
+        for feature_name in feature_names:
+            if feature_name == 'atomic_orbital':
+                features.extend(self._atomic_orbital_feature().values())
+            elif feature_name == 'atomic_number':
+                features.append(self.atomic_number)
+            else:
+                features.append(atom_feature[feature_name])
+
+        return np.array(features)
 
     def _atomic_orbital_feature(self, outermost_layer=True, nonexistent_orbit=0):
         """    Calculating the feature about atomic orbital structures    """

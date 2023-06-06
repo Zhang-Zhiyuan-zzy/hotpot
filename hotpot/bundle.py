@@ -204,14 +204,10 @@ class MolBundle:
         else:
             return cls([m for m in tqdm(generator, 'reading molecules')])
 
-    def graph_represent(self, *feature_type):
-        """ Transform molecules to the molecule to graph representation """
-        feature_matrices = []
+    def graph_representation(self, *feature_names) -> Generator[Union[str, np.ndarray, np.ndarray], None, None]:
+        """ Transform molecules to their graph representation """
         for mol in self.mols:
-            feature_matrix = mol.feature_matrix(feature_names=feature_type)
-            feature_matrices.append(feature_matrix)
-
-        return feature_matrices
+            yield mol.graph_representation(*feature_names)
 
     def gaussian(
             self, g16root: Union[str, PathLike], dir_out: Union[str, PathLike],

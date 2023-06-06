@@ -7,12 +7,10 @@ python v3.7.9
 @Time   : 3:18
 """
 import copy
-import time
 from os import PathLike
 from typing import *
 from pathlib import Path
 import numpy as np
-import torch
 from tqdm import tqdm
 from openbabel import pybel as pb
 import hotpot.cheminfo as ci
@@ -206,18 +204,14 @@ class MolBundle:
         else:
             return cls([m for m in tqdm(generator, 'reading molecules')])
 
-    def graph_represent(self, graph_fmt: GraphFormatName, *feature_type):
-        """ Transform molecules to the molecule to graph representation,
-        the transformed graph with 'numpy.ndarray' or 'PyTorch.Tensor' format """
+    def graph_represent(self, *feature_type):
+        """ Transform molecules to the molecule to graph representation """
         feature_matrices = []
         for mol in self.mols:
             feature_matrix = mol.feature_matrix(feature_names=feature_type)
             feature_matrices.append(feature_matrix)
 
-        if graph_fmt == 'numpy':
-            return feature_matrices
-        elif graph_fmt == 'Pytorch':
-            return [torch.tensor(matrix) for matrix in feature_matrices]
+        return feature_matrices
 
     def gaussian(
             self, g16root: Union[str, PathLike], dir_out: Union[str, PathLike],

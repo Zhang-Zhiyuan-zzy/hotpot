@@ -3,12 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Hotpot"
-version = "0.2.0"
+name = "hotpot-zzy"
+version = "0.2.1"
 dependencies = [
     "numpy",
     "pandas",
-    "thermo"
+    "thermo",
+    "cclib"
 ]
 
 [tool.setuptools]

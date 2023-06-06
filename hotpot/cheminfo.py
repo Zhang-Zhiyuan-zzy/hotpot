@@ -7,24 +7,28 @@ python v3.7.9
 @Time   : 4:09
 """
 import copy
+import json
 import os
 import re
+from abc import ABC, abstractmethod
 from io import IOBase
 from os import PathLike
 from os.path import join as ptj
 from pathlib import Path
-from abc import ABC, abstractmethod
-import json
 from typing import *
+
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
-from hotpot import data_root
-from hotpot.tanks.quantum import Gaussian
-from hotpot.tanks import lmp
 
-periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))['elements']
-periodic_table = {d['symbol']: d for d in periodic_table}
+from hotpot import data_root
+from hotpot.tanks import lmp
+from hotpot.tanks.quantum import Gaussian
+
+periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))
+# periodic_table = {d['symbol']: d for d in periodic_table}
 _symbols = ['unknown'] + list(periodic_table.keys())
+_max_valences = {n: v['max_valence'] for n, v in periodic_table.items()}
+_max_total_bond_order = {n: v['max_total_bond_order'] for n, v in periodic_table.items()}
 
 _bond_type = {
     'Unknown': 0,
@@ -293,7 +297,11 @@ class Molecule(Wrapper, ABC):
             atoms.pop(pop_idx)
 
         # Add create new atoms, its corresponding obBond in the obMol but lacking in atom repository
-        atoms = {i: atoms.get(i, Atom(self.ob_mol.GetAtomById(i), mol=self)) for i in set_ob_atoms_idx}
+        for oba in ob.OBMolAtomIter(self.ob_mol):
+            atom = atoms.setdefault(oba.GetId(), Atom(oba, mol=self))
+            atom.ob_atom = oba
+
+        # atoms = {i: atoms.get(i, Atom(self.ob_mol.GetAtomById(i), mol=self)) for i in set_ob_atoms_idx}
 
         self._data['atoms'] = atoms
 
@@ -591,15 +599,15 @@ class Molecule(Wrapper, ABC):
             bond_type: Union[str, int],
     ):
         """ Add a new bond into the molecule """
-        atoms = (atom1, atom2)
-        atom_idx = []
-        for a in atoms:
+        inputs = (atom1, atom2)
+        atoms: List[Atom] = []
+        for a in inputs:
             if isinstance(a, int):
-                atom_idx.append(a)
+                atoms.append(self.atoms[a])
             if isinstance(a, Atom):
-                atom_idx.append(a.ob_id)
+                atoms.append(a)
             if isinstance(a, str):
-                atom_idx.append(self.atom(a).ob_id)
+                atoms.append(self.atom(a))
 
         # Represent the bond type by int, refer to _bond_type dict
         bond_type = bond_type if isinstance(bond_type, int) else _bond_type[bond_type]
@@ -610,16 +618,16 @@ class Molecule(Wrapper, ABC):
         # To meet the convention, the `Id` is selected to be the unique `index` to specify `Atom`.
         # However, when try to add a `OBBond` to link each two `OBAtoms`, the `Idx` is the only method
         # to specify the atoms, so our `index` in `Atom` are added 1 to match the 'Idx'
-        success = self.ob_mol.AddBond(atom_idx[0] + 1, atom_idx[1] + 1, bond_type)
+        success = self.ob_mol.AddBond(atoms[0].ob_idx, atoms[1].ob_idx, bond_type)
 
         if success:
-            new_ob_bond_idx = [i for i in (ob.OBMolBondIter(self.ob_mol))][-1].GetIdx()
+            new_ob_bond_idx = [obb for obb in (ob.OBMolBondIter(self.ob_mol))][-1].GetIdx()
             bond = self._load_bonds()[new_ob_bond_idx]  # the new atoms should place in the terminal of the bond list
 
-        elif atom_idx[0] not in self.atom_indices:
+        elif atoms[0] not in self.atom_indices:
             raise KeyError("the start atom1 doesn't exist in molecule")
 
-        elif atom_idx[1] not in self.atom_indices:
+        elif atoms[1] not in self.atom_indices:
             raise KeyError("the end atom2 doesn't exist in molecule")
 
         else:
@@ -670,17 +678,17 @@ class Molecule(Wrapper, ABC):
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
 
-    def atom(self, idx_label: Union[int, str]) -> 'Atom':
+    def atom(self, id_label: Union[int, str]) -> 'Atom':
         """ get atom by label or idx """
         if not self.is_labels_unique:
             print(AttributeError('the molecule atoms labels are not unique!'))
 
-        if isinstance(idx_label, str):
-            return self.atoms[self.labels.index(idx_label)]
-        elif isinstance(idx_label, int):
-            return self.atoms[idx_label]
+        if isinstance(id_label, str):
+            return self.atoms[self.labels.index(id_label)]
+        elif isinstance(id_label, int):
+            return self.atoms[id_label]
         else:
-            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(idx_label)}')
+            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(id_label)}')
         
     @property
     def atom_num(self):
@@ -906,7 +914,8 @@ class Molecule(Wrapper, ABC):
 
         return clone_mol
 
-    def copy_data(self):
+    @property
+    def data(self):
         return copy.copy(self._data)
 
     def compact_crystal(self, inplace=False):
@@ -1150,6 +1159,16 @@ class Molecule(Wrapper, ABC):
         """ Determine whether all atom labels are unique """
         labels = set(self.labels)
         return len(labels) == self.atom_num
+
+    @property
+    def is_organic(self):
+        """ To judge whether the molecule is organic, an organic compound is with carbon atoms and without metal """
+        if any(a.is_metal for a in self.atoms):
+            return False
+        elif any(a.symbol == 'C' for a in self.atoms):
+            return True
+
+        return False
 
     @property
     def ob_mol(self):
@@ -1553,7 +1572,7 @@ class Molecule(Wrapper, ABC):
         return MixSameAtomMol(_data=self._data)
 
     def to_mol(self):
-        return Molecule(self.copy_data())
+        return Molecule(self.data)
 
     @property
     def unique_all_atoms(self):
@@ -1664,6 +1683,10 @@ class Atom(Wrapper, ABC):
     @property
     def ob_atom(self):
         return self._data['ob_atom']
+
+    @ob_atom.setter
+    def ob_atom(self, oba):
+        self._data['ob_atom'] = oba
 
     def ob_atom_pop(self):
         return self._data.pop('ob_atom')
@@ -1860,16 +1883,25 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.GetId()
 
     @property
+    def ob_idx(self):
+        return self.ob_atom.GetIdx()
+
+    @property
     def is_aromatic(self):
         return self.ob_atom.IsAromatic()
 
     @property
-    def is_metal(self):
-        return self.ob_atom.IsMetal()
-
-    @property
     def is_chiral(self):
         return self.ob_atom.IsChiral()
+
+    @property
+    def is_polar_hydrogen(self) -> bool:
+        """ Is this atom a hydrogen connected to a polar atom """
+        return self.ob_atom.IsPolarHydrogen()
+
+    @property
+    def is_metal(self):
+        return self.ob_atom.IsMetal()
 
     @property
     def label(self):
@@ -1880,8 +1912,17 @@ class Atom(Wrapper, ABC):
         self._set_label(value)
 
     @property
+    def link_degree(self) -> int:
+        """ the degree of the atom in their parent molecule """
+        return self.ob_atom.GetTotalDegree()
+
+    @property
     def mass(self):
         return self.ob_atom.GetAtomicMass()
+
+    @property
+    def max_total_bond_order(self):
+        return _max_total_bond_order[self.symbol]
 
     @property
     def molecule(self) -> Molecule:
@@ -1891,7 +1932,8 @@ class Atom(Wrapper, ABC):
     def neighbours(self):
         """ Get all atoms bond with this atom in same molecule """
         if self.mol:
-            return [self.mol.atoms[ob_atom.GetId()] for ob_atom in ob.OBAtomAtomIter(self.ob_atom)]
+            _ = self.mol.atoms  # update the atoms dict
+            return [self.mol.data.get('atoms')[ob_atom.GetId()] for ob_atom in ob.OBAtomAtomIter(self.ob_atom)]
         else:
             return []
 
@@ -1917,6 +1959,16 @@ class Atom(Wrapper, ABC):
     @property
     def symbol(self):
         return _symbols[self.atomic_number]
+
+    @property
+    def valence(self) -> int:
+        """ The current number of explicit connections """
+        return self.ob_atom.GetTotalValence()
+
+    @property
+    def valence_max(self):
+        """ The implicit valence of this atom type (i.e. maximum number of connections expected) """
+        return _max_valences[self.symbol]
 
 
 class PseudoAtom(Wrapper, ABC):

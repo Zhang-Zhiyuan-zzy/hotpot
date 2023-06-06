@@ -7,7 +7,6 @@ python v3.7.9
 @Time   : 3:47
 """
 import hotpot.cheminfo as ci
-from hotpot._io import Parser
 
 def mol2_read():
     path_mol2 = 'examples/struct/mol.mol2'
@@ -50,15 +49,21 @@ def perturb_cif():
 
 
 if __name__ == '__main__':
-    import time
-    m1, m2, m3 = parse_g16log()
-    # m1.dump('smi')
-    # m3.dump('smi')
-    # data = mol.dump('dpmd_sys', path_save='output/dpmd_sys')
-    # m = m1 + m3
-    # for a in mol.atoms:
-    #     print(a.partial_charge, a.spin_density, a.force_vector.shape)
-    # perturb_cif()
-    # m1 = ci.Molecule.read_from('examples/struct/aCarbon.cif')
-    m2 = ci.Molecule.read_from('examples/struct/aCarbon.xyz')
-
+    from openbabel import openbabel as ob
+    mol = ci.Molecule.read_from('c1ccc(C(=O)O)cc1', 'smi')
+    print(
+        [a.GetAtomicNum() for a in ob.OBMolAtomIter(mol.ob_mol)], '\n',
+        [a.GetId() for a in ob.OBMolAtomIter(mol.ob_mol)], '\n',
+        mol.atoms
+    )
+    mol.build_conformer()
+    print(mol.atoms)
+    mol.remove_hydrogens()
+    sr = mol.add_atom('Sr')
+    mol.normalize_labels()
+    # mol.add_bond(sr, 'O1', 1)
+    b = mol.add_bond(sr, 'O2', 1)
+    mol.build_conformer()
+    mol.writefile('mol2', '/home/zz1/coor.mol2')
+    print([a.valence for a in mol.atoms])
+    print([a.link_degree for a in mol.atoms])

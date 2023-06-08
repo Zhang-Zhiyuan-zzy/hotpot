@@ -1498,7 +1498,7 @@ class Molecule(Wrapper, ABC):
 
         # Specify the mol identifier if it's None
         if not mol.identifier:
-            mol.identifier = source
+            mol.identifier = str(source)
 
         return mol
 

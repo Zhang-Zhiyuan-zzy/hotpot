@@ -48,7 +48,7 @@ def perturb_cif():
         gen_mol.writefile('cif', f'output/gen_cif/aCarbon_{i}.cif')
 
 
-if __name__ == '__main__':
+def gen_pairs():
     from openbabel import openbabel as ob
     mol = ci.Molecule.read_from('c1ccc(C(=O)O)c(O)c1CCCC', 'smi')
     mol2 = ci.Molecule.read_from('c1ccc(C(=O)O)c(O)c1CCCC', 'smi')
@@ -64,3 +64,7 @@ if __name__ == '__main__':
     ps = [p for i, p in enumerate(g)]
     ps[1].remove_atoms('C1', 'C2')
     ps[1].writefile('mol2', f'/home/zz1/g01.mol2')
+
+
+if __name__ == '__main__':
+    mol = ci.Molecule.read_from('/home/zz1/mq_0.8_3001_9121_353.cif')

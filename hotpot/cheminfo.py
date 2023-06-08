@@ -24,6 +24,15 @@ from hotpot import data_root
 from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian
 
+# Define Exceptions
+class OperateOBMolFail(BaseException):
+    """ Raise for any fail that trys to operate the OBMol """
+class AddAtomFail(OperateOBMolFail):
+    """ Raise when add an atom into Molecule fail """
+
+class AddBondFail(OperateOBMolFail):
+    """ Raise when add a bond into Molecule fail """
+
 periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))
 # periodic_table = {d['symbol']: d for d in periodic_table}
 _symbols = ['unknown'] + list(periodic_table.keys())
@@ -546,21 +555,31 @@ class Molecule(Wrapper, ABC):
     def acentric_factor(self):
         return self._get_critical_params('acentric_factor')
 
-    def add_atom(self, atom: Union["Atom", str, int]):
+    def add_atom(self, atom: Union["Atom", str, int], **atom_kwargs):
         """
         Add a new atom out of the molecule into the molecule.
         Args:
             atom(Atom|str|int):
 
-        Returns:
+        atom_kwargs(kwargs for this added atom):
+            atomic_number(int): set atomic number
+            symbol(str): set atomic symbol
+            coordinates(Sequence, numpy.ndarray): coordinates of the atom
+            partial_charge:
+            label:
+            spin_density:
 
+        Returns:
+            the copy of atom in the molecule
         """
         if isinstance(atom, str):
-            atom = Atom(symbol=atom)
+            atom = Atom(symbol=atom, **atom_kwargs)
         elif isinstance(atom, int):
-            atom = Atom(atomic_number=atom)
+            atom = Atom(atomic_number=atom, **atom_kwargs)
+        elif isinstance(atom, Atom):
+            atom.set(**atom_kwargs)
 
-        # Avoid add a existed atom into the molecule
+        # Avoid add an existed atom into the molecule
         if atom.molecule and (atom.molecule is self or atom.molecule.ob_mol is self.ob_mol):
             raise AttributeError("This atom have exist in the molecule")
 
@@ -587,10 +606,10 @@ class Molecule(Wrapper, ABC):
                 atoms.update({atom.ob_id: atom})
                 return atom
             else:
-                print(RuntimeWarning(f'the atom with ob_id {atom.ob_id} have exist in the Molecule'))
+                raise ValueError(f'the atom with ob_id {atom.ob_id} have exist in the Molecule')
 
         else:
-            print(RuntimeWarning("Fail to add atom"))
+            raise AddAtomFail(f'Add the atom {atom} into Molecule fail')
 
     def add_bond(
             self,
@@ -603,7 +622,7 @@ class Molecule(Wrapper, ABC):
         atoms: List[Atom] = []
         for a in inputs:
             if isinstance(a, int):
-                atoms.append(self.atoms[a])
+                atoms.append(self.atoms_dict[a])
             if isinstance(a, Atom):
                 atoms.append(a)
             if isinstance(a, str):
@@ -675,6 +694,56 @@ class Molecule(Wrapper, ABC):
     def angles(self):
         return [Angle(self, a_idx) for a_idx in ob.OBMolAngleIter(self.ob_mol)]
 
+    def generate_metal_ligand_pair(
+            self, metal_symbol: str, acceptor_atoms: Sequence = ('O',), opti_force_field: str = 'UFF'
+    ) -> Generator['Molecule', None, None]:
+        """
+        This method could work if the molecule is an organic ligand, or raise AttributeError.
+        Generate metal-ligand pair by link metal with acceptor atoms in the organic ligand.
+
+        Args:
+            metal_symbol: which metal element link to the ligand
+            acceptor_atoms: which elements to be acceptor atom to link to metal
+            opti_force_field: which force field could be used to optimize the configuration of ligand and M-L pair.
+
+        Return:
+            A generator for M-L pair
+
+        Raise:
+            AttributeError: if the molecule is not an organic ligand
+        """
+        if not self.is_organic:
+            raise AttributeError('the accepting molecule should be organic compound')
+
+        ligand = self.copy()
+        ligand.localed_optimize(opti_force_field)  # locally optimize the ligand
+        ligand.normalize_labels()
+
+        for atom in ligand.atoms:
+            if atom.symbol in acceptor_atoms:
+                acceptor_ligand = ligand.copy()
+
+                # assign the initial coordinates
+                # the sum of vector of relative position relate to the accepting atom
+                sum_relative_coordinates = sum([c for _, c in atom.neighbours_position])
+                metal_init_coordinates = atom.coordinates - sum_relative_coordinates
+
+                # add metal atom into the acceptor_ligand
+                added_metal = acceptor_ligand.add_atom(metal_symbol, coordinates=metal_init_coordinates)
+
+                # add the coordinating bond between metal atom and acceptor atoms
+                acceptor_ligand.add_bond(added_metal, atom.label, 1)
+
+                # remove redundant hydrogen
+                accepting_atom = acceptor_ligand.atom(atom.label)
+                while accepting_atom.valence > accepting_atom.valence_max and accepting_atom.neigh_hydrogens:
+                    acceptor_ligand.remove_atoms(accepting_atom.neigh_hydrogens[0])
+
+                # localize optimization of M-L pair by classical force field
+                acceptor_ligand.localed_optimize(opti_force_field)
+
+                yield acceptor_ligand
+
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
 
@@ -684,9 +753,13 @@ class Molecule(Wrapper, ABC):
             print(AttributeError('the molecule atoms labels are not unique!'))
 
         if isinstance(id_label, str):
-            return self.atoms[self.labels.index(id_label)]
+            for atom in self.atoms:
+                if atom.label == id_label:
+                    return atom
+            raise KeyError(f'No atom with label {id_label}')
+
         elif isinstance(id_label, int):
-            return self.atoms[id_label]
+            return self.atoms_dict[id_label]
         else:
             raise TypeError(f'the given idx_label is expected to be int or string, but given {type(id_label)}')
         
@@ -705,7 +778,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def atoms_dict(self) -> Dict[int, 'Atom']:
-        return copy.copy(self._data.get('atoms', {}))
+        return self._load_atoms()
 
     @property
     def all_atoms(self):
@@ -905,7 +978,6 @@ class Molecule(Wrapper, ABC):
 
         # copy, in turn, each Atom in this molecule and add them into new Molecule
         for atom in self.atoms:
-            # clone_atom = atom.copy()
             clone_mol.add_atom(atom)
 
         # generate Bonds in new Molecule with same graph pattern in this Molecule
@@ -1058,9 +1130,6 @@ class Molecule(Wrapper, ABC):
         """ return the all force vectors for all atoms in the molecule """
         return np.vstack((atom.force_vector for atom in self.atoms))
 
-    def graph_representation(self, *feature_names):
-        return self.identifier, self.feature_matrix(*feature_names), self.link_matrix
-
     @property
     def all_forces(self):
         """ the force matrix for all configure """
@@ -1127,6 +1196,9 @@ class Molecule(Wrapper, ABC):
 
         # return results and error info
         return stdout, stderr
+
+    def graph_representation(self, *feature_names):
+        return self.identifier, self.feature_matrix(*feature_names), self.link_matrix
 
     @property
     def has_3d(self):
@@ -1437,11 +1509,12 @@ class Molecule(Wrapper, ABC):
         with open(ptj(data_root, 'thermo', 'critical.json'), 'w') as writer:
             json.dump(data, writer, indent=True)
 
-    def remove_atoms(self, *atoms: Union[int, str, 'Atom']) -> None:
+    def remove_atoms(self, *atoms: Union[int, str, 'Atom'], remove_hydrogens: bool = True) -> None:
         """
         Remove atom according to given atom index, label or the atoms self.
         Args:
             atoms(int|str|Atom): the index, label or self of Removed atom
+            remove_hydrogens(bool): remove the hydrogens connecting in the atoms synchronously.
 
         Returns:
             None
@@ -1450,18 +1523,26 @@ class Molecule(Wrapper, ABC):
 
             # Check and locate the atom
             if isinstance(atom, int):
-                atom = self.atoms[atom]
+                atom = self.atoms_dict[atom]
             elif isinstance(atom, str):
-                atom = self.atoms[self.atom_labels.index(atom)]
+                atom = self.atom(atom)
             elif isinstance(atom, Atom):
                 if not (atom.molecule is self):
                     raise AttributeError('the given atom not in the molecule')
             else:
                 raise TypeError('the given atom should be int, str or Atom')
 
-            # Removing atom
+            # remove connecting hydrogens
+            if remove_hydrogens:
+                for nh in atom.neigh_hydrogens:
+                    self.ob_mol.DeleteAtom(nh.ob_atom)
+
+            # Removing the atom
             self.ob_mol.DeleteAtom(atom.ob_atom)
             atom._data['_mol'] = None
+
+            # Reload atoms
+            self._load_atoms()
 
     def remove_hydrogens(self):
         self.ob_mol.DeleteHydrogens()
@@ -1474,12 +1555,12 @@ class Molecule(Wrapper, ABC):
         """ Set the attributes directly """
         self._set_attrs(**kwargs)
 
-    def set_label(self, idx: int, label: str):
-        self.atoms[idx].label = label
+    def set_label(self, ob_id: int, label: str):
+        self.atoms_dict[ob_id].label = label
 
     @property
     def smiles(self):
-        return self.dump('smi').strip().strip()
+        return self.dump('smi').split()[0]
 
     @property
     def spin(self):
@@ -1770,8 +1851,8 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.GetAtomicNum()
 
     @property
-    def coordinates(self):
-        return self.ob_atom.GetX(), self.ob_atom.GetY(), self.ob_atom.GetZ()
+    def coordinates(self) -> np.ndarray:
+        return np.array([self.ob_atom.GetX(), self.ob_atom.GetY(), self.ob_atom.GetZ()])
 
     @coordinates.setter
     def coordinates(self, value):
@@ -1878,6 +1959,12 @@ class Atom(Wrapper, ABC):
         self._set_force_vector(force_vector)
 
     @property
+    def hybridization(self):
+        """ The hybridization of this atom:
+        1 for sp, 2 for sp2, 3 for sp3, 4 for sq. planar, 5 for trig. bipy, 6 for octahedral """
+        return self.ob_atom.GetHyb()
+
+    @property
     def kwargs_attributes(self):
         return tuple(self._attr_setters.keys())
 
@@ -1896,6 +1983,10 @@ class Atom(Wrapper, ABC):
     @property
     def is_chiral(self):
         return self.ob_atom.IsChiral()
+
+    @property
+    def is_hydrogen(self):
+        return self.ob_atom.GetAtomicNum() == 1
 
     @property
     def is_polar_hydrogen(self) -> bool:
@@ -1932,13 +2023,23 @@ class Atom(Wrapper, ABC):
         return self.mol
 
     @property
-    def neighbours(self):
+    def neigh_hydrogens(self):
+        return [a for a in self.neighbours if a.is_hydrogen]
+
+    @property
+    def neighbours(self) -> List['Atom']:
         """ Get all atoms bond with this atom in same molecule """
         if self.mol:
             _ = self.mol.atoms  # update the atoms dict
             return [self.mol.data.get('atoms')[ob_atom.GetId()] for ob_atom in ob.OBAtomAtomIter(self.ob_atom)]
         else:
             return []
+
+    @property
+    def neighbours_position(self) -> Generator[Tuple[Union['Atom', np.ndarray]], None, None]:
+        """ Retrieve the relative position of neigh atoms, assign this atom as the origin """
+        for neigh_atom in self.neighbours:
+            yield neigh_atom, neigh_atom.coordinates - self.coordinates
 
     @property
     def partial_charge(self):
@@ -1950,6 +2051,25 @@ class Atom(Wrapper, ABC):
         # the reason is unknown
         self.ob_atom.GetPartialCharge()
         self._set_partial_charge(value)
+
+    def set(self, **kwargs):
+        """
+        Set atom attributes by kwargs
+        Kwargs:
+            atomic_number(int): set atomic number
+            symbol(str): set atomic symbol
+            coordinates(Sequence, numpy.ndarray): coordinates of the atom
+            partial_charge:
+            label:
+            spin_density:
+        """
+        allow_kwargs = {'atomic_number', 'symbol', 'coordinates', 'partial_charge', 'label', 'spin_density'}
+
+        # check the correctness of given kwargs
+        if any(name not in allow_kwargs for name in kwargs):
+            raise NameError(f'the allow kwargs are just in {allow_kwargs}')
+
+        self._set_attrs(**kwargs)  # set attributes
 
     @property
     def spin_density(self):

@@ -50,20 +50,17 @@ def perturb_cif():
 
 if __name__ == '__main__':
     from openbabel import openbabel as ob
-    mol = ci.Molecule.read_from('c1ccc(C(=O)O)cc1', 'smi')
-    print(
-        [a.GetAtomicNum() for a in ob.OBMolAtomIter(mol.ob_mol)], '\n',
-        [a.GetId() for a in ob.OBMolAtomIter(mol.ob_mol)], '\n',
-        mol.atoms
-    )
-    mol.build_conformer()
-    print(mol.atoms)
-    mol.remove_hydrogens()
-    sr = mol.add_atom('Sr')
+    mol = ci.Molecule.read_from('c1ccc(C(=O)O)c(O)c1CCCC', 'smi')
+    mol2 = ci.Molecule.read_from('c1ccc(C(=O)O)c(O)c1CCCC', 'smi')
+    mol.build_conformer('UFF')
+    mol2.build_conformer()
     mol.normalize_labels()
-    # mol.add_bond(sr, 'O1', 1)
-    b = mol.add_bond(sr, 'O2', 1)
-    mol.build_conformer()
-    mol.writefile('mol2', '/home/zz1/coor.mol2')
-    print([a.valence for a in mol.atoms])
-    print([a.link_degree for a in mol.atoms])
+    mol2.normalize_labels()
+    g = mol.generate_metal_ligand_pair('Sr')
+
+    # for a1, a2 in zip(mol.atoms, mol2.atoms):
+    #     print(f'{a1.label}: {a1.partial_charge}---{a2.label}: {a2.partial_charge}')
+
+    ps = [p for i, p in enumerate(g)]
+    ps[1].remove_atoms('C1', 'C2')
+    ps[1].writefile('mol2', f'/home/zz1/g01.mol2')

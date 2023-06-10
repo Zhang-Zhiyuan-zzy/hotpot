@@ -67,4 +67,12 @@ def gen_pairs():
 
 
 if __name__ == '__main__':
-    mol = ci.Molecule.read_from('/home/zz1/mq_0.8_3001_9121_353.cif')
+    mol = ci.Molecule.read_from('/home/zz1/ZONTOO.cif')
+    # mol.build_conformer()
+    # mol.remove_solvents()
+    # mol.writefile('mol2', '/home/zz1/self.mol2')
+    ligands = mol.retrieve_ligands()
+    for ligand in ligands:
+        ligand.add_hydrogens()
+        ligand.localed_optimize()
+    pairs = [p for l in ligands for p in l.generate_metal_ligand_pair('Sr')]

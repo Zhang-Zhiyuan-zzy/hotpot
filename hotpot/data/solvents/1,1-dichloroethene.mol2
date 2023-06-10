@@ -1,0 +1,23 @@
+@<TRIPOS>MOLECULE
+1,1-dichloroethene
+     6     5     1     0     0
+SMALL
+NO_CHARGES
+****
+Generated from the CSD
+
+@<TRIPOS>ATOM
+     1 C1       0.0000  -0.5653   0.0000   C.2       1 RES1   0.0000
+     2 C2       0.0000   0.7717   0.0000   C.2       1 RES1   0.0000
+     3 Cl3      1.4887  -1.4248   0.0000   Cl        1 RES1   0.0000
+     4 Cl4     -1.4887  -1.4248   0.0000   Cl        1 RES1   0.0000
+     5 H5       0.9526   1.3217   0.0000   H         1 RES1   0.0000
+     6 H6      -0.9526   1.3217   0.0000   H         1 RES1   0.0000
+@<TRIPOS>BOND
+     1     1     2    2
+     2     1     3    1
+     3     1     4    1
+     4     2     5    1
+     5     2     6    1
+@<TRIPOS>SUBSTRUCTURE
+     1 RES1        1 GROUP             0 ****  ****    0  

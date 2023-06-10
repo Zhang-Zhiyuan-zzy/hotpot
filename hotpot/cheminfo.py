@@ -16,6 +16,7 @@ from os import PathLike
 from os.path import join as ptj
 from pathlib import Path
 from typing import *
+from itertools import product
 
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
@@ -23,6 +24,7 @@ from openbabel import openbabel as ob, pybel as pb
 from hotpot import data_root
 from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian
+from hotpot.utils.load_chem_lib import library as _lib  # The chemical library
 
 # Define Exceptions
 class OperateOBMolFail(BaseException):
@@ -107,9 +109,9 @@ class Molecule(Wrapper, ABC):
 
     def __init__(self, ob_mol: ob.OBMol = None, _data: dict = None, **kwargs):
         if _data:
-            self._data = _data
+            self._data: dict = _data
         else:
-            self._data = {
+            self._data: dict = {
                 'ob_mol': ob_mol if ob_mol else ob.OBMol()
             }
         self._set_attrs(**kwargs)
@@ -643,10 +645,10 @@ class Molecule(Wrapper, ABC):
             new_ob_bond_idx = [obb for obb in (ob.OBMolBondIter(self.ob_mol))][-1].GetIdx()
             bond = self._load_bonds()[new_ob_bond_idx]  # the new atoms should place in the terminal of the bond list
 
-        elif atoms[0] not in self.atom_indices:
+        elif atoms[0].ob_id not in self.atom_indices:
             raise KeyError("the start atom1 doesn't exist in molecule")
 
-        elif atoms[1] not in self.atom_indices:
+        elif atoms[1].ob_id not in self.atom_indices:
             raise KeyError("the end atom2 doesn't exist in molecule")
 
         else:
@@ -809,7 +811,7 @@ class Molecule(Wrapper, ABC):
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
 
-    def build_conformer(self, force_field: str = 'mmff94', steps: int = 50):
+    def build_conformer(self, force_field: str = 'UFF', steps: int = 50):
         """ build 3D coordinates for the molecule """
         pymol = pb.Molecule(self.ob_mol)
         pymol.make3D(force_field, steps)
@@ -850,8 +852,33 @@ class Molecule(Wrapper, ABC):
     @property
     def components(self):
         """ get all fragments don't link each by any bonds """
+        if not self.has_3d:
+            self.build_conformer()
+
+        # split to fragment
         separated_obmol = self.ob_mol.Separate()
-        return [Molecule(obmol) for obmol in separated_obmol]
+        components = [Molecule(ob_mol) for ob_mol in separated_obmol]
+
+        # match parents_atoms to children atoms
+        atoms = self.atoms
+        parent_atoms_coordinates = [a.coordinates for a in atoms]
+        match_atoms: Dict[Atom, Atom] = \
+            {atoms[parent_atoms_coordinates.index(a.coordinates)]: a for c in components for a in c.atoms}
+
+        # transfer the parent atoms attribute to the children
+        for pa, ca in match_atoms.items():
+            ca_data = ca.copy_data()
+            pa_data = pa.copy_data()
+
+            # Remove the ob_atom and molecule information
+            pa_data.pop('ob_atom')
+            pa_data.pop('_mol')
+
+            ca_data.update(pa_data)
+
+            ca.replace_attr_data(ca_data)
+
+        return components
 
     @property
     def configure_number(self):
@@ -1075,6 +1102,31 @@ class Molecule(Wrapper, ABC):
         # Matrix with shape (atom_numbers, feature_length)
         return np.stack([atom.element_features(*feature_names) for atom in self.atoms])
 
+    def fingerprint(self, fptype: Literal['FP2', 'FP3', 'FP4', 'MACCS'] = 'FP2'):
+        """
+        Calculate the molecular fingerprint for this molecule, the supporting fingerprint include:
+
+        1. "FP2": The FP2 fingerprint is a path-based fingerprint that encodes the presence of linear
+        fragments up to 7 atoms long. It is a 1024-bit fingerprint and is commonly used for substructure
+        searches and similarity calculations.
+
+        2. "FP3": The FP3 fingerprint is designed for searching 3D conformations, such as those found
+        in protein-ligand complexes. It encodes the presence of particular pharmacophoric features,
+        such as hydrogen bond donors, acceptors, and hydrophobic regions.
+
+        3. "FP4": The FP4 fingerprint is a circular fingerprint based on the Morgan algorithm. It
+        captures information about the local environment of each atom in the molecule, up to a certain
+        radius. It is useful for similarity calculations and machine learning tasks.
+
+        4. "MACCS": The MACCS fingerprint is a 166-bit structural key-based fingerprint. It represents
+        the presence of specific substructures or functional groups defined by the MACCS keys. It is
+        commonly used for similarity calculations and substructure searches.
+
+        Return:
+            the Fingerprint object in pybel module
+        """
+        return pb.Molecule(self.ob_mol).calcfp(fptype)
+
     @property
     def forces(self):
         """ return the all force vectors for all atoms in the molecule """
@@ -1161,12 +1213,7 @@ class Molecule(Wrapper, ABC):
 
         Return:
             A generator for M-L pair
-
-        Raise:
-            AttributeError: if the molecule is not an organic ligand
         """
-        if not self.is_organic:
-            raise AttributeError('the accepting molecule should be organic compound')
 
         ligand = self.copy()
         ligand.localed_optimize(opti_force_field)  # locally optimize the ligand
@@ -1179,7 +1226,7 @@ class Molecule(Wrapper, ABC):
                 # assign the initial coordinates
                 # the sum of vector of relative position relate to the accepting atom
                 sum_relative_coordinates = sum([c for _, c in atom.neighbours_position])
-                metal_init_coordinates = atom.coordinates - sum_relative_coordinates
+                metal_init_coordinates = atom.coordinates_array - sum_relative_coordinates
 
                 # add metal atom into the acceptor_ligand
                 added_metal = acceptor_ligand.add_atom(metal_symbol, coordinates=metal_init_coordinates)
@@ -1189,8 +1236,8 @@ class Molecule(Wrapper, ABC):
 
                 # remove redundant hydrogen
                 accepting_atom = acceptor_ligand.atom(atom.label)
-                while accepting_atom.valence > accepting_atom.valence_max and accepting_atom.neigh_hydrogens:
-                    acceptor_ligand.remove_atoms(accepting_atom.neigh_hydrogens[0])
+                while accepting_atom.valence > accepting_atom.valence_max and accepting_atom.neighbours_hydrogen:
+                    acceptor_ligand.remove_atoms(accepting_atom.neighbours_hydrogen[0])
 
                 # localize optimization of M-L pair by classical force field
                 acceptor_ligand.localed_optimize(opti_force_field)
@@ -1225,8 +1272,7 @@ class Molecule(Wrapper, ABC):
     @property
     def is_labels_unique(self):
         """ Determine whether all atom labels are unique """
-        labels = set(self.labels)
-        return len(labels) == self.atom_num
+        return len(set(self.labels)) == self.atom_num
 
     @property
     def is_organic(self):
@@ -1243,7 +1289,7 @@ class Molecule(Wrapper, ABC):
         return self._data['ob_mol']
 
     def ob_mol_pop(self):
-        data = self._data
+        data: dict = self._data
 
         atoms: Dict[int, Atom] = data.get('atoms')
         if atoms:
@@ -1261,8 +1307,8 @@ class Molecule(Wrapper, ABC):
         if not isinstance(ob_mol, ob.OBMol):
             raise TypeError('the ob_mol should be OBMol object')
 
-        atoms: Dict[int, Atom] = self._data.get('atoms')
-        bonds: Dict[int, Bond] = self._data.get('bonds')
+        atoms = self._data.get('atoms')
+        bonds = self._data.get('bonds')
 
         if any(oba.GetId() not in atoms for oba in ob.OBMolAtomIter(ob_mol)):
             raise ValueError('the atom number between the wrapper and the core OBMol is not match')
@@ -1298,7 +1344,7 @@ class Molecule(Wrapper, ABC):
     def link_matrix(self):
         return np.array([[b.ob_atom1_id, b.ob_atom2_id] for b in self.bonds]).T
 
-    def localed_optimize(self, force_field: str = 'mmff94', steps: int = 500):
+    def localed_optimize(self, force_field: str = 'UFF', steps: int = 500):
         """ Locally optimize the coordinates. seeing openbabel.pybel package """
         pymol = pb.Molecule(self.ob_mol)
         pymol.localopt(force_field, steps)
@@ -1360,6 +1406,10 @@ class Molecule(Wrapper, ABC):
             ff_args=ff_args, path_writefile=path_writefile, path_dump_to=path_dump_to,
             dump_every=dump_every, mol=self
         )
+
+    @property
+    def metals(self) -> List['Atom']:
+        return [a for a in self.atoms if a.is_metal]
 
     @property
     def mol_orbital_energies(self):
@@ -1534,7 +1584,7 @@ class Molecule(Wrapper, ABC):
 
             # remove connecting hydrogens
             if remove_hydrogens:
-                for nh in atom.neigh_hydrogens:
+                for nh in atom.neighbours_hydrogen:
                     self.ob_mol.DeleteAtom(nh.ob_atom)
 
             # Removing the atom
@@ -1547,6 +1597,42 @@ class Molecule(Wrapper, ABC):
     def remove_hydrogens(self):
         self.ob_mol.DeleteHydrogens()
 
+    def remove_metals(self):
+        """ remove all of metal atoms in the molecule """
+        self.remove_atoms(*self.metals)
+
+    def remove_solvents(self):
+        """ remove all solvents in the molecule """
+        self.normalize_labels()
+        for ligand in self.retrieve_ligands():
+            if _lib.get('Solvents').is_solvent(ligand):  # To judge if the ligand is solvents
+                self.remove_atoms(*ligand.atom_labels, remove_hydrogens=False)
+
+    def retrieve_ligands(self) -> List['Molecule']:
+        """ Retrieve all ligand molecule from this """
+        clone = self.copy()
+        clone.remove_metals()
+
+        return clone.components
+
+    def retrieve_metal_ligand_pairs(self) -> List['Molecule']:
+        """ Retrieve all clone of metal-ligand pairs in the molecule """
+        if not self.is_labels_unique:
+            self.normalize_labels()
+
+        ml_pairs = []
+        for metal, ligand in product(self.metals, self.retrieve_ligands()):
+            if set(metal.neighbours_label) & set(ligand.atom_labels):
+                pair = self.copy()
+
+                # Remove all the atoms is not the metal and not on the ligand
+                other_atoms = [a for a in pair.atoms if a.label != metal.label and a.label not in ligand.atom_labels]
+                pair.remove_atoms(*other_atoms, remove_hydrogens=False)
+
+                ml_pairs.append(pair)
+
+        return ml_pairs
+
     @property
     def rotatable_bonds_number(self):
         return self.ob_mol.NumRotors()
@@ -1557,6 +1643,18 @@ class Molecule(Wrapper, ABC):
 
     def set_label(self, ob_id: int, label: str):
         self.atoms_dict[ob_id].label = label
+
+    def similarity(self, other: 'Molecule', fptype: Literal['FP2', 'FP3', 'FP4', 'MACCS'] = 'FP2') -> int:
+        """
+        Compare the similarity with other molecule, based on specified fingerprint
+        Args:
+            other(Molecule): the other Molecule
+            fptype(str): the fingerprint type to perform comparison of similarity
+
+        Return:
+            the similarity(int)
+        """
+        return self.fingerprint(fptype) | other.fingerprint(fptype)
 
     @property
     def smiles(self):
@@ -1757,7 +1855,8 @@ class Atom(Wrapper, ABC):
 
     def __eq__(self, other):
         if isinstance(other, Atom):
-            return self.symbol == other.symbol
+            # return self.symbol == other.symbol
+            return self.ob_atom == other.ob_atom
 
     def __hash__(self):
         return hash(f'Atom({self.atomic_number})')
@@ -1851,12 +1950,17 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.GetAtomicNum()
 
     @property
-    def coordinates(self) -> np.ndarray:
-        return np.array([self.ob_atom.GetX(), self.ob_atom.GetY(), self.ob_atom.GetZ()])
+    def coordinates(self) -> (float, float, float):
+        return self.ob_atom.GetX(), self.ob_atom.GetY(), self.ob_atom.GetZ()
 
     @coordinates.setter
     def coordinates(self, value):
         self._set_coordinate(value)
+
+    @property
+    def coordinates_array(self) -> np.ndarray:
+        """ the array of coordinates """
+        return np.array(self.coordinates)
 
     def copy(self):
         """ Make a copy of self """
@@ -2023,7 +2127,8 @@ class Atom(Wrapper, ABC):
         return self.mol
 
     @property
-    def neigh_hydrogens(self):
+    def neighbours_hydrogen(self) -> List['Atom']:
+        """ return all neigh hydrogen atoms """
         return [a for a in self.neighbours if a.is_hydrogen]
 
     @property
@@ -2036,10 +2141,15 @@ class Atom(Wrapper, ABC):
             return []
 
     @property
+    def neighbours_label(self) -> List[str]:
+        """ return all neighbours labels """
+        return [a.label for a in self.neighbours]
+
+    @property
     def neighbours_position(self) -> Generator[Tuple[Union['Atom', np.ndarray]], None, None]:
         """ Retrieve the relative position of neigh atoms, assign this atom as the origin """
         for neigh_atom in self.neighbours:
-            yield neigh_atom, neigh_atom.coordinates - self.coordinates
+            yield neigh_atom, neigh_atom.coordinates_array - self.coordinates_array
 
     @property
     def partial_charge(self):

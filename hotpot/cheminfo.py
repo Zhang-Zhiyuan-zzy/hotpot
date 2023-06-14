@@ -1199,6 +1199,15 @@ class Molecule(Wrapper, ABC):
         # return results and error info
         return stdout, stderr
 
+    def gcmc(
+            self, *guest, force_field: Union[str, os.PathLike] = None,
+            work_dir: Union[str, os.PathLike] = None, T=295.15, P=1, **kwargs
+    ):
+        """"""
+        from tanks.lmp.gcmc import LjGCMC
+        gcmc = LjGCMC(self, force_field, *guest, work_dir=work_dir, T=T, P=P, **kwargs)
+        return gcmc.run()
+
     def generate_metal_ligand_pair(
             self, metal_symbol: str, acceptor_atoms: Sequence = ('O',), opti_force_field: str = 'UFF'
     ) -> Generator['Molecule', None, None]:

@@ -61,12 +61,16 @@ class LjGCMC:
             lmp(
                 f'fix gcmc{i} gg{i} gcmc 1 $((20+abs(count(gg{i})-20))/2) $((20+abs(count(gg{i})-20))/2)'
                 f' 0 {random.randint(10000, 999999)} {T} 0 12.5 mol guest{i} fugacity_coeff {phi_g} pressure {P_sat * P}'
-                # f' rigid rguest{i}'
             )
 
     @staticmethod
     def _force_field_file(ff: Union[str, os.PathLike]):
         """ Retrieve the exact file path of force file """
+
+        # If the force filed not be given, use the UFF as default.
+        if not ff:
+            ff = 'UFF/LJ.json'
+
         # Check the arguments
         # Determine the path of force field.
         if isinstance(ff, os.PathLike):

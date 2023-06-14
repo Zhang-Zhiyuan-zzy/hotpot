@@ -36,8 +36,8 @@ After the requirements are installed, now the ''Hotpot'' could be installed by p
 
 ## Usage
 The Hotpot is very easy to use, the core class of Hotpot is the `Molecule`, which is designed
-as the general interface for all functions around the total the package. In the following
-example, we first load a Molecule object by `SMILES` string. Add the build their 3D conformer:
+as the general interface for all functions across the entire the package. In the following
+example, we first load a Molecule object by `SMILES` string, and then the build their 3D conformer:
 
 ```
 import hotpot as hp
@@ -68,9 +68,9 @@ print(b.type)  # get the bond type
 ```
 
 ### Molecule Read and Write
-The `Hotpot` read and write the molecule from string or files by calling the `openbabel` and `cclib` packages,
-most of formats supported by the two packages are support by `Hotpot` too. the Main method to read and parse to
-`Molecule` object is `read_from()`:
+The `Hotpot` read and write the molecule from string or files by calling the [openbabel](https://github.com/openbabel) 
+and [cclib](https://github.com/cclib/cclib) packages, most of formats supported by the two packages are support 
+by `Hotpot` too. the Main method to read and parse to `Molecule` object is `read_from()`:
 
 > mol = hp.Molecule.read_from('/path/to/file', fmt='cif')  # read a cif file from disk 
 
@@ -140,7 +140,7 @@ the `mu` and `phi` automatically, by `Peng-Robinson` equation by default.
 
 ### Access the property of substance for common substance
 For certain common substance, we can access its thermodynamical property, like critical temperature `Tc` and
-saturation vapor pressure `Psat` by `thermo` package:
+saturation vapor pressure `Psat` by [thermo](https://pypi.org/project/thermo/) package:
 ```angular2html
 mol = hp.Molecule.read_from('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
 mol.thermo_init()  # some kwargs could pass into, see documentation

@@ -182,9 +182,10 @@ class Gaussian:
         """ Prepare the property dict for Molecule setters """
         return {
             'atoms.partial_charge': self.data.atomcharges['mulliken'],
-            'energy': self.data.scfenergies,
+            'energy': self.data.scfenergies[-1],
             'spin': self.data.mult,
             'charge': self.data.charge,
-            'mol_orbital_energies': self.data.moenergies  # eV
+            'mol_orbital_energies': self.data.moenergies,  # eV,
+            'coordinates': self.data.atomcoords[-1]
         }
 

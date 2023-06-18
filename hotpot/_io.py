@@ -389,13 +389,28 @@ class Dumper(IOBase, metaclass=MetaIO):
     def _io(self):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
         # Try to dump by openbabel.pybel
-        try:
-            pb_mol = pybel.Molecule(self.src.ob_mol)
-            return pb_mol.write(self._pybel_fmt_convert.get(self.fmt, self.fmt), **self.kwargs)
+        type_err_pattern = re.compile(
+            r"write\(\) got an unexpected keyword argument '\w+'"
+        )
+        pb_mol = pybel.Molecule(self.src.ob_mol)
+        kwargs = copy(self.kwargs)
 
-        except ValueError:
-            print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
-            return None
+        while kwargs:
+            try:
+                return pb_mol.write(self._pybel_fmt_convert.get(self.fmt, self.fmt), **kwargs)
+
+            except TypeError as error:
+                if type_err_pattern.match(str(error)):
+                    pop_kwargs = str(error).split()[-1].strip("'")
+                    kwargs.pop(pop_kwargs)
+                else:
+                    raise error
+
+            except ValueError:
+                print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
+                return None
+
+        return pb_mol.write(self._pybel_fmt_convert.get(self.fmt, self.fmt))
 
     def _checks(self) -> Dict[str, Any]:
         if not isinstance(self.src, ci.Molecule):
@@ -416,6 +431,10 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         if self.src.crystal().space_group:
             self.src.crystal().space_group = 'P1'
+
+    def _pre_gjf(self):
+        """ Assign the Molecule charge before to dump to gjf file """
+        self.src.determine_mol_charge()
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """

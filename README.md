@@ -22,12 +22,13 @@ The following jobs are supported by Hotpot:
 python >= 3.9
 openbabel >= 3.1.1
 cclib
+lammps
 ````
 
 ### Install requirement
 Before installing the `Hotpot`, you should install the requirements at the first. It is
 recommended to create a new conda environment to run the package.
-> conda create -n hp python==3.9 openbabel cclib -c conda-forge
+> conda create -n hp python==3.9 openbabel cclib lammps -c conda-forge
 
 ### Install
 After the requirements are installed, now the ''Hotpot'' could be installed by pip
@@ -59,12 +60,12 @@ the `Molecule`, `Atoms` or `Bonds`.
 print(mol.atoms)  # get all atoms in the molecule
 print(mol.bonds)  # get all bonds in the molecule
 
-a = mol.atoms[0]
-b = mol.bonds[0]
+atom = mol.atoms[0]
+bond = mol.bonds[0]
 
-print(a.neighbours)  # get all neigh atoms of this atoms
-print(b.atom1, b.atom2)  # get the begin and end atom of this bond
-print(b.type)  # get the bond type
+print(atom.neighbours)  # get all neigh atoms of this atoms
+print(bond.atom1, b.atom2)  # get the begin and end atom of this bond
+print(bond.type)  # get the bond type
 ```
 
 ### Molecule Read and Write

@@ -33,7 +33,7 @@ ptb_kwargs = [
     {'mol_distance': 0.30, 'max_generate_num': 100},
 ]
 
-mb = MolBundle.read_from_dir('mol2', read_dir=dir_pair, generate=True, condition=mol_filter)
+mb = MolBundle.read_from('mol2', dir_or_strings=dir_pair, generate=True, condition=mol_filter)
 
 # print(len([m for m in mb.mols]))
 

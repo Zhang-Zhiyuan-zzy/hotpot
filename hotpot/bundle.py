@@ -7,6 +7,7 @@ python v3.7.9
 @Time   : 3:18
 """
 import copy
+import random
 from os import PathLike
 from typing import *
 from pathlib import Path
@@ -17,10 +18,6 @@ import hotpot.cheminfo as ci
 from hotpot.tools import check_path
 import multiprocessing as mp
 
-
-# Typing AnnotationsG
-GraphFormatName = Literal['Pytorch', 'numpy']
-
 feature_formats = {
     'basic': ['atomic_number', 's', 'p', 'f']
 }
@@ -29,15 +26,15 @@ feature_formats = {
 class MolBundle:
     """"""
 
-    def __init__(self, mols: Union[list[ci.Molecule], Generator[ci.Molecule, None, None]] = None):
-        self.mols = mols
-        self._data = {}
+    def __init__(self, mols: Union[Sequence[ci.Molecule], Generator[ci.Molecule, None, None]] = None):
+        self._data = {'mols': mols}
 
     def __repr__(self):
-        return f"MolBundle[{', '.join([str(m) for m in self.mols])}]"
+        class_name = self.__class__.__name__
+        return f"{class_name}(generator)" if isinstance(self.mols, Generator) else f"{class_name}({self.mols})"
 
     def __iter__(self):
-        return iter(tqdm(self.mols))
+        return iter(self.mols)
 
     def __add__(self, other: Union['MolBundle', ci.Molecule]):
         """"""
@@ -54,8 +51,10 @@ class MolBundle:
     def __getitem__(self, item: int):
         return self.mols[item]
 
-    def __bundle_mol_indices_with_same_attr(self, attr_name: str):
-        self.to_list()
+    def __get_all_unique_attrs(self, attr_name: str):
+        """ Given a Molecule attr_name, get all unique values of the attributes among all Molecule in the MolBundle"""
+        if self.is_generator:
+            self.to_list()
 
         dict_attrs = {}
         for i, mol in enumerate(self):
@@ -77,16 +76,61 @@ class MolBundle:
         Returns:
             returns a dict with the key is the number of the atoms and the key is the indices of Molecules
         """
-        return self.__bundle_mol_indices_with_same_attr('atom_num')
+        return self.__get_all_unique_attrs('atom_num')
 
     @property
     def atomic_numbers(self):
-        return self.__bundle_mol_indices_with_same_attr('atomic_numbers')
+        return self.__get_all_unique_attrs('atomic_numbers')
+
+    def choice(self, size: int = 1, replace: bool = True, p: Union[Sequence, float, Callable] = None) -> 'MolBundle':
+        """
+         Generate new MolBundle with a list of random Molecule objects from the current MolBundle
+        Args:
+            size: the size of generating MolBundle, that the number of contained Molecule objects
+            replace: whether allow to choice a Molecule object multiply times
+            p: If the current MolBundle is a Generator it should be a float or a Callable object
+             which arg is the generated molecule. If the current MolBundle is a Sequence, the p
+             should bea sequence with same size as the number of Molecule objects in current
+             MolBundle, specify the probability of each Molecule to be chosen.
+
+        Return:
+            MolBundle contained specified-number molecules
+        """
+        def choice_from_generator():
+            """ Generator molecule according to specified probability """
+            if isinstance(p, float):
+                for mol in self:
+                    if random.choices([0, 1], [1-p, p]):
+                        yield mol
+
+            if isinstance(p, Callable):
+                for mol in self:
+                    if p(mol):
+                        yield mol
+
+        if self.is_generator:
+            if isinstance(p, (float, Callable)):
+                return MolBundle(choice_from_generator())
+            else:
+                raise TypeError('When the MolBundle is a generator, the p should be a float or Callable object')
+        else:
+            return MolBundle(np.random.choice(self.mols, size=size, replace=replace, p=p))
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        if isinstance(data, dict):
+            self._data = data
+        else:
+            raise TypeError(f'the {self.__class__.__name__}.data must be a dict')
 
     @classmethod
-    def read_from_dir(
+    def read_from(
             cls, fmt: str,
-            read_dir: Union[str, PathLike],
+            dir_or_strings: Union[str, PathLike, Iterable[str]],
             match_pattern: str = '*',
             generate: bool = False,
             ranges: Union[Sequence[int], range] = None,
@@ -98,7 +142,7 @@ class MolBundle:
 
         Args:
             fmt(str): read file with the specified-format method.
-            read_dir(str|PathLike): the directory all file put
+            dir_or_strings(str|PathLike): the directory all file put, or a sequence of string
             match_pattern(str): the file name pattern
             generate(bool): read file to a generator of Molecule object
             ranges(Sequence[int]|range): A list or range of integers representing the indices of
@@ -128,8 +172,8 @@ class MolBundle:
                 conn.send((None, None, pm))
 
         def mol_generator():
-            nonlocal read_dir
-            for i, path_mol in enumerate(read_dir.glob(match_pattern)):
+            nonlocal dir_or_strings
+            for i, path_mol in enumerate(generate_path_or_string()):
 
                 if not ranges or i in ranges:
                     mol = ci.Molecule.read_from(path_mol, fmt)
@@ -145,7 +189,7 @@ class MolBundle:
             parent_conn, child_conn = mp.Pipe()
             ps = []  # list of Process: Queue pairs
 
-            for i, path_file in enumerate(read_dir.glob(match_pattern)):
+            for i, source in enumerate(generate_path_or_string()):
 
                 # if the number of process more than num_proc, get the read molecule info and stop to start new process
                 while len(ps) >= num_proc:
@@ -159,7 +203,7 @@ class MolBundle:
                 while mols_info:
                     mol, script, pf = mols_info.pop()  # hotpot Molecule, mol2_script, path_file of Molecule
 
-                    # if get a valid Molecule info, re-wrap to be hotpot Molecule
+                    # If you get a valid Molecule info, re-wrap to be hotpot Molecule
                     if mol and script:
                         pmol = pb.readstring('mol2', script)  # pybel Molecule object
                         mol.ob_mol_rewrap(pmol.OBMol)  # re-wrap OBMol by hotpot Molecule
@@ -170,7 +214,7 @@ class MolBundle:
 
                 # Start new process to read Molecule from file
                 if not ranges or i in ranges:
-                    p = mp.Process(target=read_mol, args=(path_file, child_conn))
+                    p = mp.Process(target=read_mol, args=(source, child_conn))
                     p.start()
                     ps.append(p)
 
@@ -192,10 +236,25 @@ class MolBundle:
                     if not condition or condition(mol, pf):
                         yield mol
 
-        if isinstance(read_dir, str):
-            read_dir = Path(read_dir)
-        elif not isinstance(read_dir, PathLike):
-            raise TypeError(f'the read_dir should be a str or PathLike, instead of {type(read_dir)}')
+        def generate_path_or_string():
+            """"""
+            if isinstance(dir_or_strings, Path):
+                for path in dir_or_strings.glob(match_pattern):
+                    yield path
+
+            elif isinstance(dir_or_strings, Iterable):
+                for string in dir_or_strings:
+                    yield string
+
+            else:
+                raise TypeError(f'the dir_or_strings is required to be a Path or str, get {type(dir_or_strings)}')
+
+        if isinstance(dir_or_strings, str):
+            dir_or_strings = Path(dir_or_strings)
+        elif not isinstance(dir_or_strings, PathLike) and not isinstance(dir_or_strings, Iterable):
+            raise TypeError(
+                f'the read_dir should be a str, PathLike or iterable str, instead of {type(dir_or_strings)}'
+            )
 
         generator = mol_mp_generator() if num_proc else mol_generator()
 
@@ -219,7 +278,8 @@ class MolBundle:
             *args, **kwargs
     ) -> None:
         """
-        Run Gaussian16 calculations on the Molecule objects.
+        Run Gaussian16 calculations for Molecule objects stored in the MolBundle.
+        These Molecules are allowed to be perturbed their atoms' coordinates before submit to Gaussian 16
 
         Args:
             g16root (Union[str, PathLike]): The path to the Gaussian16 root directory.
@@ -309,6 +369,11 @@ class MolBundle:
                     *args, **kwargs
                 )
 
+    @property
+    def is_generator(self):
+        """ To judge weather the object is a Molecule generator """
+        return isinstance(self.mols, Generator)
+
     def merge_conformers(self):
         """
         Get the sum of conformers for all molecule in the mol bundle "self.mols"
@@ -336,6 +401,14 @@ class MolBundle:
             mol_array = np.array(bundle.mols)
             return MolBundle([mol_array[i].sum() for ans, i in atom_num.items()])
 
+    @property
+    def mols(self):
+        return self._data.get('mols', [])
+
+    @mols.setter
+    def mols(self, mols):
+        self._data['mols'] = mols
+
     def to_dpmd_sys(self, sys_root):
         """"""
 
@@ -361,3 +434,36 @@ class MolBundle:
             MolBundle(Molecule)
         """
         return MolBundle([m.to_mol() if isinstance(m, ci.MixSameAtomMol) else m for m in self])
+
+    def unique_mols(self, mode: Literal['smiles', 'similarity'] = 'smiles'):
+        """
+        get a new Bundle with all unique Molecule objects
+        Args:
+            mode: the standard to identify whether two molecule to be regard as identical
+
+        Returns:
+            A new Bundle with all the unique Molecule objects
+        """
+        clone = copy.copy(self)
+        clone.data = copy.copy(self.data)
+        if mode == 'smiles':
+            clone.mols = ({m.smiles: m for m in self.mols}.values())
+            return clone
+        elif mode == 'similarity':
+            dict_mols = {}
+            for mol in self.mols:
+                mols_with_same_atom_num = dict_mols.setdefault(mol.atom_num, [])
+                mols_with_same_atom_num.append(mol)
+
+            new_mols = []
+            for _, mols_with_same_atom_num in dict_mols.items():
+                uni_mols = []
+                for mol in mols_with_same_atom_num:
+                    if mol not in uni_mols:
+                        uni_mols.append(mol)
+
+                new_mols.extend(uni_mols)
+
+            clone.mols = new_mols
+
+            return clone

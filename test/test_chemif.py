@@ -66,13 +66,20 @@ def gen_pairs():
     ps[1].writefile('mol2', f'/home/zz1/g01.mol2')
 
 
+# TODO: debug, the following code will encounter with error, abnormal exit with 139
+# TODO: check the coordinates and bond property
+def have_bug():
+    mol = ci.Molecule.read_from('C=CC(=O)O', 'smi')
+    mol.build_conformer()
+    mol.normalize_labels()
+
+    g = mol.generate_metal_ligand_pair('Sr')
+
+    for p in g:
+        p.determine_mol_charge()
+        c = p.copy()  # TODO: Guess that the bonds was not assigned correctly during the copy process
+        c.build_conformer()
+
+
 if __name__ == '__main__':
-    mol = ci.Molecule.read_from('/home/zz1/ZONTOO.cif')
-    # mol.build_conformer()
-    # mol.remove_solvents()
-    # mol.writefile('mol2', '/home/zz1/self.mol2')
-    ligands = mol.retrieve_ligands()
-    for ligand in ligands:
-        ligand.add_hydrogens()
-        ligand.localed_optimize()
-    pairs = [p for l in ligands for p in l.generate_metal_ligand_pair('Sr')]
+    pass

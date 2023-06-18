@@ -14,5 +14,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 src_root = os.path.abspath(os.path.dirname(__file__))
 data_root = os.path.abspath(os.path.join(src_root, 'data'))
 
-from cheminfo import Molecule
-from bundle import MolBundle
+from hotpot.cheminfo import Molecule
+from hotpot.bundle import MolBundle
+
+__version__ = '0.2.4'

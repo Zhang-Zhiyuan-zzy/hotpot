@@ -13,7 +13,7 @@ import hotpot.cheminfo as ci
 
 if __name__ == '__main__':
     dir_log = '/home/zz1/proj/gauss/new/log'
-    md = MolBundle.read_from_dir('g16log', dir_log, match_pattern='*/*.log', num_proc=16)
+    md = MolBundle.read_from('g16log', dir_log, match_pattern='*/*.log', num_proc=2)
     mmd = md.merge_conformers()
     mamd = mmd.merge_atoms_same_mols()
 

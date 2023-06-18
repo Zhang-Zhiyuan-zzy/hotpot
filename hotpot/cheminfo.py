@@ -20,26 +20,41 @@ from itertools import product
 
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
+from rdkit import Chem
 
 from hotpot import data_root
 from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian
 from hotpot.utils.load_chem_lib import library as _lib  # The chemical library
 
+
 # Define Exceptions
 class OperateOBMolFail(BaseException):
     """ Raise for any fail that trys to operate the OBMol """
+
+
 class AddAtomFail(OperateOBMolFail):
     """ Raise when add an atom into Molecule fail """
 
+
 class AddBondFail(OperateOBMolFail):
     """ Raise when add a bond into Molecule fail """
+
 
 periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))
 # periodic_table = {d['symbol']: d for d in periodic_table}
 _symbols = ['unknown'] + list(periodic_table.keys())
 _max_valences = {n: v['max_valence'] for n, v in periodic_table.items()}
 _max_total_bond_order = {n: v['max_total_bond_order'] for n, v in periodic_table.items()}
+
+_stable_charges = {
+    'H': 1, 'He': 0,
+    'Li': 1, 'Be': 2,
+    'Na': 1, 'Mg': 2,
+    'K': 1, 'Ca': 2,
+    'Rb': 1, 'Sr': 2,
+    'Cs': 1, 'Ba': 2
+}
 
 _bond_type = {
     'Unknown': 0,
@@ -57,6 +72,21 @@ _type_bond = {
     5: 'Aromatic'
 }
 
+_ob_data_dict = {
+    0: 'UndefinedData', 1: 'PairData', 2: 'EnergyData', 3: 'CommentData',
+    4: 'ConformerData', 5: 'ExternalBondData', 6: 'RotamerList', 7: 'VirtualBondData',
+    8: 'RingData', 9: 'TorsionData', 10: 'AngleData', 11: 'SerialNums',
+    12: 'UnitCell', 13: 'SpinData', 14: 'ChargeData', 15: 'SymmetryData',
+    16: 'ChiralData', 17: 'OccupationData', 18: 'DensityData', 19: 'ElectronicData',
+    20: 'VibrationData', 21: 'RotationData', 22: 'NuclearData', 23: 'SetData',
+    24: 'GridData', 25: 'VectorData', 26: 'MatrixData', 27: 'StereoData',
+    28: 'DOSData', 29: 'ElectronicTransitionData', 16384: 'CustomData0', 16385: 'CustomData1',
+    16386: 'CustomData2', 16387: 'CustomData3', 16388: 'CustomData4', 16389: 'CustomData5',
+    16390: 'CustomData6', 16391: 'CustomData7', 16392: 'CustomData8', 16393: 'CustomData9',
+    16394: 'CustomData10', 16395: 'CustomData11', 16396: 'CustomData12', 16397: 'CustomData13',
+    19398: 'CustomData14', 16399: 'CustomData15'
+}
+
 
 class Wrapper(ABC):
     """
@@ -65,6 +95,15 @@ class Wrapper(ABC):
     by the keys from returned dict of _attr_setters; the values of the returned dict of _attr_setters are a collection
     of specific private method to wrapper and call openbabel method to set the attributes in openbabel object.
     """
+    _data = {}  # all attributes of wrappers are stored into
+
+    @property
+    def _protected_data(self):
+        """
+        the protected attr in data which could not be replaced by call methods:
+            - update_attr_data()
+        """
+        return ('ob_object',)
 
     def _set_attrs(self, **kwargs):
         """    Set any atomic attributes by name    """
@@ -81,13 +120,30 @@ class Wrapper(ABC):
     def _attr_setters(self) -> Dict[str, Callable]:
         raise NotImplemented
 
+    @property
+    def data(self) -> dict:
+        """ Get the clone of attributes data dict """
+        return copy.copy(self._data)
+
     def kwargs_setters(self):
         list_setters = [f'{k}: {s.__doc__}' for k, s in self._attr_setters.items()]
         print("\n".join(list_setters))
 
+    def replace_attr_data(self, data: Dict):
+        """ Replace the core data dict directly """
+        self._data = data
+
     @property
     def setter_keys(self):
         return list(self._attr_setters.keys())
+
+    def update_attr_data(self, data: dict):
+        """ update the attribute data by give dict """
+        for data_attr in self._protected_data:
+            if data.get(data_attr):
+                data.pop(data_attr)
+
+        self._data.update(data)
 
 
 class Molecule(Wrapper, ABC):
@@ -112,7 +168,7 @@ class Molecule(Wrapper, ABC):
             self._data: dict = _data
         else:
             self._data: dict = {
-                'ob_mol': ob_mol if ob_mol else ob.OBMol()
+                'ob_object': ob_mol if ob_mol else ob.OBMol()
             }
         self._set_attrs(**kwargs)
         self._load_atoms()
@@ -185,6 +241,7 @@ class Molecule(Wrapper, ABC):
 
     def __iter__(self):
         """ Return self with different configures """
+
         def configure_generator():
             for i in range(self.configure_number):
                 self.configure_select(i)
@@ -200,6 +257,12 @@ class Molecule(Wrapper, ABC):
             return self
         except IndexError:
             raise StopIteration
+
+    def __eq__(self, other):
+        """ if two molecule with 1.0 similarity in 2FP fingerprint they are identical """
+        if self.similarity(other) == 1.0:
+            return True
+        return False
 
     @staticmethod
     def _assign_coordinates(the_mol: 'Molecule', coordinates: np.ndarray):
@@ -327,19 +390,19 @@ class Molecule(Wrapper, ABC):
             dict of bonds
         """
         bonds: Dict = self._data.get('bonds', {})  # Get the stored bonds
-        set_ob_bonds_idx = {obb.GetIdx() for obb in ob.OBMolBondIter(self.ob_mol)}  # Get obBonds
+        set_ob_bonds_id = {obb.GetId() for obb in ob.OBMolBondIter(self.ob_mol)}  # Get obBonds
 
-        set_bonds_idx = set(bonds.keys())
+        set_bonds_id = set(bonds.keys())
 
         # Compare the stored bond with the obBonds in obMol
-        to_pop_bond_idx = set_bonds_idx.difference(set_ob_bonds_idx)
+        to_pop_bond_idx = set_bonds_id.difference(set_ob_bonds_id)
 
         # Pop redundant stored bonds
         for pop_idx in to_pop_bond_idx:
             bonds.pop(pop_idx)
 
         # Add create new bonds, its corresponding obBond in the obMol but lacking in bond repository
-        bonds = {i: bonds.get(i, Bond(self.ob_mol.GetBond(i), self)) for i in set_ob_bonds_idx}
+        bonds = {i: bonds.get(i, Bond(self.ob_mol.GetBondById(i), self)) for i in set_ob_bonds_id}
 
         self._data['bonds'] = bonds
 
@@ -347,12 +410,12 @@ class Molecule(Wrapper, ABC):
 
     @staticmethod
     def _melt_quench(
-        elements: Dict[str, float], force_field: Union[str, os.PathLike], mol: "Molecule" = None,
-        density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
-        alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
-        origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
-        ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100,
+            elements: Dict[str, float], force_field: Union[str, os.PathLike], mol: "Molecule" = None,
+            density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
+            alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
+            origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
+            ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
+            dump_every: int = 100,
     ):
         """ to perform the melt-quench by call lmp.AmorphousMaker """
 
@@ -375,8 +438,8 @@ class Molecule(Wrapper, ABC):
             if isinstance(left_attr, np.ndarray) and isinstance(right_attr, np.ndarray):
                 self._data[attr_name] = np.concatenate([left_attr, right_attr])
             elif not (  # If the left and right values are not both empty, raise Attributes error.
-                (left_attr is None) or (isinstance(left_attr, np.ndarray) and (not left_attr.all())) and
-                (right_attr is None) or (isinstance(right_attr, np.ndarray) and (not right_attr.all()))
+                    (left_attr is None) or (isinstance(left_attr, np.ndarray) and (not left_attr.all())) and
+                    (right_attr is None) or (isinstance(right_attr, np.ndarray) and (not right_attr.all()))
             ):
                 raise AttributeError(
                     f'the configure relational attribute {attr_name} is different in:\n'
@@ -390,6 +453,10 @@ class Molecule(Wrapper, ABC):
                 merge_attr(item)
 
         return self
+
+    @property
+    def _protected_data(self):
+        return 'ob_object', 'atoms', 'bonds', 'angles'
 
     def _reorganize_atom_indices(self):
         """ reorganize or rearrange the indices for all atoms """
@@ -426,7 +493,8 @@ class Molecule(Wrapper, ABC):
             None
         """
         if not isinstance(all_coordinates, np.ndarray):
-            raise ValueError(f'the given all_coordinates must be a numpy.ndarray class, instead of {type(all_coordinates)}')
+            raise ValueError(
+                f'the given all_coordinates must be a numpy.ndarray class, instead of {type(all_coordinates)}')
 
         if all_coordinates.shape[-1] != 3:
             raise ValueError(f'the coordinate must be 3 dimension, instead of {all_coordinates.shape[-1]}')
@@ -579,10 +647,17 @@ class Molecule(Wrapper, ABC):
         elif isinstance(atom, int):
             atom = Atom(atomic_number=atom, **atom_kwargs)
         elif isinstance(atom, Atom):
-            atom.set(**atom_kwargs)
+            data = atom.data  # copy the atom's data dict
+
+            data.pop('ob_object')  # delete the ob_atom item in data dict
+            if data.get('mol'):
+                data.pop('mol')  # delete the _mol item in data dict
+
+            atom = Atom(atomic_number=atom.atomic_number)
+            atom.update_attr_data(data)
 
         # Avoid add an existed atom into the molecule
-        if atom.molecule and (atom.molecule is self or atom.molecule.ob_mol is self.ob_mol):
+        if atom.molecule or atom.ob_atom.GetParent():
             raise AttributeError("This atom have exist in the molecule")
 
         success = self.ob_mol.AddAtom(atom.ob_atom)
@@ -591,12 +666,12 @@ class Molecule(Wrapper, ABC):
             # Get the last OBAtom
             ob_atom_in_ob_mol = list(ob.OBMolAtomIter(self.ob_mol))[-1]
 
-            # Get the attribute dict and replace the 'OBAtom' and '_mol' items
+            # Get the attribute dict and replace the 'OBAtom' and 'mol' items
             # The 'OBAtom' is the OBAtom has been stored in the self(Molecule)
-            # The '_mol' is the self(Molecule)
-            new_atom_data = atom.copy_data()
-            new_atom_data['ob_atom'] = ob_atom_in_ob_mol
-            new_atom_data['_mol'] = self
+            # The 'mol' is the self(Molecule)
+            new_atom_data = atom.data
+            new_atom_data['ob_object'] = ob_atom_in_ob_mol
+            new_atom_data['mol'] = self
 
             # replace the attr data dict
             atom = Atom()
@@ -654,19 +729,18 @@ class Molecule(Wrapper, ABC):
         else:
             raise RuntimeError('add bond not successful!')
 
-        # Return the bond have add into the molecule
+        # Return the bond have added into the molecule
         return bond
 
-    def add_hydrogens(self, ph: float = None):
+    def add_hydrogens(self, polar_only: bool = False, correct_for_ph: bool = False, ph: float = 1.0):
         """
         add hydrogens for the molecule
         Args:
             ph: add hydrogen in which PH environment
+            polar_only: Whether to add hydrogens only to polar atoms (i.e., not to C atoms)
+            correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
         """
-        if ph:
-            self.ob_mol.AddHydrogens(False, False, ph)
-        else:
-            self.ob_mol.AddHydrogens()
+        self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
 
     def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         """ Add pseudo atom into the molecule """
@@ -714,7 +788,7 @@ class Molecule(Wrapper, ABC):
             return self.atoms_dict[id_label]
         else:
             raise TypeError(f'the given idx_label is expected to be int or string, but given {type(id_label)}')
-        
+
     @property
     def atom_num(self):
         return self.ob_mol.NumAtoms()
@@ -808,6 +882,10 @@ class Molecule(Wrapper, ABC):
         bonds = self._load_bonds()
         return list(bonds.values())
 
+    @property
+    def bonds_dict(self):
+        return self._load_bonds()
+
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
 
@@ -867,12 +945,12 @@ class Molecule(Wrapper, ABC):
 
         # transfer the parent atoms attribute to the children
         for pa, ca in match_atoms.items():
-            ca_data = ca.copy_data()
-            pa_data = pa.copy_data()
+            ca_data = ca.data()
+            pa_data = pa.data()
 
             # Remove the ob_atom and molecule information
-            pa_data.pop('ob_atom')
-            pa_data.pop('_mol')
+            pa_data.pop('ob_object')
+            pa_data.pop('mol')
 
             ca_data.update(pa_data)
 
@@ -930,10 +1008,30 @@ class Molecule(Wrapper, ABC):
         return np.array([atom.coordinates for atom in self.atoms], dtype=np.float64)
 
     def copy(self) -> 'Molecule':
+        """ Get a clone of this Molecule """
+        clone = Molecule(self.ob_copy())
+        clone._load_atoms()
+        clone._load_atoms()
+
+        # Copy the Molecule's attr data to the clone one
+        clone.update_attr_data(self.data)
+        # Copy the Atoms' attr data to the clone ones
+        for atom in clone.atoms:
+            atom.update_attr_data(self.atoms_dict[atom.ob_id].data)
+            atom.molecule = clone
+        # Copy the Bonds' attr data to the lone ones
+        for bond in clone.atoms:
+            bond.update_attr_data(self.bonds_dict[bond.ob_id].data)
+            bond.molecule = clone
+
+        return clone
+
+    # TODO: Discarding in last version
+    def copy1(self) -> 'Molecule':
         """ Copy the Molecule """
         # Create the new data sheet
         new_data = {
-            'ob_mol': ob.OBMol(),
+            'ob_object': ob.OBMol(),
             'atoms': {},
             'bonds': {}
         }
@@ -959,13 +1057,9 @@ class Molecule(Wrapper, ABC):
 
         # generate Bonds in new Molecule with same graph pattern in this Molecule
         for bond in self.bonds:
-            clone_mol.add_bond(*bond.atoms, bond_type=bond.type)
+            clone_mol.add_bond(bond.atom1.label, bond.atom2.label, bond_type=bond.type)
 
         return clone_mol
-
-    @property
-    def data(self):
-        return copy.copy(self._data)
 
     def compact_crystal(self, inplace=False):
         """"""
@@ -995,10 +1089,10 @@ class Molecule(Wrapper, ABC):
         return atom
 
     def create_crystal_by_vectors(
-        self,
-        va: Union[Sequence, np.ndarray],
-        vb: Union[Sequence, np.ndarray],
-        vc: Union[Sequence, np.ndarray]
+            self,
+            va: Union[Sequence, np.ndarray],
+            vb: Union[Sequence, np.ndarray],
+            vc: Union[Sequence, np.ndarray]
     ):
         """ Create a new crystal with specified cell vectors for the Molecule """
         self._create_ob_unit_cell()
@@ -1013,12 +1107,12 @@ class Molecule(Wrapper, ABC):
 
     @classmethod
     def create_aCryst_by_mq(
-        cls, elements: Dict[str, float], force_field: Union[str, os.PathLike],
-        density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
-        alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
-        origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
-        ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100
+            cls, elements: Dict[str, float], force_field: Union[str, os.PathLike],
+            density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
+            alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
+            origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
+            ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
+            dump_every: int = 100
     ):
         """
         Create a Amorphous crystal materials by Melt-Quench process.
@@ -1074,6 +1168,19 @@ class Molecule(Wrapper, ABC):
             return Crystal(ob_unit_cell, molecule=self)
         else:
             return None
+
+    def determine_mol_charge(self):
+        """ Determining the molecular charge """
+        if not self.metals:  # if the molecule don't have any metal:
+            self.charge = self.read_from(self.dump('mol2'), 'mol2').charge
+        else:
+            clone = self.copy()
+            clone.remove_metals()
+
+            organic_charge = clone.read_from(clone.dump('mol2'), 'mol2').charge
+            metal_charge = sum(_stable_charges[m.symbol] for m in self.metals)
+
+            self.charge = organic_charge + metal_charge
 
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes, dict]:
         """"""
@@ -1145,31 +1252,36 @@ class Molecule(Wrapper, ABC):
         return self.ob_mol.GetSpacedFormula()
 
     def gaussian(
-        self,
-        g16root: Union[str, PathLike],
-        link0: Union[str, List[str]],
-        route: Union[str, List[str]],
-        path_log_file: Union[str, PathLike] = None,
-        path_err_file: Union[str, PathLike] = None,
-        inplace_attrs: bool = False,
-        *args, **kwargs
+            self,
+            g16root: Union[str, PathLike],
+            link0: Union[str, List[str]],
+            route: Union[str, List[str]],
+            path_log_file: Union[str, PathLike] = None,
+            path_err_file: Union[str, PathLike] = None,
+            inplace_attrs: bool = False,
+            *args, **kwargs
     ) -> (Union[None, str], str):
         """
         calculation by gaussion.
         for running the method normally, MAKE SURE THE Gaussian16 HAVE BEEN INSTALLED AND ALL ENV VAR SET RITHT !!
         Args:
-            g16root:
-            link0:
-            route:
-            path_log_file: the path to save the out.log file
-            path_err_file: the path to save the error log file
+            g16root: the dir Gaussian16 software installed
+            link0: the link0 command in gjf script
+            route: the route command in gjf script
+            path_log_file: Optional, the path to save the out.log file. If not given, the logfile won't be write
+             to disk
+            path_err_file: optional, the path to save the error log file. If not given, the err file won't be write
+             to disk
             inplace_attrs: Whether to inplace self attribute according to the results from attributes
             *args:
             **kwargs:
 
         Returns:
-
+            the standard output of g16 log file(string), the standard output of g16 err file(string)
         """
+        # For 2d molecule, build its confomer by universal force field first
+        if not self.has_3d:
+            self.build_conformer()
 
         # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
@@ -1200,16 +1312,30 @@ class Molecule(Wrapper, ABC):
         return stdout, stderr
 
     def gcmc(
-            self, *guest, force_field: Union[str, os.PathLike] = None,
-            work_dir: Union[str, os.PathLike] = None, T=295.15, P=1, **kwargs
+            self, *guest: 'Molecule', force_field: Union[str, os.PathLike] = None,
+            work_dir: Union[str, os.PathLike] = None, T: float = 298.15, P: float = 1.0, **kwargs
     ):
-        """"""
+        """
+        Run gcmc to determine the adsorption of guest,
+        Args:
+            self: the framework as the sorbent of guest molecule
+            guest(Molecule): the guest molecule to be adsorbed into the framework
+            force_field(str|PathLike): the path to force field file or the self-existent force file contained
+             in force field directory (in the case, a str should be given as a relative path from the root of
+             force field root to the specified self-existent force filed). By default, the force field is UFF
+             which in the relative path 'UFF/LJ.json' for the force field path.
+            work_dir: the user-specified dir to store the result of GCMC and log file.
+            T: the environmental temperature (default, 298.15 K)
+            P: the relative pressure related to the saturation vapor in the environmental temperature.
+        """
         from tanks.lmp.gcmc import LjGCMC
         gcmc = LjGCMC(self, force_field, *guest, work_dir=work_dir, T=T, P=P, **kwargs)
         return gcmc.run()
 
     def generate_metal_ligand_pair(
-            self, metal_symbol: str, acceptor_atoms: Sequence = ('O',), opti_force_field: str = 'UFF'
+            self, metal_symbol: str,
+            acceptor_atoms: Sequence = ('O',),
+            opti_force_field: str = 'UFF'
     ) -> Generator['Molecule', None, None]:
         """
         This method could work if the molecule is an organic ligand, or raise AttributeError.
@@ -1223,35 +1349,69 @@ class Molecule(Wrapper, ABC):
         Return:
             A generator for M-L pair
         """
-
+        # self.normalize_labels()
         ligand = self.copy()
         ligand.localed_optimize(opti_force_field)  # locally optimize the ligand
-        ligand.normalize_labels()
+        # ligand.normalize_labels()
 
         for atom in ligand.atoms:
             if atom.symbol in acceptor_atoms:
-                acceptor_ligand = ligand.copy()
+                # copy the ligand as the embryo of metal-ligand pairs
+                pair = ligand.copy()
 
-                # assign the initial coordinates
+                # Replace the correspondent atom in the pair embryo, i.e., the accepting atom
+                acc_atom = pair.atom(atom.ob_id)
+
+                # assign the initial coordinates, if the pair has 3d conformer
                 # the sum of vector of relative position relate to the accepting atom
-                sum_relative_coordinates = sum([c for _, c in atom.neighbours_position])
-                metal_init_coordinates = atom.coordinates_array - sum_relative_coordinates
+                if pair.has_3d:
+                    sum_relative_coordinates = sum([c for _, c in acc_atom.neighbours_position])
+                    metal_init_coordinates = acc_atom.coordinates_array - sum_relative_coordinates
 
-                # add metal atom into the acceptor_ligand
-                added_metal = acceptor_ligand.add_atom(metal_symbol, coordinates=metal_init_coordinates)
+                    # add metal atom into the acceptor_ligand
+                    added_metal = pair.add_atom(metal_symbol, coordinates=metal_init_coordinates)
+
+                else:  # If the pair has not 3d conformer, add the metal directly
+                    added_metal = pair.add_atom(metal_symbol)
 
                 # add the coordinating bond between metal atom and acceptor atoms
-                acceptor_ligand.add_bond(added_metal, atom.label, 1)
+                pair.add_bond(added_metal, acc_atom, 1)
 
                 # remove redundant hydrogen
-                accepting_atom = acceptor_ligand.atom(atom.label)
-                while accepting_atom.valence > accepting_atom.valence_max and accepting_atom.neighbours_hydrogen:
-                    acceptor_ligand.remove_atoms(accepting_atom.neighbours_hydrogen[0])
+                while acc_atom.valence > acc_atom.valence_max and acc_atom.neighbours_hydrogen:
+                    pair.remove_atoms(acc_atom.neighbours_hydrogen[0], remove_hydrogens=True)
 
-                # localize optimization of M-L pair by classical force field
-                acceptor_ligand.localed_optimize(opti_force_field)
+                # localize optimization of M-L pair by classical force field, if the pair has 3d
+                if pair.has_3d:
+                    pair.localed_optimize(opti_force_field)
 
-                yield acceptor_ligand
+                # TODO: must refresh the property of ligands, otherwise, the program could break out with unknown reason
+                # TODO: identifying for cause is needed in the later.
+                # _ = ligand.smiles
+                pair.identifier = pair.smiles
+
+                yield pair
+
+    def generate_pairs_bundle(
+            self, metal_symbol: str, acceptor_atoms: Sequence = ('O',), opti_force_field: str = 'UFF'
+    ) -> 'PairBundle':
+        """
+        Generate metal-ligand pairs by bind this ligand with proposed, and put this ligand, metal and all pairs,
+        which are assembled by the ligand and metal, into a PairBundle objects.
+        Args:
+            metal_symbol(str): the symbol of proposed metal
+            acceptor_atoms(Sequence): the atoms to form bond with the proposed metal, the default is Oxygen
+            opti_force_field(str): the force field to optimize the conformer of this ligand and the generated
+             pairs.
+
+        Returns:
+            PairBundle with this ligand, proposed metal and the pairs
+        """
+        return PairBundle(
+            metal=Atom(symbol=metal_symbol),
+            ligand=self,
+            pairs=list(self.generate_metal_ligand_pair(metal_symbol, acceptor_atoms, opti_force_field))
+        )
 
     def graph_representation(self, *feature_names):
         return self.identifier, self.feature_matrix(*feature_names), self.link_matrix
@@ -1260,6 +1420,21 @@ class Molecule(Wrapper, ABC):
     def has_3d(self):
         """ Whether atoms in the molecule have 3d coordinates """
         return self.ob_mol.Has3D()
+
+    @property
+    def hydrogens(self):
+        return [a for a in self.atoms if a.is_hydrogen]
+
+    @property
+    def hydrogens_due_number(self):
+        """ the number of hydrogens when all hydrogens are completed """
+        clone = self.__class__.read_from(self.smiles, 'smi')
+        clone.add_hydrogens()
+        return clone.hydrogens_number
+
+    @property
+    def hydrogens_number(self):
+        return len(self.hydrogens)
 
     @property
     def identifier(self):
@@ -1293,9 +1468,13 @@ class Molecule(Wrapper, ABC):
 
         return False
 
+    def ob_copy(self):
+        """ Return a clone of OBMol of the Molecule """
+        return ob.OBMol(self.ob_mol)
+
     @property
     def ob_mol(self):
-        return self._data['ob_mol']
+        return self._data['ob_object']
 
     def ob_mol_pop(self):
         data: dict = self._data
@@ -1310,7 +1489,7 @@ class Molecule(Wrapper, ABC):
             for ob_idx, bond in bonds.items():
                 bond.ob_bond_pop()
 
-        return self._data.pop('ob_mol')
+        return self._data.pop('ob_object')
 
     def ob_mol_rewrap(self, ob_mol: ob.OBMol):
         if not isinstance(ob_mol, ob.OBMol):
@@ -1324,7 +1503,7 @@ class Molecule(Wrapper, ABC):
         if any(obb.GetIdx() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
             raise ValueError('the bond number between the wrapper and the core OBMol is not match')
 
-        self._data['ob_mol'] = ob_mol
+        self._data['ob_object'] = ob_mol
         for ob_atom in ob.OBMolAtomIter(ob_mol):
             atom = atoms.get(ob_atom.GetId())
             atom.ob_atom_rewrap(ob_atom)
@@ -1373,12 +1552,12 @@ class Molecule(Wrapper, ABC):
         return np.array([a.mass for a in self.atoms])
 
     def melt_quench(
-        self, elements: Dict[str, float], force_field: Union[str, os.PathLike],
-        density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
-        alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
-        origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
-        ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
-        dump_every: int = 100
+            self, elements: Dict[str, float], force_field: Union[str, os.PathLike],
+            density: float = 1.0, a: float = 25., b: float = 25., c: float = 25.,
+            alpha: float = 90., beta: float = 90., gamma: float = 90., time_step: float = 0.0001,
+            origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
+            ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
+            dump_every: int = 100
     ):
         """
         Create a Amorphous crystal materials by performing Melt-Quench process for this materials.
@@ -1568,7 +1747,7 @@ class Molecule(Wrapper, ABC):
         with open(ptj(data_root, 'thermo', 'critical.json'), 'w') as writer:
             json.dump(data, writer, indent=True)
 
-    def remove_atoms(self, *atoms: Union[int, str, 'Atom'], remove_hydrogens: bool = True) -> None:
+    def remove_atoms(self, *atoms: Union[int, str, 'Atom'], remove_hydrogens: bool = False) -> None:
         """
         Remove atom according to given atom index, label or the atoms self.
         Args:
@@ -1578,6 +1757,7 @@ class Molecule(Wrapper, ABC):
         Returns:
             None
         """
+        # to_remove_bonds = set()
         for atom in atoms:
 
             # Check and locate the atom
@@ -1591,6 +1771,9 @@ class Molecule(Wrapper, ABC):
             else:
                 raise TypeError('the given atom should be int, str or Atom')
 
+            # Record the linking bonds with the atom
+            # to_remove_bonds.update(atom.bonds)
+
             # remove connecting hydrogens
             if remove_hydrogens:
                 for nh in atom.neighbours_hydrogen:
@@ -1598,10 +1781,22 @@ class Molecule(Wrapper, ABC):
 
             # Removing the atom
             self.ob_mol.DeleteAtom(atom.ob_atom)
-            atom._data['_mol'] = None
+            atom._data['mol'] = None
+        #
+        # # remove all linking bonds
+        # self.remove_bonds(*to_remove_bonds)
 
-            # Reload atoms
-            self._load_atoms()
+        # Reload atoms
+        self._load_atoms()
+
+    def remove_bonds(self, *bonds: 'Bond'):
+        """ Remove the bonds in the molecule """
+        for bond in bonds:
+            successful = self.ob_mol.DeleteBond(bond.ob_bond)
+            if not successful:
+                raise RuntimeError(f'Fail to remove {bonds}')
+
+        self._load_bonds()
 
     def remove_hydrogens(self):
         self.ob_mol.DeleteHydrogens()
@@ -1665,9 +1860,14 @@ class Molecule(Wrapper, ABC):
         """
         return self.fingerprint(fptype) | other.fingerprint(fptype)
 
+    def smarts(self):
+        """ Get the SMARTS string """
+        return Chem.MolToSmarts(self.to_rdmol())
+
     @property
     def smiles(self):
-        return self.dump('smi').split()[0]
+        """ Get the canonical smiles """
+        return self.dump('can').split()[0]
 
     @property
     def spin(self):
@@ -1761,7 +1961,11 @@ class Molecule(Wrapper, ABC):
         return MixSameAtomMol(_data=self._data)
 
     def to_mol(self):
-        return Molecule(self.data)
+        return Molecule(_data=self.data)
+
+    def to_rdmol(self):
+        """ convert hotpot Molecule object to RdKit mol object """
+        return Chem.MolFromMol2Block(self.dump('mol2'))
 
     @property
     def unique_all_atoms(self):
@@ -1832,6 +2036,7 @@ class Molecule(Wrapper, ABC):
 
 class MixSameAtomMol(Molecule):
     """ the only difference to the Molecule class is the method of their addition  """
+
     def __repr__(self):
         return f'MixMol({self.formula})'
 
@@ -1843,6 +2048,7 @@ class MixSameAtomMol(Molecule):
 
 class Atom(Wrapper, ABC):
     """ The Atom wrapper for OBAtom class in openbabel """
+
     # TODO: to check the consistence of the method to access the OBAtom in OBMol
     # TODO: for atom the correct method to access OBAtom from OBMol is by GetAtomById, not GetAtom !!!
     # TODO: the GetAtomById get OBAtom start from 0
@@ -1855,9 +2061,8 @@ class Atom(Wrapper, ABC):
             **kwargs
     ):
         # Contain all data to reappear this Atom
-        self._data = {
-            'ob_atom': ob_atom if ob_atom else ob.OBAtom(),
-            # '_mol': _mol,
+        self._data: Dict[str, Any] = {
+            'ob_object': ob_atom if ob_atom else ob.OBAtom(),
         }
 
         self._set_attrs(**kwargs)
@@ -1872,22 +2077,17 @@ class Atom(Wrapper, ABC):
 
     @property
     def ob_atom(self):
-        return self._data['ob_atom']
+        return self._data['ob_object']
 
     @ob_atom.setter
     def ob_atom(self, oba):
-        self._data['ob_atom'] = oba
+        self._data['ob_object'] = oba
 
     def ob_atom_pop(self):
-        return self._data.pop('ob_atom')
+        return self._data.pop('ob_object')
 
     def ob_atom_rewrap(self, ob_atom):
-        self._data['ob_atom'] = ob_atom
-
-    @property
-    def mol(self) -> Molecule:
-        """ Same as molecule method """
-        return self._data.get('_mol')
+        self._data['ob_object'] = ob_atom
 
     def __repr__(self):
         return f"Atom({self.label if self.label else self.symbol})"
@@ -1895,21 +2095,17 @@ class Atom(Wrapper, ABC):
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
-            "_mol": self._set_molecule,
-            "mol": self._set_molecule,
+            '_mol': self._set_molecule,
+            'mol': self._set_molecule,
             'molecule': self._set_molecule,
-            "atomic_number": self._set_atomic_number,
+            'atomic_number': self._set_atomic_number,
             'symbol': self._set_atomic_symbol,
-            "coordinates": self._set_coordinate,
+            'coordinates': self._set_coordinate,
             'partial_charge': self._set_partial_charge,
             'label': self._set_label,
             'ob_id': self._set_ob_id,
             'spin_density': self._set_spin_density
         }
-
-    def replace_attr_data(self, data: Dict):
-        """ Replace the core data dict directly """
-        self._data = data
 
     def _set_atomic_number(self, atomic_number: int):
         self.ob_atom.SetAtomicNum(int(atomic_number))
@@ -1941,7 +2137,7 @@ class Atom(Wrapper, ABC):
         self._data['label'] = label
 
     def _set_molecule(self, molecule: Molecule):
-        self._data['_mol'] = molecule
+        self._data['mol'] = molecule
 
     def _set_partial_charge(self, charge):
         self.ob_atom.SetPartialCharge(charge)
@@ -1959,6 +2155,11 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.GetAtomicNum()
 
     @property
+    def bonds(self):
+        """ Get all bonds link with the atoms """
+        return [self.molecule.bonds_dict[obb.GetIdx()] for obb in ob.OBAtomBondIter(self.ob_atom)]
+
+    @property
     def coordinates(self) -> (float, float, float):
         return self.ob_atom.GetX(), self.ob_atom.GetY(), self.ob_atom.GetZ()
 
@@ -1974,11 +2175,11 @@ class Atom(Wrapper, ABC):
     def copy(self):
         """ Make a copy of self """
         # Extract old data
-        data = self.copy_data()
-        data.pop('ob_atom')  # Remove the old OBAtom
+        data = self.data
+        data.pop('ob_object')  # Remove the old OBAtom
         # Remove molecule if the parent atom in a molecule
-        if self.mol:
-            data.pop('_mol')
+        if self.molecule:
+            data.pop('mol')
 
         # Copy the information contained in OBAtom
         new_attrs = {
@@ -1992,10 +2193,6 @@ class Atom(Wrapper, ABC):
         new_attrs.update(**data)
 
         return Atom(**new_attrs)
-
-    def copy_data(self):
-        """ Make a copy of its data """
-        return copy.copy(self._data)
 
     def element_features(self, *feature_names) -> np.ndarray:
         """ Retrieve the feature vector """
@@ -2072,6 +2269,14 @@ class Atom(Wrapper, ABC):
         self._set_force_vector(force_vector)
 
     @property
+    def formal_charge(self) -> float:
+        return self.ob_atom.GetFormalCharge()
+
+    @formal_charge.setter
+    def formal_charge(self, value: float):
+        self.ob_atom.SetFormalCharge(value)
+
+    @property
     def hybridization(self):
         """ The hybridization of this atom:
         1 for sp, 2 for sp2, 3 for sp3, 4 for sq. planar, 5 for trig. bipy, 6 for octahedral """
@@ -2133,7 +2338,11 @@ class Atom(Wrapper, ABC):
 
     @property
     def molecule(self) -> Molecule:
-        return self.mol
+        return self._data.get('mol')
+
+    @molecule.setter
+    def molecule(self, mol: 'Molecule'):
+        self._data['mol'] = mol
 
     @property
     def neighbours_hydrogen(self) -> List['Atom']:
@@ -2143,9 +2352,9 @@ class Atom(Wrapper, ABC):
     @property
     def neighbours(self) -> List['Atom']:
         """ Get all atoms bond with this atom in same molecule """
-        if self.mol:
-            _ = self.mol.atoms  # update the atoms dict
-            return [self.mol.data.get('atoms')[ob_atom.GetId()] for ob_atom in ob.OBAtomAtomIter(self.ob_atom)]
+        if self.molecule:
+            _ = self.molecule.atoms  # update the atoms dict
+            return [self.molecule.atoms_dict[ob_atom.GetId()] for ob_atom in ob.OBAtomAtomIter(self.ob_atom)]
         else:
             return []
 
@@ -2170,6 +2379,10 @@ class Atom(Wrapper, ABC):
         # the reason is unknown
         self.ob_atom.GetPartialCharge()
         self._set_partial_charge(value)
+
+    def replace_attr_data(self, data: Dict):
+        """ Replace the core data dict directly """
+        self._data = data
 
     def set(self, **kwargs):
         """
@@ -2215,6 +2428,7 @@ class Atom(Wrapper, ABC):
 
 class PseudoAtom(Wrapper, ABC):
     """ A data wrapper for pseudo atom """
+
     def __init__(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         if isinstance(coordinates, Sequence):
             coordinates = np.array(coordinates)
@@ -2249,7 +2463,7 @@ class Bond(Wrapper, ABC):
 
     def __init__(self, ob_bond: ob.OBBond, _mol: Molecule):
         self._data = {
-            "ob_bond": ob_bond,
+            'ob_object': ob_bond,
             'mol': _mol
         }
 
@@ -2265,13 +2479,13 @@ class Bond(Wrapper, ABC):
 
     @property
     def ob_bond(self):
-        return self._data['ob_bond']
+        return self._data['ob_object']
 
     def ob_bond_pop(self):
-        return self._data.pop('ob_bond')
+        return self._data.pop('ob_object')
 
     def ob_bond_rewrap(self, ob_bond):
-        self._data['ob_bond'] = ob_bond
+        self._data['ob_object'] = ob_bond
 
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
@@ -2311,7 +2525,11 @@ class Bond(Wrapper, ABC):
         return self.ob_bond.GetEquibLength()
 
     @property
-    def idx(self):
+    def ob_id(self):
+        return self.ob_bond.GetId()
+
+    @property
+    def ob_idx(self):
         return self.ob_bond.GetIdx()
 
     @property
@@ -2346,6 +2564,10 @@ class Bond(Wrapper, ABC):
     def molecule(self):
         return self._data['mol']
 
+    @molecule.setter
+    def molecule(self, mol: Molecule):
+        self._data['mol'] = mol
+
     @property
     def type_name(self):
         return _type_bond[self.type]
@@ -2357,6 +2579,7 @@ class Bond(Wrapper, ABC):
 
 class Angle:
     """ Data wrapper of angle in molecule """
+
     def __init__(self, mol: 'Molecule', atoms_ob_id: tuple):
         self._data = {
             'mol': mol,
@@ -2365,11 +2588,15 @@ class Angle:
 
     def __repr__(self):
         a, b, c = self.atoms
-        return f'Angle({a.label}, {b.label}, {c.label}, {round(self.degree,2)}°)'
+        return f'Angle({a.label}, {b.label}, {c.label}, {round(self.degree, 2)}°)'
 
     @property
     def molecule(self):
         return self._data.get('mol')
+
+    @molecule.setter
+    def molecule(self, mol: Molecule):
+        self._data['mol'] = mol
 
     @property
     def atoms(self):
@@ -2394,7 +2621,7 @@ class Crystal(Wrapper, ABC):
 
     def __init__(self, ob_unitcell: ob.OBUnitCell = None, **kwargs):
 
-        self._data = {
+        self._data: Dict[str, Any] = {
             'OBUnitCell': ob_unitcell if ob_unitcell else ob.OBUnitCell(),
         }
 
@@ -2456,6 +2683,10 @@ class Crystal(Wrapper, ABC):
     @property
     def molecule(self) -> Molecule:
         return self._data.get('mol')
+
+    @molecule.setter
+    def molecule(self, mol: Molecule):
+        self._data['mol'] = mol
 
     @property
     def pack_molecule(self) -> Molecule:
@@ -2528,3 +2759,4 @@ class Crystal(Wrapper, ABC):
 
 import hotpot.bundle as bd
 from hotpot._io import Dumper, Parser
+from hotpot.tanks.cc import PairBundle

@@ -98,12 +98,17 @@ class Wrapper(ABC):
     _data = {}  # all attributes of wrappers are stored into
 
     @property
+    @abstractmethod
+    def _attr_setters(self) -> Dict[str, Callable]:
+        raise NotImplemented
+
+    @property
     def _protected_data(self):
         """
         the protected attr in data which could not be replaced by call methods:
             - update_attr_data()
         """
-        return ('ob_object',)
+        return ('ob_obj',)
 
     def _set_attrs(self, **kwargs):
         """    Set any atomic attributes by name    """
@@ -114,11 +119,6 @@ class Wrapper(ABC):
             if setter:  # if the attribute is exist in the object.
                 assert isinstance(setter, Callable)
                 setter(value)
-
-    @property
-    @abstractmethod
-    def _attr_setters(self) -> Dict[str, Callable]:
-        raise NotImplemented
 
     @property
     def data(self) -> dict:
@@ -168,7 +168,7 @@ class Molecule(Wrapper, ABC):
             self._data: dict = _data
         else:
             self._data: dict = {
-                'ob_object': ob_mol if ob_mol else ob.OBMol()
+                'ob_obj': ob_mol if ob_mol else ob.OBMol()
             }
         self._set_attrs(**kwargs)
         self._load_atoms()
@@ -456,7 +456,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def _protected_data(self):
-        return 'ob_object', 'atoms', 'bonds', 'angles'
+        return 'ob_obj', 'atoms', 'bonds', 'angles'
 
     def _reorganize_atom_indices(self):
         """ reorganize or rearrange the indices for all atoms """
@@ -649,7 +649,7 @@ class Molecule(Wrapper, ABC):
         elif isinstance(atom, Atom):
             data = atom.data  # copy the atom's data dict
 
-            data.pop('ob_object')  # delete the ob_atom item in data dict
+            data.pop('ob_obj')  # delete the ob_atom item in data dict
             if data.get('mol'):
                 data.pop('mol')  # delete the _mol item in data dict
 
@@ -670,7 +670,7 @@ class Molecule(Wrapper, ABC):
             # The 'OBAtom' is the OBAtom has been stored in the self(Molecule)
             # The 'mol' is the self(Molecule)
             new_atom_data = atom.data
-            new_atom_data['ob_object'] = ob_atom_in_ob_mol
+            new_atom_data['ob_obj'] = ob_atom_in_ob_mol
             new_atom_data['mol'] = self
 
             # replace the attr data dict
@@ -949,7 +949,7 @@ class Molecule(Wrapper, ABC):
             pa_data = pa.data()
 
             # Remove the ob_atom and molecule information
-            pa_data.pop('ob_object')
+            pa_data.pop('ob_obj')
             pa_data.pop('mol')
 
             ca_data.update(pa_data)
@@ -1025,41 +1025,6 @@ class Molecule(Wrapper, ABC):
             bond.molecule = clone
 
         return clone
-
-    # TODO: Discarding in last version
-    def copy1(self) -> 'Molecule':
-        """ Copy the Molecule """
-        # Create the new data sheet
-        new_data = {
-            'ob_object': ob.OBMol(),
-            'atoms': {},
-            'bonds': {}
-        }
-
-        # Copy all attribute except for 'OBMol', 'atoms' and 'bonds'
-        for name, value in self._data.items():
-            if name not in new_data:
-                new_data[name] = copy.copy(value)
-
-        # Create new Molecule
-        clone_mol = self.__class__()
-        clone_mol._data = new_data
-        clone_mol.identifier = self.identifier
-
-        # Clone the old UnitCell data into new
-        cell_data = self.ob_mol.GetData(12)  # the UnitCell of OBmol save with idx 12
-        if cell_data:
-            clone_mol.ob_mol.CloneData(cell_data)
-
-        # copy, in turn, each Atom in this molecule and add them into new Molecule
-        for atom in self.atoms:
-            clone_mol.add_atom(atom)
-
-        # generate Bonds in new Molecule with same graph pattern in this Molecule
-        for bond in self.bonds:
-            clone_mol.add_bond(bond.atom1.label, bond.atom2.label, bond_type=bond.type)
-
-        return clone_mol
 
     def compact_crystal(self, inplace=False):
         """"""
@@ -1474,7 +1439,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def ob_mol(self):
-        return self._data['ob_object']
+        return self._data['ob_obj']
 
     def ob_mol_pop(self):
         data: dict = self._data
@@ -1489,7 +1454,7 @@ class Molecule(Wrapper, ABC):
             for ob_idx, bond in bonds.items():
                 bond.ob_bond_pop()
 
-        return self._data.pop('ob_object')
+        return self._data.pop('ob_obj')
 
     def ob_mol_rewrap(self, ob_mol: ob.OBMol):
         if not isinstance(ob_mol, ob.OBMol):
@@ -1503,7 +1468,7 @@ class Molecule(Wrapper, ABC):
         if any(obb.GetIdx() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
             raise ValueError('the bond number between the wrapper and the core OBMol is not match')
 
-        self._data['ob_object'] = ob_mol
+        self._data['ob_obj'] = ob_mol
         for ob_atom in ob.OBMolAtomIter(ob_mol):
             atom = atoms.get(ob_atom.GetId())
             atom.ob_atom_rewrap(ob_atom)
@@ -2062,7 +2027,7 @@ class Atom(Wrapper, ABC):
     ):
         # Contain all data to reappear this Atom
         self._data: Dict[str, Any] = {
-            'ob_object': ob_atom if ob_atom else ob.OBAtom(),
+            'ob_obj': ob_atom if ob_atom else ob.OBAtom(),
         }
 
         self._set_attrs(**kwargs)
@@ -2077,17 +2042,17 @@ class Atom(Wrapper, ABC):
 
     @property
     def ob_atom(self):
-        return self._data['ob_object']
+        return self._data['ob_obj']
 
     @ob_atom.setter
     def ob_atom(self, oba):
-        self._data['ob_object'] = oba
+        self._data['ob_obj'] = oba
 
     def ob_atom_pop(self):
-        return self._data.pop('ob_object')
+        return self._data.pop('ob_obj')
 
     def ob_atom_rewrap(self, ob_atom):
-        self._data['ob_object'] = ob_atom
+        self._data['ob_obj'] = ob_atom
 
     def __repr__(self):
         return f"Atom({self.label if self.label else self.symbol})"
@@ -2133,7 +2098,7 @@ class Atom(Wrapper, ABC):
     def _set_ob_id(self, ob_id):
         self.ob_atom.SetId(ob_id)
 
-    def _set_label(self, label):
+    def _set_label(self, label: str):
         self._data['label'] = label
 
     def _set_molecule(self, molecule: Molecule):
@@ -2176,7 +2141,7 @@ class Atom(Wrapper, ABC):
         """ Make a copy of self """
         # Extract old data
         data = self.data
-        data.pop('ob_object')  # Remove the old OBAtom
+        data.pop('ob_obj')  # Remove the old OBAtom
         # Remove molecule if the parent atom in a molecule
         if self.molecule:
             data.pop('mol')
@@ -2463,7 +2428,7 @@ class Bond(Wrapper, ABC):
 
     def __init__(self, ob_bond: ob.OBBond, _mol: Molecule):
         self._data = {
-            'ob_object': ob_bond,
+            'ob_obj': ob_bond,
             'mol': _mol
         }
 
@@ -2479,13 +2444,13 @@ class Bond(Wrapper, ABC):
 
     @property
     def ob_bond(self):
-        return self._data['ob_object']
+        return self._data['ob_obj']
 
     def ob_bond_pop(self):
-        return self._data.pop('ob_object')
+        return self._data.pop('ob_obj')
 
     def ob_bond_rewrap(self, ob_bond):
-        self._data['ob_object'] = ob_bond
+        self._data['ob_obj'] = ob_bond
 
     @property
     def _attr_setters(self) -> Dict[str, Callable]:

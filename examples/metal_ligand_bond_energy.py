@@ -55,7 +55,9 @@ if __name__ == '__main__':
     g16root = '/home/zzy/sw'
 
     # mb = hp.MolBundle.read_from('smi', pd.read_csv(p_ss, index_col=0).values.flatten(), generate=True)
-    mol = hp.Molecule.read_from('OC(c1ccccc1)=O', 'smi')
+    mol = hp.Molecule.read_from('c1ccccc1', 'smi')
+    # mol.normalize_labels()
+
     # gc = mb.choice(p=mol_gp)
     #
     # mols = list(tqdm(gc))
@@ -63,14 +65,14 @@ if __name__ == '__main__':
     # mol = mols[0]
     # mol = hp.Molecule.read_from('OC(=O)c1ccccc1', 'smi')
     #
-    bp = mol.generate_pairs_bundle('Sr')
-    ubp = bp.unique_mols('similarity')
-
-    work_dir = f'/home/zzy/proj/be/g16/1'
-    ubp.determine_metal_ligand_bind_energy(
-        g16root=g16root,
-        work_dir=work_dir,
-        method='M062X',
-        basis_set='Def2SVP',
-        route=' SCRF pop(Always)'
-    )
+    # bp = mol.generate_pairs_bundle('Sr')
+    # ubp = bp.unique_mols('similarity')
+    #
+    # work_dir = f'/home/zzy/proj/be/g16/1'
+    # ubp.determine_metal_ligand_bind_energy(
+    #     g16root=g16root,
+    #     work_dir=work_dir,
+    #     method='M062X',
+    #     basis_set='Def2SVP',
+    #     route=' SCRF pop(Always)'
+    # )

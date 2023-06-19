@@ -41,7 +41,16 @@ class Gaussian:
         self.envs = self._set_environs()
         self._set_resource_limits(report_set_resource_error)
 
-        self.data = None
+        self.data = None  # to receive the data from the cclib parser
+        self.g16process = None  # to link to the g16 subprocess
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print(f'{exc_type}, {exc_val}, {exc_tb}, {self.g16process.poll()}')
+        if self.g16process.poll():
+            self.g16process.kill()
 
     def _set_environs(self):
         """Sets up the environment variables required for running Gaussian 16.
@@ -161,12 +170,12 @@ class Gaussian:
             Tuple[str, str]: A tuple of the standard output and standard error of the process.
         """
         # Run Gaussian using subprocess
-        g16_process = subprocess.Popen(
+        self.g16process = subprocess.Popen(
             'g16', bufsize=-1, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env=self.envs, universal_newlines=True
         )
-        stdout, stderr = g16_process.communicate(script)
+        stdout, stderr = self.g16process.communicate(script)
 
         self.parse_log(stdout)
 

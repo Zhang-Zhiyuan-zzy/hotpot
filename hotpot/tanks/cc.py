@@ -194,7 +194,7 @@ class PairBundle(MolBundle):
             pair.gaussian(
                 g16root,
                 link0=f'CPU=0-{os.cpu_count() - 1}',
-                route=f'opt {method}/{basis_set}' + route,
+                route=f'opt {method}/{basis_set} ' + route,
                 path_log_file=dirs_files.pair_log_path(i),
                 path_err_file=dirs_files.pair_err_path(i),
                 inplace_attrs=True

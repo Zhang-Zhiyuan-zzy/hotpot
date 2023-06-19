@@ -50,27 +50,32 @@ def generate_metal_ligand_pairs():
     return bundle
 
 
+def test_retrieve_mol_attrs(mole):
+    print(mole.bonds)
+    print(mole.angles)
+    print(mole.labels)
+    print(mole.inchi)
+    print(mole.is_labels_unique)
+    print(mole.is_organic)
+    print(mole.ob_mol)
+    print(mole.unique_atoms)
+    print(mole.unique_all_atoms)
+    print(mole.unique_bonds)
+    print(mole.unique_bond_pairs)
+
+
 if __name__ == '__main__':
-    p_ss = Path('/home/zzy/proj/be/struct/selected_smi.csv')
+    path_smiles = Path('/home/zzy/proj/be/struct/choice_ligand')
     g16root = '/home/zzy/sw'
+    work_dir = Path('/home/zzy/proj/be/g16')
 
-    # mb = hp.MolBundle.read_from('smi', pd.read_csv(p_ss, index_col=0).values.flatten(), generate=True)
-    mol = hp.Molecule.read_from('OC(c1ccccc1)=O', 'smi')
-    # gc = mb.choice(p=mol_gp)
-    #
-    # mols = list(tqdm(gc))
-    #
-    # mol = mols[0]
-    # mol = hp.Molecule.read_from('OC(=O)c1ccccc1', 'smi')
-    #
-    bp = mol.generate_pairs_bundle('Sr')
-    ubp = bp.unique_mols('similarity')
+    smiles = open(path_smiles).readlines()
 
-    work_dir = f'/home/zzy/proj/be/g16/1'
-    ubp.determine_metal_ligand_bind_energy(
-        g16root=g16root,
-        work_dir=work_dir,
-        method='M062X',
-        basis_set='Def2SVP',
-        route=' SCRF pop(Always)'
-    )
+    mb = hp.MolBundle.read_from('smi', smiles)
+
+    for i, mol in enumerate(mb):
+        print(f'{i}/{len(mb)}: {mol}')
+        pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
+        pair_bundle.determine_metal_ligand_bind_energy(
+            g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)'
+        )

@@ -42,18 +42,20 @@ class AddBondFail(OperateOBMolFail):
 
 
 periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))
-_symbols = ['unknown'] + list(periodic_table.keys())
+_symbols: List[str] = ['unknown'] + list(periodic_table.keys())
 _max_valences = {n: v['max_valence'] for n, v in periodic_table.items()}
 _max_total_bond_order = {n: v['max_total_bond_order'] for n, v in periodic_table.items()}
 
 _stable_charges = {
-    'H': 1, 'He': 0,
-    'Li': 1, 'Be': 2,
-    'Na': 1, 'Mg': 2,
-    'K': 1, 'Ca': 2, 'Sc': 3, 'Ti': 4,
-    'Rb': 1, 'Sr': 2, '?': '', 'Zr': 4,
-    'Cs': 1, 'Ba': 2
+    "H": 1, "He": 0,
+    "Li": 1, "Be": 2, "B": 3, "C": 4, "N": -3, "O": -2, "F": -1, "Ne": 0,
+    "Na": 1, "Mg": 2, "Al": 3, "Si": 4, "P": -3, "S": -2, "Cl": -1, "Ar": 0,
+    "K": 1, "Ca": 2, "Sc": 3, "Ti": 4, "V": 5, "Cr": 4, "Mn": 3, "Fe": 2, "Co": 2, "Ni": 2, "Cu": 1, "Zn": 2, "Ga": 3, "Ge": 4, "As": -3, "Se": -2, "Br": -1, "Kr": 0,
+    "Rb": 1, "Sr": 2, "Y": 3, "Zr": 4, "Nb": 5, "Mo": 6, "Tc": 7, "Ru": 4, "Rh": 3, "Pd": 2, "Ag": 1, "Cd": 2, "In": 3, "Sn": 2, "Sb": -3, "Te": -2, "I": -1, "Xe": 0,
+    "Cs": 1, "Ba": 2, "La": 3, "Ce": 4, "Pr": 3, "Nd": 3, "Pm": 3, "Sm": 3, "Eu": 2, "Gd": 3, "Tb": 3, "Dy": 3, "Ho": 3, "Er": 3, "Tm": 3, "Yb": 3, "Lu": 3, "Hf": 4, "Ta": 5, "W": 6, "Re": 7, "Os": 4, "Ir": 3, "Pt": 2, "Au": 1, "Hg": 2, "Tl": 3, "Pb": 2, "Bi": 3, "Po": -2, "At": -1, "Rn": 0,
+    "Fr": 1, "Ra": 2, "Ac": 3, "Th": 4, "Pa": 5, "U": 6, "Np": 6, "Pu": 6, "Am": 6, "Cm": 6, "Bk": 6, "Cf": 6, "Es": 6, "Fm": 6, "Md": 6, "No": 6, "Lr": 3, "Rf": 4, "Db": 5, "Sg": 6, "Bh": 7, "Hs": 8, "Mt": 8, "Ds": 8, "Rg": 8, "Cn": 8, "Nh": 8, "Fl": 8, "Mc": 8, "Lv": 8, "Ts": 8, "Og": 8
 }
+
 
 _bond_type = {
     'Unknown': 0,
@@ -117,6 +119,11 @@ class Wrapper(ABC):
             if setter:  # if the attribute is exist in the object.
                 assert isinstance(setter, Callable)
                 setter(value)
+
+            else:
+                raise NameError(
+                    f'the {name} is cannot be set by Atom.set(), the legal attrs include: {self._attr_setters.keys()}'
+                )
 
     @property
     @abstractmethod
@@ -402,27 +409,15 @@ class Molecule(Wrapper, ABC):
         """
         atoms: Dict[int, Atom] = self._data.get('atoms', {})
 
-        set_ob_atoms_idx = {oba.GetId() for oba in ob.OBMolAtomIter(self.ob_mol)}  # Get obBonds
+        new_atoms = {}
+        for new_ob_id, oba in enumerate(ob.OBMolAtomIter(self.ob_mol)):
+            atom = atoms.get(oba.GetId(), Atom(oba, mol=self))
+            oba.SetId(new_ob_id)
+            new_atoms[new_ob_id] = atom
 
-        set_atoms_idx = set(atoms.keys())
+        self._data['atoms'] = new_atoms
 
-        # Compare the stored atom with the obBonds in obMol
-        to_pop_atom_idx = set_atoms_idx.difference(set_ob_atoms_idx)
-
-        # Pop redundant stored atoms
-        for pop_idx in to_pop_atom_idx:
-            atoms.pop(pop_idx)
-
-        # Add create new atoms, its corresponding obBond in the obMol but lacking in atom repository
-        for oba in ob.OBMolAtomIter(self.ob_mol):
-            atom = atoms.setdefault(oba.GetId(), Atom(oba, mol=self))
-            atom.ob_atom = oba
-
-        # atoms = {i: atoms.get(i, Atom(self.ob_mol.GetAtomById(i), mol=self)) for i in set_ob_atoms_idx}
-
-        self._data['atoms'] = atoms
-
-        return atoms
+        return new_atoms
 
     def _load_bonds(self) -> Dict[Tuple[int], 'Bond']:
         """
@@ -433,25 +428,16 @@ class Molecule(Wrapper, ABC):
             dict of bonds
         """
         bonds: Dict = self._data.get('bonds', {})  # Get the stored bonds
-        set_ob_bonds_id = {
-            obb.GetId() for obb in ob.OBMolBondIter(self.ob_mol)
-        }  # Get obBonds
 
-        set_bonds_id = set(bonds.keys())
+        new_bonds = {}
+        for new_ob_id, obb in enumerate(ob.OBMolBondIter(self.ob_mol)):
+            bond = bonds.get(obb.GetId(), Bond(obb, self))  # Get old bond by old id
+            obb.SetId(new_ob_id)  # Specify new id
+            new_bonds[new_ob_id] = bond
 
-        # Compare the stored bond with the obBonds in obMol
-        to_pop_bond_idx = set_bonds_id.difference(set_ob_bonds_id)
+        self._data['bonds'] = new_bonds
 
-        # Pop redundant stored bonds
-        for pop_idx in to_pop_bond_idx:
-            bonds.pop(pop_idx)
-
-        # Add create new bonds, its corresponding obBond in the obMol but lacking in bond repository
-        bonds = {i: bonds.get(i, Bond(self.ob_mol.GetBondById(i), self)) for i in set_ob_bonds_id}
-
-        self._data['bonds'] = bonds
-
-        return bonds
+        return new_bonds
 
     @staticmethod
     def _melt_quench(
@@ -704,48 +690,28 @@ class Molecule(Wrapper, ABC):
         Returns:
             the copy of atom in the molecule
         """
+        oba = ob.OBAtom()  # Initialize a new OBAtom
+        data = None
         if isinstance(atom, str):
-            atom = Atom(symbol=atom, **atom_attrs)
+            oba.SetAtomicNum(_symbols.index(atom))
         elif isinstance(atom, int):
-            atom = Atom(atomic_number=atom, **atom_attrs)
+            oba.SetAtomicNum(atom)
         elif isinstance(atom, Atom):
-            data = atom.data  # copy the atom's data dict
+            oba.SetAtomicNum(atom.atomic_number)
+            data = atom.data  # Copy the give atoms data
 
-            data.pop('ob_obj')  # delete the ob_atom item in data dict
-            if data.get('mol'):
-                data.pop('mol')  # delete the _mol item in data dict
+        # add OBAtom to the OBMol
+        success = self.ob_mol.AddAtom(oba)
 
-            atom = Atom(atomic_number=atom.atomic_number)
-            atom.update_attr_data(data)
-
-        # Avoid add an existed atom into the molecule
-        if atom.molecule or atom.ob_atom.GetParent():
-            raise AttributeError("This atom have exist in the molecule")
-
-        success = self.ob_mol.AddAtom(atom.ob_atom)
         if success:
+            atom = self.atoms[-1]  # Retrieve the added atom
 
-            # Get the last OBAtom
-            ob_atom_in_ob_mol = list(ob.OBMolAtomIter(self.ob_mol))[-1]
+            if data:
+                atom.update_attr_data(data)  # replicant the old atom's data to the new
 
-            # Get the attribute dict and replace the 'OBAtom' and 'mol' items
-            # The 'OBAtom' is the OBAtom has been stored in the self(Molecule)
-            # The 'mol' is the self(Molecule)
-            new_atom_data = atom.data
-            new_atom_data['ob_obj'] = ob_atom_in_ob_mol
-            new_atom_data['mol'] = self
+            atom.set(**atom_attrs)  # Set attributes by kwargs
 
-            # replace the attr data dict
-            atom = Atom()
-            atom.replace_attr_data(new_atom_data)
-
-            # add the new atom into atoms list directly
-            atoms = self._data.setdefault('atoms', {})
-            if atom.ob_id not in atoms:
-                atoms.update({atom.ob_id: atom})
-                return atom
-            else:
-                raise ValueError(f'the atom with ob_id {atom.ob_id} have exist in the Molecule')
+            return atom
 
         else:
             raise AddAtomFail(f'Add the atom {atom} into Molecule fail')
@@ -803,6 +769,8 @@ class Molecule(Wrapper, ABC):
             correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
         """
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
+        self._load_atoms()
+        self._load_bonds()
         # TODO: Beta, test feature
         for atom in self.atoms:
             atom.remove_redundant_hydrogen()
@@ -1067,9 +1035,6 @@ class Molecule(Wrapper, ABC):
 
     def copy(self) -> 'Molecule':
         """ Get a clone of this Molecule """
-        self._reorder_atom_ob_id()
-        self._reorder_bond_ob_id()
-
         clone = Molecule(self.ob_copy())
         clone._load_atoms()
         clone._load_bonds()
@@ -1817,12 +1782,10 @@ class Molecule(Wrapper, ABC):
             # Removing the atom
             self.ob_mol.DeleteAtom(atom.ob_atom)
             atom._data['mol'] = None
-        #
-        # # remove all linking bonds
-        # self.remove_bonds(*to_remove_bonds)
 
         # Reload atoms
         self._load_atoms()
+        self._load_bonds()
 
     def remove_bonds(self, *bonds: 'Bond'):
         """ Remove the bonds in the molecule """
@@ -2464,12 +2427,6 @@ class Atom(Wrapper, ABC):
             label:
             spin_density:
         """
-        allow_kwargs = {'atomic_number', 'symbol', 'coordinates', 'partial_charge', 'label', 'spin_density'}
-
-        # check the correctness of given kwargs
-        if any(name not in allow_kwargs for name in kwargs):
-            raise NameError(f'the allow kwargs are just in {allow_kwargs}')
-
         self._set_attrs(**kwargs)  # set attributes
 
     @property

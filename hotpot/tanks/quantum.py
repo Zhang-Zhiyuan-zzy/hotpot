@@ -14,6 +14,10 @@ import cclib
 from typing import *
 
 
+class GaussianRunError(BaseException):
+    """ Raise when the encounter error in run gaussian """
+
+
 class Gaussian:
     """
     A class for setting up and running Gaussian 16 calculations.
@@ -176,6 +180,11 @@ class Gaussian:
             env=self.envs, universal_newlines=True
         )
         stdout, stderr = self.g16process.communicate(script)
+
+        # Raise error if got standard error message
+        if stderr:
+            print(stderr)
+            raise GaussianRunError
 
         self.parse_log(stdout)
 

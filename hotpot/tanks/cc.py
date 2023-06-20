@@ -151,7 +151,7 @@ class PairBundle(MolBundle):
         self.ligand.gaussian(
             g16root,
             link0=f'CPU=0-{os.cpu_count()-1}',
-            route=f'opt {method}/{basis_set}' + route,
+            route=f'opt {method}/{basis_set} ' + route,
             path_log_file=dirs_files.ligand_log_path,
             path_err_file=dirs_files.ligand_err_path,
             inplace_attrs=True
@@ -170,7 +170,7 @@ class PairBundle(MolBundle):
             self.metal.gaussian(
                 g16root,
                 link0=f'CPU=0-{os.cpu_count()-1}',
-                route=f'{method}/{basis_set}' + route,
+                route=f'{method}/{basis_set} ' + route,
                 path_log_file=dirs_files.metal_log_path,
                 path_err_file=dirs_files.ligand_err_path,
                 inplace_attrs=True

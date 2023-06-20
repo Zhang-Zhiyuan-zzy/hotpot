@@ -72,12 +72,10 @@ if __name__ == '__main__':
     smiles = open(path_smiles).readlines()
 
     mol = hp.Molecule.read_from('CO', 'smi')
-    # mol.build_conformer()
+    mol.build_conformer()
 
     pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
 
-    p = pair_bundle[0]
-    script = p.dump('gjf', link0='klsdh', route='hdkjushf')
     # p.normalize_labels()
     # p.remove_atoms('Sr1')
     # p.add_hydrogens()

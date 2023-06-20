@@ -71,11 +71,21 @@ if __name__ == '__main__':
 
     smiles = open(path_smiles).readlines()
 
-    mb = hp.MolBundle.read_from('smi', smiles)
+    mol = hp.Molecule.read_from('CO', 'smi')
+    # mol.build_conformer()
 
-    for i, mol in enumerate(mb):
-        print(f'{i}/{len(mb)}: {mol}')
-        pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
-        pair_bundle.determine_metal_ligand_bind_energy(
-            g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)'
-        )
+    pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
+
+    p = pair_bundle[0]
+    script = p.dump('gjf', link0='klsdh', route='hdkjushf')
+    # p.normalize_labels()
+    # p.remove_atoms('Sr1')
+    # p.add_hydrogens()
+    # mb = hp.MolBundle.read_from('smi', smiles)
+
+    # for i, mol in enumerate(mb):
+    #     print(f'{i}/{len(mb)}: {mol}')
+    #     pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
+        # pair_bundle.determine_metal_ligand_bind_energy(
+        #     g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)'
+        # )

@@ -42,7 +42,6 @@ class AddBondFail(OperateOBMolFail):
 
 
 periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))
-# periodic_table = {d['symbol']: d for d in periodic_table}
 _symbols = ['unknown'] + list(periodic_table.keys())
 _max_valences = {n: v['max_valence'] for n, v in periodic_table.items()}
 _max_total_bond_order = {n: v['max_total_bond_order'] for n, v in periodic_table.items()}
@@ -51,8 +50,8 @@ _stable_charges = {
     'H': 1, 'He': 0,
     'Li': 1, 'Be': 2,
     'Na': 1, 'Mg': 2,
-    'K': 1, 'Ca': 2,
-    'Rb': 1, 'Sr': 2,
+    'K': 1, 'Ca': 2, 'Sc': 3, 'Ti': 4,
+    'Rb': 1, 'Sr': 2, '?': '', 'Zr': 4,
     'Cs': 1, 'Ba': 2
 }
 
@@ -504,6 +503,23 @@ class Molecule(Wrapper, ABC):
     def _protected_data(self):
         return 'ob_obj', 'atoms', 'bonds', 'angles'
 
+    def _reorder_atom_ob_id(self):
+        """ Reorder the ob id of atoms """
+        new_atom_dict = {}
+        for ob_id, atom in enumerate(self.atoms):
+            atom.ob_atom.SetId(ob_id)
+            new_atom_dict[ob_id] = atom
+
+        self._data['atoms'] = new_atom_dict
+
+    def _reorder_bond_ob_id(self):
+        new_atom_dict = {}
+        for ob_id, bond in enumerate(self.bonds):
+            bond.ob_bond.SetId(ob_id)
+            new_atom_dict[ob_id] = bond
+
+        self._data['bonds'] = new_atom_dict
+
     def _reorganize_atom_indices(self):
         """ reorganize or rearrange the indices for all atoms """
         for i, ob_atom in enumerate(ob.OBMolAtomIter(self.ob_mol)):
@@ -671,7 +687,7 @@ class Molecule(Wrapper, ABC):
     def acentric_factor(self):
         return self._get_critical_params('acentric_factor')
 
-    def add_atom(self, atom: Union["Atom", str, int], **atom_kwargs):
+    def add_atom(self, atom: Union["Atom", str, int], **atom_attrs):
         """
         Add a new atom out of the molecule into the molecule.
         Args:
@@ -689,9 +705,9 @@ class Molecule(Wrapper, ABC):
             the copy of atom in the molecule
         """
         if isinstance(atom, str):
-            atom = Atom(symbol=atom, **atom_kwargs)
+            atom = Atom(symbol=atom, **atom_attrs)
         elif isinstance(atom, int):
-            atom = Atom(atomic_number=atom, **atom_kwargs)
+            atom = Atom(atomic_number=atom, **atom_attrs)
         elif isinstance(atom, Atom):
             data = atom.data  # copy the atom's data dict
 
@@ -763,8 +779,8 @@ class Molecule(Wrapper, ABC):
         success = self.ob_mol.AddBond(atoms[0].ob_idx, atoms[1].ob_idx, bond_type)
 
         if success:
-            new_ob_bond_idx = [obb for obb in (ob.OBMolBondIter(self.ob_mol))][-1].GetIdx()
-            bond = self._load_bonds()[new_ob_bond_idx]  # the new atoms should place in the terminal of the bond list
+            new_bond_ob_id = [obb for obb in (ob.OBMolBondIter(self.ob_mol))][-1].GetId()
+            bond = self._load_bonds()[new_bond_ob_id]  # the new atoms should place in the terminal of the bond list
 
         elif atoms[0].ob_id not in self.atom_indices:
             raise KeyError("the start atom1 doesn't exist in molecule")
@@ -787,6 +803,9 @@ class Molecule(Wrapper, ABC):
             correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
         """
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
+        # TODO: Beta, test feature
+        for atom in self.atoms:
+            atom.remove_redundant_hydrogen()
 
     def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         """ Add pseudo atom into the molecule """
@@ -1048,6 +1067,9 @@ class Molecule(Wrapper, ABC):
 
     def copy(self) -> 'Molecule':
         """ Get a clone of this Molecule """
+        self._reorder_atom_ob_id()
+        self._reorder_bond_ob_id()
+
         clone = Molecule(self.ob_copy())
         clone._load_atoms()
         clone._load_bonds()
@@ -1339,7 +1361,8 @@ class Molecule(Wrapper, ABC):
     def generate_metal_ligand_pair(
             self, metal_symbol: str,
             acceptor_atoms: Sequence = ('O',),
-            opti_force_field: str = 'UFF'
+            opti_force_field: str = 'UFF',
+            assign_metal_charge: bool = False
     ) -> Generator['Molecule', None, None]:
         """
         This method could work if the molecule is an organic ligand, or raise AttributeError.
@@ -1349,6 +1372,7 @@ class Molecule(Wrapper, ABC):
             metal_symbol: which metal element link to the ligand
             acceptor_atoms: which elements to be acceptor atom to link to metal
             opti_force_field: which force field could be used to optimize the configuration of ligand and M-L pair.
+            assign_metal_charge: whether to assign the stable charge to metal cation
 
         Return:
             A generator for M-L pair
@@ -1369,28 +1393,36 @@ class Molecule(Wrapper, ABC):
                     metal_init_coordinates = acc_atom.coordinates_array - sum_relative_coordinates
 
                     # add metal atom into the acceptor_ligand
-                    added_metal = pair.add_atom(metal_symbol, coordinates=metal_init_coordinates)
+                    added_metal = pair.add_atom(
+                        metal_symbol,
+                        coordinates=metal_init_coordinates,
+                        formal_charge=_stable_charges[metal_symbol] if assign_metal_charge else 0
+                    )
 
                 else:  # If the pair has not 3d conformer, add the metal directly
-                    added_metal = pair.add_atom(metal_symbol)
+                    added_metal = pair.add_atom(
+                        metal_symbol,
+                        formal_charge=_stable_charges[metal_symbol] if assign_metal_charge else 0
+                    )
 
                 # add the coordinating bond between metal atom and acceptor atoms
                 pair.add_bond(added_metal, acc_atom, 1)
 
-                # remove redundant hydrogen
-                while acc_atom.valence > acc_atom.valence_max and acc_atom.neighbours_hydrogen:
-                    pair.remove_atoms(acc_atom.neighbours_hydrogen[0], remove_hydrogens=True)
+                # Add hydrogens
+                pair.add_hydrogens()
 
                 # localize optimization of M-L pair by classical force field, if the pair has 3d
                 if pair.has_3d:
                     pair.localed_optimize(opti_force_field)
 
                 pair.identifier = pair.smiles
-
                 yield pair
 
     def generate_pairs_bundle(
-            self, metal_symbol: str, acceptor_atoms: Sequence = ('O',), opti_force_field: str = 'UFF'
+            self, metal_symbol: str,
+            acceptor_atoms: Sequence = ('O',),
+            opti_force_field: str = 'UFF',
+            assign_metal_charge: bool = False
     ) -> 'PairBundle':
         """
         Generate metal-ligand pairs by bind this ligand with proposed, and put this ligand, metal and all pairs,
@@ -1400,6 +1432,7 @@ class Molecule(Wrapper, ABC):
             acceptor_atoms(Sequence): the atoms to form bond with the proposed metal, the default is Oxygen
             opti_force_field(str): the force field to optimize the conformer of this ligand and the generated
              pairs.
+            assign_metal_charge: whether to assign stable charge for metal cation
 
         Returns:
             PairBundle with this ligand, proposed metal and the pairs
@@ -1407,7 +1440,12 @@ class Molecule(Wrapper, ABC):
         return PairBundle(
             metal=Atom(symbol=metal_symbol),
             ligand=self,
-            pairs=list(self.generate_metal_ligand_pair(metal_symbol, acceptor_atoms, opti_force_field))
+            pairs=list(self.generate_metal_ligand_pair(
+                metal_symbol,
+                acceptor_atoms,
+                opti_force_field,
+                assign_metal_charge
+            )),
         )
 
     def graph_representation(self, *feature_names):
@@ -1497,7 +1535,7 @@ class Molecule(Wrapper, ABC):
 
         if any(oba.GetId() not in atoms for oba in ob.OBMolAtomIter(ob_mol)):
             raise ValueError('the atom number between the wrapper and the core OBMol is not match')
-        if any(obb.GetIdx() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
+        if any(obb.GetId() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
             raise ValueError('the bond number between the wrapper and the core OBMol is not match')
 
         self._data['ob_obj'] = ob_mol
@@ -1506,7 +1544,7 @@ class Molecule(Wrapper, ABC):
             atom.ob_atom_rewrap(ob_atom)
 
         for ob_bond in ob.OBMolBondIter(ob_mol):
-            bond = bonds.get(ob_bond.GetIdx())
+            bond = bonds.get(ob_bond.GetId())
             bond.ob_bond_rewrap(ob_bond)
 
     @property
@@ -2098,6 +2136,7 @@ class Atom(Wrapper, ABC):
             'atomic_number': self._set_atomic_number,
             'symbol': self._set_atomic_symbol,
             'coordinates': self._set_coordinate,
+            'formal_charge': self._set_formal_charge,
             'partial_charge': self._set_partial_charge,
             'label': self._set_label,
             'ob_id': self._set_ob_id,
@@ -2127,6 +2166,9 @@ class Atom(Wrapper, ABC):
 
         self._data['force_vector'] = force_vector
 
+    def _set_formal_charge(self, charge: float):
+        self.ob_atom.SetFormalCharge(charge)
+
     def _set_ob_id(self, ob_id):
         self.ob_atom.SetId(ob_id)
 
@@ -2152,14 +2194,23 @@ class Atom(Wrapper, ABC):
         """ Some atom have specific type, such as Carbon with sp1, sp2 and sp3, marked as C1, C2 and C3 """
         return self.ob_atom.GetType()
 
+    def add_atom(self, symbol: str, bond_type=1, **atom_attrs):
+        """ add atom to link with this atom """
+        new_atom = self.molecule.add_atom(symbol, **atom_attrs)
+        self.molecule.add_bond(self, new_atom, bond_type)
+
     @property
     def atomic_number(self):
         return self.ob_atom.GetAtomicNum()
 
     @property
+    def bond_valence(self) -> int:
+        return sum(b.type for b in self.bonds)
+
+    @property
     def bonds(self):
         """ Get all bonds link with the atoms """
-        return [self.molecule.bonds_dict[obb.GetIdx()] for obb in ob.OBAtomBondIter(self.ob_atom)]
+        return [self.molecule.bonds_dict[obb.GetId()] for obb in ob.OBAtomBondIter(self.ob_atom)]
 
     @property
     def coordinates(self) -> (float, float, float):
@@ -2381,6 +2432,16 @@ class Atom(Wrapper, ABC):
     def partial_charge(self):
         return self.ob_atom.GetPartialCharge()
 
+    def remove_redundant_hydrogen(self):
+        """ Remove hydrogens link with this atom, if the bond valence is more than the max allowed valence"""
+        if self.is_hydrogen:
+            return None
+
+        # remove redundant hydrogen
+        while self.bond_valence > abs(self.valence_max) and self.neighbours_hydrogen:
+            self.molecule.remove_atoms(self.neighbours_hydrogen[0])
+            self.formal_charge += self.formal_charge - 1
+
     @partial_charge.setter
     def partial_charge(self, value: float):
         # This is necessary to take effect to the assignment.
@@ -2420,7 +2481,11 @@ class Atom(Wrapper, ABC):
         self._set_spin_density(spin_density)
 
     @property
-    def symbol(self):
+    def stable_valence(self) -> int:
+        return _stable_charges.get(self.symbol, None)
+
+    @property
+    def symbol(self) -> str:
         return _symbols[self.atomic_number]
 
     @property
@@ -2429,7 +2494,7 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.GetTotalValence()
 
     @property
-    def valence_max(self):
+    def valence_max(self) -> int:
         """ The implicit valence of this atom type (i.e. maximum number of connections expected) """
         return _max_valences[self.symbol]
 

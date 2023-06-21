@@ -930,27 +930,49 @@ class Parser(IOBase, metaclass=MetaIO):
         def extract_charges_spin():
             """ Extract charges and spin information from g16.log file """
             # Get the line index of Mulliken charges
-            head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
-            
+            # Try to find the 'Mulliken charges' head
+            head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges:']
+            if head_lines:
+                # If the 'Mulliken charges' head was found only extract the charges
+                only_charge = True
+            else:
+                only_charge = False
+                # Try to find the 'Mulliken charges and spin densities' head
+                head_lines = \
+                    [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
+
+            # Make sure the heads are be captured finally.
             if not head_lines:
                 raise IOEarlyStop
+            # skip the first sheet
             elif len(head_lines) == obj.configure_number + 1:
                 head_lines = head_lines[1:]
 
+            # TODO:
             # Extract the Mulliken charge and spin densities
             charges, spin_densities = [], []  # changes(cgs) spin_densities(sds)
             for i in head_lines:
-                # Enhance inspection
-                col1, col2 = lines[i + 1].strip().split()
-                assert col1 == '1' and col2 == '2'
 
+                # Enhance inspection
+                col_head = lines[i + 1].strip().split()
+                if only_charge:
+                    assert len(col_head) == 1 and col_head[0] == '1'
+                else:
+                    assert len(col_head) == 2 and col_head[0] == '1' and col_head[1] == '2'
+
+                # the lines number from the head lines to the current line
                 HEAD_LINES_NUM = 2
                 cg, sd = [], []  # change, spin_density
 
                 while True:
                     split_line = lines[i + HEAD_LINES_NUM].strip().split()
-                    if len(split_line) != 4:
+
+                    # the split line should have 3 if only extract charge else 4
+                    if len(split_line) != (3 if only_charge else 4):
                         break
+                    elif only_charge:
+                        row, syb, c = split_line
+                        s = 0.0  # If only extract charge the spin densities should always 0.0
                     else:
                         row, syb, c, s = split_line  # row number, symbol, charges, spin density
 

@@ -82,4 +82,9 @@ def have_bug():
 
 
 if __name__ == '__main__':
-    pass
+    import hotpot as hp
+    from pathlib import Path
+
+    p = Path('/home/zzy/proj/be/g16/ss/log/pair_0.log')
+    mol = hp.Molecule.read_from(p, 'g16log')
+

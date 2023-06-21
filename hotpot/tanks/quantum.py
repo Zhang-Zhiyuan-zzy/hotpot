@@ -7,6 +7,7 @@ python v3.7.9
 @Time   : 2:44
 """
 import os
+import time
 import resource
 import subprocess
 import io
@@ -48,13 +49,23 @@ class Gaussian:
         self.data = None  # to receive the data from the cclib parser
         self.g16process = None  # to link to the g16 subprocess
 
+        # recording the start and end time the gaussian16 running
+        self.start_time = None
+        self.end_time = None
+
     def __enter__(self):
+        print(f"Gaussian start at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
+        self.start_time = time.time()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         print(f'{exc_type}, {exc_val}, {exc_tb}, {self.g16process.poll()}')
-        if self.g16process.poll():
+        if not self.g16process.poll():
             self.g16process.kill()
+
+        self.end_time = time.time()
+        print(f"Gaussian terminate at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
+        print(f'Gaussian ran for {(self.end_time-self.start_time)/3600} hours')
 
     def _set_environs(self):
         """Sets up the environment variables required for running Gaussian 16.
@@ -183,8 +194,10 @@ class Gaussian:
 
         # Raise error if got standard error message
         if stderr:
-            print(stderr)
-            raise GaussianRunError
+            if not stdout:
+                raise GaussianRunError(stderr)
+            else:
+                print(GaussianRunError(stderr))
 
         self.parse_log(stdout)
 

@@ -69,6 +69,10 @@ if __name__ == '__main__':
     g16root = '/home/zzy/sw'
     work_dir = Path('/home/zzy/proj/be/g16')
 
+    # mol = hp.Molecule.read_from('CO', 'smi')
+    # pb = mol.generate_pairs_bundle('Sr')
+    # pb.determine_metal_ligand_bind_energy(g16root, work_dir.joinpath('ss'), 'M062X', 'Def2SVP', 'SCRF pop(Always)')
+
     smiles = open(path_smiles).readlines()
 
     mb = hp.MolBundle.read_from('smi', smiles)

@@ -122,7 +122,8 @@ class Wrapper(ABC):
 
             else:
                 raise NameError(
-                    f'the {name} is cannot be set by Atom.set(), the legal attrs include: {self._attr_setters.keys()}'
+                    f'the {name} is cannot be set by {self.__class__.__name__}.set(), '
+                    f'the legal attrs include: {self._attr_setters.keys()}'
                 )
 
     @property
@@ -331,6 +332,7 @@ class Molecule(Wrapper, ABC):
             'spin': self._set_spin_multiplicity,
             'atoms': self._set_atoms,
             'mol_orbital_energies': self._set_mol_orbital_energies,
+            'coordinates': self._set_coordinates,
             'all_coordinates': self._set_all_coordinates,
             'all_forces': self._set_all_forces,
             'forces': self._set_forces,
@@ -556,6 +558,14 @@ class Molecule(Wrapper, ABC):
             )
 
         self._data['all_coordinates'] = all_coordinates
+
+    def _set_coordinates(self, coordinates: np.ndarray):
+        """ Assign the coordinates for all atoms in the molecule """
+        assert isinstance(coordinates, np.ndarray)
+        assert coordinates.shape == (self.atom_num, 3)
+
+        for a, c in zip(self.atoms, coordinates):
+            a.coordinates = c
 
     def _set_atom_charges(self, charge: Union[Sequence, np.ndarray]):
         """ Set partial charge for each atoms in the mol """

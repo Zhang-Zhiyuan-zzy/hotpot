@@ -67,16 +67,12 @@ def test_retrieve_mol_attrs(mole):
 if __name__ == '__main__':
     path_smiles = Path('/home/zzy/proj/be/struct/choice_ligand')
     g16root = '/home/zzy/sw'
-    work_dir = Path('/home/zzy/proj/be/g16')
+    work_dir = Path('/home/zzy/proj/be/g16/s')
 
     smiles = open(path_smiles).readlines()
 
-    mb = hp.MolBundle.read_from('smi', smiles)
+    mol = hp.Molecule.read_from(smiles[0], 'smi')
+    mol.build_conformer()
 
-    for i, mol in enumerate(mb):
-        print(f'{i}/{len(mb)}: {mol}')
-        pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
-        if len(pair_bundle) > 0:
-            pair_bundle.determine_metal_ligand_bind_energy(
-                g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)'
-            )
+    pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
+    pair_bundle.determine_metal_ligand_bind_energy(g16root, work_dir, 'M062X', 'Def2SVP', 'SCRF pop(Always)')

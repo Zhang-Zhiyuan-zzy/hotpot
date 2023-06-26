@@ -24,7 +24,7 @@ from rdkit import Chem
 
 from hotpot import data_root
 from hotpot.tanks import lmp
-from hotpot.tanks.quantum import Gaussian
+from hotpot.tanks.quantum import Gaussian, GaussianRunError
 from hotpot.utils.load_chem_lib import library as _lib  # The chemical library
 
 
@@ -1289,7 +1289,28 @@ class Molecule(Wrapper, ABC):
 
         # Run Gaussian16
         with Gaussian(g16root) as gaussian:
-            stdout, stderr = gaussian.run(script, args, **kwargs)
+            stdout, stderr = gaussian.run(script)
+
+            # If got an error message, save the error
+            if stderr:
+                # Save error file
+                if not path_err_file:
+                    path_err_file = Path(f'{self.formula}.err')
+                with open(path_err_file, 'w') as writer:
+                    writer.write(stderr)
+
+                # Save log file
+                if not path_log_file:
+                    path_log_file = Path(f'{self.formula}.log')
+                with open(path_log_file, 'w') as writer:
+                    writer.write(stdout)
+
+                raise GaussianRunError(
+                    f'Encourage error when Gaussian is running!\n'
+                    f'Check the Error file in {str(path_err_file.absolute())}\n'
+                    f'Check the output.log file in {str(path_log_file.absolute())}\n'
+                    f'Error massage from gaussian:\n{stderr}'
+                )
 
             # save the calculate result into the molecule data dict
             self._data['gaussian_output'] = stdout
@@ -1303,11 +1324,6 @@ class Molecule(Wrapper, ABC):
         if path_log_file:
             with open(path_log_file, 'w') as writer:
                 writer.write(stdout)
-
-        # Save error file
-        if path_err_file:
-            with open(path_err_file, 'w') as writer:
-                writer.write(stderr)
 
         # return results and error info
         return stdout, stderr

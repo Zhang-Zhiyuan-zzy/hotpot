@@ -158,7 +158,7 @@ class Gaussian:
             if report_error:
                 print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
 
-    def run(self, script: str, *args, **kwargs):
+    def run(self, script: str):
         """Runs the Gaussian 16 process with the given script and additional arguments.
 
         This method sets up the required environment variables and resource limits for Gaussian 16 before
@@ -181,10 +181,8 @@ class Gaussian:
         )
         stdout, stderr = self.g16process.communicate(script)
 
-        # Raise error if got standard error message
         if stderr:
-            print(stderr)
-            raise GaussianRunError
+            return stdout, stderr
 
         self.parse_log(stdout)
 

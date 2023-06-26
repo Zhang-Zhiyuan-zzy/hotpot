@@ -21,6 +21,7 @@ from itertools import product
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from rdkit import Chem
+from rdkit.Chem import Draw
 
 from hotpot import data_root
 from hotpot.tanks import lmp
@@ -363,31 +364,6 @@ class Molecule(Wrapper, ABC):
         else:
             return critical_params[name]
 
-    # TODO: Discard in last version
-    @property
-    def _ob_atom_indices(self):
-        """ Get the indices for all OBAtom """
-        indices = []
-
-        try:
-            num_ob_atoms = self.ob_mol.NumAtoms()
-        # If there is none of atoms in the OBMol, raise the TypeError.
-        except TypeError:
-            num_ob_atoms = 0
-
-        oba_id = 0  # the id for OBAtom in OBMol
-        while len(indices) < num_ob_atoms:
-            ob_atom = self.ob_mol.GetAtomById(oba_id)
-
-            # if get a OBAtom
-            if ob_atom:
-                assert oba_id == ob_atom.GetId()
-                indices.append(oba_id)
-
-            oba_id += 1
-
-        return indices
-
     def _pert_mol_generate(self, coordinates: Union[Sequence, np.ndarray]):
         """
         Generate new molecule obj according to new given coordinate
@@ -421,7 +397,7 @@ class Molecule(Wrapper, ABC):
 
         return new_atoms
 
-    def _load_bonds(self) -> Dict[Tuple[int], 'Bond']:
+    def _load_bonds(self) -> Dict[int, 'Bond']:
         """
         Construct bonds dict according to the OBBond in the OBMol,
         where the keys of the dict are the ob_id of OBBond and the values are the the constructed Bond objects
@@ -665,7 +641,7 @@ class Molecule(Wrapper, ABC):
         """ set the energy """
         self.ob_mol.SetEnergy(energy)
 
-    def _set_all_energy(self, all_energy: Union[float, np.ndarray], config_index: Optional[int] = None):
+    def _set_all_energy(self, all_energy: Union[float, np.ndarray]):
         """ set the energy for all configures """
         if isinstance(all_energy, float):
             self._data['all_energy'] = np.array([all_energy])
@@ -781,7 +757,7 @@ class Molecule(Wrapper, ABC):
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
         self._load_atoms()
         self._load_bonds()
-        # TODO: Beta, test feature
+
         for atom in self.atoms:
             atom.remove_redundant_hydrogen()
 
@@ -930,16 +906,21 @@ class Molecule(Wrapper, ABC):
         return list(bonds.values())
 
     @property
-    def bonds_dict(self) -> Dict[Tuple[int], 'Bond']:
+    def bonds_dict(self) -> Dict[int, 'Bond']:
         return self._load_bonds()
 
-    def build_bonds(self):
-        self.ob_mol.ConnectTheDots()
+    def build_2d(self):
+        """ build 2d conformer """
+        pmol = pb.Molecule(self.ob_mol)
+        pmol.make2D()
 
-    def build_conformer(self, force_field: str = 'UFF', steps: int = 50):
+    def build_3d(self, force_field: str = 'UFF', steps: int = 50):
         """ build 3D coordinates for the molecule """
         pymol = pb.Molecule(self.ob_mol)
         pymol.make3D(force_field, steps)
+
+    def build_bonds(self):
+        self.ob_mol.ConnectTheDots()
 
     @property
     def center_of_masses(self):
@@ -1082,10 +1063,10 @@ class Molecule(Wrapper, ABC):
         Returns:
             the created atom in the molecule
         """
-        OBAtom: ob.OBAtom = self.ob_mol.NewAtom()
+        ob_atom: ob.OBAtom = self.ob_mol.NewAtom()
         atomic_number = periodic_table[symbol]['number']
-        OBAtom.SetAtomicNum(atomic_number)
-        atom = Atom(OBAtom, mol=self, **kwargs)
+        ob_atom.SetAtomicNum(atomic_number)
+        atom = Atom(ob_atom, mol=self, **kwargs)
 
         return atom
 
@@ -1263,7 +1244,7 @@ class Molecule(Wrapper, ABC):
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
-        calculation by gaussion.
+        calculation by Gaussion.
         for running the method normally, MAKE SURE THE Gaussian16 HAVE BEEN INSTALLED AND ALL ENV VAR SET RITHT !!
         Args:
             g16root: the dir Gaussian16 software installed
@@ -1282,7 +1263,7 @@ class Molecule(Wrapper, ABC):
         """
         # For 2d molecule, build its confomer by universal force field first
         if not self.has_3d:
-            self.build_conformer()
+            self.build_3d()
 
         # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
@@ -1551,7 +1532,7 @@ class Molecule(Wrapper, ABC):
         pop_lmp = self._data.pop('lmp')
         pop_lmp.close()
 
-    def lmp_setup(self, *args, **kwargs):
+    def lmp_setup(self, **kwargs):
         self._data['lmp'] = lmp.HpLammps(self, **kwargs)
 
     @property
@@ -1642,22 +1623,20 @@ class Molecule(Wrapper, ABC):
             element_counts[atom.symbol] = count
             atom.label = f'{atom.symbol}{count}'
 
-    def perturb_mol_lattice(
+    def perturb_atoms_coordinates(
             self,
             random_style='uniform',
             mol_distance=0.5,
-            lattice_fraction=0.05,
             freeze_dim: Sequence[int] = (),
             max_generate_num: int = 10,
             inplace: bool = False
     ) -> Generator["Molecule", None, None]:
         """
-        Perturb the coordinate of atom in the mol or the lattice parameters
+        Perturb the coordinate of atom in the molecule
         generate new mol
         Args:
             random_style: how to sample, 'uniform' or 'normal'
             mol_distance: the max distance of perturbation in 'uniform'; the square variance in 'normal'
-            lattice_fraction: the percentage of the lattice perturbation
             freeze_dim: tuple of int or str, 0 = x, 1 = y, 2 = z
             max_generate_num: the maximum of generated molecule
             inplace
@@ -1692,14 +1671,10 @@ class Molecule(Wrapper, ABC):
 
                 yield new_coord
 
-        def lattice_generator():
-            """ TODO: this function is prepare to generate the new lattice """
-
         if inplace:
             origin_all_coordinates = self._data.get('all_coordinates')
             new_all_coordinates = np.array([c for c in coordinates_generator()])
 
-            # TODO: test changes
             if origin_all_coordinates is not None:
                 self._data['all_coordinates'] = np.concatenate([origin_all_coordinates, new_all_coordinates])
             else:
@@ -1710,13 +1685,16 @@ class Molecule(Wrapper, ABC):
         else:
             return (self._pert_mol_generate(c) for c in coordinates_generator())
 
+    def perturb_cell_params(self):
+        """ To perturb parameters, i.e., a, b, c, alpha, beta, gamma """
+
     @property
     def pseudo_atoms(self):
         return self._data.get('pseudo_atoms', [])
 
     def quick_build_atoms(self, atomic_numbers: np.ndarray):
         """
-        This method to quick build atoms according a array of atomic numbers.
+        This method to quick build atoms according an array of atomic numbers.
         The method bypass to calling more time-consumed method: add_atom().
         However, the method only assign the elements or atomic number for atoms,
         more fine attributes like coordinates, can't be specified.
@@ -1865,6 +1843,20 @@ class Molecule(Wrapper, ABC):
     def rotatable_bonds_number(self):
         return self.ob_mol.NumRotors()
 
+    def save_2d_img(self, file_path: Union[str, os.PathLike], **kwargs):
+        """
+        Export 2d image to file
+        Args:
+            file_path:
+            **kwargs: other keywords arguments for 2d image make and save
+
+        Keyword Args:
+
+
+        Returns:
+
+        """
+
     def set(self, **kwargs):
         """ Set the attributes directly """
         self._set_attrs(**kwargs)
@@ -1928,6 +1920,20 @@ class Molecule(Wrapper, ABC):
         _ = self._data.pop('thermo')
         del _
 
+    def to_2d_img(self, **kwargs):
+        """
+        Get a 2D image objects for the molecule
+        Keyword Args:
+            kekulize: whether to applying Kekulize style to aromatical rings
+
+        Returns:
+
+        """
+        clone = self.copy()
+        clone.add_hydrogens()
+        clone.build_2d()
+        return Draw.MolToImage(clone.to_rdmol(), **kwargs)
+
     def to_dpmd_sys(self, dpmd_sys_root: Union[str, os.PathLike], mode: Literal['std', 'att'] = 'std'):
         """
         convert to DeePMD-Kit System, there are two system mode, that `standard` (std) and `attention` (att)
@@ -1979,7 +1985,7 @@ class Molecule(Wrapper, ABC):
 
             # Save the numpy format data
             elif isinstance(value, np.ndarray):
-                np.save(set_root.joinpath(f'{name}.npy'), value)
+                np.save(str(set_root.joinpath(f'{name}.npy')), value)
 
     def to_mix_mol(self):
         return MixSameAtomMol(_data=self._data)
@@ -1992,7 +1998,7 @@ class Molecule(Wrapper, ABC):
         return Chem.MolFromMol2Block(self.dump('mol2'))
 
     @property
-    def unique_all_atoms(self):
+    def unique_all_atoms(self) -> List[Union['Atom', 'PseudoAtom']]:
         return self.unique_atoms + self.unique_pseudo_atoms
 
     @property
@@ -2073,12 +2079,6 @@ class MixSameAtomMol(Molecule):
 class Atom(Wrapper, ABC):
     """ The Atom wrapper for OBAtom class in openbabel """
 
-    # TODO: to check the consistence of the method to access the OBAtom in OBMol
-    # TODO: for atom the correct method to access OBAtom from OBMol is by GetAtomById, not GetAtom !!!
-    # TODO: the GetAtomById get OBAtom start from 0
-    # TODO: the GetAtom get OBAtom start from 1
-    # TODO: the Id of OBAtom start from 0
-    # TODO: the Idx of OBAtom start from 1,
     def __init__(
             self,
             ob_atom: ob.OBAtom = None,

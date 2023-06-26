@@ -72,7 +72,7 @@ if __name__ == '__main__':
     smiles = open(path_smiles).readlines()
 
     mol = hp.Molecule.read_from(smiles[0], 'smi')
-    mol.build_conformer()
+    mol.build_3d()
 
     pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
     pair_bundle.determine_metal_ligand_bind_energy(g16root, work_dir, 'M062X', 'Def2SVP', 'SCRF pop(Always)')

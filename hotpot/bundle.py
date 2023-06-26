@@ -334,7 +334,7 @@ class MolBundle:
             if isinstance(perturb_kwargs, List) and all(isinstance(pk, dict) for pk in perturb_kwargs):
                 for pk in perturb_kwargs:
                     pk['inplace'] = True  # Force to inplace
-                    mol.perturb_mol_lattice(**pk)
+                    mol.perturb_atoms_coordinates(**pk)
             elif perturb_kwargs is not None:
                 ValueError('The perturb_kwargs should be a dict or list of dict')
 

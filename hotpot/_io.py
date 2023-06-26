@@ -69,7 +69,7 @@ Following the steps to customise your IO function:
 
 # Define custom Exceptions
 class IOEarlyStop(BaseException):
-    """ monitor the situation that the IO should early stop and return None a the IO result """
+    """ monitor the situation that the IO should early stop and return None and the IO result """
 
 
 # Define the IO function types
@@ -134,7 +134,7 @@ class Register:
     """
     def __init__(self):
         # these dicts are container to store the custom io functions
-        # the keys of the dict are serve as the have to get the mapped io functions(the values)
+        # the keys of the dict are serve as the handle to get the mapped io functions(the values)
         self.pre_methods = {}
         self.io_methods = {}
         self.post_methods = {}
@@ -184,7 +184,7 @@ class Register:
         return self.post_methods.get(fmt)
 
 
-# Retrieve the IO class by it's format name
+# Retrieve the IO class by its format name
 def retrieve_format(fmt: str = None):
     return _MoleculeIO.registered_format().get(fmt)
 
@@ -221,7 +221,7 @@ class _MoleculeIO(ABCMeta):
 
 class MetaIO(type):
     """
-    Meta class to specify how to construct the IO class
+    The Meta class to specify how to construct the IO class
     This Meta class is defined to register IO function conveniently.
 
     The IO functions are divided into three categories:
@@ -436,7 +436,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         """ Assign the Molecule charge before to dump to gjf file """
         self.src.determine_mol_charge()
         if not self.src.has_3d:
-            self.src.build_conformer()
+            self.src.build_3d()
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """

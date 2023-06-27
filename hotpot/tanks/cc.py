@@ -20,6 +20,7 @@ from openbabel import openbabel as ob
 from hotpot import data_root
 from hotpot.cheminfo import Molecule, Atom
 from hotpot.bundle import MolBundle
+from hotpot.utils.manage_machine import machine
 
 # the atomic single point energies determined Gaussian with various methods and basis sets
 _atom_single_point: dict = json.load(open(Path(data_root).joinpath('atom_single_point.json')))
@@ -150,7 +151,7 @@ class PairBundle(MolBundle):
         # optimize the configure of ligand and calculate their total energy after optimization
         self.ligand.gaussian(
             g16root,
-            link0=f'CPU=0-{os.cpu_count()-1}',
+            link0=[f'CPU=0-{os.cpu_count()-1}', f'Mem={machine.take_memory(0.75)}GB'],
             route=f'opt {method}/{basis_set} ' + route,
             path_log_file=dirs_files.ligand_log_path,
             path_err_file=dirs_files.ligand_err_path,
@@ -169,7 +170,7 @@ class PairBundle(MolBundle):
         except KeyError:
             self.metal.gaussian(
                 g16root,
-                link0=f'CPU=0-{os.cpu_count()-1}',
+                link0=[f'CPU=0-{os.cpu_count()-1}', f'Mem={machine.take_memory(0.75)}GB'],
                 route=f'{method}/{basis_set} ' + route,
                 path_log_file=dirs_files.metal_log_path,
                 path_err_file=dirs_files.ligand_err_path,
@@ -193,7 +194,7 @@ class PairBundle(MolBundle):
         for i, pair in enumerate(self.pairs):
             pair.gaussian(
                 g16root,
-                link0=f'CPU=0-{os.cpu_count() - 1}',
+                link0=[f'CPU=0-{os.cpu_count()-1}', f'Mem={machine.take_memory(0.75)}GB'],
                 route=f'opt {method}/{basis_set} ' + route,
                 path_log_file=dirs_files.pair_log_path(i),
                 path_err_file=dirs_files.pair_err_path(i),

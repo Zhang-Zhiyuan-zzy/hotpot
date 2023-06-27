@@ -434,9 +434,10 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _pre_gjf(self):
         """ Assign the Molecule charge before to dump to gjf file """
-        self.src.determine_mol_charge()
+        self.src.assign_atoms_formal_charge()
         if not self.src.has_3d:
             self.src.build_3d()
+        self.src.identifier = self.src.formula
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """
@@ -513,12 +514,9 @@ class Dumper(IOBase, metaclass=MetaIO):
             # the formula of bond_type key: atom1[bond_type]atom2
             uni_bonds = tuple(m.unique_bonds)  # store bonds type
             for j, bond in enumerate(m.bonds, 1):
-                a1_idx = atoms_list.index(bond.atom1) + 1
-                a2_idx = atoms_list.index(bond.atom2) + 1
 
                 bt_id = uni_bonds.index(bond) + 1
-
-                bond_str += f'{j} {bt_id} {a1_idx} {a2_idx}\n'
+                bond_str += f'{j} {bt_id} {bond.ob_atom1_id + 1} {bond.ob_atom2_id + 1}\n'
 
             bond_str += '\n'
 
@@ -663,7 +661,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         elif isinstance(link0, list):
             for i, stc in enumerate(link0):  # stc=sentence
                 assert isinstance(stc, str)
-                if not i:  # For the first line of link0, replace the the original line in raw script
+                if not i:  # For the first line of link0, replace the original line in raw script
                     lines[0] = f'%{stc}'
                 else:  # For the other lines, insert into after the 1st line
                     inserted_lines += 1

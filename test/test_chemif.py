@@ -76,10 +76,23 @@ def have_bug():
     g = mol.generate_metal_ligand_pair('Sr')
 
     for p in g:
-        p.determine_mol_charge()
+        p.assign_atoms_formal_charge()
         c = p.copy()  # TODO: Guess that the bonds was not assigned correctly during the copy process
         c.build_3d()
 
 
 if __name__ == '__main__':
-    pass
+    from openbabel import openbabel as ob
+    mol = ci.Molecule.read_from('c1nc(CS(=O)(=O)O)c(O)cc1', 'smi')
+    for atom in mol.atoms:
+        print(atom, atom.valence, atom.neighbours)
+
+    pairs = list(mol.generate_metal_ligand_pair('Sr'))
+
+    for pair in pairs:
+        print(pair.smiles)
+        pair.assign_atoms_formal_charge()
+        print(pair.charge)
+
+    for atom in pairs[2].atoms:
+        print(atom, atom.valence, atom.neighbours, atom.formal_charge)

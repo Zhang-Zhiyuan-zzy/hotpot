@@ -173,13 +173,19 @@ class Gaussian:
         Returns:
             Tuple[str, str]: A tuple of the standard output and standard error of the process.
         """
+        with open('input.gjf', 'w') as writer:
+            writer.write(script)
+
         # Run Gaussian using subprocess
         self.g16process = subprocess.Popen(
-            'g16', bufsize=-1, stdin=subprocess.PIPE,
+            ['g16', 'input.gjf', 'output.log'], bufsize=-1, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env=self.envs, universal_newlines=True
         )
-        stdout, stderr = self.g16process.communicate(script)
+        _, stderr = self.g16process.communicate()
+
+        with open('output.log') as file:
+            stdout = file.read()
 
         if stderr:
             return stdout, stderr

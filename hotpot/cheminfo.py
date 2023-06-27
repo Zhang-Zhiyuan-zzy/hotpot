@@ -28,7 +28,6 @@ from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian, GaussianRunError
 from hotpot.utils.load_chem_lib import library as _lib  # The chemical library
 
-
 # Define Exceptions
 class OperateOBMolFail(BaseException):
     """ Raise for any fail that trys to operate the OBMol """
@@ -51,7 +50,7 @@ _stable_charges = {
     "H": 1, "He": 0,
     "Li": 1, "Be": 2, "B": 3, "C": 4, "N": -3, "O": -2, "F": -1, "Ne": 0,
     "Na": 1, "Mg": 2, "Al": 3, "Si": 4, "P": -3, "S": -2, "Cl": -1, "Ar": 0,
-    "K": 1, "Ca": 2, "Sc": 3, "Ti": 4, "V": 5, "Cr": 4, "Mn": 3, "Fe": 2, "Co": 2, "Ni": 2, "Cu": 1, "Zn": 2, "Ga": 3, "Ge": 4, "As": -3, "Se": -2, "Br": -1, "Kr": 0,
+    "K": 1, "Ca": 2, "Sc": 3, "Ti": 4, "V": 5, "Cr": 3, "Mn": 2, "Fe": 3, "Co": 3, "Ni": 2, "Cu": 2, "Zn": 2, "Ga": 3, "Ge": 4, "As": -3, "Se": -2, "Br": -1, "Kr": 0,
     "Rb": 1, "Sr": 2, "Y": 3, "Zr": 4, "Nb": 5, "Mo": 6, "Tc": 7, "Ru": 4, "Rh": 3, "Pd": 2, "Ag": 1, "Cd": 2, "In": 3, "Sn": 2, "Sb": -3, "Te": -2, "I": -1, "Xe": 0,
     "Cs": 1, "Ba": 2, "La": 3, "Ce": 4, "Pr": 3, "Nd": 3, "Pm": 3, "Sm": 3, "Eu": 2, "Gd": 3, "Tb": 3, "Dy": 3, "Ho": 3, "Er": 3, "Tm": 3, "Yb": 3, "Lu": 3, "Hf": 4, "Ta": 5, "W": 6, "Re": 7, "Os": 4, "Ir": 3, "Pt": 2, "Au": 1, "Hg": 2, "Tl": 3, "Pb": 2, "Bi": 3, "Po": -2, "At": -1, "Rn": 0,
     "Fr": 1, "Ra": 2, "Ac": 3, "Th": 4, "Pa": 5, "U": 6, "Np": 6, "Pu": 6, "Am": 6, "Cm": 6, "Bk": 6, "Cf": 6, "Es": 6, "Fm": 6, "Md": 6, "No": 6, "Lr": 3, "Rf": 4, "Db": 5, "Sg": 6, "Bh": 7, "Hs": 8, "Mt": 8, "Ds": 8, "Rg": 8, "Cn": 8, "Nh": 8, "Fl": 8, "Mc": 8, "Lv": 8, "Ts": 8, "Og": 8
@@ -731,8 +730,7 @@ class Molecule(Wrapper, ABC):
         success = self.ob_mol.AddBond(atoms[0].ob_idx, atoms[1].ob_idx, bond_type)
 
         if success:
-            new_bond_ob_id = [obb for obb in (ob.OBMolBondIter(self.ob_mol))][-1].GetId()
-            bond = self._load_bonds()[new_bond_ob_id]  # the new atoms should place in the terminal of the bond list
+            return self.bonds[-1]  # the new atoms should place in the terminal of the bond list
 
         elif atoms[0].ob_id not in self.atom_indices:
             raise KeyError("the start atom1 doesn't exist in molecule")
@@ -743,23 +741,28 @@ class Molecule(Wrapper, ABC):
         else:
             raise RuntimeError('add bond not successful!')
 
-        # Return the bond have added into the molecule
-        return bond
-
-    def add_hydrogens(self, polar_only: bool = False, correct_for_ph: bool = False, ph: float = 1.0):
+    def add_hydrogens(
+            self,
+            polar_only: bool = False,
+            correct_for_ph: bool = False,
+            ph: float = 1.0,
+            balance_hydrogen: bool = True,
+    ):
         """
         add hydrogens for the molecule
         Args:
             ph: add hydrogen in which PH environment
             polar_only: Whether to add hydrogens only to polar atoms (i.e., not to C atoms)
             correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
+            balance_hydrogen: whether to balance the bond valance of heavy atom to their valence
         """
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
         self._load_atoms()
         self._load_bonds()
 
-        for atom in self.atoms:
-            atom.remove_redundant_hydrogen()
+        if balance_hydrogen:
+            for atom in self.atoms:
+                atom.balance_hydrogen()
 
     def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         """ Add pseudo atom into the molecule """
@@ -864,6 +867,22 @@ class Molecule(Wrapper, ABC):
         if all_atom_spin_densities is not None:
             return all_atom_spin_densities
         return self.atom_spin_densities.reshape((-1, self.atom_num))
+
+    def assign_atoms_formal_charge(self):
+        """ Assign the formal charges for all atoms in the molecule """
+        self.add_hydrogens(balance_hydrogen=False)
+
+        for atom in self.atoms:
+            if atom.is_polar_hydrogen:
+                atom.formal_charge = 1
+            elif atom.is_hydrogen or atom.is_carbon:
+                atom.formal_charge = 0
+            elif atom.is_metal:
+                atom.formal_charge = _stable_charges[atom.symbol]
+            else:
+                atom.formal_charge = -len([a for a in atom.neighbours if a.is_polar_hydrogen])
+
+            atom.balance_hydrogen()
 
     @property
     def atomic_numbers(self):
@@ -1151,19 +1170,6 @@ class Molecule(Wrapper, ABC):
         else:
             return None
 
-    def determine_mol_charge(self):
-        """ Determining the molecular charge """
-        if not self.metals:  # if the molecule don't have any metal:
-            self.charge = self.read_from(self.dump('mol2'), 'mol2').charge
-        else:
-            clone = self.copy()
-            clone.remove_metals()
-
-            organic_charge = clone.read_from(clone.dump('mol2'), 'mol2').charge
-            metal_charge = sum(_stable_charges[m.symbol] for m in self.metals)
-
-            self.charge = organic_charge + metal_charge
-
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes, dict]:
         """"""
         dumper = Dumper(fmt=fmt, source=self, *args, **kwargs)
@@ -1381,7 +1387,7 @@ class Molecule(Wrapper, ABC):
                 pair.add_bond(added_metal, acc_atom, 1)
 
                 # Add hydrogens
-                pair.add_hydrogens()
+                # pair.add_hydrogens()
 
                 # localize optimization of M-L pair by classical force field, if the pair has 3d
                 if pair.has_3d:
@@ -1429,19 +1435,17 @@ class Molecule(Wrapper, ABC):
         return self.ob_mol.Has3D()
 
     @property
+    def has_hydrogen_added(self):
+        """ Have hydrogens been added to the molecule by call Molecule.add_hydrogen()? """
+        return self.ob_mol.HasHydrogensAdded()
+
+    @property
+    def has_unknown_bond(self):
+        return any(not b.type for b in self.bonds)
+
+    @property
     def hydrogens(self):
         return [a for a in self.atoms if a.is_hydrogen]
-
-    @property
-    def hydrogens_due_number(self):
-        """ the number of hydrogens when all hydrogens are completed """
-        clone = self.__class__.read_from(self.smiles, 'smi')
-        clone.add_hydrogens()
-        return clone.hydrogens_number
-
-    @property
-    def hydrogens_number(self):
-        return len(self.hydrogens)
 
     @property
     def identifier(self):
@@ -1739,7 +1743,7 @@ class Molecule(Wrapper, ABC):
         mol = Parser(fmt, source, *args, **kwargs)()  # initialize parser object and call self
 
         # Specify the mol identifier if it's None
-        if not mol.identifier:
+        if isinstance(mol, Molecule) and not mol.identifier:
             mol.identifier = str(source)
 
         return mol
@@ -1930,7 +1934,7 @@ class Molecule(Wrapper, ABC):
 
         """
         clone = self.copy()
-        clone.add_hydrogens()
+        # clone.add_hydrogens()
         clone.build_2d()
         return Draw.MolToImage(clone.to_rdmol(), **kwargs)
 
@@ -2093,7 +2097,6 @@ class Atom(Wrapper, ABC):
 
     def __eq__(self, other):
         if isinstance(other, Atom):
-            # return self.symbol == other.symbol
             return self.ob_atom == other.ob_atom
 
     def __hash__(self):
@@ -2115,6 +2118,17 @@ class Atom(Wrapper, ABC):
 
     def __repr__(self):
         return f"Atom({self.label if self.label else self.symbol})"
+
+    def _assign_formal_charge(self):
+        """ assign formal charge for this atom, the formal charge equal its valence minus its covalent valence """
+        if self.is_polar_hydrogen:
+            self.formal_charge = 1
+        elif self.is_hydrogen or self.is_carbon:
+            self.formal_charge = 0
+        elif self.is_metal:
+            self.formal_charge = _stable_charges[self.symbol]
+        else:
+            self.formal_charge = -len([a for a in self.neighbours if a.is_polar_hydrogen])
 
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
@@ -2188,12 +2202,38 @@ class Atom(Wrapper, ABC):
         new_atom = self.molecule.add_atom(symbol, **atom_attrs)
         self.molecule.add_bond(self, new_atom, bond_type)
 
+    def add_hydrogen(self):
+        """ add hydrogen to the atom """
+        self.add_atom('H')
+
     @property
     def atomic_number(self):
         return self.ob_atom.GetAtomicNum()
 
+    def balance_hydrogen(self, count_covalent_only: bool = False):
+        """ Remove or add hydrogens link with this atom, if the bond valence is not equal to the atomic valence """
+        # TODO: Check with all other methods call the method
+        if self.is_heavy and not self.is_metal:  # Do not add or remove hydrogens to the metal, H or inert elements
+            # remove redundant hydrogen, if the bond valence more than the atomic valence
+            if count_covalent_only:
+                while self.covalent_valence > self.max_bonds and self.neighbours_hydrogen:
+                    self.molecule.remove_atoms(self.neighbours_hydrogen[0])
+
+                # add hydrogen, if the bond valence less than the atomic valence
+                while self.covalent_valence < self.max_bonds:
+                    self.add_hydrogen()
+            else:
+                while self.bond_valence > self.max_bonds and self.neighbours_hydrogen:
+                    self.molecule.remove_atoms(self.neighbours_hydrogen[0])
+
+                # add hydrogen, if the bond valence less than the atomic valence
+                while self.bond_valence < self.max_bonds:
+                    self.add_hydrogen()
+
     @property
     def bond_valence(self) -> int:
+        if self.has_unknown_bond:
+            raise AttributeError('Cannot calculate the bond valence, because of the existence of unknown bonds')
         return sum(b.type for b in self.bonds)
 
     @property
@@ -2228,13 +2268,19 @@ class Atom(Wrapper, ABC):
             "atomic_number": self.atomic_number,
             "coordinates": self.coordinates,
             'partial_charge': self.partial_charge,
-            # 'label': self.label,
-            # 'ob_id': self.ob_id
         }
 
         new_attrs.update(**data)
 
         return Atom(**new_attrs)
+
+    @property
+    def covalent_valence(self):
+        """ the number of covalent electrons for this atoms """
+        if self.has_unknown_bond:
+            raise AttributeError('Cannot calculate the bond valence, because of the existence of unknown bonds')
+
+        return sum(b.type if b.is_covalent else 0 for b in self.bonds)
 
     def element_features(self, *feature_names) -> np.ndarray:
         """ Retrieve the feature vector """
@@ -2319,6 +2365,10 @@ class Atom(Wrapper, ABC):
         self.ob_atom.SetFormalCharge(value)
 
     @property
+    def has_unknown_bond(self) -> bool:
+        return any(not b.type for b in self.bonds)
+
+    @property
     def hybridization(self):
         """ The hybridization of this atom:
         1 for sp, 2 for sp2, 3 for sp3, 4 for sq. planar, 5 for trig. bipy, 6 for octahedral """
@@ -2341,12 +2391,21 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.IsAromatic()
 
     @property
+    def is_carbon(self):
+        return self.atomic_number == 6
+
+    @property
     def is_chiral(self):
         return self.ob_atom.IsChiral()
 
     @property
     def is_hydrogen(self):
         return self.ob_atom.GetAtomicNum() == 1
+
+    @property
+    def is_heavy(self):
+        """ Whether the atom is heavy atom """
+        return not self.is_hydrogen
 
     @property
     def is_polar_hydrogen(self) -> bool:
@@ -2381,8 +2440,9 @@ class Atom(Wrapper, ABC):
         return self.ob_atom.GetAtomicMass()
 
     @property
-    def max_total_bond_order(self):
-        return _max_total_bond_order[self.symbol]
+    def max_bonds(self):
+        """ the max allowed bond order"""
+        return ob.GetMaxBonds(self.atomic_number)
 
     @property
     def molecule(self) -> Molecule:
@@ -2396,6 +2456,10 @@ class Atom(Wrapper, ABC):
     def neighbours_hydrogen(self) -> List['Atom']:
         """ return all neigh hydrogen atoms """
         return [a for a in self.neighbours if a.is_hydrogen]
+
+    @property
+    def electronegativity(self):
+        return ob.GetElectroNeg(self.atomic_number)
 
     @property
     def neighbours(self) -> List['Atom']:
@@ -2421,22 +2485,23 @@ class Atom(Wrapper, ABC):
     def partial_charge(self):
         return self.ob_atom.GetPartialCharge()
 
-    def remove_redundant_hydrogen(self):
-        """ Remove hydrogens link with this atom, if the bond valence is more than the max allowed valence"""
-        if self.is_hydrogen:
-            return None
-
-        # remove redundant hydrogen
-        while self.bond_valence > abs(self.valence_max) and self.neighbours_hydrogen:
-            self.molecule.remove_atoms(self.neighbours_hydrogen[0])
-            self.formal_charge += self.formal_charge - 1
-
     @partial_charge.setter
     def partial_charge(self, value: float):
         # This is necessary to take effect to the assignment.
         # the reason is unknown
         self.ob_atom.GetPartialCharge()
         self._set_partial_charge(value)
+
+    def remove_hydrogen(self):
+        """ remove the first atom linking with the atoms """
+        hydrogens = self.neighbours_hydrogen
+        if hydrogens:
+            self.molecule.remove_atoms(hydrogens[0])
+
+    def remove_hydrogens(self):
+        """ Remove all hydrogens linking with the atom"""
+        hydrogens = self.neighbours_hydrogen
+        self.molecule.remove_atoms(*hydrogens)
 
     def replace_attr_data(self, data: Dict):
         """ Replace the core data dict directly """
@@ -2469,17 +2534,11 @@ class Atom(Wrapper, ABC):
 
     @property
     def symbol(self) -> str:
-        return _symbols[self.atomic_number]
+        return ob.GetSymbol(self.atomic_number)
 
     @property
-    def valence(self) -> int:
-        """ The current number of explicit connections """
+    def valence(self):
         return self.ob_atom.GetTotalValence()
-
-    @property
-    def valence_max(self) -> int:
-        """ The implicit valence of this atom type (i.e. maximum number of connections expected) """
-        return _max_valences[self.symbol]
 
 
 class PseudoAtom(Wrapper, ABC):
@@ -2575,6 +2634,10 @@ class Bond(Wrapper, ABC):
     @property
     def begin_end_atomic_number(self):
         return self.ob_bond.GetBeginAtom().GetAtomicNum(), self.ob_bond.GetEndAtom().GetAtomicNum()
+
+    @property
+    def is_covalent(self) -> bool:
+        return not self.ob_atom1.IsMetal() and not self.ob_atom2.IsMetal()
 
     @property
     def ideal_length(self):

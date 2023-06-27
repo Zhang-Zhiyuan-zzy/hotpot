@@ -12,7 +12,8 @@ dependencies = [
     "cclib",
     "tqdm",
     'rdkit',
-    'periodictable'
+    'periodictable',
+    'psutil'
 ]
 
 [tool.setuptools]

@@ -10,6 +10,7 @@ This module is used to lazily load the chemical information database when other 
 """
 from pathlib import Path
 
+
 class Library:
     """ the Main class to load and save chemical information lazily """
 
@@ -33,6 +34,7 @@ class Library:
 
 class ChemicalBook:
     """ The base class for all chemical books """
+
 
 @Library.register
 class Solvents(ChemicalBook):

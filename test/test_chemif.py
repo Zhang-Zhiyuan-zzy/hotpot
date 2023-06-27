@@ -42,7 +42,7 @@ def parse_g16log():
 def perturb_cif():
     path_cif = 'examples/struct/aCarbon.cif'
     mol = ci.Molecule.read_from(path_cif, 'cif')
-    gen = mol.perturb_mol_lattice(mol_distance=0.05, max_generate_num=2)
+    gen = mol.perturb_atoms_coordinates(mol_distance=0.05, max_generate_num=2)
 
     for i, gen_mol in enumerate(gen):
         gen_mol.writefile('cif', f'output/gen_cif/aCarbon_{i}.cif')
@@ -52,8 +52,8 @@ def gen_pairs():
     from openbabel import openbabel as ob
     mol = ci.Molecule.read_from('c1ccc(C(=O)O)c(O)c1CCCC', 'smi')
     mol2 = ci.Molecule.read_from('c1ccc(C(=O)O)c(O)c1CCCC', 'smi')
-    mol.build_conformer('UFF')
-    mol2.build_conformer()
+    mol.build_3d('UFF')
+    mol2.build_3d()
     mol.normalize_labels()
     mol2.normalize_labels()
     g = mol.generate_metal_ligand_pair('Sr')
@@ -70,16 +70,24 @@ def gen_pairs():
 # TODO: check the coordinates and bond property
 def have_bug():
     mol = ci.Molecule.read_from('C=CC(=O)O', 'smi')
-    mol.build_conformer()
+    mol.build_3d()
     mol.normalize_labels()
 
     g = mol.generate_metal_ligand_pair('Sr')
 
     for p in g:
-        p.determine_mol_charge()
+        p.assign_atoms_formal_charge()
         c = p.copy()  # TODO: Guess that the bonds was not assigned correctly during the copy process
-        c.build_conformer()
+        c.build_3d()
 
 
 if __name__ == '__main__':
-    pass
+    from openbabel import openbabel as ob
+    mol = ci.Molecule.read_from('c1nc(CS(=O)(=O)O)c(OCCOP(O)(=O)OC)cc1', 'smi')
+
+    pairs = list(mol.generate_metal_ligand_pair('Cs'))
+
+    for i, pair in enumerate(pairs):
+
+        print(pair.dump('gjf', link0='sldf', route='hfka'))
+        print(pair.smiles, pair.charge)

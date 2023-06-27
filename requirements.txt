@@ -8,3 +8,5 @@ scipy~=1.10.1
 tqdm
 rdkit
 periodictable
+pandas
+psutil

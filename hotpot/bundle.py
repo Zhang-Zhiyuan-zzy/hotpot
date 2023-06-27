@@ -22,9 +22,19 @@ feature_formats = {
     'basic': ['atomic_number', 's', 'p', 'f']
 }
 
+# the dict to store all defined bundle classes
+_bundle_classes = {}
 
+
+def register_bundles(bundle: Type):
+    """ register the bundle to _bundle_classes """
+    _bundle_classes[bundle.__class__.__name__] = bundle
+    return bundle
+
+
+@register_bundles
 class MolBundle:
-    """"""
+    """ The basic class for all molecular bundle """
 
     def __init__(self, mols: Union[Sequence[ci.Molecule], Generator[ci.Molecule, None, None]] = None):
         self._data = {'mols': mols}
@@ -334,7 +344,7 @@ class MolBundle:
             if isinstance(perturb_kwargs, List) and all(isinstance(pk, dict) for pk in perturb_kwargs):
                 for pk in perturb_kwargs:
                     pk['inplace'] = True  # Force to inplace
-                    mol.perturb_mol_lattice(**pk)
+                    mol.perturb_atoms_coordinates(**pk)
             elif perturb_kwargs is not None:
                 ValueError('The perturb_kwargs should be a dict or list of dict')
 
@@ -374,33 +384,6 @@ class MolBundle:
         """ To judge weather the object is a Molecule generator """
         return isinstance(self.mols, Generator)
 
-    def merge_conformers(self):
-        """
-        Get the sum of conformers for all molecule in the mol bundle "self.mols"
-        This method can only be successfully executed
-        when all molecules in the molecular bundle can be added to each other
-        Returns:
-            a Molecule object with all of conformers in the self.mols
-        """
-        atomic_numbers = self.atomic_numbers
-
-        if isinstance(atomic_numbers, tuple):
-            return sum(self.mols[1:], start=self.mols[0])
-        elif isinstance(atomic_numbers, dict):
-            mol_array = np.array(self.mols)
-            return MolBundle([mol_array[i].sum() for ans, i in self.atomic_numbers.items()])
-
-    def merge_atoms_same_mols(self):
-        """ Merge Molecules with same atoms to a MixSameAtomMol """
-        bundle = self.to_mix_mols()
-        atom_num = bundle.atom_num
-
-        if isinstance(atom_num, tuple):
-            return sum(bundle.mols[1:], start=bundle.mols[0])
-        elif isinstance(atom_num, dict):
-            mol_array = np.array(bundle.mols)
-            return MolBundle([mol_array[i].sum() for ans, i in atom_num.items()])
-
     @property
     def mols(self):
         return self._data.get('mols', [])
@@ -408,6 +391,15 @@ class MolBundle:
     @mols.setter
     def mols(self, mols):
         self._data['mols'] = mols
+
+    @staticmethod
+    def registered_bundle_names():
+        """ Return all registered bundle names """
+        return list(_bundle_classes.keys())
+
+    def to(self, bundle_name: str):
+        """ Convert this bundle to other bundle type """
+        return _bundle_classes[bundle_name](self.mols)
 
     def to_dpmd_sys(self, sys_root):
         """"""
@@ -467,3 +459,36 @@ class MolBundle:
             clone.mols = new_mols
 
             return clone
+
+
+@register_bundles
+class DeepModelBundle(MolBundle):
+    """ Specific MolBundle to carry out the tasks in DeepModeling packages """
+
+    def merge_conformers(self):
+        """
+        Get the sum of conformers for all molecule in the mol bundle "self.mols"
+        This method can only be successfully executed
+        when all molecules in the molecular bundle can be added to each other
+        Returns:
+            a Molecule object with all conformers in the self.mols
+        """
+        atomic_numbers = self.atomic_numbers
+
+        if isinstance(atomic_numbers, tuple):
+            return sum(self.mols[1:], start=self.mols[0])
+        elif isinstance(atomic_numbers, dict):
+            mol_array = np.array(self.mols)
+            return MolBundle([mol_array[i].sum() for ans, i in self.atomic_numbers.items()])
+
+    def merge_atoms_same_mols(self):
+        """ Merge Molecules with same atoms to a MixSameAtomMol """
+        bundle = self.to_mix_mols()
+        atom_num = bundle.atom_num
+
+        if isinstance(atom_num, tuple):
+            return sum(bundle.mols[1:], start=bundle.mols[0])
+        elif isinstance(atom_num, dict):
+            mol_array = np.array(bundle.mols)
+            return MolBundle([mol_array[i].sum() for ans, i in atom_num.items()])
+

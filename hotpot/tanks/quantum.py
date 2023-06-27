@@ -14,6 +14,10 @@ import cclib
 from typing import *
 
 
+class GaussianRunError(BaseException):
+    """ Raise when the encounter error in run gaussian """
+
+
 class Gaussian:
     """
     A class for setting up and running Gaussian 16 calculations.
@@ -41,7 +45,16 @@ class Gaussian:
         self.envs = self._set_environs()
         self._set_resource_limits(report_set_resource_error)
 
-        self.data = None
+        self.data = None  # to receive the data from the cclib parser
+        self.g16process = None  # to link to the g16 subprocess
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print(f'{exc_type}, {exc_val}, {exc_tb}, {self.g16process.poll()}')
+        if self.g16process.poll():
+            self.g16process.kill()
 
     def _set_environs(self):
         """Sets up the environment variables required for running Gaussian 16.
@@ -145,7 +158,7 @@ class Gaussian:
             if report_error:
                 print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
 
-    def run(self, script: str, *args, **kwargs):
+    def run(self, script: str):
         """Runs the Gaussian 16 process with the given script and additional arguments.
 
         This method sets up the required environment variables and resource limits for Gaussian 16 before
@@ -160,13 +173,22 @@ class Gaussian:
         Returns:
             Tuple[str, str]: A tuple of the standard output and standard error of the process.
         """
+        with open('input.gjf', 'w') as writer:
+            writer.write(script)
+
         # Run Gaussian using subprocess
-        g16_process = subprocess.Popen(
-            'g16', bufsize=-1, stdin=subprocess.PIPE,
+        self.g16process = subprocess.Popen(
+            ['g16', 'input.gjf', 'output.log'], bufsize=-1, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env=self.envs, universal_newlines=True
         )
-        stdout, stderr = g16_process.communicate(script)
+        _, stderr = self.g16process.communicate()
+
+        with open('output.log') as file:
+            stdout = file.read()
+
+        if stderr:
+            return stdout, stderr
 
         self.parse_log(stdout)
 

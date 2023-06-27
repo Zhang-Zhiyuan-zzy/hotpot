@@ -13,7 +13,7 @@ import re
 from abc import ABC, abstractmethod
 from io import IOBase
 from os import PathLike
-from os.path import join as ptj
+from os.path import join as opj
 from pathlib import Path
 from typing import *
 from itertools import product
@@ -41,19 +41,27 @@ class AddBondFail(OperateOBMolFail):
     """ Raise when add a bond into Molecule fail """
 
 
-periodic_table = json.load(open(ptj(data_root, 'periodic_table.json'), encoding='utf-8'))
+periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
 _symbols: List[str] = ['unknown'] + list(periodic_table.keys())
 _max_valences = {n: v['max_valence'] for n, v in periodic_table.items()}
 _max_total_bond_order = {n: v['max_total_bond_order'] for n, v in periodic_table.items()}
 
 _stable_charges = {
-    "H": 1, "He": 0,
-    "Li": 1, "Be": 2, "B": 3, "C": 4, "N": -3, "O": -2, "F": -1, "Ne": 0,
-    "Na": 1, "Mg": 2, "Al": 3, "Si": 4, "P": -3, "S": -2, "Cl": -1, "Ar": 0,
-    "K": 1, "Ca": 2, "Sc": 3, "Ti": 4, "V": 5, "Cr": 3, "Mn": 2, "Fe": 3, "Co": 3, "Ni": 2, "Cu": 2, "Zn": 2, "Ga": 3, "Ge": 4, "As": -3, "Se": -2, "Br": -1, "Kr": 0,
-    "Rb": 1, "Sr": 2, "Y": 3, "Zr": 4, "Nb": 5, "Mo": 6, "Tc": 7, "Ru": 4, "Rh": 3, "Pd": 2, "Ag": 1, "Cd": 2, "In": 3, "Sn": 2, "Sb": -3, "Te": -2, "I": -1, "Xe": 0,
-    "Cs": 1, "Ba": 2, "La": 3, "Ce": 4, "Pr": 3, "Nd": 3, "Pm": 3, "Sm": 3, "Eu": 2, "Gd": 3, "Tb": 3, "Dy": 3, "Ho": 3, "Er": 3, "Tm": 3, "Yb": 3, "Lu": 3, "Hf": 4, "Ta": 5, "W": 6, "Re": 7, "Os": 4, "Ir": 3, "Pt": 2, "Au": 1, "Hg": 2, "Tl": 3, "Pb": 2, "Bi": 3, "Po": -2, "At": -1, "Rn": 0,
-    "Fr": 1, "Ra": 2, "Ac": 3, "Th": 4, "Pa": 5, "U": 6, "Np": 6, "Pu": 6, "Am": 6, "Cm": 6, "Bk": 6, "Cf": 6, "Es": 6, "Fm": 6, "Md": 6, "No": 6, "Lr": 3, "Rf": 4, "Db": 5, "Sg": 6, "Bh": 7, "Hs": 8, "Mt": 8, "Ds": 8, "Rg": 8, "Cn": 8, "Nh": 8, "Fl": 8, "Mc": 8, "Lv": 8, "Ts": 8, "Og": 8
+    "H": 1,  "He": 0,
+    "Li": 1, "Be": 2, "B": 3,  "C": 4,  "N": -3,  "O": -2,  "F": -1,  "Ne": 0,
+    "Na": 1, "Mg": 2, "Al": 3, "Si": 4, "P": -3,  "S": -2,  "Cl": -1, "Ar": 0,
+    "K": 1,  "Ca": 2, "Ga": 3, "Ge": 4, "As": -3, "Se": -2, "Br": -1, "Kr": 0,
+    "Rb": 1, "Sr": 2, "In": 3, "Sn": 2, "Sb": -3, "Te": -2, "I": -1,  "Xe": 0,
+    "Cs": 1, "Ba": 2, "Tl": 3, "Pb": 2, "Bi": 3,  "Po": -2, "At": -1, "Rn": 0,
+    "Fr": 1, "Ra": 2, "Nh": 8, "Fl": 8, "Mc": 8,  "Lv": 8,  "Ts": 8,  "Og": 8,
+
+    "Sc": 3, "Ti": 4, "V": 5,  "Cr": 3, "Mn": 2,  "Fe": 3,  "Co": 3,  "Ni": 2, "Cu": 2, "Zn": 2,
+    "Y": 3,  "Zr": 4, "Nb": 5, "Mo": 6, "Tc": 7,  "Ru": 4,  "Rh": 3,  "Pd": 2, "Ag": 1, "Cd": 2,
+    "Lu": 3, "Hf": 4, "Ta": 5, "W": 6,  "Re": 7,  "Os": 4,  "Ir": 3,  "Pt": 2, "Au": 1, "Hg": 2,
+    "Lr": 3, "Rf": 4, "Db": 5, "Sg": 6, "Bh": 7,  "Hs": 8,  "Mt": 8,  "Ds": 8, "Rg": 8, "Cn": 8,
+
+    "La": 3, "Ce": 4, "Pr": 3, "Nd": 3, "Pm": 3,  "Sm": 3,  "Eu": 2,  "Gd": 3, "Tb": 3, "Dy": 3, "Ho": 3, "Er": 3, "Tm": 3, "Yb": 3,
+    "Ac": 3, "Th": 4, "Pa": 5, "U": 6,  "Np": 6,  "Pu": 6,  "Am": 6,  "Cm": 6, "Bk": 6, "Cf": 6, "Es": 6, "Fm": 6, "Md": 6, "No": 6,
 }
 
 
@@ -352,7 +360,7 @@ class Molecule(Wrapper, ABC):
     def _get_critical_params(self, name: str):
         critical_params = self._data.get('critical_params')
         if critical_params is None:
-            critical_params = json.load(open(ptj(data_root, 'thermo', 'critical.json'))).get(self.smiles)
+            critical_params = json.load(open(opj(data_root, 'thermo', 'critical.json'))).get(self.smiles)
             if critical_params:
                 self._data['critical_params'] = critical_params
                 return critical_params[name]
@@ -461,6 +469,16 @@ class Molecule(Wrapper, ABC):
                 merge_attr(item)
 
         return self
+
+    def _preserve_atoms_data(self):
+        """
+        Preserve atoms data dict before destroy them.
+        Though the atoms are destroyed, their core ob_atom will be prevented,
+        The reserve data will match with the core ob_atoms
+        """
+        # Link the old atoms data dict with new atoms by temp labels
+        self._add_temp_atom_labels()
+        return {a.temp_label: a.data for a in self.atoms}
 
     @property
     def _protected_data(self):
@@ -654,11 +672,28 @@ class Molecule(Wrapper, ABC):
     def _set_spin_multiplicity(self, spin):
         self.ob_mol.SetTotalSpinMultiplicity(spin)
 
+    @staticmethod
+    def _transfer_preserve_data_to_new_atoms(tgt_mol: 'Molecule', preserve_data: Dict, rm_temp_label: bool = False):
+        """
+        Transfer preserve data dict to new target Molecule object
+        Args:
+            tgt_mol: The target Molecule
+            preserve_data(dict): the old atoms data dict
+            rm_temp_label: whether to remove temp label after data have been transferred.
+        """
+        for atom in tgt_mol.atoms:
+            temp_label = atom.temp_label
+            if temp_label:
+                atom.update_attr_data(preserve_data[temp_label])
+
+                if rm_temp_label:
+                    atom.remove_ob_data('temp_label')
+
     @property
     def acentric_factor(self):
         return self._get_critical_params('acentric_factor')
 
-    def add_atom(self, atom: Union["Atom", str, int], **atom_attrs):
+    def add_atom(self, atom: Union["Atom", str, int], **atom_attrs) -> 'Atom':
         """
         Add a new atom out of the molecule into the molecule.
         Args:
@@ -879,10 +914,20 @@ class Molecule(Wrapper, ABC):
                 atom.formal_charge = 0
             elif atom.is_metal:
                 atom.formal_charge = _stable_charges[atom.symbol]
+            elif atom.symbol == 'S':
+                if not [a for a in atom.neighbours if a.symbol == 'O']:
+                    atom.formal_charge = atom.covalent_valence - 2
+                else:
+                    atom.formal_charge = 0
+            elif atom.symbol == 'P':
+                if not [a for a in atom.neighbours if a.symbol == 'O']:
+                    atom.formal_charge = atom.covalent_valence - 2
+                else:
+                    atom.formal_charge = 0
+            elif [a for a in atom.neighbours if a.is_polar_hydrogen]:
+                atom.formal_charge = -(len([a for a in atom.neighbours if a.is_polar_hydrogen]))
             else:
-                atom.formal_charge = -len([a for a in atom.neighbours if a.is_polar_hydrogen])
-
-            atom.balance_hydrogen()
+                atom.formal_charge = atom.covalent_valence - atom.stable_valence
 
     @property
     def atomic_numbers(self):
@@ -891,6 +936,11 @@ class Molecule(Wrapper, ABC):
     @property
     def atomic_symbols(self):
         return tuple(a.symbol for a in self.atoms)
+
+    def balance_hydrogens(self):
+        """ Add or remove hydrogens for make or heave atom to achieve the stable valence """
+        for a in self.heavy_atoms():
+            a.balance_hydrogen()
 
     def bond(self, atom1: Union[int, str], atom2: Union[int, str], miss_raise: bool = False) -> 'Bond':
         """
@@ -935,8 +985,28 @@ class Molecule(Wrapper, ABC):
 
     def build_3d(self, force_field: str = 'UFF', steps: int = 50):
         """ build 3D coordinates for the molecule """
+        # Preserve atoms data before building
+        preserve_data = self._preserve_atoms_data()
+
+        # Destroy atoms and bonds wrappers
+        self._data['atoms'] = {}
+        self._data['bonds'] = {}
+
+        # Build 3d conformer
         pymol = pb.Molecule(self.ob_mol)
         pymol.make3D(force_field, steps)
+
+        # Reload atoms and bonds
+        self._load_atoms()
+        self._load_bonds()
+
+        # Transfer preserve data to new
+        self._transfer_preserve_data_to_new_atoms(self, preserve_data)
+        # Delete temp label
+        self._delete_atom_temp_label()
+
+        # Remove redundant hydrogen or supply the lack hydrogens
+        self.balance_hydrogens()
 
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
@@ -978,15 +1048,14 @@ class Molecule(Wrapper, ABC):
     def components(self):
         """ get all fragments don't link each by any bonds """
         # Add temp label for each atom first
-        self._add_temp_atom_labels()
-        parent_atom_dict = {a.temp_label: a.data for a in self.atoms}
+        preserve_data = self._preserve_atoms_data()
 
         components = [self.__class__(obc) for obc in self.ob_mol.Separate()]
 
         # Transfer the parent data attr to the children
         for c in components:
             for a in c.atoms:
-                a.update_attr_data(parent_atom_dict[a.temp_label])
+                a.update_attr_data(preserve_data[a.temp_label])
                 a.remove_ob_data('temp_label')
 
         # remove temp labels of all atoms
@@ -1384,10 +1453,10 @@ class Molecule(Wrapper, ABC):
                     )
 
                 # add the coordinating bond between metal atom and acceptor atoms
-                pair.add_bond(added_metal, acc_atom, 1)
+                pair.add_bond(added_metal, acc_atom, 0)
 
                 # Add hydrogens
-                # pair.add_hydrogens()
+                pair.add_hydrogens()
 
                 # localize optimization of M-L pair by classical force field, if the pair has 3d
                 if pair.has_3d:
@@ -1428,6 +1497,10 @@ class Molecule(Wrapper, ABC):
 
     def graph_representation(self, *feature_names):
         return self.identifier, self.feature_matrix(*feature_names), self.link_matrix
+
+    def heavy_atoms(self):
+        """ Get the atoms except for hydrogens """
+        return [a for a in self.atoms if a.is_heavy]
 
     @property
     def has_3d(self):
@@ -1547,6 +1620,7 @@ class Molecule(Wrapper, ABC):
         """ Locally optimize the coordinates. seeing openbabel.pybel package """
         pymol = pb.Molecule(self.ob_mol)
         pymol.localopt(force_field, steps)
+        self.balance_hydrogens()
 
     def make_crystal(self, a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> 'Crystal':
         """ Put this molecule into the specified crystal """
@@ -1750,9 +1824,9 @@ class Molecule(Wrapper, ABC):
 
     def register_critical_params(self, name: str, temperature: float, pressure: float, acentric: float):
         """ Register new critical parameters into the critical parameters sheet """
-        data = json.load(open(ptj(data_root, 'thermo', 'critical.json')))
+        data = json.load(open(opj(data_root, 'thermo', 'critical.json')))
         data[self.smiles] = {'name': name, 'temperature': temperature, 'pressure': pressure, 'acentric': acentric}
-        with open(ptj(data_root, 'thermo', 'critical.json'), 'w') as writer:
+        with open(opj(data_root, 'thermo', 'critical.json'), 'w') as writer:
             json.dump(data, writer, indent=True)
 
     def remove_atoms(self, *atoms: Union[int, str, 'Atom'], remove_hydrogens: bool = False) -> None:
@@ -1765,7 +1839,6 @@ class Molecule(Wrapper, ABC):
         Returns:
             None
         """
-        # to_remove_bonds = set()
         for atom in atoms:
 
             # Check and locate the atom
@@ -1778,9 +1851,6 @@ class Molecule(Wrapper, ABC):
                     raise AttributeError('the given atom not in the molecule')
             else:
                 raise TypeError('the given atom should be int, str or Atom')
-
-            # Record the linking bonds with the atom
-            # to_remove_bonds.update(atom.bonds)
 
             # remove connecting hydrogens
             if remove_hydrogens:
@@ -1856,10 +1926,9 @@ class Molecule(Wrapper, ABC):
 
         Keyword Args:
 
-
-        Returns:
-
         """
+        img = self.to_2d_img(**kwargs)
+        img.save(file_path)
 
     def set(self, **kwargs):
         """ Set the attributes directly """
@@ -1934,7 +2003,6 @@ class Molecule(Wrapper, ABC):
 
         """
         clone = self.copy()
-        # clone.add_hydrogens()
         clone.build_2d()
         return Draw.MolToImage(clone.to_rdmol(), **kwargs)
 
@@ -2210,31 +2278,16 @@ class Atom(Wrapper, ABC):
     def atomic_number(self):
         return self.ob_atom.GetAtomicNum()
 
-    def balance_hydrogen(self, count_covalent_only: bool = False):
+    def balance_hydrogen(self):
         """ Remove or add hydrogens link with this atom, if the bond valence is not equal to the atomic valence """
         # TODO: Check with all other methods call the method
         if self.is_heavy and not self.is_metal:  # Do not add or remove hydrogens to the metal, H or inert elements
-            # remove redundant hydrogen, if the bond valence more than the atomic valence
-            if count_covalent_only:
-                while self.covalent_valence > self.max_bonds and self.neighbours_hydrogen:
-                    self.molecule.remove_atoms(self.neighbours_hydrogen[0])
+            while self.valence > self.stable_valence and self.neighbours_hydrogen:
+                self.molecule.remove_atoms(self.neighbours_hydrogen[0])
 
-                # add hydrogen, if the bond valence less than the atomic valence
-                while self.covalent_valence < self.max_bonds:
-                    self.add_hydrogen()
-            else:
-                while self.bond_valence > self.max_bonds and self.neighbours_hydrogen:
-                    self.molecule.remove_atoms(self.neighbours_hydrogen[0])
-
-                # add hydrogen, if the bond valence less than the atomic valence
-                while self.bond_valence < self.max_bonds:
-                    self.add_hydrogen()
-
-    @property
-    def bond_valence(self) -> int:
-        if self.has_unknown_bond:
-            raise AttributeError('Cannot calculate the bond valence, because of the existence of unknown bonds')
-        return sum(b.type for b in self.bonds)
+            # add hydrogen, if the bond valence less than the atomic valence
+            while self.valence < self.stable_valence:
+                self.add_hydrogen()
 
     @property
     def bonds(self):
@@ -2277,9 +2330,6 @@ class Atom(Wrapper, ABC):
     @property
     def covalent_valence(self):
         """ the number of covalent electrons for this atoms """
-        if self.has_unknown_bond:
-            raise AttributeError('Cannot calculate the bond valence, because of the existence of unknown bonds')
-
         return sum(b.type if b.is_covalent else 0 for b in self.bonds)
 
     def element_features(self, *feature_names) -> np.ndarray:
@@ -2530,15 +2580,40 @@ class Atom(Wrapper, ABC):
 
     @property
     def stable_valence(self) -> int:
-        return _stable_charges.get(self.symbol, None)
+        if self.is_metal:
+            return 0
+        elif self.symbol == 'S':
+            if not [a for a in self.neighbours if a.symbol == 'O']:
+                return 2
+            elif self.covalent_valence <= 2:
+                return 2
+            elif self.covalent_valence <= 4:
+                return 4
+            else:
+                return 6
+        elif self.symbol == 'S':
+            if not [a for a in self.neighbours if a.symbol == 'O']:
+                return 3
+            elif self.covalent_valence == 0:
+                return 0
+            elif self.covalent_valence == 1:
+                return 1
+            elif self.covalent_valence <= 3:
+                return 3
+            else:
+                return 5
+        else:
+            return abs(_stable_charges[self.symbol])
 
     @property
     def symbol(self) -> str:
         return ob.GetSymbol(self.atomic_number)
 
     @property
-    def valence(self):
-        return self.ob_atom.GetTotalValence()
+    def valence(self) -> int:
+        # if self.has_unknown_bond:
+        #     raise AttributeError('Cannot calculate the bond valence, because of the existence of unknown bonds')
+        return sum(b.type if b.type else 0 if b.is_covalent else 1 for b in self.bonds)
 
 
 class PseudoAtom(Wrapper, ABC):

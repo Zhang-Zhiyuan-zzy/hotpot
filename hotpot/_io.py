@@ -434,9 +434,10 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _pre_gjf(self):
         """ Assign the Molecule charge before to dump to gjf file """
-        self.src.assign_atoms_formal_charge()
         if not self.src.has_3d:
             self.src.build_3d()
+
+        self.src.assign_atoms_formal_charge()
         self.src.identifier = self.src.formula
 
     def _io_dpmd_sys(self):

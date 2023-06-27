@@ -83,16 +83,11 @@ def have_bug():
 
 if __name__ == '__main__':
     from openbabel import openbabel as ob
-    mol = ci.Molecule.read_from('c1nc(CS(=O)(=O)O)c(O)cc1', 'smi')
-    for atom in mol.atoms:
-        print(atom, atom.valence, atom.neighbours)
+    mol = ci.Molecule.read_from('c1nc(CS(=O)(=O)O)c(OCCOP(O)(=O)OC)cc1', 'smi')
 
-    pairs = list(mol.generate_metal_ligand_pair('Sr'))
+    pairs = list(mol.generate_metal_ligand_pair('Cs'))
 
-    for pair in pairs:
-        print(pair.smiles)
-        pair.assign_atoms_formal_charge()
-        print(pair.charge)
+    for i, pair in enumerate(pairs):
 
-    for atom in pairs[2].atoms:
-        print(atom, atom.valence, atom.neighbours, atom.formal_charge)
+        print(pair.dump('gjf', link0='sldf', route='hfka'))
+        print(pair.smiles, pair.charge)

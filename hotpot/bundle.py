@@ -29,7 +29,7 @@ _bundle_classes = {}
 
 def register_bundles(bundle: Type):
     """ register the bundle to _bundle_classes """
-    _bundle_classes[bundle.__class__.__name__] = bundle
+    _bundle_classes[bundle.__name__] = bundle
     return bundle
 
 

@@ -16,4 +16,4 @@ import hotpot as hp
 if __name__ == '__main__':
     dir_log_file = Path('/home/zz1/proj/gauss/new/log')
 
-    bundle = hp.MolBundle.read_from('g16log', dir_log_file, '*/*.log', num_proc=16)
+    bundle = hp.MolBundle.read_from('g16log', dir_log_file, '*/*.log', ranges=range(3000),num_proc=16)

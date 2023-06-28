@@ -10,12 +10,12 @@ Notes:
 """
 import os
 import os.path as osp
-import json
 from os.path import join as ptj
 from typing import *
 import math
 import random
 import numpy as np
+import openbabel.openbabel as ob
 import hotpot
 import hotpot.cheminfo as ci
 
@@ -63,11 +63,7 @@ class AmorphousMaker:
     @staticmethod
     def calc_cryst_density(cryst):
         """ Calculation the density for Crystal object """
-        mol: ci.Molecule = cryst.molecule
-        sum_mass = sum(ci.periodic_table[a.atom_type]['atomic_mass'] for a in mol.atoms)
-
-        # Density, g/cm^3
-        return (sum_mass * avogadro) / (cryst.volume * angstrom ** 3)
+        return (cryst.molecule.weight * avogadro) / (cryst.volume * angstrom ** 3)  # Density, g/cm^3
 
     @staticmethod
     def density2atom_numbers(ratio_elements: dict, density: float, cryst):
@@ -86,9 +82,8 @@ class AmorphousMaker:
         possibility = np.array(list(ratio_elements.values()))
         possibility = possibility / possibility.sum()  # Normalize
 
-        average_mol_mass = sum(ci.periodic_table[e]['atomic_mass'] * p for e, p in zip(elements, possibility))
+        average_mol_mass = sum(ob.GetMass(ob.GetAtomicNum(e)) * p for e, p in zip(elements, possibility))
 
-        # TODO: Check ..., the formula may be wrong
         # Terms:   [Mole in Crystal(Total Mass in Crystal (gram)/Average Mole Mass)]/Avogadro Number
         # Units:      g/cm^3     angstrom^3  angstrom/cm             g/mol             _
         num_atom = ((density * (cryst.volume * angstrom ** 3)) / average_mol_mass) * avogadro
@@ -121,7 +116,7 @@ class AmorphousMaker:
 
         num_atom = len(cartesian_coordinates)
         atomic_symbols = np.random.choice(elements, num_atom, p=possibility)
-        atomic_numbers = np.array([ci.periodic_table[symbol]["number"] for symbol in atomic_symbols])
+        atomic_numbers = np.array([ob.GetAtomicNum(symbol) for symbol in atomic_symbols])
 
         return atomic_numbers, cartesian_coordinates
 

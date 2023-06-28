@@ -461,7 +461,7 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         data = {
             'type': np.array(self.src.atomic_numbers).reshape(1, -1).repeat(conf_num, axis=0),
-            'type_map': ['-'] + list(ci.periodic_table.keys()),
+            'type_map': ['-'] + list(ci.periodic_table.symbols),
             'nopbc': not is_periodic,
             'coord': self.src.all_coordinates,  # angstrom,
             'box': box,

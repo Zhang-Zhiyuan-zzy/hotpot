@@ -32,6 +32,8 @@ recommended to create a new conda environment to run the package.
 
 ### Install
 After the requirements are installed, now the ''Hotpot'' could be installed by pip
+> conda activate hp
+
 > pip install hotpot-zzy
 
 

@@ -43,7 +43,6 @@ class AddBondFail(OperateOBMolFail):
 
 # periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
 periodic_table = _lib.get('PeriodicTable')  # hotpot.utils.library.PeriodicTabel
-_symbols: List[str] = ['unknown'] + periodic_table.symbols
 
 _stable_charges = {
     "H": 1,  "He": 0,
@@ -711,7 +710,7 @@ class Molecule(Wrapper, ABC):
         oba = ob.OBAtom()  # Initialize a new OBAtom
         data = None
         if isinstance(atom, str):
-            oba.SetAtomicNum(_symbols.index(atom))
+            oba.SetAtomicNum(ob.GetAtomicNum(atom))
         elif isinstance(atom, int):
             oba.SetAtomicNum(atom)
         elif isinstance(atom, Atom):
@@ -1162,24 +1161,6 @@ class Molecule(Wrapper, ABC):
         mol.make_crystal(*lattice_params)
 
         return mol
-
-    def create_atom(self, symbol: str, **kwargs):
-        """
-        Discarded !!!
-        Create a new atom into the molecule
-        Args:
-            symbol: the atomic symbol
-            **kwargs: any attribute for the atom
-
-        Returns:
-            the created atom in the molecule
-        """
-        ob_atom: ob.OBAtom = self.ob_mol.NewAtom()
-        atomic_number = periodic_table[symbol]['number']
-        ob_atom.SetAtomicNum(atomic_number)
-        atom = Atom(ob_atom, mol=self, **kwargs)
-
-        return atom
 
     def create_crystal_by_vectors(
             self,
@@ -2272,8 +2253,7 @@ class Atom(Wrapper, ABC):
         self.ob_atom.SetAtomicNum(int(atomic_number))
 
     def _set_atomic_symbol(self, symbol):
-        atomic_number = periodic_table[symbol]['number']
-        self.ob_atom.SetAtomicNum(atomic_number)
+        self.ob_atom.SetAtomicNum(ob.GetAtomicNum(symbol))
 
     def _set_coordinate(self, coordinates):
         self.ob_atom.SetVector(*coordinates)
@@ -2387,7 +2367,7 @@ class Atom(Wrapper, ABC):
 
     def element_features(self, *feature_names) -> np.ndarray:
         """ Retrieve the feature vector """
-        atom_feature = periodic_table.get(self.symbol)
+        atom_feature = periodic_table[self.symbol]
 
         features = []
         for feature_name in feature_names:

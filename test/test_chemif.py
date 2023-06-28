@@ -80,9 +80,8 @@ def have_bug():
         c = p.copy()  # TODO: Guess that the bonds was not assigned correctly during the copy process
         c.build_3d()
 
-
-if __name__ == '__main__':
-    from openbabel import openbabel as ob
+def test_valence_charge():
+    """ Test whether could the molecule to assign atoms formal charge and valence correctly """
     mol = ci.Molecule.read_from('c1nc(CS(=O)(=O)O)c(OCCOP(O)(=O)OC)cc1', 'smi')
 
     pairs = list(mol.generate_metal_ligand_pair('Cs'))
@@ -91,3 +90,14 @@ if __name__ == '__main__':
 
         print(pair.dump('gjf', link0='sldf', route='hfka'))
         print(pair.smiles, pair.charge)
+
+
+if __name__ == '__main__':
+    # from hotpot.utils.load_chem_lib import library as lib
+    #
+    # periodic_table = lib.get('PeriodicTable')
+    #
+    # for element in periodic_table:
+    #     print(element)
+
+    test_valence_charge()

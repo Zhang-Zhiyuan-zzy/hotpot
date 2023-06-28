@@ -26,7 +26,7 @@ from rdkit.Chem import Draw
 from hotpot import data_root
 from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian, GaussianRunError
-from hotpot.utils.load_chem_lib import library as _lib  # The chemical library
+from hotpot.utils.library import library as _lib  # The chemical library
 
 # Define Exceptions
 class OperateOBMolFail(BaseException):
@@ -41,10 +41,9 @@ class AddBondFail(OperateOBMolFail):
     """ Raise when add a bond into Molecule fail """
 
 
-periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
-_symbols: List[str] = ['unknown'] + list(periodic_table.keys())
-_max_valences = {n: v['max_valence'] for n, v in periodic_table.items()}
-_max_total_bond_order = {n: v['max_total_bond_order'] for n, v in periodic_table.items()}
+# periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
+periodic_table = _lib.get('PeriodicTable')  # hotpot.utils.library.PeriodicTabel
+_symbols: List[str] = ['unknown'] + periodic_table.symbols
 
 _stable_charges = {
     "H": 1,  "He": 0,

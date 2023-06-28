@@ -22,6 +22,9 @@ class Library:
     def __init__(self):
         self._books = {}
 
+    def __repr__(self):
+        return f'Library({self.book_list})'
+
     @property
     def book_list(self):
         return list(self._lib.keys())
@@ -74,19 +77,29 @@ class PeriodicTable(ChemicalBook):
             return f'{self.symbol}'
 
         def __getitem__(self, item):
-            return self.data['item']
+            return self.data[item]
 
         def __getattr__(self, item):
-            return self.data['item']
+            return self.data[item]
 
         def __dir__(self) -> Iterable[str]:
             return list(self.data.keys())
 
+    class Settings:
+        """ the setting tools for PeriodicTabel """
+        def __init__(self, _table: 'PeriodicTable'):
+            self.data_path = opj(hp.data_root, 'periodic_table.json')
+            self._table = _table
+
+        def overwrite_source_data(self):
+            """ Overwrite existing data with a new form """
+            json.dump(self._table.data_dict, self.data_path, indent=True)
+
     def __init__(self):
-        self._data_path = opj(hp.data_root, 'periodic_table.json')
+        self.settings = self.Settings(self)
         self._elements = {
             s: self.Element(s, data)
-            for s, data in json.load(open(self._data_path, encoding='utf-8'))
+            for s, data in json.load(open(self._data_path, encoding='utf-8')).items()
         }
 
     def __repr__(self):
@@ -99,15 +112,32 @@ class PeriodicTable(ChemicalBook):
         return self._elements[item]
 
     def __dir__(self) -> Iterable[str]:
-        return list(self._elements.keys())
+        dirs = ['settings', 'symbols', 'elements']
+
+        return list(self._elements.keys()) + dirs
+
+    def __iter__(self):
+        return iter(self._elements.values())
+
+    def __len__(self):
+        return len(self._elements)
+
+    @property
+    def _data_path(self):
+        """ the PeriodicTable data retrieve from """
+        return self.settings.data_path
 
     @property
     def data_dict(self):
-        return {s: e.data for s, e in self._elements}
+        return {s: e.data for s, e in self._elements.items()}
 
-    def overwrite_source_data(self):
-        """ Overwrite existing data with a new form """
-        json.dump(self.data_dict, self._data_path, indent=True)
+    @property
+    def symbols(self):
+        return list(self._elements.keys())
+
+    @property
+    def elements(self):
+        return list(self._elements.values())
 
 
 import hotpot as hp

@@ -8,6 +8,7 @@ python v3.7.9
 """
 import copy
 import random
+import time
 from os import PathLike
 from typing import *
 from pathlib import Path
@@ -272,6 +273,70 @@ class MolBundle:
             return cls(generator)
         else:
             return cls([m for m in tqdm(generator, 'reading molecules')])
+
+    def gcmc_for_isotherm(
+            self, *guest: 'ci.Molecule', force_field: Union[str, PathLike] = None,
+            work_dir: Union[str, PathLike] = None, T: float = 298.15,
+            Ps: Sequence[float] = (1.0,), procs: int = 1, named_identifier: bool = False,
+            **kwargs
+    ):
+        """
+        Run gcmc to determine the adsorption of guest,
+        Args:
+            self: the framework as the sorbent of guest molecule
+            guest(Molecule): the guest molecule to be adsorbed into the framework
+            force_field(str|PathLike): the path to force field file or the self-existent force file contained
+             in force field directory (in the case, a str should be given as a relative path from the root of
+             force field root to the specified self-existent force filed). By default, the force field is UFF
+             which in the relative path 'UFF/LJ.json' for the force field path.
+            work_dir: the user-specified dir to store the result of GCMC and log file.
+            T: the environmental temperature (default, 298.15 K)
+            Ps(Sequence[float]): A sequence of relative pressure related to the saturation vapor in the environmental temperature.
+            procs(int): the number of processes, default 1.
+            named_identifier: Whether to name the dir by the identifier of frames
+        """
+        if isinstance(work_dir, str):
+            work_dir = Path(work_dir)
+
+        # Assemble keywords arguments for multiprocess
+        processes = []
+        for i, frame in enumerate(self.mols, 1):
+
+            # When the running proc more than the specified values, waiting for terminate
+            while len(processes) >= procs:
+                for p in processes:
+                    if not p.is_alive():
+                        processes.pop(processes.index(p))
+                        p.terminate()
+
+                time.sleep(10)
+
+            if named_identifier:
+                sub_work_dir = work_dir.joinpath(frame.identifier)
+            else:
+                idt_map = self._data.setdefault('identifier_map', {})
+                idt_map[i] = frame.identifier
+                sub_work_dir = work_dir.joinpath('mol_' + str(i))
+
+            if not sub_work_dir.exists():
+                sub_work_dir.mkdir()
+
+            kwargs.update({
+                'force_field': force_field,
+                'work_dir': sub_work_dir,
+                'T': T, 'Ps': Ps
+            })
+
+            p = mp.Process(target=frame.gcmc_for_isotherm, args=guest, kwargs=kwargs)
+
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
+            p.terminate()
+
+        return self._data.get('identifier_map')
 
     def graph_representation(self, *feature_names) -> Generator[Union[str, np.ndarray, np.ndarray], None, None]:
         """ Transform molecules to their graph representation """

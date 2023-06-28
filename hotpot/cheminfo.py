@@ -866,6 +866,31 @@ class Molecule(Wrapper, ABC):
         return self._load_atoms()
 
     @property
+    def all_atoms_with_unique_symbol(self):
+        return self.atoms_with_unique_symbol + \
+               self.pseudo_atoms_with_unique_symbol
+
+    @property
+    def atoms_with_unique_symbol(self):
+        uni_atoms, uni_symbol = [], set()
+        for a in self.pseudo_atoms:
+            if a.symbol not in uni_symbol:
+                uni_atoms.append(a)
+                uni_symbol.add(a.symbol)
+
+        return uni_atoms
+
+    @property
+    def pseudo_atoms_with_unique_symbol(self):
+        uni_patoms, uni_psymbol = [], set()
+        for a in self.atoms:
+            if a.symbol not in uni_psymbol:
+                uni_patoms.append(a)
+                uni_psymbol.add(a.symbol)
+
+        return uni_patoms
+
+    @property
     def all_atoms(self):
         return self.atoms + self.pseudo_atoms
 
@@ -1402,6 +1427,37 @@ class Molecule(Wrapper, ABC):
         from tanks.lmp.gcmc import LjGCMC
         gcmc = LjGCMC(self, force_field, *guest, work_dir=work_dir, T=T, P=P, **kwargs)
         return gcmc.run()
+
+    def gcmc_for_isotherm(
+            self, *guest: 'Molecule', force_field: Union[str, os.PathLike] = None,
+            work_dir: Union[str, os.PathLike] = None, T: float = 298.15,
+            Ps: Sequence[float] = (1.0,), **kwargs
+    ):
+        """
+        Run gcmc to determine the adsorption of guest,
+        Args:
+            self: the framework as the sorbent of guest molecule
+            guest(Molecule): the guest molecule to be adsorbed into the framework
+            force_field(str|PathLike): the path to force field file or the self-existent force file contained
+             in force field directory (in the case, a str should be given as a relative path from the root of
+             force field root to the specified self-existent force filed). By default, the force field is UFF
+             which in the relative path 'UFF/LJ.json' for the force field path.
+            work_dir: the user-specified dir to store the result of GCMC and log file.
+            T: the environmental temperature (default, 298.15 K)
+            Ps(Sequence[float]): A sequence of relative pressure related to the saturation vapor in the environmental temperature.
+        """
+        if isinstance(work_dir, str):
+            work_dir = Path(work_dir)
+
+        if not work_dir.exists():
+            work_dir.mkdir()
+
+        for P in Ps:
+            sub_work_dir = work_dir.joinpath('press_' + str(P))
+            if not sub_work_dir.exists():
+                sub_work_dir.mkdir()
+
+            self.gcmc(*guest, force_field=force_field, work_dir=sub_work_dir, T=T, P=P, **kwargs)
 
     def generate_metal_ligand_pair(
             self, metal_symbol: str,

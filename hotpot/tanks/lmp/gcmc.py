@@ -40,7 +40,7 @@ class LjGCMC:
             atom_types_map = self._data.setdefault('atom_types_map', {})
             atom_types = self._data.setdefault('atom_types', {})
             list_atom_types = atom_types.setdefault(which, [])
-            for atom in mol.unique_all_atoms:
+            for atom in mol.all_atoms_with_unique_symbol:
                 atom_type = len(atom_types_map) + 1
                 atom_types_map[atom_type] = atom
                 list_atom_types.append(atom_type)

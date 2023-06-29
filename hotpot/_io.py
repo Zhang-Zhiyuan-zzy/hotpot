@@ -930,7 +930,13 @@ class Parser(IOBase, metaclass=MetaIO):
             """ Extract charges and spin information from g16.log file """
             # Get the line index of Mulliken charges
             head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges and spin densities:']
-            
+            if not head_lines:
+                head_lines = [i for i, line in enumerate(lines) if line.strip() == 'Mulliken charges:']
+                charge_only = True
+            else:
+                charge_only = False
+
+            # Skip the first charge&spin sheet, it can't find corresponding coordinates
             if not head_lines:
                 raise IOEarlyStop
             elif len(head_lines) == obj.configure_number + 1:
@@ -940,18 +946,24 @@ class Parser(IOBase, metaclass=MetaIO):
             charges, spin_densities = [], []  # changes(cgs) spin_densities(sds)
             for i in head_lines:
                 # Enhance inspection
-                col1, col2 = lines[i + 1].strip().split()
-                assert col1 == '1' and col2 == '2'
+                col_heads = lines[i + 1].strip().split()
+                if charge_only:
+                    assert len(col_heads) == 1 and col_heads[0] == '1'
+                else:
+                    assert len(col_heads) == 2 and col_heads[0] == '1' and col_heads
 
                 HEAD_LINES_NUM = 2
                 cg, sd = [], []  # change, spin_density
 
                 while True:
                     split_line = lines[i + HEAD_LINES_NUM].strip().split()
-                    if len(split_line) != 4:
-                        break
-                    else:
+                    if charge_only and len(split_line) == 3:
+                        row, syb, c = split_line  # row number, symbol, charges
+                        s = 0.0  # spin density
+                    elif not charge_only and len(split_line) == 4:
                         row, syb, c, s = split_line  # row number, symbol, charges, spin density
+                    else:
+                        break
 
                     try:
                         row, c, s = int(row), float(c), float(s)

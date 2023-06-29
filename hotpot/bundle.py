@@ -466,9 +466,6 @@ class MolBundle:
         """ Convert this bundle to other bundle type """
         return _bundle_classes[bundle_name](self.mols)
 
-    def to_dpmd_sys(self, sys_root):
-        """"""
-
     def to_list(self) -> List[ci.Molecule]:
         """ Convert the molecule container (self.mol) to list """
         if isinstance(self.mols, Generator):
@@ -544,7 +541,7 @@ class DeepModelBundle(MolBundle):
             return sum(self.mols[1:], start=self.mols[0])
         elif isinstance(atomic_numbers, dict):
             mol_array = np.array(self.mols)
-            return MolBundle([mol_array[i].sum() for ans, i in self.atomic_numbers.items()])
+            return self.__class__([mol_array[i].sum() for ans, i in self.atomic_numbers.items()])
 
     def merge_atoms_same_mols(self):
         """ Merge Molecules with same atoms to a MixSameAtomMol """
@@ -555,5 +552,8 @@ class DeepModelBundle(MolBundle):
             return sum(bundle.mols[1:], start=bundle.mols[0])
         elif isinstance(atom_num, dict):
             mol_array = np.array(bundle.mols)
-            return MolBundle([mol_array[i].sum() for ans, i in atom_num.items()])
+            return self.__class__([mol_array[i].sum() for ans, i in atom_num.items()])
+
+    def to_dpmd_sys(self, sys_root):
+        """"""
 

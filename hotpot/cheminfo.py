@@ -255,7 +255,7 @@ class Molecule(Wrapper, ABC):
 
         # When other obj is a MolBundle
         if isinstance(other, bd.MolBundle):
-            return bd.MolBundle([self] + other.mols)
+            return other.__class__([self] + other.mols)
 
         else:
             raise TypeError('the Molecule only add with Molecule or MolBundle')
@@ -1136,7 +1136,7 @@ class Molecule(Wrapper, ABC):
 
     def copy(self) -> 'Molecule':
         """ Get a clone of this Molecule """
-        clone = Molecule(self.ob_copy())
+        clone = self.__class__(self.ob_copy())
         clone._load_atoms()
         clone._load_bonds()
 
@@ -1343,6 +1343,14 @@ class Molecule(Wrapper, ABC):
         # For 2d molecule, build its confomer by universal force field first
         if not self.has_3d:
             self.build_3d()
+
+        # TODO: Preserve for restart when encounter a Gaussian error.
+        chk_path = None
+        if isinstance(link0, List):
+            for l0 in link0:
+                if re.match(r'%chk=.+\.chk', l0):
+                    chk_path = l0[5:]
+                    break
 
         # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)

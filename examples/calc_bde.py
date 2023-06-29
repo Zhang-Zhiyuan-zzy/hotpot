@@ -14,14 +14,15 @@ import hotpot as hp
 
 
 if __name__ == '__main__':
-    path_smiles = Path('/home/zzy/proj/be/struct/choice_ligand')
-    g16root = '/home/zzy/sw'
-    work_dir = Path('/home/zzy/proj/be/g16/s')
+    path_smiles = Path('/home/zz1/proj/be/struct/choice_ligand')
+    g16root = '/home/zz1/sw'
+    work_dir = Path('/home/zz1/proj/be/g16')
 
     smiles = open(path_smiles).readlines()
 
-    mol = hp.Molecule.read_from(smiles[0], 'smi')
-    mol.build_3d()
+    for i, s in enumerate(smiles):
 
-    pair_bundle = mol.generate_pairs_bundle('Sr', ('O', 'N'))
-    pair_bundle.determine_metal_ligand_bind_energy(g16root, work_dir, 'M062X', 'Def2SVP', 'SCRF pop(Always)')
+        mol = hp.Molecule.read_from(smiles[0], 'smi')
+        pair_bundle = mol.generate_pairs_bundle('Sr')
+
+        pair_bundle.determine_metal_ligand_bind_energy(g16root, work_dir.joinpath(str(i)), 'B3LYP', 'Def2SVP', 'SCRF pop(Always)')

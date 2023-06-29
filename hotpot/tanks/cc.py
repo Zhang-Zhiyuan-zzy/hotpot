@@ -70,11 +70,16 @@ class PairBundle(MolBundle):
                 work_dir = Path(work_dir)
 
             self.work_dir = work_dir
+            self.chk_dir = work_dir.joinpath('chk')
             self.log_dir = work_dir.joinpath('log')
             self.err_dir = work_dir.joinpath('err')
             self.struct_dir = work_dir.joinpath('struct')
             self.energy_path = work_dir.joinpath('energy.csv')
             self.bde_path = work_dir.joinpath('bde.csv')
+
+        @property
+        def ligand_chk_path(self):
+            return self.chk_dir.joinpath('ligand.chk')
 
         @property
         def ligand_log_path(self):
@@ -100,6 +105,10 @@ class PairBundle(MolBundle):
                 self.struct_dir.mkdir()
 
         @property
+        def metal_chk_path(self):
+            return self.chk_dir.joinpath('metal.log')
+
+        @property
         def metal_log_path(self):
             return self.log_dir.joinpath('metal.log')
 
@@ -110,6 +119,9 @@ class PairBundle(MolBundle):
         @property
         def metal_struct_path(self):
             return self.struct_dir.joinpath('metal.mol2')
+
+        def pair_chk_path(self, idx: int):
+            return self.chk_dir.joinpath(f'pair_{idx}.chk')
 
         def pair_log_path(self, idx: int):
             return self.log_dir.joinpath(f'pair_{idx}.log')
@@ -151,7 +163,10 @@ class PairBundle(MolBundle):
         # optimize the configure of ligand and calculate their total energy after optimization
         self.ligand.gaussian(
             g16root,
-            link0=[f'CPU=0-{os.cpu_count()-1}', f'Mem={machine.take_memory(0.75)}GB'],
+            link0=[
+                f'CPU=0-15',
+                f'Mem=32GB'
+            ],
             route=f'opt {method}/{basis_set} ' + route,
             path_log_file=dirs_files.ligand_log_path,
             path_err_file=dirs_files.ligand_err_path,
@@ -170,7 +185,10 @@ class PairBundle(MolBundle):
         except KeyError:
             self.metal.gaussian(
                 g16root,
-                link0=[f'CPU=0-{os.cpu_count()-1}', f'Mem={machine.take_memory(0.75)}GB'],
+                link0=[
+                    f'CPU=0-15',
+                    f'Mem=32GB'
+                ],
                 route=f'{method}/{basis_set} ' + route,
                 path_log_file=dirs_files.metal_log_path,
                 path_err_file=dirs_files.ligand_err_path,
@@ -194,7 +212,10 @@ class PairBundle(MolBundle):
         for i, pair in enumerate(self.pairs):
             pair.gaussian(
                 g16root,
-                link0=[f'CPU=0-{os.cpu_count()-1}', f'Mem={machine.take_memory(0.75)}GB'],
+                link0=[
+                    f'CPU=0-15',
+                    f'Mem=32GB'
+                ],
                 route=f'opt {method}/{basis_set} ' + route,
                 path_log_file=dirs_files.pair_log_path(i),
                 path_err_file=dirs_files.pair_err_path(i),

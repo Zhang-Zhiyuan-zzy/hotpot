@@ -44,6 +44,7 @@ class Gaussian:
 
         self.envs = self._set_environs()
         self._set_resource_limits(report_set_resource_error)
+        self.che_path = None
 
         self.data = None  # to receive the data from the cclib parser
         self.g16process = None  # to link to the g16 subprocess

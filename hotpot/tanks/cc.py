@@ -160,14 +160,17 @@ class PairBundle(MolBundle):
         # Energy sheet, bond dissociation energy (BDE) sheet
         e_sheet, bde_sheet = [], []
 
+        # save the initialized ligand structure
+        self.ligand.writefile('mol2', dirs_files.ligand_struct_path)
+
         # optimize the configure of ligand and calculate their total energy after optimization
         self.ligand.gaussian(
             g16root,
             link0=[
-                f'CPU=0-15',
-                f'Mem=32GB'
+                f'CPU=0-{machine.take_CPUs()-1}',
+                f'Mem={machine.take_memory(0.25)}GB'
             ],
-            route=f'opt {method}/{basis_set} ' + route,
+            route=f'opt=recalc=5 {method}/{basis_set} ' + route,
             path_log_file=dirs_files.ligand_log_path,
             path_err_file=dirs_files.ligand_err_path,
             inplace_attrs=True
@@ -186,8 +189,8 @@ class PairBundle(MolBundle):
             self.metal.gaussian(
                 g16root,
                 link0=[
-                    f'CPU=0-15',
-                    f'Mem=32GB'
+                    f'CPU=0-{machine.take_CPUs()-1}',
+                    f'Mem={machine.take_memory(0.25)}GB'
                 ],
                 route=f'{method}/{basis_set} ' + route,
                 path_log_file=dirs_files.metal_log_path,
@@ -210,13 +213,17 @@ class PairBundle(MolBundle):
 
         # Optimizing the conformer of metal-ligands pairs and Retrieve the energies in the last stable conformer
         for i, pair in enumerate(self.pairs):
+            # Save initialized Metal-ligand pair struct
+            pair.writefile('mol2', dirs_files.pair_struct_path(i))
+
+            # Performing calculation
             pair.gaussian(
                 g16root,
                 link0=[
-                    f'CPU=0-15',
-                    f'Mem=32GB'
+                    f'CPU=0-{machine.take_CPUs()-1}',
+                    f'Mem={machine.take_memory(0.25)}GB'
                 ],
-                route=f'opt {method}/{basis_set} ' + route,
+                route=f'opt=recalc=5 {method}/{basis_set} ' + route,
                 path_log_file=dirs_files.pair_log_path(i),
                 path_err_file=dirs_files.pair_err_path(i),
                 inplace_attrs=True
@@ -225,7 +232,7 @@ class PairBundle(MolBundle):
             # Append the pairs energy values to energy sheet
             e_sheet.append([f'pair_{i}', pair.smiles, pair.energy])
             bde_sheet.append([f'pair_{i}', pair.smiles, pair.energy - ligand_energy - metal_sp])
-            # Save Metal-ligand pair struct
+            # Save refined Metal-ligand pair struct
             pair.writefile('mol2', dirs_files.pair_struct_path(i))
 
         # Save the energy sheet to csv

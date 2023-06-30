@@ -22,8 +22,8 @@ if __name__ == '__main__':
     print(len(bundle))
     bundle = bundle.merge_atoms_same_mols()
 
-    for mol in bundle:
-        sys_root = dpmd_root.joinpath(str(mol.atom_num))
-        if not sys_root.exists():
-            sys_root.mkdir()
-        mol.to_dpmd_sys(sys_root, mode='att')
+    # for mol in bundle:
+    #     sys_root = dpmd_root.joinpath(str(mol.atom_num))
+    #     if not sys_root.exists():
+    #         sys_root.mkdir()
+    #     mol.to_dpmd_sys(sys_root, mode='att')

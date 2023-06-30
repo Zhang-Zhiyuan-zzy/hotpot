@@ -9,6 +9,7 @@ python v3.9.0
 Notes:
     Manage the machine, link memory, processors, GPUs
 """
+import os
 from typing import *
 import psutil
 
@@ -39,6 +40,18 @@ class Machine:
             return int(self.available_memory * ratio)
         else:
             return self.available_memory * ratio
+
+    @staticmethod
+    def take_CPUs(ratio: float = 0.5) -> int:
+        """
+        Take a partial memory from machine available CPUs
+        Args:
+            ratio: The ratio of CPUs the user want to take
+
+        Returns:
+            the number of CPUs
+        """
+        return int(os.cpu_count() * ratio)
 
 
 machine = Machine()

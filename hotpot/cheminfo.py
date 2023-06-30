@@ -1005,7 +1005,7 @@ class Molecule(Wrapper, ABC):
         pmol = pb.Molecule(self.ob_mol)
         pmol.make2D()
 
-    def build_3d(self, force_field: str = 'UFF', steps: int = 50):
+    def build_3d(self, force_field: str = 'UFF', steps: int = 500):
         """ build 3D coordinates for the molecule """
         # Preserve atoms data before building
         preserve_data = self._preserve_atoms_data()
@@ -1323,7 +1323,7 @@ class Molecule(Wrapper, ABC):
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
-        calculation by Gaussion.
+        calculation by Gaussian.
         for running the method normally, MAKE SURE THE Gaussian16 HAVE BEEN INSTALLED AND ALL ENV VAR SET RITHT !!
         Args:
             g16root: the dir Gaussian16 software installed
@@ -1452,7 +1452,8 @@ class Molecule(Wrapper, ABC):
             self, metal_symbol: str,
             acceptor_atoms: Sequence = ('O',),
             opti_force_field: str = 'UFF',
-            assign_metal_charge: bool = False
+            opti_before_gen: bool = False,
+            opti_step: int = 500
     ) -> Generator['Molecule', None, None]:
         """
         This method could work if the molecule is an organic ligand, or raise AttributeError.
@@ -1462,12 +1463,17 @@ class Molecule(Wrapper, ABC):
             metal_symbol: which metal element link to the ligand
             acceptor_atoms: which elements to be acceptor atom to link to metal
             opti_force_field: which force field could be used to optimize the configuration of ligand and M-L pair.
-            assign_metal_charge: whether to assign the stable charge to metal cation
+            opti_before_gen: whether to optimize the ligand conformer before generate pair
+            opti_step: the step to optimize the 3d conformer
 
         Return:
             A generator for M-L pair
         """
         ligand = self.copy()
+
+        if opti_before_gen:
+            ligand.build_3d(force_field=opti_force_field, steps=opti_step)
+
         for atom in ligand.atoms:
             if atom.symbol in acceptor_atoms:
                 # copy the ligand as the embryo of metal-ligand pairs
@@ -1483,27 +1489,19 @@ class Molecule(Wrapper, ABC):
                     metal_init_coordinates = acc_atom.coordinates_array - sum_relative_coordinates
 
                     # add metal atom into the acceptor_ligand
-                    added_metal = pair.add_atom(
-                        metal_symbol,
-                        coordinates=metal_init_coordinates,
-                        formal_charge=_stable_charges[metal_symbol] if assign_metal_charge else 0
-                    )
+                    added_metal = pair.add_atom(metal_symbol, coordinates=metal_init_coordinates)
 
                 else:  # If the pair has not 3d conformer, add the metal directly
-                    added_metal = pair.add_atom(
-                        metal_symbol,
-                        formal_charge=_stable_charges[metal_symbol] if assign_metal_charge else 0
-                    )
+                    added_metal = pair.add_atom(metal_symbol)
 
                 # add the coordinating bond between metal atom and acceptor atoms
                 pair.add_bond(added_metal, acc_atom, 0)
 
-                # Add hydrogens
-                pair.add_hydrogens()
-
                 # localize optimization of M-L pair by classical force field, if the pair has 3d
                 if pair.has_3d:
                     pair.localed_optimize(opti_force_field)
+                else:
+                    pair.add_hydrogens()  # Add hydrogens
 
                 pair.identifier = pair.smiles
                 yield pair

@@ -26,11 +26,16 @@ class Gaussian:
         g16root (str): The path to the Gaussian 16 root directory.
 
     """
-    def __init__(self, g16root: Union[str, os.PathLike], report_set_resource_error: bool = False):
+    def __init__(
+            self,
+            g16root: Union[str, os.PathLike],
+            report_set_resource_error: bool = False
+    ):
         """
         This method sets up the required environment variables and resource limits for Gaussian 16.
         Args:
             g16root (Union[str, os.PathLike]): The path to the Gaussian 16 root directory.
+            report_set_resource_error: Whether to report the errors when set the environments and resource
 
         Raises:
             TypeError: If `g16root` is not a string or a path-like object.
@@ -159,6 +164,34 @@ class Gaussian:
             if report_error:
                 print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
 
+    def error_handle(self, stdout: str, stderr: str):
+        """
+        Handle the error message release information.
+        Args:
+            stdout: the standard output message
+            stderr: the standard error message
+
+        Returns:
+            whether to raise the error (bool), error massage
+        """
+
+    @property
+    def molecule_setter_dict(self):
+        """ Prepare the property dict for Molecule setters """
+        return {
+            'atoms.partial_charge': self.data.atomcharges['mulliken'],
+            'energy': self.data.scfenergies[-1],
+            'spin': self.data.mult,
+            'charge': self.data.charge,
+            'mol_orbital_energies': self.data.moenergies,  # eV,
+            'coordinates': self.data.atomcoords[-1]
+        }
+
+    def parse_log(self, stdout: str):
+        """ Parse the gaussian log file and save them into self """
+        string_buffer = io.StringIO(stdout)
+        self.data: cclib.parser.data.ccData_optdone_bool = cclib.ccopen(string_buffer).parse()
+
     def run(self, script: str):
         """Runs the Gaussian 16 process with the given script and additional arguments.
 
@@ -194,21 +227,4 @@ class Gaussian:
         self.parse_log(stdout)
 
         return stdout, stderr
-
-    def parse_log(self, stdout: str):
-        """ Parse the gaussian log file and save them into self """
-        string_buffer = io.StringIO(stdout)
-        self.data: cclib.parser.data.ccData_optdone_bool = cclib.ccopen(string_buffer).parse()
-
-    @property
-    def molecule_setter_dict(self):
-        """ Prepare the property dict for Molecule setters """
-        return {
-            'atoms.partial_charge': self.data.atomcharges['mulliken'],
-            'energy': self.data.scfenergies[-1],
-            'spin': self.data.mult,
-            'charge': self.data.charge,
-            'mol_orbital_energies': self.data.moenergies,  # eV,
-            'coordinates': self.data.atomcoords[-1]
-        }
 

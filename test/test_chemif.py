@@ -100,4 +100,4 @@ if __name__ == '__main__':
     # for element in periodic_table:
     #     print(element)
 
-    test_valence_charge()
+    mol = ci.Molecule.read_from('/home/zz1/proj/be/output.log', 'g16log')

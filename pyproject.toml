@@ -4,7 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
-version = "0.3.0.5"
+version = "0.3.0.6"
+readme = "RAEDME.md"
+authors = [
+    { name = "Zhiyuan Zhang", email = "ZhiyuanZhang_scu@163.com" },
+    { name = "Yue Dong", email = "1320801310@qq.com" },
+    { name = "Yuqing Qiu", email = "2022223070045@stu.scu.edu.cn" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Linux",
+]
 dependencies = [
     "numpy",
     "pandas",
@@ -12,7 +23,6 @@ dependencies = [
     "cclib",
     "tqdm",
     'rdkit',
-    'periodictable',
     'psutil'
 ]
 

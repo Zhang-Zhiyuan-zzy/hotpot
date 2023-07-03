@@ -182,12 +182,18 @@ class MolBundle:
             except AttributeError:
                 conn.send((None, None, pm))
 
+            except StopIteration:
+                conn.send((None, None, pm))
+
         def mol_generator():
             nonlocal dir_or_strings
             for i, path_mol in enumerate(generate_path_or_string()):
 
                 if not ranges or i in ranges:
-                    mol = ci.Molecule.read_from(path_mol, fmt)
+                    try:
+                        mol = ci.Molecule.read_from(path_mol, fmt)
+                    except StopIteration:
+                        mol = None
                 else:
                     continue
 

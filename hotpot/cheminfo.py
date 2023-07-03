@@ -1587,6 +1587,14 @@ class Molecule(Wrapper, ABC):
         return self.dump('inchi').strip()
 
     @property
+    def is_disorder(self):
+        """ To judge whether this Molecule has disorder bonds """
+        if self.has_3d:
+            if any(not (0.85 < b.length/b.ideal_length < 1.15) for b in self.bonds):
+                return True
+        return False
+
+    @property
     def is_labels_unique(self):
         """ Determine whether all atom labels are unique """
         return len(set(self.labels)) == self.atom_counts
@@ -1930,11 +1938,15 @@ class Molecule(Wrapper, ABC):
         """ remove all of metal atoms in the molecule """
         self.remove_atoms(*self.metals)
 
-    def remove_solvents(self):
+    def remove_solvents(self, remove_disorder: bool = True, remove_isolate_atoms: bool = True):
         """ remove all solvents in the molecule """
         self.normalize_labels()
-        for ligand in self.retrieve_ligands():
-            if _lib.get('Solvents').is_solvent(ligand):  # To judge if the ligand is solvents
+        for i, ligand in enumerate(self.retrieve_ligands()):
+            if remove_disorder and ligand.is_disorder:  # remove disorder molecular structures first
+                self.remove_atoms(*ligand.atom_labels, remove_hydrogens=False)
+            elif remove_isolate_atoms and len(ligand.atoms) == 1:
+                self.remove_atoms(*ligand.atom_labels, remove_hydrogens=False)
+            elif _lib.get('Solvents').is_solvent(ligand):  # To judge if the ligand is solvents
                 self.remove_atoms(*ligand.atom_labels, remove_hydrogens=False)
 
     def retrieve_ligands(self) -> List['Molecule']:

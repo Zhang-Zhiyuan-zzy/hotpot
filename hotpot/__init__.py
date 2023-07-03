@@ -17,4 +17,4 @@ data_root = os.path.abspath(os.path.join(src_root, 'data'))
 from hotpot.cheminfo import Molecule
 from hotpot.bundle import MolBundle
 
-__version__ = '0.3.0.5'
+__version__ = '0.3.0.7'

@@ -61,7 +61,7 @@ class Solvents(ChemicalBook):
 
     def is_solvent(self, mol: 'hp.Molecule'):
         """ to judge whether a molecule is a solvent """
-        return mol.smiles in self._sols_smi
+        return any(solvent.similarity(mol) == 1.0 for solvent in self._solvents)
 
 
 @Library.register

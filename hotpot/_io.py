@@ -444,7 +444,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         """ convert molecule information to numpy arrays """
         required_items = ['coord', 'type']
         check_atom_num = ['coord', 'force', 'charge']
-        share_same_configures = ['type', 'coord', 'energy', 'force', 'charge', 'virial']
+        share_same_conformers = ['type', 'coord', 'energy', 'force', 'charge', 'virial']
         need_reshape = ['coord', 'force']
 
         conf_num = len(self.src.all_coordinates)
@@ -460,7 +460,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         box = box.reshape(-1, 9).repeat(conf_num, axis=0)
 
         data = {
-            'type': np.array(self.src.atomic_numbers).reshape(1, -1).repeat(conf_num, axis=0),
+            'type': self.src.atomic_numbers_array,
             'type_map': ['-'] + list(ci.periodic_table.symbols),
             'nopbc': not is_periodic,
             'coord': self.src.all_coordinates,  # angstrom,
@@ -482,11 +482,11 @@ class Dumper(IOBase, metaclass=MetaIO):
                 raise ValueError('the required composition to make the dpmd system is incomplete!')
 
         # Check whether the number of conformers are matching among data
-        if any(len(data[n]) != conf_num for n in share_same_configures if data[n] is not None):
+        if any(len(data[n]) != conf_num for n in share_same_conformers if data[n] is not None):
             raise ValueError('the number of conformers is not match')
 
         # Check whether the number of atoms in data are matching to the molecular atoms
-        if any(data[n].shape[1] != self.src.atom_num for n in check_atom_num if data[n] is not None):
+        if any(data[n].shape[1] != self.src.atom_counts for n in check_atom_num if data[n] is not None):
             raise ValueError('the number of atoms is not matching the number of atom is the molecule')
 
         for name in need_reshape:
@@ -915,7 +915,7 @@ class Parser(IOBase, metaclass=MetaIO):
 
             obj.set(all_coordinates=all_coordinates)
             obj.set(crystal=cell_matrix)
-            obj.configure_select(0)
+            obj.conformer_select(0)
 
             return obj
 
@@ -939,7 +939,7 @@ class Parser(IOBase, metaclass=MetaIO):
             # Skip the first charge&spin sheet, it can't find corresponding coordinates
             if not head_lines:
                 raise IOEarlyStop
-            elif len(head_lines) == obj.configure_number + 1:
+            elif len(head_lines) == obj.conformer_counts + 1:
                 head_lines = head_lines[1:]
 
             # Extract the Mulliken charge and spin densities
@@ -1027,7 +1027,7 @@ class Parser(IOBase, metaclass=MetaIO):
                 while True:
 
                     if sheet_line.match(lines[i + HEAD_LINES_NUM + rows]):
-                        if len(forces) == obj.atom_num:
+                        if len(forces) == obj.atom_counts:
                             all_forces.append(forces)
                             break
                         else:
@@ -1062,8 +1062,8 @@ class Parser(IOBase, metaclass=MetaIO):
         except IndexError:
             raise IOEarlyStop
 
-        # assign the first configure for the molecule
-        obj.configure_select(0)
+        # assign the first conformer for the molecule
+        obj.conformer_select(0)
 
         return obj
 

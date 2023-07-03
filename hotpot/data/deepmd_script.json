@@ -53,6 +53,6 @@
         "seed":                   10,
         "disp_file":              "lcurve.out",
         "disp_freq":              1000,
-        "save_freq":              10000,
+        "save_freq":              10000
     }
 }

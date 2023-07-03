@@ -80,6 +80,7 @@ def have_bug():
         c = p.copy()  # TODO: Guess that the bonds was not assigned correctly during the copy process
         c.build_3d()
 
+
 def test_valence_charge():
     """ Test whether could the molecule to assign atoms formal charge and valence correctly """
     mol = ci.Molecule.read_from('c1nc(CS(=O)(=O)O)c(OCCOP(O)(=O)OC)cc1', 'smi')
@@ -100,4 +101,7 @@ if __name__ == '__main__':
     # for element in periodic_table:
     #     print(element)
 
-    mol = ci.Molecule.read_from('/home/zz1/proj/be/output.log', 'g16log')
+    # mol = ci.Molecule.read_from('/home/zz1/proj/be/output.log', 'g16log'
+    import hotpot as hp
+    mol = hp.Molecule.read_from('c1ccccc1', 'smi')
+    mol.gaussian('/home/zzy/sw', ['nproc=8'], 'opt')

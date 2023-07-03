@@ -80,14 +80,14 @@ class MolBundle:
             return dict_attrs
 
     @property
-    def atom_num(self) -> Dict[int, List[int]]:
+    def atom_counts(self) -> Dict[int, List[int]]:
         """
         Notes:
             if the Bundle is a generator, convert to a list of Molecule first.
         Returns:
             returns a dict with the key is the number of the atoms and the key is the indices of Molecules
         """
-        return self.__get_all_unique_attrs('atom_num')
+        return self.__get_all_unique_attrs('atom_counts')
 
     @property
     def atomic_numbers(self):
@@ -348,7 +348,7 @@ class MolBundle:
             link0: Union[str, List[str]], route: Union[str, List[str]],
             dir_err: Optional[Union[str, PathLike]] = None,
             dir_chk: Optional[Union[str, PathLike]] = None,
-            clean_configure: bool = True,
+            clean_conformers: bool = True,
             perturb_kwargs: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None,
             *args, **kwargs
     ) -> None:
@@ -365,7 +365,7 @@ class MolBundle:
                 Defaults to None.
             dir_chk (Optional[Union[str, PathLike]], optional): The path to the directory to store the .chk files.
                 Defaults to None.
-            clean_configure (bool, optional): A flag indicating whether to clean the configuration before perturbing
+            clean_conformers (bool, optional): A flag indicating whether to clean the configuration before perturbing
                 the molecule or lattice. Defaults to True.
             perturb_kwargs (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]], optional): The parameters for
                 perturbing the molecule or lattice. Defaults to None.
@@ -384,9 +384,9 @@ class MolBundle:
         for mol in self.mols:
             assert isinstance(mol, ci.Molecule)
 
-            # Clean before perturb configures
-            if clean_configure:
-                mol.clean_configures()
+            # Clean before perturb conformers
+            if clean_conformers:
+                mol.clean_conformers()
 
             # Assign the dirs
             # assign the dir to put out.log files for the mol
@@ -414,10 +414,10 @@ class MolBundle:
                 ValueError('The perturb_kwargs should be a dict or list of dict')
 
             # Running the gaussian16
-            for config_idx in range(mol.configure_number):
-                mol.configure_select(config_idx)
+            for config_idx in range(mol.conformer_counts):
+                mol.conformer_select(config_idx)
 
-                # Reorganize the arguments for each configures
+                # Reorganize the arguments for each conformer
                 path_out = dir_out_mol.joinpath(f'{config_idx}.log')
                 path_err = dir_err_mol.joinpath(f'{config_idx}.err') if dir_err else None
 
@@ -473,22 +473,6 @@ class MolBundle:
 
         return self.mols
 
-    def to_mix_mols(self):
-        """
-        Return a new MolBundle, in which Molecule objects in container are converted to MixSameAtomMol
-        Returns:
-            MolBundle(MixSameAtomMol)
-        """
-        return MolBundle([m.to_mix_mol() if not isinstance(m, ci.MixSameAtomMol) else m for m in self])
-
-    def to_mols(self):
-        """
-        Return a new MolBundle, in which MixSameAtomMol objects in container are converted to Molecule
-        Returns:
-            MolBundle(Molecule)
-        """
-        return MolBundle([m.to_mol() if isinstance(m, ci.MixSameAtomMol) else m for m in self])
-
     def unique_mols(self, mode: Literal['smiles', 'similarity'] = 'smiles'):
         """
         get a new Bundle with all unique Molecule objects
@@ -506,7 +490,7 @@ class MolBundle:
         elif mode == 'similarity':
             dict_mols = {}
             for mol in self.mols:
-                mols_with_same_atom_num = dict_mols.setdefault(mol.atom_num, [])
+                mols_with_same_atom_num = dict_mols.setdefault(mol.atom_counts, [])
                 mols_with_same_atom_num.append(mol)
 
             new_mols = []
@@ -543,17 +527,46 @@ class DeepModelBundle(MolBundle):
             mol_array = np.array(self.mols)
             return self.__class__([mol_array[i].sum() for ans, i in self.atomic_numbers.items()])
 
-    def merge_atoms_same_mols(self):
+    def merge_atoms_same_mols(self) -> 'DeepModelBundle':
         """ Merge Molecules with same atoms to a MixSameAtomMol """
-        bundle = self.to_mix_mols()
-        atom_num = bundle.atom_num
+        bundle: DeepModelBundle = self.to_mix_mols()
+        atom_counts = bundle.atom_counts
 
-        if isinstance(atom_num, tuple):
+        if isinstance(atom_counts, tuple):
             return sum(bundle.mols[1:], start=bundle.mols[0])
-        elif isinstance(atom_num, dict):
+        elif isinstance(atom_counts, dict):
             mol_array = np.array(bundle.mols)
-            return self.__class__([mol_array[i].sum() for ans, i in atom_num.items()])
+            return self.__class__([mol_array[i].sum() for ans, i in atom_counts.items()])
 
-    def to_dpmd_sys(self, sys_root):
+    def to_dpmd_sys(self, dataset_root, mode: Literal['std', 'att'] = 'std'):
         """"""
+        if mode == 'att':
+            bundle = self.merge_atoms_same_mols()
+        elif mode == 'std':
+            bundle = copy.copy(self)
+        else:
+            raise ValueError("the mode is only allowed to be 'att' or 'std'!")
+
+        for mol in bundle:
+            sys_root = dataset_root.joinpath(str(mol.atom_counts)) \
+                if mode == 'att' else dataset_root.joinpath(mol.identifier)
+            if not sys_root.exists():
+                sys_root.mkdir()
+            mol.to_dpmd_sys(sys_root, mode=mode)
+
+    def to_mix_mols(self):
+        """
+        Return a new MolBundle, in which Molecule objects in container are converted to MixSameAtomMol
+        Returns:
+            MolBundle(MixSameAtomMol)
+        """
+        return self.__class__([m.to_mix_mol() if not isinstance(m, ci.MixSameAtomMol) else m for m in self])
+
+    def to_mols(self):
+        """
+        Return a new MolBundle, in which MixSameAtomMol objects in container are converted to Molecule
+        Returns:
+            MolBundle(Molecule)
+        """
+        return self.__class__([m.to_mol() if isinstance(m, ci.MixSameAtomMol) else m for m in self])
 

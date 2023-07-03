@@ -132,7 +132,7 @@ class AmorphousMaker:
         mol.quick_build_atoms(atomic_number)
         mol.set(all_coordinates=coordinates.reshape((-1, len(coordinates), 3)))
 
-        mol.configure_select(0)
+        mol.conformer_select(0)
 
         return mol
 

@@ -7,6 +7,7 @@ python v3.7.9
 @Time   : 3:18
 """
 import copy
+import os
 import random
 import time
 from os import PathLike
@@ -93,16 +94,24 @@ class MolBundle:
     def atomic_numbers(self):
         return self.__get_all_unique_attrs('atomic_numbers')
 
-    def choice(self, size: int = 1, replace: bool = True, p: Union[Sequence, float, Callable] = None) -> 'MolBundle':
+    def choice(
+            self, size: int = 1, replace: bool = True,
+            p: Union[Sequence, float, Callable] = None,
+            get_remain: bool = False
+    ) -> Union['MolBundle', tuple['MolBundle', 'MolBundle']]:
         """
          Generate new MolBundle with a list of random Molecule objects from the current MolBundle
         Args:
             size: the size of generating MolBundle, that the number of contained Molecule objects
-            replace: whether allow to choice a Molecule object multiply times
+            replace: whether allow to choice a Molecule object multiply times. It must be noted that
+             if this MolBundle is a generator or the get_remain arg has been specified, this arg
+             would not work.
             p: If the current MolBundle is a Generator it should be a float or a Callable object
              which arg is the generated molecule. If the current MolBundle is a Sequence, the p
              should bea sequence with same size as the number of Molecule objects in current
              MolBundle, specify the probability of each Molecule to be chosen.
+            get_remain: whether to get the remain Molecule object, if the current MolBundle is a Generator
+             this arg would not work
 
         Return:
             MolBundle contained specified-number molecules
@@ -119,13 +128,25 @@ class MolBundle:
                     if p(mol):
                         yield mol
 
+        # if the MolBundle is a generator, the derivative one is still generator
         if self.is_generator:
             if isinstance(p, (float, Callable)):
                 return MolBundle(choice_from_generator())
             else:
                 raise TypeError('When the MolBundle is a generator, the p should be a float or Callable object')
+
+        elif get_remain:  # get remain molecules as the second return
+            mol_indices = np.arange(len(self))
+            chosen_idx = np.random.choice(mol_indices, size=int(len(self) * p))
+            remain_idx = np.setdiff1d(mol_indices, chosen_idx)
+
+            chosen_mol = np.array(self.mols)[chosen_idx].tolist()
+            remain_mol = np.array(self.mols)[remain_idx].tolist()
+
+            return self.__class__(chosen_mol), self.__class__(remain_mol)
+
         else:
-            return MolBundle(np.random.choice(self.mols, size=size, replace=replace, p=p))
+            return self.__class__(np.random.choice(self.mols, size=size, replace=replace, p=p))
 
     @property
     def data(self):
@@ -544,21 +565,72 @@ class DeepModelBundle(MolBundle):
             mol_array = np.array(bundle.mols)
             return self.__class__([mol_array[i].sum() for ans, i in atom_counts.items()])
 
-    def to_dpmd_sys(self, dataset_root, mode: Literal['std', 'att'] = 'std'):
+    def to_dpmd_sys(
+            self, system_dir: Union[str, os.PathLike],
+            validate_ratio: float,
+            mode: Literal['std', 'att'] = 'std',
+            split_mode: Optional[Literal['inside', 'outside']] = None
+    ):
         """"""
+        def to_files(mb: MolBundle, save_root: Path):
+            for c, m in enumerate(mb):  # c: counts, m: molecule
+                mol_save_root = \
+                    save_root.joinpath(str(m.atom_counts)) if mode == 'att' else system_dir.joinpath(str(c))
+                if not mol_save_root.exists():
+                    mol_save_root.mkdir()
+
+                m.to_dpmd_sys(mol_save_root, mode)
+
+
+        if split_mode and split_mode not in ['inside', 'outside']:
+            raise ValueError("the split_mode must be 'inside' or 'outside'")
+
+        if not 0.0 < validate_ratio < 1.0:
+            raise ValueError('the validate_ratio must be from 0.0 to 1.0')
+
+        # Organize dirs
+        if not isinstance(system_dir, Path):
+            system_dir = Path(system_dir)
+        training_dir = system_dir.joinpath('training_dir')
+        validate_dir = system_dir.joinpath('validate_dir')
+        if not training_dir.exists():
+            training_dir.mkdir()
+        if not validate_dir.exists():
+            validate_dir.mkdir()
+
         if mode == 'att':
             bundle = self.merge_atoms_same_mols()
+            if not split_mode:
+                split_mode = 'inside'
+
         elif mode == 'std':
             bundle = copy.copy(self)
+            if not split_mode:
+                split_mode = 'outside'
+
         else:
             raise ValueError("the mode is only allowed to be 'att' or 'std'!")
 
-        for mol in bundle:
-            sys_root = dataset_root.joinpath(str(mol.atom_counts)) \
-                if mode == 'att' else dataset_root.joinpath(mol.identifier)
-            if not sys_root.exists():
-                sys_root.mkdir()
-            mol.to_dpmd_sys(sys_root, mode=mode)
+        if split_mode == 'inside':
+            for i, mol in enumerate(bundle):
+                mol_training_dir = \
+                    training_dir.joinpath(str(mol.atom_counts)) if mode == 'att' else system_dir.joinpath(str(i))
+                mol_validate_dir = \
+                    validate_dir.joinpath(str(mol.atom_counts)) if mode == 'att' else system_dir.joinpath(str(i))
+
+                if not mol_training_dir.exists():
+                    mol_training_dir.mkdir()
+                if not mol_validate_dir.exists():
+                    mol_validate_dir.mkdir()
+
+                mol.to_dpmd_sys(mol_training_dir, mode, validate_ratio, mol_validate_dir)
+
+        elif split_mode == 'outside':
+            validate_bundle, training_bundle = bundle.choice(p=validate_ratio, get_remain=True)
+
+            # Save to files
+            to_files(training_bundle, training_dir)
+            to_files(validate_bundle, validate_dir)
 
     def to_mix_mols(self):
         """

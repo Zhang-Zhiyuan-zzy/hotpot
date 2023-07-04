@@ -1249,7 +1249,7 @@ class Molecule(Wrapper, ABC):
         else:
             return None
 
-    def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes, dict]:
+    def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes, dict, 'DeepSystem']:
         """"""
         dumper = Dumper(fmt=fmt, source=self, *args, **kwargs)
         return dumper()
@@ -1264,7 +1264,7 @@ class Molecule(Wrapper, ABC):
         return self.ob_mol.GetEnergy()
 
     def feature_matrix(self, *feature_names: Sequence) -> np.ndarray:
-        """ Retrieve the feature matrix (collections of feature vector for every atoms),
+        """ Retrieve the feature matrix (collections of feature vector for atoms),
          The default feature is `atomic_orbital`, if the feature names not be specified, the `atomic_orbital` will be
          retrieved.
          Args:
@@ -2068,9 +2068,10 @@ class Molecule(Wrapper, ABC):
         return Draw.MolToImage(clone.to_rdmol(), **kwargs)
 
     def to_dpmd_sys(
-            self, dpmd_sys_root: Union[str, os.PathLike],
+            self, system_dir: Union[str, os.PathLike],
             mode: Literal['std', 'att'] = 'std',
-            valid_ratio: float = 0.1
+            validate_ratio: float = None,
+            validate_dir: Union[str, Path] = None
     ):
         """
         convert to DeePMD-Kit System, there are two system mode, that `standard` (std) and `attention` (att)
@@ -2078,62 +2079,55 @@ class Molecule(Wrapper, ABC):
             2) attention: https://docs.deepmodeling.com/projects/deepmd/en/master/model/train-se-atten.html#data-format
 
         Args:
-            dpmd_sys_root: the dir for all system data store
+            system_dir: the dir for all system data store, if the validate_dir has been given, this is the dir of
+             training system
             mode: the system mode, choose from att or std
-            valid_ratio(float): the ratio of validate data set.
+            validate_ratio(float): the ratio of validate data set.
+            validate_dir(str|Path): if validate_ratio has been specified, this must be given
         """
-        dpmd_sys_root = Path(dpmd_sys_root)
-        if not dpmd_sys_root.exists():
-            dpmd_sys_root.mkdir()
+        # dpmd_sys_root = Path(dpmd_sys_root)
+        # if not dpmd_sys_root.exists():
+        #     dpmd_sys_root.mkdir()
+        #
+        # # the dir of set data
+        # set_root = dpmd_sys_root.joinpath('set.000')
+        # if not set_root.exists():
+        #     set_root.mkdir()
 
-        # Make the training and validate sets
-        training_path = dpmd_sys_root.joinpath('training_data')
-        validate_path = dpmd_sys_root.joinpath('validate_data')
-        if not training_path:
-            training_path.mkdir()
-        if not validate_path:
-            validate_path.mkdir()
+        system: DeepSystem = self.dump('dpmd_sys')
+        system(system_dir, mode, validate_ratio, validate_dir)
 
-        tv_paths = [training_path, validate_path]
-
-        # the dir of set data
-        set_root = dpmd_sys_root.joinpath('set.000')
-        if not set_root.exists():
-            set_root.mkdir()
-
-        data = self.dump('dpmd_sys')
-
-        for name, value in data.items():
-
-            # if the value is None, go to next
-            if value is None:
-                continue
-
-            # Write the type raw
-            if name == 'type':
-                if mode == 'std':
-                    type_raw = value[0]
-                elif mode == 'att':
-                    type_raw = np.zeros(value[0].shape, dtype=int)
-                    np.save(set_root.joinpath("real_atom_types.npy"), value)
-                else:
-                    raise ValueError('the mode just allows to be "std" or "att"')
-
-                with open(dpmd_sys_root.joinpath('type.raw'), 'w') as writer:
-                    writer.write('\n'.join([str(i) for i in type_raw]))
-
-            elif name == 'type_map':
-                with open(dpmd_sys_root.joinpath('type_map.raw'), 'w') as writer:
-                    writer.write('\n'.join([str(i) for i in value]))
-
-            # Create an empty 'nopbc', when the system is not periodical
-            elif name == 'nopbc' and value is True:
-                with open(dpmd_sys_root.joinpath('nopbc'), 'w') as writer:
-                    writer.write('')
-
-            # Save the numpy format data
-            elif isinstance(value, np.ndarray):
-                np.save(str(set_root.joinpath(f'{name}.npy')), value)
+        # for name, value in data.items():
+        #
+        #     # if the value is None, go to next
+        #     if value is None:
+        #         continue
+        #
+        #     # Write the type raw
+        #     if name == 'type':
+        #         if mode == 'std':
+        #             type_raw = value[0]
+        #         elif mode == 'att':
+        #             type_raw = np.zeros(value[0].shape, dtype=int)
+        #             np.save(set_root.joinpath("real_atom_types.npy"), value)
+        #         else:
+        #             raise ValueError('the mode just allows to be "std" or "att"')
+        #
+        #         with open(dpmd_sys_root.joinpath('type.raw'), 'w') as writer:
+        #             writer.write('\n'.join([str(i) for i in type_raw]))
+        #
+        #     elif name == 'type_map':
+        #         with open(dpmd_sys_root.joinpath('type_map.raw'), 'w') as writer:
+        #             writer.write('\n'.join([str(i) for i in value]))
+        #
+        #     # Create an empty 'nopbc', when the system is not periodical
+        #     elif name == 'nopbc' and value is True:
+        #         with open(dpmd_sys_root.joinpath('nopbc'), 'w') as writer:
+        #             writer.write('')
+        #
+        #     # Save the numpy format data
+        #     elif isinstance(value, np.ndarray):
+        #         np.save(str(set_root.joinpath(f'{name}.npy')), value)
 
     def to_mix_mol(self):
         """ Convert this Molecule object to MixSaveAtomMol """
@@ -3085,3 +3079,4 @@ class Crystal(Wrapper, ABC):
 import hotpot.bundle as bd
 from hotpot._io import Dumper, Parser
 from hotpot.tanks.cc import PairBundle
+from hotpot.tanks.deepmd import DeepSystem

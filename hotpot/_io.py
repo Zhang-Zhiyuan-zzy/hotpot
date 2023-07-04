@@ -18,7 +18,9 @@ from io import IOBase
 from openbabel import pybel
 import cclib
 import numpy as np
+
 import hotpot.cheminfo as ci
+from hotpot.tanks.deepmd import DeepSystem
 
 """
 Notes:
@@ -326,9 +328,9 @@ class IOBase:
     @abstractmethod
     def _checks(self) -> Dict[str, Any]:
         """
-        This method should be override when definition of new IO class
+        This method should be overriden when definition of new IO class
         The purpose of this class is to check the regulation of initialized arguments.
-        If not any arguments should be check, return None directly.
+        If not any arguments should be checked, return None directly.
         """
         raise NotImplemented()
 
@@ -442,63 +444,7 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """
-        required_items = ['coord', 'type']
-        check_atom_num = ['coord', 'force', 'charge']
-        share_same_conformers = ['type', 'coord', 'energy', 'force', 'charge', 'virial']
-        need_reshape = ['coord', 'force']
-
-        conf_num = len(self.src.all_coordinates)
-        crystal = self.src.crystal()
-        if crystal:
-            box = self.src.crystal().vector  # angstrom
-            is_periodic = True
-        else:
-            box = np.zeros((3, 3))
-            for i in range(3):
-                box[i, i] = 100.
-            is_periodic = False
-        box = box.reshape(-1, 9).repeat(conf_num, axis=0)
-
-        data = {
-            'type': self.src.atomic_numbers_array,
-            'type_map': ['-'] + list(ci.periodic_table.symbols),
-            'nopbc': not is_periodic,
-            'coord': self.src.all_coordinates,  # angstrom,
-            'box': box,
-            'energy': self.src.all_energy,  # eV
-            'force': self.src.all_forces,  # Hartree/Bohr,
-            'charge': self.src.all_atom_charges,  # q
-            'virial': None,
-            'atom_ener': None,
-            'atom_pref': None,
-            'dipole': None,
-            'atom_dipole': None,
-            'polarizability': None,
-            'atomic_polarizability': None
-        }
-
-        for name in required_items:
-            if data.get(name) is None:
-                raise ValueError('the required composition to make the dpmd system is incomplete!')
-
-        # Check whether the number of conformers are matching among data
-        if any(len(data[n]) != conf_num for n in share_same_conformers if data[n] is not None):
-            raise ValueError('the number of conformers is not match')
-
-        # Check whether the number of atoms in data are matching to the molecular atoms
-        if any(data[n].shape[1] != self.src.atom_counts for n in check_atom_num if data[n] is not None):
-            raise ValueError('the number of atoms is not matching the number of atom is the molecule')
-
-        for name in need_reshape:
-            item = data.get(name)
-            if isinstance(item, np.ndarray):
-                shape = item.shape
-
-                assert len(shape) == 3
-
-                data[name] = item.reshape((shape[0], shape[1]*shape[2]))
-
-        return data
+        return DeepSystem(self.src)
 
     def _io_lmpmol(self):
         """
@@ -605,43 +551,6 @@ class Dumper(IOBase, metaclass=MetaIO):
             script += charge()
 
         return script
-
-    def _post_dpmd_sys(self, data: Dict[str, Union[List, np.ndarray, None]]):
-        """"""
-        mapping_items = ['type', 'type_map']
-        path_save = self.kwargs.get('path_save')
-        if path_save:
-            if isinstance(path_save, str):
-                path_save = Path(path_save)
-            if path_save.is_file():
-                raise NotADirectoryError('the given path_save to dpmd_sys should be an empty dir, not a existed file')
-
-            if not path_save.exists():
-                path_save.mkdir()
-
-            if [p for p in path_save.glob('*')]:
-                raise IOError('the given path_save should be a empty dir, files or dirs have exist in the dir')
-
-            dir_npy = path_save.joinpath('set.000')
-            dir_npy.mkdir()
-
-            for name, value in data.items():
-                if name == 'nopbc' and value:
-                    with open(path_save.joinpath('nopbc'), 'w') as writer:
-                        writer.write('')
-
-                elif name in mapping_items:
-                    with open(path_save.joinpath(f'{name}.raw'), 'w') as writer:
-                        writer.write('\n'.join(map(str, value)))
-
-                else:
-                    if value is not None:
-                        if not isinstance(value, np.ndarray):
-                            raise ValueError(f'the data to set.*** must be np.ndarray, instead of {type(value)}')
-
-                        np.save(dir_npy.joinpath(f'{name}.npy'), value)
-
-        return data
 
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """

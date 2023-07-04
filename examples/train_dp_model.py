@@ -16,11 +16,11 @@ from hotpot.bundle import DeepModelBundle
 
 if __name__ == '__main__':
     dir_log_file = Path('/home/zz1/proj/gauss/new/log')
-    dpmd_root = Path('/home/zz1/proj/dp/dpmd_sys/')
+    dpmd_root = Path('/home/zz1/proj/dpmd/sys/')
 
     bundle = hp.MolBundle.read_from('g16log', dir_log_file, '*/*.log', num_proc=16)
     bundle: DeepModelBundle = bundle.to('DeepModelBundle')
     for i, mol in enumerate(bundle):
         mol.identifier = str(i)
 
-    bundle.to_dpmd_sys(dpmd_root, mode='att')
+    bundle.to_dpmd_sys(dpmd_root, 0.2, mode='att', split_mode='inside')

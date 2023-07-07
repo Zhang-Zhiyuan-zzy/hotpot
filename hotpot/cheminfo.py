@@ -1,5 +1,5 @@
 """
-python v3.7.9
+python v3.9.0
 @Project: hotpot
 @File   : cheminfo.py
 @Author : Zhiyuan Zhang
@@ -27,6 +27,7 @@ from hotpot import data_root
 from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian, GaussianRunError
 from hotpot.utils.library import library as _lib  # The chemical library
+
 
 # Define Exceptions
 class OperateOBMolFail(BaseException):
@@ -200,7 +201,7 @@ class Molecule(Wrapper, ABC):
         #     item (with the index 3）
         # For the molecular attributes, which have only one value for each conformer and represent the attribute
         # of whole molecule, they are place in the first item (with the index 0)
-        ('all_energy',),
+        ('all_energy', 'identifier_array'),
         ('all_atom_charges', 'all_atom_spin_densities'),
         (),
         ('all_coordinates', 'all_forces')
@@ -1363,10 +1364,30 @@ class Molecule(Wrapper, ABC):
 
         # Run Gaussian16
         with Gaussian(g16root) as gaussian:
-            stdout, stderr = gaussian.run(script)
 
-            # If got an error message, save the error
-            if stderr:
+            try:
+                stdout, stderr = gaussian.run(script)
+
+                # save the calculate result into the molecule data dict
+                self._data['gaussian_output'] = stdout
+                self._data['gaussian_parse_data'] = gaussian.parse_log(stdout)
+
+                # Inplace the self attribute according to the result from gaussian
+                if inplace_attrs:
+                    self._set_attrs(**gaussian.molecule_setter_dict(stdout))
+
+                # Save log file when the path_log_file has been specified
+                if path_log_file:
+                    with open(path_log_file, 'w') as writer:
+                        writer.write(stdout)
+
+                # return results and error info
+                return stdout, stderr
+
+            # If got an error message, save the error and stdout file, before raise the error
+            except GaussianRunError:
+                stdout, stderr = gaussian.stdout, gaussian.stderr
+
                 # Save error file
                 if not path_err_file:
                     path_err_file = Path(f'{self.formula}.err')
@@ -1379,28 +1400,7 @@ class Molecule(Wrapper, ABC):
                 with open(path_log_file, 'w') as writer:
                     writer.write(stdout)
 
-                raise GaussianRunError(
-                    f'Encourage error when Gaussian is running!\n'
-                    f'Check the Error file in {str(path_err_file.absolute())}\n'
-                    f'Check the output.log file in {str(path_log_file.absolute())}\n'
-                    f'Error massage from gaussian:\n{stderr}'
-                )
-
-            # save the calculate result into the molecule data dict
-            self._data['gaussian_output'] = stdout
-            self._data['gaussian_parse_data'] = gaussian.data
-
-            # Inplace the self attribute according to the result from gaussian
-            if inplace_attrs:
-                self._set_attrs(**gaussian.molecule_setter_dict)
-
-        # Save log file
-        if path_log_file:
-            with open(path_log_file, 'w') as writer:
-                writer.write(stdout)
-
-        # return results and error info
-        return stdout, stderr
+                raise GaussianRunError(stderr)
 
     def gcmc(
             self, *guest: 'Molecule', force_field: Union[str, os.PathLike] = None,
@@ -1576,6 +1576,18 @@ class Molecule(Wrapper, ABC):
     @identifier.setter
     def identifier(self, value):
         self.ob_mol.SetTitle(value)
+
+    @property
+    def identifier_array(self) -> np.ndarray:
+        """ numpy.array of identifiers has the same number of items with the number of conformers """
+        idt_array = self._data.get('identifier_array')
+        if not isinstance(idt_array, np.ndarray):
+            idt_array = []
+            for i, c in enumerate(self.all_coordinates):
+                idt_array.append(f'{self.identifier}_c{i}')
+            self._data['identifier_array'] = idt_array = np.array(idt_array)
+
+        return idt_array
 
     def iadd_accessible(self, other):
         if self.atomic_numbers == other.atomic_numbers:
@@ -2085,49 +2097,8 @@ class Molecule(Wrapper, ABC):
             validate_ratio(float): the ratio of validate data set.
             validate_dir(str|Path): if validate_ratio has been specified, this must be given
         """
-        # dpmd_sys_root = Path(dpmd_sys_root)
-        # if not dpmd_sys_root.exists():
-        #     dpmd_sys_root.mkdir()
-        #
-        # # the dir of set data
-        # set_root = dpmd_sys_root.joinpath('set.000')
-        # if not set_root.exists():
-        #     set_root.mkdir()
-
         system: DeepSystem = self.dump('dpmd_sys')
         system(system_dir, mode, validate_ratio, validate_dir)
-
-        # for name, value in data.items():
-        #
-        #     # if the value is None, go to next
-        #     if value is None:
-        #         continue
-        #
-        #     # Write the type raw
-        #     if name == 'type':
-        #         if mode == 'std':
-        #             type_raw = value[0]
-        #         elif mode == 'att':
-        #             type_raw = np.zeros(value[0].shape, dtype=int)
-        #             np.save(set_root.joinpath("real_atom_types.npy"), value)
-        #         else:
-        #             raise ValueError('the mode just allows to be "std" or "att"')
-        #
-        #         with open(dpmd_sys_root.joinpath('type.raw'), 'w') as writer:
-        #             writer.write('\n'.join([str(i) for i in type_raw]))
-        #
-        #     elif name == 'type_map':
-        #         with open(dpmd_sys_root.joinpath('type_map.raw'), 'w') as writer:
-        #             writer.write('\n'.join([str(i) for i in value]))
-        #
-        #     # Create an empty 'nopbc', when the system is not periodical
-        #     elif name == 'nopbc' and value is True:
-        #         with open(dpmd_sys_root.joinpath('nopbc'), 'w') as writer:
-        #             writer.write('')
-        #
-        #     # Save the numpy format data
-        #     elif isinstance(value, np.ndarray):
-        #         np.save(str(set_root.joinpath(f'{name}.npy')), value)
 
     def to_mix_mol(self):
         """ Convert this Molecule object to MixSaveAtomMol """
@@ -2930,6 +2901,10 @@ class Angle:
     def degree(self):
         ob_atoms = [a.ob_atom for a in self.atoms]
         return self.molecule.ob_mol.GetAngle(*ob_atoms)
+
+
+class Torsion:
+    """"""
 
 
 class Crystal(Wrapper, ABC):

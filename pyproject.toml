@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
-version = "0.3.0.8"
+version = "0.3.0.9"
 readme = "RAEDME.md"
 authors = [
     { name = "Zhiyuan Zhang", email = "ZhiyuanZhang_scu@163.com" },
@@ -28,3 +28,6 @@ dependencies = [
 
 [tool.setuptools]
 include-package-data = true
+
+[project.urls]
+"Homepage" = "https://github.com/Zhang-Zhiyuan-zzy/hotpot"

@@ -31,7 +31,7 @@ class DeepSystem:
 
     required_items = ('coord', 'type')
     check_atom_num = ('coord', 'force', 'charge')
-    share_same_conformers = ('type', 'coord', 'energy', 'force', 'charge', 'virial')
+    share_same_conformers = ('type', 'coord', 'energy', 'force', 'charge', 'virial', 'box', 'identifiers')
     need_reshape = ('coord', 'force')
 
     def __init__(self, mol: Molecule = None, data: dict = None):
@@ -106,7 +106,7 @@ class DeepSystem:
         return self.data.get(item, None)
 
     def __dir__(self) -> Iterable[str]:
-        return  [
+        return [
             'type', 'type_map', 'nopbc', 'coord', 'box', 'energy', 'force', 'charge',
             'atom_counts','virial', 'atom_ener', 'atom_pref', 'dipole', 'atom_dipole',
             'polarizability', 'atomic_polarizability'
@@ -167,6 +167,7 @@ class DeepSystem:
             'force': mol.all_forces,  # Hartree/Bohr,
             'charge': mol.all_atom_charges,  # q
             'atom_counts': mol.atom_counts,
+            'identifiers': mol.identifier_array,
             'virial': None,
             'atom_ener': None,
             'atom_pref': None,

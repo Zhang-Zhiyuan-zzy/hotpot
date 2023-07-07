@@ -151,7 +151,8 @@ class PairBundle(MolBundle):
 
     def determine_metal_ligand_bind_energy(
             self, g16root: Union[str, os.PathLike], work_dir: Union[str, os.PathLike],
-            method: str = 'B3LYP', basis_set: str = '6-311', route: str = ''
+            method: str = 'B3LYP', basis_set: str = '6-311', route: str = '',
+            cpu_uti: float = 0.75
     ) -> pd.DataFrame:
         # Specify directories and make these dirs
         dirs_files = self._specify_dir_files(work_dir)
@@ -167,10 +168,10 @@ class PairBundle(MolBundle):
         self.ligand.gaussian(
             g16root,
             link0=[
-                f'CPU=0-{machine.take_CPUs()-1}',
+                f'CPU=0-{machine.take_CPUs(cpu_uti)-1}',
                 f'Mem={machine.take_memory(0.25)}GB'
             ],
-            route=f'opt=recalc=5 {method}/{basis_set} ' + route,
+            route=f'opt {method}/{basis_set} ' + route,
             path_log_file=dirs_files.ligand_log_path,
             path_err_file=dirs_files.ligand_err_path,
             inplace_attrs=True
@@ -189,7 +190,7 @@ class PairBundle(MolBundle):
             self.metal.gaussian(
                 g16root,
                 link0=[
-                    f'CPU=0-{machine.take_CPUs()-1}',
+                    f'CPU=0-{machine.take_CPUs(cpu_uti)-1}',
                     f'Mem={machine.take_memory(0.25)}GB'
                 ],
                 route=f'{method}/{basis_set} ' + route,
@@ -220,10 +221,10 @@ class PairBundle(MolBundle):
             pair.gaussian(
                 g16root,
                 link0=[
-                    f'CPU=0-{machine.take_CPUs()-1}',
+                    f'CPU=0-{machine.take_CPUs(cpu_uti)-1}',
                     f'Mem={machine.take_memory(0.25)}GB'
                 ],
-                route=f'opt=recalc=5 {method}/{basis_set} ' + route,
+                route=f'opt {method}/{basis_set} ' + route,
                 path_log_file=dirs_files.pair_log_path(i),
                 path_err_file=dirs_files.pair_err_path(i),
                 inplace_attrs=True

@@ -581,7 +581,6 @@ class DeepModelBundle(MolBundle):
 
                 m.to_dpmd_sys(mol_save_root, mode)
 
-
         if split_mode and split_mode not in ['inside', 'outside']:
             raise ValueError("the split_mode must be 'inside' or 'outside'")
 
@@ -591,8 +590,8 @@ class DeepModelBundle(MolBundle):
         # Organize dirs
         if not isinstance(system_dir, Path):
             system_dir = Path(system_dir)
-        training_dir = system_dir.joinpath('training_dir')
-        validate_dir = system_dir.joinpath('validate_dir')
+        training_dir = system_dir.joinpath('training_data')
+        validate_dir = system_dir.joinpath('validate_data')
         if not training_dir.exists():
             training_dir.mkdir()
         if not validate_dir.exists():

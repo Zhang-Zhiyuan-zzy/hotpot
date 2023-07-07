@@ -14,13 +14,15 @@ import hotpot as hp
 from hotpot.bundle import DeepModelBundle
 
 
-if __name__ == '__main__':
+def extract_dpmd_sys():
     dir_log_file = Path('/home/zz1/proj/gauss/new/log')
-    dpmd_root = Path('/home/zz1/proj/dpmd/sys/')
-
-    bundle = hp.MolBundle.read_from('g16log', dir_log_file, '*/*.log', num_proc=16)
+    dpmd_root = Path('/home/zz1/proj/dpmd/sys1/')
+    bundle = hp.MolBundle.read_from('g16log', dir_log_file, '*/*.log', num_proc=16, ranges=range(1000))
     bundle: DeepModelBundle = bundle.to('DeepModelBundle')
-    for i, mol in enumerate(bundle):
-        mol.identifier = str(i)
 
     bundle.to_dpmd_sys(dpmd_root, 0.2, mode='att', split_mode='inside')
+    return bundle
+
+
+if __name__ == '__main__':
+    b = extract_dpmd_sys()

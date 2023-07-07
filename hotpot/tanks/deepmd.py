@@ -13,6 +13,7 @@ from pathlib import Path
 from copy import copy
 
 import numpy as np
+import pandas as pd
 
 from hotpot import data_root
 from hotpot.cheminfo import Molecule, periodic_table
@@ -23,7 +24,7 @@ _script = json.load(open(os.path.join(data_root, 'deepmd_script.json')))
 
 class DeepSystem:
     """
-    a handle class to track DeepMD data
+    A handle to convert the Molecule object ot DeepModeling System data format
     Args:
         mol(Molecule):
 
@@ -223,3 +224,18 @@ class DeepSystem:
 
 def make_script():
     """"""
+
+
+def convert_lcurve_to_csv(path_lcurve: Union[str, Path], path_csv: Union[str, Path] = None) -> pd.DataFrame:
+    """ Convert the lcurve.out file to csv file """
+    path_lcurve = Path(path_lcurve)
+    if not path_csv:
+        path_csv = path_lcurve.parent.joinpath('lcurve.csv')
+    else:
+        path_csv = Path(path_csv)
+
+    df = pd.DataFrame(np.genfromtxt(path_lcurve, names=True))
+    df.set_index(df.columns[0], inplace=True)
+    df.to_csv(path_csv)
+
+    return df

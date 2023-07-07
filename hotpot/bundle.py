@@ -575,7 +575,7 @@ class DeepModelBundle(MolBundle):
         def to_files(mb: MolBundle, save_root: Path):
             for c, m in enumerate(mb):  # c: counts, m: molecule
                 mol_save_root = \
-                    save_root.joinpath(str(m.atom_counts)) if mode == 'att' else system_dir.joinpath(str(c))
+                    save_root.joinpath(str(m.atom_counts)) if mode == 'att' else save_root.joinpath(str(c))
                 if not mol_save_root.exists():
                     mol_save_root.mkdir()
 
@@ -590,6 +590,9 @@ class DeepModelBundle(MolBundle):
         # Organize dirs
         if not isinstance(system_dir, Path):
             system_dir = Path(system_dir)
+        if not system_dir.exists():
+            system_dir.mkdir()
+
         training_dir = system_dir.joinpath('training_data')
         validate_dir = system_dir.joinpath('validate_data')
         if not training_dir.exists():
@@ -603,7 +606,7 @@ class DeepModelBundle(MolBundle):
                 split_mode = 'inside'
 
         elif mode == 'std':
-            bundle = copy.copy(self)
+            bundle = self.merge_conformers()
             if not split_mode:
                 split_mode = 'outside'
 

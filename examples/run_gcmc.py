@@ -9,11 +9,13 @@ python v3.9.0
 Notes:
     Training a DeepModeling model.
 """
-import sys
-sys.path.append('/home/qyq/hp')
+import os.path
+# import sys
+# sys.path.append('/home/qyq/hp')
 
 from pathlib import Path
 import hotpot as hp
+import csv
 
 
 def run_single_gcmc():
@@ -30,16 +32,20 @@ def run_single_gcmc():
 
 
 if __name__ == '__main__':
-    frames_dir = Path('/home/qyq/proj/aC_database/cif_48954/cif_10_test')  #/home/qyq/proj/aC_database/cif_48954/mq_1.0_test100
-    work_dir = Path('/home/qyq/proj/lammps/I2/bundle/gcmc_18')
+    frames_dir = Path('/home/qyq/proj/aC_database/cif_processed/mq_1.0_999')  #/home/qyq/proj/aC_database/cif_48954/mq_0.8/mq_0.8_test3700
+    work_dir = Path('/home/qyq/proj/lammps/I2/bundle/gcmc_1.0_999')     # /home/qyq/proj/lammps/I2/bundle/gcmc_0.8_3700
     ps = [1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1, 3e-1, 0.5, 1.0]
     I2 = hp.Molecule.read_from('II', 'smi')
 
     I2.build_3d()
 
     bundle = hp.MolBundle.read_from(
-        'cif', frames_dir, generate=True, num_proc=10
+        'cif', frames_dir, generate=True
     )
 
-    idt_map = bundle.gcmc_for_isotherm(I2, work_dir=work_dir, Ps=ps, procs=30)
-
+    idt_map = bundle.gcmc_for_isotherm(I2, work_dir=work_dir, Ps=ps, procs=38)
+    save_path = os.path.join(work_dir, 'idt_map.csv')
+    with open(save_path, 'w') as file:
+        writer = csv.writer(file)
+        for k, v in idt_map.items():
+            writer.writerow([k, v])

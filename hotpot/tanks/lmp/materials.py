@@ -15,6 +15,7 @@ from typing import *
 import math
 import random
 import numpy as np
+from scipy import spatial
 import openbabel.openbabel as ob
 import hotpot
 import hotpot.cheminfo as ci
@@ -57,7 +58,7 @@ class AmorphousMaker:
         sum_freq = sum(f for f in element_composition.values())
         self.elements = {e: f/sum_freq for e, f in element_composition.items()}  # Normalize the elements' frequency
         self.path_force_field = pff
-        self.density = density
+        self.density = density * 1.123592147466166
         self.cryst_params = (a, b, c, alpha, beta, gamma)
 
     @staticmethod
@@ -66,7 +67,7 @@ class AmorphousMaker:
         return (cryst.molecule.weight * avogadro) / (cryst.volume * angstrom ** 3)  # Density, g/cm^3
 
     @staticmethod
-    def density2atom_numbers(ratio_elements: dict, density: float, cryst):
+    def _density2atom_numbers(ratio_elements: dict, density: float, cryst):
         """
         Calculate the round atom numbers in a crystal.
         Args:
@@ -84,37 +85,45 @@ class AmorphousMaker:
 
         average_mol_mass = sum(ob.GetMass(ob.GetAtomicNum(e)) * p for e, p in zip(elements, possibility))
 
-        # Terms:   [Mole in Crystal(Total Mass in Crystal (gram)/Average Mole Mass)]/Avogadro Number
-        # Units:      g/cm^3     angstrom^3  angstrom/cm             g/mol             _
-        num_atom = ((density * (cryst.volume * angstrom ** 3)) / average_mol_mass) * avogadro
+        # Terms:       [Mole in Crystal(Total Mass in Crystal (gram)/Average Mole Mass)]/Avogadro Number
+        # Units:           g/cm^3     angstrom^3  angstrom/cm             g/mol             _
+        num_atom = round(((density * (cryst.volume * angstrom ** 3)) / average_mol_mass) * avogadro)
 
-        v1, v2, v3 = cryst.vector  # crystal vectors
-        dv1, dv2, dv3 = np.sqrt(sum(v1 ** 2)), np.sqrt(sum(v2 ** 2)), np.sqrt(sum(v3 ** 2))  # length of crystal vectors
-        min_dv = min(dv1, dv2, dv3)  # the min length in these vectors
-        r_dv1, r_dv2, r_dv3 = dv1 / min_dv, dv2 / min_dv, dv3 / min_dv  # the ratios of length of vector to min vector
-
-        # If all vectors are replaced with the smallest one,
-        # how many times is the actual crystal volume after replacement
-        fold_min_dv_volume = r_dv1 * r_dv2 * r_dv3
-
-        # number of grid points in the direction of min vector
-        min_point = math.pow(num_atom / fold_min_dv_volume, 1 / 3)
-
-        # number of point for in the direction of v1, v2, v3
-        num_pv1, num_pv2, num_pv3 = int(r_dv1 * min_point), int(r_dv2 * min_point), int(r_dv3 * min_point)
-        # the coordinate of grad point in the bases of v1, v2, v3
-        pv1, pv2, pv3 = np.meshgrid(
-            np.linspace(0, 1, num_pv1, endpoint=False),
-            np.linspace(0, 1, num_pv2, endpoint=False),
-            np.linspace(0, 1, num_pv3, endpoint=False)
-        )
-
-        fraction_coordinates = np.stack((pv1.flatten(), pv2.flatten(), pv3.flatten()))
+        # calculate the fraction coordinates in the crystal cell
+        fraction_coordinates = np.array([np.random.uniform(size=3) for _ in range(num_atom)])
 
         # the actual coordinates in the cartesian coordinates
-        cartesian_coordinates = np.matmul(cryst.vector, fraction_coordinates).T
+        cartesian_coordinates = np.matmul(cryst.vector, fraction_coordinates.T).T
 
-        num_atom = len(cartesian_coordinates)
+        distance_matrix = spatial.distance_matrix(cartesian_coordinates, cartesian_coordinates)
+        distance_matrix = np.tril(distance_matrix, k=-1)
+        distance_matrix[distance_matrix > 0.5] = 0
+
+        # loose the closing points
+        try_number = 0
+        while distance_matrix.any() and try_number < 100:
+            points1_idx, points2_idx = rows, cols = distance_matrix.nonzero()
+
+            points1_coords = cartesian_coordinates[points1_idx]
+            points2_coords = cartesian_coordinates[points2_idx]
+
+            vector12 = points2_coords - points1_coords
+
+            e12 = vector12/np.tile(np.linalg.norm(vector12, axis=1).reshape(-1, 1), 3)
+            scalar_displace = np.tile((0.51-np.linalg.norm(vector12, axis=1)).reshape(-1, 1)/2, 3)
+
+            displacement12 = e12 * scalar_displace
+            displacement21 = -displacement12
+
+            cartesian_coordinates[points1_idx] += displacement21
+            cartesian_coordinates[points2_idx] += displacement12
+
+            distance_matrix = spatial.distance_matrix(cartesian_coordinates, cartesian_coordinates)
+            distance_matrix = np.tril(distance_matrix, k=-1)
+            distance_matrix[distance_matrix > 0.5] = 0
+
+            try_number += 1
+
         atomic_symbols = np.random.choice(elements, num_atom, p=possibility)
         atomic_numbers = np.array([ob.GetAtomicNum(symbol) for symbol in atomic_symbols])
 
@@ -125,7 +134,7 @@ class AmorphousMaker:
         mol.make_crystal(*self.cryst_params)
 
         cryst = mol.crystal()
-        atomic_number, coordinates = self.density2atom_numbers(
+        atomic_number, coordinates = self._density2atom_numbers(
             self.elements, self.density, cryst
         )
 

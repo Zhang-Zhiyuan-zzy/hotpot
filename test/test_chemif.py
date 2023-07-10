@@ -103,5 +103,12 @@ if __name__ == '__main__':
 
     # mol = ci.Molecule.read_from('/home/zz1/proj/be/output.log', 'g16log'
     import hotpot as hp
-    mol = hp.Molecule.read_from('c1ccccc1', 'smi')
-    mol.gaussian('/home/zzy/sw', ['nproc=8'], 'opt')
+    import random
+    mol = hp.Molecule.read_from('c1(C(=O)NO)ccc(C(=O)NO)cc1', 'smi')
+    mol.normalize_labels()
+
+    mol.bonds[0]['scan_step'] = '3 0.05'
+    mol.angles[0]['scan_step'] = '2 1.0'
+    mol.torsions[0]['scan_step'] = '4 1.0'
+
+    script = mol.dump('gzmat', link0='jkahdf', route='hkfah')

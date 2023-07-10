@@ -376,6 +376,65 @@ class Dumper(IOBase, metaclass=MetaIO):
     _pybel_fmt_convert = {
     }
 
+    def _preprocess_for_gjf(self):
+        """ Perform preprocess for  conversion of all gaussian input """
+        if not self.src.has_3d:
+            self.src.build_3d()
+
+        self.src.assign_atoms_formal_charge()
+        self.src.identifier = self.src.formula
+
+    def _postprocess_for_gjf_head(self, script) -> (List[str], int):
+        """ Postprocess the context before the Molecular specification partition """
+        # To count the insert lines
+        inserted_lines = 0
+
+        # separate keyword arguments:
+        link0 = self.kwargs['link0']
+        route = self.kwargs['route']
+        custom_charge = self.kwargs.get('charge')
+        custom_spin = self.kwargs.get('spin')
+
+        lines = script.splitlines()
+
+        # Write link0 command
+        if isinstance(link0, str):
+            lines[0] = f'%{link0}'
+        elif isinstance(link0, list):
+            for i, stc in enumerate(link0):  # stc=sentence
+                assert isinstance(stc, str)
+                if not i:  # For the first line of link0, replace the original line in raw script
+                    lines[0] = f'%{stc}'
+                else:  # For the other lines, insert into after the 1st line
+                    inserted_lines += 1
+                    lines.insert(inserted_lines, f'%{stc}')
+        else:
+            raise TypeError('the link0 should be string or list of string')
+
+        # Write route command
+        if isinstance(route, str):
+            lines[1+inserted_lines] = f'# {route}'
+        elif isinstance(route, list):
+            for i, stc in enumerate(route):
+                assert isinstance(stc, str)
+                if not i:  # For the first line of link0, replace the original line in raw script
+                    lines[1+inserted_lines] = f'#{stc}'
+                else:  # For the other lines, insert into after the original route line.
+                    inserted_lines += 1
+                    lines.insert(inserted_lines+1, f'%{stc}')
+        else:
+            raise TypeError('the route should be string or list of string')
+
+        charge, spin = lines[5+inserted_lines].split()
+        if custom_charge:
+            charge = str(custom_charge)
+        if custom_spin:
+            spin = str(custom_spin)
+
+        lines[5+inserted_lines] = f'{charge} {spin}'
+
+        return lines, 6 + inserted_lines
+
     def _process_lmpdat_bonds(self, bond_contents: list):
         """"""
         uni_bonds = tuple(self.src.unique_bonds)
@@ -436,11 +495,10 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _pre_gjf(self):
         """ Assign the Molecule charge before to dump to gjf file """
-        if not self.src.has_3d:
-            self.src.build_3d()
+        self._preprocess_for_gjf()
 
-        self.src.assign_atoms_formal_charge()
-        self.src.identifier = self.src.formula
+    def _pre_gzmat(self):
+        self._preprocess_for_gjf()
 
     def _io_dpmd_sys(self):
         """ convert molecule information to numpy arrays """
@@ -554,55 +612,52 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
-        # To count the insert lines
-        inserted_lines = 0
-
-        # separate keyword arguments:
-        link0 = self.kwargs['link0']
-        route = self.kwargs['route']
-        custom_charge = self.kwargs.get('charge')
-        custom_spin = self.kwargs.get('spin')
-
-        lines = script.splitlines()
-
-        # Write link0 command
-        if isinstance(link0, str):
-            lines[0] = f'%{link0}'
-        elif isinstance(link0, list):
-            for i, stc in enumerate(link0):  # stc=sentence
-                assert isinstance(stc, str)
-                if not i:  # For the first line of link0, replace the original line in raw script
-                    lines[0] = f'%{stc}'
-                else:  # For the other lines, insert into after the 1st line
-                    inserted_lines += 1
-                    lines.insert(inserted_lines, f'%{stc}')
-        else:
-            raise TypeError('the link0 should be string or list of string')
-
-        # Write route command
-        if isinstance(route, str):
-            lines[1+inserted_lines] = f'# {route}'
-        elif isinstance(route, list):
-            for i, stc in enumerate(route):
-                assert isinstance(stc, str)
-                if not i:  # For the first line of link0, replace the the original line in raw script
-                    lines[1+inserted_lines] = f'#{stc}'
-                else:  # For the other lines, insert into after the original route line.
-                    inserted_lines += 1
-                    lines.insert(inserted_lines+1, f'%{stc}')
-        else:
-            raise TypeError('the route should be string or list of string')
-
-        charge, spin = lines[5+inserted_lines].split()
-        if custom_charge:
-            charge = str(custom_charge)
-        if custom_spin:
-            spin = str(custom_spin)
-
-        lines[5+inserted_lines] = f'{charge} {spin}'
-
+        lines, _ = self._postprocess_for_gjf_head(script)
         script = '\n'.join(lines)
 
+        # End black line
+        script += '\n\n'
+
+        return script
+
+    def _post_gzmat(self, script):
+        """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route content with Z-matrix """
+        lines, current_line = self._postprocess_for_gjf_head(script)
+        zmat = re.compile('\s+')
+
+        # Extract the symbol of atoms, bonds, angles and torsions
+        z_counts, atoms, var = 0, self.src.atoms, {}
+        while lines[current_line + z_counts].strip() != 'Variables:':
+            items = zmat.split(lines[current_line + z_counts])
+
+            assert items[0] == atoms[z_counts].symbol
+
+            if len(items) == 1:
+                assert not z_counts
+            elif len(items) == 3:
+                assert z_counts == 1
+                var[items[2]] = self.src.bond(z_counts, int(items[1])-1)
+            elif len(items) == 5:
+                assert z_counts == 2
+                var[items[2]] = self.src.bond(z_counts, int(items[1])-1)
+                var[items[4]] = self.src.angle(z_counts, int(items[1])-1, int(items[3])-1)
+            elif len(items) == 7:
+                var[items[2]] = self.src.bond(z_counts, int(items[1])-1)
+                var[items[4]] = self.src.angle(z_counts, int(items[1])-1, int(items[3])-1)
+                var[items[6]] = self.src.torsion(z_counts, int(items[1])-1, int(items[3])-1, int(items[5])-1)
+            else:
+                raise ValueError('Get an error string from Z-matrix')
+
+            z_counts += 1  # Next line
+
+        current_line += z_counts + 1  # update the current line
+        while lines[current_line].strip():
+            key, _ = lines[current_line].split('= ')
+            lines[current_line] += f" {var[key]['scan_step']}" if var[key]["scan_step"] else ''
+
+            current_line += 1
+
+        script = '\n'.join(lines)
         # End black line
         script += '\n\n'
 

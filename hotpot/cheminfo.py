@@ -190,6 +190,71 @@ class Wrapper(ABC):
         self._data.update(data)
 
 
+class MolLinker:
+    """ This class offer methods to link to parent molecule object and retrieve associated value from the molecule """
+    class LinkerKey:
+        def __init__(self, *ob_atoms: ob.OBAtom):
+            self.ob_atoms = ob_atoms
+
+        def __repr__(self):
+            return str(self.key)
+
+        def __eq__(self, other: 'MolLinker.LinkerKey'):
+            return self.key == other.key or self.key == other.key[::-1]
+
+        def __hash__(self):
+            return hash(self.key)
+
+        @property
+        def key(self):
+            return tuple(aba.GetId() for aba in self.ob_atoms)
+
+    def __init__(self, mol: 'Molecule', *ob_ids: int):
+        """"""
+        self.mol = mol
+        self.ob_atoms = tuple(mol.ob_mol.GetAtomById(obi) for obi in ob_ids)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({", ".join([a.label for a in self.atoms])}; {self._degree})'
+
+    def __eq__(self, other: 'Torsion'):
+        return self.linker_key == other.linker_key
+
+    def __getitem__(self, item):
+        return self.data.get(item, {})
+
+    def __setitem__(self, key, value):
+        self.update_attr_data({key: value})
+
+    @property
+    @abstractmethod
+    def _degree(self) -> float:
+        raise NotImplementedError('')
+
+    @property
+    def atoms(self) -> List['Atom']:
+        return [self.mol.atoms_dict[obi] for obi in self.atoms_ob_id]
+
+    @property
+    def atoms_ob_id(self):
+        return tuple(oba.GetId() for oba in self.ob_atoms)
+
+    @property
+    def data(self) -> Dict:
+        data: Dict[MolLinker.LinkerKey, Dict[Hashable, Any]] = self.mol.data.get(self.__class__.__name__, {})
+        return data.setdefault(self.linker_key, {})
+
+    @property
+    def linker_key(self) -> LinkerKey:
+        return self.LinkerKey(*self.ob_atoms)
+
+    def update_attr_data(self, update_data: Dict):
+        all_angle_data: Dict[MolLinker.LinkerKey, Dict[Hashable, Any]] = self.mol.data.get(self.__class__.__name__, {})
+        data: Dict[Hashable, Any] = all_angle_data.setdefault(self.linker_key, {})
+        data.update(update_data)
+
+        self.mol.update_attr_data({self.__class__.__name__: all_angle_data})
+
 class Molecule(Wrapper, ABC):
     """"""
     # All Molecule attribute's items relating to molecule conformers
@@ -224,7 +289,7 @@ class Molecule(Wrapper, ABC):
     def __add__(self, other: ['Molecule']):
         """
         Two Molecule objects could add to a new one to merge all of their conformers.
-        All of information about the conformer will be merged to one.
+        All information about the conformer will be merged to one.
         the other information will reserve the one in the left item
         Args:
             other: the right item
@@ -351,10 +416,15 @@ class Molecule(Wrapper, ABC):
         ob_unit_cell = ob.OBUnitCell()
         self.ob_mol.CloneData(ob_unit_cell)
 
-    def _delete_atom_temp_label(self):
-        """ Remove temp label of all label """
+    def _delete_atoms_temp_label(self):
+        """ Remove temp label of all atoms """
         for a in self.atoms:
             a.remove_ob_data('temp_label')
+
+    def _delete_bonds_temp_label(self):
+        """ Remove temp label of all bonds """
+        for b in self.bonds:
+            b.remove_ob_data('temp_label')
 
     def _get_critical_params(self, name: str):
         critical_params = self._data.get('critical_params')
@@ -369,6 +439,9 @@ class Molecule(Wrapper, ABC):
 
         else:
             return critical_params[name]
+
+    def _has_atom_temp_label(self):
+        return any(atom.temp_label for atom in self.atoms)
 
     def _pert_mol_generate(self, coordinates: Union[Sequence, np.ndarray]):
         """
@@ -477,6 +550,25 @@ class Molecule(Wrapper, ABC):
         # Link the old atoms data dict with new atoms by temp labels
         self._add_temp_atom_labels()
         return {a.temp_label: a.data for a in self.atoms}
+
+    def _preserve_bonds_data(self):
+        """"""
+        if not self._has_atom_temp_label():
+            self._add_temp_atom_labels()
+
+        return {(b.atom1.temp_label, b.atom2.temp_label): b.data for b in self.bonds}
+
+    def _preserve_angles_data(self):
+        if not self._has_atom_temp_label():
+            self._add_temp_atom_labels()
+
+        return {tuple(atom.temp_label for atom in angle.atoms): angle.data for angle in self.angles}
+
+    def _preserve_torsion_data(self):
+        if not self._has_atom_temp_label():
+            self._add_temp_atom_labels()
+
+        return {tuple(atom.temp_label for atom in torsion.atoms): torsion.data for torsion in self.torsions}
 
     @property
     def _protected_data(self):
@@ -673,7 +765,7 @@ class Molecule(Wrapper, ABC):
     @staticmethod
     def _transfer_preserve_data_to_new_atoms(tgt_mol: 'Molecule', preserve_data: Dict, rm_temp_label: bool = False):
         """
-        Transfer preserve data dict to new target Molecule object
+        Transfer preserve data dict to new target Molecule atoms
         Args:
             tgt_mol: The target Molecule
             preserve_data(dict): the old atoms data dict
@@ -686,6 +778,33 @@ class Molecule(Wrapper, ABC):
 
                 if rm_temp_label:
                     atom.remove_ob_data('temp_label')
+
+    @staticmethod
+    def _transfer_preserve_data_to_new_bonds(tgt_mol: 'Molecule', preserve_data: Dict):
+        """
+        Transfer preserve data dict to new target Molecule bonds
+        Args:
+            tgt_mol: The target Molecule
+            preserve_data(dict): the old atoms data dict
+        """
+        for bond in tgt_mol.bonds:
+            temp_label = (bond.atom1.temp_label, bond.atom2.temp_label)
+            if all(temp_label):
+                bond.update_attr_data(preserve_data[temp_label])
+
+    @staticmethod
+    def _transfer_preserve_data_to_new_angles(tgt_mol: 'Molecule', preserve_data: Dict):
+        for angle in tgt_mol.angles:
+            temp_label = tuple(atom.temp_label for atom in angle.atoms)
+            if all(temp_label):
+                angle.update_attr_data(preserve_data[temp_label])
+
+    @staticmethod
+    def _transfer_preserve_data_to_new_torsions(tgt_mol: 'Molecule', preserve_data: Dict):
+        for torsion in tgt_mol.torsions:
+            temp_label = tuple(atom.temp_label for atom in torsion.atoms)
+            if all(temp_label):
+                torsion.update_attr_data(preserve_data[temp_label])
 
     @property
     def acentric_factor(self):
@@ -828,7 +947,7 @@ class Molecule(Wrapper, ABC):
 
     @property
     def angles(self):
-        return [Angle(self, a_idx) for a_idx in ob.OBMolAngleIter(self.ob_mol)]
+        return [Angle(self, *a_idx) for a_idx in ob.OBMolAngleIter(self.ob_mol)]
 
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
@@ -970,14 +1089,58 @@ class Molecule(Wrapper, ABC):
         for a in self.heavy_atoms():
             a.balance_hydrogen()
 
-    def bond(self, atom1: Union[int, str], atom2: Union[int, str], miss_raise: bool = False) -> 'Bond':
+    def angle(self, a: Union[str, int], v: Union[str, int], b: Union[str, int]) -> 'Angle':
+        """
+        Get a Angle from Molecule by ob_id or atom label
+        Args:
+            a: the ob_id or atom label of the first end atom
+            v: the ob_id or atom label of the vertex atom
+            b: the ob_id or atom label of the second end atom
+
+        Returns:
+            Angle
+        """
+        a: Atom = self.atom(a)
+        v: Atom = self.atom(v)
+        b: Atom = self.atom(b)
+
+        assert self.bond(a.ob_id, v.ob_id)
+        assert self.bond(v.ob_id, b.ob_id)
+
+        return Angle(self, v.ob_id, a.ob_id, b.ob_id)
+
+    def torsion(self, a: Union[str, int], b: Union[str, int], c: Union[str, int], d: Union[str, int]) -> 'Torsion':
+        """
+        Get a Torsion from Molecule by ob_id or atom label
+        Args:
+            a: the ob_id or atom label of the first end atom
+            b: the ob_id or atom label of the first internal atom
+            c: the ob_id or atom label of the second internal atom
+            d: the ob_id or atom label of the second internal atom
+
+        Returns:
+            Torsion
+        """
+        a: Atom = self.atom(a)
+        b: Atom = self.atom(b)
+        c: Atom = self.atom(c)
+        d: Atom = self.atom(d)
+
+        # Todo: The reason why these assert can't successful is still uncertain,
+        # Todo: Refer to the rule of Z-Matrix in Gaussian16
+        assert self.bond(a.ob_id, b.ob_id)
+        assert self.bond(b.ob_id, c.ob_id)
+        assert self.bond(c.ob_id, d.ob_id)
+
+        return Torsion(self, a.ob_id, b.ob_id, c.ob_id, d.ob_id)
+
+    def bond(self, atom1: Union[int, str], atom2: Union[int, str]) -> 'Bond':
         """
         Return the Bond by given atom index labels in the bond ends
         if the bond is missing in the molecule, return None if given miss_raise is False else raise a KeyError
         Args:
             atom1(int|str): index or label of atom in one of the bond end
             atom2(int|str): index or label of atom in the other end of the bond
-            miss_raise(bool): Whether to raise error when can't find the bond
 
         Returns:
             Bond
@@ -991,7 +1154,7 @@ class Molecule(Wrapper, ABC):
         ob_bond = self.ob_mol.GetBond(atom1.ob_atom, atom2.ob_atom)
 
         if ob_bond:
-            return Bond(ob_bond, self)
+            return self.bonds_dict[ob_bond.GetId()]
 
     @property
     def bond_pair_keys(self):
@@ -1014,7 +1177,10 @@ class Molecule(Wrapper, ABC):
     def build_3d(self, force_field: str = 'UFF', steps: int = 500):
         """ build 3D coordinates for the molecule """
         # Preserve atoms data before building
-        preserve_data = self._preserve_atoms_data()
+        preserve_atoms_data = self._preserve_atoms_data()
+        preserve_bonds_data = self._preserve_bonds_data()
+        preserve_angles_data = self._preserve_angles_data()
+        preserve_torsion_data = self._preserve_torsion_data()
 
         # Destroy atoms and bonds wrappers
         self._data['atoms'] = {}
@@ -1029,9 +1195,13 @@ class Molecule(Wrapper, ABC):
         self._load_bonds()
 
         # Transfer preserve data to new
-        self._transfer_preserve_data_to_new_atoms(self, preserve_data)
+        self._transfer_preserve_data_to_new_atoms(self, preserve_atoms_data)
+        self._transfer_preserve_data_to_new_bonds(self, preserve_bonds_data)
+        self._transfer_preserve_data_to_new_angles(self, preserve_angles_data)
+        self._transfer_preserve_data_to_new_torsions(self, preserve_torsion_data)
+
         # Delete temp label
-        self._delete_atom_temp_label()
+        self._delete_atoms_temp_label()
 
         # Remove redundant hydrogen or supply the lack hydrogens
         self.balance_hydrogens()
@@ -1087,7 +1257,7 @@ class Molecule(Wrapper, ABC):
                 a.remove_ob_data('temp_label')
 
         # remove temp labels of all atoms
-        self._delete_atom_temp_label()
+        self._delete_atoms_temp_label()
 
         return components
 
@@ -2066,6 +2236,10 @@ class Molecule(Wrapper, ABC):
         _ = self._data.pop('thermo')
         del _
 
+    @property
+    def torsions(self):
+        return [Torsion(self, *obi) for obi in ob.OBMolTorsionIter(self.ob_mol)]
+
     def to_2d_img(self, **kwargs):
         """
         Get a 2D image objects for the molecule
@@ -2763,6 +2937,19 @@ class Bond(Wrapper, ABC):
     def __hash__(self):
         return hash(self.pair_key)
 
+    def __getitem__(self, item):
+        return self._data.get(item)
+
+    def __setitem__(self, key, value):
+        if key in super()._protected_data:
+            raise KeyError('the protected attr cannot be set be __setitem__ method')
+
+        self._data[key] = value
+
+    @property
+    def _protected_data(self):
+        return 'ob_obj', 'mol'
+
     @property
     def ob_bond(self):
         return self._data['ob_obj']
@@ -2867,44 +3054,50 @@ class Bond(Wrapper, ABC):
         return self.ob_bond.GetBondOrder()
 
 
-class Angle:
+class Angle(MolLinker, ABC):
     """ Data wrapper of angle in molecule """
-
-    def __init__(self, mol: 'Molecule', atoms_ob_id: tuple):
-        self._data = {
-            'mol': mol,
-            'atoms_ob_id': atoms_ob_id
-        }
-
-    def __repr__(self):
-        a, b, c = self.atoms
-        return f'Angle({a.label}, {b.label}, {c.label}, {round(self.degree, 2)}°)'
+    def __init__(self, mol: Molecule, *ob_ids: int):
+        assert len(ob_ids) == 3
+        super().__init__(mol, ob_ids[1], ob_ids[0], ob_ids[2])
 
     @property
-    def molecule(self):
-        return self._data.get('mol')
-
-    @molecule.setter
-    def molecule(self, mol: Molecule):
-        self._data['mol'] = mol
+    def _degree(self) -> float:
+        return round(self.mol.ob_mol.GetAngle(*self.ob_atoms), 3)
 
     @property
-    def atoms(self):
-        mas = self.molecule.atoms  # atom in the molecule
-        return [mas[i] for i in self.atoms_ob_id]
-
-    @property
-    def atoms_ob_id(self):
-        return self._data.get('atoms_ob_id')
-
-    @property
-    def degree(self):
-        ob_atoms = [a.ob_atom for a in self.atoms]
-        return self.molecule.ob_mol.GetAngle(*ob_atoms)
+    def degree(self) -> float:
+        return self._degree
 
 
-class Torsion:
+class Torsion(MolLinker):
     """"""
+    @property
+    def _degree(self) -> float:
+        return self.mol.ob_mol.GetTorsion(*self.ob_atoms)
+
+    @property
+    def a(self) -> Atom:
+        """ The first atom """
+        return self.mol.atoms_dict[self.ob_atoms[0].GetId()]
+
+    @property
+    def b(self) -> Atom:
+        """ The second atom """
+        return self.mol.atoms_dict[self.ob_atoms[1].GetId()]
+
+    @property
+    def c(self) -> Atom:
+        """ The third atom """
+        return self.mol.atoms_dict[self.ob_atoms[2].GetId()]
+
+    @property
+    def d(self) -> Atom:
+        """ The fourth atom """
+        return self.mol.atoms_dict[self.ob_atoms[3].GetId()]
+
+    @property
+    def torsion(self) -> float:
+        return self._degree
 
 
 class Crystal(Wrapper, ABC):
@@ -2986,7 +3179,7 @@ class Crystal(Wrapper, ABC):
     def pack_molecule(self) -> Molecule:
         mol = self.molecule  # Get the contained Molecule
 
-        if not mol:  # If get None
+        if not mol:  # if you get None
             print(RuntimeWarning("the crystal doesn't contain any Molecule!"))
 
         pack_mol = mol.copy()

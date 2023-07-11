@@ -168,7 +168,7 @@ class PairBundle(MolBundle):
         self.ligand.gaussian(
             g16root,
             link0=[
-                f'CPU=0-{machine.take_CPUs(cpu_uti)-1}',
+                f'nproc={machine.take_CPUs(cpu_uti)}',
                 f'Mem={machine.take_memory(0.25)}GB'
             ],
             route=f'opt {method}/{basis_set} ' + route,
@@ -190,7 +190,7 @@ class PairBundle(MolBundle):
             self.metal.gaussian(
                 g16root,
                 link0=[
-                    f'CPU=0-{machine.take_CPUs(cpu_uti)-1}',
+                    f'nproc={machine.take_CPUs(cpu_uti)}',
                     f'Mem={machine.take_memory(0.25)}GB'
                 ],
                 route=f'{method}/{basis_set} ' + route,
@@ -221,7 +221,7 @@ class PairBundle(MolBundle):
             pair.gaussian(
                 g16root,
                 link0=[
-                    f'CPU=0-{machine.take_CPUs(cpu_uti)-1}',
+                    f'nproc={machine.take_CPUs(cpu_uti)}',
                     f'Mem={machine.take_memory(0.25)}GB'
                 ],
                 route=f'opt {method}/{basis_set} ' + route,

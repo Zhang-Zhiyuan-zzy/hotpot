@@ -51,7 +51,7 @@ class Machine:
         Returns:
             the number of CPUs
         """
-        return int(os.cpu_count() * ratio)
+        return int(os.cpu_count()/2 * ratio)
 
 
 machine = Machine()

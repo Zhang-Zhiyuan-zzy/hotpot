@@ -1,7 +1,0 @@
-numpy
-pandas
-thermo
-cclib
-tqdm
-rdkit
-psutil

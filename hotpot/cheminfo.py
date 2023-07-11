@@ -10,6 +10,7 @@ import copy
 import json
 import os
 import re
+import weakref
 from abc import ABC, abstractmethod
 from io import IOBase
 from os import PathLike
@@ -27,6 +28,8 @@ from hotpot import data_root
 from hotpot.tanks import lmp
 from hotpot.tanks.quantum import Gaussian, GaussianRunError
 from hotpot.utils.library import library as _lib  # The chemical library
+
+
 
 
 # Define Exceptions
@@ -212,7 +215,7 @@ class MolLinker:
     def __init__(self, mol: 'Molecule', *ob_ids: int):
         """"""
         self.mol = mol
-        self.ob_atoms = tuple(mol.ob_mol.GetAtomById(obi) for obi in ob_ids)
+        self.ob_atoms = tuple(mol.atoms_dict[obi].ob_atom for obi in ob_ids)
 
     def __repr__(self):
         return f'{self.__class__.__name__}({", ".join([a.label for a in self.atoms])}; {self._degree})'
@@ -790,21 +793,30 @@ class Molecule(Wrapper, ABC):
         for bond in tgt_mol.bonds:
             temp_label = (bond.atom1.temp_label, bond.atom2.temp_label)
             if all(temp_label):
-                bond.update_attr_data(preserve_data[temp_label])
+                try:
+                    bond.update_attr_data(preserve_data[temp_label])
+                except KeyError:
+                    bond.update_attr_data(preserve_data[temp_label[::-1]])
 
     @staticmethod
     def _transfer_preserve_data_to_new_angles(tgt_mol: 'Molecule', preserve_data: Dict):
         for angle in tgt_mol.angles:
             temp_label = tuple(atom.temp_label for atom in angle.atoms)
             if all(temp_label):
-                angle.update_attr_data(preserve_data[temp_label])
+                try:
+                    angle.update_attr_data(preserve_data[temp_label])
+                except KeyError:
+                    angle.update_attr_data(preserve_data[temp_label[::-1]])
 
     @staticmethod
     def _transfer_preserve_data_to_new_torsions(tgt_mol: 'Molecule', preserve_data: Dict):
         for torsion in tgt_mol.torsions:
             temp_label = tuple(atom.temp_label for atom in torsion.atoms)
             if all(temp_label):
-                torsion.update_attr_data(preserve_data[temp_label])
+                try:
+                    torsion.update_attr_data(preserve_data[temp_label])
+                except KeyError:
+                    torsion.update_attr_data(preserve_data[temp_label[::-1]])
 
     @property
     def acentric_factor(self):
@@ -1069,18 +1081,13 @@ class Molecule(Wrapper, ABC):
                 atom.formal_charge = 0
             elif atom.is_metal:
                 atom.formal_charge = _stable_charges[atom.symbol]
-            elif atom.symbol == 'S':
-                if not [a for a in atom.neighbours if a.symbol == 'O']:
-                    atom.formal_charge = atom.covalent_valence - 2
-                else:
-                    atom.formal_charge = 0
-            elif atom.symbol == 'P':
-                if not [a for a in atom.neighbours if a.symbol == 'O']:
-                    atom.formal_charge = atom.covalent_valence - 2
-                else:
-                    atom.formal_charge = 0
             elif [a for a in atom.neighbours if a.is_polar_hydrogen]:
                 atom.formal_charge = -(len([a for a in atom.neighbours if a.is_polar_hydrogen]))
+            elif atom.symbol in ['S', 'P']:
+                if not [a for a in atom.neighbours if a.symbol == 'O']:
+                    atom.formal_charge = atom.covalent_valence - (2 if atom.symbol == 'S' else 3)
+                else:
+                    atom.formal_charge = 0
             else:
                 atom.formal_charge = atom.covalent_valence - atom.stable_valence
 
@@ -1128,9 +1135,9 @@ class Molecule(Wrapper, ABC):
 
         # Todo: The reason why these assert can't successful is still uncertain,
         # Todo: Refer to the rule of Z-Matrix in Gaussian16
-        assert self.bond(a.ob_id, b.ob_id)
-        assert self.bond(b.ob_id, c.ob_id)
-        assert self.bond(c.ob_id, d.ob_id)
+        # assert self.bond(a.ob_id, b.ob_id)
+        # assert self.bond(b.ob_id, c.ob_id)
+        # assert self.bond(c.ob_id, d.ob_id)
 
         return Torsion(self, a.ob_id, b.ob_id, c.ob_id, d.ob_id)
 
@@ -1671,7 +1678,7 @@ class Molecule(Wrapper, ABC):
                     added_metal = pair.add_atom(metal_symbol)
 
                 # add the coordinating bond between metal atom and acceptor atoms
-                pair.add_bond(added_metal, acc_atom, 0)
+                pair.add_bond(added_metal, acc_atom, 1)
 
                 # localize optimization of M-L pair by classical force field, if the pair has 3d
                 if pair.has_3d:
@@ -2347,6 +2354,10 @@ class Molecule(Wrapper, ABC):
     @property
     def xyz_diff(self):
         return self.xyz_max - self.xyz_min
+
+    @property
+    def z_matrix(self) -> 'ZMatrix':
+        return ZMatrix(self)
 
 
 class MixSameAtomMol(Molecule):
@@ -3242,6 +3253,142 @@ class Crystal(Wrapper, ABC):
 
     def zeo_plus_plus(self):
         """ TODO: complete the method after define the Crystal and ZeoPlusPlus tank """
+
+
+class ZMatrix:
+    """
+    Represent the Z-Matrix(internal coordinates) in a Molecule.
+    The Z-Matrix of a Molecule objects could be accessed by its attribute `z_matrix`
+
+    Each element of Z-Matrix, like start atom, radium, angle, dihedral could be accessed by subscript.
+    Liking ZMatrix['r10'], it gets a radium start from 10th atoms. the subscripts are encode to be strings
+    with 's'(start atom), 'r'(radium), 'a'(angle), 'd'(dihedral) as the first header, and the number of atoms
+    as the follower. It should be noted that the number of atoms start from 1 instead of the 0, in general
+    it's the ob_id - 1
+
+    Examples:
+        mol = hp.Molecule.read_from(...)
+        zmat = mol.z_matrix
+        print(zmat['s10'], zmat['r10'], zmat['a10'], zmat['d10'])
+
+    """
+    class ZMatrixItem:
+        def __init__(self, key: str, item: Union[Atom, Bond, Angle, Torsion], value: float):
+            self.key = key
+            self.item = item
+            self.value = value
+
+        def __repr__(self):
+            return f"{self.item.__class__.__name__}({self.key}, " \
+                   f"{self.item_value if isinstance(self.item_value, int) else round(self.item_value, 3)})"
+
+        @property
+        def item_value(self) -> Union[float, int]:
+            if isinstance(self.item, Atom):
+                return self.item.ob_id
+            elif isinstance(self.item, Bond):
+                return self.item.length
+            elif isinstance(self.item, Angle):
+                return self.item.degree
+            elif isinstance(self.item, Torsion):
+                return self.item.torsion
+
+    def __init__(self, mol: Molecule):
+        self.mol = mol
+        self._coords = {}
+        self._coord_line = {}
+        self._update_coords()
+
+    def __repr__(self):
+        return f'InternalCoordinates({len(self)})'
+
+    def __str__(self):
+        return '\n'.join(' '.join(str(item) for item in line) for _, line in self)
+
+    def __len__(self):
+        return len(self._coord_line)
+
+    def __iter__(self):
+        return iter(self._coord_line.items())
+
+    def __getitem__(self, item):
+        self._update_coords()
+        return self._coords[item]
+
+    def __setitem__(self, key, value):
+        """ Set the Z-Matrix, TODO: this method do not work now """
+        ob_internal_coords = list(self.mol.ob_mol.GetInternalCoord())
+        head, line_count = key[0], int(key[1:])
+
+        # Check the given key
+        if head not in ('r', 'a', 'd') or line_count >= len(ob_internal_coords):
+            raise KeyError(f'cannot not set the attr {key}, it is non-existent or irregular')
+        elif line_count == 2 and head in ('a', 'd'):
+            raise KeyError(f'cannot not set the attr {key}, it is non-existent or irregular')
+        elif line_count == 3 and head == 'd':
+            raise KeyError(f'cannot not set the attr {key}, it is non-existent or irregular')
+
+        # Get the original OBInternalCoord
+        set_coord: ob.OBInternalCoord = ob_internal_coords[line_count]
+
+        # Replace the value of specified item
+        kwargs = {
+            'a': set_coord._a,
+            'b': set_coord._b,
+            'c': set_coord._c,
+            'dst': value if head == 'r' else set_coord._dst,
+            'ang': value if head == 'a' else set_coord._ang,
+            'tor': value if head == 'd' else set_coord._tor
+        }
+        ob_internal_coords[line_count] = ob.OBInternalCoord(**kwargs)
+
+        # Set the parent molecule
+        self.mol.ob_mol.SetInternalCoord(ob_internal_coords)
+
+    def _update_coords(self):
+        """ Update the internal coordinates data """
+        coord_lines, coords = {}, {}
+
+        atoms = self.mol.atoms
+        for i, line in enumerate(self.mol.ob_mol.GetInternalCoord()):
+
+            # ignore the first item, it's None
+            if not line:
+                continue
+
+            atom = atoms[i - 1]
+
+            coords[f's{i}'] = self.ZMatrixItem(f's{i}', atom, i - 1)
+
+            coord_line = coord_lines.setdefault(i, [])
+            coord_line.append(coords[f's{i}'])
+
+            # atom_radial, atom_angle, atom_dihedral, radial, angle, dihedral
+            ar, aa, ad, r, a, d = line._a, line._b, line._c, line._dst, line._ang, line._tor
+
+            if isinstance(ar, ob.OBAtom):
+                assert isinstance(r, float)
+                coords[f'r{i}'] = self.ZMatrixItem(
+                    f'r{i}', self.mol.bond(atom.ob_id, ar.GetId()), r
+                )
+                coord_line.append(coords[f'r{i}'])
+
+            if isinstance(aa, ob.OBAtom):
+                assert isinstance(a, float)
+                coords[f'a{i}'] = self.ZMatrixItem(
+                    f'a{i}', self.mol.angle(atom.ob_id, ar.GetId(), aa.GetId()), a
+                )
+                coord_line.append(coords[f'a{i}'])
+
+            if isinstance(ad, ob.OBAtom):
+                assert isinstance(d, float)
+                coords[f'd{i}'] = self.ZMatrixItem(
+                    f'd{i}', self.mol.torsion(atom.ob_id, ar.GetId(), aa.GetId(), ad.GetId()), d
+                )
+                coord_line.append(coords[f'd{i}'])
+
+        self._coord_line = coord_lines
+        self._coords = coords
 
 
 import hotpot.bundle as bd

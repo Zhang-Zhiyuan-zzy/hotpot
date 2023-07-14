@@ -14,14 +14,16 @@ import hotpot as hp
 
 
 if __name__ == '__main__':
-    path_smiles = Path('/home/zz1/proj/be/struct/choice_ligand')
-    g16root = '/home/pub'
-    work_dir = Path('/home/zz1/proj/be/g16')
+    START_NUM = 1
+
+    path_smiles = Path('/home/zzy/proj/be/struct/choice_ligand')
+    g16root = '/home/pub/sw'
+    work_dir = Path('/home/zzy/proj/be/g16')
     img_dir = work_dir.joinpath('img')
 
     smiles = open(path_smiles).readlines()
 
-    for i, s in enumerate(smiles):
+    for i, s in enumerate(smiles[START_NUM:], START_NUM):
 
         mol = hp.Molecule.read_from(s, 'smi')
         pair_bundle = mol.generate_pairs_bundle('Sr')

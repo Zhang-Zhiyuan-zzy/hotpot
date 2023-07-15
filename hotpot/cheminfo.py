@@ -10,6 +10,7 @@ import copy
 import json
 import os
 import re
+import shutil
 import weakref
 from abc import ABC, abstractmethod
 from io import IOBase
@@ -1503,6 +1504,8 @@ class Molecule(Wrapper, ABC):
             route: Union[str, List[str]],
             path_log_file: Union[str, PathLike] = None,
             path_err_file: Union[str, PathLike] = None,
+            path_chk_file: Union[str, PathLike] = None,
+            path_rwf_file: Union[str, PathLike] = None,
             inplace_attrs: bool = False,
             *args, **kwargs
     ) -> (Union[None, str], str):
@@ -1513,11 +1516,15 @@ class Molecule(Wrapper, ABC):
             g16root: the dir Gaussian16 software installed
             link0: the link0 command in gjf script
             route: the route command in gjf script
-            path_log_file: Optional, the path to save the out.log file. If not given, the logfile won't be write
-             to disk
-            path_err_file: optional, the path to save the error log file. If not given, the err file won't be write
-             to disk
-            inplace_attrs: Whether to inplace self attribute according to the results from attributes
+            path_log_file: Optional, the path to save the out.log file. If not given, the logfile would be written
+             to the work dir
+            path_err_file: Optional, the path to save the error log file. If not given, the err file would be written
+             to the work dir
+            path_chk_file: Optional, the path to the checkpoint file. If not given the chk file would be written
+             to the work dir
+            path_rwf_file: Optional, the path to the read-write file. If not given the rwf file would be written
+             to the work dir
+            inplace_attrs: Whether to inplace self attribute according to the results from attributes.
             *args:
             **kwargs:
 
@@ -1528,19 +1535,30 @@ class Molecule(Wrapper, ABC):
         if not self.has_3d:
             self.build_3d()
 
-        # TODO: Preserve for restart when encounter a Gaussian error.
-        chk_path = None
-        if isinstance(link0, List):
-            for l0 in link0:
-                if re.match(r'%chk=.+\.chk', l0):
-                    chk_path = l0[5:]
-                    break
+        # Specify the temporary file
+        if not path_chk_file:
+            path_chk_file = Path.cwd().joinpath('checkpoint.chk')
+        else:
+            path_chk_file = Path(path_chk_file)
+
+        if not path_rwf_file:
+            path_rwf_file = Path.cwd().joinpath('readwrite.rwf')
+        else:
+            path_rwf_file = Path(path_rwf_file)
+
+        if isinstance(link0, str):
+            link0 = [link0]
+
+        link0 = link0 + [f'rwf={str(path_rwf_file)}', 'NoSave', f'chk={str(path_chk_file)}']
 
         # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
 
         # Run Gaussian16
         with Gaussian(g16root) as gaussian:
+
+            gaussian.path_rwf = path_rwf_file
+            gaussian.path_chk = path_chk_file
 
             try:
                 stdout, stderr = gaussian.run(script)

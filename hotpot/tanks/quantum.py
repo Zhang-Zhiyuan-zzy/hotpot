@@ -6,7 +6,10 @@ python v3.7.9
 @Date   : 2023/3/20
 @Time   : 2:44
 """
+import copy
 import os
+import re
+from pathlib import Path
 import resource
 import subprocess
 import io
@@ -44,12 +47,7 @@ class Gaussian:
         Raises:
             TypeError: If `g16root` is not a string or a path-like object.
         """
-        if isinstance(g16root, str):
-            self.g16root = g16root
-        elif isinstance(g16root, os.PathLike):
-            self.g16root = str(g16root)
-        else:
-            raise TypeError('the g16root should be str or os.PathLike type!')
+        self.g16root = Path(g16root)
 
         self.envs = self._set_environs()
         self._set_resource_limits(report_set_resource_error)
@@ -57,7 +55,9 @@ class Gaussian:
         self.error_handle_methods = error_handle_methods
 
         # reverse for storing running data
-        self.chk_path = None
+        self.path_chk = None
+        self.path_rwf = None
+
         self.parsed_input = None
         self.g16process = None  # to link to the g16 subprocess
 
@@ -82,7 +82,7 @@ class Gaussian:
             Dict[str, str]: A dictionary of the updated environment variables."""
 
         if self.g16root:
-            g16root = self.g16root
+            g16root = str(self.g16root)
         else:
             g16root = os.path.expanduser("~")
 
@@ -112,7 +112,75 @@ class Gaussian:
         return updated_env
 
     @staticmethod
-    def _parse_input_script(script: str) -> Dict[str, list[str]]:
+    def _parse_route(route: str) -> Dict:
+        """ Parse the route of gjf file """
+        # compile regular expressions
+        parenthesis = re.compile(r'\(.+\)')
+
+        # Normalize the input route
+        route = re.sub(r'\s*=\s*', r'=', route)  # Omit the whitespace surround with the equal signal
+        route = re.sub(r'=\(', r'\(', route)  # Omit the equal signal before the opening parenthesis
+        route = re.sub(r'\s+', ' ', route)  # Reduce the multiply whitespace to one
+
+        # Replace the delimiter outside the parenthesis to whitespace, inside to common
+        in_parenthesis = {m.start(): m.end() for m in parenthesis.finditer(route)}
+        list_route = []
+        for i, char in enumerate(route):
+            if char in [',', '\t', '/', ' ']:
+                if any(si < i < ei for si, ei in in_parenthesis.items()):
+                    list_route.append(',')
+                else:
+                    list_route.append(' ')
+            else:
+                list_route.append(char)
+
+        route = ''.join(list_route)
+
+        # Separate route to items
+        items = route.split()
+
+        parsed_route = {}
+        for item in items:
+            opening_parenthesis = re.findall(r'\(', item)
+            closing_parenthesis = re.findall(r'\)', item)
+
+            if opening_parenthesis:
+                assert len(opening_parenthesis) == 1 and len(closing_parenthesis) == 1 and item[-1] == ')'
+                kword = item[:item.index('(')]
+                options = item[item.index('(') + 1:-1]
+
+                opt_dict = parsed_route.setdefault(kword, {})
+                for option in options.split(','):
+                    opt_value = option.split('=')
+                    if len(opt_value) == 1:
+                        opt_dict[opt_value[0]] = None
+                    elif len(opt_value) == 2:
+                        opt_dict[opt_value[0]] = opt_value[1]
+                    else:
+                        raise ValueError('the given route string is wrong!!')
+
+            else:
+                kword_opt_value = item.split('=')
+                if len(kword_opt_value) == 1:
+                    parsed_route[kword_opt_value[0]] = None
+                elif len(kword_opt_value) == 2:
+                    parsed_route[kword_opt_value[0]] = kword_opt_value[1]
+                elif len(kword_opt_value) == 3:
+                    parsed_route[kword_opt_value[0]] = {kword_opt_value[1]: kword_opt_value[2]}
+                else:
+                    raise ValueError('the given route string is wrong!!')
+
+        return parsed_route
+
+    def _parse_input_script(self, script: str) -> list[dict]:
+        """ Parse the input script to structured data """
+        info = []
+        for link_script in re.split(r'--link\d+--\n', script):
+            info.append(self._parse_single_task(link_script))
+
+        return info
+
+    def _parse_single_task(self, script: str) -> dict:
         """ Parse the input script to dict """
         lines = script.splitlines()
         c = 0  # count of current line
@@ -120,24 +188,40 @@ class Gaussian:
         info = {}
 
         # Extract link0
+        link0 = []
         while lines[c][0] == '%':
-            link0 = info.setdefault('link0', [])
             link0.append(lines[c])
-
             c += 1
 
         # Check link0
-        if not info['link0']:
+        if not link0:
             raise ValueError('the provided input script is incorrect, not found link0 lines')
 
+        # Parse link0
+        link0 = ' '.join(link0)
+        parsed_link0 = info.setdefault('link0', {})
+        for l0 in link0.split():
+            assert l0[0] == '%'
+            cmd_value = l0[1:].split('=')
+            if len(cmd_value) == 1:
+                parsed_link0[cmd_value[0]] = None
+            elif len(cmd_value) == 2:
+                parsed_link0[cmd_value[0]] = cmd_value[1]
+            else:
+                raise ValueError("can't parse the link0, the give input script might wrong!!")
+
         # Extract route
+        route = []
         while lines[c] and lines[c][0] == '#':
-            route = info.setdefault('route', [])
-            route.append(lines[c])
+            route.append(lines[c][2:])
             c += 1
 
-        if not info['route']:
+        if not route:
             raise ValueError('the provided input script is incorrect, not found route lines')
+
+        # Parse the route
+        route = ' '.join(route)
+        info['route'] = self._parse_route(route)
 
         # Extract the title line
         c += 1  # skip the blank line
@@ -167,6 +251,73 @@ class Gaussian:
             c += 1
 
         return info
+
+    def _rewrite_input_script(self):
+        """"""
+        # Whether the input info have been given。
+        if not self.parsed_input:
+            raise AttributeError(
+                "Can't find the structured input data, the input script should be given by string script or parsed dict"
+            )
+
+        script = ""
+        for i, link_script in enumerate(self.parsed_input):
+            script += self._rewrite_single_task(link_script, i)  # rewrite the gjf script to standard style
+
+        return script
+
+    @staticmethod
+    def _rewrite_single_task(info: dict, link_num: int):
+        """"""
+        script = ""
+
+        if link_num:
+            script += f'--Link{link_num}--\n'
+
+        link0: dict = info['link0']
+        for cmd, value in link0.items():
+            if value:
+                script += f'%{cmd}={value}\n'
+            else:
+                script += f'%{cmd}\n'
+
+        script += '#'
+        route: dict = info['route']
+        for kw, opt in route.items():
+            if not opt:
+                script += f' {kw}'
+            elif isinstance(opt, str):
+                script += f' {kw}={opt}'
+            elif isinstance(opt, dict):
+                list_opt = []
+                for k, v in opt.items():
+                    if v:
+                        list_opt.append(f'{k}={v}')
+                    else:
+                        list_opt.append(k)
+                script += f' {kw}(' + ','.join(list_opt) + ')'
+            else:
+                ValueError('the give gjf input info is wrong')
+
+        script += '\n\n'
+
+        script += info['title']
+        script += '\n\n'
+
+        script += '\n'.join(info['mol_spec'])
+        script += '\n'
+
+        i = 0
+        while True:
+            other = info.get(f'other_{i}')
+            if other:
+                script += '\n'.join(other)
+            else:
+                break
+
+        script += '\n\n'
+
+        return script
 
     @staticmethod
     def _set_resource_limits(report_error: bool):
@@ -261,7 +412,7 @@ class Gaussian:
         string_buffer = io.StringIO(stdout)
         return cclib.ccopen(string_buffer).parse()
 
-    def run(self, script: str):
+    def run(self, script: str = None):
         """Runs the Gaussian 16 process with the given script and additional arguments.
 
         This method sets up the required environment variables and resource limits for Gaussian 16 before
@@ -273,7 +424,11 @@ class Gaussian:
         Returns
             Tuple[str, str]: A tuple of the standard output and standard error of the process
         """
-        self.parsed_input = self._parse_input_script(script)  # parse input data
+        if script:
+            self.parsed_input = self._parse_input_script(script)  # parse input data
+
+        script = self._rewrite_input_script()
+
         with open('input.gjf', 'w') as writer:
             writer.write(script)
 
@@ -299,160 +454,78 @@ class Gaussian:
         return self.stdout, self.stderr
 
 
-# class Gauss:
-#     """ Bata version of Gaussian """
-#     def __init__(
-#             self,
-#             g16root: Union[str, os.PathLike] = None,
-#             path_input: Union[str, os.PathLike] = None,
-#             path_output: Union[str, os.PathLike] = None,
-#             path_chk: Union[str, os.PathLike] = None,
-#             path_rwf: Union[str, os.PathLike] = None,
-#     ):
-#         """"""
-#         # Check or specify the g16root
-#         if not g16root:
-#             g16root = os.environ.get('g16root')
-#
-#         if not g16root:
-#             raise EnvironmentError("do not find the environmental variable 'g16root', please specify manually")
-#         else:
-#             g16root = Path(g16root)
-#
-#         try:
-#             assert g16root.joinpath('g16', 'g16').is_file()
-#             assert g16root.joinpath('g16', 'bsd', 'g16.profile').is_file()
-#         except AssertionError:
-#             raise FileNotFoundError('the specified g16root is error, do not find executable and profile files')
-#
-#         os.system(f"{g16root.joinpath('g16', 'bsd', 'g16.profile')}")
-#         self.g16root = g16root
-#
-#         self.path_input = Path(path_input) if path_input else Path.cwd().joinpath('input.gjf')
-#         self.path_output = Path(path_output) if path_input else  Path.cwd().joinpath('output.log')
-#         self.path_chk = Path(path_chk)
-#         self.path_rwf = Path(path_rwf)
-#
-#         # reserve variables for g16 running
-#         self.input_info = None
-#         self.g16process = None
-#         self.stdout = None
-#         self.stderr = None
-#
-#     @property
-#     def _envs(self):
-#         return
-#
-#     @staticmethod
-#     def _parse_input_script(script: str) -> Dict[str, list[str]]:
-#         """ Parse the input script to dict """
-#         lines = script.splitlines()
-#         c = 0  # count of current line
-#
-#         info = {}
-#
-#         # Extract link0
-#         while lines[c][0] == '%':
-#             link0 = info.setdefault('link0', [])
-#             link0.append(lines[c])
-#
-#             c += 1
-#
-#         # Check link0
-#         if not info['link0']:
-#             raise ValueError('the provided input script is incorrect, not found link0 lines')
-#
-#         # Extract route
-#         while lines[c][0] == '#':
-#             route = info.setdefault('route', [])
-#             route.append(lines[c])
-#
-#         if not info['route']:
-#             raise ValueError('the provided input script is incorrect, not found route lines')
-#
-#         # Extract the title line
-#         c += 1  # skip the blank line
-#         if lines[c]:
-#             info['title'] = lines[c]
-#         else:
-#             raise ValueError('the provided input script is incorrect, not found title lines')
-#         c += 1  # skip the blank line
-#
-#         # Extract the molecular specification
-#         charge, spin = map(int, lines[c].strip().split())
-#         info['charge'], info['spin'] = charge, spin
-#         while lines[c].strip():
-#             mol_spec = info.setdefault('mol_spec', [])
-#             mol_spec.append(lines[c])
-#             c += 1
-#
-#         # Extract other info
-#         i = 0
-#         while c < len(lines):
-#             other = info.setdefault(f'other_{i}', [])
-#             if lines[c].strip():
-#                 other.append(lines[c])
-#             elif other:
-#                 i += 1
-#
-#             c += 1
-#
-#         return info
-#
-#     def _set_resource_limits(self):
-#         pass
-#
-#     def run(
-#             self, *,
-#             script: str = None,
-#             mol: ci.Molecule = None,
-#             link0: Union[List[str], str] = "nproc=4",
-#             route: Union[List[str], str] = "SP B3LYP/6-311++G**",
-#             script_supply: str = ''
-#     ):
-#         """"""
-#         if script:
-#             with (open(self.path_input, 'w')) as writer:
-#                 writer.write(script)
-#
-#         elif isinstance(mol, ci.Molecule):
-#
-#             # Organize the link0
-#             if isinstance(link0, str):
-#                 link0 = [link0]
-#             link0.extend([f'RWF={str(self.path_rwf)}', 'NoSave', f'chk={str(self.path_chk)}'])
-#
-#             # Organize the route
-#             if isinstance(route, str):
-#                 route = [route]
-#
-#             script = mol.dump('gjf', link0=link0, route=route)
-#
-#             script += script_supply
-#
-#             with (open(self.path_input, 'w')) as writer:
-#                 writer.write(script)
-#
-#         else:
-#             raise ValueError('the script or mol arg should give at least one')
-#
-#         self.input_info = self._parse_input_script(script)
-#
-#         # Run Gaussian using subprocess
-#         self.g16process = subprocess.Popen(
-#             ['g16', 'input.gjf', 'output.log'], bufsize=-1, stdin=subprocess.PIPE,
-#             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-#             env=self._envs, universal_newlines=True
-#         )
-#         self.stdout, self.stderr = self.g16process.communicate()
-
-
 class GaussErrorHandle(ABC):
     """ Basic class to handle the error release from gaussian16 """
-    def __call__(self, g16proc: Gaussian, stdout: str, stderr: str) -> bool:
+    def __init__(self, gauss: Gaussian, stdout: str, stderr: str):
+        self.gauss = gauss
+        self.stdout = stdout
+        self.stderr = stderr
+
+        self.has_handled = False  # Whether the error has handled by this Handle
+
+    def __call__(self) -> bool:
         """ Call for handle the g16 errors """
-        return self.error_handle(g16proc, stdout, stderr)
+        return not self.has_handled and self.could_handle() and self.error_handle()
 
     @abstractmethod
-    def error_handle(self, g16proc: Gaussian, stdout: str, stderr: str) -> bool:
+    def could_handle(self) -> bool:
+        """ Could the ErrorHandle is suitable for this error """
+
+    @abstractmethod
+    def error_handle(self) -> bool:
         """ Specified by the children classes """
+
+
+class L103ZMatrixHandle(GaussErrorHandle, ABC):
+    """
+    Handle the Gaussian16 Error raise from the Z-matrix unsuitable for optimizing the system,
+    in which some angle or dihedral be 0 or 180
+    """
+    def could_handle(self) -> bool:
+        error_proc = str(self.gauss.g16root.joinpath('g16', 'l103.exe'))
+        error_signal = re.compile(rf"Error termination via Lnk1e in {error_proc} at .+")
+
+        final_output_lines = self.stdout.splitlines()[-10:]
+
+        for i, line in enumerate(final_output_lines):
+            if error_signal.match(line) and final_output_lines[i-1] == 'FormBX had a problem.':
+                return True
+
+        return False
+
+    def error_handle(self) -> bool:
+        parsed_input = self.gauss.parsed_input
+
+        # This handle just solve the problem in single task
+        if len(parsed_input) > 1:
+            return False
+
+        task0 = parsed_input[0]
+        route = task0.get('route')
+
+        # Retrieve the options or optimization
+        opt_kw = 'optimization'
+        kw_cut = 2
+        opt_options = None
+        while not opt_options or kw_cut >= len(opt_kw):
+            kw_cut += 1
+            opt_options = route.get(opt_kw[:kw_cut])
+
+        if not opt_options:
+            new_options = {}
+        elif isinstance(opt_options, str):
+            new_options = {opt_options: None}
+        elif isinstance(opt_options, dict):
+            new_options = opt_options
+        else:
+            raise AttributeError('the structured route dict is wrong!')
+
+        restart_items = {'Restart': None, 'Cartesian': None}
+        new_options.update(restart_items)
+        route[opt_kw[:kw_cut]] = new_options
+
+        # Restart the work
+        self.has_handled = True
+        self.gauss.run()
+
+        return True

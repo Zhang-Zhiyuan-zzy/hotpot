@@ -169,7 +169,7 @@ class PairBundle(MolBundle):
             g16root,
             link0=[
                 f'nproc={machine.take_CPUs(cpu_uti)}',
-                f'Mem={machine.take_memory(0.25)}GB'
+                f'Mem={machine.take_memory(cpu_uti)}GB'
             ],
             route=f'opt {method}/{basis_set} ' + route,
             path_log_file=dirs_files.ligand_log_path,
@@ -191,7 +191,7 @@ class PairBundle(MolBundle):
                 g16root,
                 link0=[
                     f'nproc={machine.take_CPUs(cpu_uti)}',
-                    f'Mem={machine.take_memory(0.25)}GB'
+                    f'Mem={machine.take_memory(cpu_uti)}GB'
                 ],
                 route=f'{method}/{basis_set} ' + route,
                 path_log_file=dirs_files.metal_log_path,
@@ -222,7 +222,7 @@ class PairBundle(MolBundle):
                 g16root,
                 link0=[
                     f'nproc={machine.take_CPUs(cpu_uti)}',
-                    f'Mem={machine.take_memory(0.25)}GB'
+                    f'Mem={machine.take_memory(cpu_uti)}GB'
                 ],
                 route=f'opt {method}/{basis_set} ' + route,
                 path_log_file=dirs_files.pair_log_path(i),

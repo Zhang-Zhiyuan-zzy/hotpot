@@ -148,6 +148,22 @@ class MolBundle:
         else:
             return self.__class__(np.random.choice(self.mols, size=size, replace=replace, p=p))
 
+    def collect_identical(self, inplace: bool = False) -> 'MolBundle':
+        """ Merge the molecules with same graph structures to one """
+        dict_umol = {}
+        for mol in self.mols:
+            list_umol = dict_umol.setdefault(mol.atom_counts, [])
+
+            if not list_umol:
+                list_umol.append(mol)
+            if all(umol != mol for umol in list_umol):
+                list_umol.append(mol)
+
+        if inplace:
+            self.mols = [umol for list_umol in dict_umol.values() for umol in list_umol]
+        else:
+            return self.__class__([umol for list_umol in dict_umol.values() for umol in list_umol])
+
     @property
     def data(self):
         return self._data

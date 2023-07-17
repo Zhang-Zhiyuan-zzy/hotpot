@@ -154,6 +154,9 @@ class PairBundle(MolBundle):
             method: str = 'B3LYP', basis_set: str = '6-311', route: str = '',
             cpu_uti: float = 0.75
     ) -> pd.DataFrame:
+        # Merge the pairs which same graph firstly
+        self.collect_identical(inplace=True)
+
         # Specify directories and make these dirs
         dirs_files = self._specify_dir_files(work_dir)
         dirs_files.make_dirs()

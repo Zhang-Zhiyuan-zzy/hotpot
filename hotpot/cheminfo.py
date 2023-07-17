@@ -258,6 +258,7 @@ class MolLinker:
 
         self.mol.update_attr_data({self.__class__.__name__: all_angle_data})
 
+
 class Molecule(Wrapper, ABC):
     """"""
     # All Molecule attribute's items relating to molecule conformers

@@ -10,6 +10,7 @@ import os
 import re
 from pathlib import Path
 import resource
+import platform
 import subprocess
 import io
 from typing import *
@@ -85,24 +86,61 @@ class Gaussian:
         else:
             g16root = os.path.expanduser("~")
 
-        # Setting environment for gaussian 16
-        gr = g16root
+        GAUOPEN = f'{g16root}:gauopen'
+        GAUSS_EXEDIR = f'{g16root}/g16/bsd:{g16root}/g16'
+        GAUSS_LEXEDIR = f"{g16root}/g16/linda-exe"
+        GAUSS_ARCHDIR = f"{g16root}/g16/arch"
+        GAUSS_BSDDIR = f"{g16root}/g16/bsd"
+        GV_DIR = f"{g16root}/gv"
+
+        PATH = os.environ.get('PATH')
+        if PATH:
+            PATH = f'{PATH}:{GAUOPEN}:{GAUSS_EXEDIR}'
+        else:
+            PATH = f'{GAUOPEN}:{GAUSS_EXEDIR}'
+
+        PERLLIB = os.environ.get('PERLLIB')
+        if PERLLIB:
+            PERLLIB = f'{PERLLIB}:{GAUOPEN}:{GAUSS_EXEDIR}'
+        else:
+            PERLLIB = f'{GAUOPEN}:{GAUSS_EXEDIR}'
+
+        PYTHONPATH = os.environ.get('PYTHONPATH')
+        if PYTHONPATH:
+            PYTHONPATH = f'{PYTHONPATH}:{GAUOPEN}:{GAUSS_EXEDIR}'
+        else:
+            PYTHONPATH = f'{PYTHONPATH}:{GAUSS_EXEDIR}'
+
+        _DSM_BARRIER = "SHM"
+        LD_LIBRARY64_PATH = None
+        LD_LIBRARY_PATH = None
+        if os.environ.get('LD_LIBRARY64_PATH'):
+            LD_LIBRARY64_PATH = f"{GAUSS_EXEDIR}:{GV_DIR}/lib:{os.environ['LD_LIBRARY64_PATH']}"
+        elif os.environ.get('LD_LIBRARY64_PATH'):
+            LD_LIBRARY_PATH = f"{GAUSS_EXEDIR}:{os.environ['LD_LIBRARY_PATH']}:{GV_DIR}/lib"
+        else:
+            LD_LIBRARY_PATH = f"{GAUSS_EXEDIR}:{GV_DIR}/lib"
+
+        G16BASIS = f'{g16root}/g16/basis'
+        PGI_TEAM = f'trace,abort'
+
         env_vars = {
-            'g16root': gr,
-            'GAUSS_EXEDIR': f"{gr}/g16/bsd:{gr}/g16",
-            'GAUSS_LEXEDIR': f"{gr}/g16/linda-exe",
-            'GAUSS_ARCHDIR': f"{gr}/g16/arch",
-            'GAUSS_BSDDIR': f"{gr}/g16/bsd",
-            'GV_DIR': f"{gr}/gv",
-            'PATH': f"{os.environ['PATH']}:{gr}/gauopen:{gr}/g16/bsd:{gr}/g16",
-            'PERLLIB': f"{os.environ['PERLLIB']}:{gr}/gauopen:{gr}/g16/bsd:{gr}/g16" if 'PERLLIB' in os.environ else f"{gr}/gauopen:{gr}/g16/bsd:{gr}/g16",
-            'PYTHONPATH': f"{os.environ['PYTHONPATH']}:{gr}/gauopen:{gr}/g16/bsd:{gr}/g16" if 'PYTHONPATH' in os.environ else f"{gr}/gauopen:{gr}/g16/bsd:{gr}/g16",
-            '_DSM_BARRIER': 'SHM',
-            'LD_LIBRARY64_PATH': f"{gr}/g16/bsd:{gr}/gv/lib:{os.environ['LD_LIBRARY64_PATH']}" if 'LD_LIBRARY64_PATH' in os.environ else "",
-            'LD_LIBRARY_PATH': f"{gr}/g16/bsd:{os.environ['LD_LIBRARY_PATH']}:{gr}/gv/lib" if 'LD_LIBRARY_PATH' in os.environ else f"{gr}/g16/bsd:{gr}/gv/lib",
-            'G16BASIS': f"{gr}/g16/basis",
-            'PGI_TERM': 'trace,abort'
+            'g16root': g16root,
+            'GAUSS_EXEDIR': GAUSS_EXEDIR,
+            'GAUSS_LEXEDIR': GAUSS_LEXEDIR,
+            'GAUSS_ARCHDIR': GAUSS_ARCHDIR,
+            'GAUSS_BSDDIR': GAUSS_BSDDIR,
+            'GV_DIR': GV_DIR,
+            'PATH': PATH,
+            'PERLLIB': PERLLIB,
+            'PYTHONPATH': PYTHONPATH,
+            '_DSM_BARRIER': _DSM_BARRIER,
+            'LD_LIBRARY64_PATH': LD_LIBRARY64_PATH,
+            'LD_LIBRARY_PATH': LD_LIBRARY_PATH,
+            'G16BASIS': G16BASIS,
+            'PGI_TERM': PGI_TEAM
         }
+        env_vars = {n: v for n, v in env_vars.items() if v is not None}
 
         # Merge the environment variables with the current environment
         updated_env = os.environ.copy()
@@ -404,7 +442,8 @@ class Gaussian:
 
         # Run Gaussian using subprocess
         self.g16process = subprocess.Popen(
-            ['g16', 'input.gjf', 'output.log'], bufsize=-1, stdin=subprocess.PIPE,
+            ['g16', 'input.gjf', 'output.log'],
+            bufsize=-1, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env=self.envs, universal_newlines=True
         )

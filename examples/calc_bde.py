@@ -6,8 +6,9 @@ python v3.9.0
 @Date   : 2023/6/14
 @Time   : 10:30
 
-Note: This script to high-throughput determine the bind energy when a metal cation coordinate to a ligand with
-specified coordination pattern
+Note:
+    This script to high-throughput determine the bind energy when a metal cation coordinate to a ligand with
+    specified coordination pattern
 """
 from pathlib import Path
 import hotpot as hp

@@ -1,1 +1,3 @@
 graft hotpot/data
+graft test/examples
+graft test/output

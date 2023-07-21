@@ -1,0 +1,16 @@
+{
+  "link0": {
+    "nproc": "float",
+    "Mem": "float",
+    "chk": "str",
+    "rwf": "str",
+    "NoSave": null
+  },
+  "route": {
+    "opt": {
+      "convergence": ["Loose", "Tight", "VeryTight", "EigenTest", "Expert"],
+      "algorithm": ["GEDIIS", "RFO", "EF"],
+      "ONIOM": ["Micro", "QuadMacro"]
+    }
+  }
+}

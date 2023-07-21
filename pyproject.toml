@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
-version = "0.3.0.9"
-readme = "RAEDME.md"
+version = "0.3.1.0"
+readme = "RAEDME.rst"
 authors = [
     { name = "Zhiyuan Zhang", email = "ZhiyuanZhang_scu@163.com" },
     { name = "Yue Dong", email = "1320801310@qq.com" },
@@ -26,8 +26,13 @@ dependencies = [
     'psutil'
 ]
 
+description = "A python package designed to communicate among various chemical and materials calculational tools"
+
 [tool.setuptools]
 include-package-data = true
 
 [project.urls]
 "Homepage" = "https://github.com/Zhang-Zhiyuan-zzy/hotpot"
+
+[tool.poetry.build]
+include = ["README.md"]

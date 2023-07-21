@@ -47,7 +47,7 @@ import hotpot as hp
 mol = hp.Molecule('c1c(O)ccc(C(=O)O)c1', 'smi')  # Load a 4-hydroxybenzoic acid molecule
 print(mol.has_3d)  # the molcule is a 2D molcule now, whose all coordinates are (0, 0, 0)
 
-mol.build_conformer(force_field='UFF')  # build the molecule to 3D, by univeral force field
+mol.build_3d(force_field='UFF')  # build the molecule to 3D, by univeral force field
 print(m.has_3d)  # Now, the molecule is a 3D molecule, all of atoms have their coordinate
 
 # check the atoms coordinates:
@@ -72,7 +72,7 @@ print(bond.type)  # get the bond type
 
 ### Molecule Read and Write
 The `Hotpot` read and write the molecule from string or files by calling the [openbabel](https://github.com/openbabel) 
-and [cclib](https://github.com/cclib/cclib) packages, most of formats supported by the two packages are support 
+and [cclib](https://github.com/cclib/cclib) packages, most formats supported by the two packages are support 
 by `Hotpot` too. the Main method to read and parse to `Molecule` object is `read_from()`:
 
 > mol = hp.Molecule.read_from('/path/to/file', fmt='cif')  # read a cif file from disk 
@@ -107,7 +107,7 @@ The 'Molecule' object could retrieve its link_matrix as the input of graph learn
 
 ### Submit the Molecule to Gaussian16 software
 One can directly submit the `Molecule` object to Gaussian16 software. Assuming you want to optimize the
-configure of the molecule by Gaussian16
+conformer of the molecule by Gaussian16
 ```angular2html
 mol.gaussian(
     g16root='path/to/g16root',
@@ -116,11 +116,14 @@ mol.gaussian(
     path_log_file='path/to/save/the/log',
     path_err_file='path/to/record/error',
     inplace_attrs=True  # whether to inplace the attribute of the molecule according to the last status of the molecule in the log file
+    debugger='auto'  # Handle the Gaussian Error by the default method
 )
 print(mol.energy)  # get the SCF energy in the last optimized status
 print(mol.coordinates)  # get the coordinates matrix after optimizing by gaussian 16
 ```
-
+The Gaussian program will run and handle some common error report automatically. To handle errors with more elaborate
+methods, user can custom a new debugger by inherit from the hotpot.tanks.quantum.GaussErrorHandle, seeing 
+documentation for more details.
 ### Submit the Molecule(Framework) to LAMMPS to perform grand canonical Monte-Carlo simulation
 Suppose that you want to determine the Uptake of carbon dioxide in a metal-organic framework at 298.15 K and 0.5 bar
 ```angular2html
@@ -149,4 +152,28 @@ mol = hp.Molecule.read_from('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
 mol.thermo_init()  # some kwargs could pass into, see documentation
 print(mol.thermo.Tc)  # the critical temperature
 print(mol.thermo.Psat)  # the saturation vapor pressure
+```
+
+### Handle molecules in large scale
+In the era of artificial intelligence, chemical information needs to be processed and utilized on a large scale. 
+`Hotpot` provides an interface called `MolBundle` for processing data on a large scale. For instance, if there 
+is a large number of single-point energy results computed using `Gaussian` stored somewhere on a disk, and we 
+want to create a dataset to train a [deep potential](https://tutorials.deepmodeling.com/en/latest/Tutorials/DeePMD-kit/learnDoc/Introduction.html)
+model using this data, we can utilize "MolBundle" to efficiently read all the `Gaussian` computation data on a large
+scale and convert it into the required dataset [System](https://docs.deepmodeling.com/projects/deepmd/en/master/data/system.html) 
+format for training the model:
+```python
+import hotpot as hp
+from hotpot.bundle import DeepModelBundle
+
+path_raw_data = 'path/to/gaussian/log'
+path_system = 'path/to/system'
+
+bundle = hp.MolBundle.read_from(
+    'g16log', path_raw_data, '*/*.log', num_proc=32
+)
+
+# Convert to DeepModelBundle object with method to organize the molecular structures to System dataset
+bundle: DeepModelBundle = bundle.to('DeepModelBundle')
+bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
 ```

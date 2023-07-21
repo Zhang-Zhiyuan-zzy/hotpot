@@ -10,6 +10,7 @@ Note:
     This script to high-throughput determine the bind energy when a metal cation coordinate to a ligand with
     specified coordination pattern
 """
+import os
 from pathlib import Path
 import hotpot as hp
 
@@ -19,7 +20,8 @@ if __name__ == '__main__':
 
     path_smiles = Path('/home/zz1/proj/be/struct/choice_ligand')
     g16root = '/home/pub'
-    work_dir = Path('/home/zz1/proj/be/g16')
+    work_dir = Path('/home/zz1/proj/be/g161')
+    os.chdir(work_dir)
 
     smiles = open(path_smiles).readlines()
 
@@ -29,5 +31,6 @@ if __name__ == '__main__':
         pair_bundle = mol.generate_pairs_bundle('Sr')
 
         pair_bundle.determine_metal_ligand_bind_energy(
-            g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)', cpu_uti=0.75
+            g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)', cpu_uti=0.75,
+            skip_complete=True
         )

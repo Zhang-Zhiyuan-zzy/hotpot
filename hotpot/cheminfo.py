@@ -27,10 +27,8 @@ from rdkit.Chem import Draw
 
 from hotpot import data_root
 from hotpot.tanks import lmp
-from hotpot.tanks.quantum import Gaussian, GaussianRunError
+from hotpot.tanks.quantum import Gaussian, GaussianRunError, GaussRun, GaussErrorHandle
 from hotpot.utils.library import library as _lib  # The chemical library
-
-
 
 
 # Define Exceptions
@@ -1508,6 +1506,7 @@ class Molecule(Wrapper, ABC):
             path_chk_file: Union[str, PathLike] = None,
             path_rwf_file: Union[str, PathLike] = None,
             inplace_attrs: bool = False,
+            debugger: Union[str, GaussErrorHandle] = 'auto',
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
@@ -1526,6 +1525,10 @@ class Molecule(Wrapper, ABC):
             path_rwf_file: Optional, the path to the read-write file. If not given the rwf file would be written
              to the work dir
             inplace_attrs: Whether to inplace self attribute according to the results from attributes.
+            debugger: define the method to handle the Gaussian error, like l9999, l103 or l502 ...,
+             the default method is the 'auto', which just to handle some common error case. More elaborate
+             debugger could be handmade by inherit from `GaussErrorHandle` abstract class. For detail, seeing
+             the documentation.
             *args:
             **kwargs:
 
@@ -1555,48 +1558,45 @@ class Molecule(Wrapper, ABC):
         # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
 
-        # Run Gaussian16
-        with Gaussian(g16root) as gaussian:
+        gauss = Gaussian(g16root)
+        gauss.path_rwf = path_rwf_file
+        gauss.path_chk = path_chk_file
 
-            gaussian.path_rwf = path_rwf_file
-            gaussian.path_chk = path_chk_file
+        grun = GaussRun(gauss, debugger)
+        gauss = grun(script)
 
-            try:
-                stdout, stderr = gaussian.run(script)
+        if not gauss.stderr:
+            # save the calculate result into the molecule data dict
+            self._data['gaussian_output'] = gauss.stdout
+            self._data['gaussian_parse_data'] = gauss.parse_log()
 
-                # save the calculate result into the molecule data dict
-                self._data['gaussian_output'] = stdout
-                self._data['gaussian_parse_data'] = gaussian.parse_log(stdout)
+            # Inplace the self attribute according to the result from gaussian
+            if inplace_attrs:
+                self._set_attrs(**gauss.molecule_setter_dict())
 
-                # Inplace the self attribute according to the result from gaussian
-                if inplace_attrs:
-                    self._set_attrs(**gaussian.molecule_setter_dict(stdout))
-
-                # Save log file when the path_log_file has been specified
-                if path_log_file:
-                    with open(path_log_file, 'w') as writer:
-                        writer.write(stdout)
-
-                # return results and error info
-                return stdout, stderr
-
-            # If got an error message, save the error and stdout file, before raise the error
-            except GaussianRunError:
-                stdout, stderr = gaussian.stdout, gaussian.stderr
-
-                # Save error file
-                if not path_err_file:
-                    path_err_file = Path(f'{self.formula}.err')
-                with open(path_err_file, 'w') as writer:
-                    writer.write(stderr)
-
-                # Save log file
-                if not path_log_file:
-                    path_log_file = Path(f'{self.formula}.log')
+            # Save log file when the path_log_file has been specified
+            if path_log_file:
                 with open(path_log_file, 'w') as writer:
-                    writer.write(stdout)
+                    writer.write(gauss.stdout)
 
-                raise GaussianRunError(stderr)
+            # return results and error info
+            return gauss.stdout, gauss.stderr
+
+        # If got an error message, save the error and stdout file, before raise the error
+        else:
+            # Save error file
+            if not path_err_file:
+                path_err_file = Path(f'{self.formula}.err')
+            with open(path_err_file, 'w') as writer:
+                writer.write(gauss.stderr)
+
+            # Save log file
+            if not path_log_file:
+                path_log_file = Path(f'{self.formula}.log')
+            with open(path_log_file, 'w') as writer:
+                writer.write(gauss.stdout)
+
+            raise GaussianRunError(gauss.stderr)
 
     def gcmc(
             self, *guest: 'Molecule', force_field: Union[str, os.PathLike] = None,
@@ -2670,10 +2670,10 @@ class Atom(Wrapper, ABC):
 
         # Calculating atomic orbital structure
         residual_electron = self.atomic_number
-        n_osl = 0  # Principal quantum number (n) of open shell layers (osl)
+        n_osl = 0  # Principal qm number (n) of open shell layers (osl)
         for orbital_name, men in _atomic_orbital_structure_max.items():  # max electron number (men)
 
-            # Update Principal quantum number (n)
+            # Update Principal qm number (n)
             if orbital_name[1] == "s":
                 n_osl = int(orbital_name[0])
 
@@ -2689,7 +2689,7 @@ class Atom(Wrapper, ABC):
         atom_orbital_feature = {"atomic_number": self.atomic_number, "n_osl": n_osl}
         if outermost_layer:
             diff_max_n = {"s": 0, "p": 0, "d": -1, "f": -2}
-            for layer, diff in diff_max_n.items():  # Angular momentum quantum number (l)
+            for layer, diff in diff_max_n.items():  # Angular momentum qm number (l)
                 electron_number = atomic_orbital_structure.get(f"{n_osl + diff}{layer}", nonexistent_orbit)
                 atom_orbital_feature[layer] = electron_number
         else:

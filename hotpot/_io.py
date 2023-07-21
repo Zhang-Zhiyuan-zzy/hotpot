@@ -797,7 +797,7 @@ class Parser(IOBase, metaclass=MetaIO):
 
         if data:
             if not obj:
-                # if get information about the atoms species
+                # when get information about the atoms species
                 if hasattr(data, 'atomnos'):
                     atoms_attrs = [{'atomic_number': an} for an in getattr(data, 'atomnos')]
                     obj = ci.Molecule(atoms=atoms_attrs)
@@ -834,17 +834,24 @@ class Parser(IOBase, metaclass=MetaIO):
         def is_hessian_no_longer_linear_valid():
             march_pattern = re.compile(r'Error termination via Lnk1e in (/.+)*/l103\.exe')
 
-            if any (march_pattern.match(line.strip()) for line in script.splitlines()[-5:]):
+            if any(march_pattern.match(line.strip()) for line in script.splitlines()[-5:]):
                 return True
             return False
 
         script = self._open_source_to_string_lines('str', 'path', "IOString", output_type='script')
 
-        # Check whether a failure have happened when calculation.
-        if is_convergence_failure():
-            raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
-        if is_hessian_no_longer_linear_valid():
-            raise IOEarlyStop('Gaussian16 Hessian no longer linear valid')
+        try:
+            # Check whether a failure have happened when calculation.
+            if is_convergence_failure():
+                raise IOEarlyStop('Gaussian16 SCF cannot convergence!')
+            if is_hessian_no_longer_linear_valid():
+                raise IOEarlyStop('Gaussian16 Hessian no longer linear valid')
+
+        except IOEarlyStop as error:
+            if self.kwargs.get('force'):
+                print(error)
+            else:
+                raise error
 
     # Parse the XYZ file
     def _io_xyz(self):
@@ -1022,6 +1029,11 @@ class Parser(IOBase, metaclass=MetaIO):
 
         try:  # TODO: For now, this is the case, the spin densities may lost in some case  # the units is Hartree/Bohr
             extract_charges_spin()
+        except IOEarlyStop:
+            if self.kwargs.get('must_have_charge'):
+                raise IOEarlyStop
+
+        try:
             extract_force_matrix()
         except IndexError:
             raise IOEarlyStop

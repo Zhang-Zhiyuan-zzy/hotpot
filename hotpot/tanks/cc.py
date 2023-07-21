@@ -152,8 +152,25 @@ class PairBundle(MolBundle):
     def determine_metal_ligand_bind_energy(
             self, g16root: Union[str, os.PathLike], work_dir: Union[str, os.PathLike],
             method: str = 'B3LYP', basis_set: str = '6-311', route: str = '',
-            cpu_uti: float = 0.75
+            cpu_uti: float = 0.75, skip_complete=False
     ) -> pd.DataFrame:
+        def _run_gaussian(gauss_func: Callable, path_log_file, path_err_file):
+            """ Run Gaussian calculation """
+            gauss_func(
+                g16root,
+                link0=[
+                    f'nproc={machine.take_CPUs(cpu_uti)}',
+                    f'Mem={machine.take_memory(cpu_uti)}GB'
+                ],
+                route=f'opt {method}/{basis_set} ' + route,
+                path_log_file=path_log_file,
+                path_err_file=path_err_file,
+                inplace_attrs=True
+            )
+
+        # Merge the pairs which same graph firstly
+        self.collect_identical(inplace=True)
+
         # Specify directories and make these dirs
         dirs_files = self._specify_dir_files(work_dir)
         dirs_files.make_dirs()
@@ -161,43 +178,35 @@ class PairBundle(MolBundle):
         # Energy sheet, bond dissociation energy (BDE) sheet
         e_sheet, bde_sheet = [], []
 
-        # save the initialized ligand structure
+        # #####################################################################################################
+        # Save the initialized ligand structure
         self.ligand.writefile('mol2', dirs_files.ligand_struct_path)
 
-        # optimize the configure of ligand and calculate their total energy after optimization
-        self.ligand.gaussian(
-            g16root,
-            link0=[
-                f'nproc={machine.take_CPUs(cpu_uti)}',
-                f'Mem={machine.take_memory(0.25)}GB'
-            ],
-            route=f'opt {method}/{basis_set} ' + route,
-            path_log_file=dirs_files.ligand_log_path,
-            path_err_file=dirs_files.ligand_err_path,
-            inplace_attrs=True
-        )
+        if skip_complete and dirs_files.ligand_log_path.exists():
+            # TODO: only l9999 error could be read
+            read_ligand = Molecule.read_from(dirs_files.ligand_log_path, 'g16log')
+            if isinstance(read_ligand, Molecule) and read_ligand.all_energy[-1]:
+                ligand_energy = read_ligand.all_energy[-1]
+            else:
+                _run_gaussian(self.ligand.gaussian, dirs_files.ligand_log_path, dirs_files.ligand_err_path)
+                ligand_energy = self.ligand.energy  # Retrieve the energy after optimizing the conformer
 
-        ligand_energy = self.ligand.energy  # Retrieve the energy after optimizing the conformer
+        else:
+            # optimize the configure of ligand and calculate their total energy after optimization
+            _run_gaussian(self.ligand.gaussian, dirs_files.ligand_log_path, dirs_files.ligand_err_path)
+            ligand_energy = self.ligand.energy  # Retrieve the energy after optimizing the conformer
+
         e_sheet.append(['ligand', self.ligand.smiles, ligand_energy])
 
         # save the optimized structures
         self.ligand.writefile('mol2', dirs_files.ligand_struct_path)
 
+        # ######################################################################################################
         # Calculate the single point (sp) energy for metal
         try:
             metal_sp = _atom_single_point[self.metal.atoms[0].symbol][method][basis_set]
         except KeyError:
-            self.metal.gaussian(
-                g16root,
-                link0=[
-                    f'nproc={machine.take_CPUs(cpu_uti)}',
-                    f'Mem={machine.take_memory(0.25)}GB'
-                ],
-                route=f'{method}/{basis_set} ' + route,
-                path_log_file=dirs_files.metal_log_path,
-                path_err_file=dirs_files.ligand_err_path,
-                inplace_attrs=True
-            )
+            _run_gaussian(self.metal.gaussian, dirs_files.metal_log_path, dirs_files.ligand_err_path)
 
             ele_dict = _atom_single_point.setdefault(self.metal.atoms[0].symbol, {})
             ele_method_dict = ele_dict.setdefault(method, {})
@@ -212,30 +221,33 @@ class PairBundle(MolBundle):
         # Save metal structure
         self.metal.writefile('mol2', dirs_files.metal_struct_path)
 
+        # #####################################################################################################
         # Optimizing the conformer of metal-ligands pairs and Retrieve the energies in the last stable conformer
         for i, pair in enumerate(self.pairs):
             # Save initialized Metal-ligand pair struct
             pair.writefile('mol2', dirs_files.pair_struct_path(i))
 
-            # Performing calculation
-            pair.gaussian(
-                g16root,
-                link0=[
-                    f'nproc={machine.take_CPUs(cpu_uti)}',
-                    f'Mem={machine.take_memory(0.25)}GB'
-                ],
-                route=f'opt {method}/{basis_set} ' + route,
-                path_log_file=dirs_files.pair_log_path(i),
-                path_err_file=dirs_files.pair_err_path(i),
-                inplace_attrs=True
-            )
+            if skip_complete and dirs_files.pair_log_path(i).exists():
+                # TODO: only l9999 error could be read
+                read_pair = Molecule.read_from(dirs_files.pair_log_path(i), 'g16log')
+                if isinstance(read_pair, Molecule) and read_pair.all_energy[-1]:
+                    pair_energy = read_pair.all_energy[-1]
+                else:
+                    _run_gaussian(pair.gaussian, dirs_files.pair_log_path(i), dirs_files.pair_err_path(i))
+                    pair_energy = pair.energy  # Retrieve the energy after optimizing the conformer
+
+            else:
+                # optimize the configure of ligand and calculate their total energy after optimization
+                _run_gaussian(pair.gaussian, dirs_files.pair_log_path(i), dirs_files.pair_err_path(i))
+                pair_energy = pair.energy  # Retrieve the energy after optimizing the conformer
 
             # Append the pairs energy values to energy sheet
-            e_sheet.append([f'pair_{i}', pair.smiles, pair.energy])
-            bde_sheet.append([f'pair_{i}', pair.smiles, pair.energy - ligand_energy - metal_sp])
+            e_sheet.append([f'pair_{i}', pair.smiles, pair_energy])
+            bde_sheet.append([f'pair_{i}', pair.smiles, pair_energy - ligand_energy - metal_sp])
             # Save refined Metal-ligand pair struct
             pair.writefile('mol2', dirs_files.pair_struct_path(i))
 
+        # #####################################################################################################
         # Save the energy sheet to csv
         e_sheet = np.array(e_sheet)
         df = pd.DataFrame(e_sheet[:, 1:], index=e_sheet[:, 0], columns=['smiles', 'Energy(eV)'])

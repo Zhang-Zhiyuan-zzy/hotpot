@@ -36,6 +36,14 @@ After the requirements are installed, now the ''Hotpot'' could be installed by p
 
 > pip install hotpot-zzy
 
+or you can install from this github repository:
+```angular2html
+git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
+pip install build  # install `build` package
+python -m build
+pip install dist/hotpot_zzy-`VERSION`-py3-none-any.whl
+```
+
 
 ## Usage
 The Hotpot is very easy to use, the core class of Hotpot is the `Molecule`, which is designed

@@ -10,8 +10,6 @@ import copy
 import json
 import os
 import re
-import shutil
-import weakref
 from abc import ABC, abstractmethod
 from io import IOBase
 from os import PathLike

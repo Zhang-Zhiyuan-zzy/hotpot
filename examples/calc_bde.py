@@ -16,7 +16,8 @@ import hotpot as hp
 
 
 if __name__ == '__main__':
-    START_NUM = 1
+
+    START_NUM = 5
 
     path_smiles = Path('/home/zz1/proj/be/struct/choice_ligand')
     g16root = '/home/pub'

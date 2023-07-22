@@ -33,4 +33,3 @@ include-package-data = true
 
 [project.urls]
 "Homepage" = "https://github.com/Zhang-Zhiyuan-zzy/hotpot"
-

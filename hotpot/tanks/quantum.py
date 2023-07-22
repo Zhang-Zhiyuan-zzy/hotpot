@@ -6,6 +6,7 @@ python v3.7.9
 @Date   : 2023/3/20
 @Time   : 2:44
 """
+import copy
 import os
 import re
 from pathlib import Path
@@ -329,7 +330,7 @@ class Gaussian:
             if value:
                 script += f'%{cmd}={value}\n'
             else:
-                script += f'%{cmd}'
+                script += f'%{cmd}\n'
 
         # Route keywords
         script += '#'
@@ -900,7 +901,6 @@ class ReOptiByCartesian(GaussErrorHandle, ABC):
         opt_name = self._find_keyword_name(route, 'opt')
 
         gauss.full_option_values('route', opt_name, "Cartesian")
-
 
 @AutoHandle.register
 class Restart(GaussErrorHandle, ABC):

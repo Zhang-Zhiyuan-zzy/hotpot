@@ -133,9 +133,10 @@ class Gaussian:
         This method sets up the required environment variables and resource limits for Gaussian 16.
         Args:
             g16root (Union[str, os.PathLike]): The path to the Gaussian 16 root directory.
+            path_gjf: the path of input script to be written and read
+            path_log: the path of output result to be written and read
+            path_err: the path of  error message to be written
             report_set_resource_error: Whether to report the errors when set the environments and resource
-            error_handle(str|Callable): the method to handle the release from g16, this the args could be given
-             by str or any GaussErrorHandle class
 
         Keyword Args:
             this could give any arguments for GaussErrorHandle
@@ -318,7 +319,6 @@ class Gaussian:
             raise AttributeError(
                 "Can't find the structured input data, the input script should be given by string script or parsed dict"
             )
-
 
         info = self.parsed_input
         script = ""
@@ -535,20 +535,17 @@ class Gaussian:
         """
         option_values = self.parsed_input[title].get(kwd)
 
-        if not kwd:
-            self.parsed_input[title] = value
-
-        elif option_values is None:
+        if option_values is None:
             if value is None:
-                self.parsed_input[title][kwd] = op
+                self.parsed_input[title][kwd] = op  # Note: the op could be None, it's allowed
             else:
                 self.parsed_input[title][kwd] = {op: value}
 
-        elif not isinstance(option_values, dict):
-            self.parsed_input[title][kwd] = {option_values: None, op: value}
+        elif isinstance(option_values, dict):
+            self.parsed_input[title][kwd].update({op: value})
 
         else:
-            self.parsed_input[title][kwd].update({op: value})
+            self.parsed_input[title][kwd] = {option_values: None, op: value}
 
     def molecule_setter_dict(self) -> dict:
         """ Prepare the property dict for Molecule setters """
@@ -869,14 +866,16 @@ class ReOptiWithSASSurfaceSCRF(GaussErrorHandle, ABC):
 
         scrf_name = self._find_keyword_name(route, 'scrf')
 
-        # the other items in the end of input script
-        max_other = max(map(int, [t.split('_')[1] for t in gauss.parsed_input if 'other_' in t]))
-        new_other = f"other_{max_other+1}"
-
         gauss.full_option_values('route', scrf_name, 'smd')
         gauss.full_option_values('route', scrf_name, 'read')
-        gauss.parsed_input[new_other] = 'surface=sas'
+
+        # convert the last conformer to the input script
         gauss.to_conformer()
+
+        # the other items in the end of input script, add sas surface
+        max_other = max(map(int, [t.split('_')[1] for t in gauss.parsed_input if 'other_' in t]))
+        new_other = f"other_{max_other+1}"
+        gauss.parsed_input[new_other] = 'surface=sas'
 
         # optimize with sas surface first
         gauss.run()
@@ -900,14 +899,7 @@ class ReOptiByCartesian(GaussErrorHandle, ABC):
         route = gauss.parsed_input['route']
         opt_name = self._find_keyword_name(route, 'opt')
 
-        opt = gauss.parsed_input['route'][opt_name]
-
-        if opt is None:
-            gauss.parsed_input['route'][opt_name] = 'Cartesian'
-        elif not isinstance(opt, dict):
-            gauss.parsed_input['route'][opt_name] = {opt: None, "Cartesian": None}
-        else:
-            gauss.parsed_input['route'][opt_name].update({"Cartesian": None})
+        gauss.full_option_values('route', opt_name, "Cartesian")
 
 
 @AutoHandle.register
@@ -920,18 +912,7 @@ class Restart(GaussErrorHandle, ABC):
         return False
 
     def handle(self, gauss: Gaussian):
-        parsed_input = gauss.parsed_input
-        route = parsed_input['route']
+        route = gauss.parsed_input['route']
+        opt_name = self._find_keyword_name(route, 'opt')  # Get the actual user-give keyword for optimization
 
-        # Get the actual user-give keyword for optimization
-        opt_name = self._find_keyword_name(route, 'opt')
-        assert opt_name is not None
-
-        if not route[opt_name]:
-            route[opt_name] = 'restart'
-        elif isinstance(route[opt_name], str):
-            route[opt_name] = {'restart': None, route[opt_name]: None}
-        elif isinstance(route[opt_name], dict):
-            route[opt_name].update({'restart': None})
-        else:
-            AttributeError('the input gjf file is illegal!')
+        gauss.full_option_values('route', opt_name, 'Restart')

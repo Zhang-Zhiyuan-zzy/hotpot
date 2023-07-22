@@ -1522,15 +1522,11 @@ class Molecule(Wrapper, ABC):
              to the work dir
             path_rwf_file: Optional, the path to the read-write file. If not given the rwf file would be written
              to the work dir
-<<<<<<< HEAD
-            inplace_attrs: Whether to inplace self attribute according to the results from attributes
-=======
             inplace_attrs: Whether to inplace self attribute according to the results from attributes.
             debugger: define the method to handle the Gaussian error, like l9999, l103 or l502 ...,
              the default method is the 'auto', which just to handle some common error case. More elaborate
              debugger could be handmade by inherit from `GaussErrorHandle` abstract class. For detail, seeing
              the documentation.
->>>>>>> 752dee3 (Refactor the module hotpot.tanks.quantum to decouple the Gaussian class.)
             *args:
             **kwargs:
 

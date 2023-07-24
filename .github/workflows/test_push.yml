@@ -28,7 +28,6 @@ jobs:
           activate-environment: repo-test-env
           auto-update-base: false
           environment-file: environment.yml
-          conda-version: 'latest'
           python-version: '3.9'
       - run: |
           conda info

@@ -12,7 +12,6 @@ import os
 import os.path as osp
 from os.path import join as ptj
 from typing import *
-import math
 import random
 import numpy as np
 from scipy import spatial

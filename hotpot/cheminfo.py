@@ -25,7 +25,7 @@ from rdkit.Chem import Draw
 
 from hotpot import data_root
 from hotpot.tanks import lmp
-from hotpot.tanks.quantum import Gaussian, GaussianRunError, GaussRun, GaussErrorHandle
+from hotpot.tanks.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
 from hotpot.utils.library import library as _lib  # The chemical library
 
 
@@ -1504,7 +1504,7 @@ class Molecule(Wrapper, ABC):
             path_chk_file: Union[str, PathLike] = None,
             path_rwf_file: Union[str, PathLike] = None,
             inplace_attrs: bool = False,
-            debugger: Union[str, GaussErrorHandle] = 'auto',
+            debugger: Union[str, Debugger] = 'auto',
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
@@ -1525,7 +1525,7 @@ class Molecule(Wrapper, ABC):
             inplace_attrs: Whether to inplace self attribute according to the results from attributes.
             debugger: define the method to handle the Gaussian error, like l9999, l103 or l502 ...,
              the default method is the 'auto', which just to handle some common error case. More elaborate
-             debugger could be handmade by inherit from `GaussErrorHandle` abstract class. For detail, seeing
+             debugger could be handmade by inherit from `Debugger` abstract class. For detail, seeing
              the documentation.
             *args:
             **kwargs:

@@ -188,8 +188,9 @@ bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
 
 ## TroubleShooting
 ### 1) Missing dependent dynamic libs
-When installing the hotpot package, you might meet some errors from the missing dependent libs, like the message:
-**. This trouble is caused by the lacking the `libxrender1` lib and could be solved by run the following command
+When installing the package, you might meet some errors from missing dependent libs, like the message:
+*ImportError: libXrender.so.1: cannot open shared object file: No such file or directory*. 
+This trouble is caused by the lacking of the `libxrender1` lib and could be solved by run the following command
 (supposing an Ubuntu system):
 > sudo apt-get install libxrender1
 

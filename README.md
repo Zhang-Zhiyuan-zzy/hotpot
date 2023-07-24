@@ -28,7 +28,7 @@ lammps
 ### Install requirement
 Before installing the `Hotpot`, you should install the requirements at the first. It is
 recommended to create a new conda environment to run the package.
-> conda create -n hp python==3.9 openbabel cclib lammps rdkit -c conda-forge
+> conda create -n hp python==3.9 openbabel cclib lammps -c conda-forge
 
 ### Install
 After the requirements are installed, now the ''Hotpot'' could be installed by pip
@@ -36,15 +36,23 @@ After the requirements are installed, now the ''Hotpot'' could be installed by p
 
 > pip install hotpot-zzy
 
+or you can install from this github repository:
+```angular2html
+git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
+pip install build  # install `build` package
+python -m build
+pip install dist/hotpot_zzy-`VERSION`-py3-none-any.whl
+```
+
 
 ## Usage
 The Hotpot is very easy to use, the core class of Hotpot is the `Molecule`, which is designed
 as the general interface for all functions across the entire the package. In the following
 example, we first load a Molecule object by `SMILES` string, and then the build their 3D conformer:
 
-```
+```pycon
 import hotpot as hp
-mol = hp.Molecule('c1c(O)ccc(C(=O)O)c1', 'smi')  # Load a 4-hydroxybenzoic acid molecule
+mol = hp.Molecule.read_from('c1c(O)ccc(C(=O)O)c1', 'smi')  # Load a 4-hydroxybenzoic acid molecule
 print(mol.has_3d)  # the molcule is a 2D molcule now, whose all coordinates are (0, 0, 0)
 
 mol.build_3d(force_field='UFF')  # build the molecule to 3D, by univeral force field
@@ -58,7 +66,7 @@ for atom in mol.atoms:
 
 In general, a `Molecule` is consist of many `Atom` and `Bond` objects. One can get the attributes from
 the `Molecule`, `Atoms` or `Bonds`.
-```
+```pycon
 print(mol.atoms)  # get all atoms in the molecule
 print(mol.bonds)  # get all bonds in the molecule
 
@@ -66,7 +74,7 @@ atom = mol.atoms[0]
 bond = mol.bonds[0]
 
 print(atom.neighbours)  # get all neigh atoms of this atoms
-print(bond.atom1, b.atom2)  # get the begin and end atom of this bond
+print(bond.atom1, bond.atom2)  # get the begin and end atom of this bond
 print(bond.type)  # get the bond type
 ```
 
@@ -108,7 +116,7 @@ The 'Molecule' object could retrieve its link_matrix as the input of graph learn
 ### Submit the Molecule to Gaussian16 software
 One can directly submit the `Molecule` object to Gaussian16 software. Assuming you want to optimize the
 conformer of the molecule by Gaussian16
-```angular2html
+```pycon
 mol.gaussian(
     g16root='path/to/g16root',
     link0='the link0 string',
@@ -126,7 +134,7 @@ methods, user can custom a new debugger by inherit from the hotpot.tanks.quantum
 documentation for more details.
 ### Submit the Molecule(Framework) to LAMMPS to perform grand canonical Monte-Carlo simulation
 Suppose that you want to determine the Uptake of carbon dioxide in a metal-organic framework at 298.15 K and 0.5 bar
-```angular2html
+```pycon
 work_dir = 'work/dir'  # specify a dir to save the results and log for the GCMC simulation
 
 co2 = hp.Molecule.read_from('O=C=O', 'smi')  # load a carbon dioxide by SMILES
@@ -141,13 +149,13 @@ frame.gcmc(
 )
 ```
 When perform the GCMC, the chemical potential `mu` or fugacity coefficient `phi` should be given. Fortunately, in
-the `mu` or `phi` could be estimated by equation of equation. For some common substance `gcmc()` method can calculate 
+the `mu` or `phi` could be estimated by state of equation. For some common substance `gcmc()` method can calculate 
 the `mu` and `phi` automatically, by `Peng-Robinson` equation by default.
 
 ### Access the property of substance for common substance
 For certain common substance, we can access its thermodynamical property, like critical temperature `Tc` and
 saturation vapor pressure `Psat` by [thermo](https://pypi.org/project/thermo/) package:
-```angular2html
+```pycon
 mol = hp.Molecule.read_from('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
 mol.thermo_init()  # some kwargs could pass into, see documentation
 print(mol.thermo.Tc)  # the critical temperature
@@ -162,7 +170,7 @@ want to create a dataset to train a [deep potential](https://tutorials.deepmodel
 model using this data, we can utilize "MolBundle" to efficiently read all the `Gaussian` computation data on a large
 scale and convert it into the required dataset [System](https://docs.deepmodeling.com/projects/deepmd/en/master/data/system.html) 
 format for training the model:
-```python
+```pycon
 import hotpot as hp
 from hotpot.bundle import DeepModelBundle
 
@@ -177,3 +185,13 @@ bundle = hp.MolBundle.read_from(
 bundle: DeepModelBundle = bundle.to('DeepModelBundle')
 bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
 ```
+
+## TroubleShooting
+### 1) Missing dependent dynamic libs
+When installing the package, you might meet some errors from missing dependent libs, like the message:
+*ImportError: libXrender.so.1: cannot open shared object file: No such file or directory*. 
+This trouble is caused by the lacking of the `libxrender1` lib and could be solved by run the following command
+(supposing an Ubuntu system):
+> sudo apt-get install libxrender1
+
+The similar trouble should be solved like the above.

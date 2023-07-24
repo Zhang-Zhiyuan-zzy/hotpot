@@ -16,7 +16,8 @@ import hotpot as hp
 
 
 if __name__ == '__main__':
-    START_NUM = 5
+
+    START_NUM = 8
 
     path_smiles = Path('/home/zz1/proj/be/struct/choice_ligand')
     g16root = '/home/pub'
@@ -29,6 +30,9 @@ if __name__ == '__main__':
 
         mol = hp.Molecule.read_from(s, 'smi')
         pair_bundle = mol.generate_pairs_bundle('Sr')
+
+        if len(pair_bundle) == 0:
+            continue
 
         pair_bundle.determine_metal_ligand_bind_energy(
             g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)', cpu_uti=0.75,

@@ -1,2 +1,2 @@
 graft hotpot/data
-graft test/
+graft test

@@ -12,8 +12,8 @@ on:
       - dev
 
 jobs:
+  name: Test Push and Merge
   test:
-    name: Test Push and Merge
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: To workdir
         uses: actions/checkout@v3
-        run: |
-          ls
 
       - name: Cache conda
         env:

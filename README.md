@@ -28,7 +28,7 @@ lammps
 ### Install requirement
 Before installing the `Hotpot`, you should install the requirements at the first. It is
 recommended to create a new conda environment to run the package.
-> conda create -n hp python==3.9 openbabel cclib lammps rdkit -c conda-forge
+> conda create -n hp python==3.9 openbabel cclib lammps -c conda-forge
 
 ### Install
 After the requirements are installed, now the ''Hotpot'' could be installed by pip

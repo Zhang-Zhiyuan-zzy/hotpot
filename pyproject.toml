@@ -23,7 +23,8 @@ dependencies = [
     "cclib",
     "tqdm",
     'rdkit',
-    'psutil'
+    'psutil',
+    'rdkit'
 ]
 
 description = "A python package designed to communicate among various chemical and materials calculational tools"

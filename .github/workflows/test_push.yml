@@ -1,0 +1,49 @@
+name: Test Workflow
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - name: To workdir
+        uses: actions/checkout@v3
+
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
+            hashFiles('etc/example-environment.yml') }}
+
+      - name: Set up conda-env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: repo-test-env
+          auto-update-base: false
+          environment-file: environment.yml
+          python-version: '3.9'
+      - run: |
+          conda info
+          conda list
+
+      - name: Run tests
+        run: python -m unittest
+        working-directory: ${{ github.workspace }}
+

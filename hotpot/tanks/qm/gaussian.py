@@ -1,21 +1,22 @@
 """
-python v3.9.0
+python v3.7.9
 @Project: hotpot
-@File   : gaussian
-@Auther : Zhiyuan Zhang
-@Data   : 2023/7/19
-@Time   : 2:28
-
-TODO: New implementation for running Gaussian
-TODO: How to set options to be both convenient for input and easy to debug
+@File   : qm.py
+@Author : Zhiyuan Zhang
+@Date   : 2023/3/20chgrp
+@Time   : 2:44
 """
 import os
-import json
+import re
+from pathlib import Path
+import resource
+import subprocess
+import io
 from typing import *
+from abc import ABC, abstractmethod
 
-
-class OptionError(BaseException):
-    """ Raise when try to access a non-existent option """
+import numpy as np
+import cclib
 
 
 class GaussianRunError(BaseException):
@@ -26,236 +27,127 @@ class FailToHandle(Warning):
     """ Report this Warning when GaussErrorHandle Fail to handle an error """
 
 
-class _OptionValues:
-    def __init__(self, values: list):
-        self.values = values
-
-    def __repr__(self):
-        return f"{self.values}"
-
-    def __dir__(self) -> Iterable[str]:
-        return self.values
-
-    def __getattr__(self, item):
-        if item not in self.values:
-            raise ValueError(f'The option {self.option} does not have the value {item}')
-
-
-class _Option:
-    """ The representation of certain Gaussian option """
-    def __init__(
-            self,
-            raw_options: dict,
-            title: Literal['link0', 'route'],
-            keyword: str,
-            option: str = None,
-            value: Any = None
-    ):
-        self._options = raw_options
-
-        self.title = title
-        self.keyword = keyword
-        self.option = option
-        self.value = value
-
-    def __dir__(self) -> Iterable[str]:
-        if isinstance(self.value, _OptionValues):
-            return self.value.values
-        else:
-            return []
-
-    def __getattr__(self, item):
-        """
-        The values of some options are fixed, and they can be obtained through attribute selection to
-        avoid conflicts when writing options.
-        For example, the value of route->opt->Algorithm is choose from: GEDIIS, RFO and EF, one may want
-        to apply the RFO as the optimization algorithm. To do so, the one just to choose the option by:
-
-            gauss = Gaussian(...)
-            gauss.options.route.opt.Algorithm.RFO  # select RFO as the optimizing algorithm
-
-        the Gaussian instance will record the options immediately.
-
-        Sometimes, you could need to handle the GaussError by change the RFO to other method, say GEDIIS.
-        You can do this change just by:
-
-            gauss.options.route.opt.Algorithm.GEDIIS
-
-        the Gaussian instance will change the optimizing algorithm to GEDIIS
-        """
-        if not isinstance(self.value, _OptionValues) or item not in self.value.values:
-            raise ValueError(f'The option {self.option} does not have the value {item}')
-
-        key = self.title + f'.{self.keyword}' + (f".{self.option}" if self.option else "")
-        self._options[key] = self
-
-    def __repr__(self):
-        return f"{self.keyword}" \
-               + (f"={self.option}" if self.option else "") \
-               + (f"({self.value})" if self.value else "")
-
-    def __hash__(self):
-        key = f"{self.title}" + f".{self.keyword}" \
-               + (f".{self.option}" if self.option else "") \
-
-        return hash(key)
-
-    def __eq__(self, other):
-        return self.title == other.title and self.keyword == other.keyword and self.option == other.option
-
-    def __call__(self, value=None):
-        if self.value is None and value is not None:
-            raise ValueError(f"the option {self.keyword}.{self.option} doesn't have any value")
-
-        elif self.value == 'float' or isinstance(self.value, float):
-            if isinstance(value, float):
-                self.value = value
-            else:
-                raise TypeError('the input value should be a float')
-
-        elif self.value == "int" or isinstance(self.value, int):
-            if isinstance(value, int):
-                self.value = value
-            else:
-                raise TypeError('the input value should be an int')
-
-        elif self.value == 'str' or isinstance(self.value, str):
-            if isinstance(value, str):
-                self.value = value
-            else:
-                raise TypeError('the input value should be a string')
-
-        else:
-            raise NotImplemented
-
-        key = self.title + f'.{self.keyword}' + (f".{self.option}" if self.option else "")
-        self._options[key] = self
-
-
-class _Options:
+class GaussOut:
     """
-    A handle to the link0 and route options.
-    This class should be initialized by `Gaussian.options` attributes, initializing directly is not recommended.
+    This class is used to store Gaussian output and error message from g16 process.
+    In addition, this class will extract and organize critical information.
     """
-    from hotpot import data_root
-    _path_option_json = os.path.join(data_root, 'goptions.json')
 
-    _tree: dict = json.load(open(_path_option_json))
+    # Compile the error notice sentence
+    _head = re.compile('Error termination via Lnk1e in')
+    _link = re.compile(r'l\d+[.]exe')
+    _path = re.compile(r'([/|\\]\S+)*[/|\\]' + _link.pattern)
+    _week = re.compile('(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
+    _month = re.compile('(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
+    _date = re.compile(_week.pattern + ' ' + _month.pattern + r' [0-2]?\d')
+    _time = re.compile(r'\d{2}:\d{2}:\d{2} 20\d{2}\.')
 
-    def __init__(self, raw_options: dict, path: str = ""):
+    _error_link = re.compile(_head.pattern + ' ' + _path.pattern + ' at ' + _date.pattern + ' ' + _time.pattern)
 
-        self._paths = path
-        self._options = raw_options
+    def __init__(self, stdout: str, stderr: str):
+        self.stdout = stdout
+        self.stderr = stderr
 
-    def __repr__(self):
-        return self._paths if self._paths else 'RootOptions'
+    @property
+    def is_error(self) -> bool:
+        return True if self.stderr else False
 
-    def __dir__(self) -> Iterable[str]:
-        if not self._paths:
-            return list(self._tree.keys())
-        else:
-            paths = self._paths.split('.')
+    @property
+    def error_link(self) -> str:
+        if self.is_error:
+            match = self._error_link.search(self.stdout)
+            if match:
+                matched_line = self.stdout[match.start():match.end()]
 
-            tree = self._tree
-            for option in paths:
-                tree = tree.get(option)
+                link = self._link.search(matched_line)
+                return matched_line[link.start(): link.end()][:-4]
 
-            if isinstance(tree, list):
-                return tree
-            elif isinstance(tree, dict):
-                return list(tree.keys())
-            else:
-                return []
+    @property
+    def is_hangup_error(self):
+        if self.is_error and self.stderr.find('Error: hangup'):
+            return True
+        return False
 
-    def __getattr__(self, item: str):
-        tree = self._tree
-        if self._paths:
-            for option in self._paths.split('.'):
-                tree = tree.get(option)
+    @property
+    def is_opti_convergence_error(self):
+        """ The gaussian error is caused by the non-convergence of the optimizing conformer """
+        if self.is_error and self.error_link == 'l9999' and self.stdout.find('-- Number of steps exceeded,'):
+            return True
+        return False
 
-        if isinstance(tree, dict):
-            option = tree.get(item)
-        else:
-            assert isinstance(tree, list)
-            if item in tree:
-                option = item
-            else:
-                raise AttributeError(f'{option} not have option: {item}')
+    @property
+    def is_scf_convergence_error(self):
+        """ Get True when the Output show the SCF non-convergence """
+        if self.error_link == 'l502' and self.stdout.find("Convergence failure -- run terminated."):
+            return True
+        return False
 
-        if isinstance(option, (dict, list)):
-            if self._paths:
-                return _Options(self._options, f"{self._paths}.{item}")
-            else:
-                return _Options(self._options, f"{item}")
-        else:
-            paths = self._paths.split('.')
-            if len(paths) == 1:
-                return _Option(self, paths[0], option)
-            elif len(paths) == 2:
-                return _Option(self, paths[0], paths[1], option)
-            elif len(paths) == 3:
-                return _Option(self, paths[0], paths[1], paths[3])
-            else:
-                raise AttributeError
+    @property
+    def is_scrf_Vdw_cage_error(self):
+        """ Error caused by the Vdw surface is not suitable to estimate the accessible surface inside molecular cage """
+        if self.error_link == 'l502' and self.stdout.find("Inv3 failed in PCMMkU."):
+            return True
+        return False
 
-    def __call__(self):
-        """
-        Sometimes, the keywords could be without the options, so call the _Options instance to specify it
+    @property
+    def is_ZMatrix_error(self):
+        if self.error_link == 'l103' and \
+                self.stdout.find('FormBX had a problem.') and \
+                self.stdout.find('Berny optimization.'):
+            return True
 
-        """
-        paths = self._paths.split('.')
-        if len(paths) == 2:
-            option = _Option(self._options, paths[0], paths[1])
-            option()
+        return False
 
-def _cook_raw_options_to_struct_input_dict(raw_options: dict) -> dict:
-    """"""
-    for op in self._options:
-        title = raw_options.setdefault(op.title, {})
-        ops = title.setdefault(op.keyword, [])
-        ops.append(op)
+    def report(self) -> list[str]:
+        """ Report all error messages """
+        error_judge = re.compile(r'is_.+_error')
 
-    _input = {}
-    for title, item in raw_options.items():
+        print("Meet Gaussian Error:")
+        errors = []
+        for name in self.__dir__():
+            if hasattr(self, name) and error_judge.fullmatch(name) and getattr(self, name):
+                print(f'\t--{name[3:]};')
+                errors.append(name)
 
-        keywords = _input.setdefault(title, {})
-
-        for kwd, ops in item.items():
-            ops = [op for op in ops if op.option is not None]
-
-            if not ops:
-                keywords[kwd] = None
-
-            elif len(ops) == 1:
-                if ops[0].value is None:
-                    keywords[kwd] = ops[0].option
-                else:
-                    keywords[kwd] = {ops[0].option: ops[0].value}
-
-            else:
-                options = keywords.setdefault(kwd, {})
-                for op in ops:
-                    if op.value is None:
-                        options[op.option] = None
-                    else:
-                        options[op.option] = op.value
-
-    return _input
+        return errors
 
 
 class Gaussian:
-    """ The control panel of Gaussian program """
+    """
+    A class for setting up and running Gaussian 16 calculations.
+
+    Attributes:
+        g16root (str): The path to the Gaussian 16 root directory.
+
+    """
     def __init__(
-            self, mol,
+            self,
             g16root: Union[str, os.PathLike],
             path_gjf: Union[str, os.PathLike] = None,
             path_log: Union[str, os.PathLike] = None,
             path_err: Union[str, os.PathLike] = None,
-            report_set_resource_error: bool = False
+            report_set_resource_error: bool = False,
     ):
-        """"""
-        self.mol = mol
+        """
+        This method sets up the required environment variables and resource limits for Gaussian 16.
+        Args:
+            g16root (Union[str, os.PathLike]): The path to the Gaussian 16 root directory.
+            path_gjf: the path of input script to be written and read
+            path_log: the path of output result to be written and read
+            path_err: the path of  error message to be written
+            report_set_resource_error: Whether to report the errors when set the environments and resource
+
+        Keyword Args:
+            this could give any arguments for GaussErrorHandle
+
+        Raises:
+            TypeError: If `g16root` is not a string or a path-like object.
+        """
         self.g16root = Path(g16root)
+
+        # Configure running environments and resources
+        self.envs = self._set_environs()
+        self._set_resource_limits(report_set_resource_error)
 
         # the default running input and output file
         self.p_input = Path('input.gjf') if not path_gjf else Path(path_gjf)
@@ -266,95 +158,12 @@ class Gaussian:
         self.path_chk = None
         self.path_rwf = None
 
-        self._raw_options = {}
-        self.options = _Options(self._raw_options)
-
         self.parsed_input = None
         self.g16process = None  # to link to the g16 subprocess
 
-        self.outputs = []
+        self.output = None
         self.stdout = None
         self.stderr = None
-
-        # Configure running environments and resources
-        self.envs = self._set_environs()
-        self._set_resource_limits(report_set_resource_error)
-
-    def _set_environs(self):
-        """Sets up the environment variables required for running Gaussian 16.
-
-        This method sets the environment variables required for Gaussian 16 to function correctly. If the
-        `g16root` attribute is not set, the method sets it to the user's home directory.
-
-        Returns:
-            Dict[str, str]: A dictionary of the updated environment variables."""
-
-        if self.g16root:
-            g16root = str(self.g16root)
-        else:
-            g16root = os.path.expanduser("~")
-
-        GAUOPEN = f'{g16root}:gauopen'
-        GAUSS_EXEDIR = f'{g16root}/g16/bsd:{g16root}/g16'
-        GAUSS_LEXEDIR = f"{g16root}/g16/linda-exe"
-        GAUSS_ARCHDIR = f"{g16root}/g16/arch"
-        GAUSS_BSDDIR = f"{g16root}/g16/bsd"
-        GV_DIR = f"{g16root}/gv"
-
-        PATH = os.environ.get('PATH')
-        if PATH:
-            PATH = f'{PATH}:{GAUOPEN}:{GAUSS_EXEDIR}'
-        else:
-            PATH = f'{GAUOPEN}:{GAUSS_EXEDIR}'
-
-        PERLLIB = os.environ.get('PERLLIB')
-        if PERLLIB:
-            PERLLIB = f'{PERLLIB}:{GAUOPEN}:{GAUSS_EXEDIR}'
-        else:
-            PERLLIB = f'{GAUOPEN}:{GAUSS_EXEDIR}'
-
-        PYTHONPATH = os.environ.get('PYTHONPATH')
-        if PYTHONPATH:
-            PYTHONPATH = f'{PYTHONPATH}:{GAUOPEN}:{GAUSS_EXEDIR}'
-        else:
-            PYTHONPATH = f'{PYTHONPATH}:{GAUSS_EXEDIR}'
-
-        _DSM_BARRIER = "SHM"
-        LD_LIBRARY64_PATH = None
-        LD_LIBRARY_PATH = None
-        if os.environ.get('LD_LIBRARY64_PATH'):
-            LD_LIBRARY64_PATH = f"{GAUSS_EXEDIR}:{GV_DIR}/lib:{os.environ['LD_LIBRARY64_PATH']}"
-        elif os.environ.get('LD_LIBRARY64_PATH'):
-            LD_LIBRARY_PATH = f"{GAUSS_EXEDIR}:{os.environ['LD_LIBRARY_PATH']}:{GV_DIR}/lib"
-        else:
-            LD_LIBRARY_PATH = f"{GAUSS_EXEDIR}:{GV_DIR}/lib"
-
-        G16BASIS = f'{g16root}/g16/basis'
-        PGI_TEAM = f'trace,abort'
-
-        env_vars = {
-            'g16root': g16root,
-            'GAUSS_EXEDIR': GAUSS_EXEDIR,
-            'GAUSS_LEXEDIR': GAUSS_LEXEDIR,
-            'GAUSS_ARCHDIR': GAUSS_ARCHDIR,
-            'GAUSS_BSDDIR': GAUSS_BSDDIR,
-            'GV_DIR': GV_DIR,
-            'PATH': PATH,
-            'PERLLIB': PERLLIB,
-            'PYTHONPATH': PYTHONPATH,
-            '_DSM_BARRIER': _DSM_BARRIER,
-            'LD_LIBRARY64_PATH': LD_LIBRARY64_PATH,
-            'LD_LIBRARY_PATH': LD_LIBRARY_PATH,
-            'G16BASIS': G16BASIS,
-            'PGI_TERM': PGI_TEAM
-        }
-        env_vars = {n: v for n, v in env_vars.items() if v is not None}
-
-        # Merge the environment variables with the current environment
-        updated_env = os.environ.copy()
-        updated_env.update(env_vars)
-
-        return updated_env
 
     @staticmethod
     def _parse_route(route: str) -> Dict:
@@ -510,7 +319,6 @@ class Gaussian:
                 "Can't find the structured input data, the input script should be given by string script or parsed dict"
             )
 
-
         info = self.parsed_input
         script = ""
 
@@ -570,6 +378,84 @@ class Gaussian:
         script += '\n\n'
 
         return script
+
+    def _set_environs(self):
+        """
+        Sets up the environment variables required for running Gaussian 16.
+
+        This method sets the environment variables required for Gaussian 16 to function correctly. If the
+        `g16root` attribute is not set, the method sets it to the user's home directory.
+
+        Returns:
+            Dict[str, str]: A dictionary of the updated environment variables.
+        """
+
+        if self.g16root:
+            g16root = str(self.g16root)
+        else:
+            g16root = os.path.expanduser("~")
+
+        GAUOPEN = f'{g16root}:gauopen'
+        GAUSS_EXEDIR = f'{g16root}/g16/bsd:{g16root}/g16'
+        GAUSS_LEXEDIR = f"{g16root}/g16/linda-exe"
+        GAUSS_ARCHDIR = f"{g16root}/g16/arch"
+        GAUSS_BSDDIR = f"{g16root}/g16/bsd"
+        GV_DIR = f"{g16root}/gv"
+
+        PATH = os.environ.get('PATH')
+        if PATH:
+            PATH = f'{PATH}:{GAUOPEN}:{GAUSS_EXEDIR}'
+        else:
+            PATH = f'{GAUOPEN}:{GAUSS_EXEDIR}'
+
+        PERLLIB = os.environ.get('PERLLIB')
+        if PERLLIB:
+            PERLLIB = f'{PERLLIB}:{GAUOPEN}:{GAUSS_EXEDIR}'
+        else:
+            PERLLIB = f'{GAUOPEN}:{GAUSS_EXEDIR}'
+
+        PYTHONPATH = os.environ.get('PYTHONPATH')
+        if PYTHONPATH:
+            PYTHONPATH = f'{PYTHONPATH}:{GAUOPEN}:{GAUSS_EXEDIR}'
+        else:
+            PYTHONPATH = f'{PYTHONPATH}:{GAUSS_EXEDIR}'
+
+        _DSM_BARRIER = "SHM"
+        LD_LIBRARY64_PATH = None
+        LD_LIBRARY_PATH = None
+        if os.environ.get('LD_LIBRARY64_PATH'):
+            LD_LIBRARY64_PATH = f"{GAUSS_EXEDIR}:{GV_DIR}/lib:{os.environ['LD_LIBRARY64_PATH']}"
+        elif os.environ.get('LD_LIBRARY64_PATH'):
+            LD_LIBRARY_PATH = f"{GAUSS_EXEDIR}:{os.environ['LD_LIBRARY_PATH']}:{GV_DIR}/lib"
+        else:
+            LD_LIBRARY_PATH = f"{GAUSS_EXEDIR}:{GV_DIR}/lib"
+
+        G16BASIS = f'{g16root}/g16/basis'
+        PGI_TEAM = f'trace,abort'
+
+        env_vars = {
+            'g16root': g16root,
+            'GAUSS_EXEDIR': GAUSS_EXEDIR,
+            'GAUSS_LEXEDIR': GAUSS_LEXEDIR,
+            'GAUSS_ARCHDIR': GAUSS_ARCHDIR,
+            'GAUSS_BSDDIR': GAUSS_BSDDIR,
+            'GV_DIR': GV_DIR,
+            'PATH': PATH,
+            'PERLLIB': PERLLIB,
+            'PYTHONPATH': PYTHONPATH,
+            '_DSM_BARRIER': _DSM_BARRIER,
+            'LD_LIBRARY64_PATH': LD_LIBRARY64_PATH,
+            'LD_LIBRARY_PATH': LD_LIBRARY_PATH,
+            'G16BASIS': G16BASIS,
+            'PGI_TERM': PGI_TEAM
+        }
+        env_vars = {n: v for n, v in env_vars.items() if v is not None}
+
+        # Merge the environment variables with the current environment
+        updated_env = os.environ.copy()
+        updated_env.update(env_vars)
+
+        return updated_env
 
     @staticmethod
     def _set_resource_limits(report_error: bool):
@@ -634,9 +520,398 @@ class Gaussian:
             if report_error:
                 print(RuntimeWarning('Unable to raise the RLIMIT_NPROC limit.'))
 
+    def full_option_values(self, title: str, kwd: str = None, op: Any = None, value: Optional = None):
+        """
+        Full the value to gauss parsed_input dict
+        Args:
+            title: the first level of parsed input, like: 'link0', 'route', 'title', 'charge', 'spin', ...
+            kwd:
+            op:
+            value:
 
-if __name__ == "__main__":
-    ro = {}
-    _ops = _Options(ro)
-    route = _ops.route
-    route.opt.ONIOM.Micro()
+        Returns:
+
+        """
+        option_values = self.parsed_input[title].get(kwd)
+
+        if option_values is None:
+            if value is None:
+                self.parsed_input[title][kwd] = op  # Note: the op could be None, it's allowed
+            else:
+                self.parsed_input[title][kwd] = {op: value}
+
+        elif isinstance(option_values, dict):
+            self.parsed_input[title][kwd].update({op: value})
+
+        else:
+            self.parsed_input[title][kwd] = {option_values: None, op: value}
+
+    def molecule_setter_dict(self) -> dict:
+        """ Prepare the property dict for Molecule setters """
+        data = self.parse_log()
+        return {
+            'atoms.partial_charge': data.atomcharges['mulliken'],
+            'energy': data.scfenergies[-1],
+            'spin': data.mult,
+            'charge': data.charge,
+            'mol_orbital_energies': data.moenergies,  # eV,
+            'coordinates': data.atomcoords[-1]
+        }
+
+    def parse_log(self):
+        """ Parse the gaussian log file and save them into self """
+        string_buffer = io.StringIO(self.stdout)
+        return cclib.ccopen(string_buffer).parse()
+
+    def run(self, script: str = None):
+        """Runs the Gaussian 16 process with the given script and additional arguments.
+
+        This method sets up the required environment variables and resource limits for Gaussian 16 before
+        running the process using `subprocess.Popen`. It takes an input script and any additional arguments
+        to pass to `Popen`, and returns a tuple of the standard output and standard error of the process.
+
+        Args:
+            script (str): The input script for the Gaussian 16 process.
+        Returns
+            Tuple[str, str]: A tuple of the standard output and standard error of the process
+        """
+        if script:
+            self.parsed_input = self._parse_input_script(script)  # parse input data
+
+        script = self._rewrite_input_script()
+
+        with open(self.p_input, 'w') as writer:
+            writer.write(script)
+
+        # Run Gaussian using subprocess
+        self.g16process = subprocess.Popen(
+            ['g16', str(self.p_input), str(self.p_output)],
+            bufsize=-1, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env=self.envs, universal_newlines=True
+        )
+        self.stdout, self.stderr = self.g16process.communicate()
+
+        if not self.stdout:
+            with open(self.p_output) as file:
+                self.stdout = file.read()
+
+        self.output = GaussOut(self.stdout, self.stderr)
+
+    def to_conformer(self, cfm_idx=-1, fail_raise=False):
+        """
+        read the conformers from stdout, and convert the initial conformer in the input.gjf file to be specific one
+        Args:
+            cfm_idx: which conformer in the stdout is converted to the input file, default: last conformer(-1)
+            fail_raise: whether to raise error, if fail to convert to the specific conformer.
+             the error might be caused by the format of stdout is unreadable for Molecule class
+        """
+        if not self.stdout:
+            raise AttributeError('the stdout do not save any conformers')
+
+        # If success, optimize with ses surface from the last conformer
+        from hotpot.cheminfo import Molecule
+        mol = Molecule.read_from(self.stdout, 'g16log', force=True)
+
+        try:
+            self.parsed_input['coordinates'] = mol.all_coordinates[-cfm_idx]
+            self.parsed_input['atoms'] = [a.label for a in mol.atoms]
+
+        except AttributeError:
+            if fail_raise:
+                raise RuntimeError('Fail to convert the conformers, the stdout might be unreadable!')
+            else:
+                print(RuntimeWarning('Fail to convert the conformers, the stdout might be unreadable!'))
+
+        except IndexError as err:
+            if fail_raise:
+                raise err
+            else:
+                print(err)
+
+
+class GaussRun:
+    """ Run the Gaussian program """
+    def __init__(self, gauss: Gaussian, debugger: Optional[Union[str, "Debugger"]] = 'auto', **kwargs):
+        self.gauss = gauss
+
+        self.stdout = []
+        self.stderr = []
+
+        # Configure Error Handle
+        if debugger is None:
+            self.debugger = None
+
+        elif isinstance(debugger, str):
+            kwargs['max_try'] = kwargs.get('max_try', 2)
+
+            if debugger == 'auto':
+                self.debugger = AutoDebug()
+            elif debugger == 'restart':
+                self.debugger = Restart(**kwargs)
+            elif debugger == 'last_conformer':
+                self.debugger = RerunFromLastConformer(**kwargs)
+            else:
+                raise ValueError(f"can't find error handle name {debugger}")
+
+        elif isinstance(debugger, Debugger):
+            self.debugger = debugger
+
+        else:
+            raise TypeError('the given error handle should be str or a GaussErrorHandle type')
+
+    def __call__(self, script=None, max_debug=5):
+        """"""
+        self.gauss.run(script)
+
+        run_time = 0
+        while self.gauss.stderr and run_time < max_debug:
+            if self.debugger and self.debugger(self.gauss):
+
+                self.stdout.append(self.gauss.stdout)
+                self.stderr.append(self.gauss.stderr)
+
+                self.gauss.run()
+
+                if self.gauss.stderr:
+                    print(f"Fail to debug with error: {self.gauss.output.error_link}!!!")
+                else:
+                    print("Debug Successful!!!")
+
+                run_time += 1
+
+            else:
+                break
+
+        # Report the results
+        if self.gauss.stderr:
+            print(f"Terminate {self.gauss.parsed_input['title']} Gaussian with {self.gauss.output.error_link} Error!!!")
+        else:
+            print(f"Normalize Complete {self.gauss.parsed_input['title']} Gaussian Calculation !!!")
+
+        return self.gauss
+
+
+# Error Handles
+class Debugger(ABC):
+    """ Basic class to handle the error release from gaussian16 """
+
+    def __call__(self, gauss: Gaussian) -> bool:
+        """ Call for handle the g16 errors """
+        if self.trigger(gauss):
+            self.notice()
+            self.handle(gauss)
+            return True
+
+        return False
+
+    @staticmethod
+    def _find_keyword_name(target: dict, shortest: str) -> Union[None, str]:
+        """
+        Find the input keyword by their allowed shortest name.
+        For example:
+            the shortest name `optimization` in route is `opt`, so any keyword from the `opt` to `optimization`
+            are allowed. In the input script, the user might give any one of the allowed keyword, such as `opt`,
+            `optimiz` or `optimizati`, this method will find the real user-given keyword by `opt`.
+        Args:
+            target(dict): the subitem of parsed_input, like: link0, route.
+            shortest: the shortest name, say `opt`
+
+        Returns:
+            the actual user-given keyword
+        """
+        searcher = re.compile(f"{shortest}.*", re.IGNORECASE)
+
+        kwd_name = None
+        for name in target:
+            match = searcher.fullmatch(name)
+            if match:
+                kwd_name = match.string[match.start():match.end()]
+                break
+
+        return kwd_name
+
+    @abstractmethod
+    def trigger(self, gauss: Gaussian) -> bool:
+        """ Could the ErrorHandle is suitable for this error """
+
+    @abstractmethod
+    def handle(self, gauss: Gaussian):
+        """ Specified by the children classes """
+
+    def notice(self):
+        print(f'Gauss Debug by {self.__class__.__name__}')
+
+
+class AutoDebug(Debugger, ABC):
+    """ AutoHandle Gaussian Error """
+    _handles = {}
+
+    def __init__(self, *selected_method: str, invert=False):
+        if not selected_method:
+            self.handles = {name: handle() for name, handle in self._handles.items()}
+        else:
+            if invert:
+                self.handles = {name: handle() for name, handle in self._handles.items() if name not in selected_method}
+            else:
+                self.handles = {name: handle() for name, handle in self._handles.items() if name in selected_method}
+
+        self.applied_handle_name = None
+
+    @classmethod
+    def register(cls, handle_type: type):
+        cls._handles[handle_type.__name__] = handle_type
+        return handle_type
+
+    def trigger(self, gauss: Gaussian) -> bool:
+        for name, handle in self.handles.items():
+            if handle.trigger(gauss):
+                self.applied_handle_name = name
+                return True
+
+        return False
+
+    def handle(self, gauss: Gaussian):
+        handle = self.handles[self.applied_handle_name]
+        handle(gauss)
+
+
+@AutoDebug.register
+class Ignore(Debugger, ABC):
+    """
+    To handle the optimization can't fall into the optimal point which a tiny imaginary frequency.
+
+    The optimization tasks might be hard to converge for certain reasons.
+    In especial, the Minnesota functional(like M062X) might oscillate near the optimal point with imaginary frequency.
+
+    There are some complicated method to solve this problem. However, If someone discovers that during the final stage
+    of optimization, the molecules are only making slight vibrations around a certain equilibrium point, it would be
+    more direct to ignore this error because the final configuration is likely not far from the optimal configuration.
+
+    Trigger:
+        task: optimization
+        method: unspecific
+        basis: unspecific
+        keywords: unspecific
+        error_link: l9999
+        message: -- Number of steps exceeded,
+        other:
+            Among last 10% opti steps, Max(|E(N)-E(N-1)|) < 0.05 eV and Min(|E(N)-E(N-1)|) / Max(|E(N)-E(N-1)|) > 0.9
+            where, the E(N) is the electron energy at the N opti step.
+
+    Handle:
+        ignore this error and continue the next work.
+    """
+    def trigger(self, gauss: Gaussian) -> bool:
+        if gauss.output.is_opti_convergence_error:
+            from hotpot.cheminfo import Molecule
+            mol = Molecule.read_from(gauss.stdout, fmt='g16log')
+
+            if not mol:
+                raise IOError('the stdout cannot parse to Molecule object')
+
+            last_energies = mol.all_energy[-int(len(mol.all_energy)):]
+            diff_energies = np.abs(last_energies[1:] - last_energies[:-1])
+
+            if diff_energies.max() < 0.05 and diff_energies.min() / diff_energies.max() > 0.9:
+                return True
+
+            return False
+
+    def handle(self, gauss: Gaussian):
+        """ Continue the next work and save the calculation data """
+
+
+@AutoDebug.register
+class ReOptiWithSASSurfaceSCRF(Debugger, ABC):
+    """
+    This Handle for the optimization task in solvent, when some tiny molecular cages are formed.
+    In this case, the default vdW surface overestimate the accessible surface inside the cages,
+    and cause inverse PCM matrix the non-convergent.
+
+    To handle the error, the Gaussian will re-optimize the molecule with SAS surface first and
+    optimize with SES surface finally.
+
+    Trigger:
+        task: optimization
+        methods: unspecified
+        basis: unspecified
+        keywords: SCRF
+        error_link: l502, l508
+        message: Inv3 failed in PCMMkU.
+
+    Handle:
+        rerun the optimization with SAS and SES surfaces serially
+    """
+    def trigger(self, gauss: Gaussian) -> bool:
+        if gauss.output.is_scrf_Vdw_cage_error and \
+          all(self._find_keyword_name(gauss.parsed_input['route'], kwd) for kwd in ('opt', 'scrf')):
+            return True
+
+        return False
+
+    def handle(self, gauss: Gaussian):
+        route = gauss.parsed_input['route']
+
+        scrf_name = self._find_keyword_name(route, 'scrf')
+
+        gauss.full_option_values('route', scrf_name, 'smd')
+        gauss.full_option_values('route', scrf_name, 'read')
+
+        # convert the last conformer to the input script
+        gauss.to_conformer()
+
+        # the other items in the end of input script, add sas surface
+        max_other = max(map(int, [t.split('_')[1] for t in gauss.parsed_input if 'other_' in t]))
+        new_other = f"other_{max_other+1}"
+        gauss.parsed_input[new_other] = 'surface=sas'
+
+        # optimize with sas surface first
+        gauss.run()
+        # if the optimization is unsuccessful, terminate
+        if gauss.stderr:
+            print('Fail to optimize in SAS surface!!!')
+            return None
+
+        gauss.to_conformer()
+        gauss.parsed_input[new_other] = 'surface=ses AddSph'
+
+
+@AutoDebug.register
+class ReOptiByCartesian(Debugger, ABC):
+    """ """
+    def trigger(self, gauss: Gaussian) -> bool:
+        # If the error is ZMatrix trouble and the original task is optimization
+        return gauss.output.is_ZMatrix_error and self._find_keyword_name(gauss.parsed_input['route'], 'opt')
+
+    def handle(self, gauss: Gaussian):
+        route = gauss.parsed_input['route']
+        opt_name = self._find_keyword_name(route, 'opt')
+
+        gauss.full_option_values('route', opt_name, "Cartesian")
+
+
+@AutoDebug.register
+class Restart(Debugger, ABC):
+    """ Handle Gaussian error by Restart """
+    def trigger(self, gauss: Gaussian) -> bool:
+        if gauss.output.is_hangup_error:
+            return True
+
+        return False
+
+    def handle(self, gauss: Gaussian):
+        route = gauss.parsed_input['route']
+        opt_name = self._find_keyword_name(route, 'opt')  # Get the actual user-give keyword for optimization
+
+        gauss.full_option_values('route', opt_name, 'Restart')
+
+
+@AutoDebug.register
+class RerunFromLastConformer(Debugger, ABC):
+    """ Handle the error by rerun the Gaussian from the last conformer """
+    def trigger(self, gauss: Gaussian) -> bool:
+        return True
+
+    def handle(self, gauss: Gaussian):
+        gauss.to_conformer()  # convert to the last conformer in the stdout

@@ -12,7 +12,6 @@ on:
       - dev
 
 jobs:
-  name: Test Push and Merge
   test:
     runs-on: ubuntu-latest
     defaults:

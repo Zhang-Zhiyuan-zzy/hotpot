@@ -6,12 +6,10 @@ python v3.7.9
 @Date   : 2023/3/20
 @Time   : 2:44
 """
-import copy
 import os
 import re
 from pathlib import Path
 import resource
-import platform
 import subprocess
 import io
 from typing import *

@@ -17,7 +17,7 @@ class TestMolecule(ut.TestCase):
     """ Test `hotpot/cheminfo/Molecule` class """
     def test_read_from(self):
         """ test the `read_from` method """
-        mol_path = Path(hp.hp_root).joinpath('test', 'inputs', 'struct', 'abnormal_output.log')
+        mol_path = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'struct', 'abnormal_output.log')
         mol_ab16log = hp.Molecule.read_from(mol_path, 'g16log', force=True)
 
         self.assertIsInstance(mol_ab16log, hp.Molecule)

@@ -13,36 +13,42 @@ on:
 
 jobs:
   test:
+    name: Set up conda
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-update-conda: false
+          activate-environment: repo-test-env
+          auto-update-base: false
+          environment-file: ${{ github.workspace }}/environment.yml
           conda-version: 'latest'
           python-version: '3.9'
+      - run: |
+          conda info
+          conda list
 
-      - name: Create Conda environment
-        run: conda env create -f environment.yml
-        working-directory: ${{ github.workspace }}
-
-      - name: Activate Conda environment
-        run: conda activate myenv
-        working-directory: ${{ github.workspace }}
-
-      - name: Install additional packages
-        run: |
-          conda install -c conda-forge openbabel cclib lammps
-          pip install thermo rdkit psutil numpy
-        working-directory: ${{ github.workspace }}
-
-      - name: Install package
-        run: pip install .
-        working-directory: ${{ github.workspace }}
+#      - name: Create Conda environment
+#        run: conda env create -f environment.yml
+#        working-directory: ${{ github.workspace }}
+#
+#      - name: Activate Conda environment
+#        run: conda activate myenv
+#        working-directory: ${{ github.workspace }}
+#
+#      - name: Install additional packages
+#        run: |
+#          conda install -c conda-forge openbabel cclib lammps
+#          pip install thermo rdkit psutil numpy
+#        working-directory: ${{ github.workspace }}
+#
+#      - name: Install package
+#        run: pip install .
+#        working-directory: ${{ github.workspace }}
 
       - name: Run tests
         run: python -m unittest

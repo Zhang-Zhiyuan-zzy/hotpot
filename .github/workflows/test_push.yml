@@ -21,12 +21,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - run: ls
+      - run: |
+          ls
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: repo-test-env
           auto-update-base: false
-          environment-file: ../environment.yml
+          environment-file: environment.yml
           conda-version: 'latest'
           python-version: '3.9'
       - run: |

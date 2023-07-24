@@ -825,16 +825,6 @@ class Ignore(GaussErrorHandle, ABC):
 
 
 @AutoHandle.register
-class RerunFromLastConformer(GaussErrorHandle, ABC):
-    """ Handle the error by rerun the Gaussian from the last conformer """
-    def trigger(self, gauss: Gaussian) -> bool:
-        return True
-
-    def handle(self, gauss: Gaussian):
-        gauss.to_conformer()  # convert to the last conformer in the stdout
-
-
-@AutoHandle.register
 class ReOptiWithSASSurfaceSCRF(GaussErrorHandle, ABC):
     """
     This Handle for the optimization task in solvent, when some tiny molecular cages are formed.
@@ -902,6 +892,7 @@ class ReOptiByCartesian(GaussErrorHandle, ABC):
 
         gauss.full_option_values('route', opt_name, "Cartesian")
 
+
 @AutoHandle.register
 class Restart(GaussErrorHandle, ABC):
     """ Handle Gaussian error by Restart """
@@ -916,3 +907,13 @@ class Restart(GaussErrorHandle, ABC):
         opt_name = self._find_keyword_name(route, 'opt')  # Get the actual user-give keyword for optimization
 
         gauss.full_option_values('route', opt_name, 'Restart')
+
+
+@AutoHandle.register
+class RerunFromLastConformer(GaussErrorHandle, ABC):
+    """ Handle the error by rerun the Gaussian from the last conformer """
+    def trigger(self, gauss: Gaussian) -> bool:
+        return True
+
+    def handle(self, gauss: Gaussian):
+        gauss.to_conformer()  # convert to the last conformer in the stdout

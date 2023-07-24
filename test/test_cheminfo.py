@@ -8,6 +8,7 @@ python v3.9.0
 Notes:
     Test `hotpot/cheminfo` module
 """
+from pathlib import Path
 import unittest as ut
 import hotpot as hp
 
@@ -16,7 +17,9 @@ class TestMolecule(ut.TestCase):
     """ Test `hotpot/cheminfo/Molecule` class """
     def test_read_from(self):
         """ test the `read_from` method """
-        mol_ab16log = hp.Molecule.read_from('examples/struct/abnormal_output.log', 'g16log', force=True)
+        mol_ab16log = hp.Molecule.read_from(
+            Path('../examples/struct/abnormal_output.log').absolute(), 'g16log', force=True
+        )
 
         self.assertIsInstance(mol_ab16log, hp.Molecule)
         self.assertTrue(mol_ab16log.has_3d)

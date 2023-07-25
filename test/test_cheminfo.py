@@ -11,15 +11,28 @@ Notes:
 from pathlib import Path
 import unittest as ut
 import hotpot as hp
+import hotpot.cheminfo as ci
 
 
 class TestMolecule(ut.TestCase):
     """ Test `hotpot/cheminfo/Molecule` class """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        print('Test', cls.__class__)
+
+    def setUp(self) -> None:
+        print('running test:', self._testMethodName)
+
     def test_read_from(self):
         """ test the `read_from` method """
         mol_path = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'struct', 'abnormal_output.log')
-        mol_ab16log = hp.Molecule.read_from(mol_path, 'g16log', force=True)
+        mol = hp.Molecule.read_from(mol_path, 'g16log', force=True)
 
-        self.assertIsInstance(mol_ab16log, hp.Molecule)
-        self.assertTrue(mol_ab16log.has_3d)
-        self.assertGreater(mol_ab16log.conformer_counts, 1)
+        self.assertIsInstance(mol, hp.Molecule)
+        self.assertTrue(mol.has_3d)
+        self.assertGreater(mol.conformer_counts, 1)  # the read molecule should have multiply conformers
+
+        # Test the accessibility of Molecule attributes
+        self.assertIsInstance(mol.atoms[0], ci.Atom)
+        self.assertIsInstance(mol.bonds[0], ci.Bond)

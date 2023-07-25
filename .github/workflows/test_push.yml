@@ -39,11 +39,25 @@ jobs:
           auto-update-base: false
           environment-file: environment.yml
           python-version: '3.9'
+
       - run: |
           conda info
           conda list
-
-      - name: Run tests
-        run: python -m unittest
         working-directory: ${{ github.workspace }}
 
+      - name: Install coverage
+        run: pip install coverage
+
+      - name: Run tests by coverage
+        run: |
+          coverage run --source hotpot -m unittest
+          coverage xml -i
+        env:
+          COVERAGE_RUN: True
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

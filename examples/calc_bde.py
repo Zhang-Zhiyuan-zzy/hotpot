@@ -17,7 +17,7 @@ import hotpot as hp
 
 if __name__ == '__main__':
 
-    START_NUM = 8
+    START_NUM = 14
 
     path_smiles = Path('/home/zz1/proj/be/struct/choice_ligand')
     g16root = '/home/pub'
@@ -35,6 +35,6 @@ if __name__ == '__main__':
             continue
 
         pair_bundle.determine_metal_ligand_bind_energy(
-            g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)', cpu_uti=0.75,
+            g16root, work_dir.joinpath(str(i)), 'M062X', 'Def2SVP', 'SCRF pop(Always)', cpu_uti=0.5,
             skip_complete=True
         )

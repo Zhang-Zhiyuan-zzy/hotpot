@@ -93,6 +93,8 @@ class DeepSystem:
         data = copy(self.data)
         if not isinstance(item, (int, slice, np.ndarray)):
             raise TypeError('the item should be int, slice or numpy.ndarray')
+        elif isinstance(item, int):
+            item = slice(item, item+1)
 
         for name in self.share_same_conformers:
             arrays = self.data.get(name)

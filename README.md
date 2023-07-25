@@ -170,6 +170,7 @@ want to create a dataset to train a [deep potential](https://tutorials.deepmodel
 model using this data, we can utilize "MolBundle" to efficiently read all the `Gaussian` computation data on a large
 scale and convert it into the required dataset [System](https://docs.deepmodeling.com/projects/deepmd/en/master/data/system.html) 
 format for training the model:
+
 ```pycon
 import hotpot as hp
 from hotpot.bundle import DeepModelBundle
@@ -178,7 +179,7 @@ path_raw_data = 'path/to/gaussian/log'
 path_system = 'path/to/system'
 
 bundle = hp.MolBundle.read_from(
-    'g16log', path_raw_data, '*/*.log', num_proc=32
+    'g16log', path_raw_data, '*/*.log', nproc=32
 )
 
 # Convert to DeepModelBundle object with method to organize the molecular structures to System dataset

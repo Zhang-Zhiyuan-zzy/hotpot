@@ -183,7 +183,7 @@ class MolBundle:
             generate: bool = False,
             ranges: Union[Sequence[int], range] = None,
             condition: Callable = None,
-            num_proc: int = None
+            nproc: int = None
     ):
         """
         Read Molecule objects from a directory.
@@ -198,7 +198,7 @@ class MolBundle:
             condition(Callable): A callable object that takes two arguments (the path of the input file
                 and the corresponding Molecule object) and returns a boolean value indicating whether to include the
                 Molecule object in the output. Defaults to None.
-            num_proc: the number of process to read
+            nproc: the number of process to read
 
         Returns:
             List(Molecule) or Generator(Molecule)
@@ -246,7 +246,7 @@ class MolBundle:
             for i, source in enumerate(generate_path_or_string()):
 
                 # if the number of process more than num_proc, get the read molecule info and stop to start new process
-                while len(ps) >= num_proc:
+                while len(ps) >= nproc:
                     for p in ps:
                         if not p.is_alive():
                             mols_info.append(parent_conn.recv())
@@ -310,7 +310,7 @@ class MolBundle:
                 f'the read_dir should be a str, PathLike or iterable str, instead of {type(dir_or_strings)}'
             )
 
-        generator = mol_mp_generator() if num_proc else mol_generator()
+        generator = mol_mp_generator() if nproc else mol_generator()
 
         if generate:
             return cls(generator)

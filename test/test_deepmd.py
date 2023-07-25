@@ -28,8 +28,8 @@ class TestDeepModeling(ut.TestCase):
         print('running test:', self._testMethodName)
 
     def test_system_convert(self):
-        dir_log = Path('../test/inputs/glog')
-        dir_sys = Path('../test/output/dpmd_sys')
+        dir_log = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'glog')
+        dir_sys = Path(hp.hp_root).joinpath('..', 'test', 'output', 'dpmd_sys')
 
         _ = hp.MolBundle.read_from('g16log', dir_log)  # read by single processor
         bundle = hp.MolBundle.read_from('g16log', dir_log, nproc=4)  # read by multiply processor

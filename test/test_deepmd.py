@@ -55,7 +55,7 @@ class TestDeepModeling(ut.TestCase):
                 mol.conformer_select(i)
                 self.assertTrue(np.all(mol.coordinates.flatten() == c), "coordinates is not matched!")
 
-        dir_sys.mkdir()
+        dir_sys.mkdir(parents=True)
 
         # Save as standard system
         dir_std_sys = dir_sys.joinpath('std')

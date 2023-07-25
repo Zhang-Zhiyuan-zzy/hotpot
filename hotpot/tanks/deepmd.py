@@ -224,6 +224,11 @@ class DeepSystem:
                 np.save(str(set_root.joinpath(f'{name}.npy')), value)
 
 
+
+def read_system():
+    """"""
+
+
 def make_script():
     """"""
 

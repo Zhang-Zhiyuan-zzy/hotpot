@@ -701,9 +701,8 @@ class Debugger(ABC):
     def __call__(self, gauss: Gaussian) -> bool:
         """ Call for handle the g16 errors """
         if self.trigger(gauss):
-            self.notice()
-            self.handle(gauss)
-            return True
+            self.notice(gauss)
+            return self.handle(gauss)
 
         return False
 
@@ -738,7 +737,7 @@ class Debugger(ABC):
         """ Could the ErrorHandle is suitable for this error """
 
     @abstractmethod
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         """ Specified by the children classes """
 
     def notice(self, gauss: Gaussian):
@@ -782,9 +781,9 @@ class AutoDebug(Debugger, ABC):
 
         return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         handle = self.handles[self.applied_handle_name]
-        handle(gauss)
+        return handle(gauss)
 
 
 @AutoDebug.register
@@ -827,10 +826,17 @@ class Ignore(Debugger, ABC):
             if diff_energies.max() < 0.05 and diff_energies.min() / diff_energies.max() > 0.9:
                 return True
 
+            print(
+                f"the max energy diff: {diff_energies.max()}, "
+                f"min / max energy: {diff_energies.min() / diff_energies.max()}"
+            )
             return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         """ Continue the next work and save the calculation data """
+        gauss.stderr = ""
+        gauss.output.stderr = ""
+        return False  # more operate is no longer needed
 
 
 @AutoDebug.register
@@ -861,7 +867,7 @@ class ReOptiWithSASSurfaceSCRF(Debugger, ABC):
 
         return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         route = gauss.parsed_input['route']
 
         scrf_name = self._find_keyword_name(route, 'scrf')
@@ -882,10 +888,12 @@ class ReOptiWithSASSurfaceSCRF(Debugger, ABC):
         # if the optimization is unsuccessful, terminate
         if gauss.stderr:
             print('Fail to optimize in SAS surface!!!')
-            return None
+            return False
 
         gauss.to_conformer()
         gauss.parsed_input[new_other] = 'surface=ses AddSph'
+
+        return True
 
 
 @AutoDebug.register
@@ -895,11 +903,13 @@ class ReOptiByCartesian(Debugger, ABC):
         # If the error is ZMatrix trouble and the original task is optimization
         return gauss.output.is_ZMatrix_error and self._find_keyword_name(gauss.parsed_input['route'], 'opt')
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         route = gauss.parsed_input['route']
         opt_name = self._find_keyword_name(route, 'opt')
 
         gauss.full_option_values('route', opt_name, "Cartesian")
+
+        return True
 
 
 @AutoDebug.register
@@ -911,11 +921,13 @@ class Restart(Debugger, ABC):
 
         return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         route = gauss.parsed_input['route']
         opt_name = self._find_keyword_name(route, 'opt')  # Get the actual user-give keyword for optimization
 
         gauss.full_option_values('route', opt_name, 'Restart')
+
+        return True
 
 
 @AutoDebug.register
@@ -924,5 +936,6 @@ class RerunFromLastConformer(Debugger, ABC):
     def trigger(self, gauss: Gaussian) -> bool:
         return True
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         gauss.to_conformer()  # convert to the last conformer in the stdout
+        return True

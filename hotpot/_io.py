@@ -486,7 +486,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         """
         crystal = self.src.crystal()
         if not isinstance(crystal, ci.Crystal) or (
-                np.logical_not(crystal.vector >= 0.).any() and np.logical_not(crystal.vector < 0.).any()
+                np.logical_not(crystal.vectors >= 0.).any() and np.logical_not(crystal.vectors < 0.).any()
         ):
             self.src.compact_crystal(inplace=True)
 

@@ -505,7 +505,7 @@ class Molecule(Wrapper, ABC):
             origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
             ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
             dump_every: int = 100,
-    ):
+    ) -> "Molecule":
         """ to perform the melt-quench by call lmp.AmorphousMaker """
         am = lmp.AmorphousMaker(elements, force_field, density, a, b, c, alpha, beta, gamma)
         mol = am.melt_quench(
@@ -1369,7 +1369,7 @@ class Molecule(Wrapper, ABC):
             origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
             ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
             dump_every: int = 100
-    ):
+    ) -> "Molecule":
         """
         Create a Amorphous crystal materials by Melt-Quench process.
         This process is performed by LAMMPS package, make sure the LAMMPS is accessible.
@@ -1493,6 +1493,14 @@ class Molecule(Wrapper, ABC):
     @property
     def formula(self) -> str:
         return self.ob_mol.GetSpacedFormula()
+
+    @property
+    def frac_coordinates(self) -> np.ndarray:
+        crystal = self.crystal()
+        if not crystal:
+            raise AttributeError('the Molecule not in a crystal')
+
+        return np.dot(np.linalg.inv(crystal.matrix), self.coordinates.T).T
 
     def gaussian(
             self,
@@ -1906,7 +1914,7 @@ class Molecule(Wrapper, ABC):
             origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000.,
             ff_args: Sequence = (), path_writefile: Optional[str] = None, path_dump_to: Optional[str] = None,
             dump_every: int = 100
-    ):
+    ) -> "Molecule":
         """
         Create an Amorphous crystal materials by performing Melt-Quench process for this materials.
         This process is performed by LAMMPS package, make sure the LAMMPS is accessible.
@@ -3182,6 +3190,11 @@ class Crystal(Wrapper, ABC):
         }
 
     @property
+    def density(self) -> float:                         # Avogadro / angstrom^3
+        """ The density with kg/m^3 """
+        return self.pack_molecule.weight / self.volume * (6.02214076e23*1e-30)
+
+    @property
     def lattice_type(self) -> str:
         return self._lattice_type[self.ob_unit_cell.GetLatticeType()]
 
@@ -3194,6 +3207,15 @@ class Crystal(Wrapper, ABC):
         beta = self.ob_unit_cell.GetBeta()
         gamma = self.ob_unit_cell.GetGamma()
         return np.array([[a, b, c], [alpha, beta, gamma]])
+
+    @property
+    def matrix(self):
+        ob_mat = self.ob_unit_cell.GetCellMatrix()
+        return np.array([
+            [ob_mat.Get(0, 0), ob_mat.Get(0, 1), ob_mat.Get(0, 2)],
+            [ob_mat.Get(1, 0), ob_mat.Get(1, 1), ob_mat.Get(1, 2)],
+            [ob_mat.Get(2, 0), ob_mat.Get(2, 1), ob_mat.Get(2, 2)]
+        ])
 
     @property
     def molecule(self) -> Molecule:
@@ -3210,9 +3232,10 @@ class Crystal(Wrapper, ABC):
         if not mol:  # if you get None
             print(RuntimeWarning("the crystal doesn't contain any Molecule!"))
 
+        ob_unit_cell = ob.OBUnitCell(self.ob_unit_cell)
         pack_mol = mol.copy()
-        self.ob_unit_cell.FillUnitCell(pack_mol.ob_mol)  # Full the crystal
-        pack_mol._reorganize_atom_indices()  # Rearrange the atom indices.
+        ob_unit_cell.FillUnitCell(pack_mol.ob_mol)  # Full the crystal
+        _ = pack_mol.atoms  # Rearrange the atom indices.
 
         return pack_mol
 
@@ -3260,7 +3283,7 @@ class Crystal(Wrapper, ABC):
         return self.ob_unit_cell.GetCellVolume()
 
     @property
-    def vector(self):
+    def vectors(self):
         v1, v2, v3 = self.ob_unit_cell.GetCellVectors()
         return np.array([
             [v1.GetX(), v1.GetY(), v1.GetZ()],

@@ -92,7 +92,7 @@ class AmorphousMaker:
         fraction_coordinates = np.array([np.random.uniform(size=3) for _ in range(num_atom)])
 
         # the actual coordinates in the cartesian coordinates
-        cartesian_coordinates = np.matmul(cryst.vector, fraction_coordinates.T).T
+        cartesian_coordinates = np.matmul(cryst.vectors, fraction_coordinates.T).T
 
         distance_matrix = spatial.distance_matrix(cartesian_coordinates, cartesian_coordinates)
         distance_matrix = np.tril(distance_matrix, k=-1)

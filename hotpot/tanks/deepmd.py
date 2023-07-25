@@ -149,7 +149,7 @@ class DeepSystem:
         conf_num = len(mol.all_coordinates)
         crystal = mol.crystal()
         if crystal:
-            box = mol.crystal().vector  # angstrom
+            box = mol.crystal().vectors  # angstrom
             is_periodic = True
         else:
             box = np.zeros((3, 3))

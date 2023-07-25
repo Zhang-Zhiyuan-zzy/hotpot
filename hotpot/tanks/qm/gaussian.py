@@ -98,7 +98,7 @@ class GaussOut:
 
         return False
 
-    def report(self) -> list[str]:
+    def report(self, show_screen=False) -> list[str]:
         """ Report all error messages """
         error_judge = re.compile(r'is_.+_error')
 
@@ -106,8 +106,10 @@ class GaussOut:
         errors = []
         for name in self.__dir__():
             if hasattr(self, name) and error_judge.fullmatch(name) and getattr(self, name):
-                print(f'\t--{name[3:]};')
                 errors.append(name)
+
+                if show_screen:
+                    print(f'\t--{name[3:]};')
 
         return errors
 
@@ -739,8 +741,12 @@ class Debugger(ABC):
     def handle(self, gauss: Gaussian):
         """ Specified by the children classes """
 
-    def notice(self):
-        print(f'Gauss Debug by {self.__class__.__name__}')
+    def notice(self, gauss: Gaussian):
+        errors = gauss.output.report()
+        if not errors:
+            print(f"Gauss meet {gauss.output.error_link} error -> debug by {self.__class__.__name__}")
+        else:
+            print(f"Gauss meet {', '.join(errors)} error -> debug by {self.__class__.__name__}")
 
 
 class AutoDebug(Debugger, ABC):
@@ -748,6 +754,11 @@ class AutoDebug(Debugger, ABC):
     _handles = {}
 
     def __init__(self, *selected_method: str, invert=False):
+        """
+        Args:
+            *selected_method: if given, only the selected methods will be applied to debug
+            invert: if is true, the selected_method will be excluded from the debuggers set
+        """
         if not selected_method:
             self.handles = {name: handle() for name, handle in self._handles.items()}
         else:

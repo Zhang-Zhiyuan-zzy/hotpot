@@ -132,6 +132,7 @@ print(mol.coordinates)  # get the coordinates matrix after optimizing by gaussia
 The Gaussian program will run and handle some common error report automatically. To handle errors with more elaborate
 methods, user can custom a new debugger by inherit from the hotpot.tanks.quantum.GaussErrorHandle, seeing 
 documentation for more details.
+
 ### Submit the Molecule(Framework) to LAMMPS to perform grand canonical Monte-Carlo simulation
 Suppose that you want to determine the Uptake of carbon dioxide in a metal-organic framework at 298.15 K and 0.5 bar
 ```pycon
@@ -185,6 +186,42 @@ bundle = hp.MolBundle.read_from(
 # Convert to DeepModelBundle object with method to organize the molecular structures to System dataset
 bundle: DeepModelBundle = bundle.to('DeepModelBundle')
 bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
+
+# Or, the user could get the System object export from the Molecule directly
+```
+
+`hotpot` is currently making every effort to support the use of various computational tools from the Deep Modeling
+community. In addition to organize the quantum calculation data and save them to disk directly, the `hotpot`
+now allowed build `Molecule` object from dpdata [System] and [LabeledSystem] object.
+```python
+from pathlib import Path
+
+import hotpot as hp
+from hotpot.tanks.deepmd import read_system
+
+data_root_dir = "path/to/data"
+
+# Read MultiSystem object
+ms = read_system(data_root_dir, file_pattern='**/*.log', fmt="gaussian/md")
+
+mols = []
+for ls in ms:
+    mol = hp.Molecule.build_from_dpdata_system(ls)
+    mols.append(mol)
+
+# Supposed that I want to know the process of breaking and generating of bonds of the first Molecule
+struct_dir = Path('path/to/struct/save')
+img_dir = Path('path/to/img/save')
+mol = mols[0]
+# Iterating each conformer in the quantum chemistry calculation
+for i in range(mol.conformer_counts):
+    mol.conformer_select(i)
+    mol.remove_bonds(*mol.bonds)  # Clear all pre-build bonds
+    mol.build_bonds()  # rebuild bonds according to the point cloud of atoms
+    mol.assign_bond_types()
+
+    mol.writefile(struct_dir.joinpath(f"{i}.mol2"))  # Save the 3D mol structure with built bonds to mol2 file
+    mol.save_2d_img(img_dir.joinpath(f'{i}.png'))  # Save the 2d img structure to png file
 ```
 
 ## TroubleShooting

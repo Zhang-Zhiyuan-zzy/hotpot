@@ -1,16 +1,93 @@
 {
   "link0": {
-    "nproc": "float",
-    "Mem": "float",
+    "nproc": "int",
+    "CPU": "str",
+    "Mem": "str",
     "chk": "str",
     "rwf": "str",
     "NoSave": null
   },
   "route": {
+    "method": {
+      "SELECTION": null,
+      "B3LYP": null,
+      "M062X": null,
+      "HF": null
+    },
+    "basis": {
+      "SELECTION": null,
+      "STO-3G": null,
+      "3-21G": null,
+      "6-21G": null,
+      "4-31G": null,
+      "6-31G": null,
+      "6-311G": null,
+      "D95V": null,
+      "D95": null,
+      "SHC": null,
+      "CEP-4G": null,
+      "CEP-31G": null,
+      "CEP-121G": null,
+      "LanL2MB": null,
+      "LanL2DZ": null,
+      "SDD": null,
+      "Def2SVP": null
+    },
     "opt": {
-      "convergence": ["Loose", "Tight", "VeryTight", "EigenTest", "Expert"],
-      "algorithm": ["GEDIIS", "RFO", "EF"],
-      "ONIOM": ["Micro", "QuadMacro"]
+      "MaxCycles": "int",
+      "MaxStep": "int",
+      "restart": null,
+      "InitialHarmonic": {
+        "SELECTION": null,
+        "InitialHarmonic": "int",
+        "IHarmonic": "int"
+      },
+      "ChkHarmonic": {
+        "SELECTION": null,
+        "ChkHarmonic": "int",
+        "CHarmonic": "int"
+      },
+      "ReadHarmonic": {
+        "SELECTION": null,
+        "ReadHarmonic": "int",
+        "RHarmonic": "int"
+      },
+      "MaxMicroiterations": "int",
+      "convergence": {
+        "SELECTION": null,
+        "Loose": null,
+        "Tight": null,
+        "VeryTight": null,
+        "EigenTest": null,
+        "Expert": null
+      },
+      "algorithm": {
+        "SELECTION": null,
+        "GEDIIS": null,
+        "RFO": null,
+        "EF": null
+      },
+      "ONIOM": {
+        "SELECTION": null,
+        "Micro": null,
+        "QuadMacro": null
+      },
+      "Coordinate": {
+        "SELECTION": null,
+        "Redundant": null,
+        "Z-Matrix": null,
+        "Cartesian": null
+      },
+      "GIC": {
+        "SELECTION": null,
+        "GIC": null,
+        "AddGIC": null,
+        "GICOld": null,
+        "ReadAllGIC": null
+      }
+    },
+    "CBSExtrap": {
+      "NMin": "int"
     }
   }
 }

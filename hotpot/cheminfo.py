@@ -17,8 +17,10 @@ from os.path import join as opj
 from pathlib import Path
 from typing import *
 from itertools import product
+from collections import Counter
 
 import numpy as np
+import dpdata
 from openbabel import openbabel as ob, pybel as pb
 from rdkit import Chem
 from rdkit.Chem import Draw
@@ -254,6 +256,38 @@ class MolLinker:
         data.update(update_data)
 
         self.mol.update_attr_data({self.__class__.__name__: all_angle_data})
+
+
+class _ConformerSetter:
+    """
+    A convenient class for setting conformer related attributes from an overall perspective。
+
+    Changes in conformer involve changes in attributes of multiple classes objects. When the
+    conformer attributes of one object change, the conformer attributes of other related
+    classes should make corresponding changes. This private class collect all these corresponding
+    class and their conformer attributes together, operate all these attribute by the uniform
+    interface.
+    """
+    # All Molecule attribute's items relating to molecule conformers
+    conformer_items = (
+        # the items are ranked by the number of values for each atom, for example:
+        #   - the all_atom_charges and atom_spin_densities have 1 value for each atom, so they are placed in the second
+        #     item (with the index 1)
+        #   - the coordinates have 3 values for each atom, i.e., [x, y, z], so it is placed in the forth
+        #     item (with the index 3）
+        # For the molecular attributes, which have only one value for each conformer and represent the attribute
+        # of whole molecule, they are place in the first item (with the index 0)
+        ('all_energy', 'identifier_array', 'all_virials'),
+        ('all_atom_charges', 'all_atom_spin_densities'),
+        (),
+        ('all_coordinates', 'all_forces')
+    )
+
+    def __init__(self):
+        """"""
+
+    def set_mol_attr(self, name: str, values: np.ndarray):
+        """"""
 
 
 class Molecule(Wrapper, ABC):
@@ -643,16 +677,21 @@ class Molecule(Wrapper, ABC):
 
         self._data['all_coordinates'] = all_coordinates
 
-    def _set_coordinates(self, coordinates: np.ndarray):
-        """ Assign the coordinates for all atoms in the molecule """
-        assert isinstance(coordinates, np.ndarray)
-        assert coordinates.shape == (self.atom_counts, 3)
+    def _set_all_forces(self, all_forces: np.ndarray):
+        """ Store the force matrix into the attribute dict """
+        if not isinstance(all_forces, np.ndarray):
+            raise TypeError('the all_forces should be np.ndarray')
 
-        for a, c in zip(self.atoms, coordinates):
-            a.coordinates = c
+        if len(all_forces.shape) != 3:
+            raise ValueError('the length of shape of all_forces should be 3')
+
+        if all_forces.shape[-2] != self.atom_counts:
+            raise ValueError('the give all_forces do not match to the number of atoms')
+
+        self._data['all_forces'] = all_forces
 
     def _set_atom_charges(self, charge: Union[Sequence, np.ndarray]):
-        """ Set partial charge for each atoms in the mol """
+        """ Set partial charge for each atom in the mol """
         if not isinstance(charge, (Sequence, np.ndarray)):
             raise TypeError(f'the charge should be a sequence or np.ndarray, got {type(charge)}')
 
@@ -712,8 +751,16 @@ class Molecule(Wrapper, ABC):
         for atom, sp in zip(self.atoms, spd):
             atom.spin_density = sp
 
+    def _set_coordinates(self, coordinates: np.ndarray):
+        """ Assign the coordinates for all atoms in the molecule """
+        assert isinstance(coordinates, np.ndarray)
+        assert coordinates.shape == (self.atom_counts, 3)
+
+        for a, c in zip(self.atoms, coordinates):
+            a.coordinates = c
+
     def _set_forces(self, forces: np.ndarray):
-        """ Set the force vectors for each atoms in the molecule """
+        """ Set the force vectors for each atom in the molecule """
         if not isinstance(forces, np.ndarray):
             raise TypeError('the forces should be np.ndarray')
 
@@ -723,21 +770,8 @@ class Molecule(Wrapper, ABC):
         if forces.shape[-2] != self.atom_counts:
             raise ValueError('the give forces do not match to the number of atoms')
 
-        for atom, force_vector in zip(self.atoms, forces):
-            atom.force_vector = force_vector
-
-    def _set_all_forces(self, all_forces: np.ndarray):
-        """ Store the force matrix into the attribute dict """
-        if not isinstance(all_forces, np.ndarray):
-            raise TypeError('the all_forces should be np.ndarray')
-
-        if len(all_forces.shape) != 3:
-            raise ValueError('the length of shape of all_forces should be 3')
-
-        if all_forces.shape[-2] != self.atom_counts:
-            raise ValueError('the give all_forces do not match to the number of atoms')
-
-        self._data['all_forces'] = all_forces
+        for atom, atom_forces in zip(self.atoms, forces):
+            atom.forces = atom_forces
 
     def _set_mol_charge(self, charge: int):
         self.ob_mol.SetTotalCharge(charge)
@@ -1013,7 +1047,7 @@ class Molecule(Wrapper, ABC):
         return self._load_atoms()
 
     @property
-    def atoms_with_unique_symbol(self):
+    def atoms_with_unique_symbol(self) -> list["Atom"]:
         uni_atoms, uni_symbol = [], set()
         for a in self.pseudo_atoms:
             if a.symbol not in uni_symbol:
@@ -1213,6 +1247,51 @@ class Molecule(Wrapper, ABC):
 
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
+
+    @classmethod
+    def build_from_dpdata_system(cls, dp_sys: dpdata.System):
+        """ build a Molecule object from the dpdata System data """
+        def _try_set(mol_attr: str, sys_attr: str):
+            try:
+                attrs = {mol_attr: dp_sys[sys_attr]}
+                mol.set(**attrs)
+            except KeyError:
+                pass
+
+        if len(dp_sys) == 0:
+            raise ValueError('The given system not contain information')
+        elif len(dp_sys) == 1:
+            cells = dp_sys['cells']
+        else:
+            cells1 = dp_sys['cells'][:-1]
+            cells2 = dp_sys['cells'][1:]
+
+            if np.allclose(cells1, cells2):
+                cells = dp_sys['cells'][0]
+            else:
+                raise ValueError('This method require all cell matrix in the systems are congruence!')
+
+        mol = cls()
+
+        atomic_symbols = np.array(dp_sys['atom_names'])[dp_sys['atom_types']]
+        atomic_numbers = np.array([ob.GetAtomicNum(s) for s in atomic_symbols])
+        mol.quick_build_atoms(atomic_numbers)
+
+        # create crystal if the system cell not 100.0*E
+        if not np.allclose(cells, 100.*np.eye(3)):
+            mol.create_crystal_by_matrix(cells)
+
+        mol.set(all_coordinates=dp_sys['coords'])
+
+        # Try to
+        if isinstance(dp_sys, dpdata.LabeledSystem):
+            _try_set("all_energy", "energies")
+            _try_set("all_forces", "forces")
+            _try_set("all_virials", "virials")
+
+        mol.conformer_select(-1)
+
+        return mol
 
     @property
     def center_of_masses(self):
@@ -1431,6 +1510,11 @@ class Molecule(Wrapper, ABC):
         return dumper()
 
     @property
+    def element_counts(self) -> dict[str, int]:
+        """ Retrieve the counts of each element in the molecule """
+        return Counter(self.atomic_symbols)
+
+    @property
     def elements(self) -> list[str]:
         return re.findall(r'[A-Z][a-z]*', self.formula)
 
@@ -1480,7 +1564,7 @@ class Molecule(Wrapper, ABC):
     @property
     def forces(self):
         """ return the all force vectors for all atoms in the molecule """
-        return np.vstack((atom.force_vector for atom in self.atoms))
+        return np.vstack((atom.forces for atom in self.atoms))
 
     @property
     def all_forces(self):
@@ -1742,7 +1826,8 @@ class Molecule(Wrapper, ABC):
                 metal_symbol,
                 acceptor_atoms,
                 opti_force_field,
-                opti_before_gen
+                opti_before_gen,
+                opti_step
             )),
         )
 
@@ -2130,7 +2215,7 @@ class Molecule(Wrapper, ABC):
 
             # Removing the atom
             self.ob_mol.DeleteAtom(atom.ob_atom)
-            atom._data['mol'] = None
+            atom.molecule = None
 
         # Reload atoms
         self._load_atoms()
@@ -2305,6 +2390,24 @@ class Molecule(Wrapper, ABC):
         """
         system: DeepSystem = self.dump('dpmd_sys')
         system(system_dir, mode, validate_ratio, validate_dir)
+
+    def to_dp_system(self) -> dpdata.System:
+        """ Export the molecule conformer info to dpdata system object """
+        system = dpdata.LabeledSystem() if self.energy else dpdata.System
+
+        system.data['atom_names'], system.data['atom_numbs'] = self.element_counts.items()
+        system.data['atom_types'] = np.array([system['atom_names'].index(s) for s in self.atomic_symbols])
+        system.data['coords'] = self.all_coordinates
+
+        if self.crystal():
+            self.data['cells'] = self.crystal().matrix
+
+        if isinstance(system, dpdata.LabeledSystem):
+            system.data['energies'] = self.all_energy
+            system.data['forces'] = self.all_forces
+            # system.data['virials'] = self.all_virals  TODO
+
+        return system
 
     def to_mix_mol(self):
         """ Convert this Molecule object to MixSaveAtomMol """
@@ -2516,6 +2619,7 @@ class Atom(Wrapper, ABC):
             'symbol': self._set_atomic_symbol,
             'coordinates': self._set_coordinate,
             'formal_charge': self._set_formal_charge,
+            'forces': self._set_forces,
             'partial_charge': self._set_partial_charge,
             'label': self._set_label,
             'ob_id': self._set_ob_id,
@@ -2531,18 +2635,18 @@ class Atom(Wrapper, ABC):
     def _set_coordinate(self, coordinates):
         self.ob_atom.SetVector(*coordinates)
 
-    def _set_force_vector(self, force_vector: Union[Sequence, np.ndarray]):
-        if isinstance(force_vector, Sequence):
-            if all(isinstance(f, float) for f in force_vector):
-                force_vector = np.array(force_vector)
+    def _set_forces(self, forces: Union[Sequence, np.ndarray]):
+        if isinstance(forces, Sequence):
+            if all(isinstance(f, float) for f in forces):
+                forces = np.array(forces)
             else:
-                ValueError('the give force_vector must float vector with dimension 3')
-        elif isinstance(force_vector, np.ndarray):
-            force_vector = force_vector.flatten()
+                ValueError('the give forces must float vector with dimension 3')
+        elif isinstance(forces, np.ndarray):
+            forces = forces.flatten()
         else:
             raise TypeError('the force vector should be Sequence or np.ndarray')
 
-        self._data['force_vector'] = force_vector
+        self._data['forces'] = forces
 
     def _set_formal_charge(self, charge: float):
         self.ob_atom.SetFormalCharge(charge)
@@ -2582,7 +2686,7 @@ class Atom(Wrapper, ABC):
         self.add_atom('H')
 
     @property
-    def atomic_number(self):
+    def atomic_number(self) -> int:
         return self.ob_atom.GetAtomicNum()
 
     def balance_hydrogen(self):
@@ -2705,12 +2809,13 @@ class Atom(Wrapper, ABC):
         return atom_orbital_feature
 
     @property
-    def force_vector(self):
-        return self._data.get('force_vector', np.zeros(3, dtype=float))
+    def forces(self):
+        """ The force vector of atoms """
+        return self._data.get('forces', np.zeros(3, dtype=float))
 
-    @force_vector.setter
-    def force_vector(self, force_vector: Union[Sequence, np.ndarray]):
-        self._set_force_vector(force_vector)
+    @forces.setter
+    def forces(self, forces: Union[Sequence, np.ndarray]):
+        self._set_forces(forces)
 
     @property
     def formal_charge(self) -> float:
@@ -3209,7 +3314,7 @@ class Crystal(Wrapper, ABC):
         return np.array([[a, b, c], [alpha, beta, gamma]])
 
     @property
-    def matrix(self):
+    def matrix(self) -> np.ndarray:
         ob_mat = self.ob_unit_cell.GetCellMatrix()
         return np.array([
             [ob_mat.Get(0, 0), ob_mat.Get(0, 1), ob_mat.Get(0, 2)],

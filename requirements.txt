@@ -10,3 +10,4 @@ rdkit
 thermo=0.2.26
 pandas
 psutil
+dpdata

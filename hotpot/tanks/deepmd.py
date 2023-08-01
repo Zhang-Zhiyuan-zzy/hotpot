@@ -14,6 +14,8 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
+import dpdata
+from tqdm import tqdm
 
 from hotpot import data_root
 from hotpot.cheminfo import Molecule, periodic_table
@@ -224,9 +226,32 @@ class DeepSystem:
                 np.save(str(set_root.joinpath(f'{name}.npy')), value)
 
 
+def read_system(
+        root_sys: Union[str, os.PathLike],
+        file_pattern: str = "**/*",
+        fmt: str = 'auto',
+        ranges: Union[range, Sequence] = None,
+        **kwargs
+):
+    """ Read the deepmodeling system files under a root dir to DeepSystem object """
+    root_sys = Path(root_sys)
 
-def read_system():
-    """"""
+    msys = dpdata.MultiSystems()
+    for i, fp in tqdm(enumerate(root_sys.glob(file_pattern))):
+
+        if ranges and i not in ranges:
+            continue
+
+        try:
+            ls = dpdata.LabeledSystem(str(fp), fmt, **kwargs)
+
+            if len(ls):
+                msys.append(ls)
+
+        except IOError:
+            print(f"fail to read {fp}")
+
+    return msys
 
 
 def make_script():

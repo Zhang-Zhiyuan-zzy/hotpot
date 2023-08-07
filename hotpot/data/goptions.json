@@ -33,7 +33,7 @@
       "SDD": null,
       "Def2SVP": null
     },
-    "opt": {
+    "optimization": {
       "MaxCycles": "int",
       "MaxStep": "int",
       "restart": null,
@@ -88,6 +88,75 @@
     },
     "CBSExtrap": {
       "NMin": "int"
+    },
+    "SCRF": {
+      "Solvent": "str",
+      "Method": {
+        "SELECTION": null,
+        "PCM": null,
+        "CPCM": null,
+        "Dipole": null,
+        "IPCM": null,
+        "SCIPCM": null
+      },
+      "SMD": null,
+      "Read": "input",
+      "NonEquilibrium": {
+        "SELECTION": null,
+        "Save": null,
+        "Write": null,
+        "Read": null,
+        "Load": null,
+        "CCSave": null,
+        "CCWrite": null,
+        "CCRead": null,
+        "CCLoad": null
+      },
+      "SolventAccessibleSurface": null,
+      "SAS": null,
+      "AsymmetricIEFPCM": {
+        "AsymmetricIEFPCM": null,
+        "AIEFPCM": null,
+        "PTED": null,
+        "CorrectedLinearResponse": null,
+        "Checkpoint": null,
+        "Modify": null,
+        "ONIOMPCM": {
+          "SELECTION": null,
+          "A": null,
+          "B": null,
+          "C": null,
+          "X": null
+        },
+        "G09Default": null,
+        "G03Default": null,
+        "IPCM ": {
+          "SELECTION": null,
+          "GradVne": null,
+          "GradRho": null
+        },
+        "SCIPCM ": {
+          "SELECTION": null,
+          "UseDensity": null,
+          "UseMOs": null,
+          "GasCavity": null
+        },
+        "SaveQ": null,
+        "LoadQ": null,
+        "COSMORS": null
+      }
+
+    },
+    "Population": {
+      "None": null,
+      "Minimal": null,
+      "Full": null,
+      "Always": null,
+      "Orbitals": {
+        "Orbitals": "int",
+        "AllOrbitals": null
+      },
+      "ThreshOrbitals": "int"
     }
   }
 }

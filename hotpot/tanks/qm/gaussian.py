@@ -148,13 +148,18 @@ class OptionPath:
         if self.is_leaf:
             raise AttributeError('This is a leaf OptionPath, do not have any child path!')
 
-        if child_name in self.subtree:
-            if self.is_root:
-                return self.__class__(child_name)
-            else:
-                return self.__class__(f"{self.path}.{child_name}")
-        else:
-            raise KeyError(f'the {child_name} not the child of {self.path}')
+        _child_path = child_name if self.is_root else self.path + f".{child_name}"
+        child_path = self.get_normalize_path(_child_path)
+
+        return self.__class__(child_path)
+
+        # if child_name in self.subtree:
+        #     if self.is_root:
+        #         return self.__class__(child_name)
+        #     else:
+        #         return self.__class__(f"{self.path}.{child_name}")
+        # else:
+        #     raise KeyError(f'the {child_name} not the child of {self.path}')
 
     @staticmethod
     def get_normalize_path(path: Union[str, "OptionPath"]) -> str:

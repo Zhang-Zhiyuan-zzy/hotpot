@@ -1,15 +1,8 @@
 name: Test Workflow
 
 on:
-  push:
-    branches:
-      - master
-      - dev
-
-  pull_request:
-    branches:
-      - master
-      - dev
+  - push
+  - pull_request
 
 jobs:
   test:

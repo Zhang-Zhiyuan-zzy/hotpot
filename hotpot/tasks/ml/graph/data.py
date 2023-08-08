@@ -16,4 +16,10 @@ from hotpot.bundle import MolBundle
 
 def mols2graphs(mols: Union[Sequence[Molecule], MolBundle], *feature_names: str):
     """"""
+    data = []
+    for mol in mols:
+        idt, feat, adj = mol.graph_representation(*feature_names)
+        data.append(pyg.data.Data(x=feat, edge_index=adj, idt=idt))
+
+    return data
 

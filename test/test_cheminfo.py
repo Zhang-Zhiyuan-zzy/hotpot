@@ -15,6 +15,7 @@ import numpy as np
 
 import hotpot as hp
 import hotpot.cheminfo as ci
+import test
 
 
 class TestMolecule(ut.TestCase):
@@ -67,4 +68,25 @@ class TestMolecule(ut.TestCase):
         matrix = crystal.matrix
         crystal.set_matrix(matrix)
         self.assertTrue(np.all(matrix == crystal.matrix), "the crystal matrix could be specified?")
+
+    def test_graph_representation(self):
+        """ test convert a molecule to graph representation """
+        mol = hp.Molecule.read_from(test.test_root.joinpath("inputs/struct/Bi-ligand.mol2"))
+
+        idt, feat, adj = mol.graph_representation()
+
+        true_feat = np.array(
+            [[8, 2, 2, 4, 0, 0],
+             [8, 2, 2, 4, 0, 0],
+             [6, 2, 2, 2, 0, 0],
+             [6, 2, 2, 2, 0, 0],
+             [8, 2, 2, 4, 0, 0],
+             [8, 2, 2, 4, 0, 0],
+             [83, 6, 2, 3, 10, 14]])
+
+        true_adj = np.array([[0, 1, 2, 3, 3, 6], [2, 2, 3, 4, 5, 4]])
+
+        self.assertEqual(idt, "Bi-ligand")
+        self.assertTrue(np.all(feat == true_feat), "the feature matrix can't match")
+        self.assertTrue(np.all(true_adj == adj), "the adjacency can't match")
 

@@ -162,4 +162,8 @@ dependencies:
       - thermo==0.2.26
       - tqdm==4.65.0
       - dpdata
+      - torch
+      - torchvision
+      - torchaudio
+      - torch_geometric
 prefix: /home/zzy/sw/conda3/envs/hp

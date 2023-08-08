@@ -95,6 +95,6 @@ class TestGaussian(ut.TestCase):
 
         route, opt, coordinate, cartesian = gauss.op.path.get_normalize_path('route.opt.coor.Car').split('.')
         self.assertEqual(route, "route")
-        self.assertEqual(opt, 'optimization')
+        self.assertEqual(opt, 'Optimization')
         self.assertEqual(coordinate, "Coordinate")
         self.assertEqual(cartesian, "Cartesian")

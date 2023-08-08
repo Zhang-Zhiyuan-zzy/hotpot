@@ -1,5 +1,5 @@
 @<TRIPOS>MOLECULE
-Cs-VOHSAM-5
+Bi-ligand
      7     6     1     0     0
 SMALL
 NO_CHARGES
@@ -13,7 +13,7 @@ Generated from the CSD
      4 C2       0.1693   3.7039   6.3030   C.2       1 RES1   0.0000
      5 O3       1.2962   3.2376   6.7494   O.co2     1 RES1   0.0000
      6 O4       0.0279   4.5218   5.4168   O.co2     1 RES1   0.0000
-     7 Cs1      1.8518   0.2041   6.4902   Cs        1 RES1   0.0000
+     7 Bi      1.8518   0.2041   6.4902   Bi        1 RES1   0.0000
 @<TRIPOS>BOND
      1     1     3   un
      2     2     3   un

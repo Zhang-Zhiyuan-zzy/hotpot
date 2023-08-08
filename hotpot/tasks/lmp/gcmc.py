@@ -245,4 +245,4 @@ class LjGCMC:
 
 
 import hotpot.cheminfo as ci
-from hotpot.tanks.lmp.base import HpLammps
+from hotpot.tasks.lmp.base import HpLammps

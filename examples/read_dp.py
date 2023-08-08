@@ -7,7 +7,7 @@ python v3.9.0
 @Time   : 12:15
 """
 from pathlib import Path
-from hotpot.tanks.deepmd import read_system
+from hotpot.tasks.deepmd import read_system
 import hotpot as hp
 from tqdm import tqdm
 

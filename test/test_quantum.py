@@ -9,7 +9,7 @@ python v3.9.0
 import os
 import unittest as ut
 import hotpot as hp
-from hotpot.tanks.qm.gaussian import Gaussian
+from hotpot.tasks.qm.gaussian import Gaussian
 
 
 class TestGaussian(ut.TestCase):

@@ -20,7 +20,7 @@ import cclib
 import numpy as np
 
 import hotpot.cheminfo as ci
-from hotpot.tanks.deepmd import DeepSystem
+from hotpot.tasks.deepmd import DeepSystem
 
 """
 Notes:

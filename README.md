@@ -193,11 +193,12 @@ bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
 `hotpot` is currently making every effort to support the use of various computational tools from the Deep Modeling
 community. In addition to organize the quantum calculation data and save them to disk directly, the `hotpot`
 now allowed build `Molecule` object from dpdata [System] and [LabeledSystem] object.
+
 ```python
 from pathlib import Path
 
 import hotpot as hp
-from hotpot.tanks.deepmd import read_system
+from hotpot.tasks.deepmd import read_system
 
 data_root_dir = "path/to/data"
 

@@ -33,7 +33,14 @@
       "SDD": null,
       "Def2SVP": null
     },
-    "optimization": {
+    "Optimization": {
+      "ReadOptimize": {
+        "SELECTION": null,
+        "ReadOptimize": "addition",
+        "ReadOpt": "addition",
+        "RdOpt": "addition"
+      },
+      "NoFreeze": null,
       "MaxCycles": "int",
       "MaxStep": "int",
       "restart": null,
@@ -53,6 +60,24 @@
         "RHarmonic": "int"
       },
       "MaxMicroiterations": "int",
+      "NGoUp": "int",
+      "NGoDown": "int",
+      "MaxEStep": "int",
+      "R2IFC": {
+        "SELECTION": null,
+        "ReadFC": null,
+        "CalcFC": null,
+        "RCFC": null,
+        "CalcHFFC": null,
+        "CalcAll": null,
+        "RecalcFC": "int",
+        "VCD": null,
+        "NoRaman": null,
+        "StarOnly": null,
+        "NewEstmFC": null,
+        "EstmFC": null,
+        "FCCards": null
+      },
       "convergence": {
         "SELECTION": null,
         "Loose": null,
@@ -83,8 +108,26 @@
         "GIC": null,
         "AddGIC": null,
         "GICOld": null,
-        "ReadAllGIC": null
-      }
+        "ReadAllGIC": null,
+        "ModRedundant": {
+          "SELECTION": null,
+          "ModRedundant": "addition",
+          "AddRedundant": "addition"
+        }
+      },
+      "Path": "?",
+      "OptReactant": null,
+      "BiMolecular": null,
+      "OptProduct": null,
+      "Linear": null,
+      "TrustUpdate": null,
+      "Newton": null,
+      "NRScale": null,
+      "Steep": null,
+      "UpdateMethod": "str",
+      "HFError": null,
+      "FineGridError": null,
+      "SG1Error": null
     },
     "CBSExtrap": {
       "NMin": "int"

@@ -26,8 +26,8 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 
 from hotpot import data_root
-from hotpot.tanks import lmp
-from hotpot.tanks.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
+from hotpot.tasks import lmp
+from hotpot.tasks.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
 from hotpot.utils.library import library as _lib  # The chemical library
 
 
@@ -1705,7 +1705,7 @@ class Molecule(Wrapper, ABC):
             T: the environmental temperature (default, 298.15 K)
             P: the relative pressure related to the saturation vapor in the environmental temperature.
         """
-        from tanks.lmp.gcmc import LjGCMC
+        from tasks.lmp.gcmc import LjGCMC
         gcmc = LjGCMC(self, force_field, *guest, work_dir=work_dir, T=T, P=P, **kwargs)
         return gcmc.run()
 
@@ -3538,5 +3538,5 @@ class ZMatrix:
 
 import hotpot.bundle as bd
 from hotpot._io import Dumper, Parser
-from hotpot.tanks.cc import PairBundle
-from hotpot.tanks.deepmd import DeepSystem
+from hotpot.tasks.cc import PairBundle
+from hotpot.tasks.deepmd import DeepSystem

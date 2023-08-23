@@ -378,10 +378,12 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _preprocess_for_gjf(self):
         """ Perform preprocess for  conversion of all gaussian input """
-        if not self.src.has_3d:
+        if not self.src.has_3d and not self.kwargs.get("not_build_3d"):
             self.src.build_3d()
 
-        self.src.assign_atoms_formal_charge()
+        if not self.kwargs.get("not_assign_atoms_formal_charge"):
+            self.src.assign_atoms_formal_charge()
+
         self.src.identifier = self.src.formula
 
     def _postprocess_for_gjf_head(self, script) -> (List[str], int):
@@ -413,17 +415,12 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         # Write route command
         if isinstance(route, str):
-            lines[1+inserted_lines] = f'# {route}'
+            line = f'# {route}'
         elif isinstance(route, list):
-            for i, stc in enumerate(route):
-                assert isinstance(stc, str)
-                if not i:  # For the first line of link0, replace the original line in raw script
-                    lines[1+inserted_lines] = f'#{stc}'
-                else:  # For the other lines, insert into after the original route line.
-                    inserted_lines += 1
-                    lines.insert(inserted_lines+1, f'%{stc}')
+            line = "# " + " ".join(route)
         else:
             raise TypeError('the route should be string or list of string')
+        lines[1 + inserted_lines] = line
 
         charge, spin = lines[5+inserted_lines].split()
         if custom_charge:

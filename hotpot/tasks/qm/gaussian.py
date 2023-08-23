@@ -1062,11 +1062,11 @@ class Gaussian:
 
         # Configure the input and output mode
         if self.output_in_running:
-            cmd = ['g16']
-            stdin = self.stdin
-        else:
             cmd = ['g16', str(self.p_input), str(self.p_output)]
             stdin = None
+        else:
+            cmd = ['g16']
+            stdin = self.stdin
 
         # Run Gaussian using subprocess
         if not test:

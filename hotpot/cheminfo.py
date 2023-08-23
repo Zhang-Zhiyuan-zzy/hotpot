@@ -20,6 +20,7 @@ from itertools import product
 from collections import Counter
 
 import numpy as np
+from scipy.spatial.distance import cdist
 import dpdata
 from openbabel import openbabel as ob, pybel as pb
 from rdkit import Chem
@@ -1047,6 +1048,11 @@ class Molecule(Wrapper, ABC):
         return self._load_atoms()
 
     @property
+    def atoms_dist_matrix(self) -> np.ndarray:
+        """ The distance matrix between each of atoms pairs """
+        return cdist(self.coordinates, self.coordinates)
+
+    @property
     def atoms_with_unique_symbol(self) -> list["Atom"]:
         uni_atoms, uni_symbol = [], set()
         for a in self.pseudo_atoms:
@@ -1597,6 +1603,7 @@ class Molecule(Wrapper, ABC):
             path_rwf_file: Union[str, PathLike] = None,
             inplace_attrs: bool = False,
             debugger: Union[str, Debugger] = 'auto',
+            output_in_running: bool = True,
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
@@ -1619,6 +1626,7 @@ class Molecule(Wrapper, ABC):
              the default method is the 'auto', which just to handle some common error case. More elaborate
              debugger could be handmade by inherit from `Debugger` abstract class. For detail, seeing
              the documentation.
+            output_in_running: Whether write the output file when the Gaussian process is running
             *args:
             **kwargs:
 
@@ -1648,7 +1656,7 @@ class Molecule(Wrapper, ABC):
         # Make the input gjf script
         script = self.dump('gjf', *args, link0=link0, route=route, **kwargs)
 
-        gauss = Gaussian(g16root)
+        gauss = Gaussian(g16root, output_in_running=output_in_running, **kwargs)
         gauss.path_rwf = path_rwf_file
         gauss.path_chk = path_chk_file
 
@@ -1907,6 +1915,25 @@ class Molecule(Wrapper, ABC):
             return True
 
         return False
+
+    @property
+    def is_pair(self):
+        """ is this molecule a metal-ligand pair,
+        seeing the definition in https://pubs.acs.org/doi/10.1021/acsami.2c05272 """
+        if len(self.components) != 1:
+            return False
+        elif self.atom_counts <= 3:
+            return False
+        elif len(self.metals) != 1:
+            return False
+        else:
+            clone = self.copy()
+            clone.remove_atoms(*clone.metals)
+
+            if clone.is_organic:
+                return True
+
+            return False
 
     def ob_copy(self):
         """ Return a clone of OBMol of the Molecule """
@@ -2704,6 +2731,63 @@ class Atom(Wrapper, ABC):
         """ Get all bonds link with the atoms """
         return [self.molecule.bonds_dict[obb.GetId()] for obb in ob.OBAtomBondIter(self.ob_atom)]
 
+    def calc_qm_energy(
+            self, g16root, method: str, basis: str, solvent: Union[str, bool] = None,
+            charge: int = None, _record: bool = False,
+            nproc: int = 16, **link0
+    ):
+        """
+        Calculate the atomic SCF energy by quantum mechanics
+        Args:
+            g16root:
+            method:
+            basis:
+            solvent:
+            charge: Specify the charge of the atoms, the default value is its stable charge
+            _record: whether record the calculated energy to the data json file.
+            nproc
+
+        Returns:
+            calculated energy
+        """
+        atom = self.copy()
+
+        if not charge:
+            if atom.is_metal:
+                charge = atom.stable_charge
+            else:
+                charge = 0
+
+        mol = Molecule()
+        mol.add_atom(atom, formal_charge=charge)
+
+        link0 = [f"nproc={nproc}"] + [f"{k}={v}" for k, v in link0.items()]
+        route = [method, basis] + (
+            [f"SCRF(solvent={solvent})" if isinstance(solvent, str) else "SCRF"] if solvent else []
+        )
+
+        script = mol.dump('gjf', link0=link0, route=route, not_build_3d=True, not_assign_atoms_formal_charge=True)
+
+        gauss = Gaussian(g16root)
+        gauss.run(script)
+
+        energy = gauss.molecule_setter_dict()['energy']
+
+        if _record:
+            path_atom_single_point = Path(data_root).joinpath('atom_single_point.json')
+
+            _atom_single_point = json.load(open(path_atom_single_point))
+            ele_dict = _atom_single_point.setdefault(atom.symbol, {})
+            ele_method_dict = ele_dict.setdefault(method, {})
+            ele_method_scrf_dict = ele_method_dict.setdefault(basis, {})
+            ele_method_scrf_charge_dict = ele_method_scrf_dict.setdefault(solvent, {})
+
+            ele_method_scrf_charge_dict[str(charge)] = energy
+
+            json.dump(_atom_single_point, open(path_atom_single_point, 'w'), indent=True)
+
+        return energy, charge
+
     @property
     def coordinates(self) -> (float, float, float):
         return self.ob_atom.GetX(), self.ob_atom.GetY(), self.ob_atom.GetZ()
@@ -2914,6 +2998,16 @@ class Atom(Wrapper, ABC):
         self._data['mol'] = mol
 
     @property
+    def nearest_atom(self) -> (np.ndarray, float):
+        """ Get the nearest atom and for this atom in same molecule and their distance """
+        if not self.molecule or self.molecule.atom_counts < 2:
+            return None
+        else:
+            dist_vector = self.molecule.atoms_dist_matrix[self.ob_id]
+            dist_vector[self.ob_id] = dist_vector.max() + 1
+            return self.molecule.atoms[dist_vector.argmin()], dist_vector.min()
+
+    @property
     def neighbours_hydrogen(self) -> List['Atom']:
         """ return all neigh hydrogen atoms """
         return [a for a in self.neighbours if a.is_hydrogen]
@@ -3015,6 +3109,25 @@ class Atom(Wrapper, ABC):
                 return 5
         else:
             return abs(_stable_charges[self.symbol])
+
+    @property
+    def stable_charge(self) -> int:
+        """ Guest the stable charge for this atom """
+        if self.is_polar_hydrogen:
+            return 1
+        elif self.is_hydrogen or self.is_carbon:
+            return 0
+        elif self.is_metal:
+            return _stable_charges[self.symbol]
+        elif [a for a in self.neighbours if a.is_polar_hydrogen]:
+            return -(len([a for a in self.neighbours if a.is_polar_hydrogen]))
+        elif self.symbol in ['S', 'P']:
+            if not [a for a in self.neighbours if a.symbol == 'O']:
+                return self.covalent_valence - (2 if self.symbol == 'S' else 3)
+            else:
+                return 0
+        else:
+            return self.covalent_valence - self.stable_valence
 
     @property
     def symbol(self) -> str:

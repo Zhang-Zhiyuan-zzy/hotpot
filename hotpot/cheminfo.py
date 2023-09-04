@@ -48,6 +48,8 @@ class AddBondFail(OperateOBMolFail):
 # periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
 periodic_table = _lib.get('PeriodicTable')  # hotpot.utils.library.PeriodicTabel
 
+_ob_builder = ob.OBBuilder()
+
 _stable_charges = {
     "H": 1,  "He": 0,
     "Li": 1, "Be": 2, "B": 3,  "C": 4,  "N": -3,  "O": -2,  "F": -1,  "Ne": 0,
@@ -1136,7 +1138,7 @@ class Molecule(Wrapper, ABC):
 
     def angle(self, a: Union[str, int], v: Union[str, int], b: Union[str, int]) -> 'Angle':
         """
-        Get a Angle from Molecule by ob_id or atom label
+        Get an Angle from Molecule by ob_id or atom label
         Args:
             a: the ob_id or atom label of the first end atom
             v: the ob_id or atom label of the vertex atom
@@ -1206,6 +1208,14 @@ class Molecule(Wrapper, ABC):
         return [b.pair_key for b in self.bonds]
 
     @property
+    def bond_types(self):
+        return [b.type_tuple for b in self.bonds]
+
+    @property
+    def bond_types_count(self):
+        return Counter(self.bond_types)
+
+    @property
     def bonds(self):
         bonds = self._load_bonds()
         return list(bonds.values())
@@ -1213,6 +1223,10 @@ class Molecule(Wrapper, ABC):
     @property
     def bonds_dict(self) -> Dict[int, 'Bond']:
         return self._load_bonds()
+
+    @property
+    def bonds_order(self) -> np.ndarray:
+        return np.array([b.type for b in self.bonds])
 
     def build_2d(self):
         """ build 2d conformer """
@@ -1224,8 +1238,8 @@ class Molecule(Wrapper, ABC):
         # Preserve atoms data before building
         preserve_atoms_data = self._preserve_atoms_data()
         preserve_bonds_data = self._preserve_bonds_data()
-        preserve_angles_data = self._preserve_angles_data()
-        preserve_torsion_data = self._preserve_torsion_data()
+        # preserve_angles_data = self._preserve_angles_data()
+        # preserve_torsion_data = self._preserve_torsion_data()
 
         # Destroy atoms and bonds wrappers
         self._data['atoms'] = {}
@@ -1242,8 +1256,8 @@ class Molecule(Wrapper, ABC):
         # Transfer preserve data to new
         self._transfer_preserve_data_to_new_atoms(self, preserve_atoms_data)
         self._transfer_preserve_data_to_new_bonds(self, preserve_bonds_data)
-        self._transfer_preserve_data_to_new_angles(self, preserve_angles_data)
-        self._transfer_preserve_data_to_new_torsions(self, preserve_torsion_data)
+        # self._transfer_preserve_data_to_new_angles(self, preserve_angles_data)
+        # self._transfer_preserve_data_to_new_torsions(self, preserve_torsion_data)
 
         # Delete temp label
         self._delete_atoms_temp_label()
@@ -1997,7 +2011,19 @@ class Molecule(Wrapper, ABC):
 
     @property
     def link_matrix(self):
-        return np.array([[b.ob_atom1_id, b.ob_atom2_id] for b in self.bonds]).T
+        """
+        Returns: numpy.Array with a shape of [2, 2*Nb], where the Nb is the number of bonds.
+
+        the indices in the first raw is the id of source atoms, the indices in the second raw is
+        the id of target atoms. Because of the molecules are always regard as an undirected graph,
+        representing the link relation of a bond needs two link edges, the number of columns is thus
+        2 * Nb.
+
+        the columns of link matrix, or edges, are arranged as the order of bonds. the i-th bonds
+        are referred by i-th and 2i-th edges.
+        """
+        directed_matrix = np.array([[b.ob_atom1_id, b.ob_atom2_id] for b in self.bonds]).T
+        return np.concatenate((directed_matrix, directed_matrix[::-1]), axis=1)
 
     def localed_optimize(self, force_field: str = 'UFF', steps: int = 500):
         """ Locally optimize the coordinates. seeing openbabel.pybel package """
@@ -2480,6 +2506,10 @@ class Molecule(Wrapper, ABC):
     @property
     def weight(self):
         return self.ob_mol.GetExactMass()
+
+    def unset_coordinates(self):
+        for atom in self.atoms:
+            atom.coordinates = (0., 0., 0.)
 
     def writefile(self, fmt: str, path_file, retrieve_script=False, *args, **kwargs):
         """Write the Molecule Info into a file with specific format(fmt)"""
@@ -3304,8 +3334,13 @@ class Bond(Wrapper, ABC):
         return _type_bond[self.type]
 
     @property
-    def type(self):
+    def type(self) -> int:
         return self.ob_bond.GetBondOrder()
+
+    @property
+    def type_tuple(self):
+        """"""
+        return tuple(sorted((self.atomic_number1, self.atomic_number2)) + [self.type])
 
 
 class Angle(MolLinker, ABC):

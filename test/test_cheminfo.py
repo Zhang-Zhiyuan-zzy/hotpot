@@ -84,9 +84,36 @@ class TestMolecule(ut.TestCase):
              [8, 2, 2, 4, 0, 0],
              [83, 6, 2, 3, 10, 14]])
 
-        true_adj = np.array([[0, 1, 2, 3, 3, 6], [2, 2, 3, 4, 5, 4]])
+        true_adj = np.array([
+            [0, 1, 2, 3, 3, 6, 2, 2, 3, 4, 5, 4],
+            [2, 2, 3, 4, 5, 4, 0, 1, 2, 3, 3, 6]
+        ])
 
         self.assertEqual(idt, "Bi-ligand")
         self.assertTrue(np.all(feat == true_feat), "the feature matrix can't match")
         self.assertTrue(np.all(true_adj == adj), "the adjacency can't match")
+
+    def test_add_atom_bonds(self):
+        """"""
+        mol = hp.Molecule.read_from('c1cnc(O)cc1', 'smi')
+        mol.build_3d()
+        # mol.unset_coordinates()
+
+        sr = mol.add_atom('Sr')
+
+        for o in [a for a in mol.atoms if a.symbol in ['O', 'N']]:
+            mol.add_bond(sr, o, 1)
+
+        mol.remove_hydrogens()
+        mol.build_3d()
+        mol.assign_bond_types()
+        mol.normalize_labels()
+
+        print(mol.smiles)
+
+        for a in mol.atoms:
+            print(a, a.coordinates)
+
+        for b in mol.bonds:
+            print(b, b.length, b.ideal_length)
 

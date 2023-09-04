@@ -25,7 +25,7 @@ def get_atom_energy_tensor(
         charges: list[int] = None,
         end_element: int = 58,
         padding_miss: bool = False
-):
+) -> torch.Tensor:
     """"""
     path_atom_single_point = Path(data_root).joinpath('atom_single_point.json')
     _atom_single_point = json.load(open(path_atom_single_point))
@@ -69,9 +69,15 @@ class MolNet(nn.Module):
         Args:
             element_energy: elemental energies
         """
+        self.element_energy = element_energy
 
-    def forward(self, x, e):
+    def forward(self, x, edges, edge_attr, batch_idx):
         """"""
+        Ea = self.element_energy[x[:, 0]]  # atom-wise Energies.
+        Ea_graph = pg.nn.global_add_pool(Ea, batch_idx)  # sum of atom-wise Energies in whole graph.
+
+
+
 
 
 class BDENet(nn.Module):

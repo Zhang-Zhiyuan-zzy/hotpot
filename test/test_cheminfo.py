@@ -93,7 +93,7 @@ class TestMolecule(ut.TestCase):
         self.assertTrue(np.all(feat == true_feat), "the feature matrix can't match")
         self.assertTrue(np.all(true_adj == adj), "the adjacency can't match")
 
-    def test_add_atom_bonds(self):
+    def test_add_remove_atom_bonds(self):
         """"""
         mol = hp.Molecule.read_from('c1cnc(O)cc1', 'smi')
         mol.build_3d()
@@ -116,4 +116,6 @@ class TestMolecule(ut.TestCase):
 
         for b in mol.bonds:
             print(b, b.length, b.ideal_length)
+
+        mol.remove_atoms(sr)
 

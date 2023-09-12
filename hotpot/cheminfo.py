@@ -507,8 +507,9 @@ class Molecule(Wrapper, ABC):
         new_atoms = {}
         for new_ob_id, oba in enumerate(ob.OBMolAtomIter(self.ob_mol)):
             atom = atoms.get(oba.GetId(), Atom(oba, mol=self))
-            oba.SetId(new_ob_id)
-            new_atoms[new_ob_id] = atom
+            new_atoms[atom.ob_id] = atom
+            # oba.SetId(new_ob_id)
+            # new_atoms[new_ob_id] = atom
 
         self._data['atoms'] = new_atoms
 
@@ -1023,6 +1024,22 @@ class Molecule(Wrapper, ABC):
     def atom_counts(self):
         return self.ob_mol.NumAtoms()
 
+    def atom_element_replace(self, old_id_label: Union[int, str], new_symbol: str):
+        """
+        Replace one of atom in this Molecule to other element
+        Args:
+            old_id_label: the label or index of replaced atom. if the label is given,
+             all labels should be unique.
+            new_symbol: the new element symbol replace to the old atom
+
+        Returns:
+            None
+        """
+        atom = self.atom(old_id_label)
+        new_atom = Atom(symbol=new_symbol)
+
+        atom.set(symbol=new_symbol, format_charge=1)
+
     @property
     def atomic_numbers(self) -> Tuple[int]:
         return tuple(a.atomic_number for a in self.atoms)
@@ -1334,7 +1351,7 @@ class Molecule(Wrapper, ABC):
         # Iterate directly will fail.
         ob_bonds = [ob_bond for ob_bond in ob.OBMolBondIter(self.ob_mol)]
         for ob_bond in ob_bonds:
-            self.ob_mol.DeleteBond(ob_bond)
+            self.ob_mol.DeleteBond(ob_bond, False)
 
     def clean_conformers(self, pop: bool = False):
         """ clean all config save inside the molecule """
@@ -1747,7 +1764,8 @@ class Molecule(Wrapper, ABC):
              which in the relative path 'UFF/LJ.json' for the force field path.
             work_dir: the user-specified dir to store the result of GCMC and log file.
             T: the environmental temperature (default, 298.15 K)
-            Ps(Sequence[float]): A sequence of relative pressure related to the saturation vapor in the environmental temperature.
+            Ps(Sequence[float]): A sequence of relative pressure related to the saturation
+             vapor in the environmental temperature.
         """
         if isinstance(work_dir, str):
             work_dir = Path(work_dir)
@@ -2023,7 +2041,19 @@ class Molecule(Wrapper, ABC):
         are referred by i-th and 2i-th edges.
         """
         directed_matrix = np.array([[b.ob_atom1_id, b.ob_atom2_id] for b in self.bonds]).T
-        return np.concatenate((directed_matrix, directed_matrix[::-1]), axis=1)
+        return np.tile(directed_matrix, 2)
+
+    @property
+    def link_order(self):
+        """
+        Returns: numpy.Array with a shape of [2*Nb], where the Nb is the number of bonds.
+
+        Each element in the "Array" corresponds each edge in the "Molecule.link" matrix in
+        one-to-one order, that is, for example, the bond_type of i-th bonds are referred
+        by i-th and 2i-th elements.
+
+        """
+        return np.tile(self.bonds_order, 2)
 
     def localed_optimize(self, force_field: str = 'UFF', steps: int = 500):
         """ Locally optimize the coordinates. seeing openbabel.pybel package """
@@ -2054,7 +2084,7 @@ class Molecule(Wrapper, ABC):
             dump_every: int = 100
     ) -> "Molecule":
         """
-        Create an Amorphous crystal materials by performing Melt-Quench process for this materials.
+        Create an Amorphous crystal materials by performing Melt-Quench process for the materials.
         This process is performed by LAMMPS package, make sure the LAMMPS is accessible.
         A suitable force field is required for the process are performed correctly.
         Args:
@@ -2072,7 +2102,7 @@ class Molecule(Wrapper, ABC):
             origin_temp: the initial temperature before melt
             melt_temp: the round melting point to the materials
             highest_temp: the highest temperature to liquefy the materials
-            ff_args: the arguments the force file requried, refering the LAMMPS pair_coeff:
+            ff_args: the arguments the force file required, referring the LAMMPS pair_coeff:
              "pair_coeff I J args" url: https://docs.lammps.org/pair_coeff.html
             path_writefile: the path to write the final material (screenshot) to file, if not specify, not save.
             path_dump_to:  the path to save the trajectory of the melt-quench process, if not specify not save.
@@ -2264,10 +2294,10 @@ class Molecule(Wrapper, ABC):
             # remove connecting hydrogens
             if remove_hydrogens:
                 for nh in atom.neighbours_hydrogen:
-                    self.ob_mol.DeleteAtom(nh.ob_atom)
+                    self.ob_mol.DeleteAtom(nh.ob_atom, False)
 
             # Removing the atom
-            self.ob_mol.DeleteAtom(atom.ob_atom)
+            self.ob_mol.DeleteAtom(atom.ob_atom, False)
             atom.molecule = None
 
         # Reload atoms
@@ -2277,7 +2307,7 @@ class Molecule(Wrapper, ABC):
     def remove_bonds(self, *bonds: 'Bond'):
         """ Remove the bonds in the molecule """
         for bond in bonds:
-            successful = self.ob_mol.DeleteBond(bond.ob_bond)
+            successful = self.ob_mol.DeleteBond(bond.ob_bond, False)
             if not successful:
                 raise RuntimeError(f'Fail to remove {bonds}')
 

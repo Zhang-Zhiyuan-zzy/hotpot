@@ -1448,3 +1448,14 @@ class RerunFromLastConformer(Debugger, ABC):
     def handle(self, gauss: Gaussian) -> bool:
         gauss.to_conformer()  # convert to the last conformer in the stdout
         return True
+
+
+# Retrieve data from the result log file:
+def retrieve_log_data(
+        root: Union[str, Path],
+        file_pattern: str = "**.*.log",
+):
+    """"""
+    root = Path(root)
+
+

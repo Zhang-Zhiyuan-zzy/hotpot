@@ -27,26 +27,17 @@ def mols2graphs(mols: Union[Sequence[Molecule], MolBundle], *feature_names: str)
     return data
 
 
-class MolBundleGraph(pyg.data.InMemoryDataset, MolBundle):
+class MolGraph(pyg.data.InMemoryDataset):
     """"""
     def __init__(
             self, root: Union[str, Path], mols: Union[list[Molecule], Generator],
-            transform=None, pre_transform=None, pre_filter=None
+            transform=None, pre_transform=None, pre_filter=None, integral_coords=False
     ):
         """"""
-        MolBundle.__init__(self, mols)
+        self.mols = mols
+        self.integral_coords = integral_coords
         pyg.data.InMemoryDataset.__init__(self, root, transform, pre_transform, pre_filter)
         self._data, self.slices = torch.load(self.processed_paths[0])
-
-    @property
-    def data(self):
-        return self._data
-
-    @classmethod
-    def read_from(cls, root: Union[str, Path], transform=None, pre_transform=None, pre_filter=None, **kwargs):
-        """"""
-        bundle = MolBundle.read_from(**kwargs)
-        return cls(root, bundle.mols, transform, pre_transform, pre_filter)
 
     @property
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
@@ -58,10 +49,11 @@ class MolBundleGraph(pyg.data.InMemoryDataset, MolBundle):
         for mol in self.mols:
             data = pyg.data.Data(
                 x=torch.tensor(mol.feature_matrix()).contiguous(),
+                c=torch.tensor(mol.coordinates).contiguous(),
                 edge_index=torch.tensor(mol.link_matrix, dtype=torch.long).contiguous(),
-                edge_attr=torch.tensor(mol.bonds_order, dtype=torch.long).contiguous(),
+                edge_attr=torch.tensor(mol.link_order, dtype=torch.long).contiguous(),
                 idt=mol.identifier.split('/')[-1].split('.')[0],
-                y=torch.tensor(mol.energy, dtype=torch.long)
+                y=torch.tensor(mol.energy, dtype=torch.float)
             )
             data_list.append(data)
 
@@ -73,3 +65,7 @@ class MolBundleGraph(pyg.data.InMemoryDataset, MolBundle):
 
         data, slices = self.collate(data_list)
         torch.save((data, slices), self.processed_paths[0])
+
+
+class TemporalMolGraph(MolGraph):
+    """"""

@@ -129,6 +129,9 @@
       "FineGridError": null,
       "SG1Error": null
     },
+    "Freq": {
+      "ReadFC": null
+    },
     "CBSExtrap": {
       "NMin": "int"
     },

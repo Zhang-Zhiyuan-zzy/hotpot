@@ -26,7 +26,7 @@ def calc_element_energy():
     """ Calculate the electron energies for all """
     for i in range(1, 58):
         a = Atom(atomic_number=i)
-        e, c = a.calc_qm_energy(g16root, "M062X", "Def2SVP", _record=True)
+        e, c = a.calc_qm_energy(g16root, "B3LYP", "Def2SVP", _record=True)
         print(a.symbol, c, e)
 
 
@@ -123,4 +123,5 @@ def calc_csd_pair(pair_dir: Union[Path, str], result_dir: Union[Path, str]):
 
 if __name__ == '__main__':
     # read_calc_data("/home/zz1/proj/be/g16")
-    calc_csd_pair("/home/zz1/proj/be/csd/sc", "/home/zz1/proj/be/csd/result")
+    # calc_csd_pair("/home/zz1/proj/be/csd/sc", "/home/zz1/proj/be/csd/result")
+    calc_element_energy()

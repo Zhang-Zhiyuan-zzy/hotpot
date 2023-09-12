@@ -39,7 +39,7 @@ class MolBundle:
     """ The basic class for all molecular bundle """
 
     def __init__(self, mols: Union[Sequence[ci.Molecule], Generator[ci.Molecule, None, None]] = None):
-        self._data = {'mols': mols}
+        self.__data = {'mols': mols}
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -166,12 +166,12 @@ class MolBundle:
 
     @property
     def data(self):
-        return self._data
+        return self.__data
 
     @data.setter
     def data(self, data):
         if isinstance(data, dict):
-            self._data = data
+            self.__data = data
         else:
             raise TypeError(f'the {self.__class__.__name__}.data must be a dict')
 
@@ -357,7 +357,7 @@ class MolBundle:
             if named_identifier:
                 sub_work_dir = work_dir.joinpath(frame.identifier)
             else:
-                idt_map = self._data.setdefault('identifier_map', {})
+                idt_map = self.__data.setdefault('identifier_map', {})
                 idt_map[i] = frame.identifier
                 sub_work_dir = work_dir.joinpath('mol_' + str(i))
 
@@ -379,7 +379,7 @@ class MolBundle:
             p.join()
             p.terminate()
 
-        return self._data.get('identifier_map')
+        return self.__data.get('identifier_map')
 
     def graph_representation(self, *feature_names) -> Generator[Union[str, np.ndarray, np.ndarray], None, None]:
         """ Transform molecules to their graph representation """
@@ -494,11 +494,11 @@ class MolBundle:
 
     @property
     def mols(self):
-        return self._data.get('mols', [])
+        return self.__data.get('mols', [])
 
     @mols.setter
     def mols(self, mols):
-        self._data['mols'] = mols
+        self.__data['mols'] = mols
 
     @staticmethod
     def registered_bundle_names():

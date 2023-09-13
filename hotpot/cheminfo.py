@@ -20,6 +20,7 @@ from itertools import product
 from collections import Counter
 
 import numpy as np
+import networkx as nx
 from scipy.spatial.distance import cdist
 import dpdata
 from openbabel import openbabel as ob, pybel as pb
@@ -1000,9 +1001,15 @@ class Molecule(Wrapper, ABC):
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
 
-    def atom(self, id_label: Union[int, str]) -> 'Atom':
+    def atom(self, id_label_atom: Union[int, str, "Atom"]) -> 'Atom':
         """ get atom by label or idx """
-        if isinstance(id_label, str):
+        if isinstance(id_label_atom, Atom):
+            if id_label_atom.molecule is self:
+                return id_label_atom
+            else:
+                raise AttributeError('the given atom is not in this molecule')
+
+        elif isinstance(id_label_atom, str):
 
             if not self.is_labels_unique:
                 raise AttributeError(
@@ -1011,14 +1018,14 @@ class Molecule(Wrapper, ABC):
                 )
 
             for atom in self.atoms:
-                if atom.label == id_label:
+                if atom.label == id_label_atom:
                     return atom
-            raise KeyError(f'No atom with label {id_label}')
+            raise KeyError(f'No atom with label {id_label_atom}')
 
-        elif isinstance(id_label, int):
-            return self.atoms_dict[id_label]
+        elif isinstance(id_label_atom, int):
+            return self.atoms_dict[id_label_atom]
         else:
-            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(id_label)}')
+            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(id_label_atom)}')
 
     @property
     def atom_counts(self):
@@ -2384,6 +2391,50 @@ class Molecule(Wrapper, ABC):
 
     def set_label(self, ob_id: int, label: str):
         self.atoms_dict[ob_id].label = label
+
+    def shortest_path(
+            self,
+            src_atom: Union[int, str, 'Atom'],
+            des_atom: Union[int, str, 'Atom'],
+            get_all: bool = False,
+            return_atoms: bool = False
+    ):
+        """
+        retrieve the shortest path from the source atom to the destination atom
+        Args:
+            src_atom: source atom, or its index or label
+            des_atom: destination atom, or its index or label
+            get_all:
+            return_atoms:
+
+        Returns:
+
+        """
+        src_atom = self.atom(src_atom)
+        des_atom = self.atom(des_atom)
+
+        src_node = src_atom.ob_id
+        des_node = des_atom.ob_id
+
+        edges = self.link_matrix[:, :len(self.bonds)].T
+
+        mol_graph = nx.Graph()
+        mol_graph.add_edges_from(edges)
+
+        atoms_dict = self.atoms_dict
+        if get_all:
+            paths = nx.all_shortest_paths(mol_graph, src_node, des_node)
+            if return_atoms:
+                return [[atoms_dict[i] for i in path] for path in paths]
+            else:
+                return list(paths)
+
+        else:
+            path = nx.shortest_path(mol_graph, src_node, des_node)
+            if return_atoms:
+                return [atoms_dict[i] for i in path]
+            else:
+                return path
 
     def similarity(self, other: 'Molecule', fptype: Literal['FP2', 'FP3', 'FP4', 'MACCS'] = 'FP2') -> int:
         """

@@ -85,8 +85,8 @@ class TestMolecule(ut.TestCase):
              [83, 6, 2, 3, 10, 14]])
 
         true_adj = np.array([
-            [0, 1, 2, 3, 3, 6, 2, 2, 3, 4, 5, 4],
-            [2, 2, 3, 4, 5, 4, 0, 1, 2, 3, 3, 6]
+            [0, 1, 2, 3, 3, 6, 0, 1, 2, 3, 3, 6],
+             [2, 2, 3, 4, 5, 4, 2, 2, 3, 4, 5, 4]
         ])
 
         self.assertEqual(idt, "Bi-ligand")
@@ -121,4 +121,14 @@ class TestMolecule(ut.TestCase):
         mol.remove_atoms(sr)
         print(mol.smiles)
         print(mol.smarts())
+
+    def test_shortest_path_search(self):
+        """"""
+        mol = hp.Molecule.read_from('C' * 10, 'smi')
+        atom_indices = mol.shortest_path(0, 9)
+        mol.shortest_path(0, 9, get_all=True)
+        mol.shortest_path(0, 9, return_atoms=True)
+        mol.shortest_path(0, 9, get_all=True, return_atoms=True)
+
+        self.assertEqual(atom_indices, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 

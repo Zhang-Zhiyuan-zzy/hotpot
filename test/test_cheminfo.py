@@ -110,6 +110,7 @@ class TestMolecule(ut.TestCase):
         mol.normalize_labels()
 
         print(mol.smiles)
+        print(mol.smarts())
 
         for a in mol.atoms:
             print(a, a.coordinates)
@@ -118,4 +119,6 @@ class TestMolecule(ut.TestCase):
             print(b, b.length, b.ideal_length)
 
         mol.remove_atoms(sr)
+        print(mol.smiles)
+        print(mol.smarts())
 

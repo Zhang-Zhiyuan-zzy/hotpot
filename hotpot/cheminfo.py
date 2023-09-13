@@ -1967,50 +1967,6 @@ class Molecule(Wrapper, ABC):
 
             return False
 
-    def ob_copy(self):
-        """ Return a clone of OBMol of the Molecule """
-        return ob.OBMol(self.ob_mol)
-
-    @property
-    def ob_mol(self):
-        return self._data['ob_obj']
-
-    def ob_mol_pop(self):
-        data: dict = self._data
-
-        atoms: Dict[int, Atom] = data.get('atoms')
-        if atoms:
-            for ob_id, atom in atoms.items():
-                atom.ob_atom_pop()
-
-        bonds: Dict[int, Bond] = data.get('bonds')
-        if bonds:
-            for ob_idx, bond in bonds.items():
-                bond.ob_bond_pop()
-
-        return self._data.pop('ob_obj')
-
-    def ob_mol_rewrap(self, ob_mol: ob.OBMol):
-        if not isinstance(ob_mol, ob.OBMol):
-            raise TypeError('the ob_mol should be OBMol object')
-
-        atoms = self._data.get('atoms')
-        bonds = self._data.get('bonds')
-
-        if any(oba.GetId() not in atoms for oba in ob.OBMolAtomIter(ob_mol)):
-            raise ValueError('the atom number between the wrapper and the core OBMol is not match')
-        if any(obb.GetId() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
-            raise ValueError('the bond number between the wrapper and the core OBMol is not match')
-
-        self._data['ob_obj'] = ob_mol
-        for ob_atom in ob.OBMolAtomIter(ob_mol):
-            atom = atoms.get(ob_atom.GetId())
-            atom.ob_atom_rewrap(ob_atom)
-
-        for ob_bond in ob.OBMolBondIter(ob_mol):
-            bond = bonds.get(ob_bond.GetId())
-            bond.ob_bond_rewrap(ob_bond)
-
     @property
     def labels(self):
         return [a.label for a in self.atoms]
@@ -2139,6 +2095,55 @@ class Molecule(Wrapper, ABC):
             count += 1
             element_counts[atom.symbol] = count
             atom.label = f'{atom.symbol}{count}'
+
+    def ob_copy(self):
+        """ Return a clone of OBMol of the Molecule """
+        return ob.OBMol(self.ob_mol)
+
+    @property
+    def ob_idx_dict(self):
+        """ Return the dict of atoms with ob_idx as the key """
+        return {a.ob_idx: a for a in self.atoms}
+
+    @property
+    def ob_mol(self):
+        return self._data['ob_obj']
+
+    def ob_mol_pop(self):
+        data: dict = self._data
+
+        atoms: Dict[int, Atom] = data.get('atoms')
+        if atoms:
+            for ob_id, atom in atoms.items():
+                atom.ob_atom_pop()
+
+        bonds: Dict[int, Bond] = data.get('bonds')
+        if bonds:
+            for ob_idx, bond in bonds.items():
+                bond.ob_bond_pop()
+
+        return self._data.pop('ob_obj')
+
+    def ob_mol_rewrap(self, ob_mol: ob.OBMol):
+        if not isinstance(ob_mol, ob.OBMol):
+            raise TypeError('the ob_mol should be OBMol object')
+
+        atoms = self._data.get('atoms')
+        bonds = self._data.get('bonds')
+
+        if any(oba.GetId() not in atoms for oba in ob.OBMolAtomIter(ob_mol)):
+            raise ValueError('the atom number between the wrapper and the core OBMol is not match')
+        if any(obb.GetId() not in bonds for obb in ob.OBMolBondIter(ob_mol)):
+            raise ValueError('the bond number between the wrapper and the core OBMol is not match')
+
+        self._data['ob_obj'] = ob_mol
+        for ob_atom in ob.OBMolAtomIter(ob_mol):
+            atom = atoms.get(ob_atom.GetId())
+            atom.ob_atom_rewrap(ob_atom)
+
+        for ob_bond in ob.OBMolBondIter(ob_mol):
+            bond = bonds.get(ob_bond.GetId())
+            bond.ob_bond_rewrap(ob_bond)
 
     def perturb_atoms_coordinates(
             self,

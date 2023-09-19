@@ -166,4 +166,5 @@ dependencies:
       - torchvision
       - torchaudio
       - torch_geometric
+      - networkx
 prefix: /home/zzy/sw/conda3/envs/hp

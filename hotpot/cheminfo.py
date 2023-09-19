@@ -129,7 +129,7 @@ class Wrapper(ABC):
         for name, value in kwargs.items():
             setter = attr_setters.get(name)
 
-            if setter:  # if the attribute is exist in the object.
+            if setter:  # if the attribute is existed in the object.
                 assert isinstance(setter, Callable)
                 setter(value)
 
@@ -529,8 +529,9 @@ class Molecule(Wrapper, ABC):
         new_bonds = {}
         for new_ob_id, obb in enumerate(ob.OBMolBondIter(self.ob_mol)):
             bond = bonds.get(obb.GetId(), Bond(obb, self))  # Get old bond by old id
-            obb.SetId(new_ob_id)  # Specify new id
-            new_bonds[new_ob_id] = bond
+            new_bonds[bond.ob_id] = bond
+            # obb.SetId(new_ob_id)  # Specify new id
+            # new_bonds[new_ob_id] = bond
 
         self._data['bonds'] = new_bonds
 
@@ -895,6 +896,7 @@ class Molecule(Wrapper, ABC):
             if data:
                 atom.update_attr_data(data)  # replicant the old atom's data to the new
 
+            atom_attrs['mol'] = self
             atom.set(**atom_attrs)  # Set attributes by kwargs
 
             return atom
@@ -946,6 +948,36 @@ class Molecule(Wrapper, ABC):
 
         else:
             raise RuntimeError('add bond not successful!')
+
+    def add_component(self, component: "Molecule"):
+        """
+        add a Molecule object to be a new component into the zone of this molecule
+        Args:
+            component: the Molecule object added into this Molecule as a new component
+
+        Returns:
+            dict: {AtomID_old: AtomID_new}, dict: {BondID_old: BondID_new}.
+            Where:
+                1) AtomID_old: the ob_id of added atoms in the original Molecule
+                2) AtomID_new: the ob_id of added atoms on the added component of this Molecule
+                 after the adding operation
+                3) BondID_old: the ob_id of added bonds in the original Molecule
+                4) BondID_old: the ob_id of added bonds in the added component of this Molecule
+                 after the adding operation
+        """
+        atoms_mapping, bonds_mapping = {}, {}
+        for atom in component.atoms:
+            added_atom = self.add_atom(atom)
+            atoms_mapping[atom.ob_id] = added_atom.ob_id
+
+        for bond in component.bonds:
+            old_oba1_id, old_oba2_id = bond.ob_atom1_id, bond.ob_atom2_id
+            new_oba1_id, new_oba2_id = atoms_mapping[old_oba1_id], atoms_mapping[old_oba2_id]
+            added_bond = self.add_bond(new_oba1_id, new_oba2_id, bond.type)
+
+            bonds_mapping[bond.ob_id] = added_bond.ob_id
+
+        return atoms_mapping, bonds_mapping
 
     def add_hydrogens(
             self,
@@ -1288,6 +1320,15 @@ class Molecule(Wrapper, ABC):
 
         # Remove redundant hydrogen or supply the lack hydrogens
         self.balance_hydrogens()
+
+    def _build_3d(self, force_field: str = 'UFF', steps: int = 500):
+        """ build 3D coordinates for the molecule """
+        # Build 3d conformer
+        pymol = pb.Molecule(self.ob_mol)
+        pymol.make3D(force_field, steps)
+
+        # Remove redundant hydrogen or supply the lack hydrogens
+        # self.balance_hydrogens()
 
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
@@ -1632,7 +1673,6 @@ class Molecule(Wrapper, ABC):
 
     def gaussian(
             self,
-            g16root: Union[str, PathLike],
             link0: Union[str, List[str]],
             route: Union[str, List[str]],
             path_log_file: Union[str, PathLike] = None,
@@ -1642,6 +1682,7 @@ class Molecule(Wrapper, ABC):
             inplace_attrs: bool = False,
             debugger: Union[str, Debugger] = 'auto',
             output_in_running: bool = True,
+            g16root: Union[str, PathLike] = None,
             *args, **kwargs
     ) -> (Union[None, str], str):
         """
@@ -2020,6 +2061,8 @@ class Molecule(Wrapper, ABC):
 
     def localed_optimize(self, force_field: str = 'UFF', steps: int = 500):
         """ Locally optimize the coordinates. seeing openbabel.pybel package """
+        self.remove_hydrogens()
+        self.add_hydrogens()
         pymol = pb.Molecule(self.ob_mol)
         pymol.localopt(force_field, steps)
         self.balance_hydrogens()
@@ -2755,9 +2798,7 @@ class Atom(Wrapper, ABC):
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
         return {
-            '_mol': self._set_molecule,
             'mol': self._set_molecule,
-            'molecule': self._set_molecule,
             'atomic_number': self._set_atomic_number,
             'symbol': self._set_atomic_symbol,
             'coordinates': self._set_coordinate,

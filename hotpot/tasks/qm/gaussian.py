@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import cclib
 
-from hotpot import data_root
+from hotpot import data_root, settings
 
 
 class GaussianRunError(BaseException):
@@ -575,7 +575,7 @@ class Gaussian:
     """
     def __init__(
             self,
-            g16root: Union[str, os.PathLike],
+            g16root: Union[str, os.PathLike] = None,
             path_gjf: Union[str, os.PathLike] = None,
             path_log: Union[str, os.PathLike] = None,
             path_err: Union[str, os.PathLike] = None,
@@ -601,7 +601,12 @@ class Gaussian:
         Raises:
             TypeError: If `g16root` is not a string or a path-like object.
         """
-        self.g16root = Path(g16root)
+        if g16root:
+            self.g16root = Path(g16root)
+        elif settings.get("paths", {}).get("g16root", {}):
+            self.g16root = Path(settings.get("paths", {}).get("g16root", {}))
+        else:
+            raise ValueError('the argument g16root is not given!')
 
         # Configure running environments and resources
         self.envs = self._set_environs()

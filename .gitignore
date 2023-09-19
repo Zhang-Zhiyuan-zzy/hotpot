@@ -1,2 +1,4 @@
 .idea/
 examples/cs_Sr.py
+examples/
+hotpot/data/settings.json

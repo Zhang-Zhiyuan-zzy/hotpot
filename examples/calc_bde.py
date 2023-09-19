@@ -60,8 +60,8 @@ def read_calc_data(root_dir: Union[Path, str]):
 
     print(f"pair number: {len([m for m in bundle if m.is_pair])}")
     for mol in bundle:
-        if mol.metals:
-            metal = mol.metals[0]
+        if mol.metal_symbols:
+            metal = mol.metal_symbols[0]
             n_atom, dist = metal.nearest_atom
 
             if n_atom.symbol == "O" and dist < 3.0 and not mol.bond(metal.ob_id, n_atom.ob_id):

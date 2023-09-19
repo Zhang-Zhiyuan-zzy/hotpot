@@ -38,6 +38,6 @@ class TestSearch(ut.TestCase):
         self.assertEqual(len(matched_mol[2]), 3)
 
         self.assertFalse(
-            matched_mol[0].mol is mol1,
+            matched_mol[0].substituent is mol1,
             "the Molecule in the MatchedMol should be a copy of the searched Molecule, instead of its self"
         )

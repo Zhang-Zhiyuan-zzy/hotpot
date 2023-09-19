@@ -11,7 +11,7 @@ A Module for Search
 
 import openbabel.openbabel as ob
 
-from hotpot.cheminfo import Molecule
+from hotpot.cheminfo import Molecule, Atom
 
 
 class SubstructureSearcher:
@@ -31,7 +31,7 @@ class SubstructureSearcher:
         searcher.Init(query)
         return searcher
 
-    def search(self, *mols):
+    def search(self, *mols: Molecule):
         """ search the defined substructure in the given Molecule and return a matched substructure list """
         matched_mols = []
         for mol in mols:
@@ -41,6 +41,14 @@ class SubstructureSearcher:
 
         return matched_mols
 
+    @property
+    def atom_counts(self) -> int:
+        return self._searcher.NumAtoms()
+
+    @property
+    def smarts(self) -> str:
+        return self._searcher.GetSMARTS()
+
 
 class SearchHit:
     """"""
@@ -48,7 +56,8 @@ class SearchHit:
         self.ob_ids = ob_ids
         self.mol = mol
 
-    def matched_atoms(self):
+    @staticmethod
+    def matched_atoms(self) -> list[Atom]:
         ob_idx_dict = self.mol.ob_idx_dict
         return [ob_idx_dict[ob_id] for ob_id in self.ob_ids]
 

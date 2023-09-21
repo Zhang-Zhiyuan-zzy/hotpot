@@ -56,7 +56,6 @@ class SearchHit:
         self.ob_ids = ob_ids
         self.mol = mol
 
-    @staticmethod
     def matched_atoms(self) -> list[Atom]:
         ob_idx_dict = self.mol.ob_idx_dict
         return [ob_idx_dict[ob_id] for ob_id in self.ob_ids]
@@ -73,6 +72,9 @@ class MatchedMol:
 
     def __len__(self):
         return len(self._ob_vector)
+
+    def __iter__(self):
+        return iter(SearchHit(oid, self.mol) for oid in self._ob_vector)
 
     def __getitem__(self, item):
         return SearchHit(self._ob_vector[item], self.mol)

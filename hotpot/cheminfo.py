@@ -885,6 +885,10 @@ class Molecule(Wrapper, ABC):
             oba.SetAtomicNum(atom)
         elif isinstance(atom, Atom):
             oba.SetAtomicNum(atom.atomic_number)
+
+            if atom.is_aromatic:
+                oba.SetAromatic()
+
             data = atom.data  # Copy the give atoms data
 
         # add OBAtom to the OBMol
@@ -1237,7 +1241,7 @@ class Molecule(Wrapper, ABC):
 
         return Torsion(self, a.ob_id, b.ob_id, c.ob_id, d.ob_id)
 
-    def bond(self, atom1: Union[int, str], atom2: Union[int, str]) -> 'Bond':
+    def bond(self, atom1: Union[int, str, "Atom"], atom2: Union[int, str, "Atom"]) -> 'Bond':
         """
         Return the Bond by given atom index labels in the bond ends
         if the bond is missing in the molecule, return None if given miss_raise is False else raise a KeyError
@@ -1488,14 +1492,17 @@ class Molecule(Wrapper, ABC):
 
         # Copy the Molecule's attr data to the clone one
         clone.update_attr_data(self.data)
-        # Copy the Atoms' attr data to the clone ones
-        for atom in clone.atoms:
-            atom.update_attr_data(self.atoms_dict[atom.ob_id].data)
-            atom.molecule = clone
-        # Copy the Bonds' attr data to the lone ones
-        for bond in clone.bonds:
-            bond.update_attr_data(self.bonds_dict[bond.ob_id].data)
-            bond.molecule = clone
+
+        # TODO: DO NOT DELETE !!!!
+        # TODO: transfer the atoms and bond attrs into the new
+        # # Copy the Atoms' attr data to the clone ones
+        # for atom in clone.atoms:
+        #     atom.update_attr_data(self.atoms_dict[atom.ob_id].data)
+        #     atom.molecule = clone
+        # # Copy the Bonds' attr data to the lone ones
+        # for bond in clone.bonds:
+        #     bond.update_attr_data(self.bonds_dict[bond.ob_id].data)
+        #     bond.molecule = clone
 
         return clone
 
@@ -1937,6 +1944,11 @@ class Molecule(Wrapper, ABC):
         return self.ob_mol.HasHydrogensAdded()
 
     @property
+    def has_nan_coordinates(self) -> bool:
+        """ Check whether any nan coordinates exists """
+        return np.any(np.isnan(self.coordinates))
+
+    @property
     def has_unknown_bond(self):
         return any(not b.type for b in self.bonds)
 
@@ -2058,6 +2070,10 @@ class Molecule(Wrapper, ABC):
 
         """
         return np.tile(self.bonds_order, 2)
+
+    @property
+    def lssr(self) -> list["Ring"]:
+        return [Ring(obr, self) for obr in self.ob_mol.GetLSSR()]
 
     def localed_optimize(self, force_field: str = 'UFF', steps: int = 500):
         """ Locally optimize the coordinates. seeing openbabel.pybel package """
@@ -2508,6 +2524,10 @@ class Molecule(Wrapper, ABC):
     def spin(self, spin: int):
         self._set_spin_multiplicity(spin)
 
+    @property
+    def sssr(self) -> list["Ring"]:
+        return [Ring(obr, self) for obr in self.ob_mol.GetSSSR()]
+
     def thermo_init(self, **kwargs):
         """
         If certain substance don't retrieve information from current database, some required thermodynamical
@@ -2631,6 +2651,11 @@ class Molecule(Wrapper, ABC):
             if pa not in uni:
                 uni.append(pa)
         return uni
+
+    def unset_bonds_types(self):
+        """ Set all bonds in the molecule to be unknown """
+        for bond in self.bonds:
+            bond.type = 0
 
     @property
     def weight(self):
@@ -3405,6 +3430,10 @@ class Bond(Wrapper, ABC):
         return self.ob_bond.GetBeginAtom().GetAtomicNum(), self.ob_bond.GetEndAtom().GetAtomicNum()
 
     @property
+    def is_aromatic(self) -> bool:
+        return self.ob_bond.IsAromatic()
+
+    @property
     def is_covalent(self) -> bool:
         return not self.ob_atom1.IsMetal() and not self.ob_atom2.IsMetal()
 
@@ -3464,10 +3493,90 @@ class Bond(Wrapper, ABC):
     def type(self) -> int:
         return self.ob_bond.GetBondOrder()
 
+    @type.setter
+    def type(self, bond_order: int):
+        self.ob_bond.SetBondOrder(bond_order)
+
     @property
     def type_tuple(self):
         """"""
         return tuple(sorted((self.atomic_number1, self.atomic_number2)) + [self.type])
+
+
+class Ring(Wrapper, ABC):
+    """"""
+    def __init__(self, ob_ring, mol):
+        self._data = {
+            'ob_obj': ob_ring,
+            'mol': mol
+        }
+
+    def __repr__(self):
+        bond_symbol = {1: "-", 2: "=", 3: "#", 5: ":"}
+
+        ordered_atoms = self.ordered_atoms
+        begin_atom = ordered_atoms[0]
+        ring_str = ""
+        for end_atom in ordered_atoms[1:]:
+            bond = self.molecule.bond(begin_atom, end_atom)
+            ring_str += f"{begin_atom.label}{bond_symbol[bond.type]}"
+            begin_atom = end_atom
+
+        bond = self.molecule.bond(begin_atom, ordered_atoms[0])
+        ring_str += f"{begin_atom.label}{bond_symbol[bond.type]}{ordered_atoms[0].label}"
+
+        return f"Ring({ring_str})"
+
+    def __len__(self):
+        return self.size
+
+    def _attr_setters(self) -> Dict[str, Callable]:
+        return {}
+
+    @property
+    def atoms(self) -> list[Atom]:
+        return [atom for atom in self.molecule.atoms if self.ob_ring.IsMember(atom.ob_atom)]
+
+    @property
+    def atoms_ids(self):
+        return [atom.ob_id for atom in self.molecule.atoms if self.ob_ring.IsMember(atom.ob_atom)]
+
+    @property
+    def bonds(self) -> list[Bond]:
+        return [bond for bond in self.molecule.bonds if self.ob_ring.IsMember(bond.ob_bond)]
+
+    @property
+    def is_aromatic(self):
+        return self.ob_ring.IsAromatic()
+
+    @property
+    def molecule(self) -> Molecule:
+        return self.data.get('mol')
+
+    @property
+    def ob_ring(self) -> ob.OBRing:
+        return self.data.get('ob_obj')
+
+    @property
+    def ordered_atoms(self) -> list[Atom]:
+        atoms = {a.ob_id: a for a in self.atoms}
+        atom = None
+
+        ordered_atoms = []
+        while atoms:
+            if not ordered_atoms:
+                atom = atoms[min(atoms.keys())]
+            else:
+                atom = [a for a in atom.neighbours if a.ob_id in atoms][0]
+
+            atoms.pop(atom.ob_id)
+            ordered_atoms.append(atom)
+
+        return ordered_atoms
+
+    @property
+    def size(self):
+        return self.ob_ring.Size()
 
 
 class Angle(MolLinker, ABC):

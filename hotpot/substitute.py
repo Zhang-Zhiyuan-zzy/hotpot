@@ -21,23 +21,59 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Union, Generator
 
+import hotpot as hp
 from hotpot.cheminfo import Molecule, Atom
 from hotpot.search import SubstructureSearcher, MatchedMol
+
+
+substituent_root = os.path.join(hp.data_root, 'substituents.json')
+
+
+# class _SubstituentRegistry:
+#     """ used to register the defined the Substituent classes """
+#     def __init__(self):
+#         self._sheet = {}
+#
+#     def register(self, cls: type):
+#         """"""
+#         self._sheet[cls.__name__] = cls
+#         return cls
+#
+#
+# register = _SubstituentRegistry()
 
 
 class Substituent(ABC):
     """ the base class for all Substituent class """
     _check_func_matcher = re.compile(r"_check_\w+")  # Applied in method _init_check
 
-    def __init__(self, name: str, substituent: Molecule, plugin_atoms: list[Atom], socket_smarts: str = None):
+    _registry_sheet = {}
+
+    def __init__(
+            self, name: str,
+            substituent: Union[str, Molecule],
+            plugin_atoms: list[Union[Atom, int]],
+            socket_smarts: str = None,
+            unique_mols: bool = True
+    ):
         """
         Args:
-            substituent: the substituent fragment.
+            substituent(Molecule|str): the substituent fragment.
             plugin_atoms: the ob_id of atoms which will work which the main or framework molecule atoms
         """
         self.name = name
-        self.substituent = substituent
-        self.plugin_atoms = plugin_atoms
+        self.unique_mols = unique_mols
+
+        if isinstance(substituent, Molecule):
+            self.substituent = substituent
+        elif isinstance(substituent, str):
+            self.substituent = Molecule.read_from(substituent, "smi")
+        else:
+            raise TypeError('the substituent should be a Molecule or a SMILES string')
+
+        # Get the ob_id of plugin_atoms in the substituent Molecule.
+        self.plugin_atoms = [self.substituent.atom(pa).ob_id for pa in plugin_atoms]
+
         if socket_smarts:
             self.socket_searcher = SubstructureSearcher(socket_smarts)
         elif self.default_socket_smarts:
@@ -47,7 +83,7 @@ class Substituent(ABC):
 
         self._init_check()
 
-    def __call__(self, frame_mol: Molecule, specified_socket_atoms: list[int, str, Atom] = None):
+    def __call__(self, frame_mol: Molecule, specified_socket_atoms: list[int, str, Atom] = None) -> list[Molecule]:
         """"""
         # TODO: This operation may should be performing in the next loop.
         list_socket_atoms = self.socket_atoms_search(frame_mol, specified_socket_atoms)
@@ -59,14 +95,13 @@ class Substituent(ABC):
 
             substituted_mols.append(clone_mol)
 
-        return substituted_mols
+        if self.unique_mols:
+            return self.make_mols_unique(*substituted_mols)
+        else:
+            return substituted_mols
 
     def _init_check(self):
         """ Check if the defined substitute are reasonable """
-        # check whether the plugin atoms are in the substituent fragments
-        for atom in self.plugin_atoms:
-            self.substituent.atom(atom.ob_id)
-
         # Performing other custom checks in the substituent
         custom_checks = [name for name in dir(str) if self._check_func_matcher.match(name)]
         for check_func_name in custom_checks:
@@ -80,23 +115,60 @@ class Substituent(ABC):
         return None
 
     @staticmethod
-    def mol_post_transform(clone_mol: Molecule):
-        return clone_mol
+    def filter_out_unreasonable_struct(list_mols):
+        """"""
+        new_list_mol = []
+        for mol in list_mols:
+            mol.add_hydrogens()
+            mol.build_3d()
+
+            if not mol.has_nan_coordinates:
+                new_list_mol.append(new_list_mol)
+
+        return new_list_mol
 
     @staticmethod
-    def mol_pre_transform(clone_mol: Molecule):
-        return clone_mol
+    def mol_post_transform(frame_mol: Molecule):
+        return frame_mol
+
+    @staticmethod
+    def mol_pre_transform(frame_mol: Molecule):
+        return frame_mol
 
     @classmethod
-    def read_from(cls, file_path: Union[str, os.PathLike]) -> Generator["Substituent", None, None]:
+    def read_from(cls, file_path: Union[str, os.PathLike] = None) -> Generator["Substituent", None, None]:
         """ Constructing Substituent by a json file, return a generator """
+        if not file_path:
+            file_path = substituent_root
+
         data = json.load(open(file_path))
         for name, items in data.items():
+            type_name
             fragment_mol = Molecule.read_from(items['fragment_smiles'], 'smi')
             plugin_atoms = [fragment_mol.atom(ob_id) for ob_id in items["plugin_atoms_id"]]
             socket_smarts = items('socket_smarts')
 
             yield cls(name, fragment_mol, plugin_atoms, socket_smarts)
+
+    @classmethod
+    def register(cls, substituent_type: type):
+        """ register the children class of Substituent, applied as a decorator """
+        if not issubclass(cls, substituent_type):
+            raise TypeError('the registered item must be subclass of Substituent!')
+
+        cls._registry_sheet[substituent_type.__name__] = substituent_type
+
+        return substituent_type
+
+    @staticmethod
+    def make_mols_unique(*mols):
+        """"""
+        unique_mols = []
+        for mol in mols:
+            if mol not in unique_mols:
+                unique_mols.append(mol)
+
+        return unique_mols
 
     def socket_atoms_search(
             self, frame_mol: Molecule, specified_socket_atoms: list[int, str, Atom] = None
@@ -109,7 +181,7 @@ class Substituent(ABC):
         # search the socket atoms by socket SMARTS pattern
         else:
             matched_mol: MatchedMol = self.socket_searcher.search(frame_mol)[0]
-            return [[atom.ob_id for atom in hit.matched_atoms] for hit in matched_mol]
+            return [[atom.ob_id for atom in hit.matched_atoms()] for hit in matched_mol]
 
     @abstractmethod
     def substitute(self, frame_mol: Molecule, socket_atoms: list[int] = None):
@@ -122,15 +194,16 @@ class Substituent(ABC):
         """"""
         try:
             data = json.load(open(save_path))
-        except FileExistsError:
+        except (FileExistsError, json.decoder.JSONDecodeError):
             data = {}
 
         socket_smarts = self.socket_searcher.smarts if self.socket_searcher else None
 
         data.update({
             self.name: {
+                "type": self.__class__.__name__,
                 "fragment_smiles": self.substituent.smiles,
-                "plugin_atom_id": [atom.ob_id for atom in self.plugin_atoms],
+                "plugin_atom_id": [pa_ob_id for pa_ob_id in self.plugin_atoms],
                 "socket_smarts": socket_smarts
             }
         })
@@ -138,93 +211,52 @@ class Substituent(ABC):
         json.dump(data, open(save_path, 'w'), indent=True)
 
 
+@Substituent.register
 class NodeSubstituent(Substituent):
     """ the Substituent to perform the Node substituent """
     def substitute(self, frame_mol: Molecule, socket_atoms: list[int] = None):
         """"""
 
 
+@Substituent.register
 class EdgeJoinSubstituent(Substituent):
     """ The substitution is performed by joining the plugin edge (two atoms) with the socket edges in the frame mol """
-    def substitute(self, clone_mol: Molecule, socket_atoms: list[int] = None):
+    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int] = None):
         # Check whether the length of socket atoms is 2
-        if len(socket_atoms) != 2:
-            raise ValueError(f'the number of socket atoms should be 2, got {len(socket_atoms)} atom indices')
+        if len(socket_atoms_oid) != 2:
+            raise ValueError(f'the number of socket atoms should be 2, got {len(socket_atoms_oid)} atom indices')
 
-        atoms_mapping, bonds_mapping = clone_mol.add_component(self.substituent)
+        # frame_mol.remove_hydrogens()
+        # self.substituent.remove_hydrogens()
+        atoms_mapping, bonds_mapping = frame_mol.add_component(self.substituent)
 
+        # Get the plugin atoms in the frame_mol after the substituent is added into frame_mol
+        plugin_atoms_oid = [atoms_mapping[pa] for pa in self.plugin_atoms]
+        p_atom1, p_atom2 = [frame_mol.atom(oid) for oid in plugin_atoms_oid]  # p_atom == plugin atom
 
-class _Substituent:
-    """"""
-    def __init__(self, mol: Molecule, plugin_atoms: list[int]):
-        """
-        Args:
-            mol: the molecular fragment.
-            plugin_atoms: the ob_id of atoms which will work which the main or framework molecule atoms
-        """
-        self.mol = mol
-        self.action_atoms = plugin_atoms
-        self._check()
+        # Recording the neighbours of the s_atom (socket atom) and the type of the
+        # bond between these neighbours and the s_atom.
+        s_atom1, s_atom2 = frame_mol.atom(socket_atoms_oid[0]), frame_mol.atom(socket_atoms_oid[1])
 
-    def _check(self):
-        """ Check if the defined substitute are reasonable """
-        for ob_id in self.action_atoms:
-            self.mol.atom(ob_id)
+        # A list composed of tuples, where the first item of each tuple is an atom
+        # connected to the p_atom while not being the s_atom itself; the second item
+        # is the bond type between the atom in the first item and the s_atom.
+        bridge_to_s_atom1 = [
+            (na, frame_mol.bond(na.ob_id, s_atom1.ob_id).type)
+            for na in s_atom1.neighbours if na.ob_id != s_atom2.ob_id
+        ]
+        bridge_to_s_atom2 = [
+            (na, frame_mol.bond(na.ob_id, s_atom2.ob_id).type)
+            for na in s_atom2.neighbours if na.ob_id != s_atom1.ob_id
+        ]
 
-    def action_atoms_counts(self):
-        return len(self.action_atoms)
+        logging.info(f"the socket bond is {frame_mol.bond(s_atom1, s_atom2)}")
 
-    def build_3d(self):
-        self.mol.build_3d()
+        # switch the linkage of atoms which bond with the socket atoms, from the socket atoms to the plugin atoms
+        frame_mol.remove_atoms(s_atom1, s_atom2)
+        for na1, bond_type in bridge_to_s_atom1:
+            frame_mol.add_bond(na1, p_atom1, bond_type)
+        for na2, bond_type in bridge_to_s_atom2:
+            frame_mol.add_bond(na2, p_atom2, bond_type)
 
-    @property
-    def has_3d(self):
-        return self.mol.has_3d
-
-    def unset_coordinates(self):
-        self.mol.unset_coordinates()
-
-
-def substitute(
-        frame_mol: Molecule, substituent: Union[_Substituent, Molecule],
-        socket_atoms: list[Union[int, str, Atom]] = None,
-        socket_smarts: str = None,
-        plugin_atoms: list[Union[int, str, Atom]] = None
-):
-    """
-    Performing the molecule substitute, link the frame molecule with the Substitute by
-    replace the replaced atoms in the framework molecule to the action atoms of Substitute
-    Args:
-        frame_mol(Molecule): framework molecule
-        substituent(Molecule|Substituent): the molecule frame to substitute the atoms in the frame_mol
-        socket_atoms(list[int|str|Atom]): the atoms in the frame_mol to be substituted.
-        socket_smarts(str): the SMARTS string to define the patten of
-        plugin_atoms(list[int|str|Atom]):
-
-    Returns:
-        the new framework Molecule after the substitution transform.
-    """
-    # Check arguments
-    if isinstance(substituent, Molecule) and not plugin_atoms:
-        raise ValueError('When a Molecule object is used as substituent, the action_atoms must be given')
-
-    if socket_atoms:
-        list_socket_atoms = [socket_atoms]
-    elif socket_smarts:
-        socket_searcher = SubstructureSearcher(socket_smarts)
-        list_socket_atoms = socket_searcher.search(frame_mol)
-
-        if not list_socket_atoms:
-            raise ValueError("the given socket_smarts did not matched any atoms in the frame_mol")
-
-    else:
-        raise ValueError('the replace_atoms and replace_smarts should be given one at least')
-
-    plugin_atoms = [frame_mol.atom(pa) for pa in plugin_atoms]
-
-    if len(list_socket_atoms[0]) != len(plugin_atoms):
-        raise ValueError("the number of socket atoms and the plugin atoms!")
-
-    # Substitute
-    if frame_mol.has_3d and not substituent.has_3d:
-        substituent.build_3d()
+        logging.info(f"the substitution in framework molecule {frame_mol} have been performed!")

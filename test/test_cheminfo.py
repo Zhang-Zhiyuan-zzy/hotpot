@@ -8,6 +8,7 @@ python v3.9.0
 Notes:
     Test `hotpot/cheminfo` module
 """
+import logging
 from pathlib import Path
 import unittest as ut
 
@@ -16,6 +17,9 @@ import numpy as np
 import hotpot as hp
 import hotpot.cheminfo as ci
 import test
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 class TestMolecule(ut.TestCase):
@@ -131,4 +135,17 @@ class TestMolecule(ut.TestCase):
         mol.shortest_path(0, 9, get_all=True, return_atoms=True)
 
         self.assertEqual(atom_indices, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+    def test_operators(self):
+        """ test all operator method for all objects in cheminfo module """
+        mol1 = hp.Molecule.read_from('c1ccccc1', 'smi')
+        mol2 = hp.Molecule.read_from('c1ccccc1', 'smi')
+        mol3 = hp.Molecule.read_from('c1ccccc1', 'smi')
+        mol4 = hp.Molecule.read_from('c1cnccc1', 'smi')
+
+        mols = [mol2, mol3]
+
+        self.assertEqual(mol1, mol2)
+        self.assertIn(mol1, mols)
+        self.assertNotIn(mol4, mols)
 

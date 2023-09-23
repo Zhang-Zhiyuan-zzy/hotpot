@@ -21,12 +21,16 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Union, Generator
 
+import numpy as np
+import openbabel.openbabel as ob
+
 import hotpot as hp
 from hotpot.cheminfo import Molecule, Atom
 from hotpot.search import SubstructureSearcher, MatchedMol
 
-
 substituent_root = os.path.join(hp.data_root, 'substituents.json')
+
+_ob_builder = ob.OBBuilder()
 
 
 # class _SubstituentRegistry:
@@ -71,6 +75,9 @@ class Substituent(ABC):
         else:
             raise TypeError('the substituent should be a Molecule or a SMILES string')
 
+        # Build 3d structure
+        self.substituent.build_3d()
+
         # Get the ob_id of plugin_atoms in the substituent Molecule.
         self.plugin_atoms = [self.substituent.atom(pa).ob_id for pa in plugin_atoms]
 
@@ -86,12 +93,15 @@ class Substituent(ABC):
     def __call__(self, frame_mol: Molecule, specified_socket_atoms: list[int, str, Atom] = None) -> list[Molecule]:
         """"""
         # TODO: This operation may should be performing in the next loop.
-        list_socket_atoms = self.socket_atoms_search(frame_mol, specified_socket_atoms)
+        list_socket_atoms_ob_id = self.socket_atoms_search(frame_mol, specified_socket_atoms)
 
         substituted_mols = []
-        for socket_atoms in list_socket_atoms:
+        for socket_atoms_ob_id in list_socket_atoms_ob_id:
             clone_mol = frame_mol.copy()
-            self.substitute(clone_mol, socket_atoms)
+
+            self.determine_generations(clone_mol, socket_atoms_ob_id)
+
+            self.substitute(clone_mol, socket_atoms_ob_id)
 
             substituted_mols.append(clone_mol)
 
@@ -114,6 +124,14 @@ class Substituent(ABC):
     def default_socket_smarts(self):
         return None
 
+    def determine_generations(self, frame_mol: Molecule, socket_atoms_ob_id: list[int]):
+        """ determine the generations of the atom in the substituent """
+        max_gens = max(frame_mol.atoms_dict[ob_id].generations for ob_id in socket_atoms_ob_id)
+        logging.info(f"the max generations is {max_gens}")
+        for atom in self.substituent.atoms:
+            atom.generations = max_gens + 1
+            logging.info(f"Generations of {atom} is {atom.generations}")
+
     @staticmethod
     def filter_out_unreasonable_struct(list_mols):
         """"""
@@ -135,15 +153,15 @@ class Substituent(ABC):
     def mol_pre_transform(frame_mol: Molecule):
         return frame_mol
 
-    @classmethod
-    def read_from(cls, file_path: Union[str, os.PathLike] = None) -> Generator["Substituent", None, None]:
+    @staticmethod
+    def read_from(file_path: Union[str, os.PathLike] = None) -> Generator["Substituent", None, None]:
         """ Constructing Substituent by a json file, return a generator """
         if not file_path:
             file_path = substituent_root
 
         data = json.load(open(file_path))
         for name, items in data.items():
-            type_name
+            cls = Substituent._registry_sheet[items['type']]
             fragment_mol = Molecule.read_from(items['fragment_smiles'], 'smi')
             plugin_atoms = [fragment_mol.atom(ob_id) for ob_id in items["plugin_atoms_id"]]
             socket_smarts = items('socket_smarts')
@@ -153,7 +171,7 @@ class Substituent(ABC):
     @classmethod
     def register(cls, substituent_type: type):
         """ register the children class of Substituent, applied as a decorator """
-        if not issubclass(cls, substituent_type):
+        if not issubclass(substituent_type, cls):
             raise TypeError('the registered item must be subclass of Substituent!')
 
         cls._registry_sheet[substituent_type.__name__] = substituent_type
@@ -163,10 +181,31 @@ class Substituent(ABC):
     @staticmethod
     def make_mols_unique(*mols):
         """"""
-        unique_mols = []
+        # do job same as a dict, but the key (i.e., Molecule) are not hashable objects.
+        key_mols, value_mols = [], []
         for mol in mols:
-            if mol not in unique_mols:
-                unique_mols.append(mol)
+            try:
+                idx = key_mols.index(mol)
+            except ValueError:
+                idx = len(value_mols)
+                value_mols.append([])
+
+            value_mols[idx].append(mol)
+
+        unique_mols = []
+        for j, mols in enumerate(value_mols):
+            disorder_bond_counts = []
+            for i, mol in enumerate(mols):
+                if not mol.is_disorder:
+                    unique_mols.append(mol)
+                    break
+
+                disorder_bond_counts.append(len(mol.disorder_bonds))
+
+            if len(unique_mols) == j:
+                unique_mols.append(mols[np.argmin(disorder_bond_counts)])
+            elif len(unique_mols) != j + 1:
+                raise RuntimeError("Some Error happen, check the above loop!!!")
 
         return unique_mols
 
@@ -193,7 +232,8 @@ class Substituent(ABC):
     def writefile(self, save_path: Union[str, os.PathLike]):
         """"""
         try:
-            data = json.load(open(save_path))
+            with open(save_path) as file:
+                data = json.load(file)
         except (FileExistsError, json.decoder.JSONDecodeError):
             data = {}
 
@@ -208,7 +248,13 @@ class Substituent(ABC):
             }
         })
 
-        json.dump(data, open(save_path, 'w'), indent=True)
+        with open(save_path, 'w') as writer:
+            json.dump(data, writer, indent=True)
+
+    def zero_generations(self):
+        """ Zero generations for all atoms in the substituent """
+        for atom in self.substituent.atoms:
+            atom.generations = 0
 
 
 @Substituent.register
@@ -226,8 +272,11 @@ class EdgeJoinSubstituent(Substituent):
         if len(socket_atoms_oid) != 2:
             raise ValueError(f'the number of socket atoms should be 2, got {len(socket_atoms_oid)} atom indices')
 
-        # frame_mol.remove_hydrogens()
-        # self.substituent.remove_hydrogens()
+        # if not frame_mol.has_3d:
+        frame_mol.build_3d()
+
+        frame_mol.remove_hydrogens()
+        self.substituent.remove_hydrogens()
         atoms_mapping, bonds_mapping = frame_mol.add_component(self.substituent)
 
         # Get the plugin atoms in the frame_mol after the substituent is added into frame_mol
@@ -260,3 +309,7 @@ class EdgeJoinSubstituent(Substituent):
             frame_mol.add_bond(na2, p_atom2, bond_type)
 
         logging.info(f"the substitution in framework molecule {frame_mol} have been performed!")
+
+        # frame_mol.remove_atoms()
+        # frame_mol.add_hydrogens()
+        frame_mol.localed_optimize(to_optimal=True)

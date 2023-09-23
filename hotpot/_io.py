@@ -685,6 +685,12 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return script
 
+    def _post_mol2(self, script: str):
+        """ add the generation information to the mol2 file """
+        script += "@<TRIPOS>GENERATIONS\n"
+        script += "\n".join([f"{i}\t{atom.generations}" for i, atom in enumerate(self.src.atoms)]) + '\n'
+        return script
+
 
 class Parser(IOBase, metaclass=MetaIO):
     """ Parse the str or bytes obj to Molecule obj """
@@ -1040,4 +1046,26 @@ class Parser(IOBase, metaclass=MetaIO):
 
         return obj
 
+    def _post_mol2(self, obj: 'ci.Molecule'):
+        """ add generation information into the Molecule object """
+        with open(self.src) as file:
+            lines = file.readlines()
+            title_lines = [i for i, line in enumerate(lines) if line.startswith("@<TRIPOS>")]
 
+            try:
+                title_line_idx, line_idx = \
+                    [(i, tl) for i, tl in enumerate(title_lines) if lines[tl].strip() == "@<TRIPOS>GENERATIONS"][0]
+
+                gen_start = line_idx + 1
+                gen_end = title_lines[title_line_idx + 1] if title_line_idx + 1 < len(title_lines) else len(lines)
+
+                for l_idx, atom in zip(range(gen_start, gen_end), obj.atoms):
+                    ob_id, gen = map(int, lines[l_idx].strip().split('\t'))
+
+                    assert ob_id == atom.ob_id
+                    atom.generations = gen
+
+            except IndexError:
+                return obj
+
+        return obj

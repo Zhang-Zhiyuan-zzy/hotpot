@@ -90,7 +90,7 @@ class TestMolecule(ut.TestCase):
 
         true_adj = np.array([
             [0, 1, 2, 3, 3, 6, 0, 1, 2, 3, 3, 6],
-             [2, 2, 3, 4, 5, 4, 2, 2, 3, 4, 5, 4]
+            [2, 2, 3, 4, 5, 4, 2, 2, 3, 4, 5, 4]
         ])
 
         self.assertEqual(idt, "Bi-ligand")

@@ -305,7 +305,7 @@ class IOBase:
         self.args = args
         self.kwargs = kwargs
 
-        # override this methods to check the
+        # override the methods to check the
         self.result = self._checks()
 
     def __call__(self):
@@ -607,6 +607,10 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return script
 
+    def _io_raspa_mol(self):
+        """ convert the Molecule obj to the """
+        # TODO: Yuqing. Tip: bond.is_rigid
+
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
         lines, _ = self._postprocess_for_gjf_head(script)
@@ -855,6 +859,16 @@ class Parser(IOBase, metaclass=MetaIO):
                 print(error)
             else:
                 raise error
+
+    def _io_raspa_mol(self):
+        """ read the raspa_mol file to convert it to the hotpot.Molecule file """
+        if self.result['src_type'] == 'path':
+            with open(self.src) as file:
+                script = file.read()
+        else:
+            script = self.src
+
+        # TODO: Yuqing. The script is a text with the raspa_mol format
 
     # Parse the XYZ file
     def _io_xyz(self):

@@ -145,6 +145,13 @@ class Wrapper(ABC):
     def _attr_setters(self) -> Dict[str, Callable]:
         raise NotImplemented
 
+    def _get_ob_bool_data(self, attr_name: str) -> bool:
+        value = self._get_ob_comment_data(attr_name)
+        if value == "True":
+            return True
+        elif value == "False":
+            return False
+
     def _get_ob_comment_data(self, data_name: str) -> Union[str, None]:
         """ Retrieve OBCommentData according to specific data_name """
         comment = self._ob_obj.GetData(data_name)
@@ -164,6 +171,21 @@ class Wrapper(ABC):
         value = self._get_ob_comment_data(attr_name)
         if value:
             return int(value)
+
+    def _get_ob_list_data(self, attr_name: str) -> list:
+        value = self._get_ob_comment_data(attr_name)
+        if value:
+            return json.loads(value)
+
+    def _set_ob_bool_data(self, attr_name: str, value: bool):
+        """ set custom attribute with bool value """
+        if not isinstance(value, bool):
+            raise TypeError(f'the given value must be a float, got {type(value)} instead')
+
+        if value:
+            self._set_ob_comment_data(attr_name, 'True')
+        else:
+            self._set_ob_comment_data(attr_name, 'False')
 
     def _set_ob_comment_data(self, attr_name: str, value: str):
         """ Set the OBCommentData for ob_obj """
@@ -190,6 +212,13 @@ class Wrapper(ABC):
             raise TypeError(f'the given value must be an int, got {type(value)} instead')
 
         self._set_ob_comment_data(attr_name, str(value))
+
+    def _set_ob_list_data(self, attr_name, value: int):
+        if not isinstance(value, list):
+            raise TypeError(f"the given value must be list, got {type(value)} instead")
+
+        str_value = json.dumps(value)
+        self._set_ob_comment_data(attr_name, str_value)
 
     @property
     def data(self) -> dict:
@@ -3522,12 +3551,30 @@ class Bond(Wrapper, ABC):
         return self.ob_bond.GetBeginAtom().GetAtomicNum(), self.ob_bond.GetEndAtom().GetAtomicNum()
 
     @property
+    def harmonic_params(self) -> (float, float):
+        """ Get the harmonic params, i.e., Elastic modulus and equilibrium length """
+        # TOOD: unspecified
+        return 0.0, 0.0
+
+    @property
     def is_aromatic(self) -> bool:
         return self.ob_bond.IsAromatic()
 
     @property
     def is_covalent(self) -> bool:
         return not self.ob_atom1.IsMetal() and not self.ob_atom2.IsMetal()
+
+    @property
+    def is_rigid(self) -> bool:
+        """ Is a rigid bond """
+        is_rigid = self._get_ob_bool_data("is_rigid")
+        if is_rigid is False:
+            return False
+        return True
+
+    @is_rigid.setter
+    def is_rigid(self, value: bool):
+        self._set_ob_bool_data("is_rigid", value)
 
     @property
     def ideal_length(self):
@@ -4004,7 +4051,7 @@ class ZMatrix:
         self._update_coords()
 
     def __repr__(self):
-        return f'InternalCoordinates({len(self)})'
+        return f'ZMatrix({len(self)})'
 
     def __str__(self):
         return '\n'.join(' '.join(str(item) for item in line) for _, line in self)

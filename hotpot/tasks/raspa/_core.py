@@ -14,9 +14,9 @@ import argparse
 
 from ._output_parser import parse
 
-raspa_dir = os.path.dirname(os.path.realpath(__file__))  # TODO: this should be an arg in RASPA class
-libraspa_dir = os.path.join(raspa_dir, "simulations/lib")
-libraspa_file = next(f for f in os.listdir(libraspa_dir) if "libraspa" in f)
+# raspa_dir = os.path.dirname(os.path.realpath(__file__))  # TODO: this should be an arg in RASPA class
+# libraspa_dir = os.path.join(raspa_dir, "simulations/lib")
+# # libraspa_file = next(f for f in os.listdir(libraspa_dir) if "libraspa" in f)
 
 # Open Babel >= '3.0.0'
 from openbabel import pybel
@@ -64,7 +64,7 @@ def run(structure, molecule_name, temperature=273.15, pressure=101325,
     In these cases, look into loading your own simulation input file and
     passing it to `RASPA.run_script`.
     """
-    return parse(run_script(create_script(**locals()), structure))
+    return run_script(create_script(**locals()), structure)
 
 
 def run_script(input_script, structure=None, stream=True):
@@ -153,7 +153,7 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
             in `$RASPA_DIR/share/raspa/forcefield`, which contains the properly
             named `.def` files.
         input_file_type: (Optional) The type of input structure. Assumes cif.
-        charged: (Optional) A boolean indicating whether or not to use Ewald
+        charged: (Optional) A boolean indicating whether to use Ewald
             charge parameters.
     Returns:
         A string representing the contents of a simulation input file.
@@ -170,7 +170,7 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
     if init_cycles == "auto":
         init_cycles = min(cycles // 2, 10000)
 
-    return dedent("""
+    return dedent(f"""
                   SimulationType                {simulation_type}
                   NumberOfCycles                {cycles}
                   NumberOfInitializationCycles  {init_cycles}
@@ -196,14 +196,15 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
 
                   Component 0 MoleculeName             {molecule_name}
                               StartingBead             0
-                              MoleculeDefinition       TraPPE
+                              # MoleculeDefinition       TraPPE
+                              MoleculeDefinition       Hotpot
                               IdealGasRosenbluthWeight 1.0
                               TranslationProbability   1.0
                               RotationProbability      1.0
                               ReinsertionProbability   1.0
                               SwapProbability          1.0
                               CreateNumberOfMolecules  0
-                  """.format(**locals())).strip()
+                  """).strip()
 
 
 def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
@@ -280,7 +281,8 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
         script += dedent("""
                       Component {i} MoleculeName                 {molecule}
                                   StartingBead                 0
-                                  MoleculeDefinition           TraPPE
+                                  # MoleculeDefinition           TraPPE
+                                  MoleculeDefinition       Hotpot
                                   MolFraction                  {fraction}
                                   IdentityChangeProbability    1.0
                                   NumberOfIdentityChanges      {molecule_count}
@@ -292,7 +294,8 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
                                   SwapProbability              1.0
                                   CreateNumberOfMolecules      0
                          """.format(**locals()))
-    return parse(run_script(script, structure))
+
+    return run_script(script, structure)
 
 
 def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=500,

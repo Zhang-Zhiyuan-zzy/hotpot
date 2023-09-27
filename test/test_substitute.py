@@ -40,10 +40,10 @@ class TestSubstitute(ut.TestCase):
             "benzene",
             hp.Molecule.read_from('C1=CNC=C1', 'smi'),
             [0, 1], "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]",
-            unique_mols=False
+            unique_mols=True
         )
 
-        benzene = hp.Molecule.read_from('CCOCCOc1ccccc1OCCOCC', "smi")
+        benzene = hp.Molecule.read_from('OCCOc1ncccc1OCCOCC', "smi")
         # benzene = hp.Molecule.read_from("/home/zz1/mol0.mol2")
 
         benzene.normalize_labels()

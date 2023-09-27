@@ -24,7 +24,6 @@ class RASPA:
     """ A python wrapper for running a single RASPA calculation """
     def __init__(
             self,
-            work_dir: Union[str, os.PathLike],
             forcefield: str = "UFF",
             raspa_root: Union[str, os.PathLike] = None,
             guest_dir_name: Union[str, os.PathLike] = "Hotpot",
@@ -50,7 +49,6 @@ class RASPA:
         _core.__dict__.update(self.core_args)
 
         self.guest_dir_name = guest_dir_name
-        self.work_dir = Path(work_dir)
         self.forcefield = forcefield
 
         self._check_force_field()

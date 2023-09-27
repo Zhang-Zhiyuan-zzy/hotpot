@@ -27,6 +27,7 @@ class TestRaspa(ut.TestCase):
     def tearDown(self) -> None:
         print('Normalize terminate test!', self._testMethodName)
 
+    @ut.skip("the test need the Raspa software")
     def test_run(self):
         """"""
         mof_name = "IRMOF-1"
@@ -35,12 +36,12 @@ class TestRaspa(ut.TestCase):
 
         mof = hp.Molecule.read_from(path_mof)
 
-        raspa = RASPA(work_dir, parsed_output=False)
+        raspa = RASPA(work_dir)
 
-        script = raspa.run(mof, "CO2", cycles=100000)
+        result = raspa.run(mof, "CO2", cycles=100000)
         # json.dump(script, open(work_dir.joinpath("output.json"), 'w'), indent=True)
 
-        # work_dir.mkdir(parents=True, exist_ok=True)
+        work_dir.mkdir(parents=True, exist_ok=True)
         with open(work_dir.joinpath("pure"), 'w') as writer:
-            writer.write(script)
+            writer.write(result.output)
 

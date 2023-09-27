@@ -2543,6 +2543,18 @@ class Molecule(Wrapper, ABC):
     def rotatable_bonds_number(self):
         return self.ob_mol.NumRotors()
 
+    def rotate_by_axis_deg(self, axis: np.ndarray, deg: float):
+        """ rotate the molecule according to an axis vector and the rotation degree """
+
+    def rotate_by_line_deg(self, line_vector: np.ndarray, xy_point: np.ndarray, deg: float):
+        """ rotate the molecule refer to a straight line in 3d space with a given degree """
+
+    def rotate_by_quaternion(self, r: float, i: float, j: float, k: float):
+        """ rotate the molecule refer to a given quaternion """
+
+    def rotate_by_matrix(self, rot_matrix: np.ndarray):
+        """ rotate the molecule """
+
     def save_2d_img(self, file_path: Union[str, os.PathLike], **kwargs):
         """
         Export 2d image to file
@@ -2738,6 +2750,14 @@ class Molecule(Wrapper, ABC):
     def to_rdmol(self):
         """ convert hotpot Molecule object to RdKit mol object """
         return Chem.MolFromMol2Block(self.dump('mol2'))
+
+    def translate(self, trans_vector: np.ndarray):
+        """ Translate molecules according to their respective translation vectors """
+        trans_vector = trans_vector.flatten()
+        assert len(trans_vector) == 3
+
+        new_coord = self.coordinates + trans_vector
+        self._set_coordinates(new_coord)
 
     @property
     def unique_all_atoms(self) -> List[Union['Atom', 'PseudoAtom']]:

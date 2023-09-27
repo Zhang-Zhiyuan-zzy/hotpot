@@ -14,6 +14,8 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
+import dpdata
+from tqdm import tqdm
 
 from hotpot import data_root
 from hotpot.cheminfo import Molecule, periodic_table
@@ -93,6 +95,8 @@ class DeepSystem:
         data = copy(self.data)
         if not isinstance(item, (int, slice, np.ndarray)):
             raise TypeError('the item should be int, slice or numpy.ndarray')
+        elif isinstance(item, int):
+            item = slice(item, item+1)
 
         for name in self.share_same_conformers:
             arrays = self.data.get(name)
@@ -149,7 +153,7 @@ class DeepSystem:
         conf_num = len(mol.all_coordinates)
         crystal = mol.crystal()
         if crystal:
-            box = mol.crystal().vector  # angstrom
+            box = mol.crystal().vectors  # angstrom
             is_periodic = True
         else:
             box = np.zeros((3, 3))
@@ -220,6 +224,34 @@ class DeepSystem:
             # Save the numpy format data
             elif isinstance(value, np.ndarray):
                 np.save(str(set_root.joinpath(f'{name}.npy')), value)
+
+
+def read_system(
+        root_sys: Union[str, os.PathLike],
+        file_pattern: str = "**/*",
+        fmt: str = 'auto',
+        ranges: Union[range, Sequence] = None,
+        **kwargs
+):
+    """ Read the deepmodeling system files under a root dir to DeepSystem object """
+    root_sys = Path(root_sys)
+
+    msys = dpdata.MultiSystems()
+    for i, fp in tqdm(enumerate(root_sys.glob(file_pattern))):
+
+        if ranges and i not in ranges:
+            continue
+
+        try:
+            ls = dpdata.LabeledSystem(str(fp), fmt, **kwargs)
+
+            if len(ls):
+                msys.append(ls)
+
+        except IOError:
+            print(f"fail to read {fp}")
+
+    return msys
 
 
 def make_script():

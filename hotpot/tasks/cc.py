@@ -151,7 +151,7 @@ class PairBundle(MolBundle):
 
     def determine_metal_ligand_bind_energy(
             self, g16root: Union[str, os.PathLike], work_dir: Union[str, os.PathLike],
-            method: str = 'B3LYP', basis_set: str = '6-311', route: str = '',
+            method: str = 'B3LYP', basis_set: str = '6-311', solvent: str = None, route: str = '',
             cpu_uti: float = 0.75, skip_complete=False
     ) -> pd.DataFrame:
         def _run_gaussian(gauss_func: Callable, path_log_file, path_err_file):
@@ -162,11 +162,25 @@ class PairBundle(MolBundle):
                     f'nproc={machine.take_CPUs(cpu_uti)}',
                     f'Mem={machine.take_memory(cpu_uti)}GB'
                 ],
-                route=f'opt {method}/{basis_set} ' + route,
+                route=_route,
                 path_log_file=path_log_file,
                 path_err_file=path_err_file,
                 inplace_attrs=True
             )
+
+        # Organize the route sentence.
+        _route = f'opt {method}/{basis_set}'
+        if solvent:
+            if isinstance(solvent, str):
+                _route += f" SCRF(solvent={solvent})"
+            else:
+                _route += f" SCRF(solvent=water)"
+                solvent = "water"
+        else:
+            solvent = "None"
+
+        if route:
+            _route += f" {route}"
 
         # Merge the pairs which same graph firstly
         self.collect_identical(inplace=True)
@@ -203,15 +217,20 @@ class PairBundle(MolBundle):
 
         # ######################################################################################################
         # Calculate the single point (sp) energy for metal
+        symbol = self.metal.atoms[0].symbol
+        charge = self.metal.atoms[0].formal_charge
         try:
-            metal_sp = _atom_single_point[self.metal.atoms[0].symbol][method][basis_set]
+            metal_sp = _atom_single_point[symbol][method][basis_set][solvent][str(charge)]
         except KeyError:
             _run_gaussian(self.metal.gaussian, dirs_files.metal_log_path, dirs_files.ligand_err_path)
 
-            ele_dict = _atom_single_point.setdefault(self.metal.atoms[0].symbol, {})
+            ele_dict = _atom_single_point.setdefault(symbol, {})
             ele_method_dict = ele_dict.setdefault(method, {})
+            ele_method_scrf_dict = ele_method_dict.setdefault(basis_set, {})
+            ele_method_scrf_charge_dict = ele_method_scrf_dict.setdefault(solvent, {})
 
-            metal_sp = ele_method_dict[basis_set] = self.metal.energy  # Recording the calculate SCF energy to the dict
+            # Recording the calculate SCF energy to the dict
+            ele_method_scrf_charge_dict[str(charge)] = self.metal.energy
 
             # Save the single point as package data
             json.dump(_atom_single_point, open(Path(data_root).joinpath('atom_single_point.json'), 'w'), indent=True)

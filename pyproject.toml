@@ -24,7 +24,8 @@ dependencies = [
     "tqdm",
     'rdkit',
     'psutil',
-    'rdkit'
+    'rdkit',
+    "dpdata"
 ]
 
 description = "A python package designed to communicate among various chemical and materials calculational tools"

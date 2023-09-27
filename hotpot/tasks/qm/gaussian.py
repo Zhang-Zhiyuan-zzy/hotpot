@@ -8,15 +8,19 @@ python v3.7.9
 """
 import os
 import re
-from pathlib import Path
+import io
+import copy
+import json
 import resource
 import subprocess
-import io
+from pathlib import Path
 from typing import *
 from abc import ABC, abstractmethod
 
 import numpy as np
 import cclib
+
+from hotpot import data_root, settings
 
 
 class GaussianRunError(BaseException):
@@ -25,6 +29,453 @@ class GaussianRunError(BaseException):
 
 class FailToHandle(Warning):
     """ Report this Warning when GaussErrorHandle Fail to handle an error """
+    
+
+_tree: dict[str, Any] = json.load(open(Path(data_root).joinpath('goptions.json')))
+
+    
+class OptionPath:
+    """ Represent a path from the root to a option """
+    def __init__(self, path: str):
+        """"""
+        self.path = path
+
+    def __repr__(self):
+        return f"OptionPath({self.path})"
+
+    def __hash__(self):
+        return hash(self.pre_selection_path)
+
+    def __eq__(self, other):
+        return self.pre_selection_path == other.pre_selection_path
+
+    def __lt__(self, other: "OptionPath"):
+        return other.path.startswith(self.path)
+
+    def __gt__(self, other: "OptionPath"):
+        return self.path.startswith(other.path)
+
+    def __len__(self):
+        return len(self.brief_nodes)
+
+    def _make_child(self, child_node: str):
+        """ Make the child path of this path """
+        if not self.path:
+            return self.__class__(child_node)
+        else:
+            return self.__class__(f"{self.path}.{child_node}")
+
+    @property
+    def brief_nodes(self):
+        return self.brief_path.split('.')
+
+    @property
+    def brief_path(self):
+        """ the brief path is the path that exclude the SELECTION nodes """
+        if not self.path:
+            return ''
+
+        brief_nodes = []
+        tree = copy.copy(_tree)
+        for p in self.nodes:
+            tree = tree[p]
+            if not isinstance(tree, dict) or 'SELECTION' not in tree:
+                brief_nodes.append(p)
+
+        return '.'.join(brief_nodes)
+
+    @property
+    def children(self):
+        """ Get the children nodes in this path """
+        if isinstance(self.subtree, dict):
+            return [self._make_child(c) for c in self.subtree if c != "SELECTION"]
+        else:
+            return []
+
+    @classmethod
+    def create_from_brief_path(cls, path: str) -> "OptionPath":
+        """
+        create OptionPath object from (suspected) brief path
+        Args:
+            path: the actual or brief path
+
+        Returns:
+            the OptionPath object with complete path
+        """
+        # nodes = path.split('.')
+        #
+        # pre_path = cls('.'.join(nodes[:-1]))
+        #
+        # paths = [
+        #     p for p in pre_path.descendants
+        #     if re.fullmatch(p.path, path, re.IGNORECASE) or re.fullmatch(p.brief_path, path, re.IGNORECASE)
+        # ]
+        #
+        # try:
+        #     assert len(paths) == 1
+        # except AssertionError as err:
+        #     print(path, paths)
+        #     raise err
+        #
+        # return paths[0]
+
+        return cls(cls.get_normalize_path(path))
+
+    @property
+    def descendants(self):
+        """"""
+        desc = []
+        parents = self.children
+        while parents:
+            children = []
+            for p in parents:
+                if not p.is_selection:
+                    desc.append(p)
+                children.extend(p.children)
+
+            parents = children  # the children grow up to parents
+
+        return desc
+
+    @property
+    def end_name(self):
+        if not self.nodes:
+            return ""
+        else:
+            return self.nodes[-1]
+
+    def get_child(self, child_name: str):
+        if self.is_leaf:
+            raise AttributeError('This is a leaf OptionPath, do not have any child path!')
+
+        _child_path = child_name if self.is_root else self.path + f".{child_name}"
+        child_path = self.get_normalize_path(_child_path)
+
+        return self.__class__(child_path)
+
+        # if child_name in self.subtree:
+        #     if self.is_root:
+        #         return self.__class__(child_name)
+        #     else:
+        #         return self.__class__(f"{self.path}.{child_name}")
+        # else:
+        #     raise KeyError(f'the {child_name} not the child of {self.path}')
+
+    @staticmethod
+    def get_normalize_path(path: Union[str, "OptionPath"]) -> str:
+        """
+        Find the regularized option path based on any valid Gaussian option path. An effective
+        path refers to a path where the name of each node in the given path can be matched
+        uniquely to a Gaussian keyword or option. For example, the regularized option path for
+        Gaussian's optimization using Cartesian coordinates is "Optimization.Coordinate.Cartesian",
+        which corresponds to the Gaussian route input of "Optimization(Cartesian)."
+
+        It should be noted that the `Coordinate` is an implicit node, which does not be written
+        in to the Gaussian input script but a mark for a collection of actual nodes. The options
+        under these implicit nodes can't be selected simultaneously. If one of them under a same
+        implicit node is being selected, the previous one selected will be removed from the
+        option set.
+
+        Using this method, the following are valid names for correctly finding the above
+        regularized path:
+
+            1) Optimization.Coordinate.Cartesian. (the regular path itself)
+            2) optimization.coorDiNate.carTesian. (ignoring case sensitivity)
+            3) opt.Coordi.cartes. (any abbreviation that can find a unique match)
+            4) opt.cartes. (the implicit nodes might be omitted)
+
+        If the abbreviation is too short and matches multiple options, a ValueError will be raised.
+        If an incorrect node name is provided or the connection relationship of nodes in the option
+        tree is incorrect, a ValueError will also be raised.
+
+        Args:
+            path: the origin path (may valid or not)
+
+        Returns:
+            The regularized path
+
+        Raises:
+            ValueError: when an invalid path is given
+        """
+        def match_dict_key(given_node: str, search_tree: dict):
+            """"""
+            match_dict = {}
+            for search_key, sv in search_tree.items():
+
+                if search_key == "SELECTION":
+                    continue
+
+                if re.match(given_node, search_key, re.IGNORECASE):
+                    match_dict[search_key] = sv
+
+            return match_dict
+
+        def update_current_tree():
+            """"""
+            tr = _tree
+            for n in norm_nodes:
+                tr = tr[n]
+
+            return tr
+
+        nodes = path.nodes if isinstance(path, OptionPath) else path.split('.')
+        norm_nodes = []
+
+        tree = update_current_tree()
+        for node in nodes:
+            # suppose the give path is a full path
+            sub_tree = match_dict_key(node, tree)
+
+            # the given node name has a unique matched
+            if len(sub_tree) == 1:
+                norm_nodes.append(list(sub_tree.keys())[0])
+
+                # update the current tree
+                tree = update_current_tree()
+
+            # the given node name does not any matched
+            # search the node with the assumption that the given path is brief path
+            elif not sub_tree:
+
+                # find this node in all SELECTION subtree with a new tree
+                select_key = None
+                for key, value in tree.items():
+                    if isinstance(value, dict) and "SELECTION" in value:
+                        sub_tree.update(match_dict_key(node, value))
+
+                        if len(sub_tree) == 1 and not select_key:
+                            select_key = key
+
+                # when find a match node,
+                # add the previous SELECTION node and the found node to the norm_nodes, update the subtree
+                if len(sub_tree) == 1:
+                    assert isinstance(select_key, str)
+
+                    norm_nodes.extend([select_key, list(sub_tree)[0]])
+
+                    # update the current tree
+                    tree = update_current_tree()
+
+                elif not sub_tree:
+                    raise ValueError(
+                        f"the give node {node} in path {path} does not match any option or keywords"
+                    )
+
+                else:  # finally, do not found a unique next node
+                    raise ValueError(
+                        f"the given keyword or option {node} in path {path} matched {len(sub_tree)}:"
+                        f"\t {', '.join(sub_tree)}"
+                        f"these keyword or option from a set of SELECTION sub options"
+                        f"you might give a more length string to choose from them"
+                )
+
+            else:  # multiply next nodes are matched
+                raise ValueError(
+                    f"the given keyword or option {node} in path {path} matched {len(sub_tree)}:\n"
+                    f"\t {', '.join(sub_tree)}\n"
+                    f"you might give a more length string to choose from them"
+                )
+
+        return '.'.join(norm_nodes)
+
+    @property
+    def is_leaf(self):
+        return not isinstance(self.subtree, dict)
+
+    @property
+    def is_root(self):
+        return not self.path
+
+    @property
+    def is_selection(self):
+        return isinstance(self.subtree, dict) and "SELECTION" in self.subtree
+
+    @property
+    def nodes(self) -> list[str]:
+        return self.path.split('.')
+
+    @property
+    def parent(self):
+        if not self.path:
+            raise AttributeError('the root path not have parent')
+
+        return self.__class__(".".join(self.path.split(".")[:-1]))
+
+    @property
+    def pre_selection_path(self):
+        pre_sel_nodes = []
+        tree = copy.copy(_tree)
+        for node in self.nodes:
+            pre_sel_nodes.append(node)
+            tree = tree[node]
+            if isinstance(tree, dict) and "SELECTION" in tree:
+                break
+
+        return '.'.join(pre_sel_nodes)
+
+    @property
+    def subtree(self):
+        """ Get the subtree derive from this path """
+        if not self.path:
+            return copy.copy(_tree)
+
+        subtree = _tree
+        for n in self.nodes:
+            subtree = subtree[n]
+
+        return subtree
+
+
+class Options:
+    def __init__(self, path: Union[str, OptionPath], root=None):
+        if isinstance(path, OptionPath):
+            self.path = path
+        elif isinstance(path,str):
+            self.path = OptionPath(path)
+        else:
+            raise TypeError('the path should be str or OptionPath')
+
+        self.root = root if root is not None else self
+
+        self.value = None
+        self._ops = set()
+
+    def __bool__(self):
+        return self.path.is_root and len(self._ops) > 0
+
+    def __repr__(self):
+        return f"Option({self.path.path})"
+
+    def __hash__(self):
+        return hash(self.path)
+
+    def __eq__(self, other):
+        return self.path == other.path
+
+    def __dir__(self) -> Iterable[str]:
+        names = []
+        for c in self.path.children:
+            name = c.end_name
+            if re.match(r"[0-9]", name[0]):
+                name = f"_{name}"
+            name = name.replace('-', '_')
+
+            names.append(name)
+
+        return names
+
+    def __getattr__(self, item):
+        """"""
+        if len(item) > 1 and item[:1] == "_":
+            item = item[1:]
+        item = item.replace('_', '-')
+
+        return self.__class__(self.path.get_child(item), self.root)
+
+    def __len__(self):
+        return len(self.path)
+
+    def __call__(self, value=None, *args, **kwargs):
+        if self.path.is_leaf:
+            if self.path.subtree is None:
+                if value is not None:
+                    raise ValueError(f'the option {self.path.path} not allowed a value')
+
+            elif self.path.subtree != value.__class__.__name__:
+                if isinstance(value, str):
+                    if self.path.subtree == "int":
+                        value = int(value)
+                    elif self.path.subtree == 'float':
+                        value = float(value)
+
+                else:
+                    raise TypeError(f'the option expect a {self.path.subtree}, instead of {value.__class__.__name__}')
+
+        else:
+            if value is not None:
+                raise ValueError('the non-leaf option cannot accept any values')
+
+        self.value = value
+
+        if not self.path.is_root:
+            self.root.add(self)
+        else:
+            raise AttributeError('the root option cannot add self into self')
+
+    def add(self, op: "Options"):
+        if not self.path.is_root:
+            ValueError('only the option in the root path could add other option into')
+
+        if len(op) < 2:
+            raise AttributeError('only the path length equal or more than 2 could be select to be option')
+
+        # find all options with the paths which are the children or parents of this option's path
+        # and then remove them from the current options collection
+        rm_ops = set()
+        for op_in in self._ops:
+            if op.path > op_in.path or op.path < op_in.path or op == op_in:
+                rm_ops.add(op_in)
+
+        # Remove children and parents options
+        self._ops.difference_update(rm_ops)
+
+        self._ops.add(op)
+
+    def clear(self):
+        """ Clear all options save in root options, only the root option could call this method """
+        if not self.path.is_root:
+            raise AttributeError('only the root option could perform the clear')
+
+        self._ops = set()
+
+    def get_option_dict(self):
+        """"""
+        op_dict = {}
+        for op in self._ops:
+            title = op.path.brief_nodes[0]
+            keyword = op_dict.setdefault(title, {})
+
+            if title == 'link0':
+                assert len(op) == 2
+                keyword[op.path.brief_nodes[1]] = op.value
+
+            elif title == "route":
+                # When the length of brief_path less than 3, it means the given keywords not have an option
+                # In the case, the Options must not give any value, an empty dict represent a keyword without option
+                options = keyword.setdefault(op.path.brief_nodes[1], {})
+
+                if len(op) == 3:
+                    options[op.path.end_name] = op.value
+
+        return op_dict
+
+    def parsed_input_to_options(self, parsed_input: dict):
+        """ Convert the parsed input to options, only the root option could perform this method """
+        if not self.path.is_root:
+            raise AttributeError('only the root option could convert the parsed input to options')
+
+        link0 = parsed_input['link0']
+        route = parsed_input['route']
+
+        for cmd, value in link0.items():
+            path = OptionPath.create_from_brief_path(f"link0.{cmd}")
+            self.__class__(path, self)(value)
+
+        for kwd, ops in route.items():
+            if not ops:
+                path = OptionPath.create_from_brief_path(f'route.{kwd}')
+                self.__class__(path, self)()
+            elif isinstance(ops, dict):
+                for op, value in ops.items():
+                    path = OptionPath.create_from_brief_path(f'route.{kwd}.{op}')
+                    self.__class__(path, self)(value)
+
+    def update_parsed_input(self, parsed_input: dict):
+        """"""
+        parsed_input['link0'] = {}
+        parsed_input['route'] = {}
+
+        parsed_input.update(self.get_option_dict())
 
 
 class GaussOut:
@@ -64,7 +515,7 @@ class GaussOut:
 
     @property
     def is_hangup_error(self):
-        if self.is_error and self.stderr.find('Error: hangup'):
+        if self.is_error and self.stderr.find('Error: hangup') > 0:
             return True
         return False
 
@@ -98,7 +549,7 @@ class GaussOut:
 
         return False
 
-    def report(self) -> list[str]:
+    def report(self, show_screen=False) -> list[str]:
         """ Report all error messages """
         error_judge = re.compile(r'is_.+_error')
 
@@ -106,8 +557,10 @@ class GaussOut:
         errors = []
         for name in self.__dir__():
             if hasattr(self, name) and error_judge.fullmatch(name) and getattr(self, name):
-                print(f'\t--{name[3:]};')
                 errors.append(name)
+
+                if show_screen:
+                    print(f'\t--{name[3:]};')
 
         return errors
 
@@ -122,11 +575,13 @@ class Gaussian:
     """
     def __init__(
             self,
-            g16root: Union[str, os.PathLike],
+            g16root: Union[str, os.PathLike] = None,
             path_gjf: Union[str, os.PathLike] = None,
             path_log: Union[str, os.PathLike] = None,
             path_err: Union[str, os.PathLike] = None,
             report_set_resource_error: bool = False,
+            options: Options = None,
+            output_in_running: bool = True
     ):
         """
         This method sets up the required environment variables and resource limits for Gaussian 16.
@@ -136,6 +591,9 @@ class Gaussian:
             path_log: the path of output result to be written and read
             path_err: the path of  error message to be written
             report_set_resource_error: Whether to report the errors when set the environments and resource
+            options: the Option object
+            output_in_running: If true, the gaussian program will write the output.log file when running,
+             else get the stdout after the program terminal
 
         Keyword Args:
             this could give any arguments for GaussErrorHandle
@@ -143,7 +601,12 @@ class Gaussian:
         Raises:
             TypeError: If `g16root` is not a string or a path-like object.
         """
-        self.g16root = Path(g16root)
+        if g16root:
+            self.g16root = Path(g16root)
+        elif settings.get("paths", {}).get("g16root", {}):
+            self.g16root = Path(settings.get("paths", {}).get("g16root", {}))
+        else:
+            raise ValueError('the argument g16root is not given!')
 
         # Configure running environments and resources
         self.envs = self._set_environs()
@@ -158,9 +621,21 @@ class Gaussian:
         self.path_chk = None
         self.path_rwf = None
 
-        self.parsed_input = None
-        self.g16process = None  # to link to the g16 subprocess
+        self.parsed_input = {}
 
+        # Set options
+        if options:
+            if options.path.is_root:
+                self.op = options
+            else:
+                raise ValueError('the option pass into Gaussian must be a root option')
+        else:
+            self.op = Options('')  # Create a new option
+
+        self.g16process = None  # to link to the g16 subprocess
+        self.output_in_running = output_in_running
+
+        self.stdin = None
         self.output = None
         self.stdout = None
         self.stderr = None
@@ -198,6 +673,7 @@ class Gaussian:
             opening_parenthesis = re.findall(r'\(', item)
             closing_parenthesis = re.findall(r'\)', item)
 
+            # When the keyword have multiply options
             if opening_parenthesis:
                 assert len(opening_parenthesis) == 1 and len(closing_parenthesis) == 1 and item[-1] == ')'
                 kword = item[:item.index('(')]
@@ -213,12 +689,12 @@ class Gaussian:
                     else:
                         raise ValueError('the given route string is wrong!!')
 
-            else:
+            else:  # When the keyword only a single option
                 kword_opt_value = item.split('=')
                 if len(kword_opt_value) == 1:
-                    parsed_route[kword_opt_value[0]] = None
+                    parsed_route[kword_opt_value[0]] = {}
                 elif len(kword_opt_value) == 2:
-                    parsed_route[kword_opt_value[0]] = kword_opt_value[1]
+                    parsed_route[kword_opt_value[0]] = {kword_opt_value[1]: None}
                 elif len(kword_opt_value) == 3:
                     parsed_route[kword_opt_value[0]] = {kword_opt_value[1]: kword_opt_value[2]}
                 else:
@@ -333,18 +809,20 @@ class Gaussian:
         # Route keywords
         script += '#'
         route: dict = info['route']
-        for kw, opt in route.items():
-            if not opt:
+        for kw, ops in route.items():
+
+            # If the keyword doesn't have any option
+            if not ops:
                 script += f' {kw}'
-            elif isinstance(opt, str):
-                script += f' {kw}={opt}'
-            elif isinstance(opt, dict):
+
+            # if the keyword have multiply options
+            elif isinstance(ops, dict):
                 list_opt = []
-                for k, v in opt.items():
-                    if v:
-                        list_opt.append(f'{k}={v}')
+                for op, value in ops.items():
+                    if value:
+                        list_opt.append(f'{op}={value}')
                     else:
-                        list_opt.append(k)
+                        list_opt.append(op)
                 script += f' {kw}(' + ','.join(list_opt) + ')'
             else:
                 ValueError('the give gjf input info is wrong')
@@ -563,7 +1041,7 @@ class Gaussian:
         string_buffer = io.StringIO(self.stdout)
         return cclib.ccopen(string_buffer).parse()
 
-    def run(self, script: str = None):
+    def run(self, script: str = None, test: bool = False):
         """Runs the Gaussian 16 process with the given script and additional arguments.
 
         This method sets up the required environment variables and resource limits for Gaussian 16 before
@@ -572,27 +1050,39 @@ class Gaussian:
 
         Args:
             script (str): The input script for the Gaussian 16 process.
+            test: if tree, running with the test model, at the time the running of Gaussian program will be skipped.
         Returns
             Tuple[str, str]: A tuple of the standard output and standard error of the process
         """
         if script:
             self.parsed_input = self._parse_input_script(script)  # parse input data
+            self.op.parsed_input_to_options(self.parsed_input)
+        elif self.op:  # If some option have been assigned by Gaussian.Options
+            self.op.update_parsed_input(self.parsed_input)
 
-        script = self._rewrite_input_script()
+        self.stdin = self._rewrite_input_script()
 
         with open(self.p_input, 'w') as writer:
-            writer.write(script)
+            writer.write(self.stdin)
+
+        # Configure the input and output mode
+        if self.output_in_running:
+            cmd = ['g16', str(self.p_input), str(self.p_output)]
+            stdin = None
+        else:
+            cmd = ['g16']
+            stdin = self.stdin
 
         # Run Gaussian using subprocess
-        self.g16process = subprocess.Popen(
-            ['g16', str(self.p_input), str(self.p_output)],
-            bufsize=-1, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            env=self.envs, universal_newlines=True
-        )
-        self.stdout, self.stderr = self.g16process.communicate()
+        if not test:
+            self.g16process = subprocess.Popen(
+                cmd, bufsize=-1, stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                env=self.envs, universal_newlines=True
+            )
+            self.stdout, self.stderr = self.g16process.communicate(stdin)
 
-        if not self.stdout:
+        if self.output_in_running and not self.stdout:
             with open(self.p_output) as file:
                 self.stdout = file.read()
 
@@ -699,9 +1189,8 @@ class Debugger(ABC):
     def __call__(self, gauss: Gaussian) -> bool:
         """ Call for handle the g16 errors """
         if self.trigger(gauss):
-            self.notice()
-            self.handle(gauss)
-            return True
+            self.notice(gauss)
+            return self.handle(gauss)
 
         return False
 
@@ -736,11 +1225,15 @@ class Debugger(ABC):
         """ Could the ErrorHandle is suitable for this error """
 
     @abstractmethod
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         """ Specified by the children classes """
 
-    def notice(self):
-        print(f'Gauss Debug by {self.__class__.__name__}')
+    def notice(self, gauss: Gaussian):
+        errors = gauss.output.report()
+        if not errors:
+            print(f"Gauss meet {gauss.output.error_link} error -> debug by {self.__class__.__name__}")
+        else:
+            print(f"Gauss meet {', '.join(errors)} error -> debug by {self.__class__.__name__}")
 
 
 class AutoDebug(Debugger, ABC):
@@ -748,6 +1241,11 @@ class AutoDebug(Debugger, ABC):
     _handles = {}
 
     def __init__(self, *selected_method: str, invert=False):
+        """
+        Args:
+            *selected_method: if given, only the selected methods will be applied to debug
+            invert: if is true, the selected_method will be excluded from the debuggers set
+        """
         if not selected_method:
             self.handles = {name: handle() for name, handle in self._handles.items()}
         else:
@@ -771,9 +1269,9 @@ class AutoDebug(Debugger, ABC):
 
         return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         handle = self.handles[self.applied_handle_name]
-        handle(gauss)
+        return handle(gauss)
 
 
 @AutoDebug.register
@@ -810,16 +1308,49 @@ class Ignore(Debugger, ABC):
             if not mol:
                 raise IOError('the stdout cannot parse to Molecule object')
 
-            last_energies = mol.all_energy[-int(len(mol.all_energy)):]
-            diff_energies = np.abs(last_energies[1:] - last_energies[:-1])
+            try:
+                last_energies = mol.all_energy[-int(len(mol.all_energy)):]
+                diff_energies = np.abs(last_energies[1:] - last_energies[:-1])
+
+            except TypeError:  # if it does not get any energy value
+                return False
 
             if diff_energies.max() < 0.05 and diff_energies.min() / diff_energies.max() > 0.9:
                 return True
 
+            print(
+                f"the max energy diff: {diff_energies.max()}, "
+                f"min / max energy: {diff_energies.min() / diff_energies.max()}"
+            )
             return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         """ Continue the next work and save the calculation data """
+        gauss.stderr = ""
+        gauss.output.stderr = ""
+        return False  # more operate is no longer needed
+
+
+# @AutoDebug.register
+# class PreOptiB3LYP(Debugger, ABC):
+#     """
+#     This Debugger to handle the l9999 error which is can't be ignored by the Ignored debugger.
+#
+#     To handle the error:
+#         1) the debugger will first read the last conformer in the last work.
+#         2) replace the DFT method to `B3LYP` and perform optimization, the method `B3LYP` method
+#          is a robust method and more easily to convergence.
+#         3) lastly, optimizing conformer from the last conformer by original method
+#     """
+#     def trigger(self, gauss: Gaussian) -> bool:
+#         """"""
+#         if gauss.output.is_opti_convergence_error:
+#             return True
+#         return False
+#
+#     def handle(self, gauss: Gaussian) -> bool:
+#         """"""
+#         return False
 
 
 @AutoDebug.register
@@ -850,7 +1381,7 @@ class ReOptiWithSASSurfaceSCRF(Debugger, ABC):
 
         return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         route = gauss.parsed_input['route']
 
         scrf_name = self._find_keyword_name(route, 'scrf')
@@ -871,10 +1402,12 @@ class ReOptiWithSASSurfaceSCRF(Debugger, ABC):
         # if the optimization is unsuccessful, terminate
         if gauss.stderr:
             print('Fail to optimize in SAS surface!!!')
-            return None
+            return False
 
         gauss.to_conformer()
         gauss.parsed_input[new_other] = 'surface=ses AddSph'
+
+        return True
 
 
 @AutoDebug.register
@@ -884,11 +1417,13 @@ class ReOptiByCartesian(Debugger, ABC):
         # If the error is ZMatrix trouble and the original task is optimization
         return gauss.output.is_ZMatrix_error and self._find_keyword_name(gauss.parsed_input['route'], 'opt')
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         route = gauss.parsed_input['route']
         opt_name = self._find_keyword_name(route, 'opt')
 
         gauss.full_option_values('route', opt_name, "Cartesian")
+
+        return True
 
 
 @AutoDebug.register
@@ -900,11 +1435,13 @@ class Restart(Debugger, ABC):
 
         return False
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         route = gauss.parsed_input['route']
         opt_name = self._find_keyword_name(route, 'opt')  # Get the actual user-give keyword for optimization
 
         gauss.full_option_values('route', opt_name, 'Restart')
+
+        return True
 
 
 @AutoDebug.register
@@ -913,5 +1450,17 @@ class RerunFromLastConformer(Debugger, ABC):
     def trigger(self, gauss: Gaussian) -> bool:
         return True
 
-    def handle(self, gauss: Gaussian):
+    def handle(self, gauss: Gaussian) -> bool:
         gauss.to_conformer()  # convert to the last conformer in the stdout
+        return True
+
+
+# Retrieve data from the result log file:
+def retrieve_log_data(
+        root: Union[str, Path],
+        file_pattern: str = "**.*.log",
+):
+    """"""
+    root = Path(root)
+
+

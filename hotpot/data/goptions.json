@@ -1,16 +1,207 @@
 {
   "link0": {
-    "nproc": "float",
-    "Mem": "float",
+    "nproc": "int",
+    "CPU": "str",
+    "Mem": "str",
     "chk": "str",
     "rwf": "str",
     "NoSave": null
   },
   "route": {
-    "opt": {
-      "convergence": ["Loose", "Tight", "VeryTight", "EigenTest", "Expert"],
-      "algorithm": ["GEDIIS", "RFO", "EF"],
-      "ONIOM": ["Micro", "QuadMacro"]
+    "method": {
+      "SELECTION": null,
+      "B3LYP": null,
+      "M062X": null,
+      "HF": null
+    },
+    "basis": {
+      "SELECTION": null,
+      "STO-3G": null,
+      "3-21G": null,
+      "6-21G": null,
+      "4-31G": null,
+      "6-31G": null,
+      "6-311G": null,
+      "D95V": null,
+      "D95": null,
+      "SHC": null,
+      "CEP-4G": null,
+      "CEP-31G": null,
+      "CEP-121G": null,
+      "LanL2MB": null,
+      "LanL2DZ": null,
+      "SDD": null,
+      "Def2SVP": null
+    },
+    "Optimization": {
+      "ReadOptimize": {
+        "SELECTION": null,
+        "ReadOptimize": "addition",
+        "ReadOpt": "addition",
+        "RdOpt": "addition"
+      },
+      "NoFreeze": null,
+      "MaxCycles": "int",
+      "MaxStep": "int",
+      "restart": null,
+      "InitialHarmonic": {
+        "SELECTION": null,
+        "InitialHarmonic": "int",
+        "IHarmonic": "int"
+      },
+      "ChkHarmonic": {
+        "SELECTION": null,
+        "ChkHarmonic": "int",
+        "CHarmonic": "int"
+      },
+      "ReadHarmonic": {
+        "SELECTION": null,
+        "ReadHarmonic": "int",
+        "RHarmonic": "int"
+      },
+      "MaxMicroiterations": "int",
+      "NGoUp": "int",
+      "NGoDown": "int",
+      "MaxEStep": "int",
+      "R2IFC": {
+        "SELECTION": null,
+        "ReadFC": null,
+        "CalcFC": null,
+        "RCFC": null,
+        "CalcHFFC": null,
+        "CalcAll": null,
+        "RecalcFC": "int",
+        "VCD": null,
+        "NoRaman": null,
+        "StarOnly": null,
+        "NewEstmFC": null,
+        "EstmFC": null,
+        "FCCards": null
+      },
+      "convergence": {
+        "SELECTION": null,
+        "Loose": null,
+        "Tight": null,
+        "VeryTight": null,
+        "EigenTest": null,
+        "Expert": null
+      },
+      "algorithm": {
+        "SELECTION": null,
+        "GEDIIS": null,
+        "RFO": null,
+        "EF": null
+      },
+      "ONIOM": {
+        "SELECTION": null,
+        "Micro": null,
+        "QuadMacro": null
+      },
+      "Coordinate": {
+        "SELECTION": null,
+        "Redundant": null,
+        "Z-Matrix": null,
+        "Cartesian": null
+      },
+      "GIC": {
+        "SELECTION": null,
+        "GIC": null,
+        "AddGIC": null,
+        "GICOld": null,
+        "ReadAllGIC": null,
+        "ModRedundant": {
+          "SELECTION": null,
+          "ModRedundant": "addition",
+          "AddRedundant": "addition"
+        }
+      },
+      "Path": "?",
+      "OptReactant": null,
+      "BiMolecular": null,
+      "OptProduct": null,
+      "Linear": null,
+      "TrustUpdate": null,
+      "Newton": null,
+      "NRScale": null,
+      "Steep": null,
+      "UpdateMethod": "str",
+      "HFError": null,
+      "FineGridError": null,
+      "SG1Error": null
+    },
+    "Freq": {
+      "ReadFC": null
+    },
+    "CBSExtrap": {
+      "NMin": "int"
+    },
+    "SCRF": {
+      "Solvent": "str",
+      "Method": {
+        "SELECTION": null,
+        "PCM": null,
+        "CPCM": null,
+        "Dipole": null,
+        "IPCM": null,
+        "SCIPCM": null
+      },
+      "SMD": null,
+      "Read": "input",
+      "NonEquilibrium": {
+        "SELECTION": null,
+        "Save": null,
+        "Write": null,
+        "Read": null,
+        "Load": null,
+        "CCSave": null,
+        "CCWrite": null,
+        "CCRead": null,
+        "CCLoad": null
+      },
+      "SAS": null,
+      "AsymmetricIEFPCM": {
+        "AsymmetricIEFPCM": null,
+        "AIEFPCM": null,
+        "PTED": null,
+        "CorrectedLinearResponse": null,
+        "Checkpoint": null,
+        "Modify": null,
+        "ONIOMPCM": {
+          "SELECTION": null,
+          "A": null,
+          "B": null,
+          "C": null,
+          "X": null
+        },
+        "G09Default": null,
+        "G03Default": null,
+        "IPCM ": {
+          "SELECTION": null,
+          "GradVne": null,
+          "GradRho": null
+        },
+        "SCIPCM ": {
+          "SELECTION": null,
+          "UseDensity": null,
+          "UseMOs": null,
+          "GasCavity": null
+        },
+        "SaveQ": null,
+        "LoadQ": null,
+        "COSMORS": null
+      }
+
+    },
+    "Population": {
+      "None": null,
+      "Minimal": null,
+      "Full": null,
+      "Always": null,
+      "Orbitals": {
+        "Orbitals": "int",
+        "AllOrbitals": null
+      },
+      "ThreshOrbitals": "int"
     }
   }
 }

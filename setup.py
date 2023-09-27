@@ -35,6 +35,7 @@ setuptools.setup(
         "tqdm",
         "rdkit",
         "psutil",
+        "dpdata"
     ],
     include_package_data=True,
 )

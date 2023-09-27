@@ -20,7 +20,7 @@ import cclib
 import numpy as np
 
 import hotpot.cheminfo as ci
-from hotpot.tanks.deepmd import DeepSystem
+from hotpot.tasks.deepmd import DeepSystem
 
 """
 Notes:
@@ -305,7 +305,7 @@ class IOBase:
         self.args = args
         self.kwargs = kwargs
 
-        # override this methods to check the
+        # override the methods to check the
         self.result = self._checks()
 
     def __call__(self):
@@ -378,10 +378,12 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _preprocess_for_gjf(self):
         """ Perform preprocess for  conversion of all gaussian input """
-        if not self.src.has_3d:
+        if not self.src.has_3d and not self.kwargs.get("not_build_3d"):
             self.src.build_3d()
 
-        self.src.assign_atoms_formal_charge()
+        if not self.kwargs.get("not_assign_atoms_formal_charge"):
+            self.src.assign_atoms_formal_charge()
+
         self.src.identifier = self.src.formula
 
     def _postprocess_for_gjf_head(self, script) -> (List[str], int):
@@ -413,17 +415,12 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         # Write route command
         if isinstance(route, str):
-            lines[1+inserted_lines] = f'# {route}'
+            line = f'# {route}'
         elif isinstance(route, list):
-            for i, stc in enumerate(route):
-                assert isinstance(stc, str)
-                if not i:  # For the first line of link0, replace the original line in raw script
-                    lines[1+inserted_lines] = f'#{stc}'
-                else:  # For the other lines, insert into after the original route line.
-                    inserted_lines += 1
-                    lines.insert(inserted_lines+1, f'%{stc}')
+            line = "# " + " ".join(route)
         else:
             raise TypeError('the route should be string or list of string')
+        lines[1 + inserted_lines] = line
 
         charge, spin = lines[5+inserted_lines].split()
         if custom_charge:
@@ -486,7 +483,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         """
         crystal = self.src.crystal()
         if not isinstance(crystal, ci.Crystal) or (
-                np.logical_not(crystal.vector >= 0.).any() and np.logical_not(crystal.vector < 0.).any()
+                np.logical_not(crystal.vectors >= 0.).any() and np.logical_not(crystal.vectors < 0.).any()
         ):
             self.src.compact_crystal(inplace=True)
 
@@ -610,6 +607,10 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return script
 
+    def _io_raspa_mol(self):
+        """ convert the Molecule obj to the """
+        # TODO: Yuqing. Tip: bond.is_rigid
+
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
         lines, _ = self._postprocess_for_gjf_head(script)
@@ -686,6 +687,12 @@ class Dumper(IOBase, metaclass=MetaIO):
                 script += '\n'.join(bcs)
                 script += '\n' * 3
 
+        return script
+
+    def _post_mol2(self, script: str):
+        """ add the generation information to the mol2 file """
+        script += "@<TRIPOS>GENERATIONS\n"
+        script += "\n".join([f"{i}\t{atom.generations}" for i, atom in enumerate(self.src.atoms)]) + '\n'
         return script
 
 
@@ -852,6 +859,16 @@ class Parser(IOBase, metaclass=MetaIO):
                 print(error)
             else:
                 raise error
+
+    def _io_raspa_mol(self):
+        """ read the raspa_mol file to convert it to the hotpot.Molecule file """
+        if self.result['src_type'] == 'path':
+            with open(self.src) as file:
+                script = file.read()
+        else:
+            script = self.src
+
+        # TODO: Yuqing. The script is a text with the raspa_mol format
 
     # Parse the XYZ file
     def _io_xyz(self):
@@ -1043,4 +1060,26 @@ class Parser(IOBase, metaclass=MetaIO):
 
         return obj
 
+    def _post_mol2(self, obj: 'ci.Molecule'):
+        """ add generation information into the Molecule object """
+        with open(self.src) as file:
+            lines = file.readlines()
+            title_lines = [i for i, line in enumerate(lines) if line.startswith("@<TRIPOS>")]
 
+            try:
+                title_line_idx, line_idx = \
+                    [(i, tl) for i, tl in enumerate(title_lines) if lines[tl].strip() == "@<TRIPOS>GENERATIONS"][0]
+
+                gen_start = line_idx + 1
+                gen_end = title_lines[title_line_idx + 1] if title_line_idx + 1 < len(title_lines) else len(lines)
+
+                for l_idx, atom in zip(range(gen_start, gen_end), obj.atoms):
+                    ob_id, gen = map(int, lines[l_idx].strip().split('\t'))
+
+                    assert ob_id == atom.ob_id
+                    atom.generations = gen
+
+            except IndexError:
+                return obj
+
+        return obj

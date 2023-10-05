@@ -33,4 +33,4 @@ def settings_config(new_settings: dict):
 from hotpot.cheminfo import Molecule
 from hotpot.bundle import MolBundle
 
-__version__ = '0.3.2.0'
+__version__ = '0.3.4.0'

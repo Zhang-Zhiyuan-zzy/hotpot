@@ -36,7 +36,7 @@ class TestSubstitute(ut.TestCase):
         _builder = ob.OBBuilder()
         _builder.SetKeepRings()
 
-        subst = substitute.EdgeJoinSubstituent(
+        subst = substitute.NodeEdgeJoin(
             "benzene",
             hp.Molecule.read_from('C1=CNC=C1', 'smi'),
             [0, 1], "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]",
@@ -90,6 +90,43 @@ class TestSubstitute(ut.TestCase):
         benzene.build_3d()
         benzene.writefile('mol2', test.test_root.joinpath("output/substituted.mol2"))
 
+    def test_read_write_substitute(self):
+        """ Write a pyrrol12 substituent to hotpot.data.substituents.json, and rebuild a new by read the written info """
+        benzene = hp.Molecule.read_from('c1ccccc1', 'smi')
+        pyrrol = substitute.NodeEdgeJoin(
+            "benzene",
+            hp.Molecule.read_from('C1=CNC=C1', 'smi'),
+            [0, 1], "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]",
+            unique_mols=True
+        )
 
+        pyrrol.writefile(substitute.substituent_root)
 
+        gen_subst = substitute.Substituent.read_from()
+
+        mols = []
+        for subst in gen_subst:
+            gen_mols = subst(benzene)
+            mols.extend(gen_mols)
+
+        for mol in mols:
+            print(mol.smiles)
+
+    def test_H_replace(self):
+        """ Replace the hydrogens in a benzene to be phenyl """
+        benzene = hp.Molecule.read_from('c1ccccc1', 'smi')
+        phenyl_subst = substitute.NodeEdgeJoin(
+            "phenyl", hp.Molecule.read_from('c1ccccc1', 'smi'),
+            [0], '[H1]', unique_mols=True
+        )
+        benzene.normalize_labels()
+        phenyl_subst.substituent.normalize_labels()
+
+        gen_mols = phenyl_subst(benzene)
+
+        for mol in gen_mols:
+            print(mol.smiles)
+
+        for atom in gen_mols[0].atoms:
+            print(atom, atom.is_aromatic)
 

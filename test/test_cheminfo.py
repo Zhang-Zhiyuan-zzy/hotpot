@@ -32,6 +32,9 @@ class TestMolecule(ut.TestCase):
     def setUp(self) -> None:
         print('running test:', self._testMethodName)
 
+    def tearDown(self) -> None:
+        print('terminal:', self._testMethodName)
+
     def test_read_g16log(self):
         """ test the `read_from` method """
         mol_path = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'struct', 'abnormal_output.log')

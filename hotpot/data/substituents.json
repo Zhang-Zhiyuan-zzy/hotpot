@@ -1,0 +1,29 @@
+{
+ "pyrrol01": {
+  "type": "NodeEdgeJoin",
+  "fragment_smiles": "c1ccc[nH]1",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ },
+ "pyrrol12": {
+  "type": "NodeEdgeJoin",
+  "fragment_smiles": "c1ccc[nH]1",
+  "plugin_atom_id": [
+   1,
+   2
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ },
+ "benzene": {
+  "type": "NodeEdgeJoin",
+  "fragment_smiles": "c1ccc[nH]1",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ }
+}

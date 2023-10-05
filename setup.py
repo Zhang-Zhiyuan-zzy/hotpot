@@ -11,7 +11,7 @@ import setuptools
 
 setuptools.setup(
     name="hotpot-zzy",
-    version="0.3.1.0",
+    version="0.3.4.0",
     description="A python package designed to communicate among various chemical and materials calculational tools",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",

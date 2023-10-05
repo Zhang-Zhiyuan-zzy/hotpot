@@ -1058,6 +1058,7 @@ class Molecule(Wrapper, ABC):
             correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
             balance_hydrogen: whether to balance the bond valance of heavy atom to their valence
         """
+        is_aromatic = {atom.ob_id: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
         self._load_atoms()
         self._load_bonds()
@@ -1065,6 +1066,13 @@ class Molecule(Wrapper, ABC):
         if balance_hydrogen:
             for atom in self.atoms:
                 atom.balance_hydrogen()
+
+        for atom in self.atoms:
+            true_false = is_aromatic.get(atom.ob_id)
+            if true_false:
+                atom.set_aromatic()
+
+        logging.info({atom: atom.is_aromatic for atom in self.atoms})
 
     def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         """ Add pseudo atom into the molecule """
@@ -2497,7 +2505,15 @@ class Molecule(Wrapper, ABC):
         self._load_bonds()
 
     def remove_hydrogens(self):
+        is_aromatic = {atom.ob_id: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.DeleteHydrogens()
+
+        for atom in self.atoms:
+            true_false = is_aromatic.get(atom.ob_id)
+            if true_false:
+                atom.set_aromatic()
+
+        # logging.info({atom:atom.is_aromatic for atom in self.atoms})
 
     def remove_metals(self):
         """ remove all of metal atoms in the molecule """
@@ -3401,6 +3417,11 @@ class Atom(Wrapper, ABC):
             spin_density:
         """
         self._set_attrs(**kwargs)  # set attributes
+
+    def set_aromatic(self):
+        """ Set this atom to be aromatic """
+        self.ob_atom.IsAromatic()
+        self.ob_atom.SetAromatic()
 
     @property
     def spin_density(self):

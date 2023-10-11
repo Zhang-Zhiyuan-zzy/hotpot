@@ -76,7 +76,7 @@
         "UNO":"null",
         "NPairs":"int"
     },
-    "CBSExtra":{
+    "CBSExtrap":{
       "NMin":"int",
       "MinPopLocal":"null",
       "PopLocal":"null",

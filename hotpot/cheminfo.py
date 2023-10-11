@@ -2157,8 +2157,8 @@ class Molecule(Wrapper, ABC):
             steps: int = 100,
             balance_hydrogen: bool = False,
             to_optimal: bool = False,
-            tolerable_displacement: float = 5e-2,
-            max_iter: int = 100
+            tolerable_displacement: float = 1e-1,
+            max_iter: int = 10
     ):
         """
         Locally optimize the coordinates. referring openbabel.pybel package

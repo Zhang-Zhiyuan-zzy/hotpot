@@ -22,5 +22,5 @@ class TestMaterialsMaker(ut.TestCase):
 
     def test_make_amorphous_crystal(self):
         """ Test hotpot/tasks/lmp/materials/AmorphousMaker class """
-        frame = hp.Molecule.create_aCryst_by_mq({"C": 1.0}, "aMaterials/SiC.tersoff", ff_args=("C",))
+        frame = hp.Molecule.create_aCryst_by_mq({"C": 1.0}, "aMaterials/SiC.tersoff", ff_args=("C",), density=0.01)
         self.assertIsInstance(frame, hp.Molecule)

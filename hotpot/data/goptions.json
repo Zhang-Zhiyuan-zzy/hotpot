@@ -8,6 +8,19 @@
     "NoSave": null
   },
   "route": {
+    "ADMP":{
+        "MaxPoint":"int",
+        "Lowdin":"null",
+        "NKE":"int",
+        "DKE":"int",
+        "ElecMass":"int",
+        "FullSCF":"null",
+        "ReadVelocity":"null",
+        "StepSize":"int",
+        "BandGap":"null",
+        "Restart":"null",
+        "ReadIsotopes":"addition"
+    },
     "basis": {
       "SELECTION": null,
       "STO-3G": null,
@@ -29,11 +42,264 @@
       "Gen": "addition",
       "GenECP": "addition"
     },
-    "CBSExtrap": {
-      "NMin": "int"
+    "BOMD":{
+      "MaxPoints":"int",
+      "Phase":"vecter",
+      "ReadVelocity":"null",
+      "ReadMWVelocity":"null",
+      "SimAnneal":"null",
+      "ReadStop":"null",
+      "RTemp":"int",
+      "NSample":"int",
+      "NTraj":"int",
+      "Update":"int",
+      "Random Velocity":"null",
+      "StepSize":"int",
+      "Sample":"str",
+      "Restart":"null",
+      "ReadIsotopes":"addition"
+    },
+    "CASSCF":{
+        "NRoot":"int",
+        "StateAverage":"null",
+        "SpinOrbit":"null",
+        "RAS":["int", "int", "int", "int"],
+        "DavidsonDiag":"null",
+        "LanczosDiag":"null",
+        "FullDiag":"null",
+        "StateGuess":"?",
+        "OrbRot":"null",
+        "SlaterDet":"null",
+        "SaveGEDensities":"null",
+        "RFO":"null",
+        "QC":"null",
+        "UNO":"null",
+        "NPairs":"int"
+    },
+    "CBSExtra":{
+      "NMin":"int",
+      "MinPopLocal":"null",
+      "PopLocal":"null",
+      "BoysLocal":"null",
+      "Nolocal":"null",
+      "NRPopLocal":"null",
+      "NRBoysLocal":"null",
+      "NRMinPopLocal":"null",
+      "SaceOrbitals":"null"
+    },
+    "Charge":{
+        "Angstroms":"null",
+        "Bohrs":"null",
+        "Check":"null"
+    },
+    "CIS":{
+      "Singlets":"null",
+      "Triplets":"null",
+      "50-50":"null",
+      "Root":"int",
+      "NStates":"int",
+      "Add":"int",
+      "GOccSt":"int",
+      "GOccEnd":"int",
+      "GDEMin":"int",
+      "DEMin":"int",
+      "IFact":"int",
+      "WhenReduce":"?",
+      "AllTransitionDensities":"null",
+      "FC":"null",
+      "Direct":"null",
+      "MO":"null",
+      "AO":"null",
+      "Conver":"int",
+      "Read":"null",
+      "Restart":"null",
+      "RWFrestart":"null",
+      "EqSolv":"null",
+      "NoIVOGuess":"null",
+      "NonAdiabaticCoupling":"null",
+      "ICDiag":"null",
+      "MaxDiag":"int"
+    },
+    "Constants":{
+        "2010":null,
+        "2006":null,
+        "1998":null,
+        "1986":null,
+        "1979":null
+    },
+    "Counterpoise":{
+        "NewGhost": {
+          "NewGhost": null,
+          "NewBq": null
+        },
+        "OldGhost": {
+          "OldGhost": null,
+          "OldBq": null
+        }
+    },
+    "CPHF":{
+      "RdFreq":"null",
+      "InputFreq":"null",
+      "Static":"null",
+      "Static_grid":{
+        "SELECTION": null,
+        "Grid": {
+          "Coarse": null,
+          "SG1": null,
+          "Fine": null,
+          "Ultrafine": null,
+          "Superfine": null
+        },
+        "OneStep":"null",
+        "TwoStep":"null",
+        "TauOneStep":"null",
+        "PSCFOneStep":"null",
+        "PSCFTauOneStep":"null"
+      },
+      "Conver":"int",
+      "RecursiveDIIS":"null",
+      "MaxInv":"int",
+      "Simultaneous":"null",
+      "Separate":"null",
+      "AO":"null",
+      "MO":"null",
+      "Canonical":"null",
+      "MOD":"null"
+},
+    "Density":{
+        "Current":"null",
+        "All":"null",
+        "SCF":"null",
+        "MP2":"null",
+        "Transition":"int",
+        "AllTransition":"null",
+        "CI":"null",
+        "CC":"null",
+        "RhoCI":"null",
+        "Rho2":"null",
+        "CIS":"int",
+        "Checkpoint":"null"
+    },
+    "DensityFit":{
+        "Iterative":"null",
+        "InvToler":"int",
+        "Convergence":"int",
+        "Coulomb":"null",
+        "Overlap":"null",
+        "JNormalization":"null",
+        "AONormalization":"null"
+    },
+    "EET":{
+        "Fragment":"int",
+        "FullSystemCavity":"null",
+        "FragmentCavity":"null",
+        "NonEqSolv":"null",
+        "EqSolv":"null"
+    },
+    "EOMCCSD":{
+      "NStates":"int",
+      "NStPIR":"int",
+      "Singlets":"null",
+      "Triplets":"null",
+      "NCISState":"?",
+      "Root":"int",
+      "MaxCyc":"int",
+      "Convergence":"int",
+      "CCConvergence":"int",
+      "LRTransitionDensities":"null",
+      "EnergyOnly":"null",
+      "TWInCore":"null",
+      "SaveAmplitudes":"null",
+      "ReadAmplitudes":"null",
+      "ReadGroundStateAmplitudes":"null",
+      "NewCIS":"null"
+    },
+    "EPT":{
+        "OVGF":"null",
+        "P3":"null",
+        "OVGF+P3":"null",
+        "ED2":"null",
+        "FC":"null",
+        "ReadOrbitals":"null",
+        "ForceSort":null
+    },
+    "External":{
+      "InUnf":"null",
+      "2ElIntegrals":"null",
+      "Raw":"null",
+      "InputFchk":"null",
+      "OutputUnf":"null",
+      "IOFchk":"null",
+      "ReadInputSection":"null",
+      "PostSCF":"null",
+      "PostPop":"null",
+      "MO2ElIntegrals":"null",
+      "ActiveAtoms":"null",
+      "NoDelete":"null",
+      "Guess":"null",
+      "AO2ElDerivatives":"null",
+      "AO2PDM":"null",
+      "Files":"str"
+    },
+    "Force": {
+      "EnOnly":"null",
+      "Restart":"null",
+      "StepSize":"int",
+      "NoStep":"null"
     },
     "Freq": {
-      "ReadFC": null
+      "ReadFC": "null",
+      "Raman": "null",
+      "NRaman": "null",
+      "NNRaman": "null",
+      "NoRaman": "null",
+      "VCD": "null",
+      "ROA": "null",
+      "Anharmonic": "null",
+      "ReadAnharm": "null",
+      "ReadHarmonic": "null",
+      "ReadDifferentharmonic": "null",
+      "SelectAnharmonicModes": "null",
+      "FranckCondon": "null",
+      "HerzbergTeller": "null",
+      "FCHT": "null",
+      "Emission": "null",
+      "ReadFCHT": "null",
+      "VibRot": "null",
+      "Projected": "null",
+      "TProjected": "null",
+      "HinderedRotor": "null",
+      "ReadHinderedRotor": "null",
+      "HPModes": "null",
+      "InternalModes": "null",
+      "SaveNormalModes": "null",
+      "ReadNormalModes": "null",
+      "SelectNormalModes": "null",
+      "SortModes": "null",
+      "ModelModes": "null",
+      "MiddleModes": "null",
+      "PrintDerivatives": "null",
+      "PrintFrozenAtoms": "null",
+      "NoPrintNM": "null",
+      "Geometry": {
+        "SELECTION": null,
+        "ModRedundant": "null",
+        "ReadIsotopes": "null"
+      },
+      "Algorithm": {
+        "SELECTION": null,
+        "Analytic": "null",
+        "Numerical": "null",
+        "FourPoint": "null",
+        "DoubleNumer": "null",
+        "Cubic": "null",
+        "Step": "int",
+        "Restart": "null",
+        "DiagFull": "null",
+        "TwoPoint": "null",
+        "NFreq": "int",
+        "WorkerPerturbations": "null"
+      }
     },
     "GenChk": null,
     "Geom": {
@@ -426,7 +692,89 @@
       "_comment6": "W1 Methods",
       "W1U": null,
       "W1BD": null,
-      "W1RO": null
+      "W1RO": null,
+      "_comment7": "CCD, CCSD, CID, CISD Methods",
+      "CCD": {
+        "FC":null,
+        "E4T":null,
+        "Conver":"int",
+        "MaxCyc":"int",
+        "TWInCore":null,
+        "SaveAmplitudes":null,
+        "ReadAmplitudes":null
+      },
+      "CCSD": {
+        "FC":null,
+        "T":null,
+        "E4T":null,
+        "TlDiag":null,
+        "Conver":"int",
+        "MaxCyc":"int",
+        "TWInCore":null,
+        "SaveAmplitudes":null,
+        "ReadAmplitudes":null
+      },
+      "CID": {
+        "FC":null,
+        "Conver":"N",
+        "MaxCyc":"int",
+        "SaveAmplitudes":null,
+        "ReadAmplitudes":null
+      },
+      "CISD": {
+        "FC":null,
+        "Conver":"N",
+        "MaxCyc":"int",
+        "SaveAmplitudes":null,
+        "ReadAmplitudes":null
+      },
+      "_comment8": "DFTB and DFTBA",
+      "DFTB": {
+        "Read":"null",
+        "ChkParameters":"null"
+      },
+      "DFTBA": {
+        "Read":"null",
+        "ChkParameters":"null"
+      },
+      "_comment9": "BD method",
+      "BD":{
+        "T":"null",
+        "TQ":"null",
+        "FC":"null",
+        "MaxCyc":"int",
+        "Conver":"int",
+        "TWInCore":"null",
+        "InCore":"null",
+        "SaveAmplitudes":"null",
+        "ReadAmplitudes":"null",
+        "Read":"null"
+      },
+      "_comment10": "CBS Methods",
+      "CBS-4M": {
+        "sp":"null",
+        "NoOpt":"null",
+        "ReadIsotopes":"addition",
+        "Restart":"null"
+      },
+      "CBS-QB3": {
+        "sp":"null",
+        "NoOpt":"null",
+        "ReadIsotopes":"addition",
+        "Restart":"null"
+      },
+      "CBS-APNO": {
+        "sp":"null",
+        "NoOpt":"null",
+        "ReadIsotopes":"addition",
+        "Restart":"null"
+      },
+      "ROCBS-QB3": {
+        "sp":"null",
+        "NoOpt":"null",
+        "ReadIsotopes":"addition",
+        "Restart":"null"
+      }
     },
     "MINDO3":"int",
     "MNDO":"int",
@@ -445,6 +793,7 @@
       "ReadFC": null,
       "Susceptibility": null
     },
+    "NoDensityFit": null,
     "Optimization": {
       "ReadOptimize": {
         "SELECTION": null,

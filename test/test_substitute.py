@@ -31,20 +31,15 @@ class TestSubstitute(ut.TestCase):
     def tearDown(self) -> None:
         print('Normalize terminate test!', self._testMethodName)
 
-    def test_substitute(self):
-        """"""
+    def test_EdgeSubst(self):
+        """ Test the substituting operation by EdgeSubst """
         _builder = ob.OBBuilder()
         _builder.SetKeepRings()
 
-        subst = substitute.EdgeJoinSubstituent(
-            "benzene",
-            hp.Molecule.read_from('C1=CNC=C1', 'smi'),
-            [0, 1], "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]",
-            unique_mols=True
-        )
+        subst = substitute.EdgeSubst("benzene", 'c1ccc[nH]1', [0, 1],
+                                     "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]", unique_mols=True)
 
         benzene = hp.Molecule.read_from('OCCOc1ncccc1OCCOCC', "smi")
-        # benzene = hp.Molecule.read_from("/home/zz1/mol0.mol2")
 
         benzene.normalize_labels()
         generate_mol = subst(benzene)
@@ -63,6 +58,9 @@ class TestSubstitute(ut.TestCase):
             mol.remove_hydrogens()
             mol.add_hydrogens()
             mol.writefile('mol2', test.test_root.joinpath(f"output/substituted_{i}.mol2"))
+
+    def test_NodeSubst(self):
+        """ test the substituting operation by NodeSubst """
 
     def test_new_substitute(self):
         import openbabel.openbabel as ob
@@ -90,6 +88,27 @@ class TestSubstitute(ut.TestCase):
         benzene.build_3d()
         benzene.writefile('mol2', test.test_root.joinpath("output/substituted.mol2"))
 
+    def test_write_read_substituent(self):
+        """ test write and read hotpot/data/substituents.json file """
+        benzene = hp.Molecule.read_from('c1ccccc1', 'smi')
 
+        self.assertRaises(ValueError, substitute.EdgeSubst,
+                          "thiophene01", 'c1ccsc1', [0, 1], "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]", unique_mols=True)
 
+        pyrrol01 = substitute.EdgeSubst("pyrrol01", 'c1ccc[nH]1', [0, 1],
+                                        "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]", unique_mols=True)
+        thiophene01 = substitute.EdgeSubst("thiophene01", 'c1cccs1', [0, 1],
+                                           "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]", unique_mols=True)
 
+        pyrrol01.writefile(substitute.substituent_root)
+        thiophene01.writefile(substitute.substituent_root)
+
+        gen_subst = substitute.Substituent.read_from()
+
+        mols = []
+        for subst in gen_subst:
+            gen_mols = subst(benzene)
+            mols.extend(gen_mols)
+
+        for mol in mols:
+            print(mol.smiles)

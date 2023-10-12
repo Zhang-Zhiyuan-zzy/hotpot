@@ -54,32 +54,30 @@ class Substituent(ABC):
     _registry_sheet = {}
 
     def __init__(
-            self, name: str,
-            substituent: Union[str, Molecule],
-            plugin_atoms: list[Union[Atom, int]],
-            socket_smarts: str = None,
-            unique_mols: bool = True
+            self, name: str, subst_can_smi: str, plugin_atoms: list[int],
+            socket_smarts: str = None, unique_mols: bool = True
     ):
         """
         Args:
-            substituent(Molecule|str): the substituent fragment.
+            subst_can_smi(Molecule|str): the canonical SMILES of substituent fragment.
             plugin_atoms: the ob_id of atoms which will work which the main or framework molecule atoms
         """
         self.name = name
         self.unique_mols = unique_mols
 
-        if isinstance(substituent, Molecule):
-            self.substituent = substituent
-        elif isinstance(substituent, str):
-            self.substituent = Molecule.read_from(substituent, "smi")
+        if isinstance(subst_can_smi, str):
+            self.substituent = Molecule.read_from(subst_can_smi, "smi")
+            # Check whether the given SMILES is a canonical SMILES
+            if self.substituent.smiles != subst_can_smi:
+                raise ValueError(f"the given SMILES {subst_can_smi} is non-canonical, "
+                                 f"the correct writing should be {self.substituent.smiles}")
         else:
             raise TypeError('the substituent should be a Molecule or a SMILES string')
 
         # Build 3d structure
         self.substituent.build_3d()
 
-        # Get the ob_id of plugin_atoms in the substituent Molecule.
-        self.plugin_atoms = [self.substituent.atom(pa).ob_id for pa in plugin_atoms]
+        self.plugin_atoms = plugin_atoms
 
         if socket_smarts:
             self.socket_searcher = SubstructureSearcher(socket_smarts)
@@ -162,11 +160,11 @@ class Substituent(ABC):
         data = json.load(open(file_path))
         for name, items in data.items():
             cls = Substituent._registry_sheet[items['type']]
-            fragment_mol = Molecule.read_from(items['fragment_smiles'], 'smi')
-            plugin_atoms = [fragment_mol.atom(ob_id) for ob_id in items["plugin_atoms_id"]]
-            socket_smarts = items('socket_smarts')
+            frag_can_smi = items['fragment_smiles']
+            plugin_atoms = items["plugin_atom_id"]
+            socket_smarts = items['socket_smarts']
 
-            yield cls(name, fragment_mol, plugin_atoms, socket_smarts)
+            yield cls(name, frag_can_smi, plugin_atoms, socket_smarts)
 
     @classmethod
     def register(cls, substituent_type: type):
@@ -230,7 +228,11 @@ class Substituent(ABC):
         """
 
     def writefile(self, save_path: Union[str, os.PathLike]):
-        """"""
+        """
+        Store the substituent info to json file
+        Args:
+            save_path: the path of saved json file
+        """
         try:
             with open(save_path) as file:
                 data = json.load(file)
@@ -265,7 +267,7 @@ class NodeSubstituent(Substituent):
 
 
 @Substituent.register
-class EdgeJoinSubstituent(Substituent):
+class EdgeSubst(Substituent):
     """ The substitution is performed by joining the plugin edge (two atoms) with the socket edges in the frame mol """
     def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int] = None):
         # Check whether the length of socket atoms is 2

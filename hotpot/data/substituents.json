@@ -1,0 +1,20 @@
+{
+ "pyrrol01": {
+  "type": "EdgeSubst",
+  "fragment_smiles": "c1ccc[nH]1",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ },
+ "thiophene01": {
+  "type": "EdgeSubst",
+  "fragment_smiles": "c1cccs1",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ }
+}

@@ -30,26 +30,10 @@ from hotpot.search import SubstructureSearcher, MatchedMol
 
 substituent_root = os.path.join(hp.data_root, 'substituents.json')
 
-_ob_builder = ob.OBBuilder()
-
-
-# class _SubstituentRegistry:
-#     """ used to register the defined the Substituent classes """
-#     def __init__(self):
-#         self._sheet = {}
-#
-#     def register(self, cls: type):
-#         """"""
-#         self._sheet[cls.__name__] = cls
-#         return cls
-#
-#
-# register = _SubstituentRegistry()
-
 
 class Substituent(ABC):
     """ the base class for all Substituent class """
-    _check_func_matcher = re.compile(r"_check_\w+")  # Applied in method _init_check
+    _chk_func_matcher = re.compile(r"_check_\w+")  # Applied in method _init_check
 
     _registry_sheet = {}
 
@@ -111,12 +95,31 @@ class Substituent(ABC):
     def _init_check(self):
         """ Check if the defined substitute are reasonable """
         # Performing other custom checks in the substituent
-        custom_checks = [name for name in dir(str) if self._check_func_matcher.match(name)]
+        custom_checks = [name for name in dir(self) if self._chk_func_matcher.match(name)]
         for check_func_name in custom_checks:
             check_func = getattr(self, check_func_name)
             check_func()
 
             logging.info(f"run check func {check_func_name}")
+
+    def encounter(self, frame_mol: Molecule) -> (Molecule, dict[int, int], dict[int, int]):
+        """
+        Build 3D for frame mol and substituent, and encounter the substrate with the substituent
+        Args:
+            frame_mol(Molecule): framework Molecule
+
+        Returns:
+            Molecule, atoms_mapping, bonds_mapping
+        """
+        frame_mol.build_3d()
+
+        # Remove Hydrogens
+        frame_mol.remove_hydrogens()
+        self.substituent.remove_hydrogens()
+
+        atoms_mapping, bonds_mapping = frame_mol.add_component(self.substituent)
+
+        return frame_mol, atoms_mapping, bonds_mapping
 
     @property
     def default_socket_smarts(self):
@@ -186,6 +189,7 @@ class Substituent(ABC):
                 idx = key_mols.index(mol)
             except ValueError:
                 idx = len(value_mols)
+                key_mols.append(mol)
                 value_mols.append([])
 
             value_mols[idx].append(mol)
@@ -221,7 +225,7 @@ class Substituent(ABC):
             return [[atom.ob_id for atom in hit.matched_atoms()] for hit in matched_mol]
 
     @abstractmethod
-    def substitute(self, frame_mol: Molecule, socket_atoms: list[int] = None):
+    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int]):
         """
         Performing the substitute for the given frame_mol, and Return the copy of the frame_mol,
         where the Substitute have been grafted into it.
@@ -260,26 +264,91 @@ class Substituent(ABC):
 
 
 @Substituent.register
-class NodeSubstituent(Substituent):
+class ElemReplace(Substituent):
+    """ The substitution is performed by replacing the element of an atoms to other elements """
+    def _check_substituent_atom_num(self):
+        """ Check whether the atom counts of substituent to be 1"""
+        self.substituent.remove_hydrogens()
+        if self.substituent.atom_counts != 1:
+            raise AttributeError(f"{self.__class__.__name__} requires the atom counts of substituent to be 1,"
+                                 f"got {self.substituent.atoms} instead!")
+
+    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int]):
+        # Make sure the number of socket_atom to be 1
+        if len(socket_atoms_oid) != 1:
+            raise ValueError(f'the number of socket atoms should be 1, got {len(socket_atoms_oid)} atom indices')
+
+        logging.info(f"replace {socket_atoms_oid[0]} to {self.substituent.atoms[0].symbol}")
+        s_atom = frame_mol.atom(socket_atoms_oid[0])
+        s_atom.set(symbol=self.substituent.atoms[0].symbol)
+
+        frame_mol.remove_hydrogens()
+        frame_mol.add_hydrogens()
+
+        frame_mol.localed_optimize()
+        logging.info(f"Element replace complete: {frame_mol}")
+
+
+@Substituent.register
+class BondTypeReplace(Substituent):
+    """ Replace one bond in framework Molecule to be specified bond type """
+    def _check_bond_counts(self):
+        """ It's requirement that the bond counts in substituent is 1 for performing the substituting """
+        self.substituent.remove_hydrogens()
+        if len(self.substituent.bonds) != 1:
+            raise AttributeError(f"{self.__class__.__name__} requires the atom counts of substituent to be 1,"
+                                 f"got {len(self.substituent.bonds)} instead!")
+        if self.substituent.bonds[0].type == 0:
+            raise AttributeError(f"for performing works of {self.__class__.__name__}, the bond type of"
+                                 f"the substituent must be known!")
+
+    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int]):
+        # Check whether the number of socket atoms is two
+        if len(socket_atoms_oid) != 2:
+            raise ValueError(f'the number of socket atoms should be 2, got {len(socket_atoms_oid)} atom indices')
+
+        # Get the replaced bond
+        atom1_oid, atom2_oid = socket_atoms_oid
+        old_bond = frame_mol.bond(atom1_oid, atom2_oid)
+
+        old_bond.type = self.substituent.bonds[0].type  # Replace the bond
+
+        frame_mol.remove_hydrogens()
+        frame_mol.add_hydrogens()
+
+        frame_mol.localed_optimize(to_optimal=True)
+
+
+@Substituent.register
+class HydroSubst(Substituent):
     """ the Substituent to perform the Node substituent """
-    def substitute(self, frame_mol: Molecule, socket_atoms: list[int] = None):
-        """"""
+    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int]):
+        """ The substitution is performed by linking the plugin atom with the socket atom """
+        if len(socket_atoms_oid) != 1:
+            raise ValueError(f'the number of socket atoms should be 1, got {len(socket_atoms_oid)} atom indices')
+
+        frame_mol, atoms_mapping, bonds_mapping = self.encounter(frame_mol)
+
+        # Get the plugin atom and socket atom
+        p_atom = frame_mol.atom(atoms_mapping[self.plugin_atoms[0]])
+        s_atom = frame_mol.atom(socket_atoms_oid[0])
+
+        # link the plugin atom with the socket atom by single bond
+        frame_mol.add_bond(p_atom, s_atom, 1)
+        logging.info(f"the substitution in framework molecule {frame_mol} have been performed!")
+
+        frame_mol.localed_optimize(to_optimal=True)
 
 
 @Substituent.register
 class EdgeSubst(Substituent):
     """ The substitution is performed by joining the plugin edge (two atoms) with the socket edges in the frame mol """
-    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int] = None):
+    def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int]):
         # Check whether the length of socket atoms is 2
         if len(socket_atoms_oid) != 2:
-            raise ValueError(f'the number of socket atoms should be 2, got {len(socket_atoms_oid)} atom indices')
+            raise ValueError(f'the number of socket atoms should be 2, got {len(socket_atoms_oid)} atoms indices')
 
-        # if not frame_mol.has_3d:
-        frame_mol.build_3d()
-
-        frame_mol.remove_hydrogens()
-        self.substituent.remove_hydrogens()
-        atoms_mapping, bonds_mapping = frame_mol.add_component(self.substituent)
+        frame_mol, atoms_mapping, bonds_mapping = self.encounter(frame_mol)
 
         # Get the plugin atoms in the frame_mol after the substituent is added into frame_mol
         plugin_atoms_oid = [atoms_mapping[pa] for pa in self.plugin_atoms]
@@ -312,6 +381,4 @@ class EdgeSubst(Substituent):
 
         logging.info(f"the substitution in framework molecule {frame_mol} have been performed!")
 
-        # frame_mol.remove_atoms()
-        # frame_mol.add_hydrogens()
         frame_mol.localed_optimize(to_optimal=True)

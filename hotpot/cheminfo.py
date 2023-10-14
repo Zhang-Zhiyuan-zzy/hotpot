@@ -50,8 +50,6 @@ class AddBondFail(OperateOBMolFail):
 # periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
 periodic_table = _lib.get('PeriodicTable')  # hotpot.utils.library.PeriodicTabel
 
-_ob_builder = ob.OBBuilder()
-
 _stable_charges = {
     "H": 1,  "He": 0,
     "Li": 1, "Be": 2, "B": 3,  "C": 4,  "N": -3,  "O": -2,  "F": -1,  "Ne": 0,

@@ -50,8 +50,6 @@ class AddBondFail(OperateOBMolFail):
 # periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
 periodic_table = _lib.get('PeriodicTable')  # hotpot.utils.library.PeriodicTabel
 
-_ob_builder = ob.OBBuilder()
-
 _stable_charges = {
     "H": 1,  "He": 0,
     "Li": 1, "Be": 2, "B": 3,  "C": 4,  "N": -3,  "O": -2,  "F": -1,  "Ne": 0,
@@ -555,9 +553,13 @@ class Molecule(Wrapper, ABC):
         return clone_mol
 
     def _load_atoms(self) -> Dict[int, 'Atom']:
+        atom_dict = self._data['atoms'] = {oba.GetId(): Atom(oba, mol=self) for oba in ob.OBMolAtomIter(self.ob_mol)}
+        return atom_dict
+
+    def __load_atoms(self) -> Dict[int, 'Atom']:
         """
         Construct atoms dict according to the OBAtom in the OBMol,
-        where the keys of the dict are the ob_id of OBAtom and the values are the the constructed Atom objects
+        where the keys of the dict are the ob_id of OBAtom and the values are the constructed Atom objects
         the constructed dict would be place into the _data dict
         Returns:
             the atoms dict
@@ -575,10 +577,14 @@ class Molecule(Wrapper, ABC):
 
         return new_atoms
 
-    def _load_bonds(self) -> Dict[int, 'Bond']:
+    def _load_bonds(self) -> Dict[int, 'Atom']:
+        bond_dict = self._data['bonds'] = {obb.GetId(): Bond(obb, self) for obb in ob.OBMolBondIter(self.ob_mol)}
+        return bond_dict
+
+    def __load_bonds(self) -> Dict[int, 'Bond']:
         """
         Construct bonds dict according to the OBBond in the OBMol,
-        where the keys of the dict are the ob_id of OBBond and the values are the the constructed Bond objects
+        where the keys of the dict are the ob_id of OBBond and the values are the constructed Bond objects
         the constructed dict would be place into the _data dict
         Returns:
             dict of bonds
@@ -673,23 +679,6 @@ class Molecule(Wrapper, ABC):
     @property
     def _protected_data(self):
         return 'ob_obj', 'atoms', 'bonds', 'angles'
-
-    def _reorder_atom_ob_id(self):
-        """ Reorder the ob id of atoms """
-        new_atom_dict = {}
-        for ob_id, atom in enumerate(self.atoms):
-            atom.ob_atom.SetId(ob_id)
-            new_atom_dict[ob_id] = atom
-
-        self._data['atoms'] = new_atom_dict
-
-    def _reorder_bond_ob_id(self):
-        new_atom_dict = {}
-        for ob_id, bond in enumerate(self.bonds):
-            bond.ob_bond.SetId(ob_id)
-            new_atom_dict[ob_id] = bond
-
-        self._data['bonds'] = new_atom_dict
 
     def _reorganize_atom_indices(self):
         """ reorganize or rearrange the indices for all atoms """
@@ -1058,13 +1047,18 @@ class Molecule(Wrapper, ABC):
             correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
             balance_hydrogen: whether to balance the bond valance of heavy atom to their valence
         """
+        is_aromatic = {atom.ob_id: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
-        self._load_atoms()
-        self._load_bonds()
 
         if balance_hydrogen:
             for atom in self.atoms:
                 atom.balance_hydrogen()
+
+        for atom in self.atoms:
+            if is_aromatic.get(atom.ob_id):
+                atom.set_aromatic()
+
+        self._load_bonds()
 
     def add_pseudo_atom(self, symbol: str, mass: float, coordinates: Union[Sequence, np.ndarray], **kwargs):
         """ Add pseudo atom into the molecule """
@@ -1127,7 +1121,18 @@ class Molecule(Wrapper, ABC):
     def atom_counts(self):
         return self.ob_mol.NumAtoms()
 
-    def atom_element_replace(self, old_id_label: Union[int, str], new_symbol: str):
+    def replace_atom(self, old_id_label: Union[int, str], new_atom: "Atom"):
+        """ Replace specific atom to the new given """
+        old_atom = self.atom(old_id_label)
+        new_atom.ob_atom.SetId(old_atom.ob_id)
+
+        # TODO: this may case certain C++ error
+        self.ob_mol.DestroyAtom(old_atom.ob_atom)
+        self.ob_mol.AddAtom(new_atom.ob_atom)
+
+        self._load_atoms()
+
+    def atom_element_replace(self, old_id_label: Union[int, str], new_symbol: str, **kwargs):
         """
         Replace one of atom in this Molecule to other element
         Args:
@@ -1139,9 +1144,8 @@ class Molecule(Wrapper, ABC):
             None
         """
         atom = self.atom(old_id_label)
-        new_atom = Atom(symbol=new_symbol)
 
-        atom.set(symbol=new_symbol, format_charge=1)
+        atom.set(symbol=new_symbol, **kwargs)
 
     @property
     def atomic_numbers(self) -> Tuple[int]:
@@ -2157,8 +2161,8 @@ class Molecule(Wrapper, ABC):
             steps: int = 100,
             balance_hydrogen: bool = False,
             to_optimal: bool = False,
-            tolerable_displacement: float = 5e-2,
-            max_iter: int = 100
+            tolerable_displacement: float = 1e-1,
+            max_iter: int = 10
     ):
         """
         Locally optimize the coordinates. referring openbabel.pybel package
@@ -2497,7 +2501,12 @@ class Molecule(Wrapper, ABC):
         self._load_bonds()
 
     def remove_hydrogens(self):
+        is_aromatic = {atom.ob_id: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.DeleteHydrogens()
+
+        for atom in self.atoms:
+            if is_aromatic.get(atom.ob_id):
+                atom.set_aromatic()
 
     def remove_metals(self):
         """ remove all of metal atoms in the molecule """
@@ -3145,6 +3154,16 @@ class Atom(Wrapper, ABC):
         """ the number of covalent electrons for this atoms """
         return sum(b.type if b.is_covalent else 0 for b in self.bonds)
 
+    @classmethod
+    def duplicate(cls, old_atom: "Atom", copy_ob_id: bool = False) -> "Atom":
+        """ create an Atom instance by copy an old one """
+        new_oba = ob.OBAtom()
+        new_oba.Duplicate(old_atom.ob_atom)
+        if copy_ob_id:
+            new_oba.SetId(old_atom.ob_id)
+
+        return cls(new_oba)
+
     def element_features(self, *feature_names) -> np.ndarray:
         """ Retrieve the feature vector """
         atom_feature = periodic_table[self.symbol]
@@ -3401,6 +3420,11 @@ class Atom(Wrapper, ABC):
             spin_density:
         """
         self._set_attrs(**kwargs)  # set attributes
+
+    def set_aromatic(self):
+        """ Set this atom to be aromatic """
+        self.ob_atom.IsAromatic()
+        self.ob_atom.SetAromatic()
 
     @property
     def spin_density(self):

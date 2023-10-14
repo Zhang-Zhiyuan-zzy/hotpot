@@ -6,13 +6,15 @@ python v3.9.0
 @Data   : 2023/9/25
 @Time   : 15:29
 """
-import json
+import os
 import unittest as ut
 
 import test
 
 import hotpot as hp
 from hotpot.tasks.raspa import RASPA
+
+raspa_root = hp.settings.get("paths", {}).get("raspa_root") or os.environ.get('RASPA_DIR')
 
 
 class TestRaspa(ut.TestCase):
@@ -27,19 +29,18 @@ class TestRaspa(ut.TestCase):
     def tearDown(self) -> None:
         print('Normalize terminate test!', self._testMethodName)
 
-    @ut.skip("the test need the Raspa software")
+    @ut.skipIf(not raspa_root, "the test need the Raspa software")
     def test_run(self):
         """"""
         mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", "IRMOF-1.cif")
+        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
         work_dir = test.test_root.joinpath("output", 'raspa', "IRMOF-1")
 
         mof = hp.Molecule.read_from(path_mof)
 
-        raspa = RASPA(work_dir)
+        raspa = RASPA()
 
-        result = raspa.run(mof, "CO2", cycles=100000)
-        # json.dump(script, open(work_dir.joinpath("output.json"), 'w'), indent=True)
+        result = raspa.run(mof, "CO2", "O2", "N2", cycles=10000)
 
         work_dir.mkdir(parents=True, exist_ok=True)
         with open(work_dir.joinpath("pure"), 'w') as writer:

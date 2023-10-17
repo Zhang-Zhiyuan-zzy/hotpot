@@ -8,8 +8,6 @@ python v3.7.9
 """
 import os
 import re
-import logging
-from pathlib import Path
 from os import PathLike
 from typing import *
 from abc import ABCMeta, abstractmethod
@@ -651,7 +649,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         def make_mix_mol():
             """"""
 
-        # 共同部分
+        # main body
         # self.src is a Molecule
         # TODO: Yuqing. Tip: bond.is_rigid
         mol = self.src
@@ -687,7 +685,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         script += f'{mol.omega}\n'
         script += f'#Number Of Atoms\n{len(mol.atoms)}\n'
 
-        # 分支：根据bond的rigid和flexible的情况来调用以上三个函数
+        # branch: rigid, flexible or rigid/flexible
         bond_type_list = []
         for bond in mol.bonds:
             if bond.is_rigid:
@@ -1000,7 +998,9 @@ class Parser(IOBase, metaclass=MetaIO):
 
             # Search bond info titles
             num_bonds_title = simplified_script_list.index(
-                '#ChiralcentersBondBondDipolesBendUrayBradleyInvBendTorsionImp.TorsionBond/BondStretch/BendBend/BendStretch/TorsionBend/TorsionIntraVDWIntraCoulomb')
+                '#ChiralcentersBondBondDipolesBendUrayBradleyInvBendTorsionImp.TorsionBond/'
+                'BondStretch/BendBend/BendStretch/TorsionBend/TorsionIntraVDWIntraCoulomb')
+
             num_bonds = int(script_list[num_bonds_title + 1].split()[1])
             bond_params_title = simplified_script_list.index('#Bondstretch:atomn1-n2,type,parameters')
             list_bond_info = []
@@ -1025,6 +1025,7 @@ class Parser(IOBase, metaclass=MetaIO):
         def convert_to_flexible_molecule():
             """"""
             raise TypeError('Sorry, this is a flexible molecule. Function improving.')
+
         def convert_to_mix_molecule():
             """"""
             raise TypeError('Sorry, this molecule has rigid bond and flexible bond both. Function improving.')
@@ -1053,8 +1054,6 @@ class Parser(IOBase, metaclass=MetaIO):
             raise TypeError('Sorry, the treatment objects are rigid, flexible, or rigid/flexible molecules.')
 
         return molecule
-
-        # TODO: Yuqing. The script is a text with the raspa_mol format
 
     # Parse the XYZ file
     def _io_xyz(self):
@@ -1093,7 +1092,6 @@ class Parser(IOBase, metaclass=MetaIO):
 
             return obj
 
-    # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):
         """
         post process for g16log format, to extract:

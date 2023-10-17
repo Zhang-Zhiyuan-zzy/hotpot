@@ -39,11 +39,10 @@ class TestRaspa(ut.TestCase):
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
 
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
-        raspa = RASPA(work_dir, in_test=True)  # , parsed_output=False
+        raspa = RASPA(in_test=True)  # , parsed_output=False
 
         script = raspa.run(mof, "CO2", cycles=100)
         # json.dump(script, open(work_dir.joinpath("output.json"), 'w'), indent=True)
@@ -57,13 +56,12 @@ class TestRaspa(ut.TestCase):
         """"""
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
         co2 = hp.Molecule.read_from("O=C=O", 'smi')
         co2.identifier = "CO2"
 
-        raspa = RASPA(work_dir, in_test=True)
+        raspa = RASPA(in_test=True)
         script = raspa.run(mof, co2, cycles=100)
 
         print(script)
@@ -72,14 +70,13 @@ class TestRaspa(ut.TestCase):
         """ Test if the input critical params pass to the guest.def files """
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
         co2 = hp.Molecule.read_from("O=C=O", 'smi')
         co2.identifier = "test_CO2"
 
-        raspa = RASPA(work_dir, in_test=True)  # parsed_output=False
+        raspa = RASPA(in_test=True)  # parsed_output=False
 
         Tc = 30.  # 304.1282
         Pc = 10654654.  # 7377300.0
@@ -97,96 +94,11 @@ class TestRaspa(ut.TestCase):
 
     def test_read_raspa_mol_file(self):
         """ Test if guest.def can convert to Molecule obj"""
-        raspa_flexible_mol_path = '/home/qyq/sw/RASPA/simulations/share/raspa/molecules/ExampleDefinitions/2-methylbutane.def'
-        raspa_rigid_mol_path = '/home/qyq/sw/RASPA/simulations/share/raspa/molecules/Hotpot/O2.def'
-
-        # with open(raspa_flexible_mol_path, 'r') as file:
-        #     script = file.read()
+        raspa_inputs_root = hp.data_root
+        raspa_flexible_mol_path = os.path.join(raspa_inputs_root, "raspa_mol/2-methylbutane.def")
+        raspa_rigid_mol_path = os.path.join(raspa_inputs_root, "raspa_mol/O2.def")
 
         self.assertRaises(TypeError, hp.Molecule.read_from, raspa_flexible_mol_path, 'raspa_mol')
 
         mol = hp.Molecule.read_from(raspa_rigid_mol_path, "raspa_mol")
         print(mol)
-
-    def test_convert_to_raspa_mol_file(self):
-        """ Test if Molecule obj convert to guest.def files"""
-        mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
-
-        mof = hp.Molecule.read_from(path_mof)
-
-        co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        co2.identifier = 'CO2'
-
-        raspa = RASPA(work_dir, in_test=True)  # , parsed_output=False
-
-        script = raspa.run(mof, co2, cycles=100)
-
-    def test_json_to_forcefield_file(self):
-        mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
-
-        mof = hp.Molecule.read_from(path_mof)
-
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
-
-        raspa = RASPA(work_dir, "UFF")  # , parsed_output=False,  in_test=True
-
-        script = raspa.run(mof, "CO2", cycles=200)
-
-    def test_connect_data_force_field_with_raspa(self):
-        """
-        Selectively copy force field files from data folder to UFF folder
-        """
-        mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
-
-        mof = hp.Molecule.read_from(path_mof)
-
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
-
-        raspa = RASPA(work_dir, "UFF")  # , parsed_output=False,  in_test=True
-
-        script = raspa.run(mof, "diatomic", cycles=200)
-        print(script.output)
-
-    def test_connect_data_mol_files_with_raspa(self):
-        """
-        Selectively copy raspa mol files from data folder to Hotpot folder
-        """
-        mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
-
-        mof = hp.Molecule.read_from(path_mof)
-
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
-
-        raspa = RASPA(work_dir, "UFF", in_test=True)  # , parsed_output=False,  in_test=True
-
-        script = raspa.run(mof, "diatomic", cycles=200)
-        print(script.output)
-
-    def test_data_ele_add_to_pseudo_mixing_raspamol(self):
-        """
-        Copy additional element types from data files to UFF force field files
-        """
-        mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
-
-        mof = hp.Molecule.read_from(path_mof)
-
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
-
-        raspa = RASPA(work_dir, "UFF", in_test=True)  # , parsed_output=False,  in_test=True
-
-        script = raspa.run(mof, "diatomic", cycles=200)
-        print(script.output)

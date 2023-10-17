@@ -651,7 +651,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         def make_mix_mol():
             """"""
 
-        # 共同部分
+        # main body
         # self.src is a Molecule
         # TODO: Yuqing. Tip: bond.is_rigid
         mol = self.src
@@ -687,7 +687,7 @@ class Dumper(IOBase, metaclass=MetaIO):
         script += f'{mol.omega}\n'
         script += f'#Number Of Atoms\n{len(mol.atoms)}\n'
 
-        # 分支：根据bond的rigid和flexible的情况来调用以上三个函数
+        # branch: rigid, flexible or rigid/flexible
         bond_type_list = []
         for bond in mol.bonds:
             if bond.is_rigid:

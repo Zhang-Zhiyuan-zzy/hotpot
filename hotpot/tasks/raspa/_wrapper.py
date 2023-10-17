@@ -15,6 +15,7 @@ from pathlib import Path
 import pandas as pd
 from openbabel import pybel as pb
 
+import hotpot
 from hotpot import settings, Molecule
 from hotpot.tasks.raspa import _core
 from ._results import RaspaParser
@@ -86,6 +87,8 @@ class RASPA:
         else:
             raise ValueError('the arg raspa_root is not specified !!!')
 
+        self.data_root = Path(hotpot.data_root)
+
         self.libraspa_dir = os.path.join(self.raspa_root, "lib")
         self.libraspa_file = next(f for f in os.listdir(self.libraspa_dir) if "libraspa" in f)
 
@@ -138,8 +141,8 @@ class RASPA:
                 added_pseudo_num = init_pseudo_num + len(supply_script_list)
                 pseudo_list[1] = str(added_pseudo_num) + '\n'
                 new_pseudo_list = pseudo_list + supply_script_list
-                with open(pseudo_ff_path, 'w') as file:
-                    file.writelines(new_pseudo_list)
+                with open(pseudo_ff_path, 'w') as writer:
+                    writer.writelines(new_pseudo_list)
 
         def enrich_uff_mix_ele_types():
             """ Enrich UFF force_field_mixing_rules file element types from data folder"""
@@ -186,8 +189,8 @@ class RASPA:
         pseudo_ff_path = os.path.join(force_field_dir, 'pseudo_atoms.def')
 
         if self.forcefield == "UFF":
-            src_pseudo_ff_path = '/home/qyq/raspa_hp/hotpot/data/force_field/UFF/pseudo_atoms.def'
-            src_mix_ff_path = '/home/qyq/raspa_hp/hotpot/data/force_field/UFF/force_field_mixing_rules.def'
+            src_pseudo_ff_path = self.data_root.joinpath("force_field", "UFF", "pseudo_atoms.def")
+            src_mix_ff_path = self.data_root.joinpath("force_field", "UFF", "force_field_mixing_rules.def")
             if not os.path.exists(force_field_dir):      # Make sure the RASPA forcefield folder exists
                 os.mkdir(force_field_dir)
             if not os.path.exists(mix_ff_path):
@@ -234,7 +237,8 @@ class RASPA:
                 # When a guest file name is given, checking whether the defined guest file exist
                 guest_path = guest_dir.joinpath(f"{guest}.def")
                 if not guest_path.exists():
-                    src_guest_path = os.path.join('/home/qyq/raspa_hp/hotpot/data/raspa_mol', f'{guest}.def')
+                    src_guest_path = self.data_root.joinpath("raspa_mol", f"{guest}.def")
+
                     if os.path.exists(src_guest_path):
                         shutil.copy2(src_guest_path, guest_path)
                     else:
@@ -266,7 +270,8 @@ class RASPA:
                         guest.writefile('raspa_mol', guest_path, *args, **kwargs)
 
                 else:
-                    src_guest_path = os.path.join('/home/qyq/raspa_hp/hotpot/data/raspa_mol', f'{guest_name}.def')
+                    src_guest_path = self.data_root.joinpath("raspa_mol", f"{guest_name}.def")
+
                     if os.path.exists(src_guest_path):
                         shutil.copy2(src_guest_path, guest_path)
                     else:

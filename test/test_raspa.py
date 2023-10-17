@@ -39,11 +39,11 @@ class TestRaspa(ut.TestCase):
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
 
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
+        # work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
-        raspa = RASPA(work_dir, in_test=True)  # , parsed_output=False
+        raspa = RASPA(in_test=True)  # , parsed_output=False
 
         script = raspa.run(mof, "CO2", cycles=100)
         # json.dump(script, open(work_dir.joinpath("output.json"), 'w'), indent=True)
@@ -57,13 +57,12 @@ class TestRaspa(ut.TestCase):
         """"""
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
         co2 = hp.Molecule.read_from("O=C=O", 'smi')
         co2.identifier = "CO2"
 
-        raspa = RASPA(work_dir, in_test=True)
+        raspa = RASPA(in_test=True)
         script = raspa.run(mof, co2, cycles=100)
 
         print(script)
@@ -72,14 +71,13 @@ class TestRaspa(ut.TestCase):
         """ Test if the input critical params pass to the guest.def files """
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
         co2 = hp.Molecule.read_from("O=C=O", 'smi')
         co2.identifier = "test_CO2"
 
-        raspa = RASPA(work_dir, in_test=True)  # parsed_output=False
+        raspa = RASPA(in_test=True)  # parsed_output=False
 
         Tc = 30.  # 304.1282
         Pc = 10654654.  # 7377300.0
@@ -97,11 +95,9 @@ class TestRaspa(ut.TestCase):
 
     def test_read_raspa_mol_file(self):
         """ Test if guest.def can convert to Molecule obj"""
-        raspa_flexible_mol_path = '/home/qyq/sw/RASPA/simulations/share/raspa/molecules/ExampleDefinitions/2-methylbutane.def'
-        raspa_rigid_mol_path = '/home/qyq/sw/RASPA/simulations/share/raspa/molecules/Hotpot/O2.def'
-
-        # with open(raspa_flexible_mol_path, 'r') as file:
-        #     script = file.read()
+        raspa_inputs_root = hp.data_root
+        raspa_flexible_mol_path = os.path.join(raspa_inputs_root, "raspa_mol/2-methylbutane.def")
+        raspa_rigid_mol_path = os.path.join(raspa_inputs_root, "raspa_mol/O2.def")
 
         self.assertRaises(TypeError, hp.Molecule.read_from, raspa_flexible_mol_path, 'raspa_mol')
 
@@ -112,28 +108,26 @@ class TestRaspa(ut.TestCase):
         """ Test if Molecule obj convert to guest.def files"""
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
         co2 = hp.Molecule.read_from('O=C=O', 'smi')
         co2.identifier = 'CO2'
 
-        raspa = RASPA(work_dir, in_test=True)  # , parsed_output=False
+        raspa = RASPA(in_test=True)
 
         script = raspa.run(mof, co2, cycles=100)
 
     def test_json_to_forcefield_file(self):
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
         # co2 = hp.Molecule.read_from('O=C=O', 'smi')
         # co2.identifier = 'CO2'
 
-        raspa = RASPA(work_dir, "UFF")  # , parsed_output=False,  in_test=True
+        raspa = RASPA(in_test=True)
 
         script = raspa.run(mof, "CO2", cycles=200)
 
@@ -147,12 +141,12 @@ class TestRaspa(ut.TestCase):
 
         mof = hp.Molecule.read_from(path_mof)
 
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
+        co2 = hp.Molecule.read_from('O=C=O', 'smi')
+        co2.identifier = 'CO2'
 
-        raspa = RASPA(work_dir, "UFF")  # , parsed_output=False,  in_test=True
+        raspa = RASPA(in_test=True)
 
-        script = raspa.run(mof, "diatomic", cycles=200)
+        script = raspa.run(mof, co2, cycles=200)
         print(script.output)
 
     def test_connect_data_mol_files_with_raspa(self):
@@ -161,14 +155,12 @@ class TestRaspa(ut.TestCase):
         """
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
 
-        raspa = RASPA(work_dir, "UFF", in_test=True)  # , parsed_output=False,  in_test=True
+
+        raspa = RASPA(in_test=True)
 
         script = raspa.run(mof, "diatomic", cycles=200)
         print(script.output)
@@ -179,14 +171,21 @@ class TestRaspa(ut.TestCase):
         """
         mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
 
         mof = hp.Molecule.read_from(path_mof)
 
-        # co2 = hp.Molecule.read_from('O=C=O', 'smi')
-        # co2.identifier = 'CO2'
-
-        raspa = RASPA(work_dir, "UFF", in_test=True)  # , parsed_output=False,  in_test=True
+        raspa = RASPA(in_test=True)
 
         script = raspa.run(mof, "diatomic", cycles=200)
         print(script.output)
+
+    def test_single_iodine_model(self):
+        mof_name = "mq_0.68_1000_4336_9970"
+        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
+        mof = hp.Molecule.read_from(path_mof)
+        raspa = RASPA(in_test=True)
+        script = raspa.run(mof, "I2", unit_cells=(2, 2, 2), cycles=20000)
+        print(script.output)
+        # save_path = f'/home/qyq/proj/raspa/outputs/single/{mof_name}_adsorb_I2.output'
+        # with open(save_path, 'w') as file:
+        #     file.write(script)

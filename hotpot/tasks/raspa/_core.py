@@ -196,7 +196,6 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
 
                   Component 0 MoleculeName             {molecule_name}
                               StartingBead             0
-                              # MoleculeDefinition       TraPPE
                               MoleculeDefinition       Hotpot
                               IdealGasRosenbluthWeight 1.0
                               TranslationProbability   1.0

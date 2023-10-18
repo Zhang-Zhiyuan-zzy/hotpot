@@ -1,0 +1,54 @@
+{
+ "pyrrol01": {
+  "type": "EdgeSubst",
+  "fragment_smiles": "c1ccc[nH]1",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ },
+ "thiophene01": {
+  "type": "EdgeSubst",
+  "fragment_smiles": "c1cccs1",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]"
+ },
+ "double_bond": {
+  "type": "BondTypeReplace",
+  "fragment_smiles": "C=C",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "CC"
+ },
+ "triple_bond": {
+  "type": "BondTypeReplace",
+  "fragment_smiles": "C#C",
+  "plugin_atom_id": [
+   0,
+   1
+  ],
+  "socket_smarts": "CC"
+ },
+ "sulfur": {
+  "type": "ElemReplace",
+  "fragment_smiles": "S",
+  "plugin_atom_id": [
+   0
+  ],
+  "socket_smarts": "[O,o,N,n]"
+ },
+ "phenyl": {
+  "type": "HydroSubst",
+  "fragment_smiles": "c1ccccc1",
+  "plugin_atom_id": [
+   0
+  ],
+  "socket_smarts": "[*H,*H,*H2,*H3]"
+ }
+}

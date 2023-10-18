@@ -11,6 +11,8 @@ import unittest as ut
 import hotpot as hp
 from hotpot.tasks.qm.gaussian import Gaussian
 
+g16root = hp.settings.get("paths", {}).get("g16root") or os.environ.get('g16root')
+
 
 class TestGaussian(ut.TestCase):
     """"""
@@ -24,18 +26,14 @@ class TestGaussian(ut.TestCase):
     def tearDown(self) -> None:
         print('Normalize terminate test!')
 
-    @ut.skipIf(not os.environ.get('g16root'), "the g16root env is not found")
+    @ut.skipIf(not g16root, "the g16root env is not found")
     def test_run_gaussian(self):
         test_dir = os.path.join(hp.hp_root, '..', 'test', 'output', 'gaussrun')
         if not os.path.exists(test_dir):
             os.mkdir(test_dir)
         os.chdir(test_dir)
 
-        g16root = os.environ.get('g16root')
-        if not g16root:
-            g16root = os.getcwd()
-
-        mol = hp.Molecule.read_from('CO', 'smi')
+        mol = hp.Molecule.read_from('C', 'smi')
 
         mol.gaussian(
             g16root=g16root,
@@ -44,7 +42,7 @@ class TestGaussian(ut.TestCase):
             inplace_attrs=True
         )
 
-    @ut.skipIf(not os.environ.get('g16root'), "the g16root env is not found")
+    @ut.skipIf(not g16root, "the g16root env is not found")
     def test_config_gaussian_from_scratch(self):
         """ test running a gaussian work by call the Gaussian class directly """
         g16root = '/home/pub'

@@ -8,7 +8,6 @@ python v3.7.9
 """
 import os
 import re
-from pathlib import Path
 from os import PathLike
 from typing import *
 from abc import ABCMeta, abstractmethod
@@ -607,9 +606,105 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return script
 
+    def _pre_raspa_mol(self):
+        """Assign atomic coordinates and label before to dump the Molecule obj to the RASPA molecule file"""
+        self.src.build_3d()
+        suffix = self.kwargs.get("suffix", self.src.identifier)
+
+        for atom in self.src.atoms:
+            atom.label = f"{atom.symbol}_{suffix}"
+
     def _io_raspa_mol(self):
-        """ convert the Molecule obj to the """
+        """
+        convert the Molecule obj to the RASPA molecule file
+        Keyword Args: Tc, Pc, acentric factor
+        """
+        def make_rigid_mol():
+            """
+            supplementary component information for rigid molecules
+            the number of atoms, atomic position, and bond information
+            """
+            group_srcipt = f'# Number of groups\n1\n# {mol.identifier}-group\nrigid\n# number of atoms\n{len(mol.atoms)}\n# atomic positions\n'
+
+            for i, atom in enumerate(mol.atoms):
+                coord_str = f'{i}   {atom.label}     {round(atom.coordinates[0], 3)}     {round(atom.coordinates[1], 3)}     {round(atom.coordinates[2], 3)}\n'
+                group_srcipt += coord_str
+
+            group_srcipt += '# Chiral centers Bond  BondDipoles Bend  UrayBradley InvBend  Torsion Imp. Torsion Bond/Bond Stretch/Bend Bend/Bend Stretch/Torsion Bend/Torsion IntraVDW IntraCoulomb\n'
+            group_srcipt += f'               0      {len(mol.bonds)}            0    0            0       0        0            0         0            0         0               0            0        0            0\n'
+            group_srcipt += '# Bond stretch: atom n1-n2, type, parameters\n'
+            for bond in mol.bonds:
+                if bond.is_rigid:
+                    bond_str = f'{bond.ob_atom1_id}  {bond.ob_atom2_id}  RIGID_BOND\n'
+                    group_srcipt += bond_str
+                else:
+                    raise TypeError(f"f{mol.identifier} is not a rigid molecule!")
+            group_srcipt += '# Number of config moves\n0\n'
+
+            return group_srcipt
+
+        def make_flexible_mol():
+            """"""
+
+        def make_mix_mol():
+            """"""
+
+        # main body
+        # self.src is a Molecule
         # TODO: Yuqing. Tip: bond.is_rigid
+        mol = self.src
+        kwargs = self.kwargs
+
+        # Determine whether critical parameter information is provided
+        mol.thermo_init()
+        if 'Tc' in kwargs:
+            mol.Tc = kwargs['Tc']
+        elif mol.thermo.Tc:
+            mol.Tc = mol.thermo.Tc
+        else:
+            raise TypeError(f"please provide appropriate critical temperature of {mol.identifier}!")
+
+        if 'Pc' in kwargs:
+            mol.Pc = kwargs['Pc']
+        elif mol.thermo.Pc:
+            mol.Pc = mol.thermo.Pc
+        else:
+            raise TypeError(f"please provide appropriate critical pressure of {mol.identifier}!")
+
+        if 'acentric_factor' in kwargs:
+            mol.omega = kwargs['acentric_factor']
+        elif mol.thermo.omega:
+            mol.omega = mol.thermo.omega
+        else:
+            raise TypeError(f"please provide appropriate acentric factor of {mol.identifier}!")
+
+        # Script to generate RASPA molecule files
+        script = '# critical constants: Temperature [T], Pressure [Pa], and Acentric factor [-]\n'
+        script += f'{mol.Tc}\n'
+        script += f'{mol.Pc}\n'
+        script += f'{mol.omega}\n'
+        script += f'#Number Of Atoms\n{len(mol.atoms)}\n'
+
+        # branch: rigid, flexible or rigid/flexible
+        bond_type_list = []
+        for bond in mol.bonds:
+            if bond.is_rigid:
+                b_t = 'rigid'
+            else:
+                b_t = 'flexible'
+            bond_type_list.append(b_t)
+        set_bond_type = set(bond_type_list)
+
+        if len(set_bond_type) == 1:
+            if 'rigid' in set_bond_type:
+                group_script = make_rigid_mol()
+                script += group_script
+            else:
+                make_flexible_mol()
+        elif len(set_bond_type) == 2:
+            make_mix_mol()
+
+        return script
 
     def _post_gjf(self, script):
         """ postprocess the dumped Gaussian 16 .gjf script to add the link0 and route context """
@@ -861,14 +956,104 @@ class Parser(IOBase, metaclass=MetaIO):
                 raise error
 
     def _io_raspa_mol(self):
-        """ read the raspa_mol file to convert it to the hotpot.Molecule file """
+        """
+        read the raspa_mol file to convert it to the hotpot.Molecule object
+        Keyword Args: bond_type_list (a list of int)
+        the types of bonds can be assigned using a list of int or default values can be used
+         """
+        def convert_to_rigid_molecule():
+            """"""
+            # Search atom info titles
+            atom_num_title = 0
+            atom_position_title = 0
+            for i, line in enumerate(simplified_script_list):
+                if '#numberofatoms' in line:
+                    atom_num_title = i
+                elif '#atomicxyz' in line:
+                    atom_position_title = i
+                elif '#atomicpositions' in line:
+                    atom_position_title = i
+            if not atom_num_title or not atom_position_title:
+                raise TypeError('The RASPA molecule file is not in the correct format.')
+
+            # Read atoms info
+            num_atoms = int(script_list[atom_num_title + 1])
+            list_atom_info = []
+            for num in range(1, num_atoms + 1, 1):
+                atom_info = script_list[atom_position_title + num].split()
+                atom_name = atom_info[1]
+
+                if 'w' in atom_name[1] or '_' in atom_name[1]:
+                    atom_symbol = atom_name[0]
+                elif 'w' in atom_name[2] or '_' in atom_name[2]:
+                    atom_symbol = atom_name[0:2]
+                else:
+                    raise TypeError('Sorry, the format of atomic symbol in RASPA molecule file does not match.')
+
+                atom_coords = []
+                for i in range(2, 5, 1):
+                    coord = float(atom_info[i])
+                    atom_coords.append(coord)
+                list_atom_info.append([atom_symbol, atom_coords])
+
+            # Search bond info titles
+            num_bonds_title = simplified_script_list.index(
+                '#ChiralcentersBondBondDipolesBendUrayBradleyInvBendTorsionImp.TorsionBond/'
+                'BondStretch/BendBend/BendStretch/TorsionBend/TorsionIntraVDWIntraCoulomb')
+
+            num_bonds = int(script_list[num_bonds_title + 1].split()[1])
+            bond_params_title = simplified_script_list.index('#Bondstretch:atomn1-n2,type,parameters')
+            list_bond_info = []
+
+            # Read bonds info
+            for i in range(1, num_bonds+1, 1):
+                bond_info = script_list[bond_params_title+i].split()
+                atom1_id = int(bond_info[0])
+                atom2_id = int(bond_info[1])
+                list_bond_info.append([atom1_id, atom2_id])
+
+            # create a new molecule
+            mol = ci.Molecule()
+            for atom_symbol, xyz in list_atom_info:
+                mol.add_atom(atom_symbol, coordinates=xyz)
+            for atom1_idx, atom2_idx in list_bond_info:
+                mol.add_bond(atom1_idx, atom2_idx, 1)     # set initial bond types to single bond
+            mol.assign_bond_types()                                # assign bond types based on environment
+
+            return mol
+
+        def convert_to_flexible_molecule():
+            """"""
+            raise TypeError('Sorry, this is a flexible molecule. Function improving.')
+
+        def convert_to_mix_molecule():
+            """"""
+            raise TypeError('Sorry, this molecule has rigid bond and flexible bond both. Function improving.')
         if self.result['src_type'] == 'path':
             with open(self.src) as file:
                 script = file.read()
         else:
             script = self.src
 
-        # TODO: Yuqing. The script is a text with the raspa_mol format
+        # main body
+        script_list = script.split('\n')
+        simplified_script_list = []
+        for s in script_list:
+            s1 = s.replace(' ', '')
+            s2 = s1.replace('\t', '')
+            simplified_script_list.append(s2)
+
+        # branch
+        if 'rigid' in script_list and 'flexible' in script_list:
+            molecule = convert_to_mix_molecule()
+        elif 'rigid' in script_list:
+            molecule = convert_to_rigid_molecule()
+        elif 'flexible' in script_list:
+            molecule = convert_to_flexible_molecule()
+        else:
+            raise TypeError('Sorry, the treatment objects are rigid, flexible, or rigid/flexible molecules.')
+
+        return molecule
 
     # Parse the XYZ file
     def _io_xyz(self):
@@ -907,7 +1092,6 @@ class Parser(IOBase, metaclass=MetaIO):
 
             return obj
 
-    # postprocess for g16log file
     def _post_g16log(self, obj: 'ci.Molecule'):
         """
         post process for g16log format, to extract:

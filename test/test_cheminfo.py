@@ -149,3 +149,21 @@ class TestMolecule(ut.TestCase):
         self.assertIn(mol1, mols)
         self.assertNotIn(mol4, mols)
 
+    def test_rings(self):
+        """ test the Ring class and other related code """
+        mol = hp.Molecule.read_from('c1cccc2c1Cc3c(C2)cc[nH]3', 'smi')
+
+        ring = mol.lssr[0]
+        joint_rings, atoms = ring.joint_rings(expand=False)
+        expand_rings, atoms = ring.joint_rings()
+        aromatic_rings, atoms = ring.joint_rings(aromatic=True)
+
+        self.assertEqual(len(joint_rings), 2)
+        self.assertEqual(len(expand_rings), 3)
+        self.assertEqual(len(aromatic_rings), 1)
+
+        ring = mol.lssr[2]
+        aromatic_rings, atoms = ring.joint_rings(aromatic=True)
+        self.assertEqual(len(aromatic_rings), 0)
+
+

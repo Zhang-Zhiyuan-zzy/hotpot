@@ -22,7 +22,6 @@ from abc import ABC, abstractmethod
 from typing import Union, Generator
 
 import numpy as np
-import openbabel.openbabel as ob
 
 import hotpot as hp
 from hotpot.cheminfo import Molecule, Atom
@@ -58,9 +57,6 @@ class Substituent(ABC):
         else:
             raise TypeError('the substituent should be a Molecule or a SMILES string')
 
-        # Build 3d structure
-        self.substituent.build_3d()
-
         self.plugin_atoms = plugin_atoms
 
         if socket_smarts:
@@ -83,9 +79,10 @@ class Substituent(ABC):
 
             self.determine_generations(clone_mol, socket_atoms_ob_id)
 
-            self.substitute(clone_mol, socket_atoms_ob_id)
+            # Get the molecule after substitution
+            subst_mol = self.substitute(clone_mol, socket_atoms_ob_id)
 
-            substituted_mols.append(clone_mol)
+            substituted_mols.append(subst_mol)
 
         if self.unique_mols:
             return self.make_mols_unique(*substituted_mols)
@@ -111,14 +108,7 @@ class Substituent(ABC):
         Returns:
             Molecule, atoms_mapping, bonds_mapping
         """
-        frame_mol.build_3d()
-
-        # Remove Hydrogens
-        frame_mol.remove_hydrogens()
-        self.substituent.remove_hydrogens()
-
         atoms_mapping, bonds_mapping = frame_mol.add_component(self.substituent)
-
         return frame_mol, atoms_mapping, bonds_mapping
 
     @property
@@ -381,4 +371,6 @@ class EdgeSubst(Substituent):
 
         logging.info(f"the substitution in framework molecule {frame_mol} have been performed!")
 
-        frame_mol.localed_optimize(to_optimal=True)
+        # Reload the substituted molecule based the SMILES
+        frame_mol.add_hydrogens()
+        return Molecule.read_from(frame_mol.smiles, 'smi')

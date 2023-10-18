@@ -46,17 +46,17 @@ class TestSubstitute(ut.TestCase):
         print(generate_mol)
 
         for i, mol in enumerate(generate_mol):
-
-            os = [atom for atom in mol.atoms if atom.symbol == 'O']
-            sr = mol.add_atom(38)
-            for o in os:
-                mol.add_bond(sr, o, 1)
-
-            mol.localed_optimize(to_optimal=True)
-
-            print(mol.smiles)
-            mol.remove_hydrogens()
-            mol.add_hydrogens()
+            mol.build_3d()
+            # os = [atom for atom in mol.atoms if atom.symbol == 'O']
+            # sr = mol.add_atom(38)
+            # for o in os:
+            #     mol.add_bond(sr, o, 1)
+            #
+            # mol.localed_optimize(to_optimal=True)
+            #
+            # print(mol.smiles)
+            # mol.remove_hydrogens()
+            # mol.add_hydrogens()
             mol.writefile('mol2', test.test_root.joinpath(f"output/substituted_{i}.mol2"))
 
     def test_BondTypeSubst(self):

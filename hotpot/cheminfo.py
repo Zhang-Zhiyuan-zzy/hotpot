@@ -6,11 +6,13 @@ python v3.9.0
 @Date   : 2023/3/14
 @Time   : 4:09
 """
-import copy
-import json
-import logging
+import itertools
 import os
 import re
+import copy
+import json
+import weakref
+import logging
 from abc import ABC, abstractmethod
 from io import IOBase
 from os import PathLike
@@ -45,6 +47,9 @@ class AddAtomFail(OperateOBMolFail):
 
 class AddBondFail(OperateOBMolFail):
     """ Raise when add a bond into Molecule fail """
+
+
+_molecule_dict = weakref.WeakValueDictionary()  # {int: Molecule}
 
 
 # periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
@@ -379,6 +384,8 @@ class Molecule(Wrapper, ABC):
         self._load_atoms()
         self._load_bonds()
 
+        self._set_refcode()
+
     def __repr__(self):
         return f'Mol({self.ob_mol.GetSpacedFormula()})'
 
@@ -468,6 +475,9 @@ class Molecule(Wrapper, ABC):
         if self.similarity(other) == 1.0:
             return True
         return False
+
+    def __hash__(self):
+        return hash(f"hotpot.Molecule(refcode={self.refcode})")
 
     def _add_temp_atom_labels(self):
         """
@@ -577,7 +587,7 @@ class Molecule(Wrapper, ABC):
 
         return new_atoms
 
-    def _load_bonds(self) -> Dict[int, 'Atom']:
+    def _load_bonds(self) -> Dict[int, 'Bond']:
         bond_dict = self._data['bonds'] = {obb.GetId(): Bond(obb, self) for obb in ob.OBMolBondIter(self.ob_mol)}
         return bond_dict
 
@@ -848,6 +858,12 @@ class Molecule(Wrapper, ABC):
     def _set_identifier(self, identifier):
         self.ob_mol.SetTitle(identifier)
 
+    def _set_refcode(self):
+        """ put an int value into the OBMol as the refcode """
+        if not self.refcode:
+            self._set_ob_int_data('refcode', 0 if not _molecule_dict else max(_molecule_dict.keys()) + 1)
+            _molecule_dict[self.refcode] = self
+
     def _set_spin_multiplicity(self, spin):
         self.ob_mol.SetTotalSpinMultiplicity(spin)
 
@@ -1090,6 +1106,33 @@ class Molecule(Wrapper, ABC):
 
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
+
+    def assign_aromatic_bonds(self):
+        """  TODO: """
+        aromatic_rings = [ring for ring in self.lssr if ring.is_aromatic]
+
+        treated_rings = []
+        double_bonds = []
+        while aromatic_rings:
+            ring = aromatic_rings.pop()
+            expand_rings = ring.joint_rings(aromatic=True)
+
+            for r1, r2 in itertools.combinations(expand_rings, 2):
+                ria = r1.intersection_atoms(r2)  # intersection atoms
+                all_atoms = set(r1.atoms) | set(r2.atoms)
+                seen_atoms = set()
+
+                if ria:
+                    joint_bond = self.bond(*ria)
+                    joint_bond.type = 2
+
+                    for single_bond in ria[0].bonds:
+                        if single_bond.ob_id != joint_bond.ob_id:
+                            single_bond.type = 1
+
+                    for single_bond in ria[1].bonds:
+                        if single_bond.ob_id != joint_bond.ob_id:
+                            single_bond.type = 1
 
     def atom(self, id_label_atom: Union[int, str, "Atom"]) -> 'Atom':
         """ get atom by label or idx """
@@ -2448,6 +2491,10 @@ class Molecule(Wrapper, ABC):
 
         return mol
 
+    @property
+    def refcode(self) -> int:
+        return self._get_ob_int_data('refcode')
+
     def register_critical_params(self, name: str, temperature: float, pressure: float, acentric: float):
         """ Register new critical parameters into the critical parameters sheet """
         data = json.load(open(opj(data_root, 'thermo', 'critical.json')))
@@ -3299,6 +3346,11 @@ class Atom(Wrapper, ABC):
         return not self.is_hydrogen
 
     @property
+    def is_in_ring(self):
+        """ Whether the atom is in rings """
+        return self.ob_atom.IsInRing()
+
+    @property
     def is_polar_hydrogen(self) -> bool:
         """ Is this atom a hydrogen connected to a polar atom """
         return self.ob_atom.IsPolarHydrogen()
@@ -3334,6 +3386,11 @@ class Atom(Wrapper, ABC):
     def max_bonds(self):
         """ the max allowed bond order"""
         return ob.GetMaxBonds(self.atomic_number)
+
+    @property
+    def member_of_ring_count(self) -> int:
+        """ How many rings this atom is on """
+        return self.ob_atom.MemberOfRingCount()
 
     @property
     def molecule(self) -> Molecule:
@@ -3407,6 +3464,11 @@ class Atom(Wrapper, ABC):
     def replace_attr_data(self, data: Dict):
         """ Replace the core data dict directly """
         self._data = data
+
+    @property
+    def rings(self) -> list['Ring']:
+        """ the lssr rings this atom is on """
+        return [ring for ring in self.molecule.lssr if self.ob_id in ring.atoms_ids]
 
     def set(self, **kwargs):
         """
@@ -3695,23 +3757,30 @@ class Ring(Wrapper, ABC):
         }
 
     def __repr__(self):
-        bond_symbol = {1: "-", 2: "=", 3: "#", 5: ":"}
+        bond_symbol = {1: "", 2: "=", 3: "#", 5: ":"}
 
         ordered_atoms = self.ordered_atoms
         begin_atom = ordered_atoms[0]
-        ring_str = ""
+        ring_str = f"{begin_atom.symbol}"
         for end_atom in ordered_atoms[1:]:
             bond = self.molecule.bond(begin_atom, end_atom)
-            ring_str += f"{begin_atom.label}{bond_symbol[bond.type]}"
+            ring_str += f"{bond_symbol[bond.type]}{end_atom.symbol}"
             begin_atom = end_atom
 
-        bond = self.molecule.bond(begin_atom, ordered_atoms[0])
-        ring_str += f"{begin_atom.label}{bond_symbol[bond.type]}{ordered_atoms[0].label}"
-
-        return f"Ring({ring_str})"
+        return f"Ring({ring_str}, {'Aromatic' if self.is_aromatic else 'Aliphatic '})"
 
     def __len__(self):
         return self.size
+
+    def __eq__(self, other):
+        if self.molecule is not other.molecule or self.size != other.size \
+                or len(set(self.atoms_ids) & set(other.atoms_ids)) != self.size:
+            return False
+
+        return True
+
+    def __hash__(self):
+        return hash(f"Molecule(refcode={self.molecule.refcode}): Ring(f{self.atoms_ids})")
 
     def _attr_setters(self) -> Dict[str, Callable]:
         return {}
@@ -3752,6 +3821,10 @@ class Ring(Wrapper, ABC):
          """
         return self.min_center2atoms / self.max_center2atoms
 
+    def has_same_atoms(self, other: "Ring") -> bool:
+        """ Check whether this ring has same atoms with other one """
+        return True if set(self.atoms_ids) & set(other.atoms_ids) else False
+
     @property
     def is_aromatic(self) -> bool:
         return self.ob_ring.IsAromatic()
@@ -3770,6 +3843,21 @@ class Ring(Wrapper, ABC):
             return True
         else:
             return False
+
+    def joint_rings(self, expand: bool = True, aromatic: bool = False) -> (set["Ring"], set[Atom]):
+        """get rings joint with this ring"""
+        rings = {self} if not aromatic or self.is_aromatic else {}
+
+        while len(rings) != len(rings := {
+            ar for ring in rings for atom in ring.atoms for ar in atom.rings if not aromatic or ar.is_aromatic}):
+            if not expand:
+                break
+
+        return rings, {a for ring in rings for a in ring.atoms}
+
+    def intersection_atoms(self, other: "Ring"):
+        """ Get intersecting atom among this ring and other """
+        return [self.molecule.atom(ob_id) for ob_id in set(self.atoms_ids) & set(other.atoms_ids)]
 
     @property
     def molecule(self) -> Molecule:

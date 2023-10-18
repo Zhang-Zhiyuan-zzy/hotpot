@@ -7,3 +7,4 @@ python v3.9.0
 @Time   : 9:14
 """
 from ._wrapper import RASPA
+from ._results import RaspaParser

@@ -11,6 +11,7 @@ Notes:
 import logging
 from pathlib import Path
 import unittest as ut
+import random
 
 import numpy as np
 
@@ -24,7 +25,6 @@ logging.basicConfig(level=logging.INFO)
 
 class TestMolecule(ut.TestCase):
     """ Test `hotpot/cheminfo/Molecule` class """
-
     @classmethod
     def setUpClass(cls) -> None:
         print('Test', cls.__class__)
@@ -154,16 +154,44 @@ class TestMolecule(ut.TestCase):
         mol = hp.Molecule.read_from('c1cccc2c1Cc3c(C2)cc[nH]3', 'smi')
 
         ring = mol.lssr[0]
-        joint_rings, atoms = ring.joint_rings(expand=False)
-        expand_rings, atoms = ring.joint_rings()
-        aromatic_rings, atoms = ring.joint_rings(aromatic=True)
+        joint_rings = ring.joint_rings
+        expand_rings = ring.expand_ring
+        aromatic_rings = ring.expand_aromatic_ring
 
         self.assertEqual(len(joint_rings), 2)
         self.assertEqual(len(expand_rings), 3)
         self.assertEqual(len(aromatic_rings), 1)
 
         ring = mol.lssr[2]
-        aromatic_rings, atoms = ring.joint_rings(aromatic=True)
-        self.assertEqual(len(aromatic_rings), 0)
 
+        def expand_aromatic_ring():
+            return ring.expand_aromatic_ring
+
+        self.assertRaises(AttributeError, expand_aromatic_ring)
+
+    def test_expand_rings(self):
+        """ test extract rings from molecule """
+        mol = hp.Molecule.read_from('c1cccc2c1Cc3c(C2)c4c([nH]3)cccc4', 'smi')
+
+        self.assertEqual(len(mol.expand_rings), 1)
+        self.assertEqual(len(mol.expand_rings[0]), 4)
+        self.assertFalse(mol.expand_rings[0].is_aromatic)
+
+        self.assertEqual(len(mol.expand_aromatic_rings), 2)
+        self.assertEqual(len(mol.expand_aromatic_rings[0]), 2)
+        self.assertEqual(len(mol.expand_aromatic_rings[1]), 1)
+        self.assertTrue(mol.expand_aromatic_rings[0].is_aromatic)
+        self.assertTrue(mol.expand_aromatic_rings[1].is_aromatic)
+
+    def test_assign_kekule(self):
+        """ test rebuild kekule format from molecule whose bonds are disrordered """
+        mol = hp.Molecule.read_from('c1cccc2c1Cc3c(C2)c4c([nH]3)cccc4', 'smi')
+        for bond in mol.bonds:
+            bond.type = 1
+
+        for e_ring in mol.expand_aromatic_rings:
+            e_ring.assign_kekule()
+
+        mol.build_3d()
+        mol.writefile('mol2', test.test_root.joinpath('output', 'test.mol2'))
 

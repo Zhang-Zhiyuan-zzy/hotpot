@@ -258,6 +258,27 @@ class Wrapper(ABC):
         self._data.update(data)
 
 
+class ObjCollection(ABC):
+    """ Representing a collection of Chemical objects, like Molecule, Atom, Ring, Crystal and so on """
+    def __init__(self, *objs):
+        self._objs = objs
+
+    def __repr__(self):
+        return "[" + ", ".join(str(obj) for obj in self._objs) + "]"
+
+    def __contains__(self, item):
+        return item in self._objs
+
+    def __len__(self):
+        return len(self._objs)
+
+    def __iter__(self):
+        return iter(self._objs)
+
+    def __getitem__(self, item: int):
+        return self._objs[item]
+
+
 class MolLinker:
     """ This class offer methods to link to parent molecule object and retrieve associated value from the molecule """
     class LinkerKey:
@@ -1108,31 +1129,7 @@ class Molecule(Wrapper, ABC):
         self.ob_mol.PerceiveBondOrders()
 
     def assign_aromatic_bonds(self):
-        """  TODO: """
-        aromatic_rings = [ring for ring in self.lssr if ring.is_aromatic]
-
-        treated_rings = []
-        double_bonds = []
-        while aromatic_rings:
-            ring = aromatic_rings.pop()
-            expand_rings = ring.joint_rings(aromatic=True)
-
-            for r1, r2 in itertools.combinations(expand_rings, 2):
-                ria = r1.intersection_atoms(r2)  # intersection atoms
-                all_atoms = set(r1.atoms) | set(r2.atoms)
-                seen_atoms = set()
-
-                if ria:
-                    joint_bond = self.bond(*ria)
-                    joint_bond.type = 2
-
-                    for single_bond in ria[0].bonds:
-                        if single_bond.ob_id != joint_bond.ob_id:
-                            single_bond.type = 1
-
-                    for single_bond in ria[1].bonds:
-                        if single_bond.ob_id != joint_bond.ob_id:
-                            single_bond.type = 1
+        """"""
 
     def atom(self, id_label_atom: Union[int, str, "Atom"]) -> 'Atom':
         """ get atom by label or idx """
@@ -1731,6 +1728,24 @@ class Molecule(Wrapper, ABC):
     def energy(self):
         """ Return energy with kcal/mol as default """
         return self.ob_mol.GetEnergy()
+
+    @property
+    def expand_aromatic_rings(self) -> list["ExpandRing"]:
+        """ Return all aromatic ExpandRings in the Molecule """
+        expand_aromatic_rings = []
+        for ring in self.lssr:
+            if ring.is_aromatic and all(ring not in er for er in expand_aromatic_rings):
+                expand_aromatic_rings.append(ring.expand_aromatic_ring)
+        return expand_aromatic_rings
+
+    @property
+    def expand_rings(self) -> list["ExpandRing"]:
+        """ Return all ExpandRings in the Molecule """
+        expand_rings = []
+        for ring in self.lssr:
+            if all(ring not in er for er in expand_rings):
+                expand_rings.append(ring.expand_ring)
+        return expand_rings
 
     def feature_matrix(self, *feature_names: Sequence) -> np.ndarray:
         """ Retrieve the feature matrix (collections of feature vector for atoms),
@@ -3226,6 +3241,10 @@ class Atom(Wrapper, ABC):
 
         return np.array(features)
 
+    @property
+    def expanded_ring(self):
+        """ get the expanded ring """
+
     def _atomic_orbital_feature(self, outermost_layer=True, nonexistent_orbit=0):
         """    Calculating the feature about atomic orbital structures    """
         _atomic_orbital_structure_max = {
@@ -3602,7 +3621,7 @@ class Bond(Wrapper, ABC):
             return self.pair_key == other.pair_key
 
     def __hash__(self):
-        return hash(self.pair_key)
+        return hash(f"Molecule(refcode={self.molecule.refcode}): Bond(obi={self.ob_id})")
 
     def __getitem__(self, item):
         return self._data.get(item)
@@ -3687,6 +3706,11 @@ class Bond(Wrapper, ABC):
         return self.ob_bond.GetEquibLength()
 
     @property
+    def joint_bonds(self):
+        """ Return the bonds joint with this bonds """
+        return [bond for atom in self.atoms for bond in atom.bonds if bond.ob_id != self.ob_id]
+
+    @property
     def ob_id(self):
         return self.ob_bond.GetId()
 
@@ -3767,7 +3791,7 @@ class Ring(Wrapper, ABC):
             ring_str += f"{bond_symbol[bond.type]}{end_atom.symbol}"
             begin_atom = end_atom
 
-        return f"Ring({ring_str}, {'Aromatic' if self.is_aromatic else 'Aliphatic '})"
+        return f"Ring({ring_str}, {'Aromatic' if self.is_aromatic else 'Aliphatic'})"
 
     def __len__(self):
         return self.size
@@ -3784,6 +3808,17 @@ class Ring(Wrapper, ABC):
 
     def _attr_setters(self) -> Dict[str, Callable]:
         return {}
+
+    def _joint_rings(self, expand: bool = True, aromatic: bool = False) -> set["Ring"]:
+        """get rings joint with this ring"""
+        rings = {self} if not aromatic or self.is_aromatic else {}
+
+        while len(rings) != len(rings := {
+            ar for ring in rings for atom in ring.atoms for ar in atom.rings if not aromatic or ar.is_aromatic}):
+            if not expand:
+                break
+
+        return rings
 
     @property
     def atoms(self) -> list[Atom]:
@@ -3821,6 +3856,19 @@ class Ring(Wrapper, ABC):
          """
         return self.min_center2atoms / self.max_center2atoms
 
+    @property
+    def expand_aromatic_ring(self) -> "ExpandRing":
+        """ aromatic ExpandRing containing the ring """
+        if not self.is_aromatic:
+            raise AttributeError("the non-aromatic ring can't get the attribute expand_aromatic_ring")
+
+        return ExpandRing(*self._joint_rings(aromatic=True))
+
+    @property
+    def expand_ring(self) -> "ExpandRing":
+        """ ExpandRing containing this ring """
+        return ExpandRing(*self._joint_rings())
+
     def has_same_atoms(self, other: "Ring") -> bool:
         """ Check whether this ring has same atoms with other one """
         return True if set(self.atoms_ids) & set(other.atoms_ids) else False
@@ -3844,16 +3892,10 @@ class Ring(Wrapper, ABC):
         else:
             return False
 
-    def joint_rings(self, expand: bool = True, aromatic: bool = False) -> (set["Ring"], set[Atom]):
+    @property
+    def joint_rings(self) -> list["Ring"]:
         """get rings joint with this ring"""
-        rings = {self} if not aromatic or self.is_aromatic else {}
-
-        while len(rings) != len(rings := {
-            ar for ring in rings for atom in ring.atoms for ar in atom.rings if not aromatic or ar.is_aromatic}):
-            if not expand:
-                break
-
-        return rings, {a for ring in rings for a in ring.atoms}
+        return [ring for ring in self._joint_rings(False) if ring is not self]
 
     def intersection_atoms(self, other: "Ring"):
         """ Get intersecting atom among this ring and other """
@@ -3931,6 +3973,51 @@ class Ring(Wrapper, ABC):
         """ the vectors from geometric center to atoms """
         center = self.center
         return np.array([pos_atom - center for pos_atom in self.coordinates])
+
+
+class ExpandRing(ObjCollection, ABC):
+    """ a collection of Ring objects which are joint together by edge(bond) """
+    def __init__(self, *rings: Ring):
+        if any(r.molecule is not rings[0].molecule for r in rings):
+            raise AttributeError('all rings in the ExpandRing must come from same Molecule')
+
+        super().__init__(*rings)
+
+    def assign_kekule(self):
+        """ Reorganize the atom types by kekule format """
+        if self.is_aromatic:
+            # initializing by assigning all bond types to be 1
+            for bond in self.bonds:
+                bond.type = 1
+
+            # TODO:
+            seen_bonds = []
+            for bond in self.bonds:
+                if all(jb.type == 1 for jb in bond.joint_bonds):
+                    bond.type = 2
+
+        else:
+            UserWarning("this ExpandRing is not aromatic, can't assign to be kekule format!")
+
+    @property
+    def atoms(self) -> list[Atom]:
+        return list({atom for ring in self.rings for atom in ring.atoms})
+
+    @property
+    def bonds(self) -> list[Bond]:
+        return list({bond for ring in self.rings for bond in ring.bonds})
+
+    @property
+    def is_aromatic(self):
+        return all(ring.is_aromatic for ring in self.rings)
+
+    @property
+    def molecule(self):
+        return self.rings[0].molecule
+
+    @property
+    def rings(self):
+        return self._objs
 
 
 class Angle(MolLinker, ABC):

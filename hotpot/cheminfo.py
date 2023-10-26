@@ -3990,11 +3990,29 @@ class ExpandRing(ObjCollection, ABC):
             for bond in self.bonds:
                 bond.type = 1
 
-            # TODO:
-            seen_bonds = []
-            for bond in self.bonds:
-                if all(jb.type == 1 for jb in bond.joint_bonds):
-                    bond.type = 2
+            bonds = self.bonds
+
+            seen_bonds = seeing_bonds = [bonds[0]]
+            bonds[0].type = bond_type = 2 if all(jb.type == 1 for jb in bonds[0].joint_bonds) else 1
+
+            while len(seen_bonds) < len(bonds):
+
+                # Update current bonds info
+                bond_type = 1 if bond_type == 2 else 2
+                # the get bonds requires unique, the updated(next) bonds are the joint bonds of previous bonds
+                seeing_bonds = list({
+                    jb for bond in seeing_bonds for jb in bond.joint_bonds if jb in bonds and jb not in seen_bonds})
+
+                seen_bonds.extend(seeing_bonds)
+
+                for seeing_bond in seeing_bonds:
+                    assert seeing_bond.type == 1
+                    # if the current assigned bond type is 1, do nothing except for inspection
+                    # if the current assigned bond type is 2, the bond type of joint bonds of these bonds must be 1
+                    if bond_type == 2 and all(sbjb.type == 1 for sbjb in seeing_bond.joint_bonds):
+                        seeing_bond.type = 2
+
+            assert not seeing_bonds
 
         else:
             UserWarning("this ExpandRing is not aromatic, can't assign to be kekule format!")

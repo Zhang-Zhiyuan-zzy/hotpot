@@ -3360,6 +3360,32 @@ class Atom(Wrapper, ABC):
     def is_chiral(self):
         return self.ob_atom.IsChiral()
 
+    def is_graph_identical_with(self, other: 'Atom'):
+        """ Judge whether this atom is identical in graph environment """
+        def compare(a1: Atom, a2: Atom):
+            """ recursive function to compare whether given two atom is graph identical """
+            return a1.symbol == a2.symbol and \
+                len(a1.neighbours) == len(a2.neighbours) and compare_neighbours(a1, a2)
+
+        def compare_neighbours(a1: Atom, a2: Atom):
+            """ judge whether the all symbols of neighbours are identical """
+            a1_counts = Counter(na.symbol for na in a1.neighbours)
+            a2_counts = Counter(na.symbol for na in a2.neighbours)
+
+            return all(a2_counts.get(s) == c for s, c in a1_counts.items()) and all(
+                compare_each_group([a for a in a1.neighbours if a.symbol == s],
+                                   [a for a in a2.neighbours if a.symbol == s])
+                for s in a1_counts)
+
+        def compare_each_group(a1g: list[Atom], a2g: list[Atom]):
+            """"""
+            return any(compare(a1, a2) for a1, a2 in product(a1g, a2g))
+
+        if self == other:
+            return True
+
+        return compare(self, other)
+
     @property
     def is_hydrogen(self):
         return self.ob_atom.GetAtomicNum() == 1

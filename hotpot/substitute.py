@@ -372,5 +372,8 @@ class EdgeSubst(Substituent):
         logging.info(f"the substitution in framework molecule {frame_mol} have been performed!")
 
         # Reload the substituted molecule based the SMILES
+        for e_ring in frame_mol.expand_aromatic_rings:
+            e_ring.kekulize()
+
         frame_mol.add_hydrogens()
         return Molecule.read_from(frame_mol.smiles, 'smi')

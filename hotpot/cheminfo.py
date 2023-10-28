@@ -3109,12 +3109,17 @@ class Atom(Wrapper, ABC):
     def balance_hydrogen(self):
         """ Remove or add hydrogens link with this atom, if the bond valence is not equal to the atomic valence """
         if self.is_heavy and not self.is_metal:  # Do not add or remove hydrogens to the metal, H or inert elements
-            while self.valence > self.stable_valence and self.neighbours_hydrogen:
+            while self.bond_orders > self.stable_valence and self.neighbours_hydrogen:
                 self.molecule.remove_atoms(self.neighbours_hydrogen[0])
 
             # add hydrogen, if the bond valence less than the atomic valence
-            while self.valence < self.stable_valence:
+            while self.bond_orders < self.stable_valence:
                 self.add_hydrogen()
+
+    @property
+    def bond_orders(self) -> int:
+        """ Return the sum of bond order linking with this atom """
+        return sum(b.type if b.type else 0 if b.is_covalent else 1 for b in self.bonds)
 
     @property
     def bonds(self):
@@ -3566,10 +3571,8 @@ class Atom(Wrapper, ABC):
         return ob.GetSymbol(self.atomic_number)
 
     @property
-    def valence(self) -> int:
-        # if self.has_unknown_bond:
-        #     raise AttributeError('Cannot calculate the bond valence, because of the existence of unknown bonds')
-        return sum(b.type if b.type else 0 if b.is_covalent else 1 for b in self.bonds)
+    def valence(self) -> str:
+        return self.ob_atom
 
 
 class PseudoAtom(Wrapper, ABC):
@@ -3617,8 +3620,7 @@ class Bond(Wrapper, ABC):
         return f"Bond({self.atoms[0].label}, {self.atoms[1].label}, {self.type_name})"
 
     def __eq__(self, other: 'Bond'):
-        if isinstance(other, Bond):
-            return self.pair_key == other.pair_key
+        return self.molecule is other.molecule and self.ob_id is other.ob_id
 
     def __hash__(self):
         return hash(f"Molecule(refcode={self.molecule.refcode}): Bond(obi={self.ob_id})")
@@ -3893,6 +3895,11 @@ class Ring(Wrapper, ABC):
             return False
 
     @property
+    def joint_aromatic_rings(self) -> list["Ring"]:
+        """ get aromatic rings joint with this ring """
+        return [ring for ring in self.joint_rings if ring.is_aromatic]
+
+    @property
     def joint_rings(self) -> list["Ring"]:
         """get rings joint with this ring"""
         return [ring for ring in self._joint_rings(False) if ring is not self]
@@ -3983,36 +3990,21 @@ class ExpandRing(ObjCollection, ABC):
 
         super().__init__(*rings)
 
-    def assign_kekule(self):
-        """ Reorganize the atom types by kekule format """
+    def kekulize(self):
+        """ Reorganize the atom types by kekulized format """
         if self.is_aromatic:
             # initializing by assigning all bond types to be 1
-            for bond in self.bonds:
-                bond.type = 1
+            for bond in (bonds := self.bonds):
+                bond.type = 0
 
-            bonds = self.bonds
+            seeing_bonds = [bonds[0]]
+            while any(not bond.type for bond in bonds):
+                for sb in seeing_bonds:
+                    if not sb.type:
+                        sb.type = 1 if any(jb.type == 2 for jb in sb.joint_bonds) else 2
 
-            seen_bonds = seeing_bonds = [bonds[0]]
-            bonds[0].type = bond_type = 2 if all(jb.type == 1 for jb in bonds[0].joint_bonds) else 1
-
-            while len(seen_bonds) < len(bonds):
-
-                # Update current bonds info
-                bond_type = 1 if bond_type == 2 else 2
-                # the get bonds requires unique, the updated(next) bonds are the joint bonds of previous bonds
-                seeing_bonds = list({
-                    jb for bond in seeing_bonds for jb in bond.joint_bonds if jb in bonds and jb not in seen_bonds})
-
-                seen_bonds.extend(seeing_bonds)
-
-                for seeing_bond in seeing_bonds:
-                    assert seeing_bond.type == 1
-                    # if the current assigned bond type is 1, do nothing except for inspection
-                    # if the current assigned bond type is 2, the bond type of joint bonds of these bonds must be 1
-                    if bond_type == 2 and all(sbjb.type == 1 for sbjb in seeing_bond.joint_bonds):
-                        seeing_bond.type = 2
-
-            assert not seeing_bonds
+                seeing_bonds = list({sbjb for sb in seeing_bonds for sbjb in sb.joint_bonds
+                                     if not sbjb.type and sbjb in bonds})
 
         else:
             UserWarning("this ExpandRing is not aromatic, can't assign to be kekule format!")

@@ -185,13 +185,17 @@ class TestMolecule(ut.TestCase):
 
     def test_assign_kekule(self):
         """ test rebuild kekule format from molecule whose bonds are disrordered """
-        mol = hp.Molecule.read_from('c1cccc2c1Cc3c(C2)c4c([nH]3)cccc4', 'smi')
-        for bond in mol.bonds:
-            bond.type = 1
+        mol = hp.Molecule.read_from('c1cccc2c1Cc3c(C2)c4c([nH]3)c5c(cccc5)c6c4cc7c(c6)CC=CC7', 'smi')
+        mol.build_3d()
+
+        for b in mol.bonds:
+            if b.is_aromatic:
+                b.type = 0
+
+        print(mol.bonds)
 
         for e_ring in mol.expand_aromatic_rings:
-            e_ring.assign_kekule()
+            e_ring.kekulize()
 
-        mol.build_3d()
         mol.writefile('mol2', test.test_root.joinpath('output', 'test.mol2'))
 

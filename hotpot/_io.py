@@ -1062,24 +1062,28 @@ class Parser(IOBase, metaclass=MetaIO):
 
     def _post_mol2(self, obj: 'ci.Molecule'):
         """ add generation information into the Molecule object """
-        with open(self.src) as file:
-            lines = file.readlines()
-            title_lines = [i for i, line in enumerate(lines) if line.startswith("@<TRIPOS>")]
+        if self.result['src_type'] is 'str':
+            lines = self.src.splitlines()
+        else:
+            with open(self.src) as file:
+                lines = file.readlines()
 
-            try:
-                title_line_idx, line_idx = \
-                    [(i, tl) for i, tl in enumerate(title_lines) if lines[tl].strip() == "@<TRIPOS>GENERATIONS"][0]
+        title_lines = [i for i, line in enumerate(lines) if line.startswith("@<TRIPOS>")]
 
-                gen_start = line_idx + 1
-                gen_end = title_lines[title_line_idx + 1] if title_line_idx + 1 < len(title_lines) else len(lines)
+        try:
+            title_line_idx, line_idx = \
+                [(i, tl) for i, tl in enumerate(title_lines) if lines[tl].strip() == "@<TRIPOS>GENERATIONS"][0]
 
-                for l_idx, atom in zip(range(gen_start, gen_end), obj.atoms):
-                    ob_id, gen = map(int, lines[l_idx].strip().split('\t'))
+            gen_start = line_idx + 1
+            gen_end = title_lines[title_line_idx + 1] if title_line_idx + 1 < len(title_lines) else len(lines)
 
-                    assert ob_id == atom.ob_id
-                    atom.generations = gen
+            for l_idx, atom in zip(range(gen_start, gen_end), obj.atoms):
+                ob_id, gen = map(int, lines[l_idx].strip().split('\t'))
 
-            except IndexError:
-                return obj
+                assert ob_id == atom.ob_id
+                atom.generations = gen
+
+        except IndexError:
+            return obj
 
         return obj

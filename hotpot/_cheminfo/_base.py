@@ -6,9 +6,10 @@ python v3.9.0
 @Data   : 2023/10/14
 @Time   : 15:47
 """
-from abc import ABC, abstractmethod
-from typing import Optional, Callable
-from functools import wraps
+import json
+
+from abc import ABC
+from typing import *
 
 from openbabel import openbabel as ob
 
@@ -21,9 +22,7 @@ class Wrapper(ABC):
     and save the str data into the OBCommentData item of OpenBabel.
     """
     _registered_ob_comment_data = {}
-    _obj = None  # the abstract definition for wrapped Openbabel object
 
-    @abstractmethod
     def __init__(self, ob_obj):
         self._obj = ob_obj
 
@@ -47,18 +46,78 @@ class Wrapper(ABC):
 
         self._obj.CloneData(comment_data)
 
-    def _int_comment_attr(self, attr_setter: Callable):
-        """convert the input int data to str and register the given attr_setter.__name__
-        to invoke the str->int decoder"""
-        @wraps(attr_setter)
-        def decoder(value: str) -> int:
+    def _get_ob_bool_data(self, attr_name: str) -> bool:
+        value = self._get_ob_comment_data(attr_name)
+        if value == "True":
+            return True
+        elif value == "False":
+            return False
+
+    def _get_ob_float_data(self, attr_name: str) -> float:
+        """ Retrieve custom attribute with float value """
+        value = self._get_ob_comment_data(attr_name)
+        if value:
+            return float(value)
+
+    def _get_ob_int_data(self, attr_name: str) -> int:
+        """ Retrieve custom attribute with int value """
+        value = self._get_ob_comment_data(attr_name)
+        if value:
             return int(value)
 
-        @wraps(attr_setter)
-        def encoder(value: int):
-            self._set_ob_comment_data(attr_setter.__name__, str(value))
+    def _get_ob_list_data(self, attr_name: str) -> list:
+        value = self._get_ob_comment_data(attr_name)
+        if value:
+            return json.loads(value)
 
-        class_dict = Wrapper._registered_ob_comment_data.setdefault(self.__class__.__name__, {})
-        class_dict[attr_setter.__name__] = decoder
+    def _set_ob_bool_data(self, attr_name: str, value: bool):
+        """ set custom attribute with bool value """
+        if not isinstance(value, bool):
+            raise TypeError(f'the given value must be a float, got {type(value)} instead')
 
-        return encoder
+        if value:
+            self._set_ob_comment_data(attr_name, 'True')
+        else:
+            self._set_ob_comment_data(attr_name, 'False')
+
+    def _set_ob_float_data(self, attr_name: str, value: float):
+        """ set custom attribute with float value """
+        if not isinstance(value, float):
+            raise TypeError(f'the given value must be a float, got {type(value)} instead')
+
+        self._set_ob_comment_data(attr_name, str(value))
+
+    def _set_ob_int_data(self, attr_name: str, value: int):
+        """ set custom attribute with int value """
+        if not isinstance(value, int):
+            raise TypeError(f'the given value must be an int, got {type(value)} instead')
+
+        self._set_ob_comment_data(attr_name, str(value))
+
+    def _set_ob_list_data(self, attr_name, value: int):
+        if not isinstance(value, list):
+            raise TypeError(f"the given value must be list, got {type(value)} instead")
+
+        str_value = json.dumps(value)
+        self._set_ob_comment_data(attr_name, str_value)
+
+
+class ObjCollection(ABC):
+    """ Representing a collection of Chemical objects, like Molecule, Atom, Ring, Crystal and so on """
+    def __init__(self, *objs):
+        self._objs = objs
+
+    def __repr__(self):
+        return "[" + ", ".join(str(obj) for obj in self._objs) + "]"
+
+    def __contains__(self, item):
+        return item in self._objs
+
+    def __len__(self):
+        return len(self._objs)
+
+    def __iter__(self):
+        return iter(self._objs)
+
+    def __getitem__(self, item: int):
+        return self._objs[item]

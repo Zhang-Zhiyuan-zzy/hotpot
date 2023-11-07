@@ -6,13 +6,13 @@ python v3.9.0
 @Date   : 2023/3/14
 @Time   : 4:09
 """
-import itertools
 import os
 import re
 import copy
 import json
 import weakref
 import logging
+import functools
 from abc import ABC, abstractmethod
 from io import IOBase
 from os import PathLike
@@ -30,6 +30,8 @@ from openbabel import openbabel as ob, pybel as pb
 from rdkit import Chem
 from rdkit.Chem import Draw
 
+import hotpot as hp
+from .maths import BaseNum
 from hotpot import data_root
 from hotpot.tasks import lmp
 from hotpot.tasks.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
@@ -52,7 +54,6 @@ class AddBondFail(OperateOBMolFail):
 _molecule_dict = weakref.WeakValueDictionary()  # {int: Molecule}
 
 
-# periodic_table = json.load(open(opj(data_root, 'periodic_table.json'), encoding='utf-8'))
 periodic_table = _lib.get('PeriodicTable')  # hotpot.utils.library.PeriodicTabel
 
 _stable_charges = {
@@ -245,9 +246,14 @@ class Wrapper(ABC):
         return list(self._attr_setters.keys())
 
     @property
-    def temp_label(self):
+    def temp_label(self) -> int:
         """ Retrieve the temp label """
-        return self._get_ob_comment_data('temp_label')
+        return int(self._get_ob_comment_data('temp_label'))
+
+    @temp_label.setter
+    def temp_label(self, value: int):
+        """ Set the temp label """
+        self._set_ob_comment_data('temp_label', str(value))
 
     def update_attr_data(self, data: dict):
         """ update the attribute data by give dict """
@@ -542,16 +548,6 @@ class Molecule(Wrapper, ABC):
         """ Create New OBUnitCell for the Molecule """
         ob_unit_cell = ob.OBUnitCell()
         self.ob_mol.CloneData(ob_unit_cell)
-
-    def _delete_atoms_temp_label(self):
-        """ Remove temp label of all atoms """
-        for a in self.atoms:
-            a.remove_ob_data('temp_label')
-
-    def _delete_bonds_temp_label(self):
-        """ Remove temp label of all bonds """
-        for b in self.bonds:
-            b.remove_ob_data('temp_label')
 
     def _get_critical_params(self, name: str):
         critical_params = self._data.get('critical_params')
@@ -1400,31 +1396,27 @@ class Molecule(Wrapper, ABC):
     def build_3d(self, force_field: str = 'UFF', steps: int = 500, balance_hydrogen=False):
         """ build 3D coordinates for the molecule """
         # Preserve atoms data before building
-        preserve_atoms_data = self._preserve_atoms_data()
-        preserve_bonds_data = self._preserve_bonds_data()
-        # preserve_angles_data = self._preserve_angles_data()
-        # preserve_torsion_data = self._preserve_torsion_data()
+        # preserve_atoms_data = self._preserve_atoms_data()
+        # preserve_bonds_data = self._preserve_bonds_data()
 
-        # Destroy atoms and bonds wrappers
-        self._data['atoms'] = {}
-        self._data['bonds'] = {}
+        # # Destroy atoms and bonds wrappers
+        # self._data['atoms'] = {}
+        # self._data['bonds'] = {}
 
         # Build 3d conformer
         pymol = pb.Molecule(self.ob_mol)
         pymol.make3D(force_field, steps)
 
-        # Reload atoms and bonds
-        self._load_atoms()
-        self._load_bonds()
-
-        # Transfer preserve data to new
-        self._transfer_preserve_data_to_new_atoms(self, preserve_atoms_data)
-        self._transfer_preserve_data_to_new_bonds(self, preserve_bonds_data)
-        # self._transfer_preserve_data_to_new_angles(self, preserve_angles_data)
-        # self._transfer_preserve_data_to_new_torsions(self, preserve_torsion_data)
+        # # Reload atoms and bonds
+        # self._load_atoms()
+        # self._load_bonds()
+        #
+        # # Transfer preserve data to new
+        # self._transfer_preserve_data_to_new_atoms(self, preserve_atoms_data)
+        # self._transfer_preserve_data_to_new_bonds(self, preserve_bonds_data)
 
         # Delete temp label
-        self._delete_atoms_temp_label()
+        # self._delete_atoms_temp_label()
 
         # Remove redundant hydrogen or supply the lack hydrogens
         if balance_hydrogen:
@@ -1520,6 +1512,16 @@ class Molecule(Wrapper, ABC):
         if pop:
             return all_coordinates
 
+    def clear_atom_temp_labels(self):
+        """ Remove temp label of all atoms """
+        for a in self.atoms:
+            a.remove_ob_data('temp_label')
+
+    def clear_bond_temp_labels(self):
+        """ Remove temp label of all bonds """
+        for b in self.bonds:
+            b.remove_ob_data('temp_label')
+
     @property
     def components(self):
         """ get all fragments don't link each by any bonds """
@@ -1535,7 +1537,7 @@ class Molecule(Wrapper, ABC):
                 a.remove_ob_data('temp_label')
 
         # remove temp labels of all atoms
-        self._delete_atoms_temp_label()
+        self.clear_atom_temp_labels()
 
         return components
 
@@ -2337,6 +2339,16 @@ class Molecule(Wrapper, ABC):
         else:
             return None
 
+    @property
+    def networkx_graph(self) -> nx.Graph:
+        """ Return networkx Graph of the Molecule """
+        edges = self.link_matrix[:, :len(self.bonds)].T
+
+        graph = nx.Graph()
+        graph.add_edges_from(edges)
+
+        return graph
+
     def normalize_labels(self):
         """ Reorder the atoms labels in the molecule """
         element_counts = {}
@@ -2652,17 +2664,20 @@ class Molecule(Wrapper, ABC):
             des_atom: Union[int, str, 'Atom'],
             get_all: bool = False,
             return_atoms: bool = False
-    ):
+    ) -> Union[list[list["Atom"]], list[list[int]], list["Atom"], list[int]]:
         """
         retrieve the shortest path from the source atom to the destination atom
         Args:
             src_atom: source atom, or its index or label
             des_atom: destination atom, or its index or label
-            get_all:
-            return_atoms:
+            get_all: whether to return all shortest paths or one of them
+            return_atoms: whether to return the atoms in the shortest path or just their ob_id
 
         Returns:
-
+            1) list[int], when get_all = False, return_atoms = False
+            2) list[Atom], when get_all = False, return_atoms = True
+            3) list[list[int]], when get_all = True, return_atoms = False
+            4) list[list[Atom]], when git_all = True, return_atoms = True
         """
         src_atom = self.atom(src_atom)
         des_atom = self.atom(des_atom)
@@ -2670,10 +2685,7 @@ class Molecule(Wrapper, ABC):
         src_node = src_atom.ob_id
         des_node = des_atom.ob_id
 
-        edges = self.link_matrix[:, :len(self.bonds)].T
-
-        mol_graph = nx.Graph()
-        mol_graph.add_edges_from(edges)
+        mol_graph = self.networkx_graph
 
         atoms_dict = self.atoms_dict
         if get_all:
@@ -3362,29 +3374,47 @@ class Atom(Wrapper, ABC):
 
     def is_graph_identical_with(self, other: 'Atom'):
         """ Judge whether this atom is identical in graph environment """
-        def compare(a1: Atom, a2: Atom):
-            """ recursive function to compare whether given two atom is graph identical """
-            return a1.symbol == a2.symbol and \
-                len(a1.neighbours) == len(a2.neighbours) and compare_neighbours(a1, a2)
+        seen_atoms = set()
 
-        def compare_neighbours(a1: Atom, a2: Atom):
-            """ judge whether the all symbols of neighbours are identical """
-            a1_counts = Counter(na.symbol for na in a1.neighbours)
-            a2_counts = Counter(na.symbol for na in a2.neighbours)
+        def atom_sorted_func(a1: Atom, a2: Atom):
+            """
+            Compare given two atoms, a1, a2, in the view of graph.
 
-            return all(a2_counts.get(s) == c for s, c in a1_counts.items()) and all(
-                compare_each_group([a for a in a1.neighbours if a.symbol == s],
-                                   [a for a in a2.neighbours if a.symbol == s])
-                for s in a1_counts)
+            an atom is seen to be prior to the other, if one of the following condition is matched:
+                1) its atomic number is smaller than the other;
+                2) its number of neighbours is more than the other;
+                3) the i-th sorted neighbour of the atom is prior to the i-th one of the other, this
+                   comparison is performed from the prior to the subprime.
 
-        def compare_each_group(a1g: list[Atom], a2g: list[Atom]):
-            """"""
-            return any(compare(a1, a2) for a1, a2 in product(a1g, a2g))
+            Returns:
+                1 if a1 is prior over 2; -1 if a1 is subsequent after a2; 0 if a1 is identical to a2 in graph
+            """
+            nonlocal seen_atoms
 
-        if self == other:
-            return True
+            if (a1, a2) in seen_atoms:
+                if a1.is_in_rings and a2.is_in_ring \
+                    and a1.member_of_ring_count == a2.member_of_ring_count \
+                    and a1.rings:
+                    return 0
+            else:
+                seen_atoms.update([(a1, a2), (a2, a1)])
 
-        return compare(self, other)
+            if a1.atomic_number != a2.atomic_number:
+                return 1 if a1.atomic_number < a2.atomic_number else -1
+            elif len(a1.neighbours) != len(a2.neighbours):
+                return 1 if len(a1.neighbours) < len(a2.neighbours) else -1
+            else:
+                list_na1 = sorted(a1.neighbours, key=functools.cmp_to_key(atom_sorted_func))
+                list_na2 = sorted(a2.neighbours, key=functools.cmp_to_key(atom_sorted_func))
+
+                for na1, na2 in zip(list_na1, list_na2):
+                    judge = atom_sorted_func(na1, na2)
+                    if judge:
+                        return judge
+
+                return 0
+
+        return self is other or not atom_sorted_func(self, other)
 
     @property
     def is_hydrogen(self):
@@ -3522,8 +3552,7 @@ class Atom(Wrapper, ABC):
 
     def set(self, **kwargs):
         """
-        Set atom attributes by kwargs
-        Kwargs:
+        Set atom attributes by kwargs:
             atomic_number(int): set atomic number
             symbol(str): set atomic symbol
             coordinates(Sequence, numpy.ndarray): coordinates of the atom
@@ -3897,6 +3926,18 @@ class Ring(Wrapper, ABC):
         """ ExpandRing containing this ring """
         return ExpandRing(*self._joint_rings())
 
+    @property
+    def ring_key(self) -> int:
+        """ return a unique int number to represent the priority of the ring, where the 1st digit
+        in 128-based number represent aromatic (1) or aliphatic (2) ring, the subsequent each digit
+        represent the atomic number of sorted_atoms"""
+        return int(BaseNum(([1] if self.is_aromatic else [2]) + [a.atomic_number for a in self.sorted_atoms]))
+
+    @property
+    def prime_atom(self) -> Atom:
+        """ get the prime atom with most prior """
+        return min([a for a in self.atoms], key=self.sort_key)
+
     def has_same_atoms(self, other: "Ring") -> bool:
         """ Check whether this ring has same atoms with other one """
         return True if set(self.atoms_ids) & set(other.atoms_ids) else False
@@ -3919,6 +3960,15 @@ class Ring(Wrapper, ABC):
             return True
         else:
             return False
+
+    def is_graph_identical_to(self, other):
+        return self.ring_key == other.ring_key
+
+    def is_graph_latter_to(self, other):
+        return self.ring_key > other.ring_key
+
+    def is_graph_prior_to(self, other) -> bool:
+        return self.ring_key < other.ring_key
 
     @property
     def joint_aromatic_rings(self) -> list["Ring"]:
@@ -3947,6 +3997,12 @@ class Ring(Wrapper, ABC):
     def min_center2atoms(self) -> float:
         """ the minimum distance from center to atoms """
         return min(self.dist_center2atoms)
+
+    def neigh_atoms(self, atom: Atom) -> (Atom, Atom):
+        if atom not in self.atoms:
+            raise ValueError('the given atom not in the ring!')
+
+        return [a for a in atom.neighbours if a in self.atoms]
 
     @property
     def normal_vector(self) -> np.ndarray:
@@ -3982,6 +4038,7 @@ class Ring(Wrapper, ABC):
 
     @property
     def ordered_atoms(self) -> list[Atom]:
+        """ TODO: might Deprecate """
         atoms = {a.ob_id: a for a in self.atoms}
         atom = None
 
@@ -3997,9 +4054,67 @@ class Ring(Wrapper, ABC):
 
         return ordered_atoms
 
+    def clockwise_atoms(
+            self, first_atom: Atom, which: Literal['right', 'left', 'both', 'min', 'max'] = "right"
+    ) -> (list[Atom], Optional[list[Atom]]):
+        """
+        get clockwise atoms from the given first atom
+        Args:
+            first_atom:
+            which: select from 'right', 'left', 'both', 'min' or 'max'
+        """
+        def sort_clock(atoms: list[Atom]):
+            return BaseNum([a.atomic_number for a in atoms])
+
+        def get_atoms(idx: Literal[0, 1]):
+            atoms = [first_atom, self.neigh_atoms(first_atom)[idx]]
+            while len(atoms) < self.size:
+                atoms.append([a for a in self.neigh_atoms(atoms[-1]) if a not in atoms][0])
+
+            return atoms
+
+        if first_atom not in self.atoms:
+            raise ValueError('the given atom not in the Ring')
+
+        if which == 'right':
+            return get_atoms(0)
+        elif which == 'left':
+            return get_atoms(1)
+        else:
+            clockwise_atoms = get_atoms(0), get_atoms(1)
+            if which == 'both':
+                return clockwise_atoms
+            elif which == 'min':
+                return min(clockwise_atoms, key=sort_clock)
+            elif which == 'max':
+                return max(clockwise_atoms, key=sort_clock)
+            else:
+                ValueError("the which should select from 'right', 'left', 'both', 'min' or 'max'")
+
     @property
     def size(self):
         return self.ob_ring.Size()
+
+    def sort_index(self, atom: Atom) -> int:
+        """ get the index of given in the sorted atoms list """
+        return self.sorted_atoms.index(atom)
+
+    @property
+    def sorted_atoms(self) -> list[Atom]:
+        """ Get a list of atoms from the prior to the latter, the priority of atoms given by Ring.sort_key() method """
+        return self.clockwise_atoms(self.prime_atom, "min")
+
+    def sort_key(self, atom: Atom) -> int:
+        """
+        generate a unique int values to represent the priority of the given atom in the ring.
+        The int value is transformed into a 128-based number (the known elements in our world is 120).
+        The 128-based number is generated by putting the atomic number of each atom in the ring as one
+        of the digits of the 128-based number, where the atomic number of the given atoms is the 1st digit
+        and the sequential digit is given by the sequential atoms. The question raised that there could be
+        two atom sequences, clockwise or anticlockwise, which should be the reference to generate the unique
+        key? The answer is the sequences with minimum key.
+        """
+        return int(min([BaseNum([a.atomic_number for a in atoms]) for atoms in self.clockwise_atoms(atom, "both")]))
 
     @property
     def vector_center2atoms(self) -> np.ndarray:

@@ -9,21 +9,40 @@ python v3.9.0
 from typing import *
 
 
-class BaseNum:
+class SequenceInt:
+    """ a sequence of int that is easy to be compared """
+    def __init__(self, values: list[int]):
+        self.values = values
+
+    def __repr__(self):
+        return f"IntSeq({self.values})"
+
+    def __eq__(self, other):
+        return len(self.values) == len(other.values) and all(sv == ov for sv, ov in zip(self.values, other.values))
+
+    def __gt__(self, other):
+        return len(self.values) > len(other.values) or \
+            (len(self.values) == len(other.values) and any(sv > ov for sv, ov in zip(self.values, other.values)))
+
+    def __lt__(self, other):
+        return len(self.values) < len(other.values) or \
+            (len(self.values) == len(other.values) and any(sv < ov for sv, ov in zip(self.values, other.values)))
+
+
+class BaseNum(SequenceInt):
     """ Create an int-wise number based on custom base """
     def __init__(self, value: Union[int, list[int]], base: int = 128):
         if isinstance(value, list):
             assert all(v < base for v in value)
-            self.values = value
+            super().__init__(values=value)
         elif isinstance(value, int):
-            self.values = []
+            super().__init__(values=[])
             while value >= base:
                 value, remainder = divmod(value, base)
                 self.values.insert(0, remainder)
             self.values.insert(0, value)
         else:
             raise ValueError('the given value should be an int or list of int')
-
         self.base = base
 
     def __int__(self):
@@ -31,15 +50,6 @@ class BaseNum:
 
     def __repr__(self):
         return f"{self.base}Based({self.values})"
-
-    def __eq__(self, other):
-        return int(self) == int(other)
-
-    def __gt__(self, other):
-        return int(self) > int(other)
-
-    def __lt__(self, other):
-        return int(self) < int(other)
 
     def join(self, other):
         self.values += other.values

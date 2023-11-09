@@ -30,7 +30,6 @@ from openbabel import openbabel as ob, pybel as pb
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-import hotpot as hp
 from .maths import BaseNum
 from hotpot import data_root
 from hotpot.tasks import lmp
@@ -3927,11 +3926,11 @@ class Ring(Wrapper, ABC):
         return ExpandRing(*self._joint_rings())
 
     @property
-    def ring_key(self) -> int:
-        """ return a unique int number to represent the priority of the ring, where the 1st digit
+    def ring_key(self) -> BaseNum:
+        """ return a unique Base number to represent the priority of the ring, where the 1st digit
         in 128-based number represent aromatic (1) or aliphatic (2) ring, the subsequent each digit
         represent the atomic number of sorted_atoms"""
-        return int(BaseNum(([1] if self.is_aromatic else [2]) + [a.atomic_number for a in self.sorted_atoms]))
+        return BaseNum(([1] if self.is_aromatic else [2]) + [a.atomic_number for a in self.sorted_atoms])
 
     @property
     def prime_atom(self) -> Atom:
@@ -4104,7 +4103,7 @@ class Ring(Wrapper, ABC):
         """ Get a list of atoms from the prior to the latter, the priority of atoms given by Ring.sort_key() method """
         return self.clockwise_atoms(self.prime_atom, "min")
 
-    def sort_key(self, atom: Atom) -> int:
+    def sort_key(self, atom: Atom) -> BaseNum:
         """
         generate a unique int values to represent the priority of the given atom in the ring.
         The int value is transformed into a 128-based number (the known elements in our world is 120).
@@ -4114,7 +4113,7 @@ class Ring(Wrapper, ABC):
         two atom sequences, clockwise or anticlockwise, which should be the reference to generate the unique
         key? The answer is the sequences with minimum key.
         """
-        return int(min([BaseNum([a.atomic_number for a in atoms]) for atoms in self.clockwise_atoms(atom, "both")]))
+        return min([BaseNum([a.atomic_number for a in atoms]) for atoms in self.clockwise_atoms(atom, "both")])
 
     @property
     def vector_center2atoms(self) -> np.ndarray:

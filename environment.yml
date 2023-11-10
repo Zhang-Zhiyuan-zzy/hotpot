@@ -167,4 +167,6 @@ dependencies:
       - torchaudio
       - torch_geometric
       - networkx
+      - matplotlib
+      - scikit-learn
 prefix: /home/zzy/sw/conda3/envs/hp

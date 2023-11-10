@@ -11,3 +11,5 @@ thermo=0.2.26
 pandas
 psutil
 dpdata
+matplotlib
+scikit-learn

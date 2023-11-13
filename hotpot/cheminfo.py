@@ -1258,6 +1258,24 @@ class Molecule(Wrapper, ABC):
     def atom_labels(self) -> list[str]:
         return [a.label for a in self.atoms]
 
+    def atom_sort_key(self, atom: "Atom") -> BaseNum:
+        """
+        Return a BaseNum according to the location of the atoms in the Molecule.
+        Two prerequisites should be satisfied, that:
+            1) the given atom must in the Molecule;
+            2) this Molecule only have one component
+        else, a ValueError or an AttributeError rises, respectively.
+        Args:
+            atom: the determined Atom in this Molecule
+
+        Raises:
+            ValueError: if the given Atom not in the Molecule;
+            AttributeError: if this Molecule have more than one component
+
+        Returns:
+            a BaseNum
+        """
+
     @property
     def atom_spin_densities(self) -> np.ndarray:
         return np.array([a.spin_density for a in self.atoms])
@@ -2723,6 +2741,25 @@ class Molecule(Wrapper, ABC):
         return self.dump('can').split()[0]
 
     @property
+    def sorted_atoms(self) -> list["Atom"]:
+        """
+        Sorting atoms according to the priority of atoms, which is determined by the following guideline:
+            1) the atoms out the ring is prior than those in the rings
+            2) the atoms belong to fewer rings are prior than those belong to more
+            3) the out-ring atoms with smaller atomic number is prior than those larger
+            4) the in-ring atoms determine their priority by their sort_key
+
+        the above guideline is consist with the property of Atom.sort_key. In other words, that one atom
+        is prior than the other is equivalent to the one with smaller sort_key than the other.
+
+        If sort_key is equal to the other one, determine the priority by the following guidelines:
+            1)
+
+        Returns:
+
+        """
+
+    @property
     def spin(self):
         return self.ob_mol.GetTotalSpinMultiplicity()
 
@@ -3567,6 +3604,19 @@ class Atom(Wrapper, ABC):
         self.ob_atom.SetAromatic()
 
     @property
+    def sort_key(self) -> BaseNum:
+        if self.is_in_ring:
+            rings = sorted(self.rings, key=lambda r: r.ring_key)
+            atom_key = BaseNum([])
+            for ring in rings:
+                atom_key.join(ring.sort_key(self))
+
+        else:
+            atom_key = BaseNum([self.atomic_number])
+
+        return atom_key
+
+    @property
     def spin_density(self):
         return self._data.get('spin_density', 0.0)
 
@@ -3893,6 +3943,43 @@ class Ring(Wrapper, ABC):
         """ The geometric center """
         return self.coordinates.mean(axis=0)
 
+    def clockwise_atoms(
+            self, first_atom: Atom, which: Literal['right', 'left', 'both', 'min', 'max'] = "right"
+    ) -> (list[Atom], Optional[list[Atom]]):
+        """
+        get clockwise atoms from the given first atom
+        Args:
+            first_atom:
+            which: select from 'right', 'left', 'both', 'min' or 'max'
+        """
+        def sort_clock(atoms: list[Atom]):
+            return BaseNum([a.atomic_number for a in atoms])
+
+        def get_atoms(idx: Literal[0, 1]):
+            atoms = [first_atom, self.neigh_atoms(first_atom)[idx]]
+            while len(atoms) < self.size:
+                atoms.append([a for a in self.neigh_atoms(atoms[-1]) if a not in atoms][0])
+
+            return atoms
+
+        if first_atom not in self.atoms:
+            raise ValueError('the given atom not in the Ring')
+
+        if which == 'right':
+            return get_atoms(0)
+        elif which == 'left':
+            return get_atoms(1)
+        else:
+            clockwise_atoms = get_atoms(0), get_atoms(1)
+            if which == 'both':
+                return clockwise_atoms
+            elif which == 'min':
+                return min(clockwise_atoms, key=sort_clock)
+            elif which == 'max':
+                return max(clockwise_atoms, key=sort_clock)
+            else:
+                ValueError("the which should select from 'right', 'left', 'both', 'min' or 'max'")
+
     @property
     def coordinates(self) -> np.ndarray:
         """ the coordinates matrix for all atoms """
@@ -3924,18 +4011,6 @@ class Ring(Wrapper, ABC):
     def expand_ring(self) -> "ExpandRing":
         """ ExpandRing containing this ring """
         return ExpandRing(*self._joint_rings())
-
-    @property
-    def ring_key(self) -> BaseNum:
-        """ return a unique Base number to represent the priority of the ring, where the 1st digit
-        in 128-based number represent aromatic (1) or aliphatic (2) ring, the subsequent each digit
-        represent the atomic number of sorted_atoms"""
-        return BaseNum(([1] if self.is_aromatic else [2]) + [a.atomic_number for a in self.sorted_atoms])
-
-    @property
-    def prime_atom(self) -> Atom:
-        """ get the prime atom with most prior """
-        return min([a for a in self.atoms], key=self.sort_key)
 
     def has_same_atoms(self, other: "Ring") -> bool:
         """ Check whether this ring has same atoms with other one """
@@ -4053,42 +4128,17 @@ class Ring(Wrapper, ABC):
 
         return ordered_atoms
 
-    def clockwise_atoms(
-            self, first_atom: Atom, which: Literal['right', 'left', 'both', 'min', 'max'] = "right"
-    ) -> (list[Atom], Optional[list[Atom]]):
-        """
-        get clockwise atoms from the given first atom
-        Args:
-            first_atom:
-            which: select from 'right', 'left', 'both', 'min' or 'max'
-        """
-        def sort_clock(atoms: list[Atom]):
-            return BaseNum([a.atomic_number for a in atoms])
+    @property
+    def prime_atom(self) -> Atom:
+        """ get the prime atom with most prior """
+        return min([a for a in self.atoms], key=self.sort_key)
 
-        def get_atoms(idx: Literal[0, 1]):
-            atoms = [first_atom, self.neigh_atoms(first_atom)[idx]]
-            while len(atoms) < self.size:
-                atoms.append([a for a in self.neigh_atoms(atoms[-1]) if a not in atoms][0])
-
-            return atoms
-
-        if first_atom not in self.atoms:
-            raise ValueError('the given atom not in the Ring')
-
-        if which == 'right':
-            return get_atoms(0)
-        elif which == 'left':
-            return get_atoms(1)
-        else:
-            clockwise_atoms = get_atoms(0), get_atoms(1)
-            if which == 'both':
-                return clockwise_atoms
-            elif which == 'min':
-                return min(clockwise_atoms, key=sort_clock)
-            elif which == 'max':
-                return max(clockwise_atoms, key=sort_clock)
-            else:
-                ValueError("the which should select from 'right', 'left', 'both', 'min' or 'max'")
+    @property
+    def ring_key(self) -> BaseNum:
+        """ return a unique Base number to represent the priority of the ring, where the 1st digit
+        in 128-based number represent aromatic (1) or aliphatic (2) ring, the subsequent each digit
+        represent the atomic number of sorted_atoms"""
+        return BaseNum(([1] if self.is_aromatic else [2]) + [a.atomic_number for a in self.sorted_atoms])
 
     @property
     def size(self):

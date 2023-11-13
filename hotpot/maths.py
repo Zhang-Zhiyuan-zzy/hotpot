@@ -59,3 +59,13 @@ class BaseNum(SequenceInt):
 
     def __mul__(self, other):
         return self.__class__(int(self) * int(other), self.base)
+
+
+class AtomSortNum(SequenceInt):
+    """
+    A triple integer number applied to define the priority of atoms in a molecular graph.
+
+    """
+    def __init__(self, values: list[int]):
+        super().__init__(values)
+        assert len(self.values) == 3

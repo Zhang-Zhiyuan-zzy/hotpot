@@ -1483,21 +1483,7 @@ class Molecule(Wrapper, ABC):
     @property
     def components(self):
         """ get all fragments don't link each by any bonds """
-        # Add temp label for each atom first
-        preserve_data = self._preserve_atoms_data()
-
-        components = [self.__class__(obc) for obc in self.ob_mol.Separate()]
-
-        # Transfer the parent data attr to the children
-        for c in components:
-            for a in c.atoms:
-                a.update_attr_data(preserve_data[a.temp_label])
-                a.remove_ob_data('temp_label')
-
-        # remove temp labels of all atoms
-        self._delete_atoms_temp_label()
-
-        return components
+        return [self.__class__(obc) for obc in self.ob_mol.Separate()]
 
     @property
     def conformer_counts(self) -> int:
@@ -2522,6 +2508,12 @@ class Molecule(Wrapper, ABC):
                 self.remove_atoms(*ligand.atom_labels, remove_hydrogens=False)
             elif _lib.get('Solvents').is_solvent(ligand):  # To judge if the ligand is solvents
                 self.remove_atoms(*ligand.atom_labels, remove_hydrogens=False)
+
+    def reorder_ob_ids(self):
+        for i, oba in enumerate(ob.OBMolAtomIter(self.ob_mol)):
+            oba.SetId(i)
+        for i, obb in enumerate(ob.OBMolBondIter(self.ob_mol)):
+            obb.SetId(i)
 
     def retrieve_ligands(self) -> List['Molecule']:
         """ Retrieve all ligand molecule from this """
@@ -3985,12 +3977,16 @@ class Crystal(Wrapper, ABC):
         mol = self.molecule  # Get the contained Molecule
 
         if not mol:  # if you get None
-            print(RuntimeWarning("the crystal doesn't contain any Molecule!"))
+            raise AttributeError("the crystal doesn't contain any Molecule!")
 
         ob_unit_cell = ob.OBUnitCell(self.ob_unit_cell)
         pack_mol = mol.copy()
         ob_unit_cell.FillUnitCell(pack_mol.ob_mol)  # Full the crystal
-        _ = pack_mol.atoms  # Rearrange the atom indices.
+
+        pack_mol.build_bonds()
+        pack_mol.assign_bond_types()
+
+        pack_mol.reorder_ob_ids()  # Rearrange the atom indices and bond indices.
 
         return pack_mol
 

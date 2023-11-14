@@ -1,9 +1,0 @@
-numpy
-pandas
-thermo
-cclib
-tqdm
-rdkit
-psutil
-rdkit
-dpdata

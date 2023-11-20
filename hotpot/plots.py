@@ -461,7 +461,3 @@ class SHAPlot(PlotTemplet):
 
                 ticks.append(tick)
             ax.set_yticklabels(ticks)
-
-
-
-

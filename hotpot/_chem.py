@@ -29,8 +29,8 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 
 from hotpot import data_root
-from hotpot.tasks import lmp
-from hotpot.tasks.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
+from hotpot.plugins import lmp
+from hotpot.plugins.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
 from hotpot.utils.library import library as _lib  # The chemical library
 
 
@@ -485,7 +485,7 @@ class Molecule(Wrapper, ABC):
             raise AttributeError('the coordinate matrix do not match the number of atoms')
 
         for new_mol_atom, new_atom_coord in zip(the_mol.atoms, coordinates):
-            new_mol_atom.coordinates = new_atom_coord
+            new_mol_atom.coordinate = new_atom_coord
 
     @property
     def _attr_setters(self) -> Dict[str, Callable]:
@@ -811,7 +811,7 @@ class Molecule(Wrapper, ABC):
         assert coordinates.shape == (self.atom_counts, 3)
 
         for a, c in zip(self.atoms, coordinates):
-            a.coordinates = c
+            a.coordinate = c
 
     def _set_forces(self, forces: np.ndarray):
         """ Set the force vectors for each atom in the molecule """
@@ -1716,7 +1716,7 @@ class Molecule(Wrapper, ABC):
 
         3. "FP4": The FP4 fingerprint is a circular fingerprint based on the Morgan algorithm. It
         captures information about the local environment of each atom in the molecule, up to a certain
-        radius. It is useful for similarity calculations and machine learning tasks.
+        radius. It is useful for similarity calculations and machine learning plugins.
 
         4. "MACCS": The MACCS fingerprint is a 166-bit structural key-based fingerprint. It represents
         the presence of specific substructures or functional groups defined by the MACCS keys. It is
@@ -1873,7 +1873,7 @@ class Molecule(Wrapper, ABC):
             T: the environmental temperature (default, 298.15 K)
             P: the relative pressure related to the saturation vapor in the environmental temperature.
         """
-        from tasks.lmp.gcmc import LjGCMC
+        from plugins.lmp.gcmc import LjGCMC
         gcmc = LjGCMC(self, force_field, *guest, work_dir=work_dir, T=T, P=P, **kwargs)
         return gcmc.run()
 
@@ -4188,5 +4188,5 @@ class ZMatrix:
 
 import hotpot.bundle as bd
 from hotpot._io import Dumper, Parser
-from hotpot.tasks.cc import PairBundle
-from hotpot.tasks.deepmd import DeepSystem
+from hotpot.plugins.cc import PairBundle
+from hotpot.plugins.deepmd import DeepSystem

@@ -61,7 +61,7 @@ print(m.has_3d)  # Now, the molecule is a 3D molecule, all of atoms have their c
 # check the atoms coordinates:
 mol.normalize_labels()  # reorder the atom's labels
 for atom in mol.atoms:
-    print(atom.label, atom.symbol, atom.coordinates)  # get the label, symbol, coordinates of the atom
+    print(atom.label, atom.symbol, atom.coordinate)  # get the label, symbol, coordinates of the atom
 ```
 
 In general, a `Molecule` is consist of many `Atom` and `Bond` objects. One can get the attributes from
@@ -116,6 +116,7 @@ The 'Molecule' object could retrieve its link_matrix as the input of graph learn
 ### Submit the Molecule to Gaussian16 software
 One can directly submit the `Molecule` object to Gaussian16 software. Assuming you want to optimize the
 conformer of the molecule by Gaussian16
+
 ```pycon
 mol.gaussian(
     g16root='path/to/g16root',
@@ -127,7 +128,7 @@ mol.gaussian(
     debugger='auto'  # Handle the Gaussian Error by the default method
 )
 print(mol.energy)  # get the SCF energy in the last optimized status
-print(mol.coordinates)  # get the coordinates matrix after optimizing by gaussian 16
+print(mol.coordinate)  # get the coordinates matrix after optimizing by gaussian 16
 ```
 The Gaussian program will run and handle some common error report automatically. To handle errors with more elaborate
 methods, user can custom a new debugger by inherit from the hotpot.tanks.quantum.GaussErrorHandle, seeing 
@@ -198,7 +199,7 @@ now allowed build `Molecule` object from dpdata [System] and [LabeledSystem] obj
 from pathlib import Path
 
 import hotpot as hp
-from hotpot.tasks.deepmd import read_system
+from hotpot.plugins.deepmd import read_system
 
 data_root_dir = "path/to/data"
 

@@ -9,7 +9,7 @@ python v3.9.0
 import os
 import unittest as ut
 import hotpot as hp
-from hotpot.tasks.qm.gaussian import Gaussian
+from hotpot.plugins.qm.gaussian import Gaussian
 
 g16root = hp.settings.get("paths", {}).get("g16root") or os.environ.get('g16root')
 

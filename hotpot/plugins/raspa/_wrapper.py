@@ -14,7 +14,7 @@ from pathlib import Path
 from openbabel import pybel as pb
 
 from hotpot import settings, Molecule
-from hotpot.tasks.raspa import _core
+from hotpot.plugins.raspa import _core
 from ._results import RaspaParser
 
 _raspa_root = settings.get("paths", {}).get('raspa_root')

@@ -19,7 +19,7 @@ import hotpot
 
 class HpLammps:
     """
-    A wrapper to run LAMMPS tasks
+    A wrapper to run LAMMPS plugins
     """
     def __init__(self, main, **kwargs):
         """
@@ -165,7 +165,7 @@ class HpLammps:
         path_main_data = os.path.join(self.work_dir, 'main.data')
 
         # to the main.data file
-        self.main.writefile('lmpdat', path_main_data, retrieve_script=False)
+        self.main.writefile('lmpdat', path_main_data)
         # self.data_to_labelmap(script, atom_offset)
 
         # read to LAMMPS
@@ -248,7 +248,7 @@ class HpLammps:
 
 
 class LmpTask:
-    """ The base class for performing LAMMPS tasks with Molecule objects """
+    """ The base class for performing LAMMPS plugins with Molecule objects """
     def __init__(self, mol: 'ci.Molecule'):
         self.mol = mol
 

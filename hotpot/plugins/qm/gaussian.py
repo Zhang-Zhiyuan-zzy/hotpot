@@ -237,7 +237,7 @@ class OptionPath:
             # search the node with the assumption that the given path is brief path
             elif not sub_tree:
 
-                # find this node in all SELECTION subtree with a new tree
+                # find this node in all SELECTION subtree with a test_new tree
                 select_key = None
                 for key, value in tree.items():
                     if isinstance(value, dict) and "SELECTION" in value:
@@ -630,7 +630,7 @@ class Gaussian:
             else:
                 raise ValueError('the option pass into Gaussian must be a root option')
         else:
-            self.op = Options('')  # Create a new option
+            self.op = Options('')  # Create a test_new option
 
         self.g16process = None  # to link to the g16 subprocess
         self.output_in_running = output_in_running
@@ -1279,7 +1279,7 @@ class Ignore(Debugger, ABC):
     """
     To handle the optimization can't fall into the optimal point which a tiny imaginary frequency.
 
-    The optimization tasks might be hard to converge for certain reasons.
+    The optimization plugins might be hard to converge for certain reasons.
     In especial, the Minnesota functional(like M062X) might oscillate near the optimal point with imaginary frequency.
 
     There are some complicated method to solve this problem. However, If someone discovers that during the final stage

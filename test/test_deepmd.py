@@ -16,8 +16,8 @@ import numpy as np
 from test import test_root
 import hotpot as hp
 import hotpot.cheminfo as ci
-import hotpot.tasks.deepmd as dpmd
-from hotpot.tasks.deepmd import read_system
+import hotpot.plugins.deepmd as dpmd
+from hotpot.plugins.deepmd import read_system
 
 
 class TestDeepModeling(ut.TestCase):

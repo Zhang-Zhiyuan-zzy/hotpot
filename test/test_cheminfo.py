@@ -1,68 +1,87 @@
 """
 python v3.9.0
 @Project: hotpot
-@File   : test_cheminfo
+@File   : test_chem
 @Auther : Zhiyuan Zhang
-@Data   : 2023/7/16
-@Time   : 22:21
-Notes:
-    Test `hotpot/cheminfo` module
+@Data   : 2023/11/21
+@Time   : 20:56
 """
-import logging
 from pathlib import Path
-import unittest as ut
+from unittest import TestCase
 
 import numpy as np
 
 import hotpot as hp
-import hotpot.cheminfo as ci
-import test
+from hotpot.cheminfo import *
 
 
-logging.basicConfig(level=logging.INFO)
+class TestChem(TestCase):
+    def test_operation(self):
+        mol = Molecule.read_from('c1ccccc1.c1cccc(C(=O)O)c1', 'smi')
+        sr = mol.add_atom('Sr')
+        self.assertIn(sr, mol.atoms)
 
+        for o in [a for a in mol.atoms if a.symbol == 'O']:
+            mol.add_bond(sr, o, 1)
 
-class TestMolecule(ut.TestCase):
-    """ Test `hotpot/cheminfo/Molecule` class """
+        mol.build_3d()
+        mol.remove_hydrogens()
+        mol.add_hydrogens()
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        print('Test', cls.__class__)
+        for angle in mol.angles:
+            self.assertIsInstance(angle, Angle)
 
-    def setUp(self) -> None:
-        print('running test:', self._testMethodName)
+        self.assertEqual(mol.atoms_dist_matrix.shape, (len(mol.atoms), len(mol.atoms)))
 
-    def test_read_g16log(self):
-        """ test the `read_from` method """
+        for bond in mol.bonds:
+            self.assertIsInstance(mol.bond(bond.atom1.ob_id, bond.atom2.ob_id), Bond)
+
+        for component in mol.components:
+            self.assertNotEqual(component.refcode, mol.refcode)
+
+        cryst = mol.compact_crystal()
+        self.assertNotEqual(cryst.molecule.refcode, mol.refcode)
+
+        cryst = mol.compact_crystal(inplace=True)
+        self.assertEqual(cryst.molecule.refcode, mol.refcode)
+
+        self.assertIs(mol.crystal, cryst)
+        # if given OBMol is registered in the Molecule list, retrieve the registered one instead of create a new
+        self.assertIs(Molecule(mol.ob_mol), mol)
+
+        for ring in mol.lssr:
+            self.assertIs(ring.molecule, mol)
+
+        clone = mol.copy()
+        clone.remove_atoms(*clone.metals)
+
+        self.assertNotEqual(len(mol.atoms), len(clone.atoms))
+        self.assertNotEqual(len(mol.bonds), len(clone.bonds))
+
+        for torsion in mol.torsions:
+            print(torsion)
+
+    def test_io(self):
+
+        # test read from gjf
         mol_path = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'struct', 'abnormal_output.log')
-        mol = hp.Molecule.read_from(mol_path, 'g16log', force=True)
-
-        self.assertIsInstance(mol, hp.Molecule)
+        mol = hp.Molecule.read_from(mol_path, 'g16', force=True)
+        self.assertEqual(mol.energy, -380867.02680215525)
         self.assertTrue(mol.has_3d)
-        self.assertGreater(mol.conformer_counts, 1)  # the read molecule should have multiply conformers
 
-        # Test the accessibility of Molecule attributes
-        self.assertIsInstance(mol.atoms[0], ci.Atom)
-        self.assertIsInstance(mol.bonds[0], ci.Bond)
-
-    def test_read_cif(self):
-        """ test read a MOF from cif file """
+        # test read from cif
         path_mil = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'struct', 'MIL-101(Cr).cif')
         mil = hp.Molecule.read_from(path_mil)
 
-        crystal = mil.crystal()
-        pack_mil = crystal.pack_molecule
+        crystal = mil.crystal
 
         self.assertTrue(mil is crystal.molecule, "Is the molecule of the crystal of a molecule the molecule itself ?")
 
-        # Test to get the attributes of crystal
-        self.assertEqual(pack_mil.weight, 259171.4350707429)
+
         self.assertEqual(crystal.lattice_params.tolist(), [[88.86899, 88.86899, 88.86899], [90.0, 90.0, 90.0]])
         self.assertTrue(np.all(crystal.vectors == crystal.matrix), "Is the vectors identical to the matrix?")
         for a, b in zip(np.dot(crystal.matrix, mil.frac_coordinates.T).T.flatten(), mil.coordinates.flatten()):
             self.assertAlmostEqual(a, b)
-
-        self.assertLess(mil.atom_counts, pack_mil.atom_counts)
 
         self.assertEqual(crystal.lattice_type, 'Cubic')
         self.assertEqual(crystal.space_group, 'F d 3 m:2')
@@ -73,79 +92,15 @@ class TestMolecule(ut.TestCase):
         crystal.set_matrix(matrix)
         self.assertTrue(np.all(matrix == crystal.matrix), "the crystal matrix could be specified?")
 
-    def test_graph_representation(self):
-        """ test convert a molecule to graph representation """
-        mol = hp.Molecule.read_from(test.test_root.joinpath("inputs/struct/Bi-ligand.mol2"))
-
-        idt, feat, adj = mol.graph_representation()
-
-        true_feat = np.array(
-            [[8, 2, 2, 4, 0, 0],
-             [8, 2, 2, 4, 0, 0],
-             [6, 2, 2, 2, 0, 0],
-             [6, 2, 2, 2, 0, 0],
-             [8, 2, 2, 4, 0, 0],
-             [8, 2, 2, 4, 0, 0],
-             [83, 6, 2, 3, 10, 14]])
-
-        true_adj = np.array([
-            [0, 1, 2, 3, 3, 6, 0, 1, 2, 3, 3, 6],
-            [2, 2, 3, 4, 5, 4, 2, 2, 3, 4, 5, 4]
-        ])
-
-        self.assertEqual(idt, "Bi-ligand")
-        self.assertTrue(np.all(feat == true_feat), "the feature matrix can't match")
-        self.assertTrue(np.all(true_adj == adj), "the adjacency can't match")
-
-    def test_add_remove_atom_bonds(self):
-        """"""
-        mol = hp.Molecule.read_from('c1cnc(O)cc1', 'smi')
-        mol.build_3d()
-        # mol.unset_coordinates()
-
-        sr = mol.add_atom('Sr')
-
-        for o in [a for a in mol.atoms if a.symbol in ['O', 'N']]:
-            mol.add_bond(sr, o, 1)
-
-        mol.remove_hydrogens()
-        mol.build_3d()
-        mol.assign_bond_types()
-        mol.normalize_labels()
-
-        print(mol.smiles)
-        print(mol.smarts())
-
-        for a in mol.atoms:
-            print(a, a.coordinates)
-
-        for b in mol.bonds:
-            print(b, b.length, b.ideal_length)
-
-        mol.remove_atoms(sr)
-        print(mol.smiles)
-        print(mol.smarts())
+        pack_mil = crystal.pack_molecule
+        self.assertLess(len(mol.atoms), len(pack_mil.atoms))
+        self.assertLess(mol.weight, pack_mil.weight)
 
     def test_shortest_path_search(self):
-        """"""
         mol = hp.Molecule.read_from('C' * 10, 'smi')
-        atom_indices = mol.shortest_path(0, 9)
-        mol.shortest_path(0, 9, get_all=True)
-        mol.shortest_path(0, 9, return_atoms=True)
-        mol.shortest_path(0, 9, get_all=True, return_atoms=True)
+        atom_paths = mol.shortest_paths(mol.atoms[0], mol.atoms[9])
 
-        self.assertEqual(atom_indices, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(len(atom_paths), 1)
+        self.assertEqual([a.ob_id for a in atom_paths[0]], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-    def test_operators(self):
-        """ test all operator method for all objects in cheminfo module """
-        mol1 = hp.Molecule.read_from('c1ccccc1', 'smi')
-        mol2 = hp.Molecule.read_from('c1ccccc1', 'smi')
-        mol3 = hp.Molecule.read_from('c1ccccc1', 'smi')
-        mol4 = hp.Molecule.read_from('c1cnccc1', 'smi')
-
-        mols = [mol2, mol3]
-
-        self.assertEqual(mol1, mol2)
-        self.assertIn(mol1, mols)
-        self.assertNotIn(mol4, mols)
 

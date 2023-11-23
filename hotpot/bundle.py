@@ -100,7 +100,7 @@ class MolBundle:
             get_remain: bool = False
     ) -> Union['MolBundle', tuple['MolBundle', 'MolBundle']]:
         """
-         Generate new MolBundle with a list of random Molecule objects from the current MolBundle
+         Generate test_new MolBundle with a list of random Molecule objects from the current MolBundle
         Args:
             size: the size of generating MolBundle, that the number of contained Molecule objects
             replace: whether allow to choice a Molecule object multiply times. It must be noted that
@@ -245,7 +245,7 @@ class MolBundle:
 
             for i, source in enumerate(generate_path_or_string()):
 
-                # if the number of process more than num_proc, get the read molecule info and stop to start new process
+                # if the number of process more than num_proc, get the read molecule info and stop to start test_new process
                 while len(ps) >= nproc:
                     for p in ps:
                         if not p.is_alive():
@@ -266,7 +266,7 @@ class MolBundle:
                         if not condition or condition(mol, pf):
                             yield mol
 
-                # Start new process to read Molecule from file
+                # Start test_new process to read Molecule from file
                 if not ranges or i in ranges:
                     p = mp.Process(target=read_mol, args=(source, child_conn))
                     p.start()
@@ -518,12 +518,12 @@ class MolBundle:
 
     def unique_mols(self, mode: Literal['smiles', 'similarity'] = 'smiles'):
         """
-        get a new Bundle with all unique Molecule objects
+        get a test_new Bundle with all unique Molecule objects
         Args:
             mode: the standard to identify whether two molecule to be regard as identical
 
         Returns:
-            A new Bundle with all the unique Molecule objects
+            A test_new Bundle with all the unique Molecule objects
         """
         clone = copy.copy(self)
         clone.data = copy.copy(self.data)
@@ -552,7 +552,7 @@ class MolBundle:
 
 @register_bundles
 class DeepModelBundle(MolBundle):
-    """ Specific MolBundle to carry out the tasks in DeepModeling packages """
+    """ Specific MolBundle to carry out the plugins in DeepModeling packages """
 
     def merge_conformers(self):
         """
@@ -652,7 +652,7 @@ class DeepModelBundle(MolBundle):
 
     def to_mix_mols(self):
         """
-        Return a new MolBundle, in which Molecule objects in container are converted to MixSameAtomMol
+        Return a test_new MolBundle, in which Molecule objects in container are converted to MixSameAtomMol
         Returns:
             MolBundle(MixSameAtomMol)
         """
@@ -660,7 +660,7 @@ class DeepModelBundle(MolBundle):
 
     def to_mols(self):
         """
-        Return a new MolBundle, in which MixSameAtomMol objects in container are converted to Molecule
+        Return a test_new MolBundle, in which MixSameAtomMol objects in container are converted to Molecule
         Returns:
             MolBundle(Molecule)
         """

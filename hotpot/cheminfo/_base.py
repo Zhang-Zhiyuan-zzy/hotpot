@@ -94,7 +94,7 @@ class Wrapper(ABC):
 
         self._set_ob_comment_data(attr_name, str(value))
 
-    def _set_ob_list_data(self, attr_name, value: int):
+    def _set_ob_list_data(self, attr_name, value: list):
         if not isinstance(value, list):
             raise TypeError(f"the given value must be list, got {type(value)} instead")
 

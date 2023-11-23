@@ -92,7 +92,7 @@ class PeriodicTable(ChemicalBook):
             self._table = _table
 
         def overwrite_source_data(self):
-            """ Overwrite existing data with a new form """
+            """ Overwrite existing data with a test_new form """
             json.dump(self._table.data_dict, self.data_path, indent=True)
 
     def __init__(self):

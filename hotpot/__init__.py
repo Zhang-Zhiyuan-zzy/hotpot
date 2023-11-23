@@ -10,6 +10,10 @@ import os
 import sys
 import json
 
+
+__version__ = '0.4.0.0'
+
+
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 hp_root = os.path.abspath(os.path.dirname(__file__))
@@ -30,7 +34,4 @@ def settings_config(new_settings: dict):
     json.dump(new_settings, open(os.path.join(data_root, "settings.json"), 'w'), indent=True)
 
 
-from hotpot.cheminfo import Molecule
-from hotpot.bundle import MolBundle
-
-__version__ = '0.3.2.0'
+from .cheminfo import Molecule

@@ -20,7 +20,7 @@ import cclib
 import numpy as np
 
 import hotpot.cheminfo as ci
-from hotpot.tasks.deepmd import DeepSystem
+from hotpot.plugins.deepmd import DeepSystem
 
 """
 Notes:
@@ -293,7 +293,7 @@ class MetaIO(type):
 class IOBase:
     """ The base IO class """
     # Initialize the register function, which is a callable obj embed in IO classes
-    # When to register new IO function, apply the register function as decorator
+    # When to register test_new IO function, apply the register function as decorator
 
     # _register = None
 
@@ -328,7 +328,7 @@ class IOBase:
     @abstractmethod
     def _checks(self) -> Dict[str, Any]:
         """
-        This method should be overriden when definition of new IO class
+        This method should be overriden when definition of test_new IO class
         The purpose of this class is to check the regulation of initialized arguments.
         If not any arguments should be checked, return None directly.
         """
@@ -432,24 +432,22 @@ class Dumper(IOBase, metaclass=MetaIO):
 
         return lines, 6 + inserted_lines
 
-    def _process_lmpdat_bonds(self, bond_contents: list):
+    def _process_lmpdat_bonds(self, bond_info: list):
         """"""
         uni_bonds = tuple(self.src.unique_bonds)
         bonds = self.src.bonds
         sep = re.compile(r'\s+')
-        for i, bc in enumerate(bond_contents):
+        for i, bc in enumerate(bond_info):
             split_bc = sep.split(bc)
             split_bc[1] = str(uni_bonds.index(bonds[i]) + 1)
-            bond_contents[i] = '  '.join(split_bc)
+            bond_info[i] = '  '.join(split_bc)
 
-        return bond_contents
+        return bond_info
 
     def _io(self):
         """ Performing the IO operation, convert the Molecule obj to Literal obj """
         # Try to dump by openbabel.pybel
-        type_err_pattern = re.compile(
-            r"write\(\) got an unexpected keyword argument '\w+'"
-        )
+        type_err_pattern = re.compile(r"write\(\) got an unexpected keyword argument '\w+'")
         pb_mol = pybel.Molecule(self.src.ob_mol)
         kwargs = copy(self.kwargs)
 
@@ -573,14 +571,14 @@ class Dumper(IOBase, metaclass=MetaIO):
         num_bonds_str = f'{num_bonds}  bonds'
         script += num_bonds_str + '\n'
 
-        # Add new blank line to end the header partition
+        # Add test_new blank line to end the header partition
         script += '\n'
 
         # Body partition
         # Coords body
         script += 'Coords' + '\n\n'
         for i, atom in enumerate(atoms_list, 1):
-            script += f'{i}' + '  ' + '  '.join(map(str, atom.coordinates)) + '\n'
+            script += f'{i}' + '  ' + '  '.join(map(str, atom.coordinate)) + '\n'
         script += '\n'
 
         # Types body
@@ -666,7 +664,6 @@ class Dumper(IOBase, metaclass=MetaIO):
 
     def _post_lmpdat(self, script: str):
         """ post-process for LAMMPS data file """
-
         title, headers, bodies = _parse_lmp_data_script(script)
         script = title + '\n'
 

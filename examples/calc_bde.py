@@ -17,7 +17,7 @@ from typing import Union
 import hotpot as hp
 
 from hotpot.cheminfo import Atom
-from hotpot.tasks.qm.gaussian import GaussianRunError
+from hotpot.plugins.qm.gaussian import GaussianRunError
 
 g16root = '/home/pub'
 

@@ -7,12 +7,12 @@ python v3.9.0
 @Time   : 12:15
 """
 from pathlib import Path
-from hotpot.tasks.deepmd import read_system
+from hotpot.plugins.deepmd import read_system
 import hotpot as hp
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    path_log = Path('/home/zz1/proj/gauss/new/log')
+    path_log = Path('/home/zz1/proj/gauss/test_new/log')
     ms = read_system(path_log, "**/*.log", "gaussian/md", ranges=range(10000))
     mols = []
     for ls in tqdm(ms):

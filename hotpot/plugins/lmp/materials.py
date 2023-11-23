@@ -6,7 +6,7 @@ python v3.7.9
 @Date   : 2023/4/26
 @Time   : 1:50
 Notes:
-    This package is to perform some specific tasks base on the LAMMPS
+    This package is to perform some specific plugins base on the LAMMPS
 """
 import os
 import os.path as osp
@@ -16,7 +16,9 @@ import random
 import numpy as np
 from scipy import spatial
 import openbabel.openbabel as ob
+
 import hotpot
+from hotpot.plugins import lmp
 import hotpot.cheminfo as ci
 
 
@@ -57,7 +59,7 @@ class AmorphousMaker:
         sum_freq = sum(f for f in element_composition.values())
         self.elements = {e: f/sum_freq for e, f in element_composition.items()}  # Normalize the elements' frequency
         self.path_force_field = pff
-        self.density = density * 1.123592147466166
+        self.density = density
         self.cryst_params = (a, b, c, alpha, beta, gamma)
 
     @staticmethod
@@ -132,22 +134,19 @@ class AmorphousMaker:
         mol = ci.Molecule()
         mol.make_crystal(*self.cryst_params)
 
-        cryst = mol.crystal()
-        atomic_number, coordinates = self._density2atom_numbers(
-            self.elements, self.density, cryst
-        )
+        cryst = mol.crystal
 
-        mol.quick_build_atoms(atomic_number)
-        mol.set(all_coordinates=coordinates.reshape((-1, len(coordinates), 3)))
-
-        mol.conformer_select(0)
+        for atomic_number, coordinate in zip(*self._density2atom_numbers(self.elements, self.density, cryst)):
+            atom = mol.add_atom(int(atomic_number))
+            atom.coordinate = coordinate
 
         return mol
 
     def melt_quench(
-            self, *ff_args, mol=None, path_writefile: Optional[str] = None,
-            origin_temp: float = 298.15, melt_temp: float = 4000., highest_temp: float = 10000,
-            time_step: float = 0.0001, path_dump_to: Optional[str] = None, dump_every: int = 100,
+        self, *ff_args, path_writefile: Optional[str] = None,
+        origin_temp: float = 298.15, melt_temp: float = 4000.,
+        highest_temp: float = 10000, time_step: float = 0.0001,
+        path_dump_to: Optional[str] = None, dump_every: int = 100
     ):
         """
         Perform melt-quench process to manufacture a amorphous materials
@@ -166,13 +165,11 @@ class AmorphousMaker:
         Returns:
             Molecule obj after melt-quench.
         """
-        if not isinstance(mol, ci.Molecule):
-            mol = self.load_atoms()
-
-        mol.lmp_setup(units='metal')
+        mol = self.load_atoms()
+        _lammps = lmp.HpLammps(self.load_atoms(), units='metal')
 
         # initialization
-        mol.lmp.commands_string(
+        _lammps.commands_string(
             """
             units metal
             dimension 3
@@ -181,54 +178,54 @@ class AmorphousMaker:
         )
 
         # Read molecule into LAMMPS
-        mol.lmp.read_main_data()
+        _lammps.read_main_data()
 
         # Configure the force field
-        mol.lmp("pair_style tersoff")
-        mol.lmp(f"pair_coeff * * {self.path_force_field} {' '.join(ff_args)}")
+        _lammps("pair_style tersoff")
+        _lammps(f"pair_coeff * * {self.path_force_field} {' '.join(ff_args)}")
 
         # Specify the thermodynamical output to screen
-        mol.lmp('thermo_style    custom step temp pe etotal press vol density')
-        mol.lmp('thermo          1000')
+        _lammps('thermo_style    custom step temp pe etotal press vol density')
+        _lammps('thermo          1000')
 
         # the step interval of integral
-        mol.lmp(f'timestep {time_step}')
+        _lammps(f'timestep {time_step}')
 
         # Specify the dump configuration
         if path_dump_to:
             dump_fmt = path_dump_to.split('.')[-1]  # the dump fmt is the suffix of file name
-            mol.lmp(f'dump mq all {dump_fmt} {dump_every} {path_dump_to}')
-            mol.lmp(f'dump_modify mq element {" ".join(set(mol.atomic_symbols))}')
+            _lammps(f'dump mq all {dump_fmt} {dump_every} {path_dump_to}')
+            _lammps(f'dump_modify mq element {" ".join(set([a.symbol for a in mol.atoms]))}')
 
         # Initialize the temperature for system
-        mol.lmp(f'velocity all create {origin_temp} {random.randint(100000, 999999)}')
+        _lammps(f'velocity all create {origin_temp} {random.randint(100000, 999999)}')
 
         # Melt
-        mol.lmp(f'fix 0 all nvt temp {origin_temp} {highest_temp} 0.7')
-        mol.lmp(f'run 10000')
+        _lammps(f'fix 0 all nvt temp {origin_temp} {highest_temp} 0.7')
+        _lammps(f'run 10000')
 
-        mol.lmp(f'fix 0 all nvt temp {highest_temp} {highest_temp} 1000')
-        while mol.lmp.eval('temp') < highest_temp * 0.95:
-            mol.lmp(f'run 1000')
+        _lammps(f'fix 0 all nvt temp {highest_temp} {highest_temp} 1000')
+        while _lammps.eval('temp') < highest_temp * 0.95:
+            _lammps(f'run 1000')
 
-        mol.lmp(f'run 10000')
+        _lammps(f'run 10000')
 
         # Relax
-        mol.lmp('thermo          250')
-        mol.lmp(f'fix 0 all nvt temp {melt_temp} {melt_temp} 1000.0')
-        while mol.lmp.eval('temp') > melt_temp * 1.05:
-            mol.lmp(f'velocity all scale {melt_temp}')
-            mol.lmp(f'run 2000')
+        _lammps('thermo          250')
+        _lammps(f'fix 0 all nvt temp {melt_temp} {melt_temp} 1000.0')
+        while _lammps.eval('temp') > melt_temp * 1.05:
+            _lammps(f'velocity all scale {melt_temp}')
+            _lammps(f'run 2000')
 
-        mol.lmp('thermo          1000')
-        mol.lmp(f'run 20000')
+        _lammps('thermo          1000')
+        _lammps(f'run 20000')
 
         # Quench
-        mol.lmp('thermo          250')
-        mol.lmp(f'fix 0 all nvt temp {origin_temp} {origin_temp} 1000.0')
-        while mol.lmp.eval('temp') > origin_temp*1.05:
-            mol.lmp(f'velocity all scale {(mol.lmp.eval("temp") - origin_temp) / 2 + origin_temp}')
-            mol.lmp(f'run 2000')
+        _lammps('thermo          250')
+        _lammps(f'fix 0 all nvt temp {origin_temp} {origin_temp} 1000.0')
+        while _lammps.eval('temp') > origin_temp*1.05:
+            _lammps(f'velocity all scale {(_lammps.eval("temp") - origin_temp) / 2 + origin_temp}')
+            _lammps(f'run 2000')
 
         if not path_writefile:
             pwf = ptj(os.getcwd(), 'write_dump.xyz')
@@ -237,12 +234,12 @@ class AmorphousMaker:
             pwf = path_writefile
             write_fmt = path_writefile.split('.')[-1]
 
-        mol.lmp(f'write_dump all {write_fmt} {pwf} modify element {" ".join(set(mol.atomic_symbols))}')
+        _lammps(f'write_dump all {write_fmt} {pwf} modify element {" ".join(set([a.symbol for a in mol.atoms]))}')
         made_mol = ci.Molecule.read_from(pwf)
         if not path_writefile:
             os.remove(pwf)
 
-        made_mol.create_crystal_by_matrix(mol.lmp.cryst_matrix)
+        made_mol.make_crystal(_lammps.cryst_matrix)
 
         return made_mol
 

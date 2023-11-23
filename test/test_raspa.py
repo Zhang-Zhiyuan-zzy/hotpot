@@ -12,13 +12,13 @@ import unittest as ut
 import test
 
 import hotpot as hp
-from hotpot.tasks.raspa import RASPA
+from hotpot.plugins.raspa import RASPA
 
 raspa_root = hp.settings.get("paths", {}).get("raspa_root") or os.environ.get('RASPA_DIR')
 
 
 class TestRaspa(ut.TestCase):
-    """ Test the hotpot.tasks.raspa subpackage """
+    """ Test the hotpot.plugins.raspa subpackage """
     @classmethod
     def setUpClass(cls) -> None:
         print('Test', cls.__class__)

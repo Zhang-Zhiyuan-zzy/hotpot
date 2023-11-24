@@ -15,14 +15,12 @@ from openbabel import openbabel as ob
 
 import torch
 import torch.nn.functional as F
-import torch_geometric as pg
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
-from torch_geometric.datasets import QM9
 
 import hotpot as hp
 from hotpot.plugins.ml.graph.data import MolGraph
-from hotpot.plugins.ml.graph.module import get_atom_energy_tensor, MolNet, SampleGAT, CoordNet
+from hotpot.plugins.ml.graph.module import get_atom_energy_tensor, MolNet
 
 
 def pre_filter(data: Data):

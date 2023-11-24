@@ -36,7 +36,7 @@ class TestSubstitute(ut.TestCase):
         _builder = ob.OBBuilder()
         _builder.SetKeepRings()
 
-        subst = substitute.EdgeSubst("benzene", 'c1ccc[nH]1', [0, 1],
+        subst = substitute.EdgeSubst("benzene", 'c1ccc[nH]1', [1, 2],
                                      "[cH,CH,CH2,CH3]~[cH,CH,CH2,CH3]", unique_mols=True)
 
         benzene = hp.Molecule.read_from('OCCOc1ncccc1OCCOCC', "smi")
@@ -117,7 +117,7 @@ class TestSubstitute(ut.TestCase):
         atoms_mapping, bonds_mapping = benzene.add_component(pyrrol)
 
         for atom in benzene.atoms:
-            if atom.ob_id < 6:
+            if atom.idx < 6:
                 atom.generations = 0
             else:
                 atom.generations = 1

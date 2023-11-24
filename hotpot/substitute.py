@@ -127,7 +127,8 @@ class Substituent(ABC):
 
     def determine_generations(self, frame_mol: Molecule, socket_atoms_ob_id: list[int]):
         """ determine the generations of the atom in the substituent """
-        max_gens = max(frame_mol.atoms_dict[ob_id].generations for ob_id in socket_atoms_ob_id)
+        atoms_dict = {a.idx: a for a in frame_mol.atoms}
+        max_gens = max(atoms_dict[ob_id].generations for ob_id in socket_atoms_ob_id)
         logging.info(f"the max generations is {max_gens}")
         for atom in self.substituent.atoms:
             atom.generations = max_gens + 1
@@ -196,9 +197,10 @@ class Substituent(ABC):
 
         unique_mols = []
         for j, mols in enumerate(value_mols):
+            has_3d = any(m.has_3d for m in mols)
             disorder_bond_counts = []
             for i, mol in enumerate(mols):
-                if not mol.is_disorder:
+                if not has_3d or not mol.disorder_bonds:
                     unique_mols.append(mol)
                     break
 
@@ -217,12 +219,12 @@ class Substituent(ABC):
         """ searching out all socket atoms in the frame_mol """
         # if the socket_atoms are specified
         if specified_socket_atoms:
-            return [[frame_mol.atom(atom).ob_id for atom in specified_socket_atoms]]
+            return [[frame_mol.atom(atom).idx for atom in specified_socket_atoms]]
 
         # search the socket atoms by socket SMARTS pattern
         else:
             matched_mol: MatchedMol = self.socket_searcher.search(frame_mol)[0]
-            return [[atom.ob_id for atom in hit.matched_atoms()] for hit in matched_mol]
+            return [[atom.idx for atom in hit.matched_atoms()] for hit in matched_mol]
 
     @abstractmethod
     def substitute(self, frame_mol: Molecule, socket_atoms_oid: list[int]):
@@ -362,12 +364,12 @@ class EdgeSubst(Substituent):
         # connected to the p_atom while not being the s_atom itself; the second item
         # is the bond type between the atom in the first item and the s_atom.
         bridge_to_s_atom1 = [
-            (na, frame_mol.bond(na.ob_id, s_atom1.ob_id).type)
-            for na in s_atom1.neighbours if na.ob_id != s_atom2.ob_id
+            (na, frame_mol.bond(na.idx, s_atom1.idx).type)
+            for na in s_atom1.neighbours if na.idx != s_atom2.idx
         ]
         bridge_to_s_atom2 = [
-            (na, frame_mol.bond(na.ob_id, s_atom2.ob_id).type)
-            for na in s_atom2.neighbours if na.ob_id != s_atom1.ob_id
+            (na, frame_mol.bond(na.idx, s_atom2.idx).type)
+            for na in s_atom2.neighbours if na.idx != s_atom1.idx
         ]
 
         logging.info(f"the socket bond is {frame_mol.bond(s_atom1, s_atom2)}")

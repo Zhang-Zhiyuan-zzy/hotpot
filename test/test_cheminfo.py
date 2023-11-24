@@ -10,6 +10,8 @@ from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
+from openbabel import openbabel as op, pybel as pb
+
 
 import hotpot as hp
 from hotpot.cheminfo import *
@@ -28,16 +30,18 @@ class TestChem(TestCase):
         mol.remove_hydrogens()
         mol.add_hydrogens()
 
-        for angle in mol.angles:
-            self.assertIsInstance(angle, Angle)
-
         self.assertEqual(mol.atoms_dist_matrix.shape, (len(mol.atoms), len(mol.atoms)))
 
         for bond in mol.bonds:
-            self.assertIsInstance(mol.bond(bond.atom1.ob_id, bond.atom2.ob_id), Bond)
-
+            self.assertIsInstance(mol.bond(bond.atom1.idx, bond.atom2.idx), Bond)
+        for angle in mol.angles:
+            self.assertIsInstance(angle, Angle)
+        for torsion in mol.torsions:
+            self.assertIs(torsion.molecule, mol)
         for component in mol.components:
             self.assertNotEqual(component.refcode, mol.refcode)
+        for ring in mol.lssr:
+            self.assertIs(ring.molecule, mol)
 
         cryst = mol.compact_crystal()
         self.assertNotEqual(cryst.molecule.refcode, mol.refcode)
@@ -49,17 +53,35 @@ class TestChem(TestCase):
         # if given OBMol is registered in the Molecule list, retrieve the registered one instead of create a new
         self.assertIs(Molecule(mol.ob_mol), mol)
 
-        for ring in mol.lssr:
-            self.assertIs(ring.molecule, mol)
-
         clone = mol.copy()
         clone.remove_atoms(*clone.metals)
 
+        self.assertEqual(clone.smiles, 'c1ccccc1.[O]C(=O)c1ccccc1')
+        self.assertFalse(clone.metals)
+        self.assertTrue(mol.metals)
         self.assertNotEqual(len(mol.atoms), len(clone.atoms))
         self.assertNotEqual(len(mol.bonds), len(clone.bonds))
 
-        for torsion in mol.torsions:
-            print(torsion)
+        clone.add_bond(clone.atom(6), clone.atom(7), 1)
+        clone.remove_atoms()
+        clone.add_hydrogens()
+        self.assertEqual(clone.smiles, 'OC(=O)c1cccc(c1)c1ccccc1')
+
+        clone.remove_atoms(clone.atoms[-1], clone.atoms[-2])
+        for atom in clone.atoms:
+            self.assertEqual(atom.idx, clone.atom(atom.idx).idx)
+        for bond in clone.bonds:
+            self.assertEqual(bond.idx, clone.bond(bond.atom1, bond.atom2).idx)
+            self.assertEqual(bond.idx, clone.bond(bond.atom1.idx, bond.atom2.idx).idx)
+            self.assertEqual(bond.idx, clone.bond(bond.atom1.idx, bond.atom2.idx).idx)
+
+            self.assertEqual(bond.atom1.idx, clone.bond(bond.atom1, bond.atom2).atom1.idx)
+            self.assertEqual(bond.atom2.idx, clone.bond(bond.atom1, bond.atom2).atom2.idx)
+
+        comp1, comp2 = mol.components
+        new_mol = comp1 + Molecule.read_from(comp2.smiles, 'smi')
+
+        print(mol.smiles, comp1.smiles)
 
     def test_io(self):
 
@@ -76,7 +98,6 @@ class TestChem(TestCase):
         crystal = mil.crystal
 
         self.assertTrue(mil is crystal.molecule, "Is the molecule of the crystal of a molecule the molecule itself ?")
-
 
         self.assertEqual(crystal.lattice_params.tolist(), [[88.86899, 88.86899, 88.86899], [90.0, 90.0, 90.0]])
         self.assertTrue(np.all(crystal.vectors == crystal.matrix), "Is the vectors identical to the matrix?")
@@ -101,6 +122,8 @@ class TestChem(TestCase):
         atom_paths = mol.shortest_paths(mol.atoms[0], mol.atoms[9])
 
         self.assertEqual(len(atom_paths), 1)
-        self.assertEqual([a.ob_id for a in atom_paths[0]], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual([a.idx for a in atom_paths[0]], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
-
+    def test_thermo(self):
+        mol = Molecule.read_from('c1ccccc1', 'smi')
+        tmo = mol.get_thermo(T=298.15, P=101375)

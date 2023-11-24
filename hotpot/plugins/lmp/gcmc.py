@@ -55,7 +55,7 @@ class LjGCMC:
         P = self._data.get('P', 1.0)  # the ratio pressure to saturation pressure
 
         for i, guest in enumerate(self.guests, 1):
-            guest.thermo_init(T=T)
+            guest.get_thermo(T=T)
             phi_g = guest.thermo.phi_g  # the fugacity coefficient
             P_sat = guest.thermo.Psat
             lmp(

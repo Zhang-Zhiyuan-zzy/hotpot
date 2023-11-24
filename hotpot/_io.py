@@ -1073,7 +1073,7 @@ class Parser(IOBase, metaclass=MetaIO):
                 for l_idx, atom in zip(range(gen_start, gen_end), obj.atoms):
                     ob_id, gen = map(int, lines[l_idx].strip().split('\t'))
 
-                    assert ob_id == atom.ob_id
+                    assert ob_id == atom.idx
                     atom.generations = gen
 
             except IndexError:

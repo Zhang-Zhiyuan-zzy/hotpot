@@ -37,7 +37,7 @@ class SubstructureSearcher:
         for mol in mols:
             self._searcher.Match(mol.ob_mol)
             map_list = [ob_ids for ob_ids in self._searcher.GetMapList()]
-            matched_mols.append(MatchedMol(map_list, Molecule(mol.ob_copy())))
+            matched_mols.append(MatchedMol(map_list, mol.copy()))
 
         return matched_mols
 
@@ -57,7 +57,7 @@ class SearchHit:
         self.mol = mol
 
     def matched_atoms(self) -> list[Atom]:
-        ob_idx_dict = self.mol.ob_idx_dict
+        ob_idx_dict = {a.idx: a for a in self.mol.atoms}
         return [ob_idx_dict[ob_id] for ob_id in self.ob_ids]
 
 

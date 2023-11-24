@@ -64,7 +64,7 @@ def read_calc_data(root_dir: Union[Path, str]):
             metal = mol.metal_symbols[0]
             n_atom, dist = metal.nearest_atom
 
-            if n_atom.symbol == "O" and dist < 3.0 and not mol.bond(metal.ob_id, n_atom.ob_id):
+            if n_atom.symbol == "O" and dist < 3.0 and not mol.bond(metal.idx, n_atom.idx):
                 mol.add_bond(metal, n_atom, 1)
                 print(f"{mol} add bond between {metal} and {n_atom} with length {dist}")
 

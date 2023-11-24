@@ -29,6 +29,7 @@ from hotpot.plugins.qm.gaussian import Debugger, Gaussian, GaussRun
 from ._base import Wrapper
 from ._io import Parser, Dumper
 from ._cryst import Crystal
+from ._thermo import Thermo
 
 
 _molecule_dict = weakref.WeakValueDictionary()
@@ -78,6 +79,15 @@ class Molecule(Wrapper, ABC):
     def __hash__(self):
         return hash(f"hotpot.Molecule(refcode={self.refcode})")
 
+    def __add__(self, other: 'Molecule'):
+        mol, other = self.copy(), other.copy()
+        mol.remove_hydrogens()
+        other.remove_hydrogens()
+
+        mol.add_component(other)
+        mol.add_hydrogens()
+        return mol
+
     def _set_refcode(self):
         """ put an int value into the OBMol as the refcode """
         if self.refcode is None:
@@ -101,19 +111,15 @@ class Molecule(Wrapper, ABC):
         Returns:
             the copy of atom in the molecule
         """
+        oba = ob.OBAtom()  # Initialize a new OBAtom
         if isinstance(atom, Atom):
-            oba = atom.ob_atom
+            oba.Duplicate(atom.ob_atom)
+        elif isinstance(atom, str):
+            oba.SetAtomicNum(ob.GetAtomicNum(atom))
+        elif isinstance(atom, int):
+            oba.SetAtomicNum(atom)
         else:
-            oba = ob.OBAtom()  # Initialize a new OBAtom
-            if isinstance(atom, str):
-                oba.SetAtomicNum(ob.GetAtomicNum(atom))
-            elif isinstance(atom, int):
-                oba.SetAtomicNum(atom)
-            else:
-                raise TypeError('the argument `atom` should be str, int or Atom')
-
-        if not locals().get('oba'):
-            raise TypeError("the arg 'atom' in Molecule.add_atom() should be a int, str or Atom object")
+            raise TypeError('the argument `atom` should be str, int or Atom')
 
         success = self.ob_mol.AddAtom(oba)  # add OBAtom to the OBMol
         if success:
@@ -130,7 +136,7 @@ class Molecule(Wrapper, ABC):
         # to specify the atoms, so our `index` in `Atom` are added 1 to match the 'Idx'
         assert atom1.molecule is self
         assert atom2.molecule is self
-        success = self.ob_mol.AddBond(atom1.ob_idx, atom2.ob_idx, bond_type)
+        success = self.ob_mol.AddBond(atom1.idx, atom2.idx, bond_type)
 
         if success:
             return self.bonds[-1]  # the new atoms should place in the terminal of the bond list
@@ -157,14 +163,14 @@ class Molecule(Wrapper, ABC):
         atoms_mapping, bonds_mapping = {}, {}
         for atom in component.atoms:
             added_atom = self.add_atom(atom)
-            atoms_mapping[atom.ob_id] = added_atom.ob_id
+            atoms_mapping[atom.idx] = added_atom.idx
 
         for bond in component.bonds:
-            old_oba1_id, old_oba2_id = bond.atom1.ob_id, bond.atom2.ob_id
+            old_oba1_id, old_oba2_id = bond.atom1.idx, bond.atom2.idx
             new_oba1_id, new_oba2_id = atoms_mapping[old_oba1_id], atoms_mapping[old_oba2_id]
-            added_bond = self.add_bond(new_oba1_id, new_oba2_id, bond.type)
+            added_bond = self.add_bond(self.atom(new_oba1_id), self.atom(new_oba2_id), bond.type)
 
-            bonds_mapping[bond.ob_id] = added_bond.ob_id
+            bonds_mapping[bond.idx] = added_bond.idx
 
         return atoms_mapping, bonds_mapping
 
@@ -183,7 +189,7 @@ class Molecule(Wrapper, ABC):
             correct_for_ph: Correct for pH by applying the OpenBabel::OBPhModel transformations
             balance_hydrogen: whether to balance the bond valance of heavy atom to their valence
         """
-        is_aromatic = {atom.ob_id: atom.is_aromatic for atom in self.atoms}
+        is_aromatic = {atom.idx: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.AddHydrogens(polar_only, correct_for_ph, ph)
 
         if balance_hydrogen:
@@ -191,7 +197,7 @@ class Molecule(Wrapper, ABC):
                 atom.balance_hydrogen()
 
         for atom in self.atoms:
-            if is_aromatic.get(atom.ob_id):
+            if is_aromatic.get(atom.idx):
                 atom.set_aromatic()
 
     @property
@@ -226,15 +232,15 @@ class Molecule(Wrapper, ABC):
     def assign_bond_types(self):
         self.ob_mol.PerceiveBondOrders()
 
-    def atom(self, id_label_atom: Union[int, str, "Atom"]) -> 'Atom':
+    def atom(self, idx_label_atom: Union[int, str, "Atom"]) -> 'Atom':
         """ get atom by label or idx """
-        if isinstance(id_label_atom, Atom):
-            if id_label_atom.molecule is self:
-                return id_label_atom
+        if isinstance(idx_label_atom, Atom):
+            if idx_label_atom.molecule is self:
+                return idx_label_atom
             else:
                 raise AttributeError('the given atom is not in this molecule')
 
-        elif isinstance(id_label_atom, str):
+        elif isinstance(idx_label_atom, str):
 
             if not self.is_labels_unique:
                 raise AttributeError(
@@ -243,14 +249,14 @@ class Molecule(Wrapper, ABC):
                 )
 
             for atom in self.atoms:
-                if atom.label == id_label_atom:
+                if atom.label == idx_label_atom:
                     return atom
-            raise KeyError(f'No atom with label {id_label_atom}')
+            raise KeyError(f'No atom with label {idx_label_atom}')
 
-        elif isinstance(id_label_atom, int):
-            return Atom(self.ob_mol.GetAtomById(id_label_atom))
+        elif isinstance(idx_label_atom, int):
+            return Atom(self.ob_mol.GetAtom(idx_label_atom))
         else:
-            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(id_label_atom)}')
+            raise TypeError(f'the given idx_label is expected to be int or string, but given {type(idx_label_atom)}')
 
     @property
     def atoms(self) -> list["Atom"]:
@@ -277,7 +283,7 @@ class Molecule(Wrapper, ABC):
         Returns:
             Bond or None
         """
-        return (obb := self.ob_mol.GetBond(self.atom(atom1).ob_atom, self.atom(atom2).ob_atom)) and Bond(obb)
+        return (obb := self.ob_mol.GetBond(self.atom(atom1).idx, self.atom(atom2).idx)) and Bond(obb)
 
     @property
     def bonds(self) -> list["Bond"]:
@@ -513,6 +519,71 @@ class Molecule(Wrapper, ABC):
         """
         # TODO: refactoring
 
+    @overload
+    def get_thermo(self, *, T: float, P: float):
+        """
+        If certain substance don't retrieve information from current database, some required thermodynamical
+        parameters should pass into equation_of_state to initialization
+        Keyword Args:
+            T: the ambient temperature for thermodynamical system
+            P: the ambient pressure for thermodynamical system
+        Returns:
+            Thermo class
+        """
+
+    @overload
+    def get_thermo(self, *, P: float, V: float):
+        """
+        If certain substance don't retrieve information from current database, some required thermodynamical
+        parameters should pass into equation_of_state to initialization
+        Keyword Args:
+            P: the ambient pressure for thermodynamical system
+            V: the volume of thermodynamical system
+        Returns:
+            Thermo class
+        """
+
+    @overload
+    def get_thermo(self, *, T: float, V: float):
+        """
+        If certain substance don't retrieve information from current database, some required thermodynamical
+        parameters should pass into equation_of_state to initialization
+        Keyword Args:
+            T: the ambient temperature for thermodynamical system
+            V: the volume of thermodynamical system
+        Returns:
+            Thermo class
+        """
+
+    @overload
+    def get_thermo(self, *, Tc: float, Pc: float, omega: float):
+        """
+        If certain substance don't retrieve information from current database, some required thermodynamical
+        parameters should pass into equation_of_state to initialization
+        Keyword Args:
+            Tc: the critical temperature of the molecule
+            Pc: the critical pressure of the molecule
+            omega: acentric factor of the molecule
+        Returns:
+            Thermo class
+        """
+
+    def get_thermo(self, **kwargs) -> Thermo:
+        """
+        If certain substance don't retrieve information from current database, some required thermodynamical
+        parameters should pass into equation_of_state to initialization
+        Keyword Args:
+            T: the ambient temperature for thermodynamical system
+            P: the ambient pressure for thermodynamical system
+            V: the volume of thermodynamical system
+            Tc: the critical temperature of the molecule
+            Pc: the critical pressure of the molecule
+            omega: acentric factor of the molecule
+        Returns:
+            Thermo class
+        """
+        return Thermo(self, **kwargs)
+
     @property
     def heavy_atoms(self):
         """ Get the atoms except for hydrogens """
@@ -669,7 +740,7 @@ class Molecule(Wrapper, ABC):
     def nx_graph(self) -> nx.Graph:
         """ Return networkx Graph of the Molecule """
         graph = nx.Graph()
-        graph.add_edges_from([(b.atom1.ob_id, b.atom2.ob_id)for b in self.bonds])
+        graph.add_edges_from([(b.atom1.idx, b.atom2.idx) for b in self.bonds])
         return graph
 
     def normalize_labels(self):
@@ -715,11 +786,11 @@ class Molecule(Wrapper, ABC):
                 raise RuntimeError(f'Fail to remove {bonds}')
 
     def remove_hydrogens(self):
-        is_aromatic = {atom.ob_id: atom.is_aromatic for atom in self.atoms}
+        is_aromatic = {atom.idx: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.DeleteHydrogens()
 
         for atom in self.atoms:
-            if is_aromatic.get(atom.ob_id):
+            if is_aromatic.get(atom.idx):
                 atom.set_aromatic()
 
     def reorder_ob_ids(self):
@@ -755,8 +826,8 @@ class Molecule(Wrapper, ABC):
         Returns:
             list of list of atoms
         """
-        atoms_dict = {a.ob_id: a for a in self.atoms}
-        paths = nx.all_shortest_paths(self.nx_graph, src_atom.ob_id, des_atom.ob_id)
+        atoms_dict = {a.idx: a for a in self.atoms}
+        paths = nx.all_shortest_paths(self.nx_graph, src_atom.idx, des_atom.idx)
         return [[atoms_dict[i] for i in path] for path in paths]
 
     def similarity(self, other: 'Molecule', fptype: Literal['FP2', 'FP3', 'FP4', 'MACCS'] = 'MACCS') -> int:
@@ -836,11 +907,7 @@ class MolBuildUnit(Wrapper, ABC):
         return _molecule_dict[_refcode_getter(self._obj.GetParent())]
 
     @property
-    def ob_id(self):
-        return self._obj.GetId()
-
-    @property
-    def ob_idx(self):
+    def idx(self):
         return self._obj.GetIdx()
 
 
@@ -981,14 +1048,6 @@ class Atom(MolBuildUnit):
         return self._obj
 
     @property
-    def ob_id(self) -> int:
-        return self.ob_atom.GetId()
-
-    @property
-    def ob_idx(self) -> int:
-        return self.ob_atom.GetIdx()
-
-    @property
     def label(self) -> str:
         return self._get_ob_comment_data('label') or self.symbol
 
@@ -1034,7 +1093,7 @@ class Atom(MolBuildUnit):
     @property
     def rings(self) -> list['Ring']:
         """ the lssr rings this atom is on """
-        return [ring for ring in self.molecule.lssr if self.ob_id in ring.atoms_ids]
+        return [ring for ring in self.molecule.lssr if self.idx in ring.atoms_ids]
 
     def set_aromatic(self):
         """ Set this atom to be aromatic """
@@ -1186,7 +1245,7 @@ class Ring(MolBuildUnit, ABC):
 
     @property
     def atoms_ids(self):
-        return [atom.ob_id for atom in self.molecule.atoms if self.ob_ring.IsMember(atom.ob_atom)]
+        return [atom.idx for atom in self.molecule.atoms if self.ob_ring.IsMember(atom.ob_atom)]
 
     @property
     def bonds(self) -> list[Bond]:

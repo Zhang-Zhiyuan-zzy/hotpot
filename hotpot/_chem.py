@@ -3827,9 +3827,9 @@ class Ring(Wrapper, ABC):
             if not ordered_atoms:
                 atom = atoms[min(atoms.keys())]
             else:
-                atom = [a for a in atom.neighbours if a.ob_id in atoms][0]
+                atom = [a for a in atom.neighbours if a.idx in atoms][0]
 
-            atoms.pop(atom.ob_id)
+            atoms.pop(atom.idx)
             ordered_atoms.append(atom)
 
         return ordered_atoms

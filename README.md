@@ -157,9 +157,10 @@ the `mu` and `phi` automatically, by `Peng-Robinson` equation by default.
 ### Access the property of substance for common substance
 For certain common substance, we can access its thermodynamical property, like critical temperature `Tc` and
 saturation vapor pressure `Psat` by [thermo](https://pypi.org/project/thermo/) package:
+
 ```pycon
 mol = hp.Molecule.read_from('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
-mol.thermo_init()  # some kwargs could pass into, see documentation
+mol.get_thermo()  # some kwargs could pass into, see documentation
 print(mol.thermo.Tc)  # the critical temperature
 print(mol.thermo.Psat)  # the saturation vapor pressure
 ```

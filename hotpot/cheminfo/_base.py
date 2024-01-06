@@ -22,6 +22,7 @@ class Wrapper(ABC):
     and save the str data into the OBCommentData item of OpenBabel.
     """
     _registered_ob_comment_data = {}
+    _conv = ob.OBConversion()
 
     def __init__(self, ob_obj):
         self._obj = ob_obj

@@ -129,7 +129,7 @@ class PeriodicTable(ChemicalBook):
 
     @property
     def data_dict(self):
-        return {s: e.data for s, e in self._elements.items()}
+        return {s: e.df for s, e in self._elements.items()}
 
     @property
     def symbols(self):

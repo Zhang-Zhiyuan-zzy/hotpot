@@ -30,7 +30,7 @@ from rdkit.Chem import Draw
 
 from hotpot import data_root
 from hotpot.plugins import lmp
-from hotpot.plugins.qm.gaussian import Gaussian, GaussianRunError, GaussRun, Debugger
+from hotpot.plugins.qm.gaussian import Gaussian, GaussianRunError
 from hotpot.utils.library import library as _lib  # The chemical library
 
 
@@ -4188,5 +4188,4 @@ class ZMatrix:
 
 import hotpot.bundle as bd
 from hotpot._io import Dumper, Parser
-from hotpot.plugins.cc import PairBundle
 from hotpot.plugins.deepmd import DeepSystem

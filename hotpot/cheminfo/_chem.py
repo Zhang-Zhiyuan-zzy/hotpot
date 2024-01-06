@@ -20,11 +20,10 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 from rdkit import Chem
-from rdkit.Chem import Draw
+from rdkit.Chem import Draw, AllChem
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.plugins import lmp
-from hotpot.plugins.qm.gaussian import Debugger, Gaussian, GaussRun
 
 from ._base import Wrapper
 from ._io import Parser, Dumper
@@ -48,22 +47,22 @@ _stable_charges = {
     "Lu": 3, "Hf": 4, "Ta": 5, "W": 6,  "Re": 7,  "Os": 4,  "Ir": 3,  "Pt": 2, "Au": 1, "Hg": 2,
     "Lr": 3, "Rf": 4, "Db": 5, "Sg": 6, "Bh": 7,  "Hs": 8,  "Mt": 8,  "Ds": 8, "Rg": 8, "Cn": 8,
 
-    "La": 3, "Ce": 4, "Pr": 3, "Nd": 3, "Pm": 3,  "Sm": 3,  "Eu": 2,  "Gd": 3, "Tb": 3, "Dy": 3, "Ho": 3, "Er": 3, "Tm": 3, "Yb": 3,
-    "Ac": 3, "Th": 4, "Pa": 5, "U": 6,  "Np": 6,  "Pu": 6,  "Am": 6,  "Cm": 6, "Bk": 6, "Cf": 6, "Es": 6, "Fm": 6, "Md": 6, "No": 6,
+    "La": 3, "Ce": 4, "Pr": 3, "Nd": 3, "Pm": 3,  "Sm": 3,  "Eu": 3,  "Gd": 3, "Tb": 3, "Dy": 3, "Ho": 3, "Er": 3, "Tm": 3, "Yb": 3,
+    "Ac": 3, "Th": 4, "Pa": 5, "U": 6,  "Np": 6,  "Pu": 6,  "Am": 3,  "Cm": 6, "Bk": 6, "Cf": 6, "Es": 6, "Fm": 6, "Md": 6, "No": 6,
 }
 
 
-def _refcode_getter(ob_mol: ob.OBMol) -> int:
+def _refcode_getter(ob_mol: ob.OBMol) -> Union[int, None]:
     """ retrieve refcode from given OBMol object """
-    return (obdata := ob.toCommentData(ob_mol.GetData("refcode"))) and int(obdata.GetData())
+    return ob_mol and (obdata := ob.toCommentData(ob_mol.GetData("refcode"))) and int(obdata.GetData())
 
 
 class Molecule(Wrapper, ABC):
     """Represent an intuitive molecule"""
-    def __new__(cls, ob_mol=ob.OBMol()):
+    def __new__(cls, ob_mol=None):
         return _molecule_dict.get(_refcode_getter(ob_mol), super(Molecule, cls).__new__(cls))
 
-    def __init__(self, ob_mol=ob.OBMol()):
+    def __init__(self, ob_mol=None):
         super().__init__(ob_mol or ob.OBMol())
         self._set_refcode()
 
@@ -196,9 +195,9 @@ class Molecule(Wrapper, ABC):
             for atom in self.atoms:
                 atom.balance_hydrogen()
 
-        for atom in self.atoms:
-            if is_aromatic.get(atom.idx):
-                atom.set_aromatic()
+        # for atom in self.atoms:
+        #     if is_aromatic.get(atom.idx):
+        #         atom.set_aromatic()
 
     @property
     def angles(self):
@@ -298,6 +297,28 @@ class Molecule(Wrapper, ABC):
         pb.Molecule(self.ob_mol).make3D(force_field, steps)
         if balance_hydrogen:
             self.balance_hydrogens()
+
+    def build_rd3d(self):
+        """ build 3d by rdkit method """
+        self.add_hydrogens()
+        self.normalize_labels()
+        self.build_2d()
+
+        rdmol = Chem.MolFromMolBlock(self.dump('mol'))
+        rdmol = Chem.AddHs(rdmol)
+        assert len(self.atoms) == len(rdmol.GetAtoms())
+        for a, ra in zip(self.atoms, rdmol.GetAtoms()):
+            assert a.symbol == ra.GetSymbol()
+            ra.SetProp('label', a.label)
+
+        AllChem.EmbedMolecule(rdmol)
+        AllChem.UFFOptimizeMolecule(rdmol)
+
+        for ra, rc in zip(rdmol.GetAtoms(), rdmol.GetConformer().GetPositions()):
+            self.atom(ra.GetProp('label')).coordinate = rc
+
+        self.remove_hydrogens()
+        self.add_hydrogens()
 
     def build_bonds(self):
         self.ob_mol.ConnectTheDots()
@@ -410,6 +431,14 @@ class Molecule(Wrapper, ABC):
         """ Get all disorder bonds in the Molecule """
         return [b for b in self.bonds if not (0.85 < b.length/b.ideal_length < 1.15)]
 
+    @overload
+    def dump(self, fmt: str):
+        """ general input arguments """
+
+    @overload
+    def dump(self, fmt: Literal['gjf'], *, link0: Union[list[str], str], route: Union[list[str], str], addition):
+        """ args to dump Gaussian16 gjf file """
+
     def dump(self, fmt: str, *args, **kwargs) -> Union[str, bytes, dict]:
         return Dumper.get_io(fmt)(self, *args, **kwargs)
 
@@ -466,7 +495,6 @@ class Molecule(Wrapper, ABC):
             path_chk_file: Union[str, PathLike] = None,
             path_rwf_file: Union[str, PathLike] = None,
             inplace_attrs: bool = False,
-            debugger: Union[str, Debugger] = 'auto',
             output_in_running: bool = True,
             g16root: Union[str, PathLike] = None,
             *args, **kwargs
@@ -703,6 +731,8 @@ class Molecule(Wrapper, ABC):
         if displacement > tolerable_displacement:
             logging.warning(f"the optimal structure does not achieve !!!")
 
+        self.add_hydrogens()
+
     @overload
     def make_crystal(self, a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> 'Crystal':
         """"""
@@ -771,9 +801,9 @@ class Molecule(Wrapper, ABC):
         """
         for atom in atoms:
             # remove connecting hydrogens
-            for nh in atom.neighbours_hydrogen:
-                if len(nh.neighbours) == 1:
-                    self.ob_mol.DeleteAtom(nh.ob_atom, False)
+            # for nh in atom.neighbours_hydrogen:
+            #     if len(nh.neighbours) == 1:
+            #         self.ob_mol.DeleteAtom(nh.ob_atom, False)
 
             # Removing the atom
             self.ob_mol.DeleteAtom(atom.ob_atom, False)
@@ -789,9 +819,9 @@ class Molecule(Wrapper, ABC):
         is_aromatic = {atom.idx: atom.is_aromatic for atom in self.atoms}
         self.ob_mol.DeleteHydrogens()
 
-        for atom in self.atoms:
-            if is_aromatic.get(atom.idx):
-                atom.set_aromatic()
+        # for atom in self.atoms:
+        #     if is_aromatic.get(atom.idx):
+        #         atom.set_aromatic()
 
     def reorder_ob_ids(self):
         """ Reorder the ob_ids of all atoms and all bonds in the Molecule """
@@ -877,7 +907,7 @@ class Molecule(Wrapper, ABC):
 
     def to_rdmol(self):
         """ convert hotpot Molecule object to RdKit mol object """
-        return Chem.MolFromMol2Block(self.dump('mol2'))
+        return Chem.MolFromMol2Block(self.dump('mol2'), sanitize=False)
 
     def translate(self, x: float, y: float, z: float):
         """ translate the coordinates of the atoms according to given translating vector (x, y, z) """
@@ -913,6 +943,16 @@ class MolBuildUnit(Wrapper, ABC):
 
 class Atom(MolBuildUnit):
     """Represent an intuitive Atom"""
+    def __init__(self, ob_atom: ob.OBAtom = None, *, symbol: str = None, atomic_number: int = None):
+        if not ob_atom:
+            ob_atom = ob.OBAtom()
+            if symbol:
+                ob_atom.SetAtomicNum(ob.GetAtomicNum(symbol))
+            elif atomic_number:
+                ob_atom.SetAtomicNum(atomic_number)
+
+        super().__init__(ob_atom)
+
     def __repr__(self):
         return f"Atom({self.label})"
 
@@ -1007,6 +1047,13 @@ class Atom(MolBuildUnit):
     @generations.setter
     def generations(self, value: int):
         self._set_ob_int_data("generations", value)
+
+    @staticmethod
+    def given_atomic_number_is_metal(atomic_number: int) -> bool:
+        """ Whether the atomic number is the metal elements """
+        oba = ob.OBAtom()
+        oba.SetAtomicNum(atomic_number)
+        return oba.IsMetal()
     
     @property
     def is_aromatic(self):
@@ -1109,6 +1156,31 @@ class Atom(MolBuildUnit):
         self._set_ob_float_data('spin_density', value)
 
     @property
+    def stable_charge(self) -> int:
+        if self.symbol == 'S':
+            if not [a for a in self.neighbours if a.symbol == 'O']:
+                return 2
+            elif self.covalent_valence <= 2:
+                return 2
+            elif self.covalent_valence <= 4:
+                return 4
+            else:
+                return 6
+        elif self.symbol == 'P':
+            if not [a for a in self.neighbours if a.symbol == 'O']:
+                return 3
+            elif self.covalent_valence == 0:
+                return 0
+            elif self.covalent_valence == 1:
+                return 1
+            elif self.covalent_valence <= 3:
+                return 3
+            else:
+                return 5
+        else:
+            return _stable_charges[self.symbol]
+
+    @property
     def stable_valence(self) -> int:
         if self.is_metal:
             return 0
@@ -1121,7 +1193,7 @@ class Atom(MolBuildUnit):
                 return 4
             else:
                 return 6
-        elif self.symbol == 'S':
+        elif self.symbol == 'P':
             if not [a for a in self.neighbours if a.symbol == 'O']:
                 return 3
             elif self.covalent_valence == 0:
@@ -1138,6 +1210,10 @@ class Atom(MolBuildUnit):
     @property
     def symbol(self) -> str:
         return ob.GetSymbol(self.ob_atom.GetAtomicNum())
+
+    @symbol.setter
+    def symbol(self, value: str):
+        self.ob_atom.SetAtomicNum(ob.GetAtomicNum(value))
 
 
 class Bond(MolBuildUnit):

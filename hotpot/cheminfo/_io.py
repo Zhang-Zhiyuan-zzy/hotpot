@@ -22,7 +22,7 @@ from openbabel import pybel
 from . import _chem as ci
 
 
-class _IO(ABC):
+class IO(ABC):
     """ the base class for IO classes """
     _formats = {'parser': {}, 'dumper': {}}
 
@@ -47,7 +47,7 @@ class _IO(ABC):
         return tgt
 
     @classmethod
-    def get_io(cls, fmt: str) -> "_IO":
+    def get_io(cls, fmt: str) -> "IO":
         if cls is Parser:
             return cls._formats['parser'].get(fmt, Parser)(fmt)
         elif cls is Dumper:
@@ -70,7 +70,7 @@ class _IO(ABC):
         return decorator
 
 
-class Parser(_IO, ABC):
+class Parser(IO, ABC):
     """ the basis Parser to parse text object to hotpot objects """
 
     @staticmethod
@@ -108,16 +108,13 @@ class Parser(_IO, ABC):
         return ci.Molecule(pybel_mol.OBMol)
 
 
-class Dumper(_IO, ABC):
+class Dumper(IO, ABC):
     """ the basis Dumper to convert the hotpot objects to string or bytes """
     def io(self, src, *args, **kwargs):
         """ Dump by openbabel.pybel """
         # Try to dump by openbabel.pybel
         type_err_pattern = re.compile(r"write\(\) got an unexpected keyword argument '\w+'")
         pb_mol = pybel.Molecule(src.ob_mol)
-
-        if not kwargs:
-            return pb_mol.write(self.fmt)
 
         while kwargs:
             try:
@@ -134,8 +131,10 @@ class Dumper(_IO, ABC):
                 print(IOError(f'the cheminfo.Molecule obj cannot dump to Literal'))
                 return None
 
+        return pb_mol.write(self.fmt)
 
-@_IO.register('lmpdat')
+
+@IO.register('lmpdat')
 class LammpsData(Dumper):
     @staticmethod
     def _parse_lmp_data_script(script: str):
@@ -249,3 +248,69 @@ class LammpsData(Dumper):
 
         return script
 
+
+@IO.register('gjf')
+class GJFDumper(Dumper):
+    """ Convert the Molecule object to Gaussian16 gjf input file """
+    @staticmethod
+    def pre(src, *args, **kwargs):
+        """ Perform preprocess for  conversion of all gaussian input """
+        if not src.has_3d:
+            src.build_3d()
+
+        if not kwargs.get("not_assign_atoms_formal_charge"):
+            clone = src.copy()
+            clone.assign_atoms_formal_charge()
+            src.charge = clone.charge
+            # src.assign_atoms_formal_charge()
+
+        src.identifier = src.formula
+
+    @staticmethod
+    def post(tgt, src, *args, **kwargs):
+        """ Postprocess the context before the Molecular specification partition """
+        # To count the insert lines
+        inserted_lines = 0
+
+        # separate keyword arguments:
+        link0 = kwargs['link0']
+        route = kwargs['route']
+        custom_charge = kwargs.get('charge')
+        custom_spin = kwargs.get('spin')
+        addition = kwargs.get('addition', '')
+        assert isinstance(addition, str)
+
+        lines = tgt.splitlines()
+
+        # Write link0 command
+        if isinstance(link0, str):
+            lines[0] = f'%{link0}'
+        elif isinstance(link0, list):
+            for i, stc in enumerate(link0):  # stc=sentence
+                assert isinstance(stc, str)
+                if not i:  # For the first line of link0, replace the original line in raw script
+                    lines[0] = f'%{stc}'
+                else:  # For the other lines, insert into after the 1st line
+                    inserted_lines += 1
+                    lines.insert(inserted_lines, f'%{stc}')
+        else:
+            raise TypeError('the link0 should be string or list of string')
+
+        # Write route command
+        if isinstance(route, str):
+            line = f'#P {route}'
+        elif isinstance(route, list):
+            line = "#P " + " ".join(route)
+        else:
+            raise TypeError('the route should be string or list of string')
+        lines[1 + inserted_lines] = line
+
+        charge, spin = lines[5+inserted_lines].split()
+        if custom_charge:
+            charge = str(custom_charge)
+        if custom_spin:
+            spin = str(custom_spin)
+
+        lines[5+inserted_lines] = f'{charge} {spin}'
+
+        return '\n'.join(lines) + f'{addition}' + '\n\n'

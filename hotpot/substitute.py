@@ -22,7 +22,6 @@ from abc import ABC, abstractmethod
 from typing import Union, Generator
 
 import numpy as np
-import openbabel.openbabel as ob
 
 import hotpot as hp
 from hotpot.cheminfo import Molecule, Atom
@@ -73,8 +72,6 @@ class Substituent(ABC):
         self._init_check()
 
     def __call__(self, frame_mol: Molecule, specified_socket_atoms: list[int, str, Atom] = None) -> list[Molecule]:
-        """"""
-        # TODO: This operation may should be performing in the next loop.
         list_socket_atoms_ob_id = self.socket_atoms_search(frame_mol, specified_socket_atoms)
 
         substituted_mols = []
@@ -271,7 +268,7 @@ class ElemReplace(Substituent):
     def _check_substituent_atom_num(self):
         """ Check whether the atom counts of substituent to be 1"""
         self.substituent.remove_hydrogens()
-        if self.substituent.atom_counts != 1:
+        if len(self.substituent.atoms) != 1:
             raise AttributeError(f"{self.__class__.__name__} requires the atom counts of substituent to be 1,"
                                  f"got {self.substituent.atoms} instead!")
 
@@ -282,7 +279,7 @@ class ElemReplace(Substituent):
 
         logging.info(f"replace {socket_atoms_oid[0]} to {self.substituent.atoms[0].symbol}")
         s_atom = frame_mol.atom(socket_atoms_oid[0])
-        s_atom.set(symbol=self.substituent.atoms[0].symbol)
+        s_atom.symbol=self.substituent.atoms[0].symbol
 
         frame_mol.remove_hydrogens()
         frame_mol.add_hydrogens()

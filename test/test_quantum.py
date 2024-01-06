@@ -9,6 +9,7 @@ python v3.9.0
 import os
 import unittest as ut
 import hotpot as hp
+
 from hotpot.plugins.qm.gaussian import Gaussian
 
 g16root = hp.settings.get("paths", {}).get("g16root") or os.environ.get('g16root')
@@ -35,64 +36,11 @@ class TestGaussian(ut.TestCase):
 
         mol = hp.Molecule.read_from('C', 'smi')
 
-        mol.gaussian(
-            g16root=g16root,
-            link0=["nproc=16", "mem=64GB"],
-            route="opt M062X/6-311",
-            inplace_attrs=True
-        )
+        gjf = mol.dump('gjf', link0=['Mem=128GB', 'nproc=16'], route='opt/freq B3LYP/Def2SVP')
 
-    @ut.skipIf(not g16root, "the g16root env is not found")
-    def test_config_gaussian_from_scratch(self):
-        """ test running a gaussian work by call the Gaussian class directly """
-        g16root = '/home/pub'
-        gauss = Gaussian(g16root)
+        gauss = Gaussian()
+        gauss.run(gjf)
 
-    def test_options(self):
-        g16root = '/home/pub'
-        gauss = Gaussian(g16root)
-
-        self.assertTrue(gauss.op.path.is_root, "The option in the Gaussian must be root option!")
-        self.assertTrue(not gauss.op, "The empty root option should be False!")
-
-        gauss.op.link0.nproc(48)
-        self.assertFalse(not gauss.op, "The root option with item should be True!")
-        gauss.op.link0.Mem("256GB")
-        gauss.op.link0.rwf('/home/zz1/proj/be/readwrite.rwf')
-        gauss.op.link0.NoSave()
-        gauss.op.link0.chk('/home/zz1/proj/be/checkpoint.chk')
-
-        gauss.op.route.opt()
-        gauss.op.route.method.B3LYP()
-        gauss.op.route.basis._6_31G()
-        gauss.op.route.method.M062X()
-        gauss.op.route.opt.restart()
-        gauss.op.route.opt.algorithm.GEDIIS()
-
-        in_dict = gauss.op.get_option_dict()
-        route = in_dict['route']
-        with self.assertRaises(KeyError):
-            v = route['B3LYP']
-
-        self.assertFalse(not gauss.op, "the options should contain many options!!!")
-        gauss.op.clear()
-        self.assertTrue(not gauss.op, "the options should be empty after calling clear()!!!")
-
-        mol = hp.Molecule.read_from('OC(=O)c1cc(O)ccc1', 'smi')
-        script = mol.dump(
-            'gjf', link0='nproc=50', route="opt(restart,Cartesian,MaxStep=2) M062X/Def2SVP CBSExtrap=NMin=6"
-        )
-        gauss.parsed_input = gauss._parse_input_script(script)
-        gauss.op.parsed_input_to_options(gauss.parsed_input)
-        gauss.op.update_parsed_input(gauss.parsed_input)
-        print(gauss.parsed_input)
-        self.assertFalse(not gauss.op, "the options should contain many options, after convert the parsed_input into")
-
-        gauss.op.clear()
-        self.assertFalse(gauss.op, "There is none option after the Options.clear() is called!")
-
-        route, opt, coordinate, cartesian = gauss.op.path.get_normalize_path('route.opt.coor.Car').split('.')
-        self.assertEqual(route, "route")
-        self.assertEqual(opt, 'Optimization')
-        self.assertEqual(coordinate, "Coordinate")
-        self.assertEqual(cartesian, "Cartesian")
+        print([b.length for b in mol.bonds])
+        gauss.set_molecule_attrs(mol)
+        print([b.length for b in mol.bonds])

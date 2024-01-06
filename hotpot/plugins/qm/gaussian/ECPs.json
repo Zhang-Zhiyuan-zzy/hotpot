@@ -1,0 +1,1379 @@
+{
+ "H": {
+  "IOp(3/6=6) Default": "D95",
+  "SDD keyword Default": "D95",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "He": {
+  "IOp(3/6=6) Default": "D95",
+  "SDD keyword Default": "D95",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Li": {
+  "IOp(3/6=6) Default": "SDF2",
+  "SDD keyword Default": "D95",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Be": {
+  "IOp(3/6=6) Default": "SDF2",
+  "SDD keyword Default": "D95",
+  "MWB": [],
+  "SDF": [
+   2
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "B": {
+  "IOp(3/6=6) Default": "MWB2",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   2
+  ],
+  "SDF": [
+   2
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "C": {
+  "IOp(3/6=6) Default": "MWB2",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   2
+  ],
+  "SDF": [
+   2
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "N": {
+  "IOp(3/6=6) Default": "MWB2",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   2
+  ],
+  "SDF": [
+   2
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "O": {
+  "IOp(3/6=6) Default": "MWB2",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   2
+  ],
+  "SDF": [
+   2
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "F": {
+  "IOp(3/6=6) Default": "MWB2",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   2
+  ],
+  "SDF": [
+   2
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Ne": {
+  "IOp(3/6=6) Default": "MWB2",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   2
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   2
+  ]
+ },
+ "Na": {
+  "IOp(3/6=6) Default": "SDF10",
+  "SDD keyword Default": "6-31G",
+  "MWB": [],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Mg": {
+  "IOp(3/6=6) Default": "SDF10",
+  "SDD keyword Default": "6-31G",
+  "MWB": [],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Al": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Si": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "P": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "S": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Cl": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "D95",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   10
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Ar": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "6-31G",
+  "MWB": [
+   10
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   10
+  ]
+ },
+ "K": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "MWB10",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   18
+  ],
+  "SHF": [
+   18
+  ],
+  "MDF": [],
+  "MHF": []
+ },
+ "Ca": {
+  "IOp(3/6=6) Default": "MWB10",
+  "SDD keyword Default": "MWB10",
+  "MWB": [
+   10
+  ],
+  "SDF": [
+   18
+  ],
+  "SHF": [
+   18
+  ],
+  "MDF": [],
+  "MHF": []
+ },
+ "Sc": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Ti": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "V": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Cr": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Mn": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Fe": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Co": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Ni": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Cu": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [
+   28
+  ],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Zn": {
+  "IOp(3/6=6) Default": "MDF10",
+  "SDD keyword Default": "MDF10",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   28
+  ],
+  "SHF": [],
+  "MDF": [
+   10
+  ],
+  "MHF": [
+   10
+  ]
+ },
+ "Ga": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   28
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Ge": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   28
+  ],
+  "SHF": [
+   28
+  ],
+  "MDF": [],
+  "MHF": []
+ },
+ "As": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   28
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Se": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   28
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Br": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   28
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Kr": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Rb": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   36
+  ],
+  "SHF": [
+   36
+  ],
+  "MDF": [],
+  "MHF": []
+ },
+ "Sr": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [
+   36
+  ],
+  "SHF": [
+   36
+  ],
+  "MDF": [],
+  "MHF": []
+ },
+ "Y": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Zr": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Nb": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Mo": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Tc": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Ru": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Rh": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Pd": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Ag": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [
+   46
+  ],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "Cd": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   28
+  ]
+ },
+ "In": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   46
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Sn": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   46
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Sb": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   46
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "Te": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   46
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "I": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   46
+  ],
+  "SHF": [],
+  "MDF": [
+   46
+  ],
+  "MHF": []
+ },
+ "Xe": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   46
+  ]
+ },
+ "Cs": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   54
+  ],
+  "SHF": [
+   54
+  ],
+  "MDF": [],
+  "MHF": []
+ },
+ "Ba": {
+  "IOp(3/6=6) Default": "MWB46",
+  "SDD keyword Default": "MWB46",
+  "MWB": [
+   46
+  ],
+  "SDF": [
+   54
+  ],
+  "SHF": [],
+  "MDF": [],
+  "MHF": []
+ },
+ "La": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   46,
+   47
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   46,
+   47
+  ]
+ },
+ "Ce": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   47,
+   48
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   47,
+   48
+  ]
+ },
+ "Pr": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   48,
+   49
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   48,
+   49
+  ]
+ },
+ "Nd": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   49,
+   50
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   49,
+   50
+  ]
+ },
+ "Pm": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   50,
+   51
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   50,
+   51
+  ]
+ },
+ "Sm": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   51,
+   52
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   51,
+   52
+  ]
+ },
+ "Eu": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   52,
+   53
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   52,
+   53
+  ]
+ },
+ "Gd": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   53,
+   54
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   53,
+   54
+  ]
+ },
+ "Tb": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   54,
+   55
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   54,
+   55
+  ]
+ },
+ "Dy": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   55,
+   56
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   55,
+   56
+  ]
+ },
+ "Ho": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   56,
+   57
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   56,
+   57
+  ]
+ },
+ "Er": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   57,
+   58
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   57,
+   58
+  ]
+ },
+ "Tm": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   58,
+   59
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   58,
+   59
+  ]
+ },
+ "Yb": {
+  "IOp(3/6=6) Default": "MWB28",
+  "SDD keyword Default": "MWB28",
+  "MWB": [
+   28,
+   59
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   59
+  ]
+ },
+ "Lu": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   28,
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Hf": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Ta": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "W": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Re": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Os": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Ir": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Pt": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Au": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [
+   78
+  ],
+  "MDF": [
+   60
+  ],
+  "MHF": [
+   60
+  ]
+ },
+ "Hg": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60,
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   60
+  ],
+  "MHF": [
+   60,
+   78
+  ]
+ },
+ "Tl": {
+  "IOp(3/6=6) Default": "MWB78",
+  "SDD keyword Default": "MWB78",
+  "MWB": [
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   78
+  ]
+ },
+ "Pb": {
+  "IOp(3/6=6) Default": "MWB78",
+  "SDD keyword Default": "MWB78",
+  "MWB": [
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   78
+  ]
+ },
+ "Bi": {
+  "IOp(3/6=6) Default": "MWB78",
+  "SDD keyword Default": "MWB78",
+  "MWB": [
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   78
+  ]
+ },
+ "Po": {
+  "IOp(3/6=6) Default": "MWB78",
+  "SDD keyword Default": "MWB78",
+  "MWB": [
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   78
+  ]
+ },
+ "At": {
+  "IOp(3/6=6) Default": "MWB78",
+  "SDD keyword Default": "MWB78",
+  "MWB": [
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   78
+  ]
+ },
+ "Rn": {
+  "IOp(3/6=6) Default": "MWB78",
+  "SDD keyword Default": "MWB78",
+  "MWB": [
+   78
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   78
+  ]
+ },
+ "Ac": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Th": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Pa": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "U": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Np": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Pu": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Am": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Cm": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Bk": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Cf": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Es": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Em": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Md": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "No": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Lr": {
+  "IOp(3/6=6) Default": "MWB60",
+  "SDD keyword Default": "MWB60",
+  "MWB": [
+   60
+  ],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [],
+  "MHF": [
+   60
+  ]
+ },
+ "Rf": {
+  "IOp(3/6=6) Default": "nan",
+  "SDD keyword Default": "nan",
+  "MWB": [],
+  "SDF": [],
+  "SHF": [],
+  "MDF": [
+   92
+  ],
+  "MHF": []
+ }
+}

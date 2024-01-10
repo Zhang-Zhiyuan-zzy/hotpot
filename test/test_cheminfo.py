@@ -117,6 +117,18 @@ class TestChem(TestCase):
         self.assertLess(len(mol.atoms), len(pack_mil.atoms))
         self.assertLess(mol.weight, pack_mil.weight)
 
+    def test_read_by_g16log_format(self):
+        mol_path = Path(hp.hp_root).joinpath('..', 'test', 'inputs', 'struct', '100_99_C28H42N2NdO6P2.log')
+        mol = hp.Molecule.read_from(mol_path, 'g16log')
+
+        self.assertEqual(mol.energy, -64397.2805210937)
+        self.assertEqual(mol.zero_point, 18.643010522078807)
+        self.assertEqual(mol.free_energy, -2.2763656400493026)
+        self.assertEqual(mol.enthalpy, 1.1911813092738477)
+        self.assertEqual(mol.entropy, 0.011630209456066938)
+        self.assertEqual(mol.thermal_energy, 19.81002274419889)
+        self.assertEqual(mol.capacity, 0.0068090177987163505)
+
     def test_shortest_path_search(self):
         mol = hp.Molecule.read_from('C' * 10, 'smi')
         atom_paths = mol.shortest_paths(mol.atoms[0], mol.atoms[9])

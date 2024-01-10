@@ -324,6 +324,14 @@ class Molecule(Wrapper, ABC):
         self.ob_mol.ConnectTheDots()
 
     @property
+    def capacity(self) -> float:
+        return self._get_ob_float_data('capacity')
+
+    @capacity.setter
+    def capacity(self, value: float):
+        self._set_ob_float_data('capacity', value)
+
+    @property
     def centroid_geom(self):
         return self.coordinates.mean(axis=0)
 
@@ -447,6 +455,26 @@ class Molecule(Wrapper, ABC):
         """ Return energy with kcal/mol as default """
         return self.ob_mol.GetEnergy()
 
+    @energy.setter
+    def energy(self, value: float):
+        self.ob_mol.SetEnergy(value)
+
+    @property
+    def enthalpy(self):
+        return self._get_ob_float_data('enthalpy')
+
+    @enthalpy.setter
+    def enthalpy(self, value: float):
+        self._set_ob_float_data('enthalpy', value)
+
+    @property
+    def entropy(self):
+        return self._get_ob_float_data('entropy')
+
+    @entropy.setter
+    def entropy(self, value: float):
+        self._set_ob_float_data('entropy', value)
+
     def fingerprint(self, fptype: Literal['FP2', 'FP3', 'FP4', 'MACCS'] = 'FP2'):
         """
         Calculate the molecular fingerprint for this molecule, the supporting fingerprint include:
@@ -485,6 +513,14 @@ class Molecule(Wrapper, ABC):
     def frac_coordinates(self) -> np.ndarray:
         """ get the fractional coordinate relate to the crystal of the Molecule place """
         return self.crystal and np.dot(np.linalg.inv(self.crystal.matrix), self.coordinates.T).T
+
+    @property
+    def free_energy(self):
+        return self._get_ob_float_data('free_energy')
+
+    @free_energy.setter
+    def free_energy(self, value: float):
+        self._set_ob_float_data('free_energy', value)
 
     def gaussian(
             self,
@@ -882,6 +918,14 @@ class Molecule(Wrapper, ABC):
         return self.ob_mol.GetTotalSpinMultiplicity()
 
     @property
+    def thermal_energy(self) -> float:
+        return self._get_ob_float_data('thermal_energy')
+
+    @thermal_energy.setter
+    def thermal_energy(self, value: float):
+        self._set_ob_float_data('thermal_energy', value)
+
+    @property
     def torsions(self) -> list["Torsion"]:
         torsions = []
         for axis_bond in self.bonds:
@@ -923,6 +967,14 @@ class Molecule(Wrapper, ABC):
         """Write the Molecule Info into a file with specific format(fmt)"""
         with open(path_file, 'w') as writer:
             writer.write(self.dump(fmt=fmt, *args, **kwargs))
+
+    @property
+    def zero_point(self) -> float:
+        return self._get_ob_float_data('zero_point')
+
+    @zero_point.setter
+    def zero_point(self, value):
+        self._set_ob_float_data('zero_point', value)
 
 
 #######################################################################################################################

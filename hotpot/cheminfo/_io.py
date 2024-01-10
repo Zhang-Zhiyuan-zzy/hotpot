@@ -15,7 +15,7 @@ from os import PathLike
 from abc import ABC, abstractmethod
 from typing import *
 
-
+import cclib
 from openbabel import pybel
 
 
@@ -106,6 +106,49 @@ class Parser(IO, ABC):
             raise RuntimeError(f'the source type {type(src)} have not been supported')
 
         return ci.Molecule(pybel_mol.OBMol)
+
+
+@IO.register('g16log')
+class G16logParser(Parser):
+    """ Read g16log file and create Molecule object to store results data """
+    def io(self, src, *args, **kwargs):
+        data = cclib.io.ccopen(src).parse()
+
+        mol = ci.Molecule()
+        for atomic_number, coordinates, charge in zip(data.atomnos, data.atomcoords[-1], data.atomcharges['mulliken']):
+            atom = mol.add_atom(int(atomic_number))
+            assert atom.coordinate == (0., 0., 0.)
+            atom.coordinate = coordinates
+            atom.partial_charge = charge
+
+        mol.build_bonds()
+        mol.assign_bond_types()
+
+        mol.energy = data.scfenergies[-1]
+        mol.zero_point = data.zpve * 27.211386245988
+        mol.free_energy = data.freeenergy * 27.211386245988 - mol.energy - mol.zero_point  # Hartree to eV
+        mol.entropy = data.entropy * 27.211386245988
+        mol.enthalpy = data.enthalpy * 27.211386245988 - mol.energy - mol.zero_point
+        mol.temperature = data.temperature
+        mol.pressure = data.pressure
+
+        # Grab thermal energy, delta capacity at volume, delta entropy
+        with open(src) as file:
+            lines = file.readlines()
+
+        anchor_line = 0
+        title_pattern = re.compile(r'\s+E \(Thermal\)\s+CV\s+S')
+        for i, line in enumerate(lines):
+            if title_pattern.match(line):
+                anchor_line = i
+                break
+
+        if anchor_line != 0:
+            thermal_energy, capacity, _ = map(float, re.split(r'\s+', lines[anchor_line + 2].strip())[1:])
+            mol.thermal_energy = 0.043361254529175 * thermal_energy  # kcal to ev
+            mol.capacity = 0.043361254529175 * 1e-3 * capacity  # cal to ev
+
+        return mol
 
 
 class Dumper(IO, ABC):

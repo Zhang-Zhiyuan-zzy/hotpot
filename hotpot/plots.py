@@ -10,6 +10,7 @@ Notes:
     this module define some easy methods for drawing of common scientific plots.
 
 """
+import itertools
 from typing import *
 import string
 import re
@@ -21,7 +22,9 @@ from scipy.stats import gaussian_kde
 from sklearn import linear_model
 from sklearn.feature_selection import r_regression
 from sklearn.metrics import r2_score
+from scipy.cluster.hierarchy import dendrogram, linkage
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 
 
 class SciPlot:
@@ -44,8 +47,16 @@ class SciPlot:
     _superscript_xy_frac = (0.025, 0.925)
     superscript_dict = {'font': _font, 'fontsize': 32, "fontweight": 'bold'}
 
-    def __init__(self, plotters: Union[Callable, np.ndarray[Callable]], superscript: bool = True,
+    def __init__(self, plotters: Union["PlotTemplet", np.ndarray["PlotTemplet"]], superscript: bool = True,
                  post_process: Callable = None, post_process_kwargs: dict = None):
+        """
+
+        Args:
+            plotters:
+            superscript: whether to add superscript into axes
+            post_process: post process in figure level
+            post_process_kwargs: kwargs for post_process function
+        """
         assert isinstance(plotters, np.ndarray) or isinstance(plotters, Callable)
         self.plotters = plotters if isinstance(plotters, np.ndarray) else np.array([[plotters]])
         self.nrows, self.ncols = self.plotters.shape
@@ -145,7 +156,7 @@ class SciPlot:
         return left, bottom, width, height
 
     @classmethod
-    def insert_other_axes_into(cls, main_ax: plt.Axes, insert_ax: plt.Axes, relative_pos: Union[tuple, np.ndarray]):
+    def insert_other_axes_into(cls, main_ax: plt.Axes, insert_ax: plt.Axes, relative_pos: Union[list, np.ndarray]):
         """
         insert other Axes into the main Axes, given the given position relating to span of main Axes as the base.
         Args:
@@ -207,6 +218,9 @@ class PlotTemplet:
     """"""
     def __call__(self, ax: plt.Axes):
         raise NotImplemented
+
+    def axes_post_process(self, ax):
+        """ Custom additional process for axes after the basis ones """
 
 
 class R2Regression(PlotTemplet):
@@ -351,6 +365,62 @@ class Pearson(PlotTemplet):
         ax.set_ylabel(self.ylabel)
 
         SciPlot.add_text(ax, 0.125, 0.900, f"Pearson R={round(coeff, 3)}", {'fontsize': 48})
+
+
+class PearsonMatrix(PlotTemplet):
+    def __init__(self, x: np.ndarray, xlabels: list[str], num_round=3):
+        if x.shape[1] != len(xlabels):
+            raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
+
+        self.x = x
+        self.xlabels = xlabels
+        self.round = num_round
+
+    def __call__(self, ax: plt.Axes):
+        p_mat = np.corrcoef(self.x.T)
+        im = ax.imshow(p_mat)
+
+        ax.xaxis.set_major_locator(plt.MultipleLocator())
+        ax.yaxis.set_major_locator(plt.MultipleLocator())
+
+        ax.xaxis.set_ticks(range(len(self.xlabels)), self.xlabels)
+        ax.yaxis.set_ticks(range(len(self.xlabels)), self.xlabels)
+
+        # ax.set_xticklabels(self.xlabels)
+        # ax.set_yticklabels(self.xlabels)
+
+        for label in ax.get_xticklabels():
+            label.set_rotation(60)
+
+        # Add the pearson coefficient for each image block
+        for i, j in itertools.product(range(self.x.shape[1]), range(self.x.shape[1])):
+            ax.text(i, j, round(p_mat[i, j], self.round), ha='center', va='center',
+                    color='w' if p_mat[i, j] < 0.5 else 'b')
+
+
+class HierarchicalTree(PlotTemplet):
+    def __init__(self, x: np.ndarray, xlabels: list[str], color_threshold=0.6):
+        if x.shape[1] != len(xlabels):
+            raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
+
+        self.x = x
+        self.xlabels = xlabels
+        self.threshold = color_threshold
+
+    def __call__(self, ax: plt.Axes):
+        abs_correlation_mat = np.abs(np.corrcoef(self.x.T))
+
+        # Perform hierarchical clustering
+        Z = linkage(abs_correlation_mat, 'average')
+
+        dendrogram(Z, ax=ax, orientation='top', labels=self.xlabels, color_threshold=self.threshold)
+
+        # adjust the line width of the tree
+        for collection in ax.collections:
+            collection.set_linewidth(1.0)
+
+        for label in ax.get_xticklabels():
+            label.set_rotation(60)
 
 
 class SHAPlot(PlotTemplet):

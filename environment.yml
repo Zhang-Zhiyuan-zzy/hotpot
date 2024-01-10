@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: hp
 channels:
   - conda-forge
@@ -158,13 +159,17 @@ dependencies:
       - chemicals==1.1.4
       - fluids==1.0.24
       - psutil==5.9.5
-      - rdkit==2023.3.2
+      - rdkit
       - thermo==0.2.26
-      - tqdm==4.65.0
+      - tqdm
       - dpdata
       - torch
       - torchvision
       - torchaudio
       - torch_geometric
+      - gpytorch
+      - xenonpy
       - networkx
+      - matplotlib
+      - scikit-learn
 prefix: /home/zzy/sw/conda3/envs/hp

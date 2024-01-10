@@ -4186,6 +4186,5 @@ class ZMatrix:
         self._coords = coords
 
 
-import hotpot.bundle as bd
 from hotpot._io import Dumper, Parser
 from hotpot.plugins.deepmd import DeepSystem

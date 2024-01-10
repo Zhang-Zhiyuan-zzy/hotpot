@@ -112,12 +112,15 @@ class BayesianOptimization:
 
         return torch.stack(X_optimal), torch.stack(mu_optimal), torch.stack(sigma_optimal)
 
-    def train(self, n_iter=100, lr=0.1):
+    def train(self, n_iter=100, lr=0.1, report_gap=None):
         """Train the model.
 
         Arguments
         n_iter  --  The number of iterations.
         """
+        if report_gap is None:
+            report_gap = n_iter
+
         self.surrogate.train()
         # optimizer = torch.optim.LBFGS(self.surrogate.parameters(), lr=lr)
         optimizer = torch.optim.Adam(self.surrogate.parameters(), lr=lr)
@@ -133,7 +136,7 @@ class BayesianOptimization:
 
         for i in range(n_iter):
             loss = optimizer.step(closure)
-            if (i + 1) % 1 == 0:
+            if (i + 1) % report_gap == 0:
                 print(f'Iter {i + 1:3d}/{n_iter} - Loss: {loss.item():.3f}')
         self.surrogate.eval()
 

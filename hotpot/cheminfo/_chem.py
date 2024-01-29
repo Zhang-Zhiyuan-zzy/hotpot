@@ -321,7 +321,10 @@ class Molecule(Wrapper, ABC):
         self.add_hydrogens()
 
     def build_bonds(self):
+        partial_charges = {atom.idx: atom.partial_charge for atom in self.atoms}
         self.ob_mol.ConnectTheDots()
+        for atom in self.atoms:
+            atom.partial_charge = partial_charges[atom.idx]
 
     @property
     def capacity(self) -> float:
@@ -1062,6 +1065,11 @@ class Atom(MolBuildUnit):
         """ the number of covalent electrons for this atoms """
         return sum(b.type if b.is_covalent else 0 for b in self.bonds)
 
+    def distance_to(self, other: "Atom"):
+        if not self.molecule is other.molecule:
+            raise AttributeError("Can't calculate distance between atoms in different molecule")
+        return np.linalg.norm(np.array(other.coordinate) - np.array(self.coordinate))
+
     @property
     def electronegativity(self):
         return ob.GetElectroNeg(self.atomic_number)
@@ -1172,6 +1180,18 @@ class Atom(MolBuildUnit):
     def neighbours(self) -> List['Atom']:
         """ Get all atoms bond with this atom in same molecule """
         return [self.__class__(oba) for oba in ob.OBAtomAtomIter(self.ob_atom)]
+
+    @property
+    def neighbours3d(self) -> list['Atom']:
+        if not self.molecule.has_3d:
+            return None
+        neigh_atoms = []
+        for atom in self.molecule.atoms:
+            if atom.idx != self.idx and np.linalg.norm(np.array(atom.coordinate) - np.array(self.coordinate)) < \
+                    (ob.GetCovalentRad(atom.atomic_number) + ob.GetCovalentRad(self.atomic_number)) * 1.05:
+                neigh_atoms.append(atom)
+
+        return neigh_atoms
 
     @property
     def neighbours_hydrogen(self) -> List['Atom']:

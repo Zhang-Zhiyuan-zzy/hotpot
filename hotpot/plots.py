@@ -41,7 +41,7 @@ class SciPlot:
     default_axes_pos = [0.1483, 0.1657, 0.7163, 0.7185]
     _font = 'Arial'
     _splinewidth = 3
-    _tick_fontsize = 28
+    _tick_fontsize = 18
     _xy_label_fontsize = 32
 
     _superscript_xy_frac = (0.025, 0.925)
@@ -57,8 +57,21 @@ class SciPlot:
             post_process: post process in figure level
             post_process_kwargs: kwargs for post_process function
         """
-        assert isinstance(plotters, np.ndarray) or isinstance(plotters, Callable)
-        self.plotters = plotters if isinstance(plotters, np.ndarray) else np.array([[plotters]])
+        # Adjust the shape of given plotters
+        if not isinstance(plotters, np.ndarray):
+            if isinstance(plotters, Callable):
+                plotters = np.array([[plotters]])
+            elif isinstance(plotters, Sequence):
+                plotters = np.array(plotters)
+            else:
+                raise TypeError('the given plotters must be Callable, Sequence or np.ndarray objects')
+
+        if len(plotters.shape) > 2:
+            raise AttributeError('the dimension of given plotters should less than or equal to 2')
+        elif len(plotters.shape) == 1:
+            plotters = plotters.reshape(-1, plotters.size)
+
+        self.plotters = plotters
         self.nrows, self.ncols = self.plotters.shape
 
         fig, axs = plt.subplots(self.nrows, self.ncols)
@@ -224,8 +237,11 @@ class PlotTemplet:
 
 
 class R2Regression(PlotTemplet):
-    def __init__(self, xy1, xy2=None, unit: str = None, xy_lim: Union[Sequence, np.ndarray] = None,
-                 s1=None, s2=None, c1=None, c2='green', marker1=None, marker2=None, *args, **kwargs):
+    def __init__(
+            self, xy1, xy2=None, unit: str = None, xy_lim: Union[Sequence, np.ndarray] = None,
+            s1=None, s2=None, c1=None, c2='green', marker1=None, marker2=None, err1=None, err2=None,
+            *args, **kwargs
+    ):
         """
         The templet for R-squared regression plot, which is usually used to show the performance of trained ML model.
         The plot allow plot the R^2 in bath train set and test set together, by giving the args both 'xy1' and 'xy2'.
@@ -251,15 +267,21 @@ class R2Regression(PlotTemplet):
             *args: other args for Matplotlib.Axes.Scatter
             **kwargs: other kwargs for Matplotlib.Axes.Scatter
         """
-        self.xy1 = xy1
-        self.xy2 = xy2
+        self.xy1 = xy1 if isinstance(xy1, np.ndarray) else np.array(xy1)
+        self.xy2 = xy2 if (xy2 is None) or isinstance(xy2, np.ndarray) else np.array(xy2)
         self.unit = f' ({unit})' if unit else ''
+
         if xy_lim:
             self.xy_lim = xy_lim
         elif xy2 is None:
-            self.xy_lim = (self.xy1.min(), self.xy1.max())
+            xy_diff = self.xy1.max() - self.xy1.min()
+            self.xy_lim = (self.xy1.min() - 0.05*xy_diff, self.xy1.max() + 0.05*xy_diff)
         else:
-            self.xy_lim = (min([self.xy1.min(), self.xy2.min()]), max([self.xy1.max(), self.xy2.max()]))
+            xy_diff = max([self.xy1.max(), self.xy2.max()]) - min([self.xy1.min(), self.xy2.min()])
+            self.xy_lim = (
+                min([self.xy1.min(), self.xy2.min()]) - 0.05*xy_diff,
+                max([self.xy1.max(), self.xy2.max()]) + 0.05*xy_diff
+            )
 
         self.s1 = s1
         self.s2 = s1 if not s2 else s1
@@ -267,6 +289,8 @@ class R2Regression(PlotTemplet):
         self.c2 = c2
         self.marker1 = marker1
         self.marker2 = marker2 if not marker2 else marker1
+        self.err1 = err1
+        self.err2 = err2
 
         self.args = args
         self.kwargs = {}
@@ -289,9 +313,16 @@ class R2Regression(PlotTemplet):
 
     def __call__(self, ax: plt.Axes):
         """"""
-        ax.scatter(self.xy1[0], self.xy1[1], self.s1, self.c1, self.marker1, *self.args, **self.kwargs)
+        if isinstance(self.err1, np.ndarray):
+            ax.errorbar(self.xy1[0], self.xy1[1], fmt='o', yerr=self.err1)
+        else:
+            ax.scatter(self.xy1[0], self.xy1[1], self.s1, self.c1, self.marker1, *self.args, **self.kwargs)
+
         if self.xy2 is not None:
-            ax.scatter(self.xy2[0], self.xy2[1], self.s2, self.c2, self.marker2, *self.args, **self.kwargs)
+            if isinstance(self.err2, np.ndarray):
+                ax.errorbar(self.xy2[0], self.xy2[1], yerr=self.err2, fmt='o')
+            else:
+                ax.scatter(self.xy2[0], self.xy2[1], self.s2, self.c2, self.marker2, *self.args, **self.kwargs)
 
         ax.set_xlabel(f'Target{self.unit}')
         ax.set_ylabel(f'Predicted{self.unit}')
@@ -302,12 +333,48 @@ class R2Regression(PlotTemplet):
         self.add_diagonal(ax)
 
         if self.xy2 is None:
-            SciPlot.add_text(ax, 0.025, 0.875, r"$\mathdefault{R^2}$=" + f"{round(self.r2_1), 3}", {'fontsize': 20})
+            SciPlot.add_text(ax, 0.025, 0.875, r"$\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}", {'fontsize': 20})
         else:
             SciPlot.add_text(ax, 0.025, 0.850, r"train $\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}", {'fontsize': 20})
             SciPlot.add_text(ax, 0.025, 0.775, r"test $\mathdefault{R^2}$=" + f"{round(self.r2_2, 3)}", {'fontsize': 20})
 
         ax.legend(['train set', 'test set'], loc='lower right', fontsize='xx-large')
+
+
+class FeatureImportance:
+    def __init__(self, feature_name, imp):
+        self.feature_name = feature_name
+        self.imp = imp
+
+    def __call__(self, ax: plt.Axes):
+        ax.bar(self.feature_name, self.imp)
+        for label in ax.get_xticklabels():
+            label.set_rotation(60)
+
+
+class HierarchicalTree(PlotTemplet):
+    def __init__(self, x: np.ndarray, xlabels: list[str], color_threshold=0.6):
+        if x.shape[1] != len(xlabels):
+            raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
+
+        self.x = x
+        self.xlabels = xlabels
+        self.threshold = color_threshold
+
+    def __call__(self, ax: plt.Axes):
+        abs_correlation_mat = np.abs(np.corrcoef(self.x.T))
+
+        # Perform hierarchical clustering
+        Z = linkage(abs_correlation_mat, 'average')
+
+        dendrogram(Z, ax=ax, orientation='top', labels=self.xlabels, color_threshold=self.threshold)
+
+        # adjust the line width of the tree
+        for collection in ax.collections:
+            collection.set_linewidth(1.0)
+
+        for label in ax.get_xticklabels():
+            label.set_rotation(60)
 
 
 class Hist(PlotTemplet):
@@ -368,13 +435,14 @@ class Pearson(PlotTemplet):
 
 
 class PearsonMatrix(PlotTemplet):
-    def __init__(self, x: np.ndarray, xlabels: list[str], num_round=3):
+    def __init__(self, x: np.ndarray, xlabels: list[str], show_values=True, num_round=3):
         if x.shape[1] != len(xlabels):
             raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
 
         self.x = x
         self.xlabels = xlabels
         self.round = num_round
+        self.show_values = show_values
 
     def __call__(self, ax: plt.Axes):
         p_mat = np.corrcoef(self.x.T)
@@ -393,34 +461,10 @@ class PearsonMatrix(PlotTemplet):
             label.set_rotation(60)
 
         # Add the pearson coefficient for each image block
-        for i, j in itertools.product(range(self.x.shape[1]), range(self.x.shape[1])):
-            ax.text(i, j, round(p_mat[i, j], self.round), ha='center', va='center',
-                    color='w' if p_mat[i, j] < 0.5 else 'b')
-
-
-class HierarchicalTree(PlotTemplet):
-    def __init__(self, x: np.ndarray, xlabels: list[str], color_threshold=0.6):
-        if x.shape[1] != len(xlabels):
-            raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
-
-        self.x = x
-        self.xlabels = xlabels
-        self.threshold = color_threshold
-
-    def __call__(self, ax: plt.Axes):
-        abs_correlation_mat = np.abs(np.corrcoef(self.x.T))
-
-        # Perform hierarchical clustering
-        Z = linkage(abs_correlation_mat, 'average')
-
-        dendrogram(Z, ax=ax, orientation='top', labels=self.xlabels, color_threshold=self.threshold)
-
-        # adjust the line width of the tree
-        for collection in ax.collections:
-            collection.set_linewidth(1.0)
-
-        for label in ax.get_xticklabels():
-            label.set_rotation(60)
+        if self.show_values == True:
+            for i, j in itertools.product(range(self.x.shape[1]), range(self.x.shape[1])):
+                ax.text(i, j, round(p_mat[i, j], self.round), ha='center', va='center',
+                        color='w' if p_mat[i, j] < 0.5 else 'b')
 
 
 class SHAPlot(PlotTemplet):

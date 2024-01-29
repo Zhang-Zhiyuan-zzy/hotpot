@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, MDS
 
 import torch
 import gpytorch
@@ -90,7 +90,7 @@ class BayesianOptimization:
         train_x, train_y = self.surrogate.train_inputs[0], self.surrogate.train_targets
         logging.info('\n'.join([f'{name}, {p}' for name, p in self.surrogate.named_parameters()]))
 
-        X_optimal, mu_optimal, sigma_optimal = [], [], []
+        X_optimal, mu_optimal, sigma_optimal, X_opti_idx = [], [], [], []
         for c in range(self.batch_size):
             self.train(n_iter=n_iter, lr=lr)
             f_design = self.surrogate(X_design)
@@ -102,6 +102,7 @@ class BayesianOptimization:
 
             # Find best point to include
             i = torch.argmax(acq_value)
+            X_opti_idx.append(i)
             X_optimal.append(X_design[i])
             mu_optimal.append(mu[i])
             sigma_optimal.append(sigma[i])
@@ -110,7 +111,7 @@ class BayesianOptimization:
             train_y = torch.from_numpy(torch.hstack([train_y, mu_optimal[-1]]).detach().numpy())
             self.surrogate.set_train_data(train_x, train_y, strict=False)
 
-        return torch.stack(X_optimal), torch.stack(mu_optimal), torch.stack(sigma_optimal)
+        return torch.stack(X_optimal), torch.stack(mu_optimal), torch.stack(sigma_optimal), torch.stack(X_opti_idx)
 
     def train(self, n_iter=100, lr=0.1, report_gap=None):
         """Train the model.
@@ -142,12 +143,12 @@ class BayesianOptimization:
 
         self.is_trained = True
 
-    def visualize_design_space(self, X_design, n_iter=150, lr=0.1, emb_method=TSNE(), figpath=None):
+    def visualize_design_space(self, X_design, X_opti_idx=None, n_iter=150, lr=0.1, emb_method=TSNE(), figpath=None):
         if not self.is_trained:
             self.train(n_iter, lr)
 
         f_design = self.surrogate(torch.from_numpy(X_design))
-        m = f_design.mean.detach().numpy()
+        mu = f_design.mean.detach().numpy()
         sigma2 = f_design.variance
         sigma = torch.sqrt(sigma2).detach().numpy()
 
@@ -157,20 +158,27 @@ class BayesianOptimization:
         fig.set(figheight=6.4, figwidth=14)
         cmap = plt.colormaps["plasma"]
 
-        axs[0].scatter(emb_x[:, 0], emb_x[:, 1], c=m, alpha=0.3)
+        axs[0].scatter(emb_x[:, 0], emb_x[:, 1], c=mu, alpha=0.3)
         axs[1].scatter(emb_x[:, 0], emb_x[:, 1], c=sigma, alpha=0.3)
-        # plt.colorbar()
+
         fig.colorbar(plt.cm.ScalarMappable(cmap=cmap), ax=axs[0])
         fig.colorbar(plt.cm.ScalarMappable(cmap=cmap), ax=axs[1])
+
+        if X_opti_idx is not None:
+            opt_x = emb_x[X_opti_idx]
+            axs[0].scatter(opt_x[:, 0], opt_x[:, 1], c='r', marker='*')
+            axs[1].scatter(opt_x[:, 0], opt_x[:, 1], c='r', marker='*')
 
         fig.show()
         if figpath:
             fig.savefig(figpath)
 
+        return emb_x, mu, sigma
+
 
 if __name__ == '__main__':
     # logging.basicConfig(level=logging.INFO)
-    df = pd.read_excel('/home/zz1/proj/cof/data/data.xlsx', index_col=0)
+    df = pd.read_excel('/mnt/c/Users/zhang/OneDrive/Papers/COF/data.xlsx', index_col=0)
     X = torch.tensor(df.iloc[:, :3].values)
     X[:, 1] = torch.log10(X[:, 1])
     y = torch.tensor(df.iloc[:, 3].values)
@@ -203,8 +211,8 @@ if __name__ == '__main__':
     X_design_scale = scaler.transform(X_design)
 
     gp = GaussianProcess(X_scale, y_scale, covar_module=ScaleKernel(RBFKernel(ard_num_dims=3)))
-    bayes = BayesianOptimization(gp, batch_size=5)
-    X_opti, mu_opti, sigma_opti = bayes(X_design_scale)
+    bayes = BayesianOptimization(gp, batch_size=10)
+    X_opti, mu_opti, sigma_opti, X_opti_idx = bayes(X_design_scale, 300)
 
     X_opti = scaler.inverse_transform(X_opti)
     X_opti[:, 1] = np.power(10, X_opti[:, 1])
@@ -213,5 +221,6 @@ if __name__ == '__main__':
 
     data = np.concatenate([X_opti, mu_opti, sigma_opti], axis=1)
     df = pd.DataFrame(data, columns=['temp', 'ratio', 'cata. Equiv.', 'mu', 'sigma'])
-    df.to_csv('/home/zz1/proj/cof/data/result.csv')
+    df.to_csv('/mnt/c/Users/zhang/OneDrive/Papers/COF/result2.csv')
     # bayes.visualize_design_space(X_design_scale, figpath='/home/zz1/proj/cof/data/vis.png', emb_method=TSNE())
+    bayes.visualize_design_space(X_design_scale, X_opti_idx, emb_method=TSNE())

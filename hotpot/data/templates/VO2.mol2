@@ -1,0 +1,21 @@
+# Title Card Required
+# Created by GaussView 6.0.16
+#
+
+#
+#
+
+@<TRIPOS>MOLECULE
+Molecule Name
+3 2
+SMALL
+NO_CHARGES
+
+
+@<TRIPOS>ATOM
+1 V1     0.0000     0.0000     0.0000 V
+2 O2     0.0000     0.0000     1.6207 O
+3 O3     0.0000     0.0000    -1.6207 O
+@<TRIPOS>BOND
+1 1 2 1
+2 1 3 1

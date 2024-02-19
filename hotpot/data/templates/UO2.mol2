@@ -2,14 +2,14 @@
 BAHCIA
      3     2     1     0     0
 SMALL
-NO_CHARGES
+USER_CHARGES
 ****
 Generated from the CSD
 
 @<TRIPOS>ATOM
-     1 U1       5.3389   7.3667   0.0000   U         1 RES1   0.0000
-     2 O4       6.5586   6.1217  -0.3139   O.2       1 RES1   0.0000
-     3 O4B      4.1191   8.6117   0.3139   O.2       1 RES1   0.0000
+     1 U1       5.3389   7.3667   0.0000   U         1 RES1   6.0000
+     2 O4       6.5586   6.1217  -0.3139   O.2       1 RES1  -2.0000
+     3 O4B      4.1191   8.6117   0.3139   O.2       1 RES1  -2.0000
 @<TRIPOS>BOND
      1     2     1    2
      2     3     1    2

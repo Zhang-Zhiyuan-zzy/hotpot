@@ -29,6 +29,7 @@ from ._base import Wrapper
 from ._io import Parser, Dumper
 from ._cryst import Crystal
 from ._thermo import Thermo
+from hotpot.utils.library import library as _lib  # The chemical library
 
 
 _molecule_dict = weakref.WeakValueDictionary()
@@ -268,8 +269,8 @@ class Molecule(Wrapper, ABC):
 
     def balance_hydrogens(self):
         """ Add or remove hydrogens for make or heave atom to achieve the stable valence """
-        for a in self.heavy_atoms:
-            a.balance_hydrogen()
+        for atom in self.heavy_atoms:
+            atom.balance_hydrogen()
 
     def bond(self, atom1: Union[int, str, "Atom"], atom2: Union[int, str, "Atom"]) -> 'Bond':
         """
@@ -325,6 +326,38 @@ class Molecule(Wrapper, ABC):
         self.ob_mol.ConnectTheDots()
         for atom in self.atoms:
             atom.partial_charge = partial_charges[atom.idx]
+
+    def calculate_molecule_charges(self, hydrogen_requiring: bool = True, inplace=False):
+        """ Estimate the molecule charges """
+        if not self.has_hydrogen_added and hydrogen_requiring:
+            raise AttributeError('calculating molecule charges requires that hydrogens have been added')
+
+        clone = self.copy()
+
+        # Remove all single or unknown bonds on metals
+        logging.info(f"SMILES before Remove bonds on metals: {clone.smiles}")
+        clone.remove_bonds(*{b for m in clone.metals for b in m.bonds if b.type <= 1})
+        logging.info(f"SMILES after Remove bonds on metals: {clone.smiles}")
+
+        charge = 0
+        for component in clone.components:
+            if len(component.atoms) == 1:
+                charge += component.atoms[0].stable_charge
+            elif component.is_template_mol:
+                pass
+            else:
+                atom_num_before = len(component.atoms)
+                component.add_hydrogens()
+                atom_num_after = len(component.atoms)
+
+                charge += atom_num_before - atom_num_after
+
+            logging.info(f"{charge} charge at: {component.smiles}")
+
+        if inplace:
+            self.charge = charge
+
+        return charge
 
     @property
     def capacity(self) -> float:
@@ -586,6 +619,14 @@ class Molecule(Wrapper, ABC):
         """
         # TODO: refactoring
 
+    @classmethod
+    def get_templates_list(cls):
+        return _template_list
+
+    @classmethod
+    def get_templates_mol(cls, name: str) -> "Molecule":
+        return _templates.get(name)
+
     @overload
     def get_thermo(self, *, T: float, P: float):
         """
@@ -689,9 +730,49 @@ class Molecule(Wrapper, ABC):
         return len({a.label for a in self.atoms}) == len(self.atoms)
 
     @property
+    def is_all_organic(self):
+        return all(c.is_organic for c in self.components)
+
+    @property
     def is_organic(self):
         """ Whether the Molecule is an organic compounds """
+        if len(self.components) != 1:
+            raise AttributeError(
+                'Molecule.is_organic only be call for the Molecule with one component,\n'
+                'call Molecule.is_all_organic instead'
+            )
+
         return all(not a.is_metal for a in self.atoms) and any(a.is_carbon for a in self.atoms)
+
+    @property
+    def is_solvent(self) -> bool:
+        """ Check if this molecule is a solvent """
+        if len(self.components) != 1:
+            raise AttributeError(
+                'Molecule.is_solvent only be call for the Molecule with one component,\n'
+                'call Molecule.is_all_organic instead'
+            )
+        return _lib.get('Solvents').is_solvent(self)
+
+    @property
+    def is_template_mol(self):
+        # TODO: judge whether a predefined template Molecule.
+        return False
+
+    @property
+    def is_UO2(self):
+        return len(self.atoms) == 3 and all(a.symbol in ['U', 'O'] for a in self.atoms) and len(self.metals) == 1 \
+                and len(self.bonds) == 2 and all(b.type == 2 for b in self.bonds)
+
+    @property
+    def is_VO(self):
+        return len(self.atoms) == 2 and all(a.symbol in ['V', 'O'] for a in self.atoms) and len(self.metals) == 1 \
+                and len(self.bonds) == 1 and all(b.type == 2 for b in self.bonds)
+
+    @property
+    def is_VO2(self):
+        return len(self.atoms) == 3 and all(a.symbol in ['V', 'O'] for a in self.atoms) and len(self.metals) == 1 \
+                and len(self.bonds) == 2 and all(b.type == 2 for b in self.bonds)
 
     @property
     def ob_mol(self) -> ob.OBMol:
@@ -748,13 +829,13 @@ class Molecule(Wrapper, ABC):
                 to_optimal and equilibrium_counts < 3 and num_iter < max_iter
         ):
             # reload hydrogens
-            self.remove_hydrogens()
+            # TODO: self.remove_hydrogens()
             self.add_hydrogens(balance_hydrogen=balance_hydrogen)
 
             pymol = pb.Molecule(self.ob_mol)
             pymol.localopt(force_field, steps)
 
-            self.remove_hydrogens()
+            # TODO: self.remove_hydrogens()
             displacement = np.max(self.coordinates - last_atom_coord)
 
             if displacement < tolerable_displacement:
@@ -792,6 +873,12 @@ class Molecule(Wrapper, ABC):
 
         return self.crystal
 
+    # @property
+    # def metal_bonds(self):
+    #     """ Get all bonds with at least one metal atoms """
+    #     # self._set_ob_list_data()
+    #     pass
+
     @property
     def metals(self) -> List['Atom']:
         return [a for a in self.atoms if a.is_metal]
@@ -804,6 +891,10 @@ class Molecule(Wrapper, ABC):
     @orbital_energies.setter
     def orbital_energies(self, value: Union[Sequence, np.ndarray]):
         self._set_ob_list_data('orbital_energies', list(value))
+
+    @property
+    def polar_hydrogens(self) -> list["Atom"]:
+        return [a for a in self.atoms if a.is_polar_hydrogen]
 
     @property
     def nx_graph(self) -> nx.Graph:
@@ -839,13 +930,12 @@ class Molecule(Wrapper, ABC):
             atoms(int|str|Atom): the index, label or self of Removed atom
         """
         for atom in atoms:
-            # remove connecting hydrogens
-            # for nh in atom.neighbours_hydrogen:
-            #     if len(nh.neighbours) == 1:
-            #         self.ob_mol.DeleteAtom(nh.ob_atom, False)
-
-            # Removing the atom
             self.ob_mol.DeleteAtom(atom.ob_atom, False)
+
+    def remove_solvents(self):
+        self.normalize_labels()
+        for solvent in self.solvents:
+            self.remove_atoms(*[self.atom(a.label) for a in solvent.atoms])
 
     def remove_bonds(self, *bonds: 'Bond'):
         """ Remove the bonds in the molecule """
@@ -861,6 +951,11 @@ class Molecule(Wrapper, ABC):
         # for atom in self.atoms:
         #     if is_aromatic.get(atom.idx):
         #         atom.set_aromatic()
+
+    def remove_polar_hydrogens(self):
+        polar_hydrogens = [a for a in self.atoms if a.is_polar_hydrogen]
+        self.remove_atoms(*polar_hydrogens)
+        self.charge += len(polar_hydrogens)
 
     def reorder_ob_ids(self):
         """ Reorder the ob_ids of all atoms and all bonds in the Molecule """
@@ -917,8 +1012,20 @@ class Molecule(Wrapper, ABC):
         return self.dump('can').split()[0]
 
     @property
-    def spin(self):
+    def solvents(self):
+        """ Retrieve all solvents components in the Molecule """
+        clone = self.copy()
+        clone.remove_atoms(*self.metals)
+
+        return [c for c in self.components if c.is_solvent]
+
+    @property
+    def spin_multiplicity(self):
         return self.ob_mol.GetTotalSpinMultiplicity()
+
+    @spin_multiplicity.setter
+    def spin_multiplicity(self, value):
+        self.ob_mol.SetTotalSpinMultiplicity(value)
 
     @property
     def thermal_energy(self) -> float:
@@ -928,16 +1035,17 @@ class Molecule(Wrapper, ABC):
     def thermal_energy(self, value: float):
         self._set_ob_float_data('thermal_energy', value)
 
-    @property
-    def torsions(self) -> list["Torsion"]:
-        torsions = []
-        for axis_bond in self.bonds:
-            atom1_neigh = [a for a in axis_bond.atom1.neighbours if a not in axis_bond]
-            atom2_neigh = [a for a in axis_bond.atom2.neighbours if a not in axis_bond]
-            for a, d in product(atom1_neigh, atom2_neigh):
-                torsions.append(Torsion(a, axis_bond.atom1, axis_bond.atom2, d))
-
-        return torsions
+    # @property
+    # def torsions(self) -> list["Torsion"]:
+    #     """ TODO: refactoring """
+        # torsions = []
+        # for axis_bond in self.bonds:
+        #     atom1_neigh = [a for a in axis_bond.atom1.neighbours if a not in axis_bond]
+        #     atom2_neigh = [a for a in axis_bond.atom2.neighbours if a not in axis_bond]
+        #     for a, d in product(atom1_neigh, atom2_neigh):
+        #         torsions.append(Torsion(a, axis_bond.atom1, axis_bond.atom2, d))
+        #
+        # return torsions
 
     def to_2d_img(self, **kwargs):
         """
@@ -978,6 +1086,36 @@ class Molecule(Wrapper, ABC):
     @zero_point.setter
     def zero_point(self, value):
         self._set_ob_float_data('zero_point', value)
+
+
+class MolTemplateLoader:
+    """ Loading some predefined template molecules """
+
+    def __init__(self):
+        templates_dir = Path(__file__).parents[1].joinpath('data', 'templates')
+        self._templates = {p.stem: Molecule.read_from(p) for p in templates_dir.glob('*.mol2')}
+
+        self._postprocessing()
+
+    def _postprocessing(self):
+        self._define_molecule_charges()
+
+    def _define_molecule_charges(self):
+        _molecule_charges = {
+            'UO2': 2, "VO": 2, 'VO2': 1
+        }
+        for name, mol in self._templates.items():
+            mol.charge = _molecule_charges.get(name, 0)
+
+    def templates_list(self) -> list[str]:
+        return sorted(self._templates)
+
+    def get(self, name: str):
+        return self._templates[name]
+
+
+_templates = MolTemplateLoader()
+_template_list = _templates.templates_list()
 
 
 #######################################################################################################################
@@ -1480,5 +1618,3 @@ class Torsion:
     @property
     def molecule(self):
         return self.atoms[0].molecule
-
-

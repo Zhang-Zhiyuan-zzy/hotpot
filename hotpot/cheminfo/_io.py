@@ -115,6 +115,8 @@ class G16logParser(Parser):
         data = cclib.io.ccopen(src).parse()
 
         mol = ci.Molecule()
+        mol.charge = data.charge
+        mol.spin_multiplicity = data.mult
         for atomic_number, coordinates, charge in zip(data.atomnos, data.atomcoords[-1], data.atomcharges['mulliken']):
             atom = mol.add_atom(int(atomic_number))
             assert atom.coordinate == (0., 0., 0.)
@@ -125,12 +127,15 @@ class G16logParser(Parser):
         mol.assign_bond_types()
 
         mol.energy = data.scfenergies[-1]
-        mol.zero_point = data.zpve * 27.211386245988
-        mol.free_energy = data.freeenergy * 27.211386245988 - mol.energy - mol.zero_point  # Hartree to eV
-        mol.entropy = data.entropy * 27.211386245988
-        mol.enthalpy = data.enthalpy * 27.211386245988 - mol.energy - mol.zero_point
-        mol.temperature = data.temperature
-        mol.pressure = data.pressure
+        try:
+            mol.zero_point = data.zpve * 27.211386245988
+            mol.free_energy = data.freeenergy * 27.211386245988 - mol.energy - mol.zero_point  # Hartree to eV
+            mol.entropy = data.entropy * 27.211386245988
+            mol.enthalpy = data.enthalpy * 27.211386245988 - mol.energy - mol.zero_point
+            mol.temperature = data.temperature
+            mol.pressure = data.pressure
+        except AttributeError:
+            pass
 
         # Grab thermal energy, delta capacity at volume, delta entropy
         with open(src) as file:
@@ -299,13 +304,12 @@ class GJFDumper(Dumper):
     def pre(src, *args, **kwargs):
         """ Perform preprocess for  conversion of all gaussian input """
         if not src.has_3d:
+            src.normalize_labels()
+            atom_charges = {a.label: a.formal_charge for a in src.atoms}
             src.build_3d()
-
-        if not kwargs.get("not_assign_atoms_formal_charge"):
-            clone = src.copy()
-            clone.assign_atoms_formal_charge()
-            src.charge = clone.charge
-            # src.assign_atoms_formal_charge()
+            src.localed_optimize()
+            for atom in src.atoms:
+                atom.formal_charge = atom_charges.get(atom.label, 0)
 
         src.identifier = src.formula
 
@@ -353,7 +357,13 @@ class GJFDumper(Dumper):
             charge = str(custom_charge)
         if custom_spin:
             spin = str(custom_spin)
+        else:
+            spin = GJFDumper.determine_spin_multiplicity(src)
 
         lines[5+inserted_lines] = f'{charge} {spin}'
 
         return '\n'.join(lines) + f'{addition}' + '\n\n'
+
+    @staticmethod
+    def determine_spin_multiplicity(mol) -> int:
+        return (sum(a.atomic_number for a in mol.atoms) - mol.charge) % 2 + 1

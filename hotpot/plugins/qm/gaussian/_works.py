@@ -9,8 +9,16 @@ python v3.9.0
 Notes:
     defining some convenient workflow to run Gaussian
 """
+import os
+import re
+import logging
 from os import PathLike
+from pathlib import Path
 from typing import Union
+from copy import copy
+
+import pandas as pd
+from tqdm import tqdm
 
 from hotpot.cheminfo import Molecule
 from hotpot.plugins.qm.gaussian import parse_gjf, reorganize_gjf
@@ -35,8 +43,229 @@ def update_gjf(old_gjf_file: Union[str, PathLike], update_dict: dict):
     return data
 
 
+def parse_route(route: str) -> dict:
+    """ Parse the route of gjf file """
+    # Find structure morphology: method1/basis1//method2/basis2
+    found = re.findall(r'\w+/\w+//\w+/\w+', route)
+    if len(found) == 1:
+        route = route.replace(found[0], '')
+    elif len(found) > 1:
+        raise ValueError('A route line only allow one method1/basis1//method2/basis2 handle morphology')
+
+    # compile regular expressions
+    parenthesis = re.compile(r'\([^()]+\)')
+
+    # Normalize the input route
+    route = re.sub(r'\s*=\s*', r'=', route)  # Omit the whitespace surround with the equal signal
+    route = re.sub(r'=\(', r'(', route)  # Omit the equal signal before the opening parenthesis
+    route = re.sub(r'\s+', ' ', route)  # Reduce the multiply whitespace to one
+
+    # Replace the delimiter outside the parenthesis to whitespace, inside to common
+    in_parenthesis = {m.start(): m.end() for m in parenthesis.finditer(route)}
+    list_route = []
+    for i, char in enumerate(route):
+        if char in [',', '\t', '/', ' ']:
+            if any(si < i < ei for si, ei in in_parenthesis.items()):
+                list_route.append(',')
+            else:
+                list_route.append(' ')
+        else:
+            list_route.append(char)
+
+    route = ''.join(list_route)
+
+    # Separate route to items
+    items = route.split()
+
+    parsed_route = {'head': items[0]}
+    for item in items[1:]:
+        opening_parenthesis = re.findall(r'\(', item)
+        closing_parenthesis = re.findall(r'\)', item)
+
+        # When the keyword have multiply options
+        if opening_parenthesis:
+            if not (len(opening_parenthesis) == 1 and len(closing_parenthesis) == 1 and item[-1] == ')'):
+                raise ValueError(f"Error route: {route}")
+
+            keyword = item[:item.index('(')]
+            options = item[item.index('(') + 1:-1]
+
+            opt_dict = parsed_route.setdefault(keyword, {})
+            for option in options.split(','):
+                opt_value = option.split('=')
+                if len(opt_value) == 1:
+                    opt_dict[opt_value[0]] = None
+                elif len(opt_value) == 2:
+                    opt_dict[opt_value[0]] = opt_value[1]
+                else:
+                    raise ValueError('the given route string is wrong!!')
+
+        else:  # When the keyword only a single option
+            keyword_opt_value = item.split('=')
+            if len(keyword_opt_value) == 1:
+                parsed_route[keyword_opt_value[0]] = {}
+            elif len(keyword_opt_value) == 2:
+                parsed_route[keyword_opt_value[0]] = {keyword_opt_value[1]: None}
+            elif len(keyword_opt_value) == 3:
+                parsed_route[keyword_opt_value[0]] = {keyword_opt_value[1]: keyword_opt_value[2]}
+            else:
+                raise ValueError('the given route string is wrong!!')
+
+    if found:  # Add method1/basis1//method2/basis2 handle
+        parsed_route[found[0]] = {}
+
+    return parsed_route
+
+
+class ResultsExtract:
+    """
+    Defining an ensemble workflow to extract information from Gaussian16 log file, or convert to other file format:
+        1) calculating results to pandas.DataFrame
+        2) the corresponding gjf script
+        ...
+    """
+    def __init__(
+            self,
+            dir_log: Union[str, PathLike],
+            pass_error: bool = False
+    ):
+        self.dir_log = Path(dir_log)
+
+        self.attrs = ['energy', 'zero_point', 'free_energy', 'enthalpy', 'entropy', 'thermal_energy', 'capacity']
+        self.pass_error = pass_error
+
+    def extract(self) -> (pd.DataFrame, Molecule):
+        """ Extract the calculating results to DataFrame """
+        list_series, list_mols = [], []
+        for log_path in tqdm(self.dir_log.glob("*.log"), 'Extract log files', total=len(os.listdir(self.dir_log))):
+            logging.info(log_path.stem)
+
+            try:
+                mol = Molecule.read_from(log_path, 'g16log')
+                value = [getattr(mol, n) for n in self.attrs]
+
+            except AttributeError:
+                if self.pass_error:
+                    continue
+                else:
+                    raise AttributeError(f'{log_path} is an error log file!')
+
+            list_series.append(pd.Series(value, index=self.attrs, name=log_path.stem))
+            list_mols.append(mol)
+
+        return pd.DataFrame(list_series), list_mols
+
+    @staticmethod
+    def rewrite_route(parsed_route: dict):
+        """ Rewrite the parsed route to the route str line """
+        parsed_route = copy(parsed_route)
+        script = parsed_route.pop('head')
+
+        for kw, ops in parsed_route.items():
+
+            # If the keyword doesn't have any option
+            if not ops:
+                script += f' {kw}'
+
+            # if the keyword have multiply options
+            elif isinstance(ops, dict):
+                list_opt = []
+                for op, value in ops.items():
+                    if value:
+                        list_opt.append(f'{op}={value}')
+                    else:
+                        list_opt.append(op)
+                script += f' {kw}(' + ','.join(list_opt) + ')'
+            else:
+                ValueError('the give gjf input info is wrong')
+
+        return script
+
+    @staticmethod
+    def extract_log_info(log_path) -> dict:
+        """ extract log file information to parsed dict """
+        mol = Molecule.read_from(log_path, 'g16log')
+        info = {
+            'link0': [],
+            'route': [],
+            'title': log_path.stem,
+            'charge': mol.charge,
+            'spin': mol.spin_multiplicity,
+            'coordinates': ['    '.join(map(str, c)) for c in mol.coordinates.tolist()],
+            'addition': []
+        }
+
+        # Markers to identify the start and end of the input section
+        link0_start = '%'
+        route_start = '#'
+        route_end = '-------'
+
+        # Open the log file and the output file
+        route = False
+        with open(log_path, 'r') as file:
+            for line in file.readlines():
+                # Check for the start of the input section
+                if line.strip().startswith(link0_start):
+                    info['link0'].append(line.strip())
+
+                elif line.strip().startswith(route_start):
+                    route = True
+
+                elif route and line.strip().startswith(route_end):
+                    break
+
+                if route:
+                    info['route'].append(line.strip())
+
+        return info
+
+    def to_gjf(self, addition: Union[str, list[str]] = '\n') -> list[str]:
+        """
+        Convert log files to the corresponding gjf file.
+
+        The got gjf file will copy the link0, routes of resulted log and the molecular specification
+        is specified by the last frame in the resulted log.
+
+        addition information, like the custom ECP, basis set, may be needed for this conversion.
+
+        Args:
+            addition: addition information specified by user.
+
+        Returns:
+            (str) list of gjf scripts with same link0 and route as those gjf to make the given log files,
+            the molecular specification, like charge, spin multiplicity and the atom coordination is same
+            with the last frame in the given log file, the addition information attaches to the tail
+        """
+        list_parsed_info = [self.extract_log_info(p) for p in tqdm(self.dir_log.glob('*.log'), 'To gjf')]
+
+        if isinstance(addition, str):
+            for info in list_parsed_info:
+                info['addition'].append(addition)
+
+        elif isinstance(addition, list):
+            if len(addition) == len(list_parsed_info):
+                for info, addi in zip(list_parsed_info, addition):
+                    info['addition'].append(addi)
+            else:
+                raise ValueError('the length of given addition list should same as the number of log file')
+
+        else:
+            raise TypeError(f'the addition should be a str or a list of str, not{type(addition)}')
+
+        return [reorganize_gjf(info) for info in list_parsed_info]
+
+
 if __name__ == '__main__':
-    new_gjf = reorganize_gjf(update_gjf_coordinates(
-        '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/gjf/pairs/81_81_C20H28N2O6P2Am.gjf',
-        '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs/81_81_C20H28N2O6P2Am.log'
-    ))
+    # new_gjf = reorganize_gjf(update_gjf_coordinates(
+    #     '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/gjf/pairs/81_81_C20H28N2O6P2Am.gjf',
+    #     '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs/81_81_C20H28N2O6P2Am.log'
+    # ))
+
+    pr_info = parse_route(
+        '#p opt freq int=acc2e=12 pbe1pbe/ecpgen//mx06/def2svp scrf, SCF=(novaracc,noincfock,maxcyc=N)'
+    )
+    # r = ResultsExtract.rewrite_route(pr_info)
+    result_extract = ResultsExtract('/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs')
+    # df = result_extract.extract()
+    gjf_scripts = result_extract.to_gjf('this is a test\nend\n')
+    # result_extract.extract('/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs')

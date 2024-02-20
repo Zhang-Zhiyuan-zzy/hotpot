@@ -15,7 +15,7 @@ from pathlib import Path
 
 class Stuttgart:
     def __init__(self):
-        self.basis_root = Path('basis_set', 'Stuttgart')
+        self.basis_root = Path(__file__).parent.joinpath('basis_set', 'Stuttgart')
 
     def get(self, element, ecp, basis_set):
         with open(self.basis_root.joinpath(element, ecp, basis_set)) as file:

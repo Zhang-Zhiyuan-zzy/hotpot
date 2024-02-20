@@ -8,4 +8,4 @@ python v3.9.0
 """
 from ._gauss import Gaussian, GaussOut, GaussianRunError
 from ._io import parse_gjf, reorganize_gjf
-from ._works import update_gjf_coordinates, update_gjf
+from ._works import update_gjf_coordinates, update_gjf, ResultsExtract

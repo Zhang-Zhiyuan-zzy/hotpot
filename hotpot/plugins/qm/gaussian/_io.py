@@ -81,6 +81,7 @@ def parse_gjf(path_gjf: Union[str, Path]):
 
 
 def reorganize_gjf(parsed_gjf: dict):
+    """ Reorganize the parsed gjf dict to gjf script """
     script = ""
     for line in parsed_gjf['link0']:
         script += line + '\n'

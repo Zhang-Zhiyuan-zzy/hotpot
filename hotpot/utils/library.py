@@ -16,11 +16,16 @@ from pathlib import Path
 
 class Library:
     """ the Main class to load and save chemical information lazily """
-
+    _instance = None  # Single Instance
     _lib = {}  # library for chemical books
 
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        self._books = {}
+        self._books = getattr(self, '_books', {})
 
     def __repr__(self):
         return f'Library({self.book_list})'

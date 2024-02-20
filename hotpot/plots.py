@@ -23,16 +23,29 @@ from sklearn import linear_model
 from sklearn.feature_selection import r_regression
 from sklearn.metrics import r2_score
 from scipy.cluster.hierarchy import dendrogram, linkage
+
 import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
 
 
-class SciPlot:
+def axes_setting(setting: Callable):
+    def not_setting(self, *args, **kwargs):
+        self.kwargs.pop(f"not_{setting.__name__}")
+
+    def setting_wrapper(self, *args, **kwargs):
+        if not self.kwargs.get(f"not_{setting.__name__}", False):
+            return setting(self, *args, **kwargs)
+        else:
+            return not_setting(self, *args, **kwargs)
+
+    return setting_wrapper
+
+
+class SciPlotter:
     """
-    The base class to draw scientific plots, this class given method to:
+    An automatic plot maker to draw scientific plots, with the style like the Origin software:
         1) set the size of figure and the position of Axes
         2) set the font Properties for xy labels, ticks and insert text
-        3) set the spline line width
+        3) set the spline line widtho
     """
     _figwidth = 10.72  # inch
     _figheight = 8.205  # inch
@@ -41,21 +54,43 @@ class SciPlot:
     default_axes_pos = [0.1483, 0.1657, 0.7163, 0.7185]
     _font = 'Arial'
     _splinewidth = 3
-    _tick_fontsize = 18
-    _xy_label_fontsize = 32
+    _ticklabels_fontsize = 18
+    _xy_label_fontsize = 28
 
     _superscript_xy_frac = (0.025, 0.925)
     superscript_dict = {'font': _font, 'fontsize': 32, "fontweight": 'bold'}
 
-    def __init__(self, plotters: Union["PlotTemplet", np.ndarray["PlotTemplet"]], superscript: bool = True,
-                 post_process: Callable = None, post_process_kwargs: dict = None):
+    def __init__(
+            self,
+            plotters: Union["Plot", Callable, np.ndarray[Union["Plot", Callable]]],
+            superscript: bool = True,
+            ax_adjust: dict[plt.Axes, Callable] = None,
+            ax_adjust_kwargs: dict[plt.Axes, dict] = None,
+            fig_adjust: Callable = None,
+            fig_adjust_kwargs: dict = None,
+            **kwargs  # Custom format keywords arguments
+    ):
         """
 
         Args:
             plotters:
             superscript: whether to add superscript into axes
-            post_process: post process in figure level
-            post_process_kwargs: kwargs for post_process function
+            fig_adjust: post process in figure level
+            fig_adjust_kwargs: kwargs for post_process function
+
+        Keyword Args:
+            figwidth(float|int): figure width
+            figheight(float|int): figure height
+            axes_position(tuple): axes position, (left, bottom, width, height)
+            font(str): the fonts for plotting
+            splinewidth(float|int): the width of splines
+            ticklabels_fontsize(float|int): the font size for tick labels
+            xticklabels_fontsize(float|int): the font size for xtick labels
+            yticklabels_fontsize(float|int): the font size for ytick labels
+            xy_label_fontsize(float|int): the font size for xy-axis labels
+            ticklabels_rotation(float|int): rotation for tick labels
+            xticklabels_rotation(float|int): rotation for xtick labels
+            yticklabels_rotation(float|int): rotation for ytick labels
         """
         # Adjust the shape of given plotters
         if not isinstance(plotters, np.ndarray):
@@ -84,33 +119,70 @@ class SciPlot:
         else:
             self.axs = axs
 
-        self.figwidth = self._figwidth * self.ncols
-        self.figheight = self._figheight * self.nrows
-
+        self.figwidth = kwargs.get('figwidth', self._figwidth * self.ncols)
+        self.figheight = kwargs.get('figheight', self._figheight * self.nrows)
         self.fig.set(figwidth=self.figwidth, figheight=self.figheight, dpi=self._dpi)
 
-        self.superscript = superscript
+        self.axes_position = kwargs.get('axes_position', self.default_axes_pos)
 
-        self.post_process = post_process
-        self.post_process_kwargs = post_process_kwargs if post_process_kwargs else {}
+        self.ax_modifier = ax_adjust if isinstance(ax_adjust, dict) else {}
+        self.ax_modifier_kwargs = ax_adjust_kwargs if isinstance(ax_adjust_kwargs, dict) else {}
+
+        self.fig_modifier = fig_adjust
+        self.fig_modifier_kwargs = fig_adjust_kwargs if fig_adjust_kwargs else {}
+
+        # Whether add the Axes superscript
+        self.superscript = superscript
+        # Custom format arguments
+        self.font = kwargs.get('font', self._font)
+        self.splinewidth = kwargs.get('splinewidth', self._splinewidth)
+        self.tick_fontsize = kwargs.get('tick_fontsize', self._ticklabels_fontsize)
+        self.xy_label_fontsize = kwargs.get('xy_label_fontsize', self._xy_label_fontsize)
+
+        # Other keyword arguments
+        self.kwargs = kwargs
 
     def __call__(self, *args, **kwargs):
         """"""
+        # Settings in Axes level
         for i, (ax, plotter) in enumerate(zip(self.axs.flatten(), self.plotters.flatten())):
-            ins_ax = plotter(ax)
+            ins_ax = plotter(ax, self)  # Making plot
 
+            # General settings for Axes
             self.set_spline(ax, ins_ax)
             self.set_xylabel_font(ax, ins_ax)
             self.set_ticks(ax, ins_ax)
             self.set_axes_position(ax, ins_ax)
+            # self.rotate_tick_labels(ax)
 
             if self.plotters.size > 1 and self.superscript:
                 self.add_superscript(ax, i)
 
-        if self.post_process:
-            self.post_process(self.fig, self.axs, **self.post_process_kwargs)
+            # Custom settings
+            if ax_modifier := self.ax_modifier.get(ax):
+                ax_modifier(self.fig, ax, **self.ax_modifier_kwargs.get(ax, {}))
+
+        # Setting in Figure level
+        if self.fig_modifier:
+            self.fig_modifier(self.fig, self.axs, **self.fig_modifier_kwargs)
 
         return self.fig, self.axs
+
+    def add_axes_colorbar(self, fig: plt.Figure, ax: plt.Axes, mappable):
+        colorbar = ax.figure.colorbar(mappable)
+        pos = copy(self.axes_position)
+        pos[0], pos[2] = 0.90, 0.05
+
+        self.insert_other_axes_into(ax, colorbar, pos)
+
+        colorbar.ax.set_ylim(-1., 1.)
+        # adjust the colorbar labels
+        colorbar.ax.set_ylabel('Pearson Correlation',
+                            fontdict={'font': self.font, 'fontsize': 28, 'fontweight': 'bold'})
+
+        # adjust the ticklabel of colorbar
+        for ticklabel in colorbar.ax.get_yticklabels():
+            ticklabel.set(font=self.font, fontsize=16)
 
     def add_superscript(self, ax, i):
         xfrac, yfrac = self._superscript_xy_frac
@@ -123,6 +195,14 @@ class SciPlot:
         x, y = (1 - xfrac) * xb + xfrac * xu, (1 - yfrac) * yb + yfrac * yu
 
         ax.text(x, y, s, fontdict=fontdict)
+
+    @staticmethod
+    def axes_modifier_container(*modifiers_kwargs: tuple[Callable, dict]):
+        def wrapper(fig, ax, **kwargs):
+            for modifier, kws in modifiers_kwargs:
+                modifier(fig, ax, **kws)
+
+        return wrapper
 
     @staticmethod
     def calculate_scatter_density(xy: np.ndarray):
@@ -159,7 +239,7 @@ class SciPlot:
         i, j = subplotspec.rowspan[0], subplotspec.colspan[0]
         nrows, ncols = subplotspec.get_gridspec().nrows, subplotspec.get_gridspec().ncols
         # i, j = map(int, np.where(self.axs == ax))
-        left_boundary, bottom_boundary = SciPlot.calc_active_span(nrows, ncols, i, j)
+        left_boundary, bottom_boundary = SciPlotter.calc_active_span(nrows, ncols, i, j)
 
         left = left_boundary + 1 / ncols * left
         bottom = bottom_boundary + 1 / nrows * bottom
@@ -168,8 +248,7 @@ class SciPlot:
 
         return left, bottom, width, height
 
-    @classmethod
-    def insert_other_axes_into(cls, main_ax: plt.Axes, insert_ax: plt.Axes, relative_pos: Union[list, np.ndarray]):
+    def insert_other_axes_into(self, main_ax: plt.Axes, insert_ax: plt.Axes, relative_pos: Union[list, np.ndarray]):
         """
         insert other Axes into the main Axes, given the given position relating to span of main Axes as the base.
         Args:
@@ -178,65 +257,99 @@ class SciPlot:
             relative_pos: the relative position for the main Axes that the inserted Axes places. all values of
              the relative_pos is from 0 to 1.
         """
-        cls.set_axes_position(insert_ax, pos=cls.calc_subaxes_pos(main_ax, *relative_pos))
+        self.set_axes_position(insert_ax, pos=self.calc_subaxes_pos(main_ax, *relative_pos))
 
-    @classmethod
-    def set_axes_position(cls, *axs, pos: Optional[Union[np.ndarray, Sequence]] = None):
+    def rotate_tick_labels(self, ax: plt.Axes):
+        if degree := (self.kwargs.get('ticklables_rotation') or self.kwargs.get('xticklabels_rotation')):
+            for xticklabels in ax.get_xticklabels():
+                xticklabels.set_rotation(degree)
+
+        if degree := (self.kwargs.get('ticklables_rotation') or self.kwargs.get('yticklabels_rotation')):
+            for yticklabels in ax.get_yticklabels():
+                yticklabels.set_rotation(degree)
+
+    @axes_setting
+    def set_axes_position(self, *axs, pos: Optional[Union[np.ndarray, Sequence]] = None):
         if not pos:
-            pos = cls.calc_subaxes_pos(axs[0], *cls.default_axes_pos)
+            pos = self.calc_subaxes_pos(axs[0], *self.axes_position)
 
         for ax in axs:
             if isinstance(ax, plt.Axes):
                 ax.set_position(pos)
 
+    @axes_setting
     def set_xylabel_font(self, main_ax: plt.Axes, ins_ax: plt.Axes = None):
         """"""
 
         def to_set(ax):
-            ax.xaxis.label.set_font(self._font)
-            ax.xaxis.label.set_fontsize(self._xy_label_fontsize)
+            ax.xaxis.label.set_font(self.font)
+            ax.xaxis.label.set_fontsize(self.xy_label_fontsize)
             ax.xaxis.label.set_fontweight('bold')
 
-            ax.yaxis.label.set_font(self._font)
-            ax.yaxis.label.set_fontsize(self._xy_label_fontsize)
+            ax.yaxis.label.set_font(self.font)
+            ax.yaxis.label.set_fontsize(self.xy_label_fontsize)
             ax.yaxis.label.set_fontweight('bold')
 
         to_set(main_ax)
         if ins_ax:
             to_set(ins_ax)
 
+    @axes_setting
     def set_spline(self, main_ax: plt.Axes, ins_ax: plt.Axes = None):
         for _, spline in main_ax.spines.items():
-            spline.set_linewidth(self._splinewidth)
+            spline.set_linewidth(self.splinewidth)
 
         if ins_ax:
             for _, spline in ins_ax.spines.items():
-                spline.set_linewidth(self._splinewidth)
+                spline.set_linewidth(self.splinewidth)
 
-    def set_ticks(self, main_ax: plt.Axes, ins_ax: plt.Axes = None):
+    @axes_setting
+    def set_ticks(self, main_ax: plt.Axes, twin_ax: plt.Axes = None):
+        """
+        Set the tick properties
+        Args:
+            main_ax: the main Axes object
+            twin_ax: the twin Axes object
+        """
         def to_set(ax):
-            ax.tick_params(width=self._splinewidth, length=self._splinewidth * 2)
+            ax.tick_params(width=self.splinewidth, length=self.splinewidth * 2)
 
-            for tick in ax.xaxis.get_ticklabels():
-                tick.set(font=self._font, fontsize=self._tick_fontsize)
-            for tick in ax.yaxis.get_ticklabels():
-                tick.set(font=self._font, fontsize=self._tick_fontsize)
+            for xtick_labels in ax.xaxis.get_ticklabels():
+                xtick_labels.set(
+                    font=self.font,
+                    fontsize=self.kwargs.get(
+                        'xticklables_fontsize',
+                        self.kwargs.get('ticklables_fontsize', self._ticklabels_fontsize)
+                    ),
+                    rotation=self.kwargs.get('ticklables_rotation') or self.kwargs.get('xticklabels_rotation')
+                )
+            for ytick_labels in ax.yaxis.get_ticklabels():
+                ytick_labels.set(
+                    font=self.font,
+                    fontsize=self.kwargs.get(
+                        'yticklabels_fontsize',
+                        self.kwargs.get('ticklabels_fontsize', self._ticklabels_fontsize)
+                    ),
+                    rotation=self.kwargs.get('ticklables_rotation') or self.kwargs.get('yticklabels_rotation')
+                )
 
         to_set(main_ax)
-        if ins_ax:
-            to_set(ins_ax)
+        if twin_ax:
+            to_set(twin_ax)
 
 
-class PlotTemplet:
+class Plot:
     """"""
-    def __call__(self, ax: plt.Axes):
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        """
+        Args:
+            ax: the Axes object to be made Plots
+            sciplot: the SciPlot object to make Plots
+        """
         raise NotImplemented
 
-    def axes_post_process(self, ax):
-        """ Custom additional process for axes after the basis ones """
 
-
-class R2Regression(PlotTemplet):
+class R2Regression(Plot):
     def __init__(
             self, xy1, xy2=None, unit: str = None, xy_lim: Union[Sequence, np.ndarray] = None,
             s1=None, s2=None, c1=None, c2='green', marker1=None, marker2=None, err1=None, err2=None,
@@ -300,7 +413,7 @@ class R2Regression(PlotTemplet):
             self.r2_2 = r2_score(xy2[0], xy2[1])
             self.kwargs.update({'alpha': 0.3})
         else:
-            self.c1 = SciPlot.calculate_scatter_density(xy1)
+            self.c1 = SciPlotter.calculate_scatter_density(xy1)
 
         self.kwargs.update(kwargs)
 
@@ -311,8 +424,11 @@ class R2Regression(PlotTemplet):
         ax.set_autoscale_on(False)
         ax.plot(xlim, ylim, linewidth=3, c='black')
 
-    def __call__(self, ax: plt.Axes):
-        """"""
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        """
+        Args:
+            sciplot:
+        """
         if isinstance(self.err1, np.ndarray):
             ax.errorbar(self.xy1[0], self.xy1[1], fmt='o', yerr=self.err1)
         else:
@@ -333,10 +449,10 @@ class R2Regression(PlotTemplet):
         self.add_diagonal(ax)
 
         if self.xy2 is None:
-            SciPlot.add_text(ax, 0.025, 0.875, r"$\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}", {'fontsize': 20})
+            SciPlotter.add_text(ax, 0.025, 0.875, r"$\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}", {'fontsize': 20})
         else:
-            SciPlot.add_text(ax, 0.025, 0.850, r"train $\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}", {'fontsize': 20})
-            SciPlot.add_text(ax, 0.025, 0.775, r"test $\mathdefault{R^2}$=" + f"{round(self.r2_2, 3)}", {'fontsize': 20})
+            SciPlotter.add_text(ax, 0.025, 0.850, r"train $\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}", {'fontsize': 20})
+            SciPlotter.add_text(ax, 0.025, 0.775, r"test $\mathdefault{R^2}$=" + f"{round(self.r2_2, 3)}", {'fontsize': 20})
 
         ax.legend(['train set', 'test set'], loc='lower right', fontsize='xx-large')
 
@@ -346,22 +462,24 @@ class FeatureImportance:
         self.feature_name = feature_name
         self.imp = imp
 
-    def __call__(self, ax: plt.Axes):
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         ax.bar(self.feature_name, self.imp)
-        for label in ax.get_xticklabels():
-            label.set_rotation(60)
+        sciplot.kwargs['xticklabels_rotation'] = sciplot.kwargs.get('xticklabels_rotation', 60)
+
+        ax.set_xlabel('Features No.')
+        ax.set_ylabel(r'Importance')
 
 
-class HierarchicalTree(PlotTemplet):
+class HierarchicalTree(Plot):
     def __init__(self, x: np.ndarray, xlabels: list[str], color_threshold=0.6):
         if x.shape[1] != len(xlabels):
             raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
 
         self.x = x
-        self.xlabels = xlabels
+        self.xlabels = np.array(xlabels)
         self.threshold = color_threshold
 
-    def __call__(self, ax: plt.Axes):
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         abs_correlation_mat = np.abs(np.corrcoef(self.x.T))
 
         # Perform hierarchical clustering
@@ -374,10 +492,10 @@ class HierarchicalTree(PlotTemplet):
             collection.set_linewidth(1.0)
 
         for label in ax.get_xticklabels():
-            label.set_rotation(60)
+            label.set_rotation(sciplot.kwargs.get('xticklabels_rotation', 60))
 
 
-class Hist(PlotTemplet):
+class Hist(Plot):
     def __init__(self, x, bins=None, range=None, density=False, weights=None, cumulative=False, bottom=None,
                  histtype='bar', align='mid', orientation='vertical', rwidth=None, log=False, color='sandybrown',
                  label=None, stacked=False, *, data=None, **kwargs):
@@ -387,7 +505,7 @@ class Hist(PlotTemplet):
         kwargs.pop('kwargs')
         self.kwargs = kwargs
 
-    def __call__(self, ax: plt.axes):
+    def __call__(self, ax: plt.axes, sciplot: SciPlotter = None):
         n, bins, patches = ax.hist(**self.kwargs)
 
         ax.set_xlabel(r'Capacity $\mathdefault{(mmol CO_2/g)}$')
@@ -401,11 +519,11 @@ class Hist(PlotTemplet):
         return ax_twin
 
 
-class Pearson(PlotTemplet):
+class Pearson(Plot):
     """ Performing univariate analysis and calculate the Pearson coeffiecient """
     def __init__(self, xy, xlabel, ylabel):
         self.xy = xy
-        self.c = SciPlot.calculate_scatter_density(xy)
+        self.c = SciPlotter.calculate_scatter_density(xy)
 
         self.xlabel = xlabel
         self.ylabel = ylabel
@@ -422,7 +540,7 @@ class Pearson(PlotTemplet):
         line_x, line_y = self.fit_line(self.xy[0], self.xy[1], ax)
         ax.plot(line_x, line_y, linewidth=2.0, color="black")
 
-    def __call__(self, ax: plt.Axes):
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         ax.scatter(self.xy[0], self.xy[1], c=self.c)
         coeff = r_regression(self.xy[0].reshape(-1, 1), self.xy[1])[0]
 
@@ -431,11 +549,11 @@ class Pearson(PlotTemplet):
         ax.set_xlabel(self.xlabel)
         ax.set_ylabel(self.ylabel)
 
-        SciPlot.add_text(ax, 0.125, 0.900, f"Pearson R={round(coeff, 3)}", {'fontsize': 48})
+        SciPlotter.add_text(ax, 0.125, 0.900, f"Pearson R={round(coeff, 3)}", {'fontsize': 48})
 
 
-class PearsonMatrix(PlotTemplet):
-    def __init__(self, x: np.ndarray, xlabels: list[str], show_values=True, num_round=3):
+class PearsonMatrix(Plot):
+    def __init__(self, x: np.ndarray, xlabels: list[str], show_values=False, num_round=3, colorbar=True):
         if x.shape[1] != len(xlabels):
             raise AssertionError('the row counts of "x" should be equal to length of "xlabels"')
 
@@ -443,22 +561,25 @@ class PearsonMatrix(PlotTemplet):
         self.xlabels = xlabels
         self.round = num_round
         self.show_values = show_values
+        self.colorbar = colorbar
 
-    def __call__(self, ax: plt.Axes):
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         p_mat = np.corrcoef(self.x.T)
-        im = ax.imshow(p_mat)
+        mappable = ax.imshow(p_mat, cmap='coolwarm')
 
         ax.xaxis.set_major_locator(plt.MultipleLocator())
         ax.yaxis.set_major_locator(plt.MultipleLocator())
 
-        ax.xaxis.set_ticks(range(len(self.xlabels)), self.xlabels)
-        ax.yaxis.set_ticks(range(len(self.xlabels)), self.xlabels)
-
-        # ax.set_xticklabels(self.xlabels)
-        # ax.set_yticklabels(self.xlabels)
-
-        for label in ax.get_xticklabels():
-            label.set_rotation(60)
+        # Design the xy ticks
+        if self.x.shape[1] == len(self.xlabels) <= 15:
+            ax.xaxis.set_ticks(range(len(self.xlabels)), self.xlabels)
+            ax.yaxis.set_ticks(range(len(self.xlabels)), self.xlabels)
+        elif self.x.shape[1] <= 15:
+            ax.xaxis.set_ticks(range(len(self.xlabels)), len(self.xlabels))
+            ax.yaxis.set_ticks(range(len(self.xlabels)), len(self.xlabels))
+        else:
+            ax.xaxis.set_ticks(range(0, len(self.xlabels), 5), range(0, len(self.xlabels), 5))
+            ax.yaxis.set_ticks(range(0, len(self.xlabels), 5), range(0, len(self.xlabels), 5))
 
         # Add the pearson coefficient for each image block
         if self.show_values == True:
@@ -466,8 +587,12 @@ class PearsonMatrix(PlotTemplet):
                 ax.text(i, j, round(p_mat[i, j], self.round), ha='center', va='center',
                         color='w' if p_mat[i, j] < 0.5 else 'b')
 
+        if self.colorbar:
+            sciplot.ax_modifier[ax] = SciPlotter.axes_modifier_container(
+                (sciplot.add_axes_colorbar, {'mappable': mappable}))
 
-class SHAPlot(PlotTemplet):
+
+class SHAPlot(Plot):
     """ this class is used to make plots for analyzing the SHAP results """
     _plot_type = Literal['bar', 'beeswarm', 'scatter', 'waterfull']
 
@@ -478,8 +603,11 @@ class SHAPlot(PlotTemplet):
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, ax: plt.Axes):
-        """"""
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        """
+        Args:
+            sciplot:
+        """
         plt.sca(ax)  # Set current Axes to the given
 
         fig = plt.gcf()
@@ -487,21 +615,29 @@ class SHAPlot(PlotTemplet):
         fig_params = {'figwidth': fig.get_figwidth(), 'figheight': fig.get_figheight(), 'dpi':  fig.get_dpi()}
 
         if self.plot_type == 'bar':
-            self._bar(ax)
+            self._bar(ax, sciplot)
 
         elif self.plot_type == 'beeswarm':
-            self._beeswarm(ax)
+            self._beeswarm(ax, sciplot)
 
         fig.set(**fig_params)  # recover the attributes of whole figure.
 
-    def _bar(self, ax: plt.Axes):
+    def _bar(self, ax: plt.Axes, sciplot: SciPlotter):
         """ make the SHAP bar plot """
         shap.plots.bar(self.exp, *self.args, **self.kwargs, show=False)
 
         for bar_value_text in ax.texts:
             bar_value_text.set(font='Arial', fontsize=20, fontweight='bold')
 
-    def _beeswarm(self, ax: plt.Axes):
+        for yticklabels in ax.get_yticklabels():
+            yticklabels.set(color='black', alpha=1.0)
+
+        pos = copy(sciplot.axes_position)
+        pos[0] = 0.18
+        sciplot.set_axes_position(ax, pos=sciplot.calc_subaxes_pos(ax, *pos))
+        sciplot.kwargs['not_set_axes_position'] = True
+
+    def _beeswarm(self, ax: plt.Axes, sciplot: SciPlotter):
         """ make the SHAP beeswarm plot """
         shap.plots.beeswarm(self.exp, *self.args, **self.kwargs, show=False)
 
@@ -510,9 +646,9 @@ class SHAPlot(PlotTemplet):
         colorbar = [a for a in fig.get_axes() if a.get_label() == '<colorbar>'][0]
 
         # adjust the position for colorbar
-        pos = copy(SciPlot.default_axes_pos)
+        pos = copy(sciplot.axes_position)
         pos[0], pos[2] = 0.90, 0.05
-        SciPlot.insert_other_axes_into(ax, colorbar, pos)
+        sciplot.insert_other_axes_into(ax, colorbar, pos)
 
         # adjust the colorbar labels
         colorbar.set_ylabel('Feature Value (Normalized)',
@@ -550,7 +686,7 @@ class SHAPlot(PlotTemplet):
 
         x_frac, y_frac = -0.05, 1.05  # the superscript of Axes
         for i, ax in enumerate(axs.flatten()):
-            SciPlot.add_text(ax, x_frac, y_frac, string.ascii_lowercase[i], SciPlot.superscript_dict)
+            SciPlotter.add_text(ax, x_frac, y_frac, string.ascii_lowercase[i], SciPlotter.superscript_dict)
 
             if ax.get_xlabel() == 'SHAP value (impact on model output)':
                 ax.set_xlabel('SHAP value', fontdict={'fontsize': 28})
@@ -558,20 +694,20 @@ class SHAPlot(PlotTemplet):
                 ax.set_xlabel(ax.get_xlabel(), fontdict={'fontsize': 28})
 
             ticks = []
-            for tick in ax.xaxis.get_ticklabels():
-                if marcher.fullmatch(tick.get_text()):
-                    tick.set(text=f'other {tick.get_text().split()[2]}', fontsize=22)
+            for tick_label in ax.xaxis.get_ticklabels():
+                if marcher.fullmatch(tick_label.get_text()):
+                    tick_label.set(text=f'other {tick_label.get_text().split()[2]}', fontsize=22)
                 else:
-                    tick.set(text=autowrap(tick.get_text()), fontsize=22)
-                ticks.append(tick)
+                    tick_label.set(text=autowrap(tick_label.get_text()), fontsize=22)
+                ticks.append(tick_label)
             ax.set_xticklabels(ticks)
 
             ticks = []
-            for tick in ax.yaxis.get_ticklabels():
-                if marcher.fullmatch(tick.get_text()):
-                    tick.set(text=f'other {tick.get_text().split()[2]}', fontsize=22)
+            for tick_label in ax.yaxis.get_ticklabels():
+                if marcher.fullmatch(tick_label.get_text()):
+                    tick_label.set(text=f'other {tick_label.get_text().split()[2]}', fontsize=22, rotation=45)
                 else:
-                    tick.set(text=autowrap(tick.get_text()), fontsize=22)
+                    tick_label.set(text=autowrap(tick_label.get_text()), fontsize=22, rotation=45)
 
-                ticks.append(tick)
+                ticks.append(tick_label)
             ax.set_yticklabels(ticks)

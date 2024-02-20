@@ -8,13 +8,26 @@ python v3.9.0
 """
 from pathlib import Path
 from unittest import TestCase
+import inspect
 
 import numpy as np
-from openbabel import openbabel as op, pybel as pb
+import logging
 
 
 import hotpot as hp
+import test
 from hotpot.cheminfo import *
+
+logging.basicConfig(level=logging.INFO)
+
+
+def find_out_cxx_error_attr(obj):
+    for attr_name in [an for an in dir(obj) if not an.startswith('_')]:
+        print(f'{obj}.{attr_name}:')
+        try:
+            print(getattr(obj, attr_name))
+        except:
+            print('Got a python Error')
 
 
 class TestChem(TestCase):
@@ -139,3 +152,51 @@ class TestChem(TestCase):
     def test_thermo(self):
         mol = Molecule.read_from('c1ccccc1', 'smi')
         tmo = mol.get_thermo(T=298.15, P=101375)
+
+    def test_solvents(self):
+        mol = Molecule.read_from('CO.OC(=O)C', 'smi')
+        sr = mol.add_atom('Sr')
+        mol.normalize_labels()
+        mol.add_bond(mol.atom('O1'), sr, 1)
+        mol.add_bond(mol.atom('O2'), sr, 1)
+        mol.build_3d()
+        #
+        find_out_cxx_error_attr(mol)
+        find_out_cxx_error_attr(sr)
+
+        # mol.remove_solvents()
+        #
+        # print(mol.atoms)
+        # print(dict(hp.cheminfo._chem._molecule_dict))
+
+    def test_remove_polar_hydrogens(self):
+        mol = hp.Molecule.read_from("O=C(O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)O)C=C1", 'smi')
+        mol.add_hydrogens()
+        mol.remove_polar_hydrogens()
+
+        self.assertEqual(mol.charge, 2)
+
+    def test_build_3d(self):
+        mol = Molecule.read_from("CC1=CC(=NC=C1)C2=NC=CC(=C2)C", 'smi')
+        mol.build_3d()
+        mol.localed_optimize(steps=500)
+
+        mol.writefile('mol2', test.test_root.joinpath('output/build3d.mol2'))
+        print(mol.smiles)
+
+    def test_templates(self):
+        """"""
+        print(hp.Molecule.get_templates_list())
+        print(hp.Molecule.get_templates_mol('VO2').charge)
+        print(hp.Molecule.get_templates_mol('VO2').atoms)
+
+    def test_calculate_molecule_charge(self):
+        mol = Molecule.read_from('CO[Sr]OC(=O)', 'smi')
+        self.assertRaises(AttributeError, mol.calculate_molecule_charges)
+        print(mol.atoms)
+        mol.add_hydrogens()
+        print(mol.atoms)
+        charges = mol.calculate_molecule_charges()
+        print(charges)
+        print(mol, mol.charge)
+

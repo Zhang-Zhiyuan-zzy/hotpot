@@ -1,5 +1,6 @@
 # Machine Learning workflow
 
+## API Documentation
 <h4><font color=#b8860s>**class**</font> MachineLearning(work_dir: Pathlike, 
 data: pandas.DataFrame, features: Union[Sequence[str], numpy.ndarray[str]], 
 target: Union[str, list[str]], estimator: Optional=GradientBoostingRegressor, 
@@ -262,3 +263,33 @@ Run the default machine learning workflow
 
   Calculate SHAP value in given `estimator`, `essential features`, and `explainer`, where `estimator`
   and `explainer` are specified in the initialization of `MachineLearning` instance.
+
+## Examples
+
+```python
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from hotpot.plugins.ml.wf import MachineLearning
+
+excel_path = 'path/to/excel/data'
+work_dir = '/the/dir/to/save/result'
+data = pd.read_excel('')
+feature_names = ['feature1', 'feature2', 'feature3', ...]
+target_name = 'target_name'
+
+hypers = {
+    'n_estimators': 150,
+    'max_depth': 15,
+    '...': 'values'
+}
+
+model = RandomForestRegressor(**hypers)
+
+ml_workflow = MachineLearning(
+    work_dir=work_dir,
+    data=data,
+    features=feature_names,
+    target=target_name,
+    estimator=model
+)
+```

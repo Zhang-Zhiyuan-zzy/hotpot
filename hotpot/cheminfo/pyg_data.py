@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3408a2849d63e7cd3a48fb6d4904833be9df46d77e353a6f82a8c7da3183a7a5
-size 211
+"""
+python v3.9.0
+@Project: hotpot
+@File   : pyg_data
+@Auther : Zhiyuan Zhang
+@Data   : 2024/8/23
+@Time   : 8:44
+"""
+from torch_geometric.data import Data
+from torch_geometric.utils import from_smiles

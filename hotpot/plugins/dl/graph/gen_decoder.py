@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:66ec7a9745a7de63b23a97660ec030be68e61fcf34ad8bbb3bdcb94014b99e57
-size 442
+"""
+python v3.9.0
+@Project: graph.py
+@File   : gen_decoder
+@Auther : Zhiyuan Zhang
+@Data   : 2024/9/10
+@Time   : 14:51
+"""
+import torch
+import torch.nn as nn
+
+
+class NodeEdgeDecoder(nn.Module):
+    """ Decoder a random vector with Gaussian distribution to a graph with a node-edge structure """
+    def __init__(self):
+        super(NodeEdgeDecoder, self).__init__()
+
+    def forward(self, z: torch.Tensor):
+        """"""

@@ -1,3 +1,3 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c9f569b1ffe2b917d4dbb02516a1c0f61e18f0ded503ec4958f2b78acb5c40a4
-size 63
+include LICENSE
+include README.md
+graft hotpot/dataset/data

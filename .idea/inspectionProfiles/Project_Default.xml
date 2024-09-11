@@ -1,3 +1,45 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c382822a9d9313aa6c43eec29236235126b881e86ebb376b34a1ea3fd52eae44
-size 1891
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="5">
+            <item index="0" class="java.lang.String" itemvalue="LibTorch" />
+            <item index="1" class="java.lang.String" itemvalue="openbabel" />
+            <item index="2" class="java.lang.String" itemvalue="scipy" />
+            <item index="3" class="java.lang.String" itemvalue="numpy" />
+            <item index="4" class="java.lang.String" itemvalue="lammps" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N802" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="numpy.ndarray" />
+          <option value="numpy.array" />
+          <option value="numpy.concatenate" />
+          <option value="numpy.random" />
+          <option value="numpy.set_printoptions" />
+          <option value="numpy.zeros" />
+          <option value="numpy.logical_not" />
+          <option value="numpy.linalg" />
+          <option value="numpy.save" />
+          <option value="numpy.reshape" />
+          <option value="numpy.arccos" />
+          <option value="numpy.dot" />
+          <option value="numpy.pi" />
+          <option value="numpy.vstack" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

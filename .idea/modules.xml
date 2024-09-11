@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9f0c66e7079c8e16135205ee0d95a0cd83d7840c63c11c972b0e895131ce6dad
-size 265
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/hp5.iml" filepath="$PROJECT_DIR$/.idea/hp5.iml" />
+    </modules>
+  </component>
+</project>

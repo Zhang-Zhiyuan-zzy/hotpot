@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:fd62f950de20e8b826e5166a93b977ba0a466cd099db78ff2b8fa6c188c5ac23
-size 368
+# Hotpot Command Documentation
+This Doc describe the utilization of `hotpot` command in terminals
+
+## Jobs list
+The `hotpot` supported jobs contains:
+- `convert`: chemical file conversion
+- `optimize`: parameters optimization
+- `ml_train`: train machine learning
+
+## Chemical files conversion `hotpot convert`
+
+## Parameters optimization `hotpot optimize`

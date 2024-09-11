@@ -1,3 +1,51 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2fc8794384d47c77c36d37ffdec14319860a0a1a0a16d40236cddc53056d4f13
-size 1130
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hotpot-zzy"
+version = "0.5.0.0"
+readme = "README.md"
+authors = [
+    { name = "Zhiyuan Zhang", email = "ZhiyuanZhang_scu@163.com" },
+    { name = "Yue Dong", email = "1320801310@qq.com" },
+    { name = "Yuqing Qiu", email = "2022223070045@stu.scu.edu.cn" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "thermo",
+    "cclib",
+    "tqdm",
+    'rdkit',
+    'psutil',
+    'rdkit',
+    "dpdata",
+    "matplotlib",
+    "scikit-learn",
+    'torch',
+    'torch-geometric',
+    'gpytorch',
+    'shap',
+    'seaborn',
+    'xgboost',
+    'pyspark',
+    'openpyxl'
+]
+
+description = "A python package designed to communicate among various chemical and materials calculational tools"
+
+[tool.setuptools]
+include-package-data = true
+
+[project.urls]
+"Homepage" = "https://github.com/Zhang-Zhiyuan-zzy/hotpot"
+
+# Create a user-friendly CLI executable
+[project.scripts]
+hotpot = "hotpot.__main__:main"

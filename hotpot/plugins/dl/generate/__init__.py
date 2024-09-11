@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:53abe95589ba124dde497fefe7c86b2aaf22256dbd643e7461750513d6a2ce0c
-size 128
+"""
+python v3.9.0
+@Project: hotpot
+@File   : __init__.py
+@Auther : Zhiyuan Zhang
+@Data   : 2024/8/16
+@Time   : 9:24
+"""

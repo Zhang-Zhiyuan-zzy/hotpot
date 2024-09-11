@@ -1,3 +1,16 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6e49d2e376b9433be0684595c403c89d671afc21f4b8a37021589693bb8bb030
-size 299
+"""
+python v3.9.0
+@Project: hp5
+@File   : __init__.py
+@Auther : Zhiyuan Zhang
+@Data   : 2024/6/5
+@Time   : 16:55
+"""
+import os
+import sys
+
+# add package root
+package_root = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(package_root)
+
+from .cheminfo.core import Molecule

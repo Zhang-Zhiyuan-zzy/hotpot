@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d9db7d37eb020e3fae1f60cc0fa40da2f518d7e12602d5d299cc692bbf190e8b
-size 126
+"""
+python v3.9.0
+@Project: hp5
+@File   : __init__.py
+@Auther : Zhiyuan Zhang
+@Data   : 2024/6/28
+@Time   : 10:13
+"""

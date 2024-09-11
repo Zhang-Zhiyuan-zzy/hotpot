@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:bc2244ceebaba6c356c86bd224e7991baf7c0578036a2f0b7a72b78203e5ad26
-size 208
+"""
+python v3.9.0
+@Project: hp5
+@File   : __init__.py
+@Auther : Zhiyuan Zhang
+@Data   : 2024/7/29
+@Time   : 10:20
+
+Notes:
+    Evolutionary algorithm
+"""
+from .core import Earth, Species, Individual

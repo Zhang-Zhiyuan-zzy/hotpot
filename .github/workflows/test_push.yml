@@ -1,3 +1,56 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2e4e918f526d69168455ce2e26e9da4abe333a82cd323fe883aae1f1c780efe6
-size 1350
+name: Test Workflow
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - name: To workdir
+        uses: actions/checkout@v3
+
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
+            hashFiles('etc/example-environment.yml') }}
+
+      - name: Set up conda-env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: repo-test-env
+          auto-update-base: false
+          environment-file: environment.yml
+          python-version: '3.9'
+
+      - run: |
+          conda info
+          conda list
+        working-directory: ${{ github.workspace }}
+
+      - name: Install coverage
+        run: pip install coverage
+
+      - name: Run tests by coverage
+        run: |
+          coverage run --source hotpot -m unittest
+          coverage xml -i
+        env:
+          COVERAGE_RUN: True
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

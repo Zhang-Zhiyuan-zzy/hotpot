@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:40eac8a1dc73e96309d47ee914b780def4bfc00acaa9de6d7e07a7651d08035c
-size 268
+"""
+python v3.9.0
+@Project: hp5
+@File   : __init__.py
+@Auther : Zhiyuan Zhang
+@Data   : 2024/6/5
+@Time   : 19:15
+"""
+import os
+
+test_dir = os.path.dirname(__file__)
+input_dir = os.path.join(test_dir, 'input')
+output_dir = os.path.join(test_dir, 'output')

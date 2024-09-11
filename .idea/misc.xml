@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d5711c0daef4c3c027b2de0035c6460f6257e11c0835cb796ec3331328c34dab
-size 266
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="sdkName" value="hp" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="hp" project-jdk-type="Python SDK" />
+</project>

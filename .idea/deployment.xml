@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a83bef258a5a2fac23b9372f20748dcb6163045c2cdb4a00bd7f6965dc08add3
-size 880
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="zz1@3090" confirmBeforeUploading="false" autoUploadExternalChanges="true">
+    <option name="confirmBeforeUploading" value="false" />
+    <serverData>
+      <paths name="logK">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="zz1@3090">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/zz1/hp" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/zz1/proj/Gibbs" local="$PROJECT_DIR$/../Papers/Gibbs with logK" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

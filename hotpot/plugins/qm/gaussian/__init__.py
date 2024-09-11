@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1ac100dd9b639f1f293a2cdbda47205bad905c40644307c248fb8f088db0cc83
-size 162
+"""
+python v3.9.0
+@Project: hp5
+@File   : __init__.py
+@Auther : Zhiyuan Zhang
+@Data   : 2024/6/28
+@Time   : 10:09
+"""
+from ._works import ResultsExtract

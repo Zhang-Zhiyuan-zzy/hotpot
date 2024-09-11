@@ -1,3 +1,17 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2669a74d5b5210f400841f1193f4485bc42768e876e1b9102560c02eb8cc9407
-size 329
+"""
+python v3.9.0
+@Project: hotpot0.5.0
+@File   : miner
+@Auther : Zhiyuan Zhang
+@Data   : 2024/6/4
+@Time   : 21:00
+Note: This module requires CCDC Python API, see https://www.ccdc.cam.ac.uk/
+"""
+import ccdc
+from ccdc import io
+from ccdc.molecule import Molecule
+
+
+def remove_solvents(mol: Molecule):
+    """"""
+

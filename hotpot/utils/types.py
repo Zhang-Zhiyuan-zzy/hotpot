@@ -15,3 +15,15 @@ import torch
 
 ArrayLike = Union[Sequence, np.ndarray, torch.Tensor]
 Vector = Sequence[Union[int, float]]
+
+
+class ModelLike(Protocol):
+    """ a typing Notation for object like sklearn models """
+    def fit(self, *args, **kwargs) -> None:
+        ...
+
+    def predict(self, *args, **kwargs) -> Any:
+        ...
+
+    def score(self, *args, **kwargs) -> float:
+        ...

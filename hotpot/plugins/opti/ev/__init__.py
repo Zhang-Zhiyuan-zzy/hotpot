@@ -9,4 +9,4 @@ python v3.9.0
 Notes:
     Evolutionary algorithm
 """
-from .core import Earth, Species, Individual
+from .core import Earth, Species, Individual, GeneSpace, ml_optimizer, MachineLearningOptimizer

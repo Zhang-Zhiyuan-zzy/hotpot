@@ -32,7 +32,7 @@ class LivingFunc:
     def healthy_living(earth):
         to_die = []
         for individual in earth.individuals:
-            if individual.fitness < earth.living_threshold:
+            if individual.fitness < earth.fitness_threshold:
                 to_die.append(individual)
 
         return to_die

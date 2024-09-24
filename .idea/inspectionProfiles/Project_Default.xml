@@ -24,20 +24,7 @@
     <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredIdentifiers">
         <list>
-          <option value="numpy.ndarray" />
-          <option value="numpy.array" />
-          <option value="numpy.concatenate" />
-          <option value="numpy.random" />
-          <option value="numpy.set_printoptions" />
-          <option value="numpy.zeros" />
-          <option value="numpy.logical_not" />
-          <option value="numpy.linalg" />
-          <option value="numpy.save" />
-          <option value="numpy.reshape" />
-          <option value="numpy.arccos" />
-          <option value="numpy.dot" />
-          <option value="numpy.pi" />
-          <option value="numpy.vstack" />
+          <option value="hotpot.cheminfo.core.Molecule.enum_bond_order" />
         </list>
       </option>
     </inspection_tool>

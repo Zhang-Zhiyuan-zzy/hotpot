@@ -22,7 +22,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, A
 from xgboost import XGBRegressor
 
 from hotpot.main.optimize import read_excel
-from hotpot.plugins.ml.wf import MachineLearning
+from hotpot.plugins.ml.wf import MachineLearning_
 
 _models = {
     'Regression': {
@@ -119,7 +119,7 @@ def train(args: argparse.Namespace):
             hyper = {}
         print(hyper)
 
-        ml = MachineLearning(
+        ml = MachineLearning_(
             work_dir=work_dir,
             data=pd.concat([features, target], axis=1),
             features=features.columns.tolist(),
@@ -130,7 +130,7 @@ def train(args: argparse.Namespace):
         print(features, target)
 
         ml.work()
-        print(ml.essential_features)
+        print(ml.features)
         print(ml.valid_score)
 
 
@@ -142,7 +142,7 @@ def _example_of_stability_constant(work_dir, args):
     test_indices = excel_file.parse(sheet_name='test_indices', index_col=0).values.flatten().tolist()
     essential_features = ['SMR_VSA1', 'BCUT2D_MRHI', 'groups', 'dG', 'Med(MP)', 'BCUT2D_LOGPHI']
 
-    ml = MachineLearning(
+    ml = MachineLearning_(
         work_dir=work_dir,
         data=data,
         features=data.columns.tolist()[:-1],
@@ -155,7 +155,7 @@ def _example_of_stability_constant(work_dir, args):
     )
 
     ml.work()
-    print(ml.essential_features)
+    print(ml.features)
 
 
 def _example_of_selective_factors(work_dir, args):

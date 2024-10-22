@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: hotpot-zzy
-Version: 0.5.0.0
+Version: 0.5.0.1
 Summary: A python package designed to communicate among various chemical and materials calculational tools
 Home-page: https://github.com/Zhang-Zhiyuan-zzy/hotpot
 Author: Zhiyuan Zhang
@@ -24,6 +24,12 @@ Requires-Dist: matplotlib
 Requires-Dist: scikit-learn
 Requires-Dist: torch
 Requires-Dist: torch-geometric
+Requires-Dist: gpytorch
+Requires-Dist: shap
+Requires-Dist: seaborn
+Requires-Dist: xgboost
+Requires-Dist: pyspark
+Requires-Dist: openpyxl
 
 # Hotpot
 ## Introduction

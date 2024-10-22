@@ -8,6 +8,7 @@ python v3.9.0
 """
 import logging
 import os
+import shutil
 import pickle
 import time
 from pathlib import Path
@@ -24,7 +25,9 @@ from scipy.stats import norm
 
 from scipy.cluster.hierarchy import dendrogram
 
+import sklearn
 from sklearn.base import clone, BaseEstimator
+from sklearn.neural_network import MLPRegressor
 from sklearn.inspection import PartialDependenceDisplay, permutation_importance
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, minmax_scale
 from sklearn.model_selection import LeaveOneOut, train_test_split, KFold, cross_val_predict, cross_val_score
@@ -37,7 +40,9 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.manifold import TSNE, MDS
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SequentialFeatureSelector as SFS, RFECV
+from sklearn.utils.validation import check_is_fitted
 from xgboost import XGBRegressor
+import lightgbm as lgb
 
 import shap
 import matplotlib.pyplot as plt
@@ -46,7 +51,8 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.Descriptors import CalcMolDescriptors
 
-from hotpot.plots import SciPlotter, R2Regression, PearsonMatrix, HierarchicalTree, FeatureImportance, SHAPlot, Pearson
+from hotpot.plots import SciPlotter, R2Regression, PearsonMatrix, SHAPlot, scale_axes
+from hotpot.utils.types import ModelLike
 
 
 def expectation_improvement(y, mu, sigma):
@@ -80,31 +86,92 @@ def get_rdkit_mol_descriptor(list_smi) -> pd.DataFrame:
     return pd.concat([ligand_2d, ligand_3d], axis=1)
 
 
-def _cross_val(estimator, X, y, cv=None, *args, **kwargs):
-    from sklearn.model_selection import cross_val_score as cv_score, cross_val_predict as cv_pred
-    if not cv:
-        return (
-            cv_score(estimator, X, y, cv=KFold(shuffle=True), *args, **kwargs),
-            cv_pred(estimator, X, y, cv=KFold(shuffle=True), *args, **kwargs), y
-        )
+def _cross_val(estimator, X, y, cv=None, score_metric: Literal['R2', 'MAE', 'RMSE'] = 'R2', *args, **kwargs):
+    if cv is None:
+        cv = KFold(shuffle=True)
 
+    pred = cross_val_predict(estimator, X, y, cv=cv, *args, **kwargs)
+
+    if score_metric == 'R2':
+        score = r2_score(y, pred)
+    elif score_metric == 'MAE':
+        score = mean_absolute_error(y, pred)
+    elif score_metric == 'RMSE':
+        score = np.sqrt(mean_squared_error(y, pred))
     else:
-        estimator.fit(X, y)
+        raise NotImplementedError(f"score_metric {score_metric} not implemented")
 
-        valid_score, valid_pred, valid_true = [], [], []
-        for train_index, test_index in cv.split(X, y):
-            X_train, X_test = X[train_index], X[test_index]
-            y_train, y_test = y[train_index], y[test_index]
+    return score, pred, y
+    # if not cv:
+    #     return (
+    #         cv_score(estimator, X, y, cv=KFold(shuffle=True), *args, **kwargs),
+    #         cv_pred(estimator, X, y, cv=KFold(shuffle=True), *args, **kwargs), y
+    #     )
 
-            clone(estimator).fit(X_train, y_train)
-            score = estimator.score(X_test, y_test)
-            pred = estimator.predict(X_test)
+    # else:
+    #     estimator.fit(X, y)
+    #
+    #     valid_score, valid_pred, valid_true = [], [], []
+    #     for train_index, test_index in cv.split(X, y):
+    #         X_train, X_test = X[train_index], X[test_index]
+    #         y_train, y_test = y[train_index], y[test_index]
+    #
+    #         clone(estimator).fit(X_train, y_train)
+    #         score = estimator.score(X_test, y_test)
+    #         pred = estimator.predict(X_test)
+    #
+    #         valid_score.append(score)
+    #         valid_pred.append(pred)
+    #         valid_true.append(y_test)
+    #
+    #     return np.array(valid_score), np.hstack(valid_pred), np.hstack(valid_true)
 
-            valid_score.append(score)
-            valid_pred.append(pred)
-            valid_true.append(y_test)
 
-        return np.array(valid_score), np.hstack(valid_pred), np.hstack(valid_true)
+class LinearAddLightGBM(BaseEstimator):
+    def __init__(self):
+        """"""
+        self.linear = sklearn.linear_model.LinearRegression()
+        # self.lightgbm = lgb.LGBMRegressor()
+        self.lightgbm = GradientBoostingRegressor()
+        self.linear_feature_index = None
+        self.lightgbm_feature_index = None
+
+        self.delta_y = None
+
+    def __call__(self, *args, **kwargs):
+        return self.predict(*args, **kwargs)
+
+    def fit(
+            self, X, y=None,
+            linear_feature_index: Union[Sequence[int], np.ndarray] = None,
+            lightgbm_feature_index: Union[Sequence[int], np.ndarray] = None
+    ):
+        """"""
+        if linear_feature_index is None:
+            self.linear_feature_index = np.arange(X.shape[1])
+        else:
+            self.linear_feature_index = np.array(linear_feature_index)
+
+        if lightgbm_feature_index is None:
+            self.lightgbm_feature_index = np.arange(X.shape[1])
+        else:
+            self.lightgbm_feature_index = np.array(lightgbm_feature_index)
+
+
+        self.linear.fit(X[:, self.linear_feature_index], y)
+        self.delta_y = y - self.linear.predict(X[:, self.linear_feature_index])
+        self.lightgbm.fit(X[:, self.lightgbm_feature_index], self.delta_y)
+
+    def predict(self, X):
+        return self.linear.predict(X[:, self.linear_feature_index]) + self.lightgbm.predict(X[:, self.lightgbm_feature_index])
+
+    def score(self, X, y=None):
+        """"""
+        return r2_score(y, self.predict(X))
+
+    @property
+    def linear_coeff_(self):
+        return self.linear.coef_
 
 
 class CrossValidation:
@@ -696,7 +763,7 @@ class MachineLearning:
         print(f'The performance in 5fold cross validation:')
         print(f'\t{self.valid_score}')
 
-        r2_plot = R2Regression([self.valid_true, self.valid_pred])
+        r2_plot = R2Regression([self.valid_true, self.valid_pred], to_cv=True)
         sciplot = SciPlotter(r2_plot)
 
         fig, axs = sciplot()
@@ -962,6 +1029,7 @@ class MachineLearning_:
                 than this threshold will be added into the initial essential feature collection.
             skip_feature_reduce (bool, optional): Whether to skip feature reduction procedure
             hyper_optimizer:
+            dir_exists (bool, optional): whether to allow stored data in an existing directory.
         """
         self.work_dir = Path(work_dir)
         self.picture_dir = self.work_dir.joinpath('pictures')
@@ -1001,6 +1069,8 @@ class MachineLearning_:
         self.pearson_mat_dict = None
         self.clustered_maps = None
         self.clustering = None
+        self.pca_features = None
+        self.pca_X = None
         self.cv_best_metric = None,
         self.how_to_essential = None
 
@@ -1061,6 +1131,20 @@ class MachineLearning_:
 
         return list(features)
 
+    def _feature_type_to_index(self, type_name: str):
+        return self._feature_types.index(type_name)
+
+    def _get_feature_and_X(self, type_name: str):
+        i = self._feature_type_to_index(type_name)
+        feature_names = self._feature_names[i]
+        X = self._XS[i]
+
+        return feature_names, X
+
+    @staticmethod
+    def feature_names_to_indices_(feature_list: list, get_names: list):
+        return np.array([feature_list.index(n) for n in get_names])
+
     def _feature_names_to_indices(self, names: Sequence[str]) -> np.ndarray:
         return np.array([self.features.index(n) for n in names])
 
@@ -1075,7 +1159,14 @@ class MachineLearning_:
             print("Creating work directory: {}".format(self.work_dir))
             self.work_dir.mkdir()
         elif os.listdir(self.work_dir):
-            raise IOError('Work directory must be an empty directory')
+            if self.kwargs.get('dir_exists'):
+                for path in self.work_dir.glob("*"):
+                    if path.is_dir():
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+            else:
+                raise IOError('Work directory must be an empty directory')
 
         self.picture_dir.mkdir()
         self.sheet_dir.mkdir()
@@ -1088,16 +1179,9 @@ class MachineLearning_:
 
         self.cross_validation()
         self.train_model()
+        self.export_feature_importance(True)
+
         self.shap_analysis()
-
-    def preprocess(self):
-        print("Preprocessing data...")
-        if not self.kwargs.get('skip_preprocess', None):
-            scaled_X, scaled_y = self.preprocess_(self.X, self.y, self.xscaler, self.yscaler)
-        else:
-            scaled_X, scaled_y = self.X, self.y
-
-        self._update(scaled_X, scaled_y, self.features, 'scaled')
 
     @staticmethod
     def preprocess_(X, y, xscaler=None, yscaler=None) -> (np.ndarray, np.ndarray):
@@ -1112,6 +1196,162 @@ class MachineLearning_:
             scaled_y = yscaler.transform(y)
 
         return scaled_X, scaled_y
+
+    def preprocess(self):
+        print("Preprocessing data...")
+        if not self.kwargs.get('skip_preprocess', None):
+            scaled_X, scaled_y = self.preprocess_(self.X, self.y, self.xscaler, self.yscaler)
+        else:
+            scaled_X, scaled_y = self.X, self.y
+
+        self._update(scaled_X, scaled_y, self.features, 'scaled')
+
+    def invert_scaling_X(
+            self,
+            X,
+            features: list[str]=None,
+            recovery_cluster_to_original: bool = False
+    ):
+        """
+        Inversely transforms the scaled data `X` back to its original scale.
+
+        This method accounts for both original features and features derived from clustering methods
+        such as PCA. It can recover original features from clustered features if requested.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            The data matrix to be inverse-transformed.
+        features : list of str, optional
+            List of feature names corresponding to the columns in `X`. If `None`, it is assumed
+            that `X` contains all original features in order.
+        recovery_cluster_to_original : bool, default False
+            If True, recovers original features from clustered features (e.g., PCA components).
+
+        Returns
+        -------
+        numpy.ndarray
+            The data `X` transformed back to its original scale. If `recovery_cluster_to_original`
+            is False, PCA features are appended without inversion.
+
+        Raises
+        ------
+        ValueError
+            If the length of `features` does not match the number of columns in `X`.
+        ValueError
+            If a given feature name is neither an original feature nor a clustered feature.
+        ValueError
+            If feature indices are not unique after processing.
+        """
+
+        # If features are not provided, assume X contains all original features in order
+        if features is None:
+            return self.xscaler.inverse_transform(X), self._feature_names[0]
+
+        else:
+            if X.shape[1] != len(features):
+                raise ValueError('The length of features must be the same as the X.shape[1]')
+
+            ori_features, _ = self._get_feature_and_X('original')
+
+            # Initialize lists for indices and data
+            inv_features = []
+            indices_in_ori = []
+
+            # Store feature names and value matrix after PCA dimensionality reduction
+            pca_features = []
+            pca_X = []
+
+            # Store recovered features and values matrix from PCA-reduced features
+            recovered_features = []
+            recovered_X = []
+
+            drop_cols = []
+            for i, f in enumerate(features):
+                try: # Check if the feature name (f) is an original name?
+                    indices_in_ori.append(ori_features.index(f))
+                    inv_features.append(f)
+
+                # If the given feature name (f) is not an original name, ...
+                except ValueError:
+                    drop_cols.append(i)
+                    _, pca_x, form_feature, form_X = self.get_clustering_feat_and_X_by_clustering_name(f)
+                    if form_feature:
+                        if recovery_cluster_to_original:
+                            recovered_features.extend(form_feature)
+
+                            recovered_x = self.invert_pca_x_(X[:, i], form_X, pca_x)
+                            recovered_X.append(recovered_x)
+
+                        else:
+                            pca_features.append(f)
+                            pca_X.append(X[:, i].reshape(-1, 1))
+
+                    # If the feature name neither an original name nor clustered name, raise Error
+                    else:
+                        raise ValueError(f'The feature {f} is neither original nor clustered features')
+
+            # Remove columns in X that are not original features
+            X = np.delete(X, drop_cols, axis=1)
+
+            # Convert the feature name to form clusters to its index in the original feature list
+            indices_to_form_cluster = [ori_features.index(f) for f in recovered_features]
+
+            # Merge
+            indices_in_ori = np.array(indices_in_ori + indices_to_form_cluster)
+            X = np.hstack([X]+recovered_X)
+
+            # Make sure each index is unique.
+            if len(np.unique(indices_in_ori)) != len(indices_in_ori):
+                raise ValueError(f'The given feature nams cannot make sure indices unique')
+
+            X_pad = np.zeros((X.shape[0], len(ori_features)))
+
+            logging.debug(f"X_pad shape is {X_pad.shape}")
+            logging.debug(f"indices_in_ori is {indices_in_ori}")
+            X_pad[:, indices_in_ori] = X
+
+            X_inv = self.xscaler.inverse_transform(X_pad)
+            X_inv = X_inv[:, indices_in_ori]
+            inv_features += recovered_features
+
+            # Append the PCA feature values without inverse.
+            if pca_X:
+                return np.hstack((X_inv, np.hstack(pca_X))), inv_features + pca_features
+            else:
+                return X_inv, inv_features
+
+    def get_clustering_feat_and_X_by_clustering_name(self, clustering_name: str, which_stage: str = 'non_trivial'):
+        """ Get the names and value matrix of the features to form a specific cluster """
+        try:
+            features_to_form_cluster = self.clustered_maps[which_stage][clustering_name]
+        except KeyError:
+            return None, None, None, None
+
+        # Get pca_x
+        clustering_index = self.pca_features.index(clustering_name)
+        pca_x = self.pca_X[:, clustering_index]
+
+        feature_list_before_cluster, X_before_feature = self._get_feature_and_X(which_stage)
+
+        feat_index = [feature_list_before_cluster.index(f_name) for f_name in features_to_form_cluster]
+        X_form_cluster = X_before_feature[:, feat_index]
+
+        return clustering_name, pca_x, features_to_form_cluster, X_form_cluster
+
+    @staticmethod
+    def invert_pca_x_(inverted_x, X_clt, x_pca, show_cv_results=True):
+        """"""
+        if show_cv_results:
+            print(cross_val_score(MLPRegressor(activation='relu'), x_pca.reshape(-1, 1), X_clt))
+
+        network = MLPRegressor(activation='relu')
+        network.fit(x_pca.reshape(-1, 1), X_clt)
+
+        return network.predict(inverted_x.reshape(-1, 1))
+
+    def invert_clustering_x(self, X_clt, clustering_names: Union[str, list[str]]):
+        """"""
 
     def _get_stratify(self):
         if self.data_stratify:
@@ -1264,14 +1504,17 @@ class MachineLearning_:
         clustering = AgglomerativeClustering(n_clusters=None, distance_threshold=cluster_threshold)
         clustering.fit(abs_pearson_mat)
 
-        clustered_map = {}
+        mapping_dict = {}
         for i, cluster_label in enumerate(clustering.labels_):
-            lst_feat_names = clustered_map.setdefault(cluster_label, [])
+            lst_feat_names = mapping_dict.setdefault(cluster_label, [])
             lst_feat_names.append(features[i])
 
-        clustered_map = {i: clustered_map[i] for i in sorted(clustered_map)}
+        clustering_map = {}
+        for form_list in mapping_dict.values():
+            if len(form_list) > 1:
+                clustering_map[f"c{len(clustering_map)}"] = form_list
 
-        return cluster_threshold, clustered_map, clustering
+        return cluster_threshold, clustering_map, clustering
 
     def feat_hiera_clustering(self):
         self.clustered_maps = {}
@@ -1291,9 +1534,6 @@ class MachineLearning_:
 
         fig, ax = self.make_hierarchical_tree(self.clustering, self.feat_cluster_threshold)
         fig.savefig(self.picture_dir.joinpath('hiera_tree.png'))
-
-    def clustered_map(self, which) -> dict:
-        return self.clustered_maps[which]
 
     @staticmethod
     def pca_dimension_reduction_(
@@ -1315,6 +1555,7 @@ class MachineLearning_:
         Return:
             pcaX: the feature matrix after undergoing PCA dimensionality reduction does not include features that
                 were not subjected to dimensionality reduction.
+            pca_features: the names of features from pca dimensionality reduction.
             reduced_X: the feature matrix after undergoing PCA dimensionality reduction, including features that
                 were not subjected to dimensionality reduction.
             reduced_features: list of feature name, with a same order in `reduced_X`
@@ -1339,19 +1580,17 @@ class MachineLearning_:
                 clustered_feat_idx.extend(clt_feat_idx)
 
         pcaX = np.array(pcaX).T
+        pca_features = [c_name for c_name in clustering_map]
         reduced_X = np.concatenate((np.delete(X, clustered_feat_idx, axis=1), pcaX), axis=1)
-        reduced_features = (
-                np.delete(np.array(features), clustered_feat_idx).tolist()
-                + [f'c{i}' for i in range(pcaX.shape[-1])]
-        )
+        reduced_features = (np.delete(np.array(features), clustered_feat_idx).tolist() + pca_features)
 
-        return pcaX, reduced_X, reduced_features
+        return pcaX, pca_features, reduced_X, reduced_features
 
     def pca_dimension_reduction(self):
         """ Merging similar feature to a new clustering feature by principal component analysis (PCA) method, the
         similarity or distance determined by Pearson matrix and hierarchical tree."""
-        _, reduced_X, reduced_features = self.pca_dimension_reduction_(
-            self.X, self.features, self.clustered_map('non_trivial')
+        self.pca_X, self.pca_features, reduced_X, reduced_features = self.pca_dimension_reduction_(
+            self.X, self.features, self.clustered_maps['non_trivial']
         )
 
         self._update(reduced_X, self.y, reduced_features, 'reduced')
@@ -1519,22 +1758,33 @@ class MachineLearning_:
             print(feat)
 
     @staticmethod
-    def permutate_importance(estimator, *args, **kwargs):
-        estimator.fit(X, y)
-        return permutation_importance(estimator, *args, **kwargs)
+    def has_fitted(estimator: BaseEstimator):
+        try:
+            check_is_fitted(estimator)
+            return True
+        except AttributeError:
+            return False
 
     @staticmethod
-    def gini_importance(estimator, X, y):
+    def permutate_importance(estimator, X, y, features, *args, **kwargs):
+        return features, permutation_importance(estimator, X, y, *args, **kwargs)['importances']
+
+    @staticmethod
+    def gini_importance(estimator, X, y, features: list[str]):
         """"""
+        if X.shape[1] != len(features):
+            raise ValueError('the columns must have the same number of features')
+
         if not hasattr(estimator, 'feature_importances_') or hasattr(estimator, 'coef_'):
             estimator = RandomForestRegressor()
 
-        estimator.fit(X, y)
+        if not MachineLearning_.has_fitted(estimator):
+            raise AttributeError('the estimator is not fitted')
 
         try:
-            return estimator.feature_importances_
+            return features, estimator.feature_importances_
         except AttributeError:
-            return estimator.coef_
+            return features, estimator.coef_
 
     def determine_importance(
             self,
@@ -1543,9 +1793,55 @@ class MachineLearning_:
     ):
         X, y = self._get_dataset(feature_type, sample_type)
         self.feature_importance = {
-            "perm": self.permutate_importance(clone(self.estimator), X, y),
-            "gini": self.gini_importance(self.estimator, X, y)
+            "perm": self.permutate_importance(self.estimator, X, y, self.features),
+            "gini": self.gini_importance(self.estimator, X, y, self.features)
         }
+
+    def export_feature_importance(self, to_determine: bool = False):
+        if to_determine:
+            self.determine_importance()
+
+        # Save feature importance to sheet
+        with pd.ExcelWriter(self.sheet_dir.joinpath('feat_imp.xlsx')) as writer:
+            for imp_type, (feat, imp) in self.feature_importance.items():
+                if len(imp.shape) == 1:
+                    data = pd.Series(imp, index=feat, name=imp_type)
+                else:
+                    data = pd.DataFrame(imp, index=feat)
+
+                data.to_excel(writer, sheet_name=imp_type)
+
+        # Save importance as picture
+        def _draw_imp(ax: plt.Axes, sci_plotter):
+            nonlocal imp_, feat_, imp_type_
+
+            if len(imp_.shape) == 1:
+                sort_idx = np.argsort(imp_)[::-1]
+                feat_ = np.array(feat_)[sort_idx].tolist()
+                imp_ = imp_[sort_idx]
+
+                ax.bar(x=feat_, height=imp_)
+            elif len(imp_.shape) == 2:
+                sort_idx = np.argsort(imp_.mean(axis=1))[::-1]
+                feat_ = np.array(feat_)[sort_idx].tolist()
+                imp_ = imp_[sort_idx]
+
+                ax.boxplot(imp_.T, positions=np.arange(len(imp_)))
+            else:
+                raise AttributeError("imp_ must have 1 or 2 dimensions")
+
+            ax.set_xticks(ax.get_xticks(), feat_)
+
+            ax.set_xlabel('Features')
+            ax.set_ylabel('Importance')
+
+            ax.set_title(imp_type_)
+
+        for imp_type_, (feat_, imp_) in self.feature_importance.items():
+            plotter = SciPlotter(_draw_imp)
+            fig, ax = plotter()
+
+            fig.savefig(self.picture_dir.joinpath(f'imp_{imp_type_}.png'))
 
     def _get_dataset(
             self,
@@ -1591,7 +1887,7 @@ class MachineLearning_:
         print(f'The performance in 5fold cross validation:')
         print(f'\t{self.valid_score}')
 
-        r2_plot = R2Regression([self.valid_true, self.valid_pred])
+        r2_plot = R2Regression([self.valid_true, self.valid_pred], to_sparse=True)
         sciplot = SciPlotter(r2_plot)
 
         fig, axs = sciplot()
@@ -1617,9 +1913,357 @@ class MachineLearning_:
               f'\ttest set:\tR^2={r2_test}\tMAE={mae_test}\tRMSE={rmse_test}\n')
 
         # Make pictures
-        plotter = SciPlotter(R2Regression([self.y_train, pred_train], [self.y_test, pred_test]))
+        xy1_highlight_indices = np.where(np.isin(self.train_indices, self.kwargs.get('highlight_sample_indices')))[0]
+        xy2_highlight_indices = np.where(np.isin(self.test_indices, self.kwargs.get('highlight_sample_indices')))[0]
+
+        plotter = SciPlotter(R2Regression(
+            [self.y_train, pred_train],
+            [self.y_test, pred_test],
+            show_mae=True,
+            show_rmse=True,
+            xy1_highlight_indices=xy1_highlight_indices,
+            xy2_highlight_indices=xy2_highlight_indices,
+        ))
         fig, axs = plotter()
         fig.savefig(self.picture_dir.joinpath('train_pred.png'))
+
+        # Save true-pred sheet
+        df_train = pd.DataFrame([self.y_train, pred_train], index=['true', 'pred'], columns=self.train_indices).T
+        df_test = pd.DataFrame([self.y_test, pred_test], index=['true', 'pred'], columns=self.test_indices).T
+
+        with pd.ExcelWriter(self.sheet_dir.joinpath('true_pred_data.xlsx')) as writer:
+            df_train.to_excel(writer, sheet_name='train')
+            df_test.to_excel(writer, sheet_name='test')
+
+            if len(indices := self.kwargs.get('highlight_sample_indices', [])):
+                pd.Series(indices).to_excel(writer, sheet_name='highlight_samples')
+
+        with open(self.sheet_dir.joinpath('essential_features.csv'), 'w') as writer:
+            writer.write('\n'.join(self.features))
+
+    # @staticmethod
+    # def save_data_to_excel_(
+    #         data: Union[pd.DataFrame, np.ndarray],
+    #         test_indices: Union[Sequence[int], np.ndarray],
+    #         highlight_indices: Union[Sequence[int], np.ndarray] = None,
+    #         columns: Sequence = None
+    # ):
+    #     """"""
+    #     if isinstance(data, np.ndarray):
+    #         if isinstance(columns, Sequence):
+    #             data = pd.DataFrame(data, columns=list(columns))
+    #         else:
+    #             data = pd.DataFrame(data, columns=[f'f{i}' for i in range(data.shape[1])])
+    #
+    #     elif isinstance(data, pd.DataFrame):
+    #         if isinstance(columns, Sequence):
+    #             data.columns = columns
+    #
+    #     else:
+    #         raise TypeError('the data should be a pandas dataframe or a numpy array!')
+    #
+    #     if highlight_indices is not None:
+    #         if len(np.intersect1d(test_indices, highlight_indices)):
+    #             raise IndexError('')
+
+    @staticmethod
+    def partial_dependence_(
+            estimator: ModelLike,
+            features: Sequence[str],
+            X: np.ndarray,
+            feature_indices: Sequence[int],
+            target_name: str = "Target",
+            figsave_path: Union[str, os.PathLike]=None,
+            **kwargs
+    ):
+        """"""
+        def _draw_partial_dependence(ax: plt.Axes, sciplotter: SciPlotter = None, *args, **kw):
+            nonlocal display
+            display = PartialDependenceDisplay.from_estimator(estimator, X, feature_indices, ax=ax, kind=kind,)
+
+            ax = plt.gca()
+            ax.set_xlabel(x_label, fontname='Arial', fontweight='bold', fontsize=22)
+            ax.set_ylabel(y_label, fontname='Arial', fontweight='bold', fontsize=22)
+
+            sciplotter.set_ticks(ax)
+
+        # Determine the xy labels in partial dependence plot
+        x_label = features[feature_indices[0]]
+        try:
+            y_label = features[feature_indices[1]]
+        except IndexError:
+            y_label = target_name
+
+        if not 1 <= len(feature_indices) <= 2:
+            raise ValueError("the number of features index must be 1 or 2")
+        elif len(feature_indices) == 2:
+            kind = 'average'
+            feature_indices = [feature_indices]
+        else:
+            kind = 'individual'
+
+        # Make plots
+        display: Union[sklearn.inspection.PartialDependenceDisplay, None] = None
+        plotter = SciPlotter(_draw_partial_dependence, **kwargs)
+        fig, ax = plotter()
+
+        if figsave_path:
+            fig.savefig(figsave_path)
+
+        return fig, ax, display
+
+    def partial_dependence(
+            self,
+            estimator: ModelLike = None,
+            feature_types: Literal['original', 'non_trivial', 'reduced', 'essential'] = None,
+            recover_to_original_scale: bool = False,
+            analyze_in_original_data: bool = False,
+            **kwargs
+    ):
+        """"""
+        if not estimator:
+            estimator = self.estimator
+
+        if isinstance(feature_types, str):
+            feature_index = self._feature_types.index(feature_types)
+            features = self._feature_names[feature_index]
+            X = self._XS[feature_index]
+        else:
+            features = self.features
+            X = self.X
+
+        if not analyze_in_original_data:
+            X = self.generate_test_X_(X, **kwargs)
+
+        if recover_to_original_scale:
+            invert_X, invert_features = self.invert_scaling_X(X, features)
+
+        # Make plots
+        pda_dir = self.picture_dir.joinpath('pda')
+
+        # Analyze single variables
+        single_pda_dir = pda_dir.joinpath('single')
+        if not single_pda_dir.exists():
+            single_pda_dir.mkdir(parents=True)
+        for i in range(len(features)):
+            fig, ax, display = self.partial_dependence_(
+                estimator, features, X,
+                feature_indices=(i,),
+                target_name=self.target
+            )
+
+            if recover_to_original_scale:
+                fi_name = features[i]
+                inv_fi_idx = invert_features.index(fi_name)
+                inv_X = invert_X[:, inv_fi_idx].reshape(-1, 1)
+                min_inv_X, max_inv_X = inv_X.min(axis=0), inv_X.max(axis=0)
+
+                scale_axes(ax[0][0], xaxis_range=(min_inv_X, max_inv_X))
+
+            fig.savefig(single_pda_dir.joinpath(f"{features[i].replace('/', '_')}.png"))
+
+        # Analyze pair variables
+        pair_pda_dir = pda_dir.joinpath('pair')
+        if not pair_pda_dir.exists():
+            pair_pda_dir.mkdir()
+        for i, j in combinations(range(len(features)), 2):
+            fig, ax, display = self.partial_dependence_(
+                estimator, features, X,
+                feature_indices=(i, j),
+                target_name=self.target
+            )
+
+            if recover_to_original_scale:
+                fi_name, fj_name = features[i], features[j]
+                inv_fi_idx, inv_fj_idx = invert_features.index(fi_name), invert_features.index(fj_name)
+                inv_X = invert_X[:, [inv_fi_idx, inv_fj_idx]]
+                min_inv_X, max_inv_X = inv_X.min(axis=0), inv_X.max(axis=0)
+
+                scale_axes(ax[0][0], xaxis_range=(min_inv_X[0], max_inv_X[0]), yaxis_range=(min_inv_X[1], max_inv_X[1]))
+
+            fig.savefig(pair_pda_dir.joinpath(f"{features[i]}_{features[j]}.png".replace('/', '_')))
+
+    @staticmethod
+    def train_surrogate_tree_(
+            teacher_model: ModelLike,
+            X: np.ndarray,
+            feature_names,
+            surrogate_model: ModelLike = DecisionTreeRegressor(),
+            validate_surrogate: bool = True,
+            generate_train_data: bool = False,
+            generate_valid_data: bool = True,
+            generator_kwargs: dict = None,
+            tree_plot_kwargs: dict = None
+    ):
+        """
+        Trains a surrogate decision tree model to approximate the predictions of a teacher model.
+
+        Args:
+            teacher_model (ModelLike): The pre-trained model whose behavior to mimic.
+            X (np.ndarray): Input features for training or as a template for data generation.
+            feature_names (list): Names of the features used for plotting the decision tree.
+            surrogate_model (ModelLike, optional): The surrogate model to train. Defaults to `DecisionTreeRegressor()`.
+            validate_surrogate (bool, optional): If `True`, validates the surrogate model on a validation set. Defaults to `True`.
+            generate_train_data (bool, optional): If `True`, generates new training data using `generator_kwargs`. Defaults to `False`.
+            generate_valid_data (bool, optional): If `True`, generates new validation data using `generator_kwargs`. Defaults to `True`.
+            generator_kwargs (dict, optional): Arguments for the data generation function. Defaults to `None`.
+            tree_plot_kwargs (dict, optional): Additional arguments for plotting the decision tree. Defaults to `None`.
+
+        Returns:
+            surrogate_model (ModelLike): The trained surrogate model.
+            fig (matplotlib.figure.Figure): The figure object of the plotted decision tree.
+            ax (matplotlib.axes.Axes): The axes object of the plot.
+            tree: The decision tree plot object.
+
+        """
+        if not generator_kwargs:
+            generator_kwargs = {'template_X': X}
+        else:
+            generator_kwargs['template_X'] = X
+
+        if generate_train_data:
+            X_train = MachineLearning_.generate_test_X_(**generator_kwargs)
+        else:
+            X_train = X
+
+        # Train surrogate
+        check_is_fitted(teacher_model)
+        teacher_pred = teacher_model.predict(X_train)
+        surrogate_model.fit(X_train, teacher_pred)
+
+        if validate_surrogate:
+            if generate_valid_data:
+                X_valid = MachineLearning_.generate_test_X_(**generator_kwargs)
+            else:
+                X_valid = X
+
+            teacher_pred_val = teacher_model.predict(X_valid)
+            surrogate_pred_val = surrogate_model.predict(X_valid)
+            val_score = r2_score(teacher_pred_val, surrogate_pred_val)
+            print("Surrogate model validation R^2 score:", val_score)
+
+            # Make tree plot
+        tree_plot_kwargs = tree_plot_kwargs or {}
+        fig, ax = plt.subplots()
+        tree = plot_tree(surrogate_model, feature_names=feature_names, ax=ax, **tree_plot_kwargs)
+
+        return surrogate_model, fig, ax, tree
+
+    def train_surrogate_tree(
+            self,
+            teacher_model: ModelLike = None,
+            X: np.ndarray = None,
+            feature_names: Sequence[str] = None,
+            surrogate_model: ModelLike = DecisionTreeRegressor(),
+            validate_surrogate: bool = True,
+            generate_train_data: bool = False,
+            generate_valid_data: bool = True,
+            generator_kwargs: dict = None,
+            tree_plot_kwargs: dict = None
+    ):
+        """
+        Args:
+            teacher_model (ModelLike): The pre-trained model whose behavior to mimic.
+            X (np.ndarray): Input features for training or as a template for data generation.
+            feature_names (list): Names of the features used for plotting the decision tree.
+            surrogate_model (ModelLike, optional): The surrogate model to train. Defaults to `DecisionTreeRegressor()`.
+            validate_surrogate (bool, optional): If `True`, validates the surrogate model on a validation set. Defaults to `True`.
+            generate_train_data (bool, optional): If `True`, generates new training data using `generator_kwargs`. Defaults to `False`.
+            generate_valid_data (bool, optional): If `True`, generates new validation data using `generator_kwargs`. Defaults to `True`.
+            generator_kwargs (dict, optional): Arguments for the data generation function. Defaults to `None`.
+            tree_plot_kwargs (dict, optional): Additional arguments for plotting the decision tree. Defaults to `None`.
+
+        Returns:
+            surrogate_model (ModelLike): The trained surrogate model.
+            fig (matplotlib.figure.Figure): The figure object of the plotted decision tree.
+            ax (matplotlib.axes.Axes): The axes object of the plot.
+            tree: The decision tree plot object.
+        """
+        arguments = locals().copy()
+        arguments.pop('self')
+
+        arguments['teacher_model'] = teacher_model or self.estimator
+        arguments['X'] = X or self.X
+        arguments['feature_names'] = feature_names or self.features
+
+        surrogate, fig, ax, tree = self.train_surrogate_tree_(**arguments)
+
+        fig.savefig(self.picture_dir.joinpath('surrogate_tree.png'))
+
+        return surrogate, fig, ax, tree
+
+    @staticmethod
+    def generate_test_X_(
+            template_X,
+            independent: bool = False,
+            norm_uniform: Literal['norm', 'uniform'] = 'uniform',
+            min_offset: Union[float, np.ndarray] = 0.,
+            max_offset: Union[float, np.ndarray] = 0.,
+            X_scale: Union[float, np.ndarray] = None,
+            sample_num: int = 1000,
+            seed_: int = None
+    ):
+        """
+        Generates a hypothetical test X with similar covariance of features as template X.
+        Args:
+            template_X: template X to define covariance (matrix).
+            independent: whether to suppose each feature is independent with the other, defaults to False.
+            norm_uniform: generate from a uniform distribution or a normal distribution, defaults to 'uniform'
+            min_offset: the proportion between the offset lower than min value and the diff from min value to max value,
+                        the value should be a float or numpy array. if a float is provided, the same offset value will
+                        act on all feature; if a numpy array is provided, the length of array should be equal to the
+                        X.shape[1], in this case, different offset will assign to different features.
+            max_offset: the proportion between the offset higher than max value and the diff from min value to max value
+                        the value should be a float or numpy array. if a float is provided, the same offset value will
+                        act on all feature; if a numpy array is provided, the length of array should be equal to the
+                        X.shape[1], in this case, different offset will assign to different features.
+            sample_num: number of samples to be generated, i.e., X.shape[0] == sample_num.
+            seed_: random state for distribute generation
+
+        Returns:
+            generated test X with identical covariance of features as template X.
+        """
+        def set_correlation(data):
+            trans_mat = np.linalg.cholesky(np.corrcoef(template_X, rowvar=False))
+            return np.dot(data, trans_mat.T)
+
+        np.random.seed(seed_)
+        if norm_uniform == 'norm':
+            mu = np.mean(template_X, axis=0)
+            std = np.std(template_X, axis=0)
+
+            gen_X = np.random.normal(mu, std, size=(sample_num, template_X.shape[1]))
+
+            if not independent:
+                gen_X = set_correlation(gen_X)
+
+        elif norm_uniform == 'uniform':
+            X_min, X_max = np.min(template_X, axis=0), np.max(template_X, axis=0)
+            X_diff = X_max - X_min
+            X_min = X_min - min_offset * X_diff
+            X_max = X_max + max_offset * X_diff
+
+            if np.any(X_max < X_min):
+                error_dim = np.nonzero(np.int_(X_max <= X_min))[0].tolist()
+                raise ValueError(f'the maximum value is smaller than the minimum values in X dimensions of {error_dim}')
+
+            # TODO: requires modify
+            const_dim = np.where(X_min == X_max)[0]
+            for dim in const_dim:
+                X_min[dim] -= 1e-6
+                X_max[dim] += 1e-6
+
+            gen_X = np.random.uniform(0, 1, size=(sample_num, template_X.shape[1]))
+
+            if not independent:
+                gen_X = set_correlation(gen_X)
+
+            for i, (x_min, x_max) in enumerate(zip(X_min, X_max)):
+                gen_X[:, i] = minmax_scale(gen_X[:, i], (x_min, x_max))
+        else:
+            raise ValueError('Unrecognized value for norm_uniform argument, use "norm" or "uniform"')
+
+        return gen_X
 
     def generate_test_X(
             self,
@@ -1651,52 +2295,24 @@ class MachineLearning_:
         Returns:
             generated test X with identical covariance of features as template X.
         """
-        def set_correlation(data):
-            trans_mat = np.linalg.cholesky(np.corrcoef(template_X, rowvar=False))
-            return np.dot(data, trans_mat.T)
-
-        if not isinstance(template_X, np.ndarray):
-            template_X = self.X
-
-        np.random.seed(seed_)
-        if norm_uniform == 'norm':
-            mu = np.mean(template_X, axis=0)
-            std = np.std(template_X, axis=0)
-
-            gen_X = np.random.normal(mu, std, size=(sample_num, template_X.shape[1]))
-
-            if not independent:
-                gen_X = set_correlation(gen_X)
-
-        elif norm_uniform == 'uniform':
-            X_min, X_max = np.min(template_X, axis=0), np.max(template_X, axis=0)
-            X_diff = X_max - X_min
-            X_min = X_min - min_offset * X_diff
-            X_max = X_max + max_offset * X_diff
-
-            if np.any(X_max <= X_min):
-                error_dim = np.nonzero(np.int_(X_max <= X_min))[0].tolist()
-                raise ValueError(f'the maximum value is smaller than the minimum values in X dimensions of {error_dim}')
-
-            gen_X = np.random.uniform(0, 1, size=(sample_num, template_X.shape[1]))
-
-            if not independent:
-                gen_X = set_correlation(gen_X)
-
-            for i, (x_min, x_max) in enumerate(zip(X_min, X_max)):
-                gen_X[:, i] = minmax_scale(gen_X[:, i], (x_min, x_max))
+        kwargs = locals().copy()
+        kwargs.pop('self')
+        if template_X is not None:
+            kwargs['template_X'] = template_X
         else:
-            raise ValueError('Unrecognized value for norm_uniform argument, use "norm" or "uniform"')
+            kwargs['template_X'] = self.X
 
-        return gen_X
+        return self.generate_test_X_(**kwargs)
 
-    def calc_shap_values(
-            self, estimator, X, y,
+    @staticmethod
+    def shap_analysis_(
+            estimator, X, y,
             feature_names: Union[Sequence, np.ndarray] = None,
+            gen_X_train: bool = False,
             sample_size: int = 1000,
             X_test: np.ndarray = None,
             test_size: int = 1000,
-            explainer_cls: shap.Explainer = shap.TreeExplainer,
+            explainer_cls: type = shap.TreeExplainer,
             shap_values_save_path: Union[str, os.PathLike] = None,
             **kwargs
     ):
@@ -1721,15 +2337,24 @@ class MachineLearning_:
         if explainer_cls is None:
             explainer_cls = shap.TreeExplainer
 
-        estimator.fit(X, y)
-        if len(X) < 1000:
-            explainer = explainer_cls(estimator, X)
+        if MachineLearning_.has_fitted(estimator):
+            estimator.fit(X, y)
+
+        if gen_X_train:
+            X_train = MachineLearning_.generate_test_X_(X, sample_num=sample_size, **kwargs)
         else:
-            sample_X = shap.sample(X, sample_size)
+            X_train = X
+
+        if len(X_train) <= sample_size:
+            explainer = explainer_cls(estimator, X_train)
+        else:
+            sample_X = shap.sample(X_train, sample_size)
             explainer = explainer_cls(estimator, sample_X)
 
         if X_test is None:
-            X_test = self.generate_test_X(X, sample_num=test_size, **kwargs)
+            X_test = MachineLearning_.generate_test_X_(
+                X, sample_num=test_size, **kwargs
+            )
 
         shap_values = explainer(X_test)
         if isinstance(feature_names, (list, np.ndarray)):
@@ -1769,7 +2394,7 @@ class MachineLearning_:
 
     def shap_analysis(self):
         """ calculate shap values and make resulted plots in an automatic workflow """
-        self.explainer, self.shap_value = self.calc_shap_values(
+        self.explainer, self.shap_value = self.shap_analysis_(
             self.estimator, self.X, self.y, self.features,
             # explainer_cls=self.kwargs.get('shap_explainer_cls'),
             shap_values_save_path=self.sheet_dir.joinpath('shap.xlsx')
@@ -1784,6 +2409,22 @@ class MachineLearning_:
                 pickle.dump(self.shap_value, writer)
         else:
             raise FileNotFoundError(f'the output directory {self.work_dir} does not exist!')
+
+
+def linear_leave_one_out_analysis(X: np.ndarray, y: np.ndarray) -> (np.ndarray, np.ndarray):
+    loo = LeaveOneOut()
+    coef, intercept = [], []
+    for train_index, test_index in loo.split(X, y):
+        X_train, y_train = X[train_index], y[train_index]
+
+        lin_model = sklearn.linear_model.LinearRegression()
+        lin_model.fit(X_train, y_train)
+
+        coef.append(lin_model.coef_)
+        intercept.append(lin_model.intercept_)
+
+    return np.array(coef), np.array(intercept)
+
 
 
 cross_valid = _cross_val

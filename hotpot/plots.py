@@ -10,6 +10,9 @@ Notes:
     this module define some easy methods for drawing of common scientific plots.
 
 """
+import os
+import sys
+import shutil
 import itertools
 from typing import *
 import string
@@ -28,10 +31,32 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.interpolate import griddata
 from sklearn.manifold import TSNE, MDS
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 # plt.set_cmap('coolwarm')
+
+
+# To plugin.plots.__init__
+def refresh_cache():
+    cache_dir = mpl.get_cachedir()
+    if cache_dir is not None:
+        shutil.rmtree(cache_dir)
+
+def init_fonts():
+    """ For linux system, load the Arial as the default font """
+    import matplotlib.font_manager as fm
+    if sys.platform.startswith('linux'):
+        if fm.findfont('Arial'):
+            refresh_cache()
+        else:
+            print(UserWarning('Arial font is not installed, please install by system command, '
+                              'like: `apt install ttf-mscorefonts-installer`'))
+init_fonts()
+
+def _densi(x: np.ndarray, y: np.ndarray) -> np.array:
+    return np.argsort(np.abs(x * y))[::-1]
 
 
 def axes_setting(setting: Callable):
@@ -45,6 +70,348 @@ def axes_setting(setting: Callable):
             return not_setting(self, *args, **kwargs)
 
     return setting_wrapper
+
+
+# Define scaling functions
+def scale_values(values, old_min, old_max, new_min, new_max, from_scale, to_scale):
+    if from_scale == to_scale or to_scale is None or from_scale is None:
+        # Linear scaling
+        scale = (new_max - new_min) / (old_max - old_min) if old_max != old_min else 1.0
+        return (values - old_min) * scale + new_min
+    elif from_scale == 'linear' and to_scale == 'logarithmic':
+        # Logarithmic scaling from linear data
+        values_shifted = values - old_min + 1e-9  # Shift to avoid log(0)
+        log_values = np.log10(values_shifted)
+        old_log_min = np.log10(1e-9)
+        old_log_max = np.log10(old_max - old_min + 1e-9)
+        scale = (new_max - new_min) / (old_log_max - old_log_min) if old_log_max != old_log_min else 1.0
+        return (log_values - old_log_min) * scale + new_min
+    elif from_scale == 'logarithmic' and to_scale == 'linear':
+        # Linear scaling from logarithmic data
+        exp_values = 10 ** values
+        scale = (new_max - new_min) / (old_max - old_min) if old_max != old_min else 1.0
+        return (exp_values - old_min) * scale + new_min
+    else:
+        # Other combinations can be added if needed
+        raise ValueError(f"Unsupported scaling from {from_scale} to {to_scale}")
+
+def _sample_density(a, b, ratio=0.4):
+    """ sample according to density distribution, useful when the number of samples is too large """
+    return a[(den := _densi(a.flatten(), b.flatten()))], a[den] + (b[den] - a[den]) * (1 - ratio)
+
+def scale_axes(
+        ax,
+        xaxis_range=None,
+        yaxis_range=None,
+        xaxis_scale: Literal['linear', 'logarithmic'] = None,
+        yaxis_scale: Literal['linear', 'logarithmic'] = None
+):
+    """
+    TODO: This function with bugs
+    Scales the data in the plots within a Matplotlib Axes object to correspond with new axis ranges and scaling modes.
+
+    Parameters:
+    - ax: Matplotlib Axes object.
+    - xaxis_range: Tuple (x_min_new, x_max_new) specifying new x-axis limits.
+    - yaxis_range: Tuple (y_min_new, y_max_new) specifying new y-axis limits.
+    - xaxis_scale: 'linear', 'logarithmic', or None. Changes the x-axis scale type and scales the data accordingly.
+    - yaxis_scale: 'linear', 'logarithmic', or None. Changes the y-axis scale type and scales the data accordingly.
+    """
+
+    # Get current axis limits
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+
+    # Get current axis scales
+    current_xscale = ax.get_xscale()
+    current_yscale = ax.get_yscale()
+
+    # Set new axis limits, defaulting to current limits if not provided
+    if xaxis_range is not None:
+        x_min_new, x_max_new = xaxis_range
+    else:
+        x_min_new, x_max_new = x_min, x_max
+
+    if yaxis_range is not None:
+        y_min_new, y_max_new = yaxis_range
+    else:
+        y_min_new, y_max_new = y_min, y_max
+
+    # Keep track of processed objects to avoid duplication
+    processed = set()
+
+    # Scaling for Line2D objects
+    for line in ax.get_lines():
+        if line in processed:
+            continue
+        xdata = line.get_xdata()
+        ydata = line.get_ydata()
+
+        # Scale xdata
+        if xaxis_range is not None or xaxis_scale is not None:
+            xdata_scaled = scale_values(np.array(xdata), x_min, x_max, x_min_new, x_max_new, current_xscale,
+                                        xaxis_scale)
+            line.set_xdata(xdata_scaled)
+
+        # Scale ydata
+        if yaxis_range is not None or yaxis_scale is not None:
+            ydata_scaled = scale_values(np.array(ydata), y_min, y_max, y_min_new, y_max_new, current_yscale,
+                                        yaxis_scale)
+            line.set_ydata(ydata_scaled)
+
+        processed.add(line)
+
+    # Scaling for collections
+    for collection in ax.collections:
+        if collection in processed:
+            continue
+        offsets = collection.get_offsets()
+        if len(offsets) == 0:
+            continue  # Skip if no data
+        xdata = offsets[:, 0]
+        ydata = offsets[:, 1]
+
+        # Scale xdata
+        if xaxis_range is not None or xaxis_scale is not None:
+            xdata_scaled = scale_values(xdata, x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)
+        else:
+            xdata_scaled = xdata
+
+        # Scale ydata
+        if yaxis_range is not None or yaxis_scale is not None:
+            ydata_scaled = scale_values(ydata, y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)
+        else:
+            ydata_scaled = ydata
+
+        offsets_scaled = np.column_stack((xdata_scaled, ydata_scaled))
+        collection.set_offsets(offsets_scaled)
+
+        # For LineCollections and PolyCollections (e.g., contours)
+        if isinstance(collection, (mpl.collections.LineCollection, mpl.collections.PolyCollection)):
+            paths = collection.get_paths()
+            for path in paths:
+                vertices = path.vertices
+                xdata = vertices[:, 0]
+                ydata = vertices[:, 1]
+
+                # Scale xdata
+                if xaxis_range is not None or xaxis_scale is not None:
+                    xdata_scaled = scale_values(xdata, x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)
+                else:
+                    xdata_scaled = xdata
+
+                # Scale ydata
+                if yaxis_range is not None or yaxis_scale is not None:
+                    ydata_scaled = scale_values(ydata, y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)
+                else:
+                    ydata_scaled = ydata
+
+                vertices_scaled = np.column_stack((xdata_scaled, ydata_scaled))
+                path.vertices = vertices_scaled
+
+        processed.add(collection)
+
+    # Scaling for images
+    for image in ax.images:
+        if image in processed:
+            continue
+        # Get current extent
+        extent = image.get_extent()
+        x0_old, x1_old, y0_old, y1_old = extent
+
+        # Scale extent
+        if xaxis_range is not None or xaxis_scale is not None:
+            x0_new = scale_values(np.array([x0_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[
+                0]
+            x1_new = scale_values(np.array([x1_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[
+                0]
+        else:
+            x0_new, x1_new = x0_old, x1_old
+
+        if yaxis_range is not None or yaxis_scale is not None:
+            y0_new = scale_values(np.array([y0_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[
+                0]
+            y1_new = scale_values(np.array([y1_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[
+                0]
+        else:
+            y0_new, y1_new = y0_old, y1_old
+
+        image.set_extent((x0_new, x1_new, y0_new, y1_new))
+
+        processed.add(image)
+
+    # Scaling for Patch objects
+    for patch in ax.patches:
+        if patch in processed:
+            continue
+        # Rectangles
+        if isinstance(patch, mpl.patches.Rectangle):
+            x_old, y_old = patch.get_xy()
+            width = patch.get_width()
+            height = patch.get_height()
+
+            # Scale x and width
+            if xaxis_range is not None or xaxis_scale is not None:
+                x_new = \
+                scale_values(np.array([x_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[0]
+                x_end_old = x_old + width
+                x_end_new = \
+                scale_values(np.array([x_end_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[0]
+                width_new = x_end_new - x_new
+            else:
+                x_new = x_old
+                width_new = width
+
+            # Scale y and height
+            if yaxis_range is not None or yaxis_scale is not None:
+                y_new = \
+                scale_values(np.array([y_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[0]
+                y_end_old = y_old + height
+                y_end_new = \
+                scale_values(np.array([y_end_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[0]
+                height_new = y_end_new - y_new
+            else:
+                y_new = y_old
+                height_new = height
+
+            patch.set_xy((x_new, y_new))
+            patch.set_width(width_new)
+            patch.set_height(height_new)
+
+        # Circles and other patches with center
+        elif hasattr(patch, 'center'):
+            x_old, y_old = patch.center
+
+            # Scale center
+            if xaxis_range is not None or xaxis_scale is not None:
+                x_new = \
+                scale_values(np.array([x_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[0]
+            else:
+                x_new = x_old
+
+            if yaxis_range is not None or yaxis_scale is not None:
+                y_new = \
+                scale_values(np.array([y_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[0]
+            else:
+                y_new = y_old
+
+            patch.center = (x_new, y_new)
+
+            # Optionally scale radius
+            if hasattr(patch, 'radius'):
+                # Scale radius if needed
+                pass  # Implement if necessary
+
+        processed.add(patch)
+
+    # Scaling for BarContainers
+    for container in ax.containers:
+        if container in processed:
+            continue
+        for patch in container.patches:
+            if patch in processed:
+                continue
+            # Similar to Rectangle patches
+            x_old, y_old = patch.get_xy()
+            width = patch.get_width()
+            height = patch.get_height()
+
+            # Scale x and width
+            if xaxis_range is not None or xaxis_scale is not None:
+                x_new = \
+                scale_values(np.array([x_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[0]
+                x_end_old = x_old + width
+                x_end_new = \
+                scale_values(np.array([x_end_old]), x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)[0]
+                width_new = x_end_new - x_new
+            else:
+                x_new = x_old
+                width_new = width
+
+            # Scale y and height
+            if yaxis_range is not None or yaxis_scale is not None:
+                y_new = \
+                scale_values(np.array([y_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[0]
+                y_end_old = y_old + height
+                y_end_new = \
+                scale_values(np.array([y_end_old]), y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)[0]
+                height_new = y_end_new - y_new
+            else:
+                y_new = y_old
+                height_new = height
+
+            patch.set_xy((x_new, y_new))
+            patch.set_width(width_new)
+            patch.set_height(height_new)
+
+            processed.add(patch)
+        processed.add(container)
+
+    # Scaling for StemContainers
+    for line in ax.stemlines:
+        if line in processed:
+            continue
+        segments = line.get_segments()
+        scaled_segments = []
+        for segment in segments:
+            xdata = segment[:, 0]
+            ydata = segment[:, 1]
+
+            # Scale xdata
+            if xaxis_range is not None or xaxis_scale is not None:
+                xdata_scaled = scale_values(xdata, x_min, x_max, x_min_new, x_max_new, current_xscale, xaxis_scale)
+            else:
+                xdata_scaled = xdata
+
+            # Scale ydata
+            if yaxis_range is not None or yaxis_scale is not None:
+                ydata_scaled = scale_values(ydata, y_min, y_max, y_min_new, y_max_new, current_yscale, yaxis_scale)
+            else:
+                ydata_scaled = ydata
+
+            scaled_segment = np.column_stack((xdata_scaled, ydata_scaled))
+            scaled_segments.append(scaled_segment)
+        line.set_segments(scaled_segments)
+
+        processed.add(line)
+
+    # Scaling for errorbars
+    errorcontainers = [artist for artist in ax.containers if isinstance(artist, mpl.container.ErrorbarContainer)]
+    for container in errorcontainers:
+        if container in processed:
+            continue
+        # Errorbar data
+        lines = container.lines
+        for line in lines:
+            if line in processed:
+                continue
+            xdata = line.get_xdata()
+            ydata = line.get_ydata()
+
+            # Scale xdata
+            if xaxis_range is not None or xaxis_scale is not None:
+                xdata_scaled = scale_values(np.array(xdata), x_min, x_max, x_min_new, x_max_new, current_xscale,
+                                            xaxis_scale)
+                line.set_xdata(xdata_scaled)
+
+            # Scale ydata
+            if yaxis_range is not None or yaxis_scale is not None:
+                ydata_scaled = scale_values(np.array(ydata), y_min, y_max, y_min_new, y_max_new, current_yscale,
+                                            yaxis_scale)
+                line.set_ydata(ydata_scaled)
+
+            processed.add(line)
+        processed.add(container)
+
+    # Update axis scales
+    if xaxis_scale:
+        ax.set_xscale(xaxis_scale)
+    if yaxis_scale:
+        ax.set_yscale(yaxis_scale)
+
+    # Update axis limits
+    ax.set_xlim(x_min_new, x_max_new)
+    ax.set_ylim(y_min_new, y_max_new)
 
 
 class SciPlotter:
@@ -147,6 +514,8 @@ class SciPlotter:
         # self.tick_fontsize = kwargs.get('tick_fontsize', self._ticklabels_fontsize)
         self.xy_label_fontsize = kwargs.get('xy_label_fontsize', self._xy_label_fontsize)
 
+        self.legend_names = {}
+
         # Other keyword arguments
         self.kwargs = kwargs
 
@@ -175,6 +544,31 @@ class SciPlotter:
             self.fig_modifier(self.fig, self.axs, **self.fig_modifier_kwargs)
 
         return self.fig, self.axs
+
+    def make_plots(self, obj_name, plot_func, *args, **kwargs):
+        """
+        Make the plots and recording the name of the plot.
+        Calling this method instead of directly calling `plot_func` will be convenient when add
+        the legend to the plots, by calling the `add_legend` method in the end.
+        Args:
+            obj_name: the name of the adding object to plot.
+            plot_func: the function to make the object on the plot
+            *args: arguments to pass to the `plot_func`
+            **kwargs: keyword arguments to pass to the `plot_func`
+
+        Returns:
+            None
+        """
+        # Make plot
+        plot_func(*args, **kwargs)
+
+        ax = plot_func.__self__
+        obj_names = self.legend_names.setdefault(ax, [])
+        obj_names.append(obj_name)
+
+    def add_legend(self, ax, *args, **kwargs):
+        if legend_names := self.legend_names.get(ax, None):
+            ax.legend(legend_names)
 
     def _add_axes_colorbar(
             self, ax,
@@ -386,9 +780,13 @@ class Plot:
 class R2Regression(Plot):
     def __init__(
             self, xy1, xy2=None, unit: str = None, xy_lim: Union[Sequence, np.ndarray] = None,
-            s1=None, s2=None, c1=None, c2='green', marker1=None, marker2=None, err1=None, err2=None,
+            s1=None, s2=None, c1=None, c2=None, ch=None,
+            marker1=None, marker2=None, err1=None, err2=None,
             show_mae=False, show_rmse=False,
-            *args, **kwargs
+            *args,
+            sample1_name: str = None, sample2_name: str = None, sampleh_name: str = None,
+            xy1_highlight_indices=None, xy2_highlight_indices=None,
+            **kwargs
     ):
         """
         The templet for R-squared regression plot, which is usually used to show the performance of trained ML model.
@@ -420,6 +818,9 @@ class R2Regression(Plot):
 
         self.xy1 = xy1 if isinstance(xy1, np.ndarray) else np.array(xy1)
         self.xy2 = xy2 if (xy2 is None) or isinstance(xy2, np.ndarray) else np.array(xy2)
+        self.sample1_name = ''
+        self.sample2_name = ''
+        self.sampleh_name = ''
 
         self.sample_num = len(self.xy1) + (len(self.xy2) if isinstance(self.xy2, np.ndarray) else 0)
         self.is_small_sample = self.sample_num < 1000
@@ -441,39 +842,49 @@ class R2Regression(Plot):
 
         self.s1 = s1
         self.s2 = s2 or s1
-        self.c1 = c1
-        self.c2 = c2
+        self.c1 = None
+        self.c2 = None
+        self.ch = None  # color for highlight samples
         self.marker1 = marker1 or 'o'
         self.marker2 = marker2 or 'x'
         self.err1 = err1
         self.err2 = err2
 
         self.args = args
+
         self.kwargs = {}
-
-        self.r2_1 = r2_score(xy1[0], xy1[1])
-        self.mae_1 = mean_squared_error(xy1[0], xy1[1])
-        self.rmse_1 = np.sqrt(mean_squared_error(xy1[0], xy1[1]))
-        if isinstance(self.xy2, np.ndarray):
-            self.r2_2 = r2_score(xy2[0], xy2[1])
-            self.mae_2 = mean_squared_error(xy2[0], xy2[1])
-            self.rmse_2 = np.sqrt(mean_squared_error(xy2[0], xy2[1]))
-
-            if self.is_small_sample:
-                self.kwargs.update({'alpha': 0.75})
-            else:
-                self.kwargs.update({'alpha': 0.3})
-
-            self.c1 = '#3F54C7'
-            self.c2 = '#B40426'
-
+        if self.is_small_sample:
+            self.kwargs.update({'alpha': 1.0})
         else:
-            self.c1 = SciPlotter.calculate_scatter_density(xy1)
+            self.kwargs.update({'alpha': 0.3})
 
         self.show_mae = show_mae
         self.show_rmse = show_rmse
+        self.metrics = {}  # dict to store metrics
+
+        self.xy_highlight = []
+        self.xy1_highlight_indices = np.array(xy1_highlight_indices).tolist()
+        self.xy2_highlight_indices = np.array(xy2_highlight_indices).tolist()
+        self._article_names = []
 
         self.kwargs.update(kwargs)
+
+        self._specify_sample_names(sample1_name, sample2_name, sampleh_name)
+        self._organize_highlight_samples()
+        self._calc_metrics()
+        self._configure_colors(c1, c2, ch)
+
+    def _specify_sample_names(self, sample1_name, sample2_name, sampleh_name):
+        if isinstance(self.xy2, np.ndarray):
+            self.sample1_name = 'train'
+            self.sample2_name = 'test'
+
+        if isinstance(self.xy_highlight, np.ndarray):
+            self.sampleh_name = 'highlight'
+
+        self.sample1_name = sample1_name or self.sample1_name
+        self.sample2_name = sample2_name or self.sample2_name
+        self.sampleh_name = sampleh_name or self.sampleh_name
 
     @staticmethod
     def add_diagonal(ax: plt.Axes):
@@ -482,45 +893,128 @@ class R2Regression(Plot):
         ax.set_autoscale_on(False)
         ax.plot(xlim, ylim, linewidth=3, c='black')
 
+    def _calc_metrics(self):
+        if self.kwargs.pop('to_sparse', False):
+            self.xy1[0], self.xy1[1] = _sample_density(self.xy1[0], self.xy1[1])
+
+        self.metrics['r2_1'] = r2_score(self.xy1[0], self.xy1[1])
+        self.metrics['mae_1'] = mean_squared_error(self.xy1[0], self.xy1[1])
+        self.metrics['rmse_1'] = np.sqrt(mean_squared_error(self.xy1[0], self.xy1[1]))
+
+        if isinstance(self.xy2, np.ndarray):
+            self.metrics['r2_2'] = r2_score(self.xy2[0], self.xy2[1])
+            self.metrics['mae_2'] = mean_squared_error(self.xy2[0], self.xy2[1])
+            self.metrics['rmse_2'] = np.sqrt(mean_squared_error(self.xy2[0], self.xy2[1]))
+
+        if isinstance(self.xy_highlight, np.ndarray):
+            self.metrics['r2_h'] = r2_score(self.xy_highlight[0], self.xy_highlight[1])
+            self.metrics['mae_h'] = mean_squared_error(self.xy_highlight[0], self.xy_highlight[1])
+            self.metrics['rmse_h'] = np.sqrt(mean_squared_error(self.xy_highlight[0], self.xy_highlight[1]))
+
     def add_metric_info(self, ax: plt.Axes):
         """ Add metric information """
 
         def _add(_text: str):
             nonlocal count
-            SciPlotter.add_text(ax, 0.025, 0.875 - count*0.075, _text, {'fontsize': 20})
+            SciPlotter.add_text(ax, 0.025, 0.925 - count*0.075, _text, {'fontsize': 20})
             count += 1
 
         count = 0
+
         if self.xy2 is None:
-            _add(r"$\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}")
+            _add(r"$\mathdefault{R^2}$=" + f"{round(self.metrics['r2_1'], 3)}")
             if self.show_mae:
-                _add(r"MAE=" + f"{round(self.mae_1, 3)}")
+                _add(r"MAE=" + f"{round(self.metrics['mae_1'], 3)}")
             if self.show_rmse:
-                _add(r"RMSE =" + f"{round(self.rmse_1, 3)}")
+                _add(r"RMSE =" + f"{round(self.metrics['rmse_1'], 3)}")
+
         else:
-            _add(r"train $\mathdefault{R^2}$=" + f"{round(self.r2_1, 3)}")
-            _add(r"test $\mathdefault{R^2}$=" + f"{round(self.r2_2, 3)}")
+            _add(r"train $\mathdefault{R^2}$=" + f"{round(self.metrics['r2_1'], 3)}")
+            _add(r"test $\mathdefault{R^2}$=" + f"{round(self.metrics['r2_2'], 3)}")
             if self.show_mae:
-                _add(r"test MAE=" + f"{round(self.mae_2, 3)}")
+                _add(r"test MAE=" + f"{round(self.metrics['mae_2'], 3)}")
             if self.show_rmse:
-                _add(r"test RMSE=" + f"{round(self.rmse_2, 3)}")
+                _add(r"test RMSE=" + f"{round(self.metrics['rmse_2'], 3)}")
+
+        if isinstance(self.xy_highlight, np.ndarray):
+            _add(r"highlight MAE=" + f"{round(self.metrics['mae_h'], 3)}")
+            _add(r"highlight RMSE=" + f"{round(self.metrics['rmse_h'], 3)}")
+
+    def _organize_highlight_samples(self):
+        if self.xy1_highlight_indices:
+            self.xy_highlight.append(self.xy1[:, self.xy1_highlight_indices])
+        if self.xy2_highlight_indices:
+            self.xy_highlight.append(self.xy2[:, self.xy2_highlight_indices])
+
+        try:
+            self.xy_highlight = np.vstack(self.xy_highlight)
+        except ValueError:
+            self.xy_highlight = []
+
+        if self.xy1_highlight_indices:
+            self.xy1 = np.delete(self.xy1, self.xy1_highlight_indices, axis=1)
+        if self.xy2_highlight_indices:
+            self.xy2 = np.delete(self.xy2, self.xy2_highlight_indices, axis=1)
+
+    def _configure_colors(self, c1=None, c2=None, ch=None):
+        """"""
+        if isinstance(self.xy_highlight, np.ndarray):
+            self.ch = '#F4A666'
+
+        if isinstance(self.xy2, np.ndarray):
+            if isinstance(self.xy_highlight, np.ndarray):
+                self.c1 = '#888888'
+            else:
+                self.c1 = '#3F54C7'
+
+            self.c2 = '#6B0086'
+        else:
+            self.c1 = SciPlotter.calculate_scatter_density(self.xy1)
+
+        self.c1 = c1 or self.c1
+        self.c2 = c2 or self.c2
+        self.ch = ch or self.ch
 
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         """
         Args:
             sciplot:
         """
+        # if self.xy1_highlight_indices is not None and len(self.xy1_highlight_indices) > 0:
+        #     xy1_highlight = self.xy1[:, self.xy1_highlight_indices]
+        #     # ax.scatter(xy1_highlight[0], xy1_highlight[1], 120, c='#F4A666', marker='*')
+        # if self.xy2_highlight_indices is not None and len(self.xy2_highlight_indices) > 0:
+        #     xy2_highlight = self.xy2[:, self.xy2_highlight_indices]
+        #     # ax.scatter(xy2_highlight[0], xy2_highlight[1], 120, c='#F4A666', marker='*')
+
         if isinstance(self.err1, np.ndarray):
-            ax.errorbar(self.xy1[0], self.xy1[1], fmt='o', yerr=self.err1)
+            sciplot.make_plots('Train error bar', ax.errorbar, self.xy1[0], self.xy1[1], fmt='o', yerr=self.err1)
+            # ax.errorbar(self.xy1[0], self.xy1[1], fmt='o', yerr=self.err1)
         else:
-            ax.scatter(
-                self.xy1[0], self.xy1[1], self.s1, self.c1, self.marker1, cmap='plasma', *self.args, **self.kwargs)
+            sciplot.make_plots(
+                'Train samples', ax.scatter,
+                self.xy1[0], self.xy1[1], self.s1, self.c1, self.marker1, cmap='plasma', *self.args, **self.kwargs
+            )
+            # ax.scatter(
+            #     self.xy1[0], self.xy1[1], self.s1, self.c1, self.marker1, cmap='plasma', *self.args, **self.kwargs)
 
         if self.xy2 is not None:
             if isinstance(self.err2, np.ndarray):
-                ax.errorbar(self.xy2[0], self.xy2[1], yerr=self.err2, fmt='o')
+                sciplot.make_plots('Test error bar', ax.errorbar, self.xy2[0], self.xy2[1], fmt='o', yerr=self.err2)
+                # ax.errorbar(self.xy2[0], self.xy2[1], yerr=self.err2, fmt='o')
             else:
-                ax.scatter(self.xy2[0], self.xy2[1], self.s2, self.c2, self.marker2, *self.args, **self.kwargs)
+                sciplot.make_plots(
+                    'Test samples', ax.scatter,
+                    self.xy2[0], self.xy2[1], self.s2, self.c2, self.marker2, *self.args, **self.kwargs
+                )
+                # ax.scatter(self.xy2[0], self.xy2[1], self.s2, self.c2, self.marker2, *self.args, **self.kwargs)
+
+        if isinstance(self.xy_highlight, np.ndarray):
+            sciplot.make_plots(
+                'highlight', ax.scatter, self.xy_highlight[0], self.xy_highlight[1],
+                200, c=self.ch, marker='*'
+            )
+            # ax.scatter(self.xy_highlight[0], self.xy_highlight[1], 200, c=self.ch, marker='*')
 
         ax.set_xlabel(f'Target{self.unit}')
         ax.set_ylabel(f'Predicted{self.unit}')
@@ -531,7 +1025,8 @@ class R2Regression(Plot):
         self.add_diagonal(ax)
         self.add_metric_info(ax)
 
-        ax.legend(['train set', 'test set'], loc='lower right', fontsize='xx-large')
+        sciplot.add_legend(ax, loc='lower right', fontsize='xx-large')
+        # ax.legend(['train set', 'test set', 'highlight'], loc='lower right', fontsize='xx-large')
 
 
 class FeatureImportance:

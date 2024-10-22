@@ -36,7 +36,7 @@ def load_dataset(name: str):
 
     if suffix == 'xlsx':
         print('pandas.DataFrame')
-        return pd.read_excel(osp.join(dir_root, 'data', f'{name}.xlsx'), index_col=0)
+        return pd.read_excel(osp.join(dir_root, 'data', f'{name}.xlsx'))
     elif suffix == 'txt':
         def _loader():
             with open(osp.join(dir_root, 'data', f'{name}.txt'), 'r') as f:

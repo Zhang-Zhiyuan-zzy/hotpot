@@ -136,10 +136,11 @@ class TestOptiEa(ut.TestCase):
             X=X,
             y=y,
             features=features,
-            # feature_engineering=True,
+            feature_engineering=True,
             which_return='top',
-            nproc=8,
-            n_iters=3
+            nproc=16,
+            n_iters=3,
+            timeout=3600
         )
 
         print(results)

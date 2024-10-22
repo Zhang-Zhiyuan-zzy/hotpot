@@ -18,9 +18,9 @@ from tqdm import tqdm
 import argparse
 import logging
 
-from cheminfo.core import Molecule
-from main import optimize
-from main import ml_train
+from .cheminfo.core import Molecule
+from .main import optimize, ml_train
+from . import version
 
 
 def is_running_in_foreground():
@@ -79,6 +79,10 @@ def convert(input_file, output_file, out_fmt: str, in_fmt=None):
             _to_smiles(reader, out_fp, mode)
 
 
+def show_version():
+    print(f"Hotpot version: {version()}")
+    print("A C++/python package designed to communicate among various chemical and materials calculational tools")
+
 
 def main():
     # if is_running_in_foreground():
@@ -94,6 +98,7 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', help='debug mode')
     parser.add_argument('-b', '--background', action='store_true',
                         help='run command in background, this flag should cowork with `&` or `nohup`')
+    parser.add_argument('-v', '--version', action='store_true')
 
     works = parser.add_subparsers(title='works', help='', dest='works')
 
@@ -113,6 +118,10 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
+
+    if args.version:
+        show_version()
+        return
 
     # convert work
     if args.works == 'convert':

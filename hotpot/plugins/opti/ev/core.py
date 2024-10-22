@@ -139,6 +139,8 @@ class Individual:
                 self.process = None
                 self.queue = None
 
+                print(RuntimeWarning(f'Calculate fitness timeout in {self.timeout} seconds with fitness {self.fitness}'))
+
             self.individual.fitness_ = self.fitness
 
             if self.fitness is not None:
@@ -221,6 +223,8 @@ class Individual:
 
         children = []
         for i in range(num_children):
+
+            # Exchange genes
             reproduce_series = GeneSeries(
                 *np.where(
                     np.random.randint(0, 2, len(self.gene_series)),
@@ -748,6 +752,7 @@ class Earth:
                 if not not_calc_existed_fitness or individual.fitness_ is None:
                     individual.fitness_ = fit_func(individual)
                     logging.info(f'Fitness of {individual} is {individual.fitness_}')
+                    # individual.calc_fitness(timeout)
 
         def _running_multi_processes():
             waiting_individual = self.individuals
@@ -849,7 +854,7 @@ class Earth:
             if i >= keep_number:
                 individual.age += 1
             else:
-                individual.alive = 0  # Refresh its age
+                individual.age = 0  # Refresh its age
 
         # Cutoff individual exceed the max living space
         individuals = list(self.sorted_individuals(decending=True))
@@ -1004,23 +1009,26 @@ class MachineLearningOptimizer:
         return features
 
     @staticmethod
-    def _feature_engineering(estimator, X, y, features, **kwargs):
+    def _feature_engineering(estimator, X, y, features, skip_recur_addi: bool = True, **kwargs):
         """"""
         ntri_idx = ML.quickly_feature_selection_(X, y, estimator, **kwargs)
 
         X = X[:, ntri_idx]
         features = np.array(features)[ntri_idx].tolist()
 
-        _, X, features = ML.pca_dimension_reduction_(X, features, **kwargs)
+        _, _, X, features = ML.pca_dimension_reduction_(X, features, **kwargs)
 
-        print('recursive addition')
-        feat_indices_eli, r2_score_eli, = \
-            ML.recursive_feature_addition_(
-                X, y, estimator, **kwargs
-            )
+        if not skip_recur_addi:
+            print('recursive addition')
+            feat_indices_add, score_add, = \
+                ML.recursive_feature_addition_(
+                    X, y, estimator, **kwargs
+                )
+        else:
+            feat_indices_add, score_add = [], -np.inf
 
         print('recursive elimination')
-        feat_indices_add, r2_score_add = \
+        feat_indices_eli, score_eli = \
             ML.recursive_feature_elimination_(
                 X, y, estimator
             )
@@ -1028,12 +1036,11 @@ class MachineLearningOptimizer:
         X, features, cv_best_metric, how_to_essential = \
             ML.recursive_feature_selection_(
                 X, features,
-                feat_indices_eli, r2_score_eli,
-                feat_indices_add, r2_score_add
+                feat_indices_eli, score_eli,
+                feat_indices_add, score_add
             )
 
         return X, features
-
 
     def train_test_fitness(self, individual):
         """"""

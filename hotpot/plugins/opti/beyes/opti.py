@@ -22,6 +22,7 @@ import gpytorch
 from gpytorch.kernels import RBFKernel, ScaleKernel
 
 from hotpot.plots import BayesDesignSpaceMap
+from hotpot.plugins.plots import BayesDesignSpaceMap
 
 
 class AcquisitionFunc:
@@ -249,6 +250,9 @@ def beyes_run(X, y, X_design, batch_size=5):
     optimizer = BayesianOptimizer(gp, batch_size=batch_size)
     X_opti, mu_opti, sigma_opti, X_idx = optimizer(X_design, n_iter=300)
 
+    for param_name, param in optimizer.surrogate.named_parameters():
+        print(f'Parameter name: {param_name:42} value = {param.detach().cpu().tolist()}')
+
     return optimizer, X_opti, mu_opti, sigma_opti, X_idx
 
 
@@ -360,7 +364,7 @@ class ParamPreprocessor:
     def __init__(
             self,
             scaler: Callable = MinMaxScaler(),
-            yscaler=MinMaxScaler(),
+            yscaler=MinMaxScaler((0, 10)),
             param_range: Union[torch.Tensor, np.ndarray] = None,
             param_names: list[str] = None,
             param_mesh_counts: int = 20,

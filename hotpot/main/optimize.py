@@ -240,7 +240,7 @@ def add_arguments(optimize_parser: argparse.ArgumentParser):
     opti_plot.add_argument(
         '--examples',
         choices=['COF'],
-        default='COF',
+        # default='COF',
         help="Reproduce the optimization procedure of COF experiment"
     )
 
@@ -390,4 +390,4 @@ def example_cof_params(out_file):
 
 
 if __name__ == '__main__':
-    example_cof_params('home/zz1/hp/hotpot/database/data/examples/COF.xlsx')
+    example_cof_params('/home/zz1/cof')

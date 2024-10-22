@@ -1,0 +1,25 @@
+package:
+  name: hotpot
+  version: 0.5.0.0
+
+source:
+  path: ./hotpot
+
+build:
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  build:
+    - python==3.9
+    - setuptools
+    - openbabel
+    - lammps
+    - cclib
+  host:
+    - python==3.9
+    - pip
+  run:
+    - python==3.9
+    - openbabel
+    - cclib
+    - lammps

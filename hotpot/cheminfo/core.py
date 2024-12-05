@@ -13,6 +13,7 @@ from pathlib import Path
 from copy import copy
 
 import cclib
+import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -1165,6 +1166,73 @@ class Molecule:
         return spec1.similarity(spec2)
 
 
+def _calc_atom_descriptors(atomic_number: int) -> np.ndarray:
+    periodic_list = [0, 2, 8, 8, 18, 18, 32, 32, 50]
+    main_metals = {13, 31, 32, 49, 50, 51, 81, 82, 83, 84}
+
+    def _calc_periodic_count():
+        """ Calculate the periodic count """
+        for pc in range(len(periodic_list)):
+            if sum(periodic_list[:pc]) >= atomic_number:
+                yield pc - 1
+
+        raise ValueError(f'the given atomic number should be less than {sum(periodic_list)}')
+
+    periodic_count = next(_calc_periodic_count())
+
+    # Determine groups
+    groups = atomic_number - sum(periodic_list[:periodic_count])
+    if periodic_count >= 8:
+        if 2 < groups <= 35:
+            groups = 3
+        elif groups > 35:
+            groups = groups - 35
+
+    elif periodic_count >= 6:
+        if 2 < groups <= 17:
+            groups = 3
+        elif groups > 17:
+            groups = groups - 17
+
+    is_main = int(groups <= 2 or groups > 12)
+    is_alkali = int(groups == 1)
+    is_alkaline = int(groups == 2)
+    is_transition = int(3 < groups <= 12 or (groups == 3 and periodic_count >= 6))
+    is_lanthanide = int(groups == 3 and periodic_count == 6)
+    is_actinides = int(groups == 3 and periodic_count == 7)
+    is_main_metal = int(atomic_number in main_metals)
+    is_metal = int(any((is_alkali, is_alkaline, is_transition, is_lanthanide, is_actinides, is_main_metal)))
+
+    # Descriptors:
+    #   0: atomic_number,
+    #   1: periodic_count,
+    #   2: periodic_groups,
+    #   3: is_metal,
+    #   4: is_main,
+    #   5: is_alkali
+    #   6: is_alkaline,
+    #   7: is_transition,
+    #   8: is_lanthanide,
+    #   9: is_actinides,
+    #   10: is_main_metal
+    desc = [
+        atomic_number,
+        periodic_count,
+        groups,
+        is_metal,
+        is_main,
+        is_alkali,
+        is_alkaline,
+        is_transition,
+        is_lanthanide,
+        is_actinides,
+        is_main_metal
+    ]
+
+    return np.array(desc)
+
+
+
 class Atom:
     attrs_enumerator = Molecule.atom_attrs_enumerator
     enum_atomic_number = Molecule.enum_atomic_number
@@ -1191,6 +1259,17 @@ class Atom:
     _halogens = [9, 17, 35, 53, 85, 117]
 
     covalent_radii = np.array([0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)])
+
+    _atomic_orbital = [
+        [2],
+        [2, 6],
+        [2, 6],
+        [2, 10, 6],
+        [2, 10, 6],
+        [2, 14, 10, 6],
+        [2, 14, 10, 6],
+        [2, 18, 14, 10, 6]
+    ]
 
     _default_valence = {
         1: 1,    # Hydrogen (H)
@@ -1318,6 +1397,7 @@ class Atom:
             # idx: int = None,
             *,
             atomic_number: int = None,
+            atomic_symbol: str = None,
             is_aromatic: int = 0,
             formal_charge: int = 0,
             partial_charge: int = 0.,
@@ -1326,6 +1406,7 @@ class Atom:
         # Create a new molecule for isolate atom
         if not isinstance(mol, Molecule):
             mol = Molecule()
+            setattr(mol, '_atoms', [self])
             # idx = 0
         else:  # define atom by given molecule
             atomic_number = None
@@ -1336,6 +1417,9 @@ class Atom:
         self.molecule = mol
         # self.idx = int(idx)
 
+        if atomic_symbol:
+            atomic_number = ob.GetAtomicNum(atomic_symbol)
+
         # Init the new molecule created by the isolate atom
         if isinstance(atomic_number, int):
             self.molecule.atoms_data = np.zeros((1, len(self.attrs_enumerator)))
@@ -1344,6 +1428,24 @@ class Atom:
             self.formal_charge = formal_charge
             self.partial_charge = partial_charge
             self.coordinates = coordinates
+
+        self.desc_name = [
+            "atomic_number",
+            "periodic_count",
+            "groups",
+            "is_metal",
+            "is_main",
+            "is_alkali",
+            "is_alkaline",
+            "is_transition",
+            "is_lanthanide",
+            "is_actinides",
+            "is_main_metal"
+        ]
+        if isinstance(self.atomic_number, int):
+            self.desc = _calc_atom_descriptors(self.atomic_number)
+        else:
+            self.desc = np.zeros(11)
 
     def __repr__(self):
         return f'Atom({self.label})'
@@ -1420,7 +1522,7 @@ class Atom:
         if value.shape != (3,):
             raise ValueError('the coordinates should be a 3-dimensional array or 3-dimensional Sequence')
 
-        self.attrs[self.enum_coords] = value
+        self.attrs[list(self.enum_coords)] = value
 
     @property
     def bond_orders(self) -> int:

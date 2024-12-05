@@ -1,0 +1,8 @@
+{  
+  "python.autoComplete.extraPaths": [  
+    "C:\\MyPaths"  
+  ],  
+  "python.analysis.extraPaths": [  
+    "C:\\MyPaths"  
+  ]  
+}

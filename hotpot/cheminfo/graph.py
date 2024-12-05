@@ -140,7 +140,7 @@ class GraphSpectrum:
         self.spectrum = spectrum
         self.platform = platform
 
-    def similarity(self, other: "GraphSpectrum"):
+    def similarity(self, other: "GraphSpectrum", norm_method: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         """"""
         if self.width >= other.width:
             vct1 = self.spectrum
@@ -156,6 +156,18 @@ class GraphSpectrum:
         norm1 = np.linalg.norm(vct1, axis=1)
         norm2 = np.linalg.norm(vct2, axis=1)
 
+        vector = dot / (norm1 * norm2)
+
+        if norm_method == 'l2':
+            return np.linalg.norm(vector) / np.sqrt(len(vector))
+        elif norm_method == 'infinite':
+            return np.max(vector)
+        elif norm_method == 'min':
+            return np.min(vector)
+        elif norm_method == 'l1':
+            return sum(vector) / len(vector)
+
+        # TODO: Discarded later
         return dot / (norm1 * norm2)
 
     @classmethod

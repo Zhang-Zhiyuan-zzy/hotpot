@@ -23,4 +23,4 @@ def version():
 package_root = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(package_root)
 
-from .cheminfo.core import Molecule
+from .cheminfo.core import Molecule, Atom

@@ -41,8 +41,6 @@ from sklearn.manifold import TSNE, MDS
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SequentialFeatureSelector as SFS, RFECV
 from sklearn.utils.validation import check_is_fitted
-from xgboost import XGBRegressor
-import lightgbm as lgb
 
 import shap
 import matplotlib.pyplot as plt
@@ -53,6 +51,12 @@ from rdkit.Chem.Descriptors import CalcMolDescriptors
 
 from hotpot.plots import SciPlotter, R2Regression, PearsonMatrix, SHAPlot, scale_axes
 from hotpot.utils.types import ModelLike
+
+try:
+    from xgboost import XGBRegressor
+    import lightgbm as lgb
+except ModuleNotFoundError:
+    import_msg = "xgboost or lightgbm not have not been installed, pip install xgboost or lightgbm!"
 
 
 def expectation_improvement(y, mu, sigma):
@@ -81,7 +85,7 @@ def get_rdkit_mol_descriptor(list_smi) -> pd.DataFrame:
         list_mol.append(mol)
 
     ligand_2d = pd.DataFrame([CalcMolDescriptors(m) for m in list_mol])
-    ligand_3d = pd.DataFrame([{n: getattr(Chem.Descriptors3D, n)(mol) for n in attr3d} for mol in list_mol])
+    ligand_3d = pd.DataFrame([{n: getattr(Chem.Descriptors3D, n)(m) for n in attr3d} for m in list_mol])
 
     return pd.concat([ligand_2d, ligand_3d], axis=1)
 

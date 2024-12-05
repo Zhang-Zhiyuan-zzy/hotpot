@@ -1,4 +1,9 @@
 /examples/
 /test/outdir/*
 .idea
-/.idea/
+.vscode/
+cpp/.vscode
+cpp/out/
+hotpot/__pycache__
+**/__pycache__
+hotpot_zzy.egg-info

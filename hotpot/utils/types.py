@@ -9,6 +9,7 @@ python v3.9.0
 Notes:
     Define custom types used in this package
 """
+from types import *
 from typing import *
 import numpy as np
 import torch

@@ -10,4 +10,4 @@ import os
 
 test_dir = os.path.dirname(__file__)
 input_dir = os.path.join(test_dir, 'input')
-output_dir = os.path.join(test_dir, 'output')
+output_dir = os.path.join(test_dir, 'outdir')

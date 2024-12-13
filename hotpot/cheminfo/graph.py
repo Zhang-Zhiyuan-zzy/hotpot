@@ -8,6 +8,7 @@ python v3.9.0
 """
 from typing import *
 import numpy as np
+import networkx as nx
 
 from hotpot.utils import types
 
@@ -135,12 +136,75 @@ def calc_spectrum(adj: types.ArrayLike, atomic_numbers: types.ArrayLike, length:
     return np.array(spectrum)
 
 
-class GraphSpectrum:
-    def __init__(self, spectrum: np.ndarray, platform: Literal["numpy", "torch"] = 'numpy'):
-        self.spectrum = spectrum
-        self.platform = platform
+def graph_dfs_path(
+        graph: nx.Graph,
+        start_node: int = None,
+        scope_nodes: Container = None,
+        min_deep: int = None,
+        max_deep: int = None
+) -> Optional[list[int]]:
+    """"""
+    def _dfs(_node: int, visited: list[int]):
+        visited.append(_node)
+        if max_deep and len(visited) >= max_deep:
+            return visited
 
-    def similarity(self, other: "GraphSpectrum", norm_method: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
+        for child in nx.neighbors(graph, _node):
+            if (child not in visited) and (scope_nodes and child in scope_nodes):
+                return _dfs(child, visited)
+
+        if min_deep and len(visited) >= min_deep:
+            return visited
+
+    if start_node is None:
+        start_node = 0
+
+    return _dfs(start_node, [])
+
+
+def graph_dfs_paths(
+        graph: nx.Graph,
+        start_node: int,
+        scope_nodes: Container = None,
+        min_deep: int = None,
+        max_deep: int = None
+) -> list[list[int]]:
+    paths = []
+
+    def _dfs(node: int, visited: set[int], path: list[int]) -> None:
+        path.append(node)
+        visited.add(node)
+
+        if max_deep and len(visited) >= max_deep:
+            paths.append(path)
+            return
+
+        for child in nx.neighbors(graph, node):
+            if (child not in visited) and (scope_nodes and child in scope_nodes):
+                _dfs(child, visited, path)
+
+        if min_deep and len(visited) >= min_deep:
+            paths.append(path)
+
+    if start_node is None:
+        start_node = 0
+
+    return paths
+
+
+class GraphSpectrum:
+    def __init__(
+            self,
+            spectrum: np.ndarray,
+            norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'
+    ):
+        self.spectrum = spectrum
+        self.norm = norm
+
+    def __or__(self, other: "GraphSpectrum"):
+        return self.similarity(other)
+
+    def similarity(self, other: "GraphSpectrum"):
         """"""
         if self.width >= other.width:
             vct1 = self.spectrum
@@ -158,28 +222,33 @@ class GraphSpectrum:
 
         vector = dot / (norm1 * norm2)
 
-        if norm_method == 'l2':
+        if self.norm == 'l2':
             return np.linalg.norm(vector) / np.sqrt(len(vector))
-        elif norm_method == 'infinite':
+        elif self.norm == 'infinite':
             return np.max(vector)
-        elif norm_method == 'min':
+        elif self.norm == 'min':
             return np.min(vector)
-        elif norm_method == 'l1':
+        elif self.norm == 'l1':
             return sum(vector) / len(vector)
 
         # TODO: Discarded later
         return dot / (norm1 * norm2)
 
     @classmethod
-    def from_adj_atoms(cls, adj: np.ndarray, atomic_numbers: np.ndarray, length: int = 4) -> "GraphSpectrum":
+    def from_adj_atoms(
+            cls, adj: np.ndarray,
+            atomic_numbers: np.ndarray, length: int = 4,
+            norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'
+    ) -> "GraphSpectrum":
         """
         Generate a GraphSpectrum of a molecule by given adjacency matrix and atomic numbers.
         Args:
             adj (np.ndarray): a square matrix of adjacency
             atomic_numbers (np.ndarray): a 1D array of atomic numbers, with a same order with the adjacency matrix
             length (int): the default length of electric configurations
+            norm (str, optional): how to calculate the norm of spectrum
         """
-        return cls(calc_spectrum(adj, atomic_numbers, length))
+        return cls(calc_spectrum(adj, atomic_numbers, length), norm)
 
     @property
     def width(self) -> int:

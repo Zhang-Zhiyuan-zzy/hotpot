@@ -73,10 +73,10 @@ class TestOptiEa(ut.TestCase):
         print(estimator.feature_importances_)
 
     def test_machine_learning_ea_with_feature_engineering(self):
-        data_path = Path(__file__).parents[2].joinpath('hotpot/dataset/data/examples/logβ.xlsx')
+        data_path = Path(__file__).parents[2].joinpath('hotpot/dataset/ChemData/examples/logβ.xlsx')
 
         with pd.ExcelFile(data_path) as excel:
-            data = excel.parse(sheet_name='data', index_col=0)
+            data = excel.parse(sheet_name='ChemData', index_col=0)
             test_indices = excel.parse(sheet_name='test_indices', index_col=0)
 
         X, y = data.iloc[:, :-1].values, data.iloc[:, -1].values

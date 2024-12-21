@@ -360,7 +360,7 @@ def example_cof_params(out_file):
     """
     print("Reproduce the parameters optimization in COF experiment,See ref: ...")
 
-    excel_path = Path(__file__).parents[1].joinpath('dataset', 'data', 'examples', 'COF.xlsx')
+    excel_path = Path(__file__).parents[1].joinpath('dataset', 'ChemData', 'examples', 'COF.xlsx')
     excel = pd.read_excel(excel_path, index_col=0, engine='openpyxl')
 
     param_names = ['T', 'C', 'V']

@@ -44,7 +44,7 @@ class BayesDesignSpaceMap(SciPlotter):
             # Create a regular grid
             # xi, yi = np.meshgrid(np.linspace(x.min(), x.max(), mesh_num), np.linspace(y.min(), y.max(), mesh_num))
             #
-            # # Interpolate the scattered data onto the regular grid
+            # # Interpolate the scattered ChemData onto the regular grid
             # zi = griddata((x, y), c, (xi, yi), method='linear')
             # zi = np.nan_to_num(zi, nan=0.0)
             ax.contourf(

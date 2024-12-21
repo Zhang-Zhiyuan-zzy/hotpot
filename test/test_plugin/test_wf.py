@@ -42,10 +42,10 @@ class TestWf(ut.TestCase):
         wf.train_surrogate_tree()
 
     def test_wf_skip_some_feature_engineering_procedures(self):
-        data_path = Path(__file__).parents[2].joinpath('hotpot/dataset/data/examples/logβ.xlsx')
+        data_path = Path(__file__).parents[2].joinpath('hotpot/dataset/ChemData/examples/logβ.xlsx')
 
         with pd.ExcelFile(data_path) as excel:
-            data = excel.parse(sheet_name='data', index_col=0)
+            data = excel.parse(sheet_name='ChemData', index_col=0)
             test_indices = excel.parse(sheet_name='test_indices', index_col=0)
 
         essential_features = ['dG', 'groups', 'c1', 'SMR_VSA1', 'Med(MP)', 'Med(c)']

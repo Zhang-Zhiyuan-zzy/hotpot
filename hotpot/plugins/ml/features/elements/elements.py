@@ -80,6 +80,6 @@ element_features = ElementFeature()
 if __name__ == "__main__":
     # Am = ele['Am']
     data = pd.read_pickle(os.path.join(os.path.dirname(__file__), '_elements.pd.xz'))
-    # df_ = determine_elements_block(data['atomic_number'])
-    # data = pd.concat([df_, data], axis=1)
-    # data.to_pickle(os.path.join(os.path.dirname(__file__), '_elements.pd.xz'))
+    # df_ = determine_elements_block(ChemData['atomic_number'])
+    # ChemData = pd.concat([df_, ChemData], axis=1)
+    # ChemData.to_pickle(os.path.join(os.path.dirname(__file__), '_elements.pd.xz'))

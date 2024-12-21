@@ -6,9 +6,11 @@ python v3.9.0
 @Data   : 2024/6/5
 @Time   : 19:15
 """
+from os.path import join as opj
 from pathlib import Path
 import unittest as ut
 from copy import copy
+from itertools import product
 
 import hotpot as hp
 from hotpot.cheminfo.core import InternalCoordinates
@@ -47,6 +49,8 @@ class TestChemInfo(ut.TestCase):
         self.assertEqual((227, 2), mol.link_matrix.shape)
 
         a = mol.atoms[20]
+        b = mol.bonds[20]
+        self.assertIs(b.mol, mol)
         self.assertIsInstance(a.neighbours[0], hp.Atom)
         self.assertIsInstance(a.bonds[0], hp.Bond)
 
@@ -89,7 +93,7 @@ class TestChemInfo(ut.TestCase):
         self.assertFalse(any(a1 is a2 for a1, a2 in zip(mol.atoms, clone.atoms)))
 
         self.assertRaises(PermissionError, copy, clone.atoms[20])
-        self.assertIs(clone.sssr[0].mol, clone)
+        self.assertIs(clone.rings[0].mol, clone)
 
         c1, c2 = clone.components
         assert isinstance(c1, hp.Molecule)
@@ -117,9 +121,53 @@ class TestChemInfo(ut.TestCase):
 
         c1.build3d()
 
+        c1.update_angles()
+        c1.update_torsions()
         print(len(c1.angles))
         print(len(c1.torsions))
-        print(c1.torsion_degrees(*c1.torsions[30]))
+        print(c1.torsions[30].degrees)
+        t1 = time.time()
+        print(c1.simple_paths(cutoff=3))
+        t2 = time.time()
+        print(t2-t1)
+
+        rings = c1.rings
+        print(rings)
+        print(rings[0].bonds)
+        self.assertIn(rings[0].bonds[1], rings[0])
+        self.assertNotIn(rings[0].bonds[1], rings[1])
+
+        self.assertTrue(all(a.in_ring for r in rings for a in r.atoms))
+        self.assertTrue(all(b.in_ring for r in rings for b in r.bonds))
+
+        print(c1.to_rdmol())
+
+    def test_molblock(self):
+        mol = next(hp.MolReader('c1cncc3c1c2c(S3(=O)=O)c[nH]c2P(=O)(O)O', 'smi'))
+        for b in mol.bonds:
+            print(f"{b}: is aromatic? {b.is_aromatic}; is rotatable? {b.rotatable}")
+        for t in mol.torsions:
+            print(f"{t} is rotatable? {t.rotatable}")
+
+        for r in mol.rings:
+            print(f"{r} is aromatic? {r.perceive_aromatic()}")
+
+        for a in mol.atoms:
+            print(a.open_shell_electrons)
+
+        for a in mol.atoms:
+            print(a.missing_electrons_element)
+
+        print("Hybridization:")
+        for a in mol.atoms:
+            print(a.hyb)
+
+        print("Oxidation State:")
+        for a in mol.atoms:
+            print(a.symbol, a.oxidation_state)
+
+        mol.build3d(steps=5000)
+        mol.write(opj(test.output_dir, 'cheminfo', 'mol.mol2'), 'mol2', overwrite=True)
 
     def test_internal_coordinates(self):
         reader = hp.MolReader('CCN(CC)P(OCCC)(OCCC)(=O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)N(CC)CC)C=C1', 'smi')
@@ -128,43 +176,83 @@ class TestChemInfo(ut.TestCase):
         zmat = InternalCoordinates.calc_zmat(mol.link_matrix, mol.coordinates)
         print(zmat)
 
-    def test_mol_modify(self):
-        mol = next(hp.MolReader('O=P(OC(C)C)(c1nc(c2cccc(P(OC(C)C)(OC(C)C)=O)n2)ccc1)OC(C)C', 'smi'))
+    def test_build3d(self):
+        mol = next(hp.MolReader(
+            # 'O=P(OC(C)C)(c1nc(c2cccc(P(OC(C)C)(OC(C)C)=O)n2)ccc1)OC(C)C'
+            # 'c1ccc(cc1)C(c1ccccc1)(c1ccccc1)N1CCN(CCN2CCN(CCN(CC2)C(c2ccccc2)(c2ccccc2)c2ccccc2)C(c2ccccc2)(c2ccccc2)c2ccccc2)CCN(CC1)C(c1ccccc1)(c1ccccc1)c1ccccc1',
+            # 'C[C@H]1O[C@@H](O[C@@H]2[C@@H](COCc3ccccc3)O[C@@H]([C@@H]([C@@H]2OCc2ccccc2)OCc2ccccc2)O[C@@H]2[C@@H](OCc3ccccc3)CN([C@@H]2COCc2ccccc2)C(=O)OCc2ccccc2)[C@H]([C@H]([C@@H]1OCc1ccccc1)OCc1ccccc1)OCc1ccccc1',
+            "BrCCCCCCOc1cccc(c1)C1=C2C=CC(=N2)C(=c2ccc(=C(C3=NC(=C(c4[nH]c1cc4)c1cccc(c1)OCCCCCCBr)C=C3)c1cccc(c1)OCCCCCCBr)[nH]2)c1cccc(c1)OCCCCCCBr",
+            'smi'))
 
-        self.assertEqual(32, len(mol.atoms))
-        Sr = hp.Atom(symbol='Sr')
-        Sr = mol.add_atom(Sr)
-        self.assertEqual(33, len(mol.atoms))
+        Ga = mol.create_atom(symbol='Ga', formal_charge=3)
 
-        mol.build3d()
-        mol.write('mol2', outdir.joinpath('cheminfo', 'modify_before.mol2'), overwrite=True)
-        for a in mol.atoms:
-            if a.symbol == 'N' and a.is_aromatic:
-                print(mol.add_bond(Sr.idx, a.idx, 1))
-        print(mol.smiles)
+        coordination_atoms = [a for a in mol.atoms if a.symbol in ['N', 'O']]
+        coordination_atoms = np.random.choice(coordination_atoms, min(6, len(coordination_atoms)), replace=False)
+        for a in coordination_atoms:
+            b = mol.add_bond(Ga, a, 1)
+            self.assertTrue(b.has_metal)
 
-        mol.build3d('Ghemical', steps=500)
-        mol.localopt('Ghemical', steps=500)
-        clone = copy(mol)
-        clone.write('mol', outdir.joinpath('cheminfo', 'modify_after.mol'), overwrite=True)
-        clone.add_hydrogens()
-        print(len(clone.atoms))
-        clone.remove_hydrogens()
-        print(len(clone.atoms))
-        clone.write('mol', outdir.joinpath('cheminfo', 'rmh.mol'), overwrite=True)
+        print(len(mol.bonds))
+        assert isinstance(mol, hp.Molecule)
 
-        t1 = time.time()
-        print(mol.longest_path())
-        t2 = time.time()
-        print(t2-t1)
+        mol.complexes_build_optimize_(save_screenshot=True)
+        mol.write(opj(test.output_dir, 'cheminfo', 'built_mol.sdf'), 'sdf', overwrite=True)
+        mol.write(opj(test.output_dir, 'cheminfo', 'built_mol_single.sdf'), 'sdf', overwrite=True, write_single=True)
 
-        print(len(mol.components))
+    def test_judge_intersect(self):
+        def _artificial_mol():
+            mol = hp.Molecule()
+            for i in range(6):
+                mol.create_atom(atomic_number=6, coordinates=(2 * np.cos(i / 3 * np.pi), 2 * np.sin(i / 3 * np.pi), 0))
+            for i in range(6):
+                if i != 5:
+                    mol.add_bond(i, i + 1, bond_order=2 if i % 2 == 0 else 1)
+                else:
+                    mol.add_bond(i, 0, bond_order=1)
 
-        def show_smiles():
-            return mol.smiles
+            mol.create_atom(atomic_number=8, coordinates=(0, 0, -2))
+            mol.create_atom(atomic_number=8, coordinates=(0, 0, 2))
+            mol.add_bond(6, 7, 1)
 
-        print(mol.smiles)
-        show_time(show_smiles)
+            mol.write(opj(test.output_dir, 'cheminfo', f'mol.sdf'), overwrite=True)
+            for i, (r, b) in enumerate(product(mol.rings, mol.bonds)):
+                if r.is_bond_intersect_the_ring(b):
+                    cycle = r.cycle_places
+                    line = b.bond_line
+
+                    center_point = cycle.center
+                    intersect_points = cycle.line_intersect_points(line)
+
+                    mr = r.to_mol()
+                    mb = b.to_mol()
+
+                    mol_ = mr + mb
+                    mol_.create_atom(symbol='Cm', coordinates=center_point)
+                    for p in intersect_points:
+                        mol.create_atom(atomic_number=0, coordinates=p)
+
+                    mol_.write(opj(test.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
+
+        mol_intersect = next(hp.MolReader(Path(test.input_dir).joinpath('intersect.sdf')))
+        mol_not = next(hp.MolReader(Path(test.input_dir).joinpath('not_intersect.sdf')))
+
+        for i, (r, b) in enumerate(product(mol_intersect.rings, mol_intersect.bonds)):
+            if r.is_bond_intersect_the_ring(b):
+                cycle = r.cycle_places
+                line = b.bond_line
+
+                center_point = cycle.center
+                intersect_points = cycle.line_intersect_points(line)
+
+                mr = r.to_mol()
+                mb = b.to_mol()
+
+                mrb = mr + mb
+                mrb.create_atom(symbol='Cm', coordinates=center_point)
+                for p in intersect_points:
+                    mrb.create_atom(atomic_number=0, coordinates=p)
+
+                mrb.write(opj(test.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
 
     def test_mol_similarity(self):
         """"""
@@ -178,38 +266,55 @@ class TestChemInfo(ut.TestCase):
         print(mol1.similarity(mol2))
 
     def test_conformer(self):
-        mol = next(hp.MolReader('CCN(CC)C(=O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)N(CC)CC)C=C1', 'smi'))
-        print(mol.conformer_index)
-        print(mol.energy)
-        print(mol.atoms_partial_charges)
+        mol = next(hp.MolReader('O=P(OC(C)C)(c1nc(c2cccc(P(OC(C)C)(OC(C)C)=O)n2)ccc1)OC(C)C', 'smi'))
+        # mol = next(hp.MolReader('c1cncc3c1c2c(S3(=O)=O)c[nH]c2P(=O)(O)O', 'smi'))
+        mol.build3d(steps=100)
+        mol.optimize(
+            forcefield='MMFF94s',
+            algorithm="steepest",
+            equilibrium=True,
+            equi_threshold=1e-5,
+            max_iter=100,
+            save_screenshot=True
+        )
 
-        for a in mol.atoms:
-            print(a, a.formal_charge, a.partial_charge)
-
-        print(mol.conformers_count, mol.conformer_index)
-        mol.store_current_conformer()
-        print(mol.conformers_count, mol.conformer_index)
-        mol.store_current_conformer()
-        print(mol.conformers_count, mol.conformer_index)
+        writer = hp.MolWriter(opj(test.output_dir, 'cheminfo', 'ci_conformer.sdf'), 'sdf', overwrite=True)
+        writer.write(mol)
 
     def test_cclib(self):
-        path_log = Path(test.input_dir).joinpath('Am_BuPh-BPPhen.log')
-        mol = hp.Molecule.read_by_cclib(path_log)
+        mol = next(hp.MolReader(Path(test.input_dir).joinpath('Am_BuPh-BPPhen.log')))
+        self.assertEqual(mol.conformers_number, 54)
+        self.assertEqual(mol.coordinates.shape, (73, 3))
+        self.assertEqual(mol.zero_point, 16.266286413195473)
+        self.assertEqual(mol.energy, -60574.40216122108)
+        self.assertEqual(mol.force.shape, (73, 3))
+        self.assertEqual(mol.conformers._force.shape, (54, 73, 3))
+        self.assertEqual(mol.gibbs, -60560.09243823103)
+        self.assertEqual(mol.thermo, 17.2572589675573)
+        self.assertEqual(mol.capacity, 0.00616935257190196)
 
-        print(mol.zero_point)
-        print(mol.free_energy)  # - mol.energy - mol.zero_point  # Hartree to eV
-        print(mol.entropy)
-        print(mol.enthalpy)  # - mol.energy - mol.zero_point
-        print(mol.temperature)
-        print(mol.pressure)
-        print(mol.thermal_energy)  # kcal to ev
-        print(mol.capacity)  # cal to ev
+    def test_export_gjf(self):
+        mol = next(hp.MolReader(
+            "BrCCCCCCOc1cccc(c1)C1=C2C=CC(=N2)C(=c2ccc(=C(C3=NC(=C(c4[nH]c1cc4)c1cccc"
+            "(c1)OCCCCCCBr)C=C3)c1cccc(c1)OCCCCCCBr)[nH]2)c1cccc(c1)OCCCCCCBr",
+            'smi'))
 
+        Ga = mol.create_atom(symbol='Ga', formal_charge=3)
+
+        coordination_atoms = [a for a in mol.atoms if a.symbol in ['N', 'O']]
+        coordination_atoms = np.random.choice(coordination_atoms, min(6, len(coordination_atoms)), replace=False)
+        for a in coordination_atoms:
+            b = mol.add_bond(Ga, a, 1)
+            self.assertTrue(b.has_metal)
+
+        print(len(mol.bonds))
+        assert isinstance(mol, hp.Molecule)
+
+        mol.complexes_build_optimize_(save_screenshot=True)
+        mol.write(opj(test.output_dir, 'cheminfo', 'built_mol_single.gjf'), overwrite=True, write_single=True)
+
+    @ut.skip('not implemented')
     def test_missing_bonds(self):
         mol = next(hp.Molecule.read('CCC.CC.c1ccccc1', 'smi'))
         a = mol.atoms[0]
         spec = mol.graph_spectrum().spectrum
-
-# if __name__ == '__main__':
-#     mol = hp.Molecule()
-

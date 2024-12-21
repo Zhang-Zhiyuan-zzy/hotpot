@@ -517,7 +517,7 @@ class Molecule:
         else:
             raise TypeError('the atom must be a Atom, int, or str!')
 
-        # Update atom data sheet in the Molecule
+        # Update atom ChemData sheet in the Molecule
         self._atoms_data = np.vstack((self._atoms_data, atom_attrs))
         self._atoms.append(Atom(self))
 
@@ -555,7 +555,7 @@ class Molecule:
         if self.have_normalized_labels:
             self.atom_labels.pop(atom_idx)
 
-        # Remove related data sheet
+        # Remove related ChemData sheet
         self._atoms_data = np.delete(self._atoms_data, atom_idx, axis=0)
         self._bonds_data = np.delete(self._bonds_data, bond_idx, axis=0)
 
@@ -1260,7 +1260,7 @@ class Atom:
 
     covalent_radii = np.array([0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)])
 
-    _atomic_orbital = [
+    _atomic_orbital = [  # Periodic
         [2],
         [2, 6],
         [2, 6],

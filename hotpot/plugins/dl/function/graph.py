@@ -204,6 +204,6 @@ if __name__ == '__main__':
     # for smi in smiles_loader:
     #     mol = next(hp.Molecule.read(smi, 'smi'))
     #
-    #     data = data_with_spectrum(smi)
+    #     ChemData = data_with_spectrum(smi)
     #
-    #     print(data['spectrum'].shape)
+    #     print(ChemData['spectrum'].shape)

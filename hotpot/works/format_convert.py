@@ -48,6 +48,6 @@ def convert_sdf_to_smiles(
                 writer.write(f"{smiles},\n")
 
 if __name__ == '__main__':
-    sdf_dir_ = Path('/home/zz1/data')
+    sdf_dir_ = Path('/home/zz1/ChemData')
     smiles_dir_ = Path('/home/zz1/data_smi')
     convert_sdf_to_smiles(sdf_dir_, smiles_dir_)

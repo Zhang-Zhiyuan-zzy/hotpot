@@ -202,7 +202,7 @@ from pathlib import Path
 import hotpot as hp
 from hotpot.plugins.deepmd import read_system
 
-data_root_dir = "path/to/data"
+data_root_dir = "path/to/ChemData"
 
 # Read MultiSystem object
 ms = read_system(data_root_dir, file_pattern='**/*.log', fmt="gaussian/md")

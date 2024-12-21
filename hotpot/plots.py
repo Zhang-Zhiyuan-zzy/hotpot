@@ -79,7 +79,7 @@ def scale_values(values, old_min, old_max, new_min, new_max, from_scale, to_scal
         scale = (new_max - new_min) / (old_max - old_min) if old_max != old_min else 1.0
         return (values - old_min) * scale + new_min
     elif from_scale == 'linear' and to_scale == 'logarithmic':
-        # Logarithmic scaling from linear data
+        # Logarithmic scaling from linear ChemData
         values_shifted = values - old_min + 1e-9  # Shift to avoid log(0)
         log_values = np.log10(values_shifted)
         old_log_min = np.log10(1e-9)
@@ -87,7 +87,7 @@ def scale_values(values, old_min, old_max, new_min, new_max, from_scale, to_scal
         scale = (new_max - new_min) / (old_log_max - old_log_min) if old_log_max != old_log_min else 1.0
         return (log_values - old_log_min) * scale + new_min
     elif from_scale == 'logarithmic' and to_scale == 'linear':
-        # Linear scaling from logarithmic data
+        # Linear scaling from logarithmic ChemData
         exp_values = 10 ** values
         scale = (new_max - new_min) / (old_max - old_min) if old_max != old_min else 1.0
         return (exp_values - old_min) * scale + new_min
@@ -108,14 +108,14 @@ def scale_axes(
 ):
     """
     TODO: This function with bugs
-    Scales the data in the plots within a Matplotlib Axes object to correspond with new axis ranges and scaling modes.
+    Scales the ChemData in the plots within a Matplotlib Axes object to correspond with new axis ranges and scaling modes.
 
     Parameters:
     - ax: Matplotlib Axes object.
     - xaxis_range: Tuple (x_min_new, x_max_new) specifying new x-axis limits.
     - yaxis_range: Tuple (y_min_new, y_max_new) specifying new y-axis limits.
-    - xaxis_scale: 'linear', 'logarithmic', or None. Changes the x-axis scale type and scales the data accordingly.
-    - yaxis_scale: 'linear', 'logarithmic', or None. Changes the y-axis scale type and scales the data accordingly.
+    - xaxis_scale: 'linear', 'logarithmic', or None. Changes the x-axis scale type and scales the ChemData accordingly.
+    - yaxis_scale: 'linear', 'logarithmic', or None. Changes the y-axis scale type and scales the ChemData accordingly.
     """
 
     # Get current axis limits
@@ -167,7 +167,7 @@ def scale_axes(
             continue
         offsets = collection.get_offsets()
         if len(offsets) == 0:
-            continue  # Skip if no data
+            continue  # Skip if no ChemData
         xdata = offsets[:, 0]
         ydata = offsets[:, 1]
 
@@ -380,7 +380,7 @@ def scale_axes(
     for container in errorcontainers:
         if container in processed:
             continue
-        # Errorbar data
+        # Errorbar ChemData
         lines = container.lines
         for line in lines:
             if line in processed:
@@ -1394,7 +1394,7 @@ class BayesDesignSpaceMap(SciPlotter):
             # Create a regular grid
             xi, yi = np.meshgrid(np.linspace(x.min(), x.max(), mesh_num), np.linspace(y.min(), y.max(), mesh_num))
 
-            # Interpolate the scattered data onto the regular grid
+            # Interpolate the scattered ChemData onto the regular grid
             zi = griddata((x, y), c, (xi, yi), method='linear')
             zi = np.nan_to_num(zi, nan=0.0)
             ax.contourf(

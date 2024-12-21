@@ -28,20 +28,20 @@ def calc_electron_config(atomic_number: int, length: int = 4) -> (int, list):
     _atomic_number = atomic_number
 
     n = 0
-    m = 0
+    l = 0
     while _atomic_number > 0:
-        if m >= len(shells[n]):
+        if l >= len(shells[n]):
             n += 1
-            m = 0
+            l = 0
             conf = []
 
-        if _atomic_number - shells[n][m] > 0:
-            conf.append(shells[n][m])
+        if _atomic_number - shells[n][l] > 0:
+            conf.append(shells[n][l])
         else:
             conf.append(_atomic_number)
 
-        _atomic_number -= shells[n][m]
-        m += 1
+        _atomic_number -= shells[n][l]
+        l += 1
 
     return n, conf + [0] * (length - len(conf))
 

@@ -45,7 +45,7 @@ _models = {
 
 
 def add_arguments(parser: argparse.ArgumentParser):
-    parser.add_argument('data_file', type=str, help='The data to train the ML model, given by excel file')
+    parser.add_argument('data_file', type=str, help='The ChemData to train the ML model, given by excel file')
     parser.add_argument(
         '-f', '--features',
         type=str,
@@ -64,7 +64,7 @@ def add_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         '-t', '--target',
         type=str,
-        help='The target column name or feature indices in the data excel file'
+        help='The target column name or feature indices in the ChemData excel file'
     )
 
     parser.add_argument(
@@ -144,9 +144,9 @@ def _data_for_LnAn_example(
         medium: list[str] = None,
         ligand_charge: list[int] = None,
 ):
-    src_data = Path(__file__).parents[1].joinpath('dataset', 'data', 'examples', 'logβ.xlsx')
+    src_data = Path(__file__).parents[1].joinpath('dataset', 'ChemData', 'examples', 'logβ.xlsx')
     excel_file = pd.ExcelFile(src_data)
-    data_ = excel_file.parse(sheet_name='data', index_col=0)
+    data_ = excel_file.parse(sheet_name='ChemData', index_col=0)
     test_indices_ = excel_file.parse(sheet_name='test_indices', index_col=0).values.flatten().tolist()
     LnAn_indices_ = pd.read_excel(src_data, sheet_name='LnAn_only', index_col=0).values.flatten()
     MA_indices_ = pd.read_excel(src_data, sheet_name='MA_only', index_col=0).values.flatten()
@@ -300,9 +300,9 @@ def _train_LnAn_logK_by_linear_lightgbm(which: Literal['All', 'LnAn'] = 'LnAn'):
 def _example_of_stability_constant(work_dir, args):
     """ Run the example to predict the stability constant of metal complexes by building an ML model """
 
-    # src_data = Path(__file__).parents[1].joinpath('dataset', 'data', 'examples', 'logβ.xlsx')
+    # src_data = Path(__file__).parents[1].joinpath('dataset', 'ChemData', 'examples', 'logβ.xlsx')
     # excel_file = pd.ExcelFile(src_data)
-    # data = excel_file.parse(sheet_name='data', index_col=0)
+    # ChemData = excel_file.parse(sheet_name='ChemData', index_col=0)
     # test_indices = excel_file.parse(sheet_name='test_indices', index_col=0).values.flatten().tolist()
     # essential_features = ['SMR_VSA1', 'BCUT2D_MRHI', 'groups', 'dG', 'Med(MP)', 'BCUT2D_LOGPHI']
     # essential_features = ['SMR_VSA1', 'c1', 'Med(MP)', 'Med(c)', 'dG']
@@ -315,13 +315,13 @@ def _example_of_stability_constant(work_dir, args):
     # essential_features = ['SMR_VSA1', 'BCUT2D_MRHI', 'BCUT2D_MRHI', 'Med(MP)', 'Med(c)']
 
     data, test_indices, MA_indices = _data_for_LnAn_example('All')
-    # data, test_indices, MA_indices = _data_for_LnAn_example('LnAn')
+    # ChemData, test_indices, MA_indices = _data_for_LnAn_example('LnAn')
 
     # ml = MachineLearning_(
     #     work_dir=work_dir,
-    #     data=data,
-    #     features = data.columns.tolist()[:-1],
-    #     target = data.columns[-1],
+    #     ChemData=ChemData,
+    #     features = ChemData.columns.tolist()[:-1],
+    #     target = ChemData.columns[-1],
     #     estimator = GradientBoostingRegressor(),
     #     test_indices = test_indices,
     #     recur_addi_prev_threshold = 0.1,
@@ -329,7 +329,7 @@ def _example_of_stability_constant(work_dir, args):
     # )
     # ml.feature_engineering()
 
-    # data, test_indices, MA_indices = _example_of_stability_constant_only_LnAn(data, src_data)
+    # ChemData, test_indices, MA_indices = _example_of_stability_constant_only_LnAn(ChemData, src_data)
 
     ml = MachineLearning_(
         work_dir=work_dir,
@@ -358,7 +358,7 @@ def _example_of_selective_factors(work_dir, args):
 
 
 if __name__ == '__main__':
-    # os.system('python ../ ml_train ../dataset/data/logβ1.xlsx --example logK_LnAn')
+    # os.system('python ../ ml_train ../dataset/ChemData/logβ1.xlsx --example logK_LnAn')
     # _example_of_stability_constant('/home/zz1/wf', 'aa')
     _train_LnAn_logK_by_linear_lightgbm()
     # _coef_stability_analysis()

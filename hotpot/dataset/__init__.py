@@ -13,7 +13,7 @@ import pandas as pd
 
 
 dir_root = osp.join(osp.dirname(__file__))
-_accessible_dataset = [name.split('.')[0] for name in os.listdir(osp.join(dir_root, 'data'))]
+_accessible_dataset = [name.split('.')[0] for name in os.listdir(osp.join(dir_root, 'ChemData'))]
 
 
 def get_dataset_name():
@@ -27,7 +27,7 @@ def load_dataset(name: str):
 
     # Find the file name
     suffix = None
-    for file in os.listdir(osp.join(dir_root, 'data')):
+    for file in os.listdir(osp.join(dir_root, 'ChemData')):
         if file.split('.')[0] == name:
             suffix = file.split('.')[1]
 
@@ -36,10 +36,10 @@ def load_dataset(name: str):
 
     if suffix == 'xlsx':
         print('pandas.DataFrame')
-        return pd.read_excel(osp.join(dir_root, 'data', f'{name}.xlsx'))
+        return pd.read_excel(osp.join(dir_root, 'ChemData', f'{name}.xlsx'))
     elif suffix == 'txt':
         def _loader():
-            with open(osp.join(dir_root, 'data', f'{name}.txt'), 'r') as f:
+            with open(osp.join(dir_root, 'ChemData', f'{name}.txt'), 'r') as f:
                 while line := f.readline():
                     yield line
         print('txt lines loader')

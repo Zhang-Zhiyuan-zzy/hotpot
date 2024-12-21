@@ -662,7 +662,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from hotpot.plugins.ml.wf import MachineLearning
 
-excel_path = 'path/to/excel/data'
+excel_path = 'path/to/excel/ChemData'
 work_dir = '/the/dir/to/save/result'
 data = pd.read_excel('')
 feature_names = ['feature1', 'feature2', 'feature3', ...]

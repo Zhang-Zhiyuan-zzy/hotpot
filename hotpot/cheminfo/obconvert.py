@@ -6,12 +6,30 @@ python v3.9.0
 @Data   : 2024/12/5
 @Time   : 21:28
 """
+import numpy as np
 from openbabel import openbabel as ob, pybel as pb
-# from core__ import Molecule, Atom
 
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
     pmol.write(fmt, filename=filename, overwrite=overwrite, opt=opt)
+
+
+def get_ob_conversion(fmt='smi', **kwargs):
+    conv = ob.OBConversion()
+    conv.SetOutFormat(fmt)
+
+    for k, v in kwargs.items():
+        if v is None:
+            conv.AddOption(k, conv.OUTOPTIONS)
+        else:
+            conv.AddOption(k, conv.OUTOPTIONS, str(v))
+
+    return conv
+
+
+def write_obmol_to_string(obmol: ob.OBMol, fmt='smi', **kwargs):
+    return get_ob_conversion(fmt, **kwargs).WriteString(obmol)
+
 
 def obmol2mol(obmol, mol):
     # mol = Molecule()
@@ -73,3 +91,28 @@ def mol2obmol(mol):
         obb.IsAromatic()
 
     return obmol, row_to_idx
+
+
+def extract_obatom_coordinate(obatom: ob.OBMol):
+    return np.array((obatom.GetX(), obatom.GetY(), obatom.GetZ()))
+
+
+def extract_obmol_coordinates(obmol: ob.OBMol) -> np.ndarray:
+    # coords = np.array([(oba.GetX(), oba.GetY(), oba.GetZ()) for oba in ob.OBMolAtomIter(obmol)])
+    # nan_row = np.any(np.isnan(coords), axis=1)
+    # if np.any(nan_row):
+    #     coords[nan_row] = np.random.normal(scale=10, size=(np.sum(nan_row), 3))
+    #
+    # return coords
+    return np.array([(oba.GetX(), oba.GetY(), oba.GetZ()) for oba in ob.OBMolAtomIter(obmol)])
+
+
+def set_obmol_coordinates(obmol: ob.OBMol, coords):
+    coords = np.array(coords)
+    assert coords.ndim == 2
+    assert coords.shape[1] == 3
+    assert obmol.NumAtoms() == coords.shape[0]
+
+    for oba, coord in zip(ob.OBMolAtomIter(obmol), coords):
+        oba.SetVector(*coord)
+

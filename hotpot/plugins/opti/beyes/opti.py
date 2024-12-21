@@ -472,7 +472,7 @@ class ParamPreprocessor:
 
 if __name__ == '__main__':
     # logging.basicConfig(level=logging.INFO)
-    df = pd.read_excel('/mnt/c/Users/zhang/OneDrive/Papers/COF/data.xlsx', index_col=0)
+    df = pd.read_excel('/mnt/c/Users/zhang/OneDrive/Papers/COF/ChemData.xlsx', index_col=0)
     X = torch.tensor(df.iloc[:, :3].values)
     X[:, 1] = torch.log10(X[:, 1])
     y = torch.tensor(df.iloc[:, 3].values)
@@ -516,5 +516,5 @@ if __name__ == '__main__':
     data = np.concatenate([X_opti, mu_opti, sigma_opti], axis=1)
     df = pd.DataFrame(data, columns=['temp', 'ratio', 'cata. Equiv.', 'mu', 'sigma'])
     df.to_csv('/mnt/c/Users/zhang/OneDrive/Papers/COF/result2.csv')
-    # bayes.visualize_design_space(X_design_scale, figpath='/home/zz1/proj/cof/data/vis.png', emb_method=TSNE())
+    # bayes.visualize_design_space(X_design_scale, figpath='/home/zz1/proj/cof/ChemData/vis.png', emb_method=TSNE())
     bayes.visualize_design_space(X_design_scale, X_opti_idx, emb_method=TSNE())

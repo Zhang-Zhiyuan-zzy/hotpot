@@ -17,6 +17,12 @@ def _gjf_route(route: str):
     """ TODO: more work need """
     return route
 
+@MolWriter.add_plugin('gjf', 'pre')
+def to_gjf_preprocess(writer, mol, *args, **kwargs):
+    if kwargs.get('calc_mol_charge', False):
+        mol.calc_mol_charge()
+    print(f"mol charge: {mol.charge}")
+
 @MolWriter.add_plugin('gjf', 'post')
 def to_gjf(script, mol, *args, **kwargs) -> str:
     """ Given a molecule, return a Gaussian16 gjf string """
@@ -32,7 +38,6 @@ def to_gjf(script, mol, *args, **kwargs) -> str:
 
 def from_gjf(script: str) -> "Molecule":
     """ Given a gjf string, return a Molecule object """
-
 
 
 

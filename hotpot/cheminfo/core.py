@@ -9,7 +9,7 @@ python v3.9.0
 import logging
 import re
 import time
-from typing import Union, Literal, Iterable, Optional
+from typing import Union, Literal, Iterable, Optional, Callable
 from copy import copy
 from collections import Counter
 from itertools import combinations, product
@@ -17,6 +17,7 @@ from itertools import combinations, product
 import numpy as np
 import networkx as nx
 from openbabel import pybel as pb, openbabel as ob
+from scipy.spatial.distance import pdist, squareform
 import periodictable
 
 from hotpot.utils import types
@@ -24,6 +25,11 @@ from hotpot.cheminfo.obconvert import write_by_pybel, mol2obmol
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff, _io
 from . import geometry
+
+
+
+def _metal_valence(atom):
+    return 0
 
 
 class Molecule:
@@ -39,6 +45,8 @@ class Molecule:
         self._graph = nx.Graph()
 
         self._broken_metal_bonds = []
+
+        self.charge = 0
 
     def __getattr__(self, item):
         try:
@@ -66,6 +74,28 @@ class Molecule:
 
         return clone
 
+    def calc_mol_charge(self, calc_implicit_hydrogen=False):
+        if calc_implicit_hydrogen:
+            self.calc_implicit_hydrogens()
+
+        self.add_hydrogens()
+        for atom in self.atoms:
+            atom.assign_formal_charge()
+
+        self.update_mol_charge()
+        # return sum(a.oxidation_state for a in self.atoms)
+
+    def _after_hide_metal_ligand_bonds(self, func: Callable, atom_attrs: list, bond_attrs: list):
+        self.refresh_atom_id()
+        self.hide_metal_ligand_bonds()
+
+        for c in self.components:
+            func(c)
+            atom_attrs_dict = {a.id: {a_attr: getattr(a, a_attr) for a_attr in atom_attrs} for a in c.atoms}
+            bond_attrs_dict = {b.id: {b_attr: getattr(b, b_attr)} for b_attr in bond_attrs for b in c.bonds}
+            self.update_atoms_attrs_from_id_dict(atom_attrs_dict)
+            self.update_bonds_attrs_from_id_dict(bond_attrs_dict)
+
     def _retrieve_torsions(self):
         torsion = []
         t1 = time.time()
@@ -78,7 +108,7 @@ class Molecule:
             for a, d in product(a1_neigh, a2_neigh):
                 torsion.append(Torsion(a, bond.atom1, bond.atom2, d))
         t2 = time.time()
-        print(f'Torsion calculation took {t2-t1} seconds')
+        logging.info(f'Torsion calculation took {t2-t1} seconds')
 
         return torsion
 
@@ -91,9 +121,6 @@ class Molecule:
             st = [(source, t) for t in self.graph.nodes if t!=source]
         else:
             st = [(s, target) for s in self.graph.nodes if s!=target]
-
-        # if isinstance(cutoff, int):
-        #     st = [(s, t) for s, t in st if len(nx.shortest_path(self.graph, s, t)) <= cutoff]
 
         return [p for s, t in st for p in nx.all_simple_paths(self.graph, s, t, cutoff=cutoff)]
 
@@ -169,7 +196,7 @@ class Molecule:
         modified = False
         for atom in self.atoms:
             if not (atom.is_hydrogen or atom.is_metal):
-                add_or_rm, hydrogens = atom._add_hydrogens(remove_excess=remove_excess)
+                add_or_rm, hs = atom._add_hydrogens(remove_excess=remove_excess)
                 if add_or_rm:
                     modified = True
 
@@ -177,16 +204,6 @@ class Molecule:
             self._update_graph()
 
         # Remove hydrogens on the atom beyond the maxiunm
-
-    def break_metal_ligand_bonds(self) -> None:
-        """ break all bonds link with metals """
-        metal_bonds = [b for b in self.bonds if b.is_metal_ligand_bond]
-        self._broken_metal_bonds.extend(metal_bonds)
-
-        for b in metal_bonds:
-            self._bonds.remove(b)
-
-        self._update_graph()
 
     def clear_constraints(self) -> None:
         """ clear all set constraints """
@@ -200,7 +217,7 @@ class Molecule:
             torsion.constraint = False
 
     def clear_metal_ligand_bonds(self) -> None:
-        self.break_metal_ligand_bonds()
+        self.hide_metal_ligand_bonds()
         self._broken_metal_bonds = []
 
     def recover_metal_ligand_bonds(self) -> None:
@@ -249,8 +266,15 @@ class Molecule:
             ff.ob_build(self)
             ff.ob_optimize(self, forcefield, steps)
 
+    # @property
+    # def charge(self) -> int:
+    #     return sum(a.formal_charge for a in self._atoms)
+
+    def update_mol_charge(self):
+        self.charge = self.sum_atoms_charge
+
     @property
-    def charge(self) -> int:
+    def sum_atoms_charge(self) -> int:
         return sum(a.formal_charge for a in self._atoms)
 
     @property
@@ -384,7 +408,7 @@ class Molecule:
         )
 
         clone = copy(self)
-        clone.break_metal_ligand_bonds()
+        clone.hide_metal_ligand_bonds()
 
         for component in clone.components:
             if component.is_organic:
@@ -480,7 +504,6 @@ class Molecule:
             for node_idx in c_node_idx:
                 component._create_atom(**graph.nodes[node_idx])
 
-
             for edge_begin_idx, edge_end_index in subgraph.edges:
                 component._add_bond(
                     c_node_idx.index(edge_begin_idx),
@@ -523,6 +546,11 @@ class Molecule:
         return atom
 
     @property
+    def dist_matrix(self) -> np.ndarray:
+        """ the distance matrix for point cloud of atoms """
+        return squareform(pdist(self.coordinates))
+
+    @property
     def element_counts(self):
         return Counter([a.symbol for a in self.atoms])
 
@@ -539,6 +567,16 @@ class Molecule:
     def _edge_with_attrs(self):
         # attrs = ('idx',) + Bond._attrs_enumerator
         return [(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds]
+
+    def hide_metal_ligand_bonds(self) -> None:
+        """ break all bonds link with metals """
+        metal_bonds = [b for b in self.bonds if b.is_metal_ligand_bond]
+        self._broken_metal_bonds.extend(metal_bonds)
+
+        for b in metal_bonds:
+            self._bonds.remove(b)
+
+        self._update_graph()
 
     @property
     def graph(self):
@@ -593,6 +631,10 @@ class Molecule:
     def atom_id_dict(self):
         return {a.id: a for a in self.atoms}
 
+    @property
+    def bond_id_dict(self):
+        return {b.id: b for b in self.bonds}
+
     def _rm_atom(self, atom: "Atom"):
         if isinstance(atom, int):
             atom = self._atoms[atom]
@@ -636,6 +678,9 @@ class Molecule:
 
     def remove_hydrogens(self):
         self.remove_atoms([a for a in self._atoms if a.is_hydrogen])
+
+    def remove_metals(self):
+        self.remove_atoms(self.metals)
 
     def set_default_valence(self):
         for atom in self._atoms:
@@ -775,6 +820,11 @@ class Molecule:
         for i, attr in id_dict.items():
             id_atoms[i].setattr(**attr)
 
+    def update_bonds_attrs_from_id_dict(self, id_dict: dict[int, dict]):
+        id_bonds = self.bond_id_dict
+        for i, attr in id_dict.items():
+            id_bonds[i].setattr(**attr)
+
     def update_angles(self):
         self._angles = [Angle(n1, a, n2) for a in self.atoms for n1, n2 in combinations(a.neighbours, 2)]
 
@@ -836,6 +886,10 @@ class MolBlock:
     @property
     def in_ring(self):
         return any(self in r for r in self.mol.rings)
+
+    @property
+    def in_organic(self) -> bool:
+        return self.mol.is_organic
 
     @property
     def rings(self):
@@ -1026,6 +1080,101 @@ class Atom(MolBlock):
         116: 2,  # Livermorium (Lv)
         117: 1,  # Tennessine (Ts)
         118: 0,  # Oganesson (Og) - inert
+    }
+
+    _valence_dict = {
+        1: {"stable": [1], "unstable": [-1]},  # Hydrogen
+        2: {"stable": [0], "unstable": []},  # Helium
+        3: {"stable": [1], "unstable": []},  # Lithium
+        4: {"stable": [2], "unstable": []},  # Beryllium
+        5: {"stable": [3], "unstable": [-3]},  # Boron
+        6: {"stable": [4], "unstable": [2]},  # Carbon
+        7: {"stable": [-3, -2, -1, 3, 4, 5], "unstable": [1, 2]},  # Nitrogen
+        8: {"stable": [2], "unstable": [-2]},  # Oxygen
+        9: {"stable": [1], "unstable": [-1]},  # Fluorine
+        10: {"stable": [0], "unstable": []},  # Neon
+        11: {"stable": [1], "unstable": []},  # Sodium
+        12: {"stable": [2], "unstable": []},  # Magnesium
+        13: {"stable": [3], "unstable": []},  # Aluminum
+        14: {"stable": [-4, 4], "unstable": [2]},  # Silicon
+        15: {"stable": [-3, 1, 3, 5], "unstable": []},  # Phosphorus
+        16: {"stable": [-2, 2, 4, 6], "unstable": []},  # Sulfur
+        17: {"stable": [-1, 1, 3, 5, 7], "unstable": [2, 4]},  # Chlorine
+        18: {"stable": [0], "unstable": []},  # Argon
+        19: {"stable": [1], "unstable": []},  # Potassium
+        20: {"stable": [2], "unstable": []},  # Calcium
+        21: {"stable": [3], "unstable": []},  # Scandium
+        22: {"stable": [2, 3, 4], "unstable": []},  # Titanium
+        23: {"stable": [2, 3, 4, 5], "unstable": []},  # Vanadium
+        24: {"stable": [2, 3, 6], "unstable": []},  # Chromium
+        25: {"stable": [2, 4, 7], "unstable": [3, 6]},  # Manganese
+        26: {"stable": [2, 3], "unstable": [4, 6]},  # Iron
+        27: {"stable": [2, 3], "unstable": [4]},  # Cobalt
+        28: {"stable": [2], "unstable": [1, 3, 4]},  # Nickel
+        29: {"stable": [1, 2], "unstable": [3]},  # Copper
+        30: {"stable": [2], "unstable": []},  # Zinc
+        31: {"stable": [3], "unstable": [2]},  # Gallium
+        32: {"stable": [-4, 2, 4], "unstable": []},  # Germanium
+        33: {"stable": [-3, 3, 5], "unstable": [2]},  # Arsenic
+        34: {"stable": [-2, 4, 6], "unstable": [2]},  # Selenium
+        35: {"stable": [-1, 1, 5], "unstable": [3, 4]},  # Bromine
+        36: {"stable": [0], "unstable": []},  # Krypton
+        37: {"stable": [1], "unstable": []},  # Rubidium
+        38: {"stable": [2], "unstable": []},  # Strontium
+        39: {"stable": [3], "unstable": []},  # Yttrium
+        40: {"stable": [4], "unstable": [2, 3]},  # Zirconium
+        41: {"stable": [3, 5], "unstable": [2, 4]},  # Niobium
+        42: {"stable": [3, 6], "unstable": [2, 4, 5]},  # Molybdenum
+        43: {"stable": [6], "unstable": []},  # Technetium
+        44: {"stable": [3, 4, 8], "unstable": [2, 6, 7]},  # Ruthenium
+        45: {"stable": [4], "unstable": [2, 3, 6]},  # Rhodium
+        46: {"stable": [2, 4], "unstable": [6]},  # Palladium
+        47: {"stable": [1], "unstable": [2, 3]},  # Silver
+        48: {"stable": [2], "unstable": [1]},  # Cadmium
+        49: {"stable": [3], "unstable": [1, 2]},  # Indium
+        50: {"stable": [2, 4], "unstable": []},  # Tin
+        51: {"stable": [-3, 3, 5], "unstable": [4]},  # Antimony
+        52: {"stable": [-2, 4, 6], "unstable": [2]},  # Tellurium
+        53: {"stable": [-1, 1, 5, 7], "unstable": [3, 4]},  # Iodine
+        54: {"stable": [0], "unstable": []},  # Xenon
+        55: {"stable": [1], "unstable": []},  # Cesium
+        56: {"stable": [2], "unstable": []},  # Barium
+        57: {"stable": [3], "unstable": []},  # Lanthanum
+        58: {"stable": [3, 4], "unstable": []},  # Cerium
+        59: {"stable": [3], "unstable": []},  # Praseodymium
+        60: {"stable": [3, 4], "unstable": []},  # Neodymium
+        61: {"stable": [3], "unstable": []},  # Promethium
+        62: {"stable": [3], "unstable": [2]},  # Samarium
+        63: {"stable": [3], "unstable": [2]},  # Europium
+        64: {"stable": [3], "unstable": []},  # Gadolinium
+        65: {"stable": [3, 4], "unstable": []},  # Terbium
+        66: {"stable": [3], "unstable": []},  # Dysprosium
+        67: {"stable": [3], "unstable": []},  # Holmium
+        68: {"stable": [3], "unstable": []},  # Erbium
+        69: {"stable": [3], "unstable": [2]},  # Thulium
+        70: {"stable": [3], "unstable": [2]},  # Ytterbium
+        71: {"stable": [3], "unstable": []},  # Lutetium
+        72: {"stable": [4], "unstable": []},  # Hafnium
+        73: {"stable": [5], "unstable": [3, 4]},  # Tantalum
+        74: {"stable": [6], "unstable": [2, 3, 4, 5]},  # Tungsten
+        75: {"stable": [2, 4, 6, 7], "unstable": [-1, 1, 3, 5]},  # Rhenium
+        76: {"stable": [3, 4, 6, 8], "unstable": [2]},  # Osmium
+        77: {"stable": [3, 4, 6], "unstable": [1, 2]},  # Iridium
+        78: {"stable": [2, 4, 6], "unstable": [1, 3]},  # Platinum
+        79: {"stable": [1, 3], "unstable": [2]},  # Gold
+        80: {"stable": [1, 2], "unstable": []},  # Mercury
+        81: {"stable": [1, 3], "unstable": [2]},  # Thallium
+        82: {"stable": [2, 4], "unstable": []},  # Lead
+        83: {"stable": [3], "unstable": [-3, 2, 4, 5]},  # Bismuth
+        84: {"stable": [2, 4], "unstable": [-2, 6]},  # Polonium
+        85: {"stable": [-1], "unstable": []},  # Astatine
+        86: {"stable": [0], "unstable": []},  # Radon
+        87: {"stable": [1], "unstable": []},  # Francium
+        88: {"stable": [2], "unstable": []},  # Radium
+        89: {"stable": [3], "unstable": []},  # Actinium
+        90: {"stable": [4], "unstable": []},  # Thorium
+        91: {"stable": [5], "unstable": []},  # Protactinium
+        92: {"stable": [3, 4, 6], "unstable": [2, 5]}  # Uranium
     }
 
     _electronegativity = {
@@ -1242,6 +1391,21 @@ class Atom(MolBlock):
         getattr(self.mol, '_update_graph')()
         return hydrogens
 
+    def assign_formal_charge(self):
+        if self.is_metal:
+            self.formal_charge = self._default_valence[self.atomic_number]
+            return
+
+        elif self.atomic_number == 1:
+            if not self.bonds:
+                self.formal_charge = -1
+            else:
+                self.formal_charge = 0
+
+        else:
+            charge = self.sum_covalent_orders - self.valence_()
+            self.formal_charge = charge
+
     @property
     def bonds(self) -> list["Bond"]:
         # return [self.mol.bonds[i] for i in self.bonds_idx]
@@ -1420,8 +1584,28 @@ class Atom(MolBlock):
 
         return _state
 
+    def valence_(self):
+        if self.is_metal:  # TODO: refine the return
+            if not self.bonds:
+                return Atom._default_valence[self.atomic_number]
+
+            else:
+                return Atom._default_valence[self.atomic_number]
+
+        stable_valences = self._valence_dict[self.atomic_number]['stable']
+        if len(stable_valences) == 1:
+            return stable_valences[0]
+        else:
+            sum_covalent_orders = self.sum_covalent_orders
+            for v in stable_valences:
+                if v >= sum_covalent_orders:
+                    return v
+
+            raise RuntimeError(f"not found valence, for {self}, {self.sum_covalent_orders}, {stable_valences}")
+
     def set_valence_to_default(self):
-        self.valence = Atom._default_valence[self.atomic_number]
+        # self.valence = Atom._default_valence[self.atomic_number]
+        self.valence = self.valence_()
 
     def setattr(self, *, add_defaults=False, **kwargs):
         coords = kwargs.get("coordinates", None)
@@ -1439,6 +1623,10 @@ class Atom(MolBlock):
     @property
     def sum_bond_orders(self) -> int:
         return int(sum(b.bond_order for b in self.bonds))
+
+    @property
+    def sum_covalent_orders(self) -> int:
+        return int(sum(b.bond_order for b in self.bonds if b.is_covalent))
 
     @property
     def symbol(self):
@@ -1532,7 +1720,8 @@ class AtomSeq:
 class Bond(AtomSeq, MolBlock):
     _attrs_dict = {
         'bond_order': float,
-        'constraint': bool
+        'constraint': bool,
+        'id': int,
     }
     _attrs_enumerator = tuple(_attrs_dict.keys())
     _bond_order_symbol = {
@@ -1596,6 +1785,10 @@ class Bond(AtomSeq, MolBlock):
     @property
     def is_aromatic(self) -> bool:
         return any(r.is_aromatic for r in self.rings)
+
+    @property
+    def is_covalent(self) -> bool:
+        return not any(a.is_metal for a in self.atoms)
 
     # @is_aromatic.setter
     # def is_aromatic(self, value: bool):

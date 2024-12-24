@@ -6,10 +6,11 @@ python v3.9.0
 @Data   : 2024/12/14
 @Time   : 21:26
 """
-from pathlib import Path
+import time
 from copy import copy
 import logging
 from typing import Literal, Optional, Union
+import multiprocessing as mp
 
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
@@ -17,22 +18,17 @@ from openbabel import openbabel as ob, pybel as pb
 from .obconvert import extract_obmol_coordinates, set_obmol_coordinates
 
 
-def complexes_build(
-        mol,
+def _run_complexes_build(
+        mol, queue: mp.Queue,
         build_times=5,
         init_opt_steps=500,
         second_opt_steps=1000,
         min_energy_opt_steps=3000,
-        correct_hydrogens: bool = True,
-        **kwargs
 ):
-    mol.add_hydrogens(remove_excess=correct_hydrogens)
-    mol.refresh_atom_id()
-
     clone = copy(mol)
-    clone.break_metal_ligand_bonds()
+    clone.hide_metal_ligand_bonds()
 
-    max_time = 20
+    max_time = 10
     for component in clone.components:
         if not component.has_metal:
             lst_coords = []
@@ -72,10 +68,36 @@ def complexes_build(
 
             clone.update_atoms_attrs_from_id_dict({a.id: {'coordinates': a.coordinates} for a in component.atoms})
 
-            logging.info(f"Energies: {lst_energy}")
+    queue.put((clone.coordinates, clone.conformers))
 
-    mol.coordinates = clone.coordinates
-    mol._conformers = clone.conformers
+
+def complexes_build(
+        mol,
+        build_times=5,
+        init_opt_steps=500,
+        second_opt_steps=1000,
+        min_energy_opt_steps=3000,
+        correct_hydrogens: bool = True,
+        timeout: int = 1000,
+        **kwargs
+):
+    mol.add_hydrogens(remove_excess=correct_hydrogens)
+    mol.refresh_atom_id()
+
+    queue = mp.Queue()
+    process = mp.Process(
+        target=_run_complexes_build,
+        args=(mol, queue, build_times, init_opt_steps, second_opt_steps, min_energy_opt_steps)
+    )
+
+    process.start()
+    process.join(timeout=timeout)
+
+    if process.is_alive():
+        raise TimeoutError('Timed out waiting for build complex 3D conformer!')
+
+    mol.coordinates, mol._conformers = queue.get()
+    process.terminate()
 
 
 class OBFF_:
@@ -175,7 +197,7 @@ class OBFF_:
                     break
 
                 if s == self.steps - 1:
-                    print(RuntimeWarning("Max iterations reached"))
+                    logging.info(RuntimeWarning("Max iterations reached"))
 
             # Perturb the system
             if self.perturb_steps and s % self.perturb_steps == 0 and s != 0:
@@ -189,7 +211,7 @@ class OBFF_:
 
             # Print information
             if self.print_energy and s % self.print_energy == 0:
-                print(f"Energy in step {s}: {lst_energy[-1]}")
+                logging.debug(f"Energy in step {s}: {lst_energy[-1]}")
 
         mol.coordinates = lst_coords[-1]
         mol.energy = lst_energy[-1]
@@ -337,7 +359,7 @@ class OBFF:
                 if i == self.max_iter - 1:
                     print(RuntimeWarning("Max iterations reached"))
 
-                print(self.ff.Energy())
+                print(f"Final Energy: {self.ff.Energy()}")
                 _opti_times += 1
 
     def _add_constraints(self, mol):

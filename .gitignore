@@ -7,3 +7,4 @@ cpp/out/
 hotpot/__pycache__
 **/__pycache__
 hotpot_zzy.egg-info
+hotpot/dataset/tmqm/data

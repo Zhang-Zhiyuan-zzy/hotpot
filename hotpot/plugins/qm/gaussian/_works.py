@@ -342,17 +342,72 @@ class ResultsExtract:
         return [reorganize_gjf(info) for info in list_parsed_info]
 
 
-if __name__ == '__main__':
-    # new_gjf = reorganize_gjf(update_gjf_coordinates(
-    #     '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/gjf/pairs/81_81_C20H28N2O6P2Am.gjf',
-    #     '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs/81_81_C20H28N2O6P2Am.log'
-    # ))
+class GaussOut:
+    """
+    This class is used to store Gaussian output and error message from g16 process.
+    In addition, this class will extract and organize critical information.
+    """
 
-    pr_info = parse_route(
-        '#p opt freq int=acc2e=12 pbe1pbe/ecpgen//mx06/def2svp scrf, SCF=(novaracc,noincfock,maxcyc=N)'
-    )
-    # r = ResultsExtract.rewrite_route(pr_info)
-    result_extract = ResultsExtract('/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs')
-    # df = result_extract.extract()
-    gjf_scripts = result_extract.to_gjf('this is a test\nend\n')
-    # result_extract.extract('/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs')
+    # Compile the error notice sentence
+    _head = re.compile('Error termination via Lnk1e in')
+    _link = re.compile(r'l\d+[.]exe')
+    _path = re.compile(r'([/|\\]\S+)*[/|\\]' + _link.pattern)
+    _week = re.compile('(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
+    _month = re.compile('(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
+    _date = re.compile(_week.pattern + ' ' + _month.pattern + r' [0-2]?\d')
+    _time = re.compile(r'\d{2}:\d{2}:\d{2} 20\d{2}\.')
+
+    _error_link = re.compile(_head.pattern + ' ' + _path.pattern + ' at ' + _date.pattern + ' ' + _time.pattern)
+
+    def __init__(self, stdout: str, stderr: str = None):
+        self.stdout = stdout
+        self.stderr = stderr
+
+    @property
+    def is_error(self) -> bool:
+        return True if self.stderr else False
+
+    @property
+    def error_link(self) -> str:
+        match = self._error_link.search(self.stdout)
+        if match:
+            matched_line = self.stdout[match.start():match.end()]
+
+            link = self._link.search(matched_line)
+            return matched_line[link.start(): link.end()][:-4]
+
+    @property
+    def is_hangup_error(self):
+        if self.is_error and self.stderr.find('Error: hangup') > 0:
+            return True
+        return False
+
+    @property
+    def is_opti_convergence_error(self):
+        """ The gaussian error is caused by the non-convergence of the optimizing conformer """
+        if self.is_error and self.error_link == 'l9999' and self.stdout.find('-- Number of steps exceeded,'):
+            return True
+        return False
+
+    @property
+    def is_scf_convergence_error(self):
+        """ Get True when the Output show the SCF non-convergence """
+        if self.error_link == 'l502' and self.stdout.find("Convergence failure -- run terminated."):
+            return True
+        return False
+
+    @property
+    def is_scrf_Vdw_cage_error(self):
+        """ Error caused by the Vdw surface is not suitable to estimate the accessible surface inside molecular cage """
+        if self.error_link == 'l502' and self.stdout.find("Inv3 failed in PCMMkU."):
+            return True
+        return False
+
+    @property
+    def is_ZMatrix_error(self):
+        if self.error_link == 'l103' and \
+                self.stdout.find('FormBX had a problem.') and \
+                self.stdout.find('Berny optimization.'):
+            return True
+
+        return False

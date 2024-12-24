@@ -313,6 +313,13 @@ class TestChemInfo(ut.TestCase):
         mol.complexes_build_optimize_(save_screenshot=True)
         mol.write(opj(test.output_dir, 'cheminfo', 'built_mol_single.gjf'), overwrite=True, write_single=True)
 
+    def test_read_g16log(self):
+        l502 = next(hp.MolReader(opj(test.input_dir, 'g16log', '30.log')), 'g16log')  # l502
+        RwMol1 = next(hp.MolReader(opj(test.input_dir, 'g16log', '138.log')), 'g16log')
+        p4711 = next(hp.MolReader(opj(test.input_dir, 'g16log', '4711.log')), 'g16log')
+
+        print(l502)
+
     @ut.skip('not implemented')
     def test_missing_bonds(self):
         mol = next(hp.Molecule.read('CCC.CC.c1ccccc1', 'smi'))

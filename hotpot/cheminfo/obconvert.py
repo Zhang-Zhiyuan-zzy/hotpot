@@ -18,6 +18,9 @@ def get_ob_conversion(fmt='smi', **kwargs):
     conv = ob.OBConversion()
     conv.SetOutFormat(fmt)
 
+    # if fmt == 'gjf':
+    #     kwargs.update({'b': None})
+
     for k, v in kwargs.items():
         if v is None:
             conv.AddOption(k, conv.OUTOPTIONS)

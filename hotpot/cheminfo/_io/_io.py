@@ -107,6 +107,9 @@ def _extract_g16_thermo(lines):
 
         return thermal_energy, capacity
 
+    else:
+        return None, None
+
 
 class IoBase:
     def __init__(self, src, fmt=None, **kwargs):
@@ -183,6 +186,9 @@ class MolReader(IoBase):
             raise ValueError(f'read a incorrect MOL file!! {self.fmt}')
 
         mol = core.Molecule()
+        mol.charge = data.charge
+        mol.spin_mult = data.mult
+
         _create_atom = getattr(mol, '_create_atom')
         for atomic_number in data.atomnos:
             _create_atom(atomic_number=atomic_number)
@@ -204,7 +210,7 @@ class MolReader(IoBase):
                 partial_charges = data.atomcharges['mulliken']
             setattr(conformers, '_partial_charge', partial_charges)
 
-        setattr(conformers, '_gibbs', data.freeenergy)
+        setattr(conformers, '_gibbs', getattr(data, 'freeenergy', None))
         setattr(conformers, '_zero_point', getattr(data, 'zpve', None))
         setattr(conformers, '_spin_mult', getattr(data, 'mult', None))
 
@@ -298,7 +304,7 @@ class MolWriter(IoBase):
     def _pre(self, mol, *args, **kwargs):
         if preprocessor := self._plugins.get(self.fmt, {}).get('pre', None):
             assert isinstance(preprocessor, Callable)
-            preprocessor(mol, *args, **kwargs)
+            preprocessor(self, mol, *args, **kwargs)
 
     def _write(self, mol: "core.Molecule", *args, **kwargs) -> Optional[str]:
         if writer := self._plugins.get(self.fmt, {}).get('write', None):

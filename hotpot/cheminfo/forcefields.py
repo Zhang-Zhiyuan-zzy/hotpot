@@ -77,11 +77,11 @@ def complexes_build(
         init_opt_steps=500,
         second_opt_steps=1000,
         min_energy_opt_steps=3000,
-        correct_hydrogens: bool = True,
         timeout: int = 1000,
+        rm_polar_hs: bool = True,
         **kwargs
 ):
-    mol.add_hydrogens(remove_excess=correct_hydrogens)
+    mol.add_hydrogens(rm_polar_hs=rm_polar_hs)
     mol.refresh_atom_id()
 
     queue = mp.Queue()

@@ -24,6 +24,13 @@ import requests
 
 from tqdm import tqdm
 
+
+__all__ = [
+    'urls',
+    'download_file',
+    'download_files'
+]
+
 # List of URLs to download
 urls = {
     'xyz': 'https://www.uiocompcat.info/img/g177830444-o63018611.dat?dl=2&tk=qPEqUMZJfPTiH-_ME-ESvjaHKpUSCfGEnFtzVI7SnW0=',
@@ -34,7 +41,7 @@ urls = {
 
 
 # Function to download files
-def _download_file(fp, _url):
+def download_file(fp, _url):
     response = requests.get(_url)
     if response.status_code == 200:
         total_size = int(response.headers.get('content-length', 0))
@@ -48,11 +55,11 @@ def _download_file(fp, _url):
         print(f"Failed to download: {_url} (Status Code: {response.status_code})")
 
 
-def download_file():
+def download_files():
     # Downloading each file from the list
     for ext, url in urls.items():
         file_path = opj('data', f'tmQm.{ext}.gz')
-        _download_file(file_path, url)
+        download_file(file_path, url)
         uncompress_all_gz(file_path)
         os.remove(file_path)  # Remove the gz file
 
@@ -76,17 +83,5 @@ def uncompress_all_gz(file_path):
 
     # print(f'Uncompressed: {file_path} to {output_path}')
 
-
-# 读取tmQm的分子信息，输出Molecule.
-class TmQmDataset:
-    def __init__(self):
-        """"""
-
-    def __iter__(self):
-        """"""
-
-    def __next__(self):
-        """"""
-
 if __name__ == '__main__':
-    download_file()
+    download_files()

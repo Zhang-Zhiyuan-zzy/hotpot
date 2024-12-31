@@ -59,10 +59,11 @@ def _build3d(
         fmt,
         ligand_save_path,
         screenshot_save_path,
+        rm_polar_hs: bool = True,
         **kwargs
 ) -> None:
     if mol.has_metal:
-        mol.complexes_build_optimize_(**kwargs)
+        mol.complexes_build_optimize_(rm_polar_hs = rm_polar_hs, **kwargs)
     else:
         mol.build3d(**kwargs)
         mol.optimize(**kwargs)
@@ -153,6 +154,9 @@ def convert_smiles_to_3dmol(
     if not os.path.exists(save_dir):
         raise ValueError(f'The dir {save_dir} does not exist.')
 
+    if alone_ligand_save_dir and str(alone_ligand_save_dir) == str(save_dir):
+        raise ValueError('The pairs and ligands should save in different directories.')
+
     if nproc is None:
         nproc = mp.cpu_count()
 
@@ -165,7 +169,7 @@ def convert_smiles_to_3dmol(
             save_path = opj(save_dir, f'{name}.{fmt}')
 
             if alone_ligand_save_dir:
-                ligand_save_path = opj(alone_ligand_save_dir, f'{name}_ligand.{fmt}')
+                ligand_save_path = opj(alone_ligand_save_dir, f'{name}.{fmt}')
             else:
                 ligand_save_path = None
 
@@ -207,7 +211,9 @@ def _convert_g16log_to_gjf(
             write_single=True,
             link0=link0,
             route=route,
-            overwrite=True
+            overwrite=True,
+            ob_opt={'b': None},
+            miss_charge_calc=True
         )
 
     except ValueError:

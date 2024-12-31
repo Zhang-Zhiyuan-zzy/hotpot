@@ -9,6 +9,7 @@ python v3.9.0
 import re
 import shutil
 from os import path
+from Cython.Build import cythonize
 import setuptools
 
 
@@ -45,9 +46,18 @@ def update_pyproject_version():
 
 update_pyproject_version()
 
+cython_ext = cythonize([
+        'hotpot/cheminfo/_io/_io.py',
+        'hotpot/cheminfo/obconvert.py',
+        'hotpot/cheminfo/core.py'
+    ],
+    annotate=True
+)
+
 setuptools.setup(
     name="hotpot-zzy",
     version=__version__,
+    ext_modules=cython_ext,
     description="A python package designed to communicate among various chemical and materials calculational tools",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",

@@ -71,8 +71,8 @@ class Plane:
         self.point1 = to_point(p1)
         self.point2 = to_point(p2)
         self.point3 = to_point(p3)
-        if np.dot(self.vector12, self.vector13) == 0:
-            raise ValueError("The p1, p2, and p3 must not in a same line!")
+        if abs(np.dot(self.vector12, self.vector13)) < 1e-7:
+            raise ValueError(f"The p1, p2, and p3 must not in a same line!\np1: {p1};\np2: {p2};\n p3: {p3}")
 
     def __repr__(self):
         a, b, c = self.identity_norm_vector
@@ -114,10 +114,10 @@ class Plane:
         return cls(point1, point2, point3)
 
     def distance_with_point(self, point):
-        return np.dot(self.identity_norm_vector, point - self.point1)
+        return abs(np.dot(self.identity_norm_vector, point - self.point1))
 
-    def is_on_plane(self, point):
-        return self.distance_with_point(point) == 0.0
+    def is_on_plane(self, point, tol: float = 0.03):
+        return self.distance_with_point(point) / (np.linalg.norm(point-self.point1) + 1e-6) < tol
 
     def is_line_intersect(self, line: Line):
         return np.dot(line.identity_vector, self.identity_norm_vector) != 0
@@ -147,6 +147,32 @@ class Plane:
 
         # Calculate intersect point by substitute t back the param equation of line
         return line.point_on_line(t)
+
+
+def points_on_same_plane(*points):
+    points = np.array(points)
+    if points.shape[-1] != 3:
+        raise AttributeError('The function just track points on 3 dimensions.')
+
+    if len(points) < 3:
+        return None
+    if len(points) == 3:
+        if np.linalg.det(points) < 1e-7:
+            return None
+        else:
+            return True
+
+    best_points = max(
+        (list(p_indices) for p_indices in combinations(range(len(points)), 3)),
+        key=lambda pi: np.linalg.det(points[pi])
+    )
+
+    try:
+        plane = Plane(*points[best_points])
+    except ValueError:
+        return None
+
+    return all(plane.is_on_plane(points[i]) for i in range(len(points)) if i not in best_points)
 
 
 class CyclePlanes:

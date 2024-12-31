@@ -29,6 +29,12 @@ outdir = Path(test.output_dir)
 
 class TestChemInfo(ut.TestCase):
 
+    def test_MolReader_iter(self):
+        from tqdm import tqdm
+        reader = hp.MolReader('/mnt/d/zhang/OneDrive/Papers/Gen3D/out.mol2')
+        for m in tqdm(reader):
+            pass
+
     def test_molecule(self):
 
         # Read molecule with two component
@@ -141,6 +147,16 @@ class TestChemInfo(ut.TestCase):
         self.assertTrue(all(b.in_ring for r in rings for b in r.bonds))
 
         print(c1.to_rdmol())
+
+    def test_link_atoms(self):
+        mol = next(hp.MolReader(opj(test.input_dir, 'Am_BuPh-BPPhen.log')))
+        # print(mol.bonds)
+        # mol.link_atoms()
+        print(mol.bonds)
+
+        self.assertEqual(mol.conformers._coordinates.shape, (54, 73, 3))
+
+        mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.sdf'), overwrite=True)
 
     def test_molblock(self):
         mol = next(hp.MolReader('c1cncc3c1c2c(S3(=O)=O)c[nH]c2P(=O)(O)O', 'smi'))
@@ -281,7 +297,7 @@ class TestChemInfo(ut.TestCase):
         writer = hp.MolWriter(opj(test.output_dir, 'cheminfo', 'ci_conformer.sdf'), 'sdf', overwrite=True)
         writer.write(mol)
 
-    def test_cclib(self):
+    def test_read_g16log_file(self):
         mol = next(hp.MolReader(Path(test.input_dir).joinpath('Am_BuPh-BPPhen.log')))
         self.assertEqual(mol.conformers_number, 54)
         self.assertEqual(mol.coordinates.shape, (73, 3))
@@ -292,6 +308,17 @@ class TestChemInfo(ut.TestCase):
         self.assertEqual(mol.gibbs, -60560.09243823103)
         self.assertEqual(mol.thermo, 17.2572589675573)
         self.assertEqual(mol.capacity, 0.00616935257190196)
+
+
+        num_atoms = len(mol.atoms)
+        mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen_rmh.gjf'), overwrite=True)
+
+        mol.remove_hydrogens()
+
+        mol.add_hydrogens()
+        self.assertEqual(len(mol.atoms), num_atoms)
+        mol.optimize()
+        mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.gjf'), overwrite=True)
 
     def test_export_gjf(self):
         mol = next(hp.MolReader(
@@ -313,12 +340,24 @@ class TestChemInfo(ut.TestCase):
         mol.complexes_build_optimize_(save_screenshot=True)
         mol.write(opj(test.output_dir, 'cheminfo', 'built_mol_single.gjf'), overwrite=True, write_single=True)
 
-    def test_read_g16log(self):
-        l502 = next(hp.MolReader(opj(test.input_dir, 'g16log', '30.log')), 'g16log')  # l502
-        RwMol1 = next(hp.MolReader(opj(test.input_dir, 'g16log', '138.log')), 'g16log')
-        p4711 = next(hp.MolReader(opj(test.input_dir, 'g16log', '4711.log')), 'g16log')
+    def test_add_hydrogen(self):
+        mol = next(hp.MolReader(
+            # "OC(=O)CN1[C@@H](CN(C2(C1=O)COCCOC2)C(=O)OC(C)(C)C)c1ccc(cc1)F",
+            'CC(C)(C)OC(=O)N12CC(c3ccc(F)cc3)N34CC5=O[Ga]613([OH]5)O1CCO6CC2(C1)C4=O',
+            'smi'))
 
-        print(l502)
+        mol.build3d()
+        mol.optimize()
+
+        mol.write(opj(test.output_dir, 'cheminfo', 'addh_before.mol'), overwrite=True)
+        t1 = time.time()
+        mol.add_hydrogens()
+        t2 = time.time()
+        print(t2-t1)
+        mol.write(opj(test.output_dir, 'cheminfo', 'addh_after.mol'), overwrite=True)
+        mol.optimize(save_screenshot=True)
+        mol.write(opj(test.output_dir, 'cheminfo', 'addh_opti.sdf'), overwrite=True)
+        mol.write(opj(test.output_dir, 'cheminfo', 'addh_opti.gjf'), overwrite=True)
 
     @ut.skip('not implemented')
     def test_missing_bonds(self):

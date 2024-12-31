@@ -16,11 +16,97 @@ from os import PathLike
 from pathlib import Path
 from typing import Union
 from copy import copy
+import multiprocessing as mp
 
 import pandas as pd
 from tqdm import tqdm
 
 from hotpot.cheminfo.core import Molecule
+from .gauss import Gaussian, Options, GaussOut
+from hotpot.utils.mp import mp_run
+
+
+def run_gaussian(
+        mol: Molecule,
+        link0: str = None,
+        route: str = None,
+        g16root: Union[str, PathLike] = None,
+        gjf_save_path: Union[str, PathLike] = None,
+        log_save_path: Union[str, PathLike] = None,
+        err_save_path: Union[str, PathLike] = None,
+        report_set_resource_error: bool = False,
+        options: Options = None,
+        test: bool = True,
+        **kwargs
+):
+    _script = mol.write(fmt='gjf', link0=link0, route=route, **kwargs)
+    gaussian = Gaussian(
+        g16root=g16root,
+        path_gjf=gjf_save_path,
+        path_log=log_save_path,
+        path_err=err_save_path,
+        report_set_resource_error=report_set_resource_error,
+        options=options,
+    )
+    gaussian.run(_script, test=test)
+
+    return gaussian.output
+
+
+def _read_log(fp):
+    return GaussOut.read_file(fp)
+
+
+def export_results(
+        *log_file_path: Union[str, PathLike],
+        skip_errors: bool = True,
+        retrieve_mol: bool = True,
+        nproc: int = None,
+        timeout: float = None,
+):
+
+    def _target(p):
+        o = GaussOut.read_file(p)
+        n = os.path.basename(p).split('.')[0]
+
+        if o.is_error:
+            return None, n, o.error_link
+
+        r = o.export_pandas_series(n)
+
+        if retrieve_mol:
+            m = o.export_mol()
+        else:
+            m = None
+
+        return r, n, m
+
+    lst_res = mp_run(
+        _target,
+        map(lambda x: (x,), log_file_path),
+        nproc=nproc,
+        timeout=timeout,
+        desc='Exporting Gaussian results...'
+    )
+
+    results = []
+    errors = []
+    mols = {}
+    for res, name, mol_or_elink in tqdm(lst_res, 'Sum Results...'):
+
+        if res is None:
+            if skip_errors:
+                print(RuntimeWarning(f"{name} with error Link {mol_or_elink}, Skip !!"))
+            else:
+                raise RuntimeError(f"{name} with error Link {mol_or_elink}!!")
+
+            errors.append(name)
+            continue
+
+        results.append(res)
+        mols[name] = mol_or_elink
+
+    return pd.concat(results, axis=1).T, mols
 
 
 def parse_gjf(path_gjf: Union[str, Path]):
@@ -340,74 +426,3 @@ class ResultsExtract:
             raise TypeError(f'the addition should be a str or a list of str, not{type(addition)}')
 
         return [reorganize_gjf(info) for info in list_parsed_info]
-
-
-class GaussOut:
-    """
-    This class is used to store Gaussian output and error message from g16 process.
-    In addition, this class will extract and organize critical information.
-    """
-
-    # Compile the error notice sentence
-    _head = re.compile('Error termination via Lnk1e in')
-    _link = re.compile(r'l\d+[.]exe')
-    _path = re.compile(r'([/|\\]\S+)*[/|\\]' + _link.pattern)
-    _week = re.compile('(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
-    _month = re.compile('(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
-    _date = re.compile(_week.pattern + ' ' + _month.pattern + r' [0-2]?\d')
-    _time = re.compile(r'\d{2}:\d{2}:\d{2} 20\d{2}\.')
-
-    _error_link = re.compile(_head.pattern + ' ' + _path.pattern + ' at ' + _date.pattern + ' ' + _time.pattern)
-
-    def __init__(self, stdout: str, stderr: str = None):
-        self.stdout = stdout
-        self.stderr = stderr
-
-    @property
-    def is_error(self) -> bool:
-        return True if self.stderr else False
-
-    @property
-    def error_link(self) -> str:
-        match = self._error_link.search(self.stdout)
-        if match:
-            matched_line = self.stdout[match.start():match.end()]
-
-            link = self._link.search(matched_line)
-            return matched_line[link.start(): link.end()][:-4]
-
-    @property
-    def is_hangup_error(self):
-        if self.is_error and self.stderr.find('Error: hangup') > 0:
-            return True
-        return False
-
-    @property
-    def is_opti_convergence_error(self):
-        """ The gaussian error is caused by the non-convergence of the optimizing conformer """
-        if self.is_error and self.error_link == 'l9999' and self.stdout.find('-- Number of steps exceeded,'):
-            return True
-        return False
-
-    @property
-    def is_scf_convergence_error(self):
-        """ Get True when the Output show the SCF non-convergence """
-        if self.error_link == 'l502' and self.stdout.find("Convergence failure -- run terminated."):
-            return True
-        return False
-
-    @property
-    def is_scrf_Vdw_cage_error(self):
-        """ Error caused by the Vdw surface is not suitable to estimate the accessible surface inside molecular cage """
-        if self.error_link == 'l502' and self.stdout.find("Inv3 failed in PCMMkU."):
-            return True
-        return False
-
-    @property
-    def is_ZMatrix_error(self):
-        if self.error_link == 'l103' and \
-                self.stdout.find('FormBX had a problem.') and \
-                self.stdout.find('Berny optimization.'):
-            return True
-
-        return False

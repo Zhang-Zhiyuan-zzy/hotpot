@@ -14,11 +14,18 @@ from pathlib import Path
 import io
 from typing import Literal, Union, Optional, Callable
 
+import cython
 import numpy as np
 import cclib
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.cheminfo.obconvert import obmol2mol, set_obmol_coordinates, get_ob_conversion
+
+# set Openbabel Message
+ob_log_handler = ob.OBMessageHandler()
+ob_log_handler.SetOutputLevel(0)
+ob.obErrorLog.StopLogging()
+pb.ob.obErrorLog.StopLogging()
 
 if not sys.modules.get('hotpot.cheminfo.core', None):
     from .. import core
@@ -48,6 +55,7 @@ def _extract_force_matrix(lines, atomic_numbers):
     head_lines = [i for i, line in enumerate(lines) if force_head1.match(line)]
 
     all_forces = []
+    i: cython.int
     for i in head_lines:
         # enhance the inspection of Force sheet head
         assert force_head2.match(lines[i + 1])
@@ -85,6 +93,7 @@ def _align_unit(conformers):
     _energies = ('zero_point', 'gibbs', 'enthalpy', 'entropy')
     _hartree2ev = 27.211386245988
 
+    item: cython.char
     for item in _energies:
         try:
             setattr(conformers, f'_{item}', getattr(conformers, f"_{item}") * _hartree2ev)
@@ -116,13 +125,16 @@ class IoBase:
         self.src = src
         self.src_type = self._src_checks(src)
         self.fmt = self._determine_fmt(src, fmt)
-        self.ob_opt = kwargs.get('ob_opt', {})
+        self.ob_opt = kwargs.pop('ob_opt', {})
         self.kwargs = kwargs
 
     @staticmethod
-    def _src_checks(src) -> Literal['path', 'str', 'bytes', 'StringIO', 'BytesIO', 'FileIO']:
+    def _src_checks(src) -> Literal['path', 'str', 'bytes', 'StringIO', 'BytesIO', 'FileIO', 'None']:
+        if src is None:
+            return 'None'
+
         if isinstance(src, str):
-            if os.path.exists(src):
+            if os.path.dirname(src) and os.path.exists(os.path.dirname(src)):
                 return 'path'
             else:
                 return 'str'
@@ -143,13 +155,10 @@ class IoBase:
         if not fmt:
             if isinstance(src, (str, PathLike)):
                 p_src = Path(src)
-                self.src_type = 'path'
-                if p_src.parent.is_dir():
-                    fmt = p_src.suffix[1:]
-                    if not fmt:
-                        fmt = 'smi'
-                else:
-                    raise FileNotFoundError(f'file {p_src} not exist!')
+                fmt = p_src.suffix[1:]
+
+                if not fmt:
+                    fmt = "smi"
 
         if not fmt:
             raise ValueError('the fmt has not been known!')
@@ -158,6 +167,9 @@ class IoBase:
 
 
 class MolReader(IoBase):
+    fmt: cython.char
+    src: cython.char
+
     def __init__(self, src, fmt=None, **kwargs):
         """"""
         super().__init__(src, fmt, **kwargs)
@@ -214,17 +226,27 @@ class MolReader(IoBase):
         setattr(conformers, '_zero_point', getattr(data, 'zpve', None))
         setattr(conformers, '_spin_mult', getattr(data, 'mult', None))
 
-        with open(self.src) as file:
-            lines = file.readlines()
 
-            thermo, capacity = _extract_g16_thermo(lines)
-            setattr(conformers, '_thermo', thermo)
-            setattr(conformers, '_capacity', capacity)
+        if self.src_type == 'str':
+            lines = self.src.splitlines()
+        else:
+            with open(self.src) as file:
+                lines = file.readlines()
 
-            setattr(conformers, '_force', _extract_force_matrix(lines, data.atomnos))
+        thermo, capacity = _extract_g16_thermo(lines)
+        setattr(conformers, '_thermo', thermo)
+        setattr(conformers, '_capacity', capacity)
+
+        setattr(conformers, '_force', _extract_force_matrix(lines, data.atomnos))
 
         _align_unit(conformers)
         mol.conformer_load(-1)  # load conformer
+
+        mol.link_atoms(assign_bond_order=False)
+        mol.determine_rings_aromatic()
+        mol.assign_bond_order()
+        mol.calc_atom_valence()
+
         def _generator():
             _reader = [mol]
             for m in _reader:
@@ -279,18 +301,19 @@ class MolWriter(IoBase):
     _plugins = {}
 
     def __init__(self, fp: Union[str, Path], fmt: str = None, overwrite: bool = False, **kwargs) -> None:
-        if os.path.exists(fp) and not overwrite:
+        if isinstance(fp, (str, Path)) and os.path.exists(fp) and not overwrite:
             raise FileExistsError(f"{fp} has exists! Pass overwrite=True to overwrite.")
 
         super().__init__(fp, fmt, **kwargs)
-        self.ob_conv = get_ob_conversion(self.fmt, **self.ob_opt)  # Initialize conversion
+        self.ob_conv = None  # Initialize conversion
         self.fp = self.src  # Just a name
 
     def obmol_write_string(self, obmol: ob.OBMol):
         return self.ob_conv.WriteString(obmol)
 
     def _ob_write(self, mol: "core.Molecule", write_single: bool = False, *args, **kwargs) -> Optional[str]:
-        obmol = mol.to_obmol()
+        self.ob_conv = get_ob_conversion(self.fmt, **self.ob_opt)
+        obmol: ob.OBMol = mol.to_obmol()
         _script = ""
         if mol.conformers_number < 1 or write_single:
             _script += self.ob_conv.WriteString(obmol)
@@ -309,14 +332,14 @@ class MolWriter(IoBase):
     def _write(self, mol: "core.Molecule", *args, **kwargs) -> Optional[str]:
         if writer := self._plugins.get(self.fmt, {}).get('write', None):
             assert isinstance(writer, Callable)
-            return writer(mol, *args, **kwargs)
+            return writer(self, mol, *args, **kwargs)
         else:
             return self._ob_write(mol, *args, **kwargs)
 
     def _post(self, script, mol, *args, **kwargs):
         if postprocessor := self._plugins.get(self.fmt, {}).get('post', None):
             assert isinstance(postprocessor, Callable)
-            script = postprocessor(script, mol, *args, **kwargs)
+            script = postprocessor(self, script, mol, *args, **kwargs)
         return script
 
     def to_write(self, script: str):
@@ -327,6 +350,7 @@ class MolWriter(IoBase):
                 f.write(script)
 
     def write(self, mol: "core.Molecule", *args, **kwargs) -> Optional[str]:
+        kwargs.update(self.kwargs)
         self._pre(mol, *args, **kwargs)
         script = self._write(mol, *args, **kwargs)
         return self.to_write(self._post(script, mol, *args, **kwargs))

@@ -49,6 +49,7 @@ class R2Regression(Plot):
             marker1=None, marker2=None, err1=None, err2=None,
             show_mae=False, show_rmse=False,
             *args,
+            target_name="Target", prediction_name="Predicted",
             sample1_name: str = None, sample2_name: str = None, sampleh_name: str = None,
             xy1_highlight_indices=None, xy2_highlight_indices=None,
             **kwargs
@@ -86,6 +87,8 @@ class R2Regression(Plot):
         self.sample1_name = ''
         self.sample2_name = ''
         self.sampleh_name = ''
+        self.target_name = target_name
+        self.prediction_name = prediction_name
 
         self.sample_num = len(self.xy1) + (len(self.xy2) if isinstance(self.xy2, np.ndarray) else 0)
         self.is_small_sample = self.sample_num < 1000
@@ -282,8 +285,8 @@ class R2Regression(Plot):
             )
             # ax.scatter(self.xy_highlight[0], self.xy_highlight[1], 200, c=self.ch, marker='*')
 
-        ax.set_xlabel(f'Target{self.unit}')
-        ax.set_ylabel(f'Predicted{self.unit}')
+        ax.set_xlabel(f'{self.target_name}' + f' ({self.unit})' if self.unit else '')
+        ax.set_ylabel(f'{self.prediction_name}' + f' ({self.unit})' if self.unit else '')
 
         ax.set_xlim(self.xy_lim[0], self.xy_lim[1])
         ax.set_ylim(self.xy_lim[0], self.xy_lim[1])
@@ -429,6 +432,10 @@ class PearsonMatrix(Plot):
             sciplot.add_colorbar(ax, mappable, value_lim=(-1, 1), colorbar_label='Pearson Correlation')
 
 
+def SHAPairPlot(exp: shap.Explanation, *args, **kwargs):
+    bar = SHAPlot(exp, *args, )
+
+
 class SHAPlot(Plot):
     """ this class is used to make plots for analyzing the SHAP results """
     _plot_type = Literal['bar', 'beeswarm', 'scatter', 'waterfull']
@@ -466,8 +473,8 @@ class SHAPlot(Plot):
         for bar_value_text in ax.texts:
             bar_value_text.set(font='Arial', fontsize=20, fontweight='bold')
 
-        for yticklabels in ax.get_yticklabels():
-            yticklabels.set(color='black', alpha=1.0)
+        # reset yticklabels
+        self.set_yticklabels(ax)
 
         pos = copy(Settings.axes_pos)
         pos[0] = 0.18
@@ -481,6 +488,9 @@ class SHAPlot(Plot):
         for bee_value_text in ax.texts:
             bee_value_text.set(font='Arial', fontsize=20, fontweight='bold')
 
+        # reset yticklabels
+        self.set_yticklabels(ax)
+
         # Setting the colorbar
         fig = ax.figure
         colorbar = [a for a in fig.get_axes() if a.get_label() == '<colorbar>'][0]
@@ -492,9 +502,46 @@ class SHAPlot(Plot):
         colorbar.set_ylabel('Feature Value (Normalized)',
                             fontdict={'font': "Arial", 'fontsize': 20, 'fontweight': 'bold'})
 
-        # adjust the ticklabel of colorbar
-        for ticklabel in colorbar.get_yticklabels():
-            ticklabel.set(font='Arial', fontsize=16)
+        ax.set_position(pos=utils.abs2rela_pos(ax, *copy(Settings.axes_pos)))
+        # # adjust the ticklabel of colorbar
+        # for ticklabel in colorbar.get_yticklabels():
+        #     ticklabel.set(font='Arial', fontsize=16)
+
+    def set_yticklabels(self, ax):
+        marcher = re.compile(r'Sum of \d+ other features')
+        ticks = []
+        for tick_label in ax.yaxis.get_ticklabels():
+            if marcher.fullmatch(tick_label.get_text()):
+                tick_label.set(text=f'other {tick_label.get_text().split()[2]}', font='Arial', fontsize=16)
+            else:
+                tick_label.set(text=tick_label.get_text(), font='Arial', fontsize=16)
+                # tick_label.set(text=self.autowrap(tick_label.get_text()), font='Arial', fontsize=16)
+            ticks.append(tick_label)
+
+        ax.set_yticklabels(ticks)
+
+    @staticmethod
+    def autowrap(text: str, max_len=12):
+        """ autowrap when the label is too long """
+        new_label = ''
+        line_len = 0
+        for s in text.split():
+            if len(s) > max_len and line_len:
+                new_label = f'\n{s}\n'
+                line_len = 0
+
+            elif line_len + len(s) > max_len:
+                new_label += f'\n{s}'
+                line_len = len(s)
+
+            elif line_len:
+                new_label += f' {s}'
+                line_len += len(s) + 1
+            else:
+                new_label += s
+                line_len = len(s)
+
+        return new_label
 
     @staticmethod
     def add_superscript(fig: plt.Figure, axs: np.ndarray[plt.Axes]):

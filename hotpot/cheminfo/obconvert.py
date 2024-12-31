@@ -6,8 +6,12 @@ python v3.9.0
 @Data   : 2024/12/5
 @Time   : 21:28
 """
+from typing import Any
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
+
+ob_log_handler = ob.OBMessageHandler()
+ob_log_handler.SetOutputLevel(0)
 
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
@@ -34,6 +38,25 @@ def write_obmol_to_string(obmol: ob.OBMol, fmt='smi', **kwargs):
     return get_ob_conversion(fmt, **kwargs).WriteString(obmol)
 
 
+def _retrieve_bonds_attrs_from_obmol(obmol: ob.OBMol, i2r: dict[int, int]) -> dict[tuple[int, int], dict[str, Any]]:
+    return {
+        (i2r[obb.GetBeginAtomIdx()], i2r[obb.GetEndAtomIdx()]): {"bond_order": obb.GetBondOrder()}
+        for obb in ob.OBMolBondIter(obmol)
+    }
+
+
+def _add_mol_bonds_from_obmol(mol, obmol, idx_to_row):
+    # for obb in ob.OBMolBondIter(obmol):
+    #     begin_atom_idx = idx_to_row[obb.GetBeginAtomIdx()]  # Map to reordered index
+    #     end_atom_idx = idx_to_row[obb.GetEndAtomIdx()]  # Map to reordered index
+    #     bond_order = obb.GetBondOrder()
+    #     # is_aromatic = obb.IsAromatic()
+    _bond_attrs: dict[tuple[int, int], dict[str, Any]] = _retrieve_bonds_attrs_from_obmol(obmol, idx_to_row)
+
+    for (a1idx, a2idx), attrs in _bond_attrs.items():
+        mol._add_bond(a1idx, a2idx, **attrs)
+
+
 def obmol2mol(obmol, mol):
     # mol = Molecule()
 
@@ -47,20 +70,15 @@ def obmol2mol(obmol, mol):
             partial_charge=oba.GetPartialCharge(),
             is_aromatic=oba.IsAromatic(),
             coordinates=(oba.GetX(), oba.GetY(), oba.GetZ()),
-            valence=oba.GetTotalValence(),
-            implicit_hydrogens=oba.GetImplicitHCount()
+            # valence=oba.GetTotalValence(),
+            # implicit_hydrogens=oba.GetImplicitHCount()
         )
 
-    # Iterate over bonds in the molecule
-    for obb in ob.OBMolBondIter(obmol):
-        begin_atom_idx = idx_to_row[obb.GetBeginAtomIdx()]  # Map to reordered index
-        end_atom_idx = idx_to_row[obb.GetEndAtomIdx()]  # Map to reordered index
-        bond_order = obb.GetBondOrder()
-        # is_aromatic = obb.IsAromatic()
-
-        mol._add_bond(begin_atom_idx, end_atom_idx, bond_order)
+    _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
 
     mol._update_graph()
+    mol.calc_atom_valence()
+
     return mol
 
 
@@ -96,17 +114,61 @@ def mol2obmol(mol):
     return obmol, row_to_idx
 
 
+def link_atoms(mol):
+    obmol, row_to_idx = mol2obmol(mol)
+    idx_to_row = {i: r for r, i in row_to_idx.items()}
+
+    obmol.ConnectTheDots()
+
+    _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
+
+
+def assign_bond_order(mol):
+    obmol, row_to_idx = mol2obmol(mol)
+    idx_to_row = {i: r for r, i in row_to_idx.items()}
+
+    obmol.PerceiveBondOrders()
+    _bond_attrs: dict[tuple[int, int], dict[str, Any]] = _retrieve_bonds_attrs_from_obmol(obmol, idx_to_row)
+    for (a1idx, a2idx), attrs in _bond_attrs.items():
+        mol.bond(a1idx, a2idx).bond_order = attrs['bond_order']
+
+
+def add_hydrogens(mol):
+    obmol, row_to_idx = mol2obmol(mol)
+    obmol.AddHydrogens(False, False, 1.0)
+
+    modified = False
+    for a in mol.atoms:
+        if not (a.is_hydrogen or a.is_metal):
+            oba = obmol.GetAtom(row_to_idx[a.idx])
+            assert oba.GetAtomicNum() == a.atomic_number
+            assert (oba.GetX(), oba.GetY(), oba.GetZ()) == a.coordinates
+
+            neigh_hydrogens = [na for na in a.neighbours if na.is_hydrogen]
+            a_hnum = len(neigh_hydrogens)
+
+            oba_hnum = len([neigh_oba for neigh_oba in ob.OBAtomAtomIter(oba) if neigh_oba.GetAtomicNum() == 1])
+            delta = oba_hnum - a_hnum
+
+            if delta > 0:
+                for i in range(delta):
+                    a._add_atom()
+
+                modified = True
+
+            elif delta < 0:
+                mol._rm_atoms(neigh_hydrogens[:abs(delta)])
+
+                modified = True
+
+        return modified
+
+
 def extract_obatom_coordinate(obatom: ob.OBMol):
     return np.array((obatom.GetX(), obatom.GetY(), obatom.GetZ()))
 
 
 def extract_obmol_coordinates(obmol: ob.OBMol) -> np.ndarray:
-    # coords = np.array([(oba.GetX(), oba.GetY(), oba.GetZ()) for oba in ob.OBMolAtomIter(obmol)])
-    # nan_row = np.any(np.isnan(coords), axis=1)
-    # if np.any(nan_row):
-    #     coords[nan_row] = np.random.normal(scale=10, size=(np.sum(nan_row), 3))
-    #
-    # return coords
     return np.array([(oba.GetX(), oba.GetY(), oba.GetZ()) for oba in ob.OBMolAtomIter(obmol)])
 
 

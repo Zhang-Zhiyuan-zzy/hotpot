@@ -6,5 +6,7 @@ cpp/.vscode
 cpp/out/
 hotpot/__pycache__
 **/__pycache__
-hotpot_zzy.egg-info
+hotpot_zzy.egg-infogit
 hotpot/dataset/tmqm/data
+**/*.html
+**/*.so

@@ -47,9 +47,11 @@ def update_pyproject_version():
 update_pyproject_version()
 
 cython_ext = cythonize([
-        'hotpot/cheminfo/_io/_io.py',
-        'hotpot/cheminfo/obconvert.py',
-        'hotpot/cheminfo/core.py'
+        # 'hotpot/cheminfo/_io/_io.py',
+        # 'hotpot/cheminfo/obconvert.py',
+        # 'hotpot/cheminfo/core.py',
+        # 'hotpot/utils/tools.py'
+        'hotpot/cheminfo/core_func.pyx'
     ],
     annotate=True
 )

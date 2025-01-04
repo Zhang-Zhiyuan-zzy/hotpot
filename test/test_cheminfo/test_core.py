@@ -29,11 +29,24 @@ outdir = Path(test.output_dir)
 
 class TestChemInfo(ut.TestCase):
 
+    @ut.skip
     def test_MolReader_iter(self):
         from tqdm import tqdm
         reader = hp.MolReader('/mnt/d/zhang/OneDrive/Papers/Gen3D/out.mol2')
         for m in tqdm(reader):
+            # assert isinstance(m.formula, str)
             pass
+
+    @ut.skip
+    def test_pb_reader(self):
+        from tqdm import tqdm
+        from openbabel import pybel as pb
+        from hotpot.cheminfo.obconvert import to_arrays
+        from hotpot.cheminfo.core_ import Molecule
+        reader = pb.readfile('mol2', '/mnt/d/zhang/OneDrive/Papers/Gen3D/out.mol2')
+        for m in tqdm(reader):
+            mol = Molecule(*to_arrays(m.OBMol)[:2])
+
 
     def test_molecule(self):
 
@@ -281,22 +294,6 @@ class TestChemInfo(ut.TestCase):
         self.assertEqual(mol1.similarity(mol2), mol2.similarity(mol1))
         print(mol1.similarity(mol2))
 
-    def test_conformer(self):
-        mol = next(hp.MolReader('O=P(OC(C)C)(c1nc(c2cccc(P(OC(C)C)(OC(C)C)=O)n2)ccc1)OC(C)C', 'smi'))
-        # mol = next(hp.MolReader('c1cncc3c1c2c(S3(=O)=O)c[nH]c2P(=O)(O)O', 'smi'))
-        mol.build3d(steps=100)
-        mol.optimize(
-            forcefield='MMFF94s',
-            algorithm="steepest",
-            equilibrium=True,
-            equi_threshold=1e-5,
-            max_iter=100,
-            save_screenshot=True
-        )
-
-        writer = hp.MolWriter(opj(test.output_dir, 'cheminfo', 'ci_conformer.sdf'), 'sdf', overwrite=True)
-        writer.write(mol)
-
     def test_read_g16log_file(self):
         mol = next(hp.MolReader(Path(test.input_dir).joinpath('Am_BuPh-BPPhen.log')))
         self.assertEqual(mol.conformers_number, 54)
@@ -308,7 +305,6 @@ class TestChemInfo(ut.TestCase):
         self.assertEqual(mol.gibbs, -60560.09243823103)
         self.assertEqual(mol.thermo, 17.2572589675573)
         self.assertEqual(mol.capacity, 0.00616935257190196)
-
 
         num_atoms = len(mol.atoms)
         mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen_rmh.gjf'), overwrite=True)

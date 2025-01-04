@@ -10,3 +10,4 @@ hotpot_zzy.egg-infogit
 hotpot/dataset/tmqm/data
 **/*.html
 **/*.so
+build/

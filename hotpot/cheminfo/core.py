@@ -9,7 +9,7 @@ python v3.9.0
 import logging
 import re
 import time
-from typing import Union, Literal, Iterable, Optional, Callable
+from typing import Union, Literal, Iterable, Optional, Callable, overload
 from copy import copy
 from collections import Counter
 from itertools import combinations, product
@@ -21,7 +21,7 @@ from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
 import periodictable
 
-from hotpot.utils import types
+from hotpot.utils import types, tools
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff, _io
@@ -44,6 +44,8 @@ class Molecule:
         self._torsions = []
         self._rings = []
         self._graph = nx.Graph()
+        self._obmol = None
+        self._row2idx = None
 
         self._broken_metal_bonds = []
 
@@ -176,6 +178,7 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
+        self._obmol = None
 
         if clear_conformers:
             self.conformers.clear()
@@ -354,7 +357,7 @@ class Molecule:
         """ Get specific conformer coordinates """
         return self._conformers[idx]
 
-    def optimize_(
+    def optimize(
             self,
             forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']] = None,
             algorithm: Literal["steepest", "conjugate"] = "conjugate",
@@ -385,38 +388,6 @@ class Molecule:
             arguments['ff'] = forcefield
 
         ff.OBFF(**arguments).optimize(self)
-
-    # def optimize(
-    #         self,
-    #         forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']] = None,
-    #         algorithm: Literal["steepest", "conjugate"] = "steepest",
-    #         steps: Optional[int] = None,
-    #         equilibrium: bool = False,
-    #         equi_threshold: float = 1e-4,
-    #         max_iter: int = 100,
-    #         save_screenshot: bool = False,
-    #         perturb_steps: Optional[int] = None,
-    #         perturb_sigma: Optional[float] = 0.5
-    # ):
-    #     if forcefield is None:
-    #         if self.has_metal:
-    #             forcefield = 'UFF'
-    #         else:
-    #             forcefield = 'MMFF94s'
-    #
-    #     obff = ff.OBFF(
-    #         ff=forcefield,
-    #         algorithm=algorithm,
-    #         steps=steps,
-    #         equilibrium=equilibrium,
-    #         equi_threshold=equi_threshold,
-    #         max_iter=max_iter,
-    #         save_screenshot=save_screenshot,
-    #         perturb_steps=perturb_steps,
-    #         perturb_sigma=perturb_sigma
-    #     )
-    #     # obff.ff.SetVDWCutOff(0.5)
-    #     obff.optimize(self)
 
     def optimize_complexes(
             self,
@@ -586,6 +557,9 @@ class Molecule:
         for a, row in zip(self.atoms, value):
             a.coordinates = row
 
+    def _create_atom_from_array(self, attrs_array: np.ndarray) -> "Atom":
+        return Atom(self, attrs_array=attrs_array)
+
     def _create_atom(self, **kwargs):
         return Atom(self, **kwargs)
 
@@ -619,7 +593,8 @@ class Molecule:
         return graph
 
     def _node_with_attrs(self):
-        return [(a.idx, {n:getattr(a, n) for n in a.attrs_enumerator}) for a in self._atoms]
+        # return [(a.idx, {n:getattr(a, n) for n in a.attrs_enumerator}) for a in self._atoms]
+        return [(a.idx, {'attrs': a.attrs}) for a in self._atoms]
 
     def _edge_with_attrs(self):
         # attrs = ('idx',) + Bond._attrs_enumerator
@@ -857,10 +832,15 @@ class Molecule:
         raise NotImplementedError
 
     @property
+    def InChi(self):
+        return pb.Molecule(self.to_obmol()).write('inchi')
+
+    @property
     def smiles(self) -> str:
         """ Return smiles string. """
         # return pb.readstring('smi', pb.Molecule(mol2obmol(self)[0]).write().strip()).write('can').strip()
-        return pb.readstring('mol2', pb.Molecule(obc.mol2obmol(self)[0]).write('mol2')).write('can').split()[0]
+        # return pb.Molecule(self.to_obmol()).write('can')
+        return pb.readstring('mol2', pb.Molecule(self.to_obmol()).write('mol2')).write('can').split()[0]
         # return pb.readstring('smi', pb.Molecule(mol2obmol(self)[0]).write().strip()).write('can').strip()
         # return pb.Molecule(mol2obmol(self)[0]).write().strip()
 
@@ -896,12 +876,10 @@ class Molecule:
     def rings_small(self) -> list["Ring"]:
         return [r for r in self.rings if len(r) <= 8]
 
-    @property
-    def lssr(self):
-        return None
-
     def to_obmol(self) -> ob.OBMol:
-        return obc.mol2obmol(self)[0]
+        if not self._obmol:
+            self._obmol, self._row2idx = obc.mol2obmol(self)
+        return self._obmol
 
     def to_rdmol(self):
         return to_rdmol(self)
@@ -1009,7 +987,15 @@ class MolBlock:
 class Atom(MolBlock):
 
     # Cython define
-    symbol: cython.char
+    atomic_number: cython.int
+    formal_charge: cython.int
+    partial_charge: cython.double
+    x: cython.double
+    y: cython.double
+    z: cython.double
+    valence: cython.int
+    id: cython.long
+    symbol: cython.p_char
     idx: cython.int
 
     _symbols = (
@@ -1410,14 +1396,13 @@ class Atom(MolBlock):
     _attrs_enumerator = tuple(_attrs_dict.keys())
 
     # Element categorize in periodic tabel
-    _alkali_metals = [3, 11, 19, 37, 55, 87]  # Group 1
-    _alkaline_earth_metals = [4, 12, 20, 38, 56, 88]  # Group 2
-    _transition_metals = list(range(21, 31)) + list(range(39, 49)) + list(range(72, 81)) + list(range(104, 113))
-    _post_transition_metals = [13, 31, 49, 50, 81, 82, 83, 113, 114, 115, 116]
-    _lanthanides = list(range(57, 72))
-    _actinides = list(range(89, 104))
-    metal_ = set(_alkali_metals + _alkaline_earth_metals + _transition_metals
-                 + _post_transition_metals + _lanthanides + _actinides)
+    _alkali_metals = {3, 11, 19, 37, 55, 87}  # Group 1
+    _alkaline_earth_metals = {4, 12, 20, 38, 56, 88}  # Group 2
+    _transition_metals = set(range(21, 31)) | set(range(39, 49)) | set(range(72, 81)) | set(range(104, 113))
+    _post_transition_metals = {13, 31, 49, 50, 81, 82, 83, 113, 114, 115, 116}
+    _lanthanides = set(range(57, 72))
+    _actinides = set(range(89, 104))
+    metal_ = _alkali_metals|_alkaline_earth_metals|_transition_metals|_post_transition_metals|_lanthanides|_actinides
 
     _nonmetals = [1, 6, 7, 8, 15, 16, 34]
     _metalloids = [5, 14, 32, 33, 51, 52, 84]
@@ -1426,13 +1411,24 @@ class Atom(MolBlock):
 
     covalent_radii = np.array([0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)])
 
-    def __init__(self, mol: Molecule = None, **kwargs):
+    def __init__(self, mol: Molecule = None, *, attrs_array: np.ndarray = None, **kwargs):
         self.mol = mol or Molecule()
         getattr(self.mol, '_atoms').append(self)
 
-        self.attrs = np.zeros(len(self._attrs_enumerator))
+        if isinstance(attrs_array, np.ndarray):
+            assert attrs_array.ndim == 1
+            if len(self._attrs_enumerator) == len(attrs_array):
+                self.attrs = attrs_array
+            else:
+                raise ValueError(
+                    f'Given attrs_array should be length {len(self._attrs_enumerator)},\n'
+                    f'The attrs arrange like the following: \n'
+                    f'\t {self._attrs_enumerator}'
+                )
 
-        self.setattr(add_defaults=True, **kwargs)
+        else:
+            self.attrs = np.zeros(len(self._attrs_enumerator))
+            self.setattr(add_defaults=True, **kwargs)
 
     @classmethod
     def _get_atom_attr_dict(cls, atomic_number: int) -> dict:
@@ -1484,7 +1480,7 @@ class Atom(MolBlock):
         theta = np.arccos(2 * np.random.rand() - 1)  # 0 到 pi
         phi = 2 * np.pi * np.random.rand()  # 0 到 2pi
 
-        # 转换为笛卡尔坐标
+        # convert to Cartesian coordination
         x = np.sin(theta) * np.cos(phi) * radius
         y = np.sin(theta) * np.sin(phi) * radius
         z = np.cos(theta) * radius
@@ -1550,6 +1546,7 @@ class Atom(MolBlock):
             return []  # if the atom is an isolate atom
 
     def calc_implicit_hydrogens(self):
+        # TODO: Implement by C++
         if self.is_metal:
             self.implicit_hydrogens = 0
         elif self.is_aromatic:
@@ -1560,7 +1557,7 @@ class Atom(MolBlock):
                     self.implicit_hydrogens = 0
                 else:
                     self.implicit_hydrogens = 1
-            elif self.atomic_number in [7, 15]:
+            elif self.atomic_number in [7, 15, 33]:
                 if num == 3 or self.sum_heavy_cov_orders > 2:
                     self.implicit_hydrogens = 0
                 else:
@@ -1604,10 +1601,29 @@ class Atom(MolBlock):
 
     @property
     def hyb(self) -> int:
-        if self.is_metal:
+        # TODO: Debug
+        if self.atomic_number == 1:
+            return 0
+        elif self.atomic_number in {6, 14}:  # C Si
+            if self.is_aromatic or any(b.bond_order == 2 for b in self.bonds):
+                return 2
+            elif any(b.bond_order == 3 for b in self.bonds):
+                return 1
+            else:
+                return 3
+        elif self.atomic_number == 7:  # N
+            if self.sum_heavy_cov_orders == 3:
+                return 2
+            else:
+                return 3
+        elif self.atomic_number == 15:  # P
+            if self.sum_heavy_cov_orders == 3:
+                return 2
+            else:
+                return 3
+        else:
             return 0
 
-        return 3 - (self.missing_electrons_element - len(self.bonds) - self.implicit_hydrogens)
 
     @property
     def idx(self) -> int:
@@ -1642,7 +1658,7 @@ class Atom(MolBlock):
         return self.atomic_number in Atom._halogens
 
     @property
-    def is_metal(self) -> bool:
+    def is_metal(self):
         return self.atomic_number in self.metal_
 
     @property
@@ -1776,7 +1792,7 @@ class Atom(MolBlock):
 
         return _state
 
-    def get_formal_charge(self) -> int:
+    def get_formal_charge(self) -> cython.int:
         if self.is_metal:
             return Atom._default_valence[self.atomic_number]
         elif self.atomic_number in [6, 14]:  # C, Si
@@ -1807,10 +1823,9 @@ class Atom(MolBlock):
         elif self.is_halogens:
             return -1
 
-    def get_valence(self):
-        if self.is_metal:
-            return Atom._default_valence[self.atomic_number]
-        elif self.atomic_number in [6, 14]:  # C, Si
+    def get_valence(self) -> cython.int:
+        # TODO: Implement by C++.
+        if self.atomic_number in [6, 14]:  # C, Si
             return 4
         elif self.atomic_number == 8:  # O
             return 2
@@ -1835,30 +1850,12 @@ class Atom(MolBlock):
             return 3
         elif self.atomic_number == 1 or self.is_halogens:
             return 1
+        elif self.is_metal:
+            return Atom._default_valence[self.atomic_number]
         elif self.is_noble_gases:
             return 0
         else:
             return Atom._default_valence[self.atomic_number]
-
-        # stable_valences = self._valence_dict[self.atomic_number]['stable']
-        # if self.is_metal:  # TODO: refine the return
-        #     if not self.bonds:
-        #         return Atom._default_valence[self.atomic_number]
-        #     else:
-        #         return Atom._default_valence[self.atomic_number]
-        #
-        # if len(stable_valences) == 1:
-        #     return stable_valences[0]
-        # else:
-        #     sum_covalent_orders = self.sum_covalent_orders
-        #     if sum_covalent_orders <= self._default_valence[self.atomic_number]:
-        #         return self._default_valence[self.atomic_number]
-        #
-        #     for v in stable_valences:
-        #         if v >= sum_covalent_orders:
-        #             return v
-        #
-        #     raise RuntimeError(f"not found valence, for {self}, {self.sum_covalent_orders}, {stable_valences}")
 
     def set_valence_to_default(self):
         # self.valence = Atom._default_valence[self.atomic_number]
@@ -1898,7 +1895,7 @@ class Atom(MolBlock):
         self.atomic_number = self._symbols.index(value)
 
     @property
-    def vector(self):
+    def vector(self) -> np.ndarray:
         return np.array([self.coordinates])
 
 
@@ -2180,59 +2177,7 @@ class JointRing:
 
 
     def kekulize(self):
-
         raise NotImplementedError
-        ...
-
-        def _refresh(bs):
-            for b in bs:
-                b.bond_order = 1
-
-        bonds = copy(self.bonds)
-        _refresh(bonds)
-
-        fix_bonds = set()
-        visited_rings = set()
-        for ring in self.rings:
-            if len(ring) % 2 == 1:
-
-                found = False
-                atom = None
-
-                for a in ring.atoms:
-                    if a.atomic_number in [5, 8, 16]:
-                        fix_bonds.update(self.atom_neigh_bond(a))
-                        atom = a
-                        break
-
-                    elif a.atomic_number == 7 and a.heavy_neighbours == 2:
-                        fix_bonds.update(self.atom_neigh_bond(a))
-                        atom = a
-                        break
-
-                if atom:
-                    a1 = ring.next_atom(atom)
-                    a2 = ring.next_atom(a1)
-                    bond = ring.mol.bond(a1.idx, a2.idx)
-                    set_double = True
-
-                    while bonds not in fix_bonds:
-                        assert bond in ring.bonds
-
-                        if set_double:
-                            bond.bond_order = 2
-                            set_double = False
-                        else:
-                            set_double = True
-
-                        fix_bonds.add(bond)
-                        a1 = a2
-                        a2 = ring.next_atom(a1)
-                        bond = ring.mol.bond(a1.idx, a2.idx)
-
-        visited = set(fix_bonds)
-
-
 
 
 class Ring(AtomSeq):

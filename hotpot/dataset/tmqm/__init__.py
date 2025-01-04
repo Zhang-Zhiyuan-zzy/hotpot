@@ -9,6 +9,7 @@ python v3.9.0
 import os
 from os import path
 from os.path import join as opj
+from typing import Union
 from . import download
 
 
@@ -19,8 +20,15 @@ _data_dir = opj(_module_root, 'data')
 # 读取tmQm的分子信息，输出Molecule.
 class TmQmDataset:
     _dataset_files = ('tmQm.xyz', 'tmQm.q', 'tmQm.csv', 'tmQm.BO')
-    def __init__(self):
+    def __init__(self, dataset_file: Union[str, os.PathLike] = None):
         """"""
+        if not dataset_file:
+            dataset_file = _data_dir
+        else:
+            dataset_file = str(dataset_file)
+
+
+
         if not path.exists(_data_dir):
             os.mkdir(_data_dir)
             download.download_files()
@@ -29,7 +37,7 @@ class TmQmDataset:
             list_data = os.listdir(_data_dir)
             for ext, url in download.urls.items():
                 if f'tmQm.{ext}' not in list_data:
-                    file_path = opj(_data_dir, f'tmQm.{ext}')
+                    file_path = opj(_data_dir, f'tmQm.{ext}.gz')
                     download.download_file(file_path, url)
                     download.uncompress_all_gz(file_path)
                     os.remove(file_path)  # Remove the gz file

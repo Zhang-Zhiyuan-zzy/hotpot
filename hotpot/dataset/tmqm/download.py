@@ -17,12 +17,16 @@ python v3.9.0
 Notes:
 """
 import os
+from os import path
 from os.path import join as opj
 import gzip
 import shutil
 import requests
 
 from tqdm import tqdm
+
+_module_root = path.dirname(__file__)
+_data_dir = opj(_module_root, 'data')
 
 
 __all__ = [
@@ -58,7 +62,7 @@ def download_file(fp, _url):
 def download_files():
     # Downloading each file from the list
     for ext, url in urls.items():
-        file_path = opj('data', f'tmQm.{ext}.gz')
+        file_path = opj(_data_dir, f'tmQm.{ext}.gz')
         download_file(file_path, url)
         uncompress_all_gz(file_path)
         os.remove(file_path)  # Remove the gz file

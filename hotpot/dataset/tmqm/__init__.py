@@ -238,7 +238,7 @@ class _DataGenerator:
                 partial_charge=q,
             )
 
-        self._get_BO(mol, bo_res)
+        #self._get_BO(mol, bo_res)
 
         # .csv分子数据
         mol.identifier = csv_res[0]

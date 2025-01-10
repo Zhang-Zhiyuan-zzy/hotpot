@@ -317,6 +317,10 @@ class Molecule:
         return sum(a.formal_charge for a in self._atoms)
 
     @property
+    def default_unpaired_electrons(self):
+        return (sum(a.atomic_number for a in self.atoms) - self.charge) % 2
+
+    @property
     def default_spin_mult(self) -> int:
         return (sum(a.atomic_number for a in self.atoms) - self.charge) % 2 + 1
 

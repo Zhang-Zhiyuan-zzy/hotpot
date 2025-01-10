@@ -182,6 +182,7 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
                   ChargeMethod                  Ewald
                   EwaldPrecision                1e-6
                   UseChargesFromMOLFile         {is_mol}
+                  
 
                   Framework                     0
                   FrameworkName                 streamed
@@ -204,6 +205,8 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
                               SwapProbability          1.0
                               CreateNumberOfMolecules  0
                   """).strip()
+
+
 
 
 def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
@@ -296,6 +299,36 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
 
     return run_script(script, structure)
 
+def compute_hk_coeff(structure, molecule_name, temperature=298.15,
+                unit_cells=(1, 1, 1), simulation_type="MonteCarlo",
+                cycles=20000, forcefield="UFF",
+                input_file_type="cif"):
+    """Runs a simulation to compute henry coefficient.
+    """
+    is_mol = "yes" if input_file_type.lower() == "mol" else "no"
+    a, b, c = unit_cells
+    script = dedent("""
+                    SimulationType                {simulation_type}
+                    NumberOfCycles                {cycles}
+                    NumberOfInitializationCycles  0
+                    PrintEvery                          1000
+                    PrintPropertiesEvery            1000
+
+                    Forcefield                    {forcefield}
+
+                    Framework                     0
+                    FrameworkName                 streamed
+                    UnitCells                     {a} {b} {c}
+                    ExternalTemperature           {temperature}
+                    UseChargesFromMOLFile         {is_mol}
+                    
+                    Component 0 MoleculeName                 {molecule_name}
+                                  MoleculeDefinition           Hotpot
+                                  IdealGasRosenbluthWeight     1.02791
+                                  WidomProbability       1.0
+                                  CreateNumberOfMolecules      0
+                    """.format(**locals())).strip()
+    return run_script(script, structure)
 
 def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=500,
                                input_file_type="cif", units="m^2/g",
@@ -336,7 +369,7 @@ def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=500,
 
                     Component 0 MoleculeName             N2
                                 StartingBead             0
-                                MoleculeDefinition       TraPPE
+                                MoleculeDefinition       Hotpot
                                 SurfaceAreaProbability   1.0
                                 CreateNumberOfMolecules  0
                     """.format(**locals())).strip()
@@ -445,7 +478,7 @@ def get_pore_size_distribution(structure, unit_cells=(1, 1, 1), cycles=500,
 
 
 def get_density(molecule_name, temperature=273.15, pressure=101325,
-                cycles=5000, init_cycles="auto",
+                cycles=5000, init_cycles="auto", simulation_type="MonteCarlo",
                 forcefield="CrystalGenerator"):
     """Calculates the density of a gas through an NPT ensemble.
 
@@ -584,12 +617,15 @@ def pybel_to_raspa_cif(structure):
                      _atom_site_charge
                  """.format(**locals())).strip()
 
+    element_list = []
     for atom in structure:
         element = GetSymbol(atom.atomicnum)
-        label = "Mof_" + element
+        i = 1 + element_list.count(element)
+        label = f'{element}{i}'
         charge = atom.partialcharge
         c = uc.WrapFractionalCoordinate(uc.CartesianToFractional(atom.vector))
         x, y, z = c.GetX(), c.GetY(), c.GetZ()
+        element_list.append(element)
 
         cif += ("\n    {label:<7s} {element:<4s} {x:.5f} {y:9.5f} {z:9.5f} "
                 "{charge:7.3f}").format(**locals())

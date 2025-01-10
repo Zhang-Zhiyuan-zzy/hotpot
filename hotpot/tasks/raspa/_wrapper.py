@@ -321,3 +321,24 @@ class RASPA:
             )
 
         return RaspaParser(result)
+
+    def run_hk(
+            self, frame: Molecule, *guests: Union[str, Molecule],
+            temperature=298.15, unit_cells=(1, 1, 1),
+            simulation_type="MonteCarlo",
+            cycles=20000, input_file_type="cif",
+            **kwargs
+    ) -> RaspaParser:
+        """"""
+        # Write the guests molecule file to work_dir
+        guest_names = self._guests_to_mol_files(guests, **kwargs)
+        assert len(guest_names) == len(guests)
+
+        result = _core.compute_hk_coeff(
+            pb.Molecule(frame.ob_mol), guest_names[0],
+            temperature=temperature, unit_cells=unit_cells,
+            simulation_type=simulation_type,
+            cycles=cycles, forcefield=self.forcefield,
+            input_file_type=input_file_type
+        )
+        return RaspaParser(result)

@@ -104,6 +104,13 @@ class TestRaspa(ut.TestCase):
         mol = hp.Molecule.read_from(raspa_rigid_mol_path, "raspa_mol")
         print(mol)
 
+
+
+
+
+
+
+
     def test_convert_to_raspa_mol_file(self):
         """ Test if Molecule obj convert to guest.def files"""
         mof_name = "IRMOF-1"
@@ -158,8 +165,6 @@ class TestRaspa(ut.TestCase):
 
         mof = hp.Molecule.read_from(path_mof)
 
-
-
         raspa = RASPA(in_test=True)
 
         script = raspa.run(mof, "diatomic", cycles=200)
@@ -169,23 +174,12 @@ class TestRaspa(ut.TestCase):
         """
         Copy additional element types from data files to UFF force field files
         """
-        mof_name = "IRMOF-1"
+        mof_name = "mq_0.95_156_4378_9219"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
 
         mof = hp.Molecule.read_from(path_mof)
 
         raspa = RASPA(in_test=True)
 
-        script = raspa.run(mof, "diatomic", cycles=200)
+        script = raspa.run(mof, "diatomic", cycles=20000)
         print(script.output)
-
-    def test_single_iodine_model(self):
-        mof_name = "mq_0.68_1000_4336_9970"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-        mof = hp.Molecule.read_from(path_mof)
-        raspa = RASPA(in_test=True)
-        script = raspa.run(mof, "I2", unit_cells=(2, 2, 2), cycles=20000)
-        print(script.output)
-        # save_path = f'/home/qyq/proj/raspa/outputs/single/{mof_name}_adsorb_I2.output'
-        # with open(save_path, 'w') as file:
-        #     file.write(script)

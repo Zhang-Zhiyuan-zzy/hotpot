@@ -25,7 +25,6 @@ GetAtomicNum = ob.GetAtomicNum
 GetSymbol = ob.GetSymbol
 PYBEL_LOADED = True
 
-
 def run(structure, molecule_name, temperature=273.15, pressure=101325,
         helium_void_fraction=1.0, unit_cells=(1, 1, 1),
         framework_name="streamed", simulation_type="MonteCarlo", cycles=2000,

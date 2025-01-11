@@ -34,24 +34,6 @@ class TestRaspa(ut.TestCase):
         print('Normalize terminate test!', self._testMethodName)
 
     @ut.skipIf(not raspa_root, "the test need the Raspa software")
-    def test_run(self):
-        """"""
-        mof_name = "IRMOF-1"
-        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
-
-        # work_dir = test.test_root.joinpath("output", 'raspa', f"{mof_name}")
-
-        mof = hp.Molecule.read_from(path_mof)
-
-        raspa = RASPA(in_test=True)  # , parsed_output=False
-
-        script = raspa.run(mof, "CO2", cycles=100)
-        # json.dump(script, open(work_dir.joinpath("output.json"), 'w'), indent=True)
-
-        # # work_dir.mkdir(parents=True, exist_ok=True)
-        # with open(work_dir.joinpath("pure/pure_try1.txt"), 'w') as writer:
-        #     writer.write(script)
-        return script
 
     def test_guest_to_mol_file(self):
         """"""
@@ -103,13 +85,6 @@ class TestRaspa(ut.TestCase):
 
         mol = hp.Molecule.read_from(raspa_rigid_mol_path, "raspa_mol")
         print(mol)
-
-
-
-
-
-
-
 
     def test_convert_to_raspa_mol_file(self):
         """ Test if Molecule obj convert to guest.def files"""
@@ -174,12 +149,36 @@ class TestRaspa(ut.TestCase):
         """
         Copy additional element types from data files to UFF force field files
         """
-        mof_name = "mq_0.95_156_4378_9219"
+        mof_name = "IRMOF-1"
         path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
 
         mof = hp.Molecule.read_from(path_mof)
 
         raspa = RASPA(in_test=True)
 
-        script = raspa.run(mof, "diatomic", cycles=20000)
+        script = raspa.run(mof, "diatomic", cycles=200)
         print(script.output)
+
+
+    def test_run_mixture(self):
+        """
+        Test gas mixture adsorption simulation
+        """
+        mol_fraction = 0.0004
+        mof_name = "IRMOF-1"
+        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
+        frame = hp.Molecule.read_from(path_mof)
+        raspa = RASPA(in_test=True)
+        script = raspa.run(frame, "I2", "N2", mol_fraction=(mol_fraction, 1-mol_fraction), pressure=101325, temperature=348.15, unit_cells=(1,1,1), cycles=200)
+        return script.output
+
+    def test_compute_hk(self):
+        """
+        Test calculation of Henry coefficient
+        """
+        mof_name = "IRMOF-1"
+        path_mof = test.test_root.joinpath("inputs", "struct", f"{mof_name}.cif")
+        frame = hp.Molecule.read_from(path_mof)
+        raspa = RASPA(in_test=True)
+        script = raspa.run_hk(frame, "I2", temperature=298.15, unit_cells=(1,1,1), cycles=200)
+        return script.output

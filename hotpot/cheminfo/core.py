@@ -9,7 +9,8 @@ python v3.9.0
 import logging
 import re
 import time
-from typing import Union, Literal, Iterable, Optional, Callable, overload
+import operator
+from typing import Union, Literal, Iterable, Optional, Callable, Sequence
 from copy import copy
 from collections import Counter
 from itertools import combinations, product
@@ -17,11 +18,12 @@ from itertools import combinations, product
 import cython
 import numpy as np
 import networkx as nx
+from ase.data import atomic_numbers
 from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
 import periodictable
 
-from hotpot.utils import types, tools
+from hotpot.utils import types, chem as hpchem, tools
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff, _io
@@ -40,6 +42,7 @@ class Molecule:
         self._conformers = Conformers()
         self._conformers_index = 0
 
+        self._atom_pairs = AtomPairs(mol=self)
         self._angles = []
         self._torsions = []
         self._rings = []
@@ -50,6 +53,9 @@ class Molecule:
         self._broken_metal_bonds = []
 
         self.charge = 0
+
+    def __dir__(self):
+        return list(Conformers._attrs) + list(super(Molecule, self).__dir__())
 
     def __getattr__(self, item):
         try:
@@ -257,6 +263,10 @@ class Molecule:
         self._update_graph(clear_conformers)
 
     @property
+    def atom_pairs(self):
+        return self._atom_pairs
+
+    @property
     def angles(self) -> list["Angle"]:
         if not self._angles:
             self._angles = [Angle(n1, a, n2) for a in self.atoms for n1, n2 in combinations(a.neighbours, 2)]
@@ -304,10 +314,6 @@ class Molecule:
         else:
             ff.ob_build(self)
             ff.ob_optimize(self, forcefield, steps)
-
-    # @property
-    # def charge(self) -> int:
-    #     return sum(a.formal_charge for a in self._atoms)
 
     def update_mol_charge(self):
         self.charge = self.sum_atoms_charge
@@ -880,6 +886,14 @@ class Molecule:
     def rings_small(self) -> list["Ring"]:
         return [r for r in self.rings if len(r) <= 8]
 
+    @property
+    def ligand_rings(self) -> list["Ring"]:
+        """ Return rings exclude contained metals """
+        self.hide_metal_ligand_bonds()
+        rings = self.rings
+        self.recover_metal_ligand_bonds()
+        return rings
+
     def to_obmol(self) -> ob.OBMol:
         if not self._obmol:
             self._obmol, self._row2idx = obc.mol2obmol(self)
@@ -934,6 +948,7 @@ class Molecule:
 
 class MolBlock:
     _attrs_dict = {}
+    _attrs_setter = {}
     _default_attrs = {}
     _attrs_enumerator = tuple(_attrs_dict.keys())
 
@@ -942,6 +957,9 @@ class MolBlock:
 
     def __copy__(self):
         raise PermissionError(f"The {self.__class__.__name__} not allow to copy")
+
+    def __dir__(self):
+        return list(self._attrs_enumerator) + list(super(MolBlock, self).__dir__())
 
     def __getattr__(self, item):
         try:
@@ -953,13 +971,20 @@ class MolBlock:
 
     def __setattr__(self, key, value):
         try:
-            attr_idx = self._attrs_enumerator.index(key)
-            self.attrs[attr_idx] = float(value)
+            setter = self._attrs_setter.get(key, self._default_attr_setter)
+            setter(self, key, value)
+            # attr_idx = self._attrs_enumerator.index(key)
+            # self.attrs[attr_idx] = float(value)
         except ValueError:
             super().__setattr__(key, value)
         except Exception as e:
             print(key, value)
             raise e
+
+    @staticmethod
+    def _default_attr_setter(self, key, value):
+        attr_idx = self._attrs_enumerator.index(key)
+        self.attrs[attr_idx] = float(value)
 
     @property
     def attrs_enumerator(self) -> tuple:
@@ -988,6 +1013,17 @@ class MolBlock:
             setattr(self, name, value)
 
 
+#######################################################################
+#######################################################################
+# Define attributes setters
+def _atomic_number_setter(self, key, atomic_number):
+    assert key == "atomic_number"
+    self.attrs[0] = atomic_number
+    n, l, (s, p, d, f, p) = hpchem.calc_electron_config(atomic_number)
+    self.attrs[1: 7] = n, s, p, d, f, p
+
+# ---------------------------------------------------------------------
+
 class Atom(MolBlock):
 
     # Cython define
@@ -1002,6 +1038,7 @@ class Atom(MolBlock):
     symbol: cython.p_char
     idx: cython.int
 
+    _coord_getter = operator.attrgetter('x', 'y', 'z')
     _symbols = (
         "0",
         "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
@@ -1021,6 +1058,12 @@ class Atom(MolBlock):
     _attrs_dict = {
         # Name: datatype
         'atomic_number': int,
+        'n': int,
+        's': int,
+        'p': int,
+        'd': int,
+        'f': int,
+        'g': int,
         'formal_charge': int,
         'partial_charge': float,
         'is_aromatic': bool,
@@ -1034,6 +1077,10 @@ class Atom(MolBlock):
         'y_constraint': bool,
         'z_constraint': bool,
         # 'explicit_hydrogens'
+    }
+
+    _attrs_setter = {
+        'atomic_number': _atomic_number_setter
     }
 
     _default_attrs = {
@@ -1523,22 +1570,6 @@ class Atom(MolBlock):
         getattr(self.mol, '_update_graph')()
         return hydrogens
 
-    # TODO: BUG
-    # def assign_formal_charge(self):
-    #     if self.is_metal:
-    #         self.formal_charge = self._default_valence[self.atomic_number]
-    #         return
-    #
-    #     elif self.atomic_number == 1:
-    #         if not self.bonds:
-    #             self.formal_charge = -1
-    #         else:
-    #             self.formal_charge = 0
-    #
-    #     else:
-    #         charge = self.sum_covalent_orders - self.get_valence()
-    #         self.formal_charge = charge
-
     @property
     def bonds(self) -> list["Bond"]:
         # return [self.mol.bonds[i] for i in self.bonds_idx]
@@ -1585,7 +1616,7 @@ class Atom(MolBlock):
 
     @property
     def coordinates(self):
-        return self.x, self.y, self.z
+        return Atom._coord_getter(self)
 
     @coordinates.setter
     def coordinates(self, value: types.ArrayLike):
@@ -1735,28 +1766,7 @@ class Atom(MolBlock):
         return n
 
     def calc_electron_config(self) -> (int, int, list[int]):
-        shells = self._atomic_orbital
-        #       s  p  d  f, g
-        conf = [0, 0, 0, 0, 0]
-        _atomic_number = self.atomic_number
-
-        n = 0
-        l = 0
-        while _atomic_number > 0:
-            if l >= len(shells[n]):
-                n += 1
-                l = 0
-                conf = [0, 0, 0, 0, 0]
-
-            if _atomic_number - shells[n][l] > 0:
-                conf[l] = shells[n][l]
-            else:
-                conf[l] = _atomic_number
-
-            _atomic_number -= shells[n][l]
-            l += 1
-
-        return n, l, conf
+        return hpchem.calc_electron_config(self.atomic_number)
 
     @property
     def oxidation_state(self) -> int:
@@ -1905,8 +1915,11 @@ class Atom(MolBlock):
 
 class AtomSeq:
     """ Represent instances assembled by a sequence of atoms, like Bond, Angles, Torison, and Rings. """
+    _length = None
+
     def __init__(self, *atoms: Atom):
-        self._check_is_same_mol(atoms)
+        self._check_is_same_mol(*atoms)
+        self._check_atom_number(*atoms)
         self._atoms = atoms
 
         if isinstance(self, Bond):
@@ -1959,9 +1972,19 @@ class AtomSeq:
         if any(atoms[0].mol is not a.mol for a in atoms[1:]):
             raise ValueError('All atoms must belong to same mol.')
 
+    def _check_atom_number(self, *atoms):
+        _length = getattr(self, '_length', None)
+        if _length and len(atoms) != _length:
+            raise ValueError(
+                f"The the atom counts of {self.__class__.__name__} is {_length}, but {len(self.atoms)} are given.")
+
     @property
     def atoms(self):
         return copy(self._atoms)
+
+    @property
+    def atoms_indices(self):
+        return [a.idx for a in self.atoms]
 
     @property
     def bonds(self):
@@ -1987,6 +2010,107 @@ class AtomSeq:
             mol.add_bond(a1, a2, **bond.attr_dict)
 
         return mol
+
+
+class AtomPairKey:
+    def __init__(self, atom1: Atom, atom2: Atom):
+        assert isinstance(atom1, Atom) and isinstance(atom2, Atom)
+        self.atom1, self.atom2 = (atom1, atom2) if atom1.idx <= atom2.idx else (atom2, atom1)
+
+    def __hash__(self):
+        return hash((self.atom1, self.atom2)) + hash((self.atom2, self.atom1))
+
+    def __repr__(self):
+        return f"AtomPairKey({self.atom1}, {self.atom2})"
+
+    def __lt__(self, other):
+        return (self.atom1.idx, self.atom2.idx) < (other.atom1.idx, other.atom2.idx)
+
+    def __eq__(self, other):
+        return (other.atom1 == self.atom1 and other.atom2 == self.atom2) or (other.atom1 == self.atom2 and other.atom2 == self.atom1)
+
+    def __contains__(self, check_atom):
+        return check_atom is self.atom1 or check_atom is self.atom2
+
+
+class AtomPair:
+    _length = 2
+    attr_names = (
+        'wiberg_bond_order',
+    )
+    def __init__(self, atom1: Atom, atom2: Atom):
+        self.atom1 = atom1
+        self.atom2 = atom2
+        self.wiberg_bond_order = 0
+
+    def __repr__(self):
+        return f"AtomPair({self.atom1.idx}, {self.atom2.idx})"
+
+    def __eq__(self, other):
+        return (other.atom1 == self.atom1 and other.atom2 == self.atom2) or (other.atom1 == self.atom2 and other.atom2 == self.atom1)
+
+    def __contains__(self, check_atom):
+        return check_atom is self.atom1 or check_atom is self.atom2
+
+    @property
+    def attrs(self):
+        return [getattr(self, n) for n in self.attr_names]
+
+    @property
+    def distance(self):
+        x2, y2, z2 = self.atom2.coordinates
+        x1, y1, z1 = self.atom1.coordinates
+        return np.linalg.norm((x2-x1, y2-y1, z2-z1))
+
+
+class AtomPairs(dict):
+    def __init__(self, *args, mol, **kwargs):
+        self.mol = mol
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, atom_pair: tuple[Atom, Atom], value: AtomPair):
+        if not isinstance(value, AtomPair):
+            raise TypeError(f'the value in AtomPairs should be `AtomPair`')
+
+        assert len(atom_pair) == 2  # length of atom must be 2
+        assert all(isinstance(k, Atom) for k in atom_pair)  # all items should be atom
+        super().__setitem__(frozenset(atom_pair), value)
+
+    def __getitem__(self, atom_pair):
+        assert len(atom_pair) == 2  # length of atom must be 2
+        assert all(isinstance(k, Atom) for k in atom_pair)  # all items should be atom
+        return super().__getitem__(frozenset(atom_pair))
+
+    def __contains__(self, atom_pair):
+        assert len(atom_pair) == 2
+        return super().__contains__(frozenset(atom_pair))
+
+    def getdefault(self, atom_pair):
+        return self.setdefault(frozenset(atom_pair), AtomPair(*atom_pair))
+
+    def clear_not_exist_pairs(self):
+        mol_atoms = set(self.mol.atoms)
+        to_remove = []
+        for pair_key in self:
+            if any(a not in mol_atoms for a in pair_key):
+                to_remove.append(pair_key)
+
+        for pair_key in to_remove:
+            del self[pair_key]
+
+    @property
+    def pair_distance(self):
+        return np.array([p.distance for p in self.values()])
+
+    def update_pairs(self):
+        self.clear_not_exist_pairs()
+        for pair_key in combinations(self.mol.atoms, 2):
+            self.setdefault(frozenset(pair_key), AtomPair(*pair_key))
+
+    @property
+    def idx_matrix(self) -> np.array:
+        return np.array([[a.idx for a in p] for p in self])
+
 
 class Bond(AtomSeq, MolBlock):
     _attrs_dict = {
@@ -2189,6 +2313,19 @@ class Ring(AtomSeq):
         super().__init__(*atoms)
         self._bonds = self._bonds + [self.mol.bond(self._atoms[0].idx, self._atoms[-1].idx)]
 
+    def to_pair_edge(self):
+        """
+        The method to export all pairwise edges between every pair of atoms in the ring.
+        This method would be useful to leverage Graph Neural Networks to encode the rings information,
+        where every atom in the ring would be regarded to be close with each other, that
+        each atom has edges with all of other atoms in the ring.
+
+        Returns:
+            np.ndarray: A numpy array consisting of all possible pairwise
+            combinations of atom indices represented as edges.
+        """
+        return np.array([a1a2idx for a1a2idx in combinations(self.atoms_indices, 2)])
+
     @property
     def is_aromatic(self) -> bool:
         return all(a.is_aromatic for a in self._atoms)
@@ -2201,6 +2338,10 @@ class Ring(AtomSeq):
     @property
     def is_disorder(self):
         return np.any(self.pair_dist < 0.5)
+
+    @property
+    def has_metal(self):
+        return any(a.is_metal for a in self._atoms)
 
     def joint_with(self, other: "Ring") -> bool:
         if not isinstance(other, Ring):

@@ -10,6 +10,8 @@ from typing import Any
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 
+from hotpot.utils.chem import atom as chem_atom
+
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
     pmol.write(fmt, filename=filename, overwrite=overwrite, opt=opt)
@@ -56,9 +58,11 @@ def obmol2mol(obmol, mol):
     idx_to_row = {oba.GetIdx():i for i, oba in enumerate(ob.OBMolAtomIter(obmol))}
 
     for oba in ob.OBMolAtomIter(obmol):
+        n, l, (s, p, d, f, p) = chem_atom.calc_electron_config(oba.GetAtomicNum())
         mol._create_atom_from_array(
             attrs_array=np.array([
                 oba.GetAtomicNum(),
+                n, s, p, d, f, p,  # electron configure
                 oba.GetFormalCharge(),
                 oba.GetPartialCharge(),
                 float(oba.IsAromatic()),
@@ -69,16 +73,6 @@ def obmol2mol(obmol, mol):
                 0, 0, 0,
                 ], dtype=np.float64)
             )
-
-        # mol._create_atom(
-        #     atomic_number=oba.GetAtomicNum(),
-        #     formal_charge=oba.GetFormalCharge(),
-        #     partial_charge=oba.GetPartialCharge(),
-        #     is_aromatic=oba.IsAromatic(),
-        #     coordinates=(oba.GetX(), oba.GetY(), oba.GetZ()),
-        #     valence=oba.GetTotalValence(),
-        #     implicit_hydrogens=oba.GetImplicitHCount()
-        # )
 
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
     #

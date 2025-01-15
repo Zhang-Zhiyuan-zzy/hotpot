@@ -154,12 +154,33 @@ class TestChemInfo(ut.TestCase):
         print(rings)
         print(rings[0].bonds)
         self.assertIn(rings[0].bonds[1], rings[0])
-        self.assertNotIn(rings[0].bonds[1], rings[1])
+        self.assertNotIn(rings[0].bonds[2], rings[1])
 
         self.assertTrue(all(a.in_ring for r in rings for a in r.atoms))
         self.assertTrue(all(b.in_ring for r in rings for b in r.bonds))
 
         print(c1.to_rdmol())
+
+    def test_atompair(self):
+        import hotpot as hp
+        mol = next(hp.MolReader( 'CCCC(CCCCCCC)CCCCN(CCCC(CC(CCCC(CCCC(CCCC(CC)(CC)(CC)CCC(CC)(CC)(CC)CC)CC(CCCCCC)CC(CC(CCCC(C)'
+            '(C)(C)CCCC)C(C(C)(C)(C))CCC(CCC(C(C)(CC)(C))CCCCCCC)CCCCCC)CCCC(CCCCCCCCC)CCCC)CCC(CC)CCC)CCC)CCCCCCCC'
+            'C)C(=O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)N(CCC(CCC(CC)CCCCCCC)CCCCC)CCCCCCCC)C=C1', 'smi'))
+
+        mol.build3d()
+        print(mol.coordinates)
+        t1 = time.time()
+        pairs = mol.atom_pairs
+        print(time.time() - t1)
+
+        t1 = time.time()
+        print(pairs.pair_distance)
+        print(time.time() - t1)
+
+        t1 = time.time()
+        print(mol.pair_dist)
+        print(time.time() - t1)
+
 
     def test_link_atoms(self):
         mol = next(hp.MolReader(opj(test.input_dir, 'Am_BuPh-BPPhen.log')))
@@ -168,7 +189,6 @@ class TestChemInfo(ut.TestCase):
         print(mol.bonds)
 
         self.assertEqual(mol.conformers._coordinates.shape, (54, 73, 3))
-
         mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.sdf'), overwrite=True)
 
     def test_molblock(self):

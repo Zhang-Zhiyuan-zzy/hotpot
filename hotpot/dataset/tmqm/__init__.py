@@ -10,8 +10,10 @@ from various file formats (XYZ, CSV, Q, BO). It includes classes to handle downl
 and molecule creation for further computational tasks.
 """
 import os
+import asyncio
 from os import path
 from os.path import join as opj
+import multiprocessing as mp
 
 from . import download
 from hotpot import Molecule
@@ -63,14 +65,22 @@ class DataGenerator:
         __next__()
             Returns the next molecule data from the iterator.
     """
-    XYZ_FILE = "tmQM.xyz"
-    CSV_FILE = "tmQM.csv"
+    XYZ_FILE = "tmQm.xyz"
+    CSV_FILE = "tmQm.csv"
     Q_FILE = "tmQm.q"
-    BO_FILE = "tmQM.BO"
+    BO_FILE = "tmQm.BO"
 
-    def __init__(self, data_dir):
+    mol_attrs = (
+        'identifier', 'energy', 'dispersion', 'dipole', 'metal_q',
+        'Hl', 'HOMO', 'LUMO', 'polarizability'
+    )
+
+    def __init__(self, data_dir, nproc=1):
         self.data_dir = data_dir
         self._initialize_generators()
+        self.nproc = nproc
+        self.text2mol_queues = [mp.Queue() for _ in range(nproc)]
+        self.result_queues = [mp.Queue() for _ in range(nproc)]
 
     def _initialize_generators(self):
         """初始化所有生成器"""
@@ -189,242 +199,102 @@ class DataGenerator:
                 return True
         return False
 
-    def _get_BO(self, mol: Molecule, bo_res):
-        # .BO文件处理
-        a1idx = int(bo_res[0][0]) - 1
-        set_array = [set() for _ in range(1000)]
-        for i in range(1, len(bo_res) - 1):
-            if bo_res[i][0].isalpha():
-                a2idx = int(bo_res[i][1]) - 1
-                target = {a1idx, a2idx}
-
-                if self._is_target_in_array(set_array, target):
-                    continue
-
-                else:
-                    try:
-                        bond = mol._add_bond(int(a1idx), int(a2idx), bond_order=round(float(bo_res[i][2])))
-                    except IndexError as e:
-                        print(len(mol.atoms))
-                        print(int(a1idx), int(a2idx))
-                        raise e
-
-                    bond.wiberg_orber = float(bo_res[i][2])
-
-                    for j in range(len(bo_res)):
-                        if bo_res[j - 1][0] == a1idx:
-                            mol.atoms[int(a1idx)].valence = round(float(bo_res[j - 1][2]))
-                            mol.atoms[int(a1idx)].partial_valence = float(bo_res[j - 1][2])
-
-            else:
-                a1idx = int(bo_res[i][0]) - 1
-                continue
-
-    def next_mol(self):
-        atom_counts, xyz = next(self._xyz_generator)
-        csv_res = next(self._csv_generator)
-        q_res = next(self._q_generator)
-        bo_res = next(self._bo_generator)
-
-        # .xyz .q 文件的获取
-        mol = Molecule()
-        for (sym, x, y, z), q in zip(xyz, q_res):
-            mol._create_atom(
-                symbol=sym,
-                coordinates=(x, y, z),
-                partial_charge=q,
-            )
-
-        #self._get_BO(mol, bo_res)
-
-        # .csv分子数据
-        mol.identifier = csv_res[0]
-        mol.energy = float(csv_res[1])
-        mol.dispersion = float(csv_res[2])
-        mol.Dipole = float(csv_res[3])
-        mol.Metal_q = float(csv_res[4])
-        mol.Hl = float(csv_res[5])
-        mol.HOMO = float(csv_res[6])
-        mol.LUMO = float(csv_res[7])
-        mol.Polarizability = float(csv_res[8])
-
-        mol.link_atoms()
-        return mol
-
-    def iter_mol(self):
-        self._initialize_generators()
-        while True:
-            yield self.next_mol()
-
-    def __iter__(self):
-        return iter(self.iter_mol())
-
-    def __next__(self):
-        return self.next_mol()
-
-
-# TODO: Discarded
-class _DataGenerator:
-    XYZ_FILE = "tmQM.xyz"
-    CSV_FILE = "tmQM.csv"
-    Q_FILE = "tmQm.q"
-    BO_FILE = "tmQM.BO"
-
-    def __init__(self, data_dir):
-        self.data_dir = data_dir
-        self._initialize_generators()
-
-    def _initialize_generators(self):
-        """初始化所有生成器"""
-        self._xyz_generator = self.get_xyz_generator()
-        self._csv_generator = self.get_csv_generator()
-        self._q_generator = self.get_q_generator()
-        self._bo_generator = self.get_bo_generator()
-
-    def get_xyz_generator(self):
-        """按分子为单位读取XYZ文件"""
-        xyz_path = os.path.join(self.data_dir, self.XYZ_FILE)
-        with open(xyz_path, 'r') as file:
-            while True:
-                line = file.readline().strip()
-                if not line:
-                    break
-                atom_count = int(line)
-                file.readline()  # 跳过注释行
-                atoms = [
-                    tuple(atom_line.split()[0:4]) for atom_line in
-                    (file.readline().strip() for _ in range(atom_count))
-                ]
-                file.readline()  # 跳过空行
-                yield atom_count, atoms
-
-    def get_csv_generator(self):
-        """按分子为单位读取CSV文件"""
-        csv_path = os.path.join(self.data_dir, self.CSV_FILE)
-        with open(csv_path, newline='', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # 跳过表头
-            for row in reader:
-                yield [item.strip() for item in row[0].split(';')][:-1]
-
-    def get_q_generator(self):
-        """按分子为单位读取Q文件"""
-        q_path = os.path.join(self.data_dir, self.Q_FILE)
-        try:
-            with open(q_path, 'r', encoding='utf-8') as file:
-                current_unit = []
-                for line in file:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    if line.startswith('CSD'):
-                        if current_unit:
-                            yield current_unit
-                        current_unit = []
-                    elif line.startswith('Total'):
-                        current_unit.append(line)
-                        yield current_unit
-                        current_unit = []
-                    else:
-                        self._process_q_line(line, current_unit)
-                if current_unit:
-                    yield current_unit
-        except FileNotFoundError:
-            print(f"Error: The file {q_path} does not exist.")
-        except IOError as e:
-            print(f"Error reading the file {q_path}: {e}")
-
-    @staticmethod
-    def _process_q_line(line, current_unit):
-        """处理Q文件中的单行数据"""
-        parts = line.split()
-        if len(parts) == 2:
+    def _get_wiberg_val_bo(self, mol: Molecule, bo_res):
+        atoms = mol.atoms
+        atom_pairs = mol.atom_pairs
+        atom1 = None
+        for id_sym, sym_id, val_bo in bo_res:
             try:
-                float_value = float(parts[1])
-                current_unit.append(float_value)
+                a1idx = int(id_sym) - 1
+                a1sym = sym_id
+                a1val = float(val_bo)
+
+                atom1 = atoms[a1idx]
+                assert atom1.symbol == a1sym
+                atom1.frac_valence = a1val
+
             except ValueError:
-                pass
+                a2sym = id_sym
+                a2idx = int(sym_id) - 1
+                wiberg_bo = float(val_bo)
 
-    def get_bo_generator(self):
-        """按分子为单位读取BO文件"""
-        bo_path = os.path.join(self.data_dir, self.BO_FILE)
-        with open(bo_path, 'rb') as file:
-            prev_csd_line = None
-            lines_between = []
-            empty_line_count = 0
-            for line in file:
-                line = line.decode('utf-8', errors='ignore').strip()
-                if not line:
-                    empty_line_count += 1
-                    if empty_line_count == 2:
-                        break
-                    continue
-                empty_line_count = 0
-                if line.startswith("CSD"):
-                    if prev_csd_line is not None:
-                        yield self._process_bo_lines(lines_between)
-                    prev_csd_line = line
-                    lines_between = []
-                else:
-                    lines_between.append(line)
-            if prev_csd_line is not None and lines_between:
-                yield self._process_bo_lines(lines_between)
+                atom2 = atoms[a2idx]
+                assert atom2.symbol == a2sym
+                atom_pairs.getdefault((atom1, atom2)).wiberg_bond_order = wiberg_bo
 
-    @staticmethod
-    def _process_bo_lines(lines):
-        """优化BO文件处理"""
-        result = []
-        for line in lines:
-            parts = line.split()
-            for i in range(0, len(parts), 3):
-                result.append(tuple(parts[i:i + 3]))
-        return result
+    def _mp_read_test(self):
+        print("Reading test data start...")
+        for i, test in enumerate(zip(
+                self._xyz_generator,
+                self._csv_generator,
+                self._q_generator,
+                self._bo_generator
+        )):
+            self.text2mol_queues[i % self.nproc].put(test)
 
-    @staticmethod
-    def _is_target_in_array(arr, target):
-        """检查目标元素在数组中是否重复"""
-        for i, elem in enumerate(arr):
-            if elem is None or elem == set():
-                arr[i] = target
-                return False
-            if elem == target:
-                return True
+        print("Tests read Done!!")
+        for i in range(self.nproc):
+            self.text2mol_queues[i].put(None)
 
-        # 如果没有找到空位置且没有匹配，则返回 False
-        return False
-
-    def _get_BO(self, mol: Molecule, bo_res):
-        # .BO文件处理
-        a1idx = int(bo_res[0][0]) - 1
-        set_array = [set() for _ in range(1000)]
-        for i in range(1, len(bo_res) - 1):
-            if bo_res[i][0].isalpha():
-                a2idx = int(bo_res[i][1]) - 1
-                target = {a1idx, a2idx}
-
-                if self._is_target_in_array(set_array, target):
-                    continue
-
-                else:
-                    try:
-                        bond = mol._add_bond(int(a1idx), int(a2idx), bond_order=round(float(bo_res[i][2])))
-                    except IndexError as e:
-                        print(len(mol.atoms))
-                        print(int(a1idx), int(a2idx))
-                        raise e
-
-                    bond.wiberg_orber = float(bo_res[i][2])
-
-                    for j in range(len(bo_res)):
-                        if bo_res[j - 1][0] == a1idx:
-                            mol.atoms[int(a1idx)].valence = round(float(bo_res[j - 1][2]))
-                            mol.atoms[int(a1idx)].partial_valence = float(bo_res[j - 1][2])
-
+    def _mp_mol_construct(self, i: int):
+        while True:
+            text = self.text2mol_queues[i].get(timeout=20)
+            if text is None:
+                break
             else:
-                a1idx = int(bo_res[i][0]) - 1
-                continue
+                (atom_counts, xyz), csv_res, q_res, bo_res = text
 
+            mol = Molecule()
+            for (sym, x, y, z), q in zip(xyz, q_res):
+                mol._create_atom(
+                    symbol=sym,
+                    coordinates=(x, y, z),
+                    partial_charge=q,
+                )
 
+            self._get_wiberg_val_bo(mol, bo_res)
+
+            # .csv分子数据
+            mol.identifier = csv_res[0]
+            mol.energy = float(csv_res[1])
+            mol.dispersion = float(csv_res[2])
+            mol.dipole = float(csv_res[3])
+            mol.metal_q = float(csv_res[4])
+            mol.Hl = float(csv_res[5])
+            mol.HOMO = float(csv_res[6])
+            mol.LUMO = float(csv_res[7])
+            mol.polarizability = float(csv_res[8])
+
+            mol.link_atoms()
+
+            self.result_queues[i].put(mol)
+
+        self.result_queues[i].put(None)
+
+    def mp_iter(self):
+        """"""
+        p_text = mp.Process(target=self._mp_read_test)
+        mol_ps = [mp.Process(target=self._mp_mol_construct, args=(i,)) for i in range(self.nproc)]
+
+        p_text.start()
+        for mol_p in mol_ps:
+            mol_p.start()
+
+        list_queues = [q for q in self.result_queues]
+        while True:
+            to_remove = []
+            for q in list_queues:
+                mol = q.get(timeout=50)
+                if mol is None:
+                    to_remove.append(q)
+                else:
+                    yield mol
+
+            for q in to_remove:
+                list_queues.remove(q)
+
+            if not list_queues:
+                break
 
     def next_mol(self):
         atom_counts, xyz = next(self._xyz_generator)
@@ -441,18 +311,18 @@ class _DataGenerator:
                 partial_charge=q,
             )
 
-        #self._get_BO(mol, bo_res)
+        self._get_wiberg_val_bo(mol, bo_res)
 
         # .csv分子数据
         mol.identifier = csv_res[0]
         mol.energy = float(csv_res[1])
         mol.dispersion = float(csv_res[2])
-        mol.Dipole = float(csv_res[3])
-        mol.Metal_q = float(csv_res[4])
+        mol.dipole = float(csv_res[3])
+        mol.metal_q = float(csv_res[4])
         mol.Hl = float(csv_res[5])
         mol.HOMO = float(csv_res[6])
         mol.LUMO = float(csv_res[7])
-        mol.Polarizability = float(csv_res[8])
+        mol.polarizability = float(csv_res[8])
 
         mol.link_atoms()
         return mol
@@ -460,10 +330,16 @@ class _DataGenerator:
     def iter_mol(self):
         self._initialize_generators()
         while True:
-            yield self.next_mol()
+            try:
+                yield self.next_mol()
+            except StopIteration:
+                break
 
     def __iter__(self):
-        return iter(self.iter_mol())
+        if self.nproc == 1:
+            return iter(self.iter_mol())
+        else:
+            return iter(self.mp_iter())
 
     def __next__(self):
         return self.next_mol()
@@ -487,7 +363,8 @@ class TmQmDataset:
         __iter__: Yields an iterator for TmQmDataset.
         __next__: Returns the next Molecule object from the dataset.
     """
-    def __init__(self):
+    mol_attrs = DataGenerator.mol_attrs
+    def __init__(self, nproc=None):
         """"""
         # 如果数据目录不存在，则创建目录并下载文件
         if not path.exists(_data_dir):
@@ -504,9 +381,13 @@ class TmQmDataset:
                 else:
                     print(f"tmQm.{ext} already exist !!")
 
-        # 创建 _DataGenerator 实例
-        # self._generator = _DataGenerator(_data_dir)
-        self._generator = DataGenerator(_data_dir)
+        if nproc is None:
+            self.nproc = os.cpu_count()
+        else:
+            self.nproc = nproc
+
+        self.queue = mp.Queue()
+        self._generator = DataGenerator(_data_dir, nproc=self.nproc)
 
     def __iter__(self):
         """使 TmQmDataset 类可迭代，返回 _DataGenerator 的迭代器"""

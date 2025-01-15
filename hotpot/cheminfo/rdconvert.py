@@ -44,6 +44,14 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
         conf.SetAtomPosition(i, Chem.rdGeometry.Point3D(x, y, z))
     rdmol.AddConformer(conf)
 
+    for bond in mol.bonds:
+        begin_atom_idx, end_atom_idx, bond_order = bond.atom1.idx, bond.atom2.idx, bond.bond_order
+        rdmol.AddBond(
+            row_to_idx[begin_atom_idx],
+            row_to_idx[end_atom_idx],
+            Chem.BondType.AROMATIC if bond.is_aromatic else Chem.BondType.values[bond_order]
+        )
+
     rdmol = rdmol.GetMol()
     if kekulize:
         Chem.Kekulize(rdmol)

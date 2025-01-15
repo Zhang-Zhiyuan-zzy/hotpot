@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
-version = "0.5.0.1"
+version = "0.5.0.2"
 readme = "README.md"
 authors = [
     { name = "Zhiyuan Zhang", email = "ZhiyuanZhang_scu@163.com" },

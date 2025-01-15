@@ -150,7 +150,6 @@ def to_arrays(obmol):
 
     return atoms_array, bonds_array, idx_to_row
 
-
 def to_obmol(mol):
     atoms_array, bonds_array = getattr(mol, '_atoms_data'), getattr(mol, '_bonds_data')
 

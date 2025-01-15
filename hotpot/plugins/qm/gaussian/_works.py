@@ -16,11 +16,97 @@ from os import PathLike
 from pathlib import Path
 from typing import Union
 from copy import copy
+import multiprocessing as mp
 
 import pandas as pd
 from tqdm import tqdm
 
 from hotpot.cheminfo.core import Molecule
+from .gauss import Gaussian, Options, GaussOut
+from hotpot.utils.mp import mp_run
+
+
+def run_gaussian(
+        mol: Molecule,
+        link0: str = None,
+        route: str = None,
+        g16root: Union[str, PathLike] = None,
+        gjf_save_path: Union[str, PathLike] = None,
+        log_save_path: Union[str, PathLike] = None,
+        err_save_path: Union[str, PathLike] = None,
+        report_set_resource_error: bool = False,
+        options: Options = None,
+        test: bool = True,
+        **kwargs
+):
+    _script = mol.write(fmt='gjf', link0=link0, route=route, **kwargs)
+    gaussian = Gaussian(
+        g16root=g16root,
+        path_gjf=gjf_save_path,
+        path_log=log_save_path,
+        path_err=err_save_path,
+        report_set_resource_error=report_set_resource_error,
+        options=options,
+    )
+    gaussian.run(_script, test=test)
+
+    return gaussian.output
+
+
+def _read_log(fp):
+    return GaussOut.read_file(fp)
+
+
+def export_results(
+        *log_file_path: Union[str, PathLike],
+        skip_errors: bool = True,
+        retrieve_mol: bool = True,
+        nproc: int = None,
+        timeout: float = None,
+):
+
+    def _target(p):
+        o = GaussOut.read_file(p)
+        n = os.path.basename(p).split('.')[0]
+
+        if o.is_error:
+            return None, n, o.error_link
+
+        r = o.export_pandas_series(n)
+
+        if retrieve_mol:
+            m = o.export_mol()
+        else:
+            m = None
+
+        return r, n, m
+
+    lst_res = mp_run(
+        _target,
+        map(lambda x: (x,), log_file_path),
+        nproc=nproc,
+        timeout=timeout,
+        desc='Exporting Gaussian results...'
+    )
+
+    results = []
+    errors = []
+    mols = {}
+    for res, name, mol_or_elink in tqdm(lst_res, 'Sum Results...'):
+
+        if res is None:
+            if skip_errors:
+                print(RuntimeWarning(f"{name} with error Link {mol_or_elink}, Skip !!"))
+            else:
+                raise RuntimeError(f"{name} with error Link {mol_or_elink}!!")
+
+            errors.append(name)
+            continue
+
+        results.append(res)
+        mols[name] = mol_or_elink
+
+    return pd.concat(results, axis=1).T, mols
 
 
 def parse_gjf(path_gjf: Union[str, Path]):
@@ -340,19 +426,3 @@ class ResultsExtract:
             raise TypeError(f'the addition should be a str or a list of str, not{type(addition)}')
 
         return [reorganize_gjf(info) for info in list_parsed_info]
-
-
-if __name__ == '__main__':
-    # new_gjf = reorganize_gjf(update_gjf_coordinates(
-    #     '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/gjf/pairs/81_81_C20H28N2O6P2Am.gjf',
-    #     '/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs/81_81_C20H28N2O6P2Am.log'
-    # ))
-
-    pr_info = parse_route(
-        '#p opt freq int=acc2e=12 pbe1pbe/ecpgen//mx06/def2svp scrf, SCF=(novaracc,noincfock,maxcyc=N)'
-    )
-    # r = ResultsExtract.rewrite_route(pr_info)
-    result_extract = ResultsExtract('/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs')
-    # df = result_extract.extract()
-    gjf_scripts = result_extract.to_gjf('this is a test\nend\n')
-    # result_extract.extract('/mnt/c/Users/zhang/OneDrive/Papers/Gibbs with logK/results/g16/log/pairs')

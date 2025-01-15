@@ -8,6 +8,3 @@ python v3.9.0
 """
 import ccdc
 from ccdc import io
-
-
-

@@ -12,8 +12,8 @@ import os.path as osp
 import pandas as pd
 
 
-dir_root = osp.join(osp.dirname(__file__))
-_accessible_dataset = [name.split('.')[0] for name in os.listdir(osp.join(dir_root, 'ChemData'))]
+dir_root = osp.dirname(__file__)
+_accessible_dataset = [name.split('.')[0] for name in os.listdir(osp.join(dir_root, 'data'))]
 
 
 def get_dataset_name():

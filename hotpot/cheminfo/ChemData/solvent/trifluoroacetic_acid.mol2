@@ -1,0 +1,27 @@
+@<TRIPOS>MOLECULE
+trifluoroacetic_acid
+     8     7     1     0     0
+SMALL
+NO_CHARGES
+****
+Generated from the CSD
+
+@<TRIPOS>ATOM
+     1 C1       0.5566   0.1716  -0.0001   C.2       1 RES1   0.0000
+     2 C2      -0.7503  -0.5829  -0.0001   C.3       1 RES1   0.0000
+     3 O3       1.6027  -0.4324  -0.0001   O.2       1 RES1   0.0000
+     4 O4       0.5566   1.5096  -0.0001   O.3       1 RES1   0.0000
+     5 F5      -0.4966  -1.9516  -0.0001   F         1 RES1   0.0000
+     6 F6      -1.4793  -0.2468   1.1371   F         1 RES1   0.0000
+     7 F7      -1.4800  -0.2465  -1.1367   F         1 RES1   0.0000
+     8 H8       1.4904   1.7791  -0.0001   H         1 RES1   0.0000
+@<TRIPOS>BOND
+     1     1     2    1
+     2     1     3    2
+     3     1     4    1
+     4     2     5    1
+     5     2     6    1
+     6     2     7    1
+     7     4     8    1
+@<TRIPOS>SUBSTRUCTURE
+     1 RES1        1 GROUP             0 ****  ****    0  

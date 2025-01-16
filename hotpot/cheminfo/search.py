@@ -307,3 +307,8 @@ class Searcher:
             return True
 
         return False
+
+
+class Hit:
+    """ Represents a Search result. """
+

@@ -65,10 +65,10 @@ class XtbCalculator(object):
         if isinstance(self.unpair, int):
             self.unpair = unpair
         elif not isinstance(self.unpair, int):
-            unpair = electrons_num % 2
+            self.unpair = electrons_num % 2
 
-        if (unpair % 2) ^ (electrons_num % 2):
-            raise ValueError(f'Molecule with total electrons {electrons_num} and unpaired electrons {unpair}'
+        if (self.unpair % 2) ^ (electrons_num % 2):
+            raise ValueError(f'Molecule with total electrons {electrons_num} and unpaired electrons {self.unpair}'
                              'is not possible !!')
 
     def _write_charge_unpair(self):
@@ -130,7 +130,7 @@ class XtbCalculator(object):
             raise AttributeError("The XtbCalculator object need a Molecule to perform calculation.")
 
         mol_path = self._write_mol()
-        if not self.charge or not self.unpair:
+        if not isinstance(self.charge, int) or not isinstance(self.unpair, int):
             self.set_mol_charge_unpairEs()
         self._write_charge_unpair()
 

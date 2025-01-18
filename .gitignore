@@ -11,3 +11,4 @@ hotpot/dataset/tmqm/data
 **/*.html
 **/*.so
 build/
+hotpot/plugins/xtb/.cache.json

@@ -161,6 +161,21 @@ class TestChemInfo(ut.TestCase):
 
         print(c1.to_rdmol())
 
+    def test_shortest_path(self):
+        reader = hp.MolReader(
+            'CCCC(CCCCCCC)CCCCN(CCCC(CC(CCCC(CCCC(CCCC(CC)(CC)(CC)CCC(CC)(CC)(CC)CC)CC(CCCCCC)CC(CC(CCCC(C)'
+            '(C)(C)CCCC)C(C(C)(C)(C))CCC(CCC(C(C)(CC)(C))CCCCCCC)CCCCCC)CCCC(CCCCCCCCC)CCCC)CCC(CC)CCC)CCC)CCCCCCCC'
+            'C)C(=O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)N(CCC(CCC(CC)CCCCCCC)CCCCC)CCCCCCCC)C=C1')
+
+        mol = next(reader)
+        atom_pairs = mol.atom_pairs
+        atom_pairs.update_pairs()
+
+        dict_pairs_path = atom_pairs.pairs_shortest_path()
+        pairs_matrix = atom_pairs.idx_matrix
+
+        print(pairs_matrix)
+
     def test_atompair(self):
         import hotpot as hp
         mol = next(hp.MolReader( 'CCCC(CCCCCCC)CCCCN(CCCC(CC(CCCC(CCCC(CCCC(CC)(CC)(CC)CCC(CC)(CC)(CC)CC)CC(CCCCCC)CC(CC(CCCC(C)'

@@ -108,7 +108,7 @@ class Molecule:
         return len(self.hydrogens) > 0
 
     def calc_mol_default_charge(self):
-        # self.calc_atom_valence()
+        self.calc_atom_valence()
 
         clone = copy(self)
         if not clone.has_hydrogens:

@@ -9,7 +9,7 @@ from test import output_dir, input_dir
 class TestXTB(unittest.TestCase):
     def test_xtb(self):
         xtb_calculator = core.XtbCalculator(osp.join(output_dir, 'xtb'))
-        mol = next(hp.MolReader('c1ccccc1'))
+        mol = next(hp.MolReader('c1ccccc1C(=O)O[Sr]'))
         mol.build3d()
 
         xtb_calculator.mol = mol

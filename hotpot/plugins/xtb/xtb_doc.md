@@ -9,7 +9,7 @@ To use this module, you should install xtb software in linux machine. see https:
 
 Check the installation position and the xtb executable file path `$xtb_root/bin/xtb`
 
-## Utilization of `XtbCalculator`
+## Usage of `XtbCalculator`
 ```python
 import hotpot as hp
 from hotpot.plugins.xtb import XtbCalculator
@@ -42,7 +42,7 @@ calculator.options.append('--opt')
 calculate.run()
 ```
 
-## Utilization of `xtb_batch_run()`
+## Usage of `xtb_batch_run()`
 Before implementing high-throughputly xtb calculation, you should prepare a bundle of structure
 files putting at a directory `struct_dir`. Then calling `xtb_batch_run`:
 ```python

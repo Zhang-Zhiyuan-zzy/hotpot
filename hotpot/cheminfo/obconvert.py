@@ -77,7 +77,7 @@ def obmol2mol(obmol, mol):
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
     #
     mol._update_graph()
-    mol.calc_atom_valence()
+    # mol.calc_atom_valence()
 
     return mol
 

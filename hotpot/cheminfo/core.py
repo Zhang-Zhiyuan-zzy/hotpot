@@ -23,6 +23,7 @@ from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
 import periodictable
 
+from hotpot.cheminfo.elements import elements
 from hotpot.utils import types, chem as hpchem, tools
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
@@ -845,6 +846,18 @@ class Molecule:
     def InChi(self):
         return pb.Molecule(self.to_obmol()).write('inchi')
 
+    def shortest_path_index(self, atom1, atom2):
+        try:
+            return nx.shortest_path(self.graph, self._atoms.index(atom1), self._atoms.index(atom2))
+        except nx.NetworkXNoPath:
+            return []
+
+    def shortest_path(self, atom1, atom2):
+        return [self._atoms[i] for i in self.shortest_path_index(atom1, atom2)]
+
+    def shortest_paths_indices(self, atom1, atom2):
+        return nx.shortest_path(self.graph, self._atoms.index(atom1), self._atoms.index(atom2))
+
     @property
     def smiles(self) -> str:
         """ Return smiles string. """
@@ -1455,12 +1468,18 @@ class Atom(MolBlock):
     _actinides = set(range(89, 104))
     metal_ = _alkali_metals|_alkaline_earth_metals|_transition_metals|_post_transition_metals|_lanthanides|_actinides
 
+    _metalloid_1st = {5, 14, 33, 52}
+    _metalloid_2nd = {32, 51, 84}
+    _metalloid = _metalloid_1st|_metalloid_2nd
+
     _nonmetals = [1, 6, 7, 8, 15, 16, 34]
     _metalloids = [5, 14, 32, 33, 51, 52, 84]
     _noble_gases = [2, 10, 18, 36, 54, 86, 118]
     _halogens = [9, 17, 35, 53, 85, 117]
 
-    covalent_radii = np.array([0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)])
+    _covalent_radii = np.array([0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)])
+    _density = [0.] + [getattr(periodictable, ob.GetSymbol(i)).density or 0. for i in range(1, 119)]
+    from .elements import elements
 
     def __init__(self, mol: Molecule = None, *, attrs_array: np.ndarray = None, **kwargs):
         self.mol = mol or Molecule()
@@ -1601,6 +1620,8 @@ class Atom(MolBlock):
                 self.implicit_hydrogens = 0
             elif self.atomic_number == 5:
                 self.implicit_hydrogens = 1
+            elif self.atomic_number == 32:  # Ge
+                self.implicit_hydrogens = 0
             else:
                 raise AttributeError(f"Get an incorrect atom!!， {self.symbol}")
         else:
@@ -1633,6 +1654,14 @@ class Atom(MolBlock):
     @property
     def explicit_hydrogens(self) -> int:
         return len([a for a in self.neighbours if a.atomic_number == 1])
+
+    @property
+    def covalent_radius(self) -> float:
+        return self.elements.covalent_radii[self.atomic_number]
+
+    @property
+    def density(self) -> float:
+        return self.elements.density[self.atomic_number]
 
     @property
     def hyb(self) -> int:
@@ -1694,7 +1723,7 @@ class Atom(MolBlock):
 
     @property
     def is_metal(self):
-        return self.atomic_number in self.metal_
+        return self.atomic_number in self.elements.metal
 
     @property
     def label(self) -> str:
@@ -1807,7 +1836,7 @@ class Atom(MolBlock):
         return _state
 
     def get_formal_charge(self) -> cython.int:
-        if self.is_metal:
+        if self.is_metal or self.atomic_number in self._metalloid_2nd:
             return Atom._default_valence[self.atomic_number]
         elif self.atomic_number in [6, 14]:  # C, Si
             return 4
@@ -1831,6 +1860,8 @@ class Atom(MolBlock):
             else:
                 return 6
         elif self.atomic_number == 5: # B
+            return 3
+        elif self.atomic_number == 33: # As, TODO: more precise adjustments are needed.
             return 3
         elif self.atomic_number == 1:
             return 1
@@ -1865,11 +1896,11 @@ class Atom(MolBlock):
         elif self.atomic_number == 1 or self.is_halogens:
             return 1
         elif self.is_metal:
-            return Atom._default_valence[self.atomic_number]
+            return Atom.elements.default_valence[self.atomic_number]
         elif self.is_noble_gases:
             return 0
         else:
-            return Atom._default_valence[self.atomic_number]
+            return Atom.elements.default_valence[self.atomic_number]
 
     def set_valence_to_default(self):
         # self.valence = Atom._default_valence[self.atomic_number]
@@ -2037,10 +2068,13 @@ class AtomPair:
     _length = 2
     attr_names = (
         'wiberg_bond_order',
+        'length_shortest_path'
     )
     def __init__(self, atom1: Atom, atom2: Atom):
         self.atom1 = atom1
         self.atom2 = atom2
+        assert self.atom1.mol is self.atom2.mol
+        self.mol = self.atom1.mol
         self.wiberg_bond_order = 0
 
     def __repr__(self):
@@ -2055,6 +2089,14 @@ class AtomPair:
     @property
     def attrs(self):
         return [getattr(self, n) for n in self.attr_names]
+
+    @property
+    def shortest_path(self) -> list['Atom']:
+        return self.mol.shortest_path(self.atom1, self.atom2)
+
+    @property
+    def length_shortest_path(self) -> int:
+        return len(self.shortest_path)
 
     @property
     def distance(self):
@@ -2101,6 +2143,9 @@ class AtomPairs(dict):
     @property
     def pair_distance(self):
         return np.array([p.distance for p in self.values()])
+
+    def pairs_shortest_path(self) -> dict[frozenset[int, int], int]:
+        return {k: p.length_shortest_path for k, p in self.items()}
 
     def update_pairs(self):
         self.clear_not_exist_pairs()

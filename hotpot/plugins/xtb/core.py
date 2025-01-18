@@ -13,6 +13,27 @@ import hotpot as hp
 
 __xtb_dir__ = os.path.dirname(os.path.realpath(__file__))
 
+# Examples
+# >>> import hotpot as hp
+# >>> from hotpot.plugins.xtb import XtbCalculator
+# >>> mol = next(hp.MolReader('c1ccccc1C(=O)O[Sr]'))
+# >>> calculator = XtbCalculator(
+#         work_dir='path/to/an/empty/directory',
+#         xtb_executable='path/to/xtb/executable'
+# )
+# >>> calculator.mol = mol  # add hotpot.Molecule object
+#
+# Set the molecule charges or number of unpair electrons
+# >>> calculator.charge = 1
+# >>> calculator.unpair = 0
+# Or, you can assign a default charge and unpair value by calling:
+# >>> calculator.set_mol_charge_unpairEs()
+#
+# Performing XTB calculation
+# >>> res = calculator.run()
+# >>> print(res.stdout)  # print results
+
+
 class XtbCalculator(object):
     """"""
     def __init__(
@@ -23,6 +44,8 @@ class XtbCalculator(object):
         self.work_dir = work_dir
         self.xtb_executable = self._get_xtb_root(xtb_executable)
         self.mol = None
+        self.charge = None
+        self.unpair = None
 
         self.options = []
 
@@ -33,27 +56,26 @@ class XtbCalculator(object):
         self.options.extend('--opt')
 
     def set_mol_charge_unpairEs(self, charge: Optional[int] = None, unpair: Optional[int] = None):
-        if charge is None:
-            charge = self.mol.calc_mol_default_charge()
+        if isinstance(charge, int):
+            self.charge = charge
+        elif not isinstance(self.charge, int):
+            self.charge = self.mol.calc_mol_default_charge()
 
-        if not isinstance(charge, int):
-            raise TypeError('charge must be int')
-        self.charge = charge
-
-        self.options.append(f'--chrg {charge}')
-
-        electrons_num = sum([a.atomic_number for a in self.mol.atoms]) - charge
-        if unpair is None:
+        electrons_num = sum([a.atomic_number for a in self.mol.atoms]) - self.charge
+        if isinstance(self.unpair, int):
+            self.unpair = unpair
+        elif not isinstance(self.unpair, int):
             unpair = electrons_num % 2
-        elif (unpair % 2) ^ (electrons_num % 2):
+
+        if (unpair % 2) ^ (electrons_num % 2):
             raise ValueError(f'Molecule with total electrons {electrons_num} and unpaired electrons {unpair}'
                              'is not possible !!')
 
-        if not isinstance(unpair, int):
-            raise TypeError('unpair must be int')
-        self.unpair = unpair
-
-        self.options.append(f'--uhf {unpair}')
+    def _write_charge_unpair(self):
+        with open(osp.join(self.work_dir, '.CHRG'), 'w') as writer:
+            writer.write(str(self.charge))
+        with open(osp.join(self.work_dir, '.UHF'), 'w') as writer:
+            writer.write(str(self.unpair))
 
     @staticmethod
     def _get_xtb_root(xtb_executable):
@@ -108,6 +130,9 @@ class XtbCalculator(object):
             raise AttributeError("The XtbCalculator object need a Molecule to perform calculation.")
 
         mol_path = self._write_mol()
+        if not self.charge or not self.unpair:
+            self.set_mol_charge_unpairEs()
+        self._write_charge_unpair()
 
         cmd = [self.xtb_executable, mol_path] + self.options
         results = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

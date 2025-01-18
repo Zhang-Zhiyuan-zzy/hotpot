@@ -8,3 +8,5 @@ python v3.9.0
 """
 from ._io import MolReader, MolWriter
 from .core import Molecule, Atom, Bond
+
+from .mol_statistics import ComplexStatistics

@@ -1,11 +1,15 @@
+from typing import Union
 import numpy as np
 import periodictable
 import openbabel.openbabel as ob
 
+
+__all__ = ['elements']
+
 class Element:
     """ Represents library to query elements information """
 
-    _symbols = (
+    symbols = (
         "0",
         "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
         "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
@@ -21,7 +25,7 @@ class Element:
         "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og", "", ""
     )
 
-    _atomic_orbital = [       # Periodic
+    atomic_orbital = [       # Periodic
         [2],                  # 1: 1s
         [2, 6],               # 2: 2s, 2p
         [2, 6],               # 3: 3s, 3p
@@ -32,7 +36,7 @@ class Element:
         [2, 18, 14, 10, 6]    # 8: 8s, 5g, 6f, 7d, 8p
     ]
 
-    _default_valence = {
+    default_valence = {
         1: 1,    # Hydrogen (H)
         2: 0,    # Helium (He) - inert
         3: 1,    # Lithium (Li)
@@ -153,7 +157,7 @@ class Element:
         118: 0,  # Oganesson (Og) - inert
     }
 
-    _valence_dict = {
+    valence_dict = {
         1: {"stable": [1], "unstable": [-1]},  # Hydrogen
         2: {"stable": [0], "unstable": []},  # Helium
         3: {"stable": [1], "unstable": []},  # Lithium
@@ -248,7 +252,7 @@ class Element:
         92: {"stable": [3, 4, 6], "unstable": [2, 5]}  # Uranium
     }
 
-    _electronegativity = {
+    electronegativity = {
         1: 2.20,  # Hydrogen (H)
         2: None,  # Helium (He)
         3: 0.98,  # Lithium (Li)
@@ -370,17 +374,35 @@ class Element:
     }
 
     # Element categorize in periodic tabel
-    _alkali_metals = {3, 11, 19, 37, 55, 87}  # Group 1
-    _alkaline_earth_metals = {4, 12, 20, 38, 56, 88}  # Group 2
-    _transition_metals = set(range(21, 31)) | set(range(39, 49)) | set(range(72, 81)) | set(range(104, 113))
-    _post_transition_metals = {13, 31, 49, 50, 81, 82, 83, 113, 114, 115, 116}
-    _lanthanides = set(range(57, 72))
-    _actinides = set(range(89, 104))
-    metal_ = _alkali_metals|_alkaline_earth_metals|_transition_metals|_post_transition_metals|_lanthanides|_actinides
+    alkali_metals = {3, 11, 19, 37, 55, 87}  # Group 1
+    alkaline_earth_metals = {4, 12, 20, 38, 56, 88}  # Group 2
+    transition_metals = set(range(21, 31)) | set(range(39, 49)) | set(range(72, 81)) | set(range(104, 113))
+    post_transition_metals = {13, 31, 49, 50, 81, 82, 83, 113, 114, 115, 116}
+    lanthanides = set(range(57, 72))
+    actinides = set(range(89, 104))
+    metal = alkali_metals|alkaline_earth_metals|transition_metals|post_transition_metals|lanthanides|actinides
 
-    _nonmetals = [1, 6, 7, 8, 15, 16, 34]
-    _metalloids = [5, 14, 32, 33, 51, 52, 84]
-    _noble_gases = [2, 10, 18, 36, 54, 86, 118]
-    _halogens = [9, 17, 35, 53, 85, 117]
+    nonmetals = [1, 6, 7, 8, 15, 16, 34]
+    metalloids = [5, 14, 32, 33, 51, 52, 84]
+    noble_gases = [2, 10, 18, 36, 54, 86, 118]
+    halogens = [9, 17, 35, 53, 85, 117]
 
-    covalent_radii = np.array([0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)])
+    covalent_radii = [0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)]
+    density = [0.] + [getattr(periodictable, ob.GetSymbol(i)).density or 0. for i in range(1, 119)]
+
+
+    def __getitem__(self, item: Union[int, str]):
+        if isinstance(item, str):
+            item = ob.GetAtomicNum(item)
+
+        return {
+            "atomic_number": item,
+            "symbol": ob.GetSymbol(item),
+            "default_valence": self.default_valence[item],
+            "valence": self.valence_dict[item],
+            'electronegativity': self.electronegativity[item],
+            'covalent_radii': self.covalent_radii[item],
+            'density': self.density[item],
+        }
+
+elements = Element

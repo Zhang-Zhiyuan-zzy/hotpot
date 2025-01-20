@@ -25,10 +25,13 @@ from hotpot.dataset import tmqm
 from hotpot.utils import tools
 
 
-def direct_edge_to_indirect(edge_index: torch.Tensor) -> torch.Tensor:
+def direct_edge_to_indirect(attr_or_index: torch.Tensor, is_index=True) -> torch.Tensor:
     """"""
-    assert edge_index.shape[0] == 2
-    return torch.cat([edge_index, edge_index.flip(0)], dim=1)
+    # assert attr_or_index.shape[0] == 2
+    if is_index:
+        return torch.cat([attr_or_index, attr_or_index.flip(0)], dim=1)
+    else:
+        return torch.cat([attr_or_index, attr_or_index.flip(0)], dim=0)
 
 def to_pyg_data(mol: Molecule, y_names: Iterable[str]) -> Data:
     """ Convert hotpot.Molecule to PyG Data object """
@@ -36,19 +39,22 @@ def to_pyg_data(mol: Molecule, y_names: Iterable[str]) -> Data:
     additional_attr_names = ('is_metal',)
     x_names = x_names + additional_attr_names
     additional_attr_getter = attrgetter(*additional_attr_names)
-    x = torch.from_numpy(np.array([a.attrs[:15].tolist() + [additional_attr_getter(a)] for a in mol.atoms]))
+    x = torch.from_numpy(np.array([a.attrs[:15].tolist() + [additional_attr_getter(a)] for a in mol.atoms])).float()
 
     edge_attr_names = ('bond_order', 'is_aromatic', 'is_metal_ligand_bond')
     bond_attr_getter = attrgetter(*edge_attr_names)
-    edge_index = direct_edge_to_indirect(torch.tensor(mol.link_matrix).T)
-    edge_attr = torch.from_numpy(np.array([bond_attr_getter(b) for b in mol.bonds]))
+    edge_index = direct_edge_to_indirect(torch.tensor(mol.link_matrix).T).long()
+    edge_attr = direct_edge_to_indirect(torch.from_numpy(np.array([(bond_attr_getter(b)) for b in mol.bonds])), is_index=False).float()
 
-    pair_index = direct_edge_to_indirect(torch.tensor(mol.atom_pairs.idx_matrix).T)
-    pair_attr = torch.tensor([p.attrs for k, p in mol.atom_pairs.items()])
+    # Organize pair data
+    atom_pairs = mol.atom_pairs
+    atom_pairs.update_pairs()
+    pair_index = torch.tensor(atom_pairs.idx_matrix).T.long()
+    pair_attr = torch.tensor([p.attrs for k, p in atom_pairs.items()]).float()
     pair_attr_name = AtomPair.attr_names
 
     y_getter = attrgetter(*y_names[1:])
-    y = torch.tensor([y_getter(mol)])
+    y = torch.tensor([y_getter(mol)]).float()
 
     # Process mol Ring attribute
     rings = mol.ligand_rings
@@ -57,10 +63,10 @@ def to_pyg_data(mol: Molecule, y_names: Iterable[str]) -> Data:
     rings_node_index = [r.atoms_indices for r in rings]
     rings_node_nums = [len(rni) for rni in rings_node_index]
     if rings_node_index:
-        mol_rings_nums = torch.tensor([len(rings_node_nums)])
-        rings_node_index = torch.tensor(sum(rings_node_index, start=[]))
-        rings_node_nums = torch.tensor(rings_node_nums)
-        mol_rings_node_nums = torch.tensor([rings_node_nums.sum()])
+        mol_rings_nums = torch.tensor([len(rings_node_nums)], dtype=torch.long)
+        rings_node_index = torch.tensor(sum(rings_node_index, start=[]), dtype=torch.long)
+        rings_node_nums = torch.tensor(rings_node_nums, dtype=torch.int)
+        mol_rings_node_nums = torch.tensor([rings_node_nums.sum()], dtype=torch.int)
         rings_attr = torch.from_numpy(np.array([ring_attr_getter(r) for r in rings])).float()
     else:
         mol_rings_nums = torch.tensor([0])

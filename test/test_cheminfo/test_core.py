@@ -6,6 +6,7 @@ python v3.9.0
 @Data   : 2024/6/5
 @Time   : 19:15
 """
+import os.path as osp
 from os.path import join as opj
 from pathlib import Path
 import unittest as ut
@@ -23,7 +24,7 @@ import time
 
 import test
 
-
+indir = test.input_dir
 outdir = Path(test.output_dir)
 
 
@@ -47,6 +48,26 @@ class TestChemInfo(ut.TestCase):
         for m in tqdm(reader):
             mol = Molecule(*to_arrays(m.OBMol)[:2])
 
+    def test_ideal_bond_order(self):
+        mol = next(hp.MolReader(
+            'CCCC(CCCCCCC)CCCCN(CCCC(CC(CCCC(CCCC(CCCC(CC)(CC)(CC)CCC(CC)(CC)(CC)CC)CC(CCCCCC)CC(CC(CCCC(C)'
+            '(C)(C)CCCC)C(C(C)(C)(C))CCC(CCC(C(C)(CC)(C))CCCCCCC)CCCCCC)CCCC(CCCCCCCCC)CCCC)CCC(CC)CCC)CCC)CCCCCCCC'
+            'C)C(=O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)N(CCC(CCC(CC)CCCCCCC)CCCCC)CCCCCCCC)C=C1',
+            'smi'))
+
+        for b in mol.bonds:
+            print(b.ideal_bond_length)
+
+    def test_cal_qeq_charge(self):
+        mol = next(hp.MolReader(osp.join(indir, 'mq_0.5_377_3444_9370.cif')))
+        mol.calc_atom_valence()
+        for a in mol.atoms:
+            print(a.implicit_hydrogens)
+        mol.add_hydrogens()
+        mol.optimize()
+        print([a for a in mol.atoms if a.is_hydrogen])
+        print(mol.get_partial_charge('qeq'))
+        mol.write(osp.join(indir, 'hmq_0.5_377_3444_9370.cif'), overwrite=True)
 
     def test_molecule(self):
 
@@ -214,7 +235,7 @@ class TestChemInfo(ut.TestCase):
             print(f"{t} is rotatable? {t.rotatable}")
 
         for r in mol.rings:
-            print(f"{r} is aromatic? {r.perceive_aromatic()}")
+            print(f"{r} is aromatic? {r.determine_aromatic()}")
 
         for a in mol.atoms:
             print(a.open_shell_electrons)

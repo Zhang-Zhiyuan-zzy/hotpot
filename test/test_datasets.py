@@ -23,11 +23,12 @@ class TestDatasets(ut.TestCase):
     def test_tmqm_mol(self):
         dataset_dir = osp.join(test_out_dir, 'tmqm', 'mol')
         if not osp.exists(dataset_dir):
-            shutil.rmtree(dataset_dir)
+            # shutil.rmtree(dataset_dir)
             os.mkdir(dataset_dir)
 
         tmD = TmQmDataset()
         for i, mol in enumerate(tmD):
+            print(mol.identifier, sum(a.partial_charge for a in mol.atoms))
             mol.write(osp.join(test_out_dir, 'tmqm', 'mol', f'{mol.identifier}.mol2'), overwrite=True)
             if i > 100:
                 break

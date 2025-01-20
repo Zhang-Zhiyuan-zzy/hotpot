@@ -7,7 +7,28 @@ import openbabel.openbabel as ob
 __all__ = ['elements']
 
 class Element:
-    """ Represents library to query elements information """
+    """
+    Represents chemical elements, their symbols, atomic orbitals, and default valences.
+
+    This class provides static data structures containing essential information about
+    chemical elements such as symbols, electron configurations, and typical valences.
+    The data supports scientific computation, referencing chemical properties, and periodic
+    classifications.
+
+    Attributes
+    ----------
+    symbols : tuple[str]
+        A tuple where each index corresponds to the chemical element's atomic number. The
+        tuple contains the symbol for every element in the periodic table. Empty strings are
+        used in unfilled atomic number slots.
+    atomic_orbital : list[list[int]]
+        Nested list where each sublist represents electron configurations in orbitals for
+        periodic rows. Each integer corresponds to the maximum number of electrons that fit
+        in each orbital within a given energy level.
+    default_valence : dict[int, int]
+        A dictionary mapping atomic numbers (keys) of elements to their most commonly observed
+        valence states (values). Inert elements are denoted by a valence of 0.
+    """
 
     symbols = (
         "0",
@@ -382,6 +403,10 @@ class Element:
     actinides = set(range(89, 104))
     metal = alkali_metals|alkaline_earth_metals|transition_metals|post_transition_metals|lanthanides|actinides
 
+    metalloid_1st = {5, 14, 33, 52}
+    metalloid_2nd = {32, 51, 84}
+    metalloid = metalloid_1st|metalloid_2nd
+
     nonmetals = [1, 6, 7, 8, 15, 16, 34]
     metalloids = [5, 14, 32, 33, 51, 52, 84]
     noble_gases = [2, 10, 18, 36, 54, 86, 118]
@@ -405,4 +430,4 @@ class Element:
             'density': self.density[item],
         }
 
-elements = Element
+elements = Element()

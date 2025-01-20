@@ -5,6 +5,38 @@ python v3.9.0
 @Auther : Zhiyuan Zhang
 @Data   : 2024/12/14
 @Time   : 21:26
+
+
+This module, `forcefields.py`, is a part of the `hotpot` project, designed for advanced molecular structure
+simulations and optimizations. It integrates with Open Babel to provide tools for generating, optimizing,
+and manipulating molecular geometries using various force fields and algorithms.
+
+Key Features:
+1. **Complex Building and Optimization**:
+   - Functions like `complexes_build` and `_run_complexes_build` aid in creating 3D molecular complexes
+    by iteratively optimizing molecular geometries. These utilize multiprocessing for parallel computations
+    and ensure optimized, valid geometries.
+
+2. **Force Field Management**:
+   - Classes `OBFF` and `OBFF_` serve as wrappers for Open Babel's force fields (e.g., UFF, MMFF94, GAFF).
+    They allow setup and optimization of molecular geometries with fine control over constraints,
+    perturbations, equilibrium detection, and other parameters.
+
+3. **Structure Building**:
+   - The `OBBuilder` class and `ob_build` function simplify the construction and manipulation of molecular
+   structures using Open Babel's OBBuilder tools.
+
+4. **Utilities for Force Field Operations**:
+   - The `ob_optimize` function integrates molecular force field optimization using specified force fields,
+   providing energy calculations alongside updated coordinates.
+
+5. **Constraint Management**:
+   - Support for constraints on atoms, bonds, angles, and torsions during geometry optimizations ensures
+    robust modeling capabilities for complex molecular systems.
+
+This module is particularly useful for scientists and researchers in computational chemistry and molecular
+modeling domains. It allows for fine-grained customizations and automation of molecular structure optimizations,
+leveraging Open Babel's powerful capabilities.
 """
 import time
 from copy import copy
@@ -25,6 +57,49 @@ def _run_complexes_build(
         second_opt_steps=1000,
         min_energy_opt_steps=3000,
 ):
+    """
+    Runs the process to build molecular complexes and optimizes their geometries
+    using specified force fields (MMFF94s or UFF). The algorithm performs iterative
+    geometry optimizations with multiple configurations and selects the one with
+    lowest energy. If the geometrical configuration contains issues (e.g., bond
+    ring intersection), the component is rebuilt and re-optimized until maximum
+    rebuild attempts are reached or a valid geometry is found.
+
+    Parameters:
+    mol : object
+        The molecular structure object to be processed. Its components are iteratively
+        optimized and modified during the function execution.
+
+    queue : mp.Queue
+        A multiprocessing queue used to store the final optimized molecular geometry
+        and conformers after completing the optimization process.
+
+    build_times : int, default 5
+        The number of times a geometry is built and tested for each component to
+        identify the lowest energy configuration.
+
+    init_opt_steps : int, default 500
+        The number of steps for the initial geometry optimization phase.
+
+    second_opt_steps : int, default 1000
+        The number of steps to perform during the secondary optimization phase,
+        which occurs after initial optimizations.
+
+    min_energy_opt_steps : int, default 3000
+        The number of steps to execute for the final optimization phase, where the
+        lowest-energy configuration is refined.
+
+    Raises:
+    TimeoutError
+        If the maximum number of attempts to rebuild geometrically invalid
+        components is exceeded. This indicates an inability to generate valid
+        molecular structure within the iteration limits.
+
+    Returns:
+    None
+        This function does not return any value but places processed coordinates and
+        conformers into a multiprocessing queue for further usage.
+    """
     clone = copy(mol)
     clone.hide_metal_ligand_bonds()
 
@@ -81,6 +156,40 @@ def complexes_build(
         rm_polar_hs: bool = True,
         **kwargs
 ):
+    """
+    Builds 3D complexes of a molecular structure by generating and optimizing
+    conformers in multiple steps. The function utilizes multiprocessing to
+    perform the task in a separate process and imposes a timeout for the operation.
+
+    Attributes:
+        rm_polar_hs (bool): A flag to remove polar hydrogens before starting
+        the conformer-building process. Defaults to True if not specified.
+
+    Args:
+        mol: The molecular structure object that the function operates on.
+        It should support operations like adding hydrogens, refreshing atom
+        IDs, and storing calculated coordinates and conformers.
+        build_times (int): Number of times to attempt building conformers.
+        Defaults to 5 iterations.
+        init_opt_steps (int): The number of optimization steps to perform
+        during the initial stage of conformer generation. Defaults to 500 steps.
+        second_opt_steps (int): The number of optimization steps in the
+        second stage. Defaults to 1000 steps.
+        min_energy_opt_steps (int): The number of final optimization
+        steps to stabilize conformers at minimum energy. Defaults to 3000 steps.
+        timeout (int): Maximum time (in seconds) to wait for the conformer
+        generation process to complete. Defaults to 1000 seconds.
+        kwargs: Additional keyword arguments for customization of the
+        complex-building process.
+
+    Raises:
+        TimeoutError: If the conformer generation process fails to complete
+        within the specified timeout period.
+
+    Returns:
+        None. The function modifies the provided molecular structure object
+        in place by adding optimized 3D coordinates and conformers.
+    """
     mol.add_hydrogens(rm_polar_hs=rm_polar_hs)
     mol.refresh_atom_id()
 
@@ -253,7 +362,30 @@ class OBFF_:
 
 
 class OBFF:
-    """ A Wrapper of OpenBabel's ForceField """
+    """
+    A Wrapper of OpenBabel's ForceField
+    Class to handle molecular geometry optimization using specific force fields and algorithms.
+
+    This class provides functionalities for setting up and optimizing molecular geometries
+    using various classical force fields and optimization algorithms. It allows adjustments
+    of molecule constraints during optimization, performs equilibrium search, and can apply
+    specific perturbations to atom coordinates. The class supports customizable parameters
+    such as steps, equilibrium thresholds, maximum iterations, and van der Waals cutoff scaling.
+
+    Attributes:
+        ff (Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']]): The force field type used for optimization.
+        algorithm (Literal["steepest", "conjugate"]): The optimization algorithm to be used.
+        steps (Optional[int]): Number of steps for the optimization process.
+        equilibrium (bool): Indicates whether to find an equilibrium geometry.
+        equi_threshold (float): Threshold for determining equilibrium.
+        max_iter (int): Maximum number of iterations per optimization cycle.
+        save_screenshot (bool): Flag to save intermediate conformers.
+        perturb_steps (Optional[int]): Number of perturbation cycles applied during optimization.
+        perturb_sigma (float): Gaussian spread intensity for atom perturbation.
+        increasing_Vdw (bool): Flag to incrementally scale van der Waals cutoff.
+        Vdw_cutoff_start (float): Initial van der Waals cutoff value.
+        Vdw_cutoff_end (float): Final van der Waals cutoff value.
+    """
     def __init__(
             self,
             ff: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']],
@@ -321,6 +453,44 @@ class OBFF:
         return obmol
 
     def optimize(self, mol):
+        """
+        Optimizes the molecular geometry using specified constraints, forcefield, and optimization settings.
+
+        Performs geometry optimization for a given molecule, either under equilibrium conditions
+        or through perturbative steps if specified. The method uses constraint management, molecular
+        coordinate manipulation, and an optimization routine based on the chosen forcefield.
+
+        Attributes
+        ----------
+        steps : int
+            Number of optimization steps per iteration.
+        equi_threshold : float
+            Maximum tolerated displacement for equilibrium convergence.
+        max_iter : int
+            Maximum number of iterations allowed for optimization.
+        perturb_steps : Union[None, int]
+            Number of perturbative steps; if None, performs unconstrained optimization.
+        save_screenshot : bool
+            Whether to save snapshots of intermediate conformers during the process.
+        equilibrium : bool
+            Determines whether to optimize under equilibrium criteria.
+        ff : Any
+            Forcefield object used for geometry optimization.
+
+        Parameters
+        ----------
+        mol : Molecule
+            A molecular object containing atomic coordinates and chemical information.
+
+        Raises
+        ------
+        RuntimeWarning
+            Issued when the maximum number of iterations is reached without convergence.
+
+        Returns
+        -------
+        None
+        """
         self._add_constraints(mol)
 
         obmol, optimizer = self._get_optimizer(mol)
@@ -363,7 +533,25 @@ class OBFF:
                 _opti_times += 1
 
     def _add_constraints(self, mol):
-        """"""
+        """
+        Add constraints to a molecular force field based on specified conditions in the input molecule.
+
+        This method initializes the OBFFConstraints object and applies various types of
+        constraints such as atom, bond, angle, and torsion constraints. These constraints
+        are derived from the properties of the input molecule's atoms, bonds, angles, and
+        torsions.
+
+        Attributes:
+        constraints: OBFFConstraints object that stores all the constraints applied
+        to the force field.
+
+        Parameters:
+        mol (Molecule): Input molecule containing atoms, bonds, angles, and torsions
+        each potentially having constraint attributes.
+
+        Raises:
+        None
+        """
         self.constraints = ob.OBFFConstraints()
         for atom in mol.atoms:
             if atom.constraint:
@@ -419,6 +607,18 @@ def ob_optimize(mol, ff='UFF', steps: int = 100) -> float:
 
 
 class OBBuilder:
+    """
+    Handles the construction and manipulation of molecular structures.
+
+    The OBBuilder class serves as a wrapper around the Open Babel OBBuilder
+    to facilitate the building of molecular structures. It initializes
+    an OBBuilder instance and provides methods to build structures and
+    update molecule coordinates based on the processed OBMol instance.
+
+    Attributes:
+        _builder: An instance of Open Babel's OBBuilder used to
+            handle molecular structure construction.
+    """
     def __init__(self):
         self._builder = ob.OBBuilder()
 

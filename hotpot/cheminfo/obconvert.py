@@ -79,6 +79,13 @@ def obmol2mol(obmol, mol):
     mol._update_graph()
     # mol.calc_atom_valence()
 
+    # add Crystal
+    cell_index = ob.UnitCell  # Get the index the UnitCell data save
+    cell_data = obmol.GetData(cell_index)
+    if cell_data:
+        c = ob.toUnitCell(cell_data)
+        mol.create_crystal(c.GetA(), c.GetB(), c.GetC(), c.GetAlpha(), c.GetBeta(), c.GetGamma())
+
     return mol
 
 
@@ -110,6 +117,10 @@ def mol2obmol(mol):
         obb.IsAromatic()
         obb.SetAromatic(bool(bond.is_aromatic))  # Convert to bool
         obb.IsAromatic()
+
+    # Add UnitCell
+    if mol.crystal:
+        obmol.CloneData(mol.crystal.obcell)
 
     return obmol, row_to_idx
 

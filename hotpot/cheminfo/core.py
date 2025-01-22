@@ -1514,6 +1514,13 @@ class Molecule:
         """ Return networkx graph with nodes and edges attrs """
         return self._graph
 
+    @property
+    def atom_bond_graph(self):
+        _graph = nx.Graph()
+        _graph.add_nodes_from([(a.idx, {'atom': a}) for a in self._atoms])
+        _graph.add_edges_from([(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds])
+        return _graph
+
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         """ Return graph spectral matrix """
         clone = copy(self)

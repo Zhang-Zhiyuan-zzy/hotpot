@@ -6,38 +6,144 @@ python v3.9.0
 @Data   : 2024/12/13
 @Time   : 16:27
 """
-from abc import abstractproperty
-from typing import Union, Sequence, Literal
+from abc import abstractmethod
+from typing import Union, Sequence, Literal, Container, Any
 import networkx as nx
-from hotpot.cheminfo.core import Molecule, Atom, Bond
-from typing import List, Tuple, Optional  # 修改：导入 Optional 用于返回类型
 from networkx.algorithms import isomorphism
+
+from hotpot.cheminfo.core import Molecule, Atom, Bond
 
 def raise_not_implemented(self): raise NotImplemented(f"{self.__class__.__name__} not implemented")
 
 class Query:
-    _match_class = abstractproperty(raise_not_implemented)
+    """
+    Query serves as an abstract base class for defining query objects to perform attribute-based
+    matching against other objects. Each derived class must implement the abstract `label` property
+    and specify `_match_class` to define a compatible class for the `match` method's comparison.
 
-    def __init__(self, **kwargs: set):
-        self.kwargs = kwargs
+    Query objects are instantiated with keyword arguments representing constraints on attributes,
+    stored in the `kwargs` dictionary. These constraints are verified for proper types. The `match`
+    method compares the Query instance against a compatible object to check if all constraints
+    are satisfied based on their attributes.
 
-    def __eq__(self, other: dict):
-        if isinstance(other, self._match_class):
-            other = {attr: getattr(other, attr) for attr in self.kwargs}
+    Attributes:
+        kwargs (Dict[str, Set[Any]]): A mapping of attribute names to sets of acceptable values.
+        _match_class (Type): Specifies the class with which this Query instance can perform
+            attribute-based comparison.
 
-        return all(other[attr] in self.kwargs[attr] for attr in self.kwargs)
+    Methods:
+        label: Abstract property, to be implemented by derived classes.
+        match: Determines whether the given object meets all constraints defined in the Query instance.
+        _check_kwargs_types: Ensures that all constraints in kwargs are valid containers, converting
+            them to sets if necessary.
+
+    Args:
+        kwargs (Dict[str, Union[Container, Any]]): Keyword arguments representing constraints on
+            attributes. Keys are attribute names, and values are containers of acceptable values.
+
+    Raises:
+        TypeError: If `match` is called with an incompatible object type, or if constraints in `kwargs`
+            are not valid containers.
+    """
+    _match_class = None
+
+    def __init__(self, **kwargs: Union[Container, Any]):
+        self.kwargs = {n: set(v) for n, v in kwargs.items()}
+        self._check_kwargs_types()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.label}, {self.kwargs})"
+
+    @property
+    @abstractmethod
+    def label(self):
+        raise NotImplemented(f"{self.__class__.__name__} not implemented")
+
+    def match(self, other):
+        """
+        Compares the current object to another object of a specific class to determine if
+        all specified attributes meet the given conditions.
+
+        Attributes:
+            _match_class: The class type that the other object should match.
+            kwargs: A dictionary where keys are attribute names and values are
+                conditions those attributes must satisfy for a match.
+
+        Parameters:
+            self: Refers to the current instance of the class.
+            other (self._match_class): An object of the expected type to compare with.
+
+        Raises:
+            TypeError: If the other object is not of the expected class.
+
+        Returns:
+            bool: True if all specified conditions for attributes are met, or if no
+            conditions are specified. False if any attribute condition is not satisfied.
+        """
+        if not isinstance(other, self._match_class):
+            raise TypeError(f"The {self.__class__.__name__} object should compare with "
+                            f"{self._match_class.__name__} object, but got {type(other)} instead.")
+
+        if not self.kwargs:
+            return True
+
+        try:
+            return all(getattr(other, attr) in self.kwargs[attr] for attr in self.kwargs)
+        except KeyError:
+            return False
+
+    def _check_kwargs_types(self):
+        """
+        Checks the types of the keyword arguments provided to the Query instance.
+        Ensures that all attributes are of the type `Container` and that they
+        are converted to sets if not already of type `set`.
+
+        Raises:
+            TypeError: If any attribute of the keyword arguments is not of
+                       the type `Container`.
+        """
+        for attr, value in self.kwargs.items():
+            if not isinstance(value, Container):
+                raise TypeError("The attrs of Query should be Container")
+
+            if not isinstance(value, set):
+                self.kwargs[attr] = set(value)
 
 
 class QueryAtom(Query):
+    """
+    Represents a query atom in a substructure search.
+
+    This class is designed to represent an atom within a query substructure
+    used for substructure searching in molecular structures. It extends the
+    Query class and provides specialized methods and attributes to represent
+    and work with query atoms.
+
+    Attributes:
+        _match_class: Internal class attribute representing the matching
+        entity type, set to Atom.
+        sub: The parent Substructure object to which this query atom belongs.
+
+    Methods:
+        label: Returns a string representation of the query atom index.
+        idx: Returns the integer index of the query atom within the parent
+        Substructure object's query_atoms list.
+        from_atom: Creates and returns a QueryAtom instance from a given
+        Atom object with optional filtering for attributes.
+    """
     _match_class = Atom
 
-    def __init__(self, mol: "Substructure" = None, **attrs):
-        self.mol = mol
+    def __init__(self, sub: "Substructure" = None, **attrs):
+        self.sub = sub
         super().__init__(**attrs)
 
     @property
+    def label(self):
+        return str(self.idx)
+
+    @property
     def idx(self) -> int:
-        return self._idx
+        return self.sub.query_atoms.index(self)
 
     @classmethod
     def from_atom(
@@ -45,35 +151,62 @@ class QueryAtom(Query):
             include_attrs: Sequence[str] = None,
             exclude_attrs: Sequence[Literal['atomic_number', 'is_aromatic']] = None
     ):
-        kwargs = {
-            "atomic_number": atom.atomic_number,
-            "is_aromatic": atom.is_aromatic
-        }
+        """
+        This method is a factory method that creates an instance of the class from the
+        given Atom object. It extracts attributes from the Atom object and allows
+        certain attributes to be included or excluded during the instance creation.
 
-        if include_attrs:
-            for attr in include_attrs:
-                kwargs[attr] = set(getattr(atom, attr))
+        Args:
+            atom (Atom): The Atom object from which the instance attributes are derived.
+            include_attrs (Sequence[str], optional): A sequence of attribute names
+                to be included during the instance creation. If specified, these
+                attributes will be retrieved from the Atom object.
+            exclude_attrs (Sequence[Literal['atomic_number', 'is_aromatic']], optional):
+                A sequence of attribute names to be excluded during the instance
+                creation. These attributes, if present, will not be included in the
+                resulting instance.
 
+        Returns:
+            object: Returns an instance of the class populated with the specified
+            attributes derived from the Atom object.
+        """
+        attrs = {n: set(getattr(atom, n)) for n in Atom._attrs_enumerator}
+        attrs.update({n: set(getattr(atom, n)) for n in include_attrs})
         if exclude_attrs:
             for attr in exclude_attrs:
-                kwargs.pop(attr)
-        return cls(**kwargs)
-
-    def __eq__(self, other):
-        if not isinstance(other, QueryAtom):
-            return False
-        # 只比较属性，避免对 QueryAtom 对象进行索引
-        return self.kwargs == other.kwargs
+                attrs.pop(attr)
+        return cls(**attrs)
+    
 
 class QueryBond(Query):
+    """
+    Represents a query bond between two atoms in a molecular structure.
 
+    A QueryBond is used to define a connection between two QueryAtoms in a molecular
+    substructure. It ensures the atoms belong to the same substructure and provides
+    access to their indices and the substructure itself.
+
+    Attributes:
+        atom1 (QueryAtom): The first atom in the bond.
+        atom2 (QueryAtom): The second atom in the bond.
+
+    Methods:
+        label: Returns the bond label as a formatted string.
+        a1idx: Returns the index of the first atom.
+        a2idx: Returns the index of the second atom.
+        sub: Returns the substructure the bond belongs to.
+    """
     _match_class = Bond
 
-    def __init__(self, atom1: QueryAtom, atom2: QueryAtom, bond_order: float, **attrs):
+    def __init__(self, atom1: QueryAtom, atom2: QueryAtom, **attrs):
+        assert atom1.sub is atom2.sub
         self.atom1 = atom1
         self.atom2 = atom2
-        self.bond_order = bond_order  # 存储bond_order
         super().__init__(**attrs)
+
+    @property
+    def label(self):
+        return f"{self.atom1.idx}-{self.atom2.idx}"
 
     @property
     def a1idx(self) -> int:
@@ -83,33 +216,82 @@ class QueryBond(Query):
     def a2idx(self) -> int:
         return self.atom2.idx
 
+    @property
+    def sub(self):
+        return self.atom1.sub
+
 
 class Substructure:
-    """"""
+    """
+    Establishes and manages a chemical substructure composed of atoms, bonds,
+    and their topological representation as a graph.
+
+    The Substructure class serves to define a chemical substructure containing atoms and bonds,
+    with methods to build and interact with its components. It facilitates the creation of
+    substructure queries, enabling operations such as adding atoms and bonds, importing from
+    SMARTS format, and constructing a graph representation of the substructure.
+
+    Attributes:
+    query_atoms: List of query atoms belonging to this substructure.
+    query_bonds: List of query bonds that define connections between atoms.
+    query_graph: Graph representation of the substructure for topological analysis.
+    """
     def __init__(self):
         self.query_atoms = []
         self.query_bonds = []
         self.query_graph = None  # 确保这里初始化图对象
-        self.atom_idx_counter = 0  # 用于生成唯一的原子索引
 
-    def add_atom(self, atom: Union[Atom, QueryAtom]):
-        if isinstance(atom, Atom):
-            atom = QueryAtom.from_atom(atom)
+    @classmethod
+    def from_SMARTS(cls, smarts: str):
+        # TODO: Wu 将SMILES转化为Substructure的结构
+        ...
 
-        # 确保每个原子有唯一的索引
-        atom._idx = self.atom_idx_counter
-        self.atom_idx_counter += 1
+    def add_atom(self, atom_query: Union[Atom, QueryAtom]):
+        """
+        Adds an atom or query atom to the collection of query atoms. Converts a given
+        Atom instance to a QueryAtom if required and associates it with the collection.
 
-        self.query_atoms.append(atom)
-        atom.mol = self
+        Parameters:
+            atom_query (Union[Atom, QueryAtom]): The atom or query atom to be added. If
+                an Atom is provided, it will be converted into a QueryAtom.
 
-        return atom
+        Returns:
+            QueryAtom: The added or converted QueryAtom.
+        """
+        if isinstance(atom_query, Atom):
+            atom_query = QueryAtom.from_atom(atom_query)
+
+        self.query_atoms.append(atom_query)
+        atom_query.sub = self
+
+        return atom_query
 
     def add_bond(self, atom1: Union[int, QueryAtom], atom2: Union[int, QueryAtom], **bond_attrs):
+        """
+        Adds a bond between two QueryAtom objects or their indices within the context
+        of a molecular query. This method creates a new QueryBond instance
+        representing the bond and appends it to the query's list of bonds.
+
+        Parameters:
+            atom1 (int | QueryAtom): A QueryAtom object or the index of a QueryAtom
+                                     in the `query_atoms` list.
+            atom2 (int | QueryAtom): A QueryAtom object or the index of a QueryAtom
+                                     in the `query_atoms` list.
+            bond_attrs: Additional keyword attributes for the bond.
+
+        Returns:
+            QueryBond: The created bond object that was added to the `query_bonds`.
+
+        Raises:
+            AssertionError: If the two specified atoms are not within the same
+                            molecular query context as the current object.
+        """
         if isinstance(atom1, int):
             atom1 = self.query_atoms[atom1]
         if isinstance(atom2, int):
             atom2 = self.query_atoms[atom2]
+
+        assert atom1.sub is atom2.sub is self
 
         bond = QueryBond(atom1, atom2, **bond_attrs)
         self.query_bonds.append(bond)
@@ -117,198 +299,162 @@ class Substructure:
         return bond
 
     def construct_graph(self):
+        """
+        Constructs and returns a graph representation of the query atoms and bonds.
 
+        The graph is created using the NetworkX library. Nodes in the graph
+        represent query atoms, while edges in the graph represent query bonds.
+        Each node is associated with its corresponding query atom, and each
+        edge is associated with its corresponding query bond.
+
+        Returns:
+            Graph: A NetworkX Graph object representing the query atoms and
+            bonds.
+        """
         self.query_graph = nx.Graph()
         self.query_graph.add_nodes_from([(a.idx, {'qa': a}) for a in self.query_atoms])
         self.query_graph.add_edges_from([(b.a1idx, b.a2idx, {'qb': b}) for b in self.query_bonds])
+        return self.query_graph
+
 
 class Searcher:
+    """
+    Searcher is a utility class designed to identify substructures within molecular
+    graphs.
+
+    The main purpose of this class is to locate occurrences of a specific substructure
+    within a given molecular graph by leveraging graph isomorphism techniques. Users can
+    utilize this class to perform substructure search tasks in chemical informatics or
+    related fields. Substructures are detected based on atom and bond properties, and
+    strict matching ensures reliability. The results are returned as a Hits object, which
+    encapsulates substructure matches.
+
+    Attributes:
+        substructure (Substructure): A predefined substructure pattern that will be
+        searched for within molecular graphs.
+    """
     def __init__(self, substructure: "Substructure"):
         self.substructure = substructure
-        self.substructure.construct_graph()
 
-    def search(self, mol: Molecule) -> Optional[List[dict]]:
+    def search(self, mol: Molecule) -> "Hits":
         """
-        搜索目标分子中与子结构匹配的部分，并返回详细的匹配结果。
+        Search for substructures within a given molecular graph.
 
-        :param mol: 目标分子对象
-        :return: 包含匹配详细信息的列表，如果没有匹配，返回 None
+        This method takes a molecular graph and identifies occurrences of a pre-defined
+        substructure pattern within it. It uses graph isomorphism for matching,
+        ensuring accurate detection of substructure instances. Substructures are
+        detected based on properties of atoms and bonds defined in the molecular graph.
+
+        Args:
+            mol (Molecule): The molecular graph in which to search for the
+            substructure. It must include an atom-bond graph representation.
+
+        Returns:
+            Hits: An object representing the matched substructure occurrences,
+            including the input molecule and the corresponding substructure
+            graph matches.
         """
-        print(f"Starting search with molecule: {mol}")
-
-        # 构建目标分子的图表示
-        mol_graph = self._build_molecule_graph(mol)
-
-        # 查找匹配
-        matchings = self._find_subgraph_matches(mol_graph)
-
-        # 如果没有匹配，返回 None
-        if not matchings:
-            print("No matches found.")
-            return None
-
-        # 构造详细的匹配结果
-        detailed_matches = []
-
-        for match in matchings:
-            # 提取当前匹配的详细信息
-            match_info = {
-                "nodes": [],  # 存储节点的详细信息
-                "edges": []  # 存储边的详细信息
-            }
-
-            # 处理节点信息
-            for sub_node, mol_node in match:
-                #sub_atom = self.substructure.query_graph.nodes[sub_node]["qa"]
-                mol_atom = mol_graph.nodes[mol_node]
-
-                match_info["nodes"].append({
-                    "substructure_node": sub_node,
-                    "molecule_node": mol_node,
-                    "atomic_number": mol_atom.get("atomic_number"),
-                    "is_aromatic": mol_atom.get("is_aromatic")
-                })
-
-            # 处理边信息
-            # 修复处理边信息部分
-            for sub_edge in self.substructure.query_graph.edges():
-                sub_node1, sub_node2 = sub_edge
-                mol_node1 = match[sub_node1]
-                mol_node2 = match[sub_node2]
-
-                # 提取原子编号
-                mol_node1_idx = mol_node1[0]
-                mol_node2_idx = mol_node2[0]
-
-                sub_bond = self.substructure.query_graph.edges[sub_node1, sub_node2]["qb"]
-
-                if mol_graph.has_edge(mol_node1_idx, mol_node2_idx):
-                    mol_bond = mol_graph.edges[mol_node1_idx, mol_node2_idx]
-                elif mol_graph.has_edge(mol_node2_idx, mol_node1_idx):  # 检查反向边
-                    mol_bond = mol_graph.edges[mol_node2_idx, mol_node1_idx]
-                else:
-                    mol_bond = None
-                    print(f"No edge found between {mol_node1_idx} and {mol_node2_idx}")
-
-                # 记录边的信息
-                match_info["edges"].append({
-                    "substructure_edge": (sub_node1, sub_node2),
-                    "molecule_edge": (mol_node1_idx, mol_node2_idx),
-                    "sub_bond_order": sub_bond.bond_order,
-                    "molecule_bond_order": mol_bond.get("bond_order") if mol_bond else None
-                })
-
-            # 添加到匹配结果中
-            detailed_matches.append(match_info)
-
-            print(detailed_matches)
-
-        return detailed_matches
-
-    def _build_molecule_graph(self, mol: Molecule) -> nx.Graph:
-        """
-        构建目标分子的图表示。
-        :param mol: 目标分子对象
-        :return: 分子的图表示
-        """
-        mol_graph = nx.Graph()
-
-        # 添加原子节点到图中
-        for idx, atom in enumerate(mol.atoms):
-            mol_graph.add_node(idx, atomic_number=atom.atomic_number, is_aromatic=atom.is_aromatic)
-
-        # 添加键（边）到图中
-        for bond in mol.bonds:
-            mol_graph.add_edge(bond.atom1.idx, bond.atom2.idx, bond_order=bond.bond_order)
-
-        return mol_graph
-
-    def _find_subgraph_matches(self, mol_graph: nx.Graph) -> List[Tuple[int, int]]:
-        """
-        查找子结构图和目标分子图的匹配，增加详细的调试信息。
-        """
-        matches = []
-
-        GM = isomorphism.GraphMatcher(
-            mol_graph,
-            self.substructure.query_graph,
-            node_match=self._node_match,
-            edge_match=self._edge_match
+        return Hits(
+            mol, self.substructure,
+            isomorphism.GraphMatcher(
+                mol.atom_bond_graph,
+                self.substructure.construct_graph(),
+                node_match=self._node_match,
+                edge_match=self._edge_match
+            )
         )
 
-        for subgraph_match in GM.subgraph_isomorphisms_iter():
-            print(f"匹配成功的子图：{subgraph_match}")  # 输出匹配信息
-            matches.append(list(subgraph_match.items()))
-
-        return matches
-
-    def _node_match(self, mol_node_data: dict, sub_node_data: dict) -> bool:
-        sub_atom = sub_node_data.get('qa')  # 子结构中的 QueryAtom
-        mol_atom = mol_node_data
+    @staticmethod
+    def _node_match(mol_node: dict, query_node: dict) -> bool:
+        query_atom: QueryAtom = query_node.get('qa')  # QueryAtom in substructure.
+        atom: Atom = mol_node.get('atom')   # Atom in Molecule.
 
         # 防止 sub_atom 或 mol_atom 为空
-        if not sub_atom or not mol_atom:
-            return False
+        if not query_atom or not atom:
+            raise AttributeError('Not get QueryAtom in substructure or Atom in molecule!')
 
-        # 获取和比较 aromatic 属性
-        is_aromatic_sub = sub_atom.kwargs.get('is_aromatic', None)
-        is_aromatic_mol = mol_atom.get('is_aromatic', None)
-        if is_aromatic_sub is not None and is_aromatic_mol is not None and is_aromatic_sub != is_aromatic_mol:
-            return False
+        return query_atom.match(atom)
 
-        # 判断原子类型是否匹配
-        allowed_atomic_numbers = {
-            'C': {6},  # C 原子
-            'N': {7},  # N 原子
-            'O': {8},  # O 原子
-            'P': {15},  # P 原子
-        }
+    @staticmethod
+    def _edge_match(mol_edge: dict, query_edge: dict) -> bool:
+        query_bond = query_edge.get('qb')  # 子结构中的 QueryBond
+        bond = mol_edge.get('bond')
 
-        # 获取原子类型并进行匹配
-        atomic_number_sub = sub_atom.kwargs.get('atomic_number', set())
-        atomic_number_mol = mol_atom.get('atomic_number', None)
+        if not query_bond or bond is None:
+            raise AttributeError('Not get QueryBond in substructure or Bond in molecule!')
 
-        # 确保 atomic_number_sub 是集合
-        #if isinstance(atomic_number_sub, set):
+        return query_bond.match(bond)
 
-        if atomic_number_sub == atomic_number_mol:
-            return True
 
-        # elif atomic_number_mol and atomic_number_sub in {num for nums in allowed_atomic_numbers.values() for num in nums}:
-        # return True
+class Hits:
+    """
+    Represents a collection of matching substructures (hits) found in a molecular graph.
 
-        return False
+    This class provides a way to store and interact with matches of a substructure
+    (sub) within a molecular graph (mol) based on a specified graph matcher. It uses
+    the subgraph monomorphisms provided by the graph matcher to identify and store
+    hits, which are represented by `Hit` objects.
 
-    def _edge_match(self, mol_edge_data: dict, sub_edge_data: dict) -> bool:
+    Attributes:
+        sub: The substructure being searched for in the molecular graph.
+        mol: The molecular graph being analyzed for substructure matches.
+        graph_matcher: A graph matcher object responsible for finding subgraph
+            isomorphisms.
+        hits: A list of `Hit` objects representing all subgraph matches found.
 
-        sub_bond = sub_edge_data.get('qb')  # 子结构中的 QueryBond
-        mol_bond_order = mol_edge_data.get('bond_order', None)
+    Raises:
+        None
+    """
+    def __init__(self, sub, mol, graph_matcher):
+        self.sub = sub
+        self.mol = mol
+        self.graph_matcher = graph_matcher
+        self.hits = [Hit(sub, mol, ai) for ai in self._get_nodes_set()]
 
-        if not sub_bond or mol_bond_order is None:
-            return False
+    def _get_nodes_set(self):
+        return set(frozenset(ai.keys()) for ai in self.graph_matcher.subgraph_monomorphisms_iter())
 
-        # 确保 sub_bond.bond_order 和 mol_bond_order 都是相同类型（转换为 float）
-        sub_bond_order = float(sub_bond.bond_order)
+    def __iter__(self):
+        return iter(self.hits)
 
-        # 定义模糊匹配规则
-        allowed_bond_orders = {
-            'single': {1.0},  # 单键
-            'aromatic': {1.5},
-            'double': {2.0},  # 双键
-        }
+    def __getitem__(self, item):
+        return self.hits[item]
 
-        # 检查模糊匹配规则
-        if sub_bond_order in {k for ks in allowed_bond_orders.values() for k in ks}:
-            if mol_bond_order in {k for ks in allowed_bond_orders.values() for k in ks}:
-                return True
+    def __len__(self):
+        return len(self.hits)
 
-        # 默认要求键类型完全匹配
-        if sub_bond_order == mol_bond_order:
-            return True
+    def __bool__(self):
+        return bool(self.hits)
 
-        return False
+    def __contains__(self, item: "Hit"):
+        return item in self.hits
 
 
 class Hit:
-    """ Represents a Search result. """
+    """
+    Represent a match or "hit" within a molecule based on specific substructure search.
+
+    The Hit class encapsulates the results of a substructure search within a molecule.
+    It stores the matched substructure atoms and bonds. This class also provides an
+    interface to access the atoms and bonds that form the substructure match. It is
+    particularly useful for cheminformatics tasks that involve molecule comparisons or
+    pattern recognition.
+
+    Attributes:
+        mol: The molecule object where the substructure is found.
+        sub: The substructure object that was matched.
+        atom_indices: The list of indices corresponding to the atoms in the molecule
+            that participate in the substructure match, preserving their order.
+        atoms: The list of Atom objects derived from `mol` corresponding to the
+            matched atom_indices.
+        bonds: The list of Bond objects within the matched substructure, determined
+            by considering the atoms connected and filtering bonds in the molecule.
+    """
+    def __init__(self, mol, sub, atom_indices):
+        self.mol = mol
+        self.sub = sub
+        self.atom_indices = atom_indices
+
+        self.atoms = [self.mol.atoms[i] for i in self.atom_indices]
+        self.bonds = [b for b in self.mol.bonds if b.atom1 in self.atoms and b.atom2 in self.atoms]
 

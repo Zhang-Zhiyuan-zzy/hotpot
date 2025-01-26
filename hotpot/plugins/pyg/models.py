@@ -74,7 +74,11 @@ class ComplexFormer(nn.Module):
         if graph_model:
             self.graph = graph_model
         else:
-            self.graph = pygnn.GAT(vec_dim, vec_dim, 6, vec_dim, 0.1, norm=pygnn.LayerNorm(vec_dim), v2=True)
+            self.graph = pygnn.GAT(
+                vec_dim, vec_dim, 6,
+                vec_dim, 0.1, norm=pygnn.LayerNorm(vec_dim),
+                edge_dim=vec_dim, v2=True
+            )
 
         self.ring_encoder_kw = ring_encoder_kw if ring_encoder_kw else {}
         self.ring_encoder_block_kw = ring_encoder_block_kw if ring_encoder_block_kw else {}
@@ -104,6 +108,28 @@ class ComplexFormer(nn.Module):
         e = self.e_project(edge_attr.float())
 
         x = self.graph(x, edge_index, edge_attr=e)
+
+        x_r = self._rings_attention(x, rings_node_index, rings_node_nums)
+
+    def _rings_attention(self, x, rings_node_index, rings_node_nums):
+        x = x[rings_node_index.long()]
+
+        B = rings_node_nums.shape[0]
+        L = max(rings_node_nums).int().item()
+        D = x.shape[-1]
+
+        padded_X = torch.zeros((B, L, D)).to(x.device)
+        mask = torch.zeros((B, L), dtype=torch.bool, device=x.device)
+
+        start = 0
+        for i, size in enumerate(rings_node_nums.long()):
+            padded_X[i, :size] = x[start:start + size]
+            mask[i, :size] = 1
+            start += size
+
+        x = self.ring_encoder(padded_X, mask=mask)
+        return torch.max(x, dim=-1)
+
 
     @staticmethod
     def get_graph_model(graph_model: str = 'GCN', **kwargs):

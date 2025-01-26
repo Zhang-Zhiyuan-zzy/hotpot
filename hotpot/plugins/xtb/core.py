@@ -5,7 +5,7 @@ import json
 import random
 from glob import glob, iglob
 import os.path as osp
-from typing import Optional, Literal
+from typing import Optional, Literal, Callable
 from tqdm import tqdm
 import subprocess
 
@@ -177,6 +177,8 @@ def xtb_batch_run(
         which: Literal['all', 'first', 'random'] = 'all',
         item_num: int = 100,
         batch_size: Optional[int] = None,
+        mol_filter: Callable = None,
+        **kwargs
 ):
     """
     Executes batch xTB calculations on molecular files.
@@ -205,6 +207,8 @@ def xtb_batch_run(
         item_num (int, optional): The number of items to process. Defaults to 100. This argument
             only works when `which` is 'random' or 'first'.
         batch_size (int, optional): If an integer is given, split result into batches dir.
+        mol_filter: Passing a Callable object, for a molecule willing to perform calculations,
+            return a True, otherwise False. Defaults to None.
 
     Returns:
         None
@@ -240,6 +244,9 @@ def xtb_batch_run(
         stem = '.'.join(osp.basename(mol_file).split('.')[:-1])
         for i, mol in enumerate(reader):
 
+            if isinstance(mol_filter, Callable) and not mol_filter(mol):
+                continue
+
             if batch_dir:
                 work_dir = osp.join(res_file_dir, batch_dir, f'{stem}_{i}')
             else:
@@ -250,6 +257,7 @@ def xtb_batch_run(
 
             calculator = XtbCalculator(work_dir, xtb_executable=xtb_executable)
             calculator.mol = mol
+            calculator.charge = kwargs.get('charge', None)
 
             # calculator.set_mol_charge_unpairEs()
             calculator.options = calculator.options + options

@@ -315,6 +315,17 @@ class Molecule:
         for atom, coord in zip(self._atoms, coords):
             atom.coordinates = coord
 
+    def _update_atom_neighbours_bonds(self):
+        for atom in self.atoms:
+            atom._neighbours = []
+            atom._bonds = []
+
+        for bond in self.bonds:
+            bond.atom1._neighbours.append(bond.atom2)
+            bond.atom2._neighbours.append(bond.atom1)
+            bond.atom1._bonds.append(bond)
+            bond.atom2._bonds.append(bond)
+
     def _update_graph(self, clear_conformers=True):
         """
         Updates the molecular graph representation along with clearing conformers and 
@@ -332,6 +343,9 @@ class Molecule:
         self._graph = nx.Graph()
         self._graph.add_edges_from(self._edge_with_attrs())
         self._graph.add_nodes_from(self._node_with_attrs())
+
+        # update neighbours and bonds of atoms
+        self._update_atom_neighbours_bonds()
 
         # clear the older AtomSeq
         self._angles = []
@@ -2759,6 +2773,9 @@ class Atom(MolBlock):
             self.attrs = np.zeros(len(self._attrs_enumerator))
             self.setattr(add_defaults=True, **kwargs)
 
+        self._neighbours = []
+        self._bonds = []
+
     @classmethod
     def _get_atom_attr_dict(cls, atomic_number: int) -> dict:
         """
@@ -3010,13 +3027,14 @@ class Atom(MolBlock):
             NetworkXError: If accessing the molecular graph edges fails for the
             specified atom index (handled internally).
         """
-        # return [self.mol.bonds[i] for i in self.bonds_idx]
-        edge_viewer = self.mol.graph.edges
-
-        try:
-            return [edge_viewer[u, v]['bond'] for u, v in edge_viewer(self.idx)]
-        except nx.NetworkXError:
-            return []  # if the atom is an isolate atom
+        # # return [self.mol.bonds[i] for i in self.bonds_idx]
+        # edge_viewer = self.mol.graph.edges
+        #
+        # try:
+        #     return [edge_viewer[u, v]['bond'] for u, v in edge_viewer(self.idx)]
+        # except nx.NetworkXError:
+        #     return []  # if the atom is an isolate atom
+        return copy(self._bonds)
 
     def _calc_implicit_hydrogens(self) -> int:
         # TODO: Implement by C++
@@ -3453,10 +3471,11 @@ class Atom(MolBlock):
             Raised if an error occurs in accessing the neighbors of the 
             specified node index due to the graph structure.
         """
-        try:
-            return np.array(list(self.mol.graph.neighbors(self.idx)), dtype=int)
-        except nx.NetworkXError:
-            return np.array([])
+        # try:
+        #     return np.array(list(self.mol.graph.neighbors(self.idx)), dtype=int)
+        # except nx.NetworkXError:
+        #     return np.array([])
+        return np.array([a.idx for a in self._neighbours])
 
     @property
     def hydrogens(self):
@@ -3484,10 +3503,11 @@ class Atom(MolBlock):
         @return: A list of neighboring Atom objects. If the operation encounters an
             issue, such as an invalid network structure, an empty list is returned.
         """
-        try:
-            return np.take(self.mol.atoms, self.neigh_idx).tolist()
-        except nx.NetworkXError:
-            return []
+        return copy(self._neighbours)
+        # try:
+        #     return np.take(self.mol.atoms, self.neigh_idx).tolist()
+        # except nx.NetworkXError:
+        #     return []
 
     @property
     def heavy_neighbours(self) -> list['Atom']:

@@ -6,6 +6,7 @@ python v3.9.0
 @Data   : 2024/12/5
 @Time   : 18:30
 """
+import ctypes
 import logging
 import re
 import time
@@ -16,6 +17,7 @@ from typing import Union, Literal, Iterable, Optional, Callable, Sequence
 from copy import copy
 from collections import Counter
 from itertools import combinations, product
+from array import array
 
 import cython
 import numpy as np
@@ -30,6 +32,7 @@ import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff, _io
 from . import geometry, crystal as cryst
+from . import _clib
 
 
 
@@ -3376,6 +3379,7 @@ class Atom(MolBlock):
         Returns:
             bool: True if the element is a metal, otherwise False.
         """
+        # return _clib.is_metal(self.atomic_number)
         return self.atomic_number in self.elements.metal
 
     @property
@@ -3723,7 +3727,10 @@ class Atom(MolBlock):
             AttributeError: If required attributes are missing from the object.
             KeyError: If the atomic number is not present in the default valence lookup.
         """
-        # TODO: Implement by C++.
+        # C Implementation
+        # neigh_atomic_number = [a.atomic_number for a in self.neighbours]
+        # _clib.get_valence(self.atomic_number, neigh_atomic_number, len(neigh_atomic_number))
+
         if self.atomic_number in [6, 14]:  # C, Si
             return 4
         elif self.atomic_number == 8:  # O

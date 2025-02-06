@@ -416,3 +416,11 @@ class TestChemInfo(ut.TestCase):
         mol = next(hp.Molecule.read('CCC.CC.c1ccccc1', 'smi'))
         a = mol.atoms[0]
         spec = mol.graph_spectrum().spectrum
+
+    def test_run_time(self):
+        mol2 = next(hp.MolReader('CC1(C)CCC(C)(C)C2=NC(C3=CC=CC(C4=CC=CC(C5=NC6=C(N=N5)C(C)(C)CCC6(C)C)=N4)=N3)=NN=C21', 'smi'))
+
+        t1 = time.time()
+        for _ in range(1000):
+            mol2.calc_atom_valence()
+        print(time.time() - t1)

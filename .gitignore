@@ -8,6 +8,7 @@ hotpot/__pycache__
 **/__pycache__
 hotpot_zzy.egg-infogit
 hotpot/dataset/tmqm/data
+hotpot/dataset/lnqm/data
 **/*.html
 **/*.so
 build/

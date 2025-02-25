@@ -273,7 +273,7 @@ class tmQmDataset(BaseDataset):
 
         # Process mol Ring attribute
         ring_attr_names = ('is_aromatic', 'has_metal')
-        mol_rings_nums, rings_node_index, rings_node_nums, mol_rings_node_nums, rings_attr = _extract_ring_attrs(mol,
+        mol_ring_nums, ring_node_index, ring_node_nums, mol_ring_node_nums, ring_attr = _extract_ring_attrs(mol,
                                                                                                                  ring_attr_names)
         return Data(
             x=x,
@@ -287,12 +287,12 @@ class tmQmDataset(BaseDataset):
             y=y,
             y_names=y_names[1:],
             identifier=mol.identifier,
-            mol_rings_nums=mol_rings_nums,
-            rings_node_index=rings_node_index,
-            rings_node_nums=rings_node_nums,
-            mol_rings_node_nums=mol_rings_node_nums,
-            rings_attr=rings_attr,
-            rings_attr_names=ring_attr_names
+            mol_ring_nums=mol_ring_nums,
+            ring_node_index=ring_node_index,
+            ring_node_nums=ring_node_nums,
+            mol_ring_node_nums=mol_ring_node_nums,
+            ring_attr=ring_attr,
+            ring_attr_names=ring_attr_names
         )
 
     def _get_data(self, mol, data_dir, *args, **kwargs):
@@ -375,7 +375,6 @@ class ComplexDataset(BaseDataset):
         'edge_attr': ('bond_order', 'is_aromatic', 'is_metal_ligand_bond'),
         'pair_attr': ('wiberg_bond_order', 'length_shortest_path'),
         'ring_attr': ('is_aromatic', 'has_metal'),
-        'y': ('energy', 'dispersion', 'dipole', 'metal_q', 'Hl', 'HOMO', 'LUMO', 'polarizability')
     }
 
     def __init__(
@@ -403,12 +402,15 @@ class ComplexDataset(BaseDataset):
         edge_index, edge_attr = _extract_bond_attrs(mol, edge_attr_names)
 
         # Organize pair data
-        pair_index, pair_attr, pair_attr_name = _extract_atom_pairs(mol)
+        pair_index, pair_attr, pair_attr_names = _extract_atom_pairs(mol)
 
         # Process mol Ring attribute
         ring_attr_names = ('is_aromatic', 'has_metal')
-        mol_rings_nums, rings_node_index, rings_node_nums, mol_rings_node_nums, rings_attr = _extract_ring_attrs(mol,
+        mol_ring_nums, ring_node_index, ring_node_nums, mol_ring_node_nums, ring_attr = _extract_ring_attrs(mol,
                                                                                                                  ring_attr_names)
+        y = None
+        y_names = None
+
         return Data(
             x=x,
             x_names=x_names,
@@ -417,14 +419,16 @@ class ComplexDataset(BaseDataset):
             edge_attr_names=edge_attr_names,
             pair_index=pair_index,
             pair_attr=pair_attr,
-            pair_attr_name=pair_attr_name,
+            pair_attr_names=pair_attr_names,
+            y=y,
+            y_names=y_names,
             identifier=mol.identifier,
-            mol_rings_nums=mol_rings_nums,
-            rings_node_index=rings_node_index,
-            rings_node_nums=rings_node_nums,
-            mol_rings_node_nums=mol_rings_node_nums,
-            rings_attr=rings_attr,
-            rings_attr_names=ring_attr_names
+            mol_ring_nums=mol_ring_nums,
+            ring_node_index=ring_node_index,
+            ring_node_nums=ring_node_nums,
+            mol_ring_node_nums=mol_ring_node_nums,
+            ring_attr=ring_attr,
+            ring_attr_names=ring_attr_names
         )
 
     def process(self):

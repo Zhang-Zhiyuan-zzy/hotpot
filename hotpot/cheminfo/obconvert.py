@@ -11,6 +11,7 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.utils.chem import atom as chem_atom
+from hotpot.cheminfo.elements import elements
 
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
@@ -58,11 +59,11 @@ def obmol2mol(obmol, mol):
     idx_to_row = {oba.GetIdx():i for i, oba in enumerate(ob.OBMolAtomIter(obmol))}
 
     for oba in ob.OBMolAtomIter(obmol):
-        n, l, (s, p, d, f, p) = chem_atom.calc_electron_config(oba.GetAtomicNum())
+        n, s, p, d, f, g = elements.electron_configs[oba.GetAtomicNum()]
         mol._create_atom_from_array(
             attrs_array=np.array([
                 oba.GetAtomicNum(),
-                n, s, p, d, f, p,  # electron configure
+                n, s, p, d, f, g,  # electron configure
                 oba.GetFormalCharge(),
                 oba.GetPartialCharge(),
                 float(oba.IsAromatic()),

@@ -6,33 +6,28 @@ python v3.9.0
 @Data   : 2024/12/5
 @Time   : 18:30
 """
-import ctypes
 import logging
 import re
 import time
 import json
 import operator
 import os.path as osp
-from typing import Union, Literal, Iterable, Optional, Callable, Sequence
+from typing import Union, Literal, Iterable, Optional, Callable
 from copy import copy
 from collections import Counter
 from itertools import combinations, product
-from array import array
 
 import cython
 import numpy as np
 import networkx as nx
-from ase.data import atomic_numbers
 from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
-import periodictable
 
-from hotpot.utils import types, chem as hpchem, tools
+from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff, _io
 from . import geometry, crystal as cryst
-from . import _clib
 
 
 
@@ -53,29 +48,6 @@ class Molecule:
     forming the basis for chemical computations and geometry manipulations.
     """
     def __init__(self):
-        """
-        Represents a molecule object which contains information about its atoms, bonds, conformers,
-        and other molecular-level properties. The class is responsible for initializing and managing
-        molecular data, including structural information such as angles, torsions, and rings, as well
-        as graph-based data structures for representing molecular connectivity.
-
-        Attributes:
-            _atoms (list): A list of atoms in the molecule.
-            _bonds (list): A list of bonds in the molecule.
-            _conformers (Conformers): An instance of the Conformers class representing conformer
-                information of the molecule.
-            _conformers_index (int): An integer representing the current conformer index.
-            _atom_pairs (AtomPairs): An instance of the AtomPairs class associated with this molecule.
-            _angles (list): A list of angles (e.g., bond angles) within the molecule.
-            _torsions (list): A list of torsions (dihedral angles) within the molecule.
-            _rings (list): A list of ring structures within the molecule.
-            _graph (nx.Graph): A NetworkX graph object representing the molecular connectivity.
-            _obmol (optional): An object representation for an Open Babel molecule (if applicable).
-            _row2idx (optional): A mapping used internally for indexing or logical operations.
-            _broken_metal_bonds (list): A list of bonds that have been broken in the molecule due
-                to metal bond processing.
-            charge (int): The total charge of the molecule.
-        """
         self._atoms = []
         self._bonds = []
         self._conformers = Conformers()
@@ -254,9 +226,6 @@ class Molecule:
         neighbors. This information is used to create `Torsion` objects.
 
         Raises:
-            None
-
-        Args:
             None
 
         Returns:
@@ -544,11 +513,6 @@ class Molecule:
         -------
         hide_metal_ligand_bonds()
             Called to hide the visual representation of the metal-ligand bonds.
-
-        Attributes  
-        ----------
-        _broken_metal_bonds : list
-            Internal tracking list to store information about broken metal-ligand bonds.
         """
         self.hide_metal_ligand_bonds()
         self._broken_metal_bonds = []
@@ -611,10 +575,6 @@ class Molecule:
             Retrieves and returns a copy of the torsions associated with the object.
             The torsions are computed once and cached for future retrieval.
 
-            Attributes:
-                _torsions (list["Torsion"]): A cached list of torsions. Initially
-                empty and populated on first access.
-
             Returns:
                 list["Torsion"]: A list of torsion objects. A copy of the cached
                 list is always returned to ensure the original list is immutable
@@ -664,10 +624,6 @@ class Molecule:
         returns a copy of the internal _atoms list to ensure the encapsulation of 
         the original data. Modification of the returned list does not affect the 
         internal state of the object.
-
-        Attributes:
-            _atoms (list): A list containing atomic data of the molecule. Stored 
-            internally and accessed through this property.
 
         Returns:
             list: A copy of the internal _atoms list that can be freely modified 
@@ -798,11 +754,6 @@ class Molecule:
         hiding metal-ligand bonds and kekulizing the rings. The method involves iterating through 
         predefined rings of the molecule and addressing individual ring properties.
 
-        Attributes
-        ----------
-        rings : list
-            A list of ring objects within the molecule structure, which will be analyzed for aromaticity.
-
         Methods
         -------
         determine_rings_aromatic:
@@ -899,7 +850,7 @@ class Molecule:
         """
         self._conformers.clear()
 
-    def conformer_get(self, idx: Union[int, slice]) -> np.ndarray:
+    def conformer_get(self, idx: Union[int, slice]) -> dict:
         """ Get specific conformer coordinates """
         return self._conformers[idx]
 
@@ -1048,7 +999,10 @@ class Molecule:
                 "it's much slower than `optimize()` method. For organic compounds, the \n"
                 "`optimize() is more recommended."
             ))
-            self.optimize('MMFF94s', algorithm, steps, equilibrium, equi_threshold, max_iter, save_screenshot)
+            self.optimize(
+                'MMFF94s',
+                algorithm, steps, equilibrium,
+            )
             return
 
 
@@ -1202,11 +1156,6 @@ class Molecule:
         using the `calc_implicit_hydrogens` method. The results are assigned to the respective
         attributes of each atom.
 
-        Attributes
-        ----------
-        atoms : list
-            A list of atom objects, each of which must have the methods `get_valence` and
-            `calc_implicit_hydrogens`.
         """
         if assign_aromatic is not False:
             rings = self.ligand_rings
@@ -1235,9 +1184,6 @@ class Molecule:
         """
         Fetches and returns the connected components of the molecule as a list of Molecule objects. 
         Each component is a distinct connected substructure derived from the molecular graph.
-
-        Attributes:
-            None
 
         Returns:
             list[Molecule]: A list of Molecule objects, each representing one connected component 
@@ -1341,7 +1287,7 @@ class Molecule:
         Returns:
             Atom: A new Atom instance initialized with the provided attributes array.
         """
-        return Atom(self, attrs_array=attrs_array)
+        return Atom(self, attrs_array=attrs_array, update_electron_config=False)
 
     def _create_atom(self, **kwargs):
         """
@@ -1428,10 +1374,6 @@ class Molecule:
 
         This property uses the scipy.spatial.distance.pdist function to calculate
         the pairwise distances between points in the provided coordinates.
-
-        Attributes:
-            coordinates (np.ndarray): A numpy array representing the set of points 
-            between which the distances are calculated.
 
         Returns:
             np.ndarray: A 1D array containing the pairwise distances between points
@@ -1699,18 +1641,6 @@ class Molecule:
         """
         Updates the ID of each atom in the atom list to reflect its index position. Each atom's ID
         is replaced with its respective index in the list, starting from 0.
-
-        Parameters
-        ----------
-        None
-
-        Raises
-        ------
-        None
-
-        Returns
-        -------
-        None
         """
         for i, atom in enumerate(self.atoms):
             atom.id = i
@@ -1739,9 +1669,6 @@ class Molecule:
         as the key, and the bond object itself is the corresponding value. This
         provides a convenient way to access bonds by their ID.
 
-        Attributes:
-            bonds: A collection of bond objects assigned to the class instance.
-
         Returns:
             dict: A dictionary where keys are bond IDs and values are bond objects.
         """
@@ -1758,7 +1685,6 @@ class Molecule:
 
         Parameters:
             atom (Atom or int): The atom to remove, identified either by its
-            index (int) or directly as an Atom object.
 
         Returns:
             None
@@ -1902,12 +1828,6 @@ class Molecule:
         using the `remove_atoms` method. Hydrogen atoms are determined based on
         the "is_hydrogen" property of each atom object.
 
-        Attributes:
-            _atoms: A list of atom objects associated with the current object.
-
-        Args:
-            None
-
         Raises:
             None
         """
@@ -1917,9 +1837,6 @@ class Molecule:
         """
         Removes metal atoms from the structure by calling the remove_atoms method
         on the list of metal atoms.
-
-        Args:
-            None
 
         Returns:
             None
@@ -2225,11 +2142,6 @@ class Molecule:
         rings that share common elements. Joint aromatic rings are constructed by
         iteratively merging overlapping rings.
 
-        Attributes
-        ----------
-        aromatic_joint_rings : list["JointRing"]
-            Returns a list of JointRing objects that represent merged aromatic rings.
-
         Returns
         -------
         list["JointRing"]
@@ -2403,12 +2315,6 @@ class Molecule:
         atom in the 'atoms' attribute, then generating all unique combinations of neighboring 
         atoms for forming an angle. Each angle is represented as an instance of the Angle class.
 
-        Attributes
-        ----------
-        _angles : List[Angle]
-            A list storing all calculated angles for the associated atoms. Each angle is 
-            represented as an instance of the Angle class.
-
         """
         self._angles = [Angle(n1, a, n2) for a in self.atoms for n1, n2 in combinations(a.neighbours, 2)]
 
@@ -2432,10 +2338,6 @@ class Molecule:
 
         This property calculates the weight based on the individual masses of 
         all atoms contained within the `_atoms` attribute.
-
-        Attributes:
-            weight (float): The total weight calculated as the sum of all atom 
-            masses.
         """
         return sum(a.mass for a in self._atoms)
 
@@ -2637,8 +2539,7 @@ def _atomic_number_setter(self: "Atom", key, atomic_number):
     """
     assert key == "atomic_number"
     self.attrs[0] = atomic_number
-    n, l, (s, p, d, f, p) = hpchem.calc_electron_config(atomic_number)
-    self.attrs[1: 7] = n, s, p, d, f, p
+    self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG+1] = Atom.elements.electron_configs[atomic_number]
 
 # ---------------------------------------------------------------------
 
@@ -2733,9 +2634,20 @@ class Atom(MolBlock):
     }
     _attrs_enumerator = tuple(_attrs_dict.keys())
 
+    # Index Check
+    _ELECTRON_N_CONFIG = _attrs_enumerator.index('n')
+    _ELECTRON_G_CONFIG = _attrs_enumerator.index('g')
+
     from .elements import elements
 
-    def __init__(self, mol: Molecule = None, *, attrs_array: np.ndarray = None, **kwargs):
+    def __init__(
+            self,
+            mol: Molecule = None,
+            *,
+            attrs_array: np.ndarray = None,
+            update_electron_config: bool = True,
+            **kwargs
+    ):
         """
         Initializes an instance of the class, allowing the creation of an object associated with a given
         molecular structure and attributes. The method provides options for defining default behavior
@@ -2776,6 +2688,9 @@ class Atom(MolBlock):
             self.attrs = np.zeros(len(self._attrs_enumerator))
             self.setattr(add_defaults=True, **kwargs)
 
+        if update_electron_config:
+            self.electron_configuration = self.elements.electron_configs[self.atomic_number]
+
         self._neighbours = []
         self._bonds = []
 
@@ -2788,9 +2703,6 @@ class Atom(MolBlock):
         atomic number, and fetches the relevant chemical properties associated
         with the atom like atomic number, formal charge, partial charge, valence, 
         and implicit hydrogens.
-
-        Attributes:
-            None
 
         Parameters:
             atomic_number (int): The atomic number of the element being queried.
@@ -3012,15 +2924,6 @@ class Atom(MolBlock):
         Returns the bonds associated with the current atomic structure. It utilizes the
         molecular graph's edge viewer to retrieve bond details for the specified atom based
         on its index. If the atom is isolated, an empty list is returned.
-
-        Attributes:
-            bonds_idx (list[int]): A list of indices representing the bonds associated
-            with this atom.
-            idx (int): The atomic index within the molecular graph.
-            mol.mol (object): The molecular structure that contains the graph and bond
-            information.
-            mol.graph (networkx.Graph): The graph representation of the molecular
-            structure where nodes are atoms, and edges are bonds.
 
         Returns:
             list[Bond]: A list of Bond objects associated with the atom's index. If no
@@ -3283,10 +3186,6 @@ class Atom(MolBlock):
         Checks if the electron configuration of an element has errors, considering
         its metallicity and the number of missing electrons.
 
-        Attributes:
-            is_error_electron_configure (bool): Returns True if the electron 
-                configuration has errors; otherwise, False.
-
         Returns:
             bool: Indicates if the electron configuration is erroneous.
 
@@ -3306,9 +3205,6 @@ class Atom(MolBlock):
         Checks whether the atomic number of the element is equal to 1, 
         which is the atomic number of hydrogen.
 
-        Attributes:
-            is_hydrogen (bool): Indicates if the element is hydrogen.
-
         Returns:
             bool: True if the atomic number is 1; otherwise, False.
         """
@@ -3320,12 +3216,6 @@ class Atom(MolBlock):
         Returns a boolean value indicating whether the atom is a polar 
         hydrogen. A polar hydrogen is defined as a hydrogen atom that is 
         bonded to a polar hydrogen site.
-
-        Attributes:
-            is_hydrogen: A boolean property that indicates if the atom is 
-            a hydrogen atom.
-            neighbours: A list of neighbouring atoms around the current 
-            atom.
 
         Raises:
             ImportError: If there are issues accessing the attributes.
@@ -3359,9 +3249,6 @@ class Atom(MolBlock):
         Atoms with atomic numbers found in the predefined halogens list will return
         True for this property. Halogens are a group of elements with specific
         chemical properties.
-
-        Attributes:
-            atomic_number (int): The atomic number of the atom.
 
         Returns:
             bool: True if the atom is a halogen, otherwise False.
@@ -3489,10 +3376,6 @@ class Atom(MolBlock):
         The hydrogens property filters and returns neighbors of the current atom that 
         are hydrogen atoms.
 
-        Attributes:
-            neighbours: A list of neighboring atom objects associated with the 
-            current atom.
-
         Returns:
             list: A list containing atom objects of all neighbors that are identified 
             as hydrogen atoms.
@@ -3533,14 +3416,11 @@ class Atom(MolBlock):
         data and calculates the difference between the maximum possible number 
         of electrons for the orbital and the current configuration.
 
-        Attributes:
-            None
-
         Returns:
             int: The number of missing electrons for the element.
         """
-        n, l, conf = self.calc_electron_config()
-        return sum(self.elements.atomic_orbital[n]) - sum(conf)
+        conf = self.electron_configuration
+        return sum(self.elements.atomic_orbital[conf[0]]) - sum(conf[1:])
 
     @property
     def missing_electrons(self):
@@ -3561,6 +3441,16 @@ class Atom(MolBlock):
         """
         n, l, conf = self.calc_electron_config()
         return sum(conf)
+
+    @property
+    def electron_configuration(self) -> np.ndarray[int]:
+        return np.int_(self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG + 1])
+
+    @electron_configuration.setter
+    def electron_configuration(self, value) -> None:
+        value = np.array(value)
+        assert len(value) == 6
+        self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG + 1] = value
 
     @property
     def l(self) -> int:
@@ -3898,10 +3788,6 @@ class Atom(MolBlock):
         one-dimensional numpy array, which can be used for mathematical operations or 
         further processing.
 
-        Attributes:
-            coordinates (np.ndarray): The coordinates of the object in the form of a 
-            numpy array.
-
         Returns:
             np.ndarray: A numpy array representation of the coordinates.
         """
@@ -4151,11 +4037,6 @@ class AtomPair:
         of two atoms and computes the straight-line distance between them using numpy's linear algebra norm 
         function. It assumes that the coordinates are stored as three-dimensional tuples or lists.
 
-        @property
-        Attributes:
-            atom1 (object): The first atom object containing 3D coordinates as a tuple or list.
-            atom2 (object): The second atom object containing 3D coordinates as a tuple or list.
-
         Returns:
             float: The Euclidean distance between the two atoms based on their 3D coordinates.
         """
@@ -4277,24 +4158,6 @@ class AtomPairs(dict):
         Updates the current list of atom pairs for the molecule. This function first clears any
         pairs that no longer exist in the molecule and then updates the atom pairs to include
         all possible unique combinations of two atoms from the molecule.
-
-        Attributes
-        ----------
-        mol : Molecule
-            The molecule containing the atoms from which pairs are generated. Each atom 
-            represents an element of atom pairs.
-
-        Methods
-        -------
-        None
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
         self.clear_not_exist_pairs()
         for pair_key in combinations(self.mol.atoms, 2):
@@ -4336,11 +4199,6 @@ class Bond(AtomSeq, MolBlock):
     This class models a bond in a molecular structure, providing attributes and methods for representing bond properties 
     such as bond order, length, aromaticity, and covalency. It supports operations for determining bond characteristics, 
     accessing bond-related geometric information, and interacting with associated atoms and molecular structures.
-
-    Attributes:
-        bond_order (float): The order of the bond (0, 1, 1.5, 2, or 3).
-        constraint (bool): Indicates if the bond is constrained in the molecular structure.
-        id (int): A unique identifier for the bond.
     """
     _ideal_bond_length = _load_ibl()
 
@@ -4441,13 +4299,6 @@ class Bond(AtomSeq, MolBlock):
     def length(self) -> float:
         """
             Calculates and returns the length of the vector between two atomic positions.
-
-            Attributes:
-                None
-
-            Args:
-                None
-
             Returns:
                 float: The Euclidean distance (length) between the two atomic vectors.
         """
@@ -4690,9 +4541,6 @@ class JointRing:
         present. If no rings are found, it indicates emptiness by returning 
         True. Otherwise, it returns False.
 
-        Attributes:
-            rings (list): Holds the collection of rings.
-
         Returns:
             bool: True if there are no rings; False otherwise.
         """
@@ -4832,10 +4680,6 @@ class Ring(AtomSeq):
     the ring. This includes determining aromaticity, checking for the presence 
     of metals or disordered structures, evaluating bonds, and generating 
     graph representations of the ring for further computational purposes.
-
-    Attributes: 
-        bonds (list[Bond]): List of Bond objects representing the bonds in 
-            the ring.
     """
     def __init__(self, *atoms: Atom):
         super().__init__(*atoms)
@@ -4984,12 +4828,6 @@ class Ring(AtomSeq):
         direction. If the current atom is at the end of the sequence when navigating 
         forward or at the beginning when navigating in reverse, it cycles to the 
         start of the sequence.
-
-        Attributes
-        ----------
-        atoms : list
-            A list of `Atom` objects representing the sequence through which the 
-            method navigates.
 
         Parameters
         ----------
@@ -5153,18 +4991,6 @@ class Ring(AtomSeq):
         Kekulize method analyzes and adjusts the bond orders within a molecule to ensure the aromaticity rules 
         are consistently applied. This function modifies the bond orders directly in place to achieve a strict 
         Kekulé structure representation if the molecule has aromatic properties.
-
-        Parameters
-        ----------
-        None
-
-        Raises
-        ------
-        None
-
-        Returns
-        -------
-        None
         """
         if not self.determine_aromatic(inplace=True):
             return
@@ -5191,10 +5017,6 @@ class Conformers:
     It provides methods to add new conformers, retrieve specific properties, 
     clear all stored data, and iterate over the stored conformers. This is 
     useful for computational chemistry or molecular modeling applications.
-
-    Attributes:
-        attributes (tuple of str): Names of the conformer properties managed 
-        by the class.
 
     Methods:
         __init__: Initializes an empty Conformers object with placeholders 
@@ -5450,8 +5272,7 @@ class InternalCoordinates:
                 index (types.ArrayLike): Array-like object containing indices that specify 
                 atoms connected to the current atom. It must have a length of 4.
 
-                coords (np.ndarray): A 2D numpy array where each row represents the 
-                coordinates (x, y, z) of an atom in the molecular system.
+                coords (np.ndarray): A 2D numpy array where each row represents the
 
             Returns:
                 list: A list of calculated Z-matrix parameters containing bond length, 

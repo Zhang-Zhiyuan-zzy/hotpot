@@ -366,6 +366,18 @@ class tmQmDataset(BaseDataset):
 
 
 class ComplexDataset(BaseDataset):
+    __attr_names__ = {
+        'x': ('atomic_number','n', 's', 'p', 'd', 'f', 'g',
+              'formal_charge','partial_charge', 'is_aromatic',
+              'x', 'y', 'z',
+              'valence', 'implicit_hydrogens', 'is_metal'),
+
+        'edge_attr': ('bond_order', 'is_aromatic', 'is_metal_ligand_bond'),
+        'pair_attr': ('wiberg_bond_order', 'length_shortest_path'),
+        'ring_attr': ('is_aromatic', 'has_metal'),
+        'y': ('energy', 'dispersion', 'dipole', 'metal_q', 'Hl', 'HOMO', 'LUMO', 'polarizability')
+    }
+
     def __init__(
             self,
             data_dir: str,

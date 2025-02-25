@@ -15,11 +15,9 @@ from itertools import product
 
 import hotpot as hp
 from hotpot.cheminfo.core import InternalCoordinates
-from hotpot.utils.tools import show_time
 
 import numpy as np
 
-import networkx as nx
 import time
 
 import test
@@ -239,6 +237,7 @@ class TestChemInfo(ut.TestCase):
 
         for a in mol.atoms:
             print(a.open_shell_electrons)
+            print(a.electron_configuration)
 
         for a in mol.atoms:
             print(a.missing_electrons_element)

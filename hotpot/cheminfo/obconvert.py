@@ -10,8 +10,8 @@ from typing import Any
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 
-ob_log_handler = ob.OBMessageHandler()
-ob_log_handler.SetOutputLevel(0)
+from hotpot.utils.chem import atom as chem_atom
+from hotpot.cheminfo.elements import elements
 
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
@@ -21,9 +21,6 @@ def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
 def get_ob_conversion(fmt='smi', **kwargs):
     conv = ob.OBConversion()
     conv.SetOutFormat(fmt)
-
-    # if fmt == 'gjf':
-    #     kwargs.update({'b': None})
 
     for k, v in kwargs.items():
         if v is None:
@@ -58,26 +55,37 @@ def _add_mol_bonds_from_obmol(mol, obmol, idx_to_row):
 
 
 def obmol2mol(obmol, mol):
-    # mol = Molecule()
-
     # Populate the idx_to_row dictionary to map OBMol atom indices to the reordered indices
     idx_to_row = {oba.GetIdx():i for i, oba in enumerate(ob.OBMolAtomIter(obmol))}
 
     for oba in ob.OBMolAtomIter(obmol):
-        mol._create_atom(
-            atomic_number=oba.GetAtomicNum(),
-            formal_charge=oba.GetFormalCharge(),
-            partial_charge=oba.GetPartialCharge(),
-            is_aromatic=oba.IsAromatic(),
-            coordinates=(oba.GetX(), oba.GetY(), oba.GetZ()),
-            # valence=oba.GetTotalValence(),
-            # implicit_hydrogens=oba.GetImplicitHCount()
-        )
+        n, s, p, d, f, g = elements.electron_configs[oba.GetAtomicNum()]
+        mol._create_atom_from_array(
+            attrs_array=np.array([
+                oba.GetAtomicNum(),
+                n, s, p, d, f, g,  # electron configure
+                oba.GetFormalCharge(),
+                oba.GetPartialCharge(),
+                float(oba.IsAromatic()),
+                oba.GetX(), oba.GetY(), oba.GetZ(),
+                oba.GetTotalValence(),
+                oba.GetImplicitHCount(),
+                0,
+                0, 0, 0,
+                ], dtype=np.float64)
+            )
 
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
-
+    #
     mol._update_graph()
-    mol.calc_atom_valence()
+    # mol.calc_atom_valence()
+
+    # add Crystal
+    cell_index = ob.UnitCell  # Get the index the UnitCell data save
+    cell_data = obmol.GetData(cell_index)
+    if cell_data:
+        c = ob.toUnitCell(cell_data)
+        mol.create_crystal(c.GetA(), c.GetB(), c.GetC(), c.GetAlpha(), c.GetBeta(), c.GetGamma())
 
     return mol
 
@@ -110,6 +118,10 @@ def mol2obmol(mol):
         obb.IsAromatic()
         obb.SetAromatic(bool(bond.is_aromatic))  # Convert to bool
         obb.IsAromatic()
+
+    # Add UnitCell
+    if mol.crystal:
+        obmol.CloneData(mol.crystal.obcell)
 
     return obmol, row_to_idx
 
@@ -180,4 +192,36 @@ def set_obmol_coordinates(obmol: ob.OBMol, coords):
 
     for oba, coord in zip(ob.OBMolAtomIter(obmol), coords):
         oba.SetVector(*coord)
+
+
+def to_arrays(obmol):
+    # Populate the idx_to_row dictionary to map OBMol atom indices to the reordered indices
+    idx_to_row = {oba.GetIdx():i for i, oba in enumerate(ob.OBMolAtomIter(obmol))}
+
+    # Iterate over atoms in the molecule
+    atoms_array = np.array([
+        [
+            atom.GetAtomicNum(),
+            atom.GetFormalCharge(),
+            atom.GetPartialCharge(),
+            float(atom.IsAromatic()),
+            atom.GetX(),
+            atom.GetY(),
+            atom.GetZ(),
+            atom.GetTotalValence(),
+            atom.GetImplicitHCount()
+        ]
+        for atom in ob.OBMolAtomIter(obmol)
+    ])
+
+    bonds_array = np.array([
+        [
+            idx_to_row[bond.GetBeginAtomIdx()],
+            idx_to_row[bond.GetEndAtomIdx()],
+            bond.GetBondOrder()
+        ]
+        for bond in ob.OBMolBondIter(obmol)
+    ])
+
+    return atoms_array, bonds_array, idx_to_row
 

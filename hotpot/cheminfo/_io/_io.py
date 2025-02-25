@@ -9,6 +9,7 @@ python v3.9.0
 import os
 import re
 import sys
+import time
 from os import PathLike
 from pathlib import Path
 import io
@@ -121,6 +122,32 @@ def _extract_g16_thermo(lines):
 
 
 class IoBase:
+    """
+    Provides functionality for handling input data sources of various types, determining their
+    formats, and processing them in a unified manner.
+
+    The IoBase class allows users to initialize with different types of data sources, validate their
+    types, and determine the format based on the input. It includes checks for compatibility, format
+    deduction, and additional options for further customization.
+
+    Attributes:
+    src: The input source that is processed. Can be of various types, including file paths,
+         strings, bytes, and stream objects.
+    src_type: Represents the type of the input source, determined during initialization.
+    fmt: The format of the input source, auto-determined or explicitly passed by the user.
+    ob_opt: A dictionary of custom options passed during initialization for operational behavior.
+    kwargs: Any additional arguments passed for extended functionality.
+
+    Methods:
+    __init__: Initializes the IoBase instance by processing the input source, determining its
+              type, and setting the format.
+    _src_checks: A static method to determine the type of the input source.
+    _determine_fmt: Determines the format of the input source based on its type.
+
+    Raises:
+    TypeError: Raised by _src_checks method if the type of src is unsupported.
+    ValueError: Raised by _determine_fmt if the format of the source cannot be determined.
+    """
     def __init__(self, src, fmt=None, **kwargs):
         self.src = src
         self.src_type = self._src_checks(src)
@@ -167,6 +194,38 @@ class IoBase:
 
 
 class MolReader(IoBase):
+    """
+    Represents a molecular file reader capable of parsing various file formats.
+
+    This class is used for reading and parsing molecular data from different file
+    sources, supporting multiple formats. It processes molecular structures,
+    properties, and associated calculations into an accessible internal representation.
+
+    Attributes:
+        fmt (cython.char): The format of the molecular file.
+        src (cython.char): The source content to be read, which could be a path,
+            string, or IO object.
+
+    Methods:
+        __init__(src, fmt=None, **kwargs):
+            Initializes the molecular file reader and sets up initial state.
+
+        get_generator():
+            Determines the appropriate parser based on the file format and
+            creates a generator for molecular data.
+
+        refresh():
+            Refreshes the generator to allow re-iteration.
+
+        __next__():
+            Retrieves the next molecule from the generator.
+
+        __getitem__(item):
+            Retrieves the molecule at the specified index.
+
+        __iter__():
+            Returns the molecular data generator for iteration.
+    """
     fmt: cython.char
     src: cython.char
 
@@ -298,6 +357,30 @@ class MolReader(IoBase):
 
 
 class MolWriter(IoBase):
+    """
+    Handles molecular file writing.
+
+    The MolWriter class provides a mechanism to handle the writing of molecular data
+    using various formats. It allows for the customization of the writing process
+    through pre-processing, writing, and post-processing plugins. It supports file
+    handling with optional overwriting and uses an Open Babel (OB) interface for
+    conversion and writing tasks.
+
+    Attributes:
+        ob_conv: An Open Babel conversion object used for writing molecular data.
+        fp: The file path or name for the output file.
+
+    Methods:
+        __init__: Initializes the MolWriter object and sets up file handling.
+        obmol_write_string: Writes a molecular object to a string using Open Babel.
+        _ob_write: Handles the Open Babel-based writing process for molecules.
+        _pre: Executes pre-processing plugins for the specified format.
+        _write: Handles the molecular writing process, utilizing plugins when available.
+        _post: Executes post-processing plugins on the generated script for the format.
+        to_write: Writes the generated molecular script to a file or returns the string.
+        write: Combines the complete writing process including pre, writing, and post steps.
+        add_plugin: Adds a custom plugin for pre-processing, writing, or post-processing.
+    """
     _plugins = {}
 
     def __init__(self, fp: Union[str, Path], fmt: str = None, overwrite: bool = False, **kwargs) -> None:

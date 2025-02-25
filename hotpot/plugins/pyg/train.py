@@ -6,7 +6,12 @@ python v3.9.0
 @Data   : 2025/1/13
 @Time   : 16:40
 """
-from typing import Iterable, Type, Callable, Any
+import os
+from glob import glob
+import os.path as osp
+from os import PathLike
+from typing import Iterable, Type, Callable, Any, Union, Literal
+import datetime
 
 import torch
 import torch.nn as nn
@@ -77,38 +82,55 @@ class Printer(object):
                 print(f"{self.step}, {name}: {metric}")
 
 
-def train_nn(
-        model: nn.Module,
-        loader: DataLoader,
-        device: torch.device,
-        loss_func: Callable,
-        input_attr_names: tuple = (),
-        optimizer: Type[torch.optim.Optimizer] = torch.optim.Adam,
-        optimizer_kwargs: dict = None,
-        batch_size: int = 128,
-        epochs: int = 100,
-        printer: Printer = Printer(loss=lambda l, r, b: l.item()),
-        evaluator: Callable[[nn.Module], None] = None,
-        **kwargs,
-):
-    """"""
-    loader = loader_class(dataset, batch_size=batch_size)
+class Trainer(object):
+    def __init__(
+            self,
+            work_dir: Union[PathLike, str],
+            model: nn.Module,
+            train_func: Callable[[nn.Module], None],
+            not_save: bool = False,
+    ):
+        self.model = model
+        self.train_func = train_func
 
-    model = model.to(device)
-    optimizer = optimizer(model.parameters(), **optimizer_kwargs)
+        if osp.exists(work_dir):
+            assert osp.isdir(work_dir)
+        else:
+            if not osp.exists(osp.dirname(work_dir)):
+                raise NotADirectoryError(f'The parent directory of {work_dir} does not exist')
+            os.mkdir(work_dir)
+        self.work_dir = osp.abspath(work_dir)
+        self.not_save = not_save
 
-    for i in range(epochs):
-        for batch in loader:
-            batch = batch.to(device)
-            optimizer.zero_grad()
+    def __enter__(self):
+        return self
 
-            res = model(batch, *input_attr_names)
-            loss = loss_func(res, batch)
-            loss.backward()
-            optimizer.step()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if not self.not_save:
+            self.save_model()
 
-            if printer:
-                printer(loss, res, batch)
+    @staticmethod
+    def load_last_model(work_dir: Union[PathLike, str], which: Literal['model', 'state_dict']='model'):
+        last_datetime = max(int(osp.basename(p).split('_')[-1]) for p in glob(osp.join(work_dir, 'cp_*')))
+        model_dir = osp.join(work_dir, f'cp_{last_datetime}')
 
-            if evaluator:
-                evaluator(model)
+        if which == 'model':
+            return torch.load(osp.join(model_dir, 'model.pt'))
+        elif which == 'state_dict':
+            return torch.load(osp.join(model_dir, 'state_dict.pt'))
+
+    def train(self):
+        self.train_func(self.model)
+
+    def save_model(self):
+        now = datetime.datetime.now()
+        formatted_datetime = now.strftime("%y%m%d%H%M%S")
+
+        model_dir = osp.join(self.work_dir, f"cp_{formatted_datetime}")
+        os.mkdir(model_dir)
+
+        torch.save(self.model.state_dict(), osp.join(model_dir, f'state_dict.pt'))
+        torch.save(self.model, osp.join(self.work_dir, f'model.pt'))
+
+
+

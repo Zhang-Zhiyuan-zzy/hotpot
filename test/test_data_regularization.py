@@ -4,20 +4,18 @@ import math
 
 os.chdir("/mnt/d/1-hnh")
 
-# 生成器函数：逐个加载文件
+
 def process_pt_files(input_folder):
     for filename in os.listdir(input_folder):
         if filename.endswith(".pt"):
             file_path = os.path.join(input_folder, filename)
             try:
-                # 加载 .pt 文件
                 data = torch.load(file_path)
                 yield filename, data
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
 
 
-# 生成器函数：修改 y 的值
 def modify_y_values(input_folder, output_folder):
     for filename, data in process_pt_files(input_folder):
         if 'y' in data:
@@ -56,6 +54,6 @@ def main(input_folder, output_folder):
     modify_y_values(input_folder, output_folder)
 
 
-input_folder = 'tmqm_data0207'  # 输入文件夹路径
-output_folder = 'tmqm_data0224_minmax'  # 输出文件夹路径
+input_folder = 'tmqm_data0207'
+output_folder = 'tmqm_data0224_minmax'
 main(input_folder, output_folder)

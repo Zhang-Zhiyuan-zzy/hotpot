@@ -4,7 +4,7 @@ import pandas as pd
 
 os.chdir("/mnt/d/1-hnh")
 
-# 生成器函数，用于逐个处理 .pt 文件
+
 def process_pt_files(data_folder):
     for filename in os.listdir(data_folder):
         if filename.endswith(".pt"):
@@ -31,7 +31,6 @@ def process_pt_files(data_folder):
                 print(f"Error loading {filename}: {e}")
 
 
-# 主处理函数，使用生成器逐步写入 Excel
 def save_y_values_to_excel(data_folder, output_file):
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         # 创建一个空的 DataFrame 来初始化 Excel
@@ -59,6 +58,6 @@ def save_y_values_to_excel(data_folder, output_file):
     print(f"Excel 文件已保存：{output_file}")
 
 
-data_folder = 'tmqm_data0207_test'  # 数据文件夹
-output_file = 'y_values.xlsx'  # 输出文件
+data_folder = 'tmqm_data0207_test'
+output_file = 'y_values.xlsx'
 save_y_values_to_excel(data_folder, output_file)

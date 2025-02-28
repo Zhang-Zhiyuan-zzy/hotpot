@@ -1,6 +1,6 @@
 import datetime
 import os.path as osp
-from typing import Literal, Union
+from typing import Literal, Union, Iterable
 
 import numpy as np
 import torch
@@ -14,6 +14,7 @@ from torch.xpu import device
 
 from torch_geometric.loader import DataLoader
 from hotpot.cheminfo.elements import elements
+from . import attn
 
 
 def model_info(model):
@@ -36,7 +37,7 @@ def atom_label_weight_(
         num_types: int = 119,
         weight_method: Literal['inverse-count', 'cross-entropy'] = 'cross-entropy',
 ):
-    atom_labels = atom_labels.to(torch.int)
+    atom_labels = torch.argmax(atom_labels, dim=-1)  # Is one hot vector
     values, counts = torch.unique(atom_labels, return_counts=True)
 
     if weight_method == 'cross-entropy':
@@ -137,12 +138,20 @@ def inverse_onehot(is_onehot, *onehot_vecs: Union[torch.Tensor, np.ndarray]):
         return onehot_vecs
 
 
+def padded_to_nested(padded_tensor, padding_value, layout=torch.jagged):
+    indices = padded_tensor[..., 0] != padding_value
+    return torch.nested.nested_tensor([t[i] for i, t in zip(indices, padded_tensor)], layout=layout)
+
+def _get_mol_num_from_ptr(ptr):
+    return ptr[1:] - ptr[:-1]
+
 class LossMethods:
     """ A collection of loss functions """
     @staticmethod
     def calc_atom_type_loss(pred, target, weight=None, acc=torch.tensor(1.)):
         """ Cross Entropy Loss """
-        return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device)) - acc*torch.log(acc)
+        # return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device)) - acc*torch.log(acc)
+        return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device))
 
 
 class Metrics:
@@ -178,6 +187,18 @@ class FeatureExtractors:
     """ A collection of feature extractor functions """
     @staticmethod
     def extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter=None):
+        if seq.is_nested:
+            return FeatureExtractors._extract_atom_vec_from_nested(seq, batch.ptr)  # inputs.ptr
+        else:
+            return FeatureExtractors._extract_atom_vec_from_padded(seq, X_mask)
+
+    @staticmethod
+    def _extract_atom_vec_from_nested(seq, ptr):
+        node_num = _get_mol_num_from_ptr(ptr)
+        return torch.cat([t[1:1+num] for num, t in zip(node_num, seq)])
+
+    @staticmethod
+    def _extract_atom_vec_from_padded(seq, X_mask):
         Znode = []
         node_seq = seq[:, 1:X_mask.shape[-1]+1]
         for s, m in zip(node_seq, X_mask.sum(dim=-1)):
@@ -234,6 +255,7 @@ class CoreModule(nn.Module):
             mol_nheads: int = 8,
             mol_encoder_kw: dict = None,
             mol_encoder_block_kw: dict = None,
+            **kwargs,
     ):
         super(CoreModule, self).__init__()
         self.vec_size = vec_dim
@@ -256,6 +278,9 @@ class CoreModule(nn.Module):
         # self.RING = nn.Parameter(torch.ones(1, vec_dim))
         # self.END = nn.Parameter(-1 * torch.ones(1, vec_dim))
 
+        # TODO: in test
+        # self.mha = attn.MultiHeadAttention(vec_dim, vec_dim, vec_dim, vec_dim, ring_nheads, 0.1)
+
         if graph_model:
             self.graph = graph_model
         else:
@@ -267,26 +292,66 @@ class CoreModule(nn.Module):
 
         self.ring_encoder_kw = ring_encoder_kw if ring_encoder_kw else {}
         self.ring_encoder_block_kw = ring_encoder_block_kw if ring_encoder_block_kw else {}
-        self.ring_encoder = nn.TransformerEncoder(
-            encoder_layer=nn.TransformerEncoderLayer(
-                d_model=vec_dim,
-                nhead=ring_nheads,
-                batch_first=True,
-                **self.ring_encoder_kw
-            ),
-            num_layers=ring_layers, **self.ring_encoder_block_kw
+        self.ring_encoder = attn.Encoder(
+            n_layers=ring_layers,
+            d_model=vec_dim,
+            nheads=ring_nheads,
+            **self.ring_encoder_kw,
         )
+
+        # self.ring_encoder = nn.TransformerEncoder(
+        #     encoder_layer=nn.TransformerEncoderLayer(
+        #         d_model=vec_dim,
+        #         nhead=ring_nheads,
+        #         batch_first=True,
+        #         **self.ring_encoder_kw
+        #     ),
+        #     num_layers=ring_layers, **self.ring_encoder_block_kw
+        # )
 
         self.mol_encoder_kw = mol_encoder_kw if mol_encoder_kw else {}
         self.mol_encoder_block_kw = mol_encoder_block_kw if mol_encoder_block_kw else {}
-        self.mol_encoder = nn.TransformerEncoder(
-            encoder_layer=nn.TransformerEncoderLayer(
-                d_model=vec_dim,
-                nhead=mol_nheads, batch_first=True,
-                **self.mol_encoder_kw
-            ),
-            num_layers=mol_layers, **self.mol_encoder_block_kw
+        self.mol_encoder = attn.Encoder(
+            n_layers=mol_layers,
+            d_model=vec_dim,
+            nheads=mol_nheads,
+            **self.mol_encoder_kw,
         )
+
+        # self.mol_encoder = nn.TransformerEncoder(
+        #     encoder_layer=nn.TransformerEncoderLayer(
+        #         d_model=vec_dim,
+        #         nhead=mol_nheads, batch_first=True,
+        #         **self.mol_encoder_kw
+        #     ),
+        #     num_layers=mol_layers, **self.mol_encoder_block_kw
+        # )
+
+        # TODO: convert to False later
+        self.is_nested = kwargs.get('is_nested', True)
+
+    def _padding_encode(self, x, ptr, rings_node_index, rings_node_nums, mol_rings_nums):
+        X, X_mask = self._nodes_padding(x, ptr)
+        not_padded_X = torch.logical_not(X_mask)
+        Xr = self._rings_attention(x, rings_node_index, rings_node_nums)
+        Xr, Xr_mask = self._split_padding(Xr, mol_rings_nums)
+
+        not_padded_Xr = torch.logical_not(Xr_mask)
+
+        seq, seq_padding_mask = self._assemble_sequence(X, Xr, X_mask, Xr_mask)
+        seq = self.mol_encoder(seq, src_key_padding_mask=seq_padding_mask)
+
+        return seq, not_padded_X, not_padded_Xr
+
+    def _nesting_encode(self, x, ptr, rings_node_index, rings_node_nums, mol_rings_nums):
+        X, _ = self._node_nesting(x, ptr)
+        Xr = self._rings_attention(x, rings_node_index, rings_node_nums)
+        Xr, _ = self._split_nested(Xr, mol_rings_nums)
+
+        seq, _ = self._assemble_sequence(X, Xr, is_nested=True)
+        seq = self.mol_encoder(seq)
+
+        return seq, None, None
 
     def forward(self, x, edge_index, edge_attr, rings_node_index, rings_node_nums, mol_rings_nums, batch, ptr):
         x = self.x_project(x.bfloat16())
@@ -294,16 +359,23 @@ class CoreModule(nn.Module):
 
         x = self.graph(x, edge_index, edge_attr=e)
 
-        X, X_mask = self._nodes_padding(x, ptr)
-        not_padded_X = torch.logical_not(X_mask)
-        Xr = self._rings_attention(x, rings_node_index, rings_node_nums)
-        Xr, Xr_mask = self._split_padding(Xr, mol_rings_nums)
-        not_padded_Xr = torch.logical_not(Xr_mask)
+        if not self.is_nested:
+            return self._padding_encode(x, ptr, rings_node_index, rings_node_nums, mol_rings_nums)
+        else:
+            return self._nesting_encode(x, ptr, rings_node_index, rings_node_nums, mol_rings_nums)
 
-        seq, seq_padding_mask = self._assemble_sequence(X, Xr, X_mask, Xr_mask)
-        seq = self.mol_encoder(seq, src_key_padding_mask=seq_padding_mask)
+        # X, _ = self._node_nesting(x, ptr)
+        # Xr = self._rings_attention(x, rings_node_index, rings_node_nums)
+        # Xr, _ = self._split_nested(Xr, mol_rings_nums)
+        #
+        # seq, seq_padding_mask = self._assemble_sequence(X, Xr)
+        # seq = self.mol_encoder(seq, src_key_padding_mask=seq_padding_mask)
+        #
+        # return seq, not_padded_X, not_padded_Xr
 
-        return seq, not_padded_X, not_padded_Xr
+    @staticmethod
+    def _split_nested(x: torch.Tensor, nums: torch.Tensor, layout=None):
+        return torch.nested.nested_tensor(list(torch.split(x, nums.tolist())), layout=layout), None
 
     def _split_padding(self, x: torch.Tensor, nums: torch.Tensor):
         """
@@ -327,6 +399,10 @@ class CoreModule(nn.Module):
 
         return padded_X, padding_mask
 
+    def _node_nesting(self, x, ptr):
+        mol_node_nums = ptr[1:] - ptr[:-1]
+        return self._split_nested(x, mol_node_nums, layout=torch.jagged)
+
     def _nodes_padding(self, x, ptr):
         mol_node_nums = ptr[1:] - ptr[:-1]
         return self._split_padding(x, mol_node_nums)
@@ -334,30 +410,47 @@ class CoreModule(nn.Module):
     def _rings_attention(self, x, rings_node_index, rings_node_nums):
         x = x[rings_node_index]
 
-        padded_X, padding_mask = self._split_padding(x, rings_node_nums)
-
-        weight_padding = torch.logical_not(padding_mask).float().unsqueeze(-1)
-        padded_X = weight_padding * self.ring_encoder(padded_X, src_key_padding_mask=padding_mask)
+        nested_X, padding_mask = self._split_nested(x, rings_node_nums, layout=torch.jagged)
+        nested_X = self.ring_encoder(nested_X)
 
         # Max pooling, extracting the value with max absolute.
-        pooling_indices = torch.argmax(abs(padded_X), dim=-2).unsqueeze(dim=-2)
-        return padded_X.gather(-2, pooling_indices).squeeze(dim=-2)
+        rings_vec = torch.zeros((len(nested_X), x.shape[-1])).to(x.device)
+        for i, t in enumerate(nested_X):
+            rings_vec[i, :] = t.gather(-2, torch.argmax(torch.abs(t), dim=-2).unsqueeze(-2))
 
-    def _assemble_sequence(self, X, Xr, X_mask, Xr_mask):
+        return rings_vec
+
+        # padded_X, padding_mask = self._split_padding(x, rings_node_nums)
+
+        # weight_padding = torch.logical_not(padding_mask).float().unsqueeze(-1)
+        # padded_X = weight_padding * self.ring_encoder(padded_X, src_key_padding_mask=padding_mask)
+
+        # X = self.mha(padded_X, padded_X, padded_X)
+
+        # padded_X = padded_X.to_padded_tensor(0.0)
+        # pooling_indices = torch.argmax(abs(padded_X), dim=-2).unsqueeze(dim=-2)
+        # return padded_X.gather(-2, pooling_indices).squeeze(dim=-2)
+
+    def _assemble_sequence(self, X, Xr, X_mask=None, Xr_mask=None, is_nested: bool = False):
         CLS = torch.tile(self.CLS, (X.shape[0], 1, 1))
         RING = torch.tile(self.RING, (X.shape[0], 1, 1))
         END = torch.tile(self.END, (X.shape[0], 1, 1))
 
-        seq = torch.cat((CLS, X, RING, Xr, END), dim=-2)
-        seq_padding_mask = torch.cat([
-            torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
-            X_mask,
-            torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
-            Xr_mask,
-            torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
-        ], dim=1)
+        if is_nested:
+            seq = torch.cat((CLS, X.to_padded_tensor(float("-inf")), RING, Xr.to_padded_tensor(float("-inf")), END), dim=-2)
+            return padded_to_nested(seq, float("-inf"), torch.jagged), None
 
-        return seq, seq_padding_mask
+        else:
+            seq = torch.cat((CLS, X, RING, Xr, END), dim=-2)
+            seq_padding_mask = torch.cat([
+                torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
+                X_mask,
+                torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
+                Xr_mask,
+                torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
+            ], dim=1)
+
+            return seq, seq_padding_mask
 
 
 class ResidualModule(nn.Module):

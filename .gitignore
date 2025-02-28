@@ -1,3 +1,4 @@
+!/examples/BayesianDesign
 /examples/
 /test/outdir/**/*
 .idea

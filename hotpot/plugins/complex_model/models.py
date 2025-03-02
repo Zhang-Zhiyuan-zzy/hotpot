@@ -207,6 +207,20 @@ class FeatureExtractors:
         return torch.cat(Znode, dim=0)
 
     @staticmethod
+    def extract_cbond_pair(seq, X_mask, R_mask, batch, batch_getter=None):
+        Znode = FeatureExtractors.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+        cbond_index = batch.cbond_index
+
+        upper_Znode = Znode[cbond_index[0]]
+        lower_Znode = Znode[cbond_index[1]]
+
+        cbond_feature = torch.cat([upper_Znode, lower_Znode], dim=1)
+
+        assert cbond_feature.shape == (upper_Znode.shape[0], upper_Znode.shape[1] * 2)
+
+        return cbond_feature
+
+    @staticmethod
     def extract_pair_vec(seq, X_mask, R_mask, batch, batch_getter=None):
         Znode = FeatureExtractors.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
 

@@ -8,7 +8,7 @@ var searchData=
   ['to_5fobmol_5',['to_obmol',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#ae32d34e4eeb6e02edcf586b5ece3c2d6',1,'hotpot.cheminfo.core.Molecule.to_obmol(self)'],['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#a2b3a2f1b719ba23f4305fa90f1b97bc0',1,'hotpot.cheminfo.core.Molecule.to_obmol(self)']]],
   ['to_5fpair_5fedge_6',['to_pair_edge',['../classhotpot_1_1cheminfo_1_1core_1_1Ring.html#a69333664196bb77d9c50da5869813989',1,'hotpot::cheminfo::core::Ring']]],
   ['to_5fpybel_5fmol_7',['to_pybel_mol',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#a51f175e277061d0f34c11ad9fb74cfe4',1,'hotpot::cheminfo::core::Molecule']]],
-  ['to_5fpyg_5fdata_8',['to_pyg_data',['../namespacehotpot_1_1plugins_1_1pyg_1_1data.html#af5a7d2b11099e20136ecf1503f4f0616',1,'hotpot::plugins::pyg::data']]],
+  ['to_5fpyg_5fdata_8',['to_pyg_data',['../namespacehotpot_1_1plugins_1_1pyg_1_1data.html#af5a7d2b11099e20136ecf1503f4f0616',1,'hotpot::plugins::complex_model::data']]],
   ['to_5frdmol_9',['to_rdmol',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#adfb2bae32f9d11d9cbeb38af13fdc790',1,'hotpot.cheminfo.core.Molecule.to_rdmol(self)'],['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#a7e3b2a575798db2f3a862b5ce54b733e',1,'hotpot.cheminfo.core.Molecule.to_rdmol(self)']]],
   ['to_5fsolvent_5ffeatures_10',['to_solvent_features',['../namespacehotpot_1_1plugins_1_1ml_1_1features_1_1solvents.html#a1ac6ea941403c099219e19152a516d08',1,'hotpot::plugins::ml::features::solvents']]],
   ['torsions_11',['torsions',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#afa27217ce4151651fe28db7f9ce7689b',1,'hotpot::cheminfo::core::Molecule']]],

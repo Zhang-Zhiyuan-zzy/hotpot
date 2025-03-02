@@ -224,7 +224,7 @@ var annotated_dup =
             [ "SciPlotter", "classhotpot_1_1plugins_1_1plots_1_1plotter_1_1SciPlotter.html", "classhotpot_1_1plugins_1_1plots_1_1plotter_1_1SciPlotter" ]
           ] ]
         ] ],
-        [ "pyg", "namespacehotpot_1_1plugins_1_1pyg.html", [
+        [ "complex_model", "namespacehotpot_1_1plugins_1_1pyg.html", [
           [ "data", "namespacehotpot_1_1plugins_1_1pyg_1_1data.html", [
             [ "tmQmDataset", "classhotpot_1_1plugins_1_1pyg_1_1data_1_1tmQmDataset.html", null ]
           ] ],

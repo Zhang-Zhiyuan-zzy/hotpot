@@ -29,7 +29,7 @@ from torch_geometric.loader import DataLoader
 
 from torch_geometric.data import Batch
 
-from hotpot.plugins.pyg.data import tmQmDataset
+from hotpot.plugins.complex_model.data import tmQmDataset
 
 add_dir = osp.abspath(osp.join(osp.dirname(__file__), '..', '..'))
 sys.path.append(add_dir)
@@ -38,8 +38,8 @@ sys.path.append(add_dir)
 import hotpot as hp
 from hotpot.cheminfo.elements import elements
 from hotpot.plugins.dl.pytorch_func import loss_organizer
-from hotpot.plugins.pyg import data as pyg_data, plots
-from hotpot.plugins.pyg import train, models as M
+from hotpot.plugins.complex_model import data as pyg_data, plots
+from hotpot.plugins.complex_model import train, models as M
 from datasets import DatasetGetter
 
 
@@ -757,6 +757,16 @@ class PretrainComplex:
             loss_fn=F.mse_loss,
             to_onehot=False,
             metrics={'R^2': sk_r2}
+        )
+
+    def run_cbond(self):
+        self.train_eval(
+            feature_extractor=M.FeatureExtractors.extract_cbond_pair,
+            predictor_name='predict_atom_aromatic',
+            target_getter=lambda batch: batch.is_cbond,
+            loss_fn=F.binary_cross_entropy,
+            to_onehot=False,
+            metrics={'Binary Accuracy': M.Metrics.binary_accuracy}
         )
 
     def run_rings_aromatic(self):

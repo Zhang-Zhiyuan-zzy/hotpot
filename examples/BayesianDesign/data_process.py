@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import hotpot as hp
-from hotpot.plugins.pyg import data as pyg_data
+from hotpot.plugins.complex_model import data as pyg_data
 from hotpot.plugins.ccdc_api import statistics as cc_stat
 from hotpot.plugins.xtb import xtb_batch_run
 

@@ -11,5 +11,5 @@ var searchData=
   ['plot_8',['Plot',['../classhotpot_1_1plots_1_1Plot.html',1,'hotpot.plots.Plot'],['../classhotpot_1_1plugins_1_1plots_1_1base_1_1Plot.html',1,'hotpot.plugins.plots.base.Plot'],['../classhotpot_1_1plugins_1_1plots_1_1plots_1_1base_1_1Plot.html',1,'hotpot.plugins.plots.plots.base.Plot']]],
   ['plotter_9',['Plotter',['../classhotpot_1_1plugins_1_1plots_1_1base_1_1Plotter.html',1,'hotpot::plugins::plots::base']]],
   ['point_10',['Point',['../classhotpot_1_1cheminfo_1_1geometry_1_1Point.html',1,'hotpot::cheminfo::geometry']]],
-  ['printer_11',['Printer',['../classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html',1,'hotpot::plugins::pyg::train']]]
+  ['printer_11',['Printer',['../classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html',1,'hotpot::plugins::complex_model::train']]]
 ];

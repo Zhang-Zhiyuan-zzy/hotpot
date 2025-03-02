@@ -11,7 +11,7 @@ var searchData=
   ['embeddingdatato2dmap_8',['EmbeddingDataTo2dMap',['../classhotpot_1_1plots_1_1EmbeddingDataTo2dMap.html',1,'hotpot.plots.EmbeddingDataTo2dMap'],['../classhotpot_1_1plugins_1_1plots_1_1plots_1_1ml_1_1EmbeddingDataTo2dMap.html',1,'hotpot.plugins.plots.plots.ml.EmbeddingDataTo2dMap']]],
   ['empty_9',['empty',['../classhotpot_1_1cheminfo_1_1core_1_1JointRing.html#aa3d1fd0bdba76e309cbd775d3c013c46',1,'hotpot::cheminfo::core::JointRing']]],
   ['entryreader_10',['EntryReader',['../classhotpot_1_1plugins_1_1ccdc__api_1_1miner_1_1EntryReader.html',1,'hotpot::plugins::ccdc_api::miner']]],
-  ['evaluator_11',['Evaluator',['../classhotpot_1_1plugins_1_1pyg_1_1train_1_1Evaluator.html',1,'hotpot::plugins::pyg::train']]],
+  ['evaluator_11',['Evaluator',['../classhotpot_1_1plugins_1_1pyg_1_1train_1_1Evaluator.html',1,'hotpot::plugins::complex_model::train']]],
   ['evoluteoptimizer_12',['EvoluteOptimizer',['../classhotpot_1_1plugins_1_1opti_1_1ev_1_1core_1_1EvoluteOptimizer.html',1,'hotpot::plugins::opti::ev::core']]],
   ['exact_5fmass_13',['exact_mass',['../classhotpot_1_1cheminfo_1_1core_1_1Atom.html#ab719d7547af0fa5e7bb7c0110b1dd610',1,'hotpot::cheminfo::core::Atom']]],
   ['example_5fcof_5fparams_14',['example_cof_params',['../namespacehotpot_1_1main_1_1optimize.html#aaf4ef23d68731a1dcbe0d2aaebe44860',1,'hotpot::main::optimize']]],

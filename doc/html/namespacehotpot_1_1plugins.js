@@ -6,6 +6,6 @@ var namespacehotpot_1_1plugins =
     [ "opti", "namespacehotpot_1_1plugins_1_1opti.html", "namespacehotpot_1_1plugins_1_1opti" ],
     [ "plots", "namespacehotpot_1_1plugins_1_1plots.html", "namespacehotpot_1_1plugins_1_1plots" ],
     [ "pubchem", "namespacehotpot_1_1plugins_1_1pubchem.html", "namespacehotpot_1_1plugins_1_1pubchem" ],
-    [ "pyg", "namespacehotpot_1_1plugins_1_1pyg.html", "namespacehotpot_1_1plugins_1_1pyg" ],
+    [ "complex_model", "namespacehotpot_1_1plugins_1_1pyg.html", "namespacehotpot_1_1plugins_1_1pyg" ],
     [ "qm", "namespacehotpot_1_1plugins_1_1qm.html", "namespacehotpot_1_1plugins_1_1qm" ]
 ];

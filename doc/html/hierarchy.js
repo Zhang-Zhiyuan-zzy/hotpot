@@ -41,7 +41,7 @@ var hierarchy =
     [ "hotpot.plugins.ml.features.elements.ElementFeature", "classhotpot_1_1plugins_1_1ml_1_1features_1_1elements_1_1ElementFeature.html", null ],
     [ "hotpot.plugins.ml.features.elements.elements.ElementFeature", "classhotpot_1_1plugins_1_1ml_1_1features_1_1elements_1_1elements_1_1ElementFeature.html", null ],
     [ "hotpot.plugins.ccdc_api.miner.EntryReader", "classhotpot_1_1plugins_1_1ccdc__api_1_1miner_1_1EntryReader.html", null ],
-    [ "hotpot.plugins.pyg.train.Evaluator", "classhotpot_1_1plugins_1_1pyg_1_1train_1_1Evaluator.html", null ],
+    [ "hotpot.plugins.complex_model.train.Evaluator", "classhotpot_1_1plugins_1_1pyg_1_1train_1_1Evaluator.html", null ],
     [ "hotpot.plugins.opti.ev.core.EvoluteOptimizer", "classhotpot_1_1plugins_1_1opti_1_1ev_1_1core_1_1EvoluteOptimizer.html", null ],
     [ "gpytorch.models.ExactGP", null, [
       [ "hotpot.plugins.opti.beyes.opti.GaussianProcess", "classhotpot_1_1plugins_1_1opti_1_1beyes_1_1opti_1_1GaussianProcess.html", null ]
@@ -94,7 +94,7 @@ var hierarchy =
       [ "hotpot.plugins.dl.generate.vae.SpectrumLoss", "classhotpot_1_1plugins_1_1dl_1_1generate_1_1vae_1_1SpectrumLoss.html", null ],
       [ "hotpot.plugins.dl.generate.vae.VAE", "classhotpot_1_1plugins_1_1dl_1_1generate_1_1vae_1_1VAE.html", null ],
       [ "hotpot.plugins.dl.graph.gen_decoder.NodeEdgeDecoder", "classhotpot_1_1plugins_1_1dl_1_1graph_1_1gen__decoder_1_1NodeEdgeDecoder.html", null ],
-      [ "hotpot.plugins.pyg.models.ComplexFormer", "classhotpot_1_1plugins_1_1pyg_1_1models_1_1ComplexFormer.html", null ]
+      [ "hotpot.plugins.complex_model.models.ComplexFormer", "classhotpot_1_1plugins_1_1pyg_1_1models_1_1ComplexFormer.html", null ]
     ] ],
     [ "hotpot.cheminfo.core.Molecule", "classhotpot_1_1cheminfo_1_1core_1_1Molecule.html", null ],
     [ "hotpot.cheminfo.forcefields.OBBuilder", "classhotpot_1_1cheminfo_1_1forcefields_1_1OBBuilder.html", null ],
@@ -106,7 +106,7 @@ var hierarchy =
       [ "hotpot.cheminfo.core_.Molecule", "classhotpot_1_1cheminfo_1_1core___1_1Molecule.html", null ],
       [ "hotpot.cheminfo.mol_statistics.ComplexStatistics", "classhotpot_1_1cheminfo_1_1mol__statistics_1_1ComplexStatistics.html", null ],
       [ "hotpot.plugins.ccdc_api.statistics.ComplexStatistics", "classhotpot_1_1plugins_1_1ccdc__api_1_1statistics_1_1ComplexStatistics.html", null ],
-      [ "hotpot.plugins.pyg.train.Printer", "classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html", null ],
+      [ "hotpot.plugins.complex_model.train.Printer", "classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html", null ],
       [ "hotpot.plugins.xtb.core.XtbCalculator", "classhotpot_1_1plugins_1_1xtb_1_1core_1_1XtbCalculator.html", null ]
     ] ],
     [ "hotpot.plugins.qm.gaussian.gauss.OptionPath", "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1OptionPath.html", null ],
@@ -163,7 +163,7 @@ var hierarchy =
     [ "hotpot.cheminfo.search.Substructure", "classhotpot_1_1cheminfo_1_1search_1_1Substructure.html", null ],
     [ "hotpot.plugins.dl.pytorch_func.TensorContainer", "classhotpot_1_1plugins_1_1dl_1_1pytorch__func_1_1TensorContainer.html", null ],
     [ "hotpot.dataset.tmqm.TmQmDataset", "classhotpot_1_1dataset_1_1tmqm_1_1TmQmDataset.html", null ],
-    [ "hotpot.plugins.pyg.data.tmQmDataset", "classhotpot_1_1plugins_1_1pyg_1_1data_1_1tmQmDataset.html", null ],
+    [ "hotpot.plugins.complex_model.data.tmQmDataset", "classhotpot_1_1plugins_1_1pyg_1_1data_1_1tmQmDataset.html", null ],
     [ "type", null, [
       [ "hotpot.cheminfo.core.MetaAtom", "classhotpot_1_1cheminfo_1_1core_1_1MetaAtom.html", [
         [ "hotpot.cheminfo.core.Atom", "classhotpot_1_1cheminfo_1_1core_1_1Atom.html", null ]

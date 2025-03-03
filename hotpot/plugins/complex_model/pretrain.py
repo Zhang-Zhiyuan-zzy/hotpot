@@ -1,29 +1,17 @@
 import copy
 import os
 import re
-import sys
-import random
-import shutil
 import os.path as osp
 import datetime
-from glob import glob
-import socket
 import typing
-from typing import Callable, Union, Sequence, Optional, Protocol, Type
+from typing import Callable, Union, Sequence, Optional, Any, Type
 
-from torch_geometric.datasets.qm9 import atomrefs
-from tqdm import tqdm
 from operator import attrgetter
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
-
-from sklearn import metrics
 
 import torch
-from torch import nn
 import torch.nn.functional as F
 from torch.optim import Optimizer, Adam
 
@@ -43,6 +31,30 @@ def x_masker_func(inputs: tuple, masked_vec: torch.Tensor):
     masked_x, atom_label, masked_node_idx = M.get_masked_input_and_labels(inputs[0], masked_vec, inputs[0][:, 0].long())
     return (masked_x,) + inputs[1:], masked_node_idx
 
+def remove_cbond_edges(batch: Batch):
+    """ Remove the cbond edges for predict """
+    edge_index = batch.edge_index
+    edge_attr = batch.edge_attr if hasattr(batch, 'edge_attr') else None
+    is_cbond: torch.Tensor = getattr(batch, 'is_cbond')
+
+    cbond_indices = torch.nonzero(is_cbond == 1).squeeze()
+
+    # if cbond_indices is not empty，remove the edge in the edge_index
+    if len(cbond_indices) > 0:
+        # 创建一个mask来标记不需要删除的边
+        mask = torch.ones(edge_index.size(1), dtype=torch.bool)
+        mask[cbond_indices] = False  # 将要删除的边标记为False
+
+        edge_index = edge_index[:, mask]
+
+        if edge_attr is not None:
+            edge_attr = edge_attr[mask]
+
+        batch.edge_index = edge_index
+        batch.edge_attr = edge_attr
+
+    return batch
+
 # ###########################################################################
 
 class FeatureExtractorTemplate(typing.Protocol):
@@ -54,10 +66,6 @@ class FeatureExtractorTemplate(typing.Protocol):
             batch: Batch,
             batch_getter: Callable[[Batch], Union[tuple, torch.Tensor]]=None
     ):
-        ...
-
-class ModelProtocol(Protocol):
-    def __call__(self, x, edge_index, edge_attr, rings_node_index, rings_node_nums, mol_rings_nums, batch, ptr):
         ...
 
 
@@ -78,7 +86,7 @@ class PretrainComplex:
             self,
             work_dir: str,
             dataset_,
-            model: ModelProtocol,
+            model: M.ComplexFormer,
             hypers: Union[Hypers, dict],
             optimizer: Optional[Type[Optimizer]] = None,
             not_save: bool = False,
@@ -218,12 +226,15 @@ class PretrainComplex:
             feature_extractor: FeatureExtractorTemplate,
             predictor: Callable[[torch.Tensor], torch.Tensor],
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
+            batch_preprocessor: Callable[[Batch], Batch] = None,
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
             input_x_index: Union[list, torch.Tensor] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             **kwargs
     ):
         batch = batch.to(self.device)
+        if batch_preprocessor:
+            batch = batch_preprocessor(batch)
         inputs = inputs_getter(batch)
 
         if inputs_preprocessor:
@@ -267,8 +278,9 @@ class PretrainComplex:
             feature_extractor: FeatureExtractorTemplate,
             predictor: Callable[[torch.Tensor], torch.Tensor],
             target_getter: Callable[[Batch], torch.Tensor],
-            loss_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+            loss_fn: Callable[[torch.Tensor, torch.Tensor, Optional[Any]], torch.Tensor],
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
+            batch_preprocessor: Callable[[Batch], Batch] = None,
             input_x_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
@@ -285,6 +297,7 @@ class PretrainComplex:
                 inputs_getter=inputs_getter,
                 feature_extractor=feature_extractor,
                 predictor=predictor,
+                batch_preprocessor=batch_preprocessor,
                 inputs_preprocessor=inputs_preprocessor,
                 input_x_index=input_x_index,
                 x_masker=x_masker,
@@ -323,6 +336,7 @@ class PretrainComplex:
             node_attr_predictor: Callable[[torch.Tensor], torch.Tensor],
             target_getter: Callable[[Batch], torch.Tensor],
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, Optional]] = None,
+            batch_preprocessor: Callable[[Batch], Batch] = None,
             input_x_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
@@ -345,6 +359,7 @@ class PretrainComplex:
                     feature_extractor=feature_extractor,
                     predictor=node_attr_predictor,
                     inputs_preprocessor=inputs_preprocessor,
+                    batch_preprocessor=batch_preprocessor,
                     input_x_index=input_x_index,
                     x_masker=x_masker,
                     extractor_attr_getter=extractor_attr_getter,
@@ -371,8 +386,6 @@ class PretrainComplex:
                 pred_label, target_label = M.inverse_onehot(to_onehot, pred, target)
                 pred_target_label = np.concatenate([pred_label, target_label], axis=1)
                 assert pred_target_label.shape == (target.shape[0], 2)
-                # print("Sample pred and target:")
-                # print(np.random.choice(pred_target_label, print_sample_number, replace=False))
 
             return {
                 metric_name: metric_func(pred, target)
@@ -386,7 +399,6 @@ class PretrainComplex:
             print(f'Eval {metric_name} in eval set {self.work_name}: {metric_value}')
             list_metric = self.metrics.setdefault(metric_name, [])
             list_metric.append(metric_value)
-
 
     def train_eval(
             self,

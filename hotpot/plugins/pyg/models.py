@@ -186,6 +186,17 @@ class FeatureExtractors:
         return torch.cat(Znode, dim=0)
 
     @staticmethod
+    def extract_pair_cbond(seq, X_mask, R_mask, batch, batch_getter=None):
+        Znode = FeatureExtractors.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+
+        cbond_index = batch.cbond_index
+
+        upper_Znode = Znode[cbond_index[0]]
+        lower_Znode = Znode[cbond_index[0]]
+
+        return torch.cat((upper_Znode, lower_Znode), dim=0)  # shape = (upper_Znode.shape[0], 2*Znode.shape[-1])
+
+    @staticmethod
     def extract_pair_vec(seq, X_mask, R_mask, batch, batch_getter=None):
         Znode = FeatureExtractors.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
 
@@ -497,6 +508,9 @@ class ComplexFormer(nn.Module):
         z = self.ring_aromatic_predictor(z) + z
         z = self.ring_aromatic_linear(z)
         return F.sigmoid(z)
+
+    def predict_cbond(self, z: torch.Tensor) -> torch.Tensor:
+        ...
 
     def predict_mol_attrs(self, zs: torch.Tensor, z_names) -> list[torch.Tensor]:
         return [self.mol_attr_predictors[n](z) for z, n in zip(zs, z_names)]

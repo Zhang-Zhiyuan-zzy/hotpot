@@ -24,7 +24,7 @@ var searchData=
   ['clear_5fmetal_5fligand_5fbonds_21',['clear_metal_ligand_bonds',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#a8e29680327b3d3d3168b03f4a6281988',1,'hotpot::cheminfo::core::Molecule']]],
   ['complexes_5fbuild_22',['complexes_build',['../namespacehotpot_1_1cheminfo_1_1forcefields.html#a9a9fe6163adf6ccc6a44aeae251a3e06',1,'hotpot::cheminfo::forcefields']]],
   ['complexes_5fbuild_5foptimize_5f_23',['complexes_build_optimize_',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#ad551856b9a349be79ebf603f0c6a604c',1,'hotpot::cheminfo::core::Molecule']]],
-  ['complexformer_24',['ComplexFormer',['../classhotpot_1_1plugins_1_1pyg_1_1models_1_1ComplexFormer.html',1,'hotpot::plugins::pyg::models']]],
+  ['complexformer_24',['ComplexFormer',['../classhotpot_1_1plugins_1_1pyg_1_1models_1_1ComplexFormer.html',1,'hotpot::plugins::complex_model::models']]],
   ['complexstatistics_25',['ComplexStatistics',['../classhotpot_1_1cheminfo_1_1mol__statistics_1_1ComplexStatistics.html',1,'hotpot.cheminfo.mol_statistics.ComplexStatistics'],['../classhotpot_1_1plugins_1_1ccdc__api_1_1statistics_1_1ComplexStatistics.html',1,'hotpot.plugins.ccdc_api.statistics.ComplexStatistics']]],
   ['components_26',['components',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#a512b754754ef9474d35fc71a6ec62345',1,'hotpot::cheminfo::core::Molecule']]],
   ['conformer_5fadd_27',['conformer_add',['../classhotpot_1_1cheminfo_1_1core_1_1Molecule.html#a908f62bc9f77557ecb65fecade3708e9',1,'hotpot::cheminfo::core::Molecule']]],

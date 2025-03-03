@@ -24,6 +24,6 @@ var searchData=
   ['point_5fin_5fwhich_5fedge_5fside_21',['point_in_which_edge_side',['../classhotpot_1_1cheminfo_1_1geometry_1_1CyclePlanes.html#ad9c97a1accff90228a70bffd8651ec56',1,'hotpot::cheminfo::geometry::CyclePlanes']]],
   ['polar_5fhydrogen_5fsite_22',['polar_hydrogen_site',['../classhotpot_1_1cheminfo_1_1core_1_1Atom.html#a4fed48eab65903696bd6a4f2b368699a',1,'hotpot::cheminfo::core::Atom']]],
   ['post_5fprocess_5faxes_23',['post_process_axes',['../classhotpot_1_1plugins_1_1plots_1_1base_1_1Plotter.html#ae08a1d6a047d3be7d1d0d7936868a582',1,'hotpot::plugins::plots::base::Plotter']]],
-  ['printer_24',['Printer',['../classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html',1,'hotpot::plugins::pyg::train']]],
+  ['printer_24',['Printer',['../classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html',1,'hotpot::plugins::complex_model::train']]],
   ['progress_5ftime_25',['progress_time',['../classhotpot_1_1plugins_1_1opti_1_1ev_1_1core_1_1Earth.html#aab867317108640b8635f638dcffa5ec1',1,'hotpot::plugins::opti::ev::core::Earth']]]
 ];

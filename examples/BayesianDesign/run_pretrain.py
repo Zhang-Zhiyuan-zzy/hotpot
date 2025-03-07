@@ -20,8 +20,8 @@ else:
 machine_name = socket.gethostname()
 if machine_name == '4090':
     project_root = '/home/zzy/docker_envs/pretrain/proj'
-elif machine_name == 'DESKTOP-G9D9UUB':
-    project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+elif machine_name == 'DESKTOP-TZ001':
+    project_root = '/mnt/d/1-hnh/Data'
 elif machine_name == 'docker':
     project_root = '/app/proj'
 else:
@@ -30,7 +30,7 @@ else:
 models_dir = osp.join(project_root, 'models')
 
 # dataset save paths
-_tmqm_data_dir = osp.join(project_root, 'datasets', 'tmqm_data0207')
+_tmqm_data_dir = osp.join(project_root, 'datasets', 'tmqm_data0224_regularization')
 
 
 

@@ -38,6 +38,7 @@ tmqm_getter = DatasetGetter(project_root, "tmqm")
 
 dataset, dataset_test = tmqm_getter.get_datasets()
 INPUT_X_INDEX = tmqm_getter.get_index('x', ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z'))
+XYZ_INDEX = tmqm_getter.get_index('x', ('x', 'y', 'z'))
 TYPE_INDEX = tmqm_getter.get_index('x', 'atomic_number')
 ATOM_CHRG_INDEX = tmqm_getter.get_index('x', 'partial_charge')
 ATOM_AROMATIC_INDEX = tmqm_getter.get_index('x', 'is_aromatic')
@@ -53,6 +54,10 @@ X_DIM = len(INPUT_X_INDEX)
 EDGE_DIM = dataset[0].edge_attr.shape[-1]
 VEC_DIM = 64
 MASK_VEC = (-1 * torch.ones(X_DIM)).to(device)
+RING_LAYERS = 1
+RING_HEADS = 2
+MOL_LAYERS = 1
+MOL_HEADS = 2
 
 ATOM_TYPES = 119  # Arguments for atom type loss
 
@@ -66,14 +71,19 @@ model = M.ComplexFormer(
     x_dim=X_DIM,
     edge_dim=EDGE_DIM,
     vec_dim=VEC_DIM,
+    x_label_nums=ATOM_TYPES,
+    ring_layers=RING_LAYERS,
+    ring_nheads=RING_HEADS,
+    mol_layers=MOL_LAYERS,
+    mol_nheads=MOL_HEADS,
+    core_module=M.Core
 )
 
 def atom_types():
     with pretrain.PretrainComplex(
         work_name="atom types",
         not_save=True,
-        work_dir=models_dir,
-        model=model,
+        work_dir=models_dir,        model=model,
         dataset_=dataset,
         dataset_test_=dataset_test,
         optimizer=OPTIMIZER,
@@ -83,10 +93,13 @@ def atom_types():
         eval_steps=1,
         eval_first=True,
     ) as pt:
+        print(pt.work_dir)
+        # pt.load_model_params()
         pt.run(
             feature_extractor=M.FeatureExtractors.extract_atom_vec,
             predictor=model.predict_atom_type,
             input_x_index=INPUT_X_INDEX,
+            xyz_index=XYZ_INDEX,
             target_getter=lambda batch: batch.x[:, TYPE_INDEX],
             x_masker=pretrain.x_masker_func,
             loss_fn=M.LossMethods.calc_atom_type_loss,

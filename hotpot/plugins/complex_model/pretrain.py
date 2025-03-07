@@ -16,19 +16,28 @@ import torch.nn.functional as F
 from torch.optim import Optimizer, Adam
 
 from torch_geometric.loader import DataLoader
-
 from torch_geometric.data import Batch
-
 from hotpot.plugins.complex_model import models as M
 
 
 # ###########################################################################
+def get_xyz(*inputs, xyz_index: Union[int, torch.Tensor]) -> torch.Tensor:
+    return inputs[0][:, xyz_index]
+
 def get_x_input_attrs(*inputs, input_x_index: Union[list, torch.Tensor]):
     x = inputs[0][:, input_x_index]
     return (x,) + inputs[1:]
 
+def get_labeled_x_input_attrs(*inputs, input_x_index: Union[list, torch.Tensor]):
+    return (inputs[0][:, 0],) + inputs[1:]
+
 def x_masker_func(inputs: tuple, masked_vec: torch.Tensor):
-    masked_x, atom_label, masked_node_idx = M.get_masked_input_and_labels(inputs[0], masked_vec, inputs[0][:, 0].long())
+    x = inputs[0]
+    if x.dim == 2:
+        masked_x, atom_label, masked_node_idx = M.get_masked_input_and_labels(inputs[0], masked_vec, x[:, 0].long())
+    else:
+        masked_x, atom_label, masked_node_idx = M.get_masked_input_and_labels(inputs[0], masked_vec, x.long(), label_mask=True)
+
     return (masked_x,) + inputs[1:], masked_node_idx
 
 def remove_cbond_edges(batch: Batch):
@@ -82,17 +91,18 @@ class PretrainComplex:
     dataset_matcher = re.compile(r'get_.+_dataset')
     work_matcher = re.compile(r'run_.+')
 
-    def __init__(
+    def  __init__(
             self,
             work_dir: str,
             dataset_,
             model: M.ComplexFormer,
             hypers: Union[Hypers, dict],
             optimizer: Optional[Type[Optimizer]] = None,
+            has_xyz: bool = False,
             not_save: bool = False,
             dataset_test_ = None,
             eval_first: bool = False,
-            eval_steps: Optional[int] = 10,
+            eval_steps: Optional[int] = 1,
             debug: bool = False,
             device: Union[str, torch.device] = None,
             epochs: int = 100,
@@ -115,6 +125,7 @@ class PretrainComplex:
             evalset_shuffle: bool
         """
         self.work_name = work_name
+        self.has_xyz = has_xyz
 
         self.work_dir = work_dir
         self.dataset = dataset_
@@ -135,6 +146,7 @@ class PretrainComplex:
         self.metrics = {}
         self.debug = debug
         self.epochs = epochs
+        self.lazy_eval = None
 
         if not device:
             self.device = torch.device('cuda') if torch.cuda.is_available() else None
@@ -155,6 +167,20 @@ class PretrainComplex:
             df = pd.DataFrame(self.metrics)
             df.set_index('epoch', inplace=True)
             df.to_csv(osp.join(model_dir, 'metrics.csv'))
+
+    def load_model_params(self, which: Union[int, str] = -1):
+        list_models = sorted(os.listdir(self.work_dir))
+        if isinstance(which, int):
+            model_dir = list_models[which]
+            state_dict = torch.load(osp.join(self.work_dir, model_dir, "state_dict.pt"))
+        elif isinstance(which, str):
+            if which not in list_models:
+                raise ValueError("The model you are trying to load does not exist.")
+            state_dict = torch.load(osp.join(self.work_dir, which, "state_dict.pt"))
+        else:
+            raise TypeError("The argument which is not a int or str.")
+
+        self.model.load_state_dict(state_dict)
 
     def save_model(self):
         now = datetime.datetime.now()
@@ -229,6 +255,7 @@ class PretrainComplex:
             batch_preprocessor: Callable[[Batch], Batch] = None,
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
             input_x_index: Union[list, torch.Tensor] = None,
+            xyz_index: Union[list, torch.Tensor] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             **kwargs
     ):
@@ -236,6 +263,11 @@ class PretrainComplex:
         if batch_preprocessor:
             batch = batch_preprocessor(batch)
         inputs = inputs_getter(batch)
+
+        if xyz_index is not None:
+            xyz = get_xyz(*inputs, xyz_index=xyz_index)
+        else:
+            xyz = None
 
         if inputs_preprocessor:
             assert isinstance(input_x_index, (list, torch.Tensor))
@@ -246,7 +278,7 @@ class PretrainComplex:
             masked_idx = None
 
         # Core model
-        seq, X_not_pad, R_not_pad = model(*inputs)
+        seq, X_not_pad, R_not_pad = model(*inputs, xyz=xyz)
 
         # Extract features
         feature = feature_extractor(seq, X_not_pad, R_not_pad, batch, extractor_attr_getter)  # Node level feature
@@ -282,15 +314,17 @@ class PretrainComplex:
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
             batch_preprocessor: Callable[[Batch], Batch] = None,
             input_x_index: Union[list, torch.Tensor] = None,
+            xyz_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             to_onehot: bool = False,
             onehot_types: int = None,
             loss_weight_calculator: Callable[[torch.Tensor, int], torch.Tensor] = None,
+            eval_batch_step: Optional[int] = None,
             **kwargs
     ):
         model.train()
-        for batch in loader:
+        for i, batch in enumerate(loader, 1):
             self.batch_dtype_preprocessor(batch)
             model, pred, masked_index = self.forward(
                 model, batch,
@@ -300,6 +334,7 @@ class PretrainComplex:
                 batch_preprocessor=batch_preprocessor,
                 inputs_preprocessor=inputs_preprocessor,
                 input_x_index=input_x_index,
+                xyz_index=xyz_index,
                 x_masker=x_masker,
                 extractor_attr_getter=extractor_attr_getter,
                 **kwargs
@@ -324,8 +359,19 @@ class PretrainComplex:
             loss.backward()
             optimizer.step()
 
+            if eval_batch_step and i % eval_batch_step and isinstance(self.lazy_eval, Callable):
+                self.lazy_eval(eval_max_batch=3)
+
             if self.debug:
                 break
+
+    def _lazy_eval(self, *args, **kwargs):
+        def lazy_wrapper(epoch=None, **kw):
+            kwargs.update(kw)
+            metric_results = self.to_eval(*args, **kwargs)
+            self.print_eval_metric(metric_results, epoch)
+            return metric_results
+        return lazy_wrapper
 
     def to_eval(
             self,
@@ -338,12 +384,13 @@ class PretrainComplex:
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, Optional]] = None,
             batch_preprocessor: Callable[[Batch], Batch] = None,
             input_x_index: Union[list, torch.Tensor] = None,
+            xyz_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             to_onehot: bool = False,
             onehot_types: int = None,
             print_pred_target_labels: bool = True,
-            eval_one_debug: bool = False,
+            eval_max_batch: Optional[int] = None,
             **kwargs
     ):
         model.eval()
@@ -351,7 +398,7 @@ class PretrainComplex:
         pred = []
         target = []
         with torch.no_grad():
-            for batch in loader:
+            for i, batch in enumerate(loader):
                 self.batch_dtype_preprocessor(batch)
                 model, node_pred, masked_index = self.forward(
                     model, batch,
@@ -361,6 +408,7 @@ class PretrainComplex:
                     inputs_preprocessor=inputs_preprocessor,
                     batch_preprocessor=batch_preprocessor,
                     input_x_index=input_x_index,
+                    xyz_index=xyz_index,
                     x_masker=x_masker,
                     extractor_attr_getter=extractor_attr_getter,
                 )
@@ -379,6 +427,9 @@ class PretrainComplex:
                 if self.debug:
                     break
 
+                if eval_max_batch and i >= eval_max_batch:
+                    break
+
             pred = np.concatenate(pred)
             target = np.concatenate(target)
 
@@ -392,11 +443,12 @@ class PretrainComplex:
                 for metric_name, metric_func in metrics.items()
             }
 
-    def print_eval_metric(self, epoch: int, metric_results):
+    def print_eval_metric(self, metric_results, epoch: Optional[int] = None):
         list_epoch = self.metrics.setdefault('epoch', [])
-        list_epoch.append(epoch)
+        if isinstance(epoch, int):
+            list_epoch.append(epoch)
         for metric_name, metric_value in metric_results.items():
-            print(f'Eval {metric_name} in eval set {self.work_name}: {metric_value}')
+            print(f'Eval {metric_name} in eval set {self.work_name}, epoch: {epoch}/{self.epochs}: {metric_value}')
             list_metric = self.metrics.setdefault(metric_name, [])
             list_metric.append(metric_value)
 
@@ -407,6 +459,7 @@ class PretrainComplex:
             target_getter: Callable[[Batch], torch.Tensor],
             loss_fn: Callable[[tuple[torch.Tensor, torch.Tensor], torch.Tensor], torch.Tensor],
             input_x_index: Union[list, torch.Tensor] = None,
+            xyz_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             to_onehot: bool = True,
@@ -423,6 +476,10 @@ class PretrainComplex:
             'x', 'edge_index', 'edge_attr', 'rings_node_index',
             'rings_node_nums', 'mol_rings_nums', 'batch', 'ptr')
         loader, eval_loader, model, optimizer = self.prepare()
+        if model.is_labeled_x:
+            inputs_preprocessor = get_labeled_x_input_attrs
+        else:
+            inputs_preprocessor = get_x_input_attrs
 
         # Preparing arguments
         train_kw = dict(
@@ -434,8 +491,9 @@ class PretrainComplex:
             predictor=predictor,
             target_getter=target_getter,
             loss_fn=loss_fn,
-            inputs_preprocessor=get_x_input_attrs,
+            inputs_preprocessor=inputs_preprocessor,
             input_x_index=input_x_index,
+            xyz_index=xyz_index,
             x_masker=x_masker,
             extractor_attr_getter=extractor_attr_getter,
             to_onehot=to_onehot,
@@ -452,33 +510,32 @@ class PretrainComplex:
             feature_extractor=feature_extractor,
             node_attr_predictor=predictor,
             target_getter=target_getter,
-            inputs_preprocessor=get_x_input_attrs,
+            inputs_preprocessor=inputs_preprocessor,
             input_x_index=input_x_index,
+            xyz_index=xyz_index,
             extractor_attr_getter=extractor_attr_getter,
             to_onehot=to_onehot,
             onehot_types=onehot_types,
             **kwargs
         )
 
-        def _print_eval_result():
-            ev_kw = copy.copy(eval_kw)
-            ev_kw["loader"] = DataLoader(self.dataset_test, batch_size=self.hypers.batch_size, shuffle=True)
-            metric_results = self.to_eval(**_ev_kw)
-            self.print_eval_metric(-1, metric_results)
+        self.lazy_eval = self._lazy_eval(**eval_kw)
 
         # Training and evaluation
         if self.eval_first:
-            _ev_kw = copy.copy(eval_kw)
-            _ev_kw["loader"] = DataLoader(self.dataset_test, batch_size=self.hypers.batch_size, shuffle=True)
-            metric_results = self.to_eval(**_ev_kw)
-            self.print_eval_metric(-1, metric_results)
-            del _ev_kw
+            self.lazy_eval(eval_max_batch=3)
+            # _ev_kw = copy.copy(eval_kw)
+            # _ev_kw["loader"] = DataLoader(self.dataset_test, batch_size=self.hypers.batch_size, shuffle=True)
+            # metric_results = self.to_eval(**_ev_kw)
+            # self.print_eval_metric(metric_results)
+            # del _ev_kw
 
         for epoch in range(self.epochs):
             self.to_train(**train_kw)
             if isinstance(self.eval_steps, int) and epoch % self.eval_steps == 0:
-                metric_results = self.to_eval(**eval_kw)
-                self.print_eval_metric(epoch, metric_results)
+                self.lazy_eval(epoch)
+                # metric_results = self.to_eval(**eval_kw)
+                # self.print_eval_metric(metric_results, epoch)
 
     def run(self, *args, **kwargs):
         self.train_eval(*args, **kwargs)

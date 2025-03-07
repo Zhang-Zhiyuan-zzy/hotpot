@@ -100,6 +100,7 @@ class PretrainComplex:
             optimizer: Optional[Type[Optimizer]] = None,
             has_xyz: bool = False,
             not_save: bool = False,
+            save_max_acc_state: bool = True,
             dataset_test_ = None,
             eval_first: bool = False,
             eval_steps: Optional[int] = 1,
@@ -107,6 +108,10 @@ class PretrainComplex:
             device: Union[str, torch.device] = None,
             epochs: int = 100,
             work_name: Optional[str] = None,
+            primary_metric: str = "accuracy",
+            minimize_metric: bool = False,
+            early_stopping: bool = False,
+            early_stop_step: int = 5,
             **kwargs
     ):
         """
@@ -156,6 +161,17 @@ class PretrainComplex:
         self.OPTIMIZER = optimizer if isinstance(optimizer, Optimizer) else Adam
         self.kwargs = kwargs
 
+        self.model_dir = self._init_model_dir()
+        self.primary_metric = primary_metric
+        self.best_primary_metric = None
+        self.save_max_acc_state = save_max_acc_state
+        self.minimize_metric = minimize_metric
+
+        # Early stop control
+        self.early_stopping = early_stopping
+        self.early_stop_step = early_stop_step
+        self.early_stop_clock = 0
+
     def __enter__(self):
         return self
 
@@ -167,6 +183,16 @@ class PretrainComplex:
             df = pd.DataFrame(self.metrics)
             df.set_index('epoch', inplace=True)
             df.to_csv(osp.join(model_dir, 'metrics.csv'))
+
+    def _init_model_dir(self):
+        now = datetime.datetime.now()
+        formatted_datetime = now.strftime("%y%m%d%H%M%S")
+        model_dir = osp.join(self.work_dir, f"cp_{formatted_datetime}")
+
+        if not osp.exists(model_dir):
+            os.mkdir(model_dir)
+
+        return model_dir
 
     def load_model_params(self, which: Union[int, str] = -1):
         list_models = sorted(os.listdir(self.work_dir))
@@ -183,15 +209,7 @@ class PretrainComplex:
         self.model.load_state_dict(state_dict)
 
     def save_model(self):
-        now = datetime.datetime.now()
-        formatted_datetime = now.strftime("%y%m%d%H%M%S")
-
-        model_dir = osp.join(self.work_dir, f"cp_{formatted_datetime}")
-        os.mkdir(model_dir)
-
-        self.model.save_model(model_dir)
-
-        return model_dir
+        self.model.save_model(self.model_dir)
 
     def train_func(self, which) -> Callable:
         return getattr(self, f"run_{which}")
@@ -443,6 +461,26 @@ class PretrainComplex:
                 for metric_name, metric_func in metrics.items()
             }
 
+    def inspect_model(self, eval_results: dict):
+        def update_best_model(pm):
+            nonlocal is_update
+            self.best_primary_metric = pm
+            path_state_dict = osp.join(self.model_dir, 'best_state_dict.pt')
+            torch.save(self.model.state_dict(), path_state_dict)
+            is_update = True
+
+        is_update = False
+        primary_metric = eval_results[self.primary_metric]
+        if self.best_primary_metric is None:
+            update_best_model(primary_metric)
+        else:
+            if self.minimize_metric and primary_metric < self.best_primary_metric:
+                update_best_model(primary_metric)
+            elif not self.minimize_metric and primary_metric > self.best_primary_metric:
+                update_best_model(primary_metric)
+
+        return is_update
+
     def print_eval_metric(self, metric_results, epoch: Optional[int] = None):
         list_epoch = self.metrics.setdefault('epoch', [])
         if isinstance(epoch, int):
@@ -524,18 +562,22 @@ class PretrainComplex:
         # Training and evaluation
         if self.eval_first:
             self.lazy_eval(eval_max_batch=3)
-            # _ev_kw = copy.copy(eval_kw)
-            # _ev_kw["loader"] = DataLoader(self.dataset_test, batch_size=self.hypers.batch_size, shuffle=True)
-            # metric_results = self.to_eval(**_ev_kw)
-            # self.print_eval_metric(metric_results)
-            # del _ev_kw
 
         for epoch in range(self.epochs):
             self.to_train(**train_kw)
             if isinstance(self.eval_steps, int) and epoch % self.eval_steps == 0:
-                self.lazy_eval(epoch)
-                # metric_results = self.to_eval(**eval_kw)
-                # self.print_eval_metric(metric_results, epoch)
+                metric_results = self.lazy_eval(epoch)
+                is_update = self.inspect_model(metric_results)
+
+                # Control early stop
+                if self.early_stopping and not is_update:
+                    self.early_stop_clock += 1
+                else:
+                    self.early_stop_clock = 0
+
+                if self.early_stop_clock > self.early_stop_step:
+                    print(RuntimeWarning(f"Early stopping in {epoch} epochs"))
+                    break
 
     def run(self, *args, **kwargs):
         self.train_eval(*args, **kwargs)

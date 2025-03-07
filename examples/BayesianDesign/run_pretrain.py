@@ -24,14 +24,12 @@ elif machine_name == 'DESKTOP-G9D9UUB':
     project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
 elif machine_name == 'docker':
     project_root = '/app/proj'
+elif machine_name == '3090':
+    project_root = '/home/hnh/proj'
 else:
     raise ValueError
 
 models_dir = osp.join(project_root, 'models')
-
-# dataset save paths
-_tmqm_data_dir = osp.join(project_root, 'datasets', 'tmqm_data0207')
-
 
 
 tmqm_getter = DatasetGetter(project_root, "tmqm")

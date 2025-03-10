@@ -3,8 +3,9 @@ import os
 import os.path as osp
 import shutil
 import random
-from typing import Iterable, Optional, Protocol, Type, Union
+from typing import Iterable, Optional, Protocol, Type, Union, Literal
 import socket
+from tqdm import tqdm
 
 import torch
 from torch_geometric.data import Data
@@ -42,6 +43,7 @@ else:
     raise ValueError
 
 
+
 class PretrainDataset:
     def __init__(self, root: str, in_mem_size: int = 20000) -> None:
         self.root = root
@@ -55,6 +57,9 @@ class PretrainDataset:
             self.InMemory = False
 
         self.list_data = []
+
+    def load_all(self, max_len: int = 1e99) -> list:
+        return [self[i] for i in tqdm(range(min(len(self), max_len)), "loading dataset")]
 
     def __len__(self):
         return self.len
@@ -72,6 +77,32 @@ class PretrainDataset:
     def __iter__(self):
         for i in range(self.len):
             yield self[i]
+
+
+
+class DatasetCouple:
+    def __init__(self, root: str):
+        self.root = root
+        self.train_dir = osp.join(root, 'train')
+        self.test_dir = osp.join(root, 'test')
+
+    def __getitem__(self, item: Literal['train', 'test']) -> PretrainDataset:
+        return PretrainDataset(self.train_dir)
+
+    def get_datasets(self) -> (PretrainDataset, PretrainDataset):
+        return PretrainDataset(self.train_dir), PretrainDataset(self.test_dir)
+
+
+class DatasetCollection:
+    def __init__(self, root: str):
+        self.root = root
+        self.dataset_names = os.listdir(self.root)
+
+    def __getitem__(self, item: str) -> DatasetCouple:
+        if item in self.dataset_names:
+            return DatasetCouple(osp.join(self.root, item))
+        else:
+            raise KeyError(f"Dataset {item} is not exist,\n choose from {list(self.dataset_names)}")
 
 
 

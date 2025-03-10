@@ -1,18 +1,14 @@
 import datetime
 import os.path as osp
-from typing import Literal, Union, Optional, Type
+from typing import Literal, Union, Optional, Type, Type
+from enum import Enum
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch_geometric as pyg
-import torch.optim as optim
 import torch_geometric.nn as pygnn
-from sympy.physics.units import moles
-from torch.xpu import device
 
-from torch_geometric.loader import DataLoader
 from hotpot.cheminfo.elements import elements
 from . import attn
 
@@ -76,43 +72,51 @@ def _to_mask(
         masked_idx: torch.Tensor,
         mask_vec: torch.Tensor,
         inp_atom_labels: torch.Tensor,
+
+        # While the inp_vec is the labels
         label_mask: bool = False,
         to_mask_label: int = 0
 ):
-    # TODO: Do not delete
-    # # Set targets to -1 by default, it means ignore
-    # atom_labels = -1 * torch.ones(inp_vec.shape[0], dtype=torch.int).to(inp_vec.device)
-    # # Set labels for masked tokens
-    # atom_labels[masked_idx] = inp_atom_labels[masked_idx]
-    # TODO: Do not delete
+    atom_labels = inp_atom_labels[masked_idx]
 
-    if label_mask:
-        atom_labels = inp_atom_labels[masked_idx]
+    # Prepare masked input
+    masked_vec = inp_vec.clone()
+    # Set input to [MASK] which is the last token for the 90% of tokens
+    # This means leaving 10% unchanged
+    mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
+    masked_vec[mask2mask_idx] = to_mask_label if label_mask else mask_vec # mask token is the last in the dict
 
-        # Prepare masked input
-        masked_vec = inp_vec.clone()
-        # Set input to [MASK] which is the last token for the 90% of tokens
-        # This means leaving 10% unchanged
-        mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
-        masked_vec[mask2mask_idx] = to_mask_label  # mask token is the last in the dict
+    # Set 10% to a random token
+    mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
+    masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
 
-        # Set 10% to a random token
-        mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
-        masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
-
-    else:
-        atom_labels = inp_atom_labels[masked_idx]
-
-        # Prepare masked input
-        masked_vec = inp_vec.clone()
-        # Set input to [MASK] which is the last token for the 90% of tokens
-        # This means leaving 10% unchanged
-        mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
-        masked_vec[mask2mask_idx] = mask_vec  # mask token is the last in the dict
-
-        # Set 10% to a random token
-        mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
-        masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
+    # if label_mask:
+    #     atom_labels = inp_atom_labels[masked_idx]
+    #
+    #     # Prepare masked input
+    #     masked_vec = inp_vec.clone()
+    #     # Set input to [MASK] which is the last token for the 90% of tokens
+    #     # This means leaving 10% unchanged
+    #     mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
+    #     masked_vec[mask2mask_idx] = to_mask_label  # mask token is the last in the dict
+    #
+    #     # Set 10% to a random token
+    #     mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
+    #     masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
+    #
+    # else:
+    #     atom_labels = inp_atom_labels[masked_idx]
+    #
+    #     # Prepare masked input
+    #     masked_vec = inp_vec.clone()
+    #     # Set input to [MASK] which is the last token for the 90% of tokens
+    #     # This means leaving 10% unchanged
+    #     mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
+    #     masked_vec[mask2mask_idx] = mask_vec  # mask token is the last in the dict
+    #
+    #     # Set 10% to a random token
+    #     mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
+    #     masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
 
     return masked_vec, atom_labels, masked_idx
 
@@ -203,6 +207,70 @@ class Metrics:
     @staticmethod
     def binary_accuracy(pred: np.ndarray, target: np.ndarray):
         return (target == np.round(pred)).mean()
+
+    @staticmethod
+    def r2_score(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        """
+        Computes the R^2 (coefficient of determination) score between y_true and y_pred.
+
+        R^2 = 1 - (SS_res / SS_tot),
+        where SS_res = Σ(y_true - y_pred)²
+              SS_tot = Σ(y_true - mean(y_true))²
+        """
+        # Ensure y_true and y_pred are float tensors
+        # target = target.float()
+        # pred = pred.float()
+
+        # Mean of true values
+        mean_y_true = target.mean()
+
+        # Sum of squares of residuals
+        ss_res = ((target - pred) ** 2).sum()
+
+        # Total sum of squares (relative to the mean)
+        ss_tot = ((target - mean_y_true) ** 2).sum()
+
+        # Handle the case where ss_tot can be zero (e.g., constant targets)
+        if ss_tot <= 1e-8:
+            if isinstance(pred, torch.Tensor):
+                return torch.tensor(1.0 if torch.allclose(target, pred) else 0.0)
+            else:
+                return np.array(1.0 if np.allclose(target, pred) else 0.0)
+
+        return 1 - ss_res / ss_tot
+
+    @staticmethod
+    def rmse(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        if isinstance(target, torch.Tensor):
+            return torch.sqrt(F.mse_loss(pred, target))
+        else:
+            return np.sqrt(np.mean((pred - target) ** 2))
+
+    @staticmethod
+    def mse(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        if isinstance(target, torch.Tensor):
+            return F.mse_loss(pred, target)
+        else:
+            return np.mean((pred - target) ** 2)
+
+    @staticmethod
+    def mae(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        if isinstance(target, torch.Tensor):
+            return torch.mean(torch.abs(target - pred))
+        else:
+            return np.mean(np.abs(target - pred))
 
 
 class FeatureExtractors:
@@ -309,7 +377,6 @@ class CloudGraph(nn.Module):
         return x
 
 
-
 class CoreBase(nn.Module):
     def __init__(
             self,
@@ -394,6 +461,7 @@ class CoreBase(nn.Module):
 
         start = 0
         for i, size in enumerate(nums.long()):
+            size: int
             padded_X[i, :size] = x[start:start + size]
             padding_mask[i, :size] = 0
             start += size
@@ -580,14 +648,6 @@ class CoreModule(nn.Module):
         self.RING = nn.Parameter(torch.randn(1, vec_dim))
         self.END = nn.Parameter(torch.randn(1, vec_dim))
 
-        # # To test
-        # self.CLS = nn.Parameter(torch.zeros(1, vec_dim))
-        # self.RING = nn.Parameter(torch.ones(1, vec_dim))
-        # self.END = nn.Parameter(-1 * torch.ones(1, vec_dim))
-
-        # TODO: in test
-        # self.mha = attn.MultiHeadAttention(vec_dim, vec_dim, vec_dim, vec_dim, ring_nheads, 0.1)
-
         if graph_model:
             self.graph = graph_model
         else:
@@ -606,16 +666,6 @@ class CoreModule(nn.Module):
             **self.ring_encoder_kw,
         )
 
-        # self.ring_encoder = nn.TransformerEncoder(
-        #     encoder_layer=nn.TransformerEncoderLayer(
-        #         d_model=vec_dim,
-        #         nhead=ring_nheads,
-        #         batch_first=True,
-        #         **self.ring_encoder_kw
-        #     ),
-        #     num_layers=ring_layers, **self.ring_encoder_block_kw
-        # )
-
         self.mol_encoder_kw = mol_encoder_kw if mol_encoder_kw else {}
         self.mol_encoder_block_kw = mol_encoder_block_kw if mol_encoder_block_kw else {}
         self.mol_encoder = attn.Encoder(
@@ -625,16 +675,6 @@ class CoreModule(nn.Module):
             **self.mol_encoder_kw,
         )
 
-        # self.mol_encoder = nn.TransformerEncoder(
-        #     encoder_layer=nn.TransformerEncoderLayer(
-        #         d_model=vec_dim,
-        #         nhead=mol_nheads, batch_first=True,
-        #         **self.mol_encoder_kw
-        #     ),
-        #     num_layers=mol_layers, **self.mol_encoder_block_kw
-        # )
-
-        # TODO: convert to False later
         self.is_nested = kwargs.get('is_nested', True)
 
     def _padding_encode(self, x, ptr, rings_node_index, rings_node_nums, mol_rings_nums):
@@ -689,7 +729,8 @@ class CoreModule(nn.Module):
     def _split_nested(x: torch.Tensor, nums: torch.Tensor, layout=None):
         return torch.nested.nested_tensor(list(torch.split(x, nums.tolist())), layout=layout), None
 
-    def _split_padding(self, x: torch.Tensor, nums: torch.Tensor):
+    @staticmethod
+    def _split_padding(x: torch.Tensor, nums: torch.Tensor):
         """
         Split X in PyG-style batch and padding.
         :param x: PyG-style batch node vectors
@@ -705,6 +746,7 @@ class CoreModule(nn.Module):
 
         start = 0
         for i, size in enumerate(nums.long()):
+            size: int
             padded_X[i, :size] = x[start:start + size]
             padding_mask[i, :size] = 0
             start += size
@@ -786,7 +828,110 @@ class MolAttrPredictor(nn.Module):
         return x
 
 
+############################# Predictors #################################
+TargetTypeName = Literal['num', 'xyz', 'onehot', 'binary']
+class Predictor(nn.Module):
+    def __init__(
+            self,
+            in_size: int,
+            target_pattern: TargetTypeName,
+            num_layers: int = 2,
+            dropout: float = 0.1,
+            act: Type[nn.Module] = nn.ReLU,
+            out_act: Type[nn.Module] = nn.ReLU,
+            **kwargs
+    ):
+        super(Predictor, self).__init__()
+        self.hidden_layers = pygnn.MLP(num_layers * [in_size], dropout=dropout, act=act, **kwargs)
+
+        self.target_pattern = target_pattern
+        if target_pattern == 'num':
+            self.out_layer = nn.Linear(in_size, 1)
+            self.out_act = out_act()
+        elif target_pattern == 'xyz':
+            self.out_layer = nn.Linear(in_size, 3)
+            self.out_act = out_act()
+        elif target_pattern == 'onehot':
+            self.out_layer = nn.Linear(in_size, kwargs.get("onehot_type", 119))
+            self.out_act = nn.Softmax(dim=-1)
+        elif target_pattern == 'binary':
+            self.out_layer = nn.Linear(in_size, 1)
+            self.out_act = nn.Sigmoid()
+        else:
+            raise NotImplementedError(f"{target_pattern} is not implemented")
+
+    def forward(self, z):
+        # z = self.atom_type_predictor(z) + z
+        # z = self.out_layer(z)
+        # return F.softmax(z, dim=-1)
+        z = self.hidden_layers(z)
+        return self.out_act(self.out_layer(z))
+
+############################### ComplexFormer ##################################
+TargetNames = Literal[
+    'AtomType',
+    'AtomCharge',
+    'xyz',
+    'CBond',
+    'MolAttr',
+    'RingAromatic',
+]
 class ComplexFormer(nn.Module):
+    def __init__(
+            self,
+            core: Core,
+            target_name:
+            Optional[TargetTypeName] = None,
+            **kwargs
+    ):
+        super(ComplexFormer, self).__init__()
+        self.core = core
+        self.target_name = target_name
+        if isinstance(target_name, str):
+            if target_name == "AtomType":
+                self.predictor = Predictor(core.vec_size, 'onehot', **kwargs)
+            elif target_name == "xyz":
+                self.predictor = Predictor(core.vec_size, 'xyz', **kwargs)
+            elif target_name in ['CBond', 'RingAromatic']:
+                self.predictor = Predictor(core.vec_size, 'binary', **kwargs)
+            else:
+                self.predictor = Predictor(core.vec_size, 'num', **kwargs)
+        else:
+            self.predictor = None
+
+    def get_predictor(self, target_pattern: TargetTypeName, **kwargs):
+        self.predictor = Predictor(self.core.vec_size, target_pattern, **kwargs)
+
+    @property
+    def target_pattern(self) -> str:
+        return self.predictor.target_pattern
+
+    def forward(
+            self,
+            x,
+            edge_index,
+            edge_attr,
+            rings_node_index,
+            rings_node_nums,
+            mol_rings_nums,
+            batch,
+            ptr,
+            *,
+            xyz=None,
+    ):
+        return self.core(
+            x,
+            edge_index,
+            edge_attr,
+            rings_node_index,
+            rings_node_nums,
+            mol_rings_nums,
+            batch,
+            ptr,
+            xyz=xyz
+        )
+
+class _ComplexFormer(nn.Module):
     def __init__(
             self,
             x_dim: int,

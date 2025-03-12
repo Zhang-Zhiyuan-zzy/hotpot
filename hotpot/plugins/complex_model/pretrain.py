@@ -1,3 +1,4 @@
+import copy
 import os
 import re
 import os.path as osp
@@ -7,7 +8,6 @@ from typing import Callable, Union, Sequence, Optional, Any, Type, Literal, Iter
 
 from operator import attrgetter
 
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
@@ -16,11 +16,9 @@ from torch import nn
 import torch.nn.functional as F
 from torch.optim import Optimizer, Adam
 import torch.optim.lr_scheduler as lrs
-from torch_geometric.graphgym.register import train_dict
 
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Batch
-
 from hotpot.plugins.complex_model import models as M
 
 
@@ -31,6 +29,7 @@ def torch_numpy_exchanger(nf: Callable, **kw):
         return nf(*inputs, **kw)
 
     return wrapper
+
 
 
 # ###########################################################################
@@ -93,6 +92,7 @@ def mean_maximum_displacement(
 
     return norm(pred - target).mean()
 
+
 class FeatureExtractorTemplate(typing.Protocol):
     @staticmethod
     def __call__(
@@ -101,7 +101,7 @@ class FeatureExtractorTemplate(typing.Protocol):
             R_mask: torch.Tensor,
             batch: Batch,
             batch_getter: Callable[[Batch], Union[tuple, torch.Tensor]]=None
-    ) -> torch.Tensor:
+    ):
         ...
 
 
@@ -311,18 +311,6 @@ class PretrainComplex:
         torch.save(self.predictor, osp.join(self.model_dir, f'{prefix}predictor.pt'))
         torch.save(self.predictor.state_dict(), osp.join(self.model_dir, f'{prefix}predictor_dict.pt'))
 
-    def train_func(self, which) -> Callable:
-        return getattr(self, f"run_{which}")
-
-    @property
-    def datasets(self) -> list[str]:
-        dataset_names = []
-        for name, attr in self.__dict__.items():
-            if self.dataset_matcher.match(name) and isinstance(attr, Callable):
-                dataset_names.append(name.split('_')[1])
-
-        return dataset_names
-
     def get_dataset(self, which):
         return getattr(self, f"get_{which}_dataset")()
 
@@ -341,10 +329,11 @@ class PretrainComplex:
         torch.cuda.empty_cache()
 
         self.core_model = self.core_model.to(self.device)
-        self.predictor = self.predictor.to(self.device)
+        # self.predictor = self.predictor.to(self.device)
 
         optimizer = self.OPTIMIZER(
-            list(self.core_model.parameters()) + list(self.predictor.parameters()),
+            # list(self.core_model.parameters()) + list(self.predictor.parameters()),
+            self.core_model.parameters(),
             lr=self.hypers.lr,
             weight_decay=self.hypers.weight_decay
         )
@@ -356,34 +345,49 @@ class PretrainComplex:
 
         return loader, eval_loader, optimizer, lr_scheduler
 
+    def _prepare(self):
+        loader = DataLoader(self.dataset, batch_size=self.hypers.batch_size, shuffle=self.kwargs.get('trainset_shuffle', True))
+        eval_loader = DataLoader(self.dataset_test, batch_size=self.hypers.batch_size, shuffle=self.kwargs.get('evalset_shuffle', False))
+        # Clear cache
+        torch.cuda.empty_cache()
+
+        model = self.model.to(self.device)
+        model.train()
+        optimizer = self.OPTIMIZER(model.parameters(), lr=self.hypers.lr, weight_decay=self.hypers.weight_decay)
+
+        return loader, eval_loader, model, optimizer
+
+    @staticmethod
     def get_target(
-            self,
             batch: Batch,
+            target_getter: Callable[[Batch], torch.Tensor],
             masked_idx: Optional[torch.Tensor] = None,
             to_onehot: bool = False,
-            onehot_labels: int = None,
+            onehot_types: int = None,
             loss_weight_calculator: Callable[[torch.Tensor, int], torch.Tensor] = None,
             **kwargs
     ):
-        target = self.target_getter(batch)
+        target = target_getter(batch)
         if isinstance(masked_idx, torch.Tensor):
             target = target[masked_idx]
 
         if to_onehot:
-            target = F.one_hot(target.long(), num_classes=onehot_labels).to(target.dtype)  # Convert to OneHot label
+            target = F.one_hot(target.long(), num_classes=onehot_types)  # Convert to OneHot label
         else:
             target = target.view((-1, 1))
 
         loss_weight = None
         if loss_weight_calculator:
-            loss_weight = loss_weight_calculator(target, onehot_labels)
+            loss_weight = loss_weight_calculator(target, onehot_types)
 
         return target, loss_weight
 
     def forward(
             self,
-            batch,
+            model, batch,
             inputs_getter: Callable[[Batch], tuple[Union[torch.Tensor, Sequence], ...]],
+            feature_extractor: FeatureExtractorTemplate,
+            predictor: Callable[[torch.Tensor], torch.Tensor],
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             batch_preprocessor: Callable[[Batch], Batch] = None,
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
@@ -406,23 +410,23 @@ class PretrainComplex:
             assert isinstance(input_x_index, (list, torch.Tensor))
             inputs = inputs_preprocessor(*inputs, input_x_index=input_x_index)
         if x_masker:
-            inputs, masked_idx = x_masker(inputs, self.core_model.x_mask_vec)
+            inputs, masked_idx = x_masker(inputs, model.core.x_mask_vec)
         else:
             masked_idx = None
 
         # Core model
-        seq, X_not_pad, R_not_pad = self.core_model(*inputs, xyz=xyz)
+        seq, X_not_pad, R_not_pad = model(*inputs, xyz=xyz)
 
         # Extract features
-        feature = self.feature_extractor(seq, X_not_pad, R_not_pad, batch, extractor_attr_getter)  # Node level feature
+        feature = feature_extractor(seq, X_not_pad, R_not_pad, batch, extractor_attr_getter)  # Node level feature
         if isinstance(masked_idx, torch.Tensor):
             feature = feature[masked_idx]
 
         # Prediction
         # predict atom type
-        node_pred = self.predictor(feature)
+        node_pred = predictor(feature)
 
-        return node_pred, masked_idx
+        return model, node_pred, masked_idx
 
     @staticmethod
     def batch_dtype_preprocessor(batch):
@@ -438,8 +442,12 @@ class PretrainComplex:
 
     def to_train(
             self,
-            epoch, loader, optimizer,
+            loader, model, optimizer,
             inputs_getter: Callable[[Batch], tuple[Union[torch.Tensor, Sequence], ...]],
+            feature_extractor: FeatureExtractorTemplate,
+            predictor: Callable[[torch.Tensor], torch.Tensor],
+            target_getter: Callable[[Batch], torch.Tensor],
+            loss_fn: Callable[[torch.Tensor, torch.Tensor, Optional[Any]], torch.Tensor],
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
             batch_preprocessor: Callable[[Batch], Batch] = None,
             input_x_index: Union[list, torch.Tensor] = None,
@@ -447,18 +455,19 @@ class PretrainComplex:
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             to_onehot: bool = False,
-            onehot_labels: int = None,
+            onehot_types: int = None,
             loss_weight_calculator: Callable[[torch.Tensor, int], torch.Tensor] = None,
             eval_batch_step: Optional[int] = None,
             **kwargs
     ):
-        p_bar = tqdm(desc=f"Epoch: {epoch}:", total=len(loader)) if self.show_batch_pbar else None
-        self.core_model.train(), self.predictor.train()
+        model.train()
         for i, batch in enumerate(loader, 1):
             self.batch_dtype_preprocessor(batch)
-            pred, masked_index = self.forward(
-                batch,
+            model, pred, masked_index = self.forward(
+                model, batch,
                 inputs_getter=inputs_getter,
+                feature_extractor=feature_extractor,
+                predictor=predictor,
                 batch_preprocessor=batch_preprocessor,
                 inputs_preprocessor=inputs_preprocessor,
                 input_x_index=input_x_index,
@@ -470,18 +479,19 @@ class PretrainComplex:
 
             target, loss_weight = self.get_target(
                 batch,
+                target_getter=target_getter,
                 masked_idx=masked_index,
                 to_onehot=to_onehot,
-                onehot_labels=onehot_labels,
+                onehot_types=onehot_types,
                 loss_weight_calculator=loss_weight_calculator,
                 **kwargs
             )
 
             # Back propagation
             if isinstance(loss_weight, torch.Tensor):
-                loss = self.loss_fn(pred, target, loss_weight)
+                loss = loss_fn(pred, target, loss_weight)
             else:
-                loss = self.loss_fn(pred, target)
+                loss = loss_fn(pred, target)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -491,9 +501,6 @@ class PretrainComplex:
 
             if self.debug:
                 break
-
-            if p_bar:
-                p_bar.update(1)
 
     def _lazy_eval(self, *args, **kwargs):
         def lazy_wrapper(epoch=None, **kw):
@@ -505,8 +512,12 @@ class PretrainComplex:
 
     def to_eval(
             self,
-            loader,
+            model, loader,
+            metrics: dict[str, Callable[[np.ndarray, np.ndarray], Union[float, np.ndarray]]],
             inputs_getter: Callable[[Batch], tuple[Union[torch.Tensor, Sequence], ...]],
+            feature_extractor: FeatureExtractorTemplate,
+            node_attr_predictor: Callable[[torch.Tensor], torch.Tensor],
+            target_getter: Callable[[Batch], torch.Tensor],
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, Optional]] = None,
             batch_preprocessor: Callable[[Batch], Batch] = None,
             input_x_index: Union[list, torch.Tensor] = None,
@@ -514,21 +525,23 @@ class PretrainComplex:
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
             to_onehot: bool = False,
-            onehot_labels: int = None,
-            print_pred_target_labels: bool = False,
+            onehot_types: int = None,
+            print_pred_target_labels: bool = True,
             eval_max_batch: Optional[int] = None,
             **kwargs
     ):
-        self.core_model.eval(), self.predictor.eval()
+        model.eval()
 
         pred = []
         target = []
         with torch.no_grad():
             for i, batch in enumerate(loader):
                 self.batch_dtype_preprocessor(batch)
-                node_pred, masked_index = self.forward(
-                    batch,
+                model, node_pred, masked_index = self.forward(
+                    model, batch,
                     inputs_getter=inputs_getter,
+                    feature_extractor=feature_extractor,
+                    predictor=node_attr_predictor,
                     inputs_preprocessor=inputs_preprocessor,
                     batch_preprocessor=batch_preprocessor,
                     input_x_index=input_x_index,
@@ -539,9 +552,10 @@ class PretrainComplex:
 
                 node_target, _ = self.get_target(
                     batch,
+                    target_getter=target_getter,
                     masked_idx=masked_index,
                     to_onehot=to_onehot,
-                    onehot_labels=onehot_labels,
+                    onehot_types=onehot_types,
                 )
 
                 pred.append(node_pred.cpu().detach().float().numpy())
@@ -563,21 +577,15 @@ class PretrainComplex:
 
             return {
                 metric_name: metric_func(pred, target)
-                for metric_name, metric_func in self.metrics.items()
+                for metric_name, metric_func in metrics.items()
             }
 
     def inspect_model(self, eval_results: dict):
         def update_best_model(pm):
-            if self.not_save:
-                return
-
             nonlocal is_update
             self.best_primary_metric = pm
-
-            if not osp.exists(self.model_dir):
-                os.mkdir(self.model_dir)
-            torch.save(self.core_model.state_dict(), osp.join(self.model_dir, 'beststate_dict.pt'))
-            torch.save(self.predictor.state_dict(), osp.join(self.model_dir, 'bestpredict_dict.pt'))
+            path_state_dict = osp.join(self.model_dir, 'best_state_dict.pt')
+            torch.save(self.model.state_dict(), path_state_dict)
             is_update = True
 
         is_update = False
@@ -593,26 +601,28 @@ class PretrainComplex:
         return is_update
 
     def print_eval_metric(self, metric_results, epoch: Optional[int] = None):
-        for metric_name, metric_value in metric_results.items():
-            print(f'Eval {metric_name} in eval set {self.work_name}, epoch: {epoch}/{self.epochs}: {metric_value}')
-
-            if isinstance(epoch, int):
-                list_metric = self.metrics_results.setdefault(metric_name, [])
-                list_metric.append(metric_value)
-
-        list_epoch = self.metrics_results.setdefault('epoch', [])
+        list_epoch = self.metrics.setdefault('epoch', [])
         if isinstance(epoch, int):
             list_epoch.append(epoch)
+        for metric_name, metric_value in metric_results.items():
+            print(f'Eval {metric_name} in eval set {self.work_name}, epoch: {epoch}/{self.epochs}: {metric_value}')
+            list_metric = self.metrics.setdefault(metric_name, [])
+            list_metric.append(metric_value)
 
-    def train_eval(
+    def run(
             self,
+            # feature_extractor: FeatureExtractorTemplate,
+            # predictor: Callable,
+            # target_getter: Callable[[Batch], torch.Tensor],
+            # loss_fn: Callable[[tuple[torch.Tensor, torch.Tensor], torch.Tensor], torch.Tensor],
             input_x_index: Union[list, torch.Tensor] = None,
             xyz_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
-            to_onehot: bool = False,
+            to_onehot: bool = True,
             onehot_labels: int = None,
             loss_weight_calculator: Callable[[torch.Tensor, int], torch.Tensor] = None,
+            metrics: dict[str, Callable[[np.ndarray, np.ndarray], Union[float, np.ndarray]]] = None,
             **kwargs
     ):
         if to_onehot and not isinstance(onehot_labels, int):
@@ -631,28 +641,38 @@ class PretrainComplex:
         # Preparing arguments
         train_kw = dict(
             loader=loader,
+            model=self.core_model,
             optimizer=optimizer,
             inputs_getter=inputs_getter,
+            feature_extractor=self.feature_extractor,
+            predictor=self.predictor,
+            target_getter=self.target_getter,
+            loss_fn=self.loss_fn,
             inputs_preprocessor=inputs_preprocessor,
             input_x_index=input_x_index,
             xyz_index=xyz_index,
             x_masker=x_masker,
             extractor_attr_getter=extractor_attr_getter,
             to_onehot=to_onehot,
-            onehot_labels=onehot_labels,
+            onehot_types=onehot_labels,
             loss_weight_calculator=loss_weight_calculator,
             **kwargs
         )
 
         eval_kw = dict(
             loader=eval_loader,
+            model=self.core_model,
+            metrics=metrics,
             inputs_getter=inputs_getter,
+            feature_extractor=self.feature_extractor,
+            node_attr_predictor=self.predictor,
+            target_getter=self.target_getter,
             inputs_preprocessor=inputs_preprocessor,
             input_x_index=input_x_index,
             xyz_index=xyz_index,
             extractor_attr_getter=extractor_attr_getter,
             to_onehot=to_onehot,
-            onehot_labels=onehot_labels,
+            onehot_types=onehot_labels,
             **kwargs
         )
 
@@ -663,13 +683,7 @@ class PretrainComplex:
             self.lazy_eval(eval_max_batch=3)
 
         for epoch in range(self.epochs):
-
-            # Training block
-            self.to_train(epoch, **train_kw)
-            if lr_sche:
-                lr_sche.step()
-
-            # Eval and early step
+            self.to_train(**train_kw)
             if isinstance(self.eval_steps, int) and epoch % self.eval_steps == 0:
                 metric_results = self.lazy_eval(epoch)
                 is_update = self.inspect_model(metric_results)
@@ -683,9 +697,6 @@ class PretrainComplex:
                 if self.early_stop_clock > self.early_stop_step:
                     print(RuntimeWarning(f"Early stopping in {epoch} epochs"))
                     break
-
-    def run(self, *args, **kwargs):
-        self.train_eval(*args, **kwargs)
 
 ############################## Pretrain Run ###################################
 MetricType = Literal['r2score', 'rmse', 'mse', 'mae', 'accuracy', 'binary_accuracy']
@@ -745,6 +756,7 @@ def run(
         primary_metric: Optional[MetricType] = None,
         other_metric: Optional[Union[MetricType, Iterable[MetricType], dict[str, Callable]]] = None,
         device: Optional[Union[torch.device, str]] = None,
+        eval_first: bool = False,
         eval_steps: int = 1,
         minimize_metric: bool = False,
         early_stopping: bool = True,
@@ -893,21 +905,39 @@ def run(
     if loss_weight_calculator is None and target_type == 'onehot':
         loss_weight_calculator = lambda t, n: M.atom_label_weight_(t, n, loss_weight_method)
 
+    class Model(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.core = core_model
+            self.predictor = fplmt['predictor']
+
+        def forward(self, *args, **kw):
+            return self.core(*args, **kw)
+
+        @property
+        def x_label_nums(self) -> Optional[int]:
+            return getattr(self.core, 'x_label_nums', None)
+
+        @property
+        def x_mask_vec(self) -> Optional[torch.Tensor]:
+            return getattr(self.core, 'x_mask_vec', None)
+
     with PretrainComplex(
         work_name=work_name,
         work_dir=work_dir,
         train_dataset=train_dataset,
         test_dataset=test_dataset,
         hypers=hypers,
-        core_model=core_model,
+        # core_model=core_model,
+        core_model=Model(),
         optimizer=optimizer,
         constant_lr=constant_lr,
         lr_schedular=lr_schedular,
         lr_schedular_kwargs=lr_schedular_kwargs,
         not_save=not save_model,
-        eval_first=True,
         device=device,
         epochs=epochs,
+        eval_first=eval_first,
         eval_steps=eval_steps,
         early_stopping=early_stopping,
         early_stop_steps=early_stop_step,
@@ -928,5 +958,4 @@ def run(
             eval_each_step=eval_each_step,
             x_masker=x_masker_func if work_name == 'AtomType' else None,
         )
-
 

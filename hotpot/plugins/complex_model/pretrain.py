@@ -583,9 +583,16 @@ class PretrainComplex:
     def inspect_model(self, eval_results: dict):
         def update_best_model(pm):
             nonlocal is_update
+            if self.not_save:
+                is_update = True
+                return
+
             self.best_primary_metric = pm
-            path_state_dict = osp.join(self.model_dir, 'best_state_dict.pt')
-            torch.save(self.model.state_dict(), path_state_dict)
+
+            if not osp.exists(self.model_dir):
+                os.mkdir(self.model_dir)
+            torch.save(self.core_model.state_dict(), osp.join(self.model_dir, 'beststate_dict.pt'))
+            torch.save(self.predictor.state_dict(), osp.join(self.model_dir, 'bestpredict_dict.pt'))
             is_update = True
 
         is_update = False
@@ -601,13 +608,16 @@ class PretrainComplex:
         return is_update
 
     def print_eval_metric(self, metric_results, epoch: Optional[int] = None):
-        list_epoch = self.metrics.setdefault('epoch', [])
-        if isinstance(epoch, int):
-            list_epoch.append(epoch)
         for metric_name, metric_value in metric_results.items():
             print(f'Eval {metric_name} in eval set {self.work_name}, epoch: {epoch}/{self.epochs}: {metric_value}')
-            list_metric = self.metrics.setdefault(metric_name, [])
-            list_metric.append(metric_value)
+
+            if isinstance(epoch, int):
+                list_metric = self.metrics_results.setdefault(metric_name, [])
+                list_metric.append(metric_value)
+
+        list_epoch = self.metrics_results.setdefault('epoch', [])
+        if isinstance(epoch, int):
+            list_epoch.append(epoch)
 
     def run(
             self,
@@ -662,7 +672,7 @@ class PretrainComplex:
         eval_kw = dict(
             loader=eval_loader,
             model=self.core_model,
-            metrics=metrics,
+            metrics=self.metrics,
             inputs_getter=inputs_getter,
             feature_extractor=self.feature_extractor,
             node_attr_predictor=self.predictor,
@@ -717,7 +727,7 @@ extractor_options = {
 },
 loss_options = {
     'mse': F.mse_loss,
-    'cross_entropy': F.cross_entropy,
+    'cross_entropy': M.LossMethods.calc_atom_type_loss,
     'binary_cross_entropy': F.binary_cross_entropy,
     'mean_maximum_displace': mean_maximum_displacement
 }
@@ -756,7 +766,7 @@ def run(
         primary_metric: Optional[MetricType] = None,
         other_metric: Optional[Union[MetricType, Iterable[MetricType], dict[str, Callable]]] = None,
         device: Optional[Union[torch.device, str]] = None,
-        eval_first: bool = False,
+        eval_first: bool = True,
         eval_steps: int = 1,
         minimize_metric: bool = False,
         early_stopping: bool = True,
@@ -832,7 +842,7 @@ def run(
             raise ValueError(f"Unknown loss function: {loss_fn}")
     else:
         if target_type == 'onehot':
-            fplmt['loss_fn'] = F.cross_entropy
+            fplmt['loss_fn'] = M.LossMethods.calc_atom_type_loss
         elif target_type == 'xyz':
             fplmt['loss_fn'] = mean_maximum_displacement
         elif target_type == 'binary':

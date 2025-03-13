@@ -1,11 +1,13 @@
 import os.path as osp
 import socket
 
+from safetensors.torch import save_model
+
 from hotpot.plugins.complex_model import (
     models as M,
-    pretrain
+    pretrain,
+    dataset as D
 )
-from datasets import DatasetGetter
 
 
 import torch
@@ -34,7 +36,7 @@ _tmqm_data_dir = osp.join(project_root, 'datasets', 'tmqm_data0207')
 
 
 
-tmqm_getter = DatasetGetter(project_root, "tmqm")
+tmqm_getter = D.DatasetGetter(project_root, "tmqm")
 
 dataset, dataset_test = tmqm_getter.get_datasets()
 INPUT_X_INDEX = tmqm_getter.get_index('x', ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z'))
@@ -63,7 +65,7 @@ ATOM_TYPES = 119  # Arguments for atom type loss
 
 
 hypers = pretrain.Hypers()
-hypers.batch_size = 256
+hypers.batch_size = 1024
 hypers.lr = 1e-3
 hypers.weight_decay = 4e-5
 
@@ -115,10 +117,11 @@ def main():
 
 
 if __name__ == '__main__':
+    print('run!')
     pretrain.run(
         work_name="AtomType",
         work_dir=models_dir,
-        core_model=core,
+        core=core,
         train_dataset=dataset,
         test_dataset=dataset_test,
         hypers=hypers,
@@ -132,4 +135,5 @@ if __name__ == '__main__':
         # load_all_data=True,
         show_batch_pbar=True,
         constant_lr=True,
+        # debug=True,
     )

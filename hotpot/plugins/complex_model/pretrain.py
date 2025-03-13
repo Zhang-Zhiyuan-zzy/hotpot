@@ -7,6 +7,7 @@ import typing
 from typing import Callable, Union, Sequence, Optional, Any, Type, Literal, Iterable
 
 from operator import attrgetter
+from tqdm import tqdm
 
 import pandas as pd
 import numpy as np
@@ -29,8 +30,6 @@ def torch_numpy_exchanger(nf: Callable, **kw):
         return nf(*inputs, **kw)
 
     return wrapper
-
-
 
 # ###########################################################################
 def get_xyz(*inputs, xyz_index: Union[int, torch.Tensor]) -> torch.Tensor:
@@ -122,8 +121,7 @@ class PretrainComplex:
             self,
             work_dir: str,
             train_dataset,
-            core_model: nn.Module,
-            predictor: nn.Module,
+            model: nn.Module,
             hypers: Union[Hypers, dict],
             feature_extractor: FeatureExtractorTemplate,
             target_getter: Callable[[Batch], torch.Tensor],
@@ -139,7 +137,6 @@ class PretrainComplex:
             test_dataset = None,
             eval_first: bool = False,
             eval_steps: Optional[int] = 1,
-            debug: bool = False,
             device: Union[str, torch.device] = None,
             epochs: int = 100,
             work_name: Optional[str] = None,
@@ -149,6 +146,9 @@ class PretrainComplex:
             early_stop_step: int = 5,
             load_all_data: bool = False,
             show_batch_pbar: bool = False,
+            keep_grad_state: bool = False,
+            unfreeze_samples: int = 20000,
+            debug: bool = False,
             **kwargs
     ):
         """
@@ -156,7 +156,7 @@ class PretrainComplex:
         Args:
             work_dir:
             train_dataset:
-            core_model:
+            model:
             not_save:
             test_dataset:
             eval_first:
@@ -173,8 +173,7 @@ class PretrainComplex:
         self.train_dataset = train_dataset
         self.dataset_test = test_dataset
         self.load_all_data = load_all_data
-        self.core_model = core_model
-        self.predictor = predictor
+        self.model = model
         self.feature_extractor = feature_extractor
         self.target_getter = target_getter
         self.loss_fn = loss_fn
@@ -192,7 +191,6 @@ class PretrainComplex:
         self.not_save = not_save
         self.eval_first = eval_first
         self.eval_steps = eval_steps
-        self.debug = debug
         self.epochs = epochs
         self.lazy_eval = None
 
@@ -221,6 +219,14 @@ class PretrainComplex:
 
         self.model_dir = self._init_model_dir()
         self.model_name = osp.basename(self.model_dir)
+
+        # Training control
+        self.keep_grad_state = keep_grad_state
+        self.core_frozen_flag = False
+        self.predictor_frozen_flag = False
+        self.unfreeze_samples = unfreeze_samples
+
+        # Metrics and Inspection
         self.primary_metric = primary_metric
         self.best_primary_metric = None
         self.save_max_acc_state = save_max_acc_state
@@ -235,6 +241,9 @@ class PretrainComplex:
         self.show_batch_pbar = show_batch_pbar
         self.sample_num = len(train_dataset)
         self.epoch_batch_counts = self.sample_num // self.hypers.batch_size + 1
+
+        # Debug mode
+        self.debug = debug
 
     def __enter__(self):
         return self
@@ -252,12 +261,52 @@ class PretrainComplex:
             df.set_index('epoch', inplace=True)
             df.to_csv(osp.join(self.model_dir, 'metrics.csv'))
 
+    @property
+    def core(self):
+        return self.model.core
+
+    @core.setter
+    def core(self, core):
+        self.model.core = core
+
+    @property
+    def predictor(self):
+        return self.model.predictor
+
+    @predictor.setter
+    def predictor(self, value: nn.Module):
+        self.model.predictor = value
+
+    @property
+    def is_core_frozen(self) -> bool:
+        return not any(p.requires_grad for p in self.core.parameters())
+
+    @property
+    def has_core_frozen(self) -> bool:
+        return not all(p.requires_grad for p in self.core.parameters())
+
     def _init_model_dir(self):
         now = datetime.datetime.now()
         formatted_datetime = now.strftime("%y%m%d%H%M%S")
         model_dir = osp.join(self.work_dir, f"cp_{formatted_datetime}")
 
         return model_dir
+
+    def freeze_core_layer(self):
+        self.core.requires_grad_(False)
+        self.core_frozen_flag = True
+
+    def unfreeze_core_layer(self):
+        self.core.requires_grad_(True)
+        self.core_frozen_flag = False
+
+    def freeze_predictor_layer(self):
+        self.predictor.requires_grad_(False)
+        self.predictor_frozen_flag = True
+
+    def unfreeze_predictor_layer(self):
+        self.predictor.requires_grad_(True)
+        self.predictor_frozen_flag = False
 
     def load_model_params(
             self,
@@ -266,12 +315,13 @@ class PretrainComplex:
             *,
             core_only: bool = False,
             path: Optional[str] = None,
+            freeze_core: Optional[bool] = None,
     ):
         # If the state dict is directly given.
         if isinstance(path, str):
             if not osp.exists(path):
                 raise FileNotFoundError(path)
-            self.core_model.load_state_dict(torch.load(path, map_location=self.device))
+            self.model.load_state_dict(torch.load(path, map_location=self.device))
             return
 
         list_models = sorted(filter(lambda f: f != self.model_name, os.listdir(self.work_dir)))
@@ -285,28 +335,23 @@ class PretrainComplex:
             raise TypeError("The argument which is not a int or str.")
 
         # Loader core
-        if isinstance(prefix, str):
-            state_dict_name = f"{prefix}state_dict.pt"
-        else:
-            state_dict_name = f"state_dict.pt"
-        state_dict = torch.load(osp.join(model_dir, state_dict_name))
-        self.core_model.load_state_dict(state_dict)
+        state_dict = torch.load(osp.join(model_dir, f"{prefix}state_dict.pt"))
+        self.model.core.load_state_dict(state_dict)
 
-        if not core_only:
-            if isinstance(prefix, str):
-                state_dict_name = f"{prefix}predictor_dict.pt"
-            else:
-                state_dict_name = f"predictor_dict.pt"
-            state_dict = torch.load(osp.join(model_dir, state_dict_name))
+        if not core_only and osp.exists(path_pstate_dict := osp.join(model_dir, f"{prefix}predictor_dict.pt")):
+            state_dict = torch.load(path_pstate_dict)
             self.predictor.load_state_dict(state_dict)
+        # elif freeze_core is not False and not self.keep_grad_state:
+        #     # If the predictor is not loaded, freeze the core layer until the first epoch or 20 batches
+        #     self.freeze_core_layer()
 
     def save_model(self, prefix: Optional[str] = None):
         if not osp.exists(self.model_dir):
             os.mkdir(self.model_dir)
 
         # Save core
-        torch.save(self.core_model, osp.join(self.model_dir, f'{prefix}model.pt'))
-        torch.save(self.core_model.state_dict(), osp.join(self.model_dir, f'{prefix}state_dict.pt'))
+        torch.save(self.model, osp.join(self.model_dir, f'{prefix}model.pt'))
+        torch.save(self.model.state_dict(), osp.join(self.model_dir, f'{prefix}state_dict.pt'))
         # Save Predictor
         torch.save(self.predictor, osp.join(self.model_dir, f'{prefix}predictor.pt'))
         torch.save(self.predictor.state_dict(), osp.join(self.model_dir, f'{prefix}predictor_dict.pt'))
@@ -316,24 +361,28 @@ class PretrainComplex:
 
     def prepare(self):
         loader = DataLoader(
-            self.train_dataset.load_all() if self.load_all_data else self.train_dataset,
+            self.train_dataset.load_all(
+                self.hypers.batch_size * 4 if self.debug else 1e99
+            ) if self.load_all_data else self.train_dataset,
             batch_size=self.hypers.batch_size,
             shuffle=self.kwargs.get('trainset_shuffle', True)
         )
         eval_loader = DataLoader(
-            self.dataset_test.load_all() if self.load_all_data else self.dataset_test,
+            self.dataset_test.load_all(
+                self.hypers.batch_size * 2 if self.debug else 1e99
+            ) if self.load_all_data else self.dataset_test,
             batch_size=self.hypers.batch_size,
             shuffle=self.kwargs.get('evalset_shuffle', False)
         )
         # Clear cache
         torch.cuda.empty_cache()
 
-        self.core_model = self.core_model.to(self.device)
+        self.model = self.model.to(self.device)
         # self.predictor = self.predictor.to(self.device)
 
         optimizer = self.OPTIMIZER(
             # list(self.core_model.parameters()) + list(self.predictor.parameters()),
-            self.core_model.parameters(),
+            self.model.parameters(),
             lr=self.hypers.lr,
             weight_decay=self.hypers.weight_decay
         )
@@ -442,6 +491,7 @@ class PretrainComplex:
 
     def to_train(
             self,
+            epoch,
             loader, model, optimizer,
             inputs_getter: Callable[[Batch], tuple[Union[torch.Tensor, Sequence], ...]],
             feature_extractor: FeatureExtractorTemplate,
@@ -460,6 +510,7 @@ class PretrainComplex:
             eval_batch_step: Optional[int] = None,
             **kwargs
     ):
+        p_bar = tqdm(desc=f"Epoch: {epoch}:", total=len(loader)) if self.show_batch_pbar else None
         model.train()
         for i, batch in enumerate(loader, 1):
             self.batch_dtype_preprocessor(batch)
@@ -496,17 +547,26 @@ class PretrainComplex:
             loss.backward()
             optimizer.step()
 
+            # Early stop control
             if eval_batch_step and i % eval_batch_step and isinstance(self.lazy_eval, Callable):
                 self.lazy_eval(eval_max_batch=3)
 
-            if self.debug:
+            # unfreeze core layers
+            # if not self.keep_grad_state and self.core_frozen_flag and i * loader.batch_size > self.unfreeze_samples:
+            #     self.unfreeze_core_layer()
+            #     self.lazy_eval(desc="unfreeze core")
+
+            if self.debug and i > 4:
                 break
+
+            if p_bar:
+                p_bar.update(1)
 
     def _lazy_eval(self, *args, **kwargs):
         def lazy_wrapper(epoch=None, **kw):
             kwargs.update(kw)
             metric_results = self.to_eval(*args, **kwargs)
-            self.print_eval_metric(metric_results, epoch)
+            self.print_eval_metric(metric_results, epoch, desc=kw.get('desc', ''))
             return metric_results
         return lazy_wrapper
 
@@ -561,7 +621,7 @@ class PretrainComplex:
                 pred.append(node_pred.cpu().detach().float().numpy())
                 target.append(node_target.cpu().detach().float().numpy())
 
-                if self.debug:
+                if self.debug and i > 2:
                     break
 
                 if eval_max_batch and i >= eval_max_batch:
@@ -591,7 +651,7 @@ class PretrainComplex:
 
             if not osp.exists(self.model_dir):
                 os.mkdir(self.model_dir)
-            torch.save(self.core_model.state_dict(), osp.join(self.model_dir, 'beststate_dict.pt'))
+            torch.save(self.model.state_dict(), osp.join(self.model_dir, 'beststate_dict.pt'))
             torch.save(self.predictor.state_dict(), osp.join(self.model_dir, 'bestpredict_dict.pt'))
             is_update = True
 
@@ -607,9 +667,15 @@ class PretrainComplex:
 
         return is_update
 
-    def print_eval_metric(self, metric_results, epoch: Optional[int] = None):
+    def print_eval_metric(self, metric_results, epoch: Optional[int] = None, desc: str = ""):
         for metric_name, metric_value in metric_results.items():
-            print(f'Eval {metric_name} in eval set {self.work_name}, epoch: {epoch}/{self.epochs}: {metric_value}')
+
+            # Print information
+            desc = desc if desc else self.work_name
+            if isinstance(epoch, int):
+                print(f'Epoch {epoch}/{self.epochs}, eval {desc} with metric {metric_name}: {metric_value}')
+            else:
+                print(f'Eval {metric_name} in eval set {desc}: {metric_value}')
 
             if isinstance(epoch, int):
                 list_metric = self.metrics_results.setdefault(metric_name, [])
@@ -643,7 +709,7 @@ class PretrainComplex:
             'x', 'edge_index', 'edge_attr', 'rings_node_index',
             'rings_node_nums', 'mol_rings_nums', 'batch', 'ptr')
         loader, eval_loader, optimizer, lr_sche = self.prepare()
-        if isinstance(getattr(self.core_model, 'x_label_nums', None), int):
+        if isinstance(getattr(self.model, 'x_label_nums', None), int):
             inputs_preprocessor = get_labeled_x_input_attrs
         else:
             inputs_preprocessor = get_x_input_attrs
@@ -651,7 +717,7 @@ class PretrainComplex:
         # Preparing arguments
         train_kw = dict(
             loader=loader,
-            model=self.core_model,
+            model=self.model,
             optimizer=optimizer,
             inputs_getter=inputs_getter,
             feature_extractor=self.feature_extractor,
@@ -671,7 +737,7 @@ class PretrainComplex:
 
         eval_kw = dict(
             loader=eval_loader,
-            model=self.core_model,
+            model=self.model,
             metrics=self.metrics,
             inputs_getter=inputs_getter,
             feature_extractor=self.feature_extractor,
@@ -693,7 +759,14 @@ class PretrainComplex:
             self.lazy_eval(eval_max_batch=3)
 
         for epoch in range(self.epochs):
-            self.to_train(**train_kw)
+
+            # Training block
+            self.to_train(epoch, **train_kw)
+            # if not self.keep_grad_state and epoch == 0:
+            #     self.model.requires_grad_(True)
+            #     self.lazy_eval(desc="unfreeze core")
+
+            # Eval block
             if isinstance(self.eval_steps, int) and epoch % self.eval_steps == 0:
                 metric_results = self.lazy_eval(epoch)
                 is_update = self.inspect_model(metric_results)
@@ -732,6 +805,10 @@ loss_options = {
     'mean_maximum_displace': mean_maximum_displacement
 }
 
+# Contract
+INPUT_X_ATTR = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
+COORD_X_ATTR = ('x', 'y', 'z')
+
 
 def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = None) -> Union[int, list[int]]:
     item_names = first_data[f"{data_item}_names"]
@@ -745,12 +822,12 @@ def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = No
 def run(
         work_name: str,
         work_dir: str,
-        core_model: M.Core,
+        core: M.Core,
         train_dataset,
         test_dataset,
         hypers: Union[dict, Hypers],
         checkpoint_path: Union[str, int] = None,
-        load_core_only: bool = False,
+        load_core_only: bool = True,
         epochs: int = 100,
         with_xyz: bool = True,
         save_model: bool = True,
@@ -775,8 +852,62 @@ def run(
         loss_weight_method: Literal['inverse-count', 'cross-entropy'] = 'inverse-count',
         onehot_labels: Optional[int] = None,
         eval_each_step: Optional[int] = 1,
+        freeze_core: Optional[bool] = None,
+        keep_grad_state: bool = False,
         **kwargs,
 ):
+    """
+    The high-level API for pretraining the ComplexFormer.
+    Args:
+        work_name(str): The name of the work being trained. While this argument allows any string,
+            a standardized nomenclature is recommended, where ...
+        work_dir(str): The directory where the trained models and inspected info will be saved.
+        core(nn.Module): The general Encoder block, i.e. ComplexFormer.
+        train_dataset(Iterable|IterGetter): dataset for training.
+        test_dataset(Iterable|IterGetter): dataset for testing.
+        hypers: Hyperparameters for optimizer, dataloader, and others except for model
+        checkpoint_path(str|int): the checkpoint file path if given a str. Otherwise, when an int(i)
+            is given, the ith model under the work_dir will be loaded.
+        load_core_only: Whether to load only the core model, if True, the predictor parameter will be
+            ignored. Defaults to True.
+        epochs: The Maximum of epochs to train. Defaults to 100.
+        with_xyz: Whether to load xyz to ComplexFormer. Defaults to True.
+        save_model: Whether to save the model. Defaults to True.
+        optimizer: The type of optimizer to use. If None, the Adam optimizer will be used.
+        constant_lr: Whether to use constant learning rate. Defaults to False. If False, a lr_scheduler
+            will be used to adjust the learning rate.
+        lr_schedular: The type of learning rate scheduler to use. Defaults to None. If None, a ExponentialLR
+            scheduler with `gamma=0.95` will be used. If the lr_schedular is specified, its required arguments
+            should be passed by `lr_schedular_kwargs`.
+        lr_schedular_kwargs: Keyword arguments passed to `lr_scheduler`.
+        target_type: Which type of target is, selecting from ['num', 'onehot', 'binary', and 'xyz']. If None,
+            the `target_type` will be inferred from the `work_name`.
+        feature_extractor: Which feature extractor to use. Defaults to None.
+        predictor:
+        target_getter(Callable|str): A callable to extract target values from batch.
+        loss_fn: loss function
+        primary_metric: The primary metric to control the training processing.
+        other_metric: Other metric to measure the model performance, but not impact the training process.
+        device: The device to use. Defaults to None.
+        eval_first: Whether evaluate the model performance before training.
+        eval_steps: Evaluate the model performance per steps
+        minimize_metric:
+        early_stopping: Whether early stopping is enabled. Defaults to True.
+        early_stop_step: How many steps when the model's performance is not improved to perform the early stopping.
+        loss_weight_calculator: A function to calculate the weights for each category, Applied for onehot labels.
+        loss_weight_method:
+        onehot_labels: How many onehot labels to use. Defaults to 119.
+        eval_each_step: How many epochs to evaluate the model.
+        freeze_core: Whether to freeze the core model in the first epoch, defaults to None. If None, the core
+            module will be frozen in the first epoch, if the core module is loaded from checkpoint and the
+            predictor is fresh.
+        keep_grad_state: Whether to keep the gradient state (requires_grad = True or False) to be solid,
+            Defaults to False. If True, the gradient state will not be adjusted automatically.
+        **kwargs:
+
+    Returns:
+        None
+    """
     first_data = train_dataset[0]
 
     if target_type is None:
@@ -790,99 +921,99 @@ def run(
             target_type = 'num'
 
     # FeatureExtractor, Predictor, LossFunc, Metrics, and TargetGetter
-    fplmt = {}
+    flmt = {}
 
     # Specify default feature extractor
     if isinstance(feature_extractor, Callable):
-        fplmt['feature_extractor'] = feature_extractor
+        flmt['feature_extractor'] = feature_extractor
     elif isinstance(feature_extractor, str):
         if feature_extractor.lower() == 'atom':
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_atom_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_atom_vec
         elif feature_extractor.lower() == 'pair':
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_pair_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_pair_vec
         elif feature_extractor.lower() == 'ring':
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_ring_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_ring_vec
         elif feature_extractor.lower() == 'cbond':
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_cbond_pair
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_cbond_pair
         elif feature_extractor.lower() == 'mol':
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_mol_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_mol_vec
         else:
             raise ValueError(f"Unknown feature extractor: Named {feature_extractor}")
     else:
         if "Atom" in work_name or "xyz" in work_name:
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_atom_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_atom_vec
         elif "Ring" in work_name:
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_ring_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_ring_vec
         elif "Cbond" in work_name:
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_cbond_pair
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_cbond_pair
         elif "Pair" in work_name:
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_pair_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_pair_vec
         elif "Mol" in work_name:
-            fplmt['feature_extractor'] = M.FeatureExtractors.extract_mol_vec
+            flmt['feature_extractor'] = M.FeatureExtractors.extract_mol_vec
         else:
             raise ValueError("Unknown feature extractor type")
 
     # Specify default predictor
     if isinstance(predictor, (Callable, nn.Module)):
-        fplmt['predictor'] = predictor
+        pass  # Do nothing
     elif isinstance(predictor, str):
-        fplmt['predictor'] = M.Predictor(core_model.vec_size, predictor)
+        predictor = M.Predictor(core.vec_size, predictor.lower())
     elif target_type in ['onehot', 'xyz', 'binary', 'num']:
-        fplmt['predictor'] = M.Predictor(core_model.vec_size, target_type)
+        predictor = M.Predictor(core.vec_size, target_type)
     else:
         raise ValueError(f"Unknown predictor type: {target_type}")
 
     # Specify loss func
     if isinstance(loss_fn, Callable):
-        fplmt['loss_fn'] = loss_fn
+        flmt['loss_fn'] = loss_fn
     elif isinstance(loss_fn, str):
         try:
-            fplmt['loss_fn'] = loss_options[loss_fn]
+            flmt['loss_fn'] = loss_options[loss_fn]
         except KeyError:
             raise ValueError(f"Unknown loss function: {loss_fn}")
     else:
         if target_type == 'onehot':
-            fplmt['loss_fn'] = M.LossMethods.calc_atom_type_loss
+            flmt['loss_fn'] = M.LossMethods.calc_atom_type_loss
         elif target_type == 'xyz':
-            fplmt['loss_fn'] = mean_maximum_displacement
+            flmt['loss_fn'] = mean_maximum_displacement
         elif target_type == 'binary':
-            fplmt['loss_fn'] = F.binary_cross_entropy
+            flmt['loss_fn'] = F.binary_cross_entropy
         elif target_type == 'num':
-            fplmt['loss_fn'] = F.mse_loss
+            flmt['loss_fn'] = F.mse_loss
         else:
             raise ValueError(f"Loss function has not been specified, pass by argument `loss_fn`")
 
     # Specify primary metric
     if isinstance(primary_metric, str):
         try:
-            fplmt['metrics'] = {primary_metric: metrics_options[primary_metric]}
+            flmt['metrics'] = {primary_metric: metrics_options[primary_metric]}
         except KeyError:
             raise ValueError(f"Unknown primary metric: {primary_metric}\n, choose from: {list(metrics_options.keys())}")
     else:
         if target_type == 'onehot':
             primary_metric = 'accuracy'
-            fplmt['metrics'] = {primary_metric: lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True)}
+            flmt['metrics'] = {primary_metric: lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True)}
         elif target_type == 'xyz':
             primary_metric = 'AMD'  # Average maximum displacement
-            fplmt['metrics'] = {primary_metric: mean_maximum_displacement}
+            flmt['metrics'] = {primary_metric: mean_maximum_displacement}
         elif target_type == 'binary':
             primary_metric = 'binary_accuracy'
-            fplmt['metrics'] = {primary_metric: M.Metrics.binary_accuracy}
+            flmt['metrics'] = {primary_metric: M.Metrics.binary_accuracy}
         elif target_type == 'num':
             primary_metric = 'r2score'
-            fplmt['metrics'] = {primary_metric: M.Metrics.r2_score}
+            flmt['metrics'] = {primary_metric: M.Metrics.r2_score}
         else:
             raise ValueError(f"The primary metric has not been specified, pass by argument `primary_metric`")
 
     # Specify other target getter
     if isinstance(other_metric, str):
         if other_metric in metrics_options:
-            fplmt['metrics'].update({other_metric: metrics_options[other_metric]})
+            flmt['metrics'].update({other_metric: metrics_options[other_metric]})
         else:
             raise ValueError(f"Unknown other metric: {other_metric}\n, choose from: {list(metrics_options.keys())}")
     elif isinstance(other_metric, Iterable) and not isinstance(other_metric, dict):
         try:
-            fplmt['metrics'].update({n: metrics_options[n] for n in other_metric})
+            flmt['metrics'].update({n: metrics_options[n] for n in other_metric})
         except KeyError as e:
             print(e)
             raise ValueError(f"Unknown other metric, choose from: {list(metrics_options.keys())}")
@@ -892,25 +1023,25 @@ def run(
                 raise TypeError(f"The metric name should be a string, instead got {type(n)}")
             elif not isinstance(c, Callable):
                 raise TypeError(f"The metric value should be a callable, instead got {type(c)}")
-            fplmt['metrics'].update({n: c})
+            flmt['metrics'].update({n: c})
 
     # Specify target_getter
     if isinstance(target_getter, Callable):
-        fplmt['target_getter'] = target_getter
+        flmt['target_getter'] = target_getter
     elif isinstance(target_getter, str):
         if target_type == 'xyz':
             XYZ_INDEX = _get_index(first_data, 'x', ('x', 'y', 'z'))
-            fplmt['target_getter'] = lambda batch: batch.x[:, XYZ_INDEX]
+            flmt['target_getter'] = lambda batch: batch.x[:, XYZ_INDEX]
         else:
             attr_type, attr_name = target_getter.rsplit('.')
             TARGETINDEX = _get_index(first_data, attr_type, attr_name)
-            fplmt['target_getter'] = lambda batch: _get_index(batch, attr_type)[:, TARGETINDEX]
+            flmt['target_getter'] = lambda batch: _get_index(batch, attr_type)[:, TARGETINDEX]
     else:
         if target_type == 'xyz':
             XYZ_INDEX = _get_index(first_data, 'x', ('x', 'y', 'z'))
-            fplmt['target_getter'] = lambda batch: batch.x[:, XYZ_INDEX]
+            flmt['target_getter'] = lambda batch: batch.x[:, XYZ_INDEX]
         elif work_name == 'AtomType':
-            fplmt['target_getter'] = lambda batch: batch.x[:, 0]
+            flmt['target_getter'] = lambda batch: batch.x[:, 0]
 
     if loss_weight_calculator is None and target_type == 'onehot':
         loss_weight_calculator = lambda t, n: M.atom_label_weight_(t, n, loss_weight_method)
@@ -918,8 +1049,8 @@ def run(
     class Model(nn.Module):
         def __init__(self):
             super().__init__()
-            self.core = core_model
-            self.predictor = fplmt['predictor']
+            self.core = core
+            self.predictor = predictor
 
         def forward(self, *args, **kw):
             return self.core(*args, **kw)
@@ -938,8 +1069,7 @@ def run(
         train_dataset=train_dataset,
         test_dataset=test_dataset,
         hypers=hypers,
-        # core_model=core_model,
-        core_model=Model(),
+        model=Model(),
         optimizer=optimizer,
         constant_lr=constant_lr,
         lr_schedular=lr_schedular,
@@ -952,20 +1082,22 @@ def run(
         early_stopping=early_stopping,
         early_stop_steps=early_stop_step,
         minimize_metric=minimize_metric,
-        **fplmt,
+        keep_grad_state=keep_grad_state,
+        **flmt,
         **kwargs,
     ) as pt:
         if checkpoint_path is not None:
-            pt.load_model_params(checkpoint_path, core_only=load_core_only)
+            pt.load_model_params(checkpoint_path, core_only=load_core_only, freeze_core=freeze_core)
 
         pt.run(
-            xyz_index=_get_index(first_data, 'x', ('x', 'y', 'z')) if with_xyz else None,
+            xyz_index=_get_index(first_data, 'x', COORD_X_ATTR) if with_xyz else None,
             loss_weight_calculator=loss_weight_calculator,
             input_x_index=_get_index(
-                first_data, 'x', ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')),
+                first_data, 'x', INPUT_X_ATTR),
             to_onehot=True if target_type == 'onehot' else False,
             onehot_labels=119 if work_name == 'AtomType' else onehot_labels,
             eval_each_step=eval_each_step,
             x_masker=x_masker_func if work_name == 'AtomType' else None,
         )
 
+    return pt

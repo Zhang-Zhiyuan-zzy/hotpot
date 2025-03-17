@@ -1,9 +1,9 @@
-import copy
 import os
 import re
 import os.path as osp
 import datetime
 import typing
+import logging
 from typing import Callable, Union, Sequence, Optional, Any, Type, Literal, Iterable
 
 from operator import attrgetter
@@ -21,6 +21,17 @@ import torch.optim.lr_scheduler as lrs
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Batch
 from hotpot.plugins.complex_model import models as M
+
+
+# Grad hook
+def module_backward_hook(module, grad_input, grad_output):
+    print("Inside backward for:", module.__class__.__name__)
+    print(" grad_input shapes:", [g.shape if g is not None else None for g in grad_input])
+    print(" grad_output shapes:", [g.shape if g is not None else None for g in grad_output])
+
+def tensor_hook(grad):
+    print("Gradient shape:", grad.shape)
+    return grad
 
 
 ######################## Utils ######################################
@@ -122,6 +133,7 @@ class PretrainComplex:
             work_dir: str,
             train_dataset,
             model: nn.Module,
+            predictor: nn.Module,
             hypers: Union[Hypers, dict],
             feature_extractor: FeatureExtractorTemplate,
             target_getter: Callable[[Batch], torch.Tensor],
@@ -174,6 +186,7 @@ class PretrainComplex:
         self.dataset_test = test_dataset
         self.load_all_data = load_all_data
         self.model = model
+        self.predictor = predictor
         self.feature_extractor = feature_extractor
         self.target_getter = target_getter
         self.loss_fn = loss_fn
@@ -244,6 +257,10 @@ class PretrainComplex:
 
         # Debug mode
         self.debug = debug
+        if self.debug:
+            logging.basicConfig(level=logging.DEBUG)
+            self.sample_num = 4*self.hypers.batch_size
+            print('\033[38;5;208mDebug model!\033[1m')
 
     def __enter__(self):
         return self
@@ -261,29 +278,9 @@ class PretrainComplex:
             df.set_index('epoch', inplace=True)
             df.to_csv(osp.join(self.model_dir, 'metrics.csv'))
 
-    @property
-    def core(self):
-        return self.model.core
-
-    @core.setter
-    def core(self, core):
-        self.model.core = core
-
-    @property
-    def predictor(self):
-        return self.model.predictor
-
-    @predictor.setter
-    def predictor(self, value: nn.Module):
-        self.model.predictor = value
-
-    @property
-    def is_core_frozen(self) -> bool:
-        return not any(p.requires_grad for p in self.core.parameters())
-
-    @property
-    def has_core_frozen(self) -> bool:
-        return not all(p.requires_grad for p in self.core.parameters())
+    def hook_grad(self):
+        for n, p in self.model.named_parameters():
+            p.register_hook(tensor_hook)
 
     def _init_model_dir(self):
         now = datetime.datetime.now()
@@ -335,8 +332,12 @@ class PretrainComplex:
             raise TypeError("The argument which is not a int or str.")
 
         # Loader core
-        state_dict = torch.load(osp.join(model_dir, f"{prefix}state_dict.pt"))
-        self.model.core.load_state_dict(state_dict)
+        if isinstance(prefix, str):
+            state_dict_name = f"{prefix}state_dict.pt"
+        else:
+            state_dict_name = f"state_dict.pt"
+        state_dict = torch.load(osp.join(model_dir, state_dict_name))
+        self.model.load_state_dict(state_dict)
 
         if not core_only and osp.exists(path_pstate_dict := osp.join(model_dir, f"{prefix}predictor_dict.pt")):
             state_dict = torch.load(path_pstate_dict)
@@ -361,16 +362,12 @@ class PretrainComplex:
 
     def prepare(self):
         loader = DataLoader(
-            self.train_dataset.load_all(
-                self.hypers.batch_size * 4 if self.debug else 1e99
-            ) if self.load_all_data else self.train_dataset,
+            self.train_dataset.load_all(getattr(self, 'sample_num')) if self.load_all_data else self.train_dataset,
             batch_size=self.hypers.batch_size,
             shuffle=self.kwargs.get('trainset_shuffle', True)
         )
         eval_loader = DataLoader(
-            self.dataset_test.load_all(
-                self.hypers.batch_size * 2 if self.debug else 1e99
-            ) if self.load_all_data else self.dataset_test,
+            self.dataset_test.load_all(getattr(self, 'sample_num')) if self.load_all_data else self.dataset_test,
             batch_size=self.hypers.batch_size,
             shuffle=self.kwargs.get('evalset_shuffle', False)
         )
@@ -378,10 +375,7 @@ class PretrainComplex:
         torch.cuda.empty_cache()
 
         self.model = self.model.to(self.device)
-        # self.predictor = self.predictor.to(self.device)
-
         optimizer = self.OPTIMIZER(
-            # list(self.core_model.parameters()) + list(self.predictor.parameters()),
             self.model.parameters(),
             lr=self.hypers.lr,
             weight_decay=self.hypers.weight_decay
@@ -491,7 +485,7 @@ class PretrainComplex:
 
     def to_train(
             self,
-            epoch,
+            epoch: int,
             loader, model, optimizer,
             inputs_getter: Callable[[Batch], tuple[Union[torch.Tensor, Sequence], ...]],
             feature_extractor: FeatureExtractorTemplate,
@@ -510,7 +504,7 @@ class PretrainComplex:
             eval_batch_step: Optional[int] = None,
             **kwargs
     ):
-        p_bar = tqdm(desc=f"Epoch: {epoch}:", total=len(loader)) if self.show_batch_pbar else None
+        p_bar = tqdm(total=len(loader), desc=f'Training, Epoch {epoch}/{self.epochs}')
         model.train()
         for i, batch in enumerate(loader, 1):
             self.batch_dtype_preprocessor(batch)
@@ -546,6 +540,10 @@ class PretrainComplex:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            if dict(self.model.named_parameters())['core.x_emb.weight'].grad is None:
+                raise AttributeError('\033[38;5;208mThe core.x_emb.weight not have gradient\033[1m')
+            else:
+                logging.debug('The core.x_emb.weight has gradient')
 
             # Early stop control
             if eval_batch_step and i % eval_batch_step and isinstance(self.lazy_eval, Callable):
@@ -559,8 +557,7 @@ class PretrainComplex:
             if self.debug and i > 4:
                 break
 
-            if p_bar:
-                p_bar.update(1)
+            p_bar.update(1)
 
     def _lazy_eval(self, *args, **kwargs):
         def lazy_wrapper(epoch=None, **kw):
@@ -667,15 +664,10 @@ class PretrainComplex:
 
         return is_update
 
-    def print_eval_metric(self, metric_results, epoch: Optional[int] = None, desc: str = ""):
+    def print_eval_metric(self, metric_results, epoch: Optional[int] = None):
+        print(f'Eval {self.work_name} task, epoch: {epoch}/{self.epochs}:')
         for metric_name, metric_value in metric_results.items():
-
-            # Print information
-            desc = desc if desc else self.work_name
-            if isinstance(epoch, int):
-                print(f'Epoch {epoch}/{self.epochs}, eval {desc} with metric {metric_name}: {metric_value}')
-            else:
-                print(f'Eval {metric_name} in eval set {desc}: {metric_value}')
+            print(f'{metric_name}: {metric_value}')
 
             if isinstance(epoch, int):
                 list_metric = self.metrics_results.setdefault(metric_name, [])
@@ -687,10 +679,6 @@ class PretrainComplex:
 
     def run(
             self,
-            # feature_extractor: FeatureExtractorTemplate,
-            # predictor: Callable,
-            # target_getter: Callable[[Batch], torch.Tensor],
-            # loss_fn: Callable[[tuple[torch.Tensor, torch.Tensor], torch.Tensor], torch.Tensor],
             input_x_index: Union[list, torch.Tensor] = None,
             xyz_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
@@ -698,7 +686,6 @@ class PretrainComplex:
             to_onehot: bool = True,
             onehot_labels: int = None,
             loss_weight_calculator: Callable[[torch.Tensor, int], torch.Tensor] = None,
-            metrics: dict[str, Callable[[np.ndarray, np.ndarray], Union[float, np.ndarray]]] = None,
             **kwargs
     ):
         if to_onehot and not isinstance(onehot_labels, int):
@@ -759,14 +746,7 @@ class PretrainComplex:
             self.lazy_eval(eval_max_batch=3)
 
         for epoch in range(self.epochs):
-
-            # Training block
             self.to_train(epoch, **train_kw)
-            # if not self.keep_grad_state and epoch == 0:
-            #     self.model.requires_grad_(True)
-            #     self.lazy_eval(desc="unfreeze core")
-
-            # Eval block
             if isinstance(self.eval_steps, int) and epoch % self.eval_steps == 0:
                 metric_results = self.lazy_eval(epoch)
                 is_update = self.inspect_model(metric_results)
@@ -781,14 +761,18 @@ class PretrainComplex:
                     print(RuntimeWarning(f"Early stopping in {epoch} epochs"))
                     break
 
+            if lr_sche:
+                lr_sche.step()
+
 ############################## Pretrain Run ###################################
-MetricType = Literal['r2score', 'rmse', 'mse', 'mae', 'accuracy', 'binary_accuracy']
+MetricType = Literal['r2score', 'rmse', 'mse', 'mae', 'accuracy', 'binary_accuracy', 'metal_accuracy']
 metrics_options = {
     'r2score': M.Metrics.r2_score,
     'rmse': M.Metrics.rmse,
     'mae': M.Metrics.mae,
     'mse': M.Metrics.mse,
-    'accuracy': M.Metrics.calc_oh_accuracy,
+    'accuracy': lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True),
+    'metal_accuracy': lambda p,t: M.Metrics.metal_oh_accuracy(p, t, is_onehot=True),
     'binary_accuracy': M.Metrics.binary_accuracy,
 }
 extractor_options = {

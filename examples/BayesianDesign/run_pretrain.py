@@ -1,40 +1,44 @@
+import sys
 import os.path as osp
 import socket
 
-from safetensors.torch import save_model
-
-from hotpot.plugins.complex_model import (
-    models as M,
-    pretrain,
-    dataset as D
-)
-
-
 import torch
+
+machine_name = socket.gethostname()
 torch.set_default_dtype(torch.bfloat16)
 if torch.cuda.is_available():
-    device = torch.device("cuda:1")
+    if machine_name == '4090':
+        device = torch.device("cuda:1")
+    else:
+        device = torch.device("cuda:0")
 else:
     device = torch.device("cpu")
 
 
 # Initialize paths.
-machine_name = socket.gethostname()
 if machine_name == '4090':
     project_root = '/home/zzy/docker_envs/pretrain/proj'
 elif machine_name == 'DESKTOP-G9D9UUB':
     project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
 elif machine_name == 'docker':
     project_root = '/app/proj'
+elif machine_name == '3090':
+    project_root = '/home/zz1/docker/proj'
 else:
     raise ValueError
 
-models_dir = osp.join(project_root, 'models')
+# Import hotpot module
+sys.path.append(osp.join(project_root, 'hotpot'))
+from hotpot.plugins.complex_model import (
+    models as M,
+    pretrain,
+    dataset as D,
+)
 
+
+models_dir = osp.join(project_root, 'models')
 # dataset save paths
 _tmqm_data_dir = osp.join(project_root, 'datasets', 'tmqm_data0207')
-
-
 
 tmqm_getter = D.DatasetGetter(project_root, "tmqm")
 
@@ -65,7 +69,7 @@ ATOM_TYPES = 119  # Arguments for atom type loss
 
 
 hypers = pretrain.Hypers()
-hypers.batch_size = 1024
+hypers.batch_size = 512
 hypers.lr = 1e-3
 hypers.weight_decay = 4e-5
 
@@ -132,8 +136,9 @@ if __name__ == '__main__':
         load_core_only=True,
         save_model=False,
         x_masker=pretrain.x_masker_func,
-        # load_all_data=True,
+        load_all_data=True,
         show_batch_pbar=True,
         constant_lr=True,
+        other_metric='metal_accuracy',
         # debug=True,
     )

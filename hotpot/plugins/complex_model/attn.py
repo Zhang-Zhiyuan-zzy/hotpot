@@ -1,11 +1,13 @@
 import copy
 from typing import Union, Callable, Optional
+import math
 
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from torch import Tensor
+from torch.nn import TransformerEncoderLayer
 
 import torch._dynamo
 
@@ -35,7 +37,7 @@ class Encoder(nn.Module):
             dropout: float = 0.0,
             activation: Union[str, Callable[[Tensor], Tensor]] = F.relu,
             layer_norm_eps: float = 1e-5,
-            bias=True,
+            bias=False,
             device=None,
             dtype=None,
             norm_first: bool = True,
@@ -72,7 +74,7 @@ class Encoder(nn.Module):
             self,
             src: Tensor,
             mask: Optional[Tensor] = None,
-            src_key_padding_mask_for_layers: Optional[Tensor] = None,
+            src_key_padding_mask: Optional[Tensor] = None,
             is_causal: bool = False,
     ) -> Tensor:
         output = src
@@ -81,7 +83,7 @@ class Encoder(nn.Module):
                 output,
                 src_mask=mask,
                 is_causal=is_causal,
-                src_key_padding_mask=src_key_padding_mask_for_layers,
+                src_key_padding_mask=src_key_padding_mask,
             )
 
         if self.norm is not None:
@@ -169,13 +171,21 @@ class EncoderLayer(nn.Module):
         x = src
         if self.norm_first:
             x = x + self._sa_block(
-                self.norm1(x), src_mask, src_key_padding_mask, is_causal=is_causal
+                self.norm1(x),
+                src_mask,
+                is_causal=is_causal,
+                key_padding_mask=src_key_padding_mask
             )
             x = x + self._ff_block(self.norm2(x))
         else:
             x = self.norm1(
                 x
-                + self._sa_block(x, src_mask, src_key_padding_mask, is_causal=is_causal)
+                + self._sa_block(
+                    self.norm1(x),
+                    src_mask,
+                    is_causal=is_causal,
+                    key_padding_mask=src_key_padding_mask
+                )
             )
             x = self.norm2(x + self._ff_block(x))
 
@@ -185,11 +195,15 @@ class EncoderLayer(nn.Module):
     def _sa_block(
         self,
         x: Tensor,
-        attn_mask: Optional[Tensor],
-        key_padding_mask: Optional[Tensor],
+        attn_mask: Optional[Tensor] = None,
+        key_padding_mask: Optional[Tensor] = None,
         is_causal: bool = False,
     ) -> Tensor:
-        return self.dropout1(self.md_attn(x, x, x))
+        return self.dropout1(self.md_attn(
+            x, x, x,
+            is_causal=is_causal,
+            key_padding_mask=key_padding_mask)
+        )
 
     # feed forward block
     def _ff_block(self, x: Tensor) -> Tensor:
@@ -220,7 +234,7 @@ class MultiHeadAttention(nn.Module):
         E_total: int,
         nheads: int,
         dropout: float = 0.0,
-        bias=True,
+        bias=False,
         device=None,
         dtype=None,
     ):
@@ -246,10 +260,11 @@ class MultiHeadAttention(nn.Module):
         query: torch.Tensor,
         key: torch.Tensor,
         value: torch.Tensor,
-        attn_mask=None,
+        attn_mask: Optional[torch.Tensor] = None,
+        key_padding_mask: Optional[torch.Tensor] = None,
         is_causal=False,
     ) -> torch.Tensor:
-        """
+        r"""
         Forward pass; runs the following process:
             1. Apply input projection
             2. Split heads and prepare for SDPA
@@ -262,6 +277,11 @@ class MultiHeadAttention(nn.Module):
             value (torch.Tensor): value of shape (``N``, ``L_kv``, ``E_v``)
             attn_mask (torch.Tensor, optional): attention mask of shape (``N``, ``L_q``, ``L_kv``) to pass to SDPA. Default: None
             is_causal (bool, optional): Whether to apply causal mask. Default: False
+            key_padding_mask: If specified, a mask of shape :math:`(N, S)` indicating which elements within ``key``
+            to ignore for the purpose of attention (i.e. treat as "padding"). For unbatched `query`, shape should be :math:`(S)`.
+            Binary and float masks are supported.
+            For a binary mask, a ``True`` value indicates that the corresponding ``key`` value will be ignored for
+            the purpose of attention. For a float mask, it will be directly added to the corresponding ``key`` value.
 
         Returns:
             attn_output (torch.Tensor): output of shape (N, L_t, E_q)
@@ -303,8 +323,38 @@ class MultiHeadAttention(nn.Module):
 
         # Step 3. Run SDPA
         # (N, nheads, L_t, E_head)
+        key_padding_mask = F._canonical_mask(
+            mask=key_padding_mask,
+            mask_name="key_padding_mask",
+            other_type=F._none_or_dtype(attn_mask),
+            other_name="attn_mask",
+            target_type=query.dtype,
+        )
+
+        # merge key padding and attention masks
+        bsz, src_len = key_padding_mask.shape
+        if key_padding_mask is not None:
+            if not torch.jit.is_scripting() and not torch.jit.is_tracing():
+                F._check_key_padding_mask(key_padding_mask, src_len, bsz)
+
+            key_padding_mask = (
+                key_padding_mask.view(bsz, 1, 1, src_len)
+                .expand(-1, self.nheads, -1, -1)
+                .reshape(bsz * self.nheads, 1, src_len)
+            )
+            if attn_mask is None:
+                attn_mask = key_padding_mask
+            else:
+                attn_mask = attn_mask + key_padding_mask
+
+
         attn_output = F.scaled_dot_product_attention(
-            query, key, value, dropout_p=self.dropout, is_causal=is_causal
+            query,
+            key,
+            value,
+            dropout_p=self.dropout,
+            is_causal=is_causal,
+            attn_mask=attn_mask
         )
         # (N, nheads, L_t, E_head) -> (N, L_t, nheads, E_head) -> (N, L_t, E_total)
         attn_output = attn_output.transpose(1, 2).flatten(-2)
@@ -316,5 +366,29 @@ class MultiHeadAttention(nn.Module):
         return attn_output
 
 
-# class TransformerEncoderLayer(nn.Module):
-#     def __init__()
+def scaled_dot_product_attention(query, key, value, attn_mask=None, dropout_p=0.0,
+                                 is_causal=False, scale=None, enable_gqa=False) -> torch.Tensor:
+    L, S = query.size(-2), key.size(-2)
+    scale_factor = 1 / math.sqrt(query.size(-1)) if scale is None else scale
+    attn_bias = torch.zeros(L, S, dtype=query.dtype).to(query.device)
+    if is_causal:
+        assert attn_mask is None
+        temp_mask = torch.ones(L, S, dtype=torch.bool).tril(diagonal=0)
+        attn_bias.masked_fill_(temp_mask.logical_not(), float("-inf")).to(query.device)
+        attn_bias.to(query.dtype)
+
+    if attn_mask is not None:
+        if attn_mask.dtype == torch.bool:
+            attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
+        else:
+            attn_bias += attn_mask
+
+    if enable_gqa:
+        key = key.repeat_interleave(query.size(-3) // key.size(-3), -3)
+        value = value.repeat_interleave(query.size(-3) // value.size(-3), -3)
+
+    attn_weight = query @ key.transpose(-2, -1) * scale_factor
+    attn_weight += attn_bias
+    attn_weight = torch.softmax(attn_weight, dim=-1)
+    attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
+    return attn_weight @ value

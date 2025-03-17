@@ -1,12 +1,10 @@
 # Author: Zhiyuan Zhang
-
 import glob
 import os
 import os.path as osp
 import shutil
 import random
-from typing import Iterable,  Protocol, Union
-
+from typing import Iterable, Optional, Protocol, Type, Union
 from tqdm import tqdm
 
 import torch
@@ -31,7 +29,6 @@ class DatasetProtocol(Protocol):
         ...
     def get(self, idx: int) -> Data:
         ...
-
 
 class PretrainDataset:
     def __init__(self, root: str, in_mem_size: int = 20000) -> None:
@@ -64,8 +61,11 @@ class PretrainDataset:
         for i in range(self.len):
             yield self[i]
 
-    def load_all(self, max_len: int = 1e99) -> list:
-        return [self[i] for i in tqdm(range(min(len(self), max_len)), "loading dataset")]
+    def load_all(self, sample_num: Optional[int] = None) -> Iterable[Data]:
+        if sample_num:
+            return [self[i] for i in tqdm(range(min(len(self), sample_num)))]
+        else:
+            return [self[i] for i in tqdm(range(len(self)), desc="Loading data")]
 
 
 

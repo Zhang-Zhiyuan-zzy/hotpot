@@ -62,8 +62,11 @@ class PretrainDataset:
         for i in range(self.len):
             yield self[i]
 
-    def load_all(self):
-        return [self[i] for i in tqdm(range(len(self)), desc="Loading data")]
+    def load_all(self, sample_num: Optional[int] = None) -> Iterable[Data]:
+        if sample_num:
+            return [self[i] for i in tqdm(range(min(len(self), sample_num)))]
+        else:
+            return [self[i] for i in tqdm(range(len(self)), desc="Loading data")]
 
 
 

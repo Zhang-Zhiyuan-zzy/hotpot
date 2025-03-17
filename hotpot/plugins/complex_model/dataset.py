@@ -5,6 +5,7 @@ import shutil
 import random
 from typing import Iterable, Optional, Protocol, Type, Union
 import socket
+from tqdm import tqdm
 
 import torch
 from torch_geometric.data import Data
@@ -28,18 +29,6 @@ class DatasetProtocol(Protocol):
         ...
     def get(self, idx: int) -> Data:
         ...
-
-
-# Initialize paths.
-machine_name = socket.gethostname()
-if machine_name == '4090':
-    project_root = '/home/zzy/proj/bayes'
-elif machine_name == 'DESKTOP-G9D9UUB':
-    project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
-elif machine_name == 'docker':
-    project_root = '/app/proj'
-else:
-    raise ValueError
 
 
 class PretrainDataset:
@@ -72,6 +61,9 @@ class PretrainDataset:
     def __iter__(self):
         for i in range(self.len):
             yield self[i]
+
+    def load_all(self):
+        return [self[i] for i in tqdm(range(len(self)), desc="Loading data")]
 
 
 

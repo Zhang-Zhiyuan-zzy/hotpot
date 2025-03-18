@@ -70,7 +70,7 @@ ATOM_TYPES = 119  # Arguments for atom type loss
 
 hypers = pretrain.Hypers()
 hypers.batch_size = 512
-hypers.lr = 1e-3
+hypers.lr = 2e-4
 hypers.weight_decay = 4e-5
 
 core = M.Core(
@@ -85,43 +85,6 @@ core = M.Core(
 )
 
 def atom_types():
-    with pretrain.PretrainComplex(
-        work_name="atom types",
-        not_save=True,
-        work_dir=models_dir,
-        model=model,
-        dataset_=dataset,
-        dataset_test_=dataset_test,
-        optimizer=OPTIMIZER,
-        hypers=hypers,
-        epochs=EPOCHS,
-        device=device,
-        eval_steps=1,
-        eval_first=True,
-    ) as pt:
-        print(pt.work_dir)
-        # pt.load_model_params()
-        pt.run(
-            feature_extractor=M.FeatureExtractors.extract_atom_vec,
-            predictor=model.predict_atom_type,
-            input_x_index=INPUT_X_INDEX,
-            xyz_index=XYZ_INDEX,
-            target_getter=lambda batch: batch.x[:, TYPE_INDEX],
-            x_masker=pretrain.x_masker_func,
-            loss_fn=M.LossMethods.calc_atom_type_loss,
-            to_onehot=True,
-            onehot_types=ATOM_TYPES,
-            loss_weight_calculator=lambda t, n: M.atom_label_weight_(t, n, 'inverse-count'),
-            metrics={'accuracy': lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True)}
-        )
-
-
-def main():
-    ...
-
-
-if __name__ == '__main__':
-    print('run!')
     pretrain.run(
         work_name="AtomType",
         work_dir=models_dir,
@@ -132,13 +95,52 @@ if __name__ == '__main__':
         epochs=EPOCHS,
         device=device,
         eval_steps=1,
-        # checkpoint_path=-1,
+        checkpoint_path=-1,
         load_core_only=True,
-        save_model=False,
+        # save_model=False,
         x_masker=pretrain.x_masker_func,
         load_all_data=True,
         show_batch_pbar=True,
         constant_lr=True,
         other_metric='metal_accuracy',
+        early_stopping=False,
+        debug=True,
+    )
+
+def atom_charges():
+    pretrain.run(
+        work_name="AtomCharge",
+        work_dir=models_dir,
+        core=core,
+        train_dataset=dataset,
+        test_dataset=dataset_test,
+        hypers=hypers,  # pretrain.Hyper instance
+        epochs=EPOCHS,  # int
+        device=device,  # cuda or cpu
+        eval_steps=1,  # the interval (epoch) steps to eval
+        checkpoint_path=-1,  # (path or index)
+        load_core_only=True,  # if just load core params
+        with_xyz=True,  # xyz as input
+        # save_model=False,
+        # x_masker=pretrain.x_masker_func,  # predict masked nodes
+        load_all_data=True,  # if load all data before training
+        show_batch_pbar=True,
+        constant_lr=True,  #
+        # other_metric='metal_accuracy',
+        early_stopping=True,
         # debug=True,
     )
+
+def cbond():
+    ...
+
+
+def main():
+    ...
+
+
+if __name__ == '__main__':
+    print('run!')
+    atom_types()
+    # atom_charges()
+

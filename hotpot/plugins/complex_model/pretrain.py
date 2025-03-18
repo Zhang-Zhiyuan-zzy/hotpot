@@ -138,6 +138,7 @@ class PretrainComplex:
             feature_extractor: FeatureExtractorTemplate,
             target_getter: Callable[[Batch], torch.Tensor],
             loss_fn: Callable[[torch.Tensor, torch.Tensor, Optional[Any]], torch.Tensor],
+            primary_metric: str,
             metrics: dict[str, Callable[[np.ndarray, np.ndarray], Union[float, np.ndarray]]],
             optimizer: Optional[Type[Optimizer]] = None,
             constant_lr: bool = False,
@@ -152,7 +153,6 @@ class PretrainComplex:
             device: Union[str, torch.device] = None,
             epochs: int = 100,
             work_name: Optional[str] = None,
-            primary_metric: str = "accuracy",
             minimize_metric: bool = False,
             early_stopping: bool = False,
             early_stop_step: int = 5,
@@ -260,7 +260,7 @@ class PretrainComplex:
         if self.debug:
             logging.basicConfig(level=logging.DEBUG)
             self.sample_num = 4*self.hypers.batch_size
-            print('\033[38;5;208mDebug model!\033[1m')
+            print('\033[38;5;208mDebug model!\033[0m')
 
     def __enter__(self):
         return self
@@ -290,11 +290,11 @@ class PretrainComplex:
         return model_dir
 
     def freeze_core_layer(self):
-        self.core.requires_grad_(False)
+        self.model.core.requires_grad_(False)
         self.core_frozen_flag = True
 
     def unfreeze_core_layer(self):
-        self.core.requires_grad_(True)
+        self.model.core.requires_grad_(True)
         self.core_frozen_flag = False
 
     def freeze_predictor_layer(self):
@@ -336,15 +336,22 @@ class PretrainComplex:
             state_dict_name = f"{prefix}state_dict.pt"
         else:
             state_dict_name = f"state_dict.pt"
-        state_dict = torch.load(osp.join(model_dir, state_dict_name))
-        self.model.load_state_dict(state_dict)
+        # Prepare Core dict
+        state_dict = {
+            k[5:]:v for k, v in torch.load(osp.join(model_dir, state_dict_name)).items()
+            if k.startswith('core')
+        }
+        self.model.core.load_state_dict(state_dict)
+        print(f"load core: {osp.join(model_dir, state_dict_name)}")
 
         if not core_only and osp.exists(path_pstate_dict := osp.join(model_dir, f"{prefix}predictor_dict.pt")):
             state_dict = torch.load(path_pstate_dict)
             self.predictor.load_state_dict(state_dict)
-        # elif freeze_core is not False and not self.keep_grad_state:
-        #     # If the predictor is not loaded, freeze the core layer until the first epoch or 20 batches
-        #     self.freeze_core_layer()
+            print(f"load predictor: {path_pstate_dict}")
+
+        elif freeze_core is not False and not self.keep_grad_state:
+            # If the predictor is not loaded, freeze the core layer until the first epoch or 20 batches
+            self.freeze_core_layer()
 
     def save_model(self, prefix: Optional[str] = None):
         if not osp.exists(self.model_dir):
@@ -540,8 +547,8 @@ class PretrainComplex:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if dict(self.model.named_parameters())['core.x_emb.weight'].grad is None:
-                raise AttributeError('\033[38;5;208mThe core.x_emb.weight not have gradient\033[1m')
+            if not self.core_frozen_flag and dict(self.model.named_parameters())['core.x_emb.weight'].grad is None:
+                raise AttributeError('\033[38;5;208mThe core.x_emb.weight not have gradient\033[0m')
             else:
                 logging.debug('The core.x_emb.weight has gradient')
 
@@ -563,7 +570,7 @@ class PretrainComplex:
         def lazy_wrapper(epoch=None, **kw):
             kwargs.update(kw)
             metric_results = self.to_eval(*args, **kwargs)
-            self.print_eval_metric(metric_results, epoch, desc=kw.get('desc', ''))
+            self.print_eval_metric(metric_results, epoch)
             return metric_results
         return lazy_wrapper
 
@@ -761,6 +768,12 @@ class PretrainComplex:
                     print(RuntimeWarning(f"Early stopping in {epoch} epochs"))
                     break
 
+            # unfreeze the core module if not keep grad state
+            if not self.keep_grad_state and (self.core_frozen_flag or self.predictor_frozen_flag):
+                self.unfreeze_core_layer()
+                self.unfreeze_predictor_layer()
+                print("\033[32mUnfreeze core and predictor module!\033[0m")
+
             if lr_sche:
                 lr_sche.step()
 
@@ -802,6 +815,23 @@ def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = No
         return item_names.index(attrs)
     elif isinstance(attrs, Iterable):
         return [item_names.index(a) for a in attrs]
+
+class Model(nn.Module):
+    def __init__(self, core: nn.Module, predictor: nn.Module):
+        super().__init__()
+        self.core = core
+        self.predictor = predictor
+
+    def forward(self, *args, **kw):
+        return self.core(*args, **kw)
+
+    @property
+    def x_label_nums(self) -> Optional[int]:
+        return getattr(self.core, 'x_label_nums', None)
+
+    @property
+    def x_mask_vec(self) -> Optional[torch.Tensor]:
+        return getattr(self.core, 'x_mask_vec', None)
 
 def run(
         work_name: str,
@@ -1026,26 +1056,12 @@ def run(
             flmt['target_getter'] = lambda batch: batch.x[:, XYZ_INDEX]
         elif work_name == 'AtomType':
             flmt['target_getter'] = lambda batch: batch.x[:, 0]
+        elif work_name == "AtomCharge":
+            ATOM_CHRG_INDEX = _get_index(first_data,'x', 'partial_charge')
+            flmt['target_getter'] = lambda batch: batch.x[:, ATOM_CHRG_INDEX]
 
     if loss_weight_calculator is None and target_type == 'onehot':
         loss_weight_calculator = lambda t, n: M.atom_label_weight_(t, n, loss_weight_method)
-
-    class Model(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.core = core
-            self.predictor = predictor
-
-        def forward(self, *args, **kw):
-            return self.core(*args, **kw)
-
-        @property
-        def x_label_nums(self) -> Optional[int]:
-            return getattr(self.core, 'x_label_nums', None)
-
-        @property
-        def x_mask_vec(self) -> Optional[torch.Tensor]:
-            return getattr(self.core, 'x_mask_vec', None)
 
     with PretrainComplex(
         work_name=work_name,
@@ -1053,10 +1069,12 @@ def run(
         train_dataset=train_dataset,
         test_dataset=test_dataset,
         hypers=hypers,
-        model=Model(),
+        model=Model(core, predictor),
+        predictor=predictor,
         optimizer=optimizer,
         constant_lr=constant_lr,
         lr_schedular=lr_schedular,
+        primary_metric=primary_metric,
         lr_schedular_kwargs=lr_schedular_kwargs,
         not_save=not save_model,
         device=device,

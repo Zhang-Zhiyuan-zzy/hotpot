@@ -11,7 +11,7 @@ from torch.nn import TransformerEncoderLayer
 
 from hotpot.cheminfo.elements import elements
 from . import attn
-from . import utils
+from hotpot.plugins.complex_model import utils
 
 
 def complete_graph_generator(ptr):
@@ -910,7 +910,7 @@ class Predictor(nn.Module):
         self.target_pattern = target_pattern
         if target_pattern == 'num':
             self.out_layer = nn.Linear(in_size, 1)
-            self.out_act = out_act()
+            self.out_act = nn.LeakyReLU()
         elif target_pattern == 'xyz':
             self.out_layer = nn.Linear(in_size, 3)
             self.out_act = out_act()
@@ -924,11 +924,12 @@ class Predictor(nn.Module):
             raise NotImplementedError(f"{target_pattern} is not implemented")
 
     def forward(self, z):
-        # z = self.atom_type_predictor(z) + z
-        # z = self.out_layer(z)
-        # return F.softmax(z, dim=-1)
         z = self.hidden_layers(z) + z
-        return F.softmax(self.out_layer(z), dim=-1)
+        z = self.out_layer(z)
+        if self.target_pattern in ['num', 'xyz']:
+            return z
+        else:
+            return self.out_act(z)
 
 ############################### ComplexFormer ##################################
 

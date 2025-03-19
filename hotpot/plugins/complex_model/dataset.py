@@ -1,10 +1,11 @@
+# Author: Zhiyuan Zhang
 import glob
 import os
 import os.path as osp
 import shutil
 import random
 from typing import Iterable, Optional, Protocol, Type, Union
-import socket
+from tqdm import tqdm
 
 import torch
 from torch_geometric.data import Data
@@ -28,21 +29,6 @@ class DatasetProtocol(Protocol):
         ...
     def get(self, idx: int) -> Data:
         ...
-
-
-# Initialize paths.
-machine_name = socket.gethostname()
-if machine_name == '4090':
-    project_root = '/home/zzy/proj/bayes'
-elif machine_name == 'DESKTOP-TZ001':
-    project_root = '/mnt/d/1-hnh/Data'
-elif machine_name == 'docker':
-    project_root = '/app/proj'
-elif machine_name == '3090':
-    project_root = '/home/hnh/proj'
-else:
-    raise ValueError
-
 
 class PretrainDataset:
     def __init__(self, root: str, in_mem_size: int = 20000) -> None:
@@ -74,6 +60,12 @@ class PretrainDataset:
     def __iter__(self):
         for i in range(self.len):
             yield self[i]
+
+    def load_all(self, sample_num: Optional[int] = None) -> Iterable[Data]:
+        if sample_num:
+            return [self[i] for i in tqdm(range(min(len(self), sample_num)))]
+        else:
+            return [self[i] for i in tqdm(range(len(self)), desc="Loading data")]
 
 
 

@@ -238,7 +238,6 @@ class tmQmDataset(BaseDataset):
               'formal_charge','partial_charge', 'is_aromatic',
               'x', 'y', 'z',
               'valence', 'implicit_hydrogens', 'is_metal'),
-
         'edge_attr': ('bond_order', 'is_aromatic', 'is_metal_ligand_bond'),
         'pair_attr': ('wiberg_bond_order', 'length_shortest_path'),
         'ring_attr': ('is_aromatic', 'has_metal'),

@@ -6,15 +6,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch_geometric as pyg
-import torch.optim as optim
 import torch_geometric.nn as pygnn
-from sympy.physics.units import moles
-from torch.xpu import device
+from torch.nn import TransformerEncoderLayer
 
-from torch_geometric.loader import DataLoader
 from hotpot.cheminfo.elements import elements
 from . import attn
+from hotpot.plugins.complex_model import utils
 
 
 def complete_graph_generator(ptr):
@@ -79,40 +76,18 @@ def _to_mask(
         label_mask: bool = False,
         to_mask_label: int = 0
 ):
-    # TODO: Do not delete
-    # # Set targets to -1 by default, it means ignore
-    # atom_labels = -1 * torch.ones(inp_vec.shape[0], dtype=torch.int).to(inp_vec.device)
-    # # Set labels for masked tokens
-    # atom_labels[masked_idx] = inp_atom_labels[masked_idx]
-    # TODO: Do not delete
+    atom_labels = inp_atom_labels[masked_idx]
 
-    if label_mask:
-        atom_labels = inp_atom_labels[masked_idx]
+    # Prepare masked input
+    masked_vec = inp_vec.clone()
+    # Set input to [MASK] which is the last token for the 90% of tokens
+    # This means leaving 10% unchanged
+    mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
+    masked_vec[mask2mask_idx] = to_mask_label if label_mask else mask_vec # mask token is the last in the dict
 
-        # Prepare masked input
-        masked_vec = inp_vec.clone()
-        # Set input to [MASK] which is the last token for the 90% of tokens
-        # This means leaving 10% unchanged
-        mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
-        masked_vec[mask2mask_idx] = to_mask_label  # mask token is the last in the dict
-
-        # Set 10% to a random token
-        mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
-        masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
-
-    else:
-        atom_labels = inp_atom_labels[masked_idx]
-
-        # Prepare masked input
-        masked_vec = inp_vec.clone()
-        # Set input to [MASK] which is the last token for the 90% of tokens
-        # This means leaving 10% unchanged
-        mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
-        masked_vec[mask2mask_idx] = mask_vec  # mask token is the last in the dict
-
-        # Set 10% to a random token
-        mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
-        masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
+    # Set 10% to a random token
+    mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
+    masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
 
     return masked_vec, atom_labels, masked_idx
 
@@ -175,27 +150,15 @@ class LossMethods:
         # return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device)) - acc*torch.log(acc)
         return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device))
 
-    @staticmethod
-    def binary_accuracy(pred: np.ndarray, target: np.ndarray, weight=None) -> float:
-        return (target == np.round(pred)).mean()
-
 
 class Metrics:
     """ A collection of metrics functions """
     @staticmethod
     def calc_oh_accuracy(pred, target, is_onehot: bool = True):
         if is_onehot:
-            if isinstance(pred, torch.Tensor):
-                pred_label = torch.argmax(pred, dim=1)
-                target_label = torch.argmax(target, dim=1)
-            elif isinstance(pred, np.ndarray):
-                pred_label = np.argmax(pred, axis=1)
-                target_label = np.argmax(target, axis=1)
-            else:
-                raise TypeError('pred_oh must be of type torch.Tensor or np.ndarray')
+            pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
         else:
-            pred_label = pred
-            target_label = target
+            pred_label, target_label = pred, target
 
         if isinstance(pred, torch.Tensor):
             return (pred_label == target_label).float().mean()
@@ -205,8 +168,91 @@ class Metrics:
             raise TypeError('pred_oh must be of type torch.Tensor or np.ndarray')
 
     @staticmethod
+    def metal_oh_accuracy(pred, target, is_onehot: bool = True):
+        if is_onehot:
+            pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
+        else:
+            pred_label, target_label = pred, target
+
+        metal_idx = utils.where_metal(target_label)
+        pred_label = pred_label[metal_idx]
+        target_label = target_label[metal_idx]
+
+        if isinstance(pred, torch.Tensor):
+            return (pred_label == target_label).float().mean()
+        elif isinstance(pred, np.ndarray):
+            return (pred_label == target_label).mean()
+        else:
+            raise TypeError('pred_oh must be of type torch.Tensor or np.ndarray')
+
+
+    @staticmethod
     def binary_accuracy(pred: np.ndarray, target: np.ndarray):
         return (target == np.round(pred)).mean()
+
+    @staticmethod
+    def r2_score(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        """
+        Computes the R^2 (coefficient of determination) score between y_true and y_pred.
+
+        R^2 = 1 - (SS_res / SS_tot),
+        where SS_res = Σ(y_true - y_pred)²
+              SS_tot = Σ(y_true - mean(y_true))²
+        """
+        # Ensure y_true and y_pred are float tensors
+        # target = target.float()
+        # pred = pred.float()
+
+        # Mean of true values
+        mean_y_true = target.mean()
+
+        # Sum of squares of residuals
+        ss_res = ((target - pred) ** 2).sum()
+
+        # Total sum of squares (relative to the mean)
+        ss_tot = ((target - mean_y_true) ** 2).sum()
+
+        # Handle the case where ss_tot can be zero (e.g., constant targets)
+        if ss_tot <= 1e-8:
+            if isinstance(pred, torch.Tensor):
+                return torch.tensor(1.0 if torch.allclose(target, pred) else 0.0)
+            else:
+                return np.array(1.0 if np.allclose(target, pred) else 0.0)
+
+        return 1 - ss_res / ss_tot
+
+    @staticmethod
+    def rmse(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        if isinstance(target, torch.Tensor):
+            return torch.sqrt(F.mse_loss(pred, target))
+        else:
+            return np.sqrt(np.mean((pred - target) ** 2))
+
+    @staticmethod
+    def mse(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        if isinstance(target, torch.Tensor):
+            return F.mse_loss(pred, target)
+        else:
+            return np.mean((pred - target) ** 2)
+
+    @staticmethod
+    def mae(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        if isinstance(target, torch.Tensor):
+            return torch.mean(torch.abs(target - pred))
+        else:
+            return np.mean(np.abs(target - pred))
 
 
 class FeatureExtractors:
@@ -221,7 +267,7 @@ class FeatureExtractors:
     @staticmethod
     def _extract_atom_vec_from_nested(seq, ptr):
         node_num = _get_mol_num_from_ptr(ptr)
-        return torch.cat([t[1:1+num] for num, t in zip(node_num, seq)])
+        return torch.cat([t[:num] for num, t in zip(node_num, seq)])
 
     @staticmethod
     def _extract_atom_vec_from_padded(seq, X_mask):
@@ -313,6 +359,58 @@ class CloudGraph(nn.Module):
         return x
 
 
+class AssembleModule(nn.Module):
+    def __init__(self):
+        super(AssembleModule, self).__init__()
+
+    def forward(self, X, Xr, CLS, RING, END):
+        return AssembleNestedSeqFn.apply(X, Xr, CLS, RING, END)
+
+
+class AssembleNestedSeqFn(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, X, Xr, CLS, RING, END):
+        """
+        ctx: a context object used to store information for backward
+        X, Xr: your input tensors
+        X_mask, Xr_mask: masks
+        CLS, RING, END: special tokens
+        is_nested: boolean flag
+        """
+        # Save anything needed for backward
+        ctx.save_for_backward(X, Xr, CLS, RING, END)
+        seq = torch.nested.as_nested_tensor(
+            [torch.cat([CLS, x, RING, xr, END]) for x, xr in zip(X, Xr)],
+            layout=torch.jagged)
+
+        return seq
+
+    @staticmethod
+    def backward(ctx, *grad_outputs):
+        """
+        grad_seq, grad_seq_mask: Gradients wrt the outputs from forward.
+        We must return as many gradients as forward had inputs.
+        (X, Xr, X_mask, Xr_mask, CLS, RING, END, is_nested)
+        """
+        print('go int assemble')
+        grad_seq, = grad_outputs
+        X, Xr, CLS, RING, END = ctx.saved_tensors
+
+        grad_X = []
+        grad_Xr = []
+        for grad_s, x, xr in zip(grad_seq, X, Xr):
+            grad_X.append(grad_s[1:1+x.shape[0]])
+            grad_Xr.append(grad_s[x.shape[0]+2:x.shape[0]+2+xr.shape[0]])
+
+        grad_X = torch.nested.as_nested_tensor(grad_X, layout=torch.jagged)
+        grad_Xr = torch.nested.as_nested_tensor(grad_Xr, layout=torch.jagged)
+        grad_CLS = None
+        grad_RING = None
+        grad_END = None
+
+        return None, None, grad_CLS, grad_RING, grad_END
+
+
 
 class CoreBase(nn.Module):
     def __init__(
@@ -329,31 +427,59 @@ class CoreBase(nn.Module):
             mol_nheads: int = 4,
             mol_encoder_kw: dict = None,
             mol_encoder_block_kw: dict = None,
+            *,
+            mode: Literal['fast', 'default'] = 'default',
             **kwargs,
     ):
         super(CoreBase, self).__init__()
         self.ring_encoder_kw = ring_encoder_kw if ring_encoder_kw else {}
         self.ring_encoder_block_kw = ring_encoder_block_kw if ring_encoder_block_kw else {}
-        self.ring_encoder = attn.Encoder(
-            n_layers=ring_layers,
-            d_model=vec_dim,
-            nheads=ring_nheads,
-            **self.ring_encoder_kw,
-        )
+        if mode == 'fast':
+            self.ring_encoder = attn.Encoder(
+                n_layers=ring_layers,
+                d_model=vec_dim,
+                nheads=ring_nheads,
+                **self.ring_encoder_kw,
+            )
+        else:
+            self.ring_encoder = nn.TransformerEncoder(
+                nn.TransformerEncoderLayer(
+                    d_model=vec_dim,
+                    nhead=ring_nheads,
+                    dim_feedforward=1024,
+                    batch_first=True,
+                ), num_layers=ring_layers,
+            )
 
         self.mol_encoder_kw = mol_encoder_kw if mol_encoder_kw else {}
         self.mol_encoder_block_kw = mol_encoder_block_kw if mol_encoder_block_kw else {}
-        self.mol_encoder = attn.Encoder(
-            n_layers=mol_layers,
-            d_model=vec_dim,
-            nheads=mol_nheads,
-            **self.mol_encoder_kw,
-        )
+        if mode == 'fast':
+            self.mol_encoder = attn.Encoder(
+                n_layers=mol_layers,
+                d_model=vec_dim,
+                nheads=mol_nheads,
+                **self.mol_encoder_kw,
+            )
+        else:
+            self.mol_encoder = nn.TransformerEncoder(
+                TransformerEncoderLayer(
+                    d_model=vec_dim,
+                    nhead=mol_nheads,
+                    dim_feedforward=1024,
+                    batch_first=True,
+                ), num_layers=mol_layers,
+            )
 
         self.CLS = nn.Parameter(torch.randn(1, vec_dim))
         self.RING = nn.Parameter(torch.randn(1, vec_dim))
         self.END = nn.Parameter(torch.randn(1, vec_dim))
-        self.is_nested = kwargs.get('is_nested', True)
+
+        self.CLS_proj = nn.Linear(vec_dim, vec_dim)
+        self.RING_proj = nn.Linear(vec_dim, vec_dim)
+        self.END_proj = nn.Linear(vec_dim, vec_dim)
+        # self.cre_emb = nn.Embedding(3, vec_dim)
+        self.assemble = AssembleModule()
+        self.is_nested = kwargs.get('is_nested', False)
 
     def _padding_encode(self, x, ptr, rings_node_index, rings_node_nums, mol_rings_nums):
         X, X_mask = self._nodes_padding(x, ptr)
@@ -371,9 +497,9 @@ class CoreBase(nn.Module):
     def _nesting_encode(self, x, ptr, rings_node_index, rings_node_nums, mol_rings_nums):
         X, _ = self._node_nesting(x, ptr)
         Xr = self._rings_attention(x, rings_node_index, rings_node_nums)
-        Xr, _ = self._split_nested(Xr, mol_rings_nums)
+        Xr, _ = self._split_nested(Xr, mol_rings_nums, layout=torch.jagged)
 
-        seq, _ = self._assemble_sequence(X, Xr, is_nested=True)
+        seq, _ = self._assemble_sequence(X, Xr, is_nested=self.is_nested)
         seq = self.mol_encoder(seq)
 
         return seq, None, None
@@ -382,7 +508,8 @@ class CoreBase(nn.Module):
     def _split_nested(x: torch.Tensor, nums: torch.Tensor, layout=None):
         return torch.nested.nested_tensor(list(torch.split(x, nums.tolist())), layout=layout), None
 
-    def _split_padding(self, x: torch.Tensor, nums: torch.Tensor):
+    @staticmethod
+    def _split_padding(x: torch.Tensor, nums: torch.Tensor):
         """
         Split X in PyG-style batch and padding.
         :param x: PyG-style batch node vectors
@@ -398,6 +525,7 @@ class CoreBase(nn.Module):
 
         start = 0
         for i, size in enumerate(nums.long()):
+            size: int
             padded_X[i, :size] = x[start:start + size]
             padding_mask[i, :size] = 0
             start += size
@@ -413,28 +541,49 @@ class CoreBase(nn.Module):
         return self._split_padding(x, mol_node_nums)
 
     def _rings_attention(self, x, rings_node_index, rings_node_nums):
-        x = x[rings_node_index]
+        x = x[rings_node_index]  # Get rings node's x
 
-        nested_X, padding_mask = self._split_nested(x, rings_node_nums, layout=torch.jagged)
-        nested_X = self.ring_encoder(nested_X)
+        if self.is_nested:
+            X, _ = self._split_nested(x, rings_node_nums, layout=torch.jagged)
+            X = self.ring_encoder(X)
+        else:
+            X, padding_mask = self._split_padding(x, rings_node_nums)
+            X = self.ring_encoder(X, src_key_padding_mask=padding_mask)
 
         # Max pooling, extracting the value with max absolute.
-        rings_vec = torch.zeros((len(nested_X), x.shape[-1])).to(x.device)
-        for i, t in enumerate(nested_X):
+        rings_vec = torch.zeros((len(X), x.shape[-1])).to(x.device)
+        for i, t in enumerate(X):
             rings_vec[i, :] = t.gather(-2, torch.argmax(torch.abs(t), dim=-2).unsqueeze(-2))
 
         return rings_vec
 
     def _assemble_sequence(self, X, Xr, X_mask=None, Xr_mask=None, is_nested: bool = False):
-        CLS = torch.tile(self.CLS, (X.shape[0], 1, 1))
-        RING = torch.tile(self.RING, (X.shape[0], 1, 1))
-        END = torch.tile(self.END, (X.shape[0], 1, 1))
-
         if is_nested:
-            seq = torch.cat((CLS, X.to_padded_tensor(float("-inf")), RING, Xr.to_padded_tensor(float("-inf")), END), dim=-2)
-            return padded_to_nested(seq, float("-inf"), torch.jagged), None
+            # CLS = torch.randn(1, X.shape[-1], device=X.device)
+            # RING = torch.randn(1, X.shape[-1], device=X.device)
+            # END = torch.randn(1, X.shape[-1], device=X.device)
+            # CLS = self.CLS_proj(CLS)
+            # RING = self.RING_proj(RING)
+            # END = self.END_proj(END)
+            #
+            # seq = torch.nested.nested_tensor(
+            #     [torch.cat([CLS, x, RING, xr, END]) for x, xr in zip(X, Xr)],
+            #     layout=torch.jagged,
+            #     # requires_grad=True
+            # )
+
+            # seq = AssembleNestedSeqFn.apply(X, Xr, self.CLS, self.RING, self.END)
+            seq = self.assemble(X, Xr, self.CLS, self.RING, self.END)
+
+            # seq = torch.cat((CLS, X.to_padded_tensor(float("-inf")), RING, Xr.to_padded_tensor(float("-inf")), END), dim=-2)
+            # return padded_to_nested(seq, float("-inf"), torch.jagged), None
+            return seq, None
 
         else:
+            CLS = torch.tile(self.CLS, (X.shape[0], 1, 1))
+            RING = torch.tile(self.RING, (X.shape[0], 1, 1))
+            END = torch.tile(self.END, (X.shape[0], 1, 1))
+
             seq = torch.cat((CLS, X, RING, Xr, END), dim=-2)
             seq_padding_mask = torch.cat([
                 torch.zeros((X.shape[0], 1), dtype=torch.bool, device=seq.device),
@@ -584,14 +733,6 @@ class CoreModule(nn.Module):
         self.RING = nn.Parameter(torch.randn(1, vec_dim))
         self.END = nn.Parameter(torch.randn(1, vec_dim))
 
-        # # To test
-        # self.CLS = nn.Parameter(torch.zeros(1, vec_dim))
-        # self.RING = nn.Parameter(torch.ones(1, vec_dim))
-        # self.END = nn.Parameter(-1 * torch.ones(1, vec_dim))
-
-        # TODO: in test
-        # self.mha = attn.MultiHeadAttention(vec_dim, vec_dim, vec_dim, vec_dim, ring_nheads, 0.1)
-
         if graph_model:
             self.graph = graph_model
         else:
@@ -610,16 +751,6 @@ class CoreModule(nn.Module):
             **self.ring_encoder_kw,
         )
 
-        # self.ring_encoder = nn.TransformerEncoder(
-        #     encoder_layer=nn.TransformerEncoderLayer(
-        #         d_model=vec_dim,
-        #         nhead=ring_nheads,
-        #         batch_first=True,
-        #         **self.ring_encoder_kw
-        #     ),
-        #     num_layers=ring_layers, **self.ring_encoder_block_kw
-        # )
-
         self.mol_encoder_kw = mol_encoder_kw if mol_encoder_kw else {}
         self.mol_encoder_block_kw = mol_encoder_block_kw if mol_encoder_block_kw else {}
         self.mol_encoder = attn.Encoder(
@@ -628,15 +759,6 @@ class CoreModule(nn.Module):
             nheads=mol_nheads,
             **self.mol_encoder_kw,
         )
-
-        # self.mol_encoder = nn.TransformerEncoder(
-        #     encoder_layer=nn.TransformerEncoderLayer(
-        #         d_model=vec_dim,
-        #         nhead=mol_nheads, batch_first=True,
-        #         **self.mol_encoder_kw
-        #     ),
-        #     num_layers=mol_layers, **self.mol_encoder_block_kw
-        # )
 
         # TODO: convert to False later
         self.is_nested = kwargs.get('is_nested', True)
@@ -769,25 +891,47 @@ class CoreModule(nn.Module):
             return seq, seq_padding_mask
 
 
-class ResidualModule(nn.Module):
-    def __init__(self, inner_net: nn.Module):
-        super(ResidualModule, self).__init__()
-        self.inner_net = inner_net
+############################# Predictors #################################
+TargetTypeName = Literal['num', 'xyz', 'onehot', 'binary']
+class Predictor(nn.Module):
+    def __init__(
+            self,
+            in_size: int,
+            target_pattern: TargetTypeName,
+            num_layers: int = 2,
+            dropout: float = 0.1,
+            act: Type[nn.Module] = nn.ReLU,
+            out_act: Type[nn.Module] = nn.ReLU,
+            **kwargs
+    ):
+        super(Predictor, self).__init__()
+        self.hidden_layers = pygnn.MLP(num_layers * [in_size], dropout=dropout)
 
-    def forward(self, x):
-        return self.inner_net(x) + x
+        self.target_pattern = target_pattern
+        if target_pattern == 'num':
+            self.out_layer = nn.Linear(in_size, 1)
+            self.out_act = nn.LeakyReLU()
+        elif target_pattern == 'xyz':
+            self.out_layer = nn.Linear(in_size, 3)
+            self.out_act = out_act()
+        elif target_pattern == 'onehot':
+            self.out_layer = nn.Linear(in_size, kwargs.get("onehot_type", 119))
+            self.out_act = nn.Softmax(dim=-1)
+        elif target_pattern == 'binary':
+            self.out_layer = nn.Linear(in_size, 1)
+            self.out_act = nn.Sigmoid()
+        else:
+            raise NotImplementedError(f"{target_pattern} is not implemented")
 
+    def forward(self, z):
+        z = self.hidden_layers(z) + z
+        z = self.out_layer(z)
+        if self.target_pattern in ['num', 'xyz']:
+            return z
+        else:
+            return self.out_act(z)
 
-class MolAttrPredictor(nn.Module):
-    def __init__(self, in_size: int, num_layers: int, dropout: float=0.1, **kwargs):
-        super(MolAttrPredictor, self).__init__()
-        self.mlp = pygnn.MLP(num_layers*[in_size], dropout=dropout, **kwargs)
-        self.lin = nn.Linear(in_size, 1)
-
-    def forward(self, x):
-        x = self.mlp(x)
-        x = self.lin(x)
-        return x
+############################### ComplexFormer ##################################
 
 
 class ComplexFormer(nn.Module):
@@ -819,6 +963,7 @@ class ComplexFormer(nn.Module):
             *,
             # Load from core
             core_module: Union[Type[CoreBase], nn.Module] = None,
+            target_type: TargetTypeName = 'num',
             **kwargs
     ):
         super(ComplexFormer, self).__init__()
@@ -861,35 +1006,10 @@ class ComplexFormer(nn.Module):
         self.is_labeled_x = isinstance(getattr(self.core, 'x_label_nums', None), int)
 
         ###########  Predictors  ##############
-        # Atom types predictor
-        self.atom_type_predictor = pygnn.MLP(layer_atom_types*[vec_dim], dropout=0.1)
-        self.atom_type_linear = nn.Linear(vec_dim, atom_types)
-
-        # Atom charges predictor
-        self.atom_partial_charge_predictor = pygnn.MLP(layer_atom_types*[vec_dim], dropout=0.1)
-        self.atom_partial_charge_linear = nn.Linear(vec_dim, 1)
-        self.batch_norm = nn.BatchNorm1d(vec_dim)
-
-        # Atom aromatic discriminator
-        self.atom_aromatic_predictor = pygnn.MLP(layer_atom_types*[vec_dim], dropout=0.1)
-        self.atom_aromatic_linear = nn.Linear(vec_dim, 1)
-
-        # Pair steps predictor
-        self.pair_step_predictor = pygnn.MLP(layer_atom_types*[vec_dim], dropout=0.1)
-        self.pair_step_linear = nn.Linear(vec_dim, 1)
-
-        # Rings aromatic predictor
-        self.ring_aromatic_predictor = pygnn.MLP(layer_atom_types*[vec_dim], dropout=0.1)
-        self.ring_aromatic_linear = nn.Linear(vec_dim, 1)
-
-        # Pair coordination bond predictor
-        self.pair_coordination_bond_predictor = pygnn.MLP(layer_atom_types * [vec_dim*2], dropout=0.1)
-        self.pair_coordination_bond_linear = nn.Linear(vec_dim*2, 1)
-        self.batch_norm = nn.BatchNorm1d(vec_dim*2)
-
-        # Molecular predictors
-        if mol_attrs:
-            self.mol_attr_predictors = {n: MolAttrPredictor(vec_dim, 3) for n in mol_attrs}
+        self.predictor = Predictor(
+            in_size=vec_dim,
+            target_pattern=target_type,
+        )
 
     def forward(
             self,
@@ -937,11 +1057,6 @@ class ComplexFormer(nn.Module):
 
     def predict_mol_attrs(self, zs: torch.Tensor, z_names) -> list[torch.Tensor]:
         return [self.mol_attr_predictors[n](z) for z, n in zip(zs, z_names)]
-
-    def predict_pair_coordination_bond(self, z: torch.Tensor) -> torch.Tensor:
-        z = self.batch_norm(self.pair_coordination_bond_predictor(z) + z)
-        z = self.pair_coordination_bond_linear(z)
-        return F.sigmoid(z)
 
     def save_checkpoint(self, save_dir, which: Literal['both', 'model', 'state_dict'] = 'both'):
         now = datetime.datetime.now()

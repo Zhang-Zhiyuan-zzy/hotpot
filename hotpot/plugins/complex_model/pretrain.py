@@ -412,7 +412,6 @@ class PretrainComplex:
                     x_masker=x_masker,
                     extractor_attr_getter=extractor_attr_getter,
                 )
-
                 node_target, _ = self.get_target(
                     batch,
                     target_getter=target_getter,

@@ -175,6 +175,10 @@ class LossMethods:
         # return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device)) - acc*torch.log(acc)
         return F.cross_entropy(pred, target.float(), weight=weight.to(pred.device))
 
+    @staticmethod
+    def binary_accuracy(pred: np.ndarray, target: np.ndarray, weight=None) -> float:
+        return (target == np.round(pred)).mean()
+
 
 class Metrics:
     """ A collection of metrics functions """
@@ -878,6 +882,11 @@ class ComplexFormer(nn.Module):
         self.ring_aromatic_predictor = pygnn.MLP(layer_atom_types*[vec_dim], dropout=0.1)
         self.ring_aromatic_linear = nn.Linear(vec_dim, 1)
 
+        # Pair coordination bond predictor
+        self.pair_coordination_bond_predictor = pygnn.MLP(layer_atom_types * [vec_dim*2], dropout=0.1)
+        self.pair_coordination_bond_linear = nn.Linear(vec_dim*2, 1)
+        self.batch_norm = nn.BatchNorm1d(vec_dim*2)
+
         # Molecular predictors
         if mol_attrs:
             self.mol_attr_predictors = {n: MolAttrPredictor(vec_dim, 3) for n in mol_attrs}
@@ -928,6 +937,11 @@ class ComplexFormer(nn.Module):
 
     def predict_mol_attrs(self, zs: torch.Tensor, z_names) -> list[torch.Tensor]:
         return [self.mol_attr_predictors[n](z) for z, n in zip(zs, z_names)]
+
+    def predict_pair_coordination_bond(self, z: torch.Tensor) -> torch.Tensor:
+        z = self.batch_norm(self.pair_coordination_bond_predictor(z) + z)
+        z = self.pair_coordination_bond_linear(z)
+        return F.sigmoid(z)
 
     def save_checkpoint(self, save_dir, which: Literal['both', 'model', 'state_dict'] = 'both'):
         now = datetime.datetime.now()

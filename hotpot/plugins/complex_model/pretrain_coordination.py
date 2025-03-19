@@ -18,7 +18,7 @@ from torch.optim import Optimizer, Adam
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Batch
 from hotpot.plugins.complex_model import models as M
-
+from hotpot.plugins.complex_model.models import FeatureExtractors
 
 # ###########################################################################
 def get_xyz(*inputs, xyz_index: Union[int, torch.Tensor]) -> torch.Tensor:
@@ -47,11 +47,19 @@ def remove_cbond_edges(batch: Batch):
     edge_index = batch['edge_index']
     edge_attr = batch['edge_attr']
 
+    device = edge_index.device
+
+    is_cbond = is_cbond.to(device)
+    cbond_index = cbond_index.to(device)
+
     cbond_pairs_to_remove = cbond_index[:, is_cbond == 1]
 
-    mask = torch.ones(edge_index.shape[1], dtype=torch.bool)
+    mask = torch.ones(edge_index.shape[1], dtype=torch.bool, device=device)
+
     for pair in cbond_pairs_to_remove.t():
-        mask &= ~(torch.all(edge_index == pair.view(-1, 1), dim=0))
+        pair = pair.to(device)
+        pair = pair.view(-1, 1).to(device)
+        mask &= ~(torch.all(edge_index == pair, dim=0))
 
     edge_index = edge_index[:, mask]
 
@@ -64,6 +72,7 @@ def remove_cbond_edges(batch: Batch):
 
     return batch
 
+
 # ###########################################################################
 
 class FeatureExtractorTemplate(typing.Protocol):
@@ -73,9 +82,13 @@ class FeatureExtractorTemplate(typing.Protocol):
             X_mask: torch.Tensor,
             R_mask: torch.Tensor,
             batch: Batch,
-            batch_getter: Callable[[Batch], Union[tuple, torch.Tensor]]=None
+            batch_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None
     ):
-        ...
+
+        feature = FeatureExtractors.extract_cbond_pair(seq, X_mask, R_mask, batch, batch_getter=None)
+
+        return feature
+
 
 
 class Hypers:
@@ -281,7 +294,7 @@ class PretrainComplex:
         seq, X_not_pad, R_not_pad = model(*inputs, xyz=xyz)
 
         # Extract features
-        feature = feature_extractor(seq, X_not_pad, R_not_pad, batch, extractor_attr_getter)  # Node level feature
+        feature = FeatureExtractors.extract_cbond_pair(seq, X_not_pad, R_not_pad, batch, batch_getter=None)
         if isinstance(masked_idx, torch.Tensor):
             feature = feature[masked_idx]
 
@@ -462,7 +475,7 @@ class PretrainComplex:
             xyz_index: Union[list, torch.Tensor] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             extractor_attr_getter: Callable[[Batch], Union[tuple, torch.Tensor]] = None,
-            to_onehot: bool = True,
+            to_onehot: bool = False,
             onehot_types: int = None,
             loss_weight_calculator: Callable[[torch.Tensor, int], torch.Tensor] = None,
             metrics: dict[str, Callable[[np.ndarray, np.ndarray], Union[float, np.ndarray]]] = None,

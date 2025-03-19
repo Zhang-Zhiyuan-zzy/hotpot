@@ -38,6 +38,8 @@ elif machine_name == 'DESKTOP-TZ001':
     project_root = '/mnt/d/1-hnh/Data'
 elif machine_name == 'docker':
     project_root = '/app/proj'
+elif machine_name == '3090':
+    project_root = '/home/hnh/proj'
 else:
     raise ValueError
 

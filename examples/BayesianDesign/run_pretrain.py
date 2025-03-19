@@ -11,7 +11,7 @@ from datasets import DatasetGetter
 import torch
 torch.set_default_dtype(torch.bfloat16)
 if torch.cuda.is_available():
-    device = torch.device("cuda:1")
+    device = torch.device("cuda")
 else:
     device = torch.device("cpu")
 
@@ -81,7 +81,8 @@ def atom_types():
     with pretrain.PretrainComplex(
         work_name="atom types",
         not_save=True,
-        work_dir=models_dir,        model=model,
+        work_dir=models_dir,
+        model=model,
         dataset_=dataset,
         dataset_test_=dataset_test,
         optimizer=OPTIMIZER,

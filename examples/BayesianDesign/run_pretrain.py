@@ -8,7 +8,7 @@ machine_name = socket.gethostname()
 torch.set_default_dtype(torch.bfloat16)
 if torch.cuda.is_available():
     if machine_name == '4090':
-        device = torch.device("cuda:1")
+        device = torch.device("cuda:0")
     else:
         device = torch.device("cuda:0")
 else:
@@ -18,29 +18,45 @@ else:
 # Initialize paths.
 if machine_name == '4090':
     project_root = '/home/zzy/docker_envs/pretrain/proj'
+    sys.path.append(osp.join(project_root, 'hotpot'))
 elif machine_name == 'DESKTOP-G9D9UUB':
     project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+    sys.path.append(osp.join(project_root, 'hotpot'))
 elif machine_name == 'docker':
     project_root = '/app/proj'
+    sys.path.append(osp.join(project_root, 'hotpot'))
 elif machine_name == '3090':
     project_root = '/home/zz1/docker/proj'
-else:
-    raise ValueError
+    sys.path.append(osp.join(project_root, 'hotpot'))
 
-# Import hotpot module
-sys.path.append(osp.join(project_root, 'hotpot'))
-from hotpot.plugins.complex_model import (
+# Running in Super
+elif str.split(__file__, '/')[1:4] == ['data', 'run01', 'scz0s3z']:
+    print('In Super')
+    project_root = '/HOME/scz0s3z/run/proj/'
+    sys.path.append(osp.join(project_root, 'hotpot-zzy'))
+else:
+    raise ValueError(__file__)
+
+# from hotpot.plugins.complex_model import (
+#     models as M,
+#     pretrain,
+#     dataset as D,
+# )
+from hotpot.plugins.cmodel import (
     models as M,
     pretrain,
     dataset as D,
 )
 
-
 models_dir = osp.join(project_root, 'models')
 # dataset save paths
 _tmqm_data_dir = osp.join(project_root, 'datasets', 'tmqm_data0207')
 
-tmqm_getter = D.DatasetGetter(project_root, "tmqm")
+if str.split(__file__, '/')[1:4] == ['data', 'run01', 'scz0s3z']:
+    print('in /dev/shm')
+    tmqm_getter = D.DatasetGetter('/dev/shm', 'tmqm')
+else:
+    tmqm_getter = D.DatasetGetter(project_root, "tmqm")
 
 dataset, dataset_test = tmqm_getter.get_datasets()
 INPUT_X_INDEX = tmqm_getter.get_index('x', ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z'))
@@ -95,15 +111,17 @@ def atom_types():
         epochs=EPOCHS,
         device=device,
         eval_steps=1,
-        checkpoint_path=-1,
+        # checkpoint_path=-1,
         load_core_only=True,
         # save_model=False,
-        x_masker=pretrain.x_masker_func,
+        # x_masker=pretrain.x_masker_func,
         load_all_data=True,
         show_batch_pbar=True,
         constant_lr=True,
         other_metric='metal_accuracy',
-        early_stopping=False,
+        early_stopping=True,
+        loss_weight_calculator=True,
+        loss_weight_method='sqrt-invert_count',
         debug=True,
     )
 
@@ -124,7 +142,6 @@ def atom_charges():
         # save_model=False,
         # x_masker=pretrain.x_masker_func,  # predict masked nodes
         load_all_data=True,  # if load all data before training
-        show_batch_pbar=True,
         constant_lr=True,  #
         # other_metric='metal_accuracy',
         early_stopping=True,

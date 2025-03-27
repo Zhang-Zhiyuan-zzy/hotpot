@@ -138,7 +138,28 @@ class NodeProcessor(nn.Module):
         return x
 
 
-class CompleteGraphCore(nn.Module):
+class CoreBase(nn.Module):
+    """"""
+    extractor_class = None
+    extractor_keys = {
+        'atom': 'extract_atom_vec',
+        'pair': 'extract_atom_vec',
+        'ring': 'extract_ring_vec',
+        'mol': 'extract_mol_vec',
+        'cbond': 'extract_cbond_pair',
+    }
+    def __init__(self, vec_dim: int, x_label_nums: Optional[int] = None):
+        super(CoreBase, self).__init__()
+        self.vec_size = vec_dim
+        self.x_label_nums = x_label_nums
+
+        self.feature_extractor = {
+            key:getattr(self.extractor_class, method_name)
+            for key, method_name in self.extractor_keys.items()
+            if hasattr(self.extractor_class, method_name)
+        }
+
+class CompleteGraphExtractor:
     @staticmethod
     def extract_atom_vec(mol_vec: Tensor, node_vec: list[Tensor], ring_vec: list[Tensor], batch, batch_getter=None) -> Tensor:
         return torch.cat(node_vec)
@@ -177,14 +198,8 @@ class CompleteGraphCore(nn.Module):
         return mol_vec
 
 
-    feature_extractor = {
-        "atom": extract_atom_vec,
-        "pair": extract_pair_vec,
-        "ring": extract_ring_vec,
-        "mol": extract_mol_vec,
-        "cbond": extract_cbond_pair
-    }
-
+class CompleteGraphCore(CoreBase):
+    extractor_class = CompleteGraphExtractor
     def __init__(
             self,
             x_dim: int,
@@ -205,7 +220,7 @@ class CompleteGraphCore(nn.Module):
             mol_encoder_block_kw: dict = None,
             **kwargs,
     ):
-        super(CompleteGraphCore, self).__init__()
+        super(CompleteGraphCore, self).__init__(vec_dim, x_label_nums)
         self.node_processor = NodeProcessor(x_dim, vec_dim, x_label_nums=x_label_nums, graph_model=graph_model)
 
         self.ring_encoder = CompleteGraph(vec_dim, ring_layers, ring_nheads)
@@ -224,8 +239,7 @@ class CompleteGraphCore(nn.Module):
         return mol_vec, atom_vec, ring_vec
 
 
-class AttnCore(nn.Module):
-    # Feature Extractors
+class AttnExtractor:
     @staticmethod
     def extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter=None):
         Znode = []
@@ -276,14 +290,10 @@ class AttnCore(nn.Module):
     def extract_mol_vec(seq, X_mask, R_mask, batch, batch_getter=None):
         return seq[:, 1]
 
-    feature_extractor = {
-        "atom": extract_atom_vec,
-        "pair": extract_pair_vec,
-        "ring": extract_ring_vec,
-        "mol": extract_mol_vec,
-        "cbond": extract_cbond_pair
-    }
 
+class AttnCore(CoreBase):
+    # Feature Extractors
+    extractor_class = AttnExtractor
     def __init__(
             self,
             x_dim: int,
@@ -304,7 +314,7 @@ class AttnCore(nn.Module):
             mol_encoder_block_kw: dict = None,
             **kwargs,
     ):
-        super(AttnCore, self).__init__()
+        super(AttnCore, self).__init__(vec_dim, x_label_nums)
         self.node_processor = NodeProcessor(x_dim, vec_dim, x_label_nums=x_label_nums, graph_model=graph_model)
         self.ring_encoder = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
@@ -327,6 +337,10 @@ class AttnCore(nn.Module):
         self.RING = nn.Parameter(torch.randn(1, vec_dim))
         self.END = nn.Parameter(torch.randn(1, vec_dim))
 
+    @property
+    def x_mask_vec(self):
+        return self.node_processor.x_mask_vec
+
     def _assemble_sequence(self, X, Xr, X_mask, Xr_mask):
         CLS = torch.tile(self.CLS, (X.shape[0], 1, 1))
         RING = torch.tile(self.RING, (X.shape[0], 1, 1))
@@ -344,7 +358,8 @@ class AttnCore(nn.Module):
         return seq, seq_padding_mask
 
     def _rings_attention(self, x, rings_node_index, rings_node_nums):
-        X, padding_mask = _split_padding(x, rings_node_index)
+        x = x[rings_node_index]
+        X, padding_mask = _split_padding(x, rings_node_nums)
         X = self.ring_encoder(X, src_key_padding_mask=padding_mask)
         return _seq_absmax_pooling(X)
 
@@ -364,3 +379,6 @@ class AttnCore(nn.Module):
         x = self.node_processor(x, edge_index, ptr, xyz=xyz)
         xr = self._rings_attention(x, rings_node_index, rings_node_nums)
         return self._mol_attention(x, xr, mol_rings_nums, ptr, batch)
+
+
+Core = AttnCore

@@ -20,7 +20,11 @@ import torch.optim.lr_scheduler as lrs
 
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Batch
-from hotpot.plugins.complex_model import models as M
+
+from . import models as M
+from .models import utils as m_utils
+
+# torch.backends.cudnn.benchmark = True
 
 
 # Grad hook
@@ -34,14 +38,6 @@ def tensor_hook(grad):
     return grad
 
 
-######################## Utils ######################################
-def torch_numpy_exchanger(nf: Callable, **kw):
-    # torch-numpy exchanger
-    def wrapper(*inputs: Union[torch.Tensor, np.ndarray]):
-        return nf(*inputs, **kw)
-
-    return wrapper
-
 # ###########################################################################
 def get_xyz(*inputs, xyz_index: Union[int, torch.Tensor]) -> torch.Tensor:
     return inputs[0][:, xyz_index]
@@ -53,14 +49,6 @@ def get_x_input_attrs(*inputs, input_x_index: Union[list, torch.Tensor]):
 def get_labeled_x_input_attrs(*inputs, input_x_index: Union[list, torch.Tensor]):
     return (inputs[0][:, 0],) + inputs[1:]
 
-def x_masker_func(inputs: tuple, masked_vec: torch.Tensor):
-    x = inputs[0]
-    if x.dim == 2:
-        masked_x, atom_label, masked_node_idx = M.get_masked_input_and_labels(inputs[0], masked_vec, x[:, 0].long())
-    else:
-        masked_x, atom_label, masked_node_idx = M.get_masked_input_and_labels(inputs[0], masked_vec, x.long(), label_mask=True)
-
-    return (masked_x,) + inputs[1:], masked_node_idx
 
 def remove_cbond_edges(batch: Batch):
     """ Remove the cbond edges for predict """
@@ -86,21 +74,6 @@ def remove_cbond_edges(batch: Batch):
 
     return batch
 
-# ###########################################################################
-############################## Loss Func ####################################
-def mean_maximum_displacement(
-        pred: Union[torch.Tensor, np.ndarray],
-        target: Union[torch.Tensor, np.ndarray],
-        *args, **kwargs
-) -> Union[torch.Tensor, np.ndarray, float]:
-    if isinstance(target, torch.Tensor):
-        norm = torch_numpy_exchanger(torch.norm, dim=-1)
-    elif isinstance(target, np.ndarray):
-        norm = torch_numpy_exchanger(np.linalg.norm, axis=-1)
-    else:
-        raise TypeError("The target and pred data should be torch.Tensor or np.ndarray")
-
-    return norm(pred - target).mean()
 
 
 class FeatureExtractorTemplate(typing.Protocol):
@@ -395,18 +368,6 @@ class PretrainComplex:
 
         return loader, eval_loader, optimizer, lr_scheduler
 
-    def _prepare(self):
-        loader = DataLoader(self.dataset, batch_size=self.hypers.batch_size, shuffle=self.kwargs.get('trainset_shuffle', True))
-        eval_loader = DataLoader(self.dataset_test, batch_size=self.hypers.batch_size, shuffle=self.kwargs.get('evalset_shuffle', False))
-        # Clear cache
-        torch.cuda.empty_cache()
-
-        model = self.model.to(self.device)
-        model.train()
-        optimizer = self.OPTIMIZER(model.parameters(), lr=self.hypers.lr, weight_decay=self.hypers.weight_decay)
-
-        return loader, eval_loader, model, optimizer
-
     @staticmethod
     def get_target(
             batch: Batch,
@@ -547,7 +508,7 @@ class PretrainComplex:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if not self.core_frozen_flag and dict(self.model.named_parameters())['core.x_emb.weight'].grad is None:
+            if not self.core_frozen_flag and dict(self.model.named_parameters())['core.node_processor.x_emb.weight'].grad is None:
                 raise AttributeError('\033[38;5;208mThe core.x_emb.weight not have gradient\033[0m')
             else:
                 logging.debug('The core.x_emb.weight has gradient')
@@ -635,7 +596,7 @@ class PretrainComplex:
             target = np.concatenate(target)
 
             if print_pred_target_labels:
-                pred_label, target_label = M.inverse_onehot(to_onehot, pred, target)
+                pred_label, target_label = m_utils.inverse_onehot(to_onehot, pred, target)
                 pred_target_label = np.concatenate([pred_label, target_label], axis=1)
                 assert pred_target_label.shape == (target.shape[0], 2)
 
@@ -788,18 +749,22 @@ metrics_options = {
     'metal_accuracy': lambda p,t: M.Metrics.metal_oh_accuracy(p, t, is_onehot=True),
     'binary_accuracy': M.Metrics.binary_accuracy,
 }
-extractor_options = {
-    "atom": M.FeatureExtractors.extract_atom_vec,
-    "pair": M.FeatureExtractors.extract_pair_vec,
-    "ring": M.FeatureExtractors.extract_ring_vec,
-    "mol": M.FeatureExtractors.extract_mol_vec,
-    "cbond": M.FeatureExtractors.extract_cbond_pair
-},
+# extractor_options = {
+#     "atom": M.FeatureExtractors.extract_atom_vec,
+#     "pair": M.FeatureExtractors.extract_pair_vec,
+#     "ring": M.FeatureExtractors.extract_ring_vec,
+#     "mol": M.FeatureExtractors.extract_mol_vec,
+#     "cbond": M.FeatureExtractors.extract_cbond_pair
+# },
 loss_options = {
     'mse': F.mse_loss,
     'cross_entropy': M.LossMethods.calc_atom_type_loss,
     'binary_cross_entropy': F.binary_cross_entropy,
-    'mean_maximum_displace': mean_maximum_displacement
+    'mean_maximum_displace': M.LossMethods.mean_maximum_displacement
+}
+x_masker_options = {
+    'atom': M.mask_atom_type,
+    'metal': M.mask_atom_type
 }
 
 # Contract
@@ -816,27 +781,10 @@ def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = No
     elif isinstance(attrs, Iterable):
         return [item_names.index(a) for a in attrs]
 
-class Model(nn.Module):
-    def __init__(self, core: nn.Module, predictor: nn.Module):
-        super().__init__()
-        self.core = core
-        self.predictor = predictor
-
-    def forward(self, *args, **kw):
-        return self.core(*args, **kw)
-
-    @property
-    def x_label_nums(self) -> Optional[int]:
-        return getattr(self.core, 'x_label_nums', None)
-
-    @property
-    def x_mask_vec(self) -> Optional[torch.Tensor]:
-        return getattr(self.core, 'x_mask_vec', None)
-
 def run(
         work_name: str,
         work_dir: str,
-        core: M.Core,
+        core: M.CoreBase,
         train_dataset,
         test_dataset,
         hypers: Union[dict, Hypers],
@@ -863,11 +811,12 @@ def run(
         early_stopping: bool = True,
         early_stop_step: int = 5,
         loss_weight_calculator: Optional[Union[Callable, bool]] = None,
-        loss_weight_method: Literal['inverse-count', 'cross-entropy'] = 'inverse-count',
+        loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
         onehot_labels: Optional[int] = None,
         eval_each_step: Optional[int] = 1,
         freeze_core: Optional[bool] = None,
         keep_grad_state: bool = False,
+        x_masker: Optional[Union[str, Callable]] = None,
         **kwargs,
 ):
     """
@@ -917,6 +866,7 @@ def run(
             predictor is fresh.
         keep_grad_state: Whether to keep the gradient state (requires_grad = True or False) to be solid,
             Defaults to False. If True, the gradient state will not be adjusted automatically.
+        x_masker:
         **kwargs:
 
     Returns:
@@ -941,31 +891,24 @@ def run(
     if isinstance(feature_extractor, Callable):
         flmt['feature_extractor'] = feature_extractor
     elif isinstance(feature_extractor, str):
-        if feature_extractor.lower() == 'atom':
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_atom_vec
-        elif feature_extractor.lower() == 'pair':
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_pair_vec
-        elif feature_extractor.lower() == 'ring':
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_ring_vec
-        elif feature_extractor.lower() == 'cbond':
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_cbond_pair
-        elif feature_extractor.lower() == 'mol':
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_mol_vec
+        if feature_extractor.lower() in ['atom', 'pair', 'ring', 'cbond', 'mol']:
+            flmt['feature_extractor'] = core.feature_extractor[feature_extractor.lower()]
         else:
             raise ValueError(f"Unknown feature extractor: Named {feature_extractor}")
     else:
         if "Atom" in work_name or "xyz" in work_name:
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_atom_vec
+            extractor_name = 'atom'
         elif "Ring" in work_name:
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_ring_vec
+            extractor_name = 'ring'
         elif "Cbond" in work_name:
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_cbond_pair
+            extractor_name = 'cbond'
         elif "Pair" in work_name:
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_pair_vec
+            extractor_name = 'pair'
         elif "Mol" in work_name:
-            flmt['feature_extractor'] = M.FeatureExtractors.extract_mol_vec
+            extractor_name = 'mol'
         else:
             raise ValueError("Unknown feature extractor type")
+        flmt['feature_extractor'] = core.feature_extractor[extractor_name]
 
     # Specify default predictor
     if isinstance(predictor, (Callable, nn.Module)):
@@ -989,7 +932,7 @@ def run(
         if target_type == 'onehot':
             flmt['loss_fn'] = M.LossMethods.calc_atom_type_loss
         elif target_type == 'xyz':
-            flmt['loss_fn'] = mean_maximum_displacement
+            flmt['loss_fn'] = M.LossMethods.mean_maximum_displacement
         elif target_type == 'binary':
             flmt['loss_fn'] = F.binary_cross_entropy
         elif target_type == 'num':
@@ -1009,7 +952,7 @@ def run(
             flmt['metrics'] = {primary_metric: lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True)}
         elif target_type == 'xyz':
             primary_metric = 'AMD'  # Average maximum displacement
-            flmt['metrics'] = {primary_metric: mean_maximum_displacement}
+            flmt['metrics'] = {primary_metric: M.LossMethods.mean_maximum_displacement}
         elif target_type == 'binary':
             primary_metric = 'binary_accuracy'
             flmt['metrics'] = {primary_metric: M.Metrics.binary_accuracy}
@@ -1060,6 +1003,20 @@ def run(
             ATOM_CHRG_INDEX = _get_index(first_data,'x', 'partial_charge')
             flmt['target_getter'] = lambda batch: batch.x[:, ATOM_CHRG_INDEX]
 
+    # Specify x masker
+    if isinstance(x_masker, Callable):
+        x_masker = x_masker
+    elif isinstance(x_masker, str):
+        try:
+            x_masker = x_masker_options[x_masker]
+        except KeyError:
+            raise ValueError(f"Unknown x_masker, choose from: {list(x_masker_options.keys())}")
+    else:
+        if work_name == 'AtomType':
+            x_masker = M.mask_atom_type
+        elif work_name == "MetalType":
+            x_masker = M.mask_metal_type
+
     if loss_weight_calculator is None and target_type == 'onehot':
         loss_weight_calculator = lambda t, n: M.atom_label_weight_(t, n, loss_weight_method)
     else:
@@ -1071,7 +1028,7 @@ def run(
         train_dataset=train_dataset,
         test_dataset=test_dataset,
         hypers=hypers,
-        model=Model(core, predictor),
+        model=M.Model(core, predictor),
         predictor=predictor,
         optimizer=optimizer,
         constant_lr=constant_lr,
@@ -1101,7 +1058,7 @@ def run(
             to_onehot=True if target_type == 'onehot' else False,
             onehot_labels=119 if work_name == 'AtomType' else onehot_labels,
             eval_each_step=eval_each_step,
-            x_masker=x_masker_func if work_name == 'AtomType' else None,
+            x_masker=x_masker,
         )
 
     return pt

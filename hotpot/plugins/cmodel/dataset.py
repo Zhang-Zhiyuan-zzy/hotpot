@@ -8,6 +8,7 @@ from typing import Iterable, Optional, Protocol, Type, Union
 from tqdm import tqdm
 
 import torch
+from torch.utils.data import Dataset
 from torch_geometric.data import Data
 
 
@@ -30,7 +31,7 @@ class DatasetProtocol(Protocol):
     def get(self, idx: int) -> Data:
         ...
 
-class PretrainDataset:
+class PretrainDataset(Dataset):
     def __init__(self, root: str, in_mem_size: int = 20000) -> None:
         self.root = root
         self.files = glob.glob(osp.join(root, '*.pt'))

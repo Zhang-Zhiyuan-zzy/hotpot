@@ -18,7 +18,7 @@ class LossMethods:
             return F.cross_entropy(pred, target.float())
 
     @staticmethod
-    def mean_maximum_displacement(
+    def average_maximum_displacement(
             pred: Union[torch.Tensor, np.ndarray],
             target: Union[torch.Tensor, np.ndarray],
             *args, **kwargs

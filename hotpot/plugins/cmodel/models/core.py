@@ -1,6 +1,6 @@
+from abc import abstractmethod
 from typing import Optional, Union
 
-import lightning as L
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -159,6 +159,11 @@ class CoreBase(nn.Module):
             if hasattr(self.extractor_class, method_name)
         }
 
+    @abstractmethod
+    @property
+    def x_mask_vec(self):
+        raise NotImplementedError('the property `x_mask_vec` is not implemented.')
+
 class CompleteGraphExtractor:
     @staticmethod
     def extract_atom_vec(mol_vec: Tensor, node_vec: list[Tensor], ring_vec: list[Tensor], batch, batch_getter=None) -> Tensor:
@@ -237,6 +242,10 @@ class CompleteGraphCore(CoreBase):
         xr = self.ring_encoder(x, rings_node_index, rings_node_nums)
         mol_vec, atom_vec, ring_vec = self.mol_encoder(x, xr, mol_rings_nums, ptr, batch)
         return mol_vec, atom_vec, ring_vec
+
+    @property
+    def x_mask_vec(self):
+        return self.node_processor.x_mask_vec
 
 
 class AttnExtractor:

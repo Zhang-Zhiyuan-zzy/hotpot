@@ -11,12 +11,21 @@ from hotpot.cheminfo.elements import elements
 
 ################################ Onehot Encode ###############################################
 def oh2label(inp_vec: Union[torch.Tensor, np.ndarray]):
-    if isinstance(inp_vec, torch.Tensor):
-        return torch.argmax(inp_vec, dim=1)
-    elif isinstance(inp_vec, np.ndarray):
-        return np.argmax(inp_vec, axis=1)
+    # if isinstance(inp_vec, torch.Tensor):
+    #     return torch.argmax(inp_vec, dim=1)
+    # elif isinstance(inp_vec, np.ndarray):
+    #     return np.argmax(inp_vec, axis=1)
+    # else:
+    #     raise TypeError('the input vectors must be of type torch.Tensor or np.ndarray')
+    if inp_vec.dim() == 1:
+        return inp_vec
+    elif inp_vec.dim() == 2:
+        if inp_vec.shape[-1] == 1:
+            return inp_vec.flatten()
+        else:
+            return inp_vec.argmax(dim=-1)
     else:
-        raise TypeError('the input vectors must be of type torch.Tensor or np.ndarray')
+        raise AttributeError('The input tensor or vector must have 1 or 2 dimensions.')
 
 
 def inverse_onehot(is_onehot, *onehot_vecs: Union[torch.Tensor, np.ndarray]):
@@ -43,13 +52,13 @@ def where_metal(type_labels: Union[torch.Tensor, np.ndarray]):
         return np.isin(type_labels, _torch_metal)
 
 
-def atom_label_weight_(
-        atom_labels,
+def weight_labels(
+        labels: torch.Tensor,
         num_types: int = 119,
         weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'cross-entropy',
-):
-    atom_labels = torch.argmax(atom_labels, dim=-1)  # Is one hot vector
-    values, counts = torch.unique(atom_labels, return_counts=True)
+) -> object:
+    labels = torch.argmax(labels, dim=-1)  # Is one hot vector
+    values, counts = torch.unique(labels, return_counts=True)
 
     if weight_method == 'cross-entropy':
         weight = counts / counts.sum()
@@ -63,7 +72,7 @@ def atom_label_weight_(
     else:
         raise ValueError('weight_method must be either "inverse-count" or "cross-entropy"')
 
-    onehot_weight = torch.zeros(num_types).to(atom_labels.device)
+    onehot_weight = torch.zeros(num_types).to(labels.device)
     onehot_weight[values] = weight
 
     return onehot_weight

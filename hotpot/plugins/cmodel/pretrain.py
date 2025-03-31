@@ -745,8 +745,8 @@ metrics_options = {
     'rmse': M.Metrics.rmse,
     'mae': M.Metrics.mae,
     'mse': M.Metrics.mse,
-    'accuracy': lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True),
-    'metal_accuracy': lambda p,t: M.Metrics.metal_oh_accuracy(p, t, is_onehot=True),
+    'accuracy': lambda p, t: M.Metrics.calc_oh_accuracy(p, t),
+    'metal_accuracy': lambda p,t: M.Metrics.metal_oh_accuracy(p, t),
     'binary_accuracy': M.Metrics.binary_accuracy,
 }
 # extractor_options = {
@@ -760,7 +760,7 @@ loss_options = {
     'mse': F.mse_loss,
     'cross_entropy': M.LossMethods.calc_atom_type_loss,
     'binary_cross_entropy': F.binary_cross_entropy,
-    'mean_maximum_displace': M.LossMethods.mean_maximum_displacement
+    'mean_maximum_displace': M.LossMethods.average_maximum_displacement
 }
 x_masker_options = {
     'atom': M.mask_atom_type,
@@ -932,7 +932,7 @@ def run(
         if target_type == 'onehot':
             flmt['loss_fn'] = M.LossMethods.calc_atom_type_loss
         elif target_type == 'xyz':
-            flmt['loss_fn'] = M.LossMethods.mean_maximum_displacement
+            flmt['loss_fn'] = M.LossMethods.average_maximum_displacement
         elif target_type == 'binary':
             flmt['loss_fn'] = F.binary_cross_entropy
         elif target_type == 'num':
@@ -952,7 +952,7 @@ def run(
             flmt['metrics'] = {primary_metric: lambda p, t: M.Metrics.calc_oh_accuracy(p, t, is_onehot=True)}
         elif target_type == 'xyz':
             primary_metric = 'AMD'  # Average maximum displacement
-            flmt['metrics'] = {primary_metric: M.LossMethods.mean_maximum_displacement}
+            flmt['metrics'] = {primary_metric: M.LossMethods.average_maximum_displacement}
         elif target_type == 'binary':
             primary_metric = 'binary_accuracy'
             flmt['metrics'] = {primary_metric: M.Metrics.binary_accuracy}
@@ -1018,7 +1018,7 @@ def run(
             x_masker = M.mask_metal_type
 
     if loss_weight_calculator is None and target_type == 'onehot':
-        loss_weight_calculator = lambda t, n: M.atom_label_weight_(t, n, loss_weight_method)
+        loss_weight_calculator = lambda t, n: M.weight_labels(t, n, loss_weight_method)
     else:
         loss_weight_calculator = None
 

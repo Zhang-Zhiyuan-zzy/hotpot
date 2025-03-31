@@ -9,34 +9,35 @@ from . import utils
 class Metrics:
     """ A collection of metrics functions """
     @staticmethod
-    def calc_oh_accuracy(pred, target, is_onehot: bool = True):
-        if is_onehot:
-            pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
-        else:
-            pred_label, target_label = pred, target
-
-        if isinstance(pred, torch.Tensor):
-            return (pred_label == target_label).float().mean()
-        elif isinstance(pred, np.ndarray):
-            return (pred_label == target_label).mean()
+    def calc_oh_accuracy(pred, target):
+        # if is_onehot:
+        #     pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
+        # else:
+        #     pred_label, target_label = pred, target
+        pred, target = map(utils.oh2label, (pred, target))
+        if isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor):
+            return (pred == target).float().mean()
+        elif isinstance(pred, np.ndarray) and isinstance(target, np.ndarray):
+            return (pred == target).mean()
         else:
             raise TypeError('pred_oh must be of type torch.Tensor or np.ndarray')
 
     @staticmethod
-    def metal_oh_accuracy(pred, target, is_onehot: bool = True):
-        if is_onehot:
-            pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
-        else:
-            pred_label, target_label = pred, target
+    def metal_oh_accuracy(pred, target):
+        # if is_onehot:
+        #     pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
+        # else:
+        #     pred_label, target_label = pred, target
 
-        metal_idx = utils.where_metal(target_label)
-        pred_label = pred_label[metal_idx]
-        target_label = target_label[metal_idx]
+        pred, target = map(utils.oh2label, (pred, target))
+        metal_idx = utils.where_metal(target)
+        pred = pred[metal_idx]
+        target = target[metal_idx]
 
         if isinstance(pred, torch.Tensor):
-            return (pred_label == target_label).float().mean()
+            return (pred == target).float().mean()
         elif isinstance(pred, np.ndarray):
-            return (pred_label == target_label).mean()
+            return (pred == target).mean()
         else:
             raise TypeError('pred_oh must be of type torch.Tensor or np.ndarray')
 

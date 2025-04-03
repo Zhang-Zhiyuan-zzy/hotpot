@@ -77,10 +77,11 @@ class _Task(ABC):
             onehot_types: Optional[Union[int, dict[str, int]]] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
             mask_need_task: Optional[list[str]] = None,
+            **kwargs
     ):
         # Mask
         self._x_masker = x_masker
-        self._mask_need_task = mask_need_task
+        self._mask_need_task = mask_need_task if mask_need_task else []
         self._masked_idx = None
 
         # Feature extract
@@ -97,7 +98,7 @@ class _Task(ABC):
         # Loss
         self._loss_fn = loss_fn
         self._loss_weight_calculator = loss_weight_calculator
-        self._across_loss_weights: Optional[dict[str, float]] = None
+        self.atl_weights: Optional[dict[str, float]] = None
 
         # Metrics
         self._primary_metric = primary_metric
@@ -112,9 +113,9 @@ class _Task(ABC):
                     f'The type of  {self.__class__.__name__}.{attr_name} should be {attr_type}, '
                     f'got {type(getattr(self, attr_name))}')
 
-    def x_masker(self, inputs: tuple[torch.Tensor, ...], x_mask_vec) -> (tuple[torch.Tensor, ...], torch.Tensor):
+    def x_masker(self, inputs: tuple[torch.Tensor, ...]) -> (tuple[torch.Tensor, ...], torch.Tensor):
         if self._x_masker:
-            return self._x_masker(inputs, x_mask_vec)
+            return self._x_masker(inputs)
         return inputs, None
 
     @abstractmethod
@@ -168,8 +169,45 @@ class _Task(ABC):
         metric_msg = []
         for metric_name, metric_value in metrics_dict.items():
             pl_module.log(metric_name, metric_value, sync_dist=True)  # Log metrics
-            metric_msg.append(f'{metric_name}={metric_value:.3f}')  # Add metrics
-        fmt_print.dark_green('\tEval Metrics: [' + ', '.join(metric_msg) + ']')
+            metric_msg.append(f'{metric_name}={tqdm.format_num(metric_value)}')  # Add metrics
+        fmt_print.dark_green('\nEval Metrics: [' + ', '.join(metric_msg) + ']')
+
+    @property
+    def slr_metric_track(self):
+        return "metric_to_track"
+
+    def configure_optimizers(self, pl_module: L.LightningModule):
+        optimizer = pl_module.t.optimizer(
+            pl_module.parameters(),
+            lr=pl_module.t.hypers.lr,
+            weight_decay=pl_module.t.hypers.weight_decay
+        )
+
+        if pl_module.t.constant_lr:
+            return optimizer
+
+        if pl_module.t.lr_scheduler:
+            scheduler = pl_module.t.lr_scheduler(optimizer, **pl_module.t.lrs_kwargs)
+        else:
+            scheduler = lrs.ReduceLROnPlateau(optimizer, **pl_module.t.lrs_kwargs)
+
+        return {
+            'optimizer': optimizer,
+            "lr_scheduler": {
+            "scheduler": scheduler,
+                "monitor": self.slr_metric_track,
+                "frequency": pl_module.t.lr_scheduler_frequency,  # indicates how often the metric is updated
+                # If "monitor" references validation metrics, then "frequency" should be set to a
+                # multiple of "trainer.check_val_every_n_epoch".
+            },
+        }
+
+    @staticmethod
+    def dict_fmt_print(dict_: dict[str, float], print_func=fmt_print.bold_magenta, prefix=''):
+        msg = f'{prefix}[' + ', '.join([f'{k}={v:.3g}' for k, v in dict_.items()]) + ']'
+        print(type(print_func))
+        print_func(msg)
+
 
 
 class _SingleTask(_Task):
@@ -200,10 +238,6 @@ class _SingleTask(_Task):
         return self._target_getter(batch)
 
     def label2oh_conversion(self, target: Union[torch.Tensor, dict[str, torch.Tensor]]):
-        # if self._to_onehot is True:
-        #     return F.one_hot(target.long(), num_classes=self._onehot_types)
-        # else:
-        #     return target.view(-1, 1)
         return target.view(-1, 1)
 
     @staticmethod
@@ -220,7 +254,7 @@ class _SingleTask(_Task):
 
     def loss_weight_calculator(self, target) -> Optional[torch.Tensor]:
         if self._loss_weight_calculator:
-            return self._loss_weight_calculator(target, self._onehot_types)
+            return self._loss_weight_calculator(target)
         return None
 
     def loss_fn(self, pred, target, loss_weight):
@@ -260,6 +294,8 @@ class _SingleTask(_Task):
             for metric_name, metric_func in self._metrics.items()
         }
 
+        metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
+
         # Print and log metrics
         self._print_and_log_metrics(pl_module, metrics_dict)
 
@@ -286,9 +322,24 @@ class _MultiTask(_Task):
         self.val_pred = {}
         self.val_target = {}
 
+        try:
+            self.atl_weights_calculators = kwargs['atl_weights_calculators']
+        except KeyError:
+            self.atl_weights_calculators = M.atl_calculator
+
+        if not self.atl_weights_calculators:
+            self.atl_weights_calculators = M.atl_calculator
+
     def feature_extractor(self, *args, **kwargs) -> dict[str, torch.Tensor]:
+        if self._extractor_attr_getter is None:
+            extractor = {}
+        elif isinstance(self._extractor_attr_getter, dict):
+            extractor = self._extractor_attr_getter
+        else:
+            raise NotImplementedError
+
         return {
-            k: ext(*args, batch_getter=self._extractor_attr_getter.get(k, None), **kwargs)
+            k: ext(*args, batch_getter=extractor.get(k, None), **kwargs)
             for k, ext in self._feature_extractor.items()
         }
 
@@ -301,22 +352,6 @@ class _MultiTask(_Task):
 
     @override
     def label2oh_conversion(self, target: dict[str, torch.Tensor]):
-        # if not isinstance(self._to_onehot, Iterable):
-        #     return {k: t.view(-1, 1) for k, t in target.items()}
-        # else:
-        #     _to_onehot = list(self._to_onehot)
-        #     if not isinstance(self._onehot_types, dict):
-        #         raise AttributeError('When the `to_onehot` is an Iterable of str, the `onehot_types` should be a dict.')
-        #     if len(_to_onehot) != len(self._onehot_types):
-        #         raise ValueError('Then length of `to_onehot` and `onehot_types` should be the same.')
-        #
-        #     _target = {}
-        #     for k, t in target.items():
-        #         if k in _to_onehot:
-        #             _target[k] = F.one_hot(t.long(), num_classes=self._onehot_types[k])
-        #         else:
-        #             _target[k] = t.view(-1, 1)
-        #     return _target
         return {k: t.view(-1, 1) for k, t in target.items()}
 
     def peel_unmaksed_obj(
@@ -324,7 +359,7 @@ class _MultiTask(_Task):
             feature_target: dict[str, torch.Tensor],
             mask_idx: Union[torch.Tensor] = None,
     ):
-        if mask_idx is None:
+        if mask_idx is None and self._mask_need_task is None:
             return feature_target
         elif isinstance(mask_idx, torch.Tensor):
             for mask_task in self._mask_need_task:
@@ -338,7 +373,7 @@ class _MultiTask(_Task):
             return None
         elif isinstance(self._loss_weight_calculator, dict):
             return {
-                k: calculator(target[k], self._onehot_types[k])
+                k: calculator(target[k])
                 for k, calculator in self._loss_weight_calculator.items()
             }
 
@@ -361,8 +396,8 @@ class _MultiTask(_Task):
                 self.loss_dict[k] = self._loss_fn[k](p, target[k])
 
         # Calculate the total loss
-        if isinstance(self._across_loss_weights, dict):
-            return sum(lo * self._across_loss_weights.get(k, 1.) for k, lo in self.loss_dict.items())
+        if isinstance(self.atl_weights, dict):
+            return sum(lo * self.atl_weights.get(k, 1.) for k, lo in self.loss_dict.items())
         else:
             return sum(lo for lo in self.loss_dict.values())
 
@@ -380,7 +415,12 @@ class _MultiTask(_Task):
         # Calculate primary metrics for each task
         for k, t in target.items():
             pm = self._metrics[k][self._primary_metric[k]](pred[k], t)
-            pl_module.log(f'{k}-{self._primary_metric[k]}', pm, prog_bar=True)
+            pl_module.log(
+                # f"{k}-{self._primary_metric[k]}",
+                k,
+                pm,
+                prog_bar=True
+            )
 
     @override
     def add_val_pred_target(
@@ -399,14 +439,33 @@ class _MultiTask(_Task):
 
         # Calculate metrics
         metrics_dict = {
-            f'{k}-{self._primary_metric[k]}': self._metrics[k][self._primary_metric[k]](val_pred[k], t)
+            k: self._metrics[k][self._primary_metric[k]](val_pred[k], t)
+            # self._primary_metric[k]: self._metrics[k][self._primary_metric[k]](val_pred[k], t)
             for k, t in val_target.items()}
+
+        # Update across loss weights
+        if pl_module.current_epoch < 1 or not isinstance(self.atl_weights_calculators, Callable):
+            self.atl_weights = None
+        else:
+            self.atl_weights = self.atl_weights_calculators(metrics_dict)
+            # logging.debug(self.atl_weights)
+            self.dict_fmt_print(self.atl_weights, prefix='\nalt_weights: ')
+
+        # Add sum metrics
+        metrics_dict['smtrc'] = np.mean([v for v in metrics_dict.values()])
+
+        # Add learning rate information
+        metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
 
         # Print and log metrics
         self._print_and_log_metrics(pl_module, metrics_dict)
 
         self.val_pred.clear()
         self.val_target.clear()
+
+    @property
+    def slr_metric_track(self):
+        return "smtrc"
 
 class TrainTools:
     def __init__(
@@ -423,6 +482,7 @@ class TrainTools:
             xyz_index: Union[list, torch.Tensor] = None,
             inputs_preprocessor: Callable[[tuple[torch.Tensor, ...], Union[list, torch.Tensor]], tuple[torch.Tensor, ...]] = None,
             x_masker: Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]] = None,
+            mask_need_task: list[str] = None,
             extractor_attr_getter: Union[tp.ExtractorAttrGetter, dict[str, tp.ExtractorAttrGetter]] = None,
             to_onehot: Union[bool, Iterable[str]] = False,
             onehot_types: Optional[Union[int, dict[str, int]]] = None,
@@ -432,12 +492,13 @@ class TrainTools:
             lr_scheduler_frequency: int = 1,
             lr_scheduler: Optional[Type[torch.optim.lr_scheduler.LRScheduler]] = None,
             lr_scheduler_kwargs: Optional[dict] = None,
-            work_name: Optional[str] = None,
+            task_name: Optional[str] = None,
             labeled_x: bool = False,
             input_x_index: Union[list, torch.Tensor] = None,
             xyz_perturb_sigma: Optional[float] = None,
             debug: bool = False,
             debug_batch_num: int = 8,
+            atl_weights_calculators: Optional[Callable[[dict[str, float]], float]] = None,
             **kwargs
     ):
         if isinstance(target_getter, dict):
@@ -445,7 +506,13 @@ class TrainTools:
         else:
             self.multi_target_mode = False
 
-        self.work_name = work_name
+        if isinstance(task_name, str):
+            self.task_name = self.work_name = task_name
+        elif isinstance(task_name, Sequence):
+            self.task_name = task_name
+            self.work_name = f'MultiTask({len(task_name)})'
+        else:
+            raise ValueError(f'task_name must be str or Sequence, not {type(task_name)}')
 
         # Specify the directories
         self.work_dir = work_dir
@@ -471,6 +538,7 @@ class TrainTools:
             self._inputs_preprocessor = lambda inp: M.get_x_input_attrs(inp, input_x_index=self.input_x_index)
 
         self._x_masker = x_masker
+        self._mask_need_task = mask_need_task
 
         self._extractor_attr_getter = extractor_attr_getter
 
@@ -485,7 +553,7 @@ class TrainTools:
         self.lr_scheduler = lr_scheduler
         self.lr_scheduler_frequency = lr_scheduler_frequency
         self.constant_lr = constant_lr
-        self.lrs_kwargs = lr_scheduler_kwargs
+        self.lrs_kwargs = lr_scheduler_kwargs if isinstance(lr_scheduler_kwargs, dict) else {}
 
         # Metrics
         self.primary_metric = primary_metric
@@ -499,6 +567,9 @@ class TrainTools:
         # Debug configures
         self.debug = debug
         self.debug_batch_num = debug_batch_num
+
+        #
+        self._atl_weights_calculators = atl_weights_calculators
 
         # Check attributes types and length
         self._task = None
@@ -516,14 +587,15 @@ class TrainTools:
             self._loss_weight_calculator,
             self.to_onehot,
             self.onehot_types,
-            self._x_masker
+            self._x_masker,
+            self._mask_need_task
         )
 
         # If this is a single target task
         if isinstance(self._target_getter, Callable):
             self._task = _SingleTask(*args)
         elif isinstance(self._target_getter, dict):
-            self._task = _MultiTask(*args)
+            self._task = _MultiTask(*args, atl_weights_calculators=self._atl_weights_calculators)
         else:
             raise NotImplementedError('The target_getter should be a callable or a dict of callables.')
 
@@ -564,7 +636,7 @@ class TrainTools:
 
     def _get_ckpt_files(self):
         # Use glob to find all .ckpt files in the specified directory
-        ckpt_files = glob.glob(osp.join(self.work_dir, '**.ckpt'))
+        ckpt_files = glob.glob(osp.join(self.work_dir, '**', '*.ckpt'), recursive=True)
 
         # Sort the files by creation time
         ckpt_files.sort(key=os.path.getctime)
@@ -581,6 +653,31 @@ class TrainTools:
             raise NotImplementedError
 
         return torch.load(ckpt_file)
+
+    @staticmethod
+    def load_model_state_dict(model, ckpt):
+        if not isinstance(model.predictors, nn.ModuleDict):
+            model.load_state_dict(ckpt['state_dict'])
+            fmt_print.dark_green('load model')
+        else:
+            # Load core module
+            core_dict = {'.'.join(k.split('.')[1:]): v for k, v in ckpt['state_dict'].items() if k.startswith('core.')}
+            model.core.load_state_dict(core_dict)
+            fmt_print.dark_green('load core')
+
+            predictor_dict = {}
+            for key, values in ckpt['state_dict'].items():
+                if key.startswith('predictors.'):
+                    p_dict = predictor_dict.setdefault(key.split('.')[1], {})
+                    p_dict['.'.join(key.split('.')[2:])] = values
+
+            # Load predictors
+            for p_name, p_module in model.predictors.items():
+                if p_name in predictor_dict:
+                    p_module.load_state_dict(predictor_dict[p_name])
+                    fmt_print.dark_green(f'load predictor[{p_name}]')
+                else:
+                    fmt_print.bold_magenta(f"Warning: predictor['{p_name}'] not found in checkpoint, skipped!!")
 
     def target_getter(self, batch: Batch) -> Union[torch.Tensor, dict[str, torch.Tensor]]:
         return self._task.target_getter(batch)
@@ -608,8 +705,8 @@ class TrainTools:
             return self._inputs_preprocessor(*inputs, **kwargs)
         return inputs
 
-    def x_masker(self, inputs: tuple[torch.Tensor, ...], x_mask_vec) -> (tuple[torch.Tensor, ...], torch.Tensor):
-        return self._task.x_masker(inputs, x_mask_vec)
+    def x_masker(self, inputs: tuple[torch.Tensor, ...]) -> (tuple[torch.Tensor, ...], torch.Tensor):
+        return self._task.x_masker(inputs)
 
     def feature_extractor(self, *args, **kwargs) -> Union[torch.Tensor, dict[str, torch.Tensor]]:
       return self._task.feature_extractor(*args, **kwargs)
@@ -666,6 +763,9 @@ class TrainTools:
             return M.perturb_xyz(xyz, self._xyz_perturb_sigma)
         return xyz
 
+    def configure_optimizers(self, pl_module: L.LightningModule):
+        return self._task.configure_optimizers(pl_module)
+
 
 class LightPretrain(L.LightningModule):
     def __init__(
@@ -693,7 +793,7 @@ class LightPretrain(L.LightningModule):
         inputs = self.t.inputs_preprocessor(inputs)
 
         # Mask inputs
-        inputs, masked_idx = self.t.x_masker(inputs, self.core.x_mask_vec)
+        inputs, masked_idx = self.t.x_masker(inputs)
 
         # Forward pass through core
         core_output = self.core(*inputs, xyz=xyz)
@@ -749,25 +849,7 @@ class LightPretrain(L.LightningModule):
         self.t.eval_on_val_end(self)
 
     def configure_optimizers(self):
-        optimizer = self.t.optimizer(self.parameters(), lr=self.t.hypers.lr, weight_decay=self.t.hypers.weight_decay)
-        if self.t.constant_lr:
-            return optimizer
-
-        if self.t.lr_scheduler:
-            scheduler = self.t.lr_scheduler(optimizer, **self.t.lrs_kwargs)
-        else:
-            scheduler = lrs.ReduceLROnPlateau(optimizer, **self.t.lrs_kwargs)
-
-        return {
-            'optimizer': optimizer,
-            "lr_scheduler": {
-            "scheduler": scheduler,
-                "monitor": "metric_to_track",
-                "frequency": self.t.lr_scheduler_frequency,  # indicates how often the metric is updated
-                # If "monitor" references validation metrics, then "frequency" should be set to a
-                # multiple of "trainer.check_val_every_n_epoch".
-            },
-        }
+        return self.t.configure_optimizers(self)
 
 
 class CustomPBar(TQDMProgressBar):
@@ -778,9 +860,15 @@ class CustomPBar(TQDMProgressBar):
             process_position: int = 0,
             leave: bool = False,
             show_val: bool = True,
+            metric_len: int = None
     ):
         super().__init__(refresh_rate, process_position, leave)
         self.show_val = show_val
+
+        if not metric_len:
+            self.ncols = 100
+        else:
+            self.ncols = 100 + metric_len * 10
 
     @override
     def init_train_tqdm(self) -> Tqdm:
@@ -791,7 +879,7 @@ class CustomPBar(TQDMProgressBar):
             disable=self.is_disabled,
             leave=True,
             # dynamic_ncols=True,
-            ncols=100,
+            ncols=self.ncols,
             file=sys.stdout,
             smoothing=0,
             # bar_format=self.BAR_FORMAT,
@@ -879,7 +967,7 @@ metrics_options = {
 loss_options = {
     'mse': F.mse_loss,
     'cross_entropy': M.LossMethods.calc_atom_type_loss,
-    'binary_cross_entropy': F.binary_cross_entropy,
+    'binary_cross_entropy': F.binary_cross_entropy_with_logits,
     'amd': M.LossMethods.average_maximum_displacement
 }
 x_masker_options = {
@@ -893,13 +981,13 @@ COORD_X_ATTR = ('x', 'y', 'z')
 
 
 class TargetGetter:
-    def __init__(self, data_item: str, attrs: Union[str, Iterable[str]] = None):
+    def __init__(self, first_data, data_item: str, attrs: Union[str, Iterable[str]] = None):
         self.data_item = data_item
         self.attrs = attrs
+        self.data_idx =  _get_index(first_data, self.data_item, attrs)
 
-    def __call__(self, first_data: Data):
-        data_idx = _get_index(first_data, self.data_item, self.attrs)
-        return lambda batch: getattr(batch, self.data_item)[:, data_idx]
+    def __call__(self, batch: Batch) -> torch.Tensor:
+        return getattr(batch, self.data_item)[:, self.data_idx]
 
 
 def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = None) -> Union[int, list[int]]:
@@ -914,12 +1002,17 @@ def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = No
 ##########################################################################################################
 ############################### Argument Regularization ##################################################
 # Aligner
-def _align_task_seq(arg_name: str, arg: Sequence, task_names: Sequence, judge: Callable[[Any], bool] = None):
+def _align_task_seq(
+        arg_name: str, arg: Sequence, task_names: Sequence,
+        judge: Callable[[Any], bool] = None,
+        strict_align: bool = True
+):
     assert isinstance(arg, Sequence), f"Expecting {arg_name} is a sequence, but got {type(arg)}"
     assert isinstance(task_names, Sequence), f"Expecting task_name is a sequence, but got {type(task_names)}"
     assert len(task_names) == len(set(task_names)), f"Expecting all task_names are unique, but not"
-    assert len(arg) == len(task_names), (
-        f"The length of {arg_name} should be equal to task_names, but {len(arg)} != {len(task_names)}")
+    if strict_align:
+        assert len(arg) == len(task_names), (
+            f"The length of {arg_name} should be equal to task_names, but {len(arg)} != {len(task_names)}")
     if isinstance(judge, Callable):
         for v in arg:
             if not judge(v):
@@ -939,11 +1032,11 @@ def _align_task_names(
 
 # TargetGetter
 def _specify_target_getter(
-        task_names: Union[str, Sequence[str]],
+        task_names: Union[str, list[str]],
         target_getter: tp.TargetGetterInput,
         first_data: Data,
 ):
-    if isinstance(task_names, Sequence):
+    if isinstance(task_names, (list, tuple)):
         task_names = list(task_names)
     elif isinstance(task_names, str):
         if isinstance(target_getter, dict):
@@ -972,7 +1065,7 @@ def _specify_target_getter(
     elif isinstance(task_names, list):
         if isinstance(target_getter, dict):
             _align_task_names('target_getter', target_getter, task_names, lambda g: isinstance(g, Callable))
-        elif isinstance(target_getter, Sequence):
+        elif isinstance(target_getter, (list, tuple)):
             _align_task_names('target_getter', target_getter, task_names, lambda g: isinstance(g, Callable))
             target_getter = dict(zip(task_names, target_getter))
         else:
@@ -1033,6 +1126,8 @@ def _specify_predictors(
     if predictors is None and isinstance(task_name, str):
         if task_name == "AtomType":
             return M.Predictor(core.vec_size, 'onehot', onehot_type=119)
+        elif task_name == "AtomCharge":
+            return M.Predictor(core.vec_size, 'num')
         elif task_name.startswith("xyz"):
             return M.Predictor(core.vec_size, 'xyz')
         elif task_name in ['Cbond', 'RingAromatic']:
@@ -1043,7 +1138,7 @@ def _specify_predictors(
     elif isinstance(predictors, (M.Predictor, Callable, str)):
         return _str2callable_predictor(predictors, core, onehot_type, **kwargs)
 
-    elif isinstance(predictors, Sequence):
+    elif isinstance(predictors, (list, tuple)):
         # If the given predictor is a Sequence, convert the Sequence one to dict one.
         _align_task_seq(
             'Predictor', predictors, task_name,
@@ -1096,7 +1191,7 @@ def _specify_feature_extractor(
             f"Expecting task_names is a str when feature_names is a Callable, but got {type(task_names)}")
         return extractors
 
-    elif isinstance(extractors, Sequence):
+    elif isinstance(extractors, (list, tuple)):
         _align_task_seq('extractors', extractors, task_names, lambda g: isinstance(g, (Callable, str)))
         return _str2callable_convertor(dict(zip(task_names, extractors)), core.feature_extractor)
 
@@ -1124,7 +1219,7 @@ def _specify_loss_fn(
         elif predictors.target_type == 'xyz':
             return M.LossMethods.average_maximum_displacement
         elif predictors.target_type == 'binary':
-            return F.binary_cross_entropy
+            return F.binary_cross_entropy_with_logits
         elif predictors.target_type == 'num':
             return F.mse_loss
         else:
@@ -1142,7 +1237,7 @@ def _specify_loss_fn(
             f"a dict with its key aligning to the `task_names`!!")
         return loss_fn
 
-    elif isinstance(loss_fn, Sequence):
+    elif isinstance(loss_fn, (list, tuple)):
         _align_task_seq('loss_fn', loss_fn, task_names, lambda g: isinstance(g, (Callable, str)))
         return _str2callable_convertor(dict(zip(task_names, loss_fn)), loss_options)
 
@@ -1172,31 +1267,31 @@ def _specify_metrics(
         # Infer the primary_metric according to the task_names
         if task_names == 'AtomType':
             primary_metrics = 'acc'
-            _metrics = {'acc', metrics_options['acc']}
+            _metrics = {'acc': metrics_options['acc']}
         elif task_names == 'MetalType':
             primary_metrics = 'macc'
-            _metrics = {'macc', metrics_options['macc']}
+            _metrics = {'macc': metrics_options['macc']}
         elif task_names == 'AtomCharge':
             primary_metrics = 'r2'
-            _metrics = {'r2', metrics_options['r2']}
+            _metrics = {'r2': metrics_options['r2']}
         elif task_names in ['Cbond', 'RingAromatic']:
             primary_metrics = 'bacc'
-            _metrics = {'bacc', metrics_options['bacc']}
+            _metrics = {'bacc': metrics_options['bacc']}
 
         # Infer the primary_metric according to the type of predictor
         elif isinstance(predictors, M.Predictor):
             if predictors.target_type == 'onehot':
                 primary_metrics = 'acc'
-                _metrics = {'acc', metrics_options['acc']}
+                _metrics = {'acc': metrics_options['acc']}
             elif predictors.target_type == 'xyz':
                 primary_metrics = 'amd'
-                _metrics = {'amd', metrics_options['amd']}
+                _metrics = {'amd': metrics_options['amd']}
             elif predictors.target_type == 'binary':
                 primary_metrics = 'bacc'
-                _metrics = {'bacc', metrics_options['bacc']}
+                _metrics = {'bacc': metrics_options['bacc']}
             elif predictors.target_type == 'num':
                 primary_metrics = 'r2'
-                _metrics = {'r2', metrics_options['r2']}
+                _metrics = {'r2': metrics_options['r2']}
             else:
                 raise ValueError(f'Fail to infer the `primary_metrics` according to predictor type {predictors.target_type}')
 
@@ -1208,16 +1303,16 @@ def _specify_metrics(
             f"In Multi-task mode, the primary_metrics should be a sequence with same number with `task_names` or "
             f"a dict with its key aligning to the `task_names`!!")
         primary_metrics = primary_metrics
-        _metrics = {primary_metrics, metrics_options[primary_metrics]}
+        _metrics = {primary_metrics: metrics_options[primary_metrics]}
 
-    elif isinstance(primary_metrics, Sequence):
+    elif isinstance(primary_metrics, (list, tuple)):
         _align_task_seq('primary_metrics', primary_metrics, task_names, lambda g: isinstance(g, str))
         primary_metrics = dict(zip(task_names, primary_metrics))
         _metrics = {tn: {pmn: metrics_options[pmn]} for tn, pmn in zip(task_names, primary_metrics)}
 
     elif isinstance(primary_metrics, dict):
         _align_task_names('primary_metrics', primary_metrics, task_names, lambda v: isinstance(v, str))
-        _metrics = {tn: {pmn: metrics_options[pmn]} for tn, pmn in zip(task_names, primary_metrics)}
+        _metrics = {tn: {pmn: metrics_options[pmn]} for tn, pmn in primary_metrics.items()}
 
     else:
         raise TypeError(f'The `primary_metrics` should be a task_names[str], or a sequence|dict of task_names')
@@ -1228,7 +1323,7 @@ def _specify_metrics(
             f'a str other metrics could be given only when the _primary metrics is also a str (in single task)')
         _metrics[other_metrics] = metrics_options[other_metrics]
 
-    elif isinstance(other_metrics, Sequence):
+    elif isinstance(other_metrics, (list, tuple)):
         assert isinstance(primary_metrics, str), (
             f'a sequence of `other_metrics` could be given only when the _primary metrics is a str (in single task)')
         _metrics.update({omn: metrics_options[omn] for omn in other_metrics})
@@ -1246,13 +1341,11 @@ def _specify_metrics(
         else:
             raise RuntimeError(f'the primary_metrics fails to specify')
 
-    else:
-        raise TypeError(f'The `other_metrics` should be a str, a sequence of str, or a dict')
-
     # Return
     return primary_metrics, _metrics
 
 # Specify x masker
+_default_mask_task = ['AtomType']
 def _specify_masker(
         task_names: Union[str, Sequence[str]],
         x_masker: Union[bool, str, Callable[[tuple], tuple[tuple, Optional[torch.Tensor]]]],
@@ -1270,7 +1363,7 @@ def _specify_masker(
             else:
                 return None
 
-        if isinstance(task_names, Sequence):  # default to mask atom types
+        if isinstance(task_names, (list, tuple)):  # default to mask atom types
             return lambda inp: M.mask_atom_type(inp, core.x_mask_vec)
 
     elif isinstance(x_masker, Callable):
@@ -1283,18 +1376,93 @@ def _specify_masker(
     else:
         raise TypeError(f'The `x_masker` should be a callable or a str')
 
+def _single_calculator(task_names, predictor, _methods, _default_method, predictor_check: bool = False):
+    assert isinstance(predictor, M.Predictor), f"the predictors should be a callable, got {type(predictor)}"
+    if predictor.target_type == 'onehot':
+        return lambda label: M.weight_labels(label, predictor.onehot_type, _methods.get(task_names, _default_method))
+    elif predictor.target_type == 'binary':
+        return lambda label: M.weight_labels(label, 2, _methods.get(task_names, _default_method))
+    elif predictor_check:
+        raise ValueError(f'The `loss_weights_calculator` just works for predictor `onehot` or `binary`')
+    else:
+        return None
 
 def _specify_loss_weights_calculator(
         task_names: Union[str, Sequence[str]],
-        loss_weights_calculator: Union[str, Sequence[str]],
+        loss_weights_calculator: Optional[Union[Callable, str, Sequence[str], dict[str, Callable]]],
         predictors: Union[M.Predictor, dict[str, M.Predictor]],
-        loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
+        loss_weight_method: Union[tp.LossWeightMethods, dict[str, tp.LossWeightMethods]] = 'inverse-count',
 ):
-    if loss_weights_calculator is None:
+    # Specify the loss_weight_method
+    _methods = {}
+    _default_method = 'inverse-count'
+    if isinstance(loss_weight_method, str):
+        _default_method = loss_weight_method
+    elif isinstance(loss_weight_method, dict):
+        _align_task_names('loss_weight_methods', loss_weight_method, task_names, lambda v: isinstance(v, str), strict_align=False)
+        _methods.update(loss_weight_method)
+
+    if loss_weights_calculator is None or loss_weights_calculator is True:
         if isinstance(task_names, str):
-            assert isinstance(predictors, M.Predictor), f"the predictors should be a callable, got {type(predictors)}"
-            if predictors:
-                pass
+            return _single_calculator(task_names, predictors, _methods, _default_method)
+        elif isinstance(task_names, (list, tuple)):
+            _align_task_names('predictors', predictors, task_names, lambda v: isinstance(v, M.Predictor))
+            return {
+                tsk_name: M.label_weights_calculator(
+                    getattr(p, 'onehot_type', 2),
+                    _methods.get(tsk_name, _default_method)
+                )
+                for tsk_name, p in predictors.items()
+                if p.target_type in ('onehot', 'binary')
+            }
+        else:
+            raise TypeError(f'the `task_names` should be a str or a (list, tuple) of str`')
+
+    elif isinstance(loss_weights_calculator, str):
+        if isinstance(task_names, str) and task_names == loss_weights_calculator:
+            return _single_calculator(task_names, predictors, _methods, _default_method)
+        elif isinstance(task_names, (list, tuple)):
+            _align_task_names('predictors', predictors, task_names, lambda v: isinstance(v, M.Predictor))
+
+            assert loss_weights_calculator in task_names, (
+                f'the loss_weights_calculator should be one of {task_names}')
+
+            assert predictors[loss_weights_calculator].target_type in ('onehot', 'binary'), (
+                f'Only the onehot and binary predictors could be assign a loss weight calculator')
+
+            tsk_name = loss_weights_calculator
+            return {tsk_name: _single_calculator(tsk_name, predictors, _methods, _default_method)}
+
+        return None
+
+    elif isinstance(loss_weights_calculator, Callable):
+        return loss_weights_calculator
+
+    elif isinstance(loss_weights_calculator, (list, tuple)):
+        assert isinstance(task_names, (list, tuple)), (
+            f'Single task module should given the loss_weights_calculator by str, bool or None')
+        _align_task_seq(
+            'loss_weights_calculator',
+            loss_weights_calculator,
+            task_names, lambda tsk: task_names in task_names,
+            strict_align=False
+        )
+
+        return {tsk: _single_calculator(tsk, predictors[tsk], _methods, _default_method) for tsk in loss_weights_calculator}
+
+    elif isinstance(loss_weights_calculator, dict):
+        _align_task_names(
+            'loss_weights_calculator',
+            loss_weights_calculator,
+            task_names,
+            lambda v: isinstance(v, Callable),
+            strict_align=False
+        )
+        return loss_weights_calculator
+
+    else:
+        raise TypeError(f'The `loss_weights_calculator` should be a callable or a str, '
+                        f'or a sequence of str, dict of Callable, got {type(loss_weights_calculator)}')
 
 
 ############################### Argument Regularization ##################################################
@@ -1302,8 +1470,9 @@ def _specify_loss_weights_calculator(
 
 ##########################################################################################################
 ################################## Task Configuration ####################################################
-def _config_single_task(
+def _config_task_args(
         work_name: str,
+        task_names: Optional[Union[str, Sequence[str]]],
         first_data: Data,
         target_getter,
         feature_extractor,
@@ -1313,57 +1482,71 @@ def _config_single_task(
         primary_metric,
         other_metric,
         x_masker,
+        mask_need_task,
         loss_weight_calculator,
         loss_weight_method: Optional[Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count']],
 ):
-    configs = {}
+    # Prepare
+    if task_names is None:
+        task_names = work_name
+    elif isinstance(task_names, (list, tuple)):
+        task_names = list(task_names)
+    elif not isinstance(task_names, str):
+        raise TypeError(f'The `task_names` should be a str or a Sequence of str')
 
     ###########################################################
     ##################### Important Args ######################
     # Specify target_getter
-    task_names, target_getter = _specify_target_getter(work_name, target_getter, first_data)
+    task_names, target_getter = _specify_target_getter(task_names, target_getter, first_data)
 
     # Specify default predictor
-    configs['predictor'] = predictor = _specify_predictors(work_name, core, predictor)
+    predictor = _specify_predictors(task_names, core, predictor)
 
     # Specify default feature extractor
-    feature_extractor = _specify_feature_extractor(work_name, feature_extractor, core)
+    feature_extractor = _specify_feature_extractor(task_names, feature_extractor, core)
 
     # Specify loss func
-    loss_fn = _specify_loss_fn(work_name, loss_fn, predictor)
+    loss_fn = _specify_loss_fn(task_names, loss_fn, predictor)
 
     # Specify primary metric
-    primary_metric, metrics = _specify_metrics(work_name, primary_metric, loss_fn, predictor)
+    primary_metric, metrics = _specify_metrics(task_names, primary_metric, other_metric, predictor)
 
     ####################### Important Args #####################
     ############################################################
 
     ####################### Optional Args ######################
     # Specify x masker
-    x_masker = _specify_masker(work_name, x_masker, core)
+    x_masker = _specify_masker(task_names, x_masker, core)
+    if not isinstance(task_names, (list, tuple)):
+        mask_need_task = None
+    elif mask_need_task is None:
+        mask_need_task = [t for t in task_names if t in _default_mask_task]
+    elif isinstance(mask_need_task, (list, tuple)):
+        assert all(mt in task_names for mt in mask_need_task), 'All `mask_need_task` should in the task_names list'
+    else:
+        raise TypeError(f'The `mask_need_task` should be a str or a Sequence of str')
 
     # Loss weight calculator
-    if loss_weight_method is None:
-        loss_weight_method = 'inverse-count'
-    elif loss_weight_method not in ['inverse-count', 'cross-entropy', 'sqrt-invert_count']:
-        raise ValueError(f'invalid loss_weight_method: {loss_weight_method}')
-
-    if loss_weight_calculator is None and predictor.target_type == 'onehot':
-        configs['loss_weight_calculator'] = \
-            lambda label, empty: M.weight_labels(
-                label,
-                predictor.onehot_type,
-                loss_weight_method
-            )
-    else:
-        configs['loss_weight_calculator'] = None
+    loss_weight_calculator = _specify_loss_weights_calculator(
+        task_names, loss_weight_calculator, predictor, loss_weight_method)
 
     #############################################################
-    return configs
+    return{
+        'task_name': task_names,
+        'target_getter': target_getter,
+        'feature_extractor': feature_extractor,
+        'predictor': predictor,
+        'loss_fn': loss_fn,
+        'primary_metric': primary_metric,
+        'metrics': metrics,
+        'x_masker': x_masker,
+        'loss_weight_calculator': loss_weight_calculator,
+        'mask_need_task': mask_need_task,
+    }
 
 
 def _config_multi_task(
-        work_name: str,
+        task_names: Sequence[str],
         first_data: Data,
         target_getter,
         feature_extractor,
@@ -1379,96 +1562,34 @@ def _config_multi_task(
 ):
     # Check parameters
     # Arg: target_getter
-    assert isinstance(target_getter, dict)
-    assert all(isinstance(c, Callable) for c in target_getter.values())
-    task_names = set(target_getter.keys())  # Get task_name set
+    task_names = list(task_names)
 
-    # Align important Args with task_name
-    # Arg: feature_extractor
-    _specify_feature_extractor(task_names, feature_extractor, core)
-    _align_task_names('feature_extractor', feature_extractor, task_names, lambda v: isinstance(v, Callable))
-    # Arg: predictor
-    _specify_predictors(task_names, core, predictor, onehot_type)
-    _align_task_names('predictor', predictor, task_names, lambda v: isinstance(v, (Callable, nn.Module, str)))
-    # Arg: loss_fn
-    _align_task_names('loss_fn', loss_fn, task_names, lambda v: isinstance(v, Callable))
-    # Arg primary_metric
-    _align_task_names('primary_metric', primary_metric, task_names, lambda v: isinstance(v, str))
+    ###########################################################
+    ##################### Important Args ######################
+    # Specify target_getter
+    task_names, target_getter = _specify_target_getter(task_names, target_getter, first_data)
 
-    # Initialize predictor
-    predictor = {k: _specify_predictors(k, core, p, single_predictor=False) for k, p in predictor.items()}
+    # Specify default predictor
+    predictor = _specify_predictors(task_names, core, predictor)
 
-    # Check optional args
-    if other_metric is not None and not isinstance(other_metric, dict):
-        raise TypeError('The other_metric should be a dict, instead got {}'.format(type(other_metric)))
-    if isinstance(other_metric, dict):
-        for key, metric in other_metric.items():
-            if key not in task_names:
-                raise ValueError(f'The other_metric key {key} not in the task list!\n task_names: {task_names}')
+    # Specify default feature extractor
+    feature_extractor = _specify_feature_extractor(task_names, feature_extractor, core)
 
-            if isinstance(metric, str):
-                assert metric in metrics_options
-            if isinstance(metric, Iterable):
-                all(m in metrics_options for m in metric)
-            if isinstance(metric, dict):
-                all(isinstance(mc, Callable) for mc in metric.values())
-            else:
-                raise TypeError('the type of value of `other_metric` dict should be str, callable, or dict of callable')
+    # Specify loss func
+    loss_fn = _specify_loss_fn(task_names, loss_fn, predictor)
 
-    # Specify the metrics
-    # Convert old version long name to newer longer name
-    primary_metric = {k: metrics_name_convert.get(m, m) for k, m in primary_metric.items()}
-    metrics = {k: {m: metrics_options[m]} for k, m in primary_metric.items()}
-
-    # Add other metrics
-    if isinstance(other_metric, dict):
-        for key, mtr in other_metric.items():
-            if isinstance(mtr, str):
-                mtr = metrics_name_convert.get(mtr, mtr)
-                other_metric[key] = {mtr: metrics_options[mtr]}
-            elif isinstance(mtr, Iterable):
-                mtr = (metrics_name_convert.get(m, m) for m in other_metric[key])
-                other_metric[key] = {m: metrics_options[m] for m in mtr}
-            elif isinstance(other_metric[key], dict):
-                pass  # Do nothing
-            else:
-                raise TypeError('the type of value of `other_metric` dict should be str, callable, or dict of callable')
-    else:
-        other_metric = {}
-
-    for key, mtr_dict in other_metric.items():
-        metrics[key].update(mtr_dict)
+    # Specify primary metric
+    primary_metric, metrics = _specify_metrics(task_names, primary_metric, loss_fn, predictor)
+    ####################### Important Args #####################
+    ############################################################
 
     ####################### Optional Args ######################
-    if isinstance(x_masker, str):
-        assert x_masker in x_masker_options, f"Unknown x_masker {x_masker}"
+    # Specify x masker
+    x_masker = _specify_masker(task_names, x_masker, core)
 
     # Loss weight calculator
-    # Specify the loss weight calculation method
-    _default_method = 'inverse-count'
-    if not loss_weight_method:
-        loss_weight_method = {}
-    elif loss_weight_method in ('inverse-count', 'cross-entropy', 'sqrt-invert_count'):
-        loss_weight_method = {}
-        _default_method = loss_weight_method
-    elif not isinstance(loss_weight_method, dict):
-        raise TypeError('the loss_weight_method should be a str, or a dict with task_name as the key')
-    assert isinstance(loss_weight_method, dict)
-
-    if loss_weight_calculator is None:
-        loss_weight_calculator = {}
-        for task_name, predictor in predictor.predictor.items():
-            if predictor.target_type == 'onehot':
-                loss_weight_calculator[task_name] = \
-                    lambda label, empty: M.weight_labels(
-                        label,
-                        predictor.onehot_type,
-                        loss_weight_method.get(task_names, _default_method)
-                    )
-    elif isinstance(loss_weight_calculator, dict):
-        assert all(tn in task_names for tn in loss_weight_calculator.keys())
-    else:
-        raise TypeError('the optional `loss_weight_calculator` should be a dict with task_name as the key')
+    loss_weight_calculator = _specify_loss_weights_calculator(
+        task_names, loss_weight_calculator, predictor, loss_weight_method)
 
     #############################################################
     return {
@@ -1492,8 +1613,8 @@ def run(
         core: M.CoreBase,
         train_dataset,
         test_dataset,
-        target_getter: tp.TargetGetterInput,
         hypers: Union[dict, Hypers],
+        target_getter: tp.TargetGetterInput = None,
         task_name: Union[str, Sequence[str]] = None,
         checkpoint_path: Union[str, int] = None,
         load_core_only: bool = True,
@@ -1523,6 +1644,7 @@ def run(
         freeze_core: Optional[bool] = None,
         keep_grad_state: bool = False,
         x_masker: Optional[Union[str, Callable]] = None,
+        mask_need_task: Optional[list[str]] = None,
         load_all_data: bool = False,
         precision='bf16',
         float32_matmul_precision='medium',
@@ -1562,41 +1684,31 @@ def run(
     #   - primary_metrics
     #   - metrics
 
-    ####################### Preparing #########################
-    if isinstance(target_getter, dict):
-        task_mode = 'Multi'
-        task_name = list(target_getter)
-    elif isinstance(target_getter, Sequence):
-        _align_task_seq('target_getter', target_getter, task_name, lambda g: isinstance(g, Callable))
-        task_mode = 'Multi'
-        target_getter = dict(zip(task_name, target_getter))
-    elif isinstance(target_getter, Callable):
-        task_mode = 'Single'
-        if not task_name:
-            task_name = work_name
-    else:
-        raise TypeError('The target_getter should be a callable or a Sequence|dict of callable')
-
-    logging.debug(f'Task mode: {task_mode}')
-    ###########################################################
+    # ####################### Preparing #########################
+    # if isinstance(target_getter, dict):
+    #     task_mode = 'Multi'
+    #     task_name = list(target_getter)
+    # elif isinstance(target_getter, Sequence):
+    #     _align_task_seq('target_getter', target_getter, task_name, lambda g: isinstance(g, Callable))
+    #     task_mode = 'Multi'
+    #     target_getter = dict(zip(task_name, target_getter))
+    # elif isinstance(target_getter, Callable):
+    #     task_mode = 'Single'
+    #     if not task_name:
+    #         task_name = work_name
+    # else:
+    #     raise TypeError('The target_getter should be a callable or a Sequence|dict of callable')
+    #
+    # fmt_print.dark_green(f'Running in {task_mode} mode')
+    # ###########################################################
 
     ###########################################################
     ##################### Configure Args ######################
-    # FeatureExtractor, Predictor, LossFunc, Metrics, and TargetGetter
-    if task_mode == 'Single':
-        configs = _config_single_task(
-            work_name, first_data, target_getter, feature_extractor,
-            core, predictor, loss_fn, primary_metric, other_metric,
-            x_masker, loss_weight_calculator, loss_weight_method,
-        )
-    elif task_mode == 'Multi':
-        configs = _config_multi_task(
-            work_name, first_data, target_getter, feature_extractor,
-            core, predictor, loss_fn, primary_metric, other_metric,
-            x_masker, loss_weight_calculator, loss_weight_method,
-        )
-    else:
-        raise ValueError(f'Unknown task mode: {task_mode}')
+    configs = _config_task_args(
+        work_name, task_name, first_data, target_getter, feature_extractor,
+        core, predictor, loss_fn, primary_metric, other_metric,
+        x_masker, mask_need_task, loss_weight_calculator, loss_weight_method
+    )
     ####################### Configure Args #####################
     ############################################################
 
@@ -1635,7 +1747,7 @@ def run(
 
     ###################### Run Preparation #########################
     train_tools = TrainTools(
-        work_name=work_name,
+        # task_name=work_name,
         work_dir=work_dir,
         hypers=hypers,
         optimizer=optimizer,
@@ -1653,14 +1765,25 @@ def run(
         minimize_metric=minimize_metric,
         keep_grad_state=keep_grad_state,
         xyz_index=_get_index(first_data, 'x', COORD_X_ATTR) if with_xyz else None,
-        x_masker=x_masker,
+        # x_masker=x_masker,
         labeled_x=isinstance(getattr(core, 'x_label_nums', None), int),
-        loss_weight_calculator=loss_weight_calculator,
+        # loss_weight_calculator=loss_weight_calculator,
         xyz_perturb_sigma=xyz_perturb_sigma,
         debug=debug,
         debug_batch_size=debug_batch_size,
         **configs,
         **kwargs)
+
+    # Initialize model
+    model = LightPretrain(core, configs['predictor'], train_tools)
+
+    # Automatically loading Checkpoint
+    if isinstance(checkpoint_path, (int, str, Path)):
+        ckpt = train_tools.load_ckpt(checkpoint_path)
+        train_tools.load_model_state_dict(model, ckpt)
+
+    # Compile the model
+    torch.compile(model)
 
     # Prepare dataset loader
     train_loader, test_loader = train_tools.prepare_dataset(
@@ -1675,21 +1798,14 @@ def run(
     if save_model:
         train_tools.init_model_dir()
 
-    # Load Checkpoint
-    if isinstance(checkpoint_path, (str, Path)):
-        ckpt = train_tools.load_ckpt(checkpoint_path)
-
-    model = LightPretrain(core, configs['predictor'], train_tools)
-    torch.compile(model)
-
     # configure EarlyStop
     early_stop_callback = EarlyStopping(
-        monitor=primary_metric,
+        monitor='smtrc' if isinstance(configs['primary_metric'], dict) else configs['primary_metric'],
         mode='min' if minimize_metric else 'max',
         patience=early_stop_step,
     )
 
-    progress_bar = CustomPBar()
+    progress_bar = CustomPBar(metric_len=len(configs['metrics']))
 
     ######################## Run ############################
     trainer = L.Trainer(

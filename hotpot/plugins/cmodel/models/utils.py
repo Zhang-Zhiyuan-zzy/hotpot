@@ -11,19 +11,13 @@ from hotpot.cheminfo.elements import elements
 
 ################################ Onehot Encode ###############################################
 def oh2label(inp_vec: Union[torch.Tensor, np.ndarray]):
-    # if isinstance(inp_vec, torch.Tensor):
-    #     return torch.argmax(inp_vec, dim=1)
-    # elif isinstance(inp_vec, np.ndarray):
-    #     return np.argmax(inp_vec, axis=1)
-    # else:
-    #     raise TypeError('the input vectors must be of type torch.Tensor or np.ndarray')
-    if inp_vec.dim() == 1:
+    if len(inp_vec.shape) == 1:
         return inp_vec
-    elif inp_vec.dim() == 2:
+    elif len(inp_vec.shape) == 2:
         if inp_vec.shape[-1] == 1:
             return inp_vec.flatten()
         else:
-            return inp_vec.argmax(dim=-1)
+            return inp_vec.argmax(dim=-1) if isinstance(inp_vec, torch.Tensor) else inp_vec.argmax(axis=-1)
     else:
         raise AttributeError('The input tensor or vector must have 1 or 2 dimensions.')
 
@@ -57,7 +51,8 @@ def weight_labels(
         num_types: int = 119,
         weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'cross-entropy',
 ) -> object:
-    labels = torch.argmax(labels, dim=-1)  # Is one hot vector
+    # labels = torch.argmax(labels, dim=-1)  # Is one hot vector
+    labels = labels.long()
     values, counts = torch.unique(labels, return_counts=True)
 
     if weight_method == 'cross-entropy':
@@ -72,10 +67,26 @@ def weight_labels(
     else:
         raise ValueError('weight_method must be either "inverse-count" or "cross-entropy"')
 
-    onehot_weight = torch.zeros(num_types).to(labels.device)
+    onehot_weight = torch.zeros(num_types).to(labels.device).to(weight.dtype)
     onehot_weight[values] = weight
 
     return onehot_weight
+
+def weight_binary(labels: torch.Tensor, eps: float = 1e-7):
+    values, counts = torch.unique(labels, return_counts=True)
+    assert len(values) <= 2 and all(v in [0, 1] for v in values)
+    weight_true = torch.sum(labels, dtype=labels.dtype) / len(labels)
+    weight_false = 1 - weight_true
+
+    weight_true = weight_true / max(weight_true, weight_false, eps)
+    weight_false = weight_false / max(weight_true, weight_false, eps)
+
+    weights = torch.empty_like(labels, dtype=labels.dtype)
+    weights[labels == 1] = weight_true
+    weights[labels == 0] = weight_false
+
+    return weights
+
 ######################################################################################################
 
 ####################################### Input Preprocessor ###########################################

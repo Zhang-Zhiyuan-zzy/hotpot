@@ -12,6 +12,7 @@ TensorArray = Union[torch.Tensor, np.ndarray]
 ExtractorAttrGetter = Callable[[Batch], Union[tuple, torch.Tensor]]
 TargetGetter = Callable[[Batch], torch.Tensor]
 LossWeightCalculator = Callable[[torch.Tensor, int], torch.Tensor]
+LossWeightMethods = Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count']
 
 
 # types for run() arguments

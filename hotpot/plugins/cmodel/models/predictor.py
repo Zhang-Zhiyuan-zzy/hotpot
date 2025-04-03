@@ -38,7 +38,7 @@ class Predictor(nn.Module):
             self.out_act = nn.Softmax(dim=-1)
         elif target_type == 'binary':
             self.out_layer = nn.Linear(in_size, 1)
-            self.out_act = nn.Sigmoid()
+            self.out_act = lambda out: out
         else:
             raise NotImplementedError(f"{target_type} is not implemented")
 

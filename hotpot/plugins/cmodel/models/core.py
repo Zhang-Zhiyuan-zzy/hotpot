@@ -9,6 +9,7 @@ from torch import Tensor
 import torch_geometric.nn as pygnn
 
 from .graph import CompleteGraph
+from . import utils
 
 ################################ Utils functions ########################################
 def complete_graph_generator(ptr):
@@ -147,6 +148,7 @@ class CoreBase(nn.Module):
         'ring': 'extract_ring_vec',
         'mol': 'extract_mol_vec',
         'cbond': 'extract_cbond_pair',
+        'metal': 'extract_metal_vec'
     }
     def __init__(self, vec_dim: int, x_label_nums: Optional[int] = None):
         super(CoreBase, self).__init__()
@@ -159,8 +161,8 @@ class CoreBase(nn.Module):
             if hasattr(self.extractor_class, method_name)
         }
 
-    @abstractmethod
     @property
+    @abstractmethod
     def x_mask_vec(self):
         raise NotImplementedError('the property `x_mask_vec` is not implemented.')
 
@@ -257,6 +259,12 @@ class AttnExtractor:
             Znode.append(s[:m])
 
         return torch.cat(Znode, dim=0)
+
+    @staticmethod
+    def extract_metal_vec(seq, X_mask, R_mask, batch, batch_getter=None):
+        metal_idx = utils.where_metal(batch.x[:, 0])
+        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+        return Znode[metal_idx]
 
     @staticmethod
     def extract_cbond_pair(seq, X_mask, R_mask, batch, batch_getter=None):

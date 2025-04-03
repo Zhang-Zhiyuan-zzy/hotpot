@@ -10,10 +10,6 @@ class Metrics:
     """ A collection of metrics functions """
     @staticmethod
     def calc_oh_accuracy(pred, target):
-        # if is_onehot:
-        #     pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
-        # else:
-        #     pred_label, target_label = pred, target
         pred, target = map(utils.oh2label, (pred, target))
         if isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor):
             return (pred == target).float().mean()
@@ -24,11 +20,6 @@ class Metrics:
 
     @staticmethod
     def metal_oh_accuracy(pred, target):
-        # if is_onehot:
-        #     pred_label, target_label = utils.oh2label(pred), utils.oh2label(target)
-        # else:
-        #     pred_label, target_label = pred, target
-
         pred, target = map(utils.oh2label, (pred, target))
         metal_idx = utils.where_metal(target)
         pred = pred[metal_idx]
@@ -43,8 +34,16 @@ class Metrics:
 
 
     @staticmethod
-    def binary_accuracy(pred: np.ndarray, target: np.ndarray):
-        return (target == np.round(pred)).mean()
+    def binary_accuracy(pred: Union[torch.Tensor, np.ndarray], target: Union[torch.Tensor, np.ndarray]):
+        """ the pred is the output without Sigmoid activation """
+        if isinstance(pred, np.ndarray):
+            pred = torch.from_numpy(pred)
+            pred = np.round(F.sigmoid(pred).numpy())
+            return (pred == target).mean()
+
+        else:
+            pred = torch.round(F.sigmoid(pred))
+            return (pred == target).float().mean()
 
     @staticmethod
     def r2_score(
@@ -109,3 +108,80 @@ class Metrics:
             return torch.mean(torch.abs(target - pred))
         else:
             return np.mean(np.abs(target - pred))
+
+    @staticmethod
+    def precision(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        all_pred_true = pred > 0.5
+        tp = (all_pred_true == target).sum()
+        return tp / all_pred_true.sum()
+
+    @staticmethod
+    def recall(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        all_pred_true = pred > 0.5
+        total_positive = target.sum()
+        tp = (all_pred_true == target).sum()
+        return tp / total_positive
+
+    @staticmethod
+    def f1_score(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        """ Calculate the f1 score for the binary target """
+        precision = Metrics.precision(pred, target)
+        recall = Metrics.recall(pred, target)
+        return 2 * precision * recall / (precision + recall)
+
+    @staticmethod
+    def auc(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        """ Calculate the Area Under `ROC` Curve (AUC) for the binary target """
+        fpr, tpr, threshold = Metrics.roc(target, pred)  # fpr: x, tpr: y
+        return torch.trapezoid(tpr, fpr) if isinstance(pred, torch.Tensor) else np.trapz(tpr, fpr)
+
+    @staticmethod
+    def roc(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ) -> Union[torch.Tensor, np.ndarray]:
+        """ Retrieve Receiver Operating Characteristic Curve (ROC) for the binary target """
+        # Initialize functions
+        if isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor):
+            _csum = torch.cumsum
+            _arange = torch.arange
+        elif isinstance(pred, np.ndarray) and isinstance(target, np.ndarray):
+            _csum = np.cumsum
+            _arange = np.arange
+        else:
+            raise ValueError('The `pred` and `target` must be simultaneously torch.Tensor or np.ndarray.')
+
+
+        pred = pred.flatten()
+        target = target.flatten()
+
+        total_positive = target.sum()
+        total_negative = len(target) - total_positive
+
+        sort_idx = pred.argsort()
+        thresholds = pred[sort_idx]  # Here, the sorted pred is equal to the thresholds
+
+        sorted_target = target[sort_idx]
+        inverse_sort_target = 1 - sorted_target  # 0 to 1, 1 to 0
+
+        fn = _csum(sorted_target)  # False negative counts
+        tp = total_negative - fn  # True positive counts
+        tpr = tp / total_positive  # True positive ratio
+
+        fp = _csum(inverse_sort_target)  # False positive counts
+        fpr = fp / total_negative  # False positive ratio
+
+        return fpr, tpr, thresholds
+

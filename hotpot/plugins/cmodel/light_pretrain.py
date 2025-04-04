@@ -13,6 +13,7 @@ from abc import ABC, abstractmethod
 from lightning.pytorch.accelerators import Accelerator
 from typing_extensions import override
 
+from rich import table as rtable, live as rline, console as rconsole
 from tqdm import tqdm
 from operator import attrgetter
 
@@ -38,7 +39,8 @@ from lightning.pytorch import loggers as pl_loggers
 from hotpot.utils import fmt_print
 from . import (
     models as M,
-    types as tp
+    types as tp,
+    callbacks as cbs
 )
 
 
@@ -104,7 +106,7 @@ class _Task(ABC):
         self._primary_metric = primary_metric
         self._metrics = metrics
 
-        # self._type_check()
+        self.console = rconsole.Console()
 
     def _type_check(self):
         for attr_name, attr_type in self._expect_types.items():
@@ -164,13 +166,18 @@ class _Task(ABC):
     def eval_on_val_end(self,pl_module: L.LightningModule):
         raise NotImplementedError
 
-    @staticmethod
-    def _print_and_log_metrics(pl_module: L.LightningModule, metrics_dict: dict[str, float]):
-        metric_msg = []
+    def _print_and_log_metrics(self, pl_module: L.LightningModule, metrics_dict: dict[str, float]):
+        epoch = pl_module.current_epoch
         for metric_name, metric_value in metrics_dict.items():
             pl_module.log(metric_name, metric_value, sync_dist=True)  # Log metrics
-            metric_msg.append(f'{metric_name}={tqdm.format_num(metric_value)}')  # Add metrics
-        fmt_print.dark_green('\nEval Metrics: [' + ', '.join(metric_msg) + ']')
+        table = cbs.get_metric_table(
+            metrics_dict,
+            {'style': 'magenta'},
+            f"Metrics in validation (Epoch {epoch}))"
+        )
+
+        # Print table
+        self.console.print(table)
 
     @property
     def slr_metric_track(self):
@@ -852,7 +859,7 @@ class LightPretrain(L.LightningModule):
         return self.t.configure_optimizers(self)
 
 
-class CustomPBar(TQDMProgressBar):
+class PBar(TQDMProgressBar):
     """ Waiting specification """
     def __init__(
             self,
@@ -884,6 +891,17 @@ class CustomPBar(TQDMProgressBar):
             smoothing=0,
             # bar_format=self.BAR_FORMAT,
         )
+
+    @override
+    def on_train_batch_end(
+        self, trainer: "L.Trainer", pl_module: "L.LightningModule", outputs: STEP_OUTPUT, batch: Any, batch_idx: int
+    ) -> None:
+        n = batch_idx + 1
+        if self._should_update(n, self.train_progress_bar.total):
+            _update_n(self.train_progress_bar, n)
+            self.train_progress_bar.set_postfix_str(
+                self.build_table_str(self.get_metrics(trainer, pl_module))
+            )
 
     @override
     def on_validation_start(self, trainer: "L.Trainer", pl_module: "L.LightningModule") -> None:
@@ -932,6 +950,33 @@ class CustomPBar(TQDMProgressBar):
         if x is None or math.isinf(x) or math.isnan(x):
             return None
         return x
+
+    @staticmethod
+    def build_table_str(data_dict, cols=5):
+        """
+        Build a table-style string in chunks of `cols` columns.
+        """
+        items = list(data_dict.items())
+        lines = []
+
+        # Process dict items in groups of `cols`
+        for i in range(0, len(items), cols):
+            chunk = items[i:i + cols]
+
+            # Create header (keys)
+            header = "  |  ".join(x[0] for x in chunk)
+            # Create values row
+            values = " | ".join(f"{x[1]:.3g}" for x in chunk)
+
+            sep_line = "-" * max(len(header), len(values))
+            lines.append(sep_line)
+            lines.append(header)
+            lines.append(sep_line)
+            lines.append(values)
+            lines.append("+" * max(len(header), len(values)))
+
+        # Join all parts with newlines
+        return '\r\n' + "\n".join(lines)
 
 def _update_n(bar, value: int) -> None:
     if not bar.disable:
@@ -1684,24 +1729,6 @@ def run(
     #   - primary_metrics
     #   - metrics
 
-    # ####################### Preparing #########################
-    # if isinstance(target_getter, dict):
-    #     task_mode = 'Multi'
-    #     task_name = list(target_getter)
-    # elif isinstance(target_getter, Sequence):
-    #     _align_task_seq('target_getter', target_getter, task_name, lambda g: isinstance(g, Callable))
-    #     task_mode = 'Multi'
-    #     target_getter = dict(zip(task_name, target_getter))
-    # elif isinstance(target_getter, Callable):
-    #     task_mode = 'Single'
-    #     if not task_name:
-    #         task_name = work_name
-    # else:
-    #     raise TypeError('The target_getter should be a callable or a Sequence|dict of callable')
-    #
-    # fmt_print.dark_green(f'Running in {task_mode} mode')
-    # ###########################################################
-
     ###########################################################
     ##################### Configure Args ######################
     configs = _config_task_args(
@@ -1805,7 +1832,8 @@ def run(
         patience=early_stop_step,
     )
 
-    progress_bar = CustomPBar(metric_len=len(configs['metrics']))
+    # progress_bar = PBar(metric_len=len(configs['metrics']))
+    progress_bar = cbs.Pbar()
 
     ######################## Run ############################
     trainer = L.Trainer(

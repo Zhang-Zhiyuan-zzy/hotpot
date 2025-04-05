@@ -166,18 +166,11 @@ class _Task(ABC):
     def eval_on_val_end(self,pl_module: L.LightningModule):
         raise NotImplementedError
 
-    def _print_and_log_metrics(self, pl_module: L.LightningModule, metrics_dict: dict[str, float]):
-        epoch = pl_module.current_epoch
+    @staticmethod
+    def _print_and_log_metrics(pl_module: L.LightningModule, metrics_dict: dict[str, float]):
         for metric_name, metric_value in metrics_dict.items():
             pl_module.log(metric_name, metric_value, sync_dist=True)  # Log metrics
-        table = cbs.get_metric_table(
-            metrics_dict,
-            {'style': 'magenta'},
-            f"Metrics in validation (Epoch {epoch}))"
-        )
-
-        # Print table
-        self.console.print(table)
+        pl_module.val_metrics.update(metrics_dict)
 
     @property
     def slr_metric_track(self):
@@ -790,6 +783,8 @@ class LightPretrain(L.LightningModule):
         else:
             raise NotImplementedError('predictors must be a nn.Module or dict of nn.Module')
         self.t = train_tools
+
+        self.val_metrics = {}
 
     # Forward process
     def f(self, batch):

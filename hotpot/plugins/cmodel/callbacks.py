@@ -8,6 +8,7 @@ from tqdm import tqdm
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
+from rich.layout import Layout
 from lightning.pytorch.callbacks import Callback, ProgressBar
 
 
@@ -22,10 +23,10 @@ def get_metric_table(
 
     assert len(metrics_dict) > 0
     t_cols = min(4, len(metrics_dict))
-    t_rows = math.ceil(len(metrics_dict) / t_cols)
-    t_rest = (len(metrics_dict) % t_cols) or t_cols
+    # t_rows = math.ceil(len(metrics_dict) / t_cols)
+    t_rest = len(metrics_dict) % t_cols
 
-    table = Table(title=title, expand=True, **table_kw)
+    table = Table(title=title, **table_kw)
     for _ in range(t_cols):
         table.add_column('ID', no_wrap=True)
         table.add_column('Metric', no_wrap=True)
@@ -34,7 +35,7 @@ def get_metric_table(
     rows = []
     row = []
     for i, (name, value) in enumerate(metrics_dict.items(), 1):
-        if len(row) == 3 * t_rows:
+        if len(row) == 3 * t_cols:
             rows.append(row)
             row = []
 
@@ -61,6 +62,8 @@ class Pbar(ProgressBar):
         super().__init__()
         self.buf = None
         self.train_pbar = None
+        self.layout = Layout()
+        self.layout.split(Layout(name='val'), Layout(name='train'))
         self.liver = None
 
     def init_train_tqdm(self):
@@ -74,17 +77,14 @@ class Pbar(ProgressBar):
             smoothing=0,
         )
 
-    def start_liver(self, _start_text: Optional[str] = None) -> None:
-        self.liver = Live(_start_text, auto_refresh=False)
-        self.liver.start(refresh=(_start_text is not None))
-
     def end_liver(self):
         self.liver.stop()
 
     def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.buf = io.StringIO()
         self.train_pbar = self.init_train_tqdm()
-        self.start_liver(self.buf.getvalue())
+        self.liver = Live(self.layout, auto_refresh=False)
+        self.liver.start()
 
     def on_train_batch_end(
         self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", outputs: STEP_OUTPUT, batch: Any, batch_idx: int
@@ -93,12 +93,32 @@ class Pbar(ProgressBar):
         table = get_metric_table(metrics)
         _update_n(self.train_pbar, batch_idx+1)
 
-        table.title = "Eval in Training Step"
+        table.title = f"Eval in Training Step  (Epoch {pl_module.current_epoch})"
         caption = self.buf.getvalue().split('\r')[-1]
         table.caption = caption
-        self.liver.update(table, refresh=True)
+        # self.liver.update(table)
+
+        self.layout['train'].update(table)
+        self.liver.refresh()
 
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        self.end_liver()
         self.buf.close()
+        self.end_liver()
         self.train_pbar = None
+
+    def on_sanity_check_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        self.liver = Live(self.layout, auto_refresh=False)
+        self.liver.start()
+
+    def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        epoch = pl_module.current_epoch
+        metrics = pl_module.val_metrics
+
+        if len(metrics) > 0:
+            table = get_metric_table(metrics, {'style': 'magenta'}, title=f'Eval in Validation Step (Epoch {epoch})')
+
+            self.layout['val'].update(table)
+            self.liver.refresh()
+
+    def on_sanity_check_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        self.liver.stop()

@@ -27,7 +27,7 @@ from hotpot.plugins.plots import BayesDesignSpaceMap
 
 class AcquisitionFunc:
     @staticmethod
-    def expected_improvement(m, sigma, ymax):
+    def expected_improvement(m, sigma, ymax, eps: float = 0.01):
         """Return the expected improvement.
 
         Arguments
@@ -36,7 +36,7 @@ class AcquisitionFunc:
                  the test points.
         ymax  -- The maximum observed value (so far).
         """
-        diff = m - ymax
+        diff = m - ymax - eps
         u = diff / sigma
         ei = (diff * torch.distributions.Normal(0, 1).cdf(u) +
               sigma * torch.distributions.Normal(0, 1).log_prob(u).exp()

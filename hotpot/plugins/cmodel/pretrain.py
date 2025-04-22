@@ -342,12 +342,12 @@ class PretrainComplex:
 
     def prepare(self):
         loader = DataLoader(
-            self.train_dataset.load_all(getattr(self, 'sample_num')) if self.load_all_data else self.train_dataset,
+            self.train_dataset.load_data(getattr(self, 'sample_num')) if self.load_all_data else self.train_dataset,
             batch_size=self.hypers.batch_size,
             shuffle=self.kwargs.get('trainset_shuffle', True)
         )
         eval_loader = DataLoader(
-            self.dataset_test.load_all(getattr(self, 'sample_num')) if self.load_all_data else self.dataset_test,
+            self.dataset_test.load_data(getattr(self, 'sample_num')) if self.load_all_data else self.dataset_test,
             batch_size=self.hypers.batch_size,
             shuffle=self.kwargs.get('evalset_shuffle', False)
         )

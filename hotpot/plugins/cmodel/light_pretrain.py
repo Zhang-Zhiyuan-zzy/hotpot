@@ -4,23 +4,19 @@ import sys
 import glob
 import math
 import os.path as osp
-import datetime
 import typing
 from pathlib import Path
-from typing import Callable, Union, Sequence, Optional, Any, Type, Literal, Iterable, ItemsView
+from typing import Callable, Union, Sequence, Optional, Any, Type, Literal, Iterable
 from abc import ABC, abstractmethod
 
-from lightning.pytorch.accelerators import Accelerator
 from typing_extensions import override
 
-from rich import table as rtable, live as rline, console as rconsole
-from tqdm import tqdm
+from rich import console as rconsole
 from operator import attrgetter
 
 from lightning.pytorch.callbacks import EarlyStopping, TQDMProgressBar
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from lightning.pytorch.callbacks.progress.tqdm_progress import Tqdm
-from pytorch_lightning.strategies import DDPStrategy
 
 import numpy as np
 
@@ -29,6 +25,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.optim import Optimizer, Adam
 import torch.optim.lr_scheduler as lrs
+from torch.utils.data import Dataset, IterableDataset
 
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Batch, Data
@@ -40,7 +37,9 @@ from hotpot.utils import fmt_print
 from . import (
     models as M,
     types as tp,
-    callbacks as cbs
+    callbacks as cbs,
+    dataset as D,
+    loader as ldr
 )
 
 
@@ -207,7 +206,6 @@ class _Task(ABC):
         msg = f'{prefix}[' + ', '.join([f'{k}={v:.3g}' for k, v in dict_.items()]) + ']'
         print(type(print_func))
         print_func(msg)
-
 
 
 class _SingleTask(_Task):
@@ -471,6 +469,8 @@ class TrainTools:
     def __init__(
             self,
             work_dir: str,
+            train_dataset: Union[D.MConcatDataset, Iterable[D.PretrainDataset], D.PretrainDataset],
+            test_dataset: Union[D.MConcatDataset, Iterable[D.PretrainDataset], D.PretrainDataset],
             feature_extractor: Union[Callable, dict[str, Callable]],
             inputs_getter: Callable[[Batch], tuple[torch.Tensor, ...]],
             target_getter: Union[tp.TargetGetter, dict[str, tp.TargetGetter]],
@@ -499,6 +499,10 @@ class TrainTools:
             debug: bool = False,
             debug_batch_num: int = 8,
             atl_weights_calculators: Optional[Callable[[dict[str, float]], float]] = None,
+            load_all_data: bool = False,
+            # batch_size: int = 1,
+            train_shuffle: bool = True,
+            eval_shuffle: bool = False,
             **kwargs
     ):
         if isinstance(target_getter, dict):
@@ -517,6 +521,18 @@ class TrainTools:
         # Specify the directories
         self.work_dir = work_dir
         self.model_dir = None
+
+        # Datasets
+        self.train_dataset = train_dataset
+        self.test_dataset = test_dataset
+        self.train_loader, self.test_loader = self.prepare_dataset(
+            train_dataset=self.train_dataset,
+            test_dataset=self.test_dataset,
+            load_all_data=load_all_data,
+            batch_size=hypers.batch_size,
+            train_shuffle=train_shuffle,
+            eval_shuffle=eval_shuffle,
+        )
 
         # A position for Lightning Logger
         self.logger = False
@@ -592,12 +608,15 @@ class TrainTools:
         )
 
         # If this is a single target task
-        if isinstance(self._target_getter, Callable):
-            self._task = _SingleTask(*args)
-        elif isinstance(self._target_getter, dict):
-            self._task = _MultiTask(*args, atl_weights_calculators=self._atl_weights_calculators)
+        if not isinstance(self.train_loader, ldr.CDataLoader):
+            if isinstance(self._target_getter, Callable):
+                self._task = _SingleTask(*args)
+            elif isinstance(self._target_getter, dict):
+                self._task = _MultiTask(*args, atl_weights_calculators=self._atl_weights_calculators)
+            else:
+                raise NotImplementedError('The target_getter should be a callable or a dict of callables.')
         else:
-            raise NotImplementedError('The target_getter should be a callable or a dict of callables.')
+            self._task = _MultiTask(*args)
 
     @property
     def sample_num(self) -> Optional[int]:
@@ -608,22 +627,80 @@ class TrainTools:
 
     def prepare_dataset(
             self,
-            train_dataset,
-            test_dataset,
+            train_dataset: Union[D.MConcatDataset, Iterable[D.PretrainDataset], D.PretrainDataset],
+            test_dataset: Union[D.MConcatDataset, Iterable[D.PretrainDataset], D.PretrainDataset],
             load_all_data: bool = False,
             batch_size: Optional[int] = None,
+            train_shuffle: bool = True,
+            eval_shuffle: bool = False,
             **kwargs,
     ):
-        train_loader = DataLoader(
-            train_dataset.load_all(self.sample_num) if load_all_data else train_dataset,
-            batch_size=batch_size,
-            shuffle=kwargs.get('train_shuffle', True),
-        )
-        eval_loader = DataLoader(
-            test_dataset.load_all(self.sample_num) if load_all_data else test_dataset,
-            batch_size=batch_size,
-            shuffle=kwargs.get('eval_shuffle', False),
-        )
+        datasets = [train_dataset, test_dataset]
+        dataset_names = ['train', 'test']
+
+        list_data = []
+        for i, dataset in enumerate(datasets):
+            if isinstance(dataset, D.PretrainDataset):
+                if load_all_data:
+                    list_data.append(dataset.load_data(self.sample_num))
+                else:
+                    list_data.append(dataset)
+
+            elif isinstance(dataset, Dataset):
+                list_data.append(dataset)
+
+            elif isinstance(dataset, IterableDataset):
+                if load_all_data:
+                    list_data.append([d for d in dataset])
+                else:
+                    list_data.append(dataset)
+
+            elif isinstance(dataset, Iterable):
+                dataset = list(dataset)
+                if isinstance(dataset[0], (Dataset, IterableDataset)):
+                    assert all(isinstance(ds, (Dataset, IterableDataset, Iterable)) for ds in dataset), (
+                        'Multi dataset should make sure all items is a Dataset, IterableDataset or Iterable')
+
+                    # Check iterable-formatted dataset
+                    for k, ds in enumerate(dataset):
+                        if isinstance(ds, Iterable):
+                            assert all(isinstance(d, Dataset) for d in ds), (
+                                'When `dataset` given by Iterable, all items should be Data'
+                            )
+
+                    list_data.append(D.MConcatDataset(dataset))
+
+                elif isinstance(dataset[0], Data):
+                    list_data.append(dataset)
+
+                else:
+                    raise TypeError('When `dataset` given by Iterable, all items should be Data or Dataset')
+
+            elif isinstance(dataset, D.MConcatDataset):
+                list_data.append(dataset)
+
+            else:
+                raise TypeError(
+                    f'{dataset_names[i]} dataset should be a Data, Iterable[Data], IterableDataset, Dataset,'
+                    f'MConcatDataset or Iterable[Dataset]'
+                )
+
+        train_dataset, test_dataset = list_data
+
+        if isinstance(train_dataset, D.MConcatDataset):
+            train_loader = ldr.CDataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
+            eval_loader = ldr.CDataLoader(test_dataset, batch_size=batch_size, shuffle=False, **kwargs)
+        else:
+            train_loader = ldr.DataLoader(
+                train_dataset,
+                batch_size=batch_size,
+                shuffle=train_shuffle,
+            )
+            eval_loader = ldr.DataLoader(
+                test_dataset,
+                batch_size=batch_size,
+                shuffle=eval_shuffle,
+            )
 
         return train_loader, eval_loader
 
@@ -788,6 +865,10 @@ class LightPretrain(L.LightningModule):
 
     # Forward process
     def f(self, batch):
+        if (dataset_idx := getattr(batch, 'dataset_idx', None)) is not None:
+            assert len(torch.unique(dataset_idx)) == 1
+            dataset_idx = dataset_idx[0]
+
         # Regularize dtype of Tensors in batch
         self.t.batch_dtype_preprocessor(batch)
         inputs = self.t.inputs_getter(self.t.batch_preprocessor(batch))
@@ -1027,7 +1108,11 @@ class TargetGetter:
         self.data_idx =  _get_index(first_data, self.data_item, attrs)
 
     def __call__(self, batch: Batch) -> torch.Tensor:
-        return getattr(batch, self.data_item)[:, self.data_idx]
+        try:
+            return getattr(batch, self.data_item)[:, self.data_idx]
+        except Exception as e:
+            msg = e.args[0] + f'data.item={self.data_item} attr={self.attrs}'
+            raise type(e)(msg)
 
 
 def _get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = None) -> Union[int, list[int]]:
@@ -1651,8 +1736,8 @@ def run(
         work_name: str,
         work_dir: str,
         core: M.CoreBase,
-        train_dataset,
-        test_dataset,
+        train_dataset: Union[Dataset, Iterable[Dataset], D.MConcatDataset],
+        test_dataset: Union[Dataset, Iterable[Dataset], D.MConcatDataset],
         hypers: Union[dict, Hypers],
         target_getter: tp.TargetGetterInput = None,
         task_name: Union[str, Sequence[str]] = None,
@@ -1771,6 +1856,8 @@ def run(
     train_tools = TrainTools(
         # task_name=work_name,
         work_dir=work_dir,
+        train_dataset=train_dataset,
+        test_dataset=test_dataset,
         hypers=hypers,
         optimizer=optimizer,
         constant_lr=constant_lr,
@@ -1791,6 +1878,7 @@ def run(
         labeled_x=isinstance(getattr(core, 'x_label_nums', None), int),
         # loss_weight_calculator=loss_weight_calculator,
         xyz_perturb_sigma=xyz_perturb_sigma,
+        batch_size=hypers.batch_size,
         debug=debug,
         debug_batch_size=debug_batch_size,
         **configs,
@@ -1808,13 +1896,13 @@ def run(
     torch.compile(model)
 
     # Prepare dataset loader
-    train_loader, test_loader = train_tools.prepare_dataset(
-        train_dataset,
-        test_dataset,
-        load_all_data=load_all_data,
-        batch_size=hypers.batch_size,
-        **kwargs
-    )
+    # train_loader, test_loader = train_tools.prepare_dataset(
+    #     train_dataset,
+    #     test_dataset,
+    #     load_all_data=load_all_data,
+    #     batch_size=hypers.batch_size,
+    #     **kwargs
+    # )
 
     # Initialize work directory
     if save_model:
@@ -1842,4 +1930,4 @@ def run(
         strategy='ddp_find_unused_parameters_true',
         profiler = profiler)
 
-    trainer.fit(model, train_loader, test_loader)
+    trainer.fit(model, train_tools.train_loader, train_tools.test_loader)

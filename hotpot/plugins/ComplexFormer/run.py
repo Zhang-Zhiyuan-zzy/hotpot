@@ -14,7 +14,7 @@ from torch.utils.data import Dataset
 import lightning as L
 from lightning.pytorch import loggers as pl_loggers
 from lightning.pytorch.callbacks import EarlyStopping
-from lightning.pytorch import strategies
+from lightning.pytorch import strategies, accelerators
 
 from hotpot.utils import fmt_print
 from . import (
@@ -259,6 +259,7 @@ def run(
         batch_size=hypers.batch_size,
         shuffle=shuffle_dataset,
         devices=devices,
+        num_replicas=devices,
     )
     # train_loader, test_loader = ldr.prepare_dataloader(
     #     train_dataset,
@@ -356,9 +357,11 @@ def run(
         max_epochs=epochs,
         callbacks=[early_stop_callback, progress_bar],
         precision=precision,
-        accelerator='auto',
+        accelerator='cuda',
         devices=devices,
         strategy=strategies.DDPStrategy(find_unused_parameters=True, timeout=datetime.timedelta(seconds=6000)),
-        profiler = profiler)
+        use_distributed_sampler=False,
+        profiler = profiler
+    )
 
     trainer.fit(model, datamodule=dataModule)

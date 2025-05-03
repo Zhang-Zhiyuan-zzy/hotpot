@@ -85,7 +85,7 @@ ATOM_TYPES = 119  # Arguments for atom type loss
 
 
 hypers = pretrain.Hypers()
-hypers.batch_size = 2048
+hypers.batch_size = 1024
 hypers.lr = 2e-4
 hypers.weight_decay = 4e-5
 

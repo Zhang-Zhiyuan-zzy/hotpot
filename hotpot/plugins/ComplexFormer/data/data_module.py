@@ -18,7 +18,7 @@ import lightning as L
 
 
 from .dataset import MConcatDataset, torch_load_data, DataWrapper, OnFlyLoadingDataset
-from .loader import CDataLoader
+from .loader import CDataLoader, DistConcatLoader
 
 
 def rand_split_on_fly_dataset(
@@ -82,7 +82,8 @@ class DataModule(L.LightningDataModule):
             ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
             batch_size: int = 1,
             shuffle: bool = True,
-            devices: Optional[int] = None
+            devices: Optional[int] = None,
+            num_replicas: Optional[int] = None,
     ):
         super().__init__()
         self.dir_datasets = dir_datasets
@@ -119,6 +120,7 @@ class DataModule(L.LightningDataModule):
 
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self.num_replicas = num_replicas
 
         if isinstance(devices, int):
             self.devices = devices
@@ -155,7 +157,7 @@ class DataModule(L.LightningDataModule):
             if self.debug:
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_data = []
-                for _ in tqdm(range(128*self.devices*self.batch_size), 'loading data'):
+                for _ in tqdm(range(10*self.devices*self.batch_size), 'loading data'):
                     try:
                         list_data.append(torch_load_data(next(path_generator)))
                     except StopIteration:
@@ -184,12 +186,14 @@ class DataModule(L.LightningDataModule):
             self._datasets[ds_name] = OnFlyLoadingDataset(list_path)
 
     def setup(self, stage: Optional[str] = None):
+        ratios = [0.8, 0.1, 0.1] if self.debug else self.ratios
+
         generator = torch.Generator().manual_seed(self.seed)
         _train_datasets = []
         _val_datasets = []
         _test_datasets = []
         for ds_name, dataset in self._datasets.items():
-            train, val, test = random_split(dataset, self.ratios, generator)
+            train, val, test = random_split(dataset, ratios, generator)
             _train_datasets.append(train)
             _val_datasets.append(val)
             _test_datasets.append(test)
@@ -224,20 +228,19 @@ class DataModule(L.LightningDataModule):
             self.val_dataset = _val_datasets[0]
             self.test_dataset = _test_datasets[0]
 
-    def train_dataloader(self) -> DataLoader:
-        if isinstance(self.train_dataset, MConcatDataset):
-            return CDataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle)
+    def _get_loader(self, dataset, batch_size: int = 1, shuffle: bool = False):
+        if isinstance(self.num_replicas, int) and self.num_replicas > 1 and isinstance(dataset, MConcatDataset):
+            return DistConcatLoader(dataset, batch_size, shuffle, num_workers=6, num_replicas=self.num_replicas, pin_memory=True)
+        elif isinstance(dataset, MConcatDataset):
+            return CDataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=6, pin_memory=True)
         else:
-            return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=self.shuffle)
+            return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=6, pin_memory=True)
+
+    def train_dataloader(self) -> DataLoader:
+        return self._get_loader(self.train_dataset, self.batch_size, self.shuffle)
 
     def val_dataloader(self) -> DataLoader:
-        if isinstance(self.val_dataset, MConcatDataset):
-            return CDataLoader(self.val_dataset, batch_size=self.batch_size)
-        else:
-            return DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return self._get_loader(self.val_dataset, self.batch_size)
 
     def test_dataloader(self) -> DataLoader:
-        if isinstance(self.test_dataset, MConcatDataset):
-            return CDataLoader(self.test_dataset, batch_size=self.batch_size)
-        else:
-            return DataLoader(self.test_dataset, batch_size=self.batch_size)
+        return self._get_loader(self.test_dataset, self.batch_size)

@@ -1,3 +1,4 @@
+import math
 import logging
 
 from typing import Optional, Union, List, Iterable, Mapping
@@ -5,7 +6,8 @@ from typing import Optional, Union, List, Iterable, Mapping
 import numpy as np
 
 import torch
-from torch.utils.data import Dataset, BatchSampler, Sampler, IterableDataset, DistributedSampler
+import torch.distributed as dist
+from torch.utils.data import Dataset, BatchSampler, Sampler, DistributedSampler
 
 from torch_geometric.data import Data
 from torch_geometric.data.data import BaseData
@@ -48,12 +50,136 @@ def _check_concat_dataset(dataset: Union[D.MConcatDataset, Iterable[Union[Datase
         dataset = D.MConcatDataset(dataset)
     return dataset
 
+
+def _cumsum_datasets(mc_dataset: D.MConcatDataset):
+    assert isinstance(mc_dataset, D.MConcatDataset)
+    r, s = [0], 0
+    for e in mc_dataset.datasets:
+        l = len(e)
+        r.append(l + s)
+        s += l
+    return r
+
+
+class DistConcatBatchSampler(Sampler):
+    def __init__(
+            self,
+            dataset: Dataset,
+            batch_size: Optional[int] = None,
+            *,
+            num_replicas: Optional[int] = None,
+            rank: Optional[int] = None,
+            shuffle: bool = True,
+            seed: int = 0,
+            drop_last: bool = False,
+    ):
+        super().__init__()
+        if num_replicas is None:
+            if not dist.is_available():
+                raise RuntimeError("Requires distributed package to be available")
+            num_replicas = dist.get_world_size()
+        if rank is None:
+            if not dist.is_available():
+                raise RuntimeError("Requires distributed package to be available")
+            rank = dist.get_rank()
+        if rank >= num_replicas or rank < 0:
+            raise ValueError(
+                f"Invalid rank {rank}, rank should be in the interval [0, {num_replicas - 1}]"
+            )
+        self.dataset = _check_concat_dataset(dataset)
+        self.cunsum_size = _cumsum_datasets(self.dataset)
+        self.batch_size = batch_size
+        self.num_replicas = num_replicas
+        self.rank = rank
+        self.epoch = 0
+        self.drop_last = drop_last
+        self.split_size = self.batch_size * self.num_replicas
+
+        logging.debug(f'DistConcatBatchSampler in Rank {rank}')
+
+        # If the dataset length is evenly divisible by num_replicas * batch_size, the there
+        # is no need to drop or supply any data.
+        if any(len(ds) % self.split_size != 0 for ds in self.datasets):
+            # If drop_last was specified, the sample number is equal to nearest available length
+            # that is evenly divisible.
+            if self.drop_last:
+                self.num_samples = sum(
+                    (len(ds) // self.split_size * self.split_size) / self.num_replicas
+                    for ds in self.datasets
+                )
+            else:
+                self.num_samples = sum(
+                    math.ceil(len(ds) / self.split_size) / self.num_replicas
+                    for ds in self.datasets
+                )
+        else:
+            self.num_samples = math.ceil(len(self.dataset) / self.num_replicas)
+
+        assert isinstance(self.num_samples, int)
+
+        self.batch_nums, _rest = divmod(self.num_samples, self.batch_size)
+        assert _rest == 0
+
+        self.total_size = self.num_samples * self.num_replicas
+        self.shuffle = shuffle
+        self.seed = seed
+
+    def _get_datasets_indices(self) -> list[list[int]]:
+        if self.drop_last:
+            return [self.cunsum_size[i] + np.arange(len(ds)) for i, ds in enumerate(self.datasets)]
+
+        indices = []
+        for i, ds in enumerate(self.datasets):
+            index = np.arange(len(ds))
+            if len(ds) % self.split_size != 0:
+                randidx = np.random.randint(len(ds), size=(self.split_size - len(ds) % self.split_size))
+                index = np.concatenate([index, randidx], axis=0)
+
+            indices.append(index + self.cunsum_size[i])
+
+        return indices
+
+    @property
+    def datasets(self) -> list[Dataset]:
+        return self.dataset.datasets
+
+    def __len__(self) -> int:
+        return self.batch_nums
+
+    def __iter__(self) -> Iterable[list[int]]:
+        datasets_indices = self._get_datasets_indices()
+        np.random.seed(self.seed + self.epoch)
+
+        if self.shuffle:
+            for dataset_index in datasets_indices:
+                np.random.shuffle(dataset_index)
+
+        if self.drop_last:
+            datasets_indices = [ds_idx[:(len(ds_idx) // self.split_size) * self.split_size] for ds_idx in
+                                datasets_indices]
+
+        batches = []
+        for dataset_index in datasets_indices:
+            batch_num, rest = divmod(len(dataset_index), self.split_size)
+            assert rest == 0
+            batches.extend(np.split(dataset_index, batch_num))
+
+        if self.shuffle:
+            np.random.shuffle(batches)
+
+        batches = [batch[self.rank::self.num_replicas] for batch in batches]
+
+        # logging.debug(f'CDBatchSampler batches: {batches}')
+        return iter(batches)
+
+
 def _create_dist_concat_batch_sampler(
         _dataset: Union[D.MConcatDataset, Iterable[Union[Dataset, Iterable[BaseData]]]],
         _batch_size: int = 1,
         _shuffle: bool = False,
         _drop_last: bool = False,
         _num_replicas: Optional[int] = None,
+        rank: Optional[int] = None,
 ):
     if not isinstance(_num_replicas, int):
         _num_replicas = torch.cuda.device_count()
@@ -75,13 +201,17 @@ def _create_dist_concat_batch_sampler(
             return len(self.batch_sampler)
 
         def __iter__(self):
+            logging.debug(f"Rank {self.kwargs.get('rank')} in DistributedSampler")
             for batch in self.batch_sampler:
-                yield list(DistributedSampler(batch, **self.kwargs))
+                dist_batch = list(DistributedSampler(batch, **self.kwargs))
+                # logging.debug(f'DistributedSampler batches: {dist_batch}')
+                yield dist_batch
 
     return DistConcatBatchSampler(
         shuffle=_shuffle,
         drop_last=_drop_last,
         num_replicas=_num_replicas,
+        rank=rank
     )
 
 
@@ -108,7 +238,7 @@ def _create_concat_batch_sampler(
             super().__init__(sampler, batch_size, drop_last)
             self.dataset = dataset
             self.shuffle = shuffle
-            self.consum_size = self.cumsum(self.dataset)
+            self.cunsum_size = _cumsum_datasets(self.dataset)
 
             if drop_last:
                 self._batch_nums = sum(len(ds) // self.batch_size for ds in self.datasets)
@@ -125,24 +255,15 @@ def _create_concat_batch_sampler(
         def datasets(self):
             return self.dataset.datasets
 
-        @staticmethod
-        def cumsum(mc_dataset: D.MConcatDataset):
-            r, s = [0], 0
-            for e in mc_dataset.datasets:
-                l = len(e)
-                r.append(l + s)
-                s += l
-            return r
-
         def __len__(self):
             return self._batch_nums
 
         def __iter__(self):
             if self.drop_last:
-                datasets_indices = [self.consum_size[i] + np.arange(len(ds)) for i, ds in enumerate(self.dataset)]
+                datasets_indices = [self.cunsum_size[i] + np.arange(len(ds)) for i, ds in enumerate(self.datasets)]
             else:
                 datasets_indices = [
-                    self.consum_size[i] + np.concatenate([
+                    self.cunsum_size[i] + np.concatenate([
                         np.arange(len(ds)),
                         np.random.randint(len(ds), size=(self.batch_size - len(ds) % self.batch_size))
                     ], axis=0) for i, ds in enumerate(self.datasets)]
@@ -164,6 +285,7 @@ def _create_concat_batch_sampler(
             if self.shuffle:
                 np.random.shuffle(batches)
 
+            # logging.debug(f'CDBatchSampler batches: {batches}')
             return iter(batches)
 
     return CDBatchSampler(range(len(dataset)), _batch_size, drop_last=_drop_last)
@@ -220,12 +342,13 @@ class DistConcatLoader(DataLoader):
 
         # Remove for pytorch lightning reconstruction
         if not kwargs.get('batch_sampler', None):
-            kwargs['batch_sampler'] = _create_dist_concat_batch_sampler(
+            kwargs['batch_sampler'] = DistConcatBatchSampler(
                     dataset,
-                    _batch_size=batch_size,
-                    _shuffle=shuffle,
-                    _drop_last=kwargs.pop('drop_last', False),
-                    _num_replicas=kwargs.pop('num_replicas', 1),
+                    batch_size=batch_size,
+                    shuffle=shuffle,
+                    drop_last=kwargs.pop('drop_last', False),
+                    num_replicas=kwargs.pop('num_replicas', 1),
+                    rank=kwargs.pop('rank', None),
             )
 
         super().__init__(

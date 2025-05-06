@@ -1,17 +1,16 @@
 import io
-import math
-from typing import Any, Union, Optional
+from typing import Any
 
+import torch
 import lightning as pl
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from tqdm import tqdm
-from rich.console import Console
 from rich.table import Table
 from rich.live import Live
 from rich.layout import Layout
 from lightning.pytorch.callbacks import Callback, ProgressBar
 
-
+from hotpot.utils import fmt_print
 
 def get_metric_table(
         metrics_dict,
@@ -161,3 +160,11 @@ class Pbar(ProgressBar):
 
     def on_sanity_check_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.liver.stop()
+
+
+class Debugger(Callback):
+    def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        loader = trainer.train_dataloader
+        fmt_print.bold_magenta(str(len(loader)))
+        batch_dataset_idx = torch.cat([batch[0].dataset_idx for batch in loader])
+        fmt_print.dark_green(batch_dataset_idx.__repr__())

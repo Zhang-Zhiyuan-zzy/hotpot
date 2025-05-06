@@ -9,12 +9,11 @@ from operator import attrgetter
 import torch
 import torch.nn as nn
 from torch.optim import Optimizer
-from torch.utils.data import Dataset
 
 import lightning as L
 from lightning.pytorch import loggers as pl_loggers
 from lightning.pytorch.callbacks import EarlyStopping
-from lightning.pytorch import strategies, accelerators
+from lightning.pytorch import strategies
 
 from hotpot.utils import fmt_print
 from . import (
@@ -123,8 +122,6 @@ def run(
         work_dir: str,
         core: M.CoreBase,
         dir_datasets: str,
-        # train_dataset: Union[Dataset, Iterable[Dataset], D.MConcatDataset],
-        # test_dataset: Union[Dataset, Iterable[Dataset], D.MConcatDataset],
         hypers: Union[dict, tools.Hypers],
         dataset_names: Union[str, Sequence[str]] = None,
         exclude_datasets: Union[str, Sequence[str]] = None,
@@ -153,8 +150,6 @@ def run(
         xyz_perturb_sigma: Optional[float] = None,
         extractor_attr_getter: Optional[Union[Callable, dict[str, Callable], list[dict, Callable]]] = None,
         devices: Optional[int] = None,
-        eval_first: bool = True,
-        eval_steps: int = 1,
         minimize_metric: bool = False,
         early_stopping: bool = True,
         early_stop_step: int = 5,
@@ -171,7 +166,6 @@ def run(
         float32_matmul_precision='medium',
         profiler="simple",
         debug: bool = False,
-        debug_batch_size: int = 8,
         **kwargs,
 ):
     """
@@ -214,15 +208,11 @@ def run(
         loss_fn: loss function
         primary_metric: The primary metric to control the training processing.
         other_metric: Other metric to measure the model performance, but not impact the training process.
-        device: The device to use. Defaults to None.
-        eval_first: Whether evaluate the model performance before training.
-        eval_steps: Evaluate the model performance per steps
         minimize_metric:
         early_stopping: Whether early stopping is enabled. Defaults to True.
         early_stop_step: How many steps when the model's performance is not improved to perform the early stopping.
         loss_weight_calculator: A function to calculate the weights for each category, Applied for onehot labels.
         loss_weight_method:
-        onehot_labels: How many onehot labels to use. Defaults to 119.
         eval_each_step: How many epochs to evaluate the model.
         freeze_core: Whether to freeze the core model in the first epoch, defaults to None. If None, the core
             module will be frozen in the first epoch, if the core module is loaded from checkpoint and the
@@ -261,16 +251,6 @@ def run(
         devices=devices,
         num_replicas=devices,
     )
-    # train_loader, test_loader = ldr.prepare_dataloader(
-    #     train_dataset,
-    #     test_dataset,
-    #     load_all_data=kwargs.pop('load_all_data', True),
-    #     batch_size=hypers.batch_size,
-    #     sample_num=kwargs.pop('sample_num', None),
-    #     train_shuffle=kwargs.pop('train_shuffle', True),
-    #     test_shuffle=kwargs.pop('test_shuffle', False),
-    #     debug=debug,
-    # )
 
     task_type = tasks.specify_task_types(dataModule.is_multi_datasets, target_getter)
     task_kwargs = configs.config(
@@ -278,8 +258,6 @@ def run(
         task_names=task_name,
         task_type=task_type,
         dataModule=dataModule,
-        # train_dataset=train_dataset,
-        # train_loader=train_loader,
         inputs_getter=inputs_getter,
         core=core,
         predictor=predictor,
@@ -349,13 +327,18 @@ def run(
 
     # Progress bar
     progress_bar = cbs.Pbar()
+    if debug:
+        debugger = cbs.Debugger()
+        callbacks = [progress_bar, early_stop_callback, debugger]
+    else:
+        callbacks = [progress_bar, early_stop_callback]
 
     ######################## Run ############################
     trainer = L.Trainer(
         default_root_dir=model_dir,
         logger=logger,
         max_epochs=epochs,
-        callbacks=[early_stop_callback, progress_bar],
+        callbacks=callbacks,
         precision=precision,
         accelerator='cuda',
         devices=devices,

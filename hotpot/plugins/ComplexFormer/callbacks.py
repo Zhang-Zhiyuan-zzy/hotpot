@@ -2,6 +2,7 @@ import io
 from typing import Any
 
 import torch
+import torch.distributed as dist
 import lightning as pl
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from tqdm import tqdm
@@ -166,5 +167,21 @@ class Debugger(Callback):
     def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         loader = trainer.train_dataloader
         fmt_print.bold_magenta(str(len(loader)))
-        batch_dataset_idx = torch.cat([batch[0].dataset_idx for batch in loader])
-        fmt_print.dark_green(batch_dataset_idx.__repr__())
+
+        # Check whether all data in a batch from same dataset
+        batches = {}
+        for batch in iter(loader):
+            assert len(torch.unique(batch.dataset_idx)) == 1
+            list_batch = batches.setdefault(batch.dataset_idx[0], [])
+            list_batch.append(batch)
+
+        # batch_dataset_idx = torch.cat([batch[0].dataset_idx for batch in iter(loader)])
+        rank = f' {dist.get_rank()} ' if isinstance(dist.get_rank(), int) else ''
+        # fmt_print.dark_green(f"Batch dataset_idx in{rank}{batch_dataset_idx.__repr__()}")
+
+        for dataset_idx, list_batch in batches.items():
+            batch = list_batch[0]
+            pl_module.tasks.choose_task(batch)
+            target = pl_module.tasks.target_getter(batch)
+            for tsk_name, tgt in target.items():
+                print(f'{rank}in dataset {dataset_idx} {tsk_name}: {tgt.shape}')

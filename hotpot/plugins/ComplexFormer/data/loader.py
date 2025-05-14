@@ -13,7 +13,10 @@ from torch_geometric.data import Data
 from torch_geometric.data.data import BaseData
 from torch_geometric.loader import DataLoader
 
-from hotpot.plugins.ComplexFormer.data import dataset as D
+from hotpot.plugins.ComplexFormer.data import (
+    dataset as D,
+    collate
+)
 
 
 def _slice_iter_dataset(dataset: Iterable[Data], stop: int) -> list[Data]:
@@ -102,20 +105,25 @@ class DistConcatBatchSampler(Sampler):
         if any(len(ds) % self.split_size != 0 for ds in self.datasets):
             # If drop_last was specified, the sample number is equal to nearest available length
             # that is evenly divisible.
+            self.num_samples = 0
             if self.drop_last:
-                self.num_samples = sum(
-                    (len(ds) // self.split_size * self.split_size) / self.num_replicas
-                    for ds in self.datasets
-                )
+                for ds in self.datasets:
+                    num, _rest = divmod(len(ds) // self.split_size * self.split_size, self.num_replicas)
+                    assert _rest == 0, ('The sample numbers for every dataset should be '
+                                        'evenly divisible by the number of replicas')
+                    self.num_samples += num
+
             else:
-                self.num_samples = sum(
-                    math.ceil(len(ds) / self.split_size) / self.num_replicas
-                    for ds in self.datasets
-                )
+                for ds in self.datasets:
+                    num, _rest = divmod(math.ceil(len(ds) / self.split_size) * self.split_size, self.num_replicas)
+                    assert _rest == 0, ('The sample numbers for every dataset should be '
+                                        'evenly divisible by the number of replicas')
+                    self.num_samples += num
+
         else:
             self.num_samples = math.ceil(len(self.dataset) / self.num_replicas)
 
-        assert isinstance(self.num_samples, int)
+        assert isinstance(self.num_samples, int), f'Error num_samples {self.num_samples} or Error type {type(self.num_samples)}'
 
         self.batch_nums, _rest = divmod(self.num_samples, self.batch_size)
         assert _rest == 0
@@ -323,6 +331,7 @@ class CDataLoader(DataLoader):
             exclude_keys,
             **kwargs
         )
+        self.collate_fn = collate.Collater(dataset, follow_batch, exclude_keys)
 
 class DistConcatLoader(DataLoader):
     def __init__(
@@ -359,3 +368,4 @@ class DistConcatLoader(DataLoader):
             exclude_keys,
             **kwargs
         )
+        self.collate_fn = collate.Collater(dataset, follow_batch, exclude_keys)

@@ -273,6 +273,1131 @@ class Element:
         92: {"stable": [3, 4, 6], "unstable": [2, 5]}  # Uranium
     }
 
+    atomic_radii = [
+    # Unit: pm
+        120,  # 1, Hydrogen, H
+        140,  # 2, Helium, He
+        182,  # 3, Lithium, Li
+        153,  # 4, Beryllium, Be
+        192,  # 5, Boron, B
+        170,  # 6, Carbon, C
+        155,  # 7, Nitrogen, N
+        152,  # 8, Oxygen, O
+        147,  # 9, Fluorine, F
+        154,  # 10, Neon, Ne
+        227,  # 11, Sodium, Na
+        173,  # 12, Magnesium, Mg
+        184,  # 13, Aluminum, Al
+        210,  # 14, Silicon, Si
+        180,  # 15, Phosphorus, P
+        180,  # 16, Sulfur, S
+        175,  # 17, Chlorine, Cl
+        188,  # 18, Argon, Ar
+        275,  # 19, Potassium, K
+        231,  # 20, Calcium, Ca
+        211,  # 21, Scandium, Sc
+        187,  # 22, Titanium, Ti
+        179,  # 23, Vanadium, V
+        189,  # 24, Chromium, Cr
+        197,  # 25, Manganese, Mn
+        194,  # 26, Iron, Fe
+        192,  # 27, Cobalt, Co
+        163,  # 28, Nickel, Ni
+        140,  # 29, Copper, Cu
+        139,  # 30, Zinc, Zn
+        187,  # 31, Gallium, Ga
+        211,  # 32, Germanium, Ge
+        185,  # 33, Arsenic, As
+        190,  # 34, Selenium, Se
+        185,  # 35, Bromine, Br
+        202,  # 36, Krypton, Kr
+        303,  # 37, Rubidium, Rb
+        249,  # 38, Strontium, Sr
+        212,  # 39, Yttrium, Y
+        206,  # 40, Zirconium, Zr
+        198,  # 41, Niobium, Nb
+        190,  # 42, Molybdenum, Mo
+        183,  # 43, Technetium, Tc
+        178,  # 44, Ruthenium, Ru
+        173,  # 45, Rhodium, Rh
+        169,  # 46, Palladium, Pd
+        165,  # 47, Silver, Ag
+        158,  # 48, Cadmium, Cd
+        193,  # 49, Indium, In
+        217,  # 50, Tin, Sn
+        206,  # 51, Antimony, Sb
+        206,  # 52, Tellurium, Te
+        198,  # 53, Iodine, I
+        216,  # 54, Xenon, Xe
+        343,  # 55, Cesium, Cs
+        268,  # 56, Barium, Ba
+        240,  # 57, Lanthanum, La
+        235,  # 58, Cerium, Ce
+        239,  # 59, Praseodymium, Pr
+        229,  # 60, Neodymium, Nd
+        236,  # 61, Promethium, Pm
+        229,  # 62, Samarium, Sm
+        233,  # 63, Europium, Eu
+        237,  # 64, Gadolinium, Gd
+        221,  # 65, Terbium, Tb
+        229,  # 66, Dysprosium, Dy
+        216,  # 67, Holmium, Ho
+        214,  # 68, Erbium, Er
+        213,  # 69, Thulium, Tm
+        242,  # 70, Ytterbium, Yb
+        221,  # 71, Lutetium, Lu
+        212,  # 72, Hafnium, Hf
+        217,  # 73, Tantalum, Ta
+        210,  # 74, Tungsten, W
+        217,  # 75, Rhenium, Re
+        216,  # 76, Osmium, Os
+        202,  # 77, Iridium, Ir
+        209,  # 78, Platinum, Pt
+        166,  # 79, Gold, Au
+        209,  # 80, Mercury, Hg
+        196,  # 81, Thallium, Tl
+        202,  # 82, Lead, Pb
+        207,  # 83, Bismuth, Bi
+        197,  # 84, Polonium, Po
+        None,  # 85, Astatine, At
+        220,  # 86, Radon, Rn
+        None,  # 87, Francium, Fr
+        283,  # 88, Radium, Ra
+        260,  # 89, Actinium, Ac
+        237,  # 90, Thorium, Th
+        243,  # 91, Protactinium, Pa
+        246,  # 92, Uranium, U
+        241,  # 93, Neptunium, Np
+        243,  # 94, Plutonium, Pu
+        244,  # 95, Americium, Am
+        None,  # 96, Curium, Cm
+        None,  # 97, Berkelium, Bk
+        None,  # 98, Californium, Cf
+        None,  # 99, Einsteinium, Es
+        None,  # 100, Fermium, Fm
+        None,  # 101, Mendelevium, Md
+        None,  # 102, Nobelium, No
+        None,  # 103, Lawrencium, Lr
+        None,  # 104, Rutherfordium, Rf
+        None,  # 105, Dubnium, Db
+        None,  # 106, Seaborgium, Sg
+        None,  # 107, Bohrium, Bh
+        None,  # 108, Hassium, Hs
+        None,  # 109, Meitnerium, Mt
+        None,  # 110, Darmstadtium, Ds
+        None,  # 111, Roentgenium, Rg
+        None,  # 112, Copernicium, Cn
+        None,  # 113, Nihonium, Nh
+        None,  # 114, Flerovium, Fl
+        None,  # 115, Moscovium, Mc
+        None,  # 116, Livermorium, Lv
+        None,  # 117, Tennessine, Ts
+        None,  # 118, Oganesson, Og
+    ]
+
+    # TODO: the values were extracted by AI, it's wrong
+    # TODO: see http://abulafia.mt.ic.ac.uk/shannon/radius.php for correcting.
+    ionic_radii = {
+        # Period 1
+        1: {  # Hydrogen (H)
+            1: {  # H⁺
+                2: {"spin": "norm", "crystal_radius": 0.004, "ionic_radius": 0.018},  # II
+                1: {"spin": "norm", "crystal_radius": 0.024, "ionic_radius": 0.038},  # I
+            },
+            -1: {  # H⁻
+                6: {"spin": "norm", "crystal_radius": 0.154, "ionic_radius": 0.154},  # VI
+            }
+        },
+        2: {  # Helium (He)
+            # 无常见离子
+        },
+
+        # Period 2
+        3: {  # Lithium (Li)
+            1: {
+                4: {"spin": "norm", "crystal_radius": 0.059, "ionic_radius": 0.076},
+                6: {"spin": "norm", "crystal_radius": 0.076, "ionic_radius": 0.090},
+            }
+        },
+        4: {  # Beryllium (Be)
+            2: {
+                4: {"spin": "norm", "crystal_radius": 0.027, "ionic_radius": 0.045},
+                6: {"spin": "norm", "crystal_radius": 0.045, "ionic_radius": 0.059},
+            }
+        },
+        5: {  # Boron (B)
+            3: {
+                4: {"spin": "norm", "crystal_radius": 0.023, "ionic_radius": 0.027},
+                6: {"spin": "norm", "crystal_radius": 0.027, "ionic_radius": 0.041},
+            }
+        },
+        6: {  # Carbon (C)
+            4: {
+                4: {"spin": "norm", "crystal_radius": 0.016, "ionic_radius": 0.029},
+                6: {"spin": "norm", "crystal_radius": 0.029, "ionic_radius": 0.036},
+            },
+            -4: {
+                6: {"spin": "norm", "crystal_radius": 0.260, "ionic_radius": 0.260},
+            },
+        },
+        7: {  # Nitrogen (N)
+            -3: {
+                4: {"spin": "norm", "crystal_radius": 0.132, "ionic_radius": 0.146},
+                6: {"spin": "norm", "crystal_radius": 0.171, "ionic_radius": 0.171},
+            },
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.030, "ionic_radius": 0.016},
+            },
+            5: {
+                3: {"spin": "norm", "crystal_radius": 0.044, "ionic_radius": -0.0104},
+                6: {"spin": "norm", "crystal_radius": 0.027, "ionic_radius": 0.013},
+            }
+        },
+        8: {  # Oxygen (O)
+            -2: {
+                4: {"spin": "norm", "crystal_radius": 0.140, "ionic_radius": 0.140},
+                6: {"spin": "norm", "crystal_radius": 0.140, "ionic_radius": 0.140}
+            },
+            2: {
+                4: {"spin": "norm", "crystal_radius": 0.014, "ionic_radius": 0.014},
+                6: {"spin": "norm", "crystal_radius": 0.026, "ionic_radius": 0.026}
+            }
+        },
+        9: {  # Fluorine (F)
+            -1: {
+                4: {"spin": "norm", "crystal_radius": 0.119, "ionic_radius": 0.119},
+                6: {"spin": "norm", "crystal_radius": 0.133, "ionic_radius": 0.133},
+            }
+        },
+        10: {  # Neon (Ne)
+            # 无常见离子
+        },
+
+        # Period 3
+        11: {  # Sodium (Na)
+            1: {
+                4: {"spin": "norm", "crystal_radius": 0.099, "ionic_radius": 0.099},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.102, "ionic_radius": 0.102},  # VI
+                8: {"spin": "norm", "crystal_radius": 0.116, "ionic_radius": 0.118},  # VIII
+            }
+        },
+        12: {  # Magnesium (Mg)
+            2: {
+                4: {"spin": "norm", "crystal_radius": 0.057, "ionic_radius": 0.057},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.072, "ionic_radius": 0.072},  # VI
+            }
+        },
+        13: {  # Aluminum (Al)
+            3: {
+                4: {"spin": "norm", "crystal_radius": 0.039, "ionic_radius": 0.039},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.054, "ionic_radius": 0.054},  # VI
+            }
+        },
+        14: {  # Silicon (Si)
+            4: {
+                4: {"spin": "norm", "crystal_radius": 0.026, "ionic_radius": 0.026},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.040, "ionic_radius": 0.040},  # VI
+            }
+        },
+        15: {  # Phosphorus (P)
+            3: {
+                4: {"spin": "norm", "crystal_radius": 0.029, "ionic_radius": 0.029},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.044, "ionic_radius": 0.044},  # VI
+            },
+            5: {
+                6: {"spin": "norm", "crystal_radius": 0.038, "ionic_radius": 0.038},  # VI
+            }
+        },
+        16: {  # Sulfur (S)
+            -2: {
+                6: {"spin": "norm", "crystal_radius": 0.184, "ionic_radius": 0.184},  # VI
+            },
+            4: {
+                4: {"spin": "norm", "crystal_radius": 0.037, "ionic_radius": 0.037},  # IV
+            },
+            6: {
+                6: {"spin": "norm", "crystal_radius": 0.030, "ionic_radius": 0.030},  # VI
+            }
+        },
+        17: {  # Chlorine (Cl)
+            -1: {
+                6: {"spin": "norm", "crystal_radius": 0.181, "ionic_radius": 0.181},  # VI
+            }
+        },
+        18: {  # Argon (Ar)
+            # 稳定稀有气体，无常见离子
+        },
+
+        # Period 4
+        19: {  # Potassium (K)
+            1: {
+                6: {"spin": "norm", "crystal_radius": 0.138, "ionic_radius": 0.138},  # VI
+                8: {"spin": "norm", "crystal_radius": 0.151, "ionic_radius": 0.151},  # VIII
+                12: {"spin": "norm", "crystal_radius": 0.169, "ionic_radius": 0.169}, # XII
+            }
+        },
+        20: {  # Calcium (Ca)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.100, "ionic_radius": 0.100},  # VI
+                8: {"spin": "norm", "crystal_radius": 0.112, "ionic_radius": 0.112},  # VIII
+            }
+        },
+        21: {  # Scandium (Sc)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.075, "ionic_radius": 0.075},  # VI
+                8: {"spin": "norm", "crystal_radius": 0.087, "ionic_radius": 0.087},  # VIII
+            }
+        },
+        22: {  # Titanium (Ti)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.086, "ionic_radius": 0.086},  # VI
+            },
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.067, "ionic_radius": 0.067},  # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.060, "ionic_radius": 0.060},  # VI
+                8: {"spin": "norm", "crystal_radius": 0.074, "ionic_radius": 0.074},  # VIII
+            }
+        },
+        23: {  # Vanadium (V)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.079, "ionic_radius": 0.079},  # VI
+            },
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.064, "ionic_radius": 0.064},  # VI
+                8: {"spin": "norm", "crystal_radius": 0.079, "ionic_radius": 0.079},  # VIII
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.058, "ionic_radius": 0.058},  # VI
+            },
+            5: {
+                6: {"spin": "norm", "crystal_radius": 0.054, "ionic_radius": 0.054},  # VI
+            }
+        },
+        24: {  # Chromium (Cr)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.073, "ionic_radius": 0.073},  # VI
+            },
+            3: {
+                6: {"spin": "high-spin", "crystal_radius": 0.062, "ionic_radius": 0.062},  # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.055, "ionic_radius": 0.055},   # VI 低自旋
+            },
+            6: {
+                4: {"spin": "norm", "crystal_radius": 0.026, "ionic_radius": 0.026},  # IV
+            }
+        },
+        25: {  # Manganese (Mn)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.083, "ionic_radius": 0.083},  # VI
+            },
+            3: {
+                6: {"spin": "high-spin", "crystal_radius": 0.064, "ionic_radius": 0.064},   # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.058, "ionic_radius": 0.058},    # VI 低自旋
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.053, "ionic_radius": 0.053},  # VI
+            },
+            7: {
+                4: {"spin": "norm", "crystal_radius": 0.046, "ionic_radius": 0.046},  # IV
+            }
+        },
+        26: {  # Iron (Fe)
+            2: {
+                6: {"spin": "high-spin", "crystal_radius": 0.092, "ionic_radius": 0.092},  # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.078, "ionic_radius": 0.078},  # VI 低自旋
+            },
+            3: {
+                6: {"spin": "high-spin", "crystal_radius": 0.064, "ionic_radius": 0.064},  # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.055, "ionic_radius": 0.055},   # VI 低自旋
+            }
+        },
+        27: {  # Cobalt (Co)
+            2: {
+                6: {"spin": "high-spin", "crystal_radius": 0.088, "ionic_radius": 0.088},  # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.065, "ionic_radius": 0.065},   # VI 低自旋
+            },
+            3: {
+                6: {"spin": "high-spin", "crystal_radius": 0.061, "ionic_radius": 0.061},   # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.054, "ionic_radius": 0.054},    # VI 低自旋
+            }
+        },
+        28: {  # Nickel (Ni)
+            2: {
+                6: {"spin": "high-spin", "crystal_radius": 0.083, "ionic_radius": 0.083},  # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.069, "ionic_radius": 0.069},   # VI 低自旋
+            },
+            3: {
+                6: {"spin": "high-spin", "crystal_radius": 0.060, "ionic_radius": 0.060},   # VI 高自旋
+                # 6: {"spin": "low-spin", "crystal_radius": 0.056, "ionic_radius": 0.056},    # VI 低自旋
+            }
+        },
+        29: {  # Copper (Cu)
+            1: {
+                6: {"spin": "norm", "crystal_radius": 0.096, "ionic_radius": 0.096},  # VI
+            },
+            2: {
+                4: {"spin": "norm", "crystal_radius": 0.071, "ionic_radius": 0.071},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.073, "ionic_radius": 0.073},  # VI
+            }
+        },
+        30: {  # Zinc (Zn)
+            2: {
+                4: {"spin": "norm", "crystal_radius": 0.074, "ionic_radius": 0.074},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.074, "ionic_radius": 0.074},  # VI
+            }
+        },
+        31: {  # Gallium (Ga)
+            3: {
+                4: {"spin": "norm", "crystal_radius": 0.047, "ionic_radius": 0.047},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.062, "ionic_radius": 0.062},  # VI
+            }
+        },
+        32: {  # Germanium (Ge)
+            4: {
+                4: {"spin": "norm", "crystal_radius": 0.039, "ionic_radius": 0.039},  # IV
+                6: {"spin": "norm", "crystal_radius": 0.053, "ionic_radius": 0.053},  # VI
+            }
+        },
+        33: {  # Arsenic (As)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.058, "ionic_radius": 0.058},  # VI
+            },
+            5: {
+                6: {"spin": "norm", "crystal_radius": 0.046, "ionic_radius": 0.046},  # VI
+            }
+        },
+        34: {  # Selenium (Se)
+            -2: {
+                6: {"spin": "norm", "crystal_radius": 0.198, "ionic_radius": 0.198},  # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.050, "ionic_radius": 0.050},  # VI
+            },
+            6: {
+                6: {"spin": "norm", "crystal_radius": 0.042, "ionic_radius": 0.042},  # VI
+            }
+        },
+        35: {  # Bromine (Br)
+            -1: {
+                6: {"spin": "norm", "crystal_radius": 0.196, "ionic_radius": 0.196},  # VI
+            }
+        },
+        36: {  # Krypton (Kr)
+            # 稳定稀有气体，无常见离子
+        },
+
+        # Period 5
+        37: {  # Rubidium (Rb)
+            1: {
+                6: {"spin": "norm", "crystal_radius": 0.152, "ionic_radius": 0.152},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.166, "ionic_radius": 0.166},   # VIII
+                12: {"spin": "norm", "crystal_radius": 0.183, "ionic_radius": 0.183},  # XII
+            }
+        },
+        38: {  # Strontium (Sr)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.118, "ionic_radius": 0.118},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.132, "ionic_radius": 0.132},   # VIII
+            }
+        },
+        39: {  # Yttrium (Y)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.090, "ionic_radius": 0.090},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.104, "ionic_radius": 0.104},   # VIII
+            }
+        },
+        40: {  # Zirconium (Zr)
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.072, "ionic_radius": 0.072},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.084, "ionic_radius": 0.084},   # VIII
+            }
+        },
+        41: {  # Niobium (Nb)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.086, "ionic_radius": 0.086},   # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.078, "ionic_radius": 0.078},   # VI
+            },
+            5: {
+                6: {"spin": "norm", "crystal_radius": 0.069, "ionic_radius": 0.069},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.080, "ionic_radius": 0.080},   # VIII
+            }
+        },
+        42: {  # Molybdenum (Mo)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.069, "ionic_radius": 0.069},   # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.065, "ionic_radius": 0.065},   # VI
+            },
+            5: {
+                6: {"spin": "norm", "crystal_radius": 0.061, "ionic_radius": 0.061},   # VI
+            },
+            6: {
+                4: {"spin": "norm", "crystal_radius": 0.041, "ionic_radius": 0.041},   # IV
+            }
+        },
+        43: {  # Technetium (Tc)
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.064, "ionic_radius": 0.064},   # VI
+            },
+            7: {
+                4: {"spin": "norm", "crystal_radius": 0.045, "ionic_radius": 0.045},   # IV
+            }
+        },
+        44: {  # Ruthenium (Ru)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.068, "ionic_radius": 0.068},   # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.062, "ionic_radius": 0.062},   # VI
+            },
+            8: {
+                4: {"spin": "norm", "crystal_radius": 0.040, "ionic_radius": 0.040},   # IV （Ru8+）
+            }
+        },
+        45: {  # Rhodium (Rh)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.067, "ionic_radius": 0.067},   # VI
+            }
+        },
+        46: {  # Palladium (Pd)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.086, "ionic_radius": 0.086},   # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.065, "ionic_radius": 0.065},   # VI
+            }
+        },
+        47: {  # Silver (Ag)
+            1: {
+                6: {"spin": "norm", "crystal_radius": 0.129, "ionic_radius": 0.129},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.142, "ionic_radius": 0.142},   # VIII
+            },
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.089, "ionic_radius": 0.089},   # VI
+            },
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.069, "ionic_radius": 0.069},   # VI
+            }
+        },
+        48: {  # Cadmium (Cd)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.097, "ionic_radius": 0.097},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.109, "ionic_radius": 0.109},   # VIII
+            }
+        },
+        49: {  # Indium (In)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.094, "ionic_radius": 0.094},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.107, "ionic_radius": 0.107},   # VIII
+            }
+        },
+        50: {  # Tin (Sn)
+            2: {
+                6: {"spin": "norm", "crystal_radius": 0.112, "ionic_radius": 0.112},   # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.083, "ionic_radius": 0.083},   # VI
+                8: {"spin": "norm", "crystal_radius": 0.095, "ionic_radius": 0.095},   # VIII
+            }
+        },
+        51: {  # Antimony (Sb)
+            3: {
+                6: {"spin": "norm", "crystal_radius": 0.090, "ionic_radius": 0.090},   # VI
+            },
+            5: {
+                6: {"spin": "norm", "crystal_radius": 0.076, "ionic_radius": 0.076},   # VI
+            }
+        },
+        52: {  # Tellurium (Te)
+            -2: {
+                6: {"spin": "norm", "crystal_radius": 0.221, "ionic_radius": 0.221},   # VI
+            },
+            4: {
+                6: {"spin": "norm", "crystal_radius": 0.097, "ionic_radius": 0.097},   # VI
+            },
+            6: {
+                6: {"spin": "norm", "crystal_radius": 0.089, "ionic_radius": 0.089},   # VI
+            }
+        },
+        53: {  # Iodine (I)
+            -1: {
+                6: {"spin": "norm", "crystal_radius": 0.220, "ionic_radius": 0.220},   # VI
+            }
+        },
+        54: {  # Xenon (Xe)
+            8: {
+                4: {"spin": "norm", "crystal_radius": 0.074, "ionic_radius": 0.074},   # IV
+            }
+        },
+
+        # Period 6
+        55: {  # Cesium (Cs)
+            1: {
+                6:  {"spin": "norm", "crystal_radius": 0.167, "ionic_radius": 0.167},   # VI
+                8:  {"spin": "norm", "crystal_radius": 0.181, "ionic_radius": 0.181},   # VIII
+                12: {"spin": "norm", "crystal_radius": 0.202, "ionic_radius": 0.202},   # XII
+            }
+        },
+        56: {  # Barium (Ba)
+            2: {
+                6:  {"spin": "norm", "crystal_radius": 0.135, "ionic_radius": 0.135},   # VI
+                8:  {"spin": "norm", "crystal_radius": 0.149, "ionic_radius": 0.149},   # VIII
+            }
+        },
+        # 镧系（57–71）
+        57: {  # Lanthanum (La)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.103, "ionic_radius": 0.103},   # VI
+                7:  {"spin": "norm", "crystal_radius": 0.116, "ionic_radius": 0.116},   # VII
+                8:  {"spin": "norm", "crystal_radius": 0.122, "ionic_radius": 0.122},   # VIII
+                9:  {"spin": "norm", "crystal_radius": 0.132, "ionic_radius": 0.132},   # IX
+            }
+        },
+        58: {  # Cerium (Ce)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.101, "ionic_radius": 0.101},   # VI
+                7:  {"spin": "norm", "crystal_radius": 0.114, "ionic_radius": 0.114},   # VII
+                8:  {"spin": "norm", "crystal_radius": 0.119, "ionic_radius": 0.119},   # VIII
+            },
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.087, "ionic_radius": 0.087},   # VI
+                8:  {"spin": "norm", "crystal_radius": 0.097, "ionic_radius": 0.097},   # VIII
+            }
+        },
+        59: {  # Praseodymium (Pr)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.099, "ionic_radius": 0.099},
+                8:  {"spin": "norm", "crystal_radius": 0.118, "ionic_radius": 0.118},
+            }
+        },
+        60: {  # Neodymium (Nd)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.098, "ionic_radius": 0.098},
+                7:  {"spin": "norm", "crystal_radius": 0.110, "ionic_radius": 0.110},
+                8:  {"spin": "norm", "crystal_radius": 0.112, "ionic_radius": 0.112},
+            }
+        },
+        61: {  # Promethium (Pm)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.097, "ionic_radius": 0.097},
+                8:  {"spin": "norm", "crystal_radius": 0.110, "ionic_radius": 0.110},
+            }
+        },
+        62: {  # Samarium (Sm)
+            2: {
+                7:  {"spin": "norm", "crystal_radius": 0.125, "ionic_radius": 0.125},
+                8:  {"spin": "norm", "crystal_radius": 0.132, "ionic_radius": 0.132},
+            },
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.096, "ionic_radius": 0.096},
+                7:  {"spin": "norm", "crystal_radius": 0.107, "ionic_radius": 0.107},
+                8:  {"spin": "norm", "crystal_radius": 0.122, "ionic_radius": 0.122},
+            }
+        },
+        63: {  # Europium (Eu)
+            2: {
+                7:  {"spin": "norm", "crystal_radius": 0.131, "ionic_radius": 0.131},
+                8:  {"spin": "norm", "crystal_radius": 0.135, "ionic_radius": 0.135},
+            },
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.095, "ionic_radius": 0.095},
+                7:  {"spin": "norm", "crystal_radius": 0.106, "ionic_radius": 0.106},
+                8:  {"spin": "norm", "crystal_radius": 0.120, "ionic_radius": 0.120},
+            }
+        },
+        64: {  # Gadolinium (Gd)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.093, "ionic_radius": 0.093},
+                7:  {"spin": "norm", "crystal_radius": 0.105, "ionic_radius": 0.105},
+                8:  {"spin": "norm", "crystal_radius": 0.118, "ionic_radius": 0.118},
+            }
+        },
+        65: {  # Terbium (Tb)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.092, "ionic_radius": 0.092},
+                7:  {"spin": "norm", "crystal_radius": 0.104, "ionic_radius": 0.104},
+                8:  {"spin": "norm", "crystal_radius": 0.117, "ionic_radius": 0.117},
+            }
+        },
+        66: {  # Dysprosium (Dy)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.091, "ionic_radius": 0.091},
+                7:  {"spin": "norm", "crystal_radius": 0.103, "ionic_radius": 0.103},
+                8:  {"spin": "norm", "crystal_radius": 0.116, "ionic_radius": 0.116},
+            }
+        },
+        67: {  # Holmium (Ho)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.090, "ionic_radius": 0.090},
+                8:  {"spin": "norm", "crystal_radius": 0.115, "ionic_radius": 0.115},
+            }
+        },
+        68: {  # Erbium (Er)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.089, "ionic_radius": 0.089},
+                7:  {"spin": "norm", "crystal_radius": 0.102, "ionic_radius": 0.102},
+                8:  {"spin": "norm", "crystal_radius": 0.114, "ionic_radius": 0.114},
+            }
+        },
+        69: {  # Thulium (Tm)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.088, "ionic_radius": 0.088},
+                8:  {"spin": "norm", "crystal_radius": 0.113, "ionic_radius": 0.113},
+            }
+        },
+        70: {  # Ytterbium (Yb)
+            2: {
+                8:  {"spin": "norm", "crystal_radius": 0.125, "ionic_radius": 0.125},
+            },
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.087, "ionic_radius": 0.087},
+                8:  {"spin": "norm", "crystal_radius": 0.112, "ionic_radius": 0.112},
+            }
+        },
+        71: {  # Lutetium (Lu)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.086, "ionic_radius": 0.086},
+                7:  {"spin": "norm", "crystal_radius": 0.097, "ionic_radius": 0.097},
+                8:  {"spin": "norm", "crystal_radius": 0.111, "ionic_radius": 0.111},
+            }
+        },
+        72: {  # Hafnium (Hf)
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.071, "ionic_radius": 0.071},
+                8:  {"spin": "norm", "crystal_radius": 0.083, "ionic_radius": 0.083},
+            }
+        },
+        73: {  # Tantalum (Ta)
+            5: {
+                6:  {"spin": "norm", "crystal_radius": 0.064, "ionic_radius": 0.064},
+            }
+        },
+        74: {  # Tungsten (W)
+            6: {
+                4:  {"spin": "norm", "crystal_radius": 0.042, "ionic_radius": 0.042},
+                6:  {"spin": "norm", "crystal_radius": 0.060, "ionic_radius": 0.060},
+            }
+        },
+        75: {  # Rhenium (Re)
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.063, "ionic_radius": 0.063},
+            },
+            7: {
+                4:  {"spin": "norm", "crystal_radius": 0.044, "ionic_radius": 0.044},
+            }
+        },
+        76: {  # Osmium (Os)
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.062, "ionic_radius": 0.062},
+            },
+            8: {
+                4:  {"spin": "norm", "crystal_radius": 0.037, "ionic_radius": 0.037},
+            }
+        },
+        77: {  # Iridium (Ir)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.068, "ionic_radius": 0.068},
+            },
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.062, "ionic_radius": 0.062},
+            }
+        },
+        78: {  # Platinum (Pt)
+            2: {
+                6:  {"spin": "norm", "crystal_radius": 0.094, "ionic_radius": 0.094},
+            },
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.064, "ionic_radius": 0.064},
+            }
+        },
+        79: {  # Gold (Au)
+            1: {
+                6:  {"spin": "norm", "crystal_radius": 0.137, "ionic_radius": 0.137},
+            },
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.085, "ionic_radius": 0.085},
+            }
+        },
+        80: {  # Mercury (Hg)
+            1: {
+                6:  {"spin": "norm", "crystal_radius": 0.119, "ionic_radius": 0.119},
+            },
+            2: {
+                6:  {"spin": "norm", "crystal_radius": 0.116, "ionic_radius": 0.116},
+                8:  {"spin": "norm", "crystal_radius": 0.128, "ionic_radius": 0.128},
+            }
+        },
+        81: {  # Thallium (Tl)
+            1: {
+                6:  {"spin": "norm", "crystal_radius": 0.159, "ionic_radius": 0.159},
+            },
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.103, "ionic_radius": 0.103},
+            }
+        },
+        82: {  # Lead (Pb)
+            2: {
+                6:  {"spin": "norm", "crystal_radius": 0.119, "ionic_radius": 0.119},
+                8:  {"spin": "norm", "crystal_radius": 0.133, "ionic_radius": 0.133},
+            },
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.094, "ionic_radius": 0.094},
+            }
+        },
+        83: {  # Bismuth (Bi)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.107, "ionic_radius": 0.107},
+            },
+            5: {
+                6:  {"spin": "norm", "crystal_radius": 0.076, "ionic_radius": 0.076},
+            }
+        },
+        84: {  # Polonium (Po)
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.094, "ionic_radius": 0.094},
+            },
+            6: {
+                6:  {"spin": "norm", "crystal_radius": 0.089, "ionic_radius": 0.089},
+            }
+        },
+        85: {  # Astatine (At)
+            -1: {
+                6:  {"spin": "norm", "crystal_radius": 0.230, "ionic_radius": 0.230},   # VI
+            }
+        },
+        86: {  # Radon (Rn)
+            # 无常见离子
+        },
+        # 锕系（90–103），谨摘录表格可查部分
+        89: {  # Actinium (Ac)
+            3: {
+                6:  {"spin": "norm", "crystal_radius": 0.112, "ionic_radius": 0.112},
+            }
+        },
+        90: {  # Thorium (Th)
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.094, "ionic_radius": 0.094},
+                8:  {"spin": "norm", "crystal_radius": 0.104, "ionic_radius": 0.104},
+            }
+        },
+        91: {  # Protactinium (Pa)
+            5: {
+                6:  {"spin": "norm", "crystal_radius": 0.090, "ionic_radius": 0.090},
+            }
+        },
+        92: {  # Uranium (U)
+            3: {
+                8:  {"spin": "norm", "crystal_radius": 0.117, "ionic_radius": 0.117},
+            },
+            4: {
+                6:  {"spin": "norm", "crystal_radius": 0.089, "ionic_radius": 0.089},
+                8:  {"spin": "norm", "crystal_radius": 0.103, "ionic_radius": 0.103},
+            },
+            5: {
+                6:  {"spin": "norm", "crystal_radius": 0.076, "ionic_radius": 0.076},
+                8:  {"spin": "norm", "crystal_radius": 0.090, "ionic_radius": 0.090},
+            },
+            6: {
+                6:  {"spin": "norm", "crystal_radius": 0.073, "ionic_radius": 0.073},
+            }
+        },
+        93: {  # Neptunium (Np)
+            3: {
+                8:  {"spin": "norm", "crystal_radius": 0.115, "ionic_radius": 0.115},
+            },
+            4: {
+                8:  {"spin": "norm", "crystal_radius": 0.101, "ionic_radius": 0.101},
+            },
+            5: {
+                8:  {"spin": "norm", "crystal_radius": 0.089, "ionic_radius": 0.089},
+            },
+            6: {
+                8:  {"spin": "norm", "crystal_radius": 0.087, "ionic_radius": 0.087},
+            },
+            7: {
+                8:  {"spin": "norm", "crystal_radius": 0.086, "ionic_radius": 0.086},
+            }
+        },
+        94: {  # Plutonium (Pu)
+            3: {
+                8:  {"spin": "norm", "crystal_radius": 0.114, "ionic_radius": 0.114},
+            },
+            4: {
+                8:  {"spin": "norm", "crystal_radius": 0.100, "ionic_radius": 0.100},
+            },
+            5: {
+                8:  {"spin": "norm", "crystal_radius": 0.088, "ionic_radius": 0.088},
+            },
+            6: {
+                8:  {"spin": "norm", "crystal_radius": 0.086, "ionic_radius": 0.086},
+            }
+        },
+        95: {  # Americium (Am)
+            3: {
+                8:  {"spin": "norm", "crystal_radius": 0.111, "ionic_radius": 0.111},
+            }
+        },
+        96: {  # Curium (Cm)
+            3: {
+                8:  {"spin": "norm", "crystal_radius": 0.109, "ionic_radius": 0.109},
+            }
+        },
+        # 97–103无表内可靠数据，仅保留空白结构或略去
+        104: { # Rutherfordium (Rf)
+            4: {
+                8:  {"spin": "norm", "crystal_radius": 0.100, "ionic_radius": 0.100},  # 少见超重元素估算
+            }
+        },
+        # 其余105-118, 若查无则不加
+
+    }
+
+    ionization_energies = [
+        [13.59, None, None],  # Hydrogen, H
+        [24.58, 54.41, None],  # Helium, He
+        [5.39, 75.64, 122.45],  # Lithium, Li
+        [9.32, 18.21, 153.89],  # Beryllium, Be
+        [8.29, 25.15, 37.93],  # Boron, B
+        [11.26, 24.38, 47.88],  # Carbon, C
+        [14.53, 29.60, 47.44],  # Nitrogen, N
+        [13.61, 35.11, 54.93],  # Oxygen, O
+        [17.42, 34.97, 62.70],  # Fluorine, F
+        [21.56, 40.96, 63.45],  # Neon, Ne
+        [5.13, 47.28, 71.62],  # Sodium, Na
+        [7.64, 15.03, 80.14],  # Magnesium, Mg
+        [5.98, 18.82, 28.44],  # Aluminum, Al
+        [8.15, 16.34, 33.49],  # Silicon, Si
+        [10.48, 19.76, 30.20],  # Phosphorus, P
+        [10.36, 23.33, 34.79],  # Sulfur, S
+        [12.96, 23.81, 39.61],  # Chlorine, Cl
+        [15.75, 27.62, 40.74],  # Argon, Ar
+        [4.34, 31.63, 45.80],  # Potassium, K
+        [6.11, 11.87, 50.91],  # Calcium, Ca
+        [6.56, 12.79, 24.75],  # Scandium, Sc
+        [6.82, 13.57, 27.49],  # Titanium, Ti
+        [6.74, 14.66, 29.31],  # Vanadium, V
+        [6.76, 16.48, 30.96],  # Chromium, Cr
+        [7.43, 15.63, 33.66],  # Manganese, Mn
+        [7.90, 16.18, 30.65],  # Iron, Fe
+        [7.88, 17.08, 33.50],  # Cobalt, Co
+        [7.63, 18.16, 35.19],  # Nickel, Ni
+        [7.72, 20.29, 36.84],  # Copper, Cu
+        [9.39, 17.96, 39.72],  # Zinc, Zn
+        [5.99, 20.51, 30.71],  # Gallium, Ga
+        [7.89, 15.93, 34.22],  # Germanium, Ge
+        [9.78, 18.63, 28.35],  # Arsenic, As
+        [9.75, 21.19, 30.82],  # Selenium, Se
+        [11.81, 21.8, 36.00],  # Bromine, Br
+        [13.99, 24.35, 36.95],  # Krypton, Kr
+        [4.17, 27.28, 40.00],  # Rubidium, Rb
+        [5.69, 11.03, 42.89],  # Strontium, Sr
+        [6.21, 12.24, 20.52],  # Yttrium, Y
+        [6.63, 13.13, 22.99],  # Zirconium, Zr
+        [6.75, 14.32, 25.04],  # Niobium, Nb
+        [7.09, 16.16, 27.13],  # Molybdenum, Mo
+        [7.28, 15.26, 29.54],  # Technetium, Tc
+        [7.36, 16.76, 28.47],  # Ruthenium, Ru
+        [7.45, 18.08, 31.06],  # Rhodium, Rh
+        [8.33, 19.43, 32.93],  # Palladium, Pd
+        [7.57, 21.49, 34.83],  # Silver, Ag
+        [8.99, 16.90, 37.48],  # Cadmium, Cd
+        [5.78, 18.86, 28.03],  # Indium, In
+        [7.34, 14.63, 30.50],  # Tin, Sn
+        [8.60, 16.53, 25.30],  # Antimony, Sb
+        [9.00, 18.60, 27.96],  # Tellurium, Te
+        [10.45, 19.13, 33.00],  # Iodine, I
+        [12.12, 21.20, 32.12],  # Xenon, Xe
+        [3.89, 23.15, None],  # Cesium, Cs
+        [5.21, 10.00, None],  # Barium, Ba
+        [5.57, 11.06, 19.17],  # Lanthanum, La
+        [5.53, 10.85, 20.19],  # Cerium, Ce
+        [5.47, 10.55, 21.62],  # Praseodymium, Pr
+        [5.52, 10.73, 22.21],  # Neodymium, Nd
+        [5.58, 10.90, 22.30],  # Promethium, Pm
+        [5.64, 11.07, 23.40],  # Samarium, Sm
+        [5.67, 11.24, 24.92],  # Europium, Eu
+        [6.15, 12.09, 20.63],  # Gadolinium, Gd
+        [5.86, 11.52, 21.91],  # Terbium, Tb
+        [5.93, 11.67, 22.80],  # Dysprosium, Dy
+        [6.02, 11.80, 22.84],  # Holmium, Ho
+        [6.10, 11.93, 22.74],  # Erbium, Er
+        [6.18, 12.05, 23.63],  # Thulium, Tm
+        [6.25, 12.17, 25.05],  # Ytterbium, Yb
+        [5.42, 13.90, 20.95],  # Lutetium, Lu
+        [6.82, 14.90, 23.30],  # Hafnium, Hf
+        [7.54, None, None],  # Tantalum, Ta
+        [7.86, None, None],  # Tungsten, W
+        [7.83, None, None],  # Rhenium, Re
+        [8.43, None, None],  # Osmium, Os
+        [8.96, None, None],  # Iridium, Ir
+        [8.95, 18.56, 28.00],  # Platinum, Pt
+        [9.22, 20.50, 30.00],  # Gold, Au
+        [10.43, 18.75, 34.20],  # Mercury, Hg
+        [6.10, 20.42, 29.83],  # Thallium, Tl
+        [7.41, 15.03, 31.93],  # Lead, Pb
+        [7.28, 16.69, 25.56],  # Bismuth, Bi
+        [8.41, None, None],  # Polonium, Po
+        [9.31, None, None],  # Astatine, At
+        [10.74, None, None],  # Radon, Rn
+        [4.07, None, None],  # Francium, Fr
+        [5.27, 10.14, None],  # Radium, Ra
+        [5.17, 12.10, None],  # Actinium, Ac
+        [6.30, 11.50, 20.00],  # Thorium, Th
+        [5.89, None, None],  # Protactinium, Pa
+        [6.19, None, None],  # Uranium, U
+        [6.26, None, None],  # Neptunium, Np
+        [6.02, None, None],  # Plutonium, Pu
+        [5.97, None, None],  # Americium, Am
+        [5.99, None, None],  # Curium, Cm
+        [6.19, None, None],  # Berkelium, Bk
+        [6.28, None, None],  # Californium, Cf
+        [6.42, None, None],  # Einsteinium, Es
+        [6.50, None, None],  # Fermium, Fm
+        [6.58, None, None],  # Mendelevium, Md
+        [6.65, None, None],  # Nobelium, No
+        [4.90, None, None],  # Lawrencium, Lr
+        [6.00, None, None],  # Rutherfordium, Rf
+        [None, None, None],  # Dubnium, Db
+        [None, None, None],  # Seaborgium, Sg
+        [None, None, None],  # Bohrium, Bh
+        [None, None, None],  # Hassium, Hs
+        [None, None, None],  # Meitnerium, Mt
+        [None, None, None],  # Darmstadtium, Ds
+        [None, None, None],  # Roentgenium, Rg
+        [None, None, None],  # Copernicium, Cn
+        [None, None, None],  # Nihonium, Nh
+        [None, None, None],  # Flerovium, Fl
+        [None, None, None],  # Moscovium, Mc
+        [None, None, None],  # Livermorium, Lv
+        [None, None, None],  # Tennessine, Ts
+        [None, None, None],  # Oganesson, Og
+    ]
+
+    element_densities = [
+        0.0899,  # Hydrogen, H (g/L, 0°C, 101.325 kPa)
+        0.179,  # Helium, He (g/L, 0°C, 101.325 kPa)
+        0.535,  # Lithium, Li (g/cm³)
+        1.85,  # Beryllium, Be (g/cm³)
+        2.47,  # Boron, B (g/cm³)
+        2.26,  # Carbon, C (g/cm³, graphite; diamond: 3.51)
+        1.25,  # Nitrogen, N (g/L, 0°C, 101.325 kPa)
+        1.43,  # Oxygen, O (g/L, 0°C, 101.325 kPa)
+        1.67,  # Fluorine, F (g/L, 0°C, 101.325 kPa)
+        0.9,  # Neon, Ne (g/L, 0°C, 101.325 kPa)
+        0.968,  # Sodium, Na (g/cm³)
+        1.74,  # Magnesium, Mg (g/cm³)
+        2.7,  # Aluminum, Al (g/cm³)
+        2.33,  # Silicon, Si (g/cm³)
+        1.823,  # Phosphorus, P (g/cm³)
+        1.96,  # Sulfur, S (g/cm³)
+        3.214,  # Chlorine, Cl (g/L, 0°C, 101.325 kPa)
+        1.79,  # Argon, Ar (g/L, 0°C, 101.325 kPa)
+        0.856,  # Potassium, K (g/cm³)
+        1.55,  # Calcium, Ca (g/cm³)
+        2.985,  # Scandium, Sc (g/cm³)
+        4.507,  # Titanium, Ti (g/cm³)
+        6.11,  # Vanadium, V (g/cm³)
+        7.19,  # Chromium, Cr (g/cm³)
+        7.47,  # Manganese, Mn (g/cm³)
+        7.875,  # Iron, Fe (g/cm³)
+        8.9,  # Cobalt, Co (g/cm³)
+        8.908,  # Nickel, Ni (g/cm³)
+        8.96,  # Copper, Cu (g/cm³)
+        7.14,  # Zinc, Zn (g/cm³)
+        5.904,  # Gallium, Ga (g/cm³)
+        5.323,  # Germanium, Ge (g/cm³)
+        5.73,  # Arsenic, As (g/cm³)
+        4.82,  # Selenium, Se (g/cm³)
+        3.12,  # Bromine, Br (g/cm³)
+        3.75,  # Krypton, Kr (g/L, 0°C, 101.325 kPa)
+        1.53,  # Rubidium, Rb (g/cm³)
+        2.63,  # Strontium, Sr (g/cm³)
+        4.472,  # Yttrium, Y (g/cm³)
+        6.511,  # Zirconium, Zr (g/cm³)
+        8.57,  # Niobium, Nb (g/cm³)
+        10.28,  # Molybdenum, Mo (g/cm³)
+        11.5,  # Technetium, Tc (g/cm³)
+        12.37,  # Ruthenium, Ru (g/cm³)
+        12.45,  # Rhodium, Rh (g/cm³)
+        12.023,  # Palladium, Pd (g/cm³)
+        10.5,  # Silver, Ag (g/cm³)
+        8.65,  # Cadmium, Cd (g/cm³)
+        7.31,  # Indium, In (g/cm³)
+        7.31,  # Tin, Sn (g/cm³)
+        6.7,  # Antimony, Sb (g/cm³)
+        6.24,  # Tellurium, Te (g/cm³)
+        4.94,  # Iodine, I (g/cm³)
+        5.9,  # Xenon, Xe (g/L, 0°C, 101.325 kPa)
+        1.88,  # Cesium, Cs (g/cm³)
+        3.51,  # Barium, Ba (g/cm³)
+        6.15,  # Lanthanum, La (g/cm³)
+        6.69,  # Cerium, Ce (g/cm³)
+        6.64,  # Praseodymium, Pr (g/cm³)
+        7.01,  # Neodymium, Nd (g/cm³)
+        7.26,  # Promethium, Pm (g/cm³)
+        7.35,  # Samarium, Sm (g/cm³)
+        5.25,  # Europium, Eu (g/cm³)
+        7.9,  # Gadolinium, Gd (g/cm³)
+        8.22,  # Terbium, Tb (g/cm³)
+        8.55,  # Dysprosium, Dy (g/cm³)
+        8.8,  # Holmium, Ho (g/cm³)
+        9.06,  # Erbium, Er (g/cm³)
+        9.32,  # Thulium, Tm (g/cm³)
+        6.57,  # Ytterbium, Yb (g/cm³)
+        9.84,  # Lutetium, Lu (g/cm³)
+        13.31,  # Hafnium, Hf (g/cm³)
+        16.65,  # Tantalum, Ta (g/cm³)
+        19.25,  # Tungsten, W (g/cm³)
+        21.02,  # Rhenium, Re (g/cm³)
+        22.6,  # Osmium, Os (g/cm³)
+        22.56,  # Iridium, Ir (g/cm³)
+        21.45,  # Platinum, Pt (g/cm³)
+        19.3,  # Gold, Au (g/cm³)
+        13.535,  # Mercury, Hg (g/cm³)
+        11.85,  # Thallium, Tl (g/cm³)
+        11.34,  # Lead, Pb (g/cm³)
+        9.78,  # Bismuth, Bi (g/cm³)
+        9.16,  # Polonium, Po (g/cm³)
+        None,  # Astatine, At (no data)
+        9.73,  # Radon, Rn (g/L, 0°C, 101.325 kPa)
+        None,  # Francium, Fr (no data)
+        5.0,  # Radium, Ra (g/cm³)
+        10.07,  # Actinium, Ac (g/cm³)
+        11.725,  # Thorium, Th (g/cm³)
+        15.37,  # Protactinium, Pa (g/cm³)
+        19.05,  # Uranium, U (g/cm³)
+        20.45,  # Neptunium, Np (g/cm³)
+        19.82,  # Plutonium, Pu (g/cm³)
+        13.67,  # Americium, Am (g/cm³)
+        13.51,  # Curium, Cm (g/cm³)
+        14.79,  # Berkelium, Bk (g/cm³)
+        15.1,  # Californium, Cf (g/cm³)
+        None,  # Einsteinium, Es (no data)
+        None,  # Fermium, Fm (no data)
+        None,  # Mendelevium, Md (no data)
+        None,  # Nobelium, No (no data)
+        None,  # Lawrencium, Lr (no data)
+        None,  # Rutherfordium, Rf (no data)
+        None,  # Dubnium, Db (no data)
+        None,  # Seaborgium, Sg (no data)
+        None,  # Bohrium, Bh (no data)
+        None,  # Hassium, Hs (no data)
+        None,  # Meitnerium, Mt (no data)
+        None,  # Darmstadtium, Ds (no data)
+        None,  # Roentgenium, Rg (no data)
+        None,  # Copernicium, Cn (no data)
+        None,  # Nihonium, Nh (no data)
+        None,  # Flerovium, Fl (no data)
+        None,  # Moscovium, Mc (no data)
+        None,  # Livermorium, Lv (no data)
+        None,  # Tennessine, Ts (no data)
+        None,  # Oganesson, Og (no data)
+    ]
+
     electronegativity = {
         1: 2.20,  # Hydrogen (H)
         2: None,  # Helium (He)
@@ -546,6 +1671,7 @@ class Element:
     metalloid_1st = {5, 14, 33, 52}
     metalloid_2nd = {32, 51, 84}
     metalloid = metalloid_1st|metalloid_2nd
+    metal = metal|metalloid_2nd
 
     nonmetals = [1, 6, 7, 8, 15, 16, 34]
     metalloids = [5, 14, 32, 33, 51, 52, 84]

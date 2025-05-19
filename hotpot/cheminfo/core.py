@@ -88,6 +88,9 @@ class Molecule:
         return clone
 
     def __copy__(self):
+        return self.copy()
+
+    def copy(self):
         clone = Molecule()
         for atom in self._atoms:
             clone._create_atom(**atom.attr_dict)
@@ -630,6 +633,11 @@ class Molecule:
             without impacting the internal state.
         """
         return copy(self._atoms)
+
+    @property
+    def c_bonds(self) -> list["Bond"]:
+        """ Get all coordination bonds in the Molecule """
+        return [b for b in self.bonds if b.is_metal_ligand_bond]
 
     @property
     def bonds(self):
@@ -1585,6 +1593,22 @@ class Molecule:
             any(a.is_hydrogen or a.implicit_hydrogens != 0 for a in self._atoms) and
             any(a.atomic_number == 6 for a in self._atoms)
         )
+
+    @property
+    def is_full_halogenated(self) -> bool:
+        """
+        Determines whether the molecule is derived from an organic mol by replace all hydrogen
+        to halogenated.
+        """
+        if self.is_organic:
+            return False
+        else:
+            clone = self.copy()
+            for atom in clone.atoms:
+                if atom.is_halogens:
+                    atom.atomic_number = 1
+
+            return clone.is_organic
 
     def link_atoms(self, assign_bond_order: bool = True):
         """

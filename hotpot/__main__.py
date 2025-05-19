@@ -8,18 +8,14 @@ python v3.9.0
 @Time   : 17:24
 """
 import os
+import os.path as osp
 import sys
-import psutil
+from argparse import ArgumentError
 
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
-from pathlib import Path
-from tqdm import tqdm
 import argparse
-import logging
-
-from .cheminfo.core import Molecule
-from .main import optimize, ml_train
+from .main import optimize, ml_train, conversion
 from . import version
 
 
@@ -35,48 +31,6 @@ def is_running_in_foreground():
     except OSError:
         # Handling error cases where fileno() could not be accessed
         return False
-
-
-def _to_smiles(reader, output_file, mode='w'):
-    with open(output_file, mode) as writer:
-        for mol in tqdm(reader):
-            writer.write(f'{mol.canonical_smiles}\n')
-
-
-def convert(input_file, output_file, out_fmt: str, in_fmt=None):
-    """"""
-    input_file = Path(input_file)
-    output_file = Path(output_file)
-
-    list_file = []
-    if os.path.isfile(input_file):
-        list_reader = [Molecule.read(input_file, in_fmt)]
-        list_file.append(list_file)
-    elif os.path.isdir(input_file):
-        if not isinstance(in_fmt, str):
-            raise IOError('the input format must be given, when the input file is a directory')
-        list_reader = []
-        for in_fp in input_file.glob(f'*.{in_fmt}'):
-            logging.debug(f"adding new input file: {in_fp}")
-            list_reader.append(Molecule.read(in_fp, in_fmt))
-            list_file.append(in_fp)
-    else:
-        raise IOError('the given input file does not exist!!!')
-
-
-    for i, reader in enumerate(list_reader):
-
-        print(f'read {i}th file ...')
-
-        if output_file.is_dir():
-            out_fp = output_file.joinpath(f'{i}.{out_fmt}')
-            mode = 'w'
-        else:
-            out_fp = output_file
-            mode = 'w' if not i else 'a'
-
-        if out_fmt == 'smi':
-            _to_smiles(reader, out_fp, mode)
 
 
 def show_version():
@@ -105,8 +59,9 @@ def main():
     # Convert job arguments
     convert_parser = works.add_parser('convert', help='Convert molecule file from one format to another')
     convert_parser.add_argument('infile', type=str, help='input file')
-    convert_parser.add_argument('outfile', type=str, help='output file')
-    convert_parser.add_argument('-f', '--format', type=str, help="the input and output format, split by ','")
+    convert_parser.add_argument('-f', '--output_file', type=str, help='output file or directory')
+    convert_parser.add_argument('-i', '--inputs-format', type=str, help="the inputs format")
+    convert_parser.add_argument('-o', '--output-format', type=str, help="the output format")
 
     # Optimize job arguments
     optimize_parser = works.add_parser('optimize', help='Perform parameters optimization')
@@ -126,20 +81,24 @@ def main():
     # convert work
     if args.works == 'convert':
         infile = args.infile
-        outfile = args.outfile
+        outfile = args.output_file
 
-        formats = args.format
-        if isinstance(formats, str):
-            formats = formats.split(',')
-            if len(formats) == 1:
-                in_fmt = formats[0]
-                out_fmt = None
-            elif len(formats) == 2:
-                in_fmt, out_fmt = formats
+        if args.inputs_format:
+            in_fmt = args.inputs_format
+        else:
+            if osp.isfile(infile):
+                in_fmt = osp.splitext(osp.basename(infile))[-1][1:]  # Get suffix
             else:
-                raise ValueError("-f flag only accepts one or two value(s)")
+                in_fmt = 'smi'
 
-            convert(infile, outfile, out_fmt, in_fmt)
+        if args.outputs_format:
+            out_fmt = args.outputs_format
+        elif in_fmt != 'smi':
+            out_fmt = 'smi'
+        else:
+            raise ArgumentError('The output format is not specified')
+
+        conversion.convert(infile, outfile, out_fmt, in_fmt)
 
     elif args.works == 'optimize':
         optimize.optimize(args.excel_file, args.result_dir, args)

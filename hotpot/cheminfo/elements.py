@@ -1,10 +1,34 @@
+import os
+import json
 from typing import Union
-import numpy as np
 import periodictable
 import openbabel.openbabel as ob
 
 
-__all__ = ['elements']
+__all__ = ['elements', "element_properties"]
+
+# TODO: Lacking ionic coordination radii, refer to https://www.matbd.cn/sjjs/userInfo/checkDataSet?dataset_id=5b60fc21-db0b-48d2-8c3a-8d993910d535&template_id=57&type=home
+cheminfo_dir = os.path.dirname(os.path.abspath(__file__))
+path_element_properties = os.path.join(cheminfo_dir, 'ChemData', 'ElementProperties.json')
+with open(path_element_properties, 'r') as f:
+    element_properties = json.load(f)['data']
+_shared_prop = {
+    'cid_number', 'volume_magnetic_susceptibility', 'lattice_constant_c', 'electrical_type', 'critical_temperature',
+    'speed_of_sound', 'electronegativity', 'electron_affinity', 'valence', 'space_group_number', 'alternate_names',
+    'superconducting_point', 'electron_configuration', 'covalent_radius', 'critical_pressure', 'period', 'series',
+    'neutron_cross_section', 'resistivity', 'percent_in_humans', 'symbol', 'atomic_weight', 'heat_of_fusion',
+    'curie_point', 'ionization_energies', 'rtecs_number', 'lifetime', 'absolute_boiling_point', 'known_isotopes',
+    'name', 'lattice_constant_a', 'atomic_radius', 'half_life', 'group', 'brinell_hardness', 'quantum_numbers',
+    'melting_point', 'poisson_ratio', 'density_liquid', 'percent_in_universe', 'heat_of_vaporization',
+    'dot_hazard_class', 'decay_mode', 'color', 'shear_modulus', 'dot_numbers', 'neutron_mass_absorption',
+    'electrical_conductivity', 'mass_magnetic_susceptibility', 'percent_in_earth_crust', 'density', 'gas_phase',
+    'refractive_index', 'bulk_modulus', 'percent_in_meteorites', 'nfpa_label', 'space_group_name',
+    'molar_magnetic_susceptibility', 'adiabatic_index', 'thermal_expansion', 'percent_in_oceans', 'percent_in_sun',
+    'cas_number', 'magnetic_type', 'lattice_constant_b', 'block', 'molar_volume', 'van_der_waals_radius',
+    'phase', 'neel_point', 'names_of_allotropes', 'lattice_angles', 'absolute_melting_point', 'vickers_hardness',
+    'mohs_hardness', 'specific_heat', 'crystal_structure', 'stable_isotopes', 'discovery', 'young_modulus',
+    'boiling_point', 'thermal_conductivity', 'atomic_number'
+}
 
 class Element:
     """
@@ -43,7 +67,7 @@ class Element:
         "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
         "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
         "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
-        "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og", "", ""
+        "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
     )
 
     atomic_orbital = [       # Periodic
@@ -1681,6 +1705,17 @@ class Element:
     covalent_radii = [0.] + [getattr(periodictable, ob.GetSymbol(i)).covalent_radius or 0. for i in range(1, 119)]
     density = [0.] + [getattr(periodictable, ob.GetSymbol(i)).density or 0. for i in range(1, 119)]
 
+
+    def __dir__(self):
+        return list(super().__dir__()) + list(self._shared_prop)
+
+    def __getattr__(self, item):
+        try:
+            super().__getattribute__(item)
+        except AttributeError as e:
+            if item in _shared_prop:
+                return {sym: element_properties[sym][item] for sym in Element.symbols[1:]}
+            raise e
 
     def __getitem__(self, item: Union[int, str]):
         if isinstance(item, str):

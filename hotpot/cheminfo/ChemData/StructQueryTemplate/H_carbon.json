@@ -1,0 +1,8 @@
+{
+  "name": "H_carbon",
+  "nodes": {
+    "0": {"atomic_number": [6], ""}
+  },
+  "edges": {},
+  "comments": "A carbon with at least one hydrogen"
+}

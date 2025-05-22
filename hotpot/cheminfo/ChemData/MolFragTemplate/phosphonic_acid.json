@@ -1,0 +1,7 @@
+{
+  "name": "phosphonic_acid",
+  "SMILES": "P(=O)([OH])[OH]",
+  "action_points": [0],
+  "struct_query": "H_carbon",
+  "action": "hydrogen_substitute"
+}

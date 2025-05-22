@@ -12,6 +12,7 @@ from rich.layout import Layout
 from lightning.pytorch.callbacks import Callback, ProgressBar
 
 from hotpot.utils import fmt_print
+from .data.loader import DistConcatLoader
 
 def get_metric_table(
         metrics_dict,
@@ -105,17 +106,31 @@ class Pbar(ProgressBar):
     def end_liver(self):
         self.liver.stop()
 
-    def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+    def on_train_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.layout = Layout()
         if getattr(pl_module, 'pred_inspect', None):
             self.layout.split(Layout(name='val'), Layout(name='train'), Layout(name='inspect'))
         else:
             self.layout.split(Layout(name='val'), Layout(name='train'))
 
-        self.buf = io.StringIO()
-        self.train_pbar = self.init_train_tqdm()
         self.liver = Live(self.layout, auto_refresh=False)
         self.liver.start()
+
+    def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        self.buf = io.StringIO()
+        self.train_pbar = self.init_train_tqdm()
+
+    # def on_train_batch_start(
+    #     self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", batch: Any, batch_idx: int
+    # ) -> None:
+    #     self.layout = Layout()
+    #     if getattr(pl_module, 'pred_inspect', None):
+    #         self.layout.split(Layout(name='val'), Layout(name='train'), Layout(name='inspect'))
+    #     else:
+    #         self.layout.split(Layout(name='val'), Layout(name='train'))
+    #
+    #     self.liver = Live(self.layout, auto_refresh=False)
+    #     self.liver.start()
 
     def on_train_batch_end(
         self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", outputs: STEP_OUTPUT, batch: Any, batch_idx: int
@@ -135,8 +150,10 @@ class Pbar(ProgressBar):
 
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.buf.close()
-        self.end_liver()
         self.train_pbar = None
+
+    def on_train_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        self.end_liver()
 
     def on_sanity_check_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.liver = Live(self.layout, auto_refresh=False)
@@ -171,8 +188,13 @@ class Debugger(Callback):
         # Check whether all data in a batch from same dataset
         batches = {}
         for batch in iter(loader):
-            assert len(torch.unique(batch.dataset_idx)) == 1
-            list_batch = batches.setdefault(batch.dataset_idx[0], [])
+            if isinstance(loader, DistConcatLoader):
+                assert len(torch.unique(batch.dataset_idx)) == 1
+                dataset_idx = batch.dataset_idx[0]
+            else:
+                dataset_idx = None
+
+            list_batch = batches.setdefault(dataset_idx, [])
             list_batch.append(batch)
 
         # batch_dataset_idx = torch.cat([batch[0].dataset_idx for batch in iter(loader)])
@@ -181,7 +203,9 @@ class Debugger(Callback):
 
         for dataset_idx, list_batch in batches.items():
             batch = list_batch[0]
-            pl_module.tasks.choose_task(batch)
+            if isinstance(dataset_idx, int):
+                pl_module.tasks.choose_task(batch)
+
             target = pl_module.tasks.target_getter(batch)
             for tsk_name, tgt in target.items():
                 print(f'{rank}in dataset {dataset_idx} {tsk_name}: {tgt.shape}')

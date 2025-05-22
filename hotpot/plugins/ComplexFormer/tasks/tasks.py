@@ -1,15 +1,16 @@
-import logging
+import os
 import re
+import os.path as osp
 import functools
 from abc import ABC, abstractmethod
-from typing import Union, Callable, Optional, Iterable, Any
+from typing import Union, Callable, Optional, Iterable, Any, Literal
 from typing_extensions import override
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 
 from torch_geometric.data import Batch
 
@@ -21,7 +22,6 @@ from hotpot.plugins.ComplexFormer import (
     models as M,
     tools
 )
-from hotpot.plugins.ComplexFormer.data import loader as ldr
 
 
 def specify_single_dataset_task(target_getter: Union[Callable, dict]):
@@ -150,6 +150,14 @@ class BaseTask(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def add_test_pred_target(
+            self,
+            pred: Union[torch.Tensor, dict[str, torch.Tensor]],
+            target: Union[torch.Tensor, dict[str, torch.Tensor]]
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
     def summary_val_metrics(self, pl_module: L.LightningModule) -> dict[str, float]:
         raise NotImplementedError
 
@@ -168,6 +176,29 @@ class BaseTask(ABC):
     @abstractmethod
     def eval_on_val_end(self,pl_module: L.LightningModule):
         raise NotImplementedError
+
+    ################## Plot Make ############################
+    @abstractmethod
+    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
+        raise NotImplementedError
+
+    def log_plots(self, pl_module: L.LightningModule):
+        # Get current stage
+        stage = pl_module.trainer.state.stage
+        logdir = pl_module.logger.log_dir
+        plotsdir = osp.join(logdir, 'plots')
+        if not osp.exists(plotsdir):
+            os.mkdir(plotsdir)
+
+        # Make the plots, return a dict
+        plots: dict[str, plt.Figure] = self.make_plots(stage)
+
+        for fig_name, fig in plots.items():
+            fig.savefig(osp.join(plotsdir, f"{fig_name.replace('/', '_')}.png"))
+
+        # for fig_name, fig in plots.items():
+        #     pl_module.logger.experiment.add_figure(f'{stage}/{fig_name}', fig)
+    ##########################################################
 
 
 class Task(BaseTask, ABC):
@@ -193,6 +224,7 @@ class Task(BaseTask, ABC):
             x_masker: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = None,
             mask_need_task: Optional[list[str]] = None,
             pred_inspect: Union[bool, Iterable[str]] = False,
+            plot_makers: Optional[dict[str, Union[tp.PlotMaker, tp.PlotMakerDict]]] = None,
             **kwargs
     ):
         # Inputs process control arguments
@@ -229,6 +261,10 @@ class Task(BaseTask, ABC):
 
         # Pred inspect
         self.pred_inspect = pred_inspect
+
+        # Plot Maker for test step
+        self.plot_makers = plot_makers
+        self.plots = {}
 
         # Hyperparameters
         self.hypers = hypers
@@ -279,6 +315,10 @@ class Task(BaseTask, ABC):
         return inputs, None
 
     @abstractmethod
+    def _concat_pred_target(self, which: Literal['val', 'test']) -> (Union[dict, np.ndarray], Optional[np.ndarray]):
+        raise NotImplementedError
+
+    @abstractmethod
     def calc_train_batch_loss_metrics(
             self,
             pl_module: L.LightningModule,
@@ -327,6 +367,9 @@ class SingleTask(Task):
         super().__init__(*args, **kwargs)
         self.val_pred = []
         self.val_target = []
+
+        self.test_pred = []
+        self.test_target = []
 
     def feature_extractor(self, *args, **kwargs) -> torch.Tensor:
         return self._feature_extractor(*args, batch_getter=self._extractor_attr_getter, **kwargs)
@@ -384,9 +427,26 @@ class SingleTask(Task):
         self.val_pred.append(pred.cpu().detach().float().numpy())
         self.val_target.append(target.cpu().detach().float().numpy())
 
+    @override
+    def add_test_pred_target(
+            self,
+            pred: torch.Tensor,
+            target: torch.Tensor
+    ):
+        self.test_pred.append(pred.cpu().detach().float().numpy())
+        self.test_target.append(target.cpu().detach().float().numpy())
+
+    @override
+    def _concat_pred_target(self, which: Literal['val', 'test']) -> (np.ndarray, np.ndarray):
+        if which == 'val':
+            return np.concatenate(self.val_pred), np.concatenate(self.val_target)
+        elif which == 'test':
+            return np.concatenate(self.test_pred), np.concatenate(self.test_target)
+        else:
+            raise NotImplementedError
+
     def summary_val_metrics(self, pl_module: L.LightningModule) -> dict[str, float]:
-        pred = np.concatenate(self.val_pred)
-        target = np.concatenate(self.val_target)
+        pred, target = self._concat_pred_target(which='val')
 
         # Calculating the metrics
         metrics_dict = {
@@ -397,6 +457,10 @@ class SingleTask(Task):
         metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
 
         return metrics_dict
+
+    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
+        pred, target = self._concat_pred_target(stage)
+        return {plot_name: maker(pred, target) for plot_name, maker in self.plot_makers.items()}
 
     @override
     def eval_on_val_end(self, pl_module: L.LightningModule):
@@ -425,6 +489,8 @@ class MultiTask(Task):
         self.loss_dict = None
         self.val_pred = {}
         self.val_target = {}
+        self.test_pred = {}
+        self.test_target = {}
 
         try:
             self.atl_weights_calculators = kwargs['atl_weights_calculators']
@@ -463,7 +529,7 @@ class MultiTask(Task):
             feature_target: dict[str, torch.Tensor],
             mask_idx: Union[torch.Tensor] = None,
     ):
-        if mask_idx is None and self._mask_need_task is None:
+        if mask_idx is None or self._mask_need_task is None:
             return feature_target
         elif isinstance(mask_idx, torch.Tensor):
             for mask_task in self._mask_need_task:
@@ -557,9 +623,31 @@ class MultiTask(Task):
             self.val_pred.setdefault(k, []).append(pred[k].cpu().detach().float().numpy())
             self.val_target.setdefault(k, []).append(t.cpu().detach().float().numpy())
 
+    @override
+    def add_test_pred_target(
+            self,
+            pred: Union[torch.Tensor, dict[str, torch.Tensor]],
+            target: Union[torch.Tensor, dict[str, torch.Tensor]]
+    ):
+        for k, t in target.items():
+            self.test_pred.setdefault(k, []).append(pred[k].cpu().detach().float().numpy())
+            self.test_target.setdefault(k, []).append(t.cpu().detach().float().numpy())
+
+    @override
+    def _concat_pred_target(self, which: Literal['val', 'test']) -> (dict[str, np.ndarray], dict[str, np.ndarray]):
+        if which == 'val':
+            pred = {k: np.concatenate(p) for k, p in self.val_pred.items()}
+            target = {k: np.concatenate(t) for k, t in self.val_target.items()}
+        elif which == 'test':
+            pred = {k: np.concatenate(p) for k, p in self.test_pred.items()}
+            target = {k: np.concatenate(t) for k, t in self.test_target.items()}
+        else:
+            raise NotImplementedError
+
+        return pred, target
+
     def summary_val_metrics(self, pl_module: L.LightningModule) -> dict[str, float]:
-        val_target = {k: np.concatenate(t) for k, t in self.val_target.items()}
-        val_pred = {k: np.concatenate(p) for k, p in self.val_pred.items()}
+        val_pred, val_target = self._concat_pred_target('val')
 
         # Calculate metrics
         metrics_dict = {
@@ -589,6 +677,16 @@ class MultiTask(Task):
 
         self.val_pred.clear()
         self.val_target.clear()
+
+    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
+        pred, target = self._concat_pred_target(stage)
+
+        plots = {}
+        for tsk, maker_dict in self.plot_makers.items():
+            for plot_name, maker in maker_dict.items():
+                plots[f'{tsk}/{plot_name}'] = maker(pred[tsk], target[tsk])
+
+        return plots
 
 
 ############################# MultiDataTask #####################################
@@ -731,6 +829,15 @@ class MultiDataTask(BaseTask):
         metrics_values = [v for k, v in total_metrics.items() if not self.lr_matcher.fullmatch(k)]
         total_metrics['smtrc'] = sum(metrics_values) / len(metrics_values)
         self._log_metrics_on_val_epoch_end(pl_module, total_metrics)
+
+    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
+        plots = {}
+        for i, task in enumerate(self._tasks):
+            tsk_plots = task.make_plots(stage)
+            for plot_name, plot in tsk_plots.items():
+                plots[f'Dataset{i}/{plot_name}'] = plot
+
+        return plots
 
 # Set all abstractmethod to do current tasks
 for abc_method in MultiDataTask.__abstractmethods__:

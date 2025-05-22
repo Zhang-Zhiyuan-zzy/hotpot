@@ -12,18 +12,23 @@ import itertools
 from copy import copy
 from typing import *
 
-import torch
 import numpy as np
 import shap
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.metrics import (
+    r2_score,
+    mean_absolute_error,
+    mean_squared_error,
+    confusion_matrix,
+    roc_curve,
+    auc
+)
 from sklearn.feature_selection import r_regression
 from sklearn import linear_model
-from scipy.stats import norm
 from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.interpolate import griddata
 from sklearn.manifold import TSNE
 
 from matplotlib import pyplot as plt
+from matplotlib.colors import LogNorm
 
 from .base import Plot
 from ..defaults import Settings
@@ -38,8 +43,118 @@ __all__ = [
     'PearsonMatrix',
     'Pearson',
     'SciPlotter',
-    'EmbeddingDataTo2dMap'
+    'EmbeddingDataTo2dMap',
+    'ConfusionMatrix',
+    'ROCCurve',
+    'MultiClassROCCurve'
 ]
+
+
+class ConfusionMatrix(Plot):
+    def __init__(self, pred: np.ndarray, target: np.ndarray) -> None:
+        self.pred = np.argmax(np.asarray(pred), axis=1)
+        self.target = np.asarray(target).flatten()
+
+        self.categories = np.sort(np.unique(self.target))
+        self.num_classes = len(self.categories)
+
+        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize='all')
+
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        # Small constant to avoid log(0)
+        cm_display = self.confusion_matrix + 1e-8
+        im = ax.imshow(cm_display, cmap="viridis", norm=LogNorm())
+
+        ax.set_xlabel("Target")
+        ax.set_ylabel("Predicted")
+
+        sciplot.add_colorbar(ax, im, value_lim=(-1, 1), colorbar_label="Normalized Count (log scale)")
+
+
+# class ConfusionMatrix(Plot):
+#     def __init__(self, pred: np.ndarray[int], target: np.ndarray[int]) -> None:
+#         self.pred = np.argmax(np.asarray(pred), axis=1)
+#         self.target = np.asarray(target).flatten()
+#
+#         self.categories = np.sort(np.unique(self.target))
+#         self.num_classes = len(self.categories)
+#
+#         self.confusion_matrix = confusion_matrix(self.target, self.pred) / len(self.target)
+#
+#     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+#         ax.imshow(self.confusion_matrix, cmap="viridis")
+#
+#         ax.set_xlabel("Target")
+#         ax.set_ylabel("Predicted")
+
+
+class ROCCurve(Plot):
+    def __init__(self, pred: np.ndarray[int], target: np.ndarray[int]) -> None:
+        """
+        Plot ROC curve on a matplotlib Axes.
+
+        Args:
+            pred: 1D array-like of predicted probabilities (floats from 0.0 to 1.0)
+            target: 1D array-like of binary targets (0 or 1)
+        """
+        self.fpr, self.tpr, _ = roc_curve(np.asarray(target), np.asarray(pred))
+        self.roc_auc = auc(self.fpr, self.tpr)
+
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        """
+        Args:
+            ax: matplotlib.Axes object to plot on
+        """
+        ax.plot(self.fpr, self.tpr, color="blue", label=f"ROC curve (AUC = {self.roc_auc:.2f})")
+        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", label="Random")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.set_title("Receiver Operating Characteristic (ROC)")
+        ax.legend(loc="lower right")
+
+
+class MultiClassROCCurve(Plot):
+    def __init__(self, pred: np.ndarray[int], target: np.ndarray[int], class_names: Iterable[str] = None) -> None:
+        """
+        Plots ROC curves for each class in a multi-class problem using one-vs-rest strategy.
+
+        Args:
+            pred: 2D array-like (n_samples, n_classes), predicted probabilities (after softmax)
+            target: 1D array-like (n_samples,), integer class labels (0, 1, ..., n_classes-1)
+            ax: matplotlib.Axes object to plot on
+            class_names: list of class names (optional, for legend)
+        """
+        self.pred = np.asarray(pred)
+        self.target = np.asarray(target, dtype=int).flatten()
+        self.n_classes = pred.shape[1]
+        self.class_names = list(class_names) if class_names is not None else None
+
+        assert self.class_names is None or len(self.class_names) == self.n_classes
+
+        # One-hot encode targets
+        target_onehot = np.eye(self.n_classes)[self.target]
+
+        roc_curves = []
+        roc_aucs = []
+        for i in range(self.n_classes):
+            fpr, tpr, _ = roc_curve(target_onehot[:, i], pred[:, i])
+            roc_curves.append((fpr, tpr))
+
+            roc_auc = auc(fpr, tpr)
+            roc_aucs.append(roc_auc)
+        self.roc_curves, self.roc_aucs = roc_curves, roc_aucs
+
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        # Random baseline
+        ax.plot([0, 1], [0, 1], 'k--', label="Random")
+        for i, ((fpr, tpr), roc_auc) in enumerate(zip(self.roc_curves, self.roc_aucs)):
+            label = f"Class {i} (AUC = {roc_auc:.2f})" if self.class_names is None else f"{self.class_names[i]} (AUC = {roc_auc:.2f})"
+            ax.plot(fpr, tpr, lw=2, label=label)
+
+            ax.set_xlabel("False Positive Rate")
+            ax.set_ylabel("True Positive Rate")
+            ax.set_title("Multi-class ROC curves")
+            ax.legend(loc="lower right")
 
 
 class R2Regression(Plot):

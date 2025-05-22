@@ -4,6 +4,7 @@ import torch
 from torch_geometric.data import Batch
 
 import numpy as np
+from matplotlib.pyplot import Figure
 
 from . import models as M
 
@@ -26,4 +27,8 @@ FeatureExtractorInput = Union[str, Callable, Sequence[Callable], dict[str, Calla
 PredictorInput = Union[str, M.Predictor, Sequence[M.Predictor], dict[str, M.Predictor]]
 LossFnInput = Union[str, Callable, Sequence[Union[str, Callable]], dict[str, Callable]]
 MetricType = Literal['r2score', 'rmse', 'mse', 'mae', 'accuracy', 'binary_accuracy', 'metal_accuracy']
+
+
+PlotMaker = Callable[[np.ndarray, np.ndarray], Figure]
+PlotMakerDict = dict[str, PlotMaker]
 

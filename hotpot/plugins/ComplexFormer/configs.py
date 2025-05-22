@@ -37,6 +37,12 @@ metrics_options = {
     'bacc': M.Metrics.binary_accuracy,
     'amd': M.Metrics.average_inverse_distance
 }
+predictor_plot_maker_map = {
+    'num': ('r2',),
+    'onehot': ('conf', 'mroc'),
+    'binary': ('bconf', 'roc'),
+    'xyz': ('hist',)
+}
 
 loss_options = {
     'mse': F.mse_loss,
@@ -405,6 +411,24 @@ def _specify_metrics(
     # Return
     return primary_metrics, _metrics
 
+# Test plot maker
+def _specify_test_plot_maker(
+        task_names: Union[str, Sequence[str]],
+        predictors: Union[M.Predictor, dict[str, M.Predictor]],
+):
+    if isinstance(predictors, M.Predictor):
+        plot_name = predictor_plot_maker_map[predictors.target_type]
+        return {n: M.plots_options[n] for n in plot_name}
+    elif isinstance(predictors, dict):
+        plot_makers = {}
+        for tsk, predictor in predictors.items():
+            plot_name = predictor_plot_maker_map[predictor.target_type]
+            plot_makers[tsk] = {n: M.plots_options[n] for n in plot_name}
+        _align_task_names("plot_makers", plot_makers, task_names, lambda v: isinstance(v, dict))
+        return plot_makers
+    else:
+        raise NotImplementedError
+
 # Specify x masker
 _default_mask_task = ['AtomType']
 def _specify_masker(
@@ -586,6 +610,9 @@ def _config_task_args(
     # Specify primary metric
     primary_metric, metrics = _specify_metrics(task_names, primary_metric, other_metric, predictor)
 
+    # Specify test plot makers
+    plot_makers = _specify_test_plot_maker(task_names, predictor)
+
     ####################### Important Args #####################
     ############################################################
 
@@ -617,6 +644,7 @@ def _config_task_args(
         'loss_fn': loss_fn,
         'primary_metric': primary_metric,
         'metrics': metrics,
+        'plot_makers': plot_makers,
         'x_masker': x_masker,
         'loss_weight_calculator': loss_weight_calculator,
         'mask_need_task': mask_need_task,

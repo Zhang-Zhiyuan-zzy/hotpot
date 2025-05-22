@@ -133,6 +133,7 @@ def run(
         checkpoint_path: Union[str, int] = None,
         load_core_only: bool = True,
         epochs: int = 100,
+        need_test: bool = True,
         save_model: bool = True,
         optimizer: Optional[Type[Optimizer]] = None,
         constant_lr: bool = False,
@@ -227,6 +228,7 @@ def run(
     """
     if debug:
         logging.basicConfig(level=logging.DEBUG)
+        epochs = 5
 
     ##################### Base Args ##########################
     torch.set_float32_matmul_precision(float32_matmul_precision)
@@ -348,3 +350,6 @@ def run(
     )
 
     trainer.fit(model, datamodule=dataModule)
+
+    if need_test:
+        trainer.test(model, datamodule=dataModule)

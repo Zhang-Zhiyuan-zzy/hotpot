@@ -6,7 +6,7 @@ import ccdc.io as cio
 
 import hotpot as hp
 
-__all__ = ['solvents']
+__all__ = ['solvents', 'solvents_smiles']
 
 
 solvents_dir = osp.join(hp.package_root, 'cheminfo', 'ChemData', 'solvent')
@@ -17,6 +17,8 @@ for sol_filename in os.listdir(solvents_dir):
     with cio.MoleculeReader(sol_path) as reader:
         mol = reader[0]
         solvents[sol_filename] = mol
+
+solvents_smiles = {sol.smiles for sol in solvents.values()}
 
 
 if __name__ == '__main__':

@@ -220,6 +220,7 @@ class DataModule(L.LightningDataModule):
     >>> dm.setup()
     >>> len(dm.train_dataloader())  # number of batches
     """
+    _DEBUG_BATCHES = 40
     def __init__(
             self,
             dir_datasets: str,
@@ -312,7 +313,7 @@ class DataModule(L.LightningDataModule):
             if self.debug:
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_data = []
-                for _ in tqdm(range(10*self.devices*self.batch_size), 'loading data'):
+                for _ in tqdm(range(self._DEBUG_BATCHES*self.devices*self.batch_size), 'loading data'):
                     try:
                         list_data.append(torch_load_data(next(path_generator)))
                     except StopIteration:
@@ -330,7 +331,7 @@ class DataModule(L.LightningDataModule):
             if self.debug:
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_path = []
-                for _ in tqdm(range(10*self.devices*self.batch_size), 'loading data'):
+                for _ in tqdm(range(self._DEBUG_BATCHES*self.devices*self.batch_size), 'loading data'):
                     try:
                         list_path.append(next(path_generator))
                     except StopIteration:

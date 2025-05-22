@@ -14,6 +14,9 @@ __all__ = ['Plot']
 
 class Plot:
     """"""
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         """
         Args:

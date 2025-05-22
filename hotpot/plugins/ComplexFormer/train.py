@@ -46,7 +46,10 @@ class LightPretrain(L.LightningModule):
         inputs = self.tasks.inputs_preprocessor(inputs)
 
         # Mask inputs
-        inputs, masked_idx = self.tasks.x_masker(inputs)
+        if self.trainer.state.stage in ('fit', 'validate'):
+            inputs, masked_idx = self.tasks.x_masker(inputs)
+        else:
+            masked_idx = None
 
         # Forward pass through core
         core_output = self.core(*inputs, xyz=xyz)
@@ -76,6 +79,7 @@ class LightPretrain(L.LightningModule):
 
         # Calc loss weights
         loss_weight = self.tasks.loss_weight_calculator(target)
+        logging.debug(f'loss_weight: {loss_weight}')
         return target, loss_weight
 
     def training_step(self, batch, batch_idx):
@@ -112,3 +116,11 @@ class LightPretrain(L.LightningModule):
 
     def configure_optimizers(self):
         return self.optim_configure(self)
+
+    def test_step(self, batch, batch_idx):
+        pred, masked_idx = self.f(batch)
+        target, loss_weight = self.get_target(batch, masked_idx)
+        self.tasks.add_test_pred_target(pred, target)
+
+    def on_test_epoch_end(self) -> None:
+        self.tasks.log_plots(self)

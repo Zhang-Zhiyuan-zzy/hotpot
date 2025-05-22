@@ -15,10 +15,14 @@ def _is_int_like(a):
         torch.is_tensor(a) and a.numel() == 1 and a.dtype in (torch.int8, torch.int16, torch.int32, torch.int64))
 
 def torch_load_data(p: str) -> Data:
-    if torch.__version__ >= '2.6':
-        return torch.load(p, weights_only=False)
-    else:
-        return torch.load(p)
+    try:
+        if torch.__version__ >= '2.6':
+            return torch.load(p, weights_only=False)
+        else:
+            return torch.load(p)
+    except Exception as e:
+        print(p)
+        raise e
 
 def load_data(dataset: Union[Iterable[Data], Sequence[Data]], sample_num: int = None):
     lst_data = []

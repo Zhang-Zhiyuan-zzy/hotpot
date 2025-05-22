@@ -440,6 +440,19 @@ class Molecule:
         self._update_graph()
         return bond
 
+    def add_bonds(self, idx_order: Iterable[tuple[int, int, float]], list_kw: Optional[list[dict]] = None) -> list["Bond"]:
+        if list_kw:
+            list_kw = list(list_kw)
+        else:
+            list_kw = [{} for _ in range(len(idx_order))]
+        assert len(idx_order) == len(list_kw)
+
+        bonds = []
+        for ido, kw in zip(idx_order, list_kw):
+            bonds.append(self._add_bond(*ido, **kw))
+
+        return bonds
+
     def add_component(self, component: "Molecule"):
         """
         Adds a molecule component to the current structure by integrating its atoms and bonds.
@@ -3323,7 +3336,9 @@ class Atom(MolBlock):
         Raises:
             AssertionError: If the two atoms belong to the same molecule.
         """
-        assert self.mol is not other.mol
+        assert self.mol is not other.mol, (
+            "The `link_with` method should only implement in two atoms from different molecules, "
+            "this atom and other atom come from a same molecule")
 
         other_clone_idx = other.idx + len(self.mol.atoms)
         self.mol.add_component(other.mol)
@@ -4206,7 +4221,8 @@ class AtomPairs(dict):
 
 ######################################################################################
 def _load_ibl():
-    data_path = osp.join(osp.dirname(__file__), 'ChemData', 'ibl.json')
+    """ Load ideal bond length data sheet, the sheet statistic from CSD database """
+    data_path = osp.join(osp.dirname(__file__), 'ChemData', 'ideal_bond_length.json')
     with open(data_path) as file:
         raw_data =  json.load(file)
     ibl_data = {}

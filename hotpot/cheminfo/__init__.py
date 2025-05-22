@@ -10,3 +10,7 @@ from ._io import MolReader, MolWriter
 from .core import Molecule, Atom, Bond
 
 from .mol_statistics import ComplexStatistics
+
+
+def read_mol(src, fmt=None, **kwargs):
+    return next(MolReader(src, fmt, **kwargs))

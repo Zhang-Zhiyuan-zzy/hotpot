@@ -10,7 +10,6 @@ from various file formats (XYZ, CSV, Q, BO). It includes classes to handle downl
 and molecule creation for further computational tasks.
 """
 import os
-import asyncio
 from os import path
 from os.path import join as opj
 import multiprocessing as mp

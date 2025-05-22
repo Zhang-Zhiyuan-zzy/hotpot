@@ -7,7 +7,7 @@ python v3.9.0
 @Time   : 16:27
 """
 from abc import abstractmethod
-from typing import Union, Sequence, Literal, Container, Any
+from typing import Union, Sequence, Literal, Container, Any, Iterable
 import networkx as nx
 from networkx.algorithms import isomorphism
 
@@ -405,29 +405,42 @@ class Hits:
     Raises:
         None
     """
-    def __init__(self, sub, mol, graph_matcher):
+    def __init__(self, sub, mol, graph_matcher, get_hit: bool = True):
         self.sub = sub
         self.mol = mol
         self.graph_matcher = graph_matcher
-        self.hits = [Hit(sub, mol, ai) for ai in self._get_nodes_set()]
+        self.get_hit = get_hit
+
+        self._nodes_indices = list(self._get_nodes_set())
+        self._hits = None
+
+    @property
+    def hits(self) -> list["Hit"]:
+        if self._hits is None:
+            self._hits = [Hit(self.sub, self.mol, ai) for ai in self._get_nodes_set()]
+
+        return self._hits
 
     def _get_nodes_set(self):
         return set(frozenset(ai.keys()) for ai in self.graph_matcher.subgraph_monomorphisms_iter())
 
     def __iter__(self):
-        return iter(self.hits)
+        return iter(self.hits) if self.get_hit else iter(self._nodes_indices)
 
-    def __getitem__(self, item):
-        return self.hits[item]
+    def __getitem__(self, item: int) -> Union[frozenset[int], "Hit"]:
+        return self.hits[item] if self.get_hit else self._nodes_indices[item]
 
     def __len__(self):
-        return len(self.hits)
+        return len(self._nodes_indices)
 
     def __bool__(self):
-        return bool(self.hits)
+        return bool(self._nodes_indices)
 
-    def __contains__(self, item: "Hit"):
-        return item in self.hits
+    def __contains__(self, item: Union[Iterable[int], "Hit"]):
+        if isinstance(item, Iterable):
+            return frozenset(item) in self._nodes_indices
+        else:
+            return item in self.hits
 
 
 class Hit:

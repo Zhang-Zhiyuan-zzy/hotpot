@@ -74,7 +74,7 @@ ATOM_TYPES = 119  # Arguments for atom type loss
 
 
 hypers = tools.Hypers()
-hypers.batch_size = 256
+hypers.batch_size = 512
 hypers.lr = 2e-4
 hypers.weight_decay = 4e-5
 
@@ -387,8 +387,10 @@ if __name__ == '__main__':
     # combined_training()
     # multi_task()
     which_datasets_train(
-        'tmqm', 'mono',
+        # 'tmqm', 'mono',
+        'mono_ml_pair',
         work_name='MultiTask',
         # debug=True,
         # devices=2
+
     )

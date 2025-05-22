@@ -146,5 +146,52 @@
       "WBO": "r2",
       "xyzX": "amd"
     }
+  },
+  "mono_ml_pair": {
+        "feature_extractors": {
+      "AT": "atom",
+      "MT": "metal",
+      "RA": "ring",
+      "CB": "cbond",
+      "BO": "bond",
+      "PSP": "pair",
+      "xyzC": "atom"
+    },
+    "predictors": {
+      "AT": "onehot",
+      "MT": "onehot",
+      "RA": "binary",
+      "CB": "binary",
+      "BO": "onehot",
+      "PSP": "num",
+      "xyzC": "xyz"
+    },
+    "target_getters": {
+      "AT": {"data_item": "x", "attrs":  "atomic_number"},
+      "RA": {"data_item": "rings_attr", "attrs":  "is_aromatic"},
+      "MT": {"data_item": "x", "attrs":  "atomic_number", "condition_fn": "where_metal"},
+      "CB": {"data_item": "is_cbond"},
+      "BO": {"data_item": "edge_attr", "attrs": "bond_order"},
+      "PSP": {"data_item": "pair_attr", "attrs": "length_shortest_path"},
+      "xyzC": {"data_item": "x", "attrs":  ["x", "y", "z"]}
+    },
+    "loss_fn": {
+      "AT": "cross_entropy",
+      "MT": "cross_entropy",
+      "RA": "binary_cross_entropy",
+      "CB": "binary_cross_entropy",
+      "BO": "cross_entropy",
+      "PSP": "mse",
+      "xyzC": "amd"
+    },
+    "primary_metric": {
+      "AT": "acc",
+      "MT": "macc",
+      "RA": "bacc",
+      "CB": "bacc",
+      "BO": "acc",
+      "PSP": "r2",
+      "xyzC": "amd"
+    }
   }
 }

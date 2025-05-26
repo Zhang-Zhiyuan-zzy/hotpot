@@ -123,7 +123,7 @@ def is_metallocene(mol: CMol):
     return False
 
 
-def extract_ml_pair_from_complexes(struct_dir: str, des_dir: str, stat_dir: str):
+def extract_ml_pair_from_complexes(struct_dir: str, des_dir: str, stat_path: str):
     files = os.listdir(struct_dir)
 
     coord_molecule = {}
@@ -168,7 +168,7 @@ def extract_ml_pair_from_complexes(struct_dir: str, des_dir: str, stat_dir: str)
     }
 
     json_text = dumps_with_partial_indent(stat_results)
-    with open(osp.join(stat_dir, 'MLPairStat.json'), 'w') as f:
+    with open(stat_path, 'w') as f:
         f.write(json_text)
 
 

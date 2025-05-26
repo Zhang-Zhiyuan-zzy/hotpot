@@ -54,26 +54,26 @@ def copy_high_low_cn_complexes():
     filter_high_cn_complexes(mono_complexes_dir, statistics_results_dir)
 
 def copy_organometallic():
-    mono_complexes_dir = osp.join(project_root, 'raws_ds', 'mono_complexes')
-    statistics_results_dir = osp.join(project_root, 'raws_ds', 'orgmetal')
+    mono_complexes_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'mono')
+    statistics_results_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'orgmetal')
     filter_metallocene_complexes(mono_complexes_dir, statistics_results_dir)
 
 def extract_ml_pair():
-    mono_complexes_dir = osp.join(project_root, 'raws_ds', 'mono_complexes')
-    ml_pair_dir = osp.join(project_root, 'raws_ds', 'mono_ml_pair')
-    statistics_results_dir = osp.join(project_root, 'results', 'ds_statistics')
+    mono_complexes_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'mono')
+    ml_pair_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'mono_ml_pair')
+    statistics_results_dir = osp.join(project_root, 'results', 'ds_statistics', 'AllMLPairStat.json')
     extract_ml_pair_from_complexes(mono_complexes_dir, ml_pair_dir, statistics_results_dir)
 
 def _stat_redundant_pairs():
-    ml_pair_dir = osp.join(project_root, 'raws_ds', 'mono_ml_pair')
-    statistics_results_path = osp.join(project_root, 'results', 'ds_statistics', 'redundant_pairs.json')
+    ml_pair_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'mono_ml_pair')
+    statistics_results_path = osp.join(project_root, 'results', 'ds_statistics', 'all_redundant_pairs.json')
 
     stat_redundant_pairs(ml_pair_dir, statistics_results_path)
 
 def reduce_redundant_pair():
-    stat_result_path = osp.join(project_root, 'results', 'ds_statistics', 'redundant_pairs.json')
-    ml_pair_dir = osp.join(project_root, 'raws_ds', 'mono_ml_pair')
-    des_dir = osp.join(project_root, 'raws_ds', 'reduced_mono_ml_pair')
+    stat_result_path = osp.join(project_root, 'results', 'ds_statistics', 'all_redundant_pairs.json')
+    ml_pair_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'mono_ml_pair')
+    des_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'reduced_mono_ml_pair')
 
     with open(stat_result_path, 'r', encoding='utf-8') as f:
         stat_result = json.load(f)

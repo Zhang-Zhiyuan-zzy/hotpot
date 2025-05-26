@@ -41,8 +41,8 @@ def func(args):
 
 
 def convert_pairs_to_data():
-    struct_dir = osp.join(project_root, 'raws_ds', 'g16pairs')
-    data_dir = osp.join(project_root, 'ds_repo', 'g16pairs')
+    struct_dir = osp.join(project_root, 'raws_ds', 'all_mono', 'reduced_mono_ml_pair')
+    data_dir = osp.join(project_root, 'ds_repo', 'all_mono_pair')
 
     struct_files = glob(osp.join(struct_dir, '*.mol2'))
     args = [(p, data_dir) for p in struct_files]

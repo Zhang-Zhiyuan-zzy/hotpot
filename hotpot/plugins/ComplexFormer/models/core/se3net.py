@@ -39,7 +39,7 @@ This implementation can serve as a template for advanced equivariant GNNs in
 physics, chemistry, materials, or molecular science.
 ===========================================================
 """
-from typing import Optional, Sequence
+from typing import Optional, Sequence, overload
 from enum import Enum
 
 import math, torch
@@ -178,8 +178,8 @@ class SE3Net(nn.Module):
         """ Get the output group representation under the SO(3) rotation """
         return self.layers[-1].out_irreps.D_from_matrix(rot)
 
-    def forward(self, x: torch.Tensor, pos: torch.Tensor) -> torch.Tensor:
-        src, dst = radius_graph(pos, self.max_radius)
+    def forward(self, x: torch.Tensor, pos:torch.Tensor, batch: Optional[torch.Tensor] = None) -> torch.Tensor:
+        src, dst = radius_graph(pos, self.max_radius, batch=batch)
         edge_vec = pos[dst] - pos[src]
 
         # Performing convolution

@@ -38,7 +38,8 @@ __all__ = [
 
 _cols = [
     'W', 'Tech.', 'SMILES', 'Metal', 'Medium', 'Solvent', 't', 'I-str', 'pH', 'P/bar',
-    'Density_medium (kg/m3)', 'Molar Mass_medium (g/mol)', 'Melting Point_medium (K)'
+    'Density_medium (kg/m3)', 'Molar Mass_medium (g/mol)', 'Melting Point_medium (K)',
+    'Value'
 ]
 
 def split_metal(metal_info: str):
@@ -88,9 +89,17 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
         ring_attr_names = ('is_aromatic', 'has_metal')
         mol_ring_nums, ring_node_index, ring_node_nums, mol_ring_node_nums, ring_attr = extract_ring_attrs(mol, ring_attr_names)
 
-        y_names = ['W', 't', 'I-str', 'pH', 'P/bar',
-                   'Density_medium (kg/m3)', 'Molar Mass_medium (g/mol)', 'Melting Point_medium (K)']
+        mol_level_info_names = [
+            't', 'I-str', 'pH', 'P/bar',
+            'Density_medium (kg/m3)',
+            'Molar Mass_medium (g/mol)',
+            'Melting Point_medium (K)',
+        ]
+        mol_level_info = torch.from_numpy(np.float_(row[mol_level_info_names].values.flatten()))
+
+        y_names = ['Value']
         y = torch.from_numpy(np.float_(row[y_names].values.flatten()))
+        y_names[-1] = 'logK1'
 
         other_info_names = ['W', 'Tech.', 'Metal', 'Medium', 'Solvent']
         other_info = row[other_info_names].values.flatten()
@@ -104,6 +113,8 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             pair_index=pair_index,
             pair_attr=pair_attr,
             pair_attr_names=pair_attr_names,
+            mol_level_info=mol_level_info,
+            mol_level_info_names=mol_level_info_names,
             y=y,
             y_names=y_names,
             identifier=str(i),
@@ -218,14 +229,26 @@ def _convert_hp_mol_to_pyg_data(
     )
 
 
-catoms_elements = {'C', 'O', 'N', 'S', 'P', 'Si'}
-def convert_ml_pairs_to_cbond_broken_data(path_struct: str, data_dir: str):
+default_catoms_elements = {'O', 'N', 'S', 'P', 'Si', 'B'}
+def convert_ml_pairs_to_cbond_broken_data(path_struct: str, data_dir: str, catoms_elements=None) -> Optional[set[str]]:
     struct_name = osp.splitext(osp.basename(path_struct))[0]
+
+    if not catoms_elements:
+        catoms_elements = default_catoms_elements
 
     mol = next(hp.MolReader(path_struct))
     metal = mol.metals[0]
     metal_idx = metal.idx
-    list_catoms_index = [a.idx for a in metal.neighbours]
+
+    metal_neighbours = [a for a in metal.neighbours]
+
+    # Exclude pairs with extra metal-neigh atoms outside the catoms_elements
+    metal_neigh_symbol = {a.symbol for a in metal.neighbours}
+    if extra_natom := metal_neigh_symbol.difference(catoms_elements):
+        # print(f"Exclude {struct_name} with extra catom {extra_natom} outside of {catoms_elements}")
+        return extra_natom
+
+    list_catoms_index = [a.idx for a in metal_neighbours]
     full_catom_options = {a.idx for a in mol.atoms if a.symbol in catoms_elements}
 
     # This block to choose combinations of coordination bonds from the raw M-L pairs.

@@ -111,3 +111,19 @@ def mp_run(
 
     return [results[c] for c in sorted(results)]
 
+
+class Pool:
+    def __init__(
+            self,
+            nproc: int = None,
+            desc: str = '',
+            timeout: Optional[float] = None,
+            error_to_None: bool = True
+    ):
+        self.nproc = nproc
+        self.desc = desc
+        self.timeout = timeout
+        self.error_to_None = error_to_None
+
+    def run(self, func: Callable, list_args: list[tuple], list_kwargs: list[dict]=None):
+        return mp_run(func, list_args, list_kwargs, self.nproc, self.desc, self.timeout, self.error_to_None)

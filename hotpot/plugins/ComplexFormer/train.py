@@ -1,11 +1,9 @@
 import logging
-from typing import Union, Optional, Iterable, Any, Callable
+from typing import Union, Optional, Iterable
 
 import torch
 import torch.nn as nn
-from lightning.pytorch.core.optimizer import LightningOptimizer
-from torch import Tensor
-from torch.optim import Optimizer
+
 from torch_geometric.data import Batch
 
 
@@ -79,7 +77,7 @@ class LightPretrain(L.LightningModule):
 
         # Calc loss weights
         loss_weight = self.tasks.loss_weight_calculator(target)
-        logging.debug(f'loss_weight: {loss_weight}')
+        # logging.debug(f'loss_weight: {list(loss_weight.keys())}')
         return target, loss_weight
 
     def training_step(self, batch, batch_idx):

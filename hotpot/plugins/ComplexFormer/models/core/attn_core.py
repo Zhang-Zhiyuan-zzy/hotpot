@@ -12,10 +12,12 @@
  
 ===========================================================
 """
-from typing import Optional, Union, Literal
+from typing import Optional, Union, Literal, Sequence
 
 import torch
 import torch.nn as nn
+
+import torch_geometric.nn as pygnn
 
 from .. import utils
 from .base import CoreBase
@@ -120,6 +122,9 @@ class AttnCore(CoreBase):
             mol_nheads: int = 4,
             mol_encoder_kw: dict = None,
             mol_encoder_block_kw: dict = None,
+
+            # Mol level info MLP
+            mol_level_net: Optional[Union[nn.Module, Sequence[int]]] = None,
             **kwargs,
     ):
         super(AttnCore, self).__init__(vec_dim, x_label_nums)
@@ -150,6 +155,19 @@ class AttnCore(CoreBase):
         self.CLS = nn.Parameter(torch.randn(1, vec_dim))
         self.RING = nn.Parameter(torch.randn(1, vec_dim))
         self.END = nn.Parameter(torch.randn(1, vec_dim))
+
+        # Definition of MolInfo Net
+        if isinstance(mol_level_net, (list, tuple)):
+            mol_level_net = list(mol_level_net)
+            if mol_level_net[-1] != vec_dim:
+                mol_level_net = mol_level_net + [vec_dim]
+
+            self.mol_info_net = pygnn.MLP(mol_level_net)
+
+        elif isinstance(mol_level_net, nn.Module):
+            self.mol_info_net = mol_level_net
+        else:
+            self.mol_info_net = None
 
     @property
     def x_mask_vec(self):
@@ -189,7 +207,16 @@ class AttnCore(CoreBase):
             x, edge_index, edge_attr, rings_node_index, rings_node_nums, mol_rings_nums, batch, ptr,
             *,
             xyz: Optional[Union[torch.Tensor, torch.nested.nested_tensor]] = None,
+            mol_level_info: Optional[Union[torch.Tensor, torch.nested.nested_tensor]] = None,
     ):
         x = self.node_processor(x, edge_index, batch, xyz=xyz)
         xr = self._rings_attention(x, rings_node_index, rings_node_nums)
-        return self._mol_attention(x, xr, mol_rings_nums, ptr, batch)
+        seq, X_not_mask, Xr_not_mask = self._mol_attention(x, xr, mol_rings_nums, ptr, batch)
+
+        # Add mol level info
+        if self.mol_info_net is not None and isinstance(mol_level_info, torch.Tensor):
+            assert seq.shape[0] == mol_level_info.shape[0]
+            mol_info_vec = self.mol_info_net(mol_level_info)
+            seq[:, 0, :] = seq[:, 0, :] + mol_info_vec
+
+        return seq, X_not_mask, Xr_not_mask

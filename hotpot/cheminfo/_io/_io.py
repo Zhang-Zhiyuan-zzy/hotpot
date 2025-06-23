@@ -9,7 +9,6 @@ python v3.9.0
 import os
 import re
 import sys
-import time
 from os import PathLike
 from pathlib import Path
 import io
@@ -30,6 +29,9 @@ pb.ob.obErrorLog.StopLogging()
 
 if not sys.modules.get('hotpot.cheminfo.core', None):
     from .. import core
+
+if not sys.modules.get('hotpot.cheminfo.pubchem', None):
+    from .. import pubchem
 
 
 def _extract_force_matrix(lines, atomic_numbers):
@@ -334,9 +336,21 @@ class MolReader(IoBase):
 
         return _generator()
 
+    def _pubchem_read(self):
+        smi = pubchem.name_to_smi(self.src)
+        reader = [pb.readstring('smi', smi)]
+
+        def _generator():
+            for pmol in reader:
+                yield pmol
+
+        return _generator()
+
     def get_generator(self):
         if self.fmt in ['g16', 'g16log', 'log']:
             return self._cclib_read()
+        elif self.fmt == 'name':
+            return self._pubchem_read()
         else:
             return self._openbabel_read()
 

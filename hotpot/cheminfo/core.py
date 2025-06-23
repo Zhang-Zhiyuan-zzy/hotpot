@@ -8,6 +8,7 @@ python v3.9.0
 """
 import logging
 import re
+import sys
 import time
 import json
 import operator
@@ -26,10 +27,12 @@ from scipy.spatial.distance import pdist, squareform
 from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
-from . import graph, forcefields as ff, _io
+from . import graph, forcefields as ff
 from . import geometry, crystal as cryst
+from .pubchem import smi_to_cid, smi_to_name, smi_to_cas
 
-
+if sys.modules.get('hotpot.cheminfo._io', None) is None:
+    from . import _io
 
 def _metal_valence(atom):
     return 0
@@ -63,6 +66,7 @@ class Molecule:
         self._crystal = None
 
         self._broken_metal_bonds = []
+        self.properties = {}  # To store any mol properties
 
         self.charge = 0
 
@@ -126,6 +130,11 @@ class Molecule:
         """
         for name, value in attrs.items():
             setattr(self, name, value)
+
+    @staticmethod
+    def read_one(src, fmt=None, **kwargs):
+        """ Just read the first Molecule instance in the src """
+        return next(_io.MolReader(src, fmt, **kwargs))
 
     @property
     def hydrogens(self) -> list["Atom"]:
@@ -507,6 +516,18 @@ class Molecule:
 
         if modified:
             self._update_graph()
+
+    @property
+    def cid(self) -> Optional[int]:
+        return smi_to_cid(self.smiles)
+
+    @property
+    def name(self) -> str:
+        return smi_to_name(self.smiles)
+
+    @property
+    def cas(self):
+        return smi_to_cas(self.smiles)
 
     def clear_constraints(self) -> None:
         """ clear all set constraints """

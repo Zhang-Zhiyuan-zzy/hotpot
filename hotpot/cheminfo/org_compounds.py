@@ -28,5 +28,5 @@ if __name__ == '__main__':
 
     from hotpot.cheminfo.pubchem import get_compounds_cid
 
-    names = data.values.tolist()
+    names = data['name'].values.tolist()
     list_cid = [get_compounds_cid(name) for name in tqdm(names)]

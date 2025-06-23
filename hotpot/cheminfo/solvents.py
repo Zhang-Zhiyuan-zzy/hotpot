@@ -17,6 +17,7 @@ from glob import glob
 import pandas as pd
 
 from hotpot import read_mol
+from hotpot.cheminfo.core import Molecule
 
 _sol_properties_file = osp.abspath(osp.join(osp.dirname(__file__), 'ChemData', 'SolventsProperties.xlsx'))
 _sol_structures_dirs = osp.abspath(osp.join(osp.dirname(__file__), 'ChemData', 'solvent'))
@@ -41,8 +42,28 @@ class SolventsRepo:
         }
         self.sol_proper = pd.read_excel(_sol_properties_file)
 
+    def __len__(self):
+        return len(self.sol_proper)
+
+    def __getitem__(self, idx):
+        sol_series = self.sol_proper[idx]
+
+    def get_solvents_from_cid(self, cid):
+        """"""
+
+    def get_solvents_from_cas(self, cas):
+        """"""
+
+    def get_solvents_from_name(self, name):
+        """"""
+
+
 
 solvents_repo = SolventsRepo()
+
+
+class Solvent(Molecule):
+    """ Represent a Solvent Molecule """
 
 
 if __name__ == '__main__':
@@ -51,3 +72,8 @@ if __name__ == '__main__':
         print(name, mol.smiles, name in proper_names)
 
     print(solvents_repo.sol_proper)
+
+    from hotpot.cheminfo.pubchem import cid_to_smi
+
+    list_cid = solvents_repo.sol_proper['Cid'].values.tolist()
+    list_smi = [cid_to_smi(cid) for cid in list_cid]

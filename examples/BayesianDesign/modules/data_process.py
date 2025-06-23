@@ -30,17 +30,81 @@ from torch_geometric.data import Data
 
 import hotpot as hp
 from hotpot.plugins.PyG.data.utils import *
+from hotpot.plugins.ComplexFormer.data.data import ExtractionData
 
 __all__ = [
     'process_SclogK',
     'ccdc_struct_to_data'
 ]
 
+from hotpot.plugins.ccdc_api.solvents import sol_filename
+
 _cols = [
     'W', 'Tech.', 'SMILES', 'Metal', 'Medium', 'Solvent', 't', 'I-str', 'pH', 'P/bar',
     'Density_medium (kg/m3)', 'Molar Mass_medium (g/mol)', 'Melting Point_medium (K)',
     'Value'
 ]
+
+
+def _make_empty_graph(prefix: str = ''):
+    return {
+        f'{prefix}x': torch.empty(0, dtype=torch.float),
+        f'{prefix}x_names': [],
+        f'{prefix}edge_index': torch.empty(0, dtype=torch.long),
+        f'{prefix}edge_attr': torch.empty(0, dtype=torch.float),
+        f'{prefix}edge_attr_names': [],
+        f'{prefix}pair_index': torch.empty(0, dtype=torch.long),
+        f'{prefix}pair_attr': torch.empty(0, dtype=torch.float),
+        f'{prefix}pair_attr_names': [],
+        f'{prefix}mol_rings_nums': torch.zeros(1, dtype=torch.int),
+        f'{prefix}rings_node_index': torch.empty(0, dtype=torch.long),
+        f'{prefix}rings_node_nums': torch.empty(0, dtype=torch.int),
+        f'{prefix}mol_rings_node_nums': torch.empty(0, dtype=torch.int),
+        f'{prefix}rings_attr': torch.empty(0, dtype=torch.float),
+        f'{prefix}rings_attr_names': [],
+    }
+
+
+def _graph_extraction(mol: hp.Molecule = None, prefix: str = '', with_batch: bool = False) -> dict:
+    if prefix and not prefix.endswith('_'):
+        prefix += '_'
+
+    if mol is None:
+        graph_data = _make_empty_graph(prefix)
+
+    else:
+        x, x_names = extract_atom_attrs(mol)
+
+        edge_attr_names = ('bond_order', 'is_aromatic', 'is_metal_ligand_bond')
+        edge_index, edge_attr = extract_bond_attrs(mol, edge_attr_names)
+        pair_index, pair_attr, pair_attr_names = extract_atom_pairs(mol)
+
+        rings_attr_names = ('is_aromatic', 'has_metal')
+        mol_rings_nums, rings_node_index, rings_node_nums, mol_rings_node_nums, rings_attr = (
+            extract_ring_attrs(mol, rings_attr_names))
+
+        graph_data = {
+            f'{prefix}x': x,
+            f'{prefix}x_names': x_names,
+            f'{prefix}edge_index': edge_index,
+            f'{prefix}edge_attr': edge_attr,
+            f'{prefix}edge_attr_names': edge_attr_names,
+            f'{prefix}pair_index': pair_index,
+            f'{prefix}pair_attr': pair_attr,
+            f'{prefix}pair_attr_names': pair_attr_names,
+            f'{prefix}mol_rings_nums': mol_rings_nums,
+            f'{prefix}rings_node_index': rings_node_index,
+            f'{prefix}rings_node_nums': rings_node_nums,
+            f'{prefix}mol_rings_node_nums': mol_rings_node_nums,
+            f'{prefix}rings_attr': rings_attr,
+            f'{prefix}rings_attr_names': rings_attr_names,
+        }
+
+    if with_batch:
+        graph_data.update({f'{prefix}batch': torch.zeros(len(graph_data[f'{prefix}x']), dtype=torch.long)})
+
+    return graph_data
+
 
 def split_metal(metal_info: str):
     if '+' in metal_info:
@@ -60,12 +124,39 @@ def split_metal(metal_info: str):
     return metal, charge
 
 _exclude_ions = {'UO2', 'VO', 'NpO2', 'PuO2', 'PuO', 'PoO', 'MoO2', 'AmO2', 'PaO2', 'TcO', 'ZrO', 'Hg2'}
+sc_cols = [
+    'W', 'number', 'Tech.', 'SMILES', 'Metal', 'Medium', 'Med_cid', 'Sol1',
+    'Sol1_cid', 'Sol2', 'Sol2_cid', 'Sol1Ratio', 'Sol2Ratio', 'RatioMetric',
+    't', 'I-str', 'pH', 'P/bar', 'logK1'
+]
+med_info_names = ['names', 'CASs', 'formulas', 'smiless', 'Cid']
+med_attr_names = [
+    'MW', 'similarity_variables', 'Vmg_STPs', 'rhog_STPs',
+    'rhog_STPs_mass', 'similarity_variable', 'Cpg', 'Cpgm', 'Cpl',
+    'Cplm', 'Cps', 'Cpsm', 'Cvg', 'Cvgm', 'isentropic_exponent', 'JTg',
+    'kl', 'rhog', 'SGg', 'Density_medium (kg/m3)',
+    'Molar Mass_medium (g/mol)', 'Tm_medium (K)'
+]
+sol_info_names = ['names', 'CASs', 'formulas', 'Cid', 'smiless']
+sol_attr_names = [
+    'Hvap_298s', 'Hvap_298s_mass', 'Hvap_Tbs', 'Hvap_Tbs_mass', 'MW', 'omegas',
+    'Parachors', 'Pcs', 'Psat_298s', 'Pts', 'rhol_STPs', 'rhol_STPs_mass',
+    'similarity_variables', 'StielPolars', 'Tbs', 'Tcs', 'Tms', 'Tts',
+    'Van_der_Waals_areas', 'Van_der_Waals_volumes', 'Vml_STPs', 'Vml_Tms',
+    'UNIFAC_Rs', 'UNIFAC_Qs', 'rhos_Tms', 'Vms_Tms', 'rhos_Tms_mass',
+    'Vml_60Fs', 'rhol_60Fs', 'rhol_60Fs_mass', 'rhog_STPs_mass',
+    'sigma_STPs', 'sigma_Tms', 'sigma_Tbs'
+]
 def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = False):
-    df = pd.read_excel(path_raw, )
-    df = df[_cols]
+    df = pd.read_excel(osp.join(path_raw, 'Sc.xlsx'))
+    med = pd.read_excel(osp.join(path_raw, 'MedProp.xlsx'), sheet_name='clean')
+    sol = pd.read_excel(osp.join(path_raw, 'SolProp.xlsx'), sheet_name='clean')
+
+    med.index = med['Cid'].tolist()
+    sol.index = sol['Cid'].tolist()
 
     metal_clusters = set()
-    for i, row in tqdm(df.iterrows(), 'Processing SclogK dataset'):
+    for i, row in tqdm(df.iterrows(), 'Processing SclogK dataset', total=len(df)):
         smi = row['SMILES'].strip()
         mol = next(hp.MolReader(smi, fmt='smi'))
 
@@ -80,53 +171,139 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             metal_clusters.add(metal_sym)
             continue
 
-        x, x_names = extract_atom_attrs(mol)
+        # x, x_names = extract_atom_attrs(mol)
+        #
+        # edge_attr_names = ('bond_order', 'is_aromatic', 'is_metal_ligand_bond')
+        # edge_index, edge_attr = extract_bond_attrs(mol, edge_attr_names)
+        # pair_index, pair_attr, pair_attr_names = extract_atom_pairs(mol)
+        #
+        # ring_attr_names = ('is_aromatic', 'has_metal')
+        # mol_ring_nums, ring_node_index, ring_node_nums, mol_ring_node_nums, ring_attr = extract_ring_attrs(mol, ring_attr_names)
+        mol.add_hydrogens()
+        graph_data: dict = _graph_extraction(mol)
 
-        edge_attr_names = ('bond_order', 'is_aromatic', 'is_metal_ligand_bond')
-        edge_index, edge_attr = extract_bond_attrs(mol, edge_attr_names)
-        pair_index, pair_attr, pair_attr_names = extract_atom_pairs(mol)
+        # Compile solvents info
+        sol_attr_length = len(sol_attr_names)
+        sol1name, sol1id = row[['Sol1', 'Sol1_cid']]
+        sol2name, sol2id = row[['Sol2', 'Sol2_cid']]
 
-        ring_attr_names = ('is_aromatic', 'has_metal')
-        mol_ring_nums, ring_node_index, ring_node_nums, mol_ring_node_nums, ring_attr = extract_ring_attrs(mol, ring_attr_names)
+        sol1_info = sol.loc[sol1id, sol_info_names]
+        sol1_attr = torch.tensor(np.float_(sol.loc[sol1id, sol_attr_names].values), dtype=torch.float)
+        try:
+            sol1_smi = sol1_info['smiless'].strip()
+        except Exception as e:
+            print(sol1_info['smiless'])
+            raise e
 
-        mol_level_info_names = [
-            't', 'I-str', 'pH', 'P/bar',
-            'Density_medium (kg/m3)',
-            'Molar Mass_medium (g/mol)',
-            'Melting Point_medium (K)',
-        ]
+        solvent1 = hp.read_mol(sol1_smi, fmt='smi')
+        solvent1.add_hydrogens()
+        sol1_graph: dict = _graph_extraction(solvent1, 'sol1', with_batch=True)
+
+        sol1_info = sol1_info.tolist()
+
+        if not np.isnan(sol2id):
+            sol2_info = sol.loc[sol2id, sol_info_names]
+            sol2_attr = torch.tensor(np.float_(sol.loc[sol2id, sol_attr_names].values), dtype=torch.float)
+
+            sol2_smi = sol2_info['smiless'].strip()
+            solvent2 = hp.read_mol(sol2_smi, fmt='smi')
+            solvent2.add_hydrogens()
+            sol2_graph: dict = _graph_extraction(solvent2, 'sol2', with_batch=True)
+
+            sol2_info = sol2_info.tolist()
+
+        else:
+            sol2_info = []
+            sol2_attr = torch.zeros(sol_attr_length, dtype=torch.float)
+            sol2_graph: dict = _graph_extraction(None, 'sol2', with_batch=True)
+
+        if sol2_info:
+            sol_ratio = torch.tensor(row[['Sol1Ratio', 'Sol2Ratio']].tolist(), dtype=torch.float)
+            sol_ratio = sol_ratio / torch.sum(sol_ratio)
+            sol_ratio_metric = row['RatioMetric']
+            if pd.isna(sol_ratio_metric):
+                sol_ratio_metric = torch.tensor([0], dtype=torch.int8)
+            elif sol_ratio_metric == 'Vol':
+                sol_ratio_metric = torch.tensor([1], dtype=torch.int8)
+            elif sol_ratio_metric == 'Wgt':
+                sol_ratio_metric = torch.tensor([2], dtype=torch.int8)
+            elif sol_ratio_metric == 'Mol':
+                sol_ratio_metric = torch.tensor([2], dtype=torch.int8)
+                sol1_Mw = sol.loc[sol1id, 'MW']
+                sol2_Mw = sol.loc[sol2id, 'MW']
+                sol_ratio = torch.tensor([sol_ratio[0] * sol1_Mw, sol_ratio[1] * sol2_Mw], dtype=torch.float) / (sol_ratio[0] * sol1_Mw + sol_ratio[1] * sol2_Mw)
+
+        else:
+            sol_ratio = torch.tensor([0, 0], dtype=torch.float)
+            sol_ratio_metric = torch.tensor([-1], dtype=torch.int8)
+
+        # Compile Medium Info
+        med_name, med_id = row[['Medium', 'Med_cid']]
+        if med_id == 0:
+            med_info = ['Inf.Dilute', '0000-00-0', '', 0, '']
+            med_attr = torch.zeros(len(med_attr_names), dtype=torch.float)
+
+            med_graph: dict = _graph_extraction(None, 'med', with_batch=True)
+
+        else:
+            med_info = med.loc[med_id, med_info_names]
+            med_attr = torch.tensor(med.loc[med_id, med_attr_names].tolist(), dtype=torch.float)
+
+            med_smi = med_info['smiless'].strip()
+            medium = next(hp.MolReader(med_smi, fmt='smi'))
+            medium.add_hydrogens()
+            med_graph: dict = _graph_extraction(medium, 'med', with_batch=True)
+
+            med_info = med_info.tolist()
+
+        mol_level_info_names = ['t', 'I-str', 'pH', 'P/bar']
         mol_level_info = torch.from_numpy(np.float_(row[mol_level_info_names].values.flatten()))
 
-        y_names = ['Value']
-        y = torch.from_numpy(np.float_(row[y_names].values.flatten()))
-        y_names[-1] = 'logK1'
+        y_names = ['logK1']
+        y = torch.tensor(row[y_names].tolist(), dtype=torch.float)
 
-        other_info_names = ['W', 'Tech.', 'Metal', 'Medium', 'Solvent']
-        other_info = row[other_info_names].values.flatten()
+        other_info_names = ['W', 'Tech.', 'Metal', 'Medium', 'Med_cid', 'Sol1', 'Sol1_cid', 'Sol2', 'Sol2_cid']
+        other_info = row[other_info_names].tolist()
 
-        data = Data(
-            x=x,
-            x_names=x_names,
-            edge_index=edge_index,
-            edge_attr=edge_attr,
-            edge_attr_names=edge_attr_names,
-            pair_index=pair_index,
-            pair_attr=pair_attr,
-            pair_attr_names=pair_attr_names,
+        data = ExtractionData(
+            # x=x,
+            # x_names=x_names,
+            # edge_index=edge_index,
+            # edge_attr=edge_attr,
+            # edge_attr_names=edge_attr_names,
+            # pair_index=pair_index,
+            # pair_attr=pair_attr,
+            # pair_attr_names=pair_attr_names,
+            sol1_info=sol1_info,
+            sol1_attr=sol1_attr,
+            sol2_info=sol2_info,
+            sol2_attr=sol2_attr,
+            sol_info_names=sol_info_names,
+            sol_attr_names=sol_attr_names,
+            sol_ratio=sol_ratio,
+            sol_ratio_metric=sol_ratio_metric,
+            med_info=med_info,
+            med_attr=med_attr,
+            med_info_names=med_info_names,
+            med_attr_names=med_attr_names,
             mol_level_info=mol_level_info,
             mol_level_info_names=mol_level_info_names,
             y=y,
             y_names=y_names,
             identifier=str(i),
-            mol_rings_nums=mol_ring_nums,
-            rings_node_index=ring_node_index,
-            rings_node_nums=ring_node_nums,
-            mol_rings_node_nums=mol_ring_node_nums,
-            rings_attr=ring_attr,
-            rings_attr_names=ring_attr_names,
+            # mol_rings_nums=mol_ring_nums,
+            # rings_node_index=ring_node_index,
+            # rings_node_nums=ring_node_nums,
+            # mol_rings_node_nums=mol_ring_node_nums,
+            # rings_attr=ring_attr,
+            # rings_attr_names=ring_attr_names,
             smiles=smi,
             other_info=other_info,
             other_info_names=other_info_names,
+            **graph_data,
+            **sol1_graph,
+            **sol2_graph,
+            **med_graph
         )
         torch.save(data, osp.join(data_dir, f"{data.identifier}.pt"))
 

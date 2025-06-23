@@ -14,6 +14,14 @@
 """
 import os
 import os.path as osp
+from glob import glob
+
+from tqdm import tqdm
+import torch
+from torch_geometric.loader import DataLoader
+
+from hotpot.plugins.ComplexFormer.data.data import ExtractionData
+
 from examples.BayesianDesign.machines_config import (
     project_root
 )
@@ -27,10 +35,31 @@ def run_SclogK_process():
         os.mkdir(SclogK_data_dir)
 
     process_SclogK(
-        osp.join(project_root, 'raws_ds', 'SClogK1.xlsx'),
+        osp.join(project_root, 'raws_ds', 'ScData'),
         SclogK_data_dir,
         # store_metal_cluster=True
     )
 
+def test_loading_ScData():
+    SclogK_data_dir = osp.join(project_root, 'datasets', 'SclogK')
+
+    pt_files = glob(osp.join(SclogK_data_dir, '*.pt'))[:4000]
+    data = [torch.load(p, weights_only=False) for p in pt_files]
+    loader = DataLoader(data, batch_size=64, shuffle=True)
+
+    for batch in loader:
+        print(batch)
+
+
 if __name__ == '__main__':
-    run_SclogK_process()
+    # run_SclogK_process()
+    # test_loading_ScData()
+    SclogK_data_dir = osp.join(project_root, 'datasets', 'SclogK')
+
+    for pt_file in tqdm(glob(osp.join(SclogK_data_dir, '*.pt'))):
+        data = torch.load(pt_file, weights_only=False)
+        e_data = ExtractionData()
+        e_data.update(data.to_dict())
+
+        torch.save(e_data.to_dict(), pt_file)
+

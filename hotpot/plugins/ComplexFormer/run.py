@@ -331,7 +331,8 @@ def run(
     progress_bar = cbs.Pbar()
     if debug:
         debugger = cbs.Debugger()
-        callbacks = [progress_bar, early_stop_callback, debugger]
+        callbacks = [progress_bar, early_stop_callback]
+        # callbacks = [progress_bar, early_stop_callback, debugger]
     else:
         callbacks = [progress_bar, early_stop_callback]
 

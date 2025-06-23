@@ -38,7 +38,10 @@ def extract_atom_attrs(mol: Molecule) -> (torch.Tensor, list):
 
 def extract_bond_attrs(mol: Molecule, edge_attr_names: Iterable[str]) -> (torch.Tensor, torch.Tensor):
     bond_attr_getter = attrgetter(*edge_attr_names)
-    edge_index = direct_edge_to_indirect(torch.tensor(mol.link_matrix).T).long()
+    if (link_matrix := mol.link_matrix).ndim == 2:
+        edge_index = direct_edge_to_indirect(torch.tensor(link_matrix).T).long()
+    else:
+        edge_index = torch.empty(0, dtype=torch.long)
     edge_attr = direct_edge_to_indirect(torch.from_numpy(np.array([(bond_attr_getter(b)) for b in mol.bonds])), is_index=False).float()
 
     return edge_index, edge_attr
@@ -46,7 +49,10 @@ def extract_bond_attrs(mol: Molecule, edge_attr_names: Iterable[str]) -> (torch.
 def extract_atom_pairs(mol: Molecule) -> (torch.Tensor, torch.Tensor, list):
     atom_pairs = mol.atom_pairs
     atom_pairs.update_pairs()
-    pair_index = torch.tensor(atom_pairs.idx_matrix).T.long()
+    if (idx_metrix := atom_pairs.idx_matrix).ndim == 2:
+        pair_index = torch.tensor(atom_pairs.idx_matrix).T.long()
+    else:
+        pair_index = torch.empty(0, dtype=torch.long)
     pair_attr = torch.tensor([p.attrs for k, p in atom_pairs.items()]).float()
     pair_attr_names = AtomPair.attr_names
 

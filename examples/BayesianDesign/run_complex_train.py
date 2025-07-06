@@ -2,6 +2,7 @@ import sys
 import os.path as osp
 import socket
 import json
+from collections import defaultdict
 
 import torch
 
@@ -47,7 +48,6 @@ from hotpot.plugins.ComplexFormer import (
     tools,
     run
 )
-from hotpot.plugins.ComplexFormer.data import dataset as D
 from hotpot.plugins.ComplexFormer.data.data_module import get_first_data
 
 models_dir = osp.join(project_root, 'models')
@@ -62,7 +62,8 @@ else:
 
 EPOCHS = 50
 OPTIMIZER = torch.optim.Adam
-X_DIM = len(('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z'))
+X_ATTR_NAMES = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
+X_DIM = len(X_ATTR_NAMES)
 VEC_DIM = 128
 MASK_VEC = (-1 * torch.ones(X_DIM)).to(device)
 RING_LAYERS = 1
@@ -86,6 +87,10 @@ core = M.Core(
     ring_nheads=RING_HEADS,
     mol_layers=MOL_LAYERS,
     mol_nheads=MOL_HEADS,
+    med_props_nums=22,
+    sol_props_nums=34,
+    with_sol_encoder=True,
+    with_med_encoder=True,
 )
 
 def which_datasets_train(
@@ -107,6 +112,9 @@ def which_datasets_train(
         target_getters = task_definition[datasets[0]]['target_getters']
         loss_fn = task_definition[datasets[0]]['loss_fn']
         primary_metric = task_definition[datasets[0]]['primary_metric']
+
+        options = task_definition[datasets[0]].get('options', {})
+
     else:
         feature_extractors = [task_definition[ds]['feature_extractors'] for ds in datasets]
         predictors = [task_definition[ds]['predictors'] for ds in datasets]
@@ -114,27 +122,20 @@ def which_datasets_train(
         loss_fn = [task_definition[ds]['loss_fn'] for ds in datasets]
         primary_metric = [task_definition[ds]['primary_metric'] for ds in datasets]
 
-    run.run(
-        work_name=work_name,
-        work_dir=models_dir,
-        core=core,
-        dir_datasets=dir_datasets,
-        dataset_names=datasets,
-        hypers=hypers,  # pretrain.Hyper instance
-        epochs=EPOCHS,  # int
-        device=device,  # cuda or cpu
-        eval_steps=1,  # the interval (epoch) steps to eval
-        load_all_data=True,
-        target_getter=target_getters,
-        feature_extractor=feature_extractors,
-        predictor=predictors,
-        loss_fn=loss_fn,
-        primary_metric=primary_metric,
-        # checkpoint_path=-1,
-        xyz_perturb_sigma=0.5,
-        debug=debug,
-        **kwargs
-    )
+        _options = [task_definition[ds].get('options', {}) for ds in datasets]
+        all_opt_keys = set(k for opt in _options for k in opt.keys())
+
+        options = defaultdict(list)
+        for key in all_opt_keys:
+            for opt in _options:
+                options[key].append(opt.get(key, None))
+
+    options.update(kwargs)
+
+    run.run(work_name=work_name, work_dir=models_dir, core=core, dir_datasets=dir_datasets, hypers=hypers,
+            dataset_names=datasets, target_getter=target_getters, epochs=EPOCHS, feature_extractor=feature_extractors,
+            predictor=predictors, loss_fn=loss_fn, primary_metric=primary_metric, xyz_perturb_sigma=0.5,
+            load_all_data=True, debug=debug, device=device, eval_steps=1, **options)
 
 
 def combined_training():
@@ -283,25 +284,10 @@ def combined_training():
         },
     ]
 
-    run.run(
-        work_name=work_name,
-        work_dir=models_dir,
-        core=core,
-        dir_datasets=dir_datasets,
-        hypers=hypers,  # pretrain.Hyper instance
-        epochs=EPOCHS,  # int
-        device=device,  # cuda or cpu
-        eval_steps=1,  # the interval (epoch) steps to eval
-        load_all_data=True,
-        target_getter=target_getters,
-        feature_extractor=feature_extractors,
-        predictor=predictors,
-        loss_fn=loss_fn,
-        primary_metric=primary_metric,
-        # checkpoint_path=-1,
-        xyz_perturb_sigma=0.5,
-        debug=True
-    )
+    run.run(work_name=work_name, work_dir=models_dir, core=core, dir_datasets=dir_datasets, hypers=hypers,
+            target_getter=target_getters, epochs=EPOCHS, feature_extractor=feature_extractors, predictor=predictors,
+            loss_fn=loss_fn, primary_metric=primary_metric, xyz_perturb_sigma=0.5, load_all_data=True, debug=True,
+            device=device, eval_steps=1)
 
 
 def multi_task():
@@ -359,27 +345,10 @@ def multi_task():
             'xyzC': 'amd',
     }
 
-    run.run(
-        work_name=work_name,
-        work_dir=models_dir,
-        core=core,
-        dir_datasets=dir_datasets,
-        dataset_names=['mono'],
-        hypers=hypers,  # pretrain.Hyper instance
-        epochs=EPOCHS,  # int
-        device=device,  # cuda or cpu
-        eval_steps=1,  # the interval (epoch) steps to eval
-        load_all_data=True,
-        target_getter=target_getters,
-        feature_extractor=feature_extractors,
-        predictor=predictors,
-        loss_fn=loss_fn,
-        primary_metric=primary_metric,
-        # checkpoint_path=-1,
-        xyz_perturb_sigma=0.5,
-        devices=1
-        # debug=True
-    )
+    run.run(work_name=work_name, work_dir=models_dir, core=core, dir_datasets=dir_datasets, hypers=hypers,
+            dataset_names=['mono'], target_getter=target_getters, epochs=EPOCHS, feature_extractor=feature_extractors,
+            predictor=predictors, loss_fn=loss_fn, primary_metric=primary_metric, xyz_perturb_sigma=0.5, devices=1,
+            load_all_data=True, device=device, eval_steps=1)
 
 
 
@@ -387,10 +356,11 @@ if __name__ == '__main__':
     # combined_training()
     # multi_task()
     which_datasets_train(
-        'tmqm', 'mono',
+        'tmqm', 'mono', 'SclogK',
         # 'mono_ml_pair',
         work_name='MultiTask',
-        # debug=True,
-        # devices=2
-
+        debug=True,
+        # devices=2,
+        # with_sol=True,
+        # with_med=True,
     )

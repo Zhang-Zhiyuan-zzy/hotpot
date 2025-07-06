@@ -12,6 +12,8 @@ from tqdm import tqdm
 from typing import Iterable, Callable, Optional
 import multiprocessing as mp
 
+from . import fmt_print
+
 
 def decorator(func: Callable) -> Callable:
     def _target(queue, *a, **kw_):
@@ -34,7 +36,8 @@ def mp_run(
 ):
 
     if nproc is None:
-        nproc = mp.cpu_count() // 2
+        nproc = mp.cpu_count()
+    fmt_print.bold_magenta(f'Running with {nproc} processes')
 
     process = {}
     args = list(args)

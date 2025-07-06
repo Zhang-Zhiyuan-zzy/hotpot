@@ -20,8 +20,6 @@ from tqdm import tqdm
 import torch
 from torch_geometric.loader import DataLoader
 
-from hotpot.plugins.ComplexFormer.data.data import ExtractionData
-
 from examples.BayesianDesign.machines_config import (
     project_root
 )
@@ -52,14 +50,14 @@ def test_loading_ScData():
 
 
 if __name__ == '__main__':
-    # run_SclogK_process()
+    run_SclogK_process()
     # test_loading_ScData()
-    SclogK_data_dir = osp.join(project_root, 'datasets', 'SclogK')
+    # ScData_cook()
 
-    for pt_file in tqdm(glob(osp.join(SclogK_data_dir, '*.pt'))):
-        data = torch.load(pt_file, weights_only=False)
-        e_data = ExtractionData()
-        e_data.update(data.to_dict())
-
-        torch.save(e_data.to_dict(), pt_file)
+    # SclogK_data_dir = osp.join(project_root, 'datasets', 'SclogK')
+    # data = [torch.load(f, weights_only=False) for f in glob(osp.join(SclogK_data_dir, '*.pt'))[:1024]]
+    # loader = DataLoader(data, batch_size=64)
+    #
+    # for batch in loader:
+    #     print(batch)
 

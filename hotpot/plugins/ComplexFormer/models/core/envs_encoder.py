@@ -25,7 +25,9 @@ class SolventNet(nn.Module):
             self,
             vec_dim: int,
             props_nums: Optional[int] = None,
+            labeled_node: bool = False,
             node_dim: Optional[int] = None,
+            embedding_weights: Optional[Union[int, tuple[int, int], torch.Tensor]] = None,
             props_net_layers: int = 2,
             gnn_layers: int = 3,
             gnn: Optional[Union[nn.Module, str]] = None,
@@ -44,6 +46,30 @@ class SolventNet(nn.Module):
         else:
             self.props_net = None
 
+        # Add node_embedding layers
+        if labeled_node:
+            if node_dim is None:
+                node_dim = vec_dim
+
+            if embedding_weights is None:
+                self.emb = nn.Embedding(119, node_dim)
+            elif isinstance(embedding_weights, int):
+                self.emb = nn.Embedding(embedding_weights, node_dim)
+            elif isinstance(embedding_weights, tuple):
+                num_emb, node_dim = embedding_weights
+                self.emb = nn.Embedding(num_emb, node_dim)
+            elif isinstance(embedding_weights, torch.Tensor):
+                # This configuration can make sure all elements with identical embedding vector,
+                # on matter in ligands, solvents or media.
+                assert embedding_weights.dim() == 2
+                num_emb, node_dim = embedding_weights.shape
+                self.emb = nn.Embedding(num_emb, node_dim)
+                self.emb.weight = embedding_weights
+            else:
+                raise TypeError(f'embedding_weights must be None, int, tuple of int, or a Tensor with dim=2')
+        else:
+            self.emb = None
+
         # Configure the GNN modules
         if isinstance(gnn, nn.Module):
             self.gnn = gnn
@@ -57,27 +83,30 @@ class SolventNet(nn.Module):
         else:
             self.gnn = None
 
-    def forward(self, sol_graph: Optional[dict[str, torch.Tensor]] = None, props: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, graph_repr: Optional[dict[str, torch.Tensor]] = None, props_vec: torch.Tensor = None) -> torch.Tensor:
         """"""
-        if not sol_graph and not props:
+        if not graph_repr and not props_vec:
             return torch.zeros(self.vec_dim)
 
-        if isinstance(sol_graph, dict):
+        if isinstance(graph_repr, dict):
             if self.gnn is None:
                 raise AttributeError('The graph encoder is not defined, cannot to compile sol_graph info')
 
-            xg = self.gnn(**sol_graph)
+            if isinstance(self.emb, nn.Module):
+                graph_repr['x'] = self.emb(graph_repr['x'])
+            xg = pyg_nn.global_max_pool(self.gnn(**graph_repr), batch=graph_repr['batch'], size=graph_repr['batch_size'])
 
         else:
             xg = 0
 
-        if props:
+        if isinstance(props_vec, torch.Tensor):
             if self.props_net is None:
                 raise AttributeError('The Properties encoder is not defined, cannot to compile props info')
 
-            xp = self.props_net(*props)
+            prop_mask = (props_vec.abs().max(dim=-1)[0] > 1e-8).unsqueeze(1)
+            xp = self.props_net(props_vec) * prop_mask
 
         else:
             xp = 0
 
-        raise xg + xp
+        return xg + xp

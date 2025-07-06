@@ -176,11 +176,14 @@ class AttnCore(CoreBase):
         self.RING = nn.Parameter(torch.randn(1, vec_dim))
         self.END = nn.Parameter(torch.randn(1, vec_dim))
 
-        # Definition of Solvent net
+        # Definition of a Solvent net
         if with_sol_encoder:
             self.sol_encoder = SolventNet(
                 vec_dim=vec_dim,
+                props_nums=sol_props_nums,
                 props_net_layers=sol_props_net_layers,
+                labeled_node=self.labeled_elements,
+                embedding_weights=self.elem_emb_vec,
                 node_dim=sol_node_dim,
                 gnn_layers=sol_gnn_layers,
                 gnn=sol_gnn,
@@ -189,11 +192,14 @@ class AttnCore(CoreBase):
         else:
             self.sol_encoder = None
 
-        # Definition of Media net
+        # Definition of a Media net
         if with_med_encoder:
             self.med_encoder = SolventNet(
                 vec_dim=vec_dim,
+                props_nums=med_props_nums,
                 props_net_layers=med_props_net_layers,
+                labeled_node=self.labeled_elements,
+                embedding_weights=self.elem_emb_vec,
                 node_dim=med_node_dim,
                 gnn_layers=med_gnn_layers,
                 gnn=med_gnn,
@@ -216,8 +222,23 @@ class AttnCore(CoreBase):
             self.mol_info_net = None
 
     @property
+    def labeled_elements(self) -> Optional[bool]:
+        if getattr(self, 'node_processor', None) is None:
+            return None
+
+        if isinstance(self.elem_emb_vec, torch.Tensor):
+            return True
+        return False
+
+    @property
     def x_mask_vec(self):
         return self.node_processor.x_mask_vec
+
+    @property
+    def elem_emb_vec(self) -> Optional[torch.Tensor]:
+        if isinstance(emb_net := getattr(self.node_processor, 'x_emb'), nn.Embedding):
+            return emb_net.weight
+        return None
 
     def _assemble_sequence(
             self, X, Xr, X_mask, Xr_mask,
@@ -239,14 +260,14 @@ class AttnCore(CoreBase):
         ], dim=1)
 
         if isinstance(sol_vec, torch.Tensor):
-            # TODO: Modify the dimension
-            seq = torch.cat([seq, sol_vec], dim=-2)
+
+            seq = torch.cat([seq, sol_vec.unsqueeze(-2)], dim=-2)
 
         if isinstance(med_vec, torch.Tensor):
-            seq = torch.cat([seq, med_vec], dim=-2)
+            seq = torch.cat([seq, med_vec.unsqueeze(-2)], dim=-2)
 
         if isinstance(env_vec, torch.Tensor):
-            seq = torch.cat([seq, env_vec], dim=-2)
+            seq = torch.cat([seq, env_vec.unsqueeze(-2)], dim=-2)
 
         padding_cols = seq.size(-2) - seq_padding_mask.size(-1)
         if padding_cols > 0:
@@ -285,21 +306,23 @@ class AttnCore(CoreBase):
             prop_inputs: Optional[Union[torch.Tensor, Iterable[torch.Tensor]]] = None,
             sol_ratios: torch.Tensor = None
     ):
+        """ Encoder for general environmental information, such as solvents, media, and T, P, pH and so on. """
         if graph_inputs is None and prop_inputs is None:
             return None
 
         net = getattr(self, net_name)
-        assert isinstance(net, nn.Module)
+        assert isinstance(net, nn.Module), f"The {net_name} expects a nn.Module, got {type(net)}"
 
         if sol_ratios is not None:  # Expected shape of sol_ratio is (batch_size[B], sol_num[N])
             assert sol_ratios.ndim == 2
+            cat_batch_size = batch_size * sol_ratios.size(1)
 
             if graph_inputs is not None:
                 assert isinstance(graph_inputs, (tuple, list))
                 assert len(graph_inputs) == sol_ratios.size(1)
                 assert all(isinstance(g, dict) for g in graph_inputs)
 
-                graph_repr = {}
+                graph_repr = {'batch_size': cat_batch_size}
                 for arg in graph_inputs[0].keys():
                     if 'batch' in arg:
                         graph_repr[arg] = torch.cat(
@@ -308,7 +331,7 @@ class AttnCore(CoreBase):
                         )
                     elif "index" in arg:
                         graph_repr[arg] = torch.cat(
-                            [(graph_inputs[i][arg] + (i and len(graph_inputs[i - 1]['x'])) for i in range(len(graph_inputs)))],
+                            [graph_inputs[i][arg] + (i and len(graph_inputs[i - 1]['x'])) for i in range(len(graph_inputs))],
                             dim=-1
                         )
                     else:
@@ -337,7 +360,10 @@ class AttnCore(CoreBase):
             assert isinstance(prop_inputs, torch.Tensor)
             assert prop_inputs.size(0) == batch_size
 
-            return net(graph_inputs, prop_inputs)
+            graph_repr = graph_inputs.copy()
+            graph_repr['batch_size'] = batch_size
+
+            return net(graph_repr, prop_inputs)
 
     def mol_level_encoder(self, mol_level_info: Optional[torch.Tensor] = None):
         if mol_level_info is None:
@@ -400,7 +426,7 @@ class AttnCore(CoreBase):
             med_ratios: Optional[torch.Tensor] = None,
             mol_level_info: Optional[Union[torch.Tensor, torch.nested.nested_tensor]] = None,
     ):
-        batch_size = batch.max() + 1
+        batch_size = int(batch.max()) + 1
 
         x = self.node_processor(x, edge_index, batch, xyz=xyz)
         xr = self._rings_attention(x, rings_node_index, rings_node_nums)

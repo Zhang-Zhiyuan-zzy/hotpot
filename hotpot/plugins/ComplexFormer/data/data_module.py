@@ -74,6 +74,7 @@ import os
 import os.path as osp
 
 import glob
+import random
 
 from typing import Optional, Sequence, Union
 from collections import OrderedDict
@@ -311,9 +312,13 @@ class DataModule(L.LightningDataModule):
         for ds_name in self.list_datasets:
             dir_dataset = osp.join(self.dir_datasets, ds_name)
             if self.debug:
+
+                debug_sample_nums = self._DEBUG_BATCHES * self.devices * self.batch_size \
+                                    + random.randint(0, self.batch_size)  # and a random residual
+
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_data = []
-                for _ in tqdm(range(self._DEBUG_BATCHES*self.devices*self.batch_size), 'loading data'):
+                for _ in tqdm(range(debug_sample_nums), 'loading data'):
                     try:
                         list_data.append(torch_load_data(next(path_generator)))
                     except StopIteration:

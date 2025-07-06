@@ -36,10 +36,11 @@ print(res.stdout)  # print results
 The default task is `single point`. to specify your own tanks, adding the xtb command flag 
 (see https://xtb-docs.readthedocs.io/en/latest/commandline.html) For example, if your want 
 to perform the structure optimization:
+
 ```python
 calculator.clear_options()
 calculator.options.append('--opt')
-calculate.run()
+calculate.run(,
 ```
 
 ## Usage of `xtb_batch_run()`

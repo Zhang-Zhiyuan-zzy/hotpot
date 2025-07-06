@@ -1,7 +1,8 @@
 import math
 import logging
+import random
 
-from typing import Optional, Union, List, Iterable, Mapping
+from typing import Optional, Union, List, Iterable, Mapping, Literal
 
 import numpy as np
 
@@ -13,6 +14,7 @@ from torch_geometric.data import Data
 from torch_geometric.data.data import BaseData
 from torch_geometric.loader import DataLoader
 
+from hotpot.utils import fmt_print
 from hotpot.plugins.ComplexFormer.data import (
     dataset as D,
     collate
@@ -40,7 +42,16 @@ def _slice_dataset(ds: Union[Iterable[Data], Mapping], stop: int) -> D.DataWrapp
         raise TypeError(f'The dataset in the collection should be Iterable or Mapping')
 
 
-def _check_concat_dataset(dataset: Union[D.MConcatDataset, Iterable[Union[Dataset, Iterable[BaseData]]]]):
+def _check_concat_dataset(
+        dataset: Union[D.MConcatDataset, Iterable[Union[Dataset, Iterable[BaseData]]]]
+) -> D.MConcatDataset:
+    """
+    Check whether the given dataset is an MConcatDataset or an Iterable of Dataset.
+
+    If Neither, raise a TypeError.
+
+    If the dataset is an Iterable of Dataset, convert it to MConcatDataset.
+    """
     if not (isinstance(dataset, D.MConcatDataset) or isinstance(dataset, Iterable)):
         raise TypeError('datasets should be either a MConcatDataset or Iterable[Dataset]')
 
@@ -227,33 +238,123 @@ def _create_concat_batch_sampler(
         dataset: Union[D.MConcatDataset, Iterable[Union[Dataset, Iterable[BaseData]]]],
         _batch_size: int = 1,
         shuffle: bool = False,
-        _drop_last: bool = False
+        _drop_last: bool = False,
+        **kwargs
 ):
     """
     The implementation of Pytorch Lightning will reinitialize the BatchSampler, which leads to
     wrong arguments passed into the reinitialized instance, say the `batch_size` will be set to `1`,
     no matter which values are specified by user. Through defining the `BatchSampler` class in a
-    closure, this mistake can avoid.
+    closure, this mistake can be avoided.
     """
     dataset = _check_concat_dataset(dataset)
     class CDBatchSampler(BatchSampler):
         def __init__(
-            self,
-            sampler: Union[Sampler[int], Iterable[int]],
-            batch_size: int,
-            drop_last: bool,
+                self,
+                sampler: Union[Sampler[int], Iterable[int]],
+                batch_size: int,
+                drop_last: bool,
+                total_nums: Union[int, Literal['shortest', 'longest', 'total', 'log-mean']] = 'total',
+                split_ratio: Optional[Union[Iterable[float], Literal['mean', 'as-ratio', 'log2']]] = None,
         ):
             super().__init__(sampler, batch_size, drop_last)
-            self.dataset = dataset
+            self.dataset: D.MConcatDataset = dataset
             self.shuffle = shuffle
-            self.cunsum_size = _cumsum_datasets(self.dataset)
+            self.dataset_sizes: List[int] = [len(ds) for ds in self.datasets]
+            self.cumsum_size = _cumsum_datasets(self.dataset)
 
-            if drop_last:
-                self._batch_nums = sum(len(ds) // self.batch_size for ds in self.datasets)
-            else:
-                self._batch_nums = sum(len(ds) // self.batch_size + 1 for ds in self.datasets)
+            self.total_nums, self.total_num_mode = self._set_total_nums(total_nums)
+            self.split_ratio, self.split_mode =  self._set_sample_ratio(split_ratio)
 
+            self.sample_nums, self._batch_nums = self._set_batch_nums()
+
+            fmt_print.bold_magenta(f"Sampling numbers in BatchSampler: {self.sample_nums}")
             logging.debug(f'BatchSampler batch_size{self.batch_size}, sampler_size{len(self.sampler)}, dataset_size{len(self.dataset)}')
+
+        def _set_total_nums(self, total_nums):
+            if isinstance(total_nums, int):
+                if total_nums <= 0:
+                    raise ValueError('total_nums must be a positive integer')
+                return total_nums, 'user_specify'
+
+            dataset_sizes = [len(ds) for ds in self.datasets]
+            if total_nums == 'total':
+                return sum(dataset_sizes), 'total'
+            elif total_nums == 'shortest':
+                return min(dataset_sizes) * len(dataset_sizes), 'shortest'
+            elif total_nums == 'longest':
+                return max(dataset_sizes) * len(dataset_sizes), 'longest'
+            elif total_nums == 'log-mean':
+                log_mean = np.mean(np.log10(dataset_sizes))
+                return (10 ** log_mean) * len(dataset_sizes), 'log-mean'
+            else:
+                raise NotImplementedError(f'Unsupported total_nums: {total_nums}')
+
+        def _set_sample_ratio(
+                self,
+                split_ratio: Optional[Union[Iterable[float], Literal['mean', 'as-ratio', 'log2']]]
+        ) -> list[int]:
+            if not isinstance(split_ratio, str) and isinstance(split_ratio, Iterable):
+                assert len(split_ratio) == self.dataset_sizes, (
+                    f'The length of split_ratio must be equal to the number of '
+                    f'datasets, but {len(split_ratio)} != {self.dataset_sizes}')
+                assert all(isinstance(r, float) for r in split_ratio), f"all split_ratio values must be floats, but {split_ratio}"
+                assert all(r > 0 for r in split_ratio), f"all split_ratio values must be positive, but {split_ratio}"
+
+                ratio = np.array(split_ratio) / sum(split_ratio)
+                return ratio, 'user-specified'
+
+            elif isinstance(split_ratio, str):
+                if split_ratio in ['mean', 'as-ratio', 'log2']:
+                    split_mode = split_ratio
+                else:
+                    raise ValueError(f'Unsupported split_ratio: {split_ratio}')
+
+            elif split_ratio is None:  # Auto mode
+                if self.total_num_mode == 'total':
+                    split_mode = 'as-ratio'
+                elif self.total_num_mode in ('shortest', 'longest'):
+                    split_mode = 'mean'
+                elif self.total_num_mode == 'log-mean':
+                    split_mode = 'log2'
+                else:
+                    ds_min, ds_max = min(self.dataset_sizes), max(self.dataset_sizes)
+                    if ds_max / ds_min > 10:
+                        split_mode = 'log2'
+                    else:
+                        split_mode = 'as-ratio'
+
+            else:
+                raise TypeError(f'Unsupported split_ratio: {split_ratio}')
+
+            if split_mode == 'mean':
+                return np.ones(len(self.dataset_sizes)) / len(self.dataset_sizes), 'mean'
+            elif split_mode == 'as-ratio':
+                return np.array(self.dataset_sizes) / sum(self.dataset_sizes), 'as-ratio'
+            elif split_mode == 'log2':
+                ratio = 1 + np.log2(np.array(self.dataset_sizes)/min(self.dataset_sizes))
+                ratio = ratio / sum(ratio)
+                return ratio, 'log2'
+            else:
+                raise ValueError(f'Unsupported split_mode: {split_mode}')
+
+        def _set_batch_nums_old(self):
+            """ Old version """
+            if self.drop_last:
+                return sum(len(ds) // self.batch_size for ds in self.datasets)
+            else:
+                return sum(len(ds) // self.batch_size + 1 for ds in self.datasets)
+
+        def _set_batch_nums(self) -> (np.ndarray, int):
+            # New version
+            _temp_sample_nums = np.long(self.total_nums * self.split_ratio)
+            batch_nums, rest = np.divmod(_temp_sample_nums, self.batch_size)
+
+            if not self.drop_last:
+                batch_nums += np.bool(rest)
+
+            # sample_nums, batch_nums
+            return batch_nums * self.batch_size, sum(batch_nums)
 
         def __repr__(self):
             return (f'{self.__class__.__name__}(' +
@@ -266,12 +367,12 @@ def _create_concat_batch_sampler(
         def __len__(self):
             return self._batch_nums
 
-        def __iter__(self):
+        def _iter_old(self):
             if self.drop_last:
-                datasets_indices = [self.cunsum_size[i] + np.arange(len(ds)) for i, ds in enumerate(self.datasets)]
+                datasets_indices = [self.cumsum_size[i] + np.arange(len(ds)) for i, ds in enumerate(self.datasets)]
             else:
                 datasets_indices = [
-                    self.cunsum_size[i] + np.concatenate([
+                    self.cumsum_size[i] + np.concatenate([
                         np.arange(len(ds)),
                         np.random.randint(len(ds), size=(self.batch_size - len(ds) % self.batch_size))
                     ], axis=0) for i, ds in enumerate(self.datasets)]
@@ -296,7 +397,48 @@ def _create_concat_batch_sampler(
             # logging.debug(f'CDBatchSampler batches: {batches}')
             return iter(batches)
 
-    return CDBatchSampler(range(len(dataset)), _batch_size, drop_last=_drop_last)
+        def _iter(self):
+            rep_factor, residual = np.divmod(self.sample_nums, np.array(self.dataset_sizes))
+
+            indices = []
+            for i, (rf, res) in enumerate(zip(rep_factor, residual)):
+                idx_start, idx_end = self.cumsum_size[i], self.cumsum_size[i+1]
+                dataset_idx_range = list(range(idx_start, idx_end))
+
+                index = dataset_idx_range * rf + random.sample(dataset_idx_range, res)
+                indices.append(index)
+
+            # Check whether the number of indices for each dataset equals to integer_times of batch_size
+            indices_length = np.array([len(idx) for idx in indices])
+            batch_num, rest = divmod(indices_length, self.batch_size)
+            assert not np.any(rest)
+
+            if self.shuffle:
+                for idx in indices:
+                    np.random.shuffle(idx)
+
+            batches = []
+            for ds_index, b_num in zip(indices, batch_num):
+                batches.extend(np.split(np.array(ds_index), b_num))
+
+            if self.shuffle:
+                np.random.shuffle(batches)
+
+            return iter(batches)
+
+        def __iter__(self):
+            return self._iter()
+
+    # End of CDBatchSampler
+
+    # Initialization of the BatchSampler
+    return CDBatchSampler(
+        range(len(dataset)),
+        _batch_size,
+        drop_last=_drop_last,
+        total_nums=kwargs.pop('total_nums', 'total'),
+        split_ratio=kwargs.pop('split_ratio', 'log2'),
+    )
 
 class CDataLoader(DataLoader):
     def __init__(

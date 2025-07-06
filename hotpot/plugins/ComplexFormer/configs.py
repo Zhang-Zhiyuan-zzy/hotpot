@@ -1,8 +1,8 @@
 from typing import *
+from functools import wraps
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
 from torch.optim import Optimizer, Adam
 import torch.optim.lr_scheduler as lrs
 from torch_geometric.data import Data
@@ -15,7 +15,11 @@ from . import (
     tasks,
     tools,
 )
-from .data import loader as ldr, dataset as D, DataModule
+from .data import (
+    loader as ldr,
+    dataset as D,
+    DataModule
+)
 
 #################################### Options dict ##############################
 ############################## Pretrain Run ###################################
@@ -559,11 +563,42 @@ def _specify_inputs_preprocessor(
     if isinstance(inputs_preprocessor, Callable):
         return inputs_preprocessor
     elif labeled_x:
-        return M.get_labeled_x_input_attrs
+        return wraps(M.get_x_input_attrs)(lambda inp: M.get_x_input_attrs(inp, input_x_index=0, dtype=torch.int))
     elif isinstance(input_x_index, (list, torch.Tensor)):
-        return lambda inp: M.get_x_input_attrs(inp, input_x_index=input_x_index)
+        return wraps(M.get_x_input_attrs)(lambda inp: M.get_x_input_attrs(inp, input_x_index=input_x_index))
     else:
         return None
+
+def _specify_xyz_index(
+        first_data: Union[Data, Iterable[Data]],
+        with_xyz: Optional[Union[bool, Iterable[bool]]]
+):
+    if isinstance(first_data, Data):
+        if with_xyz:
+            return tools.get_index(first_data, 'x', COORD_X_ATTR)
+        return None
+
+    elif isinstance(first_data, Iterable):
+        first_data = list(first_data)
+        if not with_xyz:
+            return [None] * len(first_data)
+        elif with_xyz is True:
+            return [tools.get_index(fd, 'x', COORD_X_ATTR) for fd in first_data]
+        elif isinstance(with_xyz, Iterable):
+            with_xyz = list(with_xyz)
+            assert len(first_data) == len(with_xyz), (
+                f'Expected len(first_data) == len(with_xyz), got {len(first_data)} != {len(with_xyz)}')
+
+            return [
+                tools.get_index(fd, 'x', COORD_X_ATTR) if opt is True else None
+                for fd, opt in zip(first_data, with_xyz)
+            ]
+        else:
+            raise TypeError(f'The `with_xyz` should be a bool or a iterable of bool')
+
+    else:
+        raise TypeError(f'The `first_data` should be a Data, Iterable, or None')
+
 
 ##########################################################################################################
 ################################## Task Configuration ####################################################
@@ -636,7 +671,7 @@ def _config_task_args(
     inputs_preprocessor = _specify_inputs_preprocessor(inputs_preprocessor, core, kwargs.pop('input_x_index', None))
 
     #############################################################
-    return{
+    return {
         'task_name': task_names,
         'target_getter': target_getter,
         'feature_extractor': feature_extractor,
@@ -660,7 +695,7 @@ def _align_md_task_options(name, arg: Any, dataset_counts: int):
         return [arg] * dataset_counts
 
 
-def init_from_args(
+def config_tasks_from_multi_datasets(
         work_name: str,
         dataset_counts: int,
         inputs_getter: Callable,
@@ -677,10 +712,12 @@ def init_from_args(
         batch_preprocessor: Optional[list[tp.BatchPreProcessor]] = None,
         inputs_preprocessor: Optional[list[Callable]] = None,
         xyz_index: Optional[list[Iterable[int]]] = None,
+        with_sol: Optional[Union[bool, Iterable[bool]]] = None,
+        with_med: Optional[Union[bool, Iterable[bool]]] = None,
         xyz_perturb_sigma: Optional[list[float]] = None,
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
-        # to_onehot: Optional[list[Iterable[str]]] = None,
+        loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
         onehot_types: Optional[list[dict[str, int]]] = None,
         x_masker: Optional[list[tp.XMasker]] = None,
         mask_need_task: Optional[list[list[str]]] = None,
@@ -704,9 +741,12 @@ def init_from_args(
     batch_preprocessor = _align_md_task_options('batch_preprocessor', batch_preprocessor, dataset_counts)
     inputs_preprocessor = _align_md_task_options('inputs_preprocessor', inputs_preprocessor, dataset_counts)
     xyz_index = _align_md_task_options('xyz_index', xyz_index, dataset_counts)
+    with_sol = _align_md_task_options('with_sol', with_sol, dataset_counts)
+    with_med = _align_md_task_options('with_med', with_med, dataset_counts)
     xyz_perturb_sigma = _align_md_task_options('xyz_perturb_sigma', xyz_perturb_sigma, dataset_counts)
     extractor_attr_getter = _align_md_task_options('extractor_attr_getter', extractor_attr_getter, dataset_counts)
     loss_weight_calculator = _align_md_task_options('loss_weight_calculator', loss_weight_calculator, dataset_counts)
+    loss_weight_method = _align_md_task_options('loss_weight_method', loss_weight_method, dataset_counts)
     onehot_types = _align_md_task_options('onehot_types', onehot_types, dataset_counts)
     x_masker = _align_md_task_options('x_masker', x_masker, dataset_counts)
     mask_need_task = _align_md_task_options('mask_need_task', mask_need_task, dataset_counts)
@@ -732,7 +772,7 @@ def init_from_args(
             x_masker=x_masker[i],
             mask_need_task=mask_need_task[i],
             loss_weight_calculator=loss_weight_calculator[i],
-            loss_weight_method=loss_weight_calculator[i],
+            loss_weight_method=loss_weight_method[i],
         )
         task_kwargs.update(dict(
             batch_preprocessor=batch_preprocessor[i],
@@ -742,6 +782,9 @@ def init_from_args(
             to_onehot=to_onehot[i],
             extractor_attr_getter=extractor_attr_getter[i],
             hypers=hypers[i],
+            with_sol=with_sol[i],
+            with_med=with_med[i],
+            **kwargs
         ))
         tasks_arguments.append(task_kwargs)
 
@@ -764,19 +807,23 @@ def config(
         hypers: tools.Hypers,
         batch_preprocessor: Optional[list[tp.BatchPreProcessor]] = None,
         inputs_preprocessor: Optional[list[Callable]] = None,
-        # xyz_index: Optional[list[Iterable[int]]] = None,
+        with_xyz: Optional[Union[bool, Iterable[bool]]] = None,
+        with_sol: Optional[Union[bool, Iterable[bool]]] = None,
+        with_med: Optional[Union[bool, Iterable[bool]]] = None,
         xyz_perturb_sigma: Optional[list[float]] = None,
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
-        # to_onehot: Optional[list[Iterable[str]]] = None,
+        loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
         onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
         x_masker: Optional[list[tp.XMasker]] = None,
         mask_need_task: Optional[list[list[str]]] = None,
         **kwargs
 ):
+    # Configure tasks in single dataset
     if task_type in (tasks.SingleTask, tasks.MultiTask):
         assert not dataModule.is_multi_datasets
         first_data = dataModule.first_data
+        xyz_index = _specify_xyz_index(first_data, with_xyz)
         task_kwargs = _config_task_args(
             work_name=work_name,
             task_names=task_names,
@@ -792,28 +839,32 @@ def config(
             x_masker=x_masker,
             mask_need_task=mask_need_task,
             loss_weight_calculator=loss_weight_calculator,
-            loss_weight_method=loss_weight_calculator,
+            loss_weight_method=loss_weight_method,
         )
         task_kwargs.update(dict(
             hypers=hypers,
             batch_preprocessor=batch_preprocessor,
             inputs_getter=inputs_getter,
-            xyz_index = tools.get_index(first_data, 'x', COORD_X_ATTR),
-            xyz_perturb_sigma = xyz_perturb_sigma,
+            xyz_index=xyz_index,
+            xyz_perturb_sigma=xyz_perturb_sigma,
             extractor_attr_getter = extractor_attr_getter,
             onehot_types=onehot_types,
             to_onehot = list(onehot_types) if isinstance(onehot_types, dict) else bool(onehot_types),
+            with_sol=with_sol,
+            with_med=with_med,
+            **kwargs
         ))
 
         return task_kwargs
 
+    # Configure tasks for multi-datasets
     elif task_type is tasks.MultiDataTask:
         assert dataModule.is_multi_datasets
 
-        first_data = dataModule.first_data
-        xyz_index = [tools.get_index(fd, 'x', COORD_X_ATTR) for fd in first_data]
+        first_data = dataModule.first_data  # list of PyG.Data: [Data]
+        xyz_index = _specify_xyz_index(first_data, with_xyz)
 
-        return init_from_args(
+        return config_tasks_from_multi_datasets(
             work_name=work_name,
             dataset_counts=dataModule.dataset_counts,
             inputs_getter=inputs_getter,
@@ -833,9 +884,13 @@ def config(
             xyz_perturb_sigma=xyz_perturb_sigma,
             extractor_attr_getter=extractor_attr_getter,
             loss_weight_calculator=loss_weight_calculator,
+            loss_weight_method=loss_weight_method,
             onehot_types=onehot_types,
             x_masker=x_masker,
             mask_need_task=mask_need_task,
+            with_sol=with_sol,
+            with_med=with_med,
+            **kwargs
         )
     else:
         raise NotImplementedError(f"Task type {task_type} is not implemented.")

@@ -1,2 +1,2 @@
 from .tasks import *
-from .test import *
+# from .test import *

@@ -1,7 +1,7 @@
 from functools import wraps
 import inspect
 
-from typing import Union, Literal, Callable
+from typing import Union, Literal, Callable, Optional
 import torch
 import numpy as np
 
@@ -95,11 +95,19 @@ def weight_binary(labels: torch.Tensor, eps: float = 1e-7):
 ######################################################################################################
 
 ####################################### Input Preprocessor ###########################################
-def get_x_input_attrs(*inputs, input_x_index: Union[list, torch.Tensor]):
-    x = inputs[0][:, input_x_index]
-    return (x,) + inputs[1:]
+def get_x_input_attrs(
+        inputs: Union[dict, list, tuple],
+        input_x_index: Union[list, torch.Tensor],
+        dtype: Optional[torch.dtype] = None,
+):
+    if isinstance(inputs, dict):
+        inputs['x'] = inputs['x'][:, input_x_index].to(dtype)
+        return inputs
+    else:
+        x = inputs[0][:, input_x_index].to(dtype)
+        return (x,) + inputs[1:]
 
-def get_labeled_x_input_attrs(*inputs, input_x_index: Union[list, torch.Tensor]=None):
+def get_labeled_x_input_attrs(inputs, input_x_index: Union[list, torch.Tensor]=None):
     return (inputs[0][:, 0],) + inputs[1:]
 #############################################################################################
 

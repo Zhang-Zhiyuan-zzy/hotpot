@@ -3,6 +3,7 @@ import re
 import os.path as osp
 import functools
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from typing import Union, Callable, Optional, Iterable, Any, Literal
 from typing_extensions import override
 
@@ -78,6 +79,14 @@ class BaseTask(ABC):
 
     @abstractmethod
     def get_xyz(self, inputs: tuple[torch.Tensor, ...]) -> Optional[torch.Tensor]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_sol_info(self, batch: Batch) -> Optional[tuple[torch.Tensor, ...]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_med_info(self, batch: Batch) -> Optional[tuple[torch.Tensor, ...]]:
         raise NotImplementedError
 
     @abstractmethod
@@ -201,8 +210,13 @@ class BaseTask(ABC):
     ##########################################################
 
 
+_default_sol_graph_inputs = ('x', 'edge_index', 'batch')
+_default_med_graph_inputs = ('x', 'edge_index', 'batch')
+
 class Task(BaseTask, ABC):
     _expect_types = {}
+    _sol_key_matcher = re.compile(r'sol\d?_.+')
+    _med_key_matcher = re.compile(r'med\d?_.+')
 
     def __init__(
             self,
@@ -272,6 +286,12 @@ class Task(BaseTask, ABC):
         # Args check and post process
         self._attr_post_process()
 
+        self.with_sol = kwargs.get('with_sol', False)
+        self.sol_graph_inputs = kwargs.get('sol_graph_inputs', _default_sol_graph_inputs)
+
+        self.with_med = kwargs.get('with_med', False)
+        self.med_graph_inputs = kwargs.get('med_graph_inputs', _default_med_graph_inputs)
+
 
     #################### Args Check and Post Process #################################
     def _type_check(self):
@@ -299,6 +319,168 @@ class Task(BaseTask, ABC):
         else:
             return self.perturb_xyz(inputs[0][:, self.xyz_index])
 
+    @staticmethod
+    def _extract_specific_data(
+            flag: str,
+            batch: Batch,
+            pattern: re.Pattern
+    ) -> (
+        Optional[Union[dict[str, torch.Tensor], list[dict[str, torch.Tensor]]]],  # graph info
+        Optional[Union[torch.Tensor, list[torch.Tensor]]],  # attributes
+        Optional[torch.Tensor]  # ratio
+    ):
+        """ Extract solvent or media data from PyG batch """
+        exclude_suffix = ['_names', '_metric']
+        the_keys = [
+            k for k in batch.keys()
+            if (pattern.fullmatch(k) and not any(k.endswith(s) for s in exclude_suffix))
+        ]
+        assert len(the_keys) > 1, f"The task with flag `{flag}` but without corresponding keys in the data Batch"
+
+        # Extract ratio information
+        ratio_key = [k for k in the_keys if k.endswith('_ratio')]
+        assert len(ratio_key) <= 1
+        if len(ratio_key) == 1:
+            ratio_key = ratio_key[0]
+            the_keys.remove(ratio_key)
+
+            the_ratio = batch[ratio_key]
+
+        else:
+            the_ratio = None
+
+        # Check whether the names of all keys are as expected:
+        # If `the_ratio` is None, there should be just only obj (denoted as XXX) matched the pattern, thus the
+        # names of the keys should like `XXX_xxxx` without the series number
+        # Conversely, If `the ratio` is a Tensor, there should be multiple obj matched the pattern,
+        # thus the names of the keys should like `XXXN_xxxx`, where the N is the series number of the XXX objs.
+        # The N is range from 1 to the length of `the_ratio` Tensor
+        # forth_char = the_keys[0][3] if not the_keys[0].endwith('_ratio') else the_keys[1][3]
+
+        if the_ratio is None:
+            assert all(k[3] == '_' for k in the_keys)
+        else:
+            series_char = {k[3] for k in the_keys}
+            assert all(c.isdigit() for c in series_char), \
+                f'not all key[3] is digit, the_keys:\n{[k for k in the_keys if not k[3].isdigit()]}'
+            assert len(series_char) == the_ratio.size(1)
+            assert all(1 <= int(c) <= the_ratio.size(1) for c in series_char)
+
+        group_indices = {int(c) for c in locals().get('series_char', set())}
+
+        # For one object
+        if not group_indices:
+            extract_info = {k[4:]: batch[k] for k in the_keys}
+            attributes = extract_info.pop('attr', None)
+
+            graph_info = extract_info if extract_info else None  # Just a copy
+
+            # Data structure:
+            # graph_info: None or {'x': Tensor, 'edge_index': tensor, ...}
+            # attributes: Tensor or None
+            # graph_ratio: None
+            return graph_info, attributes, None
+
+        else:  # For multiply object
+            extract_info = defaultdict(dict)
+            for key in the_keys:
+                extract_info[key[3]][key[5:]] = batch[key]
+
+            graph_info, attributes = [], []
+            for sol_idx in sorted(extract_info.keys()):
+                attributes.append(extract_info[sol_idx].pop('attr', None))
+                graph_info.append(extract_info[sol_idx])
+
+            graph_info = graph_info if graph_info else None
+            attributes = attributes if any(a is not None for a in attributes) else None
+
+            # Data structure:
+            # graph_info: None or [
+            #     {'x': Tensor, 'edge_index': tensor, ...},  # graph 1
+            #     {'x': Tensor, 'edge_index': tensor, ...},  # graph 2
+            #     ...
+            # ]
+            # attribute: None or [
+            #     Tensor, # attrs for graph 1
+            #     Tensor, # attrs for graph 2
+            # ]
+            return graph_info, attributes, the_ratio
+
+    @staticmethod
+    def _avoid_empty_graphs(graph_dict, attrs, ratios):
+        """ Avoid any empty graphs in whole a col components """
+        if isinstance(ratios, torch.Tensor):
+            assert graph_dict is None or (isinstance(graph_dict, list) and all(isinstance(g, dict) for g in graph_dict))
+            assert attrs is None or (isinstance(attrs, list) and all(isinstance(a, torch.Tensor) for a in attrs))
+
+            # Check if some components just contain empty graphs
+            if isinstance(graph_dict, list):
+                remove_idx = sorted([i for i, g in enumerate(graph_dict) if g['x'].numel() == 0])
+                assert len(remove_idx) < len(graph_dict)  # Make sure that not all graphs are empty
+
+                if remove_idx:
+                    for i in remove_idx:
+                        # all i col ratio should be 0
+                        assert torch.count_nonzero(ratios[:, i]) == 0
+
+                        if isinstance(attrs, list):
+                            assert attrs is None or torch.count_nonzero(attrs[i]) == 0
+                            del attrs[i]
+
+                        del graph_dict[i]
+
+                    assert attrs is None or len(attrs) == len(graph_dict)
+
+                    # If only one component leave
+                    if len(graph_dict) == 1:
+                        graph_dict = graph_dict[0]
+                        if attrs is not None:
+                            attrs = attrs[0]
+
+                        ratios = None
+
+        else:
+            if graph_dict is not None:
+                assert isinstance(graph_dict, dict)
+                if graph_dict['x'].numel() == 0:
+                    assert attrs is None or (isinstance(attrs, torch.Tensor) and torch.count_nonzero(attrs) == 0)
+
+                    graph_dict = attrs = None
+
+        return graph_dict, attrs, ratios
+
+
+    def envs_graph_postprocessing(self, graph_dict, attrs, ratios):
+        # Eliminate empty graph
+        graph_dict, attrs, ratios = self._avoid_empty_graphs(graph_dict, attrs, ratios)
+
+        # Graph inputs preprocessing
+        if isinstance(graph_dict, dict):
+            graph_dict = self.inputs_preprocessor({inp: graph_dict[inp] for inp in self.sol_graph_inputs})
+        else:
+            graph_dict = [self.inputs_preprocessor({inp: d[inp] for inp in self.sol_graph_inputs}) for d in graph_dict]
+
+        return graph_dict, attrs, ratios
+
+    def get_sol_info(self, batch: Batch):
+        """"""
+        if not self.with_sol:
+            return None, None, None
+
+        graph_dict, attrs, ratio = self.envs_graph_postprocessing(
+            *self._extract_specific_data('sol', batch, self._sol_key_matcher)
+        )
+
+        return graph_dict, attrs, ratio
+
+    def get_med_info(self, batch: Batch):
+        if not self.with_med:
+            return None, None, None
+
+        return self.envs_graph_postprocessing(
+            *self._extract_specific_data('med', batch, self._med_key_matcher)
+        )
+
     def perturb_xyz(self, xyz):
         if isinstance(self._xyz_perturb_sigma, float):
             return M.perturb_xyz(xyz, self._xyz_perturb_sigma)
@@ -306,7 +488,7 @@ class Task(BaseTask, ABC):
 
     def inputs_preprocessor(self, inputs: tuple[torch.Tensor, ...], **kwargs) -> tuple[torch.Tensor, ...]:
         if self._inputs_preprocessor:
-            return self._inputs_preprocessor(*inputs, **kwargs)
+            return self._inputs_preprocessor(inputs, **kwargs)
         return inputs
 
     def x_masker(self, inputs: tuple[torch.Tensor, ...]) -> (tuple[torch.Tensor, ...], Optional[torch.Tensor]):
@@ -349,7 +531,6 @@ class Task(BaseTask, ABC):
         msg = f'{prefix}[' + ', '.join([f'{k}={v:.3g}' for k, v in dict_.items()]) + ']'
         print(type(print_func))
         print_func(msg)
-
 
 class SingleTask(Task):
     """"""
@@ -663,7 +844,7 @@ class MultiTask(Task):
             self.dict_fmt_print(self.atl_weights, prefix='\nalt_weights: ')
 
         # Add sum metrics
-        metrics_dict['smtrc'] = np.mean([v for v in metrics_dict.values()])
+        metrics_dict['smtrc'] = np.mean([v for v in metrics_dict.values()]) if metrics_dict else 0
 
         # Add learning rate information
         metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
@@ -716,6 +897,18 @@ class MultiDataTask(BaseTask):
 
         self.current_task = None
         self.metrics_dict = {}
+
+    def __getitem__(self, item: int):
+        return self._tasks[item]
+
+    @property
+    def current_task_index(self) -> Optional[int]:
+        if not self.current_task:
+            return None
+        return self._tasks.index(self.current_task)
+
+    def __repr__(self):
+        return f'MultiDataTask(total={len(self._tasks)}; current={self.current_task_index})'
 
     @classmethod
     def init_from_args(

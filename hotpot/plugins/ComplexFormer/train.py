@@ -41,6 +41,8 @@ class LightPretrain(L.LightningModule):
         self.tasks.batch_dtype_preprocessor(batch)
         inputs = self.tasks.inputs_getter(self.tasks.batch_preprocessor(batch))
         xyz = self.tasks.get_xyz(inputs)
+        sol_graph, sol_prop, sol_ratios = self.tasks.get_sol_info(batch)
+        med_graph, med_prop, med_ratios = self.tasks.get_med_info(batch)
         inputs = self.tasks.inputs_preprocessor(inputs)
 
         # Mask inputs
@@ -50,7 +52,15 @@ class LightPretrain(L.LightningModule):
             masked_idx = None
 
         # Forward pass through core
-        core_output = self.core(*inputs, xyz=xyz)
+        core_output = self.core(
+            *inputs,
+            xyz=xyz,
+            sol_graph=sol_graph,
+            sol_props=sol_prop,
+            sol_ratios=sol_ratios,
+            med_graph=med_graph,
+            med_props=med_prop,
+        )
 
         # Extract features
         feature = self.tasks.peel_unmaksed_obj(

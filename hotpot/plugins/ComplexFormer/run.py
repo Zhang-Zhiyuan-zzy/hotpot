@@ -4,6 +4,8 @@ import glob
 import logging
 from typing import *
 import datetime
+import warnings
+import traceback
 from operator import attrgetter
 
 import torch
@@ -25,11 +27,21 @@ from . import (
     train,
     callbacks as cbs,
 )
-from .data import loader as ldr, dataset as D, DataModule
+from .data import DataModule
 
 # Contract
 INPUT_X_ATTR = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
 COORD_X_ATTR = ('x', 'y', 'z')
+
+
+# Handle the third-party warnings and errors
+def _custom_warning_handler(message, category, filename, lineno, file=None, line=None):
+    """ Custom warning handler which raises an exception. """
+    # Get the traceback
+    tb = traceback.format_stack()
+
+    # Raise an error with details about the warning and its location
+    raise RuntimeWarning(f"{message} in {filename} at line {lineno}\n\n\nTraceback:\n{''.join(tb)}")
 
 
 def init_model(
@@ -118,6 +130,7 @@ def init_model_dir(work_dir, task_kwargs: Union[dict, list]):
 
 
 def run(
+        # Global Arguments
         work_name: str,
         work_dir: str,
         core: M.CoreBase,
@@ -128,8 +141,6 @@ def run(
         shuffle_dataset: bool = True,
         dataModule_seed: int = 315,
         data_split_ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
-        target_getter: tp.TargetGetterInput = None,
-        task_name: Union[str, Sequence[str]] = None,
         checkpoint_path: Union[str, int] = None,
         load_core_only: bool = True,
         epochs: int = 100,
@@ -140,33 +151,48 @@ def run(
         lr_scheduler: Optional[Callable] = None,
         lr_scheduler_frequency: int = 1,
         lr_scheduler_kwargs: Optional[dict] = None,
+        early_stopping: bool = True,
+        early_stop_step: int = 5,
+        loss_weight_calculator: Optional[Union[Callable, bool]] = None,
+        loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
+        eval_each_step: Optional[int] = 1,
+        freeze_core: Optional[bool] = None,
+        keep_grad_state: bool = False,
+
+        # Dataset-specific Arguments
+        with_xyz: Union[bool, Iterable[bool]] = None,
+        xyz_perturb_sigma: Optional[float] = None,
+        batch_preprocessor: Optional[Union[tp.BatchPreProcessor, list[tp.BatchPreProcessor]]] = None,
+        inputs_preprocessor: Optional[Union[Callable, list[Callable]]] = None,
+        x_masker: Optional[Union[str, Callable]] = None,
+        with_sol: Optional[int] = None,
+        with_med: Optional[int] = None,
+        mol_info_dim: Optional[int] = None,
+
+        # Task-specific Arguments
+        task_name: Union[str, Sequence[str]] = None,
+        target_getter: tp.TargetGetterInput = None,
         feature_extractor: Optional[tp.FeatureExtractorInput] = None,
         predictor: Optional[tp.PredictorInput] = None,
         loss_fn: Optional[tp.LossFnInput] = None,
         primary_metric: Optional[tp.MetricType] = None,
         other_metric: Optional[Union[tp.MetricType, Iterable[tp.MetricType], dict[str, Callable]]] = None,
-        batch_preprocessor: Optional[Union[tp.BatchPreProcessor, list[tp.BatchPreProcessor]]] = None,
-        inputs_preprocessor: Optional[Union[Callable, list[Callable]]] = None,
-        with_xyz: bool = True,
-        xyz_perturb_sigma: Optional[float] = None,
         extractor_attr_getter: Optional[Union[Callable, dict[str, Callable], list[dict, Callable]]] = None,
         devices: Optional[int] = None,
         minimize_metric: bool = False,
-        early_stopping: bool = True,
-        early_stop_step: int = 5,
-        loss_weight_calculator: Optional[Union[Callable, bool]] = None,
-        loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
-        onehot_types: Optional[int] = None,
-        eval_each_step: Optional[int] = 1,
-        freeze_core: Optional[bool] = None,
-        keep_grad_state: bool = False,
-        x_masker: Optional[Union[str, Callable]] = None,
+        onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
+
+        # Unclassified
         mask_need_task: Optional[list[str]] = None,
-        load_all_data: bool = False,
-        precision='bf16',
+
+        # Settings
+        precision='bf16-mixed',
         float32_matmul_precision='medium',
         profiler="simple",
+        show_pbar: bool = True,
         debug: bool = False,
+        use_debugger: bool = False,
+        warning_allowed: bool = True,
         **kwargs,
 ):
     """
@@ -184,8 +210,6 @@ def run(
             a standardized nomenclature is recommended, where ...
         work_dir(str): The directory where the trained models and inspected info will be saved.
         core(nn.Module): The general Encoder block, i.e. ComplexFormer.
-        train_dataset(Iterable|IterGetter): dataset for training.
-        test_dataset(Iterable|IterGetter): dataset for testing.
         hypers: Hyperparameters for optimizer, dataloader, and others except for model
         checkpoint_path(str|int): the checkpoint file path if given a str. Otherwise, when an int(i)
             is given, the ith model under the work_dir will be loaded.
@@ -193,16 +217,16 @@ def run(
             ignored. Defaults to True.
         epochs: The Maximum of epochs to train. Defaults to 100.
         with_xyz: Whether to load xyz to ComplexFormer. Defaults to True.
+        with_sol: Whether to allow ComplexFormer to encode solvent information.
+        with_med: Whether to allow ComplexFormer to encode medium information.
         save_model: Whether to save the model. Defaults to True.
         optimizer: The type of optimizer to use. If None, the Adam optimizer will be used.
         constant_lr: Whether to use constant learning rate. Defaults to False. If False, a lr_scheduler
             will be used to adjust the learning rate.
-        lr_schedular: The type of learning rate scheduler to use. Defaults to None. If None, a ExponentialLR
-            scheduler with `gamma=0.95` will be used. If the lr_schedular is specified, its required arguments
-            should be passed by `lr_schedular_kwargs`.
-        lr_schedular_kwargs: Keyword arguments passed to `lr_scheduler`.
-        target_type: Which type of target is, selecting from ['num', 'onehot', 'binary', and 'xyz']. If None,
-            the `target_type` will be inferred from the `work_name`.
+        lr_scheduler: The type of learning rate scheduler to use. Defaults to None. If None, a ExponentialLR
+            scheduler with `gamma=0.95` will be used. If the lr_schedular is specified, 'lr_schedular_kwargs
+            should pass its required arguments`.
+        lr_scheduler_kwargs: Keyword arguments passed to `lr_scheduler`.
         feature_extractor: Which feature extractor to use. Defaults to None.
         predictor:
         target_getter(Callable|str): A callable to extract target values from batch.
@@ -213,22 +237,37 @@ def run(
         early_stopping: Whether early stopping is enabled. Defaults to True.
         early_stop_step: How many steps when the model's performance is not improved to perform the early stopping.
         loss_weight_calculator: A function to calculate the weights for each category, Applied for onehot labels.
-        loss_weight_method:
+        loss_weight_method: How to calculate the coefficients ki before the sum of loss Σ(ki*loi)
         eval_each_step: How many epochs to evaluate the model.
+        onehot_types: specify how many types for each onehot predictor. The arguments can pass a single integer
+            for the single task training. For (single dataset) multitask works, a dict as {`onehot_task_name`: int}
+            should be given. For multi-datasets multitask works, a list of dict as {`onehot_task_name`: int} should
+            be given, where the order of the dict should align the orders of corresponding datasets.
         freeze_core: Whether to freeze the core model in the first epoch, defaults to None. If None, the core
-            module will be frozen in the first epoch, if the core module is loaded from checkpoint and the
+            module will be frozen in the first epoch if the core module is loaded from checkpoint and the
             predictor is fresh.
         keep_grad_state: Whether to keep the gradient state (requires_grad = True or False) to be solid,
             Defaults to False. If True, the gradient state will not be adjusted automatically.
         x_masker:
-        **kwargs:
+        show_pbar: Whether to show the progress bar. Defaults to True.
+        debug: turn on the debug mode. Defaults to False.
+        use_debugger: Whether to use a debugger. Defaults to False.
+        warning_allowed: If false, the warning massage will raise an Error.
+
+    Keyword Args:
+        sol_graph_inputs(Iterable[str])
+        med_graph_inputs(Iterable[str])
 
     Returns:
         None
     """
     if debug:
         logging.basicConfig(level=logging.DEBUG)
-        epochs = 5
+        epochs = 6
+
+    # Set the warnings to be converted into errors
+    if not warning_allowed:
+        warnings.showwarning = _custom_warning_handler
 
     ##################### Base Args ##########################
     torch.set_float32_matmul_precision(float32_matmul_precision)
@@ -271,9 +310,13 @@ def run(
         hypers=hypers,
         batch_preprocessor=batch_preprocessor,
         inputs_preprocessor=inputs_preprocessor,
+        with_xyz=with_xyz,
+        with_sol=with_sol,
+        with_med=with_med,
         xyz_perturb_sigma=xyz_perturb_sigma,
         extractor_attr_getter=extractor_attr_getter,
         loss_weight_calculator=loss_weight_calculator,
+        loss_weight_method=loss_weight_method,
         onehot_types=onehot_types,
         x_masker=x_masker,
         mask_need_task=mask_need_task,
@@ -282,6 +325,7 @@ def run(
         lr_scheduler=lr_scheduler,
         lr_scheduler_frequency=lr_scheduler_frequency,
         lr_scheduler_kwargs=lr_scheduler_kwargs,
+        **kwargs,
     )
 
     # Initialize Task object
@@ -320,21 +364,29 @@ def run(
     else:
         model_dir, logger = None, None
 
+    # Callback item configuration
+    callbacks = []
+
     # Configure EarlyStop
-    early_stop_callback = EarlyStopping(
-        monitor=optim_configure.primary_monitor,  # Invoke and align the monitor with optimizer
-        mode='min' if minimize_metric else 'max',
-        patience=early_stop_step,
-    )
+    if isinstance(early_stopping, int) and early_stopping > 0:
+        early_stop_callback = EarlyStopping(
+            monitor=optim_configure.primary_monitor,  # Invoke and align the monitor with optimizer
+            mode='min' if minimize_metric else 'max',
+            patience=early_stop_step,
+        )
+        callbacks.append(early_stop_callback)
 
     # Progress bar
-    progress_bar = cbs.Pbar()
-    if debug:
-        debugger = cbs.Debugger()
-        callbacks = [progress_bar, early_stop_callback]
-        # callbacks = [progress_bar, early_stop_callback, debugger]
-    else:
-        callbacks = [progress_bar, early_stop_callback]
+    if show_pbar:
+        progress_bar = cbs.Pbar()
+        callbacks.append(progress_bar)
+
+    if use_debugger:
+        callbacks.append(cbs.Debugger())
+
+    if not callbacks:
+        callbacks = None
+    ################## End of the Callbacks configure ###################
 
     ######################## Run ############################
     trainer = L.Trainer(

@@ -188,7 +188,6 @@ class DistConcatBatchSampler(Sampler):
 
         batches = [batch[self.rank::self.num_replicas] for batch in batches]
 
-        # logging.debug(f'CDBatchSampler batches: {batches}')
         return iter(batches)
 
 

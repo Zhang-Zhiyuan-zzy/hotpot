@@ -32,14 +32,12 @@ import hotpot as hp
 from hotpot.utils.mp import mp_run
 from hotpot.cheminfo.core import AtomPair
 from hotpot.plugins.PyG.data.utils import *
-from hotpot.plugins.ComplexFormer.data.data import ExtractionData
+from hotpot.plugins.ComplexFormer.data_process.sc_logk.data import ExtractionData
 
 __all__ = [
     'process_SclogK',
     'ccdc_struct_to_data'
 ]
-
-from hotpot.plugins.ccdc_api.solvents import sol_filename
 
 _cols = [
     'W', 'Tech.', 'SMILES', 'Metal', 'Medium', 'Solvent', 't', 'I-str', 'pH', 'P/bar',
@@ -75,7 +73,7 @@ def _graph_extraction(mol: hp.Molecule = None, prefix: str = '', with_batch: boo
         prefix += '_'
 
     if mol is None:
-        graph_data = _make_empty_graph(prefix)
+        graph_data = make_empty_graph(prefix)
 
     else:
         x, x_names = extract_atom_attrs(mol)
@@ -174,7 +172,7 @@ def _process_single_SclogK(
         return metal_sym
 
     mol.add_hydrogens()
-    graph_data: dict = _graph_extraction(mol)
+    graph_data: dict = graph_extraction(mol)
 
     # Compile solvent info
     sol_attr_length = len(sol_attr_names)
@@ -194,7 +192,7 @@ def _process_single_SclogK(
 
     solvent1 = hp.read_mol(sol1_smi, fmt='smi')
     solvent1.add_hydrogens()
-    sol1_graph: dict = _graph_extraction(solvent1, 'sol1', with_batch=True)
+    sol1_graph: dict = graph_extraction(solvent1, 'sol1', with_batch=True)
 
     sol1_info = sol1_info.tolist()
 
@@ -208,14 +206,14 @@ def _process_single_SclogK(
         sol2_smi = sol2_info['smiless'].strip()
         solvent2 = hp.read_mol(sol2_smi, fmt='smi')
         solvent2.add_hydrogens()
-        sol2_graph: dict = _graph_extraction(solvent2, 'sol2', with_batch=True)
+        sol2_graph: dict = graph_extraction(solvent2, 'sol2', with_batch=True)
 
         sol2_info = sol2_info.tolist()
 
     else:
         sol2_info = []
         sol2_attr = torch.zeros(sol_attr_length, dtype=torch.float).reshape((1, -1))
-        sol2_graph: dict = _graph_extraction(None, 'sol2', with_batch=True)
+        sol2_graph: dict = graph_extraction(None, 'sol2', with_batch=True)
 
     if sol2_info:
         sol_ratio = torch.tensor(row[['Sol1Ratio', 'Sol2Ratio']].tolist(), dtype=torch.float).reshape((1, -1))
@@ -250,7 +248,7 @@ def _process_single_SclogK(
         med_info = ['Inf.Dilute', '0000-00-0', '', 0, '']
         med_attr = torch.zeros(len(med_attr_names), dtype=torch.float).reshape((1, -1))
 
-        med_graph: dict = _graph_extraction(None, 'med', with_batch=True)
+        med_graph: dict = graph_extraction(None, 'med', with_batch=True)
 
     else:
         med_info = med.loc[med_id, med_info_names]
@@ -259,7 +257,7 @@ def _process_single_SclogK(
         med_smi = med_info['smiless'].strip()
         medium = next(hp.MolReader(med_smi, fmt='smi'))
         medium.add_hydrogens()
-        med_graph: dict = _graph_extraction(medium, 'med', with_batch=True)
+        med_graph: dict = graph_extraction(medium, 'med', with_batch=True)
 
         med_info = med_info.tolist()
 
@@ -351,7 +349,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             continue
 
         mol.add_hydrogens()
-        graph_data: dict = _graph_extraction(mol)
+        graph_data: dict = graph_extraction(mol)
 
         # Compile solvent info
         sol_attr_length = len(sol_attr_names)
@@ -371,7 +369,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
 
         solvent1 = hp.read_mol(sol1_smi, fmt='smi')
         solvent1.add_hydrogens()
-        sol1_graph: dict = _graph_extraction(solvent1, 'sol1', with_batch=True)
+        sol1_graph: dict = graph_extraction(solvent1, 'sol1', with_batch=True)
 
         sol1_info = sol1_info.tolist()
 
@@ -385,14 +383,14 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             sol2_smi = sol2_info['smiless'].strip()
             solvent2 = hp.read_mol(sol2_smi, fmt='smi')
             solvent2.add_hydrogens()
-            sol2_graph: dict = _graph_extraction(solvent2, 'sol2', with_batch=True)
+            sol2_graph: dict = graph_extraction(solvent2, 'sol2', with_batch=True)
 
             sol2_info = sol2_info.tolist()
 
         else:
             sol2_info = []
             sol2_attr = torch.zeros(sol_attr_length, dtype=torch.float).reshape((1, -1))
-            sol2_graph: dict = _graph_extraction(None, 'sol2', with_batch=True)
+            sol2_graph: dict = graph_extraction(None, 'sol2', with_batch=True)
 
         if sol2_info:
             sol_ratio = torch.tensor(row[['Sol1Ratio', 'Sol2Ratio']].tolist(), dtype=torch.float).reshape((1, -1))
@@ -427,7 +425,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             med_info = ['Inf.Dilute', '0000-00-0', '', 0, '']
             med_attr = torch.zeros(len(med_attr_names), dtype=torch.float).reshape((1, -1))
 
-            med_graph: dict = _graph_extraction(None, 'med', with_batch=True)
+            med_graph: dict = graph_extraction(None, 'med', with_batch=True)
 
         else:
             med_info = med.loc[med_id, med_info_names]
@@ -436,7 +434,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             med_smi = med_info['smiless'].strip()
             medium = next(hp.MolReader(med_smi, fmt='smi'))
             medium.add_hydrogens()
-            med_graph: dict = _graph_extraction(medium, 'med', with_batch=True)
+            med_graph: dict = graph_extraction(medium, 'med', with_batch=True)
 
             med_info = med_info.tolist()
 

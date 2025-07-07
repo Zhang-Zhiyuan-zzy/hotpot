@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from hotpot.cheminfo.core import Molecule, Atom, AtomPair
-
+from .consts import *
 
 __all__ = [
     "direct_edge_to_indirect",
@@ -16,8 +16,68 @@ __all__ = [
     "extract_bond_attrs",
     "extract_atom_pairs",
     "extract_ring_attrs",
-    "merge_individual_data_to_block"
+    "merge_individual_data_to_block",
+    "make_empty_graph",
+    "graph_extraction"
 ]
+
+def make_empty_graph(prefix: str = ''):
+    return {
+        f'{prefix}x': torch.empty((0, 16), dtype=torch.float),
+        f'{prefix}x_names': [],
+        f'{prefix}edge_index': torch.empty((2, 0), dtype=torch.long),
+        f'{prefix}edge_attr': torch.empty((0, len(edge_attr_names)), dtype=torch.float),
+        f'{prefix}edge_attr_names': [],
+        f'{prefix}pair_index': torch.empty((2, 0), dtype=torch.long),
+        f'{prefix}pair_attr': torch.empty((0, num_atom_pair_attr), dtype=torch.float),
+        f'{prefix}pair_attr_names': [],
+        f'{prefix}mol_rings_nums': torch.zeros(1, dtype=torch.int),
+        f'{prefix}rings_node_index': torch.empty(0, dtype=torch.long),
+        f'{prefix}rings_node_nums': torch.empty(0, dtype=torch.int),
+        f'{prefix}mol_rings_node_nums': torch.zeros(1, dtype=torch.int),
+        f'{prefix}rings_attr': torch.empty((0, len(rings_attr_names)), dtype=torch.float),
+        f'{prefix}rings_attr_names': [],
+    }
+
+
+def graph_extraction(mol: Molecule = None, prefix: str = '', with_batch: bool = False) -> dict:
+    if prefix and not prefix.endswith('_'):
+        prefix += '_'
+
+    if mol is None:
+        graph_data = make_empty_graph(prefix)
+
+    else:
+        x, x_names = extract_atom_attrs(mol)
+
+        edge_index, edge_attr = extract_bond_attrs(mol, edge_attr_names)
+        pair_index, pair_attr, pair_attr_names = extract_atom_pairs(mol)
+
+        mol_rings_nums, rings_node_index, rings_node_nums, mol_rings_node_nums, rings_attr = (
+            extract_ring_attrs(mol, rings_attr_names))
+
+        graph_data = {
+            f'{prefix}x': x,
+            f'{prefix}x_names': x_names,
+            f'{prefix}edge_index': edge_index,
+            f'{prefix}edge_attr': edge_attr,
+            f'{prefix}edge_attr_names': edge_attr_names,
+            f'{prefix}pair_index': pair_index,
+            f'{prefix}pair_attr': pair_attr,
+            f'{prefix}pair_attr_names': pair_attr_names,
+            f'{prefix}mol_rings_nums': mol_rings_nums,
+            f'{prefix}rings_node_index': rings_node_index,
+            f'{prefix}rings_node_nums': rings_node_nums,
+            f'{prefix}mol_rings_node_nums': mol_rings_node_nums,
+            f'{prefix}rings_attr': rings_attr,
+            f'{prefix}rings_attr_names': rings_attr_names,
+        }
+
+    if with_batch:
+        graph_data.update({f'{prefix}batch': torch.zeros(len(graph_data[f'{prefix}x']), dtype=torch.long)})
+
+    return graph_data
+
 
 def direct_edge_to_indirect(attr_or_index: torch.Tensor, is_index=True) -> torch.Tensor:
     """"""
@@ -92,6 +152,7 @@ def extract_ring_attrs(mol: Molecule, ring_attr_names: Iterable[str]) -> (torch.
 
 
 def merge_individual_data_to_block(indiv_data_dir, merged_data_dir, bundle_size: int = 200000):
+    """ Merge individual data into block data """
     list_data = []
     total = 0
     for i, p in enumerate(tqdm(glob(osp.join(indiv_data_dir, "*.pt")), 'Merging data'), 1):

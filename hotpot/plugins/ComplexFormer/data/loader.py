@@ -338,13 +338,6 @@ def _create_concat_batch_sampler(
             else:
                 raise ValueError(f'Unsupported split_mode: {split_mode}')
 
-        def _set_batch_nums_old(self):
-            """ Old version """
-            if self.drop_last:
-                return sum(len(ds) // self.batch_size for ds in self.datasets)
-            else:
-                return sum(len(ds) // self.batch_size + 1 for ds in self.datasets)
-
         def _set_batch_nums(self) -> (np.ndarray, int):
             # New version
             _temp_sample_nums = np.long(self.total_nums * self.split_ratio)
@@ -366,36 +359,6 @@ def _create_concat_batch_sampler(
 
         def __len__(self):
             return self._batch_nums
-
-        def _iter_old(self):
-            if self.drop_last:
-                datasets_indices = [self.cumsum_size[i] + np.arange(len(ds)) for i, ds in enumerate(self.datasets)]
-            else:
-                datasets_indices = [
-                    self.cumsum_size[i] + np.concatenate([
-                        np.arange(len(ds)),
-                        np.random.randint(len(ds), size=(self.batch_size - len(ds) % self.batch_size))
-                    ], axis=0) for i, ds in enumerate(self.datasets)]
-
-            if self.shuffle:
-                for dataset_index in datasets_indices:
-                    np.random.shuffle(dataset_index)
-
-            if self.drop_last:
-                datasets_indices = [ds_idx[:(len(ds_idx) // self.batch_size) * self.batch_size] for ds_idx in
-                                    datasets_indices]
-
-            batches = []
-            for dataset_index in datasets_indices:
-                batch_num, rest = divmod(len(dataset_index), self.batch_size)
-                assert rest == 0
-                batches.extend(np.split(dataset_index, batch_num))
-
-            if self.shuffle:
-                np.random.shuffle(batches)
-
-            # logging.debug(f'CDBatchSampler batches: {batches}')
-            return iter(batches)
 
         def _iter(self):
             rep_factor, residual = np.divmod(self.sample_nums, np.array(self.dataset_sizes))

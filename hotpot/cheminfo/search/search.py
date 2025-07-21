@@ -6,52 +6,25 @@ python v3.9.0
 @Data   : 2024/12/13
 @Time   : 16:27
 """
-from enum import Enum, auto
 from abc import abstractmethod
-from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Optional
+from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable
 import networkx as nx
 from networkx.algorithms import isomorphism
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
 
-
-class MatcherType(Enum):
-    IN_CONTAINER = auto()
-    NUM_MIX_MAX = auto()
-    NOT_CONTAIN = auto()
-
-
 def raise_not_implemented(self): raise NotImplemented(f"{self.__class__.__name__} not implemented")
 
 
-def in_matcher(targets: Iterable[Any]):
-    def judge(other):
-        return other in targets
-    return judge
-
-
-def min_max_matcher(min_value: Optional[int, float] = None, max_value: Optional[int, float] = None):
-    if min_value is None and max_value is None:
-        raise ValueError("The `min_value` and `max_value` should be given at least one`")
-    elif min_value is None and isinstance(max_value, int):
-        return lambda other: other <= max_value
-    elif min_value is None and isinstance(max_value, float):
-        return lambda other: other < max_value
-    elif isinstance(min_value, int) and max_value is None:
-        return lambda other: min <= other
-    elif isinstance(min_value, int) and isinstance(max_value, int):
-        return lambda other: min <= other <= max_value
-    elif isinstance(min_value, int) and isinstance(max_value, float):
-        return lambda other: min <= other < max_value
-    elif isinstance(min_value, float) and max_value is None:
-        return lambda other: min_value < other
-    elif isinstance(min_value, float) and isinstance(max_value, int):
-        return lambda other: min_value < other <= max_value
-    elif isinstance(min_value, float) and isinstance(max_value, float):
-        return lambda other: min_value < other < max_value
-    else:
-        raise TypeError(f"`min_value` and `max_value` should be `int` or `float`")
-
+__all__ = [
+    "Query",
+    "QueryAtom",
+    "QueryBond",
+    "Substructure",
+    "Searcher",
+    "Hits",
+    "Hit"
+]
 
 class Query:
     """
@@ -126,7 +99,7 @@ class Query:
             return True
 
         # If any queried attributes is not defined in the target obj
-        if any(not hasattr(obj, attr) for attr in self.kwargs):
+        if any(not hasattr(obj, attr) for attr, v in self.kwargs.items() if not isinstance(v, Callable)):
             return False
 
         # True when all attributes of target obj satisfy the query, else False
@@ -146,10 +119,10 @@ class Query:
                        the type `Container`.
         """
         for attr, value in self.kwargs.items():
-            if not isinstance(value, Container):
+            if not isinstance(value, (Container, Callable)):
                 raise TypeError("The attrs of Query should be Container")
 
-            if not isinstance(value, set):
+            if not isinstance(value, Callable):
                 self.kwargs[attr] = set(value)
 
 
@@ -398,7 +371,7 @@ class Searcher:
             graph matches.
         """
         return Hits(
-            mol, self.substructure,
+            self.substructure, mol,
             isomorphism.GraphMatcher(
                 mol.atom_bond_graph,
                 self.substructure.construct_graph(),

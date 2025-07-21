@@ -459,24 +459,6 @@ class OBFF:
         Performs geometry optimization for a given molecule, either under equilibrium conditions
         or through perturbative steps if specified. The method uses constraint management, molecular
         coordinate manipulation, and an optimization routine based on the chosen forcefield.
-
-        Attributes
-        ----------
-        steps : int
-            Number of optimization steps per iteration.
-        equi_threshold : float
-            Maximum tolerated displacement for equilibrium convergence.
-        max_iter : int
-            Maximum number of iterations allowed for optimization.
-        perturb_steps : Union[None, int]
-            Number of perturbative steps; if None, performs unconstrained optimization.
-        save_screenshot : bool
-            Whether to save snapshots of intermediate conformers during the process.
-        equilibrium : bool
-            Determines whether to optimize under equilibrium criteria.
-        ff : Any
-            Forcefield object used for geometry optimization.
-
         Parameters
         ----------
         mol : Molecule
@@ -541,16 +523,12 @@ class OBFF:
         are derived from the properties of the input molecule's atoms, bonds, angles, and
         torsions.
 
-        Attributes:
-        constraints: OBFFConstraints object that stores all the constraints applied
-        to the force field.
-
         Parameters:
-        mol (Molecule): Input molecule containing atoms, bonds, angles, and torsions
-        each potentially having constraint attributes.
+            mol (Molecule): Input molecule containing atoms, bonds, angles, and torsions
+            each potentially having constraint attributes.
 
         Raises:
-        None
+            None
         """
         self.constraints = ob.OBFFConstraints()
         for atom in mol.atoms:

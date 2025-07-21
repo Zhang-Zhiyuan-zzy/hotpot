@@ -299,6 +299,3 @@ class MolWriter(IoBase):
             else:
                 with open(self.fp, "w") as f:
                     f.write(_script)
-
-
-# from . import core

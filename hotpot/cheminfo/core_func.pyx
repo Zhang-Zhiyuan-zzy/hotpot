@@ -6,11 +6,6 @@ python v3.9.0
 @Data   : 2025/1/4
 @Time   : 9:35
 """
-import cython
-
-from cpython cimport array
-import array
-
 cdef int* _default_valence = [0,  # 0
         1, 0, 1, 2, 3, 4, 3, 2, 1, 0,     #  1..10
         1, 2, 3, 4, 3, 2, 1, 0, 1, 2,     # 11..20

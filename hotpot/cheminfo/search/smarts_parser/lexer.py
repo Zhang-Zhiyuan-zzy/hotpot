@@ -43,9 +43,14 @@ from collections import defaultdict
 from enum import Enum, auto
 
 from openbabel import openbabel as ob
+import sympy as sp
 
 # from ..elements import elements
 from hotpot.cheminfo.elements import elements
+
+# from .._logic_tuple import AndTuple, OrTuple, NotTuple
+from hotpot.cheminfo.search._logic_tuple import AndTuple, OrTuple, NotTuple
+from hotpot.cheminfo.search.logic import AndDict, sor, sand, MutexBool, MutexValue, Chiral
 
 
 __all__ = [
@@ -79,16 +84,19 @@ class SegmentType(Enum):
 
 
 class AttrType(Enum):
-    In = auto()                # value in (v1, v2, ...)
+    # The discrete type
+    In = auto()                # value     in (v1, v2, ...)
     NotIn = auto()             # value not in (v1, v2, ...)
-    Is = auto()                # value is ...
+    Is = auto()                # value     is ...
     NotIs = auto()             # value not is ...
-    Equal = auto()             # value = ...
-    NotEqual = auto()          # value = ...
-    LessThan = auto()          # value <  max
-    LessEqual = auto()         # value <= max
-    GreaterThan = auto()       # value >  min
-    GreaterEqual = auto()      # value >= min
+    Equal = auto()             # value      = ...
+    NotEqual = auto()          # value     != ...
+
+    # The continuous type
+    LessThan = auto()          #        value <  max
+    LessEqual = auto()         #        value <= max
+    GreaterThan = auto()       #        value >  min
+    GreaterEqual = auto()      #        value >= min
     GtAndLt = auto()           # min <  value <  max
     GeAndLt = auto()           # min <= value <  max
     GtAndLe = auto()           # min <  value <= max
@@ -97,6 +105,37 @@ class AttrType(Enum):
     LeOrGt = auto()            # value <= min or value >  max
     LtOrGe = auto()            # value <  min or value >= max
     LeOrGe = auto()            # value <= min or value >= min
+
+
+class MutexChiral(MutexValue):
+    def _value_check(self, value):
+        if not isinstance(value, Chiral):
+            raise TypeError(f'value {value} is not a Chiral type')
+
+    def __bool__(self):
+        if self.value is Chiral.CIS or self.value is Chiral.TRANS:
+            return True
+        return False
+
+    def __int__(self):
+        if self.value is Chiral.CIS:
+            return 1
+        elif self.value is Chiral.TRANS:
+            return -1
+        else:
+            return 0
+
+    @classmethod
+    def create_from_AT_num(cls, AT_num: int):
+        """ Create an instance from the @ count in SMARTS or SMILES string """
+        if AT_num == 0:
+            raise cls(Chiral.UnSpecified)
+        elif AT_num == 1:
+            return cls(Chiral.CIS)
+        elif AT_num == 2:
+            return cls(Chiral.TRANS)
+        else:
+            raise ValueError(f'AT_num {AT_num} is not in 0, 1, 2')
 
 
 def validate_brackets(smarts: str) -> None:
@@ -311,7 +350,7 @@ def validate_token_continuous(
 
 
 # Simple element lookup for atomic numbers
-_ELEMENTS = set(elements.symbols[1:])
+_ELEMENTS = tuple(elements.symbols)
 _AROMATIC_ATOMS = {"h": 1, "b": 5, "c": 6, "n": 7, "o": 8, "p": 15, "s": 16, "f": 9}  # lowercase = aromatic
 
 ELEMENTS = {
@@ -345,39 +384,33 @@ _hydrogen_catch = re.compile(
 def _parse_hydrogen_counts(s: str):
     m = _hydrogen_catch.fullmatch(s)
     if not m:
-        return None
+        return None, m
 
     if isinstance(g2 := m.group(2), str):  # In option1
         h_count = 1 if not g2 else int(g2)
         if m.group(3) == '+':
-            attr_type = AttrType.GreaterEqual
+            return sp.Interval(h_count, sp.oo), m
         else:
-            attr_type = AttrType.Equal
+            return h_count, m
 
     elif (g4 := m.group(4)) is None:  # Option 2&3:
         assert isinstance(g1 := m.group(1), str) and len(g1) == 1
         if g1 == '?':
-            attr_type = AttrType.In
-            h_count = (0, 1)
+            return sp.FiniteSet(0, 1), m
         elif g1 == '*':
-            attr_type = AttrType.GreaterEqual
-            h_count = 0
+            return sp.Interval(0, sp.oo), m
         else:
             raise AssertionError(f'Unknown hydrogen catch pattern: {m.group()}')
 
     else:  # Option 4
         assert isinstance(g4, str) and g4.isdigit(), f'Unknown hydrogen catch pattern: {m.group()}'
         if (g6 := m.group(6)).isdigit():
-            h_count = (int(g4), int(g6))
-            attr_type = AttrType.GeAndLe
+            return sp.Interval(int(g4), int(g6)), m
         else:
-            h_count = int(g4)
-            attr_type = AttrType.LessEqual
-
-    return h_count, attr_type
+            return sp.Interval(0, int(g4)), m
 
 
-def parse_bracket_atom(text: str) -> Union[list, tuple, dict]:
+def parse_bracket_atom(text: str) -> AndDict:
     """
     Parse a SMARTS bracket atom, e.g. "[nH+1;R;X3,!r,a]" into an attribute dict.
     Returns:
@@ -392,9 +425,9 @@ def parse_bracket_atom(text: str) -> Union[list, tuple, dict]:
         level = 0
         last = 0
         for i, c in enumerate(expr):
-            if c == "(":
+            if c in "([{":
                 level += 1
-            elif c == ")":
+            elif c in ")]}":
                 level -= 1
             elif level == 0 and c in seps:
                 result.append((expr[last:i], c))
@@ -402,37 +435,38 @@ def parse_bracket_atom(text: str) -> Union[list, tuple, dict]:
         result.append((expr[last:], ''))
         return result
 
-    def _parse_atom_primitive(s: str):
-        attr = {}
+    def _parse_atom_primitive(s: str) -> AndDict:
+        attr = AndDict()
         s = s.strip()
         # Isotope: 13C, 2H, ...
         m = re.match(r'^(\d+)([A-Za-z][a-z]?)', s)
         if m:
-            attr['isotope'] = int(m.group(1))
+            attr['isotope'].add(int(m.group(1)))
             s = s[m.end(1):]
 
         # Atomic number: #6
         m = re.match(r'^#(\d+)', s)
         if m:
-            attr['atomic_number'] = int(m.group(1))
+            attr['atomic_number'].add(int(m.group(1)))
             s = s[m.end(0):]
 
         # Atom symbol (with aromaticity)
         m = re.match(r'^([A-Za-z][a-z]?)', s)
         if m:
             el = m.group(1)
-            attr['atomic_number'] = ELEMENTS.get(el.lower(), ELEMENTS.get(el))
-            attr['is_aromatic'] = el.islower()
+            attr['atomic_number'].add(ob.GetAtomicNum(el))
+            attr['is_aromatic'].add(MutexBool(el.islower()))
             s = s[m.end(1):]
         # Chiral: @/@@
         if '@' in s:
-            attr['chiral'] = s.count('@')
+            attr['chiral'] = MutexChiral.create_from_AT_num(s.count('@'))
             s = s.replace('@', '')
 
         # Num hydrogens: H, H1, H2, ...
-        hydrogen_count = _parse_hydrogen_counts(s)
+        hydrogen_count, m = _parse_hydrogen_counts(s)
         if hydrogen_count is not None:
-            attr['hydrogen_counts'] = hydrogen_count
+            attr['hydrogen_counts'].add(hydrogen_count)
+            s = s[m.end():]
 
         # Charge: +2, -1, ++, --
         m = re.match(r'([+-]{1,2})(\d*)', s)
@@ -440,43 +474,48 @@ def parse_bracket_atom(text: str) -> Union[list, tuple, dict]:
             sign = 1 if "+" in m.group(1) else -1
             magnitude = m.group(2)
             charges = m.group(1).count('+') - m.group(1).count('-')
-            attr['charge'] = sign * (int(magnitude) if magnitude else abs(charges))
+            attr['charge'].add(sign * (int(magnitude) if magnitude else abs(charges)))
             s = s[m.end(0):]
+
         # Degree: Dn
         m = re.match(r'D(\d+)', s)
         if m:
-            attr['degree'] = int(m.group(1))
+            attr['degree'].add(int(m.group(1)))
             s = s[m.end(0):]
+
         # Valence: v<n>
         m = re.match(r'v(\d+)', s)
         if m:
-            attr['valence'] = int(m.group(1))
+            attr['valence'].add(int(m.group(1)))
             s = s[m.end(0):]
+
         # Connectivity: Xn
         m = re.match(r'X(\d+)', s)
         if m:
-            attr['connectivity'] = int(m.group(1))
+            attr['connectivity'].add(int(m.group(1)))
             s = s[m.end(0):]
+
         # Ring membership/size: r<n>
         m = re.match(r'r(\d+)?', s)
         if m:
             if m.group(1):
-                attr['ring_size'] = int(m.group(1))
+                attr['ring_size'].add(int(m.group(1)))
             else:
-                attr['in_ring'] = True
+                attr['in_ring'].add(MutexBool(True))
             s = s[m.end(0):]
 
         # 'R' (any ring, or chain), and 'A' (aliphatic atom), 'a' (aromatic atom)
         if s.startswith('R'):
-            attr['in_ring'] = True
+            attr['in_ring'].add(MutexBool(True))
             s = s[1:]
         if s.startswith('A'):
-            attr['is_aromatic'] = False
+            attr['is_aromatic'].add(MutexBool(False))
             s = s[1:]
         if s.startswith('a'):
-            attr['is_aromatic'] = True
+            attr['is_aromatic'].add(MutexBool(True))
             s = s[1:]
 
+        # TODO: NotImplement
         # Logical feature, e.g. %(...)
         m = re.match(r'%\(([^)]*)\)', s)  # extra SMARTS feature
         if m:
@@ -492,36 +531,24 @@ def parse_bracket_atom(text: str) -> Union[list, tuple, dict]:
     # 1. Split on ',' at top level (OR)
     hi_and_cells = [seg[0] for seg in _tokenize_top(expr, ';')]
     if len(hi_and_cells) > 1:
-        return tuple(parse_bracket_atom(f'[{cell}]') for cell in hi_and_cells)
+        return sand(parse_bracket_atom(f'[{cell}]') for cell in hi_and_cells)
 
     or_cells = [seg[0] for seg in _tokenize_top(expr, ',')]
     if len(or_cells) > 1:
-        return [parse_bracket_atom(f'[{cell}]') for cell in or_cells]
+        return sor(parse_bracket_atom(f'[{cell}]') for cell in or_cells)
 
     # 2. Split on ';' or '&' at top level (AND)
     and_cells = [seg[0] for seg in _tokenize_top(expr, '&')]
     if len(and_cells) > 1:
-        return tuple(parse_bracket_atom(f'[{cell}]') for cell in and_cells)
+        return sand(parse_bracket_atom(f'[{cell}]') for cell in and_cells)
 
     # 3. Handle top-level !
     if expr.startswith('!'):
-        return {'NOT': parse_bracket_atom(f'[{expr[1:]}]')}
+        return ~parse_bracket_atom(f'[{expr[1:]}]')
 
     # 4. Otherwise, parse simple
     # multiple ! inside (e.g. [!C;R], [C;!r;X3])
-    parts = [p.strip() for p in re.split(r'(?<![!])&|;', expr)]
-    result = {}
-    for p in parts:
-        if not p:
-            continue
-        p = p.strip()
-        if p.startswith('!'):
-            parsed = _parse_atom_primitive(p[1:])
-            for k,v in parsed.items():
-                result[k] = -v if isinstance(v, int) else v
-        else:
-            result.update(_parse_atom_primitive(p))
-    return result
+    return _parse_atom_primitive(expr)
 
 
 # ------------- Atom symbol attributes (unbracketed, simple atoms/aromatics) ---------------
@@ -634,7 +661,10 @@ def test_tokenize():
         tokens = tokenize_smarts(smarts)
         atoms, bonds = interpret_tokens(tokens)
 
-        print(len(atoms), len(bonds), smarts)
+        print(atoms[0])
+        print(atoms[1])
+        print(bonds[0])
+        print(smarts)
 
 
 # Mega-SMARTS for stress-testing a parser
@@ -717,7 +747,7 @@ _mega_smarts = [
 
 
 mega_smarts = [
-    '[CH+;NH{1-3}][CH+,SH2]'
+    '[CH+,NH{1-3}][CH+,SH2]'
 ]
 
 custom_smarts = [

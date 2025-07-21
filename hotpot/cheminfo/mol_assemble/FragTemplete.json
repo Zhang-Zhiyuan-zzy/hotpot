@@ -1,0 +1,143 @@
+[
+  {
+    "name": "benzene",
+    "smiles": "c1ccccc1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "pyrrole",
+    "smiles": "c1ccc[nH]1",
+    "points": [[0 ,1], [1, 2], [2, 3]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "cyclobutane",
+    "smiles": "C1CCC1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "cyclopentane",
+    "smiles": "C1CCCC1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "cyclohexane",
+    "smiles": "C1CCCCC1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "1477-Me4((biCy)Hex)",
+    "smiles": "C1CC(C)(C)CCC1(C)C",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "1144-Me4(CyHex)",
+    "smiles": "C1CC2(C)C(C)(C)C1(C)CC2",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "cycloheptane",
+    "smiles": "C1CCCCCC1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "phenyl",
+    "smiles": "c1ccccc1",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "pyrrolic",
+    "smiles": "c1ccc[nH]1",
+    "points": [[0], [1], [2]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "F",
+    "smiles": "F",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "Cl",
+    "smiles": "Cl",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "Br",
+    "smiles": "Br",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "Br",
+    "smiles": "Br",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "I",
+    "smiles": "I",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "PH2",
+    "smiles": "P",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "OH",
+    "smiles": "O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "sulfanyl",
+    "smiles": "S",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "BH2",
+    "smiles": "B",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "nitro",
+    "smiles": "N(=O)=O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "amino",
+    "smiles": "N",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "AtomReplace",
+    "elements": ["N", "O", "N"],
+    "method": "AtomReplace"
+  },
+  {
+    "name": "bondOrder",
+    "smiles": null,
+    "points": null,
+    "method": "BondAdding"
+  },
+  {
+    "method": "AlkylGraft",
+    "link_length": [1, 2, 3, 4, 5, 6, 7, 8]
+  }
+]

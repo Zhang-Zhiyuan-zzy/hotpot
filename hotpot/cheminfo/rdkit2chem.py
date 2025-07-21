@@ -9,8 +9,6 @@ python v3.9.0
 import networkx as nx
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import AllChem
-from rdkit.Chem import rdmolops
 
 bond_map = {
     1: Chem.rdchem.BondType.SINGLE,

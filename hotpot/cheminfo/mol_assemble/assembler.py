@@ -22,7 +22,7 @@ from itertools import combinations, product
 
 from tqdm import tqdm
 
-from hotpot import read_mol
+import hotpot.cheminfo as ci
 from hotpot.cheminfo.core import Atom, Molecule
 from hotpot.cheminfo.search import Searcher, Substructure, QueryAtom
 from hotpot.cheminfo.mol_assemble.fragment import Fragment
@@ -99,7 +99,7 @@ def alkyl_generator(lengths: Iterable[int]):
     lengths = list(lengths)
     max_length = max(lengths)
     alkyl = defaultdict(dict)
-    alkyl[1]['CC'] = read_mol('CC')
+    alkyl[1]['CC'] = ci.read_mol('CC')
     for i in range(1, max_length):
         for mol in alkyl[i].values():
             open_site_atom = [a.idx for a in mol.atoms[1:] if len(a.neighbours) <= 4]
@@ -164,7 +164,7 @@ class AtomReplace(Fragment):
             raise ValueError(f'The element {element} is not supported,'
                              f'choose from {list(self._symbol_to_heavy_cov_bond_order.keys())}')
         super().__init__(
-            mol=read_mol(element),
+            mol=ci.read_mol(element),
             searcher=self._create_searcher(element),
             action_points=[],
             action_func=atom_replace
@@ -206,6 +206,39 @@ class AssembleFactory:
             return f"Make Molecule({len(results)}/{self.max_running}) in {epoch} Epoch"
         else:
             return f"Make Molecule({len(results)}) in {epoch} Epoch"
+
+    def _make_in_smiles(self, mol_iter: Iterable[Molecule]):
+        results = set(m.smiles for m in mol_iter)
+        stop_generation = False
+
+        for epoch in range(self.max_step):
+            list_smi = list(results)
+            total = len(list_smi) * len(self.assembler)
+            p_bar = tqdm(desc=self.get_desc(epoch, results), total=total)
+            for smi, assembler in product(list_smi, self.assembler):
+                results.update(assembler.graft(ci.read_mol(smi, fmt='smi')))
+                p_bar.desc = self.get_desc(epoch, results)
+                p_bar.update()
+
+                if len(results) > self.max_running:
+                    stop_generation = True
+                    break
+
+                if (
+                        isinstance(self.save_per_step, int) and
+                        self.catch_path is not None and
+                        len(results) % self.save_per_step == 0
+                ):
+                    with open(self.catch_path, 'w') as writer:
+                        writer.write('\n'.join(results))
+
+            with open(self.catch_path, 'w') as writer:
+                writer.write('\n'.join(results))
+
+            if stop_generation:
+                break
+
+        return results
 
     def make(self, mol_iter: Iterable[Molecule]) -> dict[str, Molecule]:
         results = {m.smiles: m for m in mol_iter}
@@ -252,7 +285,8 @@ class AssembleFactory:
             save_per_step: Optional[int] = 10000,
             catch_path: Optional[Union[str, os.PathLike]] = None
     ):
-        assembler_definition = json.load(open("FragTemplete.json"))
+        file_dir = osp.dirname(osp.abspath(__file__))
+        assembler_definition = json.load(open(osp.join(file_dir, "FragTemplete.json")))
         assembler = [] if assembler is None else list(assembler)
         for defined_dict in assembler_definition:
             if defined_dict['method'] == 'EdgeShoulder':
@@ -287,7 +321,7 @@ class AssembleFactory:
             assert isinstance(point, list)
             assert len(point) == 2
             assert all(isinstance(p, int) for p in point)
-            assembler.append(EdgeShoulder(read_mol(definition['smiles']), action_points=tuple(point)))
+            assembler.append(EdgeShoulder(ci.read_mol(definition['smiles']), action_points=tuple(point)))
 
         return assembler
 
@@ -298,7 +332,7 @@ class AssembleFactory:
             assert isinstance(point, list)
             assert len(point) == 1
             assert isinstance(point[0], int)
-            assembler.append(AtomLink(read_mol(definition['smiles']), tuple(point)))
+            assembler.append(AtomLink(ci.read_mol(definition['smiles']), tuple(point)))
 
         return assembler
 
@@ -329,13 +363,13 @@ if __name__ == '__main__':
         'S(=O)(O)O'
     ]
 
-    phen = read_mol(phen_smi)
+    phen = ci.read_mol(phen_smi)
     hits = [[1], [-1]]
 
     mols = []
     for b1, b2 in combinations(branches, 2):
-        m = atom_link_atom_action(phen.copy(), [1], read_mol(b1), [0])
-        m = atom_link_atom_action(m.copy(), [12], read_mol(b2), [0])
+        m = atom_link_atom_action(phen.copy(), [1], ci.read_mol(b1), [0])
+        m = atom_link_atom_action(m.copy(), [12], ci.read_mol(b2), [0])
         mols.append(m)
 
     # for m in mols:

@@ -25,3 +25,4 @@ sys.path.append(package_root)
 
 from .cheminfo.core import Molecule, Atom, Bond
 from .cheminfo import MolReader, MolWriter, read_mol
+from .cheminfo.mol_assemble import *

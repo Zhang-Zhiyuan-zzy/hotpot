@@ -36,16 +36,6 @@ class TestChemInfo(ut.TestCase):
             # assert isinstance(m.formula, str)
             pass
 
-    @ut.skip
-    def test_pb_reader(self):
-        from tqdm import tqdm
-        from openbabel import pybel as pb
-        from hotpot.cheminfo.obconvert import to_arrays
-        from hotpot.cheminfo.core_ import Molecule
-        reader = pb.readfile('mol2', '/mnt/d/zhang/OneDrive/Papers/Gen3D/out.mol2')
-        for m in tqdm(reader):
-            mol = Molecule(*to_arrays(m.OBMol)[:2])
-
     def test_ideal_bond_order(self):
         mol = next(hp.MolReader(
             'CCCC(CCCCCCC)CCCCN(CCCC(CC(CCCC(CCCC(CCCC(CC)(CC)(CC)CCC(CC)(CC)(CC)CC)CC(CCCCCC)CC(CC(CCCC(C)'

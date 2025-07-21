@@ -13,3 +13,6 @@
  
 ===========================================================
 """
+from hotpot.cheminfo.mol_assemble import AssembleFactory
+
+

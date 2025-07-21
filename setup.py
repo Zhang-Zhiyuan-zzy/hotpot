@@ -7,7 +7,6 @@ python v3.9.0
 @Time   : 5:25
 """
 import re
-import shutil
 from os import path
 from Cython.Build import cythonize
 import setuptools

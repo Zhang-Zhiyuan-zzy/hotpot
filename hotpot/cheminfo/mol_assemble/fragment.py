@@ -59,8 +59,8 @@
 """
 from typing import Union, Optional, Iterable, Callable, Literal
 
-from .core import Molecule
-from .search import Searcher, Hit
+from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.search import Searcher, Hit
 
 
 ########## Definition of action functions ###################
@@ -83,7 +83,7 @@ def actions_register(register_key: str):
     return register
 
 # Define common action function
-@actions_register('atom_link')
+@actions_register('AtomLink')
 def atom_link_atom_action(
         mol: Molecule,
         hit: list[int],
@@ -110,7 +110,7 @@ def atom_link_atom_action(
         AssertionError: If `hit` or `action_points` does not contain exactly one element.
 
     Example:
-        >>> new_molecule = atom_link_atom_action(mol, [3], frag, [0])
+        new_molecule = atom_link_atom_action(mol, [3], frag, [0])
         # Links atom 3 in mol with atom 0 in frag by a single bond.
     """
     assert len(hit) == 1
@@ -122,7 +122,7 @@ def atom_link_atom_action(
     mol_atom.link_with(frag_atom)
     return mol
 
-@actions_register('bond_shoulder')
+@actions_register('EdgeShoulder')
 def shoulder_bond_action(
         mol: Molecule,
         hit: list[int],
@@ -188,12 +188,32 @@ def shoulder_bond_action(
     mol.remove_bonds(ma1_bonds + ma2_bonds + ma1_ma2_bond)
 
     # Build new link to the atoms in the fragment
-    bond_ap1_info = [(ap1, ma1n_idx, ma1_bo) for ma1n_idx, ma1_bo in zip(ma1_bonds, ma1_bond_order)]
-    bond_ap2_info = [(ap2, ma2n_idx, ma2_bo) for ma2n_idx, ma2_bo in zip(ma2_bonds, ma2_bond_order)]
+    bond_ap1_info = [(ap1, ma1n_idx, ma1_bo) for ma1n_idx, ma1_bo in zip(ma1_neigh_idx, ma1_bond_order)]
+    bond_ap2_info = [(ap2, ma2n_idx, ma2_bo) for ma2n_idx, ma2_bo in zip(ma2_neigh_idx, ma2_bond_order)]
     mol.add_bonds(bond_ap1_info + bond_ap2_info)
 
     # Remove old bond atoms
     mol.remove_atoms([ma1, ma2])
+
+    return mol
+
+@actions_register('BondAdd')
+def bond_order_add(
+        mol: Molecule,
+        hit: list[int],
+        frag: Molecule,
+        action_points: list[int]
+):
+    assert len(hit) == 2
+
+    bond = mol.bond(hit[0], hit[1])
+    atom1, atom2 = bond.atoms
+    hc1, hc2 = atom1.implicit_hydrogens, atom2.implicit_hydrogens
+    assert hc1 > 0 and hc2 > 0
+
+    bond.bond_order = bond.bond_order + 1
+    assert hc1 - atom1.implicit_hydrogens == 1
+    assert hc2 - atom2.implicit_hydrogens == 1
 
     return mol
 
@@ -218,8 +238,8 @@ class Fragment:
         graft(mol): For every valid hit found by `searcher`, applies `action_func` to graft the fragment.
 
     Example:
-        >>> frag = Fragment(some_mol, my_searcher, [0], atom_link_atom_action)
-        >>> new_mols = frag.graft(parent_mol)
+        frag = Fragment(some_mol, my_searcher, [0], atom_link_atom_action)
+        new_mols = frag.graft(parent_mol)
     """
     def __init__(
             self,
@@ -233,7 +253,7 @@ class Fragment:
         self.action_points = list(action_points)
         self.action_func = action_func
 
-    def graft(self, mol: Molecule) -> list[Molecule]:
+    def graft(self, mol: Molecule) -> dict[str, Molecule]:
         """
         Apply the fragment to all valid grafting sites in the input molecule.
 
@@ -254,5 +274,7 @@ class Fragment:
 
         grafted_mol = []
         for hit in hits:
-            grafted_mol.append(self.action_func(mol.copy(), list(hit), self.frag.copy(), self.action_points))
+            gen_mol = self.action_func(mol.copy(), list(hit), self.frag.copy(), self.action_points)
+            grafted_mol.append((gen_mol.smiles, gen_mol))
 
+        return dict(grafted_mol)

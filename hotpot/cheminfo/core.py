@@ -33,6 +33,8 @@ from .pubchem import smi_to_cid, smi_to_name, smi_to_cas
 
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
+else:
+    _io = sys.modules['hotpot.cheminfo._io']
 
 def _metal_valence(atom):
     return 0
@@ -97,6 +99,7 @@ class Molecule:
     def copy(self):
         clone = Molecule()
         for atom in self._atoms:
+            # clone._create_atom_from_array(atom.attrs)
             clone._create_atom(**atom.attr_dict)
         for bond in self._bonds:
             clone._add_bond(bond.a1idx, bond.a2idx, **bond.attr_dict)
@@ -2570,6 +2573,11 @@ class MolBlock:
         **kwargs : Any
             Arbitrary keyword arguments representing attribute names and their 
             associated values to be applied as updates.
+
+        TODO: Warning!
+        TODO: This methods is recommended to be invoked after, the molecular graph has
+        TODO: been built. If the method is invoked in the obj-create stage. Some unexpected
+        TODO: error might raise.
         """
         _attrs = copy(self._default_attrs) if add_defaults else {}
         _attrs.update(kwargs)
@@ -2598,6 +2606,9 @@ def _atomic_number_setter(self: "Atom", key, atomic_number):
     assert key == "atomic_number"
     self.attrs[0] = atomic_number
     self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG+1] = Atom.elements.electron_configs[atomic_number]
+    # Adding in 2025/7/19
+    self.attrs[Atom._attrs_enumerator.index("valence")] = self.get_valence()
+    self.attrs[Atom._attrs_enumerator.index("implicit_hydrogens")] = self._calc_implicit_hydrogens()
 
 # ---------------------------------------------------------------------
 
@@ -2637,16 +2648,18 @@ class Atom(MolBlock):
 
     """
     # Cython define
-    atomic_number: cython.int
-    formal_charge: cython.int
-    partial_charge: cython.double
-    x: cython.double
-    y: cython.double
-    z: cython.double
-    valence: cython.int
-    id: cython.long
-    symbol: cython.p_char
-    idx: cython.int
+    atomic_number: int
+    formal_charge: int
+    partial_charge: float
+    x: float
+    y: float
+    z: float
+    valence: int
+    id: int
+    symbol: str
+    idx: int
+    is_aromatic: bool
+    implicit_hydrogens: int
 
     _coord_getter = operator.attrgetter('x', 'y', 'z')
 
@@ -2729,6 +2742,8 @@ class Atom(MolBlock):
          behaviors/ Rules ;proper Error Inflect 
                ** detail ensure behaviors s """
         self.mol = mol or Molecule()
+        self._bonds = []
+        self._neighbours = []
         getattr(self.mol, '_atoms').append(self)
 
         if isinstance(attrs_array, np.ndarray):
@@ -2743,14 +2758,22 @@ class Atom(MolBlock):
                 )
 
         else:
-            self.attrs = np.zeros(len(self._attrs_enumerator))
-            self.setattr(add_defaults=True, **kwargs)
+            # When create a new atoms, bypassing the attr_setter interface to avoiding
+            # unexpected invoke. For example:
+            # - Calculate the bond order and implicit hydrogen before the bonds and molecular
+            #   graph is built.
+            if 'symbol' in kwargs:
+                kwargs['atomic_number'] = ob.GetAtomicNum(kwargs.pop('symbol'))
+            if 'coordinates' in kwargs:
+                kwargs['x'], kwargs['y'], kwargs['z'] = kwargs.pop('coordinates')
+
+            self.attrs = np.array([kwargs.pop(a, 0.) for a in self._attrs_enumerator])
+
+            # TODO: Warning! It's not recommended to create a new atom obj.
+            self.setattr(**kwargs)  # Warning: This operation might cause some Error or Bug.
 
         if update_electron_config:
             self.electron_configuration = self.elements.electron_configs[self.atomic_number]
-
-        self._neighbours = []
-        self._bonds = []
 
     @classmethod
     def _get_atom_attr_dict(cls, atomic_number: int) -> dict:
@@ -3755,6 +3778,11 @@ class Atom(MolBlock):
         remaining attribute assignments to the parent's setattr implementation. Handles 
         keys intelligently, such as extracting individual axes from a coordinates tuple 
         or substituting atomic symbols with their corresponding atomic numbers.
+
+        TODO: Warning!
+        TODO: This methods is recommended to be invoked after the molecular graph has
+        TODO: been built. If the method is invoked in the obj-create stage. Some unexpected
+        TODO: error might raise.
         """
         coords = kwargs.get("coordinates", None)
         symbol = kwargs.get("symbol", None)
@@ -3936,7 +3964,7 @@ class AtomSeq:
                 f"The the atom counts of {self.__class__.__name__} is {_length}, but {len(self.atoms)} are given.")
 
     @property
-    def atoms(self):
+    def atoms(self) -> Iterable[Atom]:
         return copy(self._atoms)
 
     @property
@@ -4253,6 +4281,13 @@ def _load_ibl():
         bond_order_dict[list_k[2]] = v
     return ibl_data
 
+def _bond_order_setter(self: "Bond", key, bond_order):
+    assert key == 'bond_order'
+    self._default_attr_setter(self, key, bond_order)
+
+    for atom in self.atoms:
+        atom.calc_implicit_hydrogens()
+
 class Bond(AtomSeq, MolBlock):
     """
     Represents a chemical bond between two atoms.
@@ -4263,12 +4298,18 @@ class Bond(AtomSeq, MolBlock):
     """
     _ideal_bond_length = _load_ibl()
 
+    _attrs_setter = {
+        'bond_order': _bond_order_setter
+    }
+
     _attrs_dict = {
         'bond_order': float,
         'constraint': bool,
         'id': int,
     }
     _attrs_enumerator = tuple(_attrs_dict.keys())
+
+    # TODO: Modify the bond type to Enum type
     _bond_order_symbol = {
         0.: '?',
         1.: '-',
@@ -4286,9 +4327,11 @@ class Bond(AtomSeq, MolBlock):
 
     def __init__(self, atom1: Atom, atom2: Atom, **kwargs):
         super().__init__(atom1, atom2)
-        self.attrs = np.zeros(len(self._attrs_enumerator))
+        # self.attrs = np.zeros(len(self._attrs_enumerator))
+        self.attrs = np.array([kwargs.pop(a, 0.) for a in self._attrs_enumerator])
 
-        self.setattr(add_defaults=True, **kwargs)
+        # TODO: This invoke might cause some unexpected bug and error
+        self.setattr(**kwargs)  # TODO: it's not recommended to be used to create an new bond obj
 
     def __repr__(self):
         return MolBlock.__repr__(self)

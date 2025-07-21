@@ -6,14 +6,52 @@ python v3.9.0
 @Data   : 2024/12/13
 @Time   : 16:27
 """
+from enum import Enum, auto
 from abc import abstractmethod
-from typing import Union, Sequence, Literal, Container, Any, Iterable
+from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Optional
 import networkx as nx
 from networkx.algorithms import isomorphism
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
 
+
+class MatcherType(Enum):
+    IN_CONTAINER = auto()
+    NUM_MIX_MAX = auto()
+    NOT_CONTAIN = auto()
+
+
 def raise_not_implemented(self): raise NotImplemented(f"{self.__class__.__name__} not implemented")
+
+
+def in_matcher(targets: Iterable[Any]):
+    def judge(other):
+        return other in targets
+    return judge
+
+
+def min_max_matcher(min_value: Optional[int, float] = None, max_value: Optional[int, float] = None):
+    if min_value is None and max_value is None:
+        raise ValueError("The `min_value` and `max_value` should be given at least one`")
+    elif min_value is None and isinstance(max_value, int):
+        return lambda other: other <= max_value
+    elif min_value is None and isinstance(max_value, float):
+        return lambda other: other < max_value
+    elif isinstance(min_value, int) and max_value is None:
+        return lambda other: min <= other
+    elif isinstance(min_value, int) and isinstance(max_value, int):
+        return lambda other: min <= other <= max_value
+    elif isinstance(min_value, int) and isinstance(max_value, float):
+        return lambda other: min <= other < max_value
+    elif isinstance(min_value, float) and max_value is None:
+        return lambda other: min_value < other
+    elif isinstance(min_value, float) and isinstance(max_value, int):
+        return lambda other: min_value < other <= max_value
+    elif isinstance(min_value, float) and isinstance(max_value, float):
+        return lambda other: min_value < other < max_value
+    else:
+        raise TypeError(f"`min_value` and `max_value` should be `int` or `float`")
+
 
 class Query:
     """
@@ -48,7 +86,7 @@ class Query:
     _match_class = None
 
     def __init__(self, **kwargs: Union[Container, Any]):
-        self.kwargs = {n: set(v) for n, v in kwargs.items()}
+        self.kwargs = {n: (v if isinstance(v, Callable) else set(v)) for n, v in kwargs.items()}
         self._check_kwargs_types()
 
     def __repr__(self):
@@ -59,7 +97,7 @@ class Query:
     def label(self):
         raise NotImplemented(f"{self.__class__.__name__} not implemented")
 
-    def match(self, other):
+    def match(self, obj):
         """
         Compares the current object to another object of a specific class to determine if
         all specified attributes meet the given conditions.
@@ -71,7 +109,7 @@ class Query:
 
         Parameters:
             self: Refers to the current instance of the class.
-            other (self._match_class): An object of the expected type to compare with.
+            obj (self._match_class): An object of the expected type to compare with.
 
         Raises:
             TypeError: If the other object is not of the expected class.
@@ -80,17 +118,22 @@ class Query:
             bool: True if all specified conditions for attributes are met, or if no
             conditions are specified. False if any attribute condition is not satisfied.
         """
-        if not isinstance(other, self._match_class):
+        if not isinstance(obj, self._match_class):
             raise TypeError(f"The {self.__class__.__name__} object should compare with "
-                            f"{self._match_class.__name__} object, but got {type(other)} instead.")
+                            f"{self._match_class.__name__} object, but got {type(obj)} instead.")
 
         if not self.kwargs:
             return True
 
-        try:
-            return all(getattr(other, attr) in self.kwargs[attr] for attr in self.kwargs)
-        except KeyError:
+        # If any queried attributes is not defined in the target obj
+        if any(not hasattr(obj, attr) for attr in self.kwargs):
             return False
+
+        # True when all attributes of target obj satisfy the query, else False
+        return all(
+            values(obj) if isinstance(values, Callable) else getattr(obj, attr) in values
+            for attr, values in self.kwargs.items()
+        )
 
     def _check_kwargs_types(self):
         """

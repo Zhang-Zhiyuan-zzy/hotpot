@@ -173,6 +173,30 @@ class AtomReplace(Fragment):
             action_func=atom_replace
         )
 
+class MolBatch:
+    def __init__(self, iter_smiles: Iterable[Molecule], batch_size: int = 100):
+        self.list_smiles = list(iter_smiles)
+        self.batch_size = batch_size
+        self._len = (len(self.list_smiles) // self.batch_size) + 1
+        self._idx = 0
+
+    def __len__(self):
+        return self._len
+
+    def __next__(self):
+        if self._idx < self._len:
+            self._idx += 1
+            return self.list_smiles[(self._idx-1)*self.batch_size:self._idx*self.batch_size]
+        else:
+            raise StopIteration
+
+    def __iter__(self):
+        for i in range(self._len):
+            yield self.list_smiles[self._idx*self.batch_size:(self._idx+1)*self.batch_size]
+
+    def refresh(self):
+        self._idx = 0
+
 class AssembleFactory:
     methods = {
         "EdgeShoulder": EdgeShoulder,
@@ -214,8 +238,16 @@ class AssembleFactory:
     def _make_one(smi, assembler, q: mp.Queue) -> set[str]:
         q.put(set(assembler.graft(ci.read_mol(smi, fmt='smi'))))
 
+    @staticmethod
+    def _make_batch(list_smi, list_assembler, q: mp.Queue) -> set[str]:
+        results = set(list_smi)
+        for smi, assembler in product(list_smi, list_assembler):
+            results.update(assembler.graft(ci.read_mol(smi, fmt='smi')))
+        q.put(results)
+
     def make(self, mol_iter: Iterable[Molecule]):
         results = set(m.smiles for m in mol_iter)
+        last_save_num = len(results)
         stop_generation = False
 
         for epoch in range(self.max_step):
@@ -234,7 +266,7 @@ class AssembleFactory:
                 if (
                         isinstance(self.save_per_step, int) and
                         self.catch_path is not None and
-                        len(results) % self.save_per_step == 0
+                        len(results) - last_save_num > self.save_per_step
                 ):
                     with open(self.catch_path, 'w') as writer:
                         writer.write('\n'.join(results))
@@ -251,20 +283,23 @@ class AssembleFactory:
             self,
             mol_iter: Iterable[Molecule],
             nproc: Optional[int] = None,
-            timeout: int = 100
+            timeout: int = 100,
+            batch_size: int = 10,
     ):
         """ Running the Assembler.make in a multiprocessing context. """
         if nproc is None:
             nproc = os.cpu_count()
 
         results = set(m.smiles for m in mol_iter)
+        last_save_num = len(results)
         for epoch in range(self.max_step):
             list_smi = list(results)
-            total = len(list_smi) * len(self.assembler)
+            _iterator = MolBatch(list_smi, batch_size)
+
+            total = len(_iterator)
             p_bar = tqdm(desc=self.get_desc(epoch, results), total=total)
 
             processes = {}
-            _iterator = product(list_smi, self.assembler)
             time_stop = time.time()
             while True:
                 # Harvest results
@@ -289,7 +324,7 @@ class AssembleFactory:
                 if (    # Save temporary results
                         self.catch_path is not None and
                         isinstance(self.save_per_step, int) and
-                        len(results) % self.save_per_step == 0
+                        len(results) - last_save_num > self.save_per_step
                 ):
                     with open(self.catch_path, 'w') as writer:
                         writer.write('\n'.join(results))
@@ -297,10 +332,10 @@ class AssembleFactory:
                 # Launch new Process
                 if len(processes) < nproc:
                     try:
-                        smi, assembler = next(_iterator)
+                        smi_iter = next(_iterator)
 
                         q = mp.Queue()
-                        p = mp.Process(target=self._make_one, args=(smi, assembler, q))
+                        p = mp.Process(target=self._make_batch, args=(smi_iter, self.assembler, q))
                         p.start()
 
                         processes[p] = (q, time.time())
@@ -432,6 +467,6 @@ if __name__ == '__main__':
     #     m.optimize('UFF', perturb_steps=2)
     #     m.write(f'/mnt/d/zhang/OneDrive/Desktop/frame/{m.smiles}.mol2', overwrite=True)
 
-    factory = AssembleFactory.load_default_assembler(catch_path=f'/mnt/d/zhang/OneDrive/Desktop/frame/smi_mp.txt')
+    factory = AssembleFactory.load_default_assembler(catch_path=f'/home/zz1/datasets/PhenMols/smi.txt')
     results = factory.make(mols)
 

@@ -40,7 +40,7 @@ def make_phen_mol():
         mols.append(m)
 
     factory = hp.AssembleFactory.load_default_assembler(catch_path=f'/mnt/d/zhang/OneDrive/Desktop/frame/smi.txt')
-    results = factory.make(mols)
+    results = factory.mp_make(mols)
 
     return results
 

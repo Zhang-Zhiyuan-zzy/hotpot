@@ -16,13 +16,16 @@
 import os
 import os.path as osp
 import json
+import time
 from collections import defaultdict
 from typing import Iterable, Literal, Optional, Union
 from itertools import combinations, product
+import multiprocessing as mp
 
 from tqdm import tqdm
 
 import hotpot.cheminfo as ci
+from hotpot.utils import fmt_print
 from hotpot.cheminfo.core import Atom, Molecule
 from hotpot.cheminfo.search import Searcher, Substructure, QueryAtom
 from hotpot.cheminfo.mol_assemble.fragment import Fragment
@@ -207,7 +210,11 @@ class AssembleFactory:
         else:
             return f"Make Molecule({len(results)}) in {epoch} Epoch"
 
-    def _make_in_smiles(self, mol_iter: Iterable[Molecule]):
+    @staticmethod
+    def _make_one(smi, assembler, q: mp.Queue) -> set[str]:
+        q.put(set(assembler.graft(ci.read_mol(smi, fmt='smi'))))
+
+    def make(self, mol_iter: Iterable[Molecule]):
         results = set(m.smiles for m in mol_iter)
         stop_generation = False
 
@@ -240,36 +247,75 @@ class AssembleFactory:
 
         return results
 
-    def make(self, mol_iter: Iterable[Molecule]) -> dict[str, Molecule]:
-        results = {m.smiles: m for m in mol_iter}
-        stop_generation = False
+    def mp_make(
+            self,
+            mol_iter: Iterable[Molecule],
+            nproc: Optional[int] = None,
+            timeout: int = 100
+    ):
+        """ Running the Assembler.make in a multiprocessing context. """
+        if nproc is None:
+            nproc = os.cpu_count()
 
+        results = set(m.smiles for m in mol_iter)
         for epoch in range(self.max_step):
-            mols = list(results.values())
-            total = len(mols) * len(self.assembler)
+            list_smi = list(results)
+            total = len(list_smi) * len(self.assembler)
             p_bar = tqdm(desc=self.get_desc(epoch, results), total=total)
-            for mol, assembler in product(mols, self.assembler):
-                results.update(assembler.graft(mol))
-                p_bar.desc = self.get_desc(epoch, results)
-                p_bar.update()
 
-                if len(results) > self.max_running:
-                    stop_generation = True
-                    break
+            processes = {}
+            _iterator = product(list_smi, self.assembler)
+            time_stop = time.time()
+            while True:
+                # Harvest results
+                if processes:
+                    to_remove = []
+                    for p, (q, t) in processes.items():
+                        try:
+                            results.update(q.get(block=False))
+                            p.terminate()
+                            to_remove.append(p)
 
-                if (
-                        isinstance(self.save_per_step, int) and
+                        except mp.queues.Empty:
+                            if timeout and time.time() - t > timeout:
+                                p.terminate()
+                                to_remove.append(p)
+
+                    for p in to_remove:
+                        del processes[p]
+                        p_bar.set_description(self.get_desc(epoch, results))
+                        p_bar.update()
+
+                if (    # Save temporary results
                         self.catch_path is not None and
+                        isinstance(self.save_per_step, int) and
                         len(results) % self.save_per_step == 0
                 ):
                     with open(self.catch_path, 'w') as writer:
                         writer.write('\n'.join(results))
 
-            with open(self.catch_path, 'w') as writer:
-                writer.write('\n'.join(results))
+                # Launch new Process
+                if len(processes) < nproc:
+                    try:
+                        smi, assembler = next(_iterator)
 
-            if stop_generation:
-                break
+                        q = mp.Queue()
+                        p = mp.Process(target=self._make_one, args=(smi, assembler, q))
+                        p.start()
+
+                        processes[p] = (q, time.time())
+
+                    except StopIteration:
+                        if not processes:
+                            fmt_print.bold_magenta(f'Stop MolAssemble in {epoch} Epoch!!')
+                            break
+                        elif time.time() - time_stop > 10:
+                            fmt_print.bold_magenta(f'StopIteration with {len(processes)} running processes!!')
+                            time_stop = time.time()
+
+                # Save results after a whole Epoch
+                with open(self.catch_path, 'w') as writer:
+                    writer.write('\n'.join(results))
 
         return results
 
@@ -284,11 +330,29 @@ class AssembleFactory:
             max_running: int = 3000000,
             save_per_step: Optional[int] = 10000,
             catch_path: Optional[Union[str, os.PathLike]] = None
-    ):
-        file_dir = osp.dirname(osp.abspath(__file__))
-        assembler_definition = json.load(open(osp.join(file_dir, "FragTemplete.json")))
+    ) -> 'AssembleFactory':
+
         assembler = [] if assembler is None else list(assembler)
-        for defined_dict in assembler_definition:
+        assembler.extend(cls.load_assembler_file(osp.join(osp.dirname(osp.abspath(__file__)), "FragTemplete.json")))
+        return AssembleFactory(
+            assembler=assembler,
+            max_step=max_step,
+            mode=mode,
+            seed=seed,
+            sample_weights=sample_weights,
+            max_running=max_running,
+            save_per_step=save_per_step,
+            catch_path=catch_path
+        )
+
+    @classmethod
+    def load_assembler_file(cls, f: Union[str, os.PathLike]) -> list[Fragment]:
+        return cls.load_assembler_contents(json.load(open(f)))
+
+    @classmethod
+    def load_assembler_contents(cls, contents: list[dict]) -> list[Fragment]:
+        assembler = []
+        for defined_dict in contents:
             if defined_dict['method'] == 'EdgeShoulder':
                 assembler.extend(cls._define_edge_shoulder(defined_dict))
             elif defined_dict['method'] == 'AtomLink':
@@ -301,18 +365,7 @@ class AssembleFactory:
                 assembler.extend(cls._define_alkyl(defined_dict))
             else:
                 raise NotImplementedError(f'Method {defined_dict["method"]} is not supported')
-
-        return AssembleFactory(
-            assembler=assembler,
-            max_step=max_step,
-            mode=mode,
-            seed=seed,
-            sample_weights=sample_weights,
-            max_running=max_running,
-            save_per_step=save_per_step,
-            catch_path=catch_path
-        )
-
+        return assembler
 
     @staticmethod
     def _define_edge_shoulder(definition: dict):
@@ -379,6 +432,6 @@ if __name__ == '__main__':
     #     m.optimize('UFF', perturb_steps=2)
     #     m.write(f'/mnt/d/zhang/OneDrive/Desktop/frame/{m.smiles}.mol2', overwrite=True)
 
-    factory = AssembleFactory.load_default_assembler(catch_path=f'/mnt/d/zhang/OneDrive/Desktop/frame/smi.txt')
+    factory = AssembleFactory.load_default_assembler(catch_path=f'/mnt/d/zhang/OneDrive/Desktop/frame/smi_mp.txt')
     results = factory.make(mols)
 

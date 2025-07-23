@@ -1,18 +1,10 @@
-# Hotpot
-## Introduction
-This Python package has been specifically designed to streamline communication between
-commonly used computational tools in chemistry and materials research. The package is
-aptly named Hotpot, after the popular dish from Sichuan, China. The defining feature of
-Hotpot is its ease of preparation and deliciousness, regardless of the ingredients used.
-Similarly, this Hotpot package brings together a variety of computational tools 
-(i.e. ingredients) to simplify research related to chemical materials. This allows chemists
-and materials scientists to create delectable scientific cuisine with ease.
+from hotpot import AssembleFactoryfrom hotpot import AssembleFactoryfrom hotpot import EdgeShoulderfrom hotpot import Fragmentfrom hotpot.cheminfo.search import Substructurefrom hotpot import Searcher
 
-The following jobs are supported by Hotpot:
+# Hotpot (`hotpot.cheminfo.mol_assemble` Module)
 
-    - Molecular Simulation, link to LAMMPS and RASPA
-    - Quantum or Ab-initio Calculation, link to Gaussian and ABACUS
-    - Feature Extraction and Machine learnig, link to openbabel, Zeo++, RdKit et al.
+- [Installation](#installation)
+- [Tutorial](#tutorial)
+- [API reference](#hotpotcheminfomol_assemble-api)
 
 ## Installation
 
@@ -33,206 +25,353 @@ recommended to create a new conda environment to run the package.
 ### Install
 After the requirements are installed, now the ''Hotpot'' could be installed by pip
 > conda activate hp
-
 > pip install hotpot-zzy
 
-or you can install from this github repository:
-```angular2html
-git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
-pip install build  # install `build` package
-python -m build
-pip install dist/hotpot_zzy-`VERSION`-py3-none-any.whl
-```
 
+## Tutorial
 
-## Usage
-The Hotpot is very easy to use, the core class of Hotpot is the `Molecule`, which is designed
-as the general interface for all functions across the entire the package. In the following
-example, we first load a Molecule object by `SMILES` string, and then the build their 3D conformer:
+### Generic description
+The molecule assemble (`hotpot.cheminfo.mol_assemble`) module iteratively generates virtual 
+molecular structures based on the user-specified molecular Framework (`hotpot.Molecule`) and
+assembly fragments [(`hotpot.cheminfo.mol_assemble.Fragment`)](#fragment). The Framework is a standard 
+`Molecule` object, while the assembly operation is specifically implemented using the `Fragment`. 
+An instantiated `Fragment` must specify the following four factors:
+1) The 2D molecular structure of the fragment (a `Molecule` object)
+2) The atom(s) (specified by index) on the fragment used for connection with the Framework
+3) The searcher for locating connection sites on the molecule (a `hotpot.cheminfo.search.Searcher` object)
+4) The specific connection operation (specified in an `action` function) between the `Fragment` and 
+the Framework at the connection sites.
 
+[`Fragment`](#fragment) provides users the flexibility to customize their own assembly strategies. 
+Of course, `Hotpot` has predefined some common molecular assembly `Fragment` (named `Assembler`).
+When handling the `Assembler`, users only need to specify its fragment structure and indicate the
+(optional) `action_points` indices (i.e., specify which Fragmental atoms as the `"reaction site"` to
+react with the frame `Molecule`).
+
+So far, the [predefined `Assembler`](#assemblers) include (see the following `Scheme 1` for details):
+1) EdgeShoulder (required two `action_points`)
+2) AtomLink (required one `action_points`)
+3) BondAdding (No `action_points` required)
+4) AtomReplace (No `action_points` required)
+5) AlkylGraft (No `action_points` required, just a specific `AtomLink`)
+6) RingWedge (required one `action_points`)
+
+![Scheme of Assemblers](./Assemblers.svg)
+
+***Scheme 1** Illustration of Assembly of Molecule by different Assemblers*
+
+### Tutorial with examples
+This tutorial will cover the following topics:
+1) [How to use the Fragment class to customize your own Assembler](#customization-of-assembler)
+2) [How to assemble new molecules using either custom or predefined Assemblers](#assemble-new-molecule)
+3) [How to define Assemblers in batches and use the AssembleFactory for high-throughput assembly of new molecules](#perform-high-throughput-molecule-assembly)
+
+#### Customization of Assembler
+The example of usage of `Fragment`:
 ```pycon
 import hotpot as hp
-mol = hp.Molecule.read_from('c1c(O)ccc(C(=O)O)c1', 'smi')  # Load a 4-hydroxybenzoic acid molecule
-print(mol.has_3d)  # the molcule is a 2D molcule now, whose all coordinates are (0, 0, 0)
+from hotpot.cheminfo.search import Searcher, Substructure, QueryAtom, QueryBond
+from hotpot.cheminfo.mol_assemble import Fragment
 
-mol.build_3d(force_field='UFF')  # build the molecule to 3D, by univeral force field
-print(m.has_3d)  # Now, the molecule is a 3D molecule, all of atoms have their coordinate
-
-# check the atoms coordinates:
-mol.normalize_labels()  # reorder the atom's labels
-for atom in mol.atoms:
-    print(atom.label, atom.symbol, atom.coordinate)  # get the label, symbol, coordinates of the atom
-```
-
-In general, a `Molecule` is consist of many `Atom` and `Bond` objects. One can get the attributes from
-the `Molecule`, `Atoms` or `Bonds`.
-```pycon
-print(mol.atoms)  # get all atoms in the molecule
-print(mol.bonds)  # get all bonds in the molecule
-
-atom = mol.atoms[0]
-bond = mol.bonds[0]
-
-print(atom.neighbours)  # get all neigh atoms of this atoms
-print(bond.atom1, bond.atom2)  # get the begin and end atom of this bond
-print(bond.type)  # get the bond type
-```
-
-### Molecule Read and Write
-The `Hotpot` read and write the molecule from string or files by calling the [openbabel](https://github.com/openbabel) 
-and [cclib](https://github.com/cclib/cclib) packages, most formats supported by the two packages are support 
-by `Hotpot` too. the Main method to read and parse to `Molecule` object is `read_from()`:
-
-> mol = hp.Molecule.read_from('/path/to/file', fmt='cif')  # read a cif file from disk 
-
-Or, read a `SMILES`, `inchikey` or other string like the example above. 
-
-The arg `fmt` is optional when to read `Molecule` from file, if the suffix of the file are correct:
-> mol = hp.Molecule.read_from('/path/to/file.cif')
-
-One also could write the molecule object to formatted file by the `writefile()` method, where the `fmt` is
-the first arg and required. the actual format of the output is specified by the `fmt` arg:
-
-> mol.writefile('cif', 'path/to/cif/file')
-
-One could retrieve the formatted string by `dump()` method, where only the `fmt` pass into:
-> cif_script = mol.dump('cif')
-
-### Cheminformatics
-It is easy to get the `SMILES` or `Inchi` key of the `Molecule` object
-> print(mol.smiles)
-
-> print(mol.inchi)
-
-The `Molecule` object could convert to certain fingerprint object, like `FP2`, `FP3`, `FP4` or `MACCS`
-> fp = mol.fingerprint(fptype='FP2')
-
-The `Molecule` objects could calculate the similarity between each other based on specified fingerprint
-> mol.similarity(other_mol, fptype='FP3')  # calculate the similarity by 'FP3' fingerprint
-
-The 'Molecule' object could retrieve its link_matrix as the input of graph learning
-> print(mol.link_matrix)  # get a [2, Nb] matrix, where `Nb` is the number of bonds
-
-### Submit the Molecule to Gaussian16 software
-One can directly submit the `Molecule` object to Gaussian16 software. Assuming you want to optimize the
-conformer of the molecule by Gaussian16
-
-```pycon
-mol.gaussian(
-    g16root='path/to/g16root',
-    link0='the link0 string',
-    route='opt B3LYP/6-311++G**',
-    path_log_file='path/to/save/the/log',
-    path_err_file='path/to/record/error',
-    inplace_attrs=True  # whether to inplace the attribute of the molecule according to the last status of the molecule in the log file
-    debugger='auto'  # Handle the Gaussian Error by the default method
-)
-print(mol.energy)  # get the SCF energy in the last optimized status
-print(mol.coordinate)  # get the coordinates matrix after optimizing by gaussian 16
-```
-The Gaussian program will run and handle some common error report automatically. To handle errors with more elaborate
-methods, user can custom a new debugger by inherit from the hotpot.tanks.quantum.GaussErrorHandle, seeing 
-documentation for more details.
-
-### Submit the Molecule(Framework) to LAMMPS to perform grand canonical Monte-Carlo simulation
-Suppose that you want to determine the Uptake of carbon dioxide in a metal-organic framework at 298.15 K and 0.5 bar
-```pycon
-work_dir = 'work/dir'  # specify a dir to save the results and log for the GCMC simulation
-
-co2 = hp.Molecule.read_from('O=C=O', 'smi')  # load a carbon dioxide by SMILES
-frame = hp.Molecule.read_from('path/to/mof/file.cif')  # load a mof file as the framework
-
-# Run GCMC simulation
-frame.gcmc(
-    co2, 
-    force_field='path/to/force/field',  # by default, the force field is the LJ potential from UFF 
-    work_dir=work_dir, 
-    T=298.15, P=0.5  # specify the external environment
+# Initialize a Fragment instance
+frag = Fragment(
+    mol=hp.read_mol('c1ccc[nH]1', fmt='smi')  # create a pyrrole as the fragmental structure
+    action_points=[0, 1]                      # specify the 1st (mol.atoms[0]) and 2nd (mol.atoms[1]) atoms as the action points (or "reaction sites")
+    searcher=substructure_searcher            # a Searcher instance to locate opportune sites in the frame mol for integrating with the frag
+    action_func=action_func                   # a Callable object to specify the practical implementation of assembly between frame and frag
 )
 ```
-When perform the GCMC, the chemical potential `mu` or fugacity coefficient `phi` should be given. Fortunately, in
-the `mu` or `phi` could be estimated by state of equation. For some common substance `gcmc()` method can calculate 
-the `mu` and `phi` automatically, by `Peng-Robinson` equation by default.
-
-### Access the property of substance for common substance
-For certain common substance, we can access its thermodynamical property, like critical temperature `Tc` and
-saturation vapor pressure `Psat` by [thermo](https://pypi.org/project/thermo/) package:
+Here, without loss of generality, I configure a *pyrrole* [`EdgeShoulder`](#generic-description) to demonstrate how to
+customize an arbitrary [`Assembler`](#assemblers) (a specific `Fragment`), by giving the specification of the 
+`substructer_searcher` and `action_func` in the last code.
 
 ```pycon
-mol = hp.Molecule.read_from('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
-mol.get_thermo()  # some kwargs could pass into, see documentation
-print(mol.thermo.Tc)  # the critical temperature
-print(mol.thermo.Psat)  # the saturation vapor pressure
+def has_hydrogen(atom: Atom) -> bool:
+    """ The 'reaction sites' in the frame should have at least one hydrogen """
+    return bool(atom.hydrogens) or atom.implicit_hydrogens > 0
+
+# specify the substructure_searcher
+substructure = Substructure()
+substructure.add_atom()
+
+atom_attrs_constraint = dict(
+    # the constraint could be given by any container obj with __contains__ methods
+    # or a callable object which pass an atom as its arguments and return bools.
+    atomic_number={6, 7},
+    has_hydrogen=has_hydrogen,
+)
+
+substructure.add_atom(QueryAtom(**atom_attrs_constraint))
+substructure.add_atom(QueryAtom(**atom_attrs_constraint))
+substructure.add_bond(0, 1)  # The attrs of bond can also be constrained passing kwargs.
+
+substructure_searcher = Searcher(substructure)
+```
+Next, we give the definition of `action_func` in `EdgeShoulder`. When customizing your own `Assembler`,
+you should:
+- Keep the **signature** of your `action_func` identical to the following one!!
+- returns the assembled mol.
+```pycon
+def shoulder_bond_action(
+        mol: Molecule,
+        hit: list[int],
+        frag: Molecule,
+        action_points: list[int]
+):
+    """
+    Insert a fragment into the parent molecule by replacing a bond between two atoms.
+
+    This function removes the bond between the two atoms specified by `hit` in the parent molecule,
+    adds the fragment (with its atoms), and reconnects bonds to preserve molecular structure.
+    Bonds and bond orders are preserved as appropriate.
+
+    Args:
+        mol (Molecule): The parent molecule (from hotpot-zzy).
+        hit (list[int]): List of two indices, specifying the atoms in `mol` whose bond will be replaced.
+        frag (Molecule): The fragment molecule to insert.
+        action_points (list[int]): List of two indices, specifying the atoms in `frag` used to attach
+            to the parent molecule.
+
+    Returns:
+        Molecule: The modified parent molecule with the fragment inserted, previously connected atoms removed.
+
+    Raises:
+        AssertionError: If `hit` or `action_points` do not contain exactly two elements.
+
+    Details:
+        - Uses hotpot-zzy `add_component`, `add_bonds`, `remove_bonds`, and `remove_atoms`.
+        - Ensures correct atom re-indexing and bond order preservation during insertion.
+    """
+    assert len(hit) == 2
+    assert len(action_points) == 2
+
+    # update action points after add the frag as a component
+    ap1, ap2 = action_points
+    ap1 += len(mol.atoms)
+    ap2 += len(mol.atoms)
+
+    mol.add_component(frag)
+
+    # Get the atoms in the replaced bond
+    ma1, ma2 = mol.atoms[hit[0]], mol.atoms[hit[1]]
+
+    # Recording the original linking net for replaced bond end (atoms)
+    ma1_neigh_idx = [a.idx for a in ma1.neighbours]
+    ma2_neigh_idx = [a.idx for a in ma2.neighbours]
+    assert ma2.idx in ma1_neigh_idx
+    assert ma1.idx in ma2_neigh_idx
+    # Remove redundant link between ma1-ma2
+    ma2_neigh_idx.remove(ma1.idx)
+    ma1_neigh_idx.remove(ma2.idx)
+
+    # Break all bonds with ma1 and ma2
+    ma1_bonds = [mol.bond(ma1.idx, ma1n_idx) for ma1n_idx in ma1_neigh_idx]
+    ma2_bonds = [mol.bond(ma2.idx, ma2n_idx) for ma2n_idx in ma2_neigh_idx]
+    ma1_ma2_bond = [mol.bond(ma1.idx, ma2.idx)]
+
+    # Recording the bond order for rebuilding below
+    ma1_bond_order = [b.bond_order for b in ma1_bonds]
+    ma2_bond_order = [b.bond_order for b in ma2_bonds]
+
+    # Removing bond
+    mol.remove_bonds(ma1_bonds + ma2_bonds + ma1_ma2_bond)
+
+    # Build new link to the atoms in the fragment
+    bond_ap1_info = [(ap1, ma1n_idx, ma1_bo) for ma1n_idx, ma1_bo in zip(ma1_neigh_idx, ma1_bond_order)]
+    bond_ap2_info = [(ap2, ma2n_idx, ma2_bo) for ma2n_idx, ma2_bo in zip(ma2_neigh_idx, ma2_bond_order)]
+    mol.add_bonds(bond_ap1_info + bond_ap2_info)
+
+    # Remove old bond atoms
+    mol.remove_atoms([ma1, ma2])
+
+    return mol
+```
+In the `hotpot.cheminfo.mol_assemble` module, we integrate above code into a class named `EdgeShoulder`
+while still maintaining the flexibility to define fragment structure and action points:
+```pycon
+class EdgeShoulder(Fragment):
+    def __init__(self, mol, action_points: tuple[int, int]):
+        super().__init__(
+            mol=mol,
+            searcher=substructure_searcher,  # As the above definition
+            action_points=action_points,
+            action_func=shoulder_bond_action
+        )
+```
+For all predefined `Assembler`, see [API reference](#assemblers)
+
+#### Assemble new molecule
+Handing any custom or predefined `Assembler`, we can assemble new molecule by call the `Assembler.graph()` method:
+```pycon
+assembler = ...  # Custom or predefined
+
+mol = hp.read_mol('c1ccccc1', fmt='smi')  # create benzene
+new_mols = assembler.graft(mol)
+print(new_mols)  # a dict of assembled molecules with SMILES as the key, for eliminating redundant ones
 ```
 
-### Handle molecules in large scale
-In the era of artificial intelligence, chemical information needs to be processed and utilized on a large scale. 
-`Hotpot` provides an interface called `MolBundle` for processing data on a large scale. For instance, if there 
-is a large number of single-point energy results computed using `Gaussian` stored somewhere on a disk, and we 
-want to create a dataset to train a [deep potential](https://tutorials.deepmodeling.com/en/latest/Tutorials/DeePMD-kit/learnDoc/Introduction.html)
-model using this data, we can utilize "MolBundle" to efficiently read all the `Gaussian` computation data on a large
-scale and convert it into the required dataset [System](https://docs.deepmodeling.com/projects/deepmd/en/master/data/system.html) 
-format for training the model:
-
+#### Perform high-throughput molecule assembly
+In the practical assembly of molecules, we usually hope to acquire thousands or millions of virtual molecules
+from a groups of frame molecules and a collection of `Assembler`. For generating virtual molecules in the
+high-throughput (HT) method. `hotpot.cheminfo.mol_assemble` module offers an interface `AssembleFactory`, which
+is designed for the HT jobs. An example of HT running with `AssembleFactory`:
 ```pycon
 import hotpot as hp
-from hotpot.bundle import DeepModelBundle
+from hotpot.cheminfo.mol_assemble import AssembleFactory
 
-path_raw_data = 'path/to/gaussian/log'
-path_system = 'path/to/system'
+# define a group of frames
+frames = [
+    hp.read_mol('NC(=N)c1ccccc1'),  # Benzamidine
+    hp.read_mol('c1ccc[nH]1'),      # Pyrrole
+    ...                             # other frames
+]
 
-bundle = hp.MolBundle.read_from(
-    'g16log', path_raw_data, '*/*.log', nproc=32
+assemblers = [
+    Fragment(...),                   # custom Assembler
+    EdgeShoulder(...),               # EdgeShoulder Assembler
+    ...                              # so on.
+]
+
+factory = AssembleFactory(
+    assembler=assemblers,
+    iter_step=3,                     # see `Scheme 2`
+    catch_path=...,                  # where to save the final and temp results
+    save_per_step=10000              # Save the result once for every `save_per_step` new molecule generated
 )
 
-# Convert to DeepModelBundle object with method to organize the molecular structures to System dataset
-bundle: DeepModelBundle = bundle.to('DeepModelBundle')
-bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
+results = factory.make(frames)        # run in single core
+# Or, recommended for millions of molecules
+results = factory.mp_make(
+    frames, nproc=64)                 # run in multi processes
+```
+By using multi-step iteration (control in `iter_step` argument), a relatively complex virtual molecule
+can be gradually generated from some more basic fragments, as illustrated in **`Scheme 2`**
 
-# Or, the user could get the System object export from the Molecule directly
+![Scheme 2](./Example-5step.svg)
+
+***Scheme 2** Generation of complex molecule from basic building block*
+
+Given most predefined Assembler just need *fragmental structure* and *action_points* as arguments,
+You can use a Template.json file to batch define the corresponding Assemblers, following the format
+in the example:
+```json
+[
+  {
+    "name": "pyrrole",  // just a comment
+    "smiles": "c1ccc[nH]1",  // the molecular structure of the Assembler (or Fragment)
+    "points": [[0 ,1], [1, 2], [2, 3]],  // specify all possible action points, the EdgeShoulder need exactly 2 action points
+    "method": "EdgeShoulder"  // which Assembler
+  },
+  {
+    "name": "benzene",
+    "smiles": "c1ccccc1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "pyrrolic",  // just a comment
+    "smiles": "c1ccc[nH]1",  // the molecular structure of the Assembler (or Fragment)
+    "points": [[0], [1], [2]],  // specify all possible action points, the AtomLink need exactly 1 action points
+    "method": "AtomLink"  // use AtomLink assembler
+  },
+  {
+    "name": "phenyl",
+    "smiles": "c1ccccc1",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    // The `AlkylGraft` is just a particular case of `AtomLink`, given the `link_length` 
+    // (say `link_length`=[3]) the AlkylGraph will graft all propyl possible graph (n-prop,
+    //i-prop) on the framework molecule.
+    "method": "AlkylGraft",
+    "link_length": [1, 2, 3, 4, 5, 6, 7, 8] // all expected alkyl groups: methyl, ethyl, ..., actane
+    // The `AlkylGraft` assembler is not required to specify the action points
+  },
+  {
+    "name": "5cycle-RW",
+    "smiles": "C1CCCC1",
+    "points": [[0]],
+    "method": "RingWedge"
+  }
+]
+```
+After the above Template.json file has defined, read the file and perform molecule assemble:
+```pycon
+assembler = AssembleFactory.load_assembler_file("Template.json")
+factory = AssembleFactory(
+    assembler=assembler,
+    ...
+)
+results = factory.mp_make(frames)
 ```
 
-`hotpot` is currently making every effort to support the use of various computational tools from the Deep Modeling
-community. In addition to organize the quantum calculation data and save them to disk directly, the `hotpot`
-now allowed build `Molecule` object from dpdata [System] and [LabeledSystem] object.
+## `hotpot.cheminfo.mol_assemble` API
+### Fragment
+#### Fragment
+> **class** Fragment(
+> mol: hp.Molecule, 
+> searcher: hp.cheminfo.search.Searcher, 
+> action_points: Iterable[int], 
+> action_func: Callable):
 
-```python
-from pathlib import Path
+Represents a molecular fragment, its potential action sites, and the logic for attaching it to a target molecule.
 
-import hotpot as hp
-from hotpot.plugins.deepmd import read_system
+This class encapsulates:
+- The fragment molecule.
+- An action point specification (list of atom indices).
+- An action function (e.g. `atom_link_atom_action` or `shoulder_bond_action`).
+- A `Searcher` to locate valid grafting sites in a parent molecule.
 
-data_root_dir = "path/to/ChemData"
+- Args:
+    + **mol** (`Molecule`): The molecular fragment.
+    + **searcher** (`hp.cheminfo.search.Searcher`): An object, typically from hotpot-zzy, for identifying valid graft sites in molecules.
+    + action_points (`Iterable[int]`): Indices in `mol` serving as connection points.
+    + action_func (`Callable`): Function for performing the graft (must follow standard action signature).
 
-# Read MultiSystem object
-ms = read_system(data_root_dir, file_pattern='**/*.log', fmt="gaussian/md")
+By specifying the structure or fragment (`mol`) and `action_points` in the fragment, anchor points 
+searcher (`searcher`) for framework molecule, and the assembling strategy (`action_func`). The users
+could custom their own `Assembler`.
 
-mols = []
-for ls in ms:
-    mol = hp.Molecule.build_from_dpdata_system(ls)
-    mols.append(mol)
+The signature of the action_func is look like:
+> **def** action_func(
+        mol: Molecule,
+        hit: list[int],
+        frag: Molecule,
+        action_points: list[int]
+): ...
 
-# Supposed that I want to know the process of breaking and generating of bonds of the first Molecule
-struct_dir = Path('path/to/struct/save')
-img_dir = Path('path/to/img/save')
-mol = mols[0]
-# Iterating each conformer in the quantum chemistry calculation
-for i in range(mol.conformer_counts):
-    mol.conformer_select(i)
-    mol.remove_bonds(*mol.bonds)  # Clear all pre-build bonds
-    mol.build_bonds()  # rebuild bonds according to the point cloud of atoms
-    mol.assign_bond_types()
+> Methods:
+- graft(frame: Molecule) -> dict['mol_smiles', Molecule]
 
-    mol.writefile(struct_dir.joinpath(f"{i}.mol2"))  # Save the 3D mol structure with built bonds to mol2 file
-    mol.save_2d_img(img_dir.joinpath(f'{i}.png'))  # Save the 2d img structure to png file
+### Assemblers
+All `Assembler` have the `graft(frame)` method.
+> **class** Edgeshoulder(mol: Molecule, action_points: tuple[int, int]):
+
+> **class** AtomLink(mol: Molecule, action_points: tuple[int]):
+
+> **class** BondAdding():
+
+> **class** AtomReplace(ele: str):  # ele = 'H', 'O', 'Si'
+
+> **class** RingWedge(mol: Molecule, action_points: tuple[int]):
+
+> **class** AlkylGraft(mol: Molecule):
+- The AlkylGraft is a subclass of `AtomLink` with default atom_points=[0].
+- It's not recommended to directly initialize `AlkeyGraft`, instead, user can generate
+a collection of `AlkeyGrapt` with certain chain length by `alkyl_generator` function:
+> **function** alkyl_generator(lengths: Iterable[int]): → dict[int, list[`AlkylGraft`]]
+```pycon
+from hotpot.cheminfo.mol_assemble import alkyl_generator
+dict_alkyl = alkyl_generator(lenghts=[3, 4])
+print(dict_alkyl[3][0])  # n-prop
+print(dict_alkyl[3][1])  # i-prop
+print(dict_alkyl[4][0])  # n-butyl
+print(dict_alkyl[4][1])  # i-butyl
+print(dict_alkyl[4][2])  # t-butyl
 ```
 
-## TroubleShooting
-### 1) Missing dependent dynamic libs
-When installing the package, you might meet some errors from missing dependent libs, like the message:
-*ImportError: libXrender.so.1: cannot open shared object file: No such file or directory*. 
-This trouble is caused by the lacking of the `libxrender1` lib and could be solved by run the following command
-(supposing an Ubuntu system):
-> sudo apt-get install libxrender1
+### AssembleFactory
 
-The similar trouble should be solved like the above.
+### Action Functions
+

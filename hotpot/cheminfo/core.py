@@ -426,6 +426,40 @@ class Molecule:
         self._update_graph()
         return atom
 
+    def _replace_atom(
+            self,
+            original_atom_idx: int,
+            new_atom: Union[int, str, "Atom"],
+    ):
+        if isinstance(new_atom, Atom):
+            pass
+        elif isinstance(new_atom, int):
+            new_atom = Atom(atomic_number=new_atom)
+        elif isinstance(new_atom, str):
+            new_atom = Atom(symbol=new_atom)
+        else:
+            raise ValueError(f"Unsupported atom type {type(new_atom)}")
+        new_atom.mol = self
+
+        ori_atom = self._atoms[original_atom_idx]
+        self._atoms[original_atom_idx] = new_atom
+
+        for bond in ori_atom.bonds:
+            Bond._replace_atom(bond, ori_atom, new_atom)
+
+        return ori_atom
+
+    def replace_atom(
+            self,
+            original_atom_idx: int,
+            new_atom: Union[int, str, "Atom"],
+    ):
+        """ Replaces an atom in the molecule to the other external, while inherit the environment of original one."""
+        ori_atom = self._replace_atom(original_atom_idx, new_atom)
+        self._update_graph()
+        self.calc_implicit_hydrogens()
+        return ori_atom
+
     def add_bond(self, atom1: Union[int, "Atom"], atom2: Union[int, "Atom"], bond_order=1., **kwargs):
         """
         Adds a bond between two atoms in the molecule with the specified bond order and updates
@@ -3951,6 +3985,18 @@ class AtomSeq:
             return False
 
         return all(a in self._atoms for a in other.atoms) and all(b in self._bonds for b in other.bonds)
+
+    def _replace_atom(self, old: Union[int, Atom], new: Atom):
+        assert isinstance(new, Atom) and new not in self
+        if isinstance(old, int):
+            if 0 <= old < len(self._atoms):
+                raise ValueError(f'The atom index in Bond must be greater than or equal to 0 and less than {len(self)}')
+            self._atoms = tuple(a if i != old else new for i, a in enumerate(self._atoms))
+        elif isinstance(old, Atom):
+            assert old in self
+            self._atoms = tuple(a if a is not old else new for a in self._atoms)
+        else:
+            raise TypeError(f"The old atom should be given by int or Atom, instead of a {type(old)}")
 
     @staticmethod
     def _check_is_same_mol(*atoms):

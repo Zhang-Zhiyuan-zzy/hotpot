@@ -19,7 +19,7 @@ import json
 import time
 from collections import defaultdict
 from typing import Iterable, Literal, Optional, Union
-from itertools import combinations, product
+from itertools import product
 import multiprocessing as mp
 
 from tqdm import tqdm
@@ -33,7 +33,8 @@ from hotpot.cheminfo.mol_assemble.action_func import (
     shoulder_bond_action,
     atom_link_atom_action,
     bond_order_add,
-    atom_replace
+    atom_replace,
+    ring_wedge
 )
 
 __all__ = [
@@ -173,6 +174,25 @@ class AtomReplace(Fragment):
             action_func=atom_replace
         )
 
+class RingWedge(Fragment):
+    _sub = Substructure()
+    _kw = dict(
+        atomic_number={5, 6, 7, 14, 15},
+        two_hydrogen=lambda a: a.implicit_hydrogens >= 2,  # at least two hydrogens
+        is_end_heavy_atom=lambda a: len(a.heavy_neighbours) == 1
+    )
+    _sub.add_atom(QueryAtom(**_kw))
+    searcher = Searcher(_sub)
+
+    def __init__(self, mol: Molecule, action_points: tuple[int]):
+        super().__init__(
+            mol=mol,
+            searcher=self.searcher,
+            action_points=action_points,
+            action_func=ring_wedge
+        )
+
+
 class MolBatch:
     def __init__(self, iter_smiles: Iterable[Molecule], batch_size: int = 100):
         self.list_smiles = list(iter_smiles)
@@ -208,16 +228,16 @@ class AssembleFactory:
     def __init__(
             self,
             assembler: Iterable[Fragment],
-            max_step: int = 5,
+            iter_step: int = 5,
             mode: Literal['random', 'permutations'] = 'random',
             seed: Optional[int] = None,
             sample_weights: Optional[Iterable[float]] = None,
             max_running: Optional[int] = 3000000,
-            save_per_step: Optional[int] = 10000,
+            save_per_step: Optional[int] = 100000,
             catch_path: Optional[Union[str, os.PathLike]] = None
     ):
         self.assembler = list(assembler)
-        self.max_step = max_step
+        self.max_step = iter_step
         self.mode = mode
         self.seed = seed
         self.sample_weights = sample_weights
@@ -271,8 +291,9 @@ class AssembleFactory:
                     with open(self.catch_path, 'w') as writer:
                         writer.write('\n'.join(results))
 
-            with open(self.catch_path, 'w') as writer:
-                writer.write('\n'.join(results))
+            if self.catch_path is not None:
+                with open(self.catch_path, 'w') as writer:
+                    writer.write('\n'.join(results))
 
             if stop_generation:
                 break
@@ -328,6 +349,7 @@ class AssembleFactory:
                 ):
                     with open(self.catch_path, 'w') as writer:
                         writer.write('\n'.join(results))
+                    last_save_num = len(results)
 
                 # Launch new Process
                 if len(processes) < nproc:
@@ -348,7 +370,8 @@ class AssembleFactory:
                             fmt_print.bold_magenta(f'StopIteration with {len(processes)} running processes!!')
                             time_stop = time.time()
 
-                # Save results after a whole Epoch
+            # Save results after a whole Epoch
+            if self.catch_path is not None:
                 with open(self.catch_path, 'w') as writer:
                     writer.write('\n'.join(results))
 
@@ -358,12 +381,12 @@ class AssembleFactory:
     def load_default_assembler(
             cls,
             assembler: Optional[Iterable[Fragment]] = None,
-            max_step: int = 5,
+            iter_step: int = 5,
             mode: Literal['random', 'permutations'] = 'random',
             seed: Optional[int] = None,
             sample_weights: Optional[Iterable[float]] = None,
             max_running: int = 3000000,
-            save_per_step: Optional[int] = 10000,
+            save_per_step: Optional[int] = 100000,
             catch_path: Optional[Union[str, os.PathLike]] = None
     ) -> 'AssembleFactory':
 
@@ -371,7 +394,7 @@ class AssembleFactory:
         assembler.extend(cls.load_assembler_file(osp.join(osp.dirname(osp.abspath(__file__)), "FragTemplete.json")))
         return AssembleFactory(
             assembler=assembler,
-            max_step=max_step,
+            iter_step=iter_step,
             mode=mode,
             seed=seed,
             sample_weights=sample_weights,
@@ -398,8 +421,21 @@ class AssembleFactory:
                 assembler.extend(cls._define_bond_adding(defined_dict))
             elif defined_dict['method'] == 'AlkylGraft':
                 assembler.extend(cls._define_alkyl(defined_dict))
+            elif defined_dict['method'] == 'RingWedge':
+                assembler.extend(cls._define_ring_wedge(defined_dict))
             else:
                 raise NotImplementedError(f'Method {defined_dict["method"]} is not supported')
+        return assembler
+
+    @staticmethod
+    def _define_ring_wedge(definition: dict):
+        assembler = []
+        for point in definition['points']:
+            assert isinstance(point, list)
+            assert len(point) == 1
+            assert all(isinstance(p, int) for p in point)
+            assembler.append(RingWedge(ci.read_mol(definition['smiles']), action_points=tuple(point)))
+
         return assembler
 
     @staticmethod
@@ -440,33 +476,11 @@ class AssembleFactory:
 
 
 if __name__ == '__main__':
-    phen_smi = 'n1cccc2c1c3c(cc2)cccn3'
-    branches = [
-        'C(=O)N',
-        'c1ncccc1',
-        'P(=O)(O)O',
-        'C(=O)O',
-        'c1[nH]ccc1',
-        'c1sccc1',
-        'S(=O)(O)O'
-    ]
+    phen_smi = 'n1c(C(=O)N)ccc2c1c3c(cc2)cccn3'
+    rw_assembler = RingWedge(
+        ci.read_mol('C1CCCC1'),
+        action_points=(0,)
+    )
 
-    phen = ci.read_mol(phen_smi)
-    hits = [[1], [-1]]
-
-    mols = []
-    for b1, b2 in combinations(branches, 2):
-        m = atom_link_atom_action(phen.copy(), [1], ci.read_mol(b1), [0])
-        m = atom_link_atom_action(m.copy(), [12], ci.read_mol(b2), [0])
-        mols.append(m)
-
-    # for m in mols:
-    #     m.calc_implicit_hydrogens()
-    #     m.add_hydrogens()
-    #     m.build3d()
-    #     m.optimize('UFF', perturb_steps=2)
-    #     m.write(f'/mnt/d/zhang/OneDrive/Desktop/frame/{m.smiles}.mol2', overwrite=True)
-
-    factory = AssembleFactory.load_default_assembler(catch_path=f'/home/zz1/datasets/PhenMols/smi.txt')
-    results = factory.make(mols)
+    res = rw_assembler.graft(ci.read_mol(phen_smi, fmt='smi'))
 

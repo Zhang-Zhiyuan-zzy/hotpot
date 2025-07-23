@@ -170,7 +170,7 @@ def bond_order_add(
 
     return mol
 
-
+@actions_register('AtomReplace')
 def atom_replace(
         mol: Molecule,
         hit: list[int],
@@ -182,3 +182,33 @@ def atom_replace(
 
     mol.atoms[hit[0]].atomic_number = frag.atoms[0].atomic_number
     return mol
+
+@actions_register('RingWedge')
+def ring_wedge(
+        mol: Molecule,
+        hit: list[int],
+        frag: Molecule,
+        action_points: list[int]
+):
+    assert len(hit) == 1
+    assert len(action_points) == 1
+
+    ma = mol.atoms[hit[0]]
+    heavy_neighbours = ma.heavy_neighbours
+    assert len(heavy_neighbours) == 1
+    h_neigh = heavy_neighbours[0]
+
+    mol.remove_atom(ma)
+
+    ap_after_link = action_points[0] + len(mol.atoms)
+
+    ap_atom_before_link = frag.atoms[action_points[0]]
+    h_neigh.link_with(ap_atom_before_link)
+
+    assert (check_value := mol.atoms[ap_after_link].atomic_number) == ap_atom_before_link.atomic_number
+
+    ap_atom_after_link = mol.replace_atom(ap_after_link, ma)
+    assert ap_atom_after_link.atomic_number == check_value
+
+    return mol
+

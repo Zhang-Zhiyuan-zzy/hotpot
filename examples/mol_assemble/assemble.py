@@ -39,7 +39,7 @@ def make_phen_mol():
         m = hp.atom_link_atom_action(m.copy(), [12], hp.read_mol(b2), [0])
         mols.append(m)
 
-    factory = hp.AssembleFactory.load_default_assembler(catch_path=f'/mnt/d/zhang/OneDrive/Desktop/frame/smi.txt')
+    factory = hp.AssembleFactory.load_default_assembler(catch_path=f'/home/zz1/datasets/PhenMols/smi.txt')
     results = factory.mp_make(mols)
 
     return results

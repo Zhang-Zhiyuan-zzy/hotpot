@@ -38,8 +38,8 @@ assembly fragments [(`hotpot.cheminfo.mol_assemble.Fragment`)](#fragment). The F
 An instantiated `Fragment` must specify the following four factors:
 1) The 2D molecular structure of the fragment (a `Molecule` object)
 2) The atom(s) (specified by index) on the fragment used for connection with the Framework
-3) The searcher for locating connection sites on the molecule (a `hotpot.cheminfo.search.Searcher` object)
-4) The specific connection operation (specified in an `action` function) between the `Fragment` and 
+3) The searcher for locating connection sites on the Framework (a `hotpot.cheminfo.search.Searcher` object)
+4) The specific connection operation (specified in an `action_func` function) between the `Fragment` and 
 the Framework at the connection sites.
 
 [`Fragment`](#fragment) provides users the flexibility to customize their own assembly strategies. 
@@ -254,6 +254,7 @@ can be gradually generated from some more basic fragments, as illustrated in **`
 Given most predefined Assembler just need *fragmental structure* and *action_points* as arguments,
 You can use a Template.json file to batch define the corresponding Assemblers, following the format
 in the example:
+##### Example of assemblers definition template
 ```json
 [
   {
@@ -372,6 +373,67 @@ print(dict_alkyl[4][2])  # t-butyl
 ```
 
 ### AssembleFactory
+> **class** AssembleFactory(            
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; assembler: Iterable[Fragment],<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iter_step: int = 5,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mode: Literal['random', 'permutations'] = 'random',<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; seed: Optional[int] = None,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sample_weights: Optional[Iterable[float]] = None,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; max_running: Optional[int] = 3000000,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; save_per_step: Optional[int] = 100000,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; catch_path: Optional[Union[str, os.PathLike]] = None<br>
+):
+
+The interface to perform high-throughput molecular assembly.
+
+**Arguments:**
+- assembler:
+- iter_step:
+- mode:
+- seed:
+- sample_weights
+- max_results:
+- save_per_step:
+- catch_path:
+
+**Methods:**
+- make(mols: Iterable[Molecule]):
+
+Perform molecular assembly for the give `mols` frameworks
+- mp_make(
+    mol_iter: Iterable[Union[Molecule, str]],
+    nproc: Optional[int] = None,
+    timeout: int = 300,
+    batch_size: int = 1000
+):
+    Perform molecular assembly in a multiprocessing mode
+    **Args:**
+    + mol_iter:
+    + nproc: number of processes
+    + timeout: 
+    + batch_size: How many Frameworks put into a single process.
+
+- *classmethod* load_assembler_file(cls, f: Union[str, os.PathLike]) → list[Fragment]:
+       
+    Load `Assemblers` from a Template `.json` file, referring the example in [`Tutorial`](#example-of-assemblers-definition-template).
+    + f: the path of `AssemblerTemplate.json` file.
+
+    **return:** list of `Assembler` object
 
 ### Action Functions
+**function** atom_link_atom_action(mol: Molecule, hit: list[int], frag: Molecule, action_points: list[int]):
+
+**function** shoulder_bond_action(mol: Molecule, hit: list[int], frag: Molecule, action_points: list[int]):
+
+**function** bond_order_add(mol: Molecule, hit: list[int], frag: Molecule, action_points: list[int]):
+
+**function** atom_replace(mol: Molecule, hit: list[int], frag: Molecule, action_points: list[int]):
+
+**function** ring_wedge(mol: Molecule, hit: list[int], frag: Molecule, action_points: list[int]):
+
+All signatures of `action_func` are identical, where, mol is the framework `Molecule`, the hit is the indices
+of atoms in the framework which is given generally by the searcher in `Assembler`. Then frag is the molecule
+of `Assembler` (or `Fragment`) and the action_points is just the specified one of `Assembler`.
+
+All `action_func` return a molecule after the assembly operation.
 

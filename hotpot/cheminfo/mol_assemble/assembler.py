@@ -17,6 +17,7 @@ import os
 import os.path as osp
 import json
 import time
+from copy import copy
 from collections import defaultdict
 from typing import Iterable, Literal, Optional, Union
 from itertools import product
@@ -302,27 +303,40 @@ class AssembleFactory:
 
     def mp_make(
             self,
-            mol_iter: Iterable[Molecule],
+            mol_iter: Iterable[Union[Molecule, str]],
             nproc: Optional[int] = None,
-            timeout: int = 100,
-            batch_size: int = 10,
+            timeout: int = 1800,
+            batch_size: int = 100,
     ):
         """ Running the Assembler.make in a multiprocessing context. """
         if nproc is None:
             nproc = os.cpu_count()
+        stop_generation = False
 
-        results = set(m.smiles for m in mol_iter)
+        mol_iter = list(mol_iter)
+        if isinstance(mol_iter[0], Molecule):
+            results = set(m.smiles for m in mol_iter)
+        else:
+            results = set(mol_iter)
+
+        current_results = set()
         last_save_num = len(results)
         for epoch in range(self.max_step):
-            list_smi = list(results)
-            _iterator = MolBatch(list_smi, batch_size)
+            epoch_smiles = results - current_results
+            current_results = copy(results)
+            _iterator = MolBatch(epoch_smiles, batch_size)
 
             total = len(_iterator)
-            p_bar = tqdm(desc=self.get_desc(epoch, results), total=total)
+            p_bar = tqdm(desc=self.get_desc(epoch, results), total=total, ncols=100)
 
             processes = {}
             time_stop = time.time()
             while True:
+                # Early stop check
+                if len(results) > self.max_running:
+                    stop_generation = True
+                    break
+
                 # Harvest results
                 if processes:
                     to_remove = []
@@ -375,30 +389,39 @@ class AssembleFactory:
                 with open(self.catch_path, 'w') as writer:
                     writer.write('\n'.join(results))
 
+            # Early stop
+            if stop_generation:
+                fmt_print.bold_magenta(f'Early Stopping with {len(results)} results!!')
+                break
+
         return results
 
     @classmethod
-    def load_default_assembler(
+    def load_default_assembler(cls):
+        """ Load the default assembler stored in `FragTemplete.json` file """
+        return cls.load_assembler_file(osp.join(osp.dirname(osp.abspath(__file__)), "FragTemplete.json"))
+
+    @classmethod
+    def init_with_default_assembler(
             cls,
             assembler: Optional[Iterable[Fragment]] = None,
             iter_step: int = 5,
             mode: Literal['random', 'permutations'] = 'random',
             seed: Optional[int] = None,
             sample_weights: Optional[Iterable[float]] = None,
-            max_running: int = 3000000,
+            max_results: int = 3000000,
             save_per_step: Optional[int] = 100000,
             catch_path: Optional[Union[str, os.PathLike]] = None
     ) -> 'AssembleFactory':
-
         assembler = [] if assembler is None else list(assembler)
-        assembler.extend(cls.load_assembler_file(osp.join(osp.dirname(osp.abspath(__file__)), "FragTemplete.json")))
+        assembler.extend(cls.load_default_assembler())
         return AssembleFactory(
             assembler=assembler,
             iter_step=iter_step,
             mode=mode,
             seed=seed,
             sample_weights=sample_weights,
-            max_running=max_running,
+            max_running=max_results,
             save_per_step=save_per_step,
             catch_path=catch_path
         )

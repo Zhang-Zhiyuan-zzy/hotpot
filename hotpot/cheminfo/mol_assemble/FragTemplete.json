@@ -78,8 +78,20 @@
     "method": "AtomLink"
   },
   {
-    "name": "Br",
-    "smiles": "Br",
+    "name": "-SO3H",
+    "smiles": "S(=O)(=O)O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "-PO3H2",
+    "smiles": "P(=O)(O)O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "-PO4H2",
+    "smiles": "OP(=O)(O)O",
     "points": [[0]],
     "method": "AtomLink"
   },
@@ -127,7 +139,7 @@
   },
   {
     "name": "AtomReplace",
-    "elements": ["N", "O", "N"],
+    "elements": ["N", "S"],
     "method": "AtomReplace"
   },
   {

@@ -156,6 +156,7 @@ def shoulder_bond_action(
     # Remove old bond atoms
     mol.remove_atoms([ma1, ma2])
 
+    mol.calc_implicit_hydrogens()
     return mol
 
 @actions_register('BondAdd')

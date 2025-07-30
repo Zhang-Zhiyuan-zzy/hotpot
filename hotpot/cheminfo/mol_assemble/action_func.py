@@ -119,6 +119,10 @@ def shoulder_bond_action(
     # Get the atoms in the replaced bond
     ma1, ma2 = mol.atoms[hit[0]], mol.atoms[hit[1]]
 
+    # Check the aromatic in "reaction sites"
+    aa1_is_aromatic = mol.atoms[ap1].is_aromatic or ma1.is_aromatic
+    aa2_is_aromatic = mol.atoms[ap2].is_aromatic or ma2.is_aromatic
+
     # Recording the original linking net for replaced bond end (atoms)
     ma1_neigh_idx = [a.idx for a in ma1.neighbours]
     ma2_neigh_idx = [a.idx for a in ma2.neighbours]
@@ -144,6 +148,10 @@ def shoulder_bond_action(
     bond_ap1_info = [(ap1, ma1n_idx, ma1_bo) for ma1n_idx, ma1_bo in zip(ma1_neigh_idx, ma1_bond_order)]
     bond_ap2_info = [(ap2, ma2n_idx, ma2_bo) for ma2n_idx, ma2_bo in zip(ma2_neigh_idx, ma2_bond_order)]
     mol.add_bonds(bond_ap1_info + bond_ap2_info)
+
+    # Reassign the aromatics
+    mol.atoms[ap1].is_aromatic = aa1_is_aromatic
+    mol.atoms[ap2].is_aromatic = aa2_is_aromatic
 
     # Remove old bond atoms
     mol.remove_atoms([ma1, ma2])

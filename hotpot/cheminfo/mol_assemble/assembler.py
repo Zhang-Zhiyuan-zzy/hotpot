@@ -52,7 +52,7 @@ def has_hydrogen(atom: Atom) -> bool:
     return bool(atom.hydrogens) or atom.implicit_hydrogens > 0
 
 def max_heavy_bond_order(atom: Atom, _max_value: int) -> bool:
-    return atom.sum_heavy_cov_orders < _max_value
+    return atom.sum_heavy_cov_orders <= _max_value
 
 
 class EdgeShoulder(Fragment):
@@ -79,7 +79,7 @@ class EdgeShoulder(Fragment):
 class AtomLink(Fragment):
     _subs = Substructure()
     _subs.add_atom(QueryAtom(
-        atomic_numbers={6, 7, 8},
+        atomic_number={6, 7},
         has_hydrogen=has_hydrogen
     ))
 
@@ -93,6 +93,13 @@ class AtomLink(Fragment):
         )
 
 class AlkylGraft(AtomLink):
+    _subs = Substructure()
+    _subs.add_atom(QueryAtom(
+        atomic_number={6, 7, 8},
+        has_hydrogen=has_hydrogen
+    ))
+
+    searcher = Searcher(_subs)
     def __init__(self, mol: Molecule):
         super().__init__(mol, action_points=(0,))
 
@@ -150,6 +157,7 @@ class AtomReplace(Fragment):
         'N': lambda a: max_heavy_bond_order(a, _max_value=3),
         'O': lambda a: max_heavy_bond_order(a, _max_value=2),
         'Si': lambda a: max_heavy_bond_order(a, _max_value=4),
+        'S': lambda a: max_heavy_bond_order(a, _max_value=2),
     }
     def _create_searcher(self, ele: str):
         if ele not in self._symbol_to_heavy_cov_bond_order:
@@ -158,6 +166,7 @@ class AtomReplace(Fragment):
         qa = QueryAtom(
             atomic_number={6, 7, 8},
             match_sum_heavy_bo=self._symbol_to_heavy_cov_bond_order[ele],
+            not_with_sp=lambda a: not any(na.atomic_number in {15, 16} for na in a.neighbours)
         )
         sub = Substructure()
         sub.add_atom(qa)
@@ -219,13 +228,6 @@ class MolBatch:
         self._idx = 0
 
 class AssembleFactory:
-    methods = {
-        "EdgeShoulder": EdgeShoulder,
-        "AtomLink": AtomLink,
-        "AtomReplace": AtomReplace,
-        "BondAdding": BondAdding,
-    }
-
     def __init__(
             self,
             assembler: Iterable[Fragment],
@@ -306,7 +308,7 @@ class AssembleFactory:
             mol_iter: Iterable[Union[Molecule, str]],
             nproc: Optional[int] = None,
             timeout: int = 1800,
-            batch_size: int = 100,
+            batch_size: int = 10,
     ):
         """ Running the Assembler.make in a multiprocessing context. """
         if nproc is None:

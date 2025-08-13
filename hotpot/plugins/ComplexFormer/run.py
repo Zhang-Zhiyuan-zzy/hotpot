@@ -63,6 +63,8 @@ def init_model(
 def _get_ckpt_files(work_dir):
     # Use glob to find all .ckpt files in the specified directory
     ckpt_files = glob.glob(osp.join(work_dir, '**', '*.ckpt'), recursive=True)
+    if not ckpt_files:
+        raise RuntimeError(f"No checkpoints found in {work_dir}")
 
     # Sort the files by creation time
     ckpt_files.sort(key=os.path.getctime)
@@ -74,7 +76,10 @@ def load_ckpt(work_dir, which: Optional[Union[int, str]] = -1):
         ckpt_files = _get_ckpt_files(work_dir)
         ckpt_file = ckpt_files[which]
     elif isinstance(which, str):
-        ckpt_file = which
+        if osp.exists(which):
+            ckpt_file = which
+        else:
+            raise FileNotFoundError(f"Checkpoint file {which} does not exist")
     else:
         raise NotImplementedError
 

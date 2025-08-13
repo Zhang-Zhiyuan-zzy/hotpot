@@ -16,7 +16,7 @@
 from itertools import combinations
 
 import hotpot as hp
-from hotpot.cheminfo.mol2img import draw_grid
+from hotpot.cheminfo.draw import draw_grid
 
 
 

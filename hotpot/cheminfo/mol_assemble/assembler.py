@@ -382,7 +382,7 @@ class AssembleFactory:
                         if not processes:
                             fmt_print.bold_magenta(f'Stop MolAssemble in {epoch} Epoch!!')
                             break
-                        elif time.time() - time_stop > 10:
+                        elif time.time() - time_stop > 300:
                             fmt_print.bold_magenta(f'StopIteration with {len(processes)} running processes!!')
                             time_stop = time.time()
 

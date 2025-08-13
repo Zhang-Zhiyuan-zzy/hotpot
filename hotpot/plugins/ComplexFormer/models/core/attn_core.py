@@ -260,7 +260,6 @@ class AttnCore(CoreBase):
         ], dim=1)
 
         if isinstance(sol_vec, torch.Tensor):
-
             seq = torch.cat([seq, sol_vec.unsqueeze(-2)], dim=-2)
 
         if isinstance(med_vec, torch.Tensor):

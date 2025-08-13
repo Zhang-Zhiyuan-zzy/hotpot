@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 from . import utils
 
-
 class Metrics:
     """ A collection of metrics functions """
     @staticmethod

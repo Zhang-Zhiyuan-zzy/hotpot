@@ -97,6 +97,7 @@ def which_datasets_train(
         work_name: str = None,
         debug: bool = False,
         refine: bool = False,
+        checkpoint_path: str = None,
         **kwargs
 ):
     if not datasets:
@@ -136,10 +137,27 @@ def which_datasets_train(
 
     options.update(kwargs)
 
-    run.run(work_name=work_name, work_dir=models_dir, core=core, dir_datasets=dir_datasets, hypers=hypers,
-            dataset_names=datasets, target_getter=target_getters, epochs=EPOCHS, feature_extractor=feature_extractors,
-            predictor=predictors, loss_fn=loss_fn, primary_metric=primary_metric, xyz_perturb_sigma=0.5,
-            load_all_data=True, debug=debug, device=device, eval_steps=1, **options)
+    run.run(
+        work_name=work_name,
+        work_dir=models_dir,
+        core=core,
+        dir_datasets=dir_datasets,
+        hypers=hypers,
+        dataset_names=datasets,
+        target_getter=target_getters,
+        epochs=EPOCHS,
+        checkpoint_path=checkpoint_path,
+        feature_extractor=feature_extractors,
+        predictor=predictors,
+        loss_fn=loss_fn,
+        primary_metric=primary_metric,
+        xyz_perturb_sigma=0.5,
+        load_all_data=True,
+        debug=debug,
+        device=device,
+        eval_steps=1,
+        **options,
+    )
 
 
 
@@ -149,8 +167,9 @@ if __name__ == '__main__':
         # 'mono_ml_pair',
         work_name='MultiTask',
         debug=True,
-        refine=True,
         # devices=2,
         # with_sol=True,
         # with_med=True,
+        # refine=True,
+        # checkpoint_path='/home/zz1/docker/proj/models/MDTask(3)/logs/lightning_logs/version_0/checkpoints/epoch=5-step=594.ckpt'
     )

@@ -83,6 +83,7 @@ def load_ckpt(work_dir, which: Optional[Union[int, str]] = -1):
     else:
         raise NotImplementedError
 
+    fmt_print.dark_green(f"Loading checkpoint from {ckpt_file}")
     return torch.load(ckpt_file)
 
 def load_model_state_dict(model, ckpt):

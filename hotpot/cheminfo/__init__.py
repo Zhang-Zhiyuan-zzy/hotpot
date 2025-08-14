@@ -8,10 +8,10 @@ python v3.9.0
 """
 from ._io import MolReader, MolWriter
 from .core import Molecule, Atom, Bond
+from .core_utils import read_mol
 from .mol_assemble import *
 
 from .mol_statistics import ComplexStatistics
 
 
-def read_mol(src, fmt=None, **kwargs):
-    return next(MolReader(src, fmt, **kwargs))
+

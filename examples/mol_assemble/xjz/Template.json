@@ -1,0 +1,85 @@
+[
+  {
+    "name": "cyclohexane",
+    "smiles": "C1CCCCC1",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "carboxylic_acid",
+    "smiles": "C(=O)O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "pyrrole_methylated",
+    "smiles": "C1C(CCCC1)C(=NC)N",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "hydroxyl",
+    "smiles": "O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "amine",
+    "smiles": "N",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "sulfonic_acid",
+    "smiles": "S(=O)(=O)O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "methyl",
+    "smiles": "C",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "phosphate",
+    "smiles": "P(=O)(O)O",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "hydrazone",
+    "smiles": "C(=NO)N",
+    "points": [[0, 1]],
+    "method": "EdgeShoulder"
+  },
+  {
+    "name": "propyl_ether",
+    "smiles": "CCCO",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "benzene",
+    "smiles": "C1=CC=CC=C1",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "nitro_benzene_with_amino",
+    "smiles": "C1=CC=C(C=C1)C(=NO)N",
+    "points": [[0]],
+    "method": "AtomLink"
+  },
+  {
+    "name": "AlkylGraft",
+    "method": "AlkylGraft",
+    "link_length": [1, 2, 3, 4, 5, 6, 7, 8]
+  },
+  {
+    "name": "5cycle-RW",
+    "smiles": "C1CCCC1",
+    "points": [[0]],
+    "method": "RingWedge"
+  }
+]

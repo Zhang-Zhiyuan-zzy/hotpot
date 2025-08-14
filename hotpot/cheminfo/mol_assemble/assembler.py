@@ -184,6 +184,23 @@ class AtomReplace(Fragment):
             action_func=atom_replace
         )
 
+def not_amidoxime_nito(atom: Atom):
+    if atom.atomic_number != 7:
+        return True
+
+    neighbours = atom.neighbours
+    if len(neighbours) not in {1, 3}:
+        return False
+
+    if any(na.atomic_number not in {1, 6} for na in neighbours):
+        return False
+
+    alpha_carbon = [na for na in neighbours if na.atomic_number == 6]
+    if len(alpha_carbon) != 1:
+        return False
+
+    alpha_carbon = alpha_carbon[0]
+
 class RingWedge(Fragment):
     _sub = Substructure()
     _kw = dict(
@@ -454,49 +471,84 @@ class AssembleFactory:
 
     @staticmethod
     def _define_ring_wedge(definition: dict):
-        assembler = []
+        assemblers = []
+        smiles = definition.get('ExStrct', None)
         for point in definition['points']:
             assert isinstance(point, list)
             assert len(point) == 1
             assert all(isinstance(p, int) for p in point)
-            assembler.append(RingWedge(ci.read_mol(definition['smiles']), action_points=tuple(point)))
 
-        return assembler
+            assembler = RingWedge(ci.read_mol(definition['smiles']), action_points=tuple(point))
+            if isinstance(smiles, str):
+                assembler.add_exclude_from_smi(smiles)
+
+            assemblers.append(assembler)
+
+        return assemblers
 
     @staticmethod
     def _define_edge_shoulder(definition: dict):
-        assembler = []
+        assemblers = []
+        smiles = definition.get('ExStrct', None)
         for point in definition['points']:
             assert isinstance(point, list)
             assert len(point) == 2
             assert all(isinstance(p, int) for p in point)
-            assembler.append(EdgeShoulder(ci.read_mol(definition['smiles']), action_points=tuple(point)))
 
-        return assembler
+            assembler = EdgeShoulder(ci.read_mol(definition['smiles']), action_points=tuple(point))
+            if isinstance(smiles, str):
+                assembler.add_exclude_from_smi(smiles)
+
+            assemblers.append(assembler)
+
+        return assemblers
 
     @staticmethod
     def _define_atom_link(definition: dict):
-        assembler = []
+        assemblers = []
         for point in definition['points']:
             assert isinstance(point, list)
             assert len(point) == 1
             assert isinstance(point[0], int)
-            assembler.append(AtomLink(ci.read_mol(definition['smiles']), tuple(point)))
+            assemblers.append(AtomLink(ci.read_mol(definition['smiles']), tuple(point)))
 
-        return assembler
+        if smiles := definition.get('ExStrct', None):
+            for assembler in assemblers:
+                assembler.add_exclude_from_smi(smiles)
+
+        return assemblers
 
     @staticmethod
     def _define_bond_adding(definition: dict):
-        return [BondAdding()]
+        if smiles := definition.get('ExStrct', None):
+            assembler = BondAdding()
+            assembler.add_exclude_from_smi(smiles)
+            return [assembler]
+        else:
+            return [BondAdding()]
 
     @staticmethod
     def _define_atom_replace(definition: dict):
-        return [AtomReplace(ele) for ele in definition['elements']]
+        if smiles := definition.get('ExStrct', None):
+            assemblers = []
+            for ele in definition['elements']:
+                assembler = AtomReplace(ele)
+                assembler.add_exclude_from_smi(smiles)
+                assemblers.append(assembler)
+
+        else:
+            return [AtomReplace(ele) for ele in definition['elements']]
 
     @staticmethod
     def _define_alkyl(definition: dict):
         alkyl_dict = AlkylGraft.create_alkyl_collection(definition['link_length'])
-        return sum(map(lambda v: list(v), alkyl_dict.values()), start=[])
+        assemblers = sum(map(lambda v: list(v), alkyl_dict.values()), start=[])
+
+        if smiles := definition.get('ExStrct', None):
+            for assembler in assemblers:
+                assembler.add_exclude_from_smi(smiles)
+
+        return assemblers
 
 
 

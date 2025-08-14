@@ -57,10 +57,10 @@
 
 ===========================================================
 """
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Union
 
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.search import Searcher
+from hotpot.cheminfo.search import Searcher, Substructure
 from hotpot.cheminfo.mol_assemble.action_func import ActionFuncTemplate
 
 
@@ -93,11 +93,13 @@ class Fragment:
             searcher: Searcher,
             action_points: Iterable[int],
             action_func: Optional[ActionFuncTemplate],
+            exclude_searcher: Optional[Searcher] = None,
     ):
         self.frag = mol
         self.searcher = searcher
         self.action_points = list(action_points)
         self.action_func = action_func
+        self.exclude_searcher = exclude_searcher
 
     def __repr__(self):
         return f"{self.__class__.__name__}(frag={self.frag.smiles}, searcher={self.searcher}, action_points={self.action_points})"
@@ -122,10 +124,40 @@ class Fragment:
         hits = self.searcher.search(frame)
         hits.get_hit = False
 
+        if isinstance(self.exclude_searcher, Searcher):
+            ex_hits = self.exclude_searcher.search(frame)
+            ex_hits.get_hit = False
+            exclude_indices = set(idx for indices in ex_hits for idx in indices)
+
+        else:
+            exclude_indices = None
+
         grafted_mol = []
         for hit in hits:
+            if exclude_indices and len(hit & exclude_indices) > 0:
+                continue
+
             gen_mol = self.action_func(frame.copy(), list(hit), self.frag.copy(), self.action_points)
             gen_mol.calc_implicit_hydrogens()
             grafted_mol.append((gen_mol.smiles, gen_mol))
 
         return dict(grafted_mol)
+
+    def add_exclude_from_sub(self, sub: Substructure):
+        self.exclude_searcher = Searcher(sub)
+
+    def add_exclude_from_mol(
+            self,
+            mol: Molecule,
+            addition_atom_attr: dict[int, dict[str, set]] = None,
+            addition_bond_attr: dict[Union[int, tuple[int, int]], dict[str, set]] = None,
+    ):
+        self.exclude_searcher = Searcher(Substructure.from_mol(mol, addition_atom_attr, addition_bond_attr))
+
+    def add_exclude_from_smi(
+            self,
+            smi: str,
+            addition_atom_attr: dict[int, dict[str, set]] = None,
+            addition_bond_attr: dict[Union[int, tuple[int, int]], dict[str, set]] = None,
+    ):
+        self.exclude_searcher = Searcher(Substructure.from_smiles(smi, addition_atom_attr, addition_bond_attr))

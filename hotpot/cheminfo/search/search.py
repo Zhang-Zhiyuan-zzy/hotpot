@@ -12,6 +12,7 @@ import networkx as nx
 from networkx.algorithms import isomorphism
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
+from ..core_utils import atom_idx_pair_to_bond_idx, read_mol
 
 def raise_not_implemented(self): raise NotImplemented(f"{self.__class__.__name__} not implemented")
 
@@ -257,10 +258,47 @@ class Substructure:
         self.query_bonds = []
         self.query_graph = None  # 确保这里初始化图对象
 
+    def __repr__(self):
+        return f"Substructure({len(self.query_atoms)} Atoms, {len(self.query_bonds)} Bonds)"
+
     @classmethod
     def from_SMARTS(cls, smarts: str):
         # TODO: Wu 将SMILES转化为Substructure的结构
         ...
+
+    @classmethod
+    def from_mol(
+            cls, mol: Molecule,
+            addition_atom_attr: dict[int, dict[str, set]] = None,
+            addition_bond_attr: dict[Union[int, tuple[int, int]], dict[str, set]] = None,
+    ) -> "Substructure":
+        if addition_atom_attr is None:
+            addition_atom_attr = {}
+
+        if addition_bond_attr is None:
+            addition_bond_attr = {}
+        else:
+            pair_idx = [idx for idx in addition_bond_attr if not isinstance(idx, int)]
+            if pair_idx:
+                bond_idx = atom_idx_pair_to_bond_idx(mol, *pair_idx)
+                addition_bond_attr.update({bi: addition_bond_attr[pi] for bi, pi in zip(bond_idx, pair_idx)})
+                for pi in pair_idx:
+                    addition_bond_attr.pop(pi)
+
+        sub = cls()
+        for i, atom in enumerate(mol.atoms):
+            sub.add_atom(QueryAtom(atomic_number={atom.atomic_number}, is_aromatic={atom.is_aromatic}, **addition_atom_attr.get(i, {})))
+        for i, bond in enumerate(mol.bonds):
+            sub.add_bond(bond.a1idx, bond.a2idx, bond_order={bond.bond_order}, **addition_bond_attr.get(i, {}))
+        return sub
+
+    @classmethod
+    def from_smiles(
+            cls, smiles: str,
+            addition_atom_attr: dict[int, dict[str, set]] = None,
+            addition_bond_attr: dict[Union[int, tuple[int, int]], dict[str, set]] = None,
+    ):
+        return cls.from_mol(read_mol(smiles, fmt='smi'), addition_atom_attr, addition_bond_attr)
 
     def add_atom(self, atom_query: Union[Atom, QueryAtom]):
         """

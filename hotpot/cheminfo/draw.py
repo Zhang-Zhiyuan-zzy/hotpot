@@ -110,7 +110,7 @@ def draw_grid(
 
     # Configure arguments
     if (
-            save_svg is None and
+            save_svg is not None and
             save_path is not None and
             osp.splitext(save_path)[-1] == '.svg'
     ):

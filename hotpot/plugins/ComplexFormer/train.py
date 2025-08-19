@@ -33,6 +33,7 @@ class LightPretrain(L.LightningModule):
 
         self.train_metrics = {}
         self.val_metrics = {}
+        self.test_metrics = {}
         self.pred_inspect = None
 
     # Forward process
@@ -131,4 +132,5 @@ class LightPretrain(L.LightningModule):
         self.tasks.add_test_pred_target(pred, target)
 
     def on_test_epoch_end(self) -> None:
+        self.tasks.store_save_metrics_table(self)
         self.tasks.log_plots(self)

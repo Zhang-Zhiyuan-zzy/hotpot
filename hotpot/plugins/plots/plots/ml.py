@@ -58,7 +58,7 @@ class ConfusionMatrix(Plot):
         self.categories = np.sort(np.unique(self.target))
         self.num_classes = len(self.categories)
 
-        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize='all')
+        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize='true')
 
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         # Small constant to avoid log(0)

@@ -1,4 +1,8 @@
+import io
 from typing import Literal
+
+from rich.console import Console
+from rich.table import Table
 
 # Determine style codes
 _style_codes = {
@@ -49,4 +53,54 @@ bold_dark_green = FmtPrint('\033[1m')
 bold_orange = FmtPrint('\033[38;5;208m')
 bold_magenta = FmtPrint('\033[1;35m')
 
-__all__ = [k for k, v in locals().items() if isinstance(v, FmtPrint)]
+def dict_to_table(
+        metrics_dict,
+        table_kw: dict = None,
+        title: str = None,
+):
+    if table_kw is None:
+        table_kw = {}
+
+    assert len(metrics_dict) > 0
+    t_cols = min(4, len(metrics_dict))
+    # t_rows = math.ceil(len(metrics_dict) / t_cols)
+    t_rest = len(metrics_dict) % t_cols
+
+    table = Table(title=title, **table_kw)
+    for _ in range(t_cols):
+        table.add_column('ID', no_wrap=True, min_width=3)
+        table.add_column('Metric', no_wrap=True, min_width=15)
+        table.add_column('Value', no_wrap=True, min_width=15)
+
+    rows = []
+    row = []
+    for i, (name, value) in enumerate(metrics_dict.items(), 1):
+        if len(row) == 3 * t_cols:
+            rows.append(row)
+            row = []
+
+        row.extend(map(str, (i, name, f'{value:.3g}')))
+
+    for _ in range(t_rest):
+        row.extend([''] * 3)
+    rows.append(row)
+
+    for row in rows:
+        table.add_row(*row)
+
+    return table
+
+def export_table(table: Table, save_path: str):
+    # Capture table output to a string
+    buffer = io.StringIO()
+    console = Console(file=buffer, force_terminal=True, color_system=None)
+    console.print(table)
+
+    # Write string to a text file
+    with open(save_path, "w", encoding="utf-8") as f:
+        f.write(buffer.getvalue())
+
+
+__all__ = [
+    'dict_to_table',
+] + [k for k, v in locals().items() if isinstance(v, FmtPrint)]

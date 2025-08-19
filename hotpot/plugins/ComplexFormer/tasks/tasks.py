@@ -7,6 +7,8 @@ import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Union, Callable, Optional, Iterable, Any, Literal
+
+from torch_geometric.graphgym.contrib import stage
 from typing_extensions import override
 
 import numpy as np
@@ -24,7 +26,7 @@ from hotpot.utils import fmt_print
 from hotpot.plugins.ComplexFormer import (
     types as tp,
     models as M,
-    tools
+    tools,
 )
 
 
@@ -183,8 +185,20 @@ class BaseTask(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def summary_val_metrics(self, pl_module: L.LightningModule) -> dict[str, float]:
+    def summary_metrics(self, pl_module: L.LightningModule, stages: Literal['val', 'test'] = 'val') -> dict[str, float]:
+        """ Summary all metrics results in stored in the Task instance, after a val or test epoch """
         raise NotImplementedError
+
+    @staticmethod
+    def _log_metrics(
+            pl_module: L.LightningModule,
+            metrics_dict: dict[str, float],
+            which: Literal['train', 'val', 'test'] = 'val'
+    ) -> None:
+        for metric_name, metric_value in metrics_dict.items():
+            pl_module.log(metric_name, metric_value, sync_dist=True, prog_bar=True)  # Log metrics
+        pl_module_metrics = getattr(pl_module, f'{which}_metrics')
+        pl_module_metrics.update(metrics_dict)
 
     @staticmethod
     def _log_metrics_on_val_epoch_end(pl_module: L.LightningModule, metrics_dict: dict[str, float]):
@@ -204,26 +218,39 @@ class BaseTask(ABC):
 
     ################## Plot Make ############################
     @abstractmethod
-    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
+    def make_plots(self, stages: Literal['val', 'test']) -> dict[str, plt.Figure]:
         raise NotImplementedError
+
+    @staticmethod
+    def retrieve_path_from_log_dir(pl_module, subdir: Optional[str] = None) -> str:
+        logdir = pl_module.logger.log_dir
+        if not isinstance(subdir, str):
+            return logdir
+
+        else:
+            subpath = osp.join(logdir, 'plots')
+            if not osp.exists(subpath):
+                os.mkdir(subpath)
+            return subpath
 
     def log_plots(self, pl_module: L.LightningModule):
         # Get current stage
-        stage = pl_module.trainer.state.stage
-        logdir = pl_module.logger.log_dir
-        plotsdir = osp.join(logdir, 'plots')
-        if not osp.exists(plotsdir):
-            os.mkdir(plotsdir)
+        stages = pl_module.trainer.state.stage
+        plotsdir = self.retrieve_path_from_log_dir(pl_module, 'plots')
 
         # Make the plots, return a dict
-        plots: dict[str, plt.Figure] = self.make_plots(stage)
+        plots: dict[str, plt.Figure] = self.make_plots(stages)
 
         for fig_name, fig in plots.items():
             fig.savefig(osp.join(plotsdir, f"{fig_name.replace('/', '_')}.png"))
-
-        # for fig_name, fig in plots.items():
-        #     pl_module.logger.experiment.add_figure(f'{stage}/{fig_name}', fig)
     ##########################################################
+
+    ################## Save Metric Sheet #####################
+    def store_save_metrics_table(self, pl_module: L.LightningModule):
+        metrics_dict = self.summary_metrics(pl_module, stages='test')
+        table = fmt_print.dict_to_table(metrics_dict, title="Test Metrics")
+        logdir = pl_module.logger.log_dir
+        fmt_print.export_table(table, osp.join(logdir, 'test_metrics.txt'))
 
 
 _default_sol_graph_inputs = ('x', 'edge_index', 'batch')
@@ -516,7 +543,7 @@ class Task(BaseTask, ABC):
         return inputs, None
 
     @abstractmethod
-    def _concat_pred_target(self, which: Literal['val', 'test']) -> (Union[dict, np.ndarray], Optional[np.ndarray]):
+    def _concat_pred_target(self, stage: Literal['val', 'test']) -> (Union[dict, np.ndarray], Optional[np.ndarray]):
         raise NotImplementedError
 
     @abstractmethod
@@ -539,17 +566,20 @@ class Task(BaseTask, ABC):
         train_metrics = self.calc_train_batch_loss_metrics(pl_module, loss, pred, target)
         # for name, metric in train_metrics.items():
         #     pl_module.log(name, metric, prog_bar=True)
-        self._log_metrics_on_train_batch(pl_module, train_metrics)
+        # self._log_metrics_on_train_batch(pl_module, train_metrics)
+        self._log_metrics(pl_module, train_metrics, which='train')
 
     def eval_on_val_end(self,pl_module: L.LightningModule):
-        metrics_dict = self.summary_val_metrics(pl_module)
-        self._log_metrics_on_val_epoch_end(pl_module, metrics_dict)
+        metrics_dict = self.summary_metrics(pl_module, stages='val')
+        # self._log_metrics_on_val_epoch_end(pl_module, metrics_dict)
+        self._log_metrics(pl_module, metrics_dict, which='val')
 
     @staticmethod
     def dict_fmt_print(dict_: dict[str, float], print_func=fmt_print.bold_magenta, prefix=''):
         msg = f'{prefix}[' + ', '.join([f'{k}={v:.3g}' for k, v in dict_.items()]) + ']'
         print(type(print_func))
         print_func(msg)
+
 
 class SingleTask(Task):
     """"""
@@ -613,7 +643,7 @@ class SingleTask(Task):
             pred: torch.Tensor,
             target: torch.Tensor,
     ) -> dict[str, float]:
-        raise {
+        return {
             'loss': loss.item(),
             self.primary_metric: self._metrics[self.primary_metric](pred, target),
         }
@@ -637,16 +667,16 @@ class SingleTask(Task):
         self.test_target.append(target.cpu().detach().float().numpy())
 
     @override
-    def _concat_pred_target(self, which: Literal['val', 'test']) -> (np.ndarray, np.ndarray):
-        if which == 'val':
+    def _concat_pred_target(self, stage: Literal['val', 'test']) -> (np.ndarray, np.ndarray):
+        if stage == 'val':
             return np.concatenate(self.val_pred), np.concatenate(self.val_target)
-        elif which == 'test':
+        elif stage == 'test':
             return np.concatenate(self.test_pred), np.concatenate(self.test_target)
         else:
             raise NotImplementedError
 
-    def summary_val_metrics(self, pl_module: L.LightningModule) -> dict[str, float]:
-        pred, target = self._concat_pred_target(which='val')
+    def summary_metrics(self, pl_module: L.LightningModule, stages='val') -> dict[str, float]:
+        pred, target = self._concat_pred_target(stages)
 
         # Calculating the metrics
         metrics_dict = {
@@ -654,12 +684,13 @@ class SingleTask(Task):
             for metric_name, metric_func in self._metrics.items()
         }
 
-        metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
+        if stages == 'val':
+            metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
 
         return metrics_dict
 
-    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
-        pred, target = self._concat_pred_target(stage)
+    def make_plots(self, stages: Literal['val', 'test']) -> dict[str, plt.Figure]:
+        pred, target = self._concat_pred_target(stages)
         return {plot_name: maker(pred, target) for plot_name, maker in self.plot_makers.items()}
 
     @override
@@ -834,11 +865,11 @@ class MultiTask(Task):
             self.test_target.setdefault(k, []).append(t.cpu().detach().float().numpy())
 
     @override
-    def _concat_pred_target(self, which: Literal['val', 'test']) -> (dict[str, np.ndarray], dict[str, np.ndarray]):
-        if which == 'val':
+    def _concat_pred_target(self, stages: Literal['val', 'test']) -> (dict[str, np.ndarray], dict[str, np.ndarray]):
+        if stages == 'val':
             pred = {k: np.concatenate(p) for k, p in self.val_pred.items()}
             target = {k: np.concatenate(t) for k, t in self.val_target.items()}
-        elif which == 'test':
+        elif stages == 'test':
             pred = {k: np.concatenate(p) for k, p in self.test_pred.items()}
             target = {k: np.concatenate(t) for k, t in self.test_target.items()}
         else:
@@ -846,27 +877,29 @@ class MultiTask(Task):
 
         return pred, target
 
-    def summary_val_metrics(self, pl_module: L.LightningModule) -> dict[str, float]:
-        val_pred, val_target = self._concat_pred_target('val')
+    def summary_metrics(self, pl_module: L.LightningModule, stages='val') -> dict[str, float]:
+        pred, target = self._concat_pred_target(stages)
 
         # Calculate metrics
         metrics_dict = {
-            k: float(self._metrics[k][self.primary_metric[k]](val_pred[k], t))
-            for k, t in val_target.items()}
+            k: float(self._metrics[k][self.primary_metric[k]](pred[k], t))
+            for k, t in target.items()}
 
-        # Update across loss weights
-        if pl_module.current_epoch < 1 or not isinstance(self.atl_weights_calculators, Callable):
-            self.atl_weights = None
-        else:
-            self.atl_weights = self.atl_weights_calculators(metrics_dict)
-            # logging.debug(self.atl_weights)
-            self.dict_fmt_print(self.atl_weights, prefix='\nalt_weights: ')
+        if stages == 'val':
+            # Update across loss weights
+            if pl_module.current_epoch < 1 or not isinstance(self.atl_weights_calculators, Callable):
+                self.atl_weights = None
+            else:
+                self.atl_weights = self.atl_weights_calculators(metrics_dict)
+                # logging.debug(self.atl_weights)
+                self.dict_fmt_print(self.atl_weights, prefix='\nalt_weights: ')
 
         # Add sum metrics
         metrics_dict['smtrc'] = np.mean([v for v in metrics_dict.values()]) if metrics_dict else 0
 
-        # Add learning rate information
-        metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
+        if stages == 'val':
+            # Add learning rate information
+            metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
 
         return metrics_dict
 
@@ -878,8 +911,8 @@ class MultiTask(Task):
         self.val_pred.clear()
         self.val_target.clear()
 
-    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
-        pred, target = self._concat_pred_target(stage)
+    def make_plots(self, stages: Literal['val', 'test']) -> dict[str, plt.Figure]:
+        pred, target = self._concat_pred_target(stages)
 
         plots = {}
         for tsk, maker_dict in self.plot_makers.items():
@@ -1030,22 +1063,26 @@ class MultiDataTask(BaseTask):
 
         self._log_metrics_on_train_batch(pl_module, metrics_dict)
 
-    def eval_on_val_end(self, pl_module: L.LightningModule):
+    def summary_metrics(self, pl_module: L.LightningModule, stages: Literal['val', 'test'] = 'val') -> dict:
         total_metrics = {}
         for i, task in enumerate(self._tasks):
-            metrics_dict = task.summary_val_metrics(pl_module)
+            metrics_dict = task.summary_metrics(pl_module, stages)
             metrics_dict.pop('smtrc', None)
             for tsk_name, metrics in metrics_dict.items():
                 total_metrics[f'{i}-{tsk_name}'] = float(metrics)
 
         metrics_values = [v for k, v in total_metrics.items() if not self.lr_matcher.fullmatch(k)]
         total_metrics['smtrc'] = sum(metrics_values) / len(metrics_values)
+        return total_metrics
+
+    def eval_on_val_end(self, pl_module: L.LightningModule):
+        total_metrics = self.summary_metrics(pl_module, stages='val')
         self._log_metrics_on_val_epoch_end(pl_module, total_metrics)
 
-    def make_plots(self, stage: str) -> dict[str, plt.Figure]:
+    def make_plots(self, stages: Literal['val', 'test']) -> dict[str, plt.Figure]:
         plots = {}
         for i, task in enumerate(self._tasks):
-            tsk_plots = task.make_plots(stage)
+            tsk_plots = task.make_plots(stages)
             for plot_name, plot in tsk_plots.items():
                 plots[f'Dataset{i}/{plot_name}'] = plot
 

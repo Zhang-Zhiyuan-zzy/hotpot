@@ -236,9 +236,11 @@ class DataModule(L.LightningDataModule):
             devices: Optional[int] = None,
             num_replicas: Optional[int] = None,
             load_data_memory: bool = True,
+            test_only: bool = False,
     ):
         super().__init__()
         self.dir_datasets = dir_datasets
+        self.test_only = test_only
 
         datasets_subdir = os.listdir(dir_datasets)
         if not dataset_names:
@@ -279,7 +281,7 @@ class DataModule(L.LightningDataModule):
         else:
             self.devices = torch.cuda.device_count()
 
-        if load_data_memory:
+        if load_data_memory and not test_only:
             self._loading_data_to_memory()
         else:
             self._loading_data_path()

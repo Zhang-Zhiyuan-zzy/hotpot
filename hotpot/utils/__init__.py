@@ -6,3 +6,5 @@ python v3.9.0
 @Data   : 2024/8/3
 @Time   : 15:36
 """
+from rich.table import Table
+

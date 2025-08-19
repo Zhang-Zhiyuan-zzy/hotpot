@@ -152,6 +152,7 @@ def run(
 
         # Flow control Arguments
         need_test: bool = True,
+        test_only: bool = False,
         eval_each_step: Optional[int] = 1,
 
         # Training loop control
@@ -225,6 +226,7 @@ def run(
         # Flow control Arguments
         need_test: Whether to perform test process
         eval_each_step: How many epochs to evaluate the model.
+        test_only: Only perform test process
 
         # Training loop control
         epochs: The Maximum of epochs to train. Defaults to 100.
@@ -354,6 +356,7 @@ def run(
         shuffle=shuffle_dataset,
         devices=devices,
         num_replicas=devices,
+        test_only=test_only
     )
 
     task_type = tasks.specify_task_types(dataModule.is_multi_datasets, target_getter)
@@ -465,7 +468,10 @@ def run(
         profiler = profiler
     )
 
-    trainer.fit(model, datamodule=dataModule)
+    if not test_only:
+        trainer.fit(model, datamodule=dataModule)
+    else:
+        need_test = True
 
     if need_test:
         trainer.test(model, datamodule=dataModule)

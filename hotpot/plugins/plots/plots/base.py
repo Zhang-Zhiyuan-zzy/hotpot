@@ -6,17 +6,20 @@ python v3.9.0
 @Data   : 2024/10/19
 @Time   : 9:17
 """
+from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 from ..plotter import SciPlotter
 
 
 __all__ = ['Plot']
 
-class Plot:
+class Plot(ABC):
     """"""
+    @abstractmethod
     def __init__(self, *args, **kwargs):
         raise NotImplementedError
 
+    @abstractmethod
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         """
         Args:

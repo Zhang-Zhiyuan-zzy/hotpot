@@ -1,13 +1,16 @@
 import os
 import re
+import glob
 import os.path as osp
 import functools
+import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Union, Callable, Optional, Iterable, Any, Literal
 from typing_extensions import override
 
 import numpy as np
+from matplotlib import font_manager as fm
 from matplotlib import pyplot as plt
 
 import torch
@@ -23,6 +26,19 @@ from hotpot.plugins.ComplexFormer import (
     models as M,
     tools
 )
+
+
+# Add the fonts in hotpot
+def add_mpl_font():
+    file_dir = osp.dirname(__file__)
+    fonts_dir = osp.abspath(osp.join(file_dir, '..', '..', 'cheminfo', 'fonts'))
+    logging.debug(f'fonts_dir={fonts_dir}')
+
+    fonts_paths = glob.glob(osp.join(fonts_dir, '*', '*.ttf'))
+    for font_path in fonts_paths:
+        fm.fontManager.addfont(font_path)
+add_mpl_font()
+#####################################
 
 
 def specify_single_dataset_task(target_getter: Union[Callable, dict]):
@@ -455,6 +471,7 @@ class Task(BaseTask, ABC):
         graph_dict, attrs, ratios = self._avoid_empty_graphs(graph_dict, attrs, ratios)
 
         # Graph inputs preprocessing
+        # In default, extracting node feature[n, s, p, ..., x, y, z, formal_charge, ...] from Batch.x, convert the dtype.
         if isinstance(graph_dict, dict):
             graph_dict = self.inputs_preprocessor({inp: graph_dict[inp] for inp in self.sol_graph_inputs})
         else:
@@ -486,7 +503,7 @@ class Task(BaseTask, ABC):
             return M.perturb_xyz(xyz, self._xyz_perturb_sigma)
         return xyz
 
-    def inputs_preprocessor(self, inputs: tuple[torch.Tensor, ...], **kwargs) -> tuple[torch.Tensor, ...]:
+    def inputs_preprocessor(self, inputs: Union[dict, list, tuple], **kwargs) -> tuple[torch.Tensor, ...]:
         if self._inputs_preprocessor:
             return self._inputs_preprocessor(inputs, **kwargs)
         return inputs

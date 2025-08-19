@@ -159,17 +159,17 @@ class AttnCore(CoreBase):
             nn.TransformerEncoderLayer(
                 d_model=vec_dim,
                 nhead=ring_nheads,
-                dim_feedforward=1024,
+                dim_feedforward=ring_encoder_kw.get('dim_feedforward', 1024),
                 batch_first=True,
-            ), num_layers=ring_layers,
+            ), num_layers=ring_layers, **(ring_encoder_block_kw or {})
         )
         self.mol_encoder = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
                 d_model=vec_dim,
                 nhead=mol_nheads,
-                dim_feedforward=1024,
+                dim_feedforward=mol_encoder_kw.get('dim_feedforward', 1024),
                 batch_first=True,
-            ), num_layers=mol_layers,
+            ), num_layers=mol_layers, **(ring_encoder_block_kw or {})
         )
 
         self.CLS = nn.Parameter(torch.randn(1, vec_dim))

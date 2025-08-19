@@ -9,6 +9,7 @@ from tqdm import tqdm
 from rich.table import Table
 from rich.live import Live
 from rich.layout import Layout
+from rich.console import Console
 from lightning.pytorch.callbacks import Callback, ProgressBar
 
 from hotpot.utils import fmt_print
@@ -29,9 +30,9 @@ def get_metric_table(
 
     table = Table(title=title, **table_kw)
     for _ in range(t_cols):
-        table.add_column('ID', no_wrap=True)
-        table.add_column('Metric', no_wrap=True)
-        table.add_column('Value', no_wrap=True)
+        table.add_column('ID', no_wrap=True, min_width=3)
+        table.add_column('Metric', no_wrap=True, min_width=15)
+        table.add_column('Value', no_wrap=True, min_width=15)
 
     rows = []
     row = []
@@ -113,10 +114,13 @@ class Pbar(ProgressBar):
         else:
             self.layout.split(Layout(name='val'), Layout(name='train'))
 
-        self.liver = Live(self.layout, auto_refresh=False)
-        self.liver.start()
+        # self.liver = Live(self.layout, auto_refresh=False)
+        # self.liver.start()
 
     def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        self.liver = Live(self.layout, auto_refresh=False, console=Console(width=200))
+        self.liver.start()
+
         self.buf = io.StringIO()
         self.train_pbar = self.init_train_tqdm()
 
@@ -151,9 +155,11 @@ class Pbar(ProgressBar):
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.buf.close()
         self.train_pbar = None
+        self.end_liver()
 
     def on_train_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        self.end_liver()
+        # self.end_liver()
+        ...
 
     def on_sanity_check_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.liver = Live(self.layout, auto_refresh=False)

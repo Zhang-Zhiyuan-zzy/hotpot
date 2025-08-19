@@ -100,6 +100,7 @@ def get_x_input_attrs(
         input_x_index: Union[list, torch.Tensor],
         dtype: Optional[torch.dtype] = None,
 ):
+    """ Extract node features from Data.x and convert the Tensor dtype """
     if isinstance(inputs, dict):
         inputs['x'] = inputs['x'][:, input_x_index].to(dtype)
         return inputs

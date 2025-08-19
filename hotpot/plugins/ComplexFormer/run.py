@@ -124,7 +124,7 @@ def init_model_dir(work_dir, task_kwargs: Union[dict, list]):
     else:
         raise ValueError(f'task_kwargs must be a dict or list, not {type(task_kwargs)}')
 
-    model_dir = osp.join(work_dir, task_name)
+    model_dir = str(osp.join(work_dir, task_name))
     logs_dir = osp.join(model_dir, "logs")
 
     logger = pl_loggers.TensorBoardLogger(save_dir=logs_dir)
@@ -136,47 +136,56 @@ def init_model_dir(work_dir, task_kwargs: Union[dict, list]):
 
 
 def run(
-        # Global Arguments
+        # Global information Arguments
         work_name: str,
         work_dir: str,
         core: M.CoreBase,
-        dir_datasets: str,
         hypers: Union[dict, tools.Hypers],
+
+        # DataModule Arguments
+        dir_datasets: str,
         dataset_names: Union[str, Sequence[str]] = None,
         exclude_datasets: Union[str, Sequence[str]] = None,
         shuffle_dataset: bool = True,
         dataModule_seed: int = 315,
         data_split_ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
+
+        # Flow control Arguments
+        need_test: bool = True,
+        eval_each_step: Optional[int] = 1,
+
+        # Training loop control
+        epochs: int = 100,
+        early_stopping: bool = True,
+        early_stop_step: int = 5,
+        freeze_core: Optional[bool] = None,
+        keep_grad_state: bool = False,
+
+        # Arguments of checkpoints
         checkpoint_path: Union[str, int] = None,
         load_core_only: bool = True,
-        epochs: int = 100,
-        need_test: bool = True,
-        save_model: bool = True,
+
+        # Optimizer configuration
         optimizer: Optional[Type[Optimizer]] = None,
         constant_lr: bool = False,
         lr_scheduler: Optional[Callable] = None,
         lr_scheduler_frequency: int = 1,
         lr_scheduler_kwargs: Optional[dict] = None,
-        early_stopping: bool = True,
-        early_stop_step: int = 5,
         loss_weight_calculator: Optional[Union[Callable, bool]] = None,
         loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
-        eval_each_step: Optional[int] = 1,
-        freeze_core: Optional[bool] = None,
-        keep_grad_state: bool = False,
 
-        # Dataset-specific Arguments
-        with_xyz: Union[bool, Iterable[bool]] = None,
+        # Inputs specification
         xyz_perturb_sigma: Optional[float] = None,
         batch_preprocessor: Optional[Union[tp.BatchPreProcessor, list[tp.BatchPreProcessor]]] = None,
         inputs_preprocessor: Optional[Union[Callable, list[Callable]]] = None,
         x_masker: Optional[Union[str, Callable]] = None,
-        with_sol: Optional[int] = None,
-        with_med: Optional[int] = None,
+        mask_need_task: Optional[list[str]] = None,
+
+        # Model architecture control
         mol_info_dim: Optional[int] = None,
 
         # Task-specific Arguments
-        task_name: Union[str, Sequence[str]] = None,
+        task_names: Optional[Union[list[str], list[list[str]]]] = None,
         target_getter: tp.TargetGetterInput = None,
         feature_extractor: Optional[tp.FeatureExtractorInput] = None,
         predictor: Optional[tp.PredictorInput] = None,
@@ -184,14 +193,17 @@ def run(
         primary_metric: Optional[tp.MetricType] = None,
         other_metric: Optional[Union[tp.MetricType, Iterable[tp.MetricType], dict[str, Callable]]] = None,
         extractor_attr_getter: Optional[Union[Callable, dict[str, Callable], list[dict, Callable]]] = None,
-        devices: Optional[int] = None,
         minimize_metric: bool = False,
         onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
+        with_xyz: Union[bool, Iterable[bool]] = None,
+        with_sol: Optional[int] = None,
+        with_med: Optional[int] = None,
 
-        # Unclassified
-        mask_need_task: Optional[list[str]] = None,
+        # Postprocessing arguments
+        save_model: bool = True,
 
-        # Settings
+        # Environmental configuration and device
+        devices: Optional[int] = None,
         precision='bf16-mixed',
         float32_matmul_precision='medium',
         profiler="simple",
@@ -203,45 +215,80 @@ def run(
 ):
     """
     The high-level API for pretraining the ComplexFormer.
-
-    Key parameters:
-        target_getter(Callable|dict[task_name, Callable]):
-        feature_extractor(Callable|dict[task_name, Callable]):
-        predictor(nn.Module|dict[task_name, nn.Module]):
-        loss_fn(Callable|dict[task_name, Callable[[pred, target], float]]):
-        primary_metric(metric_name|dict[task_name, metric_name]):
-
     Args:
+        # Global information Arguments
         work_name(str): The name of the work being trained. While this argument allows any string,
             a standardized nomenclature is recommended, where ...
         work_dir(str): The directory where the trained models and inspected info will be saved.
         core(nn.Module): The general Encoder block, i.e. ComplexFormer.
-        hypers: Hyperparameters for optimizer, dataloader, and others except for model
-        checkpoint_path(str|int): the checkpoint file path if given a str. Otherwise, when an int(i)
-            is given, the ith model under the work_dir will be loaded.
-        load_core_only: Whether to load only the core model, if True, the predictor parameter will be
-            ignored. Defaults to True.
+
+        # Flow control Arguments
+        need_test: Whether to perform test process
+
+        # Training loop control
         epochs: The Maximum of epochs to train. Defaults to 100.
-        with_xyz: Whether to load xyz to ComplexFormer. Defaults to True.
-        with_sol: Whether to allow ComplexFormer to encode solvent information.
-        with_med: Whether to allow ComplexFormer to encode medium information.
-        save_model: Whether to save the model. Defaults to True.
+        early_stopping: Whether early stopping is enabled. Defaults to True.
+        early_stop_step: How many steps when the model's performance is not improved to perform the early stopping.
+        freeze_core: Whether to freeze the core model in the first epoch, defaults to None. If None, the core
+            module will be frozen in the first epoch if the core module is loaded from checkpoint and the
+            predictor is fresh.
+        keep_grad_state: Whether to keep the gradient state (requires_grad = True or False) to be solid,
+            Defaults to False. If True, the gradient state will not be adjusted automatically.
+
+        # DataModule Arguments
+        dir_datasets(str): The directory where the datasets will be saved. The datasets are organized as:
+            - dir_datasets
+                - dataset_name1
+                    - data1.pt
+                    - data2.pt
+                    - ...
+                - dataset_name2
+                - ...
+        hypers: Hyperparameters for optimizer, dataloader, and others except for model
+        dataset_names: Which datasets to use. The names must exactly match the fold name under dir_datasets.
+            defaults to None, use all datasets under dir_datasets.
+        exclude_datasets: A mutual option with `dataset_names`. When given a None to `dataset_name`, this
+            argument is used to exclude specific datasets.
+        shuffle_dataset: Whether to shuffle the dataset.
+        dataModule_seed: seed for dataloader.
+        data_split_ratios: ratio of train, validation and test splits.
+
+        # Optimizer configuration
         optimizer: The type of optimizer to use. If None, the Adam optimizer will be used.
         constant_lr: Whether to use constant learning rate. Defaults to False. If False, a lr_scheduler
             will be used to adjust the learning rate.
         lr_scheduler: The type of learning rate scheduler to use. Defaults to None. If None, a ExponentialLR
             scheduler with `gamma=0.95` will be used. If the lr_schedular is specified, 'lr_schedular_kwargs
             should pass its required arguments`.
+        lr_scheduler_frequency:
         lr_scheduler_kwargs: Keyword arguments passed to `lr_scheduler`.
+
+        # Arguments of checkpoints
+        checkpoint_path(str|int): the checkpoint file path if given a str. Otherwise, when an int(i)
+            is given, the ith model under the work_dir will be loaded.
+        load_core_only: Whether to load only the core model, if True, the predictor parameter will be
+            ignored. Defaults to True.
+
+        # Inputs specification
+        batch_preprocessor:
+        inputs_preprocessor:
+        xyz_perturb_sigma: Add Gaussian noise to the coordinates based on the sigma value specified by
+            this parameter to achieve random perturbation.
+        x_masker:
+        mask_need_task:
+
+        # Task-specific Arguments
+        task_names: define task tags for each given datasets. If a single dataset is there, a list of names[str]
+            should be passed in; otherwise, if a multiple datasets are there, a list of lists of names[str] should
+            be passed. If the `task_names` is not specified, the task_names can be speculated from other given
+            required information.
         feature_extractor: Which feature extractor to use. Defaults to None.
-        predictor:
+        predictor: Which predictor to use. A nn.Module object or `onehot`, `num`, `binary`, or `xyz`
         target_getter(Callable|str): A callable to extract target values from batch.
         loss_fn: loss function
         primary_metric: The primary metric to control the training processing.
         other_metric: Other metric to measure the model performance, but not impact the training process.
         minimize_metric:
-        early_stopping: Whether early stopping is enabled. Defaults to True.
-        early_stop_step: How many steps when the model's performance is not improved to perform the early stopping.
         loss_weight_calculator: A function to calculate the weights for each category, Applied for onehot labels.
         loss_weight_method: How to calculate the coefficients ki before the sum of loss Σ(ki*loi)
         eval_each_step: How many epochs to evaluate the model.
@@ -249,12 +296,19 @@ def run(
             for the single task training. For (single dataset) multitask works, a dict as {`onehot_task_name`: int}
             should be given. For multi-datasets multitask works, a list of dict as {`onehot_task_name`: int} should
             be given, where the order of the dict should align the orders of corresponding datasets.
-        freeze_core: Whether to freeze the core model in the first epoch, defaults to None. If None, the core
-            module will be frozen in the first epoch if the core module is loaded from checkpoint and the
-            predictor is fresh.
-        keep_grad_state: Whether to keep the gradient state (requires_grad = True or False) to be solid,
-            Defaults to False. If True, the gradient state will not be adjusted automatically.
-        x_masker:
+        with_xyz: Whether to load xyz to ComplexFormer. Defaults to True.
+        with_sol: Whether to allow ComplexFormer to encode solvent information.
+        with_med: Whether to allow ComplexFormer to encode medium information.
+
+        # Postprocessing arguments
+        save_model: Whether to save the model. Defaults to True.
+
+        # Environmental configuration and device
+        devices: Number of GPU devices to use. Defaults to None.
+        precision: The default precision used by PyTorch. Defaults to bf16-mixed.
+        float32_matmul_precision: Sets the internal precision of float32 matrix multiplications. just a link to
+            torch.set_float32_matmul_precision(precision)
+        profiler: The same one passing into pytorch lightning Trainer, Defaults to 'sample'
         show_pbar: Whether to show the progress bar. Defaults to True.
         debug: turn on the debug mode. Defaults to False.
         use_debugger: Whether to use a debugger. Defaults to False.
@@ -302,7 +356,7 @@ def run(
     task_type = tasks.specify_task_types(dataModule.is_multi_datasets, target_getter)
     task_kwargs = configs.config(
         work_name=work_name,
-        task_names=task_name,
+        task_names=task_names,
         task_type=task_type,
         dataModule=dataModule,
         inputs_getter=inputs_getter,

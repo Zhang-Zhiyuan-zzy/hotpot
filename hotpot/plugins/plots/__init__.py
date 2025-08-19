@@ -18,7 +18,10 @@ from .plots import *
 def refresh_cache():
     cache_dir = mpl.get_cachedir()
     if cache_dir is not None and os.path.exists(cache_dir):
-        shutil.rmtree(cache_dir)
+        try:
+            shutil.rmtree(cache_dir)
+        except FileNotFoundError:
+            pass
 
 def init_fonts():
     """ For linux system, load the Arial as the default font """

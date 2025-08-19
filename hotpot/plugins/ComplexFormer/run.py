@@ -181,10 +181,13 @@ def run(
         x_masker: Optional[Union[str, Callable]] = None,
         mask_need_task: Optional[list[str]] = None,
 
-        # Model architecture control
-        mol_info_dim: Optional[int] = None,
+        # Dataset level Arguments
+        with_xyz: Optional[Union[bool, Iterable[bool]]] = None,
+        with_sol: Optional[Union[bool, Iterable[bool]]] = None,
+        with_med: Optional[Union[bool, Iterable[bool]]] = None,
+        with_env: Optional[Union[bool, Iterable[bool]]] = None,
 
-        # Task-specific Arguments
+        # Task level Arguments
         task_names: Optional[Union[list[str], list[list[str]]]] = None,
         target_getter: tp.TargetGetterInput = None,
         feature_extractor: Optional[tp.FeatureExtractorInput] = None,
@@ -195,9 +198,6 @@ def run(
         extractor_attr_getter: Optional[Union[Callable, dict[str, Callable], list[dict, Callable]]] = None,
         minimize_metric: bool = False,
         onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
-        with_xyz: Union[bool, Iterable[bool]] = None,
-        with_sol: Optional[int] = None,
-        with_med: Optional[int] = None,
 
         # Postprocessing arguments
         save_model: bool = True,
@@ -224,6 +224,7 @@ def run(
 
         # Flow control Arguments
         need_test: Whether to perform test process
+        eval_each_step: How many epochs to evaluate the model.
 
         # Training loop control
         epochs: The Maximum of epochs to train. Defaults to 100.
@@ -277,7 +278,13 @@ def run(
         x_masker:
         mask_need_task:
 
-        # Task-specific Arguments
+        # Dataset level Arguments
+        with_xyz: Whether to load xyz to ComplexFormer. Defaults to True.
+        with_sol: Whether to extract solvents information from Dataset.
+        with_med: Whether to extract medium information from Dataset.
+        with_env: Whether to extract environment information from Dataset.
+
+        # Task level Arguments
         task_names: define task tags for each given datasets. If a single dataset is there, a list of names[str]
             should be passed in; otherwise, if a multiple datasets are there, a list of lists of names[str] should
             be passed. If the `task_names` is not specified, the task_names can be speculated from other given
@@ -291,14 +298,10 @@ def run(
         minimize_metric:
         loss_weight_calculator: A function to calculate the weights for each category, Applied for onehot labels.
         loss_weight_method: How to calculate the coefficients ki before the sum of loss Σ(ki*loi)
-        eval_each_step: How many epochs to evaluate the model.
         onehot_types: specify how many types for each onehot predictor. The arguments can pass a single integer
             for the single task training. For (single dataset) multitask works, a dict as {`onehot_task_name`: int}
             should be given. For multi-datasets multitask works, a list of dict as {`onehot_task_name`: int} should
             be given, where the order of the dict should align the orders of corresponding datasets.
-        with_xyz: Whether to load xyz to ComplexFormer. Defaults to True.
-        with_sol: Whether to allow ComplexFormer to encode solvent information.
-        with_med: Whether to allow ComplexFormer to encode medium information.
 
         # Postprocessing arguments
         save_model: Whether to save the model. Defaults to True.

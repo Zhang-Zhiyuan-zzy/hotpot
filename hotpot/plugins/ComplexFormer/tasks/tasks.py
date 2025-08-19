@@ -308,6 +308,8 @@ class Task(BaseTask, ABC):
         self.with_med = kwargs.get('with_med', False)
         self.med_graph_inputs = kwargs.get('med_graph_inputs', _default_med_graph_inputs)
 
+        self.with_env = kwargs.get('with_env', False)
+
 
     #################### Args Check and Post Process #################################
     def _type_check(self):

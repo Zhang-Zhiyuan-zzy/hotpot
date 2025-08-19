@@ -617,7 +617,7 @@ def _config_task_args(
         x_masker,
         mask_need_task,
         loss_weight_calculator,
-        loss_weight_method: Optional[Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count']],
+        loss_weight_method: Union[tp.LossWeightMethods, dict[str, tp.LossWeightMethods]],
         **kwargs
 ):
     # Prepare
@@ -688,9 +688,16 @@ def _config_task_args(
 
 ############################ Config Multi-data tasks arguments #############################
 def _align_md_task_options(name, arg: Any, dataset_counts: int):
-    if isinstance(arg, list):
+    """
+    Align a parameter `arg` to match the number of datasets (Tasks).
+    - list/tuple: length must match dataset_counts
+    - None: expands to [None]*dataset_counts
+    - others: replicated for all datasets
+    Always returns a list.
+    """
+    if isinstance(arg, (list, tuple)):
         assert len(arg) == dataset_counts, f'Expecting {name} has same length as task_counts, but {len(arg)} != {dataset_counts}'
-        return arg
+        return list(arg)
     else:
         return [arg] * dataset_counts
 
@@ -714,6 +721,7 @@ def config_tasks_from_multi_datasets(
         xyz_index: Optional[list[Iterable[int]]] = None,
         with_sol: Optional[Union[bool, Iterable[bool]]] = None,
         with_med: Optional[Union[bool, Iterable[bool]]] = None,
+        with_env: Optional[Union[bool, Iterable[bool]]] = None,
         xyz_perturb_sigma: Optional[list[float]] = None,
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
@@ -736,13 +744,28 @@ def config_tasks_from_multi_datasets(
     else:
         raise TypeError('inputs_getter must be a callable or a list of callable')
 
-    # Aligning optionals
+    # Align task-specific options to the number of datasets.
+    #
+    # Each dataset corresponds to one Task instance, and each Task requires
+    # a full set of parameter configs. Many parameters are identical across
+    # Tasks, so instead of repeating the same values, users can provide a
+    # single value. This code expands shared values to all Tasks automatically.
+    #
+    # If a parameter differs across Tasks, the number of provided values must
+    # match the number of datasets; otherwise, an error is raised.
+    #
+    # Example:
+    #   Suppose there are 3 datasets:
+    #       xyz_index = True
+    #   After alignment:
+    #       xyz_index = [True, True, True]
     task_names = _align_md_task_options('task_names', task_names, dataset_counts)
     batch_preprocessor = _align_md_task_options('batch_preprocessor', batch_preprocessor, dataset_counts)
     inputs_preprocessor = _align_md_task_options('inputs_preprocessor', inputs_preprocessor, dataset_counts)
     xyz_index = _align_md_task_options('xyz_index', xyz_index, dataset_counts)
     with_sol = _align_md_task_options('with_sol', with_sol, dataset_counts)
     with_med = _align_md_task_options('with_med', with_med, dataset_counts)
+    with_env = _align_md_task_options('with_env', with_env, dataset_counts)
     xyz_perturb_sigma = _align_md_task_options('xyz_perturb_sigma', xyz_perturb_sigma, dataset_counts)
     extractor_attr_getter = _align_md_task_options('extractor_attr_getter', extractor_attr_getter, dataset_counts)
     loss_weight_calculator = _align_md_task_options('loss_weight_calculator', loss_weight_calculator, dataset_counts)
@@ -752,8 +775,8 @@ def config_tasks_from_multi_datasets(
     mask_need_task = _align_md_task_options('mask_need_task', mask_need_task, dataset_counts)
     other_metrics = _align_md_task_options('other_metrics', other_metrics, dataset_counts)
     hypers = _align_md_task_options('hypers', hypers, dataset_counts)
-
     to_onehot = [(list(oh_types) if isinstance(oh_types, dict) else bool(oh_types)) for oh_types in onehot_types]
+    ############################## End of Aligning #######################################
 
     tasks_arguments = []
     for i in range(dataset_counts):
@@ -784,6 +807,7 @@ def config_tasks_from_multi_datasets(
             hypers=hypers[i],
             with_sol=with_sol[i],
             with_med=with_med[i],
+            with_env=with_env[i],
             **kwargs
         ))
         tasks_arguments.append(task_kwargs)
@@ -810,6 +834,7 @@ def config(
         with_xyz: Optional[Union[bool, Iterable[bool]]] = None,
         with_sol: Optional[Union[bool, Iterable[bool]]] = None,
         with_med: Optional[Union[bool, Iterable[bool]]] = None,
+        with_env: Optional[Union[bool, Iterable[bool]]] = None,
         xyz_perturb_sigma: Optional[list[float]] = None,
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
@@ -852,6 +877,7 @@ def config(
             to_onehot = list(onehot_types) if isinstance(onehot_types, dict) else bool(onehot_types),
             with_sol=with_sol,
             with_med=with_med,
+            with_env=with_env,
             **kwargs
         ))
 

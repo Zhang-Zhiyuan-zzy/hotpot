@@ -159,7 +159,7 @@ class AttnCore(CoreBase):
             nn.TransformerEncoderLayer(
                 d_model=vec_dim,
                 nhead=ring_nheads,
-                dim_feedforward=ring_encoder_kw.get('dim_feedforward', 1024),
+                dim_feedforward=ring_encoder_kw.get('dim_feedforward', 1024) if isinstance(ring_encoder_kw, dict) else 1024,
                 batch_first=True,
             ), num_layers=ring_layers, **(ring_encoder_block_kw or {})
         )
@@ -167,7 +167,7 @@ class AttnCore(CoreBase):
             nn.TransformerEncoderLayer(
                 d_model=vec_dim,
                 nhead=mol_nheads,
-                dim_feedforward=mol_encoder_kw.get('dim_feedforward', 1024),
+                dim_feedforward=mol_encoder_kw.get('dim_feedforward', 1024) if isinstance(mol_encoder_kw, dict) else 1024,
                 batch_first=True,
             ), num_layers=mol_layers, **(ring_encoder_block_kw or {})
         )

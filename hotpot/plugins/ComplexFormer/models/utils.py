@@ -3,6 +3,7 @@ import inspect
 
 from typing import Union, Literal, Callable, Optional
 import torch
+import torch.nn.functional as F
 import numpy as np
 
 
@@ -10,6 +11,15 @@ from hotpot.cheminfo.elements import elements
 
 
 ################################ Onehot Encode ###############################################
+def norm_binary_to_zero_one(inp_vec: Union[torch.Tensor, np.ndarray]) -> Union[np.ndarray, torch.Tensor]:
+    if isinstance(inp_vec, np.ndarray):
+        inp_vec = torch.from_numpy(inp_vec)
+        return np.round(F.sigmoid(inp_vec).numpy())
+    elif isinstance(inp_vec, torch.Tensor):
+        return torch.round(F.sigmoid(inp_vec))
+    else:
+        raise TypeError(f"Input type {type(inp_vec)} not supported")
+
 def oh2label(inp_vec: Union[torch.Tensor, np.ndarray]):
     if len(inp_vec.shape) == 1:
         return inp_vec

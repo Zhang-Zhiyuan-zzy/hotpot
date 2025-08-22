@@ -2,6 +2,7 @@ from typing import Union
 import numpy as np
 import torch
 import torch.nn.functional as F
+from sklearn.metrics import roc_curve, auc
 
 from . import utils
 
@@ -46,14 +47,8 @@ class Metrics:
     @staticmethod
     def binary_accuracy(pred: Union[torch.Tensor, np.ndarray], target: Union[torch.Tensor, np.ndarray]):
         """ the pred is the output without Sigmoid activation """
-        if isinstance(pred, np.ndarray):
-            pred = torch.from_numpy(pred)
-            pred = np.round(F.sigmoid(pred).numpy())
-            return (pred == target).mean()
-
-        else:
-            pred = torch.round(F.sigmoid(pred))
-            return (pred == target).float().mean()
+        pred = utils.norm_binary_to_zero_one(pred)
+        return (pred == target).mean() if isinstance(pred, np.ndarray) else (pred == target).float().mean()
 
     @staticmethod
     def r2_score(
@@ -124,8 +119,8 @@ class Metrics:
             pred: Union[np.ndarray, torch.Tensor],
             target: Union[np.ndarray, torch.Tensor]
     ) -> Union[torch.Tensor, np.ndarray]:
-        all_pred_true = pred > 0.5
-        tp = (all_pred_true == target).sum()
+        all_pred_true = pred >= 0.  # The value of pred is exponent of sigmoid, range from -oo to +oo
+        tp = ((all_pred_true == target) & all_pred_true).sum()
         return tp / all_pred_true.sum()
 
     @staticmethod
@@ -133,9 +128,9 @@ class Metrics:
             pred: Union[np.ndarray, torch.Tensor],
             target: Union[np.ndarray, torch.Tensor]
     ) -> Union[torch.Tensor, np.ndarray]:
-        all_pred_true = pred > 0.5
+        all_pred_true = pred > 0.  # The value of pred is exponent of sigmoid, range from -oo to +oo
         total_positive = target.sum()
-        tp = (all_pred_true == target).sum()
+        tp = ((all_pred_true == target) & np.bool_(target)).sum()
         return tp / total_positive
 
     @staticmethod
@@ -152,46 +147,21 @@ class Metrics:
     def auc(
             pred: Union[np.ndarray, torch.Tensor],
             target: Union[np.ndarray, torch.Tensor]
-    ) -> Union[torch.Tensor, np.ndarray]:
+    ) -> float:
         """ Calculate the Area Under `ROC` Curve (AUC) for the binary target """
-        fpr, tpr, threshold = Metrics.roc(target, pred)  # fpr: x, tpr: y
-        return torch.trapezoid(tpr, fpr) if isinstance(pred, torch.Tensor) else np.trapz(tpr, fpr)
+        fpr, tpr, threshold = Metrics.roc(pred, target)  # fpr: x, tpr: y
+        return auc(fpr, tpr)
 
     @staticmethod
     def roc(
             pred: Union[np.ndarray, torch.Tensor],
             target: Union[np.ndarray, torch.Tensor]
-    ) -> Union[torch.Tensor, np.ndarray]:
+    ) -> (Union[torch.Tensor, np.ndarray], Union[torch.Tensor, np.ndarray], float):
         """ Retrieve Receiver Operating Characteristic Curve (ROC) for the binary target """
-        # Initialize functions
-        if isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor):
-            _csum = torch.cumsum
-            _arange = torch.arange
-        elif isinstance(pred, np.ndarray) and isinstance(target, np.ndarray):
-            _csum = np.cumsum
-            _arange = np.arange
-        else:
-            raise ValueError('The `pred` and `target` must be simultaneously torch.Tensor or np.ndarray.')
-
-
-        pred = pred.flatten()
-        target = target.flatten()
-
-        total_positive = target.sum()
-        total_negative = len(target) - total_positive
-
-        sort_idx = pred.argsort()
-        thresholds = pred[sort_idx]  # Here, the sorted pred is equal to the thresholds
-
-        sorted_target = target[sort_idx]
-        inverse_sort_target = 1 - sorted_target  # 0 to 1, 1 to 0
-
-        fn = _csum(sorted_target)  # False negative counts
-        tp = total_negative - fn  # True positive counts
-        tpr = tp / total_positive  # True positive ratio
-
-        fp = _csum(inverse_sort_target)  # False positive counts
-        fpr = fp / total_negative  # False positive ratio
-
-        return fpr, tpr, thresholds
+        if isinstance(pred, torch.Tensor):
+            pred = pred.detach().cpu().numpy()
+        elif isinstance(target, torch.Tensor):
+            target = target.detach().cpu().numpy()
+        pred, target = pred.flatten(), target.flatten()
+        return roc_curve(target, pred)
 

@@ -120,10 +120,6 @@ class Pbar(ProgressBar):
         self.train_pbar = None
         self.end_liver()
 
-    def on_train_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        # self.end_liver()
-        ...
-
     def on_sanity_check_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         self.liver = Live(self.layout, auto_refresh=False)
         self.liver.start()

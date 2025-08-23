@@ -1,4 +1,4 @@
-from typing import Union, Callable, Sequence, Literal, Optional, Any
+from typing import Union, Callable, Sequence, Literal, Optional, Any, Iterable
 
 import torch
 from torch_geometric.data import Batch
@@ -18,6 +18,7 @@ LossWeightMethods = Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count
 LossFn = Callable[[torch.Tensor, torch.Tensor, Optional[Any]], torch.Tensor]
 MetricFn = Callable[[TensorArray, TensorArray], Union[float, TensorArray]]
 XMasker = Callable[[tuple[torch.Tensor, ...], torch.Tensor], tuple[torch.Tensor, torch.Tensor]]
+OtherMetricConfig = Union[str, Iterable[str], dict[str, Union[str, Iterable[str], MetricFn]]]
 
 
 # types for run() arguments

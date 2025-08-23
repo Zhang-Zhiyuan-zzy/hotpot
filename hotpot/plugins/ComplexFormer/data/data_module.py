@@ -89,6 +89,7 @@ import lightning as L
 
 from .dataset import MConcatDataset, torch_load_data, DataWrapper, PathStoredDataset
 from .loader import CDataLoader, DistConcatLoader
+from ....utils import fmt_print
 
 
 def get_first_data(dir_datasets: str) -> dict[str, Data]:
@@ -276,10 +277,14 @@ class DataModule(L.LightningDataModule):
         self.shuffle = shuffle
         self.num_replicas = num_replicas
 
-        if isinstance(devices, int):
-            self.devices = devices
+        if devices is None:
+            self.device_count = torch.cuda.device_count()
+        elif isinstance(devices, int):
+            self.device_count = devices
+        elif isinstance(devices, (tuple, list)):
+            self.device_count = len(devices)
         else:
-            self.devices = torch.cuda.device_count()
+            raise TypeError(f"devices must be a int or a sequence of ints")
 
         if load_data_memory and not test_only:
             self._loading_data_to_memory()
@@ -315,19 +320,19 @@ class DataModule(L.LightningDataModule):
             dir_dataset = osp.join(self.dir_datasets, ds_name)
             if self.debug:
 
-                debug_sample_nums = self._DEBUG_BATCHES * self.devices * self.batch_size \
+                debug_sample_nums = self._DEBUG_BATCHES * self.device_count * self.batch_size \
                                     + random.randint(0, self.batch_size)  # and a random residual
 
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_data = []
-                for _ in tqdm(range(debug_sample_nums), 'loading data'):
+                for _ in tqdm(range(debug_sample_nums), 'loading data to Memory'):
                     try:
                         list_data.append(torch_load_data(next(path_generator)))
                     except StopIteration:
                         break
 
             else:
-                list_data = [torch_load_data(p) for p in tqdm(glob.glob(osp.join(dir_dataset, '*.pt')), 'loading data')]
+                list_data = [torch_load_data(p) for p in tqdm(glob.glob(osp.join(dir_dataset, '*.pt')), 'loading data to Memory')]
 
             self._datasets[ds_name] = DataWrapper(list_data)
 
@@ -338,7 +343,7 @@ class DataModule(L.LightningDataModule):
             if self.debug:
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_path = []
-                for _ in tqdm(range(self._DEBUG_BATCHES*self.devices*self.batch_size), 'loading data'):
+                for _ in tqdm(range(self._DEBUG_BATCHES * self.device_count * self.batch_size), 'loading data path'):
                     try:
                         list_path.append(next(path_generator))
                     except StopIteration:
@@ -347,6 +352,7 @@ class DataModule(L.LightningDataModule):
             else:
                 list_path = list(glob.glob(osp.join(dir_dataset, '*.pt')))
 
+            fmt_print.dark_green('Initialize PathStoredDataset')
             self._datasets[ds_name] = PathStoredDataset(list_path)
 
     def setup(self, stage: Optional[str] = None):

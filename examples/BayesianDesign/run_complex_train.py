@@ -48,6 +48,7 @@ from hotpot.plugins.ComplexFormer import (
     tools,
     run
 )
+from hotpot.utils import fmt_print
 
 models_dir = osp.join(project_root, 'models')
 
@@ -59,7 +60,7 @@ else:
 
 
 # Hyperparameters definition
-EPOCHS = 50
+EPOCHS = 200
 OPTIMIZER = torch.optim.Adam
 X_ATTR_NAMES = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
 X_DIM = len(X_ATTR_NAMES)
@@ -67,16 +68,16 @@ VEC_DIM = 128
 MASK_VEC = (-1 * torch.ones(X_DIM)).to(device)
 RING_LAYERS = 1
 RING_HEADS = 2
-MOL_LAYERS = 1
-MOL_HEADS = 2
+MOL_LAYERS = 4
+MOL_HEADS = 4
 
 ATOM_TYPES = 119  # Arguments for atom type loss
 
 
 hypers = tools.Hypers()
-hypers.batch_size = 128
-hypers.lr = 2e-4
-hypers.weight_decay = 4e-5
+hypers.batch_size = 512
+hypers.lr = 1e-4
+hypers.weight_decay = 4e-6
 
 core = M.Core(
     x_dim=X_DIM,
@@ -116,7 +117,8 @@ def which_datasets_train(
         predictors = task_definition[datasets[0]]['predictors']
         target_getters = task_definition[datasets[0]]['target_getters']
         loss_fn = task_definition[datasets[0]]['loss_fn']
-        primary_metric = task_definition[datasets[0]]['primary_metric']
+        primary_metrics = task_definition[datasets[0]]['primary_metric']
+        other_metrics = task_definition[datasets[0]].get('other_metrics', None)
 
         options = task_definition[datasets[0]].get('options', {})
 
@@ -125,7 +127,8 @@ def which_datasets_train(
         predictors = [task_definition[ds]['predictors'] for ds in datasets]
         target_getters = [task_definition[ds]['target_getters'] for ds in datasets]
         loss_fn = [task_definition[ds]['loss_fn'] for ds in datasets]
-        primary_metric = [task_definition[ds]['primary_metric'] for ds in datasets]
+        primary_metrics = [task_definition[ds]['primary_metric'] for ds in datasets]
+        other_metrics = [task_definition[ds].get('other_metrics', None) for ds in datasets]
 
         _options = [task_definition[ds].get('options', {}) for ds in datasets]
         all_opt_keys = set(k for opt in _options for k in opt.keys())
@@ -150,7 +153,8 @@ def which_datasets_train(
         feature_extractor=feature_extractors,
         predictor=predictors,
         loss_fn=loss_fn,
-        primary_metric=primary_metric,
+        primary_metrics=primary_metrics,
+        other_metrics=other_metrics,
         xyz_perturb_sigma=0.5,
         load_all_data=True,
         debug=debug,
@@ -160,16 +164,21 @@ def which_datasets_train(
     )
 
 
-
 if __name__ == '__main__':
     which_datasets_train(
-        'tmqm', 'mono', 'SclogK',
-        # 'mono_ml_pair',
-        work_name='MultiTask',
-        debug=True,
-        # devices=2,
+        # 'tmqm', 'mono', 'SclogK',
+        'mono_ml_pair',
+        # work_name='MultiTask',
+        work_name='CBond',
+        # debug=True,
+        devices=[7],
         # with_sol=True,
         # with_med=True,
-        # refine=True,
+        refine=True,
+        # show_pbar=False,
+        checkpoint_path='/data/user/hd54396/proj/models/MDTask(3)/logs/lightning_logs/version_2/checkpoints/epoch=56-step=78375.ckpt',
         # checkpoint_path='/home/zz1/docker/proj/models/MDTask(3)/logs/lightning_logs/version_0/checkpoints/epoch=5-step=594.ckpt'
+        # checkpoint_path='/data/user/hd54396/proj/models/MultiTask(1)/logs/lightning_logs/version_1/checkpoints/epoch=6-step=11606.ckpt',
+        # test_only=True,
+        # checkpoint_path=-1,
     )

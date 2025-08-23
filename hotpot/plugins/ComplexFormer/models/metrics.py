@@ -130,7 +130,12 @@ class Metrics:
     ) -> Union[torch.Tensor, np.ndarray]:
         all_pred_true = pred > 0.  # The value of pred is exponent of sigmoid, range from -oo to +oo
         total_positive = target.sum()
-        tp = ((all_pred_true == target) & np.bool_(target)).sum()
+        if isinstance(pred, np.ndarray):
+            tp = ((all_pred_true == target) & np.bool_(target)).sum()
+        elif isinstance(pred, torch.Tensor):
+            tp = ((all_pred_true == target) & target.to(torch.bool)).sum()
+        else:
+            raise TypeError('pred must be of type torch.Tensor or np.ndarray')
         return tp / total_positive
 
     @staticmethod

@@ -158,7 +158,7 @@ def run(
         # Training loop control
         epochs: int = 100,
         early_stopping: bool = True,
-        early_stop_step: int = 5,
+        early_stop_step: int = 10,
         freeze_core: Optional[bool] = None,
         keep_grad_state: bool = False,
 
@@ -170,7 +170,7 @@ def run(
         optimizer: Optional[Type[Optimizer]] = None,
         constant_lr: bool = False,
         lr_scheduler: Optional[Callable] = None,
-        lr_scheduler_frequency: int = 1,
+        lr_scheduler_frequency: int = 2,
         lr_scheduler_kwargs: Optional[dict] = None,
         loss_weight_calculator: Optional[Union[Callable, bool]] = None,
         loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
@@ -194,8 +194,8 @@ def run(
         feature_extractor: Optional[tp.FeatureExtractorInput] = None,
         predictor: Optional[tp.PredictorInput] = None,
         loss_fn: Optional[tp.LossFnInput] = None,
-        primary_metric: Optional[tp.MetricType] = None,
-        other_metric: Optional[Union[tp.MetricType, Iterable[tp.MetricType], dict[str, Callable]]] = None,
+        primary_metrics: Optional[tp.MetricType] = None,
+        other_metrics: Optional[Union[tp.OtherMetricConfig, list[tp.OtherMetricConfig]]] = None,
         extractor_attr_getter: Optional[Union[Callable, dict[str, Callable], list[dict, Callable]]] = None,
         minimize_metric: bool = False,
         onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
@@ -295,8 +295,8 @@ def run(
         predictor: Which predictor to use. A nn.Module object or `onehot`, `num`, `binary`, or `xyz`
         target_getter(Callable|str): A callable to extract target values from batch.
         loss_fn: loss function
-        primary_metric: The primary metric to control the training processing.
-        other_metric: Other metric to measure the model performance, but not impact the training process.
+        primary_metrics: The primary metric to control the training processing.
+        other_metrics: Other metric to measure the model performance, but not impact the training process.
         minimize_metric:
         loss_weight_calculator: A function to calculate the weights for each category, Applied for onehot labels.
         loss_weight_method: How to calculate the coefficients ki before the sum of loss Σ(ki*loi)
@@ -328,7 +328,7 @@ def run(
     """
     if debug:
         logging.basicConfig(level=logging.DEBUG)
-        epochs = 6
+        epochs = 20
 
     # Set the warnings to be converted into errors
     if not warning_allowed:
@@ -341,8 +341,9 @@ def run(
         'rings_node_nums', 'mol_rings_nums', 'batch', 'ptr')
 
     # Devices
-    if not isinstance(devices, int):
-        devices = torch.cuda.device_count()
+    if devices is None:
+        devices = 1
+    assert isinstance(devices, (int, list, tuple)) or devices is None
     ###########################################################
 
     dataModule = DataModule(
@@ -371,8 +372,8 @@ def run(
         feature_extractor=feature_extractor,
         target_getter=target_getter,
         loss_fn=loss_fn,
-        primary_metric=primary_metric,
-        other_metric=other_metric,
+        primary_metrics=primary_metrics,
+        other_metrics=other_metrics,
         hypers=hypers,
         batch_preprocessor=batch_preprocessor,
         inputs_preprocessor=inputs_preprocessor,
@@ -446,6 +447,9 @@ def run(
     if show_pbar:
         progress_bar = cbs.Pbar()
         callbacks.append(progress_bar)
+        model.show_pbar = True
+    else:
+        model.show_pbar = False
 
     if use_debugger:
         callbacks.append(cbs.Debugger())

@@ -19,7 +19,7 @@ from typing import Callable
 import torch
 from torch_geometric.data import Data
 
-from examples.BayesianDesign.machines_config import (
+from machines_config import (
     project_root
 )
 
@@ -58,4 +58,4 @@ def _reshape_empty_attrs(data: Data):
 
 
 if __name__ == '__main__':
-    repair_dataset('mono', _reshape_empty_attrs)
+    repair_dataset('mono_ml_pair', _reshape_empty_attrs)

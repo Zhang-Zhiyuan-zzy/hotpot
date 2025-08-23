@@ -16,8 +16,6 @@ from . import (
     tools,
 )
 from .data import (
-    loader as ldr,
-    dataset as D,
     DataModule
 )
 
@@ -39,7 +37,11 @@ metrics_options = {
     'acc': lambda p, t: M.Metrics.calc_oh_accuracy(p, t),
     'macc': lambda p,t: M.Metrics.metal_oh_accuracy(p, t),
     'bacc': M.Metrics.binary_accuracy,
-    'amd': M.Metrics.average_inverse_distance
+    'amd': M.Metrics.average_inverse_distance,
+    'precision': M.Metrics.precision,
+    'recall': M.Metrics.recall,
+    'f1': M.Metrics.f1_score,
+    'auc': M.Metrics.auc,
 }
 predictor_plot_maker_map = {
     'num': ('r2',),
@@ -85,7 +87,7 @@ def _align_task_seq(
                 raise ValueError(f"The value {v} not satisfied the judge function {judge.__name__}")
 
 def _align_task_names(
-        arg_name: str, arg: dict, task_names: set,
+        arg_name: str, arg: dict, task_names: Union[set, list, tuple],
         value_judge: Callable[[Any], bool],
         strict_align: bool = True
 ):
@@ -321,6 +323,9 @@ def _specify_loss_fn(
             f'The loss_fn should be a string, a callable, a sequence of '
             f'or a dict of str and Callable, not {type(loss_fn)}')
 
+def _metric_name_func_convert(metric_or_name: Union[str, Callable]):
+    return metric_or_name if isinstance(metric_or_name, Callable) else metrics_options[metric_or_name]
+
 # Metrics
 def _specify_metrics(
         task_names: Union[str, Sequence[str]],
@@ -335,6 +340,7 @@ def _specify_metrics(
         assert isinstance(task_names, str), (f'In Multi-task mode, the primary_metrics should be '
             'specified explicitly, but got None of `primary_metrics`')
 
+        # TODO: deprecated
         # Infer the primary_metric according to the task_names
         if task_names == 'AtomType':
             primary_metrics = 'acc'
@@ -348,6 +354,7 @@ def _specify_metrics(
         elif task_names in ['Cbond', 'RingAromatic']:
             primary_metrics = 'bacc'
             _metrics = {'bacc': metrics_options['bacc']}
+        # TODO: deprecated
 
         # Infer the primary_metric according to the type of predictor
         elif isinstance(predictors, M.Predictor):
@@ -403,17 +410,28 @@ def _specify_metrics(
         if isinstance(primary_metrics, str):  # In single task
             assert all(isinstance(v, Callable) for v in other_metrics.values()), (
                 f'In single task mode, the values in other_metrics dict should be callable, check the input value')
-            _metrics.update(other_metrics)
+            _metrics.update({_metric_name_func_convert(om) for om in other_metrics})
         elif isinstance(primary_metrics, dict):  # In multi task
             _align_task_names(
-                'other_metrics', other_metrics, task_names, lambda v: isinstance(v, dict), strict_align=False)
+                'other_metrics', other_metrics, task_names, lambda v: isinstance(v, (dict, tuple, list)), strict_align=False)
             for tsk_name, tsk_metric in other_metrics.items():
-                _metrics[tsk_name].update(tsk_metric)
+                if isinstance(tsk_metric, dict):
+                    _metrics[tsk_name].update({omn: _metric_name_func_convert(om) for omn, om in tsk_metric.items()})
+                else:
+                    _metrics[tsk_name].update({omn: metrics_options[omn] for omn in tsk_metric})
         else:
             raise RuntimeError(f'the primary_metrics fails to specify')
 
     # Return
     return primary_metrics, _metrics
+
+# Add metric as part of loss_fn
+def _add_loss_fn_metric_wrapper(
+        loss_fn: Union[tp.LossFn, dict[str, tp.LossFn]],
+        metrics: dict[str, Union[tp.MetricFn]],
+        primary_metrics: Union[str, dict[str, str]]
+):
+    ...
 
 # Test plot maker
 def _specify_test_plot_maker(
@@ -612,8 +630,8 @@ def _config_task_args(
         core,
         predictor: M.Predictor,
         loss_fn,
-        primary_metric,
-        other_metric,
+        primary_metrics,
+        other_metrics: tp.OtherMetricConfig,
         x_masker,
         mask_need_task,
         loss_weight_calculator,
@@ -643,7 +661,7 @@ def _config_task_args(
     loss_fn = _specify_loss_fn(task_names, loss_fn, predictor)
 
     # Specify primary metric
-    primary_metric, metrics = _specify_metrics(task_names, primary_metric, other_metric, predictor)
+    primary_metrics, metrics = _specify_metrics(task_names, primary_metrics, other_metrics, predictor)
 
     # Specify test plot makers
     plot_makers = _specify_test_plot_maker(task_names, predictor)
@@ -677,7 +695,7 @@ def _config_task_args(
         'feature_extractor': feature_extractor,
         'predictor': predictor,
         'loss_fn': loss_fn,
-        'primary_metric': primary_metric,
+        'primary_metric': primary_metrics,
         'metrics': metrics,
         'plot_makers': plot_makers,
         'x_masker': x_masker,
@@ -701,6 +719,39 @@ def _align_md_task_options(name, arg: Any, dataset_counts: int):
     else:
         return [arg] * dataset_counts
 
+def _extract_args_by_task_name(
+        arg_name: str, arg: dict, task_names: Union[set, list, tuple],
+        # default_value: Optional[Any] = None,
+) -> dict[str, Any]:
+    _values = {}
+    for tsk_name in task_names:
+        # if default_value is None and tsk_name not in arg:
+        #     raise ValueError(f"Arg {arg_name} has not been set for task {tsk_name}")
+        if (value := arg.get(tsk_name, None)) is not None:
+            _values[tsk_name] = value
+    return _values
+
+def _extract_options_list(
+        arg_name: str,
+        list_task_names: list[list[str]],
+        arg: Union[list, tuple, dict],
+        dataset_counts: int,
+        default_values: Optional[dict] = None,
+) -> list[Any]:
+    """
+    This auxiliary function splitting global task-specific arguments to dataset-task-wise arguments.
+    This function is useful when your arguments just are differentiated by the task signature, on
+    matter which dataset to be applied. In the case, the user can just define a dataset-independent
+    dict: {`task_name`: arg_value}, this function assign these values in to each dataset-specific
+    tasks, according to the `list_task_names`.
+    """
+    assert len(list_task_names) == dataset_counts, (
+        f"The number of `task_names` groups do not equal the dataset counts in extracting {arg_name}")
+    if isinstance(arg, dict):
+        return [_extract_args_by_task_name(arg_name, arg, task_names) for task_names in list_task_names]
+    else:
+        return list(arg)
+
 
 def config_tasks_from_multi_datasets(
         work_name: str,
@@ -712,8 +763,8 @@ def config_tasks_from_multi_datasets(
         feature_extractor: list[dict[str, Callable]],
         target_getter: list[dict[str, tp.TargetGetter]],
         loss_fn: list[dict[str, tp.LossFn]],
-        primary_metric: list[dict[str, str]],
-        other_metrics: list[dict[str, dict[str, tp.MetricFn]]],
+        primary_metrics: list[dict[str, str]],
+        other_metrics: Union[dict[str, Union[str, Iterable[str], tp.MetricFn]], list[tp.OtherMetricConfig]],
         hypers: Union[tools.Hypers, list[tools.Hypers]],
         task_names: Optional[list[Sequence[str]]] = None,
         batch_preprocessor: Optional[list[tp.BatchPreProcessor]] = None,
@@ -735,7 +786,7 @@ def config_tasks_from_multi_datasets(
     assert len(feature_extractor) == dataset_counts
     assert len(target_getter) == dataset_counts
     assert len(loss_fn) == dataset_counts
-    assert len(primary_metric) == dataset_counts
+    assert len(primary_metrics) == dataset_counts
     assert len(first_data) == dataset_counts
     if isinstance(inputs_getter, Callable):
         inputs_getter = [inputs_getter] * dataset_counts
@@ -773,9 +824,11 @@ def config_tasks_from_multi_datasets(
     onehot_types = _align_md_task_options('onehot_types', onehot_types, dataset_counts)
     x_masker = _align_md_task_options('x_masker', x_masker, dataset_counts)
     mask_need_task = _align_md_task_options('mask_need_task', mask_need_task, dataset_counts)
-    other_metrics = _align_md_task_options('other_metrics', other_metrics, dataset_counts)
     hypers = _align_md_task_options('hypers', hypers, dataset_counts)
     to_onehot = [(list(oh_types) if isinstance(oh_types, dict) else bool(oh_types)) for oh_types in onehot_types]
+
+    # Extract list of dict from define task-wise dict
+    other_metrics = _extract_options_list('other_metrics', task_names, other_metrics, dataset_counts, {})
     ############################## End of Aligning #######################################
 
     tasks_arguments = []
@@ -790,8 +843,8 @@ def config_tasks_from_multi_datasets(
             core=core,
             predictor=predictor[i],
             loss_fn=loss_fn[i],
-            primary_metric=primary_metric[i],
-            other_metric=other_metrics[i],
+            primary_metrics=primary_metrics[i],
+            other_metrics=other_metrics[i],
             x_masker=x_masker[i],
             mask_need_task=mask_need_task[i],
             loss_weight_calculator=loss_weight_calculator[i],
@@ -826,8 +879,8 @@ def config(
         feature_extractor,
         target_getter,
         loss_fn,
-        primary_metric,
-        other_metric,
+        primary_metrics,
+        other_metrics: Union[tp.OtherMetricConfig, list[tp.OtherMetricConfig]],
         hypers: tools.Hypers,
         batch_preprocessor: Optional[list[tp.BatchPreProcessor]] = None,
         inputs_preprocessor: Optional[list[Callable]] = None,
@@ -859,8 +912,8 @@ def config(
             core=core,
             predictor=predictor,
             loss_fn=loss_fn,
-            primary_metric=primary_metric,
-            other_metric=other_metric,
+            primary_metrics=primary_metrics,
+            other_metrics=other_metrics,
             x_masker=x_masker,
             mask_need_task=mask_need_task,
             loss_weight_calculator=loss_weight_calculator,
@@ -900,8 +953,8 @@ def config(
             feature_extractor=feature_extractor,
             target_getter=target_getter,
             loss_fn=loss_fn,
-            primary_metric=primary_metric,
-            other_metrics=other_metric,
+            primary_metrics=primary_metrics,
+            other_metrics=other_metrics,
             hypers=hypers,
             task_names=task_names,
             batch_preprocessor=batch_preprocessor,
@@ -929,7 +982,7 @@ class OptimizerConfigure:
             hypers: tools.Hypers,
             optimizer: Optional[Type[Optimizer]] = None,
             constant_lr: bool = False,
-            lr_scheduler_frequency: int = 1,
+            lr_scheduler_frequency: int = 2,
             lr_scheduler: Optional[Type[torch.optim.lr_scheduler.LRScheduler]] = None,
             lr_scheduler_kwargs: Optional[dict] = None,
             monitor: str = None,
@@ -968,7 +1021,7 @@ class OptimizerConfigure:
         else:
             scheduler = lrs.ReduceLROnPlateau(optimizer, **self.lrs_kwargs)
 
-        return {
+        opti_config = {
             'optimizer': optimizer,
             "lr_scheduler": {
             "scheduler": scheduler,
@@ -978,3 +1031,7 @@ class OptimizerConfigure:
                 # multiple of "trainer.check_val_every_n_epoch".
             },
         }
+
+        print(opti_config)
+
+        return opti_config

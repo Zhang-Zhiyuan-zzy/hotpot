@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Union, Optional, Iterable
 
@@ -11,6 +12,7 @@ import lightning as L
 
 from .tasks import Task
 from .configs import OptimizerConfigure
+from ...utils import fmt_print
 
 class LightPretrain(L.LightningModule):
     def __init__(
@@ -90,6 +92,34 @@ class LightPretrain(L.LightningModule):
         loss_weight = self.tasks.loss_weight_calculator(target)
         # logging.debug(f'loss_weight: {list(loss_weight.keys())}')
         return target, loss_weight
+
+    def _show_gpu_info(self):
+        """ Retrieve the GPU devices information """
+        dev = self.device  # e.g., cuda:0 (local index)
+        rank = self.trainer.global_rank
+        local_rank = self.trainer.local_rank
+
+        # CUDA local index inside the visible set
+        cuda_local = torch.cuda.current_device() if torch.cuda.is_available() else None
+        name = torch.cuda.get_device_name(cuda_local) if cuda_local is not None else "CPU"
+
+        # Map local index -> physical GPU index if CUDA_VISIBLE_DEVICES is set
+        visible = os.getenv("CUDA_VISIBLE_DEVICES")
+        if visible and cuda_local is not None:
+            visible_ids = [int(x) for x in visible.split(",")]
+            physical = visible_ids[cuda_local]
+        else:
+            physical = cuda_local
+
+        # Print from every process so you see all GPUs in DDP
+        fmt_print.dark_green(f"[Lightning] global_rank={rank} local_rank={local_rank} "
+              f"device={dev} cuda_local={cuda_local} physical={physical} name={name}")
+
+    def on_fit_start(self):
+        self._show_gpu_info()
+
+    def on_test_start(self) -> None:
+        self._show_gpu_info()
 
     def training_step(self, batch, batch_idx):
         # Forward

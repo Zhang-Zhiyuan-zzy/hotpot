@@ -3,83 +3,97 @@
     "name": "cyclohexane",
     "smiles": "C1CCCCC1",
     "points": [[0, 1]],
-    "method": "EdgeShoulder"
+    "method": "EdgeShoulder",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "carboxylic_acid",
     "smiles": "C(=O)O",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "pyrrole_methylated",
     "smiles": "C1C(CCCC1)C(=NC)N",
     "points": [[0, 1]],
-    "method": "EdgeShoulder"
+    "method": "EdgeShoulder",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "hydroxyl",
     "smiles": "O",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "amine",
     "smiles": "N",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "sulfonic_acid",
     "smiles": "S(=O)(=O)O",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "methyl",
     "smiles": "C",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "phosphate",
     "smiles": "P(=O)(O)O",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "hydrazone",
     "smiles": "C(=NO)N",
     "points": [[0, 1]],
-    "method": "EdgeShoulder"
+    "method": "EdgeShoulder",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "propyl_ether",
     "smiles": "CCCO",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "benzene",
     "smiles": "C1=CC=CC=C1",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "nitro_benzene_with_amino",
     "smiles": "C1=CC=C(C=C1)C(=NO)N",
     "points": [[0]],
-    "method": "AtomLink"
+    "method": "AtomLink",
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "AlkylGraft",
     "method": "AlkylGraft",
-    "link_length": [1, 2, 3, 4, 5, 6, 7, 8]
+    "link_length": [1, 2, 3, 4, 5, 6, 7, 8],
+    "ExStrct": "C(=NO)N"
   },
   {
     "name": "5cycle-RW",
     "smiles": "C1CCCC1",
     "points": [[0]],
-    "method": "RingWedge"
+    "method": "RingWedge",
+    "ExStrct": "C(=NO)N"
   }
 ]

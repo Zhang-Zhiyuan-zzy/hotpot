@@ -15,6 +15,7 @@ from scipy.interpolate import griddata
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+import matplotlib.ticker as mticker
 
 from .defaults import Settings
 
@@ -101,6 +102,13 @@ def add_colorbar(
         cmap: Union[str, mpl.colors.Colormap] = None,
         **kwargs
 ):
+    # Defaults keywords for colorbar
+    _kw = {
+        'ticks': mticker.MaxNLocator(nbins=6),
+        'format': "{x:.3f}"
+    }
+    _kw.update(kwargs)
+
     if not mappable:
         mappable = plt.cm.ScalarMappable(norm, cmap)
 
@@ -108,7 +116,8 @@ def add_colorbar(
     if orientation == 'vertical':
         ax_pos[2] -= 0.025
 
-    colorbar = ax.figure.colorbar(mappable, ax=ax, orientation=orientation, **kwargs)
+    colorbar = ax.figure.colorbar(mappable, ax=ax, orientation=orientation, **_kw)
+    colorbar.ax.tick_params(axis='y', which='both', direction='in')
     ax.set_position(ax_pos)
 
     # specify colorbar position

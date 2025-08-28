@@ -20,7 +20,9 @@ from sklearn.metrics import (
     mean_squared_error,
     confusion_matrix,
     roc_curve,
-    auc
+    det_curve,
+    precision_recall_curve,
+    auc,
 )
 from sklearn.feature_selection import r_regression
 from sklearn import linear_model
@@ -46,46 +48,54 @@ __all__ = [
     'EmbeddingDataTo2dMap',
     'ConfusionMatrix',
     'ROCCurve',
-    'MultiClassROCCurve'
+    'DETCurve',
+    'PrecisionRecallCurve',
+    'MultiClassROCCurve',
+    'SHAPlot',
+
 ]
+
+def _add_img_block_labels(ax, p_mat: np.ndarray, _round: int = 3, fmt_str: str = '.3%'):
+    img_shape = p_mat.shape
+    for i, j in itertools.product(range(img_shape[0]), range(img_shape[1])):
+        ax.text(i, j, f'{float(p_mat[i, j]): {fmt_str}}', ha='center', va='center',
+                color='w' if p_mat[i, j] < 0.5 else 'b')
 
 
 class ConfusionMatrix(Plot):
-    def __init__(self, pred: np.ndarray, target: np.ndarray) -> None:
-        self.pred = np.argmax(np.asarray(pred), axis=1)
+    def __init__(
+            self,
+            pred: np.ndarray,
+            target: np.ndarray,
+            norm='true',
+            labels:tuple[str, str] = None,
+            threshold: Optional[float] = None,
+    ) -> None:
+        if isinstance(threshold, float):
+            self.threshold = threshold
+        elif np.all(np.bitwise_and(pred >= 0, pred <= 1)):
+            self.threshold = 0.5
+        else:
+            self.threshold = 0.
+        self.pred = np.asarray(pred > self.threshold, dtype=int).flatten()
         self.target = np.asarray(target).flatten()
 
         self.categories = np.sort(np.unique(self.target))
         self.num_classes = len(self.categories)
 
-        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize='true')
+        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize=norm, labels=labels)
 
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         # Small constant to avoid log(0)
-        cm_display = self.confusion_matrix + 1e-8
-        im = ax.imshow(cm_display, cmap="viridis", norm=LogNorm())
+        im = ax.imshow(self.confusion_matrix, cmap="viridis")
+        _add_img_block_labels(ax, self.confusion_matrix)
 
+        ax.set_xticks((0, 1), minor=False, labels=['Negative', 'Positive'])
+        ax.set_yticks((0, 1), minor=False, labels=['Negative', 'Positive'])
         ax.set_xlabel("Target")
         ax.set_ylabel("Predicted")
 
-        sciplot.add_colorbar(ax, im, value_lim=(-1, 1), colorbar_label="Normalized Count (log scale)")
-
-
-# class ConfusionMatrix(Plot):
-#     def __init__(self, pred: np.ndarray[int], target: np.ndarray[int]) -> None:
-#         self.pred = np.argmax(np.asarray(pred), axis=1)
-#         self.target = np.asarray(target).flatten()
-#
-#         self.categories = np.sort(np.unique(self.target))
-#         self.num_classes = len(self.categories)
-#
-#         self.confusion_matrix = confusion_matrix(self.target, self.pred) / len(self.target)
-#
-#     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
-#         ax.imshow(self.confusion_matrix, cmap="viridis")
-#
-#         ax.set_xlabel("Target")
-#         ax.set_ylabel("Predicted")
+        sciplot.add_colorbar(ax, im, value_lim=(0, 1), colorbar_label="Sample Percentage")
 
 
 class ROCCurve(Plot):
@@ -111,6 +121,38 @@ class ROCCurve(Plot):
         ax.set_ylabel("True Positive Rate")
         ax.set_title("Receiver Operating Characteristic (ROC)")
         ax.legend(loc="lower right")
+
+
+class DETCurve(Plot):
+    def __init__(self, pred: np.ndarray[int], target: np.ndarray[int]) -> None:
+        self.fpr, self.fnr, self.thresh = det_curve(np.asarray(target), np.asarray(pred))
+
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        ax.plot(self.fpr, self.fnr, color="blue", label=f"DET curve")
+        ax.plot([0, 1], [1, 0], color="gray", linestyle="--", label="Random")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("False Negative Rate")
+        ax.set_title("Detection error tradeoff (DET)")
+        ax.legend(loc="lower right")
+
+
+class PrecisionRecallCurve(Plot):
+    def __init__(self, pred: np.ndarray[int], target: np.ndarray[int]) -> None:
+        self.precision, self.recall, thresh = precision_recall_curve(np.asarray(target), np.asarray(pred))
+        self.f1_score = 2 * self.precision * self.recall / (self.precision + self.recall)
+        self._f1_argmax = np.argmax(self.f1_score)
+        self.thresh = np.concatenate(([np.min(thresh)-1e-12], thresh))
+        self.max_thresh = self.thresh[self._f1_argmax]
+
+    def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
+        ax.plot(self.thresh, self.precision, color="blue", label=f"Precision")
+        ax.plot(self.thresh, self.recall, color="green", label=f"Recall")
+        ax.plot(self.thresh, self.f1_score, color="magenta", label=f"F1-score (MaxThresh = {self.max_thresh:.3f})")
+        ax.set_xlabel("Threshold")
+        ax.set_ylabel("Precision-Recall")
+        ax.set_title("Precision-Recall curve")
+        ax.legend(loc="lower right")
+
 
 
 class MultiClassROCCurve(Plot):

@@ -186,6 +186,7 @@ class DistConcatBatchSampler(Sampler):
         if self.shuffle:
             np.random.shuffle(batches)
 
+        logging.debug(f'Iter Dist Batches: Rank[{self.rank}], NumReplicas[{self.num_replicas}], SplitSize[{self.split_size}]')
         batches = [batch[self.rank::self.num_replicas] for batch in batches]
 
         return iter(batches)

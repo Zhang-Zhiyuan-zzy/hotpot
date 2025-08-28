@@ -1,5 +1,6 @@
 import os
 import os.path as osp
+import sys
 import glob
 import logging
 from typing import *
@@ -7,6 +8,9 @@ import datetime
 import warnings
 import traceback
 from operator import attrgetter
+
+from rich.logging import RichHandler
+from rich.console import Console
 
 import torch
 import torch.nn as nn
@@ -42,6 +46,17 @@ def _custom_warning_handler(message, category, filename, lineno, file=None, line
 
     # Raise an error with details about the warning and its location
     raise RuntimeWarning(f"{message} in {filename} at line {lineno}\n\n\nTraceback:\n{''.join(tb)}")
+
+
+def setup_logging(debug=True, to_stdout=True):
+    console = Console(file=sys.stdout) if to_stdout else Console()  # Console() defaults to stderr
+    logging.basicConfig(
+        level=logging.DEBUG if debug else logging.INFO,
+        format="%(message)s",                # let Rich handle the rest
+        datefmt="[%X]",
+        handlers=[RichHandler(markup=True, rich_tracebacks=True, console=console)],
+        force=True,                          # override any prior logging config
+    )
 
 
 def init_model(
@@ -199,6 +214,7 @@ def run(
         extractor_attr_getter: Optional[Union[Callable, dict[str, Callable], list[dict, Callable]]] = None,
         minimize_metric: bool = False,
         onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
+        loss_fn_wrap_tasks: Optional[Union[bool, str, set[str], list[bool]]] = None,
 
         # Postprocessing arguments
         save_model: bool = True,
@@ -304,6 +320,7 @@ def run(
             for the single task training. For (single dataset) multitask works, a dict as {`onehot_task_name`: int}
             should be given. For multi-datasets multitask works, a list of dict as {`onehot_task_name`: int} should
             be given, where the order of the dict should align the orders of corresponding datasets.
+        loss_fn_wrap_tasks: Whether to add a metric wrapper to the loss func.
 
         # Postprocessing arguments
         save_model: Whether to save the model. Defaults to True.
@@ -320,14 +337,17 @@ def run(
         warning_allowed: If false, the warning massage will raise an Error.
 
     Keyword Args:
-        sol_graph_inputs(Iterable[str])
-        med_graph_inputs(Iterable[str])
+        # For hotpot.plugin.ComplexFormer.config._wrap_loss_fn_with_metric
+        lofn_wrap_tasks: Optional[Union[str, Sequence[str]]] = None,
+        lofn_wrap_exclude_tasks: Optional[Union[str, Sequence[str]]] = None
+        lofn_wrap_metric_names: Optional[Union[str, dict[str, str]]] = None
+        lofn_wrap_metric_weights: Optional[Union[float, dict[str, float]]] = None
 
     Returns:
         None
     """
+    setup_logging(debug=debug)
     if debug:
-        logging.basicConfig(level=logging.DEBUG)
         epochs = 20
 
     # Set the warnings to be converted into errors
@@ -384,6 +404,7 @@ def run(
         extractor_attr_getter=extractor_attr_getter,
         loss_weight_calculator=loss_weight_calculator,
         loss_weight_method=loss_weight_method,
+        loss_fn_wrap_tasks=loss_fn_wrap_tasks,
         onehot_types=onehot_types,
         x_masker=x_masker,
         mask_need_task=mask_need_task,

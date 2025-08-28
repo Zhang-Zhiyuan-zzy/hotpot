@@ -22,6 +22,8 @@ from hotpot.plugins.plots import (
     R2Regression,
     ConfusionMatrix,
     ROCCurve,
+    DETCurve,
+    PrecisionRecallCurve,
     MultiClassROCCurve,
     Hist
 )
@@ -47,6 +49,12 @@ def r2_regression(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
 def roc_curve(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
     return _make_plot(ROCCurve, pred, target)
 
+def det_curve(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
+    return _make_plot(DETCurve, pred, target)
+
+def precision_recall_curve(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
+    return _make_plot(PrecisionRecallCurve, pred, target)
+
 def multiclass_roc_curve(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
     return _make_plot(MultiClassROCCurve, pred, target)
 
@@ -66,6 +74,8 @@ plots_options = {
     # For binary predictor
     'bconf': binary_confusion_metrix,
     'roc': roc_curve,
+    'det': det_curve,
+    'prc': precision_recall_curve,
 
     # For onehot predictor
     'conf': confusion_matrix,

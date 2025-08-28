@@ -1,3 +1,4 @@
+import logging
 from typing import *
 from functools import wraps
 
@@ -18,6 +19,7 @@ from . import (
 from .data import (
     DataModule
 )
+from ...utils import fmt_print
 
 #################################### Options dict ##############################
 ############################## Pretrain Run ###################################
@@ -46,7 +48,7 @@ metrics_options = {
 predictor_plot_maker_map = {
     'num': ('r2',),
     'onehot': ('conf', 'mroc'),
-    'binary': ('bconf', 'roc'),
+    'binary': ('bconf', 'roc', 'det', 'prc'),
     'xyz': ('hist',)
 }
 
@@ -332,7 +334,7 @@ def _specify_metrics(
         primary_metrics: Union[str, Sequence[str], dict[str, str]],
         other_metrics: Union[str, Sequence[str], dict[str, Union[str, Callable]]],
         predictors: Union[M.Predictor, dict[str, M.Predictor]],
-) -> (str, dict):
+) -> (Union[str, dict[str, str]], dict[str, Union[tp.MetricFn, dict[str, tp.MetricFn]]]):
     _metrics = {}
 
     # Specify primary_metric name
@@ -426,12 +428,95 @@ def _specify_metrics(
     return primary_metrics, _metrics
 
 # Add metric as part of loss_fn
-def _add_loss_fn_metric_wrapper(
+# Wrapper decorator
+def wrap_loss_fn(lofn: tp.LossFn, weight: float, mtr: Callable) -> tp.Callable:
+    logging.info(f'[blue]Wrap metric in to loss_fn: loss_fn: {lofn}, weight: {weight}, mtr: {mtr}[/]')
+    def wrapped_lofn(pred, tgt, acc=None):
+        return lofn(pred, tgt) + weight * (1. - mtr(pred, tgt))
+
+    return wrapped_lofn
+
+def _wrap_loss_fn_with_metric(
+        task_names: Union[str, list[str], tuple[str]],
         loss_fn: Union[tp.LossFn, dict[str, tp.LossFn]],
         metrics: dict[str, Union[tp.MetricFn]],
-        primary_metrics: Union[str, dict[str, str]]
+        primary_metrics: Union[str, dict[str, str]],
+        lofn_wrap_tasks: Optional[Union[bool, str, set[str]]],
+        lofn_wrap_metric_names: Optional[Union[str, dict[str, str]]] = None,
+        lofn_wrap_metric_weights: Optional[Union[float, dict[str, float]]] = None,
+        **kwargs
 ):
-    ...
+    # SingleTask mode
+    if isinstance(primary_metrics, str):
+        assert isinstance(task_names, str), (f'task_names is a str which indicates a SingleTask mode, '
+                                             f'do not match the type of primary_metrics `{type(primary_metrics)}`')
+        assert lofn_wrap_tasks is True or (isinstance(lofn_wrap_tasks, str) and lofn_wrap_tasks == task_names)
+        assert isinstance(loss_fn, Callable), "the `loss_fn` should be a callable in SingleTask mode"
+
+        if lofn_wrap_metric_weights is None:
+            lofn_wrap_metric_weights = 1.0
+        assert isinstance(lofn_wrap_metric_weights, (float, int)), 'The `wrap_metric_weights` should be a float in SingleTask mode'
+        assert primary_metrics in metrics and isinstance(metrics[primary_metrics], Callable)
+
+        assert lofn_wrap_metric_names is None or isinstance(lofn_wrap_metric_names, str)
+        if isinstance(lofn_wrap_metric_names, str):
+            assert lofn_wrap_metric_names in metrics
+            wrap_mtrc = lofn_wrap_metric_names
+        else:
+            wrap_mtrc = primary_metrics
+
+        # Wrap the loss_fn
+        return wrap_loss_fn(loss_fn, lofn_wrap_metric_weights, metrics[wrap_mtrc])
+
+    # MultiTask mode
+    elif isinstance(primary_metrics, dict):
+        _align_task_names('primary_metrics', primary_metrics, task_names, lambda v: isinstance(v, str))
+        _align_task_names('metrics', metrics, task_names, lambda v: isinstance(v, dict))
+        _align_task_names('loss_fn', loss_fn, task_names, lambda v: isinstance(v, Callable))
+        assert all(pmn in metrics[tn] for tn, pmn in primary_metrics.items())
+        if lofn_wrap_metric_weights is None:
+            lofn_wrap_metric_weights = {}
+            _default_weight = 1.0
+        elif isinstance(lofn_wrap_metric_weights, (float, int)):
+            _default_weight = float(lofn_wrap_metric_weights)
+            lofn_wrap_metric_weights = {}
+        elif isinstance(lofn_wrap_metric_weights, dict):
+            assert all(wtn in task_names for wtn in lofn_wrap_metric_weights), (
+                f'not all keys in the `wrap_metric_weights` in the `task_names`,\n'
+                f'Metric_weight_names: {lofn_wrap_metric_weights.keys()}\n'
+                f'Task_names: {task_names}')
+            assert all(isinstance(wtv, (float, int)) for wtv in lofn_wrap_metric_weights.values()), (
+                f'all values in the `wrap_metric_weights` should be a float or int')
+            _default_weight = 1.0
+        else:
+            raise TypeError(f'the `wrap_metric_weights` should be a float, int or dict')
+
+        if isinstance(lofn_wrap_tasks, str):
+            lofn_wrap_tasks = [lofn_wrap_tasks]
+        elif isinstance(lofn_wrap_tasks, (set, list, tuple)):
+            lofn_wrap_tasks = list(lofn_wrap_tasks)
+        elif lofn_wrap_tasks is True:
+            raise ValueError(
+                'In MultiTask mode, the tasks should perform loss_fn wrapp must be specified in str or set of str')
+        else:
+            raise TypeError(f'the `wrapping_tasks` should be a str or a sequence of str')
+
+        if lofn_wrap_metric_names is None:
+            wrap_mtrc = {}
+        elif isinstance(lofn_wrap_metric_names, dict):
+            assert (tsk_name in metrics for tsk_name in lofn_wrap_metric_names)
+            assert (mtr_name in metrics[tsk_name] for tsk_name, mtr_name in lofn_wrap_metric_names.items())
+            wrap_mtrc = lofn_wrap_metric_names
+        else:
+            raise TypeError(f'the `wrap_metric_names` should a dict[task_name: metric_name]')
+
+        for wrap_tsk in lofn_wrap_tasks:
+            mtrc_fn = metrics[wrap_tsk][wrap_mtrc.get(wrap_tsk, primary_metrics[wrap_tsk])]
+            mtrc_weight = lofn_wrap_metric_weights.get(wrap_tsk, 1.0)
+            loss_fn[wrap_tsk] = wrap_loss_fn(loss_fn[wrap_tsk], mtrc_weight, mtrc_fn)
+        logging.debug(f'[bold blue]Wrap metric in to loss_fn for task: {lofn_wrap_tasks}[/]')
+        return loss_fn
+
 
 # Test plot maker
 def _specify_test_plot_maker(
@@ -636,6 +721,7 @@ def _config_task_args(
         mask_need_task,
         loss_weight_calculator,
         loss_weight_method: Union[tp.LossWeightMethods, dict[str, tp.LossWeightMethods]],
+        loss_fn_wrap_tasks: bool = False,
         **kwargs
 ):
     # Prepare
@@ -670,6 +756,11 @@ def _config_task_args(
     ############################################################
 
     ####################### Optional Args ######################
+    # Wrap the loss_fn accounting the metrics into
+    # Notes: the wrapped task name must be given by set of str, otherwise not work
+    if loss_fn_wrap_tasks is True or isinstance(loss_fn_wrap_tasks, (str, list, tuple, set)):
+        loss_fn = _wrap_loss_fn_with_metric(task_names, loss_fn, metrics, primary_metrics, loss_fn_wrap_tasks)
+
     # Specify x masker
     x_masker = _specify_masker(task_names, x_masker, core)
     if not isinstance(task_names, (list, tuple)):
@@ -705,7 +796,7 @@ def _config_task_args(
     }
 
 ############################ Config Multi-data tasks arguments #############################
-def _align_md_task_options(name, arg: Any, dataset_counts: int):
+def _align_md_task_options(name, arg: Any, dataset_counts: int, lst_values: bool = False):
     """
     Align a parameter `arg` to match the number of datasets (Tasks).
     - list/tuple: length must match dataset_counts
@@ -714,8 +805,18 @@ def _align_md_task_options(name, arg: Any, dataset_counts: int):
     Always returns a list.
     """
     if isinstance(arg, (list, tuple)):
-        assert len(arg) == dataset_counts, f'Expecting {name} has same length as task_counts, but {len(arg)} != {dataset_counts}'
-        return list(arg)
+        if not lst_values:
+            assert len(arg) == dataset_counts, f'Expecting {name} has same length as task_counts, but {len(arg)} != {dataset_counts}'
+            return list(arg)
+        else:
+            # There could be a bug when the structure of arg is an nested list or tuple, like value=[[[Any]]]
+            # However, it can be foreseen that this situation is very rare, so I temporarily ignore it.
+            # If the bug met, please modify the `lst_values: bool` to `lst_deep: int`
+            if all(isinstance(a[0], (list, tuple)) for a in arg):
+                assert len(arg) == dataset_counts, f'Expecting {name} has same length as task_counts, but {len(arg)} != {dataset_counts}'
+                return list(arg)
+            else:
+                return [arg] * dataset_counts
     else:
         return [arg] * dataset_counts
 
@@ -777,6 +878,7 @@ def config_tasks_from_multi_datasets(
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
         loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
+        loss_fn_wrap_tasks: Optional[list[str, set[str]]] = None,
         onehot_types: Optional[list[dict[str, int]]] = None,
         x_masker: Optional[list[tp.XMasker]] = None,
         mask_need_task: Optional[list[list[str]]] = None,
@@ -819,6 +921,7 @@ def config_tasks_from_multi_datasets(
     with_env = _align_md_task_options('with_env', with_env, dataset_counts)
     xyz_perturb_sigma = _align_md_task_options('xyz_perturb_sigma', xyz_perturb_sigma, dataset_counts)
     extractor_attr_getter = _align_md_task_options('extractor_attr_getter', extractor_attr_getter, dataset_counts)
+    loss_fn_wrap_tasks = _align_md_task_options('loss_fn_wrap_tasks', loss_fn_wrap_tasks, dataset_counts, lst_values=True)
     loss_weight_calculator = _align_md_task_options('loss_weight_calculator', loss_weight_calculator, dataset_counts)
     loss_weight_method = _align_md_task_options('loss_weight_method', loss_weight_method, dataset_counts)
     onehot_types = _align_md_task_options('onehot_types', onehot_types, dataset_counts)
@@ -849,6 +952,7 @@ def config_tasks_from_multi_datasets(
             mask_need_task=mask_need_task[i],
             loss_weight_calculator=loss_weight_calculator[i],
             loss_weight_method=loss_weight_method[i],
+            loss_fn_wrap_tasks=loss_fn_wrap_tasks[i],
         )
         task_kwargs.update(dict(
             batch_preprocessor=batch_preprocessor[i],
@@ -891,6 +995,7 @@ def config(
         xyz_perturb_sigma: Optional[list[float]] = None,
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
+        loss_fn_wrap_tasks: Optional[Union[bool, set[str], Iterable[set[str]]]] = None,
         loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
         onehot_types: Optional[Union[int, dict[str, int], list[dict[str, int]]]] = None,
         x_masker: Optional[list[tp.XMasker]] = None,
@@ -918,6 +1023,7 @@ def config(
             mask_need_task=mask_need_task,
             loss_weight_calculator=loss_weight_calculator,
             loss_weight_method=loss_weight_method,
+            loss_fn_wrap_tasks=loss_fn_wrap_tasks,
         )
         task_kwargs.update(dict(
             hypers=hypers,
@@ -964,6 +1070,7 @@ def config(
             extractor_attr_getter=extractor_attr_getter,
             loss_weight_calculator=loss_weight_calculator,
             loss_weight_method=loss_weight_method,
+            loss_fn_wrap_tasks=loss_fn_wrap_tasks,
             onehot_types=onehot_types,
             x_masker=x_masker,
             mask_need_task=mask_need_task,

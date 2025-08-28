@@ -236,8 +236,8 @@
         "predictors": {"CB": "binary"},
         "target_getters": {"CB": {"data_item": "is_cbond"}},
         "loss_fn": {"CB": "binary_cross_entropy"},
-        "primary_metric": {"CB": "recall"},
-        "other_metrics": {"CB": ["f1", "auc", "precision", "bacc"]}
+        "primary_metric": {"CB": "f1"},
+        "other_metrics": {"CB": ["f1", "auc", "precision", "bacc", "recall"]}
     }
   }
 }

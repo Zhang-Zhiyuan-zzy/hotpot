@@ -19,6 +19,7 @@ import os.path as osp
 from textwrap import dedent
 from typing import Union, Iterable, Optional
 
+from dpdata.rdkit.sanitize import sanitize_mol
 from rdkit import Chem
 from rdkit.Chem import Draw, AllChem, rdFMCS
 from rdkit.Chem.Draw import rdMolDraw2D
@@ -93,6 +94,8 @@ def draw_grid(
         fontweight: str = 'bold',
         colorful_atom: bool = True,
         atom_color_palette: dict = None,
+        sanitize: bool = False,
+        n_cols: Optional[int] = None,
 ):
     """
     :param list_mols:
@@ -110,9 +113,9 @@ def draw_grid(
 
     # Configure arguments
     if (
-            save_svg is not None and
-            save_path is not None and
-            osp.splitext(save_path)[-1] == '.svg'
+            save_svg is None
+            and save_path is not None
+            and osp.splitext(str(save_path))[-1] == ".svg"
     ):
         save_svg = True
     else:
@@ -121,7 +124,7 @@ def draw_grid(
     list_mols = [m.smiles if isinstance(m, Molecule) else m for m in list_mols]
 
     # 0. Create Molecules
-    mols = [Chem.MolFromSmiles(sm) for sm in list_mols]
+    mols = [Chem.MolFromSmiles(sm, sanitize=sanitize) for sm in list_mols]
     mols = [m for m in mols if m is not None]
     for m in mols:
         tmp = AllChem.Compute2DCoords(m)
@@ -130,7 +133,8 @@ def draw_grid(
     options = _draw_configuration(font_size, font, fontweight, colorful_atom, atom_color_palette)
 
     # 3. Calculate the n_cols
-    n_cols = choose_best_colnum(len(mols))
+    if not isinstance(n_cols, int):
+        n_cols = choose_best_colnum(len(mols))
 
     # 4. Generate 2d Image
     img = Draw.MolsToGridImage(

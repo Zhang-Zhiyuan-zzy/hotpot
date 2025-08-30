@@ -98,10 +98,10 @@ def dict_to_table(
 
     return table
 
-def export_table(table: Table, save_path: str):
+def export_table(table: Table, save_path: str, width=200):
     # Capture table output to a string
     buffer = io.StringIO()
-    console = Console(file=buffer, force_terminal=True, color_system=None)
+    console = Console(file=buffer, force_terminal=True, color_system=None, width=width)
     console.print(table)
 
     # Write string to a text file

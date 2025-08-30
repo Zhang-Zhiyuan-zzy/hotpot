@@ -22,6 +22,7 @@ from lightning.pytorch.callbacks import EarlyStopping
 from lightning.pytorch import strategies
 
 from hotpot.utils import fmt_print
+from hotpot.utils.configs import setup_logging
 from . import (
     models as M,
     types as tp,
@@ -46,18 +47,6 @@ def _custom_warning_handler(message, category, filename, lineno, file=None, line
 
     # Raise an error with details about the warning and its location
     raise RuntimeWarning(f"{message} in {filename} at line {lineno}\n\n\nTraceback:\n{''.join(tb)}")
-
-
-def setup_logging(debug=True, to_stdout=True):
-    console = Console(file=sys.stdout) if to_stdout else Console()  # Console() defaults to stderr
-    logging.basicConfig(
-        level=logging.DEBUG if debug else logging.INFO,
-        format="%(message)s",                # let Rich handle the rest
-        datefmt="[%X]",
-        handlers=[RichHandler(markup=True, rich_tracebacks=True, console=console)],
-        force=True,                          # override any prior logging config
-    )
-
 
 def init_model(
         core,

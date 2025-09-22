@@ -77,7 +77,13 @@ class ConfusionMatrix(Plot):
             self.threshold = 0.5
         else:
             self.threshold = 0.
-        self.pred = np.asarray(pred > self.threshold, dtype=int).flatten()
+
+        assert len(pred) == len(target), f"The pred shape {pred.shape} is not match the target shape {target.shape}"
+        if pred.size == target.size:  # The binary pred score
+            self.pred = np.asarray(pred > self.threshold, dtype=int).flatten()
+        else:  # MultiClasses, onehot pred score
+            self.pred = np.argmax(np.asarray(pred), axis=1)
+
         self.target = np.asarray(target).flatten()
 
         self.categories = np.sort(np.unique(self.target))

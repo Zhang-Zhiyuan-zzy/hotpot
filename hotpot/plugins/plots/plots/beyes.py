@@ -73,7 +73,7 @@ class BayesDesignSpaceMap(SciPlotter):
             mesh_num=100,
             mu_norm: tuple[int, int] = None,
             sigma_norm: tuple[int, int] = None,
-            cmap='Grays',
+            cmap='Greys',
             **kwargs
     ):
         """

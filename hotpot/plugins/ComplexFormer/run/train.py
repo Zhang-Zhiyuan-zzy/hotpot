@@ -10,11 +10,13 @@ from torch_geometric.data import Batch
 
 import lightning as L
 
-from .tasks import Task
-from .configs import OptimizerConfigure
-from ...utils import fmt_print
+from hotpot.plugins.ComplexFormer.tasks import Task
+from hotpot.plugins.ComplexFormer.configs import OptimizerConfigure
+from hotpot.utils import fmt_print
 
-class LightPretrain(L.LightningModule):
+from .forward import ForwardBlock
+
+class LightPretrain(L.LightningModule, ForwardBlock):
     def __init__(
             self,
             core: Union[nn.Module, str],
@@ -23,57 +25,21 @@ class LightPretrain(L.LightningModule):
             optim_configure: OptimizerConfigure
     ):
         super().__init__()
-        self.core = core
-        if isinstance(predictors, nn.Module):
-            self.predictors = predictors
-        elif isinstance(predictors, dict):
-            self.predictors = nn.ModuleDict(predictors)
-        else:
-            raise NotImplementedError('predictors must be a nn.Module or dict of nn.Module')
-        self.tasks = tasks
+        super(ForwardBlock, self).__init__(core, predictors, tasks)
+        # self.core = core
+        # if isinstance(predictors, nn.Module):
+        #     self.predictors = predictors
+        # elif isinstance(predictors, dict):
+        #     self.predictors = nn.ModuleDict(predictors)
+        # else:
+        #     raise NotImplementedError('predictors must be a nn.Module or dict of nn.Module')
+        # self.tasks = tasks
         self.optim_configure = optim_configure
 
         self.train_metrics = {}
         self.val_metrics = {}
         self.test_metrics = {}
         self.pred_inspect = None
-
-    # Forward process
-    def f(self, batch):
-        # Regularize dtype of Tensors in batch
-        self.tasks.batch_dtype_preprocessor(batch)
-        inputs = self.tasks.inputs_getter(self.tasks.batch_preprocessor(batch))
-        xyz = self.tasks.get_xyz(inputs)
-        sol_graph, sol_prop, sol_ratios = self.tasks.get_sol_info(batch)
-        med_graph, med_prop, med_ratios = self.tasks.get_med_info(batch)
-        inputs = self.tasks.inputs_preprocessor(inputs)
-
-        # Mask inputs
-        if self.trainer.state.stage in ('fit', 'validate'):
-            inputs, masked_idx = self.tasks.x_masker(inputs)
-        else:
-            masked_idx = None
-
-        # Forward pass through core
-        core_output = self.core(
-            *inputs,
-            xyz=xyz,
-            sol_graph=sol_graph,
-            sol_props=sol_prop,
-            sol_ratios=sol_ratios,
-            med_graph=med_graph,
-            med_props=med_prop,
-        )
-
-        # Extract features
-        feature = self.tasks.peel_unmaksed_obj(
-            self.tasks.feature_extractor(*core_output, batch),
-            masked_idx
-        )
-
-        # Make predictor
-        pred = self.tasks.predict(self.predictors, feature)
-        return pred, masked_idx
 
     # Get target
     def get_target(
@@ -123,7 +89,7 @@ class LightPretrain(L.LightningModule):
 
     def training_step(self, batch, batch_idx):
         # Forward
-        pred, masked_idx = self.f(batch)
+        pred, masked_idx = self.f(batch, batch_idx)
 
         # Retrieve target and loss_weight for categorical task
         target, loss_weight = self.get_target(batch, masked_idx)
@@ -146,7 +112,7 @@ class LightPretrain(L.LightningModule):
                         param.grad = torch.zeros_like(param)
 
     def validation_step(self, batch, batch_idx):
-        pred, masked_idx = self.f(batch)
+        pred, masked_idx = self.f(batch, batch_idx)
         target, loss_weight = self.get_target(batch, masked_idx)
         self.tasks.add_val_pred_target(pred, target)
 
@@ -157,7 +123,7 @@ class LightPretrain(L.LightningModule):
         return self.optim_configure(self)
 
     def test_step(self, batch, batch_idx):
-        pred, masked_idx = self.f(batch)
+        pred, masked_idx = self.f(batch, batch_idx)
         target, loss_weight = self.get_target(batch, masked_idx)
         self.tasks.add_test_pred_target(pred, target)
 

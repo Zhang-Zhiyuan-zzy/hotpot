@@ -47,8 +47,8 @@ def read_excel(excel_file, args):
     """
     data = pd.read_excel(excel_file)
 
-    inputs_names = getattr(args, 'params', args.features)
-    exclude_inputs = getattr(args, 'exclude_params', args.exclude_features)
+    inputs_names = getattr(args, 'params', None)
+    exclude_inputs = getattr(args, 'exclude_params', None)
 
     # Determine the indices of included params
     if isinstance(inputs_names, str):

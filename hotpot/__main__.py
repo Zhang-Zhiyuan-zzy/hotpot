@@ -46,7 +46,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog='hotpot',
-        description="Process molecule file by 'hotpot' command"
+        description="A C++/python package designed to communicate among various chemical and materials calculational tools"
     )
 
     parser.add_argument('-d', '--debug', action='store_true', help='debug mode')

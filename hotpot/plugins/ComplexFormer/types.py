@@ -8,10 +8,12 @@ from matplotlib.pyplot import Figure
 
 from . import models as M
 
+Stages = Literal['train', 'test']
 TargetType = Literal['xyz', 'onehot', 'binary', 'num']
 TensorArray = Union[torch.Tensor, np.ndarray]
 BatchPreProcessor = Callable[[Batch], Batch]
 ExtractorAttrGetter = Callable[[Batch], Union[tuple, torch.Tensor]]
+FeatureExtractorName = Literal['atom', 'bond', 'pair', 'ring', 'mol', 'cbond', 'metal']
 TargetGetter = Callable[[Batch], torch.Tensor]
 LossWeightCalculator = Callable[[torch.Tensor, int], torch.Tensor]
 LossWeightMethods = Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count']

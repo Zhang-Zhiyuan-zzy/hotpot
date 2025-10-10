@@ -3,8 +3,8 @@
 ===========================================================
  Python    : v3.9.0
  Project   : hotpot
- File      : utils
- Created   : 2025/9/5 18:21
+ File      : __init__
+ Created   : 2025/10/7 20:54
  Author    : Zhiyuan Zhang
  Python    : 
 -----------------------------------------------------------
@@ -13,3 +13,4 @@
  
 ===========================================================
 """
+from .cbond_infer_model import Infer, InferCore

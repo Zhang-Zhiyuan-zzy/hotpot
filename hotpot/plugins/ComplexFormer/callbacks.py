@@ -81,7 +81,8 @@ class Pbar(ProgressBar):
         # self.liver.start()
 
     def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        self.liver = Live(self.layout, auto_refresh=False, console=Console(width=200))
+        console = Console(width=200, force_terminal=True, color_system="truecolor")
+        self.liver = Live(self.layout, auto_refresh=False, console=console)
         self.liver.start()
 
         self.buf = io.StringIO()

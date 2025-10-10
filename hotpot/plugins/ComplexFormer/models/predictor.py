@@ -14,7 +14,6 @@ class Predictor(nn.Module):
             target_type: TargetTypeName,
             num_layers: int = 2,
             dropout: float = 0.1,
-            act: Type[nn.Module] = nn.ReLU,
             out_act: Type[nn.Module] = nn.ReLU,
             **kwargs
     ):

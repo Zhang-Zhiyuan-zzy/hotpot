@@ -230,14 +230,36 @@
     }
   },
   "Refine": {
-      "mono_ml_pair": {
-        "options": {"with_xyz": false},
-        "feature_extractors": {"CB": "cbond"},
-        "predictors": {"CB": "binary"},
-        "target_getters": {"CB": {"data_item": "is_cbond"}},
-        "loss_fn": {"CB": "binary_cross_entropy"},
-        "primary_metric": {"CB": "f1"},
-        "other_metrics": {"CB": ["f1", "auc", "precision", "bacc", "recall"]}
+    "mono_ml_pair": {
+      "options": {"with_xyz": false},
+      "feature_extractors": {"CB": "cbond"},
+      "predictors": {"CB": "binary"},
+      "target_getters": {"CB": {"data_item": "is_cbond"}},
+      "loss_fn": {"CB": "binary_cross_entropy"},
+      "primary_metric": {"CB": "f1"},
+      "other_metrics": {"CB": ["f1", "auc", "precision", "bacc", "recall"]}
+    },
+    "SclogK": {
+      "options": {
+        "with_xyz": true,
+        "with_sol": true,
+        "with_med": true
+      },
+      "feature_extractors": {
+        "logK": "mol"
+      },
+      "predictors": {
+        "logK": "num"
+      },
+      "target_getters": {
+        "logK": {"data_item": "y"}
+      },
+      "loss_fn": {
+        "logK": "mse"
+      },
+      "primary_metric": {
+        "logK": "r2"
+      }
     }
   }
 }

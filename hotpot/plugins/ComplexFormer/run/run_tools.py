@@ -13,6 +13,7 @@
  
 ===========================================================
 """
+import logging
 import os
 import glob
 import os.path as osp
@@ -23,14 +24,9 @@ from torch import nn
 
 from hotpot.utils import fmt_print
 
-from . import (
-    models as M,
-    types as tp,
-    tools,
+from hotpot.plugins.ComplexFormer import (
     tasks,
     configs,
-    module,
-    callbacks as cbs,
 )
 
 def _get_ckpt_files(work_dir):
@@ -57,31 +53,57 @@ def load_ckpt(work_dir, which: Optional[Union[int, str]] = -1):
         raise NotImplementedError
 
     fmt_print.dark_green(f"Loading checkpoint from {ckpt_file}")
-    return torch.load(ckpt_file)
+    return torch.load(ckpt_file, map_location=torch.device('cpu'))
 
-def load_model_state_dict(model, ckpt):
-    if not isinstance(model.predictors, nn.ModuleDict):
-        model.load_state_dict(ckpt['state_dict'])
-        fmt_print.dark_green('load model')
-    else:
-        # Load core module
-        core_dict = {'.'.join(k.split('.')[1:]): v for k, v in ckpt['state_dict'].items() if k.startswith('core.')}
-        model.core.load_state_dict(core_dict)
-        fmt_print.dark_green('load core')
+def _extract_state_dict(ckpt):
+    core_dict = {'.'.join(k.split('.')[1:]): v for k, v in ckpt['state_dict'].items() if k.startswith('core.')}
 
-        predictor_dict = {}
-        for key, values in ckpt['state_dict'].items():
-            if key.startswith('predictors.'):
-                p_dict = predictor_dict.setdefault(key.split('.')[1], {})
-                p_dict['.'.join(key.split('.')[2:])] = values
+    predictor_dict = {}
+    for key, values in ckpt['state_dict'].items():
+        if key.startswith('predictors.'):
+            p_dict = predictor_dict.setdefault(key.split('.')[1], {})
+            p_dict['.'.join(key.split('.')[2:])] = values
+
+    return core_dict, predictor_dict
+
+def load_core_dict(core, core_dict, exact_load: bool = True):
+    ...
+
+
+def load_model_state_dict(
+        model: nn.Module, ckpt: dict,
+        extract_predictor: Optional[str] = None,
+        strict_core_load: bool = True,
+):
+    if isinstance(model.predictors, nn.ModuleDict):
+        # Load core run
+        core_dict, predictor_dict = _extract_state_dict(ckpt)
+        model.core.load_state_dict(core_dict, strict=strict_core_load)
+        logging.info('[bold #006400]Load Core[\]')
 
         # Load predictors
         for p_name, p_module in model.predictors.items():
             if p_name in predictor_dict:
                 p_module.load_state_dict(predictor_dict[p_name])
-                fmt_print.dark_green(f'load predictor[{p_name}]')
+                logging.info(f'[bold #006400]load predictor[{p_name}][\]')
             else:
                 fmt_print.bold_magenta(f"Warning: predictor['{p_name}'] not found in checkpoint, skipped!!")
+
+    else:
+        if extract_predictor is None:
+            model.load_state_dict(ckpt['state_dict'], strict=strict_core_load)
+            logging.info('[bold #006400]load model[\]')
+
+        elif isinstance(extract_predictor, str):
+            core_dict, predictor_dict = _extract_state_dict(ckpt)
+            assert extract_predictor in predictor_dict, f"Your specified predictor does not exist, with names {predictor_dict.keys()}"
+            model.core.load_state_dict(core_dict, strict=strict_core_load)
+
+            # The predictors is a nn.Module, instead of nn.ModuleDict
+            model.predictors.load_state_dict(predictor_dict[extract_predictor])
+            logging.info(f'[bold #006400]Load core and specific [{extract_predictor}] predictor[\]')
+
+
 
 
 def config_task(batch_preprocessor, constant_lr, core, dataModule, extractor_attr_getter, feature_extractor, hypers,

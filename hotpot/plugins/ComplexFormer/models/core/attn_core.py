@@ -17,6 +17,7 @@ from typing import Optional, Union, Literal, Sequence, overload
 
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 
 import torch_geometric.nn as pygnn
 
@@ -37,8 +38,8 @@ class AttnExtractor:
     def extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter=None):
         Znode = []
         node_seq = seq[:, 1:X_mask.shape[-1]+1]
-        for s, m in zip(node_seq, X_mask.sum(dim=-1)):
-            Znode.append(s[:m])
+        for s, msk in zip(node_seq, X_mask):
+            Znode.append(s[msk])
 
         return torch.cat(Znode, dim=0)
 
@@ -281,7 +282,9 @@ class AttnCore(CoreBase):
     def _rings_attention(self, x, rings_node_index, rings_node_nums):
         x = x[rings_node_index]
         X, padding_mask = split_padding(x, rings_node_nums)
+        torch._check(1 != X.shape[1])
         X = self.ring_encoder(X, src_key_padding_mask=padding_mask)
+        X = X.masked_fill_(padding_mask.unsqueeze(-1), 0.)
         return seq_absmax_pooling(X)
 
     def _mol_attention(
@@ -294,7 +297,7 @@ class AttnCore(CoreBase):
         Xr, Xr_mask = split_padding(xr, mol_rings_nums)
         seq, seq_padding_mask = self._assemble_sequence(
             X, Xr, X_mask, Xr_mask, sol_vec, med_vec, env_vec)
-        seq = self.mol_encoder(seq, src_key_padding_mask=seq_padding_mask)
+        seq = self.mol_encoder(seq, src_key_padding_mask=seq_padding_mask).masked_fill_(seq_padding_mask.unsqueeze(-1), 0.)
         return seq, torch.logical_not(X_mask), torch.logical_not(Xr_mask)
 
     def env_encoder(
@@ -424,8 +427,10 @@ class AttnCore(CoreBase):
             med_props: Optional[torch.Tensor] = None,
             med_ratios: Optional[torch.Tensor] = None,
             mol_level_info: Optional[Union[torch.Tensor, torch.nested.nested_tensor]] = None,
+            **kwargs
     ):
-        batch_size = int(batch.max()) + 1
+        # batch_size = int(batch.max()) + 1
+        batch_size = batch.max().to(torch.int) + 1
 
         x = self.node_processor(x, edge_index, batch, xyz=xyz)
         xr = self._rings_attention(x, rings_node_index, rings_node_nums)

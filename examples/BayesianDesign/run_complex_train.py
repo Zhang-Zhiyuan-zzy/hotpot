@@ -18,10 +18,14 @@ else:
 
 
 # Initialize paths.
+print(machine_name)
 if machine_name == '4090':
     project_root = '/home/zzy/docker_envs/pretrain/proj'
     sys.path.append(osp.join(project_root, 'hotpot'))
-elif machine_name == 'DESKTOP-G9D9UUB':
+elif machine_name == 'DESKTOP-G9D9UUB':  # 221 PC
+    project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+elif machine_name == 'LAPTOP-K2H04HI4':
     project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
     sys.path.append(osp.join(project_root, 'hotpot'))
 elif machine_name == 'docker':
@@ -43,12 +47,13 @@ elif str.split(__file__, '/')[1:4] == ['data', 'user', 'hd54396']:
 else:
     raise ValueError(__file__)
 
+import hotpot as hp
 from hotpot.plugins.ComplexFormer import (
     models as M,
     tools,
+    infer,
     run
 )
-from hotpot.utils import fmt_print
 
 models_dir = osp.join(project_root, 'models')
 
@@ -164,15 +169,35 @@ def which_datasets_train(
     )
 
 
-if __name__ == '__main__':
+def deploy_model():
+    import os
+    # Set the environment variables for detailed logging
+    os.environ['TORCH_LOGS'] = "dynamic"
+    os.environ['TORCHDYNAMO_EXTENDED_DEBUG_CREATE_SYMBOL'] = "u27"
+    os.environ['TORCHDYNAMO_EXTENDED_DEBUG_CPP'] = "1"
+
+    onnx_version = 21
+    export_path = osp.join(hp.package_root, 'cheminfo', 'AImodels', 'cbond', 'onnx')
+    infer.deploy(
+        work_dir=models_dir,
+        export_path=export_path,
+        checkpoint_path='/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/cbond/CB_0.958/checkpoints/epoch=23-step=39792.ckpt',
+        dir_datasets=osp.join(dir_datasets, 'mono_ml_pair'),
+        extract_predictors='CB',
+        output_names='is_cbond',
+        opset_version=onnx_version
+    )
+
+def train_model():
     which_datasets_train(
         # 'tmqm', 'mono', 'SclogK',
         'mono_ml_pair',
         # work_name='MultiTask',
         work_name='CBond',
         # debug=True,
-        devices=1,
+        devices=[7],
         loss_fn_wrap_tasks=['CB'],
+        # stages='test',
         # with_sol=True,
         # with_med=True,
         refine=True,
@@ -185,3 +210,8 @@ if __name__ == '__main__':
         # test_only=True,
         # checkpoint_path=-1,
     )
+
+
+if __name__ == '__main__':
+    train_model()
+    # deploy_model()

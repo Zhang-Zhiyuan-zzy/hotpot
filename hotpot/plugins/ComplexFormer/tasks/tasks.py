@@ -276,7 +276,10 @@ class BaseTask(ABC):
         table = fmt_print.dict_to_table(metrics_dict, title="Test Metrics")
         logdir = pl_module.logger.log_dir
         fmt_print.export_table(table, osp.join(logdir, 'test_metrics.txt'))
+        fmt_print.rich_print(table, width=200)
 
+        df = fmt_print.dict_to_df(metrics_dict)
+        df.to_csv(osp.join(logdir, 'test_metrics.csv'))
 
 _default_sol_graph_inputs = ('x', 'edge_index', 'batch')
 _default_med_graph_inputs = ('x', 'edge_index', 'batch')
@@ -958,6 +961,7 @@ class MultiTask(Task):
         metrics_dict['smtrc'] = {'smtrc': np.mean([v for v in primary_metrics.values()]) if metrics_dict else 0.}
 
         if stages == 'val':
+            logging.debug(f'[#3f51b5]The Optimizers: {pl_module.optimizers()}[/]')
             metrics_dict['lr'] = {'lr': pl_module.optimizers().param_groups[0]['lr']}
 
         return metrics_dict
@@ -1120,7 +1124,8 @@ class MultiDataTask(BaseTask):
         metrics_dict = self.current_task.calc_train_batch_loss_metrics(pl_module, loss, pred, target)
         metrics_dict = {f'{ds_idx}-{tsk_name}': metrics for tsk_name, metrics in metrics_dict.items()}
 
-        self._log_metrics_on_train_batch(pl_module, metrics_dict)
+        # self._log_metrics_on_train_batch(pl_module, metrics_dict)
+        self._log_metrics(pl_module, metrics_dict, stages='train')
 
     def summary_metrics(self, pl_module: L.LightningModule, stages: Literal['val', 'test'] = 'val') -> dict[str, dict[str, float]]:
         total_metrics = {}
@@ -1142,7 +1147,9 @@ class MultiDataTask(BaseTask):
                     total_metrics[f'{i}-{tsk_name}'] = {tsk_name: tsk_mtrc_dict}
 
         total_metrics['smtrc'] = {'smtrc': sum(primary_values) / len(primary_values)}
-        total_metrics['lr'] = {'lr': pl_module.optimizers().param_groups[0]['lr']}
+        if stages == 'val':
+            logging.debug(f'[#3f51b5]The Optimizers: {pl_module.optimizers()}[/]')
+            total_metrics['lr'] = {'lr': pl_module.optimizers().param_groups[0]['lr']}
         return total_metrics
 
     def eval_on_val_end(self, pl_module: L.LightningModule):

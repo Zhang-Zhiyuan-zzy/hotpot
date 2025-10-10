@@ -14,3 +14,4 @@
 ===========================================================
 """
 from .train import LightPretrain
+from .run import run

@@ -12,6 +12,7 @@
  
 ===========================================================
 """
+import math
 import numpy as np
 from scipy.interpolate import CubicSpline, PchipInterpolator
 import matplotlib.pyplot as plt
@@ -24,6 +25,42 @@ def curve_interpolate(X, Y, method=PchipInterpolator, num: int = 10000):
     y = m(x)
 
     return x, y
+
+# 允许的两位有效数“前导”集合（保证5等分后每个刻度的有效数字规则）
+_ALLOWED_MANTISSAS = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9,       # 1位有效数字也允许（依然满足“仅前两位有效”的要求）
+    10, 11, 12,                      # 这三个不会在 1..4/5 等分时产生第3位为 2/4/6/8 的刻度
+    15, 20, 25, 30, 35, 40, 45, 50,
+    60, 70, 80, 90, 100              # 覆盖临界向上进位
+]
+
+def nice_extended_max(x: float) -> float:
+    """
+    给定数据集最大值 x，返回满足以下规则的“nice”坐标轴上限：
+    1) 上限只有前两位为有效数字（形如 AB×10^k），可作用于 >1 或 <1 的量级；
+    2) 能被 5 等分，且每个等分刻度最多 3 位有效数字；
+       若有第 3 位有效数字，则必须是 0 或 5。
+
+    说明：
+    - x 必须是有限的非负数；x==0 时返回 0.0。
+    - 返回值可能是小数（当 x<1 时），但仍只包含前两位有效数字。
+    """
+    if not math.isfinite(x) or x < 0:
+        raise ValueError("x must be a finite, non-negative number.")
+    if x == 0:
+        return 0.0
+
+    # 以两位有效数字为基准进行搜索
+    e = math.floor(math.log10(x)) - 1
+
+    while True:
+        base = 10 ** e
+        for m in _ALLOWED_MANTISSAS:
+            candidate = m * base
+            if candidate >= x:
+                return candidate
+        # 如果这一量级都不够大，提升一个量级继续搜
+        e += 1
 
 
 def plot_piecewise_colored_curve(
@@ -67,7 +104,15 @@ def plot_piecewise_colored_curve(
     # 坐标轴刻度
     ax.tick_params(axis='both', labelsize=xtick_fontsize, width=2)
 
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(500))
+    max_lim = nice_extended_max(float(X.max()))
+    locator_gap, rest = divmod(max_lim, 5)
+    assert rest == 0
+    if (max_lim - float(X.max())) / max_lim > 0.01:
+        ax.set_xlim(0, max_lim)
+    else:
+        ax.set_xlim(0, max_lim*1.035)
+
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(locator_gap))
     ax.xaxis.set_minor_locator(ticker.AutoMinorLocator())
     ax.yaxis.set_minor_locator(ticker.AutoMinorLocator())
     # [t.set_fontweight('bold') for t in ax.get_xticklabels()]

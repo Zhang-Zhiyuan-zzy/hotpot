@@ -1,16 +1,10 @@
 import os
 import os.path as osp
-import sys
-import glob
-import logging
 from typing import *
 import datetime
 import warnings
 import traceback
 from operator import attrgetter
-
-from rich.logging import RichHandler
-from rich.console import Console
 
 import torch
 import torch.nn as nn
@@ -23,17 +17,19 @@ from lightning.pytorch import strategies
 
 from hotpot.utils import fmt_print
 from hotpot.utils.configs import setup_logging
-from . import (
+from .. import (
     models as M,
     types as tp,
     tools,
     tasks,
     configs,
-    module,
-    callbacks as cbs,
-    run_tools as rt
+    callbacks as cbs
 )
-from .data import DataModule
+from . import (
+    run_tools as rt,
+    train
+)
+from hotpot.plugins.ComplexFormer.data import DataModule
 
 # Contract
 INPUT_X_ATTR = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
@@ -63,7 +59,7 @@ def init_model(
     else:
         predictor = task_kwargs['predictor']
 
-    return module.LightPretrain(core, predictor, task, optim_configure)
+    return train.LightPretrain(core, predictor, task, optim_configure)
 
 def init_model_dir(work_dir, task_kwargs: Union[dict, list]):
 

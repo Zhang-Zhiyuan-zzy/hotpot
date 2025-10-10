@@ -51,8 +51,8 @@ class GaussianProcess(gpytorch.models.ExactGP):
     Arguments
     train_x     --  The training inputs.
     train_y     --  The training labels.
-    mean_module --  The mean module. Defaults to a constant mean.
-    covar_module--  The covariance module. Defaults to a RBF kernel.
+    mean_module --  The mean run. Defaults to a constant mean.
+    covar_module--  The covariance run. Defaults to a RBF kernel.
     likelihood  --  The likelihood function. Defaults to Gaussian.
     """
     def __init__(

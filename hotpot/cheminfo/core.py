@@ -449,6 +449,10 @@ class Molecule:
 
         return ori_atom
 
+    def auto_pair_metal(self, metal, threshold=0.):
+        from .AImodels.cbond.apply import auto_build_cbond
+        return auto_build_cbond(self, metal, threshold)
+
     def replace_atom(
             self,
             original_atom_idx: int,
@@ -4298,7 +4302,7 @@ class AtomPairs(dict):
             self.setdefault(frozenset(pair_key), AtomPair(*pair_key))
 
     @property
-    def idx_matrix(self) -> np.array:
+    def idx_matrix(self) -> np.ndarray:
         """
         Return a matrix of indices for the elements in the collection.
 
@@ -4311,7 +4315,7 @@ class AtomPairs(dict):
             np.array: A two-dimensional array where each entry corresponds
             to the `idx` value of an element from the input collection.
         """
-        return np.array([[a.idx for a in p] for p in self])
+        return np.array([[a.idx for a in p] for p in self], dtype=np.int64)
 
 
 ######################################################################################

@@ -1,7 +1,8 @@
 import os.path as osp
 from glob import glob
-from typing import Iterable
+from typing import Iterable, Optional, Union
 from operator import attrgetter
+from itertools import product
 
 from tqdm import tqdm
 import numpy as np
@@ -18,7 +19,8 @@ __all__ = [
     "extract_ring_attrs",
     "merge_individual_data_to_block",
     "make_empty_graph",
-    "graph_extraction"
+    "graph_extraction",
+    'extract_potentials_cbonds'
 ]
 
 def make_empty_graph(prefix: str = ''):
@@ -87,7 +89,7 @@ def direct_edge_to_indirect(attr_or_index: torch.Tensor, is_index=True) -> torch
         return torch.cat([attr_or_index, attr_or_index.flip(0)], dim=0)
 
 
-def extract_atom_attrs(mol: Molecule) -> (torch.Tensor, list):
+def extract_atom_attrs(mol: Molecule):
     x_names = Atom._attrs_enumerator[:15]
     additional_attr_names = ('is_metal',)
     x_names = x_names + additional_attr_names
@@ -98,7 +100,7 @@ def extract_atom_attrs(mol: Molecule) -> (torch.Tensor, list):
 
     return x, x_names
 
-def extract_bond_attrs(mol: Molecule, edge_attr_names: Iterable[str]) -> (torch.Tensor, torch.Tensor):
+def extract_bond_attrs(mol: Molecule, edge_attr_names: Iterable[str]):
     bond_attr_getter = attrgetter(*edge_attr_names)
     if (link_matrix := mol.link_matrix).ndim == 2:
         edge_index = direct_edge_to_indirect(torch.tensor(link_matrix).T).long()
@@ -111,7 +113,7 @@ def extract_bond_attrs(mol: Molecule, edge_attr_names: Iterable[str]) -> (torch.
 
     return edge_index, edge_attr
 
-def extract_atom_pairs(mol: Molecule) -> (torch.Tensor, torch.Tensor, list):
+def extract_atom_pairs(mol: Molecule):
     atom_pairs = mol.atom_pairs
     atom_pairs.update_pairs()
     if (idx_matrix := atom_pairs.idx_matrix).ndim == 2:
@@ -124,7 +126,35 @@ def extract_atom_pairs(mol: Molecule) -> (torch.Tensor, torch.Tensor, list):
 
     return pair_index, pair_attr, pair_attr_names
 
-def extract_ring_attrs(mol: Molecule, ring_attr_names: Iterable[str]) -> (torch.Tensor, torch.Tensor):
+_default_catom_elements = {'O', 'N', 'S', 'P', 'Si', 'B'}
+def extract_potentials_cbonds(
+        mol: Molecule,
+        catoms_symbols: Optional[Iterable[str]] = None
+):
+    if not catoms_symbols:
+        catoms_symbols = _default_catom_elements
+    else:
+        catoms_symbols = set(catoms_symbols)
+
+    cbond_index = []
+    is_cbond = []
+    all_potentials = [a for a in mol.atoms if a.symbol in catoms_symbols]
+    for metal, pca in product(mol.metals, all_potentials):
+        cbond_index.append([metal.idx, pca.idx])
+        try:
+            _ = mol.bond(metal.idx, pca.idx)
+            is_cbond.append(1)
+        except KeyError:
+            is_cbond.append(0)
+
+    assert len(is_cbond) == len(cbond_index)
+    is_cbond = torch.tensor(is_cbond).int()
+    cbond_index = torch.tensor(cbond_index, dtype=torch.long).mT
+
+    return cbond_index, is_cbond
+
+
+def extract_ring_attrs(mol: Molecule, ring_attr_names: Iterable[str]):
     rings = mol.ligand_rings
 
     if rings:

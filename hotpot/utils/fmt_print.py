@@ -1,6 +1,7 @@
 import io
 from typing import Literal, Union
 
+import pandas as pd
 from rich.console import Console
 from rich.table import Table
 
@@ -32,26 +33,42 @@ def hex_to_ansi(hex_color: str, style: PrintStyle = 'regular') -> str:
 
     return f"\033[{style_code}38;5;{ansi_color}m"
 
-
-class FmtPrint:
+class FmtString:
     def __init__(self, fmt: str):
         self.fmt = fmt
         self.reset = '\033[0m'
+    def __call__(self, s: str) -> str:
+        return self.fmt + str(s) + self.reset
+
+class FmtPrint:
+    def __init__(self, fmt: str):
+        self.fmt_string = FmtString(fmt)
 
     def __call__(self, contents):
-        print(self.fmt + str(contents) + self.reset)
+        print(self.fmt_string(contents))
 
     @classmethod
     def from_hex(cls, hex_color: str, style: PrintStyle = 'regular') -> 'FmtPrint':
         return cls(hex_to_ansi(hex_color, style))
 
-
 light_green = FmtPrint('\033[92m')
+
 dark_green = FmtPrint('\033[32m')
 bold_dark_green = FmtPrint('\033[1m')
 
 bold_orange = FmtPrint('\033[38;5;208m')
 bold_magenta = FmtPrint('\033[1;35m')
+
+
+def dict_to_df(metrics_dict: dict[str, Union[float, dict[str, float]]]):
+    value = []
+    columns = ['TaskID', 'TaskName', 'Metric', 'Value']
+    for i, (tsk, dict_value) in enumerate(metrics_dict.items(), 1):
+        if isinstance(dict_value, dict):
+            for mtrc_name, mtrc_value in dict_value.items():
+                value.append([i, tsk, mtrc_name, round(mtrc_value, 4)])
+    return pd.DataFrame(value, columns=columns)
+
 
 def dict_to_table(
         metrics_dict: dict[str, Union[float, dict[str, float]]],
@@ -115,4 +132,5 @@ def rich_print(contents, **kwargs):
 
 __all__ = [
     'dict_to_table',
+    ''
 ] + [k for k, v in locals().items() if isinstance(v, FmtPrint)]

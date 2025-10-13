@@ -40,6 +40,24 @@ def _metal_valence(atom):
     return 0
 
 
+# Exceptions
+class NotInSameMolecule(Exception):
+    """ The exception is toggled when two objects are expected in a same Molecule, but not """
+    def __init__(self, obj1, obj2):
+        self.obj1 = obj1
+        self.obj2 = obj2
+        self.message = f"The {obj1} and {obj2} are expected in a same Molecule, but not"
+        super().__init__(self.message)
+        
+class ObjNotInMolecule(Exception):
+    """ The exception is toggled when the given object not in a specific Molecule. """
+    def __init__(self, obj, mol):
+        self.obj = obj
+        self.mol = mol
+        self.message = f"The {obj} not in {mol} molecule"
+        super().__init__(self.message)
+
+
 class Molecule:
     """
     Represents a molecular structure and provides methods for manipulating 
@@ -67,7 +85,8 @@ class Molecule:
         self._row2idx = None
         self._crystal = None
 
-        self._broken_metal_bonds = []
+        self._hided_metal_bonds = []
+        self._hided_covalent_bonds = []
         self.properties = {}  # To store any mol properties
 
         self.charge = 0
@@ -95,6 +114,10 @@ class Molecule:
 
     def __copy__(self):
         return self.copy()
+
+    @property
+    def _hided_bonds(self):
+        return self._hided_metal_bonds + self._hided_covalent_bonds
 
     def copy(self):
         clone = Molecule()
@@ -449,9 +472,9 @@ class Molecule:
 
         return ori_atom
 
-    def auto_pair_metal(self, metal, threshold=0.):
+    def auto_pair_metal(self, metal, threshold=0., greedy=True):
         from .AImodels.cbond.apply import auto_build_cbond
-        return auto_build_cbond(self, metal, threshold)
+        return auto_build_cbond(self, metal, threshold, greedy)
 
     def replace_atom(
             self,
@@ -593,9 +616,16 @@ class Molecule:
             Called to hide the visual representation of the metal-ligand bonds.
         """
         self.hide_metal_ligand_bonds()
-        self._broken_metal_bonds = []
+        self._hided_metal_bonds = []
 
-    def recover_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
+    def clear_hided_covalent_bonds(self) -> None:
+        self._hided_covalent_bonds = []
+
+    def clear_hided_bonds(self) -> None:
+        self._hided_metal_bonds = []
+        self._hided_covalent_bonds = []
+
+    def recover_hided_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """
         Restores metal-ligand bonds that were previously broken and updates the internal graph representation.
 
@@ -612,9 +642,18 @@ class Molecule:
         Returns:
             None
         """
-        self._bonds = list(set(self._bonds + self._broken_metal_bonds))
-        self._update_graph(clear_conformers)
-        self._broken_metal_bonds = []
+        if self._hided_metal_bonds:
+            self._bonds = list(set(self._bonds + self._hided_metal_bonds))
+            self._update_graph(clear_conformers)
+            logging.info(f"[green]Recover {len(self._hided_metal_bonds)} hided metal-ligand bonds[/]")
+            self._hided_metal_bonds = []
+
+    def recover_hided_covalent_bonds(self, clear_conformers: bool = False) -> None:
+        if self._hided_covalent_bonds:
+            self._bonds = list(set(self._bonds + self._hided_covalent_bonds))
+            self._update_graph(clear_conformers)
+            logging.info(f"[green]Recover {len(self._hided_covalent_bonds)} hided covalent bonds[/]")
+            self._hided_covalent_bonds = []
 
     @property
     def atom_pairs(self) -> "AtomPairs":
@@ -679,7 +718,7 @@ class Molecule:
         """
         self.hide_metal_ligand_bonds()
         obc.assign_bond_order(self)
-        self.recover_metal_ligand_bonds()
+        self.recover_hided_metal_ligand_bonds()
 
     @property
     def atom_attr_matrix(self) -> np.ndarray:
@@ -715,7 +754,7 @@ class Molecule:
         return [b for b in self.bonds if b.is_metal_ligand_bond]
 
     @property
-    def bonds(self):
+    def bonds(self) -> list["Bond"]:
         """
         Retrieves a copy of the bonds.
 
@@ -860,7 +899,7 @@ class Molecule:
             # ring.determine_aromatic(inplace=True)
             ring.kekulize()
 
-        self.recover_metal_ligand_bonds()
+        self.recover_hided_metal_ligand_bonds()
 
     @property
     def conformers(self) -> "Conformers":
@@ -1110,7 +1149,7 @@ class Molecule:
                 obff.optimize(component)
                 clone.update_atoms_attrs_from_id_dict({a.id: {'coordinates': a.coordinates} for a in component.atoms})
 
-        clone.recover_metal_ligand_bonds()
+        clone.recover_hided_metal_ligand_bonds()
         # clone.constraint_bonds_angles()
         for a in clone.atoms:
             if not a.is_metal:
@@ -1144,10 +1183,10 @@ class Molecule:
             Vdw_cutoff_end: float = 12.5,
             print_energy: Optional[int] = 100,
             # parameter for complexes build
-            build_times: int =5,
-            init_opt_steps: int =500,
-            second_opt_steps: int =1000,
-            min_energy_opt_steps: int =3000,
+            build_times: int = 5,
+            init_opt_steps: int = 500,
+            second_opt_steps: int = 1000,
+            min_energy_opt_steps: int = 3000,
             rm_polar_hs: bool = True
     ):
         """
@@ -1541,10 +1580,26 @@ class Molecule:
         # attrs = ('idx',) + Bond._attrs_enumerator
         return [(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds]
 
+    def _hide_bond(self, bond: "Bond"):
+        if bond not in self.bonds:
+            raise ObjNotInMolecule(bond, self)
+
+        if bond.has_metal:
+            self._hided_metal_bonds.append(bond)
+        else:
+            self._hided_covalent_bonds.append(bond)
+
+        self._bonds.remove(bond)
+
+    def hide_bonds(self, *bond: "Bond", clear_conformers: bool = False):
+        for b in bond:
+            self._hide_bond(b)
+        self._update_graph(clear_conformers)
+
     def hide_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """ break all bonds link with metals """
         metal_bonds = [b for b in self.bonds if b.is_metal_ligand_bond]
-        self._broken_metal_bonds.extend(metal_bonds)
+        self._hided_metal_bonds.extend(metal_bonds)
 
         for b in metal_bonds:
             self._bonds.remove(b)
@@ -1638,6 +1693,10 @@ class Molecule:
             False otherwise.
         """
         return any(r.is_bond_intersect_the_ring(b) for r, b in product(self.rings_small, self.bonds))
+
+    @property
+    def intersection_bonds_rings(self) -> list[tuple['Ring', 'Bond']]:
+        return [(r, b) for r, b in product(self.rings_small, self.bonds) if r.is_bond_intersect_the_ring(b)]
 
     @property
     def heavy_atoms(self) -> list["Atom"]:
@@ -2296,7 +2355,7 @@ class Molecule:
         """
         self.hide_metal_ligand_bonds()
         rings = self.rings
-        self.recover_metal_ligand_bonds()
+        self.recover_hided_metal_ligand_bonds()
         return rings
 
     def to_obmol(self) -> ob.OBMol:
@@ -4022,7 +4081,7 @@ class AtomSeq:
         return [a.idx for a in self.atoms]
 
     @property
-    def bonds(self):
+    def bonds(self) -> list["Bond"]:
         return copy(self._bonds)
 
     @property
@@ -4551,6 +4610,15 @@ class Bond(AtomSeq, MolBlock):
             bool: True if the bond is rotatable, otherwise False.
         """
         return (self.bond_order == 1) and (not self.is_aromatic) and (not self.in_ring)
+
+    def bond_line_distance(
+            self, other_bond: "Bond",
+            relationship: bool = False
+    ) -> Union[float, tuple[float, str]]:
+        rela, dist = self.bond_line.distance_to_line(other_bond.bond_line)
+        if relationship:
+            return dist, rela
+        return dist
 
 
 class Angle(AtomSeq):
@@ -5139,6 +5207,13 @@ class Ring(AtomSeq):
         @rtype: geometry.CyclePlanes
         """
         return geometry.CyclePlanes(*[a.coordinates for a in self.atoms])
+
+    def closest_edge_to_bond(self, bond: Bond) -> 'Bond':
+        if bond not in self.mol.bonds:
+            raise NotInSameMolecule(self, bond)
+
+        min_dist_index = int(np.argmax([rb.bond_line_distance(bond) for rb in self._bonds]))
+        return self._bonds[min_dist_index]
 
     def kekulize(self):
         """

@@ -46,10 +46,10 @@ class CBondInfer(nn.Module):
         return self.predictors(vec_cb)
 
     @staticmethod
-    def extract_X_rings(xg, rings_node_index, rings_node_nums):
+    def extract_X_rings(xg, rings_node_index, rings_node_nums, max_rings_nums, max_rings_size):
         xg = xg[rings_node_index]
-        indices = torch.arange(64)
-        padded_rings_num = F.pad(rings_node_nums, (0, 128 - len(rings_node_nums))).unsqueeze(-1)
+        indices = torch.arange(max_rings_size)
+        padded_rings_num = F.pad(rings_node_nums, (0, max_rings_nums - len(rings_node_nums))).unsqueeze(-1)
         rings_mask = indices >= padded_rings_num
         return CBondInfer.split_padding_deploy(xg, rings_mask)
 

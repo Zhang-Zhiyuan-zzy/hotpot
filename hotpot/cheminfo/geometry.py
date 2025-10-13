@@ -6,6 +6,7 @@ python v3.9.0
 @Data   : 2024/12/18
 @Time   : 16:32
 """
+from enum import Enum
 from typing import Optional
 from itertools import combinations
 import numpy as np
@@ -18,6 +19,84 @@ class Point:
 
 def to_point(p):
     return np.array(p)
+
+
+class LinesRelationship(Enum):
+    INTERSECT = "intersect"
+    PARALLEL = "parallel"
+    SKEW = "skew"
+
+
+def get_line_relationship(v1: np.ndarray, v2: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> str:
+    """
+    Determines the relationship between two lines in 3D space.
+
+    The lines are defined by a point and a direction vector.
+    Line 1: r = p1 + t * v1
+    Line 2: r = p2 + s * v2
+
+    Args:
+        v1 (np.ndarray): Direction vector of the first line.
+        v2 (np.ndarray): Direction vector of the second line.
+        p1 (np.ndarray): A point on the first line.
+        p2 (np.ndarray): A point on the second line.
+
+    Returns:
+        str: The relationship: "parallel", "intersecting", or "skew".
+    """
+    # Check for parallelism by computing the cross product of direction vectors.
+    # If the cross product is a zero vector, the vectors are collinear, so lines are parallel.
+    cross_v = np.cross(v1, v2)
+    if np.allclose(cross_v, [0, 0, 0]):
+        return LinesRelationship.PARALLEL
+
+    # Check for intersection or skewness using the scalar triple product.
+    # This checks if the vectors v1, v2, and (p2 - p1) are coplanar.
+    p1p2 = p2 - p1
+    scalar_triple_product = np.dot(cross_v, p1p2)
+
+    if np.isclose(scalar_triple_product, 0):
+        return LinesRelationship.INTERSECT
+    else:
+        return LinesRelationship.SKEW
+
+def calculate_line_distance(v1: np.ndarray, v2: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> (str, float):
+    """
+    Calculates the shortest distance between two lines in 3D space.
+
+    The function first determines the relationship between the lines (parallel,
+    intersecting, or skew) and then applies the appropriate formula.
+
+    Args:
+        v1 (np.ndarray): Direction vector of the first line.
+        v2 (np.ndarray): Direction vector of the second line.
+        p1 (np.ndarray): A point on the first line.
+        p2 (np.ndarray): A point on the second line.
+
+    Returns:
+        Tuple[str, float]: A tuple containing the relationship type and the
+                           calculated shortest distance.
+    """
+    relationship = get_line_relationship(v1, v2, p1, p2)
+    p1p2 = p2 - p1
+
+    if relationship == LinesRelationship.INTERSECT:
+        # The distance between intersecting lines is 0.
+        return relationship, 0.0
+
+    elif relationship == LinesRelationship.PARALLEL:
+        # Formula for parallel lines: ||(p2-p1) x v1|| / ||v1||
+        distance = np.linalg.norm(np.cross(p1p2, v1)) / np.linalg.norm(v1)
+        return relationship, float(distance)
+
+    elif relationship == LinesRelationship.SKEW:
+        # Formula for skew lines: |(v1 x v2) . (p2-p1)| / ||v1 x v2||
+        cross_v = np.cross(v1, v2)
+        distance = np.abs(np.dot(cross_v, p1p2)) / np.linalg.norm(cross_v)
+        return relationship, float(distance)
+
+    else:
+        raise RuntimeError(f"Unknown relationship: {relationship}")
 
 
 class Line:
@@ -63,6 +142,13 @@ class Line:
                 raise AttributeError('the given point not on the line!!')
 
             return np.dot(dir_vector_cpp1, self.identity_vector) / self.segment_length
+
+    def distance_to_line(self, other: "Line") -> (str, float):
+        sp = self.point1
+        op = other.point1 if not np.isclose(sp, other.point1).all() else other.point2
+
+        rela, distance = calculate_line_distance(self.vector, other.vector, sp, op)
+        return rela, distance
 
 
 class Plane:

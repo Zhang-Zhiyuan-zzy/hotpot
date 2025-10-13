@@ -1,3 +1,4 @@
+import itertools
 import sys
 import os.path as osp
 import socket
@@ -51,9 +52,9 @@ import hotpot as hp
 from hotpot.plugins.ComplexFormer import (
     models as M,
     tools,
-    infer,
     run
 )
+from hotpot.cheminfo.AImodels.cbond.deploy.models import deploy
 
 models_dir = osp.join(project_root, 'models')
 
@@ -176,17 +177,20 @@ def deploy_model():
     os.environ['TORCHDYNAMO_EXTENDED_DEBUG_CREATE_SYMBOL'] = "u27"
     os.environ['TORCHDYNAMO_EXTENDED_DEBUG_CPP'] = "1"
 
-    onnx_version = 21
+    onnx_version = 19
     export_path = osp.join(hp.package_root, 'cheminfo', 'AImodels', 'cbond', 'onnx')
-    infer.deploy(
-        work_dir=models_dir,
-        export_path=export_path,
-        checkpoint_path='/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/cbond/CB_0.958/checkpoints/epoch=23-step=39792.ckpt',
-        dir_datasets=osp.join(dir_datasets, 'mono_ml_pair'),
-        extract_predictors='CB',
-        output_names='is_cbond',
-        opset_version=onnx_version
-    )
+    for n, s in itertools.product((2, 4, 8, 16, 32), (6, 8, 12, 16, 32)):
+        deploy(
+            work_dir=models_dir,
+            export_path=export_path,
+            checkpoint_path='/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/cbond/CB_0.958/checkpoints/epoch=23-step=39792.ckpt',
+            dir_datasets=osp.join(dir_datasets, 'mono_ml_pair'),
+            extract_predictors='CB',
+            opset_version=onnx_version,
+            max_rings_nums=n,
+            max_rings_size=s,
+        )
+        break
 
 def train_model():
     which_datasets_train(
@@ -213,5 +217,5 @@ def train_model():
 
 
 if __name__ == '__main__':
-    train_model()
-    # deploy_model()
+    # train_model()
+    deploy_model()

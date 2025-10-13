@@ -108,7 +108,8 @@ def _run_complexes_build(
         if not component.has_metal:
             lst_coords = []
             lst_energy = []
-            build_ff = 'MMFF94s'
+            # build_ff = 'MMFF94s'
+            build_ff = 'UFF'
             rebuild_time = 0
             current_length = 0
             while len(lst_coords) < build_times:
@@ -120,8 +121,20 @@ def _run_complexes_build(
                     ob_optimize(component, 'UFF', init_opt_steps)
                     build_ff = 'UFF'
 
-                if component.has_bond_ring_intersection:
+                component.recover_hided_covalent_bonds()
+                if component.has_bond_ring_intersection:  # Check nonrealistic Molecule
                     rebuild_time += 0
+
+                    # Resolve knots by ring opening
+                    to_break_bond = set()
+                    intersect_bonds_rings = component.intersection_bonds_rings
+                    for r, b in intersect_bonds_rings:
+                        closest_b2b =  r.closest_edge_to_bond(b)
+                        to_break_bond.add(closest_b2b)
+
+                    logging.info(f"Breaking ring bonds: {to_break_bond}")
+                    component.hide_bonds(*to_break_bond)
+
                     # print(len(list(lst_energy)))
                     if len(lst_energy) > current_length:
                         print(min(lst_energy), np.mean(lst_energy), max(lst_energy))

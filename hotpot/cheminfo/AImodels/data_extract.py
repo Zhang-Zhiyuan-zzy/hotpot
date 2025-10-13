@@ -48,7 +48,7 @@ def extract_potentials_cbonds(
 def extract_atom_attrs(mol: Molecule, data: dict[str, Any] = None, atomic_number_only: bool = False) -> dict:
     if atomic_number_only:
         x_names = ['atomic_number']
-        x = np.array([[a.atomic_number] for a in mol.atoms], dtype=np.int32)
+        x = np.array([a.attrs[0] for a in mol.atoms], dtype=np.int32)
     else:
         x_names = Atom._attrs_enumerator[:15]
         additional_attr_names = ('is_metal',)

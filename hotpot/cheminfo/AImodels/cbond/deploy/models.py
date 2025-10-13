@@ -95,6 +95,8 @@ def deploy(
         # Options
         float_precision: Literal['fp16', 'fp32', 'fp64', 'bf16'] = 'fp32',
         strict_core_load: bool = False,
+        max_rings_nums: int = 128,
+        max_rings_size: int = 64,
 
         extract_predictors: Optional[str] = None,
         debug: bool = False,
@@ -104,7 +106,7 @@ def deploy(
     ##################### Base Args ##########################
 
     list_files = glob.glob(osp.join(dir_datasets, '*.pt'))
-    example_data = data.torch_load_data(list_files[0])
+    example_data = data.torch_load_data(list_files[3])
 
     model = CBondInfer()
     infer_graph = InferGraph()
@@ -118,7 +120,7 @@ def deploy(
     model = model.to(torch.float32).eval()
     infer_graph = infer_graph.to(torch.float32).eval()
 
-    xg = infer_graph(*args[:2])
+    # xg = infer_graph(*args[:2])
     torch.onnx.export(
         infer_graph,
         args[:2],
@@ -132,38 +134,38 @@ def deploy(
         external_data=False,
     )
 
-    kw_to_extractor = {
-        'xg': xg,
-        'rings_node_index': args[2],
-        'rings_node_nums': args[3],
-    }
-    padded_Xr, rings_mask = model.extract_X_rings(**kw_to_extractor)
-
-    cbond_infer_args = [xg, padded_Xr, rings_mask, args[4]]
-    cbond_infer_item = ['xg', 'padded_Xr', 'rings_mask', 'cbond_index']
-
-    # Configure dynamic shapes
-    s0 = Dim('s0')
-    s1 = Dim('s1')
-
-    dynamic_shape = {
-        'xg': {0: s0},
-        'padded_Xr': {0: 128, 1: 64, 2: 128},
-        'rings_mask': {0: 128, 1: 64},
-        'cbond_index': {0: 2, 1: s1},
-    }
-
-    cbond = model(*cbond_infer_args)
-    torch.onnx.export(
-        model,
-        tuple(cbond_infer_args),
-        osp.join(export_path,f'opset{opset_version}_cbond' + '.onnx'),
-        input_names=cbond_infer_item,
-        output_names=['cbond'],
-        opset_version=opset_version,
-        dynamo=True,  # force legacy path
-        dynamic_shapes=dynamic_shape,
-        report=True,
-        external_data=False,
-    )
-    print(cbond)
+    # kw_to_extractor = {
+    #     'xg': xg,
+    #     'rings_node_index': args[2],
+    #     'rings_node_nums': args[3],
+    # }
+    # padded_Xr, rings_mask = model.extract_X_rings(**kw_to_extractor, max_rings_nums=max_rings_nums, max_rings_size=max_rings_size)
+    #
+    # cbond_infer_args = [xg, padded_Xr, rings_mask, args[4]]
+    # cbond_infer_item = ['xg', 'padded_Xr', 'rings_mask', 'cbond_index']
+    #
+    # # Configure dynamic shapes
+    # s0 = Dim('s0')
+    # s1 = Dim('s1')
+    #
+    # dynamic_shape = {
+    #     'xg': {0: s0},
+    #     'padded_Xr': {0: max_rings_nums, 1: max_rings_size, 2: 128},
+    #     'rings_mask': {0: max_rings_nums, 1: max_rings_size},
+    #     'cbond_index': {0: 2, 1: s1},
+    # }
+    #
+    # cbond = model(*cbond_infer_args)
+    # torch.onnx.export(
+    #     model,
+    #     tuple(cbond_infer_args),
+    #     osp.join(export_path,f'opset{opset_version}_cbond({max_rings_nums}-{max_rings_size})' + '.onnx'),
+    #     input_names=cbond_infer_item,
+    #     output_names=['cbond'],
+    #     opset_version=opset_version,
+    #     dynamo=True,  # force legacy path
+    #     dynamic_shapes=dynamic_shape,
+    #     report=True,
+    #     external_data=False,
+    # )
+    # print(cbond)

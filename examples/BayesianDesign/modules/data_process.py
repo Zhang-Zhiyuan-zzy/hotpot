@@ -324,7 +324,7 @@ def mp_process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = 
             metal_clusters.to_excel(writer, sheet_name='metal_clusters')
 # TODO: ###############################################################
 
-def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = False):
+def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = False, link_cbond: bool = False):
     df = pd.read_excel(osp.join(path_raw, 'Sc.xlsx'))
     med = pd.read_excel(osp.join(path_raw, 'MedProp.xlsx'), sheet_name='clean')
     sol = pd.read_excel(osp.join(path_raw, 'SolProp.xlsx'), sheet_name='clean')
@@ -333,6 +333,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
     sol.index = sol['Cid'].tolist()
 
     metal_clusters = set()
+    nonmetal = []
     for i, row in tqdm(df.iterrows(), 'Processing SclogK dataset', total=len(df)):
         smi = row['SMILES'].strip()
         mol = next(hp.MolReader(smi, fmt='smi'))
@@ -340,7 +341,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
         metal_sym, charge = split_metal(row['Metal'])
 
         try:
-            mol.create_atom(
+            metal = mol.create_atom(
                 symbol=metal_sym,
                 formal_charge=charge,
             )
@@ -348,7 +349,14 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             metal_clusters.add(metal_sym)
             continue
 
+        if not metal.is_metal:
+            nonmetal.append(metal_sym)
+            continue
+
         mol.add_hydrogens()
+        if link_cbond:
+            mol.auto_pair_metal(metal)
+
         graph_data: dict = graph_extraction(mol)
 
         # Compile solvent info
@@ -480,6 +488,7 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
             # rings_attr=ring_attr,
             # rings_attr_names=ring_attr_names,
             smiles=smi,
+            pair_smiles=mol.smiles,
             other_info=other_info,
             other_info_names=other_info_names,
             **graph_data,
@@ -494,6 +503,9 @@ def process_SclogK(path_raw: str, data_dir: str, store_metal_cluster: bool = Fal
         metal_clusters = pd.Series(list(metal_clusters))
         with pd.ExcelWriter(path_raw, mode='a') as writer:
             metal_clusters.to_excel(writer, sheet_name='metal_clusters')
+
+    print(f"non-metal elements: {set(nonmetal)}")
+    print(f'number of non-metal elements: {len(nonmetal)}')
 
 def ccdc_struct_to_data(struct_dir: str, data_dir: str):
     list_files = os.listdir(struct_dir)

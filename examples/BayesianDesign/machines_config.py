@@ -30,10 +30,14 @@ else:
 
 
 # Initialize paths.
+print(machine_name)
 if machine_name == '4090':
-    project_root = '/home/zzy/docker_envs/pretrain/proj'
+    project_root = '/home/zzy/proj'
     sys.path.append(osp.join(project_root, 'hotpot'))
-elif machine_name == 'DESKTOP-G9D9UUB':
+elif machine_name == 'DESKTOP-G9D9UUB':  # 221 PC
+    project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+elif machine_name == 'LAPTOP-K2H04HI4':
     project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
     sys.path.append(osp.join(project_root, 'hotpot'))
 elif machine_name == 'docker':
@@ -57,7 +61,6 @@ else:
 
 models_dir = osp.join(project_root, 'models')
 # dataset save paths
-
 if str.split(__file__, '/')[1:4] == ['data', 'run01', 'scz0s3z']:
     print('in /dev/shm')
     dir_datasets = osp.join('/dev', 'shm', 'datasets')

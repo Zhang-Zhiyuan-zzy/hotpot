@@ -102,10 +102,10 @@ def get_cbond_inputs_model(_data: dict[str, Any], xg):
     rings_node_index = _data['rings_node_index']
     rings_node_nums = _data['rings_node_nums']
 
-    model, rings_nums, rings_size = get_cbond_model(
-        rings_nums=len(rings_node_nums),
-        rings_size=max(rings_node_nums),
-    )
+    if (rings_nums := len(rings_node_nums)) > 0:
+        model, rings_nums, rings_size = get_cbond_model(rings_nums, max(rings_node_nums))
+    else:
+        model, rings_nums, rings_size = get_cbond_model(0, 0)
 
     padded_X, rings_mask = padding_rings(xg, rings_node_index, rings_node_nums, rings_nums, rings_size)
     return model, padded_X, rings_mask
@@ -134,9 +134,16 @@ def auto_build_cbond(mol: Molecule, metal: Union[int, str], threshold: float = 0
         metal = Atom(symbol=metal)
     elif isinstance(metal, int):
         metal = Atom(atomic_number=metal)
+    elif isinstance(metal, Atom):
+        metal = metal
+    else:
+        raise TypeError('metal should be the atomic_number(int), ato-mic_symbol(str) or an Atom object')
 
-    assert metal.is_metal
-    metal = mol.add_atom(metal)
+    assert metal.is_metal, f'{metal.symbol} is not a metal'
+    if not metal in mol.atoms:
+        assert len(mol.metals) == 0, "Only support identification of coordination pattern between a single metal and a ligand"
+        metal = mol.add_atom(metal)
+
     metal_idx = metal.idx
 
     mol_data = extract_cbond_inputs(mol)
@@ -159,6 +166,7 @@ def auto_build_cbond(mol: Molecule, metal: Union[int, str], threshold: float = 0
 
             # Adjust the `target_idx` and `ca_index` for the first not in has_cbond set
             logging.info(f"{ca_index} has in the cbond set {has_cbond}")
+            i = 0
             for i in range(2, len(sort_idx) + 1):
                 if int(cb_index[1, sort_idx[-i]]) not in has_cbond:
                     target_idx = sort_idx[-i]

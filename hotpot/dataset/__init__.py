@@ -13,7 +13,7 @@ import pandas as pd
 
 
 dir_root = osp.dirname(__file__)
-_accessible_dataset = [name.split('.')[0] for name in os.listdir(osp.join(dir_root, 'data'))]
+_accessible_dataset = [name.split('.')[0] for name in os.listdir(dir_root)]
 
 
 def get_dataset_name():

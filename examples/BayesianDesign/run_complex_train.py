@@ -21,7 +21,7 @@ else:
 # Initialize paths.
 print(machine_name)
 if machine_name == '4090':
-    project_root = '/home/zzy/docker_envs/pretrain/proj'
+    project_root = '/home/zzy/proj'
     sys.path.append(osp.join(project_root, 'hotpot'))
 elif machine_name == 'DESKTOP-G9D9UUB':  # 221 PC
     project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'

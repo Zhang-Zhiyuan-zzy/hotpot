@@ -1,4 +1,6 @@
+import sys
 import os.path as osp
+import socket
 import cProfile
 import logging
 import pstats
@@ -7,10 +9,41 @@ from tqdm import tqdm
 import random
 import multiprocessing as mp
 
-from hotpot.cheminfo.AImodels.cbond import apply
-import hotpot as hp
 
 logging.basicConfig(level=logging.CRITICAL)
+
+# Initialize paths.
+machine_name = socket.gethostname()
+print(machine_name)
+if machine_name == '4090':
+    project_root = '/home/zzy/proj'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+elif machine_name == 'DESKTOP-G9D9UUB':  # 221 PC
+    project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+elif machine_name == 'LAPTOP-K2H04HI4':
+    project_root = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+elif machine_name == 'docker':
+    project_root = '/app/proj'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+elif machine_name == '3090':
+    project_root = '/home/zz1/docker/proj'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+
+# Running in Super
+elif str.split(__file__, '/')[1:4] == ['data', 'run01', 'scz0s3z']:
+    print('In Super')
+    project_root = '/HOME/scz0s3z/run/proj/'
+    sys.path.append(osp.join(project_root, 'hotpot-zzy'))
+elif str.split(__file__, '/')[1:4] == ['data', 'user', 'hd54396']:
+    print('In zksl Super')
+    project_root = '/data/user/hd54396/proj'
+    sys.path.append(osp.join(project_root, 'hotpot'))
+else:
+    raise ValueError(__file__)
+
+import hotpot as hp
 
 
 def _link_cb(list_smi):
@@ -65,10 +98,10 @@ def link_cb_mp():
 
 
 def link_cb():
-    smi_file = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/raw_ds/DaPhen/smi.txt'
-    Am_smi_file = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/raw_ds/DaPhen/Am_pair.txt'
-    Eu_smi_file = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/raw_ds/DaPhen/Eu_pair.txt'
-    pair_dir = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/raw_ds/DaPhen/pair'
+    smi_file = osp.join(project_root, 'raws_ds/DaPhen/smi.txt')
+    Am_smi_file = osp.join(project_root, 'raws_ds/DaPhen/Am_pair.txt')
+    Eu_smi_file = osp.join('raws_ds/DaPhen/Eu_pair.txt')
+    pair_dir = osp.join(project_root, 'raws_ds/DaPhen/pair')
 
     Eu_pairs = []
     Am_pairs = []
@@ -91,9 +124,6 @@ def link_cb():
                     Euf.write('\n'.join(Eu_pairs) + '\n')
                 with open(Am_smi_file, 'a') as Amf:
                     Amf.write('\n'.join(Am_pairs) + '\n')
-
-            if i == 100:
-                break
 
 
 def link_optimize():
@@ -132,7 +162,6 @@ def link_optimize():
                 break
 
 
-
 def statistics_rings_size():
     smi_file = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results/raw_ds/DaPhen/smi.txt'
 
@@ -158,11 +187,12 @@ def main():
     # link_cb_mp()
 
 if __name__ == '__main__':
-    with cProfile.Profile() as pr:
-        main()
-    ps = pstats.Stats(pr)
-    ps.sort_stats(pstats.SortKey.CUMULATIVE).print_stats('hotpot')
-    ps.sort_stats(pstats.SortKey.CUMULATIVE).print_stats('/mnt/d/hotpot/hotpot/cheminfo/AImodels/cbond/apply.py')
-    # statistics_rings_size()
-    for item, count in apply.cbond_session_stat.items():
-        print(item, count)
+    main()
+    # with cProfile.Profile() as pr:
+    #     main()
+    # ps = pstats.Stats(pr)
+    # ps.sort_stats(pstats.SortKey.CUMULATIVE).print_stats('hotpot')
+    # ps.sort_stats(pstats.SortKey.CUMULATIVE).print_stats('/mnt/d/hotpot/hotpot/cheminfo/AImodels/cbond/apply.py')
+    # # statistics_rings_size()
+    # for item, count in apply.cbond_session_stat.items():
+    #     print(item, count)

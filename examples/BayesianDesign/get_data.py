@@ -12,6 +12,8 @@
  
 ===========================================================
 """
+import sys
+sys.path.extend(['/home/zzy/proj/hotpot/'])
 import os
 import os.path as osp
 from glob import glob
@@ -28,7 +30,7 @@ from modules.data_process import process_SclogK
 
 
 def run_SclogK_process():
-    SclogK_data_dir = osp.join(project_root, 'datasets', 'SclogK')
+    SclogK_data_dir = osp.join(project_root, 'datasets', 'SclogK_with_cb')
     if not osp.exists(SclogK_data_dir):
         os.mkdir(SclogK_data_dir)
 
@@ -36,6 +38,7 @@ def run_SclogK_process():
         osp.join(project_root, 'raws_ds', 'ScData'),
         SclogK_data_dir,
         # store_metal_cluster=True
+        link_cbond=True
     )
 
 def test_loading_ScData():

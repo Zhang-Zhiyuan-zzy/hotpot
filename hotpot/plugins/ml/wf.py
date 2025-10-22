@@ -42,7 +42,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.Descriptors import CalcMolDescriptors
 
-from hotpot.plots import SciPlotter, R2Regression, PearsonMatrix, SHAPlot, scale_axes
+from hotpot.plugins.plots import SciPlotter, R2Regression, PearsonMatrix, SHAPlot
 from hotpot.utils.types import ModelLike
 
 try:

@@ -13,6 +13,7 @@ import matplotlib as mpl
 
 from .plotter import SciPlotter
 from .plots import *
+from .colors import *
 
 
 def refresh_cache():

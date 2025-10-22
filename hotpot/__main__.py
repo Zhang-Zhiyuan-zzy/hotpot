@@ -38,12 +38,7 @@ def show_version():
     print("A C++/python package designed to communicate among various chemical and materials calculational tools")
 
 
-def main():
-    # if is_running_in_foreground():
-    #     print('running in foreground')
-    # else:
-    #     print('running in background')
-
+def build_parser():
     parser = argparse.ArgumentParser(
         prog='hotpot',
         description="A C++/python package designed to communicate among various chemical and materials calculational tools"
@@ -70,13 +65,14 @@ def main():
     # ML_train job arguments
     ml_parser = works.add_parser('ml_train', help='A standard workflow to train Machine learning models')
     ml_train.add_arguments(ml_parser)
+    return parser
 
-    # Parse arguments
-    args = parser.parse_args()
 
+def run(args):
+    """ Run the command line """
     if args.version:
         show_version()
-        return
+        return 0
 
     # convert work
     if args.works == 'convert':
@@ -107,9 +103,35 @@ def main():
         ml_train.train(args)
 
     else:
-        parser.print_help()
+        return -2  # indicate the work type not be specified
 
     print("Done !!!")
+    return 0  # Normal termination
+
+
+def main(argv: list[str] = None):
+    parser = build_parser()
+
+    # Parse arguments
+    if argv is None:
+        args = parser.parse_args()
+    else:
+        # Allow pass the args from the main() interface in test
+        args = parser.parse_args(argv)
+
+
+    try:
+        return_code = run(args)
+        if return_code == -2:
+            parser.print_help()
+            return 1
+        return return_code
+    except Exception as exc:
+        raise exc
+        # print(f"[ERROR] {exc}", file=sys.stderr)
+        # if os.environ.get("HOTPOT_DEBUG"):
+        #     raise exc
+        # return 2
 
 
 if __name__ == '__main__':

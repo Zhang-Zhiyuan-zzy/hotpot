@@ -16,6 +16,7 @@ from scipy.interpolate import griddata
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import matplotlib.ticker as mticker
+import matplotlib.cm as mcolors
 
 from .defaults import Settings
 

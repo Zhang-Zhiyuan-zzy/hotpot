@@ -238,6 +238,18 @@ def add_arguments(optimize_parser: argparse.ArgumentParser):
     )
 
     opti_plot.add_argument(
+        '--scatter-map',
+        action='store_true',
+        help='Whether to use a scatter plot to visualize the parameters space'
+    )
+
+    opti_plot.add_argument(
+        '--cmap',
+        default='Greys',
+        help='The ColorMap to make the picture'
+    )
+
+    opti_plot.add_argument(
         '--examples',
         choices=['COF'],
         # default='COF',
@@ -251,7 +263,7 @@ def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
     out_file = Path(out_file)
 
     if args.examples == 'COF':
-        example_cof_params(out_file)
+        example_cof_params(out_file, args)
 
     elif args.method in ['Bayesian', 'B', 'Bayesian(B)']:
 
@@ -307,6 +319,7 @@ def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
         print(f"batch size: {args.batch_size}")
         print(f"map embedding method: {args.emb_method}")
         print(f"Output directory: {out_file}")
+        print(f"Whether to scatter plot: {args.scatter_map}")
 
         print(f'Make sure the design space:')
         for i, (name, param_range) in enumerate(zip(param_names, param_ranges)):
@@ -335,7 +348,9 @@ def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
                 mesh_counts=args.mesh,
                 log_indices=log_param_indices,
                 figpath_dir=out_file,
-                emb_method=_get_embedding_method(args.emb_method)
+                emb_method=_get_embedding_method(args.emb_method),
+                to_coutourf=not args.scatter_map,
+                cmap=args.cmap,
             )
 
         else:
@@ -347,13 +362,15 @@ def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
                 figpath=out_file.joinpath('params_mapping.png'),
                 mesh_counts=args.mesh,
                 log_indices=log_param_indices,
+                to_coutourf=not args.scatter_map,
+                cmap=args.cmap,
             )
 
     else:
         raise NotImplementedError('the method {} is not implemented'.format(args.method))
 
 
-def example_cof_params(out_file):
+def example_cof_params(out_file, args):
     """
     Reproduce the parameters optimization in COF experiment,
     See ref: ...
@@ -371,10 +388,6 @@ def example_cof_params(out_file):
     b_peak = excel['b'].values
     target = a_peak / b_peak
 
-    mesh_counts = 20
-    log_param_indices = None
-    emb_method = 'TSNE'
-
     # Run examples
     draw_comics_map(
         params, target,
@@ -382,10 +395,12 @@ def example_cof_params(out_file):
         batch_size=5,
         param_names=param_names,
         param_range=param_ranges,
-        mesh_counts=mesh_counts,
-        log_indices=log_param_indices,
+        mesh_counts=args.mesh,
+        log_indices=None,
         figpath_dir=out_file,
-        emb_method=_get_embedding_method(emb_method)
+        emb_method=_get_embedding_method(args.emb_method),
+        to_coutourf=not args.scatter_map,
+        cmap=args.cmap,
     )
 
 

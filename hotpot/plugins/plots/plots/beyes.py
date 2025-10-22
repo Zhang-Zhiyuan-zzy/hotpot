@@ -15,7 +15,7 @@ from matplotlib.colors import Normalize
 
 from .base import Plot
 from ..plotter import SciPlotter
-from .. import utils
+from .. import utils, colors
 
 
 __all__ = ['BayesDesignSpaceMap']
@@ -41,20 +41,13 @@ class BayesDesignSpaceMap(SciPlotter):
 
     def _draw_map(self, x, y, c, ax, mesh_num=50):
         if self.to_coutourf:
-            # Create a regular grid
-            # xi, yi = np.meshgrid(np.linspace(x.min(), x.max(), mesh_num), np.linspace(y.min(), y.max(), mesh_num))
-            #
-            # # Interpolate the scattered ChemData onto the regular grid
-            # zi = griddata((x, y), c, (xi, yi), method='linear')
-            # zi = np.nan_to_num(zi, nan=0.0)
             ax.contourf(
                 *utils.scatter_to_coutourf(x, y, c, mesh_num),
-                # cmap='viridis'
                 cmap=self.cmap
             )
 
         else:
-            ax.scatter(x, y, c=c, alpha=0.3)
+            ax.scatter(x, y, c=c, alpha=0.3, cmap=self.cmap)
 
         if self.X_opti_idx is not None:
             ax.scatter(
@@ -116,7 +109,7 @@ class BayesDesignSpaceMap(SciPlotter):
         self.X_opti_idx = X_opti_idx
         self.to_coutourf = to_coutourf
         self.mesh_num = mesh_num
-        self.cmap = cmap
+        self.cmap = colors.load_cmap(cmap)
 
         if mu_norm is None:
             mu_norm = min(mu.min() for mu in mus), max(mu.max() for mu in mus)

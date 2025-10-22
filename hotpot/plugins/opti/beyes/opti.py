@@ -21,7 +21,7 @@ import torch
 import gpytorch
 from gpytorch.kernels import RBFKernel, ScaleKernel
 
-from hotpot.plots import BayesDesignSpaceMap
+# from hotpot.plots import BayesDesignSpaceMap
 from hotpot.plugins.plots import BayesDesignSpaceMap
 
 
@@ -157,7 +157,7 @@ class BayesianOptimizer:
 
         return mu, sigma
 
-    def visualize_design_space(
+    def generate_emb2d_design_space(
             self,
             X_design,
             X_opti_idx=None,
@@ -168,6 +168,8 @@ class BayesianOptimizer:
             emb_x=None,
             show_fig=False,
             y_scaler=None,
+            to_coutourf: bool = True,
+            cmap: str = 'Greys',
     ):
         if not self.is_trained:
             self.gp_train(n_iter, lr)
@@ -185,7 +187,7 @@ class BayesianOptimizer:
             emb_x = emb_method.fit_transform(X_design)
 
         if show_fig or figpath:
-            beyes_map = BayesDesignSpaceMap(emb_x, mu, sigma, X_opti_idx)
+            beyes_map = BayesDesignSpaceMap(emb_x, mu, sigma, X_opti_idx, to_coutourf=to_coutourf, cmap=cmap)
             fig, axs = beyes_map()
 
             if show_fig:
@@ -264,6 +266,8 @@ def next_params(
         mesh_counts: int = 20,
         figpath: Union[str, os.PathLike] = None,
         log_indices: Union[int, list[int]] = None,
+        to_coutourf: bool = True,
+        cmap: str = 'Greys',
 ):
     X = torch.tensor(X)
     y = torch.tensor(y)
@@ -280,7 +284,7 @@ def next_params(
 
     bayes, X_opti, mu_opti, sigma_opti, X_idx = beyes_run(X_scale, y_scale, X_design_scale, batch_size=5)
 
-    bayes.visualize_design_space(X_design_scale, X_idx, figpath=figpath)
+    bayes.generate_emb2d_design_space(X_design_scale, X_idx, figpath=figpath, to_coutourf=to_coutourf, cmap=cmap)
 
     # Inverse transform
     X_opti, (mu_opti, sigma_opti), _ = param_tran.inverse_transform(X_opti, mu_opti, sigma_opti)
@@ -303,7 +307,9 @@ def draw_comics_map(
         mesh_counts: int = 20,
         log_indices=None,
         figpath_dir=None,
-        emb_method=TSNE()
+        emb_method=TSNE(),
+        to_coutourf: bool = True,
+        cmap: str = 'Greys',
 ):
     """"""
     assert X.shape[0] == y.shape[0] > init_index
@@ -324,13 +330,14 @@ def draw_comics_map(
         X_batch, y_batch = X_scale[:idx], y_scale[:idx]
         bayes, X_opti, mu_opti, sigma_opti, X_idx = beyes_run(X_batch, y_batch, X_design_scale, batch_size=5)
 
-        figpath = Path(figpath_dir).joinpath(f'{iter_num}.png') if figpath_dir else None
-        emb_x, mu, sigma = bayes.visualize_design_space(
+        # Generate the 2D embedded design points for the below visualization.
+        emb_x, mu, sigma = bayes.generate_emb2d_design_space(
             X_design_scale, X_idx.detach().numpy(),
-            # figpath=figpath,
             emb_method=None,
             emb_x=emb_X_design,
-            y_scaler=param_tran.yscaler
+            y_scaler=param_tran.yscaler,
+            to_coutourf=to_coutourf,
+            cmap=cmap,
         )
         list_emb_x.append(emb_x)
         mus.append(mu)
@@ -340,16 +347,20 @@ def draw_comics_map(
     mu_norm = min(mu.min() for mu in mus), max(mu.max() for mu in mus)
     sigma_norm = min(sig.min() for sig in sigmas), max(sig.max() for sig in sigmas)
 
+    # Export the 2D embedding space individually
     for i, (emb_x, mu, sigma, X_idx) in enumerate(zip(list_emb_x, mus, sigmas, opti_X_idx)):
         bm = BayesDesignSpaceMap(
             emb_x, mu, sigma, X_idx,
             mu_norm=mu_norm, sigma_norm=sigma_norm,
             cmap_mu='viridis', cmap_sigma='Grays',
-            superscript=False
+            superscript=False,
+            to_coutourf=to_coutourf,
+            cmap=cmap
         )
         fig, axs = bm()
         fig.savefig(Path(figpath_dir).joinpath(f'comics_{i}.png'))
 
+    # Export all 2D embedding space to a whole picture.
     beyes_map = BayesDesignSpaceMap(list_emb_x, mus, sigmas, opti_X_idx, cmap='viridis')
     fig, axs = beyes_map()
     fig.savefig(Path(figpath_dir).joinpath(f'comics.png'))
@@ -516,5 +527,5 @@ if __name__ == '__main__':
     data = np.concatenate([X_opti, mu_opti, sigma_opti], axis=1)
     df = pd.DataFrame(data, columns=['temp', 'ratio', 'cata. Equiv.', 'mu', 'sigma'])
     df.to_csv('/mnt/c/Users/zhang/OneDrive/Papers/COF/result2.csv')
-    # bayes.visualize_design_space(X_design_scale, figpath='/home/zz1/proj/cof/ChemData/vis.png', emb_method=TSNE())
-    bayes.visualize_design_space(X_design_scale, X_opti_idx, emb_method=TSNE())
+
+    bayes.generate_emb2d_design_space(X_design_scale, X_opti_idx, emb_method=TSNE())

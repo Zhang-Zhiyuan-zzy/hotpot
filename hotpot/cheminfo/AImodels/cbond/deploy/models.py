@@ -120,19 +120,19 @@ def deploy(
     model = model.to(torch.float32).eval()
     infer_graph = infer_graph.to(torch.float32).eval()
 
-    # xg = infer_graph(*args[:2])
-    torch.onnx.export(
-        infer_graph,
-        args[:2],
-        osp.join(export_path,f'opset{opset_version}_graph' + '.onnx'),
-        input_names=items[:2],
-        output_names=['xg'],
-        opset_version=opset_version,
-        dynamo=True,  # force legacy path
-        dynamic_axes={'x': {0: 'node_num'}, 'edge_index': {1: 'edge_num'}},
-        report=True,
-        external_data=False,
-    )
+    xg = infer_graph(*args[:2])
+    # torch.onnx.export(
+    #     infer_graph,
+    #     args[:2],
+    #     osp.join(export_path,f'opset{opset_version}_graph' + '.onnx'),
+    #     input_names=items[:2],
+    #     output_names=['xg'],
+    #     opset_version=opset_version,
+    #     dynamo=True,  # force legacy path
+    #     dynamic_axes={'x': {0: 'node_num'}, 'edge_index': {1: 'edge_num'}},
+    #     report=True,
+    #     external_data=False,
+    # )
 
     # kw_to_extractor = {
     #     'xg': xg,

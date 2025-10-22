@@ -15,6 +15,7 @@
 """
 import bisect
 import logging
+import warnings
 import os.path as osp
 from typing import Any, Union
 
@@ -28,18 +29,21 @@ from .. import data_extract as de
 _file_dir = osp.dirname(__file__)
 
 # Basic arguments
-_allow_rings_nums = (4, 8, 16, 32, 64, 128)
-_allow_rings_size = (8, 16, 32, 64)
+_allow_rings_nums = (2, 4, 8, 12, 16, 32)
+_allow_rings_size = (6, 8, 12, 16, 32, 64)
 MAX_RINGS_NUMS = max(_allow_rings_nums)
 MAX_RINGS_SIZE = max(_allow_rings_size)
 
 providers = ort.get_available_providers()
-print(f"Available providers: {providers}")
+# print(f"Available providers: {providers}")
 
 cbond_session_stat = {}
 
+so = ort.SessionOptions()
+so.log_severity_level = 3
+warnings.filterwarnings("ignore")
 model_graph_partition = ort.InferenceSession(
-    osp.join(_file_dir, 'onnx', "opset21_graph.onnx"),
+    osp.join(_file_dir, 'onnx', "opset21_graph.onnx"), so,
     providers=providers,
 )
 
@@ -61,7 +65,7 @@ def get_cbond_model(rings_nums: int, rings_size: int) -> (ort.InferenceSession, 
     else:
         logging.info(f'[blue]Loading new InferenceSession with ({rings_nums}-{rings_size})')
         model = _cbond_models[(rings_nums, rings_size)] = ort.InferenceSession(
-            osp.join(_file_dir, 'onnx', f"opset21_cbond({rings_nums}-{rings_size}).onnx"),
+            osp.join(_file_dir, 'onnx', f"opset21_cbond({rings_nums}-{rings_size}).onnx"), so,
             providers=providers,
         )
         return model, rings_nums, rings_size
@@ -125,7 +129,15 @@ def cbond_prediction(mol_data: dict[str, Any]):
     cb_model, padded_Xr, rings_mask = get_cbond_inputs_model(mol_data, xg)
 
     cbond_index = mol_data['cbond_index']
-    cbond = pred_cb(cb_model, xg, padded_Xr, rings_mask, cbond_index)
+    try:
+        cbond = pred_cb(cb_model, xg, padded_Xr, rings_mask, cbond_index)
+    except ort.capi.onnxruntime_pybind11_state.InvalidArgument as e:
+        print(f'xg shape {xg.shape}')
+        print(f'padded_Xr shape {padded_Xr.shape}')
+        print(f'rings_mask shape: {rings_mask.shape}')
+        print(f'cbond_index shape {cbond_index.shape}')
+        raise e
+
     return cbond, cbond_index, mol_data['is_cbond']
 
 
@@ -140,6 +152,8 @@ def auto_build_cbond(mol: Molecule, metal: Union[int, str], threshold: float = 0
         raise TypeError('metal should be the atomic_number(int), ato-mic_symbol(str) or an Atom object')
 
     assert metal.is_metal, f'{metal.symbol} is not a metal'
+    mol.add_hydrogens()
+    mol.force_remove_polar_hydrogens()
     if not metal in mol.atoms:
         assert len(mol.metals) == 0, "Only support identification of coordination pattern between a single metal and a ligand"
         metal = mol.add_atom(metal)
@@ -147,6 +161,9 @@ def auto_build_cbond(mol: Molecule, metal: Union[int, str], threshold: float = 0
     metal_idx = metal.idx
 
     mol_data = extract_cbond_inputs(mol)
+    if mol_data['cbond_index'].size == 0:
+        raise AttributeError(f'{mol} with zero cbond index!, cbond_index : {mol_data["cbond_index"].size} : {mol_data["cbond_index"].shape}')
+
     ligand_edge_index = mol_data['edge_index']
 
     pred_cb, cb_index, _ = cbond_prediction(mol_data)

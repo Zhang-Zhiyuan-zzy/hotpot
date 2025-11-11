@@ -1,11 +1,19 @@
+import itertools
 import os
 import json
 from typing import Union
+
+import numpy as np
 import periodictable
+import pandas as pd
 import openbabel.openbabel as ob
 
 
-__all__ = ['elements', "element_properties"]
+__all__ = [
+    'elements',
+    "element_properties",
+    "PropertiesSheet"
+]
 
 # TODO: Lacking ionic coordination radii, refer to https://www.matbd.cn/sjjs/userInfo/checkDataSet?dataset_id=5b60fc21-db0b-48d2-8c3a-8d993910d535&template_id=57&type=home
 cheminfo_dir = os.path.dirname(os.path.abspath(__file__))
@@ -29,6 +37,84 @@ _shared_prop = {
     'mohs_hardness', 'specific_heat', 'crystal_structure', 'stable_isotopes', 'discovery', 'young_modulus',
     'boiling_point', 'thermal_conductivity', 'atomic_number'
 }
+
+
+class PropertiesSheet:
+    def __init__(self, sheet: pd.DataFrame = None):
+        if sheet is None:
+            sheet = self._get_source_sheet()
+        self._sheet = sheet
+
+    def __getitem__(self, item):
+        return self._sheet.loc[item]
+
+    @staticmethod
+    def _get_source_sheet():
+        return pd.DataFrame(element_properties).T
+
+    def get_by_properties(self, properties: Union[str, list]):
+        return self._sheet.loc[properties, :]
+
+    def get_by_elements(self, ele: Union[str, list]):
+        return self._sheet.loc[:, ele]
+
+    def _separate_value_units(self, index: int = 0):
+        if index not in [0, 1]:
+            raise ValueError('index must be 0 (value) or 1 (units)')
+        prop_names = self._sheet.columns
+        elem_names = self._sheet.index
+        data = []
+        for p in range(len(prop_names)):
+            row_data = []
+            for e in range(len(elem_names)):
+                couple = self._sheet.iloc[e, p]
+                if isinstance(couple, list):
+                    assert len(couple) == 2, f'Error list of value {couple} for {elem_names[e]} and {prop_names[p]}'
+                    row_data.append(self._sheet.iloc[e, p][index])
+                else:
+                    assert isinstance(couple, float)
+                    assert np.isnan(couple), f'Error value {couple}, {type(couple)}'
+                    row_data.append('NaN')
+            data.append(row_data)
+        return pd.DataFrame(data, columns=prop_names, index=elem_names)
+
+    def drop_units(self):
+        return self._separate_value_units(0)
+
+    def get_units(self):
+        return self._separate_value_units(1)
+
+    def complete_values(self):
+        complete_properties = []
+        for p in self._sheet:
+            if all(isinstance(v, list) and len(v) == 2 and v[0] is not None for v in self._sheet[p].tolist()):
+                complete_properties.append(p)
+        return PropertiesSheet(self._sheet[complete_properties])
+
+    def number_values(self):
+        number_properties = []
+        for p in self._sheet:
+            if all(
+                isinstance(v, list) and len(v) == 2 and isinstance(v[0], (int, float))
+                for v in self._sheet[p].tolist()
+            ):
+                number_properties.append(p)
+        return PropertiesSheet(self._sheet[number_properties])
+
+
+    def shared_sheet(self):
+        return PropertiesSheet(self._sheet[list(_shared_prop)])
+
+    def normalize_sheet(self):
+        normalized_properties = []
+        for prop_name in self._sheet:
+            if all(
+                (isinstance(v, list) and len(v) == 2) or (isinstance(v, float) and np.isnan(v))
+                for v in self._sheet[prop_name].tolist()
+            ):
+                normalized_properties.append(prop_name)
+        return PropertiesSheet(self._sheet[normalized_properties])
+
 
 class Element:
     """

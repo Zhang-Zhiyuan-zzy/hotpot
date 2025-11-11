@@ -115,9 +115,10 @@ def mol2obmol(mol):
             int(bond_order)
         )
         obb = obmol.GetBond(row_to_idx[begin_atom_idx], row_to_idx[end_atom_idx])
-        obb.IsAromatic()
-        obb.SetAromatic(bool(bond.is_aromatic))  # Convert to bool
-        obb.IsAromatic()
+        if obb:  # TODO: the `obb` might a None, WHY??
+            obb.IsAromatic()
+            obb.SetAromatic(bool(bond.is_aromatic))  # Convert to bool
+            obb.IsAromatic()
 
     # Add UnitCell
     if mol.crystal:

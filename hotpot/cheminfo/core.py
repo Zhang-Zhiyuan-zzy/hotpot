@@ -472,9 +472,27 @@ class Molecule:
 
         return ori_atom
 
-    def auto_pair_metal(self, metal, threshold=0., greedy=True):
+    def build_all_pair_links(
+            self,
+            metal,
+            threshold=0.,
+            greedy=True,
+    ):
+        from .AImodels.cbond.apply import build_all_possible_cbond
+        return build_all_possible_cbond(self, metal, threshold, greedy)
+
+    def auto_pair_metal(
+            self,
+            metal,
+            threshold=0.,
+            greedy=True,
+            probability: bool = False
+    ) -> Union['Molecule', tuple['Molecule', float]]:
         from .AImodels.cbond.apply import auto_build_cbond
-        return auto_build_cbond(self, metal, threshold, greedy)
+        if probability:
+            return auto_build_cbond(self, metal, threshold, greedy)
+        else:
+            return auto_build_cbond(self, metal, threshold, greedy)[0]
 
     def replace_atom(
             self,
@@ -1305,7 +1323,7 @@ class Molecule:
     def components(self) -> list['Molecule']:
         """
         Fetches and returns the connected components of the molecule as a list of Molecule objects. 
-        Each component is a distinct connected substructure derived from the molecular graph.
+        Each component is a distinct-connected substructure derived from the molecular graph.
 
         Returns:
             list[Molecule]: A list of Molecule objects, each representing one connected component 
@@ -1976,6 +1994,9 @@ class Molecule:
         """
         self._rm_bonds(bonds)
         self._update_graph()
+
+    def force_remove_polar_hydrogens(self):
+        self.remove_atoms([a for a in self._atoms if a.is_polar_hydrogen])
 
     def remove_hydrogens(self):
         """
@@ -3058,6 +3079,7 @@ class Atom(MolBlock):
         neighbours = self.neighbours
         hydrogens = [a for a in neighbours if a.atomic_number == 1]
 
+        # Calculate the difference between current number and balance number of hydrogens
         if num is None:
             num = self.implicit_hydrogens - len(hydrogens)
             if self.polar_hydrogen_site:

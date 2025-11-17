@@ -29,7 +29,8 @@ import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff
 from . import geometry, crystal as cryst
-from .pubchem import smi_to_cid, smi_to_name, smi_to_cas
+from .pubchem import pubchem_service
+from .call_thermo import mol_to_thermo
 
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
@@ -601,15 +602,18 @@ class Molecule:
 
     @property
     def cid(self) -> Optional[int]:
-        return smi_to_cid(self.smiles)
+        return pubchem_service.smi_to_cid(self.smiles)
 
     @property
     def name(self) -> str:
-        return smi_to_name(self.smiles)
+        return pubchem_service.smi_to_name(self.smiles)
 
     @property
     def cas(self):
-        return smi_to_cas(self.smiles)
+        return pubchem_service.smi_to_cas(self.smiles)
+
+    def get_thermo(self, T: float = 298.15, P: float = 101325.0):
+        return mol_to_thermo(self, T, P)
 
     def clear_constraints(self) -> None:
         """ clear all set constraints """
@@ -2285,6 +2289,10 @@ class Molecule:
         return pb.readstring('mol2', pb.Molecule(self.to_obmol()).write('mol2')).write('can').split()[0]
         # return pb.readstring('smi', pb.Molecule(mol2obmol(self)[0]).write().strip()).write('can').strip()
         # return pb.Molecule(mol2obmol(self)[0]).write().strip()
+
+    @property
+    def kekulize_smiles(self) -> str:
+        return pb.readstring('mol2', pb.Molecule(self.to_obmol()).write('mol2')).write('can', opt={'k': None}).split()[0]
 
     @property
     def rings(self) -> list["Ring"]:

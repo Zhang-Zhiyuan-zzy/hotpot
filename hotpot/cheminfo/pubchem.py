@@ -14,7 +14,7 @@
 """
 import re
 from typing import Optional
-from functools import wraps
+from functools import wraps, lru_cache
 
 import pubchempy as pcp
 
@@ -26,7 +26,8 @@ __all__ = [
     'smi_to_name',
     'cid_to_smi',
     'name_to_smi',
-    'cid_to_cas'
+    'cid_to_cas',
+    'pubchem_service'
 ]
 
 @wraps(pcp.get_compounds)
@@ -88,15 +89,108 @@ def name_to_smi(name: str):
     return None
 
 
-if __name__ == '__main__':
-    import os.path as osp
-    import pandas as pd
-    path_data = osp.join(osp.abspath(osp.dirname(__file__)), 'ChemData', 'SolventsProperties.xlsx')
-    path_save = osp.join(osp.abspath(osp.dirname(__file__)), 'ChemData', 'Data2CAS.csv')
-    data2 = pd.read_excel(path_data, sheet_name='Data2')
+class PubChemService:
+    """
+    Unified wrapper around pubchempy for identifier conversion.
+    It supports CAS, SMILES, CID, and chemical names mapping.
+    Caches results to minimize network traffic.
+    """
 
-    cids = data2['Cid'].values.tolist()
-    list_cas = [cid_to_cas(cid) for cid in cids]
+    cas_regex = re.compile(r'^\d{2,7}-\d{2}-\d$')
 
-    series = pd.Series(list_cas, name='cas')
-    series.to_csv(path_save)
+    def __init__(self, verbose: bool = False):
+        self.verbose = verbose
+
+    # ------------------------------------------------------------
+    # Core get wrapper
+    # ------------------------------------------------------------
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def get_compound(identifier: str, id_type: str = 'name') -> Optional[pcp.Compound]:
+        """Fetch a compound by identifier (cached)."""
+        try:
+            compounds = pcp.get_compounds(identifier.strip(), id_type)
+            if compounds:
+                return compounds[0]
+        except Exception as e:
+            print(f"PubChem query failed for {identifier}: {e}")
+        return None
+
+    # ------------------------------------------------------------
+    # CAS extraction helpers
+    # ------------------------------------------------------------
+    @classmethod
+    def _extract_cas(cls, compound: pcp.Compound) -> Optional[str]:
+        """Extract CAS number from compound synonyms."""
+        if not compound:
+            return None
+        for syn in compound.synonyms or []:
+            if cls.cas_regex.match(syn):
+                return syn
+        return None
+
+    @staticmethod
+    def _extract_name(compound: pcp.Compound) -> Optional[str]:
+        """Extract a representative name (first synonym)."""
+        if compound and compound.synonyms:
+            return compound.synonyms[0]
+        return None
+
+    # ------------------------------------------------------------
+    # Conversion methods
+    # ------------------------------------------------------------
+    def name_to_smi(self, name: str) -> Optional[str]:
+        c = self.get_compound(name, 'name')
+        return c.canonical_smiles if c else None
+
+    def smi_to_cas(self, smiles: str) -> Optional[str]:
+        c = self.get_compound(smiles, 'smiles')
+        return self._extract_cas(c)
+
+    def smi_to_name(self, smiles: str) -> Optional[str]:
+        c = self.get_compound(smiles, 'smiles')
+        return self._extract_name(c)
+
+    def smi_to_cid(self, smiles: str) -> Optional[int]:
+        c = self.get_compound(smiles, 'smiles')
+        return c.cid if c else None
+
+    def cid_to_smi(self, cid: int) -> Optional[str]:
+        c = self.get_compound(str(cid), 'cid')
+        return c.canonical_smiles if c else None
+
+    def cid_to_cas(self, cid: int) -> Optional[str]:
+        c = self.get_compound(str(cid), 'cid')
+        return self._extract_cas(c)
+
+    def cid_to_name(self, cid: int) -> Optional[str]:
+        c = self.get_compound(str(cid), 'cid')
+        return self._extract_name(c)
+
+    def name_to_cid(self, name: str) -> Optional[int]:
+        c = self.get_compound(name, 'name')
+        return c.cid if c else None
+
+    # ------------------------------------------------------------
+    # Flexible conversion interface
+    # ------------------------------------------------------------
+    def convert(self, identifier: str, from_type: str, to_type: str) -> Optional[str]:
+        """
+        Generic conversion: convert(identifier, from_type, to_type)
+        e.g. convert('64-17-5', 'cas', 'smiles')
+        """
+        from_type, to_type = from_type.lower(), to_type.lower()
+        c = self.get_compound(identifier, from_type)
+        if not c:
+            return None
+
+        mapping = {
+            'cas': lambda x: self._extract_cas(x),
+            'smiles': lambda x: x.canonical_smiles,
+            'name': lambda x: self._extract_name(x),
+            'cid': lambda x: x.cid
+        }
+        return mapping[to_type](c) if to_type in mapping else None
+
+pubchem_service = PubChemService()
+

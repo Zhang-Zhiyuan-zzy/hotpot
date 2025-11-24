@@ -8,6 +8,7 @@ from copy import copy
 from tqdm import tqdm
 import random
 import multiprocessing as mp
+from hotpot.cheminfo.draw import draw_grid
 
 
 logging.basicConfig(level=logging.CRITICAL)
@@ -187,7 +188,7 @@ def main():
     # link_cb_mp()
 
 if __name__ == '__main__':
-    main()
+    # main()
     # with cProfile.Profile() as pr:
     #     main()
     # ps = pstats.Stats(pr)
@@ -196,3 +197,13 @@ if __name__ == '__main__':
     # # statistics_rings_size()
     # for item, count in apply.cbond_session_stat.items():
     #     print(item, count)
+
+    root_dir = '/mnt/d/zhang/OneDrive/Papers/BayesDesign/results'
+    ligand = hp.read_mol('O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NN=C(C(C)(C)CCC5(C)C)C5=N4)C=C3')
+    pairs, prob = ligand.build_all_pair_links('Am')
+    for i, p in enumerate(pairs):
+        p.complexes_build_optimize_()
+        p.write(osp.join(root_dir, 'pair' + str(i) + '.mol'), overwrite=True)
+        p.write(osp.join(root_dir, 'pair' + str(i) + '.sdf'), overwrite=True)
+
+    draw_grid(pairs, osp.join(root_dir, 'pair_Am' + '.svg'))

@@ -26,7 +26,7 @@ from examples.BayesianDesign.machines_config import (
     project_root
 )
 
-from modules.data_process import process_SclogK
+from modules.data_process import mp_process_SclogK
 
 
 def run_SclogK_process():
@@ -34,7 +34,7 @@ def run_SclogK_process():
     if not osp.exists(SclogK_data_dir):
         os.mkdir(SclogK_data_dir)
 
-    process_SclogK(
+    mp_process_SclogK(
         osp.join(project_root, 'raws_ds', 'ScData'),
         SclogK_data_dir,
         # store_metal_cluster=True

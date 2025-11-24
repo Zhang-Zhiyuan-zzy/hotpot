@@ -26,7 +26,6 @@
 
       "feature_extractors": {
         "AT": "atom",
-        "MT": "metal",
         "RA": "ring",
         "CB": "cbond",
         "BO": "bond",
@@ -35,7 +34,6 @@
       },
       "predictors": {
         "AT": "onehot",
-        "MT": "onehot",
         "RA": "binary",
         "CB": "binary",
         "BO": "onehot",
@@ -45,7 +43,6 @@
       "target_getters": {
         "AT": {"data_item": "x", "attrs":  "atomic_number"},
         "RA": {"data_item": "rings_attr", "attrs":  "is_aromatic"},
-        "MT": {"data_item": "x", "attrs":  "atomic_number", "condition_fn": "where_metal"},
         "CB": {"data_item": "is_cbond"},
         "BO": {"data_item": "edge_attr", "attrs": "bond_order"},
         "PSP": {"data_item": "pair_attr", "attrs": "length_shortest_path"},
@@ -53,7 +50,6 @@
       },
       "loss_fn": {
         "AT": "cross_entropy",
-        "MT": "cross_entropy",
         "RA": "binary_cross_entropy",
         "CB": "binary_cross_entropy",
         "BO": "cross_entropy",
@@ -62,7 +58,6 @@
       },
       "primary_metric": {
         "AT": "acc",
-        "MT": "macc",
         "RA": "bacc",
         "CB": "bacc",
         "BO": "acc",
@@ -77,7 +72,6 @@
       "feature_extractors": {
         "AT": "atom",
         "AC": "atom",
-        "MT": "metal",
         "PSP": "pair",
         "WBO": "pair",
         "xyzX": "atom"
@@ -85,7 +79,6 @@
       "predictors": {
         "AT": "onehot",
         "AC": "num",
-        "MT": "onehot",
         "PSP": "num",
         "WBO": "num",
         "xyzX": "xyz"
@@ -93,7 +86,6 @@
       "target_getters": {
         "AT": {"data_item": "x", "attrs":  "atomic_number"},
         "AC": {"data_item": "x", "attrs":  "partial_charge"},
-        "MT": {"data_item": "x", "attrs":  "atomic_number", "condition_fn": "where_metal"},
         "PSP": {"data_item": "pair_attr", "attrs":  "length_shortest_path"},
         "WBO": {"data_item": "pair_attr", "attrs": "wiberg_bond_order"},
         "xyzX": {"data_item": "x", "attrs":  ["x", "y", "z"]}
@@ -101,7 +93,6 @@
       "loss_fn": {
         "AT": "cross_entropy",
         "AC": "mse",
-        "MT": "cross_entropy",
         "PSP": "mse",
         "WBO": "mse",
         "xyzX": "amd"
@@ -109,7 +100,6 @@
       "primary_metric": {
         "AT": "acc",
         "AC": "r2",
-        "MT": "macc",
         "PSP": "r2",
         "WBO": "r2",
         "xyzX": "amd"

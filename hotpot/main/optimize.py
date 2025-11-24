@@ -6,7 +6,7 @@ python v3.9.0
 @Data   : 2024/8/27
 @Time   : 10:55
 """
-import os
+import ast
 import argparse
 from pathlib import Path
 from typing import *
@@ -18,6 +18,9 @@ from sklearn.manifold import TSNE, MDS
 from hotpot.plugins.opti.beyes.opti import draw_comics_map, next_params
 from hotpot.plugins.opti.ev.core import EvoluteOptimizer
 
+# ANSI colors
+RED = "\033[91m"
+RESET = "\033[0m"
 
 def _parse_params(params, columns: list, by_index) -> list[int]:
     indices = []
@@ -94,7 +97,46 @@ def _get_params_range(
         params_max = params.values.max(axis=0)
         params_range = params_max - params_min
 
-        return params.columns.tolist(), np.vstack((params_min-0.25*params_range, params_max+0.25*params_range)).T
+        param_names = params.columns.tolist()
+        param_space = np.vstack((params_min-0.25*params_range, params_max+0.25*params_range)).T
+
+        confirmed_space = []
+        for name, space in zip(param_names, param_space):
+            while True:
+                default_str = f"[{space[0]}, {space[1]}]"
+                prompt_msg = f"Specify space for {name} `[low,high]`, or `Enter` to confirm the default {default_str}: "
+
+                value = input(prompt_msg).strip()
+
+                # 1. Handle "Enter" (Default value)
+                if not value:
+                    confirmed_space.append(space)
+                    break
+
+                # 2. Handle User Input
+                try:
+                    # Using ast.literal_eval is safer than eval() for parsing string representations of lists/tuples
+                    parsed_value = ast.literal_eval(value)
+
+                    # Check if format is valid (List or Tuple, exactly 2 items, items are numbers)
+                    if (isinstance(parsed_value, (list, tuple)) and
+                            len(parsed_value) == 2 and
+                            all(isinstance(x, (int, float)) for x in parsed_value)):
+
+                        # Ensure low < high if strict range is required
+                        if parsed_value[0] > parsed_value[1]:
+                            print(f"{RED}Error: Low value cannot be greater than high value.{RESET}")
+                            continue
+
+                        confirmed_space.append(list(parsed_value))
+                        break
+                    else:
+                        print(f"{RED}Error: Input must be a list or tuple with exactly two numbers (e.g., [0.1, 0.5]).{RESET}")
+
+                except (ValueError, SyntaxError):
+                    print(f"{RED}Error: Invalid syntax. Please enter a valid list format (e.g., [1, 10]).{RESET}")
+
+        return param_names, np.array(confirmed_space)
 
     elif isinstance(params_space, str):
         params_space = params_space.split(',')
@@ -358,7 +400,7 @@ def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
                 params.values, target.values.flatten(),
                 param_names=list(params.columns),
                 param_range=np.array(param_ranges),
-                next_param_path=out_file.joinpath('next_params.xlsx'),
+                next_param_path=out_file.joinpath('next_params.csv'),
                 figpath=out_file.joinpath('params_mapping.png'),
                 mesh_counts=args.mesh,
                 log_indices=log_param_indices,

@@ -68,9 +68,10 @@ class ConfusionMatrix(Plot):
             pred: np.ndarray,
             target: np.ndarray,
             norm='true',
-            labels:tuple[str, str] = None,
             threshold: Optional[float] = None,
+            show_values: bool = False,
     ) -> None:
+        self.show_values = show_values
         if isinstance(threshold, float):
             self.threshold = threshold
         elif np.all(np.bitwise_and(pred >= 0, pred <= 1)):
@@ -80,24 +81,25 @@ class ConfusionMatrix(Plot):
 
         assert len(pred) == len(target), f"The pred shape {pred.shape} is not match the target shape {target.shape}"
         if pred.size == target.size:  # The binary pred score
+            self.labels = np.array([0, 1])
             self.pred = np.asarray(pred > self.threshold, dtype=int).flatten()
         else:  # MultiClasses, onehot pred score
+            self.labels = np.arange(pred.shape[1])
             self.pred = np.argmax(np.asarray(pred), axis=1)
 
         self.target = np.asarray(target).flatten()
 
-        self.categories = np.sort(np.unique(self.target))
-        self.num_classes = len(self.categories)
-
-        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize=norm, labels=labels)
+        self.confusion_matrix = confusion_matrix(self.target, self.pred, normalize=norm, labels=self.labels)
 
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         # Small constant to avoid log(0)
         im = ax.imshow(self.confusion_matrix, cmap="viridis")
-        _add_img_block_labels(ax, self.confusion_matrix)
+        if self.show_values:
+            _add_img_block_labels(ax, self.confusion_matrix)
 
-        ax.set_xticks((0, 1), minor=False, labels=['Negative', 'Positive'])
-        ax.set_yticks((0, 1), minor=False, labels=['Negative', 'Positive'])
+        if len(self.labels) < 10:
+            ax.set_xticks(np.arange(len(self.labels)), minor=False, labels=list(map(str, self.labels)))
+            ax.set_yticks(np.arange(len(self.labels)), minor=False, labels=list(map(str, self.labels)))
         ax.set_xlabel("Target")
         ax.set_ylabel("Predicted")
 
@@ -105,7 +107,7 @@ class ConfusionMatrix(Plot):
 
 
 class ROCCurve(Plot):
-    def __init__(self, pred: np.ndarray[int], target: np.ndarray[int]) -> None:
+    def __init__(self, pred: np.ndarray, target: np.ndarray) -> None:
         """
         Plot ROC curve on a matplotlib Axes.
 
@@ -182,20 +184,17 @@ class MultiClassROCCurve(Plot):
         # One-hot encode targets
         target_onehot = np.eye(self.n_classes)[self.target]
 
-        roc_curves = []
-        roc_aucs = []
+        self.roc_auc = {}
         for i in range(self.n_classes):
-            fpr, tpr, _ = roc_curve(target_onehot[:, i], pred[:, i])
-            roc_curves.append((fpr, tpr))
-
-            roc_auc = auc(fpr, tpr)
-            roc_aucs.append(roc_auc)
-        self.roc_curves, self.roc_aucs = roc_curves, roc_aucs
+            if len(np.unique(target_onehot[:, i])) == 2:
+                fpr, tpr, _ = roc_curve(target_onehot[:, i], pred[:, i])
+                roc_auc = auc(fpr, tpr)
+                self.roc_auc[i] = (fpr, tpr, roc_auc)
 
     def __call__(self, ax: plt.Axes, sciplot: SciPlotter = None):
         # Random baseline
         ax.plot([0, 1], [0, 1], 'k--', label="Random")
-        for i, ((fpr, tpr), roc_auc) in enumerate(zip(self.roc_curves, self.roc_aucs)):
+        for i, (fpr, tpr, roc_auc) in self.roc_auc.items():
             label = f"Class {i} (AUC = {roc_auc:.2f})" if self.class_names is None else f"{self.class_names[i]} (AUC = {roc_auc:.2f})"
             ax.plot(fpr, tpr, lw=2, label=label)
 
@@ -448,8 +447,8 @@ class R2Regression(Plot):
             )
             # ax.scatter(self.xy_highlight[0], self.xy_highlight[1], 200, c=self.ch, marker='*')
 
-        ax.set_xlabel(f'{self.target_name}' + f' ({self.unit})' if self.unit else '')
-        ax.set_ylabel(f'{self.prediction_name}' + f' ({self.unit})' if self.unit else '')
+        ax.set_xlabel(f'{self.target_name}' + f' ({self.unit})' if self.unit else self.target_name)
+        ax.set_ylabel(f'{self.prediction_name}' + f' ({self.unit})' if self.unit else self.prediction_name)
 
         ax.set_xlim(self.xy_lim[0], self.xy_lim[1])
         ax.set_ylim(self.xy_lim[0], self.xy_lim[1])

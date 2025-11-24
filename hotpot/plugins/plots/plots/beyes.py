@@ -56,12 +56,20 @@ class BayesDesignSpaceMap(SciPlotter):
                 c='r', marker='*', s=150
             )
 
+        if self.X_orig_idx is not None:
+            ax.scatter(
+                x[self.X_orig_idx[self.plot_index]],
+                y[self.X_orig_idx[self.plot_index]],
+                c='orange', marker='*', s=150
+            )
+
     def __init__(
             self,
             emb_x: Union[list[np.ndarray], np.ndarray],
             mus: Union[list[np.ndarray], np.ndarray],
             sigmas: Union[list[np.ndarray], np.ndarray],
             X_opti_idx: Union[list[np.ndarray], np.ndarray] = None,
+            X_orig_idx: Union[list[np.ndarray], np.ndarray] = None,
             to_coutourf=True,
             mesh_num=100,
             mu_norm: tuple[int, int] = None,
@@ -91,6 +99,8 @@ class BayesDesignSpaceMap(SciPlotter):
             sigmas = [sigmas]
         if X_opti_idx is not None and isinstance(X_opti_idx, (np.ndarray, torch.Tensor)):
             X_opti_idx = [X_opti_idx]
+        if X_orig_idx is not None and isinstance(X_orig_idx, (np.ndarray, torch.Tensor)):
+            X_orig_idx = [X_orig_idx]
 
         # Check whether the number of emb_x, mus, and sigmas are equal.
         if not (len(emb_x) == len(mus) == len(sigmas)):
@@ -99,6 +109,9 @@ class BayesDesignSpaceMap(SciPlotter):
         if X_opti_idx is not None and len(X_opti_idx) != len(emb_x):
             raise ValueError("the given X_opti_idx and emb_x must have the same length, "
                              f"got X_opti_idx: {len(X_opti_idx)} and emb_x: {len(emb_x)}")
+        if X_orig_idx is not None and len(X_orig_idx) != len(emb_x):
+            raise ValueError("the given X_orig_idx and emb_x must have the same length, "
+                             f"got X_opti_idx: {len(X_orig_idx)} and emb_x: {len(emb_x)}")
 
         self.plot_index = 0
         self.plots_num = len(emb_x)
@@ -107,6 +120,7 @@ class BayesDesignSpaceMap(SciPlotter):
         self.mus = mus
         self.sigmas = sigmas
         self.X_opti_idx = X_opti_idx
+        self.X_orig_idx = X_orig_idx
         self.to_coutourf = to_coutourf
         self.mesh_num = mesh_num
         self.cmap = colors.load_cmap(cmap)

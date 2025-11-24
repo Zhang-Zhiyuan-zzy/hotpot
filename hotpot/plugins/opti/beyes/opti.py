@@ -27,7 +27,7 @@ from hotpot.plugins.plots import BayesDesignSpaceMap
 
 class AcquisitionFunc:
     @staticmethod
-    def expected_improvement(m, sigma, ymax, eps: float = 0.01):
+    def expected_improvement(m, sigma, ymax, eps: float = 0.60):
         """Return the expected improvement.
 
         Arguments
@@ -36,7 +36,7 @@ class AcquisitionFunc:
                  the test points.
         ymax  -- The maximum observed value (so far).
         """
-        diff = m - ymax - eps
+        diff = m - ymax * (1+eps)
         u = diff / sigma
         ei = (diff * torch.distributions.Normal(0, 1).cdf(u) +
               sigma * torch.distributions.Normal(0, 1).log_prob(u).exp()
@@ -163,6 +163,8 @@ class BayesianOptimizer:
             X_opti_idx=None,
             n_iter=150,
             lr=0.1,
+            X_origin=None,
+            y_origin=None,
             emb_method=TSNE(),
             figpath=None,
             emb_x=None,
@@ -171,6 +173,17 @@ class BayesianOptimizer:
             to_coutourf: bool = True,
             cmap: str = 'Greys',
     ):
+        if X_origin is not None:
+            num_orig = len(X_origin)
+            if y_origin is not None:
+                assert len(y_origin) == num_orig
+
+            X_design = np.vstack([X_design, X_origin])
+            X_orig_idx = np.arange(num_orig) + len(X_design)
+
+        else:
+            X_orig_idx = None
+
         if not self.is_trained:
             self.gp_train(n_iter, lr)
 

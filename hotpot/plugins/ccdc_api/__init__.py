@@ -6,5 +6,5 @@ python v3.9.0
 @Data   : 2024/6/4
 @Time   : 20:19
 """
-import ccdc
-from ccdc import io
+# import ccdc
+# from ccdc import io

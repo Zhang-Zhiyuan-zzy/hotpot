@@ -1,0 +1,290 @@
+{
+  "PreTrain": {
+    "name_mapping": {
+    "AT": "AtomType",
+    "MT": "MetalType",
+    "RA": "RingAromatic",
+    "CB": "CBond",
+    "BO": "BondOrder",
+    "PSP": "PairShortestPath",
+    "WBO": "WibergBondOrder",
+    "xyzC": "XYZCrystal",
+    "AC": "AtomCharge",
+    "ME": "MolEnergy",
+    "MDs": "MolDisp",
+    "MMQ": "MolMetalQ",
+    "MH": "MolHl",
+    "MHM": "MolHOMO",
+    "MLM": "MolLOMO",
+    "MP": "MolPolar",
+    "xyzX": "xyzInXtb"
+  },
+    "mono": {
+      "options": {
+        "with_xyz": true
+      },
+
+      "feature_extractors": {
+        "AT": "atom",
+        "MT": "metal",
+        "RA": "ring",
+        "CB": "cbond",
+        "BO": "bond",
+        "PSP": "pair",
+        "xyzC": "atom"
+      },
+      "predictors": {
+        "AT": "onehot",
+        "MT": "onehot",
+        "RA": "binary",
+        "CB": "binary",
+        "BO": "onehot",
+        "PSP": "num",
+        "xyzC": "xyz"
+      },
+      "target_getters": {
+        "AT": {"data_item": "x", "attrs":  "atomic_number"},
+        "RA": {"data_item": "rings_attr", "attrs":  "is_aromatic"},
+        "MT": {"data_item": "x", "attrs":  "atomic_number", "condition_fn": "where_metal"},
+        "CB": {"data_item": "is_cbond"},
+        "BO": {"data_item": "edge_attr", "attrs": "bond_order"},
+        "PSP": {"data_item": "pair_attr", "attrs": "length_shortest_path"},
+        "xyzC": {"data_item": "x", "attrs":  ["x", "y", "z"]}
+      },
+      "loss_fn": {
+        "AT": "cross_entropy",
+        "MT": "cross_entropy",
+        "RA": "binary_cross_entropy",
+        "CB": "binary_cross_entropy",
+        "BO": "cross_entropy",
+        "PSP": "mse",
+        "xyzC": "amd"
+      },
+      "primary_metric": {
+        "AT": "acc",
+        "MT": "macc",
+        "RA": "bacc",
+        "CB": "bacc",
+        "BO": "acc",
+        "PSP": "r2",
+        "xyzC": "amd"
+      }
+    },
+    "tmqm": {
+      "options": {
+        "with_xyz": true
+      },
+      "feature_extractors": {
+        "AT": "atom",
+        "AC": "atom",
+        "MT": "metal",
+        "PSP": "pair",
+        "WBO": "pair",
+        "xyzX": "atom"
+      },
+      "predictors": {
+        "AT": "onehot",
+        "AC": "num",
+        "MT": "onehot",
+        "PSP": "num",
+        "WBO": "num",
+        "xyzX": "xyz"
+      },
+      "target_getters": {
+        "AT": {"data_item": "x", "attrs":  "atomic_number"},
+        "AC": {"data_item": "x", "attrs":  "partial_charge"},
+        "MT": {"data_item": "x", "attrs":  "atomic_number", "condition_fn": "where_metal"},
+        "PSP": {"data_item": "pair_attr", "attrs":  "length_shortest_path"},
+        "WBO": {"data_item": "pair_attr", "attrs": "wiberg_bond_order"},
+        "xyzX": {"data_item": "x", "attrs":  ["x", "y", "z"]}
+      },
+      "loss_fn": {
+        "AT": "cross_entropy",
+        "AC": "mse",
+        "MT": "cross_entropy",
+        "PSP": "mse",
+        "WBO": "mse",
+        "xyzX": "amd"
+      },
+      "primary_metric": {
+        "AT": "acc",
+        "AC": "r2",
+        "MT": "macc",
+        "PSP": "r2",
+        "WBO": "r2",
+        "xyzX": "amd"
+      }
+    },
+    "mono_ml_pair": {
+      "options": {
+        "with_xyz": true
+      },
+      "feature_extractors": {
+        "AT": "atom",
+        "MT": "metal",
+        "RA": "ring",
+        "CB": "cbond",
+        "BO": "bond",
+        "PSP": "pair",
+        "xyzC": "atom"
+      },
+      "predictors": {
+        "AT": "onehot",
+        "MT": "onehot",
+        "RA": "binary",
+        "CB": "binary",
+        "BO": "onehot",
+        "PSP": "num",
+        "xyzC": "xyz"
+      },
+      "target_getters": {
+        "AT": {"data_item": "x", "attrs":  "atomic_number"},
+        "RA": {"data_item": "rings_attr", "attrs":  "is_aromatic"},
+        "MT": {"data_item": "x", "attrs":  "atomic_number", "condition_fn": "where_metal"},
+        "CB": {"data_item": "is_cbond"},
+        "BO": {"data_item": "edge_attr", "attrs": "bond_order"},
+        "PSP": {"data_item": "pair_attr", "attrs": "length_shortest_path"},
+        "xyzC": {"data_item": "x", "attrs":  ["x", "y", "z"]}
+      },
+      "loss_fn": {
+        "AT": "cross_entropy",
+        "MT": "cross_entropy",
+        "RA": "binary_cross_entropy",
+        "CB": "binary_cross_entropy",
+        "BO": "cross_entropy",
+        "PSP": "mse",
+        "xyzC": "amd"
+      },
+      "primary_metric": {
+        "AT": "acc",
+        "MT": "macc",
+        "RA": "bacc",
+        "CB": "bacc",
+        "BO": "acc",
+        "PSP": "r2",
+        "xyzC": "amd"
+      }
+    },
+    "SclogK": {
+      "options": {
+        "with_xyz": false,
+        "with_sol": true,
+        "with_med": true
+      },
+      "feature_extractors": {
+        "logK": "mol"
+      },
+      "predictors": {
+        "logK": "num"
+      },
+      "target_getters": {
+        "logK": {"data_item": "y"}
+      },
+      "loss_fn": {
+        "logK": "mse"
+      },
+      "primary_metric": {
+        "logK": "r2"
+      }
+    }
+  },
+  "Refine": {
+    "mono_ml_pair": {
+      "options": {"with_xyz": false},
+      "feature_extractors": {"CB": "cbond"},
+      "predictors": {"CB": "binary"},
+      "target_getters": {"CB": {"data_item": "is_cbond"}},
+      "loss_fn": {"CB": "binary_cross_entropy"},
+      "primary_metric": {"CB": "f1"},
+      "other_metrics": {"CB": ["f1", "auc", "precision", "bacc", "recall"]}
+    },
+    "SclogK": {
+      "options": {
+        "with_xyz": false,
+        "with_sol": true,
+        "with_med": true
+      },
+      "feature_extractors": {
+        "logK": "mol"
+      },
+      "predictors": {
+        "logK": "num"
+      },
+      "target_getters": {
+        "logK": {"data_item": "y"}
+      },
+      "loss_fn": {
+        "logK": "mse"
+      },
+      "primary_metric": {
+        "logK": "r2"
+      }
+    },
+    "SclogK_with_cb": {
+      "options": {
+        "with_xyz": false,
+        "with_sol": true,
+        "with_med": true
+      },
+      "feature_extractors": {
+        "logK": "mol"
+      },
+      "predictors": {
+        "logK": "num"
+      },
+      "target_getters": {
+        "logK": {"data_item": "y"}
+      },
+      "loss_fn": {
+        "logK": "mse"
+      },
+      "primary_metric": {
+        "logK": "r2"
+      }
+    },
+    "GibbsBeta": {
+      "options": {
+        "with_xyz": false,
+        "with_sol": true,
+        "with_med": true
+      },
+      "feature_extractors": {
+        "logK": "mol"
+      },
+      "predictors": {
+        "logK": "num"
+      },
+      "target_getters": {
+        "logK": {"data_item": "y"}
+      },
+      "loss_fn": {
+        "logK": "mse"
+      },
+      "primary_metric": {
+        "logK": "r2"
+      }
+    },
+    "GibbsBeta_CB": {
+      "options": {
+        "with_xyz": false,
+        "with_sol": true,
+        "with_med": true
+      },
+      "feature_extractors": {
+        "logK": "mol"
+      },
+      "predictors": {
+        "logK": "num"
+      },
+      "target_getters": {
+        "logK": {"data_item": "y"}
+      },
+      "loss_fn": {
+        "logK": "mse"
+      },
+      "primary_metric": {
+        "logK": "r2"
+      }
+    }
+  }
+}

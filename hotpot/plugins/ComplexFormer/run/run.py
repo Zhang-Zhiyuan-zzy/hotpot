@@ -1,4 +1,7 @@
+import glob
 import os
+import shutil
+import logging
 import os.path as osp
 from typing import *
 import datetime
@@ -6,8 +9,13 @@ import warnings
 import traceback
 from operator import attrgetter
 
+from sklearn.exceptions import UndefinedMetricWarning
+
+import numpy as np
+import optuna
 import torch
 import torch.nn as nn
+from optuna import Trial
 from torch.optim import Optimizer
 
 import lightning as L
@@ -18,18 +26,17 @@ from lightning.pytorch import strategies
 from hotpot.utils import fmt_print
 from hotpot.utils.configs import setup_logging
 from .. import (
-    models as M,
     types as tp,
-    tools,
     tasks,
     configs,
     callbacks as cbs
 )
 from . import (
     run_tools as rt,
-    train
+    train,
 )
 from hotpot.plugins.ComplexFormer.data import DataModule
+from hotpot.plugins.opti import ParamSpace, ParamSets
 
 # Contract
 INPUT_X_ATTR = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
@@ -37,6 +44,7 @@ COORD_X_ATTR = ('x', 'y', 'z')
 
 
 # Handle the third-party warnings and errors
+warnings.filterwarnings('error', category=UndefinedMetricWarning)
 def _custom_warning_handler(message, category, filename, lineno, file=None, line=None):
     """ Custom warning handler which raises an exception. """
     # Get the traceback
@@ -45,95 +53,124 @@ def _custom_warning_handler(message, category, filename, lineno, file=None, line
     # Raise an error with details about the warning and its location
     raise RuntimeWarning(f"{message} in {filename} at line {lineno}\n\n\nTraceback:\n{''.join(tb)}")
 
-def init_model(
-        core,
-        task_kwargs: Union[dict, list[dict]],
-        task: Union[tasks.SingleTask, tasks.MultiTask, tasks.MultiDataTask],
-        optim_configure: configs.OptimizerConfigure,
-):
-    if isinstance(task_kwargs, list):
-        assert isinstance(task, tasks.MultiDataTask)
-        predictor = {}
-        for kw in task_kwargs:
-            predictor.update(kw['predictor'])
+
+############## Perform helpers #####################
+def _perform(
+        hypers: ParamSets,
+        config_args: tuple,
+        optim_kw: dict,
+        cbk_kw: dict,
+        work_name: str,
+        checkpoint_path: str,
+        work_dir: str,
+        save_model: bool,
+        epochs: int,
+        precision,
+        devices,
+        profiler,
+        stages,
+        dataModule,
+        target_metrics: Union[str, list[str], Callable[[dict], float]] = None,
+        overfit_test: bool = False,
+        debug: bool = False,
+) -> tuple[Optional[float], str]:
+    config_args = (hypers,) + config_args
+    core, task, task_kwargs = rt.config_task(*config_args)
+
+    # Initialize work directory
+    if save_model:
+        model_dir, logger = rt.init_model_dir(work_dir, task_kwargs, work_name)
     else:
-        predictor = task_kwargs['predictor']
+        model_dir, logger = None, None
 
-    return train.LightPretrain(core, predictor, task, optim_configure)
+    trainer, pl_module = rt.prepare_pl_trainer_module(
+        work_dir, model_dir, hypers, optim_kw,
+        task, task_kwargs, core, checkpoint_path,
+        stages, cbk_kw, logger, epochs, precision, devices, profiler,
+        overfit_test, debug
+    )
 
-def init_model_dir(work_dir, task_kwargs: Union[dict, list]):
-
-    if isinstance(task_kwargs, list):
-        task_name = f'MDTask({len(task_kwargs)})'
-    elif isinstance(task_kwargs, dict):
-        if isinstance(task_kwargs['task_name'], str):
-            task_name = task_kwargs['task_name']
-        elif isinstance(task_kwargs['task_name'], (list, tuple)):
-            task_name = f'MultiTask({len(task_kwargs["task_name"])})'
-        else:
-            raise ValueError(f'task_name must be str or Sequence, not {type(task_kwargs["task_name"])}')
-    else:
-        raise ValueError(f'task_kwargs must be a dict or list, not {type(task_kwargs)}')
-
-    model_dir = str(osp.join(work_dir, task_name))
-    logs_dir = osp.join(model_dir, "logs")
-
-    logger = pl_loggers.TensorBoardLogger(save_dir=logs_dir)
-
-    fmt_print.bold_dark_green(f'ModelDir: {model_dir}')
-    fmt_print.bold_dark_green(f'LogsDir: {logs_dir}')
-
-    return model_dir, logger
-
-
-def _train_callbacks(
-        early_stop_step, early_stopping, minimize_metric,
-        model, optim_configure, show_pbar, use_debugger,
-        **kwargs
-):
-    callbacks = []
-    # Configure EarlyStop
-    if isinstance(early_stopping, int) and early_stopping > 0:
-        early_stop_callback = EarlyStopping(
-            monitor=optim_configure.primary_monitor,  # Invoke and align the monitor with optimizer
-            mode='min' if minimize_metric else 'max',
-            patience=early_stop_step,
-        )
-        callbacks.append(early_stop_callback)
-
-    # Progress bar
-    if show_pbar:
-        progress_bar = cbs.Pbar()
-        callbacks.append(progress_bar)
-        model.show_pbar = True
-    else:
-        model.show_pbar = False
-    if use_debugger:
-        callbacks.append(cbs.Debugger())
-    if not callbacks:
-        callbacks = None
-    return callbacks
-
-def _test_callbacks(**kwargs):
-    """ NotImplemented """
-    return []
-
-def config_callbacks(stages: list[tp.Stages], **kwargs):
-    callbacks = []
     if 'train' in stages:
-        callbacks.extend(_train_callbacks(**kwargs))
+        trainer.fit(pl_module, datamodule=dataModule)
 
     if 'test' in stages:
-        callbacks.extend(_test_callbacks(**kwargs))
+        trainer.test(pl_module, datamodule=dataModule)
 
-    return callbacks
+        # Manually save checkpoints.ckpt
+        ckpt_dir = osp.join(trainer.logger.log_dir, 'checkpoints')
+        if not osp.exists(ckpt_dir):
+            os.makedirs(ckpt_dir)
+            trainer.save_checkpoint(osp.join(ckpt_dir, 'test_autosave.ckpt'))
+        elif not os.listdir(ckpt_dir):
+            trainer.save_checkpoint(osp.join(ckpt_dir, 'test_autosave.ckpt'))
+
+        # Calculate the target metrics
+        if target_metrics is None:
+            _target_metrics = None
+        elif isinstance(target_metrics, str):
+            _target_metrics = task.test_primary_metrics[target_metrics]
+        elif isinstance(target_metrics, list):
+            metrics_items = [task.test_primary_metrics[tm] for tm in target_metrics]
+            _target_metrics =  sum(metrics_items) / len(metrics_items)
+        elif isinstance(target_metrics, Callable):
+            _target_metrics = target_metrics(task.test_primary_metrics)
+        else:
+            raise TypeError('target_metrics must be a str, list of str, or a callable[[dict], float]')
+    else:
+        _target_metrics = None
+
+    # Rename the logdir, if the target_metric was calculated
+    if _target_metrics is not None and not np.isnan(_target_metrics):
+        logs_dir = logger.log_dir + f'_{round(_target_metrics, 3)}'
+        shutil.move(logger.log_dir, logs_dir)
+    else:
+        logs_dir = logger.log_dir
+
+    # Return Optional[test metrics] and log_dir
+    return _target_metrics, logs_dir
+
+
+def _external_test(
+        log_dir: str,
+        config_args: tuple,
+        optim_kw: dict,
+        cbk_kw: dict,
+        work_name: str,
+        work_dir: str,
+        epochs: int,
+        precision,
+        devices,
+        profiler,
+        stages,
+        dataModule,
+):
+    hypers = ParamSets.from_json(osp.join(log_dir, 'hparams.json'))
+    ckpt_path = glob.glob(osp.join(log_dir, 'checkpoints', '*.ckpt'))[0]
+
+    # Initialize work directory
+    model_dir = str(osp.join(work_dir, work_name))
+    logger = pl_loggers.TensorBoardLogger(
+        save_dir=log_dir,
+        version=f'external'
+    )
+
+    config_args = (hypers,) + config_args
+    core, task, task_kwargs = rt.config_task(*config_args)
+
+    trainer, pl_module = rt.prepare_pl_trainer_module(
+        work_dir, model_dir, hypers, optim_kw,
+        task, task_kwargs, core, ckpt_path,
+        stages, cbk_kw, logger, epochs, precision, devices, profiler,
+        overfit_test=False, debug=False
+    )
+    trainer.test(pl_module, datamodule=dataModule)
+
 
 def run(
         # Global information Arguments
         work_name: str,
         work_dir: str,
-        core: M.CoreBase,
-        hypers: Union[dict, tools.Hypers],
+        hypers: Union[ParamSets, ParamSpace],
 
         # DataModule Arguments
         dir_datasets: str,
@@ -142,6 +179,7 @@ def run(
         shuffle_dataset: bool = True,
         dataModule_seed: int = 315,
         data_split_ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
+        external_datasets: Union[str, Sequence[str]] = None,
 
         # Flow control Arguments
         stages: Optional[Union[tp.Stages, Iterable[tp.Stages]]] = None,
@@ -149,14 +187,14 @@ def run(
 
         # Training loop control
         epochs: int = 100,
+        batch_size: int = 512,
         early_stopping: bool = True,
         early_stop_step: int = 10,
-        freeze_core: Optional[bool] = None,
-        keep_grad_state: bool = False,
+        target_metrics: Union[str, list[str], Callable[[dict], float]] = None,
+        num_trials: int = 10,
 
         # Arguments of checkpoints
         checkpoint_path: Union[str, int] = None,
-        load_core_only: bool = True,
 
         # Optimizer configuration
         optimizer: Optional[Type[Optimizer]] = None,
@@ -203,6 +241,7 @@ def run(
         profiler="simple",
         show_pbar: bool = True,
         debug: bool = False,
+        overfit_test: bool = False,
         use_debugger: bool = False,
         warning_allowed: bool = True,
         **kwargs,
@@ -323,8 +362,11 @@ def run(
         None
     """
     setup_logging(debug=debug)
-    if debug:
-        epochs = 10
+    if debug or overfit_test:
+        epochs = 5
+        batch_num = 30
+    else:
+        batch_num = None
 
     # Set the warnings to be converted into errors
     if not warning_allowed:
@@ -349,6 +391,7 @@ def run(
     # Devices
     if devices is None:
         devices = 1
+
     assert isinstance(devices, (int, list, tuple)) or devices is None
     ###########################################################
     dataModule = DataModule(
@@ -357,27 +400,24 @@ def run(
         exclude_datasets,
         seed=dataModule_seed,
         ratios=data_split_ratios,
-        debug=debug,
-        batch_size=hypers.batch_size,
+        batch_num=batch_num,
+        batch_size=batch_size,
         shuffle=shuffle_dataset,
         devices=devices,
         num_replicas=devices,
         test_only=('test' in stages and 'train' not in stages),
     )
 
-    task, task_kwargs = rt.config_task(
-        batch_preprocessor, constant_lr, core, dataModule, extractor_attr_getter,
-        feature_extractor, hypers, inputs_getter, inputs_preprocessor, kwargs, loss_fn,
+    config_args = (
+        batch_preprocessor, constant_lr, dataModule, extractor_attr_getter,
+        feature_extractor, inputs_getter, inputs_preprocessor, kwargs, loss_fn,
         loss_fn_wrap_tasks, loss_weight_calculator, loss_weight_method, lr_scheduler,
         lr_scheduler_frequency, lr_scheduler_kwargs, mask_need_task, onehot_types,
         optimizer, other_metrics, predictor, primary_metrics, target_getter, task_names,
-        with_med, with_sol, with_xyz, work_name, x_masker, xyz_perturb_sigma
+        with_med, with_sol, with_xyz, work_name, x_masker, xyz_perturb_sigma, show_pbar
     )
 
-    # Configure optimizer and lr_scheduler
-    optim_configure = configs.OptimizerConfigure(
-        task=task,
-        hypers=hypers,
+    optim_kw = dict(
         optimizer=optimizer,
         constant_lr=constant_lr,
         lr_scheduler=lr_scheduler,
@@ -385,52 +425,108 @@ def run(
         lr_scheduler_frequency=lr_scheduler_frequency,
     )
 
-    # Initialize model
-    model = init_model(core, task_kwargs, task, optim_configure)
-
-    # Automatically loading Checkpoint
-    if isinstance(checkpoint_path, (int, str, os.PathLike)):
-        ckpt = rt.load_ckpt(work_dir, checkpoint_path)
-        rt.load_model_state_dict(model, ckpt)
-
-    # Initialize work directory
-    if save_model:
-        model_dir, logger = init_model_dir(work_dir, task_kwargs)
-    else:
-        model_dir, logger = None, None
-
-    ################### Callback configuration #########################
-    callbacks = config_callbacks(
-        stages,
+    cbk_kw = dict(
         early_stop_step=early_stop_step,
         early_stopping=early_stopping,
         minimize_metric=minimize_metric,
-        model=model,
-        optim_configure=optim_configure,
         show_pbar=show_pbar,
         use_debugger=use_debugger,
     )
-    ################## End of the Callbacks configure ###################
 
-    ######################## Run ############################
-    # Compile the model
-    torch.compile(model)
+    if isinstance(hypers, ParamSets):
+        logging.info(f"Single hyper-parameters running!")
+        _, logs_dir = _perform(
+            hypers, config_args, optim_kw, cbk_kw, work_name, checkpoint_path, work_dir,
+            save_model, epochs, precision, devices, profiler, stages, dataModule,
+            overfit_test=overfit_test, debug=debug
+        )
 
-    trainer = L.Trainer(
-        default_root_dir=model_dir,
-        logger=logger,
-        max_epochs=epochs,
-        callbacks=callbacks,
-        precision=precision,
-        accelerator='cuda',
-        devices=devices,
-        strategy=strategies.DDPStrategy(find_unused_parameters=True, timeout=datetime.timedelta(seconds=6000)),
-        use_distributed_sampler=False,
-        profiler = profiler
-    )
+        # External datasets for test
+        if isinstance(external_datasets, str):
+            externalModule = DataModule(
+                dir_datasets,
+                external_datasets,
+                seed=dataModule_seed,
+                ratios=(0., 0., 1.),
+                batch_num=batch_num,
+                batch_size=batch_size,
+                shuffle=shuffle_dataset,
+                devices=devices,
+                num_replicas=devices,
+                test_only=True,
+            )
 
-    if 'train' in stages:
-        trainer.fit(model, datamodule=dataModule)
+            _external_test(
+                logs_dir, config_args, optim_kw, cbk_kw, work_name, work_dir,
+                epochs, precision, devices, profiler, stages, externalModule
+            )
+        return None
 
-    if 'test' in stages:
-        trainer.test(model, datamodule=dataModule)
+    elif isinstance(hypers, ParamSpace):
+        logging.info(f"Multiple hyper-parameters optimization!")
+        if target_metrics is None:
+            raise ValueError("target_metrics must be given in the hyper-parameters optimization!")
+
+        best_logdir = None
+        best_metric = -float('inf')
+        def opti_objective(hparams_space: ParamSpace):
+            def objective(trial: Trial):
+                nonlocal best_logdir, best_metric
+
+                hyper = ParamSets(hparams_space.copy_to_optuna_trial(trial))
+
+                try:  # This is just work for single target metrics
+                    metric, logdir =  _perform(
+                        hyper, config_args, optim_kw, cbk_kw, work_name, checkpoint_path, work_dir,
+                        save_model, epochs, precision, devices, profiler, stages, dataModule,
+                        target_metrics=target_metrics, overfit_test=False
+                    )
+                except tasks.NaNMetricError:
+                    return -10000.
+                except RuntimeError:
+                    return -10000.
+
+                if np.isnan(metric):
+                    return -10000.
+                else:
+                    if metric > best_metric:
+                        best_metric = metric
+                        best_logdir = logdir
+
+                    return metric
+
+            study = optuna.create_study(
+                direction='maximize',
+                sampler=optuna.samplers.GPSampler()
+            )
+            study.optimize(objective, n_trials=num_trials)
+            print(f"Best params: {study.best_params}")
+            print(f"Best metrics: {study.best_value}")
+
+            return study
+
+        res_study = opti_objective(hypers)
+
+        # External datasets for test
+        if isinstance(external_datasets, str) and isinstance(best_logdir, str):
+            externalModule = DataModule(
+                dir_datasets,
+                external_datasets,
+                seed=dataModule_seed,
+                ratios=(0., 0., 1.),
+                batch_num=batch_num,
+                batch_size=batch_size,
+                shuffle=shuffle_dataset,
+                devices=devices,
+                num_replicas=devices,
+                test_only=True,
+            )
+
+            _external_test(
+                best_logdir, config_args, optim_kw, cbk_kw, work_name, work_dir,
+                epochs, precision, devices, profiler, stages, externalModule
+            )
+        return res_study
+
+    else:
+        raise TypeError(f'Unknown hyper-type: {type(hypers)}')

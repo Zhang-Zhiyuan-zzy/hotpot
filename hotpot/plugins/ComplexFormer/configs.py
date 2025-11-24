@@ -10,6 +10,7 @@ from torch_geometric.data import Data
 
 import lightning as L
 
+from hotpot.plugins.opti.params_space import ParamSets
 from . import (
     types as tp,
     models as M,
@@ -168,7 +169,14 @@ def _specify_onehot_type(onehot_type: Optional[Union[int, dict[str, int]]], pred
     return onehot_type, _default_oht
 
 # Predictor
-def _str2callable_predictor(predictor: Union[str, Callable], core, onehot_type=None, **kwargs):
+def _str2callable_predictor(
+        predictor: Union[str, Callable],
+        core: M.CoreBase,
+        onehot_type=None,
+        hid_dim: int = 1024,
+        num_layers: int = 4,
+        **kwargs
+):
     if isinstance(predictor, Callable):
         return predictor
     elif isinstance(predictor, str):
@@ -178,9 +186,23 @@ def _str2callable_predictor(predictor: Union[str, Callable], core, onehot_type=N
                     'The default `onehot_type=119` for onehot predictor,'
                     'but explicitly specify the onehot_type is recommended.'))
                 onehot_type = 119
-            return M.Predictor(core.vec_size, 'onehot', onehot_type=onehot_type, **kwargs)
+            return M.Predictor(
+                core.vec_size,
+                'onehot',
+                onehot_type=onehot_type,
+                hidden_dim=hid_dim,
+                num_layers=num_layers,
+                **kwargs
+            )
         elif predictor in ('xyz', 'binary', 'num'):
-            return M.Predictor.link_with_core_module(core, predictor, **kwargs)
+            return M.Predictor(
+                core.vec_size,
+                predictor,
+                hidden_dim=hid_dim,
+                num_layers=num_layers,
+                **kwargs
+            )
+            # return M.Predictor.link_with_core_module(core, predictor, **kwargs)
         else:
             raise ValueError(f'Unknown predictor type: {predictor}')
     else:
@@ -190,6 +212,7 @@ def _specify_predictors(
         task_name: Union[str, Sequence[str]],
         core: M.CoreBase,
         predictors: tp.PredictorInput,
+        hypers: ParamSets,
         onehot_type: Optional[Union[int, dict[str, int]]] = None,
         **kwargs
 ):
@@ -211,7 +234,14 @@ def _specify_predictors(
             ValueError(f'Unknown predictor types!')
 
     elif isinstance(predictors, (M.Predictor, Callable, str)):
-        return _str2callable_predictor(predictors, core, onehot_type, **kwargs)
+        return _str2callable_predictor(
+            predictors,
+            core,
+            onehot_type,
+            hid_dim=getattr(hypers, 'HIDDEN_DIM', 1024),
+            num_layers=getattr(hypers, 'HIDDEN_LAYERS', 4),
+            **kwargs
+        )
 
     elif isinstance(predictors, (list, tuple)):
         # If the given predictor is a Sequence, convert the Sequence one to dict one.
@@ -224,7 +254,13 @@ def _specify_predictors(
     if isinstance(predictors, dict):
         onehot_type, _default_oht = _specify_onehot_type(onehot_type, predictors)
         return {
-            name: _str2callable_predictor(predictor, core, onehot_type.get(name, _default_oht), **kwargs)
+            name: _str2callable_predictor(
+                predictor, core,
+                onehot_type.get(name, _default_oht),
+                hid_dim=getattr(hypers, 'HIDDEN_DIM', 1024),
+                num_layers=getattr(hypers, 'NUM_LAYERS', 4),
+                **kwargs
+            )
             for name, predictor in predictors.items()}
     else:
         raise TypeError(f"`predictors` should be a str|Callable, or a Sequence|dict of str|Callable")
@@ -446,7 +482,7 @@ def _wrap_loss_fn_with_metric(
         lofn_wrap_metric_weights: Optional[Union[float, dict[str, float]]] = None,
         **kwargs
 ):
-    # SingleTask mode
+    # SingleTask mode, the `primary_metrics` should be a str
     if isinstance(primary_metrics, str):
         assert isinstance(task_names, str), (f'task_names is a str which indicates a SingleTask mode, '
                                              f'do not match the type of primary_metrics `{type(primary_metrics)}`')
@@ -458,6 +494,9 @@ def _wrap_loss_fn_with_metric(
         assert isinstance(lofn_wrap_metric_weights, (float, int)), 'The `wrap_metric_weights` should be a float in SingleTask mode'
         assert primary_metrics in metrics and isinstance(metrics[primary_metrics], Callable)
 
+        # Specify the wrapping metrics for loss_fn:
+        #     1. if the `lofn_wrap_metric_names` is given as a str, the wrapping metric the give name.
+        #     2. if the `lofn_wrap_metric_names` is not given, the primary metrics would be the one.
         assert lofn_wrap_metric_names is None or isinstance(lofn_wrap_metric_names, str)
         if isinstance(lofn_wrap_metric_names, str):
             assert lofn_wrap_metric_names in metrics
@@ -474,6 +513,8 @@ def _wrap_loss_fn_with_metric(
         _align_task_names('metrics', metrics, task_names, lambda v: isinstance(v, dict))
         _align_task_names('loss_fn', loss_fn, task_names, lambda v: isinstance(v, Callable))
         assert all(pmn in metrics[tn] for tn, pmn in primary_metrics.items())
+
+        # Specify the metric-wrapping Weight
         if lofn_wrap_metric_weights is None:
             lofn_wrap_metric_weights = {}
             _default_weight = 1.0
@@ -491,6 +532,7 @@ def _wrap_loss_fn_with_metric(
         else:
             raise TypeError(f'the `wrap_metric_weights` should be a float, int or dict')
 
+        # Specify which tasks will be wrapped
         if isinstance(lofn_wrap_tasks, str):
             lofn_wrap_tasks = [lofn_wrap_tasks]
         elif isinstance(lofn_wrap_tasks, (set, list, tuple)):
@@ -501,8 +543,9 @@ def _wrap_loss_fn_with_metric(
         else:
             raise TypeError(f'the `wrapping_tasks` should be a str or a sequence of str')
 
+        # Specify the metrics names to wrap the loss_fn
         if lofn_wrap_metric_names is None:
-            wrap_mtrc = {}
+            wrap_mtrc = {}  # The primary_metrics will be set in the case
         elif isinstance(lofn_wrap_metric_names, dict):
             assert (tsk_name in metrics for tsk_name in lofn_wrap_metric_names)
             assert (mtr_name in metrics[tsk_name] for tsk_name, mtr_name in lofn_wrap_metric_names.items())
@@ -537,7 +580,7 @@ def _specify_test_plot_maker(
         raise NotImplementedError
 
 # Specify x masker
-_default_mask_task = ['AtomType']
+_default_mask_task = ['AT']
 def _specify_masker(
         task_names: Union[str, Sequence[str]],
         x_masker: Union[bool, str, Callable[[tuple], tuple[tuple, Optional[torch.Tensor]]]],
@@ -556,7 +599,7 @@ def _specify_masker(
                 return None
 
         if isinstance(task_names, (list, tuple)):  # default to mask atom types
-            return lambda inp: M.mask_atom_type(inp, core.x_mask_vec)
+            return lambda inp: M.mask_atom_type(inp, core.node_mask)
 
     elif isinstance(x_masker, Callable):
         return x_masker
@@ -662,15 +705,14 @@ def _specify_inputs_preprocessor(
         core: M.CoreBase,
         input_x_index: Optional[Union[list[int], torch.Tensor]] = None
 ):
-    labeled_x: bool = isinstance(getattr(core, 'x_label_nums', None), int)
     if isinstance(inputs_preprocessor, Callable):
         return inputs_preprocessor
-    elif labeled_x:
+    elif core.emb_type == 'atom':
         return wraps(M.get_x_input_attrs)(lambda inp: M.get_x_input_attrs(inp, input_x_index=0, dtype=torch.int))
-    elif isinstance(input_x_index, (list, torch.Tensor)):
-        return wraps(M.get_x_input_attrs)(lambda inp: M.get_x_input_attrs(inp, input_x_index=input_x_index))
+    elif core.emb_type == 'orbital':
+        return wraps(M.get_x_input_attrs)(lambda inp: M.get_x_input_attrs(inp, input_x_index=list(range(7)), dtype=torch.int))
     else:
-        return None
+        return wraps(M.get_x_input_attrs)(lambda inp: M.get_x_input_attrs(inp, input_x_index=list(range(7))))
 
 def _specify_xyz_index(
         first_data: Union[Data, Iterable[Data]],
@@ -713,6 +755,7 @@ def _config_task_args(
         inputs_preprocessor: Optional[Callable],
         feature_extractor,
         core,
+        hypers: ParamSets,
         predictor: M.Predictor,
         loss_fn,
         primary_metrics,
@@ -738,7 +781,7 @@ def _config_task_args(
     task_names, target_getter = _specify_target_getter(task_names, target_getter, first_data)
 
     # Specify default predictor
-    predictor = _specify_predictors(task_names, core, predictor)
+    predictor = _specify_predictors(task_names, core, predictor, hypers)
 
     # Specify default feature extractor
     feature_extractor = _specify_feature_extractor(task_names, feature_extractor, core)
@@ -763,9 +806,9 @@ def _config_task_args(
 
     # Specify x masker
     x_masker = _specify_masker(task_names, x_masker, core)
-    if not isinstance(task_names, (list, tuple)):
-        mask_need_task = None
-    elif mask_need_task is None:
+    # if not isinstance(task_names, (list, tuple)):
+    #     mask_need_task = None
+    if mask_need_task is None:
         mask_need_task = [t for t in task_names if t in _default_mask_task]
     elif isinstance(mask_need_task, (list, tuple)):
         assert all(mt in task_names for mt in mask_need_task), 'All `mask_need_task` should in the task_names list'
@@ -866,7 +909,7 @@ def config_tasks_from_multi_datasets(
         loss_fn: list[dict[str, tp.LossFn]],
         primary_metrics: list[dict[str, str]],
         other_metrics: Union[dict[str, Union[str, Iterable[str], tp.MetricFn]], list[tp.OtherMetricConfig]],
-        hypers: Union[tools.Hypers, list[tools.Hypers]],
+        hypers: Union[ParamSets, list[ParamSets]],
         task_names: Optional[list[Sequence[str]]] = None,
         batch_preprocessor: Optional[list[tp.BatchPreProcessor]] = None,
         inputs_preprocessor: Optional[list[Callable]] = None,
@@ -944,6 +987,7 @@ def config_tasks_from_multi_datasets(
             target_getter=target_getter[i],
             feature_extractor=feature_extractor[i],
             core=core,
+            hypers=hypers[i],
             predictor=predictor[i],
             loss_fn=loss_fn[i],
             primary_metrics=primary_metrics[i],
@@ -985,7 +1029,7 @@ def config(
         loss_fn,
         primary_metrics,
         other_metrics: Union[tp.OtherMetricConfig, list[tp.OtherMetricConfig]],
-        hypers: tools.Hypers,
+        hypers: ParamSets,
         batch_preprocessor: Optional[list[tp.BatchPreProcessor]] = None,
         inputs_preprocessor: Optional[list[Callable]] = None,
         with_xyz: Optional[Union[bool, Iterable[bool]]] = None,
@@ -1015,6 +1059,7 @@ def config(
             target_getter=target_getter,
             feature_extractor=feature_extractor,
             core=core,
+            hypers=hypers,
             predictor=predictor,
             loss_fn=loss_fn,
             primary_metrics=primary_metrics,
@@ -1085,39 +1130,47 @@ def config(
 class OptimizerConfigure:
     def __init__(
             self,
-            task: tasks.BaseTask,
-            hypers: tools.Hypers,
+            lr: float = 1e-3,
+            weight_decay: float = 1e-5,
             optimizer: Optional[Type[Optimizer]] = None,
             constant_lr: bool = False,
             lr_scheduler_frequency: int = 2,
             lr_scheduler: Optional[Type[torch.optim.lr_scheduler.LRScheduler]] = None,
             lr_scheduler_kwargs: Optional[dict] = None,
-            monitor: str = None,
+            primary_monitor: str = None,
+            task: tasks.BaseTask = None,
     ):
-        self.task = task
-        self.hypers = hypers
-
         # Optimizer and lr_schedular
+        self.lr = lr
+        self.weight_decay = weight_decay
         self.optimizer = optimizer if optimizer is not None and issubclass(optimizer, Optimizer) else Adam
         self.lr_scheduler = lr_scheduler
         self.lr_scheduler_frequency = lr_scheduler_frequency
         self.constant_lr = constant_lr
         self.lrs_kwargs = lr_scheduler_kwargs if isinstance(lr_scheduler_kwargs, dict) else {}
 
-    @property
-    def primary_monitor(self) -> str:
-        if isinstance(self.task, tasks.SingleTask):
-            return self.task.primary_metric
-        elif isinstance(self.task, (tasks.MultiTask, tasks.MultiDataTask)):
+        if isinstance(primary_monitor, str):
+            self.primary_monitor = primary_monitor
+        elif isinstance(task, tasks.BaseTask):
+            self.primary_monitor = self.parse_primary_monitor_from_task_type(task)
+        else:
+            raise NotImplementedError(f"Unknown monitor type {primary_monitor}.")
+
+    @staticmethod
+    def parse_primary_monitor_from_task_type(task):
+        if isinstance(task, tasks.SingleTask):
+            return task.primary_metric
+        elif isinstance(task, (tasks.MultiTask, tasks.MultiDataTask)):
             return 'smtrc'
         else:
-            raise NotImplementedError(f"task type is not defined: {type(self.task)}")
+            raise NotImplementedError(f"task type is not defined: {type(task)}")
+
 
     def __call__(self, pl_module: L.LightningModule):
         optimizer = self.optimizer(
             pl_module.parameters(),
-            lr=self.hypers.lr,
-            weight_decay=self.hypers.weight_decay
+            lr=self.lr,
+            weight_decay=self.weight_decay
         )
 
         if self.constant_lr:

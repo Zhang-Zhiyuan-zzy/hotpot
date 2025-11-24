@@ -53,14 +53,6 @@ class TargetGetter:
             raise type(e)(msg)
 
 
-class Hypers:
-    """ A handle of hyperparameters. """
-    def __init__(self):
-        self.lr = 1e-3
-        self.weight_decay = 4e-5
-        self.batch_size = 256
-
-
 def get_index(first_data, data_item: str, attrs: Union[str, Iterable[str]] = None) -> Union[int, list[int]]:
     try:
         item_names = first_data[f"{data_item}_names"]

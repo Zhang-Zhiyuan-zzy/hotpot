@@ -109,6 +109,7 @@ class OnFlyLoadingDataset(Dataset):
 class PathStoredDataset(Dataset):
     def __init__(self, data_files: list['str']):
         self.data_files = data_files
+        self.data = {}
 
     def __len__(self) -> int:
         return len(self.data_files)

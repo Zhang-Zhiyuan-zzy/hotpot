@@ -9,6 +9,7 @@ import numpy as np
 
 from hotpot.cheminfo.elements import elements
 
+electron_config_tensor = torch.cat((torch.arange(0, 120).unsqueeze(-1), torch.tensor(elements.electron_configs)), dim=1)
 
 ################################ Onehot Encode ###############################################
 def norm_binary_to_zero_one(inp_vec: Union[torch.Tensor, np.ndarray]) -> Union[np.ndarray, torch.Tensor]:
@@ -128,17 +129,16 @@ def get_labeled_x_input_attrs(inputs, input_x_index: Union[list, torch.Tensor]=N
 def _to_mask(
         inp_vec: torch.Tensor,
         masked_idx: torch.Tensor,
-        mask_vec: torch.Tensor,
+        mask: Union[int, torch.Tensor],
         inp_atom_labels: torch.Tensor,
-        label_mask: bool = False,
-        to_mask_label: int = 0
+        vocab_sheet: torch.Tensor,
 ):
     """
     Given an input vector and the index which to be masked, return the masked vector and masked labels.
     Args:
         inp_vec (torch.Tensor): the input vector (i.e., representing vector)
         masked_idx (torch.Tensor): the index to be masked.
-        mask_vec (torch.Tensor): the masking vector to replace the original vectors.
+        mask (torch.Tensor): The masked label or vector.
         inp_atom_labels (torch.Tensor): the input labels (i.e., targets or labels)
         label_mask (bool）: whether the input vectors are (n-dim) continuous or (1-dim) discrete.
         to_mask_label (int): used when label_mask is True, specify which label index to be the masking label.
@@ -150,28 +150,18 @@ def _to_mask(
     # Set input to [MASK] which is the last token for the 90% of tokens
     # This means leaving 10% unchanged
     mask2mask_idx = masked_idx & (torch.rand(inp_vec.shape[0]) < 0.90).to(inp_vec.device)
-    masked_vec[mask2mask_idx] = to_mask_label if label_mask else mask_vec # mask token is the last in the dict
+    masked_vec[mask2mask_idx] = torch.as_tensor(mask, dtype=masked_vec.dtype).to(masked_vec.device)
 
     # Set 10% to a random token
     mask2rand_idx = mask2mask_idx & (torch.rand(inp_vec.shape[0]) < 1 / 9).to(inp_vec.device)
-    masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
+    # masked_vec[mask2rand_idx] = inp_vec[torch.randint(0, len(inp_vec), (torch.sum(mask2rand_idx),))]
+    masked_vec[mask2rand_idx] = vocab_sheet[torch.randint(0, vocab_sheet.shape[0], (torch.sum(mask2rand_idx), ))].to(masked_vec.device)
 
     return masked_vec, atom_labels, masked_idx
 
 metal_index = torch.tensor(list(elements.metal | elements.metalloid_2nd))
-def masked_metal(
-        inp_vec: torch.Tensor,
-        mask_vec: torch.Tensor,
-        inp_atom_labels: torch.Tensor,
-        label_mask: bool = False,
-        to_mask_label: int = 0
-):
-    masked_idx = torch.isin(inp_vec[0], metal_index.to(inp_vec.device))
-    return _to_mask(inp_vec, masked_idx, mask_vec, inp_atom_labels, label_mask, to_mask_label)
-
-
 def _select_atom_type_index(inp_vec: torch.Tensor, inp_labels: torch.Tensor):
-    # 15% BERT masking
+    # 10% atoms to mask
     masked_idx = torch.from_numpy(np.random.uniform(size=inp_vec.shape[0]) < 0.10).to(inp_vec.device)
     # Randomly select 40% metals to mask
     masked_metal_idx = _select_metal_type_index(inp_vec, inp_labels, 0.4)
@@ -198,37 +188,30 @@ def get_masked_input_and_labels(
 # Decorator for masker function applying for pretrain workflow
 def _masker_func(mask_idx_getter: Callable):
     def decorator(signature_func: Callable):
-        define_sign = {'inputs': tuple, 'masked_vec': torch.Tensor}
+        define_sign = {'inputs': tuple, 'node_mask': Union[torch.Tensor, int]}
         signature = inspect.signature(signature_func)
         # Check the signature
         for i, ((sn, sp), (dn, dp)) in enumerate(zip(signature.parameters.items(), define_sign.items())):
             if sn != dn:
                 raise ValueError(f'The {i}th signature parameter name should be {dn}, but got {sn}')
-            elif not issubclass(sp.annotation, dp):
-                raise ValueError(f'The {i}th signature parameter type should be {dp}, but got {sp.annotation}')
+            # elif not issubclass(sp.annotation, dp):
+            #     raise ValueError(f'The {i}th signature parameter type should be {dp}, but got {sp.annotation}')
 
         @wraps(signature_func)
-        def wrapper(inputs: tuple, masked_vec: torch.Tensor, *, to_mask_label: int = 0):
+        def wrapper(inputs: tuple, node_mask: Union[int, torch.Tensor]):
             x = inputs[0]
-            if x.dim() == 2:
-                masked_x, atom_label, masked_node_idx = (
-                    _to_mask(
-                        x,
-                        mask_idx_getter(x, x[:, 0].long()),
-                        masked_vec,
-                        x[:, 0].long(),
-                        to_mask_label=to_mask_label
-                    ))
+            if x.ndim == 2:
+                inp_labels = x[:, 0].long()
+                masked_idx = mask_idx_getter(x, x[:, 0].long())
+                vocab_sheet = electron_config_tensor[1:104].int()
             else:
-                masked_x, atom_label, masked_node_idx = (
-                    _to_mask(
-                        inputs[0],
-                        mask_idx_getter(x, x.long()),
-                        masked_vec,
-                        x.long(),
-                        label_mask=True
-                    ))
-            # Return wrapper
+                inp_labels = x
+                masked_idx = mask_idx_getter(x, x.long())
+                vocab_sheet = torch.arange(1, 104).int()
+
+            masked_x, atom_label, masked_node_idx = (
+                _to_mask(x, masked_idx, node_mask, inp_labels, vocab_sheet))
+
             return (masked_x,) + inputs[1:], masked_node_idx
 
         # Return of decorator
@@ -239,13 +222,12 @@ def _masker_func(mask_idx_getter: Callable):
 
 ###################### Masker Signature Functions ##############################################
 @_masker_func(_select_atom_type_index)
-def mask_atom_type(inputs: tuple, masked_vec: torch.Tensor, *, to_mask_label: int = 0):
+def mask_atom_type(inputs: tuple, node_mask: Union[int, torch.Tensor]):
     """
     A masker function to mask the atom types of input nodes features.
     Args:
         inputs (tuple): the input node features (i.e., representing node features),
-        masked_vec (torch.Tensor): the masking vector,
-        to_mask_label (int): used when label_mask is True, specify which label index to be the masking label.
+        node_mask (torch.Tensor): the masking vector or label
 
     Returns:
         (tuple): the masked node features (i.e., representing node features) and other input information.
@@ -253,13 +235,12 @@ def mask_atom_type(inputs: tuple, masked_vec: torch.Tensor, *, to_mask_label: in
     """
 
 @_masker_func(_select_metal_type_index)
-def mask_metal_type(inputs: tuple, masked_vec: torch.Tensor, *, to_mask_label: int = 0):
+def mask_metal_type(inputs: tuple, node_mask: Union[int, torch.Tensor]):
     """
     A masker function to mask the metal types of input nodes features.
     Args:
         inputs (tuple): the input node features (i.e., representing node features),
-        masked_vec (torch.Tensor): the masking vector,
-        to_mask_label: used when label_mask is True, specify which label index to be the masking label.
+        node_mask (torch.Tensor): the masking vector or label
 
     Returns:
         (tuple): the masked node features (i.e., representing node features) and other input information.

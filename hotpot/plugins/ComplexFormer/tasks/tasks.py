@@ -21,6 +21,7 @@ from torch_geometric.data import Batch
 
 import lightning as L
 
+import hotpot.plugins.opti.params_space
 from hotpot.utils import fmt_print
 from hotpot.plugins.ComplexFormer import (
     types as tp,
@@ -28,6 +29,17 @@ from hotpot.plugins.ComplexFormer import (
     tools,
 )
 
+
+__all__ = [
+    'specify_task_types',
+    'specify_single_dataset_task',
+    'NaNMetricError',
+    'BaseTask',
+    'Task',
+    'SingleTask',
+    'MultiTask',
+    'MultiDataTask'
+]
 
 # Add the fonts in hotpot
 def add_mpl_font():
@@ -65,7 +77,15 @@ def _inspector(array: np.ndarray):
     return [np.mean(array), np.std(array), np.median(array), np.max(array), np.min(array)]
 
 
+class NaNMetricError(Exception): pass
+
+
 class BaseTask(ABC):
+    ############################ Variable Declaration ###############################
+    hypers: hotpot.plugins.opti.params_space.ParamSets
+    show_pbar: bool = True
+    test_primary_metrics: Union[float, dict[str, float]] = None
+
     ############################# General Task Utils #################################
     @staticmethod
     def _preprocess_batch(task: 'Task', batch: Batch) -> Batch:
@@ -184,12 +204,18 @@ class BaseTask(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def summary_metrics(self, pl_module: L.LightningModule, stages: Literal['val', 'test'] = 'val') -> dict[str, Union[float, dict]]:
+    def summary_metrics(
+            self, pl_module: L.LightningModule,
+            stages: Literal['val', 'test'] = 'val'
+    ) -> tuple[
+        dict[str, Union[float, dict]],
+        dict[str, float]
+    ]:
         """ Summary all metrics results in stored in the Task instance, after a val or test epoch """
         raise NotImplementedError
 
-    @staticmethod
     def _log_metrics(
+            self,
             pl_module: L.LightningModule,
             metrics_dict: dict[str, Union[float, dict[str, float]]],
             stages: Literal['train', 'val', 'test'] = 'val'
@@ -209,7 +235,7 @@ class BaseTask(ABC):
         pl_module_metrics = getattr(pl_module, f'{stages}_metrics')
         pl_module_metrics.update(metrics_dict)
 
-        if not pl_module.show_pbar and stages != 'train':
+        if not self.show_pbar and stages != 'train':
             table = fmt_print.dict_to_table(
                 metrics_dict, {'style': 'magenta'},
                 title=f'Eval in Validation Step (Epoch {pl_module.current_epoch})',
@@ -272,7 +298,7 @@ class BaseTask(ABC):
 
     ################## Save Metric Sheet #####################
     def store_save_metrics_table(self, pl_module: L.LightningModule):
-        metrics_dict = self.summary_metrics(pl_module, stages='test')
+        metrics_dict, primary_metric = self.summary_metrics(pl_module, stages='test')
         table = fmt_print.dict_to_table(metrics_dict, title="Test Metrics")
         logdir = pl_module.logger.log_dir
         fmt_print.export_table(table, osp.join(logdir, 'test_metrics.txt'))
@@ -280,6 +306,13 @@ class BaseTask(ABC):
 
         df = fmt_print.dict_to_df(metrics_dict)
         df.to_csv(osp.join(logdir, 'test_metrics.csv'))
+
+        self.test_primary_metrics = primary_metric
+        return metrics_dict, primary_metric
+
+    def export_hparams(self, pl_module: L.LightningModule):
+        if not osp.exists(save_dir := os.path.join(pl_module.logger.log_dir, 'hparams.json')):
+            self.hypers.export(save_dir)
 
 _default_sol_graph_inputs = ('x', 'edge_index', 'batch')
 _default_med_graph_inputs = ('x', 'edge_index', 'batch')
@@ -297,7 +330,7 @@ class Task(BaseTask, ABC):
             loss_fn: Callable[[torch.Tensor, torch.Tensor, Optional[Any]], torch.Tensor],
             primary_metric: Union[str, dict[str, str]],
             metrics: dict[str, Union[tp.MetricFn, dict[str, tp.MetricFn]]],
-            hypers: tools.Hypers,
+            hypers: hotpot.plugins.opti.params_space.ParamSets,
             batch_preprocessor: Optional[tp.BatchPreProcessor] = None,
             inputs_preprocessor: Optional[Callable] = None,
             xyz_index: Optional[Iterable[int]] = None,
@@ -397,11 +430,11 @@ class Task(BaseTask, ABC):
             flag: str,
             batch: Batch,
             pattern: re.Pattern
-    ) -> (
+    ) -> tuple[
         Optional[Union[dict[str, torch.Tensor], list[dict[str, torch.Tensor]]]],  # graph info
         Optional[Union[torch.Tensor, list[torch.Tensor]]],  # attributes
         Optional[torch.Tensor]  # ratio
-    ):
+    ]:
         """ Extract solvent or media data from PyG batch """
         exclude_suffix = ['_names', '_metric']
         the_keys = [
@@ -575,8 +608,22 @@ class Task(BaseTask, ABC):
         raise
 
     @abstractmethod
-    def calc_metrics(self, pred, target, get_primary=False) -> (dict[str, Any], Optional[dict[str, Any]]):
+    def calc_metrics(self, pred, target, get_primary=False) -> (dict[str, float], dict[str, float]):
         raise NotImplementedError
+
+    @staticmethod
+    def _check_metrics(metrics: dict[str, Union[float, dict[str, float]]]) -> dict[str, Union[float, dict[str, float]]]:
+        for name, value in metrics.items():
+            if isinstance(value, float):
+                if np.isnan(value):
+                    raise NaNMetricError(f'metric {name} has NaN value')
+            elif isinstance(value, dict):
+                for m, v in value.items():
+                    if np.isnan(v):
+                        raise NaNMetricError(f'metric {name}-{m} has NaN value')
+            else:
+                raise TypeError(f'metric {name} has type {type(value)}')
+        return metrics
 
     @abstractmethod
     def calc_train_batch_loss_metrics(
@@ -599,7 +646,7 @@ class Task(BaseTask, ABC):
         self._log_metrics(pl_module, train_metrics, stages='train')
 
     def eval_on_val_end(self,pl_module: L.LightningModule):
-        metrics_dict = self.summary_metrics(pl_module, stages='val')
+        metrics_dict, primary_metric = self.summary_metrics(pl_module, stages='val')
         self._log_metrics(pl_module, metrics_dict, stages='val')
 
     @staticmethod
@@ -715,26 +762,23 @@ class SingleTask(Task):
             pred: torch.Tensor,
             target: torch.Tensor,
             get_primary: bool = False
-    ) -> (dict[str, float], Optional[dict[str, float]]):
+    ) -> tuple[dict[str, float], dict[str, float]]:
         metrics_dict = {
             metric_name: float(metric_func(pred, target))
             for metric_name, metric_func in self._metrics.items()
         }
-        if get_primary:
-            primary_metric = {self.primary_metric: metrics_dict[self.primary_metric]}
-            return metrics_dict, primary_metric
-        else:
-            return metrics_dict
+        primary_metric = {self.primary_metric: metrics_dict[self.primary_metric]}
+        return self._check_metrics(metrics_dict), primary_metric
 
-    def summary_metrics(self, pl_module: L.LightningModule, stages='val') -> dict[str, float]:
+    def summary_metrics(self, pl_module: L.LightningModule, stages='val') -> tuple[dict[str, float], dict[str, float]]:
         pred, target = self.concat_pred_target(stages)
 
         # Calculating the metrics
-        metrics_dict = self.calc_metrics(pred, target)
+        metrics_dict, primary_metrics = self.calc_metrics(pred, target)
         if stages == 'val':
             metrics_dict['lr'] = pl_module.optimizers().param_groups[0]['lr']
 
-        return metrics_dict
+        return metrics_dict, primary_metrics
 
     def make_plots(self, stages: Literal['val', 'test']) -> dict[str, plt.Figure]:
         pred, target = self.concat_pred_target(stages)
@@ -929,16 +973,13 @@ class MultiTask(Task):
             pred: dict[str, Union[torch.Tensor, np.ndarray]],
             target: dict[str, torch.Tensor, np.ndarray],
             get_primary=False
-    ) -> (dict[str, dict[str, float]], Optional[dict[str, float]]):
+    ) -> tuple[dict[str, dict[str, float]], dict[str, float]]:
         metrics_dict ={
             tsk: {mtrc_name: float(mtrc(pred[tsk], tgt)) for mtrc_name, mtrc in self._metrics[tsk].items()}
             for tsk, tgt in target.items()
         }
-        if get_primary:
-            primary_metrics = {tsk: metrics_dict[tsk][self.primary_metric[tsk]] for tsk in target}
-            return metrics_dict, primary_metrics
-        else:
-            return metrics_dict
+        primary_metrics = {tsk: metrics_dict[tsk][self.primary_metric[tsk]] for tsk in target}
+        return self._check_metrics(metrics_dict), primary_metrics
 
     def _update_across_tasks_loss_weights(self, pl_module: L.LightningModule, primary_metrics: dict[str, float]):
         """ Updata across tasks loss weights. """
@@ -948,7 +989,7 @@ class MultiTask(Task):
             self.atl_weights = self.atl_weights_calculators(primary_metrics)
             self.dict_fmt_print(self.atl_weights, prefix='\nalt_weights: ')
 
-    def summary_metrics(self, pl_module: L.LightningModule, stages='val') -> dict[str, dict[str, float]]:
+    def summary_metrics(self, pl_module: L.LightningModule, stages='val') -> tuple[dict[str, dict[str, float]], dict[str, float]]:
         pred, target = self.concat_pred_target(stages)
 
         # Calculate metrics
@@ -964,7 +1005,7 @@ class MultiTask(Task):
             logging.debug(f'[#3f51b5]The Optimizers: {pl_module.optimizers()}[/]')
             metrics_dict['lr'] = {'lr': pl_module.optimizers().param_groups[0]['lr']}
 
-        return metrics_dict
+        return metrics_dict, primary_metrics
 
     @override
     def eval_on_val_end(self,pl_module: L.LightningModule):
@@ -980,6 +1021,7 @@ class MultiTask(Task):
         plots = {}
         for tsk, maker_dict in self.plot_makers.items():
             for plot_name, maker in maker_dict.items():
+                logging.info(f'Plotting {tsk}/{plot_name} ...')
                 plots[f'{tsk}/{plot_name}'] = maker(pred[tsk], target[tsk])
 
         return plots
@@ -1127,7 +1169,7 @@ class MultiDataTask(BaseTask):
         # self._log_metrics_on_train_batch(pl_module, metrics_dict)
         self._log_metrics(pl_module, metrics_dict, stages='train')
 
-    def summary_metrics(self, pl_module: L.LightningModule, stages: Literal['val', 'test'] = 'val') -> dict[str, dict[str, float]]:
+    def summary_metrics(self, pl_module: L.LightningModule, stages: Literal['val', 'test'] = 'val') -> tuple[dict[str, dict[str, float]], dict[str, float]]:
         total_metrics = {}
         primary_values = []
         for i, task in enumerate(self._tasks):
@@ -1150,10 +1192,10 @@ class MultiDataTask(BaseTask):
         if stages == 'val':
             logging.debug(f'[#3f51b5]The Optimizers: {pl_module.optimizers()}[/]')
             total_metrics['lr'] = {'lr': pl_module.optimizers().param_groups[0]['lr']}
-        return total_metrics
+        return total_metrics, primary_values
 
     def eval_on_val_end(self, pl_module: L.LightningModule):
-        total_metrics = self.summary_metrics(pl_module, stages='val')
+        total_metrics, _ = self.summary_metrics(pl_module, stages='val')
         self._log_metrics(pl_module, total_metrics, stages='val')
 
     def make_plots(self, stages: Literal['val', 'test']) -> dict[str, plt.Figure]:

@@ -67,10 +67,6 @@ class AttnExtractor:
         upper_Znode = Znode[cbond_index[0]]
         lower_Znode = Znode[cbond_index[1]]
 
-        # cbond_feature = torch.cat([upper_Znode, lower_Znode], dim=1)
-        #
-        # assert cbond_feature.shape == (upper_Znode.shape[0], upper_Znode.shape[1] * 2)
-
         # return cbond_feature
         return (upper_Znode + lower_Znode) / 2
 
@@ -107,12 +103,10 @@ class AttnCore(CoreBase):
     extractor_class = AttnExtractor
     def __init__(
             self,
-            x_dim: int,
             vec_dim: int = 512,
-            node_processor: NodeProcessorType = 'graph',
+            emb_type: Literal['proj', 'atom', 'orbital'] = 'proj',
             x_label_nums: Optional[int] = None,
-            graph_model: nn.Module = None,
-            cloud_model: nn.Module = None,
+            graph_layer: int = 6,
 
             # Rings Transformer arguments
             ring_layers: int = 1,
@@ -129,31 +123,27 @@ class AttnCore(CoreBase):
             # Solvent encoder args
             with_sol_encoder: bool = False,
             sol_props_nums: Optional[int] = None,
-            sol_node_dim: Optional[int] = None,
             sol_props_net_layers: int = 2,
             sol_gnn_layers: int = 3,
-            sol_gnn: Optional[Union[nn.Module, str]] = None,
             sol_gnn_kw: Optional[dict] = None,
 
             # Media encoder args
             with_med_encoder: bool = False,
             med_props_nums: Optional[int] = None,
-            med_node_dim: Optional[int] = None,
             med_props_net_layers: int = 2,
             med_gnn_layers: int = 3,
-            med_gnn: Optional[Union[nn.Module, str]] = None,
             med_gnn_kw: Optional[dict] = None,
 
             # Mol level info MLP
             mol_level_net: Optional[Union[nn.Module, Sequence[int]]] = None,
             **kwargs,
     ):
+        self.emb_type = emb_type
         super(AttnCore, self).__init__(vec_dim, x_label_nums)
         self.node_processor = NodeProcessor(
-            x_dim, vec_dim,
-            x_label_nums=x_label_nums,
-            graph_model=graph_model,
-            cloud_model=cloud_model,
+            vec_dim,
+            emb_type=emb_type,
+            graph_layer=graph_layer
         )
 
         self.ring_encoder = nn.TransformerEncoder(
@@ -181,13 +171,10 @@ class AttnCore(CoreBase):
         if with_sol_encoder:
             self.sol_encoder = SolventNet(
                 vec_dim=vec_dim,
+                node_embedder=self.node_processor.node_embedder,
                 props_nums=sol_props_nums,
                 props_net_layers=sol_props_net_layers,
-                labeled_node=self.labeled_elements,
-                embedding_weights=self.elem_emb_vec,
-                node_dim=sol_node_dim,
                 gnn_layers=sol_gnn_layers,
-                gnn=sol_gnn,
                 gnn_kw=sol_gnn_kw,
             )
         else:
@@ -197,13 +184,10 @@ class AttnCore(CoreBase):
         if with_med_encoder:
             self.med_encoder = SolventNet(
                 vec_dim=vec_dim,
+                node_embedder=self.node_processor.node_embedder,
                 props_nums=med_props_nums,
                 props_net_layers=med_props_net_layers,
-                labeled_node=self.labeled_elements,
-                embedding_weights=self.elem_emb_vec,
-                node_dim=med_node_dim,
                 gnn_layers=med_gnn_layers,
-                gnn=med_gnn,
                 gnn_kw=med_gnn_kw,
             )
         else:
@@ -234,6 +218,10 @@ class AttnCore(CoreBase):
     @property
     def x_mask_vec(self):
         return self.node_processor.x_mask_vec
+
+    @property
+    def node_mask(self):
+        return self.node_processor.node_mask
 
     @property
     def elem_emb_vec(self) -> Optional[torch.Tensor]:
@@ -429,7 +417,6 @@ class AttnCore(CoreBase):
             mol_level_info: Optional[Union[torch.Tensor, torch.nested.nested_tensor]] = None,
             **kwargs
     ):
-        # batch_size = int(batch.max()) + 1
         batch_size = batch.max().to(torch.int) + 1
 
         x = self.node_processor(x, edge_index, batch, xyz=xyz)

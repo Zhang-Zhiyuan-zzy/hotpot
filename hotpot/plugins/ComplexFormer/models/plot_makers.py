@@ -12,7 +12,7 @@
  
 ===========================================================
 """
-from typing import Type
+from typing import Type, Union, Callable
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -32,7 +32,18 @@ from hotpot.plugins.plots import (
 __all__ = ['plots_options']
 
 
-def _make_plot(plot_type: Type[Plot], pred, target):
+def _r2_regression(pred, target):
+    xy = np.concatenate((target, pred), axis=1).T  # (pred, target) --> (target, pred), where target in the first row
+    assert xy.shape[0] == 2
+    return R2Regression(xy)
+
+
+def _make_plot(plot_type: Union[Type[Plot], Callable[[np.ndarray, np.ndarray], Callable]], pred, target):
+    if len(pred) > 1000:
+        indices = np.random.choice(pred.shape[0], 1000, replace=False)
+        pred = pred[indices]
+        target = target[indices]
+
     plotter = SciPlotter(plot_type(pred, target))
     fig, ax = plotter()
     return fig
@@ -44,7 +55,7 @@ def binary_confusion_metrix(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
     return _make_plot(ConfusionMatrix, pred, target)
 
 def r2_regression(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
-    return _make_plot(R2Regression, pred, target)
+    return _make_plot(_r2_regression, pred, target)
 
 def roc_curve(pred: np.ndarray, target: np.ndarray) -> plt.Figure:
     return _make_plot(ROCCurve, pred, target)

@@ -78,10 +78,13 @@ import random
 
 from typing import Optional, Sequence, Union
 from collections import OrderedDict
+
+from lightning.pytorch.utilities.types import EVAL_DATALOADERS
+from sklearn.model_selection import KFold
 from tqdm import tqdm
 
 import torch
-from torch.utils.data import random_split
+from torch.utils.data import random_split, Subset
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 import lightning as L
@@ -155,7 +158,7 @@ class DataModule(L.LightningDataModule):
         ``dataset_names`` filter).
     seed : int, default 315
         Random seed used when splitting data into train/val/test sets.
-    debug : bool, default False
+    batch_num : bool, default False
         If *True*, only a small subset of each dataset is loaded for rapid
         prototyping and the split ratios default to (0.8, 0.1, 0.1) regardless of
         ``ratios``.
@@ -230,7 +233,7 @@ class DataModule(L.LightningDataModule):
             exclude_datasets: Union[str, Sequence[str]] = None,
             *,
             seed: int = 315,
-            debug: bool = False,
+            batch_num: Optional[int] = None,
             ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
             batch_size: int = 1,
             shuffle: bool = True,
@@ -266,7 +269,7 @@ class DataModule(L.LightningDataModule):
         if len(self.list_datasets) == 0:
             raise AttributeError(f"No datasets found in list_datasets: {self.list_datasets}")
 
-        self.debug = debug
+        self.batch_num = batch_num
 
         self._datasets = OrderedDict()
 
@@ -318,14 +321,14 @@ class DataModule(L.LightningDataModule):
         """Load every *.pt* file into RAM and wrap in a `DataWrapper`."""
         for ds_name in self.list_datasets:
             dir_dataset = osp.join(self.dir_datasets, ds_name)
-            if self.debug:
+            if self.batch_num:
 
-                debug_sample_nums = self._DEBUG_BATCHES * self.device_count * self.batch_size \
+                debug_sample_nums = self.batch_num * self.device_count * self.batch_size \
                                     + random.randint(0, self.batch_size)  # and a random residual
 
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_data = []
-                for _ in tqdm(range(debug_sample_nums), 'loading data to Memory'):
+                for _ in tqdm(range(debug_sample_nums), 'loading data to Memory in Debug'):
                     try:
                         list_data.append(torch_load_data(next(path_generator)))
                     except StopIteration:
@@ -340,10 +343,10 @@ class DataModule(L.LightningDataModule):
         """Store only file paths on disk and wrap in `PathStoredDataset`."""
         for ds_name in self.list_datasets:
             dir_dataset = osp.join(self.dir_datasets, ds_name)
-            if self.debug:
+            if self.batch_num:
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))
                 list_path = []
-                for _ in tqdm(range(self._DEBUG_BATCHES * self.device_count * self.batch_size), 'loading data path'):
+                for _ in tqdm(range(self.batch_num * self.device_count * self.batch_size), 'loading data path in Debug'):
                     try:
                         list_path.append(next(path_generator))
                     except StopIteration:
@@ -355,6 +358,34 @@ class DataModule(L.LightningDataModule):
             fmt_print.dark_green('Initialize PathStoredDataset')
             self._datasets[ds_name] = PathStoredDataset(list_path)
 
+    def train_val_test_split(self):
+        generator = torch.Generator().manual_seed(self.seed)
+        _train_datasets = []
+        _val_datasets = []
+        _test_datasets = []
+        for ds_name, dataset in self._datasets.items():
+            train, val, test = random_split(dataset, self.ratios, generator)
+            _train_datasets.append(train)
+            _val_datasets.append(val)
+            _test_datasets.append(test)
+
+        return _train_datasets, _val_datasets, _test_datasets
+
+    def cross_val_split(self, cv: int = 5):
+        kf = KFold(n_splits=cv, shuffle=True, random_state=self.seed)
+        if len(self._datasets) > 1:
+            cv_datasets = [[[], []] for _ in range(cv)]
+            for ds_name, dataset in self._datasets.items():
+                for i, (train_idx, val_idx) in enumerate(kf.split(dataset)):
+                    cv_datasets[i][0].append(Subset(dataset, train_idx))
+                    cv_datasets[i][1].append(Subset(dataset, val_idx))
+
+            return [(MConcatDataset(train_ds), MConcatDataset(val_ds)) for train_ds, val_ds in cv_datasets]
+
+        else:
+            dataset = list(self._datasets.values())[0]
+            return [(Subset(dataset, train_idx), Subset(dataset, train_idx)) for train_idx, val_idx in kf.split(dataset)]
+
     def setup(self, stage: Optional[str] = None):
         """Create train/val/test splits (eager mode).
 
@@ -364,17 +395,7 @@ class DataModule(L.LightningDataModule):
             Lightning stage (*fit*, *validate*, *test*, or *predict*).
             It is ignored here but required by the API.
         """
-        ratios = [0.8, 0.1, 0.1] if self.debug else self.ratios
-
-        generator = torch.Generator().manual_seed(self.seed)
-        _train_datasets = []
-        _val_datasets = []
-        _test_datasets = []
-        for ds_name, dataset in self._datasets.items():
-            train, val, test = random_split(dataset, ratios, generator)
-            _train_datasets.append(train)
-            _val_datasets.append(val)
-            _test_datasets.append(test)
+        _train_datasets, _val_datasets, _test_datasets = self.train_val_test_split()
 
         if len(self._datasets) > 1:
             self.train_dataset = MConcatDataset(_train_datasets)
@@ -385,7 +406,7 @@ class DataModule(L.LightningDataModule):
             self.val_dataset = _val_datasets[0]
             self.test_dataset = _test_datasets[0]
 
-    def _get_loader(self, dataset, batch_size: int = 1, shuffle: bool = False):
+    def get_loader(self, dataset, batch_size: int = 1, shuffle: bool = False):
         """Return the correct DataLoader/ConcatLoader for the given dataset.
 
         Chooses between standard, concatenated, and distributed loaders based on
@@ -415,12 +436,12 @@ class DataModule(L.LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         """DataLoader: Training dataloader created in :py:meth:`setup`."""
-        return self._get_loader(self.train_dataset, self.batch_size, self.shuffle)
+        return self.get_loader(self.train_dataset, self.batch_size, self.shuffle)
 
     def val_dataloader(self) -> DataLoader:
         """DataLoader: Validation dataloader created in :py:meth:`setup`."""
-        return self._get_loader(self.val_dataset, self.batch_size)
+        return self.get_loader(self.val_dataset, self.batch_size)
 
     def test_dataloader(self) -> DataLoader:
         """DataLoader: Test dataloader created in :py:meth:`setup`."""
-        return self._get_loader(self.test_dataset, self.batch_size)
+        return self.get_loader(self.test_dataset, self.batch_size)

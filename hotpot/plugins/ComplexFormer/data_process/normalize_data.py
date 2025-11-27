@@ -5,12 +5,13 @@
 @Created On:       2025/11/24 19:27
 @Project:          Hotpot
 """
-import logging
+import copy
 import os
 import json
 import math
 from enum import Enum
 from pathlib import Path
+from functools import cached_property
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional, Union, Iterable
@@ -108,24 +109,37 @@ class DatasetAnalyzer:
             raise ValueError(f'Unregular path: {path}')
         return dataset_name, data_item, item_idx
 
+    @cached_property
+    def _get_dataset_names(self) -> list[str]:
+        return [
+            p for p in os.listdir(self.datasets_root)
+            if self.datasets_root.joinpath(p).is_dir() and not p.startswith('.')
+        ]
+
     def _resolve_dataset_names(self, paths: Optional[Union[str, Iterable[str]]]) -> list[str]:
         """
         Standardizes input paths into a list of dataset names.
         Scans the datasets_root for directories if paths is None.
         """
         if paths is None:
-            return [
-                p for p in os.listdir(self.datasets_root)
-                if self.datasets_root.joinpath(p).is_dir() and not p.startswith('.')
-            ]
+            return self._get_dataset_names
 
-        if isinstance(paths, str):
-            return [paths]
+        paths = [paths] if isinstance(paths, str) else list(paths)
 
-        if isinstance(paths, Iterable):
-            return list(paths)
+        resolved_path = set()
+        for path in paths:
+            split_path = path.split('/')
+            assert 1 < len(split_path) <= 3, "Unrecognized path: {}".format(path)
 
-        raise TypeError('paths must be a string or an iterable of strings')
+            if split_path[0] == '*':
+                for ds_name in self._get_dataset_names:
+                    clone_sp = copy.copy(split_path)
+                    clone_sp[0] = ds_name
+                    resolved_path.add('/'.join(clone_sp))
+            else:
+                resolved_path.add(path)
+
+        return list(resolved_path)
 
     def _define_io_works_from_paths(self, paths) -> dict[str, WorkItemDict]:
         works = defaultdict(dict)

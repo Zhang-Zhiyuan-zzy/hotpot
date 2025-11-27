@@ -276,7 +276,7 @@ def perturb_xyz(xyz: torch.Tensor, sigma: float = 1.0, mode: PerturbMode = 'unif
     if mode == 'norm':
         pert = sigma*torch.randn_like(xyz)
     elif mode == 'uniform':
-        pert = sigma*torch.rand_like(xyz)
+        pert = sigma*(torch.rand_like(xyz)*2 - 1)
     else:
         raise ValueError(f'Unknown perturbation mode {mode}')
     return xyz + pert, pert

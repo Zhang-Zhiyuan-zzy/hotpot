@@ -60,7 +60,9 @@ class LightPretrain(L.LightningModule):
         if self.get_features:
             return feature, target
         else:
-            return self.tasks.predict(self.predictors, feature), target
+            pred = self.tasks.predict(self.predictors, feature)
+            pred = self.tasks.inverse_pred(pred)
+            return pred, target
 
     def encode(self, batch):
         # Regularize dtype of Tensors in batch
@@ -108,12 +110,13 @@ class LightPretrain(L.LightningModule):
             self,
             batch: Batch,
             masked_idx: Optional[torch.Tensor] = None,
+            norm: bool = False,
             **kwargs
     ):
 
         target = self.tasks.label2oh_conversion(
             self.tasks.peel_unmaksed_obj(
-                self.tasks.target_getter(batch),
+                self.tasks.target_getter(batch, norm=norm),
                 masked_idx))
 
         # Calc loss weights
@@ -154,7 +157,7 @@ class LightPretrain(L.LightningModule):
         pred, masked_idx = self.f(batch)
 
         # Retrieve target and loss_weight for categorical task
-        target, loss_weight = self.get_target(batch, masked_idx)
+        target, loss_weight = self.get_target(batch, masked_idx, norm=True)
 
         # Calculation loss value
         loss = self.tasks.loss_fn(pred, target, loss_weight)
@@ -178,6 +181,7 @@ class LightPretrain(L.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         pred, masked_idx = self.f(batch)
+        pred = self.tasks.inverse_pred(pred)
         target, loss_weight = self.get_target(batch, masked_idx)
         self.tasks.add_val_pred_target(pred, target)
 
@@ -189,6 +193,7 @@ class LightPretrain(L.LightningModule):
 
     def test_step(self, batch, batch_idx):
         pred, masked_idx = self.f(batch)
+        pred = self.tasks.inverse_pred(pred)
         target, loss_weight = self.get_target(batch, masked_idx)
         self.tasks.add_test_pred_target(pred, target)
 

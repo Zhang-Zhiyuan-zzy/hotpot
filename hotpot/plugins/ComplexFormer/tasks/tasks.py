@@ -81,6 +81,8 @@ class NaNMetricError(Exception): pass
 
 
 class BaseTask(ABC):
+    ################################## Checkers ####################################
+    
     ############################ Variable Declaration ###############################
     hypers: hotpot.plugins.opti.params_space.ParamSets
     show_pbar: bool = True
@@ -146,7 +148,11 @@ class BaseTask(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def target_getter(self, batch: Batch) -> Union[torch.Tensor, dict[str, torch.Tensor]]:
+    def inverse_pred(self, pred: Union[torch.Tensor, dict[str, torch.Tensor]]) -> torch.Tensor:
+        raise NotImplementedError
+
+    @abstractmethod
+    def target_getter(self, batch: Batch, norm: bool = False) -> Union[torch.Tensor, dict[str, torch.Tensor]]:
         raise NotImplementedError
 
     @staticmethod
@@ -343,6 +349,7 @@ class Task(BaseTask, ABC):
             mask_need_task: Optional[list[str]] = None,
             pred_inspect: Union[bool, Iterable[str]] = False,
             plot_makers: Optional[dict[str, Union[tp.PlotMaker, tp.PlotMakerDict]]] = None,
+            target_normalizer = None,
             **kwargs
     ):
         # Inputs process control arguments
@@ -362,7 +369,7 @@ class Task(BaseTask, ABC):
         self._extractor_attr_getter = extractor_attr_getter
 
         # get target
-        self._target_getter = target_getter
+        self._target_getter = self._check_target_getter(target_getter)
 
         # Onehot
         self._to_onehot = to_onehot
@@ -398,8 +405,19 @@ class Task(BaseTask, ABC):
 
         self.with_env = kwargs.get('with_env', False)
 
+        # xyz_perturb recording
+        self._target_normalizer = target_normalizer
+
+        # init a logger
+        self.info_logger = LoggerDict(interval_count=25)
+
 
     #################### Args Check and Post Process #################################
+    @staticmethod
+    @abstractmethod
+    def _check_target_getter(target_getter) -> Union[tools.TargetGetter, dict[str, tools.TargetGetter]]:
+        raise NotImplementedError
+    
     def _type_check(self):
         for attr_name, attr_type in self._expect_types.items():
             if not isinstance(getattr(self, attr_name), attr_type):
@@ -642,6 +660,7 @@ class Task(BaseTask, ABC):
             pred: Union[torch.Tensor, dict[str, torch.Tensor]],
             target: Union[torch.Tensor, dict[str, torch.Tensor]],
     ) -> None:
+        # The targets have been normalized
         train_metrics = self.calc_train_batch_loss_metrics(pl_module, loss, pred, target)
         self._log_metrics(pl_module, train_metrics, stages='train')
 
@@ -676,6 +695,11 @@ class SingleTask(Task):
         self.test_pred = []
         self.test_target = []
 
+    @staticmethod
+    def _check_target_getter(target_getter) -> tools.TargetGetter:
+        assert isinstance(target_getter, tools.TargetGetter), 'target_getter must be a TargetGetter instance'
+        return target_getter
+
     def feature_extractor(self, *args, **kwargs) -> torch.Tensor:
         return self._feature_extractor(*args, batch_getter=self._extractor_attr_getter, **kwargs)
 
@@ -698,8 +722,8 @@ class SingleTask(Task):
         else:
             raise NotImplementedError('The mask_idx must be None or a torch.Tensor')
 
-    def target_getter(self, batch: Batch) -> torch.Tensor:
-        return self._target_getter(batch)
+    def target_getter(self, batch: Batch, norm=False) -> torch.Tensor:
+        return self._target_getter(batch, norm)
 
     def loss_weight_calculator(self, target) -> Optional[torch.Tensor]:
         if self._loss_weight_calculator:
@@ -710,6 +734,9 @@ class SingleTask(Task):
         return self._loss_fn(pred, target, loss_weight) \
             if isinstance(loss_weight, torch.Tensor) \
             else self._loss_fn(pred, target)
+    
+    def inverse_pred(self, pred: torch.Tensor) -> torch.Tensor:
+        return self._target_getter.inverse(pred)
 
     def calc_train_batch_loss_metrics(
             self,
@@ -822,6 +849,13 @@ class MultiTask(Task):
         if not self.atl_weights_calculators:
             self.atl_weights_calculators = M.atl_calculator
 
+    @staticmethod
+    def _check_target_getter(target_getter) -> dict[str, tools.TargetGetter]:
+        assert isinstance(target_getter, dict), 'target_getter must be a dict'
+        assert all(isinstance(tg, tools.TargetGetter) for tg in target_getter.values()), (
+            'all values in the target_getter must be a TargetGetter instance')
+        return target_getter
+
     def feature_extractor(self, *args, **kwargs) -> dict[str, torch.Tensor]:
         if self._extractor_attr_getter is None:
             extractor = {}
@@ -839,8 +873,11 @@ class MultiTask(Task):
     def predict(predictor: dict[str, nn.Module], features: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         return {n: predictor[n](f) for n, f in features.items()}
 
-    def target_getter(self, batch: Batch) -> dict[str, torch.Tensor]:
-        return {k: tg(batch) for k, tg in self._target_getter.items()}
+    def target_getter(self, batch: Batch, norm=False) -> dict[str, torch.Tensor]:
+        return {k: tg(batch, norm) for k, tg in self._target_getter.items()}
+
+    def inverse_pred(self, pred: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
+        return {k: tg.inverse(pred[k]) for k, tg in self._target_getter.items()}
 
     @override
     def label2oh_conversion(self, target: dict[str, torch.Tensor]):

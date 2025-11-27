@@ -248,26 +248,26 @@ class DataModule(L.LightningDataModule):
 
         datasets_subdir = os.listdir(dir_datasets)
         if not dataset_names:
-            self.list_datasets = sorted(os.listdir(dir_datasets))
+            self.list_dataset_names = sorted(os.listdir(dir_datasets))
         elif isinstance(dataset_names, str):
-            self.list_datasets = [dataset_names]
+            self.list_dataset_names = [dataset_names]
         elif isinstance(dataset_names, Sequence):
-            self.list_datasets = list(dataset_names)
+            self.list_dataset_names = list(dataset_names)
         else:
             raise TypeError(f"dataset_names must be a string or a sequence of strings")
 
-        for ds_name in self.list_datasets:
+        for ds_name in self.list_dataset_names:
             if ds_name not in datasets_subdir:
                 raise ValueError(f'Unknown dataset "{ds_name}", select from {datasets_subdir}')
 
         if isinstance(exclude_datasets, str):
-            self.list_datasets.remove(exclude_datasets)
+            self.list_dataset_names.remove(exclude_datasets)
         elif isinstance(exclude_datasets, Sequence):
             for ds_name in exclude_datasets:
-                self.list_datasets.remove(ds_name)
+                self.list_dataset_names.remove(ds_name)
 
-        if len(self.list_datasets) == 0:
-            raise AttributeError(f"No datasets found in list_datasets: {self.list_datasets}")
+        if len(self.list_dataset_names) == 0:
+            raise AttributeError(f"No datasets found in list_datasets: {self.list_dataset_names}")
 
         self.batch_num = batch_num
 
@@ -298,28 +298,35 @@ class DataModule(L.LightningDataModule):
     @property
     def dataset_counts(self) -> int:
         """int: Number of datasets selected."""
-        return len(self.list_datasets)
+        return len(self.list_dataset_names)
 
     @property
     def first_data(self):
-        if len(self.list_datasets) == 1:
-            return torch_load_data(
-                next(glob.iglob(osp.join(self.dir_datasets, self.list_datasets[0], '*.pt')))
+        if len(self.list_dataset_names) == 1:
+            first_data = torch_load_data(
+                next(glob.iglob(osp.join(self.dir_datasets, self.list_dataset_names[0], '*.pt')))
             )
+            first_data.dir_datasets = self.dir_datasets
+            first_data.dataset_name = self.list_dataset_names[0]
+            return first_data
         else:
-            return [
+            list_first_data = [
                 torch_load_data(next(glob.iglob(osp.join(self.dir_datasets, ds_name, '*.pt'))))
-                for ds_name in self.list_datasets
+                for ds_name in self.list_dataset_names
             ]
+            for i, first_data in enumerate(list_first_data):
+                first_data.dir_datasets = self.dir_datasets
+                first_data.dataset_name = self.list_dataset_names[i]
+            return list_first_data
 
     @property
     def is_multi_datasets(self) -> bool:
         """bool: ``True`` when more than one dataset is in use."""
-        return len(self.list_datasets) > 1
+        return len(self.list_dataset_names) > 1
 
     def _loading_data_to_memory(self):
         """Load every *.pt* file into RAM and wrap in a `DataWrapper`."""
-        for ds_name in self.list_datasets:
+        for ds_name in self.list_dataset_names:
             dir_dataset = osp.join(self.dir_datasets, ds_name)
             if self.batch_num:
 
@@ -341,7 +348,7 @@ class DataModule(L.LightningDataModule):
 
     def _loading_data_path(self):
         """Store only file paths on disk and wrap in `PathStoredDataset`."""
-        for ds_name in self.list_datasets:
+        for ds_name in self.list_dataset_names:
             dir_dataset = osp.join(self.dir_datasets, ds_name)
             if self.batch_num:
                 path_generator = glob.iglob(osp.join(dir_dataset, '*.pt'))

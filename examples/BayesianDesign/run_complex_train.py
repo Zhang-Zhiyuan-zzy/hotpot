@@ -187,7 +187,7 @@ def which_datasets_train(
         loss_fn=loss_fn,
         primary_metrics=primary_metrics,
         other_metrics=other_metrics,
-        # xyz_perturb_sigma=0.5,
+        xyz_perturb_sigma=0.25,
         load_all_data=True,
         debug=debug,
         device=device,
@@ -239,21 +239,24 @@ def pretrain_model():
     hypers.DIM_FEEDFORWARD = 1024
     hypers.HIDDEN_DIM = 256
     hypers.HIDDEN_LAYERS = 4
+    work_name = 'PreT'
+    debug = False
 
     which_datasets_train(
         'tmqm',
         'mono',
-        # 'SclogK',
+        'SclogK',
         # 'mono_ml_pair',
         # 'SclogK_with_cb',
         # work_name='MultiTask',
-        work_name='PreTrain',
+        work_name=work_name + ('_debug' if debug else ''),
         hypers=hypers,
-        # debug=True,
+        debug=debug,
         devices=[0],
         # overfit_test=True,
         epochs=EPOCHS,
         batch_size=BATCH_SIZE,
+        # show_pbar=False,
         # checkpoint_path='/data/user/hd54396/proj/models/PreTrain/logs/lightning_logs/20251123-232018/checkpoints/epoch=4-step=51430.ckpt',
         # stages='test',
         # loss_fn_wrap_tasks=['CB'],
@@ -306,21 +309,39 @@ def CBondModel():
     )
 
 def logKmodel():
-    space = ParamSpace()
-    space.add_categorical_params('EPOCHS', [200])
-    space.add_categorical_params('BATCH_SIZE', [512])
-    space.add_float_params('lr', 1e-5, 1e-2, log=True)
-    space.add_float_params('weight_decay', 4e-7, 4e-4, log=True)
-    space.add_categorical_params('ATOM_TYPES', [119])
-    space.add_categorical_params('OPTIMIZER', [torch.optim.Adam])
-    space.add_categorical_params('X_DIM', [len(X_ATTR_NAMES)])
-    space.add_int_params('VEC_DIM', 60, 720, step=60)
-    space.add_int_params('RING_LAYERS', 1, 4)
-    space.add_int_params('RING_HEADS', 1, 4)
-    space.add_int_params('MOL_LAYERS', 1, 6)
-    space.add_int_params('MOL_HEADS', 1, 6)
-    space.add_int_params('GRAPH_LAYERS', 2, 12)
-    space.add_int_params('DIM_FEEDFORWARD', 64, 4096, log=True)
+    # space = ParamSpace()
+    # space.add_categorical_params('EPOCHS', [200])
+    # space.add_categorical_params('BATCH_SIZE', [512])
+    # space.add_float_params('lr', 1e-5, 1e-2, log=True)
+    # space.add_float_params('weight_decay', 4e-7, 4e-4, log=True)
+    # space.add_categorical_params('ATOM_TYPES', [119])
+    # space.add_categorical_params('OPTIMIZER', [torch.optim.Adam])
+    # space.add_categorical_params('X_DIM', [len(X_ATTR_NAMES)])
+    # space.add_int_params('VEC_DIM', 60, 720, step=60)
+    # space.add_int_params('RING_LAYERS', 1, 4)
+    # space.add_int_params('RING_HEADS', 1, 4)
+    # space.add_int_params('MOL_LAYERS', 1, 6)
+    # space.add_int_params('MOL_HEADS', 1, 6)
+    # space.add_int_params('GRAPH_LAYERS', 2, 12)
+    # space.add_int_params('DIM_FEEDFORWARD', 64, 4096, log=True)
+    hypers = ParamSets()
+    EPOCHS = 30
+    BATCH_SIZE = 64
+    hypers.lr = 1e-3
+    hypers.weight_decay = 4e-5
+    hypers.ATOM_TYPES = None
+    hypers.OPTIMIZER = torch.optim.Adam
+    # hypers.X_DIM = 7
+    hypers.VEC_DIM = 256
+    hypers.EMB_TYPE = 'atom'  # atom, proj, or orbital
+    hypers.RING_LAYERS = 1
+    hypers.RING_HEADS = 1
+    hypers.MOL_LAYERS = 2
+    hypers.MOL_HEADS = 1
+    hypers.GRAPH_LAYERS = 6
+    hypers.DIM_FEEDFORWARD = 1024
+    hypers.HIDDEN_DIM = 256
+    hypers.HIDDEN_LAYERS = 4
 
     return which_datasets_train(
         # 'mono_ml_pair',
@@ -330,10 +351,12 @@ def logKmodel():
         work_name = 'logK-optuna',
         target_metrics = 'logK',
         refine=True,
-        checkpoint_path='/data/user/hd54396/proj/models/logK-optuna/logs/lightning_logs/20251030-143123_0.904/checkpoints/epoch=99-step=5600.ckpt',
+        checkpoint_path='/data/user/hd54396/proj/models/PreTrain/logs/lightning_logs/20251123-232018/checkpoints/epoch=4-step=51430-v1.ckpt',
         devices=1,
-        hypers=space,
-        data_split_ratios=(0., 0., 1.)
+        hypers=hypers,
+        epochs=EPOCHS,
+        batch_size=BATCH_SIZE,
+        # data_split_ratios=(0., 0., 1.)
         # debug=True,
         # show_pbar=False,
     )

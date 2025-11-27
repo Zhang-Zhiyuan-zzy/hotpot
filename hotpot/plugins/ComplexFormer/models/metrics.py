@@ -2,7 +2,8 @@ from typing import Union
 import numpy as np
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import roc_curve, auc
+from torchmetrics.classification import MulticlassF1Score, MulticlassCohenKappa, MulticlassRecall
+from sklearn.metrics import roc_curve, auc, f1_score
 
 from . import utils
 
@@ -12,9 +13,13 @@ class Metrics:
     def average_inverse_distance(pred, target):
         if isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor):
             dist = torch.norm(pred-target, p=2, dim=-1)
+            pert_std = torch.std(torch.norm(target, p=2, dim=-1)).item()
+            dist = dist / max(pert_std, 1e-5)
             return torch.mean(1/(1+dist))
         elif isinstance(pred, np.ndarray) and isinstance(target, np.ndarray):
             dist = np.linalg.norm(pred-target, ord=2, axis=-1)
+            pert_std = np.std(np.linalg.norm(target, axis=-1))
+            dist = dist / max(pert_std, 1e-5)
             return np.mean(1/(1+dist))
         else:
             raise TypeError('pred and target must be torch.Tensor or np.ndarray')
@@ -147,6 +152,23 @@ class Metrics:
         precision = Metrics.precision(pred, target)
         recall = Metrics.recall(pred, target)
         return 2 * precision * recall / (precision + recall)
+
+    @staticmethod
+    def mf1_score(
+            pred: Union[np.ndarray, torch.Tensor],
+            target: Union[np.ndarray, torch.Tensor]
+    ):
+        pred, target = map(utils.oh2label, (pred, target))
+        if isinstance(pred, np.ndarray):
+            return f1_score(target, pred, average='macro')
+        elif isinstance(pred, torch.Tensor):
+            return f1_score(
+                target.detach().float().cpu().numpy(),
+                pred.detach().float().cpu().numpy(),
+                average='macro'
+            )
+        else:
+            raise TypeError('pred must be of type torch.Tensor or np.ndarray')
 
     @staticmethod
     def auc(

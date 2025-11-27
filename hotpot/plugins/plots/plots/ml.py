@@ -198,9 +198,10 @@ class MultiClassROCCurve(Plot):
             label = f"Class {i} (AUC = {roc_auc:.2f})" if self.class_names is None else f"{self.class_names[i]} (AUC = {roc_auc:.2f})"
             ax.plot(fpr, tpr, lw=2, label=label)
 
-            ax.set_xlabel("False Positive Rate")
-            ax.set_ylabel("True Positive Rate")
-            ax.set_title("Multi-class ROC curves")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.set_title("Multi-class ROC curves")
+        if len(self.roc_auc) < 10:
             ax.legend(loc="lower right")
 
 

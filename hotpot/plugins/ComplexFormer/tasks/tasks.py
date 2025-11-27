@@ -22,12 +22,14 @@ from torch_geometric.data import Batch
 import lightning as L
 
 import hotpot.plugins.opti.params_space
-from hotpot.utils import fmt_print
 from hotpot.plugins.ComplexFormer import (
     types as tp,
     models as M,
     tools,
 )
+
+from hotpot.utils import fmt_print
+from hotpot.utils.configs.logging_config import LoggerDict
 
 
 __all__ = [
@@ -117,7 +119,7 @@ class BaseTask(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_xyz(self, inputs: tuple[torch.Tensor, ...]) -> Optional[torch.Tensor]:
+    def get_xyz(self, inputs: tuple, batch: Batch) -> Optional[torch.Tensor]:
         raise NotImplementedError
 
     @abstractmethod
@@ -129,7 +131,7 @@ class BaseTask(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def perturb_xyz(self, xyz):
+    def perturb_xyz(self, xyz, batch: Batch) -> torch.Tensor:
         raise NotImplementedError
 
     @abstractmethod
@@ -341,6 +343,7 @@ class Task(BaseTask, ABC):
             inputs_preprocessor: Optional[Callable] = None,
             xyz_index: Optional[Iterable[int]] = None,
             xyz_perturb_sigma: Optional[float] = None,
+            xyz_perturb_mode: M.PerturbMode = 'uniform',
             extractor_attr_getter: Union[tp.ExtractorAttrGetter, dict[str, tp.ExtractorAttrGetter]] = None,
             loss_weight_calculator: Optional[Union[tp.LossWeightCalculator, dict[str, tp.LossWeightCalculator]]] = None,
             to_onehot: Union[bool, Iterable[str]] = False,
@@ -357,6 +360,7 @@ class Task(BaseTask, ABC):
         self._inputs_getter = inputs_getter
         self.xyz_index = xyz_index
         self._xyz_perturb_sigma = xyz_perturb_sigma
+        self._xyz_perturb_mode = xyz_perturb_mode
         self._inputs_preprocessor = inputs_preprocessor
 
         # Mask
@@ -437,11 +441,11 @@ class Task(BaseTask, ABC):
     def inputs_getter(self, batch: Batch) -> torch.Tensor:
         return self._inputs_getter(batch)
 
-    def get_xyz(self, inputs: tuple[torch.Tensor, ...]) -> Optional[torch.Tensor]:
+    def get_xyz(self, inputs: tuple, batch: Batch) -> Optional[torch.Tensor]:
         if self.xyz_index is None:
             return None
         else:
-            return self.perturb_xyz(inputs[0][:, self.xyz_index])
+            return self.perturb_xyz(inputs[0][:, self.xyz_index], batch)
 
     @staticmethod
     def _extract_specific_data(
@@ -606,9 +610,12 @@ class Task(BaseTask, ABC):
             *self._extract_specific_data('med', batch, self._med_key_matcher)
         )
 
-    def perturb_xyz(self, xyz):
+    def perturb_xyz(self, xyz, batch: Batch):
         if isinstance(self._xyz_perturb_sigma, float):
-            return M.perturb_xyz(xyz, self._xyz_perturb_sigma)
+            self.info_logger['perturb_xyz'].info(f"[#c0fb2d]XYZ perturb[/], sigma={self._xyz_perturb_sigma}, mode={self._xyz_perturb_mode}")
+            xyz, pert = M.perturb_xyz(xyz, self._xyz_perturb_sigma, self._xyz_perturb_mode)
+            batch.pert_xyz = pert
+
         return xyz
 
     def inputs_preprocessor(self, inputs: Union[dict, list, tuple], **kwargs) -> tuple[torch.Tensor, ...]:

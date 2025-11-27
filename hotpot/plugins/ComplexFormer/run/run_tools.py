@@ -233,10 +233,10 @@ def config_callbacks(stages: list[tp.Stages], **kwargs):
 ##################################################################
 # Tasks defining
 def config_task(hypers, batch_preprocessor, constant_lr, dataModule, extractor_attr_getter, feature_extractor,
-                inputs_getter, inputs_preprocessor, kwargs, loss_fn, loss_fn_wrap_tasks, loss_weight_calculator,
+                inputs_getter, inputs_preprocessor, loss_fn, loss_fn_wrap_tasks, loss_weight_calculator,
                 loss_weight_method, lr_scheduler, lr_scheduler_frequency, lr_scheduler_kwargs, mask_need_task,
                 onehot_types, optimizer, other_metrics, predictor, primary_metrics, target_getter, task_names, with_med,
-                with_sol, with_xyz, work_name, x_masker, xyz_perturb_sigma, show_pbar
+                with_sol, with_xyz, work_name, x_masker, xyz_perturb_sigma, xyz_perturb_mode, show_pbar, kwargs,
 ):
     core = init_core(hypers)
     task_type = tasks.specify_task_types(dataModule.is_multi_datasets, target_getter)
@@ -260,6 +260,7 @@ def config_task(hypers, batch_preprocessor, constant_lr, dataModule, extractor_a
         with_sol=with_sol,
         with_med=with_med,
         xyz_perturb_sigma=xyz_perturb_sigma,
+        xyz_perturb_mode=xyz_perturb_mode,
         extractor_attr_getter=extractor_attr_getter,
         loss_weight_calculator=loss_weight_calculator,
         loss_weight_method=loss_weight_method,
@@ -296,7 +297,7 @@ def prepare_pl_trainer_module(
         core, checkpoint_path,
         stages, cbk_kw, logger, epochs,
         precision, devices, profiler,
-        overfit_test, debug
+        overfit_test
 ) -> tuple[L.Trainer, L.LightningModule]:
     # Configure optimizer and lr_scheduler
     optim_configure = configs.OptimizerConfigure(
@@ -328,7 +329,7 @@ def prepare_pl_trainer_module(
         default_root_dir=model_dir,
         logger=logger,
         max_epochs=epochs,
-        callbacks=callbacks if not debug else None,
+        callbacks=callbacks,
         precision=precision,
         accelerator='cuda',
         devices=devices,

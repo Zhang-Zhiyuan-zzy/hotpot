@@ -68,7 +68,7 @@ class LightPretrain(L.LightningModule):
         # Regularize dtype of Tensors in batch
         self.tasks.batch_dtype_preprocessor(batch)
         inputs = self.tasks.inputs_getter(self.tasks.batch_preprocessor(batch))
-        xyz = self.tasks.get_xyz(inputs)
+        xyz = self.tasks.get_xyz(inputs, batch)
         sol_graph, sol_prop, sol_ratios = self.tasks.get_sol_info(batch)
         med_graph, med_prop, med_ratios = self.tasks.get_med_info(batch)
         inputs = self.tasks.inputs_preprocessor(inputs)

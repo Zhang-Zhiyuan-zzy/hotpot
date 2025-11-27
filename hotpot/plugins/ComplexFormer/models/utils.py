@@ -271,5 +271,13 @@ def torch_numpy_exchanger(nf: Callable, **kw):
 
 
 ########################## Operate XYZ ################################################
-def perturb_xyz(xyz: torch.Tensor, sigma: float = 1.0):
-    return xyz + sigma*torch.randn_like(xyz)
+PerturbMode = Literal['norm', 'uniform']
+def perturb_xyz(xyz: torch.Tensor, sigma: float = 1.0, mode: PerturbMode = 'uniform'):
+    if mode == 'norm':
+        pert = sigma*torch.randn_like(xyz)
+    elif mode == 'uniform':
+        pert = sigma*torch.rand_like(xyz)
+    else:
+        raise ValueError(f'Unknown perturbation mode {mode}')
+    return xyz + pert, pert
+

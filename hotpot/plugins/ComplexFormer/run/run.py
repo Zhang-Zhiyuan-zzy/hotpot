@@ -18,22 +18,17 @@ import torch.nn as nn
 from optuna import Trial
 from torch.optim import Optimizer
 
-import lightning as L
 from lightning.pytorch import loggers as pl_loggers
-from lightning.pytorch.callbacks import EarlyStopping
-from lightning.pytorch import strategies
 
-from hotpot.utils import fmt_print
 from hotpot.utils.configs import setup_logging
 from .. import (
     types as tp,
     tasks,
-    configs,
-    callbacks as cbs
+    models as M,
 )
 from . import (
     run_tools as rt,
-    train,
+    datacls
 )
 from hotpot.plugins.ComplexFormer.data import DataModule
 from hotpot.plugins.opti import ParamSpace, ParamSets
@@ -87,7 +82,7 @@ def _perform(
         work_dir, model_dir, hypers, optim_kw,
         task, task_kwargs, core, checkpoint_path,
         stages, cbk_kw, logger, epochs, precision, devices, profiler,
-        overfit_test, debug
+        overfit_test
     )
 
     if 'train' in stages:
@@ -161,7 +156,7 @@ def _external_test(
         work_dir, model_dir, hypers, optim_kw,
         task, task_kwargs, core, ckpt_path,
         stages, cbk_kw, logger, epochs, precision, devices, profiler,
-        overfit_test=False, debug=False
+        overfit_test=False
     )
     trainer.test(pl_module, datamodule=dataModule)
 
@@ -207,6 +202,7 @@ def run(
 
         # Inputs specification
         xyz_perturb_sigma: Optional[float] = None,
+        xyz_perturb_mode: M.PerturbMode = 'uniform',
         batch_preprocessor: Optional[Union[tp.BatchPreProcessor, list[tp.BatchPreProcessor]]] = None,
         inputs_preprocessor: Optional[Union[Callable, list[Callable]]] = None,
         x_masker: Optional[Union[str, Callable]] = None,
@@ -308,6 +304,7 @@ def run(
         inputs_preprocessor:
         xyz_perturb_sigma: Add Gaussian noise to the coordinates based on the sigma value specified by
             this parameter to achieve random perturbation.
+        xyz_perturb_mode: The mode to perturb the xyz, uniform or normal.
         x_masker:
         mask_need_task:
 
@@ -408,13 +405,47 @@ def run(
         test_only=('test' in stages and 'train' not in stages),
     )
 
+    cfg_args = datacls.ConfigArgs(
+        batch_preprocessor=batch_preprocessor,
+        constant_lr=constant_lr,
+        dataModule=dataModule,
+        extractor_attr_getter=extractor_attr_getter,
+        feature_extractor=feature_extractor,
+        inputs_getter=inputs_getter,
+        inputs_preprocessor=inputs_preprocessor,
+        loss_fn=loss_fn,
+        loss_fn_wrap_tasks=loss_fn_wrap_tasks,
+        loss_weight_calculator=loss_weight_calculator,
+        loss_weight_method=loss_weight_method,
+        lr_scheduler=lr_scheduler,
+        lr_scheduler_frequency=lr_scheduler_frequency,
+        lr_scheduler_kwargs=lr_scheduler_kwargs,
+        mask_need_task=mask_need_task,
+        onehot_types=onehot_types,
+        optimizer=optimizer,
+        other_metrics=other_metrics,
+        predictor=predictor,
+        primary_metrics=primary_metrics,
+        target_getter=target_getter,
+        task_names=task_names,
+        with_med=with_med,
+        with_sol=with_sol,
+        with_xyz=with_xyz,
+        work_name=work_name,
+        x_masker=x_masker,
+        xyz_perturb_mode=xyz_perturb_mode,
+        xyz_perturb_sigma=xyz_perturb_sigma,
+        show_pbar=show_pbar,
+        kwargs=kwargs,
+    )
     config_args = (
         batch_preprocessor, constant_lr, dataModule, extractor_attr_getter,
-        feature_extractor, inputs_getter, inputs_preprocessor, kwargs, loss_fn,
+        feature_extractor, inputs_getter, inputs_preprocessor, loss_fn,
         loss_fn_wrap_tasks, loss_weight_calculator, loss_weight_method, lr_scheduler,
         lr_scheduler_frequency, lr_scheduler_kwargs, mask_need_task, onehot_types,
         optimizer, other_metrics, predictor, primary_metrics, target_getter, task_names,
-        with_med, with_sol, with_xyz, work_name, x_masker, xyz_perturb_sigma, show_pbar
+        with_med, with_sol, with_xyz, work_name, x_masker, xyz_perturb_sigma, xyz_perturb_mode,
+        show_pbar, kwargs
     )
 
     optim_kw = dict(

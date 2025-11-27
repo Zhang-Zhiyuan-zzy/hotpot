@@ -44,6 +44,7 @@ metrics_options = {
     'precision': M.Metrics.precision,
     'recall': M.Metrics.recall,
     'f1': M.Metrics.f1_score,
+    'mf1': M.Metrics.mf1_score,
     'auc': M.Metrics.auc,
 }
 predictor_plot_maker_map = {
@@ -918,6 +919,7 @@ def config_tasks_from_multi_datasets(
         with_med: Optional[Union[bool, Iterable[bool]]] = None,
         with_env: Optional[Union[bool, Iterable[bool]]] = None,
         xyz_perturb_sigma: Optional[list[float]] = None,
+        xyz_perturb_mode: M.PerturbMode = 'uniform',
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
         loss_weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'inverse-count',
@@ -963,6 +965,7 @@ def config_tasks_from_multi_datasets(
     with_med = _align_md_task_options('with_med', with_med, dataset_counts)
     with_env = _align_md_task_options('with_env', with_env, dataset_counts)
     xyz_perturb_sigma = _align_md_task_options('xyz_perturb_sigma', xyz_perturb_sigma, dataset_counts)
+    xyz_perturb_mode = _align_md_task_options('xyz_perturb_mode', xyz_perturb_mode, dataset_counts)
     extractor_attr_getter = _align_md_task_options('extractor_attr_getter', extractor_attr_getter, dataset_counts)
     loss_fn_wrap_tasks = _align_md_task_options('loss_fn_wrap_tasks', loss_fn_wrap_tasks, dataset_counts, lst_values=True)
     loss_weight_calculator = _align_md_task_options('loss_weight_calculator', loss_weight_calculator, dataset_counts)
@@ -1003,6 +1006,7 @@ def config_tasks_from_multi_datasets(
             inputs_getter=inputs_getter[i],
             xyz_index=xyz_index[i],
             xyz_perturb_sigma=xyz_perturb_sigma[i],
+            xyz_perturb_mode=xyz_perturb_mode[i],
             to_onehot=to_onehot[i],
             extractor_attr_getter=extractor_attr_getter[i],
             hypers=hypers[i],
@@ -1037,6 +1041,7 @@ def config(
         with_med: Optional[Union[bool, Iterable[bool]]] = None,
         with_env: Optional[Union[bool, Iterable[bool]]] = None,
         xyz_perturb_sigma: Optional[list[float]] = None,
+        xyz_perturb_mode: M.PerturbMode = 'uniform',
         extractor_attr_getter: Optional[list[dict[str, tp.ExtractorAttrGetter]]] = None,
         loss_weight_calculator: Optional[list[dict[str, tp.LossWeightCalculator]]] = None,
         loss_fn_wrap_tasks: Optional[Union[bool, set[str], Iterable[set[str]]]] = None,
@@ -1076,6 +1081,7 @@ def config(
             inputs_getter=inputs_getter,
             xyz_index=xyz_index,
             xyz_perturb_sigma=xyz_perturb_sigma,
+            xyz_perturb_mode=xyz_perturb_mode,
             extractor_attr_getter = extractor_attr_getter,
             onehot_types=onehot_types,
             to_onehot = list(onehot_types) if isinstance(onehot_types, dict) else bool(onehot_types),
@@ -1112,6 +1118,7 @@ def config(
             inputs_preprocessor=inputs_preprocessor,
             xyz_index=xyz_index,
             xyz_perturb_sigma=xyz_perturb_sigma,
+            xyz_perturb_mode=xyz_perturb_mode,
             extractor_attr_getter=extractor_attr_getter,
             loss_weight_calculator=loss_weight_calculator,
             loss_weight_method=loss_weight_method,

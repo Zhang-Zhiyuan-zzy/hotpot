@@ -62,24 +62,32 @@ class Predictor(nn.Module):
             self,
             in_size: int,
             target_type: TargetTypeName,
-            hidden_dim: int = 1024,
-            num_layers: int = 4,
+            hidden_dim: int = 256,
+            num_layers: int = 1,
+            out_size: int = 1024,
             dropout: float = 0.1,
             out_act: Type[nn.Module] = nn.ReLU,
+            name: str = '',
             **kwargs
     ):
         super(Predictor, self).__init__()
+        self.name = name
+        self.num_layers = num_layers
         self.in_layers = pygnn.MLP([in_size, hidden_dim])
-        self.hidden_layers = pygnn.MLP(num_layers * [hidden_dim], dropout=dropout, norm=None)
+        if num_layers > 1:
+            self.hidden_layers = pygnn.MLP((num_layers + 1)  * [hidden_dim], dropout=dropout, norm=None)
+        else:
+            self.hidden_layers = None
+        self.represent_layer = pygnn.MLP([hidden_dim, out_size], dropout=dropout, norm=None)
 
         self.target_type = target_type
         if target_type == 'num':
             # self.out_layer = nn.Linear(in_size, 1)
-            self.out_layer = nn.Linear(hidden_dim, 1)
+            self.out_layer = nn.Linear(out_size, 1)
             self.out_act = nn.LeakyReLU()
             # self.out_act = lambda out: torch.exp(out) - 20.
         elif target_type == 'xyz':
-            self.out_layer = nn.Linear(hidden_dim, 3)
+            self.out_layer = nn.Linear(out_size, 3)
             self.out_act = out_act()
         elif target_type == 'onehot':
             try:
@@ -87,19 +95,19 @@ class Predictor(nn.Module):
             except KeyError:
                 raise KeyError('For onehot predictor, `onehot_type` arg must be specified`')
 
-            self.out_layer = nn.Linear(hidden_dim, self.onehot_type)
+            self.out_layer = nn.Linear(out_size, self.onehot_type)
             self.out_act = nn.Softmax(dim=-1)
         elif target_type == 'binary':
-            self.out_layer = nn.Linear(hidden_dim, 1)
+            self.out_layer = nn.Linear(out_size, 1)
             self.out_act = lambda out: out
         else:
             raise NotImplementedError(f"{target_type} is not implemented")
 
     def forward(self, z):
         z = self.in_layers(z)
-        z = self.hidden_layers(z) + z
-        # z = self.hidden_layers(z)
-        z = self.out_layer(z)
+        if self.hidden_layers is not None:
+            z = self.hidden_layers(z) + z
+        z = self.out_layer(self.represent_layer(z))
         if self.target_type in ['num', 'xyz']:
             return z
             # return self.out_act(z)

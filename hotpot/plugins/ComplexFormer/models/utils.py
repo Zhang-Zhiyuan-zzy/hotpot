@@ -61,7 +61,7 @@ def weight_labels(
         labels: torch.Tensor,
         num_types: int = 119,
         weight_method: Literal['inverse-count', 'cross-entropy', 'sqrt-invert_count'] = 'cross-entropy',
-) -> object:
+) -> torch.Tensor:
     # labels = torch.argmax(labels, dim=-1)  # Is one hot vector
     labels = labels.long()
     values, counts = torch.unique(labels, return_counts=True)

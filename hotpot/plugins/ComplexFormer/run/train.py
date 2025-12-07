@@ -12,7 +12,7 @@ from sklearn.base import BaseEstimator, clone as sk_clone
 import lightning as L
 
 from ..tasks import Task
-from ..configs import OptimizerConfigure
+from ..optim_config import OptimizerConfigure
 from hotpot.utils import fmt_print
 
 class LightPretrain(L.LightningModule):

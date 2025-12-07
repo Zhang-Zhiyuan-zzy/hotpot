@@ -92,6 +92,7 @@ import lightning as L
 
 from .dataset import MConcatDataset, torch_load_data, DataWrapper, PathStoredDataset
 from .loader import CDataLoader, DistConcatLoader
+from ..run import datacls
 from ....utils import fmt_print
 
 
@@ -182,16 +183,6 @@ class DataModule(L.LightningDataModule):
 
     Attributes
     ----------
-    list_datasets : list[str]
-        Final ordered list of dataset names being used.
-    dataset_counts : int
-        Number of datasets in ``list_datasets``.
-    first_data : Tensor | list[Tensor]
-        Convenience property returning the *first* tensor of the first dataset
-        (or a list of first tensors when multiple datasets are present)—useful
-        for inspecting shapes/dtypes.
-    is_multi_datasets : bool
-        *True* when more than one dataset is selected.
     train_dataset / val_dataset / test_dataset : torch.utils.data.Dataset
         Split datasets produced during :py:meth:`setup`.
     train_dataloader / val_dataloader / test_dataloader : torch.utils.data.DataLoader
@@ -228,31 +219,19 @@ class DataModule(L.LightningDataModule):
     _DEBUG_BATCHES = 40
     def __init__(
             self,
-            dir_datasets: str,
-            dataset_names: Union[str, Sequence[str]] = None,
-            exclude_datasets: Union[str, Sequence[str]] = None,
-            *,
-            seed: int = 315,
-            batch_num: Optional[int] = None,
-            ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
-            batch_size: int = 1,
-            shuffle: bool = True,
-            devices: Optional[int] = None,
-            num_replicas: Optional[int] = None,
-            load_data_memory: bool = True,
-            test_only: bool = False,
+            args_cfg: datacls.DataModuleArgs,
     ):
         super().__init__()
-        self.dir_datasets = dir_datasets
-        self.test_only = test_only
+        self.dir_datasets = args_cfg.dir_datasets
+        self.test_only = args_cfg.test_only
 
-        datasets_subdir = os.listdir(dir_datasets)
-        if not dataset_names:
-            self.list_dataset_names = sorted(os.listdir(dir_datasets))
-        elif isinstance(dataset_names, str):
-            self.list_dataset_names = [dataset_names]
-        elif isinstance(dataset_names, Sequence):
-            self.list_dataset_names = list(dataset_names)
+        datasets_subdir = os.listdir(args_cfg.dir_datasets)
+        if not args_cfg.dataset_names:
+            self.list_dataset_names = sorted(os.listdir(args_cfg.dir_datasets))
+        elif isinstance(args_cfg.dataset_names, str):
+            self.list_dataset_names = [args_cfg.dataset_names]
+        elif isinstance(args_cfg.dataset_names, Sequence):
+            self.list_dataset_names = list(args_cfg.dataset_names)
         else:
             raise TypeError(f"dataset_names must be a string or a sequence of strings")
 
@@ -260,36 +239,36 @@ class DataModule(L.LightningDataModule):
             if ds_name not in datasets_subdir:
                 raise ValueError(f'Unknown dataset "{ds_name}", select from {datasets_subdir}')
 
-        if isinstance(exclude_datasets, str):
-            self.list_dataset_names.remove(exclude_datasets)
-        elif isinstance(exclude_datasets, Sequence):
-            for ds_name in exclude_datasets:
+        if isinstance(args_cfg.exclude_datasets, str):
+            self.list_dataset_names.remove(args_cfg.exclude_datasets)
+        elif isinstance(args_cfg.exclude_datasets, Sequence):
+            for ds_name in args_cfg.exclude_datasets:
                 self.list_dataset_names.remove(ds_name)
 
         if len(self.list_dataset_names) == 0:
             raise AttributeError(f"No datasets found in list_datasets: {self.list_dataset_names}")
 
-        self.batch_num = batch_num
+        self.batch_num = args_cfg.batch_num
 
         self._datasets = OrderedDict()
 
-        self.seed = seed
-        self.ratios = [ r /sum(ratios) for r in ratios]
+        self.seed = args_cfg.seed
+        self.ratios = [ r /sum(args_cfg.ratios) for r in args_cfg.ratios]
 
-        self.batch_size = batch_size
-        self.shuffle = shuffle
-        self.num_replicas = num_replicas
+        self.batch_size = args_cfg.batch_size
+        self.shuffle = args_cfg.shuffle
+        self.num_replicas = args_cfg.num_replicas
 
-        if devices is None:
+        if args_cfg.devices is None:
             self.device_count = torch.cuda.device_count()
-        elif isinstance(devices, int):
-            self.device_count = devices
-        elif isinstance(devices, (tuple, list)):
-            self.device_count = len(devices)
+        elif isinstance(args_cfg.devices, int):
+            self.device_count = args_cfg.devices
+        elif isinstance(args_cfg.devices, (tuple, list)):
+            self.device_count = len(args_cfg.devices)
         else:
             raise TypeError(f"devices must be a int or a sequence of ints")
 
-        if load_data_memory and not test_only:
+        if args_cfg.load_data_memory and not args_cfg.test_only:
             self._loading_data_to_memory()
         else:
             self._loading_data_path()

@@ -1,7 +1,8 @@
 import json
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 from dataclasses import dataclass
 import optuna
+import torch
 
 
 __all__ = [
@@ -95,50 +96,53 @@ def optuna_optimize(
 
 
 class ParamSets:
-    """ A handle of hyperparameters. """
-    def __init__(self, hparams: dict = None):
-        self._hparams = {
-            'lr': 1e-3,
-            'weight_decay': 4e-5
+    """Hyperparameters as attributes, backed by a dict."""
+    def __init__(self, params: Optional[dict[str, Any]] = None) -> None:
+        hparams: dict[str, Any] = {
+            "lr": 1e-3,
+            "weight_decay": 4e-5,
         }
-        if hparams is not None:
-            self._hparams.update(hparams)
+        if params:
+            hparams.update(params)
+        object.__setattr__(self, "_hparams", hparams)
 
-    def __getattr__(self, item):
-        try:
-            object.__getattribute__(self, item)
-        except AttributeError as e:
-            if item in self._hparams:
-                return self._hparams[item]
-            raise e
+    def __getattr__(self, key: str) -> Any:
+        hparams = object.__getattribute__(self, "_hparams")
+        if key in hparams:
+            return hparams[key]
+        raise AttributeError(f"{type(self).__name__!r} has no attribute {key!r}")
 
-    def __setattr__(self, key, value):
-        if key == '_hparams':
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key == "_hparams":
             object.__setattr__(self, key, value)
         else:
             self._hparams[key] = value
 
-    def export(self, path):
-        hparams = {}
-        for name, value in self._hparams.items():
-            if isinstance(value, (int, float, str)):
-                hparams[name] = value
-            elif isinstance(value, type):
-                hparams[name] = value.__name__
-            else:
-                hparams[name] = value.__class__.__name__
+    def _json_safe(self, value: Any) -> Any:
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, (list, tuple)):
+            return [self._json_safe(x) for x in value]
+        if isinstance(value, dict):
+            return {k: self._json_safe(v) for k, v in value.items()}
+        if isinstance(value, type):
+            return value.__name__
+        return value.__class__.__name__
 
-        # Save the Hyper parameters dict to file
-        with open(path, 'w') as f:
-            json.dump(hparams, f, indent=4)
-
-    @classmethod
-    def from_dict(cls, hparams: dict):
-        return cls(hparams)
+    def export(self, path: str) -> None:
+        data = {k: self._json_safe(v) for k, v in self._hparams.items()}
+        with open(path, "w") as f:
+            json.dump(data, f, indent=4)
 
     @classmethod
-    def from_json(cls, json_path):
-        with open(json_path) as f:
-            return cls.from_dict(json.load(f))
+    def from_json(cls, path: str) -> "ParamSets":
+        with open(path) as f:
+            data = json.load(f)
 
+        name = data.get("OPTIMIZER")
+        if isinstance(name, str):
+            data["OPTIMIZER"] = getattr(torch.optim, name)
+        return cls(data)
 
+    def to_dict(self) -> dict[str, Any]:
+        return dict(self._hparams)

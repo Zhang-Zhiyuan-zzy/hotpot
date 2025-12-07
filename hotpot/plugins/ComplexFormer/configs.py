@@ -4,11 +4,7 @@ from functools import wraps
 
 import torch
 import torch.nn.functional as F
-from torch.optim import Optimizer, Adam
-import torch.optim.lr_scheduler as lrs
 from torch_geometric.data import Data
-
-import lightning as L
 
 from hotpot.plugins.opti.params_space import ParamSets
 from . import (
@@ -1132,73 +1128,3 @@ def config(
         )
     else:
         raise NotImplementedError(f"Task type {task_type} is not implemented.")
-
-
-class OptimizerConfigure:
-    def __init__(
-            self,
-            lr: float = 1e-3,
-            weight_decay: float = 1e-5,
-            optimizer: Optional[Type[Optimizer]] = None,
-            constant_lr: bool = False,
-            lr_scheduler_frequency: int = 2,
-            lr_scheduler: Optional[Type[torch.optim.lr_scheduler.LRScheduler]] = None,
-            lr_scheduler_kwargs: Optional[dict] = None,
-            primary_monitor: str = None,
-            task: tasks.BaseTask = None,
-    ):
-        # Optimizer and lr_schedular
-        self.lr = lr
-        self.weight_decay = weight_decay
-        self.optimizer = optimizer if optimizer is not None and issubclass(optimizer, Optimizer) else Adam
-        self.lr_scheduler = lr_scheduler
-        self.lr_scheduler_frequency = lr_scheduler_frequency
-        self.constant_lr = constant_lr
-        self.lrs_kwargs = lr_scheduler_kwargs if isinstance(lr_scheduler_kwargs, dict) else {}
-
-        if isinstance(primary_monitor, str):
-            self.primary_monitor = primary_monitor
-        elif isinstance(task, tasks.BaseTask):
-            self.primary_monitor = self.parse_primary_monitor_from_task_type(task)
-        else:
-            raise NotImplementedError(f"Unknown monitor type {primary_monitor}.")
-
-    @staticmethod
-    def parse_primary_monitor_from_task_type(task):
-        if isinstance(task, tasks.SingleTask):
-            return task.primary_metric
-        elif isinstance(task, (tasks.MultiTask, tasks.MultiDataTask)):
-            return 'smtrc'
-        else:
-            raise NotImplementedError(f"task type is not defined: {type(task)}")
-
-
-    def __call__(self, pl_module: L.LightningModule):
-        optimizer = self.optimizer(
-            pl_module.parameters(),
-            lr=self.lr,
-            weight_decay=self.weight_decay
-        )
-
-        if self.constant_lr:
-            return optimizer
-
-        if self.lr_scheduler:
-            scheduler = self.lr_scheduler(optimizer, **self.lrs_kwargs)
-        else:
-            scheduler = lrs.ReduceLROnPlateau(optimizer, **self.lrs_kwargs)
-
-        opti_config = {
-            'optimizer': optimizer,
-            "lr_scheduler": {
-            "scheduler": scheduler,
-                "monitor": self.primary_monitor,
-                "frequency": self.lr_scheduler_frequency,  # indicates how often the metric is updated
-                # If "monitor" references validation metrics, then "frequency" should be set to a
-                # multiple of "trainer.check_val_every_n_epoch".
-            },
-        }
-
-        print(opti_config)
-
-        return opti_config

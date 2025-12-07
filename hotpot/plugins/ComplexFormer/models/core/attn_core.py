@@ -35,7 +35,7 @@ __all__ = [
 
 class AttnExtractor:
     @staticmethod
-    def extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter=None):
+    def extract_atom_vec(seq, X_mask, R_mask, batch):
         Znode = []
         node_seq = seq[:, 1:X_mask.shape[-1]+1]
         for s, msk in zip(node_seq, X_mask):
@@ -44,8 +44,8 @@ class AttnExtractor:
         return torch.cat(Znode, dim=0)
 
     @staticmethod
-    def extract_bond_vec(seq, X_mask, R_mask, batch, batch_getter=None):
-        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+    def extract_bond_vec(seq, X_mask, R_mask, batch):
+        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch)
         edge_index = batch.edge_index
 
         upper_Znode = Znode[edge_index[0]]
@@ -54,14 +54,14 @@ class AttnExtractor:
         return (upper_Znode + lower_Znode) / 2
 
     @staticmethod
-    def extract_metal_vec(seq, X_mask, R_mask, batch, batch_getter=None):
+    def extract_metal_vec(seq, X_mask, R_mask, batch):
         metal_idx = utils.where_metal(batch.x[:, 0])
-        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch)
         return Znode[metal_idx]
 
     @staticmethod
-    def extract_cbond_pair(seq, X_mask, R_mask, batch, batch_getter=None):
-        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+    def extract_cbond_pair(seq, X_mask, R_mask, batch):
+        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch)
         cbond_index = batch.cbond_index
 
         upper_Znode = Znode[cbond_index[0]]
@@ -71,8 +71,8 @@ class AttnExtractor:
         return (upper_Znode + lower_Znode) / 2
 
     @staticmethod
-    def extract_pair_vec(seq, X_mask, R_mask, batch, batch_getter=None):
-        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch, batch_getter)
+    def extract_pair_vec(seq, X_mask, R_mask, batch):
+        Znode = AttnExtractor.extract_atom_vec(seq, X_mask, R_mask, batch)
 
         pair_index = batch.pair_index
 
@@ -82,7 +82,7 @@ class AttnExtractor:
         return (upper_Znode + lower_Znode) / 2
 
     @staticmethod
-    def extract_ring_vec(seq, X_mask, R_mask, batch, batch_getter=None):
+    def extract_ring_vec(seq, X_mask, R_mask, batch):
         Zring = []
 
         ring_seq = seq[:, -R_mask.shape[-1]-1:-1]
@@ -94,7 +94,7 @@ class AttnExtractor:
         return torch.cat(Zring, dim=0)
 
     @staticmethod
-    def extract_mol_vec(seq, X_mask, R_mask, batch, batch_getter=None):
+    def extract_mol_vec(seq, X_mask, R_mask, batch):
         return seq[:, 1]
 
 NodeProcessorType = Literal['graph', 'se3']

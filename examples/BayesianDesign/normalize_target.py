@@ -10,6 +10,6 @@ from hotpot.plugins.ComplexFormer.data_process import normalize_data
 
 
 if __name__ == '__main__':
-    normalizer = normalize_data.DatasetAnalyzer(dir_datasets)
-    normalizer.analyze_datasets()
+    normalizer = normalize_data.DatasetAnalyzer(dir_datasets, profile_dir=dir_datasets+'/.prof')
+    normalizer.analyze_datasets('*/pair_attr/length_shortest_path')
 

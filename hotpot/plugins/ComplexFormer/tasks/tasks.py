@@ -322,8 +322,8 @@ class BaseTask(ABC):
         if not osp.exists(save_dir := os.path.join(pl_module.logger.log_dir, 'hparams.json')):
             self.hypers.export(save_dir)
 
-_default_sol_graph_inputs = ('x', 'edge_index', 'batch')
-_default_med_graph_inputs = ('x', 'edge_index', 'batch')
+DEFAULT_SOL_GRAPH_INPUTS = ('x', 'edge_index', 'batch')
+DEFAULT_MED_GRAPH_INPUTS = ('x', 'edge_index', 'batch')
 
 class Task(BaseTask, ABC):
     _expect_types = {}
@@ -336,7 +336,7 @@ class Task(BaseTask, ABC):
             feature_extractor: Union[Callable, dict[str, Callable]],
             target_getter: Union[tp.TargetGetter, dict[str, tp.TargetGetter]],
             loss_fn: Callable[[torch.Tensor, torch.Tensor, Optional[Any]], torch.Tensor],
-            primary_metric: Union[str, dict[str, str]],
+            primary_metrics: Union[str, dict[str, str]],
             metrics: dict[str, Union[tp.MetricFn, dict[str, tp.MetricFn]]],
             hypers: hotpot.plugins.opti.params_space.ParamSets,
             batch_preprocessor: Optional[tp.BatchPreProcessor] = None,
@@ -344,15 +344,17 @@ class Task(BaseTask, ABC):
             xyz_index: Optional[Iterable[int]] = None,
             xyz_perturb_sigma: Optional[float] = None,
             xyz_perturb_mode: M.PerturbMode = 'uniform',
-            extractor_attr_getter: Union[tp.ExtractorAttrGetter, dict[str, tp.ExtractorAttrGetter]] = None,
             loss_weight_calculator: Optional[Union[tp.LossWeightCalculator, dict[str, tp.LossWeightCalculator]]] = None,
-            to_onehot: Union[bool, Iterable[str]] = False,
-            onehot_types: Optional[Union[int, dict[str, int]]] = None,
             x_masker: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = None,
             mask_need_task: Optional[list[str]] = None,
             pred_inspect: Union[bool, Iterable[str]] = False,
             plot_makers: Optional[dict[str, Union[tp.PlotMaker, tp.PlotMakerDict]]] = None,
             target_normalizer = None,
+            with_sol: bool = False,
+            with_med: bool = False,
+            with_env: bool = False,
+            sol_graph_inputs: Iterable[str] = None,
+            med_graph_inputs: Iterable[str] = None,
             **kwargs
     ):
         # Inputs process control arguments
@@ -370,14 +372,9 @@ class Task(BaseTask, ABC):
 
         # Feature extract
         self._feature_extractor = feature_extractor
-        self._extractor_attr_getter = extractor_attr_getter
 
         # get target
         self._target_getter = self._check_target_getter(target_getter)
-
-        # Onehot
-        self._to_onehot = to_onehot
-        self._onehot_types = onehot_types
 
         # Loss
         self._loss_fn = loss_fn
@@ -385,7 +382,7 @@ class Task(BaseTask, ABC):
         self.atl_weights: Optional[dict[str, float]] = None
 
         # Metrics
-        self.primary_metric = primary_metric
+        self.primary_metric = primary_metrics
         self._metrics = metrics
 
         # Pred inspect
@@ -401,13 +398,13 @@ class Task(BaseTask, ABC):
         # Args check and post process
         self._attr_post_process()
 
-        self.with_sol = kwargs.get('with_sol', False)
-        self.sol_graph_inputs = kwargs.get('sol_graph_inputs', _default_sol_graph_inputs)
+        self.with_sol = with_sol
+        self.sol_graph_inputs = sol_graph_inputs or DEFAULT_SOL_GRAPH_INPUTS
 
-        self.with_med = kwargs.get('with_med', False)
-        self.med_graph_inputs = kwargs.get('med_graph_inputs', _default_med_graph_inputs)
+        self.with_med = with_med
+        self.med_graph_inputs = med_graph_inputs or DEFAULT_MED_GRAPH_INPUTS
 
-        self.with_env = kwargs.get('with_env', False)
+        self.with_env = with_env
 
         # xyz_perturb recording
         self._target_normalizer = target_normalizer
@@ -612,7 +609,7 @@ class Task(BaseTask, ABC):
 
     def perturb_xyz(self, xyz, batch: Batch):
         if isinstance(self._xyz_perturb_sigma, float):
-            self.info_logger['perturb_xyz'].info(f"[#c0fb2d]XYZ perturb[/], sigma={self._xyz_perturb_sigma}, mode={self._xyz_perturb_mode}")
+            self.info_logger['perturb_xyz'].debug(f"[#c0fb2d]XYZ perturb[/], sigma={self._xyz_perturb_sigma}, mode={self._xyz_perturb_mode}")
             xyz, pert = M.perturb_xyz(xyz, self._xyz_perturb_sigma, self._xyz_perturb_mode)
             batch.pert_xyz = pert
 
@@ -708,7 +705,7 @@ class SingleTask(Task):
         return target_getter
 
     def feature_extractor(self, *args, **kwargs) -> torch.Tensor:
-        return self._feature_extractor(*args, batch_getter=self._extractor_attr_getter, **kwargs)
+        return self._feature_extractor(*args, **kwargs)
 
     @staticmethod
     def predict(predictor: nn.Module, features: torch.Tensor) -> torch.Tensor:
@@ -864,17 +861,7 @@ class MultiTask(Task):
         return target_getter
 
     def feature_extractor(self, *args, **kwargs) -> dict[str, torch.Tensor]:
-        if self._extractor_attr_getter is None:
-            extractor = {}
-        elif isinstance(self._extractor_attr_getter, dict):
-            extractor = self._extractor_attr_getter
-        else:
-            raise NotImplementedError
-
-        return {
-            k: ext(*args, batch_getter=extractor.get(k, None), **kwargs)
-            for k, ext in self._feature_extractor.items()
-        }
+        return {k: ext(*args, **kwargs) for k, ext in self._feature_extractor.items()}
 
     @staticmethod
     def predict(predictor: dict[str, nn.Module], features: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
@@ -906,7 +893,7 @@ class MultiTask(Task):
 
     def loss_weight_calculator(self, target) -> Optional[dict[str, torch.Tensor]]:
         if self._loss_weight_calculator is None:
-            return None
+            return {}
         elif isinstance(self._loss_weight_calculator, dict):
             return {
                 k: calculator(target[k])
@@ -928,6 +915,7 @@ class MultiTask(Task):
         for k, p in pred.items():
             try:
                 if (lw := loss_weight.get(k, None)) is not None:
+                    logging.debug(f'Get loss weight Tensor with shape {lw.shape} in {k} Task')
                     self.loss_dict[k] = self._loss_fn[k](p, target[k].to(p.dtype), lw)
                 else:
                     self.loss_dict[k] = self._loss_fn[k](p, target[k].to(p.dtype))
@@ -935,7 +923,7 @@ class MultiTask(Task):
                 msg = e.args[0]
                 raise RuntimeError(
                     msg + '\n'
-                    f'{k}(pred dtype: {p.dtype}, target dtype: {target[k].dtype})'
+                    f'{k}(pred{p.shape} dtype: {p.dtype}, target{target[k].shape} dtype: {target[k].dtype})'
                 )
 
         # Calculate the total loss

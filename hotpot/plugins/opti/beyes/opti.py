@@ -1,544 +1,658 @@
 """
-python v3.9.0
-@Project: hotpot
-@File   : opti
-@Auther : Zhiyuan Zhang
-@Data   : 2024/1/3
-@Time   : 11:27
+@File Name:        opti
+@Project:          
+@Author:           Zhiyuan Zhang
+@Created On:       2025/12/7 19:43
+@Project:          Hotpot
 """
+import copy
+import logging
 import os
 from pathlib import Path
-import logging
-from typing import Union, Callable
+from typing import Callable, Iterable, List, Literal, Optional, Sequence, Tuple, Union
 
+import gpytorch
 import numpy as np
 import pandas as pd
-
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.manifold import TSNE, MDS
-
 import torch
-import gpytorch
 from gpytorch.kernels import RBFKernel, ScaleKernel
+from sklearn.manifold import MDS, TSNE
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
-# from hotpot.plots import BayesDesignSpaceMap
 from hotpot.plugins.plots import BayesDesignSpaceMap
 
+__all__ = [
+    "next_params",
+    "draw_comics_map",
+]
 
-class AcquisitionFunc:
+ArrayLike = Union[np.ndarray, torch.Tensor]
+
+DEFAULT_BATCH_SIZE = 5
+DEFAULT_ACQ_EPS_MAX = 3.0
+DEFAULT_ACQ_POWER = 2.5
+DEFAULT_EI_EPS = 0.01
+MIN_SIGMA = 1e-9
+DEFAULT_MESH_COUNTS = 20
+DEFAULT_BO_ITER = 150
+DEFAULT_GP_LR = 0.1
+
+
+def generate_power_ladder(
+    index: int,
+    batch_size: int = DEFAULT_BATCH_SIZE,
+    max_epsilon: float = DEFAULT_ACQ_EPS_MAX,
+    power: float = DEFAULT_ACQ_POWER,
+) -> float:
+    if batch_size <= 1:
+        return DEFAULT_EI_EPS
+    ratio = index / (batch_size - 1)
+    return max_epsilon * ratio**power
+
+
+class AcquisitionFunction:
     @staticmethod
-    def expected_improvement(m, sigma, ymax, eps: float = 0.60):
-        """Return the expected improvement.
+    def expected_improvement(
+        mean: torch.Tensor,
+        sigma: torch.Tensor,
+        best_observed: torch.Tensor,
+        epsilon: float = 0.02,
+    ) -> torch.Tensor:
+        clamped_sigma = sigma.clamp(min=MIN_SIGMA)
+        diff = mean - best_observed - epsilon
+        standardized = diff / clamped_sigma
 
-        Arguments
-        m     -- The predictive mean at the test points.
-        sigma -- The predictive standard deviation at
-                 the test points.
-        ymax  -- The maximum observed value (so far).
-        """
-        diff = m - ymax * (1+eps)
-        u = diff / sigma
-        ei = (diff * torch.distributions.Normal(0, 1).cdf(u) +
-              sigma * torch.distributions.Normal(0, 1).log_prob(u).exp()
-              )
-        ei[sigma <= 0.] = 0.
-        return ei
+        normal_dist = torch.distributions.Normal(0, 1)
+        cdf_values = normal_dist.cdf(standardized)
+        pdf_values = normal_dist.log_prob(standardized).exp()
+
+        improvement = diff * cdf_values + clamped_sigma * pdf_values
+        improvement[sigma <= 0.0] = 0.0
+        return improvement
 
 
 class GaussianProcess(gpytorch.models.ExactGP):
-    """Exact Gaussian Process model.
-
-    Arguments
-    train_x     --  The training inputs.
-    train_y     --  The training labels.
-    mean_module --  The mean run. Defaults to a constant mean.
-    covar_module--  The covariance run. Defaults to a RBF kernel.
-    likelihood  --  The likelihood function. Defaults to Gaussian.
-    """
     def __init__(
-        self, train_x, train_y,
-        mean_module=gpytorch.means.ConstantMean(),
-        covar_module=ScaleKernel(RBFKernel()),
-        likelihood=gpytorch.likelihoods.GaussianLikelihood(noise_constraint=gpytorch.constraints.GreaterThan(0.0)),
+        self,
+        train_x: torch.Tensor,
+        train_y: torch.Tensor,
+        mean_module: Optional[gpytorch.means.Mean] = None,
+        covar_module: Optional[gpytorch.kernels.Kernel] = None,
+        likelihood: Optional[gpytorch.likelihoods.GaussianLikelihood] = None,
+    ) -> None:
+        if mean_module is None:
+            mean_module = gpytorch.means.ConstantMean()
+        if covar_module is None:
+            covar_module = ScaleKernel(RBFKernel())
+        if likelihood is None:
+            likelihood = gpytorch.likelihoods.GaussianLikelihood(
+                noise_constraint=gpytorch.constraints.GreaterThan(0.0)
+            )
 
-    ):
         super().__init__(train_x, train_y, likelihood)
         self.mean_module = mean_module
         self.covar_module = covar_module
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> gpytorch.distributions.MultivariateNormal:
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
 
 class BayesianOptimizer:
-    """ Implementing the Bayesian Optimization """
+    """Bayesian optimizer based on an ExactGP surrogate model."""
+
     def __init__(
-            self, surrogate: gpytorch.models.ExactGP,
-            acq_func=AcquisitionFunc.expected_improvement,
-            batch_size: int = 1
-    ):
-        """
-        Args:
-            surrogate: surrogate model
-            acq_func: acquisition function
-        """
+        self,
+        surrogate: gpytorch.models.ExactGP,
+        acquisition_fn: Callable[[torch.Tensor, torch.Tensor, torch.Tensor, float], torch.Tensor] = AcquisitionFunction.expected_improvement,
+        batch_size: int = 1,
+    ) -> None:
         self.surrogate = surrogate
-        self.acq_func = acq_func
+        self.acquisition_fn = acquisition_fn
         self.batch_size = batch_size
         self.is_trained = False
+        self.surrogate_snapshots: List[gpytorch.models.ExactGP] = []
 
-    def __call__(self, X_design, n_iter=150, lr=0.1):
-        if isinstance(X_design, np.ndarray):
-            X_design = torch.tensor(X_design)
+    def __call__(
+        self,
+        design_points: ArrayLike,
+        n_iter: int = DEFAULT_BO_ITER,
+        lr: float = DEFAULT_GP_LR,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        if isinstance(design_points, np.ndarray):
+            design_points = torch.as_tensor(design_points, dtype=torch.float32)
 
-        logging.info('\n'.join([f'{name}, {p}' for name, p in self.surrogate.named_parameters()]))
         train_x, train_y = self.surrogate.train_inputs[0], self.surrogate.train_targets
-        logging.info('\n'.join([f'{name}, {p}' for name, p in self.surrogate.named_parameters()]))
 
-        X_optimal, mu_optimal, sigma_optimal, X_opti_idx = [], [], [], []
-        for c in range(self.batch_size):
-            self.gp_train(n_iter=n_iter, lr=lr)
-            mu, sigma = self.gp_predict(X_design)
-            acq_value = self.acq_func(mu, sigma, train_y.max())
+        logging.info(
+            "\n".join(
+                f"{name}, {param}"
+                for name, param in self.surrogate.named_parameters()
+            )
+        )
 
-            # Find best point to include
-            i = torch.argmax(acq_value)
-            X_opti_idx.append(i)
-            X_optimal.append(X_design[i])
-            mu_optimal.append(mu[i])
-            sigma_optimal.append(sigma[i])
+        selected_points: List[torch.Tensor] = []
+        selected_means: List[torch.Tensor] = []
+        selected_stds: List[torch.Tensor] = []
+        selected_indices: List[torch.Tensor] = []
 
-            # Update the train X and train y dataset
-            # the new y is supposed to be the predicted mu by GP model
-            train_x = torch.from_numpy(torch.vstack([train_x, X_optimal[-1]]).detach().numpy())
-            train_y = torch.from_numpy(torch.hstack([train_y, mu_optimal[-1]]).detach().numpy())
+        for batch_index in range(self.batch_size):
+            self.train_gp(n_iter=n_iter, lr=lr)
+            mean, sigma = self.predict(design_points)
+
+            epsilon = generate_power_ladder(
+                index=batch_index,
+                batch_size=self.batch_size,
+            )
+            acquisition_values = self.acquisition_fn(
+                mean,
+                sigma,
+                train_y.max(),
+                epsilon=epsilon,
+            )
+
+            best_index = torch.argmax(acquisition_values)
+            selected_indices.append(best_index)
+            selected_points.append(design_points[best_index])
+            selected_means.append(mean[best_index])
+            selected_stds.append(sigma[best_index])
+
+            new_x = selected_points[-1].detach().clone().unsqueeze(0)
+            new_y = selected_means[-1].detach().clone().unsqueeze(0)
+
+            train_x = train_x.detach()
+            train_y = train_y.detach()
+
+            train_x = torch.cat([train_x, new_x], dim=0)
+            train_y = torch.cat([train_y, new_y], dim=0)
             self.surrogate.set_train_data(train_x, train_y, strict=False)
 
-        return torch.stack(X_optimal), torch.stack(mu_optimal), torch.stack(sigma_optimal), torch.stack(X_opti_idx)
+        return (
+            torch.stack(selected_points),
+            torch.stack(selected_means),
+            torch.stack(selected_stds),
+            torch.stack(selected_indices),
+        )
 
-    def gp_train(self, n_iter=100, lr=0.1, report_gap=None):
-        """Train the model.
-
-        Arguments
-        n_iter  --  The number of iterations.
-        """
+    def train_gp(
+        self,
+        n_iter: int = DEFAULT_BO_ITER,
+        lr: float = DEFAULT_GP_LR,
+        report_gap: Optional[int] = None,
+    ) -> None:
         if report_gap is None:
             report_gap = n_iter
 
         self.surrogate.train()
-        # optimizer = torch.optim.LBFGS(self.surrogate.parameters(), lr=lr)
         optimizer = torch.optim.Adam(self.surrogate.parameters(), lr=lr)
         likelihood = self.surrogate.likelihood
-        mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, self.surrogate)
+        marginal_log_likelihood = gpytorch.mlls.ExactMarginalLogLikelihood(
+            likelihood, self.surrogate
+        )
 
-        def closure():
+        def closure() -> torch.Tensor:
             optimizer.zero_grad()
             output = self.surrogate(self.surrogate.train_inputs[0])
-            lo = -mll(output, self.surrogate.train_targets)
-            lo.backward()
-            return lo
+            loss = -marginal_log_likelihood(output, self.surrogate.train_targets)
+            loss.backward()
+            return loss
 
-        for i in range(n_iter):
+        for iteration in range(n_iter):
             loss = optimizer.step(closure)
-            if (i + 1) % report_gap == 0:
-                print(f'Iter {i + 1:3d}/{n_iter} - Loss: {loss.item():.3f}')
+            if (iteration + 1) % report_gap == 0:
+                print(f"Iter {iteration + 1:3d}/{n_iter} - Loss: {loss.item():.3f}")
+
         self.surrogate.eval()
-
+        self.surrogate_snapshots.append(copy.deepcopy(self.surrogate))
         self.is_trained = True
-        
-    def gp_predict(self, X):
-        """ predict mu and sigma using build-in GP model """
-        pred = self.surrogate(X)
-        mu = pred.mean
-        sigma2 = pred.variance
-        sigma = torch.sqrt(sigma2)
 
-        return mu, sigma
-
-    def generate_emb2d_design_space(
-            self,
-            X_design,
-            X_opti_idx=None,
-            n_iter=150,
-            lr=0.1,
-            X_origin=None,
-            y_origin=None,
-            emb_method=TSNE(),
-            figpath=None,
-            emb_x=None,
-            show_fig=False,
-            y_scaler=None,
-            to_coutourf: bool = True,
-            cmap: str = 'Greys',
-    ):
-        if X_origin is not None:
-            num_orig = len(X_origin)
-            if y_origin is not None:
-                assert len(y_origin) == num_orig
-
-            X_design = np.vstack([X_design, X_origin])
-            X_orig_idx = np.arange(num_orig) + len(X_design)
-
+    def predict(
+        self,
+        inputs: torch.Tensor,
+        which: Literal["first", "last"] = "last",
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        if which == "last":
+            prediction = self.surrogate(inputs)
+        elif which == "first":
+            prediction = self.surrogate_snapshots[-1](inputs)
         else:
-            X_orig_idx = None
+            raise ValueError(f"Unknown surrogate selector: {which}")
+
+        mean = prediction.mean
+        variance = prediction.variance
+        sigma = torch.sqrt(variance)
+        return mean, sigma
+
+    def generate_2d_embedding_design_space(
+        self,
+        design_points: ArrayLike,
+        optimal_indices: Optional[ArrayLike] = None,
+        n_iter: int = DEFAULT_BO_ITER,
+        lr: float = DEFAULT_GP_LR,
+        original_x: Optional[np.ndarray] = None,
+        original_y: Optional[np.ndarray] = None,
+        embedding_method: Union[TSNE, MDS, None] = TSNE(),
+        figpath: Optional[Union[str, os.PathLike]] = None,
+        embedded_x: Optional[np.ndarray] = None,
+        show_fig: bool = False,
+        y_scaler: Optional[StandardScaler] = None,
+        to_contourf: bool = True,
+        cmap: str = "Greys",
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        if original_x is not None:
+            num_original = len(original_x)
+            if original_y is not None:
+                if len(original_y) != num_original:
+                    raise ValueError("Length of original_x and original_y must match.")
+
+            design_points = np.vstack([design_points, original_x])
+            original_indices = np.arange(num_original) + len(design_points)
+        else:
+            original_indices = None
+            _ = original_indices  # keep for potential future use
 
         if not self.is_trained:
-            self.gp_train(n_iter, lr)
+            self.train_gp(n_iter=n_iter, lr=lr)
 
-        if isinstance(X_design, np.ndarray):
-            X_design = torch.from_numpy(X_design)
+        if isinstance(design_points, np.ndarray):
+            design_points = torch.from_numpy(design_points).to(dtype=torch.float32)
+        elif isinstance(design_points, torch.Tensor):
+            design_points = design_points.to(dtype=torch.float32)
+        else:
+            raise TypeError("design_points must be a numpy array or torch.Tensor.")
 
-        mu, sigma = self.gp_predict(X_design)
-        mu, sigma = mu.detach().numpy(), sigma.detach().numpy()
-        if y_scaler:
-            mu = y_scaler.inverse_transform(mu.reshape(-1, 1)).flatten()
-            sigma = y_scaler.inverse_transform(sigma.reshape(-1, 1)).flatten()
+        mean, sigma = self.predict(design_points, which="first")
+        mean_np = mean.detach().numpy()
+        sigma_np = sigma.detach().numpy()
 
-        if emb_x is None:
-            emb_x = emb_method.fit_transform(X_design)
+        if y_scaler is not None:
+            mean_np = y_scaler.inverse_transform(mean_np.reshape(-1, 1)).flatten()
+            sigma_np = y_scaler.inverse_transform(sigma_np.reshape(-1, 1)).flatten()
+
+        if embedded_x is None:
+            if embedding_method is None:
+                raise ValueError(
+                    "embedding_method is None and no embedded_x provided."
+                )
+            embedded_x = embedding_method.fit_transform(design_points)
 
         if show_fig or figpath:
-            beyes_map = BayesDesignSpaceMap(emb_x, mu, sigma, X_opti_idx, to_coutourf=to_coutourf, cmap=cmap)
-            fig, axs = beyes_map()
+            bayes_map = BayesDesignSpaceMap(
+                embedded_x,
+                mean_np,
+                sigma_np,
+                optimal_indices,
+                to_coutourf=to_contourf,
+                cmap=cmap,
+            )
+            fig, _ = bayes_map()
 
             if show_fig:
-                print('show')
                 fig.show()
             if figpath:
+                logging.info(f"Saved parameters space to {figpath}")
                 fig.savefig(figpath)
 
-        return emb_x, mu, sigma
-
-    def make_2d_design_space_plots(
-            self,
-            emb_x: Union[list[np.ndarray], np.ndarray],
-            mus: Union[list[np.ndarray], np.ndarray],
-            sigmas: Union[list[np.ndarray], np.ndarray],
-            mu_norm: tuple[float, float] = None,
-            sigma_norm: tuple[float, float] = None,
-    ):
-        """
-        Make 2D design space plots in a same colorbar scale.
-        Args:
-            emb_x:
-            mus:
-            sigmas:
-            mu_norm:
-            sigma_norm:
-
-        Returns:
-
-        """
-        # Convert the Numpy Array to list of Array.
-        for var_name in ['emb_x', 'mus', 'sigmas']:
-            if isinstance(locals()[var_name], np.ndarray):
-                locals()[var_name] = [locals()[var_name]]
-
-        # Set up the colorbar normalization.
-        if mu_norm is None:
-            mu_norm = min(mu.min() for mu in mus), max(mu.max() for mu in mus)
-        if sigma_norm is None:
-            sigma_norm = min(sigma.min() for sigma in sigmas), max(sigma.max() for sigma in sigmas)
-
-
-def beyes_run(X, y, X_design, batch_size=5):
-    """
-    Running the Bayesian iteration
-    Args:
-        X: the known parameters
-        y: the known optimized target (or indicator)
-        X_design: the  allowed design space of the optimizing procedure.
-        batch_size: the number of samples to proposed in each optimization step
-
-    Return:
-        beyes(BayesianOptimizer): the Bayesian optimizer instance
-        X_opti: the proposed optimal X parameters for next experiments
-        mu_opti: the estimated mean target value of the proposed optimal X
-        sigma_opti: the estimated standard deviation of target of the proposed optimal X
-        X_idx: the index of the proposed optimal X in the whole design space
-    """
-    X, y, X_design = (torch.tensor(v) for v in [X, y, X_design])
-
-    gp = GaussianProcess(X, y, covar_module=ScaleKernel(RBFKernel(ard_num_dims=X.shape[1])))
-    optimizer = BayesianOptimizer(gp, batch_size=batch_size)
-    X_opti, mu_opti, sigma_opti, X_idx = optimizer(X_design, n_iter=300)
-
-    for param_name, param in optimizer.surrogate.named_parameters():
-        print(f'Parameter name: {param_name:42} value = {param.detach().cpu().tolist()}')
-
-    return optimizer, X_opti, mu_opti, sigma_opti, X_idx
-
-
-def next_params(
-        X, y,
-        param_range: np.ndarray,
-        param_names: list[str],
-        next_param_path,
-        mesh_counts: int = 20,
-        figpath: Union[str, os.PathLike] = None,
-        log_indices: Union[int, list[int]] = None,
-        to_coutourf: bool = True,
-        cmap: str = 'Greys',
-):
-    X = torch.tensor(X)
-    y = torch.tensor(y)
-
-    param_tran = ParamPreprocessor(
-        param_range=param_range,
-        param_names=param_names,
-        logX_indices=log_indices,
-        param_mesh_counts=mesh_counts
-    )
-    param_tran.fit(X, y)
-    X_design = param_tran.get_X_design()
-    X_scale, y_scale, X_design_scale = param_tran.transform(X, y, X_design)
-
-    bayes, X_opti, mu_opti, sigma_opti, X_idx = beyes_run(X_scale, y_scale, X_design_scale, batch_size=5)
-
-    bayes.generate_emb2d_design_space(X_design_scale, X_idx, figpath=figpath, to_coutourf=to_coutourf, cmap=cmap)
-
-    # Inverse transform
-    X_opti, (mu_opti, sigma_opti), _ = param_tran.inverse_transform(X_opti, mu_opti, sigma_opti)
-
-    if isinstance(log_indices, list):
-        for i in log_indices:
-            X_opti[:, i] = np.power(10, X_opti[:, i])
-
-    data = np.concatenate([X_opti, mu_opti, sigma_opti], axis=1)
-    df = pd.DataFrame(data, columns=param_names + ['mu', 'sigma'])
-    df.to_csv(next_param_path)
-
-
-def draw_comics_map(
-        X, y,
-        init_index: int,
-        batch_size: int,
-        param_range: np.ndarray = None,
-        param_names=None,
-        mesh_counts: int = 20,
-        log_indices=None,
-        figpath_dir=None,
-        emb_method=TSNE(),
-        to_coutourf: bool = True,
-        cmap: str = 'Greys',
-):
-    """"""
-    assert X.shape[0] == y.shape[0] > init_index
-
-    param_tran = ParamPreprocessor(
-        param_range=param_range,
-        param_names=param_names,
-        logX_indices=log_indices,
-        param_mesh_counts=mesh_counts
-    )
-    param_tran.fit(X, y)
-    X_design = param_tran.get_X_design()
-    X_scale, y_scale, X_design_scale = param_tran.transform(X, y, X_design)
-    emb_X_design = emb_method.fit_transform(X_design_scale)
-
-    list_emb_x, mus, sigmas, opti_X_idx = [], [], [], []
-    for iter_num, idx in enumerate(range(init_index, X.shape[0]+batch_size, batch_size), 1):
-        X_batch, y_batch = X_scale[:idx], y_scale[:idx]
-        bayes, X_opti, mu_opti, sigma_opti, X_idx = beyes_run(X_batch, y_batch, X_design_scale, batch_size=5)
-
-        # Generate the 2D embedded design points for the below visualization.
-        emb_x, mu, sigma = bayes.generate_emb2d_design_space(
-            X_design_scale, X_idx.detach().numpy(),
-            emb_method=None,
-            emb_x=emb_X_design,
-            y_scaler=param_tran.yscaler,
-            to_coutourf=to_coutourf,
-            cmap=cmap,
-        )
-        list_emb_x.append(emb_x)
-        mus.append(mu)
-        sigmas.append(sigma)
-        opti_X_idx.append(X_idx.detach().numpy())
-
-    mu_norm = min(mu.min() for mu in mus), max(mu.max() for mu in mus)
-    sigma_norm = min(sig.min() for sig in sigmas), max(sig.max() for sig in sigmas)
-
-    # Export the 2D embedding space individually
-    for i, (emb_x, mu, sigma, X_idx) in enumerate(zip(list_emb_x, mus, sigmas, opti_X_idx)):
-        bm = BayesDesignSpaceMap(
-            emb_x, mu, sigma, X_idx,
-            mu_norm=mu_norm, sigma_norm=sigma_norm,
-            cmap_mu='viridis', cmap_sigma='Grays',
-            superscript=False,
-            to_coutourf=to_coutourf,
-            cmap=cmap
-        )
-        fig, axs = bm()
-        fig.savefig(Path(figpath_dir).joinpath(f'comics_{i}.png'))
-
-    # Export all 2D embedding space to a whole picture.
-    beyes_map = BayesDesignSpaceMap(list_emb_x, mus, sigmas, opti_X_idx, cmap='viridis')
-    fig, axs = beyes_map()
-    fig.savefig(Path(figpath_dir).joinpath(f'comics.png'))
+        return embedded_x, mean_np, sigma_np
 
 
 class ParamPreprocessor:
     """
-    Preprocessor for optimized parameters.
-        1) scale the raw parameter values in a linear or logarithmic space.
-        2) get a meshed parameter design space according to given parameters space.
+    Preprocessor for numerical parameters.
+
+    This class provides:
+      - optional base-10 log transformation for selected dimensions
+      - feature scaling for X and y
+      - construction of a meshed design space within given parameter ranges
     """
+
     def __init__(
-            self,
-            scaler: Callable = MinMaxScaler(),
-            yscaler=MinMaxScaler((0, 10)),
-            param_range: Union[torch.Tensor, np.ndarray] = None,
-            param_names: list[str] = None,
-            param_mesh_counts: int = 20,
-            logX_indices: Union[int, list[int]] = None,
-    ):
-        """
-        Args:
-            scaler:
-            yscaler:
-            param_range:
-            param_names:
-            param_mesh_counts:
-            logX_indices:
-        """
+        self,
+        scaler: Callable[..., MinMaxScaler] = MinMaxScaler(),
+        y_scaler: Optional[StandardScaler] = StandardScaler(),
+        param_range: Optional[Union[torch.Tensor, np.ndarray]] = None,
+        param_names: Optional[List[str]] = None,
+        param_mesh_counts: int = DEFAULT_MESH_COUNTS,
+        logX_indices: Optional[Union[int, List[int]]] = None,
+    ) -> None:
         self.scaler = scaler
-        self.yscaler = yscaler
-
-        if param_range is not None and param_range.shape[1] != 2:
-            raise ValueError('the length of param_range in dimension 1 should be 2')
+        self.y_scaler = y_scaler
         self.param_range = param_range
-
-        if param_names:
-            assert len(param_names) == len(param_range)
         self.param_names = param_names
-
         self.param_mesh_counts = param_mesh_counts
 
+        if self.param_range is not None and self.param_range.shape[1] != 2:
+            raise ValueError("param_range must have shape (n_params, 2).")
+
+        if self.param_names is not None and self.param_range is not None:
+            if len(self.param_names) != len(self.param_range):
+                raise ValueError(
+                    "param_names length must match the number of parameters."
+                )
+
         if isinstance(logX_indices, int):
-            self.logX_indices = [logX_indices]
+            self.logX_indices: Optional[List[int]] = [logX_indices]
         else:
             self.logX_indices = logX_indices
 
-    def get_X_design(self, to_log=True):
-        """ Get the design parameters according to the parameter range """
+    def get_design_space(self) -> torch.Tensor:
         if not isinstance(self.param_range, (torch.Tensor, np.ndarray)):
-            raise AttributeError('the param_ranges are not given, cannot get X_design')
+            raise AttributeError("param_range must be set to generate design space.")
 
-        param_range = self.param_range
-        if to_log and isinstance(self.logX_indices, list):
-            for i in self.logX_indices:
-                param_range[i] = np.log10(param_range[i])
+        param_range = copy.deepcopy(self.param_range)
 
-        param_axis = []
-        for p_range in param_range:
-            param_axis.append(torch.linspace(*p_range, self.param_mesh_counts))
+        if isinstance(self.logX_indices, list):
+            for index in self.logX_indices:
+                param_range[index] = np.log10(param_range[index])
 
-        param_meshgrid = torch.meshgrid(param_axis)
-        X_design = torch.vstack([pm.flatten() for pm in param_meshgrid]).T
+        axes: List[torch.Tensor] = []
+        for low, high in param_range:
+            axes.append(torch.linspace(low, high, self.param_mesh_counts))
 
-        return X_design
+        meshgrid = torch.meshgrid(*axes, indexing="ij")
+        design_points = torch.vstack([grid.flatten() for grid in meshgrid]).T
+        scaled_design = torch.as_tensor(self.scaler.transform(design_points))
+        return scaled_design
 
-    def fit(self, X: torch.Tensor, y: torch.Tensor = None):
+    def fit(self, X: torch.Tensor, y: Optional[torch.Tensor] = None) -> None:
         self.scaler.fit(X)
-        if y is not None:
-            self.yscaler.fit(y.reshape([y.shape[0], 1]))
+        if y is not None and self.y_scaler is not None:
+            self.y_scaler.fit(y.reshape(-1, 1))
 
-    def transform(self, X: torch.Tensor, y: torch.Tensor = None, X_design: torch.Tensor = None):
-        """"""
-        if isinstance(X_design, torch.Tensor):
-            assert X_design.shape[1] == X.shape[1]
+    def log10_transform(self, X: torch.Tensor) -> torch.Tensor:
+        if not isinstance(self.logX_indices, list):
+            return copy.deepcopy(X)
 
-        if isinstance(self.logX_indices, list):
-            for i in self.logX_indices:
-                X[:, i] = torch.log10(X[:, i])
+        subset = torch.as_tensor(X[:, self.logX_indices])
+        if torch.any(subset <= 0):
+            raise ValueError("log10_transform cannot be applied to non-positive values.")
 
-        X = self.scaler.transform(X)
-        y = self.yscaler.transform(y.reshape(-1, 1)).flatten()
+        transformed = copy.deepcopy(X)
+        transformed[:, self.logX_indices] = torch.log10(subset)
+        return transformed
 
-        if X_design is not None:
-            X_design = self.scaler.transform(X_design)
+    def scale_features(
+        self,
+        X: torch.Tensor,
+        y: torch.Tensor,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        X_scaled = self.scaler.transform(X)
+        if self.y_scaler is None:
+            raise ValueError("y_scaler is not set.")
+        y_scaled = self.y_scaler.transform(y.reshape(-1, 1)).flatten()
+        return X_scaled, y_scaled
 
-        return X, y, X_design
+    def inverse_log10(self, X_log: ArrayLike) -> ArrayLike:
+        if not isinstance(self.logX_indices, list):
+            return copy.deepcopy(X_log)
 
-    @staticmethod
-    def to_numpy(*tensors: torch.Tensor):
-        return (t.detach().numpy() if isinstance(t, torch.Tensor) else np.array(t) for t in tensors)
+        output = copy.deepcopy(X_log)
+        if isinstance(output, torch.Tensor):
+            output[:, self.logX_indices] = torch.pow(10.0, output[:, self.logX_indices])
+        else:
+            output[:, self.logX_indices] = np.power(10.0, output[:, self.logX_indices])
+        return output
 
-    @staticmethod
-    def to_tensor(*arrays: np.ndarray):
-        return (torch.tensor(a) for a in arrays)
+    def inverse_scale(
+        self,
+        values: ArrayLike,
+        mean: ArrayLike,
+        sigma: ArrayLike,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        values_np = (
+            values.detach().cpu().numpy() if isinstance(values, torch.Tensor) else values
+        )
+        mean_np = (
+            mean.detach().cpu().numpy() if isinstance(mean, torch.Tensor) else mean
+        )
+        sigma_np = (
+            sigma.detach().cpu().numpy() if isinstance(sigma, torch.Tensor) else sigma
+        )
 
-    def inverse_transform(
-            self,
-            X: Union[np.ndarray, torch.Tensor],
-            *ys: Union[np.ndarray, torch.Tensor],
-            X_design=None
+        values_inv = self.scaler.inverse_transform(values_np)
+
+        if self.y_scaler is None:
+            raise ValueError("y_scaler is not set.")
+
+        mean_inv = self.y_scaler.inverse_transform(mean_np.reshape(-1, 1))
+        sigma_inv = self.y_scaler.inverse_transform(sigma_np.reshape(-1, 1))
+        return values_inv, mean_inv, sigma_inv
+
+
+def preprocess_inputs(
+    X: ArrayLike,
+    y: ArrayLike,
+    param_range: np.ndarray,
+    param_names: List[str],
+    log_indices: Optional[Union[int, List[int]]],
+    mesh_counts: int,
+) -> Tuple[ParamPreprocessor, np.ndarray, np.ndarray, torch.Tensor]:
+    preprocessor = ParamPreprocessor(
+        param_range=param_range,
+        param_names=param_names,
+        logX_indices=log_indices,
+        param_mesh_counts=mesh_counts,
+    )
+
+    if not isinstance(X, torch.Tensor):
+        X = torch.tensor(X, dtype=torch.float32)
+    if not isinstance(y, torch.Tensor):
+        y = torch.tensor(y, dtype=torch.float32)
+
+    X_log = preprocessor.log10_transform(X)
+    preprocessor.fit(X_log, y)
+    X_scaled, y_scaled = preprocessor.scale_features(X_log, y)
+    X_design_scaled = preprocessor.get_design_space()
+    return preprocessor, X_scaled, y_scaled, X_design_scaled
+
+
+def run_bayesian_optimization(
+    X: ArrayLike,
+    y: ArrayLike,
+    design_points: ArrayLike,
+    batch_size: int = DEFAULT_BATCH_SIZE,
+) -> Tuple[BayesianOptimizer, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    X_tensor, y_tensor, design_tensor = (
+        torch.as_tensor(arr, dtype=torch.float32) for arr in (X, y, design_points)
+    )
+
+    input_dim = X_tensor.shape[1]
+    covar_module = ScaleKernel(RBFKernel(ard_num_dims=input_dim))
+    gp = GaussianProcess(X_tensor, y_tensor, covar_module=covar_module)
+
+    optimizer = BayesianOptimizer(gp, batch_size=batch_size)
+    X_optimal, mu_optimal, sigma_optimal, indices = optimizer(
+        design_tensor, n_iter=300
+    )
+
+    for name, param in optimizer.surrogate.named_parameters():
+        print(
+            f"Parameter name: {name:42} value = {param.detach().cpu().tolist()}"
+        )
+
+    return optimizer, X_optimal, mu_optimal, sigma_optimal, indices
+
+
+def next_params(
+    X: ArrayLike,
+    y: ArrayLike,
+    param_range: np.ndarray,
+    param_names: List[str],
+    next_param_path: Union[str, os.PathLike],
+    mesh_counts: int = DEFAULT_MESH_COUNTS,
+    figpath: Optional[Union[str, os.PathLike]] = None,
+    log_indices: Optional[Union[int, List[int]]] = None,
+    to_coutourf: bool = True,
+    cmap: str = "Greys",
+) -> None:
+    preprocessor, X_scaled, y_scaled, design_scaled = preprocess_inputs(
+        X,
+        y,
+        param_range,
+        param_names,
+        log_indices,
+        mesh_counts,
+    )
+
+    optimizer, X_optimal_scaled, mu_scaled, sigma_scaled, indices = run_bayesian_optimization(
+        X_scaled,
+        y_scaled,
+        design_scaled,
+        batch_size=DEFAULT_BATCH_SIZE,
+    )
+
+    optimizer.generate_2d_embedding_design_space(
+        design_scaled,
+        indices,
+        figpath=figpath,
+        to_contourf=to_coutourf,
+        cmap=cmap,
+        y_scaler=preprocessor.y_scaler,
+    )
+
+    X_optimal, mu_original, sigma_original = preprocessor.inverse_scale(
+        X_optimal_scaled,
+        mu_scaled,
+        sigma_scaled,
+    )
+    X_optimal = preprocessor.inverse_log10(X_optimal)
+
+    data = np.concatenate([X_optimal, mu_original, sigma_original], axis=1)
+    df = pd.DataFrame(data, columns=param_names + ["mu", "sigma"])
+    df.to_csv(next_param_path, index=False)
+
+
+def _plot_one_by_one(
+        embedded_snapshots,
+        mu_snapshots,
+        sigma_snapshots,
+        optimal_index_snapshots,
+        to_coutourf,
+        cmap,
+        figpath_dir_path
+):
+    mu_min, mu_max = BayesDesignSpaceMap.list_array_min_max(mu_snapshots)
+    sigma_colors, _, sigma_label = BayesDesignSpaceMap.normalize_list_sigma(sigma_snapshots, mu_min, mu_max)
+    sigma_min, sigma_max = BayesDesignSpaceMap.list_array_min_max(sigma_colors)
+
+    for i, (
+        embedded_x,
+        mu,
+        sigma,
+        optimal_indices,
+    ) in enumerate(
+        zip(
+            embedded_snapshots,
+            mu_snapshots,
+            sigma_snapshots,
+            optimal_index_snapshots,
+        )
     ):
-        X = next(self.to_numpy(X))
-        ys = self.to_numpy(*ys)
+        bayes_map = BayesDesignSpaceMap(
+            embedded_x,
+            mu,
+            sigma_colors[i],
+            optimal_indices,
+            mu_norm=(mu_min, mu_max),
+            sigma_norm=(sigma_min, sigma_max),
+            cmap_mu="Grays",
+            cmap_sigma="Grays",
+            superscript=False,
+            to_coutourf=to_coutourf,
+            sigma_is_color=True,
+            sigma_label=sigma_label,
+            cmap=cmap,
+        )
+        fig, _ = bayes_map()
+        fig.savefig(figpath_dir_path.joinpath(f"comics_{i}.png"))
 
-        X = self.scaler.inverse_transform(X)
-        ys = [self.yscaler.inverse_transform(y.reshape([y.shape[0], 1])) for y in ys]
 
-        if isinstance(self.logX_indices, list):
-            for i in self.logX_indices:
-                X[:, i] = torch.log10(X[:, i])
+def draw_comics_map(
+    X: ArrayLike,
+    y: ArrayLike,
+    init_index: int,
+    batch_size: int,
+    param_range: Optional[np.ndarray] = None,
+    param_names: Optional[Sequence[str]] = None,
+    mesh_counts: int = DEFAULT_MESH_COUNTS,
+    log_indices: Optional[Union[int, List[int]]] = None,
+    figpath_dir: Optional[Union[str, os.PathLike]] = None,
+    emb_method: Union[TSNE, MDS] = TSNE(),
+    to_coutourf: bool = True,
+    cmap: str = "Greys",
+) -> None:
+    if not (X.shape[0] == y.shape[0] > init_index):
+        raise ValueError("X and y must have same length and be longer than init_index.")
 
-        if X_design is not None:
-            X_design = self.scaler.inverse_transform(X_design)
-            for i in self.logX_indices:
-                X_design = torch.log10(X_design[:, i])
+    (
+        preprocessor,
+        X_scaled,
+        y_scaled,
+        design_scaled,
+    ) = preprocess_inputs(
+        X,
+        y,
+        param_range,
+        list(param_names) if param_names is not None else [],
+        log_indices,
+        mesh_counts,
+    )
 
-        return X, ys, X_design
+    embedded_design = emb_method.fit_transform(design_scaled)
 
+    embedded_snapshots: List[np.ndarray] = []
+    mu_snapshots: List[np.ndarray] = []
+    sigma_snapshots: List[np.ndarray] = []
+    optimal_index_snapshots: List[np.ndarray] = []
 
-if __name__ == '__main__':
-    # logging.basicConfig(level=logging.INFO)
-    df = pd.read_excel('/mnt/c/Users/zhang/OneDrive/Papers/COF/ChemData.xlsx', index_col=0)
-    X = torch.tensor(df.iloc[:, :3].values)
-    X[:, 1] = torch.log10(X[:, 1])
-    y = torch.tensor(df.iloc[:, 3].values)
+    last_index = X.shape[0] + batch_size
+    for iteration, end in enumerate(
+        range(init_index, last_index, batch_size),
+        start=1,
+    ):
+        X_batch = X_scaled[:end]
+        y_batch = y_scaled[:end]
+        optimizer, _, _, _, optimal_indices = run_bayesian_optimization(
+            X_batch,
+            y_batch,
+            design_scaled,
+            batch_size=batch_size,
+        )
 
-    temp_range = [X[:, 0].min(), X[:, 0].max()]
-    log_ratio_range = [X[:, 1].min(), X[:, 1].max()]
-    equiv_range = [X[:, 2].min(), X[:, 2].max()]
+        embedded_x, mu, sigma = optimizer.generate_2d_embedding_design_space(
+            design_scaled,
+            optimal_indices.detach().numpy(),
+            embedding_method=None,
+            embedded_x=embedded_design,
+            y_scaler=preprocessor.y_scaler,
+            to_contourf=to_coutourf,
+            cmap=cmap,
+        )
 
-    temp_design_range = [-20., 150.]
-    log_ratio_design_range = [-1., 1]
-    equiv_design_range = [0.001, 0.1]
+        embedded_snapshots.append(embedded_x)
+        mu_snapshots.append(mu)
+        sigma_snapshots.append(sigma)
+        optimal_index_snapshots.append(optimal_indices.detach().numpy())
 
-    temp_space = torch.linspace(*temp_design_range, 20)
-    log_ratio_space = torch.linspace(*log_ratio_design_range, 20)
-    equiv_space = torch.linspace(*equiv_design_range, 20)
+    figpath_dir_path = Path(figpath_dir) if figpath_dir is not None else Path(".")
 
-    temp_space, log_ratio_space, equiv_space = torch.meshgrid([temp_space, log_ratio_space, equiv_space])
+    _plot_one_by_one(
+        embedded_snapshots,
+        mu_snapshots,
+        sigma_snapshots,
+        optimal_index_snapshots,
+        to_coutourf,
+        cmap,
+        figpath_dir_path=figpath_dir_path,
+    )
 
-    X_design = torch.vstack([temp_space.flatten(), log_ratio_space.flatten(), equiv_space.flatten()]).T
-
-    scaler = MinMaxScaler()
-    yscaler = MinMaxScaler(feature_range=(0., 10.))
-
-    scaler.fit(X)
-    yscaler.fit(y.reshape([y.shape[0], 1]))
-
-    X_scale = torch.from_numpy(scaler.transform(X))
-    y_scale = torch.from_numpy(yscaler.transform(y.reshape([y.shape[0], 1]))).flatten()
-
-    X_design_scale = scaler.transform(X_design)
-
-    gp = GaussianProcess(X_scale, y_scale, covar_module=ScaleKernel(RBFKernel(ard_num_dims=3)))
-    bayes = BayesianOptimizer(gp, batch_size=10)
-    X_opti, mu_opti, sigma_opti, X_opti_idx = bayes(X_design_scale, 300)
-
-    X_opti = scaler.inverse_transform(X_opti)
-    X_opti[:, 1] = np.power(10, X_opti[:, 1])
-    mu_opti = yscaler.inverse_transform(mu_opti.detach().numpy().reshape([mu_opti.shape[0], 1]))
-    sigma_opti = yscaler.inverse_transform(sigma_opti.detach().numpy().reshape([sigma_opti.shape[0], 1]))
-
-    data = np.concatenate([X_opti, mu_opti, sigma_opti], axis=1)
-    df = pd.DataFrame(data, columns=['temp', 'ratio', 'cata. Equiv.', 'mu', 'sigma'])
-    df.to_csv('/mnt/c/Users/zhang/OneDrive/Papers/COF/result2.csv')
-
-    bayes.generate_emb2d_design_space(X_design_scale, X_opti_idx, emb_method=TSNE())
+    aggregate_map = BayesDesignSpaceMap(
+        embedded_snapshots,
+        mu_snapshots,
+        sigma_snapshots,
+        optimal_index_snapshots,
+        cmap="viridis",
+    )
+    fig, _ = aggregate_map()
+    fig.savefig(figpath_dir_path.joinpath("comics.png"))

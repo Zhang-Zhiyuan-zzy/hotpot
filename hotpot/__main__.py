@@ -17,6 +17,7 @@ sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 import argparse
 from .main import optimize, ml_train, conversion
 from . import version
+from hotpot.utils.configs.logging_config import setup_logging
 
 
 def is_running_in_foreground():
@@ -110,6 +111,7 @@ def run(args):
 
 
 def main(argv: list[str] = None):
+    setup_logging()
     parser = build_parser()
 
     # Parse arguments

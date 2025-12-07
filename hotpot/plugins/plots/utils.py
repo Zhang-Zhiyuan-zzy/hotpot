@@ -105,7 +105,7 @@ def add_colorbar(
 ):
     # Defaults keywords for colorbar
     _kw = {
-        'ticks': mticker.MaxNLocator(nbins=6),
+        'ticks': mticker.MaxNLocator(nbins=5, min_n_ticks=2, steps=[1, 2, 2.5, 3, 4, 5, 6, 8, 10]),
         'format': "{x:.3f}"
     }
     _kw.update(kwargs)
@@ -180,6 +180,6 @@ def scatter_to_coutourf(x, y, c, mesh_num=50):
     xi, yi = np.meshgrid(np.linspace(x.min(), x.max(), mesh_num), np.linspace(y.min(), y.max(), mesh_num))
 
     zi = griddata((x, y), c, (xi, yi), method='linear')
-    zi = np.nan_to_num(zi, nan=0.0)
+    zi = np.nan_to_num(zi, nan=-np.inf)
 
     return xi, yi, zi

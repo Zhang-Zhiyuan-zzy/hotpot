@@ -28,7 +28,7 @@ __all__ = [
     "LoggerDict"
 ]
 
-def setup_logging(debug=True, to_stdout=True):
+def setup_logging(debug=False, to_stdout=True):
     console = Console(file=sys.stdout) if to_stdout else Console()  # Console() defaults to stderr
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.INFO,

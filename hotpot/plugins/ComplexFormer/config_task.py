@@ -75,6 +75,10 @@ x_masker_options = {
 INPUT_X_ATTR = ('atomic_number', 'n', 's', 'p', 'd', 'f', 'g', 'x', 'y', 'z')
 COORD_X_ATTR = ('x', 'y', 'z')
 
+######################################## Main Interface ##################################################
+def config_task(cfg: ConfigArgs):
+    builder = TaskBuilder(cfg)
+    return builder.build_task()
 
 ##########################################################################################################
 ############################### Argument Regularization ##################################################
@@ -811,8 +815,3 @@ class TaskBuilder:
         task.hypers = self.cfg.hypers
 
         return self.core, task, predictors
-
-
-def config_task(cfg: ConfigArgs):
-    builder = TaskBuilder(cfg)
-    return builder.build_task()

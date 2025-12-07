@@ -15,3 +15,5 @@
 """
 from .train import LightPretrain
 from .run import run
+from .datacls import *
+from .cv import run_cv

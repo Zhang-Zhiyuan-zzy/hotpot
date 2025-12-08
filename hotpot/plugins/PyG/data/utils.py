@@ -7,6 +7,7 @@ from itertools import product
 from tqdm import tqdm
 import numpy as np
 import torch
+from torch_geometric.data import Data
 
 from hotpot.cheminfo.core import Molecule, Atom, AtomPair
 from .consts import *
@@ -19,6 +20,7 @@ __all__ = [
     "extract_ring_attrs",
     "merge_individual_data_to_block",
     "make_empty_graph",
+    "mol_to_pyg_data",
     "graph_extraction",
     'extract_potentials_cbonds'
 ]
@@ -41,6 +43,8 @@ def make_empty_graph(prefix: str = ''):
         f'{prefix}rings_attr_names': [],
     }
 
+def mol_to_pyg_data(mol: Molecule = None, prefix: str = '', with_batch: bool = True) -> Data:
+    return Data(**graph_extraction(mol, prefix, with_batch))
 
 def graph_extraction(mol: Molecule = None, prefix: str = '', with_batch: bool = False) -> dict:
     if prefix and not prefix.endswith('_'):

@@ -74,6 +74,9 @@ class Molecule:
     forming the basis for chemical computations and geometry manipulations.
     """
     def __init__(self):
+        self._model = None  # AI model
+        self._environ = None
+
         self._atoms = []
         self._bonds = []
         self._conformers = Conformers()
@@ -2400,6 +2403,10 @@ class Molecule:
         rings = self.rings
         self.recover_hided_metal_ligand_bonds()
         return rings
+
+    def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
+        from ..plugins.PyG.data.utils import mol_to_pyg_data
+        return mol_to_pyg_data(self, prefix, with_batch)
 
     def to_obmol(self) -> ob.OBMol:
         """

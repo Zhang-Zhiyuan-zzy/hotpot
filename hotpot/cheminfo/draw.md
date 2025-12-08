@@ -5,13 +5,13 @@
 
 This package provides high‑level molecular drawing interfaces built upon **RDKit**, **Matplotlib**, and **CairoSVG**, enabling chemical visualization with customized highlighting, color normalization, and unified export formats.
 
-| Function | Description |
-|-----------|-------------|
+| Function                       | Description                                                                                                                                                                                     |
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **`compute_atom_bond_colors`** | Compute atom and bond color mappings from per‑atom numeric values (e.g., SHAP scores or feature importances). Produces RDKit‑compatible color dictionaries and a shared colormap normalization. |
-| **`create_svg_colorbar`** | Create a Matplotlib‑based colorbar and return it as an SVG string. Useful for attaching a legend or scale beside rendered molecules. |
-| **`merge_colorbar_to_svg`** | Merge a colorbar SVG into a molecule or grid SVG layout, positioning the colorbar neatly relative to the figure canvas. |
-| **`draw_single_mol`** | Render a single molecule to SVG with optional highlighting or value‑dependent coloring, supporting multiple output formats (SVG, PNG, PDF…). |
-| **`draw_grid`** | Render multiple molecules in a unified grid layout. Supports colormap highlights with shared normalization across all molecules and optional colorbar generation. |
+| **`create_svg_colorbar`**      | Create a Matplotlib‑based colorbar and return it as an SVG string. Useful for attaching a legend or scale beside rendered molecules.                                                            |
+| **`merge_colorbar_to_svg`**    | Merge a colorbar SVG into a molecule or grid SVG layout, positioning the colorbar neatly relative to the figure canvas.                                                                         |
+| **`draw_single_mol`**          | Render a single molecule to SVG with optional highlighting or value‑dependent coloring, supporting multiple output formats (SVG, PNG, PDF…).                                                    |
+| **`draw_grid`**                | Render multiple molecules in a unified grid layout. Supports colormap highlights with shared normalization across all molecules and optional colorbar generation.                               |
 
 
 ---
@@ -62,13 +62,13 @@ compute_atom_bond_colors(
 
 #### Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
-| `mol` | `Chem.Mol` | RDKit molecule object. |
-| `atom_values` | `np.ndarray` | Numeric value for each atom. |
-| `cmap_name` | `str`, default `"coolwarm"` | Matplotlib colormap name. |
-| `vmin`, `vmax` | `float`, optional | Fixed normalization range; defaults inferred if omitted. |
-| `threshold` | `float`, default `0.75` | Minimal normalized absolute value to include color (acts like alpha cutoff). |
+| Name           | Type                        | Description                                                                  |
+|----------------|-----------------------------|------------------------------------------------------------------------------|
+| `mol`          | `Chem.Mol`                  | RDKit molecule object.                                                       |
+| `atom_values`  | `np.ndarray`                | Numeric value for each atom.                                                 |
+| `cmap_name`    | `str`, default `"coolwarm"` | Matplotlib colormap name.                                                    |
+| `vmin`, `vmax` | `float`, optional           | Fixed normalization range; defaults inferred if omitted.                     |
+| `threshold`    | `float`, default `0.75`     | Minimal normalized absolute value to include color (acts like alpha cutoff). |
 
 #### Returns
 A 4‑tuple:
@@ -102,11 +102,11 @@ Generates a Matplotlib colorbar and serializes it directly to SVG format to merg
 
 #### Parameters
 
-| Name | Type | Description |
-|------|------|-------------|
-| `name` | str | Matplotlib colormap name. |
-| `norm` | `mcolors.Normalize`, optional | Colormap normalization; automatically set to `[-1, 1]` if None. |
-| `orientation` | `'vertical'` or `'horizontal'` | Layout orientation of the colorbar figure. |
+| Name          | Type                           | Description                                                     |
+|---------------|--------------------------------|-----------------------------------------------------------------|
+| `name`        | str                            | Matplotlib colormap name.                                       |
+| `norm`        | `mcolors.Normalize`, optional  | Colormap normalization; automatically set to `[-1, 1]` if None. |
+| `orientation` | `'vertical'` or `'horizontal'` | Layout orientation of the colorbar figure.                      |
 
 #### Returns
 `str`: SVG XML for the colorbar plot.
@@ -219,27 +219,27 @@ svg = draw_single_mol("C=C(C)C", atom_hl_values=[0.2, 0.7, -0.5, 0.9], colorbar=
 
 ### 📘 Total Parameters List
 
-| Name | Type | Default | Description |
-|------|------|----------|-------------|
-| **`mol_in`** | `str` or `Chem.Mol` | — | Input molecule, can be a SMILES string or an RDKit `Chem.Mol` object. |
-| **`save_path`** | `str`, optional | `None` | File path to save output. If omitted, only an SVG string is returned. |
-| **`mol_size`** | `tuple[int, int]` | `(600, 600)` | Width and height (in pixels) of the drawing canvas. |
-| **`output_format`** | `str`, optional | `None` | Output format — `'svg'`, `'png'`, `'pdf'`, `'eps'`, `'jpg'`, etc. If `None`, inferred from `save_path`. |
-| **`font_size`** | `int` | `24` | Font size for atom labels. |
-| **`font`** | `str` | `'Arial'` | Font family used in drawing, must exist in the module’s `fonts` directory or system fonts. |
-| **`fontweight`** | `str` | `'bold'` | Font weight for label rendering (`'normal'` or `'bold'`). |
-| **`colorful_atom`** | `bool` | `False` | Whether atom labels are automatically colored by element type using RDKit’s default palette. |
-| **`atom_color_palette`** | `dict` | `None` | Custom atom palette: `{atomic_number: (r,g,b)}` in normalized RGB (0–1). |
-| **`legend`** | `str` | `''` | Optional caption or ID shown below the molecule. |
-| **`sanitize`** | `bool` | `False` | Enable SMILES sanitization during parsing (recommended True for complex SMILES). |
-| **`atom_colors`** | `dict` or `list`, optional | `None` | Explicit per‑atom highlight color map, overrides `atom_hl_values`. Example: `{0: (1,0,0), 1: (0,0,1)}`. |
-| **`bond_colors`** | `dict` or `list`, optional | `None` | Explicit per‑bond highlight color map, same format as `atom_colors`. |
-| **`atom_hl_values`** | `np.ndarray`, optional | `None` | Per‑atom numeric values (e.g., SHAP or contribution values) mapped to colors using `cmap_name`. |
-| **`cmap_name`** | `str` | `'coolwarm'` | Matplotlib colormap used for continuous color mapping. |
-| **`vmin, vmax`** | `float`, optional | `None` | Colormap normalization limits. If not specified, inferred automatically from data and made symmetric (±max abs). |
-| **`threshold`** | `float` | `0.75` | Relative normalized cutoff; smaller magnitudes are faded/uncolored. |
-| **`colorbar`** | `bool` | `False` | Whether to append a colorbar SVG automatically. |
-| **`cb_orientation`** | `'vertical'` or `'horizontal'` | `'vertical'` | Orientation of the colorbar if appended. |
+| Name                     | Type                           | Default      | Description                                                                                                      |
+|--------------------------|--------------------------------|--------------|------------------------------------------------------------------------------------------------------------------|
+| **`mol_in`**             | `str` or `Chem.Mol`            | —            | Input molecule, can be a SMILES string or an RDKit `Chem.Mol` object.                                            |
+| **`save_path`**          | `str`, optional                | `None`       | File path to save output. If omitted, only an SVG string is returned.                                            |
+| **`mol_size`**           | `tuple[int, int]`              | `(600, 600)` | Width and height (in pixels) of the drawing canvas.                                                              |
+| **`output_format`**      | `str`, optional                | `None`       | Output format — `'svg'`, `'png'`, `'pdf'`, `'eps'`, `'jpg'`, etc. If `None`, inferred from `save_path`.          |
+| **`font_size`**          | `int`                          | `24`         | Font size for atom labels.                                                                                       |
+| **`font`**               | `str`                          | `'Arial'`    | Font family used in drawing, must exist in the module’s `fonts` directory or system fonts.                       |
+| **`fontweight`**         | `str`                          | `'bold'`     | Font weight for label rendering (`'normal'` or `'bold'`).                                                        |
+| **`colorful_atom`**      | `bool`                         | `False`      | Whether atom labels are automatically colored by element type using RDKit’s default palette.                     |
+| **`atom_color_palette`** | `dict`                         | `None`       | Custom atom palette: `{atomic_number: (r,g,b)}` in normalized RGB (0–1).                                         |
+| **`legend`**             | `str`                          | `''`         | Optional caption or ID shown below the molecule.                                                                 |
+| **`sanitize`**           | `bool`                         | `False`      | Enable SMILES sanitization during parsing (recommended True for complex SMILES).                                 |
+| **`atom_colors`**        | `dict` or `list`, optional     | `None`       | Explicit per‑atom highlight color map, overrides `atom_hl_values`. Example: `{0: (1,0,0), 1: (0,0,1)}`.          |
+| **`bond_colors`**        | `dict` or `list`, optional     | `None`       | Explicit per‑bond highlight color map, same format as `atom_colors`.                                             |
+| **`atom_hl_values`**     | `np.ndarray`, optional         | `None`       | Per‑atom numeric values (e.g., SHAP or contribution values) mapped to colors using `cmap_name`.                  |
+| **`cmap_name`**          | `str`                          | `'coolwarm'` | Matplotlib colormap used for continuous color mapping.                                                           |
+| **`vmin, vmax`**         | `float`, optional              | `None`       | Colormap normalization limits. If not specified, inferred automatically from data and made symmetric (±max abs). |
+| **`threshold`**          | `float`                        | `0.75`       | Relative normalized cutoff; smaller magnitudes are faded/uncolored.                                              |
+| **`colorbar`**           | `bool`                         | `False`      | Whether to append a colorbar SVG automatically.                                                                  |
+| **`cb_orientation`**     | `'vertical'` or `'horizontal'` | `'vertical'` | Orientation of the colorbar if appended.                                                                         |
 
 ---
 
@@ -288,12 +288,12 @@ draw_grid(
 
 #### Parameters (key)
 
-| Name | Type | Description |
-|------|------|-------------|
-| `list_mols` | iterable | SMILES strings or RDKit molecules. |
-| `list_atom_values` | list[np.ndarray] | Atom‑level numeric arrays per molecule. |
-| `n_cols` | int, optional | Number of columns in the grid (auto‑balanced if None). |
-| `colorbar` | bool | Whether to append a shared colorbar. |
+| Name               | Type             | Description                                            |
+|--------------------|------------------|--------------------------------------------------------|
+| `list_mols`        | iterable         | SMILES strings or RDKit molecules.                     |
+| `list_atom_values` | list[np.ndarray] | Atom‑level numeric arrays per molecule.                |
+| `n_cols`           | int, optional    | Number of columns in the grid (auto‑balanced if None). |
+| `colorbar`         | bool             | Whether to append a shared colorbar.                   |
 
 #### Returns
 `str`: SVG text for the grid layout.  
@@ -315,36 +315,36 @@ svg = draw_grid(
 
 #### 📘 Total Parameters List
 
-| Name | Type | Default | Description |
-|------|------|----------|-------------|
-| **`list_mols`** | Iterable[str or Molecule] | — | List of SMILES strings or `Chem.Mol` / `Molecule` objects. |
-| **`save_path`** | str, optional | `None` | File path to save output image; returns only SVG string if omitted. |
-| **`mol_size`** | tuple[int, int] | `(300, 300)` | Pixel dimensions for each molecule panel. |
-| **`output_format`** | str, optional | `None` | Output format to export (`'svg'`, `'png'`, `'pdf'`, etc.). |
-| **`font_size`** | int | `20` | Font size used in atom and legend text. |
-| **`font`** | str | `'Arial'` | Font family name. |
-| **`fontweight`** | str | `'bold'` | Font weight property. |
-| **`colorful_atom`** | bool | `True` | Whether to color atoms (e.g., oxygen red, nitrogen blue) instead of monochrome. |
-| **`atom_color_palette`** | dict | `None` | Override of default atomic color map. |
-| **`sanitize`** | bool | `False` | Sanitize molecules before 2D layout computation. |
-| **`n_cols`** | int, optional | `None` | Number of columns in grid. Determined automatically if unspecified (balanced layout). |
-| **`legends`** | list[str] | `None` | Text labels for each molecule image. Must match molecule count. |
-| **`atom_colors`** | list[dict or list], optional | `None` | Per‑molecule highlight definitions for specific atoms. |
-| **`bond_colors`** | list[dict or list], optional | `None` | Per‑molecule highlight definitions for specific bonds. |
-| **`list_atom_values`** | list[np.ndarray], optional | `None` | Each array contains per‑atom numeric values for corresponding molecule. Enables shared value‑based coloring. |
-| **`cmap_name`** | str | `'coolwarm'` | Matplotlib colormap to apply to atom values. |
-| **`vmin, vmax`** | float, optional | `None` | Normalization limits across all molecules. If `None`, inferred globally. |
-| **`threshold`** | float | `0.75` | Minimum normalized absolute intensity for color visibility. |
-| **`colorbar`** | bool | `False` | Append a shared colorbar SVG to the combined image if True. |
-| **`cb_orientation`** | `'vertical'` or `'horizontal'` | `'horizontal'` | Orientation for colorbar placement. |
+| Name                     | Type                           | Default        | Description                                                                                                  |
+|--------------------------|--------------------------------|----------------|--------------------------------------------------------------------------------------------------------------|
+| **`list_mols`**          | Iterable[str or Molecule]      | —              | List of SMILES strings or `Chem.Mol` / `Molecule` objects.                                                   |
+| **`save_path`**          | str, optional                  | `None`         | File path to save output image; returns only SVG string if omitted.                                          |
+| **`mol_size`**           | tuple[int, int]                | `(300, 300)`   | Pixel dimensions for each molecule panel.                                                                    |
+| **`output_format`**      | str, optional                  | `None`         | Output format to export (`'svg'`, `'png'`, `'pdf'`, etc.).                                                   |
+| **`font_size`**          | int                            | `20`           | Font size used in atom and legend text.                                                                      |
+| **`font`**               | str                            | `'Arial'`      | Font family name.                                                                                            |
+| **`fontweight`**         | str                            | `'bold'`       | Font weight property.                                                                                        |
+| **`colorful_atom`**      | bool                           | `True`         | Whether to color atoms (e.g., oxygen red, nitrogen blue) instead of monochrome.                              |
+| **`atom_color_palette`** | dict                           | `None`         | Override of default atomic color map.                                                                        |
+| **`sanitize`**           | bool                           | `False`        | Sanitize molecules before 2D layout computation.                                                             |
+| **`n_cols`**             | int, optional                  | `None`         | Number of columns in grid. Determined automatically if unspecified (balanced layout).                        |
+| **`legends`**            | list[str]                      | `None`         | Text labels for each molecule image. Must match molecule count.                                              |
+| **`atom_colors`**        | list[dict or list], optional   | `None`         | Per‑molecule highlight definitions for specific atoms.                                                       |
+| **`bond_colors`**        | list[dict or list], optional   | `None`         | Per‑molecule highlight definitions for specific bonds.                                                       |
+| **`list_atom_values`**   | list[np.ndarray], optional     | `None`         | Each array contains per‑atom numeric values for corresponding molecule. Enables shared value‑based coloring. |
+| **`cmap_name`**          | str                            | `'coolwarm'`   | Matplotlib colormap to apply to atom values.                                                                 |
+| **`vmin, vmax`**         | float, optional                | `None`         | Normalization limits across all molecules. If `None`, inferred globally.                                     |
+| **`threshold`**          | float                          | `0.75`         | Minimum normalized absolute intensity for color visibility.                                                  |
+| **`colorbar`**           | bool                           | `False`        | Append a shared colorbar SVG to the combined image if True.                                                  |
+| **`cb_orientation`**     | `'vertical'` or `'horizontal'` | `'horizontal'` | Orientation for colorbar placement.                                                                          |
 
 ---
 
 ## 🎨 Output Formats
 
-| Type | Extensions | Converter |
-|------|-------------|------------|
-| **Vector** | `.svg`, `.pdf`, `.ps`, `.eps` | CairoSVG |
+| Type       | Extensions                                        | Converter         |
+|------------|---------------------------------------------------|-------------------|
+| **Vector** | `.svg`, `.pdf`, `.ps`, `.eps`                     | CairoSVG          |
 | **Bitmap** | `.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.webp` | CairoSVG + Pillow |
 
 Both `draw_single_mol()` and `draw_grid()` internally generate an **SVG** first and then use `CairoSVG` for vector/pdf export or Pillow for bitmap formats.
@@ -357,10 +357,10 @@ Both `draw_single_mol()` and `draw_grid()` internally generate an **SVG** first 
 - Use **diverging colormaps** (`coolwarm`, `RdBu`, `bwr`) for signed features.
 - Legends can be added in grids via the `legends` parameter.
 - Returned SVG strings can be displayed interactively in Jupyter via:
-  ```python
-  from IPython.display import SVG
-  SVG(draw_grid(["CCO", "CCN"]))
-  ```
+```pycon
+from IPython.display import SVG
+SVG(draw_grid(["CCO", "CCN"]))
+```
 
 ---
 

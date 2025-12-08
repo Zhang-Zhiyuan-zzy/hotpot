@@ -8,10 +8,12 @@ python v3.9.0
 """
 from ._io import MolReader, MolWriter
 from .core import Molecule, Atom, Bond
+from .bundle import MolBundle, to_pyg_dataset
 from .core_utils import read_mol
 from .mol_assemble import *
 
 from .mol_statistics import ComplexStatistics
+from .search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
 
 
 

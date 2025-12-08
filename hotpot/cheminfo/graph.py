@@ -104,9 +104,18 @@ def adj2laplacian(adj: np.ndarray, norm: bool = True) -> np.ndarray:
 
 def _spectrum_sort(spectrum: np.ndarray) -> np.ndarray:
     """ sort spectrum values according to its absolute values """
-    spectrum = np.sort(spectrum)[::-1]
-    sorted_idx = np.argsort(np.abs(spectrum))[::-1]
-    return spectrum[sorted_idx]
+    # TODO: Fix zero-padding disturbing physical interpretation.
+    # Candidates for future refactoring:
+    # 1. [Best] Wasserstein Distance (Scipy): Natural transport cost, scale-invariant.
+    # 2. [Fast] Spectral Histogram/Binning: Converts spectrum to fixed-size density vector.
+    # 3. [Smooth] Kernel Density Estimation (KDE): Smooths eigenvalues into continuous function.
+    # TODO End.
+    spectrum = np.round(spectrum, 8)
+    return np.sort(spectrum)[::-1]
+    # TODO: discarded, old measure
+    # spectrum = np.sort(spectrum)[::-1]
+    # sorted_idx = np.argsort(np.abs(spectrum))[::-1]
+    # return spectrum[sorted_idx]
 
 
 def calc_spectrum(adj: types.ArrayLike, atomic_numbers: types.ArrayLike, length: int = 4) -> np.ndarray:
@@ -203,6 +212,11 @@ class GraphSpectrum:
 
     def __or__(self, other: "GraphSpectrum"):
         return self.similarity(other)
+
+    @property
+    def vectors(self):
+        """ Just an alias of spectrum """
+        return self.spectrum
 
     def similarity(self, other: "GraphSpectrum"):
         """"""

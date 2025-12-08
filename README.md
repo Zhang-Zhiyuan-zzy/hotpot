@@ -1,238 +1,382 @@
-# Hotpot
-## Introduction
-This Python package has been specifically designed to streamline communication between
-commonly used computational tools in chemistry and materials research. The package is
-aptly named Hotpot, after the popular dish from Sichuan, China. The defining feature of
-Hotpot is its ease of preparation and deliciousness, regardless of the ingredients used.
-Similarly, this Hotpot package brings together a variety of computational tools 
-(i.e. ingredients) to simplify research related to chemical materials. This allows chemists
-and materials scientists to create delectable scientific cuisine with ease.
+![banner](https://github.com/Zhang-Zhiyuan-zzy/hotpot/tree/main/doc/picture/banner.png)
+# 🥘Hotpot(火锅): AI-Driven Infrastructure for Chemistry
 
-The following jobs are supported by Hotpot:
+> **Bridging the gap between Chemical Intuition and Artificial Intelligence.** *From Empirical Rules to Data-Driven Foundation Models.*  
+> **In Hotpot, every ingredient is cookable.** *什么都能涮*  
+> **In Data-Driven, every problem is computable.** *什么都能算*  
+> *(The Chinese phrases are just the Chinese versions of the English lines. “涮 / shuàn” (“to dip in hotpot”) and “算 / suàn” (“to compute”) form a wordplay because of their similar sound.)*
 
-    - Molecular Simulation, link to LAMMPS and RASPA
-    - Quantum or Ab-initio Calculation, link to Gaussian and ABACUS
-    - Feature Extraction and Machine learnig, link to openbabel, Zeo++, RdKit et al.
 
-## Installation
+## Contents
+- [Introduction](#-introduction)
+- [Key Features](#-key-features--architecture)
+- [Installation](#-installation)
+- [Usage Examples](#usage-examples)
 
-### Requirements
+## 📖 Introduction
 
-````
-python >= 3.9
-openbabel >= 3.1.1
-cclib
-lammps
-````
+Hotpot is not just a chemical informatics toolkit; it is a **research-grade infrastructure** designed to 
+digitize, model, and analyze chemistry environments.
 
-### Install requirement
-Before installing the `Hotpot`, you should install the requirements at the first. It is
+Unlike traditional tools (e.g., RDKit, OpenBabel) that rely heavily on explicit valence rules—which 
+often fail in metal-ligand scenarios—Hotpot adopts a **Data-Driven Philosophy**. It seamlessly 
+integrates a robust chemical kernel with modern deep learning pipelines, enabling "Fuzzy Modeling" 
+for complex chemical intuition that cannot be captured by simple mathematical formulas.
+
+**Crucially, Hotpot abstracts the complexity of Artificial Intelligence into a silent, high-performance backend.**
+
+To the user, Hotpot feels like the familiar tools you already use. It simulates manipulating actual 
+chemical entities -- whether a single `Molecule` or a periodic `Crystal` Lattice. You interact solely with 
+intuitive `Molecule` and `Crystal` objects—the standard vernacular of chemistry. The massive AI training 
+frameworks and complex inference engines run entirely behind the scenes, invisible and automated.
+
++ **Minimal-AI Code**: Users typically do not need to touch tensors, write training loops, or configure neural networks.
++ **Seamless Adaptation**: For standard tasks, the default models work out of the box. For specific domains, 
+you simply organize your private data into Molecule objects; Hotpot ingests the data and refines the 
+engine automatically.
+
+
+## 🏗️ Key Features & Architecture
+
+Hotpot is built on a modular architecture designed to hide complexity. It consists of a robust 
+**Chemical Kernel** for data handling and a silent **AI Engine** for intelligence.
+
+### 1. The Chemical Kernel (`hotpot.core`)
+*The robust foundation that digitizes chemistry.*
+
++ **Chemist-Centric Interface**:
+  - **Intuitive Operations**: Operates in the natural vernacular of chemistry. You interact with `Molecule`,
+    `Atom`, and `Bond` objects directly—manipulating structures in code feels exactly like building models in a lab.
+  - Plays nicely with existing cheminformatics tools and workflows, preserving the interfaces users are already used to.
++ **Multi-Scale Property Integration**:
+  - **Micro to Macro**: A unified interface for managing diverse physical properties. Effortlessly manage microscopic descriptors
+    (`Atom.elements`, `Molecule.descriptors`) alongside macroscopic observables (`Molecule.get_thermo()`).
++ **Universal I/O Bridge**: 
+  - **Read/Write Common Formats**: Seamlessly handles standard chemistry formats such as `.mol2`, `.cif`, `.xyz`, and Gaussian `.gjf`.  
+  - **AI-Ready Graphs**: Transparently converts structures into graph representations suitable for modern deep learning
+    models, without exposing low-level details to the user. 
+
+### 2. Data-Driven Analysis (Pre-trained & Ready)
+*Intelligence baked into the `Molecule` object (especially, for Coordination Chemistry).*
+
++ **Coordination pattern determination**:
+  - **`AIModel.cbond`**: Surpasses traditional valence rules by using deep learning to predict 
+  coordinate bonds in complex transition metal environments.
++ **3D Structure Initialization** (`complexes_build_optimize_`):
+  - **AI-refined 3D build**: A specialized pipeline for generating metal complexes with AI assisting
+  - **Topology-aware optimization**: Adds continuous topological inspection during geometry optimization 
+  and applies tailored breaking / reconstruction strategies, preventing common failures in metal complex 
+  3D generation, such as tangled chain, interlocked rings, and other non-optimizable artifacts.
++ **Connecting microscopic models with macroscopic observables**:
+  - Macroscopic properties (`logβ`, `logD`, ...) are typically statistical constructs emerging from ensembles of microscopic 
+  states, rather than from any single configuration. Relying on a small number of static microscopic 
+  models to infer macroscopic behavior can therefore introduce substantial bias and be misleading.
+  - Hotpot combines approximate microscopic models with rich molecular representations and environmental
+  variables to make this micro–macro connection more reliable. Embracing the idea that “all models are wrong, 
+  but some are useful”, Hotpot uses AI-based fuzzy modeling to improve the robustness and accuracy of inferring
+  macroscopic observables from microscopic model.
++ **Oxidation state identification** - *coming soon ...*
++ **Other important chemical problems**  
+  - If there is a core chemistry task you think should be “built-in” to the `Molecule` object, feel free to open an issue and describe your use case.
+
+### 3. Assembly & Generation of Virtual Molecules
+*From fragment-based enumeration to AI-driven molecular design.*
+
++ **High-throughput fragment-based assembly**  
+  - Assemble virtual molecules from scaffolds and fragments at scale, enabling grid-like exploration of targeted
+  chemical spaces (e.g. focused libraries around a given scaffold or motif).
+
++ **AI-based molecular generation**  
+  - **Molecular generation**: Generate new candidate molecules by learning from a small set of example structures, 
+  proposing novel analogues in the same “chemical family” or design space.
+  - **Conditional molecular generation**: Generate molecules under explicit goals or constraints — e.g. guided by
+  target properties, property predictors, or user-defined objective functions — to search for structures that optimize
+  (maximize / minimize) desired performance while respecting structural patterns of the examples.
+
+### 4. Optimization of Wet Experiments
+*Close the loop between computation and lab experiments.*
+
++ **Multiple optimization strategies**  
+  - Supports a range of optimization backends, including Bayesian optimization (BO) and evolutionary algorithms (EA), 
+  for efficient exploration of experimental parameter spaces.
+
++ **Structure-aware experimental optimization**  
+  - Combines experimental parameters with optional structural / molecular representations, enabling joint optimization
+  over both reaction conditions and molecular features.
+
++ **Mixed-type design spaces**  
+  - Handles continuous and discrete variables in a unified framework, suitable for real experimental design problems
+  (temperatures, pH, solvents, ligands, catalysts, etc.).
+
++ **Manifold / parameter-space visualization**  
+  - Provides visualization of the explored parameter manifold and optimization trajectory to help chemists understand
+  where the optimizer is searching and why.
+
++ **CLI integration**
+  - Exposed via a simple command-line interface, e.g. `hotpot optimize ...`, so optimization workflows can be scripted
+  and automated without additional boilerplate.
+---
+
+## 📥 Installation
+
+#### Requirements
+- python == 3.9 *
+- openbabel >= 3.1.1
+- cclib
+- lammps
+- onnxruntime
+
+<small>\* **Note**: Hotpot strictly requires Python 3.9 due to specific regex behaviors and C++ binding compatibility in the underlying chemical kernel. Upgrading to 3.10+ may cause parsing errors in legacy molecular formats.</small>
+
+### 1. Install dependencies
+Before installing `Hotpot`, you should install its dependencies first. It is
 recommended to create a new conda environment to run the package.
-> conda create -n hp python==3.9 openbabel cclib lammps -c conda-forge
+> conda create -n hp python==3.9 openbabel cclib lammps onnxruntime -c conda-forge
 
-### Install
-After the requirements are installed, now the ''Hotpot'' could be installed by pip
 > conda activate hp
+
+### 2. Install
+#### PyPI (Recommended)
 
 > pip install hotpot-zzy
 
-or you can install from this github repository:
-```angular2html
+#### Source
+```bash
 git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
 pip install build  # install `build` package
 python -m build
 pip install dist/hotpot_zzy-`VERSION`-py3-none-any.whl
 ```
-
-
-## Usage
-The Hotpot is very easy to use, the core class of Hotpot is the `Molecule`, which is designed
-as the general interface for all functions across the entire the package. In the following
-example, we first load a Molecule object by `SMILES` string, and then the build their 3D conformer:
-
-```pycon
-import hotpot as hp
-mol = hp.Molecule.read_from('c1c(O)ccc(C(=O)O)c1', 'smi')  # Load a 4-hydroxybenzoic acid molecule
-print(mol.has_3d)  # the molcule is a 2D molcule now, whose all coordinates are (0, 0, 0)
-
-mol.build_3d(force_field='UFF')  # build the molecule to 3D, by univeral force field
-print(m.has_3d)  # Now, the molecule is a 3D molecule, all of atoms have their coordinate
-
-# check the atoms coordinates:
-mol.normalize_labels()  # reorder the atom's labels
-for atom in mol.atoms:
-    print(atom.label, atom.symbol, atom.coordinate)  # get the label, symbol, coordinates of the atom
-```
-
-In general, a `Molecule` is consist of many `Atom` and `Bond` objects. One can get the attributes from
-the `Molecule`, `Atoms` or `Bonds`.
-```pycon
-print(mol.atoms)  # get all atoms in the molecule
-print(mol.bonds)  # get all bonds in the molecule
-
-atom = mol.atoms[0]
-bond = mol.bonds[0]
-
-print(atom.neighbours)  # get all neigh atoms of this atoms
-print(bond.atom1, bond.atom2)  # get the begin and end atom of this bond
-print(bond.type)  # get the bond type
-```
-
-### Molecule Read and Write
-The `Hotpot` read and write the molecule from string or files by calling the [openbabel](https://github.com/openbabel) 
-and [cclib](https://github.com/cclib/cclib) packages, most formats supported by the two packages are support 
-by `Hotpot` too. the Main method to read and parse to `Molecule` object is `read_from()`:
-
-> mol = hp.Molecule.read_from('/path/to/file', fmt='cif')  # read a cif file from disk 
-
-Or, read a `SMILES`, `inchikey` or other string like the example above. 
-
-The arg `fmt` is optional when to read `Molecule` from file, if the suffix of the file are correct:
-> mol = hp.Molecule.read_from('/path/to/file.cif')
-
-One also could write the molecule object to formatted file by the `writefile()` method, where the `fmt` is
-the first arg and required. the actual format of the output is specified by the `fmt` arg:
-
-> mol.writefile('cif', 'path/to/cif/file')
-
-One could retrieve the formatted string by `dump()` method, where only the `fmt` pass into:
-> cif_script = mol.dump('cif')
-
-### Cheminformatics
-It is easy to get the `SMILES` or `Inchi` key of the `Molecule` object
-> print(mol.smiles)
-
-> print(mol.inchi)
-
-The `Molecule` object could convert to certain fingerprint object, like `FP2`, `FP3`, `FP4` or `MACCS`
-> fp = mol.fingerprint(fptype='FP2')
-
-The `Molecule` objects could calculate the similarity between each other based on specified fingerprint
-> mol.similarity(other_mol, fptype='FP3')  # calculate the similarity by 'FP3' fingerprint
-
-The 'Molecule' object could retrieve its link_matrix as the input of graph learning
-> print(mol.link_matrix)  # get a [2, Nb] matrix, where `Nb` is the number of bonds
-
-### Submit the Molecule to Gaussian16 software
-One can directly submit the `Molecule` object to Gaussian16 software. Assuming you want to optimize the
-conformer of the molecule by Gaussian16
-
-```pycon
-mol.gaussian(
-    g16root='path/to/g16root',
-    link0='the link0 string',
-    route='opt B3LYP/6-311++G**',
-    path_log_file='path/to/save/the/log',
-    path_err_file='path/to/record/error',
-    inplace_attrs=True  # whether to inplace the attribute of the molecule according to the last status of the molecule in the log file
-    debugger='auto'  # Handle the Gaussian Error by the default method
-)
-print(mol.energy)  # get the SCF energy in the last optimized status
-print(mol.coordinate)  # get the coordinates matrix after optimizing by gaussian 16
-```
-The Gaussian program will run and handle some common error report automatically. To handle errors with more elaborate
-methods, user can custom a new debugger by inherit from the hotpot.tanks.quantum.GaussErrorHandle, seeing 
-documentation for more details.
-
-### Submit the Molecule(Framework) to LAMMPS to perform grand canonical Monte-Carlo simulation
-Suppose that you want to determine the Uptake of carbon dioxide in a metal-organic framework at 298.15 K and 0.5 bar
-```pycon
-work_dir = 'work/dir'  # specify a dir to save the results and log for the GCMC simulation
-
-co2 = hp.Molecule.read_from('O=C=O', 'smi')  # load a carbon dioxide by SMILES
-frame = hp.Molecule.read_from('path/to/mof/file.cif')  # load a mof file as the framework
-
-# Run GCMC simulation
-frame.gcmc(
-    co2, 
-    force_field='path/to/force/field',  # by default, the force field is the LJ potential from UFF 
-    work_dir=work_dir, 
-    T=298.15, P=0.5  # specify the external environment
-)
-```
-When perform the GCMC, the chemical potential `mu` or fugacity coefficient `phi` should be given. Fortunately, in
-the `mu` or `phi` could be estimated by state of equation. For some common substance `gcmc()` method can calculate 
-the `mu` and `phi` automatically, by `Peng-Robinson` equation by default.
-
-### Access the property of substance for common substance
-For certain common substance, we can access its thermodynamical property, like critical temperature `Tc` and
-saturation vapor pressure `Psat` by [thermo](https://pypi.org/project/thermo/) package:
-
-```pycon
-mol = hp.Molecule.read_from('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
-mol.get_thermo()  # some kwargs could pass into, see documentation
-print(mol.thermo.Tc)  # the critical temperature
-print(mol.thermo.Psat)  # the saturation vapor pressure
-```
-
-### Handle molecules in large scale
-In the era of artificial intelligence, chemical information needs to be processed and utilized on a large scale. 
-`Hotpot` provides an interface called `MolBundle` for processing data on a large scale. For instance, if there 
-is a large number of single-point energy results computed using `Gaussian` stored somewhere on a disk, and we 
-want to create a dataset to train a [deep potential](https://tutorials.deepmodeling.com/en/latest/Tutorials/DeePMD-kit/learnDoc/Introduction.html)
-model using this data, we can utilize "MolBundle" to efficiently read all the `Gaussian` computation data on a large
-scale and convert it into the required dataset [System](https://docs.deepmodeling.com/projects/deepmd/en/master/data/system.html) 
-format for training the model:
-
-```pycon
-import hotpot as hp
-from hotpot.bundle import DeepModelBundle
-
-path_raw_data = 'path/to/gaussian/log'
-path_system = 'path/to/system'
-
-bundle = hp.MolBundle.read_from(
-    'g16log', path_raw_data, '*/*.log', nproc=32
-)
-
-# Convert to DeepModelBundle object with method to organize the molecular structures to System dataset
-bundle: DeepModelBundle = bundle.to('DeepModelBundle')
-bundle.to_dpmd_sys(path_system, validate_ratio=0.1)
-
-# Or, the user could get the System object export from the Molecule directly
-```
-
-`hotpot` is currently making every effort to support the use of various computational tools from the Deep Modeling
-community. In addition to organize the quantum calculation data and save them to disk directly, the `hotpot`
-now allowed build `Molecule` object from dpdata [System] and [LabeledSystem] object.
-
+---
+## 📌 Usage examples
+### 1.Building a metal-ligand pair
 ```python
-from pathlib import Path
-
 import hotpot as hp
-from hotpot.plugins.deepmd import read_system
+smi = 'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3'  # (CyMe4)Pyz-PrMe-DIPhen extractant
+ligand = hp.read_mol(smi)
 
-data_root_dir = "path/to/ChemData"
-
-# Read MultiSystem object
-ms = read_system(data_root_dir, file_pattern='**/*.log', fmt="gaussian/md")
-
-mols = []
-for ls in ms:
-    mol = hp.Molecule.build_from_dpdata_system(ls)
-    mols.append(mol)
-
-# Supposed that I want to know the process of breaking and generating of bonds of the first Molecule
-struct_dir = Path('path/to/struct/save')
-img_dir = Path('path/to/img/save')
-mol = mols[0]
-# Iterating each conformer in the quantum chemistry calculation
-for i in range(mol.conformer_counts):
-    mol.conformer_select(i)
-    mol.remove_bonds(*mol.bonds)  # Clear all pre-build bonds
-    mol.build_bonds()  # rebuild bonds according to the point cloud of atoms
-    mol.assign_bond_types()
-
-    mol.writefile(struct_dir.joinpath(f"{i}.mol2"))  # Save the 3D mol structure with built bonds to mol2 file
-    mol.save_2d_img(img_dir.joinpath(f'{i}.png'))  # Save the 2d img structure to png file
+pair = ligand.auto_pair_metal('Eu')
+print(pair.smiles)
 ```
 
-## TroubleShooting
-### 1) Missing dependent dynamic libs
-When installing the package, you might meet some errors from missing dependent libs, like the message:
-*ImportError: libXrender.so.1: cannot open shared object file: No such file or directory*. 
-This trouble is caused by the lacking of the `libxrender1` lib and could be solved by run the following command
-(supposing an Ubuntu system):
-> sudo apt-get install libxrender1
+Generate 3D coordinates using `complexes_build_optimize_` method
+```pycon
+print(pair.coordinates)
+pair.complexes_build_optimize_()
+print(pair.coordinates)
+pair.write('./Eu-pair.mol2')
+```
+The [mol2 file](https://github.com/Zhang-Zhiyuan-zzy/hotpot/tree/main/doc/mol_file/Eu-pair.mol2) 
+and [movie](https://github.com/Zhang-Zhiyuan-zzy/hotpot/tree/main/doc/picture/Eu-pair.gif) after coordination generation.
 
-The similar trouble should be solved like the above.
+Both the formation of coordination bond and the generation of 3D structure are driven by **AI model**, 
+rather than heuristic rules or pure force fields.
+
+### 2.Cheminformatics support
+The `Molecule` object is designed to be a familiar, standard cheminformatics tool for chemists.
+You can access the `Atom`, `Bond`, `Rings`, and fragment `Molecule` objects directly through
+the *properties* of `Molecule`.
+
+Continuing with the *Eu-ligand pair* example:
+```pycon
+print(pair.atoms)
+print(pair.bonds)
+print(pair.rings)                       # all rings
+print(pair.ligand_rings)                # rings in ligand
+
+assert len(pair.components) == 1
+pair.hide_metal_ligand_bonds()          # Hide the coordination bonds temporarily
+assert len(pair.components) == 2        # Now appears as two fragments: [ligand, metal]
+pair.recover_hided_metal_ligand_bonds()
+assert len(pair.components) == 1        # Restored to a whole pair
+
+eu_metal = pair.metals[0]
+print(eu_metal.neighbours)              # [Atom(N), Atom(N), Atom(N), Atom(O)]
+
+print(pair.link_matrix)                 # Connectivity graph table
+```
+
+Searching for coordination centers using SMARTS patterns:
+```pycon
+hits = pair.search_substructure('[Ln](n)(n)(n)O')  # [Ln] --> lanthanide
+print(len(hits))  # == 1
+print(hits[0].atoms)  # [Atom(N32), Atom(O0), Atom(Eu67), Atom(N10), Atom(N17)]
+
+hits = pair.search_substructure('[Ln](n)(n)O')
+print(len(hits))  # == 3
+
+hits = pair.search_substructure('[An](n)(n)(n)O')  # [An] --> actinide
+print(len(hits))  # == 0
+```
+
+Interfacing with other cheminformatics tools:
+```pycon
+obMol = pair.to_obmol()
+rdMol = pair.to_rdmol()
+```
+Converting to [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data) Data:
+```pycon
+data = pair.to_pyg_data()
+print(data.x)                       # Tensor of atom attributes
+print(data.x_names)                 # atom attribute name
+print(data.edge_index)
+print(data.edge_attr)
+print(data.edge_attr_names)
+print(data.pair_index)              # atom pairs indices
+print(data.pair_attr)               # pair attrs
+print(data.pair_attr_names)
+print(data.rings_node_index)
+print(data.rings_attr)              # Tensor with shape [rings_num, 2]
+print(data.rings_attr_names)        # ['is_aromatic', 'has_metal']
+print(data.rings_node_nums)         # How many atoms in a ring
+print(data.mol_rings_node_nums)     # How many rings in the molecule
+print(data.coordinates)
+```
+
+See the [cheminfo.core API Documentation](./doc/cheminfo.md) for more details.
+
+### 3.Molecular properties, descriptors, and representation
+Extracting thermodynamic properties using [`thermo`](https://thermo.readthedocs.io/) library:
+```pycon
+import hotpot as hp
+mol = hp.read_mol('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
+thermo = mol.get_thermo(temp=298.15, pressure=101325)
+print(thermo.Tc)  # the critical temperature (K)
+print(thermo.Psat)  # the saturation vapor pressure 
+print(...)
+```
+Extracting the Graph-Spectral representation:
+```python
+import hotpot as hp
+mol1 = hp.read_mol('c1ccc(O)cc1', 'smi')
+mol2 = hp.read_mol('c1ccccc1C(=O)O', 'smi')
+mol1_ = hp.read_mol('c1ccccc1O', 'smi')     # Same molecule, different atom ordering
+
+spectral1 = mol1.graph_spectral()
+spectral2 = mol2.graph_spectral()
+spectral1_ = mol1_.graph_spectral()
+
+similarity_diff = spectral1 | spectral2
+print(similarity_diff)                      # Similarity in graph spectrum: 0.907590226292854
+similarity_same = spectral1 | spectral1_
+print(similarity_same)                      # Similarity in graph spectrum: 1.0
+
+print(spectral1.vectors.shape)              # numpy array: shape=[6, 13]
+print(spectral2.vectors.shape)              # numpy array: shape=[6, 15]
+```
+
+### 4.Molecular assembly
+The molecular assembly is handled by the standalone module 
+[`hotpot.MolAssembly`](./hotpot/cheminfo/mol_assemble/README.md) temporarily.
+### Generic description
+The molecular assembly (`hotpot.cheminfo.mol_assemble`) module iteratively generates virtual 
+molecular structures based on the user-specified molecular Framework (`hotpot.Molecule`) and
+assembly fragments `hotpot.cheminfo.mol_assemble.Fragment`. The Framework is a standard 
+`Molecule` object, while the assembly operation is specifically implemented using the `Fragment`. 
+
+An instantiated `Fragment` must specify the following four factors:
+1) The 2D molecular structure of the fragment (a `Molecule` object)
+2) The atom(s) (specified by index) on the fragment used for connection with the Framework
+3) The searcher for locating connection sites on the Framework (a `hotpot.cheminfo.search.Searcher` object)
+4) The specific connection operation (specified in an `action_func` function) between the `Fragment` and 
+the Framework at the connection sites.
+
+The `Fragment` provides users the flexibility to customize their own assembly strategies. 
+Of course, `Hotpot` has predefined some common molecular assembly `Fragment` (named `Assembler`).
+When handling the `Assembler`, users only need to specify its fragment structure and indicate the
+(optional) `action_points` indices (i.e., specify which Fragmental atoms as the `"reaction site"` to
+react with the frame `Molecule`).
+
+So far, the predefined `Assembler` include (see the following `Scheme 1` for details):
+1) EdgeShoulder (required two `action_points`)
+2) AtomLink (required one `action_points`)
+3) BondAdding (No `action_points` required)
+4) AtomReplace (No `action_points` required)
+5) AlkylGraft (No `action_points` required, just a specific `AtomLink`)
+6) RingWedge (required one `action_points`)
+
+![Scheme of Assemblers](./hotpot/cheminfo/mol_assemble/Assemblers.svg)
+
+***Scheme 1** Illustration of Assembly of Molecule by different Assemblers*
+
+
+### 5.Wet-lab experimental optimization
+
+**Hotpot** also integrates a module for optimizing the *wet-lab experiments* using an active learning scheme.
+For pure parameter optimization, you can use the CLI interface:
+```bash
+hotpot optimize [input_excel] [output_dir] --flags args ...
+hotpot optimize --help  # for help
+```
+Simply follow the instructions in the command‑line interface to obtain the optimized recommended parameters.
+The results and the manifold visualization of the explored parameter space are saved in `output_dir`.
+The `input_excel` file should be organized as follows:
+
+| feature1 | feature2 | ... | featureN | target |
+|----------|----------|-----|----------|--------|
+| 0.64654  | 148.792  | ... | -30.897  | 0.3433 |
+| ...      | ...      | ... | ...      | ...    |
+---------------------------------------------------
+
+For optimization involving molecule structures:
+```python
+import numpy as np
+import hotpot as hp
+
+list_smi = [
+    'c1cccc1',
+    'c1cccc1C(=O)O',
+    # ...
+]
+
+mol_space = [hp.read_mol(smi) for smi in list_smi]
+samples = [
+    hp.read_mol(list_smi[i]) for i in np.random.randint(2, size=100).tolist()
+]
+for mol, params in zip(samples, np.random.randn(100, 3)):
+    mol.add_envs(params, name=['T', 'P', 'Conc.'])
+
+bundle = hp.MolBundle(samples)
+
+result = bundle.optimize(
+    mol_space=mol_space,  # Optional
+    env_space=...,        # Optional
+    maximize=True,        # Default
+    n_trails=20,
+    batch_size=5,
+    mol_repr='ComplexFormer_nano',  # Optional[rdkit, fp, spectrum], The optimize method automatically selects a suitable representation.
+    visualize=True
+)
+
+print(result.mol.smiles)
+print(result.env)
+result.fig.show()  # Displays the manifold visualization
+```
+
+
+## 🛤️ Roadmap & Project Evolution
+
+Hotpot initially started as a more Pythonic wrapper around OpenBabel and RDKit, aiming to:
+
+- provide a cleaner, chemist-friendly interface on the Python side, and  
+- avoid low-level C++ issues (e.g., segmentation faults / exit code 139) ..., and the unnatural modeling of metal complexes.
+
+During development, it became clear that heuristic, rule-based logic is not sufficient for many real chemical problems,
+especially in coordination chemistry. Many chemical and biological insights are empirical and resist explicit coding.
+
+Hotpot is therefore evolving from a **rule-based wrapper** into a **data-driven infrastructure** that tries to capture
+such *tacit knowledge* through large-scale pre-training on coordination chemistry and related databases.
+
+**Current Status**
+
+- The current `main` branch focuses on a stable, chemist-centric core (`hotpot.cheminfo.core`) and classical utilities.
+- Several advanced AI-backed components described in this README currently live in  research branches and
+  internal prototypes, and will be merged step by step.
+- Public APIs in `hotpot.cheminfo.core` will be kept as stable as possible to ensure backward compatibility as new 
+  models and pipelines are integrated.
+
+**Planned Timeline**
+
+A large part of the AI backend is closely tied to ongoing Ph.D. research work.  
+Major model components and pipelines are planned to be merged into the public repository progressively as the
+research is completed and stabilized (target: around late 2026).

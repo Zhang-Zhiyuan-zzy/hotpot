@@ -1,4 +1,4 @@
-![banner](https://github.com/Zhang-Zhiyuan-zzy/hotpot/tree/main/doc/picture/banner.png)
+![banner](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/picture/banner.png)
 # 🥘Hotpot(火锅): AI-Driven Infrastructure for Chemistry
 
 > **Bridging the gap between Chemical Intuition and Artificial Intelligence.** *From Empirical Rules to Data-Driven Foundation Models.*  
@@ -166,8 +166,8 @@ pair.complexes_build_optimize_()
 print(pair.coordinates)
 pair.write('./Eu-pair.mol2')
 ```
-The [mol2 file](https://github.com/Zhang-Zhiyuan-zzy/hotpot/tree/main/doc/mol_file/Eu-pair.mol2) 
-and [movie](https://github.com/Zhang-Zhiyuan-zzy/hotpot/tree/main/doc/picture/Eu-pair.gif) after coordination generation.
+The [mol2 file](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/mol_file/Eu-pair.mol2) 
+and [movie](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/picture/Eu-pair.gif) after coordination generation.
 
 Both the formation of coordination bond and the generation of 3D structure are driven by **AI model**, 
 rather than heuristic rules or pure force fields.
@@ -177,6 +177,7 @@ The `Molecule` object is designed to be a familiar, standard cheminformatics too
 You can access the `Atom`, `Bond`, `Rings`, and fragment `Molecule` objects directly through
 the *properties* of `Molecule`.
 
+##### Properties
 Continuing with the *Eu-ligand pair* example:
 ```pycon
 print(pair.atoms)
@@ -196,6 +197,8 @@ print(eu_metal.neighbours)              # [Atom(N), Atom(N), Atom(N), Atom(O)]
 print(pair.link_matrix)                 # Connectivity graph table
 ```
 
+##### SMARTS Support & Extensions
+
 Searching for coordination centers using SMARTS patterns:
 ```pycon
 hits = pair.search_substructure('[Ln](n)(n)(n)O')  # [Ln] --> lanthanide
@@ -208,6 +211,25 @@ print(len(hits))  # == 3
 hits = pair.search_substructure('[An](n)(n)(n)O')  # [An] --> actinide
 print(len(hits))  # == 0
 ```
+Hotpot features a built-in SMARTS parser ([API](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/search/smarts.md))
+designed for efficient substructure matching. It supports a **subset** of the 
+standard SMARTS syntax, covering the majority of atom/bond primitives and first-level logical operators (AND/OR). 
+
+> **Note**: Complex nested logic and recursive environments (e.g., recursive SMARTS `$(...)`) are **not** currently supported.
+
+To specifically address the demand in **Coordination Chemistry**, the syntax has been extended with custom 
+wildcards for metals and periodic table properties:
+
+| Symbol      | Definition | Description                                      | Example            |
+|:------------|:-----------|:-------------------------------------------------|:-------------------|
+| **`M`**     | Metal      | Matches any metal atom                           | `[M]~[O]`          |
+| **`!M`**    | Non-Metal  | Matches any non-metal atom                       | `[!M]`             |
+| **`Ln`**    | Lanthanide | Matches Lanthanide series (La-Lu)                | `[Ln](n)(n)(n)`    |
+| **`An`**    | Actinide   | Matches Actinide series (Ac-Lr)                  | `[An]~[O]`         |
+| **`NP<n>`** | Period     | Matches elements in Period *n* (supports ranges) | `[NP4]`, `[NP3-5]` |
+| **`NG<n>`** | Group      | Matches elements in Group *n* (supports ranges)  | `[NG1]`, `[NG1-2]` |
+
+##### Conversion with `RdKit` and `OpenBabel`
 
 Interfacing with other cheminformatics tools:
 ```pycon
@@ -233,7 +255,7 @@ print(data.mol_rings_node_nums)     # How many rings in the molecule
 print(data.coordinates)
 ```
 
-See the [cheminfo.core API Documentation](./doc/cheminfo.md) for more details.
+See the [cheminfo.core API Documentation](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/cheminfo.md) for more details.
 
 ### 3.Molecular properties, descriptors, and representation
 Extracting thermodynamic properties using [`thermo`](https://thermo.readthedocs.io/) library:
@@ -267,7 +289,7 @@ print(spectral2.vectors.shape)              # numpy array: shape=[6, 15]
 
 ### 4.Molecular assembly
 The molecular assembly is handled by the standalone module 
-[`hotpot.MolAssembly`](./hotpot/cheminfo/mol_assemble/README.md) temporarily.
+[`hotpot.MolAssembly`](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/mol_assemble/README.md) temporarily.
 ### Generic description
 The molecular assembly (`hotpot.cheminfo.mol_assemble`) module iteratively generates virtual 
 molecular structures based on the user-specified molecular Framework (`hotpot.Molecule`) and
@@ -295,7 +317,7 @@ So far, the predefined `Assembler` include (see the following `Scheme 1` for det
 5) AlkylGraft (No `action_points` required, just a specific `AtomLink`)
 6) RingWedge (required one `action_points`)
 
-![Scheme of Assemblers](./hotpot/cheminfo/mol_assemble/Assemblers.svg)
+![Scheme of Assemblers](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/mol_assemble/Assemblers.svg)
 
 ***Scheme 1** Illustration of Assembly of Molecule by different Assemblers*
 

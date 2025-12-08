@@ -12,3 +12,4 @@ hotpot/dataset/lnqm/data
 **/*.so
 build/
 hotpot/plugins/xtb/.cache.json
+dist/

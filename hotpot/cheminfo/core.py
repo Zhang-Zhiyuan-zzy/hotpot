@@ -614,8 +614,8 @@ class Molecule:
     def cas(self):
         return pubchem_service.smi_to_cas(self.smiles)
 
-    def get_thermo(self, T: float = 298.15, P: float = 101325.0):
-        return mol_to_thermo(self, T, P)
+    def get_thermo(self, temp: float = 298.15, pressure: float = 101325.0) -> Thermo:
+        return Thermo(self, temp=temp, pressure=pressure)
 
     def clear_constraints(self) -> None:
         """ clear all set constraints """

@@ -105,7 +105,7 @@ class Query:
 
         # True when all attributes of target obj satisfy the query, else False
         return all(
-            values(obj) if isinstance(values, Callable) else getattr(obj, attr) in values
+            values(obj) if isinstance(values, Callable) else (not values or getattr(obj, attr) in values)
             for attr, values in self.kwargs.items()
         )
 
@@ -262,11 +262,6 @@ class Substructure:
         return f"Substructure({len(self.query_atoms)} Atoms, {len(self.query_bonds)} Bonds)"
 
     @classmethod
-    def from_SMARTS(cls, smarts: str):
-        # TODO: Wu 将SMILES转化为Substructure的结构
-        ...
-
-    @classmethod
     def from_mol(
             cls, mol: Molecule,
             addition_atom_attr: dict[int, dict[str, set]] = None,
@@ -291,6 +286,11 @@ class Substructure:
         for i, bond in enumerate(mol.bonds):
             sub.add_bond(bond.a1idx, bond.a2idx, bond_order={bond.bond_order}, **addition_bond_attr.get(i, {}))
         return sub
+
+    @classmethod
+    def from_smarts(cls, smarts: str) -> "Substructure":
+        from .smarts import substructure_from_smarts
+        return substructure_from_smarts(smarts)
 
     @classmethod
     def from_smiles(
@@ -471,7 +471,7 @@ class Hits:
     @property
     def hits(self) -> list["Hit"]:
         if self._hits is None:
-            self._hits = [Hit(self.sub, self.mol, ai) for ai in self._get_nodes_set()]
+            self._hits = [Hit(self.mol, self.sub, ai) for ai in self._get_nodes_set()]
 
         return self._hits
 

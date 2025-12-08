@@ -16,6 +16,7 @@ import os.path as osp
 from typing import Union, Literal, Iterable, Optional, Callable
 from copy import copy
 from collections import Counter
+from functools import cached_property
 from itertools import combinations, product
 
 import cython
@@ -24,13 +25,14 @@ import networkx as nx
 from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
 
+from hotpot.cheminfo.elements import elements
 from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph, forcefields as ff
 from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
-from .call_thermo import mol_to_thermo
+from .call_thermo import Thermo
 
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
@@ -1640,6 +1642,12 @@ class Molecule:
         _graph.add_edges_from([(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds])
         return _graph
 
+    @cached_property
+    def adjacency_matrix(self):
+        clone = copy(self)
+        clone.add_hydrogens()
+        return graph.linkmat2adj(len(clone.atoms), clone.link_matrix)
+
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         """ Return graph spectral matrix """
         clone = copy(self)
@@ -2025,6 +2033,12 @@ class Molecule:
             None
         """
         self.remove_atoms(self.metals)
+
+    def search_substructure(self, smarts: str):
+        from .search import Substructure, Searcher
+        sub = Substructure.from_smarts(smarts)
+        searcher = Searcher(sub)
+        return searcher.search(self)
 
     def set_default_valence(self):
         """
@@ -3043,6 +3057,14 @@ class Atom(MolBlock):
         return x, y, z
 
     @property
+    def period(self) -> int:
+        return self.n
+
+    @property
+    def group(self):
+        return self.elements.Z_TO_GROUP[self.atomic_number]
+
+    @property
     def polar_hydrogen_site(self) -> bool:
         """
         Checks if the atomic site is a polar hydrogen site.
@@ -3376,7 +3398,6 @@ class Atom(MolBlock):
         else:
             return 0
 
-
     @property
     def idx(self) -> int:
         """
@@ -3435,6 +3456,14 @@ class Atom(MolBlock):
             return self.is_hydrogen and self.neighbours[0].polar_hydrogen_site
         except ImportError:
             return False
+
+    @property
+    def is_lanthanide(self):
+        return self.atomic_number in elements.lanthanides
+
+    @property
+    def is_actinide(self):
+        return self.atomic_number in elements.actinides
 
     @property
     def is_noble_gases(self):
@@ -3591,6 +3620,14 @@ class Atom(MolBlock):
             as hydrogen atoms.
         """
         return [a for a in self.neighbours if a.is_hydrogen]
+
+    @property
+    def h_count(self):
+        return len(self.hydrogens)
+
+    @property
+    def connectivity(self):
+        return len(self.neighbours)
 
     @property
     def neighbours(self) -> list['Atom']:

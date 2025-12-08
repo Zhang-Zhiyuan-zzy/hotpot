@@ -15,7 +15,7 @@
 """
 from abc import ABC, abstractmethod
 from numbers import Number
-from typing import Union, Iterable, Hashable, Any, Optional, override
+from typing import Union, Iterable, Hashable, Any, Optional
 from copy import copy
 from functools import reduce
 from enum import Enum, auto
@@ -393,7 +393,6 @@ class AndTuple(LogicTuple):
         return all(item in d for d in self)
 
 class OrTuple(LogicTuple):
-    @override
     def __init__(self, __iterable: Iterable):
         self._check_values(__iterable)
         super(OrTuple, self).__init__(__iterable)

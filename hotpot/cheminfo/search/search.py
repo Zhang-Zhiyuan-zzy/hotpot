@@ -7,6 +7,7 @@ python v3.9.0
 @Time   : 16:27
 """
 from abc import abstractmethod
+from types import MappingProxyType
 from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable
 import networkx as nx
 from networkx.algorithms import isomorphism
@@ -150,9 +151,15 @@ class QueryAtom(Query):
     """
     _match_class = Atom
 
-    def __init__(self, sub: "Substructure" = None, **attrs):
+    def __init__(self, sub: "Substructure" = None, map_number: int = None, **attrs):
         self.sub = sub
+        self._map_number = map_number
         super().__init__(**attrs)
+
+    @property
+    def map_number(self):
+        """Optional SMARTS atom-map number, excluded from matching constraints."""
+        return self._map_number
 
     @property
     def label(self):
@@ -465,18 +472,40 @@ class Hits:
         self.graph_matcher = graph_matcher
         self.get_hit = get_hit
 
-        self._nodes_indices = list(self._get_nodes_set())
+        self._mapping_groups = self._materialize_mapping_groups()
+        self._nodes_indices = [atom_indices for atom_indices, _ in self._mapping_groups]
         self._hits = None
 
     @property
     def hits(self) -> list["Hit"]:
         if self._hits is None:
-            self._hits = [Hit(self.mol, self.sub, ai) for ai in self._get_nodes_set()]
+            self._hits = [
+                Hit(self.mol, self.sub, atom_indices, mappings)
+                for atom_indices, mappings in self._mapping_groups
+            ]
 
         return self._hits
 
+    def _materialize_mapping_groups(self):
+        grouped_mappings = {}
+        for mol_to_query in self.graph_matcher.subgraph_monomorphisms_iter():
+            atom_indices = frozenset(mol_to_query)
+            query_to_mol = tuple(sorted((query_idx, mol_idx) for mol_idx, query_idx in mol_to_query.items()))
+            grouped_mappings.setdefault(atom_indices, set()).add(query_to_mol)
+
+        return tuple(
+            (
+                atom_indices,
+                tuple(
+                    MappingProxyType(dict(mapping))
+                    for mapping in sorted(grouped_mappings[atom_indices])
+                )
+            )
+            for atom_indices in sorted(grouped_mappings, key=lambda indices: tuple(sorted(indices)))
+        )
+
     def _get_nodes_set(self):
-        return set(frozenset(ai.keys()) for ai in self.graph_matcher.subgraph_monomorphisms_iter())
+        return set(self._nodes_indices)
 
     def __iter__(self):
         return iter(self.hits) if self.get_hit else iter(self._nodes_indices)
@@ -517,11 +546,24 @@ class Hit:
         bonds: The list of Bond objects within the matched substructure, determined
             by considering the atoms connected and filtering bonds in the molecule.
     """
-    def __init__(self, mol, sub, atom_indices):
+    def __init__(self, mol, sub, atom_indices, mappings=()):
         self.mol = mol
         self.sub = sub
-        self.atom_indices = atom_indices
+        self.atom_indices = frozenset(atom_indices)
+        self._mappings = tuple(mappings)
 
-        self.atoms = [self.mol.atoms[i] for i in self.atom_indices]
+        self.atoms = [self.mol.atoms[i] for i in sorted(self.atom_indices)]
         self.bonds = [b for b in self.mol.bonds if b.atom1 in self.atoms and b.atom2 in self.atoms]
 
+    @property
+    def mappings(self):
+        """All read-only query-index to molecule-index mappings for this hit."""
+        return self._mappings
+
+    def mapped_atom_indices(self, query_idx: int) -> tuple[int, ...]:
+        """Return all molecule atom indices mapped from one query atom index."""
+        return tuple(sorted({mapping[query_idx] for mapping in self._mappings}))
+
+    def mapped_atoms(self, query_idx: int) -> tuple[Atom, ...]:
+        """Return all molecule atoms mapped from one query atom index."""
+        return tuple(self.mol.atoms[idx] for idx in self.mapped_atom_indices(query_idx))

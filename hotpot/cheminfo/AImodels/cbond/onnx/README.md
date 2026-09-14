@@ -9,7 +9,9 @@ Runtime inference uses two graphs:
 
 The dynamic head replaces 28 fixed-shape copies of the same parameters. It was
 checked against every former model with a maximum absolute output difference of
-`2.39e-6` and an aggregate RMSE of `6.89e-7`.
+`2.39e-6` and an aggregate RMSE of `6.89e-7`. End-to-end comparison on the 10
+bundled molecular graphs (222 candidate bonds) gave a maximum difference of
+`3.82e-6` and RMSE of `9.70e-7`.
 
 `deploy/make_dynamic_onnx.py` reproduces the dynamic graph from the historical
 fixed-shape matrix and verifies that all source files carry the same weights.

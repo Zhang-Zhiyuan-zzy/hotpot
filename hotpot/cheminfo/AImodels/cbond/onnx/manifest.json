@@ -21,8 +21,16 @@
     }
   },
   "validation": {
-    "reference_models": 28,
-    "max_abs_difference": 2.384185791015625e-06,
-    "rmse": 6.881243244406242e-07
+    "fixed_shape_matrix": {
+      "reference_models": 28,
+      "max_abs_difference": 2.384185791015625e-06,
+      "rmse": 6.881243244406242e-07
+    },
+    "bundled_graph_fixtures": {
+      "molecules": 10,
+      "candidate_bonds": 222,
+      "max_abs_difference": 3.814697265625e-06,
+      "rmse": 9.69567347832232e-07
+    }
   }
 }

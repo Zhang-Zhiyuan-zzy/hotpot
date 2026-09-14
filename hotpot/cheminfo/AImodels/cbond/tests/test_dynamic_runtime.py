@@ -49,6 +49,28 @@ def test_padding_uses_exact_dimensions():
     assert mask.tolist() == [[False, False, True], [False, False, False]]
 
 
+def test_zero_ring_input_remains_finite(runtime):
+    atoms = np.array([6, 7, 26], dtype=np.int32)
+    edges = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    xg = runtime.embed_graph(atoms, edges)
+    padded_rings, rings_mask = padding_rings(
+        xg,
+        np.array([], dtype=np.int64),
+        np.array([], dtype=np.int32),
+    )
+
+    prediction = runtime.predict(
+        xg,
+        padded_rings,
+        rings_mask,
+        np.array([[2], [1]], dtype=np.int64),
+    )
+
+    assert padded_rings.shape == (1, 1, 128)
+    assert rings_mask.tolist() == [[True]]
+    assert prediction[:, 0] == pytest.approx([-1.0473889112472534], abs=1e-6)
+
+
 def test_padding_rejects_dimensions_outside_validated_domain():
     xg = np.zeros((65, 128), dtype=np.float32)
     with pytest.raises(ValueError, match="exceed the supported limits"):

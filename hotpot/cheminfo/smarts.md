@@ -7,8 +7,8 @@ This module implements the functionality to parse SMARTS (Smiles Arbitrary Targe
 
 The parser implements a **subset** of the standard SMARTS syntax, defined by the following technical constraints and logic:
 
-*   **Flat Logical Matching**: Support is limited to "first-level" logical operations (AND `&`, `;` and OR `,`).
-*   **No Recursive Environment**: Recursive SMARTS syntax `$(...)` is not supported. The parser raises a `NotImplementedError` when this syntax is encountered.
+*   **Logical Matching**: Supports AND (`&`, `;`), OR (`,`) and NOT (`!`).
+*   **Recursive Environments**: Supports anchored recursive SMARTS expressions such as `$([N]-C=O)`.
 *   **Explicit Bond Inference**: Bond inference between aromatic and non-aromatic atoms follows defined rules rather than probabilistic estimation.
 *   **Stream Processing**: The parsing process consists of two stages: a Tokenizer that converts the string into a stream of tokens (atoms, bonds, branches, ring markers), followed by the construction of the graph structure.
 
@@ -20,12 +20,12 @@ The parser implements a **subset** of the standard SMARTS syntax, defined by the
 - **Bond Types**:
     - `-` (single), `=` (double), `#` (triple)
     - `:` (aromatic), `~` (any bond)
-    - `/`, `\` (directional single bonds)
+    - Directional `/` and `\` bonds are rejected until stereochemical matching is implemented.
 
 ### 2.2 Logical Operators
 - **AND**: `&` or `;` (high priority). Example: `[C;H1]` matches "Carbon atom AND H count is 1".
 - **OR**: `,`. Example: `[N,O]` matches "Nitrogen atom OR Oxygen atom".
-- **NOT**: The `!` prefix is currently not supported.
+- **NOT**: `!` negates the following atom primitive or recursive expression.
 
 ### 2.3 Attribute Primitives
 The following attributes are supported within bracket `[]` definitions:
@@ -33,8 +33,9 @@ The following attributes are supported within bracket `[]` definitions:
 - **Hydrogen Count**: `H`, `H0`, `H1`, ...
 - **Connectivity/Valence**: `X` (connectivity), `v` (valence electrons), `D` (explicit degree)
 - **Ring Properties**: `R` (in ring), `r` (ring size), `r5` (size 5 ring)
-- **Chirality**: `@`, `@@` (Parsed as a counter; geometric matching is handled by the underlying system)
-- **Isotopes**: e.g., `13C`
+- **Chirality and Isotopes**: `@`, `@@`, and isotope primitives such as
+  `13C` are rejected explicitly because Hotpot's current atom graph does not
+  retain the required labels.
 
 ## 3. Extended Coordination Symbols
 
@@ -67,7 +68,8 @@ The factory function for building a Substructure object.
     - `Substructure`: An object containing `QueryAtom` nodes and bond constraints.
 - **Exceptions**:
     - `ValueError`: Raised for syntax errors (e.g., unmatched brackets, illegal characters).
-    - `NotImplementedError`: Raised for unsupported features (e.g., recursive SMARTS `$(...)` or `!` negation).
+    - `NotImplementedError`: Raised for unsupported stereochemical,
+      directional-bond, or isotope constraints.
 
 ### Internal Helpers
 

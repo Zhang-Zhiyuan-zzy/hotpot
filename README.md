@@ -144,7 +144,10 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
 - lammps
 - onnxruntime
 
-<small>\* **Note**: Hotpot strictly requires Python 3.9 due to specific regex behaviors and C++ binding compatibility in the underlying chemical kernel. Upgrading to 3.10+ may cause parsing errors in legacy molecular formats.</small>
+<small>\* **Note**: Python 3.9 remains the supported baseline for the complete
+legacy stack. MCA/CBond ONNX inference, shared molecule conversion and the
+NetworkX search path are separately tested on Python 3.9–3.14; this narrower
+matrix does not yet claim compatibility for every optional Hotpot plugin.</small>
 
 ### 1. Install dependencies
 Before installing `Hotpot`, you should install its dependencies first. It is
@@ -229,11 +232,10 @@ print(len(hits))  # == 3
 hits = pair.search_substructure('[An](n)(n)(n)O')  # [An] --> actinide
 print(len(hits))  # == 0
 ```
-Hotpot features a built-in SMARTS parser ([API](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/search/smarts.md))
-designed for efficient substructure matching. It supports a **subset** of the 
-standard SMARTS syntax, covering the majority of atom/bond primitives and first-level logical operators (AND/OR). 
-
-> **Note**: Complex nested logic and recursive environments (e.g., recursive SMARTS `$(...)`) are **not** currently supported.
+Hotpot features a built-in SMARTS parser ([API](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/smarts.md))
+that compiles atom, bond, logical and anchored recursive expressions into the
+NetworkX-backed `Searcher` objects. Unsupported stereochemical, directional-bond
+and isotope constraints fail explicitly instead of being treated as unconstrained.
 
 To specifically address the demand in **Coordination Chemistry**, the syntax has been extended with custom 
 wildcards for metals and periodic table properties:
@@ -247,13 +249,23 @@ wildcards for metals and periodic table properties:
 | **`NP<n>`** | Period     | Matches elements in Period *n* (supports ranges) | `[NP4]`, `[NP3-5]` |
 | **`NG<n>`** | Group      | Matches elements in Group *n* (supports ranges)  | `[NG1]`, `[NG1-2]` |
 
-##### Conversion with `RdKit` and `OpenBabel`
+##### Conversion with `RDKit` and `OpenBabel`
 
 Interfacing with other cheminformatics tools:
 ```pycon
 obMol = pair.to_obmol()
 rdMol = pair.to_rdmol()
+
+# The shared input converter also accepts SMILES, paths, RDKit Mol, OBMol,
+# Pybel Molecule, and objects exposing to_rdmol().
+assert hp.to_hotpot_mol(pair) is pair
+from_rdkit = hp.to_hotpot_mol(rdMol)
+from_openbabel = hp.to_hotpot_mol(obMol)
+from_smiles = hp.to_hotpot_mol("CCN")
 ```
+External molecules are copied while preserving source atom order. Convert the
+whole molecule first, then retrieve a corresponding Hotpot atom by source index;
+isolated external atoms are deliberately not converted without their graph.
 Converting to [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data) Data:
 ```pycon
 data = pair.to_pyg_data()

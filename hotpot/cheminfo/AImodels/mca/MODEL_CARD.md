@@ -4,8 +4,10 @@
 - Unit: kJ/mol
 - Architecture: Uni-Mol v2 84m with a single-atom regression head
 - Release precision: FP16
-- Inputs: RDKit-derived Uni-Mol v2 graph features, 3D coordinates and one target
-  atom index per inference row
+- Inputs: Hotpot-normalized molecules converted to RDKit-derived Uni-Mol v2
+  graph features, 3D coordinates and one target atom index per inference row
+- Outputs: MCA for every heavy atom, plus a subset classified by 24 ordered
+  nucleophilic-site rules through Hotpot's NetworkX search backend
 - Dynamic limits: 1–4096 site rows and 2–512 heavy atoms
 
 The model was trained and evaluated primarily in the neutral-molecule domain.

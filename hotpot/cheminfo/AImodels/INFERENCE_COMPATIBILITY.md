@@ -1,21 +1,22 @@
 # ONNX inference compatibility
 
-The standalone MCA and CBond inference packages are tested on CPython
-3.9--3.14. This scope covers their CPU inference paths, model loading, input
-featurization, dynamic dimensions and stable reference predictions. It does
-not claim that every unrelated hotpot subsystem or optional scientific package
-supports every interpreter in the matrix.
+The MCA and CBond ONNX packages and their required Hotpot integration are
+tested on CPython 3.9--3.14. The matrix covers CPU inference, model loading,
+input featurization, dynamic dimensions, shared molecule conversion,
+calculator attachment, NetworkX substructure search, SMARTS parsing and MCA
+site selection. It does not claim that unrelated Hotpot plugins or optional
+scientific packages support every interpreter in the matrix.
 
 Validated on 2026-09-14:
 
 | Python | NumPy | ONNX Runtime | RDKit | Tests |
 | --- | --- | --- | --- | --- |
-| 3.9.25 | 2.0.2 | 1.19.2 | 2025.09.2 | 15 passed |
-| 3.10.20 | 2.2.6 | 1.23.2 | 2026.03.6 | 15 passed |
-| 3.11.15 | 2.4.6 | 1.30.0 | 2026.03.6 | 15 passed |
-| 3.12.13 | 2.5.3 | 1.30.0 | 2026.03.6 | 15 passed |
-| 3.13.15 | 2.5.3 | 1.30.0 | 2026.03.6 | 15 passed |
-| 3.14.7 | 2.5.3 | 1.30.0 | 2026.03.6 | 15 passed |
+| 3.9.25 | 2.0.2 | 1.19.2 | 2025.09.2 | 147 passed |
+| 3.10.20 | 2.2.6 | 1.23.2 | 2026.03.6 | 147 passed + 49 subtests |
+| 3.11.15 | 2.4.6 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
+| 3.12.13 | 2.5.3 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
+| 3.13.15 | 2.5.3 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
+| 3.14.7 | 2.5.3 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
 
 The piperidine MCA reference was exactly `503.25 kJ/mol` in every environment.
 The largest cross-version difference in the fixed CBond reference output was
@@ -36,11 +37,13 @@ bash tests/run_inference_compatibility.sh 3.9 3.14
 The lower ONNX Runtime bound is intentionally 1.19. Python 3.9 resolves to
 1.19.2, while newer Python versions resolve to newer compatible releases.
 
+CI also builds a wheel, installs it without the source checkout on `sys.path`,
+and runs a real MCA prediction. This verifies that the ONNX graph and its
+external weight files are present in the distributable package.
+
 As an additional forward-compatibility check, `python -m compileall hotpot`
-completed under all six interpreters. Python 3.12 and newer report pre-existing
-warnings for invalid escape sequences in unrelated modules, and every version
-reports the existing `hotpot/cheminfo/search/logic.py:300` annotation warning.
-These warnings do not affect the two ONNX inference packages.
+completed under all six interpreters. Warnings emitted by third-party packages
+do not affect the tested inference and graph-search paths.
 
 The repository README still documents Python 3.9 as the requirement for the
 legacy chemical kernel. Accordingly, this matrix is not a claim that the full

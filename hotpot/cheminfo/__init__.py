@@ -10,10 +10,10 @@ from ._io import MolReader, MolWriter
 from .core import Molecule, Atom, Bond
 from .bundle import MolBundle, to_pyg_dataset
 from .core_utils import read_mol
+from .convert import to_hotpot_mol
 from .mol_assemble import *
 
 from .mol_statistics import ComplexStatistics
 from .search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
-
 
 

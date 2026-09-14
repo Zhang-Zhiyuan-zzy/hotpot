@@ -76,9 +76,8 @@ def obmol2mol(obmol, mol):
             )
 
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
-    #
     mol._update_graph()
-    # mol.calc_atom_valence()
+    mol.charge = obmol.GetTotalCharge()
 
     # add Crystal
     cell_index = ob.UnitCell  # Get the index the UnitCell data save
@@ -225,4 +224,3 @@ def to_arrays(obmol):
     ])
 
     return atoms_array, bonds_array, idx_to_row
-

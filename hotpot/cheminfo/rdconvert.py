@@ -64,29 +64,40 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
 
 
 def from_rdmol(rdmol, mol):
-    # Get atom indices in a consistent order
-    idx_to_row = {atom.GetIdx(): i for i, atom in enumerate(rdmol.GetAtoms())}
+    """Populate a Hotpot molecule from an RDKit molecule."""
+    rdmol = Chem.Mol(rdmol)
+    Chem.Kekulize(rdmol)
+    conformer = rdmol.GetConformer() if rdmol.GetNumConformers() else None
 
-    # Iterate over atoms in the molecule
     for atom in rdmol.GetAtoms():
-        mol.create_atom(
+        coordinates = (
+            conformer.GetAtomPosition(atom.GetIdx())
+            if conformer is not None
+            else (0.0, 0.0, 0.0)
+        )
+        mol._create_atom(
             atomic_number=atom.GetAtomicNum(),
             formal_charge=atom.GetFormalCharge(),
-            partial_charge=atom.GetDoubleProp('_GasteigerCharge') if atom.HasProp('_GasteigerCharge') else 0.0,
-            is_aromatic=int(atom.GetIsAromatic()),
-            coordinates=rdmol.GetConformer().GetAtomPosition(atom.GetIdx()),
+            partial_charge=(
+                atom.GetDoubleProp('_GasteigerCharge')
+                if atom.HasProp('_GasteigerCharge')
+                else 0.0
+            ),
+            is_aromatic=atom.GetIsAromatic(),
+            coordinates=coordinates,
             valence=atom.GetTotalValence(),
-            implicit_hydrogens=atom.GetNumImplicitHs(),
+            implicit_hydrogens=(
+                atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
+            ),
         )
 
-    # Iterate over bonds in the molecule
     for bond in rdmol.GetBonds():
-        i = idx_to_row[bond.GetBeginAtomIdx()]  # Map to reordered index
-        j = idx_to_row[bond.GetEndAtomIdx()]  # Map to reordered index
-        bond_order = bond.GetBondTypeAsDouble()
-        # is_aromatic = bond.GetIsAromatic()
+        mol._add_bond(
+            bond.GetBeginAtomIdx(),
+            bond.GetEndAtomIdx(),
+            bond_order=bond.GetBondTypeAsDouble(),
+        )
 
-        # Append the bond information to the bonds list
-        mol.add_bond(i, j, bond_order=bond_order)
-
+    mol._update_graph()
+    mol.charge = Chem.GetFormalCharge(rdmol)
     return mol

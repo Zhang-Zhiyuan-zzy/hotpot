@@ -95,9 +95,9 @@ class _RecursivePredicate:
         self._cache = WeakKeyDictionary()
 
     def __call__(self, atom: object) -> bool:
-        graph_identity = atom.mol.graph
+        state_signature = _molecule_search_signature(atom.mol)
         cached = self._cache.get(atom.mol)
-        if cached is None or cached[0] is not graph_identity:
+        if cached is None or cached[0] != state_signature:
             matcher = isomorphism.GraphMatcher(
                 atom.mol.atom_bond_graph,
                 self.substructure.construct_graph(),
@@ -111,7 +111,7 @@ class _RecursivePredicate:
                 if query_index == 0
             }
             cached = (
-                graph_identity,
+                state_signature,
                 {
                     candidate.idx: candidate.idx in anchored_indices
                     for candidate in atom.mol.atoms
@@ -123,6 +123,32 @@ class _RecursivePredicate:
 
     def __repr__(self) -> str:
         return f"$({self.smarts})"
+
+
+def _molecule_search_signature(mol: object) -> Tuple[object, ...]:
+    """Return the molecular state consumed by SMARTS matching predicates."""
+    atoms = tuple(
+        (
+            atom.idx,
+            atom.atomic_number,
+            atom.formal_charge,
+            atom.is_aromatic,
+            atom.implicit_hydrogens,
+        )
+        for atom in mol.atoms
+    )
+    bonds = tuple(
+        sorted(
+            (
+                min(bond.a1idx, bond.a2idx),
+                max(bond.a1idx, bond.a2idx),
+                bond.bond_order,
+                bond.is_aromatic,
+            )
+            for bond in mol.bonds
+        )
+    )
+    return atoms, bonds
 
 
 def tokenize(smarts: str) -> List[Tuple[TokenType, str]]:
@@ -180,7 +206,7 @@ def substructure_from_smarts(smarts: str) -> Substructure:
     ring_anchors: Dict[
         str, List[Tuple[int, Optional[Dict[str, object]]]]
     ] = defaultdict(list)
-    branch_stack: List[int] = []
+    branch_stack: List[Tuple[int, int]] = []
     last_atom_index: Optional[int] = None
     pending_bond_attrs: Optional[Dict[str, object]] = None
 
@@ -207,11 +233,16 @@ def substructure_from_smarts(smarts: str) -> Substructure:
         elif token_type == TokenType.BRANCH_L:
             if last_atom_index is None:
                 raise ValueError(f"Branch '(' must follow an atom: {smarts}")
-            branch_stack.append(last_atom_index)
+            branch_stack.append((last_atom_index, len(substructure.query_atoms)))
         elif token_type == TokenType.BRANCH_R:
             if not branch_stack:
                 raise ValueError(f"Unmatched ')' in SMARTS: {smarts}")
-            last_atom_index = branch_stack.pop()
+            branch_anchor, atom_count = branch_stack.pop()
+            if len(substructure.query_atoms) == atom_count:
+                raise ValueError(f"Empty branch in SMARTS: {smarts}")
+            if pending_bond_attrs is not None:
+                raise ValueError(f"Bond expression must be followed by an atom: {smarts}")
+            last_atom_index = branch_anchor
             pending_bond_attrs = None
         elif token_type == TokenType.RING:
             if last_atom_index is None:
@@ -226,11 +257,15 @@ def substructure_from_smarts(smarts: str) -> Substructure:
         elif token_type == TokenType.DOT:
             if branch_stack:
                 raise ValueError(f"Dot is not allowed inside a branch: {smarts}")
+            if pending_bond_attrs is not None:
+                raise ValueError(f"Bond expression must be followed by an atom: {smarts}")
             last_atom_index = None
             pending_bond_attrs = None
 
     if branch_stack:
         raise ValueError(f"Unclosed '(' in SMARTS: {smarts}")
+    if pending_bond_attrs is not None:
+        raise ValueError(f"Bond expression must be followed by an atom: {smarts}")
     if any(anchors for anchors in ring_anchors.values()):
         labels = [label for label, anchors in ring_anchors.items() if anchors]
         raise ValueError(f"Unclosed ring label(s) {labels} in SMARTS: {smarts}")
@@ -473,10 +508,7 @@ def _parse_atom_primitive(
         charge, end = _read_charge(expr, index)
         return _equals("formal_charge", charge, f"charge={charge}"), end, False
     if char == "@":
-        end = index + 1
-        if end < len(expr) and expr[end] == "@":
-            end += 1
-        return _always_true(expr[index:end]), end, False
+        raise NotImplementedError("SMARTS atom chirality '@'/'@@' is not implemented")
     if char in "DXvRr":
         return _parse_numeric_atom_primitive(expr, index)
     if char == "H" and (
@@ -488,17 +520,7 @@ def _parse_atom_primitive(
     if char == "A":
         return _equals("is_aromatic", False, "A", {False}), index + 1, True
     if char.isdigit():
-        isotope_match = re.match(r"(\d+)", expr[index:])
-        isotope = int(isotope_match.group(1))
-        end = index + len(isotope_match.group(1))
-        return (
-            _AtomExpression(
-                lambda atom, value=isotope: getattr(atom, "isotope", 0) == value,
-                f"isotope={isotope}",
-            ),
-            end,
-            False,
-        )
+        raise NotImplementedError("SMARTS isotope matching is not implemented")
     if char.isalpha():
         symbol, end = _read_element_in_expression(expr, index)
         atomic_number = ob.GetAtomicNum(symbol.capitalize())
@@ -795,9 +817,11 @@ def _create_query_atom_from_symbol(substructure: Substructure, symbol: str) -> Q
 
 def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
     alternatives = symbol.split(",")
+    if any(token in {UP_BOND_TOKEN, DOWN_BOND_TOKEN} for token in alternatives):
+        raise NotImplementedError("SMARTS directional bonds '/' and '\\' are not implemented")
     if len(alternatives) == 1:
         token = alternatives[0]
-        if token in {SINGLE_BOND_TOKEN, UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
+        if token == SINGLE_BOND_TOKEN:
             return {"bond_order": {BondOrder.SINGLE.value}}
         if token == DOUBLE_BOND_TOKEN:
             return {"bond_order": {BondOrder.DOUBLE.value}}
@@ -818,7 +842,9 @@ def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
 
 
 def _bond_predicate(symbol: str) -> Callable[[object], bool]:
-    if symbol in {SINGLE_BOND_TOKEN, UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
+    if symbol in {UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
+        raise NotImplementedError("SMARTS directional bonds '/' and '\\' are not implemented")
+    if symbol == SINGLE_BOND_TOKEN:
         return lambda bond: bond.bond_order == BondOrder.SINGLE.value
     if symbol == DOUBLE_BOND_TOKEN:
         return lambda bond: bond.bond_order == BondOrder.DOUBLE.value

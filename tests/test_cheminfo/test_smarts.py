@@ -68,6 +68,26 @@ def test_boolean_logic_and_anchored_recursive_smarts():
     assert has_match("CCN", "[N;!$(N-C=O)]")
 
 
+def test_recursive_predicate_cache_tracks_in_place_atom_mutation():
+    mol = molecule("CN")
+    query = hp.Substructure.from_smarts("[N;$([N+])]").query_atoms[0]
+    nitrogen = mol.atoms[1]
+
+    assert not query.match(nitrogen)
+    nitrogen.formal_charge = 1
+    assert query.match(nitrogen)
+
+
+def test_recursive_predicate_cache_tracks_in_place_bond_mutation():
+    mol = molecule("C=O")
+    query = hp.Substructure.from_smarts("[#6;$([#6]=[#8])]").query_atoms[0]
+    carbon = mol.atoms[0]
+
+    assert query.match(carbon)
+    mol.bonds[0].bond_order = 1
+    assert not query.match(carbon)
+
+
 def test_bond_or_branch_ring_and_dot_components():
     assert has_match("CC=O", "[#8]=,:[#6]")
     assert has_match("c1ccccc1", "[#6]=,:[#6]")
@@ -108,6 +128,18 @@ def test_every_mca_rule_compiles_with_mapped_target_atom():
         sub = hp.Substructure.from_smarts(smarts)
         assert sub.query_atoms, name
         assert sub.query_atoms[0].map_number == 1, name
+
+
+@pytest.mark.parametrize("smarts", ("[C@H]", "[C@@H]", "C/C", r"C\C", "[13C]"))
+def test_unimplemented_stereochemistry_and_isotopes_raise(smarts):
+    with pytest.raises(NotImplementedError):
+        hp.Substructure.from_smarts(smarts)
+
+
+@pytest.mark.parametrize("smarts", ("C-", "C()", "C(=)N"))
+def test_incomplete_graph_syntax_raises(smarts):
+    with pytest.raises(ValueError):
+        hp.Substructure.from_smarts(smarts)
 
 
 def test_mca_carboxylic_acid_recursive_h1_branch_matches_formic_acid():

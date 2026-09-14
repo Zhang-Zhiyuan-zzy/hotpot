@@ -8,14 +8,12 @@ from hotpot.cheminfo.search.smarts import substructure_from_smarts, tokenize
 VALID_SMARTS = (
     "C1CCCCC1",
     "[CH3]C[CH2]C",
-    "C[C@H](N)C(=O)O",
-    "C[C@H](N)C(=O)O[C@@H]1CC[C@H](C(=O)O)CC1",
-    "c1cc(ccc1)C[C@H]2CC[C@H](C(=O)O)C2C(=O)O",
-    "C%12C[C@H](O)CC[C@@H](N)C(=O)C%12C[C@H](C)O",
-    "[#6,#7][C@H](N)C(=O)O[C@H]1CC[C@H](C)CC1C(=O)O",
-    "[*:1]C[C@H](N)C(=O)O[C@H]1CC[C@H](C)C1C(=O)O",
-    "[O;H1]C(=O)C[C@H](N)C(=O)O[C@@H]1CC[C@H](C)C1",
-    "[C;R;H1]1CC[C@H](C(=O)O)OCC[C@H]2CC[C@@H]12N",
+    "c1cc(ccc1)C[CH]2CC[C](C(=O)O)C2C(=O)O",
+    "C%12C[CH](O)CC[CH](N)C(=O)C%12C[CH](C)O",
+    "[#6,#7][CH](N)C(=O)O[C]1CC[C](C)CC1C(=O)O",
+    "[*:1]C[CH](N)C(=O)O[C]1CC[C](C)C1C(=O)O",
+    "[O;H1]C(=O)C[CH](N)C(=O)O[C]1CC[C](C)C1",
+    "[C;R;H1]1CC[C](C(=O)O)OCC[C]2CC[C]12N",
 )
 
 INVALID_SMARTS = (
@@ -26,6 +24,15 @@ INVALID_SMARTS = (
     "C1CC",
     "C%12CC",
     "C1CCC1C1",
+    "C-",
+    "C()",
+    "C(=)N",
+)
+
+UNIMPLEMENTED_SMARTS = (
+    "C[C@H](N)C(=O)O",
+    "C/C=C\\C",
+    "[13CH4]",
 )
 
 
@@ -38,4 +45,10 @@ def test_valid_smarts_compile(smarts):
 @pytest.mark.parametrize("smarts", INVALID_SMARTS)
 def test_invalid_brackets_and_ring_labels_raise(smarts):
     with pytest.raises(ValueError):
+        substructure_from_smarts(smarts)
+
+
+@pytest.mark.parametrize("smarts", UNIMPLEMENTED_SMARTS)
+def test_unimplemented_smarts_features_raise(smarts):
+    with pytest.raises(NotImplementedError):
         substructure_from_smarts(smarts)

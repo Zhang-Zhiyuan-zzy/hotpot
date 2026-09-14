@@ -1,19 +1,23 @@
+"""SMARTS parsing for Hotpot's NetworkX substructure search.
+
+The parser intentionally targets the graph and query objects implemented by
+``hotpot.cheminfo.search``. It does not translate through another chemistry
+toolkit. Standard atom expressions are compiled to small predicates and the
+Hotpot coordination-chemistry extensions are handled by the same machinery.
 """
-@File Name:        smarts
-@Project:          
-@Author:           Zhiyuan Zhang
-@Created On:       2025/12/7 12:30
-@Project:          Hotpot
-"""
+
 from __future__ import annotations
+
 import re
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Optional, Set, Tuple
+from weakref import WeakKeyDictionary
 
+from networkx.algorithms import isomorphism
 from openbabel import openbabel as ob
 
-from .search import QueryAtom, Substructure
+from .search import QueryAtom, Searcher, Substructure
 
 
 class TokenType(str, Enum):
@@ -23,49 +27,26 @@ class TokenType(str, Enum):
     BRANCH_L = "BRANCH_L"
     BRANCH_R = "BRANCH_R"
     RING = "RING"
+    DOT = "DOT"
 
 
 BOND_CHARS: Set[str] = {"-", "=", "#", ":", "/", "\\", "~"}
+AROMATIC_LOWER: Set[str] = {"b", "c", "n", "o", "p", "s", "se", "as"}
 
-AROMATIC_LOWER: Set[str] = set("bcnops")
+METAL_TOKEN = "M"
+LANTHANIDE_TOKEN = "Ln"
+ACTINIDE_TOKEN = "An"
+PERIOD_PREFIX = "NP"
+GROUP_PREFIX = "NG"
 
-RING_OPENERS: str = "([{"
-RING_CLOSERS: str = ")]}"
-
-NEGATION_PREFIX: str = "!"
-AND_SEPARATORS: str = ";&"
-
-METAL_TOKEN: str = "M"
-NON_METAL_TOKEN: str = "!M"
-LANTHANIDE_TOKEN: str = "Ln"
-ACTINIDE_TOKEN: str = "An"
-
-PERIOD_PREFIX: str = "NP"
-GROUP_PREFIX: str = "NG"
-
-RING_FLAG_TOKEN: str = "R"
-RING_SIZE_TOKEN: str = "r"
-DEGREE_TOKEN: str = "D"
-VALENCE_TOKEN: str = "v"
-CONNECTIVITY_TOKEN: str = "X"
-AROMATIC_ANY_TOKEN: str = "a"
-ALIPHATIC_ANY_TOKEN: str = "A"
-HYDROGEN_TOKEN: str = "H"
-
-ATOMIC_NUMBER_PREFIX: str = "#"
-
-RECURSIVE_SMARTS_PREFIX: str = "$("
-
-ANY_ATOM_TOKEN: str = "*"
-
-AROMATIC_BOND_TOKEN: str = ":"
-ANY_BOND_TOKEN: str = "~"
-
-SINGLE_BOND_TOKEN: str = "-"
-DOUBLE_BOND_TOKEN: str = "="
-TRIPLE_BOND_TOKEN: str = "#"
-UP_BOND_TOKEN: str = "/"
-DOWN_BOND_TOKEN: str = "\\"
+ANY_ATOM_TOKEN = "*"
+SINGLE_BOND_TOKEN = "-"
+DOUBLE_BOND_TOKEN = "="
+TRIPLE_BOND_TOKEN = "#"
+AROMATIC_BOND_TOKEN = ":"
+ANY_BOND_TOKEN = "~"
+UP_BOND_TOKEN = "/"
+DOWN_BOND_TOKEN = "\\"
 
 
 class BondOrder(int, Enum):
@@ -80,625 +61,787 @@ class AromaticFlag(Enum):
     UNSET = "unset"
 
 
+class _Predicate:
+    """A named callable which keeps query representations deterministic."""
+
+    def __init__(self, func: Callable[[object], bool], description: str):
+        self._func = func
+        self.description = description
+
+    def __call__(self, obj: object) -> bool:
+        return bool(self._func(obj))
+
+    def __repr__(self) -> str:
+        return self.description
+
+
+class _AtomExpression(_Predicate):
+    def __init__(
+        self,
+        func: Callable[[object], bool],
+        description: str,
+        aromatic_states: Set[bool] = frozenset((False, True)),
+    ):
+        super().__init__(func, description)
+        self.aromatic_states = frozenset(aromatic_states)
+
+
+class _RecursivePredicate:
+    """Anchored recursive SMARTS with per-molecule/per-atom result caching."""
+
+    def __init__(self, smarts: str):
+        self.smarts = smarts
+        self.substructure = substructure_from_smarts(smarts)
+        self._cache = WeakKeyDictionary()
+
+    def __call__(self, atom: object) -> bool:
+        graph_identity = atom.mol.graph
+        cached = self._cache.get(atom.mol)
+        if cached is None or cached[0] is not graph_identity:
+            matcher = isomorphism.GraphMatcher(
+                atom.mol.atom_bond_graph,
+                self.substructure.construct_graph(),
+                node_match=Searcher._node_match,
+                edge_match=Searcher._edge_match,
+            )
+            anchored_indices = {
+                mol_index
+                for mapping in matcher.subgraph_monomorphisms_iter()
+                for mol_index, query_index in mapping.items()
+                if query_index == 0
+            }
+            cached = (
+                graph_identity,
+                {
+                    candidate.idx: candidate.idx in anchored_indices
+                    for candidate in atom.mol.atoms
+                },
+            )
+            self._cache[atom.mol] = cached
+        mol_cache = cached[1]
+        return mol_cache[atom.idx]
+
+    def __repr__(self) -> str:
+        return f"$({self.smarts})"
+
+
 def tokenize(smarts: str) -> List[Tuple[TokenType, str]]:
-    """
-    Tokenize a SMARTS pattern into a flat token stream.
-
-    Args:
-        smarts: SMARTS pattern string.
-
-    Returns:
-        Ordered list of (TokenType, text) tuples.
-    """
+    """Tokenize graph-level SMARTS syntax."""
     tokens: List[Tuple[TokenType, str]] = []
     index = 0
-    size = len(smarts)
-
-    while index < size:
+    while index < len(smarts):
         char = smarts[index]
-
         if char.isspace():
             index += 1
-            continue
-
-        if char == "[":
-            closing_index = _find_closing_bracket_index(smarts, index)
-            tokens.append((TokenType.BRACKET, smarts[index:closing_index + 1]))
-            index = closing_index + 1
-            continue
-
-        if char == "(":
+        elif char == "[":
+            closing = _find_closing_bracket_index(smarts, index)
+            tokens.append((TokenType.BRACKET, smarts[index : closing + 1]))
+            index = closing + 1
+        elif char == "(":
             tokens.append((TokenType.BRANCH_L, char))
             index += 1
-            continue
-
-        if char == ")":
+        elif char == ")":
             tokens.append((TokenType.BRANCH_R, char))
             index += 1
-            continue
-
-        if char in BOND_CHARS:
-            tokens.append((TokenType.BOND, char))
+        elif char == ".":
+            tokens.append((TokenType.DOT, char))
             index += 1
-            continue
-
-        if char.isdigit() or _is_multi_digit_ring_start(smarts, index):
-            ring_token, index = _read_ring_token(smarts, index)
-            tokens.append((TokenType.RING, ring_token))
-            continue
-
-        if char.isalpha():
-            atom_token, index = _read_atom_token(smarts, index)
-            tokens.append((TokenType.ATOM, atom_token))
-            continue
-
-        raise ValueError(f"Unsupported character in SMARTS: '{char}' at position {index}")
-
+        elif char in BOND_CHARS:
+            bond, index = _read_bond_token(smarts, index)
+            tokens.append((TokenType.BOND, bond))
+        elif char.isdigit() or _is_multi_digit_ring_start(smarts, index):
+            ring, index = _read_ring_token(smarts, index)
+            tokens.append((TokenType.RING, ring))
+        elif char.isalpha() or char == ANY_ATOM_TOKEN:
+            atom, index = _read_atom_token(smarts, index)
+            tokens.append((TokenType.ATOM, atom))
+        else:
+            raise ValueError(
+                f"Unsupported character in SMARTS: {char!r} at position {index}"
+            )
     return tokens
 
 
 def parse_bracket_atom(expr_text: str) -> Dict[str, object]:
+    """Compile a bracket atom into constraints accepted by ``QueryAtom``.
+
+    Atom-map labels are graph metadata rather than matching constraints and are
+    therefore absent from this return value. They are attached to
+    ``QueryAtom.map_number`` by :func:`substructure_from_smarts`.
     """
-    Parse a full bracket atom expression like "[C;H2]" into attribute constraints.
-
-    Args:
-        expr_text: Bracket expression including the square brackets.
-
-    Returns:
-        Dictionary of attribute constraints that can be passed into QueryAtom.
-    """
-    if not expr_text.startswith("[") or not expr_text.endswith("]"):
-        raise ValueError(f"Bracket atom must start with '[' and end with ']': {expr_text!r}")
-
-    expr = expr_text[1:-1].strip()
-
-    if RECURSIVE_SMARTS_PREFIX in expr:
-        raise NotImplementedError("Recursive SMARTS '$(' is not supported")
-
-    if "," not in expr:
-        return _parse_and_block(expr)
-
-    return _parse_or_block(expr)
+    expression, _, _ = _compile_bracket_atom(expr_text)
+    return {"predicate": expression}
 
 
 def substructure_from_smarts(smarts: str) -> Substructure:
-    """
-    Build a Substructure object from a SMARTS pattern.
-
-    Args:
-        smarts: SMARTS pattern string.
-
-    Returns:
-        Substructure instance containing query atoms and bonds.
-    """
+    """Build a :class:`Substructure` without leaving Hotpot's graph backend."""
     tokens = tokenize(smarts)
     substructure = Substructure()
-    ring_anchors: Dict[str, List[int]] = defaultdict(list)
+    ring_anchors: Dict[
+        str, List[Tuple[int, Optional[Dict[str, object]]]]
+    ] = defaultdict(list)
     branch_stack: List[int] = []
     last_atom_index: Optional[int] = None
     pending_bond_attrs: Optional[Dict[str, object]] = None
 
     for token_type, token_text in tokens:
         if token_type in (TokenType.ATOM, TokenType.BRACKET):
-            query_atom = _create_query_atom_from_token(substructure, token_type, token_text)
+            query_atom = _create_query_atom_from_token(
+                substructure, token_type, token_text
+            )
             substructure.add_atom(query_atom)
             current_index = len(substructure.query_atoms) - 1
-
             if last_atom_index is not None:
-                first_atom = substructure.query_atoms[last_atom_index]
-                second_atom = query_atom
-                bond_attrs = _infer_bond_attrs(first_atom, second_atom, pending_bond_attrs)
+                bond_attrs = _infer_bond_attrs(
+                    substructure.query_atoms[last_atom_index],
+                    query_atom,
+                    pending_bond_attrs,
+                )
                 substructure.add_bond(last_atom_index, current_index, **bond_attrs)
-
             last_atom_index = current_index
             pending_bond_attrs = None
-            continue
-
-        if token_type == TokenType.BOND:
+        elif token_type == TokenType.BOND:
+            if pending_bond_attrs is not None:
+                raise ValueError(f"Consecutive bond expressions in SMARTS: {smarts}")
             pending_bond_attrs = _bond_attrs_for_symbol(token_text)
-            continue
-
-        if token_type == TokenType.BRANCH_L:
+        elif token_type == TokenType.BRANCH_L:
             if last_atom_index is None:
                 raise ValueError(f"Branch '(' must follow an atom: {smarts}")
             branch_stack.append(last_atom_index)
-            continue
-
-        if token_type == TokenType.BRANCH_R:
+        elif token_type == TokenType.BRANCH_R:
             if not branch_stack:
                 raise ValueError(f"Unmatched ')' in SMARTS: {smarts}")
             last_atom_index = branch_stack.pop()
             pending_bond_attrs = None
-            continue
-
-        if token_type == TokenType.RING:
+        elif token_type == TokenType.RING:
             if last_atom_index is None:
-                raise ValueError(f"Ring digit must follow an atom: {smarts}")
-            _connect_or_anchor_ring(
-                substructure=substructure,
-                ring_anchors=ring_anchors,
-                ring_label=token_text,
-                current_atom_index=last_atom_index,
+                raise ValueError(f"Ring label must follow an atom: {smarts}")
+            pending_bond_attrs = _connect_or_anchor_ring(
+                substructure,
+                ring_anchors,
+                token_text,
+                last_atom_index,
+                pending_bond_attrs,
             )
-            continue
-
-        raise ValueError(f"Unexpected token type {token_type} in SMARTS parser")
+        elif token_type == TokenType.DOT:
+            if branch_stack:
+                raise ValueError(f"Dot is not allowed inside a branch: {smarts}")
+            last_atom_index = None
+            pending_bond_attrs = None
 
     if branch_stack:
         raise ValueError(f"Unclosed '(' in SMARTS: {smarts}")
-
-    for label, indices in ring_anchors.items():
-        if indices:
-            raise ValueError(f"Unclosed ring digit {label} in SMARTS: {smarts}")
-
+    if any(anchors for anchors in ring_anchors.values()):
+        labels = [label for label, anchors in ring_anchors.items() if anchors]
+        raise ValueError(f"Unclosed ring label(s) {labels} in SMARTS: {smarts}")
     return substructure
 
 
 def _find_closing_bracket_index(text: str, start_index: int) -> int:
-    depth = 1
+    square_depth = 1
+    paren_depth = 0
     index = start_index + 1
-    size = len(text)
-
-    while index < size and depth > 0:
+    while index < len(text):
         char = text[index]
-        if char == "[":
-            raise ValueError(f"Nested '[' is not allowed in bracket atom: {text[start_index:index + 1]}")
-        if char == "]":
-            depth -= 1
-            if depth == 0:
+        if char == "(":
+            paren_depth += 1
+        elif char == ")":
+            paren_depth -= 1
+            if paren_depth < 0:
+                raise ValueError(f"Unmatched ')' in bracket atom: {text}")
+        elif char == "[":
+            if paren_depth == 0:
+                raise ValueError(
+                    f"Nested '[' is only valid in recursive SMARTS: {text}"
+                )
+            square_depth += 1
+        elif char == "]":
+            square_depth -= 1
+            if square_depth == 0:
                 return index
         index += 1
-
     raise ValueError(f"Unclosed '[' in SMARTS: {text}")
 
 
+def _read_bond_token(smarts: str, index: int) -> Tuple[str, int]:
+    parts = [smarts[index]]
+    index += 1
+    while index < len(smarts) and smarts[index] == ",":
+        if index + 1 >= len(smarts) or smarts[index + 1] not in BOND_CHARS:
+            raise ValueError(f"Malformed bond OR expression in SMARTS: {smarts}")
+        parts.extend((",", smarts[index + 1]))
+        index += 2
+    return "".join(parts), index
+
+
 def _is_multi_digit_ring_start(smarts: str, index: int) -> bool:
-    if smarts[index] != "%":
-        return False
-    lookahead = smarts[index + 1 : index + 3]
-    return len(lookahead) == 2 and lookahead.isdigit()
+    return (
+        smarts[index] == "%"
+        and len(smarts[index + 1 : index + 3]) == 2
+        and smarts[index + 1 : index + 3].isdigit()
+    )
 
 
 def _read_ring_token(smarts: str, index: int) -> Tuple[str, int]:
     if smarts[index] == "%":
-        next_index = index + 1
-        size = len(smarts)
-        while next_index < size and smarts[next_index].isdigit():
-            next_index += 1
-        return smarts[index:next_index], next_index
-
+        end = index + 1
+        while end < len(smarts) and smarts[end].isdigit():
+            end += 1
+        return smarts[index:end], end
     return smarts[index], index + 1
 
 
 def _read_atom_token(smarts: str, index: int) -> Tuple[str, int]:
+    if smarts[index] == ANY_ATOM_TOKEN:
+        return ANY_ATOM_TOKEN, index + 1
     char = smarts[index]
-    size = len(smarts)
-
-    if char.isupper() and index + 1 < size and smarts[index + 1].islower():
-        return smarts[index : index + 2], index + 2
-
+    if char.isupper() and index + 1 < len(smarts):
+        candidate = smarts[index : index + 2]
+        if smarts[index + 1].islower() and ob.GetAtomicNum(candidate):
+            return candidate, index + 2
+    if char.islower() and index + 1 < len(smarts):
+        candidate = smarts[index : index + 2]
+        if candidate in AROMATIC_LOWER:
+            return candidate, index + 2
     return char, index + 1
 
 
-def _parse_or_block(expr: str) -> Dict[str, object]:
-    parts = _split_top_level(expr, {","})
-    atomic_numbers: Set[int] = set()
-    common_attrs: Dict[str, object] = {}
+def _compile_bracket_atom(
+    expr_text: str,
+) -> Tuple[_AtomExpression, Optional[int], Optional[bool]]:
+    if not expr_text.startswith("[") or not expr_text.endswith("]"):
+        raise ValueError(
+            f"Bracket atom must start with '[' and end with ']': {expr_text!r}"
+        )
+    inner, map_number = _extract_atom_map(expr_text[1:-1].strip())
+    if not inner:
+        raise ValueError("Empty SMARTS bracket atom")
+    expression = _parse_low_and(inner)
+    aromatic_hint = (
+        next(iter(expression.aromatic_states))
+        if len(expression.aromatic_states) == 1
+        else None
+    )
+    return expression, map_number, aromatic_hint
 
-    for part in parts:
-        primitive_attrs = _parse_and_block(part)
-        keys = set(primitive_attrs)
-        unsupported_keys = keys - {"atomic_number", "is_aromatic"}
 
-        if unsupported_keys:
-            raise NotImplementedError(
-                f"Only simple element OR is supported, got: [{expr}]"
+def _extract_atom_map(expr: str) -> Tuple[str, Optional[int]]:
+    paren_depth = 0
+    square_depth = 0
+    index = 0
+    while index < len(expr):
+        char = expr[index]
+        if char == "(":
+            paren_depth += 1
+        elif char == ")":
+            paren_depth -= 1
+        elif char == "[":
+            square_depth += 1
+        elif char == "]":
+            square_depth -= 1
+        elif char == ":" and paren_depth == square_depth == 0:
+            match = re.fullmatch(r":(\d+)\s*", expr[index:])
+            if match:
+                return expr[:index].rstrip(), int(match.group(1))
+        index += 1
+    return expr, None
+
+
+def _parse_low_and(expr: str) -> _AtomExpression:
+    parts = _split_top_level(expr, ";")
+    identities = [_contains_non_hydrogen_identity(part) for part in parts]
+    return _combine_and(
+        [
+            _parse_or(part, any(identities[:index] + identities[index + 1 :]))
+            for index, part in enumerate(parts)
+        ]
+    )
+
+
+def _parse_or(expr: str, outer_identity: bool = False) -> _AtomExpression:
+    return _combine_or(
+        [
+            _parse_high_and(
+                part, outer_identity or _contains_non_hydrogen_identity(part)
             )
-
-        atomic_number = primitive_attrs.get("atomic_number")
-        if atomic_number is not None:
-            if isinstance(atomic_number, set):
-                atomic_numbers.update(atomic_number)
-            else:
-                atomic_numbers.add(int(atomic_number))
-
-        if "is_aromatic" in primitive_attrs:
-            previous_aromaticity = common_attrs.get("is_aromatic")
-            current_aromaticity = primitive_attrs["is_aromatic"]
-            if previous_aromaticity is not None and previous_aromaticity != current_aromaticity:
-                raise NotImplementedError(f"Inconsistent aromatic flags in OR list: [{expr}]")
-            common_attrs["is_aromatic"] = current_aromaticity
-
-    if not atomic_numbers:
-        raise NotImplementedError(f"Unsupported OR expression: [{expr}]")
-
-    common_attrs["atomic_number"] = atomic_numbers
-    return common_attrs
+            for part in _split_top_level(expr, ",")
+        ]
+    )
 
 
-def _parse_and_block(expr: str) -> Dict[str, object]:
-    parts = _split_top_level(expr, set(AND_SEPARATORS))
-    merged: Dict[str, object] = {}
+def _parse_high_and(expr: str, identity_context: bool = False) -> _AtomExpression:
+    chunks = _split_top_level(expr, "&")
+    expressions = []
+    identity_seen = identity_context
+    for chunk in chunks:
+        index = 0
+        while index < len(chunk):
+            if chunk[index].isspace():
+                index += 1
+                continue
+            negate = False
+            while index < len(chunk) and chunk[index] == "!":
+                negate = not negate
+                index += 1
+            primitive, index, is_identity = _parse_atom_primitive(
+                chunk, index, identity_seen
+            )
+            if negate:
+                primitive = _negate(primitive)
+            expressions.append(primitive)
+            identity_seen = identity_seen or is_identity
+    return _combine_and(expressions)
 
-    for part in parts:
-        part = part.strip()
-        if not part:
-            continue
-        if part.startswith(NEGATION_PREFIX):
-            raise NotImplementedError(f"Negation with '!' is not supported: [{expr}]")
 
-        primitive_attrs = _parse_atom_primitive(part)
-        for key, value in primitive_attrs.items():
-            if key in merged and merged[key] != value:
-                raise ValueError(f"Conflicting attribute '{key}' in AND block: '{expr}'")
-            merged[key] = value
+def _contains_non_hydrogen_identity(expr: str) -> bool:
+    """Whether an AND branch establishes an atom identity independently of H."""
+    index = 0
+    while index < len(expr):
+        char = expr[index]
+        if expr.startswith("$(", index):
+            index = _find_balanced_parenthesis(expr, index + 1) + 1
+        elif char in "!,;&+@":
+            index += 1
+        elif char in "-=":
+            index += 1
+        elif char == "#" or char == "*":
+            return True
+        elif char in "DXvHRr":
+            index += 1
+            while index < len(expr) and expr[index].isdigit():
+                index += 1
+        elif char.isdigit():
+            while index < len(expr) and expr[index].isdigit():
+                index += 1
+        elif char.isalpha():
+            return True
+        else:
+            index += 1
+    return False
 
-    return merged
 
-
-def _split_top_level(expr: str, separators: Set[str]) -> List[str]:
-    parts: List[str] = []
-    level = 0
-    last_index = 0
-
+def _split_top_level(expr: str, separator: str) -> List[str]:
+    parts = []
+    start = 0
+    paren_depth = 0
+    square_depth = 0
     for index, char in enumerate(expr):
-        if char in RING_OPENERS:
-            level += 1
-        elif char in RING_CLOSERS:
-            level -= 1
-        elif level == 0 and char in separators:
-            parts.append(expr[last_index:index])
-            last_index = index + 1
-
-    parts.append(expr[last_index:])
-    return [part.strip() for part in parts if part.strip()]
-
-
-def _parse_atom_primitive(text: str) -> Dict[str, object]:
-    if not text:
-        return {}
-
-    special_attrs = _parse_special_primitive(text)
-    if special_attrs:
-        return special_attrs
-
-    return _parse_standard_primitive(text)
+        if char == "(":
+            paren_depth += 1
+        elif char == ")":
+            paren_depth -= 1
+        elif char == "[":
+            square_depth += 1
+        elif char == "]":
+            square_depth -= 1
+        elif char == separator and paren_depth == square_depth == 0:
+            parts.append(expr[start:index].strip())
+            start = index + 1
+    parts.append(expr[start:].strip())
+    if any(not part for part in parts):
+        raise ValueError(f"Empty operand around {separator!r} in atom expression {expr!r}")
+    return parts
 
 
-def _parse_special_primitive(text: str) -> Dict[str, object]:
-    if text == METAL_TOKEN:
-        return {"is_metal": True}
+def _parse_atom_primitive(
+    expr: str, index: int, identity_seen: bool
+) -> Tuple[_AtomExpression, int, bool]:
+    if expr.startswith("$(", index):
+        end = _find_balanced_parenthesis(expr, index + 1)
+        recursive_smarts = expr[index + 2 : end]
+        recursive = _RecursivePredicate(recursive_smarts)
+        return _AtomExpression(recursive, repr(recursive)), end + 1, False
 
-    if text == NON_METAL_TOKEN:
-        return {"is_metal": False}
+    special = _parse_hotpot_extension(expr, index)
+    if special is not None:
+        return special
 
-    if text == LANTHANIDE_TOKEN:
-        return {"is_lanthanide": True}
+    char = expr[index]
+    if char == ANY_ATOM_TOKEN:
+        return _always_true("*"), index + 1, True
+    if char == "#":
+        match = re.match(r"#(\d+)", expr[index:])
+        if match is None:
+            raise ValueError(f"Malformed atomic number in {expr!r}")
+        number = int(match.group(1))
+        return (
+            _equals("atomic_number", number, f"#{number}"),
+            index + len(match.group(0)),
+            True,
+        )
+    if char in "+-":
+        charge, end = _read_charge(expr, index)
+        return _equals("formal_charge", charge, f"charge={charge}"), end, False
+    if char == "@":
+        end = index + 1
+        if end < len(expr) and expr[end] == "@":
+            end += 1
+        return _always_true(expr[index:end]), end, False
+    if char in "DXvRr":
+        return _parse_numeric_atom_primitive(expr, index)
+    if char == "H" and (
+        identity_seen or (index + 1 < len(expr) and expr[index + 1].isdigit())
+    ):
+        return _parse_hydrogen_primitive(expr, index)
+    if char == "a":
+        return _equals("is_aromatic", True, "a", {True}), index + 1, True
+    if char == "A":
+        return _equals("is_aromatic", False, "A", {False}), index + 1, True
+    if char.isdigit():
+        isotope_match = re.match(r"(\d+)", expr[index:])
+        isotope = int(isotope_match.group(1))
+        end = index + len(isotope_match.group(1))
+        return (
+            _AtomExpression(
+                lambda atom, value=isotope: getattr(atom, "isotope", 0) == value,
+                f"isotope={isotope}",
+            ),
+            end,
+            False,
+        )
+    if char.isalpha():
+        symbol, end = _read_element_in_expression(expr, index)
+        atomic_number = ob.GetAtomicNum(symbol.capitalize())
+        if not atomic_number:
+            raise ValueError(f"Unknown atom primitive {symbol!r} in {expr!r}")
+        aromatic = symbol.islower()
+        return (
+            _combine_and(
+                [
+                    _equals("atomic_number", atomic_number, symbol),
+                    _equals(
+                        "is_aromatic",
+                        aromatic,
+                        f"aromatic={aromatic}",
+                        {aromatic},
+                    ),
+                ]
+            ),
+            end,
+            True,
+        )
+    raise ValueError(f"Unsupported atom primitive at {expr[index:]!r}")
 
-    if text == ACTINIDE_TOKEN:
-        return {"is_actinide": True}
 
-    period_match = re.fullmatch(rf"{PERIOD_PREFIX}(\d+)(?:-(\d+))?", text)
-    if period_match:
-        return {"period": _build_integer_range_set(period_match)}
+def _parse_hotpot_extension(
+    expr: str, index: int
+) -> Optional[Tuple[_AtomExpression, int, bool]]:
+    remaining = expr[index:]
+    if remaining.startswith(PERIOD_PREFIX):
+        match = re.match(r"NP(\d+)(?:-(\d+))?", remaining)
+        if match is not None:
+            values = _integer_range(match.group(1), match.group(2))
+            return (
+                _atom_predicate(
+                    lambda atom, allowed=frozenset(values): _period_number(
+                        atom.atomic_number
+                    )
+                    in allowed,
+                    f"NP{min(values)}-{max(values)}",
+                ),
+                index + len(match.group(0)),
+                True,
+            )
+    if remaining.startswith(GROUP_PREFIX):
+        match = re.match(r"NG(\d+)(?:-(\d+))?", remaining)
+        if match is not None:
+            values = _integer_range(match.group(1), match.group(2))
+            return (
+                _in_values("group", values, f"NG{min(values)}-{max(values)}"),
+                index + len(match.group(0)),
+                True,
+            )
+    for token, attr in (
+        (LANTHANIDE_TOKEN, "is_lanthanide"),
+        (ACTINIDE_TOKEN, "is_actinide"),
+    ):
+        if remaining.startswith(token):
+            return _equals(attr, True, token), index + len(token), True
+    if remaining.startswith(METAL_TOKEN):
+        next_char = remaining[1:2]
+        candidate = remaining[:2]
+        if not (next_char.islower() and ob.GetAtomicNum(candidate)):
+            return _equals("is_metal", True, METAL_TOKEN), index + 1, True
+    return None
 
-    group_match = re.fullmatch(rf"{GROUP_PREFIX}(\d+)(?:-(\d+))?", text)
-    if group_match:
-        return {"group": _build_integer_range_set(group_match)}
 
-    return {}
+def _parse_numeric_atom_primitive(
+    expr: str, index: int
+) -> Tuple[_AtomExpression, int, bool]:
+    code = expr[index]
+    match = re.match(r"[DXvRr](\d*)", expr[index:])
+    digits = match.group(1)
+    end = index + len(match.group(0))
+    if code == "D":
+        value = int(digits) if digits else 1
+        return (
+            _atom_predicate(lambda atom, n=value: len(atom.neighbours) == n, f"D{value}"),
+            end,
+            False,
+        )
+    if code == "X":
+        value = int(digits) if digits else 1
+        return (
+            _atom_predicate(
+                lambda atom, n=value: len(atom.neighbours) + atom.implicit_hydrogens == n,
+                f"X{value}",
+            ),
+            end,
+            False,
+        )
+    if code == "v":
+        value = int(digits) if digits else 1
+        return (
+            _atom_predicate(
+                lambda atom, n=value: atom.sum_bond_orders + atom.implicit_hydrogens == n,
+                f"v{value}",
+            ),
+            end,
+            False,
+        )
+    if code == "R":
+        if not digits:
+            return _equals("in_ring", True, "R"), end, False
+        count = int(digits)
+        return (
+            _atom_predicate(lambda atom, n=count: len(atom.rings) == n, f"R{count}"),
+            end,
+            False,
+        )
+    if not digits:
+        return _equals("in_ring", True, "r"), end, False
+    size = int(digits)
+    return (
+        _atom_predicate(
+            lambda atom, n=size: any(len(ring) == n for ring in atom.rings),
+            f"r{size}",
+        ),
+        end,
+        False,
+    )
 
 
-def _build_integer_range_set(match: re.Match[str]) -> Set[int]:
-    start = int(match.group(1))
-    end_group = match.group(2)
-    end = int(end_group) if end_group is not None else start
+def _parse_hydrogen_primitive(
+    expr: str, index: int
+) -> Tuple[_AtomExpression, int, bool]:
+    match = re.match(r"H(\d*)", expr[index:])
+    count = int(match.group(1)) if match.group(1) else 1
+    end = index + len(match.group(0))
+    return (
+        _atom_predicate(
+            lambda atom, n=count: atom.explicit_hydrogens + atom.implicit_hydrogens == n,
+            f"H{count}",
+        ),
+        end,
+        False,
+    )
 
-    low = min(start, end)
-    high = max(start, end)
 
+def _find_balanced_parenthesis(expr: str, opening_index: int) -> int:
+    depth = 1
+    index = opening_index + 1
+    while index < len(expr):
+        if expr[index] == "(":
+            depth += 1
+        elif expr[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+    raise ValueError(f"Unclosed recursive SMARTS in {expr!r}")
+
+
+def _read_element_in_expression(expr: str, index: int) -> Tuple[str, int]:
+    if index + 1 < len(expr) and expr[index + 1].islower():
+        candidate = expr[index : index + 2]
+        if ob.GetAtomicNum(candidate.capitalize()):
+            return candidate, index + 2
+    return expr[index], index + 1
+
+
+def _read_charge(expr: str, index: int) -> Tuple[int, int]:
+    sign_char = expr[index]
+    sign = 1 if sign_char == "+" else -1
+    end = index
+    while end < len(expr) and expr[end] == sign_char:
+        end += 1
+    repeated = end - index
+    digit_start = end
+    while end < len(expr) and expr[end].isdigit():
+        end += 1
+    if end > digit_start:
+        return sign * int(expr[digit_start:end]), end
+    return sign * repeated, end
+
+
+def _integer_range(start: str, end: Optional[str]) -> Set[int]:
+    first = int(start)
+    last = int(end) if end is not None else first
+    low, high = sorted((first, last))
     return set(range(low, high + 1))
 
 
-def _parse_standard_primitive(text: str) -> Dict[str, object]:
-    attributes: Dict[str, object] = {}
-    segment = text.strip()
-    if not segment:
-        return attributes
-
-    index = 0
-    size = len(segment)
-
-    index = _parse_isotope_prefix(segment, index, attributes)
-
-    while index < size:
-        char = segment[index]
-
-        if char == ATOMIC_NUMBER_PREFIX:
-            index = _parse_atomic_number(segment, index, attributes)
-            continue
-
-        if char.isalpha():
-            index = _parse_alpha_code(segment, index, attributes)
-            continue
-
-        if char in {"+", "-"}:
-            index = _parse_charge(segment, index, attributes)
-            continue
-
-        remaining = segment[index:].strip()
-        if remaining:
-            attributes.setdefault("unparsed", set()).add(remaining)
-        break
-
-    return attributes
-
-
-def _parse_isotope_prefix(segment: str, start_index: int, attributes: Dict[str, object]) -> int:
-    index = start_index
-    size = len(segment)
-
-    while index < size and segment[index].isdigit():
-        index += 1
-
-    if index > start_index and index < size and segment[index].isalpha():
-        attributes["isotope"] = int(segment[start_index:index])
-        return start_index
-
-    return start_index
-
-
-def _parse_atomic_number(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    size = len(segment)
-    index += 1
-    start = index
-
-    while index < size and segment[index].isdigit():
-        index += 1
-
-    if index == start:
-        raise ValueError(f"Malformed atomic number in bracket primitive: {segment!r}")
-
-    attributes["atomic_number"] = int(segment[start:index])
-    return index
-
-
-def _parse_alpha_code(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    char = segment[index]
-
-    if char == HYDROGEN_TOKEN and "atomic_number" in attributes:
-        return _parse_hydrogen_count(segment, index + 1, attributes)
-
-    if char == DEGREE_TOKEN:
-        return _parse_integer_property(segment, index + 1, "degree", segment)
-
-    if char == VALENCE_TOKEN:
-        return _parse_integer_property(segment, index + 1, "valence", segment)
-
-    if char == CONNECTIVITY_TOKEN:
-        return _parse_integer_property(segment, index + 1, "connectivity", segment)
-
-    if char == RING_SIZE_TOKEN:
-        return _parse_ring_property(segment, index + 1, attributes)
-
-    if char == RING_FLAG_TOKEN:
-        attributes["in_ring"] = True
-        return index + 1
-
-    if char == ALIPHATIC_ANY_TOKEN:
-        attributes["is_aromatic"] = False
-        return index + 1
-
-    if char == AROMATIC_ANY_TOKEN:
-        attributes["is_aromatic"] = True
-        return index + 1
-
-    if char == "@":
-        return _parse_chiral_flag(segment, index, attributes)
-
-    return _parse_element_symbol(segment, index, attributes)
-
-
-def _parse_hydrogen_count(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    size = len(segment)
-    start = index
-
-    while index < size and segment[index].isdigit():
-        index += 1
-
-    count_text = segment[start:index]
-    attributes["h_count"] = int(count_text) if count_text else 1
-    return index
-
-
-def _parse_integer_property(
-    segment: str,
-    index: int,
-    key: str,
-    context: str,
-) -> int:
-    size = len(segment)
-    start = index
-
-    while index < size and segment[index].isdigit():
-        index += 1
-
-    if index == start:
-        raise ValueError(f"Malformed {key} in bracket primitive: {context!r}")
-
-    attributes_value = int(segment[start:index])
-    return_index = index
-
-    if key == "degree":
-        context_dict_key = "degree"
-    elif key == "valence":
-        context_dict_key = "valence"
-    else:
-        context_dict_key = "connectivity"
-
-    attributes_key = context_dict_key
-    return_index = index
-
-    segment_attributes = {attributes_key: attributes_value}
-    segment_attributes.update(segment_attributes)
-    return return_index
-
-
-def _parse_ring_property(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    size = len(segment)
-    start = index
-
-    while index < size and segment[index].isdigit():
-        index += 1
-
-    if index > start:
-        attributes["ring_size"] = int(segment[start:index])
-    else:
-        attributes["in_ring"] = True
-
-    return index
-
-
-def _parse_chiral_flag(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    size = len(segment)
-    start = index
-
-    while index < size and segment[index] == "@":
-        index += 1
-
-    count = index - start
-    attributes["chiral_flag"] = attributes.get("chiral_flag", 0) + count
-    return index
-
-
-def _parse_element_symbol(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    size = len(segment)
-    char = segment[index]
-
-    if char.isupper():
-        next_index = index + 1
-        if next_index < size and segment[next_index].islower():
-            symbol = segment[index : next_index + 1]
-            index = next_index + 1
-        else:
-            symbol = char
-            index = next_index
-    else:
-        symbol = char
-        index += 1
-
-    attributes["atomic_number"] = ob.GetAtomicNum(symbol)
-    attributes["is_aromatic"] = symbol.islower()
-
-    return index
-
-
-def _parse_charge(segment: str, index: int, attributes: Dict[str, object]) -> int:
-    size = len(segment)
-    start = index
-
-    while index < size and segment[index] in {"+", "-"} and index - start < 2:
-        index += 1
-
-    signs = segment[start:index]
-    magnitude_start = index
-
-    while index < size and segment[index].isdigit():
-        index += 1
-
-    magnitude_text = segment[magnitude_start:index]
-    base = signs.count("+") - signs.count("-")
-
-    if magnitude_text:
-        magnitude = int(magnitude_text)
-        charge = -abs(magnitude) if base < 0 else abs(magnitude)
-    else:
-        charge = base
-
-    attributes["formal_charge"] = charge
-    return index
+def _period_number(atomic_number: int) -> int:
+    for period, upper_bound in enumerate((2, 10, 18, 36, 54, 86, 118), start=1):
+        if atomic_number <= upper_bound:
+            return period
+    return 0
+
+
+def _atom_predicate(
+    func: Callable[[object], bool], description: str
+) -> _AtomExpression:
+    return _AtomExpression(func, description)
+
+
+def _always_true(description: str) -> _AtomExpression:
+    return _AtomExpression(lambda atom: True, description)
+
+
+def _equals(
+    attr: str,
+    value: object,
+    description: str,
+    aromatic_states: Set[bool] = frozenset((False, True)),
+) -> _AtomExpression:
+    return _AtomExpression(
+        lambda atom, name=attr, expected=value: getattr(atom, name) == expected,
+        description,
+        aromatic_states,
+    )
+
+
+def _in_values(attr: str, values: Set[int], description: str) -> _AtomExpression:
+    accepted = frozenset(values)
+    return _AtomExpression(
+        lambda atom, name=attr, allowed=accepted: getattr(atom, name) in allowed,
+        description,
+    )
+
+
+def _combine_and(expressions: List[_AtomExpression]) -> _AtomExpression:
+    if not expressions:
+        return _always_true("*")
+    if len(expressions) == 1:
+        return expressions[0]
+    states = {False, True}
+    for expression in expressions:
+        states.intersection_update(expression.aromatic_states)
+    return _AtomExpression(
+        lambda atom, predicates=tuple(expressions): all(p(atom) for p in predicates),
+        "(" + " & ".join(map(repr, expressions)) + ")",
+        states,
+    )
+
+
+def _combine_or(expressions: List[_AtomExpression]) -> _AtomExpression:
+    if len(expressions) == 1:
+        return expressions[0]
+    states = set()
+    for expression in expressions:
+        states.update(expression.aromatic_states)
+    return _AtomExpression(
+        lambda atom, predicates=tuple(expressions): any(p(atom) for p in predicates),
+        "(" + " | ".join(map(repr, expressions)) + ")",
+        states,
+    )
+
+
+def _negate(expression: _AtomExpression) -> _AtomExpression:
+    return _AtomExpression(
+        lambda atom, predicate=expression: not predicate(atom),
+        f"!{expression!r}",
+    )
 
 
 def _create_query_atom_from_token(
-    substructure: Substructure,
-    token_type: TokenType,
-    text: str,
+    substructure: Substructure, token_type: TokenType, text: str
 ) -> QueryAtom:
     if token_type == TokenType.BRACKET:
-        attrs = parse_bracket_atom(text)
-        normalized = _normalize_attribute_values(attrs)
-        return QueryAtom(sub=substructure, **normalized)
-
+        expression, map_number, aromatic_hint = _compile_bracket_atom(text)
+        query_atom = QueryAtom(
+            sub=substructure, map_number=map_number, predicate=expression
+        )
+        query_atom._smarts_aromatic = aromatic_hint
+        return query_atom
     return _create_query_atom_from_symbol(substructure, text)
-
-
-def _normalize_attribute_values(attrs: Dict[str, object]) -> Dict[str, Set[object]]:
-    normalized: Dict[str, Set[object]] = {}
-    for key, value in attrs.items():
-        if isinstance(value, (set, list, tuple)):
-            normalized[key] = set(value)
-        else:
-            normalized[key] = {value}
-    return normalized
 
 
 def _create_query_atom_from_symbol(substructure: Substructure, symbol: str) -> QueryAtom:
     if symbol == ANY_ATOM_TOKEN:
-        return QueryAtom(sub=substructure)
+        query_atom = QueryAtom(sub=substructure)
+        query_atom._smarts_aromatic = None
+        return query_atom
+    if symbol.lower() in AROMATIC_LOWER and symbol.islower():
+        atomic_number = ob.GetAtomicNum(symbol.capitalize())
+        query_atom = QueryAtom(
+            sub=substructure,
+            atomic_number={atomic_number},
+            is_aromatic={True},
+        )
+        query_atom._smarts_aromatic = True
+        return query_atom
+    atomic_number = ob.GetAtomicNum(symbol)
+    if not atomic_number:
+        raise ValueError(f"Unknown atom symbol in SMARTS: {symbol!r}")
+    query_atom = QueryAtom(
+        sub=substructure,
+        atomic_number={atomic_number},
+        is_aromatic={False},
+    )
+    query_atom._smarts_aromatic = False
+    return query_atom
 
-    attributes: Dict[str, Set[object]] = {}
 
-    if symbol.islower():
-        if symbol == AROMATIC_ANY_TOKEN:
-            attributes["is_aromatic"] = {True}
-        else:
-            attributes["atomic_number"] = {ob.GetAtomicNum(symbol.upper())}
-            attributes["is_aromatic"] = {True}
-        return QueryAtom(sub=substructure, **attributes)
+def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
+    alternatives = symbol.split(",")
+    if len(alternatives) == 1:
+        token = alternatives[0]
+        if token in {SINGLE_BOND_TOKEN, UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
+            return {"bond_order": {BondOrder.SINGLE.value}}
+        if token == DOUBLE_BOND_TOKEN:
+            return {"bond_order": {BondOrder.DOUBLE.value}}
+        if token == TRIPLE_BOND_TOKEN:
+            return {"bond_order": {BondOrder.TRIPLE.value}}
+        if token == AROMATIC_BOND_TOKEN:
+            return {"is_aromatic": {True}}
+        if token == ANY_BOND_TOKEN:
+            return {}
+        raise ValueError(f"Unsupported bond symbol: {symbol}")
+    predicates = tuple(_bond_predicate(token) for token in alternatives)
+    return {
+        "predicate": _Predicate(
+            lambda bond, choices=predicates: any(choice(bond) for choice in choices),
+            symbol,
+        )
+    }
 
-    if symbol == ALIPHATIC_ANY_TOKEN:
-        attributes["is_heavy_atom"] = {True}
-        return QueryAtom(sub=substructure, **attributes)
 
-    attributes["atomic_number"] = {ob.GetAtomicNum(symbol)}
-    return QueryAtom(sub=substructure, **attributes)
-
-
-def _bond_attrs_for_symbol(symbol: str) -> Dict[str, Set[Union[int, bool]]]:
-    if symbol == SINGLE_BOND_TOKEN:
-        return {"bond_order": {BondOrder.SINGLE.value}}
-
+def _bond_predicate(symbol: str) -> Callable[[object], bool]:
+    if symbol in {SINGLE_BOND_TOKEN, UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
+        return lambda bond: bond.bond_order == BondOrder.SINGLE.value
     if symbol == DOUBLE_BOND_TOKEN:
-        return {"bond_order": {BondOrder.DOUBLE.value}}
-
+        return lambda bond: bond.bond_order == BondOrder.DOUBLE.value
     if symbol == TRIPLE_BOND_TOKEN:
-        return {"bond_order": {BondOrder.TRIPLE.value}}
-
+        return lambda bond: bond.bond_order == BondOrder.TRIPLE.value
     if symbol == AROMATIC_BOND_TOKEN:
-        return {"bond_order": {BondOrder.SINGLE.value, BondOrder.DOUBLE.value}, "is_aromatic": {True}}
-
-    if symbol in {UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
-        return {"bond_order": {BondOrder.SINGLE.value}}
-
+        return lambda bond: bond.is_aromatic
     if symbol == ANY_BOND_TOKEN:
-        return {}
-
+        return lambda bond: True
     raise ValueError(f"Unsupported bond symbol: {symbol}")
 
 
 def _get_aromatic_flag(query_atom: QueryAtom) -> AromaticFlag:
-    kwargs = getattr(query_atom, "kwargs", {})
-    aromatic_value = kwargs.get("is_aromatic")
-
-    if aromatic_value is None:
-        return AromaticFlag.UNSET
-
-    if True in aromatic_value:
+    hint = getattr(query_atom, "_smarts_aromatic", None)
+    if hint is True:
         return AromaticFlag.AROMATIC
-
-    if False in aromatic_value:
+    if hint is False:
         return AromaticFlag.NON_AROMATIC
-
+    aromatic_values = query_atom.kwargs.get("is_aromatic")
+    if aromatic_values == {True}:
+        return AromaticFlag.AROMATIC
+    if aromatic_values == {False}:
+        return AromaticFlag.NON_AROMATIC
     return AromaticFlag.UNSET
 
 
@@ -707,54 +850,39 @@ def _infer_bond_attrs(
     second_atom: QueryAtom,
     pending_bond_attrs: Optional[Dict[str, object]],
 ) -> Dict[str, object]:
-    first_state = _get_aromatic_flag(first_atom)
-    second_state = _get_aromatic_flag(second_atom)
-
-    if first_state is AromaticFlag.AROMATIC and second_state is AromaticFlag.AROMATIC:
-        return {
-            "bond_order": {BondOrder.SINGLE.value, BondOrder.DOUBLE.value},
-            "is_aromatic": {True},
-        }
-
     if pending_bond_attrs is not None:
         return pending_bond_attrs
-
-    if _is_one_aromatic_and_other_unset(first_state, second_state):
-        return {}
-
-    if _is_one_aromatic_and_other_non_aromatic(first_state, second_state):
-        return {"bond_order": {BondOrder.SINGLE.value}}
-
-    return {"bond_order": {BondOrder.SINGLE.value}}
-
-
-def _is_one_aromatic_and_other_unset(first: AromaticFlag, second: AromaticFlag) -> bool:
-    return (
-        (first is AromaticFlag.AROMATIC and second is AromaticFlag.UNSET)
-        or (second is AromaticFlag.AROMATIC and first is AromaticFlag.UNSET)
-    )
-
-
-def _is_one_aromatic_and_other_non_aromatic(first: AromaticFlag, second: AromaticFlag) -> bool:
-    return (
-        (first is AromaticFlag.AROMATIC and second is AromaticFlag.NON_AROMATIC)
-        or (second is AromaticFlag.AROMATIC and first is AromaticFlag.NON_AROMATIC)
-    )
+    first_state = _get_aromatic_flag(first_atom)
+    second_state = _get_aromatic_flag(second_atom)
+    if first_state is second_state is AromaticFlag.AROMATIC:
+        return {"is_aromatic": {True}}
+    return {
+        "predicate": _Predicate(
+            lambda bond: bond.bond_order == BondOrder.SINGLE.value or bond.is_aromatic,
+            "single-or-aromatic",
+        )
+    }
 
 
 def _connect_or_anchor_ring(
     substructure: Substructure,
-    ring_anchors: Dict[str, List[int]],
+    ring_anchors: Dict[str, List[Tuple[int, Optional[Dict[str, object]]]]],
     ring_label: str,
     current_atom_index: int,
-) -> None:
-    indices = ring_anchors[ring_label]
-    if not indices:
-        indices.append(current_atom_index)
-        return
-
-    start_index = indices.pop()
-    first_atom = substructure.query_atoms[start_index]
-    second_atom = substructure.query_atoms[current_atom_index]
-    bond_attrs = _infer_bond_attrs(first_atom, second_atom, pending_bond_attrs=None)
+    pending_bond_attrs: Optional[Dict[str, object]],
+) -> Optional[Dict[str, object]]:
+    anchors = ring_anchors[ring_label]
+    if not anchors:
+        anchors.append((current_atom_index, pending_bond_attrs))
+        return None
+    start_index, opening_bond_attrs = anchors.pop()
+    if opening_bond_attrs is not None and pending_bond_attrs is not None:
+        raise ValueError(f"Ring bond specified at both ends of label {ring_label}")
+    explicit_attrs = pending_bond_attrs or opening_bond_attrs
+    bond_attrs = _infer_bond_attrs(
+        substructure.query_atoms[start_index],
+        substructure.query_atoms[current_atom_index],
+        explicit_attrs,
+    )
     substructure.add_bond(start_index, current_atom_index, **bond_attrs)
+    return None

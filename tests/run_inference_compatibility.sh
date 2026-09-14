@@ -14,10 +14,15 @@ for version in "${versions[@]}"; do
     (
         cd "$repo_root"
         uv run --no-project --python "$version" \
-            --with 'numpy>=1.24,<3' \
-            --with 'onnxruntime>=1.19,<2' \
-            --with 'rdkit>=2023.9' \
-            --with 'pytest>=7,<10' \
-            python -m pytest -q -p no:cacheprovider tests/mca tests/cbond
+            --with-requirements tests/requirements-inference.txt \
+            python -m pytest -q -p no:cacheprovider \
+            tests/mca tests/cbond \
+            tests/test_cheminfo/test_mca_calculator.py \
+            tests/test_cheminfo/test_molecule_conversion.py \
+            tests/test_cheminfo/test_ob2chem_compat.py \
+            tests/test_cheminfo/test_search.py \
+            tests/test_cheminfo/test_search_mapping.py \
+            tests/test_cheminfo/test_smarts.py \
+            tests/test_smart_parser.py
     )
 done

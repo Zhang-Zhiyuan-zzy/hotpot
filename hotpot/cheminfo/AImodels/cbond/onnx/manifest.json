@@ -1,0 +1,28 @@
+{
+  "format": "hotpot-cbond-onnx",
+  "format_version": 2,
+  "opset": 21,
+  "limits": {
+    "max_rings_num": 32,
+    "max_ring_size": 64
+  },
+  "models": {
+    "graph": {
+      "file": "opset21_graph.onnx",
+      "sha256": "55a3e77c708793855575d7a2ac80a464e712befb7fb3dd0dd157f827550eda44"
+    },
+    "cbond": {
+      "file": "opset21_cbond_dynamic.onnx",
+      "sha256": "871b588198e192356b6de2ac90a8f69bd35d7a70b2ef9dce9b138698e341e3ec",
+      "dynamic_dimensions": [
+        "rings_num",
+        "ring_size"
+      ]
+    }
+  },
+  "validation": {
+    "reference_models": 28,
+    "max_abs_difference": 2.384185791015625e-06,
+    "rmse": 6.881243244406242e-07
+  }
+}

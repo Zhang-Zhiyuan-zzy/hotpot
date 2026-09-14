@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy",
+    "onnxruntime>=1.22,<2",
     "pandas",
     "thermo",
     "cclib",

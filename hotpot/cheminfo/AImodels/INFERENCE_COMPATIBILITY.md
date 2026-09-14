@@ -35,3 +35,14 @@ bash test/run_inference_compatibility.sh 3.9 3.14
 
 The lower ONNX Runtime bound is intentionally 1.19. Python 3.9 resolves to
 1.19.2, while newer Python versions resolve to newer compatible releases.
+
+As an additional forward-compatibility check, `python -m compileall hotpot`
+completed under all six interpreters. Python 3.12 and newer report pre-existing
+warnings for invalid escape sequences in unrelated modules, and every version
+reports the existing `hotpot/cheminfo/search/logic.py:300` annotation warning.
+These warnings do not affect the two ONNX inference packages.
+
+The repository README still documents Python 3.9 as the requirement for the
+legacy chemical kernel. Accordingly, this matrix is not a claim that the full
+hotpot dependency stack and all legacy integration tests are ready for 3.14;
+that migration should be tracked separately from MCA/CBond inference.

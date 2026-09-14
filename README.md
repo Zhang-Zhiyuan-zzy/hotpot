@@ -63,11 +63,23 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
   - **`AIModel.cbond`**: Surpasses traditional valence rules by using deep learning to predict 
   coordinate bonds in complex transition metal environments.
 + **Site-resolved methyl cation affinity**:
-  - **`MCAPredictor`**: Predicts MCA values in kJ/mol for every supported
-    nucleophilic site from a SMILES string, an RDKit molecule, a hotpot
+  - **`MCAPredictor`**: Predicts MCA values in kJ/mol for every heavy atom and
+    separately identifies important nucleophilic sites from a SMILES string, an RDKit molecule, a hotpot
     `Molecule`, or a lightweight molecular graph. CPU inference is always
     available and CUDA is selected automatically when a compatible ONNX
     Runtime provider is installed.
+  - Predictions can be attached directly to atoms through the calculator API:
+    ```python
+    from hotpot import read_mol
+    from hotpot.calculator import mca
+
+    mol = read_mol("c1ccccc1CN")
+    mca(mol)
+    for atom in mol.atoms:
+        print(atom.mca)  # all-atom MCA prediction in kJ/mol
+    for atom, value in mol.mca_sites.items():
+        print(atom, value)  # important, reliably classified sites
+    ```
 + **3D Structure Initialization** (`complexes_build_optimize_`):
   - **AI-refined 3D build**: A specialized pipeline for generating metal complexes with AI assisting
   - **Topology-aware optimization**: Adds continuous topological inspection during geometry optimization 

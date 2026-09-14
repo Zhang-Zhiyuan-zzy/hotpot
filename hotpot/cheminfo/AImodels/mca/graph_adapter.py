@@ -63,5 +63,7 @@ def to_rdkit_mol(value) -> Chem.Mol:
     if isinstance(value, MoleculeGraph):
         return value.to_rdkit()
     if hasattr(value, "to_rdmol"):
-        return Chem.Mol(value.to_rdmol())
+        mol = Chem.Mol(value.to_rdmol())
+        Chem.SanitizeMol(mol)
+        return mol
     raise TypeError(f"Unsupported molecule input: {type(value).__name__}")

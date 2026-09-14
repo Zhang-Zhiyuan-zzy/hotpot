@@ -1745,6 +1745,16 @@ class Molecule:
         return [a for a in self._atoms if a.atomic_number != 1]
 
     @property
+    def mca_sites(self) -> dict["Atom", float]:
+        """Important nucleophilic sites and their MCA values in kJ/mol."""
+        if "_mca_sites" not in self.__dict__:
+            raise AttributeError(
+                "MCA sites have not been calculated for this molecule; "
+                "call hotpot.calculator.mca(mol) first"
+            )
+        return dict(self._mca_sites)
+
+    @property
     def is_organic(self) -> bool:
         """
         Determines whether a molecule is organic based on its atomic composition. 
@@ -3415,6 +3425,16 @@ class Atom(MolBlock):
         @return int: Index of the current atom in the molecule's atoms list
         """
         return self.mol.atoms.index(self)
+
+    @property
+    def mca(self) -> float:
+        """Predicted methyl cation affinity of this atom in kJ/mol."""
+        if "_mca" not in self.__dict__:
+            raise AttributeError(
+                "MCA has not been calculated for this atom; "
+                "call hotpot.calculator.mca(atom.mol) first"
+            )
+        return self._mca
 
     @property
     def is_error_electron_configure(self) -> bool:

@@ -7,7 +7,7 @@ from rdkit import Chem
 from .conformer import ensure_3d_conformer
 from .featurizer import collate_site_rows, mol_to_unimolv2
 from .graph_adapter import MoleculeGraph, to_rdkit_mol
-from .result_types import MoleculePrediction, SitePrediction
+from .result_types import AtomPrediction, MoleculePrediction, SitePrediction
 from .runtime import MCARuntime
 from .site_detection import find_nucleophilic_sites
 
@@ -37,6 +37,16 @@ class MCAPredictor:
         single = _is_single_input(molecules)
         values = [molecules] if single else list(molecules)
         rdkit_mols = [to_rdkit_mol(value) for value in values]
+        hydrogenated = [
+            index
+            for index, mol in enumerate(rdkit_mols)
+            if any(atom.GetAtomicNum() == 1 for atom in mol.GetAtoms())
+        ]
+        if hydrogenated:
+            raise ValueError(
+                f"Explicit hydrogen atoms at molecule positions {hydrogenated} cannot "
+                "be MCA targets; remove explicit hydrogens before prediction"
+            )
         if not self.allow_charged:
             charged = [index for index, mol in enumerate(rdkit_mols) if Chem.GetFormalCharge(mol) != 0]
             if charged:
@@ -48,21 +58,41 @@ class MCAPredictor:
         sites = [find_nucleophilic_sites(mol) for mol in rdkit_mols]
         features = [mol_to_unimolv2(mol, self.max_atoms) for mol in conformers]
 
-        molecule_indices = []
-        atom_indices = []
-        for molecule_index, molecule_sites in enumerate(sites):
-            for site in molecule_sites:
-                molecule_indices.append(molecule_index)
-                atom_indices.append(site.atom_index)
-        if not atom_indices:
-            predictions = []
-        else:
-            arrays = collate_site_rows(features, molecule_indices, atom_indices)
-            predictions = self.runtime.predict(arrays, self.batch_size).tolist()
+        molecule_indices = [
+            molecule_index
+            for molecule_index, mol in enumerate(rdkit_mols)
+            for _ in range(mol.GetNumAtoms())
+        ]
+        atom_indices = [
+            atom_index
+            for mol in rdkit_mols
+            for atom_index in range(mol.GetNumAtoms())
+        ]
+        predictions = []
+        for start in range(0, len(atom_indices), self.batch_size):
+            stop = start + self.batch_size
+            arrays = collate_site_rows(
+                features,
+                molecule_indices[start:stop],
+                atom_indices[start:stop],
+            )
+            predictions.extend(
+                self.runtime.predict(arrays, self.batch_size).tolist()
+            )
 
         cursor = 0
         results = []
         for mol, molecule_sites in zip(rdkit_mols, sites):
+            molecule_predictions = predictions[cursor: cursor + mol.GetNumAtoms()]
+            cursor += mol.GetNumAtoms()
+            atom_results = tuple(
+                AtomPrediction(
+                    atom_index=atom.GetIdx(),
+                    element=atom.GetSymbol(),
+                    mca_kj_mol=float(molecule_predictions[atom.GetIdx()]),
+                )
+                for atom in mol.GetAtoms()
+            )
             site_results = []
             for site in molecule_sites:
                 site_results.append(
@@ -70,16 +100,16 @@ class MCAPredictor:
                         atom_index=site.atom_index,
                         element=mol.GetAtomWithIdx(site.atom_index).GetSymbol(),
                         site_type=site.site_type,
-                        mca_kj_mol=float(predictions[cursor]),
+                        mca_kj_mol=float(molecule_predictions[site.atom_index]),
                     )
                 )
-                cursor += 1
             results.append(
                 MoleculePrediction(
                     smiles=Chem.MolToSmiles(mol),
                     formal_charge=Chem.GetFormalCharge(mol),
                     sites=tuple(site_results),
                     model_variant=self.runtime.variant,
+                    atom_predictions=atom_results,
                 )
             )
         return results[0] if single else results

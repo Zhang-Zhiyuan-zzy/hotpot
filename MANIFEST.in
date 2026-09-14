@@ -3,4 +3,5 @@ include README.md
 include __version__.py
 graft hotpot/cheminfo/ChemData
 graft hotpot/dataset/ChemData
+graft hotpot/cheminfo/AImodels/cbond/onnx
 graft hotpot/cheminfo/AImodels/mca/models

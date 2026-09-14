@@ -43,6 +43,11 @@ dependencies = [
 
 description = "A python package designed to communicate among various chemical and materials calculational tools"
 
+[project.optional-dependencies]
+onnx-export = [
+    "onnx>=1.18,<2"
+]
+
 [tool.setuptools]
 include-package-data = true
 

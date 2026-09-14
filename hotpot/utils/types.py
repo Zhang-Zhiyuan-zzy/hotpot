@@ -12,9 +12,11 @@ Notes:
 from types import *
 from typing import *
 import numpy as np
-import torch
 
-ArrayLike = Union[Sequence, np.ndarray, torch.Tensor]
+if TYPE_CHECKING:
+    import torch
+
+ArrayLike = Union[Sequence, np.ndarray, "torch.Tensor"]
 Vector = Sequence[Union[int, float]]
 
 

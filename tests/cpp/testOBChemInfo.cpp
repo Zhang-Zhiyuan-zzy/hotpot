@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <filesystem>  
 
-#include "../include/OBcheminfo.h"  
+#include "../../cpp/include/OBcheminfo.h"
 #include <openbabel3/openbabel/mol.h>
 #include <openbabel3/openbabel/forcefield.h>
 
@@ -10,7 +10,7 @@ using namespace std;
 
 // Define work dirs
 filesystem::path getSourceDirectory() {return filesystem::path(__FILE__).parent_path();} // Get the directory of the current file 
-filesystem::path getHpCppRoot() {return getSourceDirectory().parent_path();}
+filesystem::path getHpCppRoot() {return getSourceDirectory().parent_path().parent_path() / "cpp";}
 filesystem::path pathMolDatabase() {return getHpCppRoot() / "data" / "Compound_127500001_128000000.sdf";}
 
 void test_OBMoleculeConstruction() {  

@@ -24,13 +24,13 @@ The largest cross-version difference in the fixed CBond reference output was
 Run the complete matrix with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-bash test/run_inference_compatibility.sh
+bash tests/run_inference_compatibility.sh
 ```
 
 Pass selected versions to shorten a local run:
 
 ```bash
-bash test/run_inference_compatibility.sh 3.9 3.14
+bash tests/run_inference_compatibility.sh 3.9 3.14
 ```
 
 The lower ONNX Runtime bound is intentionally 1.19. Python 3.9 resolves to

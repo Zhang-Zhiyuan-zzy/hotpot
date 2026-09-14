@@ -51,6 +51,10 @@ onnx-export = [
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools.packages.find]
+include = ["hotpot*"]
+exclude = ["tests*"]
+
 [project.urls]
 "Homepage" = "https://github.com/Zhang-Zhiyuan-zzy/hotpot"
 

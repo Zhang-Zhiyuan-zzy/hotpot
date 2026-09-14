@@ -4,7 +4,7 @@ import unittest as ut
 
 import hotpot as hp
 from hotpot.plugins.xtb import core
-from test import output_dir, input_dir
+from tests import output_dir, input_dir
 
 class TestXTB(unittest.TestCase):
     def test_xtb(self):
@@ -29,4 +29,3 @@ class TestXTB(unittest.TestCase):
             mol_file_dir=mol_file_dir,
             res_file_dir=res_file_dir,
         )
-

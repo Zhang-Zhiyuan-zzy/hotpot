@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <exception>
 #include <memory>
-#include "../include/utils.h"
+#include "../../cpp/include/utils.h"
 
 
 using namespace std;
@@ -14,7 +14,7 @@ using namespace OpenBabel;
 
 // Define work dirs
 filesystem::path getSourceDirectory() {return filesystem::path(__FILE__).parent_path();} // Get the directory of the current file 
-filesystem::path getHpCppRoot() {return getSourceDirectory().parent_path();}
+filesystem::path getHpCppRoot() {return getSourceDirectory().parent_path().parent_path() / "cpp";}
 filesystem::path pathMolDatabase() {return getHpCppRoot() / "data" / "Compound_127500001_128000000.sdf";}
 
 

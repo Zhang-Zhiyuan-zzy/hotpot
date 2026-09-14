@@ -5,12 +5,16 @@ on:
     paths:
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
+      - "tests/mca/**"
+      - "tests/cbond/**"
       - "pyproject.toml"
       - ".github/workflows/inference_compatibility.yml"
   push:
     paths:
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
+      - "tests/mca/**"
+      - "tests/cbond/**"
       - "pyproject.toml"
       - ".github/workflows/inference_compatibility.yml"
   workflow_dispatch:
@@ -37,9 +41,4 @@ jobs:
           'rdkit>=2023.9'
           'pytest>=7,<10'
       - name: Test isolated inference packages
-        run: |
-          stage="$(mktemp -d)"
-          ln -s "$GITHUB_WORKSPACE/hotpot/cheminfo/AImodels/mca" "$stage/mca"
-          ln -s "$GITHUB_WORKSPACE/hotpot/cheminfo/AImodels/cbond" "$stage/cbond"
-          cd "$stage"
-          python -m pytest -q -p no:cacheprovider mca/tests cbond/tests
+        run: python -m pytest -q -p no:cacheprovider tests/mca tests/cbond

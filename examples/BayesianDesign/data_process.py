@@ -173,7 +173,7 @@ def draw_periodic_table():
 
 
 def test_():
-    # for file in glob('/home/zzy/hotpot/test/outdir/tmqm/mol/*.mol2'):
+    # for file in glob('/home/zzy/hotpot/tests/outdir/tmqm/mol/*.mol2'):
     #     stem = osp.splitext(osp.basename(file))[0]
     #     mol = next(hp.MolReader(file))
     #     charge = mol.calc_mol_default_charge()
@@ -181,7 +181,7 @@ def test_():
     #     if charge not in [-1, 0, 1]:
     #         print(f"{stem}: {charge}")
 
-    mol = next(hp.MolReader('/home/zzy/hotpot/test/outdir/tmqm/mol/IWAGOE.mol2'))
+    mol = next(hp.MolReader('/home/zzy/hotpot/tests/outdir/tmqm/mol/IWAGOE.mol2'))
     charge = mol.calc_mol_default_charge()
 
 
@@ -191,4 +191,3 @@ if __name__ == '__main__':
     # test_()
     # nt = statistic_node_type_weight()
     extract_pyg_data_from_ccdc_mono()
-

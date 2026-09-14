@@ -20,10 +20,10 @@ import numpy as np
 
 import time
 
-import test
+import tests
 
-indir = test.input_dir
-outdir = Path(test.output_dir)
+indir = tests.input_dir
+outdir = Path(tests.output_dir)
 
 
 class TestChemInfo(ut.TestCase):
@@ -207,13 +207,13 @@ class TestChemInfo(ut.TestCase):
 
 
     def test_link_atoms(self):
-        mol = next(hp.MolReader(opj(test.input_dir, 'Am_BuPh-BPPhen.log')))
+        mol = next(hp.MolReader(opj(tests.input_dir, 'Am_BuPh-BPPhen.log')))
         # print(mol.bonds)
         # mol.link_atoms()
         print(mol.bonds)
 
         self.assertEqual(mol.conformers._coordinates.shape, (54, 73, 3))
-        mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.sdf'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.sdf'), overwrite=True)
 
     def test_molblock(self):
         mol = next(hp.MolReader('c1cncc3c1c2c(S3(=O)=O)c[nH]c2P(=O)(O)O', 'smi'))
@@ -241,7 +241,7 @@ class TestChemInfo(ut.TestCase):
             print(a.symbol, a.oxidation_state)
 
         mol.build3d(steps=5000)
-        mol.write(opj(test.output_dir, 'cheminfo', 'mol.mol2'), 'mol2', overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'mol.mol2'), 'mol2', overwrite=True)
 
     def test_internal_coordinates(self):
         reader = hp.MolReader('CCN(CC)P(OCCC)(OCCC)(=O)C1=NC2=C(C=C1)C=CC1=C2N=C(C(=O)N(CC)CC)C=C1', 'smi')
@@ -270,8 +270,8 @@ class TestChemInfo(ut.TestCase):
         assert isinstance(mol, hp.Molecule)
 
         mol.complexes_build_optimize_(save_screenshot=True)
-        mol.write(opj(test.output_dir, 'cheminfo', 'built_mol.sdf'), 'sdf', overwrite=True)
-        mol.write(opj(test.output_dir, 'cheminfo', 'built_mol_single.sdf'), 'sdf', overwrite=True, write_single=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol.sdf'), 'sdf', overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol_single.sdf'), 'sdf', overwrite=True, write_single=True)
 
     def test_judge_intersect(self):
         def _artificial_mol():
@@ -288,7 +288,7 @@ class TestChemInfo(ut.TestCase):
             mol.create_atom(atomic_number=8, coordinates=(0, 0, 2))
             mol.add_bond(6, 7, 1)
 
-            mol.write(opj(test.output_dir, 'cheminfo', f'mol.sdf'), overwrite=True)
+            mol.write(opj(tests.output_dir, 'cheminfo', f'mol.sdf'), overwrite=True)
             for i, (r, b) in enumerate(product(mol.rings, mol.bonds)):
                 if r.is_bond_intersect_the_ring(b):
                     cycle = r.cycle_places
@@ -305,10 +305,10 @@ class TestChemInfo(ut.TestCase):
                     for p in intersect_points:
                         mol.create_atom(atomic_number=0, coordinates=p)
 
-                    mol_.write(opj(test.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
+                    mol_.write(opj(tests.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
 
-        mol_intersect = next(hp.MolReader(Path(test.input_dir).joinpath('intersect.sdf')))
-        mol_not = next(hp.MolReader(Path(test.input_dir).joinpath('not_intersect.sdf')))
+        mol_intersect = next(hp.MolReader(Path(tests.input_dir).joinpath('intersect.sdf')))
+        mol_not = next(hp.MolReader(Path(tests.input_dir).joinpath('not_intersect.sdf')))
 
         for i, (r, b) in enumerate(product(mol_intersect.rings, mol_intersect.bonds)):
             if r.is_bond_intersect_the_ring(b):
@@ -326,7 +326,7 @@ class TestChemInfo(ut.TestCase):
                 for p in intersect_points:
                     mrb.create_atom(atomic_number=0, coordinates=p)
 
-                mrb.write(opj(test.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
+                mrb.write(opj(tests.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
 
     def test_mol_similarity(self):
         """"""
@@ -340,7 +340,7 @@ class TestChemInfo(ut.TestCase):
         print(mol1.similarity(mol2))
 
     def test_read_g16log_file(self):
-        mol = next(hp.MolReader(Path(test.input_dir).joinpath('Am_BuPh-BPPhen.log')))
+        mol = next(hp.MolReader(Path(tests.input_dir).joinpath('Am_BuPh-BPPhen.log')))
         self.assertEqual(mol.conformers_number, 54)
         self.assertEqual(mol.coordinates.shape, (73, 3))
         self.assertEqual(mol.zero_point, 16.266286413195473)
@@ -352,14 +352,14 @@ class TestChemInfo(ut.TestCase):
         self.assertEqual(mol.capacity, 0.00616935257190196)
 
         num_atoms = len(mol.atoms)
-        mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen_rmh.gjf'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'Am_BuPh-BPPhen_rmh.gjf'), overwrite=True)
 
         mol.remove_hydrogens()
 
         mol.add_hydrogens()
         self.assertEqual(len(mol.atoms), num_atoms)
         mol.optimize()
-        mol.write(opj(test.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.gjf'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'Am_BuPh-BPPhen.gjf'), overwrite=True)
 
     def test_export_gjf(self):
         mol = next(hp.MolReader(
@@ -379,7 +379,7 @@ class TestChemInfo(ut.TestCase):
         assert isinstance(mol, hp.Molecule)
 
         mol.complexes_build_optimize_(save_screenshot=True)
-        mol.write(opj(test.output_dir, 'cheminfo', 'built_mol_single.gjf'), overwrite=True, write_single=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol_single.gjf'), overwrite=True, write_single=True)
 
     def test_add_hydrogen(self):
         mol = next(hp.MolReader(
@@ -390,15 +390,15 @@ class TestChemInfo(ut.TestCase):
         mol.build3d()
         mol.optimize()
 
-        mol.write(opj(test.output_dir, 'cheminfo', 'addh_before.mol'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_before.mol'), overwrite=True)
         t1 = time.time()
         mol.add_hydrogens()
         t2 = time.time()
         print(t2-t1)
-        mol.write(opj(test.output_dir, 'cheminfo', 'addh_after.mol'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_after.mol'), overwrite=True)
         mol.optimize(save_screenshot=True)
-        mol.write(opj(test.output_dir, 'cheminfo', 'addh_opti.sdf'), overwrite=True)
-        mol.write(opj(test.output_dir, 'cheminfo', 'addh_opti.gjf'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_opti.sdf'), overwrite=True)
+        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_opti.gjf'), overwrite=True)
 
     @ut.skip('not implemented')
     def test_missing_bonds(self):

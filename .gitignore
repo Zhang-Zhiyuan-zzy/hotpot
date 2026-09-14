@@ -1,4 +1,4 @@
-/test/outdir/**/*
+/tests/outdir/**/*
 .idea
 .vscode/
 cpp/.vscode

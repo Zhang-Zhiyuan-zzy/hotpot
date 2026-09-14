@@ -13,7 +13,7 @@ import unittest as ut
 import hotpot as hp
 from hotpot.plugins.qm.gaussian import run_gaussian, GaussOut, export_results
 
-from test import test_dir, input_dir, output_dir
+from tests import test_dir, input_dir, output_dir
 
 
 class TestGaussian(ut.TestCase):
@@ -66,4 +66,3 @@ class TestGaussian(ut.TestCase):
             except ValueError:
                 os.remove(p)
                 print(os.path.basename(p))
-

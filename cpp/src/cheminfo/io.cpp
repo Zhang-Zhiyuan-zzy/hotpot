@@ -192,7 +192,7 @@ list<OpenBabel::OBMol> _readOBMOL(const string src, string fmt = "")
 //     {  
 //         // go into the test mode
 //         // srcContent = "c1ccccc1";
-//         srcContent = "/mnt/d/zhang/OneDrive/hotpot/test/input/Am_BuPh-BPPhen.log";
+//         srcContent = "/mnt/d/zhang/OneDrive/hotpot/tests/input/Am_BuPh-BPPhen.log";
 //         fmt = "";
 //     } 
 //     else {

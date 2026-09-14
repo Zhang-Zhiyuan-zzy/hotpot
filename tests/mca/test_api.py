@@ -1,5 +1,5 @@
 import pytest
-from openbabel import pybel
+from openbabel import openbabel as ob, pybel
 from rdkit import Chem
 
 from hotpot import read_mol
@@ -128,6 +128,23 @@ def test_zero_and_multiple_detected_sites(predictor):
 def test_charged_molecule_requires_explicit_opt_in(predictor):
     with pytest.raises(ValueError, match="outside the validated domain"):
         predictor.predict("[NH4+]")
+
+
+def test_opted_in_charge_is_reported_from_hotpot_molecule(predictor, monkeypatch):
+    monkeypatch.setattr(predictor, "allow_charged", True)
+
+    prediction = predictor.predict("[NH4+]")
+
+    assert prediction.formal_charge == 1
+
+
+def test_unlocalized_total_charge_is_rejected(predictor):
+    molecule = ob.OBMol()
+    molecule.NewAtom().SetAtomicNum(6)
+    molecule.SetTotalCharge(2)
+
+    with pytest.raises(ValueError, match="does not match"):
+        predictor.predict(molecule)
 
 
 @pytest.mark.parametrize(

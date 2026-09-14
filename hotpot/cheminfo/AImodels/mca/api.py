@@ -59,11 +59,21 @@ class MCAPredictor:
                 f"Explicit hydrogen atoms at molecule positions {hydrogenated} cannot "
                 "be MCA targets; remove explicit hydrogens before prediction"
             )
+        inconsistent_charges = [
+            index
+            for index, mol in enumerate(native_mols)
+            if mol.charge != mol.sum_atoms_charge
+        ]
+        if inconsistent_charges:
+            raise ValueError(
+                "Molecular total charge does not match the sum of atom formal "
+                f"charges at molecule positions {inconsistent_charges}"
+            )
         if not self.allow_charged:
             charged = [
                 index
                 for index, mol in enumerate(native_mols)
-                if mol.sum_atoms_charge != 0
+                if mol.charge != 0
             ]
             if charged:
                 raise ValueError(
@@ -128,7 +138,7 @@ class MCAPredictor:
             results.append(
                 MoleculePrediction(
                     smiles=mol.smiles,
-                    formal_charge=mol.sum_atoms_charge,
+                    formal_charge=mol.charge,
                     sites=tuple(site_results),
                     model_variant=self.runtime.variant,
                     atom_predictions=atom_results,

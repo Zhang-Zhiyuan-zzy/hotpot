@@ -24,4 +24,3 @@ def ensure_3d_conformer(mol: Chem.Mol, seed: int = 42) -> Chem.Mol:
     if optimize_status < 0:
         raise RuntimeError("RDKit force-field optimization failed")
     return Chem.RemoveAllHs(with_hydrogens)
-

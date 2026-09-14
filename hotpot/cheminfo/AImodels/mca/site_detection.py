@@ -64,4 +64,3 @@ def find_nucleophilic_sites(mol: Chem.Mol) -> tuple[DetectedSite, ...]:
             kept_ranks.add(rank)
             result.append(DetectedSite(atom_index, name))
     return tuple(result)
-

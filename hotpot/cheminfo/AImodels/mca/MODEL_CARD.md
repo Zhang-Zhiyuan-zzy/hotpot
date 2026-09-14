@@ -27,4 +27,3 @@ The INT8 dynamic-quantization candidate was rejected (maximum error about
 a release model.
 
 MCA is not the Mayr nucleophilicity parameter `N` and is not `s_N N`.
-

@@ -11,4 +11,3 @@ __all__ = [
     "SitePrediction",
     "predict_mca",
 ]
-

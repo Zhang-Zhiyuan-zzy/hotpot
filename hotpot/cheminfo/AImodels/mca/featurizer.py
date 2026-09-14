@@ -159,4 +159,3 @@ def collate_site_rows(features, molecule_indices, atom_indices):
         arrays["src_tokens"][row, :atom_count] = feature["src_tokens"]
         arrays["src_coord"][row, :atom_count] = feature["src_coord"]
     return arrays
-

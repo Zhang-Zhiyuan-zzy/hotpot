@@ -27,4 +27,3 @@ class MoleculePrediction:
         value = asdict(self)
         value["sites"] = [site.to_dict() for site in self.sites]
         return value
-

@@ -5,7 +5,9 @@ import pytest
 from openbabel import openbabel as ob, pybel
 from rdkit import Chem
 
-from hotpot.cheminfo import Molecule, to_hotpot_mol
+import hotpot
+from hotpot.cheminfo import Molecule, is_molecule_input, to_hotpot_mol
+from hotpot.cheminfo._io import _io as io_module
 
 
 class RDKitMoleculeAdapter:
@@ -13,9 +15,15 @@ class RDKitMoleculeAdapter:
         return Chem.MolFromSmiles("CCN")
 
 
+class IterableRDKitMoleculeAdapter(RDKitMoleculeAdapter):
+    def __iter__(self):
+        return iter(())
+
+
 def test_hotpot_molecule_is_returned_unchanged():
     molecule = Molecule()
 
+    assert hotpot.to_hotpot_mol is to_hotpot_mol
     assert to_hotpot_mol(molecule) is molecule
 
 
@@ -28,6 +36,26 @@ def test_smiles_and_path_use_hotpot_reader(tmp_path: Path):
     assert [atom.atomic_number for atom in from_smiles.atoms] == [6, 6, 8]
     assert [atom.atomic_number for atom in from_path.atoms] == [6, 7]
     assert from_path.charge == 1
+
+
+def test_string_path_uses_its_file_format(tmp_path: Path, monkeypatch):
+    source = Chem.MolFromSmiles("CCN")
+    mol_file = tmp_path / "molecule.mol"
+    mol_file.write_text(Chem.MolToMolBlock(source), encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    molecule = to_hotpot_mol(mol_file.name)
+
+    assert [atom.atomic_number for atom in molecule.atoms] == [6, 6, 7]
+
+
+def test_name_reader_returns_hotpot_molecule(monkeypatch):
+    monkeypatch.setattr(io_module.pubchem_service, "name_to_smi", lambda _: "CCO")
+
+    molecule = to_hotpot_mol("ethanol", fmt="name")
+
+    assert isinstance(molecule, Molecule)
+    assert [atom.atomic_number for atom in molecule.atoms] == [6, 6, 8]
 
 
 def test_rdkit_conversion_preserves_order_charge_aromaticity_and_hidden_hydrogens():
@@ -100,8 +128,10 @@ def test_openbabel_conversion_preserves_structure_and_total_charge(as_pybel):
 
 
 def test_rdkit_conversion_protocol_uses_the_shared_dispatcher():
-    molecule = to_hotpot_mol(RDKitMoleculeAdapter())
+    adapter = IterableRDKitMoleculeAdapter()
+    molecule = to_hotpot_mol(adapter)
 
+    assert is_molecule_input(adapter)
     assert [atom.atomic_number for atom in molecule.atoms] == [6, 6, 7]
 
 

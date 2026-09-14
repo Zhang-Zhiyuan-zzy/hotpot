@@ -91,6 +91,19 @@ def test_supported_inputs_keep_atom_and_site_indices_aligned(predictor):
         )
 
 
+def test_iterable_rdmol_adapter_is_a_single_molecule(predictor):
+    class Adapter:
+        def __iter__(self):
+            return iter(())
+
+        def to_rdmol(self):
+            return Chem.MolFromSmiles("CCN")
+
+    prediction = predictor.predict(Adapter())
+
+    assert [atom.element for atom in prediction.atom_predictions] == ["C", "C", "N"]
+
+
 @pytest.mark.parametrize(
     "molecule",
     [
@@ -142,6 +155,16 @@ def test_smiles_is_parsed_once_through_hotpot(predictor, monkeypatch):
     prediction = predictor.predict("CCN")
 
     assert len(prediction.atom_predictions) == 3
+
+
+def test_string_file_path_is_parsed_by_its_extension(predictor, tmp_path):
+    source = Chem.MolFromSmiles("CCN")
+    mol_file = tmp_path / "molecule.mol"
+    mol_file.write_text(Chem.MolToMolBlock(source), encoding="utf-8")
+
+    prediction = predictor.predict(str(mol_file))
+
+    assert [atom.element for atom in prediction.atom_predictions] == ["C", "C", "N"]
 
 
 def test_rdkit_stereochemistry_reaches_the_featurizer(predictor, monkeypatch):

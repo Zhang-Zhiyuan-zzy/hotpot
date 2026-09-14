@@ -20,6 +20,7 @@ import cclib
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.cheminfo.obconvert import obmol2mol, set_obmol_coordinates, get_ob_conversion
+from hotpot.cheminfo.pubchem import pubchem_service
 
 # set Openbabel Message
 ob_log_handler = ob.OBMessageHandler()
@@ -29,10 +30,6 @@ pb.ob.obErrorLog.StopLogging()
 
 if not sys.modules.get('hotpot.cheminfo.core', None):
     from .. import core
-
-if not sys.modules.get('hotpot.cheminfo.pubchem', None):
-    from .. import pubchem
-
 
 def _extract_force_matrix(lines, atomic_numbers):
     # Define the format of force sheet
@@ -163,10 +160,7 @@ class IoBase:
             return 'None'
 
         if isinstance(src, str):
-            if os.path.dirname(src) and os.path.exists(os.path.dirname(src)):
-                return 'path'
-            else:
-                return 'str'
+            return 'path' if os.path.isfile(src) else 'str'
         elif isinstance(src, PathLike):
             return 'path'
         elif isinstance(src, bytes):
@@ -337,12 +331,12 @@ class MolReader(IoBase):
         return _generator()
 
     def _pubchem_read(self):
-        smi = pubchem.name_to_smi(self.src)
+        smi = pubchem_service.name_to_smi(self.src)
         reader = [pb.readstring('smi', smi)]
 
         def _generator():
             for pmol in reader:
-                yield pmol
+                yield obmol2mol(pmol.OBMol, core.Molecule())
 
         return _generator()
 

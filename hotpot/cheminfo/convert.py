@@ -13,6 +13,14 @@ from .obconvert import obmol2mol
 from .rdconvert import from_rdmol
 
 
+def is_molecule_input(value) -> bool:
+    """Return whether ``value`` is one supported single-molecule input."""
+    return isinstance(
+        value,
+        (str, PathLike, Molecule, Chem.Mol, ob.OBMol, pybel.Molecule),
+    ) or callable(getattr(value, "to_rdmol", None))
+
+
 def to_hotpot_mol(value, *, fmt=None, **kwargs) -> Molecule:
     """Return ``value`` as a Hotpot :class:`Molecule`.
 
@@ -38,4 +46,4 @@ def to_hotpot_mol(value, *, fmt=None, **kwargs) -> Molecule:
     raise TypeError(f"unsupported molecule type: {type(value)!r}")
 
 
-__all__ = ["to_hotpot_mol"]
+__all__ = ["is_molecule_input", "to_hotpot_mol"]

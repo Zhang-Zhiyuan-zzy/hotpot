@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from openbabel import openbabel as ob, pybel
 from rdkit import Chem
 
-from hotpot.cheminfo.convert import to_hotpot_mol
+from hotpot.cheminfo.convert import is_molecule_input, to_hotpot_mol
 from hotpot.cheminfo.core import Molecule as HotpotMolecule
 
 from .conformer import ensure_3d_conformer
@@ -18,10 +17,7 @@ from .site_detection import find_nucleophilic_sites
 
 
 def _is_single_input(value):
-    return isinstance(
-        value,
-        (str, HotpotMolecule, Chem.Mol, ob.OBMol, pybel.Molecule),
-    ) or not isinstance(value, Iterable)
+    return is_molecule_input(value) or not isinstance(value, Iterable)
 
 
 def _feature_mol(value, native_mol: HotpotMolecule) -> Chem.Mol:
@@ -52,13 +48,7 @@ class MCAPredictor:
     def predict(self, molecules):
         single = _is_single_input(molecules)
         values = [molecules] if single else list(molecules)
-        native_mols = [
-            to_hotpot_mol(
-                value,
-                fmt="smi" if isinstance(value, str) else None,
-            )
-            for value in values
-        ]
+        native_mols = [to_hotpot_mol(value) for value in values]
         hydrogenated = [
             index
             for index, mol in enumerate(native_mols)

@@ -7,7 +7,12 @@ import json
 import os
 from pathlib import Path
 
+import numpy as np
 import onnxruntime as ort
+
+
+MAX_RINGS_NUMS = 32
+MAX_RINGS_SIZE = 64
 
 
 def _sha256(path: Path) -> str:
@@ -16,6 +21,22 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def padding_rings(xg, rings_node_index, rings_node_nums):
+    rings_nums = max(len(rings_node_nums), 1)
+    rings_size = max(max(rings_node_nums, default=0), 1)
+    if rings_nums > MAX_RINGS_NUMS or rings_size > MAX_RINGS_SIZE:
+        raise ValueError(
+            f"CBond ring dimensions ({rings_nums}, {rings_size}) exceed "
+            f"the supported limits ({MAX_RINGS_NUMS}, {MAX_RINGS_SIZE})"
+        )
+    ring_vectors = xg[rings_node_index]
+    ring_lengths = np.pad(rings_node_nums, (0, rings_nums - len(rings_node_nums)))[:, None]
+    rings_mask = np.arange(rings_size) >= ring_lengths
+    padded_rings = np.zeros((rings_nums, rings_size, xg.shape[-1]), dtype=xg.dtype)
+    padded_rings[~rings_mask] = ring_vectors
+    return padded_rings, rings_mask
 
 
 class CBondRuntime:

@@ -23,11 +23,7 @@ import numpy as np
 
 from ...core import Molecule, Atom
 from .. import data_extract as de
-from .runtime import CBondRuntime
-
-
-MAX_RINGS_NUMS = 32
-MAX_RINGS_SIZE = 64
+from .runtime import CBondRuntime, padding_rings
 
 
 @lru_cache(maxsize=1)
@@ -48,30 +44,6 @@ def get_graph_cbond_inputs(_data: dict[str, Any]):
         'x': _data['x'],
         'edge_index': _data['edge_index']
     }
-
-def padding_rings(xg, rings_node_index, rings_node_nums):
-    rings_nums = max(len(rings_node_nums), 1)
-    rings_size = max(max(rings_node_nums, default=0), 1)
-    if rings_nums > MAX_RINGS_NUMS or rings_size > MAX_RINGS_SIZE:
-        raise ValueError(
-            f"CBond ring dimensions ({rings_nums}, {rings_size}) exceed "
-            f"the supported limits ({MAX_RINGS_NUMS}, {MAX_RINGS_SIZE})"
-        )
-    xr = xg[rings_node_index]
-    indices = np.arange(rings_size)
-    padded_rings_num = np.expand_dims(np.pad(rings_node_nums, (0, rings_nums - len(rings_node_nums))), axis=-1)
-    rings_mask = indices >= padded_rings_num
-
-    # split and padding
-    batch_size, length = rings_mask.shape
-
-    padded_X = np.zeros(
-        (batch_size, length, xr.shape[-1]),
-        dtype=xr.dtype
-    )
-    padded_X[~rings_mask] = xr
-    return padded_X, rings_mask
-
 
 def get_cbond_inputs_model(_data: dict[str, Any], xg):
     rings_node_index = _data['rings_node_index']

@@ -1,0 +1,37 @@
+{
+  "format": "MeCAP-MCA-ONNX",
+  "format_version": 2,
+  "property": "methyl_cation_affinity",
+  "unit": "kJ/mol",
+  "architecture": "Uni-Mol v2 84m",
+  "max_atoms": 512,
+  "remove_hs": true,
+  "conformer_seed": 42,
+  "opset": 18,
+  "pruned_unused_initializers": 24,
+  "input_names": [
+    "atom_feat",
+    "atom_mask",
+    "edge_feat",
+    "shortest_path",
+    "degree",
+    "pair_type",
+    "attn_bias",
+    "src_tokens",
+    "src_coord",
+    "atom_index"
+  ],
+  "output_name": "mca_kj_mol",
+  "models": {
+    "fp16": {
+      "file": "mecap_mca_fp16.onnx",
+      "sha256": "39f01a6c7a8c50a9898e2dedf8208846ea7e8f490e638988bcaa5631ff635f44",
+      "external_data": {
+        "glob": "model.*.weight",
+        "count": 83,
+        "sha256": "d1ec4d53720dbd042fc7500dd135616595bb355e7b9c67ec6e127e322aa038f4"
+      }
+    }
+  },
+  "default_variant": "fp16"
+}

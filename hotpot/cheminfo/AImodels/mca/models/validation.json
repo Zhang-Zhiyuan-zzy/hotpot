@@ -1,0 +1,10 @@
+{
+  "samples": 62,
+  "variants": {
+    "fp16": {
+      "max_abs_kj_mol": 0.2330322265625,
+      "rmse_kj_mol": 0.08767221868038177,
+      "provider": "CPUExecutionProvider"
+    }
+  }
+}

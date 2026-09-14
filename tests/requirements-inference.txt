@@ -1,0 +1,15 @@
+numpy>=1.24,<3
+onnxruntime>=1.19,<2
+rdkit>=2023.9
+pytest>=7,<10
+networkx>=3,<4
+openbabel-wheel>=3.1.1.23
+Cython>=3,<4
+cclib>=1.8,<2
+periodictable>=1.7,<3
+scipy>=1.10,<2
+rich>=13,<16
+pandas>=2,<4
+tqdm>=4,<5
+PubChemPy>=1,<2
+thermo>=0.4,<1

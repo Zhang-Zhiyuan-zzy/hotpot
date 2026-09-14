@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from rdkit import Chem
 
+from hotpot.cheminfo.core import Molecule as HotpotMolecule
+from hotpot.cheminfo.core_utils import read_mol
+
 from .conformer import ensure_3d_conformer
 from .featurizer import collate_site_rows, mol_to_unimolv2
 from .graph_adapter import MoleculeGraph, to_rdkit_mol
@@ -14,6 +17,34 @@ from .site_detection import find_nucleophilic_sites
 
 def _is_single_input(value):
     return isinstance(value, (str, Chem.Mol, MoleculeGraph)) or hasattr(value, "to_rdmol")
+
+
+def _to_hotpot_mol(value, rdkit_mol: Chem.Mol) -> HotpotMolecule:
+    if isinstance(value, HotpotMolecule):
+        return value
+    if isinstance(value, str):
+        return read_mol(value, fmt="smi")
+
+    matching_mol = Chem.Mol(rdkit_mol)
+    Chem.Kekulize(matching_mol)
+    mol = HotpotMolecule()
+    for atom in matching_mol.GetAtoms():
+        mol._create_atom(
+            atomic_number=atom.GetAtomicNum(),
+            formal_charge=atom.GetFormalCharge(),
+            is_aromatic=atom.GetIsAromatic(),
+            valence=int(atom.GetTotalValence()),
+            implicit_hydrogens=atom.GetNumImplicitHs() + atom.GetNumExplicitHs(),
+        )
+    for bond in matching_mol.GetBonds():
+        mol._add_bond(
+            bond.GetBeginAtomIdx(),
+            bond.GetEndAtomIdx(),
+            bond_order=bond.GetBondTypeAsDouble(),
+        )
+    mol._update_graph()
+    mol.charge = Chem.GetFormalCharge(matching_mol)
+    return mol
 
 
 class MCAPredictor:
@@ -55,7 +86,10 @@ class MCAPredictor:
                     "set allow_charged=True to opt in"
                 )
         conformers = [ensure_3d_conformer(mol, self.conformer_seed) for mol in rdkit_mols]
-        sites = [find_nucleophilic_sites(mol) for mol in rdkit_mols]
+        site_mols = [
+            _to_hotpot_mol(value, mol) for value, mol in zip(values, rdkit_mols)
+        ]
+        sites = [find_nucleophilic_sites(mol) for mol in site_mols]
         features = [mol_to_unimolv2(mol, self.max_atoms) for mol in conformers]
 
         molecule_indices = [

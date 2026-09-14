@@ -1,10 +1,13 @@
-"""Ordered ESNUEL nucleophilic-site rules used by the MeCAP model."""
+"""Ordered ESNUEL nucleophilic-site rules for Hotpot graph molecules."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rdkit import Chem
+import networkx as nx
+
+from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.search import Searcher, Substructure
 
 
 @dataclass(frozen=True)
@@ -42,25 +45,123 @@ NUCLEOPHILE_RULES = (
 )
 
 
-def find_nucleophilic_sites(mol: Chem.Mol) -> tuple[DetectedSite, ...]:
-    matching_mol = Chem.AddHs(Chem.Mol(mol, True))
-    Chem.Kekulize(matching_mol)
-    sites = []
-    names = []
-    for name, smarts in NUCLEOPHILE_RULES:
-        pattern = Chem.MolFromSmarts(smarts)
-        for match in matching_mol.GetSubstructMatches(pattern, uniquify=False):
-            site = match[0]
-            if site not in sites:
-                sites.append(site)
-                names.append(name)
+def _compile_rule(name: str, smarts: str):
+    substructure = Substructure.from_smarts(smarts)
+    anchors = [atom.idx for atom in substructure.query_atoms if atom.map_number == 1]
+    if len(anchors) != 1:
+        raise ValueError(f"MCA rule {name!r} must contain exactly one :1 anchor")
+    return name, Searcher(substructure), anchors[0]
 
-    ranks = list(Chem.CanonicalRankAtoms(matching_mol, breakTies=False))
-    kept_ranks = set()
+
+# SMARTS parsing and Searcher construction are invariant across predictions.
+_COMPILED_RULES = tuple(_compile_rule(*rule) for rule in NUCLEOPHILE_RULES)
+
+
+def _atom_label(atom) -> tuple:
+    return (
+        atom.atomic_number,
+        atom.formal_charge,
+        bool(atom.is_aromatic),
+        atom.implicit_hydrogens,
+        getattr(atom, "isotope", 0),
+    )
+
+
+def _bond_label(bond) -> tuple:
+    if bond.is_aromatic:
+        return ("aromatic",)
+    return ("bond_order", float(bond.bond_order))
+
+
+def _labeled_graph(mol: Molecule) -> nx.Graph:
+    graph = nx.Graph()
+    graph.add_nodes_from(
+        (atom.idx, {"label": _atom_label(atom), "root": False})
+        for atom in mol.atoms
+    )
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx, {"label": _bond_label(bond)})
+        for bond in mol.bonds
+    )
+    return graph
+
+
+def _refined_node_colors(graph: nx.Graph) -> dict[int, int]:
+    """Return a 1-WL partition used only to avoid impossible isomorphism checks."""
+
+    labels = {node: graph.nodes[node]["label"] for node in graph}
+    unique_labels = {label: index for index, label in enumerate(sorted(set(labels.values())))}
+    colors = {node: unique_labels[label] for node, label in labels.items()}
+
+    while True:
+        signatures = {
+            node: (
+                colors[node],
+                tuple(
+                    sorted(
+                        (graph.edges[node, neighbour]["label"], colors[neighbour])
+                        for neighbour in graph.neighbors(node)
+                    )
+                ),
+            )
+            for node in graph
+        }
+        unique_signatures = {
+            signature: index
+            for index, signature in enumerate(sorted(set(signatures.values()), key=repr))
+        }
+        refined = {node: unique_signatures[signature] for node, signature in signatures.items()}
+        if len(set(refined.values())) == len(set(colors.values())):
+            return refined
+        colors = refined
+
+
+def _rooted_isomorphic(graph: nx.Graph, first: int, second: int) -> bool:
+    """Test whether an exact labeled graph automorphism maps ``first`` to ``second``."""
+
+    first_rooted = graph.copy()
+    second_rooted = graph.copy()
+    first_rooted.nodes[first]["root"] = True
+    second_rooted.nodes[second]["root"] = True
+    return nx.is_isomorphic(
+        first_rooted,
+        second_rooted,
+        node_match=lambda left, right: (
+            left["label"] == right["label"] and left["root"] == right["root"]
+        ),
+        edge_match=lambda left, right: left["label"] == right["label"],
+    )
+
+
+def _remove_automorphic_sites(
+    mol: Molecule, sites: list[DetectedSite]
+) -> tuple[DetectedSite, ...]:
+    graph = _labeled_graph(mol)
+    colors = _refined_node_colors(graph)
+    representatives: dict[int, list[int]] = {}
     result = []
-    for atom_index, name in zip(sites, names):
-        rank = ranks[atom_index]
-        if rank not in kept_ranks:
-            kept_ranks.add(rank)
-            result.append(DetectedSite(atom_index, name))
+    for site in sites:
+        equivalent = any(
+            _rooted_isomorphic(graph, site.atom_index, representative)
+            for representative in representatives.get(colors[site.atom_index], ())
+        )
+        if not equivalent:
+            representatives.setdefault(colors[site.atom_index], []).append(site.atom_index)
+            result.append(site)
     return tuple(result)
+
+
+def find_nucleophilic_sites(mol: Molecule) -> tuple[DetectedSite, ...]:
+    """Return symmetry-unique MCA sites found by Hotpot's NetworkX search."""
+
+    assigned = set()
+    sites = []
+    for name, searcher, anchor_query_index in _COMPILED_RULES:
+        rule_sites = set()
+        for hit in searcher.search(mol):
+            rule_sites.update(hit.mapped_atom_indices(anchor_query_index))
+        for atom_index in sorted(rule_sites):
+            if atom_index not in assigned:
+                assigned.add(atom_index)
+                sites.append(DetectedSite(atom_index, name))
+    return _remove_automorphic_sites(mol, sites)

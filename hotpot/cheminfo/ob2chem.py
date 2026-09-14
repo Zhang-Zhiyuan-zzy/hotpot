@@ -18,6 +18,8 @@ import networkx as nx
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 
+from .obconvert import mol2obmol
+
 
 def _src_checks(src) -> Literal['path', 'str', 'bytes', 'StringIO', 'BytesIO', 'FileIO']:
     if isinstance(src, str):
@@ -151,36 +153,8 @@ def to_arrays(obmol):
     return atoms_array, bonds_array, idx_to_row
 
 def to_obmol(mol):
-    atoms_array, bonds_array = getattr(mol, '_atoms_data'), getattr(mol, '_bonds_data')
-
-    obmol = ob.OBMol()
-
-    # Create atoms in the molecule and set their properties
-    row_to_idx = {}
-    for i, atom_data in enumerate(atoms_array):
-        atomic_number, formal_charge, partial_charge, is_aromatic, x, y, z, valence, impH = atom_data
-        atom = obmol.NewAtom()
-        atom.SetAtomicNum(int(atomic_number))
-        atom.SetFormalCharge(int(formal_charge))
-        atom.SetPartialCharge(float(partial_charge))
-        atom.SetVector(x, y, z)
-        atom.SetAromatic(bool(is_aromatic))  # Convert to bool
-
-        # Store mapping from label to atom index (1-based indexing in OBMol)
-        row_to_idx[i] = atom.GetIdx()
-
-    # Create bonds in the molecule
-    for bond_data in bonds_array:
-        begin_atom_idx, end_atom_idx, bond_order, is_aromatic = bond_data
-        obmol.AddBond(
-            row_to_idx[begin_atom_idx],
-            row_to_idx[end_atom_idx],
-            int(bond_order)
-        )
-        bond = obmol.GetBond(row_to_idx[begin_atom_idx], row_to_idx[end_atom_idx])
-        bond.SetAromatic(bool(is_aromatic))  # Convert to bool
-
-    return obmol, row_to_idx
+    """Compatibility name for the canonical Hotpot-to-Open Babel conversion."""
+    return mol2obmol(mol)
 
 
 def ob_dump(mol: Union[ob.OBMol, pb.Molecule], fmt, **kwargs) -> Union[str, bytes]:

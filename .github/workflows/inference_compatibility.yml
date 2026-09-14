@@ -1,0 +1,45 @@
+name: Inference compatibility
+
+on:
+  pull_request:
+    paths:
+      - "hotpot/cheminfo/AImodels/mca/**"
+      - "hotpot/cheminfo/AImodels/cbond/**"
+      - "pyproject.toml"
+      - ".github/workflows/inference_compatibility.yml"
+  push:
+    paths:
+      - "hotpot/cheminfo/AImodels/mca/**"
+      - "hotpot/cheminfo/AImodels/cbond/**"
+      - "pyproject.toml"
+      - ".github/workflows/inference_compatibility.yml"
+  workflow_dispatch:
+
+jobs:
+  cpu-inference:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install inference dependencies
+        run: >-
+          python -m pip install
+          'numpy>=1.24,<3'
+          'onnxruntime>=1.19,<2'
+          'rdkit>=2023.9'
+          'pytest>=7,<10'
+      - name: Test isolated inference packages
+        run: |
+          stage="$(mktemp -d)"
+          ln -s "$GITHUB_WORKSPACE/hotpot/cheminfo/AImodels/mca" "$stage/mca"
+          ln -s "$GITHUB_WORKSPACE/hotpot/cheminfo/AImodels/cbond" "$stage/cbond"
+          cd "$stage"
+          python -m pytest -q -p no:cacheprovider mca/tests cbond/tests

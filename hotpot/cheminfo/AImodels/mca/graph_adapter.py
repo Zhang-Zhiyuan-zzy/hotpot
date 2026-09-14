@@ -9,7 +9,7 @@ import numpy as np
 from rdkit import Chem
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class MoleculeGraph:
     """Minimal molecular graph accepted by the public API.
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class SitePrediction:
     atom_index: int
     element: str
@@ -16,7 +16,7 @@ class SitePrediction:
         return asdict(self)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class MoleculePrediction:
     smiles: str
     formal_charge: int

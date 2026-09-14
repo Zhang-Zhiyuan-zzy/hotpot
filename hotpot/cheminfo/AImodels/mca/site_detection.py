@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from rdkit import Chem
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class DetectedSite:
     atom_index: int
     site_type: str

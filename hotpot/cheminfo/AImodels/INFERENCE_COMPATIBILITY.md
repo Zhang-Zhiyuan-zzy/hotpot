@@ -11,12 +11,12 @@ Validated on 2026-09-14:
 
 | Python | NumPy | ONNX Runtime | RDKit | Tests |
 | --- | --- | --- | --- | --- |
-| 3.9.25 | 2.0.2 | 1.19.2 | 2025.09.2 | 147 passed |
-| 3.10.20 | 2.2.6 | 1.23.2 | 2026.03.6 | 147 passed + 49 subtests |
-| 3.11.15 | 2.4.6 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
-| 3.12.13 | 2.5.3 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
-| 3.13.15 | 2.5.3 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
-| 3.14.7 | 2.5.3 | 1.30.0 | 2026.03.6 | 147 passed + 49 subtests |
+| 3.9.25 | 2.0.2 | 1.19.2 | 2025.09.2 | 149 passed |
+| 3.10.20 | 2.2.6 | 1.23.2 | 2026.03.6 | 149 passed + 49 subtests |
+| 3.11.15 | 2.4.6 | 1.30.0 | 2026.03.6 | 149 passed + 49 subtests |
+| 3.12.13 | 2.5.3 | 1.30.0 | 2026.03.6 | 149 passed + 49 subtests |
+| 3.13.15 | 2.5.3 | 1.30.0 | 2026.03.6 | 149 passed + 49 subtests |
+| 3.14.7 | 2.5.3 | 1.30.0 | 2026.03.6 | 149 passed + 49 subtests |
 
 The piperidine MCA reference was exactly `503.25 kJ/mol` in every environment.
 The largest cross-version difference in the fixed CBond reference output was

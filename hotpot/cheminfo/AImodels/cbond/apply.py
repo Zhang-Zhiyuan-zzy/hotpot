@@ -13,63 +13,26 @@
  
 ===========================================================
 """
-import bisect
+from functools import lru_cache
 import logging
-import warnings
-import os.path as osp
+import os
 from copy import copy
 from typing import Any, Union
 
 import numpy as np
-import onnxruntime as ort
 
 from ...core import Molecule, Atom
 from .. import data_extract as de
+from .runtime import CBondRuntime
 
 
-_file_dir = osp.dirname(__file__)
+MAX_RINGS_NUMS = 32
+MAX_RINGS_SIZE = 64
 
-# Basic arguments
-_allow_rings_nums = (2, 4, 8, 12, 16, 32)
-_allow_rings_size = (6, 8, 12, 16, 32, 64)
-MAX_RINGS_NUMS = max(_allow_rings_nums)
-MAX_RINGS_SIZE = max(_allow_rings_size)
 
-providers = ort.get_available_providers()
-# print(f"Available providers: {providers}")
-
-cbond_session_stat = {}
-
-so = ort.SessionOptions()
-so.log_severity_level = 3
-warnings.filterwarnings("ignore")
-model_graph_partition = ort.InferenceSession(
-    osp.join(_file_dir, 'onnx', "opset21_graph.onnx"), so,
-    providers=providers,
-)
-
-_cbond_models: dict[tuple[int, int], Any] = {}
-def get_cbond_model(rings_nums: int, rings_size: int) -> (ort.InferenceSession, int, int):
-    try:
-        rings_nums = _allow_rings_nums[bisect.bisect_left(_allow_rings_nums, rings_nums)]
-        rings_size = _allow_rings_size[bisect.bisect_left(_allow_rings_size, rings_size)]
-    except IndexError:
-        raise ValueError(
-            f'The molecule rings_nums larger than the allowed maximum {rings_nums} > {MAX_RINGS_NUMS}'
-            f'Or, molecule rings_size larger than the allowed maximum {rings_size} > {MAX_RINGS_SIZE}'
-        )
-
-    cbond_session_stat[(rings_nums, rings_size)] = cbond_session_stat.get((rings_nums, rings_size), 0) + 1
-    model = _cbond_models.get((rings_nums, rings_size), None)
-    if model:
-        return model, rings_nums, rings_size
-    else:
-        logging.info(f'[blue]Loading new InferenceSession with ({rings_nums}-{rings_size})')
-        model = _cbond_models[(rings_nums, rings_size)] = ort.InferenceSession(
-            osp.join(_file_dir, 'onnx', f"opset21_cbond({rings_nums}-{rings_size}).onnx"), so,
-            providers=providers,
-        )
-        return model, rings_nums, rings_size
+@lru_cache(maxsize=1)
+def get_cbond_runtime() -> CBondRuntime:
+    return CBondRuntime(device=os.environ.get("HOTPOT_CBOND_DEVICE", "auto"))
 
 
 def extract_cbond_inputs(mol: Molecule) -> dict[str, Any]:
@@ -86,7 +49,14 @@ def get_graph_cbond_inputs(_data: dict[str, Any]):
         'edge_index': _data['edge_index']
     }
 
-def padding_rings(xg, rings_node_index, rings_node_nums, rings_nums, rings_size):
+def padding_rings(xg, rings_node_index, rings_node_nums):
+    rings_nums = max(len(rings_node_nums), 1)
+    rings_size = max(max(rings_node_nums, default=0), 1)
+    if rings_nums > MAX_RINGS_NUMS or rings_size > MAX_RINGS_SIZE:
+        raise ValueError(
+            f"CBond ring dimensions ({rings_nums}, {rings_size}) exceed "
+            f"the supported limits ({MAX_RINGS_NUMS}, {MAX_RINGS_SIZE})"
+        )
     xr = xg[rings_node_index]
     indices = np.arange(rings_size)
     padded_rings_num = np.expand_dims(np.pad(rings_node_nums, (0, rings_nums - len(rings_node_nums))), axis=-1)
@@ -106,38 +76,22 @@ def padding_rings(xg, rings_node_index, rings_node_nums, rings_nums, rings_size)
 def get_cbond_inputs_model(_data: dict[str, Any], xg):
     rings_node_index = _data['rings_node_index']
     rings_node_nums = _data['rings_node_nums']
-
-    if (rings_nums := len(rings_node_nums)) > 0:
-        model, rings_nums, rings_size = get_cbond_model(rings_nums, max(rings_node_nums))
-    else:
-        model, rings_nums, rings_size = get_cbond_model(0, 0)
-
-    padded_X, rings_mask = padding_rings(xg, rings_node_index, rings_node_nums, rings_nums, rings_size)
-    return model, padded_X, rings_mask
+    return padding_rings(xg, rings_node_index, rings_node_nums)
 
 
 def pred_xg(mol_data: dict[str, Any]):
-    return model_graph_partition.run(['xg'], get_graph_cbond_inputs(mol_data))[0]
+    inputs = get_graph_cbond_inputs(mol_data)
+    return get_cbond_runtime().embed_graph(inputs['x'], inputs['edge_index'])
 
-def pred_cb_value(model, xg, padded_Xr, rings_mask, cbond_index):
-    return model.run(
-        ['cbond'],
-        {'xg': xg, 'padded_Xr': padded_Xr, 'rings_mask': rings_mask, 'cbond_index': cbond_index},
-    )[0]
+def pred_cb_value(xg, padded_Xr, rings_mask, cbond_index):
+    return get_cbond_runtime().predict(xg, padded_Xr, rings_mask, cbond_index)
 
 def cbond_prediction(mol_data: dict[str, Any]):
     xg = pred_xg(mol_data)
-    cb_model, padded_Xr, rings_mask = get_cbond_inputs_model(mol_data, xg)
+    padded_Xr, rings_mask = get_cbond_inputs_model(mol_data, xg)
 
     cbond_index = mol_data['cbond_index']
-    try:
-        cbond = pred_cb_value(cb_model, xg, padded_Xr, rings_mask, cbond_index)
-    except ort.capi.onnxruntime_pybind11_state.InvalidArgument as e:
-        print(f'xg shape {xg.shape}')
-        print(f'padded_Xr shape {padded_Xr.shape}')
-        print(f'rings_mask shape: {rings_mask.shape}')
-        print(f'cbond_index shape {cbond_index.shape}')
-        raise e
+    cbond = pred_cb_value(xg, padded_Xr, rings_mask, cbond_index)
 
     return cbond, cbond_index, mol_data['is_cbond']
 
@@ -312,4 +266,3 @@ def build_all_possible_cbond(
         sum_prob = sum(linked_pairs_prob)
         linked_pairs_prob = [linked_prob / sum_prob for linked_prob in linked_pairs_prob]
     return linked_pairs, linked_pairs_prob
-

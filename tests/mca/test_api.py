@@ -1,13 +1,11 @@
 import pytest
+from openbabel import pybel
 from rdkit import Chem
+
+from hotpot import read_mol
 
 from mca import MoleculeGraph, MoleculePrediction
 from mca import api as api_module
-
-
-class HotpotMoleculeAdapter:
-    def to_rdmol(self):
-        return Chem.MolFromSmiles("CCN")
 
 
 def test_existing_result_constructor_remains_compatible():
@@ -48,14 +46,70 @@ def test_all_atom_rows_are_collated_in_bounded_batches(predictor, monkeypatch):
     assert row_counts == [3, 3, 3, 3]
 
 
-def test_graph_and_hotpot_protocol_inputs(predictor):
+def test_supported_inputs_keep_atom_and_site_indices_aligned(predictor):
     graph = MoleculeGraph(
         atomic_numbers=[6, 6, 7],
         bonds=[(0, 1, 1.0), (1, 2, 1.0)],
     )
+    hotpot_mol = read_mol("CCN")
+    inputs = [
+        "CCN",
+        hotpot_mol,
+        Chem.MolFromSmiles("CCN"),
+        pybel.readstring("smi", "CCN").OBMol,
+        graph,
+    ]
 
-    assert predictor.predict(graph).sites
-    assert predictor.predict(HotpotMoleculeAdapter()).sites
+    predictions = predictor.predict(inputs)
+    expected_atom_labels = [
+        (atom.atom_index, atom.element)
+        for atom in predictions[0].atom_predictions
+    ]
+    expected_atom_values = [
+        atom.mca_kj_mol for atom in predictions[0].atom_predictions
+    ]
+    expected_site_labels = [
+        (site.atom_index, site.element, site.site_type)
+        for site in predictions[0].sites
+    ]
+    expected_site_values = [site.mca_kj_mol for site in predictions[0].sites]
+
+    for prediction in predictions[1:]:
+        assert [
+            (atom.atom_index, atom.element)
+            for atom in prediction.atom_predictions
+        ] == expected_atom_labels
+        assert [
+            atom.mca_kj_mol for atom in prediction.atom_predictions
+        ] == pytest.approx(expected_atom_values)
+        assert [
+            (site.atom_index, site.element, site.site_type)
+            for site in prediction.sites
+        ] == expected_site_labels
+        assert [site.mca_kj_mol for site in prediction.sites] == pytest.approx(
+            expected_site_values
+        )
+
+
+@pytest.mark.parametrize(
+    "molecule",
+    [
+        pybel.readstring("smi", "CCN"),
+        pybel.readstring("smi", "CCN").OBMol,
+    ],
+)
+def test_openbabel_objects_are_single_molecule_inputs(predictor, molecule):
+    prediction = predictor.predict(molecule)
+
+    assert len(prediction.atom_predictions) == 3
+    assert prediction.sites[0].site_type == "Amine"
+
+
+def test_zero_and_multiple_detected_sites(predictor):
+    no_sites, multiple_sites = predictor.predict(["C", "CC(=O)C"])
+
+    assert no_sites.sites == ()
+    assert len(multiple_sites.sites) > 1
 
 
 def test_charged_molecule_requires_explicit_opt_in(predictor):
@@ -63,8 +117,53 @@ def test_charged_molecule_requires_explicit_opt_in(predictor):
         predictor.predict("[NH4+]")
 
 
-def test_explicit_hydrogen_atoms_are_rejected_as_unsupported_targets(predictor):
-    molecule = Chem.AddHs(Chem.MolFromSmiles("CN"))
-
+@pytest.mark.parametrize(
+    "molecule",
+    [
+        Chem.AddHs(Chem.MolFromSmiles("CN")),
+        "[H]CN",
+        "[C:1]([H])(C#N)=C=[N-]",
+        "[N:1]#C[H]",
+    ],
+)
+def test_explicit_hydrogen_atoms_are_rejected_as_unsupported_targets(
+    predictor, molecule
+):
     with pytest.raises(ValueError, match="cannot be MCA targets"):
         predictor.predict(molecule)
+
+
+def test_smiles_is_parsed_once_through_hotpot(predictor, monkeypatch):
+    def reject_rdkit_smiles_parse(*args, **kwargs):
+        raise AssertionError("SMILES must not be parsed a second time with RDKit")
+
+    monkeypatch.setattr(Chem, "MolFromSmiles", reject_rdkit_smiles_parse)
+
+    prediction = predictor.predict("CCN")
+
+    assert len(prediction.atom_predictions) == 3
+
+
+def test_rdkit_stereochemistry_reaches_the_featurizer(predictor, monkeypatch):
+    original = api_module.mol_to_unimolv2
+    observed = []
+
+    def record_stereochemistry(mol, max_atoms):
+        observed.append(
+            (
+                tuple(str(atom.GetChiralTag()) for atom in mol.GetAtoms()),
+                tuple(str(bond.GetStereo()) for bond in mol.GetBonds()),
+            )
+        )
+        return original(mol, max_atoms)
+
+    monkeypatch.setattr(api_module, "mol_to_unimolv2", record_stereochemistry)
+    predictor.predict(
+        [
+            Chem.MolFromSmiles("C[C@H](O)F"),
+            Chem.MolFromSmiles("F/C=C/F"),
+        ]
+    )
+
+    assert "CHI_TETRAHEDRAL_CCW" in observed[0][0]
+    assert "STEREOE" in observed[1][1]

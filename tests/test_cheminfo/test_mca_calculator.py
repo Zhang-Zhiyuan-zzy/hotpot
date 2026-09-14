@@ -53,3 +53,15 @@ def test_hotpot_and_smiles_inputs_produce_identical_atom_predictions():
         [site.mca_kj_mol for site in smiles_prediction.sites],
         abs=1e-6,
     )
+
+
+def test_molecule_mca_sites_supports_empty_and_multiple_results():
+    no_sites = read_mol("C")
+    multiple_sites = read_mol("CC(=O)C")
+
+    mca(no_sites, device="cpu")
+    mca(multiple_sites, device="cpu")
+
+    assert no_sites.mca_sites == {}
+    assert len(multiple_sites.mca_sites) == 2
+    assert {atom.symbol for atom in multiple_sites.mca_sites} == {"C", "O"}

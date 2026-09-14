@@ -1,4 +1,4 @@
-"""Input adapters that do not depend on hotpot internals."""
+"""Lightweight molecular graph input accepted by the shared converter."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class MoleculeGraph:
     formal_charges: Sequence[int] | None = None
     coordinates: Sequence[Sequence[float]] | None = None
 
-    def to_rdkit(self) -> Chem.Mol:
+    def to_rdmol(self) -> Chem.Mol:
         editable = Chem.RWMol()
         charges = (
             [0] * len(self.atomic_numbers)
@@ -51,19 +51,4 @@ class MoleculeGraph:
             mol.AddConformer(conformer)
         return mol
 
-
-def to_rdkit_mol(value) -> Chem.Mol:
-    if isinstance(value, str):
-        mol = Chem.MolFromSmiles(value)
-        if mol is None:
-            raise ValueError(f"Invalid SMILES: {value}")
-        return mol
-    if isinstance(value, Chem.Mol):
-        return Chem.Mol(value)
-    if isinstance(value, MoleculeGraph):
-        return value.to_rdkit()
-    if hasattr(value, "to_rdmol"):
-        mol = Chem.Mol(value.to_rdmol())
-        Chem.SanitizeMol(mol)
-        return mol
-    raise TypeError(f"Unsupported molecule input: {type(value).__name__}")
+    to_rdkit = to_rdmol

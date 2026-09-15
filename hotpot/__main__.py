@@ -38,8 +38,7 @@ def show_version():
     print("A C++/python package designed to communicate among various chemical and materials calculational tools")
 
 
-def build_parser():
-    from .main import ml_train, optimize
+def build_parser(load_optional_commands=True):
     from .cheminfo.AImodels.mca import cli as mca_cli
 
     parser = argparse.ArgumentParser(
@@ -63,11 +62,14 @@ def build_parser():
 
     # Optimize job arguments
     optimize_parser = works.add_parser('optimize', help='Perform parameters optimization')
-    optimize.add_arguments(optimize_parser)
 
     # ML_train job arguments
     ml_parser = works.add_parser('ml_train', help='A standard workflow to train Machine learning models')
-    ml_train.add_arguments(ml_parser)
+    if load_optional_commands:
+        from .main import ml_train, optimize
+
+        optimize.add_arguments(optimize_parser)
+        ml_train.add_arguments(ml_parser)
 
     # MCA inference arguments
     mca_parser = works.add_parser(
@@ -134,12 +136,12 @@ def main(argv: list[str] = None):
     setup_logging()
 
     raw_args = sys.argv[1:] if argv is None else argv
-    if raw_args and raw_args[0] == 'mca':
-        from .cheminfo.AImodels.mca import cli as mca_cli
-
-        return mca_cli.main(raw_args[1:])
-
-    parser = build_parser()
+    command = next(
+        (argument for argument in raw_args if not argument.startswith('-')),
+        None,
+    )
+    load_optional_commands = command in {'optimize', 'ml_train'}
+    parser = build_parser(load_optional_commands=load_optional_commands)
 
     # Parse arguments
     if argv is None:

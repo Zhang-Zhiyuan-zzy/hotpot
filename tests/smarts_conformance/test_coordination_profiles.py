@@ -7,6 +7,7 @@ from hotpot.cheminfo.core import BondKind, Molecule
 from hotpot.cheminfo.search import SmartsSemantics
 
 from .coordination_cases import (
+    COORDINATION_FIXTURES,
     ethylenediamine_chelate,
     metal_bound_ligand_ring,
     metal_star,
@@ -214,6 +215,33 @@ def test_bound_donor_valence_depends_on_profile_and_bond_representation(
         "[N;D3;X3;v3]",
         SmartsSemantics.LIGAND_SKELETON,
     ) == {0}
+
+
+@pytest.mark.parametrize(
+    ("filename", "implicit_hydrogens", "connectivity", "valence"),
+    (
+        ("cu_trimethylamine_single.mol2", 0, 3, 3),
+        ("cu_trimethylamine_single.sdf", 1, 4, 4),
+    ),
+)
+def test_ligand_profile_preserves_source_implicit_hydrogen_perception(
+    filename, implicit_hydrogens, connectivity, valence
+):
+    molecule = hp.read_mol(COORDINATION_FIXTURES / filename)
+    donor = molecule.atoms[0]
+
+    assert donor.implicit_hydrogens == implicit_hydrogens
+    assert _matching_indices(
+        molecule,
+        f"[N;D4;X{connectivity + 1};v{valence + 1}]",
+        SmartsSemantics.FULL_GRAPH,
+    ) == {donor.idx}
+    assert _matching_indices(
+        molecule,
+        f"[N;D3;X{connectivity};v{valence}]",
+        SmartsSemantics.LIGAND_SKELETON,
+    ) == {donor.idx}
+    assert donor.implicit_hydrogens == implicit_hydrogens
 
 
 @pytest.mark.parametrize("smarts", ("[M;D6]", "[M;X6]"))

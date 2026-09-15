@@ -238,7 +238,7 @@ def compute_atom_bond_colors(
 
     # 创建颜色映射
     norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
-    cmap = cm.get_cmap(cmap_name)
+    cmap = mpl.colormaps[cmap_name]
     sm = cm.ScalarMappable(norm=norm, cmap=cmap)
 
     # 计算原子颜色
@@ -361,7 +361,11 @@ def _fill_highlight_atoms_list(
     list_hl_atoms, list_hl_bonds, list_hl_atom_colors, list_hl_bond_colors = [], [], [], []
 
     for mol, atom_values in zip(mols, list_atom_values):
-        if atom_values is None or len(atom_values) == 0:
+        if (
+            atom_values is None
+            or len(atom_values) == 0
+            or not np.isfinite(atom_values).any()
+        ):
             # When a molecule has no valid numeric input:
             # - RDKit does NOT error if highlightAtoms or highlightAtomColors is None.
             # - However, passing an empty list ([]) can trigger dimensional or type mismatches.

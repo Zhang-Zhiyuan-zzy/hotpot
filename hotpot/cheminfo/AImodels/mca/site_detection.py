@@ -161,7 +161,7 @@ def find_nucleophilic_sites(mol: Molecule) -> tuple[DetectedSite, ...]:
         for hit in searcher.search(mol):
             rule_sites.update(hit.mapped_atom_indices(anchor_query_index))
         for atom_index in sorted(rule_sites):
-            if atom_index not in assigned:
+            if not mol.atoms[atom_index].is_metal and atom_index not in assigned:
                 assigned.add(atom_index)
                 sites.append(DetectedSite(atom_index, name))
     return _remove_automorphic_sites(mol, sites)

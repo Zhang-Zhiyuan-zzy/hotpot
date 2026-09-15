@@ -27,7 +27,8 @@ def test_cpu_smiles_and_batch_prediction(predictor):
     assert single.sites[0].mca_kj_mol == pytest.approx(
         single.atom_predictions[single.sites[0].atom_index].mca_kj_mol
     )
-    assert [len(item.sites) for item in batch] == [1, 4]
+    assert [len(item.sites) for item in batch] == [1, 1]
+    assert batch[1].sites[0].site_type == "Pyridine_like_nitrogen"
     assert [len(item.atom_predictions) for item in batch] == [6, 6]
 
 

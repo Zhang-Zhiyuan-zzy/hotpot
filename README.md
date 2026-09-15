@@ -145,36 +145,65 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
 
 ## 📥 Installation
 
-#### Requirements
-- python == 3.9 *
-- openbabel >= 3.1.1
-- cclib
-- lammps
-- onnxruntime
+Python 3.9–3.14 is supported by the chemical kernel, search layer and ONNX
+inference path. Python 3.9 remains the development baseline for older optional
+plugins.
 
-<small>\* **Note**: Python 3.9 remains the supported baseline for the complete
-legacy stack. MCA/CBond ONNX inference, shared molecule conversion and the
-NetworkX search path are separately tested on Python 3.9–3.14; this narrower
-matrix does not yet claim compatibility for every optional Hotpot plugin.</small>
+### PyPI installation
 
-### 1. Install dependencies
-Before installing `Hotpot`, you should install its dependencies first. It is
-recommended to create a new conda environment to run the package.
-> conda create -n hp python==3.9 openbabel cclib lammps onnxruntime -c conda-forge
+```bash
+conda create -n hp python=3.11 pip -y
+conda activate hp
+python -m pip install --upgrade pip
+python -m pip install hotpot-zzy
+```
 
-> conda activate hp
+The PyPI installation includes the chemical kernel, MCA/CBond ONNX inference
+and molecular plotting. It uses `openbabel-wheel`; do not install Conda
+`openbabel` into the same environment because both distributions provide the
+same Python modules.
 
-### 2. Install
-#### PyPI (Recommended)
+### Editable source installation
 
-> pip install hotpot-zzy
-
-#### Source
 ```bash
 git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
-pip install build  # install `build` package
-python -m build
-pip install dist/hotpot_zzy-`VERSION`-py3-none-any.whl
+cd hotpot
+conda create -n hp python=3.11 pip -y
+conda activate hp
+python -m pip install --upgrade pip
+python -m pip install -e .
+```
+
+For the fixed Python 3.9 development environment described by
+`environment.yml`, run the following from the repository root:
+
+```bash
+conda env create -f environment.yml
+conda activate hp
+```
+
+Available optional dependency groups are:
+
+| Extra | Installation | Scope |
+|---|---|---|
+| `optimize` | `pip install 'hotpot-zzy[optimize]'` | optimization and classical ML workflows |
+| `datasets` | `pip install 'hotpot-zzy[datasets]'` | downloads, HDF5 and PyG datasets |
+| `complexformer` | `pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA support |
+| `onnx-export` | `pip install 'hotpot-zzy[onnx-export]'` | ONNX export and inspection tools |
+| `legacy-search` | `pip install 'hotpot-zzy[legacy-search]'` | archived SymPy-based search modules |
+| `dev` | `pip install -e '.[dev]'` | tests, linting and package builds |
+| `all` | `pip install -e '.[all,dev]'` | all pip-installable optional components |
+
+`torch-cluster` and `torch-scatter` in the `complexformer` extra may require a
+PyTorch/CUDA-specific wheel index. CCDC is proprietary, while Gaussian, xTB,
+Zeo++ and LAMMPS are external programs; none can be installed reliably as a
+portable PyPI dependency.
+
+For GPU ONNX inference, replace the CPU runtime after installation:
+
+```bash
+python -m pip uninstall -y onnxruntime
+python -m pip install onnxruntime-gpu
 ```
 ---
 ## 📌 Usage examples

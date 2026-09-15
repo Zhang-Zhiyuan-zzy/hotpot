@@ -59,6 +59,12 @@ print(mol.mca_sites)  # {hotpot.Atom: MCA in kJ/mol}
 `Atom.mca` and `Molecule.mca_sites` are read-only and raise an informative
 `AttributeError` until the calculator has run.
 
+Site classification uses the ligand-skeleton SMARTS profile. Metal centres and
+atoms directly bonded to a metal are excluded from `Molecule.mca_sites`, because
+the exported MCA model was not validated for coordinated reaction sites. The
+per-atom inference result remains available through `Atom.mca`; this filter only
+controls the smaller, high-confidence site mapping.
+
 ## Input normalization
 
 Hotpot `Molecule` is the canonical object used for domain checks, atom indices,

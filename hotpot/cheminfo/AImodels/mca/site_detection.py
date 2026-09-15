@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 import networkx as nx
 
-from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.search import Searcher, Substructure
+from hotpot.cheminfo.core import Atom, Molecule
+from hotpot.cheminfo.search import Searcher, SmartsSemantics, Substructure
 
 
 @dataclass(frozen=True)
@@ -46,7 +46,10 @@ NUCLEOPHILE_RULES = (
 
 
 def _compile_rule(name: str, smarts: str):
-    substructure = Substructure.from_smarts(smarts)
+    substructure = Substructure.from_smarts(
+        smarts,
+        semantics=SmartsSemantics.LIGAND_SKELETON,
+    )
     anchors = [atom.idx for atom in substructure.query_atoms if atom.map_number == 1]
     if len(anchors) != 1:
         raise ValueError(f"MCA rule {name!r} must contain exactly one :1 anchor")
@@ -55,6 +58,12 @@ def _compile_rule(name: str, smarts: str):
 
 # SMARTS parsing and Searcher construction are invariant across predictions.
 _COMPILED_RULES = tuple(_compile_rule(*rule) for rule in NUCLEOPHILE_RULES)
+
+
+def _is_eligible_site(atom: Atom) -> bool:
+    return not atom.is_metal and not any(
+        bond.is_metal_ligand_bond for bond in atom.bonds
+    )
 
 
 def _atom_label(atom) -> tuple:
@@ -69,8 +78,8 @@ def _atom_label(atom) -> tuple:
 
 def _bond_label(bond) -> tuple:
     if bond.is_aromatic:
-        return ("aromatic",)
-    return ("bond_order", float(bond.bond_order))
+        return ("aromatic", bond.bond_kind)
+    return ("bond_order", float(bond.bond_order), bond.bond_kind)
 
 
 def _labeled_graph(mol: Molecule) -> nx.Graph:
@@ -161,7 +170,7 @@ def find_nucleophilic_sites(mol: Molecule) -> tuple[DetectedSite, ...]:
         for hit in searcher.search(mol):
             rule_sites.update(hit.mapped_atom_indices(anchor_query_index))
         for atom_index in sorted(rule_sites):
-            if not mol.atoms[atom_index].is_metal and atom_index not in assigned:
+            if _is_eligible_site(mol.atoms[atom_index]) and atom_index not in assigned:
                 assigned.add(atom_index)
                 sites.append(DetectedSite(atom_index, name))
     return _remove_automorphic_sites(mol, sites)

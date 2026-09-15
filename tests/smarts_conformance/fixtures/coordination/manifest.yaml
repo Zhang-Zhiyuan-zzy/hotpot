@@ -1,0 +1,29 @@
+schema_version: 1
+profile: hotpot_openbabel_3_1_current
+description: >-
+  Minimal target-perception fixtures. Expected values describe the graph that
+  Open Babel 3.1 exposes to Hotpot; they are not a claim that all source formats
+  encode chemically equivalent coordinate-bond semantics.
+cases:
+  - id: mol2_single
+    file: cu_trimethylamine_single.mol2
+    metal_ligand_source_type: "1"
+    perceived_bond_order: 1.0
+    donor: {index: 0, D: 4, implicit_hydrogens: 0, X: 4, v: 4}
+  - id: mol2_zero
+    file: cu_trimethylamine_zero.mol2
+    metal_ligand_source_type: du
+    perceived_bond_order: 0.0
+    donor: {index: 0, D: 4, implicit_hydrogens: 0, X: 4, v: 3}
+  - id: sdf_single
+    file: cu_trimethylamine_single.sdf
+    metal_ligand_source_type: "1"
+    perceived_bond_order: 1.0
+    donor: {index: 0, D: 4, implicit_hydrogens: 1, X: 5, v: 5}
+real_cif_cases:
+  - id: AFOQUI
+    file: ../../../input/AFOQUI_clean.cif
+    contract: one Zn atom is represented as D6/X6/v6
+  - id: AFEKAX
+    file: ../../../input/AFEKAX_clean.cif
+    contract: four Cu-bound N atoms are represented as D3/X3/v3

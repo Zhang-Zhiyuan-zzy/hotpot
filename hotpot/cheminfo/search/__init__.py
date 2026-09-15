@@ -14,3 +14,5 @@
 ===========================================================
 """
 from .search import *
+from .errors import SmartsSyntaxError, UnsupportedSmartsError
+from .semantics import SmartsSemantics

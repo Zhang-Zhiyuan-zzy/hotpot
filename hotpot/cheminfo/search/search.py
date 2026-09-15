@@ -14,6 +14,7 @@ from networkx.algorithms import isomorphism
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
 from ..core_utils import atom_idx_pair_to_bond_idx, read_mol
+from .semantics import SmartsSemantics
 
 def raise_not_implemented(self): raise NotImplemented(f"{self.__class__.__name__} not implemented")
 
@@ -228,17 +229,28 @@ class QueryBond(Query):
         self.__smarts_exclude_aromatic = attrs.pop(
             "_smarts_exclude_aromatic", False
         )
+        self.__smarts_bond_kind = attrs.pop("_smarts_bond_kind", None)
         super().__init__(**attrs)
 
     @property
     def _smarts_exclude_aromatic(self):
         return self.__smarts_exclude_aromatic
 
+    @property
+    def _smarts_bond_kind(self):
+        return self.__smarts_bond_kind
+
     def match(self, obj):
         if (
             isinstance(obj, self._match_class)
             and self._smarts_exclude_aromatic
             and obj.is_aromatic
+        ):
+            return False
+        if (
+            isinstance(obj, self._match_class)
+            and self._smarts_bond_kind is not None
+            and obj.bond_kind is not self._smarts_bond_kind
         ):
             return False
         return super().match(obj)
@@ -311,9 +323,14 @@ class Substructure:
         return sub
 
     @classmethod
-    def from_smarts(cls, smarts: str) -> "Substructure":
+    def from_smarts(
+            cls,
+            smarts: str,
+            *,
+            semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH,
+    ) -> "Substructure":
         from .smarts import substructure_from_smarts
-        return substructure_from_smarts(smarts)
+        return substructure_from_smarts(smarts, semantics=semantics)
 
     @classmethod
     def from_smiles(

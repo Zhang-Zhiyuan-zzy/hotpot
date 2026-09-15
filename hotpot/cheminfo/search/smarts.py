@@ -16,6 +16,7 @@ from weakref import WeakKeyDictionary
 
 from networkx.algorithms import isomorphism
 
+from ..core import BondKind
 from ._smarts_syntax import (
     AROMATIC_LOWER,
     TokenType,
@@ -24,6 +25,7 @@ from ._smarts_syntax import (
 )
 from .errors import SmartsSyntaxError, UnsupportedSmartsError
 from .search import QueryAtom, Searcher, Substructure
+from .semantics import SmartsSemantics, resolve_smarts_semantics
 
 METAL_TOKEN = "M"
 LANTHANIDE_TOKEN = "Ln"
@@ -81,9 +83,10 @@ class _AtomExpression(_Predicate):
 class _RecursivePredicate:
     """Anchored recursive SMARTS with per-molecule/per-atom result caching."""
 
-    def __init__(self, smarts: str):
+    def __init__(self, smarts: str, semantics: SmartsSemantics):
         self.smarts = smarts
-        self.substructure = substructure_from_smarts(smarts)
+        self.semantics = semantics
+        self.substructure = substructure_from_smarts(smarts, semantics=semantics)
         self._cache = WeakKeyDictionary()
 
     def __call__(self, atom: object) -> bool:
@@ -135,6 +138,7 @@ def _molecule_search_signature(mol: object) -> Tuple[object, ...]:
                 min(bond.a1idx, bond.a2idx),
                 max(bond.a1idx, bond.a2idx),
                 bond.bond_order,
+                bond.bond_kind,
                 bond.is_aromatic,
             )
             for bond in mol.bonds
@@ -143,19 +147,30 @@ def _molecule_search_signature(mol: object) -> Tuple[object, ...]:
     return atoms, bonds
 
 
-def parse_bracket_atom(expr_text: str) -> Dict[str, object]:
+def parse_bracket_atom(
+    expr_text: str,
+    *,
+    semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH,
+) -> Dict[str, object]:
     """Compile a bracket atom into constraints accepted by ``QueryAtom``.
 
     Atom-map labels are graph metadata rather than matching constraints and are
     therefore absent from this return value. They are attached to
     ``QueryAtom.map_number`` by :func:`substructure_from_smarts`.
     """
-    expression, _, _ = _compile_bracket_atom(expr_text)
+    expression, _, _ = _compile_bracket_atom(
+        expr_text, resolve_smarts_semantics(semantics)
+    )
     return {"predicate": expression}
 
 
-def substructure_from_smarts(smarts: str) -> Substructure:
+def substructure_from_smarts(
+    smarts: str,
+    *,
+    semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH,
+) -> Substructure:
     """Build a :class:`Substructure` without leaving Hotpot's graph backend."""
+    semantics = resolve_smarts_semantics(semantics)
     tokens = tokenize(smarts)
     if not tokens:
         raise SmartsSyntaxError("SMARTS query must contain at least one atom")
@@ -172,7 +187,7 @@ def substructure_from_smarts(smarts: str) -> Substructure:
     for token_type, token_text in tokens:
         if token_type in (TokenType.ATOM, TokenType.BRACKET):
             query_atom = _create_query_atom_from_token(
-                substructure, token_type, token_text
+                substructure, token_type, token_text, semantics
             )
             substructure.add_atom(query_atom)
             current_index = len(substructure.query_atoms) - 1
@@ -255,6 +270,7 @@ def substructure_from_smarts(smarts: str) -> Substructure:
 
 def _compile_bracket_atom(
     expr_text: str,
+    semantics: SmartsSemantics,
 ) -> Tuple[_AtomExpression, Optional[int], Optional[bool]]:
     if not expr_text.startswith("[") or not expr_text.endswith("]"):
         raise SmartsSyntaxError(
@@ -263,7 +279,7 @@ def _compile_bracket_atom(
     inner, map_number = _extract_atom_map(expr_text[1:-1].strip())
     if not inner:
         raise SmartsSyntaxError("Empty SMARTS bracket atom")
-    expression = _parse_low_and(inner)
+    expression = _parse_low_and(inner, semantics)
     aromatic_hint = (
         next(iter(expression.aromatic_states))
         if len(expression.aromatic_states) == 1
@@ -294,29 +310,45 @@ def _extract_atom_map(expr: str) -> Tuple[str, Optional[int]]:
     return expr, None
 
 
-def _parse_low_and(expr: str) -> _AtomExpression:
+def _parse_low_and(
+    expr: str, semantics: SmartsSemantics
+) -> _AtomExpression:
     parts = _split_top_level(expr, ";")
     identities = [_contains_non_hydrogen_identity(part) for part in parts]
     return _combine_and(
         [
-            _parse_or(part, any(identities[:index] + identities[index + 1 :]))
+            _parse_or(
+                part,
+                semantics,
+                any(identities[:index] + identities[index + 1 :]),
+            )
             for index, part in enumerate(parts)
         ]
     )
 
 
-def _parse_or(expr: str, outer_identity: bool = False) -> _AtomExpression:
+def _parse_or(
+    expr: str,
+    semantics: SmartsSemantics,
+    outer_identity: bool = False,
+) -> _AtomExpression:
     return _combine_or(
         [
             _parse_high_and(
-                part, outer_identity or _contains_non_hydrogen_identity(part)
+                part,
+                semantics,
+                outer_identity or _contains_non_hydrogen_identity(part),
             )
             for part in _split_top_level(expr, ",")
         ]
     )
 
 
-def _parse_high_and(expr: str, identity_context: bool = False) -> _AtomExpression:
+def _parse_high_and(
+    expr: str,
+    semantics: SmartsSemantics,
+    identity_context: bool = False,
+) -> _AtomExpression:
     chunks = _split_top_level(expr, "&")
     expressions = []
     identity_seen = identity_context
@@ -335,7 +367,7 @@ def _parse_high_and(expr: str, identity_context: bool = False) -> _AtomExpressio
                     f"Missing operand after '!' in atom expression {expr!r}"
                 )
             primitive, index, is_identity = _parse_atom_primitive(
-                chunk, index, identity_seen
+                chunk, index, identity_seen, semantics
             )
             if negate:
                 primitive = _negate(primitive)
@@ -407,14 +439,17 @@ def _split_top_level(expr: str, separator: str) -> List[str]:
 
 
 def _parse_atom_primitive(
-    expr: str, index: int, identity_seen: bool
+    expr: str,
+    index: int,
+    identity_seen: bool,
+    semantics: SmartsSemantics,
 ) -> Tuple[_AtomExpression, int, bool]:
     if expr.startswith("$(", index):
         end = _find_balanced_parenthesis(expr, index + 1)
         recursive_smarts = expr[index + 2 : end]
         if not recursive_smarts.strip():
             raise SmartsSyntaxError("Recursive SMARTS body must contain an atom")
-        recursive = _RecursivePredicate(recursive_smarts)
+        recursive = _RecursivePredicate(recursive_smarts, semantics)
         return _AtomExpression(recursive, repr(recursive)), end + 1, False
 
     if index >= len(expr):
@@ -476,7 +511,7 @@ def _parse_atom_primitive(
             "SMARTS atom chirality '@'/'@@' is not implemented"
         )
     if char in "DXvRr":
-        return _parse_numeric_atom_primitive(expr, index)
+        return _parse_numeric_atom_primitive(expr, index, semantics)
     if char == "H" and (
         identity_seen or (index + 1 < len(expr) and expr[index + 1].isdigit())
     ):
@@ -559,7 +594,7 @@ def _parse_hotpot_extension(
 
 
 def _parse_numeric_atom_primitive(
-    expr: str, index: int
+    expr: str, index: int, semantics: SmartsSemantics
 ) -> Tuple[_AtomExpression, int, bool]:
     code = expr[index]
     match = re.match(r"[DXvRr](\d*)", expr[index:])
@@ -569,7 +604,8 @@ def _parse_numeric_atom_primitive(
         value = int(digits) if digits else 1
         return (
             _atom_predicate(
-                lambda atom, n=value: len(atom.neighbours) == n, f"D{value}"
+                lambda atom, n=value, profile=semantics: profile.degree(atom) == n,
+                f"D{value}",
             ),
             end,
             False,
@@ -578,8 +614,8 @@ def _parse_numeric_atom_primitive(
         value = int(digits) if digits else 1
         return (
             _atom_predicate(
-                lambda atom, n=value: (
-                    len(atom.neighbours) + atom.implicit_hydrogens == n
+                lambda atom, n=value, profile=semantics: (
+                    profile.connectivity(atom) == n
                 ),
                 f"X{value}",
             ),
@@ -590,9 +626,7 @@ def _parse_numeric_atom_primitive(
         value = int(digits) if digits else 1
         return (
             _atom_predicate(
-                lambda atom, n=value: (
-                    atom.sum_bond_orders + atom.implicit_hydrogens == n
-                ),
+                lambda atom, n=value, profile=semantics: profile.valence(atom) == n,
                 f"v{value}",
             ),
             end,
@@ -600,25 +634,49 @@ def _parse_numeric_atom_primitive(
         )
     if code == "R":
         if not digits:
-            return _equals("in_ring", True, "R"), end, False
+            return (
+                _atom_predicate(
+                    lambda atom, profile=semantics: bool(profile.rings_for(atom)),
+                    "R",
+                ),
+                end,
+                False,
+            )
         count = int(digits)
         return (
-            _atom_predicate(lambda atom, n=count: len(atom.rings) == n, f"R{count}"),
+            _atom_predicate(
+                lambda atom, n=count, profile=semantics: (
+                    len(profile.rings_for(atom)) == n
+                ),
+                f"R{count}",
+            ),
             end,
             False,
         )
     if not digits:
-        return _equals("in_ring", True, "r"), end, False
+        return (
+            _atom_predicate(
+                lambda atom, profile=semantics: bool(profile.rings_for(atom)),
+                "r",
+            ),
+            end,
+            False,
+        )
     size = int(digits)
     if size == 0:
         return (
-            _atom_predicate(lambda atom: not atom.rings, "r0"),
+            _atom_predicate(
+                lambda atom, profile=semantics: not profile.rings_for(atom),
+                "r0",
+            ),
             end,
             False,
         )
     return (
         _atom_predicate(
-            lambda atom, n=size: any(len(ring) == n for ring in atom.rings),
+            lambda atom, n=size, profile=semantics: any(
+                len(ring) == n for ring in profile.rings_for(atom)
+            ),
             f"r{size}",
         ),
         end,
@@ -762,10 +820,15 @@ def _negate(expression: _AtomExpression) -> _AtomExpression:
 
 
 def _create_query_atom_from_token(
-    substructure: Substructure, token_type: TokenType, text: str
+    substructure: Substructure,
+    token_type: TokenType,
+    text: str,
+    semantics: SmartsSemantics,
 ) -> QueryAtom:
     if token_type == TokenType.BRACKET:
-        expression, map_number, aromatic_hint = _compile_bracket_atom(text)
+        expression, map_number, aromatic_hint = _compile_bracket_atom(
+            text, semantics
+        )
         query_atom = QueryAtom(
             sub=substructure, map_number=map_number, predicate=expression
         )
@@ -821,16 +884,19 @@ def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
         if token == SINGLE_BOND_TOKEN:
             return {
                 "bond_order": {BondOrder.SINGLE.value},
+                "_smarts_bond_kind": BondKind.SINGLE,
                 "_smarts_exclude_aromatic": True,
             }
         if token == DOUBLE_BOND_TOKEN:
             return {
                 "bond_order": {BondOrder.DOUBLE.value},
+                "_smarts_bond_kind": BondKind.DOUBLE,
                 "_smarts_exclude_aromatic": True,
             }
         if token == TRIPLE_BOND_TOKEN:
             return {
                 "bond_order": {BondOrder.TRIPLE.value},
+                "_smarts_bond_kind": BondKind.TRIPLE,
                 "_smarts_exclude_aromatic": True,
             }
         if token == AROMATIC_BOND_TOKEN:
@@ -853,17 +919,11 @@ def _bond_predicate(symbol: str) -> Callable[[object], bool]:
             "SMARTS directional bonds '/' and '\\' are not implemented"
         )
     if symbol == SINGLE_BOND_TOKEN:
-        return lambda bond: (
-            bond.bond_order == BondOrder.SINGLE.value and not bond.is_aromatic
-        )
+        return lambda bond: bond.bond_kind is BondKind.SINGLE
     if symbol == DOUBLE_BOND_TOKEN:
-        return lambda bond: (
-            bond.bond_order == BondOrder.DOUBLE.value and not bond.is_aromatic
-        )
+        return lambda bond: bond.bond_kind is BondKind.DOUBLE
     if symbol == TRIPLE_BOND_TOKEN:
-        return lambda bond: (
-            bond.bond_order == BondOrder.TRIPLE.value and not bond.is_aromatic
-        )
+        return lambda bond: bond.bond_kind is BondKind.TRIPLE
     if symbol == AROMATIC_BOND_TOKEN:
         return lambda bond: bond.is_aromatic
     if symbol == ANY_BOND_TOKEN:
@@ -898,7 +958,7 @@ def _infer_bond_attrs(
         return {"is_aromatic": {True}}
     return {
         "predicate": _Predicate(
-            lambda bond: bond.bond_order == BondOrder.SINGLE.value or bond.is_aromatic,
+            lambda bond: bond.bond_kind is BondKind.SINGLE or bond.is_aromatic,
             "single-or-aromatic",
         )
     }

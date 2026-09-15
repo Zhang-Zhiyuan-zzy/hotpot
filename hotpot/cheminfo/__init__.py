@@ -15,3 +15,4 @@ from .mol_assemble import *
 
 from .mol_statistics import ComplexStatistics
 from .search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
+from .search import SmartsSemantics

@@ -2176,9 +2176,9 @@ class Molecule:
         """
         self.remove_atoms(self.metals)
 
-    def search_substructure(self, smarts: str):
+    def search_substructure(self, smarts: str, *, semantics="full_graph"):
         from .search import Substructure, Searcher
-        sub = Substructure.from_smarts(smarts)
+        sub = Substructure.from_smarts(smarts, semantics=semantics)
         searcher = Searcher(sub)
         return searcher.search(self)
 

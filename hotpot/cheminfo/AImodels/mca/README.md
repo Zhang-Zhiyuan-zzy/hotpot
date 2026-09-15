@@ -78,6 +78,9 @@ plus MMFF/UFF geometry generation is used. Explicit graph hydrogen atoms are
 rejected because the exported model predicts heavy-atom rows. Charged molecules
 are outside the validated training domain and are rejected by default; use
 `MCAPredictor(allow_charged=True)` only for an explicitly out-of-domain estimate.
+The molecule-level charge must agree with the sum of atom formal charges; an
+inconsistent graph is rejected rather than assigning the missing charge
+implicitly.
 
 ## Copy into another Hotpot checkout
 

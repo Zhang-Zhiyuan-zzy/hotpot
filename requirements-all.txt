@@ -1,0 +1,3 @@
+# Install every pip-installable Hotpot extra plus test/build tooling.
+# CCDC, Gaussian, xTB, Zeo++ and LAMMPS are external installations.
+-e .[all,dev]

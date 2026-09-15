@@ -1,0 +1,2 @@
+# Install the current checkout in editable mode with test/build tooling.
+-e .[dev]

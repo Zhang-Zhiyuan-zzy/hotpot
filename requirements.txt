@@ -1,0 +1,21 @@
+# Base runtime dependencies. Keep this list identical to
+# project.dependencies in pyproject.toml.
+numpy>=1.24,<3
+networkx>=3,<4
+openbabel-wheel>=3.1.1.23,<4
+Cython>=3,<4
+onnxruntime>=1.19,<2
+pandas>=2,<4
+thermo>=0.4,<1
+cclib>=1.8,<2
+periodictable>=1.7,<3
+scipy>=1.10,<2
+rich>=13,<16
+PubChemPy>=1,<2
+tqdm>=4.65,<5
+rdkit>=2025.9,<2027
+matplotlib>=3.8,<4
+cairosvg>=2.7,<3
+Pillow>=10,<13
+packaging>=23,<27
+openpyxl>=3.1,<4

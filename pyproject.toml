@@ -1,61 +1,128 @@
 [build-system]
 requires = [
-    "setuptools==76.1.0",
-#    "Cython"
+    "setuptools>=77,<82",
+    "wheel>=0.43",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
 version = "0.5.2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.15"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Zhiyuan Zhang", email = "ZhiyuanZhang_scu@163.com" },
     { name = "Yue Dong", email = "1320801310@qq.com" },
     { name = "Yuqing Qiu", email = "2022223070045@stu.scu.edu.cn" },
 ]
 classifiers = [
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
-    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: Unix",
 ]
 dependencies = [
-    "numpy",
-    "networkx",
-    "openbabel-wheel>=3.1.1.23",
-    "Cython>=3",
+    "numpy>=1.24,<3",
+    "networkx>=3,<4",
+    "openbabel-wheel>=3.1.1.23,<4",
+    "Cython>=3,<4",
     "onnxruntime>=1.19,<2",
-    "pandas",
-    "thermo",
-    "cclib",
-    "periodictable",
-    "scipy",
-    "rich",
-    "PubChemPy",
-    "tqdm",
-    'rdkit',
-    'psutil',
-    "matplotlib",
-    "cairosvg",
-    "Pillow",
-    "packaging",
-    "scikit-learn",
-    'torch',
-    'torch-geometric',
-    'gpytorch',
-    'shap',
-    'seaborn',
-    'xgboost',
-    'pyspark',
-    'openpyxl'
+    "pandas>=2,<4",
+    "thermo>=0.4,<1",
+    "cclib>=1.8,<2",
+    "periodictable>=1.7,<3",
+    "scipy>=1.10,<2",
+    "rich>=13,<16",
+    "PubChemPy>=1,<2",
+    "tqdm>=4.65,<5",
+    "rdkit>=2025.9,<2027",
+    "matplotlib>=3.8,<4",
+    "cairosvg>=2.7,<3",
+    "Pillow>=10,<13",
+    "packaging>=23,<27",
+    "openpyxl>=3.1,<4",
 ]
 
 description = "A python package designed to communicate among various chemical and materials calculational tools"
 
 [project.optional-dependencies]
+optimize = [
+    "scikit-learn>=1.3,<2",
+    "torch>=2.1,<3",
+    "gpytorch>=1.11,<2",
+    "shap>=0.44,<1",
+    "xgboost>=2,<4",
+    "lightgbm>=4,<5",
+    "optuna>=3.5,<5",
+    "pyDOE2>=1.3,<2",
+]
+datasets = [
+    "requests>=2.31,<3",
+    "beautifulsoup4>=4.12,<5",
+    "h5py>=3.9,<4",
+    "torch>=2.1,<3",
+    "torch-geometric>=2.5,<3",
+]
+complexformer = [
+    "torch>=2.1,<3",
+    "torch-geometric>=2.5,<3",
+    "lightning>=2.2,<3",
+    "pytorch-lightning>=2.2,<3",
+    "torchmetrics>=1.3,<2",
+    "scikit-learn>=1.3,<2",
+    "optuna>=3.5,<5",
+    "peft>=0.10,<1",
+    "e3nn>=0.5,<1",
+    "torch-cluster>=1.6,<2",
+    "torch-scatter>=2.1,<3",
+    "typing-extensions>=4.7,<5",
+]
+legacy-search = [
+    "sympy>=1.12,<2",
+]
 onnx-export = [
-    "onnx>=1.18,<2"
+    "onnx>=1.18,<2",
+    "torch>=2.1,<3",
+    "torch-geometric>=2.5,<3",
+    "tabulate>=0.9,<1",
+]
+dev = [
+    "build>=1.2,<2",
+    "pytest>=7,<10",
+    "ruff>=0.11,<1",
+    "tomli>=2,<3; python_version < '3.11'",
+    "twine>=5,<7",
+]
+all = [
+    "beautifulsoup4>=4.12,<5",
+    "e3nn>=0.5,<1",
+    "gpytorch>=1.11,<2",
+    "h5py>=3.9,<4",
+    "lightgbm>=4,<5",
+    "lightning>=2.2,<3",
+    "onnx>=1.18,<2",
+    "optuna>=3.5,<5",
+    "peft>=0.10,<1",
+    "pyDOE2>=1.3,<2",
+    "pytorch-lightning>=2.2,<3",
+    "requests>=2.31,<3",
+    "scikit-learn>=1.3,<2",
+    "shap>=0.44,<1",
+    "sympy>=1.12,<2",
+    "tabulate>=0.9,<1",
+    "torch>=2.1,<3",
+    "torch-cluster>=1.6,<2",
+    "torch-geometric>=2.5,<3",
+    "torch-scatter>=2.1,<3",
+    "torchmetrics>=1.3,<2",
+    "typing-extensions>=4.7,<5",
+    "xgboost>=2,<4",
 ]
 
 [tool.setuptools]

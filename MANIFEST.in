@@ -1,6 +1,6 @@
 include LICENSE
 include README.md
-include __version__.py
+include hotpot/__version__.py
 graft hotpot/cheminfo/ChemData
 graft hotpot/dataset/ChemData
 graft hotpot/cheminfo/AImodels/cbond/onnx

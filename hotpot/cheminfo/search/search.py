@@ -16,8 +16,6 @@ from hotpot.cheminfo.core import Molecule, Atom, Bond
 from ..core_utils import atom_idx_pair_to_bond_idx, read_mol
 from .semantics import SmartsSemantics
 
-def raise_not_implemented(self): raise NotImplemented(f"{self.__class__.__name__} not implemented")
-
 
 __all__ = [
     "Query",
@@ -71,7 +69,7 @@ class Query:
     @property
     @abstractmethod
     def label(self):
-        raise NotImplemented(f"{self.__class__.__name__} not implemented")
+        raise NotImplementedError(f"{self.__class__.__name__} not implemented")
 
     def match(self, obj):
         """

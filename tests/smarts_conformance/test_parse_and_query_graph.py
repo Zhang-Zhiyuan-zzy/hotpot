@@ -2,6 +2,7 @@ import pytest
 import networkx as nx
 
 import hotpot as hp
+from hotpot.cheminfo.search._smarts_syntax import tokenize_with_spans
 from hotpot.cheminfo.search.smarts import TokenType, tokenize
 
 
@@ -39,6 +40,28 @@ def test_token_stream_preserves_nested_recursive_expression_and_graph_tokens():
         (TokenType.DOT, "."),
         (TokenType.BRACKET, "[Na+]"),
     ]
+
+
+def test_internal_token_spans_retain_source_positions():
+    tokens = tokenize_with_spans(" C(=O)N")
+
+    assert [(token.type, token.text, token.start, token.end) for token in tokens] == [
+        (TokenType.ATOM, "C", 1, 2),
+        (TokenType.BRANCH_L, "(", 2, 3),
+        (TokenType.BOND, "=", 3, 4),
+        (TokenType.ATOM, "O", 4, 5),
+        (TokenType.BRANCH_R, ")", 5, 6),
+        (TokenType.ATOM, "N", 6, 7),
+    ]
+
+
+def test_public_parser_errors_keep_legacy_base_classes():
+    with pytest.raises(hp.SmartsSyntaxError):
+        hp.Substructure.from_smarts("C(")
+    with pytest.raises(hp.UnsupportedSmartsError):
+        hp.Substructure.from_smarts("C/C")
+    assert issubclass(hp.SmartsSyntaxError, ValueError)
+    assert issubclass(hp.UnsupportedSmartsError, NotImplementedError)
 
 
 def test_branch_query_graph_has_expected_topology_and_bond_constraints():

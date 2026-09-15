@@ -20,9 +20,16 @@ for version in "${versions[@]}"; do
             tests/test_cheminfo/test_mca_calculator.py \
             tests/test_cheminfo/test_molecule_conversion.py \
             tests/test_cheminfo/test_ob2chem_compat.py \
+            tests/test_cheminfo/test_bond_metadata.py \
+            tests/test_cheminfo/test_ligand_rings.py \
             tests/test_cheminfo/test_search.py \
             tests/test_cheminfo/test_search_mapping.py \
             tests/test_cheminfo/test_smarts.py \
             tests/test_smart_parser.py
+
+        uv run --no-project --python "$version" \
+            --with-requirements tests/requirements-inference.txt \
+            python -m pytest -q -p no:cacheprovider \
+            -m smarts_core tests/smarts_conformance
     )
 done

@@ -23,8 +23,11 @@ on:
       - "tests/test_cheminfo/test_mca_calculator.py"
       - "tests/test_cheminfo/test_molecule_conversion.py"
       - "tests/test_cheminfo/test_ob2chem_compat.py"
+      - "tests/test_cheminfo/test_bond_metadata.py"
+      - "tests/test_cheminfo/test_ligand_rings.py"
       - "tests/test_cheminfo/test_search*.py"
       - "tests/test_smart_parser.py"
+      - "tests/smarts_conformance/**"
       - "tests/requirements-inference.txt"
       - "tests/run_inference_compatibility.sh"
       - "pyproject.toml"
@@ -53,8 +56,11 @@ on:
       - "tests/test_cheminfo/test_mca_calculator.py"
       - "tests/test_cheminfo/test_molecule_conversion.py"
       - "tests/test_cheminfo/test_ob2chem_compat.py"
+      - "tests/test_cheminfo/test_bond_metadata.py"
+      - "tests/test_cheminfo/test_ligand_rings.py"
       - "tests/test_cheminfo/test_search*.py"
       - "tests/test_smart_parser.py"
+      - "tests/smarts_conformance/**"
       - "tests/requirements-inference.txt"
       - "tests/run_inference_compatibility.sh"
       - "pyproject.toml"
@@ -86,10 +92,16 @@ jobs:
           tests/test_cheminfo/test_mca_calculator.py
           tests/test_cheminfo/test_molecule_conversion.py
           tests/test_cheminfo/test_ob2chem_compat.py
+          tests/test_cheminfo/test_bond_metadata.py
+          tests/test_cheminfo/test_ligand_rings.py
           tests/test_cheminfo/test_search.py
           tests/test_cheminfo/test_search_mapping.py
           tests/test_cheminfo/test_smarts.py
           tests/test_smart_parser.py
+      - name: Test strict SMARTS and coordination contracts
+        run: >-
+          python -m pytest -q -p no:cacheprovider
+          -m smarts_core tests/smarts_conformance
 
   package-smoke:
     runs-on: ubuntu-latest

@@ -18,6 +18,9 @@ bond-metadata, and coordination-semantics changes.
 - Deterministic corpus: **1,332/1,332 passed**; zero mismatches.
 - Focused legacy Search/SMARTS, MCA site detection, bond metadata, and ligand
   ring tests: **136 passed, 49 subtests passed** on Python 3.14.
+- The inference compatibility matrix passed on every Python version from 3.9
+  through 3.14: **181 focused tests** plus **252 strict SMARTS tests** per
+  interpreter (Python 3.9 reports the same subtests as ordinary tests).
 - Strict-suite coverage of the active search modules: **903/945 statements**
   and **362/402 branches**, reported as **94% total** by Coverage.py.
 
@@ -121,6 +124,14 @@ The focused compatibility command was:
   tests/test_cheminfo/test_bond_metadata.py \
   tests/test_cheminfo/test_ligand_rings.py
 # 136 passed, 49 subtests passed in 1.87s
+```
+
+The packaged compatibility runner was also executed without exclusions:
+
+```bash
+UV_CACHE_DIR=/tmp/hotpot-audit-uv-cache \
+  bash tests/run_inference_compatibility.sh 3.9 3.10 3.11 3.12 3.13 3.14
+# Every interpreter: 181 focused tests + 252 strict SMARTS tests passed
 ```
 
 These timings are local diagnostic observations, not performance thresholds.

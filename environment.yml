@@ -2,7 +2,7 @@ name: hp
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.11
   - pip>=24
   - setuptools>=77
   - wheel>=0.43

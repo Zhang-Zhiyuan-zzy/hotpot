@@ -146,8 +146,9 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
 ## 📥 Installation
 
 Python 3.9–3.14 is supported by the chemical kernel, search layer and ONNX
-inference path. Python 3.9 remains the development baseline for older optional
-plugins.
+inference path. Python 3.10–3.14 use Open Babel 3.2.x; Python 3.9 remains a
+compatibility target and uses `openbabel-wheel` 3.1.1.23 because Open Babel
+3.2.x does not publish a Python 3.9 package.
 
 ### PyPI installation
 
@@ -159,9 +160,10 @@ python -m pip install hotpot-zzy
 ```
 
 The PyPI installation includes the chemical kernel, MCA/CBond ONNX inference
-and molecular plotting. It uses `openbabel-wheel`; do not install Conda
-`openbabel` into the same environment because both distributions provide the
-same Python modules.
+and molecular plotting. On Python 3.10 or newer it installs the official
+`openbabel` 3.2.x package; Python 3.9 installs `openbabel-wheel` 3.1.1.23.
+Do not mix PyPI `openbabel`, `openbabel-wheel`, and Conda `openbabel` in one
+environment because they provide the same Python modules and native libraries.
 
 ### Editable source installation
 
@@ -174,7 +176,7 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-For the fixed Python 3.9 development environment described by
+For the fixed Python 3.11/Open Babel 3.2 development environment described by
 `environment.yml`, run the following from the repository root:
 
 ```bash
@@ -297,14 +299,14 @@ ligand_hits = pair.search_substructure(
 
 Both profiles use the `Atom.implicit_hydrogens` produced by the input reader;
 switching profiles does not reperceive or recalculate hydrogens. For example,
-Open Babel 3.1 assigns the same coordinated amine donor zero implicit H from
-the supplied MOL2 fixture but one implicit H from its SDF counterpart, so their
-`X` and `v` values remain format-dependent even in `LIGAND_SKELETON`.
+Open Babel 3.1 and 3.2 assign the same coordinated amine donor zero implicit H
+from the supplied MOL2 fixture but one implicit H from its SDF counterpart, so
+their `X` and `v` values remain format-dependent even in `LIGAND_SKELETON`.
 
 Bond matching uses semantic `BondKind` metadata. `-` and an implicit aliphatic
 single bond match `SINGLE`, not `DATIVE`, `UNKNOWN`, or `ZERO`; `~` matches any
-edge. Open Babel 3.1 collapses MOL2 `du`, `un`, and `nc` bond tokens to order
-zero and does not retain which token was present, so Hotpot conservatively
+edge. Open Babel 3.1 and 3.2 collapse MOL2 `du`, `un`, and `nc` bond tokens to
+order zero and do not retain which token was present, so Hotpot conservatively
 records those imported edges as `UNKNOWN`.
 
 The MCA calculator uses `LIGAND_SKELETON` to classify organic motifs, but its

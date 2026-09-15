@@ -55,7 +55,26 @@ def test_conda_environment_uses_one_openbabel_distribution():
     environment_text = (ROOT / "environment.yml").read_text(encoding="utf-8")
 
     assert "openbabel=" not in environment_text
+    assert "python=3.11" in environment_text
     assert '"-e .[dev]"' in environment_text
+
+
+def test_openbabel_dependency_tracks_supported_python_versions():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        dependencies = tomllib.load(stream)["project"]["dependencies"]
+
+    requirements = {
+        canonicalize_name(requirement.name): requirement
+        for requirement in map(Requirement, dependencies)
+    }
+
+    legacy = requirements["openbabel-wheel"]
+    assert str(legacy.specifier) == "<3.2,>=3.1.1.23"
+    assert str(legacy.marker) == 'python_version < "3.10"'
+
+    current = requirements["openbabel"]
+    assert str(current.specifier) == "<3.3,>=3.2.1"
+    assert str(current.marker) == 'python_version >= "3.10"'
 
 
 def test_expected_optional_dependency_groups_are_published():

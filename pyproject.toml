@@ -30,7 +30,8 @@ classifiers = [
 dependencies = [
     "numpy>=1.24,<3",
     "networkx>=3,<4",
-    "openbabel-wheel>=3.1.1.23,<4",
+    "openbabel-wheel>=3.1.1.23,<3.2; python_version < '3.10'",
+    "openbabel>=3.2.1,<3.3; python_version >= '3.10'",
     "Cython>=3,<4",
     "onnxruntime>=1.19,<2",
     "pandas>=2,<4",

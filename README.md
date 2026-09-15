@@ -80,6 +80,14 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
     for atom, value in mol.mca_sites.items():
         print(atom, value)  # important, reliably classified sites
     ```
+  - The same predictor is available from the command line. Output is a plain
+    atom table suitable for terminal display or redirection:
+    ```bash
+    hotpot mca 'c1ccccc1CN'
+    hotpot mca molecules.sdf -o mca.txt
+    hotpot mca 'c1ccccc1CN' --plot mca.png
+    hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
+    ```
 + **3D Structure Initialization** (`complexes_build_optimize_`):
   - **AI-refined 3D build**: A specialized pipeline for generating metal complexes with AI assisting
   - **Topology-aware optimization**: Adds continuous topological inspection during geometry optimization 

@@ -78,6 +78,10 @@ setuptools.setup(
     install_requires=[
         "numpy",
         "networkx",
+        "matplotlib",
+        "cairosvg",
+        "Pillow",
+        "packaging",
         "openbabel-wheel>=3.1.1.23",
         "Cython>=3",
         "onnxruntime>=1.19,<2",

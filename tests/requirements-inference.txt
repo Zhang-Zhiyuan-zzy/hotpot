@@ -1,6 +1,10 @@
 numpy>=1.24,<3
 onnxruntime>=1.19,<2
 rdkit>=2023.9
+matplotlib>=3.8,<4
+cairosvg>=2.7,<3
+Pillow>=10,<13
+packaging>=23,<27
 pytest>=7,<10
 networkx>=3,<4
 openbabel-wheel>=3.1.1.23

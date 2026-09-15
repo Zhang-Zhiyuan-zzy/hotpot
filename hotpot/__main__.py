@@ -15,7 +15,6 @@ from argparse import ArgumentError
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 import argparse
-from .main import optimize, ml_train, conversion
 from . import version
 from hotpot.utils.configs.logging_config import setup_logging
 
@@ -40,6 +39,9 @@ def show_version():
 
 
 def build_parser():
+    from .main import ml_train, optimize
+    from .cheminfo.AImodels.mca import cli as mca_cli
+
     parser = argparse.ArgumentParser(
         prog='hotpot',
         description="A C++/python package designed to communicate among various chemical and materials calculational tools"
@@ -66,6 +68,13 @@ def build_parser():
     # ML_train job arguments
     ml_parser = works.add_parser('ml_train', help='A standard workflow to train Machine learning models')
     ml_train.add_arguments(ml_parser)
+
+    # MCA inference arguments
+    mca_parser = works.add_parser(
+        'mca',
+        help='Predict atom-resolved methyl cation affinity (MCA)',
+    )
+    mca_cli.add_arguments(mca_parser)
     return parser
 
 
@@ -77,6 +86,8 @@ def run(args):
 
     # convert work
     if args.works == 'convert':
+        from .main import conversion
+
         infile = args.infile
         outfile = args.output_file
 
@@ -98,10 +109,19 @@ def run(args):
         conversion.convert(infile, outfile, out_fmt, in_fmt)
 
     elif args.works == 'optimize':
+        from .main import optimize
+
         optimize.optimize(args.excel_file, args.result_dir, args)
 
     elif args.works == 'ml_train':
+        from .main import ml_train
+
         ml_train.train(args)
+
+    elif args.works == 'mca':
+        from .cheminfo.AImodels.mca import cli as mca_cli
+
+        return mca_cli.run(args)
 
     else:
         return -2  # indicate the work type not be specified
@@ -112,6 +132,13 @@ def run(args):
 
 def main(argv: list[str] = None):
     setup_logging()
+
+    raw_args = sys.argv[1:] if argv is None else argv
+    if raw_args and raw_args[0] == 'mca':
+        from .cheminfo.AImodels.mca import cli as mca_cli
+
+        return mca_cli.main(raw_args[1:])
+
     parser = build_parser()
 
     # Parse arguments
@@ -119,7 +146,7 @@ def main(argv: list[str] = None):
         args = parser.parse_args()
     else:
         # Allow pass the args from the main() interface in test
-        args = parser.parse_args(argv)
+        args = parser.parse_args(raw_args)
 
 
     try:

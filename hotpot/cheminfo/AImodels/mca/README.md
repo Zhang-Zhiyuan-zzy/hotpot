@@ -104,8 +104,19 @@ directory or pass `model_dir`.
 ## CLI
 
 ```bash
-python -m hotpot.cheminfo.AImodels.mca.cli 'C1CCCCN1' 'c1ccncc1'
+hotpot mca 'C1CCCCN1'
+hotpot mca molecules.sdf -o result.txt
+hotpot mca 'C1CCCCN1' > result.txt
+hotpot mca 'C1CCCCN1' --plot mca.png
+hotpot mca 'C1CCCCN1' --plot mca-all.png --all-site
 ```
+
+The text output contains the one-based atom number, element, predicted MCA in
+kJ/mol, and whether the atom was selected by nucleophilic-site detection. A
+molecule file may contain multiple records. By default a plot labels and
+colours only detected nucleophilic sites; `--all-site` includes every predicted
+atom. The same interface remains available as
+`python -m hotpot.cheminfo.AImodels.mca.cli`.
 
 The release graph is FP16 (about half the FP32 size). Its largest observed
 deviation from the PyTorch checkpoint was 0.2331 kJ/mol on the 16-molecule

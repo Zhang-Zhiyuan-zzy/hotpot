@@ -34,6 +34,21 @@ from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
 
+
+PartialChargeModel = Literal[
+    "eem", "eem2015ha", "eem2015hm", "eem2015hn",
+    "eem2015ba", "eem2015bm", "eem2015bn",
+    "gasteiger", "mmff94", "qeq", "qtpie", "eqeq",
+    "fromfile", "none",
+]
+
+OPENBABEL_PARTIAL_CHARGE_MODELS = (
+    "eem", "eem2015ha", "eem2015hm", "eem2015hn",
+    "eem2015ba", "eem2015bm", "eem2015bn",
+    "gasteiger", "mmff94", "qeq", "qtpie", "eqeq",
+    "fromfile", "none",
+)
+
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
 else:
@@ -1499,22 +1514,102 @@ class Molecule:
 
     def get_partial_charge(
             self,
-            model: Literal["eem", "mmff94", "gasteiger", "qeq", "qtpie",
-                            "eem2015ha", "eem2015hm", "eem2015hn",
-                            "eem2015ba", "eem2015bm", "eem2015bn"] = "qeq"
-    ):
+            model: PartialChargeModel = "qeq",
+            model_args: Optional[str] = None,
+    ) -> tuple[float, ...]:
+        """Calculate atomic partial charges with an OpenBabel charge model.
+
+        Parameters
+        ----------
+        model
+            OpenBabel charge-model plugin selected for the intended chemical
+            domain:
+
+            - ``gasteiger`` is a fast topology-based model for ordinary organic
+              molecules.
+            - ``mmff94`` is intended for molecules covered by MMFF94 atom types;
+              use explicit hydrogens when their individual charges must be retained.
+            - ``eem`` reproduces Bultinck B3LYP/6-31G*/MPA-style EEM charges.
+              The ``eem2015`` variants use HF (``h``) or B3LYP (``b``) with
+              AIM (``a``), MPA (``m``), or NPA (``n``) reference charges.
+            - ``qeq`` is the Rappe-Goddard charge-equilibration model and is
+              commonly used for inorganic and materials structures.
+            - ``qtpie`` limits long-range charge transfer and is preferable to
+              QEq for separated fragments and strongly distance-dependent cases.
+            - ``eqeq`` is OpenBabel's extended charge-equilibration model.
+            - ``fromfile`` reads externally supplied charges; pass its backend
+              argument, normally a charge-file path, through ``model_args``.
+            - ``none`` explicitly clears all partial charges to zero.
+
+            EEM, QEq, QTPIE, and EQEq are geometry-dependent and require sensible
+            coordinates and backend parameters for every element/type present.
+            Available plugins can vary with the OpenBabel build.
+        model_args
+            Optional argument string forwarded unchanged to OpenBabel's
+            ``OBChargeModel.ComputeCharges`` overload.
+
+        Returns
+        -------
+        tuple[float, ...]
+            Partial charges in Hotpot atom order. This method does not mutate
+            ``Atom.partial_charge``; use :meth:`assign_partial_charge` to store
+            them. Formal charges and ``Molecule.charge`` are never modified.
+        """
         ob_charge_model = ob.OBChargeModel.FindType(model)
-        ob_charge_model.ComputeCharges(self.to_obmol())
-        return ob_charge_model.GetPartialCharges()
+        if ob_charge_model is None:
+            raise ValueError(
+                f"OpenBabel charge model {model!r} is unavailable; "
+                f"known models are {', '.join(OPENBABEL_PARTIAL_CHARGE_MODELS)}"
+            )
+
+        obmol = ob.OBMol(self.to_obmol())
+        if model_args is None:
+            succeeded = ob_charge_model.ComputeCharges(obmol)
+        else:
+            succeeded = ob_charge_model.ComputeCharges(obmol, model_args)
+        if not succeeded:
+            raise RuntimeError(
+                f"OpenBabel charge model {model!r} could not calculate charges"
+            )
+
+        charges = tuple(float(value) for value in ob_charge_model.GetPartialCharges())
+        if len(charges) != len(self.atoms):
+            raise RuntimeError(
+                f"OpenBabel charge model {model!r} returned {len(charges)} "
+                f"charges for {len(self.atoms)} atoms"
+            )
+        if not np.all(np.isfinite(charges)):
+            raise RuntimeError(
+                f"OpenBabel charge model {model!r} returned non-finite charges"
+            )
+        return charges
 
     def assign_partial_charge(
             self,
-            model: Literal["eem", "mmff94", "gasteiger", "qeq", "qtpie",
-            "eem2015ha", "eem2015hm", "eem2015hn",
-            "eem2015ba", "eem2015bm", "eem2015bn"] = "qeq"
-    ):
-        for a, c in zip(self.atoms, self.get_partial_charge(model = "qtpie")):
-            a.partial_charge = c
+            model: PartialChargeModel = "qeq",
+            model_args: Optional[str] = None,
+    ) -> tuple[float, ...]:
+        """Calculate and store OpenBabel partial charges on all atoms.
+
+        The model applicability and ``model_args`` contract are identical to
+        :meth:`get_partial_charge`. Partial charges describe a model-dependent,
+        continuous electron-density partition and are not integer formal charges;
+        this method therefore leaves every ``Atom.formal_charge`` and the molecular
+        total charge unchanged.
+
+        Returns
+        -------
+        tuple[float, ...]
+            Assigned charges in Hotpot atom order.
+        """
+        charges = self.get_partial_charge(model=model, model_args=model_args)
+        for atom, charge in zip(self.atoms, charges):
+            atom.partial_charge = charge
+
+        if self._obmol is not None:
+            for ob_atom, charge in zip(ob.OBMolAtomIter(self._obmol), charges):
+                ob_atom.SetPartialCharge(charge)
+        return charges
 
     @property
     def pair_dist(self) -> np.ndarray:

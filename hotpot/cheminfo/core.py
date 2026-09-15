@@ -134,6 +134,8 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
+        self._ligand_rings = None
+        self._ligand_rings_signature = None
         self._graph = nx.Graph()
         self._obmol = None
         self._row2idx = None
@@ -415,6 +417,8 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
+        self._ligand_rings = None
+        self._ligand_rings_signature = None
         self._obmol = None
 
         if clear_conformers:
@@ -2536,16 +2540,23 @@ class Molecule:
                 list[Ring]: A list of Ring objects representing ligand
                 rings associated with the object.
         """
-        ligand_graph = self.graph.copy()
-        ligand_graph.remove_edges_from(
-            (bond.a1idx, bond.a2idx)
-            for bond in self.bonds
-            if bond.is_metal_ligand_bond
+        signature = (
+            tuple(atom.atomic_number for atom in self._atoms),
+            tuple(sorted(tuple(sorted(edge)) for edge in self.graph.edges)),
         )
-        return [
-            Ring(*(self._atoms[i] for i in cycle))
-            for cycle in nx.cycle_basis(ligand_graph)
-        ]
+        if signature != self._ligand_rings_signature:
+            ligand_graph = self.graph.copy()
+            ligand_graph.remove_edges_from(
+                (bond.a1idx, bond.a2idx)
+                for bond in self.bonds
+                if bond.is_metal_ligand_bond
+            )
+            self._ligand_rings = [
+                Ring(*(self._atoms[i] for i in cycle))
+                for cycle in nx.cycle_basis(ligand_graph)
+            ]
+            self._ligand_rings_signature = signature
+        return copy(self._ligand_rings)
 
     def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
         from ..plugins.PyG.data.utils import mol_to_pyg_data

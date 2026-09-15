@@ -27,6 +27,19 @@ def _ring_atom_indices(rings):
     return [tuple(atom.idx for atom in ring.atoms) for ring in rings]
 
 
+def _ring_atom_sets(rings):
+    return {frozenset(atom.idx for atom in ring.atoms) for ring in rings}
+
+
+def _three_membered_carbon_chain():
+    molecule = Molecule()
+    for _ in range(3):
+        molecule.create_atom(atomic_number=6)
+    molecule.add_bond(0, 1, 1.0)
+    molecule.add_bond(1, 2, 1.0)
+    return molecule
+
+
 def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     molecule = _chelating_molecule()
     original_bonds = tuple(molecule.bonds)
@@ -58,3 +71,49 @@ def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     assert molecule.conformers._coordinates is original_conformer_array
     np.testing.assert_array_equal(molecule.conformers._coordinates, original_conformers)
     assert molecule._hided_metal_bonds == []
+
+
+def test_repeated_ligand_ring_reads_are_equivalent_and_non_mutating():
+    molecule = _chelating_molecule()
+    bonds = tuple(molecule.bonds)
+    graph = molecule.graph
+    graph_edges = frozenset(frozenset(edge) for edge in graph.edges)
+    full_rings = _ring_atom_sets(molecule.rings)
+
+    first = _ring_atom_sets(molecule.ligand_rings)
+    second = _ring_atom_sets(molecule.ligand_rings)
+
+    assert first == second == {frozenset((2, 3, 4))}
+    assert tuple(molecule.bonds) == bonds
+    assert molecule.graph is graph
+    assert frozenset(frozenset(edge) for edge in graph.edges) == graph_edges
+    assert _ring_atom_sets(molecule.rings) == full_rings
+
+
+def test_ligand_rings_refresh_after_public_topology_changes():
+    molecule = _three_membered_carbon_chain()
+
+    assert _ring_atom_sets(molecule.ligand_rings) == set()
+
+    closing_bond = molecule.add_bond(2, 0, 1.0)
+    assert _ring_atom_sets(molecule.ligand_rings) == {frozenset((0, 1, 2))}
+
+    molecule.remove_bond(closing_bond)
+    assert _ring_atom_sets(molecule.ligand_rings) == set()
+
+
+def test_ligand_rings_refresh_after_endpoint_metallicity_changes_in_place():
+    molecule = _three_membered_carbon_chain()
+    molecule.add_bond(2, 0, 1.0)
+    original_bonds = tuple(molecule.bonds)
+    original_edges = frozenset(frozenset(edge) for edge in molecule.graph.edges)
+
+    assert _ring_atom_sets(molecule.ligand_rings) == {frozenset((0, 1, 2))}
+
+    molecule.atoms[0].atomic_number = 29
+    assert _ring_atom_sets(molecule.ligand_rings) == set()
+
+    molecule.atoms[0].atomic_number = 6
+    assert _ring_atom_sets(molecule.ligand_rings) == {frozenset((0, 1, 2))}
+    assert tuple(molecule.bonds) == original_bonds
+    assert frozenset(frozenset(edge) for edge in molecule.graph.edges) == original_edges

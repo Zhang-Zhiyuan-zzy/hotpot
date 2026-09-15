@@ -16,7 +16,6 @@ from typing import Literal, Union, Optional, Callable
 
 import cython
 import numpy as np
-import cclib
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.cheminfo.obconvert import obmol2mol, set_obmol_coordinates, get_ob_conversion
@@ -233,6 +232,8 @@ class MolReader(IoBase):
 
     def _cclib_read(self):
         """ IO by cclib package """
+        import cclib
+
         try:
             if self.src_type == 'str':
                 data = cclib.ccopen(io.StringIO(self.src)).parse()

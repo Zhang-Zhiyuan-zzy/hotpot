@@ -11,6 +11,11 @@ import sys
 
 from os.path import join, dirname
 
+# The Open Babel 3.2 PyPI wheels load ``pybel`` native libraries eagerly.
+# Load RDKit first to keep the two extension stacks in a stable order.
+from rdkit import Chem as _rdkit_chem  # noqa: F401
+
+
 def version():
     _version = {}
     with open(join(dirname(__file__), '__version__.py'), 'r') as f:
@@ -24,4 +29,4 @@ package_root = os.path.abspath(os.path.dirname(__file__))
 tempdir = os.path.abspath(os.path.join(package_root, '..', 'tmp'))
 sys.path.append(package_root)
 
-from .cheminfo import *
+from .cheminfo import *  # noqa: E402,F403

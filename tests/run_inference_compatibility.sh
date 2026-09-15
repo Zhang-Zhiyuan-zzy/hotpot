@@ -25,6 +25,7 @@ for version in "${versions[@]}"; do
             tests/test_cheminfo/test_search.py \
             tests/test_cheminfo/test_search_mapping.py \
             tests/test_cheminfo/test_smarts.py \
+            tests/test_cheminfo/test_import_safety.py \
             tests/test_smart_parser.py
 
         uv run --no-project --python "$version" \

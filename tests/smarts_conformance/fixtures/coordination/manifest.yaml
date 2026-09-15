@@ -3,22 +3,42 @@ profile: hotpot_openbabel_3_1_current
 description: >-
   Minimal target-perception fixtures. Expected values describe the graph that
   Open Babel 3.1 exposes to Hotpot; they are not a claim that all source formats
-  encode chemically equivalent coordinate-bond semantics.
+  encode chemically equivalent coordinate-bond semantics. Open Babel collapses
+  the MOL2 du, un, and nc source tokens to numeric order 0 without retaining the
+  lexical token; Hotpot therefore records BondKind.UNKNOWN, not ZERO or DATIVE.
 cases:
   - id: mol2_single
     file: cu_trimethylamine_single.mol2
     metal_ligand_source_type: "1"
     perceived_bond_order: 1.0
+    perceived_bond_kind: single
     donor: {index: 0, D: 4, implicit_hydrogens: 0, X: 4, v: 4}
   - id: mol2_zero
     file: cu_trimethylamine_zero.mol2
     metal_ligand_source_type: du
     perceived_bond_order: 0.0
+    perceived_bond_kind: unknown
+    source_token_recoverable: false
+    donor: {index: 0, D: 4, implicit_hydrogens: 0, X: 4, v: 3}
+  - id: mol2_unknown
+    file: cu_trimethylamine_un.mol2
+    metal_ligand_source_type: un
+    perceived_bond_order: 0.0
+    perceived_bond_kind: unknown
+    source_token_recoverable: false
+    donor: {index: 0, D: 4, implicit_hydrogens: 0, X: 4, v: 3}
+  - id: mol2_not_connected
+    file: cu_trimethylamine_nc.mol2
+    metal_ligand_source_type: nc
+    perceived_bond_order: 0.0
+    perceived_bond_kind: unknown
+    source_token_recoverable: false
     donor: {index: 0, D: 4, implicit_hydrogens: 0, X: 4, v: 3}
   - id: sdf_single
     file: cu_trimethylamine_single.sdf
     metal_ligand_source_type: "1"
     perceived_bond_order: 1.0
+    perceived_bond_kind: single
     donor: {index: 0, D: 4, implicit_hydrogens: 1, X: 5, v: 5}
 real_cif_cases:
   - id: AFOQUI

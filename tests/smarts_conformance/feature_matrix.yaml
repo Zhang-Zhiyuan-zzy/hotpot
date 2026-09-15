@@ -4,7 +4,13 @@ profiles:
   core: offline deterministic
   extension: offline deterministic
   compatibility: audit only
-counting_note: Counts are reviewed test cases or matrix rows, not mutually exclusive totals; systematic element rows are intentionally exhaustive and are reported separately from template diversity.
+  coordination: deterministic graph contracts plus Open Babel 3.1 perception snapshots
+counting_note: >-
+  Counts are reviewed test cases or matrix rows, not mutually exclusive totals;
+  systematic element rows are intentionally exhaustive and are reported
+  separately from template diversity. The original generated-corpus totals below
+  exclude the dedicated coordination tests, whose invocation counts are recorded
+  separately under coordination_evidence and their feature rows.
 evidence_totals:
   valid_parse_cases: 454
   invalid_parse_cases: 208
@@ -19,6 +25,13 @@ evidence_totals:
   semantic_feature_families: 11
   differential_cases: 277
   fixed_fuzz_seeds: 1
+coordination_evidence:
+  direct_graph_semantic_cases: 13
+  ring_scope_cases: 3
+  openbabel_perception_cases: 11
+  perception_fixture_cases: 5
+  real_cif_cases: 2
+  mol2_source_bond_tokens: ["1", du, un, nc]
 features:
   - name: element_identity
     dialect: core
@@ -133,3 +146,24 @@ features:
     semantics: determinism_and_growth
     regression: SMARTS-PERF-EAGER-001
     counts: {positive_parse: 200, definite_negative: 100, semantic_pairs: 0, near_negative_pairs: 0, differential_cases: 0, fuzz_seeds: 1, robustness_texts: 100, structured_stress: 100}
+  - name: coordination_D_X_v_and_metal_connectivity
+    dialect: coordination_graph_contract
+    positive: direct_hotpot_graphs_D_X_v_and_M_X1_through_X8
+    negative: adjacent_connectivity_and_zero_order_single_bond_near_negatives
+    semantics: full_graph_degree_connectivity_and_numeric_valence_are_independent
+    regression: null
+    counts: {positive_parse: 0, definite_negative: 0, semantic_pairs: 13, near_negative_pairs: 10, differential_cases: 0, fuzz_seeds: 0}
+  - name: coordination_ring_scope
+    dialect: coordination_graph_contract
+    positive: full_graph_chelate_and_covalent_ligand_rings
+    negative: ligand_skeleton_excludes_metal_ligand_edges
+    semantics: full_graph_R_r_and_non_mutating_ligand_rings_are_separate_views
+    regression: null
+    counts: {positive_parse: 0, definite_negative: 0, semantic_pairs: 3, near_negative_pairs: 3, differential_cases: 0, fuzz_seeds: 0}
+  - name: coordination_target_perception
+    dialect: openbabel_3_1_representation_profile
+    positive: mol2_sdf_and_repository_cif_snapshots
+    negative: explicit_single_does_not_match_order_zero_unknown_edges
+    semantics: source_format_perception_precedes_hotpot_query_matching
+    regression: null
+    counts: {positive_parse: 0, definite_negative: 0, semantic_pairs: 11, near_negative_pairs: 3, differential_cases: 0, fuzz_seeds: 0, fixture_cases: 5, real_cif_cases: 2, mol2_source_bond_types: 4}

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Tuple
 
 import hotpot as hp
+from hotpot.cheminfo.core import BondKind
 
 
 COORDINATION_FIXTURES = Path(__file__).parent / "fixtures" / "coordination"
@@ -16,6 +17,7 @@ class PerceptionCase:
     name: str
     filename: str
     bond_order: float
+    bond_kind: BondKind
     donor_degree: int
     donor_implicit_hydrogens: int
     donor_connectivity: int
@@ -27,6 +29,7 @@ PERCEPTION_CASES: Tuple[PerceptionCase, ...] = (
         name="mol2_single",
         filename="cu_trimethylamine_single.mol2",
         bond_order=1.0,
+        bond_kind=BondKind.SINGLE,
         donor_degree=4,
         donor_implicit_hydrogens=0,
         donor_connectivity=4,
@@ -36,6 +39,27 @@ PERCEPTION_CASES: Tuple[PerceptionCase, ...] = (
         name="mol2_zero",
         filename="cu_trimethylamine_zero.mol2",
         bond_order=0.0,
+        bond_kind=BondKind.UNKNOWN,
+        donor_degree=4,
+        donor_implicit_hydrogens=0,
+        donor_connectivity=4,
+        donor_valence=3,
+    ),
+    PerceptionCase(
+        name="mol2_unknown",
+        filename="cu_trimethylamine_un.mol2",
+        bond_order=0.0,
+        bond_kind=BondKind.UNKNOWN,
+        donor_degree=4,
+        donor_implicit_hydrogens=0,
+        donor_connectivity=4,
+        donor_valence=3,
+    ),
+    PerceptionCase(
+        name="mol2_not_connected",
+        filename="cu_trimethylamine_nc.mol2",
+        bond_order=0.0,
+        bond_kind=BondKind.UNKNOWN,
         donor_degree=4,
         donor_implicit_hydrogens=0,
         donor_connectivity=4,
@@ -45,6 +69,7 @@ PERCEPTION_CASES: Tuple[PerceptionCase, ...] = (
         name="sdf_single",
         filename="cu_trimethylamine_single.sdf",
         bond_order=1.0,
+        bond_kind=BondKind.SINGLE,
         donor_degree=4,
         donor_implicit_hydrogens=1,
         donor_connectivity=5,

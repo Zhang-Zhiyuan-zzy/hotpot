@@ -3,6 +3,7 @@
 import pytest
 
 import hotpot as hp
+from hotpot.cheminfo.core import BondKind
 
 from .coordination_cases import (
     COORDINATION_FIXTURES,
@@ -27,6 +28,9 @@ def test_coordination_fixture_perception_profile(case):
     assert (donor.symbol, metal.symbol) == ("N", "Cu")
     assert coordinate_bond.is_metal_ligand_bond
     assert coordinate_bond.bond_order == case.bond_order
+    assert coordinate_bond.bond_kind is case.bond_kind
+    assert coordinate_bond.bond_source == "openbabel"
+    assert coordinate_bond.bond_source_metadata["raw_bond_order"] == case.bond_order
     assert len(donor.neighbours) == case.donor_degree
     assert donor.implicit_hydrogens == case.donor_implicit_hydrogens
     assert len(donor.neighbours) + donor.implicit_hydrogens == case.donor_connectivity
@@ -40,12 +44,25 @@ def test_coordination_fixture_perception_profile(case):
     }
 
 
-def test_mol2_zero_order_changes_v_but_not_d_or_x():
+@pytest.mark.parametrize(
+    ("zero_filename", "source_bond_type"),
+    (
+        ("cu_trimethylamine_zero.mol2", "du"),
+        ("cu_trimethylamine_un.mol2", "un"),
+        ("cu_trimethylamine_nc.mol2", "nc"),
+    ),
+)
+def test_mol2_non_numeric_bond_types_change_v_but_not_d_or_x(
+    zero_filename, source_bond_type
+):
+    zero_path = COORDINATION_FIXTURES / zero_filename
     single = hp.read_mol(COORDINATION_FIXTURES / "cu_trimethylamine_single.mol2")
-    zero = hp.read_mol(COORDINATION_FIXTURES / "cu_trimethylamine_zero.mol2")
+    zero = hp.read_mol(zero_path)
     single_donor = single.atoms[0]
     zero_donor = zero.atoms[0]
+    zero_bond = zero.bond(0, 4)
 
+    assert zero_path.read_text().splitlines()[-1].split()[-1] == source_bond_type
     assert (
         (
             len(single_donor.neighbours),
@@ -58,6 +75,9 @@ def test_mol2_zero_order_changes_v_but_not_d_or_x():
         == (4, 0)
     )
     assert (single_donor.sum_bond_orders, zero_donor.sum_bond_orders) == (4, 3)
+    assert zero_bond.bond_kind is BondKind.UNKNOWN
+    assert zero_bond.bond_source_metadata["raw_bond_order"] == 0
+    assert zero_bond.bond_source_metadata["raw_flags"] == 0
     assert matching_atom_sets(single, "[N]-[M]") == {frozenset((0, 4))}
     assert matching_atom_sets(zero, "[N]-[M]") == set()
     assert matching_atom_sets(zero, "[N]~[M]") == {frozenset((0, 4))}

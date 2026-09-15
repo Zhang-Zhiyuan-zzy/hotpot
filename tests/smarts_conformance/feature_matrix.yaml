@@ -1,0 +1,135 @@
+schema_version: 1
+dialect: hotpot-daylight-like-subset
+profiles:
+  core: offline deterministic
+  extension: offline deterministic
+  compatibility: audit only
+counting_note: Counts are reviewed test cases or matrix rows, not mutually exclusive totals; systematic element rows are intentionally exhaustive and are reported separately from template diversity.
+evidence_totals:
+  valid_parse_cases: 454
+  invalid_parse_cases: 208
+  semantic_pairs: 670
+  semantic_positive_pairs: 327
+  semantic_near_negative_pairs: 343
+  unique_valid_smarts: 454
+  unique_invalid_smarts: 208
+  unique_semantic_smarts: 306
+  valid_generator_families: 13
+  invalid_generator_families: 9
+  semantic_feature_families: 11
+  differential_cases: 277
+  fixed_fuzz_seeds: 1
+features:
+  - name: element_identity
+    dialect: core
+    positive: systematic_periodic_table
+    negative: adjacent_atomic_number
+    semantics: systematic_periodic_table
+    regression: SMARTS-ATOM-ELEMENT-001
+    counts: {positive_parse: 118, definite_negative: 0, semantic_pairs: 236, near_negative_pairs: 118, differential_cases: 119, fuzz_seeds: 1}
+  - name: atomic_number
+    dialect: core
+    positive: systematic_periodic_table
+    negative: malformed_hash_and_out_of-domain
+    semantics: systematic_periodic_table
+    regression: null
+    counts: {positive_parse: 118, definite_negative: 30, semantic_pairs: 236, near_negative_pairs: 118, differential_cases: 121, fuzz_seeds: 1}
+  - name: wildcard_aromatic_aliphatic
+    dialect: core
+    positive: bracket_and_bare_forms
+    negative: aromatic_aliphatic_near_negative
+    semantics: curated
+    regression: SMARTS-ATOM-WILDCARD-001
+    counts: {positive_parse: 4, definite_negative: 2, semantic_pairs: 4, near_negative_pairs: 2, differential_cases: 5, fuzz_seeds: 1}
+  - name: charge_and_hydrogen
+    dialect: core
+    positive: curated
+    negative: curated_near_negative
+    semantics: explicit_and_implicit_hydrogen
+    regression: SMARTS-ATOM-H-001
+    counts: {positive_parse: 21, definite_negative: 4, semantic_pairs: 18, near_negative_pairs: 11, differential_cases: 1, fuzz_seeds: 1}
+  - name: D_X_v
+    dialect: core
+    positive: generated_ranges
+    negative: curated_near_negative
+    semantics: curated_main_group
+    regression: null
+    counts: {positive_parse: 39, definite_negative: 0, semantic_pairs: 13, near_negative_pairs: 5, differential_cases: 0, fuzz_seeds: 1}
+  - name: R_r
+    dialect: core_single_ring
+    positive: curated_ring_sizes
+    negative: acyclic_and_other_size
+    semantics: curated
+    regression: SMARTS-RING-r0-001
+    counts: {positive_parse: 26, definite_negative: 0, semantic_pairs: 15, near_negative_pairs: 10, differential_cases: 1, fuzz_seeds: 1}
+  - name: atom_logic
+    dialect: core
+    positive: generated_truth_tables
+    negative: missing_operands
+    semantics: precedence_distinguishing
+    regression: SMARTS-DIAGNOSTIC-001
+    counts: {positive_parse: 30, definite_negative: 23, semantic_pairs: 14, near_negative_pairs: 6, differential_cases: 2, fuzz_seeds: 1}
+  - name: bonds
+    dialect: core
+    positive: implicit_single_double_triple_aromatic_any_or
+    negative: dangling_and_consecutive
+    semantics: curated_near_negative
+    regression: SMARTS-BOND-AROM-001
+    counts: {positive_parse: 30, definite_negative: 45, semantic_pairs: 31, near_negative_pairs: 20, differential_cases: 10, fuzz_seeds: 1}
+  - name: graph_branches_rings_components
+    dialect: core
+    positive: curated_and_generated
+    negative: boundary_mutations
+    semantics: curated
+    regression: [SMARTS-PARSE-BOUNDARY-001, SMARTS-PARSE-GRAPH-002]
+    counts: {positive_parse: 30, definite_negative: 145, semantic_pairs: 14, near_negative_pairs: 9, differential_cases: 7, fuzz_seeds: 1}
+  - name: recursive_smarts
+    dialect: core
+    positive: shallow_and_nested
+    negative: truncated_and_empty
+    semantics: anchored
+    regression: SMARTS-RECURSIVE-001
+    counts: {positive_parse: 7, definite_negative: 5, semantic_pairs: 6, near_negative_pairs: 3, differential_cases: 1, fuzz_seeds: 1}
+  - name: atom_map
+    dialect: core
+    positive: zero_and_multidigit
+    negative: malformed_map
+    semantics: metadata_only
+    regression: null
+    counts: {positive_parse: 32, definite_negative: 10, semantic_pairs: 64, near_negative_pairs: 32, differential_cases: 1, fuzz_seeds: 1}
+  - name: metal_period_group_extensions
+    dialect: extension
+    positive: frozen_atomic_number_sets
+    negative: boundary_and_near_negative
+    semantics: exhaustive_atomic_numbers
+    regression: SMARTS-EXT-RANGE-001
+    counts: {positive_parse: 40, definite_negative: 5, semantic_pairs: 23, near_negative_pairs: 11, differential_cases: 5, fuzz_seeds: 1}
+    exhaustive_target_atomic_numbers: 118
+  - name: chirality_isotope_directional_bond
+    dialect: unsupported
+    positive: none
+    negative: explicit_unsupported_rejection
+    semantics: none
+    regression: null
+    counts: {positive_parse: 0, definite_negative: 5, semantic_pairs: 0, near_negative_pairs: 0, differential_cases: 3, fuzz_seeds: 1}
+  - name: embeddings_and_automorphisms
+    dialect: result_contract
+    positive: symmetric_and_asymmetric_queries
+    negative: none
+    semantics: query_order_and_target_sets
+    regression: SMARTS-HIT-BONDS-001
+    counts: {positive_parse: 0, definite_negative: 0, semantic_pairs: 6, near_negative_pairs: 0, differential_cases: 259, fuzz_seeds: 0}
+  - name: batch_search
+    dialect: adapter_only
+    positive: linear_scan_equals_single_search
+    negative: invalid_target_record
+    semantics: matched_record_ids
+    regression: null
+    counts: {positive_parse: 0, definite_negative: 1, semantic_pairs: 4, near_negative_pairs: 2, differential_cases: 0, fuzz_seeds: 0}
+  - name: robustness_and_performance
+    dialect: audit
+    positive: fixed_seed_grammar
+    negative: fixed_seed_mutations
+    semantics: determinism_and_growth
+    regression: SMARTS-PERF-EAGER-001
+    counts: {positive_parse: 200, definite_negative: 100, semantic_pairs: 0, near_negative_pairs: 0, differential_cases: 0, fuzz_seeds: 1, robustness_texts: 100, structured_stress: 100}

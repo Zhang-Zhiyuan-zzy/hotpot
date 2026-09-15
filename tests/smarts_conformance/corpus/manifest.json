@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "dialect": "hotpot-daylight-core-2026-09",
+  "storage": {
+    "kind": "deterministic_python_generator",
+    "module": "tests.smarts_conformance.corpus",
+    "reason": "Reviewed grammar tables avoid committing large repetitive JSONL while preserving stable IDs and exact cases."
+  },
+  "corpora": {
+    "valid_parse": {
+      "symbol": "VALID_PARSE_CASES",
+      "expected_count": 454
+    },
+    "invalid_parse": {
+      "symbol": "INVALID_PARSE_CASES",
+      "expected_count": 208
+    },
+    "semantic": {
+      "symbol": "SEMANTIC_CASES",
+      "expected_count": 670
+    }
+  },
+  "provenance": {
+    "kind": "curated_generated",
+    "name": "Hotpot SMARTS conformance grammar tables",
+    "version": "2026-09-15",
+    "license": "MIT",
+    "reviewed": true,
+    "external_corpus_imported": false
+  },
+  "reference_engines": {
+    "role": "non-normative differential evidence",
+    "versions_are_recorded_at_runtime": true
+  }
+}

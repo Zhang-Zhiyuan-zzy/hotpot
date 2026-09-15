@@ -2,8 +2,8 @@
 
 This directory implements the test layers required by
 `plan/test_search_and_SMARTS.md`. It exercises only the active NetworkX-backed
-parser and matcher. Production code is intentionally not changed by this test
-audit.
+parser and matcher, including the `FULL_GRAPH` and `LIGAND_SKELETON`
+coordination semantics profiles.
 
 ## Profiles
 
@@ -22,13 +22,9 @@ python -m pytest -q -p no:cacheprovider \
 python -m pytest -q -p no:cacheprovider \
   -m smarts_smoke tests/smarts_conformance
 
-# Full core, including intentional strict failures for documented defects
+# Strict core regression gate
 python -m pytest -q -p no:cacheprovider \
   -m smarts_core tests/smarts_conformance
-
-# Supported-behavior subset (useful while the strict defects remain open)
-python -m pytest -q -p no:cacheprovider \
-  -m 'smarts_core and not smarts_known_failure' tests/smarts_conformance
 
 # Corpus schema and count gates
 python -m pytest -q -p no:cacheprovider \
@@ -40,10 +36,14 @@ python -m tests.smarts_conformance.audit_corpus \
 env COVERAGE_FILE=/tmp/hotpot-smarts.coverage \
   python -m coverage run --branch --source=hotpot/cheminfo/search \
   -m pytest -q -p no:cacheprovider \
-  -m 'smarts_core and not smarts_known_failure' tests/smarts_conformance
+  -m smarts_core tests/smarts_conformance
 env COVERAGE_FILE=/tmp/hotpot-smarts.coverage \
   python -m coverage report -m \
-  hotpot/cheminfo/search/smarts.py hotpot/cheminfo/search/search.py
+  hotpot/cheminfo/search/_smarts_syntax.py \
+  hotpot/cheminfo/search/errors.py \
+  hotpot/cheminfo/search/search.py \
+  hotpot/cheminfo/search/semantics.py \
+  hotpot/cheminfo/search/smarts.py
 
 # Optional/heavy evidence collectors
 python -m tests.smarts_conformance.differential.runner --output /tmp/smarts-differential.json
@@ -51,15 +51,27 @@ python -m tests.smarts_conformance.fuzz.run_deterministic --seed 20260915
 python -m tests.smarts_conformance.benchmarks.benchmark_smarts --output /tmp/smarts-benchmark.json
 ```
 
-`smarts_known_failure` tests encode the intended contract and therefore fail
-until the corresponding production defect is fixed. They are not xfailed,
-skipped, or weakened. The smoke profile deliberately contains only supported
-behavior so it can diagnose failures in the test infrastructure itself.
-The supported core also executes the entire generated corpus and compares its
-mismatches to `corpus/known_mismatches.json`. Thus excluding strict failures
-does not skip the corpus: any new mismatch, changed classification, or repaired
-mismatch fails the baseline gate and requires an explicit review of the
-snapshot.
+The historical `smarts_known_failure` marker remains attached to regression
+tests that originally exposed defects, but those tests now pass and are part of
+the strict gate. The smoke profile is a smaller infrastructure check. The core
+gate also executes the entire generated corpus and compares its mismatches to
+`corpus/known_mismatches.json`, which is currently empty. Any new mismatch or
+changed classification fails the gate and requires explicit review.
+
+Coordination coverage has three layers: perception-free Hotpot graphs,
+Open Babel-backed MOL2/SDF fixtures, and repository CIF examples. The fixture
+manifest records that Open Babel 3.1 collapses MOL2 `du`, `un`, and `nc` to
+indistinguishable order-zero edges; Hotpot records these as `BondKind.UNKNOWN`
+rather than inventing `ZERO` or `DATIVE` semantics.
+
+The profile switch does not rerun hydrogen perception. Tests intentionally
+freeze the observed difference for the same coordinated-amine topology:
+Open Babel 3.1 supplies zero donor implicit H from MOL2 and one from SDF, so
+`LIGAND_SKELETON` yields `X3/v3` and `X4/v4`, respectively.
+
+At revision `7b262a9`, the strict command above reports **252 passed** on both
+Python 3.9 and 3.14. The corpus audit reports **1,332 passed, 0 failed**. These
+are scoped SMARTS results and do not imply a repository-wide test pass.
 
 The differential and benchmark programs are evidence collectors, not ordinary
 CI dependencies. They never rewrite golden expectations. Run the fuzz command

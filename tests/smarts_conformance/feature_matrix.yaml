@@ -28,6 +28,7 @@ evidence_totals:
 coordination_evidence:
   direct_graph_semantic_cases: 13
   ring_scope_cases: 3
+  semantics_profile_cases: 16
   openbabel_perception_cases: 11
   perception_fixture_cases: 5
   real_cif_cases: 2

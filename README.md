@@ -237,6 +237,45 @@ that compiles atom, bond, logical and anchored recursive expressions into the
 NetworkX-backed `Searcher` objects. Unsupported stereochemical, directional-bond
 and isotope constraints fail explicitly instead of being treated as unconstrained.
 
+Topology-sensitive SMARTS can select one of two named semantics profiles. The
+default preserves the complete molecular graph; the ligand profile removes
+metal--nonmetal edges only when calculating ligand-local descriptors and never
+mutates the molecule or replaces the NetworkX search backend:
+
+```pycon
+from hotpot import SmartsSemantics
+
+full_hits = pair.search_substructure(
+    "[N;D4;X4]", semantics=SmartsSemantics.FULL_GRAPH
+)
+ligand_hits = pair.search_substructure(
+    "[N;D3;X3]", semantics=SmartsSemantics.LIGAND_SKELETON
+)
+```
+
+| Profile | `D` / `X` | `v` | `R` / `r` |
+|:--------|:----------|:----|:----------|
+| `FULL_GRAPH` (default) | All graph neighbours; `X` also includes implicit H | Sum of numeric bond orders plus implicit H | `Molecule.rings` |
+| `LIGAND_SKELETON` | Non-metal atoms exclude metal--ligand edges; metal centres retain their full coordination number | Uses the same ligand view and counts only `SINGLE`, `DOUBLE`, `TRIPLE`, and `AROMATIC` bond kinds | `Molecule.ligand_rings` |
+
+Both profiles use the `Atom.implicit_hydrogens` produced by the input reader;
+switching profiles does not reperceive or recalculate hydrogens. For example,
+Open Babel 3.1 assigns the same coordinated amine donor zero implicit H from
+the supplied MOL2 fixture but one implicit H from its SDF counterpart, so their
+`X` and `v` values remain format-dependent even in `LIGAND_SKELETON`.
+
+Bond matching uses semantic `BondKind` metadata. `-` and an implicit aliphatic
+single bond match `SINGLE`, not `DATIVE`, `UNKNOWN`, or `ZERO`; `~` matches any
+edge. Open Babel 3.1 collapses MOL2 `du`, `un`, and `nc` bond tokens to order
+zero and does not retain which token was present, so Hotpot conservatively
+records those imported edges as `UNKNOWN`.
+
+The MCA calculator uses `LIGAND_SKELETON` to classify organic motifs, but its
+reported reliable sites deliberately exclude metal atoms and atoms directly
+bound to a metal. Per-atom model output and reliable-site selection are
+separate concepts; the latter is an applicability-domain decision rather than
+a general SMARTS rule.
+
 To specifically address the demand in **Coordination Chemistry**, the syntax has been extended with custom 
 wildcards for metals and periodic table properties:
 

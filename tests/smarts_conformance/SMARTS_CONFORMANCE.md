@@ -1,150 +1,188 @@
 # Hotpot SMARTS conformance contract
 
-This document separates the intended contract from observations of the current
-implementation. A currently observed defect is never promoted to the contract
-merely to make a test pass.
+This document defines the supported behavior of the active NetworkX-backed
+SMARTS implementation. Observations from RDKit or Open Babel are evidence, not
+automatic changes to this contract.
 
 ## Scope and entry points
 
-The active implementation is
-`hotpot.cheminfo.search.smarts.substructure_from_smarts`, reached publicly as
-`hotpot.Substructure.from_smarts`. Matching is performed by
-`hotpot.cheminfo.search.Searcher.search` on a Hotpot `Molecule`, and
-`Molecule.search_substructure` is the convenience entry point. Tests and
-coverage in this suite deliberately exclude the older, unreferenced parser
-implementations in `hotpot/cheminfo/parse_smarts.py`,
-`hotpot/cheminfo/search/_smarts.py`, and
-`hotpot/cheminfo/search/smarts_parser/`.
+The active compiler is
+`hotpot.cheminfo.search.smarts.substructure_from_smarts`, exposed through
+`hotpot.Substructure.from_smarts`. Matching remains the responsibility of
+`Searcher`, `Hits`, and `Hit`; `Molecule.search_substructure` is the convenience
+entry point. The legacy parser modules are outside this conformance target.
 
-The target dialect has three profiles:
+The supported dialect consists of:
 
-- `hotpot_core`: a documented Daylight-like subset implemented on Hotpot's
-  NetworkX molecular graph.
-- `hotpot_extension`: the coordination-chemistry tokens `M`, `Ln`, `An`,
-  `NPn[-m]`, and `NGn[-m]`.
-- `compatibility_audit`: valid constructs or semantics implemented by other
-  engines but not promised by Hotpot. These do not silently become core.
+- `hotpot_core`: the documented Daylight-like subset;
+- `hotpot_extension`: `M`, `Ln`, `An`, `NPn[-m]`, and `NGn[-m]`;
+- two named target-semantics profiles, `FULL_GRAPH` and
+  `LIGAND_SKELETON`;
+- `compatibility_audit`: reference-engine behavior not promised by Hotpot.
 
-Reaction SMARTS, component-level grouping, query serialization, indexing,
-fingerprint prefilters, `maxMatches`, and a chirality option are outside the
-current API.
+Reaction SMARTS, component grouping, query serialization, fingerprint
+prefilters, chirality matching, and a native molecular index are outside the
+current API. Bounded raw-embedding enumeration is available through
+`Searcher.iter_mappings(..., max_matches=n)` and
+`Searcher.search(..., max_matches=n)`; truncation is explicit.
 
-## Target preparation
+## Target preparation and bond metadata
 
-Targets are read through `hotpot.read_mol(text, "smi")`. This path uses Open
-Babel to parse SMILES and populate atomic number, formal charge, aromaticity,
-bond order, and implicit-hydrogen fields. Hotpot then matches its own Atom and
-Bond objects; RDKit objects are not used by the production matcher.
+SMILES and structure files are read through Hotpot's normal readers. Open
+Babel supplies atom identity, charge, aromaticity, numeric bond order, and
+implicit hydrogen perception; the matcher then operates only on Hotpot
+`Molecule`, `Atom`, and `Bond` objects with NetworkX.
 
-Ring membership and ring sizes are derived from `networkx.cycle_basis` through
-`Molecule.rings`. Thus `R<n>` and `r<n>` in fused, bridged, spiro, and cage
-systems are explicitly ring-model-sensitive. Only unambiguous acyclic and
-single-ring cases are core assertions. Polycyclic differences are classified
-as `ring_model_disagreement` until a ring-set contract is selected.
+`Bond.bond_kind` preserves semantic categories separately from numeric order:
+`SINGLE`, `DOUBLE`, `TRIPLE`, `AROMATIC`, `ZERO`, `DATIVE`, and `UNKNOWN`.
+`bond_direction`, `bond_source`, and source metadata are retained where the
+source backend exposes them. No matcher may silently reinterpret `UNKNOWN` as
+single or dative.
 
-Target preprocessing failure is distinct from query rejection and is exposed
-as `OSError` by the current public reader.
+Open Babel 3.1 loses information for MOL2 `du`, `un`, and `nc`: all three are
+reported as numeric order zero with indistinguishable flags. Hotpot therefore
+records them as `BondKind.UNKNOWN`, not `ZERO` or `DATIVE`. A MOL2 bond token
+`1` is perceived as `SINGLE`. This is an input-representation limitation and is
+covered by fixed fixtures; it is not repaired by guessing chemistry.
+
+## Named semantics profiles
+
+The keyword-only `semantics` argument is accepted by
+`Substructure.from_smarts`, `substructure_from_smarts`,
+`parse_bracket_atom`, and `Molecule.search_substructure`. It accepts
+`SmartsSemantics` or its exact string value.
+
+### `FULL_GRAPH`
+
+`FULL_GRAPH` is the default and preserves prior callers:
+
+- `D<n>` is the number of explicit graph neighbours;
+- `X<n>` is that degree plus `Atom.implicit_hydrogens`;
+- `v<n>` is the numeric bond-order sum plus implicit hydrogens;
+- `R`/`R<n>` and `r`/`r<n>` use `Molecule.rings`, whose current ring model is
+  `networkx.cycle_basis`.
+
+Metal--ligand edges therefore affect donor degree/connectivity and may create
+full-graph chelate rings.
+
+### `LIGAND_SKELETON`
+
+`LIGAND_SKELETON` is a non-mutating descriptor view. It does not delete edges
+from the molecule and does not change the graph traversed by `Searcher`:
+
+- for a non-metal atom, `D`, `X`, and `v` exclude bonds for which
+  `Bond.is_metal_ligand_bond` is true;
+- for a metal atom, `D` and `X` retain all incident graph edges, so
+  coordination queries such as `[M;X6]` remain expressible;
+- ligand-profile `v` counts only `SINGLE`, `DOUBLE`, `TRIPLE`, and `AROMATIC`
+  kinds; `DATIVE`, `ZERO`, and `UNKNOWN` contribute zero;
+- `R`/`r` use `Molecule.ligand_rings`, which obtains a cycle basis after
+  filtering metal--ligand edges on a copied graph.
+
+The profile does not rerun hydrogen perception. Both `X` and `v` use the
+existing `Atom.implicit_hydrogens` supplied by the reader. In the frozen
+fixtures Open Babel 3.1 gives a coordinated amine donor zero implicit H from
+MOL2 and one from SDF despite identical numeric bond topology; after removal of
+the metal edge the ligand-profile values are respectively `X3/v3` and
+`X4/v4`.
+
+`Bond.is_metal_ligand_bond` is a topological metal--nonmetal predicate, not a
+claim that every such bond is dative. Consequently this profile intentionally
+describes a ligand skeleton; organometallic covalent semantics may require a
+future separately named profile rather than a Boolean switch.
+
+Recursive `$()` expressions inherit the parent profile. The recursive cache
+signature includes atom state, graph connectivity, numeric order,
+`BondKind`, and aromaticity so metadata changes cannot reuse a stale match.
 
 ## Core atoms and atom expressions
 
-The target core supports element identities, `[#n]`, `*`, `[a]`, `[A]`, formal
-charge, atom maps, `D`, `X`, `v`, `H`, `R`, and `r`.
+The core supports element symbols, `[#n]`, `*`, bare/bracket `a` and `A`,
+formal charge, atom maps, `D`, `X`, `v`, `H`, `R`, `r`, Boolean logic, and
+anchored recursion.
 
-- `D<n>` is the number of explicit graph neighbours.
-- `X<n>` is explicit graph neighbours plus `Atom.implicit_hydrogens`.
-- `v<n>` is the sum of graph bond orders plus implicit hydrogens.
-- `H<n>` in an atom-identity context is explicit graph hydrogens plus implicit
-  hydrogens. A standalone `[H]` is elemental hydrogen.
-- `R` means membership in any Hotpot cycle-basis ring; `R<n>` counts those
-  rings. `R0` means no such ring.
-- `r` means membership in any Hotpot cycle-basis ring; `r<n>` means membership
-  in at least one basis ring of size `n`. The desired core meaning of `r0` is
-  acyclic, although the current implementation does not satisfy it.
-- Atom-map numbers are metadata. They preserve query labels and never constrain
-  a match.
+- `H<n>` in an identity context is explicit plus implicit hydrogen count; a
+  standalone `[H]` denotes elemental hydrogen.
+- `R` means membership in any selected-view cycle-basis ring and `R<n>` counts
+  those rings.
+- `r` means ring membership, `r<n>` means membership in a selected-view basis
+  ring of size `n`, and `r0` means acyclic in that view.
+- atom maps are query metadata and never constrain a match.
 
-Logical precedence is `!` then high-precedence/implicit AND (`&` and adjacent
-primitives), then OR (`,`), then low-precedence AND (`;`). Repeated negation is
-allowed. Recursive `$()` expressions are anchored at query atom zero of the
-recursive query. An empty recursive query is invalid.
-
-Lowercase `h` and ring-connectivity `x` are currently unsupported, not invalid
-syntax. Isotopes and atom chirality `@`/`@@` are also unsupported. Rejection of
-an unsupported feature must remain distinguishable from malformed syntax.
+Logical precedence is `!`, high-precedence/implicit AND (`&` and adjacency),
+OR (`,`), then low-precedence AND (`;`). Empty recursion is invalid.
+Lowercase `h`, ring-connectivity `x`, isotopes, and atom chirality are
+recognized as unsupported and raise `NotImplementedError`.
 
 ## Bonds and graph syntax
 
-Core bond tokens are implicit bond, `-`, `=`, `#`, `:`, `~`, and the currently
-implemented comma-separated bond alternatives. Directional `/` and `\\` bonds,
-ring-bond `@`/`!@`, and general bond negation are unsupported.
+Core bond tokens are implicit bond, `-`, `=`, `#`, `:`, `~`, and implemented
+comma-separated alternatives. Directional `/` and `\\`, ring-bond `@`/`!@`,
+and general bond negation are unsupported.
 
-The intended implicit bond contract is:
+- `-`, `=`, and `#` match exactly `BondKind.SINGLE`, `DOUBLE`, and `TRIPLE`.
+- An implicit aliphatic single uses the same `SINGLE` test; it cannot bypass
+  the `BondKind` contract.
+- `:` matches aromatic bonds and `~` matches every existing edge, including
+  `DATIVE`, `ZERO`, and `UNKNOWN`.
+- Between two explicitly aromatic atoms, an omitted bond requires aromaticity;
+  otherwise the documented implicit default accepts semantic single or
+  aromatic.
 
-- between two explicitly aromatic atoms, require an aromatic bond;
-- otherwise accept a single or aromatic bond, matching the parser's documented
-  Daylight-like default.
-
-Explicit `-`, `=`, and `#` require a non-aromatic bond of the requested order.
-An aromatic bond's internal Kekule order must not make it satisfy an explicit
-single or double query.
-
-Branches, one-digit and `%nn` ring closures, ring-label reuse after closure,
-and dot-separated disconnected queries are core. A query and every dot
-component must contain at least one atom. Leading, trailing, or consecutive
-dots, leading/dangling bonds, empty branches, self-loop ring closures, duplicate
-query edges, and unclosed branches/rings are invalid.
-
-A disconnected query is matched as one disconnected query graph against a
-single Hotpot `Molecule`; no component-level grouping syntax is implemented.
+Branches, one-digit and `%nn` ring closures, ring-label reuse, and disconnected
+dot components are supported. Empty components, leading/dangling bonds, empty
+branches, self-loops, duplicate query edges, and unclosed branches/rings are
+invalid.
 
 ## Hotpot extensions
 
-- `M`: atoms for which Hotpot's `Atom.is_metal` is true.
-- `Ln`: atomic numbers 57 through 71.
-- `An`: atomic numbers 89 through 103.
-- `NPn[-m]`: inclusive period number or period range, bounded to 1 through 7.
-- `NGn[-m]`: inclusive group number or group range, bounded to 1 through 18.
+- `M`: `Atom.is_metal` is true.
+- `Ln`: atomic numbers 57--71.
+- `An`: atomic numbers 89--103.
+- `NPn[-m]`: inclusive period or period range, bounded to 1--7.
+- `NGn[-m]`: inclusive group or group range, bounded to 1--18.
 
-These strings must not be fed directly to RDKit as an oracle: several are
-valid RDKit expressions with unrelated meanings. Extension truth is checked
-against Hotpot element metadata and frozen atomic-number sets.
+These extensions must not be sent directly to another toolkit as an oracle:
+some strings have different meanings there.
 
 ## Enumeration and result identity
 
-An embedding is a tuple of target atom indices in query-atom order. Sorting is
-allowed only across the outer collection; indices inside an embedding are not
-sorted. A target atom set is a separate, order-free `frozenset`.
+An embedding maps query indices to target indices. `Searcher.search` groups
+query automorphisms with the same target atom set into one `Hit`, while
+`Hit.mappings` retains all read-only mappings. `Hit.bonds` contains only target
+bonds corresponding to query edges; `Hit.induced_bonds` separately exposes all
+target edges induced by the hit atoms.
 
-`Searcher.search` currently groups all raw query automorphisms that have the
-same target atom set into one `Hit`. `Hit.mappings` retains the read-only
-query-index-to-target-index mappings. The intended meaning of `Hit.bonds` is the
-target bonds corresponding to query edges; the current induced-subgraph
-behavior is tracked as a contract defect.
+`Searcher.has_match` is the existence fast path. `iter_mappings` streams raw
+embeddings, and `max_matches` bounds raw embeddings rather than unique grouped
+hits. `Hits.truncated` reports whether more mappings existed; truncation is
+never silent.
 
-The API currently enumerates eagerly and has no truncation flag or result
-limit. The adapter reports these capabilities as unsupported rather than
-inventing values. A test-only batch adapter is a deterministic linear scan and
-is not represented as a native index.
+## MCA applicability boundary
+
+MCA nucleophilic-site rules compile with `LIGAND_SKELETON`, allowing organic
+motifs to be interpreted independently of coordination-induced degree and ring
+changes. Site eligibility is a separate model-domain policy: metal centres and
+atoms directly bound to a metal are excluded from `Molecule.mca_sites`.
+Per-atom MCA inference may still populate `Atom.mca`; that does not certify the
+atom as a reliable site.
 
 ## Error contract
 
-- malformed query text: `ValueError` during lexing or query compilation;
-- recognized but unsupported feature: `NotImplementedError`;
-- invalid target input: `OSError` during target preparation;
-- unknown exceptions: propagated by the conformance adapter and treated as
-  crashes, never converted to a successful result.
+- malformed query text: `SmartsSyntaxError`, a `ValueError` subclass;
+- recognized unsupported syntax: `UnsupportedSmartsError`, a
+  `NotImplementedError` subclass;
+- invalid target input: target-reader error, currently normally `OSError`;
+- unknown exceptions: propagated, never converted to a successful match.
 
-Diagnostics are compared by stable phase and exception type. Exact prose is
-recorded for evidence but is not a compatibility guarantee.
-When a current parser diagnostic explicitly contains a position, the test
-adapter reports it as a zero-based character offset; otherwise
-`error_position` is `None` rather than an invented location.
+## Current conformance status
 
-## Known deviations under test
+At revision `7b262a9`, the strict `smarts_core` suite passes on Python 3.9 and
+3.14: **252 passed** on each interpreter. The deterministic corpus contains
+**1,332/1,332 passing cases** and `corpus/known_mismatches.json` is empty.
+These numbers describe the scoped SMARTS suite, not all repository tests.
 
-The conformance audit currently covers, without fixing, empty queries and empty
-components, leading bonds, self/duplicate ring edges, empty recursion,
-uncontrolled `IndexError`, bare `a`/`A`, standard element-token prefix
-collisions, lowercase `h`, explicit bonds matching aromatic bonds, `r0`, induced
-`Hit.bonds`, and eager factorial enumeration. Polycyclic `R<n>/r<n>` cases and
-ambiguous hydrogen syntax are reported separately as dialect/model questions.
+Polycyclic cycle-basis behavior, Open Babel aromaticity/hydrogen perception,
+MOL2 coordination-token loss, unsupported SMARTS features, and the deliberate
+ligand-skeleton treatment of organometallic bonds remain documented boundaries,
+not hidden fallbacks.

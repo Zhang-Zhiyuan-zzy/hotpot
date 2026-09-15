@@ -30,9 +30,9 @@ def _sites(smiles):
         ("C=C=[N-]", ((0, "Cyanoalkyl/nitrile anion"), (2, "anion_with_charge_minus1"), (1, "double_bond"))),
         ("CC#N", ((2, "Nitrile"), (1, "triple_bond"))),
         ("[C-]#[N+]C", ((0, "Isonitrile"), (1, "atom_with_lone_pair"))),
-        ("Oc1ccccc1", ((0, "Phenol"), (1, "double_bond"), (2, "double_bond"), (3, "double_bond"), (4, "double_bond"))),
+        ("Oc1ccccc1", ((0, "Phenol"),)),
         ("CO[Si](C)(C)C", ((1, "Silyl_ether"),)),
-        ("n1ccccc1", ((0, "Pyridine_like_nitrogen"), (1, "double_bond"), (2, "double_bond"), (3, "double_bond"))),
+        ("n1ccccc1", ((0, "Pyridine_like_nitrogen"),)),
         ("[O-]", ((0, "anion_with_charge_minus1"),)),
         ("C=C", ((0, "double_bond"),)),
         ("C=[N+](C)C", ((0, "double_bond_neighbouratom_with_charge_plus1"), (1, "atom_with_lone_pair"))),
@@ -55,8 +55,8 @@ def test_first_matching_rule_has_priority_over_generic_rules():
 @pytest.mark.parametrize(
     ("smiles", "expected"),
     (
-        ("c1ccccc1", ((0, "double_bond"),)),
-        ("n1ccccc1", ((0, "Pyridine_like_nitrogen"), (1, "double_bond"), (2, "double_bond"), (3, "double_bond"))),
+        ("c1ccccc1", ()),
+        ("n1ccccc1", ((0, "Pyridine_like_nitrogen"),)),
         ("NCCN", ((0, "Amine"),)),
         ("NCCCN(C)", ((0, "Amine"), (4, "Amine"))),
     ),

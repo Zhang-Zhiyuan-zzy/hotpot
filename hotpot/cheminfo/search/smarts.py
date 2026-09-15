@@ -15,23 +15,15 @@ from typing import Callable, Dict, List, Optional, Set, Tuple
 from weakref import WeakKeyDictionary
 
 from networkx.algorithms import isomorphism
-from openbabel import openbabel as ob
 
+from ._smarts_syntax import (
+    AROMATIC_LOWER,
+    TokenType,
+    atomic_number as _atomic_number,
+    tokenize,
+)
+from .errors import SmartsSyntaxError, UnsupportedSmartsError
 from .search import QueryAtom, Searcher, Substructure
-
-
-class TokenType(str, Enum):
-    ATOM = "ATOM"
-    BRACKET = "BRACKET"
-    BOND = "BOND"
-    BRANCH_L = "BRANCH_L"
-    BRANCH_R = "BRANCH_R"
-    RING = "RING"
-    DOT = "DOT"
-
-
-BOND_CHARS: Set[str] = {"-", "=", "#", ":", "/", "\\", "~"}
-AROMATIC_LOWER: Set[str] = {"b", "c", "n", "o", "p", "s", "se", "as"}
 
 METAL_TOKEN = "M"
 LANTHANIDE_TOKEN = "Ln"
@@ -151,43 +143,6 @@ def _molecule_search_signature(mol: object) -> Tuple[object, ...]:
     return atoms, bonds
 
 
-def tokenize(smarts: str) -> List[Tuple[TokenType, str]]:
-    """Tokenize graph-level SMARTS syntax."""
-    tokens: List[Tuple[TokenType, str]] = []
-    index = 0
-    while index < len(smarts):
-        char = smarts[index]
-        if char.isspace():
-            index += 1
-        elif char == "[":
-            closing = _find_closing_bracket_index(smarts, index)
-            tokens.append((TokenType.BRACKET, smarts[index : closing + 1]))
-            index = closing + 1
-        elif char == "(":
-            tokens.append((TokenType.BRANCH_L, char))
-            index += 1
-        elif char == ")":
-            tokens.append((TokenType.BRANCH_R, char))
-            index += 1
-        elif char == ".":
-            tokens.append((TokenType.DOT, char))
-            index += 1
-        elif char in BOND_CHARS:
-            bond, index = _read_bond_token(smarts, index)
-            tokens.append((TokenType.BOND, bond))
-        elif char.isdigit() or _is_multi_digit_ring_start(smarts, index):
-            ring, index = _read_ring_token(smarts, index)
-            tokens.append((TokenType.RING, ring))
-        elif char.isalpha() or char == ANY_ATOM_TOKEN:
-            atom, index = _read_atom_token(smarts, index)
-            tokens.append((TokenType.ATOM, atom))
-        else:
-            raise ValueError(
-                f"Unsupported character in SMARTS: {char!r} at position {index}"
-            )
-    return tokens
-
-
 def parse_bracket_atom(expr_text: str) -> Dict[str, object]:
     """Compile a bracket atom into constraints accepted by ``QueryAtom``.
 
@@ -203,12 +158,12 @@ def substructure_from_smarts(smarts: str) -> Substructure:
     """Build a :class:`Substructure` without leaving Hotpot's graph backend."""
     tokens = tokenize(smarts)
     if not tokens:
-        raise ValueError("SMARTS query must contain at least one atom")
+        raise SmartsSyntaxError("SMARTS query must contain at least one atom")
 
     substructure = Substructure()
-    ring_anchors: Dict[
-        str, List[Tuple[int, Optional[Dict[str, object]]]]
-    ] = defaultdict(list)
+    ring_anchors: Dict[str, List[Tuple[int, Optional[Dict[str, object]]]]] = (
+        defaultdict(list)
+    )
     branch_stack: List[Tuple[int, int]] = []
     last_atom_index: Optional[int] = None
     pending_bond_attrs: Optional[Dict[str, object]] = None
@@ -233,29 +188,37 @@ def substructure_from_smarts(smarts: str) -> Substructure:
             component_has_atom = True
         elif token_type == TokenType.BOND:
             if last_atom_index is None:
-                raise ValueError(f"Bond expression must follow an atom: {smarts}")
+                raise SmartsSyntaxError(
+                    f"Bond expression must follow an atom: {smarts}"
+                )
             if pending_bond_attrs is not None:
-                raise ValueError(f"Consecutive bond expressions in SMARTS: {smarts}")
+                raise SmartsSyntaxError(
+                    f"Consecutive bond expressions in SMARTS: {smarts}"
+                )
             pending_bond_attrs = _bond_attrs_for_symbol(token_text)
         elif token_type == TokenType.BRANCH_L:
             if last_atom_index is None:
-                raise ValueError(f"Branch '(' must follow an atom: {smarts}")
+                raise SmartsSyntaxError(f"Branch '(' must follow an atom: {smarts}")
             if pending_bond_attrs is not None:
-                raise ValueError(f"Bond expression cannot precede a branch: {smarts}")
+                raise SmartsSyntaxError(
+                    f"Bond expression cannot precede a branch: {smarts}"
+                )
             branch_stack.append((last_atom_index, len(substructure.query_atoms)))
         elif token_type == TokenType.BRANCH_R:
             if not branch_stack:
-                raise ValueError(f"Unmatched ')' in SMARTS: {smarts}")
+                raise SmartsSyntaxError(f"Unmatched ')' in SMARTS: {smarts}")
             branch_anchor, atom_count = branch_stack.pop()
             if len(substructure.query_atoms) == atom_count:
-                raise ValueError(f"Empty branch in SMARTS: {smarts}")
+                raise SmartsSyntaxError(f"Empty branch in SMARTS: {smarts}")
             if pending_bond_attrs is not None:
-                raise ValueError(f"Bond expression must be followed by an atom: {smarts}")
+                raise SmartsSyntaxError(
+                    f"Bond expression must be followed by an atom: {smarts}"
+                )
             last_atom_index = branch_anchor
             pending_bond_attrs = None
         elif token_type == TokenType.RING:
             if last_atom_index is None:
-                raise ValueError(f"Ring label must follow an atom: {smarts}")
+                raise SmartsSyntaxError(f"Ring label must follow an atom: {smarts}")
             pending_bond_attrs = _connect_or_anchor_ring(
                 substructure,
                 ring_anchors,
@@ -265,106 +228,41 @@ def substructure_from_smarts(smarts: str) -> Substructure:
             )
         elif token_type == TokenType.DOT:
             if branch_stack:
-                raise ValueError(f"Dot is not allowed inside a branch: {smarts}")
+                raise SmartsSyntaxError(f"Dot is not allowed inside a branch: {smarts}")
             if not component_has_atom:
-                raise ValueError(f"Empty component in SMARTS: {smarts}")
+                raise SmartsSyntaxError(f"Empty component in SMARTS: {smarts}")
             if pending_bond_attrs is not None:
-                raise ValueError(f"Bond expression must be followed by an atom: {smarts}")
+                raise SmartsSyntaxError(
+                    f"Bond expression must be followed by an atom: {smarts}"
+                )
             last_atom_index = None
             pending_bond_attrs = None
             component_has_atom = False
 
     if branch_stack:
-        raise ValueError(f"Unclosed '(' in SMARTS: {smarts}")
+        raise SmartsSyntaxError(f"Unclosed '(' in SMARTS: {smarts}")
     if pending_bond_attrs is not None:
-        raise ValueError(f"Bond expression must be followed by an atom: {smarts}")
+        raise SmartsSyntaxError(
+            f"Bond expression must be followed by an atom: {smarts}"
+        )
     if any(anchors for anchors in ring_anchors.values()):
         labels = [label for label, anchors in ring_anchors.items() if anchors]
-        raise ValueError(f"Unclosed ring label(s) {labels} in SMARTS: {smarts}")
+        raise SmartsSyntaxError(f"Unclosed ring label(s) {labels} in SMARTS: {smarts}")
     if not component_has_atom:
-        raise ValueError(f"Empty component in SMARTS: {smarts}")
+        raise SmartsSyntaxError(f"Empty component in SMARTS: {smarts}")
     return substructure
-
-
-def _find_closing_bracket_index(text: str, start_index: int) -> int:
-    square_depth = 1
-    paren_depth = 0
-    index = start_index + 1
-    while index < len(text):
-        char = text[index]
-        if char == "(":
-            paren_depth += 1
-        elif char == ")":
-            paren_depth -= 1
-            if paren_depth < 0:
-                raise ValueError(f"Unmatched ')' in bracket atom: {text}")
-        elif char == "[":
-            if paren_depth == 0:
-                raise ValueError(
-                    f"Nested '[' is only valid in recursive SMARTS: {text}"
-                )
-            square_depth += 1
-        elif char == "]":
-            square_depth -= 1
-            if square_depth == 0:
-                return index
-        index += 1
-    raise ValueError(f"Unclosed '[' in SMARTS: {text}")
-
-
-def _read_bond_token(smarts: str, index: int) -> Tuple[str, int]:
-    parts = [smarts[index]]
-    index += 1
-    while index < len(smarts) and smarts[index] == ",":
-        if index + 1 >= len(smarts) or smarts[index + 1] not in BOND_CHARS:
-            raise ValueError(f"Malformed bond OR expression in SMARTS: {smarts}")
-        parts.extend((",", smarts[index + 1]))
-        index += 2
-    return "".join(parts), index
-
-
-def _is_multi_digit_ring_start(smarts: str, index: int) -> bool:
-    return (
-        smarts[index] == "%"
-        and len(smarts[index + 1 : index + 3]) == 2
-        and smarts[index + 1 : index + 3].isdigit()
-    )
-
-
-def _read_ring_token(smarts: str, index: int) -> Tuple[str, int]:
-    if smarts[index] == "%":
-        end = index + 1
-        while end < len(smarts) and smarts[end].isdigit():
-            end += 1
-        return smarts[index:end], end
-    return smarts[index], index + 1
-
-
-def _read_atom_token(smarts: str, index: int) -> Tuple[str, int]:
-    if smarts[index] == ANY_ATOM_TOKEN:
-        return ANY_ATOM_TOKEN, index + 1
-    char = smarts[index]
-    if char.isupper() and index + 1 < len(smarts):
-        candidate = smarts[index : index + 2]
-        if smarts[index + 1].islower() and ob.GetAtomicNum(candidate):
-            return candidate, index + 2
-    if char.islower() and index + 1 < len(smarts):
-        candidate = smarts[index : index + 2]
-        if candidate in AROMATIC_LOWER:
-            return candidate, index + 2
-    return char, index + 1
 
 
 def _compile_bracket_atom(
     expr_text: str,
 ) -> Tuple[_AtomExpression, Optional[int], Optional[bool]]:
     if not expr_text.startswith("[") or not expr_text.endswith("]"):
-        raise ValueError(
+        raise SmartsSyntaxError(
             f"Bracket atom must start with '[' and end with ']': {expr_text!r}"
         )
     inner, map_number = _extract_atom_map(expr_text[1:-1].strip())
     if not inner:
-        raise ValueError("Empty SMARTS bracket atom")
+        raise SmartsSyntaxError("Empty SMARTS bracket atom")
     expression = _parse_low_and(inner)
     aromatic_hint = (
         next(iter(expression.aromatic_states))
@@ -433,7 +331,9 @@ def _parse_high_and(expr: str, identity_context: bool = False) -> _AtomExpressio
                 negate = not negate
                 index += 1
             if index == len(chunk):
-                raise ValueError(f"Missing operand after '!' in atom expression {expr!r}")
+                raise SmartsSyntaxError(
+                    f"Missing operand after '!' in atom expression {expr!r}"
+                )
             primitive, index, is_identity = _parse_atom_primitive(
                 chunk, index, identity_seen
             )
@@ -456,7 +356,7 @@ def _contains_non_hydrogen_identity(expr: str) -> bool:
                 (candidate[0].isupper() and candidate[1].islower())
                 or candidate in AROMATIC_LOWER
             )
-            and ob.GetAtomicNum(candidate.capitalize())
+            and _atomic_number(candidate.capitalize())
         ):
             return True
         if expr.startswith("$(", index):
@@ -500,7 +400,9 @@ def _split_top_level(expr: str, separator: str) -> List[str]:
             start = index + 1
     parts.append(expr[start:].strip())
     if any(not part for part in parts):
-        raise ValueError(f"Empty operand around {separator!r} in atom expression {expr!r}")
+        raise SmartsSyntaxError(
+            f"Empty operand around {separator!r} in atom expression {expr!r}"
+        )
     return parts
 
 
@@ -511,12 +413,12 @@ def _parse_atom_primitive(
         end = _find_balanced_parenthesis(expr, index + 1)
         recursive_smarts = expr[index + 2 : end]
         if not recursive_smarts.strip():
-            raise ValueError("Recursive SMARTS body must contain an atom")
+            raise SmartsSyntaxError("Recursive SMARTS body must contain an atom")
         recursive = _RecursivePredicate(recursive_smarts)
         return _AtomExpression(recursive, repr(recursive)), end + 1, False
 
     if index >= len(expr):
-        raise ValueError(f"Missing atom primitive in {expr!r}")
+        raise SmartsSyntaxError(f"Missing atom primitive in {expr!r}")
 
     candidate = expr[index : index + 2]
     if (
@@ -525,9 +427,9 @@ def _parse_atom_primitive(
             (candidate[0].isupper() and candidate[1].islower())
             or candidate in AROMATIC_LOWER
         )
-        and ob.GetAtomicNum(candidate.capitalize())
+        and _atomic_number(candidate.capitalize())
     ):
-        atomic_number = ob.GetAtomicNum(candidate.capitalize())
+        atomic_number = _atomic_number(candidate.capitalize())
         aromatic = candidate.islower()
         return (
             _combine_and(
@@ -551,7 +453,7 @@ def _parse_atom_primitive(
 
     char = expr[index]
     if char in "hx":
-        raise NotImplementedError(
+        raise UnsupportedSmartsError(
             f"SMARTS atom primitive {char!r} is not implemented"
         )
     if char == ANY_ATOM_TOKEN:
@@ -559,7 +461,7 @@ def _parse_atom_primitive(
     if char == "#":
         match = re.match(r"#(\d+)", expr[index:])
         if match is None:
-            raise ValueError(f"Malformed atomic number in {expr!r}")
+            raise SmartsSyntaxError(f"Malformed atomic number in {expr!r}")
         number = int(match.group(1))
         return (
             _equals("atomic_number", number, f"#{number}"),
@@ -570,7 +472,9 @@ def _parse_atom_primitive(
         charge, end = _read_charge(expr, index)
         return _equals("formal_charge", charge, f"charge={charge}"), end, False
     if char == "@":
-        raise NotImplementedError("SMARTS atom chirality '@'/'@@' is not implemented")
+        raise UnsupportedSmartsError(
+            "SMARTS atom chirality '@'/'@@' is not implemented"
+        )
     if char in "DXvRr":
         return _parse_numeric_atom_primitive(expr, index)
     if char == "H" and (
@@ -582,12 +486,12 @@ def _parse_atom_primitive(
     if char == "A":
         return _equals("is_aromatic", False, "A", {False}), index + 1, True
     if char.isdigit():
-        raise NotImplementedError("SMARTS isotope matching is not implemented")
+        raise UnsupportedSmartsError("SMARTS isotope matching is not implemented")
     if char.isalpha():
         symbol, end = _read_element_in_expression(expr, index)
-        atomic_number = ob.GetAtomicNum(symbol.capitalize())
+        atomic_number = _atomic_number(symbol.capitalize())
         if not atomic_number:
-            raise ValueError(f"Unknown atom primitive {symbol!r} in {expr!r}")
+            raise SmartsSyntaxError(f"Unknown atom primitive {symbol!r} in {expr!r}")
         aromatic = symbol.islower()
         return (
             _combine_and(
@@ -604,7 +508,7 @@ def _parse_atom_primitive(
             end,
             True,
         )
-    raise ValueError(f"Unsupported atom primitive at {expr[index:]!r}")
+    raise SmartsSyntaxError(f"Unsupported atom primitive at {expr[index:]!r}")
 
 
 def _parse_hotpot_extension(
@@ -614,16 +518,15 @@ def _parse_hotpot_extension(
     if remaining.startswith(PERIOD_PREFIX):
         match = re.match(r"NP(\d+)(?:-(\d+))?", remaining)
         if match is None:
-            raise ValueError("Hotpot period extension requires a period number")
+            raise SmartsSyntaxError("Hotpot period extension requires a period number")
         values = _integer_range(match.group(1), match.group(2))
         if not values or min(values) < 1 or max(values) > 7:
-            raise ValueError("Hotpot period extension must be within 1-7")
+            raise SmartsSyntaxError("Hotpot period extension must be within 1-7")
         return (
             _atom_predicate(
-                lambda atom, allowed=frozenset(values): _period_number(
-                    atom.atomic_number
-                )
-                in allowed,
+                lambda atom, allowed=frozenset(values): (
+                    _period_number(atom.atomic_number) in allowed
+                ),
                 f"NP{min(values)}-{max(values)}",
             ),
             index + len(match.group(0)),
@@ -632,10 +535,10 @@ def _parse_hotpot_extension(
     if remaining.startswith(GROUP_PREFIX):
         match = re.match(r"NG(\d+)(?:-(\d+))?", remaining)
         if match is None:
-            raise ValueError("Hotpot group extension requires a group number")
+            raise SmartsSyntaxError("Hotpot group extension requires a group number")
         values = _integer_range(match.group(1), match.group(2))
         if not values or min(values) < 1 or max(values) > 18:
-            raise ValueError("Hotpot group extension must be within 1-18")
+            raise SmartsSyntaxError("Hotpot group extension must be within 1-18")
         return (
             _in_values("group", values, f"NG{min(values)}-{max(values)}"),
             index + len(match.group(0)),
@@ -650,7 +553,7 @@ def _parse_hotpot_extension(
     if remaining.startswith(METAL_TOKEN):
         next_char = remaining[1:2]
         candidate = remaining[:2]
-        if not (next_char.islower() and ob.GetAtomicNum(candidate)):
+        if not (next_char.islower() and _atomic_number(candidate)):
             return _equals("is_metal", True, METAL_TOKEN), index + 1, True
     return None
 
@@ -665,7 +568,9 @@ def _parse_numeric_atom_primitive(
     if code == "D":
         value = int(digits) if digits else 1
         return (
-            _atom_predicate(lambda atom, n=value: len(atom.neighbours) == n, f"D{value}"),
+            _atom_predicate(
+                lambda atom, n=value: len(atom.neighbours) == n, f"D{value}"
+            ),
             end,
             False,
         )
@@ -673,7 +578,9 @@ def _parse_numeric_atom_primitive(
         value = int(digits) if digits else 1
         return (
             _atom_predicate(
-                lambda atom, n=value: len(atom.neighbours) + atom.implicit_hydrogens == n,
+                lambda atom, n=value: (
+                    len(atom.neighbours) + atom.implicit_hydrogens == n
+                ),
                 f"X{value}",
             ),
             end,
@@ -683,7 +590,9 @@ def _parse_numeric_atom_primitive(
         value = int(digits) if digits else 1
         return (
             _atom_predicate(
-                lambda atom, n=value: atom.sum_bond_orders + atom.implicit_hydrogens == n,
+                lambda atom, n=value: (
+                    atom.sum_bond_orders + atom.implicit_hydrogens == n
+                ),
                 f"v{value}",
             ),
             end,
@@ -725,7 +634,9 @@ def _parse_hydrogen_primitive(
     end = index + len(match.group(0))
     return (
         _atom_predicate(
-            lambda atom, n=count: atom.explicit_hydrogens + atom.implicit_hydrogens == n,
+            lambda atom, n=count: (
+                atom.explicit_hydrogens + atom.implicit_hydrogens == n
+            ),
             f"H{count}",
         ),
         end,
@@ -744,13 +655,13 @@ def _find_balanced_parenthesis(expr: str, opening_index: int) -> int:
             if depth == 0:
                 return index
         index += 1
-    raise ValueError(f"Unclosed recursive SMARTS in {expr!r}")
+    raise SmartsSyntaxError(f"Unclosed recursive SMARTS in {expr!r}")
 
 
 def _read_element_in_expression(expr: str, index: int) -> Tuple[str, int]:
     if index + 1 < len(expr) and expr[index + 1].islower():
         candidate = expr[index : index + 2]
-        if ob.GetAtomicNum(candidate.capitalize()):
+        if _atomic_number(candidate.capitalize()):
             return candidate, index + 2
     return expr[index], index + 1
 
@@ -863,7 +774,9 @@ def _create_query_atom_from_token(
     return _create_query_atom_from_symbol(substructure, text)
 
 
-def _create_query_atom_from_symbol(substructure: Substructure, symbol: str) -> QueryAtom:
+def _create_query_atom_from_symbol(
+    substructure: Substructure, symbol: str
+) -> QueryAtom:
     if symbol == ANY_ATOM_TOKEN:
         query_atom = QueryAtom(sub=substructure)
         query_atom._smarts_aromatic = None
@@ -877,7 +790,7 @@ def _create_query_atom_from_symbol(substructure: Substructure, symbol: str) -> Q
         query_atom._smarts_aromatic = False
         return query_atom
     if symbol.lower() in AROMATIC_LOWER and symbol.islower():
-        atomic_number = ob.GetAtomicNum(symbol.capitalize())
+        atomic_number = _atomic_number(symbol.capitalize())
         query_atom = QueryAtom(
             sub=substructure,
             atomic_number={atomic_number},
@@ -885,9 +798,9 @@ def _create_query_atom_from_symbol(substructure: Substructure, symbol: str) -> Q
         )
         query_atom._smarts_aromatic = True
         return query_atom
-    atomic_number = ob.GetAtomicNum(symbol)
+    atomic_number = _atomic_number(symbol)
     if not atomic_number:
-        raise ValueError(f"Unknown atom symbol in SMARTS: {symbol!r}")
+        raise SmartsSyntaxError(f"Unknown atom symbol in SMARTS: {symbol!r}")
     query_atom = QueryAtom(
         sub=substructure,
         atomic_number={atomic_number},
@@ -900,7 +813,9 @@ def _create_query_atom_from_symbol(substructure: Substructure, symbol: str) -> Q
 def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
     alternatives = symbol.split(",")
     if any(token in {UP_BOND_TOKEN, DOWN_BOND_TOKEN} for token in alternatives):
-        raise NotImplementedError("SMARTS directional bonds '/' and '\\' are not implemented")
+        raise UnsupportedSmartsError(
+            "SMARTS directional bonds '/' and '\\' are not implemented"
+        )
     if len(alternatives) == 1:
         token = alternatives[0]
         if token == SINGLE_BOND_TOKEN:
@@ -922,7 +837,7 @@ def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
             return {"is_aromatic": {True}}
         if token == ANY_BOND_TOKEN:
             return {}
-        raise ValueError(f"Unsupported bond symbol: {symbol}")
+        raise SmartsSyntaxError(f"Unsupported bond symbol: {symbol}")
     predicates = tuple(_bond_predicate(token) for token in alternatives)
     return {
         "predicate": _Predicate(
@@ -934,7 +849,9 @@ def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
 
 def _bond_predicate(symbol: str) -> Callable[[object], bool]:
     if symbol in {UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
-        raise NotImplementedError("SMARTS directional bonds '/' and '\\' are not implemented")
+        raise UnsupportedSmartsError(
+            "SMARTS directional bonds '/' and '\\' are not implemented"
+        )
     if symbol == SINGLE_BOND_TOKEN:
         return lambda bond: (
             bond.bond_order == BondOrder.SINGLE.value and not bond.is_aromatic
@@ -951,7 +868,7 @@ def _bond_predicate(symbol: str) -> Callable[[object], bool]:
         return lambda bond: bond.is_aromatic
     if symbol == ANY_BOND_TOKEN:
         return lambda bond: True
-    raise ValueError(f"Unsupported bond symbol: {symbol}")
+    raise SmartsSyntaxError(f"Unsupported bond symbol: {symbol}")
 
 
 def _get_aromatic_flag(query_atom: QueryAtom) -> AromaticFlag:
@@ -1000,14 +917,16 @@ def _connect_or_anchor_ring(
         return None
     start_index, opening_bond_attrs = anchors.pop()
     if start_index == current_atom_index:
-        raise ValueError(f"Ring label {ring_label} creates a self-loop")
+        raise SmartsSyntaxError(f"Ring label {ring_label} creates a self-loop")
     if any(
         {bond.a1idx, bond.a2idx} == {start_index, current_atom_index}
         for bond in substructure.query_bonds
     ):
-        raise ValueError(f"Ring label {ring_label} creates a duplicate edge")
+        raise SmartsSyntaxError(f"Ring label {ring_label} creates a duplicate edge")
     if opening_bond_attrs is not None and pending_bond_attrs is not None:
-        raise ValueError(f"Ring bond specified at both ends of label {ring_label}")
+        raise SmartsSyntaxError(
+            f"Ring bond specified at both ends of label {ring_label}"
+        )
     explicit_attrs = pending_bond_attrs or opening_bond_attrs
     bond_attrs = _infer_bond_attrs(
         substructure.query_atoms[start_index],

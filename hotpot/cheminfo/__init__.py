@@ -7,7 +7,7 @@ python v3.9.0
 @Time   : 17:23
 """
 from ._io import MolReader, MolWriter
-from .core import Molecule, Atom, Bond
+from .core import Molecule, Atom, Bond, BondKind
 from .bundle import MolBundle, to_pyg_dataset
 from .core_utils import read_mol
 from .convert import is_molecule_input, to_hotpot_mol
@@ -15,4 +15,3 @@ from .mol_assemble import *
 
 from .mol_statistics import ComplexStatistics
 from .search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
-

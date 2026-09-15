@@ -36,10 +36,36 @@ def write_obmol_to_string(obmol: ob.OBMol, fmt='smi', **kwargs):
 
 
 def _retrieve_bonds_attrs_from_obmol(obmol: ob.OBMol, i2r: dict[int, int]) -> dict[tuple[int, int], dict[str, Any]]:
-    return {
-        (i2r[obb.GetBeginAtomIdx()], i2r[obb.GetEndAtomIdx()]): {"bond_order": obb.GetBondOrder()}
-        for obb in ob.OBMolBondIter(obmol)
-    }
+    bond_attrs = {}
+    for obb in ob.OBMolBondIter(obmol):
+        bond_order = obb.GetBondOrder()
+        if bond_order == 0:
+            bond_kind = "unknown"
+        elif obb.IsAromatic():
+            bond_kind = "aromatic"
+        else:
+            bond_kind = {
+                1: "single",
+                2: "double",
+                3: "triple",
+            }.get(bond_order, "unknown")
+
+        bond_attrs[(i2r[obb.GetBeginAtomIdx()], i2r[obb.GetEndAtomIdx()])] = {
+            "bond_order": bond_order,
+            "bond_kind": bond_kind,
+            "bond_direction": None,
+            "bond_source": "openbabel",
+            "bond_source_metadata": {
+                "raw_bond_order": bond_order,
+                "raw_flags": int(obb.GetFlags()),
+                "is_aromatic": bool(obb.IsAromatic()),
+                "is_amide": bool(obb.IsAmide()),
+                "is_in_ring": bool(obb.IsInRing()),
+                "is_wedge": bool(obb.IsWedge()),
+                "is_hash": bool(obb.IsHash()),
+            },
+        }
+    return bond_attrs
 
 
 def _add_mol_bonds_from_obmol(mol, obmol, idx_to_row):
@@ -107,6 +133,10 @@ def mol2obmol(mol):
         row_to_idx[i] = oba.GetIdx()
 
     for bond in mol.bonds:
+        if bond.bond_kind.value == "dative":
+            raise ValueError(
+                "Open Babel cannot represent dative bonds losslessly"
+            )
         begin_atom_idx, end_atom_idx, bond_order = bond.atom1.idx, bond.atom2.idx, bond.bond_order
         obmol.AddBond(
             row_to_idx[begin_atom_idx],
@@ -116,7 +146,9 @@ def mol2obmol(mol):
         obb = obmol.GetBond(row_to_idx[begin_atom_idx], row_to_idx[end_atom_idx])
         if obb:  # TODO: the `obb` might a None, WHY??
             obb.IsAromatic()
-            obb.SetAromatic(bool(bond.is_aromatic))  # Convert to bool
+            obb.SetAromatic(
+                bond.bond_kind.value == "aromatic" or bond.is_aromatic
+            )
             obb.IsAromatic()
 
     # Add UnitCell
@@ -142,7 +174,12 @@ def assign_bond_order(mol):
     obmol.PerceiveBondOrders()
     _bond_attrs: dict[tuple[int, int], dict[str, Any]] = _retrieve_bonds_attrs_from_obmol(obmol, idx_to_row)
     for (a1idx, a2idx), attrs in _bond_attrs.items():
-        mol.bond(a1idx, a2idx).bond_order = attrs['bond_order']
+        bond = mol.bond(a1idx, a2idx)
+        bond.bond_order = attrs['bond_order']
+        bond._set_bond_metadata(**{
+            key: value for key, value in attrs.items()
+            if key != 'bond_order'
+        })
 
 
 def add_hydrogens(mol):

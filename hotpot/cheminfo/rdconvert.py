@@ -21,6 +21,54 @@ _hphyb2rdkithyb = {
     7: rdkit.Chem.rdchem.HybridizationType.OTHER
 }
 
+_RDKIT_DATIVE_BOND_TYPES = frozenset(
+    bond_type for bond_type in (
+        getattr(Chem.BondType, "DATIVE", None),
+        getattr(Chem.BondType, "DATIVEONE", None),
+        getattr(Chem.BondType, "DATIVEL", None),
+        getattr(Chem.BondType, "DATIVER", None),
+    )
+    if bond_type is not None
+)
+
+
+def _rdkit_bond_type(bond):
+    kind_to_type = {
+        "zero": Chem.BondType.ZERO,
+        "single": Chem.BondType.SINGLE,
+        "double": Chem.BondType.DOUBLE,
+        "triple": Chem.BondType.TRIPLE,
+    }
+    if bond.bond_kind.value == "dative":
+        raw_type_name = bond.bond_source_metadata.get("raw_bond_type")
+        raw_type = (
+            getattr(Chem.BondType, raw_type_name, None)
+            if raw_type_name is not None
+            else None
+        )
+        if raw_type in _RDKIT_DATIVE_BOND_TYPES:
+            return raw_type
+        return Chem.BondType.DATIVE
+    if bond.bond_kind.value == "aromatic" or bond.is_aromatic:
+        return Chem.BondType.AROMATIC
+    if bond.bond_kind.value in kind_to_type:
+        return kind_to_type[bond.bond_kind.value]
+    return Chem.BondType.values[bond.bond_order]
+
+
+def _rdkit_bond_kind(bond_type, is_aromatic):
+    if is_aromatic or bond_type == Chem.BondType.AROMATIC:
+        return "aromatic"
+    if bond_type == Chem.BondType.ZERO:
+        return "zero"
+    if bond_type in _RDKIT_DATIVE_BOND_TYPES:
+        return "dative"
+    return {
+        Chem.BondType.SINGLE: "single",
+        Chem.BondType.DOUBLE: "double",
+        Chem.BondType.TRIPLE: "triple",
+    }.get(bond_type, "unknown")
+
 
 def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
     rdmol = Chem.RWMol()
@@ -45,11 +93,22 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
     rdmol.AddConformer(conf)
 
     for bond in mol.bonds:
-        begin_atom_idx, end_atom_idx, bond_order = bond.atom1.idx, bond.atom2.idx, bond.bond_order
+        begin_atom_idx, end_atom_idx = bond.atom1.idx, bond.atom2.idx
+        if bond.bond_kind.value == "dative":
+            if bond.bond_direction is None:
+                raise ValueError(
+                    "RDKit dative-bond export requires a bond direction"
+                )
+            if bond.bond_direction == "atom2_to_atom1":
+                begin_atom_idx, end_atom_idx = end_atom_idx, begin_atom_idx
+            elif bond.bond_direction != "atom1_to_atom2":
+                raise ValueError(
+                    f"Unsupported dative-bond direction: {bond.bond_direction}"
+                )
         rdmol.AddBond(
             row_to_idx[begin_atom_idx],
             row_to_idx[end_atom_idx],
-            Chem.BondType.AROMATIC if bond.is_aromatic else Chem.BondType.values[bond_order]
+            _rdkit_bond_type(bond),
         )
 
     rdmol = rdmol.GetMol()
@@ -66,6 +125,21 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
 def from_rdmol(rdmol, mol):
     """Populate a Hotpot molecule from an RDKit molecule."""
     rdmol = Chem.Mol(rdmol)
+    source_bond_metadata = {
+        bond.GetIdx(): {
+            "raw_bond_type": str(bond.GetBondType()),
+            "raw_bond_type_code": int(bond.GetBondType()),
+            "is_aromatic": bool(bond.GetIsAromatic()),
+            "is_conjugated": bool(bond.GetIsConjugated()),
+            "stereo": str(bond.GetStereo()),
+            "bond_dir": str(bond.GetBondDir()),
+        }
+        for bond in rdmol.GetBonds()
+    }
+    source_bond_types = {
+        bond.GetIdx(): bond.GetBondType()
+        for bond in rdmol.GetBonds()
+    }
     Chem.Kekulize(rdmol)
     conformer = rdmol.GetConformer() if rdmol.GetNumConformers() else None
 
@@ -92,10 +166,23 @@ def from_rdmol(rdmol, mol):
         )
 
     for bond in rdmol.GetBonds():
+        source_bond_type = source_bond_types[bond.GetIdx()]
+        bond_kind = _rdkit_bond_kind(
+            source_bond_type,
+            source_bond_metadata[bond.GetIdx()]["is_aromatic"],
+        )
         mol._add_bond(
             bond.GetBeginAtomIdx(),
             bond.GetEndAtomIdx(),
             bond_order=bond.GetBondTypeAsDouble(),
+            bond_kind=bond_kind,
+            bond_direction=(
+                "atom1_to_atom2"
+                if source_bond_type in _RDKIT_DATIVE_BOND_TYPES
+                else None
+            ),
+            bond_source="rdkit",
+            bond_source_metadata=source_bond_metadata[bond.GetIdx()],
         )
 
     mol._update_graph()

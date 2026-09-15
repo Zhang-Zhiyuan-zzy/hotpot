@@ -13,8 +13,9 @@ import time
 import json
 import operator
 import os.path as osp
+from enum import Enum
 from typing import Union, Literal, Iterable, Optional, Callable
-from copy import copy
+from copy import copy, deepcopy
 from collections import Counter
 from functools import cached_property
 from itertools import combinations, product
@@ -74,6 +75,38 @@ class ObjNotInMolecule(Exception):
         self.mol = mol
         self.message = f"The {obj} not in {mol} molecule"
         super().__init__(self.message)
+
+
+class BondKind(str, Enum):
+    """Semantic bond categories stored separately from numeric bond order."""
+
+    SINGLE = "single"
+    DOUBLE = "double"
+    TRIPLE = "triple"
+    AROMATIC = "aromatic"
+    ZERO = "zero"
+    DATIVE = "dative"
+    UNKNOWN = "unknown"
+
+
+def _bond_kind_from_order(bond_order: float) -> BondKind:
+    return {
+        1.0: BondKind.SINGLE,
+        1.5: BondKind.AROMATIC,
+        2.0: BondKind.DOUBLE,
+        3.0: BondKind.TRIPLE,
+    }.get(float(bond_order), BondKind.UNKNOWN)
+
+
+def _coerce_bond_kind(value, bond_order: float) -> BondKind:
+    if value is None:
+        return _bond_kind_from_order(bond_order)
+    if isinstance(value, BondKind):
+        return value
+    try:
+        return BondKind(value)
+    except ValueError:
+        return BondKind[str(value).upper()]
 
 
 class Molecule:
@@ -1369,10 +1402,11 @@ class Molecule:
                 component._create_atom(**graph.nodes[node_idx])
 
             for edge_begin_idx, edge_end_index in subgraph.edges:
+                source_bond = subgraph.edges[edge_begin_idx, edge_end_index]['bond']
                 component._add_bond(
-                    c_node_idx.index(edge_begin_idx),
-                    c_node_idx.index(edge_end_index),
-                    **subgraph.edges[edge_begin_idx, edge_end_index]['bond'].attr_dict
+                    c_node_idx.index(source_bond.a1idx),
+                    c_node_idx.index(source_bond.a2idx),
+                    **source_bond.attr_dict
                 )
 
             component._update_graph()
@@ -2494,20 +2528,24 @@ class Molecule:
         """
         Retrieve the list of ligand rings associated with the object.
 
-        This property accesses the list of rings, specifically those that
-        are part of metal-ligand bonds. It temporarily hides metal-ligand
-        bonds to facilitate the computation of rings, and then restores them
-        before returning the result.
+        Metal-ligand edges are removed from a filtered graph without changing
+        the molecule, its cached full-graph rings, or its conformers.
 
         @property
             Returns:
                 list[Ring]: A list of Ring objects representing ligand
                 rings associated with the object.
         """
-        self.hide_metal_ligand_bonds()
-        rings = self.rings
-        self.recover_hided_metal_ligand_bonds()
-        return rings
+        ligand_graph = self.graph.copy()
+        ligand_graph.remove_edges_from(
+            (bond.a1idx, bond.a2idx)
+            for bond in self.bonds
+            if bond.is_metal_ligand_bond
+        )
+        return [
+            Ring(*(self._atoms[i] for i in cycle))
+            for cycle in nx.cycle_basis(ligand_graph)
+        ]
 
     def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
         from ..plugins.PyG.data.utils import mol_to_pyg_data
@@ -4583,6 +4621,16 @@ def _bond_order_setter(self: "Bond", key, bond_order):
     assert key == 'bond_order'
     self._default_attr_setter(self, key, bond_order)
 
+    current_kind = getattr(self, '_bond_kind', None)
+    if current_kind in {
+        BondKind.SINGLE,
+        BondKind.DOUBLE,
+        BondKind.TRIPLE,
+        BondKind.AROMATIC,
+        BondKind.UNKNOWN,
+    }:
+        self._bond_kind = _bond_kind_from_order(bond_order)
+
     for atom in self.atoms:
         atom.calc_implicit_hydrogens()
 
@@ -4625,11 +4673,61 @@ class Bond(AtomSeq, MolBlock):
 
     def __init__(self, atom1: Atom, atom2: Atom, **kwargs):
         super().__init__(atom1, atom2)
+        bond_kind = kwargs.pop('bond_kind', None)
+        bond_direction = kwargs.pop('bond_direction', None)
+        bond_source = kwargs.pop('bond_source', None)
+        bond_source_metadata = kwargs.pop('bond_source_metadata', None)
         # self.attrs = np.zeros(len(self._attrs_enumerator))
         self.attrs = np.array([kwargs.pop(a, 0.) for a in self._attrs_enumerator])
+        self._set_bond_metadata(
+            bond_kind=_coerce_bond_kind(bond_kind, self.bond_order),
+            bond_direction=bond_direction,
+            bond_source=bond_source,
+            bond_source_metadata=bond_source_metadata,
+        )
 
         # TODO: This invoke might cause some unexpected bug and error
         self.setattr(**kwargs)  # TODO: it's not recommended to be used to create an new bond obj
+
+    def _set_bond_metadata(
+            self,
+            *,
+            bond_kind,
+            bond_direction=None,
+            bond_source=None,
+            bond_source_metadata=None,
+    ):
+        self._bond_kind = _coerce_bond_kind(bond_kind, self.bond_order)
+        self._bond_direction = bond_direction
+        self._bond_source = bond_source
+        self._bond_source_metadata = deepcopy(bond_source_metadata or {})
+
+    @property
+    def bond_kind(self) -> BondKind:
+        return self._bond_kind
+
+    @property
+    def bond_direction(self) -> Optional[str]:
+        return self._bond_direction
+
+    @property
+    def bond_source(self) -> Optional[str]:
+        return self._bond_source
+
+    @property
+    def bond_source_metadata(self) -> dict:
+        return deepcopy(self._bond_source_metadata)
+
+    @property
+    def attr_dict(self) -> dict:
+        attrs = super().attr_dict
+        attrs.update({
+            'bond_kind': self.bond_kind,
+            'bond_direction': self.bond_direction,
+            'bond_source': self.bond_source,
+            'bond_source_metadata': self.bond_source_metadata,
+        })
+        return attrs
 
     def __repr__(self):
         return MolBlock.__repr__(self)

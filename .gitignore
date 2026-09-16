@@ -13,3 +13,5 @@ hotpot/dataset/lnqm/data
 build/
 hotpot/plugins/xtb/.cache.json
 dist/
+hotpot_zzy.egg-info
+plan/

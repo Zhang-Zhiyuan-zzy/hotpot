@@ -515,10 +515,74 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
     assert len(caught.value.diagnostics.rejected_candidates) == 3
 
 
+def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    failure = ff.geo.GeometryCheck(
+        name="bond_length",
+        passed=False,
+        measured=31.0,
+        threshold=30.0,
+        atom_indices=(0, 1),
+        bond_indices=(0,),
+    )
+
+    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ff,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "find_bond_ring_intersections",
+        lambda *args, **kwargs: (),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        lambda *args, **kwargs: SimpleNamespace(
+            passed=False,
+            failures=(failure,),
+        ),
+    )
+
+    with pytest.raises(ff.ComplexBuildError) as caught:
+        ff._build_ligand_proxies(
+            molecule,
+            candidate_count=1,
+            max_attempts=1,
+            candidate_warmup_steps=1,
+            candidate_score_steps=1,
+            best_candidate_refine_steps=1,
+            effective_forcefield="UFF",
+        )
+
+    rejection = caught.value.diagnostics.rejected_candidates[-1]
+    assert rejection.quality_failures == (failure,)
+    assert "bond_length" in rejection.reason
+    assert "measured=31.0" in rejection.reason
+    assert "threshold=30.0" in rejection.reason
+    assert "atom_indices=(0, 1)" in rejection.reason
+    assert "bond_indices=(0,)" in rejection.reason
+
+
 def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     quality_calls = 0
+    failure = ff.geo.GeometryCheck(
+        name="minimum_distance",
+        passed=False,
+        measured=0.12,
+        threshold=0.40,
+        atom_indices=(0, 1),
+    )
 
     monkeypatch.setattr(ff, "ob_build", lambda current: None)
     monkeypatch.setattr(
@@ -538,7 +602,11 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
     def quality(*args, **kwargs):
         nonlocal quality_calls
         quality_calls += 1
-        return SimpleNamespace(passed=quality_calls == 1)
+        passed = quality_calls == 1
+        return SimpleNamespace(
+            passed=passed,
+            failures=() if passed else (failure,),
+        )
 
     monkeypatch.setattr(ff.geo, "evaluate_geometry_quality", quality)
 
@@ -554,9 +622,12 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
         )
 
     assert quality_calls == 2
-    assert caught.value.diagnostics.rejected_candidates[-1].reason == (
-        "refined candidate geometry gate"
-    )
+    rejection = caught.value.diagnostics.rejected_candidates[-1]
+    assert rejection.quality_failures == (failure,)
+    assert "minimum_distance" in rejection.reason
+    assert "measured=0.12" in rejection.reason
+    assert "threshold=0.4" in rejection.reason
+    assert "atom_indices=(0, 1)" in rejection.reason
 
 
 def test_refinement_tries_the_next_scored_candidate(monkeypatch):
@@ -564,6 +635,13 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
     molecule = _DummyComplex(component)
     state = {"build": 0, "refining": False}
     refined_markers = []
+    failure = ff.geo.GeometryCheck(
+        name="minimum_distance",
+        passed=False,
+        measured=0.10,
+        threshold=0.40,
+        atom_indices=(0, 1),
+    )
 
     def build(current):
         state["build"] += 1
@@ -578,9 +656,13 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
 
     def quality(current, **options):
         if not state["refining"]:
-            return SimpleNamespace(passed=True)
+            return SimpleNamespace(passed=True, failures=())
         state["refining"] = False
-        return SimpleNamespace(passed=float(current.coordinates[0, 0]) == 2.0)
+        passed = float(current.coordinates[0, 0]) == 2.0
+        return SimpleNamespace(
+            passed=passed,
+            failures=() if passed else (failure,),
+        )
 
     monkeypatch.setattr(ff, "ob_build", build)
     monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
@@ -608,7 +690,12 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
     assert diagnostics.rejected_candidates[-1] == ff.CandidateRejection(
         component_index=0,
         attempt=1,
-        reason="refined candidate geometry gate",
+        reason=(
+            "refined candidate geometry gate: "
+            "minimum_distance(measured=0.1, threshold=0.4, "
+            "atom_indices=(0, 1), bond_indices=())"
+        ),
+        quality_failures=(failure,),
     )
 
 

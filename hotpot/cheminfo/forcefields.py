@@ -78,6 +78,7 @@ class CandidateRejection:
     component_index: int
     attempt: int
     reason: str
+    quality_failures: Tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -178,6 +179,18 @@ class GeometryQualityError(ForceFieldError):
             "The generated geometry did not pass the requested quality gate"
         )
         self.report = report
+
+
+def _format_geometry_rejection(prefix: str, report: Any) -> str:
+    """Render failed geometry checks without discarding measured evidence."""
+    details = "; ".join(
+        f"{check.name}(measured={check.measured!r}, "
+        f"threshold={check.threshold!r}, "
+        f"atom_indices={check.atom_indices!r}, "
+        f"bond_indices={check.bond_indices!r})"
+        for check in report.failures
+    )
+    return f"{prefix}: {details}"
 
 
 @dataclass(frozen=True)
@@ -890,7 +903,11 @@ def _build_ligand_proxies(
                     CandidateRejection(
                         component_index,
                         component_attempts,
-                        "candidate geometry gate",
+                        _format_geometry_rejection(
+                            "candidate geometry gate",
+                            candidate_quality,
+                        ),
+                        tuple(candidate_quality.failures),
                     )
                 )
                 continue
@@ -953,14 +970,21 @@ def _build_ligand_proxies(
                 },
             )
             if refined_intersections or not refined_quality.passed:
-                reason = (
-                    "refined candidate bond-ring intersection"
-                    if refined_intersections
-                    else "refined candidate geometry gate"
-                )
-                rejections.append(
-                    CandidateRejection(component_index, attempt, reason)
-                )
+                if refined_intersections:
+                    reason = "refined candidate bond-ring intersection"
+                    failures = ()
+                else:
+                    reason = _format_geometry_rejection(
+                        "refined candidate geometry gate",
+                        refined_quality,
+                    )
+                    failures = tuple(refined_quality.failures)
+                rejections.append(CandidateRejection(
+                    component_index,
+                    attempt,
+                    reason,
+                    failures,
+                ))
                 continue
             refined_candidate_found = True
             break

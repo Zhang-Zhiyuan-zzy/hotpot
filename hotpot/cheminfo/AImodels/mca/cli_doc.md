@@ -7,7 +7,7 @@ important nucleophilic sites selected by Hotpot's curated site-detection rules.
 ## Command synopsis
 
 ```bash
-hotpot mca [options] <SMILES/FILE> [<SMILES/FILE> ...]
+$ hotpot mca [options] <SMILES/FILE> [<SMILES/FILE> ...]
 ```
 
 Each positional input may be a SMILES string or a molecule file. Multiple
@@ -19,7 +19,7 @@ Quote SMILES strings to prevent the shell from interpreting special
 characters:
 
 ```bash
-hotpot mca 'c1ccccc1CN'
+$ hotpot mca 'c1ccccc1CN'
 ```
 
 The table contains a one-based atom number, element, predicted MCA and the
@@ -40,7 +40,7 @@ atoms receive values regardless of site classification.
 Pass several SMILES strings as positional arguments:
 
 ```bash
-hotpot mca 'CN' 'CCO' 'c1ccccc1N'
+$ hotpot mca 'CN' 'CCO' 'c1ccccc1N'
 ```
 
 Alternatively, provide a SMILES file with one record per line. An optional
@@ -53,7 +53,7 @@ c1ccccc1N aniline
 ```
 
 ```bash
-hotpot mca molecules.smi -o results.txt
+$ hotpot mca molecules.smi -o results.txt
 ```
 
 ## Batch molecule files
@@ -61,22 +61,22 @@ hotpot mca molecules.smi -o results.txt
 Shell globs expand to multiple positional file arguments:
 
 ```bash
-hotpot mca inputs/*.mol2 -o results.txt
-hotpot mca structures/*.sdf structures/*.mol2 -o results.txt
+$ hotpot mca inputs/*.mol2 -o results.txt
+$ hotpot mca structures/*.sdf structures/*.mol2 -o results.txt
 ```
 
 A multi-record file such as SDF or SMI is expanded into its individual
 molecules. File inputs and direct SMILES may also be mixed:
 
 ```bash
-hotpot mca 'CN' inputs/example.mol2 collection.sdf
+$ hotpot mca 'CN' inputs/example.mol2 collection.sdf
 ```
 
 The file format is normally inferred from the extension. Override it when the
 extension is absent or non-standard:
 
 ```bash
-hotpot mca molecule.data --input-format mol2
+$ hotpot mca molecule.data --input-format mol2
 ```
 
 ## Saving text output
@@ -84,13 +84,13 @@ hotpot mca molecule.data --input-format mol2
 Write the complete report with Hotpot's output option:
 
 ```bash
-hotpot mca inputs/*.mol2 -o results.txt
+$ hotpot mca inputs/*.mol2 -o results.txt
 ```
 
 Standard shell redirection is equivalent:
 
 ```bash
-hotpot mca inputs/*.mol2 > results.txt
+$ hotpot mca inputs/*.mol2 > results.txt
 ```
 
 For multiple molecules, the report contains a numbered heading and atom table
@@ -101,19 +101,19 @@ for every molecule.
 By default, only detected nucleophilic sites are coloured and labelled:
 
 ```bash
-hotpot mca 'c1ccccc1CN' --plot mca.png
+$ hotpot mca 'c1ccccc1CN' --plot mca.png
 ```
 
 Use `--all-site` to colour every predicted atom:
 
 ```bash
-hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
+$ hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
 ```
 
 Multiple input molecules are drawn as a grid in one output image:
 
 ```bash
-hotpot mca molecules.smi --plot mca-grid.png
+$ hotpot mca molecules.smi --plot mca-grid.png
 ```
 
 ## Device selection and batching
@@ -122,9 +122,9 @@ hotpot mca molecules.smi --plot mca-grid.png
 when one is available and otherwise uses CPU inference.
 
 ```bash
-hotpot mca molecules.smi --device cpu
-hotpot mca molecules.smi --device cuda
-hotpot mca molecules.smi --device auto --batch-size 256
+$ hotpot mca molecules.smi --device cpu
+$ hotpot mca molecules.smi --device cuda
+$ hotpot mca molecules.smi --device auto --batch-size 256
 ```
 
 `--device cuda` is strict and fails if the CUDA execution provider cannot be
@@ -137,13 +137,13 @@ rows submitted per ONNX call rather than the number of molecules read at once.
 The packaged FP16 model is selected by default:
 
 ```bash
-hotpot mca molecules.smi --variant fp16
+$ hotpot mca molecules.smi --variant fp16
 ```
 
 A separately distributed model bundle can be selected explicitly:
 
 ```bash
-hotpot mca molecules.smi --model-dir /absolute/path/to/mca/models
+$ hotpot mca molecules.smi --model-dir /absolute/path/to/mca/models
 ```
 
 The directory must contain a compatible `manifest.json` and all ONNX external
@@ -156,7 +156,7 @@ The released model was validated on neutral molecules. Charged inputs are
 rejected by default. To request an explicitly out-of-domain estimate, use:
 
 ```bash
-hotpot mca '[NH4+]' --allow-charged
+$ hotpot mca '[NH4+]' --allow-charged
 ```
 
 Treat such values cautiously. Explicit hydrogen atoms are not valid prediction
@@ -169,7 +169,7 @@ Existing usable 3D coordinates are retained. Otherwise Hotpot creates a 3D
 conformer with a deterministic seed. Change that seed when required:
 
 ```bash
-hotpot mca molecules.smi --conformer-seed 123
+$ hotpot mca molecules.smi --conformer-seed 123
 ```
 
 ## Complete option reference
@@ -177,11 +177,11 @@ hotpot mca molecules.smi --conformer-seed 123
 Use the concise argparse reference for the current installation:
 
 ```bash
-hotpot mca --help
+$ hotpot mca --help
 ```
 
 Use this extended guide at any time with:
 
 ```bash
-hotpot mca --doc
+$ hotpot mca --doc
 ```

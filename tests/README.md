@@ -21,3 +21,13 @@ The script installs the isolated dependency set in
 `tests/requirements-inference.txt` and covers the Hotpot integration required
 by MCA, including the strict SMARTS contract and coordination-chemistry
 perception tests, rather than only importing the model subpackages.
+
+Run the maintained test fence once with branch coverage:
+
+```bash
+./tests/run_coverage.sh
+```
+
+The command writes the JUnit test result, text/XML coverage reports and an HTML
+coverage site to `tests/coverage/`. This is the same entry point used by the
+general GitHub Actions workflow and uploaded to Codecov.

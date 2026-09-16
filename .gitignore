@@ -15,3 +15,4 @@ hotpot/plugins/xtb/.cache.json
 dist/
 hotpot_zzy.egg-info
 plan/
+tests/coverage/

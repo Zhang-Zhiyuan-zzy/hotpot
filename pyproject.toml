@@ -95,6 +95,7 @@ onnx-export = [
 ]
 dev = [
     "build>=1.2,<2",
+    "coverage>=7,<8",
     "pytest>=7,<10",
     "ruff>=0.11,<1",
     "tomli>=2,<3; python_version < '3.11'",

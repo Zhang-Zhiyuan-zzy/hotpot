@@ -228,6 +228,17 @@ def _resolve_organic_forcefield(requested: Optional[str]) -> str:
     return effective
 
 
+def _require_explicit_complex(mol: Any) -> None:
+    """Require a metal center with at least one explicit metal--ligand bond."""
+    if not mol.has_metal or not any(
+        bond.is_metal_ligand_bond for bond in mol.bonds
+    ):
+        raise ValueError(
+            "The complex workflow requires a molecule with at least one "
+            "explicit metal-ligand bond"
+        )
+
+
 def _make_constraints(mol: Any) -> ob.OBFFConstraints:
     """Return the intentionally empty force-field constraint adapter."""
     return ob.OBFFConstraints()
@@ -1329,6 +1340,7 @@ def build_complex3d(
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
+    _require_explicit_complex(mol)
     topology_reference = _capture_workflow_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
@@ -1384,6 +1396,7 @@ def optimize_complex(
     vdw_cutoff_end: float = 12.5,
 ) -> ForceFieldRunReport:
     """Optimize existing complex coordinates with the complex force-field policy."""
+    _require_explicit_complex(mol)
     topology_reference = _capture_workflow_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
@@ -1442,6 +1455,7 @@ def _complexes_build_impl(
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
+    _require_explicit_complex(mol)
     topology_reference = _capture_workflow_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,

@@ -175,6 +175,21 @@ def test_complexes_build_rejects_conflicting_legacy_and_current_options():
         )
 
 
+@pytest.mark.parametrize(
+    "entrypoint",
+    (ff.build_complex3d, ff.optimize_complex, ff.complexes_build),
+)
+@pytest.mark.parametrize("smiles", ("CCO", "[Zn].N"))
+def test_complex_only_entrypoints_require_an_explicit_metal_ligand_bond(
+    entrypoint,
+    smiles,
+):
+    molecule = read_mol(smiles, "smi")
+
+    with pytest.raises(ValueError, match="explicit metal-ligand bond"):
+        entrypoint(molecule)
+
+
 def test_build_and_optimize_dispatches_complex_once(monkeypatch):
     molecule = SimpleNamespace(has_metal=True)
     expected = object()

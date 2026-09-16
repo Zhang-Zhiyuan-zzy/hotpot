@@ -1,8 +1,10 @@
 import json
 from copy import copy
+from math import sqrt
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.core import Molecule
@@ -42,6 +44,22 @@ def _crossed_square():
         ),
         ((0, 1), (1, 2), (2, 3), (3, 0), (4, 5)),
     )
+
+
+def _ring(coordinates):
+    return _molecule(
+        coordinates,
+        tuple((index, (index + 1) % len(coordinates)) for index in range(len(coordinates))),
+    )
+
+
+def _ideal_complex(metal_atomic_number, donor_atomic_numbers, donor_coordinates):
+    molecule = _molecule(
+        ((0.0, 0.0, 0.0), *donor_coordinates),
+        tuple((0, index) for index in range(1, len(donor_coordinates) + 1)),
+        (metal_atomic_number, *donor_atomic_numbers),
+    )
+    return molecule
 
 
 def test_off_level_still_rejects_bad_coordinate_shape_and_nonfinite_values():
@@ -124,6 +142,79 @@ def test_standard_gate_accepts_a_sensible_small_molecule():
     assert report.passed
     assert geo.is_geometry_reasonable(molecule, level="standard") == report.passed
     json.dumps(report.to_dict())
+
+
+@pytest.mark.parametrize(
+    "molecule",
+    (
+        _ring(tuple(
+            (1.40 * np.cos(angle), 1.40 * np.sin(angle), 0.0)
+            for angle in np.arange(6) * np.pi / 3.0
+        )),
+        _ring((
+            (1.214, -0.700, 0.500),
+            (0.000, -1.400, 0.000),
+            (-1.214, -0.700, 0.500),
+            (-1.214, 0.700, -0.500),
+            (0.000, 1.400, 0.000),
+            (1.214, 0.700, -0.500),
+        )),
+    ),
+    ids=("benzene_skeleton", "cyclohexane_skeleton"),
+)
+def test_standard_gate_accepts_ideal_organic_ring_geometries(molecule):
+    report = geo.evaluate_geometry_quality(molecule, level="standard")
+
+    assert report.passed
+    assert report.metrics["bond_ring_intersection_count"] == 0
+
+
+@pytest.mark.parametrize(
+    ("molecule", "expected_coordination_number"),
+    (
+        (
+            _ideal_complex(30, (17, 17), ((-2.20, 0.0, 0.0), (2.20, 0.0, 0.0))),
+            2,
+        ),
+        (
+            _ideal_complex(
+                30,
+                (7, 7, 7, 7),
+                tuple(
+                    2.10 * np.asarray(vector) / sqrt(3.0)
+                    for vector in ((1, 1, 1), (1, -1, -1), (-1, 1, -1), (-1, -1, 1))
+                ),
+            ),
+            4,
+        ),
+        (
+            _ideal_complex(
+                78,
+                (17, 17, 17, 17),
+                ((2.30, 0.0, 0.0), (0.0, 2.30, 0.0), (-2.30, 0.0, 0.0), (0.0, -2.30, 0.0)),
+            ),
+            4,
+        ),
+    ),
+    ids=("zinc_chloride", "tetraamminezinc", "tetrachloroplatinum"),
+)
+def test_standard_gate_accepts_ideal_coordination_geometries(
+    molecule,
+    expected_coordination_number,
+):
+    report = geo.evaluate_geometry_quality(molecule, level="standard")
+
+    assert report.passed
+    (environment,) = report.metrics["coordination_environments"]
+    assert environment["coordination_number"] == expected_coordination_number
+    assert len(environment["donor_indices"]) == expected_coordination_number
+    assert set(environment) == {
+        "metal_index",
+        "coordination_number",
+        "donor_indices",
+        "distances",
+        "angles",
+    }
 
 
 def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():

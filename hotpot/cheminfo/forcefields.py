@@ -483,6 +483,7 @@ def prepare_coordination_geometry(
     seed: Optional[int] = None,
 ) -> CoordinationGeometryResult:
     """Reserved hook for coordination-number-aware initial placement."""
+    _require_explicit_complex(mol)
     raise NotImplementedError(
         "Coordination-number-aware placement is reserved but not implemented"
     )

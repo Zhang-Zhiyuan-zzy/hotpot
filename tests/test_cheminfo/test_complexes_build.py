@@ -822,8 +822,17 @@ def test_complexes_build_final_failure_does_not_modify_caller(
 
 
 def test_coordination_geometry_hook_is_explicitly_unimplemented():
+    molecule = read_mol("[Zn](N)", "smi")
+
     with pytest.raises(NotImplementedError, match="reserved but not implemented"):
-        ff.prepare_coordination_geometry(SimpleNamespace(), strategy="octahedral")
+        ff.prepare_coordination_geometry(molecule, strategy="octahedral")
+
+
+def test_coordination_geometry_hook_rejects_noncomplex_inputs():
+    molecule = read_mol("CCO", "smi")
+
+    with pytest.raises(ValueError, match="explicit metal-ligand bond"):
+        ff.prepare_coordination_geometry(molecule, strategy="octahedral")
 
 
 @pytest.mark.parametrize(

@@ -12,6 +12,7 @@ from collections import deque
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from functools import wraps
+from multiprocessing.connection import wait as wait_for_connections
 from typing import Any, Literal, Mapping, Optional, Tuple
 
 import networkx as nx
@@ -1114,13 +1115,17 @@ def _receive_worker_result(
                 "The build worker closed its pipe without a result",
                 None,
             ) from exc
-        process.join(timeout=_WORKER_EXIT_GRACE_SECONDS)
-        if process.is_alive():
+        exited = wait_for_connections(
+            (process.sentinel,),
+            timeout=_WORKER_EXIT_GRACE_SECONDS,
+        )
+        if not exited:
             raise ComplexBuildWorkerError(
                 "WorkerShutdownError",
                 "The build worker sent a result but did not terminate",
                 None,
             )
+        process.join()
         if process.exitcode != 0:
             raise ComplexBuildWorkerError(
                 "WorkerExitError",

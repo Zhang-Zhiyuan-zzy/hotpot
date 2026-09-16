@@ -150,31 +150,40 @@ def _build_zinc_amine(seed):
     return report.build.accepted_candidates, molecule.coordinates
 
 
+def _distance_matrix(coordinates):
+    return np.linalg.norm(
+        coordinates[:, None, :] - coordinates[None, :, :],
+        axis=2,
+    )
+
+
 def test_complex_build_workers_are_independent_when_called_concurrently():
     seeds = tuple(range(51, 71))
     with ThreadPoolExecutor(max_workers=8) as executor:
-        results = tuple(executor.map(_build_zinc_amine, seeds))
+        first_results = tuple(executor.map(_build_zinc_amine, seeds))
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        second_results = tuple(executor.map(_build_zinc_amine, seeds))
 
-    assert all(accepted == 1 for accepted, _ in results)
-    assert all(np.all(np.isfinite(coordinates)) for _, coordinates in results)
+    for first, second in zip(first_results, second_results):
+        assert first[0] == second[0] == 1
+        assert np.all(np.isfinite(first[1]))
+        assert np.all(np.isfinite(second[1]))
+        np.testing.assert_allclose(
+            _distance_matrix(first[1]),
+            _distance_matrix(second[1]),
+            rtol=0.0,
+            atol=1e-12,
+        )
 
 
 def test_real_seeded_complex_build_is_reproducible():
     first_accepted, first_coordinates = _build_zinc_amine(71)
     second_accepted, second_coordinates = _build_zinc_amine(71)
-    first_distances = np.linalg.norm(
-        first_coordinates[:, None, :] - first_coordinates[None, :, :],
-        axis=2,
-    )
-    second_distances = np.linalg.norm(
-        second_coordinates[:, None, :] - second_coordinates[None, :, :],
-        axis=2,
-    )
 
     assert first_accepted == second_accepted == 1
     np.testing.assert_allclose(
-        first_distances,
-        second_distances,
+        _distance_matrix(first_coordinates),
+        _distance_matrix(second_coordinates),
         rtol=0.0,
         atol=1e-12,
     )

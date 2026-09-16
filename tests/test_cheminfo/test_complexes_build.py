@@ -134,6 +134,7 @@ class _StubbornProcess:
         self.terminated = False
         self.killed = False
         self.join_calls = []
+        self.sentinel = object()
 
     def start(self):
         self.started = True
@@ -423,6 +424,13 @@ def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
 
 def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatch):
     monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
+    wait_calls = []
+
+    def wait_for_exit(objects, timeout):
+        wait_calls.append((objects, timeout))
+        return []
+
+    monkeypatch.setattr(ff, "wait_for_connections", wait_for_exit)
     diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
     receive_connection = _ReadyConnection(
         ff.BuildWorkerResult(
@@ -442,7 +450,8 @@ def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatc
             timeout=2.0,
         )
 
-    assert process.join_calls == [0.25, 5.0, 5.0]
+    assert wait_calls == [((process.sentinel,), 0.25)]
+    assert process.join_calls == [5.0, 5.0]
     assert process.terminated
     assert process.killed
     assert receive_connection.closed

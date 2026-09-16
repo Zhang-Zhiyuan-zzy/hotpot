@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import sys
 from importlib import resources
 from pathlib import Path
 
@@ -25,10 +24,10 @@ def load_cli_documentation() -> str:
 
 class _DocumentationAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        documentation = load_cli_documentation()
-        sys.stdout.write(documentation)
-        if not documentation.endswith("\n"):
-            sys.stdout.write("\n")
+        from rich.console import Console
+        from rich.markdown import Markdown
+
+        Console().print(Markdown(load_cli_documentation()))
         parser.exit()
 
 

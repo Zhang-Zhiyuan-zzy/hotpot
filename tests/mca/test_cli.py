@@ -59,9 +59,11 @@ def test_top_level_mca_doc_prints_packaged_markdown_without_input(capsys):
 
     assert exit_info.value.code == 0
     output = capsys.readouterr().out
-    assert output.startswith("# `hotpot mca`\n")
+    assert not output.startswith("# ")
+    assert "hotpot mca" in output
+    assert "Command synopsis" in output
     assert "hotpot mca inputs/*.mol2 -o results.txt" in output
-    assert "## Charged molecules and applicability" in output
+    assert "Charged molecules and applicability" in output
 
 
 def test_output_option_writes_table(monkeypatch, tmp_path, capsys):

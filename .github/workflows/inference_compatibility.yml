@@ -132,7 +132,8 @@ jobs:
               capture_output=True,
               text=True,
           ).stdout
-          assert documentation.startswith("# `hotpot mca`")
+          assert "hotpot mca" in documentation
+          assert "Command synopsis" in documentation
 
           molecule = hotpot.to_hotpot_mol("C1CCCCN1")
           prediction = MCAPredictor(device="cpu").predict(molecule)

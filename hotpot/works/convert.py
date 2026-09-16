@@ -10,14 +10,29 @@ import os
 import time
 from copy import copy
 from os.path import join as opj
-from typing import *
+from typing import Optional, Union
 from pathlib import Path
 import multiprocessing as mp
 from tqdm import tqdm
-import numpy as np
 
-from openbabel import openbabel as ob, pybel as pb
+from openbabel import pybel as pb
 import hotpot as hp
+
+
+_PROCESS_POLL_INTERVAL = 0.01
+_PROCESS_SHUTDOWN_TIMEOUT = 5.0
+_BUILD_TIMEOUT_CLEANUP_GRACE = 2.0 * _PROCESS_SHUTDOWN_TIMEOUT
+
+
+def _terminate_process(process: mp.Process) -> None:
+    """Stop a conversion worker and wait until its process resources are reaped."""
+    process.terminate()
+    process.join(timeout=_PROCESS_SHUTDOWN_TIMEOUT)
+    if process.is_alive():
+        process.kill()
+        process.join(timeout=_PROCESS_SHUTDOWN_TIMEOUT)
+    if process.is_alive():
+        raise RuntimeError("Conversion worker did not stop after kill")
 
 
 
@@ -59,40 +74,60 @@ def _build3d(
         fmt,
         ligand_save_path,
         screenshot_save_path,
-        rm_polar_hs: bool = True,
         **kwargs
 ) -> None:
-    if mol.has_metal:
-        mol.complexes_build_optimize_(rm_polar_hs = rm_polar_hs, **kwargs)
-    else:
-        mol.build3d(**kwargs)
-        mol.optimize(**kwargs)
+    save_movie = kwargs.get('save_movie', False)
+    mol.build3d(**kwargs)
 
     if ligand_save_path and mol.has_metal:
         ligand = copy(mol)
         ligand.remove_metals()
-        ligand.optimize(**kwargs)
+        optimize_options = {
+            name: value
+            for name, value in kwargs.items()
+            if name in {
+                'forcefield',
+                'algorithm',
+                'epochs',
+                'steps_per_epoch',
+                'add_hydrogens',
+                'quality_level',
+                'quality_thresholds',
+                'seed',
+                'timeout',
+                'perturb_interval',
+                'perturb_sigma',
+                'save_movie',
+                'increasing_vdw',
+                'vdw_cutoff_start',
+                'vdw_cutoff_end',
+            }
+        }
+        ligand.optimize(**optimize_options)
 
         ligand.write(
             ligand_save_path,
             fmt,
-            write_single=True,
+            write_single=not save_movie,
             overwrite=True,
             calc_mol_charge=True,
-            **kwargs
         )
 
     mol.write(
         save_path,
         fmt,
-        write_single=True,
+        write_single=not save_movie,
         overwrite=True,
         calc_mol_charge=True,
-        **kwargs
     )
 
     if screenshot_save_path:
-        mol.write(screenshot_save_path, fmt='sdf')
+        mol.write(
+            screenshot_save_path,
+            fmt='sdf',
+            write_single=not save_movie,
+            overwrite=True,
+        )
 
 
 def convert_smiles_to_3dmol(
@@ -116,33 +151,14 @@ def convert_smiles_to_3dmol(
         sdf_save_dir (str, os.Pathlike, optional):
         fmt (str): the save file format, default is 'gjf'
         nproc (int, optional):
-        timeout (int, optional):
+        timeout (int, optional): Timeout passed to ``Molecule.build3d``. The
+            outer conversion worker receives a bounded cleanup grace period
+            before it is forcibly stopped.
 
     Keyword Args:
-    Molecule 3d builder kwargs:
-        build_times:
-        init_opt_steps:
-        second_opt_steps:
-        min_energy_opt_steps:
-        correct_hydrogens:
-        timeout:
-
-    Molecule 3d optimizer kwargs:
-        ff: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']],
-        algorithm: Literal["steepest", "conjugate"]
-        steps: Optional[int] = 100,
-        step_size: int = 100,
-        equilibrium: bool = False,
-        equi_check_steps: int = 5,
-        equi_max_displace: float = 1e-4,
-        equi_max_energy: float = 1e-4,
-        perturb_steps: Optional[int] = None,
-        perturb_sigma: float = 0.5,
-        save_screenshot: bool = False,
-        increasing_Vdw: bool = False,
-        Vdw_cutoff_start: float = 0.0,
-        Vdw_cutoff_end: float = 12.5,
-        print_energy: Optional[int] = None,
+        Keyword arguments accepted by :meth:`Molecule.build3d`, including
+        ``forcefield``, ``epochs``, ``steps_per_epoch``, ``add_hydrogens``,
+        ``quality_level``, ``seed``, and complex-candidate options.
     """
     if file_names is None:
         name_smiles = dict(enumerate(list_smi))
@@ -160,41 +176,62 @@ def convert_smiles_to_3dmol(
     if nproc is None:
         nproc = mp.cpu_count()
 
+    build_options = dict(kwargs)
+    build_options['timeout'] = timeout
+    process_timeout = timeout + _BUILD_TIMEOUT_CLEANUP_GRACE
     processes = {}
-    while name_smiles or processes:
-        if name_smiles and len(processes) < nproc:
-            name, smiles = name_smiles.popitem()
+    try:
+        while name_smiles or processes:
+            while name_smiles and len(processes) < nproc:
+                name, smiles = name_smiles.popitem()
 
-            mol = next(hp.MolReader(smiles, 'smi'))
-            save_path = opj(save_dir, f'{name}.{fmt}')
+                mol = next(hp.MolReader(smiles, 'smi'))
+                save_path = opj(save_dir, f'{name}.{fmt}')
 
-            if alone_ligand_save_dir:
-                ligand_save_path = opj(alone_ligand_save_dir, f'{name}.{fmt}')
+                if alone_ligand_save_dir:
+                    ligand_save_path = opj(alone_ligand_save_dir, f'{name}.{fmt}')
+                else:
+                    ligand_save_path = None
+
+                if sdf_save_dir:
+                    sdf_save_path = opj(sdf_save_dir, f'{name}.sdf')
+                else:
+                    sdf_save_path = None
+
+                p = mp.Process(
+                    target=_build3d,
+                    args=(mol, save_path, fmt, ligand_save_path, sdf_save_path),
+                    kwargs=build_options,
+                )
+                p.start()
+                processes[p] = (time.monotonic(), name)
+
+            to_remove = []
+            for p, (started_at, name) in processes.items():
+                if not p.is_alive():
+                    p.join()
+                    to_remove.append(p)
+                    if p.exitcode != 0:
+                        print(f"Process {name} exited with code {p.exitcode}.")
+                elif time.monotonic() - started_at > process_timeout:
+                    _terminate_process(p)
+                    to_remove.append(p)
+                    print(
+                        f"Process {name} exceeded the {timeout:g}-second build "
+                        "timeout and was stopped."
+                    )
+
+            for p in to_remove:
+                processes.pop(p)
+
+            if processes:
+                time.sleep(_PROCESS_POLL_INTERVAL)
+    finally:
+        for process in processes:
+            if process.is_alive():
+                _terminate_process(process)
             else:
-                ligand_save_path = None
-
-            if sdf_save_dir:
-                sdf_save_path = opj(sdf_save_dir, f'{name}.sdf')
-            else:
-                sdf_save_path = None
-
-            p = mp.Process(
-                target=_build3d,
-                args=(mol, save_path, fmt, ligand_save_path, sdf_save_path),
-                kwargs=kwargs
-            )
-            p.start()
-            processes[p] = (time.time(), name)
-
-        to_remove = []
-        for p, (t, name) in processes.items():
-            if not p.is_alive() or time.time() - t > timeout:
-                p.terminate()
-                to_remove.append(p)
-                print(f"Stop process {name}!!!!")
-
-        for p in to_remove:
-            processes.pop(p)
+                process.join()
 
 
 def _convert_g16log_to_gjf(

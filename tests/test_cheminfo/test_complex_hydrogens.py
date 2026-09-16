@@ -98,6 +98,38 @@ def test_hydrogenated_working_copy_uses_ligand_covalent_valence(
     np.testing.assert_array_equal(current[2], original[2])
 
 
+@pytest.mark.parametrize(
+    ("smiles", "donor_symbols", "expected_hydrogens"),
+    (
+        ("[Zn]C", ("C",), (3,)),
+        ("[Zn]C#N", ("C",), (0,)),
+        ("[Pt](Cl)(Cl)(Cl)(Cl)", ("Cl", "Cl", "Cl", "Cl"), (0, 0, 0, 0)),
+    ),
+)
+def test_hydrogenated_working_copy_does_not_reprotonate_covalent_metal_bonds(
+    smiles,
+    donor_symbols,
+    expected_hydrogens,
+):
+    molecule = read_mol(smiles, "smi")
+    original_heavy_state = _heavy_atom_state(molecule)
+
+    working = ff._hydrogenated_working_copy(
+        molecule,
+        add_hydrogens=True,
+        seed=7,
+    )
+
+    donors = [
+        atom
+        for atom in working.atoms
+        if atom.symbol in donor_symbols and not atom.is_metal
+    ]
+    assert tuple(atom.explicit_hydrogens for atom in donors) == expected_hydrogens
+    assert _heavy_atom_state(working) == original_heavy_state
+    assert _heavy_atom_state(molecule) == original_heavy_state
+
+
 def test_hydrogenated_working_copy_can_explicitly_skip_hydrogens():
     molecule = _coordinated("O", 0)
 

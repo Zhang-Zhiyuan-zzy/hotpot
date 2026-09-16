@@ -329,7 +329,7 @@ def _hydrogenated_working_copy(
             working.hide_metal_ligand_bonds(clear_conformers=False)
             for donor_index in donor_indices:
                 donor = working.atoms[donor_index]
-                if donor.formal_charge == 0:
+                if donor.formal_charge == 0 and donor.atomic_number in (7, 8):
                     donor.valence = donor.get_valence()
                     donor.calc_implicit_hydrogens()
             working.add_hydrogens(

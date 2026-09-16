@@ -14,7 +14,7 @@ import json
 import operator
 import os.path as osp
 from enum import Enum
-from typing import Union, Literal, Iterable, Optional, Callable
+from typing import Union, Literal, Iterable, Optional, Callable, Mapping
 from copy import copy, deepcopy
 from collections import Counter
 from functools import cached_property
@@ -628,7 +628,11 @@ class Molecule:
         del component
         self._update_graph()
 
-    def add_hydrogens(self, rm_polar_hs: bool = True):
+    def add_hydrogens(
+            self,
+            rm_polar_hs: bool = True,
+            rng: Optional[np.random.Generator] = None,
+    ):
         """
         Adds or removes hydrogen atoms to/from the molecule.
 
@@ -641,6 +645,9 @@ class Molecule:
         ----------
         rm_polar_hs : bool, optional
             Determines whether polar hydrogens should be removed. Defaults to True.
+        rng : numpy.random.Generator, optional
+            Generator used to place newly added hydrogen atoms. When omitted,
+            NumPy's process-global random generator is used.
 
         Returns
         -------
@@ -650,7 +657,10 @@ class Molecule:
         modified = False
         for atom in self.atoms:
             if not (atom.is_hydrogen or atom.is_metal):
-                add_or_rm, hs = atom._add_hydrogens(rm_polar_hs=rm_polar_hs)
+                add_or_rm, hs = atom._add_hydrogens(
+                    rm_polar_hs=rm_polar_hs,
+                    rng=rng,
+                )
                 if add_or_rm:
                     modified = True
 
@@ -870,35 +880,53 @@ class Molecule:
     def build3d(
             self,
             forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']] = 'UFF',
-            steps: int = 500,
-            sophisticated: bool = True,
-            **kwargs
+            *,
+            algorithm: Literal["steepest", "conjugate"] = "conjugate",
+            epochs: int = 100,
+            steps_per_epoch: int = 100,
+            add_hydrogens: bool = True,
+            quality_level: Literal["off", "basic", "standard", "strict"] = "standard",
+            quality_thresholds: Optional[Mapping[str, float]] = None,
+            seed: Optional[int] = None,
+            timeout: float = 1000.0,
+            perturb_interval: Optional[int] = None,
+            perturb_sigma: float = 0.5,
+            save_movie: bool = False,
+            increasing_vdw: bool = False,
+            vdw_cutoff_start: float = 0.0,
+            vdw_cutoff_end: float = 12.5,
+            candidate_count: int = 5,
+            max_attempts: int = 50,
+            candidate_warmup_steps: int = 500,
+            candidate_score_steps: int = 1000,
+            best_candidate_refine_steps: int = 3000,
+            coordination_geometry: Optional[str] = None,
     ):
-        """
-        Builds a 3D structure for the molecule using the specified forcefield, optimization
-        steps, and sophistication mode. This method ensures that either a simple or
-        complex building and optimization procedure is applied depending on the 
-        sophistication flag and molecule type.
-
-        :param forcefield: Specifies the forcefield to be used for optimization.
-                           Default is 'UFF'. Supported forcefields include 'UFF', 
-                           'MMFF94', 'MMFF94s', 'GAFF', and 'Ghemical'.
-        :type forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']]
-        :param steps: Number of optimization steps for 3D structure generation.
-        :type steps: int
-        :param sophisticated: If True, applies a sophisticated approach for building 
-                               and optimizing the 3D structure for organic molecules.
-        :type sophisticated: bool
-        :param kwargs: Additional parameters passed to the building or optimization 
-                       methods.
-        :type kwargs: dict
-        """
-        if sophisticated and not self.is_organic:
-            ff.complexes_build(self, **kwargs)
-
-        else:
-            ff.ob_build(self)
-            ff.ob_optimize(self, forcefield, steps)
+        """Build a 3D structure and optimize it with the appropriate workflow."""
+        return ff.build_and_optimize(
+            self,
+            forcefield=forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            add_hydrogens=add_hydrogens,
+            quality_level=quality_level,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            timeout=timeout,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            candidate_count=candidate_count,
+            max_attempts=max_attempts,
+            candidate_warmup_steps=candidate_warmup_steps,
+            candidate_score_steps=candidate_score_steps,
+            best_candidate_refine_steps=best_candidate_refine_steps,
+            coordination_geometry=coordination_geometry,
+        )
 
     def update_mol_charge(self):
         """
@@ -1058,295 +1086,39 @@ class Molecule:
     def optimize(
             self,
             forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']] = None,
+            *,
             algorithm: Literal["steepest", "conjugate"] = "conjugate",
-            steps: Optional[int] = 100,
-            step_size: int = 100,
-            equilibrium: bool = True,
-            equi_check_steps: int = 5,
-            equi_max_displace: float = 1e-4,
-            equi_max_energy: float = 1e-4,
-            perturb_steps: Optional[int] = None,
+            epochs: int = 100,
+            steps_per_epoch: int = 100,
+            add_hydrogens: bool = True,
+            quality_level: Literal["off", "basic", "standard", "strict"] = "standard",
+            quality_thresholds: Optional[Mapping[str, float]] = None,
+            seed: Optional[int] = None,
+            perturb_interval: Optional[int] = None,
             perturb_sigma: float = 0.5,
-            save_screenshot: bool = False,
-            increasing_Vdw: bool = False,
-            Vdw_cutoff_start: float = 0.0,
-            Vdw_cutoff_end: float = 12.5,
-            print_energy: Optional[int] = None
+            save_movie: bool = False,
+            increasing_vdw: bool = False,
+            vdw_cutoff_start: float = 0.0,
+            vdw_cutoff_end: float = 12.5,
     ):
-        """
-            Optimize the atomistic model structure using a specified force field and algorithm. 
-            The optimization process includes features for equilibrium checks, perturbation, 
-            and van der Waals cutoff techniques to fine-tune the molecular geometry.
-
-            Parameters:
-                forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']]
-                    The force field to be used for optimization.
-                    Defaults to 'UFF' if the model contains metal atoms, 
-                    otherwise defaults to 'MMFF94s'.
-                algorithm: Literal["steepest", "conjugate"]
-                    The optimization algorithm to use. Options are "steepest" 
-                    for Steepest Descent and "conjugate" for Conjugate Gradient.
-                    Default is "conjugate".
-                steps: Optional[int]
-                    The number of optimization steps to perform. Default is 100.
-                step_size: int
-                    Size of each optimization step. Default is 100.
-                equilibrium: bool
-                    Indicates whether to perform equilibrium checks. Default is True.
-                equi_check_steps: int
-                    Number of steps at which equilibrium checks are performed. 
-                    Default is 5.
-                equi_max_displace: float
-                    Maximum allowed displacement per step for equilibrium detection.
-                    Default is 1e-4.
-                equi_max_energy: float
-                    Maximum allowed energy change for equilibrium detection. 
-                    Default is 1e-4.
-                perturb_steps: Optional[int]
-                    Number of steps for applying a random perturbation. Default is None.
-                perturb_sigma: float
-                    Standard deviation for the random displacement applied during
-                    perturbation. Default is 0.5.
-                save_screenshot: bool
-                    Specifies if screenshots should be saved during optimization.
-                    Default is False.
-                increasing_Vdw: bool
-                    Indicates whether vdW (van der Waals) cutoff should increase during 
-                    the iteration. Default is False.
-                Vdw_cutoff_start: float
-                    The starting cutoff distance for vdW interactions. Default is 0.0.
-                Vdw_cutoff_end: float
-                    The maximum cutoff distance for vdW interactions. Default is 12.5.
-                print_energy: Optional[int]
-                    Print the energy every specific number of steps. If None, energy
-                    printing is disabled. Default is None.
-
-            Raises:
-                ValueError: Raised if provided values are invalid for specific 
-                options or configurations within the parameters.
-
-            Returns:
-                None
-        """
-        arguments = copy(locals())
-        del arguments["self"]
-        del arguments["forcefield"]
-
-        if forcefield is None:
-            if self.has_metal:
-                arguments['ff'] = 'UFF'
-            else:
-                arguments['ff'] = 'MMFF94s'
-        else:
-            arguments['ff'] = forcefield
-
-        ff.OBFF(**arguments).optimize(self)
-
-    def optimize_complexes(
+        """Optimize the current coordinates with the appropriate workflow."""
+        return ff.auto_optimize(
             self,
-            algorithm: Literal["steepest", "conjugate"] = "steepest",
-            steps: Optional[int] = None,
-            equilibrium: bool = True,
-            equi_threshold: float = 1e-4,
-            max_iter: int = 100,
-            save_screenshot: bool = False
-    ):
-        """
-        Optimize the geometry of metal-ligand complexes using a specified force field.
-
-        This method is specifically tailored for optimizing metal-ligand complexes. 
-        If the system does not contain metals, it will redirect to the standard `optimize()` method,
-        which is faster and more suitable for organic compounds.
-
-        Parameters:
-            algorithm (Literal["steepest", "conjugate"], optional): 
-                Optimization algorithm to use. Options are:
-                - "steepest": Steepest descent algorithm.
-                - "conjugate": Conjugate gradient algorithm.
-                Defaults to "steepest".
-
-            steps (Optional[int], optional): 
-                Number of optimization steps to perform. If None, a default value will be used.
-
-            equilibrium (bool, optional): 
-                Whether to enforce equilibrium conditions during optimization. Defaults to True.
-
-            equi_threshold (float, optional): 
-                Threshold for equilibrium convergence. Defaults to 1e-4.
-
-            max_iter (int, optional): 
-                Maximum number of iterations for the optimizer. Defaults to 100.
-
-            save_screenshot (bool, optional): 
-                Whether to save a snapshot of the structure after optimization. Defaults to False.
-
-        Notes:
-            - For metal-ligand complexes, uses the Universal Force Field (UFF) for optimization, 
-              with special handling of metal-ligand interactions.
-            - Organic subcomponents are optimized separately, and constraints are applied to 
-              non-metal atoms before proceeding with metal-ligand system optimization.
-            - If no metal is detected in the structure, the slower metal-specific workflow 
-              is bypassed in favor of the more efficient default optimization routine 
-              (`optimize()`).
-
-        Warnings:
-            - When applied to organic compounds without metals, this method is slower 
-              than the recommended `optimize()` method.
-
-        """
-        if not self.has_metal:
-            print(UserWarning(
-                "The `optimize_complexes()` is specified for metal-ligand complexes, \n"
-                "it's much slower than `optimize()` method. For organic compounds, the \n"
-                "`optimize() is more recommended."
-            ))
-            self.optimize(
-                'MMFF94s',
-                algorithm, steps, equilibrium,
-            )
-            return
-
-
-        self.refresh_atom_id()
-
-        # Initialize optimizer
-        obff = ff.OBFF(
-            ff='UFF',
+            forcefield=forcefield,
             algorithm=algorithm,
-            steps=steps,
-            equilibrium=equilibrium,
-            equi_threshold=equi_threshold,
-            max_iter=max_iter,
-            save_screenshot=False
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            add_hydrogens=add_hydrogens,
+            quality_level=quality_level,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
         )
-
-        clone = copy(self)
-        clone.hide_metal_ligand_bonds()
-
-        for component in clone.components:
-            if component.is_organic:
-                obff.optimize(component)
-                clone.update_atoms_attrs_from_id_dict({a.id: {'coordinates': a.coordinates} for a in component.atoms})
-
-        clone.recover_hided_metal_ligand_bonds()
-        # clone.constraint_bonds_angles()
-        for a in clone.atoms:
-            if not a.is_metal:
-                a.constraint = True
-
-        obff.ff = ob.OBForceField.FindType('UFF')
-        obff.save_screenshot = save_screenshot
-        # obff.optimize(clone)
-
-        obff.equilibrium = True
-        obff.perturb_steps = 30
-        obff.perturb_sigma = 0.5
-        self.coordinates = clone.coordinates
-        self._conformers = clone.conformers
-        obff.optimize(self)
-
-    def complexes_build_optimize_(
-            self,
-            algorithm: Literal["steepest", "conjugate"] = "conjugate",
-            steps: Optional[int] = 500,
-            step_size: int = 100,
-            equilibrium: bool = False,
-            equi_check_steps: int = 5,
-            equi_max_displace: float = 1e-4,
-            equi_max_energy: float = 1e-4,
-            perturb_steps: Optional[int] = 50,
-            perturb_sigma: float = 0.5,
-            save_screenshot: bool = True,
-            increasing_Vdw: bool = False,
-            Vdw_cutoff_start: float = 0.0,
-            Vdw_cutoff_end: float = 12.5,
-            print_energy: Optional[int] = 100,
-            # parameter for complexes build
-            build_times: int = 5,
-            init_opt_steps: int = 500,
-            second_opt_steps: int = 1000,
-            min_energy_opt_steps: int = 3000,
-            rm_polar_hs: bool = True
-    ):
-        """
-        Optimize and optionally build metal-ligand complexes using specified parameters.
-
-        This method is designed for optimization of molecular structures, particularly 
-        metal-ligand complexes. It supports building complexes from scratch and refining 
-        them using energy minimization algorithms. For organic compounds without metals, 
-        this method falls back to a faster alternative `optimize()`.
-
-        Parameters:
-            algorithm (Literal["steepest", "conjugate"]): The optimization algorithm to 
-                use. Defaults to "conjugate".
-            steps (Optional[int]): The maximum number of optimization steps. Defaults 
-                to 500.
-            step_size (int): The size of a single optimization step. Defaults to 100.
-            equilibrium (bool): Whether to check for equilibrium conditions during 
-                optimization. Defaults to False.
-            equi_check_steps (int): How frequently to check for equilibrium during 
-                optimization, measured in the number of steps. Defaults to 5.
-            equi_max_displace (float): The maximum allowed displacement to reach 
-                equilibrium. Defaults to 1e-4.
-            equi_max_energy (float): The maximum allowed energy change to reach 
-                equilibrium. Defaults to 1e-4.
-            perturb_steps (Optional[int]): The number of steps for structure 
-                perturbation. Defaults to 50.
-            perturb_sigma (float): The magnitude of perturbation applied during 
-                perturbation phases. Defaults to 0.5.
-            save_screenshot (bool): Whether to save graphical screenshots after key 
-                stages of optimization. Defaults to True.
-            increasing_Vdw (bool): If true, the Van der Waals cutoff distance is 
-                increased incrementally during optimization stages. Defaults to False.
-            Vdw_cutoff_start (float): Initial Van der Waals cutoff distance. Defaults 
-                to 0.0.
-            Vdw_cutoff_end (float): Final Van der Waals cutoff distance. Defaults to 
-                12.5.
-            print_energy (Optional[int]): Frequency of energy reporting during 
-                optimization. Defaults to 100.
-            build_times (int): The number of attempts allowed for building the 
-                complex. Defaults to 5.
-            init_opt_steps (int): Number of optimization steps in the initial stage. 
-                Defaults to 500.
-            second_opt_steps (int): Number of optimization steps in the second stage. 
-                Defaults to 1000.
-            min_energy_opt_steps (int): Number of optimization steps in the final stage 
-                targeting minimal energy. Defaults to 3000.
-            rm_polar_hs (bool): Removes polar hydrogens before generating the complex 
-                if set to True. Defaults to True.
-
-        Returns:
-            None
-        """
-        arguments = copy(locals())
-        arguments.pop('self')
-
-        # For organic compound
-        if not self.has_metal:
-            print(UserWarning(
-                "The `optimize_complexes()` is specified for metal-ligand complexes, \n"
-                "it's much slower than `optimize()` method. For organic compounds, the \n"
-                "`optimize() is more recommended."
-            ))
-            arguments['ff'] = 'MMFF94s'
-            self.optimize_(**arguments)
-            return
-
-        # build complex
-        ff.complexes_build(
-            self,
-            build_times,
-            init_opt_steps,
-            second_opt_steps,
-            min_energy_opt_steps,
-            rm_polar_hs=rm_polar_hs
-        )
-
-        # Initialize optimizer
-        arguments['ff'] = 'UFF'
-        obff = ff.OBFF_(**arguments)
-        obff.ff.SetVDWCutOff(12.5)
-        obff.optimize(self)
 
     def calc_atom_valence(self, assign_aromatic: Optional[bool] = None):
         """
@@ -1815,7 +1587,12 @@ class Molecule:
             bool
                 True if any distance in `pair_dist` is less than 0.5, False otherwise.
         """
-        return np.any(self.pair_dist < 0.5)
+        return geometry.has_too_close_atoms(
+            self,
+            minimum_distance=0.5,
+            covalent_radius_scale=None,
+            pair_scope="all",
+        )
 
     @property
     def has_3d(self):
@@ -1850,19 +1627,18 @@ class Molecule:
         """
         Checks if any bond intersects with any ring in the structure.
 
-        This method evaluates all combinations of rings and bonds in the structure
-        to determine if there is an intersection between any ring and any bond. It
-        utilizes `is_bond_intersect_the_ring` for individual intersection checks.
+        The implementation delegates to the shared geometry module so force-field
+        workflows and object-level queries use the same finite-segment semantics.
 
         Returns:
             bool: True if there is at least one bond that intersects with a ring;
             False otherwise.
         """
-        return any(r.is_bond_intersect_the_ring(b) for r, b in product(self.rings_small, self.bonds))
+        return geometry.has_bond_ring_intersection(self)
 
     @property
     def intersection_bonds_rings(self) -> list[tuple['Ring', 'Bond']]:
-        return [(r, b) for r, b in product(self.rings_small, self.bonds) if r.is_bond_intersect_the_ring(b)]
+        return list(geometry.find_bond_ring_intersections(self))
 
     @property
     def heavy_atoms(self) -> list["Atom"]:
@@ -2478,9 +2254,24 @@ class Molecule:
             in the graph.
         """
         if not self._rings:
-            self._rings = [Ring(*(self._atoms[i] for i in cycle)) for cycle in nx.cycle_basis(self.graph)]
+            self._rings = self._uncached_rings()
 
         return copy(self._rings)
+
+    def _uncached_rings(self, *, ligand_skeleton: bool = False) -> list["Ring"]:
+        """Materialize ring objects without changing either ring cache."""
+        graph = self.graph
+        if ligand_skeleton:
+            graph = graph.copy()
+            graph.remove_edges_from(
+                (bond.a1idx, bond.a2idx)
+                for bond in self.bonds
+                if bond.is_metal_ligand_bond
+            )
+        return [
+            Ring(*(self._atoms[index] for index in cycle))
+            for cycle in nx.cycle_basis(graph)
+        ]
 
     @property
     def aromatic_joint_rings(self) -> list["JointRing"]:
@@ -2545,16 +2336,7 @@ class Molecule:
             tuple(sorted(tuple(sorted(edge)) for edge in self.graph.edges)),
         )
         if signature != self._ligand_rings_signature:
-            ligand_graph = self.graph.copy()
-            ligand_graph.remove_edges_from(
-                (bond.a1idx, bond.a2idx)
-                for bond in self.bonds
-                if bond.is_metal_ligand_bond
-            )
-            self._ligand_rings = [
-                Ring(*(self._atoms[i] for i in cycle))
-                for cycle in nx.cycle_basis(ligand_graph)
-            ]
+            self._ligand_rings = self._uncached_rings(ligand_skeleton=True)
             self._ligand_rings_signature = signature
         return copy(self._ligand_rings)
 
@@ -3190,7 +2972,10 @@ class Atom(MolBlock):
         return atom
 
     @staticmethod
-    def random_point_on_sphere(radius: float = 1.):
+    def random_point_on_sphere(
+            radius: float = 1.,
+            rng: Optional[np.random.Generator] = None,
+    ):
         """
         Generates a random point on the surface of a sphere with a given radius.
 
@@ -3201,14 +2986,17 @@ class Atom(MolBlock):
 
         Args:
             radius (float): The radius of the sphere. Default is 1.0.
+            rng (numpy.random.Generator, optional): Generator used for sampling.
+                When omitted, NumPy's process-global random generator is used.
 
         Returns:
             tuple[float, float, float]: Cartesian coordinates (x, y, z) of the
             point on the sphere's surface.
         """
         # 随机生成极角 theta 和方位角 phi
-        theta = np.arccos(2 * np.random.rand() - 1)  # 0 到 pi
-        phi = 2 * np.pi * np.random.rand()  # 0 到 2pi
+        random = np.random.rand if rng is None else rng.random
+        theta = np.arccos(2 * random() - 1)  # 0 到 pi
+        phi = 2 * np.pi * random()  # 0 到 2pi
 
         # convert to Cartesian coordination
         x = np.sin(theta) * np.cos(phi) * radius
@@ -3239,7 +3027,12 @@ class Atom(MolBlock):
         """
         return self.atomic_number == 8 or (self.atomic_number == 7 and self.is_aromatic)
 
-    def _add_hydrogens(self, num: int = None, rm_polar_hs: bool = True) -> (int, list["Atom"]):
+    def _add_hydrogens(
+            self,
+            num: int = None,
+            rm_polar_hs: bool = True,
+            rng: Optional[np.random.Generator] = None,
+    ) -> (int, list["Atom"]):
         """
         Adds or removes hydrogen atoms to achieve the correct count based on the molecule's implicit hydrogens.
 
@@ -3257,6 +3050,9 @@ class Atom(MolBlock):
             rm_polar_hs: bool
                 A flag to indicate whether polar hydrogens should be removed when reducing
                 the hydrogen count in case of excess.
+            rng: numpy.random.Generator or None
+                Generator used to place newly added hydrogen atoms. When omitted,
+                NumPy's process-global random generator is used.
 
         Returns:
             tuple[int, list["Atom"]]
@@ -3279,7 +3075,8 @@ class Atom(MolBlock):
         if num > 0:
             return 1, [
                 self._add_atom(atom_attrs={
-                    'coordinates': np.array(self.coordinates) + self.random_point_on_sphere(1.05)
+                    'coordinates': np.array(self.coordinates)
+                    + self.random_point_on_sphere(1.05, rng=rng)
                 }) for _ in range(num)
             ]
 
@@ -5261,7 +5058,12 @@ class Ring(AtomSeq):
             True if any pairwise distance in the dataset is less than 0.5, 
             False otherwise.
         """
-        return np.any(self.pair_dist < 0.5)
+        return geometry.has_too_close_atoms(
+            self,
+            minimum_distance=0.5,
+            covalent_radius_scale=None,
+            pair_scope="all",
+        )
 
     @property
     def has_metal(self):
@@ -5487,10 +5289,7 @@ class Ring(AtomSeq):
         Returns:
             A boolean indicating whether the bond intersects the ring.
         """
-        if bond in self._bonds:
-            return False
-
-        return self.cycle_places.is_line_intersect_the_cycle(bond.bond_line)
+        return geometry.bond_intersects_ring(self, bond)
 
     @property
     def cycle_places(self) -> geometry.CyclePlanes:
@@ -5509,9 +5308,7 @@ class Ring(AtomSeq):
     def closest_edge_to_bond(self, bond: Bond) -> 'Bond':
         if bond not in self.mol.bonds:
             raise NotInSameMolecule(self, bond)
-
-        min_dist_index = int(np.argmax([rb.bond_line_distance(bond) for rb in self._bonds]))
-        return self._bonds[min_dist_index]
+        return geometry.closest_ring_edge_to_bond(self, bond)
 
     def kekulize(self):
         """

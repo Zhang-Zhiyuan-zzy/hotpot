@@ -55,7 +55,7 @@ class TestChemInfo(ut.TestCase):
         mol.optimize()
         print([a for a in mol.atoms if a.is_hydrogen])
         print(mol.get_partial_charge('qeq'))
-        mol.write(osp.join(indir, 'hmq_0.5_377_3444_9370.cif'), overwrite=True)
+        mol.write(osp.join(outdir, 'hmq_0.5_377_3444_9370.cif'), overwrite=True)
 
     def test_molecule(self):
 
@@ -240,7 +240,7 @@ class TestChemInfo(ut.TestCase):
         for a in mol.atoms:
             print(a.symbol, a.oxidation_state)
 
-        mol.build3d(steps=5000)
+        mol.build3d(steps_per_epoch=5000)
         mol.write(opj(tests.output_dir, 'cheminfo', 'mol.mol2'), 'mol2', overwrite=True)
 
     def test_internal_coordinates(self):
@@ -269,7 +269,7 @@ class TestChemInfo(ut.TestCase):
         print(len(mol.bonds))
         assert isinstance(mol, hp.Molecule)
 
-        mol.complexes_build_optimize_(save_screenshot=True)
+        mol.build3d(save_movie=True)
         mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol.sdf'), 'sdf', overwrite=True)
         mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol_single.sdf'), 'sdf', overwrite=True, write_single=True)
 
@@ -378,27 +378,19 @@ class TestChemInfo(ut.TestCase):
         print(len(mol.bonds))
         assert isinstance(mol, hp.Molecule)
 
-        mol.complexes_build_optimize_(save_screenshot=True)
+        mol.build3d(save_movie=True)
         mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol_single.gjf'), overwrite=True, write_single=True)
 
     def test_add_hydrogen(self):
-        mol = next(hp.MolReader(
-            # "OC(=O)CN1[C@@H](CN(C2(C1=O)COCCOC2)C(=O)OC(C)(C)C)c1ccc(cc1)F",
-            'CC(C)(C)OC(=O)N12CC(c3ccc(F)cc3)N34CC5=O[Ga]613([OH]5)O1CCO6CC2(C1)C4=O',
-            'smi'))
+        mol = next(hp.MolReader('CO', 'smi'))
 
-        mol.build3d()
-        mol.optimize()
+        mol.add_hydrogens(
+            rm_polar_hs=False,
+            rng=np.random.default_rng(17),
+        )
 
-        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_before.mol'), overwrite=True)
-        t1 = time.time()
-        mol.add_hydrogens()
-        t2 = time.time()
-        print(t2-t1)
-        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_after.mol'), overwrite=True)
-        mol.optimize(save_screenshot=True)
-        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_opti.sdf'), overwrite=True)
-        mol.write(opj(tests.output_dir, 'cheminfo', 'addh_opti.gjf'), overwrite=True)
+        self.assertEqual(len(mol.hydrogens), 4)
+        self.assertEqual(mol.atoms[1].explicit_hydrogens, 1)
 
     @ut.skip('not implemented')
     def test_missing_bonds(self):

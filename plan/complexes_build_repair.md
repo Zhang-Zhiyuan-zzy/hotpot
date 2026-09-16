@@ -24,14 +24,16 @@
 8. 默认只保留最低能帧，显式 `save_movie=True` 时才保留逐 epoch 轨迹。
 9. 清除当前错误的 Open Babel 约束映射实现，只保留稳定的空接口。
 10. 建立分层、结构化的几何质量门控。
+11. 构筑或优化前默认补全氢原子；对络合物按“先隐藏金属–配体键，再按配体骨架补氢”的顺序执行。
+12. 在 forcefield 层预留按配位数处理中心原子初始几何的公开函数、输入输出对象和调用位置；本轮不实现几何推断或排布算法。
 
 本轮不得擅自加入的化学假设：
 
 - 不自动推断金属氧化态或改写总电荷。
-- 不根据配位数强制指定线性、四面体、平方平面、八面体等几何。
+- 本轮不根据配位数实际强制指定线性、四面体、平方平面、八面体等几何；但必须留下明确、可测试且默认不启用的策略接口。
 - 不引入新的金属力场或把 RDKit、OpenMM、ASE 变成新的计算后端。
 - 不把绝对总能量设为跨分子的统一合格线。
-- 在氢原子策略通过第 5 节的测试和人工确认前，不把“金属配位必然去质子化”固化为规则。
+- 不把“存在金属配位键”解释成“配体必然去质子化”；去质子化必须由输入结构或未来显式化学操作表达。
 
 任何失败都必须显式抛出带报告的异常；不得使用宽泛 `try/except`、静默忽略错误或无条件切换算法来制造“成功”结果。唯一允许的静默调整是用户明确要求的络合物力场解析 helper。
 
@@ -88,23 +90,28 @@ hotpot/works/convert.py::_build3d
 目标数据流如下：
 
 ```text
-Molecule.build3d()
+Molecule.build3d()  # zero-business facade
   |
-  +-- mol.has_metal is False
+  -> forcefields.build_and_optimize(mol, ...)
+       |
+       +-- mol.has_metal is False
   |     -> ob_build(mol)
   |     -> ob_optimize(mol, requested forcefield, requested steps)
   |
-  +-- mol.has_metal is True
+       +-- mol.has_metal is True
         -> complexes_build(mol, ...)
              1. capture immutable input/topology signature
              2. create full working clone before any H/topology operation
-             3. build ligand proxies with metal-ligand edges hidden
-             4. map proxy coordinates into the full working clone
-             5. restore/retain the complete original graph
-             6. resolve complex forcefield through tiny helper -> UFF
-             7. run full-system epoch optimizer on working clone
-             8. run global geometry quality gate
-             9. commit accepted state atomically to caller molecule
+             3. hide metal-ligand edges on working clone
+             4. add hydrogens from ligand-skeleton valence (default)
+             5. build ligand proxies with metal-ligand edges hidden
+             6. map proxy coordinates into the full working clone
+             7. restore/retain the complete original graph
+             8. reserved coordination-geometry preparation hook (inactive)
+             9. resolve complex forcefield through tiny helper -> UFF
+            10. run full-system epoch optimizer on working clone
+            11. run global geometry quality gate
+            12. commit accepted state atomically to caller molecule
 ```
 
 ### 2.1 为什么保留代理拆分
@@ -132,42 +139,87 @@ Molecule.build3d()
 
 这在化学上等价于“用本体的完整结构优化”，同时具备事务语义：超时、异常或门控失败不会留下半优化、少氢或已破坏的调用方分子。
 
-## 3. 公开入口与接口收敛
+## 3. 两层 API：`Molecule` 标准门面与 `forcefields` 功能层
 
-### 3.1 `Molecule.build3d()`
+### 3.1 `Molecule` 只暴露两个标准入口
 
-`build3d()` 只做明确分派，不再包含另一套构筑逻辑：
+`Molecule` 层最终只保留：
 
 ```python
-if self.has_metal:
-    return forcefields.complexes_build(self, ...)
-
-forcefields.ob_build(self)
-return forcefields.ob_optimize(self, forcefield=forcefield, steps=steps, ...)
+mol.build3d(...)   # initial 3D construction + appropriate optimization
+mol.optimize(...)  # optimize the existing coordinates
 ```
 
-要求：
+这两个方法只声明稳定参数、转发调用并返回结果，不包含以下任何业务逻辑：
 
-- 判断条件必须是 `has_metal`，不能继续使用 `not is_organic`。
-- 普通有机分子直接调用模块级 `ob_build()` 和 `ob_optimize()`。
-- 络合物调用的 `complexes_build()` 必须已经是完整两阶段流程。
-- `forcefield`、优化步数和所有认可的关键字参数必须真实传递。
-- 未识别参数应显式报错，不得因 `**kwargs` 被静默丢弃。
+- 不自行判断 `has_metal`/`is_organic`；
+- 不直接调用 Open Babel；
+- 不加氢、不隐藏或恢复键；
+- 不选择力场；
+- 不创建进程；
+- 不实现扰动、epoch 循环、门控或异常 fallback。
 
-### 3.2 唯一的络合物入口
+建议的函数体结构只有一行调用：
 
-`forcefields.complexes_build()` 成为唯一实现完整流程的函数。
+```python
+def build3d(self, **options):
+    return forcefields.build_and_optimize(self, **options)
 
-现有入口的处理：
+def optimize(self, **options):
+    return forcefields.auto_optimize(self, **options)
+```
 
-- `Molecule.complexes_build_optimize_()`：改为薄兼容代理，仅转发到 `forcefields.complexes_build()`，不保留独立实现；标记弃用。
-- `Molecule.optimize_complexes()`：同样转发到唯一实现，或在确认没有外部调用后于后续主版本删除。
-- `works.convert._build3d()`：统一调用 `mol.build3d()`，不再自行选择另一套络合物流程。
-- `OBFF_` 与 `OBFF`：合并为一个内部 Open Babel 优化器实现；暂时保留旧类名作为直接别名，不复制逻辑。
+自动识别发生在 forcefield 层：
 
-弃用层只能负责参数名翻译和一次调用，不得捕获底层异常或改变结果。
+- `forcefields.build_and_optimize()` 根据 `mol.has_metal` 选择普通分子或络合物的“构筑＋优化”流程。
+- `forcefields.auto_optimize()` 根据 `mol.has_metal` 选择普通优化或络合物专用优化流程，但不重新构筑初始 3D。
 
-### 3.3 络合物力场解析 helper
+因此用户使用标准对象 API 时无需了解后端分支，同时 `Molecule` 不再积累力场业务代码。
+
+### 3.2 `forcefields` 提供可组合的细粒度函数
+
+直接使用 `hotpot.cheminfo.forcefields`（常用别名 `ff`）时，用户可以跳过自动策略并自行组合步骤。目标公开函数表如下：
+
+| 函数 | 单一职责 | 是否自动识别络合物 |
+|---|---|---|
+| `ff.build_and_optimize(mol, ...)` | 标准高层流程；默认加氢，构筑 3D 并优化 | 是 |
+| `ff.auto_optimize(mol, ...)` | 标准高层优化；默认加氢，只优化已有坐标 | 是 |
+| `ff.build3d(mol, ...)` | 只调用普通初始 3D 嵌入，不优化 | 否 |
+| `ff.optimize(mol, ...)` | 只执行普通 Open Babel 力场优化；络合物也允许显式选择此捷径 | 否 |
+| `ff.perturb(mol, ...)` | 只微扰当前坐标 | 否 |
+| `ff.build_complex3d(mol, ...)` | 只运行代理拆分、配体构筑和完整拓扑重组 | 入口本身限定络合物 |
+| `ff.optimize_complex(mol, ...)` | 只对已有络合物坐标执行专用 epoch/UFF 流程 | 入口本身限定络合物 |
+| `ff.complexes_build(mol, ...)` | `build_complex3d + optimize_complex + quality gate` 的完整兼容入口 | 入口本身限定络合物 |
+| `ff.prepare_coordination_geometry(mol, ...)` | 未来按中心原子配位数安排初始几何；本轮只留接口 | 入口本身限定络合物 |
+
+语义示例：
+
+```python
+mol.build3d()                    # 自动：普通分子或络合物，构筑并优化
+mol.optimize()                   # 自动：普通或络合物优化，不重做初始嵌入
+
+ff.optimize(mol)                # 强制只走普通优化，即使 mol 是络合物
+ff.build3d(mol)                 # 只嵌入普通初始 3D，不优化
+ff.perturb(mol, sigma=0.2)      # 只微扰坐标
+ff.build_complex3d(mol)         # 只做络合物代理构筑/重组
+ff.optimize_complex(mol)        # 只做络合物全体系 UFF 优化
+```
+
+这些函数必须采用一致的 `func(mol, ...)` 形式，并明确原位更新与返回报告的契约。细粒度函数不得因为检测到金属而偷偷切换到另一流程；这种灵活性正是直接调用 `ff` 层的目的。
+
+除纯坐标操作 `ff.perturb()` 外，所有构筑或优化函数均暴露 `add_hydrogens: bool = True`，并通过同一个 working-copy helper 执行。即使用户对络合物直接调用普通 `ff.optimize()`，默认补氢仍按“暂时隐藏金属–配体键后读取配体共价价态”的规则完成；这只统一分子准备，不会把调用升级为络合物专用优化流程。
+
+### 3.3 冗余接口收敛
+
+- 从 `Molecule` 删除 `complexes_build_optimize_()` 和 `optimize_complexes()`；Molecule 层不保留第三、第四个力场公开入口。
+- 同步更新仓库内调用者和文档；这是本修复分支明确接受的 API 收束，不在 `Molecule` 中保留弃用 wrapper。
+- `works.convert._build3d()` 统一调用 `mol.build3d()`，不再自行选择金属分支。
+- `OBFF_` 与 `OBFF` 合并为私有 `_OpenBabelOptimizer`；公开能力由 `ff.<func>(mol, ...)` 函数提供，不再要求用户实例化后端类。
+- `ob_build()`/`ob_optimize()` 归入上述 `ff.build3d()`/`ff.optimize()` 的实现或保留为私有兼容别名，不能继续形成第三套公开语义。
+
+弃用层只能负责参数名翻译和一次调用，不得捕获底层异常、重新判断分子类型或改变结果。
+
+### 3.4 络合物力场解析 helper
 
 建立唯一且很小的纯函数，例如：
 
@@ -269,9 +321,11 @@ clone.hide_metal_ligand_bonds()
 ### 5.2 必须保留的设计
 
 - 保留完整工作克隆。
-- 保留在工作克隆上隐藏金属–配体边、拆分普通配体、反复 `ob_build()` 的策略。
+- 在创建 working clone 后，先隐藏金属–配体边，再执行默认加氢。这样氢数由配体共价骨架决定，不把配位键误当作消耗普通共价价态的键。
+- 保留在 working clone 上拆分普通配体、反复 `ob_build()` 的策略。
 - 使用稳定 atom ID 将配体代理坐标映射回完整工作克隆。
 - 在完整工作克隆上恢复原始金属–配体拓扑并执行全体系 UFF。
+- 成功时把补全后的氢原子连同完整优化结果提交给本体；默认加氢是 `build3d()` 和 `optimize()` 的正式行为。
 - 失败时丢弃整个 working clone，不修改本体。
 
 ### 5.3 具体质子化案例
@@ -296,20 +350,47 @@ clone.hide_metal_ligand_bonds()
 - 单齿与双齿连接；
 - 代理阶段失败时本体完全不变。
 
-### 5.4 推荐氢策略及审批点
+### 5.4 冻结后的默认加氢契约
 
-推荐引入明确的 `hydrogen_policy`，不再让布尔值同时承担“补氢”和“去除极性氢”两种语义：
+优化前默认加氢是预期行为，不再作为待审批项。目标 API 使用：
 
-- `preserve`：默认候选。严格保留调用方显式原子、形式电荷和键图；代理不得用金属邻居数推断去质子化。
-- `complete`：只在 working clone 上按未配位的共价配体图补足隐式氢；新增 H 带 provenance。是否把新增 H 提交给本体由公开契约明确决定。
-- `deprotonate`：未来显式、可审计的化学操作；必须由位点规则或用户指定，不能由“存在金属邻居”自动触发。
+```python
+add_hydrogens: bool = True
+```
 
-在实施化学行为改变前需要确认两点：
+具体顺序必须固定为：
 
-1. `build3d()` 的返回分子是否应默认显式补齐隐式 H；
-2. `complete` 模式新增的代理 H 是否应提交到本体，还是只用于优化后丢弃并回填原始原子的坐标。
+```text
+copy caller molecule
+  -> hide metal-ligand bonds on the copy
+  -> add missing hydrogens against the ligand covalent skeleton
+  -> refresh stable IDs, retaining a mapping to original atoms
+  -> build ligand components
+  -> recover metal-ligand bonds
+  -> optional coordination-geometry hook
+  -> optimize the complete working molecule
+  -> quality gate
+  -> atomically commit the completed molecule, including added H atoms
+```
 
-在这两个问题确认前，先完成进程、API、优化器和质量门控修复，并通过测试冻结当前差异；不得继续扩大自动去质子化行为。
+规则：
+
+- 普通有机分子的 `build_and_optimize()` 与 `auto_optimize()` 同样默认先加氢。
+- 直接调用 `ff.build3d()`、`ff.optimize()`、`ff.build_complex3d()` 或 `ff.optimize_complex()` 时同样默认先加氢；嵌套调用必须通过内部标志确保一条流程只补氢一次。
+- `add_hydrogens=False` 是唯一跳过自动补氢的显式选项。
+- 已经显式存在的氢必须保留；默认流程不得以“极性氢”为由删除它们。
+- 明确带负电的 `[O-]` 等输入依靠输入价态保持去质子化；不得再通过金属邻居数猜测。
+- `rm_polar_hs` 从新标准接口删除，不再与补氢混用；兼容层若暂时接收该旧参数，必须发出弃用提示，且不能继续执行静默删除。
+- 补氢发生在 working clone 上，但成功提交包括新增氢；因此调用失败仍保持本体不变，调用成功则按公开契约得到完整显式氢结构。
+
+建议增加内部单一职责函数：
+
+```python
+def _hydrogenated_working_copy(mol, *, add_hydrogens: bool):
+    """Return a full working copy; infer H from the ligand covalent graph."""
+```
+
+该函数负责隐藏/恢复金属–配体键和建立原子映射，不负责三维构筑、力场优化或去质子化。
 
 ## 6. 解结与完整体系优化
 
@@ -339,6 +420,66 @@ clone.hide_metal_ligand_bonds()
 - 为质量门控提供能量、梯度、收敛和 epoch 轨迹。
 
 UFF 能得到局部极小值不等于结构具有正确配位化学。ZnCl₂ 得到 109.47°而 PtCl₄ 得到平方平面，说明当前不得把 UFF 输出直接解释为已验证的配位几何。几何模板/配位场模型属于后续化学增强，不纳入本轮静默修补。
+
+### 6.4 预留中心原子配位几何接口，本轮不实现算法
+
+根据中心原子的配位数和化学环境提供合理初始几何，是通用金属络合物构筑不可缺少的阶段。仅依赖 UFF 从重叠或随机坐标出发，无法稳定区分例如 CN=4 的四面体与平方平面。
+
+本轮必须在 `forcefields` 功能层留下类型和函数结构，但默认流水线不得调用尚未实现的策略，也不得用空函数伪装成功。建议结构：
+
+```python
+@dataclass(frozen=True)
+class CoordinationEnvironment:
+    metal_idx: int
+    donor_indices: tuple[int, ...]
+    coordination_number: int
+    metal_atomic_number: int
+    metal_formal_charge: int
+    donor_atomic_numbers: tuple[int, ...]
+    chelate_groups: tuple[tuple[int, ...], ...]
+
+
+@dataclass(frozen=True)
+class CoordinationGeometryCandidate:
+    coordinates: np.ndarray
+    assigned_geometries: tuple[str, ...]
+    score: float | None
+
+
+@dataclass(frozen=True)
+class CoordinationGeometryResult:
+    environments: tuple[CoordinationEnvironment, ...]
+    candidates: tuple[CoordinationGeometryCandidate, ...]
+    diagnostics: dict[str, object]
+
+
+def prepare_coordination_geometry(
+    mol,
+    *,
+    environments: tuple[CoordinationEnvironment, ...] | None = None,
+    strategy: str | None = None,
+    seed: int | None = None,
+) -> CoordinationGeometryResult:
+    raise NotImplementedError(
+        "Coordination-number-aware placement is reserved but not implemented"
+    )
+```
+
+接口设计要求：
+
+- 位于 `hotpot.cheminfo.forcefields` 的公开功能层，不放入 `Molecule`。
+- `metal_idx` 和 `donor_indices` 使用 Hotpot 0-based 索引。
+- `coordination_number` 来自明确的金属–配体边，不从空间距离猜测。
+- `chelate_groups` 保留同一配体的多个供体关系，避免把双齿/多齿配体当成独立单齿点。
+- 必须同时接收金属元素、形式电荷和供体元素；不能只凭配位数唯一决定几何。
+- 每个中心的 `assigned_geometries` 将来至少允许 `linear`、`trigonal_planar`、`tetrahedral`、`square_planar`、`trigonal_bipyramidal`、`square_pyramidal`、`octahedral` 及 `unspecified`。
+- CN=4 等存在多种合理几何时，策略必须显式消歧或返回多个候选，不能硬编码一个答案。
+- 多金属体系按中心分别建立 environment，同时保留共享配体和桥联供体信息。
+- 函数最终应只负责生成/调整初始坐标，不承担力场优化和质量验收。
+
+预留调用位置固定在“代理配体回填并恢复完整拓扑”之后、“全体系 UFF 优化”之前。当前参数 `coordination_geometry=None` 时完全跳过；任何非 `None` 值在实现落地前必须显式抛出 `NotImplementedError`。
+
+本轮测试只验证：接口存在、默认流程不调用它、显式请求不会静默忽略。未来实现需要另开化学功能提交和参考结构基准集。
 
 ## 7. 优化循环、参数命名与结果选择
 
@@ -519,7 +660,7 @@ ForceFieldRunReport
 - 返回坐标 shape 与原子数一致；
 - 全部坐标、能量和梯度为有限数；
 - worker 正常完成且消息协议完整；
-- 按所选 hydrogen policy，原子 ID、元素、形式电荷、键端点和键类型满足拓扑契约；
+- 原始原子及键身份保持不变；允许的拓扑增量只能是默认补入的氢原子及其 X–H 键；
 - Open Babel `Setup()` 成功。
 
 ### 9.4 分层门控
@@ -547,7 +688,8 @@ ForceFieldRunReport
 - 金属–配体键使用独立的宽松区间，初始候选 `[0.65, 1.60]`；
 - 所有非环键，包括金属–配体键，不得穿过 `ligand_rings`；
 - 记录收敛状态、RMS 梯度和最大梯度；未达到严格梯度阈值可作为 warning，但不得掩盖几何硬失败；
-- 输入拓扑和质子化状态必须符合选定 hydrogen policy。
+- 输入原有拓扑必须保持，新增氢必须符合“隐藏金属键后的配体共价骨架补氢”契约。
+- 记录每个金属中心的配位数、供体索引、金属–供体距离和供体–金属–供体角分布，供未来配位几何模块使用；本轮只报告，不据此判定具体几何类型。
 
 这些半径比例只用于捕获灾难性结构，不宣称验证配位化学正确性。阈值必须先用第 11 节语料校准，避免误杀镧系、长配位键或多中心键。
 
@@ -577,7 +719,10 @@ ForceFieldRunReport
 
 ### `hotpot/cheminfo/forcefields.py`
 
+- 提供 `build_and_optimize()`、`auto_optimize()` 两个自动分派器。
+- 提供 `build3d()`、`optimize()`、`perturb()`、`build_complex3d()`、`optimize_complex()` 等可组合功能函数。
 - 抽出 `_resolve_complex_forcefield()`。
+- 抽出 `_hydrogenated_working_copy()`，默认补氢并保持事务性。
 - 把 `_run_complexes_build()` 改为只处理 working clone 并返回结构化结果。
 - 修复 attempt 计数和最近环边调用。
 - 替换 Queue/join 协议，保证异常、超时和大结果均可终止。
@@ -587,14 +732,16 @@ ForceFieldRunReport
 - 修复 VDW 线性插值。
 - 清空 constraint adapter。
 - `complexes_build()` 承担完整 working-clone UFF 与最终门控。
+- 预留 `CoordinationEnvironment`、`CoordinationGeometryResult` 和 `prepare_coordination_geometry()`；本轮不实现或默认调用排布算法。
 
 ### `hotpot/cheminfo/core.py`
 
-- `build3d()` 改为纯分派。
-- `complexes_build_optimize_()` 与 `optimize_complexes()` 收敛为薄兼容入口。
+- `build3d()` 只转发到 `ff.build_and_optimize(self, ...)`。
+- `optimize()` 只转发到 `ff.auto_optimize(self, ...)`。
+- 删除 `complexes_build_optimize_()` 与 `optimize_complexes()`；仓库内调用全部迁移到两个标准入口或 `ff` 细粒度函数。
 - 修复 `Ring.closest_edge_to_bond()` 的 `argmax -> argmin`。
 - 不在本轮删除 constraint 数据字段。
-- 不在未批准前改写通用价态或氢规则。
+- 不在 `Molecule` 层实现加氢、力场选择、进程、扰动或门控逻辑。
 
 ### `hotpot/cheminfo/geometry_quality.py`（新增）
 
@@ -625,9 +772,16 @@ tests/test_cheminfo/fixtures/complexes/
 
 ### 11.1 分派与参数穿透
 
-- 乙醇：`build3d()` 精确调用一次 `ob_build` 和一次 `ob_optimize`。
+- mock 验证 `Molecule.build3d()` 只转发一次到 `ff.build_and_optimize()`，方法体不判断分子类型。
+- mock 验证 `Molecule.optimize()` 只转发一次到 `ff.auto_optimize()`，方法体不判断分子类型。
+- 反射检查 `Molecule` 不再暴露 `complexes_build_optimize_` 和 `optimize_complexes`。
+- 乙醇：`ff.build_and_optimize()` 精确调用一次低层 `ff.build3d()` 和一次 `ff.optimize()`。
 - 苯：用户指定 UFF/MMFF94s 均原样传入普通有机路径。
-- Zn–乙二胺：精确调用一次完整 `complexes_build`。
+- Zn–乙二胺：`ff.build_and_optimize()` 精确调用一次完整 `complexes_build`。
+- 对同一 Zn 络合物直接调用 `ff.optimize()` 时，只走普通优化，不触发代理构筑。
+- 直接调用 `ff.build3d()` 时只生成初始坐标，不运行优化。
+- 直接调用 `ff.perturb()` 时只改变坐标，不构筑、不优化。
+- 除 `ff.perturb()` 外，上述直接调用默认补氢；一条组合流程不得重复补氢。
 - 络合物请求 MMFF94s：运行报告显示 requested=MMFF94s、effective=UFF。
 - `epochs`、`steps_per_epoch`、timeout、quality level、seed 全部抵达实际消费位置。
 - 传入未知参数必须失败，不能静默丢弃。
@@ -676,16 +830,27 @@ tests/test_cheminfo/fixtures/complexes/
 
 每个失败报告必须包含检查名称、实测值、阈值和相关 atom/bond indices。
 
-### 11.6 氢和拓扑事务
+### 11.6 配位几何预留接口
+
+- `CoordinationEnvironment` 能正确表达单中心、多中心、双齿和桥联配体。
+- ZnCl₂ 报告 CN=2；Zn(NH₃)₄ 和 PtCl₄ 报告 CN=4；README Eu 案例报告实际供体集合。
+- 默认 `coordination_geometry=None` 不调用未实现函数，也不改变现有 UFF 结果。
+- 显式请求任一 geometry strategy 时稳定抛出 `NotImplementedError`，不得静默跳过。
+- 测试只冻结接口和调用位置，不冻结 CN=4 应选择四面体还是平方平面。
+
+### 11.7 氢和拓扑事务
 
 执行第 5.3 节全部案例，并另外断言：
 
 - worker 异常前后本体的原子数、原子 ID、形式电荷和键集合完全一致；
 - timeout 前后本体完全一致；
 - 最终门控失败前后本体完全一致；
-- 成功时只提交契约允许的字段。
+- 成功时保留全部原始原子/键，并提交默认补入的氢及 X–H 键；
+- 水–Zn 和甲醇–Zn 在隐藏金属键后补氢，分别保持 H₂O 与 CH₃OH 配体身份；
+- 明确输入的 `[O-]` 不得被补成中性水/醇；
+- `add_hydrogens=False` 时原子和键数量不增加。
 
-### 11.7 回归与性能
+### 11.8 回归与性能
 
 - README Eu 默认流程必须通过 standard gate；记录运行时间、最终 Eu–供体距离和能量，但不对随机运行做逐位断言。
 - 有 seed 的基线使用距离/能量容差比较。
@@ -708,23 +873,26 @@ tests/test_cheminfo/fixtures/complexes/
    只修计数器和 `argmin`，便于回溯。
 4. `refactor(forcefields): unify optimizer and normalize parameters`
 
-   合并重复类，加入力场 helper，完成 epoch 参数迁移和空 constraint adapter。
-5. `feat(forcefields): add seeded epoch optimization and best-frame output`
+   合并重复类，加入力场 helper，完成 epoch 参数迁移、细粒度函数拆分和空 constraint adapter。
+5. `api(forcefields): reserve coordination geometry strategy hook`
+
+   只加入数据结构和显式 `NotImplementedError` 接口，不实现、不接入默认流程。
+6. `feat(forcefields): add seeded epoch optimization and best-frame output`
 
    加入局部 RNG、正确 VDW 插值、标准分段优化、最低能帧及 movie。
-6. `feat(cheminfo): add layered geometry quality gates`
+7. `feat(cheminfo): add layered geometry quality gates`
 
    新增纯门控模块和结构化报告。
-7. `refactor(complexes): make proxy build transactional and globally optimized`
+8. `refactor(complexes): make proxy build transactional and globally optimized`
 
-   working clone 全流程、最终门控、成功后原子化提交。
-8. `refactor(core): make build3d the canonical dispatcher`
+   默认配体骨架补氢、working clone 全流程、最终门控、成功后原子化提交。
+9. `refactor(core): make build3d the canonical dispatcher`
 
-   收敛三个公开入口和 `works.convert`。
-9. `test(complexes): validate hydrogens, metals, failures, and regression matrix`
+   将 `Molecule.build3d/optimize` 变为零业务门面，收敛旧入口和 `works.convert`。
+10. `test(complexes): validate hydrogens, metals, failures, and regression matrix`
 
-   完成完整矩阵；氢策略只按已批准结论实现。
-10. `docs(complexes): document forcefield and quality contracts`
+   完成默认补氢、金属体系、失败事务和回归矩阵。
+11. `docs(complexes): document forcefield and quality contracts`
 
     更新公开 API、单位、随机性和限制。
 
@@ -757,7 +925,8 @@ tests/test_cheminfo/fixtures/complexes/
 ### 阶段 D：化学身份
 
 - 氢、形式电荷和拓扑行为有明确、可测试的公开契约。
-- 未经显式策略不再把水/醇静默变成羟基/醇盐型配体。
+- 构筑和优化前默认补氢；水/醇不再因金属邻居被静默变成羟基/醇盐型配体。
+- 配位数几何函数及其数据结构已经预留，但默认流程没有调用未实现功能。
 - 不宣称 UFF 已验证金属配位几何或氧化态。
 
 ## 14. 回滚与禁止事项
@@ -770,4 +939,4 @@ tests/test_cheminfo/fixtures/complexes/
 - 不把 RDKit 的成功结果当作 Hotpot/Open Babel 的 oracle；参考实现只用于验证设计原则和非金属差分测试。
 - 不在本轮加入未经标定的配位几何模板。
 
-完成全部阶段后，最终报告必须给出：提交列表、测试命令、通过/失败/跳过数量、基准结构指标、已知化学边界及仍需人工决定的 hydrogen policy。
+完成全部阶段后，最终报告必须给出：提交列表、测试命令、通过/失败/跳过数量、基准结构指标、默认加氢前后拓扑差异、已知化学边界，以及配位数几何接口尚未实现的明确说明。

@@ -1,8 +1,21 @@
 # `hotpot cbond`
 
-`hotpot cbond` predicts metal-ligand coordination patterns with Hotpot's CBond
-ONNX model. It accepts one metal and one ligand, builds the predicted
-coordination bond or bonds, and reports the resulting structure as SMILES.
+`hotpot cbond` uses Hotpot's packaged CBond ONNX model to add coordination
+bonds between one metal centre and one ligand graph. It prints the resulting
+connectivity as SMILES; it does not optimize a three-dimensional structure.
+
+## Verification basis
+
+The concrete output blocks below were captured from an installed
+`hotpot-zzy 0.5.3.0` wheel using the packaged CBond models, ONNX Runtime
+1.30.0, Open Babel 3.2.1, and CPU inference. They are command output, not
+invented formatting examples.
+
+Only standard output is shown. ONNX Runtime may independently print provider
+or telemetry warnings to standard error. Such warnings are not part of the
+CBond result and are not written by `-o` or shell `>` redirection. Canonical
+SMILES spelling and stereochemical annotations can vary with the Open Babel
+version even when the predicted bond set is unchanged.
 
 ## Command synopsis
 
@@ -10,219 +23,242 @@ coordination bond or bonds, and reports the resulting structure as SMILES.
 $ hotpot cbond <METAL> <LIGAND_SMILES/FILE> [options]
 ```
 
-`METAL` may be an element symbol such as `Eu` or an atomic number such as
-`63`. `LIGAND_SMILES/FILE` may be a quoted SMILES string or the path to a
-supported molecule file.
+`METAL` may be an element symbol such as `Eu` or its atomic number, `63`.
+Quote SMILES strings to protect shell metacharacters.
 
-## Predict the highest-ranked structure
+## Build one greedy structure
 
-Quote a SMILES string so that shell metacharacters are not interpreted:
+The default mode iteratively adds the currently highest-scoring eligible bond
+and prints one SMILES line:
 
 ```bash
-$ hotpot cbond Eu 'CN'
+$ hotpot cbond Eu 'CN' --device cpu
 ```
-
-By default, the command prints only the resulting SMILES. This compact output
-is convenient for shell pipelines:
 
 ```text
 C[NH2+][Eu]
 ```
 
-A larger ligand can be submitted in exactly the same way:
+The atomic-number form was verified to produce the same result:
 
 ```bash
-$ hotpot cbond Eu 'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3'
+$ hotpot cbond 63 'CN' --device cpu
 ```
 
-The atomic number form is equivalent to the element-symbol form:
+The default result is the product of a greedy sequence. It is not guaranteed
+to be Rank 1 after `--all-structures` merges and normalizes every enumerated
+path. The multi-structure example below demonstrates this distinction.
+
+## Read a ligand from a file
+
+The file format is normally inferred from its extension. For a morpholine
+structure stored as `morpholine.mol2`, the tested command was:
 
 ```bash
-$ hotpot cbond 63 'CN'
+$ hotpot cbond Eu morpholine.mol2 --device cpu
 ```
 
-## Read a ligand from a molecule file
-
-Pass a molecule-file path in place of the SMILES string. The format is
-normally inferred from the filename extension:
-
-```bash
-$ hotpot cbond Eu inputs/ligand.mol2
-$ hotpot cbond Eu inputs/ligand.sdf
+```text
+C1C[N@H+]2[Eu][O]1CC2
 ```
 
+The same molecule converted to `morpholine.sdf` produced the same output.
 Use `--input-format` when the extension is absent or non-standard:
 
 ```bash
-$ hotpot cbond Eu inputs/ligand.data --input-format mol2
+$ hotpot cbond Eu morpholine.data --input-format mol2 --device cpu
 ```
 
-The command processes one ligand per invocation. A shell loop can process a
-directory while retaining one output record per input file:
+Each invocation accepts one ligand input. Use a shell loop for a collection of
+files:
 
 ```bash
 $ for ligand in inputs/*.mol2; do hotpot cbond Eu "$ligand"; done
 ```
 
-## Enumerate candidate coordination structures
+## Enumerate terminal coordination structures
 
-Use `--all-structures` to report every unique coordination structure retained
-by the CBond search rather than only the highest-ranked result:
+`--all-structures` explores every terminal donor-index state admitted by the
+threshold policy and ranks the merged state weights. This command was run
+against 2-amino-1,3-propanediol:
 
 ```bash
-$ hotpot cbond Eu ligand.mol2 --all-structures
+$ hotpot cbond Eu 'NCC(O)CO' --device cpu --all-structures
 ```
 
-Results are sorted from highest to lowest relative probability:
-
 ```text
-C[NH2+][Eu]  --> Rank 1: Prob: 74.9%
+C1O[Eu]2O[C@@H]1C[NH2+]2  --> Rank 1: Prob: 57.9%
 -----
-CN[Eu]       --> Rank 2: Prob: 25.1%
+NC[C@@H]1CO[Eu]O1  --> Rank 2: Prob: 42.1%
 -- End --
 ```
 
-Each construction path has a path weight equal to the product of the sigmoid
-values of its sequential raw CBond logits. Paths that produce the same final
-coordination topology are merged by adding their weights. The merged weights
-are then normalized over the unique structures returned by that invocation,
-producing the reported `Prob` values.
+For comparison, default greedy inference on the same SMILES printed
+`NC[C@@H]1CO[Eu]O1`, which is Rank 2 after full path aggregation. Therefore,
+the default mode must not be interpreted as an alias for Rank 1.
 
-`Prob` is therefore a relative ranking probability within the candidate set
-defined by the input, model, and threshold. It is not a calibrated physical
-probability, an equilibrium population, or a thermodynamic quantity. Changing
-the threshold can change both the returned candidate set and its normalized
-probabilities.
+For each ordered construction path, the backend multiplies
+`sigmoid(raw_logit)` over its bond-addition steps. It then:
 
-The enumeration contains every unique **terminal state under the threshold
-policy**: a state becomes terminal only when no unconnected candidate has a
-raw score above the threshold. It does not enumerate every arbitrary subset of
-ligand donor atoms.
+1. sums the weights of all paths reaching the same donor-atom index set;
+2. normalizes the merged weights over all terminal states;
+3. sorts the states by that normalized value.
 
-## Show coordination-bond details
+`Prob` is this normalized relative path weight. It is not a calibrated
+physical probability, equilibrium population, or thermodynamic quantity.
 
-Add `--bond-detail` to show the atom and score for every predicted metal-ligand
-bond. For a single best structure, no rank or normalized probability is
-printed:
+The merge key is the set of Hotpot atom indices, not canonical-SMILES graph
+isomorphism. Symmetry-related donor sets can therefore remain separate and may
+occasionally print the same canonical SMILES.
+
+A state is terminal only when no unconnected candidate has a raw score above
+the threshold. `--all-structures` does not return every arbitrary subset of
+donor atoms.
+
+## Show bond details
+
+`--bond-detail` adds the raw model score for each bond selected by the default
+greedy path:
 
 ```bash
-$ hotpot cbond Eu ligand.mol2 --bond-detail
+$ hotpot cbond Eu 'CN' --device cpu --bond-detail
 ```
 
 ```text
 C[NH2+][Eu]
 Cbond Detail:
 AtomIdx  Atom  Score
-4        O     0.88682
-11       N     0.23455
+1        N     0.08525
 -- End --
 ```
 
-`Score` is the raw per-step CBond model logit recorded along the selected
-construction path. It is distinct from both its sigmoid value and the final
-structure-level `Prob` reported by `--all-structures`.
-`AtomIdx` uses Hotpot's zero-based atom index for the input ligand.
+Without `--all-structures`, no rank or normalized probability is printed.
 
-Combine both flags to inspect every ranked structure and its individual bond
-decisions:
+Combine both flags to inspect every ranked terminal state:
 
 ```bash
-$ hotpot cbond Eu ligand.mol2 --all-structures --bond-detail
+$ hotpot cbond Eu 'NCC(O)CO' --device cpu --all-structures --bond-detail
 ```
 
 ```text
-C[NH2+][Eu]  --> Rank 1: Prob: 74.9%
+C1O[Eu]2O[C@@H]1C[NH2+]2  --> Rank 1: Prob: 57.9%
 Cbond Detail:
 AtomIdx  Atom  Score
-4        O     0.88682
-11       N     0.23455
+0        N     0.89586
+3        O     3.60561
+5        O     4.41528
 -----
-CN[Eu]  --> Rank 2: Prob: 25.1%
+NC[C@@H]1CO[Eu]O1  --> Rank 2: Prob: 42.1%
 Cbond Detail:
 AtomIdx  Atom  Score
-11       N     0.71124
+3        O     2.32296
+5        O     3.09254
 -- End --
 ```
 
-When multiple construction paths lead to the same final structure, `Prob`
-includes all merged path weights. The detail table represents the retained
-highest-weight path for that structure, and its row order is the predicted
-bond-addition order.
+`Score` is the raw per-step CBond logit, not a sigmoid probability. When
+several construction orders reach one donor set, the table shows the
+highest-weight representative path; row order is bond-addition order.
 
-## Save the output
+`AtomIdx` is Hotpot's zero-based atom index after the molecule has been parsed
+and normalized. It is not necessarily an atom serial number stored in a MOL2
+or SDF file.
 
-Use `-o` or `--output` to write exactly the same report to a UTF-8 text file:
+## Save the result
 
-```bash
-$ hotpot cbond Eu ligand.mol2 -o result.smi
-$ hotpot cbond Eu ligand.mol2 --all-structures --bond-detail -o result.txt
-```
-
-Standard shell redirection is also supported:
+`-o` writes the same standard-output report to a UTF-8 file:
 
 ```bash
-$ hotpot cbond Eu ligand.mol2 --all-structures > result.txt
+$ hotpot cbond Eu morpholine.mol2 --device cpu -o result.smi
+$ hotpot cbond Eu 'NCC(O)CO' --all-structures --bond-detail -o result.txt
 ```
 
-Use a text-like extension when requesting ranks or bond details because that
-output contains more than a single SMILES record.
-
-## Score threshold
-
-The default threshold is `-0.125`:
+Shell redirection was also verified:
 
 ```bash
-$ hotpot cbond Eu ligand.mol2 --threshold -0.125
+$ hotpot cbond Eu 'NCC(O)CO' --all-structures > result.txt
 ```
 
-The threshold is applied to the model's **raw logit**, not to the final
-normalized `Prob`. Candidates whose raw score does not exceed the threshold
-are not expanded. A higher threshold retains fewer, more strongly scored bond
-decisions; a lower threshold explores more alternatives and may produce more
-candidate structures.
+Use a text-like extension when ranks or bond details are enabled because the
+output is no longer a one-record SMILES file. ONNX Runtime warnings written to
+standard error remain visible in the terminal and are not included in these
+files.
 
-If no site clears the threshold, the default single-structure command exits
-with an explicit error instead of presenting a disconnected metal as a
-prediction. `--all-structures` reports that no coordination structures passed
-the threshold.
+## Threshold and empty results
 
-Because `Prob` is normalized only after candidate paths have been generated
-and equivalent structures have been merged, probabilities from runs using
-different thresholds are not directly comparable.
+The default threshold is `-0.125` and is applied to each raw model logit using
+the strict rule `score > threshold`:
 
-Exact enumeration caches each unique set of bonded donor atoms, but the
-number of such sets can still grow exponentially. `--all-structures` stops
-with an explicit error after 4096 unique states by default. Increase that
-guard only when the larger search is intentional:
+```bash
+$ hotpot cbond Eu 'CN' --threshold -0.125
+```
+
+A higher threshold explores fewer bond additions; a lower threshold can
+produce more states. Because the terminal candidate set can change,
+normalized `Prob` values from different thresholds are not directly
+comparable.
+
+The two output modes intentionally report an empty search differently. This
+single-structure command was verified to exit with status 1 and end with the
+shown exception:
+
+```bash
+$ hotpot cbond Eu 'CN' --device cpu --threshold 999
+```
+
+```text
+ValueError: No coordination bond exceeded the raw-score threshold 999.0
+```
+
+The current top-level CLI includes a Python traceback before that final line.
+By contrast, all-structures mode exits with status 0 and prints:
+
+```bash
+$ hotpot cbond Eu 'CN' --device cpu --threshold 999 --all-structures
+```
+
+```text
+No coordination structures exceeded the threshold.
+-- End --
+```
+
+## Enumeration limit
+
+Exact state enumeration can grow exponentially. The default limit is 4096
+unique donor-index states. Exceeding it raises a `RuntimeError`; for example,
+the tested `--max-states 1` run ended with:
+
+```text
+RuntimeError: CBond enumeration exceeded max_states=1; raise --threshold or --max-states
+```
+
+Raise the threshold to reduce the search, or deliberately increase the guard:
 
 ```bash
 $ hotpot cbond Eu ligand.mol2 --all-structures --max-states 8192
 ```
 
-Raising the score threshold is usually the more efficient way to reduce an
-overly broad search. The single best-structure mode does not use this limit.
+The single greedy mode does not use this state limit.
 
-## Greedy search control
+## `--no-greedy`
 
-The default search continues past a candidate that has already been connected
-and considers the next eligible site. Use `--no-greedy` to stop in that
-situation:
+After a bond is added, the model scores every candidate again. In default mode,
+an already-connected highest-scoring atom is skipped so that the next eligible
+atom can be considered. `--no-greedy` stops the path instead:
 
 ```bash
 $ hotpot cbond Eu ligand.mol2 --no-greedy
 ```
 
-This option changes path construction and can therefore change both the final
-coordination pattern and the relative probabilities produced by
+This can change both the greedy result and the terminal states generated by
+`--all-structures`. It is not a switch between greedy search and a global
+optimizer; full terminal-state enumeration is controlled separately by
 `--all-structures`.
-
-Exact score ties are resolved deterministically in favour of the larger
-zero-based atom index, matching the historical CBond selection order.
 
 ## Device and model selection
 
 `--device auto` is the default. It uses a working ONNX Runtime CUDA provider
-when one is available and otherwise uses CPU inference:
+when available and otherwise uses CPU:
 
 ```bash
 $ hotpot cbond Eu ligand.mol2 --device auto
@@ -230,43 +266,39 @@ $ hotpot cbond Eu ligand.mol2 --device cpu
 $ hotpot cbond Eu ligand.mol2 --device cuda
 ```
 
-`--device cuda` is strict and fails if the CUDA execution provider cannot be
-initialized. GPU execution requires `onnxruntime-gpu` and compatible CUDA and
+`--device cuda` is strict. In the CPU-only verification environment it exited
+with status 1 and ended with:
+
+```text
+RuntimeError: CUDAExecutionProvider is not available
+```
+
+GPU execution requires `onnxruntime-gpu` plus mutually compatible CUDA and
 cuDNN libraries.
 
-Select an external compatible CBond model bundle with `--model-dir`:
+Select an external compatible CBond bundle with `--model-dir`:
 
 ```bash
 $ hotpot cbond Eu ligand.mol2 --model-dir /absolute/path/to/cbond/onnx
 ```
 
-The same location may be configured with the `HOTPOT_CBOND_MODEL_DIR`
-environment variable. The model directory must contain the expected manifest
-and ONNX artifacts.
+`HOTPOT_CBOND_MODEL_DIR` provides the same model-directory setting. The
+directory must contain the expected manifest and ONNX artifacts.
 
-## Model scope and interpretation
+## Scope and interpretation
 
-The command predicts coordination connectivity; it does not optimize a 3D
-complex, calculate binding energy, or estimate thermodynamic stability. The
-current workflow supports one metal centre and one ligand graph per
-invocation. The packaged runtime supports at most 32 ligand rings and at most
-64 atoms in one ring.
-
-Candidate ranks and scores should be interpreted as outputs of the installed
-CBond model within its training and applicability domain. They are most useful
-for ranking plausible coordination patterns before downstream structural or
-quantum-chemical validation.
+- One metal centre and one ligand graph are supported per invocation.
+- Candidate donor elements are currently O, N, S, P, Si, and B.
+- The command predicts connectivity; it does not optimize geometry, calculate
+  binding energy, or estimate thermodynamic stability.
+- The packaged runtime accepts at most 32 ligand rings and 64 atoms in one
+  ring.
+- Scores and rankings remain model outputs and should be validated downstream
+  when used outside the model's training domain.
 
 ## Complete option reference
 
-Show the concise option reference for the installed version:
-
 ```bash
 $ hotpot cbond --help
-```
-
-Show this extended guide in the terminal:
-
-```bash
 $ hotpot cbond --doc
 ```

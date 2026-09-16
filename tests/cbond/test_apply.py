@@ -302,3 +302,32 @@ def test_auto_build_cbond_real_runtime_smoke(runtime):
     assert metal.neighbours
     assert all(bond.atom1 is not bond.atom2 for bond in result.bonds)
     assert 0.0 < probability <= 1.0
+
+
+def test_documented_aminodiol_reference_matches_packaged_model(runtime):
+    results = apply.build_all_possible_cbond(
+        read_mol("NCC(O)CO"),
+        "Eu",
+        runtime=runtime,
+        return_details=True,
+    )
+
+    assert [result.molecule.smiles for result in results] == [
+        "C1O[Eu]2O[C@@H]1C[NH2+]2",
+        "NC[C@@H]1CO[Eu]O1",
+    ]
+    assert [result.probability for result in results] == pytest.approx(
+        [0.5787371244916796, 0.4212628755083204]
+    )
+    assert [
+        [(step.atom_index, step.element) for step in result.steps] for result in results
+    ] == [[(0, "N"), (3, "O"), (5, "O")], [(3, "O"), (5, "O")]]
+    assert [step.score for result in results for step in result.steps] == pytest.approx(
+        [
+            0.8958554863929749,
+            3.6056129932403564,
+            4.415280342102051,
+            2.3229620456695557,
+            3.092538833618164,
+        ]
+    )

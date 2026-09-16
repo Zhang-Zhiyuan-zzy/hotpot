@@ -156,7 +156,8 @@ jobs:
               text=True,
           ).stdout
           assert "hotpot cbond" in cbond_documentation
-          assert "Enumerate candidate coordination structures" in cbond_documentation
+          assert "Enumerate terminal coordination structures" in cbond_documentation
+          assert "default mode must not be interpreted as an alias for Rank 1" in cbond_documentation
 
           cbond_ranked = subprocess.run(
               [

@@ -251,6 +251,21 @@ def test_top_level_cbond_doc_prints_packaged_markdown_without_input(capsys):
     output = capsys.readouterr().out
     assert not output.startswith("# ")
     assert "hotpot cbond" in output
-    assert "Enumerate candidate coordination structures" in output
-    assert "$ hotpot cbond Eu ligand.mol2 --all-structures" in output
-    assert "relative ranking probability" in output
+    assert "Enumerate terminal coordination structures" in output
+    assert "Verification basis" in output
+    assert "default mode must not be interpreted as an alias for Rank 1" in output
+
+
+def test_cbond_doc_contains_recorded_outputs_not_placeholder_results():
+    documentation = cli.load_cli_documentation()
+
+    assert "74.9%" not in documentation
+    assert "0.88682" not in documentation
+    assert "Predict the highest-ranked structure" not in documentation
+    assert (
+        "They are command output, not\ninvented formatting examples." in documentation
+    )
+    assert "C[NH2+][Eu]" in documentation
+    assert "C1O[Eu]2O[C@@H]1C[NH2+]2  --> Rank 1: Prob: 57.9%" in documentation
+    assert "NC[C@@H]1CO[Eu]O1  --> Rank 2: Prob: 42.1%" in documentation
+    assert "1        N     0.08525" in documentation

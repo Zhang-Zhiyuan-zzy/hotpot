@@ -1,627 +1,1530 @@
-"""
-python v3.9.0
-@Project: hotpot
-@File   : forcefields
-@Auther : Zhiyuan Zhang
-@Data   : 2024/12/14
-@Time   : 21:26
+"""Transactional force-field construction and optimization workflows."""
 
+from __future__ import annotations
 
-This module, `forcefields.py`, is a part of the `hotpot` project, designed for advanced molecular structure
-simulations and optimizations. It integrates with Open Babel to provide tools for generating, optimizing,
-and manipulating molecular geometries using various force fields and algorithms.
-
-Key Features:
-1. **Complex Building and Optimization**:
-   - Functions like `complexes_build` and `_run_complexes_build` aid in creating 3D molecular complexes
-    by iteratively optimizing molecular geometries. These utilize multiprocessing for parallel computations
-    and ensure optimized, valid geometries.
-
-2. **Force Field Management**:
-   - Classes `OBFF` and `OBFF_` serve as wrappers for Open Babel's force fields (e.g., UFF, MMFF94, GAFF).
-    They allow setup and optimization of molecular geometries with fine control over constraints,
-    perturbations, equilibrium detection, and other parameters.
-
-3. **Structure Building**:
-   - The `OBBuilder` class and `ob_build` function simplify the construction and manipulation of molecular
-   structures using Open Babel's OBBuilder tools.
-
-4. **Utilities for Force Field Operations**:
-   - The `ob_optimize` function integrates molecular force field optimization using specified force fields,
-   providing energy calculations alongside updated coordinates.
-
-5. **Constraint Management**:
-   - Support for constraints on atoms, bonds, angles, and torsions during geometry optimizations ensures
-    robust modeling capabilities for complex molecular systems.
-
-This module is particularly useful for scientists and researchers in computational chemistry and molecular
-modeling domains. It allows for fine-grained customizations and automation of molecular structure optimizations,
-leveraging Open Babel's powerful capabilities.
-"""
-import time
-from copy import copy
-import logging
-from typing import Literal, Optional, Union
 import multiprocessing as mp
+import os
+import threading
+import time
+import traceback as traceback_module
+from collections import deque
+from copy import copy
+from dataclasses import dataclass
+from functools import wraps
+from typing import Any, Literal, Mapping, Optional, Tuple
 
+import networkx as nx
 import numpy as np
-from openbabel import openbabel as ob, pybel as pb
+from openbabel import openbabel as ob
 
-from .obconvert import extract_obmol_coordinates, set_obmol_coordinates
+from . import geometry as geo
+from .obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
+
+ForceFieldName = Literal["UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"]
+OptimizationAlgorithm = Literal["steepest", "conjugate"]
+TerminationReason = Literal["converged", "budget_exhausted"]
+
+_SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
+
+
+@dataclass(frozen=True)
+class ForceFieldRunReport:
+    """Summary of an optimization run.
+
+    ``converged`` and the gradient/quality fields describe the selected frame;
+    ``final_energy`` and ``termination_reason`` describe the terminal frame.
+    Open Babel does not expose its exact internal step counter (and conjugate
+    gradient initialization itself takes a step).  Therefore
+    ``steps_submitted`` records the number passed to ``TakeNSteps`` while
+    ``steps_completed`` remains ``None`` rather than claiming a false count.
+    """
+
+    requested_forcefield: Optional[str]
+    effective_forcefield: str
+    setup_succeeded: bool
+    converged: bool
+    epochs_completed: int
+    steps_submitted: int
+    steps_completed: Optional[int]
+    final_energy: float
+    best_energy: float
+    energy_unit: str
+    rms_gradient: float
+    max_gradient: float
+    exploded: bool
+    quality_report: Any = None
+    backend_energy_unit: Optional[str] = None
+    gradient_unit: str = "kJ/(mol*angstrom)"
+    energy_changes: Tuple[float, ...] = ()
+    max_displacements: Tuple[float, ...] = ()
+    best_epoch: int = 0
+    epoch_energies: Tuple[float, ...] = ()
+    epoch_quality_reports: Tuple[Any, ...] = ()
+    termination_reason: TerminationReason = "budget_exhausted"
+    terminal_converged: bool = False
+
+
+@dataclass(frozen=True)
+class Build3DReport:
+    atom_count: int
+    added_hydrogen_count: int
+    quality_report: Any
+
+
+@dataclass(frozen=True)
+class CandidateRejection:
+    component_index: int
+    attempt: int
+    reason: str
+
+
+@dataclass(frozen=True)
+class ComplexBuildDiagnostics:
+    attempt_count: int
+    accepted_candidates: int
+    rejected_candidates: Tuple[CandidateRejection, ...]
+    elapsed_seconds: float
+
+
+@dataclass(frozen=True)
+class BuildWorkerResult:
+    status: Literal["ok", "error"]
+    coordinates: Optional[np.ndarray] = None
+    diagnostics: Optional[ComplexBuildDiagnostics] = None
+    error_type: Optional[str] = None
+    error_message: Optional[str] = None
+    traceback: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class ComplexBuildReport:
+    requested_forcefield: Optional[str]
+    effective_forcefield: str
+    build: ComplexBuildDiagnostics
+    optimization: Optional[ForceFieldRunReport]
+    quality_report: Any
+
+
+@dataclass(frozen=True)
+class CoordinationEnvironment:
+    metal_idx: int
+    donor_indices: Tuple[int, ...]
+    coordination_number: int
+    metal_atomic_number: int
+    metal_formal_charge: int
+    donor_atomic_numbers: Tuple[int, ...]
+    chelate_groups: Tuple[Tuple[int, ...], ...]
+
+
+@dataclass(frozen=True)
+class CoordinationGeometryCandidate:
+    coordinates: np.ndarray
+    assigned_geometries: Tuple[str, ...]
+    score: Optional[float]
+
+
+@dataclass(frozen=True)
+class CoordinationGeometryResult:
+    environments: Tuple[CoordinationEnvironment, ...]
+    candidates: Tuple[CoordinationGeometryCandidate, ...]
+    diagnostics: Mapping[str, object]
+
+
+class ForceFieldError(RuntimeError):
+    """Base class for force-field workflow failures."""
+
+
+class ForceFieldSetupError(ForceFieldError):
+    """Raised when Open Babel cannot initialize a requested force field."""
+
+
+class ComplexBuildError(ForceFieldError):
+    """Raised when bounded ligand-proxy construction cannot produce a result."""
+
+    def __init__(
+        self, message: str, diagnostics: Optional[ComplexBuildDiagnostics] = None
+    ):
+        super().__init__(message)
+        self.diagnostics = diagnostics
+
+
+class ComplexBuildWorkerError(ComplexBuildError):
+    """Raised in the parent process when the proxy-build worker fails."""
+
+    def __init__(
+        self,
+        error_type: str,
+        error_message: str,
+        worker_traceback: Optional[str],
+        diagnostics: Optional[ComplexBuildDiagnostics] = None,
+    ):
+        super().__init__(f"{error_type}: {error_message}", diagnostics)
+        self.error_type = error_type
+        self.error_message = error_message
+        self.worker_traceback = worker_traceback
+
+
+class ComplexBuildTimeoutError(ComplexBuildError, TimeoutError):
+    """Raised after a proxy-build worker exceeds its allotted wall time."""
+
+
+class GeometryQualityError(ForceFieldError):
+    """Raised when no generated force-field frame passes the geometry gate."""
+
+    def __init__(self, report: Any):
+        super().__init__(
+            "The generated geometry did not pass the requested quality gate"
+        )
+        self.report = report
+
+
+@dataclass(frozen=True)
+class _CandidateOptimizationResult:
+    energy: float
+    energy_unit: str
+    exploded: bool
+
+
+@dataclass(frozen=True)
+class _ObservedFrame:
+    coordinates: np.ndarray
+    energy: float
+    rms_gradient: float
+    max_gradient: float
+    exploded: bool
+    converged: bool
+    quality_report: Any
+    energy_changes: Tuple[float, ...]
+    max_displacements: Tuple[float, ...]
+
+
+_SEED_ENVIRONMENT_LOCK = threading.Lock()
+_OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
+
+
+def _serialized_forcefield_call(function):
+    @wraps(function)
+    def synchronized(*args, **kwargs):
+        with _OPENBABEL_FORCEFIELD_LOCK:
+            return function(*args, **kwargs)
+
+    return synchronized
+
+
+def _resolve_complex_forcefield(requested: Optional[str]) -> str:
+    """Resolve every currently supported complex request to UFF."""
+    if requested is not None and requested not in _SUPPORTED_FORCEFIELDS:
+        raise ValueError(f"Unsupported force field: {requested!r}")
+    return "UFF"
+
+
+def _resolve_organic_forcefield(requested: Optional[str]) -> str:
+    """Resolve an omitted organic force field without changing explicit choices."""
+    effective = requested or "MMFF94s"
+    if effective not in _SUPPORTED_FORCEFIELDS:
+        raise ValueError(f"Unsupported force field: {effective!r}")
+    return effective
+
+
+def _make_constraints(mol: Any) -> ob.OBFFConstraints:
+    """Return the intentionally empty force-field constraint adapter."""
+    return ob.OBFFConstraints()
+
+
+def _energy_factor_to_kj(unit: str) -> float:
+    normalized = unit.strip().lower().replace(" ", "")
+    if normalized in {"kj/mol", "kjmol-1", "kjmol^-1"}:
+        return 1.0
+    if normalized in {"kcal/mol", "kcalmol-1", "kcalmol^-1"}:
+        return 4.184
+    raise ValueError(f"Unsupported Open Babel energy unit: {unit!r}")
+
+
+@_serialized_forcefield_call
+def _get_forcefield(name: str) -> ob.OBForceField:
+    """Retrieve a force-field plugin guarded by the process-local FF lock."""
+    backend = ob.OBForceField.FindType(name)
+    if backend is None:
+        raise ForceFieldSetupError(f"Unknown Open Babel force field: {name!r}")
+    return backend
+
+
+@_serialized_forcefield_call
+def _single_ob_optimization(
+    mol: Any, forcefield: str, steps: int
+) -> _CandidateOptimizationResult:
+    backend = _get_forcefield(forcefield)
+    backend.EnableCutOff(False)
+    obmol, _ = mol2obmol(mol)
+    if not backend.Setup(obmol, _make_constraints(mol)):
+        raise ForceFieldSetupError(
+            f"Open Babel could not initialize force field {forcefield!r}"
+        )
+    backend.SteepestDescent(steps)
+    backend.GetCoordinates(obmol)
+    mol.coordinates = extract_obmol_coordinates(obmol)
+    backend_unit = backend.GetUnit()
+    energy = float(backend.Energy()) * _energy_factor_to_kj(backend_unit)
+    return _CandidateOptimizationResult(
+        energy=energy,
+        energy_unit="kJ/mol",
+        exploded=bool(backend.DetectExplosion()),
+    )
+
+
+def _copy_molecule_metadata(source: Any, target: Any) -> None:
+    target.charge = source.charge
+    target.properties = dict(source.properties)
+    target._model = source._model
+    target._environ = source._environ
+    target._crystal = source._crystal
+
+
+def _hydrogenated_working_copy(
+    mol: Any,
+    *,
+    add_hydrogens: bool,
+    seed: Optional[int] = None,
+) -> Any:
+    """Copy ``mol`` and infer H atoms against its ligand covalent skeleton."""
+    working = copy(mol)
+    _copy_molecule_metadata(mol, working)
+    if add_hydrogens:
+        if working.has_metal:
+            donor_indices = {
+                bond.atom2.idx if bond.atom1.is_metal else bond.atom1.idx
+                for bond in working.bonds
+                if bond.is_metal_ligand_bond
+            }
+            working.hide_metal_ligand_bonds(clear_conformers=False)
+            for donor_index in donor_indices:
+                donor = working.atoms[donor_index]
+                if donor.formal_charge == 0:
+                    donor.valence = donor.get_valence()
+                    donor.calc_implicit_hydrogens()
+            working.add_hydrogens(
+                rm_polar_hs=False,
+                rng=np.random.default_rng(seed),
+            )
+            working.recover_hided_metal_ligand_bonds(clear_conformers=False)
+        else:
+            working.add_hydrogens(
+                rm_polar_hs=False,
+                rng=np.random.default_rng(seed),
+            )
+    working.refresh_atom_id()
+    return working
+
+
+def _capture_workflow_topology(mol: Any) -> Any:
+    """Capture input topology with stable positional IDs used by proxy mapping."""
+    reference = copy(mol)
+    reference.refresh_atom_id()
+    return geo.capture_topology(reference)
+
+
+def _commit_working_copy(mol: Any, working: Any) -> None:
+    """Replace a molecule's state only after a complete workflow succeeds."""
+    state = dict(working.__dict__)
+    mol.__dict__.clear()
+    mol.__dict__.update(state)
+    for atom in mol._atoms:
+        atom.mol = mol
+    mol._atom_pairs.mol = mol
+
+
+def _perturbed_coordinates(
+    coordinates: np.ndarray,
+    *,
+    sigma: float,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    displacement = rng.normal(0.0, sigma, np.asarray(coordinates).shape)
+    displacement = np.clip(displacement, -2.0 * sigma, 2.0 * sigma)
+    return np.asarray(coordinates, dtype=float) + displacement
+
+
+def perturb(mol: Any, *, sigma: float = 0.5, seed: Optional[int] = None) -> np.ndarray:
+    """Perturb current coordinates in place with a local random generator."""
+    coordinates = _perturbed_coordinates(
+        mol.coordinates,
+        sigma=sigma,
+        rng=np.random.default_rng(seed),
+    )
+    mol.coordinates = coordinates
+    return coordinates
+
+
+def collect_coordination_environments(mol: Any) -> Tuple[CoordinationEnvironment, ...]:
+    """Describe explicit metal--donor connectivity without assigning geometry."""
+    ligand_graph = mol.graph.copy()
+    ligand_graph.remove_edges_from(
+        (bond.a1idx, bond.a2idx) for bond in mol.bonds if bond.is_metal_ligand_bond
+    )
+    component_by_atom = {}
+    for component_index, nodes in enumerate(nx.connected_components(ligand_graph)):
+        for atom_idx in nodes:
+            component_by_atom[atom_idx] = component_index
+
+    environments = []
+    for metal in mol.metals:
+        donors = sorted(
+            bond.atom2.idx if bond.atom1.idx == metal.idx else bond.atom1.idx
+            for bond in mol.bonds
+            if bond.is_metal_ligand_bond and metal.idx in (bond.a1idx, bond.a2idx)
+        )
+        grouped = {}
+        for donor_idx in donors:
+            grouped.setdefault(component_by_atom[donor_idx], []).append(donor_idx)
+        environments.append(
+            CoordinationEnvironment(
+                metal_idx=metal.idx,
+                donor_indices=tuple(donors),
+                coordination_number=len(donors),
+                metal_atomic_number=metal.atomic_number,
+                metal_formal_charge=metal.formal_charge,
+                donor_atomic_numbers=tuple(
+                    mol.atoms[index].atomic_number for index in donors
+                ),
+                chelate_groups=tuple(
+                    tuple(indices) for _, indices in sorted(grouped.items())
+                ),
+            )
+        )
+    return tuple(environments)
+
+
+def prepare_coordination_geometry(
+    mol: Any,
+    *,
+    environments: Optional[Tuple[CoordinationEnvironment, ...]] = None,
+    strategy: Optional[str] = None,
+    seed: Optional[int] = None,
+) -> CoordinationGeometryResult:
+    """Reserved hook for coordination-number-aware initial placement."""
+    raise NotImplementedError(
+        "Coordination-number-aware placement is reserved but not implemented"
+    )
+
+
+class _OpenBabelOptimizer:
+    """One stateful Open Babel optimizer used by every public workflow."""
+
+    def __init__(
+        self,
+        requested_forcefield: Optional[str],
+        effective_forcefield: str,
+        *,
+        algorithm: OptimizationAlgorithm,
+        epochs: int,
+        steps_per_epoch: int,
+        perturb_interval: Optional[int],
+        perturb_sigma: float,
+        save_movie: bool,
+        increasing_vdw: bool,
+        vdw_cutoff_start: float,
+        vdw_cutoff_end: float,
+        seed: Optional[int],
+        energy_tolerance: float = 1.0e-6,
+    ):
+        if epochs < 1:
+            raise ValueError("epochs must be at least 1")
+        if steps_per_epoch < 1:
+            raise ValueError("steps_per_epoch must be at least 1")
+        if perturb_interval is not None and perturb_interval < 1:
+            raise ValueError("perturb_interval must be at least 1 when provided")
+        if perturb_sigma < 0.0:
+            raise ValueError("perturb_sigma must be non-negative")
+        if increasing_vdw and vdw_cutoff_end < vdw_cutoff_start:
+            raise ValueError(
+                "vdw_cutoff_end must not be smaller than vdw_cutoff_start"
+            )
+        self.requested_forcefield = requested_forcefield
+        self.effective_forcefield = effective_forcefield
+        self.algorithm = algorithm
+        self.epochs = epochs
+        self.steps_per_epoch = steps_per_epoch
+        self.perturb_interval = perturb_interval
+        self.perturb_sigma = perturb_sigma
+        self.save_movie = save_movie
+        self.increasing_vdw = increasing_vdw
+        self.vdw_cutoff_start = vdw_cutoff_start
+        self.vdw_cutoff_end = vdw_cutoff_end
+        self.energy_tolerance = energy_tolerance
+        self.rng = np.random.default_rng(seed)
+        self.backend = _get_forcefield(effective_forcefield)
+
+    def _setup(self, mol: Any, obmol: Any) -> None:
+        if not self.backend.Setup(obmol, _make_constraints(mol)):
+            raise ForceFieldSetupError(
+                f"Open Babel could not initialize force field {self.effective_forcefield!r}"
+            )
+        if self.increasing_vdw:
+            self.backend.UpdatePairsSimple()
+
+    def _set_vdw_cutoff(self, cutoff: float) -> None:
+        self.backend.EnableCutOff(True)
+        self.backend.SetVDWCutOff(cutoff)
+        # Open Babel enables VDW and electrostatic cutoffs together.  Keep the
+        # electrostatic term effectively untruncated when only VDW annealing
+        # was requested.
+        self.backend.SetElectrostaticCutOff(1.0e6)
+
+    def _optimizer_methods(self):
+        if self.algorithm == "conjugate":
+            return (
+                self.backend.ConjugateGradientsInitialize,
+                self.backend.ConjugateGradientsTakeNSteps,
+            )
+        if self.algorithm == "steepest":
+            return (
+                self.backend.SteepestDescentInitialize,
+                self.backend.SteepestDescentTakeNSteps,
+            )
+        raise ValueError(f"Unknown optimization algorithm: {self.algorithm!r}")
+
+    def _gradients(self, obmol: Any, factor: float) -> Tuple[float, float]:
+        vectors = []
+        for atom in ob.OBMolAtomIter(obmol):
+            gradient = self.backend.GetGradient(atom)
+            vectors.append((gradient.GetX(), gradient.GetY(), gradient.GetZ()))
+        norms = np.linalg.norm(np.asarray(vectors, dtype=float) * factor, axis=1)
+        return float(np.sqrt(np.mean(norms**2))), float(np.max(norms))
+
+    def _observe_frame(
+        self,
+        mol: Any,
+        obmol: Any,
+        *,
+        factor: float,
+        converged: bool,
+        epochs_completed: int,
+        previous_coordinates: np.ndarray,
+        previous_energy: Optional[float],
+        energy_changes: deque[float],
+        max_displacements: deque[float],
+        quality_level: str,
+        topology_reference: Any,
+        quality_thresholds: Optional[Mapping[str, float]],
+    ) -> _ObservedFrame:
+        self.backend.GetCoordinates(obmol)
+        coordinates = extract_obmol_coordinates(obmol)
+        mol.coordinates = coordinates
+        energy = float(self.backend.Energy(True)) * factor
+        rms_gradient, max_gradient = self._gradients(obmol, factor)
+        exploded = bool(self.backend.DetectExplosion())
+        if previous_energy is not None:
+            energy_changes.append(abs(energy - previous_energy))
+        displacements = np.linalg.norm(
+            coordinates - previous_coordinates,
+            axis=1,
+        )
+        max_displacements.append(float(np.max(displacements)))
+        quality_report = geo.evaluate_geometry_quality(
+            mol,
+            level=quality_level,
+            topology_reference=topology_reference,
+            forcefield_report={
+                "setup_succeeded": True,
+                "converged": converged,
+                "final_energy": energy,
+                "energy_unit": "kJ/mol",
+                "rms_gradient": rms_gradient,
+                "max_gradient": max_gradient,
+                "exploded": exploded,
+                "energy_changes": tuple(energy_changes),
+                "max_displacements": tuple(max_displacements),
+                "epochs_completed": epochs_completed,
+            },
+            thresholds=quality_thresholds,
+        )
+        return _ObservedFrame(
+            coordinates=coordinates.copy(),
+            energy=energy,
+            rms_gradient=rms_gradient,
+            max_gradient=max_gradient,
+            exploded=exploded,
+            converged=converged,
+            quality_report=quality_report,
+            energy_changes=tuple(energy_changes),
+            max_displacements=tuple(max_displacements),
+        )
+
+    @_serialized_forcefield_call
+    def optimize(
+        self,
+        mol: Any,
+        *,
+        quality_level: str,
+        topology_reference: Any,
+        quality_thresholds: Optional[Mapping[str, float]],
+    ) -> ForceFieldRunReport:
+        obmol, _ = mol2obmol(mol)
+        if self.increasing_vdw:
+            self._set_vdw_cutoff(self.vdw_cutoff_end)
+        else:
+            self.backend.EnableCutOff(False)
+        self._setup(mol, obmol)
+        initialize, take_steps = self._optimizer_methods()
+        total_steps = self.epochs * self.steps_per_epoch
+        backend_unit = self.backend.GetUnit()
+        factor = _energy_factor_to_kj(backend_unit)
+        initial_coordinates = extract_obmol_coordinates(obmol)
+        initial_energy = float(self.backend.Energy(True)) * factor
+        if self.increasing_vdw:
+            first_cutoff = self.vdw_cutoff_start + (
+                self.vdw_cutoff_end - self.vdw_cutoff_start
+            ) / self.epochs
+            self._set_vdw_cutoff(first_cutoff)
+            self._setup(mol, obmol)
+        initialize(total_steps + 1, self.energy_tolerance)
+
+        best_frame = None
+        best_epoch = -1
+        last_frame = None
+        history_window = int(
+            (quality_thresholds or {}).get("strict_stability_window", 5)
+        )
+        energy_changes = deque(maxlen=history_window)
+        max_displacements = deque(maxlen=history_window)
+        movie_coordinates = []
+        movie_energies = []
+        movie_quality_reports = []
+        previous_coordinates = initial_coordinates
+        previous_energy = initial_energy
+        epochs_completed = 0
+        steps_submitted = 0
+        terminal_converged = False
+        termination_reason: TerminationReason = "budget_exhausted"
+
+        for epoch in range(self.epochs):
+            reset_history = (
+                self.perturb_interval is not None
+                and epoch > 0
+                and epoch % self.perturb_interval == 0
+            )
+            if reset_history:
+                coordinates = _perturbed_coordinates(
+                    extract_obmol_coordinates(obmol),
+                    sigma=self.perturb_sigma,
+                    rng=self.rng,
+                )
+                set_obmol_coordinates(obmol, coordinates)
+                energy_changes.clear()
+                max_displacements.clear()
+                previous_coordinates = coordinates.copy()
+                previous_energy = None
+
+            if self.increasing_vdw and epoch > 0:
+                cutoff = self.vdw_cutoff_start + ((epoch + 1) / self.epochs) * (
+                    self.vdw_cutoff_end - self.vdw_cutoff_start
+                )
+                self._set_vdw_cutoff(cutoff)
+
+            if reset_history or (self.increasing_vdw and epoch > 0):
+                self._setup(mol, obmol)
+                remaining_steps = (self.epochs - epoch) * self.steps_per_epoch
+                initialize(remaining_steps + 1, self.energy_tolerance)
+
+            backend_continues = bool(take_steps(self.steps_per_epoch))
+            steps_submitted += self.steps_per_epoch
+            epochs_completed += 1
+            backend_finished = not backend_continues
+            self.backend.GetCoordinates(obmol)
+            frame_converged = backend_finished
+            terminal_converged = frame_converged
+            termination_reason = (
+                "converged"
+                if terminal_converged
+                else "budget_exhausted"
+            )
+
+            if self.increasing_vdw and epoch < self.epochs - 1:
+                self._set_vdw_cutoff(self.vdw_cutoff_end)
+                self._setup(mol, obmol)
+
+            quality_converged = frame_converged and (
+                not self.increasing_vdw or epoch == self.epochs - 1
+            )
+            frame = self._observe_frame(
+                mol,
+                obmol,
+                factor=factor,
+                converged=quality_converged,
+                epochs_completed=epochs_completed,
+                previous_coordinates=previous_coordinates,
+                previous_energy=previous_energy,
+                energy_changes=energy_changes,
+                max_displacements=max_displacements,
+                quality_level=quality_level,
+                topology_reference=topology_reference,
+                quality_thresholds=quality_thresholds,
+            )
+            last_frame = frame
+            if frame.quality_report.passed and (
+                best_frame is None or frame.energy < best_frame.energy
+            ):
+                best_frame = frame
+                best_epoch = epoch
+            if self.save_movie:
+                movie_coordinates.append(frame.coordinates)
+                movie_energies.append(frame.energy)
+                movie_quality_reports.append(frame.quality_report)
+            previous_coordinates = frame.coordinates
+            previous_energy = frame.energy
+
+            if backend_finished and not self.increasing_vdw:
+                break
+
+        if best_frame is None:
+            raise GeometryQualityError(
+                None if last_frame is None else last_frame.quality_report
+            )
+
+        mol.coordinates = best_frame.coordinates
+        mol.conformer_clear()
+        if self.save_movie:
+            mol.conformer_add(np.asarray(movie_coordinates), np.asarray(movie_energies))
+            mol.conformer_load(best_epoch)
+        else:
+            mol.conformer_add(best_frame.coordinates, float(best_frame.energy))
+            mol.conformer_load(0)
+
+        return ForceFieldRunReport(
+            requested_forcefield=self.requested_forcefield,
+            effective_forcefield=self.effective_forcefield,
+            setup_succeeded=True,
+            converged=best_frame.converged,
+            epochs_completed=epochs_completed,
+            steps_submitted=steps_submitted,
+            steps_completed=None,
+            final_energy=float(last_frame.energy),
+            best_energy=float(best_frame.energy),
+            energy_unit="kJ/mol",
+            rms_gradient=float(best_frame.rms_gradient),
+            max_gradient=float(best_frame.max_gradient),
+            exploded=best_frame.exploded,
+            quality_report=best_frame.quality_report,
+            backend_energy_unit=backend_unit,
+            gradient_unit="kJ/(mol*angstrom)",
+            energy_changes=best_frame.energy_changes,
+            max_displacements=best_frame.max_displacements,
+            best_epoch=best_epoch,
+            epoch_energies=tuple(movie_energies),
+            epoch_quality_reports=tuple(movie_quality_reports),
+            termination_reason=termination_reason,
+            terminal_converged=terminal_converged,
+        )
+
+
+def _build_ligand_proxies(
+    mol: Any,
+    *,
+    candidate_count: int,
+    max_attempts: int,
+    candidate_warmup_steps: int,
+    candidate_score_steps: int,
+    best_candidate_refine_steps: int,
+    effective_forcefield: str,
+) -> Tuple[np.ndarray, ComplexBuildDiagnostics]:
+    started = time.monotonic()
+    clone = copy(mol)
+    _copy_molecule_metadata(mol, clone)
+    clone.hide_metal_ligand_bonds(clear_conformers=False)
+    total_attempts = 0
+    total_accepted = 0
+    rejections = []
+
+    for component_index, component in enumerate(clone.components):
+        if component.has_metal:
+            continue
+
+        component_reference = geo.capture_topology(component)
+        candidate_coordinates = []
+        candidate_energies = []
+        component_attempts = 0
+        while (
+            len(candidate_coordinates) < candidate_count
+            and component_attempts < max_attempts
+        ):
+            component_attempts += 1
+            total_attempts += 1
+            try:
+                ob_build(component)
+                _single_ob_optimization(
+                    component,
+                    effective_forcefield,
+                    candidate_warmup_steps,
+                )
+            except ForceFieldError as exc:
+                rejections.append(
+                    CandidateRejection(component_index, component_attempts, str(exc))
+                )
+                continue
+
+            component.recover_hided_covalent_bonds(clear_conformers=False)
+            try:
+                scored = _single_ob_optimization(
+                    component,
+                    effective_forcefield,
+                    candidate_score_steps,
+                )
+            except ForceFieldSetupError as exc:
+                rejections.append(
+                    CandidateRejection(component_index, component_attempts, str(exc))
+                )
+                continue
+
+            intersections = geo.find_bond_ring_intersections(
+                component,
+                ring_scope="ligand_skeleton",
+            )
+            if intersections:
+                bonds_to_hide = {
+                    geo.closest_ring_edge_to_bond(ring, bond)
+                    for ring, bond in intersections
+                }
+                component.hide_bonds(*bonds_to_hide, clear_conformers=False)
+                rejections.append(
+                    CandidateRejection(
+                        component_index,
+                        component_attempts,
+                        "bond-ring intersection",
+                    )
+                )
+                continue
+
+            candidate_quality = geo.evaluate_geometry_quality(
+                component,
+                level="basic",
+                topology_reference=component_reference,
+                forcefield_report={
+                    "setup_succeeded": True,
+                    "converged": False,
+                    "final_energy": scored.energy,
+                    "energy_unit": scored.energy_unit,
+                    "rms_gradient": None,
+                    "max_gradient": None,
+                    "exploded": scored.exploded,
+                },
+            )
+            if not candidate_quality.passed:
+                rejections.append(
+                    CandidateRejection(
+                        component_index,
+                        component_attempts,
+                        "candidate geometry gate",
+                    )
+                )
+                continue
+
+            candidate_coordinates.append(component.coordinates.copy())
+            candidate_energies.append(scored.energy)
+            total_accepted += 1
+
+        if len(candidate_coordinates) < candidate_count:
+            diagnostics = ComplexBuildDiagnostics(
+                attempt_count=total_attempts,
+                accepted_candidates=total_accepted,
+                rejected_candidates=tuple(rejections),
+                elapsed_seconds=time.monotonic() - started,
+            )
+            raise ComplexBuildError(
+                f"Component {component_index} accepted "
+                f"{len(candidate_coordinates)}/{candidate_count} candidates after "
+                f"{component_attempts} attempts",
+                diagnostics,
+            )
+
+        best_index = int(np.argmin(candidate_energies))
+        component.coordinates = candidate_coordinates[best_index]
+        refined = _single_ob_optimization(
+            component,
+            effective_forcefield,
+            best_candidate_refine_steps,
+        )
+        refined_intersections = geo.find_bond_ring_intersections(
+            component,
+            ring_scope="ligand_skeleton",
+        )
+        refined_quality = geo.evaluate_geometry_quality(
+            component,
+            level="basic",
+            topology_reference=component_reference,
+            forcefield_report={
+                "setup_succeeded": True,
+                "converged": False,
+                "final_energy": refined.energy,
+                "energy_unit": refined.energy_unit,
+                "rms_gradient": None,
+                "max_gradient": None,
+                "exploded": refined.exploded,
+            },
+        )
+        if refined_intersections or not refined_quality.passed:
+            reason = (
+                "refined candidate bond-ring intersection"
+                if refined_intersections
+                else "refined candidate geometry gate"
+            )
+            rejections.append(
+                CandidateRejection(component_index, component_attempts, reason)
+            )
+            diagnostics = ComplexBuildDiagnostics(
+                attempt_count=total_attempts,
+                accepted_candidates=total_accepted,
+                rejected_candidates=tuple(rejections),
+                elapsed_seconds=time.monotonic() - started,
+            )
+            raise ComplexBuildError(
+                f"Best candidate refinement failed for component {component_index}",
+                diagnostics,
+            )
+        clone.update_atoms_attrs_from_id_dict(
+            {atom.id: {"coordinates": atom.coordinates} for atom in component.atoms}
+        )
+
+    clone.recover_hided_metal_ligand_bonds(clear_conformers=False)
+    diagnostics = ComplexBuildDiagnostics(
+        attempt_count=total_attempts,
+        accepted_candidates=total_accepted,
+        rejected_candidates=tuple(rejections),
+        elapsed_seconds=time.monotonic() - started,
+    )
+    return clone.coordinates, diagnostics
 
 
 def _run_complexes_build(
-        mol, queue: mp.Queue,
-        build_times=5,
-        init_opt_steps=500,
-        second_opt_steps=1000,
-        min_energy_opt_steps=3000,
-):
-    """
-    Runs the process to build molecular complexes and optimizes their geometries
-    using specified force fields (MMFF94s or UFF). The algorithm performs iterative
-    geometry optimizations with multiple configurations and selects the one with
-    lowest energy. If the geometrical configuration contains issues (e.g., bond
-    ring intersection), the component is rebuilt and re-optimized until maximum
-    rebuild attempts are reached or a valid geometry is found.
+    mol: Any,
+    connection: Any,
+    candidate_count: int,
+    max_attempts: int,
+    candidate_warmup_steps: int,
+    candidate_score_steps: int,
+    best_candidate_refine_steps: int,
+    effective_forcefield: str,
+    seed: Optional[int],
+) -> None:
+    """Child-process boundary that always sends one structured envelope."""
+    try:
+        if seed is not None:
+            os.environ["OB_RANDOM_SEED"] = str(seed)
+        coordinates, diagnostics = _build_ligand_proxies(
+            mol,
+            candidate_count=candidate_count,
+            max_attempts=max_attempts,
+            candidate_warmup_steps=candidate_warmup_steps,
+            candidate_score_steps=candidate_score_steps,
+            best_candidate_refine_steps=best_candidate_refine_steps,
+            effective_forcefield=effective_forcefield,
+        )
+        result = BuildWorkerResult(
+            status="ok",
+            coordinates=coordinates,
+            diagnostics=diagnostics,
+        )
+    except Exception as exc:
+        result = BuildWorkerResult(
+            status="error",
+            diagnostics=getattr(exc, "diagnostics", None),
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+            traceback=traceback_module.format_exc(),
+        )
+    try:
+        connection.send(result)
+    finally:
+        connection.close()
 
-    Parameters:
-    mol : object
-        The molecular structure object to be processed. Its components are iteratively
-        optimized and modified during the function execution.
 
-    queue : mp.Queue
-        A multiprocessing queue used to store the final optimized molecular geometry
-        and conformers after completing the optimization process.
-
-    build_times : int, default 5
-        The number of times a geometry is built and tested for each component to
-        identify the lowest energy configuration.
-
-    init_opt_steps : int, default 500
-        The number of steps for the initial geometry optimization phase.
-
-    second_opt_steps : int, default 1000
-        The number of steps to perform during the secondary optimization phase,
-        which occurs after initial optimizations.
-
-    min_energy_opt_steps : int, default 3000
-        The number of steps to execute for the final optimization phase, where the
-        lowest-energy configuration is refined.
-
-    Raises:
-    TimeoutError
-        If the maximum number of attempts to rebuild geometrically invalid
-        components is exceeded. This indicates an inability to generate valid
-        molecular structure within the iteration limits.
-
-    Returns:
-    None
-        This function does not return any value but places processed coordinates and
-        conformers into a multiprocessing queue for further usage.
-    """
-    clone = copy(mol)
-    clone.hide_metal_ligand_bonds()
-
-    max_time = 10
-    for component in clone.components:
-        if not component.has_metal:
-            lst_coords = []
-            lst_energy = []
-            # build_ff = 'MMFF94s'
-            build_ff = 'UFF'
-            rebuild_time = 0
-            current_length = 0
-            while len(lst_coords) < build_times:
-                ob_build(component)
-
+def _receive_worker_result(
+    process: mp.Process,
+    receive_connection: Any,
+    send_connection: Any,
+    *,
+    timeout: float,
+    seed: Optional[int] = None,
+) -> BuildWorkerResult:
+    result = None
+    started = False
+    try:
+        if seed is None:
+            process.start()
+        else:
+            with _SEED_ENVIRONMENT_LOCK:
+                previous_seed = os.environ.get("OB_RANDOM_SEED")
+                os.environ["OB_RANDOM_SEED"] = str(seed)
                 try:
-                    ob_optimize(component, build_ff, init_opt_steps)
-                except RuntimeError:
-                    ob_optimize(component, 'UFF', init_opt_steps)
-                    build_ff = 'UFF'
+                    process.start()
+                finally:
+                    if previous_seed is None:
+                        os.environ.pop("OB_RANDOM_SEED", None)
+                    else:
+                        os.environ["OB_RANDOM_SEED"] = previous_seed
+        started = True
+        send_connection.close()
+        if not receive_connection.poll(timeout):
+            raise ComplexBuildTimeoutError(
+                f"Timed out after {timeout:g} seconds while building complex geometry"
+            )
+        try:
+            result = receive_connection.recv()
+        except EOFError as exc:
+            raise ComplexBuildWorkerError(
+                "WorkerProtocolError",
+                "The build worker closed its pipe without a result",
+                None,
+            ) from exc
+        process.join(timeout=5.0)
+        if process.is_alive():
+            raise ComplexBuildWorkerError(
+                "WorkerShutdownError",
+                "The build worker sent a result but did not terminate",
+                None,
+            )
+        if process.exitcode != 0:
+            raise ComplexBuildWorkerError(
+                "WorkerExitError",
+                f"The build worker exited with code {process.exitcode}",
+                None,
+            )
+        if not isinstance(result, BuildWorkerResult):
+            raise ComplexBuildWorkerError(
+                "WorkerProtocolError",
+                "The build worker returned an invalid result envelope",
+                None,
+            )
+        if result.status == "error":
+            raise ComplexBuildWorkerError(
+                result.error_type or "WorkerError",
+                result.error_message or "Unknown build worker failure",
+                result.traceback,
+                result.diagnostics,
+            )
+        if result.coordinates is None or result.diagnostics is None:
+            raise ComplexBuildWorkerError(
+                "WorkerProtocolError",
+                "A successful build worker result requires coordinates and diagnostics",
+                None,
+            )
+        return result
+    finally:
+        if started:
+            if process.is_alive():
+                process.terminate()
+            process.join(timeout=5.0)
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=5.0)
+        receive_connection.close()
+        send_connection.close()
 
-                component.recover_hided_covalent_bonds()
-                if component.has_bond_ring_intersection:  # Check nonrealistic Molecule
-                    rebuild_time += 0
 
-                    # Resolve knots by ring opening
-                    to_break_bond = set()
-                    intersect_bonds_rings = component.intersection_bonds_rings
-                    for r, b in intersect_bonds_rings:
-                        closest_b2b =  r.closest_edge_to_bond(b)
-                        to_break_bond.add(closest_b2b)
+def _build_complex_working(
+    mol: Any,
+    *,
+    effective_forcefield: str,
+    candidate_count: int,
+    max_attempts: int,
+    candidate_warmup_steps: int,
+    candidate_score_steps: int,
+    best_candidate_refine_steps: int,
+    timeout: float,
+    add_hydrogens: bool,
+    seed: Optional[int],
+    coordination_geometry: Optional[str],
+) -> Tuple[Any, ComplexBuildDiagnostics]:
+    if candidate_count < 1:
+        raise ValueError("candidate_count must be at least 1")
+    if max_attempts < candidate_count:
+        raise ValueError("max_attempts must be at least candidate_count")
+    if min(
+        candidate_warmup_steps,
+        candidate_score_steps,
+        best_candidate_refine_steps,
+    ) < 1:
+        raise ValueError("all candidate optimization step counts must be at least 1")
+    if timeout <= 0.0:
+        raise ValueError("timeout must be positive")
+    working = _hydrogenated_working_copy(
+        mol,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+    )
+    context = mp.get_context("spawn")
+    receive_connection, send_connection = context.Pipe(duplex=False)
+    process = context.Process(
+        target=_run_complexes_build,
+        args=(
+            working,
+            send_connection,
+            candidate_count,
+            max_attempts,
+            candidate_warmup_steps,
+            candidate_score_steps,
+            best_candidate_refine_steps,
+            effective_forcefield,
+            seed,
+        ),
+    )
+    result = _receive_worker_result(
+        process,
+        receive_connection,
+        send_connection,
+        timeout=timeout,
+        seed=seed,
+    )
+    working.coordinates = result.coordinates
+    if coordination_geometry is not None:
+        prepare_coordination_geometry(
+            working, strategy=coordination_geometry, seed=seed
+        )
+    return working, result.diagnostics
 
-                    logging.info(f"Breaking ring bonds: {to_break_bond}")
-                    component.hide_bonds(*to_break_bond)
 
-                    # print(len(list(lst_energy)))
-                    if len(lst_energy) > current_length:
-                        print(min(lst_energy), np.mean(lst_energy), max(lst_energy))
-                        current_length = len(lst_energy)
-                        rebuild_time = 0
+def _run_optimizer_on_working(
+    working: Any,
+    *,
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+    algorithm: OptimizationAlgorithm,
+    epochs: int,
+    steps_per_epoch: int,
+    quality_level: str,
+    topology_reference: Any,
+    quality_thresholds: Optional[Mapping[str, float]],
+    seed: Optional[int],
+    perturb_interval: Optional[int],
+    perturb_sigma: float,
+    save_movie: bool,
+    increasing_vdw: bool,
+    vdw_cutoff_start: float,
+    vdw_cutoff_end: float,
+) -> ForceFieldRunReport:
+    optimizer = _OpenBabelOptimizer(
+        requested_forcefield,
+        effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+        seed=seed,
+    )
+    return optimizer.optimize(
+        working,
+        quality_level=quality_level,
+        topology_reference=topology_reference,
+        quality_thresholds=quality_thresholds,
+    )
 
-                    if rebuild_time > max_time:
-                        raise TimeoutError
 
-                    continue
+def build3d(
+    mol: Any,
+    *,
+    add_hydrogens: bool = True,
+    seed: Optional[int] = None,
+) -> Build3DReport:
+    """Generate initial 3D coordinates with OBBuilder, without optimization."""
+    topology_reference = _capture_workflow_topology(mol)
+    initial_hydrogens = len(mol.hydrogens)
+    working = _hydrogenated_working_copy(
+        mol,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+    )
+    ob_build(working)
+    quality_report = geo.evaluate_geometry_quality(
+        working,
+        level="off",
+        topology_reference=topology_reference,
+    )
+    if not quality_report.passed:
+        raise GeometryQualityError(quality_report)
+    report = Build3DReport(
+        atom_count=len(working.atoms),
+        added_hydrogen_count=len(working.hydrogens) - initial_hydrogens,
+        quality_report=quality_report,
+    )
+    _commit_working_copy(mol, working)
+    return report
 
 
-                energy = ob_optimize(component, build_ff, second_opt_steps)
-                lst_energy.append(energy)
-                lst_coords.append(component.coordinates)
+def optimize(
+    mol: Any,
+    forcefield: Optional[str] = "UFF",
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 1,
+    steps_per_epoch: int = 100,
+    add_hydrogens: bool = True,
+    quality_level: str = "off",
+    quality_thresholds: Optional[Mapping[str, float]] = None,
+    seed: Optional[int] = None,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+) -> ForceFieldRunReport:
+    """Run the ordinary Open Babel optimizer, including on explicit complexes."""
+    topology_reference = _capture_workflow_topology(mol)
+    working = _hydrogenated_working_copy(
+        mol,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+    )
+    effective_forcefield = _resolve_organic_forcefield(forcefield)
+    report = _run_optimizer_on_working(
+        working,
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        quality_level=quality_level,
+        topology_reference=topology_reference,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    _commit_working_copy(mol, working)
+    return report
 
-            component.coordinates = lst_coords[np.argmin(lst_energy)]
-            ob_optimize(component, build_ff, min_energy_opt_steps)
 
-            clone.update_atoms_attrs_from_id_dict({a.id: {'coordinates': a.coordinates} for a in component.atoms})
+def build_complex3d(
+    mol: Any,
+    forcefield: Optional[str] = None,
+    *,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    timeout: float = 1000.0,
+    add_hydrogens: bool = True,
+    seed: Optional[int] = None,
+    coordination_geometry: Optional[str] = None,
+) -> ComplexBuildReport:
+    """Build ligand proxies and restore the complete complex topology."""
+    topology_reference = _capture_workflow_topology(mol)
+    effective_forcefield = _resolve_complex_forcefield(forcefield)
+    working, diagnostics = _build_complex_working(
+        mol,
+        effective_forcefield=effective_forcefield,
+        candidate_count=candidate_count,
+        max_attempts=max_attempts,
+        candidate_warmup_steps=candidate_warmup_steps,
+        candidate_score_steps=candidate_score_steps,
+        best_candidate_refine_steps=best_candidate_refine_steps,
+        timeout=timeout,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        coordination_geometry=coordination_geometry,
+    )
+    quality_report = geo.evaluate_geometry_quality(
+        working,
+        level="off",
+        topology_reference=topology_reference,
+    )
+    if not quality_report.passed:
+        raise GeometryQualityError(quality_report)
+    report = ComplexBuildReport(
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        build=diagnostics,
+        optimization=None,
+        quality_report=quality_report,
+    )
+    _commit_working_copy(mol, working)
+    return report
 
-    queue.put((clone.coordinates, clone.conformers))
+
+def optimize_complex(
+    mol: Any,
+    forcefield: Optional[str] = None,
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    add_hydrogens: bool = True,
+    quality_level: str = "standard",
+    quality_thresholds: Optional[Mapping[str, float]] = None,
+    seed: Optional[int] = None,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+) -> ForceFieldRunReport:
+    """Optimize existing complex coordinates with the complex force-field policy."""
+    topology_reference = _capture_workflow_topology(mol)
+    working = _hydrogenated_working_copy(
+        mol,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+    )
+    effective_forcefield = _resolve_complex_forcefield(forcefield)
+    report = _run_optimizer_on_working(
+        working,
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        quality_level=quality_level,
+        topology_reference=topology_reference,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    _commit_working_copy(mol, working)
+    return report
 
 
 def complexes_build(
+    mol: Any,
+    forcefield: Optional[str] = None,
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    timeout: float = 1000.0,
+    add_hydrogens: bool = True,
+    quality_level: str = "standard",
+    quality_thresholds: Optional[Mapping[str, float]] = None,
+    seed: Optional[int] = None,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+    coordination_geometry: Optional[str] = None,
+) -> ComplexBuildReport:
+    """Build, optimize, validate, and atomically commit a complete complex."""
+    topology_reference = _capture_workflow_topology(mol)
+    effective_forcefield = _resolve_complex_forcefield(forcefield)
+    working, diagnostics = _build_complex_working(
         mol,
-        build_times=5,
-        init_opt_steps=500,
-        second_opt_steps=1000,
-        min_energy_opt_steps=3000,
-        timeout: int = 1000,
-        rm_polar_hs: bool = True,
-        **kwargs
-):
-    """
-    Builds 3D complexes of a molecular structure by generating and optimizing
-    conformers in multiple steps. The function utilizes multiprocessing to
-    perform the task in a separate process and imposes a timeout for the operation.
+        effective_forcefield=effective_forcefield,
+        candidate_count=candidate_count,
+        max_attempts=max_attempts,
+        candidate_warmup_steps=candidate_warmup_steps,
+        candidate_score_steps=candidate_score_steps,
+        best_candidate_refine_steps=best_candidate_refine_steps,
+        timeout=timeout,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        coordination_geometry=coordination_geometry,
+    )
+    optimization_report = _run_optimizer_on_working(
+        working,
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        quality_level=quality_level,
+        topology_reference=topology_reference,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    report = ComplexBuildReport(
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        build=diagnostics,
+        optimization=optimization_report,
+        quality_report=optimization_report.quality_report,
+    )
+    _commit_working_copy(mol, working)
+    return report
 
-    Attributes:
-        rm_polar_hs (bool): A flag to remove polar hydrogens before starting
-        the conformer-building process. Defaults to True if not specified.
 
-    Args:
-        mol: The molecular structure object that the function operates on.
-        It should support operations like adding hydrogens, refreshing atom
-        IDs, and storing calculated coordinates and conformers.
-        build_times (int): Number of times to attempt building conformers.
-        Defaults to 5 iterations.
-        init_opt_steps (int): The number of optimization steps to perform
-        during the initial stage of conformer generation. Defaults to 500 steps.
-        second_opt_steps (int): The number of optimization steps in the
-        second stage. Defaults to 1000 steps.
-        min_energy_opt_steps (int): The number of final optimization
-        steps to stabilize conformers at minimum energy. Defaults to 3000 steps.
-        timeout (int): Maximum time (in seconds) to wait for the conformer
-        generation process to complete. Defaults to 1000 seconds.
-        kwargs: Additional keyword arguments for customization of the
-        complex-building process.
+def build_and_optimize(
+    mol: Any,
+    forcefield: Optional[str] = "UFF",
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    add_hydrogens: bool = True,
+    quality_level: str = "standard",
+    quality_thresholds: Optional[Mapping[str, float]] = None,
+    seed: Optional[int] = None,
+    timeout: float = 1000.0,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    coordination_geometry: Optional[str] = None,
+) -> Any:
+    """Build and optimize through the organic or complex workflow."""
+    if mol.has_metal:
+        return complexes_build(
+            mol,
+            forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            candidate_count=candidate_count,
+            max_attempts=max_attempts,
+            candidate_warmup_steps=candidate_warmup_steps,
+            candidate_score_steps=candidate_score_steps,
+            best_candidate_refine_steps=best_candidate_refine_steps,
+            timeout=timeout,
+            add_hydrogens=add_hydrogens,
+            quality_level=quality_level,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            coordination_geometry=coordination_geometry,
+        )
 
-    Raises:
-        TimeoutError: If the conformer generation process fails to complete
-        within the specified timeout period.
+    working = _hydrogenated_working_copy(mol, add_hydrogens=False)
+    build3d(working, add_hydrogens=add_hydrogens, seed=seed)
+    report = optimize(
+        working,
+        forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        add_hydrogens=False,
+        quality_level=quality_level,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    _commit_working_copy(mol, working)
+    return report
 
-    Returns:
-        None. The function modifies the provided molecular structure object
-        in place by adding optimized 3D coordinates and conformers.
-    """
-    mol.add_hydrogens(rm_polar_hs=rm_polar_hs)
-    mol.refresh_atom_id()
 
-    queue = mp.Queue()
-    process = mp.Process(
-        target=_run_complexes_build,
-        args=(mol, queue, build_times, init_opt_steps, second_opt_steps, min_energy_opt_steps)
+def auto_optimize(
+    mol: Any,
+    forcefield: Optional[str] = None,
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    add_hydrogens: bool = True,
+    quality_level: str = "standard",
+    quality_thresholds: Optional[Mapping[str, float]] = None,
+    seed: Optional[int] = None,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+) -> ForceFieldRunReport:
+    """Optimize existing coordinates through the appropriate workflow."""
+    if mol.has_metal:
+        return optimize_complex(
+            mol,
+            forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            add_hydrogens=add_hydrogens,
+            quality_level=quality_level,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+        )
+    effective_forcefield = forcefield or "MMFF94s"
+    return optimize(
+        mol,
+        effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        add_hydrogens=add_hydrogens,
+        quality_level=quality_level,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
     )
 
-    process.start()
-    process.join(timeout=timeout)
 
-    if process.is_alive():
-        raise TimeoutError('Timed out waiting for build complex 3D conformer!')
-
-    mol.coordinates, mol._conformers = queue.get()
-    process.terminate()
-
-
-class OBFF_:
-    """ A Wrapper of OpenBabel's ForceField """
-    def __init__(
-            self,
-            ff: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']],
-            algorithm: Literal["steepest", "conjugate"] = "conjugate",
-            steps: Optional[int] = 100,
-            step_size: int = 100,
-            equilibrium: bool = False,
-            equi_check_steps: int = 5,
-            equi_max_displace: float = 1e-4,
-            equi_max_energy: float = 1e-4,
-            perturb_steps: Optional[int] = None,
-            perturb_sigma: float = 0.5,
-            save_screenshot: bool = False,
-            increasing_Vdw: bool = False,
-            Vdw_cutoff_start: float = 0.0,
-            Vdw_cutoff_end: float = 12.5,
-            print_energy: Optional[int] = None,
-            **kwargs
-    ):
-        self.ff = ob.OBForceField.FindType(ff)
-        self.algorithm = algorithm
-        self.steps = steps
-        self.step_size = step_size
-        self.equilibrium = equilibrium
-        self.equi_check_steps = equi_check_steps
-        self.equi_max_displace = equi_max_displace
-        self.equi_max_energy = equi_max_energy
-        self.save_screenshot = save_screenshot
-        self.perturb_steps = perturb_steps
-        self.perturb_sigma = perturb_sigma
-        self.increasing_Vdw = increasing_Vdw
-        self.Vdw_cutoff_start = Vdw_cutoff_start
-        self.Vdw_cutoff_end = Vdw_cutoff_end
-        self.print_energy = print_energy
-
-        self.constraints = None
-
-        if increasing_Vdw:
-            self.ff.SetVDWCutoff(self.Vdw_cutoff_start)
-
-    def _perturb(self, coords):
-        perturb = np.random.normal(0, self.perturb_sigma, coords.shape)
-        perturb[perturb > 2*self.perturb_sigma] = self.perturb_sigma
-        return perturb
-
-    def _get_optimizer(self, mol):
-        obmol = mol.to_obmol()
-        if not self.ff.Setup(obmol, self.constraints):
-            raise RuntimeError('Fail to initialize the forcefield!!')
-
-        if self.algorithm == "steepest":
-            optimizer = self.ff.SteepestDescent
-        elif self.algorithm == "conjugate":
-            optimizer = self.ff.ConjugateGradients
-        else:
-            raise NotImplementedError(f"Unknown optimization algorithm {self.algorithm}")
-
-        return obmol, optimizer
-
-    def setup(self, mol):
-        obmol = mol.to_obmol()
-        if not self.ff.Setup(obmol, self.constraints):
-            raise RuntimeError('Fail to initialize the forcefield!!')
-        return obmol
-
-    def ob_setup(self, obmol):
-        if not self.ff.Setup(obmol, self.constraints):
-            raise RuntimeError('Fail to initialize the forcefield!!')
-        return obmol
-
-    def optimize(self, mol):
-        self._add_constraints(mol)
-
-        obmol, optimizer = self._get_optimizer(mol)
-
-        lst_coords = []
-        lst_energy = []
-        for s in range(self.steps):
-            optimizer(self.step_size)
-            energy = self.ff.Energy()
-            self.ff.GetCoordinates(obmol)
-            coords = extract_obmol_coordinates(obmol)
-
-            lst_coords.append(coords)
-            lst_energy.append(energy)
-
-            # Break the optimization, if the system has equilibrium.
-            if self.equilibrium and len(lst_energy) > self.equi_check_steps:
-                max_displace = max(np.abs(np.array(lst_coords[-self.equi_check_steps-1: -1]) - np.array(lst_coords[-self.equi_check_steps:])))
-                max_diff_energy = max(np.abs(np.array(lst_energy[-self.equi_check_steps-1: -1]) - np.array(lst_energy[-self.equi_check_steps:])))
-
-                if max_displace < self.equi_max_displace and max_diff_energy < self.equi_max_energy:
-                    break
-
-                if s == self.steps - 1:
-                    logging.info(RuntimeWarning("Max iterations reached"))
-
-            # Perturb the system
-            if self.perturb_steps and s % self.perturb_steps == 0 and s != 0:
-                coords += self._perturb(coords)
-                set_obmol_coordinates(obmol, coords)
-                self.ob_setup(obmol)
-
-            # Adjust Vdw cutoff
-            if self.increasing_Vdw:
-                self.ff.SetVDWCutoff(s+1/self.steps*(self.Vdw_cutoff_end-self.Vdw_cutoff_start) + self.Vdw_cutoff_start)
-
-            # Print information
-            if self.print_energy and s % self.print_energy == 0:
-                logging.debug(f"Energy in step {s}: {lst_energy[-1]}")
-
-        mol.coordinates = lst_coords[-1]
-        mol.energy = lst_energy[-1]
-
-        if self.save_screenshot:
-            mol.conformer_add(lst_coords, lst_energy)
-
-    def _add_constraints(self, mol):
-        """"""
-        self.constraints = ob.OBFFConstraints()
-        for atom in mol.atoms:
-            if atom.constraint:
-                self.constraints.AddAtomConstraint(atom.idx)
-            else:
-                if atom.x_constraint:
-                    self.constraints.AddAtomXConstraint(atom.idx)
-                if atom.y_constraint:
-                    self.constraints.AddAtomYConstraint(atom.idx)
-                if atom.z_constraint:
-                    self.constraints.AddAtomZConstraint(atom.idx)
-
-        for bond in mol.bonds:
-            if bond.constraint:
-                self.constraints.AddDistanceConstraint(bond.a1idx, bond.a2idx, bond.length)
-
-        for angle in mol.angles:
-            if angle.constraint:
-                self.constraints.AddAngleConstraint(angle.a1idx, angle.a2idx, angle.a3idx, angle.degrees)
-
-        for torsion in mol.torsions:
-            if torsion.constraint:
-                self.constraints.AddTorsionConstraint(
-                    torsion.a1idx,
-                    torsion.a2idx,
-                    torsion.a3idx,
-                    torsion.a4idx,
-                    torsion.degree
-                )
-
-
-class OBFF:
-    """
-    A Wrapper of OpenBabel's ForceField
-    Class to handle molecular geometry optimization using specific force fields and algorithms.
-
-    This class provides functionalities for setting up and optimizing molecular geometries
-    using various classical force fields and optimization algorithms. It allows adjustments
-    of molecule constraints during optimization, performs equilibrium search, and can apply
-    specific perturbations to atom coordinates. The class supports customizable parameters
-    such as steps, equilibrium thresholds, maximum iterations, and van der Waals cutoff scaling.
-
-    Attributes:
-        ff (Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']]): The force field type used for optimization.
-        algorithm (Literal["steepest", "conjugate"]): The optimization algorithm to be used.
-        steps (Optional[int]): Number of steps for the optimization process.
-        equilibrium (bool): Indicates whether to find an equilibrium geometry.
-        equi_threshold (float): Threshold for determining equilibrium.
-        max_iter (int): Maximum number of iterations per optimization cycle.
-        save_screenshot (bool): Flag to save intermediate conformers.
-        perturb_steps (Optional[int]): Number of perturbation cycles applied during optimization.
-        perturb_sigma (float): Gaussian spread intensity for atom perturbation.
-        increasing_Vdw (bool): Flag to incrementally scale van der Waals cutoff.
-        Vdw_cutoff_start (float): Initial van der Waals cutoff value.
-        Vdw_cutoff_end (float): Final van der Waals cutoff value.
-    """
-    def __init__(
-            self,
-            ff: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']],
-            algorithm: Literal["steepest", "conjugate"] = "conjugate",
-            steps: Optional[int] = None,
-            equilibrium: bool = False,
-            equi_threshold: float = 1e-4,
-            max_iter: int = 100,
-            save_screenshot: bool = False,
-            perturb_steps: Optional[int] = None,
-            perturb_sigma: float = 1e-2,
-            increasing_Vdw: bool = False,
-            Vdw_cutoff_start: float = 0.0,
-            Vdw_cutoff_end: float = 12.5,
-            **kwargs
-    ):
-        self.ff = ob.OBForceField.FindType(ff)
-        self.constraints = None
-        self.algorithm = algorithm
-        self.equilibrium = equilibrium
-        self.equi_threshold = equi_threshold
-        self.max_iter = max_iter if isinstance(max_iter, int) else 1
-        self.save_screenshot = save_screenshot
-        self.perturb_steps = perturb_steps
-        self.perturb_sigma = perturb_sigma
-        self.increasing_Vdw = increasing_Vdw
-        self.Vdw_cutoff_start = Vdw_cutoff_start
-        self.Vdw_cutoff_end = Vdw_cutoff_end
-
-        if steps:
-            self.steps = steps
-        elif not equilibrium:
-            self.steps = 2000
-        else:
-            self.steps = max((20, 10000 // max_iter))
-
-    def _perturb(self, coords):
-        perturb = np.random.normal(0, self.perturb_sigma, coords.shape)
-        perturb[perturb > 2*self.perturb_sigma] = self.perturb_sigma
-        return perturb
-
-    def _get_optimizer(self, mol):
-        obmol = mol.to_obmol()
-        if not self.ff.Setup(obmol, self.constraints):
-            raise RuntimeError('Fail to initialize the forcefield!!')
-
-        if self.algorithm == "steepest":
-            optimizer = self.ff.SteepestDescent
-        elif self.algorithm == "conjugate":
-            optimizer = self.ff.ConjugateGradients
-        else:
-            raise NotImplementedError(f"Unknown optimization algorithm {self.algorithm}")
-
-        return obmol, optimizer
-
-    def setup(self, mol):
-        obmol = mol.to_obmol()
-        if not self.ff.Setup(obmol, self.constraints):
-            raise RuntimeError('Fail to initialize the forcefield!!')
-        return obmol
-
-    def ob_setup(self, obmol):
-        if not self.ff.Setup(obmol, self.constraints):
-            raise RuntimeError('Fail to initialize the forcefield!!')
-        return obmol
-
-    def optimize(self, mol):
-        """
-        Optimizes the molecular geometry using specified constraints, forcefield, and optimization settings.
-
-        Performs geometry optimization for a given molecule, either under equilibrium conditions
-        or through perturbative steps if specified. The method uses constraint management, molecular
-        coordinate manipulation, and an optimization routine based on the chosen forcefield.
-        Parameters
-        ----------
-        mol : Molecule
-            A molecular object containing atomic coordinates and chemical information.
-
-        Raises
-        ------
-        RuntimeWarning
-            Issued when the maximum number of iterations is reached without convergence.
-
-        Returns
-        -------
-        None
-        """
-        self._add_constraints(mol)
-
-        obmol, optimizer = self._get_optimizer(mol)
-        if not self.equilibrium:
-            # obmol, optimizer = self._get_optimizer(mol)
-            optimizer(self.steps)
-            self.ff.GetCoordinates(obmol)
-            mol.coordinates = extract_obmol_coordinates(obmol)
-
-        else:
-            _opti_times = 0
-            coords = mol.coordinates
-            while not _opti_times or (isinstance(self.perturb_steps, int) and _opti_times < self.perturb_steps):
-
-                if isinstance(self.perturb_steps, int):
-                    # mol.coordinates += self._perturb(mol)
-                    coords += self._perturb(coords)
-                    set_obmol_coordinates(obmol, coords)
-                    self.ob_setup(obmol)
-
-                # obmol, optimizer = self._get_optimizer(mol)
-                for i in range(self.max_iter):
-                    optimizer(self.steps)
-                    self.ff.GetCoordinates(obmol)
-                    mol.coordinates = coords_ = extract_obmol_coordinates(obmol)
-
-                    if self.save_screenshot:
-                        mol.conformer_add()
-
-                    max_displacement = max(np.linalg.norm(coords_ - coords, axis=1))
-                    coords = coords_
-
-                    if max_displacement < self.equi_threshold:
-                        break
-
-                if i == self.max_iter - 1:
-                    print(RuntimeWarning("Max iterations reached"))
-
-                print(f"Final Energy: {self.ff.Energy()}")
-                _opti_times += 1
-
-    def _add_constraints(self, mol):
-        """
-        Add constraints to a molecular force field based on specified conditions in the input molecule.
-
-        This method initializes the OBFFConstraints object and applies various types of
-        constraints such as atom, bond, angle, and torsion constraints. These constraints
-        are derived from the properties of the input molecule's atoms, bonds, angles, and
-        torsions.
-
-        Parameters:
-            mol (Molecule): Input molecule containing atoms, bonds, angles, and torsions
-            each potentially having constraint attributes.
-
-        Raises:
-            None
-        """
-        self.constraints = ob.OBFFConstraints()
-        for atom in mol.atoms:
-            if atom.constraint:
-                self.constraints.AddAtomConstraint(atom.idx)
-            else:
-                if atom.x_constraint:
-                    self.constraints.AddAtomXConstraint(atom.idx)
-                if atom.y_constraint:
-                    self.constraints.AddAtomYConstraint(atom.idx)
-                if atom.z_constraint:
-                    self.constraints.AddAtomZConstraint(atom.idx)
-
-        for bond in mol.bonds:
-            if bond.constraint:
-                self.constraints.AddDistanceConstraint(bond.a1idx, bond.a2idx, bond.length)
-
-        for angle in mol.angles:
-            if angle.constraint:
-                self.constraints.AddAngleConstraint(angle.a1idx, angle.a2idx, angle.a3idx, angle.degrees)
-
-        for torsion in mol.torsions:
-            if torsion.constraint:
-                self.constraints.AddTorsionConstraint(
-                    torsion.a1idx,
-                    torsion.a2idx,
-                    torsion.a3idx,
-                    torsion.a4idx,
-                    torsion.degree
-                )
-
-
-def ob_build(mol):
-    _builder = ob.OBBuilder()
-
-    obmol = mol.to_obmol()
-    _builder.Build(obmol)
-
+@_serialized_forcefield_call
+def ob_build(mol: Any) -> None:
+    """Compatibility primitive: run OBBuilder directly on ``mol``."""
+    builder = ob.OBBuilder()
+    obmol, _ = mol2obmol(mol)
+    if not builder.Build(obmol):
+        raise ForceFieldError("Open Babel could not build initial 3D coordinates")
     mol.coordinates = extract_obmol_coordinates(obmol)
 
 
-def ob_optimize(mol, ff='UFF', steps: int = 100) -> float:
-    ff = ob.OBForceField.FindType(ff)
-    obmol = mol.to_obmol()
-
-    if not ff.Setup(obmol):
-        raise RuntimeError('Fail to initialize the forcefield!!')
-
-    ff.SteepestDescent(steps)
-    ff.GetCoordinates(obmol)
-    mol.coordinates = extract_obmol_coordinates(obmol)
-
-    return ff.Energy()
+def ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
+    """Compatibility primitive returning energy in kJ/mol."""
+    return _single_ob_optimization(mol, ff, steps).energy
 
 
 class OBBuilder:
-    """
-    Handles the construction and manipulation of molecular structures.
+    """Compatibility wrapper around Open Babel's coordinate builder."""
 
-    The OBBuilder class serves as a wrapper around the Open Babel OBBuilder
-    to facilitate the building of molecular structures. It initializes
-    an OBBuilder instance and provides methods to build structures and
-    update molecule coordinates based on the processed OBMol instance.
-
-    Attributes:
-        _builder: An instance of Open Babel's OBBuilder used to
-            handle molecular structure construction.
-    """
-    def __init__(self):
-        self._builder = ob.OBBuilder()
-
-    def build(self, mol):
-        obmol = mol.to_obmol()
-        self._builder.Build(obmol)
-
-        mol.coordinates = extract_obmol_coordinates(obmol)
+    def build(self, mol: Any) -> None:
+        ob_build(mol)
 
 
 class ForceFields:
+    """Compatibility holder for a named Open Babel force field."""
+
     def __init__(self, forcefield: str):
         self.name = forcefield
-        self._ff = ob.OBForceField.FindType(forcefield)
-
+        self._ff = _get_forcefield(forcefield)

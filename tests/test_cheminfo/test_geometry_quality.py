@@ -219,7 +219,7 @@ def test_standard_gate_accepts_ideal_coordination_geometries(
 
 def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
     molecule = _valid_carbon_bond()
-    reference = geo.capture_topology(molecule)
+    reference = geo.capture_topology(molecule, allow_added_hydrogens=True)
     accepted = copy(molecule)
     hydrogen = accepted.create_atom(
         atomic_number=1,
@@ -246,6 +246,27 @@ def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
     )
     assert not report.passed
     assert any(check.name == "topology_added_atoms" for check in report.failures)
+
+
+def test_topology_reference_rejects_added_hydrogen_when_not_allowed():
+    molecule = _valid_carbon_bond()
+    reference = geo.capture_topology(molecule, allow_added_hydrogens=False)
+    candidate = copy(molecule)
+    hydrogen = candidate.create_atom(
+        atomic_number=1,
+        coordinates=(-1.0, 0.0, 0.0),
+    )
+    candidate.add_bond(candidate.atoms[0], hydrogen, bond_order=1.0)
+
+    report = geo.evaluate_geometry_quality(
+        candidate,
+        level="off",
+        topology_reference=reference,
+    )
+
+    assert not report.passed
+    assert any(check.name == "topology_added_atoms" for check in report.failures)
+    assert any(check.name == "topology_added_bond" for check in report.failures)
 
 
 def test_topology_reference_rejects_original_bond_changes():

@@ -1068,8 +1068,12 @@ def _topology_bond_signature(
     )
 
 
-def capture_topology(mol: Any) -> TopologyReference:
-    """Capture the atom identities and bonds that an optimization must retain."""
+def capture_topology(
+    mol: Any,
+    *,
+    allow_added_hydrogens: bool = True,
+) -> TopologyReference:
+    """Capture the topology and whether preparation may append hydrogens."""
     atoms = tuple(mol.atoms)
     positions = {id(atom): i for i, atom in enumerate(atoms)}
     atom_signatures = tuple(
@@ -1085,7 +1089,11 @@ def capture_topology(mol: Any) -> TopologyReference:
         (_topology_bond_signature(bond, positions) for bond in mol.bonds),
         key=lambda signature: signature.atom_indices,
     ))
-    return TopologyReference(atom_signatures, bond_signatures)
+    return TopologyReference(
+        atom_signatures,
+        bond_signatures,
+        allow_added_hydrogens=allow_added_hydrogens,
+    )
 
 
 def _topology_checks(

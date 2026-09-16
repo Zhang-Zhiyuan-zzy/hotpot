@@ -1,0 +1,533 @@
+from types import SimpleNamespace
+
+import numpy as np
+import pytest
+
+from hotpot import read_mol
+from hotpot.cheminfo import forcefields as ff
+
+
+class _Vector:
+    def GetX(self):
+        return 0.0
+
+    def GetY(self):
+        return 0.0
+
+    def GetZ(self):
+        return 0.0
+
+
+class _Backend:
+    def __init__(self, energies, unit="kcal/mol"):
+        self.energies = energies
+        self.unit = unit
+        self.index = -1
+        self.cutoffs = []
+        self.electrostatic_cutoffs = []
+        self.current_cutoff = None
+        self.initialized_cutoffs = []
+        self.cutoff_enabled = []
+        self.pair_updates = 0
+        self.initializations = []
+        self.take_calls = []
+        self.frames = None
+        self.obmol = None
+        self.has_new_coordinates = False
+
+    def MakeNewInstance(self):
+        return self
+
+    def Setup(self, obmol, constraints):
+        self.obmol = obmol
+        return True
+
+    def ConjugateGradientsInitialize(self, steps, tolerance):
+        self.initializations.append((steps, tolerance))
+        self.initialized_cutoffs.append(self.current_cutoff)
+
+    def ConjugateGradientsTakeNSteps(self, steps):
+        self.take_calls.append(steps)
+        self.index += 1
+        self.has_new_coordinates = True
+        return self.index < len(self.energies) - 1
+
+    SteepestDescentInitialize = ConjugateGradientsInitialize
+    SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
+
+    def SetVDWCutOff(self, cutoff):
+        self.cutoffs.append(cutoff)
+        self.current_cutoff = cutoff
+
+    def EnableCutOff(self, enabled):
+        self.cutoff_enabled.append(enabled)
+
+    def SetElectrostaticCutOff(self, cutoff):
+        self.electrostatic_cutoffs.append(cutoff)
+
+    def UpdatePairsSimple(self):
+        self.pair_updates += 1
+
+    def GetCoordinates(self, obmol):
+        if self.frames is not None and self.index >= 0 and self.has_new_coordinates:
+            obmol.coordinates = np.asarray(self.frames[self.index]).copy()
+            self.has_new_coordinates = False
+
+    def Energy(self, gradients=False):
+        if self.obmol is not None and hasattr(self.obmol, "coordinates"):
+            marker = float(np.mean(self.obmol.coordinates))
+            for frame, energy in zip(self.frames or (), self.energies):
+                if np.allclose(marker, np.mean(frame)):
+                    return energy
+        return self.energies[self.index]
+
+    def GetGradient(self, atom):
+        return _Vector()
+
+    def DetectExplosion(self):
+        return False
+
+    def GetUnit(self):
+        return self.unit
+
+
+class _CutoffDependentBackend(_Backend):
+    def __init__(self):
+        super().__init__([1.0, 3.0, 2.0], unit="kJ/mol")
+        self.scored_cutoffs = []
+
+    def Energy(self, gradients=False):
+        if self.obmol is not None and self.frames is not None:
+            marker = float(np.mean(self.obmol.coordinates))
+            for frame, energy in zip(self.frames, self.energies):
+                if np.allclose(marker, np.mean(frame)):
+                    self.scored_cutoffs.append(self.current_cutoff)
+                    return energy
+        return 10.0
+
+
+class _BudgetBackend(_Backend):
+    def ConjugateGradientsTakeNSteps(self, steps):
+        self.take_calls.append(steps)
+        self.index += 1
+        self.has_new_coordinates = True
+        return True
+
+    SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
+
+
+class _OptimizerMolecule:
+    def __init__(self):
+        self.coordinates = np.zeros((2, 3), dtype=float)
+        self.energy = None
+        self.frames = []
+        self.frame_energies = []
+        self._conformers_index = 0
+        self.obmol = SimpleNamespace()
+
+    def to_obmol(self):
+        raise AssertionError("forcefields must rebuild a fresh OBMol")
+
+    def conformer_clear(self):
+        self.frames.clear()
+        self.frame_energies.clear()
+
+    def conformer_add(self, coordinates, energies):
+        coordinates = np.asarray(coordinates)
+        if coordinates.ndim == 2:
+            coordinates = coordinates[None, ...]
+        self.frames.extend(coordinates)
+        self.frame_energies.extend(np.asarray(energies).reshape(-1))
+
+    def conformer_load(self, index):
+        self.coordinates = np.asarray(self.frames[index]).copy()
+        self.energy = self.frame_energies[index]
+        self._conformers_index = index
+
+
+def _optimizer(monkeypatch, backend, frames, **kwargs):
+    backend.frames = frames
+    obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
+    monkeypatch.setattr(ff.ob.OBForceField, "FindType", lambda _: backend)
+    monkeypatch.setattr(ff.ob, "OBMolAtomIter", lambda _: (object(), object()))
+    monkeypatch.setattr(ff, "mol2obmol", lambda mol: (obmol, {0: 1, 1: 2}))
+    monkeypatch.setattr(
+        ff,
+        "extract_obmol_coordinates",
+        lambda current: np.asarray(current.coordinates, dtype=float).copy(),
+    )
+    monkeypatch.setattr(
+        ff,
+        "set_obmol_coordinates",
+        lambda current, coordinates: setattr(
+            current, "coordinates", np.asarray(coordinates, dtype=float).copy()
+        ),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        lambda *args, **options: SimpleNamespace(passed=True),
+    )
+    return ff._OpenBabelOptimizer(
+        "MMFF94s",
+        "MMFF94s",
+        algorithm="conjugate",
+        epochs=3,
+        steps_per_epoch=7,
+        perturb_interval=None,
+        perturb_sigma=0.5,
+        save_movie=True,
+        increasing_vdw=True,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.0,
+        seed=17,
+        **kwargs,
+    )
+
+
+def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeypatch):
+    frames = [
+        np.full((2, 3), 3.0),
+        np.full((2, 3), 1.0),
+        np.full((2, 3), 2.0),
+    ]
+    backend = _Backend([3.0, 1.0, 2.0])
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    molecule = _OptimizerMolecule()
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert backend.initializations == [
+        (21, pytest.approx(1.0e-6)),
+        (14, pytest.approx(1.0e-6)),
+        (7, pytest.approx(1.0e-6)),
+    ]
+    assert backend.take_calls == [6, 6, 6]
+    assert backend.initialized_cutoffs == pytest.approx([4.0, 8.0, 12.0])
+    assert backend.cutoff_enabled == [True] * 6
+    assert backend.cutoffs == pytest.approx([12.0, 4.0, 12.0, 8.0, 12.0, 12.0])
+    assert backend.electrostatic_cutoffs == [1.0e6] * 6
+    assert backend.pair_updates == 6
+    assert report.epochs_completed == 3
+    assert report.steps_submitted == 18
+    assert report.initialization_steps == 3
+    assert report.steps_completed is None
+    assert report.converged is False
+    assert report.terminal_converged is True
+    assert report.termination_reason == "converged"
+    assert report.best_energy == pytest.approx(4.184)
+    assert report.final_energy == pytest.approx(8.368)
+    assert report.energy_unit == "kJ/mol"
+    assert report.backend_energy_unit == "kcal/mol"
+    assert report.gradient_unit == "kJ/(mol*angstrom)"
+    assert len(report.energy_changes) == 2
+    assert len(report.max_displacements) == 2
+    assert np.array_equal(molecule.coordinates, frames[1])
+    assert molecule.energy == pytest.approx(report.best_energy)
+    assert molecule._conformers_index == report.best_epoch == 1
+    assert len(molecule.frames) == 3
+
+
+def test_vdw_frames_are_ranked_only_under_the_final_cutoff(monkeypatch):
+    frames = [
+        np.full((2, 3), 3.0),
+        np.full((2, 3), 1.0),
+        np.full((2, 3), 2.0),
+    ]
+    backend = _CutoffDependentBackend()
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    molecule = _OptimizerMolecule()
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert backend.scored_cutoffs == [12.0, 12.0, 12.0]
+    assert report.best_epoch == 0
+    assert np.array_equal(molecule.coordinates, frames[0])
+
+
+def test_optimizer_reports_early_backend_stop_as_converged(monkeypatch):
+    frames = [np.zeros((2, 3))]
+    backend = _Backend([1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.increasing_vdw = False
+
+    report = optimizer.optimize(
+        _OptimizerMolecule(),
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert report.epochs_completed == 1
+    assert report.converged is True
+    assert report.termination_reason == "converged"
+
+
+def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
+    frames = [
+        np.zeros((2, 3)),
+        np.ones((2, 3)),
+        np.full((2, 3), 2.0),
+    ]
+    backend = _BudgetBackend([3.0, 2.0, 1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.increasing_vdw = False
+
+    report = optimizer.optimize(
+        _OptimizerMolecule(),
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert report.steps_submitted == 20
+    assert report.initialization_steps == 1
+    assert report.steps_completed is None
+    assert report.terminal_converged is False
+    assert report.termination_reason == "budget_exhausted"
+
+
+def test_selected_and_terminal_convergence_are_reported_separately(monkeypatch):
+    frames = [np.zeros((2, 3)), np.ones((2, 3))]
+    backend = _Backend([1.0, 2.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.increasing_vdw = False
+
+    report = optimizer.optimize(
+        _OptimizerMolecule(),
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert report.best_epoch == 0
+    assert report.converged is False
+    assert report.terminal_converged is True
+    assert report.termination_reason == "converged"
+
+
+def test_default_output_keeps_only_one_frame_and_bounded_scalar_history(monkeypatch):
+    frames = [np.full((2, 3), float(index + 1)) for index in range(50)]
+    backend = _BudgetBackend(
+        [float(value) for value in range(50, 0, -1)],
+        unit="kJ/mol",
+    )
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.epochs = 50
+    optimizer.steps_per_epoch = 1
+    optimizer.algorithm = "steepest"
+    optimizer.increasing_vdw = False
+    optimizer.save_movie = False
+    molecule = _OptimizerMolecule()
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert len(molecule.frames) == 1
+    assert report.epoch_energies == ()
+    assert len(report.energy_changes) == 5
+    assert len(report.max_displacements) == 5
+
+
+def test_single_step_conjugate_budget_is_consumed_by_initialization(monkeypatch):
+    frames = [np.zeros((2, 3))]
+    backend = _BudgetBackend([1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.epochs = 1
+    optimizer.steps_per_epoch = 1
+    optimizer.increasing_vdw = False
+
+    report = optimizer.optimize(
+        _OptimizerMolecule(),
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert backend.initializations == [(1, pytest.approx(1.0e-6))]
+    assert backend.take_calls == []
+    assert report.steps_submitted == 0
+    assert report.initialization_steps == 1
+    assert report.termination_reason == "budget_exhausted"
+
+
+def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
+    frames = [
+        np.full((2, 3), 3.0),
+        np.full((2, 3), 1.0),
+        np.full((2, 3), 2.0),
+    ]
+    backend = _Backend([3.0, 1.0, 2.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.save_movie = False
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        lambda mol, **options: SimpleNamespace(
+            passed=float(mol.coordinates[0, 0]) != 1.0
+        ),
+    )
+    molecule = _OptimizerMolecule()
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert report.best_energy == pytest.approx(2.0)
+    assert np.array_equal(molecule.coordinates, frames[2])
+    assert len(molecule.frames) == 1
+
+
+def test_optimizer_raises_when_no_frame_passes_gate(monkeypatch):
+    frames = [np.zeros((2, 3))] * 3
+    backend = _Backend([3.0, 2.0, 1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    rejected = SimpleNamespace(passed=False)
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        lambda *args, **options: rejected,
+    )
+
+    with pytest.raises(ff.GeometryQualityError) as caught:
+        optimizer.optimize(
+            _OptimizerMolecule(),
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+    assert caught.value.report is rejected
+
+
+def test_local_perturbation_is_reproducible_without_changing_global_rng():
+    coordinates = np.zeros((100, 3))
+    np.random.seed(2026)
+    expected_global = np.random.random()
+    np.random.seed(2026)
+
+    first = ff._perturbed_coordinates(
+        coordinates,
+        sigma=0.2,
+        rng=np.random.default_rng(4),
+    )
+    second = ff._perturbed_coordinates(
+        coordinates,
+        sigma=0.2,
+        rng=np.random.default_rng(4),
+    )
+
+    assert np.array_equal(first, second)
+    assert np.max(first) <= 0.4
+    assert np.min(first) >= -0.4
+    assert np.random.random() == expected_global
+
+
+@pytest.mark.parametrize(
+    ("requested", "expected"),
+    [(None, "UFF"), ("UFF", "UFF"), ("MMFF94s", "UFF"), ("GAFF", "UFF")],
+)
+def test_complex_forcefield_resolution_is_centralized(requested, expected):
+    assert ff._resolve_complex_forcefield(requested) == expected
+
+
+def test_empty_constraint_adapter_does_not_consume_molecule_flags():
+    molecule = SimpleNamespace(
+        atoms=property(lambda _: (_ for _ in ()).throw(AssertionError)),
+    )
+    assert ff._make_constraints(molecule).Size() == 0
+
+
+def test_energy_conversion_is_explicit():
+    assert ff._energy_factor_to_kj("kJ/mol") == 1.0
+    assert ff._energy_factor_to_kj("kcal/mol") == pytest.approx(4.184)
+    with pytest.raises(ValueError, match="Unsupported Open Babel energy unit"):
+        ff._energy_factor_to_kj("hartree")
+
+
+def test_unknown_forcefield_fails_before_setup():
+    with pytest.raises(ff.ForceFieldSetupError, match="Unknown Open Babel force field"):
+        ff._get_forcefield("not-a-forcefield")
+
+
+@pytest.mark.parametrize(
+    ("options", "message"),
+    (
+        ({"epochs": 0}, "epochs"),
+        ({"steps_per_epoch": 0}, "steps_per_epoch"),
+        ({"perturb_interval": 0}, "perturb_interval"),
+        ({"perturb_sigma": -0.1}, "perturb_sigma"),
+        (
+            {"increasing_vdw": True, "vdw_cutoff_start": 8.0, "vdw_cutoff_end": 4.0},
+            "vdw_cutoff_end",
+        ),
+    ),
+)
+def test_optimizer_rejects_invalid_control_parameters(options, message):
+    defaults = {
+        "algorithm": "conjugate",
+        "epochs": 1,
+        "steps_per_epoch": 1,
+        "perturb_interval": None,
+        "perturb_sigma": 0.5,
+        "save_movie": False,
+        "increasing_vdw": False,
+        "vdw_cutoff_start": 0.0,
+        "vdw_cutoff_end": 12.5,
+        "seed": None,
+    }
+    defaults.update(options)
+
+    with pytest.raises(ValueError, match=message):
+        ff._OpenBabelOptimizer("UFF", "UFF", **defaults)
+
+
+def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
+    molecule = read_mol("CCO", "smi")
+    captured = {}
+
+    def fake_run(working, **options):
+        captured.update(options)
+        return object()
+
+    monkeypatch.setattr(ff, "_run_optimizer_on_working", fake_run)
+
+    ff.optimize(molecule, forcefield=None, add_hydrogens=False)
+
+    assert captured["requested_forcefield"] is None
+    assert captured["effective_forcefield"] == "MMFF94s"
+
+
+def test_organic_build_and_optimize_integration():
+    molecule = read_mol("CCO", "smi")
+
+    report = ff.build_and_optimize(
+        molecule,
+        forcefield="MMFF94s",
+        epochs=2,
+        steps_per_epoch=20,
+        quality_level="standard",
+        seed=7,
+    )
+
+    assert report.effective_forcefield == "MMFF94s"
+    assert report.energy_unit == "kJ/mol"
+    assert report.epochs_completed <= 2
+    assert len(molecule.atoms) == 9
+    assert np.all(np.isfinite(molecule.coordinates))

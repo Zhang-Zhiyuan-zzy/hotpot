@@ -35,8 +35,10 @@ class ForceFieldRunReport:
     ``final_energy`` and ``termination_reason`` describe the terminal frame.
     Open Babel does not expose its exact internal step counter (and conjugate
     gradient initialization itself takes a step).  Therefore
-    ``steps_submitted`` records the number passed to ``TakeNSteps`` while
-    ``steps_completed`` remains ``None`` rather than claiming a false count.
+    ``steps_submitted`` records the number passed to ``TakeNSteps`` and
+    ``initialization_steps`` records the first steps performed by conjugate
+    gradient initialization. ``steps_completed`` remains ``None`` rather than
+    claiming how many submitted steps Open Babel completed before stopping.
     """
 
     requested_forcefield: Optional[str]
@@ -45,6 +47,7 @@ class ForceFieldRunReport:
     converged: bool
     epochs_completed: int
     steps_submitted: int
+    initialization_steps: int
     steps_completed: Optional[int]
     final_energy: float
     best_energy: float
@@ -513,6 +516,12 @@ class _OpenBabelOptimizer:
             )
         raise ValueError(f"Unknown optimization algorithm: {self.algorithm!r}")
 
+    def _initialize_with_budget(self, initialize, remaining_steps: int) -> int:
+        initialization_steps = int(self.algorithm == "conjugate")
+        take_step_capacity = remaining_steps - initialization_steps
+        initialize(take_step_capacity + 1, self.energy_tolerance)
+        return initialization_steps
+
     def _gradients(self, obmol: Any, factor: float) -> Tuple[float, float]:
         vectors = []
         for atom in ob.OBMolAtomIter(obmol):
@@ -607,7 +616,10 @@ class _OpenBabelOptimizer:
             ) / self.epochs
             self._set_vdw_cutoff(first_cutoff)
             self._setup(mol, obmol)
-        initialize(total_steps + 1, self.energy_tolerance)
+        epoch_initialization_steps = self._initialize_with_budget(
+            initialize,
+            total_steps,
+        )
 
         best_frame = None
         best_epoch = -1
@@ -624,6 +636,7 @@ class _OpenBabelOptimizer:
         previous_energy = initial_energy
         epochs_completed = 0
         steps_submitted = 0
+        initialization_steps = 0
         terminal_converged = False
         termination_reason: TerminationReason = "budget_exhausted"
 
@@ -654,10 +667,18 @@ class _OpenBabelOptimizer:
             if reset_history or (self.increasing_vdw and epoch > 0):
                 self._setup(mol, obmol)
                 remaining_steps = (self.epochs - epoch) * self.steps_per_epoch
-                initialize(remaining_steps + 1, self.energy_tolerance)
+                epoch_initialization_steps = self._initialize_with_budget(
+                    initialize,
+                    remaining_steps,
+                )
 
-            backend_continues = bool(take_steps(self.steps_per_epoch))
-            steps_submitted += self.steps_per_epoch
+            steps_to_take = self.steps_per_epoch - epoch_initialization_steps
+            initialization_steps += epoch_initialization_steps
+            backend_continues = (
+                bool(take_steps(steps_to_take)) if steps_to_take else True
+            )
+            steps_submitted += steps_to_take
+            epoch_initialization_steps = 0
             epochs_completed += 1
             backend_finished = not backend_continues
             self.backend.GetCoordinates(obmol)
@@ -727,6 +748,7 @@ class _OpenBabelOptimizer:
             converged=best_frame.converged,
             epochs_completed=epochs_completed,
             steps_submitted=steps_submitted,
+            initialization_steps=initialization_steps,
             steps_completed=None,
             final_energy=float(last_frame.energy),
             best_energy=float(best_frame.energy),

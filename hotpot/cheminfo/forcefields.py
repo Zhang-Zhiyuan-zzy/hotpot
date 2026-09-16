@@ -1395,7 +1395,7 @@ def optimize_complex(
     return report
 
 
-def complexes_build(
+def _complexes_build_impl(
     mol: Any,
     forcefield: Optional[str] = None,
     *,
@@ -1463,6 +1463,49 @@ def complexes_build(
     )
     _commit_working_copy(mol, working)
     return report
+
+
+_LEGACY_COMPLEX_BUILD_OPTIONS = {
+    "steps": "epochs",
+    "step_size": "steps_per_epoch",
+    "perturb_steps": "perturb_interval",
+    "save_screenshot": "save_movie",
+    "build_times": "candidate_count",
+    "init_opt_steps": "candidate_warmup_steps",
+    "second_opt_steps": "candidate_score_steps",
+    "min_energy_opt_steps": "best_candidate_refine_steps",
+    "increasing_Vdw": "increasing_vdw",
+    "Vdw_cutoff_start": "vdw_cutoff_start",
+    "Vdw_cutoff_end": "vdw_cutoff_end",
+}
+
+
+def _translate_legacy_complex_build_options(options: Mapping[str, Any]) -> dict:
+    """Translate historical names once without changing workflow semantics."""
+    translated = dict(options)
+    for legacy_name, current_name in _LEGACY_COMPLEX_BUILD_OPTIONS.items():
+        if legacy_name not in translated:
+            continue
+        legacy_value = translated.pop(legacy_name)
+        if current_name in translated and translated[current_name] != legacy_value:
+            raise TypeError(
+                f"Conflicting values for {legacy_name!r} and {current_name!r}"
+            )
+        translated[current_name] = legacy_value
+    return translated
+
+
+def complexes_build(
+    mol: Any,
+    forcefield: Optional[str] = None,
+    **options: Any,
+) -> ComplexBuildReport:
+    """Compatibility entry for the complete transactional complex workflow."""
+    return _complexes_build_impl(
+        mol,
+        forcefield,
+        **_translate_legacy_complex_build_options(options),
+    )
 
 
 def build_and_optimize(

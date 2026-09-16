@@ -794,6 +794,7 @@ def _build_ligand_proxies(
         component_reference = geo.capture_topology(component)
         candidate_coordinates = []
         candidate_energies = []
+        candidate_attempts = []
         component_attempts = 0
         while (
             len(candidate_coordinates) < candidate_count
@@ -832,11 +833,15 @@ def _build_ligand_proxies(
                 ring_scope="ligand_skeleton",
             )
             if intersections:
-                bonds_to_hide = {
-                    geo.closest_ring_edge_to_bond(ring, bond)
-                    for ring, bond in intersections
-                }
-                component.hide_bonds(*bonds_to_hide, clear_conformers=False)
+                bonds_to_hide = {}
+                for ring, bond in intersections:
+                    ring_edge = geo.closest_ring_edge_to_bond(ring, bond)
+                    endpoint_key = tuple(sorted((ring_edge.a1idx, ring_edge.a2idx)))
+                    bonds_to_hide[endpoint_key] = ring_edge
+                component.hide_bonds(
+                    *(bonds_to_hide[key] for key in sorted(bonds_to_hide)),
+                    clear_conformers=False,
+                )
                 rejections.append(
                     CandidateRejection(
                         component_index,
@@ -872,6 +877,7 @@ def _build_ligand_proxies(
 
             candidate_coordinates.append(component.coordinates.copy())
             candidate_energies.append(scored.energy)
+            candidate_attempts.append(component_attempts)
             total_accepted += 1
 
         if len(candidate_coordinates) < candidate_count:
@@ -888,40 +894,58 @@ def _build_ligand_proxies(
                 diagnostics,
             )
 
-        best_index = int(np.argmin(candidate_energies))
-        component.coordinates = candidate_coordinates[best_index]
-        refined = _single_ob_optimization(
-            component,
-            effective_forcefield,
-            best_candidate_refine_steps,
-        )
-        refined_intersections = geo.find_bond_ring_intersections(
-            component,
-            ring_scope="ligand_skeleton",
-        )
-        refined_quality = geo.evaluate_geometry_quality(
-            component,
-            level="basic",
-            topology_reference=component_reference,
-            forcefield_report={
-                "setup_succeeded": True,
-                "converged": False,
-                "final_energy": refined.energy,
-                "energy_unit": refined.energy_unit,
-                "rms_gradient": None,
-                "max_gradient": None,
-                "exploded": refined.exploded,
-            },
-        )
-        if refined_intersections or not refined_quality.passed:
-            reason = (
-                "refined candidate bond-ring intersection"
-                if refined_intersections
-                else "refined candidate geometry gate"
+        refined_candidate_found = False
+        for candidate_index in np.argsort(candidate_energies):
+            component.coordinates = candidate_coordinates[int(candidate_index)]
+            attempt = candidate_attempts[int(candidate_index)]
+            try:
+                refined = _single_ob_optimization(
+                    component,
+                    effective_forcefield,
+                    best_candidate_refine_steps,
+                )
+            except ForceFieldError as exc:
+                rejections.append(
+                    CandidateRejection(
+                        component_index,
+                        attempt,
+                        f"refined candidate: {exc}",
+                    )
+                )
+                continue
+
+            refined_intersections = geo.find_bond_ring_intersections(
+                component,
+                ring_scope="ligand_skeleton",
             )
-            rejections.append(
-                CandidateRejection(component_index, component_attempts, reason)
+            refined_quality = geo.evaluate_geometry_quality(
+                component,
+                level="basic",
+                topology_reference=component_reference,
+                forcefield_report={
+                    "setup_succeeded": True,
+                    "converged": False,
+                    "final_energy": refined.energy,
+                    "energy_unit": refined.energy_unit,
+                    "rms_gradient": None,
+                    "max_gradient": None,
+                    "exploded": refined.exploded,
+                },
             )
+            if refined_intersections or not refined_quality.passed:
+                reason = (
+                    "refined candidate bond-ring intersection"
+                    if refined_intersections
+                    else "refined candidate geometry gate"
+                )
+                rejections.append(
+                    CandidateRejection(component_index, attempt, reason)
+                )
+                continue
+            refined_candidate_found = True
+            break
+
+        if not refined_candidate_found:
             diagnostics = ComplexBuildDiagnostics(
                 attempt_count=total_attempts,
                 accepted_candidates=total_accepted,
@@ -929,7 +953,7 @@ def _build_ligand_proxies(
                 elapsed_seconds=time.monotonic() - started,
             )
             raise ComplexBuildError(
-                f"Best candidate refinement failed for component {component_index}",
+                f"Candidate refinement failed for every candidate of component {component_index}",
                 diagnostics,
             )
         clone.update_atoms_attrs_from_id_dict(

@@ -420,7 +420,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
 
     def closest(*args, **kwargs):
         calls["closest"] += 1
-        return "ring-edge"
+        return SimpleNamespace(a1idx=0, a2idx=1)
 
     monkeypatch.setattr(ff.geo, "find_bond_ring_intersections", intersections)
     monkeypatch.setattr(ff.geo, "closest_ring_edge_to_bond", closest)
@@ -509,6 +509,93 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
     assert caught.value.diagnostics.rejected_candidates[-1].reason == (
         "refined candidate geometry gate"
     )
+
+
+def test_refinement_tries_the_next_scored_candidate(monkeypatch):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    state = {"build": 0, "refining": False}
+    refined_markers = []
+
+    def build(current):
+        state["build"] += 1
+        current.coordinates = np.full((2, 3), float(state["build"]))
+
+    def optimize(current, forcefield, steps):
+        marker = float(current.coordinates[0, 0])
+        if steps == 3:
+            state["refining"] = True
+            refined_markers.append(marker)
+        return ff._CandidateOptimizationResult(marker, "kJ/mol", False)
+
+    def quality(current, **options):
+        if not state["refining"]:
+            return SimpleNamespace(passed=True)
+        state["refining"] = False
+        return SimpleNamespace(passed=float(current.coordinates[0, 0]) == 2.0)
+
+    monkeypatch.setattr(ff, "ob_build", build)
+    monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
+    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo, "find_bond_ring_intersections", lambda *args, **kwargs: ()
+    )
+    monkeypatch.setattr(ff.geo, "evaluate_geometry_quality", quality)
+
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        candidate_count=2,
+        max_attempts=2,
+        candidate_warmup_steps=1,
+        candidate_score_steps=2,
+        best_candidate_refine_steps=3,
+        effective_forcefield="UFF",
+    )
+
+    assert refined_markers == [1.0, 2.0]
+    assert diagnostics.rejected_candidates[-1] == ff.CandidateRejection(
+        component_index=0,
+        attempt=1,
+        reason="refined candidate geometry gate",
+    )
+
+
+def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    first = SimpleNamespace(a1idx=4, a2idx=2)
+    second = SimpleNamespace(a1idx=3, a2idx=1)
+
+    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ff,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+    )
+    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "find_bond_ring_intersections",
+        lambda *args, **kwargs: (("first", "probe"), ("second", "probe")),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "closest_ring_edge_to_bond",
+        lambda ring, bond: first if ring == "first" else second,
+    )
+
+    with pytest.raises(ff.ComplexBuildError):
+        ff._build_ligand_proxies(
+            molecule,
+            candidate_count=1,
+            max_attempts=1,
+            candidate_warmup_steps=1,
+            candidate_score_steps=1,
+            best_candidate_refine_steps=1,
+            effective_forcefield="UFF",
+        )
+
+    assert component.hidden == [second, first]
 
 
 def test_worker_boundary_serializes_an_exception(monkeypatch):

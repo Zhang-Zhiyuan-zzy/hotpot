@@ -94,6 +94,11 @@ probability, an equilibrium population, or a thermodynamic quantity. Changing
 the threshold can change both the returned candidate set and its normalized
 probabilities.
 
+The enumeration contains every unique **terminal state under the threshold
+policy**: a state becomes terminal only when no unconnected candidate has a
+raw score above the threshold. It does not enumerate every arbitrary subset of
+ligand donor atoms.
+
 ## Show coordination-bond details
 
 Add `--bond-detail` to show the atom and score for every predicted metal-ligand
@@ -176,6 +181,11 @@ are not expanded. A higher threshold retains fewer, more strongly scored bond
 decisions; a lower threshold explores more alternatives and may produce more
 candidate structures.
 
+If no site clears the threshold, the default single-structure command exits
+with an explicit error instead of presenting a disconnected metal as a
+prediction. `--all-structures` reports that no coordination structures passed
+the threshold.
+
 Because `Prob` is normalized only after candidate paths have been generated
 and equivalent structures have been merged, probabilities from runs using
 different thresholds are not directly comparable.
@@ -205,6 +215,9 @@ $ hotpot cbond Eu ligand.mol2 --no-greedy
 This option changes path construction and can therefore change both the final
 coordination pattern and the relative probabilities produced by
 `--all-structures`.
+
+Exact score ties are resolved deterministically in favour of the larger
+zero-based atom index, matching the historical CBond selection order.
 
 ## Device and model selection
 

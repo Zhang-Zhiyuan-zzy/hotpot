@@ -45,7 +45,8 @@ class CBondStructureResult:
     steps: tuple[CBondStep, ...]
     donor_indices: tuple[int, ...]
     path_count: int
-    log_path_weight: float
+    path_weight: float
+    log_structure_weight: float
 
 
 @dataclass
@@ -159,6 +160,8 @@ def init_metal_ligand_pair(
         )
 
     assert metal.is_metal, f"{metal.symbol} is not a metal"
+    if len(mol.metals) > 1:
+        raise ValueError("CBond inference supports exactly one metal centre")
     mol.add_hydrogens()
     mol.force_remove_polar_hydrogens()
     if metal not in mol.atoms:
@@ -168,11 +171,11 @@ def init_metal_ligand_pair(
             and existing_metals[0].atomic_number == metal.atomic_number
         ):
             metal = existing_metals[0]
-        else:
-            assert len(existing_metals) == 0, (
-                "Only support identification of coordination pattern between "
-                "a single metal and a ligand"
+        elif existing_metals:
+            raise ValueError(
+                "The requested metal does not match the metal already in the molecule"
             )
+        else:
             metal = mol.add_atom(metal)
 
     return mol, metal
@@ -254,7 +257,7 @@ def _eligible_candidates(
     if not greedy:
         highest_index, highest_score = max(
             scores.items(),
-            key=lambda item: (item[1], -item[0]),
+            key=lambda item: (item[1], item[0]),
         )
         if highest_index in donor_indices and highest_score > threshold:
             return []
@@ -306,7 +309,7 @@ def auto_build_cbond(
             break
         atom_index, score = max(
             eligible,
-            key=lambda item: (item[1], -item[0]),
+            key=lambda item: (item[1], item[0]),
         )
         logging.debug(
             "Selected coordination atom %s with raw score %.6f",
@@ -315,6 +318,11 @@ def auto_build_cbond(
         )
         steps.append(_step(context, atom_index, score))
         donor_indices = donor_indices | {atom_index}
+
+    if not steps and not context.existing_donors:
+        raise ValueError(
+            f"No coordination bond exceeded the raw-score threshold {threshold}"
+        )
 
     for atom_index in sorted(donor_indices - context.existing_donors):
         context.molecule.add_bond(context.metal_index, atom_index)
@@ -351,7 +359,7 @@ def build_one_cbond(
             threshold,
             greedy=True,
         ),
-        key=lambda item: (-item[1], item[0]),
+        key=lambda item: (-item[1], -item[0]),
     )
     if not eligible:
         logging.info("Not found any suitable coordination bond")
@@ -415,7 +423,9 @@ def build_all_possible_cbond(
 
     Each unique donor-index set is evaluated once. Different bond-order paths
     reaching the same state are merged in log space. Terminal path weights are
-    optionally normalized over the returned structures.
+    normalized over the returned detailed results. For compatibility, the
+    legacy tuple contains raw merged path weights when ``normalize_prob`` is
+    false.
     """
     metal_spec = m.atomic_number if isinstance(m, Atom) else m
     context = _prepare_search(mol.copy(), metal_spec)
@@ -449,7 +459,7 @@ def build_all_possible_cbond(
 
             for atom_index, score in sorted(
                 eligible,
-                key=lambda item: (-item[1], item[0]),
+                key=lambda item: (-item[1], -item[0]),
             ):
                 child_indices = donor_indices | {atom_index}
                 is_new = _merge_child_state(
@@ -475,12 +485,10 @@ def build_all_possible_cbond(
         [state.log_weight for _, state in terminal_items],
         dtype=float,
     )
-    if normalize_prob:
-        max_log_weight = float(np.max(log_weights))
-        weights = np.exp(log_weights - max_log_weight)
-        probabilities = weights / np.sum(weights)
-    else:
-        probabilities = np.exp(log_weights)
+    max_log_weight = float(np.max(log_weights))
+    relative_weights = np.exp(log_weights - max_log_weight)
+    probabilities = relative_weights / np.sum(relative_weights)
+    path_weights = np.exp(log_weights)
 
     results = [
         CBondStructureResult(
@@ -489,17 +497,21 @@ def build_all_possible_cbond(
             steps=state.map_steps,
             donor_indices=tuple(sorted(donor_indices)),
             path_count=state.path_count,
-            log_path_weight=state.log_weight,
+            path_weight=float(path_weight),
+            log_structure_weight=state.log_weight,
         )
-        for (donor_indices, state), probability in zip(
+        for (donor_indices, state), probability, path_weight in zip(
             terminal_items,
             probabilities,
+            path_weights,
         )
     ]
     results.sort(key=lambda result: (-result.probability, result.donor_indices))
     if return_details:
         return results
-    return (
-        [result.molecule for result in results],
-        [result.probability for result in results],
+    values = (
+        [result.probability for result in results]
+        if normalize_prob
+        else [result.path_weight for result in results]
     )
+    return [result.molecule for result in results], values

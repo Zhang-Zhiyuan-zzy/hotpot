@@ -108,6 +108,20 @@ def test_default_threshold_is_strict(monkeypatch):
     assert probabilities == []
 
 
+def test_single_structure_raises_when_no_bond_clears_threshold(monkeypatch):
+    monkeypatch.setattr(
+        apply,
+        "_predict_state",
+        lambda context, donor_indices, runtime: {
+            atom_index: DEFAULT_CBOND_THRESHOLD
+            for atom_index in context.candidate_indices
+        },
+    )
+
+    with pytest.raises(ValueError, match="No coordination bond exceeded"):
+        apply.auto_build_cbond(read_mol("CN"), "Eu")
+
+
 def test_negative_logit_above_threshold_is_selected(monkeypatch):
     score = -0.1
 
@@ -139,6 +153,47 @@ def test_all_structures_enforces_state_limit(monkeypatch):
             "Eu",
             max_states=2,
         )
+
+
+def test_structure_probability_and_unnormalized_path_weight_are_distinct(
+    monkeypatch,
+):
+    def predict_state(context, donor_indices, runtime):
+        return {atom_index: 0.0 for atom_index in context.candidate_indices}
+
+    monkeypatch.setattr(apply, "_predict_state", predict_state)
+    molecule = read_mol("NCCO")
+    results = apply.build_all_possible_cbond(
+        molecule,
+        "Eu",
+        return_details=True,
+    )
+    _, weights = apply.build_all_possible_cbond(
+        molecule,
+        "Eu",
+        normalize_prob=False,
+    )
+
+    assert len(results) == 1
+    assert results[0].probability == 1.0
+    assert results[0].path_weight == pytest.approx(0.5)
+    assert weights == pytest.approx([0.5])
+
+
+def test_equal_scores_preserve_legacy_high_index_tie_break(monkeypatch):
+    def predict_state(context, donor_indices, runtime):
+        score = -1.0 if donor_indices else 0.0
+        return {atom_index: score for atom_index in context.candidate_indices}
+
+    monkeypatch.setattr(apply, "_predict_state", predict_state)
+    result = apply.auto_build_cbond(
+        read_mol("NCCO"),
+        "Eu",
+        return_details=True,
+    )
+
+    assert len(result.steps) == 1
+    assert result.steps[0].element == "O"
 
 
 def test_all_structures_does_not_mutate_input(monkeypatch):
@@ -190,6 +245,15 @@ def test_existing_coordination_bond_is_reused_without_duplicate_edges(monkeypatc
     assert results[0].steps == ()
     result_metal = results[0].molecule.metals[0]
     assert [atom.symbol for atom in result_metal.neighbours] == ["N"]
+
+
+def test_multiple_metals_are_rejected_before_inference():
+    molecule = read_mol("NCCO")
+    europium = molecule.add_atom(Atom(symbol="Eu"))
+    molecule.add_atom(Atom(symbol="Gd"))
+
+    with pytest.raises(ValueError, match="exactly one metal centre"):
+        apply.auto_build_cbond(molecule, europium)
 
 
 def test_all_structures_with_no_candidate_returns_empty():

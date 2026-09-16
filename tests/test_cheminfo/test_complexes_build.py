@@ -116,11 +116,24 @@ class _NeverReadyConnection:
         self.closed = True
 
 
+class _ReadyConnection(_NeverReadyConnection):
+    def __init__(self, result):
+        super().__init__()
+        self.result = result
+
+    def poll(self, timeout):
+        return True
+
+    def recv(self):
+        return self.result
+
+
 class _StubbornProcess:
     def __init__(self):
         self.started = False
         self.terminated = False
         self.killed = False
+        self.join_calls = []
 
     def start(self):
         self.started = True
@@ -135,7 +148,7 @@ class _StubbornProcess:
         self.killed = True
 
     def join(self, timeout=None):
-        return None
+        self.join_calls.append(timeout)
 
 
 class _DummyAtom:
@@ -406,6 +419,34 @@ def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
 
     assert result.status == "ok"
     assert process.exitcode == 0
+
+
+def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatch):
+    monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
+    diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
+    receive_connection = _ReadyConnection(
+        ff.BuildWorkerResult(
+            status="ok",
+            coordinates=np.zeros((1, 3)),
+            diagnostics=diagnostics,
+        )
+    )
+    send_connection = _NeverReadyConnection()
+    process = _StubbornProcess()
+
+    with pytest.raises(ff.ComplexBuildWorkerError, match="did not terminate"):
+        ff._receive_worker_result(
+            process,
+            receive_connection,
+            send_connection,
+            timeout=2.0,
+        )
+
+    assert process.join_calls == [0.25, 5.0, 5.0]
+    assert process.terminated
+    assert process.killed
+    assert receive_connection.closed
+    assert send_connection.closed
 
 
 def test_repeated_complex_worker_requests_do_not_cross_or_leak_processes():

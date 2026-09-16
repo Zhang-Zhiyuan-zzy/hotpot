@@ -1553,10 +1553,9 @@ def auto_optimize(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
         )
-    effective_forcefield = forcefield or "MMFF94s"
     return optimize(
         mol,
-        effective_forcefield,
+        forcefield,
         algorithm=algorithm,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,

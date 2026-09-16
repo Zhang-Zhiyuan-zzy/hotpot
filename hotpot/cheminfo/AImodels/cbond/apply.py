@@ -143,7 +143,7 @@ def auto_build_cbond(
                 break
 
             # Adjust the `target_idx` and `ca_index` for the first not in has_cbond set
-            logging.info(f"{ca_index} has in the cbond set {has_cbond}")
+            logging.debug(f"{ca_index} has in the cbond set {has_cbond}")
             i = 0
             for i in range(2, len(sort_idx) + 1):
                 # Locate the target CBond when found a CBond not in the `has_cbond`
@@ -152,7 +152,7 @@ def auto_build_cbond(
                     target_value = pred_cb[target_idx]
                     ca_index = int(cb_index[1, target_idx])
                     break
-                logging.info(f"{int(cb_index[1, sort_idx[-i]])} has in the cbond set {has_cbond}")
+                logging.debug(f"{int(cb_index[1, sort_idx[-i]])} has in the cbond set {has_cbond}")
 
             # Exit bond link if the target bond score less than the threshold
             if pred_cb[target_idx] <= threshold or i == len(sort_idx):

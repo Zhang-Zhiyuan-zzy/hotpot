@@ -8,7 +8,7 @@ import threading
 import time
 import traceback as traceback_module
 from collections import deque
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Literal, Mapping, Optional, Tuple
@@ -289,6 +289,7 @@ def _hydrogenated_working_copy(
     """Copy ``mol`` and infer H atoms against its ligand covalent skeleton."""
     working = copy(mol)
     _copy_molecule_metadata(mol, working)
+    original_atom_count = len(working.atoms)
     if add_hydrogens:
         if working.has_metal:
             donor_indices = {
@@ -312,25 +313,54 @@ def _hydrogenated_working_copy(
                 rm_polar_hs=False,
                 rng=np.random.default_rng(seed),
             )
-    working.refresh_atom_id()
+    used_ids = {int(atom.id) for atom in working.atoms[:original_atom_count]}
+    next_id = max(used_ids, default=-1) + 1
+    for atom in working.atoms[original_atom_count:]:
+        while next_id in used_ids:
+            next_id += 1
+        atom.id = next_id
+        used_ids.add(next_id)
+        next_id += 1
     return working
 
 
 def _capture_workflow_topology(mol: Any) -> Any:
-    """Capture input topology with stable positional IDs used by proxy mapping."""
-    reference = copy(mol)
-    reference.refresh_atom_id()
-    return geo.capture_topology(reference)
+    """Capture the caller's input topology without rewriting atom identifiers."""
+    return geo.capture_topology(mol)
+
+
+def _complex_worker_proxy(mol: Any) -> Any:
+    """Return a structure-only clone with private positional IDs for a worker."""
+    proxy = copy(mol)
+    proxy.charge = mol.charge
+    proxy.refresh_atom_id()
+    return proxy
 
 
 def _commit_working_copy(mol: Any, working: Any) -> None:
-    """Replace a molecule's state only after a complete workflow succeeds."""
-    state = dict(working.__dict__)
-    mol.__dict__.clear()
-    mol.__dict__.update(state)
-    for atom in mol._atoms:
-        atom.mol = mol
-    mol._atom_pairs.mol = mol
+    """Commit accepted geometry while preserving caller-owned object identities."""
+    original_atom_count = len(mol._atoms)
+    working_atoms = tuple(working.atoms)
+
+    for atom, source in zip(mol._atoms, working_atoms[:original_atom_count]):
+        atom.attrs = np.array(source.attrs, copy=True)
+
+    for source in working_atoms[original_atom_count:]:
+        mol._create_atom_from_array(np.array(source.attrs, copy=True))
+
+    working_positions = {id(atom): index for index, atom in enumerate(working_atoms)}
+    for source_bond in working.bonds:
+        first = working_positions[id(source_bond.atom1)]
+        second = working_positions[id(source_bond.atom2)]
+        if first >= original_atom_count or second >= original_atom_count:
+            mol._add_bond(first, second, **source_bond.attr_dict)
+
+    mol._update_graph(clear_conformers=False)
+    mol._row2idx = None
+    mol._atom_pairs.update_pairs()
+    mol._conformers.__dict__.clear()
+    mol._conformers.__dict__.update(deepcopy(working._conformers.__dict__))
+    mol._conformers_index = working._conformers_index
 
 
 def _perturbed_coordinates(
@@ -1051,12 +1081,13 @@ def _build_complex_working(
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
+    worker_proxy = _complex_worker_proxy(working)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
         target=_run_complexes_build,
         args=(
-            working,
+            worker_proxy,
             send_connection,
             candidate_count,
             max_attempts,

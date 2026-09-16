@@ -190,6 +190,12 @@ ff.optimize_complex(mol)      # full-complex optimization only
 ff.complexes_build(mol)       # complete transactional complex workflow
 ```
 
+The three complex-only entry points require at least one explicit
+metal--ligand bond. Use `build_and_optimize()` or `auto_optimize()` when the
+workflow should be selected automatically. Candidate rejections retain the
+full failed geometry checks, including measured values, thresholds, and atom
+or bond indices, in `CandidateRejection.quality_failures`.
+
 The optimizer uses `epochs` outer iterations and `steps_per_epoch` Open Babel
 steps per iteration. `seed=None` keeps Hotpot-side perturbations stochastic;
 an integer seed controls Hotpot's local random generator and the worker-side

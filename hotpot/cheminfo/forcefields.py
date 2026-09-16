@@ -20,7 +20,6 @@ from openbabel import openbabel as ob
 from . import geometry as geo
 from .obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
 
-ForceFieldName = Literal["UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"]
 OptimizationAlgorithm = Literal["steepest", "conjugate"]
 TerminationReason = Literal["converged", "budget_exhausted"]
 
@@ -1652,18 +1651,3 @@ def ob_build(mol: Any) -> None:
 def ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
     """Compatibility primitive returning energy in kJ/mol."""
     return _single_ob_optimization(mol, ff, steps).energy
-
-
-class OBBuilder:
-    """Compatibility wrapper around Open Babel's coordinate builder."""
-
-    def build(self, mol: Any) -> None:
-        ob_build(mol)
-
-
-class ForceFields:
-    """Compatibility holder for a named Open Babel force field."""
-
-    def __init__(self, forcefield: str):
-        self.name = forcefield
-        self._ff = _get_forcefield(forcefield)

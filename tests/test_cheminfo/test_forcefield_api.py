@@ -89,6 +89,8 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
 def test_legacy_molecule_forcefield_entrypoints_are_removed():
     assert not hasattr(Molecule, "complexes_build_optimize_")
     assert not hasattr(Molecule, "optimize_complexes")
+    assert not hasattr(ff, "OBBuilder")
+    assert not hasattr(ff, "ForceFields")
 
 
 def test_complexes_build_translates_legacy_options_once(monkeypatch):

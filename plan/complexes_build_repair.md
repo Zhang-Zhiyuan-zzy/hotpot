@@ -645,6 +645,13 @@ def prepare_coordination_geometry(
 4. 无扰动时保留优化器状态；
 5. 发生扰动后重新 `Setup` 和初始化优化器，因为目标坐标已被外部修改。
 
+Open Babel 的分段接口只返回“继续”或“停止”，没有公开当前步数；一次
+`TakeNSteps(n)` 提前收敛时无法得知实际完成了 `1..n` 中的哪一步。为避免
+把估计值伪装为观测值，报告分别记录传给 `TakeNSteps` 的
+`steps_submitted` 和共轭梯度初始化隐式执行的 `initialization_steps`，并将
+无法观测的 `steps_completed` 明确设为 `None`。不能为了取得精确计数而把
+每个 epoch 拆成逐步 Python/C++ 调用，这会改变本节冻结的分段接口及性能。
+
 每个 epoch 的顺序冻结为：
 
 ```text
@@ -797,7 +804,9 @@ ForceFieldRunReport
   setup_succeeded
   converged
   epochs_completed
-  steps_completed
+  steps_submitted
+  initialization_steps
+  steps_completed  # Open Babel API 无法观测时为 None
   final_energy
   best_energy
   energy_unit
@@ -970,7 +979,8 @@ tests/test_cheminfo/fixtures/complexes/
 ### 11.4 优化器
 
 - `epochs=3, steps_per_epoch=7` 实际执行不超过 21 个后端步骤。
-- backend 提前收敛时停止并报告实际步数。
+- backend 提前收敛时停止；报告已提交步数和初始化步数，无法由 Open Babel
+  观测的实际完成步数必须为 `None`，不得填入推测值。
 - VDW cutoff 首值、单调性和末值正确。
 - 同一 seed 在同版本环境结果一致；`seed=None` 不要求不同，也不要求相同。
 - 默认结果为最低能合格帧，不是最后帧。
@@ -1030,7 +1040,8 @@ tests/test_cheminfo/fixtures/complexes/
 - README Eu 默认流程必须通过 standard gate；记录运行时间、最终 Eu–供体距离和能量，但不对随机运行做逐位断言。
 - 有 seed 的基线使用距离/能量容差比较。
 - 小型 Zn 体系作为 CI smoke；Eu 案例标记为 slow，防止普通 CI 超时。
-- 对比修改前后峰值内存，验证默认不再储存完整 movie。
+- 以结构不变量验证默认仅保留一个构象、标量历史窗口有界；原生 Open Babel
+  分配器和操作系统 RSS 峰值仅用于手工 benchmark，不作为跨平台 CI 硬断言。
 - 执行项目完整测试和 Python 3.9–3.14 兼容脚本。
 
 ## 12. 分提交实施顺序

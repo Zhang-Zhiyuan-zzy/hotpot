@@ -216,6 +216,7 @@ class _ObservedFrame:
 
 _SEED_ENVIRONMENT_LOCK = threading.Lock()
 _OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
+_WORKER_EXIT_GRACE_SECONDS = 30.0
 
 
 def _serialized_forcefield_call(function):
@@ -1113,7 +1114,7 @@ def _receive_worker_result(
                 "The build worker closed its pipe without a result",
                 None,
             ) from exc
-        process.join(timeout=5.0)
+        process.join(timeout=_WORKER_EXIT_GRACE_SECONDS)
         if process.is_alive():
             raise ComplexBuildWorkerError(
                 "WorkerShutdownError",

@@ -88,6 +88,11 @@ def _send_small_worker(connection):
     connection.close()
 
 
+def _send_then_exit_slowly_worker(connection):
+    _send_small_worker(connection)
+    time.sleep(0.05)
+
+
 def _send_tagged_worker(connection, tag):
     diagnostics = ff.ComplexBuildDiagnostics(1, 1, (), 0.0)
     connection.send(
@@ -384,6 +389,23 @@ def test_unseeded_worker_start_uses_the_seed_environment_lock(monkeypatch):
     )
 
     assert lock.entered == 1
+
+
+def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
+    monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.5)
+    process, receive_connection, send_connection = _pipe_process(
+        _send_then_exit_slowly_worker
+    )
+
+    result = ff._receive_worker_result(
+        process,
+        receive_connection,
+        send_connection,
+        timeout=2.0,
+    )
+
+    assert result.status == "ok"
+    assert process.exitcode == 0
 
 
 def test_repeated_complex_worker_requests_do_not_cross_or_leak_processes():

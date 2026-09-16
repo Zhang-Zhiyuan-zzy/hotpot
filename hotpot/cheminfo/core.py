@@ -533,7 +533,7 @@ class Molecule:
     def build_all_pair_links(
             self,
             metal,
-            threshold=0.,
+            threshold=-0.125,
             greedy=True,
     ):
         from .AImodels.cbond.apply import build_all_possible_cbond
@@ -542,7 +542,7 @@ class Molecule:
     def auto_pair_metal(
             self,
             metal,
-            threshold=0.,
+            threshold=-0.125,
             greedy=True,
             probability: bool = False
     ) -> Union['Molecule', tuple['Molecule', float]]:

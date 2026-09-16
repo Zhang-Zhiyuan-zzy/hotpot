@@ -72,6 +72,28 @@ def test_complex_worker_excludes_runtime_metadata_from_spawn_payload():
     assert molecule._model is callback
 
 
+def test_real_optimizer_preserves_custom_ids_and_existing_objects():
+    molecule = read_mol("CCO", "smi")
+    custom_ids = (101, 305, 902)
+    for atom, atom_id in zip(molecule.atoms, custom_ids):
+        atom.id = atom_id
+    original_atoms = tuple(molecule.atoms)
+    original_bonds = tuple(molecule.bonds)
+
+    ff.optimize(
+        molecule,
+        "MMFF94s",
+        epochs=1,
+        steps_per_epoch=5,
+        add_hydrogens=False,
+        quality_level="off",
+    )
+
+    assert tuple(atom.id for atom in molecule.atoms) == custom_ids
+    assert all(current is original for current, original in zip(molecule.atoms, original_atoms))
+    assert all(current is original for current, original in zip(molecule.bonds, original_bonds))
+
+
 def _optimize_ethanol(seed):
     molecule = read_mol("CCO", "smi")
     report = ff.build_and_optimize(

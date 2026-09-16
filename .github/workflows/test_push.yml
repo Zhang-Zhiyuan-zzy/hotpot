@@ -13,25 +13,25 @@ jobs:
 
     steps:
       - name: To workdir
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache conda
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         env:
           CACHE_NUMBER: 0
         with:
           path: ~/conda_pkgs_dir
-          key:
-            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
-            hashFiles('etc/example-environment.yml') }}
+          key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('environment.yml', 'pyproject.toml') }}
 
       - name: Set up conda-env
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: repo-test-env
-          auto-update-base: false
+          activate-environment: hp
+          auto-activate: false
+          auto-update-conda: false
           environment-file: environment.yml
-          python-version: '3.9'
+          use-only-tar-bz2: true
+          pkgs-dirs: ~/conda_pkgs_dir
 
       - run: |
           conda info
@@ -39,7 +39,7 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Install coverage
-        run: pip install coverage
+        run: python -m pip install coverage
 
       - name: Run tests by coverage
         run: |
@@ -49,8 +49,7 @@ jobs:
           COVERAGE_RUN: True
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
-          file: ./coverage.xml
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

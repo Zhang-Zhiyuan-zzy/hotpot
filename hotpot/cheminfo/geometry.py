@@ -57,6 +57,9 @@ class GeometryQualityThresholds:
     metal_ligand_bond_ratio: Tuple[float, float] = (0.65, 1.60)
     strict_rms_gradient: float = 1.0
     strict_max_gradient: float = 5.0
+    strict_energy_change: float = 1.0e-4
+    strict_max_displacement: float = 1.0e-4
+    strict_stability_window: int = 5
 
 
 @dataclass(frozen=True)
@@ -349,14 +352,15 @@ def points_on_same_plane(*points):
     if len(points) < 3:
         return None
     if len(points) == 3:
-        if np.linalg.det(points) < 1e-7:
-            return None
-        else:
-            return True
+        normal = np.cross(points[1] - points[0], points[2] - points[0])
+        return None if np.linalg.norm(normal) < 1.0e-7 else True
 
     best_points = max(
         (list(p_indices) for p_indices in combinations(range(len(points)), 3)),
-        key=lambda pi: np.linalg.det(points[pi])
+        key=lambda indices: np.linalg.norm(np.cross(
+            points[indices[1]] - points[indices[0]],
+            points[indices[2]] - points[indices[0]],
+        )),
     )
 
     try:
@@ -480,16 +484,13 @@ class CyclePlanes:
         return self.point_in_which_edge_side(i, point) * self.edge_center_side(i) > 0
 
     def is_line_intersect_the_cycle(self, line: Line, segment: bool = True) -> bool:
-        for i, plane in enumerate(self.planes):
-            intersect_point = plane.line_intersect_point(line)
-            if intersect_point is None:
-                return False
-            if not self.in_same_side_with_center(i, intersect_point):
-                return False
-            if segment and not(0 < line.get_param_t(intersect_point) < 1):
-                return False
-
-        return True
+        return _line_intersects_polygon(
+            self.points,
+            np.asarray(line.point1, dtype=float),
+            np.asarray(line.point2, dtype=float),
+            tolerance=1.0e-8,
+            segment=segment,
+        )
 
 
 @dataclass(frozen=True)
@@ -552,20 +553,25 @@ def _pair_scope_mask(table: _AtomPairTable, pair_scope: PairScope) -> np.ndarray
 
 
 def _overlap_issues(
-        table: _AtomPairTable,
-        tolerance: float,
+    table: _AtomPairTable,
+    tolerance: float,
 ) -> Tuple[AtomPairGeometryIssue, ...]:
-    issues = []
+    return tuple(_iter_overlap_issues(table, tolerance))
+
+
+def _iter_overlap_issues(
+    table: _AtomPairTable,
+    tolerance: float,
+):
     for position in np.flatnonzero(table.distances <= tolerance):
         first = int(table.first[position])
         second = int(table.second[position])
-        issues.append(AtomPairGeometryIssue(
+        yield AtomPairGeometryIssue(
             kind="overlap",
             atom_indices=(table.atom_indices[first], table.atom_indices[second]),
             distance=float(table.distances[position]),
             threshold=float(tolerance),
-        ))
-    return tuple(issues)
+        )
 
 
 def find_overlapping_atom_pairs(
@@ -579,7 +585,7 @@ def find_overlapping_atom_pairs(
 
 def has_overlapping_atoms(mol: Any, *, tolerance: float = 1.0e-3) -> bool:
     """Return whether any two atoms overlap within ``tolerance``."""
-    return bool(find_overlapping_atom_pairs(mol, tolerance=tolerance))
+    return any(_iter_overlap_issues(_pair_table(mol), tolerance))
 
 
 def _too_close_issues(
@@ -591,6 +597,25 @@ def _too_close_issues(
         include_overlaps: bool,
         overlap_tolerance: float,
 ) -> Tuple[AtomPairGeometryIssue, ...]:
+    return tuple(_iter_too_close_issues(
+        table,
+        minimum_distance=minimum_distance,
+        covalent_radius_scale=covalent_radius_scale,
+        pair_scope=pair_scope,
+        include_overlaps=include_overlaps,
+        overlap_tolerance=overlap_tolerance,
+    ))
+
+
+def _iter_too_close_issues(
+    table: _AtomPairTable,
+    *,
+    minimum_distance: float,
+    covalent_radius_scale: Optional[float],
+    pair_scope: PairScope,
+    include_overlaps: bool,
+    overlap_tolerance: float,
+):
     thresholds = np.full(len(table.distances), minimum_distance, dtype=float)
     if covalent_radius_scale is not None:
         radii = np.asarray(
@@ -606,17 +631,15 @@ def _too_close_issues(
     if not include_overlaps:
         mask &= table.distances > overlap_tolerance
 
-    issues = []
     for position in np.flatnonzero(mask):
         first = int(table.first[position])
         second = int(table.second[position])
-        issues.append(AtomPairGeometryIssue(
+        yield AtomPairGeometryIssue(
             kind="too_close",
             atom_indices=(table.atom_indices[first], table.atom_indices[second]),
             distance=float(table.distances[position]),
             threshold=float(thresholds[position]),
-        ))
-    return tuple(issues)
+        )
 
 
 def find_too_close_atom_pairs(
@@ -649,8 +672,8 @@ def has_too_close_atoms(
         overlap_tolerance: float = 1.0e-3,
 ) -> bool:
     """Return whether an atom pair violates the requested separation."""
-    return bool(find_too_close_atom_pairs(
-        mol,
+    return any(_iter_too_close_issues(
+        _pair_table(mol),
         minimum_distance=minimum_distance,
         covalent_radius_scale=covalent_radius_scale,
         pair_scope=pair_scope,
@@ -666,8 +689,10 @@ def _segment_intersects_triangle(
         second: np.ndarray,
         third: np.ndarray,
         tolerance: float,
+        *,
+        segment: bool = True,
 ) -> bool:
-    """Moller-Trumbore intersection for the interior of a finite segment."""
+    """Moller-Trumbore intersection with the interior of one triangle."""
     direction = end - start
     edge1 = second - first
     edge2 = third - first
@@ -688,7 +713,134 @@ def _segment_intersects_triangle(
         return False
 
     parameter = inverse * float(np.dot(edge2, offset_cross))
-    return tolerance < parameter < 1.0 - tolerance
+    return not segment or tolerance < parameter < 1.0 - tolerance
+
+
+def _planar_polygon_normal(
+    points: np.ndarray,
+    tolerance: float,
+) -> Optional[np.ndarray]:
+    """Return a unit normal when all polygon vertices share one plane."""
+    normal = np.sum(
+        np.cross(points, np.roll(points, -1, axis=0)),
+        axis=0,
+    )
+    length = float(np.linalg.norm(normal))
+    if length <= tolerance:
+        return None
+
+    normal /= length
+    scale = max(1.0, float(np.ptp(points, axis=0).max()))
+    distances = np.abs((points - points[0]) @ normal)
+    return normal if np.all(distances <= tolerance * scale) else None
+
+
+def _point_on_segment_2d(
+    point: np.ndarray,
+    start: np.ndarray,
+    end: np.ndarray,
+    tolerance: float,
+) -> bool:
+    edge = end - start
+    offset = point - start
+    scale = max(1.0, float(np.linalg.norm(edge)))
+    cross = float(edge[0] * offset[1] - edge[1] * offset[0])
+    if abs(cross) > tolerance * scale:
+        return False
+    projection = float(np.dot(offset, edge))
+    return -tolerance <= projection <= float(np.dot(edge, edge)) + tolerance
+
+
+def _point_in_polygon_2d(
+    point: np.ndarray,
+    polygon: np.ndarray,
+    tolerance: float,
+) -> bool:
+    """Return whether a point lies in or on a simple, possibly concave polygon."""
+    inside = False
+    for index, start in enumerate(polygon):
+        end = polygon[(index + 1) % len(polygon)]
+        if _point_on_segment_2d(point, start, end, tolerance):
+            return True
+        if (start[1] > point[1]) != (end[1] > point[1]):
+            crossing_x = start[0] + (
+                (point[1] - start[1])
+                * (end[0] - start[0])
+                / (end[1] - start[1])
+            )
+            if point[0] < crossing_x:
+                inside = not inside
+    return inside
+
+
+def _line_intersects_planar_polygon(
+    points: np.ndarray,
+    start: np.ndarray,
+    end: np.ndarray,
+    normal: np.ndarray,
+    tolerance: float,
+    *,
+    segment: bool,
+) -> bool:
+    direction = end - start
+    denominator = float(np.dot(normal, direction))
+    if abs(denominator) <= tolerance * np.linalg.norm(direction):
+        return False
+
+    parameter = float(np.dot(normal, points[0] - start) / denominator)
+    if segment and not tolerance < parameter < 1.0 - tolerance:
+        return False
+
+    intersection = start + parameter * direction
+    projection_axes = np.delete(np.arange(3), np.argmax(np.abs(normal)))
+    return _point_in_polygon_2d(
+        intersection[projection_axes],
+        points[:, projection_axes],
+        tolerance,
+    )
+
+
+def _line_intersects_polygon(
+        points: np.ndarray,
+        start: np.ndarray,
+        end: np.ndarray,
+        *,
+        tolerance: float,
+        segment: bool,
+) -> bool:
+    """Return whether a line or segment intersects a polygonal ring surface."""
+    if len(points) < 3 or not np.all(np.isfinite(points)):
+        return False
+    if not np.all(np.isfinite((start, end))):
+        return False
+    if np.linalg.norm(end - start) <= tolerance:
+        return False
+
+    normal = _planar_polygon_normal(points, tolerance)
+    if normal is not None:
+        return _line_intersects_planar_polygon(
+            points,
+            start,
+            end,
+            normal,
+            tolerance,
+            segment=segment,
+        )
+
+    # Preserve the historical center-fan surface for non-planar rings.
+    center = np.mean(points, axis=0)
+    return any(
+        _segment_intersects_triangle(
+            start,
+            end,
+            center,
+            points[index],
+            points[(index + 1) % len(points)],
+            tolerance,
+            segment=segment,
+        )
+        for index in range(len(points))
+    )
 
 
 def bond_intersects_ring(
@@ -704,29 +856,22 @@ def bond_intersects_ring(
     if any(id(atom) in ring_atom_ids for atom in bond_atoms):
         return False
 
-    points = _atom_coordinates(ring_atoms)
-    if len(points) < 3 or not np.all(np.isfinite(points)):
-        return False
+    return _line_intersects_polygon(
+        _atom_coordinates(ring_atoms),
+        np.asarray(bond.atom1.coordinates, dtype=float),
+        np.asarray(bond.atom2.coordinates, dtype=float),
+        tolerance=tolerance,
+        segment=True,
+    )
 
-    start = np.asarray(bond.atom1.coordinates, dtype=float)
-    end = np.asarray(bond.atom2.coordinates, dtype=float)
-    if not np.all(np.isfinite((start, end))):
-        return False
-    if np.linalg.norm(end - start) <= tolerance:
-        return False
 
-    center = np.mean(points, axis=0)
-    for i in range(len(points)):
-        if _segment_intersects_triangle(
-                start,
-                end,
-                center,
-                points[i],
-                points[(i + 1) % len(points)],
-                tolerance,
-        ):
-            return True
-    return False
+def _rings_for_scope(mol: Any, ring_scope: RingScope) -> Sequence[Any]:
+    if ring_scope not in ("full_graph", "ligand_skeleton"):
+        raise ValueError(f"Unknown ring scope: {ring_scope!r}")
+    uncached_rings = getattr(mol, "_uncached_rings", None)
+    if uncached_rings is not None:
+        return uncached_rings(ligand_skeleton=ring_scope == "ligand_skeleton")
+    return mol.rings if ring_scope == "full_graph" else mol.ligand_rings
 
 
 def _ring_key(ring: Any) -> Tuple[int, ...]:
@@ -746,24 +891,31 @@ def find_bond_ring_intersections(
         max_ring_size: int = 8,
 ) -> Tuple[Tuple[Any, Any], ...]:
     """Return stable ``(ring, bond)`` pairs for bonds crossing ring surfaces."""
-    if ring_scope == "full_graph":
-        rings = mol.rings
-    elif ring_scope == "ligand_skeleton":
-        rings = mol.ligand_rings
-    else:
-        raise ValueError(f"Unknown ring scope: {ring_scope!r}")
+    return tuple(_iter_bond_ring_intersections(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+    ))
 
+
+def _iter_bond_ring_intersections(
+    mol: Any,
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+):
     rings = sorted(
-        (ring for ring in rings if 3 <= len(ring) <= max_ring_size),
+        (
+            ring for ring in _rings_for_scope(mol, ring_scope)
+            if 3 <= len(ring) <= max_ring_size
+        ),
         key=_ring_key,
     )
     bonds = sorted(mol.bonds, key=_bond_key)
-    return tuple(
-        (ring, bond)
-        for ring in rings
-        for bond in bonds
-        if bond_intersects_ring(ring, bond)
-    )
+    for ring in rings:
+        for bond in bonds:
+            if bond_intersects_ring(ring, bond):
+                yield ring, bond
 
 
 def has_bond_ring_intersection(
@@ -773,7 +925,7 @@ def has_bond_ring_intersection(
         max_ring_size: int = 8,
 ) -> bool:
     """Return whether a bond crosses a ring in the selected topology view."""
-    return bool(find_bond_ring_intersections(
+    return any(_iter_bond_ring_intersections(
         mol,
         ring_scope=ring_scope,
         max_ring_size=max_ring_size,
@@ -878,7 +1030,7 @@ def _segment_distance(
 
 def closest_ring_edge_to_bond(ring: Any, bond: Any) -> Any:
     """Return the ring edge closest to a bond using finite-segment distance."""
-    if ring.mol is not bond.mol:
+    if ring.mol is not bond.mol or bond not in ring.mol.bonds:
         raise ValueError("The ring and bond must belong to the same molecule")
 
     start = np.asarray(bond.atom1.coordinates, dtype=float)
@@ -1091,49 +1243,57 @@ def _forcefield_checks(
         thresholds: GeometryQualityThresholds,
 ) -> Tuple[GeometryCheck, ...]:
     if report is None:
+        if level == "strict":
+            return (GeometryCheck(
+                name="forcefield_report",
+                passed=False,
+                measured=None,
+                threshold="complete force-field report",
+                message="Strict geometry validation requires force-field diagnostics",
+            ),)
         return ()
 
     checks = []
     setup_succeeded = _report_value(report, "setup_succeeded")
-    if setup_succeeded is not None:
+    if setup_succeeded is not None or level == "strict":
         checks.append(GeometryCheck(
             name="forcefield_setup",
-            passed=bool(setup_succeeded),
-            measured=bool(setup_succeeded),
+            passed=setup_succeeded is not None and bool(setup_succeeded),
+            measured=setup_succeeded,
             threshold=True,
             message="Force-field setup must succeed",
         ))
 
     for field_name in ("final_energy", "rms_gradient", "max_gradient"):
         value = _report_value(report, field_name)
-        if value is not None:
+        if value is not None or level == "strict":
             checks.append(GeometryCheck(
                 name=f"finite_{field_name}",
-                passed=bool(np.isfinite(value)),
-                measured=float(value),
+                passed=value is not None and bool(np.isfinite(value)),
+                measured=None if value is None else float(value),
                 threshold="finite",
                 message=f"{field_name.replace('_', ' ')} must be finite",
             ))
 
     if level in ("basic", "standard", "strict"):
         exploded = _report_value(report, "exploded")
-        if exploded is not None:
+        if exploded is not None or level == "strict":
             checks.append(GeometryCheck(
                 name="backend_explosion",
-                passed=not bool(exploded),
-                measured=bool(exploded),
+                passed=exploded is not None and not bool(exploded),
+                measured=exploded,
                 threshold=False,
                 message="The force-field backend detected an exploded structure",
             ))
 
     if level in ("standard", "strict"):
         converged = _report_value(report, "converged")
-        if converged is not None:
+        if converged is not None or level == "strict":
             checks.append(GeometryCheck(
                 name="forcefield_convergence",
-                passed=bool(converged),
+                passed=converged is not None and bool(converged),
                 severity="error" if level == "strict" else "warning",
-                measured=bool(converged),
+                measured=converged,
                 threshold=True,
                 message="The force-field backend did not report convergence",
             ))
@@ -1153,6 +1313,40 @@ def _forcefield_checks(
                     threshold=limit,
                     message=f"{field_name.replace('_', ' ')} exceeds the strict limit",
                 ))
+
+        stability_checks = (
+            ("energy_changes", thresholds.strict_energy_change),
+            ("max_displacements", thresholds.strict_max_displacement),
+        )
+        stability_observations = []
+        for field_name, limit in stability_checks:
+            history = _report_value(report, field_name)
+            values = () if history is None else tuple(history)
+            recent = values[-thresholds.strict_stability_window:]
+            value = max(recent) if recent else None
+            stability_observations.append(len(recent))
+            checks.append(GeometryCheck(
+                name=field_name.removesuffix("s"),
+                passed=value is not None and np.isfinite(value) and float(value) <= limit,
+                measured=None if value is None else float(value),
+                threshold=limit,
+                message=f"{field_name.replace('_', ' ')} do not satisfy the strict limit",
+            ))
+
+        observations = min(stability_observations)
+        epochs_completed = _report_value(report, "epochs_completed")
+        required_observations = (
+            min(thresholds.strict_stability_window, int(epochs_completed))
+            if epochs_completed is not None
+            else thresholds.strict_stability_window
+        )
+        checks.append(GeometryCheck(
+            name="stability_observations",
+            passed=required_observations > 0 and observations >= required_observations,
+            measured=observations,
+            threshold=required_observations,
+            message="Strict validation requires a stable multi-epoch history",
+        ))
     return tuple(checks)
 
 

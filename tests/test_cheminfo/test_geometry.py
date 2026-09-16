@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo import geometry as geo
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.core import Molecule, NotInSameMolecule
 
 
 def _molecule(coordinates, bonds=(), atomic_numbers=None):
@@ -34,6 +34,30 @@ def _square_with_probe(probe_x=0.0):
     )
 
 
+def _concave_ring_with_probe(probe_x, probe_y, probe_z=(-1.0, 1.0)):
+    return _molecule(
+        (
+            (0.0, 0.0, 0.0),
+            (3.0, 0.0, 0.0),
+            (3.0, 1.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (1.0, 3.0, 0.0),
+            (0.0, 3.0, 0.0),
+            (probe_x, probe_y, probe_z[0]),
+            (probe_x, probe_y, probe_z[1]),
+        ),
+        (
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 4),
+            (4, 5),
+            (5, 0),
+            (6, 7),
+        ),
+    )
+
+
 def test_cycle_planes_include_closing_edge_and_accept_square():
     cycle = geo.CyclePlanes(
         (-1.0, -1.0, 0.0),
@@ -48,6 +72,19 @@ def test_cycle_planes_include_closing_edge_and_accept_square():
     )
 
 
+def test_points_on_same_plane_is_translation_invariant():
+    assert geo.points_on_same_plane(
+        (1.0, 0.0, 0.0),
+        (2.0, 0.0, 0.0),
+        (1.0, 1.0, 0.0),
+    )
+    assert geo.points_on_same_plane(
+        (11.0, -3.0, 7.0),
+        (12.0, -3.0, 7.0),
+        (11.0, -2.0, 7.0),
+        (12.0, -2.0, 7.0),
+    )
+
 def test_cycle_planes_reject_point_outside_closing_hexagon_edge():
     points = tuple(
         (2.0 * np.cos(i * np.pi / 3.0), 2.0 * np.sin(i * np.pi / 3.0), 0.0)
@@ -60,6 +97,63 @@ def test_cycle_planes_reject_point_outside_closing_hexagon_edge():
     )
 
 
+def test_concave_planar_ring_rejects_probe_through_reentrant_region():
+    cycle = geo.CyclePlanes(
+        (0.0, 0.0, 0.0),
+        (3.0, 0.0, 0.0),
+        (3.0, 1.0, 0.0),
+        (1.0, 1.0, 0.0),
+        (1.0, 3.0, 0.0),
+        (0.0, 3.0, 0.0),
+    )
+
+    assert not cycle.is_line_intersect_the_cycle(
+        geo.Line((2.0, 2.0, -1.0), (2.0, 2.0, 1.0))
+    )
+
+
+def test_concave_planar_ring_accepts_probe_through_interior():
+    cycle = geo.CyclePlanes(
+        (0.0, 0.0, 0.0),
+        (3.0, 0.0, 0.0),
+        (3.0, 1.0, 0.0),
+        (1.0, 1.0, 0.0),
+        (1.0, 3.0, 0.0),
+        (0.0, 3.0, 0.0),
+    )
+
+    assert cycle.is_line_intersect_the_cycle(
+        geo.Line((0.5, 2.0, -1.0), (0.5, 2.0, 1.0))
+    )
+
+
+def test_bond_intersection_respects_concave_ring_boundary():
+    through_reentrant_region = _concave_ring_with_probe(2.0, 2.0)
+    through_interior = _concave_ring_with_probe(0.5, 2.0)
+
+    assert not geo.bond_intersects_ring(
+        through_reentrant_region.rings[0],
+        through_reentrant_region.bond(6, 7),
+    )
+    assert geo.bond_intersects_ring(
+        through_interior.rings[0],
+        through_interior.bond(6, 7),
+    )
+
+
+def test_nonplanar_ring_keeps_center_fan_surface_semantics():
+    cycle = geo.CyclePlanes(
+        (-1.0, -1.0, 0.0),
+        (1.0, -1.0, 0.2),
+        (1.0, 1.0, 0.0),
+        (-1.0, 1.0, -0.2),
+    )
+
+    assert cycle.is_line_intersect_the_cycle(
+        geo.Line((0.0, 0.0, -1.0), (0.0, 0.0, 1.0))
+    )
+
+
 def test_bond_ring_intersection_returns_stable_detail():
     molecule = _square_with_probe()
     ring = molecule.rings[0]
@@ -69,6 +163,53 @@ def test_bond_ring_intersection_returns_stable_detail():
     assert geo.find_bond_ring_intersections(molecule) == ((ring, probe),)
     assert geo.has_bond_ring_intersection(molecule)
     assert all(not geo.bond_intersects_ring(ring, edge) for edge in ring.bonds)
+
+
+def test_molecule_geometry_properties_delegate_to_geometry(monkeypatch):
+    molecule = _square_with_probe()
+    expected_intersections = (("ring", "bond"),)
+    calls = []
+
+    def fake_has_too_close_atoms(current, **options):
+        calls.append(("too_close", current, options))
+        return True
+
+    def fake_has_bond_ring_intersection(current):
+        calls.append(("has_intersection", current))
+        return True
+
+    def fake_find_bond_ring_intersections(current):
+        calls.append(("find_intersections", current))
+        return expected_intersections
+
+    monkeypatch.setattr(geo, "has_too_close_atoms", fake_has_too_close_atoms)
+    monkeypatch.setattr(
+        geo,
+        "has_bond_ring_intersection",
+        fake_has_bond_ring_intersection,
+    )
+    monkeypatch.setattr(
+        geo,
+        "find_bond_ring_intersections",
+        fake_find_bond_ring_intersections,
+    )
+
+    assert molecule.is_disorder
+    assert molecule.has_bond_ring_intersection
+    assert molecule.intersection_bonds_rings == list(expected_intersections)
+    assert calls == [
+        (
+            "too_close",
+            molecule,
+            {
+                "minimum_distance": 0.5,
+                "covalent_radius_scale": None,
+                "pair_scope": "all",
+            },
+        ),
+        ("has_intersection", molecule),
+        ("find_intersections", molecule),
+    ]
 
 
 def test_ligand_ring_scope_ignores_a_chelate_cycle():
@@ -123,6 +264,18 @@ def test_closest_ring_edge_uses_finite_segment_minimum():
     closest = geo.closest_ring_edge_to_bond(ring, molecule.bond(4, 5))
 
     assert {closest.a1idx, closest.a2idx} == {1, 2}
+
+
+def test_closest_ring_edge_rejects_a_removed_bond():
+    molecule = _square_with_probe(probe_x=1.2)
+    ring = molecule.rings[0]
+    probe = molecule.bond(4, 5)
+    molecule.remove_bond(probe)
+
+    with pytest.raises(ValueError, match="same molecule"):
+        geo.closest_ring_edge_to_bond(ring, probe)
+    with pytest.raises(NotInSameMolecule):
+        ring.closest_edge_to_bond(probe)
 
 
 @pytest.mark.parametrize(
@@ -189,3 +342,38 @@ def test_unknown_pair_and_ring_scopes_fail_explicitly():
         geo.find_too_close_atom_pairs(molecule, pair_scope="invalid")
     with pytest.raises(ValueError, match="ring scope"):
         geo.find_bond_ring_intersections(molecule, ring_scope="invalid")
+
+
+@pytest.mark.parametrize(
+    ("iterator_name", "predicate", "molecule"),
+    (
+        (
+            "_iter_overlap_issues",
+            geo.has_overlapping_atoms,
+            _molecule(((0.0, 0.0, 0.0), (0.0, 0.0, 0.0))),
+        ),
+        (
+            "_iter_too_close_issues",
+            geo.has_too_close_atoms,
+            _molecule(((0.0, 0.0, 0.0), (0.2, 0.0, 0.0))),
+        ),
+        (
+            "_iter_bond_ring_intersections",
+            geo.has_bond_ring_intersection,
+            _square_with_probe(),
+        ),
+    ),
+)
+def test_boolean_geometry_predicates_stop_after_first_issue(
+    monkeypatch,
+    iterator_name,
+    predicate,
+    molecule,
+):
+    def first_then_fail(*args, **kwargs):
+        yield object()
+        raise AssertionError("predicate consumed results after the first issue")
+
+    monkeypatch.setattr(geo, iterator_name, first_then_fail)
+
+    assert predicate(molecule)

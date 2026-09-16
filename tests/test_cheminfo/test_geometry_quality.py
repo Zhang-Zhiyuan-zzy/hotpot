@@ -203,6 +203,57 @@ def test_standard_warns_but_strict_fails_on_backend_nonconvergence():
     } >= {"forcefield_convergence", "rms_gradient", "max_gradient"}
 
 
+def test_strict_gate_fails_closed_without_complete_forcefield_diagnostics():
+    molecule = _valid_carbon_bond()
+
+    missing_report = geo.evaluate_geometry_quality(molecule, level="strict")
+    empty_report = geo.evaluate_geometry_quality(
+        molecule,
+        level="strict",
+        forcefield_report={},
+    )
+
+    assert not missing_report.passed
+    assert {check.name for check in missing_report.failures} == {
+        "forcefield_report"
+    }
+    assert not empty_report.passed
+    assert {
+        "forcefield_setup",
+        "finite_final_energy",
+        "finite_rms_gradient",
+        "finite_max_gradient",
+        "backend_explosion",
+        "forcefield_convergence",
+        "energy_change",
+        "max_displacement",
+        "stability_observations",
+    } <= {check.name for check in empty_report.failures}
+
+
+def test_strict_gate_accepts_complete_stable_forcefield_diagnostics():
+    molecule = _valid_carbon_bond()
+    forcefield_report = {
+        "setup_succeeded": True,
+        "converged": True,
+        "epochs_completed": 5,
+        "final_energy": -10.0,
+        "rms_gradient": 0.2,
+        "max_gradient": 0.5,
+        "exploded": False,
+        "energy_changes": (1.0e-5,) * 5,
+        "max_displacements": (1.0e-5,) * 5,
+    }
+
+    report = geo.evaluate_geometry_quality(
+        molecule,
+        level="strict",
+        forcefield_report=forcefield_report,
+    )
+
+    assert report.passed
+
+
 def test_geometry_evaluation_does_not_change_structure_or_conformers():
     molecule = _crossed_square()
     molecule.conformer_add(molecule.coordinates.copy())
@@ -211,6 +262,9 @@ def test_geometry_evaluation_does_not_change_structure_or_conformers():
     graph = molecule.graph
     graph_edges = tuple(molecule.graph.edges)
     conformers = molecule.conformers._coordinates.copy()
+    rings_cache = molecule._rings
+    ligand_rings_cache = molecule._ligand_rings
+    ligand_rings_signature = molecule._ligand_rings_signature
 
     geo.evaluate_geometry_quality(molecule, level="standard")
 
@@ -219,3 +273,6 @@ def test_geometry_evaluation_does_not_change_structure_or_conformers():
     assert molecule.graph is graph
     assert tuple(molecule.graph.edges) == graph_edges
     np.testing.assert_array_equal(molecule.conformers._coordinates, conformers)
+    assert molecule._rings is rings_cache
+    assert molecule._ligand_rings is ligand_rings_cache
+    assert molecule._ligand_rings_signature is ligand_rings_signature

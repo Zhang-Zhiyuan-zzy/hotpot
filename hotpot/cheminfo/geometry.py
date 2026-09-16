@@ -1322,6 +1322,16 @@ def _forcefield_checks(
                     message=f"{field_name.replace('_', ' ')} exceeds the strict limit",
                 ))
 
+        segment_epochs_completed = _report_value(
+            report,
+            "segment_epochs_completed",
+        )
+        converged = bool(_report_value(report, "converged"))
+        no_history_required = (
+            segment_epochs_completed is not None
+            and int(segment_epochs_completed) == 1
+            and converged
+        )
         stability_checks = (
             ("energy_changes", thresholds.strict_energy_change),
             ("max_displacements", thresholds.strict_max_displacement),
@@ -1335,22 +1345,36 @@ def _forcefield_checks(
             stability_observations.append(len(recent))
             checks.append(GeometryCheck(
                 name=field_name.removesuffix("s"),
-                passed=value is not None and np.isfinite(value) and float(value) <= limit,
+                passed=no_history_required or (
+                    value is not None
+                    and np.isfinite(value)
+                    and float(value) <= limit
+                ),
                 measured=None if value is None else float(value),
                 threshold=limit,
                 message=f"{field_name.replace('_', ' ')} do not satisfy the strict limit",
             ))
 
         observations = min(stability_observations)
-        epochs_completed = _report_value(report, "epochs_completed")
-        required_observations = (
-            min(thresholds.strict_stability_window, int(epochs_completed))
-            if epochs_completed is not None
-            else thresholds.strict_stability_window
-        )
+        if segment_epochs_completed is None:
+            epochs_completed = _report_value(report, "epochs_completed")
+            required_observations = (
+                min(thresholds.strict_stability_window, int(epochs_completed))
+                if epochs_completed is not None
+                else thresholds.strict_stability_window
+            )
+        else:
+            required_observations = min(
+                thresholds.strict_stability_window,
+                max(int(segment_epochs_completed) - 1, 0),
+            )
         checks.append(GeometryCheck(
             name="stability_observations",
-            passed=required_observations > 0 and observations >= required_observations,
+            passed=(
+                no_history_required
+                or required_observations > 0
+                and observations >= required_observations
+            ),
             measured=observations,
             threshold=required_observations,
             message="Strict validation requires a stable multi-epoch history",

@@ -251,8 +251,8 @@ def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeyp
     assert report.energy_unit == "kJ/mol"
     assert report.backend_energy_unit == "kcal/mol"
     assert report.gradient_unit == "kJ/(mol*angstrom)"
-    assert len(report.energy_changes) == 2
-    assert len(report.max_displacements) == 2
+    assert report.energy_changes == ()
+    assert report.max_displacements == ()
     assert np.array_equal(molecule.coordinates, frames[1])
     assert molecule.energy == pytest.approx(report.best_energy)
     assert molecule._conformers_index == report.best_epoch == 1

@@ -135,6 +135,24 @@ def test_real_openbabel_vdw_schedule_is_enabled_and_uses_final_potential():
     assert np.all(np.isfinite(molecule.coordinates))
 
 
+def test_real_first_epoch_convergence_can_pass_the_strict_gate():
+    molecule = read_mol("CC", "smi")
+
+    report = ff.build_and_optimize(
+        molecule,
+        forcefield="MMFF94s",
+        epochs=1,
+        steps_per_epoch=1000,
+        quality_level="strict",
+        seed=43,
+    )
+
+    assert report.converged
+    assert report.quality_report.passed
+    assert report.energy_changes == ()
+    assert report.max_displacements == ()
+
+
 def _build_zinc_amine(seed):
     molecule = read_mol("[Zn](N)", "smi")
     report = ff.build_complex3d(

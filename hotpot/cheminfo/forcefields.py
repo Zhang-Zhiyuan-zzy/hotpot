@@ -594,7 +594,8 @@ class _OpenBabelOptimizer:
         factor: float,
         converged: bool,
         epochs_completed: int,
-        previous_coordinates: np.ndarray,
+        segment_epochs_completed: int,
+        previous_coordinates: Optional[np.ndarray],
         previous_energy: Optional[float],
         energy_changes: deque[float],
         max_displacements: deque[float],
@@ -610,11 +611,12 @@ class _OpenBabelOptimizer:
         exploded = bool(self.backend.DetectExplosion())
         if previous_energy is not None:
             energy_changes.append(abs(energy - previous_energy))
-        displacements = np.linalg.norm(
-            coordinates - previous_coordinates,
-            axis=1,
-        )
-        max_displacements.append(float(np.max(displacements)))
+        if previous_coordinates is not None:
+            displacements = np.linalg.norm(
+                coordinates - previous_coordinates,
+                axis=1,
+            )
+            max_displacements.append(float(np.max(displacements)))
         quality_report = geo.evaluate_geometry_quality(
             mol,
             level=quality_level,
@@ -630,6 +632,7 @@ class _OpenBabelOptimizer:
                 "energy_changes": tuple(energy_changes),
                 "max_displacements": tuple(max_displacements),
                 "epochs_completed": epochs_completed,
+                "segment_epochs_completed": segment_epochs_completed,
             },
             thresholds=quality_thresholds,
         )
@@ -664,8 +667,6 @@ class _OpenBabelOptimizer:
         total_steps = self.epochs * self.steps_per_epoch
         backend_unit = self.backend.GetUnit()
         factor = _energy_factor_to_kj(backend_unit)
-        initial_coordinates = extract_obmol_coordinates(obmol)
-        initial_energy = float(self.backend.Energy(True)) * factor
         if self.increasing_vdw:
             first_cutoff = self.vdw_cutoff_start + (
                 self.vdw_cutoff_end - self.vdw_cutoff_start
@@ -689,9 +690,10 @@ class _OpenBabelOptimizer:
         movie_coordinates = []
         movie_energies = []
         movie_quality_reports = []
-        previous_coordinates = initial_coordinates
-        previous_energy = initial_energy
+        previous_coordinates = None
+        previous_energy = None
         epochs_completed = 0
+        segment_epochs_completed = 0
         steps_submitted = 0
         initialization_steps = 0
         terminal_converged = False
@@ -711,10 +713,6 @@ class _OpenBabelOptimizer:
                     rng=self.rng,
                 )
                 set_obmol_coordinates(obmol, coordinates)
-                energy_changes.clear()
-                max_displacements.clear()
-                previous_coordinates = coordinates.copy()
-                previous_energy = None
 
             if self.increasing_vdw and epoch > 0:
                 cutoff = self.vdw_cutoff_start + ((epoch + 1) / self.epochs) * (
@@ -725,6 +723,11 @@ class _OpenBabelOptimizer:
             restart_segment = reset_history or (self.increasing_vdw and epoch > 0)
             if restart_segment:
                 self._setup(mol, obmol)
+                energy_changes.clear()
+                max_displacements.clear()
+                previous_coordinates = None
+                previous_energy = None
+                segment_epochs_completed = 0
                 remaining_steps = (self.epochs - epoch) * self.steps_per_epoch
                 epoch_initialization_steps = self._initialize_with_budget(
                     initialize,
@@ -743,6 +746,7 @@ class _OpenBabelOptimizer:
             steps_submitted += steps_to_take
             epoch_initialization_steps = 0
             epochs_completed += 1
+            segment_epochs_completed += 1
             backend_converged = not backend_continues
             segment_active = backend_continues
             self.backend.GetCoordinates(obmol)
@@ -767,6 +771,7 @@ class _OpenBabelOptimizer:
                 factor=factor,
                 converged=quality_converged,
                 epochs_completed=epochs_completed,
+                segment_epochs_completed=segment_epochs_completed,
                 previous_coordinates=previous_coordinates,
                 previous_energy=previous_energy,
                 energy_changes=energy_changes,

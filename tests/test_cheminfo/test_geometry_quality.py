@@ -366,6 +366,34 @@ def test_strict_gate_accepts_complete_stable_forcefield_diagnostics():
     assert report.passed
 
 
+def test_strict_gate_accepts_a_definitively_converged_first_segment_frame():
+    molecule = _valid_carbon_bond()
+    forcefield_report = {
+        "setup_succeeded": True,
+        "converged": True,
+        "epochs_completed": 1,
+        "segment_epochs_completed": 1,
+        "final_energy": -10.0,
+        "rms_gradient": 0.2,
+        "max_gradient": 0.5,
+        "exploded": False,
+        "energy_changes": (),
+        "max_displacements": (),
+    }
+
+    report = geo.evaluate_geometry_quality(
+        molecule,
+        level="strict",
+        forcefield_report=forcefield_report,
+    )
+
+    assert report.passed
+    checks = {check.name: check for check in report.checks}
+    assert checks["energy_change"].measured is None
+    assert checks["max_displacement"].measured is None
+    assert checks["stability_observations"].threshold == 0
+
+
 def test_geometry_evaluation_does_not_change_structure_or_conformers():
     molecule = _crossed_square()
     molecule.conformer_add(molecule.coordinates.copy())

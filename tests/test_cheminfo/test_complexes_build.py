@@ -448,7 +448,11 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
-    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
 
     def intersections(*args, **kwargs):
         calls["find"] += 1
@@ -489,7 +493,11 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
         raise ff.ForceFieldError("builder failed")
 
     monkeypatch.setattr(ff, "ob_build", fail_build)
-    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
 
     with pytest.raises(ff.ComplexBuildError) as caught:
         ff._build_ligand_proxies(
@@ -518,7 +526,11 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
-    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
     monkeypatch.setattr(
         ff.geo, "find_bond_ring_intersections", lambda *args, **kwargs: ()
     )
@@ -572,7 +584,11 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
 
     monkeypatch.setattr(ff, "ob_build", build)
     monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
-    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
     monkeypatch.setattr(
         ff.geo, "find_bond_ring_intersections", lambda *args, **kwargs: ()
     )
@@ -608,7 +624,11 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
-    monkeypatch.setattr(ff.geo, "capture_topology", lambda mol: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
     monkeypatch.setattr(
         ff.geo,
         "find_bond_ring_intersections",

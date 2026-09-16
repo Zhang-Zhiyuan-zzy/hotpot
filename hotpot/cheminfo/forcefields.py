@@ -326,9 +326,16 @@ def _hydrogenated_working_copy(
     return working
 
 
-def _capture_workflow_topology(mol: Any) -> Any:
+def _capture_workflow_topology(
+    mol: Any,
+    *,
+    allow_added_hydrogens: bool,
+) -> Any:
     """Capture the caller's input topology without rewriting atom identifiers."""
-    return geo.capture_topology(mol)
+    return geo.capture_topology(
+        mol,
+        allow_added_hydrogens=allow_added_hydrogens,
+    )
 
 
 def _complex_worker_proxy(mol: Any) -> Any:
@@ -790,7 +797,10 @@ def _build_ligand_proxies(
         if component.has_metal:
             continue
 
-        component_reference = geo.capture_topology(component)
+        component_reference = geo.capture_topology(
+            component,
+            allow_added_hydrogens=False,
+        )
         candidate_coordinates = []
         candidate_energies = []
         candidate_attempts = []
@@ -1226,7 +1236,10 @@ def build3d(
     seed: Optional[int] = None,
 ) -> Build3DReport:
     """Generate initial 3D coordinates with OBBuilder, without optimization."""
-    topology_reference = _capture_workflow_topology(mol)
+    topology_reference = _capture_workflow_topology(
+        mol,
+        allow_added_hydrogens=add_hydrogens,
+    )
     initial_hydrogens = len(mol.hydrogens)
     working = _hydrogenated_working_copy(
         mol,
@@ -1269,7 +1282,10 @@ def optimize(
     vdw_cutoff_end: float = 12.5,
 ) -> ForceFieldRunReport:
     """Run the ordinary Open Babel optimizer, including on explicit complexes."""
-    topology_reference = _capture_workflow_topology(mol)
+    topology_reference = _capture_workflow_topology(
+        mol,
+        allow_added_hydrogens=add_hydrogens,
+    )
     working = _hydrogenated_working_copy(
         mol,
         add_hydrogens=add_hydrogens,
@@ -1313,7 +1329,10 @@ def build_complex3d(
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
-    topology_reference = _capture_workflow_topology(mol)
+    topology_reference = _capture_workflow_topology(
+        mol,
+        allow_added_hydrogens=add_hydrogens,
+    )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
     working, diagnostics = _build_complex_working(
         mol,
@@ -1365,7 +1384,10 @@ def optimize_complex(
     vdw_cutoff_end: float = 12.5,
 ) -> ForceFieldRunReport:
     """Optimize existing complex coordinates with the complex force-field policy."""
-    topology_reference = _capture_workflow_topology(mol)
+    topology_reference = _capture_workflow_topology(
+        mol,
+        allow_added_hydrogens=add_hydrogens,
+    )
     working = _hydrogenated_working_copy(
         mol,
         add_hydrogens=add_hydrogens,
@@ -1420,7 +1442,10 @@ def _complexes_build_impl(
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
-    topology_reference = _capture_workflow_topology(mol)
+    topology_reference = _capture_workflow_topology(
+        mol,
+        allow_added_hydrogens=add_hydrogens,
+    )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
     working, diagnostics = _build_complex_working(
         mol,

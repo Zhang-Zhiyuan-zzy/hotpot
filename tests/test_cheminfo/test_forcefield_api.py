@@ -93,6 +93,37 @@ def test_legacy_molecule_forcefield_entrypoints_are_removed():
     assert not hasattr(ff, "ForceFields")
 
 
+@pytest.mark.parametrize("add_hydrogens", (False, True))
+def test_build3d_captures_the_requested_hydrogen_policy(
+    monkeypatch,
+    add_hydrogens,
+):
+    molecule = read_mol("CC", "smi")
+    captured = []
+
+    def capture(current, **options):
+        captured.append(options["allow_added_hydrogens"])
+        return object()
+
+    monkeypatch.setattr(ff, "_capture_workflow_topology", capture)
+    monkeypatch.setattr(
+        ff,
+        "_hydrogenated_working_copy",
+        lambda current, **options: current,
+    )
+    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        lambda *args, **options: SimpleNamespace(passed=True),
+    )
+    monkeypatch.setattr(ff, "_commit_working_copy", lambda *args: None)
+
+    ff.build3d(molecule, add_hydrogens=add_hydrogens)
+
+    assert captured == [add_hydrogens]
+
+
 def test_complexes_build_translates_legacy_options_once(monkeypatch):
     molecule = object()
     captured = {}
@@ -272,7 +303,11 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     expected = object()
     calls = []
 
-    monkeypatch.setattr(ff, "_capture_workflow_topology", lambda current: "topology")
+    monkeypatch.setattr(
+        ff,
+        "_capture_workflow_topology",
+        lambda current, **options: "topology",
+    )
     monkeypatch.setattr(
         ff,
         "_hydrogenated_working_copy",
@@ -314,7 +349,11 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
     molecule = read_mol("c1ccccc1", "smi")
     calls = []
 
-    monkeypatch.setattr(ff, "_capture_workflow_topology", lambda current: "topology")
+    monkeypatch.setattr(
+        ff,
+        "_capture_workflow_topology",
+        lambda current, **options: "topology",
+    )
     monkeypatch.setattr(
         ff,
         "_hydrogenated_working_copy",
@@ -370,7 +409,11 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
     calls = []
     expected = object()
 
-    monkeypatch.setattr(ff, "_capture_workflow_topology", lambda current: "topology")
+    monkeypatch.setattr(
+        ff,
+        "_capture_workflow_topology",
+        lambda current, **options: "topology",
+    )
     monkeypatch.setattr(
         ff,
         "_hydrogenated_working_copy",
@@ -397,7 +440,11 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
     hydrogen_requests = []
     expected = object()
 
-    monkeypatch.setattr(ff, "_capture_workflow_topology", lambda current: "topology")
+    monkeypatch.setattr(
+        ff,
+        "_capture_workflow_topology",
+        lambda current, **options: "topology",
+    )
 
     def fake_working_copy(current, *, add_hydrogens, seed=None):
         hydrogen_requests.append(add_hydrogens)

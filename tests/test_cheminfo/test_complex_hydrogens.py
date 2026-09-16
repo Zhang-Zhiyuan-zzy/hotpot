@@ -329,7 +329,10 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     result = ff.optimize(molecule)
 
     assert result is sentinel
-    assert tuple(molecule.atoms[:2]) == original_atoms
+    assert all(
+        current is original
+        for current, original in zip(molecule.atoms[:2], original_atoms)
+    )
     assert molecule.bonds[0] is original_bond
     assert molecule.conformers is original_conformers
     assert molecule.atom_pairs is original_atom_pairs

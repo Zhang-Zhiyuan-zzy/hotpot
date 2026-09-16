@@ -148,4 +148,26 @@ jobs:
           ).stdout.strip()
           assert "[Eu" in cbond_result
           assert len(cbond_result.splitlines()) == 1
+
+          cbond_documentation = subprocess.run(
+              ["hotpot", "cbond", "--doc"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          assert "hotpot cbond" in cbond_documentation
+          assert "Enumerate candidate coordination structures" in cbond_documentation
+
+          cbond_ranked = subprocess.run(
+              [
+                  "hotpot", "cbond", "Eu", "CN", "--device", "cpu",
+                  "--all-structures", "--bond-detail",
+              ],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          assert "Rank 1: Prob:" in cbond_ranked
+          assert "Cbond Detail:" in cbond_ranked
+          assert cbond_ranked.rstrip().endswith("-- End --")
           PY

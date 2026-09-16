@@ -192,13 +192,14 @@ ff.complexes_build(mol)       # complete transactional complex workflow
 
 The optimizer uses `epochs` outer iterations and `steps_per_epoch` Open Babel
 steps per iteration. `seed=None` keeps Hotpot-side perturbations stochastic;
-an integer seed controls Hotpot's local random generator and is forwarded to
-the worker as `OB_RANDOM_SEED`. Some Open Babel releases do not consume that
-environment variable in `OBBuilder`, so a seed is not a cross-version or
-backend-level reproducibility guarantee. By default only the lowest-energy
-observed frame that passes the selected quality gate is retained. Set
-`save_movie=True` to retain every epoch while still making that accepted frame
-active.
+an integer seed controls Hotpot's local random generator and the worker-side
+Open Babel builder. Open Babel 3.2 uses `OB_RANDOM_SEED`; the Open Babel 3.1
+compatibility path explicitly seeds its legacy process C RNG after initializing
+the time-seeded singleton. Reproducibility is guaranteed only for the same
+Hotpot/Open Babel/platform combination, not across backend versions. By default
+only the lowest-energy observed frame that passes the selected quality gate is
+retained. Set `save_movie=True` to retain every epoch while still making that
+accepted frame active.
 
 All reported energies are normalized to kJ/mol, gradients use
 `kJ/(mol*angstrom)`, and the report records both the requested and effective

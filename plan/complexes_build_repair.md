@@ -664,6 +664,8 @@ optional scheduled perturbation
 - `None` 保持业务默认的随机探索。
 - 使用 `np.random.default_rng(seed)`，不得修改 NumPy 全局随机状态。
 - seed 传入 worker；worker 在首次 `OBBuilder` 调用前设置 `OB_RANDOM_SEED`。
+- Open Babel 3.1 的旧 RNG 不读取该环境变量；兼容路径先初始化其静态
+  `OBRandom`，再以同一 seed 重置进程 C RNG。不得通过放宽复现容差掩盖该差异。
 - Open Babel 的 `vector3::randomUnitVector()` 使用静态 PRNG，因此有 seed 的 worker 应使用 `spawn` 启动，避免继承父进程中已初始化的 PRNG 状态。
 - 测试只要求同版本、同平台、相同 seed 在容差内一致。
 - 扰动应使用双侧 `clip(-2*sigma, +2*sigma)`；不能只裁剪正尾部。

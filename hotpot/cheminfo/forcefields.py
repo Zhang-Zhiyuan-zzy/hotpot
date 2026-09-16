@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ctypes
 import multiprocessing as mp
 import os
 import threading
@@ -368,6 +369,23 @@ def _complex_worker_proxy(mol: Any) -> Any:
     proxy.charge = mol.charge
     proxy.refresh_atom_id()
     return proxy
+
+
+def _seed_openbabel_random(seed: int) -> None:
+    """Seed both Open Babel RNG implementations before using ``OBBuilder``."""
+    os.environ["OB_RANDOM_SEED"] = str(seed)
+
+    # Open Babel 3.1 uses a function-local OBRandom backed by the process C
+    # RNG and time-seeds it on first use.  Initializing that singleton before
+    # resetting srand makes the legacy implementation deterministic.  Newer
+    # Open Babel builds use OB_RANDOM_SEED through OBRandomMT; the extra C RNG
+    # seed is harmless and keeps one code path across supported versions.
+    probe = ob.vector3()
+    probe.randomUnitVector()
+    process_c_library = ctypes.CDLL(None)
+    process_c_library.srand.argtypes = (ctypes.c_uint,)
+    process_c_library.srand.restype = None
+    process_c_library.srand(ctypes.c_uint(seed))
 
 
 def _commit_working_copy(mol: Any, working: Any) -> None:
@@ -1028,7 +1046,7 @@ def _run_complexes_build(
     """Child-process boundary that always sends one structured envelope."""
     try:
         if seed is not None:
-            os.environ["OB_RANDOM_SEED"] = str(seed)
+            _seed_openbabel_random(seed)
         coordinates, diagnostics = _build_ligand_proxies(
             mol,
             candidate_count=candidate_count,

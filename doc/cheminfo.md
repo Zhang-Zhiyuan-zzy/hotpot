@@ -81,8 +81,6 @@
 | `conformer_clear`                  | Clear conformers                              |  
 | `conformer_get`                    | Get specific conformer                        |  
 | `optimize`                         | Optimize geometry                             |  
-| `optimize_complexes`               | Optimize complexes                            |  
-| `complexes_build_optimize_`        | Build & optimize complexes                    |  
 | `calc_atom_valence`                | Calculate atomic valence                      |  
 | `calc_implicit_hydrogens`          | Calculate implicit hydrogens                  |  
 | `components`                       | Access components                             |  
@@ -158,6 +156,80 @@
 | `update_torsions`                  | Update torsions                               |  
 | `weight`                           | Molecular weight                              |  
 | `write`                            | Write/serialize molecule                      |  
+
+## 3D construction and force-field optimization
+
+`Molecule` exposes two stable convenience methods:
+
+```python
+report = mol.build3d()   # construct initial coordinates, then optimize
+report = mol.optimize()  # optimize the coordinates already present
+```
+
+Both methods dispatch automatically: ordinary molecules use the Open Babel
+builder/optimizer path, while molecules with explicit metal--ligand bonds use
+the complex proxy-build and full-system UFF path. Missing hydrogens are added
+by default. For complexes, metal--ligand bonds are temporarily hidden while
+hydrogens are inferred from the ligand covalent graph, so coordination does
+not silently consume an O--H or N--H valence. Work is performed on a copy and
+is committed only after optimization and geometry validation succeed. A
+successful commit preserves existing `Molecule`, `Atom`, `Bond`, conformer
+container, custom atom IDs, and attached runtime metadata; only new hydrogen
+atoms/bonds and accepted geometry state are applied.
+
+Advanced callers can compose the lower-level functions directly:
+
+```python
+from hotpot.cheminfo import forcefields as ff
+
+ff.build3d(mol)               # Open Babel 3D embedding only
+ff.optimize(mol)              # ordinary force-field optimization only
+ff.perturb(mol, sigma=0.2)    # coordinate perturbation only
+ff.build_complex3d(mol)       # ligand-proxy construction only
+ff.optimize_complex(mol)      # full-complex optimization only
+ff.complexes_build(mol)       # complete transactional complex workflow
+```
+
+The optimizer uses `epochs` outer iterations and `steps_per_epoch` Open Babel
+steps per iteration. `seed=None` keeps Hotpot-side perturbations stochastic;
+an integer seed controls Hotpot's local random generator and is forwarded to
+the worker as `OB_RANDOM_SEED`. Some Open Babel releases do not consume that
+environment variable in `OBBuilder`, so a seed is not a cross-version or
+backend-level reproducibility guarantee. By default only the lowest-energy
+observed frame that passes the selected quality gate is retained. Set
+`save_movie=True` to retain every epoch while still making that accepted frame
+active.
+
+All reported energies are normalized to kJ/mol, gradients use
+`kJ/(mol*angstrom)`, and the report records both the requested and effective
+force field. `steps_submitted` records calls made through Open Babel's
+`TakeNSteps` interface, while `initialization_steps` records first steps
+performed by conjugate-gradient initialization. Their sum never exceeds the
+configured `epochs * steps_per_epoch` budget. `steps_completed` is `None`
+because Open Babel does not expose how many submitted steps it completed
+before stopping. Ordinary molecules honor the chosen Open Babel force field.
+The current complex policy maps every supported request to UFF; this is
+deliberate and visible in `ComplexBuildReport`. Quality levels are `off`,
+`basic`, `standard` (default), and `strict`. Even `off` still enforces
+coordinate finiteness, shape, force-field setup, and topology integrity.
+
+`converged=True` records an Open Babel backend stop before Hotpot's submitted
+budget was exhausted; it is not, by itself, a claim of chemical accuracy or a
+strict stationary point. The strict gate separately checks Hotpot-computed RMS
+and maximum gradients plus recent energy and displacement stability. During
+VDW-cutoff annealing, every candidate frame is ranked under the same final
+cutoff; the electrostatic cutoff is kept effectively untruncated.
+
+UFF geometry is a general-purpose structural relaxation, not a validation of
+oxidation state, spin state, or ligand-field geometry. The
+`prepare_coordination_geometry()` strategy hook is reserved for a future
+coordination-number-aware implementation; requesting it currently raises
+`NotImplementedError` instead of silently ignoring the option.
+
+The direct `ff.complexes_build()` compatibility entry translates historical
+option names once. For example, `build_times`, `steps`, and `step_size` map to
+`candidate_count`, `epochs`, and `steps_per_epoch`. Supplying conflicting old
+and new values raises `TypeError`; unknown options are never ignored.
 
 - Properties:
 

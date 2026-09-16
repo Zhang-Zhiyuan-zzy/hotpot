@@ -142,8 +142,8 @@ def link_optimize():
             Eu_pair = mol.auto_pair_metal('Eu')
             Am_pair = clone.auto_pair_metal('Am')
 
-            Eu_pair.complexes_build_optimize_(steps=100, step_size=50, save_screenshot=False)
-            Am_pair.complexes_build_optimize_(steps=150, step_size=50, save_screenshot=False)
+            Eu_pair.build3d(epochs=100, steps_per_epoch=50, save_movie=False)
+            Am_pair.build3d(epochs=150, steps_per_epoch=50, save_movie=False)
 
 
             intersect_mol = []
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     ligand = hp.read_mol('O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NN=C(C(C)(C)CCC5(C)C)C5=N4)C=C3')
     pairs, prob = ligand.build_all_pair_links('Am')
     for i, p in enumerate(pairs):
-        p.complexes_build_optimize_()
+        p.build3d()
         p.write(osp.join(root_dir, 'pair' + str(i) + '.mol'), overwrite=True)
         p.write(osp.join(root_dir, 'pair' + str(i) + '.sdf'), overwrite=True)
 

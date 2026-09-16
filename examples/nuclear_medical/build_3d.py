@@ -40,7 +40,7 @@ def test():
     # mol.charge = mol.calc_mol_default_charge()
     # print(mol.charge)
 
-    mol.complexes_build_optimize_(save_screenshot=True)
+    mol.build3d(save_movie=True)
     mol.write(f'/mnt/d/mol/{45}.gjf', overwrite=True, calc_mol_charge=True)
     mol.write(f'/mnt/d/mol/{45}.sdf', overwrite=True)
 
@@ -62,7 +62,7 @@ def export_gjf_files(timeout=1000):
         sdf_save_dir=opj(output_dir, 'sdf', 'pair4'),
         file_names=smi_indices,
         timeout=timeout,
-        rm_polar_hs = False
+        add_hydrogens=True
         # nproc=1
     )
 
@@ -76,7 +76,7 @@ def build3d(i, smi):
     for a in coordination_atoms:
         b = mol.add_bond(Ga, a, 1)
 
-    mol.complexes_build_optimize_(save_screenshot=True)
+    mol.build3d(save_movie=True)
     mol.write(opj(f'/mnt/d/zhang/OneDrive/Papers/dy/gjf/pair/{i}.gjf'), overwrite=True, write_single=True)
     mol.write(opj(f'/mnt/d/zhang/OneDrive/Papers/dy/sdf/pair/{i}.sdf'), overwrite=True, write_single=True)
     # linux
@@ -84,7 +84,7 @@ def build3d(i, smi):
     # mol.write(opj(f'/home/zz1/dy/g16/sdf/pair/{i}.sdf'), overwrite=True)
 
     mol.remove_atoms(mol.metals)
-    mol.optimize(steps=20)
+    mol.optimize(epochs=1, steps_per_epoch=20)
 
     # windows
     mol.write(opj(f'/mnt/d/zhang/OneDrive/Papers/dy/gjf/ligand/{i}.gjf'), overwrite=True, write_single=True)
@@ -120,7 +120,7 @@ def build3try():
         sdf_save_dir=opj(output_dir, '3try', 'sdf'),
         file_names=[str(i) for i in range(10, 20)],
         timeout=300,
-        rm_polar_hs=False
+        add_hydrogens=True
         # nproc=1
     )
 

@@ -100,11 +100,15 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
   - The default raw-logit threshold is `-0.125`. Ranked probabilities from
     `--all-structures` are normalized path weights, not calibrated physical
     probabilities.
-+ **3D Structure Initialization** (`complexes_build_optimize_`):
-  - **AI-refined 3D build**: A specialized pipeline for generating metal complexes with AI assisting
++ **3D Structure Initialization** (`Molecule.build3d`):
+  - **Complex-aware 3D build**: A specialized force-field pipeline for generating metal complexes
   - **Topology-aware optimization**: Adds continuous topological inspection during geometry optimization 
   and applies tailored breaking / reconstruction strategies, preventing common failures in metal complex 
   3D generation, such as tangled chain, interlocked rings, and other non-optimizable artifacts.
+  - Missing hydrogens are added on a transactional working copy. Energies are
+    reported in kJ/mol, and `quality_level="standard"` is used by default.
+  - Complex force-field requests currently resolve to UFF. This workflow does
+    not infer oxidation states or guarantee a ligand-field geometry.
 + **Connecting microscopic models with macroscopic observables**:
   - Macroscopic properties (`logβ`, `logD`, ...) are typically statistical constructs emerging from ensembles of microscopic 
   states, rather than from any single configuration. Relying on a small number of static microscopic 
@@ -231,18 +235,40 @@ pair = ligand.auto_pair_metal('Eu')
 print(pair.smiles)
 ```
 
-Generate 3D coordinates using `complexes_build_optimize_` method
-```pycon
-print(pair.coordinates)
-pair.complexes_build_optimize_()
-print(pair.coordinates)
-pair.write('./Eu-pair.mol2')
+Generate and optimize 3D coordinates through the canonical `build3d` method.
+Complex building uses a spawned worker, so executable scripts should use the
+standard Python main guard:
+
+```python
+import hotpot as hp
+
+SMILES = (
+    "O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C("
+    "C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3"
+)
+
+
+def main():
+    pair = hp.read_mol(SMILES).auto_pair_metal("Eu")
+    report = pair.build3d(
+        seed=20260916,
+        candidate_count=1,
+        max_attempts=3,
+        epochs=20,
+        steps_per_epoch=500,
+    )
+    print(report.optimization.best_energy, report.optimization.energy_unit)
+    pair.write("./Eu-pair.mol2")
+
+
+if __name__ == "__main__":
+    main()
 ```
 The [mol2 file](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/mol_file/Eu-pair.mol2) 
 and [movie](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/picture/Eu-pair.gif) after coordination generation.
 
-Both the formation of coordination bond and the generation of 3D structure are driven by **AI model**, 
-rather than heuristic rules or pure force fields.
+Coordination-bond candidates are proposed by the AI model. The resulting 3D
+complex is built and screened by the topology-aware force-field workflow.
 
 ### 2.Cheminformatics support
 The `Molecule` object is designed to be a familiar, standard cheminformatics tool for chemists.

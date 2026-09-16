@@ -570,6 +570,11 @@ class _OpenBabelOptimizer:
     def _initialize_with_budget(self, initialize, remaining_steps: int) -> int:
         initialization_steps = int(self.algorithm == "conjugate")
         take_step_capacity = remaining_steps - initialization_steps
+        # Open Babel returns False both for convergence and for reaching the
+        # limit supplied to Initialize().  Keep that private limit one counter
+        # step beyond every TakeNSteps() call Hotpot can submit.  Conjugate
+        # initialization performs one physical step without incrementing the
+        # backend counter; steepest-descent initialization performs none.
         initialize(take_step_capacity + 1, self.energy_tolerance)
         return initialization_steps
 
@@ -731,9 +736,9 @@ class _OpenBabelOptimizer:
             steps_submitted += steps_to_take
             epoch_initialization_steps = 0
             epochs_completed += 1
-            backend_finished = not backend_continues
+            backend_converged = not backend_continues
             self.backend.GetCoordinates(obmol)
-            frame_converged = backend_finished
+            frame_converged = backend_converged
             terminal_converged = frame_converged
             termination_reason = (
                 "converged"
@@ -775,7 +780,7 @@ class _OpenBabelOptimizer:
             previous_coordinates = frame.coordinates
             previous_energy = frame.energy
 
-            if backend_finished and not self.increasing_vdw:
+            if backend_converged and not self.increasing_vdw:
                 break
 
         if best_frame is None:

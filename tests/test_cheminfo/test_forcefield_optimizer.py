@@ -116,6 +116,22 @@ class _BudgetBackend(_Backend):
     SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
 
 
+class _LimitAwareBackend(_BudgetBackend):
+    def ConjugateGradientsInitialize(self, steps, tolerance):
+        super().ConjugateGradientsInitialize(steps, tolerance)
+        self.maximum_counter = steps
+        self.current_counter = 0
+
+    SteepestDescentInitialize = ConjugateGradientsInitialize
+
+    def ConjugateGradientsTakeNSteps(self, steps):
+        super().ConjugateGradientsTakeNSteps(steps)
+        self.current_counter += steps
+        return self.current_counter < self.maximum_counter
+
+    SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
+
+
 class _OptimizerMolecule:
     def __init__(self):
         self.coordinates = np.zeros((2, 3), dtype=float)
@@ -293,6 +309,44 @@ def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
     assert report.steps_submitted == 20
     assert report.initialization_steps == 1
     assert report.steps_completed is None
+    assert report.terminal_converged is False
+    assert report.termination_reason == "budget_exhausted"
+
+
+@pytest.mark.parametrize(
+    ("algorithm", "expected_limit", "expected_submitted", "expected_initialization"),
+    (
+        ("conjugate", 21, 20, 1),
+        ("steepest", 22, 21, 0),
+    ),
+)
+def test_backend_limit_sentinel_does_not_masquerade_as_convergence(
+    monkeypatch,
+    algorithm,
+    expected_limit,
+    expected_submitted,
+    expected_initialization,
+):
+    frames = [
+        np.zeros((2, 3)),
+        np.ones((2, 3)),
+        np.full((2, 3), 2.0),
+    ]
+    backend = _LimitAwareBackend([3.0, 2.0, 1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.algorithm = algorithm
+    optimizer.increasing_vdw = False
+
+    report = optimizer.optimize(
+        _OptimizerMolecule(),
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert backend.initializations == [(expected_limit, pytest.approx(1.0e-6))]
+    assert report.steps_submitted == expected_submitted
+    assert report.initialization_steps == expected_initialization
     assert report.terminal_converged is False
     assert report.termination_reason == "budget_exhausted"
 

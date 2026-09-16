@@ -1,8 +1,12 @@
-name: Test Workflow
+name: Tests and coverage
 
 on:
   - push
   - pull_request
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   test:
@@ -38,18 +42,14 @@ jobs:
           conda list
         working-directory: ${{ github.workspace }}
 
-      - name: Install coverage
-        run: python -m pip install coverage
-
-      - name: Run tests by coverage
-        run: |
-          coverage run --source hotpot -m unittest
-          coverage xml -i
-        env:
-          COVERAGE_RUN: True
+      - name: Run maintained tests with coverage
+        run: ./tests/run_coverage.sh
 
       - name: Upload coverage reports to Codecov
+        if: ${{ always() && hashFiles('tests/coverage/coverage.xml') != '' }}
         uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./tests/coverage/coverage.xml
+          use_oidc: true

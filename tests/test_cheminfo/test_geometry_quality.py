@@ -1,0 +1,221 @@
+import json
+from copy import copy
+from types import SimpleNamespace
+
+import numpy as np
+
+from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.core import Molecule
+
+
+def _molecule(coordinates, bonds=(), atomic_numbers=None):
+    molecule = Molecule()
+    if atomic_numbers is None:
+        atomic_numbers = [6] * len(coordinates)
+    for atomic_number, position in zip(atomic_numbers, coordinates):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            coordinates=position,
+        )
+    for first, second in bonds:
+        molecule.add_bond(first, second, bond_order=1.0)
+    molecule.refresh_atom_id()
+    return molecule
+
+
+def _valid_carbon_bond():
+    return _molecule(
+        ((0.0, 0.0, 0.0), (1.52, 0.0, 0.0)),
+        ((0, 1),),
+    )
+
+
+def _crossed_square():
+    return _molecule(
+        (
+            (-1.0, -1.0, 0.0),
+            (1.0, -1.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (-1.0, 1.0, 0.0),
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, 1.0),
+        ),
+        ((0, 1), (1, 2), (2, 3), (3, 0), (4, 5)),
+    )
+
+
+def test_off_level_still_rejects_bad_coordinate_shape_and_nonfinite_values():
+    malformed = SimpleNamespace(
+        atoms=(SimpleNamespace(coordinates=(0.0, 0.0, 0.0)),),
+        bonds=(),
+        coordinates=np.array((0.0, 0.0, 0.0)),
+    )
+    malformed_report = geo.evaluate_geometry_quality(malformed, level="off")
+    assert not malformed_report.passed
+    assert not next(
+        check for check in malformed_report.checks
+        if check.name == "coordinate_shape"
+    ).passed
+
+    molecule = _valid_carbon_bond()
+    molecule.atoms[1].coordinates = (np.nan, 0.0, 0.0)
+    nonfinite_report = geo.evaluate_geometry_quality(molecule, level="off")
+    assert not nonfinite_report.passed
+    finite_check = next(
+        check for check in nonfinite_report.checks
+        if check.name == "finite_coordinates"
+    )
+    assert finite_check.atom_indices == (1,)
+
+
+def test_quality_partitions_overlap_from_too_close_pairs():
+    molecule = _molecule(((0.0, 0.0, 0.0), (0.0005, 0.0, 0.0)))
+
+    report = geo.evaluate_geometry_quality(molecule, level="basic")
+
+    overlap_failures = [
+        check for check in report.failures if check.name == "atom_overlap"
+    ]
+    close_failures = [
+        check for check in report.failures if check.name == "atom_too_close"
+    ]
+    assert len(overlap_failures) == 1
+    assert close_failures == []
+    assert overlap_failures[0].measured == 0.0005
+    assert overlap_failures[0].threshold == 0.001
+    assert overlap_failures[0].atom_indices == (0, 1)
+
+
+def test_basic_gate_rejects_an_exploded_explicit_bond():
+    molecule = _molecule(
+        ((0.0, 0.0, 0.0), (31.0, 0.0, 0.0)),
+        ((0, 1),),
+    )
+
+    report = geo.evaluate_geometry_quality(molecule, level="basic")
+
+    assert not report.passed
+    failure = next(
+        check for check in report.failures if check.name == "bond_distance"
+    )
+    assert failure.measured == 31.0
+    assert failure.threshold == (0.0, 30.0)
+    assert failure.atom_indices == (0, 1)
+    assert failure.bond_indices == (0,)
+
+
+def test_standard_gate_rejects_a_bond_crossing_a_ligand_ring():
+    report = geo.evaluate_geometry_quality(_crossed_square(), level="standard")
+
+    assert not report.passed
+    failure = next(
+        check for check in report.failures
+        if check.name == "bond_ring_intersection"
+    )
+    assert failure.atom_indices == (4, 5)
+    assert failure.bond_indices == (4,)
+
+
+def test_standard_gate_accepts_a_sensible_small_molecule():
+    molecule = _valid_carbon_bond()
+
+    report = geo.evaluate_geometry_quality(molecule, level="standard")
+
+    assert report.passed
+    assert geo.is_geometry_reasonable(molecule, level="standard") == report.passed
+    json.dumps(report.to_dict())
+
+
+def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
+    molecule = _valid_carbon_bond()
+    reference = geo.capture_topology(molecule)
+    accepted = copy(molecule)
+    hydrogen = accepted.create_atom(
+        atomic_number=1,
+        coordinates=(-1.0, 0.0, 0.0),
+    )
+    accepted.add_bond(accepted.atoms[0], hydrogen, bond_order=1.0)
+
+    assert geo.evaluate_geometry_quality(
+        accepted,
+        level="off",
+        topology_reference=reference,
+    ).passed
+
+    rejected = copy(molecule)
+    oxygen = rejected.create_atom(
+        atomic_number=8,
+        coordinates=(-1.2, 0.0, 0.0),
+    )
+    rejected.add_bond(rejected.atoms[0], oxygen, bond_order=1.0)
+    report = geo.evaluate_geometry_quality(
+        rejected,
+        level="off",
+        topology_reference=reference,
+    )
+    assert not report.passed
+    assert any(check.name == "topology_added_atoms" for check in report.failures)
+
+
+def test_topology_reference_rejects_original_bond_changes():
+    molecule = _valid_carbon_bond()
+    reference = geo.capture_topology(molecule)
+    molecule.bonds[0].bond_order = 2.0
+
+    report = geo.evaluate_geometry_quality(
+        molecule,
+        level="off",
+        topology_reference=reference,
+    )
+
+    assert not report.passed
+    assert any(check.name == "topology_original_bond" for check in report.failures)
+
+
+def test_standard_warns_but_strict_fails_on_backend_nonconvergence():
+    molecule = _valid_carbon_bond()
+    forcefield_report = {
+        "setup_succeeded": True,
+        "converged": False,
+        "final_energy": -10.0,
+        "energy_unit": "kJ/mol",
+        "rms_gradient": 2.0,
+        "max_gradient": 6.0,
+        "exploded": False,
+    }
+
+    standard = geo.evaluate_geometry_quality(
+        molecule,
+        level="standard",
+        forcefield_report=forcefield_report,
+    )
+    strict = geo.evaluate_geometry_quality(
+        molecule,
+        level="strict",
+        forcefield_report=forcefield_report,
+    )
+
+    assert standard.passed
+    assert any(check.name == "forcefield_convergence" for check in standard.warnings)
+    assert not strict.passed
+    assert {
+        check.name for check in strict.failures
+    } >= {"forcefield_convergence", "rms_gradient", "max_gradient"}
+
+
+def test_geometry_evaluation_does_not_change_structure_or_conformers():
+    molecule = _crossed_square()
+    molecule.conformer_add(molecule.coordinates.copy())
+    coordinates = molecule.coordinates.copy()
+    bonds = tuple(molecule.bonds)
+    graph = molecule.graph
+    graph_edges = tuple(molecule.graph.edges)
+    conformers = molecule.conformers._coordinates.copy()
+
+    geo.evaluate_geometry_quality(molecule, level="standard")
+
+    np.testing.assert_array_equal(molecule.coordinates, coordinates)
+    assert tuple(molecule.bonds) == bonds
+    assert molecule.graph is graph
+    assert tuple(molecule.graph.edges) == graph_edges
+    np.testing.assert_array_equal(molecule.conformers._coordinates, conformers)

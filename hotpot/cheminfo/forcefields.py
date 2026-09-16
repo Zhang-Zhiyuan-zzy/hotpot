@@ -1000,15 +1000,14 @@ def _receive_worker_result(
     result = None
     started = False
     try:
-        if seed is None:
-            process.start()
-        else:
-            with _SEED_ENVIRONMENT_LOCK:
-                previous_seed = os.environ.get("OB_RANDOM_SEED")
+        with _SEED_ENVIRONMENT_LOCK:
+            previous_seed = os.environ.get("OB_RANDOM_SEED")
+            if seed is not None:
                 os.environ["OB_RANDOM_SEED"] = str(seed)
-                try:
-                    process.start()
-                finally:
+            try:
+                process.start()
+            finally:
+                if seed is not None:
                     if previous_seed is None:
                         os.environ.pop("OB_RANDOM_SEED", None)
                     else:
@@ -1072,6 +1071,24 @@ def _receive_worker_result(
         send_connection.close()
 
 
+def _validated_worker_coordinates(
+    result: BuildWorkerResult,
+    *,
+    expected_atom_count: int,
+) -> np.ndarray:
+    coordinates = np.asarray(result.coordinates, dtype=float)
+    expected_shape = (expected_atom_count, 3)
+    if coordinates.shape != expected_shape or not np.all(np.isfinite(coordinates)):
+        raise ComplexBuildWorkerError(
+            "WorkerProtocolError",
+            "A successful build worker result must contain finite coordinates "
+            f"with shape {expected_shape}, got {coordinates.shape}",
+            None,
+            result.diagnostics,
+        )
+    return coordinates
+
+
 def _build_complex_working(
     mol: Any,
     *,
@@ -1127,7 +1144,10 @@ def _build_complex_working(
         timeout=timeout,
         seed=seed,
     )
-    working.coordinates = result.coordinates
+    working.coordinates = _validated_worker_coordinates(
+        result,
+        expected_atom_count=len(working.atoms),
+    )
     if coordination_geometry is not None:
         prepare_coordination_geometry(
             working, strategy=coordination_geometry, seed=seed

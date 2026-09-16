@@ -11,6 +11,9 @@ on:
       - "hotpot/cheminfo/_io/**"
       - "hotpot/cheminfo/core.py"
       - "hotpot/cheminfo/core_utils.py"
+      - "hotpot/cheminfo/forcefields.py"
+      - "hotpot/cheminfo/geometry.py"
+      - "hotpot/works/convert.py"
       - "hotpot/cheminfo/rdconvert.py"
       - "hotpot/cheminfo/obconvert.py"
       - "hotpot/cheminfo/ob2chem.py"
@@ -25,11 +28,17 @@ on:
       - "tests/test_cheminfo/test_ob2chem_compat.py"
       - "tests/test_cheminfo/test_bond_metadata.py"
       - "tests/test_cheminfo/test_ligand_rings.py"
+      - "tests/test_cheminfo/test_geometry*.py"
+      - "tests/test_cheminfo/test_forcefield*.py"
+      - "tests/test_cheminfo/test_complex*.py"
+      - "tests/test_cheminfo/test_topology_determinism.py"
+      - "tests/test_works/**"
       - "tests/test_cheminfo/test_search*.py"
       - "tests/test_smart_parser.py"
       - "tests/smarts_conformance/**"
       - "tests/requirements-inference.txt"
       - "tests/run_inference_compatibility.sh"
+      - "tests/run_coverage.sh"
       - "pyproject.toml"
       - "setup.py"
       - "MANIFEST.in"
@@ -44,6 +53,9 @@ on:
       - "hotpot/cheminfo/_io/**"
       - "hotpot/cheminfo/core.py"
       - "hotpot/cheminfo/core_utils.py"
+      - "hotpot/cheminfo/forcefields.py"
+      - "hotpot/cheminfo/geometry.py"
+      - "hotpot/works/convert.py"
       - "hotpot/cheminfo/rdconvert.py"
       - "hotpot/cheminfo/obconvert.py"
       - "hotpot/cheminfo/ob2chem.py"
@@ -58,11 +70,17 @@ on:
       - "tests/test_cheminfo/test_ob2chem_compat.py"
       - "tests/test_cheminfo/test_bond_metadata.py"
       - "tests/test_cheminfo/test_ligand_rings.py"
+      - "tests/test_cheminfo/test_geometry*.py"
+      - "tests/test_cheminfo/test_forcefield*.py"
+      - "tests/test_cheminfo/test_complex*.py"
+      - "tests/test_cheminfo/test_topology_determinism.py"
+      - "tests/test_works/**"
       - "tests/test_cheminfo/test_search*.py"
       - "tests/test_smart_parser.py"
       - "tests/smarts_conformance/**"
       - "tests/requirements-inference.txt"
       - "tests/run_inference_compatibility.sh"
+      - "tests/run_coverage.sh"
       - "pyproject.toml"
       - "setup.py"
       - "MANIFEST.in"
@@ -83,25 +101,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install inference dependencies
-        run: python -m pip install -r tests/requirements-inference.txt
-      - name: Test inference and graph-search integration
-        run: >-
-          python -m pytest -q -p no:cacheprovider
-          tests/mca tests/cbond
-          tests/test_cheminfo/test_mca_calculator.py
-          tests/test_cheminfo/test_molecule_conversion.py
-          tests/test_cheminfo/test_ob2chem_compat.py
-          tests/test_cheminfo/test_bond_metadata.py
-          tests/test_cheminfo/test_ligand_rings.py
-          tests/test_cheminfo/test_search.py
-          tests/test_cheminfo/test_search_mapping.py
-          tests/test_cheminfo/test_smarts.py
-          tests/test_smart_parser.py
-      - name: Test strict SMARTS and coordination contracts
-        run: >-
-          python -m pytest -q -p no:cacheprovider
-          -m smarts_core tests/smarts_conformance
+      - name: Install compatibility runner
+        run: python -m pip install uv
+      - name: Test maintained inference and graph-search matrix
+        run: ./tests/run_inference_compatibility.sh "${{ matrix.python-version }}"
 
   package-smoke:
     runs-on: ubuntu-latest

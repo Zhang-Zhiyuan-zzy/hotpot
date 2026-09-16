@@ -19,8 +19,40 @@ class _RecordingMolecule:
     def remove_metals(self):
         self.has_metal = False
 
-    def optimize(self, **options):
-        self.optimize_options = options
+    def optimize(
+        self,
+        forcefield=None,
+        *,
+        algorithm="conjugate",
+        epochs=100,
+        steps_per_epoch=100,
+        add_hydrogens=True,
+        quality_level="standard",
+        quality_thresholds=None,
+        seed=None,
+        perturb_interval=None,
+        perturb_sigma=0.5,
+        save_movie=False,
+        increasing_vdw=False,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.5,
+    ):
+        self.optimize_options = {
+            "forcefield": forcefield,
+            "algorithm": algorithm,
+            "epochs": epochs,
+            "steps_per_epoch": steps_per_epoch,
+            "add_hydrogens": add_hydrogens,
+            "quality_level": quality_level,
+            "quality_thresholds": quality_thresholds,
+            "seed": seed,
+            "perturb_interval": perturb_interval,
+            "perturb_sigma": perturb_sigma,
+            "save_movie": save_movie,
+            "increasing_vdw": increasing_vdw,
+            "vdw_cutoff_start": vdw_cutoff_start,
+            "vdw_cutoff_end": vdw_cutoff_end,
+        }
 
     def write(self, path, fmt=None, **options):
         self.write_calls.append((path, fmt, options))
@@ -120,7 +152,7 @@ def test_build3d_writes_movie_frames_for_complex_and_ligand():
     )
 
     ligand = molecule.ligand_copy
-    assert ligand.optimize_options["timeout"] == 4.0
+    assert "timeout" not in ligand.optimize_options
     assert ligand.optimize_options["save_movie"] is True
     assert ligand.write_calls[0][2]["write_single"] is False
     assert [call[2]["write_single"] for call in molecule.write_calls] == [False, False]

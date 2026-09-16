@@ -94,7 +94,6 @@ def _build3d(
                 'quality_level',
                 'quality_thresholds',
                 'seed',
-                'timeout',
                 'perturb_interval',
                 'perturb_sigma',
                 'save_movie',

@@ -26,9 +26,15 @@ from .. import data_extract as de
 from .runtime import CBondRuntime, padding_rings
 
 
-@lru_cache(maxsize=1)
-def get_cbond_runtime() -> CBondRuntime:
-    return CBondRuntime(device=os.environ.get("HOTPOT_CBOND_DEVICE", "auto"))
+@lru_cache(maxsize=None)
+def get_cbond_runtime(
+        device: str = None,
+        model_dir: str = None,
+) -> CBondRuntime:
+    return CBondRuntime(
+        model_dir=model_dir,
+        device=device or os.environ.get("HOTPOT_CBOND_DEVICE", "auto"),
+    )
 
 
 def extract_cbond_inputs(mol: Molecule) -> dict[str, Any]:
@@ -51,19 +57,22 @@ def get_cbond_inputs_model(_data: dict[str, Any], xg):
     return padding_rings(xg, rings_node_index, rings_node_nums)
 
 
-def pred_xg(mol_data: dict[str, Any]):
+def pred_xg(mol_data: dict[str, Any], runtime: CBondRuntime = None):
     inputs = get_graph_cbond_inputs(mol_data)
-    return get_cbond_runtime().embed_graph(inputs['x'], inputs['edge_index'])
+    runtime = runtime or get_cbond_runtime()
+    return runtime.embed_graph(inputs['x'], inputs['edge_index'])
 
-def pred_cb_value(xg, padded_Xr, rings_mask, cbond_index):
-    return get_cbond_runtime().predict(xg, padded_Xr, rings_mask, cbond_index)
+def pred_cb_value(xg, padded_Xr, rings_mask, cbond_index, runtime: CBondRuntime = None):
+    runtime = runtime or get_cbond_runtime()
+    return runtime.predict(xg, padded_Xr, rings_mask, cbond_index)
 
-def cbond_prediction(mol_data: dict[str, Any]):
-    xg = pred_xg(mol_data)
+def cbond_prediction(mol_data: dict[str, Any], runtime: CBondRuntime = None):
+    runtime = runtime or get_cbond_runtime()
+    xg = pred_xg(mol_data, runtime)
     padded_Xr, rings_mask = get_cbond_inputs_model(mol_data, xg)
 
     cbond_index = mol_data['cbond_index']
-    cbond = pred_cb_value(xg, padded_Xr, rings_mask, cbond_index)
+    cbond = pred_cb_value(xg, padded_Xr, rings_mask, cbond_index, runtime)
 
     return cbond, cbond_index, mol_data['is_cbond']
 
@@ -86,7 +95,7 @@ def init_metal_ligand_pair(mol: Molecule, metal: Union[int, str, Atom]):
     assert metal.is_metal, f'{metal.symbol} is not a metal'
     mol.add_hydrogens()
     mol.force_remove_polar_hydrogens()
-    if not metal in mol.atoms:
+    if metal not in mol.atoms:
         assert len(mol.metals) == 0, "Only support identification of coordination pattern between a single metal and a ligand"
         metal = mol.add_atom(metal)
 
@@ -100,6 +109,7 @@ def auto_build_cbond(
         threshold: float = 0.,
         greedy: bool = True,
         sum_prob: bool = True,
+        runtime: CBondRuntime = None,
 ):
     mol, metal = init_metal_ligand_pair(mol, metal)
 
@@ -111,7 +121,7 @@ def auto_build_cbond(
 
     ligand_edge_index = mol_data['edge_index']
 
-    pred_cb, cb_index, _ = cbond_prediction(mol_data)
+    pred_cb, cb_index, _ = cbond_prediction(mol_data, runtime)
 
     pred_cb = pred_cb.flatten()
     max_value = np.max(pred_cb)
@@ -161,12 +171,12 @@ def auto_build_cbond(
         ])
         mol_data['edge_index'] = np.concatenate((ligand_edge_index, cbond_edges), axis=1)
 
-        pred_cb, cb_index, _ = cbond_prediction(mol_data)
+        pred_cb, cb_index, _ = cbond_prediction(mol_data, runtime)
         pred_cb = pred_cb.flatten()
         max_value = np.max(pred_cb)
 
     # Add cbonds
-    for ca_index in (has_cbond - _exist_cbond):
+    for ca_index in (has_cbond - _exist_cbond - {metal_idx}):
         mol.add_bond(metal_idx, ca_index)
 
     if sum_prob:
@@ -186,7 +196,7 @@ def build_one_cbond(mol: Molecule, metal: Union[int, str], threshold: float = 0.
     pred_cb = pred_cb.flatten()
 
     if np.max(pred_cb) < threshold:
-        logging.info(f"Not found any suitable cbond!")
+        logging.info("Not found any suitable cbond!")
         return None, None
 
     if not get_all:

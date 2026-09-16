@@ -121,8 +121,18 @@ jobs:
         working-directory: /tmp
         run: |
           python - <<'PY'
+          import subprocess
+
           import hotpot
           from hotpot.cheminfo.AImodels.mca import MCAPredictor
+
+          documentation = subprocess.run(
+              ["hotpot", "mca", "--doc"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          assert documentation.startswith("# `hotpot mca`")
 
           molecule = hotpot.to_hotpot_mol("C1CCCCN1")
           prediction = MCAPredictor(device="cpu").predict(molecule)

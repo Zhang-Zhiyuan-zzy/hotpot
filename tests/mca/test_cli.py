@@ -53,6 +53,17 @@ def test_top_level_mca_prints_to_stdout(monkeypatch, capsys):
     assert "Done !!!" not in output
 
 
+def test_top_level_mca_doc_prints_packaged_markdown_without_input(capsys):
+    with pytest.raises(SystemExit) as exit_info:
+        hotpot_main.main(["mca", "--doc"])
+
+    assert exit_info.value.code == 0
+    output = capsys.readouterr().out
+    assert output.startswith("# `hotpot mca`\n")
+    assert "hotpot mca inputs/*.mol2 -o results.txt" in output
+    assert "## Charged molecules and applicability" in output
+
+
 def test_output_option_writes_table(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(cli, "MCAPredictor", _Predictor)
     output_path = tmp_path / "result.txt"

@@ -5,3 +5,4 @@ graft hotpot/cheminfo/ChemData
 graft hotpot/dataset/ChemData
 graft hotpot/cheminfo/AImodels/cbond/onnx
 graft hotpot/cheminfo/AImodels/mca/models
+include hotpot/cheminfo/AImodels/mca/cli_doc.md

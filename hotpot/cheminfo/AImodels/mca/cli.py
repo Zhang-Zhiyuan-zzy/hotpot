@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
+from importlib import resources
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +15,30 @@ from hotpot.cheminfo._io import MolReader
 from .api import MCAPredictor
 
 
+def load_cli_documentation() -> str:
+    return (
+        resources.files(__package__)
+        .joinpath("cli_doc.md")
+        .read_text(encoding="utf-8")
+    )
+
+
+class _DocumentationAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        documentation = load_cli_documentation()
+        sys.stdout.write(documentation)
+        if not documentation.endswith("\n"):
+            sys.stdout.write("\n")
+        parser.exit()
+
+
 def add_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--doc",
+        action=_DocumentationAction,
+        nargs=0,
+        help="show detailed Markdown usage documentation and exit",
+    )
     parser.add_argument(
         "inputs",
         nargs="+",

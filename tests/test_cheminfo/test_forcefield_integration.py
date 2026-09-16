@@ -151,8 +151,30 @@ def _build_zinc_amine(seed):
 
 
 def test_complex_build_workers_are_independent_when_called_concurrently():
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        results = tuple(executor.map(_build_zinc_amine, (51, 52, 53)))
+    seeds = tuple(range(51, 71))
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = tuple(executor.map(_build_zinc_amine, seeds))
 
     assert all(accepted == 1 for accepted, _ in results)
     assert all(np.all(np.isfinite(coordinates)) for _, coordinates in results)
+
+
+def test_real_seeded_complex_build_is_reproducible():
+    first_accepted, first_coordinates = _build_zinc_amine(71)
+    second_accepted, second_coordinates = _build_zinc_amine(71)
+    first_distances = np.linalg.norm(
+        first_coordinates[:, None, :] - first_coordinates[None, :, :],
+        axis=2,
+    )
+    second_distances = np.linalg.norm(
+        second_coordinates[:, None, :] - second_coordinates[None, :, :],
+        axis=2,
+    )
+
+    assert first_accepted == second_accepted == 1
+    np.testing.assert_allclose(
+        first_distances,
+        second_distances,
+        rtol=0.0,
+        atol=1e-12,
+    )

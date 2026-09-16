@@ -88,6 +88,18 @@ def _send_small_worker(connection):
     connection.close()
 
 
+def _send_tagged_worker(connection, tag):
+    diagnostics = ff.ComplexBuildDiagnostics(1, 1, (), 0.0)
+    connection.send(
+        ff.BuildWorkerResult(
+            status="ok",
+            coordinates=np.asarray([[float(tag), 0.0, 0.0]]),
+            diagnostics=diagnostics,
+        )
+    )
+    connection.close()
+
+
 class _NeverReadyConnection:
     def __init__(self):
         self.closed = False
@@ -372,6 +384,30 @@ def test_unseeded_worker_start_uses_the_seed_environment_lock(monkeypatch):
     )
 
     assert lock.entered == 1
+
+
+def test_repeated_complex_worker_requests_do_not_cross_or_leak_processes():
+    context = mp.get_context("fork")
+    child_pids_before = _active_child_pids()
+    received_tags = []
+
+    for tag in range(24):
+        receive_connection, send_connection = context.Pipe(duplex=False)
+        process = context.Process(
+            target=_send_tagged_worker,
+            args=(send_connection, tag),
+        )
+        result = ff._receive_worker_result(
+            process,
+            receive_connection,
+            send_connection,
+            timeout=2.0,
+        )
+        received_tags.append(int(result.coordinates[0, 0]))
+        assert process.exitcode == 0
+
+    assert received_tags == list(range(24))
+    assert _active_child_pids() <= child_pids_before
 
 
 @pytest.mark.parametrize(

@@ -88,6 +88,13 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
     hotpot mca 'c1ccccc1CN' --plot mca.png
     hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
     ```
++ **Coordination-bond CLI**:
+  - Build a metal-ligand coordination graph from a ligand SMILES or molecule
+    file and print its canonical SMILES:
+    ```bash
+    $ hotpot cbond Eu 'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3'
+    $ hotpot cbond Eu ligand.mol2 -o europium-complex.smi
+    ```
 + **3D Structure Initialization** (`complexes_build_optimize_`):
   - **AI-refined 3D build**: A specialized pipeline for generating metal complexes with AI assisting
   - **Topology-aware optimization**: Adds continuous topological inspection during geometry optimization 

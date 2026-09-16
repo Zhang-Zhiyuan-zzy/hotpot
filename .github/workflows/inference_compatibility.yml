@@ -139,4 +139,13 @@ jobs:
           prediction = MCAPredictor(device="cpu").predict(molecule)
           assert len(prediction.atom_predictions) == 6
           assert abs(prediction.sites[0].mca_kj_mol - 503.25) < 1e-6
+
+          cbond_result = subprocess.run(
+              ["hotpot", "cbond", "Eu", "CN", "--device", "cpu"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout.strip()
+          assert "[Eu" in cbond_result
+          assert len(cbond_result.splitlines()) == 1
           PY

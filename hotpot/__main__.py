@@ -39,6 +39,7 @@ def show_version():
 
 
 def build_parser(load_optional_commands=True):
+    from .cheminfo.AImodels.cbond import cli as cbond_cli
     from .cheminfo.AImodels.mca import cli as mca_cli
 
     parser = argparse.ArgumentParser(
@@ -77,6 +78,13 @@ def build_parser(load_optional_commands=True):
         help='Predict atom-resolved methyl cation affinity (MCA)',
     )
     mca_cli.add_arguments(mca_parser)
+
+    # CBond inference arguments
+    cbond_parser = works.add_parser(
+        'cbond',
+        help='Build metal-ligand coordination bonds with the CBond model',
+    )
+    cbond_cli.add_arguments(cbond_parser)
     return parser
 
 
@@ -124,6 +132,11 @@ def run(args):
         from .cheminfo.AImodels.mca import cli as mca_cli
 
         return mca_cli.run(args)
+
+    elif args.works == 'cbond':
+        from .cheminfo.AImodels.cbond import cli as cbond_cli
+
+        return cbond_cli.run(args)
 
     else:
         return -2  # indicate the work type not be specified

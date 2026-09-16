@@ -679,6 +679,7 @@ class _OpenBabelOptimizer:
 
         best_frame = None
         best_epoch = -1
+        best_frame_index = -1
         last_frame = None
         history_window = int(
             (quality_thresholds or {}).get("strict_stability_window", 5)
@@ -695,6 +696,7 @@ class _OpenBabelOptimizer:
         initialization_steps = 0
         terminal_converged = False
         termination_reason: TerminationReason = "budget_exhausted"
+        segment_active = True
 
         for epoch in range(self.epochs):
             reset_history = (
@@ -720,13 +722,18 @@ class _OpenBabelOptimizer:
                 )
                 self._set_vdw_cutoff(cutoff)
 
-            if reset_history or (self.increasing_vdw and epoch > 0):
+            restart_segment = reset_history or (self.increasing_vdw and epoch > 0)
+            if restart_segment:
                 self._setup(mol, obmol)
                 remaining_steps = (self.epochs - epoch) * self.steps_per_epoch
                 epoch_initialization_steps = self._initialize_with_budget(
                     initialize,
                     remaining_steps,
                 )
+                segment_active = True
+
+            if not segment_active:
+                continue
 
             steps_to_take = self.steps_per_epoch - epoch_initialization_steps
             initialization_steps += epoch_initialization_steps
@@ -737,6 +744,7 @@ class _OpenBabelOptimizer:
             epoch_initialization_steps = 0
             epochs_completed += 1
             backend_converged = not backend_continues
+            segment_active = backend_continues
             self.backend.GetCoordinates(obmol)
             frame_converged = backend_converged
             terminal_converged = frame_converged
@@ -773,6 +781,7 @@ class _OpenBabelOptimizer:
             ):
                 best_frame = frame
                 best_epoch = epoch
+                best_frame_index = len(movie_coordinates)
             if self.save_movie:
                 movie_coordinates.append(frame.coordinates)
                 movie_energies.append(frame.energy)
@@ -780,7 +789,11 @@ class _OpenBabelOptimizer:
             previous_coordinates = frame.coordinates
             previous_energy = frame.energy
 
-            if backend_converged and not self.increasing_vdw:
+            if (
+                backend_converged
+                and not self.increasing_vdw
+                and self.perturb_interval is None
+            ):
                 break
 
         if best_frame is None:
@@ -792,7 +805,7 @@ class _OpenBabelOptimizer:
         mol.conformer_clear()
         if self.save_movie:
             mol.conformer_add(np.asarray(movie_coordinates), np.asarray(movie_energies))
-            mol.conformer_load(best_epoch)
+            mol.conformer_load(best_frame_index)
         else:
             mol.conformer_add(best_frame.coordinates, float(best_frame.energy))
             mol.conformer_load(0)

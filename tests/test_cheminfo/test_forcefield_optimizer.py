@@ -132,6 +132,16 @@ class _LimitAwareBackend(_BudgetBackend):
     SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
 
 
+class _SegmentConvergingBackend(_Backend):
+    def ConjugateGradientsTakeNSteps(self, steps):
+        self.take_calls.append(steps)
+        self.index += 1
+        self.has_new_coordinates = True
+        return False
+
+    SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
+
+
 class _OptimizerMolecule:
     def __init__(self):
         self.coordinates = np.zeros((2, 3), dtype=float)
@@ -368,6 +378,39 @@ def test_selected_and_terminal_convergence_are_reported_separately(monkeypatch):
     assert report.converged is False
     assert report.terminal_converged is True
     assert report.termination_reason == "converged"
+
+
+def test_scheduled_perturbations_restart_converged_segments(monkeypatch):
+    frames = [
+        np.full((2, 3), 3.0),
+        np.full((2, 3), 2.0),
+        np.full((2, 3), 1.0),
+    ]
+    backend = _SegmentConvergingBackend([3.0, 2.0, 1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.epochs = 7
+    optimizer.perturb_interval = 3
+    optimizer.increasing_vdw = False
+    molecule = _OptimizerMolecule()
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert backend.initializations == [
+        (49, pytest.approx(1.0e-6)),
+        (28, pytest.approx(1.0e-6)),
+        (7, pytest.approx(1.0e-6)),
+    ]
+    assert backend.take_calls == [6, 6, 6]
+    assert report.epochs_completed == 3
+    assert report.best_epoch == 6
+    assert len(molecule.frames) == 3
+    assert molecule._conformers_index == 2
+    assert np.array_equal(molecule.coordinates, frames[2])
 
 
 def test_default_output_keeps_only_one_frame_and_bounded_scalar_history(monkeypatch):

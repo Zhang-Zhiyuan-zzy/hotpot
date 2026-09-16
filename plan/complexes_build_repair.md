@@ -23,7 +23,7 @@
 7. 将现有 `steps`/`step_size` 明确改名为 `epochs`/`steps_per_epoch`。
 8. 默认只保留最低能帧，显式 `save_movie=True` 时才保留逐 epoch 轨迹。
 9. 清除当前错误的 Open Babel 约束映射实现，只保留稳定的空接口。
-10. 建立分层、结构化的几何质量门控。
+10. 在现有 `hotpot.cheminfo.geometry` 中建立分层、结构化的几何/拓扑质量门控；不再新建平行的几何判定模块。
 11. 构筑或优化前默认补全氢原子；对络合物按“先隐藏金属–配体键，再按配体骨架补氢”的顺序执行。
 12. 在 forcefield 层预留按配位数处理中心原子初始几何的公开函数、输入输出对象和调用位置；本轮不实现几何推断或排布算法。
 
@@ -75,8 +75,12 @@ hotpot/works/convert.py::_build3d
 | `hotpot/cheminfo/core.py:870-901` | 当前 `build3d()` 分派不完整 |
 | `hotpot/cheminfo/core.py:1145-1246` | 旧 `optimize_complexes()` 实现 |
 | `hotpot/cheminfo/core.py:1248-1349` | 当前真正的两阶段络合物入口 |
+| `hotpot/cheminfo/core.py:1803-1818` | `Molecule.is_disorder` 内联了固定 0.5 Å 的近距离判断 |
+| `hotpot/cheminfo/core.py:1848-1865` | `Molecule` 内联了键–环相交的布尔和明细实现 |
 | `hotpot/cheminfo/core.py:3242-3291` | 当前加氢及金属邻居扣减规则 |
+| `hotpot/cheminfo/core.py:5253-5264` | 其他分子图对象中重复的 `is_disorder` 实现 |
 | `hotpot/cheminfo/core.py:5509-5514` | 最近环边错误使用 `argmax` |
+| `hotpot/cheminfo/geometry.py` | 现有点、线、面和环几何模块；应成为结构几何判定的唯一所有者 |
 | `hotpot/works/convert.py:56-95` | 批处理对金属分子调用两阶段入口 |
 
 因此必须先冻结以下定义：
@@ -394,23 +398,154 @@ def _hydrogenated_working_copy(mol, *, add_hydrogens: bool):
 
 ## 6. 解结与完整体系优化
 
-### 6.1 最近环边
+### 6.1 几何逻辑的所有权与依赖方向
 
-把 `Ring.closest_edge_to_bond()` 中的 `np.argmax` 改成 `np.argmin`，除此之外不改变该对象接口。
+坐标和拓扑联合判定统一收敛到现有 `hotpot/cheminfo/geometry.py`，不再在 `core.py`、`forcefields.py` 或新的平行模块里复制实现。依赖方向固定为：
+
+```text
+core.py 的公开便捷接口 ─┐
+                          ├─> geometry.py 的纯函数
+forcefields.py 的业务流程 ──┘
+
+geometry.py -X-> core.py / forcefields.py   # 禁止运行时反向导入
+```
+
+`core.py` 已经在模块导入阶段引用 `geometry`，因此 `geometry.py` 不得在运行时导入 `Molecule`/`Ring`/`Bond`，否则会形成循环导入。类型标注使用 `TYPE_CHECKING`、`Protocol` 或延迟注解；实现只读取对象的坐标、原子、键和环协议，不写回对象。
+
+`geometry.py` 本轮增加两类接口：
+
+- **明细函数**：返回问题对象、原子索引、实测距离和阈值，供修复和诊断使用。
+- **布尔函数**：对同一明细函数做短路封装，供只需判定的调用者使用。
+
+目标公开函数为：
+
+```python
+find_overlapping_atom_pairs(mol, *, tolerance=1.0e-3)
+has_overlapping_atoms(mol, *, tolerance=1.0e-3) -> bool
+
+find_too_close_atom_pairs(
+    mol,
+    *,
+    minimum_distance=0.50,
+    covalent_radius_scale=None,
+    pair_scope="all",  # "all" | "bonded" | "nonbonded"
+)
+has_too_close_atoms(mol, **options) -> bool
+
+find_bond_ring_intersections(
+    mol,
+    *,
+    ring_scope="full_graph",  # "full_graph" | "ligand_skeleton"
+    max_ring_size=8,
+)
+has_bond_ring_intersection(mol, **options) -> bool
+
+closest_ring_edge_to_bond(ring, bond)
+evaluate_geometry_quality(mol, *, level, topology_reference=None,
+                          forcefield_report=None, thresholds=None)
+is_geometry_reasonable(mol, *, level="standard", topology_reference=None,
+                       forcefield_report=None, thresholds=None) -> bool
+```
+
+其中三类距离异常不得混为一个含糊标志：
+
+1. **overlap**：两原子坐标在数值容差内几乎相同，默认容差 `1e-3 Å`。
+2. **too close**：原子不重合，但距离低于绝对下限或指定的共价半径比例；必须可显式选择全部、成键或非成键对。
+3. **short bond**：已存在拓扑键的键长异常，在综合门控中以独立 check 报告，不与非键硬碰撞混合。
+
+边界比较必须冻结：`overlap` 使用 `distance <= tolerance`；`too close` 使用 `distance < effective_minimum`，恰好等于最小允许距离时视为通过。这也保持 `is_disorder` 当前严格小于 `0.50 Å` 的行为。
+
+`evaluate_geometry_quality()` 是“几何＋拓扑是否合理”的唯一综合实现，返回结构化报告；`is_geometry_reasonable()` 只返回该报告的 `passed`，不再建立另一套判定。综合门控至少聚合坐标 shape/finite、overlap、too-close、键长、键–环相交、拓扑保持和后端收敛信息。
+
+为避免重复的 `O(n²)` 距离计算，综合门控在一次调用内只建立一份上三角原子对/距离数据，内部 helper 共享该结果。公开单项函数仍可独立使用。
+
+### 6.2 `core` 只保留便捷接口
+
+`Molecule` 中现有名称为了向后兼容可继续保留，但函数体只能单次转发：
+
+```python
+@property
+def has_bond_ring_intersection(self):
+    return geometry.has_bond_ring_intersection(self)
+
+@property
+def intersection_bonds_rings(self):
+    return list(geometry.find_bond_ring_intersections(self))
+
+@property
+def is_disorder(self):
+    return geometry.has_too_close_atoms(
+        self,
+        minimum_distance=0.50,
+        covalent_radius_scale=None,
+        pair_scope="all",
+    )
+```
+
+`core.py` 中两处 `is_disorder` 都必须做相同转发，以保留现有“任意原子对小于 0.5 Å”语义；本轮不借机改变该历史属性的阈值。`Ring.closest_edge_to_bond()` 同样保留对象接口，但转发到 `geometry.closest_ring_edge_to_bond(self, bond)`；距离最小值选择在 `geometry.py` 中实现。
+
+`core` 中这些属性只用于外部便捷访问和兼容，不得再被 Hotpot 内部力场流程调用。
+
+### 6.3 `forcefields` 必须直接调用 `geometry`
+
+`forcefields.py` 使用明确的模块别名：
+
+```python
+from . import geometry as geo
+```
+
+需要修复相交细节时只计算一次：
+
+```python
+intersections = geo.find_bond_ring_intersections(
+    component,
+    ring_scope="ligand_skeleton",
+)
+if intersections:
+    for ring, bond in intersections:
+        edge = geo.closest_ring_edge_to_bond(ring, bond)
+        ...
+```
+
+不得先调用布尔判定再重新计算明细；只在完全不需要问题对象时使用 `geo.has_bond_ring_intersection(...)`。最终门控直接调用：
+
+```python
+report = geo.evaluate_geometry_quality(working, ...)
+if not report.passed:
+    raise GeometryQualityError(report)
+```
+
+`forcefields.py` 中禁止出现以下间接调用：
+
+- `component.has_bond_ring_intersection`
+- `component.intersection_bonds_rings`
+- `component.is_disorder`
+- `ring.closest_edge_to_bond(...)`
+
+这条限制保证力场算法依赖明确的 `geo` 语义和参数，不会被 `Molecule` 上的历史默认值暗中改变。
+
+### 6.4 最近环边
+
+把实际距离计算移入 `geometry.closest_ring_edge_to_bond()`，并在其中用最小值而非现有的 `np.argmax`。`Ring.closest_edge_to_bond()` 只保留上述转发接口。
 
 测试必须使用几何上距离不同的六元环和探针键，明确断言返回距离最小的边，不能只断言返回值属于环。
 
-### 6.2 环语义
+### 6.5 环语义
 
-解结与最终门控使用已有 `Molecule.ligand_rings`，即移除金属–配体边后的配体骨架环；不能把螯合形成的金属环当成待拆的有机环。
+环范围由 `geo.find_bond_ring_intersections(..., ring_scope=...)` 的显式参数决定：
+
+- `ring_scope="full_graph"` 使用完整分子图上不大于 `max_ring_size` 的环，且作为 `Molecule.has_bond_ring_intersection` 和 `intersection_bonds_rings` 的兼容默认，保持现有 `rings_small` 语义。
+- `ring_scope="ligand_skeleton"` 使用已有 `Molecule.ligand_rings` 并同样过滤 `max_ring_size`；这是力场解结和络合物质量门控的强制选择。
+
+移除金属–配体边后的配体骨架环不会把螯合形成的金属环当成待拆的有机环。
 
 阶段检查：
 
-- 配体代理阶段：检查配体内部共价键穿过 `ligand_rings`。
-- 完整体系阶段：检查所有非环键，包括金属–配体键，是否穿过 `ligand_rings`。
+- 配体代理阶段：对 component 显式传入 `ring_scope="ligand_skeleton"`，检查配体内部共价键。
+- 完整体系阶段：对 full working clone 显式传入 `ring_scope="ligand_skeleton"`，检查所有非环键，包括金属–配体键。
 - 不得在完整体系阶段隐藏金属–配体键后再做最终检查。
 
-### 6.3 全体系优化
+### 6.6 全体系优化
 
 配体代理完成后，在完整 working clone 上运行 UFF。该阶段负责：
 
@@ -421,7 +556,7 @@ def _hydrogenated_working_copy(mol, *, add_hydrogens: bool):
 
 UFF 能得到局部极小值不等于结构具有正确配位化学。ZnCl₂ 得到 109.47°而 PtCl₄ 得到平方平面，说明当前不得把 UFF 输出直接解释为已验证的配位几何。几何模板/配位场模型属于后续化学增强，不纳入本轮静默修补。
 
-### 6.4 预留中心原子配位几何接口，本轮不实现算法
+### 6.7 预留中心原子配位几何接口，本轮不实现算法
 
 根据中心原子的配位数和化学环境提供合理初始几何，是通用金属络合物构筑不可缺少的阶段。仅依赖 UFF 从重叠或随机坐标出发，无法稳定区分例如 CN=4 的四面体与平方平面。
 
@@ -604,10 +739,16 @@ start + (epoch + 1) / epochs * (end - start)
 
 ### 9.2 数据结构与纯函数接口
 
-建议新增独立模块 `hotpot/cheminfo/geometry_quality.py`，避免继续扩大 `forcefields.py`：
+直接扩展现有 `hotpot/cheminfo/geometry.py`。该模块同时持有单项几何检查和综合门控，避免 `geometry.py` 与 `geometry_quality.py` 形成两套距离/穿环实现：
 
 ```text
 QualityLevel = "off" | "basic" | "standard" | "strict"
+
+AtomPairGeometryIssue
+  kind = "overlap" | "too_close" | "short_bond"
+  atom_indices
+  distance
+  threshold
 
 GeometryCheck
   name
@@ -632,9 +773,18 @@ evaluate_geometry_quality(
     forcefield_report=None,
     thresholds=None,
 ) -> GeometryQualityReport
+
+is_geometry_reasonable(
+    mol,
+    *,
+    level="standard",
+    topology_reference=None,
+    forcefield_report=None,
+    thresholds=None,
+) -> bool
 ```
 
-该函数必须是只读纯函数：不加氢、不改键、不重算并写回价态、不调用优化器。
+该系列函数必须是只读纯函数：不加氢、不改键、不重算并写回价态、不调用优化器。报告中使用稳定索引/标识而不是不可序列化的临时对象；解结专用的 `find_bond_ring_intersections()` 则可返回 `(Ring, Bond)` 对，供后续几何操作使用。
 
 另由优化器产生：
 
@@ -674,19 +824,19 @@ ForceFieldRunReport
 增加：
 
 - Open Babel `DetectExplosion()` 必须为 false；
-- 任意两个不同原子不得具有近零距离；
+- 通过 `find_overlapping_atom_pairs()` 检查任意两个不同原子不得具有近零距离；
 - 所有显式键长度必须为有限正数且不得超过 Open Babel 的 30 Å explosion 上限；
-- 不得有明显的全原子硬碰撞，初始建议绝对下限 0.40 Å；
+- 通过 `find_too_close_atom_pairs(..., minimum_distance=0.40, covalent_radius_scale=None, pair_scope="all")` 检查明显的全原子硬碰撞；
 - 最终能量必须有限，但不设置绝对能量上限。
 
 #### `standard`（目标默认）
 
 包含 basic，并增加：
 
-- 对非键原子使用共价半径和绝对下限结合的碰撞检查；初始候选规则为 `distance >= max(0.50 Å, 0.55*(r_cov_i+r_cov_j))`；
+- 通过 `find_too_close_atom_pairs(..., minimum_distance=0.50, covalent_radius_scale=0.55, pair_scope="nonbonded")` 对非键原子执行共价半径与绝对下限结合的碰撞检查；即 `distance >= max(0.50 Å, 0.55*(r_cov_i+r_cov_j))`；
 - 普通共价键长度与共价半径和之比处于宽松区间，初始候选 `[0.65, 1.45]`；
 - 金属–配体键使用独立的宽松区间，初始候选 `[0.65, 1.60]`；
-- 所有非环键，包括金属–配体键，不得穿过 `ligand_rings`；
+- 通过 `find_bond_ring_intersections(..., ring_scope="ligand_skeleton")` 检查所有非环键，包括金属–配体键，不得穿过配体骨架环；
 - 记录收敛状态、RMS 梯度和最大梯度；未达到严格梯度阈值可作为 warning，但不得掩盖几何硬失败；
 - 输入原有拓扑必须保持，新增氢必须符合“隐藏金属键后的配体共价骨架补氢”契约。
 - 记录每个金属中心的配位数、供体索引、金属–供体距离和供体–金属–供体角分布，供未来配位几何模块使用；本轮只报告，不据此判定具体几何类型。
@@ -715,10 +865,13 @@ ForceFieldRunReport
 
 如果最低能帧未通过门控，而较高能帧通过，选择“最低能且通过门控”的帧；若没有任何帧通过则失败。不能先选最低能帧后忽略其结构错误。
 
+三个位置都必须直接调用 `geo.find_*` 或 `geo.evaluate_geometry_quality()`；不经过 `Molecule.is_disorder` 或其他分子属性代理。
+
 ## 10. 文件级修改清单
 
 ### `hotpot/cheminfo/forcefields.py`
 
+- 以 `from . import geometry as geo` 直接依赖几何函数；不调用 `Molecule`/`Ring` 上的几何别名。
 - 提供 `build_and_optimize()`、`auto_optimize()` 两个自动分派器。
 - 提供 `build3d()`、`optimize()`、`perturb()`、`build_complex3d()`、`optimize_complex()` 等可组合功能函数。
 - 抽出 `_resolve_complex_forcefield()`。
@@ -739,14 +892,19 @@ ForceFieldRunReport
 - `build3d()` 只转发到 `ff.build_and_optimize(self, ...)`。
 - `optimize()` 只转发到 `ff.auto_optimize(self, ...)`。
 - 删除 `complexes_build_optimize_()` 与 `optimize_complexes()`；仓库内调用全部迁移到两个标准入口或 `ff` 细粒度函数。
-- 修复 `Ring.closest_edge_to_bond()` 的 `argmax -> argmin`。
+- `Molecule.has_bond_ring_intersection`、`intersection_bonds_rings` 和两处 `is_disorder` 只转发到 `geometry`。
+- `Ring.closest_edge_to_bond()` 只转发到 `geometry.closest_ring_edge_to_bond()`。
 - 不在本轮删除 constraint 数据字段。
 - 不在 `Molecule` 层实现加氢、力场选择、进程、扰动或门控逻辑。
 
-### `hotpot/cheminfo/geometry_quality.py`（新增）
+### `hotpot/cheminfo/geometry.py`（扩展现有模块）
 
-- 定义质量等级、报告对象、阈值对象和纯门控函数。
+- 从 `core.py` 接管键–环相交、相交明细和最近环边的实际几何计算。
+- 新增原子重合、过近原子对的明细和布尔接口。
+- 定义质量等级、问题/报告对象、阈值对象、`evaluate_geometry_quality()` 和 `is_geometry_reasonable()`。
+- 单次综合评估共享距离计算，避免每个 check 重复执行 `O(n²)` 遍历。
 - 只依赖 NumPy/SciPy 与 Hotpot 自身图和元素半径数据。
+- 不在运行时导入 `core` 或 `forcefields`，不修改传入对象。
 - 不导入 RDKit/OpenMM/ASE；这些库仅作为设计参考。
 
 ### `hotpot/works/convert.py`
@@ -761,6 +919,7 @@ ForceFieldRunReport
 ```text
 tests/test_cheminfo/test_forcefield_optimizer.py
 tests/test_cheminfo/test_complexes_build.py
+tests/test_cheminfo/test_geometry.py
 tests/test_cheminfo/test_geometry_quality.py
 tests/test_cheminfo/test_complex_hydrogens.py
 tests/test_cheminfo/fixtures/complexes/
@@ -798,7 +957,11 @@ tests/test_cheminfo/fixtures/complexes/
 
 - 持续失败候选恰好执行 `max_attempts` 次后终止。
 - 成功候选数与总尝试数分别统计。
-- 人工六元环测试返回真正最近边。
+- 人工六元环测试使 `geo.closest_ring_edge_to_bond()` 返回真正最近边，`Ring` 上的兼容方法结果与之一致。
+- 对同一穿环样例，`geo.find_bond_ring_intersections()` 返回稳定的 `(ring, bond)` 明细，`geo.has_bond_ring_intersection()` 与明细是否为空严格一致。
+- `Molecule.has_bond_ring_intersection` 和 `intersection_bonds_rings` 与 `geo` 直接结果一致，其属性中不再存在遍历/相交实现。
+- 在需要相交明细的修复路径中，mock 断言 `geo.find_bond_ring_intersections()` 只调用一次，不再先算 bool 后算 list。
+- 依赖边界测试要证明 `forcefields.py` 调用 `geo.*`，即使把 `Molecule`/`Ring` 兼容别名替换为抛错哨兵，力场路径仍不会访问它们。
 - 螯合金属环不作为 ligand ring 拆除。
 - 金属–配体键穿过真实配体环时，最终门控必须失败。
 
@@ -829,6 +992,16 @@ tests/test_cheminfo/fixtures/complexes/
 - 合法螯合环，不得误报为有机环穿越。
 
 每个失败报告必须包含检查名称、实测值、阈值和相关 atom/bond indices。
+
+几何基础函数还必须独立覆盖：
+
+- 完全相同坐标、低于/ 等于/ 高于 overlap 容差的边界；
+- 小于/ 等于/ 大于绝对近距离阈值的边界；
+- `pair_scope="all"|"bonded"|"nonbonded"` 的集合差异；
+- 启用共价半径比例后，不同元素对使用对应阈值；
+- `Molecule.is_disorder` 及其他图对象的同名兼容属性保持历史 `distance < 0.50 Å` 结果；
+- 输入对象的坐标、键、环、缓存和 conformers 在所有 `geo.*` 检查前后完全不变；
+- `is_geometry_reasonable(...) == evaluate_geometry_quality(...).passed`，且两者使用同一组阈值语义。
 
 ### 11.6 配位几何预留接口
 
@@ -868,31 +1041,34 @@ tests/test_cheminfo/fixtures/complexes/
 2. `fix(complexes): make worker failures and timeouts deterministic`
 
    修复 Pipe 协议、异常传播、终止与 join。
-3. `fix(complexes): bound rebuild attempts and select nearest ring edge`
+3. `fix(complexes): bound rebuild attempts`
 
-   只修计数器和 `argmin`，便于回溯。
-4. `refactor(forcefields): unify optimizer and normalize parameters`
+   只修计数器，便于与几何语义改动分开回溯。
+4. `refactor(geometry): centralize structural validation`
+
+   把穿环、最近环边、原子重合和过近检查收敛到 `geometry.py`；`core` 只保留转发接口，`forcefields` 改为直接调用 `geo.*`。
+5. `refactor(forcefields): unify optimizer and normalize parameters`
 
    合并重复类，加入力场 helper，完成 epoch 参数迁移、细粒度函数拆分和空 constraint adapter。
-5. `api(forcefields): reserve coordination geometry strategy hook`
+6. `api(forcefields): reserve coordination geometry strategy hook`
 
    只加入数据结构和显式 `NotImplementedError` 接口，不实现、不接入默认流程。
-6. `feat(forcefields): add seeded epoch optimization and best-frame output`
+7. `feat(forcefields): add seeded epoch optimization and best-frame output`
 
    加入局部 RNG、正确 VDW 插值、标准分段优化、最低能帧及 movie。
-7. `feat(cheminfo): add layered geometry quality gates`
+8. `feat(geometry): add layered geometry quality gates`
 
-   新增纯门控模块和结构化报告。
-8. `refactor(complexes): make proxy build transactional and globally optimized`
+   在同一 `geometry.py` 内组合第 4 步的单项函数，新增分层纯门控和结构化报告，不复制距离或穿环算法。
+9. `refactor(complexes): make proxy build transactional and globally optimized`
 
    默认配体骨架补氢、working clone 全流程、最终门控、成功后原子化提交。
-9. `refactor(core): make build3d the canonical dispatcher`
+10. `refactor(core): make build3d the canonical dispatcher`
 
    将 `Molecule.build3d/optimize` 变为零业务门面，收敛旧入口和 `works.convert`。
-10. `test(complexes): validate hydrogens, metals, failures, and regression matrix`
+11. `test(complexes): validate hydrogens, metals, failures, and regression matrix`
 
    完成默认补氢、金属体系、失败事务和回归矩阵。
-11. `docs(complexes): document forcefield and quality contracts`
+12. `docs(complexes): document forcefield and quality contracts`
 
     更新公开 API、单位、随机性和限制。
 
@@ -914,6 +1090,8 @@ tests/test_cheminfo/fixtures/complexes/
 - 约束不再错误地作用于相邻原子。
 - 默认返回最低能合格帧。
 - seed 行为符合声明。
+- 键–环相交、最近环边、原子重合、过近和综合合理性只在 `geometry.py` 各有一份实现。
+- `core` 中对应公开属性/方法只是兼容转发，`forcefields` 仅直接调用 `geo.*`。
 
 ### 阶段 C：络合物流程完整性
 
@@ -936,6 +1114,8 @@ tests/test_cheminfo/fixtures/complexes/
 - 不以放宽断言、吞异常、返回最后一次尝试或自动换路径解决失败。
 - 不在门控失败后把不合格坐标写回本体。
 - 不以“UFF 能算出有限能量”代替结构质量判断。
+- 不新建 `geometry_quality.py` 或其他平行几何模块；几何判定和门控统一放入现有 `geometry.py`。
+- 不为了复用 `Molecule` 便捷属性而让 `forcefields.py` 绕过可配置的 `geo` 函数。
 - 不把 RDKit 的成功结果当作 Hotpot/Open Babel 的 oracle；参考实现只用于验证设计原则和非金属差分测试。
 - 不在本轮加入未经标定的配位几何模板。
 

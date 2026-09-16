@@ -708,8 +708,8 @@ class Molecule:
         """
         Restores metal-ligand bonds that were previously broken and updates the internal graph representation.
 
-        This function recovers all previously broken metal-ligand bonds by adding them back 
-        to the existing bond list. It ensures no duplicate bonds exist by using a set operation. 
+        This function recovers all previously broken metal-ligand bonds by adding them back
+        to the existing bond list. Duplicate bonds are removed without changing their order.
         Additionally, it updates the internal graph representation to reflect the recovered bonds 
         and provides the option to clear conformer data. After recovery, the list of broken metal bonds 
         is reset.
@@ -722,14 +722,14 @@ class Molecule:
             None
         """
         if self._hided_metal_bonds:
-            self._bonds = list(set(self._bonds + self._hided_metal_bonds))
+            self._bonds = list(dict.fromkeys(self._bonds + self._hided_metal_bonds))
             self._update_graph(clear_conformers)
             logging.info(f"[green]Recover {len(self._hided_metal_bonds)} hided metal-ligand bonds[/]")
             self._hided_metal_bonds = []
 
     def recover_hided_covalent_bonds(self, clear_conformers: bool = False) -> None:
         if self._hided_covalent_bonds:
-            self._bonds = list(set(self._bonds + self._hided_covalent_bonds))
+            self._bonds = list(dict.fromkeys(self._bonds + self._hided_covalent_bonds))
             self._update_graph(clear_conformers)
             logging.info(f"[green]Recover {len(self._hided_covalent_bonds)} hided covalent bonds[/]")
             self._hided_covalent_bonds = []
@@ -1397,7 +1397,7 @@ class Molecule:
 
         components = []
         for c_node_idx in nx.connected_components(graph):
-            c_node_idx = tuple(c_node_idx)
+            c_node_idx = tuple(sorted(c_node_idx))
             subgraph = graph.subgraph(c_node_idx)
 
             component = Molecule()

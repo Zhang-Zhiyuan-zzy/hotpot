@@ -216,7 +216,12 @@ configured `epochs * steps_per_epoch` budget. `steps_completed` is `None`
 because Open Babel does not expose how many submitted steps it completed
 before stopping. Ordinary molecules honor the chosen Open Babel force field.
 The current complex policy maps every supported request to UFF; this is
-deliberate and visible in `ComplexBuildReport`. Quality levels are `off`,
+deliberate and visible in `ComplexBuildReport`. The canonical
+`build_and_optimize()` dispatcher always returns the common
+`ForceFieldWorkflowReport` layout: organic workflows use
+`BuildAndOptimizeReport` and retain both `Build3DReport` and
+`ForceFieldRunReport`, while complex workflows use `ComplexBuildReport`.
+Quality levels are `off`,
 `basic`, `standard` (default), and `strict`. Even `off` still enforces
 coordinate finiteness, shape, force-field setup, and topology integrity.
 Open Babel force-field plugin instances are serialized within each process;
@@ -230,6 +235,19 @@ strict stationary point. The strict gate separately checks Hotpot-computed RMS
 and maximum gradients plus recent energy and displacement stability. During
 VDW-cutoff annealing, every candidate frame is ranked under the same final
 cutoff; the electrostatic cutoff is kept effectively untruncated.
+
+When Open Babel reports convergence in the first epoch of the first segment,
+there is no pair of Hotpot observations from which to calculate an energy or
+displacement change. The strict gate accepts that specific case only when the
+backend convergence flag and the explicit RMS/maximum-gradient checks also
+pass; the report keeps the missing histories empty instead of inventing
+measurements. Setup failures carry a `ForceFieldSetupReport` with requested and
+effective force fields plus the failing lookup/setup stage.
+
+Atom, bond, angle, and torsion `constraint` fields remain part of Hotpot's data
+model, but the current Open Babel force-field adapter intentionally submits an
+empty constraint set. These fields do not constrain `ff.optimize()` or the
+complex workflow in this release.
 
 UFF geometry is a general-purpose structural relaxation, not a validation of
 oxidation state, spin state, or ligand-field geometry. The

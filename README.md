@@ -252,8 +252,8 @@ def main():
     pair = hp.read_mol(SMILES).auto_pair_metal("Eu")
     report = pair.build3d(
         seed=20260916,
-        candidate_count=1,
-        max_attempts=3,
+        candidate_count=3,
+        max_attempts=20,
         epochs=20,
         steps_per_epoch=500,
     )

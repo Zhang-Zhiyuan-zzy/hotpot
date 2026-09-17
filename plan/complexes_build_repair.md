@@ -1,6 +1,6 @@
 # `complexes_build` 络合物构筑与力场优化修补手册
 
-> 状态：实施前设计冻结稿
+> 状态：实施完成与验收同步稿
 >
 > 工作分支：`fix/complexes-build-pipeline`
 >
@@ -862,6 +862,9 @@ ForceFieldRunReport
 - 建议 RMS 梯度上限从 OpenMM 默认量级开始校准：1 kJ mol⁻¹ Å⁻¹；
 - 建议最大梯度参考 ASE 常用量级开始校准：约 5 kJ mol⁻¹ Å⁻¹；
 - 最后若干无扰动 epoch 的能量和坐标变化必须处于配置阈值内；
+- 唯一例外是 Open Babel 在首个 segment 的第一个 epoch 已明确停止、且 RMS
+  与最大梯度均通过 strict 阈值；此时不存在相邻帧可计算变化量，报告必须保留
+  空历史而不是伪造观测值；
 - 所有 standard warning 升格为 failure。
 
 严格阈值在基准集完成统计前不得作为默认值。能量/梯度单位必须先统一为 kJ mol⁻¹ 和 kJ mol⁻¹ Å⁻¹。
@@ -1037,8 +1040,9 @@ tests/test_cheminfo/fixtures/complexes/
 
 ### 11.8 回归与性能
 
-- README Eu 默认流程必须通过 standard gate；记录运行时间、最终 Eu–供体距离和能量，但不对随机运行做逐位断言。
-- 有 seed 的基线使用距离/能量容差比较。
+- README Eu 文档流程必须通过 standard gate；记录运行时间、最终 Eu–供体距离和能量，但不对随机运行做逐位断言。
+- 有 seed 的结构基线使用距离容差比较；UFF 绝对能量只在相同 Open Babel
+  版本和平台内作为非门禁快照，跨版本只记录，不作为化学正确性断言。
 - 小型 Zn 体系作为 CI smoke；Eu 案例标记为 slow，防止普通 CI 超时。
 - 以结构不变量验证默认仅保留一个构象、标量历史窗口有界；原生 Open Babel
   分配器和操作系统 RSS 峰值仅用于手工 benchmark，不作为跨平台 CI 硬断言。

@@ -236,7 +236,7 @@ class _ObservedFrame:
     max_displacements: Tuple[float, ...]
 
 
-_SEED_ENVIRONMENT_LOCK = threading.Lock()
+_WORKER_LIFECYCLE_LOCK = threading.Lock()
 _OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
 _WORKER_EXIT_GRACE_SECONDS = 30.0
 _SEEDED_BUILD_TIMEOUT_SECONDS = 1000.0
@@ -1164,7 +1164,7 @@ def _receive_worker_result(
     result = None
     started = False
     try:
-        with _SEED_ENVIRONMENT_LOCK:
+        with _WORKER_LIFECYCLE_LOCK:
             previous_seed = os.environ.get("OB_RANDOM_SEED")
             if seed is not None:
                 os.environ["OB_RANDOM_SEED"] = str(seed)
@@ -1200,11 +1200,22 @@ def _receive_worker_result(
                 "The build worker sent a result but did not terminate",
                 None,
             )
-        process.join()
-        if process.exitcode != 0:
+        # ``Process.start()`` runs multiprocessing's global child cleanup.
+        # Reap under the same lock so another thread cannot win waitpid() and
+        # leave this Process object briefly reporting ``exitcode is None``.
+        with _WORKER_LIFECYCLE_LOCK:
+            process.join(timeout=_WORKER_EXIT_GRACE_SECONDS)
+            exitcode = process.exitcode
+        if exitcode is None:
+            raise worker_error_type(
+                "WorkerShutdownError",
+                "The build worker did not expose an exit code after termination",
+                None,
+            )
+        if exitcode != 0:
             raise worker_error_type(
                 "WorkerExitError",
-                f"The build worker exited with code {process.exitcode}",
+                f"The build worker exited with code {exitcode}",
                 None,
             )
         if not isinstance(result, BuildWorkerResult):
@@ -1240,12 +1251,13 @@ def _receive_worker_result(
         return result
     finally:
         if started:
-            if process.is_alive():
-                process.terminate()
-            process.join(timeout=5.0)
-            if process.is_alive():
-                process.kill()
+            with _WORKER_LIFECYCLE_LOCK:
+                if process.is_alive():
+                    process.terminate()
                 process.join(timeout=5.0)
+                if process.is_alive():
+                    process.kill()
+                    process.join(timeout=5.0)
         receive_connection.close()
         send_connection.close()
 

@@ -172,6 +172,25 @@ class _StubbornProcess:
         self.join_calls.append(timeout)
 
 
+class _DelayedExitcodeProcess:
+    def __init__(self):
+        self.started = False
+        self.exitcode = None
+        self.join_calls = []
+        self.sentinel = object()
+
+    def start(self):
+        self.started = True
+
+    def is_alive(self):
+        return False
+
+    def join(self, timeout=None):
+        self.join_calls.append(timeout)
+        if timeout is not None:
+            self.exitcode = 0
+
+
 class _DummyAtom:
     def __init__(self, atom_id):
         self.id = atom_id
@@ -471,7 +490,7 @@ def test_seed_is_forwarded_to_worker_without_mutating_parent_environment(monkeyp
     assert os.environ["OB_RANDOM_SEED"] == "parent"
 
 
-def test_unseeded_worker_start_uses_the_seed_environment_lock(monkeypatch):
+def test_worker_start_and_reaping_use_the_lifecycle_lock(monkeypatch):
     class CountingLock:
         entered = 0
 
@@ -482,7 +501,7 @@ def test_unseeded_worker_start_uses_the_seed_environment_lock(monkeypatch):
             return False
 
     lock = CountingLock()
-    monkeypatch.setattr(ff, "_SEED_ENVIRONMENT_LOCK", lock)
+    monkeypatch.setattr(ff, "_WORKER_LIFECYCLE_LOCK", lock)
     process, receive_connection, send_connection = _pipe_process(_send_small_worker)
 
     ff._receive_worker_result(
@@ -492,7 +511,7 @@ def test_unseeded_worker_start_uses_the_seed_environment_lock(monkeypatch):
         timeout=5.0,
     )
 
-    assert lock.entered == 1
+    assert lock.entered == 3
 
 
 def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
@@ -510,6 +529,36 @@ def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
 
     assert result.status == "ok"
     assert process.exitcode == 0
+
+
+def test_ready_sentinel_is_followed_by_bounded_exitcode_refresh(monkeypatch):
+    monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
+    monkeypatch.setattr(
+        ff,
+        "wait_for_connections",
+        lambda objects, timeout: list(objects),
+    )
+    diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
+    receive_connection = _ReadyConnection(
+        ff.BuildWorkerResult(
+            status="ok",
+            coordinates=np.zeros((1, 3)),
+            diagnostics=diagnostics,
+        )
+    )
+    send_connection = _NeverReadyConnection()
+    process = _DelayedExitcodeProcess()
+
+    result = ff._receive_worker_result(
+        process,
+        receive_connection,
+        send_connection,
+        timeout=2.0,
+    )
+
+    assert result.status == "ok"
+    assert process.exitcode == 0
+    assert process.join_calls == [0.25, 5.0]
 
 
 def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatch):

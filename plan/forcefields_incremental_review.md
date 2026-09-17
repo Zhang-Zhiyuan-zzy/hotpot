@@ -12,6 +12,7 @@
 
 - [A001：`forcefields.py` 与 `geometry.py` 类型和命名审查](reviews/ff_geo_typing_naming_review.md)
 - [A002：`forcefields.py` 与 `geometry.py` 兼容性代码审查](reviews/ff_geo_compatibility_review.md)
+- [A003：Python 3.9 / Open Babel 3.1 force-field 模块隔离方案](reviews/forcefields_python39_module_split.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
 
@@ -140,3 +141,12 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
   接口。
 - 待确定：是否以放弃 Python 3.9 为代价移除 Open Babel 3.1 适配。
 - 待确定：非平面环穿越判定采用何种当前几何语义。
+
+### 用户补充决策：Python 3.9 隔离而非删除
+
+- 暂不放弃 Python 3.9 和 Open Babel 3.1。
+- 将 `forcefields.py` 改为 `forcefields/` package；`__init__.py` 是唯一版本选择点。
+- Python 3.10+ 使用 `ff.py` + `utils.py`；Python 3.9 使用 `ff39.py`，并按需连接
+  `utils.py` + `utils39.py`。
+- `ff.py` 与 `ff39.py` 的公开接口和签名必须完全一致。
+- 具体模块边界、迁移顺序及测试围栏见附件 A003。

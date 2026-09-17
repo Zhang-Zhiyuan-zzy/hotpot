@@ -286,7 +286,7 @@ BuildWorkerResult
 ### 4.3 超时和并发
 
 - `timeout` 必须从 `Molecule.build3d()` 穿透到子进程管理层。
-- 同时运行多个构筑任务时，每次调用拥有独立 Pipe、随机数生成器、临时状态和 Open Babel 力场对象。
+- 同时运行多个构筑任务时，每次调用拥有独立 Pipe、随机数生成器和临时状态。Open Babel Python 绑定的 `MakeNewInstance()` 虽返回不同指针，但在真实 Hotpot 分子上反复 `Setup()` 会触发原生段错误；因此当前进程内保留由全局锁保护的插件实例，复杂构筑 worker 则天然拥有各自的进程内实例。除非未来 Open Babel 版本通过真实 `Setup()`/优化回归，不得仅凭指针不同切换到克隆实例。
 - 不使用模块级可变优化器或全局 NumPy seed。
 - 有 seed 时优先使用 `spawn` context；worker 启动后在第一次调用 `OBBuilder` 前设置 `OB_RANDOM_SEED`。
 - 同一 seed 只承诺在相同 Hotpot/Open Babel/平台版本内重现；不承诺跨 Open Babel 版本逐位一致。

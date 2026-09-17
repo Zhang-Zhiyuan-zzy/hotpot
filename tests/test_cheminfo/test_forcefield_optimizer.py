@@ -174,8 +174,9 @@ class _OptimizerMolecule:
 def _optimizer(monkeypatch, backend, frames, **kwargs):
     backend.frames = frames
     obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
-    monkeypatch.setattr(ff.ob.OBForceField, "FindType", lambda _: backend)
-    monkeypatch.setattr(ff.ob, "OBMolAtomIter", lambda _: (object(), object()))
+    monkeypatch.setattr(ff, "_get_forcefield", lambda _: backend)
+    monkeypatch.setattr(ff, "_make_constraints", lambda _: object())
+    monkeypatch.setattr(ff, "_iter_obmol_atoms", lambda _: (object(), object()))
     monkeypatch.setattr(ff, "mol2obmol", lambda mol: (obmol, {0: 1, 1: 2}))
     monkeypatch.setattr(
         ff,
@@ -558,20 +559,18 @@ def test_energy_conversion_is_explicit():
         ff._energy_factor_to_kj("hartree")
 
 
-def test_unknown_forcefield_fails_before_setup():
+def test_unknown_forcefield_fails_before_setup(monkeypatch):
+    monkeypatch.setattr(ff, "_find_forcefield_prototype", lambda name: None)
+
     with pytest.raises(ff.ForceFieldSetupError, match="Unknown Open Babel force field"):
         ff._get_forcefield("not-a-forcefield")
 
 
-def test_forcefield_lookup_returns_an_independent_backend(monkeypatch):
-    instances = [object(), object()]
-    prototype = SimpleNamespace(MakeNewInstance=lambda: instances.pop(0))
-    monkeypatch.setattr(ff.ob.OBForceField, "FindType", lambda _: prototype)
+def test_forcefield_lookup_returns_the_serialized_plugin(monkeypatch):
+    backend = object()
+    monkeypatch.setattr(ff, "_find_forcefield_prototype", lambda _: backend)
 
-    first = ff._get_forcefield("UFF")
-    second = ff._get_forcefield("UFF")
-
-    assert first is not second
+    assert ff._get_forcefield("UFF") is backend
 
 
 @pytest.mark.parametrize(

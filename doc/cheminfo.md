@@ -219,6 +219,10 @@ The current complex policy maps every supported request to UFF; this is
 deliberate and visible in `ComplexBuildReport`. Quality levels are `off`,
 `basic`, `standard` (default), and `strict`. Even `off` still enforces
 coordinate finiteness, shape, force-field setup, and topology integrity.
+Open Babel force-field plugin instances are serialized within each process;
+complex-build workers retain process-level isolation. This avoids unsafe
+`MakeNewInstance()` behavior observed during real `Setup()` calls in supported
+Open Babel Python wheels.
 
 `converged=True` records an Open Babel backend stop before Hotpot's submitted
 budget was exhausted; it is not, by itself, a claim of chemical accuracy or a

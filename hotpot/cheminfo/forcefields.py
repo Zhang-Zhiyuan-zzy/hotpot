@@ -293,6 +293,10 @@ def _make_constraints(mol: Any) -> ob.OBFFConstraints:
     return ob.OBFFConstraints()
 
 
+def _iter_obmol_atoms(obmol: ob.OBMol):
+    return ob.OBMolAtomIter(obmol)
+
+
 def _energy_factor_to_kj(unit: str) -> float:
     normalized = unit.strip().lower().replace(" ", "")
     if normalized in {"kj/mol", "kjmol-1", "kjmol^-1"}:
@@ -304,11 +308,15 @@ def _energy_factor_to_kj(unit: str) -> float:
 
 @_serialized_forcefield_call
 def _get_forcefield(name: str) -> ob.OBForceField:
-    """Create an independent force-field instance from an Open Babel plugin."""
-    prototype = ob.OBForceField.FindType(name)
-    if prototype is None:
+    """Retrieve a force-field plugin guarded by the process-local FF lock."""
+    backend = _find_forcefield_prototype(name)
+    if backend is None:
         raise ForceFieldSetupError(f"Unknown Open Babel force field: {name!r}")
-    return prototype.MakeNewInstance()
+    return backend
+
+
+def _find_forcefield_prototype(name: str) -> Optional[ob.OBForceField]:
+    return ob.OBForceField.FindType(name)
 
 
 @_serialized_forcefield_call
@@ -624,7 +632,7 @@ class _OpenBabelOptimizer:
 
     def _gradients(self, obmol: Any, factor: float) -> Tuple[float, float]:
         vectors = []
-        for atom in ob.OBMolAtomIter(obmol):
+        for atom in _iter_obmol_atoms(obmol):
             gradient = self.backend.GetGradient(atom)
             vectors.append((gradient.GetX(), gradient.GetY(), gradient.GetZ()))
         norms = np.linalg.norm(np.asarray(vectors, dtype=float) * factor, axis=1)

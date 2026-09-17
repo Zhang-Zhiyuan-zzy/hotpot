@@ -22,11 +22,51 @@ from openbabel import openbabel as ob
 from . import geometry as geo
 from .obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
 
+
+__all__ = (
+    "OptimizationAlgorithm",
+    "TerminationReason",
+    "ForceFieldRunReport",
+    "Build3DReport",
+    "CandidateRejection",
+    "ComplexBuildDiagnostics",
+    "BuildWorkerResult",
+    "ForceFieldWorkflowReport",
+    "BuildAndOptimizeReport",
+    "ComplexBuildReport",
+    "ForceFieldSetupReport",
+    "CoordinationEnvironment",
+    "CoordinationGeometryCandidate",
+    "CoordinationGeometryResult",
+    "ForceFieldError",
+    "ForceFieldSetupError",
+    "BuildWorkerError",
+    "BuildTimeoutError",
+    "ComplexBuildError",
+    "ComplexBuildWorkerError",
+    "ComplexBuildTimeoutError",
+    "GeometryQualityError",
+    "perturb",
+    "collect_coordination_environments",
+    "prepare_coordination_geometry",
+    "build3d",
+    "optimize",
+    "build_complex3d",
+    "optimize_complex",
+    "complexes_build",
+    "build_and_optimize",
+    "auto_optimize",
+)
+
+
 OptimizationAlgorithm = Literal["steepest", "conjugate"]
 TerminationReason = Literal["converged", "budget_exhausted"]
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
+
+
+# Public report and coordination data contracts.
 
 
 @dataclass(frozen=True)
@@ -156,6 +196,9 @@ class CoordinationGeometryResult:
     diagnostics: Mapping[str, object]
 
 
+# Public exception hierarchy.
+
+
 class ForceFieldError(RuntimeError):
     """Base class for force-field workflow failures."""
 
@@ -233,20 +276,7 @@ class GeometryQualityError(ForceFieldError):
         self.report = report
 
 
-def _format_geometry_checks(prefix: str, checks: Tuple[Any, ...]) -> str:
-    """Render failed geometry checks without discarding measured evidence."""
-    details = "; ".join(
-        f"{check.name}(measured={check.measured!r}, "
-        f"threshold={check.threshold!r}, "
-        f"atom_indices={check.atom_indices!r}, "
-        f"bond_indices={check.bond_indices!r})"
-        for check in checks
-    )
-    return f"{prefix}: {details}"
-
-
-def _format_geometry_rejection(prefix: str, report: Any) -> str:
-    return _format_geometry_checks(prefix, tuple(report.failures))
+# Internal workflow data contracts.
 
 
 @dataclass(frozen=True)
@@ -294,6 +324,28 @@ class _MoleculeCommitSnapshot:
     atom_pair_items: Tuple[Tuple[Any, Any], ...]
     conformer_state: Mapping[str, Any]
     conformer_index: int
+
+
+# Diagnostic formatting helpers.
+
+
+def _format_geometry_checks(prefix: str, checks: Tuple[Any, ...]) -> str:
+    """Render failed geometry checks without discarding measured evidence."""
+    details = "; ".join(
+        f"{check.name}(measured={check.measured!r}, "
+        f"threshold={check.threshold!r}, "
+        f"atom_indices={check.atom_indices!r}, "
+        f"bond_indices={check.bond_indices!r})"
+        for check in checks
+    )
+    return f"{prefix}: {details}"
+
+
+def _format_geometry_rejection(prefix: str, report: Any) -> str:
+    return _format_geometry_checks(prefix, tuple(report.failures))
+
+
+# Synchronization and force-field policy helpers.
 
 
 _WORKER_LIFECYCLE_LOCK = threading.Lock()
@@ -380,6 +432,23 @@ def _find_forcefield_prototype(name: str) -> Optional[ob.OBForceField]:
     return ob.OBForceField.FindType(name)
 
 
+def _seed_openbabel_random(seed: int) -> None:
+    """Seed both Open Babel RNG implementations before using ``OBBuilder``."""
+    os.environ["OB_RANDOM_SEED"] = str(seed)
+
+    # Open Babel 3.1 uses a function-local OBRandom backed by the process C
+    # RNG and time-seeds it on first use.  Initializing that singleton before
+    # resetting srand makes the legacy implementation deterministic.  Newer
+    # Open Babel builds use OB_RANDOM_SEED through OBRandomMT; the extra C RNG
+    # seed is harmless and keeps one code path across supported versions.
+    probe = ob.vector3()
+    probe.randomUnitVector()
+    process_c_library = ctypes.CDLL(None)
+    process_c_library.srand.argtypes = (ctypes.c_uint,)
+    process_c_library.srand.restype = None
+    process_c_library.srand(ctypes.c_uint(seed))
+
+
 @_serialized_forcefield_call
 def _single_ob_optimization(
     mol: Any, forcefield: str, steps: int
@@ -402,6 +471,27 @@ def _single_ob_optimization(
         energy_unit="kJ/mol",
         exploded=bool(backend.DetectExplosion()),
     )
+
+
+# Low-level Open Babel build and optimization primitives.
+
+
+@_serialized_builder_call
+def _ob_build(mol: Any) -> None:
+    """Run OBBuilder directly on an internal working molecule."""
+    builder = ob.OBBuilder()
+    obmol, _ = mol2obmol(mol)
+    if not builder.Build(obmol):
+        raise ForceFieldError("Open Babel could not build initial 3D coordinates")
+    mol.coordinates = extract_obmol_coordinates(obmol)
+
+
+def _ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
+    """Run one internal Open Babel optimization and return kJ/mol."""
+    return _single_ob_optimization(mol, ff, steps).energy
+
+
+# Working-copy preparation and transactional commit helpers.
 
 
 def _copy_molecule_metadata(source: Any, target: Any) -> None:
@@ -485,23 +575,6 @@ def _structure_worker_proxy(mol: Any) -> Any:
     proxy.charge = mol.charge
     proxy.refresh_atom_id()
     return proxy
-
-
-def _seed_openbabel_random(seed: int) -> None:
-    """Seed both Open Babel RNG implementations before using ``OBBuilder``."""
-    os.environ["OB_RANDOM_SEED"] = str(seed)
-
-    # Open Babel 3.1 uses a function-local OBRandom backed by the process C
-    # RNG and time-seeds it on first use.  Initializing that singleton before
-    # resetting srand makes the legacy implementation deterministic.  Newer
-    # Open Babel builds use OB_RANDOM_SEED through OBRandomMT; the extra C RNG
-    # seed is harmless and keeps one code path across supported versions.
-    probe = ob.vector3()
-    probe.randomUnitVector()
-    process_c_library = ctypes.CDLL(None)
-    process_c_library.srand.argtypes = (ctypes.c_uint,)
-    process_c_library.srand.restype = None
-    process_c_library.srand(ctypes.c_uint(seed))
 
 
 def _atom_commit_signature(atom: Any) -> Tuple[int, int, int]:
@@ -652,68 +725,7 @@ def _perturbed_coordinates(
     return np.asarray(coordinates, dtype=float) + displacement
 
 
-def perturb(mol: Any, *, sigma: float = 0.5, seed: Optional[int] = None) -> np.ndarray:
-    """Perturb current coordinates in place with a local random generator."""
-    coordinates = _perturbed_coordinates(
-        mol.coordinates,
-        sigma=sigma,
-        rng=np.random.default_rng(seed),
-    )
-    mol.coordinates = coordinates
-    return coordinates
-
-
-def collect_coordination_environments(mol: Any) -> Tuple[CoordinationEnvironment, ...]:
-    """Describe explicit metal--donor connectivity without assigning geometry."""
-    ligand_graph = mol.graph.copy()
-    ligand_graph.remove_edges_from(
-        (bond.a1idx, bond.a2idx) for bond in mol.bonds if bond.is_metal_ligand_bond
-    )
-    component_by_atom = {}
-    for component_index, nodes in enumerate(nx.connected_components(ligand_graph)):
-        for atom_idx in nodes:
-            component_by_atom[atom_idx] = component_index
-
-    environments = []
-    for metal in mol.metals:
-        donors = sorted(
-            bond.atom2.idx if bond.atom1.idx == metal.idx else bond.atom1.idx
-            for bond in mol.bonds
-            if bond.is_metal_ligand_bond and metal.idx in (bond.a1idx, bond.a2idx)
-        )
-        grouped = {}
-        for donor_idx in donors:
-            grouped.setdefault(component_by_atom[donor_idx], []).append(donor_idx)
-        environments.append(
-            CoordinationEnvironment(
-                metal_idx=metal.idx,
-                donor_indices=tuple(donors),
-                coordination_number=len(donors),
-                metal_atomic_number=metal.atomic_number,
-                metal_formal_charge=metal.formal_charge,
-                donor_atomic_numbers=tuple(
-                    mol.atoms[index].atomic_number for index in donors
-                ),
-                chelate_groups=tuple(
-                    tuple(indices) for _, indices in sorted(grouped.items())
-                ),
-            )
-        )
-    return tuple(environments)
-
-
-def prepare_coordination_geometry(
-    mol: Any,
-    *,
-    environments: Optional[Tuple[CoordinationEnvironment, ...]] = None,
-    strategy: Optional[str] = None,
-    seed: Optional[int] = None,
-) -> CoordinationGeometryResult:
-    """Reserved hook for coordination-number-aware initial placement."""
-    _require_explicit_complex(mol)
-    raise NotImplementedError(
-        "Coordination-number-aware placement is reserved but not implemented"
-    )
+# Stateful Open Babel optimization engine.
 
 
 class _OpenBabelOptimizer:
@@ -1075,6 +1087,9 @@ class _OpenBabelOptimizer:
         )
 
 
+# Ligand-proxy construction and geometric untangling.
+
+
 def _build_ligand_proxies(
     mol: Any,
     *,
@@ -1307,6 +1322,9 @@ def _build_ligand_proxies(
         elapsed_seconds=time.monotonic() - started,
     )
     return clone.coordinates, diagnostics
+
+
+# Spawn-worker entry points and IPC lifecycle management.
 
 
 def _run_complexes_build(
@@ -1542,6 +1560,9 @@ def _seeded_ob_build_coordinates(
     )
 
 
+# Non-committing workflow stages and compatibility translation.
+
+
 def _build_complex_working(
     mol: Any,
     *,
@@ -1646,6 +1667,177 @@ def _run_optimizer_on_working(
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
+    )
+
+
+def _complexes_build_impl(
+    mol: Any,
+    forcefield: Optional[str] = None,
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    timeout: float = 1000.0,
+    add_hydrogens: bool = True,
+    quality_level: str = "standard",
+    quality_thresholds: Optional[Mapping[str, float]] = None,
+    seed: Optional[int] = None,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+    coordination_geometry: Optional[str] = None,
+) -> ComplexBuildReport:
+    """Build, optimize, validate, and atomically commit a complete complex."""
+    _require_explicit_complex(mol)
+    topology_reference = _capture_workflow_topology(
+        mol,
+        allow_added_hydrogens=add_hydrogens,
+    )
+    effective_forcefield = _resolve_complex_forcefield(forcefield)
+    working, diagnostics = _build_complex_working(
+        mol,
+        effective_forcefield=effective_forcefield,
+        candidate_count=candidate_count,
+        max_attempts=max_attempts,
+        candidate_warmup_steps=candidate_warmup_steps,
+        candidate_score_steps=candidate_score_steps,
+        best_candidate_refine_steps=best_candidate_refine_steps,
+        timeout=timeout,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        coordination_geometry=coordination_geometry,
+    )
+    optimization_report = _run_optimizer_on_working(
+        working,
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        quality_level=quality_level,
+        topology_reference=topology_reference,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    report = ComplexBuildReport(
+        requested_forcefield=forcefield,
+        effective_forcefield=effective_forcefield,
+        build=diagnostics,
+        optimization=optimization_report,
+        quality_report=optimization_report.quality_report,
+    )
+    _commit_working_copy(mol, working)
+    return report
+
+
+_LEGACY_COMPLEX_BUILD_OPTIONS = {
+    "steps": "epochs",
+    "step_size": "steps_per_epoch",
+    "perturb_steps": "perturb_interval",
+    "save_screenshot": "save_movie",
+    "build_times": "candidate_count",
+    "init_opt_steps": "candidate_warmup_steps",
+    "second_opt_steps": "candidate_score_steps",
+    "min_energy_opt_steps": "best_candidate_refine_steps",
+    "increasing_Vdw": "increasing_vdw",
+    "Vdw_cutoff_start": "vdw_cutoff_start",
+    "Vdw_cutoff_end": "vdw_cutoff_end",
+}
+
+
+def _translate_legacy_complex_build_options(options: Mapping[str, Any]) -> dict:
+    """Translate historical names once without changing workflow semantics."""
+    translated = dict(options)
+    for legacy_name, current_name in _LEGACY_COMPLEX_BUILD_OPTIONS.items():
+        if legacy_name not in translated:
+            continue
+        legacy_value = translated.pop(legacy_name)
+        if current_name in translated and translated[current_name] != legacy_value:
+            raise TypeError(
+                f"Conflicting values for {legacy_name!r} and {current_name!r}"
+            )
+        translated[current_name] = legacy_value
+    return translated
+
+
+# Public force-field and coordination interfaces, ordered from primitives to workflows.
+
+
+def perturb(mol: Any, *, sigma: float = 0.5, seed: Optional[int] = None) -> np.ndarray:
+    """Perturb current coordinates in place with a local random generator."""
+    coordinates = _perturbed_coordinates(
+        mol.coordinates,
+        sigma=sigma,
+        rng=np.random.default_rng(seed),
+    )
+    mol.coordinates = coordinates
+    return coordinates
+
+
+def collect_coordination_environments(mol: Any) -> Tuple[CoordinationEnvironment, ...]:
+    """Describe explicit metal--donor connectivity without assigning geometry."""
+    ligand_graph = mol.graph.copy()
+    ligand_graph.remove_edges_from(
+        (bond.a1idx, bond.a2idx) for bond in mol.bonds if bond.is_metal_ligand_bond
+    )
+    component_by_atom = {}
+    for component_index, nodes in enumerate(nx.connected_components(ligand_graph)):
+        for atom_idx in nodes:
+            component_by_atom[atom_idx] = component_index
+
+    environments = []
+    for metal in mol.metals:
+        donors = sorted(
+            bond.atom2.idx if bond.atom1.idx == metal.idx else bond.atom1.idx
+            for bond in mol.bonds
+            if bond.is_metal_ligand_bond and metal.idx in (bond.a1idx, bond.a2idx)
+        )
+        grouped = {}
+        for donor_idx in donors:
+            grouped.setdefault(component_by_atom[donor_idx], []).append(donor_idx)
+        environments.append(
+            CoordinationEnvironment(
+                metal_idx=metal.idx,
+                donor_indices=tuple(donors),
+                coordination_number=len(donors),
+                metal_atomic_number=metal.atomic_number,
+                metal_formal_charge=metal.formal_charge,
+                donor_atomic_numbers=tuple(
+                    mol.atoms[index].atomic_number for index in donors
+                ),
+                chelate_groups=tuple(
+                    tuple(indices) for _, indices in sorted(grouped.items())
+                ),
+            )
+        )
+    return tuple(environments)
+
+
+def prepare_coordination_geometry(
+    mol: Any,
+    *,
+    environments: Optional[Tuple[CoordinationEnvironment, ...]] = None,
+    strategy: Optional[str] = None,
+    seed: Optional[int] = None,
+) -> CoordinationGeometryResult:
+    """Reserved hook for coordination-number-aware initial placement."""
+    _require_explicit_complex(mol)
+    raise NotImplementedError(
+        "Coordination-number-aware placement is reserved but not implemented"
     )
 
 
@@ -1846,110 +2038,6 @@ def optimize_complex(
     return report
 
 
-def _complexes_build_impl(
-    mol: Any,
-    forcefield: Optional[str] = None,
-    *,
-    algorithm: OptimizationAlgorithm = "conjugate",
-    epochs: int = 100,
-    steps_per_epoch: int = 100,
-    candidate_count: int = 5,
-    max_attempts: int = 50,
-    candidate_warmup_steps: int = 500,
-    candidate_score_steps: int = 1000,
-    best_candidate_refine_steps: int = 3000,
-    timeout: float = 1000.0,
-    add_hydrogens: bool = True,
-    quality_level: str = "standard",
-    quality_thresholds: Optional[Mapping[str, float]] = None,
-    seed: Optional[int] = None,
-    perturb_interval: Optional[int] = None,
-    perturb_sigma: float = 0.5,
-    save_movie: bool = False,
-    increasing_vdw: bool = False,
-    vdw_cutoff_start: float = 0.0,
-    vdw_cutoff_end: float = 12.5,
-    coordination_geometry: Optional[str] = None,
-) -> ComplexBuildReport:
-    """Build, optimize, validate, and atomically commit a complete complex."""
-    _require_explicit_complex(mol)
-    topology_reference = _capture_workflow_topology(
-        mol,
-        allow_added_hydrogens=add_hydrogens,
-    )
-    effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working, diagnostics = _build_complex_working(
-        mol,
-        effective_forcefield=effective_forcefield,
-        candidate_count=candidate_count,
-        max_attempts=max_attempts,
-        candidate_warmup_steps=candidate_warmup_steps,
-        candidate_score_steps=candidate_score_steps,
-        best_candidate_refine_steps=best_candidate_refine_steps,
-        timeout=timeout,
-        add_hydrogens=add_hydrogens,
-        seed=seed,
-        coordination_geometry=coordination_geometry,
-    )
-    optimization_report = _run_optimizer_on_working(
-        working,
-        requested_forcefield=forcefield,
-        effective_forcefield=effective_forcefield,
-        algorithm=algorithm,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        quality_level=quality_level,
-        topology_reference=topology_reference,
-        quality_thresholds=quality_thresholds,
-        seed=seed,
-        perturb_interval=perturb_interval,
-        perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
-        increasing_vdw=increasing_vdw,
-        vdw_cutoff_start=vdw_cutoff_start,
-        vdw_cutoff_end=vdw_cutoff_end,
-    )
-    report = ComplexBuildReport(
-        requested_forcefield=forcefield,
-        effective_forcefield=effective_forcefield,
-        build=diagnostics,
-        optimization=optimization_report,
-        quality_report=optimization_report.quality_report,
-    )
-    _commit_working_copy(mol, working)
-    return report
-
-
-_LEGACY_COMPLEX_BUILD_OPTIONS = {
-    "steps": "epochs",
-    "step_size": "steps_per_epoch",
-    "perturb_steps": "perturb_interval",
-    "save_screenshot": "save_movie",
-    "build_times": "candidate_count",
-    "init_opt_steps": "candidate_warmup_steps",
-    "second_opt_steps": "candidate_score_steps",
-    "min_energy_opt_steps": "best_candidate_refine_steps",
-    "increasing_Vdw": "increasing_vdw",
-    "Vdw_cutoff_start": "vdw_cutoff_start",
-    "Vdw_cutoff_end": "vdw_cutoff_end",
-}
-
-
-def _translate_legacy_complex_build_options(options: Mapping[str, Any]) -> dict:
-    """Translate historical names once without changing workflow semantics."""
-    translated = dict(options)
-    for legacy_name, current_name in _LEGACY_COMPLEX_BUILD_OPTIONS.items():
-        if legacy_name not in translated:
-            continue
-        legacy_value = translated.pop(legacy_name)
-        if current_name in translated and translated[current_name] != legacy_value:
-            raise TypeError(
-                f"Conflicting values for {legacy_name!r} and {current_name!r}"
-            )
-        translated[current_name] = legacy_value
-    return translated
-
-
 def complexes_build(
     mol: Any,
     forcefield: Optional[str] = None,
@@ -2103,18 +2191,3 @@ def auto_optimize(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
     )
-
-
-@_serialized_builder_call
-def _ob_build(mol: Any) -> None:
-    """Run OBBuilder directly on an internal working molecule."""
-    builder = ob.OBBuilder()
-    obmol, _ = mol2obmol(mol)
-    if not builder.Build(obmol):
-        raise ForceFieldError("Open Babel could not build initial 3D coordinates")
-    mol.coordinates = extract_obmol_coordinates(obmol)
-
-
-def _ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
-    """Run one internal Open Babel optimization and return kJ/mol."""
-    return _single_ob_optimization(mol, ff, steps).energy

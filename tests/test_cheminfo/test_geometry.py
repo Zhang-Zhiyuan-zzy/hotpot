@@ -165,6 +165,32 @@ def test_bond_ring_intersection_returns_stable_detail():
     assert all(not geo.bond_intersects_ring(ring, edge) for edge in ring.bonds)
 
 
+def test_bond_ring_intersection_checks_preserve_stable_indices():
+    molecule = _square_with_probe()
+    intersections = geo.find_bond_ring_intersections(molecule)
+
+    checks = geo.bond_ring_intersection_checks(molecule, intersections)
+
+    assert len(checks) == 1
+    assert checks[0] == geo.GeometryCheck(
+        name="bond_ring_intersection",
+        passed=False,
+        measured=(0, 1, 2, 3),
+        threshold=False,
+        atom_indices=(4, 5),
+        bond_indices=(4,),
+        message="A bond passes through a selected ring surface",
+    )
+    assert geo.bond_ring_intersection_checks(molecule, ()) == (
+        geo.GeometryCheck(
+            name="bond_ring_intersection",
+            passed=True,
+            measured=0,
+            threshold=0,
+        ),
+    )
+
+
 def test_molecule_geometry_properties_delegate_to_geometry(monkeypatch):
     molecule = _square_with_probe()
     expected_intersections = (("ring", "bond"),)

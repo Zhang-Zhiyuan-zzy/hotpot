@@ -689,8 +689,21 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
         calls["closest"] += 1
         return SimpleNamespace(a1idx=0, a2idx=1)
 
+    intersection_failure = ff.geo.GeometryCheck(
+        name="bond_ring_intersection",
+        passed=False,
+        measured=(0, 1, 2),
+        threshold=False,
+        atom_indices=(3, 4),
+        bond_indices=(2,),
+    )
     monkeypatch.setattr(ff.geo, "find_bond_ring_intersections", intersections)
     monkeypatch.setattr(ff.geo, "closest_ring_opening_edge", closest)
+    monkeypatch.setattr(
+        ff.geo,
+        "bond_ring_intersection_checks",
+        lambda current, found: (intersection_failure,),
+    )
 
     with pytest.raises(ff.ComplexBuildError) as caught:
         ff._build_ligand_proxies(
@@ -707,6 +720,10 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
     assert caught.value.diagnostics.attempt_count == 3
     assert caught.value.diagnostics.accepted_candidates == 0
     assert len(caught.value.diagnostics.rejected_candidates) == 3
+    assert all(
+        rejection.quality_failures == (intersection_failure,)
+        for rejection in caught.value.diagnostics.rejected_candidates
+    )
 
 
 def test_builder_failures_consume_the_attempt_budget(monkeypatch):
@@ -863,6 +880,10 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
     def quality(*args, **kwargs):
         nonlocal quality_calls
         quality_calls += 1
+        assert kwargs["forcefield_stage"] == "candidate"
+        assert "converged" not in kwargs["forcefield_report"]
+        assert "rms_gradient" not in kwargs["forcefield_report"]
+        assert "max_gradient" not in kwargs["forcefield_report"]
         passed = quality_calls == 1
         return SimpleNamespace(
             passed=passed,
@@ -889,6 +910,83 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
     assert "measured=0.12" in rejection.reason
     assert "threshold=0.4" in rejection.reason
     assert "atom_indices=(0, 1)" in rejection.reason
+
+
+def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypatch):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    find_calls = 0
+    quality_calls = 0
+    failure = ff.geo.GeometryCheck(
+        name="bond_ring_intersection",
+        passed=False,
+        measured=(0, 1, 2),
+        threshold=False,
+        atom_indices=(3, 4),
+        bond_indices=(2,),
+    )
+    gate_failure = ff.geo.GeometryCheck(
+        name="atom_too_close",
+        passed=False,
+        measured=0.2,
+        threshold=0.4,
+        atom_indices=(0, 1),
+    )
+
+    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ff,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
+
+    def intersections(*args, **kwargs):
+        nonlocal find_calls
+        find_calls += 1
+        return () if find_calls == 1 else (("ring", "probe"),)
+
+    monkeypatch.setattr(ff.geo, "find_bond_ring_intersections", intersections)
+    monkeypatch.setattr(
+        ff.geo,
+        "bond_ring_intersection_checks",
+        lambda current, found: (failure,),
+    )
+
+    def quality(*args, **kwargs):
+        nonlocal quality_calls
+        quality_calls += 1
+        assert kwargs["forcefield_stage"] == "candidate"
+        return SimpleNamespace(
+            passed=quality_calls == 1,
+            failures=() if quality_calls == 1 else (gate_failure,),
+        )
+
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        quality,
+    )
+
+    with pytest.raises(ff.ComplexBuildError, match="refinement failed") as caught:
+        ff._build_ligand_proxies(
+            molecule,
+            candidate_count=1,
+            max_attempts=1,
+            candidate_warmup_steps=1,
+            candidate_score_steps=1,
+            best_candidate_refine_steps=1,
+            effective_forcefield="UFF",
+        )
+
+    rejection = caught.value.diagnostics.rejected_candidates[-1]
+    assert rejection.quality_failures == (failure, gate_failure)
+    assert "bond_ring_intersection" in rejection.reason
+    assert "atom_too_close" in rejection.reason
 
 
 def test_refinement_tries_the_next_scored_candidate(monkeypatch):
@@ -986,6 +1084,16 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
         ff.geo,
         "closest_ring_opening_edge",
         lambda current, ring, bond: first if ring == "first" else second,
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "bond_ring_intersection_checks",
+        lambda current, found: (
+            ff.geo.GeometryCheck(
+                name="bond_ring_intersection",
+                passed=False,
+            ),
+        ),
     )
 
     with pytest.raises(ff.ComplexBuildError):

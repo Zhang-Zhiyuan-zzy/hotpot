@@ -205,16 +205,20 @@ class GeometryQualityError(ForceFieldError):
         self.report = report
 
 
-def _format_geometry_rejection(prefix: str, report: Any) -> str:
+def _format_geometry_checks(prefix: str, checks: Tuple[Any, ...]) -> str:
     """Render failed geometry checks without discarding measured evidence."""
     details = "; ".join(
         f"{check.name}(measured={check.measured!r}, "
         f"threshold={check.threshold!r}, "
         f"atom_indices={check.atom_indices!r}, "
         f"bond_indices={check.bond_indices!r})"
-        for check in report.failures
+        for check in checks
     )
     return f"{prefix}: {details}"
+
+
+def _format_geometry_rejection(prefix: str, report: Any) -> str:
+    return _format_geometry_checks(prefix, tuple(report.failures))
 
 
 @dataclass(frozen=True)
@@ -964,6 +968,10 @@ def _build_ligand_proxies(
                 ring_scope="ligand_skeleton",
             )
             if intersections:
+                intersection_failures = geo.bond_ring_intersection_checks(
+                    component,
+                    intersections,
+                )
                 bonds_to_hide = {}
                 for ring, bond in intersections:
                     ring_edge = geo.closest_ring_opening_edge(
@@ -984,7 +992,11 @@ def _build_ligand_proxies(
                     CandidateRejection(
                         component_index,
                         component_attempts,
-                        "bond-ring intersection",
+                        _format_geometry_checks(
+                            "candidate geometry gate",
+                            intersection_failures,
+                        ),
+                        intersection_failures,
                     )
                 )
                 continue
@@ -1071,15 +1083,22 @@ def _build_ligand_proxies(
                 forcefield_stage="candidate",
             )
             if refined_intersections or not refined_quality.passed:
-                if refined_intersections:
-                    reason = "refined candidate bond-ring intersection"
-                    failures = ()
-                else:
-                    reason = _format_geometry_rejection(
-                        "refined candidate geometry gate",
-                        refined_quality,
+                intersection_failures = (
+                    geo.bond_ring_intersection_checks(
+                        component,
+                        refined_intersections,
                     )
-                    failures = tuple(refined_quality.failures)
+                    if refined_intersections
+                    else ()
+                )
+                failures = (
+                    tuple(intersection_failures)
+                    + tuple(refined_quality.failures)
+                )
+                reason = _format_geometry_checks(
+                    "refined candidate geometry gate",
+                    failures,
+                )
                 rejections.append(CandidateRejection(
                     component_index,
                     attempt,

@@ -899,6 +899,37 @@ def find_bond_ring_intersections(
     ))
 
 
+def bond_ring_intersection_checks(
+        mol: Any,
+        intersections: Sequence[Tuple[Any, Any]],
+) -> Tuple[GeometryCheck, ...]:
+    """Convert detected crossings into stable, serializable quality checks."""
+    if not intersections:
+        return (GeometryCheck(
+            name="bond_ring_intersection",
+            passed=True,
+            measured=0,
+            threshold=0,
+        ),)
+
+    bond_positions = {
+        _bond_key(candidate): index
+        for index, candidate in enumerate(mol.bonds)
+    }
+    return tuple(
+        GeometryCheck(
+            name="bond_ring_intersection",
+            passed=False,
+            measured=_ring_key(ring),
+            threshold=False,
+            atom_indices=_bond_key(bond),
+            bond_indices=(bond_positions[_bond_key(bond)],),
+            message="A bond passes through a selected ring surface",
+        )
+        for ring, bond in intersections
+    )
+
+
 def _iter_bond_ring_intersections(
     mol: Any,
     *,
@@ -1674,25 +1705,7 @@ def evaluate_geometry_quality(
             ring_scope="ligand_skeleton",
         )
         metrics["bond_ring_intersection_count"] = len(intersections)
-        bond_positions = {id(bond): i for i, bond in enumerate(mol.bonds)}
-        if intersections:
-            for ring, bond in intersections:
-                checks.append(GeometryCheck(
-                    name="bond_ring_intersection",
-                    passed=False,
-                    measured=_ring_key(ring),
-                    threshold=False,
-                    atom_indices=_bond_key(bond),
-                    bond_indices=(bond_positions[id(bond)],),
-                    message="A bond passes through a ligand-skeleton ring",
-                ))
-        else:
-            checks.append(GeometryCheck(
-                name="bond_ring_intersection",
-                passed=True,
-                measured=0,
-                threshold=0,
-            ))
+        checks.extend(bond_ring_intersection_checks(mol, intersections))
         metrics["coordination_environments"] = _coordination_metrics(
             mol,
             atoms,

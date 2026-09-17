@@ -190,11 +190,11 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
             current, "coordinates", np.asarray(coordinates, dtype=float).copy()
         ),
     )
-    monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
-        lambda *args, **options: SimpleNamespace(passed=True),
-    )
+    def evaluate_quality(*args, **options):
+        assert options["forcefield_stage"] == "final"
+        return SimpleNamespace(passed=True)
+
+    monkeypatch.setattr(ff.geo, "evaluate_geometry_quality", evaluate_quality)
     return ff._OpenBabelOptimizer(
         "MMFF94s",
         "MMFF94s",

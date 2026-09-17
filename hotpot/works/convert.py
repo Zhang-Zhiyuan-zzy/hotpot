@@ -9,8 +9,9 @@ python v3.9.0
 import os
 import time
 from copy import copy
+from dataclasses import dataclass
 from os.path import join as opj
-from typing import Optional, Union
+from typing import Any, Literal, Optional, Union
 from pathlib import Path
 import multiprocessing as mp
 from tqdm import tqdm
@@ -22,6 +23,27 @@ import hotpot as hp
 _PROCESS_POLL_INTERVAL = 0.01
 _PROCESS_SHUTDOWN_TIMEOUT = 5.0
 _BUILD_TIMEOUT_CLEANUP_GRACE = 2.0 * _PROCESS_SHUTDOWN_TIMEOUT
+
+
+@dataclass(frozen=True)
+class ConversionFailure:
+    name: Any
+    kind: Literal["nonzero_exit", "timeout"]
+    exitcode: Optional[int]
+    build_timeout: float
+    output_path: str
+
+
+class ConversionBatchError(RuntimeError):
+    """Raised after every conversion worker is reaped when any item failed."""
+
+    def __init__(self, failures):
+        self.failures = tuple(failures)
+        details = ", ".join(
+            f"{failure.name!r} ({failure.kind}, exit={failure.exitcode})"
+            for failure in self.failures
+        )
+        super().__init__(f"{len(self.failures)} conversion worker(s) failed: {details}")
 
 
 def _terminate_process(process: mp.Process) -> None:
@@ -158,6 +180,10 @@ def convert_smiles_to_3dmol(
         Keyword arguments accepted by :meth:`Molecule.build3d`, including
         ``forcefield``, ``epochs``, ``steps_per_epoch``, ``add_hydrogens``,
         ``quality_level``, ``seed``, and complex-candidate options.
+
+    Raises:
+        ConversionBatchError: After all workers are reaped, if one or more
+            conversions exited unsuccessfully or exceeded their timeout.
     """
     if file_names is None:
         name_smiles = dict(enumerate(list_smi))
@@ -179,6 +205,7 @@ def convert_smiles_to_3dmol(
     build_options['timeout'] = timeout
     process_timeout = timeout + _BUILD_TIMEOUT_CLEANUP_GRACE
     processes = {}
+    failures = []
     try:
         while name_smiles or processes:
             while name_smiles and len(processes) < nproc:
@@ -203,22 +230,31 @@ def convert_smiles_to_3dmol(
                     kwargs=build_options,
                 )
                 p.start()
-                processes[p] = (time.monotonic(), name)
+                processes[p] = (time.monotonic(), name, save_path)
 
             to_remove = []
-            for p, (started_at, name) in processes.items():
+            for p, (started_at, name, save_path) in processes.items():
                 if not p.is_alive():
                     p.join()
                     to_remove.append(p)
                     if p.exitcode != 0:
-                        print(f"Process {name} exited with code {p.exitcode}.")
+                        failures.append(ConversionFailure(
+                            name=name,
+                            kind="nonzero_exit",
+                            exitcode=p.exitcode,
+                            build_timeout=timeout,
+                            output_path=save_path,
+                        ))
                 elif time.monotonic() - started_at > process_timeout:
                     _terminate_process(p)
                     to_remove.append(p)
-                    print(
-                        f"Process {name} exceeded the {timeout:g}-second build "
-                        "timeout and was stopped."
-                    )
+                    failures.append(ConversionFailure(
+                        name=name,
+                        kind="timeout",
+                        exitcode=p.exitcode,
+                        build_timeout=timeout,
+                        output_path=save_path,
+                    ))
 
             for p in to_remove:
                 processes.pop(p)
@@ -231,6 +267,8 @@ def convert_smiles_to_3dmol(
                 _terminate_process(process)
             else:
                 process.join()
+    if failures:
+        raise ConversionBatchError(failures)
 
 
 def _convert_g16log_to_gjf(

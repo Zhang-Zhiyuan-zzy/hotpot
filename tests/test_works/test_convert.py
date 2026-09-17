@@ -1,3 +1,5 @@
+import pytest
+
 from hotpot.works import convert
 
 
@@ -122,6 +124,14 @@ class _TimedOutProcess(_StubbornProcess):
         return None
 
 
+class _MixedProcess(_FinishedProcess):
+    exitcodes = iter(())
+
+    def __init__(self, *, target, args, kwargs):
+        super().__init__(target=target, args=args, kwargs=kwargs)
+        self.exitcode = next(self.exitcodes)
+
+
 def test_build3d_writes_only_the_final_frame_by_default():
     molecule = _RecordingMolecule()
 
@@ -199,12 +209,13 @@ def test_conversion_timeout_reaps_the_outer_worker(monkeypatch, tmp_path):
     monkeypatch.setattr(convert.mp, "Process", _TimedOutProcess)
     monkeypatch.setattr(convert.time, "monotonic", lambda: next(clock))
 
-    convert.convert_smiles_to_3dmol(
-        ["CC"],
-        str(tmp_path),
-        nproc=1,
-        timeout=0.5,
-    )
+    with pytest.raises(convert.ConversionBatchError) as caught:
+        convert.convert_smiles_to_3dmol(
+            ["CC"],
+            str(tmp_path),
+            nproc=1,
+            timeout=0.5,
+        )
 
     assert _TimedOutProcess.instances[0].calls == [
         "terminate",
@@ -212,3 +223,49 @@ def test_conversion_timeout_reaps_the_outer_worker(monkeypatch, tmp_path):
         "kill",
         ("join", convert._PROCESS_SHUTDOWN_TIMEOUT),
     ]
+    assert caught.value.failures == (
+        convert.ConversionFailure(
+            name=0,
+            kind="timeout",
+            exitcode=None,
+            build_timeout=0.5,
+            output_path=str(tmp_path / "0.gjf"),
+        ),
+    )
+
+
+def test_conversion_aggregates_worker_failures_after_reaping_all(monkeypatch, tmp_path):
+    _MixedProcess.instances = []
+    _MixedProcess.exitcodes = iter((0, 7, 8))
+    molecules = iter(_RecordingMolecule() for _ in range(3))
+    monkeypatch.setattr(convert.hp, "MolReader", lambda *_: iter([next(molecules)]))
+    monkeypatch.setattr(convert.mp, "Process", _MixedProcess)
+
+    with pytest.raises(convert.ConversionBatchError) as caught:
+        convert.convert_smiles_to_3dmol(
+            ["CC", "CN", "CO"],
+            str(tmp_path),
+            file_names=["first", "second", "third"],
+            nproc=3,
+            timeout=1.0,
+        )
+
+    assert len(_MixedProcess.instances) == 3
+    assert all(process.started for process in _MixedProcess.instances)
+    assert all(process.join_calls == [None] for process in _MixedProcess.instances)
+    assert caught.value.failures == (
+        convert.ConversionFailure(
+            name="second",
+            kind="nonzero_exit",
+            exitcode=7,
+            build_timeout=1.0,
+            output_path=str(tmp_path / "second.gjf"),
+        ),
+        convert.ConversionFailure(
+            name="first",
+            kind="nonzero_exit",
+            exitcode=8,
+            build_timeout=1.0,
+            output_path=str(tmp_path / "first.gjf"),
+        ),
+    )

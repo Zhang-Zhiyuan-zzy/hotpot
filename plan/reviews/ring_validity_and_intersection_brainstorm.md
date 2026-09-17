@@ -52,16 +52,16 @@ class GeometryVerdict(Enum):
 
 一个 `RingGeoStatus` 可以同时包含多个状态标记，不强迫不同问题互斥。定义：
 
-\[
+$$
 s=\operatorname{median}(\ell_i),\qquad
 \epsilon=\epsilon_{abs}+\epsilon_{rel}s,
-\]
+$$
 
-\[
+$$
 q_{clear}=\frac{\min(d_{edge-edge},d_{point-edge},d_{point-point})}{s},
-\]
+$$
 
-\[
+$$
 q_{\tau}=\frac{1}{s}\min\left(\min_iR_{curv,i},\frac12d_{self}\right),
 \quad
 q_{rank}=\frac{\sigma_2}{\sigma_1},
@@ -69,7 +69,7 @@ q_{rank}=\frac{\sigma_2}{\sigma_1},
 q_{nonplanar}=\frac{\sigma_3}{\sigma_2},
 \quad
 q_{aperture}=\frac{4\pi A}{P^2}.
-\]
+$$
 
 其中 `sigma_1 >= sigma_2 >= sigma_3` 是中心化环坐标的奇异值，`A/P` 来自 best-fit plane
 投影，距离计算排除共享端点和规定的局部拓扑邻居。
@@ -104,18 +104,18 @@ knot invariant。
 
 `BondRingGeoStatus` **只针对一个环和一条目标键**。它不是整个分子的状态。目标键是有限线段：
 
-\[
+$$
 \mathbf b(t)=\mathbf a+t(\mathbf c-\mathbf a),\qquad 0\le t\le1.
-\]
+$$
 
 对一个三角面，若交点重心坐标为 `(lambda_1, lambda_2, lambda_3)`，明确穿越必须同时满足：
 
-\[
+$$
 \epsilon_t<t<1-\epsilon_t,
 \qquad \min(\lambda_i)>\epsilon_b,
 \qquad
 \frac{|\mathbf d\cdot\mathbf n|}{\|\mathbf d\|\|\mathbf n\|}>\epsilon_{angle}.
-\]
+$$
 
 第一式明确表示交点位于两个键端点之间。若只有无限直线延长部分与环面相交，即 `t <= 0`
 或 `t >= 1`，不属于键穿环。
@@ -184,18 +184,18 @@ def is_geo_reasonable(
 
 纯几何 penalty 可写为：
 
-\[
+$$
 P_{geo}=w_c[\delta_c-q_{clear}]_+^2+
 w_\tau[\delta_\tau-q_\tau]_+^2+
 w_l\sum_i[|\ell_i/s-1|-\delta_l]_+^2+
 w_a[\delta_a-q_{aperture}]_+^2.
-\]
+$$
 
 环的初始排序分数可取 `S_ring=exp(-P_geo)`。ring–bond pair 可同时记录：
 
-\[
+$$
 S_{surface}=\frac{N_{clear}}{N_{valid}},
-\]
+$$
 
 再结合最小数值裕量形成单调 `reasonableness_score`。整分子首轮采用最差组件分数进行保守
 排序，而不是把多个分数相乘。

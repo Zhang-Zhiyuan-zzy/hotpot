@@ -13,7 +13,7 @@
 - [A001：`forcefields.py` 与 `geometry.py` 类型和命名审查](reviews/ff_geo_typing_naming_review.md)
 - [A002：`forcefields.py` 与 `geometry.py` 兼容性代码审查](reviews/ff_geo_compatibility_review.md)
 - [A003：Python 3.9 / Open Babel 3.1 force-field 模块隔离方案](reviews/forcefields_python39_module_split.md)
-- [A004：非平面环穿越判定问题与整改设计](reviews/nonplanar_ring_intersection_review.md)
+- [A004：环几何有效性与键—环关系统一评审](reviews/ring_validity_and_intersection_brainstorm.md)
 - [A005：FF-Q003 无调用且非预留接口专项审查](reviews/ff_unused_callable_review.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
@@ -134,7 +134,7 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
    Hotpot 契约之外的对象/数据形态，属于需要收束的结构兼容。
 4. Open Babel 3.1 RNG 路径确属版本兼容，但它仍被 Python 3.9 支持矩阵需要；不能只删
    代码而不同时改变 `pyproject.toml`、requirements、CI 和文档中的支持政策。
-5. 非平面环的 center-fan 判定明确以“保留历史语义”为目标，但会影响候选结构的化学质量
+5. 非平面环的 center-fan 判定明确以“保留历史语义”为目标，但会影响候选结构的几何质量
    门控。它必须先定义新的几何语义，再修改实现和测试，不能作为纯接口清理直接删除。
 
 ### 用户决策
@@ -142,7 +142,7 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
 - 已确定：旧 API 不保留兼容别名、参数翻译或静默兜底；后续实现直接采用当前名称和显式
   接口。
 - 已确定：保留 Python 3.9/Open Babel 3.1，但与 3.10+ 主实现分文件隔离。
-- 待确定：非平面环穿越判定采用何种当前几何语义。
+- 非平面环和键—环关系的统一候选语义集中记录于 FF-Q004 / 附件 A004，待实现前最终审定。
 
 ### 用户补充决策：Python 3.9 隔离而非删除
 
@@ -157,12 +157,12 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
 
 当前 center-fan 语义存在已经动态复现的显著缺陷：对一个凹六边形，仅向一个顶点施加
 `5e-8 Å` 的 z 方向扰动，就会使位于凹口外部的 probe 从“不穿环”变为“穿环”。这是平面
-point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值不连续，不是化学结构
-发生了有意义的改变。
+point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值不连续；环结构本身并未
+发生几何上可分辨的改变。
 
-推荐对平面和非平面环统一使用“best-fit plane 参数化、尊重凹边界的确定性 ear clipping
-以及原始三维顶点三角面”语义，不再引入可能落在环外的算术中心。详细案例、原因、接口设计
-和测试矩阵见附件 A004。
+统一方案不再选择单个 center-fan 或单个 Earcut 面作为最终事实，而是先进行环自身纯几何
+分级，再枚举最多 8 元环的全部合法三角剖分并对键—环关系取共识。详细状态、算法、接口和
+测试矩阵见附件 A004。
 
 ## FF-Q003：无调用且不是预留接口的函数
 
@@ -185,57 +185,27 @@ point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值
 
 完整引用核查见附件 A005。
 
-## FF-Q004：非平面环穿越能否严格、确定地判断？
+## FF-Q004：如何统一判定环几何有效性和键—环关系？
 
 ### 用户问题
 
-拟议的非平面环整改能否明确回答是否穿环；该方法是否严格、成熟；是否存在可直接调用的
-高性能几何库。
+合并审议两个原问题：一是非平面环是否能够得到严格、成熟的穿环判断；二是是否应先判断
+环自身的折叠、近接触、自交/打结状态，再判断外部键与环的关系。
 
 ### 结论
 
-- 非平面闭合边界没有天然唯一的内部曲面，因此不存在不先定义环面语义的绝对判定。
-- 接受“best-fit plane 约束三角化后映射回原始三维顶点”的 Hotpot 环面定义后，合法且
-  非退化输入可以得到确定、可复现的 `INTERSECTS/CLEAR` 结论。
-- 退化、自交、共面重叠和容差边界应返回 `UNDEFINED`；质量门控 fail closed，不能把
-  `UNDEFINED` 伪装成已证明相交或未相交。
-- triangulation 与 segment-triangle intersection 是成熟方法，但普通 NumPy/C++ 浮点实现
-  不属于计算几何的形式精确 predicates。若要形式精确应考虑 CGAL，代价明显更高。
-- 推荐采用 `mapbox-earcut 2.1.0`。它是轻量 C++ triangulation 绑定，支持 Python >=3.9，
-  并已实际修复附件反例；Hotpot 仍必须负责环顺序规范化、输入合法性和输出后验验证。原始
-  Earcut 调用不会自动保证循环起点改变后选择同一组三维对角线。
+- 当前 center-fan 存在已动态复现的高严重度误报，并把非法/不可判输入静默转换为 `False`；
+  必须删除该语义。
+- 统一计算分为环边界状态、环面族和键—环关系三层；讨论只采用纯几何量，不调用力场或
+  复杂能量。可选 `O(n²)` geometry penalty 仅用于排序。
+- 环状态分为 `VALID/SUSPECT/INVALID/UNRESOLVED`，环面状态独立分为
+  `DEFINED/UNSTABLE/UNDEFINED`；两者不能相互冒充。
+- 键—环关系分为 `CLEAR/PIERCES/TOUCHES/AMBIGUOUS_SURFACE/UNDEFINED_RING`；未知和
+  擦边不能压缩成 `False`。
+- 非平面闭合边界没有唯一内部曲面。对当前 `n <= 8` 的环，优先枚举最多 132 个合法
+  vertex-only 三角剖分并取关系共识，避免用某一条任意对角线裁决。
+- `mapbox-earcut` 已验证能够修复现有凹环反例，但只能生成单个三角面，降级为辅助或测试
+  oracle；形式 exact predicates 真正成为硬需求时才评估 CGAL。
 
-完整的严格性分层、库对比、动态验证及最终技术选择见附件 A004。
-
-## FF-Q005：环自身质量与键—环互穿是否应分离？
-
-### 用户问题
-
-是否可以先判断环结构自身是否物理现实，包括折叠、原子过近和自打结，再独立判断键与环
-是否互穿；希望获得可数学化的解决思路。
-
-### 结论
-
-- 分离成立，但应从两个布尔问题细化为：硬几何有效性、软化学/能量可信度、环面可定义性、
-  键—环关系和业务接受策略五层。
-- “物理现实”无法由一组坐标严格证明。中心线自交、严重有效体积碰撞和退化可以硬判；
-  强烈 puckering、高能量和非平凡 knot 只能结合化学环境判断。
-- 第二步只依赖环面能否稳定定义，不直接依赖环能量高低。无效或未定义不能转换成
-  `no intersection`。
-- 推荐用线段距离、capsule collision、polygonal thickness/reach、SVD 退化指标和
-  Cremer–Pople 坐标分别描述环的不同问题，而不是合并成一个“折叠度”。
-- 对当前 `n <= 8` 的环，值得优先研究枚举全部合法三角剖分的共识判定：最多 132 个曲面；
-  全部相交才是 `PIERCES`，全部不相交才是 `CLEAR`，否则为 `AMBIGUOUS_SURFACE`。
-- 若查询对象也是闭环，可额外使用 Gauss linking number；开放单键没有天然 linking number。
-
-完整数学方案、状态模型、门控层级和对单一 Earcut 方案的修订建议见附件 A006。
-
-### 用户裁减：只采用纯几何判定
-
-- 环自身判定只使用坐标、环拓扑、线段距离、曲率、厚度、SVD、投影面积和 puckering 等
-  几何量；不调用力场，不引入真实能量，也不依赖复杂的化学参考分布。
-- 碰撞尺度优先由环自身中位边长和公开无量纲阈值构造，避免把力场或原子类型参数隐式带入
-  几何模块。
-- 若需要对候选结构连续排序，可提供 `O(n^2)` 的几何伪能量；它必须明确命名为 geometry
-  penalty，只用于排序或 `SUSPECT` 标记，不能覆盖硬几何失败。
-- 相应裁减已经更新到附件 A006。
+当前事实、两组状态分级、具体接口、迁移步骤和测试矩阵统一见附件 A004；原 FF-Q005 不再
+作为独立问题保留。

@@ -60,6 +60,13 @@ class _RecordingMolecule:
         self.write_calls.append((path, fmt, options))
 
 
+class _LargeFailureMolecule:
+    has_metal = False
+
+    def build3d(self, **options):
+        raise RuntimeError("large worker failure: " + "x" * 1_000_000)
+
+
 class _FinishedProcess:
     instances = []
 
@@ -76,6 +83,7 @@ class _FinishedProcess:
 
     def start(self):
         self.started = True
+        self.target(*self.args, **self.kwargs)
 
     def is_alive(self):
         return False
@@ -207,7 +215,7 @@ def test_conversion_timeout_reaps_the_outer_worker(monkeypatch, tmp_path):
     clock = iter([0.0, 11.0])
     monkeypatch.setattr(convert.hp, "MolReader", lambda *_: iter([molecule]))
     monkeypatch.setattr(convert.mp, "Process", _TimedOutProcess)
-    monkeypatch.setattr(convert.time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(convert.time, "monotonic", lambda: next(clock, 11.0))
 
     with pytest.raises(convert.ConversionBatchError) as caught:
         convert.convert_smiles_to_3dmol(
@@ -269,3 +277,30 @@ def test_conversion_aggregates_worker_failures_after_reaping_all(monkeypatch, tm
             output_path=str(tmp_path / "first.gjf"),
         ),
     )
+
+
+def test_conversion_reports_child_exception_without_pipe_deadlock(
+    monkeypatch,
+    tmp_path,
+):
+    monkeypatch.setattr(
+        convert.hp,
+        "MolReader",
+        lambda *_: iter([_LargeFailureMolecule()]),
+    )
+
+    with pytest.raises(convert.ConversionBatchError) as caught:
+        convert.convert_smiles_to_3dmol(
+            ["CC"],
+            str(tmp_path),
+            nproc=1,
+            timeout=1.0,
+        )
+
+    (failure,) = caught.value.failures
+    assert failure.kind == "worker_error"
+    assert failure.exitcode == 0
+    assert failure.error_type == "RuntimeError"
+    assert failure.error_message.startswith("large worker failure")
+    assert len(failure.error_message) > 1_000_000
+    assert "RuntimeError: large worker failure" in failure.worker_traceback

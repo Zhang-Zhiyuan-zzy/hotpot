@@ -8,6 +8,7 @@ python v3.9.0
 """
 import os
 import time
+import traceback as traceback_module
 from copy import copy
 from dataclasses import dataclass
 from os.path import join as opj
@@ -28,10 +29,36 @@ _BUILD_TIMEOUT_CLEANUP_GRACE = 2.0 * _PROCESS_SHUTDOWN_TIMEOUT
 @dataclass(frozen=True)
 class ConversionFailure:
     name: Any
-    kind: Literal["nonzero_exit", "timeout"]
+    kind: Literal[
+        "worker_error",
+        "protocol_error",
+        "nonzero_exit",
+        "timeout",
+    ]
     exitcode: Optional[int]
     build_timeout: float
     output_path: str
+    error_type: Optional[str] = None
+    error_message: Optional[str] = None
+    worker_traceback: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class ConversionWorkerResult:
+    status: Literal["ok", "error"]
+    error_type: Optional[str] = None
+    error_message: Optional[str] = None
+    traceback: Optional[str] = None
+
+
+@dataclass
+class _ActiveConversion:
+    started_at: float
+    name: Any
+    output_path: str
+    receive_connection: Any
+    result: Optional[ConversionWorkerResult] = None
+    protocol_error: Optional[str] = None
 
 
 class ConversionBatchError(RuntimeError):
@@ -40,7 +67,13 @@ class ConversionBatchError(RuntimeError):
     def __init__(self, failures):
         self.failures = tuple(failures)
         details = ", ".join(
-            f"{failure.name!r} ({failure.kind}, exit={failure.exitcode})"
+            f"{failure.name!r} ({failure.kind}, exit={failure.exitcode}"
+            + (
+                f", {failure.error_type}: {failure.error_message}"
+                if failure.error_type is not None
+                else ""
+            )
+            + ")"
             for failure in self.failures
         )
         super().__init__(f"{len(self.failures)} conversion worker(s) failed: {details}")
@@ -151,6 +184,96 @@ def _build3d(
         )
 
 
+def _run_conversion_worker(connection, *args, **kwargs) -> None:
+    """Run one conversion and always send one serializable result envelope."""
+    try:
+        _build3d(*args, **kwargs)
+        result = ConversionWorkerResult(status="ok")
+    except Exception as exc:
+        result = ConversionWorkerResult(
+            status="error",
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+            traceback=traceback_module.format_exc(),
+        )
+    try:
+        connection.send(result)
+    finally:
+        connection.close()
+
+
+def _receive_conversion_result(state: _ActiveConversion) -> None:
+    """Receive one ready envelope without joining the sending process first."""
+    if state.result is not None or state.protocol_error is not None:
+        return
+    if not state.receive_connection.poll():
+        return
+    try:
+        result = state.receive_connection.recv()
+    except EOFError:
+        state.protocol_error = "Conversion worker closed its pipe without a result"
+        return
+    if not isinstance(result, ConversionWorkerResult):
+        state.protocol_error = (
+            "Conversion worker returned an invalid result envelope: "
+            f"{type(result).__name__}"
+        )
+        return
+    if result.status not in ("ok", "error"):
+        state.protocol_error = (
+            f"Conversion worker returned an invalid status: {result.status!r}"
+        )
+        return
+    if result.status == "error" and (
+        result.error_type is None or result.error_message is None
+    ):
+        state.protocol_error = "Conversion worker returned incomplete error diagnostics"
+        return
+    state.result = result
+
+
+def _conversion_failure(
+    process: mp.Process,
+    state: _ActiveConversion,
+    *,
+    timeout: float,
+) -> Optional[ConversionFailure]:
+    result = state.result
+    if process.exitcode != 0:
+        return ConversionFailure(
+            name=state.name,
+            kind="nonzero_exit",
+            exitcode=process.exitcode,
+            build_timeout=timeout,
+            output_path=state.output_path,
+            error_type=None if result is None else result.error_type,
+            error_message=None if result is None else result.error_message,
+            worker_traceback=None if result is None else result.traceback,
+        )
+    if state.protocol_error is not None or result is None:
+        return ConversionFailure(
+            name=state.name,
+            kind="protocol_error",
+            exitcode=process.exitcode,
+            build_timeout=timeout,
+            output_path=state.output_path,
+            error_type="WorkerProtocolError",
+            error_message=state.protocol_error or "Conversion worker returned no result",
+        )
+    if result.status == "error":
+        return ConversionFailure(
+            name=state.name,
+            kind="worker_error",
+            exitcode=process.exitcode,
+            build_timeout=timeout,
+            output_path=state.output_path,
+            error_type=result.error_type,
+            error_message=result.error_message,
+            worker_traceback=result.traceback,
+        )
+    return None
+
+
 def convert_smiles_to_3dmol(
         list_smi: list[str],
         save_dir: str,
@@ -224,49 +347,62 @@ def convert_smiles_to_3dmol(
                 else:
                     sdf_save_path = None
 
+                receive_connection, send_connection = mp.Pipe(duplex=False)
                 p = mp.Process(
-                    target=_build3d,
-                    args=(mol, save_path, fmt, ligand_save_path, sdf_save_path),
+                    target=_run_conversion_worker,
+                    args=(
+                        send_connection,
+                        mol,
+                        save_path,
+                        fmt,
+                        ligand_save_path,
+                        sdf_save_path,
+                    ),
                     kwargs=build_options,
                 )
                 p.start()
-                processes[p] = (time.monotonic(), name, save_path)
+                send_connection.close()
+                processes[p] = _ActiveConversion(
+                    started_at=time.monotonic(),
+                    name=name,
+                    output_path=save_path,
+                    receive_connection=receive_connection,
+                )
 
             to_remove = []
-            for p, (started_at, name, save_path) in processes.items():
+            for p, state in processes.items():
+                _receive_conversion_result(state)
                 if not p.is_alive():
+                    _receive_conversion_result(state)
                     p.join()
                     to_remove.append(p)
-                    if p.exitcode != 0:
-                        failures.append(ConversionFailure(
-                            name=name,
-                            kind="nonzero_exit",
-                            exitcode=p.exitcode,
-                            build_timeout=timeout,
-                            output_path=save_path,
-                        ))
-                elif time.monotonic() - started_at > process_timeout:
+                    failure = _conversion_failure(p, state, timeout=timeout)
+                    if failure is not None:
+                        failures.append(failure)
+                elif time.monotonic() - state.started_at > process_timeout:
                     _terminate_process(p)
                     to_remove.append(p)
                     failures.append(ConversionFailure(
-                        name=name,
+                        name=state.name,
                         kind="timeout",
                         exitcode=p.exitcode,
                         build_timeout=timeout,
-                        output_path=save_path,
+                        output_path=state.output_path,
                     ))
 
             for p in to_remove:
-                processes.pop(p)
+                state = processes.pop(p)
+                state.receive_connection.close()
 
             if processes:
                 time.sleep(_PROCESS_POLL_INTERVAL)
     finally:
-        for process in processes:
+        for process, state in processes.items():
             if process.is_alive():
                 _terminate_process(process)
             else:
                 process.join()
+            state.receive_connection.close()
     if failures:
         raise ConversionBatchError(failures)
 

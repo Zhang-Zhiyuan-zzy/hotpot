@@ -266,6 +266,59 @@ def test_closest_ring_edge_uses_finite_segment_minimum():
     assert {closest.a1idx, closest.a2idx} == {1, 2}
 
 
+def test_ring_opening_avoids_a_closest_multiple_bond():
+    molecule = _square_with_probe(probe_x=1.2)
+    ring = molecule.rings[0]
+    molecule.bond(1, 2).bond_order = 2.0
+
+    opening = geo.closest_ring_opening_edge(
+        molecule,
+        ring,
+        molecule.bond(4, 5),
+    )
+
+    assert opening.bond_order == 1.0
+    assert {opening.a1idx, opening.a2idx} != {1, 2}
+
+
+def test_ring_opening_avoids_a_fused_shared_edge():
+    molecule = _molecule(
+        (
+            (-1.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (-1.0, 1.0, 0.0),
+            (1.0, -1.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, 1.0),
+        ),
+        (
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 0),
+            (1, 4),
+            (4, 5),
+            (5, 2),
+            (6, 7),
+        ),
+    )
+    ring = next(
+        ring
+        for ring in molecule.rings
+        if {atom.idx for atom in ring.atoms} == {0, 1, 2, 3}
+    )
+
+    opening = geo.closest_ring_opening_edge(
+        molecule,
+        ring,
+        molecule.bond(6, 7),
+    )
+
+    assert {opening.a1idx, opening.a2idx} != {1, 2}
+
+
 def test_closest_ring_edge_rejects_a_removed_bond():
     molecule = _square_with_probe(probe_x=1.2)
     ring = molecule.rings[0]

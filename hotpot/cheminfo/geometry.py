@@ -1048,6 +1048,44 @@ def closest_ring_edge_to_bond(ring: Any, bond: Any) -> Any:
     return min(ring.bonds, key=edge_distance)
 
 
+def closest_ring_opening_edge(
+        mol: Any,
+        ring: Any,
+        bond: Any,
+        *,
+        ring_scope: RingScope = "ligand_skeleton",
+) -> Optional[Any]:
+    """Return the closest single, non-fused ring edge suitable for temporary opening."""
+    memberships = {}
+    for candidate_ring in _rings_for_scope(mol, ring_scope):
+        for edge in candidate_ring.bonds:
+            key = _bond_key(edge)
+            memberships[key] = memberships.get(key, 0) + 1
+
+    eligible_edges = tuple(
+        edge
+        for edge in ring.bonds
+        if float(edge.bond_order) == 1.0
+        and memberships.get(_bond_key(edge), 0) == 1
+    )
+    if not eligible_edges:
+        return None
+
+    start = np.asarray(bond.atom1.coordinates, dtype=float)
+    end = np.asarray(bond.atom2.coordinates, dtype=float)
+
+    def edge_distance(edge: Any) -> Tuple[float, Tuple[int, int]]:
+        distance = _segment_distance(
+            np.asarray(edge.atom1.coordinates, dtype=float),
+            np.asarray(edge.atom2.coordinates, dtype=float),
+            start,
+            end,
+        )
+        return distance, _bond_key(edge)
+
+    return min(eligible_edges, key=edge_distance)
+
+
 def _bond_kind(bond: Any) -> str:
     kind = getattr(bond, "bond_kind", "")
     return str(getattr(kind, "value", kind))

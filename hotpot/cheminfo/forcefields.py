@@ -921,6 +921,7 @@ def _build_ligand_proxies(
                     candidate_warmup_steps,
                 )
             except ForceFieldError as exc:
+                component.recover_hided_covalent_bonds(clear_conformers=False)
                 rejections.append(
                     CandidateRejection(component_index, component_attempts, str(exc))
                 )
@@ -946,13 +947,20 @@ def _build_ligand_proxies(
             if intersections:
                 bonds_to_hide = {}
                 for ring, bond in intersections:
-                    ring_edge = geo.closest_ring_edge_to_bond(ring, bond)
+                    ring_edge = geo.closest_ring_opening_edge(
+                        component,
+                        ring,
+                        bond,
+                    )
+                    if ring_edge is None:
+                        continue
                     endpoint_key = tuple(sorted((ring_edge.a1idx, ring_edge.a2idx)))
                     bonds_to_hide[endpoint_key] = ring_edge
-                component.hide_bonds(
-                    *(bonds_to_hide[key] for key in sorted(bonds_to_hide)),
-                    clear_conformers=False,
-                )
+                if bonds_to_hide:
+                    component.hide_bonds(
+                        *(bonds_to_hide[key] for key in sorted(bonds_to_hide)),
+                        clear_conformers=False,
+                    )
                 rejections.append(
                     CandidateRejection(
                         component_index,

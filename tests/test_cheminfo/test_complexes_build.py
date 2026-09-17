@@ -690,7 +690,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
         return SimpleNamespace(a1idx=0, a2idx=1)
 
     monkeypatch.setattr(ff.geo, "find_bond_ring_intersections", intersections)
-    monkeypatch.setattr(ff.geo, "closest_ring_edge_to_bond", closest)
+    monkeypatch.setattr(ff.geo, "closest_ring_opening_edge", closest)
 
     with pytest.raises(ff.ComplexBuildError) as caught:
         ff._build_ligand_proxies(
@@ -740,6 +740,40 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
     assert calls == 3
     assert caught.value.diagnostics.attempt_count == 3
     assert len(caught.value.diagnostics.rejected_candidates) == 3
+
+
+def test_builder_failure_recovers_temporarily_opened_ring_bonds(monkeypatch):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    recovery_calls = 0
+
+    def fail_build(current):
+        raise ff.ForceFieldError("builder failed")
+
+    def recover(clear_conformers=False):
+        nonlocal recovery_calls
+        recovery_calls += 1
+
+    component.recover_hided_covalent_bonds = recover
+    monkeypatch.setattr(ff, "ob_build", fail_build)
+    monkeypatch.setattr(
+        ff.geo,
+        "capture_topology",
+        lambda mol, **options: object(),
+    )
+
+    with pytest.raises(ff.ComplexBuildError):
+        ff._build_ligand_proxies(
+            molecule,
+            candidate_count=1,
+            max_attempts=2,
+            candidate_warmup_steps=1,
+            candidate_score_steps=1,
+            best_candidate_refine_steps=1,
+            effective_forcefield="UFF",
+        )
+
+    assert recovery_calls == 2
 
 
 def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
@@ -950,8 +984,8 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
     )
     monkeypatch.setattr(
         ff.geo,
-        "closest_ring_edge_to_bond",
-        lambda ring, bond: first if ring == "first" else second,
+        "closest_ring_opening_edge",
+        lambda current, ring, bond: first if ring == "first" else second,
     )
 
     with pytest.raises(ff.ComplexBuildError):

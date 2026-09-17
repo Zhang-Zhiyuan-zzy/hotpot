@@ -492,8 +492,9 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     monkeypatch.setattr(
         ff,
         "_seeded_ob_build_coordinates",
-        lambda current, seed: calls.append(("seeded-build", current, seed))
-        or coordinates,
+        lambda current, seed, *, timeout: calls.append(
+            ("seeded-build", current, seed, timeout)
+        ) or coordinates,
     )
     monkeypatch.setattr(
         ff,
@@ -511,10 +512,10 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
         lambda current, completed: calls.append(("commit", current, completed)),
     )
 
-    ff.build3d(molecule, add_hydrogens=False, seed=37)
+    ff.build3d(molecule, add_hydrogens=False, seed=37, timeout=2.5)
 
     assert calls == [
-        ("seeded-build", molecule, 37),
+        ("seeded-build", molecule, 37, 2.5),
         ("commit", molecule, molecule),
     ]
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
@@ -529,7 +530,7 @@ def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):
     )
     original_coordinates = molecule.coordinates.copy()
 
-    def fail_build(current, seed):
+    def fail_build(current, seed, *, timeout):
         raise ff.BuildWorkerError("RuntimeError", "deliberate failure", None)
 
     monkeypatch.setattr(ff, "_seeded_ob_build_coordinates", fail_build)
@@ -543,6 +544,79 @@ def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):
         original_bonds
     )
     np.testing.assert_array_equal(molecule.coordinates, original_coordinates)
+
+
+def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
+    process = object()
+    receive_connection = object()
+    send_connection = object()
+    calls = []
+
+    class Context:
+        @staticmethod
+        def Pipe(duplex):
+            assert duplex is False
+            return receive_connection, send_connection
+
+        @staticmethod
+        def Process(*, target, args):
+            assert target is ff._run_seeded_ob_build
+            assert args == ("worker-proxy", send_connection, 43)
+            return process
+
+    monkeypatch.setattr(ff, "_structure_worker_proxy", lambda current: "worker-proxy")
+    monkeypatch.setattr(ff.mp, "get_context", lambda method: Context())
+
+    def receive(current_process, receive, send, **options):
+        calls.append((current_process, receive, send, options))
+        return ff.BuildWorkerResult(
+            status="ok",
+            coordinates=np.zeros((1, 3)),
+        )
+
+    monkeypatch.setattr(ff, "_receive_worker_result", receive)
+    molecule = SimpleNamespace(atoms=(object(),))
+
+    coordinates = ff._seeded_ob_build_coordinates(
+        molecule,
+        43,
+        timeout=4.25,
+    )
+
+    np.testing.assert_array_equal(coordinates, np.zeros((1, 3)))
+    assert calls[0][:3] == (process, receive_connection, send_connection)
+    assert calls[0][3]["timeout"] == 4.25
+
+
+def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
+    molecule = SimpleNamespace(has_metal=False)
+    working = SimpleNamespace(has_metal=False)
+    expected = object()
+    calls = []
+
+    monkeypatch.setattr(
+        ff,
+        "_hydrogenated_working_copy",
+        lambda current, *, add_hydrogens, seed=None: working,
+    )
+    monkeypatch.setattr(
+        ff,
+        "build3d",
+        lambda current, **options: calls.append(("build", current, options)),
+    )
+    monkeypatch.setattr(ff, "optimize", lambda *args, **kwargs: expected)
+    monkeypatch.setattr(ff, "_commit_working_copy", lambda *args: None)
+
+    result = ff.build_and_optimize(molecule, seed=47, timeout=3.75)
+
+    assert result is expected
+    assert calls == [
+        (
+            "build",
+            working,
+            {"add_hydrogens": True, "seed": 47, "timeout": 3.75},
+        )
+    ]
 
 
 def test_perturb_only_changes_coordinates():

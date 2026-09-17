@@ -272,7 +272,6 @@ class _MoleculeCommitSnapshot:
 _WORKER_LIFECYCLE_LOCK = threading.Lock()
 _OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
 _WORKER_EXIT_GRACE_SECONDS = 30.0
-_SEEDED_BUILD_TIMEOUT_SECONDS = 1000.0
 
 
 def _serialized_forcefield_call(function):
@@ -1474,7 +1473,12 @@ def _validated_worker_coordinates(
     return coordinates
 
 
-def _seeded_ob_build_coordinates(mol: Any, seed: int) -> np.ndarray:
+def _seeded_ob_build_coordinates(
+    mol: Any,
+    seed: int,
+    *,
+    timeout: float,
+) -> np.ndarray:
     """Build coordinates in an isolated process for repeatable Open Babel RNG."""
     worker_proxy = _structure_worker_proxy(mol)
     context = mp.get_context("spawn")
@@ -1487,7 +1491,7 @@ def _seeded_ob_build_coordinates(mol: Any, seed: int) -> np.ndarray:
         process,
         receive_connection,
         send_connection,
-        timeout=_SEEDED_BUILD_TIMEOUT_SECONDS,
+        timeout=timeout,
         seed=seed,
         require_diagnostics=False,
         worker_error_type=BuildWorkerError,
@@ -1613,6 +1617,7 @@ def build3d(
     *,
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
+    timeout: float = 1000.0,
 ) -> Build3DReport:
     """Generate initial 3D coordinates with OBBuilder, without optimization."""
     topology_reference = _capture_workflow_topology(
@@ -1628,7 +1633,11 @@ def build3d(
     if seed is None:
         ob_build(working)
     else:
-        working.coordinates = _seeded_ob_build_coordinates(working, seed)
+        working.coordinates = _seeded_ob_build_coordinates(
+            working,
+            seed,
+            timeout=timeout,
+        )
     quality_report = geo.evaluate_geometry_quality(
         working,
         level="off",
@@ -1970,7 +1979,12 @@ def build_and_optimize(
         )
 
     working = _hydrogenated_working_copy(mol, add_hydrogens=False)
-    build3d(working, add_hydrogens=add_hydrogens, seed=seed)
+    build3d(
+        working,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        timeout=timeout,
+    )
     report = optimize(
         working,
         forcefield,

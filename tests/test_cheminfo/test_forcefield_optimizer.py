@@ -563,6 +563,17 @@ def test_unknown_forcefield_fails_before_setup():
         ff._get_forcefield("not-a-forcefield")
 
 
+def test_forcefield_lookup_returns_an_independent_backend(monkeypatch):
+    instances = [object(), object()]
+    prototype = SimpleNamespace(MakeNewInstance=lambda: instances.pop(0))
+    monkeypatch.setattr(ff.ob.OBForceField, "FindType", lambda _: prototype)
+
+    first = ff._get_forcefield("UFF")
+    second = ff._get_forcefield("UFF")
+
+    assert first is not second
+
+
 @pytest.mark.parametrize(
     ("options", "message"),
     (

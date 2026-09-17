@@ -294,11 +294,11 @@ def _energy_factor_to_kj(unit: str) -> float:
 
 @_serialized_forcefield_call
 def _get_forcefield(name: str) -> ob.OBForceField:
-    """Retrieve a force-field plugin guarded by the process-local FF lock."""
-    backend = ob.OBForceField.FindType(name)
-    if backend is None:
+    """Create an independent force-field instance from an Open Babel plugin."""
+    prototype = ob.OBForceField.FindType(name)
+    if prototype is None:
         raise ForceFieldSetupError(f"Unknown Open Babel force field: {name!r}")
-    return backend
+    return prototype.MakeNewInstance()
 
 
 @_serialized_forcefield_call

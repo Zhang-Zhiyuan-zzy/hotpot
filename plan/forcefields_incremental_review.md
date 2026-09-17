@@ -14,6 +14,7 @@
 - [A002：`forcefields.py` 与 `geometry.py` 兼容性代码审查](reviews/ff_geo_compatibility_review.md)
 - [A003：Python 3.9 / Open Babel 3.1 force-field 模块隔离方案](reviews/forcefields_python39_module_split.md)
 - [A004：非平面环穿越判定问题与整改设计](reviews/nonplanar_ring_intersection_review.md)
+- [A005：FF-Q003 无调用且非预留接口专项审查](reviews/ff_unused_callable_review.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
 
@@ -140,7 +141,7 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
 
 - 已确定：旧 API 不保留兼容别名、参数翻译或静默兜底；后续实现直接采用当前名称和显式
   接口。
-- 待确定：是否以放弃 Python 3.9 为代价移除 Open Babel 3.1 适配。
+- 已确定：保留 Python 3.9/Open Babel 3.1，但与 3.10+ 主实现分文件隔离。
 - 待确定：非平面环穿越判定采用何种当前几何语义。
 
 ### 用户补充决策：Python 3.9 隔离而非删除
@@ -162,3 +163,24 @@ point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值
 推荐对平面和非平面环统一使用“best-fit plane 参数化、尊重凹边界的确定性 ear clipping
 以及原始三维顶点三角面”语义，不再引入可能落在环外的算术中心。详细案例、原因、接口设计
 和测试矩阵见附件 A004。
+
+## FF-Q003：无调用且不是预留接口的函数
+
+### 用户问题
+
+以 `_ob_optimize()` 为代表，审查 forcefield/geometry 中既无调用、也没有预留实施目的的
+函数，避免将旧兼容残留仅改成私有名称后长期保留。
+
+### 结论
+
+- `_ob_optimize()` 是 forcefields 中唯一已确认同时满足“私有、零调用、非预留”的函数，
+  应直接删除。它是旧公开 compatibility primitive 私有化后的残留。
+- 其他低引用私有函数均能追踪到真实生产调用、decorator 或 multiprocessing target，不能
+  仅凭文本调用次数少而删除。
+- `geometry.Point` 不是函数，但同样无任何使用和预留职责，是确定的 dead-code 候选。
+- `BuildWorkerResult.conformers` 是无生产读写的闲置字段；它属于 worker schema 清理，不应
+  用现有“可以存值”的测试伪装成业务需求。
+- `prepare_coordination_geometry()` 及其两个结果类型属于用户明确要求保留的未来实施接口，
+  不在删除范围。
+
+完整引用核查见附件 A005。

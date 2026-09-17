@@ -1,3 +1,5 @@
+import os
+import threading
 from types import SimpleNamespace
 
 import numpy as np
@@ -437,6 +439,39 @@ def test_direct_ob_build_waits_for_worker_seed_environment(monkeypatch):
         ("exit", "forcefield"),
         ("exit", "worker"),
     ]
+
+
+def test_direct_ob_build_cannot_observe_a_worker_seed_window(monkeypatch):
+    builder_entered = threading.Event()
+    observed_seeds = []
+
+    class Builder:
+        def Build(self, obmol):
+            observed_seeds.append(os.environ["OB_RANDOM_SEED"])
+            builder_entered.set()
+            return True
+
+    molecule = SimpleNamespace(coordinates=None)
+    monkeypatch.setenv("OB_RANDOM_SEED", "parent")
+    monkeypatch.setattr(ff.ob, "OBBuilder", Builder)
+    monkeypatch.setattr(ff, "mol2obmol", lambda current: (object(), {}))
+    monkeypatch.setattr(
+        ff,
+        "extract_obmol_coordinates",
+        lambda current: np.zeros((1, 3)),
+    )
+
+    with ff._WORKER_LIFECYCLE_LOCK:
+        monkeypatch.setenv("OB_RANDOM_SEED", "37")
+        thread = threading.Thread(target=ff.ob_build, args=(molecule,))
+        thread.start()
+        assert not builder_entered.wait(0.1)
+        monkeypatch.setenv("OB_RANDOM_SEED", "parent")
+
+    thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
+    assert observed_seeds == ["parent"]
 
 
 def test_seeded_build3d_uses_isolated_builder(monkeypatch):

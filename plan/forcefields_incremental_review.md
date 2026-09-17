@@ -198,14 +198,17 @@ point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值
   必须删除该语义。
 - 统一计算分为环边界状态、环面族和键—环关系三层；讨论只采用纯几何量，不调用力场或
   复杂能量。可选 `O(n²)` geometry penalty 仅用于排序。
-- 环状态分为 `VALID/SUSPECT/INVALID/UNRESOLVED`，环面状态独立分为
-  `DEFINED/UNSTABLE/UNDEFINED`；两者不能相互冒充。
-- 键—环关系分为 `CLEAR/PIERCES/TOUCHES/AMBIGUOUS_SURFACE/UNDEFINED_RING`；未知和
-  擦边不能压缩成 `False`。
+- 环、单个 ring–bond pair 和整个分子在应用层统一只返回
+  `REASONABLE/UNREASONABLE/UNCERTAIN`；自交、接触、曲面分歧等只作为 reason/detail。
+- `BondRingPairReport` 明确只针对一个环和一条有限键段；分子级结果由
+  `MoleculeGeometryReport` 聚合全部 ring 和 pair 报告。
+- 只有交点位于两个键端点之间的线段内部时才可能构成穿环；无限直线延长部分的交点无关。
+- 接触边/顶点、共面接触、不同环面结论冲突或曲面不可定义均归为 `UNCERTAIN`，不能静默
+  压缩成合理或不合理。
 - 非平面闭合边界没有唯一内部曲面。对当前 `n <= 8` 的环，优先枚举最多 132 个合法
   vertex-only 三角剖分并取关系共识，避免用某一条任意对角线裁决。
 - `mapbox-earcut` 已验证能够修复现有凹环反例，但只能生成单个三角面，降级为辅助或测试
   oracle；形式 exact predicates 真正成为硬需求时才评估 CGAL。
 
-当前事实、两组状态分级、具体接口、迁移步骤和测试矩阵统一见附件 A004；原 FF-Q005 不再
+当前事实、统一三态、两个报告作用域、具体接口、迁移步骤和测试矩阵见附件 A004；原 FF-Q005 不再
 作为独立问题保留。

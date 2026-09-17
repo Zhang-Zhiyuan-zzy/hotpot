@@ -96,6 +96,7 @@ class ComplexBuildDiagnostics:
 class BuildWorkerResult:
     status: Literal["ok", "error"]
     coordinates: Optional[np.ndarray] = None
+    conformers: Optional[Mapping[str, Any]] = None
     diagnostics: Optional[ComplexBuildDiagnostics] = None
     error_type: Optional[str] = None
     error_message: Optional[str] = None

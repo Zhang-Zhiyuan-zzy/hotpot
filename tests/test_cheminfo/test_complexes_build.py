@@ -661,6 +661,17 @@ def test_generic_worker_coordinate_validation_uses_generic_failure_type():
     assert caught.value.error_type == "WorkerProtocolError"
 
 
+def test_worker_result_can_carry_serialized_conformer_state():
+    conformers = {
+        "_coordinates": (np.zeros((2, 3)),),
+        "_energy": (1.25,),
+    }
+
+    result = ff.BuildWorkerResult(status="ok", conformers=conformers)
+
+    assert result.conformers is conformers
+
+
 def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)

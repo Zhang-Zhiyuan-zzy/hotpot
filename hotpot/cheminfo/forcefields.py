@@ -1112,7 +1112,7 @@ def _build_ligand_proxies(
             component_attempts += 1
             total_attempts += 1
             try:
-                ob_build(component)
+                _ob_build(component)
                 _single_ob_optimization(
                     component,
                     effective_forcefield,
@@ -1360,7 +1360,7 @@ def _run_seeded_ob_build(
     """Run OBBuilder in a fresh process whose static RNG starts from ``seed``."""
     try:
         _seed_openbabel_random(seed)
-        ob_build(mol)
+        _ob_build(mol)
         result = BuildWorkerResult(
             status="ok",
             coordinates=mol.coordinates,
@@ -1668,7 +1668,7 @@ def build3d(
         seed=seed,
     )
     if seed is None:
-        ob_build(working)
+        _ob_build(working)
     else:
         working.coordinates = _seeded_ob_build_coordinates(
             working,
@@ -2106,8 +2106,8 @@ def auto_optimize(
 
 
 @_serialized_builder_call
-def ob_build(mol: Any) -> None:
-    """Compatibility primitive: run OBBuilder directly on ``mol``."""
+def _ob_build(mol: Any) -> None:
+    """Run OBBuilder directly on an internal working molecule."""
     builder = ob.OBBuilder()
     obmol, _ = mol2obmol(mol)
     if not builder.Build(obmol):
@@ -2115,6 +2115,6 @@ def ob_build(mol: Any) -> None:
     mol.coordinates = extract_obmol_coordinates(obmol)
 
 
-def ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
-    """Compatibility primitive returning energy in kJ/mol."""
+def _ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
+    """Run one internal Open Babel optimization and return kJ/mol."""
     return _single_ob_optimization(mol, ff, steps).energy

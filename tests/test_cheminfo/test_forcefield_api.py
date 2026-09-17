@@ -93,6 +93,8 @@ def test_legacy_molecule_forcefield_entrypoints_are_removed():
     assert not hasattr(Molecule, "optimize_complexes")
     assert not hasattr(ff, "OBBuilder")
     assert not hasattr(ff, "ForceFields")
+    assert not hasattr(ff, "ob_build")
+    assert not hasattr(ff, "ob_optimize")
 
 
 @pytest.mark.parametrize("add_hydrogens", (False, True))
@@ -113,7 +115,7 @@ def test_build3d_captures_the_requested_hydrogen_policy(
         "_hydrogenated_working_copy",
         lambda current, **options: current,
     )
-    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
         ff.geo,
         "evaluate_geometry_quality",
@@ -386,7 +388,11 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
         "_hydrogenated_working_copy",
         lambda current, *, add_hydrogens, seed=None: current,
     )
-    monkeypatch.setattr(ff, "ob_build", lambda current: calls.append(("build", current)))
+    monkeypatch.setattr(
+        ff,
+        "_ob_build",
+        lambda current: calls.append(("build", current)),
+    )
     monkeypatch.setattr(
         ff.geo,
         "evaluate_geometry_quality",
@@ -439,7 +445,7 @@ def test_direct_ob_build_waits_for_worker_seed_environment(monkeypatch):
         lambda current: np.zeros((1, 3)),
     )
 
-    ff.ob_build(molecule)
+    ff._ob_build(molecule)
 
     assert events == [
         ("enter", "worker"),
@@ -472,7 +478,7 @@ def test_direct_ob_build_cannot_observe_a_worker_seed_window(monkeypatch):
 
     with ff._WORKER_LIFECYCLE_LOCK:
         monkeypatch.setenv("OB_RANDOM_SEED", "37")
-        thread = threading.Thread(target=ff.ob_build, args=(molecule,))
+        thread = threading.Thread(target=ff._ob_build, args=(molecule,))
         thread.start()
         assert not builder_entered.wait(0.1)
         monkeypatch.setenv("OB_RANDOM_SEED", "parent")
@@ -507,7 +513,7 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     )
     monkeypatch.setattr(
         ff,
-        "ob_build",
+        "_ob_build",
         lambda current: pytest.fail("seeded build used the in-process builder"),
     )
     monkeypatch.setattr(
@@ -712,7 +718,7 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         return SimpleNamespace(has_metal=False, atoms=(), hydrogens=())
 
     monkeypatch.setattr(ff, "_hydrogenated_working_copy", fake_working_copy)
-    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
         ff.geo,
         "evaluate_geometry_quality",

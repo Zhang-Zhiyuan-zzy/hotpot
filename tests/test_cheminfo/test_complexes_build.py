@@ -680,7 +680,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
     def fake_build(current):
         calls["build"] += 1
 
-    monkeypatch.setattr(ff, "ob_build", fake_build)
+    monkeypatch.setattr(ff, "_ob_build", fake_build)
     monkeypatch.setattr(
         ff,
         "_single_ob_optimization",
@@ -747,7 +747,7 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
         calls += 1
         raise ff.ForceFieldError("builder failed")
 
-    monkeypatch.setattr(ff, "ob_build", fail_build)
+    monkeypatch.setattr(ff, "_ob_build", fail_build)
     monkeypatch.setattr(
         ff.geo,
         "capture_topology",
@@ -783,7 +783,7 @@ def test_builder_failure_recovers_temporarily_opened_ring_bonds(monkeypatch):
         recovery_calls += 1
 
     component.recover_hided_covalent_bonds = recover
-    monkeypatch.setattr(ff, "ob_build", fail_build)
+    monkeypatch.setattr(ff, "_ob_build", fail_build)
     monkeypatch.setattr(
         ff.geo,
         "capture_topology",
@@ -816,7 +816,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         bond_indices=(0,),
     )
 
-    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
         ff,
         "_single_ob_optimization",
@@ -873,7 +873,7 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
         atom_indices=(0, 1),
     )
 
-    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
         ff,
         "_single_ob_optimization",
@@ -944,7 +944,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         atom_indices=(0, 1),
     )
 
-    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
         ff,
         "_single_ob_optimization",
@@ -1034,7 +1034,7 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
             failures=() if passed else (failure,),
         )
 
-    monkeypatch.setattr(ff, "ob_build", build)
+    monkeypatch.setattr(ff, "_ob_build", build)
     monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
     monkeypatch.setattr(
         ff.geo,
@@ -1075,7 +1075,7 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
     first = SimpleNamespace(a1idx=4, a2idx=2)
     second = SimpleNamespace(a1idx=3, a2idx=1)
 
-    monkeypatch.setattr(ff, "ob_build", lambda current: None)
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
         ff,
         "_single_ob_optimization",

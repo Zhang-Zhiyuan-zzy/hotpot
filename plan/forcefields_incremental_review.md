@@ -13,6 +13,7 @@
 - [A001：`forcefields.py` 与 `geometry.py` 类型和命名审查](reviews/ff_geo_typing_naming_review.md)
 - [A002：`forcefields.py` 与 `geometry.py` 兼容性代码审查](reviews/ff_geo_compatibility_review.md)
 - [A003：Python 3.9 / Open Babel 3.1 force-field 模块隔离方案](reviews/forcefields_python39_module_split.md)
+- [A004：非平面环穿越判定问题与整改设计](reviews/nonplanar_ring_intersection_review.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
 
@@ -150,3 +151,14 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
   `utils.py` + `utils39.py`。
 - `ff.py` 与 `ff39.py` 的公开接口和签名必须完全一致。
 - 具体模块边界、迁移顺序及测试围栏见附件 A003。
+
+### 非平面环问题补充结论
+
+当前 center-fan 语义存在已经动态复现的显著缺陷：对一个凹六边形，仅向一个顶点施加
+`5e-8 Å` 的 z 方向扰动，就会使位于凹口外部的 probe 从“不穿环”变为“穿环”。这是平面
+point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值不连续，不是化学结构
+发生了有意义的改变。
+
+推荐对平面和非平面环统一使用“best-fit plane 参数化、尊重凹边界的确定性 ear clipping
+以及原始三维顶点三角面”语义，不再引入可能落在环外的算术中心。详细案例、原因、接口设计
+和测试矩阵见附件 A004。

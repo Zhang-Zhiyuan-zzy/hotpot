@@ -686,6 +686,7 @@ class _OpenBabelOptimizer:
                 "epochs_completed": epochs_completed,
                 "segment_epochs_completed": segment_epochs_completed,
             },
+            forcefield_stage="final",
             thresholds=quality_thresholds,
         )
         return _ObservedFrame(
@@ -994,13 +995,11 @@ def _build_ligand_proxies(
                 topology_reference=component_reference,
                 forcefield_report={
                     "setup_succeeded": True,
-                    "converged": False,
                     "final_energy": scored.energy,
                     "energy_unit": scored.energy_unit,
-                    "rms_gradient": None,
-                    "max_gradient": None,
                     "exploded": scored.exploded,
                 },
+                forcefield_stage="candidate",
             )
             if not candidate_quality.passed:
                 rejections.append(
@@ -1065,13 +1064,11 @@ def _build_ligand_proxies(
                 topology_reference=component_reference,
                 forcefield_report={
                     "setup_succeeded": True,
-                    "converged": False,
                     "final_energy": refined.energy,
                     "energy_unit": refined.energy_unit,
-                    "rms_gradient": None,
-                    "max_gradient": None,
                     "exploded": refined.exploded,
                 },
+                forcefield_stage="candidate",
             )
             if refined_intersections or not refined_quality.passed:
                 if refined_intersections:

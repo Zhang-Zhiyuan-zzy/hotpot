@@ -18,6 +18,7 @@ import numpy as np
 PairScope = Literal["all", "bonded", "nonbonded"]
 RingScope = Literal["full_graph", "ligand_skeleton"]
 QualityLevel = Literal["off", "basic", "standard", "strict"]
+ForceFieldStage = Literal["candidate", "final"]
 
 
 @dataclass(frozen=True)
@@ -1287,6 +1288,7 @@ def _forcefield_checks(
         report: Any,
         level: QualityLevel,
         thresholds: GeometryQualityThresholds,
+        stage: ForceFieldStage,
 ) -> Tuple[GeometryCheck, ...]:
     if report is None:
         if level == "strict":
@@ -1301,25 +1303,26 @@ def _forcefield_checks(
 
     checks = []
     setup_succeeded = _report_value(report, "setup_succeeded")
-    if setup_succeeded is not None or level == "strict":
-        checks.append(GeometryCheck(
-            name="forcefield_setup",
-            passed=setup_succeeded is not None and bool(setup_succeeded),
-            measured=setup_succeeded,
-            threshold=True,
-            message="Force-field setup must succeed",
-        ))
+    checks.append(GeometryCheck(
+        name="forcefield_setup",
+        passed=setup_succeeded is not None and bool(setup_succeeded),
+        measured=setup_succeeded,
+        threshold=True,
+        message="Force-field setup must succeed",
+    ))
 
-    for field_name in ("final_energy", "rms_gradient", "max_gradient"):
+    required_finite_fields = ["final_energy"]
+    if stage == "final":
+        required_finite_fields.extend(("rms_gradient", "max_gradient"))
+    for field_name in required_finite_fields:
         value = _report_value(report, field_name)
-        if value is not None or level == "strict":
-            checks.append(GeometryCheck(
-                name=f"finite_{field_name}",
-                passed=value is not None and bool(np.isfinite(value)),
-                measured=None if value is None else float(value),
-                threshold="finite",
-                message=f"{field_name.replace('_', ' ')} must be finite",
-            ))
+        checks.append(GeometryCheck(
+            name=f"finite_{field_name}",
+            passed=value is not None and bool(np.isfinite(value)),
+            measured=None if value is None else float(value),
+            threshold="finite",
+            message=f"{field_name.replace('_', ' ')} must be finite",
+        ))
 
     if level in ("basic", "standard", "strict"):
         exploded = _report_value(report, "exploded")
@@ -1332,7 +1335,7 @@ def _forcefield_checks(
                 message="The force-field backend detected an exploded structure",
             ))
 
-    if level in ("standard", "strict"):
+    if stage == "final" and level in ("standard", "strict"):
         converged = _report_value(report, "converged")
         if converged is not None or level == "strict":
             checks.append(GeometryCheck(
@@ -1344,7 +1347,7 @@ def _forcefield_checks(
                 message="The force-field backend did not report convergence",
             ))
 
-    if level == "strict":
+    if stage == "final" and level == "strict":
         gradient_limits = (
             ("rms_gradient", thresholds.strict_rms_gradient),
             ("max_gradient", thresholds.strict_max_gradient),
@@ -1474,11 +1477,14 @@ def evaluate_geometry_quality(
         level: QualityLevel = "standard",
         topology_reference: Optional[TopologyReference] = None,
         forcefield_report: Any = None,
+        forcefield_stage: ForceFieldStage = "final",
         thresholds: Optional[Union[GeometryQualityThresholds, Mapping[str, Any]]] = None,
 ) -> GeometryQualityReport:
     """Evaluate coordinate, topology, and force-field result integrity."""
     if level not in ("off", "basic", "standard", "strict"):
         raise ValueError(f"Unknown geometry quality level: {level!r}")
+    if forcefield_stage not in ("candidate", "final"):
+        raise ValueError(f"Unknown force-field stage: {forcefield_stage!r}")
 
     limits = _resolve_thresholds(thresholds)
     atoms = tuple(mol.atoms)
@@ -1517,7 +1523,9 @@ def evaluate_geometry_quality(
 
     if topology_reference is not None:
         checks.extend(_topology_checks(mol, topology_reference))
-    checks.extend(_forcefield_checks(forcefield_report, level, limits))
+    checks.extend(
+        _forcefield_checks(forcefield_report, level, limits, forcefield_stage)
+    )
 
     if not finite_ok:
         passed = all(check.passed or check.severity != "error" for check in checks)
@@ -1701,6 +1709,7 @@ def is_geometry_reasonable(
         level: QualityLevel = "standard",
         topology_reference: Optional[TopologyReference] = None,
         forcefield_report: Any = None,
+        forcefield_stage: ForceFieldStage = "final",
         thresholds: Optional[Union[GeometryQualityThresholds, Mapping[str, Any]]] = None,
 ) -> bool:
     """Return the pass/fail result of :func:`evaluate_geometry_quality`."""
@@ -1709,5 +1718,6 @@ def is_geometry_reasonable(
         level=level,
         topology_reference=topology_reference,
         forcefield_report=forcefield_report,
+        forcefield_stage=forcefield_stage,
         thresholds=thresholds,
     ).passed

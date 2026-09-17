@@ -343,6 +343,59 @@ def test_strict_gate_fails_closed_without_complete_forcefield_diagnostics():
     } <= {check.name for check in empty_report.failures}
 
 
+def test_supplied_final_report_fails_closed_even_when_gate_is_off():
+    report = geo.evaluate_geometry_quality(
+        _valid_carbon_bond(),
+        level="off",
+        forcefield_report={},
+    )
+
+    assert not report.passed
+    assert {check.name for check in report.failures} == {
+        "forcefield_setup",
+        "finite_final_energy",
+        "finite_rms_gradient",
+        "finite_max_gradient",
+    }
+
+
+def test_candidate_report_does_not_claim_unobserved_gradients():
+    report = geo.evaluate_geometry_quality(
+        _valid_carbon_bond(),
+        level="basic",
+        forcefield_report={
+            "setup_succeeded": True,
+            "final_energy": -10.0,
+            "exploded": False,
+        },
+        forcefield_stage="candidate",
+    )
+
+    assert report.passed
+    assert not any("gradient" in check.name for check in report.checks)
+    assert not any(check.name == "forcefield_convergence" for check in report.checks)
+
+
+@pytest.mark.parametrize(
+    "forcefield_report",
+    (
+        {"final_energy": -10.0, "exploded": False},
+        {"setup_succeeded": True, "exploded": False},
+        {"setup_succeeded": True, "final_energy": np.nan, "exploded": False},
+        {"setup_succeeded": True, "final_energy": -10.0, "exploded": True},
+    ),
+)
+def test_candidate_report_fails_closed_on_required_fields(forcefield_report):
+    report = geo.evaluate_geometry_quality(
+        _valid_carbon_bond(),
+        level="basic",
+        forcefield_report=forcefield_report,
+        forcefield_stage="candidate",
+    )
+
+    assert not report.passed
+
+
 def test_strict_gate_accepts_complete_stable_forcefield_diagnostics():
     molecule = _valid_carbon_bond()
     forcefield_report = {

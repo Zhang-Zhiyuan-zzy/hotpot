@@ -15,10 +15,62 @@ from itertools import combinations
 import numpy as np
 
 
+__all__ = (
+    "PairScope",
+    "RingScope",
+    "QualityLevel",
+    "ForceFieldStage",
+    "LinesRelationship",
+    "AtomPairGeometryIssue",
+    "GeometryCheck",
+    "GeometryQualityThresholds",
+    "AtomTopologySignature",
+    "BondTopologySignature",
+    "TopologyReference",
+    "GeometryQualityReport",
+    "Point",
+    "Line",
+    "Plane",
+    "CyclePlanes",
+    "to_point",
+    "get_line_relationship",
+    "calculate_line_distance",
+    "points_on_same_plane",
+    "find_overlapping_atom_pairs",
+    "has_overlapping_atoms",
+    "find_too_close_atom_pairs",
+    "has_too_close_atoms",
+    "bond_intersects_ring",
+    "find_bond_ring_intersections",
+    "bond_ring_intersection_checks",
+    "has_bond_ring_intersection",
+    "closest_ring_edge_to_bond",
+    "closest_ring_opening_edge",
+    "capture_topology",
+    "evaluate_geometry_quality",
+    "is_geometry_reasonable",
+)
+
+
 PairScope = Literal["all", "bonded", "nonbonded"]
+
+
 RingScope = Literal["full_graph", "ligand_skeleton"]
+
+
 QualityLevel = Literal["off", "basic", "standard", "strict"]
+
+
 ForceFieldStage = Literal["candidate", "final"]
+
+
+# Public enums and immutable report data contracts.
+
+
+class LinesRelationship(Enum):
+    INTERSECT = "intersect"
+    PARALLEL = "parallel"
+    SKEW = "skew"
 
 
 @dataclass(frozen=True)
@@ -119,6 +171,813 @@ class GeometryQualityReport:
         return asdict(self)
 
 
+# Internal vectorized geometry data.
+
+
+@dataclass(frozen=True)
+class _AtomPairTable:
+    atoms: Tuple[Any, ...]
+    atom_indices: Tuple[int, ...]
+    first: np.ndarray
+    second: np.ndarray
+    distances: np.ndarray
+    bonded_pairs: frozenset
+
+
+# Atom-coordinate and pair-distance helpers.
+
+
+def _atom_coordinates(atoms: Sequence[Any]) -> np.ndarray:
+    if not atoms:
+        return np.empty((0, 3), dtype=float)
+    return np.asarray([atom.coordinates for atom in atoms], dtype=float)
+
+
+def _atom_index(atom: Any, fallback: int) -> int:
+    return int(getattr(atom, "idx", fallback))
+
+
+def _pair_table(obj: Any, coordinates: Optional[np.ndarray] = None) -> _AtomPairTable:
+    atoms = tuple(obj.atoms)
+    atom_indices = tuple(_atom_index(atom, i) for i, atom in enumerate(atoms))
+    coords = _atom_coordinates(atoms) if coordinates is None else coordinates
+    first, second = np.triu_indices(len(atoms), 1)
+    distances = np.linalg.norm(coords[first] - coords[second], axis=1)
+    positions = {id(atom): i for i, atom in enumerate(atoms)}
+    bonded_pairs = frozenset(
+        tuple(sorted((positions[id(bond.atom1)], positions[id(bond.atom2)])))
+        for bond in obj.bonds
+        if id(bond.atom1) in positions and id(bond.atom2) in positions
+    )
+    return _AtomPairTable(
+        atoms=atoms,
+        atom_indices=atom_indices,
+        first=first,
+        second=second,
+        distances=distances,
+        bonded_pairs=bonded_pairs,
+    )
+
+
+def _pair_scope_mask(table: _AtomPairTable, pair_scope: PairScope) -> np.ndarray:
+    if pair_scope not in ("all", "bonded", "nonbonded"):
+        raise ValueError(f"Unknown atom-pair scope: {pair_scope!r}")
+    if pair_scope == "all":
+        return np.ones(len(table.distances), dtype=bool)
+
+    bonded = np.fromiter(
+        (
+            (int(i), int(j)) in table.bonded_pairs
+            for i, j in zip(table.first, table.second)
+        ),
+        dtype=bool,
+        count=len(table.distances),
+    )
+    return bonded if pair_scope == "bonded" else ~bonded
+
+
+def _overlap_issues(
+    table: _AtomPairTable,
+    tolerance: float,
+) -> Tuple[AtomPairGeometryIssue, ...]:
+    return tuple(_iter_overlap_issues(table, tolerance))
+
+
+def _iter_overlap_issues(
+    table: _AtomPairTable,
+    tolerance: float,
+):
+    for position in np.flatnonzero(table.distances <= tolerance):
+        first = int(table.first[position])
+        second = int(table.second[position])
+        yield AtomPairGeometryIssue(
+            kind="overlap",
+            atom_indices=(table.atom_indices[first], table.atom_indices[second]),
+            distance=float(table.distances[position]),
+            threshold=float(tolerance),
+        )
+
+
+def _too_close_issues(
+        table: _AtomPairTable,
+        *,
+        minimum_distance: float,
+        covalent_radius_scale: Optional[float],
+        pair_scope: PairScope,
+        include_overlaps: bool,
+        overlap_tolerance: float,
+) -> Tuple[AtomPairGeometryIssue, ...]:
+    return tuple(_iter_too_close_issues(
+        table,
+        minimum_distance=minimum_distance,
+        covalent_radius_scale=covalent_radius_scale,
+        pair_scope=pair_scope,
+        include_overlaps=include_overlaps,
+        overlap_tolerance=overlap_tolerance,
+    ))
+
+
+def _iter_too_close_issues(
+    table: _AtomPairTable,
+    *,
+    minimum_distance: float,
+    covalent_radius_scale: Optional[float],
+    pair_scope: PairScope,
+    include_overlaps: bool,
+    overlap_tolerance: float,
+):
+    thresholds = np.full(len(table.distances), minimum_distance, dtype=float)
+    if covalent_radius_scale is not None:
+        radii = np.asarray(
+            [float(atom.covalent_radius) for atom in table.atoms],
+            dtype=float,
+        )
+        scaled = covalent_radius_scale * (
+            radii[table.first] + radii[table.second]
+        )
+        thresholds = np.maximum(thresholds, scaled)
+
+    mask = _pair_scope_mask(table, pair_scope) & (table.distances < thresholds)
+    if not include_overlaps:
+        mask &= table.distances > overlap_tolerance
+
+    for position in np.flatnonzero(mask):
+        first = int(table.first[position])
+        second = int(table.second[position])
+        yield AtomPairGeometryIssue(
+            kind="too_close",
+            atom_indices=(table.atom_indices[first], table.atom_indices[second]),
+            distance=float(table.distances[position]),
+            threshold=float(thresholds[position]),
+        )
+
+
+# Line, segment, and polygon intersection helpers.
+
+
+def _segment_intersects_triangle(
+        start: np.ndarray,
+        end: np.ndarray,
+        first: np.ndarray,
+        second: np.ndarray,
+        third: np.ndarray,
+        tolerance: float,
+        *,
+        segment: bool = True,
+) -> bool:
+    """Moller-Trumbore intersection with the interior of one triangle."""
+    direction = end - start
+    edge1 = second - first
+    edge2 = third - first
+    cross = np.cross(direction, edge2)
+    determinant = float(np.dot(edge1, cross))
+    if abs(determinant) <= tolerance:
+        return False
+
+    inverse = 1.0 / determinant
+    offset = start - first
+    u = inverse * float(np.dot(offset, cross))
+    if u < -tolerance or u > 1.0 + tolerance:
+        return False
+
+    offset_cross = np.cross(offset, edge1)
+    v = inverse * float(np.dot(direction, offset_cross))
+    if v < -tolerance or u + v > 1.0 + tolerance:
+        return False
+
+    parameter = inverse * float(np.dot(edge2, offset_cross))
+    return not segment or tolerance < parameter < 1.0 - tolerance
+
+
+def _planar_polygon_normal(
+    points: np.ndarray,
+    tolerance: float,
+) -> Optional[np.ndarray]:
+    """Return a unit normal when all polygon vertices share one plane."""
+    normal = np.sum(
+        np.cross(points, np.roll(points, -1, axis=0)),
+        axis=0,
+    )
+    length = float(np.linalg.norm(normal))
+    if length <= tolerance:
+        return None
+
+    normal /= length
+    scale = max(1.0, float(np.ptp(points, axis=0).max()))
+    distances = np.abs((points - points[0]) @ normal)
+    return normal if np.all(distances <= tolerance * scale) else None
+
+
+def _point_on_segment_2d(
+    point: np.ndarray,
+    start: np.ndarray,
+    end: np.ndarray,
+    tolerance: float,
+) -> bool:
+    edge = end - start
+    offset = point - start
+    scale = max(1.0, float(np.linalg.norm(edge)))
+    cross = float(edge[0] * offset[1] - edge[1] * offset[0])
+    if abs(cross) > tolerance * scale:
+        return False
+    projection = float(np.dot(offset, edge))
+    return -tolerance <= projection <= float(np.dot(edge, edge)) + tolerance
+
+
+def _point_in_polygon_2d(
+    point: np.ndarray,
+    polygon: np.ndarray,
+    tolerance: float,
+) -> bool:
+    """Return whether a point lies in or on a simple, possibly concave polygon."""
+    inside = False
+    for index, start in enumerate(polygon):
+        end = polygon[(index + 1) % len(polygon)]
+        if _point_on_segment_2d(point, start, end, tolerance):
+            return True
+        if (start[1] > point[1]) != (end[1] > point[1]):
+            crossing_x = start[0] + (
+                (point[1] - start[1])
+                * (end[0] - start[0])
+                / (end[1] - start[1])
+            )
+            if point[0] < crossing_x:
+                inside = not inside
+    return inside
+
+
+def _line_intersects_planar_polygon(
+    points: np.ndarray,
+    start: np.ndarray,
+    end: np.ndarray,
+    normal: np.ndarray,
+    tolerance: float,
+    *,
+    segment: bool,
+) -> bool:
+    direction = end - start
+    denominator = float(np.dot(normal, direction))
+    if abs(denominator) <= tolerance * np.linalg.norm(direction):
+        return False
+
+    parameter = float(np.dot(normal, points[0] - start) / denominator)
+    if segment and not tolerance < parameter < 1.0 - tolerance:
+        return False
+
+    intersection = start + parameter * direction
+    projection_axes = np.delete(np.arange(3), np.argmax(np.abs(normal)))
+    return _point_in_polygon_2d(
+        intersection[projection_axes],
+        points[:, projection_axes],
+        tolerance,
+    )
+
+
+def _line_intersects_polygon(
+        points: np.ndarray,
+        start: np.ndarray,
+        end: np.ndarray,
+        *,
+        tolerance: float,
+        segment: bool,
+) -> bool:
+    """Return whether a line or segment intersects a polygonal ring surface."""
+    if len(points) < 3 or not np.all(np.isfinite(points)):
+        return False
+    if not np.all(np.isfinite((start, end))):
+        return False
+    if np.linalg.norm(end - start) <= tolerance:
+        return False
+
+    normal = _planar_polygon_normal(points, tolerance)
+    if normal is not None:
+        return _line_intersects_planar_polygon(
+            points,
+            start,
+            end,
+            normal,
+            tolerance,
+            segment=segment,
+        )
+
+    # Preserve the historical center-fan surface for non-planar rings.
+    center = np.mean(points, axis=0)
+    return any(
+        _segment_intersects_triangle(
+            start,
+            end,
+            center,
+            points[index],
+            points[(index + 1) % len(points)],
+            tolerance,
+            segment=segment,
+        )
+        for index in range(len(points))
+    )
+
+
+def _point_segment_distance(
+        point: np.ndarray,
+        start: np.ndarray,
+        end: np.ndarray,
+) -> float:
+    direction = end - start
+    length_squared = float(np.dot(direction, direction))
+    if length_squared == 0.0:
+        return float(np.linalg.norm(point - start))
+    parameter = float(np.dot(point - start, direction) / length_squared)
+    closest = start + np.clip(parameter, 0.0, 1.0) * direction
+    return float(np.linalg.norm(point - closest))
+
+
+def _segment_distance(
+        first_start: np.ndarray,
+        first_end: np.ndarray,
+        second_start: np.ndarray,
+        second_end: np.ndarray,
+        tolerance: float = 1.0e-12,
+) -> float:
+    """Return the shortest Euclidean distance between two finite segments."""
+    first_direction = first_end - first_start
+    second_direction = second_end - second_start
+    offset = first_start - second_start
+    first_length = float(np.dot(first_direction, first_direction))
+    second_length = float(np.dot(second_direction, second_direction))
+
+    if first_length <= tolerance and second_length <= tolerance:
+        return float(np.linalg.norm(first_start - second_start))
+    if first_length <= tolerance:
+        return _point_segment_distance(first_start, second_start, second_end)
+    if second_length <= tolerance:
+        return _point_segment_distance(second_start, first_start, first_end)
+
+    cross = float(np.dot(first_direction, second_direction))
+    first_offset = float(np.dot(first_direction, offset))
+    second_offset = float(np.dot(second_direction, offset))
+    denominator = first_length * second_length - cross * cross
+    first_numerator = 0.0
+    first_denominator = denominator
+    second_numerator = 0.0
+    second_denominator = denominator
+
+    if denominator <= tolerance:
+        first_numerator = 0.0
+        first_denominator = 1.0
+        second_numerator = second_offset
+        second_denominator = second_length
+    else:
+        first_numerator = cross * second_offset - first_offset * second_length
+        second_numerator = first_length * second_offset - cross * first_offset
+        if first_numerator < 0.0:
+            first_numerator = 0.0
+            second_numerator = second_offset
+            second_denominator = second_length
+        elif first_numerator > first_denominator:
+            first_numerator = first_denominator
+            second_numerator = second_offset + cross
+            second_denominator = second_length
+
+    if second_numerator < 0.0:
+        second_numerator = 0.0
+        if -first_offset < 0.0:
+            first_numerator = 0.0
+        elif -first_offset > first_length:
+            first_numerator = first_denominator
+        else:
+            first_numerator = -first_offset
+            first_denominator = first_length
+    elif second_numerator > second_denominator:
+        second_numerator = second_denominator
+        if -first_offset + cross < 0.0:
+            first_numerator = 0.0
+        elif -first_offset + cross > first_length:
+            first_numerator = first_denominator
+        else:
+            first_numerator = -first_offset + cross
+            first_denominator = first_length
+
+    first_parameter = (
+        0.0 if abs(first_numerator) <= tolerance
+        else first_numerator / first_denominator
+    )
+    second_parameter = (
+        0.0 if abs(second_numerator) <= tolerance
+        else second_numerator / second_denominator
+    )
+    separation = (
+        offset
+        + first_parameter * first_direction
+        - second_parameter * second_direction
+    )
+    return float(np.linalg.norm(separation))
+
+
+# Ring selection and stable identity helpers.
+
+
+def _rings_for_scope(mol: Any, ring_scope: RingScope) -> Sequence[Any]:
+    if ring_scope not in ("full_graph", "ligand_skeleton"):
+        raise ValueError(f"Unknown ring scope: {ring_scope!r}")
+    uncached_rings = getattr(mol, "_uncached_rings", None)
+    if uncached_rings is not None:
+        return uncached_rings(ligand_skeleton=ring_scope == "ligand_skeleton")
+    return mol.rings if ring_scope == "full_graph" else mol.ligand_rings
+
+
+def _ring_key(ring: Any) -> Tuple[int, ...]:
+    return tuple(sorted(_atom_index(atom, i) for i, atom in enumerate(ring.atoms)))
+
+
+def _bond_key(bond: Any) -> Tuple[int, int]:
+    first = _atom_index(bond.atom1, 0)
+    second = _atom_index(bond.atom2, 1)
+    return tuple(sorted((first, second)))
+
+
+def _iter_bond_ring_intersections(
+    mol: Any,
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+):
+    rings = sorted(
+        (
+            ring for ring in _rings_for_scope(mol, ring_scope)
+            if 3 <= len(ring) <= max_ring_size
+        ),
+        key=_ring_key,
+    )
+    bonds = sorted(mol.bonds, key=_bond_key)
+    for ring in rings:
+        for bond in bonds:
+            if bond_intersects_ring(ring, bond):
+                yield ring, bond
+
+
+# Topology comparison helpers.
+
+
+def _bond_kind(bond: Any) -> str:
+    kind = getattr(bond, "bond_kind", "")
+    return str(getattr(kind, "value", kind))
+
+
+def _topology_bond_signature(
+        bond: Any,
+        positions: Mapping[int, int],
+) -> BondTopologySignature:
+    endpoints = tuple(sorted((
+        positions[id(bond.atom1)],
+        positions[id(bond.atom2)],
+    )))
+    return BondTopologySignature(
+        atom_indices=endpoints,
+        bond_order=float(bond.bond_order),
+        bond_kind=_bond_kind(bond),
+    )
+
+
+def _topology_checks(
+        mol: Any,
+        reference: TopologyReference,
+) -> Tuple[GeometryCheck, ...]:
+    atoms = tuple(mol.atoms)
+    checks = []
+    original_count = len(reference.atoms)
+
+    if len(atoms) < original_count:
+        checks.append(GeometryCheck(
+            name="topology_atom_count",
+            passed=False,
+            measured=len(atoms),
+            threshold=f">={original_count}",
+            message="Original atoms were removed",
+        ))
+        return tuple(checks)
+
+    for signature, atom in zip(reference.atoms, atoms[:original_count]):
+        measured = (
+            int(atom.id),
+            int(atom.atomic_number),
+            int(atom.formal_charge),
+        )
+        expected = (
+            signature.atom_id,
+            signature.atomic_number,
+            signature.formal_charge,
+        )
+        if measured != expected:
+            checks.append(GeometryCheck(
+                name="topology_atom_identity",
+                passed=False,
+                measured=measured,
+                threshold=expected,
+                atom_indices=(signature.index,),
+                message="An original atom identity or formal charge changed",
+            ))
+
+    added_indices = set(range(original_count, len(atoms)))
+    if added_indices and not reference.allow_added_hydrogens:
+        checks.append(GeometryCheck(
+            name="topology_added_atoms",
+            passed=False,
+            measured=len(added_indices),
+            threshold=0,
+            atom_indices=tuple(sorted(added_indices)),
+            message="Additional atoms are not allowed by this topology reference",
+        ))
+    elif added_indices:
+        non_hydrogens = tuple(
+            i for i in added_indices if int(atoms[i].atomic_number) != 1
+        )
+        if non_hydrogens:
+            checks.append(GeometryCheck(
+                name="topology_added_atoms",
+                passed=False,
+                measured=tuple(int(atoms[i].atomic_number) for i in non_hydrogens),
+                threshold="hydrogen only",
+                atom_indices=non_hydrogens,
+                message="Only hydrogen atoms may be added during preparation",
+            ))
+
+    positions = {id(atom): i for i, atom in enumerate(atoms)}
+    candidate_bonds = {
+        signature.atom_indices: signature
+        for signature in (
+            _topology_bond_signature(bond, positions) for bond in mol.bonds
+        )
+    }
+    reference_bonds = {
+        signature.atom_indices: signature for signature in reference.bonds
+    }
+
+    for endpoints, expected in reference_bonds.items():
+        measured = candidate_bonds.get(endpoints)
+        if measured != expected:
+            checks.append(GeometryCheck(
+                name="topology_original_bond",
+                passed=False,
+                measured=measured,
+                threshold=expected,
+                atom_indices=endpoints,
+                message="An original bond was removed or changed",
+            ))
+
+    added_bonds = set(candidate_bonds).difference(reference_bonds)
+    invalid_added_bonds = tuple(sorted(
+        endpoints
+        for endpoints in added_bonds
+        if not reference.allow_added_hydrogens
+        or sum(endpoint in added_indices for endpoint in endpoints) != 1
+    ))
+    for endpoints in invalid_added_bonds:
+        checks.append(GeometryCheck(
+            name="topology_added_bond",
+            passed=False,
+            measured=endpoints,
+            threshold="one added H endpoint",
+            atom_indices=endpoints,
+            message="Only new X-H bonds may be added during preparation",
+        ))
+
+    if reference.allow_added_hydrogens:
+        degree = {index: 0 for index in added_indices}
+        for endpoints in added_bonds:
+            for endpoint in endpoints:
+                if endpoint in degree:
+                    degree[endpoint] += 1
+        invalid_hydrogens = tuple(
+            index for index, count in sorted(degree.items()) if count != 1
+        )
+        if invalid_hydrogens:
+            checks.append(GeometryCheck(
+                name="topology_added_hydrogen_degree",
+                passed=False,
+                measured=tuple(degree[index] for index in invalid_hydrogens),
+                threshold=1,
+                atom_indices=invalid_hydrogens,
+                message="Each added hydrogen must have exactly one new bond",
+            ))
+
+    if not checks:
+        checks.append(GeometryCheck(
+            name="topology",
+            passed=True,
+            measured=(len(atoms), len(candidate_bonds)),
+            threshold=(original_count, len(reference_bonds)),
+            message="Original topology is preserved",
+        ))
+    return tuple(checks)
+
+
+# Composite quality-gate helpers.
+
+
+def _resolve_thresholds(
+        thresholds: Optional[Union[GeometryQualityThresholds, Mapping[str, Any]]],
+) -> GeometryQualityThresholds:
+    if thresholds is None:
+        return GeometryQualityThresholds()
+    if isinstance(thresholds, GeometryQualityThresholds):
+        return thresholds
+    return replace(GeometryQualityThresholds(), **dict(thresholds))
+
+
+def _report_value(report: Any, name: str) -> Any:
+    if isinstance(report, Mapping):
+        return report.get(name)
+    return getattr(report, name, None)
+
+
+def _forcefield_checks(
+        report: Any,
+        level: QualityLevel,
+        thresholds: GeometryQualityThresholds,
+        stage: ForceFieldStage,
+) -> Tuple[GeometryCheck, ...]:
+    if report is None:
+        if level == "strict":
+            return (GeometryCheck(
+                name="forcefield_report",
+                passed=False,
+                measured=None,
+                threshold="complete force-field report",
+                message="Strict geometry validation requires force-field diagnostics",
+            ),)
+        return ()
+
+    checks = []
+    setup_succeeded = _report_value(report, "setup_succeeded")
+    checks.append(GeometryCheck(
+        name="forcefield_setup",
+        passed=setup_succeeded is not None and bool(setup_succeeded),
+        measured=setup_succeeded,
+        threshold=True,
+        message="Force-field setup must succeed",
+    ))
+
+    required_finite_fields = ["final_energy"]
+    if stage == "final":
+        required_finite_fields.extend(("rms_gradient", "max_gradient"))
+    for field_name in required_finite_fields:
+        value = _report_value(report, field_name)
+        checks.append(GeometryCheck(
+            name=f"finite_{field_name}",
+            passed=value is not None and bool(np.isfinite(value)),
+            measured=None if value is None else float(value),
+            threshold="finite",
+            message=f"{field_name.replace('_', ' ')} must be finite",
+        ))
+
+    if level in ("basic", "standard", "strict"):
+        exploded = _report_value(report, "exploded")
+        checks.append(GeometryCheck(
+            name="backend_explosion",
+            passed=exploded is not None and not bool(exploded),
+            measured=exploded,
+            threshold=False,
+            message="The force-field backend must report a non-exploded structure",
+        ))
+
+    if stage == "final" and level in ("standard", "strict"):
+        converged = _report_value(report, "converged")
+        if converged is not None or level == "strict":
+            checks.append(GeometryCheck(
+                name="forcefield_convergence",
+                passed=converged is not None and bool(converged),
+                severity="error" if level == "strict" else "warning",
+                measured=converged,
+                threshold=True,
+                message="The force-field backend did not report convergence",
+            ))
+
+    if stage == "final" and level == "strict":
+        gradient_limits = (
+            ("rms_gradient", thresholds.strict_rms_gradient),
+            ("max_gradient", thresholds.strict_max_gradient),
+        )
+        for field_name, limit in gradient_limits:
+            value = _report_value(report, field_name)
+            if value is not None and np.isfinite(value):
+                checks.append(GeometryCheck(
+                    name=field_name,
+                    passed=float(value) <= limit,
+                    measured=float(value),
+                    threshold=limit,
+                    message=f"{field_name.replace('_', ' ')} exceeds the strict limit",
+                ))
+
+        segment_epochs_completed = _report_value(
+            report,
+            "segment_epochs_completed",
+        )
+        converged = bool(_report_value(report, "converged"))
+        no_history_required = (
+            segment_epochs_completed is not None
+            and int(segment_epochs_completed) == 1
+            and converged
+        )
+        stability_checks = (
+            ("energy_changes", thresholds.strict_energy_change),
+            ("max_displacements", thresholds.strict_max_displacement),
+        )
+        stability_observations = []
+        for field_name, limit in stability_checks:
+            history = _report_value(report, field_name)
+            values = () if history is None else tuple(history)
+            recent = values[-thresholds.strict_stability_window:]
+            value = max(recent) if recent else None
+            stability_observations.append(len(recent))
+            checks.append(GeometryCheck(
+                name=field_name.removesuffix("s"),
+                passed=no_history_required or (
+                    value is not None
+                    and np.isfinite(value)
+                    and float(value) <= limit
+                ),
+                measured=None if value is None else float(value),
+                threshold=limit,
+                message=f"{field_name.replace('_', ' ')} do not satisfy the strict limit",
+            ))
+
+        observations = min(stability_observations)
+        if segment_epochs_completed is None:
+            epochs_completed = _report_value(report, "epochs_completed")
+            required_observations = (
+                min(thresholds.strict_stability_window, int(epochs_completed))
+                if epochs_completed is not None
+                else thresholds.strict_stability_window
+            )
+        else:
+            required_observations = min(
+                thresholds.strict_stability_window,
+                max(int(segment_epochs_completed) - 1, 0),
+            )
+        checks.append(GeometryCheck(
+            name="stability_observations",
+            passed=(
+                no_history_required
+                or required_observations > 0
+                and observations >= required_observations
+            ),
+            measured=observations,
+            threshold=required_observations,
+            message="Strict validation requires a stable multi-epoch history",
+        ))
+    return tuple(checks)
+
+
+def _bond_position_data(mol: Any, atoms: Sequence[Any]):
+    positions = {id(atom): i for i, atom in enumerate(atoms)}
+    for bond_index, bond in enumerate(mol.bonds):
+        first = positions[id(bond.atom1)]
+        second = positions[id(bond.atom2)]
+        yield bond_index, bond, first, second
+
+
+def _coordination_metrics(
+        mol: Any,
+        atoms: Sequence[Any],
+        coordinates: np.ndarray,
+) -> Tuple[dict, ...]:
+    positions = {id(atom): i for i, atom in enumerate(atoms)}
+    donors = {i: [] for i, atom in enumerate(atoms) if atom.is_metal}
+    for bond in mol.bonds:
+        if not bond.is_metal_ligand_bond:
+            continue
+        first = positions[id(bond.atom1)]
+        second = positions[id(bond.atom2)]
+        metal, donor = (
+            (first, second) if atoms[first].is_metal else (second, first)
+        )
+        donors[metal].append(donor)
+
+    environments = []
+    for metal, donor_indices in sorted(donors.items()):
+        donor_indices = sorted(donor_indices)
+        vectors = [coordinates[index] - coordinates[metal] for index in donor_indices]
+        distances = [float(np.linalg.norm(vector)) for vector in vectors]
+        angles = []
+        for first, second in combinations(vectors, 2):
+            denominator = np.linalg.norm(first) * np.linalg.norm(second)
+            if denominator > 0.0:
+                cosine = np.clip(np.dot(first, second) / denominator, -1.0, 1.0)
+                angles.append(float(np.degrees(np.arccos(cosine))))
+        environments.append({
+            "metal_index": _atom_index(atoms[metal], metal),
+            "coordination_number": len(donor_indices),
+            "donor_indices": tuple(
+                _atom_index(atoms[index], index) for index in donor_indices
+            ),
+            "distances": tuple(distances),
+            "angles": tuple(angles),
+        })
+    return tuple(environments)
+
+
+# Public geometric primitives.
+
+
 class Point:
     def __init__(self, x, y, z):
         self._pos = np.array([x, y, z])
@@ -126,12 +985,6 @@ class Point:
 
 def to_point(p):
     return np.array(p)
-
-
-class LinesRelationship(Enum):
-    INTERSECT = "intersect"
-    PARALLEL = "parallel"
-    SKEW = "skew"
 
 
 def get_line_relationship(v1: np.ndarray, v2: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> str:
@@ -166,6 +1019,7 @@ def get_line_relationship(v1: np.ndarray, v2: np.ndarray, p1: np.ndarray, p2: np
         return LinesRelationship.INTERSECT
     else:
         return LinesRelationship.SKEW
+
 
 def calculate_line_distance(v1: np.ndarray, v2: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> (str, float):
     """
@@ -494,85 +1348,7 @@ class CyclePlanes:
         )
 
 
-@dataclass(frozen=True)
-class _AtomPairTable:
-    atoms: Tuple[Any, ...]
-    atom_indices: Tuple[int, ...]
-    first: np.ndarray
-    second: np.ndarray
-    distances: np.ndarray
-    bonded_pairs: frozenset
-
-
-def _atom_coordinates(atoms: Sequence[Any]) -> np.ndarray:
-    if not atoms:
-        return np.empty((0, 3), dtype=float)
-    return np.asarray([atom.coordinates for atom in atoms], dtype=float)
-
-
-def _atom_index(atom: Any, fallback: int) -> int:
-    return int(getattr(atom, "idx", fallback))
-
-
-def _pair_table(obj: Any, coordinates: Optional[np.ndarray] = None) -> _AtomPairTable:
-    atoms = tuple(obj.atoms)
-    atom_indices = tuple(_atom_index(atom, i) for i, atom in enumerate(atoms))
-    coords = _atom_coordinates(atoms) if coordinates is None else coordinates
-    first, second = np.triu_indices(len(atoms), 1)
-    distances = np.linalg.norm(coords[first] - coords[second], axis=1)
-    positions = {id(atom): i for i, atom in enumerate(atoms)}
-    bonded_pairs = frozenset(
-        tuple(sorted((positions[id(bond.atom1)], positions[id(bond.atom2)])))
-        for bond in obj.bonds
-        if id(bond.atom1) in positions and id(bond.atom2) in positions
-    )
-    return _AtomPairTable(
-        atoms=atoms,
-        atom_indices=atom_indices,
-        first=first,
-        second=second,
-        distances=distances,
-        bonded_pairs=bonded_pairs,
-    )
-
-
-def _pair_scope_mask(table: _AtomPairTable, pair_scope: PairScope) -> np.ndarray:
-    if pair_scope not in ("all", "bonded", "nonbonded"):
-        raise ValueError(f"Unknown atom-pair scope: {pair_scope!r}")
-    if pair_scope == "all":
-        return np.ones(len(table.distances), dtype=bool)
-
-    bonded = np.fromiter(
-        (
-            (int(i), int(j)) in table.bonded_pairs
-            for i, j in zip(table.first, table.second)
-        ),
-        dtype=bool,
-        count=len(table.distances),
-    )
-    return bonded if pair_scope == "bonded" else ~bonded
-
-
-def _overlap_issues(
-    table: _AtomPairTable,
-    tolerance: float,
-) -> Tuple[AtomPairGeometryIssue, ...]:
-    return tuple(_iter_overlap_issues(table, tolerance))
-
-
-def _iter_overlap_issues(
-    table: _AtomPairTable,
-    tolerance: float,
-):
-    for position in np.flatnonzero(table.distances <= tolerance):
-        first = int(table.first[position])
-        second = int(table.second[position])
-        yield AtomPairGeometryIssue(
-            kind="overlap",
-            atom_indices=(table.atom_indices[first], table.atom_indices[second]),
-            distance=float(table.distances[position]),
-            threshold=float(tolerance),
-        )
+# Public atom-pair geometry queries.
 
 
 def find_overlapping_atom_pairs(
@@ -587,60 +1363,6 @@ def find_overlapping_atom_pairs(
 def has_overlapping_atoms(mol: Any, *, tolerance: float = 1.0e-3) -> bool:
     """Return whether any two atoms overlap within ``tolerance``."""
     return any(_iter_overlap_issues(_pair_table(mol), tolerance))
-
-
-def _too_close_issues(
-        table: _AtomPairTable,
-        *,
-        minimum_distance: float,
-        covalent_radius_scale: Optional[float],
-        pair_scope: PairScope,
-        include_overlaps: bool,
-        overlap_tolerance: float,
-) -> Tuple[AtomPairGeometryIssue, ...]:
-    return tuple(_iter_too_close_issues(
-        table,
-        minimum_distance=minimum_distance,
-        covalent_radius_scale=covalent_radius_scale,
-        pair_scope=pair_scope,
-        include_overlaps=include_overlaps,
-        overlap_tolerance=overlap_tolerance,
-    ))
-
-
-def _iter_too_close_issues(
-    table: _AtomPairTable,
-    *,
-    minimum_distance: float,
-    covalent_radius_scale: Optional[float],
-    pair_scope: PairScope,
-    include_overlaps: bool,
-    overlap_tolerance: float,
-):
-    thresholds = np.full(len(table.distances), minimum_distance, dtype=float)
-    if covalent_radius_scale is not None:
-        radii = np.asarray(
-            [float(atom.covalent_radius) for atom in table.atoms],
-            dtype=float,
-        )
-        scaled = covalent_radius_scale * (
-            radii[table.first] + radii[table.second]
-        )
-        thresholds = np.maximum(thresholds, scaled)
-
-    mask = _pair_scope_mask(table, pair_scope) & (table.distances < thresholds)
-    if not include_overlaps:
-        mask &= table.distances > overlap_tolerance
-
-    for position in np.flatnonzero(mask):
-        first = int(table.first[position])
-        second = int(table.second[position])
-        yield AtomPairGeometryIssue(
-            kind="too_close",
-            atom_indices=(table.atom_indices[first], table.atom_indices[second]),
-            distance=float(table.distances[position]),
-            threshold=float(thresholds[position]),
-        )
 
 
 def find_too_close_atom_pairs(
@@ -683,165 +1405,7 @@ def has_too_close_atoms(
     ))
 
 
-def _segment_intersects_triangle(
-        start: np.ndarray,
-        end: np.ndarray,
-        first: np.ndarray,
-        second: np.ndarray,
-        third: np.ndarray,
-        tolerance: float,
-        *,
-        segment: bool = True,
-) -> bool:
-    """Moller-Trumbore intersection with the interior of one triangle."""
-    direction = end - start
-    edge1 = second - first
-    edge2 = third - first
-    cross = np.cross(direction, edge2)
-    determinant = float(np.dot(edge1, cross))
-    if abs(determinant) <= tolerance:
-        return False
-
-    inverse = 1.0 / determinant
-    offset = start - first
-    u = inverse * float(np.dot(offset, cross))
-    if u < -tolerance or u > 1.0 + tolerance:
-        return False
-
-    offset_cross = np.cross(offset, edge1)
-    v = inverse * float(np.dot(direction, offset_cross))
-    if v < -tolerance or u + v > 1.0 + tolerance:
-        return False
-
-    parameter = inverse * float(np.dot(edge2, offset_cross))
-    return not segment or tolerance < parameter < 1.0 - tolerance
-
-
-def _planar_polygon_normal(
-    points: np.ndarray,
-    tolerance: float,
-) -> Optional[np.ndarray]:
-    """Return a unit normal when all polygon vertices share one plane."""
-    normal = np.sum(
-        np.cross(points, np.roll(points, -1, axis=0)),
-        axis=0,
-    )
-    length = float(np.linalg.norm(normal))
-    if length <= tolerance:
-        return None
-
-    normal /= length
-    scale = max(1.0, float(np.ptp(points, axis=0).max()))
-    distances = np.abs((points - points[0]) @ normal)
-    return normal if np.all(distances <= tolerance * scale) else None
-
-
-def _point_on_segment_2d(
-    point: np.ndarray,
-    start: np.ndarray,
-    end: np.ndarray,
-    tolerance: float,
-) -> bool:
-    edge = end - start
-    offset = point - start
-    scale = max(1.0, float(np.linalg.norm(edge)))
-    cross = float(edge[0] * offset[1] - edge[1] * offset[0])
-    if abs(cross) > tolerance * scale:
-        return False
-    projection = float(np.dot(offset, edge))
-    return -tolerance <= projection <= float(np.dot(edge, edge)) + tolerance
-
-
-def _point_in_polygon_2d(
-    point: np.ndarray,
-    polygon: np.ndarray,
-    tolerance: float,
-) -> bool:
-    """Return whether a point lies in or on a simple, possibly concave polygon."""
-    inside = False
-    for index, start in enumerate(polygon):
-        end = polygon[(index + 1) % len(polygon)]
-        if _point_on_segment_2d(point, start, end, tolerance):
-            return True
-        if (start[1] > point[1]) != (end[1] > point[1]):
-            crossing_x = start[0] + (
-                (point[1] - start[1])
-                * (end[0] - start[0])
-                / (end[1] - start[1])
-            )
-            if point[0] < crossing_x:
-                inside = not inside
-    return inside
-
-
-def _line_intersects_planar_polygon(
-    points: np.ndarray,
-    start: np.ndarray,
-    end: np.ndarray,
-    normal: np.ndarray,
-    tolerance: float,
-    *,
-    segment: bool,
-) -> bool:
-    direction = end - start
-    denominator = float(np.dot(normal, direction))
-    if abs(denominator) <= tolerance * np.linalg.norm(direction):
-        return False
-
-    parameter = float(np.dot(normal, points[0] - start) / denominator)
-    if segment and not tolerance < parameter < 1.0 - tolerance:
-        return False
-
-    intersection = start + parameter * direction
-    projection_axes = np.delete(np.arange(3), np.argmax(np.abs(normal)))
-    return _point_in_polygon_2d(
-        intersection[projection_axes],
-        points[:, projection_axes],
-        tolerance,
-    )
-
-
-def _line_intersects_polygon(
-        points: np.ndarray,
-        start: np.ndarray,
-        end: np.ndarray,
-        *,
-        tolerance: float,
-        segment: bool,
-) -> bool:
-    """Return whether a line or segment intersects a polygonal ring surface."""
-    if len(points) < 3 or not np.all(np.isfinite(points)):
-        return False
-    if not np.all(np.isfinite((start, end))):
-        return False
-    if np.linalg.norm(end - start) <= tolerance:
-        return False
-
-    normal = _planar_polygon_normal(points, tolerance)
-    if normal is not None:
-        return _line_intersects_planar_polygon(
-            points,
-            start,
-            end,
-            normal,
-            tolerance,
-            segment=segment,
-        )
-
-    # Preserve the historical center-fan surface for non-planar rings.
-    center = np.mean(points, axis=0)
-    return any(
-        _segment_intersects_triangle(
-            start,
-            end,
-            center,
-            points[index],
-            points[(index + 1) % len(points)],
-            tolerance,
-            segment=segment,
-        )
-        for index in range(len(points))
-    )
+# Public bond-ring geometry queries and repair selectors.
 
 
 def bond_intersects_ring(
@@ -864,25 +1428,6 @@ def bond_intersects_ring(
         tolerance=tolerance,
         segment=True,
     )
-
-
-def _rings_for_scope(mol: Any, ring_scope: RingScope) -> Sequence[Any]:
-    if ring_scope not in ("full_graph", "ligand_skeleton"):
-        raise ValueError(f"Unknown ring scope: {ring_scope!r}")
-    uncached_rings = getattr(mol, "_uncached_rings", None)
-    if uncached_rings is not None:
-        return uncached_rings(ligand_skeleton=ring_scope == "ligand_skeleton")
-    return mol.rings if ring_scope == "full_graph" else mol.ligand_rings
-
-
-def _ring_key(ring: Any) -> Tuple[int, ...]:
-    return tuple(sorted(_atom_index(atom, i) for i, atom in enumerate(ring.atoms)))
-
-
-def _bond_key(bond: Any) -> Tuple[int, int]:
-    first = _atom_index(bond.atom1, 0)
-    second = _atom_index(bond.atom2, 1)
-    return tuple(sorted((first, second)))
 
 
 def find_bond_ring_intersections(
@@ -930,26 +1475,6 @@ def bond_ring_intersection_checks(
     )
 
 
-def _iter_bond_ring_intersections(
-    mol: Any,
-    *,
-    ring_scope: RingScope,
-    max_ring_size: int,
-):
-    rings = sorted(
-        (
-            ring for ring in _rings_for_scope(mol, ring_scope)
-            if 3 <= len(ring) <= max_ring_size
-        ),
-        key=_ring_key,
-    )
-    bonds = sorted(mol.bonds, key=_bond_key)
-    for ring in rings:
-        for bond in bonds:
-            if bond_intersects_ring(ring, bond):
-                yield ring, bond
-
-
 def has_bond_ring_intersection(
         mol: Any,
         *,
@@ -962,102 +1487,6 @@ def has_bond_ring_intersection(
         ring_scope=ring_scope,
         max_ring_size=max_ring_size,
     ))
-
-
-def _point_segment_distance(
-        point: np.ndarray,
-        start: np.ndarray,
-        end: np.ndarray,
-) -> float:
-    direction = end - start
-    length_squared = float(np.dot(direction, direction))
-    if length_squared == 0.0:
-        return float(np.linalg.norm(point - start))
-    parameter = float(np.dot(point - start, direction) / length_squared)
-    closest = start + np.clip(parameter, 0.0, 1.0) * direction
-    return float(np.linalg.norm(point - closest))
-
-
-def _segment_distance(
-        first_start: np.ndarray,
-        first_end: np.ndarray,
-        second_start: np.ndarray,
-        second_end: np.ndarray,
-        tolerance: float = 1.0e-12,
-) -> float:
-    """Return the shortest Euclidean distance between two finite segments."""
-    first_direction = first_end - first_start
-    second_direction = second_end - second_start
-    offset = first_start - second_start
-    first_length = float(np.dot(first_direction, first_direction))
-    second_length = float(np.dot(second_direction, second_direction))
-
-    if first_length <= tolerance and second_length <= tolerance:
-        return float(np.linalg.norm(first_start - second_start))
-    if first_length <= tolerance:
-        return _point_segment_distance(first_start, second_start, second_end)
-    if second_length <= tolerance:
-        return _point_segment_distance(second_start, first_start, first_end)
-
-    cross = float(np.dot(first_direction, second_direction))
-    first_offset = float(np.dot(first_direction, offset))
-    second_offset = float(np.dot(second_direction, offset))
-    denominator = first_length * second_length - cross * cross
-    first_numerator = 0.0
-    first_denominator = denominator
-    second_numerator = 0.0
-    second_denominator = denominator
-
-    if denominator <= tolerance:
-        first_numerator = 0.0
-        first_denominator = 1.0
-        second_numerator = second_offset
-        second_denominator = second_length
-    else:
-        first_numerator = cross * second_offset - first_offset * second_length
-        second_numerator = first_length * second_offset - cross * first_offset
-        if first_numerator < 0.0:
-            first_numerator = 0.0
-            second_numerator = second_offset
-            second_denominator = second_length
-        elif first_numerator > first_denominator:
-            first_numerator = first_denominator
-            second_numerator = second_offset + cross
-            second_denominator = second_length
-
-    if second_numerator < 0.0:
-        second_numerator = 0.0
-        if -first_offset < 0.0:
-            first_numerator = 0.0
-        elif -first_offset > first_length:
-            first_numerator = first_denominator
-        else:
-            first_numerator = -first_offset
-            first_denominator = first_length
-    elif second_numerator > second_denominator:
-        second_numerator = second_denominator
-        if -first_offset + cross < 0.0:
-            first_numerator = 0.0
-        elif -first_offset + cross > first_length:
-            first_numerator = first_denominator
-        else:
-            first_numerator = -first_offset + cross
-            first_denominator = first_length
-
-    first_parameter = (
-        0.0 if abs(first_numerator) <= tolerance
-        else first_numerator / first_denominator
-    )
-    second_parameter = (
-        0.0 if abs(second_numerator) <= tolerance
-        else second_numerator / second_denominator
-    )
-    separation = (
-        offset
-        + first_parameter * first_direction
-        - second_parameter * second_direction
-    )
-    return float(np.linalg.norm(separation))
 
 
 def closest_ring_edge_to_bond(ring: Any, bond: Any) -> Any:
@@ -1118,24 +1547,7 @@ def closest_ring_opening_edge(
     return min(eligible_edges, key=edge_distance)
 
 
-def _bond_kind(bond: Any) -> str:
-    kind = getattr(bond, "bond_kind", "")
-    return str(getattr(kind, "value", kind))
-
-
-def _topology_bond_signature(
-        bond: Any,
-        positions: Mapping[int, int],
-) -> BondTopologySignature:
-    endpoints = tuple(sorted((
-        positions[id(bond.atom1)],
-        positions[id(bond.atom2)],
-    )))
-    return BondTopologySignature(
-        atom_indices=endpoints,
-        bond_order=float(bond.bond_order),
-        bond_kind=_bond_kind(bond),
-    )
+# Public topology snapshot interface.
 
 
 def capture_topology(
@@ -1166,339 +1578,7 @@ def capture_topology(
     )
 
 
-def _topology_checks(
-        mol: Any,
-        reference: TopologyReference,
-) -> Tuple[GeometryCheck, ...]:
-    atoms = tuple(mol.atoms)
-    checks = []
-    original_count = len(reference.atoms)
-
-    if len(atoms) < original_count:
-        checks.append(GeometryCheck(
-            name="topology_atom_count",
-            passed=False,
-            measured=len(atoms),
-            threshold=f">={original_count}",
-            message="Original atoms were removed",
-        ))
-        return tuple(checks)
-
-    for signature, atom in zip(reference.atoms, atoms[:original_count]):
-        measured = (
-            int(atom.id),
-            int(atom.atomic_number),
-            int(atom.formal_charge),
-        )
-        expected = (
-            signature.atom_id,
-            signature.atomic_number,
-            signature.formal_charge,
-        )
-        if measured != expected:
-            checks.append(GeometryCheck(
-                name="topology_atom_identity",
-                passed=False,
-                measured=measured,
-                threshold=expected,
-                atom_indices=(signature.index,),
-                message="An original atom identity or formal charge changed",
-            ))
-
-    added_indices = set(range(original_count, len(atoms)))
-    if added_indices and not reference.allow_added_hydrogens:
-        checks.append(GeometryCheck(
-            name="topology_added_atoms",
-            passed=False,
-            measured=len(added_indices),
-            threshold=0,
-            atom_indices=tuple(sorted(added_indices)),
-            message="Additional atoms are not allowed by this topology reference",
-        ))
-    elif added_indices:
-        non_hydrogens = tuple(
-            i for i in added_indices if int(atoms[i].atomic_number) != 1
-        )
-        if non_hydrogens:
-            checks.append(GeometryCheck(
-                name="topology_added_atoms",
-                passed=False,
-                measured=tuple(int(atoms[i].atomic_number) for i in non_hydrogens),
-                threshold="hydrogen only",
-                atom_indices=non_hydrogens,
-                message="Only hydrogen atoms may be added during preparation",
-            ))
-
-    positions = {id(atom): i for i, atom in enumerate(atoms)}
-    candidate_bonds = {
-        signature.atom_indices: signature
-        for signature in (
-            _topology_bond_signature(bond, positions) for bond in mol.bonds
-        )
-    }
-    reference_bonds = {
-        signature.atom_indices: signature for signature in reference.bonds
-    }
-
-    for endpoints, expected in reference_bonds.items():
-        measured = candidate_bonds.get(endpoints)
-        if measured != expected:
-            checks.append(GeometryCheck(
-                name="topology_original_bond",
-                passed=False,
-                measured=measured,
-                threshold=expected,
-                atom_indices=endpoints,
-                message="An original bond was removed or changed",
-            ))
-
-    added_bonds = set(candidate_bonds).difference(reference_bonds)
-    invalid_added_bonds = tuple(sorted(
-        endpoints
-        for endpoints in added_bonds
-        if not reference.allow_added_hydrogens
-        or sum(endpoint in added_indices for endpoint in endpoints) != 1
-    ))
-    for endpoints in invalid_added_bonds:
-        checks.append(GeometryCheck(
-            name="topology_added_bond",
-            passed=False,
-            measured=endpoints,
-            threshold="one added H endpoint",
-            atom_indices=endpoints,
-            message="Only new X-H bonds may be added during preparation",
-        ))
-
-    if reference.allow_added_hydrogens:
-        degree = {index: 0 for index in added_indices}
-        for endpoints in added_bonds:
-            for endpoint in endpoints:
-                if endpoint in degree:
-                    degree[endpoint] += 1
-        invalid_hydrogens = tuple(
-            index for index, count in sorted(degree.items()) if count != 1
-        )
-        if invalid_hydrogens:
-            checks.append(GeometryCheck(
-                name="topology_added_hydrogen_degree",
-                passed=False,
-                measured=tuple(degree[index] for index in invalid_hydrogens),
-                threshold=1,
-                atom_indices=invalid_hydrogens,
-                message="Each added hydrogen must have exactly one new bond",
-            ))
-
-    if not checks:
-        checks.append(GeometryCheck(
-            name="topology",
-            passed=True,
-            measured=(len(atoms), len(candidate_bonds)),
-            threshold=(original_count, len(reference_bonds)),
-            message="Original topology is preserved",
-        ))
-    return tuple(checks)
-
-
-def _resolve_thresholds(
-        thresholds: Optional[Union[GeometryQualityThresholds, Mapping[str, Any]]],
-) -> GeometryQualityThresholds:
-    if thresholds is None:
-        return GeometryQualityThresholds()
-    if isinstance(thresholds, GeometryQualityThresholds):
-        return thresholds
-    return replace(GeometryQualityThresholds(), **dict(thresholds))
-
-
-def _report_value(report: Any, name: str) -> Any:
-    if isinstance(report, Mapping):
-        return report.get(name)
-    return getattr(report, name, None)
-
-
-def _forcefield_checks(
-        report: Any,
-        level: QualityLevel,
-        thresholds: GeometryQualityThresholds,
-        stage: ForceFieldStage,
-) -> Tuple[GeometryCheck, ...]:
-    if report is None:
-        if level == "strict":
-            return (GeometryCheck(
-                name="forcefield_report",
-                passed=False,
-                measured=None,
-                threshold="complete force-field report",
-                message="Strict geometry validation requires force-field diagnostics",
-            ),)
-        return ()
-
-    checks = []
-    setup_succeeded = _report_value(report, "setup_succeeded")
-    checks.append(GeometryCheck(
-        name="forcefield_setup",
-        passed=setup_succeeded is not None and bool(setup_succeeded),
-        measured=setup_succeeded,
-        threshold=True,
-        message="Force-field setup must succeed",
-    ))
-
-    required_finite_fields = ["final_energy"]
-    if stage == "final":
-        required_finite_fields.extend(("rms_gradient", "max_gradient"))
-    for field_name in required_finite_fields:
-        value = _report_value(report, field_name)
-        checks.append(GeometryCheck(
-            name=f"finite_{field_name}",
-            passed=value is not None and bool(np.isfinite(value)),
-            measured=None if value is None else float(value),
-            threshold="finite",
-            message=f"{field_name.replace('_', ' ')} must be finite",
-        ))
-
-    if level in ("basic", "standard", "strict"):
-        exploded = _report_value(report, "exploded")
-        checks.append(GeometryCheck(
-            name="backend_explosion",
-            passed=exploded is not None and not bool(exploded),
-            measured=exploded,
-            threshold=False,
-            message="The force-field backend must report a non-exploded structure",
-        ))
-
-    if stage == "final" and level in ("standard", "strict"):
-        converged = _report_value(report, "converged")
-        if converged is not None or level == "strict":
-            checks.append(GeometryCheck(
-                name="forcefield_convergence",
-                passed=converged is not None and bool(converged),
-                severity="error" if level == "strict" else "warning",
-                measured=converged,
-                threshold=True,
-                message="The force-field backend did not report convergence",
-            ))
-
-    if stage == "final" and level == "strict":
-        gradient_limits = (
-            ("rms_gradient", thresholds.strict_rms_gradient),
-            ("max_gradient", thresholds.strict_max_gradient),
-        )
-        for field_name, limit in gradient_limits:
-            value = _report_value(report, field_name)
-            if value is not None and np.isfinite(value):
-                checks.append(GeometryCheck(
-                    name=field_name,
-                    passed=float(value) <= limit,
-                    measured=float(value),
-                    threshold=limit,
-                    message=f"{field_name.replace('_', ' ')} exceeds the strict limit",
-                ))
-
-        segment_epochs_completed = _report_value(
-            report,
-            "segment_epochs_completed",
-        )
-        converged = bool(_report_value(report, "converged"))
-        no_history_required = (
-            segment_epochs_completed is not None
-            and int(segment_epochs_completed) == 1
-            and converged
-        )
-        stability_checks = (
-            ("energy_changes", thresholds.strict_energy_change),
-            ("max_displacements", thresholds.strict_max_displacement),
-        )
-        stability_observations = []
-        for field_name, limit in stability_checks:
-            history = _report_value(report, field_name)
-            values = () if history is None else tuple(history)
-            recent = values[-thresholds.strict_stability_window:]
-            value = max(recent) if recent else None
-            stability_observations.append(len(recent))
-            checks.append(GeometryCheck(
-                name=field_name.removesuffix("s"),
-                passed=no_history_required or (
-                    value is not None
-                    and np.isfinite(value)
-                    and float(value) <= limit
-                ),
-                measured=None if value is None else float(value),
-                threshold=limit,
-                message=f"{field_name.replace('_', ' ')} do not satisfy the strict limit",
-            ))
-
-        observations = min(stability_observations)
-        if segment_epochs_completed is None:
-            epochs_completed = _report_value(report, "epochs_completed")
-            required_observations = (
-                min(thresholds.strict_stability_window, int(epochs_completed))
-                if epochs_completed is not None
-                else thresholds.strict_stability_window
-            )
-        else:
-            required_observations = min(
-                thresholds.strict_stability_window,
-                max(int(segment_epochs_completed) - 1, 0),
-            )
-        checks.append(GeometryCheck(
-            name="stability_observations",
-            passed=(
-                no_history_required
-                or required_observations > 0
-                and observations >= required_observations
-            ),
-            measured=observations,
-            threshold=required_observations,
-            message="Strict validation requires a stable multi-epoch history",
-        ))
-    return tuple(checks)
-
-
-def _bond_position_data(mol: Any, atoms: Sequence[Any]):
-    positions = {id(atom): i for i, atom in enumerate(atoms)}
-    for bond_index, bond in enumerate(mol.bonds):
-        first = positions[id(bond.atom1)]
-        second = positions[id(bond.atom2)]
-        yield bond_index, bond, first, second
-
-
-def _coordination_metrics(
-        mol: Any,
-        atoms: Sequence[Any],
-        coordinates: np.ndarray,
-) -> Tuple[dict, ...]:
-    positions = {id(atom): i for i, atom in enumerate(atoms)}
-    donors = {i: [] for i, atom in enumerate(atoms) if atom.is_metal}
-    for bond in mol.bonds:
-        if not bond.is_metal_ligand_bond:
-            continue
-        first = positions[id(bond.atom1)]
-        second = positions[id(bond.atom2)]
-        metal, donor = (
-            (first, second) if atoms[first].is_metal else (second, first)
-        )
-        donors[metal].append(donor)
-
-    environments = []
-    for metal, donor_indices in sorted(donors.items()):
-        donor_indices = sorted(donor_indices)
-        vectors = [coordinates[index] - coordinates[metal] for index in donor_indices]
-        distances = [float(np.linalg.norm(vector)) for vector in vectors]
-        angles = []
-        for first, second in combinations(vectors, 2):
-            denominator = np.linalg.norm(first) * np.linalg.norm(second)
-            if denominator > 0.0:
-                cosine = np.clip(np.dot(first, second) / denominator, -1.0, 1.0)
-                angles.append(float(np.degrees(np.arccos(cosine))))
-        environments.append({
-            "metal_index": _atom_index(atoms[metal], metal),
-            "coordination_number": len(donor_indices),
-            "donor_indices": tuple(
-                _atom_index(atoms[index], index) for index in donor_indices
-            ),
-            "distances": tuple(distances),
-            "angles": tuple(angles),
-        })
-    return tuple(environments)
+# Public composite quality interfaces.
 
 
 def evaluate_geometry_quality(

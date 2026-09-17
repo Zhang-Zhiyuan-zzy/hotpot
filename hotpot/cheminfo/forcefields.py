@@ -252,6 +252,16 @@ def _serialized_forcefield_call(function):
     return synchronized
 
 
+def _serialized_builder_call(function):
+    @wraps(function)
+    def synchronized(*args, **kwargs):
+        with _WORKER_LIFECYCLE_LOCK:
+            with _OPENBABEL_FORCEFIELD_LOCK:
+                return function(*args, **kwargs)
+
+    return synchronized
+
+
 def _resolve_complex_forcefield(requested: Optional[str]) -> str:
     """Resolve every currently supported complex request to UFF."""
     if requested is not None and requested not in _SUPPORTED_FORCEFIELDS:
@@ -1875,7 +1885,7 @@ def auto_optimize(
     )
 
 
-@_serialized_forcefield_call
+@_serialized_builder_call
 def ob_build(mol: Any) -> None:
     """Compatibility primitive: run OBBuilder directly on ``mol``."""
     builder = ob.OBBuilder()

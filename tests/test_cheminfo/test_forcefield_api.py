@@ -398,6 +398,47 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
     assert report.atom_count == len(molecule.atoms)
 
 
+def test_direct_ob_build_waits_for_worker_seed_environment(monkeypatch):
+    events = []
+
+    class TracingLock:
+        def __init__(self, name):
+            self.name = name
+
+        def __enter__(self):
+            events.append(("enter", self.name))
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            events.append(("exit", self.name))
+
+    class Builder:
+        def Build(self, obmol):
+            events.append(("build", obmol))
+            return True
+
+    molecule = SimpleNamespace(coordinates=None)
+    obmol = object()
+    monkeypatch.setattr(ff, "_WORKER_LIFECYCLE_LOCK", TracingLock("worker"))
+    monkeypatch.setattr(ff, "_OPENBABEL_FORCEFIELD_LOCK", TracingLock("forcefield"))
+    monkeypatch.setattr(ff.ob, "OBBuilder", Builder)
+    monkeypatch.setattr(ff, "mol2obmol", lambda current: (obmol, {}))
+    monkeypatch.setattr(
+        ff,
+        "extract_obmol_coordinates",
+        lambda current: np.zeros((1, 3)),
+    )
+
+    ff.ob_build(molecule)
+
+    assert events == [
+        ("enter", "worker"),
+        ("enter", "forcefield"),
+        ("build", obmol),
+        ("exit", "forcefield"),
+        ("exit", "worker"),
+    ]
+
+
 def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     molecule = read_mol("CC", "smi")
     coordinates = np.arange(6, dtype=float).reshape(2, 3)

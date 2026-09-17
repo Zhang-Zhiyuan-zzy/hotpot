@@ -196,19 +196,21 @@ point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值
 
 - 当前 center-fan 存在已动态复现的高严重度误报，并把非法/不可判输入静默转换为 `False`；
   必须删除该语义。
-- 统一计算分为环边界状态、环面族和键—环关系三层；讨论只采用纯几何量，不调用力场或
-  复杂能量。可选 `O(n²)` geometry penalty 仅用于排序。
-- 环、单个 ring–bond pair 和整个分子在应用层统一只返回
-  `REASONABLE/UNREASONABLE/UNCERTAIN`；自交、接触、曲面分歧等只作为 reason/detail。
-- `BondRingPairReport` 明确只针对一个环和一条有限键段；分子级结果由
-  `MoleculeGeometryReport` 聚合全部 ring 和 pair 报告。
+- 统一采用两步公开语义：`determine_geo_status()` 计算详细几何状态，
+  `is_geo_reasonable()` 将其纯映射为 `REASONABLE/UNREASONABLE/UNCERTAIN`。
+- 环、单个 ring–bond pair 和整个分子的应用结论均限定为上述三态；自交、塌缩、接触、
+  曲面分歧等只作为详细 geometry state 和证据。
+- `BondRingGeoStatus` 明确只针对一个环和一条有限键段；`MoleculeGeoStatus` 聚合全部 ring 和
+  pair 状态，为力场提供统一参考线。
 - 只有交点位于两个键端点之间的线段内部时才可能构成穿环；无限直线延长部分的交点无关。
-- 接触边/顶点、共面接触、不同环面结论冲突或曲面不可定义均归为 `UNCERTAIN`，不能静默
-  压缩成合理或不合理。
+- 全部合法环面均无有限键段交点时为 `REASONABLE`；全部均被键段内部横穿时为
+  `UNREASONABLE`；接触、曲面冲突或不可判定时为 `UNCERTAIN`。
+- `UNCERTAIN` 可用纯几何 `reasonableness_score` 排序；在没有标注数据校准前不将该分数
+  冒称为概率，校准后才提供 `reasonable_probability`。
 - 非平面闭合边界没有唯一内部曲面。对当前 `n <= 8` 的环，优先枚举最多 132 个合法
   vertex-only 三角剖分并取关系共识，避免用某一条任意对角线裁决。
 - `mapbox-earcut` 已验证能够修复现有凹环反例，但只能生成单个三角面，降级为辅助或测试
   oracle；形式 exact predicates 真正成为硬需求时才评估 CGAL。
 
-当前事实、统一三态、两个报告作用域、具体接口、迁移步骤和测试矩阵见附件 A004；原 FF-Q005 不再
-作为独立问题保留。
+当前问题、状态—三态映射表、重构代码树、接口职责及数学附录统一见附件 A004；原 FF-Q005
+不再作为独立问题保留。

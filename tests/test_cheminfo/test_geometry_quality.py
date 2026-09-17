@@ -122,6 +122,27 @@ def test_basic_gate_rejects_an_exploded_explicit_bond():
     assert failure.bond_indices == (0,)
 
 
+def test_standard_gate_reports_short_bonds_separately_from_close_pairs():
+    molecule = _molecule(
+        ((0.0, 0.0, 0.0), (0.80, 0.0, 0.0)),
+        ((0, 1),),
+    )
+
+    report = geo.evaluate_geometry_quality(molecule, level="standard")
+
+    failure = next(
+        check for check in report.failures if check.name == "short_bond"
+    )
+    assert failure.measured == pytest.approx(0.80)
+    assert failure.threshold == pytest.approx(0.988)
+    assert failure.atom_indices == (0, 1)
+    assert failure.bond_indices == (0,)
+    assert not any(
+        check.name == "atom_too_close" and not check.passed
+        for check in report.checks
+    )
+
+
 def test_standard_gate_rejects_a_bond_crossing_a_ligand_ring():
     report = geo.evaluate_geometry_quality(_crossed_square(), level="standard")
 
@@ -374,6 +395,26 @@ def test_candidate_report_does_not_claim_unobserved_gradients():
     assert report.passed
     assert not any("gradient" in check.name for check in report.checks)
     assert not any(check.name == "forcefield_convergence" for check in report.checks)
+
+
+def test_basic_gate_fails_closed_without_backend_explosion_status():
+    report = geo.evaluate_geometry_quality(
+        _valid_carbon_bond(),
+        level="basic",
+        forcefield_report={
+            "setup_succeeded": True,
+            "final_energy": -10.0,
+            "rms_gradient": 0.2,
+            "max_gradient": 0.5,
+        },
+    )
+
+    assert not report.passed
+    failure = next(
+        check for check in report.failures if check.name == "backend_explosion"
+    )
+    assert failure.measured is None
+    assert failure.threshold is False
 
 
 @pytest.mark.parametrize(

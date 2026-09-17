@@ -1357,14 +1357,13 @@ def _forcefield_checks(
 
     if level in ("basic", "standard", "strict"):
         exploded = _report_value(report, "exploded")
-        if exploded is not None or level == "strict":
-            checks.append(GeometryCheck(
-                name="backend_explosion",
-                passed=exploded is not None and not bool(exploded),
-                measured=exploded,
-                threshold=False,
-                message="The force-field backend detected an exploded structure",
-            ))
+        checks.append(GeometryCheck(
+            name="backend_explosion",
+            passed=exploded is not None and not bool(exploded),
+            measured=exploded,
+            threshold=False,
+            message="The force-field backend must report a non-exploded structure",
+        ))
 
     if stage == "final" and level in ("standard", "strict"):
         converged = _report_value(report, "converged")
@@ -1640,6 +1639,7 @@ def evaluate_geometry_quality(
         ))
 
     maximum_bond_length = 0.0
+    short_bond_count = 0
     for bond_index, bond, first, second in _bond_position_data(mol, atoms):
         distance = float(np.linalg.norm(coordinates[first] - coordinates[second]))
         maximum_bond_length = max(maximum_bond_length, distance)
@@ -1668,6 +1668,17 @@ def evaluate_geometry_quality(
                     if bond.is_metal_ligand_bond
                     else limits.covalent_bond_ratio
                 )
+                if ratio < ratio_limits[0]:
+                    short_bond_count += 1
+                    checks.append(GeometryCheck(
+                        name="short_bond",
+                        passed=False,
+                        measured=distance,
+                        threshold=ratio_limits[0] * radius_sum,
+                        atom_indices=atom_indices,
+                        bond_indices=(bond_index,),
+                        message="An explicit bond is shorter than its radius-scaled limit",
+                    ))
                 if not ratio_limits[0] <= ratio <= ratio_limits[1]:
                     checks.append(GeometryCheck(
                         name="bond_length_ratio",
@@ -1697,6 +1708,17 @@ def evaluate_geometry_quality(
                 limits.covalent_bond_ratio,
                 limits.metal_ligand_bond_ratio,
             ),
+        ))
+    if level in ("standard", "strict") and short_bond_count == 0:
+        checks.append(GeometryCheck(
+            name="short_bond",
+            passed=True,
+            measured=0,
+            threshold=(
+                limits.covalent_bond_ratio[0],
+                limits.metal_ligand_bond_ratio[0],
+            ),
+            message="No explicit bond is below its radius-scaled limit",
         ))
 
     if level in ("standard", "strict"):

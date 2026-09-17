@@ -6,6 +6,11 @@
 - 每项区分：当前事实、问题判断、候选整改；候选整改不等于已经批准实施。
 - 本阶段只分析和记录，不修改 forcefield 或 geometry 业务逻辑。
 - 最终在全部问题审议后，从本记录汇总形成整改计划。
+- 本记录的后续附件统一存放在 `plan/reviews/`，并登记到下方附件索引。
+
+## 附件索引
+
+- [A001：`forcefields.py` 与 `geometry.py` 类型和命名审查](reviews/ff_geo_typing_naming_review.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
 

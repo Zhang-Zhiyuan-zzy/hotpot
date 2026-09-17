@@ -26,6 +26,7 @@ OptimizationAlgorithm = Literal["steepest", "conjugate"]
 TerminationReason = Literal["converged", "budget_exhausted"]
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
+_NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
 
 
 @dataclass(frozen=True)
@@ -331,6 +332,21 @@ def _copy_molecule_metadata(source: Any, target: Any) -> None:
     target._crystal = source._crystal
 
 
+def _recalculate_neutral_donor_valence(
+    mol: Any,
+    donor_indices: set[int],
+) -> None:
+    """Infer neutral donor hydrogens from the metal-free ligand skeleton."""
+    for donor_index in donor_indices:
+        donor = mol.atoms[donor_index]
+        if (
+            donor.formal_charge == 0
+            and donor.atomic_number in _NEUTRAL_DONOR_ATOMIC_NUMBERS
+        ):
+            donor.valence = donor.get_valence()
+            donor.calc_implicit_hydrogens()
+
+
 def _hydrogenated_working_copy(
     mol: Any,
     *,
@@ -349,11 +365,7 @@ def _hydrogenated_working_copy(
                 if bond.is_metal_ligand_bond
             }
             working.hide_metal_ligand_bonds(clear_conformers=False)
-            for donor_index in donor_indices:
-                donor = working.atoms[donor_index]
-                if donor.formal_charge == 0 and donor.atomic_number in (7, 8):
-                    donor.valence = donor.get_valence()
-                    donor.calc_implicit_hydrogens()
+            _recalculate_neutral_donor_valence(working, donor_indices)
             working.add_hydrogens(
                 rm_polar_hs=False,
                 rng=np.random.default_rng(seed),

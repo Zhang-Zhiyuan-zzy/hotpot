@@ -99,6 +99,59 @@ def test_hydrogenated_working_copy_uses_ligand_covalent_valence(
 
 
 @pytest.mark.parametrize(
+    (
+        "ligand_smiles",
+        "complex_smiles",
+        "donor_symbol",
+        "expected_hydrogens",
+    ),
+    (
+        ("CS", "[Zn]SC", "S", 1),
+        ("CP", "[Zn]PC", "P", 2),
+        ("C[Se]", "[Zn][Se]C", "Se", 1),
+        ("C[As]", "[Zn][As]C", "As", 2),
+    ),
+)
+def test_neutral_donor_hydrogenation_is_independent_of_input_path(
+    ligand_smiles,
+    complex_smiles,
+    donor_symbol,
+    expected_hydrogens,
+):
+    assembled = read_mol(ligand_smiles, "smi")
+    assembled_donor = next(
+        atom for atom in assembled.atoms if atom.symbol == donor_symbol
+    )
+    metal = assembled.create_atom(symbol="Zn")
+    assembled.add_bond(metal, assembled_donor)
+    assembled.refresh_atom_id()
+    parsed = read_mol(complex_smiles, "smi")
+
+    assembled_working = ff._hydrogenated_working_copy(
+        assembled,
+        add_hydrogens=True,
+        seed=5,
+    )
+    parsed_working = ff._hydrogenated_working_copy(
+        parsed,
+        add_hydrogens=True,
+        seed=5,
+    )
+
+    assembled_hydrogens = next(
+        atom.explicit_hydrogens
+        for atom in assembled_working.atoms
+        if atom.symbol == donor_symbol
+    )
+    parsed_hydrogens = next(
+        atom.explicit_hydrogens
+        for atom in parsed_working.atoms
+        if atom.symbol == donor_symbol
+    )
+    assert assembled_hydrogens == parsed_hydrogens == expected_hydrogens
+
+
+@pytest.mark.parametrize(
     ("smiles", "donor_symbols", "expected_hydrogens"),
     (
         ("[Zn]C", ("C",), (3,)),

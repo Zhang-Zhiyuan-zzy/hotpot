@@ -357,6 +357,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     assert calls[0][0] is working
     assert calls[0][1]["requested_forcefield"] == "UFF"
     assert calls[0][1]["effective_forcefield"] == "UFF"
+    assert calls[0][1]["quality_level"] == "standard"
     assert calls[1] == (molecule, working)
 
 

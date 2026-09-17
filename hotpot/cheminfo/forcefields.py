@@ -1480,7 +1480,7 @@ def optimize(
     epochs: int = 1,
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
-    quality_level: str = "off",
+    quality_level: str = "standard",
     quality_thresholds: Optional[Mapping[str, float]] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,

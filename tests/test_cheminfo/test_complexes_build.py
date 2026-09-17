@@ -59,6 +59,16 @@ def _malformed_worker(connection):
     connection.close()
 
 
+def _invalid_status_worker(connection):
+    connection.send(
+        ff.BuildWorkerResult(
+            status="unknown",
+            coordinates=np.zeros((1, 3)),
+        )
+    )
+    connection.close()
+
+
 def _incomplete_success_worker(connection):
     connection.send(ff.BuildWorkerResult(status="ok"))
     connection.close()
@@ -83,6 +93,16 @@ def _send_small_worker(connection):
             status="ok",
             coordinates=np.zeros((1, 3)),
             diagnostics=diagnostics,
+        )
+    )
+    connection.close()
+
+
+def _send_coordinates_only_worker(connection):
+    connection.send(
+        ff.BuildWorkerResult(
+            status="ok",
+            coordinates=np.zeros((1, 3)),
         )
     )
     connection.close()
@@ -272,6 +292,62 @@ def test_pipe_propagates_worker_error_with_original_diagnostics():
     assert caught.value.worker_traceback == "worker traceback"
 
 
+def test_generic_build_worker_accepts_coordinates_without_complex_diagnostics():
+    process, receive_connection, send_connection = _pipe_process(
+        _send_coordinates_only_worker
+    )
+
+    result = ff._receive_worker_result(
+        process,
+        receive_connection,
+        send_connection,
+        timeout=5.0,
+        require_diagnostics=False,
+        worker_error_type=ff.BuildWorkerError,
+        timeout_error_type=ff.BuildTimeoutError,
+        operation="building initial coordinates",
+    )
+
+    assert result.coordinates.shape == (1, 3)
+    assert result.diagnostics is None
+
+
+def test_generic_build_worker_uses_generic_failure_type():
+    process, receive_connection, send_connection = _pipe_process(_send_error_worker)
+
+    with pytest.raises(ff.BuildWorkerError) as caught:
+        ff._receive_worker_result(
+            process,
+            receive_connection,
+            send_connection,
+            timeout=5.0,
+            require_diagnostics=False,
+            worker_error_type=ff.BuildWorkerError,
+            timeout_error_type=ff.BuildTimeoutError,
+            operation="building initial coordinates",
+        )
+
+    assert caught.value.error_type == "ValueError"
+    assert caught.value.error_message == "dative conversion failed"
+    assert caught.value.worker_traceback == "worker traceback"
+
+
+def test_generic_build_worker_uses_generic_timeout_type():
+    process, receive_connection, send_connection = _pipe_process(_blocking_worker)
+
+    with pytest.raises(ff.BuildTimeoutError, match="building initial coordinates"):
+        ff._receive_worker_result(
+            process,
+            receive_connection,
+            send_connection,
+            timeout=0.02,
+            require_diagnostics=False,
+            worker_error_type=ff.BuildWorkerError,
+            timeout_error_type=ff.BuildTimeoutError,
+            operation="building initial coordinates",
+        )
+
+
 def test_timeout_terminates_and_joins_worker():
     process, receive_connection, send_connection = _pipe_process(_blocking_worker)
     with pytest.raises(ff.ComplexBuildTimeoutError):
@@ -341,6 +417,20 @@ def test_timeout_escalates_to_kill_when_worker_ignores_termination():
 
 def test_malformed_worker_protocol_fails_explicitly():
     process, receive_connection, send_connection = _pipe_process(_malformed_worker)
+    with pytest.raises(ff.ComplexBuildWorkerError) as caught:
+        ff._receive_worker_result(
+            process,
+            receive_connection,
+            send_connection,
+            timeout=5.0,
+        )
+    assert caught.value.error_type == "WorkerProtocolError"
+
+
+def test_invalid_worker_status_fails_explicitly():
+    process, receive_connection, send_connection = _pipe_process(
+        _invalid_status_worker
+    )
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
         ff._receive_worker_result(
             process,
@@ -502,6 +592,22 @@ def test_complex_worker_coordinates_are_validated_before_native_optimization(
 
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
         ff._validated_worker_coordinates(result, expected_atom_count=2)
+
+    assert caught.value.error_type == "WorkerProtocolError"
+
+
+def test_generic_worker_coordinate_validation_uses_generic_failure_type():
+    result = ff.BuildWorkerResult(
+        status="ok",
+        coordinates=np.zeros((1, 3)),
+    )
+
+    with pytest.raises(ff.BuildWorkerError) as caught:
+        ff._validated_worker_coordinates(
+            result,
+            expected_atom_count=2,
+            worker_error_type=ff.BuildWorkerError,
+        )
 
     assert caught.value.error_type == "WorkerProtocolError"
 

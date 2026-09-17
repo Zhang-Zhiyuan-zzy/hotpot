@@ -143,6 +143,27 @@ class ForceFieldSetupError(ForceFieldError):
     """Raised when Open Babel cannot initialize a requested force field."""
 
 
+class BuildWorkerError(ForceFieldError):
+    """Raised when a generic coordinate-build worker fails."""
+
+    def __init__(
+        self,
+        error_type: str,
+        error_message: str,
+        worker_traceback: Optional[str],
+        diagnostics: Optional[ComplexBuildDiagnostics] = None,
+    ):
+        super().__init__(f"{error_type}: {error_message}")
+        self.error_type = error_type
+        self.error_message = error_message
+        self.worker_traceback = worker_traceback
+        self.diagnostics = diagnostics
+
+
+class BuildTimeoutError(ForceFieldError, TimeoutError):
+    """Raised after a generic coordinate-build worker times out."""
+
+
 class ComplexBuildError(ForceFieldError):
     """Raised when bounded ligand-proxy construction cannot produce a result."""
 
@@ -1108,6 +1129,10 @@ def _receive_worker_result(
     *,
     timeout: float,
     seed: Optional[int] = None,
+    require_diagnostics: bool = True,
+    worker_error_type: Any = ComplexBuildWorkerError,
+    timeout_error_type: Any = ComplexBuildTimeoutError,
+    operation: str = "building complex geometry",
 ) -> BuildWorkerResult:
     result = None
     started = False
@@ -1127,13 +1152,13 @@ def _receive_worker_result(
         started = True
         send_connection.close()
         if not receive_connection.poll(timeout):
-            raise ComplexBuildTimeoutError(
-                f"Timed out after {timeout:g} seconds while building complex geometry"
+            raise timeout_error_type(
+                f"Timed out after {timeout:g} seconds while {operation}"
             )
         try:
             result = receive_connection.recv()
         except EOFError as exc:
-            raise ComplexBuildWorkerError(
+            raise worker_error_type(
                 "WorkerProtocolError",
                 "The build worker closed its pipe without a result",
                 None,
@@ -1143,35 +1168,46 @@ def _receive_worker_result(
             timeout=_WORKER_EXIT_GRACE_SECONDS,
         )
         if not exited:
-            raise ComplexBuildWorkerError(
+            raise worker_error_type(
                 "WorkerShutdownError",
                 "The build worker sent a result but did not terminate",
                 None,
             )
         process.join()
         if process.exitcode != 0:
-            raise ComplexBuildWorkerError(
+            raise worker_error_type(
                 "WorkerExitError",
                 f"The build worker exited with code {process.exitcode}",
                 None,
             )
         if not isinstance(result, BuildWorkerResult):
-            raise ComplexBuildWorkerError(
+            raise worker_error_type(
                 "WorkerProtocolError",
                 "The build worker returned an invalid result envelope",
                 None,
             )
+        if result.status not in ("ok", "error"):
+            raise worker_error_type(
+                "WorkerProtocolError",
+                f"The build worker returned an invalid status: {result.status!r}",
+                None,
+            )
         if result.status == "error":
-            raise ComplexBuildWorkerError(
+            raise worker_error_type(
                 result.error_type or "WorkerError",
                 result.error_message or "Unknown build worker failure",
                 result.traceback,
                 result.diagnostics,
             )
-        if result.coordinates is None or result.diagnostics is None:
-            raise ComplexBuildWorkerError(
+        if result.coordinates is None or (
+            require_diagnostics and result.diagnostics is None
+        ):
+            required_fields = "coordinates and diagnostics"
+            if not require_diagnostics:
+                required_fields = "coordinates"
+            raise worker_error_type(
                 "WorkerProtocolError",
-                "A successful build worker result requires coordinates and diagnostics",
+                f"A successful build worker result requires {required_fields}",
                 None,
             )
         return result
@@ -1191,11 +1227,12 @@ def _validated_worker_coordinates(
     result: BuildWorkerResult,
     *,
     expected_atom_count: int,
+    worker_error_type: Any = ComplexBuildWorkerError,
 ) -> np.ndarray:
     coordinates = np.asarray(result.coordinates, dtype=float)
     expected_shape = (expected_atom_count, 3)
     if coordinates.shape != expected_shape or not np.all(np.isfinite(coordinates)):
-        raise ComplexBuildWorkerError(
+        raise worker_error_type(
             "WorkerProtocolError",
             "A successful build worker result must contain finite coordinates "
             f"with shape {expected_shape}, got {coordinates.shape}",

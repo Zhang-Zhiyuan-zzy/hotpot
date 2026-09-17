@@ -361,8 +361,14 @@ def convert_smiles_to_3dmol(
                     ),
                     kwargs=build_options,
                 )
-                p.start()
-                send_connection.close()
+                process_started = False
+                try:
+                    p.start()
+                    process_started = True
+                finally:
+                    send_connection.close()
+                    if not process_started:
+                        receive_connection.close()
                 processes[p] = _ActiveConversion(
                     started_at=time.monotonic(),
                     name=name,
@@ -373,7 +379,18 @@ def convert_smiles_to_3dmol(
             to_remove = []
             for p, state in processes.items():
                 _receive_conversion_result(state)
-                if not p.is_alive():
+                if state.result is not None:
+                    if p.is_alive():
+                        p.join(timeout=_PROCESS_SHUTDOWN_TIMEOUT)
+                        if p.is_alive():
+                            _terminate_process(p)
+                    else:
+                        p.join()
+                    to_remove.append(p)
+                    failure = _conversion_failure(p, state, timeout=timeout)
+                    if failure is not None:
+                        failures.append(failure)
+                elif not p.is_alive():
                     _receive_conversion_result(state)
                     p.join()
                     to_remove.append(p)

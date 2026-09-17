@@ -141,6 +141,21 @@ class _MixedProcess(_FinishedProcess):
         self.exitcode = next(self.exitcodes)
 
 
+class _ReportedAliveProcess(_FinishedProcess):
+    instances = []
+
+    def __init__(self, *, target, args, kwargs):
+        super().__init__(target=target, args=args, kwargs=kwargs)
+        self.alive = True
+
+    def is_alive(self):
+        return self.alive
+
+    def join(self, timeout=None):
+        super().join(timeout)
+        self.alive = False
+
+
 def _use_process_double(monkeypatch, process_type):
     pipe = convert.mp.Pipe
     context = SimpleNamespace(Pipe=pipe, Process=process_type)
@@ -201,6 +216,81 @@ def test_conversion_forwards_timeout_and_joins_natural_exit(monkeypatch, tmp_pat
     assert process.join_calls == [None]
     assert process.terminate_calls == 0
     assert process.kill_calls == 0
+
+
+def test_conversion_real_spawn_success_is_received_before_join(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        convert.hp,
+        "MolReader",
+        lambda *_: iter([_RecordingMolecule()]),
+    )
+
+    convert.convert_smiles_to_3dmol(
+        ["CC"],
+        str(tmp_path),
+        nproc=1,
+        timeout=2.5,
+    )
+
+
+def test_received_result_takes_precedence_over_timeout(monkeypatch, tmp_path):
+    _ReportedAliveProcess.instances = []
+    monkeypatch.setattr(
+        convert.hp,
+        "MolReader",
+        lambda *_: iter([_RecordingMolecule()]),
+    )
+    _use_process_double(monkeypatch, _ReportedAliveProcess)
+    clock = iter((0.0, 100.0))
+    monkeypatch.setattr(convert.time, "monotonic", lambda: next(clock, 100.0))
+
+    convert.convert_smiles_to_3dmol(
+        ["CC"],
+        str(tmp_path),
+        nproc=1,
+        timeout=0.5,
+    )
+
+    process = _ReportedAliveProcess.instances[0]
+    assert process.join_calls == [convert._PROCESS_SHUTDOWN_TIMEOUT]
+    assert process.terminate_calls == 0
+    assert process.kill_calls == 0
+
+
+def test_process_start_failure_closes_both_pipe_ends(monkeypatch, tmp_path):
+    class Connection:
+        def __init__(self):
+            self.closed = False
+
+        def close(self):
+            self.closed = True
+
+    class Process:
+        def start(self):
+            raise RuntimeError("cannot start conversion worker")
+
+    receive_connection = Connection()
+    send_connection = Connection()
+    context = SimpleNamespace(
+        Pipe=lambda duplex: (receive_connection, send_connection),
+        Process=lambda **options: Process(),
+    )
+    monkeypatch.setattr(convert.mp, "get_context", lambda method: context)
+    monkeypatch.setattr(
+        convert.hp,
+        "MolReader",
+        lambda *_: iter([_RecordingMolecule()]),
+    )
+
+    with pytest.raises(RuntimeError, match="cannot start conversion worker"):
+        convert.convert_smiles_to_3dmol(
+            ["CC"],
+            str(tmp_path),
+            nproc=1,
+        )
+
+    assert receive_connection.closed
+    assert send_connection.closed
 
 
 def test_terminate_process_joins_then_kills_and_joins_again():

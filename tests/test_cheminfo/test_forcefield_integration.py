@@ -205,3 +205,25 @@ def test_real_seeded_complex_build_is_reproducible():
         rtol=0.0,
         atol=1e-12,
     )
+
+
+def _build_butane(seed):
+    molecule = read_mol("CCCC", "smi")
+    ff.build3d(
+        molecule,
+        add_hydrogens=False,
+        seed=seed,
+    )
+    return molecule.coordinates
+
+
+def test_real_seeded_ordinary_build_is_reproducible():
+    first_coordinates = _build_butane(73)
+    second_coordinates = _build_butane(73)
+
+    np.testing.assert_allclose(
+        first_coordinates,
+        second_coordinates,
+        rtol=0.0,
+        atol=1e-12,
+    )

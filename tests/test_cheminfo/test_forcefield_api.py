@@ -391,10 +391,81 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
         lambda current, completed: calls.append(("commit", current, completed)),
     )
 
-    report = ff.build3d(molecule, add_hydrogens=False, seed=37)
+    report = ff.build3d(molecule, add_hydrogens=False)
 
     assert calls == [("build", molecule), ("commit", molecule, molecule)]
     assert report.atom_count == len(molecule.atoms)
+
+
+def test_seeded_build3d_uses_isolated_builder(monkeypatch):
+    molecule = read_mol("CC", "smi")
+    coordinates = np.arange(6, dtype=float).reshape(2, 3)
+    calls = []
+
+    monkeypatch.setattr(
+        ff,
+        "_capture_workflow_topology",
+        lambda current, **options: "topology",
+    )
+    monkeypatch.setattr(
+        ff,
+        "_hydrogenated_working_copy",
+        lambda current, *, add_hydrogens, seed=None: current,
+    )
+    monkeypatch.setattr(
+        ff,
+        "_seeded_ob_build_coordinates",
+        lambda current, seed: calls.append(("seeded-build", current, seed))
+        or coordinates,
+    )
+    monkeypatch.setattr(
+        ff,
+        "ob_build",
+        lambda current: pytest.fail("seeded build used the in-process builder"),
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "evaluate_geometry_quality",
+        lambda *args, **kwargs: SimpleNamespace(passed=True),
+    )
+    monkeypatch.setattr(
+        ff,
+        "_commit_working_copy",
+        lambda current, completed: calls.append(("commit", current, completed)),
+    )
+
+    ff.build3d(molecule, add_hydrogens=False, seed=37)
+
+    assert calls == [
+        ("seeded-build", molecule, 37),
+        ("commit", molecule, molecule),
+    ]
+    np.testing.assert_array_equal(molecule.coordinates, coordinates)
+
+
+def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):
+    molecule = read_mol("CCO", "smi")
+    original_atom_count = len(molecule.atoms)
+    original_ids = tuple(atom.id for atom in molecule.atoms)
+    original_bonds = tuple(
+        sorted((bond.a1idx, bond.a2idx)) for bond in molecule.bonds
+    )
+    original_coordinates = molecule.coordinates.copy()
+
+    def fail_build(current, seed):
+        raise ff.BuildWorkerError("RuntimeError", "deliberate failure", None)
+
+    monkeypatch.setattr(ff, "_seeded_ob_build_coordinates", fail_build)
+
+    with pytest.raises(ff.BuildWorkerError, match="deliberate failure"):
+        ff.build3d(molecule, seed=41)
+
+    assert len(molecule.atoms) == original_atom_count
+    assert tuple(atom.id for atom in molecule.atoms) == original_ids
+    assert tuple(sorted((bond.a1idx, bond.a2idx)) for bond in molecule.bonds) == (
+        original_bonds
+    )
+    np.testing.assert_array_equal(molecule.coordinates, original_coordinates)
 
 
 def test_perturb_only_changes_coordinates():

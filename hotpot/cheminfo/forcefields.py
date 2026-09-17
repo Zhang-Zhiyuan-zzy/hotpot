@@ -239,6 +239,7 @@ class _ObservedFrame:
 _SEED_ENVIRONMENT_LOCK = threading.Lock()
 _OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
 _WORKER_EXIT_GRACE_SECONDS = 30.0
+_SEEDED_BUILD_TIMEOUT_SECONDS = 1000.0
 
 
 def _serialized_forcefield_call(function):
@@ -386,7 +387,7 @@ def _capture_workflow_topology(
     )
 
 
-def _complex_worker_proxy(mol: Any) -> Any:
+def _structure_worker_proxy(mol: Any) -> Any:
     """Return a structure-only clone with private positional IDs for a worker."""
     proxy = copy(mol)
     proxy.charge = mol.charge
@@ -1122,6 +1123,32 @@ def _run_complexes_build(
         connection.close()
 
 
+def _run_seeded_ob_build(
+    mol: Any,
+    connection: Any,
+    seed: int,
+) -> None:
+    """Run OBBuilder in a fresh process whose static RNG starts from ``seed``."""
+    try:
+        _seed_openbabel_random(seed)
+        ob_build(mol)
+        result = BuildWorkerResult(
+            status="ok",
+            coordinates=mol.coordinates,
+        )
+    except Exception as exc:
+        result = BuildWorkerResult(
+            status="error",
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+            traceback=traceback_module.format_exc(),
+        )
+    try:
+        connection.send(result)
+    finally:
+        connection.close()
+
+
 def _receive_worker_result(
     process: mp.Process,
     receive_connection: Any,
@@ -1242,6 +1269,33 @@ def _validated_worker_coordinates(
     return coordinates
 
 
+def _seeded_ob_build_coordinates(mol: Any, seed: int) -> np.ndarray:
+    """Build coordinates in an isolated process for repeatable Open Babel RNG."""
+    worker_proxy = _structure_worker_proxy(mol)
+    context = mp.get_context("spawn")
+    receive_connection, send_connection = context.Pipe(duplex=False)
+    process = context.Process(
+        target=_run_seeded_ob_build,
+        args=(worker_proxy, send_connection, seed),
+    )
+    result = _receive_worker_result(
+        process,
+        receive_connection,
+        send_connection,
+        timeout=_SEEDED_BUILD_TIMEOUT_SECONDS,
+        seed=seed,
+        require_diagnostics=False,
+        worker_error_type=BuildWorkerError,
+        timeout_error_type=BuildTimeoutError,
+        operation="building seeded 3D coordinates",
+    )
+    return _validated_worker_coordinates(
+        result,
+        expected_atom_count=len(mol.atoms),
+        worker_error_type=BuildWorkerError,
+    )
+
+
 def _build_complex_working(
     mol: Any,
     *,
@@ -1273,7 +1327,7 @@ def _build_complex_working(
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
-    worker_proxy = _complex_worker_proxy(working)
+    worker_proxy = _structure_worker_proxy(working)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
@@ -1366,7 +1420,10 @@ def build3d(
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
-    ob_build(working)
+    if seed is None:
+        ob_build(working)
+    else:
+        working.coordinates = _seeded_ob_build_coordinates(working, seed)
     quality_report = geo.evaluate_geometry_quality(
         working,
         level="off",

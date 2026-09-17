@@ -327,6 +327,7 @@ def convert_smiles_to_3dmol(
     build_options = dict(kwargs)
     build_options['timeout'] = timeout
     process_timeout = timeout + _BUILD_TIMEOUT_CLEANUP_GRACE
+    process_context = mp.get_context("spawn")
     processes = {}
     failures = []
     try:
@@ -347,8 +348,8 @@ def convert_smiles_to_3dmol(
                 else:
                     sdf_save_path = None
 
-                receive_connection, send_connection = mp.Pipe(duplex=False)
-                p = mp.Process(
+                receive_connection, send_connection = process_context.Pipe(duplex=False)
+                p = process_context.Process(
                     target=_run_conversion_worker,
                     args=(
                         send_connection,

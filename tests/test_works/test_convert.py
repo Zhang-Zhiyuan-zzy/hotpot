@@ -1,4 +1,5 @@
 import pytest
+from types import SimpleNamespace
 
 from hotpot.works import convert
 
@@ -140,6 +141,12 @@ class _MixedProcess(_FinishedProcess):
         self.exitcode = next(self.exitcodes)
 
 
+def _use_process_double(monkeypatch, process_type):
+    pipe = convert.mp.Pipe
+    context = SimpleNamespace(Pipe=pipe, Process=process_type)
+    monkeypatch.setattr(convert.mp, "get_context", lambda method: context)
+
+
 def test_build3d_writes_only_the_final_frame_by_default():
     molecule = _RecordingMolecule()
 
@@ -180,7 +187,7 @@ def test_conversion_forwards_timeout_and_joins_natural_exit(monkeypatch, tmp_pat
     _FinishedProcess.instances = []
     molecule = _RecordingMolecule()
     monkeypatch.setattr(convert.hp, "MolReader", lambda *_: iter([molecule]))
-    monkeypatch.setattr(convert.mp, "Process", _FinishedProcess)
+    _use_process_double(monkeypatch, _FinishedProcess)
 
     convert.convert_smiles_to_3dmol(
         ["CC"],
@@ -214,7 +221,7 @@ def test_conversion_timeout_reaps_the_outer_worker(monkeypatch, tmp_path):
     molecule = _RecordingMolecule()
     clock = iter([0.0, 11.0])
     monkeypatch.setattr(convert.hp, "MolReader", lambda *_: iter([molecule]))
-    monkeypatch.setattr(convert.mp, "Process", _TimedOutProcess)
+    _use_process_double(monkeypatch, _TimedOutProcess)
     monkeypatch.setattr(convert.time, "monotonic", lambda: next(clock, 11.0))
 
     with pytest.raises(convert.ConversionBatchError) as caught:
@@ -247,7 +254,7 @@ def test_conversion_aggregates_worker_failures_after_reaping_all(monkeypatch, tm
     _MixedProcess.exitcodes = iter((0, 7, 8))
     molecules = iter(_RecordingMolecule() for _ in range(3))
     monkeypatch.setattr(convert.hp, "MolReader", lambda *_: iter([next(molecules)]))
-    monkeypatch.setattr(convert.mp, "Process", _MixedProcess)
+    _use_process_double(monkeypatch, _MixedProcess)
 
     with pytest.raises(convert.ConversionBatchError) as caught:
         convert.convert_smiles_to_3dmol(

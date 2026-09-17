@@ -11,6 +11,7 @@
 ## 附件索引
 
 - [A001：`forcefields.py` 与 `geometry.py` 类型和命名审查](reviews/ff_geo_typing_naming_review.md)
+- [A002：`forcefields.py` 与 `geometry.py` 兼容性代码审查](reviews/ff_geo_compatibility_review.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
 
@@ -109,3 +110,33 @@ Python 运行时理论上可以传入一个完整模拟 Hotpot 接口的 duck-ty
   `cbond` 等简洁领域名称；存在副本或生命周期角色时使用 `clone_mol`、
   `working_mol` 等复合名称。
 - 以上规则已经写入 `skills/development.md`；本项后续整改应据此收紧类型并统一命名。
+
+## FF-Q002：当前还保留了哪些兼容性代码？
+
+### 用户问题
+
+`complexes_build()` 附近存在旧参数名翻译。项目目前不承担历史包袱，因此不仅要检查显式
+的名称映射，也要识别版本分支、对象形态回退和旧行为保留等其他兼容性设计。
+
+### 结论
+
+完整证据和逐项建议见附件 A002。主要结论如下：
+
+1. `_LEGACY_COMPLEX_BUILD_OPTIONS`、`_translate_legacy_complex_build_options()` 和
+   `complexes_build(**options)` 是明确的旧 API 兼容层，应删除并收束为一个具有当前显式
+   签名的 `complexes_build()`。
+2. `_ob_optimize()` 是公开兼容 primitive 私有化后遗留的无调用函数，应删除；
+   `_ob_build()` 仍有真实生产调用，不属于可删除残留。
+3. `_atom_index()`、`_rings_for_scope()`、`_bond_kind()` 和 `_report_value()` 都允许当前
+   Hotpot 契约之外的对象/数据形态，属于需要收束的结构兼容。
+4. Open Babel 3.1 RNG 路径确属版本兼容，但它仍被 Python 3.9 支持矩阵需要；不能只删
+   代码而不同时改变 `pyproject.toml`、requirements、CI 和文档中的支持政策。
+5. 非平面环的 center-fan 判定明确以“保留历史语义”为目标，但会影响候选结构的化学质量
+   门控。它必须先定义新的几何语义，再修改实现和测试，不能作为纯接口清理直接删除。
+
+### 用户决策
+
+- 已确定：旧 API 不保留兼容别名、参数翻译或静默兜底；后续实现直接采用当前名称和显式
+  接口。
+- 待确定：是否以放弃 Python 3.9 为代价移除 Open Babel 3.1 适配。
+- 待确定：非平面环穿越判定采用何种当前几何语义。

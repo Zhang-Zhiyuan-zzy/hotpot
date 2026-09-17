@@ -103,7 +103,7 @@ def _optimize_ethanol(seed):
         quality_level="basic",
         seed=seed,
     )
-    return report.best_energy, molecule.coordinates
+    return report.optimization.best_energy, molecule.coordinates
 
 
 def test_openbabel_forcefield_singleton_is_serialized_across_threads():
@@ -129,9 +129,9 @@ def test_real_openbabel_vdw_schedule_is_enabled_and_uses_final_potential():
         seed=41,
     )
 
-    assert len(report.epoch_energies) == 3
-    assert report.best_energy == min(report.epoch_energies)
-    assert molecule.energy == report.best_energy
+    assert len(report.optimization.epoch_energies) == 3
+    assert report.optimization.best_energy == min(report.optimization.epoch_energies)
+    assert molecule.energy == report.optimization.best_energy
     assert np.all(np.isfinite(molecule.coordinates))
 
 
@@ -147,10 +147,10 @@ def test_real_first_epoch_convergence_can_pass_the_strict_gate():
         seed=43,
     )
 
-    assert report.converged
+    assert report.optimization.converged
     assert report.quality_report.passed
-    assert report.energy_changes == ()
-    assert report.max_displacements == ()
+    assert report.optimization.energy_changes == ()
+    assert report.optimization.max_displacements == ()
 
 
 def _build_zinc_amine(seed):

@@ -667,7 +667,8 @@ def test_organic_build_and_optimize_integration():
     )
 
     assert report.effective_forcefield == "MMFF94s"
-    assert report.energy_unit == "kJ/mol"
-    assert report.epochs_completed <= 2
+    assert isinstance(report.build, ff.Build3DReport)
+    assert report.optimization.energy_unit == "kJ/mol"
+    assert report.optimization.epochs_completed <= 2
     assert len(molecule.atoms) == 9
     assert np.all(np.isfinite(molecule.coordinates))

@@ -226,7 +226,12 @@ def test_build_and_optimize_dispatches_complex_once(monkeypatch):
 def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
     molecule = SimpleNamespace(has_metal=False)
     working = SimpleNamespace(has_metal=False)
-    expected = object()
+    build_report = object()
+    optimization_report = SimpleNamespace(
+        requested_forcefield="GAFF",
+        effective_forcefield="GAFF",
+        quality_report="quality",
+    )
     calls = []
 
     monkeypatch.setattr(
@@ -237,12 +242,13 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
     monkeypatch.setattr(
         ff,
         "build3d",
-        lambda current, **options: calls.append(("build", current, options)),
+        lambda current, **options: calls.append(("build", current, options))
+        or build_report,
     )
 
     def fake_optimize(current, forcefield, **options):
         calls.append(("optimize", current, forcefield, options))
-        return expected
+        return optimization_report
 
     monkeypatch.setattr(ff, "optimize", fake_optimize)
     monkeypatch.setattr(
@@ -259,7 +265,10 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
         add_hydrogens=True,
     )
 
-    assert result is expected
+    assert isinstance(result, ff.ForceFieldWorkflowReport)
+    assert result.build is build_report
+    assert result.optimization is optimization_report
+    assert result.quality_report == "quality"
     assert [call[0] for call in calls] == ["build", "optimize", "commit"]
     assert calls[0][1] is working
     assert calls[0][2]["add_hydrogens"] is True
@@ -591,7 +600,12 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
 def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
     molecule = SimpleNamespace(has_metal=False)
     working = SimpleNamespace(has_metal=False)
-    expected = object()
+    build_report = object()
+    optimization_report = SimpleNamespace(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        quality_report="quality",
+    )
     calls = []
 
     monkeypatch.setattr(
@@ -602,14 +616,20 @@ def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
     monkeypatch.setattr(
         ff,
         "build3d",
-        lambda current, **options: calls.append(("build", current, options)),
+        lambda current, **options: calls.append(("build", current, options))
+        or build_report,
     )
-    monkeypatch.setattr(ff, "optimize", lambda *args, **kwargs: expected)
+    monkeypatch.setattr(
+        ff,
+        "optimize",
+        lambda *args, **kwargs: optimization_report,
+    )
     monkeypatch.setattr(ff, "_commit_working_copy", lambda *args: None)
 
     result = ff.build_and_optimize(molecule, seed=47, timeout=3.75)
 
-    assert result is expected
+    assert result.build is build_report
+    assert result.optimization is optimization_report
     assert calls == [
         (
             "build",
@@ -675,7 +695,11 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
 def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
     molecule = SimpleNamespace(has_metal=False, atoms=(), hydrogens=())
     hydrogen_requests = []
-    expected = object()
+    expected = SimpleNamespace(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        quality_report="quality",
+    )
 
     monkeypatch.setattr(
         ff,
@@ -699,7 +723,8 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)
 
-    assert result is expected
+    assert result.optimization is expected
+    assert isinstance(result.build, ff.Build3DReport)
     assert hydrogen_requests.count(True) == 1
     assert hydrogen_requests == [False, True, False]
 

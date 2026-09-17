@@ -104,12 +104,23 @@ class BuildWorkerResult:
 
 
 @dataclass(frozen=True)
-class ComplexBuildReport:
+class ForceFieldWorkflowReport:
     requested_forcefield: Optional[str]
     effective_forcefield: str
-    build: ComplexBuildDiagnostics
+    build: Any
     optimization: Optional[ForceFieldRunReport]
     quality_report: Any
+
+
+@dataclass(frozen=True)
+class BuildAndOptimizeReport(ForceFieldWorkflowReport):
+    build: Build3DReport
+    optimization: ForceFieldRunReport
+
+
+@dataclass(frozen=True)
+class ComplexBuildReport(ForceFieldWorkflowReport):
+    build: ComplexBuildDiagnostics
 
 
 @dataclass(frozen=True)
@@ -1976,7 +1987,7 @@ def build_and_optimize(
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
     coordination_geometry: Optional[str] = None,
-) -> Any:
+) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow."""
     if mol.has_metal:
         return complexes_build(
@@ -2005,13 +2016,13 @@ def build_and_optimize(
         )
 
     working = _hydrogenated_working_copy(mol, add_hydrogens=False)
-    build3d(
+    build_report = build3d(
         working,
         add_hydrogens=add_hydrogens,
         seed=seed,
         timeout=timeout,
     )
-    report = optimize(
+    optimization_report = optimize(
         working,
         forcefield,
         algorithm=algorithm,
@@ -2029,7 +2040,13 @@ def build_and_optimize(
         vdw_cutoff_end=vdw_cutoff_end,
     )
     _commit_working_copy(mol, working)
-    return report
+    return BuildAndOptimizeReport(
+        requested_forcefield=optimization_report.requested_forcefield,
+        effective_forcefield=optimization_report.effective_forcefield,
+        build=build_report,
+        optimization=optimization_report,
+        quality_report=optimization_report.quality_report,
+    )
 
 
 def auto_optimize(

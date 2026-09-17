@@ -562,8 +562,41 @@ def test_energy_conversion_is_explicit():
 def test_unknown_forcefield_fails_before_setup(monkeypatch):
     monkeypatch.setattr(ff, "_find_forcefield_prototype", lambda name: None)
 
-    with pytest.raises(ff.ForceFieldSetupError, match="Unknown Open Babel force field"):
+    with pytest.raises(
+        ff.ForceFieldSetupError,
+        match="Unknown Open Babel force field",
+    ) as caught:
         ff._get_forcefield("not-a-forcefield")
+
+    assert caught.value.report == ff.ForceFieldSetupReport(
+        requested_forcefield="not-a-forcefield",
+        effective_forcefield="not-a-forcefield",
+        stage="lookup",
+    )
+
+
+def test_optimizer_setup_failure_has_structured_diagnostics(monkeypatch):
+    backend = _Backend([0.0], unit="kJ/mol")
+    backend.Setup = lambda obmol, constraints: False
+    optimizer = _optimizer(
+        monkeypatch,
+        backend,
+        [np.zeros((2, 3))],
+    )
+
+    with pytest.raises(ff.ForceFieldSetupError) as caught:
+        optimizer.optimize(
+            _OptimizerMolecule(),
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+
+    assert caught.value.report == ff.ForceFieldSetupReport(
+        requested_forcefield="MMFF94s",
+        effective_forcefield="MMFF94s",
+        stage="setup",
+    )
 
 
 def test_forcefield_lookup_returns_the_serialized_plugin(monkeypatch):

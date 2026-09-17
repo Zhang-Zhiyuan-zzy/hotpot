@@ -113,6 +113,14 @@ class ComplexBuildReport:
 
 
 @dataclass(frozen=True)
+class ForceFieldSetupReport:
+    requested_forcefield: Optional[str]
+    effective_forcefield: str
+    stage: Literal["lookup", "setup"]
+    setup_succeeded: bool = False
+
+
+@dataclass(frozen=True)
 class CoordinationEnvironment:
     metal_idx: int
     donor_indices: Tuple[int, ...]
@@ -143,6 +151,14 @@ class ForceFieldError(RuntimeError):
 
 class ForceFieldSetupError(ForceFieldError):
     """Raised when Open Babel cannot initialize a requested force field."""
+
+    def __init__(
+        self,
+        message: str,
+        report: Optional[ForceFieldSetupReport] = None,
+    ):
+        super().__init__(message)
+        self.report = report
 
 
 class BuildWorkerError(ForceFieldError):
@@ -342,7 +358,10 @@ def _get_forcefield(name: str) -> ob.OBForceField:
     """Retrieve a force-field plugin guarded by the process-local FF lock."""
     backend = _find_forcefield_prototype(name)
     if backend is None:
-        raise ForceFieldSetupError(f"Unknown Open Babel force field: {name!r}")
+        raise ForceFieldSetupError(
+            f"Unknown Open Babel force field: {name!r}",
+            ForceFieldSetupReport(name, name, "lookup"),
+        )
     return backend
 
 
@@ -359,7 +378,8 @@ def _single_ob_optimization(
     obmol, _ = mol2obmol(mol)
     if not backend.Setup(obmol, _make_constraints(mol)):
         raise ForceFieldSetupError(
-            f"Open Babel could not initialize force field {forcefield!r}"
+            f"Open Babel could not initialize force field {forcefield!r}",
+            ForceFieldSetupReport(forcefield, forcefield, "setup"),
         )
     backend.SteepestDescent(steps)
     backend.GetCoordinates(obmol)
@@ -735,7 +755,13 @@ class _OpenBabelOptimizer:
     def _setup(self, mol: Any, obmol: Any) -> None:
         if not self.backend.Setup(obmol, _make_constraints(mol)):
             raise ForceFieldSetupError(
-                f"Open Babel could not initialize force field {self.effective_forcefield!r}"
+                f"Open Babel could not initialize force field "
+                f"{self.effective_forcefield!r}",
+                ForceFieldSetupReport(
+                    self.requested_forcefield,
+                    self.effective_forcefield,
+                    "setup",
+                ),
             )
         if self.increasing_vdw:
             self.backend.UpdatePairsSimple()

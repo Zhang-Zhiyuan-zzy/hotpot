@@ -429,3 +429,120 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     added_ids = [atom.id for atom in molecule.atoms[2:]]
     assert len(added_ids) == len(set(added_ids))
     assert not {101, 305}.intersection(added_ids)
+
+
+def test_commit_rejects_a_working_copy_that_removed_an_original_atom(monkeypatch):
+    molecule = read_mol("CC")
+    working = molecule.copy()
+    working._atoms.pop()
+    original_atoms = tuple(molecule.atoms)
+    original_coordinates = molecule.coordinates.copy()
+    create_calls = 0
+
+    def create_atom(attrs):
+        nonlocal create_calls
+        create_calls += 1
+
+    monkeypatch.setattr(molecule, "_create_atom_from_array", create_atom)
+
+    with pytest.raises(ValueError, match="removed an original atom"):
+        ff._commit_working_copy(molecule, working)
+
+    assert create_calls == 0
+    assert tuple(molecule.atoms) == original_atoms
+    np.testing.assert_array_equal(molecule.coordinates, original_coordinates)
+
+
+def test_commit_rejects_changed_original_bond_topology_before_mutation():
+    molecule = read_mol("CC")
+    working = molecule.copy()
+    working.bonds[0].bond_order = 2.0
+    original_atom_attrs = tuple(atom.attrs for atom in molecule.atoms)
+    original_bond = molecule.bonds[0]
+
+    with pytest.raises(ValueError, match="changed the original bond topology"):
+        ff._commit_working_copy(molecule, working)
+
+    assert molecule.bonds[0] is original_bond
+    assert all(
+        atom.attrs is attrs
+        for atom, attrs in zip(molecule.atoms, original_atom_attrs)
+    )
+
+
+def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
+    molecule = read_mol("CO")
+    molecule.conformer_add(molecule.coordinates.copy(), -1.0)
+    molecule.atom_pairs.update_pairs()
+    _ = molecule.rings
+    working = ff._hydrogenated_working_copy(
+        molecule,
+        add_hydrogens=True,
+        seed=13,
+    )
+    working.coordinates = working.coordinates + 1.0
+    working.conformer_clear()
+    working.conformer_add(working.coordinates, -2.0)
+
+    original_atoms = tuple(molecule.atoms)
+    original_bonds = tuple(molecule.bonds)
+    original_atom_attrs = tuple(atom.attrs for atom in original_atoms)
+    original_neighbours = tuple(atom._neighbours for atom in original_atoms)
+    original_atom_bonds = tuple(atom._bonds for atom in original_atoms)
+    original_graph = molecule._graph
+    original_pairs = molecule.atom_pairs
+    original_pair_items = tuple(original_pairs.items())
+    original_conformers = molecule.conformers
+    original_conformer_state = dict(original_conformers.__dict__)
+    original_conformer_index = molecule._conformers_index
+    original_caches = (
+        molecule._row2idx,
+        molecule._angles,
+        molecule._torsions,
+        molecule._rings,
+        molecule._ligand_rings,
+        molecule._ligand_rings_signature,
+        molecule._obmol,
+    )
+
+    def fail_after_partial_update(atom_pairs):
+        dict.clear(atom_pairs)
+        raise RuntimeError("injected commit failure")
+
+    monkeypatch.setattr(type(molecule.atom_pairs), "update_pairs", fail_after_partial_update)
+
+    with pytest.raises(RuntimeError, match="injected commit failure"):
+        ff._commit_working_copy(molecule, working)
+
+    assert tuple(molecule.atoms) == original_atoms
+    assert tuple(molecule.bonds) == original_bonds
+    assert all(
+        atom.attrs is attrs
+        for atom, attrs in zip(original_atoms, original_atom_attrs)
+    )
+    assert all(
+        atom._neighbours is neighbours
+        for atom, neighbours in zip(original_atoms, original_neighbours)
+    )
+    assert all(
+        atom._bonds is bonds
+        for atom, bonds in zip(original_atoms, original_atom_bonds)
+    )
+    assert molecule._graph is original_graph
+    assert molecule.atom_pairs is original_pairs
+    assert tuple(molecule.atom_pairs.items()) == original_pair_items
+    assert molecule.conformers is original_conformers
+    assert all(
+        molecule.conformers.__dict__[name] is value
+        for name, value in original_conformer_state.items()
+    )
+    assert molecule._conformers_index == original_conformer_index
+    assert (
+        molecule._row2idx,
+        molecule._angles,
+        molecule._torsions,
+        molecule._rings,
+        molecule._ligand_rings,
+        molecule._ligand_rings_signature,
+        molecule._obmol,
+    ) == original_caches

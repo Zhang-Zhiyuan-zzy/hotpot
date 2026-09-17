@@ -241,6 +241,33 @@ class _ObservedFrame:
     max_displacements: Tuple[float, ...]
 
 
+@dataclass(frozen=True)
+class _WorkingCopyCommit:
+    original_atom_attrs: Tuple[np.ndarray, ...]
+    added_atom_attrs: Tuple[np.ndarray, ...]
+    added_bonds: Tuple[Tuple[int, int, Mapping[str, Any]], ...]
+    conformer_state: Mapping[str, Any]
+    conformer_index: int
+
+
+@dataclass(frozen=True)
+class _MoleculeCommitSnapshot:
+    atoms: Tuple[Any, ...]
+    bonds: Tuple[Any, ...]
+    atom_state: Tuple[Tuple[Any, np.ndarray, Any, Any], ...]
+    graph: Any
+    row_to_index: Any
+    angles: Any
+    torsions: Any
+    rings: Any
+    ligand_rings: Any
+    ligand_rings_signature: Any
+    obmol: Any
+    atom_pair_items: Tuple[Tuple[Any, Any], ...]
+    conformer_state: Mapping[str, Any]
+    conformer_index: int
+
+
 _WORKER_LIFECYCLE_LOCK = threading.Lock()
 _OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
 _WORKER_EXIT_GRACE_SECONDS = 30.0
@@ -446,30 +473,141 @@ def _seed_openbabel_random(seed: int) -> None:
     process_c_library.srand(ctypes.c_uint(seed))
 
 
+def _atom_commit_signature(atom: Any) -> Tuple[int, int, int]:
+    return int(atom.id), int(atom.atomic_number), int(atom.formal_charge)
+
+
+def _bond_commit_signature(bond: Any, positions: Mapping[int, int]) -> tuple:
+    endpoints = tuple(sorted((
+        positions[id(bond.atom1)],
+        positions[id(bond.atom2)],
+    )))
+    kind = getattr(bond.bond_kind, "value", bond.bond_kind)
+    return endpoints, float(bond.bond_order), str(kind)
+
+
+def _prepare_working_copy_commit(mol: Any, working: Any) -> _WorkingCopyCommit:
+    original_atoms = tuple(mol._atoms)
+    working_atoms = tuple(working.atoms)
+    original_atom_count = len(original_atoms)
+    if len(working_atoms) < original_atom_count:
+        raise ValueError("The working copy removed an original atom")
+
+    for atom, source in zip(original_atoms, working_atoms[:original_atom_count]):
+        if _atom_commit_signature(atom) != _atom_commit_signature(source):
+            raise ValueError("The working copy changed an original atom identity")
+
+    original_positions = {id(atom): index for index, atom in enumerate(original_atoms)}
+    working_positions = {id(atom): index for index, atom in enumerate(working_atoms)}
+    original_bonds = {
+        _bond_commit_signature(bond, original_positions)
+        for bond in mol.bonds
+    }
+    working_original_bonds = set()
+    working_bond_keys = set()
+    added_bonds = []
+    for bond in working.bonds:
+        if (
+            id(bond.atom1) not in working_positions
+            or id(bond.atom2) not in working_positions
+        ):
+            raise ValueError("The working copy contains a bond to an external atom")
+        first = working_positions[id(bond.atom1)]
+        second = working_positions[id(bond.atom2)]
+        key = tuple(sorted((first, second)))
+        if first == second or key in working_bond_keys:
+            raise ValueError("The working copy contains an invalid duplicate bond")
+        working_bond_keys.add(key)
+        if first < original_atom_count and second < original_atom_count:
+            working_original_bonds.add(
+                _bond_commit_signature(bond, working_positions)
+            )
+        else:
+            added_bonds.append((first, second, deepcopy(bond.attr_dict)))
+
+    if working_original_bonds != original_bonds:
+        raise ValueError("The working copy changed the original bond topology")
+
+    return _WorkingCopyCommit(
+        original_atom_attrs=tuple(
+            np.array(atom.attrs, copy=True)
+            for atom in working_atoms[:original_atom_count]
+        ),
+        added_atom_attrs=tuple(
+            np.array(atom.attrs, copy=True)
+            for atom in working_atoms[original_atom_count:]
+        ),
+        added_bonds=tuple(added_bonds),
+        conformer_state=deepcopy(working._conformers.__dict__),
+        conformer_index=working._conformers_index,
+    )
+
+
+def _snapshot_molecule_for_commit(mol: Any) -> _MoleculeCommitSnapshot:
+    return _MoleculeCommitSnapshot(
+        atoms=tuple(mol._atoms),
+        bonds=tuple(mol._bonds),
+        atom_state=tuple(
+            (atom, atom.attrs, atom._neighbours, atom._bonds)
+            for atom in mol._atoms
+        ),
+        graph=mol._graph,
+        row_to_index=mol._row2idx,
+        angles=mol._angles,
+        torsions=mol._torsions,
+        rings=mol._rings,
+        ligand_rings=mol._ligand_rings,
+        ligand_rings_signature=mol._ligand_rings_signature,
+        obmol=mol._obmol,
+        atom_pair_items=tuple(mol._atom_pairs.items()),
+        conformer_state=dict(mol._conformers.__dict__),
+        conformer_index=mol._conformers_index,
+    )
+
+
+def _restore_failed_commit(mol: Any, snapshot: _MoleculeCommitSnapshot) -> None:
+    mol._atoms[:] = snapshot.atoms
+    mol._bonds[:] = snapshot.bonds
+    for atom, attrs, neighbours, bonds in snapshot.atom_state:
+        object.__setattr__(atom, "attrs", attrs)
+        object.__setattr__(atom, "_neighbours", neighbours)
+        object.__setattr__(atom, "_bonds", bonds)
+    mol._graph = snapshot.graph
+    mol._row2idx = snapshot.row_to_index
+    mol._angles = snapshot.angles
+    mol._torsions = snapshot.torsions
+    mol._rings = snapshot.rings
+    mol._ligand_rings = snapshot.ligand_rings
+    mol._ligand_rings_signature = snapshot.ligand_rings_signature
+    mol._obmol = snapshot.obmol
+    dict.clear(mol._atom_pairs)
+    dict.update(mol._atom_pairs, snapshot.atom_pair_items)
+    mol._conformers.__dict__.clear()
+    mol._conformers.__dict__.update(snapshot.conformer_state)
+    mol._conformers_index = snapshot.conformer_index
+
+
 def _commit_working_copy(mol: Any, working: Any) -> None:
     """Commit accepted geometry while preserving caller-owned object identities."""
-    original_atom_count = len(mol._atoms)
-    working_atoms = tuple(working.atoms)
+    payload = _prepare_working_copy_commit(mol, working)
+    snapshot = _snapshot_molecule_for_commit(mol)
+    try:
+        for atom, attrs in zip(mol._atoms, payload.original_atom_attrs):
+            atom.attrs = attrs
+        for attrs in payload.added_atom_attrs:
+            mol._create_atom_from_array(attrs)
+        for first, second, attributes in payload.added_bonds:
+            mol._add_bond(first, second, **attributes)
 
-    for atom, source in zip(mol._atoms, working_atoms[:original_atom_count]):
-        atom.attrs = np.array(source.attrs, copy=True)
-
-    for source in working_atoms[original_atom_count:]:
-        mol._create_atom_from_array(np.array(source.attrs, copy=True))
-
-    working_positions = {id(atom): index for index, atom in enumerate(working_atoms)}
-    for source_bond in working.bonds:
-        first = working_positions[id(source_bond.atom1)]
-        second = working_positions[id(source_bond.atom2)]
-        if first >= original_atom_count or second >= original_atom_count:
-            mol._add_bond(first, second, **source_bond.attr_dict)
-
-    mol._update_graph(clear_conformers=False)
-    mol._row2idx = None
-    mol._atom_pairs.update_pairs()
-    mol._conformers.__dict__.clear()
-    mol._conformers.__dict__.update(deepcopy(working._conformers.__dict__))
-    mol._conformers_index = working._conformers_index
+        mol._update_graph(clear_conformers=False)
+        mol._row2idx = None
+        mol._atom_pairs.update_pairs()
+        mol._conformers.__dict__.clear()
+        mol._conformers.__dict__.update(payload.conformer_state)
+        mol._conformers_index = payload.conformer_index
+    except BaseException:
+        _restore_failed_commit(mol, snapshot)
+        raise
 
 
 def _perturbed_coordinates(

@@ -4,8 +4,10 @@
 >
 > 审查基线：`fix/complexes-build-pipeline` 分支；实施日期：2026-09-18
 >
-> 核心目标：可靠报告有限键线段与平面/非平面环边界之间的空间关系  
-> 数学实施契约：[relation.md](./relation.md)；必须先改契约，再改 `settings.py` / `relation.py`  
+> 核心目标：可靠报告有限键线段与平面/非平面环边界之间的空间关系
+>
+> 数学实施契约：[relation.md](./relation.md)；必须先改契约，再改 `settings.py` / `relation.py`
+>
 > 配套五模块调用图：[HTML](./geo_refactor_call_graph.html) · [Archify 源文件](./geo_refactor_call_graph.architecture.json)
 
 ## 1. 最终架构决策

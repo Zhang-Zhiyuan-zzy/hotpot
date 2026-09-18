@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Sequence, Tuple
+from typing import TYPE_CHECKING, Dict, Sequence, Tuple
 
 import pytest
 
@@ -39,6 +39,43 @@ class FakeMolecule:
     def rings_for_scope(self, ring_scope: str) -> Sequence[FakeRing]:
         self.ring_queries.append(ring_scope)
         return tuple(self.rings_by_scope[ring_scope])
+
+
+if TYPE_CHECKING:
+    from hotpot.cheminfo.core import Atom, Bond, Ring
+
+    def _check_fake_source_types(
+            mol: FakeMolecule,
+            ring: FakeRing,
+            bond: FakeBond,
+    ) -> None:
+        atom_geometry: convert.AtomGeometry[FakeAtom] = next(
+            convert.iter_atom_geometries(mol)
+        )
+        ring_geometry: convert.RingGeometry[FakeRing] = next(
+            convert.iter_ring_geometries(
+                mol,
+                ring_scope="full_graph",
+                max_ring_size=8,
+            )
+        )
+        finding: convert.BondRingFinding[FakeRing, FakeBond] = (
+            convert.determine_bond_ring_relation(ring, bond)
+        )
+        del atom_geometry, ring_geometry, finding
+
+    def _check_hotpot_source_types(mol: Molecule) -> None:
+        atom_geometry: convert.AtomGeometry[Atom] = next(
+            convert.iter_atom_geometries(mol)
+        )
+        report: convert.BondRingScanReport[Ring, Bond] = (
+            convert.scan_bond_ring_relations(
+                mol,
+                ring_scope="full_graph",
+                max_ring_size=8,
+            )
+        )
+        del atom_geometry, report
 
 
 @dataclass(frozen=True)
@@ -140,9 +177,9 @@ def test_invalid_pair_scope_is_rejected() -> None:
     )
 
     with pytest.raises(ValueError, match="Unsupported atom-pair scope"):
-        tuple(convert.iter_atom_pair_targets(structure, "invalid"))
+        tuple(convert.iter_atom_pair_targets(structure, "invalid"))  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="Unsupported atom-pair scope"):
-        convert.measure_atom_pair_distances(structure, "invalid")
+        convert.measure_atom_pair_distances(structure, "invalid")  # type: ignore[arg-type]
 
 
 def test_ring_key_is_invariant_to_rotation_and_reversal() -> None:

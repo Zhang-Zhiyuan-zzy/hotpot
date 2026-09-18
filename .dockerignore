@@ -1,0 +1,16 @@
+.git
+.codex
+.pytest_cache
+.ruff_cache
+.mypy_cache
+__pycache__
+*.py[cod]
+*.egg-info
+build
+dist
+tests/coverage
+doc/html
+agent_features/tmp
+:memory:.ses
+docker/image
+docker/**/*.tar

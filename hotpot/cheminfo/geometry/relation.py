@@ -1273,15 +1273,7 @@ def _surface_segment_relation(
                 points.append(hit.point)
         elif hit.kind is _TriangleHitKind.SEGMENT_ENDPOINT:
             if hit.point is not None:
-                if _point_near_internal_simplex(
-                    hit.point,
-                    internal_edges,
-                    cycle,
-                    guard * tolerances.length,
-                ):
-                    evaluation_undetermined = True
-                    causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
-                elif any(
+                on_cycle_boundary = any(
                     _point_segment_distance_arrays(
                         hit.point,
                         _point_array(edge.start),
@@ -1289,12 +1281,21 @@ def _surface_segment_relation(
                     )
                     <= tolerances.length
                     for edge in cycle.edges
-                ):
+                )
+                if on_cycle_boundary:
                     features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
                     features.add(
                         _point_boundary_feature(hit.point, cycle, tolerances)
                     )
                     points.append(hit.point)
+                elif _point_near_internal_simplex(
+                    hit.point,
+                    internal_edges,
+                    cycle,
+                    guard * tolerances.length,
+                ):
+                    evaluation_undetermined = True
+                    causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
                 else:
                     features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
                     points.append(hit.point)

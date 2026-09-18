@@ -14,7 +14,7 @@ from copy import copy, deepcopy
 from dataclasses import asdict, dataclass, field, replace
 from functools import wraps
 from itertools import combinations
-from multiprocessing.connection import wait as wait_for_connections
+from multiprocessing.connection import Connection, wait as wait_for_connections
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -35,7 +35,7 @@ from .obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinat
 
 
 if TYPE_CHECKING:
-    from .core import Atom, Bond, Molecule, Ring
+    from .core import Angle, Atom, AtomPair, Bond, Molecule, Ring, Torsion
 
 
 __all__ = (
@@ -253,7 +253,7 @@ class ComplexBuildDiagnostics:
 class BuildWorkerResult:
     status: Literal["ok", "error"]
     coordinates: Optional[np.ndarray] = None
-    conformers: Optional[Mapping[str, Any]] = None
+    conformers: Optional[Mapping[str, object]] = None
     diagnostics: Optional[ComplexBuildDiagnostics] = None
     error_type: Optional[str] = None
     error_message: Optional[str] = None
@@ -264,7 +264,7 @@ class BuildWorkerResult:
 class ForceFieldWorkflowReport:
     requested_forcefield: Optional[str]
     effective_forcefield: str
-    build: Any
+    build: Union[Build3DReport, ComplexBuildDiagnostics]
     optimization: Optional[ForceFieldRunReport]
     quality_report: ForceFieldValidationReport
 
@@ -424,26 +424,30 @@ class _ObservedFrame:
 class _WorkingCopyCommit:
     original_atom_attrs: Tuple[np.ndarray, ...]
     added_atom_attrs: Tuple[np.ndarray, ...]
-    added_bonds: Tuple[Tuple[int, int, Mapping[str, Any]], ...]
-    conformer_state: Mapping[str, Any]
+    added_bonds: Tuple[Tuple[int, int, Mapping[str, object]], ...]
+    conformer_state: Mapping[str, object]
     conformer_index: int
 
 
 @dataclass(frozen=True)
 class _MoleculeCommitSnapshot:
-    atoms: Tuple[Any, ...]
-    bonds: Tuple[Any, ...]
-    atom_state: Tuple[Tuple[Any, np.ndarray, Any, Any], ...]
-    graph: Any
-    row_to_index: Any
-    angles: Any
-    torsions: Any
-    rings: Any
-    ligand_rings: Any
-    ligand_rings_signature: Any
-    obmol: Any
-    atom_pair_items: Tuple[Tuple[Any, Any], ...]
-    conformer_state: Mapping[str, Any]
+    atoms: Tuple["Atom", ...]
+    bonds: Tuple["Bond", ...]
+    atom_state: Tuple[
+        Tuple["Atom", np.ndarray, list["Atom"], list["Bond"]], ...
+    ]
+    graph: nx.Graph
+    row_to_index: Optional[dict[int, int]]
+    angles: list["Angle"]
+    torsions: list["Torsion"]
+    rings: list["Ring"]
+    ligand_rings: Optional[list["Ring"]]
+    ligand_rings_signature: Optional[
+        Tuple[Tuple[int, ...], Tuple[Tuple[int, int], ...]]
+    ]
+    obmol: Optional[ob.OBMol]
+    atom_pair_items: Tuple[Tuple[frozenset["Atom"], "AtomPair"], ...]
+    conformer_state: Mapping[str, object]
     conformer_index: int
 
 
@@ -1101,7 +1105,7 @@ def _resolve_organic_forcefield(requested: Optional[str]) -> str:
     return effective
 
 
-def _require_explicit_complex(mol: Any) -> None:
+def _require_explicit_complex(mol: "Molecule") -> None:
     """Require a metal center with at least one explicit metal--ligand bond."""
     if not mol.has_metal or not any(
         bond.is_metal_ligand_bond for bond in mol.bonds
@@ -1112,7 +1116,7 @@ def _require_explicit_complex(mol: Any) -> None:
         )
 
 
-def _make_constraints(mol: Any) -> ob.OBFFConstraints:
+def _make_constraints(mol: "Molecule") -> ob.OBFFConstraints:
     """Return the intentionally empty force-field constraint adapter."""
     return ob.OBFFConstraints()
 
@@ -1165,7 +1169,7 @@ def _seed_openbabel_random(seed: int) -> None:
 
 @_serialized_forcefield_call
 def _single_ob_optimization(
-    mol: Any, forcefield: str, steps: int
+    mol: "Molecule", forcefield: str, steps: int
 ) -> _CandidateOptimizationResult:
     backend = _get_forcefield(forcefield)
     backend.EnableCutOff(False)
@@ -1191,7 +1195,7 @@ def _single_ob_optimization(
 
 
 @_serialized_builder_call
-def _ob_build(mol: Any) -> None:
+def _ob_build(mol: "Molecule") -> None:
     """Run OBBuilder directly on an internal working molecule."""
     builder = ob.OBBuilder()
     obmol, _ = mol2obmol(mol)
@@ -1200,7 +1204,7 @@ def _ob_build(mol: Any) -> None:
     mol.coordinates = extract_obmol_coordinates(obmol)
 
 
-def _ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
+def _ob_optimize(mol: "Molecule", ff: str = "UFF", steps: int = 100) -> float:
     """Run one internal Open Babel optimization and return kJ/mol."""
     return _single_ob_optimization(mol, ff, steps).energy
 
@@ -1208,16 +1212,16 @@ def _ob_optimize(mol: Any, ff: str = "UFF", steps: int = 100) -> float:
 # Working-copy preparation and transactional commit helpers.
 
 
-def _copy_molecule_metadata(source: Any, target: Any) -> None:
-    target.charge = source.charge
-    target.properties = dict(source.properties)
-    target._model = source._model
-    target._environ = source._environ
-    target._crystal = source._crystal
+def _copy_molecule_metadata(source_mol: "Molecule", target_mol: "Molecule") -> None:
+    target_mol.charge = source_mol.charge
+    target_mol.properties = dict(source_mol.properties)
+    target_mol._model = source_mol._model
+    target_mol._environ = source_mol._environ
+    target_mol._crystal = source_mol._crystal
 
 
 def _recalculate_neutral_donor_valence(
-    mol: Any,
+    mol: "Molecule",
     donor_indices: set[int],
 ) -> None:
     """Infer neutral donor hydrogens from the metal-free ligand skeleton."""
@@ -1232,43 +1236,45 @@ def _recalculate_neutral_donor_valence(
 
 
 def _hydrogenated_working_copy(
-    mol: Any,
+    mol: "Molecule",
     *,
     add_hydrogens: bool,
     seed: Optional[int] = None,
-) -> Any:
+) -> "Molecule":
     """Copy ``mol`` and infer H atoms against its ligand covalent skeleton."""
-    working = copy(mol)
-    _copy_molecule_metadata(mol, working)
-    original_atom_count = len(working.atoms)
+    working_mol = copy(mol)
+    _copy_molecule_metadata(mol, working_mol)
+    original_atom_count = len(working_mol.atoms)
     if add_hydrogens:
-        if working.has_metal:
+        if working_mol.has_metal:
             donor_indices = {
                 bond.atom2.idx if bond.atom1.is_metal else bond.atom1.idx
-                for bond in working.bonds
+                for bond in working_mol.bonds
                 if bond.is_metal_ligand_bond
             }
-            working.hide_metal_ligand_bonds(clear_conformers=False)
-            _recalculate_neutral_donor_valence(working, donor_indices)
-            working.add_hydrogens(
+            working_mol.hide_metal_ligand_bonds(clear_conformers=False)
+            _recalculate_neutral_donor_valence(working_mol, donor_indices)
+            working_mol.add_hydrogens(
                 rm_polar_hs=False,
                 rng=np.random.default_rng(seed),
             )
-            working.recover_hided_metal_ligand_bonds(clear_conformers=False)
+            working_mol.recover_hided_metal_ligand_bonds(clear_conformers=False)
         else:
-            working.add_hydrogens(
+            working_mol.add_hydrogens(
                 rm_polar_hs=False,
                 rng=np.random.default_rng(seed),
             )
-    used_ids = {int(atom.id) for atom in working.atoms[:original_atom_count]}
+    used_ids = {
+        int(atom.id) for atom in working_mol.atoms[:original_atom_count]
+    }
     next_id = max(used_ids, default=-1) + 1
-    for atom in working.atoms[original_atom_count:]:
+    for atom in working_mol.atoms[original_atom_count:]:
         while next_id in used_ids:
             next_id += 1
         atom.id = next_id
         used_ids.add(next_id)
         next_id += 1
-    return working
+    return working_mol
 
 
 def _capture_workflow_topology(
@@ -1283,19 +1289,22 @@ def _capture_workflow_topology(
     )
 
 
-def _structure_worker_proxy(mol: Any) -> Any:
+def _structure_worker_proxy(mol: "Molecule") -> "Molecule":
     """Return a structure-only clone with private positional IDs for a worker."""
-    proxy = copy(mol)
-    proxy.charge = mol.charge
-    proxy.refresh_atom_id()
-    return proxy
+    proxy_mol = copy(mol)
+    proxy_mol.charge = mol.charge
+    proxy_mol.refresh_atom_id()
+    return proxy_mol
 
 
-def _atom_commit_signature(atom: Any) -> Tuple[int, int, int]:
+def _atom_commit_signature(atom: "Atom") -> Tuple[int, int, int]:
     return int(atom.id), int(atom.atomic_number), int(atom.formal_charge)
 
 
-def _bond_commit_signature(bond: Any, positions: Mapping[int, int]) -> tuple:
+def _bond_commit_signature(
+    bond: "Bond",
+    positions: Mapping[int, int],
+) -> tuple:
     endpoints = tuple(sorted((
         positions[id(bond.atom1)],
         positions[id(bond.atom2)],
@@ -1304,9 +1313,12 @@ def _bond_commit_signature(bond: Any, positions: Mapping[int, int]) -> tuple:
     return endpoints, float(bond.bond_order), str(kind)
 
 
-def _prepare_working_copy_commit(mol: Any, working: Any) -> _WorkingCopyCommit:
+def _prepare_working_copy_commit(
+    mol: "Molecule",
+    working_mol: "Molecule",
+) -> _WorkingCopyCommit:
     original_atoms = tuple(mol._atoms)
-    working_atoms = tuple(working.atoms)
+    working_atoms = tuple(working_mol.atoms)
     original_atom_count = len(original_atoms)
     if len(working_atoms) < original_atom_count:
         raise ValueError("The working copy removed an original atom")
@@ -1324,7 +1336,7 @@ def _prepare_working_copy_commit(mol: Any, working: Any) -> _WorkingCopyCommit:
     working_original_bonds = set()
     working_bond_keys = set()
     added_bonds = []
-    for bond in working.bonds:
+    for bond in working_mol.bonds:
         if (
             id(bond.atom1) not in working_positions
             or id(bond.atom2) not in working_positions
@@ -1356,12 +1368,12 @@ def _prepare_working_copy_commit(mol: Any, working: Any) -> _WorkingCopyCommit:
             for atom in working_atoms[original_atom_count:]
         ),
         added_bonds=tuple(added_bonds),
-        conformer_state=deepcopy(working._conformers.__dict__),
-        conformer_index=working._conformers_index,
+        conformer_state=deepcopy(working_mol._conformers.__dict__),
+        conformer_index=working_mol._conformers_index,
     )
 
 
-def _snapshot_molecule_for_commit(mol: Any) -> _MoleculeCommitSnapshot:
+def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
     return _MoleculeCommitSnapshot(
         atoms=tuple(mol._atoms),
         bonds=tuple(mol._bonds),
@@ -1383,7 +1395,10 @@ def _snapshot_molecule_for_commit(mol: Any) -> _MoleculeCommitSnapshot:
     )
 
 
-def _restore_failed_commit(mol: Any, snapshot: _MoleculeCommitSnapshot) -> None:
+def _restore_failed_commit(
+    mol: "Molecule",
+    snapshot: _MoleculeCommitSnapshot,
+) -> None:
     mol._atoms[:] = snapshot.atoms
     mol._bonds[:] = snapshot.bonds
     for atom, attrs, neighbours, bonds in snapshot.atom_state:
@@ -1405,9 +1420,9 @@ def _restore_failed_commit(mol: Any, snapshot: _MoleculeCommitSnapshot) -> None:
     mol._conformers_index = snapshot.conformer_index
 
 
-def _commit_working_copy(mol: Any, working: Any) -> None:
+def _commit_working_copy(mol: "Molecule", working_mol: "Molecule") -> None:
     """Commit accepted geometry while preserving caller-owned object identities."""
-    payload = _prepare_working_copy_commit(mol, working)
+    payload = _prepare_working_copy_commit(mol, working_mol)
     snapshot = _snapshot_molecule_for_commit(mol)
     try:
         for atom, attrs in zip(mol._atoms, payload.original_atom_attrs):
@@ -1489,7 +1504,7 @@ class _OpenBabelOptimizer:
         self.rng = np.random.default_rng(seed)
         self.backend = _get_forcefield(effective_forcefield)
 
-    def _setup(self, mol: Any, obmol: Any) -> None:
+    def _setup(self, mol: "Molecule", obmol: ob.OBMol) -> None:
         if not self.backend.Setup(obmol, _make_constraints(mol)):
             raise ForceFieldSetupError(
                 f"Open Babel could not initialize force field "
@@ -1535,7 +1550,7 @@ class _OpenBabelOptimizer:
         initialize(take_step_capacity + 1, self.energy_tolerance)
         return initialization_steps
 
-    def _gradients(self, obmol: Any, factor: float) -> Tuple[float, float]:
+    def _gradients(self, obmol: ob.OBMol, factor: float) -> Tuple[float, float]:
         vectors = []
         for atom in _iter_obmol_atoms(obmol):
             gradient = self.backend.GetGradient(atom)
@@ -1546,7 +1561,7 @@ class _OpenBabelOptimizer:
     def _observe_frame(
         self,
         mol: "Molecule",
-        obmol: Any,
+        obmol: ob.OBMol,
         *,
         factor: float,
         converged: bool,
@@ -1829,19 +1844,19 @@ def _build_ligand_proxies(
     effective_forcefield: str,
 ) -> Tuple[np.ndarray, ComplexBuildDiagnostics]:
     started = time.monotonic()
-    clone = copy(mol)
-    _copy_molecule_metadata(mol, clone)
-    clone.hide_metal_ligand_bonds(clear_conformers=False)
+    clone_mol = copy(mol)
+    _copy_molecule_metadata(mol, clone_mol)
+    clone_mol.hide_metal_ligand_bonds(clear_conformers=False)
     total_attempts = 0
     total_accepted = 0
     rejections = []
 
-    for component_index, component in enumerate(clone.components):
-        if component.has_metal:
+    for component_index, component_mol in enumerate(clone_mol.components):
+        if component_mol.has_metal:
             continue
 
         component_reference = capture_topology(
-            component,
+            component_mol,
             allow_added_hydrogens=False,
         )
         candidate_coordinates = []
@@ -1855,23 +1870,23 @@ def _build_ligand_proxies(
             component_attempts += 1
             total_attempts += 1
             try:
-                _ob_build(component)
+                _ob_build(component_mol)
                 _single_ob_optimization(
-                    component,
+                    component_mol,
                     effective_forcefield,
                     candidate_warmup_steps,
                 )
             except ForceFieldError as exc:
-                component.recover_hided_covalent_bonds(clear_conformers=False)
+                component_mol.recover_hided_covalent_bonds(clear_conformers=False)
                 rejections.append(
                     CandidateRejection(component_index, component_attempts, str(exc))
                 )
                 continue
 
-            component.recover_hided_covalent_bonds(clear_conformers=False)
+            component_mol.recover_hided_covalent_bonds(clear_conformers=False)
             try:
                 scored = _single_ob_optimization(
-                    component,
+                    component_mol,
                     effective_forcefield,
                     candidate_score_steps,
                 )
@@ -1882,24 +1897,24 @@ def _build_ligand_proxies(
                 continue
 
             piercing_state = geo.determine_bond_ring_piercing_state(
-                component,
+                component_mol,
                 ring_scope="ligand_skeleton",
                 max_ring_size=8,
             )
             if piercing_state is geo.PiercingState.PIERCES:
                 bond_ring_report = geo.scan_bond_ring_relations(
-                    component,
+                    component_mol,
                     ring_scope="ligand_skeleton",
                     max_ring_size=8,
                 )
                 intersection_failures = _bond_ring_acceptance_checks(
-                    component,
+                    component_mol,
                     bond_ring_report,
                 )
                 bonds_to_hide = {}
                 for finding in bond_ring_report.piercings:
                     ring_edge = _select_ring_opening_edge(
-                        component,
+                        component_mol,
                         finding.target.ring.source,
                         finding.target.bond.source,
                     )
@@ -1908,7 +1923,7 @@ def _build_ligand_proxies(
                     endpoint_key = tuple(sorted((ring_edge.a1idx, ring_edge.a2idx)))
                     bonds_to_hide[endpoint_key] = ring_edge
                 if bonds_to_hide:
-                    component.hide_bonds(
+                    component_mol.hide_bonds(
                         *(bonds_to_hide[key] for key in sorted(bonds_to_hide)),
                         clear_conformers=False,
                     )
@@ -1926,7 +1941,7 @@ def _build_ligand_proxies(
                 continue
 
             candidate_quality = evaluate_structure_acceptance(
-                component,
+                component_mol,
                 level="basic",
                 topology_reference=component_reference,
                 forcefield_report={
@@ -1951,7 +1966,7 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            candidate_coordinates.append(component.coordinates.copy())
+            candidate_coordinates.append(component_mol.coordinates.copy())
             candidate_energies.append(scored.energy)
             candidate_attempts.append(component_attempts)
             total_accepted += 1
@@ -1972,11 +1987,11 @@ def _build_ligand_proxies(
 
         refined_candidate_found = False
         for candidate_index in np.argsort(candidate_energies):
-            component.coordinates = candidate_coordinates[int(candidate_index)]
+            component_mol.coordinates = candidate_coordinates[int(candidate_index)]
             attempt = candidate_attempts[int(candidate_index)]
             try:
                 refined = _single_ob_optimization(
-                    component,
+                    component_mol,
                     effective_forcefield,
                     best_candidate_refine_steps,
                 )
@@ -1991,12 +2006,12 @@ def _build_ligand_proxies(
                 continue
 
             refined_piercing_state = geo.determine_bond_ring_piercing_state(
-                component,
+                component_mol,
                 ring_scope="ligand_skeleton",
                 max_ring_size=8,
             )
             refined_quality = evaluate_structure_acceptance(
-                component,
+                component_mol,
                 level="basic",
                 topology_reference=component_reference,
                 forcefield_report={
@@ -2013,7 +2028,7 @@ def _build_ligand_proxies(
             ):
                 refined_bond_ring_report = (
                     geo.scan_bond_ring_relations(
-                        component,
+                        component_mol,
                         ring_scope="ligand_skeleton",
                         max_ring_size=8,
                     )
@@ -2022,7 +2037,7 @@ def _build_ligand_proxies(
                 )
                 intersection_failures = (
                     _bond_ring_acceptance_checks(
-                        component,
+                        component_mol,
                         refined_bond_ring_report,
                     )
                     if refined_bond_ring_report is not None
@@ -2057,26 +2072,29 @@ def _build_ligand_proxies(
                 f"Candidate refinement failed for every candidate of component {component_index}",
                 diagnostics,
             )
-        clone.update_atoms_attrs_from_id_dict(
-            {atom.id: {"coordinates": atom.coordinates} for atom in component.atoms}
+        clone_mol.update_atoms_attrs_from_id_dict(
+            {
+                atom.id: {"coordinates": atom.coordinates}
+                for atom in component_mol.atoms
+            }
         )
 
-    clone.recover_hided_metal_ligand_bonds(clear_conformers=False)
+    clone_mol.recover_hided_metal_ligand_bonds(clear_conformers=False)
     diagnostics = ComplexBuildDiagnostics(
         attempt_count=total_attempts,
         accepted_candidates=total_accepted,
         rejected_candidates=tuple(rejections),
         elapsed_seconds=time.monotonic() - started,
     )
-    return clone.coordinates, diagnostics
+    return clone_mol.coordinates, diagnostics
 
 
 # Spawn-worker entry points and IPC lifecycle management.
 
 
 def _run_complexes_build(
-    mol: Any,
-    connection: Any,
+    mol: "Molecule",
+    connection: Connection,
     candidate_count: int,
     max_attempts: int,
     candidate_warmup_steps: int,
@@ -2118,8 +2136,8 @@ def _run_complexes_build(
 
 
 def _run_seeded_ob_build(
-    mol: Any,
-    connection: Any,
+    mol: "Molecule",
+    connection: Connection,
     seed: int,
 ) -> None:
     """Run OBBuilder in a fresh process whose static RNG starts from ``seed``."""
@@ -2145,14 +2163,18 @@ def _run_seeded_ob_build(
 
 def _receive_worker_result(
     process: mp.Process,
-    receive_connection: Any,
-    send_connection: Any,
+    receive_connection: Connection,
+    send_connection: Connection,
     *,
     timeout: float,
     seed: Optional[int] = None,
     require_diagnostics: bool = True,
-    worker_error_type: Any = ComplexBuildWorkerError,
-    timeout_error_type: Any = ComplexBuildTimeoutError,
+    worker_error_type: Union[
+        type[BuildWorkerError], type[ComplexBuildWorkerError]
+    ] = ComplexBuildWorkerError,
+    timeout_error_type: Union[
+        type[BuildTimeoutError], type[ComplexBuildTimeoutError]
+    ] = ComplexBuildTimeoutError,
     operation: str = "building complex geometry",
 ) -> BuildWorkerResult:
     result = None
@@ -2260,7 +2282,9 @@ def _validated_worker_coordinates(
     result: BuildWorkerResult,
     *,
     expected_atom_count: int,
-    worker_error_type: Any = ComplexBuildWorkerError,
+    worker_error_type: Union[
+        type[BuildWorkerError], type[ComplexBuildWorkerError]
+    ] = ComplexBuildWorkerError,
 ) -> np.ndarray:
     coordinates = np.asarray(result.coordinates, dtype=float)
     expected_shape = (expected_atom_count, 3)
@@ -2276,7 +2300,7 @@ def _validated_worker_coordinates(
 
 
 def _seeded_ob_build_coordinates(
-    mol: Any,
+    mol: "Molecule",
     seed: int,
     *,
     timeout: float,
@@ -2311,7 +2335,7 @@ def _seeded_ob_build_coordinates(
 
 
 def _build_complex_working(
-    mol: Any,
+    mol: "Molecule",
     *,
     effective_forcefield: str,
     candidate_count: int,
@@ -2323,7 +2347,7 @@ def _build_complex_working(
     add_hydrogens: bool,
     seed: Optional[int],
     coordination_geometry: Optional[str],
-) -> Tuple[Any, ComplexBuildDiagnostics]:
+) -> Tuple["Molecule", ComplexBuildDiagnostics]:
     if candidate_count < 1:
         raise ValueError("candidate_count must be at least 1")
     if max_attempts < candidate_count:
@@ -2336,12 +2360,12 @@ def _build_complex_working(
         raise ValueError("all candidate optimization step counts must be at least 1")
     if timeout <= 0.0:
         raise ValueError("timeout must be positive")
-    working = _hydrogenated_working_copy(
+    working_mol = _hydrogenated_working_copy(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
-    worker_proxy = _structure_worker_proxy(working)
+    worker_proxy = _structure_worker_proxy(working_mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
@@ -2365,15 +2389,15 @@ def _build_complex_working(
         timeout=timeout,
         seed=seed,
     )
-    working.coordinates = _validated_worker_coordinates(
+    working_mol.coordinates = _validated_worker_coordinates(
         result,
-        expected_atom_count=len(working.atoms),
+        expected_atom_count=len(working_mol.atoms),
     )
     if coordination_geometry is not None:
         prepare_coordination_geometry(
-            working, strategy=coordination_geometry, seed=seed
+            working_mol, strategy=coordination_geometry, seed=seed
         )
-    return working, result.diagnostics
+    return working_mol, result.diagnostics
 
 
 def _run_optimizer_on_working(
@@ -2418,7 +2442,7 @@ def _run_optimizer_on_working(
 
 
 def _complexes_build_impl(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
     algorithm: OptimizationAlgorithm = "conjugate",
@@ -2449,7 +2473,7 @@ def _complexes_build_impl(
         allow_added_hydrogens=add_hydrogens,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working, diagnostics = _build_complex_working(
+    working_mol, diagnostics = _build_complex_working(
         mol,
         effective_forcefield=effective_forcefield,
         candidate_count=candidate_count,
@@ -2463,7 +2487,7 @@ def _complexes_build_impl(
         coordination_geometry=coordination_geometry,
     )
     optimization_report = _run_optimizer_on_working(
-        working,
+        working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
@@ -2487,7 +2511,7 @@ def _complexes_build_impl(
         optimization=optimization_report,
         quality_report=optimization_report.quality_report,
     )
-    _commit_working_copy(mol, working)
+    _commit_working_copy(mol, working_mol)
     return report
 
 
@@ -2848,7 +2872,12 @@ def is_structure_accepted(
     ).passed
 
 
-def perturb(mol: Any, *, sigma: float = 0.5, seed: Optional[int] = None) -> np.ndarray:
+def perturb(
+    mol: "Molecule",
+    *,
+    sigma: float = 0.5,
+    seed: Optional[int] = None,
+) -> np.ndarray:
     """Perturb current coordinates in place with a local random generator."""
     coordinates = _perturbed_coordinates(
         mol.coordinates,
@@ -2859,7 +2888,9 @@ def perturb(mol: Any, *, sigma: float = 0.5, seed: Optional[int] = None) -> np.n
     return coordinates
 
 
-def collect_coordination_environments(mol: Any) -> Tuple[CoordinationEnvironment, ...]:
+def collect_coordination_environments(
+    mol: "Molecule",
+) -> Tuple[CoordinationEnvironment, ...]:
     """Describe explicit metal--donor connectivity without assigning geometry."""
     ligand_graph = mol.graph.copy()
     ligand_graph.remove_edges_from(
@@ -2899,7 +2930,7 @@ def collect_coordination_environments(mol: Any) -> Tuple[CoordinationEnvironment
 
 
 def prepare_coordination_geometry(
-    mol: Any,
+    mol: "Molecule",
     *,
     environments: Optional[Tuple[CoordinationEnvironment, ...]] = None,
     strategy: Optional[str] = None,
@@ -2913,7 +2944,7 @@ def prepare_coordination_geometry(
 
 
 def build3d(
-    mol: Any,
+    mol: "Molecule",
     *,
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
@@ -2925,37 +2956,37 @@ def build3d(
         allow_added_hydrogens=add_hydrogens,
     )
     initial_hydrogens = len(mol.hydrogens)
-    working = _hydrogenated_working_copy(
+    working_mol = _hydrogenated_working_copy(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
     if seed is None:
-        _ob_build(working)
+        _ob_build(working_mol)
     else:
-        working.coordinates = _seeded_ob_build_coordinates(
-            working,
+        working_mol.coordinates = _seeded_ob_build_coordinates(
+            working_mol,
             seed,
             timeout=timeout,
         )
     quality_report = evaluate_structure_acceptance(
-        working,
+        working_mol,
         level="off",
         topology_reference=topology_reference,
     )
     if not quality_report.passed:
         raise GeometryQualityError(quality_report)
     report = Build3DReport(
-        atom_count=len(working.atoms),
-        added_hydrogen_count=len(working.hydrogens) - initial_hydrogens,
+        atom_count=len(working_mol.atoms),
+        added_hydrogen_count=len(working_mol.hydrogens) - initial_hydrogens,
         quality_report=quality_report,
     )
-    _commit_working_copy(mol, working)
+    _commit_working_copy(mol, working_mol)
     return report
 
 
 def optimize(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = "UFF",
     *,
     algorithm: OptimizationAlgorithm = "conjugate",
@@ -2977,14 +3008,14 @@ def optimize(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
-    working = _hydrogenated_working_copy(
+    working_mol = _hydrogenated_working_copy(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
     effective_forcefield = _resolve_organic_forcefield(forcefield)
     report = _run_optimizer_on_working(
-        working,
+        working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
@@ -3001,12 +3032,12 @@ def optimize(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
     )
-    _commit_working_copy(mol, working)
+    _commit_working_copy(mol, working_mol)
     return report
 
 
 def build_complex3d(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
     candidate_count: int = 5,
@@ -3026,7 +3057,7 @@ def build_complex3d(
         allow_added_hydrogens=add_hydrogens,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working, diagnostics = _build_complex_working(
+    working_mol, diagnostics = _build_complex_working(
         mol,
         effective_forcefield=effective_forcefield,
         candidate_count=candidate_count,
@@ -3040,7 +3071,7 @@ def build_complex3d(
         coordination_geometry=coordination_geometry,
     )
     quality_report = evaluate_structure_acceptance(
-        working,
+        working_mol,
         level="off",
         topology_reference=topology_reference,
     )
@@ -3053,12 +3084,12 @@ def build_complex3d(
         optimization=None,
         quality_report=quality_report,
     )
-    _commit_working_copy(mol, working)
+    _commit_working_copy(mol, working_mol)
     return report
 
 
 def optimize_complex(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
     algorithm: OptimizationAlgorithm = "conjugate",
@@ -3081,14 +3112,14 @@ def optimize_complex(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
-    working = _hydrogenated_working_copy(
+    working_mol = _hydrogenated_working_copy(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
     report = _run_optimizer_on_working(
-        working,
+        working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
@@ -3105,12 +3136,12 @@ def optimize_complex(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
     )
-    _commit_working_copy(mol, working)
+    _commit_working_copy(mol, working_mol)
     return report
 
 
 def complexes_build(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = None,
     **options: Any,
 ) -> ComplexBuildReport:
@@ -3123,7 +3154,7 @@ def complexes_build(
 
 
 def build_and_optimize(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = "UFF",
     *,
     algorithm: OptimizationAlgorithm = "conjugate",
@@ -3174,15 +3205,15 @@ def build_and_optimize(
             coordination_geometry=coordination_geometry,
         )
 
-    working = _hydrogenated_working_copy(mol, add_hydrogens=False)
+    working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False)
     build_report = build3d(
-        working,
+        working_mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
         timeout=timeout,
     )
     optimization_report = optimize(
-        working,
+        working_mol,
         forcefield,
         algorithm=algorithm,
         epochs=epochs,
@@ -3198,7 +3229,7 @@ def build_and_optimize(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
     )
-    _commit_working_copy(mol, working)
+    _commit_working_copy(mol, working_mol)
     return BuildAndOptimizeReport(
         requested_forcefield=optimization_report.requested_forcefield,
         effective_forcefield=optimization_report.effective_forcefield,
@@ -3209,7 +3240,7 @@ def build_and_optimize(
 
 
 def auto_optimize(
-    mol: Any,
+    mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
     algorithm: OptimizationAlgorithm = "conjugate",

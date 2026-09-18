@@ -453,6 +453,14 @@ $\mathrm{DOES\_NOT\_PIERCE}\iff\mathrm{complete}\land C=0\land U=0\land E>0\land
 
 `PROVEN_NON_EMBEDDED` 可以从共识中排除；`CONSTRUCTION_UNDETERMINED` 不得静默排除。结论只对 `VERTEX_TRIANGULATION_FAMILY` 成立，不宣称覆盖全部连续跨越曲面。
 
+同一个 `Cycle` 与多个 `Segment` 判定时，必须使用
+`iter_segment_cycle_relations()`。该入口只对环执行一次平面度、三角剖分和
+surface embedding 构造，然后逐段惰性产生与单段入口完全相同的关系记录。
+surface construction 的容差尺度只读取 `Cycle` 本身；segment–surface 谓词的容差尺度
+读取当前 `Segment + Cycle`。因此无关的远端 segment 不得改变环面是否 embedded。
+只允许按环顶点数全局缓存纯组合的三角剖分索引；坐标派生的平面、三角面、
+embedding 结论只在当前 iterator/scan 生命周期内复用。
+
 ## 13. AABB 与最近环边
 
 AABB 仅用于安全跳过 segment–surface 精确求交，每个轴按以下距离扩张：
@@ -462,6 +470,11 @@ $\epsilon_{\mathrm{AABB}}=k_{\mathrm{AABB}}\epsilon_L$
 只有先完成 cycle/surface 构造且得到 $K=1,C=0,E>0$ 后，任一轴区间稳定分离才可将
 $I=U=0,N=E$ 并判为 `DOES_NOT_PIERCE`。在模型选择、退化、自交、surface construction 或
 枚举完整性仍未决时，AABB 不得把关系短路成明确不穿。落入 padding 带必须进入精确谓词。
+
+`SegmentCycleRelation.features` 是完整事实证据；AABB 只能加速有限段是否
+横穿的 state-only 内部路径，不得使完整 relation 丢失
+`LINE_EXTENSION_INTERIOR` 或接触 feature。公开 relation 在旋转前后的 state、features 和
+indeterminacy causes 均必须一致。
 
 对环边 $e_i=p_ip_{i+1}$：
 
@@ -522,6 +535,7 @@ triangle family kernel，两者固定为 $0$。
 | `find_point_pairs_below_distance()` | caller threshold 下的严格事实筛选 | 无预定义参数；只读取 caller threshold |
 | `locate_point_in_planar_cycle()` | `INTERIOR/BOUNDARY/EXTERIOR/UNDETERMINED` | numeric/parameter tolerance、winding residual |
 | `determine_segment_cycle_relation()` | `PIERCES/DOES_NOT_PIERCE/UNDETERMINED` 与证据 | 全部 numeric 与 surface settings |
+| `iter_segment_cycle_relations()` | 同一环对多个线段的惰性关系流；每条与单段入口等价 | 全部 numeric 与 surface settings |
 | `closest_cycle_edge()` | `Optional[ClosestCycleEdge]` | numeric tolerance |
 
 所有带判定的公开接口只接受 `settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS`。`relation.py` 不声明数值默认值，不出现未命名 magic threshold。

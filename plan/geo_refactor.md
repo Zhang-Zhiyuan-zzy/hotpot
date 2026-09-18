@@ -295,6 +295,7 @@ hotpot/cheminfo/geometry/
     │   └── locate_point_in_planar_cycle(point, cycle, plane, ...)
     ├── public segment—cycle facts
     │   ├── determine_segment_cycle_relation(segment, cycle, ...)
+    │   ├── iter_segment_cycle_relations(segments, cycle, ...)
     │   └── closest_cycle_edge(cycle, segment) -> Optional[ClosestCycleEdge]
     └── private numerical kernels
         ├── _local_length_scale / _predicate_tolerances
@@ -1059,6 +1060,9 @@ tests/performance/
   计入前一预算；
 - molecule scan 可先计算 AABB broad-phase 候选，但必须在 surface model 验证后才能据此提交
   `DOES_NOT_PIERCE`；一次扫描内缓存 Ring conversion/surface family；
+- 同一个环对多条候选键扫描时必须调用
+  `iter_segment_cycle_relations()`，并以测试证明每个环在一次扫描中只执行一次
+  平面度、候选曲面和 embedding 准备；禁止在每个 `Bond × Ring` pair 上重复构造；
 - benchmark 记录 6/8 元环、典型 ligand ring 数和 bond 数的 median/p95；
 - 单独记录 `_observe_frame()` 中 lazy tri-state check 与 dense diagnostic scan 的每帧耗时；
 - 在真实络合物样本上记录 `UNDETERMINED` 总比例及各 cause 分布，作为三态上线门禁；

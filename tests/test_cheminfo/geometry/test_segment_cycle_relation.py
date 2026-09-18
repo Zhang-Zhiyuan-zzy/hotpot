@@ -167,6 +167,33 @@ def test_internal_diagonal_endpoint_contact_is_conservatively_undetermined():
     assert SegmentCycleIndeterminacy.NUMERIC_BAND in relation.indeterminacy_causes
 
 
+def test_nonplanar_cycle_vertex_endpoint_is_a_stable_boundary_contact():
+    cycle = Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0.4), (0, 2, 0)])
+
+    relation = determine_segment_cycle_relation(
+        Segment((0, 0, 0), (-1, -1, -1)), cycle
+    )
+
+    assert relation.state is PiercingState.DOES_NOT_PIERCE
+    assert SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT in relation.features
+    assert SegmentCycleFeature.CYCLE_VERTEX_CONTACT in relation.features
+    assert relation.surface_evidence.evaluation_undetermined_count == 0
+
+
+def test_cycle_vertex_contact_does_not_hide_a_later_surface_crossing():
+    cycle = Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 2), (0, 2, 0)])
+
+    relation = determine_segment_cycle_relation(
+        Segment((0, 0, 0), (2, 2, 1)), cycle
+    )
+
+    assert relation.state is not PiercingState.DOES_NOT_PIERCE
+    assert SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT in relation.features
+    assert SegmentCycleFeature.CYCLE_VERTEX_CONTACT in relation.features
+    assert SegmentCycleFeature.TRANSVERSE_INTERIOR in relation.features
+    assert relation.surface_evidence.intersecting_surface_count >= 1
+
+
 def test_nonplanar_triangle_coplanarity_requires_finite_overlap():
     cycle = Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0.4), (0, 2, 0)])
 

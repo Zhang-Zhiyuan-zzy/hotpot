@@ -471,6 +471,20 @@ def _has_hard_acceptance_failure(
     )
 
 
+def _has_bond_ring_uncertainty(
+    report: ForceFieldValidationReport,
+) -> bool:
+    return any(
+        not check.passed
+        and check.severity == "warning"
+        and check.name in {
+            "bond_ring_piercing",
+            "bond_ring_scope_coverage",
+        }
+        for check in report.checks
+    )
+
+
 def _format_geometry_checks(
     prefix: str,
     checks: Tuple[AcceptanceCheck, ...],
@@ -985,6 +999,18 @@ def _bond_ring_acceptance_checks(
             atom_indices=bond_key,
             bond_indices=(bond_positions[bond_key],),
             message="The bond-ring spatial relation is mathematically undetermined",
+        ))
+    if report.excluded_ring_count:
+        checks.append(AcceptanceCheck(
+            name="bond_ring_scope_coverage",
+            passed=False,
+            severity="warning",
+            measured=report.excluded_ring_count,
+            threshold=0,
+            message=(
+                "Some rings exceed the configured maximum size and were not "
+                "evaluated for bond-ring piercing"
+            ),
         ))
     if not checks:
         checks.append(AcceptanceCheck(
@@ -1715,8 +1741,10 @@ class _OpenBabelOptimizer:
             )
             last_frame = frame
             last_epoch = epoch
-            if frame.quality_report.passed and (
-                best_frame is None or frame.energy < best_frame.energy
+            if (
+                frame.quality_report.passed
+                and not _has_bond_ring_uncertainty(frame.quality_report)
+                and (best_frame is None or frame.energy < best_frame.energy)
             ):
                 best_frame = frame
                 best_epoch = epoch
@@ -2778,6 +2806,15 @@ def evaluate_structure_acceptance(
             bond_ring_report.undetermined_pair_count
         )
         metrics["bond_ring_scan_complete"] = bond_ring_report.scan_complete
+        metrics["bond_ring_selected_ring_count"] = (
+            bond_ring_report.selected_ring_count
+        )
+        metrics["bond_ring_excluded_ring_count"] = (
+            bond_ring_report.excluded_ring_count
+        )
+        metrics["bond_ring_max_ring_size"] = bond_ring_report.max_ring_size
+        metrics["bond_ring_scope"] = bond_ring_report.ring_scope
+        metrics["bond_ring_family"] = bond_ring_report.ring_family.value
         checks.extend(_bond_ring_acceptance_checks(mol, bond_ring_report))
         metrics["coordination_environments"] = _coordination_metrics(
             mol,

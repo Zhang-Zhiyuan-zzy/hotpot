@@ -50,6 +50,11 @@ OPENBABEL_PARTIAL_CHARGE_MODELS = (
     "fromfile", "none",
 )
 
+# Chemistry policy deliberately kept outside the factual geometry package.
+_MINIMUM_ATOM_SEPARATION = 0.5
+_AROMATIC_PLANARITY_RELATIVE_TOLERANCE = 0.03
+_DEFAULT_BOND_RING_MAXIMUM_SIZE = 8
+
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
 else:
@@ -1587,11 +1592,12 @@ class Molecule:
             bool
                 True if any distance in `pair_dist` is less than 0.5, False otherwise.
         """
-        return geometry.has_too_close_atoms(
-            self,
-            minimum_distance=0.5,
-            covalent_radius_scale=None,
-            pair_scope="all",
+        return any(
+            pair_distance.measurement.distance < _MINIMUM_ATOM_SEPARATION
+            for pair_distance in geometry.measure_atom_pair_distances(
+                self,
+                pair_scope="all",
+            )
         )
 
     @property
@@ -1622,23 +1628,31 @@ class Molecule:
         """
         return any(a.is_metal for a in self.atoms)
 
-    @property
-    def has_bond_ring_intersection(self) -> bool:
-        """
-        Checks if any bond intersects with any ring in the structure.
+    def bond_ring_piercing_state(
+            self,
+            *,
+            ring_scope: Literal["full_graph", "ligand_skeleton"] = "full_graph",
+            max_ring_size: int = _DEFAULT_BOND_RING_MAXIMUM_SIZE,
+    ) -> "geometry.PiercingState":
+        """Return the aggregate factual bond--ring piercing state."""
+        return geometry.determine_bond_ring_piercing_state(
+            self,
+            ring_scope=ring_scope,
+            max_ring_size=max_ring_size,
+        )
 
-        The implementation delegates to the shared geometry module so force-field
-        workflows and object-level queries use the same finite-segment semantics.
-
-        Returns:
-            bool: True if there is at least one bond that intersects with a ring;
-            False otherwise.
-        """
-        return geometry.has_bond_ring_intersection(self)
-
-    @property
-    def intersection_bonds_rings(self) -> list[tuple['Ring', 'Bond']]:
-        return list(geometry.find_bond_ring_intersections(self))
+    def bond_ring_relations(
+            self,
+            *,
+            ring_scope: Literal["full_graph", "ligand_skeleton"] = "full_graph",
+            max_ring_size: int = _DEFAULT_BOND_RING_MAXIMUM_SIZE,
+    ) -> "geometry.BondRingScanReport[Ring, Bond]":
+        """Return the dense factual report for selected bond--ring pairs."""
+        return geometry.scan_bond_ring_relations(
+            self,
+            ring_scope=ring_scope,
+            max_ring_size=max_ring_size,
+        )
 
     @property
     def heavy_atoms(self) -> list["Atom"]:
@@ -4584,15 +4598,9 @@ class Bond(AtomSeq, MolBlock):
             raise ValueError("The given atom is in neither ends of the bond!")
 
     @property
-    def bond_line(self) -> geometry.Line:
-        """
-        Returns a geometry.Line instance representing the bond line 
-        between two atoms based on their coordinates.
-
-        @return geometry.Line
-            A line connecting the coordinates of the two atoms.
-        """
-        return geometry.Line(self.atom1.coordinates, self.atom2.coordinates)
+    def bond_segment(self) -> geometry.Segment:
+        """Return the finite geometric segment represented by this bond."""
+        return geometry.segment_from_bond(self)
 
     @property
     def idx(self) -> int:
@@ -4717,14 +4725,12 @@ class Bond(AtomSeq, MolBlock):
         """
         return (self.bond_order == 1) and (not self.is_aromatic) and (not self.in_ring)
 
-    def bond_line_distance(
-            self, other_bond: "Bond",
-            relationship: bool = False
-    ) -> Union[float, tuple[float, str]]:
-        rela, dist = self.bond_line.distance_to_line(other_bond.bond_line)
-        if relationship:
-            return dist, rela
-        return dist
+    def bond_segment_distance(self, other_bond: "Bond") -> float:
+        """Return the minimum distance between two finite bond segments."""
+        return geometry.segment_segment_distance(
+            self.bond_segment,
+            other_bond.bond_segment,
+        )
 
 
 class Angle(AtomSeq):
@@ -5069,11 +5075,12 @@ class Ring(AtomSeq):
             True if any pairwise distance in the dataset is less than 0.5, 
             False otherwise.
         """
-        return geometry.has_too_close_atoms(
-            self,
-            minimum_distance=0.5,
-            covalent_radius_scale=None,
-            pair_scope="all",
+        return any(
+            pair_distance.measurement.distance < _MINIMUM_ATOM_SEPARATION
+            for pair_distance in geometry.measure_atom_pair_distances(
+                self,
+                pair_scope="all",
+            )
         )
 
     @property
@@ -5254,7 +5261,13 @@ class Ring(AtomSeq):
                 return (pi_electron - 2) % 4 == 0
 
             else:
-                if not geometry.points_on_same_plane(*(a.coordinates for a in self.atoms)):
+                planarity = geometry.measure_planarity(self.geometry_cycle)
+                if not (
+                    planarity.length_scale > 0.0
+                    and np.isfinite(planarity.maximum_deviation)
+                    and planarity.maximum_deviation / planarity.length_scale
+                    < _AROMATIC_PLANARITY_RELATIVE_TOLERANCE
+                ):
                     return False
 
                 pi_electrons = []
@@ -5285,41 +5298,37 @@ class Ring(AtomSeq):
             self.is_aromatic = judge
         return judge
 
-    def is_bond_intersect_the_ring(self, bond: Bond) -> bool:
-        """
-        Determines if a given bond intersects with the ring structure.
-
-        This method checks whether a bond intersects with the ring structure
-        represented by the cycle. It ensures the bond is not already a part of
-        the cycle, and then evaluates intersection using the geometric
-        properties of the bond line and cycle.
-
-        Args:
-            bond: The bond to be checked for intersection with the ring.
-
-        Returns:
-            A boolean indicating whether the bond intersects the ring.
-        """
-        return geometry.bond_intersects_ring(self, bond)
+    def relation_to_bond(
+            self,
+            bond: Bond,
+    ) -> "geometry.BondRingFinding[Ring, Bond]":
+        """Return the factual spatial relation between this ring and a bond."""
+        if self.mol is not bond.mol or bond not in self.mol.bonds:
+            raise NotInSameMolecule(self, bond)
+        return geometry.determine_bond_ring_relation(self, bond)
 
     @property
-    def cycle_places(self) -> geometry.CyclePlanes:
-        """
-        Returns the cycle planes of the current molecular structure.
+    def geometry_cycle(self) -> geometry.Cycle:
+        """Return this ring as an ordered geometric cycle boundary."""
+        return geometry.cycle_from_ring(self)
 
-        The cycle planes are calculated based on the coordinates of the atoms
-        present in the molecule. This property provides a geometry.CyclePlanes 
-        object encapsulating the result.
-
-        @return: geometry.CyclePlanes instance representing the cycle planes
-        @rtype: geometry.CyclePlanes
-        """
-        return geometry.CyclePlanes(*[a.coordinates for a in self.atoms])
-
-    def closest_edge_to_bond(self, bond: Bond) -> 'Bond':
-        if bond not in self.mol.bonds:
+    def closest_edge_to_bond(
+            self,
+            bond: Bond,
+    ) -> Optional["geometry.RingEdgeDistance[Bond]"]:
+        """Return the closest ring edge together with its distance evidence."""
+        if self.mol is not bond.mol or bond not in self.mol.bonds:
             raise NotInSameMolecule(self, bond)
-        return geometry.closest_ring_edge_to_bond(self, bond)
+        measurement = geometry.closest_cycle_edge(
+            self.geometry_cycle,
+            bond.bond_segment,
+        )
+        if measurement is None:
+            return None
+        return geometry.RingEdgeDistance(
+            source_bond=self.bonds[measurement.edge_index],
+            measurement=measurement,
+        )
 
     def kekulize(self):
         """

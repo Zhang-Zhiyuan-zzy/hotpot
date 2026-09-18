@@ -283,7 +283,7 @@ $h_1=n\cdot(s_1-a)$
 
 按下列互斥顺序判定：
 
-1. $|h_0|\le\epsilon_L$ 且 $|h_1|\le\epsilon_L$：`COPLANAR_CONTACT`；
+1. $|h_0|\le\epsilon_L$ 且 $|h_1|\le\epsilon_L$：进入二维有限线段—三角形/多边形重叠判定；仅当投影线段与闭合区域或其边界的距离 $d\le\epsilon_L$ 时记录 `COPLANAR_CONTACT`，若 $\epsilon_L<d\le g\epsilon_L$ 则为 `UNDETERMINED`，若 $d>g\epsilon_L$ 则为稳定分离且不记录 contact；
 2. 任一 $|h_i|\in(\epsilon_L,g\epsilon_L]$：`UNDETERMINED`；
 3. 恰有一个 $|h_i|\le\epsilon_L$，另一个 $|h_j|>g\epsilon_L$：端点接触；
 4. $|h_0-h_1|\le\epsilon_L$ 且两端同号稳定离面：平行且分离；
@@ -329,8 +329,9 @@ $q_{\det}=\frac{|(b-a)\cdot((s_1-s_0)\times(c-a))|}{\lVert b-a\rVert\lVert s_1-s
 - $q_{\det}\le g\epsilon_u$：不得除以该 determinant，改用本节已经完成的 signed-distance
   $h_0,h_1$、参数 $t$ 和重心坐标路径；只要 fallback 的各项均稳定，仍可得到确定结论。
 
-因此长而近乎平行、但两个端点稳定分居平面两侧的 segment 仍可确认横穿。共面重叠只记录
-`COPLANAR_CONTACT`，不构成严格横穿。
+因此长而近乎平行、但两个端点稳定分居平面两侧的 segment 仍可确认横穿。只有有限 segment
+的二维投影与有限 triangle/polygon 闭合区域或边界实际重叠时才记录 `COPLANAR_CONTACT`；无限延长线
+相交或处于同一平面但有限对象稳定分离均不记录 contact。共面接触不构成严格横穿。
 
 ## 9. 顶点三角剖分的 `EMBEDDED` 判据
 

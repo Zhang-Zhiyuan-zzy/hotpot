@@ -43,6 +43,7 @@ test_targets=(
 set +e
 python -m coverage run --branch --source=hotpot -m pytest \
   -q \
+  --import-mode=importlib \
   -p no:cacheprovider \
   --junitxml="$coverage_dir/junit.xml" \
   "${test_targets[@]}"

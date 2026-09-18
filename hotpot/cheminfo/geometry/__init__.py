@@ -1,11 +1,5 @@
-"""Factual geometry objects, relations, and chemical-object adapters.
+"""Factual geometry objects, relations, and chemical-object adapters."""
 
-The legacy exports remain available only while Core and force-field call sites
-are migrated on this refactor branch.
-"""
-
-from . import _legacy as _legacy_module
-from ._legacy import *
 from .settings import (
     DEFAULT_GEOMETRY_SETTINGS,
     GeometrySettings,
@@ -33,6 +27,7 @@ from .relation import (
     determine_line_relation,
     determine_segment_cycle_relation,
     find_point_pairs_below_distance,
+    iter_segment_cycle_relations,
     line_distance,
     locate_point_in_planar_cycle,
     measure_planarity,
@@ -68,7 +63,7 @@ from .convert import (
 )
 
 
-_NEW_PUBLIC_API = (
+__all__ = (
     "NumericToleranceSettings",
     "SurfaceEnumerationSettings",
     "GeometrySettings",
@@ -102,6 +97,7 @@ _NEW_PUBLIC_API = (
     "point_pair_distances",
     "find_point_pairs_below_distance",
     "locate_point_in_planar_cycle",
+    "iter_segment_cycle_relations",
     "determine_segment_cycle_relation",
     "closest_cycle_edge",
     "PairScope",
@@ -129,9 +125,3 @@ _NEW_PUBLIC_API = (
     "scan_bond_ring_relations",
     "determine_bond_ring_piercing_state",
 )
-
-__all__ = tuple(
-    name
-    for name in _legacy_module.__all__
-    if name not in _NEW_PUBLIC_API
-) + _NEW_PUBLIC_API

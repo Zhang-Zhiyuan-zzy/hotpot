@@ -1,7 +1,7 @@
 """
 python v3.9.0
 @Project: hotpot
-@File   : math
+@File   : geometry legacy bridge
 @Auther : Zhiyuan Zhang
 @Data   : 2024/12/18
 @Time   : 16:32

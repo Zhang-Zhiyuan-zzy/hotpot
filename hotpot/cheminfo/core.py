@@ -4133,7 +4133,7 @@ class AtomSeq:
                 f"The the atom counts of {self.__class__.__name__} is {_length}, but {len(self.atoms)} are given.")
 
     @property
-    def atoms(self) -> Iterable[Atom]:
+    def atoms(self) -> tuple[Atom, ...]:
         return copy(self._atoms)
 
     @property

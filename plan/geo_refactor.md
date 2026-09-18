@@ -427,6 +427,8 @@ class SurfaceFamilyEvidence:
     intersecting_surface_count: int
     non_piercing_surface_count: int
     evaluation_undetermined_count: int
+    segment_triangle_tests_used: int
+    triangle_pair_tests_used: int
 ```
 
 ```python
@@ -441,6 +443,39 @@ class SegmentCycleRelation:
     surface_evidence: SurfaceFamilyEvidence
     settings: GeometrySettings
 ```
+
+其余公开记录冻结为：
+
+```python
+@dataclass(frozen=True)
+class PlanarityMeasurement:
+    kind: PlanarityKind
+    centroid: Point
+    normal: Optional[Tuple[float, float, float]]
+    singular_values: Tuple[float, float, float]
+    maximum_deviation: float
+    rms_deviation: float
+    length_scale: float
+    length_tolerance: float
+
+@dataclass(frozen=True)
+class LineRelation:
+    kind: LineRelationKind
+    distance: Optional[float]
+    parallel_measure: float
+
+@dataclass(frozen=True)
+class PointPairDistance:
+    first_index: int
+    second_index: int
+    distance: float
+```
+
+所有枚举的序列化值均为其成员名的小写形式；例如
+`PiercingState.PIERCES.value == "pierces"`。公开几何对象的构造签名固定为
+`Point(coordinates)`、`Line(origin, direction)`、`Segment(start, end)`、
+`Plane(point, normal)`、`Triangle(first, second, third)` 与 `Cycle(vertices)`；
+`Line` 的第二项从不解释为另一个端点。
 
 约束：
 
@@ -463,6 +498,23 @@ class SegmentCycleRelation:
 
 `RingFamily` 是封闭枚举，首轮只提供 `NETWORKX_CYCLE_BASIS`；它记录由谁、用哪类算法产生
 环集合，不把普通字符串拼写当作覆盖率契约。
+
+来源映射记录的字段固定为：
+
+```python
+AtomGeometry(source, point: Point, key: int)
+AtomPairTarget(first: AtomGeometry, second: AtomGeometry, bonded: bool)
+BondGeometry(source, segment: Segment, key: Tuple[int, int])
+RingGeometry(source, cycle: Cycle, key: Tuple[int, ...])
+BondRingTarget(ring: RingGeometry, bond: BondGeometry)
+AtomPairDistance(target: AtomPairTarget, measurement: PointPairDistance)
+BondRingFinding(target: BondRingTarget, relation: SegmentCycleRelation)
+RingEdgeDistance(source_bond, measurement: ClosestCycleEdge)
+```
+
+上述记录使用 `Generic[SourceT]` 保留来源对象类型，不用 `Any` 抹平
+`Atom/Bond/Ring` 的语义。`RingGeometry.key` 是对环顶点有序 key 做循环移位与逆序
+规范化后的最小 tuple，不是仅对顶点 key 排序。
 
 ```python
 @dataclass(frozen=True)
@@ -800,7 +852,18 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`docs(geometry): freeze relation and settings contracts`
 
-### G01 — 建立事实契约测试
+### G01 — 原子建立 package scaffold
+
+- 用文件移动将 `geometry.py` 变为 `geometry/_legacy.py`；
+- 新建 `geometry/__init__.py` 临时重导出旧 API，保持运行行为不变；
+- 该桥接只允许存在于中间提交，G11 必须完全删除 `_legacy.py`。
+
+这一顺序是文件系统必需：同一目录不能同时存在 `geometry.py` 和
+`geometry/`。
+
+建议提交：`refactor(geometry): establish package migration scaffold`
+
+### G02 — 建立事实契约测试
 
 - 新增纯几何对象、planarity、有限 segment 和三态关系的测试；
 - 把 `relation.md` 中每个公式边界、保护带、embedded 三态与 surface 计数恒等式逐项转为测试；
@@ -812,7 +875,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`test(geometry): define factual relation contracts`
 
-### G02 — 建立 `settings.py`
+### G03 — 建立 `settings.py`
 
 - 按 `relation.md` 原样实现不可变 settings 数据类及唯一默认实例；
 - 建立字段默认值、范围、单位缩放与“relation 无 magic threshold”测试；
@@ -820,7 +883,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(geometry): centralize numerical settings`
 
-### G03 — 建立 `object.py`
+### G04 — 建立 `object.py`
 
 - 实现不可变 `Point/Line/Segment/Plane/Triangle/Cycle`；
 - 明确 Line/Segment 和 Cycle/bounded surface 的差异；
@@ -828,7 +891,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(geometry): introduce geometric value objects`
 
-### G04 — 建立 `convert.py` 与 Core ring 查询边界
+### G05 — 建立 `convert.py` 与 Core ring 查询边界
 
 - 实现 Atom/Bond/Ring converters 和稳定 key；
 - 定义只用于来源映射的 `AtomGeometry/BondGeometry/RingGeometry/BondRingTarget` 记录；
@@ -838,7 +901,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(geometry): isolate chemical object conversion`
 
-### G05 — 迁移现有纯关系函数
+### G06 — 迁移现有纯关系函数
 
 - 把 line/plane/segment distance、planarity measurement、point-pair distance 移入
   `relation.py`；
@@ -848,7 +911,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(geometry): isolate factual relation kernels`
 
-### G06 — 实现环—键三态 kernel
+### G07 — 实现环—键三态 kernel
 
 - 平面环使用稳定投影和 interior/boundary/exterior 分类；
 - 非平面环使用全部合法 vertex triangulations 共识；
@@ -861,7 +924,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`feat(geometry): report tri-state bond ring relations`
 
-### G07 — Core 改用事实接口
+### G08 — Core 改用事实接口
 
 - 在 `convert.py` 完成 `measure_atom_pair_distances()`、
   `determine_bond_ring_relation()`、`iter_bond_ring_findings()`、
@@ -873,7 +936,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(core): consume factual geometry relations`
 
-### G08 — 将判断与修复策略迁出 geometry
+### G09 — 将判断与修复策略迁出 geometry
 
 - 把 topology snapshot、force-field checks、quality report、opening-edge selector
   迁到 forcefields 当前/目标模块；
@@ -882,7 +945,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(forcefields): own validation and untangling policy`
 
-### G09 — Force-field 三态接线
+### G10 — Force-field 三态接线
 
 - candidate/refinement hot path 消费惰性 `PiercingState`；最终帧和诊断路径消费
   `BondRingScanReport`；
@@ -892,7 +955,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(forcefields): consume bond ring relation evidence`
 
-### G10 — 原子迁移为 package 并清理旧文件
+### G11 — 清理迁移桥接并完成 package
 
 - 添加 `geometry/__init__.py` 的最终 `__all__`；
 - 删除旧 `geometry.py`，不得让同名 module/package 并存；
@@ -902,7 +965,7 @@ backend protocol；当前不为假想实现提前抽象。
 
 建议提交：`refactor(geometry): replace monolith with package`
 
-### G11 — 文档与性能基线
+### G12 — 文档与性能基线
 
 - 更新 API 文档和示例，不再使用 reasonable/bool intersection 叙述；
 - 记录单 pair 和 molecule scan 性能；

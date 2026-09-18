@@ -478,6 +478,39 @@ $i^*=\min I_{\min}$
 
 ## 14. 公开接口与参数来源
 
+公开枚举的 `.value` 固定为成员名的小写形式。公开记录的字段和顺序固定为：
+
+```python
+PlanarityMeasurement(
+    kind, centroid, normal, singular_values,
+    maximum_deviation, rms_deviation, length_scale, length_tolerance,
+)
+LineRelation(kind, distance, parallel_measure)
+PointPairDistance(first_index, second_index, distance)
+ClosestCycleEdge(edge_index, edge, distance)
+SurfaceFamilyEvidence(
+    enumeration_complete,
+    enumerated_surface_count,
+    embedded_surface_count,
+    proven_non_embedded_surface_count,
+    construction_undetermined_count,
+    intersecting_surface_count,
+    non_piercing_surface_count,
+    evaluation_undetermined_count,
+    segment_triangle_tests_used,
+    triangle_pair_tests_used,
+)
+SegmentCycleRelation(
+    state, features, indeterminacy_causes, surface_model,
+    intersection_points, closest_boundary_edge, surface_evidence, settings,
+)
+```
+
+`segment_triangle_tests_used` 每调用一次目标 segment–surface triangle 谓词计 1；
+`triangle_pair_tests_used` 每检查一对 surface triangles 计 1。二者均为
+$[0,\infty)$ 整数，必须不超过 `settings.py` 对应预算。平面 polygon 路径不调用
+triangle family kernel，两者固定为 $0$。
+
 | 接口 | 数学输出 | 读取的 settings |
 |---|---|---|
 | `measure_planarity()` | 平面度量与 `PLANAR/NONPLANAR/UNDETERMINED/DEGENERATE` | numeric tolerance、planarity factor |

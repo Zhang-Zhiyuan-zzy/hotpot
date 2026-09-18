@@ -1,8 +1,137 @@
-"""Geometry API migration scaffold.
+"""Factual geometry objects, relations, and chemical-object adapters.
 
-The legacy implementation is re-exported temporarily while the factual
-geometry modules replace it in small, independently testable steps.
+The legacy exports remain available only while Core and force-field call sites
+are migrated on this refactor branch.
 """
 
+from . import _legacy as _legacy_module
 from ._legacy import *
-from ._legacy import __all__
+from .settings import (
+    DEFAULT_GEOMETRY_SETTINGS,
+    GeometrySettings,
+    NumericToleranceSettings,
+    SurfaceEnumerationSettings,
+)
+from .object import Cycle, Line, Plane, Point, Segment, Triangle
+from .relation import (
+    ClosestCycleEdge,
+    CycleSurfaceModel,
+    LineRelation,
+    LineRelationKind,
+    PiercingState,
+    PlanarityKind,
+    PlanarityMeasurement,
+    PointCycleLocation,
+    PointPairDistance,
+    SegmentCycleFeature,
+    SegmentCycleIndeterminacy,
+    SegmentCycleRelation,
+    SurfaceEmbeddingState,
+    SurfaceFamilyEvidence,
+    SurfaceSegmentState,
+    closest_cycle_edge,
+    determine_line_relation,
+    determine_segment_cycle_relation,
+    find_point_pairs_below_distance,
+    line_distance,
+    locate_point_in_planar_cycle,
+    measure_planarity,
+    point_pair_distances,
+    point_segment_distance,
+    segment_segment_distance,
+)
+from .convert import (
+    AtomGeometry,
+    AtomPairDistance,
+    AtomPairTarget,
+    BondGeometry,
+    BondRingFinding,
+    BondRingScanReport,
+    BondRingTarget,
+    PairScope,
+    RingEdgeDistance,
+    RingFamily,
+    RingGeometry,
+    RingScope,
+    cycle_from_ring,
+    determine_bond_ring_piercing_state,
+    determine_bond_ring_relation,
+    iter_atom_geometries,
+    iter_atom_pair_targets,
+    iter_bond_ring_findings,
+    iter_bond_ring_targets,
+    iter_ring_geometries,
+    measure_atom_pair_distances,
+    point_from_atom,
+    scan_bond_ring_relations,
+    segment_from_bond,
+)
+
+
+_NEW_PUBLIC_API = (
+    "NumericToleranceSettings",
+    "SurfaceEnumerationSettings",
+    "GeometrySettings",
+    "DEFAULT_GEOMETRY_SETTINGS",
+    "Point",
+    "Line",
+    "Segment",
+    "Plane",
+    "Triangle",
+    "Cycle",
+    "PlanarityKind",
+    "LineRelationKind",
+    "PointCycleLocation",
+    "SurfaceEmbeddingState",
+    "SurfaceSegmentState",
+    "PiercingState",
+    "SegmentCycleFeature",
+    "SegmentCycleIndeterminacy",
+    "CycleSurfaceModel",
+    "PlanarityMeasurement",
+    "LineRelation",
+    "PointPairDistance",
+    "ClosestCycleEdge",
+    "SurfaceFamilyEvidence",
+    "SegmentCycleRelation",
+    "measure_planarity",
+    "determine_line_relation",
+    "line_distance",
+    "point_segment_distance",
+    "segment_segment_distance",
+    "point_pair_distances",
+    "find_point_pairs_below_distance",
+    "locate_point_in_planar_cycle",
+    "determine_segment_cycle_relation",
+    "closest_cycle_edge",
+    "PairScope",
+    "RingScope",
+    "RingFamily",
+    "AtomGeometry",
+    "AtomPairTarget",
+    "BondGeometry",
+    "RingGeometry",
+    "BondRingTarget",
+    "AtomPairDistance",
+    "BondRingFinding",
+    "RingEdgeDistance",
+    "BondRingScanReport",
+    "point_from_atom",
+    "segment_from_bond",
+    "cycle_from_ring",
+    "iter_atom_geometries",
+    "iter_atom_pair_targets",
+    "iter_ring_geometries",
+    "iter_bond_ring_targets",
+    "measure_atom_pair_distances",
+    "determine_bond_ring_relation",
+    "iter_bond_ring_findings",
+    "scan_bond_ring_relations",
+    "determine_bond_ring_piercing_state",
+)
+
+__all__ = tuple(
+    name
+    for name in _legacy_module.__all__
+    if name not in _NEW_PUBLIC_API
+) + _NEW_PUBLIC_API

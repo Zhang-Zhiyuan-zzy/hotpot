@@ -12,6 +12,7 @@ from enum import Enum
 from itertools import combinations, tee
 from typing import (
     Generic,
+    Iterable,
     Iterator,
     Literal,
     Protocol,
@@ -83,34 +84,55 @@ class _AtomLike(Protocol):
     def idx(self) -> int: ...
 
 
-class _BondLike(Protocol):
+_AtomSource_co = TypeVar("_AtomSource_co", bound=_AtomLike, covariant=True)
+
+
+class _BondLike(Protocol[_AtomSource_co]):
     @property
-    def atom1(self) -> _AtomLike: ...
-
-    @property
-    def atom2(self) -> _AtomLike: ...
-
-
-class _RingLike(Protocol):
-    @property
-    def atoms(self) -> Sequence[_AtomLike]: ...
-
-
-class _StructureLike(Protocol):
-    @property
-    def atoms(self) -> Sequence[_AtomLike]: ...
+    def atom1(self) -> _AtomSource_co: ...
 
     @property
-    def bonds(self) -> Sequence[_BondLike]: ...
+    def atom2(self) -> _AtomSource_co: ...
 
 
-class _MoleculeLike(_StructureLike, Protocol):
-    def rings_for_scope(self, ring_scope: RingScope) -> Sequence[_RingLike]: ...
+class _RingLike(Protocol[_AtomSource_co]):
+    @property
+    def atoms(self) -> Iterable[_AtomSource_co]: ...
 
 
-AtomSourceT = TypeVar("AtomSourceT")
-BondSourceT = TypeVar("BondSourceT")
-RingSourceT = TypeVar("RingSourceT")
+_BondSource_co = TypeVar(
+    "_BondSource_co",
+    bound=_BondLike[_AtomLike],
+    covariant=True,
+)
+_RingSource_co = TypeVar(
+    "_RingSource_co",
+    bound=_RingLike[_AtomLike],
+    covariant=True,
+)
+
+
+class _StructureLike(Protocol[_AtomSource_co, _BondSource_co]):
+    @property
+    def atoms(self) -> Iterable[_AtomSource_co]: ...
+
+    @property
+    def bonds(self) -> Iterable[_BondSource_co]: ...
+
+
+class _MoleculeLike(
+    _StructureLike[_AtomSource_co, _BondSource_co],
+    Protocol[_AtomSource_co, _BondSource_co, _RingSource_co],
+):
+    def rings_for_scope(
+        self,
+        ring_scope: RingScope,
+    ) -> Sequence[_RingSource_co]: ...
+
+
+AtomSourceT = TypeVar("AtomSourceT", bound=_AtomLike)
+BondSourceT = TypeVar("BondSourceT", bound=_BondLike[_AtomLike])
+RingSourceT = TypeVar("RingSourceT", bound=_RingLike[_AtomLike])
 
 
 # Immutable source mappings.
@@ -209,7 +231,7 @@ class BondRingScanReport(Generic[RingSourceT, BondSourceT]):
 # Stable source keys and chemical graph selection.
 
 
-def _atom_key(atom: _AtomLike) -> int:
+def _atom_key(atom: AtomSourceT) -> int:
     return int(atom.idx)
 
 
@@ -218,11 +240,12 @@ def _validate_pair_scope(pair_scope: PairScope) -> None:
         raise ValueError(f"Unsupported atom-pair scope: {pair_scope!r}")
 
 
-def _bond_key(bond: _BondLike) -> Tuple[int, int]:
-    return tuple(sorted((_atom_key(bond.atom1), _atom_key(bond.atom2))))
+def _bond_key(bond: BondSourceT) -> Tuple[int, int]:
+    first, second = sorted((_atom_key(bond.atom1), _atom_key(bond.atom2)))
+    return first, second
 
 
-def _ring_key(ring: _RingLike) -> Tuple[int, ...]:
+def _ring_key(ring: RingSourceT) -> Tuple[int, ...]:
     ordered = tuple(_atom_key(atom) for atom in ring.atoms)
     reverse = tuple(reversed(ordered))
     rotations = tuple(
@@ -233,23 +256,30 @@ def _ring_key(ring: _RingLike) -> Tuple[int, ...]:
     return min(rotations)
 
 
-def _ring_edge_keys(ring: _RingLike) -> Tuple[Tuple[int, int], ...]:
+def _ring_edge_keys(ring: RingSourceT) -> Tuple[Tuple[int, int], ...]:
     atom_keys = tuple(_atom_key(atom) for atom in ring.atoms)
     return tuple(
-        tuple(sorted((atom_keys[index], atom_keys[(index + 1) % len(atom_keys)])))
+        (
+            min(atom_keys[index], atom_keys[(index + 1) % len(atom_keys)]),
+            max(atom_keys[index], atom_keys[(index + 1) % len(atom_keys)]),
+        )
         for index in range(len(atom_keys))
     )
 
 
 def _selected_rings(
-        mol: _MoleculeLike,
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         ring_scope: RingScope,
         max_ring_size: int,
-) -> Tuple[Tuple[_RingLike, ...], int]:
+) -> Tuple[Tuple[RingSourceT, ...], int]:
     rings = tuple(mol.rings_for_scope(ring_scope))
     selected = tuple(
         sorted(
-            (ring for ring in rings if len(ring.atoms) <= max_ring_size),
+            (
+                ring
+                for ring in rings
+                if sum(1 for _ in ring.atoms) <= max_ring_size
+            ),
             key=_ring_key,
         )
     )
@@ -257,9 +287,9 @@ def _selected_rings(
 
 
 def _iter_bond_ring_targets_from_rings(
-        mol: _MoleculeLike,
-        rings: Sequence[_RingLike],
-) -> Iterator[BondRingTarget[_RingLike, _BondLike]]:
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
+        rings: Sequence[RingSourceT],
+) -> Iterator[BondRingTarget[RingSourceT, BondSourceT]]:
     bonds = tuple(sorted(mol.bonds, key=_bond_key))
     for ring in rings:
         ring_geometry = RingGeometry(
@@ -271,9 +301,9 @@ def _iter_bond_ring_targets_from_rings(
 
 
 def _iter_bond_ring_targets_for_ring(
-    ring: RingGeometry[_RingLike],
-    bonds: Sequence[_BondLike],
-) -> Iterator[BondRingTarget[_RingLike, _BondLike]]:
+    ring: RingGeometry[RingSourceT],
+    bonds: Sequence[BondSourceT],
+) -> Iterator[BondRingTarget[RingSourceT, BondSourceT]]:
     ring_edge_keys = frozenset(_ring_edge_keys(ring.source))
     for bond in bonds:
         key = _bond_key(bond)
@@ -289,10 +319,10 @@ def _iter_bond_ring_targets_for_ring(
 
 
 def _iter_bond_ring_findings_from_rings(
-    mol: _MoleculeLike,
-    rings: Sequence[_RingLike],
+    mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
+    rings: Sequence[RingSourceT],
     settings: GeometrySettings,
-) -> Iterator[BondRingFinding[_RingLike, _BondLike]]:
+) -> Iterator[BondRingFinding[RingSourceT, BondSourceT]]:
     bonds = tuple(sorted(mol.bonds, key=_bond_key))
     for ring in rings:
         ring_geometry = RingGeometry(
@@ -315,33 +345,33 @@ def _iter_bond_ring_findings_from_rings(
 # source objects, their coordinates, conformers, or Core ring caches.
 
 
-def point_from_atom(atom: _AtomLike) -> Point:
+def point_from_atom(atom: AtomSourceT) -> Point:
     """Convert one atom position to an immutable point."""
     return Point.from_coordinates(atom.coordinates)
 
 
-def segment_from_bond(bond: _BondLike) -> Segment:
+def segment_from_bond(bond: BondSourceT) -> Segment:
     """Convert one chemical bond to a finite geometric segment."""
     return Segment(point_from_atom(bond.atom1), point_from_atom(bond.atom2))
 
 
-def cycle_from_ring(ring: _RingLike) -> Cycle:
+def cycle_from_ring(ring: RingSourceT) -> Cycle:
     """Convert an ordered chemical ring boundary to a geometric cycle."""
     return Cycle(tuple(point_from_atom(atom) for atom in ring.atoms))
 
 
 def iter_atom_geometries(
-        structure: _StructureLike,
-) -> Iterator[AtomGeometry[_AtomLike]]:
+        structure: _StructureLike[AtomSourceT, BondSourceT],
+) -> Iterator[AtomGeometry[AtomSourceT]]:
     """Yield atoms with their immutable point and stable molecular index."""
     for atom in structure.atoms:
         yield AtomGeometry(source=atom, point=point_from_atom(atom), key=_atom_key(atom))
 
 
 def iter_atom_pair_targets(
-        structure: _StructureLike,
+        structure: _StructureLike[AtomSourceT, BondSourceT],
         pair_scope: PairScope,
-) -> Iterator[AtomPairTarget[_AtomLike]]:
+) -> Iterator[AtomPairTarget[AtomSourceT]]:
     """Yield stable atom pairs selected by their chemical graph relation."""
     _validate_pair_scope(pair_scope)
     atom_geometries = tuple(iter_atom_geometries(structure))
@@ -353,11 +383,11 @@ def iter_atom_pair_targets(
 
 
 def iter_ring_geometries(
-        mol: _MoleculeLike,
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
         ring_scope: RingScope,
         max_ring_size: int,
-) -> Iterator[RingGeometry[_RingLike]]:
+) -> Iterator[RingGeometry[RingSourceT]]:
     """Yield selected cycle-basis rings in canonical key order."""
     rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
     for ring in rings:
@@ -365,20 +395,20 @@ def iter_ring_geometries(
 
 
 def iter_bond_ring_targets(
-        mol: _MoleculeLike,
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
         ring_scope: RingScope,
         max_ring_size: int,
-) -> Iterator[BondRingTarget[_RingLike, _BondLike]]:
+) -> Iterator[BondRingTarget[RingSourceT, BondSourceT]]:
     """Yield every selected Ring x Bond pair except the ring's own edges."""
     rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
     yield from _iter_bond_ring_targets_from_rings(mol, rings)
 
 
 def measure_atom_pair_distances(
-        structure: _StructureLike,
+        structure: _StructureLike[AtomSourceT, BondSourceT],
         pair_scope: PairScope,
-) -> Tuple[AtomPairDistance[_AtomLike], ...]:
+) -> Tuple[AtomPairDistance[AtomSourceT], ...]:
     """Measure selected atom pairs while retaining their chemical sources."""
     _validate_pair_scope(pair_scope)
     atom_geometries = tuple(iter_atom_geometries(structure))
@@ -407,11 +437,11 @@ def measure_atom_pair_distances(
 
 
 def determine_bond_ring_relation(
-        ring: _RingLike,
-        bond: _BondLike,
+        ring: RingSourceT,
+        bond: BondSourceT,
         *,
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
-) -> BondRingFinding[_RingLike, _BondLike]:
+) -> BondRingFinding[RingSourceT, BondSourceT]:
     """Determine one bond-ring relation and retain both source objects."""
     target = BondRingTarget(
         ring=RingGeometry(
@@ -436,24 +466,24 @@ def determine_bond_ring_relation(
 
 
 def iter_bond_ring_findings(
-        mol: _MoleculeLike,
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
         ring_scope: RingScope,
         max_ring_size: int,
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
-) -> Iterator[BondRingFinding[_RingLike, _BondLike]]:
+) -> Iterator[BondRingFinding[RingSourceT, BondSourceT]]:
     """Lazily evaluate selected bond-ring pairs in canonical key order."""
     rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
     yield from _iter_bond_ring_findings_from_rings(mol, rings, settings)
 
 
 def scan_bond_ring_relations(
-        mol: _MoleculeLike,
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
         ring_scope: RingScope,
         max_ring_size: int,
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
-) -> BondRingScanReport[_RingLike, _BondLike]:
+) -> BondRingScanReport[RingSourceT, BondSourceT]:
     """Return a dense factual report for the declared ring selection scope."""
     selected_rings, excluded_ring_count = _selected_rings(
         mol,
@@ -500,7 +530,7 @@ def scan_bond_ring_relations(
 
 
 def determine_bond_ring_piercing_state(
-        mol: _MoleculeLike,
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
         ring_scope: RingScope,
         max_ring_size: int,

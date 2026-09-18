@@ -756,7 +756,10 @@ forcefields candidate workflow
 - `PIERCES`：可进入既定开环修复；是否允许断具体环键仍由 chemistry/FF policy 决定；
 - `DOES_NOT_PIERCE`：本项不触发开环，继续普通流程；
 - `UNDETERMINED`：既不视为 clear，也不单凭未知触发开环；继续普通优化，在下一观察帧和最终帧
-  重新判定；最终仍未决时发出 warning 并返回最后一帧，`save_movie=True` 时保留全部帧；
+  重新判定；含该 warning 的帧不参与“已通过帧”的最低能量竞争；若没有明确通过的帧，发出
+  warning 并返回最后一帧，`save_movie=True` 时保留全部帧；
+- 超过调用方 `max_ring_size` 的环不被描述成已判定安全；forcefields 将排除数量写入 metrics，
+  并产生 coverage warning；
 - 未决不得造成无限 retry、异常终止或丢弃结构。上线前必须统计真实样本中
   `UNDETERMINED` 的比例与原因分布；比例异常时先修 predicate/fixture，不得靠 policy 吞掉。
 

@@ -106,6 +106,16 @@ def test_line_relation_is_invariant_to_direction_scale_and_origin_shift():
     )
 
 
+def test_line_relation_preserves_tiny_nonzero_angular_measure():
+    relation = determine_line_relation(
+        Line((0, 0, 0), (1, 0, 0)),
+        Line((0, 1, 0), (1, 1.0e-200, 0)),
+    )
+
+    assert relation.kind is LineRelationKind.UNDETERMINED
+    assert relation.parallel_measure == pytest.approx(1.0e-200)
+
+
 def test_degenerate_and_nonfinite_lines_have_no_defined_distance():
     degenerate = determine_line_relation(
         Line((0, 0, 0), (0, 0, 0)),

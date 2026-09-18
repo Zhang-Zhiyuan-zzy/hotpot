@@ -92,3 +92,44 @@ def test_cycle_rotation_and_orientation_do_not_change_relation():
     assert reversed_cycle.state is baseline.state
     assert rotated.surface_evidence == baseline.surface_evidence
     assert reversed_cycle.surface_evidence == baseline.surface_evidence
+
+
+def test_complete_nonplanar_features_are_rotation_invariant():
+    cycle_coordinates = [(0, 0, 0), (2, 0, 0), (2, 2, 0.4), (0, 2, 0)]
+    segment_coordinates = ((0.6, 0.8, 1), (0.6, 0.8, 2))
+    axis = np.asarray((1.0, 2.0, 3.0))
+    axis /= np.linalg.norm(axis)
+    angle = 0.91
+    cross_matrix = np.asarray(
+        [
+            [0.0, -axis[2], axis[1]],
+            [axis[2], 0.0, -axis[0]],
+            [-axis[1], axis[0], 0.0],
+        ]
+    )
+    rotation = (
+        np.eye(3) * np.cos(angle)
+        + (1.0 - np.cos(angle)) * np.outer(axis, axis)
+        + np.sin(angle) * cross_matrix
+    )
+    translation = np.asarray((3.0, -5.0, 7.0))
+
+    baseline = determine_segment_cycle_relation(
+        Segment(*segment_coordinates), Cycle(cycle_coordinates)
+    )
+    transformed = determine_segment_cycle_relation(
+        Segment(
+            *(
+                _transform_point(point, rotation, translation)
+                for point in segment_coordinates
+            )
+        ),
+        Cycle(
+            _transform_point(point, rotation, translation)
+            for point in cycle_coordinates
+        ),
+    )
+
+    assert transformed.state is baseline.state
+    assert transformed.features == baseline.features
+    assert transformed.indeterminacy_causes == baseline.indeterminacy_causes

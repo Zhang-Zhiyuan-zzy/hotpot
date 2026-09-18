@@ -22,8 +22,11 @@ for version in "${versions[@]}"; do
             tests/test_cheminfo/test_ob2chem_compat.py \
             tests/test_cheminfo/test_bond_metadata.py \
             tests/test_cheminfo/test_ligand_rings.py \
+            tests/test_cheminfo/geometry \
             tests/test_cheminfo/test_geometry.py \
+            tests/test_cheminfo/test_geometry_core_integration.py \
             tests/test_cheminfo/test_geometry_quality.py \
+            tests/test_cheminfo/test_forcefield_acceptance.py \
             tests/test_cheminfo/test_forcefield_api.py \
             tests/test_cheminfo/test_forcefield_optimizer.py \
             tests/test_cheminfo/test_forcefield_integration.py \

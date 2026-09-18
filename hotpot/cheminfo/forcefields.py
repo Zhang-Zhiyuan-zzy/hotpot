@@ -8,6 +8,7 @@ import os
 import threading
 import time
 import traceback as traceback_module
+import warnings
 from collections import deque
 from copy import copy, deepcopy
 from dataclasses import asdict, dataclass, field, replace
@@ -66,6 +67,7 @@ __all__ = (
     "ComplexBuildWorkerError",
     "ComplexBuildTimeoutError",
     "GeometryQualityError",
+    "GeometryQualityWarning",
     "capture_topology",
     "evaluate_structure_acceptance",
     "is_structure_accepted",
@@ -382,13 +384,17 @@ class ComplexBuildTimeoutError(ComplexBuildError, TimeoutError):
 
 
 class GeometryQualityError(ForceFieldError):
-    """Raised when no generated force-field frame passes the geometry gate."""
+    """Raised when optimization yields no usable finite-topology frame."""
 
-    def __init__(self, report: ForceFieldValidationReport):
+    def __init__(self, report: Optional[ForceFieldValidationReport]):
         super().__init__(
             "The generated geometry did not pass the requested quality gate"
         )
         self.report = report
+
+
+class GeometryQualityWarning(UserWarning):
+    """Warn that the retained optimization frame failed a soft acceptance check."""
 
 
 # Internal workflow data contracts.
@@ -442,6 +448,27 @@ class _MoleculeCommitSnapshot:
 
 
 # Diagnostic formatting helpers.
+
+
+_HARD_ACCEPTANCE_FAILURES = frozenset({
+    "coordinate_shape",
+    "finite_coordinates",
+    "forcefield_report",
+    "forcefield_setup",
+    "backend_explosion",
+})
+
+
+def _has_hard_acceptance_failure(
+    report: ForceFieldValidationReport,
+) -> bool:
+    return any(
+        check.name in _HARD_ACCEPTANCE_FAILURES
+        or check.name.startswith("finite_")
+        or check.name == "topology"
+        or check.name.startswith("topology_")
+        for check in report.failures
+    )
 
 
 def _format_geometry_checks(
@@ -1587,6 +1614,7 @@ class _OpenBabelOptimizer:
         best_epoch = -1
         best_frame_index = -1
         last_frame = None
+        last_epoch = -1
         history_window = int(
             (quality_thresholds or {}).get("strict_stability_window", 5)
         )
@@ -1686,6 +1714,7 @@ class _OpenBabelOptimizer:
                 quality_thresholds=quality_thresholds,
             )
             last_frame = frame
+            last_epoch = epoch
             if frame.quality_report.passed and (
                 best_frame is None or frame.energy < best_frame.energy
             ):
@@ -1706,10 +1735,20 @@ class _OpenBabelOptimizer:
             ):
                 break
 
+        if last_frame is None:
+            raise GeometryQualityError(None)
         if best_frame is None:
-            raise GeometryQualityError(
-                None if last_frame is None else last_frame.quality_report
+            if _has_hard_acceptance_failure(last_frame.quality_report):
+                raise GeometryQualityError(last_frame.quality_report)
+            warnings.warn(
+                "No optimization frame passed structure acceptance; "
+                "retaining the last finite frame",
+                GeometryQualityWarning,
+                stacklevel=2,
             )
+            best_frame = last_frame
+            best_epoch = last_epoch
+            best_frame_index = len(movie_coordinates) - 1
 
         mol.coordinates = best_frame.coordinates
         mol.conformer_clear()

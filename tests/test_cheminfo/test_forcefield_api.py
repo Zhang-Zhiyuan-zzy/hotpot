@@ -117,8 +117,8 @@ def test_build3d_captures_the_requested_hydrogen_policy(
     )
     monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         lambda *args, **options: SimpleNamespace(passed=True),
     )
     monkeypatch.setattr(ff, "_commit_working_copy", lambda *args: None)
@@ -394,8 +394,8 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
         lambda current: calls.append(("build", current)),
     )
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(passed=True),
     )
     monkeypatch.setattr(
@@ -517,8 +517,8 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
         lambda current: pytest.fail("seeded build used the in-process builder"),
     )
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(passed=True),
     )
     monkeypatch.setattr(
@@ -720,8 +720,8 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
     monkeypatch.setattr(ff, "_hydrogenated_working_copy", fake_working_copy)
     monkeypatch.setattr(ff, "_ob_build", lambda current: None)
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(passed=True),
     )
     monkeypatch.setattr(ff, "_run_optimizer_on_working", lambda *args, **kwargs: expected)

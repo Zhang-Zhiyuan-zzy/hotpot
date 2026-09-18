@@ -194,7 +194,7 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
         assert options["forcefield_stage"] == "final"
         return SimpleNamespace(passed=True)
 
-    monkeypatch.setattr(ff.geo, "evaluate_geometry_quality", evaluate_quality)
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", evaluate_quality)
     return ff._OpenBabelOptimizer(
         "MMFF94s",
         "MMFF94s",
@@ -473,8 +473,8 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.save_movie = False
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         lambda mol, **options: SimpleNamespace(
             passed=float(mol.coordinates[0, 0]) != 1.0
         ),
@@ -493,14 +493,78 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     assert len(molecule.frames) == 1
 
 
-def test_optimizer_raises_when_no_frame_passes_gate(monkeypatch):
-    frames = [np.zeros((2, 3))] * 3
+@pytest.mark.parametrize("save_movie", (False, True))
+def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
+    monkeypatch,
+    save_movie,
+):
+    frames = [
+        np.zeros((2, 3)),
+        np.ones((2, 3)),
+        np.full((2, 3), 2.0),
+    ]
     backend = _Backend([3.0, 2.0, 1.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
-    rejected = SimpleNamespace(passed=False)
+    optimizer.save_movie = save_movie
+    rejected = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=False,
+        checks=(
+            ff.AcceptanceCheck(
+                name="atom_too_close",
+                passed=False,
+                measured=0.2,
+                threshold=0.4,
+            ),
+        ),
+    )
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **options: rejected,
+    )
+    molecule = _OptimizerMolecule()
+
+    with pytest.warns(ff.GeometryQualityWarning, match="acceptance"):
+        report = optimizer.optimize(
+            molecule,
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+
+    assert report.quality_report is rejected
+    assert report.best_epoch == 2
+    assert report.best_energy == pytest.approx(1.0)
+    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
+    assert len(molecule.frames) == (3 if save_movie else 1)
+    assert molecule._conformers_index == (2 if save_movie else 0)
+    assert len(report.epoch_energies) == (3 if save_movie else 0)
+
+
+@pytest.mark.parametrize(
+    "failure_name",
+    ("finite_coordinates", "topology_atom_identity", "backend_explosion"),
+)
+def test_optimizer_raises_for_hard_acceptance_failures(
+    monkeypatch,
+    failure_name,
+):
+    frames = [np.zeros((2, 3))]
+    optimizer = _optimizer(
+        monkeypatch,
+        _Backend([1.0], unit="kJ/mol"),
+        frames,
+    )
+    optimizer.increasing_vdw = False
+    rejected = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=False,
+        checks=(ff.AcceptanceCheck(name=failure_name, passed=False),),
+    )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
         lambda *args, **options: rejected,
     )
 
@@ -511,6 +575,7 @@ def test_optimizer_raises_when_no_frame_passes_gate(monkeypatch):
             topology_reference=object(),
             quality_thresholds=None,
         )
+
     assert caught.value.report is rejected
 
 

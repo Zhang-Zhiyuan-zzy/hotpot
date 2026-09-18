@@ -247,6 +247,25 @@ class _DummyComplex:
         return None
 
 
+def _bond_ring_finding(ring, bond):
+    return SimpleNamespace(
+        target=SimpleNamespace(
+            ring=SimpleNamespace(source=ring),
+            bond=SimpleNamespace(source=bond),
+        )
+    )
+
+
+def _piercing_report(*ring_bond_pairs):
+    return SimpleNamespace(
+        piercings=tuple(
+            _bond_ring_finding(ring, bond)
+            for ring, bond in ring_bond_pairs
+        ),
+        undetermined=(),
+    )
+
+
 def _pipe_process(target):
     context = mp.get_context("fork")
     receive_connection, send_connection = context.Pipe(duplex=False)
@@ -672,10 +691,10 @@ def test_worker_result_can_carry_serialized_conformer_state():
     assert result.conformers is conformers
 
 
-def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
+def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    calls = {"build": 0, "find": 0, "closest": 0}
+    calls = {"build": 0, "lazy": 0, "dense": 0, "closest": 0}
 
     def fake_build(current):
         calls["build"] += 1
@@ -687,20 +706,24 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
 
-    def intersections(*args, **kwargs):
-        calls["find"] += 1
-        return (("ring", "probe"),)
+    def piercing_state(*args, **kwargs):
+        calls["lazy"] += 1
+        return ff.geo.PiercingState.PIERCES
+
+    def scan_relations(*args, **kwargs):
+        calls["dense"] += 1
+        return _piercing_report(("ring", "probe"))
 
     def closest(*args, **kwargs):
         calls["closest"] += 1
         return SimpleNamespace(a1idx=0, a2idx=1)
 
-    intersection_failure = ff.geo.GeometryCheck(
+    intersection_failure = ff.AcceptanceCheck(
         name="bond_ring_intersection",
         passed=False,
         measured=(0, 1, 2),
@@ -708,11 +731,16 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
         atom_indices=(3, 4),
         bond_indices=(2,),
     )
-    monkeypatch.setattr(ff.geo, "find_bond_ring_intersections", intersections)
-    monkeypatch.setattr(ff.geo, "closest_ring_opening_edge", closest)
     monkeypatch.setattr(
         ff.geo,
-        "bond_ring_intersection_checks",
+        "determine_bond_ring_piercing_state",
+        piercing_state,
+    )
+    monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
+    monkeypatch.setattr(ff, "_select_ring_opening_edge", closest)
+    monkeypatch.setattr(
+        ff,
+        "_bond_ring_acceptance_checks",
         lambda current, found: (intersection_failure,),
     )
 
@@ -727,7 +755,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
             effective_forcefield="UFF",
         )
 
-    assert calls == {"build": 3, "find": 3, "closest": 3}
+    assert calls == {"build": 3, "lazy": 3, "dense": 3, "closest": 3}
     assert caught.value.diagnostics.attempt_count == 3
     assert caught.value.diagnostics.accepted_candidates == 0
     assert len(caught.value.diagnostics.rejected_candidates) == 3
@@ -735,6 +763,72 @@ def test_candidate_attempts_are_bounded_and_use_geometry_module(monkeypatch):
         rejection.quality_failures == (intersection_failure,)
         for rejection in caught.value.diagnostics.rejected_candidates
     )
+
+
+@pytest.mark.parametrize(
+    "piercing_state",
+    (
+        ff.geo.PiercingState.DOES_NOT_PIERCE,
+        ff.geo.PiercingState.UNDETERMINED,
+    ),
+)
+def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
+    monkeypatch,
+    piercing_state,
+):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    calls = {"lazy": 0, "acceptance": 0}
+
+    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ff,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ff._CandidateOptimizationResult(
+            1.0,
+            "kJ/mol",
+            False,
+        ),
+    )
+    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+
+    def determine_state(*args, **kwargs):
+        calls["lazy"] += 1
+        return piercing_state
+
+    def accept(*args, **kwargs):
+        calls["acceptance"] += 1
+        return SimpleNamespace(passed=True, failures=())
+
+    monkeypatch.setattr(
+        ff.geo,
+        "determine_bond_ring_piercing_state",
+        determine_state,
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "scan_bond_ring_relations",
+        lambda *args, **kwargs: pytest.fail(
+            "a non-piercing aggregate triggered the dense scan"
+        ),
+    )
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", accept)
+
+    coordinates, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        candidate_count=1,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
+
+    np.testing.assert_array_equal(coordinates, molecule.coordinates)
+    assert diagnostics.accepted_candidates == 1
+    assert diagnostics.rejected_candidates == ()
+    assert calls == {"lazy": 2, "acceptance": 2}
+    assert component.hidden == []
 
 
 def test_builder_failures_consume_the_attempt_budget(monkeypatch):
@@ -749,7 +843,7 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
 
     monkeypatch.setattr(ff, "_ob_build", fail_build)
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -785,7 +879,7 @@ def test_builder_failure_recovers_temporarily_opened_ring_bonds(monkeypatch):
     component.recover_hided_covalent_bonds = recover
     monkeypatch.setattr(ff, "_ob_build", fail_build)
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -807,7 +901,7 @@ def test_builder_failure_recovers_temporarily_opened_ring_bonds(monkeypatch):
 def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    failure = ff.geo.GeometryCheck(
+    failure = ff.AcceptanceCheck(
         name="bond_length",
         passed=False,
         measured=31.0,
@@ -823,18 +917,18 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
         ff.geo,
-        "find_bond_ring_intersections",
-        lambda *args, **kwargs: (),
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(
             passed=False,
             failures=(failure,),
@@ -865,7 +959,7 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     quality_calls = 0
-    failure = ff.geo.GeometryCheck(
+    failure = ff.AcceptanceCheck(
         name="minimum_distance",
         passed=False,
         measured=0.12,
@@ -880,12 +974,14 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        ff.geo, "find_bond_ring_intersections", lambda *args, **kwargs: ()
+        ff.geo,
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
     )
 
     def quality(*args, **kwargs):
@@ -901,7 +997,7 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
             failures=() if passed else (failure,),
         )
 
-    monkeypatch.setattr(ff.geo, "evaluate_geometry_quality", quality)
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
 
     with pytest.raises(ff.ComplexBuildError, match="refinement failed") as caught:
         ff._build_ligand_proxies(
@@ -926,9 +1022,9 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
 def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    find_calls = 0
+    relation_calls = 0
     quality_calls = 0
-    failure = ff.geo.GeometryCheck(
+    failure = ff.AcceptanceCheck(
         name="bond_ring_intersection",
         passed=False,
         measured=(0, 1, 2),
@@ -936,7 +1032,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         atom_indices=(3, 4),
         bond_indices=(2,),
     )
-    gate_failure = ff.geo.GeometryCheck(
+    gate_failure = ff.AcceptanceCheck(
         name="atom_too_close",
         passed=False,
         measured=0.2,
@@ -951,20 +1047,33 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
 
-    def intersections(*args, **kwargs):
-        nonlocal find_calls
-        find_calls += 1
-        return () if find_calls == 1 else (("ring", "probe"),)
+    def piercing_state(*args, **kwargs):
+        nonlocal relation_calls
+        relation_calls += 1
+        return (
+            ff.geo.PiercingState.DOES_NOT_PIERCE
+            if relation_calls == 1
+            else ff.geo.PiercingState.PIERCES
+        )
 
-    monkeypatch.setattr(ff.geo, "find_bond_ring_intersections", intersections)
     monkeypatch.setattr(
         ff.geo,
-        "bond_ring_intersection_checks",
+        "determine_bond_ring_piercing_state",
+        piercing_state,
+    )
+    monkeypatch.setattr(
+        ff.geo,
+        "scan_bond_ring_relations",
+        lambda *args, **kwargs: _piercing_report(("ring", "probe")),
+    )
+    monkeypatch.setattr(
+        ff,
+        "_bond_ring_acceptance_checks",
         lambda current, found: (failure,),
     )
 
@@ -978,8 +1087,8 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         )
 
     monkeypatch.setattr(
-        ff.geo,
-        "evaluate_geometry_quality",
+        ff,
+        "evaluate_structure_acceptance",
         quality,
     )
 
@@ -1005,7 +1114,7 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
     molecule = _DummyComplex(component)
     state = {"build": 0, "refining": False}
     refined_markers = []
-    failure = ff.geo.GeometryCheck(
+    failure = ff.AcceptanceCheck(
         name="minimum_distance",
         passed=False,
         measured=0.10,
@@ -1037,14 +1146,16 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
     monkeypatch.setattr(ff, "_ob_build", build)
     monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        ff.geo, "find_bond_ring_intersections", lambda *args, **kwargs: ()
+        ff.geo,
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
     )
-    monkeypatch.setattr(ff.geo, "evaluate_geometry_quality", quality)
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
@@ -1082,25 +1193,33 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     monkeypatch.setattr(
-        ff.geo,
+        ff,
         "capture_topology",
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
         ff.geo,
-        "find_bond_ring_intersections",
-        lambda *args, **kwargs: (("first", "probe"), ("second", "probe")),
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: ff.geo.PiercingState.PIERCES,
     )
     monkeypatch.setattr(
         ff.geo,
-        "closest_ring_opening_edge",
+        "scan_bond_ring_relations",
+        lambda *args, **kwargs: _piercing_report(
+            ("first", "probe"),
+            ("second", "probe"),
+        ),
+    )
+    monkeypatch.setattr(
+        ff,
+        "_select_ring_opening_edge",
         lambda current, ring, bond: first if ring == "first" else second,
     )
     monkeypatch.setattr(
-        ff.geo,
-        "bond_ring_intersection_checks",
+        ff,
+        "_bond_ring_acceptance_checks",
         lambda current, found: (
-            ff.geo.GeometryCheck(
+            ff.AcceptanceCheck(
                 name="bond_ring_intersection",
                 passed=False,
             ),

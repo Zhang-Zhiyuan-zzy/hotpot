@@ -10,10 +10,20 @@ import time
 import traceback as traceback_module
 from collections import deque
 from copy import copy, deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field, replace
 from functools import wraps
+from itertools import combinations
 from multiprocessing.connection import wait as wait_for_connections
-from typing import Any, Literal, Mapping, Optional, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import networkx as nx
 import numpy as np
@@ -21,6 +31,10 @@ from openbabel import openbabel as ob
 
 from . import geometry as geo
 from .obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
+
+
+if TYPE_CHECKING:
+    from .core import Atom, Bond, Molecule, Ring
 
 
 __all__ = (
@@ -35,6 +49,12 @@ __all__ = (
     "BuildAndOptimizeReport",
     "ComplexBuildReport",
     "ForceFieldSetupReport",
+    "AcceptanceCheck",
+    "StructureAcceptanceThresholds",
+    "AtomTopologySignature",
+    "BondTopologySignature",
+    "TopologyReference",
+    "ForceFieldValidationReport",
     "CoordinationEnvironment",
     "CoordinationGeometryCandidate",
     "CoordinationGeometryResult",
@@ -46,6 +66,9 @@ __all__ = (
     "ComplexBuildWorkerError",
     "ComplexBuildTimeoutError",
     "GeometryQualityError",
+    "capture_topology",
+    "evaluate_structure_acceptance",
+    "is_structure_accepted",
     "perturb",
     "collect_coordination_environments",
     "prepare_coordination_geometry",
@@ -61,12 +84,104 @@ __all__ = (
 
 OptimizationAlgorithm = Literal["steepest", "conjugate"]
 TerminationReason = Literal["converged", "budget_exhausted"]
+AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
+ForceFieldStage = Literal["candidate", "final"]
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
 
 
 # Public report and coordination data contracts.
+
+
+@dataclass(frozen=True)
+class AcceptanceCheck:
+    """One serializable decision made by force-field acceptance policy."""
+
+    name: str
+    passed: bool
+    severity: Literal["info", "warning", "error"] = "error"
+    measured: object = None
+    threshold: object = None
+    atom_indices: Tuple[int, ...] = ()
+    bond_indices: Tuple[int, ...] = ()
+    message: str = ""
+
+
+@dataclass(frozen=True)
+class StructureAcceptanceThresholds:
+    """Chemical and force-field thresholds for structure acceptance."""
+
+    overlap_tolerance: float = 1.0e-3
+    basic_minimum_distance: float = 0.40
+    standard_minimum_distance: float = 0.50
+    standard_covalent_radius_scale: float = 0.55
+    maximum_bond_distance: float = 30.0
+    covalent_bond_ratio: Tuple[float, float] = (0.65, 1.45)
+    metal_ligand_bond_ratio: Tuple[float, float] = (0.65, 1.60)
+    strict_rms_gradient: float = 1.0
+    strict_max_gradient: float = 5.0
+    strict_energy_change: float = 1.0e-4
+    strict_max_displacement: float = 1.0e-4
+    strict_stability_window: int = 5
+
+
+@dataclass(frozen=True)
+class AtomTopologySignature:
+    """Stable identity and chemistry for an atom present before optimization."""
+
+    index: int
+    atom_id: int
+    atomic_number: int
+    formal_charge: int
+
+
+@dataclass(frozen=True)
+class BondTopologySignature:
+    """Stable topology for a bond present before optimization."""
+
+    atom_indices: Tuple[int, int]
+    bond_order: float
+    bond_kind: str
+
+
+@dataclass(frozen=True)
+class TopologyReference:
+    """Immutable topology snapshot used by force-field transactions."""
+
+    atoms: Tuple[AtomTopologySignature, ...]
+    bonds: Tuple[BondTopologySignature, ...]
+    allow_added_hydrogens: bool = True
+
+
+@dataclass(frozen=True)
+class ForceFieldValidationReport:
+    """Acceptance result for coordinates, topology, and force-field evidence."""
+
+    level: AcceptanceLevel
+    passed: bool
+    checks: Tuple[AcceptanceCheck, ...]
+    metrics: Mapping[str, object] = field(default_factory=dict)
+
+    @property
+    def failures(self) -> Tuple[AcceptanceCheck, ...]:
+        return tuple(
+            check
+            for check in self.checks
+            if not check.passed and check.severity == "error"
+        )
+
+    @property
+    def warnings(self) -> Tuple[AcceptanceCheck, ...]:
+        return tuple(
+            check
+            for check in self.checks
+            if not check.passed and check.severity == "warning"
+        )
+
+    def to_dict(self) -> dict:
+        """Return a JSON-serializable representation of the report."""
+        return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -97,14 +212,14 @@ class ForceFieldRunReport:
     rms_gradient: float
     max_gradient: float
     exploded: bool
-    quality_report: Any = None
+    quality_report: Optional[ForceFieldValidationReport] = None
     backend_energy_unit: Optional[str] = None
     gradient_unit: str = "kJ/(mol*angstrom)"
     energy_changes: Tuple[float, ...] = ()
     max_displacements: Tuple[float, ...] = ()
     best_epoch: int = 0
     epoch_energies: Tuple[float, ...] = ()
-    epoch_quality_reports: Tuple[Any, ...] = ()
+    epoch_quality_reports: Tuple[ForceFieldValidationReport, ...] = ()
     termination_reason: TerminationReason = "budget_exhausted"
     terminal_converged: bool = False
 
@@ -113,7 +228,7 @@ class ForceFieldRunReport:
 class Build3DReport:
     atom_count: int
     added_hydrogen_count: int
-    quality_report: Any
+    quality_report: ForceFieldValidationReport
 
 
 @dataclass(frozen=True)
@@ -121,7 +236,7 @@ class CandidateRejection:
     component_index: int
     attempt: int
     reason: str
-    quality_failures: Tuple[Any, ...] = ()
+    quality_failures: Tuple[AcceptanceCheck, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -149,7 +264,7 @@ class ForceFieldWorkflowReport:
     effective_forcefield: str
     build: Any
     optimization: Optional[ForceFieldRunReport]
-    quality_report: Any
+    quality_report: ForceFieldValidationReport
 
 
 @dataclass(frozen=True)
@@ -269,7 +384,7 @@ class ComplexBuildTimeoutError(ComplexBuildError, TimeoutError):
 class GeometryQualityError(ForceFieldError):
     """Raised when no generated force-field frame passes the geometry gate."""
 
-    def __init__(self, report: Any):
+    def __init__(self, report: ForceFieldValidationReport):
         super().__init__(
             "The generated geometry did not pass the requested quality gate"
         )
@@ -294,7 +409,7 @@ class _ObservedFrame:
     max_gradient: float
     exploded: bool
     converged: bool
-    quality_report: Any
+    quality_report: ForceFieldValidationReport
     energy_changes: Tuple[float, ...]
     max_displacements: Tuple[float, ...]
 
@@ -329,7 +444,10 @@ class _MoleculeCommitSnapshot:
 # Diagnostic formatting helpers.
 
 
-def _format_geometry_checks(prefix: str, checks: Tuple[Any, ...]) -> str:
+def _format_geometry_checks(
+    prefix: str,
+    checks: Tuple[AcceptanceCheck, ...],
+) -> str:
     """Render failed geometry checks without discarding measured evidence."""
     details = "; ".join(
         f"{check.name}(measured={check.measured!r}, "
@@ -341,8 +459,551 @@ def _format_geometry_checks(prefix: str, checks: Tuple[Any, ...]) -> str:
     return f"{prefix}: {details}"
 
 
-def _format_geometry_rejection(prefix: str, report: Any) -> str:
+def _format_geometry_rejection(
+    prefix: str,
+    report: ForceFieldValidationReport,
+) -> str:
     return _format_geometry_checks(prefix, tuple(report.failures))
+
+
+# Structure-acceptance policy helpers.  Geometry supplies measurements and
+# relation states; this module owns every chemical threshold and pass/fail
+# decision made from those facts.
+
+
+@dataclass(frozen=True)
+class _AtomPairAcceptanceIssue:
+    kind: Literal["overlap", "too_close"]
+    atom_indices: Tuple[int, int]
+    distance: float
+    threshold: float
+
+
+def _atom_index(atom: "Atom", fallback: int) -> int:
+    return int(getattr(atom, "idx", fallback))
+
+
+def _bond_key(bond: "Bond") -> Tuple[int, int]:
+    first, second = sorted((int(bond.atom1.idx), int(bond.atom2.idx)))
+    return first, second
+
+
+def _bond_kind(bond: "Bond") -> str:
+    kind = getattr(bond, "bond_kind", "")
+    return str(getattr(kind, "value", kind))
+
+
+def _overlap_issues(
+    distances: Sequence["geo.AtomPairDistance[Atom]"],
+    tolerance: float,
+) -> Tuple[_AtomPairAcceptanceIssue, ...]:
+    return tuple(
+        _AtomPairAcceptanceIssue(
+            kind="overlap",
+            atom_indices=(distance.target.first.key, distance.target.second.key),
+            distance=float(distance.measurement.distance),
+            threshold=float(tolerance),
+        )
+        for distance in distances
+        if distance.measurement.distance <= tolerance
+    )
+
+
+def _too_close_issues(
+    distances: Sequence["geo.AtomPairDistance[Atom]"],
+    *,
+    minimum_distance: float,
+    covalent_radius_scale: Optional[float],
+    pair_scope: geo.PairScope,
+    include_overlaps: bool,
+    overlap_tolerance: float,
+) -> Tuple[_AtomPairAcceptanceIssue, ...]:
+    issues = []
+    for distance in distances:
+        if pair_scope == "bonded" and not distance.target.bonded:
+            continue
+        if pair_scope == "nonbonded" and distance.target.bonded:
+            continue
+        measured = float(distance.measurement.distance)
+        if not include_overlaps and measured <= overlap_tolerance:
+            continue
+        threshold = minimum_distance
+        if covalent_radius_scale is not None:
+            threshold = max(
+                threshold,
+                covalent_radius_scale * (
+                    float(distance.target.first.source.covalent_radius)
+                    + float(distance.target.second.source.covalent_radius)
+                ),
+            )
+        if measured < threshold:
+            issues.append(_AtomPairAcceptanceIssue(
+                kind="too_close",
+                atom_indices=(
+                    distance.target.first.key,
+                    distance.target.second.key,
+                ),
+                distance=measured,
+                threshold=float(threshold),
+            ))
+    return tuple(issues)
+
+
+def _topology_bond_signature(
+    bond: "Bond",
+    positions: Mapping[int, int],
+) -> BondTopologySignature:
+    first, second = sorted((
+        positions[id(bond.atom1)],
+        positions[id(bond.atom2)],
+    ))
+    return BondTopologySignature(
+        atom_indices=(first, second),
+        bond_order=float(bond.bond_order),
+        bond_kind=_bond_kind(bond),
+    )
+
+
+def _topology_checks(
+    mol: "Molecule",
+    reference: TopologyReference,
+) -> Tuple[AcceptanceCheck, ...]:
+    atoms = tuple(mol.atoms)
+    checks = []
+    original_count = len(reference.atoms)
+
+    if len(atoms) < original_count:
+        return (AcceptanceCheck(
+            name="topology_atom_count",
+            passed=False,
+            measured=len(atoms),
+            threshold=f">={original_count}",
+            message="Original atoms were removed",
+        ),)
+
+    for signature, atom in zip(reference.atoms, atoms[:original_count]):
+        measured = (
+            int(atom.id),
+            int(atom.atomic_number),
+            int(atom.formal_charge),
+        )
+        expected = (
+            signature.atom_id,
+            signature.atomic_number,
+            signature.formal_charge,
+        )
+        if measured != expected:
+            checks.append(AcceptanceCheck(
+                name="topology_atom_identity",
+                passed=False,
+                measured=measured,
+                threshold=expected,
+                atom_indices=(signature.index,),
+                message="An original atom identity or formal charge changed",
+            ))
+
+    added_indices = set(range(original_count, len(atoms)))
+    if added_indices and not reference.allow_added_hydrogens:
+        checks.append(AcceptanceCheck(
+            name="topology_added_atoms",
+            passed=False,
+            measured=len(added_indices),
+            threshold=0,
+            atom_indices=tuple(sorted(added_indices)),
+            message="Additional atoms are not allowed by this topology reference",
+        ))
+    elif added_indices:
+        non_hydrogens = tuple(
+            index
+            for index in added_indices
+            if int(atoms[index].atomic_number) != 1
+        )
+        if non_hydrogens:
+            checks.append(AcceptanceCheck(
+                name="topology_added_atoms",
+                passed=False,
+                measured=tuple(
+                    int(atoms[index].atomic_number)
+                    for index in non_hydrogens
+                ),
+                threshold="hydrogen only",
+                atom_indices=non_hydrogens,
+                message="Only hydrogen atoms may be added during preparation",
+            ))
+
+    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    candidate_bonds = {
+        signature.atom_indices: signature
+        for signature in (
+            _topology_bond_signature(bond, positions) for bond in mol.bonds
+        )
+    }
+    reference_bonds = {
+        signature.atom_indices: signature for signature in reference.bonds
+    }
+
+    for endpoints, expected in reference_bonds.items():
+        measured = candidate_bonds.get(endpoints)
+        if measured != expected:
+            checks.append(AcceptanceCheck(
+                name="topology_original_bond",
+                passed=False,
+                measured=measured,
+                threshold=expected,
+                atom_indices=endpoints,
+                message="An original bond was removed or changed",
+            ))
+
+    added_bonds = set(candidate_bonds).difference(reference_bonds)
+    invalid_added_bonds = tuple(sorted(
+        endpoints
+        for endpoints in added_bonds
+        if not reference.allow_added_hydrogens
+        or sum(endpoint in added_indices for endpoint in endpoints) != 1
+    ))
+    for endpoints in invalid_added_bonds:
+        checks.append(AcceptanceCheck(
+            name="topology_added_bond",
+            passed=False,
+            measured=endpoints,
+            threshold="one added H endpoint",
+            atom_indices=endpoints,
+            message="Only new X-H bonds may be added during preparation",
+        ))
+
+    if reference.allow_added_hydrogens:
+        degree = {index: 0 for index in added_indices}
+        for endpoints in added_bonds:
+            for endpoint in endpoints:
+                if endpoint in degree:
+                    degree[endpoint] += 1
+        invalid_hydrogens = tuple(
+            index for index, count in sorted(degree.items()) if count != 1
+        )
+        if invalid_hydrogens:
+            checks.append(AcceptanceCheck(
+                name="topology_added_hydrogen_degree",
+                passed=False,
+                measured=tuple(
+                    degree[index] for index in invalid_hydrogens
+                ),
+                threshold=1,
+                atom_indices=invalid_hydrogens,
+                message="Each added hydrogen must have exactly one new bond",
+            ))
+
+    if not checks:
+        checks.append(AcceptanceCheck(
+            name="topology",
+            passed=True,
+            measured=(len(atoms), len(candidate_bonds)),
+            threshold=(original_count, len(reference_bonds)),
+            message="Original topology is preserved",
+        ))
+    return tuple(checks)
+
+
+def _resolve_acceptance_thresholds(
+    thresholds: Optional[
+        Union[StructureAcceptanceThresholds, Mapping[str, object]]
+    ],
+) -> StructureAcceptanceThresholds:
+    if thresholds is None:
+        return StructureAcceptanceThresholds()
+    if isinstance(thresholds, StructureAcceptanceThresholds):
+        return thresholds
+    return replace(StructureAcceptanceThresholds(), **dict(thresholds))
+
+
+def _report_value(report: object, name: str) -> Optional[object]:
+    if isinstance(report, Mapping):
+        return report.get(name)
+    return getattr(report, name, None)
+
+
+def _forcefield_acceptance_checks(
+    report: Optional[object],
+    level: AcceptanceLevel,
+    thresholds: StructureAcceptanceThresholds,
+    stage: ForceFieldStage,
+) -> Tuple[AcceptanceCheck, ...]:
+    if report is None:
+        if level == "strict":
+            return (AcceptanceCheck(
+                name="forcefield_report",
+                passed=False,
+                measured=None,
+                threshold="complete force-field report",
+                message="Strict structure validation requires force-field diagnostics",
+            ),)
+        return ()
+
+    checks = []
+    setup_succeeded = _report_value(report, "setup_succeeded")
+    checks.append(AcceptanceCheck(
+        name="forcefield_setup",
+        passed=setup_succeeded is not None and bool(setup_succeeded),
+        measured=setup_succeeded,
+        threshold=True,
+        message="Force-field setup must succeed",
+    ))
+
+    required_finite_fields = ["final_energy"]
+    if stage == "final":
+        required_finite_fields.extend(("rms_gradient", "max_gradient"))
+    for field_name in required_finite_fields:
+        value = _report_value(report, field_name)
+        finite = value is not None and bool(np.isfinite(value))
+        checks.append(AcceptanceCheck(
+            name=f"finite_{field_name}",
+            passed=finite,
+            measured=None if value is None else float(value),
+            threshold="finite",
+            message=f"{field_name.replace('_', ' ')} must be finite",
+        ))
+
+    if level in ("basic", "standard", "strict"):
+        exploded = _report_value(report, "exploded")
+        checks.append(AcceptanceCheck(
+            name="backend_explosion",
+            passed=exploded is not None and not bool(exploded),
+            measured=exploded,
+            threshold=False,
+            message="The force-field backend must report a non-exploded structure",
+        ))
+
+    if stage == "final" and level in ("standard", "strict"):
+        converged = _report_value(report, "converged")
+        if converged is not None or level == "strict":
+            checks.append(AcceptanceCheck(
+                name="forcefield_convergence",
+                passed=converged is not None and bool(converged),
+                severity="error" if level == "strict" else "warning",
+                measured=converged,
+                threshold=True,
+                message="The force-field backend did not report convergence",
+            ))
+
+    if stage == "final" and level == "strict":
+        gradient_limits = (
+            ("rms_gradient", thresholds.strict_rms_gradient),
+            ("max_gradient", thresholds.strict_max_gradient),
+        )
+        for field_name, limit in gradient_limits:
+            value = _report_value(report, field_name)
+            if value is not None and np.isfinite(value):
+                checks.append(AcceptanceCheck(
+                    name=field_name,
+                    passed=float(value) <= limit,
+                    measured=float(value),
+                    threshold=limit,
+                    message=(
+                        f"{field_name.replace('_', ' ')} exceeds the strict limit"
+                    ),
+                ))
+
+        segment_epochs_completed = _report_value(
+            report,
+            "segment_epochs_completed",
+        )
+        converged = bool(_report_value(report, "converged"))
+        no_history_required = (
+            segment_epochs_completed is not None
+            and int(segment_epochs_completed) == 1
+            and converged
+        )
+        stability_checks = (
+            ("energy_changes", thresholds.strict_energy_change),
+            ("max_displacements", thresholds.strict_max_displacement),
+        )
+        stability_observations = []
+        for field_name, limit in stability_checks:
+            history = _report_value(report, field_name)
+            values = () if history is None else tuple(history)
+            recent = values[-thresholds.strict_stability_window:]
+            value = max(recent) if recent else None
+            stability_observations.append(len(recent))
+            checks.append(AcceptanceCheck(
+                name=field_name.removesuffix("s"),
+                passed=no_history_required or (
+                    value is not None
+                    and np.isfinite(value)
+                    and float(value) <= limit
+                ),
+                measured=None if value is None else float(value),
+                threshold=limit,
+                message=(
+                    f"{field_name.replace('_', ' ')} do not satisfy the strict limit"
+                ),
+            ))
+
+        observations = min(stability_observations)
+        if segment_epochs_completed is None:
+            epochs_completed = _report_value(report, "epochs_completed")
+            required_observations = (
+                min(thresholds.strict_stability_window, int(epochs_completed))
+                if epochs_completed is not None
+                else thresholds.strict_stability_window
+            )
+        else:
+            required_observations = min(
+                thresholds.strict_stability_window,
+                max(int(segment_epochs_completed) - 1, 0),
+            )
+        checks.append(AcceptanceCheck(
+            name="stability_observations",
+            passed=(
+                no_history_required
+                or required_observations > 0
+                and observations >= required_observations
+            ),
+            measured=observations,
+            threshold=required_observations,
+            message="Strict validation requires a stable multi-epoch history",
+        ))
+    return tuple(checks)
+
+
+def _bond_position_data(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+):
+    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    for bond_index, bond in enumerate(mol.bonds):
+        yield (
+            bond_index,
+            bond,
+            positions[id(bond.atom1)],
+            positions[id(bond.atom2)],
+        )
+
+
+def _coordination_metrics(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+    coordinates: np.ndarray,
+) -> Tuple[dict, ...]:
+    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    donors = {index: [] for index, atom in enumerate(atoms) if atom.is_metal}
+    for bond in mol.bonds:
+        if not bond.is_metal_ligand_bond:
+            continue
+        first = positions[id(bond.atom1)]
+        second = positions[id(bond.atom2)]
+        metal, donor = (
+            (first, second) if atoms[first].is_metal else (second, first)
+        )
+        donors[metal].append(donor)
+
+    environments = []
+    for metal, donor_indices in sorted(donors.items()):
+        donor_indices = sorted(donor_indices)
+        vectors = [
+            coordinates[index] - coordinates[metal]
+            for index in donor_indices
+        ]
+        distances = [float(np.linalg.norm(vector)) for vector in vectors]
+        angles = []
+        for first, second in combinations(vectors, 2):
+            denominator = np.linalg.norm(first) * np.linalg.norm(second)
+            if denominator > 0.0:
+                cosine = np.clip(
+                    np.dot(first, second) / denominator,
+                    -1.0,
+                    1.0,
+                )
+                angles.append(float(np.degrees(np.arccos(cosine))))
+        environments.append({
+            "metal_index": _atom_index(atoms[metal], metal),
+            "coordination_number": len(donor_indices),
+            "donor_indices": tuple(
+                _atom_index(atoms[index], index) for index in donor_indices
+            ),
+            "distances": tuple(distances),
+            "angles": tuple(angles),
+        })
+    return tuple(environments)
+
+
+def _bond_ring_acceptance_checks(
+    mol: "Molecule",
+    report: "geo.BondRingScanReport[Ring, Bond]",
+) -> Tuple[AcceptanceCheck, ...]:
+    bond_positions = {
+        _bond_key(candidate): index
+        for index, candidate in enumerate(mol.bonds)
+    }
+    checks = []
+    for finding in report.piercings:
+        bond_key = finding.target.bond.key
+        checks.append(AcceptanceCheck(
+            name="bond_ring_piercing",
+            passed=False,
+            measured=finding.target.ring.key,
+            threshold=geo.PiercingState.DOES_NOT_PIERCE.value,
+            atom_indices=bond_key,
+            bond_indices=(bond_positions[bond_key],),
+            message="A finite bond segment pierces a selected ring surface",
+        ))
+    for finding in report.undetermined:
+        bond_key = finding.target.bond.key
+        checks.append(AcceptanceCheck(
+            name="bond_ring_piercing",
+            passed=False,
+            severity="warning",
+            measured=tuple(
+                sorted(cause.value for cause in finding.relation.indeterminacy_causes)
+            ),
+            threshold=geo.PiercingState.DOES_NOT_PIERCE.value,
+            atom_indices=bond_key,
+            bond_indices=(bond_positions[bond_key],),
+            message="The bond-ring spatial relation is mathematically undetermined",
+        ))
+    if not checks:
+        checks.append(AcceptanceCheck(
+            name="bond_ring_piercing",
+            passed=True,
+            measured=geo.PiercingState.DOES_NOT_PIERCE.value,
+            threshold=geo.PiercingState.DOES_NOT_PIERCE.value,
+        ))
+    return tuple(checks)
+
+
+def _select_ring_opening_edge(
+    mol: "Molecule",
+    ring: "Ring",
+    bond: "Bond",
+    *,
+    ring_scope: geo.RingScope = "ligand_skeleton",
+) -> Optional["Bond"]:
+    """Choose the nearest single, non-fused edge eligible for temporary opening."""
+    memberships = {}
+    for candidate_ring in mol.rings_for_scope(ring_scope):
+        for edge in candidate_ring.bonds:
+            key = _bond_key(edge)
+            memberships[key] = memberships.get(key, 0) + 1
+
+    eligible_edges = tuple(
+        edge
+        for edge in ring.bonds
+        if float(edge.bond_order) == 1.0
+        and memberships.get(_bond_key(edge), 0) == 1
+    )
+    if not eligible_edges:
+        return None
+
+    target_segment = geo.segment_from_bond(bond)
+
+    def edge_distance(edge: "Bond") -> Tuple[float, Tuple[int, int]]:
+        return (
+            geo.segment_segment_distance(
+                geo.segment_from_bond(edge),
+                target_segment,
+            ),
+            _bond_key(edge),
+        )
+
+    return min(eligible_edges, key=edge_distance)
 
 
 # Synchronization and force-field policy helpers.
@@ -558,12 +1219,12 @@ def _hydrogenated_working_copy(
 
 
 def _capture_workflow_topology(
-    mol: Any,
+    mol: "Molecule",
     *,
     allow_added_hydrogens: bool,
-) -> Any:
+) -> TopologyReference:
     """Capture the caller's input topology without rewriting atom identifiers."""
-    return geo.capture_topology(
+    return capture_topology(
         mol,
         allow_added_hydrogens=allow_added_hydrogens,
     )
@@ -831,7 +1492,7 @@ class _OpenBabelOptimizer:
 
     def _observe_frame(
         self,
-        mol: Any,
+        mol: "Molecule",
         obmol: Any,
         *,
         factor: float,
@@ -842,9 +1503,9 @@ class _OpenBabelOptimizer:
         previous_energy: Optional[float],
         energy_changes: deque[float],
         max_displacements: deque[float],
-        quality_level: str,
-        topology_reference: Any,
-        quality_thresholds: Optional[Mapping[str, float]],
+        quality_level: AcceptanceLevel,
+        topology_reference: TopologyReference,
+        quality_thresholds: Optional[Mapping[str, object]],
     ) -> _ObservedFrame:
         self.backend.GetCoordinates(obmol)
         coordinates = extract_obmol_coordinates(obmol)
@@ -860,7 +1521,7 @@ class _OpenBabelOptimizer:
                 axis=1,
             )
             max_displacements.append(float(np.max(displacements)))
-        quality_report = geo.evaluate_geometry_quality(
+        quality_report = evaluate_structure_acceptance(
             mol,
             level=quality_level,
             topology_reference=topology_reference,
@@ -895,11 +1556,11 @@ class _OpenBabelOptimizer:
     @_serialized_forcefield_call
     def optimize(
         self,
-        mol: Any,
+        mol: "Molecule",
         *,
-        quality_level: str,
-        topology_reference: Any,
-        quality_thresholds: Optional[Mapping[str, float]],
+        quality_level: AcceptanceLevel,
+        topology_reference: TopologyReference,
+        quality_thresholds: Optional[Mapping[str, object]],
     ) -> ForceFieldRunReport:
         obmol, _ = mol2obmol(mol)
         if self.increasing_vdw:
@@ -1091,7 +1752,7 @@ class _OpenBabelOptimizer:
 
 
 def _build_ligand_proxies(
-    mol: Any,
+    mol: "Molecule",
     *,
     candidate_count: int,
     max_attempts: int,
@@ -1112,7 +1773,7 @@ def _build_ligand_proxies(
         if component.has_metal:
             continue
 
-        component_reference = geo.capture_topology(
+        component_reference = capture_topology(
             component,
             allow_added_hydrogens=False,
         )
@@ -1153,21 +1814,27 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            intersections = geo.find_bond_ring_intersections(
+            piercing_state = geo.determine_bond_ring_piercing_state(
                 component,
                 ring_scope="ligand_skeleton",
+                max_ring_size=8,
             )
-            if intersections:
-                intersection_failures = geo.bond_ring_intersection_checks(
+            if piercing_state is geo.PiercingState.PIERCES:
+                bond_ring_report = geo.scan_bond_ring_relations(
                     component,
-                    intersections,
+                    ring_scope="ligand_skeleton",
+                    max_ring_size=8,
+                )
+                intersection_failures = _bond_ring_acceptance_checks(
+                    component,
+                    bond_ring_report,
                 )
                 bonds_to_hide = {}
-                for ring, bond in intersections:
-                    ring_edge = geo.closest_ring_opening_edge(
+                for finding in bond_ring_report.piercings:
+                    ring_edge = _select_ring_opening_edge(
                         component,
-                        ring,
-                        bond,
+                        finding.target.ring.source,
+                        finding.target.bond.source,
                     )
                     if ring_edge is None:
                         continue
@@ -1191,7 +1858,7 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            candidate_quality = geo.evaluate_geometry_quality(
+            candidate_quality = evaluate_structure_acceptance(
                 component,
                 level="basic",
                 topology_reference=component_reference,
@@ -1256,11 +1923,12 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            refined_intersections = geo.find_bond_ring_intersections(
+            refined_piercing_state = geo.determine_bond_ring_piercing_state(
                 component,
                 ring_scope="ligand_skeleton",
+                max_ring_size=8,
             )
-            refined_quality = geo.evaluate_geometry_quality(
+            refined_quality = evaluate_structure_acceptance(
                 component,
                 level="basic",
                 topology_reference=component_reference,
@@ -1272,13 +1940,25 @@ def _build_ligand_proxies(
                 },
                 forcefield_stage="candidate",
             )
-            if refined_intersections or not refined_quality.passed:
-                intersection_failures = (
-                    geo.bond_ring_intersection_checks(
+            if (
+                refined_piercing_state is geo.PiercingState.PIERCES
+                or not refined_quality.passed
+            ):
+                refined_bond_ring_report = (
+                    geo.scan_bond_ring_relations(
                         component,
-                        refined_intersections,
+                        ring_scope="ligand_skeleton",
+                        max_ring_size=8,
                     )
-                    if refined_intersections
+                    if refined_piercing_state is geo.PiercingState.PIERCES
+                    else None
+                )
+                intersection_failures = (
+                    _bond_ring_acceptance_checks(
+                        component,
+                        refined_bond_ring_report,
+                    )
+                    if refined_bond_ring_report is not None
                     else ()
                 )
                 failures = (
@@ -1630,16 +2310,16 @@ def _build_complex_working(
 
 
 def _run_optimizer_on_working(
-    working: Any,
+    working_mol: "Molecule",
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
     algorithm: OptimizationAlgorithm,
     epochs: int,
     steps_per_epoch: int,
-    quality_level: str,
-    topology_reference: Any,
-    quality_thresholds: Optional[Mapping[str, float]],
+    quality_level: AcceptanceLevel,
+    topology_reference: TopologyReference,
+    quality_thresholds: Optional[Mapping[str, object]],
     seed: Optional[int],
     perturb_interval: Optional[int],
     perturb_sigma: float,
@@ -1663,7 +2343,7 @@ def _run_optimizer_on_working(
         seed=seed,
     )
     return optimizer.optimize(
-        working,
+        working_mol,
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
@@ -1684,8 +2364,8 @@ def _complexes_build_impl(
     best_candidate_refine_steps: int = 3000,
     timeout: float = 1000.0,
     add_hydrogens: bool = True,
-    quality_level: str = "standard",
-    quality_thresholds: Optional[Mapping[str, float]] = None,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[Mapping[str, object]] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
@@ -1775,6 +2455,321 @@ def _translate_legacy_complex_build_options(options: Mapping[str, Any]) -> dict:
 
 
 # Public force-field and coordination interfaces, ordered from primitives to workflows.
+
+
+def capture_topology(
+    mol: "Molecule",
+    *,
+    allow_added_hydrogens: bool = True,
+) -> TopologyReference:
+    """Capture immutable topology expected to survive a force-field workflow."""
+    atoms = tuple(mol.atoms)
+    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    atom_signatures = tuple(
+        AtomTopologySignature(
+            index=index,
+            atom_id=int(atom.id),
+            atomic_number=int(atom.atomic_number),
+            formal_charge=int(atom.formal_charge),
+        )
+        for index, atom in enumerate(atoms)
+    )
+    bond_signatures = tuple(sorted(
+        (_topology_bond_signature(bond, positions) for bond in mol.bonds),
+        key=lambda signature: signature.atom_indices,
+    ))
+    return TopologyReference(
+        atom_signatures,
+        bond_signatures,
+        allow_added_hydrogens=allow_added_hydrogens,
+    )
+
+
+def evaluate_structure_acceptance(
+    mol: "Molecule",
+    *,
+    level: AcceptanceLevel = "standard",
+    topology_reference: Optional[TopologyReference] = None,
+    forcefield_report: Optional[object] = None,
+    forcefield_stage: ForceFieldStage = "final",
+    thresholds: Optional[
+        Union[StructureAcceptanceThresholds, Mapping[str, object]]
+    ] = None,
+) -> ForceFieldValidationReport:
+    """Apply chemistry and force-field acceptance policy to geometry facts."""
+    if level not in ("off", "basic", "standard", "strict"):
+        raise ValueError(f"Unknown structure acceptance level: {level!r}")
+    if forcefield_stage not in ("candidate", "final"):
+        raise ValueError(f"Unknown force-field stage: {forcefield_stage!r}")
+
+    limits = _resolve_acceptance_thresholds(thresholds)
+    atoms = tuple(mol.atoms)
+    coordinates = np.asarray(mol.coordinates, dtype=float)
+    checks = []
+    metrics = {
+        "atom_count": len(atoms),
+        "bond_count": len(mol.bonds),
+    }
+
+    expected_shape = (len(atoms), 3)
+    shape_ok = coordinates.shape == expected_shape
+    checks.append(AcceptanceCheck(
+        name="coordinate_shape",
+        passed=shape_ok,
+        measured=tuple(coordinates.shape),
+        threshold=expected_shape,
+        message="Coordinates must contain one Cartesian row per atom",
+    ))
+
+    finite_ok = shape_ok and bool(np.all(np.isfinite(coordinates)))
+    nonfinite_indices = ()
+    if shape_ok and not finite_ok:
+        nonfinite_indices = tuple(
+            _atom_index(atoms[index], index)
+            for index in np.flatnonzero(
+                ~np.all(np.isfinite(coordinates), axis=1)
+            )
+        )
+    checks.append(AcceptanceCheck(
+        name="finite_coordinates",
+        passed=finite_ok,
+        measured=finite_ok,
+        threshold=True,
+        atom_indices=nonfinite_indices,
+        message="All Cartesian coordinates must be finite",
+    ))
+
+    if topology_reference is not None:
+        checks.extend(_topology_checks(mol, topology_reference))
+    checks.extend(_forcefield_acceptance_checks(
+        forcefield_report,
+        level,
+        limits,
+        forcefield_stage,
+    ))
+
+    if not finite_ok:
+        passed = all(
+            check.passed or check.severity != "error" for check in checks
+        )
+        return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+
+    distances = geo.measure_atom_pair_distances(mol, "all")
+    if distances:
+        metrics["minimum_pair_distance"] = min(
+            float(distance.measurement.distance) for distance in distances
+        )
+
+    if level == "off":
+        passed = all(
+            check.passed or check.severity != "error" for check in checks
+        )
+        return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+
+    overlaps = _overlap_issues(distances, limits.overlap_tolerance)
+    if overlaps:
+        checks.extend(AcceptanceCheck(
+            name="atom_overlap",
+            passed=False,
+            measured=issue.distance,
+            threshold=issue.threshold,
+            atom_indices=issue.atom_indices,
+            message="Two atoms occupy indistinguishable coordinates",
+        ) for issue in overlaps)
+    else:
+        checks.append(AcceptanceCheck(
+            name="atom_overlap",
+            passed=True,
+            measured=0,
+            threshold=limits.overlap_tolerance,
+        ))
+
+    close_pairs_by_atoms = {
+        issue.atom_indices: issue
+        for issue in _too_close_issues(
+            distances,
+            minimum_distance=limits.basic_minimum_distance,
+            covalent_radius_scale=None,
+            pair_scope="all",
+            include_overlaps=False,
+            overlap_tolerance=limits.overlap_tolerance,
+        )
+    }
+    if level in ("standard", "strict"):
+        close_pairs_by_atoms.update(
+            (issue.atom_indices, issue)
+            for issue in _too_close_issues(
+                distances,
+                minimum_distance=limits.standard_minimum_distance,
+                covalent_radius_scale=limits.standard_covalent_radius_scale,
+                pair_scope="nonbonded",
+                include_overlaps=False,
+                overlap_tolerance=limits.overlap_tolerance,
+            )
+        )
+    close_pairs = tuple(
+        close_pairs_by_atoms[key] for key in sorted(close_pairs_by_atoms)
+    )
+    if close_pairs:
+        checks.extend(AcceptanceCheck(
+            name="atom_too_close",
+            passed=False,
+            measured=issue.distance,
+            threshold=issue.threshold,
+            atom_indices=issue.atom_indices,
+            message="An atom pair is closer than the allowed separation",
+        ) for issue in close_pairs)
+    else:
+        checks.append(AcceptanceCheck(
+            name="atom_too_close",
+            passed=True,
+            measured=0,
+            threshold=(
+                limits.basic_minimum_distance
+                if level == "basic"
+                else (
+                    limits.basic_minimum_distance,
+                    limits.standard_minimum_distance,
+                    limits.standard_covalent_radius_scale,
+                )
+            ),
+        ))
+
+    maximum_bond_length = 0.0
+    short_bond_count = 0
+    for bond_index, bond, first, second in _bond_position_data(mol, atoms):
+        distance = float(np.linalg.norm(
+            coordinates[first] - coordinates[second]
+        ))
+        maximum_bond_length = max(maximum_bond_length, distance)
+        atom_indices = (
+            _atom_index(atoms[first], first),
+            _atom_index(atoms[second], second),
+        )
+        valid_length = 0.0 < distance <= limits.maximum_bond_distance
+        if not valid_length:
+            checks.append(AcceptanceCheck(
+                name="bond_distance",
+                passed=False,
+                measured=distance,
+                threshold=(0.0, limits.maximum_bond_distance),
+                atom_indices=atom_indices,
+                bond_indices=(bond_index,),
+                message="An explicit bond has an invalid or exploded length",
+            ))
+
+        if level in ("standard", "strict"):
+            radius_sum = (
+                float(atoms[first].covalent_radius)
+                + float(atoms[second].covalent_radius)
+            )
+            if radius_sum > 0.0:
+                ratio = distance / radius_sum
+                ratio_limits = (
+                    limits.metal_ligand_bond_ratio
+                    if bond.is_metal_ligand_bond
+                    else limits.covalent_bond_ratio
+                )
+                if ratio < ratio_limits[0]:
+                    short_bond_count += 1
+                    checks.append(AcceptanceCheck(
+                        name="short_bond",
+                        passed=False,
+                        measured=distance,
+                        threshold=ratio_limits[0] * radius_sum,
+                        atom_indices=atom_indices,
+                        bond_indices=(bond_index,),
+                        message=(
+                            "An explicit bond is shorter than its "
+                            "radius-scaled limit"
+                        ),
+                    ))
+                if not ratio_limits[0] <= ratio <= ratio_limits[1]:
+                    checks.append(AcceptanceCheck(
+                        name="bond_length_ratio",
+                        passed=False,
+                        measured=ratio,
+                        threshold=ratio_limits,
+                        atom_indices=atom_indices,
+                        bond_indices=(bond_index,),
+                        message="Bond length is inconsistent with covalent radii",
+                    ))
+    metrics["maximum_bond_length"] = maximum_bond_length
+    if not any(check.name == "bond_distance" for check in checks):
+        checks.append(AcceptanceCheck(
+            name="bond_distance",
+            passed=True,
+            measured=maximum_bond_length,
+            threshold=(0.0, limits.maximum_bond_distance),
+        ))
+    if level in ("standard", "strict") and not any(
+        check.name == "bond_length_ratio" for check in checks
+    ):
+        checks.append(AcceptanceCheck(
+            name="bond_length_ratio",
+            passed=True,
+            measured=None,
+            threshold=(
+                limits.covalent_bond_ratio,
+                limits.metal_ligand_bond_ratio,
+            ),
+        ))
+    if level in ("standard", "strict") and short_bond_count == 0:
+        checks.append(AcceptanceCheck(
+            name="short_bond",
+            passed=True,
+            measured=0,
+            threshold=(
+                limits.covalent_bond_ratio[0],
+                limits.metal_ligand_bond_ratio[0],
+            ),
+            message="No explicit bond is below its radius-scaled limit",
+        ))
+
+    if level in ("standard", "strict"):
+        bond_ring_report = geo.scan_bond_ring_relations(
+            mol,
+            ring_scope="ligand_skeleton",
+            max_ring_size=8,
+        )
+        metrics["bond_ring_piercing_count"] = (
+            bond_ring_report.piercing_pair_count
+        )
+        metrics["bond_ring_undetermined_count"] = (
+            bond_ring_report.undetermined_pair_count
+        )
+        metrics["bond_ring_scan_complete"] = bond_ring_report.scan_complete
+        checks.extend(_bond_ring_acceptance_checks(mol, bond_ring_report))
+        metrics["coordination_environments"] = _coordination_metrics(
+            mol,
+            atoms,
+            coordinates,
+        )
+
+    passed = all(check.passed or check.severity != "error" for check in checks)
+    return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+
+
+def is_structure_accepted(
+    mol: "Molecule",
+    *,
+    level: AcceptanceLevel = "standard",
+    topology_reference: Optional[TopologyReference] = None,
+    forcefield_report: Optional[object] = None,
+    forcefield_stage: ForceFieldStage = "final",
+    thresholds: Optional[
+        Union[StructureAcceptanceThresholds, Mapping[str, object]]
+    ] = None,
+) -> bool:
+    """Return the result of :func:`evaluate_structure_acceptance`."""
+    return evaluate_structure_acceptance(
+        mol,
+        level=level,
+        topology_reference=topology_reference,
+        forcefield_report=forcefield_report,
+        forcefield_stage=forcefield_stage,
+        thresholds=thresholds,
+    ).passed
 
 
 def perturb(mol: Any, *, sigma: float = 0.5, seed: Optional[int] = None) -> np.ndarray:
@@ -1867,7 +2862,7 @@ def build3d(
             seed,
             timeout=timeout,
         )
-    quality_report = geo.evaluate_geometry_quality(
+    quality_report = evaluate_structure_acceptance(
         working,
         level="off",
         topology_reference=topology_reference,
@@ -1891,8 +2886,8 @@ def optimize(
     epochs: int = 1,
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
-    quality_level: str = "standard",
-    quality_thresholds: Optional[Mapping[str, float]] = None,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[Mapping[str, object]] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
@@ -1968,7 +2963,7 @@ def build_complex3d(
         seed=seed,
         coordination_geometry=coordination_geometry,
     )
-    quality_report = geo.evaluate_geometry_quality(
+    quality_report = evaluate_structure_acceptance(
         working,
         level="off",
         topology_reference=topology_reference,
@@ -1994,8 +2989,8 @@ def optimize_complex(
     epochs: int = 100,
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
-    quality_level: str = "standard",
-    quality_thresholds: Optional[Mapping[str, float]] = None,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[Mapping[str, object]] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
@@ -2059,8 +3054,8 @@ def build_and_optimize(
     epochs: int = 100,
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
-    quality_level: str = "standard",
-    quality_thresholds: Optional[Mapping[str, float]] = None,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[Mapping[str, object]] = None,
     seed: Optional[int] = None,
     timeout: float = 1000.0,
     perturb_interval: Optional[int] = None,
@@ -2145,8 +3140,8 @@ def auto_optimize(
     epochs: int = 100,
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
-    quality_level: str = "standard",
-    quality_thresholds: Optional[Mapping[str, float]] = None,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[Mapping[str, object]] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,

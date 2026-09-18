@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo import forcefields as ff
 from hotpot.cheminfo.core import Molecule
 
 
@@ -68,7 +68,7 @@ def test_off_level_still_rejects_bad_coordinate_shape_and_nonfinite_values():
         bonds=(),
         coordinates=np.array((0.0, 0.0, 0.0)),
     )
-    malformed_report = geo.evaluate_geometry_quality(malformed, level="off")
+    malformed_report = ff.evaluate_structure_acceptance(malformed, level="off")
     assert not malformed_report.passed
     assert not next(
         check for check in malformed_report.checks
@@ -77,7 +77,7 @@ def test_off_level_still_rejects_bad_coordinate_shape_and_nonfinite_values():
 
     molecule = _valid_carbon_bond()
     molecule.atoms[1].coordinates = (np.nan, 0.0, 0.0)
-    nonfinite_report = geo.evaluate_geometry_quality(molecule, level="off")
+    nonfinite_report = ff.evaluate_structure_acceptance(molecule, level="off")
     assert not nonfinite_report.passed
     finite_check = next(
         check for check in nonfinite_report.checks
@@ -89,7 +89,7 @@ def test_off_level_still_rejects_bad_coordinate_shape_and_nonfinite_values():
 def test_quality_partitions_overlap_from_too_close_pairs():
     molecule = _molecule(((0.0, 0.0, 0.0), (0.0005, 0.0, 0.0)))
 
-    report = geo.evaluate_geometry_quality(molecule, level="basic")
+    report = ff.evaluate_structure_acceptance(molecule, level="basic")
 
     overlap_failures = [
         check for check in report.failures if check.name == "atom_overlap"
@@ -110,7 +110,7 @@ def test_basic_gate_rejects_an_exploded_explicit_bond():
         ((0, 1),),
     )
 
-    report = geo.evaluate_geometry_quality(molecule, level="basic")
+    report = ff.evaluate_structure_acceptance(molecule, level="basic")
 
     assert not report.passed
     failure = next(
@@ -128,7 +128,7 @@ def test_standard_gate_reports_short_bonds_separately_from_close_pairs():
         ((0, 1),),
     )
 
-    report = geo.evaluate_geometry_quality(molecule, level="standard")
+    report = ff.evaluate_structure_acceptance(molecule, level="standard")
 
     failure = next(
         check for check in report.failures if check.name == "short_bond"
@@ -144,12 +144,12 @@ def test_standard_gate_reports_short_bonds_separately_from_close_pairs():
 
 
 def test_standard_gate_rejects_a_bond_crossing_a_ligand_ring():
-    report = geo.evaluate_geometry_quality(_crossed_square(), level="standard")
+    report = ff.evaluate_structure_acceptance(_crossed_square(), level="standard")
 
     assert not report.passed
     failure = next(
         check for check in report.failures
-        if check.name == "bond_ring_intersection"
+        if check.name == "bond_ring_piercing"
     )
     assert failure.atom_indices == (4, 5)
     assert failure.bond_indices == (4,)
@@ -158,10 +158,10 @@ def test_standard_gate_rejects_a_bond_crossing_a_ligand_ring():
 def test_standard_gate_accepts_a_sensible_small_molecule():
     molecule = _valid_carbon_bond()
 
-    report = geo.evaluate_geometry_quality(molecule, level="standard")
+    report = ff.evaluate_structure_acceptance(molecule, level="standard")
 
     assert report.passed
-    assert geo.is_geometry_reasonable(molecule, level="standard") == report.passed
+    assert ff.is_structure_accepted(molecule, level="standard") == report.passed
     json.dumps(report.to_dict())
 
 
@@ -184,10 +184,10 @@ def test_standard_gate_accepts_a_sensible_small_molecule():
     ids=("benzene_skeleton", "cyclohexane_skeleton"),
 )
 def test_standard_gate_accepts_ideal_organic_ring_geometries(molecule):
-    report = geo.evaluate_geometry_quality(molecule, level="standard")
+    report = ff.evaluate_structure_acceptance(molecule, level="standard")
 
     assert report.passed
-    assert report.metrics["bond_ring_intersection_count"] == 0
+    assert report.metrics["bond_ring_piercing_count"] == 0
 
 
 @pytest.mark.parametrize(
@@ -223,7 +223,7 @@ def test_standard_gate_accepts_ideal_coordination_geometries(
     molecule,
     expected_coordination_number,
 ):
-    report = geo.evaluate_geometry_quality(molecule, level="standard")
+    report = ff.evaluate_structure_acceptance(molecule, level="standard")
 
     assert report.passed
     (environment,) = report.metrics["coordination_environments"]
@@ -240,7 +240,7 @@ def test_standard_gate_accepts_ideal_coordination_geometries(
 
 def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
     molecule = _valid_carbon_bond()
-    reference = geo.capture_topology(molecule, allow_added_hydrogens=True)
+    reference = ff.capture_topology(molecule, allow_added_hydrogens=True)
     accepted = copy(molecule)
     hydrogen = accepted.create_atom(
         atomic_number=1,
@@ -248,7 +248,7 @@ def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
     )
     accepted.add_bond(accepted.atoms[0], hydrogen, bond_order=1.0)
 
-    assert geo.evaluate_geometry_quality(
+    assert ff.evaluate_structure_acceptance(
         accepted,
         level="off",
         topology_reference=reference,
@@ -260,7 +260,7 @@ def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
         coordinates=(-1.2, 0.0, 0.0),
     )
     rejected.add_bond(rejected.atoms[0], oxygen, bond_order=1.0)
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         rejected,
         level="off",
         topology_reference=reference,
@@ -271,7 +271,7 @@ def test_topology_reference_allows_only_appended_hydrogen_and_xh_bond():
 
 def test_topology_reference_rejects_added_hydrogen_when_not_allowed():
     molecule = _valid_carbon_bond()
-    reference = geo.capture_topology(molecule, allow_added_hydrogens=False)
+    reference = ff.capture_topology(molecule, allow_added_hydrogens=False)
     candidate = copy(molecule)
     hydrogen = candidate.create_atom(
         atomic_number=1,
@@ -279,7 +279,7 @@ def test_topology_reference_rejects_added_hydrogen_when_not_allowed():
     )
     candidate.add_bond(candidate.atoms[0], hydrogen, bond_order=1.0)
 
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         candidate,
         level="off",
         topology_reference=reference,
@@ -292,10 +292,10 @@ def test_topology_reference_rejects_added_hydrogen_when_not_allowed():
 
 def test_topology_reference_rejects_original_bond_changes():
     molecule = _valid_carbon_bond()
-    reference = geo.capture_topology(molecule)
+    reference = ff.capture_topology(molecule)
     molecule.bonds[0].bond_order = 2.0
 
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         molecule,
         level="off",
         topology_reference=reference,
@@ -317,12 +317,12 @@ def test_standard_warns_but_strict_fails_on_backend_nonconvergence():
         "exploded": False,
     }
 
-    standard = geo.evaluate_geometry_quality(
+    standard = ff.evaluate_structure_acceptance(
         molecule,
         level="standard",
         forcefield_report=forcefield_report,
     )
-    strict = geo.evaluate_geometry_quality(
+    strict = ff.evaluate_structure_acceptance(
         molecule,
         level="strict",
         forcefield_report=forcefield_report,
@@ -339,8 +339,8 @@ def test_standard_warns_but_strict_fails_on_backend_nonconvergence():
 def test_strict_gate_fails_closed_without_complete_forcefield_diagnostics():
     molecule = _valid_carbon_bond()
 
-    missing_report = geo.evaluate_geometry_quality(molecule, level="strict")
-    empty_report = geo.evaluate_geometry_quality(
+    missing_report = ff.evaluate_structure_acceptance(molecule, level="strict")
+    empty_report = ff.evaluate_structure_acceptance(
         molecule,
         level="strict",
         forcefield_report={},
@@ -365,7 +365,7 @@ def test_strict_gate_fails_closed_without_complete_forcefield_diagnostics():
 
 
 def test_supplied_final_report_fails_closed_even_when_gate_is_off():
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         _valid_carbon_bond(),
         level="off",
         forcefield_report={},
@@ -381,7 +381,7 @@ def test_supplied_final_report_fails_closed_even_when_gate_is_off():
 
 
 def test_candidate_report_does_not_claim_unobserved_gradients():
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         _valid_carbon_bond(),
         level="basic",
         forcefield_report={
@@ -398,7 +398,7 @@ def test_candidate_report_does_not_claim_unobserved_gradients():
 
 
 def test_basic_gate_fails_closed_without_backend_explosion_status():
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         _valid_carbon_bond(),
         level="basic",
         forcefield_report={
@@ -427,7 +427,7 @@ def test_basic_gate_fails_closed_without_backend_explosion_status():
     ),
 )
 def test_candidate_report_fails_closed_on_required_fields(forcefield_report):
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         _valid_carbon_bond(),
         level="basic",
         forcefield_report=forcefield_report,
@@ -451,7 +451,7 @@ def test_strict_gate_accepts_complete_stable_forcefield_diagnostics():
         "max_displacements": (1.0e-5,) * 5,
     }
 
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         molecule,
         level="strict",
         forcefield_report=forcefield_report,
@@ -475,7 +475,7 @@ def test_strict_gate_accepts_a_definitively_converged_first_segment_frame():
         "max_displacements": (),
     }
 
-    report = geo.evaluate_geometry_quality(
+    report = ff.evaluate_structure_acceptance(
         molecule,
         level="strict",
         forcefield_report=forcefield_report,
@@ -488,7 +488,7 @@ def test_strict_gate_accepts_a_definitively_converged_first_segment_frame():
     assert checks["stability_observations"].threshold == 0
 
 
-def test_geometry_evaluation_does_not_change_structure_or_conformers():
+def test_acceptance_evaluation_does_not_change_structure_or_conformers():
     molecule = _crossed_square()
     molecule.conformer_add(molecule.coordinates.copy())
     coordinates = molecule.coordinates.copy()
@@ -500,7 +500,7 @@ def test_geometry_evaluation_does_not_change_structure_or_conformers():
     ligand_rings_cache = molecule._ligand_rings
     ligand_rings_signature = molecule._ligand_rings_signature
 
-    geo.evaluate_geometry_quality(molecule, level="standard")
+    ff.evaluate_structure_acceptance(molecule, level="standard")
 
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
     assert tuple(molecule.bonds) == bonds

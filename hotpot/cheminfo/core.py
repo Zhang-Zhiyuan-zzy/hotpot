@@ -2273,6 +2273,17 @@ class Molecule:
             for cycle in nx.cycle_basis(graph)
         ]
 
+    def rings_for_scope(
+            self,
+            ring_scope: Literal["full_graph", "ligand_skeleton"],
+    ) -> list["Ring"]:
+        """Return an uncached cycle-basis view for the requested graph scope."""
+        if ring_scope == "full_graph":
+            return self._uncached_rings()
+        if ring_scope == "ligand_skeleton":
+            return self._uncached_rings(ligand_skeleton=True)
+        raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
+
     @property
     def aromatic_joint_rings(self) -> list["JointRing"]:
         """

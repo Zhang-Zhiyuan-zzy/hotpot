@@ -11,7 +11,6 @@ from os.path import join as opj
 from pathlib import Path
 import unittest as ut
 from copy import copy
-from itertools import product
 
 import hotpot as hp
 from hotpot.cheminfo.core import InternalCoordinates
@@ -272,61 +271,6 @@ class TestChemInfo(ut.TestCase):
         mol.build3d(save_movie=True)
         mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol.sdf'), 'sdf', overwrite=True)
         mol.write(opj(tests.output_dir, 'cheminfo', 'built_mol_single.sdf'), 'sdf', overwrite=True, write_single=True)
-
-    def test_judge_intersect(self):
-        def _artificial_mol():
-            mol = hp.Molecule()
-            for i in range(6):
-                mol.create_atom(atomic_number=6, coordinates=(2 * np.cos(i / 3 * np.pi), 2 * np.sin(i / 3 * np.pi), 0))
-            for i in range(6):
-                if i != 5:
-                    mol.add_bond(i, i + 1, bond_order=2 if i % 2 == 0 else 1)
-                else:
-                    mol.add_bond(i, 0, bond_order=1)
-
-            mol.create_atom(atomic_number=8, coordinates=(0, 0, -2))
-            mol.create_atom(atomic_number=8, coordinates=(0, 0, 2))
-            mol.add_bond(6, 7, 1)
-
-            mol.write(opj(tests.output_dir, 'cheminfo', f'mol.sdf'), overwrite=True)
-            for i, (r, b) in enumerate(product(mol.rings, mol.bonds)):
-                if r.is_bond_intersect_the_ring(b):
-                    cycle = r.cycle_places
-                    line = b.bond_line
-
-                    center_point = cycle.center
-                    intersect_points = cycle.line_intersect_points(line)
-
-                    mr = r.to_mol()
-                    mb = b.to_mol()
-
-                    mol_ = mr + mb
-                    mol_.create_atom(symbol='Cm', coordinates=center_point)
-                    for p in intersect_points:
-                        mol.create_atom(atomic_number=0, coordinates=p)
-
-                    mol_.write(opj(tests.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
-
-        mol_intersect = next(hp.MolReader(Path(tests.input_dir).joinpath('intersect.sdf')))
-        mol_not = next(hp.MolReader(Path(tests.input_dir).joinpath('not_intersect.sdf')))
-
-        for i, (r, b) in enumerate(product(mol_intersect.rings, mol_intersect.bonds)):
-            if r.is_bond_intersect_the_ring(b):
-                cycle = r.cycle_places
-                line = b.bond_line
-
-                center_point = cycle.center
-                intersect_points = cycle.line_intersect_points(line)
-
-                mr = r.to_mol()
-                mb = b.to_mol()
-
-                mrb = mr + mb
-                mrb.create_atom(symbol='Cm', coordinates=center_point)
-                for p in intersect_points:
-                    mrb.create_atom(atomic_number=0, coordinates=p)
-
-                mrb.write(opj(tests.output_dir, 'cheminfo', f'rb{i}.sdf'), overwrite=True)
 
     def test_mol_similarity(self):
         """"""

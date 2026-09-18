@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from math import atan2, comb, pi, sqrt
-from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Tuple, cast
+from typing import Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -42,6 +42,7 @@ __all__ = [
     "point_pair_distances",
     "find_point_pairs_below_distance",
     "locate_point_in_planar_cycle",
+    "iter_segment_cycle_relations",
     "determine_segment_cycle_relation",
     "closest_cycle_edge",
 ]
@@ -232,6 +233,17 @@ class _SurfaceCounters:
     triangle_pair_budget_exhausted: bool = False
 
 
+@dataclass(frozen=True)
+class _PreparedNonplanarSurfaceFamily:
+    enumeration_complete: bool
+    enumerated_surface_count: int
+    embedded_surfaces: Tuple[Tuple[Tuple[int, int, int], ...], ...]
+    proven_non_embedded_surface_count: int
+    construction_undetermined_count: int
+    triangle_pair_tests_used: int
+    causes: FrozenSet[SegmentCycleIndeterminacy]
+
+
 # Dimension-aware numerical helpers.
 
 
@@ -250,8 +262,12 @@ def _all_finite(arrays: Iterable[np.ndarray]) -> bool:
 def _diameter(coordinates: np.ndarray) -> float:
     if len(coordinates) < 2:
         return 0.0
-    differences = coordinates[:, np.newaxis, :] - coordinates[np.newaxis, :, :]
-    return float(np.max(np.linalg.norm(differences, axis=2)))
+    with np.errstate(over="ignore", invalid="ignore"):
+        differences = (
+            coordinates[:, np.newaxis, :] - coordinates[np.newaxis, :, :]
+        )
+        diameter = float(np.max(np.linalg.norm(differences, axis=2)))
+    return diameter
 
 
 def _local_length_scale(
@@ -263,9 +279,13 @@ def _local_length_scale(
     if not _all_finite((coordinates,)):
         return float("nan")
     candidates: List[float] = [_diameter(coordinates)]
-    candidates.extend(segment.length for segment in segments)
+    with np.errstate(over="ignore", invalid="ignore"):
+        candidates.extend(segment.length for segment in segments)
     if cycle is not None:
-        edge_lengths = np.asarray([edge.length for edge in cycle.edges], dtype=np.float64)
+        with np.errstate(over="ignore", invalid="ignore"):
+            edge_lengths = np.asarray(
+                [edge.length for edge in cycle.edges], dtype=np.float64
+            )
         if not bool(np.all(np.isfinite(edge_lengths))):
             return float("nan")
         candidates.append(float(np.median(edge_lengths)))
@@ -343,6 +363,8 @@ def _fit_plane_svd(
         return _nan_planarity(PlanarityKind.UNDETERMINED)
 
     length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
+    if not np.isfinite(length_scale):
+        return _nan_planarity(PlanarityKind.UNDETERMINED)
     tolerance = settings.tolerance
     length_tolerance = tolerance.absolute_length
     if length_scale > 0.0:
@@ -427,6 +449,15 @@ def _normalized_direction(direction: Sequence[float]) -> Optional[np.ndarray]:
         return None
     scaled = array / maximum
     return scaled / np.linalg.norm(scaled)
+
+
+def _scale_safe_norm(vector: np.ndarray) -> float:
+    maximum = float(np.max(np.abs(vector)))
+    if maximum == 0.0:
+        return 0.0
+    if not np.isfinite(maximum):
+        return float("nan")
+    return maximum * float(np.linalg.norm(vector / maximum))
 
 
 def _point_segment_distance_arrays(
@@ -612,6 +643,69 @@ def _locate_projected_point(
     if abs(winding) <= winding_tolerance:
         return PointCycleLocation.EXTERIOR
     return PointCycleLocation.UNDETERMINED
+
+
+def _projected_segment_polygon_contact(
+    segment: np.ndarray,
+    polygon: np.ndarray,
+    tolerances: _PredicateTolerances,
+    settings: GeometrySettings,
+) -> Tuple[bool, bool]:
+    locations = tuple(
+        _locate_projected_point(point, polygon, tolerances, settings)
+        for point in segment
+    )
+    if any(
+        location in (PointCycleLocation.INTERIOR, PointCycleLocation.BOUNDARY)
+        for location in locations
+    ):
+        return True, False
+    if any(location is PointCycleLocation.UNDETERMINED for location in locations):
+        return False, True
+
+    squared_tolerance = tolerances.length * tolerances.length
+    edge_distances = tuple(
+        _segment_segment_distance_arrays(
+            segment[0],
+            segment[1],
+            polygon[index],
+            polygon[(index + 1) % len(polygon)],
+            squared_tolerance,
+        )
+        for index in range(len(polygon))
+    )
+    if min(edge_distances) <= tolerances.length:
+        return True, False
+    if min(edge_distances) <= (
+        settings.tolerance.predicate_guard_factor * tolerances.length
+    ):
+        return False, True
+    return False, False
+
+
+def _coplanar_segment_triangle_contact(
+    segment: Segment,
+    triangle: Triangle,
+    tolerances: _PredicateTolerances,
+    settings: GeometrySettings,
+) -> Tuple[bool, bool]:
+    triangle_coordinates = np.asarray(
+        [vertex.coordinates for vertex in triangle.vertices], dtype=np.float64
+    )
+    normal = np.cross(
+        triangle_coordinates[1] - triangle_coordinates[0],
+        triangle_coordinates[2] - triangle_coordinates[0],
+    )
+    normal /= _scale_safe_norm(normal)
+    projected_triangle = _project_to_plane(
+        triangle_coordinates, triangle_coordinates[0], normal
+    )
+    projected_segment = _project_to_plane(
+        np.asarray(_segment_arrays(segment)), triangle_coordinates[0], normal
+    )
+    return _projected_segment_polygon_contact(
+        projected_segment, projected_triangle, tolerances, settings
+    )
 
 
 # Segment--plane, segment--triangle, and surface construction kernels.
@@ -1143,9 +1237,10 @@ def _surface_segment_relation(
             evaluation_undetermined = True
             break
         counters.segment_triangle_tests += 1
+        triangle = _triangle_from_indices(cycle, indices)
         hit = _segment_triangle_relation(
             segment,
-            _triangle_from_indices(cycle, indices),
+            triangle,
             tolerances,
             settings,
         )
@@ -1177,9 +1272,16 @@ def _surface_segment_relation(
                 features.add(_point_boundary_feature(hit.point, cycle, tolerances))
                 points.append(hit.point)
         elif hit.kind is _TriangleHitKind.SEGMENT_ENDPOINT:
-            features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
             if hit.point is not None:
-                if any(
+                if _point_near_internal_simplex(
+                    hit.point,
+                    internal_edges,
+                    cycle,
+                    guard * tolerances.length,
+                ):
+                    evaluation_undetermined = True
+                    causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
+                elif any(
                     _point_segment_distance_arrays(
                         hit.point,
                         _point_array(edge.start),
@@ -1188,12 +1290,23 @@ def _surface_segment_relation(
                     <= tolerances.length
                     for edge in cycle.edges
                 ):
+                    features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
                     features.add(
                         _point_boundary_feature(hit.point, cycle, tolerances)
                     )
-                points.append(hit.point)
+                    points.append(hit.point)
+                else:
+                    features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
+                    points.append(hit.point)
         elif hit.kind is _TriangleHitKind.COPLANAR:
-            features.add(SegmentCycleFeature.COPLANAR_CONTACT)
+            has_contact, contact_undetermined = _coplanar_segment_triangle_contact(
+                segment, triangle, tolerances, settings
+            )
+            if has_contact:
+                features.add(SegmentCycleFeature.COPLANAR_CONTACT)
+            elif contact_undetermined:
+                evaluation_undetermined = True
+                causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
         elif hit.kind is _TriangleHitKind.DEGENERATE:
             evaluation_undetermined = True
             causes.add(SegmentCycleIndeterminacy.DEGENERATE_TRIANGLE)
@@ -1226,6 +1339,8 @@ def _segment_cycle_base_data(
     if not _all_finite(arrays):
         return None, frozenset({SegmentCycleIndeterminacy.NONFINITE_INPUT})
     length_scale = _local_length_scale(points, (segment,), cycle)
+    if not np.isfinite(length_scale):
+        return None, frozenset({SegmentCycleIndeterminacy.NUMERIC_BAND})
     if length_scale <= settings.tolerance.absolute_length:
         return None, frozenset({SegmentCycleIndeterminacy.DEGENERATE_CYCLE})
     tolerances = _predicate_tolerances(length_scale, settings)
@@ -1264,6 +1379,7 @@ def _planar_segment_cycle_relation(
     segment: Segment,
     cycle: Cycle,
     planarity: PlanarityMeasurement,
+    simplicity: _PolygonSimplicity,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
 ) -> SegmentCycleRelation:
@@ -1274,7 +1390,6 @@ def _planar_segment_cycle_relation(
         origin,
         normal,
     )
-    simplicity = _projected_polygon_simplicity(polygon, tolerances, settings)
     closest = closest_cycle_edge(cycle, segment, settings)
     if simplicity is _PolygonSimplicity.SELF_INTERSECTING:
         evidence = SurfaceFamilyEvidence(True, 1, 0, 1, 0, 0, 0, 0, 0, 0)
@@ -1313,7 +1428,17 @@ def _planar_segment_cycle_relation(
     state = PiercingState.DOES_NOT_PIERCE
 
     if start_absolute <= tolerances.length and end_absolute <= tolerances.length:
-        features.add(SegmentCycleFeature.COPLANAR_CONTACT)
+        projected_segment = _project_to_plane(
+            np.asarray((start, end)), origin, normal
+        )
+        has_contact, contact_undetermined = _projected_segment_polygon_contact(
+            projected_segment, polygon, tolerances, settings
+        )
+        if has_contact:
+            features.add(SegmentCycleFeature.COPLANAR_CONTACT)
+        elif contact_undetermined:
+            state = PiercingState.UNDETERMINED
+            causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
     elif (
         tolerances.length < start_absolute <= guard * tolerances.length
         or tolerances.length < end_absolute <= guard * tolerances.length
@@ -1337,8 +1462,12 @@ def _planar_segment_cycle_relation(
                 tolerances,
                 settings,
             )
-            features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
-            points.append(point)
+            if location in (
+                PointCycleLocation.INTERIOR,
+                PointCycleLocation.BOUNDARY,
+            ):
+                features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
+                points.append(point)
             if location is PointCycleLocation.BOUNDARY:
                 features.add(_point_boundary_feature(point, cycle, tolerances))
             elif location is PointCycleLocation.UNDETERMINED:
@@ -1428,23 +1557,35 @@ def _planar_segment_cycle_relation(
     )
 
 
-def _nonplanar_segment_cycle_relation(
-    segment: Segment,
+def _prepare_nonplanar_surface_family(
     cycle: Cycle,
-    tolerances: _PredicateTolerances,
     settings: GeometrySettings,
-) -> SegmentCycleRelation:
-    model = CycleSurfaceModel.VERTEX_TRIANGULATION_FAMILY
+) -> _PreparedNonplanarSurfaceFamily:
     surface_settings = settings.surface
     vertex_count = len(cycle)
     if vertex_count > surface_settings.maximum_cycle_vertices:
-        return _undetermined_segment_cycle_relation(
-            segment,
-            cycle,
-            model,
-            settings,
+        return _PreparedNonplanarSurfaceFamily(
+            False,
+            0,
+            tuple(),
+            0,
+            0,
+            0,
             frozenset({SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY}),
         )
+
+    length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
+    if not np.isfinite(length_scale) or length_scale <= settings.tolerance.absolute_length:
+        return _PreparedNonplanarSurfaceFamily(
+            False,
+            0,
+            tuple(),
+            0,
+            1,
+            0,
+            frozenset({SegmentCycleIndeterminacy.SURFACE_CONSTRUCTION}),
+        )
+    tolerances = _predicate_tolerances(length_scale, settings)
 
     triangulations = _enumerate_cycle_triangulations(vertex_count)
     expected_count = comb(2 * vertex_count - 4, vertex_count - 2) // (
@@ -1459,15 +1600,9 @@ def _nonplanar_segment_cycle_relation(
 
     counters = _SurfaceCounters()
     enumerated = 0
-    embedded = 0
     proven_nonembedded = 0
     construction_unknown = 0
-    intersecting = 0
-    nonpiercing = 0
-    evaluation_unknown = 0
-    features = set()
     causes = set()
-    points: List[np.ndarray] = []
     embedded_surfaces: List[Tuple[Tuple[int, int, int], ...]] = []
 
     for surface in triangulations:
@@ -1489,30 +1624,44 @@ def _nonplanar_segment_cycle_relation(
                 break
             continue
 
-        embedded += 1
         embedded_surfaces.append(surface)
 
     if not enumeration_complete:
         causes.add(SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY)
 
-    segment_coordinates = np.asarray(
-        [segment.start.coordinates, segment.end.coordinates], dtype=np.float64
+    return _PreparedNonplanarSurfaceFamily(
+        enumeration_complete,
+        enumerated,
+        tuple(embedded_surfaces),
+        proven_nonembedded,
+        construction_unknown,
+        counters.triangle_pair_tests,
+        frozenset(causes),
     )
-    cycle_coordinates = np.asarray(
-        [vertex.coordinates for vertex in cycle.vertices], dtype=np.float64
-    )
-    safely_outside_surface_aabb = (
-        enumeration_complete
-        and construction_unknown == 0
-        and embedded > 0
-        and _aabb_stably_separated(
-            segment_coordinates, cycle_coordinates, tolerances.aabb
-        )
-    )
-    if safely_outside_surface_aabb:
-        nonpiercing = embedded
 
-    for surface in (() if safely_outside_surface_aabb else embedded_surfaces):
+
+def _nonplanar_segment_cycle_relation(
+    segment: Segment,
+    cycle: Cycle,
+    tolerances: _PredicateTolerances,
+    settings: GeometrySettings,
+    prepared: _PreparedNonplanarSurfaceFamily,
+) -> SegmentCycleRelation:
+    model = CycleSurfaceModel.VERTEX_TRIANGULATION_FAMILY
+    enumeration_complete = prepared.enumeration_complete
+    embedded_surfaces = prepared.embedded_surfaces
+    embedded = len(embedded_surfaces)
+    intersecting = 0
+    nonpiercing = 0
+    evaluation_unknown = 0
+    features = set()
+    causes = set(prepared.causes)
+    points: List[np.ndarray] = []
+    counters = _SurfaceCounters(
+        triangle_pair_tests=prepared.triangle_pair_tests_used
+    )
+
+    for surface_index, surface in enumerate(embedded_surfaces):
         surface_result = _surface_segment_relation(
             segment, surface, cycle, tolerances, settings, counters
         )
@@ -1531,6 +1680,7 @@ def _nonplanar_segment_cycle_relation(
         ):
             enumeration_complete = False
             causes.add(SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY)
+            evaluation_unknown += embedded - surface_index - 1
             break
 
     if intersecting and nonpiercing:
@@ -1538,10 +1688,10 @@ def _nonplanar_segment_cycle_relation(
 
     evidence = SurfaceFamilyEvidence(
         enumeration_complete,
-        enumerated,
+        prepared.enumerated_surface_count,
         embedded,
-        proven_nonembedded,
-        construction_unknown,
+        prepared.proven_non_embedded_surface_count,
+        prepared.construction_undetermined_count,
         intersecting,
         nonpiercing,
         evaluation_unknown,
@@ -1550,7 +1700,7 @@ def _nonplanar_segment_cycle_relation(
     )
     if (
         enumeration_complete
-        and construction_unknown == 0
+        and prepared.construction_undetermined_count == 0
         and evaluation_unknown == 0
         and embedded > 0
         and intersecting == embedded
@@ -1558,7 +1708,7 @@ def _nonplanar_segment_cycle_relation(
         state = PiercingState.PIERCES
     elif (
         enumeration_complete
-        and construction_unknown == 0
+        and prepared.construction_undetermined_count == 0
         and evaluation_unknown == 0
         and embedded > 0
         and nonpiercing == embedded
@@ -1620,7 +1770,9 @@ def determine_line_relation(
         return LineRelation(LineRelationKind.DEGENERATE, None, float("nan"))
 
     cross = np.cross(first_direction, second_direction)
-    parallel_measure = float(np.linalg.norm(cross))
+    parallel_measure = _scale_safe_norm(cross)
+    if not np.isfinite(parallel_measure):
+        return LineRelation(LineRelationKind.UNDETERMINED, None, float("nan"))
     tolerance = settings.tolerance
     angular_tolerance = max(
         tolerance.parameter,
@@ -1793,6 +1945,79 @@ def locate_point_in_planar_cycle(
 # Public composite cycle relations.
 
 
+def iter_segment_cycle_relations(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Iterator[SegmentCycleRelation]:
+    """Classify segments while preparing the shared cycle surface only once."""
+
+    planarity = measure_planarity(cycle, settings)
+    planar_simplicity: Optional[_PolygonSimplicity] = None
+    if planarity.kind is PlanarityKind.PLANAR:
+        cycle_length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
+        cycle_tolerances = _predicate_tolerances(cycle_length_scale, settings)
+        normal = np.asarray(planarity.normal, dtype=np.float64)
+        origin = _point_array(planarity.centroid)
+        polygon = _project_to_plane(
+            np.asarray([vertex.coordinates for vertex in cycle.vertices]),
+            origin,
+            normal,
+        )
+        planar_simplicity = _projected_polygon_simplicity(
+            polygon, cycle_tolerances, settings
+        )
+    prepared = (
+        _prepare_nonplanar_surface_family(cycle, settings)
+        if planarity.kind is PlanarityKind.NONPLANAR
+        else None
+    )
+    for segment in segments:
+        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
+        if causes:
+            yield _undetermined_segment_cycle_relation(
+                segment,
+                cycle,
+                None,
+                settings,
+                causes,
+            )
+            continue
+        tolerances = cast(_PredicateTolerances, tolerances)
+
+        if planarity.kind is PlanarityKind.PLANAR:
+            yield _planar_segment_cycle_relation(
+                segment,
+                cycle,
+                planarity,
+                cast(_PolygonSimplicity, planar_simplicity),
+                tolerances,
+                settings,
+            )
+            continue
+        if planarity.kind is PlanarityKind.NONPLANAR:
+            yield _nonplanar_segment_cycle_relation(
+                segment,
+                cycle,
+                tolerances,
+                settings,
+                cast(_PreparedNonplanarSurfaceFamily, prepared),
+            )
+            continue
+        cause = (
+            SegmentCycleIndeterminacy.DEGENERATE_CYCLE
+            if planarity.kind is PlanarityKind.DEGENERATE
+            else SegmentCycleIndeterminacy.NUMERIC_BAND
+        )
+        yield _undetermined_segment_cycle_relation(
+            segment,
+            cycle,
+            None,
+            settings,
+            frozenset({cause}),
+        )
+
+
 def determine_segment_cycle_relation(
     segment: Segment,
     cycle: Cycle,
@@ -1800,38 +2025,7 @@ def determine_segment_cycle_relation(
 ) -> SegmentCycleRelation:
     """Classify finite-segment piercing against an ordered cycle boundary."""
 
-    tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
-    if causes:
-        return _undetermined_segment_cycle_relation(
-            segment,
-            cycle,
-            None,
-            settings,
-            causes,
-        )
-    tolerances = cast(_PredicateTolerances, tolerances)
-
-    planarity = measure_planarity(cycle, settings)
-    if planarity.kind is PlanarityKind.PLANAR:
-        return _planar_segment_cycle_relation(
-            segment, cycle, planarity, tolerances, settings
-        )
-    if planarity.kind is PlanarityKind.NONPLANAR:
-        return _nonplanar_segment_cycle_relation(
-            segment, cycle, tolerances, settings
-        )
-    cause = (
-        SegmentCycleIndeterminacy.DEGENERATE_CYCLE
-        if planarity.kind is PlanarityKind.DEGENERATE
-        else SegmentCycleIndeterminacy.NUMERIC_BAND
-    )
-    return _undetermined_segment_cycle_relation(
-        segment,
-        cycle,
-        None,
-        settings,
-        frozenset({cause}),
-    )
+    return next(iter_segment_cycle_relations((segment,), cycle, settings))
 
 
 def closest_cycle_edge(
@@ -1849,7 +2043,10 @@ def closest_cycle_edge(
     length_scale = _local_length_scale(
         cycle.vertices + (segment.start, segment.end), (segment,), cycle
     )
-    if length_scale <= settings.tolerance.absolute_length:
+    if (
+        not np.isfinite(length_scale)
+        or length_scale <= settings.tolerance.absolute_length
+    ):
         return None
     length_tolerance = _predicate_tolerances(length_scale, settings).length
     distances = tuple(

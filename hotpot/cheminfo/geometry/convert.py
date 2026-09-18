@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from itertools import combinations
+from itertools import combinations, tee
 from typing import (
     Generic,
     Iterator,
@@ -27,6 +27,7 @@ from .relation import (
     PointPairDistance,
     SegmentCycleRelation,
     determine_segment_cycle_relation,
+    iter_segment_cycle_relations,
     point_pair_distances,
 )
 from .settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
@@ -266,18 +267,48 @@ def _iter_bond_ring_targets_from_rings(
             cycle=cycle_from_ring(ring),
             key=_ring_key(ring),
         )
-        ring_edge_keys = frozenset(_ring_edge_keys(ring))
-        for bond in bonds:
-            key = _bond_key(bond)
-            if key not in ring_edge_keys:
-                yield BondRingTarget(
-                    ring=ring_geometry,
-                    bond=BondGeometry(
-                        source=bond,
-                        segment=segment_from_bond(bond),
-                        key=key,
-                    ),
-                )
+        yield from _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
+
+
+def _iter_bond_ring_targets_for_ring(
+    ring: RingGeometry[_RingLike],
+    bonds: Sequence[_BondLike],
+) -> Iterator[BondRingTarget[_RingLike, _BondLike]]:
+    ring_edge_keys = frozenset(_ring_edge_keys(ring.source))
+    for bond in bonds:
+        key = _bond_key(bond)
+        if key not in ring_edge_keys:
+            yield BondRingTarget(
+                ring=ring,
+                bond=BondGeometry(
+                    source=bond,
+                    segment=segment_from_bond(bond),
+                    key=key,
+                ),
+            )
+
+
+def _iter_bond_ring_findings_from_rings(
+    mol: _MoleculeLike,
+    rings: Sequence[_RingLike],
+    settings: GeometrySettings,
+) -> Iterator[BondRingFinding[_RingLike, _BondLike]]:
+    bonds = tuple(sorted(mol.bonds, key=_bond_key))
+    for ring in rings:
+        ring_geometry = RingGeometry(
+            source=ring,
+            cycle=cycle_from_ring(ring),
+            key=_ring_key(ring),
+        )
+        target_source = _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
+        finding_targets, relation_targets = tee(target_source)
+        relations = iter_segment_cycle_relations(
+            (target.bond.segment for target in relation_targets),
+            ring_geometry.cycle,
+            settings,
+        )
+        for target, relation in zip(finding_targets, relations):
+            yield BondRingFinding(target=target, relation=relation)
 
 
 # Public conversion and aggregation interfaces.  These functions never mutate
@@ -412,19 +443,8 @@ def iter_bond_ring_findings(
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> Iterator[BondRingFinding[_RingLike, _BondLike]]:
     """Lazily evaluate selected bond-ring pairs in canonical key order."""
-    for target in iter_bond_ring_targets(
-            mol,
-            ring_scope=ring_scope,
-            max_ring_size=max_ring_size,
-    ):
-        yield BondRingFinding(
-            target=target,
-            relation=determine_segment_cycle_relation(
-                target.bond.segment,
-                target.ring.cycle,
-                settings=settings,
-            ),
-        )
+    rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
+    yield from _iter_bond_ring_findings_from_rings(mol, rings, settings)
 
 
 def scan_bond_ring_relations(
@@ -440,19 +460,10 @@ def scan_bond_ring_relations(
         ring_scope,
         max_ring_size,
     )
-    targets = tuple(_iter_bond_ring_targets_from_rings(mol, selected_rings))
-    candidate_pair_count = len(targets)
     findings = tuple(
-        BondRingFinding(
-            target=target,
-            relation=determine_segment_cycle_relation(
-                target.bond.segment,
-                target.ring.cycle,
-                settings=settings,
-            ),
-        )
-        for target in targets
+        _iter_bond_ring_findings_from_rings(mol, selected_rings, settings)
     )
+    candidate_pair_count = len(findings)
     piercing_pair_count = sum(
         finding.relation.state is PiercingState.PIERCES
         for finding in findings

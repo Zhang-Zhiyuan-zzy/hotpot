@@ -18,7 +18,11 @@ def _carbon_bond() -> Molecule:
     return mol
 
 
-def _bond_ring_report(state: geo.PiercingState):
+def _bond_ring_report(
+    state: geo.PiercingState,
+    *,
+    excluded_ring_count: int = 0,
+):
     finding = SimpleNamespace(
         target=SimpleNamespace(
             ring=SimpleNamespace(key=(2, 3, 4)),
@@ -40,6 +44,11 @@ def _bond_ring_report(state: geo.PiercingState):
         undetermined=undetermined,
         piercing_pair_count=len(piercings),
         undetermined_pair_count=len(undetermined),
+        selected_ring_count=1,
+        excluded_ring_count=excluded_ring_count,
+        max_ring_size=8,
+        ring_scope="ligand_skeleton",
+        ring_family=geo.RingFamily.NETWORKX_CYCLE_BASIS,
         scan_complete=True,
     )
 
@@ -110,3 +119,27 @@ def test_undetermined_bond_ring_relation_warns_without_rejection(monkeypatch):
         if check.name == "bond_ring_piercing"
     )
     assert warning.measured == ("numeric_band",)
+
+
+def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
+    monkeypatch.setattr(
+        ff.geo,
+        "scan_bond_ring_relations",
+        lambda *args, **kwargs: _bond_ring_report(
+            geo.PiercingState.DOES_NOT_PIERCE,
+            excluded_ring_count=2,
+        ),
+    )
+
+    report = ff.evaluate_structure_acceptance(
+        _carbon_bond(),
+        level="standard",
+    )
+
+    assert report.passed
+    warning = next(
+        check for check in report.warnings
+        if check.name == "bond_ring_scope_coverage"
+    )
+    assert warning.measured == 2
+    assert report.metrics["bond_ring_excluded_ring_count"] == 2

@@ -171,6 +171,14 @@ class _OptimizerMolecule:
         self._conformers_index = index
 
 
+def _acceptance_report(passed=True, checks=()):
+    return ff.ForceFieldValidationReport(
+        level="standard",
+        passed=passed,
+        checks=tuple(checks),
+    )
+
+
 def _optimizer(monkeypatch, backend, frames, **kwargs):
     backend.frames = frames
     obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
@@ -192,7 +200,7 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
     )
     def evaluate_quality(*args, **options):
         assert options["forcefield_stage"] == "final"
-        return SimpleNamespace(passed=True)
+        return _acceptance_report()
 
     monkeypatch.setattr(ff, "evaluate_structure_acceptance", evaluate_quality)
     return ff._OpenBabelOptimizer(
@@ -475,8 +483,8 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     monkeypatch.setattr(
         ff,
         "evaluate_structure_acceptance",
-        lambda mol, **options: SimpleNamespace(
-            passed=float(mol.coordinates[0, 0]) != 1.0
+        lambda mol, **options: _acceptance_report(
+            passed=float(mol.coordinates[0, 0]) != 1.0,
         ),
     )
     molecule = _OptimizerMolecule()
@@ -540,6 +548,45 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
     assert len(molecule.frames) == (3 if save_movie else 1)
     assert molecule._conformers_index == (2 if save_movie else 0)
     assert len(report.epoch_energies) == (3 if save_movie else 0)
+
+
+def test_optimizer_does_not_select_an_undetermined_ring_frame(monkeypatch):
+    frames = [np.zeros((2, 3)), np.ones((2, 3))]
+    optimizer = _optimizer(
+        monkeypatch,
+        _Backend([2.0, 1.0], unit="kJ/mol"),
+        frames,
+    )
+    optimizer.epochs = 2
+    undetermined = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=True,
+        checks=(
+            ff.AcceptanceCheck(
+                name="bond_ring_piercing",
+                passed=False,
+                severity="warning",
+            ),
+        ),
+    )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **options: undetermined,
+    )
+    molecule = _OptimizerMolecule()
+
+    with pytest.warns(ff.GeometryQualityWarning, match="acceptance"):
+        report = optimizer.optimize(
+            molecule,
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+
+    assert report.quality_report is undetermined
+    assert report.best_epoch == 1
+    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
 
 
 @pytest.mark.parametrize(

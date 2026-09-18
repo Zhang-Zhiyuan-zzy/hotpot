@@ -263,6 +263,7 @@ def _piercing_report(*ring_bond_pairs):
             for ring, bond in ring_bond_pairs
         ),
         undetermined=(),
+        excluded_ring_count=0,
     )
 
 

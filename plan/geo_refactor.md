@@ -1,10 +1,12 @@
 # `hotpot.cheminfo.geometry` 包化与环—键空间关系重构计划
 
-> 状态：设计与实施计划，尚未修改 `core`、`forcefields` 或几何业务代码  
-> 审查基线：`fix/complexes-build-pipeline` 分支当前工作树  
+> 状态：已在 `refactor/geometry-package` 分支完成实施与验证
+>
+> 审查基线：`fix/complexes-build-pipeline` 分支；实施日期：2026-09-18
+>
 > 核心目标：可靠报告有限键线段与平面/非平面环边界之间的空间关系  
 > 数学实施契约：[relation.md](./relation.md)；必须先改契约，再改 `settings.py` / `relation.py`  
-> 配套调用图（四模块旧草案，G00 重生成）：[HTML](./geo_refactor_call_graph.html) · [Archify 源文件](./geo_refactor_call_graph.architecture.json)
+> 配套五模块调用图：[HTML](./geo_refactor_call_graph.html) · [Archify 源文件](./geo_refactor_call_graph.architecture.json)
 
 ## 1. 最终架构决策
 
@@ -1103,20 +1105,37 @@ tests/performance/
 10. 五模块 Archify 调用图达到 showcase 9/9；有可用浏览器时必须完成视觉审查，无可用浏览器时
     必须把证据明确记录为 `skipped/pending`，不得宣称已完成。
 
-## 16. 当前验证备注
+## 16. 实施与验证记录
 
-本轮只精修计划并新增数学契约，没有修改生产代码。当前默认 shell 中曾尝试运行：
+本计划已按 G00–G12 分阶段实施。最终源码由
+`geometry/{settings,object,relation,convert}.py` 和唯一入口 `geometry/__init__.py` 组成；旧
+`geometry.py` 与迁移期 `_legacy.py` 已删除。Core 只提供化学对象 façade，forcefields 独立持有
+接受、警告和开环策略。已知 Hotpot 化学对象不再用 `Any` 掩盖，converter 的泛型返回值保留
+具体 Atom/Bond/Ring 来源类型。
 
-```bash
-PYTHONDONTWRITEBYTECODE=1 pytest -q -p no:cacheprovider \
-  tests/test_cheminfo/test_geometry.py \
-  tests/test_cheminfo/test_geometry_quality.py
-```
+最终验证证据：
 
-命令在当前 `Python 3.9.23`（`/home/zhangzhiyuan/usr/conda3/envs/pg`）环境的 collection 阶段因缺少
-`cython` 而停止（2 个模块均为 `ModuleNotFoundError: cython`），因此本轮不声称现有业务测试通过。
-正式实施时必须在项目支持环境中执行第 13 节矩阵。
+- `./tests/run_coverage.sh`：`772 passed, 49 subtests passed`；geometry 的
+  `settings/convert/object/relation` 行覆盖率分别为 `100% / 100% / 99% / 82%`；
+- `UV_CACHE_DIR=/tmp/hotpot-uv-cache ./tests/run_inference_compatibility.sh`：Python
+  3.9–3.14 每个版本均通过 `520` 个主套件测试和 `252` 个 SMARTS 测试；最终改动后的
+  geometry/forcefields 定向套件每个版本均为 `93 passed`；
+- wheel 从清理后的工作树构建并安装到源码树外，`geometry.__file__` 指向
+  `geometry/__init__.py`，`geometry.__all__` 的 60 个名称全部唯一且可解析；wheel 中仅含五个
+  geometry package 文件，不含旧 `geometry.py` 或 `_legacy.py`；
+- 显式性能采集器位于
+  [`tests/performance/test_segment_cycle_relation_benchmark.py`](../tests/performance/test_segment_cycle_relation_benchmark.py)，
+  初始 median/p95 及三态分布记录在
+  [`tests/performance/README.md`](../tests/performance/README.md)；
+- 最终 Archify 调用图通过 showcase `9/9`、0 error、0 warning；specification SHA-256 为
+  `df68ec7e921d5beb72e9bcfc047aa4a5ba65cec868f3d5d961e805559a5e3675`，HTML SHA-256 为
+  `9bc580035988e7709004e6b09b5f9a699cdaa44c2513f0c3e5a4fd823225f9e4`。当前机器无
+  Chrome/Chromium，因此 automated browser evidence 为 `skipped`、perceptual review 为
+  `pending`，未把确定性验证冒充为视觉验收。
 
-现有四模块 Archify 草案曾通过 showcase `9/9`、0 error、0 warning；它尚未反映新增
-`settings.py` 和 lazy/dense 双路径，必须在 G00 重生成。当前机器没有 Chrome/Chromium，既有
-automated browser visual-check 为 `skipped`，人工视觉审查为 `pending`。
+发布 wheel 前必须清理历史 `build/` 缓存或使用干净 checkout。setuptools 不会主动删除
+`build/lib` 内已不存在于源码树的旧模块；本轮已清理该缓存并重新验证产物边界。
+
+当前明确边界保持不变：非平面环在合法候选面无法形成一致证明时返回 `UNDETERMINED`；环扫描
+只对声明的 `RingFamily`、`RingScope` 与 `max_ring_size` 完备，超范围环由 forcefields 作为
+coverage warning 暴露，不静默扩张为“全分子无穿环”。

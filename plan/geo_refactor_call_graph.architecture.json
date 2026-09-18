@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hotpot geometry 包化后的调用关系",
+    "locale": "zh-CN",
+    "output": "plan/geo_refactor_call_graph.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [72, 84],
+    "cols": 4,
+    "gapX": 62,
+    "gapY": 72,
+    "cellW": 180,
+    "cellH": 76
+  },
+  "components": [
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "Core 化学对象",
+      "sublabel": "对象适配与分子级事实扫描",
+      "row": 0,
+      "col": 0,
+      "size": [180, 76]
+    },
+    {
+      "id": "forcefields",
+      "type": "backend",
+      "label": "Force-field 工作流",
+      "sublabel": "接受、拒绝与修复策略",
+      "row": 2,
+      "col": 0,
+      "size": [180, 76]
+    },
+    {
+      "id": "facade",
+      "type": "frontend",
+      "label": "geometry/__init__.py",
+      "sublabel": "公开重导出入口",
+      "row": 1,
+      "col": 1,
+      "size": [180, 76]
+    },
+    {
+      "id": "convert",
+      "type": "backend",
+      "label": "geometry/convert.py",
+      "sublabel": "化学对象适配与来源映射",
+      "row": 0,
+      "col": 2,
+      "size": [180, 76]
+    },
+    {
+      "id": "relation",
+      "type": "backend",
+      "label": "geometry/relation.py",
+      "sublabel": "纯 Segment—Cycle 空间关系",
+      "row": 1,
+      "col": 2,
+      "size": [180, 76]
+    },
+    {
+      "id": "objects",
+      "type": "backend",
+      "label": "geometry/object.py",
+      "sublabel": "Point / Segment / Plane / Cycle",
+      "row": 1,
+      "col": 3,
+      "size": [180, 76]
+    },
+    {
+      "id": "settings",
+      "type": "backend",
+      "label": "geometry/settings.py",
+      "sublabel": "量纲化容差与算法预算",
+      "row": 2,
+      "col": 2,
+      "size": [180, 76]
+    },
+    {
+      "id": "numpy",
+      "type": "external",
+      "label": "NumPy",
+      "sublabel": "默认数值后端",
+      "row": 2,
+      "col": 3,
+      "size": [180, 76]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "hotpot.cheminfo.geometry",
+      "wraps": ["facade", "convert", "relation", "objects", "settings"],
+      "pad": 20
+    }
+  ],
+  "connections": [
+    {
+      "id": "core_facade",
+      "from": "core",
+      "to": "facade",
+      "label": "对象级委托",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ff_facade",
+      "from": "forcefields",
+      "to": "facade",
+      "label": "三态扫描与事实度量",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ff_core",
+      "from": "core",
+      "to": "forcefields",
+      "label": "build3d / optimize 委托",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [162, 270],
+      "variant": "emphasis"
+    },
+    {
+      "id": "facade_relation",
+      "from": "facade",
+      "to": "relation",
+      "variant": "emphasis"
+    },
+    {
+      "id": "facade_convert",
+      "from": "facade",
+      "to": "convert"
+    },
+    {
+      "id": "convert_relation",
+      "from": "convert",
+      "to": "relation",
+      "label": "映射纯关系事实",
+      "labelAt": [646, 190],
+      "variant": "emphasis"
+    },
+    {
+      "id": "convert_objects",
+      "from": "convert",
+      "to": "objects",
+      "label": "构造不可变几何对象"
+    },
+    {
+      "id": "relation_objects",
+      "from": "relation",
+      "to": "objects",
+      "variant": "emphasis"
+    },
+    {
+      "id": "relation_settings",
+      "from": "relation",
+      "to": "settings"
+    },
+    {
+      "id": "relation_numpy",
+      "from": "relation",
+      "to": "numpy",
+      "label": "数值谓词",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [[646, 346], [767, 346], [767, 418]],
+      "labelAt": [706, 336]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "首轮核心",
+      "items": [
+        "只解决有限 Segment 与有序 Cycle 的 PIERCES / DOES_NOT_PIERCE / UNDETERMINED",
+        "geometry 只报告空间关系；forcefields 必须显式处理 undetermined"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "实施边界",
+      "items": [
+        "不判断合理性、物理性、化学性，也不承载 force-field 质量门控",
+        "DOES_NOT_PIERCE 只相对于声明的 ring scope、family、size 与 surface model"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "依赖策略",
+      "items": [
+        "NumPy 是首轮唯一几何后端；NetworkX 仍由 Core 负责环识别",
+        "robust / trimesh 等仅在同一验收矩阵证明收益后作为可选内部后端"
+      ]
+    }
+  ]
+}

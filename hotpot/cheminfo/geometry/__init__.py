@@ -1,4 +1,8 @@
-"""Factual geometry objects, relations, and chemical-object adapters."""
+"""Factual geometry objects, relations, and chemical-object adapters.
+
+The package API and mathematical conventions are documented in the adjacent
+``relation.md``.
+"""
 
 from .settings import (
     DEFAULT_GEOMETRY_SETTINGS,

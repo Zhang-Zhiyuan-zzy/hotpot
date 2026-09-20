@@ -2,7 +2,8 @@
 
 This module contains no chemical or force-field policy.  The public
 classifiers report only geometric facts and explicit numerical uncertainty.
-Their mathematical contract is documented in ``plan/relation.md``.
+Their mathematical contract and public API are documented in the adjacent
+``relation.md``.
 """
 
 from __future__ import annotations

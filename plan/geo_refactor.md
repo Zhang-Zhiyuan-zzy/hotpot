@@ -6,7 +6,7 @@
 >
 > 核心目标：可靠报告有限键线段与平面/非平面环边界之间的空间关系
 >
-> 数学实施契约：[relation.md](./relation.md)；必须先改契约，再改 `settings.py` / `relation.py`
+> 数学实施契约与 API 说明：[relation.md](../hotpot/cheminfo/geometry/relation.md)；必须先改契约，再改 `settings.py` / `relation.py`
 >
 > 配套五模块调用图：[HTML](./geo_refactor_call_graph.html) · [Archify 源文件](./geo_refactor_call_graph.architecture.json)
 
@@ -363,7 +363,7 @@ hotpot/cheminfo/geometry/
 - settings 均为不可变数据类；默认实例名为 `DEFAULT_GEOMETRY_SETTINGS`。
 - 所有带判定的 relation 接口接收同一个 `GeometrySettings`；不得再并列暴露散装 tolerance 参数。
 - 数学常数 $0,1,2,\pi$ 和由公式直接推导的数组维度不属于可配置阈值。
-- 参数名称、默认值、单位、允许范围和唯一用途以 [relation.md](./relation.md) 第 2 节为准。
+- 参数名称、默认值、单位、允许范围和唯一用途以 [relation.md](../hotpot/cheminfo/geometry/relation.md) 第 4 节为准。
 
 ### 4.4 关系层约束
 
@@ -373,7 +373,7 @@ hotpot/cheminfo/geometry/
 - 返回值必须携带可并存的空间特征、使用的 surface model、数值容差、未决原因和
   surface-family 完成状态。
 - `UNDETERMINED` 不得被内部或 façade 静默转换为 `False`。
-- 每个判定分支、符号、公式和 settings 映射必须先写入 [relation.md](./relation.md)，再写 Python；
+- 每个判定分支、符号、公式和 settings 映射必须先写入 [relation.md](../hotpot/cheminfo/geometry/relation.md)，再写 Python；
   Python 实现与测试不得自行发明文档外阈值。
 
 依赖只能沿下列方向流动：
@@ -394,7 +394,7 @@ relation <- convert       # convert 可引用纯关系结果类型；反向依�
 
 ### 5.1 `GeometrySettings`
 
-配置对象只在 `settings.py` 定义；完整默认值、范围与唯一用途见 [relation.md](./relation.md#2-settingspy-唯一参数表)。
+配置对象只在 `settings.py` 定义；完整默认值、范围与唯一用途见 [relation.md](../hotpot/cheminfo/geometry/relation.md) 第 4 节。
 relation 根据本次对象的局部长度尺度 $L$ 推导分量纲容差：
 
 $\epsilon_r=\max(\epsilon_{\mathrm{rel}},k_{\mathrm{mach}}\epsilon_{\mathrm{machine}})$
@@ -610,7 +610,7 @@ Cycle vertices
 `intersecting_surface_count`、`non_piercing_surface_count`、`evaluation_undetermined_count`
 恰有一个为 1。已证明自交的平面边界记录一个 `proven_non_embedded_surface_count`，最终为
 `UNDETERMINED`。非有限、退化、模型选择未决和预算中止的全字段赋值严格采用
-[relation.md 第 11 节](./relation.md#11-surfacefamilyevidence-全字段赋值)；不得以
+[relation.md 第 6.14 节](../hotpot/cheminfo/geometry/relation.md)；不得以
 `surface_evidence=None` 绕过统一契约。
 
 这里特别避免两个旧错误：延长线命中不等于有限键穿环；接触事实也不等于 geometry 认为
@@ -637,7 +637,7 @@ Cycle vertices
 $f(T_i)\cap f(T_j)=f(T_i\cap T_j)$。稳定出现额外交集为
 `PROVEN_NON_EMBEDDED`；谓词落入保护带或交集维数无法确定为
 `CONSTRUCTION_UNDETERMINED`。完整公式与允许交集表见
-[relation.md 第 9 节](./relation.md#9-顶点三角剖分的-embedded-判据)。
+[relation.md 第 7.9 节](../hotpot/cheminfo/geometry/relation.md)。
 
 8 元环的凸组合三角剖分上限为 Catalan 数 132；这在当前 forcefields 调用方明确选择的
 `max_ring_size=8` 下可控。超过调用方预算的环不偷偷采用一个便宜 surface，而是在 scan report
@@ -1101,7 +1101,7 @@ tests/performance/
 4. Core 和 forcefields 都能读取 `PIERCES / DOES_NOT_PIERCE / UNDETERMINED` 及细粒度证据；
 5. FF 决策与 geometry fact 在代码和测试中分层；
 6. 没有 `Any` 被用来掩盖已知 Hotpot 化学对象；
-7. 所有 relation 数值参数只来自 `settings.py`，实现与 [relation.md](./relation.md) 逐项对应；
+7. 所有 relation 数值参数只来自 `settings.py`，实现与 [relation.md](../hotpot/cheminfo/geometry/relation.md) 逐项对应；
 8. lazy early-exit、dense report、逐帧性能和 `UNDETERMINED` 分布均有基线；
 9. import-order、wheel、Python 3.9–3.14、事实矩阵和 FF 集成测试全部通过；
 10. 五模块 Archify 调用图达到 showcase 9/9；有可用浏览器时必须完成视觉审查，无可用浏览器时

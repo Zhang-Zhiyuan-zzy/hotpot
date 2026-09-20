@@ -58,6 +58,32 @@ end-to-end Python-call measurements, not isolated kernel timings. They include
 input normalization, the native boundary, cycle reconstruction, canonical
 ordering and result conversion.
 
+## Resource and native-safety checks
+
+- A 50,000-node path graph returned no cycles in about 0.06 seconds without
+  exhausting the C++ call stack. Tarjan traversal and shortest-path expansion
+  both use explicit stacks.
+- An AddressSanitizer/UndefinedBehaviorSanitizer build processed 2,200 fixed
+  random graphs and 44,337 returned cycles without a sanitizer finding.
+- $K_{2,1000}$ with `max_cycles=10` stopped on the eleventh unique cycle and
+  raised `RelevantCycleLimitExceeded` in about 0.38 seconds. Peak memory was
+  approximately 254 MiB because the current all-pairs shortest-path and path
+  DAG representation is $O(|V|^2)$. Thus `max_cycles` bounds returned cycle
+  enumeration; it is not a global memory limit for very large nonchemical
+  graphs.
+
+## Python and wheel compatibility
+
+Separate wheels were built and installed outside the source tree under CPython
+3.9.25, 3.10.20, 3.11.15, 3.12.13, 3.13.15, and 3.14.7. Every ABI-specific
+extension passed the triangle result, legacy graph API smoke tests, and package
+dependency checks.
+
+The locally built wheels carry a generic `linux_x86_64` tag; `auditwheel`
+identified `manylinux_2_24_x86_64` compatibility. Release artifacts should be
+built with `cibuildwheel` in manylinux images and repaired with `auditwheel`,
+not uploaded directly from the development host.
+
 ## Reproduction
 
 From the repository root:

@@ -1,16 +1,20 @@
-"""
-python v3.9.0
-@Project: hotpot
-@File   : graph
-@Auther : Zhiyuan Zhang
-@Data   : 2024/8/23
-@Time   : 15:06
-"""
-from typing import *
+"""Electronic-configuration augmented graph spectra."""
+
+from typing import Literal
+
 import numpy as np
-import networkx as nx
 
 from hotpot.utils import types
+
+from .matrix import adj2laplacian
+
+
+__all__ = (
+    "calc_electron_config",
+    "atoms_electron_configurations",
+    "calc_spectrum",
+    "GraphSpectrum",
+)
 
 
 def calc_electron_config(atomic_number: int, length: int = 4) -> (int, list):
@@ -60,48 +64,6 @@ def atoms_electron_configurations(
     return np.array(confs).T
 
 
-def linkmat2adj(note_num: int, linkmat: np.ndarray) -> np.ndarray:
-    """ Convert the link matrix with shape (BN, 2) to an adjacency matrix with shape of (AN, AN) """
-    if note_num <= 0 or linkmat.size == 0:
-        return np.zeros((1, 0), dtype=int)
-
-    assert len(linkmat.shape) == 2
-    assert linkmat.shape[1] == 2
-
-    adj = np.zeros((note_num, note_num))
-    adj[linkmat[:, 0], linkmat[:, 1]] = 1
-    adj[linkmat[:, 1], linkmat[:, 0]] = 1
-
-    return adj
-
-def adj2laplacian(adj: np.ndarray, norm: bool = True) -> np.ndarray:
-    """
-    convert adjacency matrix to laplacian matrix
-    Args:
-        adj: adjacency matrix
-        norm: whether to return normalized laplacian matrix
-
-    Return:
-         Laplacian matrix or normalized Laplacian matrix
-    """
-    if adj.size == 0:
-        return np.zeros((1, 0), dtype=int)
-
-    deg = np.sum(adj, axis=1)
-    eye = np.eye(adj.shape[0])
-
-    lap = np.diag(deg) - adj
-    if norm:
-        root_deg = np.sqrt(deg)
-        root_deg[root_deg == 0] = np.inf
-        lap_row = (lap / root_deg).T
-        norm_lap = (lap_row / root_deg).T
-        return norm_lap
-        # return eye - np.linalg.inv(deg ** 0.5) @ adj @ np.linalg.inv(deg ** 0.5)
-    else:
-        return lap
-
-
 def _spectrum_sort(spectrum: np.ndarray) -> np.ndarray:
     """ sort spectrum values according to its absolute values """
     # TODO: Fix zero-padding disturbing physical interpretation.
@@ -143,62 +105,6 @@ def calc_spectrum(adj: types.ArrayLike, atomic_numbers: types.ArrayLike, length:
         spectrum.append(_spectrum_sort(np.linalg.eigvals(np.diag(c) + adj).real))
 
     return np.array(spectrum)
-
-
-def graph_dfs_path(
-        graph: nx.Graph,
-        start_node: int = None,
-        scope_nodes: Container = None,
-        min_deep: int = None,
-        max_deep: int = None
-) -> Optional[list[int]]:
-    """"""
-    def _dfs(_node: int, visited: list[int]):
-        visited.append(_node)
-        if max_deep and len(visited) >= max_deep:
-            return visited
-
-        for child in nx.neighbors(graph, _node):
-            if (child not in visited) and (scope_nodes and child in scope_nodes):
-                return _dfs(child, visited)
-
-        if min_deep and len(visited) >= min_deep:
-            return visited
-
-    if start_node is None:
-        start_node = 0
-
-    return _dfs(start_node, [])
-
-
-def graph_dfs_paths(
-        graph: nx.Graph,
-        start_node: int,
-        scope_nodes: Container = None,
-        min_deep: int = None,
-        max_deep: int = None
-) -> list[list[int]]:
-    paths = []
-
-    def _dfs(node: int, visited: set[int], path: list[int]) -> None:
-        path.append(node)
-        visited.add(node)
-
-        if max_deep and len(visited) >= max_deep:
-            paths.append(path)
-            return
-
-        for child in nx.neighbors(graph, node):
-            if (child not in visited) and (scope_nodes and child in scope_nodes):
-                _dfs(child, visited, path)
-
-        if min_deep and len(visited) >= min_deep:
-            paths.append(path)
-
-    if start_node is None:
-        start_node = 0
-
-    return paths
 
 
 class GraphSpectrum:
@@ -267,6 +173,3 @@ class GraphSpectrum:
     @property
     def width(self) -> int:
         return self.spectrum.shape[1]
-
-
-

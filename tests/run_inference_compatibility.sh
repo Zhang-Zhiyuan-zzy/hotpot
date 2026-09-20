@@ -28,6 +28,8 @@ for version in "${versions[@]}"; do
             tests/test_cheminfo/test_ob2chem_compat.py \
             tests/test_cheminfo/test_bond_metadata.py \
             tests/test_cheminfo/test_ligand_rings.py \
+            tests/test_cheminfo/test_relevant_ring_integration.py \
+            tests/test_cheminfo/kekulize \
             tests/test_cheminfo/geometry \
             tests/test_cheminfo/test_geometry.py \
             tests/test_cheminfo/test_geometry_core_integration.py \

@@ -264,6 +264,7 @@ def _piercing_report(*ring_bond_pairs):
         ),
         undetermined=(),
         excluded_ring_count=0,
+        ring_scope="ligand_skeleton",
     )
 
 
@@ -1214,7 +1215,9 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
     monkeypatch.setattr(
         ff,
         "_select_ring_opening_edge",
-        lambda current, ring, bond: first if ring == "first" else second,
+        lambda current, ring, bond, **kwargs: (
+            first if ring == "first" else second
+        ),
     )
     monkeypatch.setattr(
         ff,

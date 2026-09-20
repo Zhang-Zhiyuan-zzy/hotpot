@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, Sequence, Tuple
+from typing import TYPE_CHECKING, Dict, Optional, Sequence, Tuple
 
 import pytest
 
@@ -36,9 +36,18 @@ class FakeMolecule:
     rings_by_scope: Dict[str, Sequence[FakeRing]]
     ring_queries: list = field(default_factory=list)
 
-    def rings_for_scope(self, ring_scope: str) -> Sequence[FakeRing]:
-        self.ring_queries.append(ring_scope)
-        return tuple(self.rings_by_scope[ring_scope])
+    def rings_for_scope(
+            self,
+            ring_scope: str,
+            *,
+            max_size: Optional[int] = None,
+            max_cycles: Optional[int] = None,
+    ) -> Sequence[FakeRing]:
+        self.ring_queries.append((ring_scope, max_size, max_cycles))
+        rings = tuple(self.rings_by_scope[ring_scope])
+        if max_size is None:
+            return rings
+        return tuple(ring for ring in rings if len(ring.atoms) <= max_size)
 
 
 if TYPE_CHECKING:
@@ -277,10 +286,10 @@ def test_dense_scan_records_every_pair_and_coverage(
         max_ring_size=8,
     )
 
-    assert square_molecule.ring_queries == ["full_graph"]
-    assert report.ring_family is convert.RingFamily.NETWORKX_CYCLE_BASIS
+    assert square_molecule.ring_queries == [("full_graph", 8, None)]
+    assert report.ring_family is convert.RingFamily.RELEVANT_CYCLES
     assert report.selected_ring_count == 1
-    assert report.excluded_ring_count == 0
+    assert report.excluded_ring_count is None
     assert report.candidate_pair_count == 2
     assert report.evaluated_pair_count == len(report.findings) == 2
     assert report.piercing_pair_count == 0
@@ -352,7 +361,7 @@ def test_ring_size_coverage_distinguishes_excluded_and_empty_scan(
     )
 
     assert report.selected_ring_count == 0
-    assert report.excluded_ring_count == 1
+    assert report.excluded_ring_count is None
     assert report.candidate_pair_count == 0
     assert report.evaluated_pair_count == 0
     assert report.scan_complete

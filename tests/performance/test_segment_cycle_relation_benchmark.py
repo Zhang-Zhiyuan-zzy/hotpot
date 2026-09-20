@@ -16,7 +16,7 @@ from collections import Counter
 from dataclasses import asdict, dataclass
 from math import cos, sin, tau
 from pathlib import Path
-from typing import Callable, Sequence, Tuple, TypeVar
+from typing import Callable, Optional, Sequence, Tuple, TypeVar
 
 import numpy as np
 
@@ -56,8 +56,16 @@ class _Molecule:
     bonds: Tuple[_Bond, ...]
     rings: Tuple[_Ring, ...]
 
-    def rings_for_scope(self, ring_scope: str) -> Sequence[_Ring]:
-        return self.rings
+    def rings_for_scope(
+            self,
+            ring_scope: str,
+            *,
+            max_size: Optional[int] = None,
+            max_cycles: Optional[int] = None,
+    ) -> Sequence[_Ring]:
+        if max_size is None:
+            return self.rings
+        return tuple(ring for ring in self.rings if len(ring.atoms) <= max_size)
 
 
 def _percentile(samples: Sequence[float], fraction: float) -> float:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from copy import copy
 from types import SimpleNamespace
+from typing import Optional
 
 from hotpot.cheminfo import forcefields as ff
 from hotpot.cheminfo import geometry as geo
@@ -21,7 +22,7 @@ def _carbon_bond() -> Molecule:
 def _bond_ring_report(
     state: geo.PiercingState,
     *,
-    excluded_ring_count: int = 0,
+    excluded_ring_count: Optional[int] = 0,
 ):
     finding = SimpleNamespace(
         target=SimpleNamespace(
@@ -48,7 +49,7 @@ def _bond_ring_report(
         excluded_ring_count=excluded_ring_count,
         max_ring_size=8,
         ring_scope="ligand_skeleton",
-        ring_family=geo.RingFamily.NETWORKX_CYCLE_BASIS,
+        ring_family=geo.RingFamily.RELEVANT_CYCLES,
         scan_complete=True,
     )
 
@@ -143,3 +144,27 @@ def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
     )
     assert warning.measured == 2
     assert report.metrics["bond_ring_excluded_ring_count"] == 2
+
+
+def test_unenumerated_large_rings_are_reported_as_unknown_coverage(monkeypatch):
+    monkeypatch.setattr(
+        ff.geo,
+        "scan_bond_ring_relations",
+        lambda *args, **kwargs: _bond_ring_report(
+            geo.PiercingState.DOES_NOT_PIERCE,
+            excluded_ring_count=None,
+        ),
+    )
+
+    report = ff.evaluate_structure_acceptance(
+        _carbon_bond(),
+        level="standard",
+    )
+
+    assert report.passed
+    warning = next(
+        check for check in report.warnings
+        if check.name == "bond_ring_scope_coverage"
+    )
+    assert warning.measured is None
+    assert report.metrics["bond_ring_excluded_ring_count"] is None

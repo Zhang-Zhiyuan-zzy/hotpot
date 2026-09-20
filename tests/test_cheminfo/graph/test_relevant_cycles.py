@@ -20,7 +20,10 @@ from .fixtures import normalized_edges, reference_graphs
 
 @pytest.mark.parametrize(("name", "edges"), reference_graphs())
 def test_relevant_cycles_match_independent_exhaustive_oracle(name, edges):
-    assert relevant_cycles(edges, max_cycles=None) == exhaustive_relevant_cycles(edges), name
+    assert (
+        relevant_cycles(edges, max_cycles=None)
+        == exhaustive_relevant_cycles(edges)
+    ), name
 
 
 def test_expected_chemical_and_symmetric_ring_sets():
@@ -59,7 +62,9 @@ def test_edge_order_and_orientation_do_not_change_results():
 def test_node_relabelling_preserves_the_cycle_set():
     edges = dict(reference_graphs())["cubane"]
     mapping = {node: 100 + 7 * node for edge in edges for node in edge}
-    relabelled_edges = tuple((mapping[first], mapping[second]) for first, second in edges)
+    relabelled_edges = tuple(
+        (mapping[first], mapping[second]) for first, second in edges
+    )
     expected = {
         frozenset(mapping[node] for node in cycle)
         for cycle in relevant_cycles(edges)
@@ -133,11 +138,13 @@ def test_invalid_limits_are_rejected(keyword, value, error):
         relevant_cycles([(0, 1), (1, 2), (0, 2)], **{keyword: value})
 
 
-def test_empty_edge_collection_returns_empty_without_loading_native_backend(monkeypatch):
+def test_empty_edges_return_empty_without_loading_native_backend(monkeypatch):
     import hotpot.cheminfo.graph.cycles as cycle_module
 
     def unexpected_native_load():
-        raise AssertionError("native backend should not load for an empty edge collection")
+        raise AssertionError(
+            "native backend should not load for an empty edge collection"
+        )
 
     monkeypatch.setattr(cycle_module, "_native_module", unexpected_native_load)
     assert relevant_cycles([]) == ()

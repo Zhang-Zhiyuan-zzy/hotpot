@@ -1,0 +1,44 @@
+{
+  "corpus": {
+    "deterministic_random": 1000,
+    "handcrafted": 7,
+    "named_networkx": 11,
+    "networkx_graph_atlas": 1173,
+    "pubchem": 5
+  },
+  "cycle_count": 11791,
+  "exact_match_rate": 1.0,
+  "generated_at_utc": "2026-09-20T04:55:30.870713+00:00",
+  "graph_count": 2196,
+  "hotpot": {
+    "extension_file": "_relevant_cycles.cpython-311-x86_64-linux-gnu.so",
+    "extension_sha256": "54975f843e4fc32c57108ead87de4dfec85cdf79f4a1be111195bc2bcb1e87ea",
+    "git_commit": "c7f382e141a7e503336d39b2459cfa6551f68fec",
+    "native_sources_match_git_commit": true,
+    "source_files_sha256": {
+      "bindings.cpp": "9d3a2a117ee953140947b903f28310ce313ec0640b77a8dea905b3678d280a32",
+      "relevant_cycles.cpp": "2d9ef1a4e464f534d8e62f01050f058830fef571c299052d99334a028a2163c3",
+      "relevant_cycles.hpp": "e22bdd6ec7dcfdf3e88485b6cac4116e993871bbaf6026def2ebdd8070db5b76"
+    }
+  },
+  "matched_graphs": 2196,
+  "mismatches": [],
+  "oracle": {
+    "commit": "3a7ff93de0d9c4f6a5661508549c6063573f39c7",
+    "library_file": "libRingDecomposerLib.so",
+    "library_sha256": "6846bbf1c3bdea8d14a6813b79895c717357db143f4e2a0167e1247bf65bc35c",
+    "name": "RingDecomposerLib"
+  },
+  "repeats": 10,
+  "runtime": {
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+  },
+  "timing_microseconds_per_call": {
+    "hotpot_median": 45.667,
+    "hotpot_over_rdl_median_ratio": 0.7049225877159131,
+    "hotpot_p95": 140.907,
+    "rdl_median": 64.783,
+    "rdl_p95": 221.561
+  }
+}

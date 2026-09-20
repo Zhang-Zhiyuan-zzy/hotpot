@@ -15,6 +15,7 @@
 - [A003：Python 3.9 / Open Babel 3.1 force-field 模块隔离方案](reviews/forcefields_python39_module_split.md)
 - [A004：环几何有效性与键—环关系统一评审](reviews/ring_validity_and_intersection_brainstorm.md)
 - [A005：FF-Q003 无调用且非预留接口专项审查](reviews/ff_unused_callable_review.md)
+- [A006：默认语义命名与冗余封装审查](reviews/default_semantics_naming_and_wrapper_review.md)
 
 ## FF-Q001：`working`、`mol` 和 `Any` 分别表示什么？
 

@@ -24,11 +24,6 @@ public:
     using std::runtime_error::runtime_error;
 };
 
-class RelevantCyclesNotImplemented : public std::logic_error {
-public:
-    using std::logic_error::logic_error;
-};
-
 std::vector<CycleEdges> relevant_cycles(
     const std::vector<Edge>& edges,
     const RelevantCycleLimits& limits

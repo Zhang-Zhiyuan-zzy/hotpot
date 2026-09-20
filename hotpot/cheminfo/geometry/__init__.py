@@ -1,7 +1,7 @@
 """Factual geometry objects, relations, and chemical-object adapters.
 
 The package API and mathematical conventions are documented in the adjacent
-``relation.md``.
+``README.md``; ``README.zh.md`` is its Chinese mirror.
 """
 
 from .settings import (

@@ -7,4 +7,5 @@ graft hotpot/cheminfo/AImodels/cbond/onnx
 include hotpot/cheminfo/AImodels/cbond/cli_doc.md
 graft hotpot/cheminfo/AImodels/mca/models
 include hotpot/cheminfo/AImodels/mca/cli_doc.md
-include hotpot/cheminfo/geometry/relation.md
+include hotpot/cheminfo/geometry/README.md
+include hotpot/cheminfo/geometry/README.zh.md

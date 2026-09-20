@@ -1,4 +1,6 @@
-# `hotpot.cheminfo.geometry` API 参考
+# `hotpot.cheminfo.geometry` API 参考（中文版）
+
+[English](README.md)
 
 本文说明 `hotpot.cheminfo.geometry` 的全部公开接口、数学语义、数值参数和化学对象转换规则。
 文档与 package 根目录的 `__all__` 对齐；用户可统一从以下入口导入：
@@ -7,7 +9,7 @@
 from hotpot.cheminfo import geometry as geo
 ```
 
-## 1. Package introduction
+## 1. Package 简介
 
 `geometry` 是 Hotpot 的三维欧氏几何事实层。它提供四类能力：
 
@@ -46,24 +48,50 @@ object.py    ─┼─> relation.py ─┐
 
 ### 1.2 快速示例
 
-```python
-from hotpot.cheminfo import geometry as geo
+#### a. 判定一个环是否为平面
 
-cycle = geo.Cycle([
-    (0.0, 0.0, 0.0),
-    (2.0, 0.0, 0.0),
-    (2.0, 2.0, 0.0),
-    (0.0, 2.0, 0.0),
-])
-segment = geo.Segment((1.0, 1.0, -1.0), (1.0, 1.0, 1.0))
-
-result = geo.determine_segment_cycle_relation(segment, cycle)
-assert result.state is geo.PiercingState.PIERCES
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([
+...     (0.0, 0.0, 0.0),
+...     (2.0, 0.0, 0.0),
+...     (2.0, 2.0, 0.0),
+...     (0.0, 2.0, 0.0),
+... ])
+>>> result = geo.measure_planarity(cycle)
+>>> result.kind.value, result.maximum_deviation
+('planar', 0.0)
 ```
 
-化学对象可直接走转换层：
+#### b. 判定非平面环与线段是否互穿
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([
+...     (0.0, 0.0, 0.0),
+...     (2.0, 0.0, 0.0),
+...     (2.0, 2.0, 0.4),
+...     (0.0, 2.0, 0.0),
+... ])
+>>> segment = geo.Segment((0.6, 0.8, -1.0), (0.6, 0.8, 1.0))
+>>> result = geo.determine_segment_cycle_relation(segment, cycle)
+>>> (
+...     geo.measure_planarity(cycle).kind.value,
+...     result.state.value,
+...     result.surface_model.value,
+...     result.surface_evidence.embedded_surface_count,
+...     result.surface_evidence.intersecting_surface_count,
+... )
+('nonplanar', 'pierces', 'vertex_triangulation_family', 2, 2)
+```
+
+输出表示：环被判定为非平面；两个确认嵌入的候选三角曲面均被有限线段穿过，因此最终状态为
+`PIERCES`。
+
+#### c. 扫描化学对象
 
 ```python
+from hotpot.cheminfo import geometry as geo
 report = geo.scan_bond_ring_relations(
     mol,
     ring_scope="ligand_skeleton",
@@ -670,6 +698,16 @@ $h_{\mathrm{rms}}=\sqrt{\frac1m\sum_i h_i^2}$
 
 返回 `PlanarityMeasurement`，不作芳香性或环合理性判断。
 
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([(0, 0, 2), (2, 0, 2), (2, 2, 2), (0, 2, 2)])
+>>> result = geo.measure_planarity(cycle)
+>>> result.kind.value, result.maximum_deviation
+('planar', 0.0)
+```
+
 ### 7.2 `determine_line_relation`
 
 ```python
@@ -711,6 +749,17 @@ $\epsilon_d=\epsilon_{\mathrm{abs}}+\epsilon_r d$
 
 返回 `LineRelation`。
 
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> first = geo.Line((0, 0, 0), (1, 0, 0))
+>>> second = geo.Line((0, 1, 1), (0, 1, 0))
+>>> result = geo.determine_line_relation(first, second)
+>>> result.kind.value, result.distance, result.parallel_measure
+('skew', 1.0, 1.0)
+```
+
 ### 7.3 `line_distance`
 
 ```python
@@ -723,6 +772,16 @@ def line_distance(
 
 是 `determine_line_relation()` 的标量投影：可确定时返回 $d_{\parallel}$ 或
 $d_{\mathrm{skew}}$，退化或未决时返回 `NaN`。
+
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> first = geo.Line((0, 0, 0), (1, 0, 0))
+>>> second = geo.Line((0, 1, 0), (1, 0, 0))
+>>> geo.line_distance(first, second)
+1.0
+```
 
 ### 7.4 `point_segment_distance`
 
@@ -743,6 +802,16 @@ $d(\mathbf p,S)=\lVert\mathbf p-[\mathbf a+t(\mathbf b-\mathbf a)]\rVert$
 若线段长度不超过当前 $\epsilon_L$，函数返回 $\lVert\mathbf p-\mathbf a\rVert$；非有限输入返回
 `NaN`。
 
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> point = geo.Point((1, 1, 0))
+>>> segment = geo.Segment((0, 0, 0), (2, 0, 0))
+>>> geo.point_segment_distance(point, segment)
+1.0
+```
+
 ### 7.5 `segment_segment_distance`
 
 ```python
@@ -759,6 +828,16 @@ $d(S_1,S_2)=\min_{s,t\in[0,1]}\lVert\mathbf a+s(\mathbf b-\mathbf a)-\mathbf c-t
 
 退化线段按点—线段或点—点距离处理；非有限输入返回 `NaN`。
 
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> horizontal = geo.Segment((0, 0, 0), (1, 0, 0))
+>>> vertical = geo.Segment((0.5, -1, 0), (0.5, 1, 0))
+>>> geo.segment_segment_distance(horizontal, vertical)
+0.0
+```
+
 ### 7.6 `point_pair_distances`
 
 ```python
@@ -773,6 +852,16 @@ $d_{ij}=\lVert\mathbf p_i-\mathbf p_j\rVert$
 
 共有 $n(n-1)/2$ 条记录。该函数不读取 `GeometrySettings`，非有限点对距离为 `NaN`。
 
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> points = tuple(geo.Point((x, 0, 0)) for x in (0, 1, 3))
+>>> result = geo.point_pair_distances(points)
+>>> [(item.first_index, item.second_index, item.distance) for item in result]
+[(0, 1, 1.0), (0, 2, 3.0), (1, 2, 2.0)]
+```
+
 ### 7.7 `find_point_pairs_below_distance`
 
 ```python
@@ -784,6 +873,16 @@ def find_point_pairs_below_distance(
 
 先调用 `point_pair_distances()`，再保留严格满足 $d_{ij}<d_{\mathrm{caller}}$ 的记录。
 `threshold` 完全由调用方解释，geometry 不把它视为化学阈值。
+
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> points = tuple(geo.Point((x, 0, 0)) for x in (0, 1, 3))
+>>> result = geo.find_point_pairs_below_distance(points, threshold=3.0)
+>>> [(item.first_index, item.second_index, item.distance) for item in result]
+[(0, 1, 1.0), (1, 2, 2.0)]
+```
 
 ### 7.8 `locate_point_in_planar_cycle`
 
@@ -819,6 +918,16 @@ $w(\mathbf p)=\frac1{2\pi}\sum_i\operatorname{atan2}\left((\mathbf z_i\times\mat
 该接口判断的是点在给定平面上的投影位置；它不会验证 `point` 本身位于该平面，也不会验证
 `plane` 是环的最佳拟合平面。数值尺度 $L$ 在投影前由三维 `point` 和环顶点共同计算，因此把
 同一投影点沿平面法向远移可能改变派生容差。
+
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
+>>> plane = geo.Plane((0, 0, 0), (0, 0, 1))
+>>> geo.locate_point_in_planar_cycle(geo.Point((1, 1, 4)), cycle, plane).value
+'interior'
+```
 
 ### 7.9 线段—环共同数学模型
 
@@ -890,6 +999,19 @@ def iter_segment_cycle_relations(
 `SegmentCycleRelation`。每条结果与单独调用 `determine_segment_cycle_relation()` 等价；同一环有
 多条候选键时优先使用本接口。
 
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
+>>> segments = (
+...     geo.Segment((1, 1, -1), (1, 1, 1)),
+...     geo.Segment((3, 3, -1), (3, 3, 1)),
+... )
+>>> [result.state.value for result in geo.iter_segment_cycle_relations(segments, cycle)]
+['pierces', 'does_not_pierce']
+```
+
 ### 7.11 `determine_segment_cycle_relation`
 
 ```python
@@ -902,6 +1024,17 @@ def determine_segment_cycle_relation(
 
 单线段入口，等价于对只含一个 `segment` 的序列调用 `iter_segment_cycle_relations()` 并取第一项。
 返回完整状态、接触特征、未决原因、曲面模型、交点、最近环边和枚举证据。
+
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
+>>> segment = geo.Segment((1, 1, -1), (1, 1, 1))
+>>> result = geo.determine_segment_cycle_relation(segment, cycle)
+>>> result.state.value, [point.coordinates for point in result.intersection_points]
+('pierces', [(1.0, 1.0, 0.0)])
+```
 
 ### 7.12 `closest_cycle_edge`
 
@@ -923,6 +1056,17 @@ $i^*=\min\{i\mid d_i\le d_{\min}+\epsilon_L\}$
 
 容差内并列时取最小 edge index，保证稳定输出。输入非有限、局部尺度退化或没有有限距离时返回
 `None`。
+
+#### 简例
+
+```pycon
+>>> from hotpot.cheminfo import geometry as geo
+>>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
+>>> segment = geo.Segment((-1, -1, -1), (-1, -1, 1))
+>>> result = geo.closest_cycle_edge(cycle, segment)
+>>> result.edge_index, round(result.distance, 6)
+(0, 1.414214)
+```
 
 ## 8. 化学对象转换 API
 
@@ -1158,6 +1302,10 @@ def iter_ring_geometries(
 调用 `mol.rings_for_scope(ring_scope)`，保留 `len(ring.atoms) <= max_ring_size` 的环，并按
 canonical ring key 排序后惰性返回。
 
+`max_ring_size` 是必填整数，只过滤来源对象已经返回的环；省略参数或传入 `None` 均不表示“不限
+大小”。Hotpot Core 当前对所选图调用一次 `networkx.cycle_basis()`，所以得到的是一套 cycle
+basis，而不是全部简单环，也不是所有可能的 cycle basis。
+
 ### 8.20 `iter_bond_ring_targets`
 
 ```python
@@ -1225,6 +1373,9 @@ def scan_bond_ring_relations(
 ```
 
 消费完整惰性流并返回稠密报告。该接口适合诊断、审计和需要逐候选证据的业务逻辑。
+
+该函数的 `max_ring_size` 同样是必填整数。它不会控制新的环枚举，仅筛选
+`mol.rings_for_scope(ring_scope)` 已提供的一套 cycle basis。
 
 ### 8.25 `determine_bond_ring_piercing_state`
 

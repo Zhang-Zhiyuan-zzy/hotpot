@@ -93,6 +93,12 @@ Hotpot 的核心目标是提供统一、可检查、适合配位化学的化学�
   化学对象和角色，例如 `source_mol`、`clone_mol`、`working_mol`、`target_atom`。
   在类型已知为分子时，不应只使用 `working`、`obj` 或 `data` 等无法说明化学对象
   的名称。
+- 当某一语义在当前 API 层已经是唯一或默认语义时，名称 MUST 使用简洁的基础名称，
+  不得重复编码默认值。只有同一层级确实存在并列语义时才添加限定词。例如，化学业务
+  层的默认环使用 `ring`，不使用 `relevant_ring`；非默认旧环族使用
+  `cycle_basis_ring`。算法层的 `relevant_cycles()` 仍应保留标准算法名称。
+- 每个限定词都必须区分真实存在的后端、算法、化学语义、来源或生命周期。不能仅为
+  强调实现细节而增加 `default_`、`current_`、`relevant_`、`standard_` 等修饰。
 
 ## 5. 化学语义必须显式且非破坏性
 

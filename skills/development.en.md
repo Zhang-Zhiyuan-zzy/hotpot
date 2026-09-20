@@ -75,6 +75,35 @@ Search results MUST satisfy the following contract:
 - Fixes to legacy behavior MUST include regression coverage for existing entry points.
 - Before deleting an apparently legacy module, confirm production references and the impact on possible external deep imports.
 
+### 4.3 Type Annotations and Chemical-Object Naming
+
+- Unless a boundary type genuinely cannot be expressed, `Any` MUST NOT be
+  used as an annotation. Known Hotpot objects MUST use concrete domain types
+  such as `Molecule`, `Atom`, `Bond`, or `Crystal`.
+- Circular imports do not justify `Any`; use `TYPE_CHECKING`, deferred
+  annotations, or forward references. When real structural polymorphism
+  exists, define a minimal `Protocol`, type alias, generic, or union.
+- Unknown values on which no arbitrary operations are required should use
+  `object`. Heterogeneous serialized data should use a `TypedDict`, dataclass,
+  or recursive value type. Any unavoidable `Any` at a dynamic third-party
+  boundary MUST be locally documented and must not spread into domain logic.
+- Class, instance, and parameter names MUST describe chemical objects rather
+  than vague program state. Prefer concise conventional names such as `mol`,
+  `atom`, `bond`, and `cbond`.
+- When objects of the same chemical type differ by source, ownership, or
+  lifecycle, retain both the object and role in the name, such as
+  `source_mol`, `clone_mol`, `working_mol`, or `target_atom`.
+- When a semantic is the sole or default meaning within an API layer, names
+  MUST use the concise base term instead of repeating that default. Add a
+  qualifier only when competing meanings genuinely coexist at that layer.
+  For example, the chemistry layer uses `ring`, not `relevant_ring`, while a
+  non-default legacy family uses `cycle_basis_ring`. The graph-algorithm
+  function `relevant_cycles()` retains its standard algorithm name.
+- Every qualifier must distinguish a real backend, algorithm, chemical
+  interpretation, source, or lifecycle. Do not add words such as `default_`,
+  `current_`, `relevant_`, or `standard_` merely to emphasize an
+  implementation detail.
+
 ## 5. Chemical Semantics Must Be Explicit and Non-Destructive
 
 ### 5.1 Named Semantic Profiles

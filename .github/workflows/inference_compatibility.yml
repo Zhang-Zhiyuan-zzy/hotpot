@@ -130,7 +130,7 @@ jobs:
       - name: Build and install the native wheel
         run: |
           python -m build --wheel --outdir /tmp/hotpot-native-wheel
-          python -m pip install --no-deps --force-reinstall /tmp/hotpot-native-wheel/*.whl
+          python -m pip install /tmp/hotpot-native-wheel/*.whl
           python -m pip check
       - name: Smoke-test the installed native graph API
         working-directory: /tmp

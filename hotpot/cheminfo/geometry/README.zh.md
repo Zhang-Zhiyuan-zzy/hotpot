@@ -166,7 +166,7 @@ for finding in report.piercings:
 |---|---|---|
 | `PairScope` | Literal alias | 原子对范围：全部、成键或未成键 |
 | `RingScope` | Literal alias | 环范围：全图或配体骨架 |
-| `RingFamily` | Enum | 扫描报告记录的环识别算法族标签；当前固定表示 Hotpot Core 的 NetworkX cycle basis |
+| `RingFamily` | Enum | 扫描报告记录的环识别算法族标签；当前 Hotpot Core 提供 Relevant Cycles |
 | `AtomGeometry` | frozen generic dataclass | Atom、`Point` 和 atom key 的映射 |
 | `AtomPairTarget` | frozen generic dataclass | 两个 atom mapping 及成键事实 |
 | `BondGeometry` | frozen generic dataclass | Bond、`Segment` 和 bond key 的映射 |
@@ -1109,10 +1109,11 @@ RingScope = Literal["full_graph", "ligand_skeleton"]
 
 | 成员 | `.value` | 含义 |
 |---|---|---|
-| `NETWORKX_CYCLE_BASIS` | `"networkx_cycle_basis"` | Core 使用 NetworkX cycle basis 选择环 |
+| `NETWORKX_CYCLE_BASIS` | `"networkx_cycle_basis"` | 为显式旧 cycle-basis 集成保留的标签；当前扫描入口不会输出它 |
+| `RELEVANT_CYCLES` | `"relevant_cycles"` | 当前 Core 环接口采用的、全部最小环基之并集 |
 
-`BondRingScanReport.ring_family` 当前固定写入这一成员。对于自定义 Molecule-like 对象，这是调用方
-遵守 `rings_for_scope()` 协议的约定标签，不是转换层对其内部算法的动态识别结果。
+`BondRingScanReport.ring_family` 当前固定写入 `RELEVANT_CYCLES`。对于自定义 Molecule-like
+对象，该标签要求 `rings_for_scope()` 确实返回 Relevant Cycles；转换层不会动态识别其内部算法。
 
 ### 8.5 `AtomGeometry`
 
@@ -1214,7 +1215,7 @@ BondRingScanReport[RingT, BondT](
     ring_family: RingFamily,
     max_ring_size: int,
     selected_ring_count: int,
-    excluded_ring_count: int,
+    excluded_ring_count: Optional[int],
     candidate_pair_count: int,
     evaluated_pair_count: int,
     piercing_pair_count: int,
@@ -1228,10 +1229,10 @@ BondRingScanReport[RingT, BondT](
 |---|---|
 | `findings` | 每个已评估候选对的完整记录 |
 | `ring_scope` | 本次请求的环范围 |
-| `ring_family` | 当前转换层写入的 Hotpot Core 环族标签；目前固定为 `NETWORKX_CYCLE_BASIS`，并非从自定义对象动态探测 |
+| `ring_family` | 当前转换层写入的 Hotpot Core 环族标签；目前为 `RELEVANT_CYCLES` |
 | `max_ring_size` | 纳入扫描的最大环原子数 |
 | `selected_ring_count` | 满足大小限制的环数 |
-| `excluded_ring_count` | 因大小限制排除的环数 |
+| `excluded_ring_count` | 当前始终为 `None`：原生尺寸上限避免枚举大环，因此无法得知被排除数量 |
 | `candidate_pair_count` | 排除环自身边后的 Ring × Bond 候选数 |
 | `evaluated_pair_count` | 实际得到 relation 的候选数 |
 | 三个 `*_pair_count` | 三种最终状态各自的数量 |
@@ -1240,7 +1241,8 @@ BondRingScanReport[RingT, BondT](
 | `undetermined` | 只含 `UNDETERMINED` 的只读派生 tuple |
 
 `scan_complete=True` 不代表扫描覆盖全部可能环；必须同时检查 `ring_scope`、`ring_family`、
-`max_ring_size` 和 `excluded_ring_count`。空选择也可能产生完整的空报告。
+`max_ring_size`。`excluded_ring_count=None` 表示没有枚举尺寸上限之外的环，并不表示不存在大环。
+空选择也可能产生完整的空报告。力场策略会将这种全局覆盖范围未知的情况转换为显式警告。
 
 ### 8.14 `point_from_atom`
 
@@ -1299,12 +1301,12 @@ def iter_ring_geometries(
 ) -> Iterator[RingGeometry[RingT]]
 ```
 
-调用 `mol.rings_for_scope(ring_scope)`，保留 `len(ring.atoms) <= max_ring_size` 的环，并按
-canonical ring key 排序后惰性返回。
+调用 `mol.rings_for_scope(ring_scope, max_size=max_ring_size)`，并按 canonical ring key
+排序后惰性返回 Relevant Cycles。
 
-`max_ring_size` 是必填整数，只过滤来源对象已经返回的环；省略参数或传入 `None` 均不表示“不限
-大小”。Hotpot Core 当前对所选图调用一次 `networkx.cycle_basis()`，所以得到的是一套 cycle
-basis，而不是全部简单环，也不是所有可能的 cycle basis。
+`max_ring_size` 是必填整数，并直接下传到原生 Relevant Cycle 枚举，避免先枚举大环再将其丢弃。
+Relevant Cycles 不是全部简单环。Hotpot Core 仍采用 10,000 个结果的安全上限；超过上限时该调用会
+抛出 `RelevantCycleLimitExceeded`，而不会返回不完整环族。
 
 ### 8.20 `iter_bond_ring_targets`
 
@@ -1374,8 +1376,7 @@ def scan_bond_ring_relations(
 
 消费完整惰性流并返回稠密报告。该接口适合诊断、审计和需要逐候选证据的业务逻辑。
 
-该函数的 `max_ring_size` 同样是必填整数。它不会控制新的环枚举，仅筛选
-`mol.rings_for_scope(ring_scope)` 已提供的一套 cycle basis。
+该函数的 `max_ring_size` 同样是必填整数，并在来源处限制 Relevant Cycle 枚举。
 
 ### 8.25 `determine_bond_ring_piercing_state`
 
@@ -1396,4 +1397,4 @@ def determine_bond_ring_piercing_state(
 3. 其余情况返回 `DOES_NOT_PIERCE`。
 
 返回值只覆盖声明的 `ring_scope` 和 `max_ring_size`；该标量接口不携带
-`excluded_ring_count`。需要审计覆盖范围时使用 `scan_bond_ring_relations()`。
+环族和尺寸边界元数据。需要审计覆盖范围时使用 `scan_bond_ring_relations()`。

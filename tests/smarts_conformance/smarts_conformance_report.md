@@ -1,6 +1,10 @@
 # SMARTS parser and substructure-search conformance report
 
-Date: 2026-09-15
+Original audit date: 2026-09-15
+
+Relevant-Cycle supplement: 2026-09-20
+
+Supplement validation revision: `4d847f4`
 
 Audited production revision: `7b262a9663d930d86186f5473fab60af2d70931a`
 
@@ -14,6 +18,9 @@ bond-metadata, and coordination-semantics changes.
 
 - Strict `smarts_core`: **252 passed** on Python 3.9 and **252 passed** on
   Python 3.14.
+- Relevant-Cycle supplement: **255 passed** on both Python 3.9 and 3.14,
+  including three marked cubane tests for `R/r`, edge-order invariance, and
+  RDKit parity.
 - Smoke profile: **38 passed, 214 deselected** on Python 3.14.
 - Deterministic corpus: **1,332/1,332 passed**; zero mismatches.
 - Focused legacy Search/SMARTS, MCA site detection, bond metadata, and ligand
@@ -85,7 +92,7 @@ never silently regenerated from Hotpot or a reference engine.
 
 ## Commands and observed results
 
-Commands were run from the repository root on 2026-09-15.
+The original commands were run from the repository root on 2026-09-15.
 
 ```bash
 /tmp/hotpot-py314/bin/python -m pytest -q -p no:cacheprovider \
@@ -135,6 +142,15 @@ UV_CACHE_DIR=/tmp/hotpot-audit-uv-cache \
 ```
 
 These timings are local diagnostic observations, not performance thresholds.
+
+The Relevant-Cycle supplement was run from the repository root on 2026-09-20:
+
+```bash
+UV_CACHE_DIR=/tmp/hotpot-ring-audit-uv-cache \
+  bash tests/run_inference_compatibility.sh 3.9 3.14
+# Each interpreter: 710 passed, 4 skipped, 3 xfailed in the focused matrix.
+# Each interpreter: 255 passed in the strict SMARTS gate.
+```
 
 ## Corpus evidence
 
@@ -214,8 +230,9 @@ make arbitrary graph-isomorphism workloads constant-time.
 
 The following boundaries remain explicit:
 
-- `R<n>`/`r<n>` in fused, bridged, spiro, and cage systems follow NetworkX's
-  cycle basis rather than a toolkit-neutral SSSR;
+- `R<n>`/`r<n>` in fused, bridged, spiro, and cage systems follow Hotpot's
+  Relevant Cycle family; this is deterministic and symmetry-preserving but is
+  not claimed to be identical to every toolkit's SSSR or smallest-ring policy;
 - Open Babel controls input aromaticity and implicit-hydrogen perception;
 - MOL2 `du`/`un`/`nc` cannot be distinguished after Open Babel 3.1 parsing;
 - `LIGAND_SKELETON` excludes every topological metal--nonmetal edge on the

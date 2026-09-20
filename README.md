@@ -280,8 +280,9 @@ Continuing with the *Eu-ligand pair* example:
 ```pycon
 print(pair.atoms)
 print(pair.bonds)
-print(pair.rings)                       # all rings
-print(pair.ligand_rings)                # rings in ligand
+print(pair.rings)                       # full-graph Relevant Cycles
+print(pair.ligand_rings)                # ligand-skeleton Relevant Cycles
+print(pair.cycle_basis_rings)           # explicit legacy cycle basis
 
 assert len(pair.components) == 1
 pair.hide_metal_ligand_bonds()          # Hide the coordination bonds temporarily
@@ -294,6 +295,14 @@ print(eu_metal.neighbours)              # [Atom(N), Atom(N), Atom(N), Atom(O)]
 
 print(pair.link_matrix)                 # Connectivity graph table
 ```
+
+Relevant-Cycle access returns the complete requested family or raises
+`RelevantCycleLimitExceeded` at the default 10,000-cycle safety limit; it never
+returns a silently truncated family. Use
+`rings_for_scope(..., max_cycles=None)` only when unbounded enumeration is
+intentional. Existing trained ring-feature models continue to use the explicit
+legacy cycle-basis APIs for their ring tensors; aromaticity perception itself
+uses Relevant Cycles.
 
 ##### SMARTS Support & Extensions
 
@@ -332,8 +341,8 @@ ligand_hits = pair.search_substructure(
 
 | Profile | `D` / `X` | `v` | `R` / `r` |
 |:--------|:----------|:----|:----------|
-| `FULL_GRAPH` (default) | All graph neighbours; `X` also includes implicit H | Sum of numeric bond orders plus implicit H | `Molecule.rings` |
-| `LIGAND_SKELETON` | Non-metal atoms exclude metal--ligand edges; metal centres retain their full coordination number | Uses the same ligand view and counts only `SINGLE`, `DOUBLE`, `TRIPLE`, and `AROMATIC` bond kinds | `Molecule.ligand_rings` |
+| `FULL_GRAPH` (default) | All graph neighbours; `X` also includes implicit H | Sum of numeric bond orders plus implicit H | Relevant Cycles from `Molecule.rings` |
+| `LIGAND_SKELETON` | Non-metal atoms exclude metal--ligand edges; metal centres retain their full coordination number | Uses the same ligand view and counts only `SINGLE`, `DOUBLE`, `TRIPLE`, and `AROMATIC` bond kinds | Relevant Cycles from `Molecule.ligand_rings` |
 
 Both profiles use the `Atom.implicit_hydrogens` produced by the input reader;
 switching profiles does not reperceive or recalculate hydrogens. For example,

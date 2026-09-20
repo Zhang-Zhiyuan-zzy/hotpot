@@ -183,7 +183,7 @@ for finding in report.piercings:
 |---|---|---|
 | `PairScope` | Literal alias | Atom-pair scope: all, bonded, or nonbonded |
 | `RingScope` | Literal alias | Ring scope: full graph or ligand skeleton |
-| `RingFamily` | Enum | Ring-detection family recorded in scan reports; currently the NetworkX cycle basis supplied by Hotpot Core |
+| `RingFamily` | Enum | Ring-detection family recorded in scan reports; Hotpot Core currently supplies Relevant Cycles |
 | `AtomGeometry` | frozen generic dataclass | Mapping among an Atom, a `Point`, and an atom key |
 | `AtomPairTarget` | frozen generic dataclass | Two atom mappings and their bonded status |
 | `BondGeometry` | frozen generic dataclass | Mapping among a Bond, a `Segment`, and a bond key |
@@ -1200,11 +1200,12 @@ connections.
 
 | Member | `.value` | Meaning |
 |---|---|---|
-| `NETWORKX_CYCLE_BASIS` | `"networkx_cycle_basis"` | Core selects rings with the NetworkX cycle-basis algorithm |
+| `NETWORKX_CYCLE_BASIS` | `"networkx_cycle_basis"` | Reserved label for explicit legacy cycle-basis integrations; current scan entry points do not emit it |
+| `RELEVANT_CYCLES` | `"relevant_cycles"` | Unique union of all minimum cycle bases used by the current Core ring API |
 
-`BondRingScanReport.ring_family` is currently always set to this member. For a
-custom Molecule-like object, it is a contract label asserting that the caller
-follows the `rings_for_scope()` protocol; the conversion layer does not
+`BondRingScanReport.ring_family` is currently set to `RELEVANT_CYCLES`. For a
+custom Molecule-like object, it is a contract label requiring
+`rings_for_scope()` to return Relevant Cycles; the conversion layer does not
 dynamically detect the object's internal algorithm.
 
 ### 8.5 `AtomGeometry`
@@ -1314,7 +1315,7 @@ BondRingScanReport[RingT, BondT](
     ring_family: RingFamily,
     max_ring_size: int,
     selected_ring_count: int,
-    excluded_ring_count: int,
+    excluded_ring_count: Optional[int],
     candidate_pair_count: int,
     evaluated_pair_count: int,
     piercing_pair_count: int,
@@ -1328,10 +1329,10 @@ BondRingScanReport[RingT, BondT](
 |---|---|
 | `findings` | Complete record for every evaluated candidate pair |
 | `ring_scope` | Ring scope requested for this scan |
-| `ring_family` | Ring-family label written by the current Hotpot Core conversion layer; always `NETWORKX_CYCLE_BASIS` at present, rather than dynamically detected from a custom object |
+| `ring_family` | Ring-family label written by the current Hotpot Core conversion layer; currently `RELEVANT_CYCLES` |
 | `max_ring_size` | Maximum atom count of rings included in the scan |
 | `selected_ring_count` | Number of rings satisfying the size limit |
-| `excluded_ring_count` | Number of rings excluded by the size limit |
+| `excluded_ring_count` | Currently always `None`: the native size bound intentionally avoids enumerating larger Relevant Cycles, so their count is unknown |
 | `candidate_pair_count` | Number of Ring × Bond candidates after excluding each ring's own edges |
 | `evaluated_pair_count` | Number of candidates for which a relationship was obtained |
 | three `*_pair_count` fields | Number of final results in each of the three states |
@@ -1340,8 +1341,11 @@ BondRingScanReport[RingT, BondT](
 | `undetermined` | Read-only derived tuple containing only `UNDETERMINED` findings |
 
 `scan_complete=True` does not mean that every possible ring was scanned. Also
-inspect `ring_scope`, `ring_family`, `max_ring_size`, and
-`excluded_ring_count`. An empty selection may produce a complete empty report.
+inspect `ring_scope`, `ring_family`, and `max_ring_size`.
+`excluded_ring_count=None` means rings above the requested size were not
+enumerated; it does not assert that no larger rings exist. An empty selection
+may produce a complete empty report. The force-field policy converts this
+unknown global coverage into an explicit warning.
 
 ### 8.14 `point_from_atom`
 
@@ -1403,15 +1407,14 @@ def iter_ring_geometries(
 ) -> Iterator[RingGeometry[RingT]]
 ```
 
-Calls `mol.rings_for_scope(ring_scope)`, retains rings satisfying
-`len(ring.atoms) <= max_ring_size`, sorts them by canonical ring key, and then
-yields them lazily.
+Calls `mol.rings_for_scope(ring_scope, max_size=max_ring_size)`, sorts the
+returned Relevant Cycles by canonical ring key, and then yields them lazily.
 
-`max_ring_size` is a required integer and only filters rings already returned
-by the source object. Omitting it or passing `None` does not mean “unlimited.”
-Hotpot Core currently calls `networkx.cycle_basis()` once for the selected
-graph, so it supplies one cycle basis—not all simple cycles and not all
-possible cycle bases.
+`max_ring_size` is required and is passed into native Relevant Cycle
+enumeration. This avoids enumerating larger cycles merely to discard them.
+Relevant Cycles are not the set of all simple cycles. Hotpot Core retains its
+10,000-result safety limit, so this call can raise
+`RelevantCycleLimitExceeded` rather than return a partial family.
 
 ### 8.20 `iter_bond_ring_targets`
 
@@ -1489,9 +1492,8 @@ Consumes the complete lazy stream and returns a dense report. This interface
 is intended for diagnostics, auditing, and business logic that requires
 per-candidate evidence.
 
-Here too, `max_ring_size` is a required integer. It does not control a new ring
-enumeration; it only filters the one cycle basis supplied by
-`mol.rings_for_scope(ring_scope)`.
+Here too, `max_ring_size` is required and bounds Relevant Cycle enumeration at
+the source.
 
 ### 8.25 `determine_bond_ring_piercing_state`
 
@@ -1513,5 +1515,5 @@ A fast entry point for callers that need only the aggregate three-state result:
 3. otherwise return `DOES_NOT_PIERCE`.
 
 The result covers only the declared `ring_scope` and `max_ring_size`. This
-scalar interface does not carry `excluded_ring_count`; use
-`scan_bond_ring_relations()` when coverage must be audited.
+scalar interface does not carry ring-selection metadata; use
+`scan_bond_ring_relations()` when the selected family and bound must be audited.

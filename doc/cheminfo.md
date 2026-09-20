@@ -142,10 +142,14 @@
 | `shortest_paths_indices`           | Indices for shortest paths                    |  
 | `smiles`                           | SMILES string                                 |  
 | `kekulize_smiles`                  | Kekulize SMILES                               |  
-| `rings`                            | Rings operations                              |  
+| `rings`                            | Full-graph Relevant Cycles                    |
+| `cycle_basis_rings`                | Legacy NetworkX cycle-basis rings             |
+| `rings_for_scope`                  | Relevant Cycles for a selected graph scope    |
+| `cycle_basis_rings_for_scope`      | Legacy cycle basis for a selected graph scope |
 | `aromatic_joint_rings`             | Joint aromatic rings                          |  
 | `rings_small`                      | Small rings                                   |  
-| `ligand_rings`                     | Ligand rings                                  |  
+| `ligand_rings`                     | Ligand-skeleton Relevant Cycles               |
+| `ligand_cycle_basis_rings`         | Legacy ligand-skeleton cycle-basis rings      |
 | `to_obmol`                         | Convert to OBMol                              |  
 | `to_rdmol`                         | Convert to RDMol                              |  
 | `to_pybel_mol`                     | Convert to Pybel mol                          |  

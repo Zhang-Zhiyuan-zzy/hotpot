@@ -12,4 +12,5 @@ include hotpot/cheminfo/geometry/README.zh.md
 include hotpot/cheminfo/graph/README.md
 include hotpot/cheminfo/graph/_relevant_cycles.pyi
 recursive-include hotpot/cheminfo/graph/_native *.cpp *.hpp *.md
+include hotpot/cheminfo/kekulize/Kekulize.md
 recursive-include hotpot/cheminfo/graph/_native LICENSE*

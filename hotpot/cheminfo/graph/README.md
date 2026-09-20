@@ -81,6 +81,8 @@ is not a runtime dependency. Its BSD 3-Clause license and provenance notice are
 included under `_native/`; the test-only oracle is pinned to commit
 `3a7ff93de0d9c4f6a5661508549c6063573f39c7`.
 
-`Molecule.rings` still retains its existing NetworkX cycle-basis semantics.
-Selecting Relevant Cycles in Core or geometry is a separate chemistry-policy
-decision and is not silently enabled by this package.
+`Molecule.rings` and `Molecule.ligand_rings` use this Relevant Cycle family.
+The former NetworkX behavior remains explicit as `cycle_basis_rings` and
+`ligand_cycle_basis_rings` for consumers, such as already-trained models, whose
+ring-tensor contract depends on one cycle basis. Aromaticity perception itself
+uses Relevant Cycles.

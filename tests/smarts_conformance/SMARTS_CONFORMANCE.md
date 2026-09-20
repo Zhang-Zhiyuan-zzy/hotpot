@@ -59,8 +59,8 @@ The keyword-only `semantics` argument is accepted by
 - `D<n>` is the number of explicit graph neighbours;
 - `X<n>` is that degree plus `Atom.implicit_hydrogens`;
 - `v<n>` is the numeric bond-order sum plus implicit hydrogens;
-- `R`/`R<n>` and `r`/`r<n>` use `Molecule.rings`, whose current ring model is
-  `networkx.cycle_basis`.
+- `R`/`R<n>` and `r`/`r<n>` use `Molecule.rings`, whose ring model is the
+  complete Relevant Cycle family.
 
 Metal--ligand edges therefore affect donor degree/connectivity and may create
 full-graph chelate rings.
@@ -76,7 +76,7 @@ from the molecule and does not change the graph traversed by `Searcher`:
   coordination queries such as `[M;X6]` remain expressible;
 - ligand-profile `v` counts only `SINGLE`, `DOUBLE`, `TRIPLE`, and `AROMATIC`
   kinds; `DATIVE`, `ZERO`, and `UNKNOWN` contribute zero;
-- `R`/`r` use `Molecule.ligand_rings`, which obtains a cycle basis after
+- `R`/`r` use `Molecule.ligand_rings`, which obtains Relevant Cycles after
   filtering metal--ligand edges on a copied graph.
 
 The profile does not rerun hydrogen perception. Both `X` and `v` use the
@@ -103,10 +103,10 @@ anchored recursion.
 
 - `H<n>` in an identity context is explicit plus implicit hydrogen count; a
   standalone `[H]` denotes elemental hydrogen.
-- `R` means membership in any selected-view cycle-basis ring and `R<n>` counts
+- `R` means membership in any selected-view Relevant Cycle and `R<n>` counts
   those rings.
-- `r` means ring membership, `r<n>` means membership in a selected-view basis
-  ring of size `n`, and `r0` means acyclic in that view.
+- `r` means ring membership, `r<n>` means membership in a selected-view
+  Relevant Cycle of size `n`, and `r0` means acyclic in that view.
 - atom maps are query metadata and never constrain a match.
 
 Logical precedence is `!`, high-precedence/implicit AND (`&` and adjacency),
@@ -177,12 +177,16 @@ atom as a reliable site.
 
 ## Current conformance status
 
-At revision `7b262a9`, the strict `smarts_core` suite passes on Python 3.9 and
-3.14: **252 passed** on each interpreter. The deterministic corpus contains
-**1,332/1,332 passing cases** and `corpus/known_mismatches.json` is empty.
-These numbers describe the scoped SMARTS suite, not all repository tests.
+At revision `7b262a9`, the original strict `smarts_core` suite passed on Python
+3.9 and 3.14: **252 passed** on each interpreter. On 2026-09-20, the
+Relevant-Cycle migration added three marked cubane tests covering numeric
+`R/r`, insertion-order invariance, and RDKit differential behavior; the updated
+gate at revision `4d847f4` is **255 passed** on both Python 3.9 and 3.14. The
+deterministic corpus contains **1,332/1,332 passing cases** and
+`corpus/known_mismatches.json` is empty. These numbers describe the scoped
+SMARTS suite, not all repository tests.
 
-Polycyclic cycle-basis behavior, Open Babel aromaticity/hydrogen perception,
+Polycyclic ring-family behavior, Open Babel aromaticity/hydrogen perception,
 MOL2 coordination-token loss, unsupported SMARTS features, and the deliberate
 ligand-skeleton treatment of organometallic bonds remain documented boundaries,
 not hidden fallbacks.

@@ -108,12 +108,18 @@ def test_ligand_rings_refresh_after_endpoint_metallicity_changes_in_place():
     original_bonds = tuple(molecule.bonds)
     original_edges = frozenset(frozenset(edge) for edge in molecule.graph.edges)
 
-    assert _ring_atom_sets(molecule.ligand_rings) == {frozenset((0, 1, 2))}
+    assert _ring_atom_sets(
+        molecule.rings_for_scope("ligand_skeleton")
+    ) == {frozenset((0, 1, 2))}
 
     molecule.atoms[0].atomic_number = 29
-    assert _ring_atom_sets(molecule.ligand_rings) == set()
+    assert _ring_atom_sets(
+        molecule.rings_for_scope("ligand_skeleton")
+    ) == set()
 
     molecule.atoms[0].atomic_number = 6
-    assert _ring_atom_sets(molecule.ligand_rings) == {frozenset((0, 1, 2))}
+    assert _ring_atom_sets(
+        molecule.rings_for_scope("ligand_skeleton")
+    ) == {frozenset((0, 1, 2))}
     assert tuple(molecule.bonds) == original_bonds
     assert frozenset(frozenset(edge) for edge in molecule.graph.edges) == original_edges

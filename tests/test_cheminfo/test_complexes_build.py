@@ -739,7 +739,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         piercing_state,
     )
     monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
-    monkeypatch.setattr(ff, "_select_relevant_ring_opening_edge", closest)
+    monkeypatch.setattr(ff, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
         ff,
         "_bond_ring_acceptance_checks",
@@ -1214,7 +1214,7 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
     )
     monkeypatch.setattr(
         ff,
-        "_select_relevant_ring_opening_edge",
+        "_select_ring_opening_edge",
         lambda current, ring, bond, **kwargs: (
             first if ring == "first" else second
         ),

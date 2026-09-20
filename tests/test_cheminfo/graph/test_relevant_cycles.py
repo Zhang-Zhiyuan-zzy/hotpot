@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from itertools import permutations
 
 import networkx as nx
@@ -65,6 +66,23 @@ def test_node_relabelling_preserves_the_cycle_set():
     }
     actual = {frozenset(cycle) for cycle in relevant_cycles(relabelled_edges)}
     assert actual == expected
+
+
+def test_native_calls_are_deterministic_under_threaded_use():
+    cases = tuple(edges for _, edges in reference_graphs())
+    expected = tuple(relevant_cycles(edges) for edges in cases)
+    submitted = cases * 32
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        actual = tuple(executor.map(relevant_cycles, submitted))
+
+    assert actual == expected * 32
+
+
+def test_deep_acyclic_graph_does_not_depend_on_the_cpp_call_stack():
+    edges = ((node, node + 1) for node in range(49_999))
+
+    assert relevant_cycles(edges) == ()
 
 
 def test_max_size_returns_an_exact_subset_of_global_relevant_cycles():

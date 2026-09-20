@@ -182,58 +182,16 @@ std::vector<std::vector<AdjacentEdge>> make_adjacency(
     return adjacency;
 }
 
-void visit_biconnected_components(
-    const LocalVertex vertex,
-    const LocalEdge parent_edge,
-    const std::vector<std::vector<AdjacentEdge>>& adjacency,
-    std::vector<std::size_t>& discovery,
-    std::vector<std::size_t>& low,
-    std::size_t& time,
-    std::vector<LocalEdge>& edge_stack,
-    std::vector<std::vector<LocalEdge>>& components
-) {
-    discovery[vertex] = low[vertex] = ++time;
-    for (const AdjacentEdge adjacent : adjacency[vertex]) {
-        if (adjacent.edge == parent_edge) {
-            continue;
-        }
-        if (discovery[adjacent.vertex] == 0) {
-            edge_stack.push_back(adjacent.edge);
-            visit_biconnected_components(
-                adjacent.vertex,
-                adjacent.edge,
-                adjacency,
-                discovery,
-                low,
-                time,
-                edge_stack,
-                components
-            );
-            low[vertex] = std::min(low[vertex], low[adjacent.vertex]);
-            if (low[adjacent.vertex] >= discovery[vertex]) {
-                std::vector<LocalEdge> component;
-                while (!edge_stack.empty()) {
-                    const LocalEdge edge = edge_stack.back();
-                    edge_stack.pop_back();
-                    component.push_back(edge);
-                    if (edge == adjacent.edge) {
-                        break;
-                    }
-                }
-                if (component.size() > 1) {
-                    components.push_back(std::move(component));
-                }
-            }
-        } else if (discovery[adjacent.vertex] < discovery[vertex]) {
-            edge_stack.push_back(adjacent.edge);
-            low[vertex] = std::min(low[vertex], discovery[adjacent.vertex]);
-        }
-    }
-}
-
 std::vector<std::vector<LocalEdge>> biconnected_components(
     const std::vector<Edge>& edges
 ) {
+    struct DfsFrame {
+        LocalVertex vertex;
+        LocalVertex parent;
+        LocalEdge parent_edge;
+        std::size_t next_neighbor;
+    };
+
     const std::size_t vertex_count = inferred_vertex_count(edges);
     const auto adjacency = make_adjacency(vertex_count, edges);
     std::vector<std::size_t> discovery(vertex_count, 0);
@@ -241,18 +199,65 @@ std::vector<std::vector<LocalEdge>> biconnected_components(
     std::vector<LocalEdge> edge_stack;
     std::vector<std::vector<LocalEdge>> components;
     std::size_t time = 0;
-    for (LocalVertex vertex = 0; vertex < vertex_count; ++vertex) {
-        if (discovery[vertex] == 0) {
-            visit_biconnected_components(
-                vertex,
-                NO_INDEX,
-                adjacency,
-                discovery,
-                low,
-                time,
-                edge_stack,
-                components
+    std::vector<DfsFrame> dfs_stack;
+
+    for (LocalVertex root = 0; root < vertex_count; ++root) {
+        if (discovery[root] != 0) {
+            continue;
+        }
+        discovery[root] = low[root] = ++time;
+        dfs_stack.push_back({root, NO_INDEX, NO_INDEX, 0});
+
+        while (!dfs_stack.empty()) {
+            DfsFrame& frame = dfs_stack.back();
+            if (frame.next_neighbor < adjacency[frame.vertex].size()) {
+                const AdjacentEdge adjacent =
+                    adjacency[frame.vertex][frame.next_neighbor++];
+                if (adjacent.edge == frame.parent_edge) {
+                    continue;
+                }
+                if (discovery[adjacent.vertex] == 0) {
+                    edge_stack.push_back(adjacent.edge);
+                    discovery[adjacent.vertex] = low[adjacent.vertex] = ++time;
+                    dfs_stack.push_back({
+                        adjacent.vertex,
+                        frame.vertex,
+                        adjacent.edge,
+                        0,
+                    });
+                } else if (discovery[adjacent.vertex] < discovery[frame.vertex]) {
+                    edge_stack.push_back(adjacent.edge);
+                    low[frame.vertex] = std::min(
+                        low[frame.vertex],
+                        discovery[adjacent.vertex]
+                    );
+                }
+                continue;
+            }
+
+            const DfsFrame completed = frame;
+            dfs_stack.pop_back();
+            if (completed.parent == NO_INDEX) {
+                continue;
+            }
+            low[completed.parent] = std::min(
+                low[completed.parent],
+                low[completed.vertex]
             );
+            if (low[completed.vertex] >= discovery[completed.parent]) {
+                std::vector<LocalEdge> component;
+                while (!edge_stack.empty()) {
+                    const LocalEdge edge = edge_stack.back();
+                    edge_stack.pop_back();
+                    component.push_back(edge);
+                    if (edge == completed.parent_edge) {
+                        break;
+                    }
+                }
+                if (component.size() > 1) {
+                    components.push_back(std::move(component));
+                }
+            }
         }
     }
     return components;
@@ -355,7 +360,7 @@ ShortestPathData shortest_path_data(const LocalGraph& graph) {
             ordered_predecessor
         );
         for (LocalVertex vertex = 0; vertex < vertex_count; ++vertex) {
-            paths.ordered_reachable[root][vertex] =
+            paths.ordered_reachable[root][vertex] = vertex != root &&
                 ordered_distance[vertex] != INFINITE_DISTANCE;
         }
 
@@ -373,6 +378,7 @@ ShortestPathData shortest_path_data(const LocalGraph& graph) {
         for (LocalVertex vertex = 0; vertex < vertex_count; ++vertex) {
             if (full_distance[vertex] < ordered_distance[vertex]) {
                 paths.predecessor[root][vertex] = full_predecessor[vertex];
+                paths.ordered_reachable[root][vertex] = false;
             }
         }
 
@@ -381,7 +387,8 @@ ShortestPathData shortest_path_data(const LocalGraph& graph) {
                 continue;
             }
             for (const AdjacentEdge adjacent : graph.adjacency[vertex]) {
-                if (paths.ordered_reachable[root][adjacent.vertex] &&
+                if ((adjacent.vertex == root ||
+                     paths.ordered_reachable[root][adjacent.vertex]) &&
                     full_distance[adjacent.vertex] + 1 == full_distance[vertex]) {
                     paths.path_predecessors[root][vertex].push_back(adjacent);
                 }
@@ -578,23 +585,54 @@ void mark_relevant_families(
     }
 }
 
-void enumerate_paths(
+bool for_each_path(
     const LocalVertex root,
     const LocalVertex vertex,
     const ShortestPathData& paths,
-    BitVector& path,
-    const std::function<void(const BitVector&)>& visit
+    const std::size_t edge_count,
+    const std::function<bool(const BitVector&)>& visit
 ) {
-    if (vertex == root) {
-        visit(path);
-        return;
+    struct PathFrame {
+        LocalVertex vertex;
+        LocalEdge incoming_edge;
+        std::size_t next_predecessor;
+    };
+
+    BitVector path = make_bit_vector(edge_count);
+    std::vector<PathFrame> stack;
+    stack.push_back({vertex, NO_INDEX, 0});
+
+    while (!stack.empty()) {
+        PathFrame& frame = stack.back();
+        if (frame.vertex == root) {
+            if (!visit(path)) {
+                return false;
+            }
+            const LocalEdge incoming_edge = frame.incoming_edge;
+            stack.pop_back();
+            if (incoming_edge != NO_INDEX) {
+                path[incoming_edge / BITS_PER_WORD] &=
+                    ~(BitWord{1} << (incoming_edge % BITS_PER_WORD));
+            }
+            continue;
+        }
+
+        const auto& predecessors = paths.path_predecessors[root][frame.vertex];
+        if (frame.next_predecessor < predecessors.size()) {
+            const AdjacentEdge predecessor = predecessors[frame.next_predecessor++];
+            set_bit(path, predecessor.edge);
+            stack.push_back({predecessor.vertex, predecessor.edge, 0});
+            continue;
+        }
+
+        const LocalEdge incoming_edge = frame.incoming_edge;
+        stack.pop_back();
+        if (incoming_edge != NO_INDEX) {
+            path[incoming_edge / BITS_PER_WORD] &=
+                ~(BitWord{1} << (incoming_edge % BITS_PER_WORD));
+        }
     }
-    for (const AdjacentEdge predecessor : paths.path_predecessors[root][vertex]) {
-        set_bit(path, predecessor.edge);
-        enumerate_paths(root, predecessor.vertex, paths, path, visit);
-        path[predecessor.edge / BITS_PER_WORD] ^=
-            BitWord{1} << (predecessor.edge % BITS_PER_WORD);
-    }
+    return true;
 }
 
 CycleEdges original_edge_ids(
@@ -612,6 +650,62 @@ CycleEdges original_edge_ids(
     return result;
 }
 
+bool is_single_simple_cycle(
+    const BitVector& cycle,
+    const LocalGraph& graph
+) {
+    const std::size_t selected_edge_count = bit_count(cycle);
+    if (selected_edge_count < 3) {
+        return false;
+    }
+
+    std::vector<std::size_t> degree(graph.adjacency.size(), 0);
+    LocalVertex start = NO_INDEX;
+    for (LocalEdge edge = 0; edge < graph.edges.size(); ++edge) {
+        if (!test_bit(cycle, edge)) {
+            continue;
+        }
+        const LocalVertex first = graph.edges[edge][0];
+        const LocalVertex second = graph.edges[edge][1];
+        ++degree[first];
+        ++degree[second];
+        start = first;
+    }
+
+    std::size_t selected_vertex_count = 0;
+    for (const std::size_t vertex_degree : degree) {
+        if (vertex_degree == 0) {
+            continue;
+        }
+        if (vertex_degree != 2) {
+            return false;
+        }
+        ++selected_vertex_count;
+    }
+    if (selected_vertex_count != selected_edge_count) {
+        return false;
+    }
+
+    std::vector<bool> visited(graph.adjacency.size(), false);
+    std::vector<LocalVertex> stack{start};
+    std::size_t visited_count = 0;
+    while (!stack.empty()) {
+        const LocalVertex vertex = stack.back();
+        stack.pop_back();
+        if (visited[vertex]) {
+            continue;
+        }
+        visited[vertex] = true;
+        ++visited_count;
+        for (const AdjacentEdge adjacent : graph.adjacency[vertex]) {
+            if (test_bit(cycle, adjacent.edge) && !visited[adjacent.vertex]) {
+                stack.push_back(adjacent.vertex);
+            }
+        }
+    }
+    return visited_count == selected_vertex_count;
+}
+
 void add_expanded_family(
     const CycleFamily& family,
     const LocalGraph& graph,
@@ -622,45 +716,42 @@ void add_expanded_family(
     if (limits.max_size && family.weight > *limits.max_size) {
         return;
     }
-    std::vector<BitVector> second_paths;
-    BitVector current_second = make_bit_vector(graph.edges.size());
-    enumerate_paths(
-        family.root,
-        family.second,
-        paths,
-        current_second,
-        [&second_paths](const BitVector& path) { second_paths.push_back(path); }
-    );
-
-    BitVector current_first = make_bit_vector(graph.edges.size());
-    enumerate_paths(
+    for_each_path(
         family.root,
         family.first,
         paths,
-        current_first,
-        [&](const BitVector& first_path) {
-            for (const BitVector& second_path : second_paths) {
-                BitVector cycle = first_path;
-                or_bits(cycle, second_path);
-                if (family.center == NO_INDEX) {
-                    set_bit(cycle, edge_between(graph, family.first, family.second));
-                } else {
-                    set_bit(cycle, edge_between(graph, family.first, family.center));
-                    set_bit(cycle, edge_between(graph, family.second, family.center));
+        graph.edges.size(),
+        [&](const BitVector& first_path) -> bool {
+            return for_each_path(
+                family.root,
+                family.second,
+                paths,
+                graph.edges.size(),
+                [&](const BitVector& second_path) -> bool {
+                    BitVector cycle = first_path;
+                    or_bits(cycle, second_path);
+                    if (family.center == NO_INDEX) {
+                        set_bit(cycle, edge_between(graph, family.first, family.second));
+                    } else {
+                        set_bit(cycle, edge_between(graph, family.first, family.center));
+                        set_bit(cycle, edge_between(graph, family.second, family.center));
+                    }
+                    if (bit_count(cycle) != family.weight ||
+                        !is_single_simple_cycle(cycle, graph)) {
+                        throw std::logic_error(
+                            "Vismara family expansion produced a non-simple cycle"
+                        );
+                    }
+                    cycles.insert(original_edge_ids(cycle, graph));
+                    if (limits.max_cycles && cycles.size() > *limits.max_cycles) {
+                        throw RelevantCycleLimitExceeded(
+                            "Relevant Cycle count exceeds max_cycles=" +
+                            std::to_string(*limits.max_cycles)
+                        );
+                    }
+                    return true;
                 }
-                if (bit_count(cycle) != family.weight) {
-                    throw std::logic_error(
-                        "Vismara family expansion produced a non-simple cycle"
-                    );
-                }
-                cycles.insert(original_edge_ids(cycle, graph));
-                if (limits.max_cycles && cycles.size() > *limits.max_cycles) {
-                    throw RelevantCycleLimitExceeded(
-                        "Relevant Cycle count exceeds max_cycles=" +
-                        std::to_string(*limits.max_cycles)
-                    );
-                }
-            }
+            );
         }
     );
 }

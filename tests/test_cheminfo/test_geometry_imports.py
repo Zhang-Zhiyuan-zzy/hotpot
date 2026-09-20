@@ -93,7 +93,17 @@ def test_module_imports_in_fresh_subprocess(module_name):
 @pytest.mark.parametrize(
     "module_name, forbidden",
     (
-        ("object", {"relation", "convert", "core", "forcefields"}),
+        (
+            "object",
+            {
+                "relation",
+                "convert",
+                "core",
+                "forcefields",
+                "graph",
+                "networkx",
+            },
+        ),
         ("relation", {"convert", "core", "forcefields"}),
         ("convert", {"core", "forcefields"}),
     ),

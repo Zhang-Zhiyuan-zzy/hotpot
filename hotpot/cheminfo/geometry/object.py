@@ -177,7 +177,11 @@ class Triangle:
 
 @dataclass(frozen=True, init=False)
 class Cycle:
-    """An ordered closed one-dimensional boundary without an implied surface."""
+    """An ordered closed boundary independent of chemical ring perception.
+
+    A cycle stores only geometry.  It neither finds cycles in a graph nor
+    records which ring-perception algorithm supplied its ordered vertices.
+    """
 
     vertices: Tuple[Point, ...]
 

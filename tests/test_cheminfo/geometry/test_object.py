@@ -1,4 +1,4 @@
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, fields
 from math import inf
 
 import pytest
@@ -103,6 +103,7 @@ def test_triangle_can_represent_collinear_vertices():
 def test_cycle_is_only_an_ordered_closed_boundary():
     cycle = Cycle(((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)))
 
+    assert tuple(field.name for field in fields(Cycle)) == ("vertices",)
     assert len(cycle) == 4
     assert tuple(cycle) == cycle.vertices
     assert cycle.edges[-1] == Segment(cycle.vertices[-1], cycle.vertices[0])

@@ -356,7 +356,10 @@ def segment_from_bond(bond: BondSourceT) -> Segment:
 
 
 def cycle_from_ring(ring: RingSourceT) -> Cycle:
-    """Convert an ordered chemical ring boundary to a geometric cycle."""
+    """Convert an already perceived, ordered ring boundary to a cycle.
+
+    This adapter copies coordinates only; it performs no ring perception.
+    """
     return Cycle(tuple(point_from_atom(atom) for atom in ring.atoms))
 
 

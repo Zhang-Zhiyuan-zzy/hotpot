@@ -478,6 +478,8 @@ $e_i=[\mathbf v_i,\mathbf v_{(i+1)\bmod m}]$
 - Fewer than three vertices raises `ValueError`.
 - A `Cycle` defines only the boundary. Relationship functions separately
   construct a planar polygon or nonplanar candidate surfaces.
+- A `Cycle` neither perceives rings from a graph nor stores whether its
+  boundary came from Relevant Cycles, a cycle basis, or another source.
 
 ## 6. Relationship vocabulary and result structures
 
@@ -1372,7 +1374,8 @@ def cycle_from_ring(ring: RingT) -> Cycle
 ```
 
 Creates a closed `Cycle` in the existing order of `ring.atoms`. Input order
-defines boundary connectivity.
+defines boundary connectivity. This adapter does not perceive rings; its input
+must already describe an ordered closed boundary.
 
 ### 8.17 `iter_atom_geometries`
 

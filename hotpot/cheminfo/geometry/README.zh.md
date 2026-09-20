@@ -438,6 +438,8 @@ $e_i=[\mathbf v_i,\mathbf v_{(i+1)\bmod m}]$
 - 迭代产生有序顶点；
 - 少于三个顶点时抛出 `ValueError`；
 - 它只定义边界，平面多边形或非平面候选曲面由关系函数另行构造。
+- 它既不从图中识别环，也不记录边界来自 Relevant Cycles、cycle basis
+  或其他来源。
 
 ## 6. 关系词汇和返回结构
 
@@ -1267,6 +1269,7 @@ def cycle_from_ring(ring: RingT) -> Cycle
 ```
 
 按 `ring.atoms` 的现有顺序创建闭合 `Cycle`。输入顺序决定边界连接关系。
+该适配器不执行环识别；输入必须已经描述一个有序闭合边界。
 
 ### 8.17 `iter_atom_geometries`
 

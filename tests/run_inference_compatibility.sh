@@ -14,6 +14,11 @@ for version in "${versions[@]}"; do
     (
         cd "$repo_root"
         uv run --no-project --python "$version" \
+            --with 'setuptools>=77,<82' \
+            --with 'pybind11>=3,<4' \
+            python setup.py build_ext --inplace --force
+
+        uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \
             python -m pytest -q -p no:cacheprovider \
             --import-mode=importlib \
@@ -37,6 +42,7 @@ for version in "${versions[@]}"; do
             tests/test_cheminfo/test_search.py \
             tests/test_cheminfo/test_search_mapping.py \
             tests/test_cheminfo/test_smarts.py \
+            tests/test_cheminfo/graph \
             tests/test_works/test_convert.py \
             tests/test_cheminfo/test_import_safety.py \
             tests/test_smart_parser.py

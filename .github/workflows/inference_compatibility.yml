@@ -133,10 +133,16 @@ jobs:
           from hotpot.cheminfo.AImodels.mca import MCAPredictor
 
           geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
-              "relation.md"
+              "README.md"
           ).read_text(encoding="utf-8")
           assert geometry_documentation.startswith(
-              "# `hotpot.cheminfo.geometry` API 参考"
+              "# `hotpot.cheminfo.geometry` API Reference"
+          )
+          chinese_geometry_documentation = files(
+              "hotpot.cheminfo.geometry"
+          ).joinpath("README.zh.md").read_text(encoding="utf-8")
+          assert chinese_geometry_documentation.startswith(
+              "# `hotpot.cheminfo.geometry` API 参考（中文版）"
           )
 
           documentation = subprocess.run(

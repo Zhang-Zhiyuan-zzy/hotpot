@@ -126,10 +126,18 @@ jobs:
         working-directory: /tmp
         run: |
           python - <<'PY'
+          from importlib.resources import files
           import subprocess
 
           import hotpot
           from hotpot.cheminfo.AImodels.mca import MCAPredictor
+
+          geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
+              "relation.md"
+          ).read_text(encoding="utf-8")
+          assert geometry_documentation.startswith(
+              "# `hotpot.cheminfo.geometry` API 参考"
+          )
 
           documentation = subprocess.run(
               ["hotpot", "mca", "--doc"],

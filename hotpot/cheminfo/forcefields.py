@@ -441,7 +441,18 @@ class _MoleculeCommitSnapshot:
     angles: list["Angle"]
     torsions: list["Torsion"]
     rings: list["Ring"]
+    cycle_basis_rings: list["Ring"]
+    relevant_cycle_indices_cache: dict[
+        Tuple[
+            bool,
+            Optional[int],
+            Optional[int],
+            Optional[Tuple[Tuple[int, ...], Tuple[Tuple[int, int], ...]]],
+        ],
+        Tuple[Tuple[int, ...], ...],
+    ]
     ligand_rings: Optional[list["Ring"]]
+    ligand_cycle_basis_rings: Optional[list["Ring"]]
     ligand_rings_signature: Optional[
         Tuple[Tuple[int, ...], Tuple[Tuple[int, int], ...]]
     ]
@@ -1004,7 +1015,19 @@ def _bond_ring_acceptance_checks(
             bond_indices=(bond_positions[bond_key],),
             message="The bond-ring spatial relation is mathematically undetermined",
         ))
-    if report.excluded_ring_count:
+    if report.excluded_ring_count is None:
+        checks.append(AcceptanceCheck(
+            name="bond_ring_scope_coverage",
+            passed=False,
+            severity="warning",
+            measured=None,
+            threshold=0,
+            message=(
+                "Rings above the configured maximum were not enumerated; "
+                "the excluded-ring count is unknown"
+            ),
+        ))
+    elif report.excluded_ring_count:
         checks.append(AcceptanceCheck(
             name="bond_ring_scope_coverage",
             passed=False,
@@ -1386,7 +1409,10 @@ def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
         angles=mol._angles,
         torsions=mol._torsions,
         rings=mol._rings,
+        cycle_basis_rings=mol._cycle_basis_rings,
+        relevant_cycle_indices_cache=mol._relevant_cycle_indices_cache,
         ligand_rings=mol._ligand_rings,
+        ligand_cycle_basis_rings=mol._ligand_cycle_basis_rings,
         ligand_rings_signature=mol._ligand_rings_signature,
         obmol=mol._obmol,
         atom_pair_items=tuple(mol._atom_pairs.items()),
@@ -1410,7 +1436,10 @@ def _restore_failed_commit(
     mol._angles = snapshot.angles
     mol._torsions = snapshot.torsions
     mol._rings = snapshot.rings
+    mol._cycle_basis_rings = snapshot.cycle_basis_rings
+    mol._relevant_cycle_indices_cache = snapshot.relevant_cycle_indices_cache
     mol._ligand_rings = snapshot.ligand_rings
+    mol._ligand_cycle_basis_rings = snapshot.ligand_cycle_basis_rings
     mol._ligand_rings_signature = snapshot.ligand_rings_signature
     mol._obmol = snapshot.obmol
     dict.clear(mol._atom_pairs)
@@ -1917,6 +1946,7 @@ def _build_ligand_proxies(
                         component_mol,
                         finding.target.ring.source,
                         finding.target.bond.source,
+                        ring_scope=bond_ring_report.ring_scope,
                     )
                     if ring_edge is None:
                         continue

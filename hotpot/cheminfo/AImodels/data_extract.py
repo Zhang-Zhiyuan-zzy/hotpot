@@ -106,7 +106,8 @@ def extract_atom_pairs(mol: Molecule, data: dict[str, Any] = None) -> dict:
 
 
 def extract_ring_attrs(mol: Molecule, rings_attr_names: Iterable[str] = None, data: dict[str, Any] = None) -> dict:
-    rings = mol.ligand_rings
+    # Preserve the ring-tensor family used to train the existing models.
+    rings = mol.ligand_cycle_basis_rings
 
     if rings:
         rings_node_index = [r.atoms_indices for r in rings]
@@ -148,6 +149,4 @@ def extract_ring_attrs(mol: Molecule, rings_attr_names: Iterable[str] = None, da
     data.update(rings_attr_dict)
 
     return data
-
-
 

@@ -14,7 +14,7 @@ import json
 import operator
 import os.path as osp
 from enum import Enum
-from typing import Union, Literal, Iterable, Optional, Callable, Mapping
+from typing import Union, Literal, Iterable, Optional, Callable, Mapping, Tuple
 from copy import copy, deepcopy
 from collections import Counter
 from functools import cached_property
@@ -30,7 +30,7 @@ from hotpot.cheminfo.elements import elements
 from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
-from . import graph, forcefields as ff
+from . import graph as graph_algorithms, forcefields as ff, kekulize as kekulization
 from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
@@ -52,8 +52,12 @@ OPENBABEL_PARTIAL_CHARGE_MODELS = (
 
 # Chemistry policy deliberately kept outside the factual geometry package.
 _MINIMUM_ATOM_SEPARATION = 0.5
-_AROMATIC_PLANARITY_RELATIVE_TOLERANCE = 0.03
 _DEFAULT_BOND_RING_MAXIMUM_SIZE = 8
+
+_LigandRingSignature = Tuple[
+    Tuple[int, ...],
+    Tuple[Tuple[int, int], ...],
+]
 
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
@@ -139,7 +143,10 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
+        self._cycle_basis_rings = []
+        self._relevant_cycle_indices_cache = {}
         self._ligand_rings = None
+        self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
         self._graph = nx.Graph()
         self._obmol = None
@@ -422,7 +429,10 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
+        self._cycle_basis_rings = []
+        self._relevant_cycle_indices_cache = {}
         self._ligand_rings = None
+        self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
         self._obmol = None
 
@@ -1006,12 +1016,7 @@ class Molecule:
         -------
         This method does not return any value.
         """
-        self.hide_metal_ligand_bonds()
-        for ring in self.rings:
-            # ring.determine_aromatic(inplace=True)
-            ring.kekulize()
-
-        self.recover_hided_metal_ligand_bonds()
+        return kekulization.kekulize_molecule_rings(self)
 
     @property
     def conformers(self) -> "Conformers":
@@ -1135,11 +1140,10 @@ class Molecule:
         attributes of each atom.
 
         """
-        if assign_aromatic is not False:
-            rings = self.ligand_rings
-            if assign_aromatic or (rings and not any(r.is_aromatic for r in rings)):
-                for r in rings:
-                    r.determine_aromatic(inplace=True)
+        kekulization.perceive_ligand_ring_aromaticity(
+            self,
+            force=assign_aromatic,
+        )
 
         for atom in self.atoms:
             atom.valence = atom.get_valence()
@@ -1559,14 +1563,18 @@ class Molecule:
     def adjacency_matrix(self):
         clone = copy(self)
         clone.add_hydrogens()
-        return graph.linkmat2adj(len(clone.atoms), clone.link_matrix)
+        return graph_algorithms.linkmat2adj(len(clone.atoms), clone.link_matrix)
 
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         """ Return graph spectral matrix """
         clone = copy(self)
         clone.add_hydrogens()
-        adj = graph.linkmat2adj(len(clone.atoms), clone.link_matrix)
-        return graph.GraphSpectrum.from_adj_atoms(adj, np.array([a.atomic_number for a in clone.atoms]), norm=norm)
+        adj = graph_algorithms.linkmat2adj(len(clone.atoms), clone.link_matrix)
+        return graph_algorithms.GraphSpectrum.from_adj_atoms(
+            adj,
+            np.array([a.atomic_number for a in clone.atoms]),
+            norm=norm,
+        )
 
     @property
     def formula(self) -> str:
@@ -2247,55 +2255,114 @@ class Molecule:
     @property
     def rings(self) -> list["Ring"]:
         """
-        Determines and returns a list of rings present in the graph represented by the object.
+        Return the graph's complete Relevant Cycle family.
 
-        The method calculates the ring structures in the graph, if they are not already computed,
-        by identifying cycles using a cycle basis algorithm applied to the internal graph representation. 
-        The rings are then constructed as instances of the Ring class, based on the atoms corresponding 
-        to the graph cycles. The result is cached for reuse during subsequent accesses.
-
-        @return: List of Ring objects computed from the cycles found in the graph.
-
-        Attributes:
-            _rings (Optional[list["Ring"]]): Cached list of Ring objects. If not previously computed, 
-                this attribute is populated by the method.
-            _atoms (list[Any]): Internal representation of the atoms in the molecule, used to instantiate 
-                the Ring objects.
-            graph (nx.Graph): Graph representation of the molecular structure to identify cycle bases.
-
-        Returns:
-            list["Ring"]: A list of Ring objects, each representing a detected cyclic structure 
-            in the graph.
+        Relevant Cycles are the union of all minimum cycle bases.  Unlike one
+        arbitrary cycle basis, the family is uniquely determined by the fixed
+        unweighted molecular graph and preserves symmetry-equivalent rings.
+        Enumeration is complete up to the configured safety limit or raises
+        ``RelevantCycleLimitExceeded`` rather than returning a partial family.
         """
         if not self._rings:
-            self._rings = self._uncached_rings()
+            self._rings = self._materialize_relevant_rings()
 
         return copy(self._rings)
 
-    def _uncached_rings(self, *, ligand_skeleton: bool = False) -> list["Ring"]:
-        """Materialize ring objects without changing either ring cache."""
-        graph = self.graph
+    @property
+    def cycle_basis_rings(self) -> list["Ring"]:
+        """Return the legacy NetworkX cycle-basis ring family."""
+        if not self._cycle_basis_rings:
+            self._cycle_basis_rings = self._uncached_cycle_basis_rings()
+        return copy(self._cycle_basis_rings)
+
+    def _ring_graph(self, *, ligand_skeleton: bool = False) -> nx.Graph:
+        """Return the molecular graph view used for ring perception."""
+        scope_graph = self.graph
         if ligand_skeleton:
-            graph = graph.copy()
-            graph.remove_edges_from(
+            scope_graph = scope_graph.copy()
+            scope_graph.remove_edges_from(
                 (bond.a1idx, bond.a2idx)
                 for bond in self.bonds
                 if bond.is_metal_ligand_bond
             )
+        return scope_graph
+
+    def _rings_from_cycles(self, cycles: Iterable[Iterable[int]]) -> list["Ring"]:
+        """Materialize ordered ring objects from atom-index cycles."""
         return [
             Ring(*(self._atoms[index] for index in cycle))
-            for cycle in nx.cycle_basis(graph)
+            for cycle in cycles
         ]
+
+    def _materialize_relevant_rings(
+            self,
+            *,
+            ligand_skeleton: bool = False,
+            max_size: Optional[int] = None,
+            max_cycles: Optional[int] = graph_algorithms.DEFAULT_RELEVANT_CYCLE_LIMIT,
+    ) -> list["Ring"]:
+        """Materialize rings while caching their native index-cycle family."""
+        ligand_signature = (
+            self._current_ligand_ring_signature()
+            if ligand_skeleton
+            else None
+        )
+        cache_key = (
+            ligand_skeleton,
+            max_size,
+            max_cycles,
+            ligand_signature,
+        )
+        cycles = self._relevant_cycle_indices_cache.get(cache_key)
+        if cycles is None:
+            scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
+            cycles = graph_algorithms.relevant_cycles(
+                scope_graph.edges,
+                max_size=max_size,
+                max_cycles=max_cycles,
+            )
+            self._relevant_cycle_indices_cache[cache_key] = cycles
+        return self._rings_from_cycles(cycles)
+
+    def _uncached_cycle_basis_rings(
+            self,
+            *,
+            ligand_skeleton: bool = False,
+    ) -> list["Ring"]:
+        """Materialize one NetworkX cycle basis without changing a cache."""
+        scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
+        return self._rings_from_cycles(nx.cycle_basis(scope_graph))
 
     def rings_for_scope(
             self,
             ring_scope: Literal["full_graph", "ligand_skeleton"],
+            *,
+            max_size: Optional[int] = None,
+            max_cycles: Optional[int] = graph_algorithms.DEFAULT_RELEVANT_CYCLE_LIMIT,
     ) -> list["Ring"]:
-        """Return an uncached cycle-basis view for the requested graph scope."""
+        """Return a Relevant Cycle view for a molecular graph scope."""
         if ring_scope == "full_graph":
-            return self._uncached_rings()
+            return self._materialize_relevant_rings(
+                max_size=max_size,
+                max_cycles=max_cycles,
+            )
         if ring_scope == "ligand_skeleton":
-            return self._uncached_rings(ligand_skeleton=True)
+            return self._materialize_relevant_rings(
+                ligand_skeleton=True,
+                max_size=max_size,
+                max_cycles=max_cycles,
+            )
+        raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
+
+    def cycle_basis_rings_for_scope(
+            self,
+            ring_scope: Literal["full_graph", "ligand_skeleton"],
+    ) -> list["Ring"]:
+        """Return an uncached legacy cycle-basis view for a graph scope."""
+        if ring_scope == "full_graph":
+            return self._uncached_cycle_basis_rings()
+        if ring_scope == "ligand_skeleton":
+            return self._uncached_cycle_basis_rings(ligand_skeleton=True)
         raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
 
     @property
@@ -2356,14 +2423,40 @@ class Molecule:
                 list[Ring]: A list of Ring objects representing ligand
                 rings associated with the object.
         """
-        signature = (
+        self._refresh_ligand_ring_cache_signature()
+        if self._ligand_rings is None:
+            self._ligand_rings = self._materialize_relevant_rings(
+                ligand_skeleton=True,
+            )
+        return copy(self._ligand_rings)
+
+    @property
+    def ligand_cycle_basis_rings(self) -> list["Ring"]:
+        """Return the ligand-skeleton legacy cycle-basis ring family."""
+        self._refresh_ligand_ring_cache_signature()
+        if self._ligand_cycle_basis_rings is None:
+            self._ligand_cycle_basis_rings = self._uncached_cycle_basis_rings(
+                ligand_skeleton=True,
+            )
+        return copy(self._ligand_cycle_basis_rings)
+
+    def _refresh_ligand_ring_cache_signature(self) -> None:
+        """Invalidate ligand ring caches after graph or element changes."""
+        signature = self._current_ligand_ring_signature()
+        if signature != self._ligand_rings_signature:
+            self._ligand_rings = None
+            self._ligand_cycle_basis_rings = None
+            for cache_key in tuple(self._relevant_cycle_indices_cache):
+                if cache_key[0]:
+                    del self._relevant_cycle_indices_cache[cache_key]
+            self._ligand_rings_signature = signature
+
+    def _current_ligand_ring_signature(self) -> _LigandRingSignature:
+        """Return the element-and-edge signature defining the ligand view."""
+        return (
             tuple(atom.atomic_number for atom in self._atoms),
             tuple(sorted(tuple(sorted(edge)) for edge in self.graph.edges)),
         )
-        if signature != self._ligand_rings_signature:
-            self._ligand_rings = self._uncached_rings(ligand_skeleton=True)
-            self._ligand_rings_signature = signature
-        return copy(self._ligand_rings)
 
     def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
         from ..plugins.PyG.data.utils import mol_to_pyg_data
@@ -2666,6 +2759,11 @@ class MolBlock:
         @return: A list of rings containing the invoking instance
         """
         return [r for r in self.mol.rings if self in r]
+
+    @property
+    def cycle_basis_rings(self) -> list["Ring"]:
+        """Return legacy cycle-basis rings containing this object."""
+        return [ring for ring in self.mol.cycle_basis_rings if self in ring]
 
     def setattr(self, *, add_defaults=False, **kwargs):
         """
@@ -4984,24 +5082,11 @@ class JointRing:
         Returns:
             bool: True if the structure conforms to Kekulé rules, otherwise False.
         """
-        for atom in self.atoms:
-            if atom.atomic_number == 6:
-                if atom.sum_heavy_cov_orders != 3:
-                    return False
-            if atom.atomic_number in [7, 15]:
-                if atom.sum_heavy_cov_orders == 2 and atom.implicit_hydrogens != 1:
-                    return False
-                elif atom.sum_heavy_cov_orders == 3 and atom.implicit_hydrogens != 0:
-                    return False
-            if atom.atomic_number in  [5, 8, 16]:
-                if atom.sum_heavy_cov_orders == 2:
-                    return False
-
-        return True
+        return kekulization.check_joint_ring_kekulization(self)
 
 
     def kekulize(self):
-        raise NotImplementedError
+        return kekulization.kekulize_joint_ring(self)
 
 
 class Ring(AtomSeq):
@@ -5226,77 +5311,7 @@ class Ring(AtomSeq):
         bool
             True if the molecule is found to be aromatic, otherwise False.
         """
-        if self.is_aromatic:
-            return True
-
-        def _neutral_mol_check():
-            if not self.has_3d:
-                # TODO: for neutral molecule just.
-                pi_electron = 0
-                for a in self._atoms:
-                    if a.atomic_number == 6:
-                        if len(a.heavy_neighbours) + a.implicit_hydrogens != 3:
-                            return False
-                        pi_electron += 1
-
-                    elif a.atomic_number in (7, 15):
-                        if len(a.heavy_neighbours) + a.implicit_hydrogens == 3:
-                            pi_electron += 2
-                        elif len(a.heavy_neighbours) + a.implicit_hydrogens == 2:
-                            pi_electron += 1
-                        else:
-                            return False
-
-                    elif a.atomic_number in (8, 16):
-                        if len(a.heavy_neighbours) + a.implicit_hydrogens != 2:
-                            return False
-                        pi_electron += 2
-
-                    elif a.atomic_number == 5:  # B
-                        pi_electron += 0
-
-                    else:
-                        return False
-
-                return (pi_electron - 2) % 4 == 0
-
-            else:
-                planarity = geometry.measure_planarity(self.geometry_cycle)
-                if not (
-                    planarity.length_scale > 0.0
-                    and np.isfinite(planarity.maximum_deviation)
-                    and planarity.maximum_deviation / planarity.length_scale
-                    < _AROMATIC_PLANARITY_RELATIVE_TOLERANCE
-                ):
-                    return False
-
-                pi_electrons = []
-                for a in self._atoms:
-                    if a.atomic_number == 6:
-                        if len(a.neigh_idx) > 3:
-                            return False
-                        pi_electrons.append((1,))
-
-                    elif a.atomic_number in (7, 15):
-                        if len(a.neigh_idx) > 3:
-                            return False
-                        pi_electrons.append((1, 2))
-
-                    elif a.atomic_number in (8, 16):
-                        if len(a.neigh_idx) != 2:
-                            return False
-                        pi_electrons.append((2,))
-
-                return any((sum(pie) - 2) % 4 == 0 for pie in product(*pi_electrons))
-
-        if self.has_metal:
-            judge = False
-        else:
-            judge = _neutral_mol_check()
-
-        if inplace:
-            self.is_aromatic = judge
-        return judge
+        return kekulization.determine_ring_aromaticity(self, inplace=inplace)
 
     def relation_to_bond(
             self,
@@ -5336,18 +5351,7 @@ class Ring(AtomSeq):
         are consistently applied. This function modifies the bond orders directly in place to achieve a strict 
         Kekulé structure representation if the molecule has aromatic properties.
         """
-        if not self.determine_aromatic(inplace=True):
-            return
-
-        def _refresh(bs):
-            for b in bs:
-                b.bond_order = 1
-
-        _refresh(self._bonds)
-        for bond in self._bonds:
-            if all((end_atom.atomic_number not in [5, 8, 16] and eab.bond_order == 1)
-                   for end_atom in bond.atoms for eab in end_atom.bonds):
-                bond.bond_order = 2
+        return kekulization.kekulize_ring(self)
 
 
 class Conformers:
@@ -5561,7 +5565,12 @@ class InternalCoordinates:
             row = len(visited_nodes)
             visited_nodes.add(node)
 
-            path = graph.graph_dfs_path(_graph, node, scope_nodes=visited_nodes, max_deep=min(row + 1, 4))
+            path = graph_algorithms.graph_dfs_path(
+                _graph,
+                node,
+                scope_nodes=visited_nodes,
+                max_deep=min(row + 1, 4),
+            )
             zmat_idx[row, :row+1] = path
 
             try:

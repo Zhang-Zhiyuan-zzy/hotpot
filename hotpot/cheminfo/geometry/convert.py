@@ -15,6 +15,7 @@ from typing import (
     Iterable,
     Iterator,
     Literal,
+    Optional,
     Protocol,
     Sequence,
     Tuple,
@@ -70,6 +71,7 @@ class RingFamily(str, Enum):
     """Algorithm family used by Core to select molecular rings."""
 
     NETWORKX_CYCLE_BASIS = "networkx_cycle_basis"
+    RELEVANT_CYCLES = "relevant_cycles"
 
 
 # Source-object protocols.  They describe only what conversion needs and keep
@@ -127,6 +129,9 @@ class _MoleculeLike(
     def rings_for_scope(
         self,
         ring_scope: RingScope,
+        *,
+        max_size: Optional[int] = None,
+        max_cycles: Optional[int] = None,
     ) -> Sequence[_RingSource_co]: ...
 
 
@@ -197,7 +202,7 @@ class BondRingScanReport(Generic[RingSourceT, BondSourceT]):
     ring_family: RingFamily
     max_ring_size: int
     selected_ring_count: int
-    excluded_ring_count: int
+    excluded_ring_count: Optional[int]
     candidate_pair_count: int
     evaluated_pair_count: int
     piercing_pair_count: int
@@ -271,15 +276,14 @@ def _selected_rings(
         mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         ring_scope: RingScope,
         max_ring_size: int,
-) -> Tuple[Tuple[RingSourceT, ...], int]:
-    rings = tuple(mol.rings_for_scope(ring_scope))
+) -> Tuple[Tuple[RingSourceT, ...], Optional[int]]:
     selected = tuple(
         sorted(
-            (ring for ring in rings if len(ring.atoms) <= max_ring_size),
+            mol.rings_for_scope(ring_scope, max_size=max_ring_size),
             key=_ring_key,
         )
     )
-    return selected, len(rings) - len(selected)
+    return selected, None
 
 
 def _iter_bond_ring_targets_from_rings(
@@ -384,7 +388,7 @@ def iter_ring_geometries(
         ring_scope: RingScope,
         max_ring_size: int,
 ) -> Iterator[RingGeometry[RingSourceT]]:
-    """Yield selected cycle-basis rings in canonical key order."""
+    """Yield selected Relevant Cycles in canonical key order."""
     rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
     for ring in rings:
         yield RingGeometry(
@@ -510,7 +514,7 @@ def scan_bond_ring_relations(
     return BondRingScanReport(
         findings=findings,
         ring_scope=ring_scope,
-        ring_family=RingFamily.NETWORKX_CYCLE_BASIS,
+        ring_family=RingFamily.RELEVANT_CYCLES,
         max_ring_size=max_ring_size,
         selected_ring_count=len(selected_rings),
         excluded_ring_count=excluded_ring_count,

@@ -159,7 +159,8 @@ def extract_potentials_cbonds(
 
 
 def extract_ring_attrs(mol: Molecule, ring_attr_names: Iterable[str]):
-    rings = mol.ligand_rings
+    # Preserve the ring-tensor family used to train the existing models.
+    rings = mol.ligand_cycle_basis_rings
 
     if rings:
         rings_node_index = [r.atoms_indices for r in rings]
@@ -203,4 +204,3 @@ def merge_individual_data_to_block(indiv_data_dir, merged_data_dir, bundle_size:
     if list_data:
         total += len(list_data)
         torch.save(list_data, osp.join(merged_data_dir, f"{total}.pt"))
-

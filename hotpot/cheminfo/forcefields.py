@@ -1049,25 +1049,32 @@ def _bond_ring_acceptance_checks(
     return tuple(checks)
 
 
-def _select_ring_opening_edge(
+def _select_relevant_ring_opening_edge(
     mol: "Molecule",
     ring: "Ring",
     bond: "Bond",
     *,
     ring_scope: geo.RingScope = "ligand_skeleton",
 ) -> Optional["Bond"]:
-    """Choose the nearest single, non-fused edge eligible for temporary opening."""
-    memberships = {}
-    for candidate_ring in mol.rings_for_scope(ring_scope):
-        for edge in candidate_ring.bonds:
+    """Choose an opening edge using the complete Relevant Cycle family.
+
+    Ring detection may be size-limited, but fused-edge membership must not be:
+    an edge in the detected ring can also belong to a larger Relevant Cycle.
+    The legacy cycle-basis views are deliberately outside this workflow.
+    """
+    relevant_ring_memberships = {}
+    for relevant_ring in mol.rings_for_scope(ring_scope):
+        for edge in relevant_ring.bonds:
             key = _bond_key(edge)
-            memberships[key] = memberships.get(key, 0) + 1
+            relevant_ring_memberships[key] = (
+                relevant_ring_memberships.get(key, 0) + 1
+            )
 
     eligible_edges = tuple(
         edge
         for edge in ring.bonds
         if float(edge.bond_order) == 1.0
-        and memberships.get(_bond_key(edge), 0) == 1
+        and relevant_ring_memberships.get(_bond_key(edge), 0) == 1
     )
     if not eligible_edges:
         return None
@@ -1942,7 +1949,7 @@ def _build_ligand_proxies(
                 )
                 bonds_to_hide = {}
                 for finding in bond_ring_report.piercings:
-                    ring_edge = _select_ring_opening_edge(
+                    ring_edge = _select_relevant_ring_opening_edge(
                         component_mol,
                         finding.target.ring.source,
                         finding.target.bond.source,

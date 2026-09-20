@@ -88,7 +88,9 @@ def test_existing_ml_ring_features_keep_the_legacy_cycle_basis() -> None:
     assert data["rings_node_nums"].tolist() == [4, 4, 6, 4, 4]
 
 
-def test_ring_opening_membership_is_not_truncated_by_scan_size() -> None:
+def test_forcefield_ring_opening_uses_the_complete_relevant_cycle_family(
+        monkeypatch: pytest.MonkeyPatch,
+) -> None:
     edges = [
         (0, 1),
         (0, 2), (2, 3), (3, 1),
@@ -117,7 +119,27 @@ def test_ring_opening_membership_is_not_truncated_by_scan_size() -> None:
 
     small_ring = next(ring for ring in mol.rings if len(ring) == 4)
     shared_edge = mol.bond(0, 1)
-    selected_edge = forcefields._select_ring_opening_edge(
+    def reject_legacy_cycle_basis_for_scope(
+            _mol: Molecule,
+            _ring_scope: str,
+    ) -> None:
+        raise AssertionError("force-field ring opening read the legacy cycle basis")
+
+    def reject_legacy_cycle_basis_property(_mol: Molecule) -> None:
+        raise AssertionError("force-field ring opening read the legacy cycle basis")
+
+    monkeypatch.setattr(
+        Molecule,
+        "cycle_basis_rings_for_scope",
+        reject_legacy_cycle_basis_for_scope,
+    )
+    monkeypatch.setattr(
+        Molecule,
+        "cycle_basis_rings",
+        property(reject_legacy_cycle_basis_property),
+    )
+
+    selected_edge = forcefields._select_relevant_ring_opening_edge(
         mol,
         small_ring,
         mol.bond(11, 12),

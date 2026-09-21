@@ -91,5 +91,5 @@ def test_metal_ligand_bond_can_pierce_a_real_ligand_ring():
 
     assert report.piercing_pair_count == 1
     (finding,) = report.piercings
-    assert finding.target.bond.source is metal_ligand_bond
+    assert finding.target.bond.bond is metal_ligand_bond
     assert finding.relation.state is geo.PiercingState.PIERCES

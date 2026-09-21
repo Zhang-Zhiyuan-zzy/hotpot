@@ -145,7 +145,7 @@ RingSourceT = TypeVar("RingSourceT", bound=_RingLike[_AtomLike])
 
 @dataclass(frozen=True)
 class AtomGeometry(Generic[AtomSourceT]):
-    source: AtomSourceT
+    atom: AtomSourceT
     point: Point
     key: int
 
@@ -159,14 +159,14 @@ class AtomPairTarget(Generic[AtomSourceT]):
 
 @dataclass(frozen=True)
 class BondGeometry(Generic[BondSourceT]):
-    source: BondSourceT
+    bond: BondSourceT
     segment: Segment
     key: Tuple[int, int]
 
 
 @dataclass(frozen=True)
 class RingGeometry(Generic[RingSourceT]):
-    source: RingSourceT
+    ring: RingSourceT
     cycle: Cycle
     key: Tuple[int, ...]
 
@@ -191,7 +191,7 @@ class BondRingFinding(Generic[RingSourceT, BondSourceT]):
 
 @dataclass(frozen=True)
 class RingEdgeDistance(Generic[BondSourceT]):
-    source_bond: BondSourceT
+    bond: BondSourceT
     measurement: ClosestCycleEdge
 
 
@@ -291,7 +291,7 @@ def _iter_bond_ring_targets_from_rings(
     bonds = tuple(sorted(mol.bonds, key=_bond_key))
     for ring in rings:
         ring_geometry = RingGeometry(
-            source=ring,
+            ring=ring,
             cycle=cycle_from_ring(ring),
             key=_ring_key(ring),
         )
@@ -302,14 +302,14 @@ def _iter_bond_ring_targets_for_ring(
     ring: RingGeometry[RingSourceT],
     bonds: Sequence[BondSourceT],
 ) -> Iterator[BondRingTarget[RingSourceT, BondSourceT]]:
-    ring_edge_keys = frozenset(_ring_edge_keys(ring.source))
+    ring_edge_keys = frozenset(_ring_edge_keys(ring.ring))
     for bond in bonds:
         key = _bond_key(bond)
         if key not in ring_edge_keys:
             yield BondRingTarget(
                 ring=ring,
                 bond=BondGeometry(
-                    source=bond,
+                    bond=bond,
                     segment=segment_from_bond(bond),
                     key=key,
                 ),
@@ -324,12 +324,12 @@ def _iter_bond_ring_findings_from_rings(
     bonds = tuple(sorted(mol.bonds, key=_bond_key))
     for ring in rings:
         ring_geometry = RingGeometry(
-            source=ring,
+            ring=ring,
             cycle=cycle_from_ring(ring),
             key=_ring_key(ring),
         )
-        target_source = _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
-        finding_targets, relation_targets = tee(target_source)
+        targets = _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
+        finding_targets, relation_targets = tee(targets)
         relations = iter_segment_cycle_relations(
             (target.bond.segment for target in relation_targets),
             ring_geometry.cycle,
@@ -366,7 +366,7 @@ def iter_atom_geometries(
 ) -> Iterator[AtomGeometry[AtomSourceT]]:
     """Yield atoms with their immutable point and stable molecular index."""
     for atom in structure.atoms:
-        yield AtomGeometry(source=atom, point=point_from_atom(atom), key=_atom_key(atom))
+        yield AtomGeometry(atom=atom, point=point_from_atom(atom), key=_atom_key(atom))
 
 
 def iter_atom_pair_targets(
@@ -393,7 +393,7 @@ def iter_ring_geometries(
     rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
     for ring in rings:
         yield RingGeometry(
-            source=ring,
+            ring=ring,
             cycle=cycle_from_ring(ring),
             key=_ring_key(ring),
         )
@@ -450,12 +450,12 @@ def determine_bond_ring_relation(
     """Determine one bond-ring relation and retain both source objects."""
     target = BondRingTarget(
         ring=RingGeometry(
-            source=ring,
+            ring=ring,
             cycle=cycle_from_ring(ring),
             key=_ring_key(ring),
         ),
         bond=BondGeometry(
-            source=bond,
+            bond=bond,
             segment=segment_from_bond(bond),
             key=_bond_key(bond),
         ),

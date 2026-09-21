@@ -573,8 +573,8 @@ def _too_close_issues(
             threshold = max(
                 threshold,
                 covalent_radius_scale * (
-                    float(distance.target.first.source.covalent_radius)
-                    + float(distance.target.second.source.covalent_radius)
+                    float(distance.target.first.atom.covalent_radius)
+                    + float(distance.target.second.atom.covalent_radius)
                 ),
             )
         if measured < threshold:
@@ -1916,8 +1916,8 @@ def _build_ligand_proxies(
                 for finding in bond_ring_report.piercings:
                     ring_edge = _select_ring_opening_edge(
                         component_mol,
-                        finding.target.ring.source,
-                        finding.target.bond.source,
+                        finding.target.ring.ring,
+                        finding.target.bond.bond,
                         ring_scope=bond_ring_report.ring_scope,
                     )
                     if ring_edge is None:

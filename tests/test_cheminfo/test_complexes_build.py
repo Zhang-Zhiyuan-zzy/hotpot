@@ -250,8 +250,8 @@ class _DummyComplex:
 def _bond_ring_finding(ring, bond):
     return SimpleNamespace(
         target=SimpleNamespace(
-            ring=SimpleNamespace(source=ring),
-            bond=SimpleNamespace(source=bond),
+            ring=SimpleNamespace(ring=ring),
+            bond=SimpleNamespace(bond=bond),
         )
     )
 

@@ -240,8 +240,8 @@ def test_single_relation_delegates_to_the_geometric_kernel(
     finding = convert.determine_bond_ring_relation(ring, crossing_bond)
 
     assert finding.relation.state is PiercingState.PIERCES
-    assert finding.target.ring.source is ring
-    assert finding.target.bond.source is crossing_bond
+    assert finding.target.ring.ring is ring
+    assert finding.target.bond.bond is crossing_bond
 
 
 def test_core_ring_scope_query_does_not_populate_ring_caches() -> None:

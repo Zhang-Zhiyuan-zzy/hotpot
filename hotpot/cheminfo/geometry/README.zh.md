@@ -99,7 +99,7 @@ report = geo.scan_bond_ring_relations(
 )
 
 for finding in report.piercings:
-    print(finding.target.bond.source, finding.target.ring.source)
+    print(finding.target.bond.bond, finding.target.ring.ring)
 ```
 
 ## 2. 全部公开 API 总览
@@ -1120,10 +1120,10 @@ RingScope = Literal["full_graph", "ligand_skeleton"]
 ### 8.5 `AtomGeometry`
 
 ```python
-AtomGeometry[AtomT](source: AtomT, point: Point, key: int)
+AtomGeometry[AtomT](atom: AtomT, point: Point, key: int)
 ```
 
-`source` 是原 Atom-like 对象，`point` 是坐标快照，`key=int(source.idx)`。
+`atom` 是原 Atom-like 对象，`point` 是坐标快照，`key=int(atom.idx)`。
 
 ### 8.6 `AtomPairTarget`
 
@@ -1141,7 +1141,7 @@ AtomPairTarget[AtomT](
 
 ```python
 BondGeometry[BondT](
-    source: BondT,
+    bond: BondT,
     segment: Segment,
     key: tuple[int, int],
 )
@@ -1155,7 +1155,7 @@ $k_{\mathrm{bond}}=\operatorname{sort}(k_{a_1},k_{a_2})$
 
 ```python
 RingGeometry[RingT](
-    source: RingT,
+    ring: RingT,
     cycle: Cycle,
     key: tuple[int, ...],
 )
@@ -1200,7 +1200,7 @@ BondRingFinding[RingT, BondT](
 
 ```python
 RingEdgeDistance[BondT](
-    source_bond: BondT,
+    bond: BondT,
     measurement: ClosestCycleEdge,
 )
 ```

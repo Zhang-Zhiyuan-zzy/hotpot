@@ -34,13 +34,6 @@ def _point3(point: PointInput) -> "Point":
     return Point.from_coordinates(point)
 
 
-def _cycle_edges(vertices: Tuple["Point", ...]) -> Tuple["Segment", ...]:
-    return tuple(
-        Segment(vertices[index], vertices[(index + 1) % len(vertices)])
-        for index in range(len(vertices))
-    )
-
-
 @dataclass(frozen=True, init=False)
 class Point:
     """A point represented by three coordinates in one consistent length unit."""
@@ -193,7 +186,13 @@ class Cycle:
 
     @property
     def edges(self) -> Tuple[Segment, ...]:
-        return _cycle_edges(self.vertices)
+        return tuple(
+            Segment(
+                self.vertices[index],
+                self.vertices[(index + 1) % len(self.vertices)],
+            )
+            for index in range(len(self.vertices))
+        )
 
     def __len__(self) -> int:
         return len(self.vertices)

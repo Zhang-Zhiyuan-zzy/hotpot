@@ -5330,7 +5330,7 @@ class Ring(AtomSeq):
         if measurement is None:
             return None
         return geometry.RingEdgeDistance(
-            source_bond=self.bonds[measurement.edge_index],
+            bond=self.bonds[measurement.edge_index],
             measurement=measurement,
         )
 

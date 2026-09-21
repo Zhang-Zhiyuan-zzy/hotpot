@@ -41,7 +41,7 @@ def test_molecule_facades_preserve_tristate_and_scan_coverage() -> None:
     assert report.max_ring_size == 8
     assert report.scan_complete
     assert report.piercing_pair_count == 1
-    assert report.piercings[0].target.bond.source is mol.bond(4, 5)
+    assert report.piercings[0].target.bond.bond is mol.bond(4, 5)
 
 
 def test_disorder_policy_consumes_factual_atom_pair_distances() -> None:
@@ -78,13 +78,13 @@ def test_ring_facades_preserve_sources_and_same_molecule_validation() -> None:
 
     assert isinstance(ring.geometry_cycle, geometry.Cycle)
     finding = ring.relation_to_bond(probe)
-    assert finding.target.ring.source is ring
-    assert finding.target.bond.source is probe
+    assert finding.target.ring.ring is ring
+    assert finding.target.bond.bond is probe
     assert finding.relation.state is geometry.PiercingState.PIERCES
 
     closest = ring.closest_edge_to_bond(probe)
     assert isinstance(closest, geometry.RingEdgeDistance)
-    assert closest.source_bond is ring.bonds[closest.measurement.edge_index]
+    assert closest.bond is ring.bonds[closest.measurement.edge_index]
     assert closest.measurement.distance == pytest.approx(1.0)
 
     foreign = _molecule(((0.0, 0.0, 0.0), (0.0, 0.0, 1.0)), ((0, 1),)).bonds[0]

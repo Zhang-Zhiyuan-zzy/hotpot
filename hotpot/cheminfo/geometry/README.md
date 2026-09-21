@@ -116,7 +116,7 @@ report = geo.scan_bond_ring_relations(
 )
 
 for finding in report.piercings:
-    print(finding.target.bond.source, finding.target.ring.source)
+    print(finding.target.bond.bond, finding.target.ring.ring)
 ```
 
 ## 2. Public API overview
@@ -1213,11 +1213,11 @@ dynamically detect the object's internal algorithm.
 ### 8.5 `AtomGeometry`
 
 ```python
-AtomGeometry[AtomT](source: AtomT, point: Point, key: int)
+AtomGeometry[AtomT](atom: AtomT, point: Point, key: int)
 ```
 
-`source` is the original Atom-like object, `point` is a coordinate snapshot,
-and `key=int(source.idx)`.
+`atom` is the original Atom-like object, `point` is a coordinate snapshot,
+and `key=int(atom.idx)`.
 
 ### 8.6 `AtomPairTarget`
 
@@ -1236,7 +1236,7 @@ explicit bond between the atoms.
 
 ```python
 BondGeometry[BondT](
-    source: BondT,
+    bond: BondT,
     segment: Segment,
     key: tuple[int, int],
 )
@@ -1250,7 +1250,7 @@ $k_{\mathrm{bond}}=\operatorname{sort}(k_{a_1},k_{a_2})$
 
 ```python
 RingGeometry[RingT](
-    source: RingT,
+    ring: RingT,
     cycle: Cycle,
     key: tuple[int, ...],
 )
@@ -1299,7 +1299,7 @@ relationship.
 
 ```python
 RingEdgeDistance[BondT](
-    source_bond: BondT,
+    bond: BondT,
     measurement: ClosestCycleEdge,
 )
 ```

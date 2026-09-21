@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ctypes
 import multiprocessing as mp
 import os
 import threading
@@ -35,12 +34,12 @@ import networkx as nx
 import numpy as np
 from openbabel import openbabel as ob
 
-from . import geometry as geo
-from .obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
+from .. import geometry as geo
+from ..obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
 
 
 if TYPE_CHECKING:
-    from .core import Angle, Atom, AtomPair, Bond, Molecule, Ring, Torsion
+    from ..core import Angle, Atom, AtomPair, Bond, Molecule, Ring, Torsion
 
 
 __all__ = (
@@ -120,6 +119,11 @@ class _ComplexBuildWorker(Protocol):
         effective_forcefield: str,
         seed: Optional[int],
     ) -> None:
+        ...
+
+
+class _SeedInitializer(Protocol):
+    def __call__(self, seed: int) -> None:
         ...
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
@@ -1179,20 +1183,8 @@ def _find_forcefield_prototype(name: str) -> Optional[ob.OBForceField]:
 
 
 def _seed_openbabel_random(seed: int) -> None:
-    """Seed both Open Babel RNG implementations before using ``OBBuilder``."""
+    """Seed the current Open Babel RNG before using ``OBBuilder``."""
     os.environ["OB_RANDOM_SEED"] = str(seed)
-
-    # Open Babel 3.1 uses a function-local OBRandom backed by the process C
-    # RNG and time-seeds it on first use.  Initializing that singleton before
-    # resetting srand makes the legacy implementation deterministic.  Newer
-    # Open Babel builds use OB_RANDOM_SEED through OBRandomMT; the extra C RNG
-    # seed is harmless and keeps one code path across supported versions.
-    probe = ob.vector3()
-    probe.randomUnitVector()
-    process_c_library = ctypes.CDLL(None)
-    process_c_library.srand.argtypes = (ctypes.c_uint,)
-    process_c_library.srand.restype = None
-    process_c_library.srand(ctypes.c_uint(seed))
 
 
 @_serialized_forcefield_call
@@ -2133,9 +2125,37 @@ def _build_ligand_proxies_worker(
     seed: Optional[int],
 ) -> None:
     """Child-process boundary that always sends one structured envelope."""
+    _run_ligand_proxy_worker(
+        mol,
+        connection,
+        candidate_count,
+        max_attempts,
+        candidate_warmup_steps,
+        candidate_score_steps,
+        best_candidate_refine_steps,
+        effective_forcefield,
+        seed,
+        seed_initializer=_seed_openbabel_random,
+    )
+
+
+def _run_ligand_proxy_worker(
+    mol: "Molecule",
+    connection: Connection,
+    candidate_count: int,
+    max_attempts: int,
+    candidate_warmup_steps: int,
+    candidate_score_steps: int,
+    best_candidate_refine_steps: int,
+    effective_forcefield: str,
+    seed: Optional[int],
+    *,
+    seed_initializer: _SeedInitializer,
+) -> None:
+    """Run the shared ligand-proxy worker body with an explicit RNG adapter."""
     try:
         if seed is not None:
-            _seed_openbabel_random(seed)
+            seed_initializer(seed)
         coordinates, diagnostics = _build_ligand_proxies(
             mol,
             candidate_count=candidate_count,
@@ -2170,8 +2190,24 @@ def _seeded_ob_build_worker(
     seed: int,
 ) -> None:
     """Run OBBuilder in a fresh process whose static RNG starts from ``seed``."""
+    _run_seeded_ob_build_worker(
+        mol,
+        connection,
+        seed,
+        seed_initializer=_seed_openbabel_random,
+    )
+
+
+def _run_seeded_ob_build_worker(
+    mol: "Molecule",
+    connection: Connection,
+    seed: int,
+    *,
+    seed_initializer: _SeedInitializer,
+) -> None:
+    """Run the shared OBBuilder worker body with an explicit RNG adapter."""
     try:
-        _seed_openbabel_random(seed)
+        seed_initializer(seed)
         _ob_build(mol)
         result = BuildWorkerResult(
             status="ok",

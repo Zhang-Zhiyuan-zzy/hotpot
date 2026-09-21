@@ -7,7 +7,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo import forcefields as ff_api
+from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.core import Molecule
 
 
@@ -27,7 +28,7 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(ff, "build_and_optimize", fake_build_and_optimize)
+    monkeypatch.setattr(ff_api, "build_and_optimize", fake_build_and_optimize)
 
     result = molecule.build3d(
         forcefield="GAFF",
@@ -70,7 +71,7 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(ff, "auto_optimize", fake_auto_optimize)
+    monkeypatch.setattr(ff_api, "auto_optimize", fake_auto_optimize)
 
     result = molecule.optimize(
         forcefield="MMFF94s",
@@ -96,10 +97,10 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
 def test_legacy_molecule_forcefield_entrypoints_are_removed():
     assert not hasattr(Molecule, "complexes_build_optimize_")
     assert not hasattr(Molecule, "optimize_complexes")
-    assert not hasattr(ff, "OBBuilder")
-    assert not hasattr(ff, "ForceFields")
-    assert not hasattr(ff, "ob_build")
-    assert not hasattr(ff, "ob_optimize")
+    assert not hasattr(ff_api, "OBBuilder")
+    assert not hasattr(ff_api, "ForceFields")
+    assert not hasattr(ff_api, "ob_build")
+    assert not hasattr(ff_api, "ob_optimize")
 
 
 @pytest.mark.parametrize("add_hydrogens", (False, True))
@@ -134,7 +135,7 @@ def test_build3d_captures_the_requested_hydrogen_policy(
 
 
 def test_complexes_build_exposes_only_canonical_parameters():
-    parameters = inspect.signature(ff.complexes_build).parameters
+    parameters = inspect.signature(ff_api.complexes_build).parameters
 
     assert all(
         parameter.kind is not inspect.Parameter.VAR_KEYWORD
@@ -144,12 +145,12 @@ def test_complexes_build_exposes_only_canonical_parameters():
     assert "steps" not in parameters
 
     with pytest.raises(TypeError, match="unexpected keyword argument 'steps'"):
-        ff.complexes_build(object(), steps=4)
+        ff_api.complexes_build(object(), steps=4)
 
 
 @pytest.mark.parametrize(
     "entrypoint",
-    (ff.build_complex3d, ff.optimize_complex, ff.complexes_build),
+    (ff_api.build_complex3d, ff_api.optimize_complex, ff_api.complexes_build),
 )
 @pytest.mark.parametrize("smiles", ("CCO", "[Zn].N"))
 def test_complex_only_entrypoints_require_an_explicit_metal_ligand_bond(

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from copy import copy
 from types import SimpleNamespace
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.core import Molecule
 

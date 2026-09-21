@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.forcefields import utils as ff
 
 
 def _send_large_worker(connection):

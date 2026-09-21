@@ -107,18 +107,17 @@ for name in package.__all__:
     sys.version_info < (3, 10),
     reason="The modern import-isolation contract applies to Python 3.10+.",
 )
-def test_modern_import_does_not_load_python39_or_ctypes_modules():
+def test_modern_import_does_not_load_python39_or_legacy_ctypes_adapter():
     script = f"""
 import importlib
 import sys
 
-loaded_before = set(sys.modules)
 importlib.import_module({PACKAGE_NAME!r})
-loaded_by_import = set(sys.modules) - loaded_before
+utils = importlib.import_module({PACKAGE_NAME + '.utils'!r})
 
 assert {PYTHON39_FACADE_NAME!r} not in sys.modules
 assert {PACKAGE_NAME + '.utils39'!r} not in sys.modules
-assert 'ctypes' not in loaded_by_import
+assert not hasattr(utils, 'ctypes')
 """
 
     result = subprocess.run(

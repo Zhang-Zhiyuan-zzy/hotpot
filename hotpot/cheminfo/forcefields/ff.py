@@ -26,6 +26,7 @@ from .utils import (
     CoordinationGeometryCandidate,
     CoordinationGeometryResult,
     ForceFieldAcceptanceEvidence,
+    ForceFieldDiagnosticValue,
     ForceFieldError,
     ForceFieldRunReport,
     ForceFieldSetupError,

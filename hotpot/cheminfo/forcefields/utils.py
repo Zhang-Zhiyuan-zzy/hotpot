@@ -39,12 +39,13 @@ from ..obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordina
 
 
 if TYPE_CHECKING:
-    from ..core import Angle, Atom, AtomPair, Bond, Molecule, Ring, Torsion
+    from ..core import Angle, Atom, AtomPair, Bond, BondKind, Molecule, Ring, Torsion
 
 
 __all__ = (
     "OptimizationAlgorithm",
     "TerminationReason",
+    "ForceFieldDiagnosticValue",
     "ForceFieldRunReport",
     "Build3DReport",
     "CandidateRejection",
@@ -94,6 +95,17 @@ TerminationReason = Literal["converged", "budget_exhausted"]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
 CallableT = TypeVar("CallableT", bound=Callable[..., object])
+ForceFieldDiagnosticValue = Union[
+    None,
+    bool,
+    int,
+    float,
+    str,
+    "AtomTopologySignature",
+    "BondTopologySignature",
+    Tuple["ForceFieldDiagnosticValue", ...],
+    Mapping[str, "ForceFieldDiagnosticValue"],
+]
 
 
 class _SeededBuildWorker(Protocol):
@@ -141,8 +153,8 @@ class AcceptanceCheck:
     name: str
     passed: bool
     severity: Literal["info", "warning", "error"] = "error"
-    measured: object = None
-    threshold: object = None
+    measured: ForceFieldDiagnosticValue = None
+    threshold: ForceFieldDiagnosticValue = None
     atom_indices: Tuple[int, ...] = ()
     bond_indices: Tuple[int, ...] = ()
     message: str = ""
@@ -225,7 +237,7 @@ class ForceFieldValidationReport:
     level: AcceptanceLevel
     passed: bool
     checks: Tuple[AcceptanceCheck, ...]
-    metrics: Mapping[str, object] = field(default_factory=dict)
+    metrics: Mapping[str, ForceFieldDiagnosticValue] = field(default_factory=dict)
 
     @property
     def failures(self) -> Tuple[AcceptanceCheck, ...]:
@@ -243,7 +255,7 @@ class ForceFieldValidationReport:
             if not check.passed and check.severity == "warning"
         )
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(self) -> dict[str, ForceFieldDiagnosticValue]:
         """Return a JSON-serializable representation of the report."""
         return asdict(self)
 
@@ -481,11 +493,21 @@ class _ObservedFrame:
     max_displacements: Tuple[float, ...]
 
 
+class _BondAttributePayload(TypedDict):
+    bond_order: float
+    constraint: bool
+    id: int
+    bond_kind: "BondKind"
+    bond_direction: Optional[str]
+    bond_source: Optional[str]
+    bond_source_metadata: Mapping[str, object]
+
+
 @dataclass(frozen=True)
 class _WorkingCopyCommit:
     original_atom_attrs: Tuple[np.ndarray, ...]
     added_atom_attrs: Tuple[np.ndarray, ...]
-    added_bonds: Tuple[Tuple[int, int, Mapping[str, object]], ...]
+    added_bonds: Tuple[Tuple[int, int, _BondAttributePayload], ...]
     conformer_state: Mapping[str, object]
     conformer_index: int
 
@@ -1338,7 +1360,7 @@ def _prepare_working_copy_commit(
     }
     working_original_bonds = set()
     working_bond_keys = set()
-    added_bonds = []
+    added_bonds: list[Tuple[int, int, _BondAttributePayload]] = []
     for bond in working_mol.bonds:
         if (
             id(bond.atom1) not in working_positions
@@ -1356,7 +1378,8 @@ def _prepare_working_copy_commit(
                 _bond_commit_signature(bond, working_positions)
             )
         else:
-            added_bonds.append((first, second, deepcopy(bond.attr_dict)))
+            attributes = cast(_BondAttributePayload, deepcopy(bond.attr_dict))
+            added_bonds.append((first, second, attributes))
 
     if working_original_bonds != original_bonds:
         raise ValueError("The working copy changed the original bond topology")
@@ -2630,7 +2653,7 @@ def evaluate_structure_acceptance(
     atoms = tuple(mol.atoms)
     coordinates = np.asarray(mol.coordinates, dtype=float)
     checks = []
-    metrics = {
+    metrics: dict[str, ForceFieldDiagnosticValue] = {
         "atom_count": len(atoms),
         "bond_count": len(mol.bonds),
     }

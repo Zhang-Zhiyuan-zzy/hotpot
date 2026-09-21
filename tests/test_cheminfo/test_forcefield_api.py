@@ -1,3 +1,4 @@
+import inspect
 import os
 import threading
 from types import SimpleNamespace
@@ -128,55 +129,18 @@ def test_build3d_captures_the_requested_hydrogen_policy(
     assert captured == [add_hydrogens]
 
 
-def test_complexes_build_translates_legacy_options_once(monkeypatch):
-    molecule = object()
-    captured = {}
+def test_complexes_build_exposes_only_canonical_parameters():
+    parameters = inspect.signature(ff.complexes_build).parameters
 
-    def implementation(current, forcefield, **options):
-        captured.update(options)
-        return current, forcefield
-
-    monkeypatch.setattr(ff, "_complexes_build_impl", implementation)
-
-    result = ff.complexes_build(
-        molecule,
-        "MMFF94",
-        steps=7,
-        step_size=11,
-        perturb_steps=3,
-        save_screenshot=True,
-        build_times=2,
-        init_opt_steps=13,
-        second_opt_steps=17,
-        min_energy_opt_steps=19,
-        increasing_Vdw=True,
-        Vdw_cutoff_start=1.5,
-        Vdw_cutoff_end=9.5,
+    assert all(
+        parameter.kind is not inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
     )
+    assert "epochs" in parameters
+    assert "steps" not in parameters
 
-    assert result == (molecule, "MMFF94")
-    assert captured == {
-        "epochs": 7,
-        "steps_per_epoch": 11,
-        "perturb_interval": 3,
-        "save_movie": True,
-        "candidate_count": 2,
-        "candidate_warmup_steps": 13,
-        "candidate_score_steps": 17,
-        "best_candidate_refine_steps": 19,
-        "increasing_vdw": True,
-        "vdw_cutoff_start": 1.5,
-        "vdw_cutoff_end": 9.5,
-    }
-
-
-def test_complexes_build_rejects_conflicting_legacy_and_current_options():
-    with pytest.raises(TypeError, match="Conflicting values"):
-        ff.complexes_build(
-            object(),
-            epochs=3,
-            steps=4,
-        )
+    with pytest.raises(TypeError, match="unexpected keyword argument 'steps'"):
+        ff.complexes_build(object(), steps=4)
 
 
 @pytest.mark.parametrize(

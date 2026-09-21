@@ -17,7 +17,6 @@ from itertools import combinations
 from multiprocessing.connection import Connection, wait as wait_for_connections
 from typing import (
     TYPE_CHECKING,
-    Any,
     Literal,
     Mapping,
     Optional,
@@ -254,7 +253,6 @@ class ComplexBuildDiagnostics:
 class BuildWorkerResult:
     status: Literal["ok", "error"]
     coordinates: Optional[np.ndarray] = None
-    conformers: Optional[Mapping[str, object]] = None
     diagnostics: Optional[ComplexBuildDiagnostics] = None
     error_type: Optional[str] = None
     error_message: Optional[str] = None
@@ -1205,11 +1203,6 @@ def _ob_build(mol: "Molecule") -> None:
     if not builder.Build(obmol):
         raise ForceFieldError("Open Babel could not build initial 3D coordinates")
     mol.coordinates = extract_obmol_coordinates(obmol)
-
-
-def _ob_optimize(mol: "Molecule", ff: str = "UFF", steps: int = 100) -> float:
-    """Run one internal Open Babel optimization and return kJ/mol."""
-    return _single_ob_optimization(mol, ff, steps).energy
 
 
 # Working-copy preparation and transactional commit helpers.
@@ -2450,7 +2443,7 @@ def _run_optimizer_on_working(
     )
 
 
-def _complexes_build_impl(
+def complexes_build(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
@@ -2522,36 +2515,6 @@ def _complexes_build_impl(
     )
     _commit_working_copy(mol, working_mol)
     return report
-
-
-_LEGACY_COMPLEX_BUILD_OPTIONS = {
-    "steps": "epochs",
-    "step_size": "steps_per_epoch",
-    "perturb_steps": "perturb_interval",
-    "save_screenshot": "save_movie",
-    "build_times": "candidate_count",
-    "init_opt_steps": "candidate_warmup_steps",
-    "second_opt_steps": "candidate_score_steps",
-    "min_energy_opt_steps": "best_candidate_refine_steps",
-    "increasing_Vdw": "increasing_vdw",
-    "Vdw_cutoff_start": "vdw_cutoff_start",
-    "Vdw_cutoff_end": "vdw_cutoff_end",
-}
-
-
-def _translate_legacy_complex_build_options(options: Mapping[str, Any]) -> dict:
-    """Translate historical names once without changing workflow semantics."""
-    translated = dict(options)
-    for legacy_name, current_name in _LEGACY_COMPLEX_BUILD_OPTIONS.items():
-        if legacy_name not in translated:
-            continue
-        legacy_value = translated.pop(legacy_name)
-        if current_name in translated and translated[current_name] != legacy_value:
-            raise TypeError(
-                f"Conflicting values for {legacy_name!r} and {current_name!r}"
-            )
-        translated[current_name] = legacy_value
-    return translated
 
 
 # Public force-field and coordination interfaces, ordered from primitives to workflows.
@@ -3147,19 +3110,6 @@ def optimize_complex(
     )
     _commit_working_copy(mol, working_mol)
     return report
-
-
-def complexes_build(
-    mol: "Molecule",
-    forcefield: Optional[str] = None,
-    **options: Any,
-) -> ComplexBuildReport:
-    """Compatibility entry for the complete transactional complex workflow."""
-    return _complexes_build_impl(
-        mol,
-        forcefield,
-        **_translate_legacy_complex_build_options(options),
-    )
 
 
 def build_and_optimize(

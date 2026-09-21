@@ -259,10 +259,8 @@ oxidation state, spin state, or ligand-field geometry. The
 coordination-number-aware implementation; requesting it currently raises
 `NotImplementedError` instead of silently ignoring the option.
 
-The direct `ff.complexes_build()` compatibility entry translates historical
-option names once. For example, `build_times`, `steps`, and `step_size` map to
-`candidate_count`, `epochs`, and `steps_per_epoch`. Supplying conflicting old
-and new values raises `TypeError`; unknown options are never ignored.
+`ff.complexes_build()` exposes only the current explicit parameter names.
+Unknown or historical keyword names raise `TypeError`.
 
 - Properties:
 

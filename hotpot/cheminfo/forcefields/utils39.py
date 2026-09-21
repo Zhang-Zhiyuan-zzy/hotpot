@@ -30,7 +30,7 @@ def _seed_openbabel_random(seed: int) -> None:
 def _build_ligand_proxies_worker(
     mol: "Molecule",
     connection: Connection,
-    candidate_count: int,
+    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,

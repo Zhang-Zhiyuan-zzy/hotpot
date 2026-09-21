@@ -910,7 +910,7 @@ class Molecule:
             increasing_vdw: bool = False,
             vdw_cutoff_start: float = 0.0,
             vdw_cutoff_end: float = 12.5,
-            candidate_count: int = 5,
+            candidate_count: Optional[int] = None,
             max_attempts: int = 50,
             candidate_warmup_steps: int = 500,
             candidate_score_steps: int = 1000,

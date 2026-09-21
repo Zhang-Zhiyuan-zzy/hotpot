@@ -70,6 +70,7 @@ __all__ = (
     "BuildWorkerError",
     "BuildTimeoutError",
     "ComplexBuildError",
+    "ComplexBuildWarning",
     "ComplexBuildWorkerError",
     "ComplexBuildTimeoutError",
     "GeometryQualityError",
@@ -123,7 +124,7 @@ class _ComplexBuildWorker(Protocol):
         self,
         mol: "Molecule",
         connection: Connection,
-        candidate_count: int,
+        candidate_count: Optional[int],
         max_attempts: int,
         candidate_warmup_steps: int,
         candidate_score_steps: int,
@@ -321,6 +322,7 @@ class ComplexBuildDiagnostics:
     accepted_candidates: int
     rejected_candidates: Tuple[CandidateRejection, ...]
     elapsed_seconds: float
+    warning_messages: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -454,6 +456,10 @@ class ComplexBuildWorkerError(ComplexBuildError):
 
 class ComplexBuildTimeoutError(ComplexBuildError, TimeoutError):
     """Raised after a proxy-build worker exceeds its allotted wall time."""
+
+
+class ComplexBuildWarning(UserWarning):
+    """Warn that complex construction continued with a partial search result."""
 
 
 class GeometryQualityError(ForceFieldError):
@@ -1875,7 +1881,7 @@ class _OpenBabelOptimizer:
 def _build_ligand_proxies(
     mol: "Molecule",
     *,
-    candidate_count: int,
+    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -1889,6 +1895,8 @@ def _build_ligand_proxies(
     total_attempts = 0
     total_accepted = 0
     rejections = []
+    warning_messages = []
+    target_candidate_count = 1 if candidate_count is None else candidate_count
 
     for component_index, component_mol in enumerate(clone_mol.components):
         if component_mol.has_metal:
@@ -1903,7 +1911,7 @@ def _build_ligand_proxies(
         candidate_attempts = []
         component_attempts = 0
         while (
-            len(candidate_coordinates) < candidate_count
+            len(candidate_coordinates) < target_candidate_count
             and component_attempts < max_attempts
         ):
             component_attempts += 1
@@ -2011,18 +2019,25 @@ def _build_ligand_proxies(
             candidate_attempts.append(component_attempts)
             total_accepted += 1
 
-        if len(candidate_coordinates) < candidate_count:
+        if not candidate_coordinates:
             diagnostics = ComplexBuildDiagnostics(
                 attempt_count=total_attempts,
                 accepted_candidates=total_accepted,
                 rejected_candidates=tuple(rejections),
                 elapsed_seconds=time.monotonic() - started,
+                warning_messages=tuple(warning_messages),
             )
             raise ComplexBuildError(
-                f"Component {component_index} accepted "
-                f"{len(candidate_coordinates)}/{candidate_count} candidates after "
+                f"Component {component_index} accepted no candidates after "
                 f"{component_attempts} attempts",
                 diagnostics,
+            )
+        if len(candidate_coordinates) < target_candidate_count:
+            warning_messages.append(
+                f"Component {component_index} accepted "
+                f"{len(candidate_coordinates)}/{target_candidate_count} requested "
+                f"candidates after {component_attempts} attempts; continuing "
+                "refinement with the available candidates"
             )
 
         refined_candidate_found = False
@@ -2107,6 +2122,7 @@ def _build_ligand_proxies(
                 accepted_candidates=total_accepted,
                 rejected_candidates=tuple(rejections),
                 elapsed_seconds=time.monotonic() - started,
+                warning_messages=tuple(warning_messages),
             )
             raise ComplexBuildError(
                 f"Candidate refinement failed for every candidate of component {component_index}",
@@ -2125,6 +2141,7 @@ def _build_ligand_proxies(
         accepted_candidates=total_accepted,
         rejected_candidates=tuple(rejections),
         elapsed_seconds=time.monotonic() - started,
+        warning_messages=tuple(warning_messages),
     )
     return clone_mol.coordinates, diagnostics
 
@@ -2135,7 +2152,7 @@ def _build_ligand_proxies(
 def _build_ligand_proxies_worker(
     mol: "Molecule",
     connection: Connection,
-    candidate_count: int,
+    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -2161,7 +2178,7 @@ def _build_ligand_proxies_worker(
 def _run_ligand_proxy_worker(
     mol: "Molecule",
     connection: Connection,
-    candidate_count: int,
+    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -2423,7 +2440,7 @@ def _prepare_complex_working_mol(
     mol: "Molecule",
     *,
     effective_forcefield: str,
-    candidate_count: int,
+    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -2434,10 +2451,10 @@ def _prepare_complex_working_mol(
     coordination_geometry: Optional[str],
     worker_target: _ComplexBuildWorker,
 ) -> Tuple["Molecule", ComplexBuildDiagnostics]:
-    if candidate_count < 1:
+    if candidate_count is not None and candidate_count < 1:
         raise ValueError("candidate_count must be at least 1")
-    if max_attempts < candidate_count:
-        raise ValueError("max_attempts must be at least candidate_count")
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1")
     if min(
         candidate_warmup_steps,
         candidate_score_steps,
@@ -2479,11 +2496,14 @@ def _prepare_complex_working_mol(
         result,
         expected_atom_count=len(working_mol.atoms),
     )
+    diagnostics = cast(ComplexBuildDiagnostics, result.diagnostics)
+    for message in diagnostics.warning_messages:
+        warnings.warn(message, ComplexBuildWarning, stacklevel=3)
     if coordination_geometry is not None:
         prepare_coordination_geometry(
             working_mol, strategy=coordination_geometry, seed=seed
         )
-    return working_mol, result.diagnostics
+    return working_mol, diagnostics
 
 
 def _optimize_working_mol(
@@ -2534,7 +2554,7 @@ def _complexes_build_workflow(
     algorithm: OptimizationAlgorithm = "conjugate",
     epochs: int = 100,
     steps_per_epoch: int = 100,
-    candidate_count: int = 5,
+    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -3112,7 +3132,7 @@ def _build_complex3d_workflow(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
-    candidate_count: int = 5,
+    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -3166,7 +3186,7 @@ def build_complex3d(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
-    candidate_count: int = 5,
+    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -3263,7 +3283,7 @@ def _build_and_optimize_workflow(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    candidate_count: int = 5,
+    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -3342,7 +3362,7 @@ def complexes_build(
     algorithm: OptimizationAlgorithm = "conjugate",
     epochs: int = 100,
     steps_per_epoch: int = 100,
-    candidate_count: int = 5,
+    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -3406,7 +3426,7 @@ def build_and_optimize(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    candidate_count: int = 5,
+    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,

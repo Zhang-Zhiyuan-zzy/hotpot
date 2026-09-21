@@ -237,7 +237,11 @@ print(pair.smiles)
 
 Generate and optimize 3D coordinates through the canonical `build3d` method.
 Complex building uses a spawned worker, so executable scripts should use the
-standard Python main guard:
+standard Python main guard. By default, the first chemically acceptable ligand
+geometry is refined. Set `candidate_count` to a positive integer only when an
+explicit multi-conformer search is wanted; if the search budget cannot supply
+the requested count, Hotpot warns and refines the acceptable candidates that
+were found:
 
 ```python
 import hotpot as hp
@@ -252,7 +256,6 @@ def main():
     pair = hp.read_mol(SMILES).auto_pair_metal("Eu")
     report = pair.build3d(
         seed=20260916,
-        candidate_count=3,
         max_attempts=20,
         epochs=20,
         steps_per_epoch=500,

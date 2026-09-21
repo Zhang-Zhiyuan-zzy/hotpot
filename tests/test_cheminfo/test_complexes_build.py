@@ -54,6 +54,24 @@ def _failing_complex_worker(molecule, connection, *args):
     connection.close()
 
 
+def _candidate_shortfall_worker(molecule, connection, *args):
+    diagnostics = ff.ComplexBuildDiagnostics(
+        1,
+        1,
+        (),
+        0.0,
+        ("candidate search stopped below its requested target",),
+    )
+    connection.send(
+        ff.BuildWorkerResult(
+            status="ok",
+            coordinates=molecule.coordinates,
+            diagnostics=diagnostics,
+        )
+    )
+    connection.close()
+
+
 def _malformed_worker(connection):
     connection.send("not a BuildWorkerResult")
     connection.close()
@@ -826,6 +844,145 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     assert component.hidden == []
 
 
+def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
+    monkeypatch,
+):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    build_calls = 0
+    first_failure = ff.AcceptanceCheck(
+        name="minimum_distance",
+        passed=False,
+        measured=0.2,
+        threshold=0.4,
+    )
+
+    def build(current):
+        nonlocal build_calls
+        build_calls += 1
+        current.coordinates = np.full((2, 3), float(build_calls))
+
+    monkeypatch.setattr(ff, "_ob_build", build)
+    monkeypatch.setattr(
+        ff,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ff._CandidateOptimizationResult(
+            1.0,
+            "kJ/mol",
+            False,
+        ),
+    )
+    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+    )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: SimpleNamespace(
+            passed=build_calls >= 2,
+            failures=() if build_calls >= 2 else (first_failure,),
+        ),
+    )
+
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        candidate_count=None,
+        max_attempts=10,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
+
+    assert build_calls == 2
+    assert diagnostics.accepted_candidates == 1
+    assert diagnostics.warning_messages == ()
+
+
+def test_partial_multiconformer_search_refines_available_candidates(monkeypatch):
+    component = _DummyComponent()
+    molecule = _DummyComplex(component)
+    build_calls = 0
+    optimization_steps = []
+
+    def build(current):
+        nonlocal build_calls
+        build_calls += 1
+        current.coordinates = np.full((2, 3), float(build_calls))
+
+    monkeypatch.setattr(ff, "_ob_build", build)
+    def optimize(current, forcefield, steps):
+        optimization_steps.append(steps)
+        return ff._CandidateOptimizationResult(
+            float(current.coordinates[0, 0]),
+            "kJ/mol",
+            False,
+        )
+
+    monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
+    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        ff.geo,
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+    )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: SimpleNamespace(passed=True, failures=()),
+    )
+
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        candidate_count=3,
+        max_attempts=2,
+        candidate_warmup_steps=1,
+        candidate_score_steps=2,
+        best_candidate_refine_steps=3,
+        effective_forcefield="UFF",
+    )
+
+    assert build_calls == 2
+    assert optimization_steps == [1, 2, 1, 2, 3]
+    assert diagnostics.accepted_candidates == 2
+    assert diagnostics.warning_messages == (
+        "Component 0 accepted 2/3 requested candidates after 2 attempts; "
+        "continuing refinement with the available candidates",
+    )
+
+
+def test_candidate_search_warning_is_emitted_by_the_parent_process(monkeypatch):
+    molecule = read_mol("[Zn](N)", "smi")
+    fork_context = mp.get_context("fork")
+    monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
+
+    with pytest.warns(
+        ff.ComplexBuildWarning,
+        match="candidate search stopped below its requested target",
+    ):
+        _, diagnostics = ff._prepare_complex_working_mol(
+            molecule,
+            effective_forcefield="UFF",
+            candidate_count=3,
+            max_attempts=2,
+            candidate_warmup_steps=1,
+            candidate_score_steps=1,
+            best_candidate_refine_steps=1,
+            timeout=2.0,
+            add_hydrogens=False,
+            seed=None,
+            coordination_geometry=None,
+            worker_target=_candidate_shortfall_worker,
+        )
+
+    assert diagnostics.warning_messages == (
+        "candidate search stopped below its requested target",
+    )
+
+
 def test_builder_failures_consume_the_attempt_budget(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
@@ -1335,7 +1492,7 @@ def test_coordination_geometry_hook_rejects_noncomplex_inputs():
     "options",
     (
         {"candidate_count": 0},
-        {"candidate_count": 2, "max_attempts": 1},
+        {"max_attempts": 0},
         {"candidate_warmup_steps": 0},
         {"candidate_score_steps": 0},
         {"best_candidate_refine_steps": 0},

@@ -59,7 +59,6 @@ def test_complex_worker_excludes_runtime_metadata_from_spawn_payload():
 
     report = ff.build_complex3d(
         molecule,
-        candidate_count=1,
         max_attempts=3,
         candidate_warmup_steps=2,
         candidate_score_steps=2,

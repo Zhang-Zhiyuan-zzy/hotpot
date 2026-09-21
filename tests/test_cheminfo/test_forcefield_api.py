@@ -150,6 +150,21 @@ def test_complexes_build_exposes_only_canonical_parameters():
 
 @pytest.mark.parametrize(
     "entrypoint",
+    (
+        Molecule.build3d,
+        ff_api.build_complex3d,
+        ff_api.complexes_build,
+        ff_api.build_and_optimize,
+    ),
+)
+def test_multiconformer_search_is_opt_in(entrypoint):
+    candidate_count = inspect.signature(entrypoint).parameters["candidate_count"]
+
+    assert candidate_count.default is None
+
+
+@pytest.mark.parametrize(
+    "entrypoint",
     (ff_api.build_complex3d, ff_api.optimize_complex, ff_api.complexes_build),
 )
 @pytest.mark.parametrize("smiles", ("CCO", "[Zn].N"))
@@ -192,6 +207,7 @@ def test_build_and_optimize_dispatches_complex_once(monkeypatch):
     assert options["steps_per_epoch"] == 13
     assert options["timeout"] == 4.0
     assert options["seed"] == 29
+    assert options["candidate_count"] is None
 
 
 def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):

@@ -418,7 +418,7 @@ def test_public_complex_build_failure_is_transactional_and_reaps_worker(
     child_pids_before = _active_child_pids()
     fork_context = mp.get_context("fork")
     monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
-    monkeypatch.setattr(ff, "_run_complexes_build", worker)
+    monkeypatch.setattr(ff, "_build_ligand_proxies_worker", worker)
 
     with pytest.raises(expected_error):
         ff.build_complex3d(
@@ -1254,7 +1254,7 @@ def test_worker_boundary_serializes_an_exception(monkeypatch):
 
     connection = Connection()
     monkeypatch.setattr(ff, "_build_ligand_proxies", fail)
-    ff._run_complexes_build(
+    ff._build_ligand_proxies_worker(
         object(),
         connection,
         1,
@@ -1298,8 +1298,8 @@ def test_complexes_build_final_failure_does_not_modify_caller(
         working.remove_bonds([working.bonds[0]])
         raise failure
 
-    monkeypatch.setattr(ff, "_build_complex_working", built_working_copy)
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", fail_final_stage)
+    monkeypatch.setattr(ff, "_prepare_complex_working_mol", built_working_copy)
+    monkeypatch.setattr(ff, "_optimize_working_mol", fail_final_stage)
 
     with pytest.raises(type(failure)):
         ff.complexes_build(

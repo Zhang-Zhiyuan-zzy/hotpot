@@ -500,13 +500,6 @@ def _format_geometry_checks(
     return f"{prefix}: {details}"
 
 
-def _format_geometry_rejection(
-    prefix: str,
-    report: ForceFieldValidationReport,
-) -> str:
-    return _format_geometry_checks(prefix, tuple(report.failures))
-
-
 # Structure-acceptance policy helpers.  Geometry supplies measurements and
 # relation states; this module owns every chemical threshold and pass/fail
 # decision made from those facts.
@@ -1273,19 +1266,7 @@ def _hydrogenated_working_copy(
     return working_mol
 
 
-def _capture_workflow_topology(
-    mol: "Molecule",
-    *,
-    allow_added_hydrogens: bool,
-) -> TopologyReference:
-    """Capture the caller's input topology without rewriting atom identifiers."""
-    return capture_topology(
-        mol,
-        allow_added_hydrogens=allow_added_hydrogens,
-    )
-
-
-def _structure_worker_proxy(mol: "Molecule") -> "Molecule":
+def _make_worker_mol(mol: "Molecule") -> "Molecule":
     """Return a structure-only clone with private positional IDs for a worker."""
     proxy_mol = copy(mol)
     proxy_mol.charge = mol.charge
@@ -1959,9 +1940,9 @@ def _build_ligand_proxies(
                     CandidateRejection(
                         component_index,
                         component_attempts,
-                        _format_geometry_rejection(
+                        _format_geometry_checks(
                             "candidate geometry gate",
-                            candidate_quality,
+                            tuple(candidate_quality.failures),
                         ),
                         tuple(candidate_quality.failures),
                     )
@@ -2094,7 +2075,7 @@ def _build_ligand_proxies(
 # Spawn-worker entry points and IPC lifecycle management.
 
 
-def _run_complexes_build(
+def _build_ligand_proxies_worker(
     mol: "Molecule",
     connection: Connection,
     candidate_count: int,
@@ -2137,7 +2118,7 @@ def _run_complexes_build(
         connection.close()
 
 
-def _run_seeded_ob_build(
+def _seeded_ob_build_worker(
     mol: "Molecule",
     connection: Connection,
     seed: int,
@@ -2308,12 +2289,12 @@ def _seeded_ob_build_coordinates(
     timeout: float,
 ) -> np.ndarray:
     """Build coordinates in an isolated process for repeatable Open Babel RNG."""
-    worker_proxy = _structure_worker_proxy(mol)
+    worker_mol = _make_worker_mol(mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
-        target=_run_seeded_ob_build,
-        args=(worker_proxy, send_connection, seed),
+        target=_seeded_ob_build_worker,
+        args=(worker_mol, send_connection, seed),
     )
     result = _receive_worker_result(
         process,
@@ -2336,7 +2317,7 @@ def _seeded_ob_build_coordinates(
 # Non-committing workflow stages and compatibility translation.
 
 
-def _build_complex_working(
+def _prepare_complex_working_mol(
     mol: "Molecule",
     *,
     effective_forcefield: str,
@@ -2367,13 +2348,13 @@ def _build_complex_working(
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
-    worker_proxy = _structure_worker_proxy(working_mol)
+    worker_mol = _make_worker_mol(working_mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
-        target=_run_complexes_build,
+        target=_build_ligand_proxies_worker,
         args=(
-            worker_proxy,
+            worker_mol,
             send_connection,
             candidate_count,
             max_attempts,
@@ -2402,7 +2383,7 @@ def _build_complex_working(
     return working_mol, result.diagnostics
 
 
-def _run_optimizer_on_working(
+def _optimize_working_mol(
     working_mol: "Molecule",
     *,
     requested_forcefield: Optional[str],
@@ -2470,12 +2451,12 @@ def complexes_build(
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
     _require_explicit_complex(mol)
-    topology_reference = _capture_workflow_topology(
+    topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working_mol, diagnostics = _build_complex_working(
+    working_mol, diagnostics = _prepare_complex_working_mol(
         mol,
         effective_forcefield=effective_forcefield,
         candidate_count=candidate_count,
@@ -2488,7 +2469,7 @@ def complexes_build(
         seed=seed,
         coordination_geometry=coordination_geometry,
     )
-    optimization_report = _run_optimizer_on_working(
+    optimization_report = _optimize_working_mol(
         working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
@@ -2923,7 +2904,7 @@ def build3d(
     timeout: float = 1000.0,
 ) -> Build3DReport:
     """Generate initial 3D coordinates with OBBuilder, without optimization."""
-    topology_reference = _capture_workflow_topology(
+    topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
@@ -2976,7 +2957,7 @@ def optimize(
     vdw_cutoff_end: float = 12.5,
 ) -> ForceFieldRunReport:
     """Run the ordinary Open Babel optimizer, including on explicit complexes."""
-    topology_reference = _capture_workflow_topology(
+    topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
@@ -2986,7 +2967,7 @@ def optimize(
         seed=seed,
     )
     effective_forcefield = _resolve_organic_forcefield(forcefield)
-    report = _run_optimizer_on_working(
+    report = _optimize_working_mol(
         working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
@@ -3024,12 +3005,12 @@ def build_complex3d(
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
     _require_explicit_complex(mol)
-    topology_reference = _capture_workflow_topology(
+    topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working_mol, diagnostics = _build_complex_working(
+    working_mol, diagnostics = _prepare_complex_working_mol(
         mol,
         effective_forcefield=effective_forcefield,
         candidate_count=candidate_count,
@@ -3080,7 +3061,7 @@ def optimize_complex(
 ) -> ForceFieldRunReport:
     """Optimize existing complex coordinates with the complex force-field policy."""
     _require_explicit_complex(mol)
-    topology_reference = _capture_workflow_topology(
+    topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
     )
@@ -3090,7 +3071,7 @@ def optimize_complex(
         seed=seed,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    report = _run_optimizer_on_working(
+    report = _optimize_working_mol(
         working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,

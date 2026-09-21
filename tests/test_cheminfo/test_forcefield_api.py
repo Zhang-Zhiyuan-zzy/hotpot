@@ -110,7 +110,7 @@ def test_build3d_captures_the_requested_hydrogen_policy(
         captured.append(options["allow_added_hydrogens"])
         return object()
 
-    monkeypatch.setattr(ff, "_capture_workflow_topology", capture)
+    monkeypatch.setattr(ff, "capture_topology", capture)
     monkeypatch.setattr(
         ff,
         "_hydrogenated_working_copy",
@@ -297,7 +297,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
 
     monkeypatch.setattr(
         ff,
-        "_capture_workflow_topology",
+        "capture_topology",
         lambda current, **options: "topology",
     )
     monkeypatch.setattr(
@@ -307,7 +307,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     )
     monkeypatch.setattr(
         ff,
-        "_build_complex_working",
+        "_prepare_complex_working_mol",
         lambda *args, **kwargs: pytest.fail("ordinary optimize built ligand proxies"),
     )
 
@@ -315,7 +315,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", fake_run)
+    monkeypatch.setattr(ff, "_optimize_working_mol", fake_run)
     monkeypatch.setattr(
         ff,
         "_commit_working_copy",
@@ -344,7 +344,7 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
 
     monkeypatch.setattr(
         ff,
-        "_capture_workflow_topology",
+        "capture_topology",
         lambda current, **options: "topology",
     )
     monkeypatch.setattr(
@@ -364,7 +364,7 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
     )
     monkeypatch.setattr(
         ff,
-        "_run_optimizer_on_working",
+        "_optimize_working_mol",
         lambda *args, **kwargs: pytest.fail("build3d invoked optimization"),
     )
     monkeypatch.setattr(
@@ -460,7 +460,7 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
 
     monkeypatch.setattr(
         ff,
-        "_capture_workflow_topology",
+        "capture_topology",
         lambda current, **options: "topology",
     )
     monkeypatch.setattr(
@@ -539,11 +539,11 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
 
         @staticmethod
         def Process(*, target, args):
-            assert target is ff._run_seeded_ob_build
-            assert args == ("worker-proxy", send_connection, 43)
+            assert target is ff._seeded_ob_build_worker
+            assert args == ("worker-mol", send_connection, 43)
             return process
 
-    monkeypatch.setattr(ff, "_structure_worker_proxy", lambda current: "worker-proxy")
+    monkeypatch.setattr(ff, "_make_worker_mol", lambda current: "worker-mol")
     monkeypatch.setattr(ff.mp, "get_context", lambda method: Context())
 
     def receive(current_process, receive, send, **options):
@@ -638,7 +638,7 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
 
     monkeypatch.setattr(
         ff,
-        "_capture_workflow_topology",
+        "capture_topology",
         lambda current, **options: "topology",
     )
     monkeypatch.setattr(
@@ -651,7 +651,7 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", fake_run)
+    monkeypatch.setattr(ff, "_optimize_working_mol", fake_run)
     monkeypatch.setattr(ff, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.optimize(molecule, forcefield, add_hydrogens=False)
@@ -673,7 +673,7 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
 
     monkeypatch.setattr(
         ff,
-        "_capture_workflow_topology",
+        "capture_topology",
         lambda current, **options: "topology",
     )
 
@@ -688,7 +688,7 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(passed=True),
     )
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", lambda *args, **kwargs: expected)
+    monkeypatch.setattr(ff, "_optimize_working_mol", lambda *args, **kwargs: expected)
     monkeypatch.setattr(ff, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)

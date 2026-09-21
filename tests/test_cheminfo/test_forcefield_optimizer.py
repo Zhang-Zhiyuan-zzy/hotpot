@@ -764,7 +764,7 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
         captured.update(options)
         return object()
 
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", fake_run)
+    monkeypatch.setattr(ff, "_optimize_working_mol", fake_run)
 
     ff.optimize(molecule, forcefield=None, add_hydrogens=False)
 

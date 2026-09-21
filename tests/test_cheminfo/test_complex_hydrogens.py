@@ -313,7 +313,7 @@ def test_optimizer_failure_does_not_modify_the_caller(monkeypatch):
         working.coordinates = working.coordinates + 5.0
         raise ff.ForceFieldSetupError("deliberate failure")
 
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", fail_after_mutating_working)
+    monkeypatch.setattr(ff, "_optimize_working_mol", fail_after_mutating_working)
 
     with pytest.raises(ff.ForceFieldSetupError, match="deliberate failure"):
         ff.optimize(molecule, add_hydrogens=True)
@@ -340,7 +340,7 @@ def test_optimizer_failure_preserves_explicit_hydrogens_and_bidentate_topology(
 
     monkeypatch.setattr(
         ff,
-        "_run_optimizer_on_working",
+        "_optimize_working_mol",
         fail_after_replacing_working_topology,
     )
 
@@ -382,7 +382,7 @@ def test_successful_optimizer_commits_added_hydrogens_once(monkeypatch):
     def accept_working(working, **options):
         return sentinel
 
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", accept_working)
+    monkeypatch.setattr(ff, "_optimize_working_mol", accept_working)
 
     result = ff.optimize(molecule)
 
@@ -409,7 +409,7 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
         working.conformer_add(working.coordinates, -2.0)
         return sentinel
 
-    monkeypatch.setattr(ff, "_run_optimizer_on_working", accept_working)
+    monkeypatch.setattr(ff, "_optimize_working_mol", accept_working)
 
     result = ff.optimize(molecule)
 

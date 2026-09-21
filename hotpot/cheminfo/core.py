@@ -52,7 +52,7 @@ OPENBABEL_PARTIAL_CHARGE_MODELS = (
 
 # Chemistry policy deliberately kept outside the factual geometry package.
 _MINIMUM_ATOM_SEPARATION = 0.5
-_DEFAULT_BOND_RING_MAXIMUM_SIZE = 8
+_DEFAULT_BOND_RING_MAXIMUM_SIZE = 16
 
 _LigandRingSignature = Tuple[
     Tuple[int, ...],

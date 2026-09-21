@@ -7,7 +7,7 @@ import random
 import networkx as nx
 import pytest
 
-from hotpot.cheminfo import forcefields
+from hotpot.cheminfo.forcefields import utils as forcefields
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.AImodels.data_extract import extract_ring_attrs
 from hotpot.cheminfo.graph import RelevantCycleLimitExceeded

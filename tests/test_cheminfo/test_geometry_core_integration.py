@@ -38,7 +38,7 @@ def test_molecule_facades_preserve_tristate_and_scan_coverage() -> None:
 
     report = mol.bond_ring_relations()
     assert report.ring_scope == "full_graph"
-    assert report.max_ring_size == 8
+    assert report.max_ring_size == 16
     assert report.scan_complete
     assert report.piercing_pair_count == 1
     assert report.piercings[0].target.bond.bond is mol.bond(4, 5)

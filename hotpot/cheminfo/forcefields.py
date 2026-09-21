@@ -16,14 +16,18 @@ from functools import wraps
 from itertools import combinations
 from multiprocessing.connection import Connection, wait as wait_for_connections
 from typing import (
+    Callable,
     TYPE_CHECKING,
+    Iterator,
     Literal,
     Mapping,
     Optional,
     Sequence,
     Tuple,
     TypedDict,
+    TypeVar,
     Union,
+    cast,
 )
 
 import networkx as nx
@@ -89,6 +93,7 @@ OptimizationAlgorithm = Literal["steepest", "conjugate"]
 TerminationReason = Literal["converged", "budget_exhausted"]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
+CallableT = TypeVar("CallableT", bound=Callable[..., object])
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
@@ -146,6 +151,14 @@ class ForceFieldAcceptanceEvidence(TypedDict, total=False):
     max_displacements: Sequence[float]
 
 
+class _CoordinationMetrics(TypedDict):
+    metal_index: int
+    coordination_number: int
+    donor_indices: Tuple[int, ...]
+    distances: Tuple[float, ...]
+    angles: Tuple[float, ...]
+
+
 @dataclass(frozen=True)
 class AtomTopologySignature:
     """Stable identity and chemistry for an atom present before optimization."""
@@ -199,7 +212,7 @@ class ForceFieldValidationReport:
             if not check.passed and check.severity == "warning"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable representation of the report."""
         return asdict(self)
 
@@ -344,7 +357,7 @@ class ForceFieldSetupError(ForceFieldError):
         self,
         message: str,
         report: Optional[ForceFieldSetupReport] = None,
-    ):
+    ) -> None:
         super().__init__(message)
         self.report = report
 
@@ -358,7 +371,7 @@ class BuildWorkerError(ForceFieldError):
         error_message: str,
         worker_traceback: Optional[str],
         diagnostics: Optional[ComplexBuildDiagnostics] = None,
-    ):
+    ) -> None:
         super().__init__(f"{error_type}: {error_message}")
         self.error_type = error_type
         self.error_message = error_message
@@ -375,7 +388,7 @@ class ComplexBuildError(ForceFieldError):
 
     def __init__(
         self, message: str, diagnostics: Optional[ComplexBuildDiagnostics] = None
-    ):
+    ) -> None:
         super().__init__(message)
         self.diagnostics = diagnostics
 
@@ -389,7 +402,7 @@ class ComplexBuildWorkerError(ComplexBuildError):
         error_message: str,
         worker_traceback: Optional[str],
         diagnostics: Optional[ComplexBuildDiagnostics] = None,
-    ):
+    ) -> None:
         super().__init__(f"{error_type}: {error_message}", diagnostics)
         self.error_type = error_type
         self.error_message = error_message
@@ -403,7 +416,7 @@ class ComplexBuildTimeoutError(ComplexBuildError, TimeoutError):
 class GeometryQualityError(ForceFieldError):
     """Raised when optimization yields no usable finite-topology frame."""
 
-    def __init__(self, report: Optional[ForceFieldValidationReport]):
+    def __init__(self, report: Optional[ForceFieldValidationReport]) -> None:
         super().__init__(
             "The generated geometry did not pass the requested quality gate"
         )
@@ -895,7 +908,7 @@ def _forcefield_acceptance_checks(
 def _bond_position_data(
     mol: "Molecule",
     atoms: Sequence["Atom"],
-):
+) -> Iterator[Tuple[int, "Bond", int, int]]:
     positions = {id(atom): index for index, atom in enumerate(atoms)}
     for bond_index, bond in enumerate(mol.bonds):
         yield (
@@ -910,7 +923,7 @@ def _coordination_metrics(
     mol: "Molecule",
     atoms: Sequence["Atom"],
     coordinates: np.ndarray,
-) -> Tuple[dict, ...]:
+) -> Tuple[_CoordinationMetrics, ...]:
     positions = {id(atom): index for index, atom in enumerate(atoms)}
     donors = {index: [] for index, atom in enumerate(atoms) if atom.is_metal}
     for bond in mol.bonds:
@@ -1059,23 +1072,23 @@ _OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
 _WORKER_EXIT_GRACE_SECONDS = 30.0
 
 
-def _serialized_forcefield_call(function):
+def _serialized_forcefield_call(function: CallableT) -> CallableT:
     @wraps(function)
-    def synchronized(*args, **kwargs):
+    def synchronized(*args: object, **kwargs: object) -> object:
         with _OPENBABEL_FORCEFIELD_LOCK:
             return function(*args, **kwargs)
 
-    return synchronized
+    return cast(CallableT, synchronized)
 
 
-def _serialized_builder_call(function):
+def _serialized_builder_call(function: CallableT) -> CallableT:
     @wraps(function)
-    def synchronized(*args, **kwargs):
+    def synchronized(*args: object, **kwargs: object) -> object:
         with _WORKER_LIFECYCLE_LOCK:
             with _OPENBABEL_FORCEFIELD_LOCK:
                 return function(*args, **kwargs)
 
-    return synchronized
+    return cast(CallableT, synchronized)
 
 
 def _resolve_complex_forcefield(requested: Optional[str]) -> str:
@@ -1109,7 +1122,7 @@ def _make_constraints(mol: "Molecule") -> ob.OBFFConstraints:
     return ob.OBFFConstraints()
 
 
-def _iter_obmol_atoms(obmol: ob.OBMol):
+def _iter_obmol_atoms(obmol: ob.OBMol) -> Iterator[ob.OBAtom]:
     return ob.OBMolAtomIter(obmol)
 
 
@@ -1262,10 +1275,10 @@ def _hydrogenated_working_copy(
 
 def _make_worker_mol(mol: "Molecule") -> "Molecule":
     """Return a structure-only clone with private positional IDs for a worker."""
-    proxy_mol = copy(mol)
-    proxy_mol.charge = mol.charge
-    proxy_mol.refresh_atom_id()
-    return proxy_mol
+    worker_mol = copy(mol)
+    worker_mol.charge = mol.charge
+    worker_mol.refresh_atom_id()
+    return worker_mol
 
 
 def _atom_commit_signature(atom: "Atom") -> Tuple[int, int, int]:
@@ -1275,7 +1288,7 @@ def _atom_commit_signature(atom: "Atom") -> Tuple[int, int, int]:
 def _bond_commit_signature(
     bond: "Bond",
     positions: Mapping[int, int],
-) -> tuple:
+) -> Tuple[Tuple[int, int], float, str]:
     endpoints = tuple(sorted((
         positions[id(bond.atom1)],
         positions[id(bond.atom2)],
@@ -1284,24 +1297,29 @@ def _bond_commit_signature(
 
 
 def _prepare_working_copy_commit(
-    mol: "Molecule",
+    original_mol: "Molecule",
     working_mol: "Molecule",
 ) -> _WorkingCopyCommit:
-    original_atoms = tuple(mol._atoms)
+    original_atoms = tuple(original_mol._atoms)
     working_atoms = tuple(working_mol.atoms)
     original_atom_count = len(original_atoms)
     if len(working_atoms) < original_atom_count:
         raise ValueError("The working copy removed an original atom")
 
-    for atom, source in zip(original_atoms, working_atoms[:original_atom_count]):
-        if _atom_commit_signature(atom) != _atom_commit_signature(source):
+    for original_atom, working_atom in zip(
+        original_atoms,
+        working_atoms[:original_atom_count],
+    ):
+        if _atom_commit_signature(original_atom) != _atom_commit_signature(
+            working_atom
+        ):
             raise ValueError("The working copy changed an original atom identity")
 
     original_positions = {id(atom): index for index, atom in enumerate(original_atoms)}
     working_positions = {id(atom): index for index, atom in enumerate(working_atoms)}
     original_bonds = {
         _bond_commit_signature(bond, original_positions)
-        for bond in mol.bonds
+        for bond in original_mol.bonds
     }
     working_original_bonds = set()
     working_bond_keys = set()
@@ -1396,26 +1414,29 @@ def _restore_failed_commit(
     mol._conformers_index = snapshot.conformer_index
 
 
-def _commit_working_copy(mol: "Molecule", working_mol: "Molecule") -> None:
+def _commit_working_copy(
+    original_mol: "Molecule",
+    working_mol: "Molecule",
+) -> None:
     """Commit accepted geometry while preserving caller-owned object identities."""
-    payload = _prepare_working_copy_commit(mol, working_mol)
-    snapshot = _snapshot_molecule_for_commit(mol)
+    payload = _prepare_working_copy_commit(original_mol, working_mol)
+    snapshot = _snapshot_molecule_for_commit(original_mol)
     try:
-        for atom, attrs in zip(mol._atoms, payload.original_atom_attrs):
+        for atom, attrs in zip(original_mol._atoms, payload.original_atom_attrs):
             atom.attrs = attrs
         for attrs in payload.added_atom_attrs:
-            mol._create_atom_from_array(attrs)
+            original_mol._create_atom_from_array(attrs)
         for first, second, attributes in payload.added_bonds:
-            mol._add_bond(first, second, **attributes)
+            original_mol._add_bond(first, second, **attributes)
 
-        mol._update_graph(clear_conformers=False)
-        mol._row2idx = None
-        mol._atom_pairs.update_pairs()
-        mol._conformers.__dict__.clear()
-        mol._conformers.__dict__.update(payload.conformer_state)
-        mol._conformers_index = payload.conformer_index
+        original_mol._update_graph(clear_conformers=False)
+        original_mol._row2idx = None
+        original_mol._atom_pairs.update_pairs()
+        original_mol._conformers.__dict__.clear()
+        original_mol._conformers.__dict__.update(payload.conformer_state)
+        original_mol._conformers_index = payload.conformer_index
     except BaseException:
-        _restore_failed_commit(mol, snapshot)
+        _restore_failed_commit(original_mol, snapshot)
         raise
 
 
@@ -1452,7 +1473,7 @@ class _OpenBabelOptimizer:
         vdw_cutoff_end: float,
         seed: Optional[int],
         energy_tolerance: float = 1.0e-6,
-    ):
+    ) -> None:
         if epochs < 1:
             raise ValueError("epochs must be at least 1")
         if steps_per_epoch < 1:
@@ -1502,7 +1523,9 @@ class _OpenBabelOptimizer:
         # was requested.
         self.backend.SetElectrostaticCutOff(1.0e6)
 
-    def _optimizer_methods(self):
+    def _optimizer_methods(
+        self,
+    ) -> Tuple[Callable[[int, float], object], Callable[[int], bool]]:
         if self.algorithm == "conjugate":
             return (
                 self.backend.ConjugateGradientsInitialize,
@@ -1515,7 +1538,11 @@ class _OpenBabelOptimizer:
             )
         raise ValueError(f"Unknown optimization algorithm: {self.algorithm!r}")
 
-    def _initialize_with_budget(self, initialize, remaining_steps: int) -> int:
+    def _initialize_with_budget(
+        self,
+        initialize: Callable[[int, float], object],
+        remaining_steps: int,
+    ) -> int:
         initialization_steps = int(self.algorithm == "conjugate")
         take_step_capacity = remaining_steps - initialization_steps
         # Open Babel returns False both for convergence and for reaching the

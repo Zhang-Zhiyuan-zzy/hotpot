@@ -8,7 +8,10 @@ import pickle
 import subprocess
 import sys
 
+import numpy as np
 import pytest
+
+from hotpot import read_mol
 
 
 PACKAGE_NAME = "hotpot.cheminfo.forcefields"
@@ -146,3 +149,60 @@ def test_spawn_worker_targets_are_pickleable(module_name, worker_name):
     restored_worker = pickle.loads(pickle.dumps(worker))
 
     assert restored_worker is worker
+
+
+def _seeded_coordinates(seed):
+    molecule = read_mol("CCCCCCOC(=O)NCCCCC", "smi")
+    package = importlib.import_module(PACKAGE_NAME)
+    package.build3d(molecule, seed=seed, timeout=30.0)
+    return molecule.coordinates
+
+
+def test_selected_seed_adapter_is_repeatable_and_seed_sensitive():
+    first = _seeded_coordinates(101)
+    repeated = _seeded_coordinates(101)
+    different = _seeded_coordinates(103)
+
+    np.testing.assert_array_equal(first, repeated)
+    assert not np.allclose(first, different)
+
+
+def test_facades_have_matching_unseeded_behavior():
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+    modern_mol = read_mol("CCO", "smi")
+    python39_mol = read_mol("CCO", "smi")
+
+    modern_build = modern.build3d(modern_mol, timeout=30.0)
+    python39_build = python39.build3d(python39_mol, timeout=30.0)
+    modern_run = modern.optimize(
+        modern_mol,
+        epochs=1,
+        steps_per_epoch=1,
+        add_hydrogens=False,
+        quality_level="off",
+    )
+    python39_run = python39.optimize(
+        python39_mol,
+        epochs=1,
+        steps_per_epoch=1,
+        add_hydrogens=False,
+        quality_level="off",
+    )
+
+    assert type(modern_build) is type(python39_build)
+    assert modern_build.added_hydrogen_count == python39_build.added_hydrogen_count
+    assert modern_build.quality_report.passed == python39_build.quality_report.passed
+    assert type(modern_run) is type(python39_run)
+    assert modern_run.energy_unit == python39_run.energy_unit == "kJ/mol"
+    assert [atom.atomic_number for atom in modern_mol.atoms] == [
+        atom.atomic_number for atom in python39_mol.atoms
+    ]
+    assert len(modern_mol.bonds) == len(python39_mol.bonds)
+
+    messages = []
+    for facade in (modern, python39):
+        with pytest.raises(ValueError) as error:
+            facade.build_complex3d(read_mol("[Zn].N", "smi"))
+        messages.append(str(error.value))
+    assert messages[0] == messages[1]

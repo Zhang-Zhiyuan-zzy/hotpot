@@ -20,6 +20,18 @@ for version in "${versions[@]}"; do
 
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \
+            python -c '
+import sys
+from openbabel import openbabel as ob
+
+actual = tuple(map(int, ob.OBReleaseVersion().split(".")[:2]))
+expected = (3, 1) if sys.version_info[:2] == (3, 9) else (3, 2)
+print(f"Open Babel {ob.OBReleaseVersion()} (expected {expected[0]}.{expected[1]}.x)")
+assert actual == expected
+'
+
+        uv run --no-project --python "$version" \
+            --with-requirements tests/requirements-inference.txt \
             python -m pytest -q -p no:cacheprovider \
             --import-mode=importlib \
             tests/mca tests/cbond \
@@ -36,6 +48,7 @@ for version in "${versions[@]}"; do
             tests/test_cheminfo/test_geometry_quality.py \
             tests/test_cheminfo/test_forcefield_acceptance.py \
             tests/test_cheminfo/test_forcefield_api.py \
+            tests/test_cheminfo/test_forcefield_package.py \
             tests/test_cheminfo/test_forcefield_optimizer.py \
             tests/test_cheminfo/test_forcefield_integration.py \
             tests/test_cheminfo/test_complexes_build.py \

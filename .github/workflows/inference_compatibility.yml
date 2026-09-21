@@ -152,9 +152,28 @@ jobs:
           cache: pip
       - name: Install build and inference dependencies
         run: python -m pip install build -r tests/requirements-inference.txt
-      - name: Build and install wheel
+      - name: Build distributions and install wheel
         run: |
-          python -m build --wheel
+          python -m build
+          python - <<'PY'
+          from pathlib import Path
+          import tarfile
+
+          expected = {
+              "hotpot/cheminfo/forcefields/__init__.py",
+              "hotpot/cheminfo/forcefields/ff.py",
+              "hotpot/cheminfo/forcefields/ff39.py",
+              "hotpot/cheminfo/forcefields/utils.py",
+              "hotpot/cheminfo/forcefields/utils39.py",
+          }
+          (sdist,) = Path("dist").glob("*.tar.gz")
+          with tarfile.open(sdist) as archive:
+              members = {
+                  "/".join(Path(name).parts[1:])
+                  for name in archive.getnames()
+              }
+          assert expected <= members
+          PY
           python -m pip install --no-deps --force-reinstall dist/*.whl
       - name: Smoke-test installed package outside the checkout
         working-directory: /tmp
@@ -168,6 +187,10 @@ jobs:
           from hotpot.cheminfo.graph import relevant_cycles
 
           assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)
+
+          forcefield_package = files("hotpot.cheminfo.forcefields")
+          for module_name in ("ff.py", "ff39.py", "utils.py", "utils39.py"):
+              assert forcefield_package.joinpath(module_name).is_file()
 
           geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
               "README.md"

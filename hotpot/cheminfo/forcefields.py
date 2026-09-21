@@ -22,6 +22,7 @@ from typing import (
     Literal,
     Mapping,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     TypedDict,
@@ -94,6 +95,32 @@ TerminationReason = Literal["converged", "budget_exhausted"]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
 CallableT = TypeVar("CallableT", bound=Callable[..., object])
+
+
+class _SeededBuildWorker(Protocol):
+    def __call__(
+        self,
+        mol: "Molecule",
+        connection: Connection,
+        seed: int,
+    ) -> None:
+        ...
+
+
+class _ComplexBuildWorker(Protocol):
+    def __call__(
+        self,
+        mol: "Molecule",
+        connection: Connection,
+        candidate_count: int,
+        max_attempts: int,
+        candidate_warmup_steps: int,
+        candidate_score_steps: int,
+        best_candidate_refine_steps: int,
+        effective_forcefield: str,
+        seed: Optional[int],
+    ) -> None:
+        ...
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
@@ -2306,13 +2333,14 @@ def _seeded_ob_build_coordinates(
     seed: int,
     *,
     timeout: float,
+    worker_target: _SeededBuildWorker,
 ) -> np.ndarray:
     """Build coordinates in an isolated process for repeatable Open Babel RNG."""
     worker_mol = _make_worker_mol(mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
-        target=_seeded_ob_build_worker,
+        target=worker_target,
         args=(worker_mol, send_connection, seed),
     )
     result = _receive_worker_result(
@@ -2349,6 +2377,7 @@ def _prepare_complex_working_mol(
     add_hydrogens: bool,
     seed: Optional[int],
     coordination_geometry: Optional[str],
+    worker_target: _ComplexBuildWorker,
 ) -> Tuple["Molecule", ComplexBuildDiagnostics]:
     if candidate_count < 1:
         raise ValueError("candidate_count must be at least 1")
@@ -2371,7 +2400,7 @@ def _prepare_complex_working_mol(
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
-        target=_build_ligand_proxies_worker,
+        target=worker_target,
         args=(
             worker_mol,
             send_connection,
@@ -2443,7 +2472,7 @@ def _optimize_working_mol(
     )
 
 
-def complexes_build(
+def _complexes_build_workflow(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
@@ -2467,6 +2496,7 @@ def complexes_build(
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
     coordination_geometry: Optional[str] = None,
+    worker_target: _ComplexBuildWorker,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
     _require_explicit_complex(mol)
@@ -2487,6 +2517,7 @@ def complexes_build(
         add_hydrogens=add_hydrogens,
         seed=seed,
         coordination_geometry=coordination_geometry,
+        worker_target=worker_target,
     )
     optimization_report = _optimize_working_mol(
         working_mol,
@@ -2911,12 +2942,13 @@ def prepare_coordination_geometry(
     )
 
 
-def build3d(
+def _build3d_workflow(
     mol: "Molecule",
     *,
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
     timeout: float = 1000.0,
+    worker_target: _SeededBuildWorker,
 ) -> Build3DReport:
     """Generate initial 3D coordinates with OBBuilder, without optimization."""
     topology_reference = capture_topology(
@@ -2936,6 +2968,7 @@ def build3d(
             working_mol,
             seed,
             timeout=timeout,
+            worker_target=worker_target,
         )
     quality_report = evaluate_structure_acceptance(
         working_mol,
@@ -2951,6 +2984,23 @@ def build3d(
     )
     _commit_working_copy(mol, working_mol)
     return report
+
+
+def build3d(
+    mol: "Molecule",
+    *,
+    add_hydrogens: bool = True,
+    seed: Optional[int] = None,
+    timeout: float = 1000.0,
+) -> Build3DReport:
+    """Generate initial 3D coordinates with OBBuilder, without optimization."""
+    return _build3d_workflow(
+        mol,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        timeout=timeout,
+        worker_target=_seeded_ob_build_worker,
+    )
 
 
 def optimize(
@@ -3004,7 +3054,7 @@ def optimize(
     return report
 
 
-def build_complex3d(
+def _build_complex3d_workflow(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
@@ -3017,6 +3067,7 @@ def build_complex3d(
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
     coordination_geometry: Optional[str] = None,
+    worker_target: _ComplexBuildWorker,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
     _require_explicit_complex(mol)
@@ -3037,6 +3088,7 @@ def build_complex3d(
         add_hydrogens=add_hydrogens,
         seed=seed,
         coordination_geometry=coordination_geometry,
+        worker_target=worker_target,
     )
     quality_report = evaluate_structure_acceptance(
         working_mol,
@@ -3054,6 +3106,37 @@ def build_complex3d(
     )
     _commit_working_copy(mol, working_mol)
     return report
+
+
+def build_complex3d(
+    mol: "Molecule",
+    forcefield: Optional[str] = None,
+    *,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    timeout: float = 1000.0,
+    add_hydrogens: bool = True,
+    seed: Optional[int] = None,
+    coordination_geometry: Optional[str] = None,
+) -> ComplexBuildReport:
+    """Build ligand proxies and restore the complete complex topology."""
+    return _build_complex3d_workflow(
+        mol,
+        forcefield,
+        candidate_count=candidate_count,
+        max_attempts=max_attempts,
+        candidate_warmup_steps=candidate_warmup_steps,
+        candidate_score_steps=candidate_score_steps,
+        best_candidate_refine_steps=best_candidate_refine_steps,
+        timeout=timeout,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        coordination_geometry=coordination_geometry,
+        worker_target=_build_ligand_proxies_worker,
+    )
 
 
 def optimize_complex(
@@ -3108,6 +3191,149 @@ def optimize_complex(
     return report
 
 
+def _build_and_optimize_workflow(
+    mol: "Molecule",
+    forcefield: Optional[str] = "UFF",
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    add_hydrogens: bool = True,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
+    seed: Optional[int] = None,
+    timeout: float = 1000.0,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    coordination_geometry: Optional[str] = None,
+    seeded_build_worker: _SeededBuildWorker,
+    complex_build_worker: _ComplexBuildWorker,
+) -> ForceFieldWorkflowReport:
+    """Build and optimize through the organic or complex workflow."""
+    if mol.has_metal:
+        return _complexes_build_workflow(
+            mol,
+            forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            candidate_count=candidate_count,
+            max_attempts=max_attempts,
+            candidate_warmup_steps=candidate_warmup_steps,
+            candidate_score_steps=candidate_score_steps,
+            best_candidate_refine_steps=best_candidate_refine_steps,
+            timeout=timeout,
+            add_hydrogens=add_hydrogens,
+            quality_level=quality_level,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            coordination_geometry=coordination_geometry,
+            worker_target=complex_build_worker,
+        )
+
+    working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False)
+    build_report = _build3d_workflow(
+        working_mol,
+        add_hydrogens=add_hydrogens,
+        seed=seed,
+        timeout=timeout,
+        worker_target=seeded_build_worker,
+    )
+    optimization_report = optimize(
+        working_mol,
+        forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        add_hydrogens=False,
+        quality_level=quality_level,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    _commit_working_copy(mol, working_mol)
+    return BuildAndOptimizeReport(
+        requested_forcefield=optimization_report.requested_forcefield,
+        effective_forcefield=optimization_report.effective_forcefield,
+        build=build_report,
+        optimization=optimization_report,
+        quality_report=optimization_report.quality_report,
+    )
+
+
+def complexes_build(
+    mol: "Molecule",
+    forcefield: Optional[str] = None,
+    *,
+    algorithm: OptimizationAlgorithm = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 100,
+    candidate_count: int = 5,
+    max_attempts: int = 50,
+    candidate_warmup_steps: int = 500,
+    candidate_score_steps: int = 1000,
+    best_candidate_refine_steps: int = 3000,
+    timeout: float = 1000.0,
+    add_hydrogens: bool = True,
+    quality_level: AcceptanceLevel = "standard",
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
+    seed: Optional[int] = None,
+    perturb_interval: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 0.0,
+    vdw_cutoff_end: float = 12.5,
+    coordination_geometry: Optional[str] = None,
+) -> ComplexBuildReport:
+    """Build, optimize, validate, and atomically commit a complete complex."""
+    return _complexes_build_workflow(
+        mol,
+        forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        candidate_count=candidate_count,
+        max_attempts=max_attempts,
+        candidate_warmup_steps=candidate_warmup_steps,
+        candidate_score_steps=candidate_score_steps,
+        best_candidate_refine_steps=best_candidate_refine_steps,
+        timeout=timeout,
+        add_hydrogens=add_hydrogens,
+        quality_level=quality_level,
+        quality_thresholds=quality_thresholds,
+        seed=seed,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+        coordination_geometry=coordination_geometry,
+        worker_target=_build_ligand_proxies_worker,
+    )
+
+
 def build_and_optimize(
     mol: "Molecule",
     forcefield: Optional[str] = "UFF",
@@ -3134,63 +3360,31 @@ def build_and_optimize(
     coordination_geometry: Optional[str] = None,
 ) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow."""
-    if mol.has_metal:
-        return complexes_build(
-            mol,
-            forcefield,
-            algorithm=algorithm,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            candidate_count=candidate_count,
-            max_attempts=max_attempts,
-            candidate_warmup_steps=candidate_warmup_steps,
-            candidate_score_steps=candidate_score_steps,
-            best_candidate_refine_steps=best_candidate_refine_steps,
-            timeout=timeout,
-            add_hydrogens=add_hydrogens,
-            quality_level=quality_level,
-            quality_thresholds=quality_thresholds,
-            seed=seed,
-            perturb_interval=perturb_interval,
-            perturb_sigma=perturb_sigma,
-            save_movie=save_movie,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
-            coordination_geometry=coordination_geometry,
-        )
-
-    working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False)
-    build_report = build3d(
-        working_mol,
-        add_hydrogens=add_hydrogens,
-        seed=seed,
-        timeout=timeout,
-    )
-    optimization_report = optimize(
-        working_mol,
+    return _build_and_optimize_workflow(
+        mol,
         forcefield,
         algorithm=algorithm,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,
-        add_hydrogens=False,
+        add_hydrogens=add_hydrogens,
         quality_level=quality_level,
         quality_thresholds=quality_thresholds,
         seed=seed,
+        timeout=timeout,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
-    )
-    _commit_working_copy(mol, working_mol)
-    return BuildAndOptimizeReport(
-        requested_forcefield=optimization_report.requested_forcefield,
-        effective_forcefield=optimization_report.effective_forcefield,
-        build=build_report,
-        optimization=optimization_report,
-        quality_report=optimization_report.quality_report,
+        candidate_count=candidate_count,
+        max_attempts=max_attempts,
+        candidate_warmup_steps=candidate_warmup_steps,
+        candidate_score_steps=candidate_score_steps,
+        best_candidate_refine_steps=best_candidate_refine_steps,
+        coordination_geometry=coordination_geometry,
+        seeded_build_worker=_seeded_ob_build_worker,
+        complex_build_worker=_build_ligand_proxies_worker,
     )
 
 

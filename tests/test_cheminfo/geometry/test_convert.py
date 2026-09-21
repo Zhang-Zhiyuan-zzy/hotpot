@@ -286,10 +286,10 @@ def test_dense_scan_records_every_pair_and_coverage(
         max_ring_size=8,
     )
 
-    assert square_molecule.ring_queries == [("full_graph", 8, None)]
+    assert square_molecule.ring_queries == [("full_graph", None, None)]
     assert report.ring_family is convert.RingFamily.RELEVANT_CYCLES
     assert report.selected_ring_count == 1
-    assert report.excluded_ring_count is None
+    assert report.excluded_ring_count == 0
     assert report.candidate_pair_count == 2
     assert report.evaluated_pair_count == len(report.findings) == 2
     assert report.piercing_pair_count == 0
@@ -361,7 +361,7 @@ def test_ring_size_coverage_distinguishes_excluded_and_empty_scan(
     )
 
     assert report.selected_ring_count == 0
-    assert report.excluded_ring_count is None
+    assert report.excluded_ring_count == 1
     assert report.candidate_pair_count == 0
     assert report.evaluated_pair_count == 0
     assert report.scan_complete

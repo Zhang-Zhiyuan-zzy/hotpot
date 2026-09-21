@@ -202,7 +202,7 @@ class BondRingScanReport(Generic[RingSourceT, BondSourceT]):
     ring_family: RingFamily
     max_ring_size: int
     selected_ring_count: int
-    excluded_ring_count: Optional[int]
+    excluded_ring_count: int
     candidate_pair_count: int
     evaluated_pair_count: int
     piercing_pair_count: int
@@ -276,14 +276,12 @@ def _selected_rings(
         mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         ring_scope: RingScope,
         max_ring_size: int,
-) -> Tuple[Tuple[RingSourceT, ...], Optional[int]]:
+) -> Tuple[Tuple[RingSourceT, ...], int]:
+    rings = tuple(sorted(mol.rings_for_scope(ring_scope), key=_ring_key))
     selected = tuple(
-        sorted(
-            mol.rings_for_scope(ring_scope, max_size=max_ring_size),
-            key=_ring_key,
-        )
+        ring for ring in rings if len(_ring_key(ring)) <= max_ring_size
     )
-    return selected, None
+    return selected, len(rings) - len(selected)
 
 
 def _iter_bond_ring_targets_from_rings(

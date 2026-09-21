@@ -91,6 +91,7 @@ ForceFieldStage = Literal["candidate", "final"]
 
 _SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
+_BOND_RING_MAX_SIZE = 16
 
 
 # Public report and coordination data contracts.
@@ -483,20 +484,6 @@ def _has_hard_acceptance_failure(
         or check.name == "topology"
         or check.name.startswith("topology_")
         for check in report.failures
-    )
-
-
-def _has_bond_ring_uncertainty(
-    report: ForceFieldValidationReport,
-) -> bool:
-    return any(
-        not check.passed
-        and check.severity == "warning"
-        and check.name in {
-            "bond_ring_piercing",
-            "bond_ring_scope_coverage",
-        }
-        for check in report.checks
     )
 
 
@@ -1015,19 +1002,7 @@ def _bond_ring_acceptance_checks(
             bond_indices=(bond_positions[bond_key],),
             message="The bond-ring spatial relation is mathematically undetermined",
         ))
-    if report.excluded_ring_count is None:
-        checks.append(AcceptanceCheck(
-            name="bond_ring_scope_coverage",
-            passed=False,
-            severity="warning",
-            measured=None,
-            threshold=0,
-            message=(
-                "Rings above the configured maximum were not enumerated; "
-                "the excluded-ring count is unknown"
-            ),
-        ))
-    elif report.excluded_ring_count:
+    if report.excluded_ring_count:
         checks.append(AcceptanceCheck(
             name="bond_ring_scope_coverage",
             passed=False,
@@ -1792,7 +1767,6 @@ class _OpenBabelOptimizer:
             last_epoch = epoch
             if (
                 frame.quality_report.passed
-                and not _has_bond_ring_uncertainty(frame.quality_report)
                 and (best_frame is None or frame.energy < best_frame.energy)
             ):
                 best_frame = frame
@@ -1933,13 +1907,13 @@ def _build_ligand_proxies(
             piercing_state = geo.determine_bond_ring_piercing_state(
                 component_mol,
                 ring_scope="ligand_skeleton",
-                max_ring_size=8,
+                max_ring_size=_BOND_RING_MAX_SIZE,
             )
             if piercing_state is geo.PiercingState.PIERCES:
                 bond_ring_report = geo.scan_bond_ring_relations(
                     component_mol,
                     ring_scope="ligand_skeleton",
-                    max_ring_size=8,
+                    max_ring_size=_BOND_RING_MAX_SIZE,
                 )
                 intersection_failures = _bond_ring_acceptance_checks(
                     component_mol,
@@ -2043,7 +2017,7 @@ def _build_ligand_proxies(
             refined_piercing_state = geo.determine_bond_ring_piercing_state(
                 component_mol,
                 ring_scope="ligand_skeleton",
-                max_ring_size=8,
+                max_ring_size=_BOND_RING_MAX_SIZE,
             )
             refined_quality = evaluate_structure_acceptance(
                 component_mol,
@@ -2065,7 +2039,7 @@ def _build_ligand_proxies(
                     geo.scan_bond_ring_relations(
                         component_mol,
                         ring_scope="ligand_skeleton",
-                        max_ring_size=8,
+                        max_ring_size=_BOND_RING_MAX_SIZE,
                     )
                     if refined_piercing_state is geo.PiercingState.PIERCES
                     else None
@@ -2856,7 +2830,7 @@ def evaluate_structure_acceptance(
         bond_ring_report = geo.scan_bond_ring_relations(
             mol,
             ring_scope="ligand_skeleton",
-            max_ring_size=8,
+            max_ring_size=_BOND_RING_MAX_SIZE,
         )
         metrics["bond_ring_piercing_count"] = (
             bond_ring_report.piercing_pair_count

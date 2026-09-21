@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 from copy import copy
 from types import SimpleNamespace
-from typing import Optional
-
 from hotpot.cheminfo import forcefields as ff
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.core import Molecule
@@ -22,7 +20,7 @@ def _carbon_bond() -> Molecule:
 def _bond_ring_report(
     state: geo.PiercingState,
     *,
-    excluded_ring_count: Optional[int] = 0,
+    excluded_ring_count: int = 0,
 ):
     finding = SimpleNamespace(
         target=SimpleNamespace(
@@ -47,7 +45,7 @@ def _bond_ring_report(
         undetermined_pair_count=len(undetermined),
         selected_ring_count=1,
         excluded_ring_count=excluded_ring_count,
-        max_ring_size=8,
+        max_ring_size=16,
         ring_scope="ligand_skeleton",
         ring_family=geo.RingFamily.RELEVANT_CYCLES,
         scan_complete=True,
@@ -83,10 +81,16 @@ def test_topology_reference_allows_only_appended_hydrogen():
 
 
 def test_confirmed_bond_ring_piercing_fails_acceptance(monkeypatch):
+    scan_options = {}
+
+    def scan_relations(*args, **options):
+        scan_options.update(options)
+        return _bond_ring_report(geo.PiercingState.PIERCES)
+
     monkeypatch.setattr(
         ff.geo,
         "scan_bond_ring_relations",
-        lambda *args, **kwargs: _bond_ring_report(geo.PiercingState.PIERCES),
+        scan_relations,
     )
 
     report = ff.evaluate_structure_acceptance(
@@ -98,6 +102,7 @@ def test_confirmed_bond_ring_piercing_fails_acceptance(monkeypatch):
     assert any(
         check.name == "bond_ring_piercing" for check in report.failures
     )
+    assert scan_options["max_ring_size"] == 16
 
 
 def test_undetermined_bond_ring_relation_warns_without_rejection(monkeypatch):
@@ -146,13 +151,13 @@ def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
     assert report.metrics["bond_ring_excluded_ring_count"] == 2
 
 
-def test_unenumerated_large_rings_are_reported_as_unknown_coverage(monkeypatch):
+def test_complete_ring_scope_has_no_coverage_warning(monkeypatch):
     monkeypatch.setattr(
         ff.geo,
         "scan_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.DOES_NOT_PIERCE,
-            excluded_ring_count=None,
+            excluded_ring_count=0,
         ),
     )
 
@@ -162,9 +167,7 @@ def test_unenumerated_large_rings_are_reported_as_unknown_coverage(monkeypatch):
     )
 
     assert report.passed
-    warning = next(
-        check for check in report.warnings
-        if check.name == "bond_ring_scope_coverage"
+    assert not any(
+        check.name == "bond_ring_scope_coverage" for check in report.warnings
     )
-    assert warning.measured is None
-    assert report.metrics["bond_ring_excluded_ring_count"] is None
+    assert report.metrics["bond_ring_excluded_ring_count"] == 0

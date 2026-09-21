@@ -697,6 +697,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     calls = {"build": 0, "lazy": 0, "dense": 0, "closest": 0}
+    ring_sizes = {"lazy": [], "dense": []}
 
     def fake_build(current):
         calls["build"] += 1
@@ -715,10 +716,12 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
 
     def piercing_state(*args, **kwargs):
         calls["lazy"] += 1
+        ring_sizes["lazy"].append(kwargs["max_ring_size"])
         return ff.geo.PiercingState.PIERCES
 
     def scan_relations(*args, **kwargs):
         calls["dense"] += 1
+        ring_sizes["dense"].append(kwargs["max_ring_size"])
         return _piercing_report(("ring", "probe"))
 
     def closest(*args, **kwargs):
@@ -758,6 +761,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         )
 
     assert calls == {"build": 3, "lazy": 3, "dense": 3, "closest": 3}
+    assert ring_sizes == {"lazy": [16, 16, 16], "dense": [16, 16, 16]}
     assert caught.value.diagnostics.attempt_count == 3
     assert caught.value.diagnostics.accepted_candidates == 0
     assert len(caught.value.diagnostics.rejected_candidates) == 3

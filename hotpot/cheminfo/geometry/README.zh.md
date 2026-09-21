@@ -95,7 +95,7 @@ from hotpot.cheminfo import geometry as geo
 report = geo.scan_bond_ring_relations(
     mol,
     ring_scope="ligand_skeleton",
-    max_ring_size=8,
+    max_ring_size=16,
 )
 
 for finding in report.piercings:
@@ -1217,7 +1217,7 @@ BondRingScanReport[RingT, BondT](
     ring_family: RingFamily,
     max_ring_size: int,
     selected_ring_count: int,
-    excluded_ring_count: Optional[int],
+    excluded_ring_count: int,
     candidate_pair_count: int,
     evaluated_pair_count: int,
     piercing_pair_count: int,
@@ -1234,7 +1234,7 @@ BondRingScanReport[RingT, BondT](
 | `ring_family` | 当前转换层写入的 Hotpot Core 环族标签；目前为 `RELEVANT_CYCLES` |
 | `max_ring_size` | 纳入扫描的最大环原子数 |
 | `selected_ring_count` | 满足大小限制的环数 |
-| `excluded_ring_count` | 当前始终为 `None`：原生尺寸上限避免枚举大环，因此无法得知被排除数量 |
+| `excluded_ring_count` | 已感知但因大于 `max_ring_size` 而未进入关系判定的 Relevant Cycles 数量 |
 | `candidate_pair_count` | 排除环自身边后的 Ring × Bond 候选数 |
 | `evaluated_pair_count` | 实际得到 relation 的候选数 |
 | 三个 `*_pair_count` | 三种最终状态各自的数量 |
@@ -1242,9 +1242,9 @@ BondRingScanReport[RingT, BondT](
 | `piercings` | 只含 `PIERCES` 的只读派生 tuple |
 | `undetermined` | 只含 `UNDETERMINED` 的只读派生 tuple |
 
-`scan_complete=True` 不代表扫描覆盖全部可能环；必须同时检查 `ring_scope`、`ring_family`、
-`max_ring_size`。`excluded_ring_count=None` 表示没有枚举尺寸上限之外的环，并不表示不存在大环。
-空选择也可能产生完整的空报告。力场策略会将这种全局覆盖范围未知的情况转换为显式警告。
+`scan_complete=True` 表示尺寸限定范围内的全部候选均已完成评估；解释整体覆盖时仍需同时检查
+`ring_scope`、`ring_family`、`max_ring_size` 和 `excluded_ring_count`。空选择也可能产生完整的
+空报告。力场策略可以报告被排除的大环，但不应将其视为几何失败。
 
 ### 8.14 `point_from_atom`
 

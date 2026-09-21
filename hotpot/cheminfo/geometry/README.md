@@ -112,7 +112,7 @@ from hotpot.cheminfo import geometry as geo
 report = geo.scan_bond_ring_relations(
     mol,
     ring_scope="ligand_skeleton",
-    max_ring_size=8,
+    max_ring_size=16,
 )
 
 for finding in report.piercings:
@@ -1317,7 +1317,7 @@ BondRingScanReport[RingT, BondT](
     ring_family: RingFamily,
     max_ring_size: int,
     selected_ring_count: int,
-    excluded_ring_count: Optional[int],
+    excluded_ring_count: int,
     candidate_pair_count: int,
     evaluated_pair_count: int,
     piercing_pair_count: int,
@@ -1334,7 +1334,7 @@ BondRingScanReport[RingT, BondT](
 | `ring_family` | Ring-family label written by the current Hotpot Core conversion layer; currently `RELEVANT_CYCLES` |
 | `max_ring_size` | Maximum atom count of rings included in the scan |
 | `selected_ring_count` | Number of rings satisfying the size limit |
-| `excluded_ring_count` | Currently always `None`: the native size bound intentionally avoids enumerating larger Relevant Cycles, so their count is unknown |
+| `excluded_ring_count` | Number of perceived Relevant Cycles larger than `max_ring_size` and therefore omitted from relationship evaluation |
 | `candidate_pair_count` | Number of Ring × Bond candidates after excluding each ring's own edges |
 | `evaluated_pair_count` | Number of candidates for which a relationship was obtained |
 | three `*_pair_count` fields | Number of final results in each of the three states |
@@ -1342,12 +1342,11 @@ BondRingScanReport[RingT, BondT](
 | `piercings` | Read-only derived tuple containing only `PIERCES` findings |
 | `undetermined` | Read-only derived tuple containing only `UNDETERMINED` findings |
 
-`scan_complete=True` does not mean that every possible ring was scanned. Also
-inspect `ring_scope`, `ring_family`, and `max_ring_size`.
-`excluded_ring_count=None` means rings above the requested size were not
-enumerated; it does not assert that no larger rings exist. An empty selection
-may produce a complete empty report. The force-field policy converts this
-unknown global coverage into an explicit warning.
+`scan_complete=True` means that every candidate in the selected size-bounded
+scope was evaluated. Also inspect `ring_scope`, `ring_family`,
+`max_ring_size`, and `excluded_ring_count` when interpreting overall coverage.
+An empty selection may produce a complete empty report. Force-field policy may
+report excluded larger rings without treating them as a geometry failure.
 
 ### 8.14 `point_from_atom`
 

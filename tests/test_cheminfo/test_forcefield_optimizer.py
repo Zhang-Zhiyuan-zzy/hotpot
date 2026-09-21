@@ -550,11 +550,18 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
     assert len(report.epoch_energies) == (3 if save_movie else 0)
 
 
-def test_optimizer_does_not_select_an_undetermined_ring_frame(monkeypatch):
+@pytest.mark.parametrize(
+    "warning_name",
+    ("bond_ring_piercing", "bond_ring_scope_coverage"),
+)
+def test_optimizer_selects_best_frame_despite_bond_ring_warning(
+    monkeypatch,
+    warning_name,
+):
     frames = [np.zeros((2, 3)), np.ones((2, 3))]
     optimizer = _optimizer(
         monkeypatch,
-        _Backend([2.0, 1.0], unit="kJ/mol"),
+        _Backend([1.0, 2.0], unit="kJ/mol"),
         frames,
     )
     optimizer.epochs = 2
@@ -563,7 +570,7 @@ def test_optimizer_does_not_select_an_undetermined_ring_frame(monkeypatch):
         passed=True,
         checks=(
             ff.AcceptanceCheck(
-                name="bond_ring_piercing",
+                name=warning_name,
                 passed=False,
                 severity="warning",
             ),
@@ -576,17 +583,16 @@ def test_optimizer_does_not_select_an_undetermined_ring_frame(monkeypatch):
     )
     molecule = _OptimizerMolecule()
 
-    with pytest.warns(ff.GeometryQualityWarning, match="acceptance"):
-        report = optimizer.optimize(
-            molecule,
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
 
     assert report.quality_report is undetermined
-    assert report.best_epoch == 1
-    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
+    assert report.best_epoch == 0
+    np.testing.assert_array_equal(molecule.coordinates, frames[0])
 
 
 @pytest.mark.parametrize(

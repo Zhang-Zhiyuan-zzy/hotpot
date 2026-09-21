@@ -1,5 +1,9 @@
 # FF-Q003：无调用且非预留接口专项审查
 
+> 实施状态（2026-09-21）：`_ob_optimize()`、`BuildWorkerResult.conformers` 和拆包后确认
+> 无版本差异的一行 `_iter_obmol_atoms()` wrapper 已删除。`Point` 已成为 geometry package
+> 的基础公开对象，按用户后续决定保留。
+
 ## 1. 判定规则
 
 “源码中没有普通函数调用”不等于“无调用”。本审查同时检查：
@@ -99,9 +103,8 @@ AST 名称引用统计中，除 `_ob_optimize()` 外，每个私有顶层函数�
 
 ### `geometry.Point`
 
-`geometry.py:981-983` 的 `Point` 类不在 Hotpot 代码、测试或文档中实例化，且其唯一状态
-`_pos` 没有消费方。它不属于 forcefield 函数，但满足“无调用、无已声明预留用途”的实质
-条件，是 geometry dead-code 的确定候选。
+本段结论已被后续 geometry package 重构推翻：`Point` 现在由关系计算、转换层、测试和
+双语 API 文档共同使用，是必须保留的基础几何值对象，不再属于清理候选。
 
 相比之下，`Line`、`Plane`、`CyclePlanes` 和 `to_point()` 仍有 Core 或彼此之间的调用，
 不能因代码风格较旧而直接删除。

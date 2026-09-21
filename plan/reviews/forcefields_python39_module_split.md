@@ -1,5 +1,8 @@
 # Force-field Python 3.9 / Open Babel 3.1 隔离方案
 
+> 实施状态（2026-09-21）：已完成。Python 3.9 与 3.14 的真实兼容测试均通过；两套 façade
+> 的导出集合和函数签名由专门测试锁定。
+
 ## 1. 已确定的支持政策
 
 - 继续支持 Python 3.9-3.14。
@@ -20,7 +23,7 @@ hotpot/cheminfo/
 │   ├── ff39.py       # Python 3.9 / Open Babel 3.1 等签名公开实现
 │   ├── utils.py      # 两条路径共用的业务、数据结构及 3.2 helper
 │   └── utils39.py    # 仅 Open Babel 3.1 所需的替代 helper
-└── geometry.py
+└── geometry/
 ```
 
 迁移完成后删除原单文件 `hotpot/cheminfo/forcefields.py`，避免同名 module/package 并存造成
@@ -122,17 +125,21 @@ ff39.build3d(...)
 
 ## 5. 公共接口一致性清单
 
-两个 façade 的 `__all__` 必须逐项相等，至少包含当前 31 个公开符号：
+两个 façade 的 `__all__` 必须逐项相等。当前共 44 个公开符号：
 
-- 类型：`OptimizationAlgorithm`、`TerminationReason`；
+- 类型：`OptimizationAlgorithm`、`TerminationReason`、`ForceFieldDiagnosticValue`；
 - report/data：`ForceFieldRunReport`、`Build3DReport`、`CandidateRejection`、
   `ComplexBuildDiagnostics`、`BuildWorkerResult`、`ForceFieldWorkflowReport`、
   `BuildAndOptimizeReport`、`ComplexBuildReport`、`ForceFieldSetupReport`、
+  `AcceptanceCheck`、`StructureAcceptanceThresholds`、`ForceFieldAcceptanceEvidence`、
+  `AtomTopologySignature`、`BondTopologySignature`、`TopologyReference`、
+  `ForceFieldValidationReport`、
   `CoordinationEnvironment`、`CoordinationGeometryCandidate`、
   `CoordinationGeometryResult`；
 - exception：`ForceFieldError`、`ForceFieldSetupError`、`BuildWorkerError`、
   `BuildTimeoutError`、`ComplexBuildError`、`ComplexBuildWorkerError`、
   `ComplexBuildTimeoutError`、`GeometryQualityError`；
+- warning：`GeometryQualityWarning`；
 - 函数：`perturb`、`collect_coordination_environments`、
   `prepare_coordination_geometry`、`build3d`、`optimize`、`build_complex3d`、
   `optimize_complex`、`complexes_build`、`build_and_optimize`、`auto_optimize`。

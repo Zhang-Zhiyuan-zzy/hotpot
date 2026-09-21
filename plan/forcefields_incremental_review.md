@@ -8,6 +8,24 @@
 - 最终在全部问题审议后，从本记录汇总形成整改计划。
 - 本记录的后续附件统一存放在 `plan/reviews/`，并登记到下方附件索引。
 
+## 实施结果（2026-09-21）
+
+本轮已在 `refactor/resolve-forcefields-review` 分支完成所有已批准且不属于明确预留项的整改。
+下文保留问题发现时的分析过程；本节是当前状态的权威摘要。
+
+| 项目 | 状态 | 当前实现 |
+|---|---|---|
+| FF-Q001 / A001 | 已完成 | `forcefields` 与 `geometry` 已无 `Any`；化学对象、工作副本、worker、诊断值和事务 bond payload 均有明确类型与生命周期名称 |
+| FF-Q002 / A002 | 已完成 | 旧参数翻译和对象形态回退已删除；Python 3.9 / Open Babel 3.1 差异被隔离到 `forcefields/utils39.py` |
+| A003 | 已完成 | `forcefields/` 五文件 package、唯一版本选择点、同签名 façade、可 pickle worker、版本矩阵及打包围栏均已建立 |
+| FF-Q003 / A005 | 已完成 | `_ob_optimize()`、闲置 worker 字段和无策略 iterator wrapper 已删除；`Point` 按后续决定作为基础几何对象保留 |
+| A006 | 已完成 | 默认 ring 与生命周期命名已收束；冗余 wrapper、伪造 `RingFamily` 和重复 evaluated count 已删除 |
+| FF-Q004 | 当前核心目标已完成 | Core/FF 默认扫描到 16 元环；只有 `PIERCES` 触发开环，`UNDETERMINED` 不触发；大环排除量作为结构化 warning 证据保留 |
+
+`GeometrySettings.maximum_cycle_vertices=8` 是非平面环完整三角剖分的计算预算，不是 FF 的
+环扫描上限。9–16 元非平面环可能返回 `UNDETERMINED`，并按已批准策略交给普通微扰/优化，
+而不会被开环流程误当成确认互穿。
+
 ## 附件索引
 
 - [A001：`forcefields.py` 与 `geometry.py` 类型和命名审查](reviews/ff_geo_typing_naming_review.md)
@@ -178,7 +196,8 @@ point-in-polygon 与非平面 center-fan 两套覆盖区域不同造成的阈值
   应直接删除。它是旧公开 compatibility primitive 私有化后的残留。
 - 其他低引用私有函数均能追踪到真实生产调用、decorator 或 multiprocessing target，不能
   仅凭文本调用次数少而删除。
-- `geometry.Point` 不是函数，但同样无任何使用和预留职责，是确定的 dead-code 候选。
+- `geometry.Point` 在后续 package 重构中已成为公开基础几何值对象，因此明确保留；旧版
+  “dead-code 候选”判断已失效。
 - `BuildWorkerResult.conformers` 是无生产读写的闲置字段；它属于 worker schema 清理，不应
   用现有“可以存值”的测试伪装成业务需求。
 - `prepare_coordination_geometry()` 及其两个结果类型属于用户明确要求保留的未来实施接口，

@@ -2416,7 +2416,7 @@ def _seeded_ob_build_coordinates(
     )
 
 
-# Non-committing workflow stages and compatibility translation.
+# Non-committing workflow stages with explicit worker injection.
 
 
 def _prepare_complex_working_mol(

@@ -1,5 +1,8 @@
 # 附件 A006：默认语义命名与冗余封装审查
 
+> 实施状态（2026-09-21）：已完成。本文列出的命名、无策略 wrapper 与 report 伪泛化均已
+> 收束；`excluded_ring_count` 后续已实现为真实计数，因此保留用于大环覆盖 warning。
+
 ## 1. 结论
 
 本次问题成立。`Molecule.rings` 和 `Molecule.rings_for_scope()` 已经把 Relevant
@@ -49,7 +52,7 @@ candidate_ring
 | 同一函数局部映射 | `relevant_ring_memberships` | `ring_memberships` | 映射只存在一种环成员关系 |
 | 同一函数循环变量 | `relevant_ring` | `candidate_ring` | `candidate` 表达循环角色；算法限定是多余的 |
 
-需要保留的行为说明是：穿环检测可受 `max_ring_size=8` 限制，但选边时必须查询当前 scope
+需要保留的行为说明是：FF 穿环检测默认受 `max_ring_size=16` 限制，但选边时必须查询当前 scope
 下的全部 rings，以免把同时属于更大环的共享边错判为可开边。这个约束应写在 docstring
 和测试里，不应塞进函数或变量名。
 
@@ -121,14 +124,14 @@ candidate_ring
 
 | 项目 | 当前事实 | 后续选择 |
 |---|---|---|
-| `_selected_rings()` 第二返回值 | 永远是 `None` | helper 只返回 rings；是否保留 report 字段另行决定 |
-| `excluded_ring_count` | 原生 `max_size` 在枚举前截断，无法得知被排除数，生产路径恒为 `None` | 删除字段，或以后实现真实可计算的 coverage 指标 |
-| `candidate_pair_count` / `evaluated_pair_count` | dense scan 中都等于 `len(findings)` | 合并计数；`scan_complete` 只表达 surface enumeration 完整性 |
-| `RingFamily` | 当前 scan 始终写入 `RELEVANT_CYCLES`；协议本身无法验证第三方 `rings_for_scope()` 的算法 | 若 geometry 只支持默认 rings，删除；若必须保留科研溯源，则将 ring family 变成输入契约而非硬编码自证 |
+| `_selected_rings()` 第二返回值 | 已改为真实的被排除环数 | 保留，用于报告大于 `max_ring_size` 的未扫描环 |
+| `excluded_ring_count` | 已可准确计算 | 保留；FF 将非零值记录为结构化 warning，不把它当作确认互穿 |
+| `candidate_pair_count` / `evaluated_pair_count` | dense scan 中都等于 `len(findings)` | 已删除重复的 `evaluated_pair_count`；`candidate_pair_count` 改为只读派生属性 |
+| `RingFamily` | 协议无法验证第三方 `rings_for_scope()` 的算法 | 已从 report 和公开 API 删除，避免硬编码自证 |
 
-这一组会改变 `BondRingScanReport` 的公开字段、force-field metrics 和 README，不能与纯命名
-调整混在一起。特别是 `ring_family` 作为科研溯源信息本身有价值；问题不是它叫
-`ring_family`，而是当前值未经接口证明却固定填写。
+这一组已作为独立 schema 提交同步修改 `BondRingScanReport`、force-field metrics、测试和
+双语 README。若未来需要记录科研溯源，必须由 ring provider 显式提供可验证的 provenance，
+不能恢复未经接口证明的硬编码 `ring_family`。
 
 ## 7. 已审查并应保留
 

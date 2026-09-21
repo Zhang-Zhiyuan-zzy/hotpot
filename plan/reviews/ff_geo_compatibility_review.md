@@ -1,5 +1,9 @@
 # `forcefields.py` / `geometry.py` 兼容性代码审查
 
+> 实施状态（2026-09-21）：已完成。旧参数映射、对象形态回退和无调用兼容 helper 已删除；
+> Python 3.9 / Open Babel 3.1 的真实版本差异已独立到 `forcefields/ff39.py` 与
+> `forcefields/utils39.py`，主实现不再包含运行时版本兜底。
+
 ## 1. 审查目标和边界
 
 本审查响应以下项目约束：Hotpot 当前不承担旧 force-field API 的历史兼容责任；业务代码

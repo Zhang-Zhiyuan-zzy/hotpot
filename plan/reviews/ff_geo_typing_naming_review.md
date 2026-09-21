@@ -1,5 +1,10 @@
 # 附件 A001：`forcefields.py` 与 `geometry.py` 类型和命名审查
 
+> 实施状态（2026-09-21）：已完成。当前代码位于 `forcefields/` 与 `geometry/` package；
+> 两者已无 `Any`，callable annotation 已补齐。异构但稳定的 force-field 诊断值使用
+> `ForceFieldDiagnosticValue`，新增 bond 事务数据使用 `_BondAttributePayload`；仅原样
+> 保存/恢复的 conformer state 与 bond source metadata 继续使用 `object`。
+
 ## 1. 审查范围
 
 父记录：[`plan/forcefields_incremental_review.md`](../forcefields_incremental_review.md)

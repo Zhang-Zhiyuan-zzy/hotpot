@@ -1153,10 +1153,6 @@ def _make_constraints(mol: "Molecule") -> ob.OBFFConstraints:
     return ob.OBFFConstraints()
 
 
-def _iter_obmol_atoms(obmol: ob.OBMol) -> Iterator[ob.OBAtom]:
-    return ob.OBMolAtomIter(obmol)
-
-
 def _energy_factor_to_kj(unit: str) -> float:
     normalized = unit.strip().lower().replace(" ", "")
     if normalized in {"kj/mol", "kjmol-1", "kjmol^-1"}:
@@ -1574,7 +1570,7 @@ class _OpenBabelOptimizer:
 
     def _gradients(self, obmol: ob.OBMol, factor: float) -> Tuple[float, float]:
         vectors = []
-        for atom in _iter_obmol_atoms(obmol):
+        for atom in ob.OBMolAtomIter(obmol):
             gradient = self.backend.GetGradient(atom)
             vectors.append((gradient.GetX(), gradient.GetY(), gradient.GetZ()))
         norms = np.linalg.norm(np.asarray(vectors, dtype=float) * factor, axis=1)

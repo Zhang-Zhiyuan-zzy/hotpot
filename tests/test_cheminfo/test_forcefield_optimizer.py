@@ -184,7 +184,7 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
     obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
     monkeypatch.setattr(ff, "_get_forcefield", lambda _: backend)
     monkeypatch.setattr(ff, "_make_constraints", lambda _: object())
-    monkeypatch.setattr(ff, "_iter_obmol_atoms", lambda _: (object(), object()))
+    monkeypatch.setattr(ff.ob, "OBMolAtomIter", lambda _: (object(), object()))
     monkeypatch.setattr(ff, "mol2obmol", lambda mol: (obmol, {0: 1, 1: 2}))
     monkeypatch.setattr(
         ff,

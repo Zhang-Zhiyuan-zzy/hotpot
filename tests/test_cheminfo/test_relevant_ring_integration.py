@@ -70,11 +70,11 @@ def test_relevant_ring_cache_is_invalidated_by_topology_update() -> None:
     mol = _molecule_from_edges([(0, 1), (1, 2), (2, 0)], atom_count=4)
 
     assert len(mol.rings_for_scope("full_graph")) == 1
-    assert mol._relevant_cycle_indices_cache
+    assert mol._ring_indices_cache
 
     mol.add_bond(2, 3, bond_order=1.0)
 
-    assert mol._relevant_cycle_indices_cache == {}
+    assert mol._ring_indices_cache == {}
     assert len(mol.rings_for_scope("full_graph")) == 1
 
 
@@ -120,20 +120,9 @@ def test_forcefield_ring_opening_ignores_the_legacy_cycle_basis(
     small_ring = next(ring for ring in mol.rings if len(ring) == 4)
     shared_edge = mol.bond(0, 1)
 
-    def reject_legacy_cycle_basis_for_scope(
-            _mol: Molecule,
-            _ring_scope: str,
-    ) -> None:
-        raise AssertionError("force-field ring opening read the legacy cycle basis")
-
     def reject_legacy_cycle_basis_property(_mol: Molecule) -> None:
         raise AssertionError("force-field ring opening read the legacy cycle basis")
 
-    monkeypatch.setattr(
-        Molecule,
-        "cycle_basis_rings_for_scope",
-        reject_legacy_cycle_basis_for_scope,
-    )
     monkeypatch.setattr(
         Molecule,
         "cycle_basis_rings",

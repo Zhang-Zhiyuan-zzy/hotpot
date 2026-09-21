@@ -39,7 +39,7 @@ def test_ligand_scope_excludes_a_chelate_cycle_without_mutating_ring_caches():
     )
     rings_cache = mol._rings
     cycle_basis_rings_cache = mol._cycle_basis_rings
-    relevant_cycle_indices_cache = mol._relevant_cycle_indices_cache
+    ring_indices_cache = mol._ring_indices_cache
     ligand_rings_cache = mol._ligand_rings
     ligand_cycle_basis_rings_cache = mol._ligand_cycle_basis_rings
     ligand_rings_signature = mol._ligand_rings_signature
@@ -60,7 +60,7 @@ def test_ligand_scope_excludes_a_chelate_cycle_without_mutating_ring_caches():
     assert ligand_skeleton.piercing_pair_count == 0
     assert mol._rings is rings_cache
     assert mol._cycle_basis_rings is cycle_basis_rings_cache
-    assert mol._relevant_cycle_indices_cache is relevant_cycle_indices_cache
+    assert mol._ring_indices_cache is ring_indices_cache
     assert mol._ligand_rings is ligand_rings_cache
     assert mol._ligand_cycle_basis_rings is ligand_cycle_basis_rings_cache
     assert mol._ligand_rings_signature is ligand_rings_signature

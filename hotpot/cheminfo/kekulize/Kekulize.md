@@ -82,7 +82,6 @@ The primary Core ring APIs now use Relevant Cycles:
 | `mol.rings_for_scope(...)` | Relevant Cycles for the requested scope |
 | `mol.cycle_basis_rings` | Legacy NetworkX cycle basis |
 | `mol.ligand_cycle_basis_rings` | Legacy ligand-skeleton cycle basis |
-| `mol.cycle_basis_rings_for_scope(...)` | Legacy cycle basis for the requested scope |
 
 Existing trained ML feature extractors explicitly use
 `ligand_cycle_basis_rings`; this prevents the ring tensor count, order, and

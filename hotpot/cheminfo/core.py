@@ -144,7 +144,7 @@ class Molecule:
         self._torsions = []
         self._rings = []
         self._cycle_basis_rings = []
-        self._relevant_cycle_indices_cache = {}
+        self._ring_indices_cache = {}
         self._ligand_rings = None
         self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
@@ -430,7 +430,7 @@ class Molecule:
         self._torsions = []
         self._rings = []
         self._cycle_basis_rings = []
-        self._relevant_cycle_indices_cache = {}
+        self._ring_indices_cache = {}
         self._ligand_rings = None
         self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
@@ -2264,7 +2264,7 @@ class Molecule:
         ``RelevantCycleLimitExceeded`` rather than returning a partial family.
         """
         if not self._rings:
-            self._rings = self._materialize_relevant_rings()
+            self._rings = self._materialize_rings()
 
         return copy(self._rings)
 
@@ -2294,7 +2294,7 @@ class Molecule:
             for cycle in cycles
         ]
 
-    def _materialize_relevant_rings(
+    def _materialize_rings(
             self,
             *,
             ligand_skeleton: bool = False,
@@ -2313,7 +2313,7 @@ class Molecule:
             max_cycles,
             ligand_signature,
         )
-        cycles = self._relevant_cycle_indices_cache.get(cache_key)
+        cycles = self._ring_indices_cache.get(cache_key)
         if cycles is None:
             scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
             cycles = graph_algorithms.relevant_cycles(
@@ -2321,7 +2321,7 @@ class Molecule:
                 max_size=max_size,
                 max_cycles=max_cycles,
             )
-            self._relevant_cycle_indices_cache[cache_key] = cycles
+            self._ring_indices_cache[cache_key] = cycles
         return self._rings_from_cycles(cycles)
 
     def _uncached_cycle_basis_rings(
@@ -2342,27 +2342,16 @@ class Molecule:
     ) -> list["Ring"]:
         """Return a Relevant Cycle view for a molecular graph scope."""
         if ring_scope == "full_graph":
-            return self._materialize_relevant_rings(
+            return self._materialize_rings(
                 max_size=max_size,
                 max_cycles=max_cycles,
             )
         if ring_scope == "ligand_skeleton":
-            return self._materialize_relevant_rings(
+            return self._materialize_rings(
                 ligand_skeleton=True,
                 max_size=max_size,
                 max_cycles=max_cycles,
             )
-        raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
-
-    def cycle_basis_rings_for_scope(
-            self,
-            ring_scope: Literal["full_graph", "ligand_skeleton"],
-    ) -> list["Ring"]:
-        """Return an uncached legacy cycle-basis view for a graph scope."""
-        if ring_scope == "full_graph":
-            return self._uncached_cycle_basis_rings()
-        if ring_scope == "ligand_skeleton":
-            return self._uncached_cycle_basis_rings(ligand_skeleton=True)
         raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
 
     @property
@@ -2425,7 +2414,7 @@ class Molecule:
         """
         self._refresh_ligand_ring_cache_signature()
         if self._ligand_rings is None:
-            self._ligand_rings = self._materialize_relevant_rings(
+            self._ligand_rings = self._materialize_rings(
                 ligand_skeleton=True,
             )
         return copy(self._ligand_rings)
@@ -2446,9 +2435,9 @@ class Molecule:
         if signature != self._ligand_rings_signature:
             self._ligand_rings = None
             self._ligand_cycle_basis_rings = None
-            for cache_key in tuple(self._relevant_cycle_indices_cache):
+            for cache_key in tuple(self._ring_indices_cache):
                 if cache_key[0]:
-                    del self._relevant_cycle_indices_cache[cache_key]
+                    del self._ring_indices_cache[cache_key]
             self._ligand_rings_signature = signature
 
     def _current_ligand_ring_signature(self) -> _LigandRingSignature:

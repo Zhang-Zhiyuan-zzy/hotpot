@@ -145,7 +145,6 @@
 | `rings`                            | Full-graph Relevant Cycles                    |
 | `cycle_basis_rings`                | Legacy NetworkX cycle-basis rings             |
 | `rings_for_scope`                  | Relevant Cycles for a selected graph scope    |
-| `cycle_basis_rings_for_scope`      | Legacy cycle basis for a selected graph scope |
 | `aromatic_joint_rings`             | Joint aromatic rings                          |  
 | `rings_small`                      | Small rings                                   |  
 | `ligand_rings`                     | Ligand-skeleton Relevant Cycles               |

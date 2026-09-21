@@ -441,7 +441,7 @@ class _MoleculeCommitSnapshot:
     torsions: list["Torsion"]
     rings: list["Ring"]
     cycle_basis_rings: list["Ring"]
-    relevant_cycle_indices_cache: dict[
+    ring_indices_cache: dict[
         Tuple[
             bool,
             Optional[int],
@@ -1383,7 +1383,7 @@ def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
         torsions=mol._torsions,
         rings=mol._rings,
         cycle_basis_rings=mol._cycle_basis_rings,
-        relevant_cycle_indices_cache=mol._relevant_cycle_indices_cache,
+        ring_indices_cache=mol._ring_indices_cache,
         ligand_rings=mol._ligand_rings,
         ligand_cycle_basis_rings=mol._ligand_cycle_basis_rings,
         ligand_rings_signature=mol._ligand_rings_signature,
@@ -1410,7 +1410,7 @@ def _restore_failed_commit(
     mol._torsions = snapshot.torsions
     mol._rings = snapshot.rings
     mol._cycle_basis_rings = snapshot.cycle_basis_rings
-    mol._relevant_cycle_indices_cache = snapshot.relevant_cycle_indices_cache
+    mol._ring_indices_cache = snapshot.ring_indices_cache
     mol._ligand_rings = snapshot.ligand_rings
     mol._ligand_cycle_basis_rings = snapshot.ligand_cycle_basis_rings
     mol._ligand_rings_signature = snapshot.ligand_rings_signature

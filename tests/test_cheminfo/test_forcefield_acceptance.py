@@ -47,7 +47,6 @@ def _bond_ring_report(
         excluded_ring_count=excluded_ring_count,
         max_ring_size=16,
         ring_scope="ligand_skeleton",
-        ring_family=geo.RingFamily.RELEVANT_CYCLES,
         scan_complete=True,
     )
 

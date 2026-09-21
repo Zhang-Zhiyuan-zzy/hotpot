@@ -8,7 +8,6 @@ protocols instead of importing :mod:`hotpot.cheminfo.core` at runtime.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from itertools import combinations, tee
 from typing import (
     Generic,
@@ -38,7 +37,6 @@ from .settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 __all__ = (
     "PairScope",
     "RingScope",
-    "RingFamily",
     "AtomGeometry",
     "AtomPairTarget",
     "BondGeometry",
@@ -65,13 +63,6 @@ __all__ = (
 
 PairScope = Literal["all", "bonded", "nonbonded"]
 RingScope = Literal["full_graph", "ligand_skeleton"]
-
-
-class RingFamily(str, Enum):
-    """Algorithm family used by Core to select molecular rings."""
-
-    NETWORKX_CYCLE_BASIS = "networkx_cycle_basis"
-    RELEVANT_CYCLES = "relevant_cycles"
 
 
 # Source-object protocols.  They describe only what conversion needs and keep
@@ -199,16 +190,25 @@ class RingEdgeDistance(Generic[BondSourceT]):
 class BondRingScanReport(Generic[RingSourceT, BondSourceT]):
     findings: Tuple[BondRingFinding[RingSourceT, BondSourceT], ...]
     ring_scope: RingScope
-    ring_family: RingFamily
     max_ring_size: int
     selected_ring_count: int
     excluded_ring_count: int
-    candidate_pair_count: int
-    evaluated_pair_count: int
     piercing_pair_count: int
     does_not_pierce_pair_count: int
     undetermined_pair_count: int
-    scan_complete: bool
+
+    @property
+    def candidate_pair_count(self) -> int:
+        """Return the number of fully evaluated ring--bond candidates."""
+        return len(self.findings)
+
+    @property
+    def scan_complete(self) -> bool:
+        """Return whether every selected candidate surface family is complete."""
+        return all(
+            finding.relation.surface_evidence.enumeration_complete
+            for finding in self.findings
+        )
 
     @property
     def piercings(
@@ -498,7 +498,6 @@ def scan_bond_ring_relations(
     findings = tuple(
         _iter_bond_ring_findings_from_rings(mol, selected_rings, settings)
     )
-    candidate_pair_count = len(findings)
     piercing_pair_count = sum(
         finding.relation.state is PiercingState.PIERCES
         for finding in findings
@@ -511,26 +510,15 @@ def scan_bond_ring_relations(
         finding.relation.state is PiercingState.UNDETERMINED
         for finding in findings
     )
-    evaluated_pair_count = len(findings)
     return BondRingScanReport(
         findings=findings,
         ring_scope=ring_scope,
-        ring_family=RingFamily.RELEVANT_CYCLES,
         max_ring_size=max_ring_size,
         selected_ring_count=len(selected_rings),
         excluded_ring_count=excluded_ring_count,
-        candidate_pair_count=candidate_pair_count,
-        evaluated_pair_count=evaluated_pair_count,
         piercing_pair_count=piercing_pair_count,
         does_not_pierce_pair_count=does_not_pierce_pair_count,
         undetermined_pair_count=undetermined_pair_count,
-        scan_complete=(
-            evaluated_pair_count == candidate_pair_count
-            and all(
-                finding.relation.surface_evidence.enumeration_complete
-                for finding in findings
-            )
-        ),
     )
 
 

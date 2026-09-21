@@ -160,13 +160,12 @@ for finding in report.piercings:
 | `determine_segment_cycle_relation` | 判定一条有限线段是否穿过一个环 |
 | `closest_cycle_edge` | 查找距目标线段最近的环边 |
 
-### 2.5 转换词汇和结果记录（12 项）
+### 2.5 转换词汇和结果记录（11 项）
 
 | 名称 | 种类 | 含义 |
 |---|---|---|
 | `PairScope` | Literal alias | 原子对范围：全部、成键或未成键 |
 | `RingScope` | Literal alias | 环范围：全图或配体骨架 |
-| `RingFamily` | Enum | 扫描报告记录的环识别算法族标签；当前 Hotpot Core 提供 Relevant Cycles |
 | `AtomGeometry` | frozen generic dataclass | Atom、`Point` 和 atom key 的映射 |
 | `AtomPairTarget` | frozen generic dataclass | 两个 atom mapping 及成键事实 |
 | `BondGeometry` | frozen generic dataclass | Bond、`Segment` 和 bond key 的映射 |
@@ -1107,17 +1106,7 @@ RingScope = Literal["full_graph", "ligand_skeleton"]
 实际选环行为由来源对象的 `rings_for_scope()` 实现。Hotpot 中 `full_graph` 使用完整分子图，
 `ligand_skeleton` 用于忽略金属配位连接后观察配体骨架环。
 
-### 8.4 `RingFamily`
-
-| 成员 | `.value` | 含义 |
-|---|---|---|
-| `NETWORKX_CYCLE_BASIS` | `"networkx_cycle_basis"` | 为显式旧 cycle-basis 集成保留的标签；当前扫描入口不会输出它 |
-| `RELEVANT_CYCLES` | `"relevant_cycles"` | 当前 Core 环接口采用的、全部最小环基之并集 |
-
-`BondRingScanReport.ring_family` 当前固定写入 `RELEVANT_CYCLES`。对于自定义 Molecule-like
-对象，该标签要求 `rings_for_scope()` 确实返回 Relevant Cycles；转换层不会动态识别其内部算法。
-
-### 8.5 `AtomGeometry`
+### 8.4 `AtomGeometry`
 
 ```python
 AtomGeometry[AtomT](atom: AtomT, point: Point, key: int)
@@ -1125,7 +1114,7 @@ AtomGeometry[AtomT](atom: AtomT, point: Point, key: int)
 
 `atom` 是原 Atom-like 对象，`point` 是坐标快照，`key=int(atom.idx)`。
 
-### 8.6 `AtomPairTarget`
+### 8.5 `AtomPairTarget`
 
 ```python
 AtomPairTarget[AtomT](
@@ -1137,7 +1126,7 @@ AtomPairTarget[AtomT](
 
 记录一个稳定顺序的原子对，以及来源图中是否存在显式键。
 
-### 8.7 `BondGeometry`
+### 8.6 `BondGeometry`
 
 ```python
 BondGeometry[BondT](
@@ -1151,7 +1140,7 @@ bond key 为两个端点 atom key 的升序元组：
 
 $k_{\mathrm{bond}}=\operatorname{sort}(k_{a_1},k_{a_2})$
 
-### 8.8 `RingGeometry`
+### 8.7 `RingGeometry`
 
 ```python
 RingGeometry[RingT](
@@ -1163,7 +1152,7 @@ RingGeometry[RingT](
 
 ring key 是 atom key 正向和反向序列全部循环移位中字典序最小的元组，因此对起点和绕行方向不变。
 
-### 8.9 `BondRingTarget`
+### 8.8 `BondRingTarget`
 
 ```python
 BondRingTarget[RingT, BondT](
@@ -1174,7 +1163,7 @@ BondRingTarget[RingT, BondT](
 
 表示一个待做线段—环判定的来源组合。
 
-### 8.10 `AtomPairDistance`
+### 8.9 `AtomPairDistance`
 
 ```python
 AtomPairDistance[AtomT](
@@ -1185,7 +1174,7 @@ AtomPairDistance[AtomT](
 
 把来源原子对和纯几何距离记录组合在一起。
 
-### 8.11 `BondRingFinding`
+### 8.10 `BondRingFinding`
 
 ```python
 BondRingFinding[RingT, BondT](
@@ -1196,7 +1185,7 @@ BondRingFinding[RingT, BondT](
 
 把来源 Ring × Bond 对和完整线段—环关系组合在一起。
 
-### 8.12 `RingEdgeDistance`
+### 8.11 `RingEdgeDistance`
 
 ```python
 RingEdgeDistance[BondT](
@@ -1208,22 +1197,18 @@ RingEdgeDistance[BondT](
 用于把来源环键与最近边度量组合。当前 package 没有公开函数直接构造该记录，调用方可在需要把
 几何 edge index 映射回化学 Bond 时使用。
 
-### 8.13 `BondRingScanReport`
+### 8.12 `BondRingScanReport`
 
 ```python
 BondRingScanReport[RingT, BondT](
     findings: tuple[BondRingFinding[RingT, BondT], ...],
     ring_scope: RingScope,
-    ring_family: RingFamily,
     max_ring_size: int,
     selected_ring_count: int,
     excluded_ring_count: int,
-    candidate_pair_count: int,
-    evaluated_pair_count: int,
     piercing_pair_count: int,
     does_not_pierce_pair_count: int,
     undetermined_pair_count: int,
-    scan_complete: bool,
 )
 ```
 
@@ -1231,22 +1216,20 @@ BondRingScanReport[RingT, BondT](
 |---|---|
 | `findings` | 每个已评估候选对的完整记录 |
 | `ring_scope` | 本次请求的环范围 |
-| `ring_family` | 当前转换层写入的 Hotpot Core 环族标签；目前为 `RELEVANT_CYCLES` |
 | `max_ring_size` | 纳入扫描的最大环原子数 |
 | `selected_ring_count` | 满足大小限制的环数 |
 | `excluded_ring_count` | 已感知但因大于 `max_ring_size` 而未进入关系判定的 Relevant Cycles 数量 |
-| `candidate_pair_count` | 排除环自身边后的 Ring × Bond 候选数 |
-| `evaluated_pair_count` | 实际得到 relation 的候选数 |
+| `candidate_pair_count` | 排除环自身边后，由 `findings` 派生的 Ring × Bond 结果数 |
 | 三个 `*_pair_count` | 三种最终状态各自的数量 |
-| `scan_complete` | 已选择范围内所有候选均评估，且曲面构造/枚举及所需线段评估均未因预算中断 |
+| `scan_complete` | 由结果派生，表示每个已选择候选的候选曲面枚举均已完成 |
 | `piercings` | 只含 `PIERCES` 的只读派生 tuple |
 | `undetermined` | 只含 `UNDETERMINED` 的只读派生 tuple |
 
-`scan_complete=True` 表示尺寸限定范围内的全部候选均已完成评估；解释整体覆盖时仍需同时检查
-`ring_scope`、`ring_family`、`max_ring_size` 和 `excluded_ring_count`。空选择也可能产生完整的
+`scan_complete=True` 只描述尺寸限定范围内的候选；解释整体覆盖时仍需同时检查
+`ring_scope`、`max_ring_size` 和 `excluded_ring_count`。空选择也可能产生完整的
 空报告。力场策略可以报告被排除的大环，但不应将其视为几何失败。
 
-### 8.14 `point_from_atom`
+### 8.13 `point_from_atom`
 
 ```python
 def point_from_atom(atom: AtomT) -> Point
@@ -1254,7 +1237,7 @@ def point_from_atom(atom: AtomT) -> Point
 
 读取 `atom.coordinates` 并返回不可变坐标快照；不修改 `atom`。
 
-### 8.15 `segment_from_bond`
+### 8.14 `segment_from_bond`
 
 ```python
 def segment_from_bond(bond: BondT) -> Segment
@@ -1262,7 +1245,7 @@ def segment_from_bond(bond: BondT) -> Segment
 
 把 `bond.atom1` 和 `bond.atom2` 的当前坐标转换为有限线段；不读取键级或化学类型。
 
-### 8.16 `cycle_from_ring`
+### 8.15 `cycle_from_ring`
 
 ```python
 def cycle_from_ring(ring: RingT) -> Cycle
@@ -1271,7 +1254,7 @@ def cycle_from_ring(ring: RingT) -> Cycle
 按 `ring.atoms` 的现有顺序创建闭合 `Cycle`。输入顺序决定边界连接关系。
 该适配器不执行环识别；输入必须已经描述一个有序闭合边界。
 
-### 8.17 `iter_atom_geometries`
+### 8.16 `iter_atom_geometries`
 
 ```python
 def iter_atom_geometries(
@@ -1281,7 +1264,7 @@ def iter_atom_geometries(
 
 按 `structure.atoms` 的来源顺序惰性产生 `AtomGeometry`。
 
-### 8.18 `iter_atom_pair_targets`
+### 8.17 `iter_atom_pair_targets`
 
 ```python
 def iter_atom_pair_targets(
@@ -1293,7 +1276,7 @@ def iter_atom_pair_targets(
 按原子来源顺序的组合 $i<j$ 产生原子对，并从 `structure.bonds` 判断 `bonded`。不支持的
 `pair_scope` 抛出 `ValueError`。
 
-### 8.19 `iter_ring_geometries`
+### 8.18 `iter_ring_geometries`
 
 ```python
 def iter_ring_geometries(
@@ -1311,7 +1294,7 @@ def iter_ring_geometries(
 Relevant Cycles 不是全部简单环。Hotpot Core 仍采用 10,000 个结果的安全上限；超过上限时该调用会
 抛出 `RelevantCycleLimitExceeded`，而不会返回不完整环族。
 
-### 8.20 `iter_bond_ring_targets`
+### 8.19 `iter_bond_ring_targets`
 
 ```python
 def iter_bond_ring_targets(
@@ -1325,7 +1308,7 @@ def iter_bond_ring_targets(
 对每个选中环和按 bond key 排序的化学键产生候选组合，但排除该环自身的边。与之不同，直接调用
 `determine_bond_ring_relation(ring, bond)` 不执行该排除。
 
-### 8.21 `measure_atom_pair_distances`
+### 8.20 `measure_atom_pair_distances`
 
 ```python
 def measure_atom_pair_distances(
@@ -1336,7 +1319,7 @@ def measure_atom_pair_distances(
 
 计算所选原子对的欧氏距离，同时保留来源 Atom 引用、atom key 和成键事实。返回稠密 tuple。
 
-### 8.22 `determine_bond_ring_relation`
+### 8.21 `determine_bond_ring_relation`
 
 ```python
 def determine_bond_ring_relation(
@@ -1350,7 +1333,7 @@ def determine_bond_ring_relation(
 单个化学对象适配器：把 `ring`、`bond` 转换为 `Cycle`、`Segment`，调用
 `determine_segment_cycle_relation()`，并把来源和结果封装为 `BondRingFinding`。
 
-### 8.23 `iter_bond_ring_findings`
+### 8.22 `iter_bond_ring_findings`
 
 ```python
 def iter_bond_ring_findings(
@@ -1365,7 +1348,7 @@ def iter_bond_ring_findings(
 按 canonical ring key 和 bond key 的顺序惰性产生结果。每个环调用一次
 `iter_segment_cycle_relations()`，因此同一环的候选键共享平面度或曲面准备。
 
-### 8.24 `scan_bond_ring_relations`
+### 8.23 `scan_bond_ring_relations`
 
 ```python
 def scan_bond_ring_relations(
@@ -1381,7 +1364,7 @@ def scan_bond_ring_relations(
 
 该函数的 `max_ring_size` 同样是必填整数，并在来源处限制 Relevant Cycle 枚举。
 
-### 8.25 `determine_bond_ring_piercing_state`
+### 8.24 `determine_bond_ring_piercing_state`
 
 ```python
 def determine_bond_ring_piercing_state(

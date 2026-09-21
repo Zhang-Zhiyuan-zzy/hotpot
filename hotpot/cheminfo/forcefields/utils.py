@@ -2875,7 +2875,6 @@ def evaluate_structure_acceptance(
         )
         metrics["bond_ring_max_ring_size"] = bond_ring_report.max_ring_size
         metrics["bond_ring_scope"] = bond_ring_report.ring_scope
-        metrics["bond_ring_family"] = bond_ring_report.ring_family.value
         checks.extend(_bond_ring_acceptance_checks(mol, bond_ring_report))
         metrics["coordination_environments"] = _coordination_metrics(
             mol,

@@ -177,13 +177,12 @@ for finding in report.piercings:
 | `determine_segment_cycle_relation` | Determine whether one finite segment pierces a cycle |
 | `closest_cycle_edge` | Find the cycle edge nearest to a target segment |
 
-### 2.5 Conversion vocabulary and result records (12 names)
+### 2.5 Conversion vocabulary and result records (11 names)
 
 | Name | Kind | Meaning |
 |---|---|---|
 | `PairScope` | Literal alias | Atom-pair scope: all, bonded, or nonbonded |
 | `RingScope` | Literal alias | Ring scope: full graph or ligand skeleton |
-| `RingFamily` | Enum | Ring-detection family recorded in scan reports; Hotpot Core currently supplies Relevant Cycles |
 | `AtomGeometry` | frozen generic dataclass | Mapping among an Atom, a `Point`, and an atom key |
 | `AtomPairTarget` | frozen generic dataclass | Two atom mappings and their bonded status |
 | `BondGeometry` | frozen generic dataclass | Mapping among a Bond, a `Segment`, and a bond key |
@@ -1198,19 +1197,7 @@ behavior. In Hotpot, `full_graph` uses the complete molecular graph, while
 `ligand_skeleton` observes ligand-skeleton rings without metal-coordination
 connections.
 
-### 8.4 `RingFamily`
-
-| Member | `.value` | Meaning |
-|---|---|---|
-| `NETWORKX_CYCLE_BASIS` | `"networkx_cycle_basis"` | Reserved label for explicit legacy cycle-basis integrations; current scan entry points do not emit it |
-| `RELEVANT_CYCLES` | `"relevant_cycles"` | Unique union of all minimum cycle bases used by the current Core ring API |
-
-`BondRingScanReport.ring_family` is currently set to `RELEVANT_CYCLES`. For a
-custom Molecule-like object, it is a contract label requiring
-`rings_for_scope()` to return Relevant Cycles; the conversion layer does not
-dynamically detect the object's internal algorithm.
-
-### 8.5 `AtomGeometry`
+### 8.4 `AtomGeometry`
 
 ```python
 AtomGeometry[AtomT](atom: AtomT, point: Point, key: int)
@@ -1219,7 +1206,7 @@ AtomGeometry[AtomT](atom: AtomT, point: Point, key: int)
 `atom` is the original Atom-like object, `point` is a coordinate snapshot,
 and `key=int(atom.idx)`.
 
-### 8.6 `AtomPairTarget`
+### 8.5 `AtomPairTarget`
 
 ```python
 AtomPairTarget[AtomT](
@@ -1232,7 +1219,7 @@ AtomPairTarget[AtomT](
 Records an atom pair in stable order and whether the source graph contains an
 explicit bond between the atoms.
 
-### 8.7 `BondGeometry`
+### 8.6 `BondGeometry`
 
 ```python
 BondGeometry[BondT](
@@ -1246,7 +1233,7 @@ The bond key is the ascending pair of endpoint atom keys:
 
 $k_{\mathrm{bond}}=\operatorname{sort}(k_{a_1},k_{a_2})$
 
-### 8.8 `RingGeometry`
+### 8.7 `RingGeometry`
 
 ```python
 RingGeometry[RingT](
@@ -1260,7 +1247,7 @@ The ring key is the lexicographically smallest tuple among every cyclic shift
 of the atom-key sequence in both traversal directions. It is therefore
 invariant to the starting vertex and traversal direction.
 
-### 8.9 `BondRingTarget`
+### 8.8 `BondRingTarget`
 
 ```python
 BondRingTarget[RingT, BondT](
@@ -1272,7 +1259,7 @@ BondRingTarget[RingT, BondT](
 Represents one source Ring × Bond combination awaiting a segment–cycle
 classification.
 
-### 8.10 `AtomPairDistance`
+### 8.9 `AtomPairDistance`
 
 ```python
 AtomPairDistance[AtomT](
@@ -1283,7 +1270,7 @@ AtomPairDistance[AtomT](
 
 Combines the source atom pair with a pure-geometry distance record.
 
-### 8.11 `BondRingFinding`
+### 8.10 `BondRingFinding`
 
 ```python
 BondRingFinding[RingT, BondT](
@@ -1295,7 +1282,7 @@ BondRingFinding[RingT, BondT](
 Combines the source Ring × Bond pair with its complete segment–cycle
 relationship.
 
-### 8.12 `RingEdgeDistance`
+### 8.11 `RingEdgeDistance`
 
 ```python
 RingEdgeDistance[BondT](
@@ -1308,22 +1295,18 @@ Combines a source ring bond with a nearest-edge measurement. No public
 function currently constructs this record directly. Callers may use it when
 mapping a geometric edge index back to a chemical Bond.
 
-### 8.13 `BondRingScanReport`
+### 8.12 `BondRingScanReport`
 
 ```python
 BondRingScanReport[RingT, BondT](
     findings: tuple[BondRingFinding[RingT, BondT], ...],
     ring_scope: RingScope,
-    ring_family: RingFamily,
     max_ring_size: int,
     selected_ring_count: int,
     excluded_ring_count: int,
-    candidate_pair_count: int,
-    evaluated_pair_count: int,
     piercing_pair_count: int,
     does_not_pierce_pair_count: int,
     undetermined_pair_count: int,
-    scan_complete: bool,
 )
 ```
 
@@ -1331,24 +1314,22 @@ BondRingScanReport[RingT, BondT](
 |---|---|
 | `findings` | Complete record for every evaluated candidate pair |
 | `ring_scope` | Ring scope requested for this scan |
-| `ring_family` | Ring-family label written by the current Hotpot Core conversion layer; currently `RELEVANT_CYCLES` |
 | `max_ring_size` | Maximum atom count of rings included in the scan |
 | `selected_ring_count` | Number of rings satisfying the size limit |
 | `excluded_ring_count` | Number of perceived Relevant Cycles larger than `max_ring_size` and therefore omitted from relationship evaluation |
-| `candidate_pair_count` | Number of Ring × Bond candidates after excluding each ring's own edges |
-| `evaluated_pair_count` | Number of candidates for which a relationship was obtained |
+| `candidate_pair_count` | Read-only derived number of Ring × Bond findings after excluding each ring's own edges |
 | three `*_pair_count` fields | Number of final results in each of the three states |
-| `scan_complete` | Every candidate in the selected scope was evaluated, and surface construction/enumeration and required segment evaluations did not exceed a budget |
+| `scan_complete` | Read-only derived fact that every selected finding completed its candidate-surface enumeration |
 | `piercings` | Read-only derived tuple containing only `PIERCES` findings |
 | `undetermined` | Read-only derived tuple containing only `UNDETERMINED` findings |
 
-`scan_complete=True` means that every candidate in the selected size-bounded
-scope was evaluated. Also inspect `ring_scope`, `ring_family`,
-`max_ring_size`, and `excluded_ring_count` when interpreting overall coverage.
+`scan_complete=True` applies only to candidates inside the selected,
+size-bounded scope. Also inspect `ring_scope`, `max_ring_size`, and
+`excluded_ring_count` when interpreting overall coverage.
 An empty selection may produce a complete empty report. Force-field policy may
 report excluded larger rings without treating them as a geometry failure.
 
-### 8.14 `point_from_atom`
+### 8.13 `point_from_atom`
 
 ```python
 def point_from_atom(atom: AtomT) -> Point
@@ -1357,7 +1338,7 @@ def point_from_atom(atom: AtomT) -> Point
 Reads `atom.coordinates` into an immutable coordinate snapshot without
 modifying `atom`.
 
-### 8.15 `segment_from_bond`
+### 8.14 `segment_from_bond`
 
 ```python
 def segment_from_bond(bond: BondT) -> Segment
@@ -1366,7 +1347,7 @@ def segment_from_bond(bond: BondT) -> Segment
 Converts the current coordinates of `bond.atom1` and `bond.atom2` into a
 finite segment. It does not inspect bond order or chemical type.
 
-### 8.16 `cycle_from_ring`
+### 8.15 `cycle_from_ring`
 
 ```python
 def cycle_from_ring(ring: RingT) -> Cycle
@@ -1376,7 +1357,7 @@ Creates a closed `Cycle` in the existing order of `ring.atoms`. Input order
 defines boundary connectivity. This adapter does not perceive rings; its input
 must already describe an ordered closed boundary.
 
-### 8.17 `iter_atom_geometries`
+### 8.16 `iter_atom_geometries`
 
 ```python
 def iter_atom_geometries(
@@ -1386,7 +1367,7 @@ def iter_atom_geometries(
 
 Lazily yields `AtomGeometry` in the source order of `structure.atoms`.
 
-### 8.18 `iter_atom_pair_targets`
+### 8.17 `iter_atom_pair_targets`
 
 ```python
 def iter_atom_pair_targets(
@@ -1398,7 +1379,7 @@ def iter_atom_pair_targets(
 Yields atom pairs in source combination order $i<j$ and obtains `bonded` from
 `structure.bonds`. An unsupported `pair_scope` raises `ValueError`.
 
-### 8.19 `iter_ring_geometries`
+### 8.18 `iter_ring_geometries`
 
 ```python
 def iter_ring_geometries(
@@ -1418,7 +1399,7 @@ Relevant Cycles are not the set of all simple cycles. Hotpot Core retains its
 10,000-result safety limit, so this call can raise
 `RelevantCycleLimitExceeded` rather than return a partial family.
 
-### 8.20 `iter_bond_ring_targets`
+### 8.19 `iter_bond_ring_targets`
 
 ```python
 def iter_bond_ring_targets(
@@ -1435,7 +1416,7 @@ an edge of that ring. In contrast, a direct
 `determine_bond_ring_relation(ring, bond)` call does not perform this
 exclusion.
 
-### 8.21 `measure_atom_pair_distances`
+### 8.20 `measure_atom_pair_distances`
 
 ```python
 def measure_atom_pair_distances(
@@ -1447,7 +1428,7 @@ def measure_atom_pair_distances(
 Calculates Euclidean distances for the selected atom pairs while retaining
 source Atom references, atom keys, and bonded status. Returns a dense tuple.
 
-### 8.22 `determine_bond_ring_relation`
+### 8.21 `determine_bond_ring_relation`
 
 ```python
 def determine_bond_ring_relation(
@@ -1462,7 +1443,7 @@ Adapter for a single chemical-object pair: converts `ring` and `bond` to a
 `Cycle` and `Segment`, calls `determine_segment_cycle_relation()`, then wraps
 the sources and result in `BondRingFinding`.
 
-### 8.23 `iter_bond_ring_findings`
+### 8.22 `iter_bond_ring_findings`
 
 ```python
 def iter_bond_ring_findings(
@@ -1478,7 +1459,7 @@ Lazily yields results in canonical ring-key and bond-key order. Each ring uses
 one `iter_segment_cycle_relations()` call, so all candidate bonds for that ring
 share its planarity measurement or surface preparation.
 
-### 8.24 `scan_bond_ring_relations`
+### 8.23 `scan_bond_ring_relations`
 
 ```python
 def scan_bond_ring_relations(
@@ -1497,7 +1478,7 @@ per-candidate evidence.
 Here too, `max_ring_size` is required and bounds Relevant Cycle enumeration at
 the source.
 
-### 8.25 `determine_bond_ring_piercing_state`
+### 8.24 `determine_bond_ring_piercing_state`
 
 ```python
 def determine_bond_ring_piercing_state(

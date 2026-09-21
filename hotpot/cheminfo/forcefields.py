@@ -11,7 +11,7 @@ import traceback as traceback_module
 import warnings
 from collections import deque
 from copy import copy, deepcopy
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field
 from functools import wraps
 from itertools import combinations
 from multiprocessing.connection import Connection, wait as wait_for_connections
@@ -22,6 +22,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TypedDict,
     Union,
 )
 
@@ -51,6 +52,7 @@ __all__ = (
     "ForceFieldSetupReport",
     "AcceptanceCheck",
     "StructureAcceptanceThresholds",
+    "ForceFieldAcceptanceEvidence",
     "AtomTopologySignature",
     "BondTopologySignature",
     "TopologyReference",
@@ -126,6 +128,22 @@ class StructureAcceptanceThresholds:
     strict_energy_change: float = 1.0e-4
     strict_max_displacement: float = 1.0e-4
     strict_stability_window: int = 5
+
+
+class ForceFieldAcceptanceEvidence(TypedDict, total=False):
+    """Force-field observations consumed by structure-acceptance policy."""
+
+    setup_succeeded: bool
+    converged: bool
+    epochs_completed: int
+    segment_epochs_completed: int
+    final_energy: float
+    energy_unit: str
+    rms_gradient: float
+    max_gradient: float
+    exploded: bool
+    energy_changes: Sequence[float]
+    max_displacements: Sequence[float]
 
 
 @dataclass(frozen=True)
@@ -513,18 +531,9 @@ class _AtomPairAcceptanceIssue:
     threshold: float
 
 
-def _atom_index(atom: "Atom", fallback: int) -> int:
-    return int(getattr(atom, "idx", fallback))
-
-
 def _bond_key(bond: "Bond") -> Tuple[int, int]:
     first, second = sorted((int(bond.atom1.idx), int(bond.atom2.idx)))
     return first, second
-
-
-def _bond_kind(bond: "Bond") -> str:
-    kind = getattr(bond, "bond_kind", "")
-    return str(getattr(kind, "value", kind))
 
 
 def _overlap_issues(
@@ -594,7 +603,7 @@ def _topology_bond_signature(
     return BondTopologySignature(
         atom_indices=(first, second),
         bond_order=float(bond.bond_order),
-        bond_kind=_bond_kind(bond),
+        bond_kind=bond.bond_kind.value,
     )
 
 
@@ -738,25 +747,13 @@ def _topology_checks(
 
 
 def _resolve_acceptance_thresholds(
-    thresholds: Optional[
-        Union[StructureAcceptanceThresholds, Mapping[str, object]]
-    ],
+    thresholds: Optional[StructureAcceptanceThresholds],
 ) -> StructureAcceptanceThresholds:
-    if thresholds is None:
-        return StructureAcceptanceThresholds()
-    if isinstance(thresholds, StructureAcceptanceThresholds):
-        return thresholds
-    return replace(StructureAcceptanceThresholds(), **dict(thresholds))
-
-
-def _report_value(report: object, name: str) -> Optional[object]:
-    if isinstance(report, Mapping):
-        return report.get(name)
-    return getattr(report, name, None)
+    return thresholds if thresholds is not None else StructureAcceptanceThresholds()
 
 
 def _forcefield_acceptance_checks(
-    report: Optional[object],
+    report: Optional[ForceFieldAcceptanceEvidence],
     level: AcceptanceLevel,
     thresholds: StructureAcceptanceThresholds,
     stage: ForceFieldStage,
@@ -773,7 +770,7 @@ def _forcefield_acceptance_checks(
         return ()
 
     checks = []
-    setup_succeeded = _report_value(report, "setup_succeeded")
+    setup_succeeded = report.get("setup_succeeded")
     checks.append(AcceptanceCheck(
         name="forcefield_setup",
         passed=setup_succeeded is not None and bool(setup_succeeded),
@@ -786,7 +783,7 @@ def _forcefield_acceptance_checks(
     if stage == "final":
         required_finite_fields.extend(("rms_gradient", "max_gradient"))
     for field_name in required_finite_fields:
-        value = _report_value(report, field_name)
+        value = report.get(field_name)
         finite = value is not None and bool(np.isfinite(value))
         checks.append(AcceptanceCheck(
             name=f"finite_{field_name}",
@@ -797,7 +794,7 @@ def _forcefield_acceptance_checks(
         ))
 
     if level in ("basic", "standard", "strict"):
-        exploded = _report_value(report, "exploded")
+        exploded = report.get("exploded")
         checks.append(AcceptanceCheck(
             name="backend_explosion",
             passed=exploded is not None and not bool(exploded),
@@ -807,7 +804,7 @@ def _forcefield_acceptance_checks(
         ))
 
     if stage == "final" and level in ("standard", "strict"):
-        converged = _report_value(report, "converged")
+        converged = report.get("converged")
         if converged is not None or level == "strict":
             checks.append(AcceptanceCheck(
                 name="forcefield_convergence",
@@ -824,7 +821,7 @@ def _forcefield_acceptance_checks(
             ("max_gradient", thresholds.strict_max_gradient),
         )
         for field_name, limit in gradient_limits:
-            value = _report_value(report, field_name)
+            value = report.get(field_name)
             if value is not None and np.isfinite(value):
                 checks.append(AcceptanceCheck(
                     name=field_name,
@@ -836,11 +833,8 @@ def _forcefield_acceptance_checks(
                     ),
                 ))
 
-        segment_epochs_completed = _report_value(
-            report,
-            "segment_epochs_completed",
-        )
-        converged = bool(_report_value(report, "converged"))
+        segment_epochs_completed = report.get("segment_epochs_completed")
+        converged = bool(report.get("converged"))
         no_history_required = (
             segment_epochs_completed is not None
             and int(segment_epochs_completed) == 1
@@ -852,7 +846,7 @@ def _forcefield_acceptance_checks(
         )
         stability_observations = []
         for field_name, limit in stability_checks:
-            history = _report_value(report, field_name)
+            history = report.get(field_name)
             values = () if history is None else tuple(history)
             recent = values[-thresholds.strict_stability_window:]
             value = max(recent) if recent else None
@@ -873,7 +867,7 @@ def _forcefield_acceptance_checks(
 
         observations = min(stability_observations)
         if segment_epochs_completed is None:
-            epochs_completed = _report_value(report, "epochs_completed")
+            epochs_completed = report.get("epochs_completed")
             required_observations = (
                 min(thresholds.strict_stability_window, int(epochs_completed))
                 if epochs_completed is not None
@@ -948,10 +942,10 @@ def _coordination_metrics(
                 )
                 angles.append(float(np.degrees(np.arccos(cosine))))
         environments.append({
-            "metal_index": _atom_index(atoms[metal], metal),
+            "metal_index": int(atoms[metal].idx),
             "coordination_number": len(donor_indices),
             "donor_indices": tuple(
-                _atom_index(atoms[index], index) for index in donor_indices
+                int(atoms[index].idx) for index in donor_indices
             ),
             "distances": tuple(distances),
             "angles": tuple(angles),
@@ -1286,8 +1280,7 @@ def _bond_commit_signature(
         positions[id(bond.atom1)],
         positions[id(bond.atom2)],
     )))
-    kind = getattr(bond.bond_kind, "value", bond.bond_kind)
-    return endpoints, float(bond.bond_order), str(kind)
+    return endpoints, float(bond.bond_order), bond.bond_kind.value
 
 
 def _prepare_working_copy_commit(
@@ -1556,7 +1549,7 @@ class _OpenBabelOptimizer:
         max_displacements: deque[float],
         quality_level: AcceptanceLevel,
         topology_reference: TopologyReference,
-        quality_thresholds: Optional[Mapping[str, object]],
+        quality_thresholds: Optional[StructureAcceptanceThresholds],
     ) -> _ObservedFrame:
         self.backend.GetCoordinates(obmol)
         coordinates = extract_obmol_coordinates(obmol)
@@ -1611,7 +1604,7 @@ class _OpenBabelOptimizer:
         *,
         quality_level: AcceptanceLevel,
         topology_reference: TopologyReference,
-        quality_thresholds: Optional[Mapping[str, object]],
+        quality_thresholds: Optional[StructureAcceptanceThresholds],
     ) -> ForceFieldRunReport:
         obmol, _ = mol2obmol(mol)
         if self.increasing_vdw:
@@ -1639,9 +1632,8 @@ class _OpenBabelOptimizer:
         best_frame_index = -1
         last_frame = None
         last_epoch = -1
-        history_window = int(
-            (quality_thresholds or {}).get("strict_stability_window", 5)
-        )
+        thresholds = _resolve_acceptance_thresholds(quality_thresholds)
+        history_window = thresholds.strict_stability_window
         energy_changes = deque(maxlen=history_window)
         max_displacements = deque(maxlen=history_window)
         movie_coordinates = []
@@ -2393,7 +2385,7 @@ def _optimize_working_mol(
     steps_per_epoch: int,
     quality_level: AcceptanceLevel,
     topology_reference: TopologyReference,
-    quality_thresholds: Optional[Mapping[str, object]],
+    quality_thresholds: Optional[StructureAcceptanceThresholds],
     seed: Optional[int],
     perturb_interval: Optional[int],
     perturb_sigma: float,
@@ -2439,7 +2431,7 @@ def complexes_build(
     timeout: float = 1000.0,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[Mapping[str, object]] = None,
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
@@ -2534,11 +2526,9 @@ def evaluate_structure_acceptance(
     *,
     level: AcceptanceLevel = "standard",
     topology_reference: Optional[TopologyReference] = None,
-    forcefield_report: Optional[object] = None,
+    forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
     forcefield_stage: ForceFieldStage = "final",
-    thresholds: Optional[
-        Union[StructureAcceptanceThresholds, Mapping[str, object]]
-    ] = None,
+    thresholds: Optional[StructureAcceptanceThresholds] = None,
 ) -> ForceFieldValidationReport:
     """Apply chemistry and force-field acceptance policy to geometry facts."""
     if level not in ("off", "basic", "standard", "strict"):
@@ -2569,7 +2559,7 @@ def evaluate_structure_acceptance(
     nonfinite_indices = ()
     if shape_ok and not finite_ok:
         nonfinite_indices = tuple(
-            _atom_index(atoms[index], index)
+            int(atoms[index].idx)
             for index in np.flatnonzero(
                 ~np.all(np.isfinite(coordinates), axis=1)
             )
@@ -2687,8 +2677,8 @@ def evaluate_structure_acceptance(
         ))
         maximum_bond_length = max(maximum_bond_length, distance)
         atom_indices = (
-            _atom_index(atoms[first], first),
-            _atom_index(atoms[second], second),
+            int(atoms[first].idx),
+            int(atoms[second].idx),
         )
         valid_length = 0.0 < distance <= limits.maximum_bond_distance
         if not valid_length:
@@ -2808,11 +2798,9 @@ def is_structure_accepted(
     *,
     level: AcceptanceLevel = "standard",
     topology_reference: Optional[TopologyReference] = None,
-    forcefield_report: Optional[object] = None,
+    forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
     forcefield_stage: ForceFieldStage = "final",
-    thresholds: Optional[
-        Union[StructureAcceptanceThresholds, Mapping[str, object]]
-    ] = None,
+    thresholds: Optional[StructureAcceptanceThresholds] = None,
 ) -> bool:
     """Return the result of :func:`evaluate_structure_acceptance`."""
     return evaluate_structure_acceptance(
@@ -2947,7 +2935,7 @@ def optimize(
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[Mapping[str, object]] = None,
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
@@ -3050,7 +3038,7 @@ def optimize_complex(
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[Mapping[str, object]] = None,
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
@@ -3102,7 +3090,7 @@ def build_and_optimize(
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[Mapping[str, object]] = None,
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
     seed: Optional[int] = None,
     timeout: float = 1000.0,
     perturb_interval: Optional[int] = None,
@@ -3188,7 +3176,7 @@ def auto_optimize(
     steps_per_epoch: int = 100,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[Mapping[str, object]] = None,
+    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,

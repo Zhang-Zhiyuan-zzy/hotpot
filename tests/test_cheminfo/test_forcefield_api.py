@@ -18,7 +18,9 @@ def _bare_molecule():
 def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
     molecule = _bare_molecule()
     expected = object()
-    quality_thresholds = {"standard_minimum_distance": 0.4}
+    quality_thresholds = ff.StructureAcceptanceThresholds(
+        standard_minimum_distance=0.4
+    )
     calls = []
 
     def fake_build_and_optimize(current, **options):
@@ -59,7 +61,9 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
 def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
     molecule = _bare_molecule()
     expected = object()
-    quality_thresholds = {"standard_minimum_distance": 0.45}
+    quality_thresholds = ff.StructureAcceptanceThresholds(
+        standard_minimum_distance=0.45
+    )
     calls = []
 
     def fake_auto_optimize(current, **options):

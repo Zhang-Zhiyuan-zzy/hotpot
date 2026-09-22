@@ -51,6 +51,160 @@ def _bond_ring_report(
     )
 
 
+def _successful_forcefield_evidence():
+    return {
+        "setup_succeeded": True,
+        "converged": True,
+        "epochs_completed": 6,
+        "segment_epochs_completed": 6,
+        "final_energy": -12.5,
+        "energy_unit": "kJ/mol",
+        "rms_gradient": 0.25,
+        "max_gradient": 1.5,
+        "exploded": False,
+        "energy_changes": (1.0e-5, 2.0e-5, 3.0e-5, 4.0e-5, 5.0e-5),
+        "max_displacements": (
+            1.0e-5,
+            2.0e-5,
+            3.0e-5,
+            4.0e-5,
+            5.0e-5,
+        ),
+    }
+
+
+def _clear_bond_ring_report():
+    return SimpleNamespace(
+        piercings=(),
+        undetermined=(),
+        piercing_pair_count=0,
+        undetermined_pair_count=0,
+        selected_ring_count=0,
+        excluded_ring_count=0,
+        max_ring_size=16,
+        ring_scope="ligand_skeleton",
+        scan_complete=True,
+    )
+
+
+def _serialized_check_contract(report):
+    payload = json.loads(json.dumps(report.to_dict()))
+    return [
+        (
+            check["name"],
+            check["passed"],
+            check["severity"],
+            check["measured"],
+            check["threshold"],
+        )
+        for check in payload["checks"]
+    ], payload["metrics"]
+
+
+def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch):
+    scan_calls = []
+
+    def scan_relations(*args, **options):
+        scan_calls.append(options)
+        return _clear_bond_ring_report()
+
+    monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
+
+    coordinate_checks = [
+        ("coordinate_shape", True, "error", [2, 3], [2, 3]),
+        ("finite_coordinates", True, "error", True, True),
+        ("forcefield_setup", True, "error", True, True),
+        ("finite_final_energy", True, "error", -12.5, "finite"),
+        ("finite_rms_gradient", True, "error", 0.25, "finite"),
+        ("finite_max_gradient", True, "error", 1.5, "finite"),
+    ]
+    backend_check = [
+        ("backend_explosion", True, "error", False, False),
+    ]
+    basic_geometry_checks = [
+        ("atom_overlap", True, "error", 0, 1.0e-3),
+        ("atom_too_close", True, "error", 0, 0.40),
+        ("bond_distance", True, "error", 1.52, [0.0, 30.0]),
+    ]
+    standard_geometry_checks = [
+        ("atom_overlap", True, "error", 0, 1.0e-3),
+        ("atom_too_close", True, "error", 0, [0.40, 0.50, 0.55]),
+        ("bond_distance", True, "error", 1.52, [0.0, 30.0]),
+        (
+            "bond_length_ratio",
+            True,
+            "error",
+            None,
+            [[0.65, 1.45], [0.65, 1.60]],
+        ),
+        ("short_bond", True, "error", 0, [0.65, 0.65]),
+        (
+            "bond_ring_piercing",
+            True,
+            "error",
+            "does_not_pierce",
+            "does_not_pierce",
+        ),
+    ]
+    expected_checks = {
+        "off": coordinate_checks,
+        "basic": coordinate_checks + backend_check + basic_geometry_checks,
+        "standard": coordinate_checks + backend_check + [
+            ("forcefield_convergence", True, "warning", True, True),
+        ] + standard_geometry_checks,
+        "strict": coordinate_checks + backend_check + [
+            ("forcefield_convergence", True, "error", True, True),
+            ("rms_gradient", True, "error", 0.25, 1.0),
+            ("max_gradient", True, "error", 1.5, 5.0),
+            ("energy_change", True, "error", 5.0e-5, 1.0e-4),
+            ("max_displacement", True, "error", 5.0e-5, 1.0e-4),
+            ("stability_observations", True, "error", 5, 5),
+        ] + standard_geometry_checks,
+    }
+    expected_metrics = {
+        "off": {
+            "atom_count": 2,
+            "bond_count": 1,
+            "minimum_pair_distance": 1.52,
+        },
+        "basic": {
+            "atom_count": 2,
+            "bond_count": 1,
+            "minimum_pair_distance": 1.52,
+            "maximum_bond_length": 1.52,
+        },
+    }
+    ring_metrics = {
+        "bond_ring_piercing_count": 0,
+        "bond_ring_undetermined_count": 0,
+        "bond_ring_scan_complete": True,
+        "bond_ring_selected_ring_count": 0,
+        "bond_ring_excluded_ring_count": 0,
+        "bond_ring_max_ring_size": 16,
+        "bond_ring_scope": "ligand_skeleton",
+        "coordination_environments": [],
+    }
+    expected_metrics["standard"] = expected_metrics["basic"] | ring_metrics
+    expected_metrics["strict"] = expected_metrics["basic"] | ring_metrics
+
+    for level in ("off", "basic", "standard", "strict"):
+        report = ff.evaluate_structure_acceptance(
+            _carbon_bond(),
+            level=level,
+            forcefield_report=_successful_forcefield_evidence(),
+        )
+        checks, metrics = _serialized_check_contract(report)
+
+        assert report.passed
+        assert checks == expected_checks[level]
+        assert metrics == expected_metrics[level]
+
+    assert scan_calls == [
+        {"ring_scope": "ligand_skeleton", "max_ring_size": 16},
+        {"ring_scope": "ligand_skeleton", "max_ring_size": 16},
+    ]
+
+
 def test_acceptance_report_is_owned_by_forcefields_and_serializable():
     report = ff.evaluate_structure_acceptance(_carbon_bond(), level="basic")
 

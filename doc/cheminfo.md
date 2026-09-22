@@ -199,12 +199,14 @@ workflow should be selected automatically. Candidate rejections retain the
 full failed geometry checks, including measured values, thresholds, and atom
 or bond indices, in `CandidateRejection.quality_failures`.
 
-Complex construction stops after the first acceptable ligand geometry by
-default (`candidate_count=None`). Passing a positive `candidate_count` enables
-the advanced multi-conformer search. If its attempt budget cannot supply the
-requested number but at least one acceptable candidate exists, Hotpot emits a
-`ComplexBuildWarning` and refines the available candidates. Zero acceptable
-candidates remains a build failure.
+Complex construction stops after the first acceptable ligand geometry. If no
+attempt passes the basic geometry gate, Hotpot emits a `ComplexBuildWarning`
+and uses the usable attempt with the lowest confirmed bond-ring piercing count
+and energy as the next-stage start. `candidate_count` is retained as a
+reserved API parameter but currently has no effect. Future multi-conformer
+support will generate genuinely independent starts, deduplicate or cluster
+them, rank them using topology, geometry, and energy evidence, and refine the
+selected conformer.
 
 The optimizer uses `epochs` outer iterations and `steps_per_epoch` Open Babel
 steps per iteration. `seed=None` keeps Hotpot-side perturbations stochastic;

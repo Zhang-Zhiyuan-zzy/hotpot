@@ -303,9 +303,11 @@ def convert_smiles_to_3dmol(
         Keyword arguments accepted by :meth:`Molecule.build3d`, including
         ``forcefield``, ``epochs``, ``steps_per_epoch``, ``add_hydrogens``,
         ``quality_level``, ``seed``, and complex-candidate options.
-        ``candidate_count=None`` uses the first acceptable ligand geometry;
-        a positive value enables multi-conformer search. A shortfall warns and
-        continues with the acceptable candidates found within ``max_attempts``.
+        ``candidate_count`` is reserved and currently has no effect. The
+        current complex workflow uses the first acceptable ligand geometry,
+        or warns and retains the best usable attempt when none passes. Future
+        multi-conformer support will independently generate, deduplicate,
+        rank, and refine diverse starting conformers.
 
     Raises:
         ConversionBatchError: After all workers are reaped, if one or more

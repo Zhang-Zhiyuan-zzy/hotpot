@@ -238,10 +238,13 @@ print(pair.smiles)
 Generate and optimize 3D coordinates through the canonical `build3d` method.
 Complex building uses a spawned worker, so executable scripts should use the
 standard Python main guard. By default, the first chemically acceptable ligand
-geometry is refined. Set `candidate_count` to a positive integer only when an
-explicit multi-conformer search is wanted; if the search budget cannot supply
-the requested count, Hotpot warns and refines the acceptable candidates that
-were found:
+geometry is refined. If no attempt passes the basic geometry gate, Hotpot
+warns and sends the usable attempt with the lowest confirmed bond-ring
+piercing count and energy into the next stage. `candidate_count` is retained
+as a reserved API parameter but currently has no effect. Future
+multi-conformer support will generate independent conformers, deduplicate or
+cluster them, rank them using topology, geometry, and energy evidence, and
+refine the selected conformer:
 
 ```python
 import hotpot as hp

@@ -35,30 +35,37 @@ Stage 1: ligand construction
 
 Stage 2.1: coordination-bond restoration
   hide all original metal--ligand bonds
-    -> test each pending metal--donor segment against ligand-skeleton rings
-    -> restore only non-piercing bonds
-    -> short optimization
+    -> temporarily restore one pending metal--donor bond
+    -> compare full-graph ring relations before and after the addition
+    -> keep the bond only when it introduces no confirmed piercing
+    -> short optimization after each successful restoration
     -> retry pending bonds
-    -> on a stalled round, perturb then optimize
-    -> after the bounded budget, restore every still-pending original bond and warn
+    -> on the first stalled round optimize; on later stalled rounds perturb first
+    -> count only stalled rounds against the bounded retry budget
+    -> after the budget, restore every still-pending original bond and warn
 
 Stage 2.2: fully connected complex optimization
   apply the Stage-1 open-ring/perturb/restore loop to the complete complex
   (default 30 attempts)
-    -> run the stateful final Open Babel relaxation
+    -> run the stateful final Open Babel relaxation until the first confirmed
+       piercing or the requested optimization budget is exhausted
+    -> immediately re-enter the repair loop after a piercing; continue with
+       the remaining epoch budget after the topology has been restored
     -> retain the final frame, or the full trace when `save_movie=True`
 ```
 
 ## Semantic boundaries
 
 - Geometry reports spatial facts only.  Forcefields owns the chemical policy.
-- Every piercing decision used for repair is based on
-  `ring_scope="ligand_skeleton"` and Relevant Cycles up to size 16.
-- A coordination bond is tested as a finite segment before it is restored.
-  Consequently, a newly closed chelate cycle is not part of the tested ring
-  family.  A narrow forcefield-only guard may additionally ignore a finding
-  only when the reported bond is the proposed coordination bond and the ring
-  contains both of its endpoints.
+- Covalent-ring repair uses `ring_scope="ligand_skeleton"`; coordination-bond
+  admission compares pre-addition and post-addition `full_graph` reports.
+  Both use Relevant Cycles up to size 16.  Excluded larger rings produce a
+  warning but do not trigger repair.
+- A coordination bond is first restored transactionally so ring perception
+  sees every chelate cycle that the edge creates.  Only new relation keys are
+  considered.  A narrow forcefield-only rule ignores a finding when the
+  reported bond is the proposed coordination bond and the ring contains both
+  endpoints; other bonds piercing that newly closed ring remain failures.
 - `UNDETERMINED` is recorded but is not actively opened.  Only confirmed
   `PIERCES` relations trigger ring opening.
 - Topology changes always require a fresh Open Babel force-field setup.
@@ -69,6 +76,12 @@ Stage 2.2: fully connected complex optimization
   The ligand stage uses the closed-topology frame with the lowest confirmed
   piercing count; coordination restoration always restores the complete
   original metal--ligand topology before Stage 2.2.
+- `coordination_restoration_attempts` limits stalled retry rounds, not the
+  number of coordination bonds.  Every safely restored bond receives its own
+  relaxation and does not consume the stalled retry budget.
+- If the final requested epoch creates a piercing, one additional stabilization
+  epoch may follow its repair.  `epochs` is therefore the normal relaxation
+  budget; repair and post-repair stabilization work is reported in addition.
 
 ## Commit checkpoints
 

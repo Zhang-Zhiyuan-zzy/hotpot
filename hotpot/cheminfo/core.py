@@ -949,7 +949,14 @@ class Molecule:
             complex_untangling_attempts: int = 30,
             coordination_geometry: Optional[str] = None,
     ):
-        """Build a 3D structure and optimize it with the appropriate workflow."""
+        """Build and optimize this molecule with the appropriate FF workflow.
+
+        ``candidate_count`` is reserved and currently has no effect.  Complex
+        building uses one ligand starting geometry.  Future multi-conformer
+        support will generate independent starts, optimize and gate each one,
+        deduplicate or cluster them by geometry, rank them by topology,
+        geometry, and energy evidence, and refine the selected conformer.
+        """
         return ff.build_and_optimize(
             self,
             forcefield=forcefield,

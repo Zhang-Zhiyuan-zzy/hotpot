@@ -206,10 +206,18 @@ def build_complex3d(
     save_movie: bool = False,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
+    """Build one ligand start and restore the complex coordination topology.
+
+    ``candidate_count`` is a reserved API parameter and currently has no
+    effect.  Future multi-conformer support will generate genuinely
+    independent starts, optimize and gate each one, deduplicate or cluster
+    them by geometry, rank them by topology, geometry, and energy evidence,
+    and refine the selected conformer.
+    """
+    _ = candidate_count
     return _utils._build_complex3d_workflow(
         mol,
         forcefield,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
@@ -295,13 +303,21 @@ def complexes_build(
     vdw_cutoff_end: float = 12.5,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
+    """Build, optimize, validate, and commit one complete complex structure.
+
+    ``candidate_count`` is a reserved API parameter and currently has no
+    effect.  Future multi-conformer support will generate genuinely
+    independent starts, optimize and gate each one, deduplicate or cluster
+    them by geometry, rank them by topology, geometry, and energy evidence,
+    and refine the selected conformer.
+    """
+    _ = candidate_count
     return _utils._complexes_build_workflow(
         mol,
         forcefield,
         algorithm=algorithm,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
@@ -355,6 +371,15 @@ def build_and_optimize(
     complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
 ) -> ForceFieldWorkflowReport:
+    """Dispatch 3D building and optimization by molecular system type.
+
+    ``candidate_count`` is a reserved API parameter and currently has no
+    effect.  Future complex multi-conformer support will generate genuinely
+    independent starts, optimize and gate each one, deduplicate or cluster
+    them by geometry, rank them by topology, geometry, and energy evidence,
+    and refine the selected conformer.
+    """
+    _ = candidate_count
     return _utils._build_and_optimize_workflow(
         mol,
         forcefield,
@@ -372,7 +397,6 @@ def build_and_optimize(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,

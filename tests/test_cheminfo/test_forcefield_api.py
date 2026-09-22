@@ -157,10 +157,27 @@ def test_complexes_build_exposes_only_canonical_parameters():
         ff_api.build_and_optimize,
     ),
 )
-def test_multiconformer_search_is_opt_in(entrypoint):
+def test_candidate_count_is_a_reserved_public_parameter(entrypoint):
     candidate_count = inspect.signature(entrypoint).parameters["candidate_count"]
+    doc = " ".join(entrypoint.__doc__.split())
 
     assert candidate_count.default is None
+    assert "reserved" in doc
+    assert "currently has no effect" in doc
+
+
+@pytest.mark.parametrize(
+    "internal_entrypoint",
+    (
+        ff._build_ligand_proxies,
+        ff._prepare_complex_working_mol,
+        ff._build_complex3d_workflow,
+        ff._complexes_build_workflow,
+        ff._build_and_optimize_workflow,
+    ),
+)
+def test_candidate_count_is_absent_from_internal_workflows(internal_entrypoint):
+    assert "candidate_count" not in inspect.signature(internal_entrypoint).parameters
 
 
 @pytest.mark.parametrize(
@@ -178,7 +195,11 @@ def test_complex_only_entrypoints_require_an_explicit_metal_ligand_bond(
         entrypoint(molecule)
 
 
-def test_build_and_optimize_dispatches_complex_once(monkeypatch):
+@pytest.mark.parametrize("candidate_count", (None, 0, 1, 3))
+def test_build_and_optimize_ignores_reserved_candidate_count(
+    monkeypatch,
+    candidate_count,
+):
     molecule = SimpleNamespace(has_metal=True)
     expected = object()
     calls = []
@@ -196,6 +217,7 @@ def test_build_and_optimize_dispatches_complex_once(monkeypatch):
         steps_per_epoch=13,
         timeout=4.0,
         seed=29,
+        candidate_count=candidate_count,
     )
 
     assert result is expected
@@ -207,7 +229,7 @@ def test_build_and_optimize_dispatches_complex_once(monkeypatch):
     assert options["steps_per_epoch"] == 13
     assert options["timeout"] == 4.0
     assert options["seed"] == 29
-    assert options["candidate_count"] is None
+    assert "candidate_count" not in options
 
 
 def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):

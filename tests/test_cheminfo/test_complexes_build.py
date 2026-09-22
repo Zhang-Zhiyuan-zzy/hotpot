@@ -54,13 +54,13 @@ def _failing_complex_worker(molecule, connection, *args):
     connection.close()
 
 
-def _candidate_shortfall_worker(molecule, connection, *args):
+def _ligand_fallback_warning_worker(molecule, connection, *args):
     diagnostics = ff.ComplexBuildDiagnostics(
         1,
-        1,
+        0,
         (),
         0.0,
-        ("candidate search stopped below its requested target",),
+        ("no ligand candidate passed; retaining the best usable attempt",),
     )
     connection.send(
         ff.BuildWorkerResult(
@@ -768,27 +768,29 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         ),
     )
 
-    with pytest.raises(ff.ComplexBuildError) as caught:
-        ff._build_ligand_proxies(
-            molecule,
-            candidate_count=1,
-            max_attempts=3,
-            candidate_warmup_steps=1,
-            candidate_score_steps=1,
-            best_candidate_refine_steps=1,
-            effective_forcefield="UFF",
-            ligand_untangling_attempts=1,
-        )
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        max_attempts=3,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+        ligand_untangling_attempts=1,
+    )
 
     assert calls == {"build": 3, "lazy": 9, "dense": 9, "closest": 3}
     assert ring_sizes == {"lazy": [16] * 9, "dense": [16] * 9}
-    assert caught.value.diagnostics.attempt_count == 3
-    assert caught.value.diagnostics.accepted_candidates == 0
-    assert len(caught.value.diagnostics.rejected_candidates) == 3
+    assert diagnostics.attempt_count == 3
+    assert diagnostics.accepted_candidates == 0
+    assert len(diagnostics.rejected_candidates) == 3
     assert all(
         rejection.quality_failures == (intersection_failure,)
-        for rejection in caught.value.diagnostics.rejected_candidates
+        for rejection in diagnostics.rejected_candidates
     )
+    assert "no candidate passed the basic geometry gate" in (
+        diagnostics.warning_messages[0]
+    )
+    assert len(diagnostics.ligand_untangling) == 1
 
 
 @pytest.mark.parametrize(
@@ -842,7 +844,6 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
 
     coordinates, diagnostics = ff._build_ligand_proxies(
         molecule,
-        candidate_count=1,
         max_attempts=1,
         candidate_warmup_steps=1,
         candidate_score_steps=1,
@@ -902,7 +903,6 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
-        candidate_count=None,
         max_attempts=10,
         candidate_warmup_steps=1,
         candidate_score_steps=1,
@@ -915,7 +915,7 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
     assert diagnostics.warning_messages == ()
 
 
-def test_partial_multiconformer_search_refines_available_candidates(monkeypatch):
+def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     build_calls = 0
@@ -950,7 +950,6 @@ def test_partial_multiconformer_search_refines_available_candidates(monkeypatch)
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
-        candidate_count=3,
         max_attempts=2,
         candidate_warmup_steps=1,
         candidate_score_steps=2,
@@ -958,28 +957,24 @@ def test_partial_multiconformer_search_refines_available_candidates(monkeypatch)
         effective_forcefield="UFF",
     )
 
-    assert build_calls == 2
-    assert optimization_steps == [1, 2, 1, 2, 3]
-    assert diagnostics.accepted_candidates == 2
-    assert diagnostics.warning_messages == (
-        "Component 0 accepted 2/3 requested candidates after 2 attempts; "
-        "continuing refinement with the available candidates",
-    )
+    assert build_calls == 1
+    assert optimization_steps == [1, 2, 3]
+    assert diagnostics.accepted_candidates == 1
+    assert diagnostics.warning_messages == ()
 
 
-def test_candidate_search_warning_is_emitted_by_the_parent_process(monkeypatch):
+def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
     molecule = read_mol("[Zn](N)", "smi")
     fork_context = mp.get_context("fork")
     monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
 
     with pytest.warns(
         ff.ComplexBuildWarning,
-        match="candidate search stopped below its requested target",
+        match="no ligand candidate passed",
     ):
         _, diagnostics = ff._prepare_complex_working_mol(
             molecule,
             effective_forcefield="UFF",
-            candidate_count=3,
             max_attempts=2,
             candidate_warmup_steps=1,
             candidate_score_steps=1,
@@ -988,11 +983,11 @@ def test_candidate_search_warning_is_emitted_by_the_parent_process(monkeypatch):
             add_hydrogens=False,
             seed=None,
             coordination_geometry=None,
-            worker_target=_candidate_shortfall_worker,
+            worker_target=_ligand_fallback_warning_worker,
         )
 
     assert diagnostics.warning_messages == (
-        "candidate search stopped below its requested target",
+        "no ligand candidate passed; retaining the best usable attempt",
     )
 
 
@@ -1016,7 +1011,6 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
     with pytest.raises(ff.ComplexBuildError) as caught:
         ff._build_ligand_proxies(
             molecule,
-            candidate_count=1,
             max_attempts=3,
             candidate_warmup_steps=1,
             candidate_score_steps=1,
@@ -1052,7 +1046,6 @@ def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatc
     with pytest.raises(ff.ComplexBuildError):
         ff._build_ligand_proxies(
             molecule,
-            candidate_count=1,
             max_attempts=2,
             candidate_warmup_steps=1,
             candidate_score_steps=1,
@@ -1100,18 +1093,20 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         ),
     )
 
-    with pytest.raises(ff.ComplexBuildError) as caught:
-        ff._build_ligand_proxies(
-            molecule,
-            candidate_count=1,
-            max_attempts=1,
-            candidate_warmup_steps=1,
-            candidate_score_steps=1,
-            best_candidate_refine_steps=1,
-            effective_forcefield="UFF",
-        )
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
 
-    rejection = caught.value.diagnostics.rejected_candidates[-1]
+    rejection = diagnostics.rejected_candidates[-1]
+    assert diagnostics.accepted_candidates == 0
+    assert "no candidate passed the basic geometry gate" in (
+        diagnostics.warning_messages[0]
+    )
     assert rejection.quality_failures == (failure,)
     assert "bond_length" in rejection.reason
     assert "measured=31.0" in rejection.reason
@@ -1166,7 +1161,6 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
-        candidate_count=1,
         max_attempts=1,
         candidate_warmup_steps=1,
         candidate_score_steps=1,
@@ -1182,7 +1176,8 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
     assert "threshold=0.4" in rejection.reason
     assert "atom_indices=(0, 1)" in rejection.reason
     assert diagnostics.warning_messages[-1].endswith(
-        "every long refinement failed; retaining the best medium-optimized candidate"
+        "long refinement failed the basic geometry gate; retaining the "
+        "medium-optimized candidate"
     )
 
 
@@ -1261,7 +1256,6 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
-        candidate_count=1,
         max_attempts=1,
         candidate_warmup_steps=1,
         candidate_score_steps=1,
@@ -1275,11 +1269,10 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
     assert "atom_too_close" in rejection.reason
 
 
-def test_refinement_tries_the_next_scored_candidate(monkeypatch):
+def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    state = {"build": 0, "refining": False}
-    refined_markers = []
+    state = {"build": 0}
     failure = ff.AcceptanceCheck(
         name="minimum_distance",
         passed=False,
@@ -1294,19 +1287,32 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
 
     def optimize(current, forcefield, steps):
         marker = float(current.coordinates[0, 0])
-        if steps == 3:
-            state["refining"] = True
-            refined_markers.append(marker)
-        return ff._CandidateOptimizationResult(marker, "kJ/mol", False)
+        energies = {1.0: 0.0, 2.0: 10.0, 3.0: 5.0}
+        return ff._CandidateOptimizationResult(
+            energies[marker],
+            "kJ/mol",
+            False,
+        )
 
     def quality(current, **options):
-        if not state["refining"]:
-            return SimpleNamespace(passed=True, failures=())
-        state["refining"] = False
-        passed = float(current.coordinates[0, 0]) == 2.0
-        return SimpleNamespace(
-            passed=passed,
-            failures=() if passed else (failure,),
+        return SimpleNamespace(passed=False, failures=(failure,))
+
+    piercing_counts = iter((2, 1, 1))
+
+    def untangle(current, *args, **kwargs):
+        count = next(piercing_counts)
+        return ff._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=1,
+                attempts_completed=0,
+                initial_piercing_count=count,
+                final_piercing_count=count,
+                minimum_piercing_count=count,
+                resolved=False,
+            ),
+            energy={1: 0.0, 2: 10.0, 3: 5.0}[state["build"]],
+            frames=(),
+            frame_energies=(),
         )
 
     monkeypatch.setattr(ff, "_ob_build", build)
@@ -1317,33 +1323,25 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        ff.geo,
-        "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+        ff,
+        "_untangle_ring_piercings",
+        untangle,
     )
     monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
-        candidate_count=2,
-        max_attempts=2,
+        max_attempts=3,
         candidate_warmup_steps=1,
         candidate_score_steps=2,
         best_candidate_refine_steps=3,
         effective_forcefield="UFF",
     )
 
-    assert refined_markers == [1.0, 2.0]
-    assert diagnostics.rejected_candidates[-1] == ff.CandidateRejection(
-        component_index=0,
-        attempt=1,
-        reason=(
-            "refined candidate geometry gate: "
-            "minimum_distance(measured=0.1, threshold=0.4, "
-            "atom_indices=(0, 1), bond_indices=())"
-        ),
-        quality_failures=(failure,),
-    )
+    np.testing.assert_array_equal(component.coordinates, np.full((2, 3), 3.0))
+    assert diagnostics.accepted_candidates == 0
+    assert len(diagnostics.rejected_candidates) == 3
+    assert diagnostics.ligand_untangling[0].final_piercing_count == 1
 
 
 def test_first_openable_ring_edge_uses_dense_report_order(monkeypatch):
@@ -1386,7 +1384,6 @@ def test_worker_boundary_serializes_an_exception(monkeypatch):
     ff._build_ligand_proxies_worker(
         object(),
         connection,
-        1,
         1,
         1,
         1,
@@ -1463,7 +1460,6 @@ def test_coordination_geometry_hook_rejects_noncomplex_inputs():
 @pytest.mark.parametrize(
     "options",
     (
-        {"candidate_count": 0},
         {"max_attempts": 0},
         {"candidate_warmup_steps": 0},
         {"candidate_score_steps": 0},

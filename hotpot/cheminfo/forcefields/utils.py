@@ -94,7 +94,12 @@ __all__ = (
 
 
 OptimizationAlgorithm = Literal["steepest", "conjugate"]
-TerminationReason = Literal["converged", "budget_exhausted", "ring_piercing"]
+TerminationReason = Literal[
+    "converged",
+    "budget_exhausted",
+    "ring_piercing",
+    "quality_gate_failed",
+]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
 CallableT = TypeVar("CallableT", bound=Callable[..., object])
@@ -126,7 +131,6 @@ class _ComplexBuildWorker(Protocol):
         self,
         mol: "Molecule",
         connection: Connection,
-        candidate_count: Optional[int],
         max_attempts: int,
         candidate_warmup_steps: int,
         candidate_score_steps: int,
@@ -513,7 +517,7 @@ class GeometryQualityError(ForceFieldError):
 
 
 class GeometryQualityWarning(UserWarning):
-    """Warn that the retained optimization frame failed a soft acceptance check."""
+    """Warn that a returned finite-topology frame failed its quality gate."""
 
 
 # Internal workflow data contracts.
@@ -624,21 +628,18 @@ class _MoleculeCommitSnapshot:
 # Diagnostic formatting helpers.
 
 
-_HARD_ACCEPTANCE_FAILURES = frozenset({
+_UNRETURNABLE_FRAME_FAILURES = frozenset({
     "coordinate_shape",
     "finite_coordinates",
-    "forcefield_report",
-    "forcefield_setup",
-    "backend_explosion",
 })
 
 
-def _has_hard_acceptance_failure(
+def _has_unreturnable_frame_failure(
     report: ForceFieldValidationReport,
 ) -> bool:
+    """Return whether a frame cannot safely cross a workflow boundary."""
     return any(
-        check.name in _HARD_ACCEPTANCE_FAILURES
-        or check.name.startswith("finite_")
+        check.name in _UNRETURNABLE_FRAME_FAILURES
         or check.name == "topology"
         or check.name.startswith("topology_")
         for check in report.failures
@@ -2422,23 +2423,27 @@ class _OpenBabelOptimizer:
         if last_frame is None:
             raise GeometryQualityError(None)
         if stopped_on_ring_piercing:
-            if _has_hard_acceptance_failure(last_frame.quality_report):
+            if _has_unreturnable_frame_failure(last_frame.quality_report):
                 raise GeometryQualityError(last_frame.quality_report)
             best_frame = last_frame
             best_epoch = last_epoch
             best_frame_index = len(movie_coordinates) - 1
         elif best_frame is None:
-            if _has_hard_acceptance_failure(last_frame.quality_report):
+            if _has_unreturnable_frame_failure(last_frame.quality_report):
                 raise GeometryQualityError(last_frame.quality_report)
             warnings.warn(
-                "No optimization frame passed structure acceptance; "
-                "retaining the last finite frame",
+                _format_geometry_checks(
+                    "No optimization frame passed structure acceptance; "
+                    "retaining the last finite-topology frame",
+                    tuple(last_frame.quality_report.failures),
+                ),
                 GeometryQualityWarning,
                 stacklevel=2,
             )
             best_frame = last_frame
             best_epoch = last_epoch
             best_frame_index = len(movie_coordinates) - 1
+            termination_reason = "quality_gate_failed"
 
         mol.coordinates = best_frame.coordinates
         mol.conformer_clear()
@@ -2480,10 +2485,22 @@ class _OpenBabelOptimizer:
 # Ligand-proxy construction and geometric untangling.
 
 
+def _ligand_candidate_sort_key(
+    candidate: _LigandCandidate,
+) -> Tuple[int, bool, float, int]:
+    """Rank usable fallback starts by piercing count and finite energy."""
+    finite_energy = bool(np.isfinite(candidate.energy))
+    return (
+        candidate.untangling.final_piercing_count,
+        not finite_energy,
+        candidate.energy if finite_energy else float("inf"),
+        candidate.attempt,
+    )
+
+
 def _build_ligand_proxies(
     mol: "Molecule",
     *,
-    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -2503,7 +2520,6 @@ def _build_ligand_proxies(
     rejections: list[CandidateRejection] = []
     warning_messages: list[str] = []
     selected_untangling_reports: list[RingUntanglingReport] = []
-    target_candidate_count = 1 if candidate_count is None else candidate_count
 
     for component_index, component_mol in enumerate(clone_mol.components):
         if component_mol.has_metal:
@@ -2513,12 +2529,10 @@ def _build_ligand_proxies(
             component_mol,
             allow_added_hydrogens=False,
         )
-        candidates: list[_LigandCandidate] = []
+        accepted_candidate: Optional[_LigandCandidate] = None
+        fallback_candidates: list[_LigandCandidate] = []
         component_attempts = 0
-        while (
-            len(candidates) < target_candidate_count
-            and component_attempts < max_attempts
-        ):
+        while accepted_candidate is None and component_attempts < max_attempts:
             component_attempts += 1
             total_attempts += 1
             try:
@@ -2557,6 +2571,17 @@ def _build_ligand_proxies(
                 },
                 forcefield_stage="candidate",
             )
+            candidate = _LigandCandidate(
+                coordinates=np.asarray(
+                    component_mol.coordinates,
+                    dtype=float,
+                ).copy(),
+                energy=float(untangling.energy),
+                attempt=component_attempts,
+                untangling=untangling.report,
+            )
+            if not _has_unreturnable_frame_failure(candidate_quality):
+                fallback_candidates.append(candidate)
             if not candidate_quality.passed:
                 rejections.append(
                     CandidateRejection(
@@ -2571,19 +2596,10 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            candidates.append(_LigandCandidate(
-                coordinates=np.asarray(component_mol.coordinates, dtype=float).copy(),
-                energy=float(untangling.energy),
-                attempt=component_attempts,
-                untangling=untangling.report,
-            ))
-            warning_messages.extend(
-                f"Component {component_index}: {message}"
-                for message in untangling.report.warning_messages
-            )
+            accepted_candidate = candidate
             total_accepted += 1
 
-        if not candidates:
+        if accepted_candidate is None and not fallback_candidates:
             diagnostics = ComplexBuildDiagnostics(
                 attempt_count=total_attempts,
                 accepted_candidates=total_accepted,
@@ -2593,24 +2609,26 @@ def _build_ligand_proxies(
                 ligand_untangling=tuple(selected_untangling_reports),
             )
             raise ComplexBuildError(
-                f"Component {component_index} accepted no candidates after "
-                f"{component_attempts} attempts",
+                f"Component {component_index} produced no usable candidate "
+                f"after {component_attempts} attempts",
                 diagnostics,
             )
-        if len(candidates) < target_candidate_count:
-            warning_messages.append(
-                f"Component {component_index} accepted "
-                f"{len(candidates)}/{target_candidate_count} requested "
-                f"candidates after {component_attempts} attempts; continuing "
-                "refinement with the available candidates"
-            )
 
-        selected_candidate: Optional[_LigandCandidate] = None
-        for candidate in sorted(
-            candidates,
-            key=lambda item: (item.untangling.final_piercing_count, item.energy),
-        ):
-            component_mol.coordinates = candidate.coordinates
+        if accepted_candidate is None:
+            selected_candidate = min(
+                fallback_candidates,
+                key=_ligand_candidate_sort_key,
+            )
+            component_mol.coordinates = selected_candidate.coordinates
+            warning_messages.append(
+                f"Component {component_index}: no candidate passed the basic "
+                f"geometry gate after {component_attempts} attempts; retaining "
+                "the usable attempted geometry with the lowest confirmed "
+                "bond-ring piercing count and energy as the next-stage start"
+            )
+        else:
+            selected_candidate = accepted_candidate
+            component_mol.coordinates = selected_candidate.coordinates
             try:
                 refined = _single_ob_optimization(
                     component_mol,
@@ -2621,97 +2639,100 @@ def _build_ligand_proxies(
                 rejections.append(
                     CandidateRejection(
                         component_index,
-                        candidate.attempt,
+                        selected_candidate.attempt,
                         f"refined candidate: {exc}",
                     )
                 )
-                continue
-
-            refined_state, refined_report = _scan_confirmed_ring_piercings(
-                component_mol,
-                ring_scope="ligand_skeleton",
-            )
-            refined_piercing_count = (
-                0 if refined_report is None else len(refined_report.piercings)
-            )
-            refined_quality = evaluate_structure_acceptance(
-                component_mol,
-                level="basic",
-                topology_reference=component_reference,
-                forcefield_report={
-                    "setup_succeeded": True,
-                    "final_energy": refined.energy,
-                    "energy_unit": refined.energy_unit,
-                    "exploded": refined.exploded,
-                },
-                forcefield_stage="candidate",
-            )
-            if not refined_quality.passed:
-                intersection_failures = (
-                    _bond_ring_acceptance_checks(
-                        component_mol,
-                        refined_report,
-                    )
-                    if refined_report is not None
-                    else ()
-                )
-                failures = (
-                    tuple(intersection_failures)
-                    + tuple(refined_quality.failures)
-                )
-                reason = _format_geometry_checks(
-                    "refined candidate geometry gate",
-                    failures,
-                )
-                rejections.append(CandidateRejection(
-                    component_index,
-                    candidate.attempt,
-                    reason,
-                    failures,
-                ))
-                continue
-
-            if refined_piercing_count <= candidate.untangling.final_piercing_count:
-                selected_candidate = _LigandCandidate(
-                    coordinates=np.asarray(
-                        component_mol.coordinates,
-                        dtype=float,
-                    ).copy(),
-                    energy=float(refined.energy),
-                    attempt=candidate.attempt,
-                    untangling=replace(
-                        candidate.untangling,
-                        final_piercing_count=refined_piercing_count,
-                        minimum_piercing_count=min(
-                            candidate.untangling.minimum_piercing_count,
-                            refined_piercing_count,
-                        ),
-                        resolved=(
-                            refined_state is not geo.PiercingState.PIERCES
-                        ),
-                    ),
+                component_mol.coordinates = selected_candidate.coordinates
+                warning_messages.append(
+                    f"Component {component_index}: long refinement failed; "
+                    "retaining the medium-optimized candidate"
                 )
             else:
-                component_mol.coordinates = candidate.coordinates
-                selected_candidate = candidate
-                warning_messages.append(
-                    f"Component {component_index}: long refinement increased "
-                    "the confirmed piercing count; retaining the pre-refinement "
-                    "closed-topology frame"
+                refined_state, refined_report = _scan_confirmed_ring_piercings(
+                    component_mol,
+                    ring_scope="ligand_skeleton",
                 )
-            break
+                refined_piercing_count = (
+                    0 if refined_report is None else len(refined_report.piercings)
+                )
+                refined_quality = evaluate_structure_acceptance(
+                    component_mol,
+                    level="basic",
+                    topology_reference=component_reference,
+                    forcefield_report={
+                        "setup_succeeded": True,
+                        "final_energy": refined.energy,
+                        "energy_unit": refined.energy_unit,
+                        "exploded": refined.exploded,
+                    },
+                    forcefield_stage="candidate",
+                )
+                if not refined_quality.passed:
+                    intersection_failures = (
+                        _bond_ring_acceptance_checks(
+                            component_mol,
+                            refined_report,
+                        )
+                        if refined_report is not None
+                        else ()
+                    )
+                    failures = (
+                        tuple(intersection_failures)
+                        + tuple(refined_quality.failures)
+                    )
+                    rejections.append(CandidateRejection(
+                        component_index,
+                        selected_candidate.attempt,
+                        _format_geometry_checks(
+                            "refined candidate geometry gate",
+                            failures,
+                        ),
+                        failures,
+                    ))
+                    component_mol.coordinates = selected_candidate.coordinates
+                    warning_messages.append(
+                        f"Component {component_index}: long refinement failed "
+                        "the basic geometry gate; retaining the "
+                        "medium-optimized candidate"
+                    )
+                elif (
+                    refined_piercing_count
+                    <= selected_candidate.untangling.final_piercing_count
+                ):
+                    selected_candidate = _LigandCandidate(
+                        coordinates=np.asarray(
+                            component_mol.coordinates,
+                            dtype=float,
+                        ).copy(),
+                        energy=float(refined.energy),
+                        attempt=selected_candidate.attempt,
+                        untangling=replace(
+                            selected_candidate.untangling,
+                            final_piercing_count=refined_piercing_count,
+                            minimum_piercing_count=min(
+                                selected_candidate.untangling.minimum_piercing_count,
+                                refined_piercing_count,
+                            ),
+                            resolved=(
+                                refined_state is not geo.PiercingState.PIERCES
+                            ),
+                        ),
+                    )
+                else:
+                    component_mol.coordinates = selected_candidate.coordinates
+                    warning_messages.append(
+                        f"Component {component_index}: long refinement increased "
+                        "the confirmed piercing count; retaining the "
+                        "pre-refinement closed-topology frame"
+                    )
 
-        if selected_candidate is None:
-            selected_candidate = min(
-                candidates,
-                key=lambda item: (item.untangling.final_piercing_count, item.energy),
-            )
-            component_mol.coordinates = selected_candidate.coordinates
-            warning_messages.append(
-                f"Component {component_index}: every long refinement failed; "
-                "retaining the best medium-optimized candidate"
-            )
+        warning_messages.extend(
+            f"Component {component_index}: {message}"
+            for message in selected_candidate.untangling.warning_messages
+        )
         selected_untangling_reports.append(selected_candidate.untangling)
+        component_mol.coordinates = selected_candidate.coordinates
         clone_mol.update_atoms_attrs_from_id_dict(
             {
                 atom.id: {"coordinates": atom.coordinates}
@@ -2736,7 +2757,6 @@ def _build_ligand_proxies(
 def _build_ligand_proxies_worker(
     mol: "Molecule",
     connection: Connection,
-    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -2750,7 +2770,6 @@ def _build_ligand_proxies_worker(
     _run_ligand_proxy_worker(
         mol,
         connection,
-        candidate_count,
         max_attempts,
         candidate_warmup_steps,
         candidate_score_steps,
@@ -2766,7 +2785,6 @@ def _build_ligand_proxies_worker(
 def _run_ligand_proxy_worker(
     mol: "Molecule",
     connection: Connection,
-    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -2784,7 +2802,6 @@ def _run_ligand_proxy_worker(
             seed_initializer(seed)
         coordinates, diagnostics = _build_ligand_proxies(
             mol,
-            candidate_count=candidate_count,
             max_attempts=max_attempts,
             candidate_warmup_steps=candidate_warmup_steps,
             candidate_score_steps=candidate_score_steps,
@@ -3033,7 +3050,6 @@ def _prepare_complex_working_mol(
     mol: "Molecule",
     *,
     effective_forcefield: str,
-    candidate_count: Optional[int],
     max_attempts: int,
     candidate_warmup_steps: int,
     candidate_score_steps: int,
@@ -3049,8 +3065,6 @@ def _prepare_complex_working_mol(
     coordination_geometry: Optional[str],
     worker_target: _ComplexBuildWorker,
 ) -> Tuple["Molecule", ComplexBuildDiagnostics]:
-    if candidate_count is not None and candidate_count < 1:
-        raise ValueError("candidate_count must be at least 1")
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
     if ligand_untangling_attempts < 1:
@@ -3082,7 +3096,6 @@ def _prepare_complex_working_mol(
         args=(
             worker_mol,
             send_connection,
-            candidate_count,
             max_attempts,
             candidate_warmup_steps,
             candidate_score_steps,
@@ -3428,7 +3441,6 @@ def _complexes_build_workflow(
     algorithm: OptimizationAlgorithm = "conjugate",
     epochs: int = 100,
     steps_per_epoch: int = 100,
-    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -3461,7 +3473,6 @@ def _complexes_build_workflow(
     working_mol, diagnostics = _prepare_complex_working_mol(
         mol,
         effective_forcefield=effective_forcefield,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
@@ -4016,7 +4027,6 @@ def _build_complex3d_workflow(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
-    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -4042,7 +4052,6 @@ def _build_complex3d_workflow(
     working_mol, diagnostics = _prepare_complex_working_mol(
         mol,
         effective_forcefield=effective_forcefield,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
@@ -4095,11 +4104,19 @@ def build_complex3d(
     save_movie: bool = False,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
-    """Build ligand proxies and restore the complete complex topology."""
+    """Build ligand proxies and restore the complete complex topology.
+
+    ``candidate_count`` is reserved and currently has no effect.  The current
+    workflow builds one ligand starting geometry.  A future multi-conformer
+    implementation will generate independent starting conformers, optimize
+    and gate them uniformly, deduplicate or cluster them by geometry, rank
+    them using topology, geometry, and energy evidence, and refine the
+    selected conformer.
+    """
+    _ = candidate_count
     return _build_complex3d_workflow(
         mol,
         forcefield,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
@@ -4189,7 +4206,6 @@ def _build_and_optimize_workflow(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -4210,7 +4226,6 @@ def _build_and_optimize_workflow(
             algorithm=algorithm,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
-            candidate_count=candidate_count,
             max_attempts=max_attempts,
             candidate_warmup_steps=candidate_warmup_steps,
             candidate_score_steps=candidate_score_steps,
@@ -4298,14 +4313,22 @@ def complexes_build(
     vdw_cutoff_end: float = 12.5,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
-    """Build, optimize, validate, and atomically commit a complete complex."""
+    """Build, optimize, validate, and atomically commit a complete complex.
+
+    ``candidate_count`` is reserved and currently has no effect.  The current
+    workflow builds one ligand starting geometry.  A future multi-conformer
+    implementation will generate independent starting conformers, optimize
+    and gate them uniformly, deduplicate or cluster them by geometry, rank
+    them using topology, geometry, and energy evidence, and refine the
+    selected conformer.
+    """
+    _ = candidate_count
     return _complexes_build_workflow(
         mol,
         forcefield,
         algorithm=algorithm,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
@@ -4359,7 +4382,16 @@ def build_and_optimize(
     complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
 ) -> ForceFieldWorkflowReport:
-    """Build and optimize through the organic or complex workflow."""
+    """Build and optimize through the organic or complex workflow.
+
+    ``candidate_count`` is reserved and currently has no effect.  The current
+    complex workflow builds one ligand starting geometry.  A future
+    multi-conformer implementation will generate independent starting
+    conformers, optimize and gate them uniformly, deduplicate or cluster them
+    by geometry, rank them using topology, geometry, and energy evidence, and
+    refine the selected conformer.
+    """
+    _ = candidate_count
     return _build_and_optimize_workflow(
         mol,
         forcefield,
@@ -4377,7 +4409,6 @@ def build_and_optimize(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
-        candidate_count=candidate_count,
         max_attempts=max_attempts,
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,

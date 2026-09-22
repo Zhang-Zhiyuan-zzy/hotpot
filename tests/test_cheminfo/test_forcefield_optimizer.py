@@ -370,7 +370,7 @@ def test_optimizer_stops_at_first_ring_piercing_and_retains_that_frame(
     np.testing.assert_array_equal(molecule.coordinates, frames[1])
 
 
-def test_ring_piercing_stop_does_not_hide_a_hard_failure(monkeypatch):
+def test_ring_piercing_stop_retains_finite_failed_frame_for_repair(monkeypatch):
     frames = [np.zeros((2, 3))]
     backend = _BudgetBackend([1.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
@@ -390,15 +390,18 @@ def test_ring_piercing_stop_does_not_hide_a_hard_failure(monkeypatch):
         lambda *args, **kwargs: rejected,
     )
 
-    with pytest.raises(ff.GeometryQualityError) as caught:
-        optimizer.optimize(
-            _OptimizerMolecule(),
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+    molecule = _OptimizerMolecule()
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
 
-    assert caught.value.report is rejected
+    assert report.quality_report is rejected
+    assert report.termination_reason == "ring_piercing"
+    assert report.terminal_converged is False
+    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
 
 
 @pytest.mark.parametrize(
@@ -611,8 +614,10 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
         )
 
     assert report.quality_report is rejected
+    assert report.quality_report.passed is False
     assert report.best_epoch == 2
     assert report.best_energy == pytest.approx(1.0)
+    assert report.termination_reason == "quality_gate_failed"
     np.testing.assert_array_equal(molecule.coordinates, frames[-1])
     assert len(molecule.frames) == (3 if save_movie else 1)
     assert molecule._conformers_index == (2 if save_movie else 0)
@@ -666,9 +671,9 @@ def test_optimizer_selects_best_frame_despite_bond_ring_warning(
 
 @pytest.mark.parametrize(
     "failure_name",
-    ("finite_coordinates", "topology_atom_identity", "backend_explosion"),
+    ("coordinate_shape", "finite_coordinates", "topology_atom_identity"),
 )
-def test_optimizer_raises_for_hard_acceptance_failures(
+def test_optimizer_raises_for_unreturnable_frame_failures(
     monkeypatch,
     failure_name,
 ):
@@ -699,6 +704,54 @@ def test_optimizer_raises_for_hard_acceptance_failures(
         )
 
     assert caught.value.report is rejected
+
+
+@pytest.mark.parametrize(
+    "failure_name",
+    (
+        "finite_final_energy",
+        "finite_rms_gradient",
+        "finite_max_gradient",
+        "backend_explosion",
+        "atom_too_close",
+        "bond_length_ratio",
+    ),
+)
+def test_optimizer_retains_finite_frame_with_diagnostic_failure(
+    monkeypatch,
+    failure_name,
+):
+    frames = [np.ones((2, 3))]
+    optimizer = _optimizer(
+        monkeypatch,
+        _Backend([1.0], unit="kJ/mol"),
+        frames,
+    )
+    optimizer.increasing_vdw = False
+    rejected = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=False,
+        checks=(ff.AcceptanceCheck(name=failure_name, passed=False),),
+    )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **options: rejected,
+    )
+    molecule = _OptimizerMolecule()
+
+    with pytest.warns(ff.GeometryQualityWarning, match=failure_name):
+        report = optimizer.optimize(
+            molecule,
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+
+    assert report.quality_report is rejected
+    assert report.termination_reason == "quality_gate_failed"
+    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
+    assert len(molecule.frames) == 1
 
 
 def test_local_perturbation_is_reproducible_without_changing_global_rng():

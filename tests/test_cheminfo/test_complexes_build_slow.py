@@ -29,7 +29,6 @@ def test_readme_europium_complex_full_standard_workflow(record_testsuite_propert
     started = time.monotonic()
     report = pair.build3d(
         seed=20260916,
-        candidate_count=3,
         max_attempts=20,
         candidate_warmup_steps=500,
         candidate_score_steps=1000,

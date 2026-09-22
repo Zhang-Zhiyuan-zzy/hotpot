@@ -729,6 +729,26 @@ class Molecule:
         self._hided_metal_bonds = []
         self._hided_covalent_bonds = []
 
+    def restore_bonds(
+            self,
+            *bonds: "Bond",
+            clear_conformers: bool = False,
+    ) -> None:
+        """Restore selected hidden bonds and refresh molecular topology once."""
+        if not bonds:
+            return
+
+        for bond in bonds:
+            if bond in self._hided_metal_bonds:
+                self._hided_metal_bonds.remove(bond)
+            elif bond in self._hided_covalent_bonds:
+                self._hided_covalent_bonds.remove(bond)
+            else:
+                raise ObjNotInMolecule(bond, self)
+
+        self._bonds.extend(bonds)
+        self._update_graph(clear_conformers)
+
     def recover_hided_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """
         Restores metal-ligand bonds that were previously broken and updates the internal graph representation.
@@ -746,18 +766,16 @@ class Molecule:
         Returns:
             None
         """
-        if self._hided_metal_bonds:
-            self._bonds = list(dict.fromkeys(self._bonds + self._hided_metal_bonds))
-            self._update_graph(clear_conformers)
-            logging.info(f"[green]Recover {len(self._hided_metal_bonds)} hided metal-ligand bonds[/]")
-            self._hided_metal_bonds = []
+        hidden_bonds = tuple(self._hided_metal_bonds)
+        if hidden_bonds:
+            self.restore_bonds(*hidden_bonds, clear_conformers=clear_conformers)
+            logging.info(f"[green]Recover {len(hidden_bonds)} hided metal-ligand bonds[/]")
 
     def recover_hided_covalent_bonds(self, clear_conformers: bool = False) -> None:
-        if self._hided_covalent_bonds:
-            self._bonds = list(dict.fromkeys(self._bonds + self._hided_covalent_bonds))
-            self._update_graph(clear_conformers)
-            logging.info(f"[green]Recover {len(self._hided_covalent_bonds)} hided covalent bonds[/]")
-            self._hided_covalent_bonds = []
+        hidden_bonds = tuple(self._hided_covalent_bonds)
+        if hidden_bonds:
+            self.restore_bonds(*hidden_bonds, clear_conformers=clear_conformers)
+            logging.info(f"[green]Recover {len(hidden_bonds)} hided covalent bonds[/]")
 
     @property
     def atom_pairs(self) -> "AtomPairs":

@@ -945,6 +945,7 @@ class Molecule:
             best_candidate_refine_steps: int = 3000,
             ligand_untangling_attempts: int = 20,
             coordination_restoration_attempts: int = 20,
+            coordination_relaxation_steps: int = 100,
             complex_untangling_attempts: int = 30,
             coordination_geometry: Optional[str] = None,
     ):
@@ -973,6 +974,7 @@ class Molecule:
             best_candidate_refine_steps=best_candidate_refine_steps,
             ligand_untangling_attempts=ligand_untangling_attempts,
             coordination_restoration_attempts=coordination_restoration_attempts,
+            coordination_relaxation_steps=coordination_relaxation_steps,
             complex_untangling_attempts=complex_untangling_attempts,
             coordination_geometry=coordination_geometry,
         )

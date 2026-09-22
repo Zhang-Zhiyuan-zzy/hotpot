@@ -10,7 +10,7 @@ import traceback as traceback_module
 import warnings
 from collections import deque
 from copy import copy, deepcopy
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from functools import wraps
 from itertools import combinations
 from multiprocessing.connection import Connection, wait as wait_for_connections
@@ -49,6 +49,8 @@ __all__ = (
     "ForceFieldRunReport",
     "Build3DReport",
     "CandidateRejection",
+    "RingUntanglingReport",
+    "CoordinationBondRestorationReport",
     "ComplexBuildDiagnostics",
     "BuildWorkerResult",
     "ForceFieldWorkflowReport",
@@ -92,7 +94,7 @@ __all__ = (
 
 
 OptimizationAlgorithm = Literal["steepest", "conjugate"]
-TerminationReason = Literal["converged", "budget_exhausted"]
+TerminationReason = Literal["converged", "budget_exhausted", "ring_piercing"]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
 CallableT = TypeVar("CallableT", bound=Callable[..., object])
@@ -131,6 +133,8 @@ class _ComplexBuildWorker(Protocol):
         best_candidate_refine_steps: int,
         effective_forcefield: str,
         seed: Optional[int],
+        ligand_untangling_attempts: int,
+        perturb_sigma: float,
     ) -> None:
         ...
 
@@ -299,6 +303,7 @@ class ForceFieldRunReport:
     epoch_quality_reports: Tuple[ForceFieldValidationReport, ...] = ()
     termination_reason: TerminationReason = "budget_exhausted"
     terminal_converged: bool = False
+    untangling: Optional["RingUntanglingReport"] = None
 
 
 @dataclass(frozen=True)
@@ -317,12 +322,47 @@ class CandidateRejection:
 
 
 @dataclass(frozen=True)
+class RingUntanglingReport:
+    """Outcome of one bounded covalent-ring untangling stage."""
+
+    attempt_limit: int
+    attempts_completed: int
+    initial_piercing_count: int
+    final_piercing_count: int
+    minimum_piercing_count: int
+    resolved: bool
+    warning_messages: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class CoordinationBondRestorationReport:
+    """Outcome of incremental restoration of original coordination bonds.
+
+    ``attempts_completed`` counts stalled relax-and-retry rounds.  Successful
+    one-bond restoration rounds do not consume that failure budget.
+    """
+
+    attempt_limit: int
+    attempts_completed: int
+    bond_count: int
+    restored_without_forcing: int
+    forced_bond_keys: Tuple[Tuple[int, int], ...]
+    final_piercing_count: int
+    final_undetermined_count: int
+    excluded_ring_count: int
+    resolved: bool
+    warning_messages: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class ComplexBuildDiagnostics:
     attempt_count: int
     accepted_candidates: int
     rejected_candidates: Tuple[CandidateRejection, ...]
     elapsed_seconds: float
     warning_messages: Tuple[str, ...] = ()
+    ligand_untangling: Tuple[RingUntanglingReport, ...] = ()
+    coordination_restoration: Optional[CoordinationBondRestorationReport] = None
 
 
 @dataclass(frozen=True)
@@ -497,6 +537,36 @@ class _ObservedFrame:
     quality_report: ForceFieldValidationReport
     energy_changes: Tuple[float, ...]
     max_displacements: Tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class _RingUntanglingResult:
+    report: RingUntanglingReport
+    energy: float
+    frames: Tuple[np.ndarray, ...]
+    frame_energies: Tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class _LigandCandidate:
+    coordinates: np.ndarray
+    energy: float
+    attempt: int
+    untangling: RingUntanglingReport
+
+
+@dataclass(frozen=True)
+class _CoordinationRestorationResult:
+    report: CoordinationBondRestorationReport
+    frames: Tuple[np.ndarray, ...]
+    frame_energies: Tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class _CoordinationRelationCounts:
+    piercing: int
+    undetermined: int
+    excluded_rings: int
 
 
 class _BondAttributePayload(TypedDict):
@@ -1123,6 +1193,509 @@ def _select_ring_opening_edge(
     return min(eligible_edges, key=edge_distance)
 
 
+def _scan_confirmed_ring_piercings(
+    mol: "Molecule",
+    *,
+    ring_scope: geo.RingScope,
+) -> Tuple[
+    geo.PiercingState,
+    Optional["geo.BondRingScanReport[Ring, Bond]"],
+]:
+    """Return a dense report only when a confirmed piercing needs repair."""
+    state = geo.determine_bond_ring_piercing_state(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=_BOND_RING_MAX_SIZE,
+    )
+    if state is not geo.PiercingState.PIERCES:
+        return state, None
+    return state, geo.scan_bond_ring_relations(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=_BOND_RING_MAX_SIZE,
+    )
+
+
+def _first_openable_ring_edge(
+    mol: "Molecule",
+    report: "geo.BondRingScanReport[Ring, Bond]",
+) -> Optional["Bond"]:
+    """Choose one deterministic ring edge for the next repair attempt."""
+    for finding in report.piercings:
+        ring_edge = _select_ring_opening_edge(
+            mol,
+            finding.target.ring.ring,
+            finding.target.bond.bond,
+            ring_scope=report.ring_scope,
+        )
+        if ring_edge is not None:
+            return ring_edge
+    return None
+
+
+def _untangle_ring_piercings(
+    mol: "Molecule",
+    effective_forcefield: str,
+    *,
+    attempt_limit: int,
+    short_steps: int,
+    settling_steps: int,
+    perturb_sigma: float,
+    rng: np.random.Generator,
+    ring_scope: geo.RingScope = "ligand_skeleton",
+    initial_energy: float = float("nan"),
+    save_movie: bool = False,
+) -> _RingUntanglingResult:
+    """Repair confirmed ring piercing without rebuilding the molecular graph.
+
+    One covalent ring edge is opened per attempt.  The open structure is
+    perturbed and relaxed, then the exact bond object is restored before the
+    next geometric observation.  Every retained snapshot therefore has the
+    original closed topology.
+    """
+    state, report = _scan_confirmed_ring_piercings(
+        mol,
+        ring_scope=ring_scope,
+    )
+    initial_count = 0 if report is None else len(report.piercings)
+    current_count = initial_count
+    minimum_count = initial_count
+    best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+    best_energy = float(initial_energy)
+    frame_coordinates = [best_coordinates.copy()] if save_movie else []
+    frame_energies = [best_energy] if save_movie else []
+    warning_messages = []
+    attempts_completed = 0
+    settled = False
+    unresolved_reason: Optional[str] = None
+
+    while True:
+        if state is not geo.PiercingState.PIERCES:
+            if state is geo.PiercingState.UNDETERMINED:
+                warning_messages.append(
+                    "A bond-ring relation remained mathematically undetermined"
+                )
+            if settled or settling_steps == 0:
+                break
+            optimized = _single_ob_optimization(
+                mol,
+                effective_forcefield,
+                settling_steps,
+            )
+            settled = True
+            state, report = _scan_confirmed_ring_piercings(
+                mol,
+                ring_scope=ring_scope,
+            )
+            current_count = 0 if report is None else len(report.piercings)
+            if current_count <= minimum_count:
+                minimum_count = current_count
+                best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+                best_energy = float(optimized.energy)
+            if save_movie:
+                frame_coordinates.append(
+                    np.asarray(mol.coordinates, dtype=float).copy()
+                )
+                frame_energies.append(float(optimized.energy))
+            continue
+
+        if attempts_completed >= attempt_limit:
+            unresolved_reason = (
+                f"Confirmed bond-ring piercing remains after {attempt_limit} "
+                "untangling attempts; retaining the closed-topology frame with "
+                "the lowest piercing count"
+            )
+            break
+
+        if report is None:
+            raise RuntimeError("A confirmed piercing requires a dense geometry report")
+        ring_edge = _first_openable_ring_edge(mol, report)
+        if ring_edge is None:
+            unresolved_reason = (
+                "Confirmed bond-ring piercing has no eligible single ring edge; "
+                "retaining the closed-topology frame with the lowest piercing count"
+            )
+            break
+
+        attempts_completed += 1
+        mol.hide_bonds(ring_edge, clear_conformers=False)
+        try:
+            mol.coordinates = _perturbed_coordinates(
+                mol.coordinates,
+                sigma=perturb_sigma,
+                rng=rng,
+            )
+            optimized = _single_ob_optimization(
+                mol,
+                effective_forcefield,
+                short_steps,
+            )
+        finally:
+            mol.restore_bonds(ring_edge, clear_conformers=False)
+
+        state, report = _scan_confirmed_ring_piercings(
+            mol,
+            ring_scope=ring_scope,
+        )
+        current_count = 0 if report is None else len(report.piercings)
+        if current_count <= minimum_count:
+            minimum_count = current_count
+            best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+            best_energy = float(optimized.energy)
+        if save_movie:
+            frame_coordinates.append(np.asarray(mol.coordinates, dtype=float).copy())
+            frame_energies.append(float(optimized.energy))
+        settled = False
+
+    if unresolved_reason is not None:
+        mol.coordinates = best_coordinates
+        current_count = minimum_count
+        if settling_steps:
+            retained_coordinates = best_coordinates.copy()
+            retained_energy = best_energy
+            retained_count = minimum_count
+            optimized = _single_ob_optimization(
+                mol,
+                effective_forcefield,
+                settling_steps,
+            )
+            settled_state, settled_report = _scan_confirmed_ring_piercings(
+                mol,
+                ring_scope=ring_scope,
+            )
+            settled_count = (
+                0 if settled_report is None else len(settled_report.piercings)
+            )
+            if save_movie:
+                frame_coordinates.append(
+                    np.asarray(mol.coordinates, dtype=float).copy()
+                )
+                frame_energies.append(float(optimized.energy))
+            if settled_count <= retained_count:
+                state = settled_state
+                report = settled_report
+                current_count = settled_count
+                minimum_count = settled_count
+                best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+                best_energy = float(optimized.energy)
+            else:
+                mol.coordinates = retained_coordinates
+                state = geo.PiercingState.PIERCES
+                current_count = retained_count
+                best_energy = retained_energy
+        if state is geo.PiercingState.PIERCES:
+            warning_messages.append(unresolved_reason)
+        elif state is geo.PiercingState.UNDETERMINED:
+            warning_messages.append(
+                "A bond-ring relation remained mathematically undetermined"
+            )
+    resolved = current_count == 0
+    selected_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+    if save_movie:
+        if not np.array_equal(frame_coordinates[-1], selected_coordinates):
+            frame_coordinates.append(selected_coordinates.copy())
+            frame_energies.append(best_energy)
+    else:
+        frame_coordinates = [selected_coordinates.copy()]
+        frame_energies = [best_energy]
+
+    return _RingUntanglingResult(
+        report=RingUntanglingReport(
+            attempt_limit=attempt_limit,
+            attempts_completed=attempts_completed,
+            initial_piercing_count=initial_count,
+            final_piercing_count=current_count,
+            minimum_piercing_count=minimum_count,
+            resolved=resolved,
+            warning_messages=tuple(dict.fromkeys(warning_messages)),
+        ),
+        energy=best_energy,
+        frames=tuple(frame_coordinates),
+        frame_energies=tuple(frame_energies),
+    )
+
+
+def _is_coordination_cycle_closure(
+    finding: "geo.BondRingFinding[Ring, Bond]",
+    coordination_bond: "Bond",
+) -> bool:
+    """Identify a geometric finding created only by closing a chelate cycle."""
+    candidate_key = _bond_key(coordination_bond)
+    return (
+        finding.target.bond.key == candidate_key
+        and set(candidate_key).issubset(finding.target.ring.key)
+    )
+
+
+def _scan_full_graph_bond_ring_relations(
+    mol: "Molecule",
+) -> "geo.BondRingScanReport[Ring, Bond]":
+    return geo.scan_bond_ring_relations(
+        mol,
+        ring_scope="full_graph",
+        max_ring_size=_BOND_RING_MAX_SIZE,
+    )
+
+
+def _bond_ring_finding_key(
+    finding: "geo.BondRingFinding[Ring, Bond]",
+) -> Tuple[Tuple[int, ...], Tuple[int, int]]:
+    return finding.target.ring.key, finding.target.bond.key
+
+
+def _candidate_coordination_relation_counts(
+    before: "geo.BondRingScanReport[Ring, Bond]",
+    after: "geo.BondRingScanReport[Ring, Bond]",
+    coordination_bond: "Bond",
+) -> _CoordinationRelationCounts:
+    """Count new relations caused by an active candidate coordination bond."""
+    before_states = {
+        _bond_ring_finding_key(finding): finding.relation.state
+        for finding in before.findings
+    }
+    candidate_key = _bond_key(coordination_bond)
+    candidate_endpoints = set(candidate_key)
+    piercing_count = 0
+    undetermined_count = 0
+    for finding in after.findings:
+        involves_candidate = finding.target.bond.key == candidate_key
+        candidate_closed_ring = candidate_endpoints.issubset(
+            finding.target.ring.key
+        )
+        if not involves_candidate and not candidate_closed_ring:
+            continue
+        if _is_coordination_cycle_closure(finding, coordination_bond):
+            continue
+        previous_state = before_states.get(_bond_ring_finding_key(finding))
+        if finding.relation.state is geo.PiercingState.PIERCES:
+            piercing_count += previous_state is not geo.PiercingState.PIERCES
+        elif finding.relation.state is geo.PiercingState.UNDETERMINED:
+            undetermined_count += previous_state is not geo.PiercingState.UNDETERMINED
+    return _CoordinationRelationCounts(
+        piercing=piercing_count,
+        undetermined=undetermined_count,
+        excluded_rings=after.excluded_ring_count,
+    )
+
+
+def _coordination_topology_relation_counts(
+    report: "geo.BondRingScanReport[Ring, Bond]",
+    coordination_bonds: Sequence["Bond"],
+) -> _CoordinationRelationCounts:
+    """Count unique relations associated with the restored coordination graph."""
+    coordination_by_key = {
+        _bond_key(bond): bond for bond in coordination_bonds
+    }
+    endpoint_sets = tuple(
+        set(candidate_key) for candidate_key in coordination_by_key
+    )
+    piercing_count = 0
+    undetermined_count = 0
+    for finding in report.findings:
+        target_key = finding.target.bond.key
+        associated_ring = any(
+            endpoints.issubset(finding.target.ring.key)
+            for endpoints in endpoint_sets
+        )
+        if target_key not in coordination_by_key and not associated_ring:
+            continue
+        target_coordination_bond = coordination_by_key.get(target_key)
+        if (
+            target_coordination_bond is not None
+            and _is_coordination_cycle_closure(
+                finding,
+                target_coordination_bond,
+            )
+        ):
+            continue
+        if finding.relation.state is geo.PiercingState.PIERCES:
+            piercing_count += 1
+        elif finding.relation.state is geo.PiercingState.UNDETERMINED:
+            undetermined_count += 1
+    return _CoordinationRelationCounts(
+        piercing=piercing_count,
+        undetermined=undetermined_count,
+        excluded_rings=report.excluded_ring_count,
+    )
+
+
+def _restore_next_nonpiercing_coordination_bond(
+    mol: "Molecule",
+    pending_bonds: list["Bond"],
+) -> Tuple[Optional["Bond"], Tuple[str, ...]]:
+    """Restore the first bond whose post-addition graph has no new piercing."""
+    warning_messages = []
+    before = _scan_full_graph_bond_ring_relations(mol)
+    for bond in tuple(pending_bonds):
+        mol.restore_bonds(bond, clear_conformers=False)
+        keep_restored = False
+        try:
+            relation_counts = _candidate_coordination_relation_counts(
+                before,
+                _scan_full_graph_bond_ring_relations(mol),
+                bond,
+            )
+            keep_restored = relation_counts.piercing == 0
+        finally:
+            if not keep_restored:
+                mol.hide_bonds(bond, clear_conformers=False)
+        if relation_counts.undetermined:
+            warning_messages.append(
+                f"Coordination bond {_bond_key(bond)} has "
+                f"{relation_counts.undetermined} newly introduced, "
+                "mathematically undetermined "
+                "ring relation(s)"
+            )
+        if relation_counts.excluded_rings:
+            warning_messages.append(
+                f"Coordination bond {_bond_key(bond)} was checked while "
+                f"{relation_counts.excluded_rings} ring(s) larger than "
+                f"{_BOND_RING_MAX_SIZE} atoms were excluded"
+            )
+        if relation_counts.piercing:
+            continue
+        pending_bonds.remove(bond)
+        return bond, tuple(warning_messages)
+    return None, tuple(warning_messages)
+
+
+def _restore_coordination_bonds_incrementally(
+    mol: "Molecule",
+    effective_forcefield: str,
+    *,
+    attempt_limit: int,
+    relaxation_steps: int,
+    perturb_sigma: float,
+    rng: np.random.Generator,
+    save_movie: bool,
+) -> _CoordinationRestorationResult:
+    """Restore original metal--ligand bonds through explicit bounded rounds."""
+    coordination_bonds = tuple(sorted(
+        (bond for bond in mol.bonds if bond.is_metal_ligand_bond),
+        key=_bond_key,
+    ))
+    if not coordination_bonds:
+        return _CoordinationRestorationResult(
+            report=CoordinationBondRestorationReport(
+                attempt_limit=attempt_limit,
+                attempts_completed=0,
+                bond_count=0,
+                restored_without_forcing=0,
+                forced_bond_keys=(),
+                final_piercing_count=0,
+                final_undetermined_count=0,
+                excluded_ring_count=0,
+                resolved=True,
+            ),
+            frames=(np.asarray(mol.coordinates, dtype=float).copy(),),
+            frame_energies=(float("nan"),),
+        )
+
+    mol.hide_bonds(*coordination_bonds, clear_conformers=False)
+    pending_bonds = list(coordination_bonds)
+    warning_messages: list[str] = []
+    frame_coordinates = [np.asarray(mol.coordinates, dtype=float).copy()]
+    frame_energies = [float("nan")]
+    stalled_attempts = 0
+    last_energy = float("nan")
+
+    while pending_bonds:
+        restored_bond, relation_warnings = (
+            _restore_next_nonpiercing_coordination_bond(
+                mol,
+                pending_bonds,
+            )
+        )
+        warning_messages.extend(relation_warnings)
+        if restored_bond is None:
+            if stalled_attempts >= attempt_limit:
+                break
+            if stalled_attempts:
+                mol.coordinates = _perturbed_coordinates(
+                    mol.coordinates,
+                    sigma=perturb_sigma,
+                    rng=rng,
+                )
+            stalled_attempts += 1
+        optimized = _single_ob_optimization(
+            mol,
+            effective_forcefield,
+            relaxation_steps,
+        )
+        last_energy = float(optimized.energy)
+        if save_movie:
+            frame_coordinates.append(np.asarray(mol.coordinates, dtype=float).copy())
+            frame_energies.append(last_energy)
+
+    forced_bond_keys = tuple(_bond_key(bond) for bond in pending_bonds)
+    if pending_bonds:
+        mol.restore_bonds(*pending_bonds, clear_conformers=False)
+        warning_messages.append(
+            f"Forced restoration of {len(pending_bonds)} coordination bond(s) "
+            f"after {attempt_limit} stalled attempts"
+        )
+
+    final_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+    if save_movie:
+        if forced_bond_keys or not np.array_equal(
+            frame_coordinates[-1],
+            final_coordinates,
+        ):
+            frame_coordinates.append(final_coordinates)
+            frame_energies.append(
+                float("nan") if forced_bond_keys else last_energy
+            )
+    else:
+        frame_coordinates = [final_coordinates]
+        frame_energies = [
+            float("nan") if forced_bond_keys else last_energy
+        ]
+
+    final_relation_counts = _coordination_topology_relation_counts(
+        _scan_full_graph_bond_ring_relations(mol),
+        coordination_bonds,
+    )
+    if final_relation_counts.piercing:
+        warning_messages.append(
+            f"The restored coordination topology has "
+            f"{final_relation_counts.piercing} confirmed bond-ring piercing "
+            "relation(s); Stage 2.2 will repair the complete complex"
+        )
+    if final_relation_counts.undetermined:
+        warning_messages.append(
+            f"The restored coordination topology has "
+            f"{final_relation_counts.undetermined} mathematically "
+            "undetermined bond-ring relation(s)"
+        )
+    if final_relation_counts.excluded_rings:
+        warning_messages.append(
+            f"The coordination topology contains "
+            f"{final_relation_counts.excluded_rings} ring(s) larger than "
+            f"{_BOND_RING_MAX_SIZE} atoms that were not tested for piercing"
+        )
+
+    report = CoordinationBondRestorationReport(
+        attempt_limit=attempt_limit,
+        attempts_completed=stalled_attempts,
+        bond_count=len(coordination_bonds),
+        restored_without_forcing=len(coordination_bonds) - len(forced_bond_keys),
+        forced_bond_keys=forced_bond_keys,
+        final_piercing_count=final_relation_counts.piercing,
+        final_undetermined_count=final_relation_counts.undetermined,
+        excluded_ring_count=final_relation_counts.excluded_rings,
+        resolved=(
+            not forced_bond_keys
+            and final_relation_counts.piercing == 0
+        ),
+        warning_messages=tuple(dict.fromkeys(warning_messages)),
+    )
+    return _CoordinationRestorationResult(
+        report=report,
+        frames=tuple(frame_coordinates),
+        frame_energies=tuple(frame_energies),
+    )
+
+
 # Synchronization and force-field policy helpers.
 
 
@@ -1516,6 +2089,7 @@ class _OpenBabelOptimizer:
         vdw_cutoff_start: float,
         vdw_cutoff_end: float,
         seed: Optional[int],
+        stop_on_ring_piercing: bool = False,
         energy_tolerance: float = 1.0e-6,
     ) -> None:
         if epochs < 1:
@@ -1541,6 +2115,7 @@ class _OpenBabelOptimizer:
         self.increasing_vdw = increasing_vdw
         self.vdw_cutoff_start = vdw_cutoff_start
         self.vdw_cutoff_end = vdw_cutoff_end
+        self.stop_on_ring_piercing = stop_on_ring_piercing
         self.energy_tolerance = energy_tolerance
         self.rng = np.random.default_rng(seed)
         self.backend = _get_forcefield(effective_forcefield)
@@ -1719,6 +2294,7 @@ class _OpenBabelOptimizer:
         terminal_converged = False
         termination_reason: TerminationReason = "budget_exhausted"
         segment_active = True
+        stopped_on_ring_piercing = False
 
         for epoch in range(self.epochs):
             reset_history = (
@@ -1816,6 +2392,26 @@ class _OpenBabelOptimizer:
             previous_coordinates = frame.coordinates
             previous_energy = frame.energy
 
+            if self.stop_on_ring_piercing:
+                piercing_count = frame.quality_report.metrics.get(
+                    "bond_ring_piercing_count"
+                )
+                if piercing_count is None:
+                    piercing_state = geo.determine_bond_ring_piercing_state(
+                        mol,
+                        ring_scope="ligand_skeleton",
+                        max_ring_size=_BOND_RING_MAX_SIZE,
+                    )
+                    stopped_on_ring_piercing = (
+                        piercing_state is geo.PiercingState.PIERCES
+                    )
+                else:
+                    stopped_on_ring_piercing = bool(piercing_count)
+                if stopped_on_ring_piercing:
+                    termination_reason = "ring_piercing"
+                    terminal_converged = False
+                    break
+
             if (
                 backend_converged
                 and not self.increasing_vdw
@@ -1825,7 +2421,13 @@ class _OpenBabelOptimizer:
 
         if last_frame is None:
             raise GeometryQualityError(None)
-        if best_frame is None:
+        if stopped_on_ring_piercing:
+            if _has_hard_acceptance_failure(last_frame.quality_report):
+                raise GeometryQualityError(last_frame.quality_report)
+            best_frame = last_frame
+            best_epoch = last_epoch
+            best_frame_index = len(movie_coordinates) - 1
+        elif best_frame is None:
             if _has_hard_acceptance_failure(last_frame.quality_report):
                 raise GeometryQualityError(last_frame.quality_report)
             warnings.warn(
@@ -1887,15 +2489,20 @@ def _build_ligand_proxies(
     candidate_score_steps: int,
     best_candidate_refine_steps: int,
     effective_forcefield: str,
+    ligand_untangling_attempts: int = 20,
+    perturb_sigma: float = 0.5,
+    seed: Optional[int] = None,
 ) -> Tuple[np.ndarray, ComplexBuildDiagnostics]:
     started = time.monotonic()
     clone_mol = copy(mol)
     _copy_molecule_metadata(mol, clone_mol)
     clone_mol.hide_metal_ligand_bonds(clear_conformers=False)
+    rng = np.random.default_rng(seed)
     total_attempts = 0
     total_accepted = 0
-    rejections = []
-    warning_messages = []
+    rejections: list[CandidateRejection] = []
+    warning_messages: list[str] = []
+    selected_untangling_reports: list[RingUntanglingReport] = []
     target_candidate_count = 1 if candidate_count is None else candidate_count
 
     for component_index, component_mol in enumerate(clone_mol.components):
@@ -1906,85 +2513,35 @@ def _build_ligand_proxies(
             component_mol,
             allow_added_hydrogens=False,
         )
-        candidate_coordinates = []
-        candidate_energies = []
-        candidate_attempts = []
+        candidates: list[_LigandCandidate] = []
         component_attempts = 0
         while (
-            len(candidate_coordinates) < target_candidate_count
+            len(candidates) < target_candidate_count
             and component_attempts < max_attempts
         ):
             component_attempts += 1
             total_attempts += 1
             try:
                 _ob_build(component_mol)
-                _single_ob_optimization(
+                warmed = _single_ob_optimization(
                     component_mol,
                     effective_forcefield,
                     candidate_warmup_steps,
                 )
-            except ForceFieldError as exc:
-                component_mol.recover_hided_covalent_bonds(clear_conformers=False)
-                rejections.append(
-                    CandidateRejection(component_index, component_attempts, str(exc))
-                )
-                continue
-
-            component_mol.recover_hided_covalent_bonds(clear_conformers=False)
-            try:
-                scored = _single_ob_optimization(
+                untangling = _untangle_ring_piercings(
                     component_mol,
                     effective_forcefield,
-                    candidate_score_steps,
+                    attempt_limit=ligand_untangling_attempts,
+                    short_steps=candidate_warmup_steps,
+                    settling_steps=candidate_score_steps,
+                    perturb_sigma=perturb_sigma,
+                    rng=rng,
+                    ring_scope="ligand_skeleton",
+                    initial_energy=float(warmed.energy),
                 )
-            except ForceFieldSetupError as exc:
+            except ForceFieldError as exc:
                 rejections.append(
                     CandidateRejection(component_index, component_attempts, str(exc))
-                )
-                continue
-
-            piercing_state = geo.determine_bond_ring_piercing_state(
-                component_mol,
-                ring_scope="ligand_skeleton",
-                max_ring_size=_BOND_RING_MAX_SIZE,
-            )
-            if piercing_state is geo.PiercingState.PIERCES:
-                bond_ring_report = geo.scan_bond_ring_relations(
-                    component_mol,
-                    ring_scope="ligand_skeleton",
-                    max_ring_size=_BOND_RING_MAX_SIZE,
-                )
-                intersection_failures = _bond_ring_acceptance_checks(
-                    component_mol,
-                    bond_ring_report,
-                )
-                bonds_to_hide = {}
-                for finding in bond_ring_report.piercings:
-                    ring_edge = _select_ring_opening_edge(
-                        component_mol,
-                        finding.target.ring.ring,
-                        finding.target.bond.bond,
-                        ring_scope=bond_ring_report.ring_scope,
-                    )
-                    if ring_edge is None:
-                        continue
-                    endpoint_key = tuple(sorted((ring_edge.a1idx, ring_edge.a2idx)))
-                    bonds_to_hide[endpoint_key] = ring_edge
-                if bonds_to_hide:
-                    component_mol.hide_bonds(
-                        *(bonds_to_hide[key] for key in sorted(bonds_to_hide)),
-                        clear_conformers=False,
-                    )
-                rejections.append(
-                    CandidateRejection(
-                        component_index,
-                        component_attempts,
-                        _format_geometry_checks(
-                            "candidate geometry gate",
-                            intersection_failures,
-                        ),
-                        intersection_failures,
-                    )
                 )
                 continue
 
@@ -1994,9 +2551,9 @@ def _build_ligand_proxies(
                 topology_reference=component_reference,
                 forcefield_report={
                     "setup_succeeded": True,
-                    "final_energy": scored.energy,
-                    "energy_unit": scored.energy_unit,
-                    "exploded": scored.exploded,
+                    "final_energy": untangling.energy,
+                    "energy_unit": "kJ/mol",
+                    "exploded": False,
                 },
                 forcefield_stage="candidate",
             )
@@ -2014,36 +2571,46 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            candidate_coordinates.append(component_mol.coordinates.copy())
-            candidate_energies.append(scored.energy)
-            candidate_attempts.append(component_attempts)
+            candidates.append(_LigandCandidate(
+                coordinates=np.asarray(component_mol.coordinates, dtype=float).copy(),
+                energy=float(untangling.energy),
+                attempt=component_attempts,
+                untangling=untangling.report,
+            ))
+            warning_messages.extend(
+                f"Component {component_index}: {message}"
+                for message in untangling.report.warning_messages
+            )
             total_accepted += 1
 
-        if not candidate_coordinates:
+        if not candidates:
             diagnostics = ComplexBuildDiagnostics(
                 attempt_count=total_attempts,
                 accepted_candidates=total_accepted,
                 rejected_candidates=tuple(rejections),
                 elapsed_seconds=time.monotonic() - started,
                 warning_messages=tuple(warning_messages),
+                ligand_untangling=tuple(selected_untangling_reports),
             )
             raise ComplexBuildError(
                 f"Component {component_index} accepted no candidates after "
                 f"{component_attempts} attempts",
                 diagnostics,
             )
-        if len(candidate_coordinates) < target_candidate_count:
+        if len(candidates) < target_candidate_count:
             warning_messages.append(
                 f"Component {component_index} accepted "
-                f"{len(candidate_coordinates)}/{target_candidate_count} requested "
+                f"{len(candidates)}/{target_candidate_count} requested "
                 f"candidates after {component_attempts} attempts; continuing "
                 "refinement with the available candidates"
             )
 
-        refined_candidate_found = False
-        for candidate_index in np.argsort(candidate_energies):
-            component_mol.coordinates = candidate_coordinates[int(candidate_index)]
-            attempt = candidate_attempts[int(candidate_index)]
+        selected_candidate: Optional[_LigandCandidate] = None
+        for candidate in sorted(
+            candidates,
+            key=lambda item: (item.untangling.final_piercing_count, item.energy),
+        ):
+            component_mol.coordinates = candidate.coordinates
             try:
                 refined = _single_ob_optimization(
                     component_mol,
@@ -2054,16 +2621,18 @@ def _build_ligand_proxies(
                 rejections.append(
                     CandidateRejection(
                         component_index,
-                        attempt,
+                        candidate.attempt,
                         f"refined candidate: {exc}",
                     )
                 )
                 continue
 
-            refined_piercing_state = geo.determine_bond_ring_piercing_state(
+            refined_state, refined_report = _scan_confirmed_ring_piercings(
                 component_mol,
                 ring_scope="ligand_skeleton",
-                max_ring_size=_BOND_RING_MAX_SIZE,
+            )
+            refined_piercing_count = (
+                0 if refined_report is None else len(refined_report.piercings)
             )
             refined_quality = evaluate_structure_acceptance(
                 component_mol,
@@ -2077,25 +2646,13 @@ def _build_ligand_proxies(
                 },
                 forcefield_stage="candidate",
             )
-            if (
-                refined_piercing_state is geo.PiercingState.PIERCES
-                or not refined_quality.passed
-            ):
-                refined_bond_ring_report = (
-                    geo.scan_bond_ring_relations(
-                        component_mol,
-                        ring_scope="ligand_skeleton",
-                        max_ring_size=_BOND_RING_MAX_SIZE,
-                    )
-                    if refined_piercing_state is geo.PiercingState.PIERCES
-                    else None
-                )
+            if not refined_quality.passed:
                 intersection_failures = (
                     _bond_ring_acceptance_checks(
                         component_mol,
-                        refined_bond_ring_report,
+                        refined_report,
                     )
-                    if refined_bond_ring_report is not None
+                    if refined_report is not None
                     else ()
                 )
                 failures = (
@@ -2108,26 +2665,53 @@ def _build_ligand_proxies(
                 )
                 rejections.append(CandidateRejection(
                     component_index,
-                    attempt,
+                    candidate.attempt,
                     reason,
                     failures,
                 ))
                 continue
-            refined_candidate_found = True
+
+            if refined_piercing_count <= candidate.untangling.final_piercing_count:
+                selected_candidate = _LigandCandidate(
+                    coordinates=np.asarray(
+                        component_mol.coordinates,
+                        dtype=float,
+                    ).copy(),
+                    energy=float(refined.energy),
+                    attempt=candidate.attempt,
+                    untangling=replace(
+                        candidate.untangling,
+                        final_piercing_count=refined_piercing_count,
+                        minimum_piercing_count=min(
+                            candidate.untangling.minimum_piercing_count,
+                            refined_piercing_count,
+                        ),
+                        resolved=(
+                            refined_state is not geo.PiercingState.PIERCES
+                        ),
+                    ),
+                )
+            else:
+                component_mol.coordinates = candidate.coordinates
+                selected_candidate = candidate
+                warning_messages.append(
+                    f"Component {component_index}: long refinement increased "
+                    "the confirmed piercing count; retaining the pre-refinement "
+                    "closed-topology frame"
+                )
             break
 
-        if not refined_candidate_found:
-            diagnostics = ComplexBuildDiagnostics(
-                attempt_count=total_attempts,
-                accepted_candidates=total_accepted,
-                rejected_candidates=tuple(rejections),
-                elapsed_seconds=time.monotonic() - started,
-                warning_messages=tuple(warning_messages),
+        if selected_candidate is None:
+            selected_candidate = min(
+                candidates,
+                key=lambda item: (item.untangling.final_piercing_count, item.energy),
             )
-            raise ComplexBuildError(
-                f"Candidate refinement failed for every candidate of component {component_index}",
-                diagnostics,
+            component_mol.coordinates = selected_candidate.coordinates
+            warning_messages.append(
+                f"Component {component_index}: every long refinement failed; "
+                "retaining the best medium-optimized candidate"
             )
+        selected_untangling_reports.append(selected_candidate.untangling)
         clone_mol.update_atoms_attrs_from_id_dict(
             {
                 atom.id: {"coordinates": atom.coordinates}
@@ -2135,13 +2719,13 @@ def _build_ligand_proxies(
             }
         )
 
-    clone_mol.recover_hided_metal_ligand_bonds(clear_conformers=False)
     diagnostics = ComplexBuildDiagnostics(
         attempt_count=total_attempts,
         accepted_candidates=total_accepted,
         rejected_candidates=tuple(rejections),
         elapsed_seconds=time.monotonic() - started,
         warning_messages=tuple(warning_messages),
+        ligand_untangling=tuple(selected_untangling_reports),
     )
     return clone_mol.coordinates, diagnostics
 
@@ -2159,6 +2743,8 @@ def _build_ligand_proxies_worker(
     best_candidate_refine_steps: int,
     effective_forcefield: str,
     seed: Optional[int],
+    ligand_untangling_attempts: int = 20,
+    perturb_sigma: float = 0.5,
 ) -> None:
     """Child-process boundary that always sends one structured envelope."""
     _run_ligand_proxy_worker(
@@ -2171,6 +2757,8 @@ def _build_ligand_proxies_worker(
         best_candidate_refine_steps,
         effective_forcefield,
         seed,
+        ligand_untangling_attempts,
+        perturb_sigma,
         seed_initializer=_seed_openbabel_random,
     )
 
@@ -2185,6 +2773,8 @@ def _run_ligand_proxy_worker(
     best_candidate_refine_steps: int,
     effective_forcefield: str,
     seed: Optional[int],
+    ligand_untangling_attempts: int = 20,
+    perturb_sigma: float = 0.5,
     *,
     seed_initializer: _SeedInitializer,
 ) -> None:
@@ -2200,6 +2790,9 @@ def _run_ligand_proxy_worker(
             candidate_score_steps=candidate_score_steps,
             best_candidate_refine_steps=best_candidate_refine_steps,
             effective_forcefield=effective_forcefield,
+            seed=seed,
+            ligand_untangling_attempts=ligand_untangling_attempts,
+            perturb_sigma=perturb_sigma,
         )
         result = BuildWorkerResult(
             status="ok",
@@ -2445,9 +3038,14 @@ def _prepare_complex_working_mol(
     candidate_warmup_steps: int,
     candidate_score_steps: int,
     best_candidate_refine_steps: int,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
     timeout: float,
     add_hydrogens: bool,
     seed: Optional[int],
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
     coordination_geometry: Optional[str],
     worker_target: _ComplexBuildWorker,
 ) -> Tuple["Molecule", ComplexBuildDiagnostics]:
@@ -2455,12 +3053,20 @@ def _prepare_complex_working_mol(
         raise ValueError("candidate_count must be at least 1")
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
+    if ligand_untangling_attempts < 1:
+        raise ValueError("ligand_untangling_attempts must be at least 1")
+    if coordination_restoration_attempts < 1:
+        raise ValueError("coordination_restoration_attempts must be at least 1")
     if min(
         candidate_warmup_steps,
         candidate_score_steps,
         best_candidate_refine_steps,
     ) < 1:
         raise ValueError("all candidate optimization step counts must be at least 1")
+    if coordination_relaxation_steps < 1:
+        raise ValueError("coordination_relaxation_steps must be at least 1")
+    if perturb_sigma < 0.0:
+        raise ValueError("perturb_sigma must be non-negative")
     if timeout <= 0.0:
         raise ValueError("timeout must be positive")
     working_mol = _hydrogenated_working_copy(
@@ -2483,6 +3089,8 @@ def _prepare_complex_working_mol(
             best_candidate_refine_steps,
             effective_forcefield,
             seed,
+            ligand_untangling_attempts,
+            perturb_sigma,
         ),
     )
     result = _receive_worker_result(
@@ -2503,6 +3111,38 @@ def _prepare_complex_working_mol(
         prepare_coordination_geometry(
             working_mol, strategy=coordination_geometry, seed=seed
         )
+    restoration_started = time.monotonic()
+    restoration = _restore_coordination_bonds_incrementally(
+        working_mol,
+        effective_forcefield,
+        attempt_limit=coordination_restoration_attempts,
+        relaxation_steps=coordination_relaxation_steps,
+        perturb_sigma=perturb_sigma,
+        rng=np.random.default_rng(seed),
+        save_movie=save_movie,
+    )
+    diagnostics = replace(
+        diagnostics,
+        elapsed_seconds=(
+            diagnostics.elapsed_seconds
+            + time.monotonic()
+            - restoration_started
+        ),
+        warning_messages=(
+            diagnostics.warning_messages
+            + restoration.report.warning_messages
+        ),
+        coordination_restoration=restoration.report,
+    )
+    for message in restoration.report.warning_messages:
+        warnings.warn(message, ComplexBuildWarning, stacklevel=3)
+    if save_movie:
+        working_mol.conformer_clear()
+        working_mol.conformer_add(
+            np.asarray(restoration.frames),
+            np.asarray(restoration.frame_energies),
+        )
+        working_mol.conformer_load(len(restoration.frames) - 1)
     return working_mol, diagnostics
 
 
@@ -2524,6 +3164,7 @@ def _optimize_working_mol(
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
+    stop_on_ring_piercing: bool = False,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
         requested_forcefield,
@@ -2538,12 +3179,245 @@ def _optimize_working_mol(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
         seed=seed,
+        stop_on_ring_piercing=stop_on_ring_piercing,
     )
     return optimizer.optimize(
         working_mol,
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
+    )
+
+
+def _conformer_trace(
+    mol: "Molecule",
+) -> Tuple[Tuple[np.ndarray, ...], Tuple[float, ...], int]:
+    """Read the current conformer trace without exposing its storage layout."""
+    coordinates = []
+    energies = []
+    for index in range(mol.conformers_number):
+        conformer = mol.conformer_get(index)
+        coordinates.append(np.asarray(conformer["coordinates"], dtype=float).copy())
+        energy = conformer.get("energy")
+        energies.append(float("nan") if energy is None else float(energy))
+    return tuple(coordinates), tuple(energies), int(mol._conformers_index)
+
+
+def _combine_conformer_traces(
+    mol: "Molecule",
+    prefix_coordinates: Sequence[np.ndarray],
+    prefix_energies: Sequence[float],
+) -> None:
+    """Prepend workflow frames while retaining the optimizer-selected frame."""
+    optimized_coordinates, optimized_energies, selected_index = _conformer_trace(mol)
+    coordinates = []
+    energies = []
+    for frame, energy in zip(prefix_coordinates, prefix_energies):
+        coordinates_array = np.asarray(frame, dtype=float).copy()
+        if coordinates and np.array_equal(coordinates[-1], coordinates_array):
+            if not np.isfinite(energies[-1]) and np.isfinite(energy):
+                energies[-1] = float(energy)
+            continue
+        coordinates.append(coordinates_array)
+        energies.append(float(energy))
+    optimized_start = 0
+    if coordinates and optimized_coordinates and np.array_equal(
+        coordinates[-1],
+        optimized_coordinates[0],
+    ):
+        if not np.isfinite(energies[-1]) and np.isfinite(optimized_energies[0]):
+            energies[-1] = optimized_energies[0]
+        optimized_start = 1
+    if selected_index == 0 and optimized_start == 1:
+        selected_index = len(coordinates) - 1
+    else:
+        selected_index = len(coordinates) + selected_index - optimized_start
+    coordinates.extend(optimized_coordinates[optimized_start:])
+    energies.extend(optimized_energies[optimized_start:])
+    mol.conformer_clear()
+    mol.conformer_add(np.asarray(coordinates), np.asarray(energies))
+    mol.conformer_load(selected_index)
+
+
+def _combine_forcefield_run_reports(
+    reports: Sequence[ForceFieldRunReport],
+) -> ForceFieldRunReport:
+    """Combine sequential optimizer segments around topology repairs."""
+    final_report = reports[-1]
+    preceding_epochs = sum(report.epochs_completed for report in reports[:-1])
+    return replace(
+        final_report,
+        epochs_completed=sum(report.epochs_completed for report in reports),
+        steps_submitted=sum(report.steps_submitted for report in reports),
+        initialization_steps=sum(
+            report.initialization_steps for report in reports
+        ),
+        best_epoch=preceding_epochs + final_report.best_epoch,
+        epoch_energies=tuple(
+            energy
+            for report in reports
+            for energy in report.epoch_energies
+        ),
+        epoch_quality_reports=tuple(
+            quality_report
+            for report in reports
+            for quality_report in report.epoch_quality_reports
+        ),
+    )
+
+
+def _summarize_complex_untangling(
+    reports: Sequence[RingUntanglingReport],
+    *,
+    attempt_limit: int,
+    final_state: geo.PiercingState,
+    final_piercing_count: int,
+) -> RingUntanglingReport:
+    """Summarize every repair pass against the final optimized coordinates."""
+    warning_messages = [
+        message
+        for report in reports
+        for message in report.warning_messages
+    ]
+    if final_state is geo.PiercingState.PIERCES:
+        warning_messages.append(
+            "Confirmed bond-ring piercing remains after full-complex "
+            "untangling; retaining the final optimized frame"
+        )
+    elif final_state is geo.PiercingState.UNDETERMINED:
+        warning_messages.append(
+            "The final complex contains a mathematically undetermined "
+            "bond-ring relation"
+        )
+    minimum_count = min(
+        (report.minimum_piercing_count for report in reports),
+        default=final_piercing_count,
+    )
+    return RingUntanglingReport(
+        attempt_limit=attempt_limit,
+        attempts_completed=sum(report.attempts_completed for report in reports),
+        initial_piercing_count=reports[0].initial_piercing_count,
+        final_piercing_count=final_piercing_count,
+        minimum_piercing_count=min(minimum_count, final_piercing_count),
+        resolved=final_state is not geo.PiercingState.PIERCES,
+        warning_messages=tuple(dict.fromkeys(warning_messages)),
+    )
+
+
+def _optimize_complex_working_mol(
+    working_mol: "Molecule",
+    *,
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+    algorithm: OptimizationAlgorithm,
+    epochs: int,
+    steps_per_epoch: int,
+    complex_untangling_attempts: int,
+    quality_level: AcceptanceLevel,
+    topology_reference: TopologyReference,
+    quality_thresholds: Optional[StructureAcceptanceThresholds],
+    seed: Optional[int],
+    perturb_interval: Optional[int],
+    perturb_sigma: float,
+    save_movie: bool,
+    increasing_vdw: bool,
+    vdw_cutoff_start: float,
+    vdw_cutoff_end: float,
+) -> ForceFieldRunReport:
+    """Interleave bounded untangling with complete-complex relaxation."""
+    if complex_untangling_attempts < 1:
+        raise ValueError("complex_untangling_attempts must be at least 1")
+    rng = np.random.default_rng(seed)
+    remaining_attempts = complex_untangling_attempts
+    remaining_epochs = epochs
+    untangling_reports = []
+    optimization_reports = []
+    consecutive_stalled_repairs = 0
+
+    while True:
+        prefix_coordinates: Tuple[np.ndarray, ...] = ()
+        prefix_energies: Tuple[float, ...] = ()
+        if save_movie:
+            prefix_coordinates, prefix_energies, _ = _conformer_trace(working_mol)
+
+        untangling = _untangle_ring_piercings(
+            working_mol,
+            effective_forcefield,
+            attempt_limit=remaining_attempts,
+            short_steps=steps_per_epoch,
+            settling_steps=0,
+            perturb_sigma=perturb_sigma,
+            rng=rng,
+            ring_scope="ligand_skeleton",
+            initial_energy=(
+                optimization_reports[-1].best_energy
+                if optimization_reports
+                else float("nan")
+            ),
+            save_movie=save_movie,
+        )
+        untangling_reports.append(untangling.report)
+        remaining_attempts -= untangling.report.attempts_completed
+
+        segment_epochs = remaining_epochs if remaining_epochs else 1
+        report = _optimize_working_mol(
+            working_mol,
+            requested_forcefield=requested_forcefield,
+            effective_forcefield=effective_forcefield,
+            algorithm=algorithm,
+            epochs=segment_epochs,
+            steps_per_epoch=steps_per_epoch,
+            quality_level=quality_level,
+            topology_reference=topology_reference,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            stop_on_ring_piercing=True,
+        )
+        optimization_reports.append(report)
+        remaining_epochs = max(remaining_epochs - report.epochs_completed, 0)
+        if save_movie:
+            _combine_conformer_traces(
+                working_mol,
+                prefix_coordinates + untangling.frames,
+                prefix_energies + untangling.frame_energies,
+            )
+
+        final_state, final_scan = _scan_confirmed_ring_piercings(
+            working_mol,
+            ring_scope="ligand_skeleton",
+        )
+        final_piercing_count = (
+            0 if final_scan is None else len(final_scan.piercings)
+        )
+        if final_state is not geo.PiercingState.PIERCES:
+            break
+        if remaining_attempts == 0:
+            break
+        consecutive_stalled_repairs = (
+            consecutive_stalled_repairs + 1
+            if untangling.report.attempts_completed == 0
+            else 0
+        )
+        if consecutive_stalled_repairs >= 2:
+            break
+
+    untangling_report = _summarize_complex_untangling(
+        untangling_reports,
+        attempt_limit=complex_untangling_attempts,
+        final_state=final_state,
+        final_piercing_count=final_piercing_count,
+    )
+    for message in untangling_report.warning_messages:
+        warnings.warn(message, GeometryQualityWarning, stacklevel=3)
+    return replace(
+        _combine_forcefield_run_reports(optimization_reports),
+        untangling=untangling_report,
     )
 
 
@@ -2559,6 +3433,10 @@ def _complexes_build_workflow(
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
+    complex_untangling_attempts: int = 30,
     timeout: float = 1000.0,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
@@ -2588,19 +3466,25 @@ def _complexes_build_workflow(
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
+        ligand_untangling_attempts=ligand_untangling_attempts,
+        coordination_restoration_attempts=coordination_restoration_attempts,
+        coordination_relaxation_steps=coordination_relaxation_steps,
         timeout=timeout,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
         coordination_geometry=coordination_geometry,
         worker_target=worker_target,
     )
-    optimization_report = _optimize_working_mol(
+    optimization_report = _optimize_complex_working_mol(
         working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,
+        complex_untangling_attempts=complex_untangling_attempts,
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
@@ -3137,9 +4021,14 @@ def _build_complex3d_workflow(
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
     timeout: float = 1000.0,
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
     coordination_geometry: Optional[str] = None,
     worker_target: _ComplexBuildWorker,
 ) -> ComplexBuildReport:
@@ -3158,9 +4047,14 @@ def _build_complex3d_workflow(
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
+        ligand_untangling_attempts=ligand_untangling_attempts,
+        coordination_restoration_attempts=coordination_restoration_attempts,
+        coordination_relaxation_steps=coordination_relaxation_steps,
         timeout=timeout,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
         coordination_geometry=coordination_geometry,
         worker_target=worker_target,
     )
@@ -3191,9 +4085,14 @@ def build_complex3d(
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
     timeout: float = 1000.0,
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
+    perturb_sigma: float = 0.5,
+    save_movie: bool = False,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
@@ -3205,9 +4104,14 @@ def build_complex3d(
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
+        ligand_untangling_attempts=ligand_untangling_attempts,
+        coordination_restoration_attempts=coordination_restoration_attempts,
+        coordination_relaxation_steps=coordination_relaxation_steps,
         timeout=timeout,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        perturb_sigma=perturb_sigma,
+        save_movie=save_movie,
         coordination_geometry=coordination_geometry,
         worker_target=_build_ligand_proxies_worker,
     )
@@ -3220,6 +4124,7 @@ def optimize_complex(
     algorithm: OptimizationAlgorithm = "conjugate",
     epochs: int = 100,
     steps_per_epoch: int = 100,
+    complex_untangling_attempts: int = 30,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
     quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
@@ -3243,13 +4148,14 @@ def optimize_complex(
         seed=seed,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    report = _optimize_working_mol(
+    report = _optimize_complex_working_mol(
         working_mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,
+        complex_untangling_attempts=complex_untangling_attempts,
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
@@ -3288,6 +4194,10 @@ def _build_and_optimize_workflow(
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
+    complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
     seeded_build_worker: _SeededBuildWorker,
     complex_build_worker: _ComplexBuildWorker,
@@ -3305,6 +4215,10 @@ def _build_and_optimize_workflow(
             candidate_warmup_steps=candidate_warmup_steps,
             candidate_score_steps=candidate_score_steps,
             best_candidate_refine_steps=best_candidate_refine_steps,
+            ligand_untangling_attempts=ligand_untangling_attempts,
+            coordination_restoration_attempts=coordination_restoration_attempts,
+            coordination_relaxation_steps=coordination_relaxation_steps,
+            complex_untangling_attempts=complex_untangling_attempts,
             timeout=timeout,
             add_hydrogens=add_hydrogens,
             quality_level=quality_level,
@@ -3367,6 +4281,10 @@ def complexes_build(
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
+    complex_untangling_attempts: int = 30,
     timeout: float = 1000.0,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
@@ -3392,6 +4310,10 @@ def complexes_build(
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
+        ligand_untangling_attempts=ligand_untangling_attempts,
+        coordination_restoration_attempts=coordination_restoration_attempts,
+        coordination_relaxation_steps=coordination_relaxation_steps,
+        complex_untangling_attempts=complex_untangling_attempts,
         timeout=timeout,
         add_hydrogens=add_hydrogens,
         quality_level=quality_level,
@@ -3431,6 +4353,10 @@ def build_and_optimize(
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
     best_candidate_refine_steps: int = 3000,
+    ligand_untangling_attempts: int = 20,
+    coordination_restoration_attempts: int = 20,
+    coordination_relaxation_steps: int = 100,
+    complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
 ) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow."""
@@ -3456,6 +4382,10 @@ def build_and_optimize(
         candidate_warmup_steps=candidate_warmup_steps,
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
+        ligand_untangling_attempts=ligand_untangling_attempts,
+        coordination_restoration_attempts=coordination_restoration_attempts,
+        coordination_relaxation_steps=coordination_relaxation_steps,
+        complex_untangling_attempts=complex_untangling_attempts,
         coordination_geometry=coordination_geometry,
         seeded_build_worker=_seeded_ob_build_worker,
         complex_build_worker=_build_ligand_proxies_worker,
@@ -3469,6 +4399,7 @@ def auto_optimize(
     algorithm: OptimizationAlgorithm = "conjugate",
     epochs: int = 100,
     steps_per_epoch: int = 100,
+    complex_untangling_attempts: int = 30,
     add_hydrogens: bool = True,
     quality_level: AcceptanceLevel = "standard",
     quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
@@ -3488,6 +4419,7 @@ def auto_optimize(
             algorithm=algorithm,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
+            complex_untangling_attempts=complex_untangling_attempts,
             add_hydrogens=add_hydrogens,
             quality_level=quality_level,
             quality_thresholds=quality_thresholds,

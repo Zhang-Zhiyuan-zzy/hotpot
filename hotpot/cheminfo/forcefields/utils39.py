@@ -37,6 +37,8 @@ def _build_ligand_proxies_worker(
     best_candidate_refine_steps: int,
     effective_forcefield: str,
     seed: Optional[int],
+    ligand_untangling_attempts: int = 20,
+    perturb_sigma: float = 0.5,
 ) -> None:
     """Run the shared ligand-proxy worker with the Open Babel 3.1 RNG."""
     _utils._run_ligand_proxy_worker(
@@ -49,6 +51,8 @@ def _build_ligand_proxies_worker(
         best_candidate_refine_steps,
         effective_forcefield,
         seed,
+        ligand_untangling_attempts,
+        perturb_sigma,
         seed_initializer=_seed_openbabel_random,
     )
 

@@ -2428,13 +2428,13 @@ class _OpenBabelOptimizer:
             best_frame = last_frame
             best_epoch = last_epoch
             best_frame_index = len(movie_coordinates) - 1
-        elif best_frame is None:
+        elif not last_frame.quality_report.passed:
             if _has_unreturnable_frame_failure(last_frame.quality_report):
                 raise GeometryQualityError(last_frame.quality_report)
             warnings.warn(
                 _format_geometry_checks(
-                    "No optimization frame passed structure acceptance; "
-                    "retaining the last finite-topology frame",
+                    "The terminal optimization frame failed structure "
+                    "acceptance; retaining the last finite-topology frame",
                     tuple(last_frame.quality_report.failures),
                 ),
                 GeometryQualityWarning,

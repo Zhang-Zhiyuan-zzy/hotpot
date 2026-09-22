@@ -624,6 +624,56 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
     assert len(report.epoch_energies) == (3 if save_movie else 0)
 
 
+@pytest.mark.parametrize("save_movie", (False, True))
+def test_optimizer_retains_failed_terminal_frame_after_an_accepted_frame(
+    monkeypatch,
+    save_movie,
+):
+    frames = [
+        np.zeros((2, 3)),
+        np.ones((2, 3)),
+        np.full((2, 3), 2.0),
+    ]
+    optimizer = _optimizer(
+        monkeypatch,
+        _Backend([3.0, 2.0, 1.0], unit="kJ/mol"),
+        frames,
+    )
+    optimizer.save_movie = save_movie
+    failure = ff.AcceptanceCheck(
+        name="finite_rms_gradient",
+        passed=False,
+        measured=float("nan"),
+        threshold=True,
+    )
+
+    def quality(current, **options):
+        failed = float(current.coordinates[0, 0]) == 2.0
+        return _acceptance_report(
+            passed=not failed,
+            checks=(failure,) if failed else (),
+        )
+
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
+    molecule = _OptimizerMolecule()
+
+    with pytest.warns(ff.GeometryQualityWarning, match="finite_rms_gradient"):
+        report = optimizer.optimize(
+            molecule,
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+
+    assert report.quality_report.passed is False
+    assert report.termination_reason == "quality_gate_failed"
+    assert report.best_epoch == 2
+    assert report.best_energy == pytest.approx(1.0)
+    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
+    assert len(molecule.frames) == (3 if save_movie else 1)
+    assert molecule._conformers_index == (2 if save_movie else 0)
+
+
 @pytest.mark.parametrize(
     "warning_name",
     ("bond_ring_piercing", "bond_ring_scope_coverage"),

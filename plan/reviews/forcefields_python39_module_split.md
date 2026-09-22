@@ -1,7 +1,7 @@
 # Force-field Python 3.9 / Open Babel 3.1 隔离方案
 
-> 实施状态（2026-09-21）：已完成。Python 3.9 与 3.14 的真实兼容测试均通过；两套 façade
-> 的导出集合和函数签名由专门测试锁定。
+> 实施状态（2026-09-22）：已完成。Python 3.9–3.14 的真实兼容测试均通过；两套 façade
+> 的导出集合、函数签名、共享函数身份和版本 worker 注入由专门测试锁定。
 
 ## 1. 已确定的支持政策
 
@@ -11,7 +11,9 @@
 - Open Babel 3.1 的兼容实现不得继续与 3.10+ 主实现混放在同一个 Python 文件中。
 - 版本选择只允许发生在 `hotpot.cheminfo.forcefields` 包入口；业务执行过程中不得反复
   判断 Python/Open Babel 版本，也不得使用 `try/except ImportError` 静默回退。
-- Python 3.9 与 3.10+ 暴露完全相同的公开名称和函数签名。
+- Python 3.9 与 3.10+ 暴露完全相同的公开名称和函数签名。无版本差异的
+  API 直接重导出 `utils.py` 中的同一函数对象；只有需要选择 worker adapter 的入口
+  在两个 façade 中保留独立实现。
 
 ## 2. 目标文件结构
 
@@ -61,7 +63,7 @@ else:
 ### 3.2 `ff.py`
 
 - 只连接 `utils.py`；不得导入 `utils39.py`。
-- 定义或显式重新导出完整公共数据类、异常和函数。
+- 显式重新导出完整公共数据类、异常和函数。
 - 公共函数保持显式参数，不允许使用 `*args` / `**kwargs` 代理。
 - 3.10+ 的 seed/build 路径只使用 Open Babel 3.2 的当前机制。
 
@@ -69,7 +71,7 @@ else:
 
 - 可以同时连接 `utils.py` 和 `utils39.py`。
 - 与 `ff.py` 提供相同的 `__all__`、参数顺序、keyword-only 边界、默认值、annotation 和
-  返回契约。
+  返回契约。无版本差异的函数直接绑定到 `utils.py` 的同一对象。
 - 仅在需要 Open Babel 3.1 差异的调用点改用 `utils39.py`，其余工作流调用相同的
   `utils.py` 实现。
 - 不允许把 3.9 差异写成“先试 3.2，失败后退回 3.1”。
@@ -104,9 +106,10 @@ else:
 
 ## 4. 避免复制整套业务代码
 
-`ff.py` 与 `ff39.py` 的公开签名必须重复声明，以便 IDE、文档生成器和 Python 自身都看到
-真实签名；但函数体只做薄分派。共同业务实现放在 `utils.py`，版本差异通过明确 adapter
-参数传入，例如：
+公开函数必须向 IDE、文档生成器和 Python 暴露真实签名。无版本差异的函数由两个 façade
+直接绑定到 `utils.py` 中的同一函数对象，避免无意义的薄转发；需要选择 Open Babel worker
+adapter 的四个入口在 `ff.py`/`ff39.py` 保留等签名实现。共同业务实现放在 `utils.py`，
+版本差异通过明确 adapter 参数传入，例如：
 
 ```text
 ff.build3d(...)
@@ -125,10 +128,11 @@ ff39.build3d(...)
 
 ## 5. 公共接口一致性清单
 
-两个 façade 的 `__all__` 必须逐项相等。当前共 44 个公开符号：
+两个 façade 的 `__all__` 必须逐项相等。当前共 47 个公开符号：
 
 - 类型：`OptimizationAlgorithm`、`TerminationReason`、`ForceFieldDiagnosticValue`；
 - report/data：`ForceFieldRunReport`、`Build3DReport`、`CandidateRejection`、
+  `RingUntanglingReport`、`CoordinationBondRestorationReport`、
   `ComplexBuildDiagnostics`、`BuildWorkerResult`、`ForceFieldWorkflowReport`、
   `BuildAndOptimizeReport`、`ComplexBuildReport`、`ForceFieldSetupReport`、
   `AcceptanceCheck`、`StructureAcceptanceThresholds`、`ForceFieldAcceptanceEvidence`、
@@ -139,8 +143,9 @@ ff39.build3d(...)
 - exception：`ForceFieldError`、`ForceFieldSetupError`、`BuildWorkerError`、
   `BuildTimeoutError`、`ComplexBuildError`、`ComplexBuildWorkerError`、
   `ComplexBuildTimeoutError`、`GeometryQualityError`；
-- warning：`GeometryQualityWarning`；
-- 函数：`perturb`、`collect_coordination_environments`、
+- warning：`ComplexBuildWarning`、`GeometryQualityWarning`；
+- 函数：`capture_topology`、`evaluate_structure_acceptance`、
+  `is_structure_accepted`、`perturb`、`collect_coordination_environments`、
   `prepare_coordination_geometry`、`build3d`、`optimize`、`build_complex3d`、
   `optimize_complex`、`complexes_build`、`build_and_optimize`、`auto_optimize`。
 
@@ -178,8 +183,9 @@ ff39.build3d(...)
 
 1. **选择测试**：Python 3.9 导出 `ff39`，3.10-3.14 导出 `ff`；检查未选择模块没有被
    package 入口意外导入。
-2. **签名测试**：对 `ff.py` 与 `ff39.py` 的全部公开函数执行 AST/`inspect.signature`
-   对比；比较参数名、顺序、kind、默认值和返回 annotation。
+2. **签名测试**：对 `ff.py` 与 `ff39.py` 的全部公开函数执行 `inspect.signature`
+   对比；比较参数名、顺序、kind、默认值和返回 annotation。另检查无版本差异函数为
+   `utils.py` 的同一对象，只有四个 worker-sensitive 入口保留 façade wrapper。
 3. **符号测试**：两个模块的 `__all__` 完全一致，package `__all__` 与选中模块一致。
 4. **行为测试**：同一无 seed 输入的 report 类型、单位、异常和拓扑结果一致。
 5. **版本专用 seed 测试**：分别在 Open Babel 3.1 和 3.2 环境验证同 seed 重复运行得到

@@ -34,6 +34,25 @@ PUBLIC_FUNCTIONS = (
     "auto_optimize",
 )
 
+SHARED_FUNCTIONS = (
+    "capture_topology",
+    "evaluate_structure_acceptance",
+    "is_structure_accepted",
+    "perturb",
+    "collect_coordination_environments",
+    "prepare_coordination_geometry",
+    "optimize",
+    "optimize_complex",
+    "auto_optimize",
+)
+
+WORKER_ADAPTED_FUNCTIONS = (
+    "build3d",
+    "build_complex3d",
+    "complexes_build",
+    "build_and_optimize",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -73,6 +92,92 @@ def test_facades_expose_the_same_public_symbols_and_function_signatures():
         assert inspect.signature(getattr(modern_facade, name)) == inspect.signature(
             getattr(python39_facade, name)
         )
+
+
+def test_facades_only_wrap_worker_adapted_workflows():
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+
+    for name in SHARED_FUNCTIONS:
+        assert getattr(modern, name) is getattr(shared, name)
+        assert getattr(python39, name) is getattr(shared, name)
+
+    for name in WORKER_ADAPTED_FUNCTIONS:
+        assert getattr(modern, name) is getattr(shared, name)
+        assert getattr(python39, name) is not getattr(shared, name)
+
+
+@pytest.mark.parametrize("facade_name", (MODERN_FACADE_NAME, PYTHON39_FACADE_NAME))
+@pytest.mark.parametrize("function_name", PUBLIC_FUNCTIONS)
+def test_public_forcefield_functions_are_pickleable(facade_name, function_name):
+    facade = importlib.import_module(facade_name)
+    function = getattr(facade, function_name)
+
+    assert pickle.loads(pickle.dumps(function)) is function
+
+
+def test_python39_build3d_injects_the_legacy_seeded_worker(monkeypatch):
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    legacy = importlib.import_module(f"{PACKAGE_NAME}.utils39")
+    expected = object()
+    received = {}
+
+    def build_workflow(molecule, **options):
+        received.update(options)
+        return expected
+
+    monkeypatch.setattr(shared, "_build3d_workflow", build_workflow)
+
+    assert python39.build3d(object(), seed=17) is expected
+    assert received["worker_target"] is legacy._seeded_ob_build_worker
+
+
+@pytest.mark.parametrize(
+    ("function_name", "workflow_name", "worker_options"),
+    (
+        (
+            "build_complex3d",
+            "_build_complex3d_workflow",
+            {"worker_target": "_build_ligand_proxies_worker"},
+        ),
+        (
+            "complexes_build",
+            "_complexes_build_workflow",
+            {"worker_target": "_build_ligand_proxies_worker"},
+        ),
+        (
+            "build_and_optimize",
+            "_build_and_optimize_workflow",
+            {
+                "seeded_build_worker": "_seeded_ob_build_worker",
+                "complex_build_worker": "_build_ligand_proxies_worker",
+            },
+        ),
+    ),
+)
+def test_python39_complex_workflows_inject_legacy_workers(
+    monkeypatch,
+    function_name,
+    workflow_name,
+    worker_options,
+):
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    legacy = importlib.import_module(f"{PACKAGE_NAME}.utils39")
+    expected = object()
+    received = {}
+
+    def workflow(molecule, forcefield, **options):
+        received.update(options)
+        return expected
+
+    monkeypatch.setattr(shared, workflow_name, workflow)
+
+    assert getattr(python39, function_name)(object()) is expected
+    for option_name, worker_name in worker_options.items():
+        assert received[option_name] is getattr(legacy, worker_name)
 
 
 def test_fresh_import_selects_only_the_runtime_facade():

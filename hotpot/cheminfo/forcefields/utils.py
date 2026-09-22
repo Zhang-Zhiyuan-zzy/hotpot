@@ -1200,6 +1200,281 @@ def _bond_ring_acceptance_checks(
     return tuple(checks)
 
 
+def _coordinate_acceptance_section(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+    coordinates: np.ndarray,
+) -> Tuple[
+    Tuple[AcceptanceCheck, ...],
+    bool,
+    dict[str, ForceFieldDiagnosticValue],
+]:
+    """Return coordinate checks, finiteness, and base structure metrics."""
+    expected_shape = (len(atoms), 3)
+    shape_ok = coordinates.shape == expected_shape
+    checks = [AcceptanceCheck(
+        name="coordinate_shape",
+        passed=shape_ok,
+        measured=tuple(coordinates.shape),
+        threshold=expected_shape,
+        message="Coordinates must contain one Cartesian row per atom",
+    )]
+
+    finite_ok = shape_ok and bool(np.all(np.isfinite(coordinates)))
+    nonfinite_indices = ()
+    if shape_ok and not finite_ok:
+        nonfinite_indices = tuple(
+            int(atoms[index].idx)
+            for index in np.flatnonzero(
+                ~np.all(np.isfinite(coordinates), axis=1)
+            )
+        )
+    checks.append(AcceptanceCheck(
+        name="finite_coordinates",
+        passed=finite_ok,
+        measured=finite_ok,
+        threshold=True,
+        atom_indices=nonfinite_indices,
+        message="All Cartesian coordinates must be finite",
+    ))
+    metrics: dict[str, ForceFieldDiagnosticValue] = {
+        "atom_count": len(atoms),
+        "bond_count": len(mol.bonds),
+    }
+    return tuple(checks), finite_ok, metrics
+
+
+def _atom_pair_distance_acceptance_section(
+    mol: "Molecule",
+    level: AcceptanceLevel,
+    limits: StructureAcceptanceThresholds,
+) -> Tuple[
+    Tuple[AcceptanceCheck, ...],
+    dict[str, ForceFieldDiagnosticValue],
+]:
+    """Return atom-pair distance checks and distance metrics."""
+    distances = geo.measure_atom_pair_distances(mol, "all")
+    metrics: dict[str, ForceFieldDiagnosticValue] = {}
+    if distances:
+        metrics["minimum_pair_distance"] = min(
+            float(distance.measurement.distance) for distance in distances
+        )
+
+    if level == "off":
+        return (), metrics
+
+    checks = []
+    overlaps = _overlap_issues(distances, limits.overlap_tolerance)
+    if overlaps:
+        checks.extend(AcceptanceCheck(
+            name="atom_overlap",
+            passed=False,
+            measured=issue.distance,
+            threshold=issue.threshold,
+            atom_indices=issue.atom_indices,
+            message="Two atoms occupy indistinguishable coordinates",
+        ) for issue in overlaps)
+    else:
+        checks.append(AcceptanceCheck(
+            name="atom_overlap",
+            passed=True,
+            measured=0,
+            threshold=limits.overlap_tolerance,
+        ))
+
+    close_pairs_by_atoms = {
+        issue.atom_indices: issue
+        for issue in _too_close_issues(
+            distances,
+            minimum_distance=limits.basic_minimum_distance,
+            covalent_radius_scale=None,
+            pair_scope="all",
+            include_overlaps=False,
+            overlap_tolerance=limits.overlap_tolerance,
+        )
+    }
+    if level in ("standard", "strict"):
+        close_pairs_by_atoms.update(
+            (issue.atom_indices, issue)
+            for issue in _too_close_issues(
+                distances,
+                minimum_distance=limits.standard_minimum_distance,
+                covalent_radius_scale=limits.standard_covalent_radius_scale,
+                pair_scope="nonbonded",
+                include_overlaps=False,
+                overlap_tolerance=limits.overlap_tolerance,
+            )
+        )
+    close_pairs = tuple(
+        close_pairs_by_atoms[key] for key in sorted(close_pairs_by_atoms)
+    )
+    if close_pairs:
+        checks.extend(AcceptanceCheck(
+            name="atom_too_close",
+            passed=False,
+            measured=issue.distance,
+            threshold=issue.threshold,
+            atom_indices=issue.atom_indices,
+            message="An atom pair is closer than the allowed separation",
+        ) for issue in close_pairs)
+    else:
+        checks.append(AcceptanceCheck(
+            name="atom_too_close",
+            passed=True,
+            measured=0,
+            threshold=(
+                limits.basic_minimum_distance
+                if level == "basic"
+                else (
+                    limits.basic_minimum_distance,
+                    limits.standard_minimum_distance,
+                    limits.standard_covalent_radius_scale,
+                )
+            ),
+        ))
+    return tuple(checks), metrics
+
+
+def _bond_geometry_acceptance_section(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+    coordinates: np.ndarray,
+    level: AcceptanceLevel,
+    limits: StructureAcceptanceThresholds,
+) -> Tuple[
+    Tuple[AcceptanceCheck, ...],
+    dict[str, ForceFieldDiagnosticValue],
+]:
+    """Return explicit-bond geometry checks and bond-length metrics."""
+    checks = []
+    maximum_bond_length = 0.0
+    short_bond_count = 0
+    for bond_index, bond, first, second in _bond_position_data(mol, atoms):
+        distance = float(np.linalg.norm(
+            coordinates[first] - coordinates[second]
+        ))
+        maximum_bond_length = max(maximum_bond_length, distance)
+        atom_indices = (
+            int(atoms[first].idx),
+            int(atoms[second].idx),
+        )
+        valid_length = 0.0 < distance <= limits.maximum_bond_distance
+        if not valid_length:
+            checks.append(AcceptanceCheck(
+                name="bond_distance",
+                passed=False,
+                measured=distance,
+                threshold=(0.0, limits.maximum_bond_distance),
+                atom_indices=atom_indices,
+                bond_indices=(bond_index,),
+                message="An explicit bond has an invalid or exploded length",
+            ))
+
+        if level in ("standard", "strict"):
+            radius_sum = (
+                float(atoms[first].covalent_radius)
+                + float(atoms[second].covalent_radius)
+            )
+            if radius_sum > 0.0:
+                ratio = distance / radius_sum
+                ratio_limits = (
+                    limits.metal_ligand_bond_ratio
+                    if bond.is_metal_ligand_bond
+                    else limits.covalent_bond_ratio
+                )
+                if ratio < ratio_limits[0]:
+                    short_bond_count += 1
+                    checks.append(AcceptanceCheck(
+                        name="short_bond",
+                        passed=False,
+                        measured=distance,
+                        threshold=ratio_limits[0] * radius_sum,
+                        atom_indices=atom_indices,
+                        bond_indices=(bond_index,),
+                        message=(
+                            "An explicit bond is shorter than its "
+                            "radius-scaled limit"
+                        ),
+                    ))
+                if not ratio_limits[0] <= ratio <= ratio_limits[1]:
+                    checks.append(AcceptanceCheck(
+                        name="bond_length_ratio",
+                        passed=False,
+                        measured=ratio,
+                        threshold=ratio_limits,
+                        atom_indices=atom_indices,
+                        bond_indices=(bond_index,),
+                        message=(
+                            "Bond length is inconsistent with covalent radii"
+                        ),
+                    ))
+    metrics: dict[str, ForceFieldDiagnosticValue] = {
+        "maximum_bond_length": maximum_bond_length,
+    }
+    if not any(check.name == "bond_distance" for check in checks):
+        checks.append(AcceptanceCheck(
+            name="bond_distance",
+            passed=True,
+            measured=maximum_bond_length,
+            threshold=(0.0, limits.maximum_bond_distance),
+        ))
+    if level in ("standard", "strict") and not any(
+        check.name == "bond_length_ratio" for check in checks
+    ):
+        checks.append(AcceptanceCheck(
+            name="bond_length_ratio",
+            passed=True,
+            measured=None,
+            threshold=(
+                limits.covalent_bond_ratio,
+                limits.metal_ligand_bond_ratio,
+            ),
+        ))
+    if level in ("standard", "strict") and short_bond_count == 0:
+        checks.append(AcceptanceCheck(
+            name="short_bond",
+            passed=True,
+            measured=0,
+            threshold=(
+                limits.covalent_bond_ratio[0],
+                limits.metal_ligand_bond_ratio[0],
+            ),
+            message="No explicit bond is below its radius-scaled limit",
+        ))
+    return tuple(checks), metrics
+
+
+def _bond_ring_coordination_acceptance_section(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+    coordinates: np.ndarray,
+) -> Tuple[
+    Tuple[AcceptanceCheck, ...],
+    dict[str, ForceFieldDiagnosticValue],
+]:
+    """Return bond-ring checks and coordination-environment metrics."""
+    bond_ring_report = geo.scan_bond_ring_relations(
+        mol,
+        ring_scope="ligand_skeleton",
+        max_ring_size=_BOND_RING_MAX_SIZE,
+    )
+    metrics: dict[str, ForceFieldDiagnosticValue] = {
+        "bond_ring_piercing_count": bond_ring_report.piercing_pair_count,
+        "bond_ring_undetermined_count": bond_ring_report.undetermined_pair_count,
+        "bond_ring_scan_complete": bond_ring_report.scan_complete,
+        "bond_ring_selected_ring_count": bond_ring_report.selected_ring_count,
+        "bond_ring_excluded_ring_count": bond_ring_report.excluded_ring_count,
+        "bond_ring_max_ring_size": bond_ring_report.max_ring_size,
+        "bond_ring_scope": bond_ring_report.ring_scope,
+        "coordination_environments": _coordination_metrics(
+            mol,
+            atoms,
+            coordinates,
+        ),
+    }
+    return _bond_ring_acceptance_checks(mol, bond_ring_report), metrics
+
+
 def _select_ring_opening_edge(
     mol: "Molecule",
     ring: "Ring",
@@ -3625,39 +3900,12 @@ def evaluate_structure_acceptance(
     limits = _resolve_acceptance_thresholds(thresholds)
     atoms = tuple(mol.atoms)
     coordinates = np.asarray(mol.coordinates, dtype=float)
-    checks = []
-    metrics: dict[str, ForceFieldDiagnosticValue] = {
-        "atom_count": len(atoms),
-        "bond_count": len(mol.bonds),
-    }
-
-    expected_shape = (len(atoms), 3)
-    shape_ok = coordinates.shape == expected_shape
-    checks.append(AcceptanceCheck(
-        name="coordinate_shape",
-        passed=shape_ok,
-        measured=tuple(coordinates.shape),
-        threshold=expected_shape,
-        message="Coordinates must contain one Cartesian row per atom",
-    ))
-
-    finite_ok = shape_ok and bool(np.all(np.isfinite(coordinates)))
-    nonfinite_indices = ()
-    if shape_ok and not finite_ok:
-        nonfinite_indices = tuple(
-            int(atoms[index].idx)
-            for index in np.flatnonzero(
-                ~np.all(np.isfinite(coordinates), axis=1)
-            )
-        )
-    checks.append(AcceptanceCheck(
-        name="finite_coordinates",
-        passed=finite_ok,
-        measured=finite_ok,
-        threshold=True,
-        atom_indices=nonfinite_indices,
-        message="All Cartesian coordinates must be finite",
-    ))
+    coordinate_checks, finite_ok, metrics = _coordinate_acceptance_section(
+        mol,
+        atoms,
+        coordinates,
+    )
+    checks = list(coordinate_checks)
 
     if topology_reference is not None:
         checks.extend(_topology_checks(mol, topology_reference))
@@ -3674,11 +3922,11 @@ def evaluate_structure_acceptance(
         )
         return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
 
-    distances = geo.measure_atom_pair_distances(mol, "all")
-    if distances:
-        metrics["minimum_pair_distance"] = min(
-            float(distance.measurement.distance) for distance in distances
-        )
+    atom_pair_checks, atom_pair_metrics = (
+        _atom_pair_distance_acceptance_section(mol, level, limits)
+    )
+    checks.extend(atom_pair_checks)
+    metrics.update(atom_pair_metrics)
 
     if level == "off":
         passed = all(
@@ -3686,193 +3934,26 @@ def evaluate_structure_acceptance(
         )
         return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
 
-    overlaps = _overlap_issues(distances, limits.overlap_tolerance)
-    if overlaps:
-        checks.extend(AcceptanceCheck(
-            name="atom_overlap",
-            passed=False,
-            measured=issue.distance,
-            threshold=issue.threshold,
-            atom_indices=issue.atom_indices,
-            message="Two atoms occupy indistinguishable coordinates",
-        ) for issue in overlaps)
-    else:
-        checks.append(AcceptanceCheck(
-            name="atom_overlap",
-            passed=True,
-            measured=0,
-            threshold=limits.overlap_tolerance,
-        ))
-
-    close_pairs_by_atoms = {
-        issue.atom_indices: issue
-        for issue in _too_close_issues(
-            distances,
-            minimum_distance=limits.basic_minimum_distance,
-            covalent_radius_scale=None,
-            pair_scope="all",
-            include_overlaps=False,
-            overlap_tolerance=limits.overlap_tolerance,
-        )
-    }
-    if level in ("standard", "strict"):
-        close_pairs_by_atoms.update(
-            (issue.atom_indices, issue)
-            for issue in _too_close_issues(
-                distances,
-                minimum_distance=limits.standard_minimum_distance,
-                covalent_radius_scale=limits.standard_covalent_radius_scale,
-                pair_scope="nonbonded",
-                include_overlaps=False,
-                overlap_tolerance=limits.overlap_tolerance,
-            )
-        )
-    close_pairs = tuple(
-        close_pairs_by_atoms[key] for key in sorted(close_pairs_by_atoms)
+    bond_checks, bond_metrics = _bond_geometry_acceptance_section(
+        mol,
+        atoms,
+        coordinates,
+        level,
+        limits,
     )
-    if close_pairs:
-        checks.extend(AcceptanceCheck(
-            name="atom_too_close",
-            passed=False,
-            measured=issue.distance,
-            threshold=issue.threshold,
-            atom_indices=issue.atom_indices,
-            message="An atom pair is closer than the allowed separation",
-        ) for issue in close_pairs)
-    else:
-        checks.append(AcceptanceCheck(
-            name="atom_too_close",
-            passed=True,
-            measured=0,
-            threshold=(
-                limits.basic_minimum_distance
-                if level == "basic"
-                else (
-                    limits.basic_minimum_distance,
-                    limits.standard_minimum_distance,
-                    limits.standard_covalent_radius_scale,
-                )
-            ),
-        ))
-
-    maximum_bond_length = 0.0
-    short_bond_count = 0
-    for bond_index, bond, first, second in _bond_position_data(mol, atoms):
-        distance = float(np.linalg.norm(
-            coordinates[first] - coordinates[second]
-        ))
-        maximum_bond_length = max(maximum_bond_length, distance)
-        atom_indices = (
-            int(atoms[first].idx),
-            int(atoms[second].idx),
-        )
-        valid_length = 0.0 < distance <= limits.maximum_bond_distance
-        if not valid_length:
-            checks.append(AcceptanceCheck(
-                name="bond_distance",
-                passed=False,
-                measured=distance,
-                threshold=(0.0, limits.maximum_bond_distance),
-                atom_indices=atom_indices,
-                bond_indices=(bond_index,),
-                message="An explicit bond has an invalid or exploded length",
-            ))
-
-        if level in ("standard", "strict"):
-            radius_sum = (
-                float(atoms[first].covalent_radius)
-                + float(atoms[second].covalent_radius)
-            )
-            if radius_sum > 0.0:
-                ratio = distance / radius_sum
-                ratio_limits = (
-                    limits.metal_ligand_bond_ratio
-                    if bond.is_metal_ligand_bond
-                    else limits.covalent_bond_ratio
-                )
-                if ratio < ratio_limits[0]:
-                    short_bond_count += 1
-                    checks.append(AcceptanceCheck(
-                        name="short_bond",
-                        passed=False,
-                        measured=distance,
-                        threshold=ratio_limits[0] * radius_sum,
-                        atom_indices=atom_indices,
-                        bond_indices=(bond_index,),
-                        message=(
-                            "An explicit bond is shorter than its "
-                            "radius-scaled limit"
-                        ),
-                    ))
-                if not ratio_limits[0] <= ratio <= ratio_limits[1]:
-                    checks.append(AcceptanceCheck(
-                        name="bond_length_ratio",
-                        passed=False,
-                        measured=ratio,
-                        threshold=ratio_limits,
-                        atom_indices=atom_indices,
-                        bond_indices=(bond_index,),
-                        message="Bond length is inconsistent with covalent radii",
-                    ))
-    metrics["maximum_bond_length"] = maximum_bond_length
-    if not any(check.name == "bond_distance" for check in checks):
-        checks.append(AcceptanceCheck(
-            name="bond_distance",
-            passed=True,
-            measured=maximum_bond_length,
-            threshold=(0.0, limits.maximum_bond_distance),
-        ))
-    if level in ("standard", "strict") and not any(
-        check.name == "bond_length_ratio" for check in checks
-    ):
-        checks.append(AcceptanceCheck(
-            name="bond_length_ratio",
-            passed=True,
-            measured=None,
-            threshold=(
-                limits.covalent_bond_ratio,
-                limits.metal_ligand_bond_ratio,
-            ),
-        ))
-    if level in ("standard", "strict") and short_bond_count == 0:
-        checks.append(AcceptanceCheck(
-            name="short_bond",
-            passed=True,
-            measured=0,
-            threshold=(
-                limits.covalent_bond_ratio[0],
-                limits.metal_ligand_bond_ratio[0],
-            ),
-            message="No explicit bond is below its radius-scaled limit",
-        ))
+    checks.extend(bond_checks)
+    metrics.update(bond_metrics)
 
     if level in ("standard", "strict"):
-        bond_ring_report = geo.scan_bond_ring_relations(
-            mol,
-            ring_scope="ligand_skeleton",
-            max_ring_size=_BOND_RING_MAX_SIZE,
+        bond_ring_checks, bond_ring_metrics = (
+            _bond_ring_coordination_acceptance_section(
+                mol,
+                atoms,
+                coordinates,
+            )
         )
-        metrics["bond_ring_piercing_count"] = (
-            bond_ring_report.piercing_pair_count
-        )
-        metrics["bond_ring_undetermined_count"] = (
-            bond_ring_report.undetermined_pair_count
-        )
-        metrics["bond_ring_scan_complete"] = bond_ring_report.scan_complete
-        metrics["bond_ring_selected_ring_count"] = (
-            bond_ring_report.selected_ring_count
-        )
-        metrics["bond_ring_excluded_ring_count"] = (
-            bond_ring_report.excluded_ring_count
-        )
-        metrics["bond_ring_max_ring_size"] = bond_ring_report.max_ring_size
-        metrics["bond_ring_scope"] = bond_ring_report.ring_scope
-        checks.extend(_bond_ring_acceptance_checks(mol, bond_ring_report))
-        metrics["coordination_environments"] = _coordination_metrics(
-            mol,
-            atoms,
-            coordinates,
-        )
+        checks.extend(bond_ring_checks)
+        metrics.update(bond_ring_metrics)
 
     passed = all(check.passed or check.severity != "error" for check in checks)
     return ForceFieldValidationReport(level, passed, tuple(checks), metrics)

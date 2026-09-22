@@ -41,6 +41,7 @@ assert actual == expected
             tests/test_cheminfo/test_bond_metadata.py \
             tests/test_cheminfo/test_ligand_rings.py \
             tests/test_cheminfo/test_relevant_ring_integration.py \
+            tests/test_cheminfo/test_hidden_bond_restoration.py \
             tests/test_cheminfo/kekulize \
             tests/test_cheminfo/geometry \
             tests/test_cheminfo/test_geometry.py \
@@ -53,6 +54,7 @@ assert actual == expected
             tests/test_cheminfo/test_forcefield_integration.py \
             tests/test_cheminfo/test_complexes_build.py \
             tests/test_cheminfo/test_complex_hydrogens.py \
+            tests/test_cheminfo/test_complex_untangling_workflow.py \
             tests/test_cheminfo/test_topology_determinism.py \
             tests/test_cheminfo/test_search.py \
             tests/test_cheminfo/test_search_mapping.py \

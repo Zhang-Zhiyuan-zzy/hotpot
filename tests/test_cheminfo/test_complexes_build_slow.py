@@ -42,7 +42,7 @@ def test_readme_europium_complex_full_standard_workflow(record_testsuite_propert
 
     assert report.quality_report.passed
     assert report.quality_report.failures == ()
-    assert report.quality_report.metrics["bond_ring_intersection_count"] == 0
+    assert report.quality_report.metrics["bond_ring_piercing_count"] == 0
     assert report.optimization is not None
     optimization = report.optimization
     assert optimization.setup_succeeded

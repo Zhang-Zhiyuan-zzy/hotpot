@@ -332,6 +332,75 @@ def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
     assert report.termination_reason == "budget_exhausted"
 
 
+def test_optimizer_stops_at_first_ring_piercing_and_retains_that_frame(
+    monkeypatch,
+):
+    frames = [
+        np.zeros((2, 3)),
+        np.ones((2, 3)),
+        np.full((2, 3), 2.0),
+    ]
+    backend = _BudgetBackend([3.0, 2.0, 1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.increasing_vdw = False
+    optimizer.stop_on_ring_piercing = True
+
+    def evaluate_quality(molecule, **options):
+        piercing_count = int(float(molecule.coordinates[0, 0]) == 1.0)
+        return ff.ForceFieldValidationReport(
+            level="standard",
+            passed=not piercing_count,
+            checks=(),
+            metrics={"bond_ring_piercing_count": piercing_count},
+        )
+
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", evaluate_quality)
+    molecule = _OptimizerMolecule()
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+    )
+
+    assert report.epochs_completed == 2
+    assert report.termination_reason == "ring_piercing"
+    assert report.terminal_converged is False
+    np.testing.assert_array_equal(molecule.coordinates, frames[1])
+
+
+def test_ring_piercing_stop_does_not_hide_a_hard_failure(monkeypatch):
+    frames = [np.zeros((2, 3))]
+    backend = _BudgetBackend([1.0], unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.increasing_vdw = False
+    optimizer.stop_on_ring_piercing = True
+    rejected = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=False,
+        checks=(
+            ff.AcceptanceCheck(name="backend_explosion", passed=False),
+        ),
+        metrics={"bond_ring_piercing_count": 1},
+    )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: rejected,
+    )
+
+    with pytest.raises(ff.GeometryQualityError) as caught:
+        optimizer.optimize(
+            _OptimizerMolecule(),
+            quality_level="standard",
+            topology_reference=object(),
+            quality_thresholds=None,
+        )
+
+    assert caught.value.report is rejected
+
+
 @pytest.mark.parametrize(
     ("algorithm", "expected_limit", "expected_submitted", "expected_initialization"),
     (

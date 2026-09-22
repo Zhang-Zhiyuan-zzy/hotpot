@@ -229,6 +229,10 @@ class _DummyComponent:
     def hide_bonds(self, *bonds, clear_conformers=False):
         self.hidden.extend(bonds)
 
+    def restore_bonds(self, *bonds, clear_conformers=False):
+        for bond in bonds:
+            self.hidden.remove(bond)
+
     @property
     def has_bond_ring_intersection(self):
         raise AssertionError("forcefields must call geometry directly")
@@ -755,6 +759,14 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         "_bond_ring_acceptance_checks",
         lambda current, found: (intersection_failure,),
     )
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: SimpleNamespace(
+            passed=False,
+            failures=(intersection_failure,),
+        ),
+    )
 
     with pytest.raises(ff.ComplexBuildError) as caught:
         ff._build_ligand_proxies(
@@ -765,10 +777,11 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
             candidate_score_steps=1,
             best_candidate_refine_steps=1,
             effective_forcefield="UFF",
+            ligand_untangling_attempts=1,
         )
 
-    assert calls == {"build": 3, "lazy": 3, "dense": 3, "closest": 3}
-    assert ring_sizes == {"lazy": [16, 16, 16], "dense": [16, 16, 16]}
+    assert calls == {"build": 3, "lazy": 9, "dense": 9, "closest": 3}
+    assert ring_sizes == {"lazy": [16] * 9, "dense": [16] * 9}
     assert caught.value.diagnostics.attempt_count == 3
     assert caught.value.diagnostics.accepted_candidates == 0
     assert len(caught.value.diagnostics.rejected_candidates) == 3
@@ -840,7 +853,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     np.testing.assert_array_equal(coordinates, molecule.coordinates)
     assert diagnostics.accepted_candidates == 1
     assert diagnostics.rejected_candidates == ()
-    assert calls == {"lazy": 2, "acceptance": 2}
+    assert calls == {"lazy": 3, "acceptance": 2}
     assert component.hidden == []
 
 
@@ -1016,7 +1029,7 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
     assert len(caught.value.diagnostics.rejected_candidates) == 3
 
 
-def test_builder_failure_recovers_temporarily_opened_ring_bonds(monkeypatch):
+def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     recovery_calls = 0
@@ -1047,7 +1060,7 @@ def test_builder_failure_recovers_temporarily_opened_ring_bonds(monkeypatch):
             effective_forcefield="UFF",
         )
 
-    assert recovery_calls == 2
+    assert recovery_calls == 0
 
 
 def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
@@ -1107,7 +1120,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
     assert "bond_indices=(0,)" in rejection.reason
 
 
-def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatch):
+def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     quality_calls = 0
@@ -1151,24 +1164,26 @@ def test_refined_candidate_is_checked_before_coordinates_are_accepted(monkeypatc
 
     monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
 
-    with pytest.raises(ff.ComplexBuildError, match="refinement failed") as caught:
-        ff._build_ligand_proxies(
-            molecule,
-            candidate_count=1,
-            max_attempts=1,
-            candidate_warmup_steps=1,
-            candidate_score_steps=1,
-            best_candidate_refine_steps=1,
-            effective_forcefield="UFF",
-        )
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        candidate_count=1,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
 
     assert quality_calls == 2
-    rejection = caught.value.diagnostics.rejected_candidates[-1]
+    rejection = diagnostics.rejected_candidates[-1]
     assert rejection.quality_failures == (failure,)
     assert "minimum_distance" in rejection.reason
     assert "measured=0.12" in rejection.reason
     assert "threshold=0.4" in rejection.reason
     assert "atom_indices=(0, 1)" in rejection.reason
+    assert diagnostics.warning_messages[-1].endswith(
+        "every long refinement failed; retaining the best medium-optimized candidate"
+    )
 
 
 def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypatch):
@@ -1209,7 +1224,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         relation_calls += 1
         return (
             ff.geo.PiercingState.DOES_NOT_PIERCE
-            if relation_calls == 1
+            if relation_calls <= 2
             else ff.geo.PiercingState.PIERCES
         )
 
@@ -1244,18 +1259,17 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         quality,
     )
 
-    with pytest.raises(ff.ComplexBuildError, match="refinement failed") as caught:
-        ff._build_ligand_proxies(
-            molecule,
-            candidate_count=1,
-            max_attempts=1,
-            candidate_warmup_steps=1,
-            candidate_score_steps=1,
-            best_candidate_refine_steps=1,
-            effective_forcefield="UFF",
-        )
+    _, diagnostics = ff._build_ligand_proxies(
+        molecule,
+        candidate_count=1,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
 
-    rejection = caught.value.diagnostics.rejected_candidates[-1]
+    rejection = diagnostics.rejected_candidates[-1]
     assert rejection.quality_failures == (failure, gate_failure)
     assert "bond_ring_intersection" in rejection.reason
     assert "atom_too_close" in rejection.reason
@@ -1332,36 +1346,11 @@ def test_refinement_tries_the_next_scored_candidate(monkeypatch):
     )
 
 
-def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch):
+def test_first_openable_ring_edge_uses_dense_report_order(monkeypatch):
     component = _DummyComponent()
-    molecule = _DummyComplex(component)
     first = SimpleNamespace(a1idx=4, a2idx=2)
     second = SimpleNamespace(a1idx=3, a2idx=1)
 
-    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
-    monkeypatch.setattr(
-        ff,
-        "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
-    )
-    monkeypatch.setattr(
-        ff,
-        "capture_topology",
-        lambda mol, **options: object(),
-    )
-    monkeypatch.setattr(
-        ff.geo,
-        "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: ff.geo.PiercingState.PIERCES,
-    )
-    monkeypatch.setattr(
-        ff.geo,
-        "scan_bond_ring_relations",
-        lambda *args, **kwargs: _piercing_report(
-            ("first", "probe"),
-            ("second", "probe"),
-        ),
-    )
     monkeypatch.setattr(
         ff,
         "_select_ring_opening_edge",
@@ -1369,29 +1358,12 @@ def test_intersected_ring_edges_are_hidden_in_stable_endpoint_order(monkeypatch)
             first if ring == "first" else second
         ),
     )
-    monkeypatch.setattr(
-        ff,
-        "_bond_ring_acceptance_checks",
-        lambda current, found: (
-            ff.AcceptanceCheck(
-                name="bond_ring_intersection",
-                passed=False,
-            ),
-        ),
+    report = _piercing_report(
+        ("first", "probe"),
+        ("second", "probe"),
     )
 
-    with pytest.raises(ff.ComplexBuildError):
-        ff._build_ligand_proxies(
-            molecule,
-            candidate_count=1,
-            max_attempts=1,
-            candidate_warmup_steps=1,
-            candidate_score_steps=1,
-            best_candidate_refine_steps=1,
-            effective_forcefield="UFF",
-        )
-
-    assert component.hidden == [second, first]
+    assert ff._first_openable_ring_edge(component, report) is first
 
 
 def test_worker_boundary_serializes_an_exception(monkeypatch):

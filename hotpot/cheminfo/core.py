@@ -738,14 +738,24 @@ class Molecule:
         if not bonds:
             return
 
-        for bond in bonds:
-            if bond in self._hided_metal_bonds:
-                self._hided_metal_bonds.remove(bond)
-            elif bond in self._hided_covalent_bonds:
-                self._hided_covalent_bonds.remove(bond)
-            else:
+        bond_ids = tuple(id(bond) for bond in bonds)
+        if len(set(bond_ids)) != len(bond_ids):
+            raise ValueError("A hidden bond can only be restored once per call")
+
+        hidden_bond_ids = {id(bond) for bond in self._hided_bonds}
+        for bond, bond_id in zip(bonds, bond_ids):
+            if bond_id not in hidden_bond_ids:
                 raise ObjNotInMolecule(bond, self)
 
+        restored_bond_ids = set(bond_ids)
+        self._hided_metal_bonds = [
+            bond for bond in self._hided_metal_bonds
+            if id(bond) not in restored_bond_ids
+        ]
+        self._hided_covalent_bonds = [
+            bond for bond in self._hided_covalent_bonds
+            if id(bond) not in restored_bond_ids
+        ]
         self._bonds.extend(bonds)
         self._update_graph(clear_conformers)
 
@@ -933,6 +943,9 @@ class Molecule:
             candidate_warmup_steps: int = 500,
             candidate_score_steps: int = 1000,
             best_candidate_refine_steps: int = 3000,
+            ligand_untangling_attempts: int = 20,
+            coordination_restoration_attempts: int = 20,
+            complex_untangling_attempts: int = 30,
             coordination_geometry: Optional[str] = None,
     ):
         """Build a 3D structure and optimize it with the appropriate workflow."""
@@ -958,6 +971,9 @@ class Molecule:
             candidate_warmup_steps=candidate_warmup_steps,
             candidate_score_steps=candidate_score_steps,
             best_candidate_refine_steps=best_candidate_refine_steps,
+            ligand_untangling_attempts=ligand_untangling_attempts,
+            coordination_restoration_attempts=coordination_restoration_attempts,
+            complex_untangling_attempts=complex_untangling_attempts,
             coordination_geometry=coordination_geometry,
         )
 
@@ -1118,6 +1134,7 @@ class Molecule:
             algorithm: Literal["steepest", "conjugate"] = "conjugate",
             epochs: int = 100,
             steps_per_epoch: int = 100,
+            complex_untangling_attempts: int = 30,
             add_hydrogens: bool = True,
             quality_level: Literal["off", "basic", "standard", "strict"] = "standard",
             quality_thresholds: Optional["ff.StructureAcceptanceThresholds"] = None,
@@ -1136,6 +1153,7 @@ class Molecule:
             algorithm=algorithm,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
+            complex_untangling_attempts=complex_untangling_attempts,
             add_hydrogens=add_hydrogens,
             quality_level=quality_level,
             quality_thresholds=quality_thresholds,

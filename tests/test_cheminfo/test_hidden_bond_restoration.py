@@ -1,4 +1,6 @@
-from hotpot.cheminfo.core import BondKind, Molecule
+import pytest
+
+from hotpot.cheminfo.core import BondKind, Molecule, ObjNotInMolecule
 
 
 def _complex_with_a_ligand_ring():
@@ -83,3 +85,36 @@ def test_restore_bonds_can_restore_one_hidden_metal_bond_at_a_time():
     assert molecule._hided_metal_bonds == []
     assert set(molecule.graph.edges) == {(0, 1), (0, 2)}
 
+
+@pytest.mark.parametrize("invalid_selection", ["active", "duplicate"])
+def test_restore_bonds_validates_the_whole_selection_before_mutating(
+        invalid_selection,
+        monkeypatch,
+):
+    molecule, metal_bond, ring_bond = _complex_with_a_ligand_ring()
+    active_bond = molecule.bonds[-1]
+    molecule.hide_bonds(metal_bond, ring_bond, clear_conformers=False)
+    original_bonds = tuple(molecule.bonds)
+    original_hidden_metal_bonds = tuple(molecule._hided_metal_bonds)
+    original_hidden_covalent_bonds = tuple(molecule._hided_covalent_bonds)
+    update_calls = []
+    monkeypatch.setattr(
+        molecule,
+        "_update_graph",
+        lambda clear_conformers=True: update_calls.append(clear_conformers),
+    )
+
+    if invalid_selection == "active":
+        selected_bonds = (metal_bond, active_bond)
+        expected_error = ObjNotInMolecule
+    else:
+        selected_bonds = (metal_bond, metal_bond)
+        expected_error = ValueError
+
+    with pytest.raises(expected_error):
+        molecule.restore_bonds(*selected_bonds, clear_conformers=False)
+
+    assert tuple(molecule.bonds) == original_bonds
+    assert tuple(molecule._hided_metal_bonds) == original_hidden_metal_bonds
+    assert tuple(molecule._hided_covalent_bonds) == original_hidden_covalent_bonds
+    assert update_calls == []

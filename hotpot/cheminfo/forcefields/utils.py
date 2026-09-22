@@ -709,6 +709,19 @@ def _unique_messages(messages: Sequence[str]) -> Tuple[str, ...]:
     return tuple(dict.fromkeys(messages))
 
 
+def _iter_metal_donor_pairs(
+    mol: "Molecule",
+) -> Iterator[Tuple["Atom", "Atom"]]:
+    """Yield the metal and donor atoms of each explicit coordination bond."""
+    for bond in mol.bonds:
+        if not bond.is_metal_ligand_bond:
+            continue
+        if bond.atom1.is_metal:
+            yield bond.atom1, bond.atom2
+        else:
+            yield bond.atom2, bond.atom1
+
+
 # Structure-acceptance policy helpers.  Geometry supplies measurements and
 # relation states; this module owns every chemical threshold and pass/fail
 # decision made from those facts.
@@ -1098,14 +1111,8 @@ def _coordination_metrics(
 ) -> Tuple[_CoordinationMetrics, ...]:
     atom_indices = _atom_index_map(atoms)
     donors = {index: [] for index, atom in enumerate(atoms) if atom.is_metal}
-    for bond in mol.bonds:
-        if not bond.is_metal_ligand_bond:
-            continue
-        first, second = _bond_endpoint_indices(bond, atom_indices)
-        metal, donor = (
-            (first, second) if atoms[first].is_metal else (second, first)
-        )
-        donors[metal].append(donor)
+    for metal, donor in _iter_metal_donor_pairs(mol):
+        donors[atom_indices[id(metal)]].append(atom_indices[id(donor)])
 
     environments = []
     for metal, donor_indices in sorted(donors.items()):
@@ -1790,6 +1797,27 @@ def _make_constraints(mol: "Molecule") -> ob.OBFFConstraints:
     return ob.OBFFConstraints()
 
 
+def _setup_forcefield_backend(
+    backend: ob.OBForceField,
+    mol: "Molecule",
+    obmol: ob.OBMol,
+    *,
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+) -> None:
+    """Set up an Open Babel force field or raise structured diagnostics."""
+    if backend.Setup(obmol, _make_constraints(mol)):
+        return
+    raise ForceFieldSetupError(
+        f"Open Babel could not initialize force field {effective_forcefield!r}",
+        ForceFieldSetupReport(
+            requested_forcefield,
+            effective_forcefield,
+            "setup",
+        ),
+    )
+
+
 def _energy_factor_to_kj(unit: str) -> float:
     normalized = unit.strip().lower().replace(" ", "")
     if normalized in {"kj/mol", "kjmol-1", "kjmol^-1"}:
@@ -1827,11 +1855,13 @@ def _single_ob_optimization(
     backend = _get_forcefield(forcefield)
     backend.EnableCutOff(False)
     obmol, _ = mol2obmol(mol)
-    if not backend.Setup(obmol, _make_constraints(mol)):
-        raise ForceFieldSetupError(
-            f"Open Babel could not initialize force field {forcefield!r}",
-            ForceFieldSetupReport(forcefield, forcefield, "setup"),
-        )
+    _setup_forcefield_backend(
+        backend,
+        mol,
+        obmol,
+        requested_forcefield=forcefield,
+        effective_forcefield=forcefield,
+    )
     backend.SteepestDescent(steps)
     backend.GetCoordinates(obmol)
     mol.coordinates = extract_obmol_coordinates(obmol)
@@ -1896,9 +1926,8 @@ def _hydrogenated_working_copy(
     if add_hydrogens:
         if working_mol.has_metal:
             donor_indices = {
-                bond.atom2.idx if bond.atom1.is_metal else bond.atom1.idx
-                for bond in working_mol.bonds
-                if bond.is_metal_ligand_bond
+                donor.idx
+                for _, donor in _iter_metal_donor_pairs(working_mol)
             }
             working_mol.hide_metal_ligand_bonds(clear_conformers=False)
             _recalculate_neutral_donor_valence(working_mol, donor_indices)
@@ -2139,16 +2168,13 @@ class _OpenBabelOptimizer:
         self.backend = _get_forcefield(effective_forcefield)
 
     def _setup(self, mol: "Molecule", obmol: ob.OBMol) -> None:
-        if not self.backend.Setup(obmol, _make_constraints(mol)):
-            raise ForceFieldSetupError(
-                f"Open Babel could not initialize force field "
-                f"{self.effective_forcefield!r}",
-                ForceFieldSetupReport(
-                    self.requested_forcefield,
-                    self.effective_forcefield,
-                    "setup",
-                ),
-            )
+        _setup_forcefield_backend(
+            self.backend,
+            mol,
+            obmol,
+            requested_forcefield=self.requested_forcefield,
+            effective_forcefield=self.effective_forcefield,
+        )
         if self.increasing_vdw:
             self.backend.UpdatePairsSimple()
 
@@ -2463,13 +2489,20 @@ class _OpenBabelOptimizer:
             termination_reason = "quality_gate_failed"
 
         mol.coordinates = best_frame.coordinates
-        mol.conformer_clear()
         if self.save_movie:
-            mol.conformer_add(np.asarray(movie_coordinates), np.asarray(movie_energies))
-            mol.conformer_load(best_frame_index)
+            _replace_conformer_trace(
+                mol,
+                np.asarray(movie_coordinates),
+                np.asarray(movie_energies),
+                best_frame_index,
+            )
         else:
-            mol.conformer_add(best_frame.coordinates, float(best_frame.energy))
-            mol.conformer_load(0)
+            _replace_conformer_trace(
+                mol,
+                best_frame.coordinates,
+                float(best_frame.energy),
+                0,
+            )
 
         return ForceFieldRunReport(
             requested_forcefield=self.requested_forcefield,
@@ -3159,12 +3192,12 @@ def _prepare_complex_working_mol(
     for message in restoration.report.warning_messages:
         warnings.warn(message, ComplexBuildWarning, stacklevel=3)
     if save_movie:
-        working_mol.conformer_clear()
-        working_mol.conformer_add(
+        _replace_conformer_trace(
+            working_mol,
             np.asarray(restoration.frames),
             np.asarray(restoration.frame_energies),
+            len(restoration.frames) - 1,
         )
-        working_mol.conformer_load(len(restoration.frames) - 1)
     return working_mol, diagnostics
 
 
@@ -3209,6 +3242,18 @@ def _optimize_working_mol(
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
     )
+
+
+def _replace_conformer_trace(
+    mol: "Molecule",
+    coordinates: np.ndarray,
+    energies: Union[np.ndarray, float],
+    selected_index: int,
+) -> None:
+    """Replace conformer storage and load its caller-selected frame."""
+    mol.conformer_clear()
+    mol.conformer_add(coordinates, energies)
+    mol.conformer_load(selected_index)
 
 
 def _conformer_trace(
@@ -3256,9 +3301,12 @@ def _combine_conformer_traces(
         selected_index = len(coordinates) + selected_index - optimized_start
     coordinates.extend(optimized_coordinates[optimized_start:])
     energies.extend(optimized_energies[optimized_start:])
-    mol.conformer_clear()
-    mol.conformer_add(np.asarray(coordinates), np.asarray(energies))
-    mol.conformer_load(selected_index)
+    _replace_conformer_trace(
+        mol,
+        np.asarray(coordinates),
+        np.asarray(energies),
+        selected_index,
+    )
 
 
 def _combine_forcefield_run_reports(
@@ -3870,22 +3918,23 @@ def collect_coordination_environments(
     mol: "Molecule",
 ) -> Tuple[CoordinationEnvironment, ...]:
     """Describe explicit metal--donor connectivity without assigning geometry."""
+    metal_donor_pairs = tuple(_iter_metal_donor_pairs(mol))
     ligand_graph = mol.graph.copy()
     ligand_graph.remove_edges_from(
-        (bond.a1idx, bond.a2idx) for bond in mol.bonds if bond.is_metal_ligand_bond
+        (metal.idx, donor.idx) for metal, donor in metal_donor_pairs
     )
     component_by_atom = {}
     for component_index, nodes in enumerate(nx.connected_components(ligand_graph)):
         for atom_idx in nodes:
             component_by_atom[atom_idx] = component_index
 
+    donors_by_metal = {metal.idx: [] for metal in mol.metals}
+    for metal, donor in metal_donor_pairs:
+        donors_by_metal[metal.idx].append(donor.idx)
+
     environments = []
     for metal in mol.metals:
-        donors = sorted(
-            bond.atom2.idx if bond.atom1.idx == metal.idx else bond.atom1.idx
-            for bond in mol.bonds
-            if bond.is_metal_ligand_bond and metal.idx in (bond.a1idx, bond.a2idx)
-        )
+        donors = sorted(donors_by_metal[metal.idx])
         grouped = {}
         for donor_idx in donors:
             grouped.setdefault(component_by_atom[donor_idx], []).append(donor_idx)

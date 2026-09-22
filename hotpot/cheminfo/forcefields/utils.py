@@ -661,6 +661,54 @@ def _format_geometry_checks(
     return f"{prefix}: {details}"
 
 
+# Shared molecular value and identity helpers.
+
+
+def _copy_coordinates(coordinates: np.ndarray) -> np.ndarray:
+    """Return an independent floating-point Cartesian-coordinate array."""
+    return np.asarray(coordinates, dtype=float).copy()
+
+
+def _atom_index_map(atoms: Sequence["Atom"]) -> dict[int, int]:
+    """Map each atom object's identity to its molecular atom-table position."""
+    return {id(atom): index for index, atom in enumerate(atoms)}
+
+
+def _bond_endpoint_indices(
+    bond: "Bond",
+    atom_indices: Mapping[int, int],
+) -> Tuple[int, int]:
+    """Return the atom-table positions of a bond's ordered atoms."""
+    return atom_indices[id(bond.atom1)], atom_indices[id(bond.atom2)]
+
+
+def _atom_identity(atom: "Atom") -> Tuple[int, int, int]:
+    """Return the stable chemical identity used by topology transactions."""
+    return int(atom.id), int(atom.atomic_number), int(atom.formal_charge)
+
+
+def _bond_identity(
+    bond: "Bond",
+    atom_indices: Mapping[int, int],
+) -> Tuple[Tuple[int, int], float, str]:
+    """Return orientation-independent endpoints, order, and kind for a bond."""
+    first, second = sorted(_bond_endpoint_indices(bond, atom_indices))
+    endpoints = first, second
+    return endpoints, float(bond.bond_order), bond.bond_kind.value
+
+
+def _piercing_count(
+    report: Optional["geo.BondRingScanReport[Ring, Bond]"],
+) -> int:
+    """Return the confirmed piercing count of an optional geometry scan."""
+    return 0 if report is None else len(report.piercings)
+
+
+def _unique_messages(messages: Sequence[str]) -> Tuple[str, ...]:
+    """Deduplicate messages while preserving their first-seen order."""
+    return tuple(dict.fromkeys(messages))
+
+
 # Structure-acceptance policy helpers.  Geometry supplies measurements and
 # relation states; this module owns every chemical threshold and pass/fail
 # decision made from those facts.
@@ -737,16 +785,13 @@ def _too_close_issues(
 
 def _topology_bond_signature(
     bond: "Bond",
-    positions: Mapping[int, int],
+    atom_indices: Mapping[int, int],
 ) -> BondTopologySignature:
-    first, second = sorted((
-        positions[id(bond.atom1)],
-        positions[id(bond.atom2)],
-    ))
+    endpoints, bond_order, bond_kind = _bond_identity(bond, atom_indices)
     return BondTopologySignature(
-        atom_indices=(first, second),
-        bond_order=float(bond.bond_order),
-        bond_kind=bond.bond_kind.value,
+        atom_indices=endpoints,
+        bond_order=bond_order,
+        bond_kind=bond_kind,
     )
 
 
@@ -768,11 +813,7 @@ def _topology_checks(
         ),)
 
     for signature, atom in zip(reference.atoms, atoms[:original_count]):
-        measured = (
-            int(atom.id),
-            int(atom.atomic_number),
-            int(atom.formal_charge),
-        )
+        measured = _atom_identity(atom)
         expected = (
             signature.atom_id,
             signature.atomic_number,
@@ -817,11 +858,11 @@ def _topology_checks(
                 message="Only hydrogen atoms may be added during preparation",
             ))
 
-    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    atom_indices = _atom_index_map(atoms)
     candidate_bonds = {
         signature.atom_indices: signature
         for signature in (
-            _topology_bond_signature(bond, positions) for bond in mol.bonds
+            _topology_bond_signature(bond, atom_indices) for bond in mol.bonds
         )
     }
     reference_bonds = {
@@ -1039,13 +1080,14 @@ def _bond_position_data(
     mol: "Molecule",
     atoms: Sequence["Atom"],
 ) -> Iterator[Tuple[int, "Bond", int, int]]:
-    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    atom_indices = _atom_index_map(atoms)
     for bond_index, bond in enumerate(mol.bonds):
+        first, second = _bond_endpoint_indices(bond, atom_indices)
         yield (
             bond_index,
             bond,
-            positions[id(bond.atom1)],
-            positions[id(bond.atom2)],
+            first,
+            second,
         )
 
 
@@ -1054,13 +1096,12 @@ def _coordination_metrics(
     atoms: Sequence["Atom"],
     coordinates: np.ndarray,
 ) -> Tuple[_CoordinationMetrics, ...]:
-    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    atom_indices = _atom_index_map(atoms)
     donors = {index: [] for index, atom in enumerate(atoms) if atom.is_metal}
     for bond in mol.bonds:
         if not bond.is_metal_ligand_bond:
             continue
-        first = positions[id(bond.atom1)]
-        second = positions[id(bond.atom2)]
+        first, second = _bond_endpoint_indices(bond, atom_indices)
         metal, donor = (
             (first, second) if atoms[first].is_metal else (second, first)
         )
@@ -1258,10 +1299,10 @@ def _untangle_ring_piercings(
         mol,
         ring_scope=ring_scope,
     )
-    initial_count = 0 if report is None else len(report.piercings)
+    initial_count = _piercing_count(report)
     current_count = initial_count
     minimum_count = initial_count
-    best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+    best_coordinates = _copy_coordinates(mol.coordinates)
     best_energy = float(initial_energy)
     frame_coordinates = [best_coordinates.copy()] if save_movie else []
     frame_energies = [best_energy] if save_movie else []
@@ -1288,15 +1329,13 @@ def _untangle_ring_piercings(
                 mol,
                 ring_scope=ring_scope,
             )
-            current_count = 0 if report is None else len(report.piercings)
+            current_count = _piercing_count(report)
             if current_count <= minimum_count:
                 minimum_count = current_count
-                best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+                best_coordinates = _copy_coordinates(mol.coordinates)
                 best_energy = float(optimized.energy)
             if save_movie:
-                frame_coordinates.append(
-                    np.asarray(mol.coordinates, dtype=float).copy()
-                )
+                frame_coordinates.append(_copy_coordinates(mol.coordinates))
                 frame_energies.append(float(optimized.energy))
             continue
 
@@ -1338,13 +1377,13 @@ def _untangle_ring_piercings(
             mol,
             ring_scope=ring_scope,
         )
-        current_count = 0 if report is None else len(report.piercings)
+        current_count = _piercing_count(report)
         if current_count <= minimum_count:
             minimum_count = current_count
-            best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+            best_coordinates = _copy_coordinates(mol.coordinates)
             best_energy = float(optimized.energy)
         if save_movie:
-            frame_coordinates.append(np.asarray(mol.coordinates, dtype=float).copy())
+            frame_coordinates.append(_copy_coordinates(mol.coordinates))
             frame_energies.append(float(optimized.energy))
         settled = False
 
@@ -1364,20 +1403,16 @@ def _untangle_ring_piercings(
                 mol,
                 ring_scope=ring_scope,
             )
-            settled_count = (
-                0 if settled_report is None else len(settled_report.piercings)
-            )
+            settled_count = _piercing_count(settled_report)
             if save_movie:
-                frame_coordinates.append(
-                    np.asarray(mol.coordinates, dtype=float).copy()
-                )
+                frame_coordinates.append(_copy_coordinates(mol.coordinates))
                 frame_energies.append(float(optimized.energy))
             if settled_count <= retained_count:
                 state = settled_state
                 report = settled_report
                 current_count = settled_count
                 minimum_count = settled_count
-                best_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+                best_coordinates = _copy_coordinates(mol.coordinates)
                 best_energy = float(optimized.energy)
             else:
                 mol.coordinates = retained_coordinates
@@ -1391,7 +1426,7 @@ def _untangle_ring_piercings(
                 "A bond-ring relation remained mathematically undetermined"
             )
     resolved = current_count == 0
-    selected_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+    selected_coordinates = _copy_coordinates(mol.coordinates)
     if save_movie:
         if not np.array_equal(frame_coordinates[-1], selected_coordinates):
             frame_coordinates.append(selected_coordinates.copy())
@@ -1408,7 +1443,7 @@ def _untangle_ring_piercings(
             final_piercing_count=current_count,
             minimum_piercing_count=minimum_count,
             resolved=resolved,
-            warning_messages=tuple(dict.fromkeys(warning_messages)),
+            warning_messages=_unique_messages(warning_messages),
         ),
         energy=best_energy,
         frames=tuple(frame_coordinates),
@@ -1588,14 +1623,14 @@ def _restore_coordination_bonds_incrementally(
                 excluded_ring_count=0,
                 resolved=True,
             ),
-            frames=(np.asarray(mol.coordinates, dtype=float).copy(),),
+            frames=(_copy_coordinates(mol.coordinates),),
             frame_energies=(float("nan"),),
         )
 
     mol.hide_bonds(*coordination_bonds, clear_conformers=False)
     pending_bonds = list(coordination_bonds)
     warning_messages: list[str] = []
-    frame_coordinates = [np.asarray(mol.coordinates, dtype=float).copy()]
+    frame_coordinates = [_copy_coordinates(mol.coordinates)]
     frame_energies = [float("nan")]
     stalled_attempts = 0
     last_energy = float("nan")
@@ -1625,7 +1660,7 @@ def _restore_coordination_bonds_incrementally(
         )
         last_energy = float(optimized.energy)
         if save_movie:
-            frame_coordinates.append(np.asarray(mol.coordinates, dtype=float).copy())
+            frame_coordinates.append(_copy_coordinates(mol.coordinates))
             frame_energies.append(last_energy)
 
     forced_bond_keys = tuple(_bond_key(bond) for bond in pending_bonds)
@@ -1636,7 +1671,7 @@ def _restore_coordination_bonds_incrementally(
             f"after {attempt_limit} stalled attempts"
         )
 
-    final_coordinates = np.asarray(mol.coordinates, dtype=float).copy()
+    final_coordinates = _copy_coordinates(mol.coordinates)
     if save_movie:
         if forced_bond_keys or not np.array_equal(
             frame_coordinates[-1],
@@ -1688,7 +1723,7 @@ def _restore_coordination_bonds_incrementally(
             not forced_bond_keys
             and final_relation_counts.piercing == 0
         ),
-        warning_messages=tuple(dict.fromkeys(warning_messages)),
+        warning_messages=_unique_messages(warning_messages),
     )
     return _CoordinationRestorationResult(
         report=report,
@@ -1898,21 +1933,6 @@ def _make_worker_mol(mol: "Molecule") -> "Molecule":
     return worker_mol
 
 
-def _atom_commit_signature(atom: "Atom") -> Tuple[int, int, int]:
-    return int(atom.id), int(atom.atomic_number), int(atom.formal_charge)
-
-
-def _bond_commit_signature(
-    bond: "Bond",
-    positions: Mapping[int, int],
-) -> Tuple[Tuple[int, int], float, str]:
-    endpoints = tuple(sorted((
-        positions[id(bond.atom1)],
-        positions[id(bond.atom2)],
-    )))
-    return endpoints, float(bond.bond_order), bond.bond_kind.value
-
-
 def _prepare_working_copy_commit(
     original_mol: "Molecule",
     working_mol: "Molecule",
@@ -1927,15 +1947,13 @@ def _prepare_working_copy_commit(
         original_atoms,
         working_atoms[:original_atom_count],
     ):
-        if _atom_commit_signature(original_atom) != _atom_commit_signature(
-            working_atom
-        ):
+        if _atom_identity(original_atom) != _atom_identity(working_atom):
             raise ValueError("The working copy changed an original atom identity")
 
-    original_positions = {id(atom): index for index, atom in enumerate(original_atoms)}
-    working_positions = {id(atom): index for index, atom in enumerate(working_atoms)}
+    original_atom_indices = _atom_index_map(original_atoms)
+    working_atom_indices = _atom_index_map(working_atoms)
     original_bonds = {
-        _bond_commit_signature(bond, original_positions)
+        _bond_identity(bond, original_atom_indices)
         for bond in original_mol.bonds
     }
     working_original_bonds = set()
@@ -1943,19 +1961,18 @@ def _prepare_working_copy_commit(
     added_bonds: list[Tuple[int, int, _BondAttributePayload]] = []
     for bond in working_mol.bonds:
         if (
-            id(bond.atom1) not in working_positions
-            or id(bond.atom2) not in working_positions
+            id(bond.atom1) not in working_atom_indices
+            or id(bond.atom2) not in working_atom_indices
         ):
             raise ValueError("The working copy contains a bond to an external atom")
-        first = working_positions[id(bond.atom1)]
-        second = working_positions[id(bond.atom2)]
+        first, second = _bond_endpoint_indices(bond, working_atom_indices)
         key = tuple(sorted((first, second)))
         if first == second or key in working_bond_keys:
             raise ValueError("The working copy contains an invalid duplicate bond")
         working_bond_keys.add(key)
         if first < original_atom_count and second < original_atom_count:
             working_original_bonds.add(
-                _bond_commit_signature(bond, working_positions)
+                _bond_identity(bond, working_atom_indices)
             )
         else:
             attributes = cast(_BondAttributePayload, deepcopy(bond.attr_dict))
@@ -2572,10 +2589,7 @@ def _build_ligand_proxies(
                 forcefield_stage="candidate",
             )
             candidate = _LigandCandidate(
-                coordinates=np.asarray(
-                    component_mol.coordinates,
-                    dtype=float,
-                ).copy(),
+                coordinates=_copy_coordinates(component_mol.coordinates),
                 energy=float(untangling.energy),
                 attempt=component_attempts,
                 untangling=untangling.report,
@@ -2653,9 +2667,7 @@ def _build_ligand_proxies(
                     component_mol,
                     ring_scope="ligand_skeleton",
                 )
-                refined_piercing_count = (
-                    0 if refined_report is None else len(refined_report.piercings)
-                )
+                refined_piercing_count = _piercing_count(refined_report)
                 refined_quality = evaluate_structure_acceptance(
                     component_mol,
                     level="basic",
@@ -2701,10 +2713,7 @@ def _build_ligand_proxies(
                     <= selected_candidate.untangling.final_piercing_count
                 ):
                     selected_candidate = _LigandCandidate(
-                        coordinates=np.asarray(
-                            component_mol.coordinates,
-                            dtype=float,
-                        ).copy(),
+                        coordinates=_copy_coordinates(component_mol.coordinates),
                         energy=float(refined.energy),
                         attempt=selected_candidate.attempt,
                         untangling=replace(
@@ -3210,7 +3219,7 @@ def _conformer_trace(
     energies = []
     for index in range(mol.conformers_number):
         conformer = mol.conformer_get(index)
-        coordinates.append(np.asarray(conformer["coordinates"], dtype=float).copy())
+        coordinates.append(_copy_coordinates(conformer["coordinates"]))
         energy = conformer.get("energy")
         energies.append(float("nan") if energy is None else float(energy))
     return tuple(coordinates), tuple(energies), int(mol._conformers_index)
@@ -3226,7 +3235,7 @@ def _combine_conformer_traces(
     coordinates = []
     energies = []
     for frame, energy in zip(prefix_coordinates, prefix_energies):
-        coordinates_array = np.asarray(frame, dtype=float).copy()
+        coordinates_array = _copy_coordinates(frame)
         if coordinates and np.array_equal(coordinates[-1], coordinates_array):
             if not np.isfinite(energies[-1]) and np.isfinite(energy):
                 energies[-1] = float(energy)
@@ -3313,7 +3322,7 @@ def _summarize_complex_untangling(
         final_piercing_count=final_piercing_count,
         minimum_piercing_count=min(minimum_count, final_piercing_count),
         resolved=final_state is not geo.PiercingState.PIERCES,
-        warning_messages=tuple(dict.fromkeys(warning_messages)),
+        warning_messages=_unique_messages(warning_messages),
     )
 
 
@@ -3405,9 +3414,7 @@ def _optimize_complex_working_mol(
             working_mol,
             ring_scope="ligand_skeleton",
         )
-        final_piercing_count = (
-            0 if final_scan is None else len(final_scan.piercings)
-        )
+        final_piercing_count = _piercing_count(final_scan)
         if final_state is not geo.PiercingState.PIERCES:
             break
         if remaining_attempts == 0:
@@ -3528,7 +3535,7 @@ def capture_topology(
 ) -> TopologyReference:
     """Capture immutable topology expected to survive a force-field workflow."""
     atoms = tuple(mol.atoms)
-    positions = {id(atom): index for index, atom in enumerate(atoms)}
+    atom_indices = _atom_index_map(atoms)
     atom_signatures = tuple(
         AtomTopologySignature(
             index=index,
@@ -3539,7 +3546,10 @@ def capture_topology(
         for index, atom in enumerate(atoms)
     )
     bond_signatures = tuple(sorted(
-        (_topology_bond_signature(bond, positions) for bond in mol.bonds),
+        (
+            _topology_bond_signature(bond, atom_indices)
+            for bond in mol.bonds
+        ),
         key=lambda signature: signature.atom_indices,
     ))
     return TopologyReference(

@@ -17,7 +17,19 @@
 
 ## Inbox
 
-No pending rules.
+### Amend `DEV-GOV-001`: explicit authorization for normative integration
+
+- **Scope:** governance of `development.md` and `development.en.md`.
+- **Rule:** proposed rules remain in `development.tmp.md`. The normative Chinese
+  and English documents may be modified only when the user explicitly says
+  `将暂存规则整理并更新development`.
+- **Boundary:** requests to record, add, refine, or stage a development rule do
+  not by themselves authorize normative integration; they update only the
+  staging ledger unless the exact integration instruction is present.
+- **Rationale:** prevent a discussion-stage rule from being promoted into the
+  active repository contract without an explicit user decision.
+- **Evidence:** explicit user instruction on 2026-09-23. The staging commit is
+  recorded when this amendment is integrated.
 
 ## Most recent integration receipt
 

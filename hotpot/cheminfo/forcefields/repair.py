@@ -47,6 +47,33 @@ class _CoordinationRelationCounts:
     excluded_rings: int
 
 
+@dataclass(frozen=True, order=True)
+class _BondRingPairKey:
+    ring_atom_indices: Tuple[int, ...]
+    bond_atom_indices: Tuple[int, int]
+
+
+@dataclass(frozen=True)
+class _WatchedRingPiercing:
+    key: _BondRingPairKey
+    opening_edge_keys: Tuple[Tuple[int, int], ...]
+
+
+@dataclass(frozen=True)
+class _RingPiercingWatchResult:
+    state: geo.PiercingState
+    piercings: Tuple[_WatchedRingPiercing, ...]
+
+
+@dataclass(frozen=True)
+class _ClosedRingFrame:
+    coordinates: np.ndarray
+    energy: float
+    state: Optional[geo.PiercingState]
+    report: Optional["geo.BondRingScreeningReport[Ring, Bond]"]
+    piercing_count: Optional[int]
+
+
 def _piercing_count(
     report: Optional[Union[
         "geo.BondRingScanReport[Ring, Bond]",
@@ -64,44 +91,124 @@ def _unique_messages(messages: Sequence[str]) -> Tuple[str, ...]:
 
 def _select_ring_opening_edge(
     mol: "Molecule",
-    ring: "Ring",
-    bond: "Bond",
-    *,
-    ring_scope: geo.RingScope = "ligand_skeleton",
+    piercings: Sequence[_WatchedRingPiercing],
 ) -> Optional["Bond"]:
-    """Choose the nearest single edge not shared by another ring in scope.
-
-    Ring detection may be size-limited, but fused-edge membership must not be:
-    an edge in the detected ring can also belong to a larger ring.
-    The legacy cycle-basis views are deliberately outside this workflow.
-    """
-    ring_memberships = {}
-    for candidate_ring in mol.rings_for_scope(ring_scope):
-        for edge in candidate_ring.bonds:
-            key = _bond_key(edge)
-            ring_memberships[key] = ring_memberships.get(key, 0) + 1
-
-    eligible_edges = tuple(
-        edge
-        for edge in ring.bonds
-        if float(edge.bond_order) == 1.0
-        and ring_memberships.get(_bond_key(edge), 0) == 1
-    )
-    if not eligible_edges:
-        return None
-
-    target_segment = geo.segment_from_bond(bond)
-
-    def edge_distance(edge: "Bond") -> Tuple[float, Tuple[int, int]]:
-        return (
-            geo.segment_segment_distance(
-                geo.segment_from_bond(edge),
-                target_segment,
-            ),
-            _bond_key(edge),
+    """Choose the nearest eligible edge for the first repairable piercing."""
+    bonds_by_key = {_bond_key(bond): bond for bond in mol.bonds}
+    for piercing in piercings:
+        target_bond = bonds_by_key.get(piercing.key.bond_atom_indices)
+        eligible_edges = tuple(
+            bonds_by_key[key]
+            for key in piercing.opening_edge_keys
+            if key in bonds_by_key
         )
+        if target_bond is None or not eligible_edges:
+            continue
+        target_segment = geo.segment_from_bond(target_bond)
 
-    return min(eligible_edges, key=edge_distance)
+        def edge_distance(edge: "Bond") -> Tuple[float, Tuple[int, int]]:
+            return (
+                geo.segment_segment_distance(
+                    geo.segment_from_bond(edge),
+                    target_segment,
+                ),
+                _bond_key(edge),
+            )
+
+        return min(eligible_edges, key=edge_distance)
+    return None
+
+
+def _ring_edge_memberships(
+    mol: "Molecule",
+    ring_scope: geo.RingScope,
+) -> dict[Tuple[int, int], int]:
+    """Count edge memberships across every ring in the selected scope."""
+    memberships: dict[Tuple[int, int], int] = {}
+    for ring in mol.rings_for_scope(ring_scope):
+        for edge in ring.bonds:
+            key = _bond_key(edge)
+            memberships[key] = memberships.get(key, 0) + 1
+    return memberships
+
+
+def _ring_piercing_watch(
+    mol: "Molecule",
+    report: "geo.BondRingScreeningReport[Ring, Bond]",
+) -> Tuple[_WatchedRingPiercing, ...]:
+    """Freeze stable graph keys for the currently confirmed piercings."""
+    memberships = _ring_edge_memberships(mol, report.ring_scope)
+    watched = []
+    seen = set()
+    for finding in report.piercings:
+        key = _BondRingPairKey(
+            finding.target.ring.key,
+            finding.target.bond.key,
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        opening_edge_keys = tuple(
+            sorted(
+                _bond_key(edge)
+                for edge in finding.target.ring.ring.bonds
+                if float(edge.bond_order) == 1.0
+                and memberships.get(_bond_key(edge), 0) == 1
+            )
+        )
+        watched.append(_WatchedRingPiercing(key, opening_edge_keys))
+    return tuple(watched)
+
+
+def _scan_ring_piercing_watch(
+    mol: "Molecule",
+    watch: Sequence[_WatchedRingPiercing],
+) -> Optional[_RingPiercingWatchResult]:
+    """Recheck only stable ring--bond pairs from the current watch batch."""
+    atoms_by_index = {int(atom.idx): atom for atom in mol.atoms}
+    bonds_by_key = {_bond_key(bond): bond for bond in mol.bonds}
+    watched_by_ring: dict[Tuple[int, ...], list[_WatchedRingPiercing]] = {}
+    for piercing in watch:
+        missing_ring_atom = any(
+            index not in atoms_by_index
+            for index in piercing.key.ring_atom_indices
+        )
+        if (
+            missing_ring_atom
+            or piercing.key.bond_atom_indices not in bonds_by_key
+        ):
+            return None
+        watched_by_ring.setdefault(
+            piercing.key.ring_atom_indices,
+            [],
+        ).append(piercing)
+
+    aggregate = geo.PiercingState.DOES_NOT_PIERCE
+    confirmed = []
+    for ring_atom_indices, ring_watch in watched_by_ring.items():
+        cycle = geo.Cycle(tuple(
+            geo.point_from_atom(atoms_by_index[index])
+            for index in ring_atom_indices
+        ))
+        segments = tuple(
+            geo.segment_from_bond(
+                bonds_by_key[item.key.bond_atom_indices]
+            )
+            for item in ring_watch
+        )
+        for item, screening in zip(
+            ring_watch,
+            geo.iter_segment_cycle_screenings(segments, cycle),
+        ):
+            if screening.state is geo.PiercingState.PIERCES:
+                aggregate = geo.PiercingState.PIERCES
+                confirmed.append(item)
+            elif (
+                screening.state is geo.PiercingState.UNDETERMINED
+                and aggregate is geo.PiercingState.DOES_NOT_PIERCE
+            ):
+                aggregate = geo.PiercingState.UNDETERMINED
+    return _RingPiercingWatchResult(aggregate, tuple(confirmed))
 
 
 def _scan_confirmed_ring_piercings(
@@ -124,29 +231,12 @@ def _scan_confirmed_ring_piercings(
     return state, report
 
 
-def _first_openable_ring_edge(
-    mol: "Molecule",
-    report: Union[
-        "geo.BondRingScanReport[Ring, Bond]",
-        "geo.BondRingScreeningReport[Ring, Bond]",
-    ],
-) -> Optional["Bond"]:
-    """Choose one deterministic ring edge for the next repair attempt."""
-    for finding in report.piercings:
-        ring_edge = _select_ring_opening_edge(
-            mol,
-            finding.target.ring.ring,
-            finding.target.bond.bond,
-            ring_scope=report.ring_scope,
-        )
-        if ring_edge is not None:
-            return ring_edge
-    return None
-
-
 def _ring_frame_evidence(
     state: geo.PiercingState,
-    report: Optional["geo.BondRingScanReport[Ring, Bond]"],
+    report: Optional[Union[
+        "geo.BondRingScanReport[Ring, Bond]",
+        "geo.BondRingScreeningReport[Ring, Bond]",
+    ]],
     *,
     confirmed_piercing_count: Optional[int] = None,
 ) -> RingFrameEvidence:
@@ -165,6 +255,37 @@ def _ring_frame_evidence(
         ),
         uncertain_relation_count=uncertain_relation_count,
     )
+
+
+def _select_lowest_piercing_frame(
+    mol: "Molecule",
+    frames: Sequence[_ClosedRingFrame],
+    *,
+    ring_scope: geo.RingScope,
+) -> Tuple[
+    _ClosedRingFrame,
+    geo.PiercingState,
+    Optional["geo.BondRingScreeningReport[Ring, Bond]"],
+    int,
+]:
+    """Evaluate deferred frames and select the latest lowest-count geometry."""
+    evaluated = []
+    for index, frame in enumerate(frames):
+        if frame.piercing_count is None or frame.state is None:
+            mol.coordinates = frame.coordinates
+            state, report = _scan_confirmed_ring_piercings(
+                mol,
+                ring_scope=ring_scope,
+            )
+            count = _piercing_count(report)
+        else:
+            state = frame.state
+            report = frame.report
+            count = frame.piercing_count
+        evaluated.append((count, -index, frame, state, report))
+    count, _, frame, state, report = min(evaluated, key=lambda item: item[:2])
+    mol.coordinates = frame.coordinates
+    return frame, state, report, count
 
 
 def _untangle_ring_piercings(
@@ -225,10 +346,7 @@ def _untangle_ring_piercings(
         )
         return frame.index
 
-    state, report = _scan_confirmed_ring_piercings(
-        mol,
-        ring_scope=ring_scope,
-    )
+    state, report = _scan_confirmed_ring_piercings(mol, ring_scope=ring_scope)
     initial_count = _piercing_count(report)
     current_count = initial_count
     minimum_count = initial_count
@@ -241,6 +359,15 @@ def _untangle_ring_piercings(
     attempts_completed = 0
     settled = False
     unresolved_reason: Optional[str] = None
+    watch = _ring_piercing_watch(mol, report) if report is not None else ()
+    current_piercings = watch
+    closed_frames = [_ClosedRingFrame(
+        _copy_coordinates(mol.coordinates),
+        best_energy,
+        state,
+        report,
+        initial_count,
+    )]
     record_ring_frame(
         TrajectoryEvent.INITIAL,
         energy=best_trace_energy,
@@ -268,6 +395,15 @@ def _untangle_ring_piercings(
                 ring_scope=ring_scope,
             )
             current_count = _piercing_count(report)
+            watch = _ring_piercing_watch(mol, report) if report is not None else ()
+            current_piercings = watch
+            closed_frames.append(_ClosedRingFrame(
+                _copy_coordinates(mol.coordinates),
+                float(optimized.energy),
+                state,
+                report,
+                current_count,
+            ))
             if current_count <= minimum_count:
                 minimum_count = current_count
                 best_coordinates = _copy_coordinates(mol.coordinates)
@@ -290,9 +426,7 @@ def _untangle_ring_piercings(
             )
             break
 
-        if report is None:
-            raise RuntimeError("A confirmed piercing requires a dense geometry report")
-        ring_edge = _first_openable_ring_edge(mol, report)
+        ring_edge = _select_ring_opening_edge(mol, current_piercings)
         if ring_edge is None:
             unresolved_reason = (
                 "Confirmed bond-ring piercing has no eligible single ring edge; "
@@ -336,31 +470,70 @@ def _untangle_ring_piercings(
                     attempt=attempts_completed,
                 )
 
-        state, report = _scan_confirmed_ring_piercings(
-            mol,
-            ring_scope=ring_scope,
-        )
-        current_count = _piercing_count(report)
-        record_ring_frame(
-            TrajectoryEvent.RING_CLOSED,
-            state=state,
-            report=report,
-            attempt=attempts_completed,
-        )
-        if current_count <= minimum_count:
-            minimum_count = current_count
-            best_coordinates = _copy_coordinates(mol.coordinates)
-            best_energy = float("nan")
-            best_trace_energy = None
+        watched_result = _scan_ring_piercing_watch(mol, watch)
+        if (
+            watched_result is None
+            or watched_result.state is not geo.PiercingState.PIERCES
+        ):
+            state, report = _scan_confirmed_ring_piercings(
+                mol,
+                ring_scope=ring_scope,
+            )
+            current_count = _piercing_count(report)
+            watch = _ring_piercing_watch(mol, report) if report is not None else ()
+            current_piercings = watch
+            closed_frames.append(_ClosedRingFrame(
+                _copy_coordinates(mol.coordinates),
+                float("nan"),
+                state,
+                report,
+                current_count,
+            ))
+            record_ring_frame(
+                TrajectoryEvent.RING_CLOSED,
+                state=state,
+                report=report,
+                attempt=attempts_completed,
+            )
+            if current_count <= minimum_count:
+                minimum_count = current_count
+                best_coordinates = _copy_coordinates(mol.coordinates)
+                best_energy = float("nan")
+                best_trace_energy = None
+        else:
+            state = geo.PiercingState.PIERCES
+            report = None
+            current_piercings = watched_result.piercings
+            closed_frames.append(_ClosedRingFrame(
+                _copy_coordinates(mol.coordinates),
+                float("nan"),
+                None,
+                None,
+                None,
+            ))
+            record_ring_frame(
+                TrajectoryEvent.RING_CLOSED,
+                attempt=attempts_completed,
+            )
         settled = False
 
     if unresolved_reason is not None:
-        mol.coordinates = best_coordinates
-        current_count = minimum_count
+        selected, state, report, current_count = _select_lowest_piercing_frame(
+            mol,
+            closed_frames,
+            ring_scope=ring_scope,
+        )
+        minimum_count = current_count
+        best_coordinates = _copy_coordinates(selected.coordinates)
+        best_energy = selected.energy
+        best_trace_energy = (
+            best_energy if np.isfinite(best_energy) else None
+        )
         record_ring_frame(
             TrajectoryEvent.ROLLED_BACK,
             energy=best_trace_energy,
             state=state,
+            report=report,
             confirmed_piercing_count=current_count,
             attempt=attempts_completed,
         )
@@ -397,6 +570,7 @@ def _untangle_ring_piercings(
             else:
                 mol.coordinates = retained_coordinates
                 state = geo.PiercingState.PIERCES
+                report = None
                 current_count = retained_count
                 best_energy = retained_energy
                 best_trace_energy = retained_trace_energy

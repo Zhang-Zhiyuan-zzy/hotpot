@@ -136,6 +136,34 @@ def _report(count):
     )
 
 
+def _mock_ring_watch(monkeypatch, states, *, events=None):
+    watch = (
+        repair._WatchedRingPiercing(
+            repair._BondRingPairKey((0, 1, 2), (3, 4)),
+            ((0, 1),),
+        ),
+    )
+    state_iterator = iter(states)
+
+    monkeypatch.setattr(
+        repair,
+        "_ring_piercing_watch",
+        lambda *args, **kwargs: watch,
+    )
+
+    def scan(*args, **kwargs):
+        if events is not None:
+            events.append(("targeted_scan",))
+        state = next(state_iterator)
+        return repair._RingPiercingWatchResult(
+            state,
+            watch if state is repair.geo.PiercingState.PIERCES else (),
+        )
+
+    monkeypatch.setattr(repair, "_scan_ring_piercing_watch", scan)
+    return watch
+
+
 def _optimization(energy):
     return ob_backend._CandidateOptimizationResult(
         energy=float(energy),
@@ -157,6 +185,23 @@ def _ring_molecule():
     for coordinate in ((0.0, 0.0, 0.0), (1.5, 0.0, 0.0), (0.75, 1.3, 0.0)):
         molecule.create_atom(atomic_number=6, coordinates=coordinate)
     for first, second in ((0, 1), (1, 2), (2, 0)):
+        molecule.add_bond(first, second, bond_order=1.0)
+    return molecule
+
+
+def _pierced_ring_molecule():
+    molecule = Molecule()
+    coordinates = (
+        (-1.0, -1.0, 0.0),
+        (1.0, -1.0, 0.0),
+        (1.0, 1.0, 0.0),
+        (-1.0, 1.0, 0.0),
+        (0.0, 0.0, -1.0),
+        (0.0, 0.0, 1.0),
+    )
+    for coordinate in coordinates:
+        molecule.create_atom(atomic_number=6, coordinates=coordinate)
+    for first, second in ((0, 1), (1, 2), (2, 3), (3, 0), (4, 5)):
         molecule.add_bond(first, second, bond_order=1.0)
     return molecule
 
@@ -258,9 +303,14 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
         return _optimization(steps)
 
     monkeypatch.setattr(repair, "_scan_confirmed_ring_piercings", scan)
+    _mock_ring_watch(
+        monkeypatch,
+        (repair.geo.PiercingState.DOES_NOT_PIERCE,),
+        events=molecule.events,
+    )
     monkeypatch.setattr(
         repair,
-        "_first_openable_ring_edge",
+        "_select_ring_opening_edge",
         lambda *args, **kwargs: opening_edge,
     )
     monkeypatch.setattr(repair, "_perturbed_coordinates", perturb)
@@ -282,12 +332,42 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
         ("perturb",),
         ("optimize", 4),
         ("restore", (opening_edge,)),
+        ("targeted_scan",),
         ("scan",),
         ("optimize", 9),
         ("scan",),
     ]
     assert result.report.resolved
     assert result.report.attempts_completed == 1
+
+
+def test_ring_piercing_watch_tracks_only_the_confirmed_pair():
+    molecule = _pierced_ring_molecule()
+    state, report = repair._scan_confirmed_ring_piercings(
+        molecule,
+        ring_scope="ligand_skeleton",
+    )
+
+    assert state is geo.PiercingState.PIERCES
+    assert report is not None
+    watch = repair._ring_piercing_watch(molecule, report)
+    assert len(watch) == 1
+    assert repair._scan_ring_piercing_watch(molecule, watch) == (
+        repair._RingPiercingWatchResult(
+            geo.PiercingState.PIERCES,
+            watch,
+        )
+    )
+
+    molecule.atoms[4].coordinates = (3.0, 0.0, -1.0)
+    molecule.atoms[5].coordinates = (3.0, 0.0, 1.0)
+
+    assert repair._scan_ring_piercing_watch(molecule, watch) == (
+        repair._RingPiercingWatchResult(
+            geo.PiercingState.DOES_NOT_PIERCE,
+            (),
+        )
+    )
 
 
 def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
@@ -308,9 +388,13 @@ def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
         "_scan_confirmed_ring_piercings",
         lambda *args, **kwargs: next(scans),
     )
+    _mock_ring_watch(
+        monkeypatch,
+        (repair.geo.PiercingState.DOES_NOT_PIERCE,),
+    )
     monkeypatch.setattr(
         repair,
-        "_first_openable_ring_edge",
+        "_select_ring_opening_edge",
         lambda *args, **kwargs: opening_edge,
     )
     monkeypatch.setattr(
@@ -388,9 +472,13 @@ def test_ring_untangling_does_not_assign_open_topology_energy_to_closed_frame(
         "_scan_confirmed_ring_piercings",
         lambda *args, **kwargs: next(scans),
     )
+    _mock_ring_watch(
+        monkeypatch,
+        (repair.geo.PiercingState.PIERCES,),
+    )
     monkeypatch.setattr(
         repair,
-        "_first_openable_ring_edge",
+        "_select_ring_opening_edge",
         lambda *args, **kwargs: opening_edge,
     )
     monkeypatch.setattr(
@@ -444,9 +532,13 @@ def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
         "_scan_confirmed_ring_piercings",
         lambda *args, **kwargs: next(scans),
     )
+    _mock_ring_watch(
+        monkeypatch,
+        (repair.geo.PiercingState.DOES_NOT_PIERCE,),
+    )
     monkeypatch.setattr(
         repair,
-        "_first_openable_ring_edge",
+        "_select_ring_opening_edge",
         lambda *args, **kwargs: opening_edge,
     )
     monkeypatch.setattr(
@@ -499,9 +591,16 @@ def test_ring_untangling_budget_retains_lowest_piercing_frame(monkeypatch):
         "_scan_confirmed_ring_piercings",
         lambda *args, **kwargs: next(scans),
     )
+    _mock_ring_watch(
+        monkeypatch,
+        (
+            repair.geo.PiercingState.PIERCES,
+            repair.geo.PiercingState.PIERCES,
+        ),
+    )
     monkeypatch.setattr(
         repair,
-        "_first_openable_ring_edge",
+        "_select_ring_opening_edge",
         lambda *args, **kwargs: opening_edge,
     )
     monkeypatch.setattr(
@@ -553,9 +652,13 @@ def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
         "_scan_confirmed_ring_piercings",
         lambda *args, **kwargs: next(scans),
     )
+    _mock_ring_watch(
+        monkeypatch,
+        (repair.geo.PiercingState.PIERCES,),
+    )
     monkeypatch.setattr(
         repair,
-        "_first_openable_ring_edge",
+        "_select_ring_opening_edge",
         lambda *args, **kwargs: opening_edge,
     )
     monkeypatch.setattr(

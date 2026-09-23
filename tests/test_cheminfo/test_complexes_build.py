@@ -785,6 +785,25 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         bond_indices=(2,),
     )
     monkeypatch.setattr(geo, "screen_bond_ring_relations", screen_relations)
+    watch = (
+        repair._WatchedRingPiercing(
+            repair._BondRingPairKey((0, 1, 2), (3, 4)),
+            ((0, 1),),
+        ),
+    )
+    monkeypatch.setattr(
+        repair,
+        "_ring_piercing_watch",
+        lambda *args, **kwargs: watch,
+    )
+    monkeypatch.setattr(
+        repair,
+        "_scan_ring_piercing_watch",
+        lambda *args, **kwargs: repair._RingPiercingWatchResult(
+            geo.PiercingState.PIERCES,
+            watch,
+        ),
+    )
     monkeypatch.setattr(repair, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
         ligand,
@@ -1398,24 +1417,31 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
     assert diagnostics.ligand_untangling[0].final_piercing_count == 1
 
 
-def test_first_openable_ring_edge_uses_dense_report_order(monkeypatch):
+def test_select_ring_opening_edge_uses_watch_order(monkeypatch):
     component = _DummyComponent()
-    first = SimpleNamespace(a1idx=4, a2idx=2)
-    second = SimpleNamespace(a1idx=3, a2idx=1)
 
-    monkeypatch.setattr(
-        repair,
-        "_select_ring_opening_edge",
-        lambda current, ring, bond, **kwargs: (
-            first if ring == "first" else second
+    def atom(index):
+        return SimpleNamespace(idx=index)
+
+    first = SimpleNamespace(atom1=atom(2), atom2=atom(4))
+    second = SimpleNamespace(atom1=atom(1), atom2=atom(3))
+    probe = SimpleNamespace(atom1=atom(5), atom2=atom(6))
+    component.bonds = (first, second, probe)
+    watch = (
+        repair._WatchedRingPiercing(
+            repair._BondRingPairKey((0, 2, 4), (5, 6)),
+            ((2, 4),),
+        ),
+        repair._WatchedRingPiercing(
+            repair._BondRingPairKey((0, 1, 3), (5, 6)),
+            ((1, 3),),
         ),
     )
-    report = _piercing_report(
-        ("first", "probe"),
-        ("second", "probe"),
-    )
 
-    assert repair._first_openable_ring_edge(component, report) is first
+    monkeypatch.setattr(geo, "segment_from_bond", lambda bond: bond)
+    monkeypatch.setattr(geo, "segment_segment_distance", lambda *args: 1.0)
+
+    assert repair._select_ring_opening_edge(component, watch) is first
 
 
 def test_worker_boundary_serializes_an_exception(monkeypatch):

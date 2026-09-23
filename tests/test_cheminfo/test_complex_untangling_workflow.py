@@ -1232,7 +1232,7 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
         seed=3,
         perturb_interval=None,
         perturb_sigma=0.5,
-        save_movie=False,
+        retain_epoch_history=False,
         increasing_vdw=False,
         vdw_cutoff_start=0.0,
         vdw_cutoff_end=12.5,

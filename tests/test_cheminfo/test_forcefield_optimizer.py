@@ -235,7 +235,7 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
         steps_per_epoch=7,
         perturb_interval=None,
         perturb_sigma=0.5,
-        save_movie=True,
+        retain_epoch_history=True,
         increasing_vdw=True,
         vdw_cutoff_start=0.0,
         vdw_cutoff_end=12.0,
@@ -250,7 +250,7 @@ def _run_optimizer(optimizer, molecule, **options):
         start=TrajectoryStart.FINAL_OPTIMIZATION,
     )
     report = optimizer.optimize(molecule, trajectory=trajectory, **options)
-    trajectory.materialize(molecule, keep_all=optimizer.save_movie)
+    trajectory.materialize(molecule, keep_all=optimizer.retain_epoch_history)
     return report
 
 
@@ -597,7 +597,7 @@ def test_default_output_keeps_only_one_frame_and_bounded_scalar_history(monkeypa
     optimizer.steps_per_epoch = 1
     optimizer.algorithm = "steepest"
     optimizer.increasing_vdw = False
-    optimizer.save_movie = False
+    optimizer.retain_epoch_history = False
     molecule = _OptimizerMolecule()
 
     report = _run_optimizer(
@@ -645,7 +645,7 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     ]
     backend = _Backend([3.0, 1.0, 2.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
-    optimizer.save_movie = False
+    optimizer.retain_epoch_history = False
     monkeypatch.setattr(
         ff,
         "evaluate_structure_acceptance",
@@ -680,7 +680,7 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
     ]
     backend = _Backend([3.0, 2.0, 1.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
-    optimizer.save_movie = save_movie
+    optimizer.retain_epoch_history = save_movie
     rejected = ff.ForceFieldValidationReport(
         level="standard",
         passed=False,
@@ -735,7 +735,7 @@ def test_optimizer_retains_failed_terminal_frame_after_an_accepted_frame(
         _Backend([3.0, 2.0, 1.0], unit="kJ/mol"),
         frames,
     )
-    optimizer.save_movie = save_movie
+    optimizer.retain_epoch_history = save_movie
     failure = ff.AcceptanceCheck(
         name="finite_rms_gradient",
         passed=False,
@@ -1036,7 +1036,7 @@ def test_optimizer_rejects_invalid_control_parameters(options, message):
         "steps_per_epoch": 1,
         "perturb_interval": None,
         "perturb_sigma": 0.5,
-        "save_movie": False,
+        "retain_epoch_history": False,
         "increasing_vdw": False,
         "vdw_cutoff_start": 0.0,
         "vdw_cutoff_end": 12.5,

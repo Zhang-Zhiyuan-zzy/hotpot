@@ -2696,7 +2696,7 @@ class _OpenBabelOptimizer:
         steps_per_epoch: int,
         perturb_interval: Optional[int],
         perturb_sigma: float,
-        save_movie: bool,
+        retain_epoch_history: bool,
         increasing_vdw: bool,
         vdw_cutoff_start: float,
         vdw_cutoff_end: float,
@@ -2723,7 +2723,7 @@ class _OpenBabelOptimizer:
         self.steps_per_epoch = steps_per_epoch
         self.perturb_interval = perturb_interval
         self.perturb_sigma = perturb_sigma
-        self.save_movie = save_movie
+        self.retain_epoch_history = retain_epoch_history
         self.increasing_vdw = increasing_vdw
         self.vdw_cutoff_start = vdw_cutoff_start
         self.vdw_cutoff_end = vdw_cutoff_end
@@ -3027,7 +3027,7 @@ class _OpenBabelOptimizer:
                 best_frame_index = (
                     None if trajectory_frame is None else trajectory_frame.index
                 )
-            if self.save_movie:
+            if self.retain_epoch_history:
                 epoch_energies.append(frame.energy)
                 epoch_quality_reports.append(frame.quality_report)
             previous_coordinates = frame.coordinates
@@ -3968,7 +3968,7 @@ def _optimize_working_mol(
     seed: Optional[int],
     perturb_interval: Optional[int],
     perturb_sigma: float,
-    save_movie: bool,
+    retain_epoch_history: bool,
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
@@ -3985,7 +3985,7 @@ def _optimize_working_mol(
         steps_per_epoch=steps_per_epoch,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
+        retain_epoch_history=retain_epoch_history,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -4083,7 +4083,7 @@ def _optimize_complex_working_mol(
     seed: Optional[int],
     perturb_interval: Optional[int],
     perturb_sigma: float,
-    save_movie: bool,
+    retain_epoch_history: bool,
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
@@ -4138,7 +4138,7 @@ def _optimize_complex_working_mol(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
-            save_movie=save_movie,
+            retain_epoch_history=retain_epoch_history,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
@@ -4252,7 +4252,7 @@ def _complexes_build_workflow(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
-            save_movie=save_movie,
+            retain_epoch_history=save_movie,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
@@ -4602,7 +4602,7 @@ def optimize(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
-            save_movie=save_movie,
+            retain_epoch_history=save_movie,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
@@ -4811,7 +4811,7 @@ def optimize_complex(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
-            save_movie=save_movie,
+            retain_epoch_history=save_movie,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,

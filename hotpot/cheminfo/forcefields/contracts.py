@@ -11,7 +11,6 @@ import numpy as np
 from .topology import (
     AtomTopologySignature,
     BondTopologySignature,
-    TopologyReference,
 )
 from .trajectory import ForceFieldTrajectory, ForceFieldTrajectoryArchive
 

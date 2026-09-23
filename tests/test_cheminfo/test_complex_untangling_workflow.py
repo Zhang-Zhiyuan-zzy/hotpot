@@ -1236,6 +1236,10 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
         increasing_vdw=False,
         vdw_cutoff_start=0.0,
         vdw_cutoff_end=12.5,
+        trajectory=ForceFieldTrajectory(
+            (),
+            start=TrajectoryStart.COMPLEX_UNTANGLING,
+        ),
     )
 
     assert events == [

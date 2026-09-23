@@ -244,6 +244,16 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
     )
 
 
+def _run_optimizer(optimizer, molecule, **options):
+    trajectory = ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=TrajectoryStart.FINAL_OPTIMIZATION,
+    )
+    report = optimizer.optimize(molecule, trajectory=trajectory, **options)
+    trajectory.materialize(molecule, keep_all=optimizer.save_movie)
+    return report
+
+
 def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeypatch):
     frames = [
         np.full((2, 3), 3.0),
@@ -254,7 +264,8 @@ def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeyp
     optimizer = _optimizer(monkeypatch, backend, frames)
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -351,7 +362,8 @@ def test_vdw_frames_are_ranked_only_under_the_final_cutoff(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -369,7 +381,8 @@ def test_optimizer_reports_early_backend_stop_as_converged(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         _OptimizerMolecule(),
         quality_level="standard",
         topology_reference=object(),
@@ -391,7 +404,8 @@ def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         _OptimizerMolecule(),
         quality_level="standard",
         topology_reference=object(),
@@ -430,7 +444,8 @@ def test_optimizer_stops_at_first_ring_piercing_and_retains_that_frame(
     monkeypatch.setattr(ff, "evaluate_structure_acceptance", evaluate_quality)
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -464,7 +479,8 @@ def test_ring_piercing_stop_retains_finite_failed_frame_for_repair(monkeypatch):
     )
 
     molecule = _OptimizerMolecule()
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -501,7 +517,8 @@ def test_backend_limit_sentinel_does_not_masquerade_as_convergence(
     optimizer.algorithm = algorithm
     optimizer.increasing_vdw = False
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         _OptimizerMolecule(),
         quality_level="standard",
         topology_reference=object(),
@@ -521,7 +538,8 @@ def test_selected_and_terminal_convergence_are_reported_separately(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         _OptimizerMolecule(),
         quality_level="standard",
         topology_reference=object(),
@@ -547,7 +565,8 @@ def test_scheduled_perturbations_restart_converged_segments(monkeypatch):
     optimizer.increasing_vdw = False
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -581,7 +600,8 @@ def test_default_output_keeps_only_one_frame_and_bounded_scalar_history(monkeypa
     optimizer.save_movie = False
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -602,7 +622,8 @@ def test_single_step_conjugate_budget_is_consumed_by_initialization(monkeypatch)
     optimizer.steps_per_epoch = 1
     optimizer.increasing_vdw = False
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         _OptimizerMolecule(),
         quality_level="standard",
         topology_reference=object(),
@@ -634,7 +655,8 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     )
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -679,7 +701,8 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
     molecule = _OptimizerMolecule()
 
     with pytest.warns(ff.GeometryQualityWarning, match="acceptance"):
-        report = optimizer.optimize(
+        report = _run_optimizer(
+            optimizer,
             molecule,
             quality_level="standard",
             topology_reference=object(),
@@ -731,7 +754,8 @@ def test_optimizer_retains_failed_terminal_frame_after_an_accepted_frame(
     molecule = _OptimizerMolecule()
 
     with pytest.warns(ff.GeometryQualityWarning, match="finite_rms_gradient"):
-        report = optimizer.optimize(
+        report = _run_optimizer(
+            optimizer,
             molecule,
             quality_level="standard",
             topology_reference=object(),
@@ -780,7 +804,8 @@ def test_optimizer_selects_best_frame_despite_bond_ring_warning(
     )
     molecule = _OptimizerMolecule()
 
-    report = optimizer.optimize(
+    report = _run_optimizer(
+        optimizer,
         molecule,
         quality_level="standard",
         topology_reference=object(),
@@ -819,7 +844,8 @@ def test_optimizer_raises_for_unreturnable_frame_failures(
     )
 
     with pytest.raises(ff.GeometryQualityError) as caught:
-        optimizer.optimize(
+        _run_optimizer(
+            optimizer,
             _OptimizerMolecule(),
             quality_level="standard",
             topology_reference=object(),
@@ -864,7 +890,8 @@ def test_optimizer_retains_finite_frame_with_diagnostic_failure(
     molecule = _OptimizerMolecule()
 
     with pytest.warns(ff.GeometryQualityWarning, match=failure_name):
-        report = optimizer.optimize(
+        report = _run_optimizer(
+            optimizer,
             molecule,
             quality_level="standard",
             topology_reference=object(),
@@ -967,7 +994,8 @@ def test_optimizer_setup_failure_has_structured_diagnostics(monkeypatch):
     )
 
     with pytest.raises(ff.ForceFieldSetupError) as caught:
-        optimizer.optimize(
+        _run_optimizer(
+            optimizer,
             _OptimizerMolecule(),
             quality_level="standard",
             topology_reference=object(),

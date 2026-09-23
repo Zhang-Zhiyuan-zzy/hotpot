@@ -2855,16 +2855,10 @@ class _OpenBabelOptimizer:
         quality_level: AcceptanceLevel,
         topology_reference: TopologyReference,
         quality_thresholds: Optional[StructureAcceptanceThresholds],
-        trajectory: Optional[ForceFieldTrajectory] = None,
+        trajectory: ForceFieldTrajectory,
         trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
         trajectory_attempt: Optional[int] = None,
     ) -> ForceFieldRunReport:
-        owns_trajectory = trajectory is None
-        if trajectory is None:
-            trajectory = ForceFieldTrajectory.from_molecule(
-                mol,
-                start=TrajectoryStart.FINAL_OPTIMIZATION,
-            )
         records_trajectory = trajectory.records(trajectory_stage)
         if records_trajectory:
             trajectory.record_molecule(
@@ -3093,8 +3087,6 @@ class _OpenBabelOptimizer:
         mol.coordinates = best_frame.coordinates
         if best_frame_index is not None:
             trajectory.select(best_frame_index)
-        if owns_trajectory:
-            trajectory.materialize(mol, keep_all=self.save_movie)
 
         return ForceFieldRunReport(
             requested_forcefield=self.requested_forcefield,
@@ -3934,7 +3926,7 @@ def _optimize_working_mol(
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
     stop_on_ring_piercing: bool = False,
-    trajectory: Optional[ForceFieldTrajectory] = None,
+    trajectory: ForceFieldTrajectory,
     trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
     trajectory_attempt: Optional[int] = None,
 ) -> ForceFieldRunReport:
@@ -4048,7 +4040,7 @@ def _optimize_complex_working_mol(
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
-    trajectory: Optional[ForceFieldTrajectory] = None,
+    trajectory: ForceFieldTrajectory,
 ) -> ForceFieldRunReport:
     """Interleave bounded untangling with complete-complex relaxation."""
     if complex_untangling_attempts < 1:

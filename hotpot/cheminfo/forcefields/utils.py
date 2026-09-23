@@ -779,6 +779,14 @@ class _AtomPairAcceptanceIssue:
     threshold: float
 
 
+def _acceptance_checks_pass(checks: Sequence[AcceptanceCheck]) -> bool:
+    """Return whether no failed error-level acceptance check is present."""
+    return not any(
+        not check.passed and check.severity == "error"
+        for check in checks
+    )
+
+
 def _bond_key(bond: "Bond") -> Tuple[int, int]:
     first, second = sorted((int(bond.atom1.idx), int(bond.atom2.idx)))
     return first, second
@@ -4358,9 +4366,7 @@ def evaluate_structure_acceptance(
     ))
 
     if not finite_ok:
-        passed = all(
-            check.passed or check.severity != "error" for check in checks
-        )
+        passed = _acceptance_checks_pass(checks)
         return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
 
     atom_pair_checks, atom_pair_metrics = (
@@ -4370,9 +4376,7 @@ def evaluate_structure_acceptance(
     metrics.update(atom_pair_metrics)
 
     if level == "off":
-        passed = all(
-            check.passed or check.severity != "error" for check in checks
-        )
+        passed = _acceptance_checks_pass(checks)
         return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
 
     bond_checks, bond_metrics = _bond_geometry_acceptance_section(
@@ -4396,7 +4400,7 @@ def evaluate_structure_acceptance(
         checks.extend(bond_ring_checks)
         metrics.update(bond_ring_metrics)
 
-    passed = all(check.passed or check.severity != "error" for check in checks)
+    passed = _acceptance_checks_pass(checks)
     return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
 
 

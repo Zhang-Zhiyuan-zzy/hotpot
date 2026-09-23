@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 from copy import copy
 from types import SimpleNamespace
+
+import pytest
+
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.core import Molecule
@@ -99,6 +102,20 @@ def _serialized_check_contract(report):
         )
         for check in payload["checks"]
     ], payload["metrics"]
+
+
+@pytest.mark.parametrize(
+    ("checks", "expected"),
+    (
+        ((), True),
+        ((ff.AcceptanceCheck("passed", True),), True),
+        ((ff.AcceptanceCheck("warning", False, severity="warning"),), True),
+        ((ff.AcceptanceCheck("info", False, severity="info"),), True),
+        ((ff.AcceptanceCheck("error", False, severity="error"),), False),
+    ),
+)
+def test_acceptance_checks_pass_only_rejects_failed_errors(checks, expected):
+    assert ff._acceptance_checks_pass(checks) is expected
 
 
 def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch):

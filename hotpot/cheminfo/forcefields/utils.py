@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
-import threading
 import time
 import traceback as traceback_module
 import warnings
 from collections import deque
 from copy import copy, deepcopy
 from dataclasses import dataclass, replace
-from functools import wraps
 from multiprocessing.connection import Connection, wait as wait_for_connections
 from typing import (
     Callable,
@@ -22,7 +20,6 @@ from typing import (
     Sequence,
     Tuple,
     TypedDict,
-    TypeVar,
     Union,
     cast,
 )
@@ -33,6 +30,7 @@ from openbabel import openbabel as ob
 
 from .. import geometry as geo
 from ..obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
+from . import backend as _backend
 from .acceptance import (
     _bond_key,
     _bond_ring_acceptance_checks,
@@ -41,6 +39,21 @@ from .acceptance import (
     _resolve_acceptance_thresholds,
     evaluate_structure_acceptance,
     is_structure_accepted,
+)
+from .backend import (
+    _CandidateOptimizationResult as _CandidateOptimizationResult,
+    _energy_factor_to_kj,
+    _find_forcefield_prototype as _find_forcefield_prototype,
+    _forcefield_energy_in_kj,
+    _get_forcefield,
+    _make_constraints as _make_constraints,
+    _ob_build,
+    _resolve_complex_forcefield,
+    _resolve_organic_forcefield,
+    _seed_openbabel_random as _seed_openbabel_random,
+    _serialized_forcefield_call,
+    _setup_forcefield_backend,
+    _single_ob_optimization,
 )
 from .contracts import (
     AcceptanceCheck,
@@ -181,9 +194,6 @@ __all__ = (
 )
 
 
-CallableT = TypeVar("CallableT", bound=Callable[..., object])
-
-
 class _SeededBuildWorker(Protocol):
     def __call__(
         self,
@@ -216,20 +226,16 @@ class _SeedInitializer(Protocol):
     def __call__(self, seed: int) -> None:
         ...
 
-_SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
 _BOND_RING_MAX_SIZE = 16
 
-
+# Compatibility aliases for private names historically imported from utils.
+_SUPPORTED_FORCEFIELDS = _backend._SUPPORTED_FORCEFIELDS
+_WORKER_LIFECYCLE_LOCK = _backend._WORKER_LIFECYCLE_LOCK
+_OPENBABEL_FORCEFIELD_LOCK = _backend._OPENBABEL_FORCEFIELD_LOCK
+_WORKER_EXIT_GRACE_SECONDS = _backend._WORKER_EXIT_GRACE_SECONDS
 
 # Internal workflow data contracts.
-
-
-@dataclass(frozen=True)
-class _CandidateOptimizationResult:
-    energy: float
-    energy_unit: str
-    exploded: bool
 
 
 @dataclass(frozen=True)
@@ -1126,149 +1132,6 @@ def _restore_coordination_bonds_incrementally(
     return _CoordinationRestorationResult(
         report=report,
     )
-
-
-# Synchronization and force-field policy helpers.
-
-
-_WORKER_LIFECYCLE_LOCK = threading.Lock()
-_OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
-_WORKER_EXIT_GRACE_SECONDS = 30.0
-
-
-def _serialized_forcefield_call(function: CallableT) -> CallableT:
-    @wraps(function)
-    def synchronized(*args: object, **kwargs: object) -> object:
-        with _OPENBABEL_FORCEFIELD_LOCK:
-            return function(*args, **kwargs)
-
-    return cast(CallableT, synchronized)
-
-
-def _serialized_builder_call(function: CallableT) -> CallableT:
-    @wraps(function)
-    def synchronized(*args: object, **kwargs: object) -> object:
-        with _WORKER_LIFECYCLE_LOCK:
-            with _OPENBABEL_FORCEFIELD_LOCK:
-                return function(*args, **kwargs)
-
-    return cast(CallableT, synchronized)
-
-
-def _resolve_complex_forcefield(requested: Optional[str]) -> str:
-    """Resolve every currently supported complex request to UFF."""
-    if requested is not None and requested not in _SUPPORTED_FORCEFIELDS:
-        raise ValueError(f"Unsupported force field: {requested!r}")
-    return "UFF"
-
-
-def _resolve_organic_forcefield(requested: Optional[str]) -> str:
-    """Resolve an omitted organic force field without changing explicit choices."""
-    effective = requested or "MMFF94s"
-    if effective not in _SUPPORTED_FORCEFIELDS:
-        raise ValueError(f"Unsupported force field: {effective!r}")
-    return effective
-
-
-def _make_constraints(mol: "Molecule") -> ob.OBFFConstraints:
-    """Return the intentionally empty force-field constraint adapter."""
-    return ob.OBFFConstraints()
-
-
-def _setup_forcefield_backend(
-    backend: ob.OBForceField,
-    mol: "Molecule",
-    obmol: ob.OBMol,
-    *,
-    requested_forcefield: Optional[str],
-    effective_forcefield: str,
-) -> None:
-    """Set up an Open Babel force field or raise structured diagnostics."""
-    if backend.Setup(obmol, _make_constraints(mol)):
-        return
-    raise ForceFieldSetupError(
-        f"Open Babel could not initialize force field {effective_forcefield!r}",
-        ForceFieldSetupReport(
-            requested_forcefield,
-            effective_forcefield,
-            "setup",
-        ),
-    )
-
-
-def _energy_factor_to_kj(unit: str) -> float:
-    normalized = unit.strip().lower().replace(" ", "")
-    if normalized in {"kj/mol", "kjmol-1", "kjmol^-1"}:
-        return 1.0
-    if normalized in {"kcal/mol", "kcalmol-1", "kcalmol^-1"}:
-        return 4.184
-    raise ValueError(f"Unsupported Open Babel energy unit: {unit!r}")
-
-
-def _forcefield_energy_in_kj(
-    ob_forcefield: ob.OBForceField,
-    calc_grad: bool = True,
-) -> float:
-    return float(ob_forcefield.Energy(calc_grad)) * _energy_factor_to_kj(ob_forcefield.GetUnit())
-
-
-@_serialized_forcefield_call
-def _get_forcefield(name: str) -> ob.OBForceField:
-    """Retrieve a force-field plugin guarded by the process-local FF lock."""
-    backend = _find_forcefield_prototype(name)
-    if backend is None:
-        raise ForceFieldSetupError(
-            f"Unknown Open Babel force field: {name!r}",
-            ForceFieldSetupReport(name, name, "lookup"),
-        )
-    return backend
-
-
-def _find_forcefield_prototype(name: str) -> Optional[ob.OBForceField]:
-    return ob.OBForceField.FindType(name)
-
-
-def _seed_openbabel_random(seed: int) -> None:
-    """Seed the current Open Babel RNG before using ``OBBuilder``."""
-    os.environ["OB_RANDOM_SEED"] = str(seed)
-
-
-@_serialized_forcefield_call
-def _single_ob_optimization(
-    mol: "Molecule", forcefield: str, steps: int
-) -> _CandidateOptimizationResult:
-    backend = _get_forcefield(forcefield)
-    backend.EnableCutOff(False)
-    obmol, _ = mol2obmol(mol)
-    _setup_forcefield_backend(
-        backend,
-        mol,
-        obmol,
-        requested_forcefield=forcefield,
-        effective_forcefield=forcefield,
-    )
-    backend.SteepestDescent(steps)
-    backend.GetCoordinates(obmol)
-    mol.coordinates = extract_obmol_coordinates(obmol)
-    energy = _forcefield_energy_in_kj(backend)
-    return _CandidateOptimizationResult(
-        energy=energy,
-        energy_unit="kJ/mol",
-        exploded=bool(backend.DetectExplosion()),
-    )
-
-
-# Low-level Open Babel build and optimization primitives.
-
-
-@_serialized_builder_call
-def _ob_build(mol: "Molecule") -> None:
-    """Run OBBuilder directly on an internal working molecule."""
-    builder = ob.OBBuilder()
-    obmol, _ = mol2obmol(mol)
-    if not builder.Build(obmol):
-        raise ForceFieldError("Open Babel could not build initial 3D coordinates")
-    mol.coordinates = extract_obmol_coordinates(obmol)
 
 
 # Working-copy preparation and transactional commit helpers.
@@ -2310,7 +2173,7 @@ def _build_ligand_proxies_worker(
         ligand_untangling_attempts,
         perturb_sigma,
         record_ligand_trajectories,
-        seed_initializer=_seed_openbabel_random,
+        seed_initializer=_backend._seed_openbabel_random,
     )
 
 
@@ -2379,7 +2242,7 @@ def _seeded_ob_build_worker(
         mol,
         connection,
         seed,
-        seed_initializer=_seed_openbabel_random,
+        seed_initializer=_backend._seed_openbabel_random,
     )
 
 
@@ -2430,7 +2293,7 @@ def _receive_worker_result(
     result = None
     started = False
     try:
-        with _WORKER_LIFECYCLE_LOCK:
+        with _backend._WORKER_LIFECYCLE_LOCK:
             previous_seed = os.environ.get("OB_RANDOM_SEED")
             if seed is not None:
                 os.environ["OB_RANDOM_SEED"] = str(seed)
@@ -2458,7 +2321,7 @@ def _receive_worker_result(
             ) from exc
         exited = wait_for_connections(
             (process.sentinel,),
-            timeout=_WORKER_EXIT_GRACE_SECONDS,
+            timeout=_backend._WORKER_EXIT_GRACE_SECONDS,
         )
         if not exited:
             raise worker_error_type(
@@ -2469,8 +2332,8 @@ def _receive_worker_result(
         # ``Process.start()`` runs multiprocessing's global child cleanup.
         # Reap under the same lock so another thread cannot win waitpid() and
         # leave this Process object briefly reporting ``exitcode is None``.
-        with _WORKER_LIFECYCLE_LOCK:
-            process.join(timeout=_WORKER_EXIT_GRACE_SECONDS)
+        with _backend._WORKER_LIFECYCLE_LOCK:
+            process.join(timeout=_backend._WORKER_EXIT_GRACE_SECONDS)
             exitcode = process.exitcode
         if exitcode is None:
             raise worker_error_type(
@@ -2519,7 +2382,7 @@ def _receive_worker_result(
         return result
     finally:
         if started:
-            with _WORKER_LIFECYCLE_LOCK:
+            with _backend._WORKER_LIFECYCLE_LOCK:
                 if process.is_alive():
                     process.terminate()
                 process.join(timeout=5.0)

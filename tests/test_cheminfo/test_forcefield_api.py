@@ -10,6 +10,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo import forcefields as ff_api
+from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.core import Molecule
 
@@ -478,12 +479,20 @@ def test_direct_ob_build_waits_for_worker_seed_environment(monkeypatch):
 
     molecule = SimpleNamespace(coordinates=None)
     obmol = object()
-    monkeypatch.setattr(ff, "_WORKER_LIFECYCLE_LOCK", TracingLock("worker"))
-    monkeypatch.setattr(ff, "_OPENBABEL_FORCEFIELD_LOCK", TracingLock("forcefield"))
-    monkeypatch.setattr(ff.ob, "OBBuilder", Builder)
-    monkeypatch.setattr(ff, "mol2obmol", lambda current: (obmol, {}))
     monkeypatch.setattr(
-        ff,
+        ob_backend,
+        "_WORKER_LIFECYCLE_LOCK",
+        TracingLock("worker"),
+    )
+    monkeypatch.setattr(
+        ob_backend,
+        "_OPENBABEL_FORCEFIELD_LOCK",
+        TracingLock("forcefield"),
+    )
+    monkeypatch.setattr(ob_backend.ob, "OBBuilder", Builder)
+    monkeypatch.setattr(ob_backend, "mol2obmol", lambda current: (obmol, {}))
+    monkeypatch.setattr(
+        ob_backend,
         "extract_obmol_coordinates",
         lambda current: np.zeros((1, 3)),
     )
@@ -511,15 +520,15 @@ def test_direct_ob_build_cannot_observe_a_worker_seed_window(monkeypatch):
 
     molecule = SimpleNamespace(coordinates=None)
     monkeypatch.setenv("OB_RANDOM_SEED", "parent")
-    monkeypatch.setattr(ff.ob, "OBBuilder", Builder)
-    monkeypatch.setattr(ff, "mol2obmol", lambda current: (object(), {}))
+    monkeypatch.setattr(ob_backend.ob, "OBBuilder", Builder)
+    monkeypatch.setattr(ob_backend, "mol2obmol", lambda current: (object(), {}))
     monkeypatch.setattr(
-        ff,
+        ob_backend,
         "extract_obmol_coordinates",
         lambda current: np.zeros((1, 3)),
     )
 
-    with ff._WORKER_LIFECYCLE_LOCK:
+    with ob_backend._WORKER_LIFECYCLE_LOCK:
         monkeypatch.setenv("OB_RANDOM_SEED", "37")
         thread = threading.Thread(target=ff._ob_build, args=(molecule,))
         thread.start()
@@ -577,6 +586,31 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
         ("commit", molecule, molecule),
     ]
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
+
+
+def test_current_seed_worker_uses_backend_seed_adapter(monkeypatch):
+    received = {}
+
+    def run_worker(molecule, connection, seed, *, seed_initializer):
+        received.update(
+            molecule=molecule,
+            connection=connection,
+            seed=seed,
+            seed_initializer=seed_initializer,
+        )
+
+    monkeypatch.setattr(ff, "_run_seeded_ob_build_worker", run_worker)
+    molecule = object()
+    connection = object()
+
+    ff._seeded_ob_build_worker(molecule, connection, 37)
+
+    assert received == {
+        "molecule": molecule,
+        "connection": connection,
+        "seed": 37,
+        "seed_initializer": ob_backend._seed_openbabel_random,
+    }
 
 
 def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):

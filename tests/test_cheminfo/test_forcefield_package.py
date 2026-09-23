@@ -106,6 +106,22 @@ PUBLIC_EXCEPTIONS = (
     "GeometryQualityWarning",
 )
 
+BACKEND_COMPATIBILITY_EXPORTS = (
+    "_CandidateOptimizationResult",
+    "_energy_factor_to_kj",
+    "_find_forcefield_prototype",
+    "_forcefield_energy_in_kj",
+    "_get_forcefield",
+    "_make_constraints",
+    "_ob_build",
+    "_resolve_complex_forcefield",
+    "_resolve_organic_forcefield",
+    "_seed_openbabel_random",
+    "_serialized_forcefield_call",
+    "_setup_forcefield_backend",
+    "_single_ob_optimization",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -237,6 +253,21 @@ def test_acceptance_api_is_reexported_without_wrapping():
         assert getattr(shared, name) is exported
         assert getattr(modern, name) is exported
         assert getattr(python39, name) is exported
+        assert pickle.loads(pickle.dumps(exported)) is exported
+
+
+def test_backend_compatibility_names_are_reexported_without_wrapping():
+    backend = importlib.import_module(f"{PACKAGE_NAME}.backend")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+
+    for name in BACKEND_COMPATIBILITY_EXPORTS:
+        assert getattr(shared, name) is getattr(backend, name)
+
+    assert shared._WORKER_LIFECYCLE_LOCK is backend._WORKER_LIFECYCLE_LOCK
+    assert shared._OPENBABEL_FORCEFIELD_LOCK is backend._OPENBABEL_FORCEFIELD_LOCK
+
+    for name in ("_CandidateOptimizationResult", "_get_forcefield", "_ob_build"):
+        exported = getattr(backend, name)
         assert pickle.loads(pickle.dumps(exported)) is exported
 
 

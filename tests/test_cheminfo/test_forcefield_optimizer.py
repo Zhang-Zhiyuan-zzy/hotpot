@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
@@ -207,7 +208,7 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
     backend.frames = frames
     obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
     monkeypatch.setattr(ff, "_get_forcefield", lambda _: backend)
-    monkeypatch.setattr(ff, "_make_constraints", lambda _: object())
+    monkeypatch.setattr(ob_backend, "_make_constraints", lambda _: object())
     monkeypatch.setattr(ff.ob, "OBMolAtomIter", lambda _: (object(), object()))
     monkeypatch.setattr(ff, "mol2obmol", lambda mol: (obmol, {0: 1, 1: 2}))
     monkeypatch.setattr(
@@ -969,7 +970,11 @@ def test_forcefield_energy_in_kj_uses_backend_unit_and_gradient_flag(
 
 
 def test_unknown_forcefield_fails_before_setup(monkeypatch):
-    monkeypatch.setattr(ff, "_find_forcefield_prototype", lambda name: None)
+    monkeypatch.setattr(
+        ob_backend,
+        "_find_forcefield_prototype",
+        lambda name: None,
+    )
 
     with pytest.raises(
         ff.ForceFieldSetupError,
@@ -1011,7 +1016,11 @@ def test_optimizer_setup_failure_has_structured_diagnostics(monkeypatch):
 
 def test_forcefield_lookup_returns_the_serialized_plugin(monkeypatch):
     backend = object()
-    monkeypatch.setattr(ff, "_find_forcefield_prototype", lambda _: backend)
+    monkeypatch.setattr(
+        ob_backend,
+        "_find_forcefield_prototype",
+        lambda _: backend,
+    )
 
     assert ff._get_forcefield("UFF") is backend
 

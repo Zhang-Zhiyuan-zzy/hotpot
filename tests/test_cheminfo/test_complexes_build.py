@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import utils as ff
 
 
@@ -566,7 +567,7 @@ def test_worker_start_and_reaping_use_the_lifecycle_lock(monkeypatch):
             return False
 
     lock = CountingLock()
-    monkeypatch.setattr(ff, "_WORKER_LIFECYCLE_LOCK", lock)
+    monkeypatch.setattr(ob_backend, "_WORKER_LIFECYCLE_LOCK", lock)
     process, receive_connection, send_connection = _pipe_process(_send_small_worker)
 
     ff._receive_worker_result(
@@ -580,7 +581,7 @@ def test_worker_start_and_reaping_use_the_lifecycle_lock(monkeypatch):
 
 
 def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
-    monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.5)
+    monkeypatch.setattr(ob_backend, "_WORKER_EXIT_GRACE_SECONDS", 0.5)
     process, receive_connection, send_connection = _pipe_process(
         _send_then_exit_slowly_worker
     )
@@ -597,7 +598,7 @@ def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
 
 
 def test_ready_sentinel_is_followed_by_bounded_exitcode_refresh(monkeypatch):
-    monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
+    monkeypatch.setattr(ob_backend, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
     monkeypatch.setattr(
         ff,
         "wait_for_connections",
@@ -627,7 +628,7 @@ def test_ready_sentinel_is_followed_by_bounded_exitcode_refresh(monkeypatch):
 
 
 def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatch):
-    monkeypatch.setattr(ff, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
+    monkeypatch.setattr(ob_backend, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
     wait_calls = []
 
     def wait_for_exit(objects, timeout):

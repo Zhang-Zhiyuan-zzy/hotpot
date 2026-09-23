@@ -175,6 +175,17 @@ def test_facades_export_shared_forcefield_contracts_by_identity():
         assert pickle.loads(pickle.dumps(contract)) is contract
 
 
+@pytest.mark.parametrize(
+    "name",
+    (*PUBLIC_DATA_CONTRACTS, *PUBLIC_EXCEPTIONS),
+)
+def test_legacy_utils_pickle_paths_resolve_to_canonical_contracts(name):
+    contracts = importlib.import_module(f"{PACKAGE_NAME}.contracts")
+    legacy_global = f"c{PACKAGE_NAME}.utils\n{name}\n.".encode("ascii")
+
+    assert pickle.loads(legacy_global) is getattr(contracts, name)
+
+
 def test_coordinate_api_is_reexported_without_wrapping():
     coordinates = importlib.import_module(f"{PACKAGE_NAME}.coordinates")
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")

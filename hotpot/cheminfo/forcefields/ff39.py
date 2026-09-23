@@ -15,6 +15,20 @@ if TYPE_CHECKING:
 __all__ = _utils.__all__
 
 # Shared public contracts have one defining module across both façades.
+TrajectoryPath = _utils.TrajectoryPath
+TrajectoryStart = _utils.TrajectoryStart
+TrajectoryStage = _utils.TrajectoryStage
+TrajectoryEvent = _utils.TrajectoryEvent
+AtomIdentity = _utils.AtomIdentity
+BondTopology = _utils.BondTopology
+BondTopologyRevision = _utils.BondTopologyRevision
+RingFrameEvidence = _utils.RingFrameEvidence
+CoordinationFrameEvidence = _utils.CoordinationFrameEvidence
+OptimizationFrameEvidence = _utils.OptimizationFrameEvidence
+FrameEvidence = _utils.FrameEvidence
+ForceFieldFrame = _utils.ForceFieldFrame
+ForceFieldTrajectory = _utils.ForceFieldTrajectory
+ForceFieldTrajectoryArchive = _utils.ForceFieldTrajectoryArchive
 OptimizationAlgorithm = _utils.OptimizationAlgorithm
 TerminationReason = _utils.TerminationReason
 ForceFieldDiagnosticValue = _utils.ForceFieldDiagnosticValue
@@ -99,6 +113,8 @@ def build_complex3d(
     seed: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build one ligand start and restore the complex coordination topology.
@@ -125,6 +141,8 @@ def build_complex3d(
         seed=seed,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
         worker_target=_utils39._build_ligand_proxies_worker,
     )
@@ -154,6 +172,8 @@ def complexes_build(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -190,6 +210,8 @@ def complexes_build(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -213,6 +235,8 @@ def build_and_optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: Optional[TrajectoryStart] = None,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -250,6 +274,8 @@ def build_and_optimize(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,

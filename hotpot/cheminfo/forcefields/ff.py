@@ -7,6 +7,20 @@ __all__ = _utils.__all__
 
 # Public data contracts and exceptions have one defining module so that
 # isinstance checks and pickle paths remain stable across both façades.
+TrajectoryPath = _utils.TrajectoryPath
+TrajectoryStart = _utils.TrajectoryStart
+TrajectoryStage = _utils.TrajectoryStage
+TrajectoryEvent = _utils.TrajectoryEvent
+AtomIdentity = _utils.AtomIdentity
+BondTopology = _utils.BondTopology
+BondTopologyRevision = _utils.BondTopologyRevision
+RingFrameEvidence = _utils.RingFrameEvidence
+CoordinationFrameEvidence = _utils.CoordinationFrameEvidence
+OptimizationFrameEvidence = _utils.OptimizationFrameEvidence
+FrameEvidence = _utils.FrameEvidence
+ForceFieldFrame = _utils.ForceFieldFrame
+ForceFieldTrajectory = _utils.ForceFieldTrajectory
+ForceFieldTrajectoryArchive = _utils.ForceFieldTrajectoryArchive
 OptimizationAlgorithm = _utils.OptimizationAlgorithm
 TerminationReason = _utils.TerminationReason
 ForceFieldDiagnosticValue = _utils.ForceFieldDiagnosticValue

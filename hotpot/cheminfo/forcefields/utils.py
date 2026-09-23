@@ -37,8 +37,16 @@ from openbabel import openbabel as ob
 from .. import geometry as geo
 from ..obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
 from .trajectory import (
+    AtomIdentity,
+    BondTopology,
+    BondTopologyRevision,
+    CoordinationFrameEvidence,
+    ForceFieldFrame,
     ForceFieldTrajectory,
+    ForceFieldTrajectoryArchive,
+    FrameEvidence,
     OptimizationFrameEvidence,
+    RingFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,
@@ -50,6 +58,20 @@ if TYPE_CHECKING:
 
 
 __all__ = (
+    "TrajectoryPath",
+    "TrajectoryStart",
+    "TrajectoryStage",
+    "TrajectoryEvent",
+    "AtomIdentity",
+    "BondTopology",
+    "BondTopologyRevision",
+    "RingFrameEvidence",
+    "CoordinationFrameEvidence",
+    "OptimizationFrameEvidence",
+    "FrameEvidence",
+    "ForceFieldFrame",
+    "ForceFieldTrajectory",
+    "ForceFieldTrajectoryArchive",
     "OptimizationAlgorithm",
     "TerminationReason",
     "ForceFieldDiagnosticValue",
@@ -101,6 +123,7 @@ __all__ = (
 
 
 OptimizationAlgorithm = Literal["steepest", "conjugate"]
+TrajectoryPath = Union[str, os.PathLike[str]]
 TerminationReason = Literal[
     "converged",
     "budget_exhausted",
@@ -146,6 +169,7 @@ class _ComplexBuildWorker(Protocol):
         seed: Optional[int],
         ligand_untangling_attempts: int,
         perturb_sigma: float,
+        record_ligand_trajectories: bool,
     ) -> None:
         ...
 
@@ -315,6 +339,7 @@ class ForceFieldRunReport:
     termination_reason: TerminationReason = "budget_exhausted"
     terminal_converged: bool = False
     untangling: Optional["RingUntanglingReport"] = None
+    trajectory: Optional[ForceFieldTrajectoryArchive] = None
 
 
 @dataclass(frozen=True)
@@ -384,6 +409,7 @@ class BuildWorkerResult:
     error_type: Optional[str] = None
     error_message: Optional[str] = None
     traceback: Optional[str] = None
+    ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -393,6 +419,7 @@ class ForceFieldWorkflowReport:
     build: Union[Build3DReport, ComplexBuildDiagnostics]
     optimization: Optional[ForceFieldRunReport]
     quality_report: ForceFieldValidationReport
+    trajectory: Optional[ForceFieldTrajectoryArchive] = None
 
 
 @dataclass(frozen=True)
@@ -554,8 +581,6 @@ class _ObservedFrame:
 class _RingUntanglingResult:
     report: RingUntanglingReport
     energy: float
-    frames: Tuple[np.ndarray, ...]
-    frame_energies: Tuple[float, ...]
 
 
 @dataclass(frozen=True)
@@ -564,13 +589,20 @@ class _LigandCandidate:
     energy: float
     attempt: int
     untangling: RingUntanglingReport
+    trajectory: Optional[ForceFieldTrajectory] = None
 
 
 @dataclass(frozen=True)
 class _CoordinationRestorationResult:
     report: CoordinationBondRestorationReport
-    frames: Tuple[np.ndarray, ...]
-    frame_energies: Tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class _PreparedComplex:
+    mol: "Molecule"
+    diagnostics: ComplexBuildDiagnostics
+    trajectory: ForceFieldTrajectory
+    ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1564,6 +1596,29 @@ def _first_openable_ring_edge(
     return None
 
 
+def _ring_frame_evidence(
+    state: geo.PiercingState,
+    report: Optional["geo.BondRingScanReport[Ring, Bond]"],
+    *,
+    confirmed_piercing_count: Optional[int] = None,
+) -> RingFrameEvidence:
+    """Describe one observed ring state without triggering another scan."""
+    if report is None:
+        uncertain_relation_count = (
+            None if state is geo.PiercingState.UNDETERMINED else 0
+        )
+    else:
+        uncertain_relation_count = len(report.undetermined)
+    return RingFrameEvidence(
+        confirmed_piercing_count=(
+            _piercing_count(report)
+            if confirmed_piercing_count is None
+            else confirmed_piercing_count
+        ),
+        uncertain_relation_count=uncertain_relation_count,
+    )
+
+
 def _untangle_ring_piercings(
     mol: "Molecule",
     effective_forcefield: str,
@@ -1575,15 +1630,50 @@ def _untangle_ring_piercings(
     rng: np.random.Generator,
     ring_scope: geo.RingScope = "ligand_skeleton",
     initial_energy: float = float("nan"),
-    save_movie: bool = False,
+    trajectory: Optional[ForceFieldTrajectory] = None,
+    trajectory_stage: TrajectoryStage = TrajectoryStage.COMPLEX_UNTANGLING,
 ) -> _RingUntanglingResult:
     """Repair confirmed ring piercing without rebuilding the molecular graph.
 
     One covalent ring edge is opened per attempt.  The open structure is
     perturbed and relaxed, then the exact bond object is restored before the
-    next geometric observation.  Every retained snapshot therefore has the
-    original closed topology.
+    next geometric observation.  A shared trajectory records both the open
+    and closed topology revisions without taking over workflow control.
     """
+    records_trajectory = (
+        trajectory is not None
+        and trajectory.records(trajectory_stage)
+    )
+
+    def record_ring_frame(
+        event: TrajectoryEvent,
+        *,
+        energy: Optional[float] = None,
+        state: Optional[geo.PiercingState] = None,
+        report: Optional["geo.BondRingScanReport[Ring, Bond]"] = None,
+        confirmed_piercing_count: Optional[int] = None,
+        attempt: Optional[int] = None,
+    ) -> Optional[int]:
+        if not records_trajectory or trajectory is None:
+            return None
+        frame = trajectory.record_molecule(
+            mol,
+            stage=trajectory_stage,
+            event=event,
+            energy_kj_mol=energy,
+            attempt=attempt,
+            evidence=(
+                None
+                if state is None
+                else _ring_frame_evidence(
+                    state,
+                    report,
+                    confirmed_piercing_count=confirmed_piercing_count,
+                )
+            ),
+        )
+        return frame.index
+
     state, report = _scan_confirmed_ring_piercings(
         mol,
         ring_scope=ring_scope,
@@ -1593,12 +1683,20 @@ def _untangle_ring_piercings(
     minimum_count = initial_count
     best_coordinates = _copy_coordinates(mol.coordinates)
     best_energy = float(initial_energy)
-    frame_coordinates = [best_coordinates.copy()] if save_movie else []
-    frame_energies = [best_energy] if save_movie else []
+    best_trace_energy = (
+        best_energy if np.isfinite(best_energy) else None
+    )
     warning_messages = []
     attempts_completed = 0
     settled = False
     unresolved_reason: Optional[str] = None
+    record_ring_frame(
+        TrajectoryEvent.INITIAL,
+        energy=best_trace_energy,
+        state=state,
+        report=report,
+        attempt=0,
+    )
 
     while True:
         if state is not geo.PiercingState.PIERCES:
@@ -1623,9 +1721,14 @@ def _untangle_ring_piercings(
                 minimum_count = current_count
                 best_coordinates = _copy_coordinates(mol.coordinates)
                 best_energy = float(optimized.energy)
-            if save_movie:
-                frame_coordinates.append(_copy_coordinates(mol.coordinates))
-                frame_energies.append(float(optimized.energy))
+                best_trace_energy = float(optimized.energy)
+            record_ring_frame(
+                TrajectoryEvent.SETTLED,
+                energy=float(optimized.energy),
+                state=state,
+                report=report,
+                attempt=attempts_completed,
+            )
             continue
 
         if attempts_completed >= attempt_limit:
@@ -1648,40 +1751,72 @@ def _untangle_ring_piercings(
 
         attempts_completed += 1
         mol.hide_bonds(ring_edge, clear_conformers=False)
+        record_ring_frame(
+            TrajectoryEvent.RING_OPENED,
+            attempt=attempts_completed,
+        )
+        optimized_successfully = False
         try:
             mol.coordinates = _perturbed_coordinates(
                 mol.coordinates,
                 sigma=perturb_sigma,
                 rng=rng,
             )
+            record_ring_frame(
+                TrajectoryEvent.PERTURBED,
+                attempt=attempts_completed,
+            )
             optimized = _single_ob_optimization(
                 mol,
                 effective_forcefield,
                 short_steps,
             )
+            optimized_successfully = True
+            record_ring_frame(
+                TrajectoryEvent.OPTIMIZED,
+                energy=float(optimized.energy),
+                attempt=attempts_completed,
+            )
         finally:
             mol.restore_bonds(ring_edge, clear_conformers=False)
+            if not optimized_successfully:
+                record_ring_frame(
+                    TrajectoryEvent.RING_CLOSED,
+                    attempt=attempts_completed,
+                )
 
         state, report = _scan_confirmed_ring_piercings(
             mol,
             ring_scope=ring_scope,
         )
         current_count = _piercing_count(report)
+        record_ring_frame(
+            TrajectoryEvent.RING_CLOSED,
+            state=state,
+            report=report,
+            attempt=attempts_completed,
+        )
         if current_count <= minimum_count:
             minimum_count = current_count
             best_coordinates = _copy_coordinates(mol.coordinates)
-            best_energy = float(optimized.energy)
-        if save_movie:
-            frame_coordinates.append(_copy_coordinates(mol.coordinates))
-            frame_energies.append(float(optimized.energy))
+            best_energy = float("nan")
+            best_trace_energy = None
         settled = False
 
     if unresolved_reason is not None:
         mol.coordinates = best_coordinates
         current_count = minimum_count
+        record_ring_frame(
+            TrajectoryEvent.ROLLED_BACK,
+            energy=best_trace_energy,
+            state=state,
+            confirmed_piercing_count=current_count,
+            attempt=attempts_completed,
+        )
         if settling_steps:
             retained_coordinates = best_coordinates.copy()
             retained_energy = best_energy
+            retained_trace_energy = best_trace_energy
             retained_count = minimum_count
             optimized = _single_ob_optimization(
                 mol,
@@ -1693,9 +1828,13 @@ def _untangle_ring_piercings(
                 ring_scope=ring_scope,
             )
             settled_count = _piercing_count(settled_report)
-            if save_movie:
-                frame_coordinates.append(_copy_coordinates(mol.coordinates))
-                frame_energies.append(float(optimized.energy))
+            record_ring_frame(
+                TrajectoryEvent.SETTLED,
+                energy=float(optimized.energy),
+                state=settled_state,
+                report=settled_report,
+                attempt=attempts_completed,
+            )
             if settled_count <= retained_count:
                 state = settled_state
                 report = settled_report
@@ -1703,11 +1842,20 @@ def _untangle_ring_piercings(
                 minimum_count = settled_count
                 best_coordinates = _copy_coordinates(mol.coordinates)
                 best_energy = float(optimized.energy)
+                best_trace_energy = float(optimized.energy)
             else:
                 mol.coordinates = retained_coordinates
                 state = geo.PiercingState.PIERCES
                 current_count = retained_count
                 best_energy = retained_energy
+                best_trace_energy = retained_trace_energy
+                record_ring_frame(
+                    TrajectoryEvent.ROLLED_BACK,
+                    energy=best_trace_energy,
+                    state=state,
+                    confirmed_piercing_count=retained_count,
+                    attempt=attempts_completed,
+                )
         if state is geo.PiercingState.PIERCES:
             warning_messages.append(unresolved_reason)
         elif state is geo.PiercingState.UNDETERMINED:
@@ -1715,14 +1863,16 @@ def _untangle_ring_piercings(
                 "A bond-ring relation remained mathematically undetermined"
             )
     resolved = current_count == 0
-    selected_coordinates = _copy_coordinates(mol.coordinates)
-    if save_movie:
-        if not np.array_equal(frame_coordinates[-1], selected_coordinates):
-            frame_coordinates.append(selected_coordinates.copy())
-            frame_energies.append(best_energy)
-    else:
-        frame_coordinates = [selected_coordinates.copy()]
-        frame_energies = [best_energy]
+    terminal_index = record_ring_frame(
+        TrajectoryEvent.TERMINAL,
+        energy=best_trace_energy,
+        state=state,
+        report=report,
+        confirmed_piercing_count=current_count,
+        attempt=attempts_completed,
+    )
+    if terminal_index is not None and trajectory is not None:
+        trajectory.select(terminal_index)
 
     return _RingUntanglingResult(
         report=RingUntanglingReport(
@@ -1735,8 +1885,6 @@ def _untangle_ring_piercings(
             warning_messages=_unique_messages(warning_messages),
         ),
         energy=best_energy,
-        frames=tuple(frame_coordinates),
-        frame_energies=tuple(frame_energies),
     )
 
 
@@ -1847,12 +1995,57 @@ def _coordination_topology_relation_counts(
 def _restore_next_nonpiercing_coordination_bond(
     mol: "Molecule",
     pending_bonds: list["Bond"],
+    *,
+    trajectory: Optional[ForceFieldTrajectory] = None,
+    attempt: Optional[int] = None,
 ) -> Tuple[Optional["Bond"], Tuple[str, ...]]:
     """Restore the first bond whose post-addition graph has no new piercing."""
+    records_trajectory = (
+        trajectory is not None
+        and trajectory.records(TrajectoryStage.COORDINATION_RESTORATION)
+    )
+
+    def record_candidate(
+        event: TrajectoryEvent,
+        bond: "Bond",
+        *,
+        accepted: Optional[bool],
+        pending_count: int,
+        relation_counts: Optional[_CoordinationRelationCounts] = None,
+    ) -> None:
+        if not records_trajectory or trajectory is None:
+            return
+        trajectory.record_molecule(
+            mol,
+            stage=TrajectoryStage.COORDINATION_RESTORATION,
+            event=event,
+            attempt=attempt,
+            evidence=CoordinationFrameEvidence(
+                bond_atom_indices=_bond_key(bond),
+                accepted=accepted,
+                pending_bond_count=pending_count,
+                introduced_piercing_count=(
+                    0 if relation_counts is None else relation_counts.piercing
+                ),
+                introduced_undetermined_count=(
+                    0 if relation_counts is None else relation_counts.undetermined
+                ),
+                excluded_ring_count=(
+                    0 if relation_counts is None else relation_counts.excluded_rings
+                ),
+            ),
+        )
+
     warning_messages = []
     before = _scan_full_graph_bond_ring_relations(mol)
     for bond in tuple(pending_bonds):
         mol.restore_bonds(bond, clear_conformers=False)
+        record_candidate(
+            TrajectoryEvent.BOND_TRIAL,
+            bond,
+            accepted=None,
+            pending_count=len(pending_bonds),
+        )
         keep_restored = False
         try:
             relation_counts = _candidate_coordination_relation_counts(
@@ -1861,9 +2054,30 @@ def _restore_next_nonpiercing_coordination_bond(
                 bond,
             )
             keep_restored = relation_counts.piercing == 0
+            record_candidate(
+                (
+                    TrajectoryEvent.BOND_ACCEPTED
+                    if keep_restored
+                    else TrajectoryEvent.BOND_REJECTED
+                ),
+                bond,
+                accepted=keep_restored,
+                pending_count=(
+                    len(pending_bonds) - 1
+                    if keep_restored
+                    else len(pending_bonds)
+                ),
+                relation_counts=relation_counts,
+            )
         finally:
             if not keep_restored:
                 mol.hide_bonds(bond, clear_conformers=False)
+                record_candidate(
+                    TrajectoryEvent.BOND_ROLLBACK,
+                    bond,
+                    accepted=False,
+                    pending_count=len(pending_bonds),
+                )
         if relation_counts.undetermined:
             warning_messages.append(
                 f"Coordination bond {_bond_key(bond)} has "
@@ -1892,14 +2106,48 @@ def _restore_coordination_bonds_incrementally(
     relaxation_steps: int,
     perturb_sigma: float,
     rng: np.random.Generator,
-    save_movie: bool,
+    trajectory: Optional[ForceFieldTrajectory] = None,
 ) -> _CoordinationRestorationResult:
     """Restore original metal--ligand bonds through explicit bounded rounds."""
+    records_trajectory = (
+        trajectory is not None
+        and trajectory.records(TrajectoryStage.COORDINATION_RESTORATION)
+    )
+
+    def record_restoration_frame(
+        event: TrajectoryEvent,
+        *,
+        energy: Optional[float] = None,
+        evidence: Optional[CoordinationFrameEvidence] = None,
+        attempt: Optional[int] = None,
+    ) -> Optional[int]:
+        if not records_trajectory or trajectory is None:
+            return None
+        frame = trajectory.record_molecule(
+            mol,
+            stage=TrajectoryStage.COORDINATION_RESTORATION,
+            event=event,
+            energy_kj_mol=energy,
+            attempt=attempt,
+            evidence=evidence,
+        )
+        return frame.index
+
     coordination_bonds = tuple(sorted(
         (bond for bond in mol.bonds if bond.is_metal_ligand_bond),
         key=_bond_key,
     ))
     if not coordination_bonds:
+        record_restoration_frame(TrajectoryEvent.COORDINATION_READY)
+        terminal_index = record_restoration_frame(
+            TrajectoryEvent.TERMINAL,
+            evidence=CoordinationFrameEvidence(
+                bond_atom_indices=None,
+                accepted=True,
+            ),
+        )
+        if terminal_index is not None and trajectory is not None:
+            trajectory.select(terminal_index)
         return _CoordinationRestorationResult(
             report=CoordinationBondRestorationReport(
                 attempt_limit=attempt_limit,
@@ -1912,23 +2160,29 @@ def _restore_coordination_bonds_incrementally(
                 excluded_ring_count=0,
                 resolved=True,
             ),
-            frames=(_copy_coordinates(mol.coordinates),),
-            frame_energies=(float("nan"),),
         )
 
     mol.hide_bonds(*coordination_bonds, clear_conformers=False)
     pending_bonds = list(coordination_bonds)
+    record_restoration_frame(
+        TrajectoryEvent.COORDINATION_READY,
+        evidence=CoordinationFrameEvidence(
+            bond_atom_indices=None,
+            accepted=True,
+            pending_bond_count=len(pending_bonds),
+        ),
+    )
     warning_messages: list[str] = []
-    frame_coordinates = [_copy_coordinates(mol.coordinates)]
-    frame_energies = [float("nan")]
     stalled_attempts = 0
-    last_energy = float("nan")
+    last_energy: Optional[float] = None
 
     while pending_bonds:
         restored_bond, relation_warnings = (
             _restore_next_nonpiercing_coordination_bond(
                 mol,
                 pending_bonds,
+                trajectory=trajectory,
+                attempt=stalled_attempts,
             )
         )
         warning_messages.extend(relation_warnings)
@@ -1941,6 +2195,10 @@ def _restore_coordination_bonds_incrementally(
                     sigma=perturb_sigma,
                     rng=rng,
                 )
+                record_restoration_frame(
+                    TrajectoryEvent.PERTURBED,
+                    attempt=stalled_attempts,
+                )
             stalled_attempts += 1
         optimized = _single_ob_optimization(
             mol,
@@ -1948,33 +2206,33 @@ def _restore_coordination_bonds_incrementally(
             relaxation_steps,
         )
         last_energy = float(optimized.energy)
-        if save_movie:
-            frame_coordinates.append(_copy_coordinates(mol.coordinates))
-            frame_energies.append(last_energy)
+        record_restoration_frame(
+            TrajectoryEvent.OPTIMIZED,
+            energy=last_energy,
+            attempt=stalled_attempts,
+        )
 
     forced_bond_keys = tuple(_bond_key(bond) for bond in pending_bonds)
     if pending_bonds:
-        mol.restore_bonds(*pending_bonds, clear_conformers=False)
+        for forced_index, bond in enumerate(pending_bonds):
+            mol.restore_bonds(bond, clear_conformers=False)
+            record_restoration_frame(
+                TrajectoryEvent.BOND_FORCED,
+                evidence=CoordinationFrameEvidence(
+                    bond_atom_indices=_bond_key(bond),
+                    accepted=False,
+                    pending_bond_count=(
+                        len(pending_bonds) - forced_index - 1
+                    ),
+                    forced=True,
+                ),
+                attempt=stalled_attempts,
+            )
+        last_energy = None
         warning_messages.append(
             f"Forced restoration of {len(pending_bonds)} coordination bond(s) "
             f"after {attempt_limit} stalled attempts"
         )
-
-    final_coordinates = _copy_coordinates(mol.coordinates)
-    if save_movie:
-        if forced_bond_keys or not np.array_equal(
-            frame_coordinates[-1],
-            final_coordinates,
-        ):
-            frame_coordinates.append(final_coordinates)
-            frame_energies.append(
-                float("nan") if forced_bond_keys else last_energy
-            )
-    else:
-        frame_coordinates = [final_coordinates]
-        frame_energies = [
-            float("nan") if forced_bond_keys else last_energy
-        ]
 
     final_relation_counts = _coordination_topology_relation_counts(
         _scan_full_graph_bond_ring_relations(mol),
@@ -2014,10 +2272,24 @@ def _restore_coordination_bonds_incrementally(
         ),
         warning_messages=_unique_messages(warning_messages),
     )
+    terminal_index = record_restoration_frame(
+        TrajectoryEvent.TERMINAL,
+        energy=last_energy,
+        evidence=CoordinationFrameEvidence(
+            bond_atom_indices=None,
+            accepted=report.resolved,
+            pending_bond_count=0,
+            forced=bool(forced_bond_keys),
+            introduced_piercing_count=final_relation_counts.piercing,
+            introduced_undetermined_count=final_relation_counts.undetermined,
+            excluded_ring_count=final_relation_counts.excluded_rings,
+        ),
+        attempt=stalled_attempts,
+    )
+    if terminal_index is not None and trajectory is not None:
+        trajectory.select(terminal_index)
     return _CoordinationRestorationResult(
         report=report,
-        frames=tuple(frame_coordinates),
-        frame_energies=tuple(frame_energies),
     )
 
 
@@ -2584,6 +2856,8 @@ class _OpenBabelOptimizer:
         topology_reference: TopologyReference,
         quality_thresholds: Optional[StructureAcceptanceThresholds],
         trajectory: Optional[ForceFieldTrajectory] = None,
+        trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
+        trajectory_attempt: Optional[int] = None,
     ) -> ForceFieldRunReport:
         owns_trajectory = trajectory is None
         if trajectory is None:
@@ -2591,11 +2865,14 @@ class _OpenBabelOptimizer:
                 mol,
                 start=TrajectoryStart.FINAL_OPTIMIZATION,
             )
-        trajectory.record_molecule(
-            mol,
-            stage=TrajectoryStage.FINAL_OPTIMIZATION,
-            event=TrajectoryEvent.INITIAL,
-        )
+        records_trajectory = trajectory.records(trajectory_stage)
+        if records_trajectory:
+            trajectory.record_molecule(
+                mol,
+                stage=trajectory_stage,
+                event=TrajectoryEvent.INITIAL,
+                attempt=trajectory_attempt,
+            )
         obmol, _ = mol2obmol(mol)
         if self.increasing_vdw:
             self._set_vdw_cutoff(self.vdw_cutoff_end)
@@ -2619,7 +2896,7 @@ class _OpenBabelOptimizer:
 
         best_frame = None
         best_epoch = -1
-        best_frame_index = -1
+        best_frame_index: Optional[int] = None
         last_frame = None
         last_epoch = -1
         thresholds = _resolve_acceptance_thresholds(quality_thresholds)
@@ -2719,24 +2996,27 @@ class _OpenBabelOptimizer:
                 topology_reference=topology_reference,
                 quality_thresholds=quality_thresholds,
             )
-            trajectory_frame = trajectory.record_molecule(
-                mol,
-                stage=TrajectoryStage.FINAL_OPTIMIZATION,
-                event=TrajectoryEvent.EPOCH_COMPLETE,
-                energy_kj_mol=frame.energy,
-                step=epoch,
-                evidence=OptimizationFrameEvidence(
-                    accepted=frame.quality_report.passed,
-                    converged=frame.converged,
-                    rms_gradient_kj_mol_angstrom=frame.rms_gradient,
-                    max_gradient_kj_mol_angstrom=frame.max_gradient,
-                    failed_checks=tuple(
-                        check.name
-                        for check in frame.quality_report.checks
-                        if not check.passed
+            trajectory_frame: Optional[ForceFieldFrame] = None
+            if records_trajectory:
+                trajectory_frame = trajectory.record_molecule(
+                    mol,
+                    stage=trajectory_stage,
+                    event=TrajectoryEvent.EPOCH_COMPLETE,
+                    energy_kj_mol=frame.energy,
+                    attempt=trajectory_attempt,
+                    step=epoch,
+                    evidence=OptimizationFrameEvidence(
+                        accepted=frame.quality_report.passed,
+                        converged=frame.converged,
+                        rms_gradient_kj_mol_angstrom=frame.rms_gradient,
+                        max_gradient_kj_mol_angstrom=frame.max_gradient,
+                        failed_checks=tuple(
+                            check.name
+                            for check in frame.quality_report.checks
+                            if not check.passed
+                        ),
                     ),
-                ),
-            )
+                )
             last_frame = frame
             last_epoch = epoch
             if (
@@ -2745,7 +3025,9 @@ class _OpenBabelOptimizer:
             ):
                 best_frame = frame
                 best_epoch = epoch
-                best_frame_index = trajectory_frame.index
+                best_frame_index = (
+                    None if trajectory_frame is None else trajectory_frame.index
+                )
             if self.save_movie:
                 epoch_energies.append(frame.energy)
                 epoch_quality_reports.append(frame.quality_report)
@@ -2786,7 +3068,9 @@ class _OpenBabelOptimizer:
                 raise GeometryQualityError(last_frame.quality_report)
             best_frame = last_frame
             best_epoch = last_epoch
-            best_frame_index = trajectory_frame.index
+            best_frame_index = (
+                None if trajectory_frame is None else trajectory_frame.index
+            )
         elif not last_frame.quality_report.passed:
             if _has_unreturnable_frame_failure(last_frame.quality_report):
                 raise GeometryQualityError(last_frame.quality_report)
@@ -2801,11 +3085,14 @@ class _OpenBabelOptimizer:
             )
             best_frame = last_frame
             best_epoch = last_epoch
-            best_frame_index = trajectory_frame.index
+            best_frame_index = (
+                None if trajectory_frame is None else trajectory_frame.index
+            )
             termination_reason = "quality_gate_failed"
 
         mol.coordinates = best_frame.coordinates
-        trajectory.select(best_frame_index)
+        if best_frame_index is not None:
+            trajectory.select(best_frame_index)
         if owns_trajectory:
             trajectory.materialize(mol, keep_all=self.save_movie)
 
@@ -2864,6 +3151,7 @@ def _build_ligand_proxies(
     ligand_untangling_attempts: int = 20,
     perturb_sigma: float = 0.5,
     seed: Optional[int] = None,
+    trajectory_attempts: Optional[list[ForceFieldTrajectory]] = None,
 ) -> Tuple[np.ndarray, ComplexBuildDiagnostics]:
     started = time.monotonic()
     clone_mol = copy(mol)
@@ -2890,13 +3178,44 @@ def _build_ligand_proxies(
         while accepted_candidate is None and component_attempts < max_attempts:
             component_attempts += 1
             total_attempts += 1
+            attempt_trajectory: Optional[ForceFieldTrajectory] = None
+            if trajectory_attempts is not None:
+                attempt_trajectory = ForceFieldTrajectory.from_molecule(
+                    component_mol,
+                    start=TrajectoryStart.LIGAND_BUILD,
+                )
+                trajectory_attempts.append(attempt_trajectory)
+                attempt_trajectory.record_molecule(
+                    component_mol,
+                    stage=TrajectoryStage.LIGAND_BUILD,
+                    event=TrajectoryEvent.INITIAL,
+                    component_index=component_index,
+                    attempt=component_attempts,
+                )
             try:
                 _ob_build(component_mol)
+                if attempt_trajectory is not None:
+                    attempt_trajectory.record_molecule(
+                        component_mol,
+                        stage=TrajectoryStage.LIGAND_BUILD,
+                        event=TrajectoryEvent.BUILD_COMPLETE,
+                        component_index=component_index,
+                        attempt=component_attempts,
+                    )
                 warmed = _single_ob_optimization(
                     component_mol,
                     effective_forcefield,
                     candidate_warmup_steps,
                 )
+                if attempt_trajectory is not None:
+                    attempt_trajectory.record_molecule(
+                        component_mol,
+                        stage=TrajectoryStage.LIGAND_BUILD,
+                        event=TrajectoryEvent.WARMUP_COMPLETE,
+                        energy_kj_mol=float(warmed.energy),
+                        component_index=component_index,
+                        attempt=component_attempts,
+                    )
                 untangling = _untangle_ring_piercings(
                     component_mol,
                     effective_forcefield,
@@ -2907,8 +3226,19 @@ def _build_ligand_proxies(
                     rng=rng,
                     ring_scope="ligand_skeleton",
                     initial_energy=float(warmed.energy),
+                    trajectory=attempt_trajectory,
+                    trajectory_stage=TrajectoryStage.LIGAND_BUILD,
                 )
             except ForceFieldError as exc:
+                if attempt_trajectory is not None:
+                    terminal_frame = attempt_trajectory.record_molecule(
+                        component_mol,
+                        stage=TrajectoryStage.LIGAND_BUILD,
+                        event=TrajectoryEvent.TERMINAL,
+                        component_index=component_index,
+                        attempt=component_attempts,
+                    )
+                    attempt_trajectory.select(terminal_frame.index)
                 rejections.append(
                     CandidateRejection(component_index, component_attempts, str(exc))
                 )
@@ -2931,6 +3261,7 @@ def _build_ligand_proxies(
                 energy=float(untangling.energy),
                 attempt=component_attempts,
                 untangling=untangling.report,
+                trajectory=attempt_trajectory,
             )
             if not _has_unreturnable_frame_failure(candidate_quality):
                 fallback_candidates.append(candidate)
@@ -2996,11 +3327,30 @@ def _build_ligand_proxies(
                     )
                 )
                 component_mol.coordinates = selected_candidate.coordinates
+                if selected_candidate.trajectory is not None:
+                    rollback_frame = selected_candidate.trajectory.record_molecule(
+                        component_mol,
+                        stage=TrajectoryStage.LIGAND_BUILD,
+                        event=TrajectoryEvent.ROLLED_BACK,
+                        component_index=component_index,
+                        attempt=selected_candidate.attempt,
+                    )
+                    selected_candidate.trajectory.select(rollback_frame.index)
                 warning_messages.append(
                     f"Component {component_index}: long refinement failed; "
                     "retaining the medium-optimized candidate"
                 )
             else:
+                refined_frame: Optional[ForceFieldFrame] = None
+                if selected_candidate.trajectory is not None:
+                    refined_frame = selected_candidate.trajectory.record_molecule(
+                        component_mol,
+                        stage=TrajectoryStage.LIGAND_BUILD,
+                        event=TrajectoryEvent.OPTIMIZED,
+                        energy_kj_mol=float(refined.energy),
+                        component_index=component_index,
+                        attempt=selected_candidate.attempt,
+                    )
                 refined_state, refined_report = _scan_confirmed_ring_piercings(
                     component_mol,
                     ring_scope="ligand_skeleton",
@@ -3041,6 +3391,17 @@ def _build_ligand_proxies(
                         failures,
                     ))
                     component_mol.coordinates = selected_candidate.coordinates
+                    if selected_candidate.trajectory is not None:
+                        rollback_frame = (
+                            selected_candidate.trajectory.record_molecule(
+                                component_mol,
+                                stage=TrajectoryStage.LIGAND_BUILD,
+                                event=TrajectoryEvent.ROLLED_BACK,
+                                component_index=component_index,
+                                attempt=selected_candidate.attempt,
+                            )
+                        )
+                        selected_candidate.trajectory.select(rollback_frame.index)
                     warning_messages.append(
                         f"Component {component_index}: long refinement failed "
                         "the basic geometry gate; retaining the "
@@ -3065,9 +3426,26 @@ def _build_ligand_proxies(
                                 refined_state is not geo.PiercingState.PIERCES
                             ),
                         ),
+                        trajectory=selected_candidate.trajectory,
                     )
+                    if (
+                        refined_frame is not None
+                        and selected_candidate.trajectory is not None
+                    ):
+                        selected_candidate.trajectory.select(refined_frame.index)
                 else:
                     component_mol.coordinates = selected_candidate.coordinates
+                    if selected_candidate.trajectory is not None:
+                        rollback_frame = (
+                            selected_candidate.trajectory.record_molecule(
+                                component_mol,
+                                stage=TrajectoryStage.LIGAND_BUILD,
+                                event=TrajectoryEvent.ROLLED_BACK,
+                                component_index=component_index,
+                                attempt=selected_candidate.attempt,
+                            )
+                        )
+                        selected_candidate.trajectory.select(rollback_frame.index)
                     warning_messages.append(
                         f"Component {component_index}: long refinement increased "
                         "the confirmed piercing count; retaining the "
@@ -3112,6 +3490,7 @@ def _build_ligand_proxies_worker(
     seed: Optional[int],
     ligand_untangling_attempts: int = 20,
     perturb_sigma: float = 0.5,
+    record_ligand_trajectories: bool = False,
 ) -> None:
     """Child-process boundary that always sends one structured envelope."""
     _run_ligand_proxy_worker(
@@ -3125,6 +3504,7 @@ def _build_ligand_proxies_worker(
         seed,
         ligand_untangling_attempts,
         perturb_sigma,
+        record_ligand_trajectories,
         seed_initializer=_seed_openbabel_random,
     )
 
@@ -3140,10 +3520,14 @@ def _run_ligand_proxy_worker(
     seed: Optional[int],
     ligand_untangling_attempts: int = 20,
     perturb_sigma: float = 0.5,
+    record_ligand_trajectories: bool = False,
     *,
     seed_initializer: _SeedInitializer,
 ) -> None:
     """Run the shared ligand-proxy worker body with an explicit RNG adapter."""
+    trajectory_attempts: Optional[list[ForceFieldTrajectory]] = (
+        [] if record_ligand_trajectories else None
+    )
     try:
         if seed is not None:
             seed_initializer(seed)
@@ -3157,11 +3541,13 @@ def _run_ligand_proxy_worker(
             seed=seed,
             ligand_untangling_attempts=ligand_untangling_attempts,
             perturb_sigma=perturb_sigma,
+            trajectory_attempts=trajectory_attempts,
         )
         result = BuildWorkerResult(
             status="ok",
             coordinates=coordinates,
             diagnostics=diagnostics,
+            ligand_build_attempts=tuple(trajectory_attempts or ()),
         )
     except Exception as exc:
         result = BuildWorkerResult(
@@ -3170,6 +3556,7 @@ def _run_ligand_proxy_worker(
             error_type=type(exc).__name__,
             error_message=str(exc),
             traceback=traceback_module.format_exc(),
+            ligand_build_attempts=tuple(trajectory_attempts or ()),
         )
     try:
         connection.send(result)
@@ -3393,6 +3780,25 @@ def _seeded_ob_build_coordinates(
 # Non-committing workflow stages with explicit worker injection.
 
 
+def _finalize_trajectory(
+    mol: "Molecule",
+    trajectory: ForceFieldTrajectory,
+    *,
+    ligand_build_attempts: Sequence[ForceFieldTrajectory] = (),
+    save_movie: bool,
+    trajectory_path: Optional[TrajectoryPath],
+) -> ForceFieldTrajectoryArchive:
+    """Persist and expose one completed trajectory without choosing its frame."""
+    archive = ForceFieldTrajectoryArchive(
+        main=trajectory,
+        ligand_build_attempts=tuple(ligand_build_attempts),
+    )
+    if trajectory_path is not None:
+        archive.write(trajectory_path)
+    trajectory.materialize(mol, keep_all=save_movie)
+    return archive
+
+
 def _prepare_complex_working_mol(
     mol: "Molecule",
     *,
@@ -3408,10 +3814,10 @@ def _prepare_complex_working_mol(
     add_hydrogens: bool,
     seed: Optional[int],
     perturb_sigma: float = 0.5,
-    save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     coordination_geometry: Optional[str],
     worker_target: _ComplexBuildWorker,
-) -> Tuple["Molecule", ComplexBuildDiagnostics]:
+) -> _PreparedComplex:
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
     if ligand_untangling_attempts < 1:
@@ -3435,6 +3841,10 @@ def _prepare_complex_working_mol(
         add_hydrogens=add_hydrogens,
         seed=seed,
     )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        working_mol,
+        start=trajectory_start,
+    )
     worker_mol = _make_worker_mol(working_mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
@@ -3451,6 +3861,7 @@ def _prepare_complex_working_mol(
             seed,
             ligand_untangling_attempts,
             perturb_sigma,
+            trajectory_start is TrajectoryStart.LIGAND_BUILD,
         ),
     )
     result = _receive_worker_result(
@@ -3479,7 +3890,7 @@ def _prepare_complex_working_mol(
         relaxation_steps=coordination_relaxation_steps,
         perturb_sigma=perturb_sigma,
         rng=np.random.default_rng(seed),
-        save_movie=save_movie,
+        trajectory=trajectory,
     )
     diagnostics = replace(
         diagnostics,
@@ -3496,14 +3907,12 @@ def _prepare_complex_working_mol(
     )
     for message in restoration.report.warning_messages:
         warnings.warn(message, ComplexBuildWarning, stacklevel=3)
-    if save_movie:
-        _replace_conformer_trace(
-            working_mol,
-            np.asarray(restoration.frames),
-            np.asarray(restoration.frame_energies),
-            len(restoration.frames) - 1,
-        )
-    return working_mol, diagnostics
+    return _PreparedComplex(
+        mol=working_mol,
+        diagnostics=diagnostics,
+        trajectory=trajectory,
+        ligand_build_attempts=result.ligand_build_attempts,
+    )
 
 
 def _optimize_working_mol(
@@ -3526,6 +3935,8 @@ def _optimize_working_mol(
     vdw_cutoff_end: float,
     stop_on_ring_piercing: bool = False,
     trajectory: Optional[ForceFieldTrajectory] = None,
+    trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
+    trajectory_attempt: Optional[int] = None,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
         requested_forcefield,
@@ -3548,71 +3959,8 @@ def _optimize_working_mol(
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
         trajectory=trajectory,
-    )
-
-
-def _replace_conformer_trace(
-    mol: "Molecule",
-    coordinates: np.ndarray,
-    energies: Union[np.ndarray, float],
-    selected_index: int,
-) -> None:
-    """Replace conformer storage and load its caller-selected frame."""
-    mol.conformer_clear()
-    mol.conformer_add(coordinates, energies)
-    mol.conformer_load(selected_index)
-
-
-def _conformer_trace(
-    mol: "Molecule",
-) -> Tuple[Tuple[np.ndarray, ...], Tuple[float, ...], int]:
-    """Read the current conformer trace without exposing its storage layout."""
-    coordinates = []
-    energies = []
-    for index in range(mol.conformers_number):
-        conformer = mol.conformer_get(index)
-        coordinates.append(_copy_coordinates(conformer["coordinates"]))
-        energy = conformer.get("energy")
-        energies.append(float("nan") if energy is None else float(energy))
-    return tuple(coordinates), tuple(energies), int(mol._conformers_index)
-
-
-def _combine_conformer_traces(
-    mol: "Molecule",
-    prefix_coordinates: Sequence[np.ndarray],
-    prefix_energies: Sequence[float],
-) -> None:
-    """Prepend workflow frames while retaining the optimizer-selected frame."""
-    optimized_coordinates, optimized_energies, selected_index = _conformer_trace(mol)
-    coordinates = []
-    energies = []
-    for frame, energy in zip(prefix_coordinates, prefix_energies):
-        coordinates_array = _copy_coordinates(frame)
-        if coordinates and np.array_equal(coordinates[-1], coordinates_array):
-            if not np.isfinite(energies[-1]) and np.isfinite(energy):
-                energies[-1] = float(energy)
-            continue
-        coordinates.append(coordinates_array)
-        energies.append(float(energy))
-    optimized_start = 0
-    if coordinates and optimized_coordinates and np.array_equal(
-        coordinates[-1],
-        optimized_coordinates[0],
-    ):
-        if not np.isfinite(energies[-1]) and np.isfinite(optimized_energies[0]):
-            energies[-1] = optimized_energies[0]
-        optimized_start = 1
-    if selected_index == 0 and optimized_start == 1:
-        selected_index = len(coordinates) - 1
-    else:
-        selected_index = len(coordinates) + selected_index - optimized_start
-    coordinates.extend(optimized_coordinates[optimized_start:])
-    energies.extend(optimized_energies[optimized_start:])
-    _replace_conformer_trace(
-        mol,
-        np.asarray(coordinates),
-        np.asarray(energies),
-        selected_index,
+        trajectory_stage=trajectory_stage,
+        trajectory_attempt=trajectory_attempt,
     )
 
 
@@ -3700,6 +4048,7 @@ def _optimize_complex_working_mol(
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
+    trajectory: Optional[ForceFieldTrajectory] = None,
 ) -> ForceFieldRunReport:
     """Interleave bounded untangling with complete-complex relaxation."""
     if complex_untangling_attempts < 1:
@@ -3712,11 +4061,6 @@ def _optimize_complex_working_mol(
     consecutive_stalled_repairs = 0
 
     while True:
-        prefix_coordinates: Tuple[np.ndarray, ...] = ()
-        prefix_energies: Tuple[float, ...] = ()
-        if save_movie:
-            prefix_coordinates, prefix_energies, _ = _conformer_trace(working_mol)
-
         untangling = _untangle_ring_piercings(
             working_mol,
             effective_forcefield,
@@ -3731,12 +4075,17 @@ def _optimize_complex_working_mol(
                 if optimization_reports
                 else float("nan")
             ),
-            save_movie=save_movie,
+            trajectory=trajectory,
         )
         untangling_reports.append(untangling.report)
         remaining_attempts -= untangling.report.attempts_completed
 
         segment_epochs = remaining_epochs if remaining_epochs else 1
+        trajectory_stage = (
+            TrajectoryStage.FINAL_OPTIMIZATION
+            if untangling.report.resolved
+            else TrajectoryStage.COMPLEX_UNTANGLING
+        )
         report = _optimize_working_mol(
             working_mol,
             requested_forcefield=requested_forcefield,
@@ -3755,16 +4104,12 @@ def _optimize_complex_working_mol(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             stop_on_ring_piercing=True,
+            trajectory=trajectory,
+            trajectory_stage=trajectory_stage,
+            trajectory_attempt=len(optimization_reports),
         )
         optimization_reports.append(report)
         remaining_epochs = max(remaining_epochs - report.epochs_completed, 0)
-        if save_movie:
-            _combine_conformer_traces(
-                working_mol,
-                prefix_coordinates + untangling.frames,
-                prefix_energies + untangling.frame_energies,
-            )
-
         final_state, final_scan = _scan_confirmed_ring_piercings(
             working_mol,
             ring_scope="ligand_skeleton",
@@ -3819,6 +4164,8 @@ def _complexes_build_workflow(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -3832,7 +4179,7 @@ def _complexes_build_workflow(
         allow_added_hydrogens=add_hydrogens,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working_mol, diagnostics = _prepare_complex_working_mol(
+    prepared = _prepare_complex_working_mol(
         mol,
         effective_forcefield=effective_forcefield,
         max_attempts=max_attempts,
@@ -3846,12 +4193,12 @@ def _complexes_build_workflow(
         add_hydrogens=add_hydrogens,
         seed=seed,
         perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
+        trajectory_start=trajectory_start,
         coordination_geometry=coordination_geometry,
         worker_target=worker_target,
     )
     optimization_report = _optimize_complex_working_mol(
-        working_mol,
+        prepared.mol,
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
@@ -3868,15 +4215,28 @@ def _complexes_build_workflow(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
+        trajectory=prepared.trajectory,
+    )
+    trajectory_archive = _finalize_trajectory(
+        prepared.mol,
+        prepared.trajectory,
+        ligand_build_attempts=prepared.ligand_build_attempts,
+        save_movie=save_movie,
+        trajectory_path=trajectory_path,
+    )
+    optimization_report = replace(
+        optimization_report,
+        trajectory=trajectory_archive,
     )
     report = ComplexBuildReport(
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
-        build=diagnostics,
+        build=prepared.diagnostics,
         optimization=optimization_report,
         quality_report=optimization_report.quality_report,
+        trajectory=trajectory_archive,
     )
-    _commit_working_copy(mol, working_mol)
+    _commit_working_copy(mol, prepared.mol)
     return report
 
 
@@ -4158,6 +4518,8 @@ def optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.FINAL_OPTIMIZATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -4171,6 +4533,10 @@ def optimize(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        working_mol,
+        start=trajectory_start,
     )
     effective_forcefield = _resolve_organic_forcefield(forcefield)
     report = _optimize_working_mol(
@@ -4190,7 +4556,15 @@ def optimize(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
+        trajectory=trajectory,
     )
+    trajectory_archive = _finalize_trajectory(
+        working_mol,
+        trajectory,
+        save_movie=save_movie,
+        trajectory_path=trajectory_path,
+    )
+    report = replace(report, trajectory=trajectory_archive)
     _commit_working_copy(mol, working_mol)
     return report
 
@@ -4211,6 +4585,8 @@ def _build_complex3d_workflow(
     seed: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str] = None,
     worker_target: _ComplexBuildWorker,
 ) -> ComplexBuildReport:
@@ -4221,7 +4597,7 @@ def _build_complex3d_workflow(
         allow_added_hydrogens=add_hydrogens,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    working_mol, diagnostics = _prepare_complex_working_mol(
+    prepared = _prepare_complex_working_mol(
         mol,
         effective_forcefield=effective_forcefield,
         max_attempts=max_attempts,
@@ -4235,25 +4611,33 @@ def _build_complex3d_workflow(
         add_hydrogens=add_hydrogens,
         seed=seed,
         perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
+        trajectory_start=trajectory_start,
         coordination_geometry=coordination_geometry,
         worker_target=worker_target,
     )
     quality_report = evaluate_structure_acceptance(
-        working_mol,
+        prepared.mol,
         level="off",
         topology_reference=topology_reference,
     )
     if not quality_report.passed:
         raise GeometryQualityError(quality_report)
+    trajectory_archive = _finalize_trajectory(
+        prepared.mol,
+        prepared.trajectory,
+        ligand_build_attempts=prepared.ligand_build_attempts,
+        save_movie=save_movie,
+        trajectory_path=trajectory_path,
+    )
     report = ComplexBuildReport(
         requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
-        build=diagnostics,
+        build=prepared.diagnostics,
         optimization=None,
         quality_report=quality_report,
+        trajectory=trajectory_archive,
     )
-    _commit_working_copy(mol, working_mol)
+    _commit_working_copy(mol, prepared.mol)
     return report
 
 
@@ -4274,6 +4658,8 @@ def build_complex3d(
     seed: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology.
@@ -4301,6 +4687,8 @@ def build_complex3d(
         seed=seed,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
         worker_target=_build_ligand_proxies_worker,
     )
@@ -4321,6 +4709,8 @@ def optimize_complex(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COMPLEX_UNTANGLING,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -4335,6 +4725,10 @@ def optimize_complex(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        working_mol,
+        start=trajectory_start,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
     report = _optimize_complex_working_mol(
@@ -4355,7 +4749,15 @@ def optimize_complex(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
+        trajectory=trajectory,
     )
+    trajectory_archive = _finalize_trajectory(
+        working_mol,
+        trajectory,
+        save_movie=save_movie,
+        trajectory_path=trajectory_path,
+    )
+    report = replace(report, trajectory=trajectory_archive)
     _commit_working_copy(mol, working_mol)
     return report
 
@@ -4375,6 +4777,8 @@ def _build_and_optimize_workflow(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: Optional[TrajectoryStart] = None,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -4414,6 +4818,12 @@ def _build_and_optimize_workflow(
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
             save_movie=save_movie,
+            trajectory_start=(
+                trajectory_start
+                if trajectory_start is not None
+                else TrajectoryStart.COORDINATION_RESTORATION
+            ),
+            trajectory_path=trajectory_path,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
@@ -4442,6 +4852,12 @@ def _build_and_optimize_workflow(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=(
+            trajectory_start
+            if trajectory_start is not None
+            else TrajectoryStart.FINAL_OPTIMIZATION
+        ),
+        trajectory_path=trajectory_path,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -4453,6 +4869,7 @@ def _build_and_optimize_workflow(
         build=build_report,
         optimization=optimization_report,
         quality_report=optimization_report.quality_report,
+        trajectory=optimization_report.trajectory,
     )
 
 
@@ -4480,6 +4897,8 @@ def complexes_build(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -4517,6 +4936,8 @@ def complexes_build(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -4540,6 +4961,8 @@ def build_and_optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: Optional[TrajectoryStart] = None,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -4578,6 +5001,8 @@ def build_and_optimize(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -4610,6 +5035,8 @@ def auto_optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     save_movie: bool = False,
+    trajectory_start: Optional[TrajectoryStart] = None,
+    trajectory_path: Optional[TrajectoryPath] = None,
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
@@ -4630,6 +5057,12 @@ def auto_optimize(
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
             save_movie=save_movie,
+            trajectory_start=(
+                trajectory_start
+                if trajectory_start is not None
+                else TrajectoryStart.COMPLEX_UNTANGLING
+            ),
+            trajectory_path=trajectory_path,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
@@ -4647,6 +5080,12 @@ def auto_optimize(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         save_movie=save_movie,
+        trajectory_start=(
+            trajectory_start
+            if trajectory_start is not None
+            else TrajectoryStart.FINAL_OPTIMIZATION
+        ),
+        trajectory_path=trajectory_path,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,

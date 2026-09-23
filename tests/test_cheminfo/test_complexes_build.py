@@ -972,7 +972,7 @@ def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
         ff.ComplexBuildWarning,
         match="no ligand candidate passed",
     ):
-        _, diagnostics = ff._prepare_complex_working_mol(
+        prepared = ff._prepare_complex_working_mol(
             molecule,
             effective_forcefield="UFF",
             max_attempts=2,
@@ -986,7 +986,7 @@ def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
             worker_target=_ligand_fallback_warning_worker,
         )
 
-    assert diagnostics.warning_messages == (
+    assert prepared.diagnostics.warning_messages == (
         "no ligand candidate passed; retaining the best usable attempt",
     )
 
@@ -1311,8 +1311,6 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
                 resolved=False,
             ),
             energy={1: 0.0, 2: 10.0, 3: 5.0}[state["build"]],
-            frames=(),
-            frame_energies=(),
         )
 
     monkeypatch.setattr(ff, "_ob_build", build)
@@ -1417,7 +1415,11 @@ def test_complexes_build_final_failure_does_not_modify_caller(
         working = source.copy()
         working.coordinates = working.coordinates + 7.0
         working.atoms[1].formal_charge = 1
-        return working, diagnostics
+        return ff._PreparedComplex(
+            mol=working,
+            diagnostics=diagnostics,
+            trajectory=ff.ForceFieldTrajectory.from_molecule(working),
+        )
 
     def fail_final_stage(working, **options):
         working.coordinates = working.coordinates - 3.0

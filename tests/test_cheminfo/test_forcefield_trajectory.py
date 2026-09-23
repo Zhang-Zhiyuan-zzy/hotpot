@@ -1,5 +1,6 @@
 """Tests for topology-aware force-field trajectory records."""
 
+import json
 from dataclasses import FrozenInstanceError
 
 import numpy as np
@@ -7,6 +8,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.forcefields import utils as forcefield_utils
 from hotpot.cheminfo.forcefields.trajectory import (
     CoordinationFrameEvidence,
     ForceFieldTrajectory,
@@ -132,6 +134,29 @@ def test_materialize_exposes_selected_coordinates(keep_all):
     assert molecule.conformers_number == (len(trajectory) if keep_all else 1)
 
 
+def test_empty_trajectory_materialization_keeps_existing_conformers():
+    molecule = read_mol("CC", "smi")
+    original_coordinates = molecule.coordinates.copy()
+    trajectory = ForceFieldTrajectory.from_molecule(molecule)
+
+    trajectory.materialize(molecule, keep_all=True)
+
+    assert np.array_equal(molecule.coordinates, original_coordinates)
+
+
+def test_nonempty_trajectory_requires_controller_selection_before_materializing():
+    molecule = read_mol("CC", "smi")
+    trajectory = ForceFieldTrajectory.from_molecule(molecule)
+    trajectory.record_molecule(
+        molecule,
+        stage=TrajectoryStage.COORDINATION_RESTORATION,
+        event=TrajectoryEvent.INITIAL,
+    )
+
+    with pytest.raises(ValueError, match="must be selected"):
+        trajectory.materialize(molecule, keep_all=False)
+
+
 def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
     _, main, _ = _coordination_trajectory()
     branch_molecule = read_mol("CC", "smi")
@@ -177,6 +202,12 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
         stage=TrajectoryStage.FINAL_OPTIMIZATION,
         event=TrajectoryEvent.INITIAL,
         energy_kj_mol=float("nan"),
+        evidence=OptimizationFrameEvidence(
+            accepted=False,
+            converged=False,
+            rms_gradient_kj_mol_angstrom=float("nan"),
+            max_gradient_kj_mol_angstrom=float("inf"),
+        ),
     )
     trajectory.select(frame.index)
 
@@ -186,7 +217,36 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
 
     assert trajectory[0].energy_kj_mol is None
     assert restored[0].energy_kj_mol is None
-    assert "NaN" not in (path / "trajectory.json").read_text(encoding="utf-8")
+    restored_evidence = restored[0].evidence
+    assert isinstance(restored_evidence, OptimizationFrameEvidence)
+    assert restored_evidence.rms_gradient_kj_mol_angstrom is None
+    assert restored_evidence.max_gradient_kj_mol_angstrom is None
+    manifest_text = (path / "trajectory.json").read_text(encoding="utf-8")
+    assert "NaN" not in manifest_text
+    assert "Infinity" not in manifest_text
+    json.loads(manifest_text, parse_constant=lambda value: pytest.fail(value))
+
+
+def test_sdf_omits_nonfinite_coordinate_frames(tmp_path):
+    molecule = read_mol("CC", "smi")
+    trajectory = ForceFieldTrajectory.from_molecule(molecule)
+    frame = trajectory.record(
+        np.full((len(molecule.atoms), 3), np.nan),
+        (),
+        stage=TrajectoryStage.COORDINATION_RESTORATION,
+        event=TrajectoryEvent.TERMINAL,
+    )
+    trajectory.select(frame.index)
+    path = tmp_path / "trajectory"
+
+    trajectory.write(path)
+    restored = ForceFieldTrajectory.read(path)
+
+    assert (path / "trajectory.sdf").read_text(encoding="utf-8") == ""
+    assert json.loads((path / "trajectory.json").read_text(encoding="utf-8"))[
+        "sdf_frame_indices"
+    ] == []
+    assert np.all(np.isnan(restored.coordinates(0)))
 
 
 def test_rewriting_without_sdf_removes_the_obsolete_export(tmp_path):
@@ -197,6 +257,28 @@ def test_rewriting_without_sdf_removes_the_obsolete_export(tmp_path):
     trajectory.write(path, include_sdf=False)
 
     assert not (path / "trajectory.sdf").exists()
+
+
+def test_archive_rewrite_removes_obsolete_ligand_attempt_directories(tmp_path):
+    _, main, _ = _coordination_trajectory()
+    branch_molecule = read_mol("CC", "smi")
+    branch = ForceFieldTrajectory.from_molecule(
+        branch_molecule,
+        start=TrajectoryStart.LIGAND_BUILD,
+    )
+    branch_frame = branch.record_molecule(
+        branch_molecule,
+        stage=TrajectoryStage.LIGAND_BUILD,
+        event=TrajectoryEvent.TERMINAL,
+    )
+    branch.select(branch_frame.index)
+    path = tmp_path / "trajectory_archive"
+    ForceFieldTrajectoryArchive(main, (branch, branch)).write(path)
+
+    ForceFieldTrajectoryArchive(main, (branch,)).write(path)
+
+    assert (path / "ligand_build_attempts" / "0000").is_dir()
+    assert not (path / "ligand_build_attempts" / "0001").exists()
 
 
 def test_sdf_uses_the_topology_of_each_frame(tmp_path):
@@ -226,3 +308,31 @@ def test_record_molecule_rejects_changed_atom_identity():
             stage=TrajectoryStage.FINAL_OPTIMIZATION,
             event=TrajectoryEvent.INITIAL,
         )
+
+
+@pytest.mark.parametrize("save_movie", (False, True))
+def test_build_and_optimize_persists_all_frames_before_materializing(
+    tmp_path,
+    save_movie,
+):
+    molecule = read_mol("CCO", "smi")
+    path = tmp_path / "trajectory_archive"
+
+    report = forcefield_utils.build_and_optimize(
+        molecule,
+        "MMFF94s",
+        epochs=2,
+        steps_per_epoch=10,
+        seed=7,
+        save_movie=save_movie,
+        trajectory_path=path,
+    )
+    restored = ForceFieldTrajectoryArchive.read(path)
+
+    assert report.trajectory is not None
+    assert len(report.trajectory.main) >= 2
+    assert restored.main.frames == report.trajectory.main.frames
+    assert restored.main.selected_index == report.trajectory.main.selected_index
+    assert molecule.conformers_number == (
+        len(report.trajectory.main) if save_movie else 1
+    )

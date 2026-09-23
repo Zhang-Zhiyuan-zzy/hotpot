@@ -1,6 +1,8 @@
 import inspect
 import os
 import threading
+from dataclasses import replace
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -22,6 +24,8 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
     quality_thresholds = ff.StructureAcceptanceThresholds(
         standard_minimum_distance=0.4
     )
+    trajectory_start = ff.TrajectoryStart.COORDINATION_RESTORATION
+    trajectory_path = Path("build-trajectory")
     calls = []
 
     def fake_build_and_optimize(current, **options):
@@ -39,6 +43,8 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
         quality_thresholds=quality_thresholds,
         seed=19,
         timeout=2.5,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         candidate_count=2,
         max_attempts=9,
     )
@@ -55,6 +61,8 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
     assert options["quality_thresholds"] is quality_thresholds
     assert options["seed"] == 19
     assert options["timeout"] == 2.5
+    assert options["trajectory_start"] is trajectory_start
+    assert options["trajectory_path"] is trajectory_path
     assert options["candidate_count"] == 2
     assert options["max_attempts"] == 9
 
@@ -65,6 +73,8 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
     quality_thresholds = ff.StructureAcceptanceThresholds(
         standard_minimum_distance=0.45
     )
+    trajectory_start = ff.TrajectoryStart.FINAL_OPTIMIZATION
+    trajectory_path = Path("optimization-trajectory")
     calls = []
 
     def fake_auto_optimize(current, **options):
@@ -80,6 +90,8 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
         quality_level="strict",
         quality_thresholds=quality_thresholds,
         seed=23,
+        trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
     )
 
     assert result is expected
@@ -92,6 +104,8 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
     assert options["quality_level"] == "strict"
     assert options["quality_thresholds"] is quality_thresholds
     assert options["seed"] == 23
+    assert options["trajectory_start"] is trajectory_start
+    assert options["trajectory_path"] is trajectory_path
 
 
 def test_legacy_molecule_forcefield_entrypoints_are_removed():
@@ -240,6 +254,7 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
         requested_forcefield="GAFF",
         effective_forcefield="GAFF",
         quality_report="quality",
+        trajectory=None,
     )
     calls = []
 
@@ -334,8 +349,24 @@ def test_auto_optimize_dispatches_by_molecule_type(
 
 def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     molecule = SimpleNamespace(has_metal=True)
-    working = SimpleNamespace(has_metal=True)
-    expected = object()
+    working = read_mol("CC", "smi")
+    expected = ff.ForceFieldRunReport(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        setup_succeeded=True,
+        converged=True,
+        epochs_completed=1,
+        steps_submitted=1,
+        initialization_steps=1,
+        steps_completed=None,
+        final_energy=1.0,
+        best_energy=1.0,
+        energy_unit="kJ/mol",
+        rms_gradient=0.0,
+        max_gradient=0.0,
+        exploded=False,
+    )
+    expected_archive = object()
     calls = []
 
     monkeypatch.setattr(
@@ -361,6 +392,11 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     monkeypatch.setattr(ff, "_optimize_working_mol", fake_run)
     monkeypatch.setattr(
         ff,
+        "_finalize_trajectory",
+        lambda *args, **kwargs: expected_archive,
+    )
+    monkeypatch.setattr(
+        ff,
         "_commit_working_copy",
         lambda current, completed: calls.append((current, completed)),
     )
@@ -373,7 +409,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
         add_hydrogens=False,
     )
 
-    assert result is expected
+    assert result.trajectory is expected_archive
     assert calls[0][0] is working
     assert calls[0][1]["requested_forcefield"] == "UFF"
     assert calls[0][1]["effective_forcefield"] == "UFF"
@@ -619,6 +655,7 @@ def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
         requested_forcefield="UFF",
         effective_forcefield="UFF",
         quality_report="quality",
+        trajectory=None,
     )
     calls = []
 
@@ -683,7 +720,22 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
 ):
     molecule = read_mol("c1ccccc1", "smi")
     calls = []
-    expected = object()
+    expected = ff.ForceFieldRunReport(
+        requested_forcefield=forcefield,
+        effective_forcefield=forcefield,
+        setup_succeeded=True,
+        converged=True,
+        epochs_completed=1,
+        steps_submitted=1,
+        initialization_steps=1,
+        steps_completed=None,
+        final_energy=1.0,
+        best_energy=1.0,
+        energy_unit="kJ/mol",
+        rms_gradient=0.0,
+        max_gradient=0.0,
+        exploded=False,
+    )
 
     monkeypatch.setattr(
         ff,
@@ -705,7 +757,8 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
 
     result = ff.optimize(molecule, forcefield, add_hydrogens=False)
 
-    assert result is expected
+    assert replace(result, trajectory=None) == expected
+    assert result.trajectory is not None
     assert calls[0][0] is molecule
     assert calls[0][1]["requested_forcefield"] == forcefield
     assert calls[0][1]["effective_forcefield"] == forcefield
@@ -714,9 +767,21 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
 def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
     molecule = SimpleNamespace(has_metal=False, atoms=(), hydrogens=())
     hydrogen_requests = []
-    expected = SimpleNamespace(
+    expected = ff.ForceFieldRunReport(
         requested_forcefield="UFF",
         effective_forcefield="UFF",
+        setup_succeeded=True,
+        converged=True,
+        epochs_completed=1,
+        steps_submitted=1,
+        initialization_steps=1,
+        steps_completed=None,
+        final_energy=1.0,
+        best_energy=1.0,
+        energy_unit="kJ/mol",
+        rms_gradient=0.0,
+        max_gradient=0.0,
+        exploded=False,
         quality_report="quality",
     )
 
@@ -742,7 +807,8 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)
 
-    assert result.optimization is expected
+    assert replace(result.optimization, trajectory=None) == expected
+    assert result.optimization.trajectory is not None
     assert isinstance(result.build, ff.Build3DReport)
     assert hydrogen_requests.count(True) == 1
     assert hydrogen_requests == [False, True, False]

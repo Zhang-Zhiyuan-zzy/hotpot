@@ -1026,7 +1026,22 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
 
     def fake_run(working, **options):
         captured.update(options)
-        return object()
+        return ff.ForceFieldRunReport(
+            requested_forcefield=options["requested_forcefield"],
+            effective_forcefield=options["effective_forcefield"],
+            setup_succeeded=True,
+            converged=True,
+            epochs_completed=1,
+            steps_submitted=1,
+            initialization_steps=1,
+            steps_completed=None,
+            final_energy=1.0,
+            best_energy=1.0,
+            energy_unit="kJ/mol",
+            rms_gradient=0.0,
+            max_gradient=0.0,
+            exploded=False,
+        )
 
     monkeypatch.setattr(ff, "_optimize_working_mol", fake_run)
 

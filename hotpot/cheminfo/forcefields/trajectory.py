@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -158,7 +159,7 @@ class RingFrameEvidence:
     """Ring--bond observations already computed by the workflow."""
 
     confirmed_piercing_count: int
-    uncertain_relation_count: int = 0
+    uncertain_relation_count: Optional[int] = 0
 
 
 @dataclass(frozen=True)
@@ -166,9 +167,12 @@ class CoordinationFrameEvidence:
     """Outcome of one metal--ligand bond restoration observation."""
 
     bond_atom_indices: Optional[Tuple[int, int]]
-    accepted: bool
+    accepted: Optional[bool]
     pending_bond_count: int = 0
     forced: bool = False
+    introduced_piercing_count: int = 0
+    introduced_undetermined_count: int = 0
+    excluded_ring_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -376,14 +380,10 @@ class ForceFieldTrajectory:
         """
         self._validate_molecule_atoms(mol)
         if not self._frames:
-            mol.conformer_clear()
             return
-
-        selected_index = (
-            self._selected_index
-            if self._selected_index is not None
-            else len(self._frames) - 1
-        )
+        if self._selected_index is None:
+            raise ValueError("A trajectory frame must be selected before materializing")
+        selected_index = self._selected_index
         frame_indices = tuple(range(len(self._frames))) if keep_all else (selected_index,)
         coordinates = np.stack(
             tuple(self.coordinates(frame_index) for frame_index in frame_indices)
@@ -505,7 +505,7 @@ class _TrajectoryWriter:
         directory.mkdir(parents=True, exist_ok=True)
         manifest = cls._trajectory_manifest(trajectory)
         (directory / "trajectory.json").write_text(
-            json.dumps(manifest, indent=2, sort_keys=True),
+            json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False),
             encoding="utf-8",
         )
         coordinate_stack = (
@@ -587,6 +587,9 @@ class _TrajectoryWriter:
     ) -> None:
         directory.mkdir(parents=True, exist_ok=True)
         cls.write_trajectory(directory / "main", archive.main, include_sdf=include_sdf)
+        attempt_directory = directory / "ligand_build_attempts"
+        if attempt_directory.exists():
+            shutil.rmtree(attempt_directory)
         attempt_paths = []
         for attempt_index, trajectory in enumerate(archive.ligand_build_attempts):
             relative_path = Path("ligand_build_attempts") / f"{attempt_index:04d}"
@@ -602,7 +605,7 @@ class _TrajectoryWriter:
             "ligand_build_attempts": attempt_paths,
         }
         (directory / "archive.json").write_text(
-            json.dumps(manifest, indent=2, sort_keys=True),
+            json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False),
             encoding="utf-8",
         )
 
@@ -627,6 +630,7 @@ class _TrajectoryWriter:
         records = tuple(
             cls._sdf_record(trajectory, frame)
             for frame in trajectory.frames
+            if np.all(np.isfinite(trajectory._coordinate_view(frame.coordinate_revision)))
         )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("".join(records), encoding="utf-8")
@@ -646,6 +650,15 @@ class _TrajectoryWriter:
             ],
             "frames": [cls._frame_data(frame) for frame in trajectory.frames],
             "selected_index": trajectory.selected_index,
+            "sdf_frame_indices": [
+                frame.index
+                for frame in trajectory.frames
+                if np.all(
+                    np.isfinite(
+                        trajectory._coordinate_view(frame.coordinate_revision)
+                    )
+                )
+            ],
         }
 
     @classmethod
@@ -663,8 +676,11 @@ class _TrajectoryWriter:
             "evidence": cls._evidence_data(frame.evidence),
         }
 
-    @staticmethod
-    def _evidence_data(evidence: Optional[FrameEvidence]) -> Optional[dict[str, object]]:
+    @classmethod
+    def _evidence_data(
+        cls,
+        evidence: Optional[FrameEvidence],
+    ) -> Optional[dict[str, object]]:
         if evidence is None:
             return None
         data: dict[str, object] = asdict(evidence)
@@ -674,10 +690,19 @@ class _TrajectoryWriter:
             data["type"] = "coordination"
         else:
             data["type"] = "optimization"
+            data["rms_gradient_kj_mol_angstrom"] = cls._finite_float_or_none(
+                evidence.rms_gradient_kj_mol_angstrom
+            )
+            data["max_gradient_kj_mol_angstrom"] = cls._finite_float_or_none(
+                evidence.max_gradient_kj_mol_angstrom
+            )
         return data
 
-    @staticmethod
-    def _evidence_from_data(data: object) -> Optional[FrameEvidence]:
+    @classmethod
+    def _evidence_from_data(
+        cls,
+        data: object,
+    ) -> Optional[FrameEvidence]:
         if data is None:
             return None
         evidence_data = dict(cast(Mapping[str, object], data))
@@ -687,8 +712,8 @@ class _TrajectoryWriter:
                 confirmed_piercing_count=int(
                     cast(int, evidence_data["confirmed_piercing_count"])
                 ),
-                uncertain_relation_count=int(
-                    cast(int, evidence_data["uncertain_relation_count"])
+                uncertain_relation_count=cls._optional_int(
+                    evidence_data["uncertain_relation_count"]
                 ),
             )
         if evidence_type == "coordination":
@@ -699,9 +724,18 @@ class _TrajectoryWriter:
                     if bond_indices is None
                     else cast(Tuple[int, int], tuple(cast(Sequence[int], bond_indices)))
                 ),
-                accepted=bool(evidence_data["accepted"]),
+                accepted=cls._optional_bool(evidence_data["accepted"]),
                 pending_bond_count=int(cast(int, evidence_data["pending_bond_count"])),
                 forced=bool(evidence_data["forced"]),
+                introduced_piercing_count=int(
+                    cast(int, evidence_data.get("introduced_piercing_count", 0))
+                ),
+                introduced_undetermined_count=int(
+                    cast(int, evidence_data.get("introduced_undetermined_count", 0))
+                ),
+                excluded_ring_count=int(
+                    cast(int, evidence_data.get("excluded_ring_count", 0))
+                ),
             )
         if evidence_type == "optimization":
             return OptimizationFrameEvidence(
@@ -725,8 +759,16 @@ class _TrajectoryWriter:
         return None if value is None else float(cast(float, value))
 
     @staticmethod
+    def _finite_float_or_none(value: Optional[float]) -> Optional[float]:
+        return None if value is None or not np.isfinite(value) else float(value)
+
+    @staticmethod
     def _optional_int(value: object) -> Optional[int]:
         return None if value is None else int(cast(int, value))
+
+    @staticmethod
+    def _optional_bool(value: object) -> Optional[bool]:
+        return None if value is None else bool(value)
 
     @classmethod
     def _sdf_record(

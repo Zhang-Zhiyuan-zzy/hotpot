@@ -53,6 +53,26 @@ WORKER_ADAPTED_FUNCTIONS = (
     "build_and_optimize",
 )
 
+TRAJECTORY_CONTRACTS = (
+    "TrajectoryStart",
+    "TrajectoryStage",
+    "TrajectoryEvent",
+    "AtomIdentity",
+    "BondTopology",
+    "BondTopologyRevision",
+    "RingFrameEvidence",
+    "CoordinationFrameEvidence",
+    "OptimizationFrameEvidence",
+    "ForceFieldFrame",
+    "ForceFieldTrajectory",
+    "ForceFieldTrajectoryArchive",
+)
+
+TRAJECTORY_TYPE_ALIASES = (
+    "TrajectoryPath",
+    "FrameEvidence",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -92,6 +112,20 @@ def test_facades_expose_the_same_public_symbols_and_function_signatures():
         assert inspect.signature(getattr(modern_facade, name)) == inspect.signature(
             getattr(python39_facade, name)
         )
+
+
+def test_facades_export_shared_trajectory_contracts_by_identity():
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    trajectory = importlib.import_module(f"{PACKAGE_NAME}.trajectory")
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+
+    for name in (*TRAJECTORY_CONTRACTS, *TRAJECTORY_TYPE_ALIASES):
+        assert name in shared.__all__
+        assert getattr(modern, name) is getattr(shared, name)
+        assert getattr(python39, name) is getattr(shared, name)
+    for name in TRAJECTORY_CONTRACTS:
+        assert getattr(shared, name) is getattr(trajectory, name)
 
 
 def test_facades_only_wrap_worker_adapted_workflows():
@@ -178,6 +212,54 @@ def test_python39_complex_workflows_inject_legacy_workers(
     assert getattr(python39, function_name)(object()) is expected
     for option_name, worker_name in worker_options.items():
         assert received[option_name] is getattr(legacy, worker_name)
+
+
+@pytest.mark.parametrize(
+    ("function_name", "workflow_name", "trajectory_start"),
+    (
+        (
+            "build_complex3d",
+            "_build_complex3d_workflow",
+            "coordination_restoration",
+        ),
+        (
+            "complexes_build",
+            "_complexes_build_workflow",
+            "coordination_restoration",
+        ),
+        ("build_and_optimize", "_build_and_optimize_workflow", None),
+    ),
+)
+def test_python39_complex_workflows_forward_trajectory_options(
+    monkeypatch,
+    function_name,
+    workflow_name,
+    trajectory_start,
+    tmp_path,
+):
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    expected = object()
+    received = {}
+
+    def workflow(molecule, forcefield, **options):
+        received.update(options)
+        return expected
+
+    monkeypatch.setattr(shared, workflow_name, workflow)
+
+    start = (
+        None
+        if trajectory_start is None
+        else python39.TrajectoryStart(trajectory_start)
+    )
+    assert getattr(python39, function_name)(
+        object(),
+        trajectory_start=start,
+        trajectory_path=tmp_path,
+    ) is expected
+    assert received["trajectory_start"] is start
+    assert received["trajectory_path"] is tmp_path
 
 
 def test_fresh_import_selects_only_the_runtime_facade():

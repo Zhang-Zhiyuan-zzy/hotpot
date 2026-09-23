@@ -5,6 +5,13 @@ import numpy as np
 
 from hotpot.cheminfo.forcefields import ff, ff39
 from hotpot.cheminfo.forcefields import utils as forcefield_utils
+from hotpot.cheminfo.forcefields.trajectory import (
+    CoordinationFrameEvidence,
+    ForceFieldTrajectory,
+    RingFrameEvidence,
+    TrajectoryEvent,
+    TrajectoryStart,
+)
 from hotpot.cheminfo.core import Molecule
 
 
@@ -110,11 +117,19 @@ def _report(count):
             target=SimpleNamespace(
                 ring=SimpleNamespace(ring=f"ring-{index}"),
                 bond=SimpleNamespace(bond=f"bond-{index}"),
-            )
+            ),
+            relation=SimpleNamespace(
+                state=forcefield_utils.geo.PiercingState.PIERCES,
+            ),
         )
         for index in range(count)
     )
-    return SimpleNamespace(piercings=findings, ring_scope="ligand_skeleton")
+    return SimpleNamespace(
+        findings=findings,
+        piercings=findings,
+        undetermined=(),
+        ring_scope="ligand_skeleton",
+    )
 
 
 def _optimization(energy):
@@ -131,6 +146,32 @@ def _coordination_counts(piercing=0, undetermined=0, excluded_rings=0):
         undetermined=undetermined,
         excluded_rings=excluded_rings,
     )
+
+
+def _ring_molecule():
+    molecule = Molecule()
+    for coordinate in ((0.0, 0.0, 0.0), (1.5, 0.0, 0.0), (0.75, 1.3, 0.0)):
+        molecule.create_atom(atomic_number=6, coordinates=coordinate)
+    for first, second in ((0, 1), (1, 2), (2, 0)):
+        molecule.add_bond(first, second, bond_order=1.0)
+    return molecule
+
+
+def _coordination_molecule():
+    molecule = Molecule()
+    for atomic_number, coordinate in zip(
+        (30, 7, 7),
+        ((0.0, 0.0, 0.0), (2.0, 0.0, 0.0), (-2.0, 0.0, 0.0)),
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            coordinates=coordinate,
+        )
+    bonds = tuple(
+        molecule.add_bond(0, donor_index, bond_order=1.0)
+        for donor_index in (1, 2)
+    )
+    return molecule, bonds
 
 
 def _mock_coordination_scans(monkeypatch, candidate_counts):
@@ -174,8 +215,6 @@ def _run_report(*, untangling=None):
 def _untangling_result(
     *,
     piercing_count=0,
-    frames=(),
-    energies=(),
 ):
     report = forcefield_utils.RingUntanglingReport(
         attempt_limit=3,
@@ -188,8 +227,6 @@ def _untangling_result(
     return forcefield_utils._RingUntanglingResult(
         report=report,
         energy=1.0,
-        frames=tuple(np.asarray(frame, dtype=float) for frame in frames),
-        frame_energies=tuple(float(energy) for energy in energies),
     )
 
 
@@ -247,6 +284,141 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
     ]
     assert result.report.resolved
     assert result.report.attempts_completed == 1
+
+
+def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
+    monkeypatch,
+):
+    molecule = _ring_molecule()
+    opening_edge = molecule.bond(0, 1)
+    scans = iter(
+        (
+            (forcefield_utils.geo.PiercingState.PIERCES, _report(1)),
+            (forcefield_utils.geo.PiercingState.DOES_NOT_PIERCE, None),
+            (forcefield_utils.geo.PiercingState.DOES_NOT_PIERCE, None),
+        )
+    )
+
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_scan_confirmed_ring_piercings",
+        lambda *args, **kwargs: next(scans),
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_first_openable_ring_edge",
+        lambda *args, **kwargs: opening_edge,
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_perturbed_coordinates",
+        lambda coordinates, **kwargs: np.asarray(coordinates) + 1.0,
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_single_ob_optimization",
+        lambda current_molecule, forcefield, steps: _optimization(steps),
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=TrajectoryStart.COMPLEX_UNTANGLING,
+    )
+
+    forcefield_utils._untangle_ring_piercings(
+        molecule,
+        "UFF",
+        attempt_limit=2,
+        short_steps=4,
+        settling_steps=9,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+        trajectory=trajectory,
+    )
+
+    assert tuple(frame.event for frame in trajectory) == (
+        TrajectoryEvent.INITIAL,
+        TrajectoryEvent.RING_OPENED,
+        TrajectoryEvent.PERTURBED,
+        TrajectoryEvent.OPTIMIZED,
+        TrajectoryEvent.RING_CLOSED,
+        TrajectoryEvent.SETTLED,
+        TrajectoryEvent.TERMINAL,
+    )
+    assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
+        3,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+    )
+    assert tuple(frame.energy_kj_mol for frame in trajectory) == (
+        None,
+        None,
+        None,
+        4.0,
+        None,
+        9.0,
+        9.0,
+    )
+    assert trajectory[0].evidence == RingFrameEvidence(1, 0)
+    assert trajectory[4].evidence == RingFrameEvidence(0, 0)
+    assert trajectory.selected_index == 6
+
+
+def test_ring_untangling_does_not_assign_open_topology_energy_to_closed_frame(
+    monkeypatch,
+):
+    molecule = _ring_molecule()
+    opening_edge = molecule.bond(0, 1)
+    scans = iter(
+        (
+            (forcefield_utils.geo.PiercingState.PIERCES, _report(1)),
+            (forcefield_utils.geo.PiercingState.PIERCES, _report(1)),
+            (forcefield_utils.geo.PiercingState.PIERCES, _report(2)),
+        )
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_scan_confirmed_ring_piercings",
+        lambda *args, **kwargs: next(scans),
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_first_openable_ring_edge",
+        lambda *args, **kwargs: opening_edge,
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_perturbed_coordinates",
+        lambda coordinates, **kwargs: np.asarray(coordinates) + 1.0,
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_single_ob_optimization",
+        lambda current_molecule, forcefield, steps: _optimization(steps),
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=TrajectoryStart.COMPLEX_UNTANGLING,
+    )
+
+    result = forcefield_utils._untangle_ring_piercings(
+        molecule,
+        "UFF",
+        attempt_limit=1,
+        short_steps=4,
+        settling_steps=9,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+        trajectory=trajectory,
+    )
+
+    assert np.isnan(result.energy)
+    assert trajectory.selected_frame is not None
+    assert trajectory.selected_frame.event is TrajectoryEvent.TERMINAL
+    assert trajectory.selected_frame.energy_kj_mol is None
 
 
 def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
@@ -435,7 +607,6 @@ def test_coordination_bonds_are_restored_one_by_one_after_safe_checks(monkeypatc
         relaxation_steps=5,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
-        save_movie=False,
     )
 
     assert molecule.events == [
@@ -448,6 +619,89 @@ def test_coordination_bonds_are_restored_one_by_one_after_safe_checks(monkeypatc
     assert result.report.attempts_completed == 1
     assert result.report.restored_without_forcing == 2
     assert result.report.forced_bond_keys == ()
+
+
+def test_coordination_trajectory_records_trial_outcome_and_rollback_topology(
+    monkeypatch,
+):
+    molecule, (first, second) = _coordination_molecule()
+    second_checks = 0
+
+    def relation_counts(before, after, bond):
+        nonlocal second_checks
+        if bond is first:
+            return _coordination_counts()
+        second_checks += 1
+        return (
+            _coordination_counts(piercing=1)
+            if second_checks == 1
+            else _coordination_counts()
+        )
+
+    _mock_coordination_scans(monkeypatch, relation_counts)
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_single_ob_optimization",
+        lambda current_molecule, forcefield, steps: _optimization(second_checks + 1),
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=TrajectoryStart.COORDINATION_RESTORATION,
+    )
+
+    forcefield_utils._restore_coordination_bonds_incrementally(
+        molecule,
+        "UFF",
+        attempt_limit=3,
+        relaxation_steps=5,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+        trajectory=trajectory,
+    )
+
+    assert tuple(frame.event for frame in trajectory) == (
+        TrajectoryEvent.COORDINATION_READY,
+        TrajectoryEvent.BOND_TRIAL,
+        TrajectoryEvent.BOND_ACCEPTED,
+        TrajectoryEvent.OPTIMIZED,
+        TrajectoryEvent.BOND_TRIAL,
+        TrajectoryEvent.BOND_REJECTED,
+        TrajectoryEvent.BOND_ROLLBACK,
+        TrajectoryEvent.OPTIMIZED,
+        TrajectoryEvent.BOND_TRIAL,
+        TrajectoryEvent.BOND_ACCEPTED,
+        TrajectoryEvent.OPTIMIZED,
+        TrajectoryEvent.TERMINAL,
+    )
+    assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
+        0,
+        1,
+        1,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+    )
+    assert trajectory[4].evidence == CoordinationFrameEvidence(
+        bond_atom_indices=_key(second),
+        accepted=None,
+        pending_bond_count=1,
+    )
+    assert trajectory[5].evidence == CoordinationFrameEvidence(
+        bond_atom_indices=_key(second),
+        accepted=False,
+        pending_bond_count=1,
+        introduced_piercing_count=1,
+    )
+    assert trajectory[6].topology_revision == trajectory[3].topology_revision
+    assert trajectory[10].energy_kj_mol == 3.0
+    assert trajectory[11].energy_kj_mol == 3.0
+    assert trajectory.selected_index == 11
 
 
 def test_safe_coordination_bonds_do_not_consume_the_stalled_attempt_budget(
@@ -478,7 +732,6 @@ def test_safe_coordination_bonds_do_not_consume_the_stalled_attempt_budget(
         relaxation_steps=5,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
-        save_movie=False,
     )
 
     assert optimization_calls == 3
@@ -519,7 +772,6 @@ def test_coordination_restoration_perturbs_without_progress_then_forces_all(
         relaxation_steps=5,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
-        save_movie=False,
     )
 
     assert perturb_calls == 1
@@ -527,6 +779,70 @@ def test_coordination_restoration_perturbs_without_progress_then_forces_all(
     assert molecule.events[-1] == ("restore", ((0, 2),))
     assert result.report.forced_bond_keys == ((0, 2),)
     assert not result.report.resolved
+
+
+def test_coordination_trajectory_records_each_forced_bond_after_rollback(
+    monkeypatch,
+):
+    molecule, bonds = _coordination_molecule()
+    second = bonds[1]
+    molecule.remove_bond(bonds[0])
+    _mock_coordination_scans(
+        monkeypatch,
+        lambda *args, **kwargs: _coordination_counts(piercing=1),
+    )
+    monkeypatch.setattr(
+        forcefield_utils,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: _optimization(3.0),
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=TrajectoryStart.COORDINATION_RESTORATION,
+    )
+
+    result = forcefield_utils._restore_coordination_bonds_incrementally(
+        molecule,
+        "UFF",
+        attempt_limit=1,
+        relaxation_steps=5,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+        trajectory=trajectory,
+    )
+
+    assert result.report.forced_bond_keys == (_key(second),)
+    assert tuple(frame.event for frame in trajectory) == (
+        TrajectoryEvent.COORDINATION_READY,
+        TrajectoryEvent.BOND_TRIAL,
+        TrajectoryEvent.BOND_REJECTED,
+        TrajectoryEvent.BOND_ROLLBACK,
+        TrajectoryEvent.OPTIMIZED,
+        TrajectoryEvent.BOND_TRIAL,
+        TrajectoryEvent.BOND_REJECTED,
+        TrajectoryEvent.BOND_ROLLBACK,
+        TrajectoryEvent.BOND_FORCED,
+        TrajectoryEvent.TERMINAL,
+    )
+    assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+    )
+    assert trajectory[8].evidence == CoordinationFrameEvidence(
+        bond_atom_indices=_key(second),
+        accepted=False,
+        pending_bond_count=0,
+        forced=True,
+    )
+    assert trajectory[9].energy_kj_mol is None
 
 
 def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
@@ -562,7 +878,6 @@ def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
         relaxation_steps=5,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
-        save_movie=False,
     )
 
     assert result.report.restored_without_forcing == 1
@@ -596,7 +911,6 @@ def test_coordination_bond_restored_in_a_round_is_relaxed(monkeypatch):
         relaxation_steps=5,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
-        save_movie=False,
     )
 
     assert optimization_calls == 2
@@ -631,7 +945,6 @@ def test_coordination_restoration_reports_piercing_created_by_relaxation(
         relaxation_steps=5,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
-        save_movie=False,
     )
 
     assert result.report.forced_bond_keys == ()
@@ -938,89 +1251,3 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     assert report.untangling.attempts_completed == 2
     assert optimization_calls == [(2, True), (1, True)]
     np.testing.assert_array_equal(molecule.coordinates, np.full((2, 3), 3.0))
-
-
-def test_movie_combines_coordination_restoration_untangling_and_final_frames(
-    monkeypatch,
-):
-    stage_21 = np.zeros((2, 3))
-    stage_22_open = np.ones((2, 3))
-    stage_22_closed = np.full((2, 3), 2.0)
-    final_frame = np.full((2, 3), 3.0)
-    molecule = _TraceMolecule((stage_21,))
-
-    def untangle(current_molecule, *args, **kwargs):
-        current_molecule.coordinates = stage_22_closed.copy()
-        return _untangling_result(
-            frames=(stage_22_open, stage_22_closed),
-            energies=(1.0, 2.0),
-        )
-
-    def optimize(current_molecule, **kwargs):
-        current_molecule.conformer_clear()
-        current_molecule.conformer_add(
-            np.asarray((stage_22_closed, final_frame)),
-            np.asarray((2.0, 3.0)),
-        )
-        current_molecule.conformer_load(1)
-        return _run_report()
-
-    monkeypatch.setattr(forcefield_utils, "_untangle_ring_piercings", untangle)
-    monkeypatch.setattr(forcefield_utils, "_optimize_working_mol", optimize)
-    monkeypatch.setattr(
-        forcefield_utils,
-        "_scan_confirmed_ring_piercings",
-        lambda *args, **kwargs: (
-            forcefield_utils.geo.PiercingState.DOES_NOT_PIERCE,
-            None,
-        ),
-    )
-
-    forcefield_utils._optimize_complex_working_mol(
-        molecule,
-        requested_forcefield=None,
-        effective_forcefield="UFF",
-        algorithm="conjugate",
-        epochs=2,
-        steps_per_epoch=5,
-        complex_untangling_attempts=3,
-        quality_level="standard",
-        topology_reference=SimpleNamespace(),
-        quality_thresholds=None,
-        seed=3,
-        perturb_interval=None,
-        perturb_sigma=0.5,
-        save_movie=True,
-        increasing_vdw=False,
-        vdw_cutoff_start=0.0,
-        vdw_cutoff_end=12.5,
-    )
-
-    frames = tuple(
-        molecule.conformer_get(index)["coordinates"]
-        for index in range(molecule.conformers_number)
-    )
-    assert len(frames) == 4
-    for actual, expected in zip(
-        frames,
-        (stage_21, stage_22_open, stage_22_closed, final_frame),
-    ):
-        np.testing.assert_array_equal(actual, expected)
-    assert molecule._conformers_index == 3
-
-
-def test_movie_boundary_keeps_a_finite_energy_over_a_duplicate_nan_frame():
-    initial_frame = np.zeros((2, 3))
-    final_frame = np.ones((2, 3))
-    molecule = _TraceMolecule((initial_frame, final_frame))
-    molecule._conformers[0]["energy"] = float("nan")
-
-    forcefield_utils._combine_conformer_traces(
-        molecule,
-        (initial_frame,),
-        (10.0,),
-    )
-
-    assert molecule.conformers_number == 2
-    assert molecule.conformer_get(0)["energy"] == 10.0
-    assert molecule._conformers_index == 1

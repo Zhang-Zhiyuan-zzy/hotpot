@@ -728,13 +728,13 @@ class _TrajectoryWriter:
                 pending_bond_count=int(cast(int, evidence_data["pending_bond_count"])),
                 forced=bool(evidence_data["forced"]),
                 introduced_piercing_count=int(
-                    cast(int, evidence_data.get("introduced_piercing_count", 0))
+                    cast(int, evidence_data["introduced_piercing_count"])
                 ),
                 introduced_undetermined_count=int(
-                    cast(int, evidence_data.get("introduced_undetermined_count", 0))
+                    cast(int, evidence_data["introduced_undetermined_count"])
                 ),
                 excluded_ring_count=int(
-                    cast(int, evidence_data.get("excluded_ring_count", 0))
+                    cast(int, evidence_data["excluded_ring_count"])
                 ),
             )
         if evidence_type == "optimization":

@@ -1,5 +1,4 @@
 from collections import Counter
-from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -15,6 +14,25 @@ def _coordinated(smiles, donor_index):
     molecule.add_bond(metal, molecule.atoms[donor_index])
     molecule.refresh_atom_id()
     return molecule
+
+
+def _optimization_report(best_energy):
+    return ff.ForceFieldRunReport(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        setup_succeeded=True,
+        converged=True,
+        epochs_completed=1,
+        steps_submitted=1,
+        initialization_steps=1,
+        steps_completed=None,
+        final_energy=best_energy,
+        best_energy=best_energy,
+        energy_unit="kJ/mol",
+        rms_gradient=0.0,
+        max_gradient=0.0,
+        exploded=False,
+    )
 
 
 def _matching_atoms(molecule, predicate):
@@ -377,7 +395,7 @@ def test_unsupported_dative_conversion_fails_without_mutating_caller():
 
 def test_successful_optimizer_commits_added_hydrogens_once(monkeypatch):
     molecule = read_mol("O")
-    sentinel = SimpleNamespace(best_energy=-1.0)
+    sentinel = _optimization_report(-1.0)
 
     def accept_working(working, **options):
         return sentinel
@@ -386,7 +404,8 @@ def test_successful_optimizer_commits_added_hydrogens_once(monkeypatch):
 
     result = ff.optimize(molecule)
 
-    assert result is sentinel
+    assert result.best_energy == sentinel.best_energy
+    assert result.trajectory is not None
     assert len(molecule.hydrogens) == 2
     assert molecule.atoms[0].explicit_hydrogens == 2
 
@@ -401,7 +420,7 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     original_atom_pairs = molecule.atom_pairs
     molecule._mca_sites = {original_atoms[1]: 314.0}
     original_atoms[1]._mca = 314.0
-    sentinel = SimpleNamespace(best_energy=-2.0)
+    sentinel = _optimization_report(-2.0)
 
     def accept_working(working, **options):
         working.coordinates = working.coordinates + 1.0
@@ -413,7 +432,8 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
 
     result = ff.optimize(molecule)
 
-    assert result is sentinel
+    assert result.best_energy == sentinel.best_energy
+    assert result.trajectory is not None
     assert all(
         current is original
         for current, original in zip(molecule.atoms[:2], original_atoms)

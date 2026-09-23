@@ -226,6 +226,20 @@ def test_coordination_api_is_reexported_without_wrapping():
         assert pickle.loads(pickle.dumps(exported)) is exported
 
 
+def test_acceptance_api_is_reexported_without_wrapping():
+    acceptance = importlib.import_module(f"{PACKAGE_NAME}.acceptance")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+
+    for name in acceptance.__all__:
+        exported = getattr(acceptance, name)
+        assert getattr(shared, name) is exported
+        assert getattr(modern, name) is exported
+        assert getattr(python39, name) is exported
+        assert pickle.loads(pickle.dumps(exported)) is exported
+
+
 def test_facades_only_wrap_worker_adapted_workflows():
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
     modern = importlib.import_module(MODERN_FACADE_NAME)

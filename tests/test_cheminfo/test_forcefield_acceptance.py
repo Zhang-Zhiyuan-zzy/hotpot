@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.core import Molecule
@@ -115,7 +116,7 @@ def _serialized_check_contract(report):
     ),
 )
 def test_acceptance_checks_pass_only_rejects_failed_errors(checks, expected):
-    assert ff._acceptance_checks_pass(checks) is expected
+    assert acceptance_policy._acceptance_checks_pass(checks) is expected
 
 
 def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch):
@@ -125,7 +126,11 @@ def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch)
         scan_calls.append(options)
         return _clear_bond_ring_report()
 
-    monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
+    monkeypatch.setattr(
+        acceptance_policy.geo,
+        "scan_bond_ring_relations",
+        scan_relations,
+    )
 
     coordinate_checks = [
         ("coordinate_shape", True, "error", [2, 3], [2, 3]),

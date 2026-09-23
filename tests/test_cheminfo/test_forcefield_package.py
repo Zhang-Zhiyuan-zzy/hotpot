@@ -112,8 +112,6 @@ PRIVATE_ADAPTER_SEAMS = (
     "_build_and_optimize_workflow",
     "_build_complex3d_workflow",
     "_complexes_build_workflow",
-    "_run_ligand_proxy_worker",
-    "_run_seeded_ob_build_worker",
 )
 
 
@@ -273,6 +271,7 @@ def test_implementation_modules_do_not_import_the_composition_module():
         "repair",
         "topology",
         "trajectory",
+        "utils39",
         "workers",
         "working_copy",
         "workflows",
@@ -298,16 +297,12 @@ def test_implementation_modules_do_not_import_the_composition_module():
 
 def test_utils_only_reexports_version_adapter_seams():
     workflows = importlib.import_module(f"{PACKAGE_NAME}.workflows")
-    workers = importlib.import_module(f"{PACKAGE_NAME}.workers")
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
 
     expected = {
         name: getattr(workflows, name)
-        for name in PRIVATE_ADAPTER_SEAMS[:4]
+        for name in PRIVATE_ADAPTER_SEAMS
     }
-    expected.update(
-        {name: getattr(workers, name) for name in PRIVATE_ADAPTER_SEAMS[4:]}
-    )
     assert {
         name: value
         for name, value in vars(shared).items()

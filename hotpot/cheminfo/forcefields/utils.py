@@ -63,10 +63,6 @@ from .trajectory import (
     TrajectoryStage,
     TrajectoryStart,
 )
-from .workers import (
-    _run_ligand_proxy_worker as _run_ligand_proxy_worker,
-    _run_seeded_ob_build_worker as _run_seeded_ob_build_worker,
-)
 from .workflows import (
     _build3d_workflow as _build3d_workflow,
     _build_and_optimize_workflow as _build_and_optimize_workflow,

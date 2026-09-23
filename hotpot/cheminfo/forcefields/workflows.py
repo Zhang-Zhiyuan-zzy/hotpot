@@ -84,21 +84,6 @@ class _PreparedComplex:
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
 
 
-# Stateful Open Babel optimization engine.
-
-
-
-
-# Ligand-proxy construction and geometric untangling.
-
-
-
-
-# Spawn-worker entry points and IPC lifecycle management.
-
-
-
-
 # Non-committing workflow stages with explicit worker injection.
 
 

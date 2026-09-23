@@ -8,6 +8,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import utils as ff
 
@@ -28,7 +29,7 @@ def _share_single_ob_optimization(monkeypatch):
     monkeypatch.setattr(
         repair,
         "_single_ob_optimization",
-        ff._single_ob_optimization,
+        ligand._single_ob_optimization,
     )
 
 
@@ -745,15 +746,15 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     def fake_build(current):
         calls["build"] += 1
 
-    monkeypatch.setattr(ff, "_ob_build", fake_build)
+    monkeypatch.setattr(ligand, "_ob_build", fake_build)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -788,12 +789,12 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
     monkeypatch.setattr(repair, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_bond_ring_acceptance_checks",
         lambda current, found: (intersection_failure,),
     )
     monkeypatch.setattr(
-        ff,
+        ligand,
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(
             passed=False,
@@ -841,9 +842,9 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     molecule = _DummyComplex(component)
     calls = {"lazy": 0, "acceptance": 0}
 
-    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
+    monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(
             1.0,
@@ -852,7 +853,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
         ),
     )
     _share_single_ob_optimization(monkeypatch)
-    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
 
     def determine_state(*args, **kwargs):
         calls["lazy"] += 1
@@ -874,7 +875,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
             "a non-piercing aggregate triggered the dense scan"
         ),
     )
-    monkeypatch.setattr(ff, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", accept)
 
     coordinates, diagnostics = ff._build_ligand_proxies(
         molecule,
@@ -910,9 +911,9 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
         build_calls += 1
         current.coordinates = np.full((2, 3), float(build_calls))
 
-    monkeypatch.setattr(ff, "_ob_build", build)
+    monkeypatch.setattr(ligand, "_ob_build", build)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(
             1.0,
@@ -921,14 +922,14 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
         ),
     )
     _share_single_ob_optimization(monkeypatch)
-    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         ff.geo,
         "determine_bond_ring_piercing_state",
         lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
-        ff,
+        ligand,
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(
             passed=build_calls >= 2,
@@ -961,7 +962,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
         build_calls += 1
         current.coordinates = np.full((2, 3), float(build_calls))
 
-    monkeypatch.setattr(ff, "_ob_build", build)
+    monkeypatch.setattr(ligand, "_ob_build", build)
     def optimize(current, forcefield, steps):
         optimization_steps.append(steps)
         return ff._CandidateOptimizationResult(
@@ -970,16 +971,16 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
             False,
         )
 
-    monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
+    monkeypatch.setattr(ligand, "_single_ob_optimization", optimize)
     _share_single_ob_optimization(monkeypatch)
-    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         ff.geo,
         "determine_bond_ring_piercing_state",
         lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
-        ff,
+        ligand,
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(passed=True, failures=()),
     )
@@ -1067,9 +1068,9 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
         calls += 1
         raise ff.ForceFieldError("builder failed")
 
-    monkeypatch.setattr(ff, "_ob_build", fail_build)
+    monkeypatch.setattr(ligand, "_ob_build", fail_build)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -1102,9 +1103,9 @@ def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatc
         recovery_calls += 1
 
     component.recover_hided_covalent_bonds = recover
-    monkeypatch.setattr(ff, "_ob_build", fail_build)
+    monkeypatch.setattr(ligand, "_ob_build", fail_build)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -1134,15 +1135,15 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         bond_indices=(0,),
     )
 
-    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
+    monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -1152,7 +1153,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
-        ff,
+        ligand,
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: SimpleNamespace(
             passed=False,
@@ -1194,15 +1195,15 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
         atom_indices=(0, 1),
     )
 
-    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
+    monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -1225,7 +1226,7 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
             failures=() if passed else (failure,),
         )
 
-    monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
+    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,
@@ -1270,15 +1271,15 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         atom_indices=(0, 1),
     )
 
-    monkeypatch.setattr(ff, "_ob_build", lambda current: None)
+    monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
@@ -1303,7 +1304,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         lambda *args, **kwargs: _piercing_report(("ring", "probe")),
     )
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_bond_ring_acceptance_checks",
         lambda current, found: (failure,),
     )
@@ -1318,7 +1319,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         )
 
     monkeypatch.setattr(
-        ff,
+        ligand,
         "evaluate_structure_acceptance",
         quality,
     )
@@ -1382,19 +1383,19 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
             energy={1: 0.0, 2: 10.0, 3: 5.0}[state["build"]],
         )
 
-    monkeypatch.setattr(ff, "_ob_build", build)
-    monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
+    monkeypatch.setattr(ligand, "_ob_build", build)
+    monkeypatch.setattr(ligand, "_single_ob_optimization", optimize)
     monkeypatch.setattr(
-        ff,
+        ligand,
         "capture_topology",
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        ff,
+        ligand,
         "_untangle_ring_piercings",
         untangle,
     )
-    monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
+    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
 
     _, diagnostics = ff._build_ligand_proxies(
         molecule,

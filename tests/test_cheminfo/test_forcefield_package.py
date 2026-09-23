@@ -119,12 +119,10 @@ BACKEND_COMPATIBILITY_EXPORTS = (
     "_seed_openbabel_random",
     "_serialized_forcefield_call",
     "_setup_forcefield_backend",
-    "_single_ob_optimization",
 )
 
 WORKING_COPY_COMPATIBILITY_EXPORTS = (
     "_commit_working_copy",
-    "_copy_molecule_metadata",
     "_hydrogenated_working_copy",
     "_make_worker_mol",
 )
@@ -141,6 +139,8 @@ OPTIMIZER_COMPATIBILITY_EXPORTS = (
     "_combine_forcefield_run_reports",
     "_optimize_working_mol",
 )
+
+LIGAND_COMPATIBILITY_EXPORTS = ("_build_ligand_proxies",)
 
 
 def _selected_facade_name() -> str:
@@ -313,6 +313,14 @@ def test_optimizer_workflow_seams_are_reexported_without_wrapping():
 
     for name in OPTIMIZER_COMPATIBILITY_EXPORTS:
         assert getattr(shared, name) is getattr(optimizer, name)
+
+
+def test_ligand_workflow_seams_are_reexported_without_wrapping():
+    ligand = importlib.import_module(f"{PACKAGE_NAME}.ligand")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+
+    for name in LIGAND_COMPATIBILITY_EXPORTS:
+        assert getattr(shared, name) is getattr(ligand, name)
 
 
 def test_facades_only_wrap_worker_adapted_workflows():

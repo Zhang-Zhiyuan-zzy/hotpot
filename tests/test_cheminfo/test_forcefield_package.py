@@ -73,6 +73,42 @@ TRAJECTORY_TYPE_ALIASES = (
     "FrameEvidence",
 )
 
+PUBLIC_DATA_CONTRACTS = (
+    "ForceFieldRunReport",
+    "Build3DReport",
+    "CandidateRejection",
+    "RingUntanglingReport",
+    "CoordinationBondRestorationReport",
+    "ComplexBuildDiagnostics",
+    "BuildWorkerResult",
+    "ForceFieldWorkflowReport",
+    "BuildAndOptimizeReport",
+    "ComplexBuildReport",
+    "ForceFieldSetupReport",
+    "AcceptanceCheck",
+    "StructureAcceptanceThresholds",
+    "AtomTopologySignature",
+    "BondTopologySignature",
+    "TopologyReference",
+    "ForceFieldValidationReport",
+    "CoordinationEnvironment",
+    "CoordinationGeometryCandidate",
+    "CoordinationGeometryResult",
+)
+
+PUBLIC_EXCEPTIONS = (
+    "ForceFieldError",
+    "ForceFieldSetupError",
+    "BuildWorkerError",
+    "BuildTimeoutError",
+    "ComplexBuildError",
+    "ComplexBuildWarning",
+    "ComplexBuildWorkerError",
+    "ComplexBuildTimeoutError",
+    "GeometryQualityError",
+    "GeometryQualityWarning",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -126,6 +162,18 @@ def test_facades_export_shared_trajectory_contracts_by_identity():
         assert getattr(python39, name) is getattr(shared, name)
     for name in TRAJECTORY_CONTRACTS:
         assert getattr(shared, name) is getattr(trajectory, name)
+
+
+def test_facades_export_shared_forcefield_contracts_by_identity():
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+
+    for name in (*PUBLIC_DATA_CONTRACTS, *PUBLIC_EXCEPTIONS):
+        contract = getattr(shared, name)
+        assert getattr(modern, name) is contract
+        assert getattr(python39, name) is contract
+        assert pickle.loads(pickle.dumps(contract)) is contract
 
 
 def test_facades_only_wrap_worker_adapted_workflows():

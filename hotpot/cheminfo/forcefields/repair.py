@@ -65,15 +65,6 @@ class _RingPiercingWatchResult:
     piercings: Tuple[_WatchedRingPiercing, ...]
 
 
-@dataclass(frozen=True)
-class _ClosedRingFrame:
-    coordinates: np.ndarray
-    energy: float
-    state: Optional[geo.PiercingState]
-    report: Optional["geo.BondRingScreeningReport[Ring, Bond]"]
-    piercing_count: Optional[int]
-
-
 def _piercing_count(
     report: Optional[Union[
         "geo.BondRingScanReport[Ring, Bond]",
@@ -257,37 +248,6 @@ def _ring_frame_evidence(
     )
 
 
-def _select_lowest_piercing_frame(
-    mol: "Molecule",
-    frames: Sequence[_ClosedRingFrame],
-    *,
-    ring_scope: geo.RingScope,
-) -> Tuple[
-    _ClosedRingFrame,
-    geo.PiercingState,
-    Optional["geo.BondRingScreeningReport[Ring, Bond]"],
-    int,
-]:
-    """Evaluate deferred frames and select the latest lowest-count geometry."""
-    evaluated = []
-    for index, frame in enumerate(frames):
-        if frame.piercing_count is None or frame.state is None:
-            mol.coordinates = frame.coordinates
-            state, report = _scan_confirmed_ring_piercings(
-                mol,
-                ring_scope=ring_scope,
-            )
-            count = _piercing_count(report)
-        else:
-            state = frame.state
-            report = frame.report
-            count = frame.piercing_count
-        evaluated.append((count, -index, frame, state, report))
-    count, _, frame, state, report = min(evaluated, key=lambda item: item[:2])
-    mol.coordinates = frame.coordinates
-    return frame, state, report, count
-
-
 def _untangle_ring_piercings(
     mol: "Molecule",
     effective_forcefield: str,
@@ -351,6 +311,8 @@ def _untangle_ring_piercings(
     current_count = initial_count
     minimum_count = initial_count
     best_coordinates = _copy_coordinates(mol.coordinates)
+    best_state = state
+    best_report = report
     best_energy = float(initial_energy)
     best_trace_energy = (
         best_energy if np.isfinite(best_energy) else None
@@ -361,13 +323,9 @@ def _untangle_ring_piercings(
     unresolved_reason: Optional[str] = None
     watch = _ring_piercing_watch(mol, report) if report is not None else ()
     current_piercings = watch
-    closed_frames = [_ClosedRingFrame(
-        _copy_coordinates(mol.coordinates),
-        best_energy,
-        state,
-        report,
-        initial_count,
-    )]
+    watch_best_coordinates = _copy_coordinates(mol.coordinates)
+    watch_best_energy = best_energy
+    watch_minimum_count = len(watch)
     record_ring_frame(
         TrajectoryEvent.INITIAL,
         energy=best_trace_energy,
@@ -397,16 +355,14 @@ def _untangle_ring_piercings(
             current_count = _piercing_count(report)
             watch = _ring_piercing_watch(mol, report) if report is not None else ()
             current_piercings = watch
-            closed_frames.append(_ClosedRingFrame(
-                _copy_coordinates(mol.coordinates),
-                float(optimized.energy),
-                state,
-                report,
-                current_count,
-            ))
+            watch_best_coordinates = _copy_coordinates(mol.coordinates)
+            watch_best_energy = float(optimized.energy)
+            watch_minimum_count = len(watch)
             if current_count <= minimum_count:
                 minimum_count = current_count
                 best_coordinates = _copy_coordinates(mol.coordinates)
+                best_state = state
+                best_report = report
                 best_energy = float(optimized.energy)
                 best_trace_energy = float(optimized.energy)
             record_ring_frame(
@@ -482,13 +438,9 @@ def _untangle_ring_piercings(
             current_count = _piercing_count(report)
             watch = _ring_piercing_watch(mol, report) if report is not None else ()
             current_piercings = watch
-            closed_frames.append(_ClosedRingFrame(
-                _copy_coordinates(mol.coordinates),
-                float("nan"),
-                state,
-                report,
-                current_count,
-            ))
+            watch_best_coordinates = _copy_coordinates(mol.coordinates)
+            watch_best_energy = float("nan")
+            watch_minimum_count = len(watch)
             record_ring_frame(
                 TrajectoryEvent.RING_CLOSED,
                 state=state,
@@ -498,19 +450,18 @@ def _untangle_ring_piercings(
             if current_count <= minimum_count:
                 minimum_count = current_count
                 best_coordinates = _copy_coordinates(mol.coordinates)
+                best_state = state
+                best_report = report
                 best_energy = float("nan")
                 best_trace_energy = None
         else:
             state = geo.PiercingState.PIERCES
             report = None
             current_piercings = watched_result.piercings
-            closed_frames.append(_ClosedRingFrame(
-                _copy_coordinates(mol.coordinates),
-                float("nan"),
-                None,
-                None,
-                None,
-            ))
+            if len(current_piercings) <= watch_minimum_count:
+                watch_minimum_count = len(current_piercings)
+                watch_best_coordinates = _copy_coordinates(mol.coordinates)
+                watch_best_energy = float("nan")
             record_ring_frame(
                 TrajectoryEvent.RING_CLOSED,
                 attempt=attempts_completed,
@@ -518,14 +469,26 @@ def _untangle_ring_piercings(
         settled = False
 
     if unresolved_reason is not None:
-        selected, state, report, current_count = _select_lowest_piercing_frame(
+        mol.coordinates = watch_best_coordinates
+        candidate_state, candidate_report = _scan_confirmed_ring_piercings(
             mol,
-            closed_frames,
             ring_scope=ring_scope,
         )
-        minimum_count = current_count
-        best_coordinates = _copy_coordinates(selected.coordinates)
-        best_energy = selected.energy
+        candidate_count = _piercing_count(candidate_report)
+        if candidate_count <= minimum_count:
+            current_count = candidate_count
+            minimum_count = candidate_count
+            state = candidate_state
+            report = candidate_report
+            best_coordinates = _copy_coordinates(mol.coordinates)
+            best_state = state
+            best_report = report
+            best_energy = watch_best_energy
+        else:
+            mol.coordinates = best_coordinates
+            current_count = minimum_count
+            state = best_state
+            report = best_report
         best_trace_energy = (
             best_energy if np.isfinite(best_energy) else None
         )
@@ -542,6 +505,8 @@ def _untangle_ring_piercings(
             retained_energy = best_energy
             retained_trace_energy = best_trace_energy
             retained_count = minimum_count
+            retained_state = state
+            retained_report = report
             optimized = _single_ob_optimization(
                 mol,
                 effective_forcefield,
@@ -569,8 +534,8 @@ def _untangle_ring_piercings(
                 best_trace_energy = float(optimized.energy)
             else:
                 mol.coordinates = retained_coordinates
-                state = geo.PiercingState.PIERCES
-                report = None
+                state = retained_state
+                report = retained_report
                 current_count = retained_count
                 best_energy = retained_energy
                 best_trace_energy = retained_trace_energy

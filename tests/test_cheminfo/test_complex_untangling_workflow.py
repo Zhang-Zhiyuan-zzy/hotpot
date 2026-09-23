@@ -572,7 +572,7 @@ def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
     assert ("close",) not in molecule.events
 
 
-def test_ring_untangling_budget_retains_lowest_piercing_frame(monkeypatch):
+def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
     molecule = _UntanglingMolecule()
     opening_edge = _Bond(0, 1)
     scans = iter(
@@ -580,10 +580,15 @@ def test_ring_untangling_budget_retains_lowest_piercing_frame(monkeypatch):
             (repair.geo.PiercingState.PIERCES, _report(3)),
             (repair.geo.PiercingState.PIERCES, _report(1)),
             (repair.geo.PiercingState.PIERCES, _report(2)),
-            (repair.geo.PiercingState.PIERCES, _report(2)),
         )
     )
+    full_scan_count = 0
     optimization_count = 0
+
+    def scan(*args, **kwargs):
+        nonlocal full_scan_count
+        full_scan_count += 1
+        return next(scans)
 
     def optimize(current_molecule, forcefield, steps):
         nonlocal optimization_count
@@ -594,7 +599,7 @@ def test_ring_untangling_budget_retains_lowest_piercing_frame(monkeypatch):
     monkeypatch.setattr(
         repair,
         "_scan_confirmed_ring_piercings",
-        lambda *args, **kwargs: next(scans),
+        scan,
     )
     _mock_ring_watch(
         monkeypatch,
@@ -629,7 +634,8 @@ def test_ring_untangling_budget_retains_lowest_piercing_frame(monkeypatch):
     assert result.report.minimum_piercing_count == 1
     assert result.report.final_piercing_count == 1
     assert not result.report.resolved
-    np.testing.assert_array_equal(molecule.coordinates, np.ones((3, 3)))
+    assert full_scan_count == 3
+    np.testing.assert_array_equal(molecule.coordinates, np.full((3, 3), 2.0))
 
 
 def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(

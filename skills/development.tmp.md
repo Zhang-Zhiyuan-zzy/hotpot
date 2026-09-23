@@ -17,7 +17,24 @@
 
 ## Inbox
 
-No pending rules.
+### Amend `DEV-ARCH-001`: mathematical facts versus scientific semantics
+
+- **Scope:** repository-wide architecture and module ownership.
+- **Rule:** mathematical modules such as geometry MUST report mathematical
+  objects, measurements, relations, degeneracy, numerical tolerance, and
+  uncertainty. They MUST NOT decide chemical or physical reasonableness,
+  realism, quality, applicability, or repair policy.
+- **Boundary:** mathematical implementation and scientific interpretation
+  SHOULD be separated in code. A threshold that exists for numerical stability
+  belongs to the mathematical layer; a threshold or score that expresses a
+  chemical or physical standard belongs to the chemistry, force-field, or
+  other scientific layer that owns that interpretation.
+- **Rationale:** prevent scientific policy from being hidden in reusable
+  mathematical infrastructure and prevent mathematical facts from being
+  presented as scientific conclusions.
+- **Evidence:** clarification of the existing `DEV-ARCH-001` contract during
+  the 2026-09-23 force-field and geometry architecture review. The staging
+  commit for this amendment is recorded when it is integrated.
 
 ## Most recent integration receipt
 

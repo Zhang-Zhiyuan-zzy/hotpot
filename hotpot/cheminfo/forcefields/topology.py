@@ -59,6 +59,11 @@ def _bond_endpoint_indices(
     return atom_indices[id(bond.atom1)], atom_indices[id(bond.atom2)]
 
 
+def _bond_key(bond: "Bond") -> Tuple[int, int]:
+    first, second = sorted((int(bond.atom1.idx), int(bond.atom2.idx)))
+    return first, second
+
+
 def _atom_identity(atom: "Atom") -> Tuple[int, int, int]:
     """Return the stable chemical identity used by topology transactions."""
     return int(atom.id), int(atom.atomic_number), int(atom.formal_charge)

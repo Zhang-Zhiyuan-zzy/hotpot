@@ -32,6 +32,7 @@ from .topology import (
     _atom_identity,
     _atom_index_map,
     _bond_endpoint_indices,
+    _bond_key,
     _topology_bond_signature,
 )
 
@@ -104,11 +105,6 @@ def _acceptance_checks_pass(checks: Sequence[AcceptanceCheck]) -> bool:
         not check.passed and check.severity == "error"
         for check in checks
     )
-
-
-def _bond_key(bond: "Bond") -> Tuple[int, int]:
-    first, second = sorted((int(bond.atom1.idx), int(bond.atom2.idx)))
-    return first, second
 
 
 def _overlap_issues(

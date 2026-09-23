@@ -7,7 +7,7 @@ import random
 import networkx as nx
 import pytest
 
-from hotpot.cheminfo.forcefields import utils as forcefields
+from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.AImodels.data_extract import extract_ring_attrs
 from hotpot.cheminfo.graph import RelevantCycleLimitExceeded
@@ -129,7 +129,7 @@ def test_forcefield_ring_opening_ignores_the_legacy_cycle_basis(
         property(reject_legacy_cycle_basis_property),
     )
 
-    selected_edge = forcefields._select_ring_opening_edge(
+    selected_edge = repair._select_ring_opening_edge(
         mol,
         small_ring,
         mol.bond(11, 12),

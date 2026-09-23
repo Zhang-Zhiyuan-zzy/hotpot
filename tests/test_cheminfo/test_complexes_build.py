@@ -8,6 +8,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import utils as ff
 
 
@@ -21,6 +22,14 @@ def _send_large_worker(connection):
         )
     )
     connection.close()
+
+
+def _share_single_ob_optimization(monkeypatch):
+    monkeypatch.setattr(
+        repair,
+        "_single_ob_optimization",
+        ff._single_ob_optimization,
+    )
 
 
 def _send_error_worker(connection):
@@ -742,6 +751,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
         ff,
         "capture_topology",
@@ -776,7 +786,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         piercing_state,
     )
     monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
-    monkeypatch.setattr(ff, "_select_ring_opening_edge", closest)
+    monkeypatch.setattr(repair, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
         ff,
         "_bond_ring_acceptance_checks",
@@ -841,6 +851,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
             False,
         ),
     )
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
 
     def determine_state(*args, **kwargs):
@@ -909,6 +920,7 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
             False,
         ),
     )
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         ff.geo,
@@ -959,6 +971,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
         )
 
     monkeypatch.setattr(ff, "_single_ob_optimization", optimize)
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         ff.geo,
@@ -1127,6 +1140,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
         ff,
         "capture_topology",
@@ -1186,6 +1200,7 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
         ff,
         "capture_topology",
@@ -1261,6 +1276,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         "_single_ob_optimization",
         lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
+    _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
         ff,
         "capture_topology",
@@ -1354,7 +1370,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
 
     def untangle(current, *args, **kwargs):
         count = next(piercing_counts)
-        return ff._RingUntanglingResult(
+        return repair._RingUntanglingResult(
             report=ff.RingUntanglingReport(
                 attempt_limit=1,
                 attempts_completed=0,
@@ -1401,7 +1417,7 @@ def test_first_openable_ring_edge_uses_dense_report_order(monkeypatch):
     second = SimpleNamespace(a1idx=3, a2idx=1)
 
     monkeypatch.setattr(
-        ff,
+        repair,
         "_select_ring_opening_edge",
         lambda current, ring, bond, **kwargs: (
             first if ring == "first" else second
@@ -1412,7 +1428,7 @@ def test_first_openable_ring_edge_uses_dense_report_order(monkeypatch):
         ("second", "probe"),
     )
 
-    assert ff._first_openable_ring_edge(component, report) is first
+    assert repair._first_openable_ring_edge(component, report) is first
 
 
 def test_worker_boundary_serializes_an_exception(monkeypatch):

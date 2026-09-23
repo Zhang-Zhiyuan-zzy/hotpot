@@ -31,9 +31,13 @@ MUST prioritize:
 - A rule discovered through conversation, code review, or failure analysis is
   first recorded in `development.tmp.md` with its scope, rationale, and evidence
   commits.
-- Integrating rules MUST rebuild the Chinese and English normative documents
-  together, consolidate overlap, and remove wording that is obsolete or no
-  longer applicable.
+- The normative `development.md` and `development.en.md` files MAY be modified
+  only when the user explicitly says `将暂存规则整理并更新development`.
+- Any other request to record, add, revise, or stage a development rule updates
+  only `development.tmp.md` and MUST NOT modify either normative document.
+- After that explicit authorization, integration MUST rebuild the Chinese and
+  English normative documents together, consolidate overlap, and remove wording
+  that is obsolete or no longer applicable.
 - Normative documents are not extended indefinitely. Every newly integrated
   rule MUST record its integration date and source commit hashes in the
   provenance table.
@@ -329,7 +333,7 @@ by default.
 | `DEV-OBS-001` | 2026-09-23 | `339c53e` | `81e02de`, `3631c7c`, `5795d8f`, `ebb4a53`, `dc3fc2b` |
 | `DEV-MOD-001` | 2026-09-23 | `339c53e` | `e789e7a`, `d08792a`, `f26ca0f`, `6b8755e`, `ba67c91` |
 | `DEV-CLEAN-001` | 2026-09-23 | `339c53e` | `08639d7`, `87277f0`, `c1ace9f`, `f5a66a7`, `15cb23c` |
-| `DEV-GOV-001` | 2026-09-23 | `339c53e` | `df78c7c`, `6e2ebac`, `a34375b`, `58a43df` |
+| `DEV-GOV-001` | 2026-09-23 | `339c53e`, `6d09cc0` | `df78c7c`, `6e2ebac`, `a34375b`, `58a43df` |
 
 ## 14. Module contracts and references
 

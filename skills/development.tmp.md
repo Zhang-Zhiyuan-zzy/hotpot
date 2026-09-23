@@ -17,25 +17,13 @@
 
 ## Inbox
 
-### Amend `DEV-GOV-001`: explicit authorization for normative integration
-
-- **Scope:** governance of `development.md` and `development.en.md`.
-- **Rule:** proposed rules remain in `development.tmp.md`. The normative Chinese
-  and English documents may be modified only when the user explicitly says
-  `将暂存规则整理并更新development`.
-- **Boundary:** requests to record, add, refine, or stage a development rule do
-  not by themselves authorize normative integration; they update only the
-  staging ledger unless the exact integration instruction is present.
-- **Rationale:** prevent a discussion-stage rule from being promoted into the
-  active repository contract without an explicit user decision.
-- **Evidence:** explicit user instruction on 2026-09-23. The staging commit is
-  recorded when this amendment is integrated.
+No pending rules.
 
 ## Most recent integration receipt
 
-This receipt records the amendment staged by commit `882d9dd` and retains the
-active provenance from commit `339c53e`. It will be replaced, not appended to,
-during the next integration cycle.
+This receipt records the governance amendment staged by commit `6d09cc0` and
+retains the active provenance from commits `339c53e` and `882d9dd`. It will be
+replaced, not appended to, during the next integration cycle.
 
 | Rule | Scope | Integrated | Source commits |
 |---|---|---|---|
@@ -45,7 +33,7 @@ during the next integration cycle.
 | `DEV-OBS-001` | Optional, cost-aware scientific history and persistence | 2026-09-23 | `339c53e`; `81e02de`, `3631c7c`, `5795d8f`, `ebb4a53`, `dc3fc2b` |
 | `DEV-MOD-001` | Explicit public module surface and source layout | 2026-09-23 | `339c53e`; `e789e7a`, `d08792a`, `f26ca0f`, `6b8755e`, `ba67c91` |
 | `DEV-CLEAN-001` | Removal of superseded internal paths | 2026-09-23 | `339c53e`; `08639d7`, `87277f0`, `c1ace9f`, `f5a66a7`, `15cb23c` |
-| `DEV-GOV-001` | Staging and holistic bilingual integration | 2026-09-23 | `339c53e`; `df78c7c`, `6e2ebac`, `a34375b`, `58a43df` |
+| `DEV-GOV-001` | Explicitly authorized staging and holistic bilingual integration | 2026-09-23 | `339c53e`, `6d09cc0`; `df78c7c`, `6e2ebac`, `a34375b`, `58a43df` |
 
 ## Scope decisions for this batch
 
@@ -55,5 +43,7 @@ during the next integration cycle.
   requires an explicit retention decision and resource assessment.
 - Numerical tolerances remain with mathematical facts; chemical or physical
   acceptance thresholds remain with the scientific module that owns them.
+- Normative development rules are integrated only after the exact user
+  instruction `将暂存规则整理并更新development`.
 - Detailed test matrices and force-field-specific constants remain in their
   module documentation.

@@ -36,6 +36,13 @@ from openbabel import openbabel as ob
 
 from .. import geometry as geo
 from ..obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
+from .trajectory import (
+    ForceFieldTrajectory,
+    OptimizationFrameEvidence,
+    TrajectoryEvent,
+    TrajectoryStage,
+    TrajectoryStart,
+)
 
 
 if TYPE_CHECKING:
@@ -2576,7 +2583,19 @@ class _OpenBabelOptimizer:
         quality_level: AcceptanceLevel,
         topology_reference: TopologyReference,
         quality_thresholds: Optional[StructureAcceptanceThresholds],
+        trajectory: Optional[ForceFieldTrajectory] = None,
     ) -> ForceFieldRunReport:
+        owns_trajectory = trajectory is None
+        if trajectory is None:
+            trajectory = ForceFieldTrajectory.from_molecule(
+                mol,
+                start=TrajectoryStart.FINAL_OPTIMIZATION,
+            )
+        trajectory.record_molecule(
+            mol,
+            stage=TrajectoryStage.FINAL_OPTIMIZATION,
+            event=TrajectoryEvent.INITIAL,
+        )
         obmol, _ = mol2obmol(mol)
         if self.increasing_vdw:
             self._set_vdw_cutoff(self.vdw_cutoff_end)
@@ -2607,9 +2626,8 @@ class _OpenBabelOptimizer:
         history_window = thresholds.strict_stability_window
         energy_changes = deque(maxlen=history_window)
         max_displacements = deque(maxlen=history_window)
-        movie_coordinates = []
-        movie_energies = []
-        movie_quality_reports = []
+        epoch_energies = []
+        epoch_quality_reports = []
         previous_coordinates = None
         previous_energy = None
         epochs_completed = 0
@@ -2701,6 +2719,24 @@ class _OpenBabelOptimizer:
                 topology_reference=topology_reference,
                 quality_thresholds=quality_thresholds,
             )
+            trajectory_frame = trajectory.record_molecule(
+                mol,
+                stage=TrajectoryStage.FINAL_OPTIMIZATION,
+                event=TrajectoryEvent.EPOCH_COMPLETE,
+                energy_kj_mol=frame.energy,
+                step=epoch,
+                evidence=OptimizationFrameEvidence(
+                    accepted=frame.quality_report.passed,
+                    converged=frame.converged,
+                    rms_gradient_kj_mol_angstrom=frame.rms_gradient,
+                    max_gradient_kj_mol_angstrom=frame.max_gradient,
+                    failed_checks=tuple(
+                        check.name
+                        for check in frame.quality_report.checks
+                        if not check.passed
+                    ),
+                ),
+            )
             last_frame = frame
             last_epoch = epoch
             if (
@@ -2709,11 +2745,10 @@ class _OpenBabelOptimizer:
             ):
                 best_frame = frame
                 best_epoch = epoch
-                best_frame_index = len(movie_coordinates)
+                best_frame_index = trajectory_frame.index
             if self.save_movie:
-                movie_coordinates.append(frame.coordinates)
-                movie_energies.append(frame.energy)
-                movie_quality_reports.append(frame.quality_report)
+                epoch_energies.append(frame.energy)
+                epoch_quality_reports.append(frame.quality_report)
             previous_coordinates = frame.coordinates
             previous_energy = frame.energy
 
@@ -2751,7 +2786,7 @@ class _OpenBabelOptimizer:
                 raise GeometryQualityError(last_frame.quality_report)
             best_frame = last_frame
             best_epoch = last_epoch
-            best_frame_index = len(movie_coordinates) - 1
+            best_frame_index = trajectory_frame.index
         elif not last_frame.quality_report.passed:
             if _has_unreturnable_frame_failure(last_frame.quality_report):
                 raise GeometryQualityError(last_frame.quality_report)
@@ -2766,24 +2801,13 @@ class _OpenBabelOptimizer:
             )
             best_frame = last_frame
             best_epoch = last_epoch
-            best_frame_index = len(movie_coordinates) - 1
+            best_frame_index = trajectory_frame.index
             termination_reason = "quality_gate_failed"
 
         mol.coordinates = best_frame.coordinates
-        if self.save_movie:
-            _replace_conformer_trace(
-                mol,
-                np.asarray(movie_coordinates),
-                np.asarray(movie_energies),
-                best_frame_index,
-            )
-        else:
-            _replace_conformer_trace(
-                mol,
-                best_frame.coordinates,
-                float(best_frame.energy),
-                0,
-            )
+        trajectory.select(best_frame_index)
+        if owns_trajectory:
+            trajectory.materialize(mol, keep_all=self.save_movie)
 
         return ForceFieldRunReport(
             requested_forcefield=self.requested_forcefield,
@@ -2806,8 +2830,8 @@ class _OpenBabelOptimizer:
             energy_changes=best_frame.energy_changes,
             max_displacements=best_frame.max_displacements,
             best_epoch=best_epoch,
-            epoch_energies=tuple(movie_energies),
-            epoch_quality_reports=tuple(movie_quality_reports),
+            epoch_energies=tuple(epoch_energies),
+            epoch_quality_reports=tuple(epoch_quality_reports),
             termination_reason=termination_reason,
             terminal_converged=terminal_converged,
         )
@@ -3501,6 +3525,7 @@ def _optimize_working_mol(
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
     stop_on_ring_piercing: bool = False,
+    trajectory: Optional[ForceFieldTrajectory] = None,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
         requested_forcefield,
@@ -3522,6 +3547,7 @@ def _optimize_working_mol(
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
+        trajectory=trajectory,
     )
 
 

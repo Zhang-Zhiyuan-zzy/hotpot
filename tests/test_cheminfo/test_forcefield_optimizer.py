@@ -5,6 +5,13 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields.trajectory import (
+    ForceFieldTrajectory,
+    OptimizationFrameEvidence,
+    TrajectoryEvent,
+    TrajectoryStage,
+    TrajectoryStart,
+)
 
 
 class _Vector:
@@ -145,6 +152,23 @@ class _SegmentConvergingBackend(_Backend):
 class _OptimizerMolecule:
     def __init__(self):
         self.coordinates = np.zeros((2, 3), dtype=float)
+        self.atoms = (
+            SimpleNamespace(
+                idx=0,
+                id=1,
+                atomic_number=6,
+                formal_charge=0,
+                symbol="C",
+            ),
+            SimpleNamespace(
+                idx=1,
+                id=2,
+                atomic_number=6,
+                formal_charge=0,
+                symbol="C",
+            ),
+        )
+        self.bonds = ()
         self.energy = None
         self.frames = []
         self.frame_energies = []
@@ -264,8 +288,57 @@ def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeyp
     assert report.max_displacements == ()
     assert np.array_equal(molecule.coordinates, frames[1])
     assert molecule.energy == pytest.approx(report.best_energy)
-    assert molecule._conformers_index == report.best_epoch == 1
-    assert len(molecule.frames) == 3
+    assert report.best_epoch == 1
+    assert molecule._conformers_index == 2
+    assert len(molecule.frames) == 4
+
+
+def test_optimizer_records_into_shared_trajectory_without_materializing(monkeypatch):
+    frames = [
+        np.full((2, 3), 3.0),
+        np.full((2, 3), 1.0),
+        np.full((2, 3), 2.0),
+    ]
+    optimizer = _optimizer(monkeypatch, _Backend([3.0, 1.0, 2.0]), frames)
+    molecule = _OptimizerMolecule()
+    trajectory = ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=TrajectoryStart.COORDINATION_RESTORATION,
+    )
+
+    report = optimizer.optimize(
+        molecule,
+        quality_level="standard",
+        topology_reference=object(),
+        quality_thresholds=None,
+        trajectory=trajectory,
+    )
+
+    assert molecule.frames == []
+    assert tuple(frame.event for frame in trajectory) == (
+        TrajectoryEvent.INITIAL,
+        TrajectoryEvent.EPOCH_COMPLETE,
+        TrajectoryEvent.EPOCH_COMPLETE,
+        TrajectoryEvent.EPOCH_COMPLETE,
+    )
+    assert all(
+        frame.stage is TrajectoryStage.FINAL_OPTIMIZATION
+        for frame in trajectory
+    )
+    assert trajectory[0].energy_kj_mol is None
+    assert trajectory[0].evidence is None
+    assert tuple(frame.step for frame in trajectory) == (None, 0, 1, 2)
+    assert all(
+        isinstance(frame.evidence, OptimizationFrameEvidence)
+        for frame in trajectory.frames[1:]
+    )
+    assert trajectory.selected_index == 2
+    assert report.best_epoch == 1
+
+    trajectory.materialize(molecule, keep_all=True)
+    assert len(molecule.frames) == 4
+    assert molecule._conformers_index == 2
+    assert molecule.energy == pytest.approx(report.best_energy)
 
 
 def test_vdw_frames_are_ranked_only_under_the_final_cutoff(monkeypatch):
@@ -489,8 +562,8 @@ def test_scheduled_perturbations_restart_converged_segments(monkeypatch):
     assert backend.take_calls == [6, 6, 6]
     assert report.epochs_completed == 3
     assert report.best_epoch == 6
-    assert len(molecule.frames) == 3
-    assert molecule._conformers_index == 2
+    assert len(molecule.frames) == 4
+    assert molecule._conformers_index == 3
     assert np.array_equal(molecule.coordinates, frames[2])
 
 
@@ -619,8 +692,8 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
     assert report.best_energy == pytest.approx(1.0)
     assert report.termination_reason == "quality_gate_failed"
     np.testing.assert_array_equal(molecule.coordinates, frames[-1])
-    assert len(molecule.frames) == (3 if save_movie else 1)
-    assert molecule._conformers_index == (2 if save_movie else 0)
+    assert len(molecule.frames) == (4 if save_movie else 1)
+    assert molecule._conformers_index == (3 if save_movie else 0)
     assert len(report.epoch_energies) == (3 if save_movie else 0)
 
 
@@ -670,8 +743,8 @@ def test_optimizer_retains_failed_terminal_frame_after_an_accepted_frame(
     assert report.best_epoch == 2
     assert report.best_energy == pytest.approx(1.0)
     np.testing.assert_array_equal(molecule.coordinates, frames[-1])
-    assert len(molecule.frames) == (3 if save_movie else 1)
-    assert molecule._conformers_index == (2 if save_movie else 0)
+    assert len(molecule.frames) == (4 if save_movie else 1)
+    assert molecule._conformers_index == (3 if save_movie else 0)
 
 
 @pytest.mark.parametrize(
@@ -801,7 +874,7 @@ def test_optimizer_retains_finite_frame_with_diagnostic_failure(
     assert report.quality_report is rejected
     assert report.termination_reason == "quality_gate_failed"
     np.testing.assert_array_equal(molecule.coordinates, frames[-1])
-    assert len(molecule.frames) == 1
+    assert len(molecule.frames) == 2
 
 
 def test_local_perturbation_is_reproducible_without_changing_global_rng():

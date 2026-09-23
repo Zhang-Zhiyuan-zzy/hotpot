@@ -65,7 +65,7 @@ def test_root_exports_exact_child_union_without_duplicates():
     ]
     child_exports = [name for module in child_modules for name in module.__all__]
 
-    assert len(child_exports) == 59
+    assert len(child_exports) == 64
     assert len(child_exports) == len(set(child_exports))
     assert tuple(geometry.__all__) == tuple(child_exports)
 

@@ -472,6 +472,11 @@ class CoordinationGeometryResult:
 class ForceFieldError(RuntimeError):
     """Base class for force-field workflow failures."""
 
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.trajectory: Optional[ForceFieldTrajectoryArchive] = None
+        self.ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
+
 
 class ForceFieldSetupError(ForceFieldError):
     """Raised when Open Babel cannot initialize a requested force field."""
@@ -3684,12 +3689,14 @@ def _receive_worker_result(
                 None,
             )
         if result.status == "error":
-            raise worker_error_type(
+            error = worker_error_type(
                 result.error_type or "WorkerError",
                 result.error_message or "Unknown build worker failure",
                 result.traceback,
                 result.diagnostics,
             )
+            error.ligand_build_attempts = result.ligand_build_attempts
+            raise error
         if result.coordinates is None or (
             require_diagnostics and result.diagnostics is None
         ):
@@ -3791,6 +3798,23 @@ def _finalize_trajectory(
     return archive
 
 
+def _preserve_failed_trajectory(
+    error: ForceFieldError,
+    trajectory: ForceFieldTrajectory,
+    *,
+    ligand_build_attempts: Sequence[ForceFieldTrajectory] = (),
+    trajectory_path: Optional[TrajectoryPath],
+) -> None:
+    """Attach and optionally persist the facts recorded before a failure."""
+    archive = ForceFieldTrajectoryArchive(
+        main=trajectory,
+        ligand_build_attempts=tuple(ligand_build_attempts),
+    )
+    error.trajectory = archive
+    if trajectory_path is not None:
+        archive.write(trajectory_path)
+
+
 def _prepare_complex_working_mol(
     mol: "Molecule",
     *,
@@ -3807,6 +3831,7 @@ def _prepare_complex_working_mol(
     seed: Optional[int],
     perturb_sigma: float = 0.5,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
+    trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str],
     worker_target: _ComplexBuildWorker,
 ) -> _PreparedComplex:
@@ -3856,17 +3881,30 @@ def _prepare_complex_working_mol(
             trajectory_start is TrajectoryStart.LIGAND_BUILD,
         ),
     )
-    result = _receive_worker_result(
-        process,
-        receive_connection,
-        send_connection,
-        timeout=timeout,
-        seed=seed,
-    )
-    working_mol.coordinates = _validated_worker_coordinates(
-        result,
-        expected_atom_count=len(working_mol.atoms),
-    )
+    ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
+    try:
+        result = _receive_worker_result(
+            process,
+            receive_connection,
+            send_connection,
+            timeout=timeout,
+            seed=seed,
+        )
+        ligand_build_attempts = result.ligand_build_attempts
+        working_mol.coordinates = _validated_worker_coordinates(
+            result,
+            expected_atom_count=len(working_mol.atoms),
+        )
+    except ForceFieldError as error:
+        _preserve_failed_trajectory(
+            error,
+            trajectory,
+            ligand_build_attempts=(
+                ligand_build_attempts or error.ligand_build_attempts
+            ),
+            trajectory_path=trajectory_path,
+        )
+        raise
     diagnostics = cast(ComplexBuildDiagnostics, result.diagnostics)
     for message in diagnostics.warning_messages:
         warnings.warn(message, ComplexBuildWarning, stacklevel=3)
@@ -3875,15 +3913,24 @@ def _prepare_complex_working_mol(
             working_mol, strategy=coordination_geometry, seed=seed
         )
     restoration_started = time.monotonic()
-    restoration = _restore_coordination_bonds_incrementally(
-        working_mol,
-        effective_forcefield,
-        attempt_limit=coordination_restoration_attempts,
-        relaxation_steps=coordination_relaxation_steps,
-        perturb_sigma=perturb_sigma,
-        rng=np.random.default_rng(seed),
-        trajectory=trajectory,
-    )
+    try:
+        restoration = _restore_coordination_bonds_incrementally(
+            working_mol,
+            effective_forcefield,
+            attempt_limit=coordination_restoration_attempts,
+            relaxation_steps=coordination_relaxation_steps,
+            perturb_sigma=perturb_sigma,
+            rng=np.random.default_rng(seed),
+            trajectory=trajectory,
+        )
+    except ForceFieldError as error:
+        _preserve_failed_trajectory(
+            error,
+            trajectory,
+            ligand_build_attempts=ligand_build_attempts,
+            trajectory_path=trajectory_path,
+        )
+        raise
     diagnostics = replace(
         diagnostics,
         elapsed_seconds=(
@@ -3903,7 +3950,7 @@ def _prepare_complex_working_mol(
         mol=working_mol,
         diagnostics=diagnostics,
         trajectory=trajectory,
-        ligand_build_attempts=result.ligand_build_attempts,
+        ligand_build_attempts=ligand_build_attempts,
     )
 
 
@@ -4186,29 +4233,39 @@ def _complexes_build_workflow(
         seed=seed,
         perturb_sigma=perturb_sigma,
         trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
         worker_target=worker_target,
     )
-    optimization_report = _optimize_complex_working_mol(
-        prepared.mol,
-        requested_forcefield=forcefield,
-        effective_forcefield=effective_forcefield,
-        algorithm=algorithm,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        complex_untangling_attempts=complex_untangling_attempts,
-        quality_level=quality_level,
-        topology_reference=topology_reference,
-        quality_thresholds=quality_thresholds,
-        seed=seed,
-        perturb_interval=perturb_interval,
-        perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
-        increasing_vdw=increasing_vdw,
-        vdw_cutoff_start=vdw_cutoff_start,
-        vdw_cutoff_end=vdw_cutoff_end,
-        trajectory=prepared.trajectory,
-    )
+    try:
+        optimization_report = _optimize_complex_working_mol(
+            prepared.mol,
+            requested_forcefield=forcefield,
+            effective_forcefield=effective_forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            complex_untangling_attempts=complex_untangling_attempts,
+            quality_level=quality_level,
+            topology_reference=topology_reference,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            trajectory=prepared.trajectory,
+        )
+    except ForceFieldError as error:
+        _preserve_failed_trajectory(
+            error,
+            prepared.trajectory,
+            ligand_build_attempts=prepared.ligand_build_attempts,
+            trajectory_path=trajectory_path,
+        )
+        raise
     trajectory_archive = _finalize_trajectory(
         prepared.mol,
         prepared.trajectory,
@@ -4531,25 +4588,33 @@ def optimize(
         start=trajectory_start,
     )
     effective_forcefield = _resolve_organic_forcefield(forcefield)
-    report = _optimize_working_mol(
-        working_mol,
-        requested_forcefield=forcefield,
-        effective_forcefield=effective_forcefield,
-        algorithm=algorithm,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        quality_level=quality_level,
-        topology_reference=topology_reference,
-        quality_thresholds=quality_thresholds,
-        seed=seed,
-        perturb_interval=perturb_interval,
-        perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
-        increasing_vdw=increasing_vdw,
-        vdw_cutoff_start=vdw_cutoff_start,
-        vdw_cutoff_end=vdw_cutoff_end,
-        trajectory=trajectory,
-    )
+    try:
+        report = _optimize_working_mol(
+            working_mol,
+            requested_forcefield=forcefield,
+            effective_forcefield=effective_forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            quality_level=quality_level,
+            topology_reference=topology_reference,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            trajectory=trajectory,
+        )
+    except ForceFieldError as error:
+        _preserve_failed_trajectory(
+            error,
+            trajectory,
+            trajectory_path=trajectory_path,
+        )
+        raise
     trajectory_archive = _finalize_trajectory(
         working_mol,
         trajectory,
@@ -4604,6 +4669,7 @@ def _build_complex3d_workflow(
         seed=seed,
         perturb_sigma=perturb_sigma,
         trajectory_start=trajectory_start,
+        trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
         worker_target=worker_target,
     )
@@ -4613,7 +4679,14 @@ def _build_complex3d_workflow(
         topology_reference=topology_reference,
     )
     if not quality_report.passed:
-        raise GeometryQualityError(quality_report)
+        error = GeometryQualityError(quality_report)
+        _preserve_failed_trajectory(
+            error,
+            prepared.trajectory,
+            ligand_build_attempts=prepared.ligand_build_attempts,
+            trajectory_path=trajectory_path,
+        )
+        raise error
     trajectory_archive = _finalize_trajectory(
         prepared.mol,
         prepared.trajectory,
@@ -4723,26 +4796,34 @@ def optimize_complex(
         start=trajectory_start,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
-    report = _optimize_complex_working_mol(
-        working_mol,
-        requested_forcefield=forcefield,
-        effective_forcefield=effective_forcefield,
-        algorithm=algorithm,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        complex_untangling_attempts=complex_untangling_attempts,
-        quality_level=quality_level,
-        topology_reference=topology_reference,
-        quality_thresholds=quality_thresholds,
-        seed=seed,
-        perturb_interval=perturb_interval,
-        perturb_sigma=perturb_sigma,
-        save_movie=save_movie,
-        increasing_vdw=increasing_vdw,
-        vdw_cutoff_start=vdw_cutoff_start,
-        vdw_cutoff_end=vdw_cutoff_end,
-        trajectory=trajectory,
-    )
+    try:
+        report = _optimize_complex_working_mol(
+            working_mol,
+            requested_forcefield=forcefield,
+            effective_forcefield=effective_forcefield,
+            algorithm=algorithm,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            complex_untangling_attempts=complex_untangling_attempts,
+            quality_level=quality_level,
+            topology_reference=topology_reference,
+            quality_thresholds=quality_thresholds,
+            seed=seed,
+            perturb_interval=perturb_interval,
+            perturb_sigma=perturb_sigma,
+            save_movie=save_movie,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            trajectory=trajectory,
+        )
+    except ForceFieldError as error:
+        _preserve_failed_trajectory(
+            error,
+            trajectory,
+            trajectory_path=trajectory_path,
+        )
+        raise
     trajectory_archive = _finalize_trajectory(
         working_mol,
         trajectory,

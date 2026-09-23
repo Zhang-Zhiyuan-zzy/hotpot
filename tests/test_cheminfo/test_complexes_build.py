@@ -72,6 +72,28 @@ def _ligand_fallback_warning_worker(molecule, connection, *args):
     connection.close()
 
 
+def _failing_ligand_trajectory_worker(molecule, connection, *args):
+    trajectory = ff.ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=ff.TrajectoryStart.LIGAND_BUILD,
+    )
+    frame = trajectory.record_molecule(
+        molecule,
+        stage=ff.TrajectoryStage.LIGAND_BUILD,
+        event=ff.TrajectoryEvent.TERMINAL,
+    )
+    trajectory.select(frame.index)
+    connection.send(
+        ff.BuildWorkerResult(
+            status="error",
+            error_type="ForceFieldError",
+            error_message="deliberate ligand build failure",
+            ligand_build_attempts=(trajectory,),
+        )
+    )
+    connection.close()
+
+
 def _malformed_worker(connection):
     connection.send("not a BuildWorkerResult")
     connection.close()
@@ -989,6 +1011,36 @@ def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
     assert prepared.diagnostics.warning_messages == (
         "no ligand candidate passed; retaining the best usable attempt",
     )
+
+
+def test_failed_ligand_build_persists_recorded_attempts(monkeypatch, tmp_path):
+    molecule = read_mol("[Zn](N)", "smi")
+    trajectory_path = tmp_path / "failed-complex-build"
+    fork_context = mp.get_context("fork")
+    monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
+
+    with pytest.raises(ff.ComplexBuildWorkerError) as caught:
+        ff._prepare_complex_working_mol(
+            molecule,
+            effective_forcefield="UFF",
+            max_attempts=1,
+            candidate_warmup_steps=1,
+            candidate_score_steps=1,
+            best_candidate_refine_steps=1,
+            timeout=2.0,
+            add_hydrogens=False,
+            seed=None,
+            trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
+            trajectory_path=trajectory_path,
+            coordination_geometry=None,
+            worker_target=_failing_ligand_trajectory_worker,
+        )
+
+    restored = ff.ForceFieldTrajectoryArchive.read(trajectory_path)
+    assert caught.value.trajectory is not None
+    assert len(restored.main) == 0
+    assert len(restored.ligand_build_attempts) == 1
+    assert restored.ligand_build_attempts[0][0].event is ff.TrajectoryEvent.TERMINAL
 
 
 def test_builder_failures_consume_the_attempt_budget(monkeypatch):

@@ -764,6 +764,40 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
     assert calls[0][1]["effective_forcefield"] == forcefield
 
 
+def test_optimize_persists_recorded_frames_when_forcefield_stage_fails(
+    monkeypatch,
+    tmp_path,
+):
+    molecule = read_mol("CC", "smi")
+    trajectory_path = tmp_path / "failed-optimization"
+    failure = ff.GeometryQualityError(None)
+
+    def fail_after_recording(working_mol, **options):
+        trajectory = options["trajectory"]
+        frame = trajectory.record_molecule(
+            working_mol,
+            stage=ff.TrajectoryStage.FINAL_OPTIMIZATION,
+            event=ff.TrajectoryEvent.TERMINAL,
+        )
+        trajectory.select(frame.index)
+        raise failure
+
+    monkeypatch.setattr(ff, "_optimize_working_mol", fail_after_recording)
+
+    with pytest.raises(ff.GeometryQualityError) as caught:
+        ff.optimize(
+            molecule,
+            add_hydrogens=False,
+            trajectory_path=trajectory_path,
+        )
+
+    restored = ff.ForceFieldTrajectoryArchive.read(trajectory_path)
+    assert caught.value is failure
+    assert caught.value.trajectory is not None
+    assert restored.main.frames == failure.trajectory.main.frames
+    assert restored.main[0].event is ff.TrajectoryEvent.TERMINAL
+
+
 def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
     molecule = SimpleNamespace(has_metal=False, atoms=(), hydrogens=())
     hydrogen_requests = []

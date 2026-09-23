@@ -122,6 +122,13 @@ BACKEND_COMPATIBILITY_EXPORTS = (
     "_single_ob_optimization",
 )
 
+WORKING_COPY_COMPATIBILITY_EXPORTS = (
+    "_commit_working_copy",
+    "_copy_molecule_metadata",
+    "_hydrogenated_working_copy",
+    "_make_worker_mol",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -269,6 +276,14 @@ def test_backend_compatibility_names_are_reexported_without_wrapping():
     for name in ("_CandidateOptimizationResult", "_get_forcefield", "_ob_build"):
         exported = getattr(backend, name)
         assert pickle.loads(pickle.dumps(exported)) is exported
+
+
+def test_working_copy_helpers_are_reexported_without_wrapping():
+    working_copy = importlib.import_module(f"{PACKAGE_NAME}.working_copy")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+
+    for name in WORKING_COPY_COMPATIBILITY_EXPORTS:
+        assert getattr(shared, name) is getattr(working_copy, name)
 
 
 def test_facades_only_wrap_worker_adapted_workflows():

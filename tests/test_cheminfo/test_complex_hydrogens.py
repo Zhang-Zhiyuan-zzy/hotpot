@@ -5,6 +5,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import working_copy
 from hotpot.cheminfo.core import BondKind
 
 
@@ -466,7 +467,7 @@ def test_commit_rejects_a_working_copy_that_removed_an_original_atom(monkeypatch
     monkeypatch.setattr(molecule, "_create_atom_from_array", create_atom)
 
     with pytest.raises(ValueError, match="removed an original atom"):
-        ff._commit_working_copy(molecule, working)
+        working_copy._commit_working_copy(molecule, working)
 
     assert create_calls == 0
     assert tuple(molecule.atoms) == original_atoms
@@ -538,7 +539,7 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     monkeypatch.setattr(type(molecule.atom_pairs), "update_pairs", fail_after_partial_update)
 
     with pytest.raises(RuntimeError, match="injected commit failure"):
-        ff._commit_working_copy(molecule, working)
+        working_copy._commit_working_copy(molecule, working)
 
     assert tuple(molecule.atoms) == original_atoms
     assert tuple(molecule.bonds) == original_bonds

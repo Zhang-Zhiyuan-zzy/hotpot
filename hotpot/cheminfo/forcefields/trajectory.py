@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import tempfile
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -502,6 +503,25 @@ class _TrajectoryWriter:
         *,
         include_sdf: bool,
     ) -> None:
+        staging_directory = cls._make_sibling_directory(directory, "staging")
+        try:
+            cls._write_trajectory_tree(
+                staging_directory,
+                trajectory,
+                include_sdf=include_sdf,
+            )
+            cls._publish_directory(staging_directory, directory)
+        finally:
+            cls._remove_path(staging_directory)
+
+    @classmethod
+    def _write_trajectory_tree(
+        cls,
+        directory: Path,
+        trajectory: ForceFieldTrajectory,
+        *,
+        include_sdf: bool,
+    ) -> None:
         directory.mkdir(parents=True, exist_ok=True)
         manifest = cls._trajectory_manifest(trajectory)
         (directory / "trajectory.json").write_text(
@@ -585,15 +605,35 @@ class _TrajectoryWriter:
         *,
         include_sdf: bool,
     ) -> None:
+        staging_directory = cls._make_sibling_directory(directory, "staging")
+        try:
+            cls._write_archive_tree(
+                staging_directory,
+                archive,
+                include_sdf=include_sdf,
+            )
+            cls._publish_directory(staging_directory, directory)
+        finally:
+            cls._remove_path(staging_directory)
+
+    @classmethod
+    def _write_archive_tree(
+        cls,
+        directory: Path,
+        archive: ForceFieldTrajectoryArchive,
+        *,
+        include_sdf: bool,
+    ) -> None:
         directory.mkdir(parents=True, exist_ok=True)
-        cls.write_trajectory(directory / "main", archive.main, include_sdf=include_sdf)
-        attempt_directory = directory / "ligand_build_attempts"
-        if attempt_directory.exists():
-            shutil.rmtree(attempt_directory)
+        cls._write_trajectory_tree(
+            directory / "main",
+            archive.main,
+            include_sdf=include_sdf,
+        )
         attempt_paths = []
         for attempt_index, trajectory in enumerate(archive.ligand_build_attempts):
             relative_path = Path("ligand_build_attempts") / f"{attempt_index:04d}"
-            cls.write_trajectory(
+            cls._write_trajectory_tree(
                 directory / relative_path,
                 trajectory,
                 include_sdf=include_sdf,
@@ -608,6 +648,42 @@ class _TrajectoryWriter:
             json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False),
             encoding="utf-8",
         )
+
+    @staticmethod
+    def _make_sibling_directory(directory: Path, purpose: str) -> Path:
+        directory.parent.mkdir(parents=True, exist_ok=True)
+        return Path(
+            tempfile.mkdtemp(
+                prefix=f".{directory.name}.{purpose}-",
+                dir=directory.parent,
+            )
+        )
+
+    @classmethod
+    def _publish_directory(cls, staging_directory: Path, directory: Path) -> None:
+        """Publish one complete tree with single-writer failure atomicity."""
+        backup_directory: Optional[Path] = None
+        if directory.exists():
+            backup_directory = cls._make_sibling_directory(directory, "backup")
+            backup_directory.rmdir()
+            directory.replace(backup_directory)
+
+        try:
+            staging_directory.replace(directory)
+        except BaseException:
+            if backup_directory is not None:
+                backup_directory.replace(directory)
+            raise
+        finally:
+            if backup_directory is not None and directory.exists():
+                cls._remove_path(backup_directory)
+
+    @staticmethod
+    def _remove_path(path: Path) -> None:
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        else:
+            path.unlink(missing_ok=True)
 
     @classmethod
     def read_archive(cls, directory: Path) -> ForceFieldTrajectoryArchive:

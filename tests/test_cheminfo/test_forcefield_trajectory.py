@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -53,6 +54,18 @@ def _coordination_trajectory():
     )
     trajectory.select(third.index)
     return molecule, trajectory, (first, second, third)
+
+
+def _directory_contents(path: Path) -> dict[str, bytes]:
+    return {
+        item.relative_to(path).as_posix(): item.read_bytes()
+        for item in path.rglob("*")
+        if item.is_file()
+    }
+
+
+def _publish_temporary_paths(path: Path) -> tuple[Path, ...]:
+    return tuple(path.parent.glob(f".{path.name}.*-*"))
 
 
 def test_enum_contract_and_default_start():
@@ -259,6 +272,25 @@ def test_rewriting_without_sdf_removes_the_obsolete_export(tmp_path):
     assert not (path / "trajectory.sdf").exists()
 
 
+def test_failed_first_write_does_not_publish_a_partial_trajectory(
+    tmp_path,
+    monkeypatch,
+):
+    _, trajectory, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory"
+
+    def fail_to_write_coordinates(*args, **kwargs):
+        raise RuntimeError("coordinate serialization failed")
+
+    monkeypatch.setattr(np, "savez_compressed", fail_to_write_coordinates)
+
+    with pytest.raises(RuntimeError, match="coordinate serialization failed"):
+        trajectory.write(path)
+
+    assert not path.exists()
+    assert _publish_temporary_paths(path) == ()
+
+
 def test_archive_rewrite_removes_obsolete_ligand_attempt_directories(tmp_path):
     _, main, _ = _coordination_trajectory()
     branch_molecule = read_mol("CC", "smi")
@@ -274,11 +306,71 @@ def test_archive_rewrite_removes_obsolete_ligand_attempt_directories(tmp_path):
     branch.select(branch_frame.index)
     path = tmp_path / "trajectory_archive"
     ForceFieldTrajectoryArchive(main, (branch, branch)).write(path)
+    (path / "obsolete.txt").write_text("old archive", encoding="utf-8")
 
     ForceFieldTrajectoryArchive(main, (branch,)).write(path)
 
     assert (path / "ligand_build_attempts" / "0000").is_dir()
     assert not (path / "ligand_build_attempts" / "0001").exists()
+    assert not (path / "obsolete.txt").exists()
+    assert _publish_temporary_paths(path) == ()
+
+
+def test_failed_archive_overwrite_preserves_the_complete_existing_archive(
+    tmp_path,
+    monkeypatch,
+):
+    _, main, _ = _coordination_trajectory()
+    branch_molecule = read_mol("CC", "smi")
+    branch = ForceFieldTrajectory.from_molecule(
+        branch_molecule,
+        start=TrajectoryStart.LIGAND_BUILD,
+    )
+    branch_frame = branch.record_molecule(
+        branch_molecule,
+        stage=TrajectoryStage.LIGAND_BUILD,
+        event=TrajectoryEvent.TERMINAL,
+    )
+    branch.select(branch_frame.index)
+    path = tmp_path / "trajectory_archive"
+    ForceFieldTrajectoryArchive(main, (branch, branch)).write(path)
+    original_contents = _directory_contents(path)
+
+    def fail_to_write_coordinates(*args, **kwargs):
+        raise RuntimeError("coordinate serialization failed")
+
+    monkeypatch.setattr(np, "savez_compressed", fail_to_write_coordinates)
+
+    with pytest.raises(RuntimeError, match="coordinate serialization failed"):
+        ForceFieldTrajectoryArchive(main, (branch,)).write(path)
+
+    assert _directory_contents(path) == original_contents
+    assert len(ForceFieldTrajectoryArchive.read(path).ligand_build_attempts) == 2
+    assert _publish_temporary_paths(path) == ()
+
+
+def test_failed_archive_publish_restores_the_existing_archive(
+    tmp_path,
+    monkeypatch,
+):
+    _, main, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory_archive"
+    ForceFieldTrajectoryArchive(main).write(path)
+    original_contents = _directory_contents(path)
+    original_replace = Path.replace
+
+    def fail_staging_publish(source, target):
+        if source.name.startswith(f".{path.name}.staging-") and Path(target) == path:
+            raise OSError("publish failed")
+        return original_replace(source, target)
+
+    monkeypatch.setattr(Path, "replace", fail_staging_publish)
+
+    with pytest.raises(OSError, match="publish failed"):
+        ForceFieldTrajectoryArchive(main).write(path, include_sdf=False)
+
+    assert _directory_contents(path) == original_contents
+    assert _publish_temporary_paths(path) == ()
 
 
 def test_sdf_uses_the_topology_of_each_frame(tmp_path):

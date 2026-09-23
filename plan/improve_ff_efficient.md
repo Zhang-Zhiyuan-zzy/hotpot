@@ -362,7 +362,7 @@ full 100 optimization epochs. Cases 0048 and 0089 additionally require 14 and
 
 The dominant remaining cost is therefore the final optimizer, not repeated
 OBBuilder calls or full scans inside the ring-opening loop. The post-build
-stage now accounts for 74.34% of total force-field time. A future optimization
+stage now accounts for 74.33% of total force-field time. A future optimization
 could cache fixed-topology ring conversion and split the per-epoch acceptance
 path into cheap frame checks plus less frequent full geometric evidence. That
 change was deliberately not included here because per-epoch acceptance affects
@@ -446,4 +446,3 @@ $ taskset -c 0-15 /home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python \
     --title 'Eu-extractant force-field final structures (optimized sparse scan)' \
     --workers 16
 ```
-

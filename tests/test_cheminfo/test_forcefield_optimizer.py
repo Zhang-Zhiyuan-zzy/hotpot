@@ -849,6 +849,25 @@ def test_energy_conversion_is_explicit():
         ff._energy_factor_to_kj("hartree")
 
 
+@pytest.mark.parametrize(
+    ("calc_grad", "unit", "expected"),
+    [(True, "kJ/mol", 2.5), (False, "kcal/mol", 10.46)],
+)
+def test_forcefield_energy_in_kj_uses_backend_unit_and_gradient_flag(
+    calc_grad,
+    unit,
+    expected,
+):
+    calls = []
+    backend = SimpleNamespace(
+        Energy=lambda requested: calls.append(requested) or 2.5,
+        GetUnit=lambda: unit,
+    )
+
+    assert ff._forcefield_energy_in_kj(backend, calc_grad) == pytest.approx(expected)
+    assert calls == [calc_grad]
+
+
 def test_unknown_forcefield_fails_before_setup(monkeypatch):
     monkeypatch.setattr(ff, "_find_forcefield_prototype", lambda name: None)
 

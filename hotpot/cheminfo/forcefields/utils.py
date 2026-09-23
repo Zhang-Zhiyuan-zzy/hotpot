@@ -2102,6 +2102,13 @@ def _energy_factor_to_kj(unit: str) -> float:
     raise ValueError(f"Unsupported Open Babel energy unit: {unit!r}")
 
 
+def _forcefield_energy_in_kj(
+    ob_forcefield: ob.OBForceField,
+    calc_grad: bool = True,
+) -> float:
+    return float(ob_forcefield.Energy(calc_grad)) * _energy_factor_to_kj(ob_forcefield.GetUnit())
+
+
 @_serialized_forcefield_call
 def _get_forcefield(name: str) -> ob.OBForceField:
     """Retrieve a force-field plugin guarded by the process-local FF lock."""
@@ -2140,8 +2147,7 @@ def _single_ob_optimization(
     backend.SteepestDescent(steps)
     backend.GetCoordinates(obmol)
     mol.coordinates = extract_obmol_coordinates(obmol)
-    backend_unit = backend.GetUnit()
-    energy = float(backend.Energy()) * _energy_factor_to_kj(backend_unit)
+    energy = _forcefield_energy_in_kj(backend)
     return _CandidateOptimizationResult(
         energy=energy,
         energy_unit="kJ/mol",
@@ -2519,7 +2525,7 @@ class _OpenBabelOptimizer:
         self.backend.GetCoordinates(obmol)
         coordinates = extract_obmol_coordinates(obmol)
         mol.coordinates = coordinates
-        energy = float(self.backend.Energy(True)) * factor
+        energy = _forcefield_energy_in_kj(self.backend)
         rms_gradient, max_gradient = self._gradients(obmol, factor)
         exploded = bool(self.backend.DetectExplosion())
         if previous_energy is not None:

@@ -17,34 +17,18 @@
 
 ## Inbox
 
-### Amend `DEV-ARCH-001`: mathematical facts versus scientific semantics
-
-- **Scope:** repository-wide architecture and module ownership.
-- **Rule:** mathematical modules such as geometry MUST report mathematical
-  objects, measurements, relations, degeneracy, numerical tolerance, and
-  uncertainty. They MUST NOT decide chemical or physical reasonableness,
-  realism, quality, applicability, or repair policy.
-- **Boundary:** mathematical implementation and scientific interpretation
-  SHOULD be separated in code. A threshold that exists for numerical stability
-  belongs to the mathematical layer; a threshold or score that expresses a
-  chemical or physical standard belongs to the chemistry, force-field, or
-  other scientific layer that owns that interpretation.
-- **Rationale:** prevent scientific policy from being hidden in reusable
-  mathematical infrastructure and prevent mathematical facts from being
-  presented as scientific conclusions.
-- **Evidence:** clarification of the existing `DEV-ARCH-001` contract during
-  the 2026-09-23 force-field and geometry architecture review. The staging
-  commit for this amendment is recorded when it is integrated.
+No pending rules.
 
 ## Most recent integration receipt
 
-This receipt replaces the full staged proposals recorded by commit `339c53e`.
-It will be replaced, not appended to, during the next integration cycle.
+This receipt records the amendment staged by commit `882d9dd` and retains the
+active provenance from commit `339c53e`. It will be replaced, not appended to,
+during the next integration cycle.
 
 | Rule | Scope | Integrated | Source commits |
 |---|---|---|---|
 | `DEV-COMP-001` | Repository-wide evidence-based compatibility | 2026-09-23 | `339c53e`; `0e90c63`, `c604ef5`, `c5e53c9`, `f5a66a7`, `15cb23c` |
-| `DEV-ARCH-001` | Facts, evaluation, control, recording, and presentation | 2026-09-23 | `339c53e`; `aa72c67`, `b8dc637`, `5e344ad`, `bf67119`, `ebb4a53`, `dc3fc2b` |
+| `DEV-ARCH-001` | Mathematical facts, scientific semantics, control, recording, and presentation | 2026-09-23 | `339c53e`, `882d9dd`; `aa72c67`, `b8dc637`, `5e344ad`, `bf67119`, `ebb4a53`, `dc3fc2b` |
 | `DEV-ERR-001` | Explicit failure semantics and retained evidence | 2026-09-23 | `339c53e`; `43b83d9`, `186d7b4`, `1ea39cc`, `81fd33b` |
 | `DEV-OBS-001` | Optional, cost-aware scientific history and persistence | 2026-09-23 | `339c53e`; `81e02de`, `3631c7c`, `5795d8f`, `ebb4a53`, `dc3fc2b` |
 | `DEV-MOD-001` | Explicit public module surface and source layout | 2026-09-23 | `339c53e`; `e789e7a`, `d08792a`, `f26ca0f`, `6b8755e`, `ba67c91` |
@@ -57,5 +41,7 @@ It will be replaced, not appended to, during the next integration cycle.
   force-field-specific contract before being treated as normative behavior.
 - Full trajectory capture is not a default requirement. The integrated rule
   requires an explicit retention decision and resource assessment.
+- Numerical tolerances remain with mathematical facts; chemical or physical
+  acceptance thresholds remain with the scientific module that owns them.
 - Detailed test matrices and force-field-specific constants remain in their
   module documentation.

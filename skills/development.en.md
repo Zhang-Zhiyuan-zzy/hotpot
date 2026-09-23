@@ -87,12 +87,23 @@ When a mutable-object workflow requires transaction and commit semantics, its
 owning module contract MUST define them. This repository-wide standard does not
 impose one transaction model on every Hotpot function.
 
-### 3.2 Separate facts, evaluation, control, recording, and presentation `[DEV-ARCH-001]`
+### 3.2 Separate mathematical facts, scientific semantics, and workflow responsibilities `[DEV-ARCH-001]`
 
-- A fact layer returns measurements, relationships, backend results, and
-  uncertainty without value judgments beyond its disciplinary boundary.
-- A policy layer maps facts to chemistry, model-domain, or force-field quality
-  conclusions.
+- Mathematical fact layers and scientific semantic layers MUST be strictly
+  distinguished and SHOULD be separated in module and code structure wherever
+  practical.
+- Mathematical modules such as `geometry` provide only mathematical objects,
+  measurements, relations, degeneracy, and uncertainty. They MUST NOT judge
+  whether a structure is chemically or physically reasonable, realistic,
+  high-quality, or applicable, and MUST NOT choose a repair policy.
+- Tolerances used for floating-point stability, degeneracy detection, or
+  mathematical relation classification belong to the mathematical layer.
+  Thresholds, scores, and acceptance rules that express a chemical or physical
+  standard MUST belong to the `chemistry`, `forcefields`, or other scientific
+  module that owns that meaning.
+- A scientific semantic layer MAY consume mathematical facts and map them to
+  chemistry, physics, model-domain, or force-field quality conclusions. These
+  scientific judgments MUST NOT be placed back into a mathematical module.
 - A controller alone decides retries, perturbations, rollback, selection, and
   exit; these decisions remain explicit in the main workflow.
 - A recorder MAY store, query, score, rank, and persist facts, but it MUST NOT
@@ -177,8 +188,6 @@ For new or substantially refactored modules:
 - The ring family is part of an algorithm contract. `cycle basis`, `relevant
   cycles`, and other ring sets MUST NOT be conflated, and downstream behavior
   SHOULD NOT depend on an arbitrary basis or input order.
-- Geometry supplies geometric measurements and relations. Higher chemistry or
-  force-field layers decide chemical reasonableness and repair policy.
 - Units MUST be explicit in APIs, fields, headers, and plot labels. Normalize
   backend quantities once at the boundary into the internal unit.
 - A semantic profile MUST NOT silently recompute implicit hydrogen,
@@ -315,7 +324,7 @@ by default.
 | Rule | Integrated | Staging commit | Implementation evidence commits |
 |---|---|---|---|
 | `DEV-COMP-001` | 2026-09-23 | `339c53e` | `0e90c63`, `c604ef5`, `c5e53c9`, `f5a66a7`, `15cb23c` |
-| `DEV-ARCH-001` | 2026-09-23 | `339c53e` | `aa72c67`, `b8dc637`, `5e344ad`, `bf67119`, `ebb4a53`, `dc3fc2b` |
+| `DEV-ARCH-001` | 2026-09-23 | `339c53e`, `882d9dd` | `aa72c67`, `b8dc637`, `5e344ad`, `bf67119`, `ebb4a53`, `dc3fc2b` |
 | `DEV-ERR-001` | 2026-09-23 | `339c53e` | `43b83d9`, `186d7b4`, `1ea39cc`, `81fd33b` |
 | `DEV-OBS-001` | 2026-09-23 | `339c53e` | `81e02de`, `3631c7c`, `5795d8f`, `ebb4a53`, `dc3fc2b` |
 | `DEV-MOD-001` | 2026-09-23 | `339c53e` | `e789e7a`, `d08792a`, `f26ca0f`, `6b8755e`, `ba67c91` |

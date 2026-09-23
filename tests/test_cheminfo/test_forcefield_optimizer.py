@@ -5,6 +5,8 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
+from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
@@ -207,17 +209,25 @@ def _acceptance_report(passed=True, checks=()):
 def _optimizer(monkeypatch, backend, frames, **kwargs):
     backend.frames = frames
     obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
-    monkeypatch.setattr(ff, "_get_forcefield", lambda _: backend)
+    monkeypatch.setattr(optimizer_impl, "_get_forcefield", lambda _: backend)
     monkeypatch.setattr(ob_backend, "_make_constraints", lambda _: object())
-    monkeypatch.setattr(ff.ob, "OBMolAtomIter", lambda _: (object(), object()))
-    monkeypatch.setattr(ff, "mol2obmol", lambda mol: (obmol, {0: 1, 1: 2}))
     monkeypatch.setattr(
-        ff,
+        optimizer_impl.ob,
+        "OBMolAtomIter",
+        lambda _: (object(), object()),
+    )
+    monkeypatch.setattr(
+        optimizer_impl,
+        "mol2obmol",
+        lambda mol: (obmol, {0: 1, 1: 2}),
+    )
+    monkeypatch.setattr(
+        optimizer_impl,
         "extract_obmol_coordinates",
         lambda current: np.asarray(current.coordinates, dtype=float).copy(),
     )
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "set_obmol_coordinates",
         lambda current, coordinates: setattr(
             current, "coordinates", np.asarray(coordinates, dtype=float).copy()
@@ -227,8 +237,12 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
         assert options["forcefield_stage"] == "final"
         return _acceptance_report()
 
-    monkeypatch.setattr(ff, "evaluate_structure_acceptance", evaluate_quality)
-    return ff._OpenBabelOptimizer(
+    monkeypatch.setattr(
+        optimizer_impl,
+        "evaluate_structure_acceptance",
+        evaluate_quality,
+    )
+    return optimizer_impl._OpenBabelOptimizer(
         "MMFF94s",
         "MMFF94s",
         algorithm="conjugate",
@@ -442,7 +456,11 @@ def test_optimizer_stops_at_first_ring_piercing_and_retains_that_frame(
             metrics={"bond_ring_piercing_count": piercing_count},
         )
 
-    monkeypatch.setattr(ff, "evaluate_structure_acceptance", evaluate_quality)
+    monkeypatch.setattr(
+        optimizer_impl,
+        "evaluate_structure_acceptance",
+        evaluate_quality,
+    )
     molecule = _OptimizerMolecule()
 
     report = _run_optimizer(
@@ -474,7 +492,7 @@ def test_ring_piercing_stop_retains_finite_failed_frame_for_repair(monkeypatch):
         metrics={"bond_ring_piercing_count": 1},
     )
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: rejected,
     )
@@ -648,7 +666,7 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.retain_epoch_history = False
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "evaluate_structure_acceptance",
         lambda mol, **options: _acceptance_report(
             passed=float(mol.coordinates[0, 0]) != 1.0,
@@ -695,7 +713,7 @@ def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
         ),
     )
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "evaluate_structure_acceptance",
         lambda *args, **options: rejected,
     )
@@ -751,7 +769,11 @@ def test_optimizer_retains_failed_terminal_frame_after_an_accepted_frame(
             checks=(failure,) if failed else (),
         )
 
-    monkeypatch.setattr(ff, "evaluate_structure_acceptance", quality)
+    monkeypatch.setattr(
+        optimizer_impl,
+        "evaluate_structure_acceptance",
+        quality,
+    )
     molecule = _OptimizerMolecule()
 
     with pytest.warns(ff.GeometryQualityWarning, match="finite_rms_gradient"):
@@ -799,7 +821,7 @@ def test_optimizer_selects_best_frame_despite_bond_ring_warning(
         ),
     )
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "evaluate_structure_acceptance",
         lambda *args, **options: undetermined,
     )
@@ -839,7 +861,7 @@ def test_optimizer_raises_for_unreturnable_frame_failures(
         checks=(ff.AcceptanceCheck(name=failure_name, passed=False),),
     )
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "evaluate_structure_acceptance",
         lambda *args, **options: rejected,
     )
@@ -884,7 +906,7 @@ def test_optimizer_retains_finite_frame_with_diagnostic_failure(
         checks=(ff.AcceptanceCheck(name=failure_name, passed=False),),
     )
     monkeypatch.setattr(
-        ff,
+        optimizer_impl,
         "evaluate_structure_acceptance",
         lambda *args, **options: rejected,
     )
@@ -911,12 +933,12 @@ def test_local_perturbation_is_reproducible_without_changing_global_rng():
     expected_global = np.random.random()
     np.random.seed(2026)
 
-    first = ff._perturbed_coordinates(
+    first = coordinate_utils._perturbed_coordinates(
         coordinates,
         sigma=0.2,
         rng=np.random.default_rng(4),
     )
-    second = ff._perturbed_coordinates(
+    second = coordinate_utils._perturbed_coordinates(
         coordinates,
         sigma=0.2,
         rng=np.random.default_rng(4),
@@ -1054,7 +1076,7 @@ def test_optimizer_rejects_invalid_control_parameters(options, message):
     defaults.update(options)
 
     with pytest.raises(ValueError, match=message):
-        ff._OpenBabelOptimizer("UFF", "UFF", **defaults)
+        optimizer_impl._OpenBabelOptimizer("UFF", "UFF", **defaults)
 
 
 def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):

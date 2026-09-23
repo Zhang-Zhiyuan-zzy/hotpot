@@ -137,6 +137,11 @@ REPAIR_COMPATIBILITY_EXPORTS = (
     "_untangle_ring_piercings",
 )
 
+OPTIMIZER_COMPATIBILITY_EXPORTS = (
+    "_combine_forcefield_run_reports",
+    "_optimize_working_mol",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -300,6 +305,14 @@ def test_repair_helpers_are_reexported_without_wrapping():
 
     for name in REPAIR_COMPATIBILITY_EXPORTS:
         assert getattr(shared, name) is getattr(repair, name)
+
+
+def test_optimizer_workflow_seams_are_reexported_without_wrapping():
+    optimizer = importlib.import_module(f"{PACKAGE_NAME}.optimizer")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+
+    for name in OPTIMIZER_COMPATIBILITY_EXPORTS:
+        assert getattr(shared, name) is getattr(optimizer, name)
 
 
 def test_facades_only_wrap_worker_adapted_workflows():

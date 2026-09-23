@@ -315,13 +315,18 @@ class ForceFieldTrajectory:
         """Record one factual frame without affecting workflow control."""
         coordinate_revision = self._pool_coordinates(coordinates)
         topology_revision = self._pool_topology(bonds)
+        stored_energy = (
+            None
+            if energy_kj_mol is None or not np.isfinite(energy_kj_mol)
+            else float(energy_kj_mol)
+        )
         frame = ForceFieldFrame(
             index=len(self._frames),
             stage=stage,
             event=event,
             coordinate_revision=coordinate_revision,
             topology_revision=topology_revision,
-            energy_kj_mol=energy_kj_mol,
+            energy_kj_mol=stored_energy,
             component_index=component_index,
             attempt=attempt,
             step=step,
@@ -511,6 +516,8 @@ class _TrajectoryWriter:
         np.savez_compressed(directory / "coordinates.npz", coordinates=coordinate_stack)
         if include_sdf:
             cls.write_sdf(directory / "trajectory.sdf", trajectory)
+        else:
+            (directory / "trajectory.sdf").unlink(missing_ok=True)
 
     @classmethod
     def read_trajectory(cls, directory: Path) -> ForceFieldTrajectory:
@@ -542,7 +549,7 @@ class _TrajectoryWriter:
             )
             for topology_object in cast(Sequence[object], manifest["topologies"])
         )
-        with np.load(directory / "coordinates.npz") as coordinate_data:
+        with np.load(directory / "coordinates.npz", allow_pickle=False) as coordinate_data:
             coordinate_revisions = np.asarray(coordinate_data["coordinates"])
 
         for frame_object in cast(Sequence[object], manifest["frames"]):

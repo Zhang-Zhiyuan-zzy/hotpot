@@ -169,6 +169,36 @@ def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
     assert (archive_path / "main" / "trajectory.sdf").is_file()
 
 
+def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
+    molecule = read_mol("CC", "smi")
+    trajectory = ForceFieldTrajectory.from_molecule(molecule)
+    frame = trajectory.record_molecule(
+        molecule,
+        stage=TrajectoryStage.FINAL_OPTIMIZATION,
+        event=TrajectoryEvent.INITIAL,
+        energy_kj_mol=float("nan"),
+    )
+    trajectory.select(frame.index)
+
+    path = tmp_path / "trajectory"
+    trajectory.write(path)
+    restored = ForceFieldTrajectory.read(path)
+
+    assert trajectory[0].energy_kj_mol is None
+    assert restored[0].energy_kj_mol is None
+    assert "NaN" not in (path / "trajectory.json").read_text(encoding="utf-8")
+
+
+def test_rewriting_without_sdf_removes_the_obsolete_export(tmp_path):
+    _, trajectory, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory"
+    trajectory.write(path, include_sdf=True)
+
+    trajectory.write(path, include_sdf=False)
+
+    assert not (path / "trajectory.sdf").exists()
+
+
 def test_sdf_uses_the_topology_of_each_frame(tmp_path):
     _, trajectory, _ = _coordination_trajectory()
     sdf_path = tmp_path / "trajectory.sdf"

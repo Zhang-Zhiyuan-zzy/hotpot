@@ -142,6 +142,15 @@ def test_facades_only_wrap_worker_adapted_workflows():
         assert getattr(python39, name) is not getattr(shared, name)
 
 
+def test_worker_adapted_facades_share_canonical_documentation():
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+
+    for name in WORKER_ADAPTED_FUNCTIONS:
+        assert getattr(modern, name).__doc__
+        assert getattr(python39, name).__doc__ == getattr(modern, name).__doc__
+
+
 @pytest.mark.parametrize("facade_name", (MODERN_FACADE_NAME, PYTHON39_FACADE_NAME))
 @pytest.mark.parametrize("function_name", PUBLIC_FUNCTIONS)
 def test_public_forcefield_functions_are_pickleable(facade_name, function_name):

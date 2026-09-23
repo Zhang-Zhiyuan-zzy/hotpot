@@ -117,14 +117,6 @@ def build_complex3d(
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
-    """Build one ligand start and restore the complex coordination topology.
-
-    ``candidate_count`` is a reserved API parameter and currently has no
-    effect. Future multi-conformer support will generate genuinely independent
-    starts, optimize and gate each one, deduplicate or cluster them by geometry,
-    rank them by topology, geometry, and energy evidence, and refine the
-    selected conformer.
-    """
     _ = candidate_count
     return _utils._build_complex3d_workflow(
         mol,
@@ -179,14 +171,6 @@ def complexes_build(
     vdw_cutoff_end: float = 12.5,
     coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
-    """Build, optimize, validate, and commit one complete complex structure.
-
-    ``candidate_count`` is a reserved API parameter and currently has no
-    effect. Future multi-conformer support will generate genuinely independent
-    starts, optimize and gate each one, deduplicate or cluster them by geometry,
-    rank them by topology, geometry, and energy evidence, and refine the
-    selected conformer.
-    """
     _ = candidate_count
     return _utils._complexes_build_workflow(
         mol,
@@ -251,14 +235,6 @@ def build_and_optimize(
     complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
 ) -> ForceFieldWorkflowReport:
-    """Dispatch 3D building and optimization by molecular system type.
-
-    ``candidate_count`` is a reserved API parameter and currently has no
-    effect. Future complex multi-conformer support will generate genuinely
-    independent starts, optimize and gate each one, deduplicate or cluster them
-    by geometry, rank them by topology, geometry, and energy evidence, and
-    refine the selected conformer.
-    """
     _ = candidate_count
     return _utils._build_and_optimize_workflow(
         mol,
@@ -291,3 +267,11 @@ def build_and_optimize(
         seeded_build_worker=_utils39._seeded_ob_build_worker,
         complex_build_worker=_utils39._build_ligand_proxies_worker,
     )
+
+
+# Keep runtime API documentation sourced from the canonical shared functions
+# without changing these module-level wrappers or their pickle identities.
+build3d.__doc__ = _utils.build3d.__doc__
+build_complex3d.__doc__ = _utils.build_complex3d.__doc__
+complexes_build.__doc__ = _utils.complexes_build.__doc__
+build_and_optimize.__doc__ = _utils.build_and_optimize.__doc__

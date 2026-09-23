@@ -51,6 +51,7 @@ assert actual == expected
             tests/test_cheminfo/test_forcefield_api.py \
             tests/test_cheminfo/test_forcefield_package.py \
             tests/test_cheminfo/test_forcefield_optimizer.py \
+            tests/test_cheminfo/test_forcefield_trajectory.py \
             tests/test_cheminfo/test_forcefield_integration.py \
             tests/test_cheminfo/test_complexes_build.py \
             tests/test_cheminfo/test_complex_hydrogens.py \

@@ -335,3 +335,138 @@ build_and_optimize
 Python 3.12–3.14 的测试中出现“多线程进程调用 `fork()`”弃用警告，但未造成失败；这是
 后续 Python 版本需要处理的 multiprocessing 生命周期风险，不属于本轮 abstraction 的行为
 回归。
+
+---
+
+# Force-field trajectory 重构实施报告（2026-09-23）
+
+> 本节是在上述抽象审计之后实施的现状记录；上述原始审计文本保持不变。
+> 其中原 B1 的“帧记录/存储”部分已被统一，但不同化学阶段的选帧和流程决策仍未合并；
+> 原 B2 中的环开结流程仍由本身的控制器管理。
+
+## 8. 实施目标与边界
+
+本轮只抽象力场流程中共同的“事实记录”能力：坐标、拓扑、阶段、事件、能量、质量门控证据、选中帧和序列化。
+流程控制器仍显式决定是否继续、扰动、回滚、恢复键或退出。未引入通用
+`condition_func`/`mode` 开关代替这些化学业务规则。
+
+```text
+阶段流程控制器
+├── 计算本阶段事实与评价
+├── 向 ForceFieldTrajectory 追加帧
+├── 显式决定继续 / 扰动 / 回滚 / 退出
+└── 阶段结束时显式选帧
+    └── ForceFieldTrajectory.select(frame_index)
+```
+
+## 9. 最终模块结构
+
+```text
+hotpot/cheminfo/forcefields/
+├── __init__.py
+├── ff.py                 # Python >= 3.10 / Open Babel 3.2 façade
+├── ff39.py               # Python 3.9 / Open Babel 3.1 façade
+├── utils.py              # 共享业务流程与控制器
+├── utils39.py            # Python 3.9 专用 adapter
+└── trajectory.py         # 轨迹事实、存储、选帧和序列化
+```
+
+`trajectory.py` 的职责如下：
+
+| 类型 | 职责 |
+|---|---|
+| `TrajectoryStart` | `Enum` 类；指定最早记录的阶段 |
+| `TrajectoryStage` / `TrajectoryEvent` | 描述一帧所属阶段及其中发生的事件 |
+| `AtomIdentity` | 固定轨迹生命周期内的原子身份 |
+| `BondTopology` / `BondTopologyRevision` | 记录每个拓扑版本及变更 |
+| `RingFrameEvidence` | 记录环—键扫描事实 |
+| `CoordinationFrameEvidence` | 记录配位键尝试、待恢复键和强制恢复事实 |
+| `OptimizationFrameEvidence` | 记录梯度、收敛和质量门控事实 |
+| `ForceFieldFrame` | 引用坐标版本、拓扑版本与本帧证据 |
+| `ForceFieldTrajectory` | 记录、池化、查询、显式选帧和 conformer 物化 |
+| `ForceFieldTrajectoryArchive` | 完整归档的读回视图 |
+| `_TrajectoryWriter` | JSON/NPZ/SDF 的单一写出实现 |
+
+## 10. 记录起点、选帧与 movie 语义
+
+`TrajectoryStart` 可选值为：
+
+```text
+LIGAND_BUILD
+COORDINATION_RESTORATION
+COMPLEX_UNTANGLING
+FINAL_OPTIMIZATION
+```
+
+- 完整络合物构建默认从 `COORDINATION_RESTORATION` 开始：配体已完成初始构建，金属—配体键尚未恢复。
+- 如显式选择 `LIGAND_BUILD`，每个独立配体构建尝试作为分支轨迹保存。
+- 只要到达设定的起始阶段，已知的每个业务帧都记录在内存轨迹中，不受 `save_movie` 影响。
+- 非空轨迹必须由控制器显式 `select()` 后才可物化；空轨迹物化是 no-op，不清空原分子构象。
+- `save_movie=True` 将全部记录帧物化到 `Molecule.conformers`；`False` 仅物化显式选中帧。
+- `Molecule.conformers` 只能表达坐标，不能表达环开启/闭合或配位键试连等拓扑变化；完整归档是该类 movie 的权威记录。
+
+不同阶段继续使用具名化学选帧规则，而非一个通用回调：环开结以穿环数和阶段结果为准，
+配位恢复以键恢复结果为准，最终 optimizer 以质量门控、稳定性和能量为准。记录对象只提供帧索引、证据、
+查询与选中状态，不能促使流程跳转。
+
+## 11. 序列化、资源开销与失败语义
+
+`trajectory_path` 在流程结束时写出完整归档，与 `save_movie` 无关：
+
+| 文件 | 用途 |
+|---|---|
+| JSON | 阶段、事件、证据、拓扑和索引 |
+| NPZ | 无损坐标数组 |
+| SDF | 便于分子软件查看的有限坐标帧 |
+
+- 坐标与拓扑分别池化；相同坐标或拓扑不重复存储。
+- 坐标原始上界为 $24NF$ bytes，其中 $N$ 为原子数、$F$ 为唯一坐标帧数；例如 200 原子、1000 个唯一帧约为 4.8 MB，另加 Python 对象、证据和拓扑索引开销。
+- 每帧增加的计算主要是数组拷贝与内容索引，相对力场优化开销很小；归档压缩与 SDF 写出在结束时发生。
+- 非有限能量/梯度在 JSON 中记为 `null`。非有限坐标仍保留于 JSON/NPZ 索引体系中，但不写入 SDF；manifest 显式记录 SDF 帧索引。
+- 归档覆写前清理旧分支目录，不保留与新运行无关的过时配体尝试。
+- 显式 `ForceFieldError` 发生时，已有轨迹会挂载到异常对象；如设置 `trajectory_path`，则在重新抛出前写盘。原始 `Molecule` 仍保持事务性。
+- 目前不是逐帧流式 checkpoint；进程被强制终止时，内存中尚未归档的帧无法保证保存。
+
+## 12. 实施中清理的旧代码
+
+已删除或收束下列重复生命周期：
+
+- `_replace_conformer_trace()`、`_conformer_trace()` 和 `_combine_conformer_traces()`；
+- `_RingUntanglingResult` / `_CoordinationRestorationResult` 内重复的 `frames` 与 `frame_energies`；
+- `_OpenBabelOptimizer` 内自行新建 trajectory、自行 materialize 的第二套生命周期；
+- 多处手工拼接 movie 和 conformer 的实现；
+- 新增轨迹数据的历史字段兼容分支。
+
+Open Babel 能量读取统一为 `_forcefield_energy_in_kj()`，函数体直接单行返回能量读取与单位换算结果。
+
+## 13. 提交与验收
+
+| Commit | 内容 |
+|---|---|
+| `5c9aaf4` | 统一 Open Babel 能量转换 |
+| `81e02de` | 新增 topology-aware trajectory 数据模型与序列化 |
+| `b68ed96` | optimizer 接入统一轨迹记录 |
+| `3631c7c` | 修复非有限数据和归档可移植性 |
+| `5795d8f` | 接入配体构建、配位键恢复、环开结和最终优化全流程 |
+| `ebb4a53` | 集中轨迹 materialization |
+| `81fd33b` | 在显式工作流异常上保留和按需写出轨迹 |
+| `15cb23c` | 收紧选帧、原子身份和当前归档契约 |
+| `dc3fc2b` | 分离事实记录与 `save_movie` 展示策略 |
+| `f45875b` | 将轨迹测试纳入跨 Python 版本入口 |
+
+| 验收环境 | 结果 |
+|---|---|
+| Python 3.9 / Open Babel 3.1.0 | `829 passed, 5 skipped, 3 xfailed`；SMARTS 专项 `255 passed` |
+| Python 3.14 / Open Babel 3.2.1 | `830 passed, 4 skipped, 3 xfailed, 49 subtests passed`；SMARTS 专项 `255 passed` |
+| Ruff（forcefields 及相关测试） | passed |
+| `git diff --check` | passed |
+
+已验证的主要行为包括：坐标/拓扑版本池化、起始阶段过滤、显式选帧、空轨迹 no-op、
+`save_movie=True/False`、JSON/NPZ/SDF round-trip、非有限数据、归档覆写清理、配位键试连/拒绝/回滚/强制恢复、
+环打开/扰动/优化/闭合/settling/回滚、optimizer epoch 记录、失败轨迹保留、顶层 API 与 Python 3.9 façade 等价性。
+
+## 14. 保留边界
+
+- `candidate_count` 仍是预留公开参数，多构型搜索不属于本轮实施。
+- 全帧记录尚未对大原子数、长 epoch 业务作专项内存基准。
+- Python 3.14 测试中仍有 multiprocessing `fork()` 弃用警告；未造成本轮测试失败，但需在后续并发生命周期整改中单独处理。

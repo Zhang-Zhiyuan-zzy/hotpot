@@ -12,6 +12,7 @@ import hashlib
 import json
 import shutil
 import tempfile
+import warnings
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -687,8 +688,12 @@ class _TrajectoryWriter:
         """Remove a temporary path without changing the operation's outcome."""
         try:
             cls._remove_path(path)
-        except OSError:
-            pass
+        except OSError as exc:
+            warnings.warn(
+                f"Could not remove temporary trajectory path {path}: {exc}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
     @staticmethod
     def _remove_path(path: Path) -> None:

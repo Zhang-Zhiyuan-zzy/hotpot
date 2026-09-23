@@ -394,7 +394,8 @@ def test_backup_cleanup_failure_does_not_turn_a_successful_publish_into_failure(
         staticmethod(fail_backup_cleanup),
     )
 
-    ForceFieldTrajectoryArchive(main).write(path, include_sdf=False)
+    with pytest.warns(RuntimeWarning, match="backup cleanup failed"):
+        ForceFieldTrajectoryArchive(main).write(path, include_sdf=False)
 
     assert not (path / "main" / "trajectory.sdf").exists()
     assert ForceFieldTrajectoryArchive.read(path).main.frames == main.frames
@@ -424,8 +425,9 @@ def test_staging_cleanup_failure_does_not_mask_the_serialization_failure(
         staticmethod(fail_staging_cleanup),
     )
 
-    with pytest.raises(RuntimeError, match="coordinate serialization failed"):
-        trajectory.write(path)
+    with pytest.warns(RuntimeWarning, match="staging cleanup failed"):
+        with pytest.raises(RuntimeError, match="coordinate serialization failed"):
+            trajectory.write(path)
 
     assert not path.exists()
     assert any(".staging-" in item.name for item in _publish_temporary_paths(path))

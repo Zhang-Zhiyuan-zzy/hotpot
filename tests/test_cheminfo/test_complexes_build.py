@@ -7,11 +7,13 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.forcefields import workers
+from hotpot.cheminfo.forcefields import workflows
 
 
 def _send_large_worker(connection):
@@ -364,7 +366,7 @@ def _active_child_pids():
 
 def test_pipe_receives_large_result_before_joining_worker():
     process, receive_connection, send_connection = _pipe_process(_send_large_worker)
-    result = ff._receive_worker_result(
+    result = workers._receive_worker_result(
         process,
         receive_connection,
         send_connection,
@@ -377,7 +379,7 @@ def test_pipe_receives_large_result_before_joining_worker():
 def test_pipe_propagates_worker_error_with_original_diagnostics():
     process, receive_connection, send_connection = _pipe_process(_send_error_worker)
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -393,7 +395,7 @@ def test_generic_build_worker_accepts_coordinates_without_complex_diagnostics():
         _send_coordinates_only_worker
     )
 
-    result = ff._receive_worker_result(
+    result = workers._receive_worker_result(
         process,
         receive_connection,
         send_connection,
@@ -412,7 +414,7 @@ def test_generic_build_worker_uses_generic_failure_type():
     process, receive_connection, send_connection = _pipe_process(_send_error_worker)
 
     with pytest.raises(ff.BuildWorkerError) as caught:
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -432,7 +434,7 @@ def test_generic_build_worker_uses_generic_timeout_type():
     process, receive_connection, send_connection = _pipe_process(_blocking_worker)
 
     with pytest.raises(ff.BuildTimeoutError, match="building initial coordinates"):
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -447,7 +449,7 @@ def test_generic_build_worker_uses_generic_timeout_type():
 def test_timeout_terminates_and_joins_worker():
     process, receive_connection, send_connection = _pipe_process(_blocking_worker)
     with pytest.raises(ff.ComplexBuildTimeoutError):
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -473,8 +475,8 @@ def test_public_complex_build_failure_is_transactional_and_reaps_worker(
     original = _molecule_state(molecule)
     child_pids_before = _active_child_pids()
     fork_context = mp.get_context("fork")
-    monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
-    monkeypatch.setattr(ff, "_build_ligand_proxies_worker", worker)
+    monkeypatch.setattr(workflows.mp, "get_context", lambda method: fork_context)
+    monkeypatch.setattr(workflows, "_build_ligand_proxies_worker", worker)
 
     with pytest.raises(expected_error):
         ff.build_complex3d(
@@ -498,7 +500,7 @@ def test_timeout_escalates_to_kill_when_worker_ignores_termination():
     send_connection = _NeverReadyConnection()
 
     with pytest.raises(ff.ComplexBuildTimeoutError):
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -514,7 +516,7 @@ def test_timeout_escalates_to_kill_when_worker_ignores_termination():
 def test_malformed_worker_protocol_fails_explicitly():
     process, receive_connection, send_connection = _pipe_process(_malformed_worker)
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -528,7 +530,7 @@ def test_invalid_worker_status_fails_explicitly():
         _invalid_status_worker
     )
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -542,7 +544,7 @@ def test_incomplete_success_worker_protocol_fails_explicitly():
         _incomplete_success_worker
     )
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -555,7 +557,7 @@ def test_seed_is_forwarded_to_worker_without_mutating_parent_environment(monkeyp
     monkeypatch.setenv("OB_RANDOM_SEED", "parent")
     process, receive_connection, send_connection = _pipe_process(_send_seed_worker)
 
-    result = ff._receive_worker_result(
+    result = workers._receive_worker_result(
         process,
         receive_connection,
         send_connection,
@@ -581,7 +583,7 @@ def test_worker_start_and_reaping_use_the_lifecycle_lock(monkeypatch):
     monkeypatch.setattr(ob_backend, "_WORKER_LIFECYCLE_LOCK", lock)
     process, receive_connection, send_connection = _pipe_process(_send_small_worker)
 
-    ff._receive_worker_result(
+    workers._receive_worker_result(
         process,
         receive_connection,
         send_connection,
@@ -597,7 +599,7 @@ def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
         _send_then_exit_slowly_worker
     )
 
-    result = ff._receive_worker_result(
+    result = workers._receive_worker_result(
         process,
         receive_connection,
         send_connection,
@@ -626,7 +628,7 @@ def test_ready_sentinel_is_followed_by_bounded_exitcode_refresh(monkeypatch):
     send_connection = _NeverReadyConnection()
     process = _DelayedExitcodeProcess()
 
-    result = ff._receive_worker_result(
+    result = workers._receive_worker_result(
         process,
         receive_connection,
         send_connection,
@@ -659,7 +661,7 @@ def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatc
     process = _StubbornProcess()
 
     with pytest.raises(ff.ComplexBuildWorkerError, match="did not terminate"):
-        ff._receive_worker_result(
+        workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -685,7 +687,7 @@ def test_repeated_complex_worker_requests_do_not_cross_or_leak_processes():
             target=_send_tagged_worker,
             args=(send_connection, tag),
         )
-        result = ff._receive_worker_result(
+        result = workers._receive_worker_result(
             process,
             receive_connection,
             send_connection,
@@ -717,7 +719,7 @@ def test_complex_worker_coordinates_are_validated_before_native_optimization(
     )
 
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
-        ff._validated_worker_coordinates(result, expected_atom_count=2)
+        workers._validated_worker_coordinates(result, expected_atom_count=2)
 
     assert caught.value.error_type == "WorkerProtocolError"
 
@@ -729,7 +731,7 @@ def test_generic_worker_coordinate_validation_uses_generic_failure_type():
     )
 
     with pytest.raises(ff.BuildWorkerError) as caught:
-        ff._validated_worker_coordinates(
+        workers._validated_worker_coordinates(
             result,
             expected_atom_count=2,
             worker_error_type=ff.BuildWorkerError,
@@ -751,7 +753,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
@@ -763,7 +765,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     def piercing_state(*args, **kwargs):
         calls["lazy"] += 1
         ring_sizes["lazy"].append(kwargs["max_ring_size"])
-        return ff.geo.PiercingState.PIERCES
+        return geo.PiercingState.PIERCES
 
     def scan_relations(*args, **kwargs):
         calls["dense"] += 1
@@ -783,11 +785,11 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         bond_indices=(2,),
     )
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
         piercing_state,
     )
-    monkeypatch.setattr(ff.geo, "scan_bond_ring_relations", scan_relations)
+    monkeypatch.setattr(geo, "scan_bond_ring_relations", scan_relations)
     monkeypatch.setattr(repair, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
         ligand,
@@ -803,7 +805,7 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
         ),
     )
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=3,
         candidate_warmup_steps=1,
@@ -831,8 +833,8 @@ def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
 @pytest.mark.parametrize(
     "piercing_state",
     (
-        ff.geo.PiercingState.DOES_NOT_PIERCE,
-        ff.geo.PiercingState.UNDETERMINED,
+        geo.PiercingState.DOES_NOT_PIERCE,
+        geo.PiercingState.UNDETERMINED,
     ),
 )
 def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
@@ -847,7 +849,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(
             1.0,
             "kJ/mol",
             False,
@@ -865,12 +867,12 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
         return SimpleNamespace(passed=True, failures=())
 
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
         determine_state,
     )
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "scan_bond_ring_relations",
         lambda *args, **kwargs: pytest.fail(
             "a non-piercing aggregate triggered the dense scan"
@@ -878,7 +880,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     )
     monkeypatch.setattr(ligand, "evaluate_structure_acceptance", accept)
 
-    coordinates, diagnostics = ff._build_ligand_proxies(
+    coordinates, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=1,
         candidate_warmup_steps=1,
@@ -916,7 +918,7 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(
             1.0,
             "kJ/mol",
             False,
@@ -925,9 +927,9 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
         ligand,
@@ -938,7 +940,7 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
         ),
     )
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=10,
         candidate_warmup_steps=1,
@@ -966,7 +968,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
     monkeypatch.setattr(ligand, "_ob_build", build)
     def optimize(current, forcefield, steps):
         optimization_steps.append(steps)
-        return ff._CandidateOptimizationResult(
+        return ob_backend._CandidateOptimizationResult(
             float(current.coordinates[0, 0]),
             "kJ/mol",
             False,
@@ -976,9 +978,9 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
         ligand,
@@ -986,7 +988,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
         lambda *args, **kwargs: SimpleNamespace(passed=True, failures=()),
     )
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=2,
         candidate_warmup_steps=1,
@@ -1004,13 +1006,13 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
 def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
     molecule = read_mol("[Zn](N)", "smi")
     fork_context = mp.get_context("fork")
-    monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
+    monkeypatch.setattr(workflows.mp, "get_context", lambda method: fork_context)
 
     with pytest.warns(
         ff.ComplexBuildWarning,
         match="no ligand candidate passed",
     ):
-        prepared = ff._prepare_complex_working_mol(
+        prepared = workflows._prepare_complex_working_mol(
             molecule,
             effective_forcefield="UFF",
             max_attempts=2,
@@ -1033,10 +1035,10 @@ def test_failed_ligand_build_persists_recorded_attempts(monkeypatch, tmp_path):
     molecule = read_mol("[Zn](N)", "smi")
     trajectory_path = tmp_path / "failed-complex-build"
     fork_context = mp.get_context("fork")
-    monkeypatch.setattr(ff.mp, "get_context", lambda method: fork_context)
+    monkeypatch.setattr(workflows.mp, "get_context", lambda method: fork_context)
 
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
-        ff._prepare_complex_working_mol(
+        workflows._prepare_complex_working_mol(
             molecule,
             effective_forcefield="UFF",
             max_attempts=1,
@@ -1077,7 +1079,7 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
     )
 
     with pytest.raises(ff.ComplexBuildError) as caught:
-        ff._build_ligand_proxies(
+        ligand._build_ligand_proxies(
             molecule,
             max_attempts=3,
             candidate_warmup_steps=1,
@@ -1112,7 +1114,7 @@ def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatc
     )
 
     with pytest.raises(ff.ComplexBuildError):
-        ff._build_ligand_proxies(
+        ligand._build_ligand_proxies(
             molecule,
             max_attempts=2,
             candidate_warmup_steps=1,
@@ -1140,7 +1142,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
@@ -1149,9 +1151,9 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
     )
     monkeypatch.setattr(
         ligand,
@@ -1162,7 +1164,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         ),
     )
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=1,
         candidate_warmup_steps=1,
@@ -1200,7 +1202,7 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
@@ -1209,9 +1211,9 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: ff.geo.PiercingState.DOES_NOT_PIERCE,
+        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
     )
 
     def quality(*args, **kwargs):
@@ -1229,7 +1231,7 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
 
     monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=1,
         candidate_warmup_steps=1,
@@ -1276,7 +1278,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
-        lambda *args, **kwargs: ff._CandidateOptimizationResult(1.0, "kJ/mol", False),
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", False),
     )
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(
@@ -1289,18 +1291,18 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         nonlocal relation_calls
         relation_calls += 1
         return (
-            ff.geo.PiercingState.DOES_NOT_PIERCE
+            geo.PiercingState.DOES_NOT_PIERCE
             if relation_calls <= 2
-            else ff.geo.PiercingState.PIERCES
+            else geo.PiercingState.PIERCES
         )
 
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "determine_bond_ring_piercing_state",
         piercing_state,
     )
     monkeypatch.setattr(
-        ff.geo,
+        geo,
         "scan_bond_ring_relations",
         lambda *args, **kwargs: _piercing_report(("ring", "probe")),
     )
@@ -1325,7 +1327,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         quality,
     )
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=1,
         candidate_warmup_steps=1,
@@ -1359,7 +1361,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
     def optimize(current, forcefield, steps):
         marker = float(current.coordinates[0, 0])
         energies = {1.0: 0.0, 2.0: 10.0, 3.0: 5.0}
-        return ff._CandidateOptimizationResult(
+        return ob_backend._CandidateOptimizationResult(
             energies[marker],
             "kJ/mol",
             False,
@@ -1398,7 +1400,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
     )
     monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
 
-    _, diagnostics = ff._build_ligand_proxies(
+    _, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=3,
         candidate_warmup_steps=1,
@@ -1486,7 +1488,7 @@ def test_complexes_build_final_failure_does_not_modify_caller(
         working = source.copy()
         working.coordinates = working.coordinates + 7.0
         working.atoms[1].formal_charge = 1
-        return ff._PreparedComplex(
+        return workflows._PreparedComplex(
             mol=working,
             diagnostics=diagnostics,
             trajectory=ff.ForceFieldTrajectory.from_molecule(working),
@@ -1497,8 +1499,12 @@ def test_complexes_build_final_failure_does_not_modify_caller(
         working.remove_bonds([working.bonds[0]])
         raise failure
 
-    monkeypatch.setattr(ff, "_prepare_complex_working_mol", built_working_copy)
-    monkeypatch.setattr(ff, "_optimize_working_mol", fail_final_stage)
+    monkeypatch.setattr(
+        workflows,
+        "_prepare_complex_working_mol",
+        built_working_copy,
+    )
+    monkeypatch.setattr(workflows, "_optimize_working_mol", fail_final_stage)
 
     with pytest.raises(type(failure)):
         ff.complexes_build(

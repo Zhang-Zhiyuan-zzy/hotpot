@@ -8,6 +8,7 @@ from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
 from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
     OptimizationFrameEvidence,
@@ -955,21 +956,21 @@ def test_local_perturbation_is_reproducible_without_changing_global_rng():
     [(None, "UFF"), ("UFF", "UFF"), ("MMFF94s", "UFF"), ("GAFF", "UFF")],
 )
 def test_complex_forcefield_resolution_is_centralized(requested, expected):
-    assert ff._resolve_complex_forcefield(requested) == expected
+    assert ob_backend._resolve_complex_forcefield(requested) == expected
 
 
 def test_empty_constraint_adapter_does_not_consume_molecule_flags():
     molecule = SimpleNamespace(
         atoms=property(lambda _: (_ for _ in ()).throw(AssertionError)),
     )
-    assert ff._make_constraints(molecule).Size() == 0
+    assert ob_backend._make_constraints(molecule).Size() == 0
 
 
 def test_energy_conversion_is_explicit():
-    assert ff._energy_factor_to_kj("kJ/mol") == 1.0
-    assert ff._energy_factor_to_kj("kcal/mol") == pytest.approx(4.184)
+    assert ob_backend._energy_factor_to_kj("kJ/mol") == 1.0
+    assert ob_backend._energy_factor_to_kj("kcal/mol") == pytest.approx(4.184)
     with pytest.raises(ValueError, match="Unsupported Open Babel energy unit"):
-        ff._energy_factor_to_kj("hartree")
+        ob_backend._energy_factor_to_kj("hartree")
 
 
 @pytest.mark.parametrize(
@@ -987,7 +988,9 @@ def test_forcefield_energy_in_kj_uses_backend_unit_and_gradient_flag(
         GetUnit=lambda: unit,
     )
 
-    assert ff._forcefield_energy_in_kj(backend, calc_grad) == pytest.approx(expected)
+    assert ob_backend._forcefield_energy_in_kj(backend, calc_grad) == pytest.approx(
+        expected
+    )
     assert calls == [calc_grad]
 
 
@@ -1002,7 +1005,7 @@ def test_unknown_forcefield_fails_before_setup(monkeypatch):
         ff.ForceFieldSetupError,
         match="Unknown Open Babel force field",
     ) as caught:
-        ff._get_forcefield("not-a-forcefield")
+        ob_backend._get_forcefield("not-a-forcefield")
 
     assert caught.value.report == ff.ForceFieldSetupReport(
         requested_forcefield="not-a-forcefield",
@@ -1044,7 +1047,7 @@ def test_forcefield_lookup_returns_the_serialized_plugin(monkeypatch):
         lambda _: backend,
     )
 
-    assert ff._get_forcefield("UFF") is backend
+    assert ob_backend._get_forcefield("UFF") is backend
 
 
 @pytest.mark.parametrize(
@@ -1102,7 +1105,7 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
             exploded=False,
         )
 
-    monkeypatch.setattr(ff, "_optimize_working_mol", fake_run)
+    monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
 
     ff.optimize(molecule, forcefield=None, add_hydrogens=False)
 

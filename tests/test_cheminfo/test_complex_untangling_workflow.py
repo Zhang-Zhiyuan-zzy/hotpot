@@ -3,9 +3,12 @@ from types import SimpleNamespace
 
 import numpy as np
 
+from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.forcefields import ff, ff39
+from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import utils as forcefield_utils
+from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     CoordinationFrameEvidence,
     ForceFieldTrajectory,
@@ -134,7 +137,7 @@ def _report(count):
 
 
 def _optimization(energy):
-    return forcefield_utils._CandidateOptimizationResult(
+    return ob_backend._CandidateOptimizationResult(
         energy=float(energy),
         energy_unit="kJ/mol",
         exploded=False,
@@ -1212,14 +1215,14 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     def scan(current_molecule, **kwargs):
         events.append("scan")
         if float(current_molecule.coordinates[0, 0]) == 1.0:
-            return forcefield_utils.geo.PiercingState.PIERCES, _report(1)
-        return forcefield_utils.geo.PiercingState.DOES_NOT_PIERCE, None
+            return geo.PiercingState.PIERCES, _report(1)
+        return geo.PiercingState.DOES_NOT_PIERCE, None
 
-    monkeypatch.setattr(forcefield_utils, "_untangle_ring_piercings", untangle)
-    monkeypatch.setattr(forcefield_utils, "_optimize_working_mol", optimize)
-    monkeypatch.setattr(forcefield_utils, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
+    monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
+    monkeypatch.setattr(workflows, "_scan_confirmed_ring_piercings", scan)
 
-    report = forcefield_utils._optimize_complex_working_mol(
+    report = workflows._optimize_complex_working_mol(
         molecule,
         requested_forcefield=None,
         effective_forcefield="UFF",

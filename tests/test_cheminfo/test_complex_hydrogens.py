@@ -6,6 +6,7 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.forcefields import working_copy
+from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.core import BondKind
 
 
@@ -106,7 +107,10 @@ def test_hydrogenated_working_copy_uses_ligand_covalent_valence(
     molecule = _coordinated(smiles, donor_index)
     original = _topology_state(molecule)
 
-    working = ff._hydrogenated_working_copy(molecule, add_hydrogens=True)
+    working = working_copy._hydrogenated_working_copy(
+        molecule,
+        add_hydrogens=True,
+    )
 
     donor = working.atoms[donor_index]
     assert donor.explicit_hydrogens == expected_donor_hydrogens
@@ -146,12 +150,12 @@ def test_neutral_donor_hydrogenation_is_independent_of_input_path(
     assembled.refresh_atom_id()
     parsed = read_mol(complex_smiles, "smi")
 
-    assembled_working = ff._hydrogenated_working_copy(
+    assembled_working = working_copy._hydrogenated_working_copy(
         assembled,
         add_hydrogens=True,
         seed=5,
     )
-    parsed_working = ff._hydrogenated_working_copy(
+    parsed_working = working_copy._hydrogenated_working_copy(
         parsed,
         add_hydrogens=True,
         seed=5,
@@ -186,7 +190,7 @@ def test_hydrogenated_working_copy_does_not_reprotonate_covalent_metal_bonds(
     molecule = read_mol(smiles, "smi")
     original_heavy_state = _heavy_atom_state(molecule)
 
-    working = ff._hydrogenated_working_copy(
+    working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
         seed=7,
@@ -205,7 +209,7 @@ def test_hydrogenated_working_copy_does_not_reprotonate_covalent_metal_bonds(
 def test_hydrogenated_working_copy_can_explicitly_skip_hydrogens():
     molecule = _coordinated("O", 0)
 
-    working = ff._hydrogenated_working_copy(molecule, add_hydrogens=False)
+    working = working_copy._hydrogenated_working_copy(molecule, add_hydrogens=False)
 
     assert working.hydrogens == []
     assert len(working.c_bonds) == 1
@@ -260,7 +264,7 @@ def test_hydrogenated_working_copy_preserves_ligand_chemical_identity(
     assert len(donor_indices) == 1
     original_heavy_state = _heavy_atom_state(molecule)
 
-    working = ff._hydrogenated_working_copy(
+    working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
         seed=11,
@@ -286,7 +290,7 @@ def test_hydrogenated_working_copy_preserves_explicit_hydroxyl_hydrogen():
     explicit_hydrogen_id = donor.hydrogens[0].id
     original_heavy_state = _heavy_atom_state(molecule)
 
-    working = ff._hydrogenated_working_copy(
+    working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
         seed=13,
@@ -310,7 +314,7 @@ def test_hydrogenated_working_copy_preserves_bidentate_ligand_identity():
     assert len(donor_indices) == 2
     original_heavy_state = _heavy_atom_state(molecule)
 
-    working = ff._hydrogenated_working_copy(
+    working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
         seed=17,
@@ -332,7 +336,7 @@ def test_optimizer_failure_does_not_modify_the_caller(monkeypatch):
         working.coordinates = working.coordinates + 5.0
         raise ff.ForceFieldSetupError("deliberate failure")
 
-    monkeypatch.setattr(ff, "_optimize_working_mol", fail_after_mutating_working)
+    monkeypatch.setattr(workflows, "_optimize_working_mol", fail_after_mutating_working)
 
     with pytest.raises(ff.ForceFieldSetupError, match="deliberate failure"):
         ff.optimize(molecule, add_hydrogens=True)
@@ -358,7 +362,7 @@ def test_optimizer_failure_preserves_explicit_hydrogens_and_bidentate_topology(
         raise ff.ForceFieldSetupError("deliberate proxy failure")
 
     monkeypatch.setattr(
-        ff,
+        workflows,
         "_optimize_working_mol",
         fail_after_replacing_working_topology,
     )
@@ -401,7 +405,7 @@ def test_successful_optimizer_commits_added_hydrogens_once(monkeypatch):
     def accept_working(working, **options):
         return sentinel
 
-    monkeypatch.setattr(ff, "_optimize_working_mol", accept_working)
+    monkeypatch.setattr(workflows, "_optimize_working_mol", accept_working)
 
     result = ff.optimize(molecule)
 
@@ -429,7 +433,7 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
         working.conformer_add(working.coordinates, -2.0)
         return sentinel
 
-    monkeypatch.setattr(ff, "_optimize_working_mol", accept_working)
+    monkeypatch.setattr(workflows, "_optimize_working_mol", accept_working)
 
     result = ff.optimize(molecule)
 
@@ -482,7 +486,7 @@ def test_commit_rejects_changed_original_bond_topology_before_mutation():
     original_bond = molecule.bonds[0]
 
     with pytest.raises(ValueError, match="changed the original bond topology"):
-        ff._commit_working_copy(molecule, working)
+        working_copy._commit_working_copy(molecule, working)
 
     assert molecule.bonds[0] is original_bond
     assert all(
@@ -499,7 +503,7 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     _ = molecule.cycle_basis_rings
     _ = molecule.ligand_rings
     _ = molecule.ligand_cycle_basis_rings
-    working = ff._hydrogenated_working_copy(
+    working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
         seed=13,

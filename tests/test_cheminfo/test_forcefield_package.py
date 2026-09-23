@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib
 import inspect
 import pickle
@@ -106,50 +107,13 @@ PUBLIC_EXCEPTIONS = (
     "GeometryQualityWarning",
 )
 
-BACKEND_COMPATIBILITY_EXPORTS = (
-    "_CandidateOptimizationResult",
-    "_energy_factor_to_kj",
-    "_find_forcefield_prototype",
-    "_forcefield_energy_in_kj",
-    "_get_forcefield",
-    "_make_constraints",
-    "_ob_build",
-    "_resolve_complex_forcefield",
-    "_resolve_organic_forcefield",
-    "_seed_openbabel_random",
-    "_serialized_forcefield_call",
-    "_setup_forcefield_backend",
-)
-
-WORKING_COPY_COMPATIBILITY_EXPORTS = (
-    "_commit_working_copy",
-    "_hydrogenated_working_copy",
-    "_make_worker_mol",
-)
-
-REPAIR_COMPATIBILITY_EXPORTS = (
-    "_piercing_count",
-    "_restore_coordination_bonds_incrementally",
-    "_scan_confirmed_ring_piercings",
-    "_unique_messages",
-    "_untangle_ring_piercings",
-)
-
-OPTIMIZER_COMPATIBILITY_EXPORTS = (
-    "_combine_forcefield_run_reports",
-    "_optimize_working_mol",
-)
-
-LIGAND_COMPATIBILITY_EXPORTS = ("_build_ligand_proxies",)
-
-WORKER_COMPATIBILITY_EXPORTS = (
-    "_ComplexBuildWorker",
-    "_SeededBuildWorker",
-    "_build_ligand_proxies_worker",
-    "_receive_worker_result",
-    "_seeded_ob_build_coordinates",
-    "_seeded_ob_build_worker",
-    "_validated_worker_coordinates",
+PRIVATE_ADAPTER_SEAMS = (
+    "_build3d_workflow",
+    "_build_and_optimize_workflow",
+    "_build_complex3d_workflow",
+    "_complexes_build_workflow",
+    "_run_ligand_proxy_worker",
+    "_run_seeded_ob_build_worker",
 )
 
 
@@ -286,59 +250,69 @@ def test_acceptance_api_is_reexported_without_wrapping():
         assert pickle.loads(pickle.dumps(exported)) is exported
 
 
-def test_backend_compatibility_names_are_reexported_without_wrapping():
-    backend = importlib.import_module(f"{PACKAGE_NAME}.backend")
+def test_workflow_api_is_reexported_without_wrapping():
+    workflows = importlib.import_module(f"{PACKAGE_NAME}.workflows")
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    modern = importlib.import_module(MODERN_FACADE_NAME)
 
-    for name in BACKEND_COMPATIBILITY_EXPORTS:
-        assert getattr(shared, name) is getattr(backend, name)
-
-    assert shared._WORKER_LIFECYCLE_LOCK is backend._WORKER_LIFECYCLE_LOCK
-    assert shared._OPENBABEL_FORCEFIELD_LOCK is backend._OPENBABEL_FORCEFIELD_LOCK
-
-    for name in ("_CandidateOptimizationResult", "_get_forcefield", "_ob_build"):
-        exported = getattr(backend, name)
+    for name in workflows.__all__:
+        exported = getattr(workflows, name)
+        assert getattr(shared, name) is exported
+        assert getattr(modern, name) is exported
         assert pickle.loads(pickle.dumps(exported)) is exported
 
 
-def test_working_copy_helpers_are_reexported_without_wrapping():
-    working_copy = importlib.import_module(f"{PACKAGE_NAME}.working_copy")
-    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+def test_implementation_modules_do_not_import_the_composition_module():
+    module_names = (
+        "acceptance",
+        "backend",
+        "coordination",
+        "coordinates",
+        "ligand",
+        "optimizer",
+        "repair",
+        "topology",
+        "trajectory",
+        "workers",
+        "working_copy",
+        "workflows",
+    )
 
-    for name in WORKING_COPY_COMPATIBILITY_EXPORTS:
-        assert getattr(shared, name) is getattr(working_copy, name)
+    for module_name in module_names:
+        module = importlib.import_module(f"{PACKAGE_NAME}.{module_name}")
+        tree = ast.parse(inspect.getsource(module))
+        imported_modules = {
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        }
+        assert "utils" not in imported_modules
+        assert f"{PACKAGE_NAME}.utils" not in imported_modules
+        assert not any(
+            isinstance(node, ast.ImportFrom)
+            and node.level
+            and any(alias.name == "utils" for alias in node.names)
+            for node in ast.walk(tree)
+        )
 
 
-def test_repair_helpers_are_reexported_without_wrapping():
-    repair = importlib.import_module(f"{PACKAGE_NAME}.repair")
-    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
-
-    for name in REPAIR_COMPATIBILITY_EXPORTS:
-        assert getattr(shared, name) is getattr(repair, name)
-
-
-def test_optimizer_workflow_seams_are_reexported_without_wrapping():
-    optimizer = importlib.import_module(f"{PACKAGE_NAME}.optimizer")
-    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
-
-    for name in OPTIMIZER_COMPATIBILITY_EXPORTS:
-        assert getattr(shared, name) is getattr(optimizer, name)
-
-
-def test_ligand_workflow_seams_are_reexported_without_wrapping():
-    ligand = importlib.import_module(f"{PACKAGE_NAME}.ligand")
-    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
-
-    for name in LIGAND_COMPATIBILITY_EXPORTS:
-        assert getattr(shared, name) is getattr(ligand, name)
-
-
-def test_worker_workflow_seams_are_reexported_without_wrapping():
+def test_utils_only_reexports_version_adapter_seams():
+    workflows = importlib.import_module(f"{PACKAGE_NAME}.workflows")
     workers = importlib.import_module(f"{PACKAGE_NAME}.workers")
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
 
-    for name in WORKER_COMPATIBILITY_EXPORTS:
-        assert getattr(shared, name) is getattr(workers, name)
+    expected = {
+        name: getattr(workflows, name)
+        for name in PRIVATE_ADAPTER_SEAMS[:4]
+    }
+    expected.update(
+        {name: getattr(workers, name) for name in PRIVATE_ADAPTER_SEAMS[4:]}
+    )
+    assert {
+        name: value
+        for name, value in vars(shared).items()
+        if name.startswith("_") and not name.startswith("__")
+    } == expected
 
 
 def test_facades_only_wrap_worker_adapted_workflows():
@@ -547,8 +521,6 @@ assert not hasattr(utils, 'ctypes')
     (
         (f"{PACKAGE_NAME}.workers", "_build_ligand_proxies_worker"),
         (f"{PACKAGE_NAME}.workers", "_seeded_ob_build_worker"),
-        (f"{PACKAGE_NAME}.utils", "_build_ligand_proxies_worker"),
-        (f"{PACKAGE_NAME}.utils", "_seeded_ob_build_worker"),
         (f"{PACKAGE_NAME}.utils39", "_build_ligand_proxies_worker"),
         (f"{PACKAGE_NAME}.utils39", "_seeded_ob_build_worker"),
     ),

@@ -231,6 +231,11 @@ def _mock_coordination_scans(monkeypatch, candidate_counts):
     )
     monkeypatch.setattr(
         repair,
+        "_screen_coordination_bond_relations",
+        lambda *args, **kwargs: object(),
+    )
+    monkeypatch.setattr(
+        repair,
         "_candidate_coordination_relation_counts",
         candidate_counts,
     )
@@ -689,7 +694,7 @@ def test_coordination_bonds_are_restored_one_by_one_after_safe_checks(monkeypatc
     molecule = _CoordinationMolecule((first, second))
     second_checks = 0
 
-    def relation_counts(before, after, bond):
+    def relation_counts(report, bond):
         nonlocal second_checks
         if bond is first:
             return _coordination_counts()
@@ -734,7 +739,7 @@ def test_coordination_trajectory_records_trial_outcome_and_rollback_topology(
     molecule, (first, second) = _coordination_molecule()
     second_checks = 0
 
-    def relation_counts(before, after, bond):
+    def relation_counts(report, bond):
         nonlocal second_checks
         if bond is first:
             return _coordination_counts()
@@ -960,7 +965,7 @@ def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
     molecule = _CoordinationMolecule((first, second))
     attempt = 0
 
-    def relation_counts(before, after, bond):
+    def relation_counts(report, bond):
         if bond is first:
             return _coordination_counts()
         return _coordination_counts(piercing=1)
@@ -1097,36 +1102,38 @@ def test_coordination_bond_check_ignores_self_closure():
         ),
         relation=SimpleNamespace(state=repair.geo.PiercingState.PIERCES),
     )
-    before = SimpleNamespace(findings=(), excluded_ring_count=0)
-    after = SimpleNamespace(findings=(finding,), excluded_ring_count=0)
+    report = SimpleNamespace(
+        actionable_findings=(finding,),
+        excluded_ring_count=0,
+    )
 
     assert repair._candidate_coordination_relation_counts(
-        before,
-        after,
+        report,
         candidate,
     ) == _coordination_counts()
 
 
-def test_coordination_bond_check_counts_other_bond_through_new_chelate_ring():
+def test_coordination_bond_check_counts_candidate_through_ligand_ring():
     candidate = _Bond(0, 4, coordination=True)
     finding = SimpleNamespace(
         target=SimpleNamespace(
-            bond=SimpleNamespace(key=(1, 3)),
-            ring=SimpleNamespace(key=(0, 1, 2, 3, 4)),
+            bond=SimpleNamespace(key=(0, 4)),
+            ring=SimpleNamespace(key=(1, 2, 3)),
         ),
         relation=SimpleNamespace(state=repair.geo.PiercingState.PIERCES),
     )
-    before = SimpleNamespace(findings=(), excluded_ring_count=0)
-    after = SimpleNamespace(findings=(finding,), excluded_ring_count=0)
+    report = SimpleNamespace(
+        actionable_findings=(finding,),
+        excluded_ring_count=0,
+    )
 
     assert repair._candidate_coordination_relation_counts(
-        before,
-        after,
+        report,
         candidate,
     ) == _coordination_counts(piercing=1)
 
 
-def test_coordination_bond_check_does_not_claim_preexisting_piercing():
+def test_coordination_bond_check_ignores_non_candidate_bonds():
     candidate = _Bond(0, 4, coordination=True)
     finding = SimpleNamespace(
         target=SimpleNamespace(
@@ -1135,24 +1142,23 @@ def test_coordination_bond_check_does_not_claim_preexisting_piercing():
         ),
         relation=SimpleNamespace(state=repair.geo.PiercingState.PIERCES),
     )
-    before = SimpleNamespace(findings=(finding,), excluded_ring_count=0)
-    after = SimpleNamespace(findings=(finding,), excluded_ring_count=0)
+    report = SimpleNamespace(
+        actionable_findings=(finding,),
+        excluded_ring_count=0,
+    )
 
     assert repair._candidate_coordination_relation_counts(
-        before,
-        after,
+        report,
         candidate,
     ) == _coordination_counts()
 
 
 def test_coordination_bond_check_reports_excluded_large_rings():
     candidate = _Bond(0, 4, coordination=True)
-    before = SimpleNamespace(findings=(), excluded_ring_count=2)
-    after = SimpleNamespace(findings=(), excluded_ring_count=3)
+    report = SimpleNamespace(actionable_findings=(), excluded_ring_count=3)
 
     assert repair._candidate_coordination_relation_counts(
-        before,
-        after,
+        report,
         candidate,
     ) == _coordination_counts(excluded_rings=3)
 
@@ -1164,17 +1170,18 @@ def test_failed_post_addition_check_rehides_candidate_bond(monkeypatch):
 
     scan_states = []
 
-    def scan(current_molecule):
+    def scan(current_molecule, bond):
+        assert bond is candidate
         scan_states.append(candidate in current_molecule.bonds)
         return object()
 
-    def relation_counts(before, after, bond):
+    def relation_counts(report, bond):
         assert bond is candidate
         return _coordination_counts(piercing=1)
 
     monkeypatch.setattr(
         repair,
-        "_scan_full_graph_bond_ring_relations",
+        "_screen_coordination_bond_relations",
         scan,
     )
     monkeypatch.setattr(
@@ -1192,7 +1199,7 @@ def test_failed_post_addition_check_rehides_candidate_bond(monkeypatch):
 
     assert restored is None
     assert warnings == ()
-    assert scan_states == [False, True]
+    assert scan_states == [True]
     assert candidate not in molecule.bonds
 
 

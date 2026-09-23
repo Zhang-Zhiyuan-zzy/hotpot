@@ -627,57 +627,53 @@ def _is_coordination_cycle_closure(
 
 def _scan_full_graph_bond_ring_relations(
     mol: "Molecule",
-) -> "geo.BondRingScanReport[Ring, Bond]":
-    return geo.scan_bond_ring_relations(
+) -> "geo.BondRingScreeningReport[Ring, Bond]":
+    return geo.screen_bond_ring_relations(
         mol,
         ring_scope="full_graph",
         max_ring_size=_BOND_RING_MAX_SIZE,
     )
 
 
-def _bond_ring_finding_key(
-    finding: "geo.BondRingFinding[Ring, Bond]",
-) -> Tuple[Tuple[int, ...], Tuple[int, int]]:
-    return finding.target.ring.key, finding.target.bond.key
+def _screen_coordination_bond_relations(
+    mol: "Molecule",
+    coordination_bond: "Bond",
+) -> "geo.BondRingScreeningReport[Ring, Bond]":
+    """Screen one proposed coordination bond against ligand-only rings."""
+    return geo.screen_bonds_against_rings(
+        mol,
+        (coordination_bond,),
+        ring_scope="ligand_skeleton",
+        max_ring_size=_BOND_RING_MAX_SIZE,
+    )
 
 
 def _candidate_coordination_relation_counts(
-    before: "geo.BondRingScanReport[Ring, Bond]",
-    after: "geo.BondRingScanReport[Ring, Bond]",
+    report: "geo.BondRingScreeningReport[Ring, Bond]",
     coordination_bond: "Bond",
 ) -> _CoordinationRelationCounts:
-    """Count new relations caused by an active candidate coordination bond."""
-    before_states = {
-        _bond_ring_finding_key(finding): finding.relation.state
-        for finding in before.findings
-    }
+    """Count actionable relations for one proposed coordination bond."""
     candidate_key = _bond_key(coordination_bond)
-    candidate_endpoints = set(candidate_key)
     piercing_count = 0
     undetermined_count = 0
-    for finding in after.findings:
-        involves_candidate = finding.target.bond.key == candidate_key
-        candidate_closed_ring = candidate_endpoints.issubset(
-            finding.target.ring.key
-        )
-        if not involves_candidate and not candidate_closed_ring:
+    for finding in report.actionable_findings:
+        if finding.target.bond.key != candidate_key:
             continue
         if _is_coordination_cycle_closure(finding, coordination_bond):
             continue
-        previous_state = before_states.get(_bond_ring_finding_key(finding))
         if finding.relation.state is geo.PiercingState.PIERCES:
-            piercing_count += previous_state is not geo.PiercingState.PIERCES
+            piercing_count += 1
         elif finding.relation.state is geo.PiercingState.UNDETERMINED:
-            undetermined_count += previous_state is not geo.PiercingState.UNDETERMINED
+            undetermined_count += 1
     return _CoordinationRelationCounts(
         piercing=piercing_count,
         undetermined=undetermined_count,
-        excluded_rings=after.excluded_ring_count,
+        excluded_rings=report.excluded_ring_count,
     )
 
 
 def _coordination_topology_relation_counts(
-    report: "geo.BondRingScanReport[Ring, Bond]",
+    report: "geo.BondRingScreeningReport[Ring, Bond]",
     coordination_bonds: Sequence["Bond"],
 ) -> _CoordinationRelationCounts:
     """Count unique relations associated with the restored coordination graph."""
@@ -689,7 +685,7 @@ def _coordination_topology_relation_counts(
     )
     piercing_count = 0
     undetermined_count = 0
-    for finding in report.findings:
+    for finding in report.actionable_findings:
         target_key = finding.target.bond.key
         associated_ring = any(
             endpoints.issubset(finding.target.ring.key)
@@ -762,7 +758,6 @@ def _restore_next_nonpiercing_coordination_bond(
         )
 
     warning_messages = []
-    before = _scan_full_graph_bond_ring_relations(mol)
     for bond in tuple(pending_bonds):
         mol.restore_bonds(bond, clear_conformers=False)
         record_candidate(
@@ -774,8 +769,7 @@ def _restore_next_nonpiercing_coordination_bond(
         keep_restored = False
         try:
             relation_counts = _candidate_coordination_relation_counts(
-                before,
-                _scan_full_graph_bond_ring_relations(mol),
+                _screen_coordination_bond_relations(mol, bond),
                 bond,
             )
             keep_restored = relation_counts.piercing == 0

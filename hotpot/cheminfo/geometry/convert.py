@@ -29,6 +29,7 @@ from .relation import (
     SegmentCycleRelation,
     determine_segment_cycle_relation,
     iter_segment_cycle_relations,
+    iter_segment_cycle_screenings,
     point_pair_distances,
 )
 from .settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
@@ -46,6 +47,7 @@ __all__ = (
     "BondRingFinding",
     "RingEdgeDistance",
     "BondRingScanReport",
+    "BondRingScreeningReport",
     "point_from_atom",
     "segment_from_bond",
     "cycle_from_ring",
@@ -57,6 +59,7 @@ __all__ = (
     "determine_bond_ring_relation",
     "iter_bond_ring_findings",
     "scan_bond_ring_relations",
+    "screen_bond_ring_relations",
     "determine_bond_ring_piercing_state",
 )
 
@@ -233,6 +236,45 @@ class BondRingScanReport(Generic[RingSourceT, BondSourceT]):
         )
 
 
+@dataclass(frozen=True)
+class BondRingScreeningReport(Generic[RingSourceT, BondSourceT]):
+    """Sparse all-pair screening report for bond--ring piercing states."""
+
+    actionable_findings: Tuple[BondRingFinding[RingSourceT, BondSourceT], ...]
+    ring_scope: RingScope
+    max_ring_size: int
+    selected_ring_count: int
+    excluded_ring_count: int
+    candidate_pair_count: int
+    aabb_separated_pair_count: int
+    exact_pair_count: int
+    piercing_pair_count: int
+    does_not_pierce_pair_count: int
+    undetermined_pair_count: int
+    scan_complete: bool
+
+    @property
+    def piercings(
+            self,
+    ) -> Tuple[BondRingFinding[RingSourceT, BondSourceT], ...]:
+        """Return confirmed piercing findings retained by the screen."""
+        return tuple(
+            finding
+            for finding in self.actionable_findings
+            if finding.relation.state is PiercingState.PIERCES
+        )
+
+    @property
+    def undetermined(
+            self,
+    ) -> Tuple[BondRingFinding[RingSourceT, BondSourceT], ...]:
+        """Return mathematically unresolved findings retained by the screen."""
+        return tuple(
+            finding
+            for finding in self.actionable_findings
+            if finding.relation.state is PiercingState.UNDETERMINED
+        )
+
 # Stable source keys and chemical graph selection.
 
 
@@ -337,6 +379,43 @@ def _iter_bond_ring_findings_from_rings(
         )
         for target, relation in zip(finding_targets, relations):
             yield BondRingFinding(target=target, relation=relation)
+
+
+def _iter_bond_ring_screenings_from_rings(
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
+        rings: Sequence[RingSourceT],
+        settings: GeometrySettings,
+) -> Iterator[
+    Tuple[
+        BondRingTarget[RingSourceT, BondSourceT],
+        PiercingState,
+        Optional[SegmentCycleRelation],
+        bool,
+        bool,
+    ]
+]:
+    bonds = tuple(sorted(mol.bonds, key=_bond_key))
+    for ring in rings:
+        ring_geometry = RingGeometry(
+            ring=ring,
+            cycle=cycle_from_ring(ring),
+            key=_ring_key(ring),
+        )
+        targets = _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
+        finding_targets, screening_targets = tee(targets)
+        screenings = iter_segment_cycle_screenings(
+            (target.bond.segment for target in screening_targets),
+            ring_geometry.cycle,
+            settings,
+        )
+        for target, screening in zip(finding_targets, screenings):
+            yield (
+                target,
+                screening.state,
+                screening.relation,
+                screening.aabb_separated,
+                screening.surface_complete,
+            )
 
 
 # Public conversion and aggregation interfaces.  These functions never mutate
@@ -522,6 +601,60 @@ def scan_bond_ring_relations(
     )
 
 
+def screen_bond_ring_relations(
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
+        *,
+        ring_scope: RingScope,
+        max_ring_size: int,
+        settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningReport[RingSourceT, BondSourceT]:
+    """Screen every selected bond--ring pair while retaining actionable facts."""
+    selected_rings, excluded_ring_count = _selected_rings(
+        mol,
+        ring_scope,
+        max_ring_size,
+    )
+    actionable_findings = []
+    candidate_pair_count = 0
+    aabb_separated_pair_count = 0
+    piercing_pair_count = 0
+    does_not_pierce_pair_count = 0
+    undetermined_pair_count = 0
+    scan_complete = True
+    for target, state, relation, aabb_separated, surface_complete in (
+        _iter_bond_ring_screenings_from_rings(mol, selected_rings, settings)
+    ):
+        candidate_pair_count += 1
+        aabb_separated_pair_count += aabb_separated
+        scan_complete = scan_complete and surface_complete
+        if state is PiercingState.PIERCES:
+            piercing_pair_count += 1
+        elif state is PiercingState.UNDETERMINED:
+            undetermined_pair_count += 1
+        else:
+            does_not_pierce_pair_count += 1
+        if state is not PiercingState.DOES_NOT_PIERCE:
+            if relation is None:
+                raise RuntimeError("An actionable screening state requires a relation")
+            actionable_findings.append(
+                BondRingFinding(target=target, relation=relation)
+            )
+    return BondRingScreeningReport(
+        actionable_findings=tuple(actionable_findings),
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+        selected_ring_count=len(selected_rings),
+        excluded_ring_count=excluded_ring_count,
+        candidate_pair_count=candidate_pair_count,
+        aabb_separated_pair_count=aabb_separated_pair_count,
+        exact_pair_count=candidate_pair_count - aabb_separated_pair_count,
+        piercing_pair_count=piercing_pair_count,
+        does_not_pierce_pair_count=does_not_pierce_pair_count,
+        undetermined_pair_count=undetermined_pair_count,
+        scan_complete=scan_complete,
+    )
+
+
 def determine_bond_ring_piercing_state(
         mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
@@ -531,14 +664,14 @@ def determine_bond_ring_piercing_state(
 ) -> PiercingState:
     """Return a lazy aggregate, stopping at the first confirmed piercing."""
     aggregate = PiercingState.DOES_NOT_PIERCE
-    for finding in iter_bond_ring_findings(
-            mol,
-            ring_scope=ring_scope,
-            max_ring_size=max_ring_size,
-            settings=settings,
+    selected_rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
+    for _, state, _, _, _ in _iter_bond_ring_screenings_from_rings(
+        mol,
+        selected_rings,
+        settings,
     ):
-        if finding.relation.state is PiercingState.PIERCES:
+        if state is PiercingState.PIERCES:
             return PiercingState.PIERCES
-        if finding.relation.state is PiercingState.UNDETERMINED:
+        if state is PiercingState.UNDETERMINED:
             aggregate = PiercingState.UNDETERMINED
     return aggregate

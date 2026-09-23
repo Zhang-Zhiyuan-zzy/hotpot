@@ -124,7 +124,7 @@ for finding in report.piercings:
 | `Triangle` | 三个有序顶点构成的三角形；允许退化 |
 | `Cycle` | 至少三个有序顶点构成的闭合一维边界 |
 
-### 2.3 关系词汇和结果记录（15 项）
+### 2.3 关系词汇和结果记录（16 项）
 
 | 名称 | 种类 | 含义 |
 |---|---|---|
@@ -143,8 +143,9 @@ for finding in report.piercings:
 | `ClosestCycleEdge` | frozen dataclass | 最近环边及距离 |
 | `SurfaceFamilyEvidence` | frozen dataclass | 非平面候选曲面枚举和求交计数 |
 | `SegmentCycleRelation` | frozen dataclass | 线段—环状态、证据、交点和数值配置 |
+| `SegmentCycleScreening` | frozen dataclass | 状态优先的线段—环筛查结果，可选携带完整关系证据 |
 
-### 2.4 关系函数（11 项）
+### 2.4 关系函数（12 项）
 
 | 名称 | 作用 |
 |---|---|
@@ -157,10 +158,11 @@ for finding in report.piercings:
 | `find_point_pairs_below_distance` | 按调用方阈值筛选点对 |
 | `locate_point_in_planar_cycle` | 分类点在平面环投影中的位置 |
 | `iter_segment_cycle_relations` | 对同一环批量、惰性判定多条线段 |
+| `iter_segment_cycle_screenings` | 使用严格 AABB broad phase 筛查多条线段 |
 | `determine_segment_cycle_relation` | 判定一条有限线段是否穿过一个环 |
 | `closest_cycle_edge` | 查找距目标线段最近的环边 |
 
-### 2.5 转换词汇和结果记录（11 项）
+### 2.5 转换词汇和结果记录（12 项）
 
 | 名称 | 种类 | 含义 |
 |---|---|---|
@@ -175,8 +177,9 @@ for finding in report.piercings:
 | `BondRingFinding` | frozen generic dataclass | Ring × Bond 来源与线段—环关系 |
 | `RingEdgeDistance` | frozen generic dataclass | 来源环键与最近边距离记录 |
 | `BondRingScanReport` | frozen generic dataclass | 指定环范围内的稠密扫描报告 |
+| `BondRingScreeningReport` | frozen generic dataclass | 含覆盖范围和 AABB 计数的稀疏全范围筛查报告 |
 
-### 2.6 转换函数（12 项）
+### 2.6 转换函数（13 项）
 
 | 名称 | 作用 |
 |---|---|
@@ -191,6 +194,7 @@ for finding in report.piercings:
 | `determine_bond_ring_relation` | 判定一个化学 Ring × Bond 对 |
 | `iter_bond_ring_findings` | 惰性扫描指定范围内的 Ring × Bond 对 |
 | `scan_bond_ring_relations` | 返回指定范围内的完整稠密扫描报告 |
+| `screen_bond_ring_relations` | 覆盖完整范围但只保留需处理 finding 的筛查报告 |
 | `determine_bond_ring_piercing_state` | 早退式聚合整个分子的穿环三态 |
 
 ## 3. 数学符号和数值约定
@@ -659,6 +663,21 @@ SegmentCycleRelation(
 | `surface_evidence` | 候选曲面和求交预算证据；始终存在 |
 | `settings` | 本次判定实际使用的配置对象 |
 
+### 6.16 `SegmentCycleScreening`
+
+```python
+SegmentCycleScreening(
+    state: PiercingState,
+    relation: SegmentCycleRelation | None,
+    aabb_separated: bool,
+    surface_complete: bool,
+)
+```
+
+用于 broad phase 的状态优先结果。只有在环曲面模型已经验证、且带保护宽容的有限线段
+AABB 与环 AABB 严格分离时，`relation` 才为空。此时可以严格证明
+`DOES_NOT_PIERCE`；边界和宽容带情况均回到完整内核。
+
 ## 7. 关系函数
 
 ### 7.1 `measure_planarity`
@@ -1069,6 +1088,18 @@ $i^*=\min\{i\mid d_i\le d_{\min}+\epsilon_L\}$
 (0, 1.414214)
 ```
 
+### 7.13 `iter_segment_cycle_screenings`
+
+```python
+def iter_segment_cycle_screenings(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Iterator[SegmentCycleScreening]
+```
+
+只准备一次环结构，并按输入顺序筛查线段。AABB 不会掩盖无效或枚举不完整的环曲面模型。
+
 ## 8. 化学对象转换 API
 
 ### 8.1 结构协议与泛型来源
@@ -1384,3 +1415,40 @@ def determine_bond_ring_piercing_state(
 
 返回值只覆盖声明的 `ring_scope` 和 `max_ring_size`；该标量接口不携带
 环族和尺寸边界元数据。需要审计覆盖范围时使用 `scan_bond_ring_relations()`。
+
+### 8.25 `BondRingScreeningReport`
+
+```python
+BondRingScreeningReport[RingT, BondT](
+    actionable_findings: tuple[BondRingFinding[RingT, BondT], ...],
+    ring_scope: RingScope,
+    max_ring_size: int,
+    selected_ring_count: int,
+    excluded_ring_count: int,
+    candidate_pair_count: int,
+    aabb_separated_pair_count: int,
+    exact_pair_count: int,
+    piercing_pair_count: int,
+    does_not_pierce_pair_count: int,
+    undetermined_pair_count: int,
+    scan_complete: bool,
+)
+```
+
+报告覆盖全部已选 pair，但只为 `PIERCES` 和 `UNDETERMINED` 保留完整 finding。三态计数之和
+以及 AABB/精确路径计数之和都必须等于 `candidate_pair_count`。
+
+### 8.26 `screen_bond_ring_relations`
+
+```python
+def screen_bond_ring_relations(
+    mol: _MoleculeLike[AtomT, BondT, RingT],
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+对请求的完整 Ring × Bond 范围执行带保护宽容的 AABB broad phase；不能严格证明分离时回退
+完整关系内核。需要每个不穿环 pair 的完整证据时，应使用 `scan_bond_ring_relations()`。

@@ -12,6 +12,7 @@ from hotpot.cheminfo.geometry.relation import (
     closest_cycle_edge,
     determine_segment_cycle_relation,
     iter_segment_cycle_relations,
+    iter_segment_cycle_screenings,
 )
 from hotpot.cheminfo.geometry.settings import (
     DEFAULT_GEOMETRY_SETTINGS,
@@ -88,6 +89,30 @@ def test_planar_contacts_are_not_reported_outside_the_cycle(square):
     assert endpoint.features == frozenset()
     assert coplanar.state is PiercingState.DOES_NOT_PIERCE
     assert coplanar.features == frozenset()
+
+
+def test_aabb_screening_proves_far_planar_segment_does_not_pierce(square):
+    segment = Segment((10, 10, 0), (11, 10, 0))
+
+    screening = next(iter_segment_cycle_screenings((segment,), square))
+    relation = determine_segment_cycle_relation(segment, square)
+
+    assert screening.state is PiercingState.DOES_NOT_PIERCE
+    assert screening.aabb_separated
+    assert screening.surface_complete
+    assert screening.relation is None
+    assert relation.state is PiercingState.DOES_NOT_PIERCE
+
+
+def test_dense_relation_keeps_line_extension_fact_skipped_by_aabb_screening(square):
+    segment = Segment((1, 1, 10), (1, 1, 11))
+
+    screening = next(iter_segment_cycle_screenings((segment,), square))
+    relation = determine_segment_cycle_relation(segment, square)
+
+    assert screening.aabb_separated
+    assert screening.relation is None
+    assert SegmentCycleFeature.LINE_EXTENSION_INTERIOR in relation.features
 
 
 def test_coplanar_segment_crossing_cycle_has_contact(square):
@@ -204,6 +229,32 @@ def test_nonplanar_triangle_coplanarity_requires_finite_overlap():
     assert SegmentCycleFeature.COPLANAR_CONTACT not in relation.features
 
 
+def test_aabb_screening_proves_far_nonplanar_segment_does_not_pierce():
+    cycle = Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0.4), (0, 2, 0)])
+    segment = Segment((10, 10, 4), (11, 10, 4))
+
+    screening = next(iter_segment_cycle_screenings((segment,), cycle))
+
+    assert screening.state is PiercingState.DOES_NOT_PIERCE
+    assert screening.aabb_separated
+    assert screening.surface_complete
+    assert screening.relation is None
+
+
+def test_aabb_screening_does_not_hide_invalid_planar_cycle():
+    cycle = Cycle([(0, 0, 0), (2, 2, 0), (0, 2, 0), (2, 0, 0)])
+    segment = Segment((10, 10, 4), (11, 10, 4))
+
+    screening = next(iter_segment_cycle_screenings((segment,), cycle))
+
+    assert screening.state is PiercingState.UNDETERMINED
+    assert not screening.aabb_separated
+    assert screening.relation is not None
+    assert SegmentCycleIndeterminacy.SELF_INTERSECTION in (
+        screening.relation.indeterminacy_causes
+    )
+
+
 def test_surface_budget_exhaustion_never_forms_a_partial_consensus():
     cycle = Cycle(
         [
@@ -230,6 +281,37 @@ def test_surface_budget_exhaustion_never_forms_a_partial_consensus():
     assert not relation.surface_evidence.enumeration_complete
     assert relation.surface_evidence.enumerated_surface_count <= 1
     assert SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY in relation.indeterminacy_causes
+
+
+def test_aabb_screening_does_not_hide_incomplete_surface_family():
+    cycle = Cycle(
+        [
+            (0, 0, 0),
+            (2, 0, 0),
+            (3, 1, 0.1),
+            (2, 2, 0),
+            (0, 2, -0.1),
+        ]
+    )
+    settings = GeometrySettings(
+        surface=SurfaceEnumerationSettings(
+            maximum_cycle_vertices=8,
+            maximum_surface_count=1,
+            maximum_segment_triangle_tests=792,
+            maximum_triangle_pair_tests=1980,
+        )
+    )
+
+    screening = next(iter_segment_cycle_screenings(
+        (Segment((10, 10, 4), (11, 10, 4)),),
+        cycle,
+        settings,
+    ))
+
+    assert screening.state is PiercingState.UNDETERMINED
+    assert not screening.aabb_separated
+    assert not screening.surface_complete
+    assert screening.relation is not None
 
 
 def test_segment_budget_accounts_for_every_embedded_surface():

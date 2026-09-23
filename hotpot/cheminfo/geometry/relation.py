@@ -35,6 +35,7 @@ __all__ = [
     "ClosestCycleEdge",
     "SurfaceFamilyEvidence",
     "SegmentCycleRelation",
+    "SegmentCycleScreening",
     "measure_planarity",
     "determine_line_relation",
     "line_distance",
@@ -44,6 +45,7 @@ __all__ = [
     "find_point_pairs_below_distance",
     "locate_point_in_planar_cycle",
     "iter_segment_cycle_relations",
+    "iter_segment_cycle_screenings",
     "determine_segment_cycle_relation",
     "closest_cycle_edge",
 ]
@@ -177,6 +179,20 @@ class SegmentCycleRelation:
     closest_boundary_edge: Optional[ClosestCycleEdge]
     surface_evidence: SurfaceFamilyEvidence
     settings: GeometrySettings
+
+
+@dataclass(frozen=True)
+class SegmentCycleScreening:
+    """State-only screening result for one finite segment and one cycle.
+
+    ``relation`` is omitted only when strict AABB separation proves that the
+    finite segment cannot meet any valid surface represented by the cycle.
+    """
+
+    state: PiercingState
+    relation: Optional[SegmentCycleRelation]
+    aabb_separated: bool
+    surface_complete: bool
 
 
 # Private numerical records shared by the primitive and surface kernels.
@@ -565,6 +581,25 @@ def _aabb_stably_separated(
             (np.max(first, axis=0) + padding < np.min(second, axis=0))
             | (np.max(second, axis=0) + padding < np.min(first, axis=0))
         )
+    )
+
+
+def _segment_cycle_aabbs_stably_separated(
+    segment: Segment,
+    cycle: Cycle,
+    padding: float,
+) -> bool:
+    """Return whether guarded finite-segment and cycle bounds are disjoint."""
+    return _aabb_stably_separated(
+        np.asarray(
+            (segment.start.coordinates, segment.end.coordinates),
+            dtype=np.float64,
+        ),
+        np.asarray(
+            [vertex.coordinates for vertex in cycle.vertices],
+            dtype=np.float64,
+        ),
+        padding,
     )
 
 
@@ -1945,6 +1980,122 @@ def locate_point_in_planar_cycle(
 
 
 # Public composite cycle relations.
+
+
+def iter_segment_cycle_screenings(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Iterator[SegmentCycleScreening]:
+    """Classify finite segments with a strict AABB broad phase.
+
+    The cycle's planar polygon or nonplanar surface family is validated before
+    AABB separation may prove ``DOES_NOT_PIERCE``.  Boundary and guard-band
+    cases continue through the complete relation kernel.
+    """
+
+    planarity = measure_planarity(cycle, settings)
+    planar_simplicity: Optional[_PolygonSimplicity] = None
+    if planarity.kind is PlanarityKind.PLANAR:
+        cycle_length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
+        cycle_tolerances = _predicate_tolerances(cycle_length_scale, settings)
+        normal = np.asarray(planarity.normal, dtype=np.float64)
+        origin = _point_array(planarity.centroid)
+        polygon = _project_to_plane(
+            np.asarray([vertex.coordinates for vertex in cycle.vertices]),
+            origin,
+            normal,
+        )
+        planar_simplicity = _projected_polygon_simplicity(
+            polygon, cycle_tolerances, settings
+        )
+    prepared = (
+        _prepare_nonplanar_surface_family(cycle, settings)
+        if planarity.kind is PlanarityKind.NONPLANAR
+        else None
+    )
+    for segment in segments:
+        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
+        if causes:
+            relation = _undetermined_segment_cycle_relation(
+                segment,
+                cycle,
+                None,
+                settings,
+                causes,
+            )
+            yield SegmentCycleScreening(
+                relation.state,
+                relation,
+                False,
+                relation.surface_evidence.enumeration_complete,
+            )
+            continue
+        tolerances = cast(_PredicateTolerances, tolerances)
+
+        planar_surface_is_valid = (
+            planarity.kind is PlanarityKind.PLANAR
+            and planar_simplicity is _PolygonSimplicity.SIMPLE
+        )
+        nonplanar_surface_is_valid = (
+            planarity.kind is PlanarityKind.NONPLANAR
+            and prepared is not None
+            and prepared.enumeration_complete
+            and prepared.construction_undetermined_count == 0
+            and bool(prepared.embedded_surfaces)
+        )
+        if (
+            (planar_surface_is_valid or nonplanar_surface_is_valid)
+            and _segment_cycle_aabbs_stably_separated(
+                segment,
+                cycle,
+                tolerances.aabb,
+            )
+        ):
+            yield SegmentCycleScreening(
+                PiercingState.DOES_NOT_PIERCE,
+                None,
+                True,
+                True,
+            )
+            continue
+
+        if planarity.kind is PlanarityKind.PLANAR:
+            relation = _planar_segment_cycle_relation(
+                segment,
+                cycle,
+                planarity,
+                cast(_PolygonSimplicity, planar_simplicity),
+                tolerances,
+                settings,
+            )
+        elif planarity.kind is PlanarityKind.NONPLANAR:
+            relation = _nonplanar_segment_cycle_relation(
+                segment,
+                cycle,
+                tolerances,
+                settings,
+                cast(_PreparedNonplanarSurfaceFamily, prepared),
+            )
+        else:
+            cause = (
+                SegmentCycleIndeterminacy.DEGENERATE_CYCLE
+                if planarity.kind is PlanarityKind.DEGENERATE
+                else SegmentCycleIndeterminacy.NUMERIC_BAND
+            )
+            relation = _undetermined_segment_cycle_relation(
+                segment,
+                cycle,
+                None,
+                settings,
+                frozenset({cause}),
+            )
+        yield SegmentCycleScreening(
+            relation.state,
+            relation,
+            False,
+            relation.surface_evidence.enumeration_complete,
+        )
 
 
 def iter_segment_cycle_relations(

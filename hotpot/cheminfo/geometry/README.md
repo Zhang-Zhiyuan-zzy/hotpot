@@ -141,7 +141,7 @@ for finding in report.piercings:
 | `Triangle` | A triangle formed by three ordered vertices; degeneracy is allowed |
 | `Cycle` | A closed one-dimensional boundary formed by at least three ordered vertices |
 
-### 2.3 Relationship vocabulary and result records (15 names)
+### 2.3 Relationship vocabulary and result records (16 names)
 
 | Name | Kind | Meaning |
 |---|---|---|
@@ -160,8 +160,9 @@ for finding in report.piercings:
 | `ClosestCycleEdge` | frozen dataclass | Nearest cycle edge and its distance |
 | `SurfaceFamilyEvidence` | frozen dataclass | Counts from nonplanar candidate-surface enumeration and intersection tests |
 | `SegmentCycleRelation` | frozen dataclass | Segment–cycle state, evidence, intersections, and numerical configuration |
+| `SegmentCycleScreening` | frozen dataclass | State-only segment–cycle result with optional complete relation evidence |
 
-### 2.4 Relationship functions (11 names)
+### 2.4 Relationship functions (12 names)
 
 | Name | Purpose |
 |---|---|
@@ -174,10 +175,11 @@ for finding in report.piercings:
 | `find_point_pairs_below_distance` | Filter point pairs by a caller-supplied threshold |
 | `locate_point_in_planar_cycle` | Classify a point in the planar projection of a cycle |
 | `iter_segment_cycle_relations` | Lazily classify multiple segments against one cycle |
+| `iter_segment_cycle_screenings` | Screen multiple segments with strict AABB broad-phase exclusion |
 | `determine_segment_cycle_relation` | Determine whether one finite segment pierces a cycle |
 | `closest_cycle_edge` | Find the cycle edge nearest to a target segment |
 
-### 2.5 Conversion vocabulary and result records (11 names)
+### 2.5 Conversion vocabulary and result records (12 names)
 
 | Name | Kind | Meaning |
 |---|---|---|
@@ -192,8 +194,9 @@ for finding in report.piercings:
 | `BondRingFinding` | frozen generic dataclass | Source Ring × Bond pair and segment–cycle relation |
 | `RingEdgeDistance` | frozen generic dataclass | Source ring bond and nearest-edge distance record |
 | `BondRingScanReport` | frozen generic dataclass | Dense scan report for a selected ring scope |
+| `BondRingScreeningReport` | frozen generic dataclass | Sparse all-pair piercing screen with coverage and AABB counters |
 
-### 2.6 Conversion functions (12 names)
+### 2.6 Conversion functions (13 names)
 
 | Name | Purpose |
 |---|---|
@@ -208,6 +211,7 @@ for finding in report.piercings:
 | `determine_bond_ring_relation` | Classify one chemical Ring × Bond pair |
 | `iter_bond_ring_findings` | Lazily scan Ring × Bond pairs in a requested scope |
 | `scan_bond_ring_relations` | Return a complete dense scan report for a requested scope |
+| `screen_bond_ring_relations` | Screen a complete scope while retaining only actionable findings |
 | `determine_bond_ring_piercing_state` | Aggregate a whole molecule to a three-state piercing result with early exit |
 
 ## 3. Mathematical symbols and numerical conventions
@@ -705,6 +709,22 @@ SegmentCycleRelation(
 | `surface_evidence` | Candidate-surface and intersection-budget evidence; always present |
 | `settings` | Configuration actually used for this classification |
 
+### 6.16 `SegmentCycleScreening`
+
+```python
+SegmentCycleScreening(
+    state: PiercingState,
+    relation: SegmentCycleRelation | None,
+    aabb_separated: bool,
+    surface_complete: bool,
+)
+```
+
+A state-only result used by the broad-phase API. `relation` is omitted only
+when guarded finite-segment and cycle AABBs strictly separate after the cycle
+surface model has been validated. Such separation proves
+`DOES_NOT_PIERCE`; boundary and tolerance-band cases use the complete kernel.
+
 ## 7. Relationship functions
 
 ### 7.1 `measure_planarity`
@@ -1155,6 +1175,19 @@ distance exists.
 (0, 1.414214)
 ```
 
+### 7.13 `iter_segment_cycle_screenings`
+
+```python
+def iter_segment_cycle_screenings(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Iterator[SegmentCycleScreening]
+```
+
+Prepares the cycle once and screens segments in input order. It never uses
+AABB separation to hide an invalid or incomplete cycle-surface model.
+
 ## 8. Chemical-object conversion API
 
 ### 8.1 Structural protocols and generic source types
@@ -1500,3 +1533,44 @@ A fast entry point for callers that need only the aggregate three-state result:
 The result covers only the declared `ring_scope` and `max_ring_size`. This
 scalar interface does not carry ring-selection metadata; use
 `scan_bond_ring_relations()` when the selected family and bound must be audited.
+
+### 8.25 `BondRingScreeningReport`
+
+```python
+BondRingScreeningReport[RingT, BondT](
+    actionable_findings: tuple[BondRingFinding[RingT, BondT], ...],
+    ring_scope: RingScope,
+    max_ring_size: int,
+    selected_ring_count: int,
+    excluded_ring_count: int,
+    candidate_pair_count: int,
+    aabb_separated_pair_count: int,
+    exact_pair_count: int,
+    piercing_pair_count: int,
+    does_not_pierce_pair_count: int,
+    undetermined_pair_count: int,
+    scan_complete: bool,
+)
+```
+
+The report covers every selected pair but retains complete findings only for
+`PIERCES` and `UNDETERMINED`. The three state counts always sum to
+`candidate_pair_count`; `aabb_separated_pair_count + exact_pair_count` does as
+well.
+
+### 8.26 `screen_bond_ring_relations`
+
+```python
+def screen_bond_ring_relations(
+    mol: _MoleculeLike[AtomT, BondT, RingT],
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+Screens the complete requested Ring × Bond scope with a guarded AABB broad
+phase, falling back to the complete relation kernel whenever separation is not
+strictly proven. Use `scan_bond_ring_relations()` when complete evidence for
+every non-piercing pair is required.

@@ -165,6 +165,7 @@ def test_facades_export_shared_trajectory_contracts_by_identity():
 
 
 def test_facades_export_shared_forcefield_contracts_by_identity():
+    contracts = importlib.import_module(f"{PACKAGE_NAME}.contracts")
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
     modern = importlib.import_module(MODERN_FACADE_NAME)
     python39 = importlib.import_module(PYTHON39_FACADE_NAME)
@@ -173,6 +174,7 @@ def test_facades_export_shared_forcefield_contracts_by_identity():
         contract = getattr(shared, name)
         assert getattr(modern, name) is contract
         assert getattr(python39, name) is contract
+        assert getattr(contracts, name) is contract
         assert pickle.loads(pickle.dumps(contract)) is contract
 
 

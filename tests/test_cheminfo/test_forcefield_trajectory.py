@@ -374,6 +374,42 @@ def test_failed_archive_publish_restores_the_existing_archive(
     assert _publish_temporary_paths(path) == ()
 
 
+def test_failed_archive_rollback_reports_the_preserved_backup(
+    tmp_path,
+    monkeypatch,
+):
+    _, main, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory_archive"
+    ForceFieldTrajectoryArchive(main).write(path)
+    original_contents = _directory_contents(path)
+    original_replace = Path.replace
+
+    def fail_publish_and_rollback(source, target):
+        source = Path(source)
+        target = Path(target)
+        if source.name.startswith(f".{path.name}.staging-") and target == path:
+            raise OSError("publish failed")
+        if source.name.startswith(f".{path.name}.backup-") and target == path:
+            raise OSError("rollback failed")
+        return original_replace(source, target)
+
+    monkeypatch.setattr(Path, "replace", fail_publish_and_rollback)
+
+    with pytest.raises(RuntimeError, match="publication and rollback both failed") as error:
+        ForceFieldTrajectoryArchive(main).write(path, include_sdf=False)
+
+    assert "publication error: OSError('publish failed')" in str(error.value)
+    assert "rollback error: OSError('rollback failed')" in str(error.value)
+    assert not path.exists()
+    backup_paths = tuple(
+        item
+        for item in _publish_temporary_paths(path)
+        if ".backup-" in item.name
+    )
+    assert len(backup_paths) == 1
+    assert _directory_contents(backup_paths[0]) == original_contents
+
+
 def test_backup_cleanup_failure_does_not_turn_a_successful_publish_into_failure(
     tmp_path,
     monkeypatch,

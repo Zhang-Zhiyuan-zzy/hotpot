@@ -675,9 +675,17 @@ class _TrajectoryWriter:
 
         try:
             staging_directory.replace(directory)
-        except BaseException:
+        except BaseException as publish_error:
             if backup_directory is not None:
-                backup_directory.replace(directory)
+                try:
+                    backup_directory.replace(directory)
+                except OSError as restore_error:
+                    raise RuntimeError(
+                        "Trajectory publication and rollback both failed; "
+                        f"the previous archive remains at {backup_directory} "
+                        f"(publication error: {publish_error!r}; "
+                        f"rollback error: {restore_error!r})"
+                    ) from restore_error
             raise
         else:
             if backup_directory is not None:

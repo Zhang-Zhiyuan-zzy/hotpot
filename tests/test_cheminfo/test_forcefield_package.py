@@ -269,6 +269,7 @@ def test_implementation_modules_do_not_import_the_composition_module():
         "ligand",
         "optimizer",
         "repair",
+        "settings",
         "topology",
         "trajectory",
         "utils39",

@@ -27,6 +27,7 @@ from .contracts import (
     StructureAcceptanceThresholds,
 )
 from .coordination import _iter_metal_donor_pairs
+from .settings import _BOND_RING_MAX_SIZE
 from .topology import (
     TopologyReference,
     _atom_identity,
@@ -45,9 +46,6 @@ __all__ = (
     "evaluate_structure_acceptance",
     "is_structure_accepted",
 )
-
-
-_BOND_RING_MAX_SIZE = 16
 
 
 class _CoordinationMetrics(TypedDict):

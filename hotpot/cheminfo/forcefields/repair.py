@@ -11,6 +11,7 @@ from .. import geometry as geo
 from .backend import _single_ob_optimization
 from .contracts import CoordinationBondRestorationReport, RingUntanglingReport
 from .coordinates import _copy_coordinates, _perturbed_coordinates
+from .settings import _BOND_RING_MAX_SIZE
 from .topology import _bond_key
 from .trajectory import (
     CoordinationFrameEvidence,
@@ -26,9 +27,6 @@ if TYPE_CHECKING:
 
 
 __all__ = ()
-
-
-_BOND_RING_MAX_SIZE = 16
 
 
 @dataclass(frozen=True)

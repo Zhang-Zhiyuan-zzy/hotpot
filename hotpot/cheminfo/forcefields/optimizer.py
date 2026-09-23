@@ -36,6 +36,7 @@ from .contracts import (
     TerminationReason,
 )
 from .coordinates import _perturbed_coordinates
+from .settings import _BOND_RING_MAX_SIZE
 from .topology import TopologyReference
 from .trajectory import (
     ForceFieldFrame,
@@ -51,9 +52,6 @@ if TYPE_CHECKING:
 
 
 __all__ = ()
-
-
-_BOND_RING_MAX_SIZE = 16
 
 
 @dataclass(frozen=True)

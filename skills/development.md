@@ -1,314 +1,214 @@
-# Hotpot 开发与代码改动原则
+# Hotpot 开发规范
 
-[English version](development.en.md)
+[English version](development.en.md) · [规则暂存区](development.tmp.md)
 
-本文档定义 Hotpot 代码开发、重构、模型接入、测试和交付时必须遵守的基本原则。它适用于人工开发者与自动化编码代理。
+本文档是 Hotpot 当前有效的开发契约，适用于人工开发者和自动化编码代理。它是经整理的
+当前规范，不是按时间追加的讨论日志。
 
-文中的 **MUST（必须）**、**SHOULD（应当）** 和 **MAY（可以）** 是规范性用语。模块自己的公开契约和测试文档可以增加约束，但不得削弱本文档的要求。
+文中 **MUST（必须）**、**SHOULD（应当）** 和 **MAY（可以）** 是规范性用语。模块契约可增加限制，
+但不得隐式放宽本文要求。
 
-## 1. 总体目标
+## 1. 目标与规则治理
 
-Hotpot 的核心目标是提供统一、可检查、适合配位化学的化学对象与计算基础设施。代码改动必须优先保证：
+Hotpot 的核心目标是提供统一、可检查、适合配位化学的化学对象与计算基础设施。任何改动都必须优先保证：
 
-1. 化学语义明确，不能用静默猜测制造“看似成功”的结果；
-2. 现有抽象稳定，新增能力优先复用和扩展已有接口；
-3. 科学适用域、单位、误差和后端边界对用户可见；
-4. 源码运行、安装包运行和跨 Python 版本行为一致；
-5. 每个逻辑改动可测试、可审查、可回退。
+1. 化学和数值语义明确，不用静默猜测制造“看似成功”的结果；
+2. 数据所有权、后端边界、单位、适用域和失败状态可见；
+3. 新能力复用既有抽象，不建立无必要的平行实现；
+4. 源码、安装包与明确支持的运行环境行为一致；
+5. 逻辑可测试、可审查、可回退，实验性结论不冒充已验证契约。
 
-## 2. 修改前的工作流程
+### 1.1 规则暂存与并入 `[DEV-GOV-001]`
 
-任何实现开始前都 MUST：
+- 对话、代码审计或失败复盘中识别的新规则，先写入 `development.tmp.md`，记录作用域、理由和证据 commit。
+- 规则并入时 MUST 同时重构中英文两份正式文档，合并重复内容，并删除过时或不再适用的规则。
+- 正式文档不做无限追加；新并入规则 MUST 在文末记录并入日期和来源 commit hash。
+- `development.tmp.md` 仅保留当前待处理批次和最近一次并入回执，不作永久追加式历史。
 
-1. 搜索 Core、I/O、转换、search、calculator 和模型目录中是否已有相同或相近实现；
-2. 确认公共入口、数据所有权、索引约定、异常类型和下游调用者；
-3. 区分缺陷修复、兼容性扩展、科学语义变更和纯性能优化；
-4. 对缺陷先增加最小回归测试，再修改实现；
-5. 对会改变公共行为的工作先写清契约、适用域和迁移影响。
+## 2. 修改前先确定契约
 
-禁止复制一份 converter、parser、site detector 或模型调用链来绕开现有实现。若现有实现只需小幅调整即可通用，SHOULD 直接改进原实现并补充兼容测试。
+实施开始前 MUST：
 
-## 3. Hotpot 原生对象是内部唯一事实源
+1. 搜索 Core、I/O、conversion、graph、geometry、search、calculator 和模型目录中的相同或相近实现；
+2. 确定公共入口、数据所有权、索引约定、单位、异常和下游调用者；
+3. 区分纯整理、缺陷修复、兼容性扩展、科学语义变更和性能优化；
+4. 对缺陷先建立最小回归测试；纯重构先建立行为等价基线；
+5. 在改变公共行为前写清契约、适用域、迁移影响和验收方式。
 
-### 3.1 输入归一化
+禁止复制 converter、reader、parser、site detector 或模型调用链来绕开现有实现。只有在输入、输出、
+不变量、所有权、生命周期和失败语义一致时，才应抽取共享 helper。不得为减少表面代码量而引入大量
+`mode`、Boolean 开关、宽泛回调或联合类型。
 
-- 外部输入 MUST 在系统边界通过 `hotpot.cheminfo.convert.to_hotpot_mol()` 归一化。
-- 内部化学语义、原子索引、site detection 和结果挂载 MUST 使用 Hotpot 的 `Molecule`、`Atom`、`Bond`。
-- RDKit、Open Babel、Pybel 或第三方 graph 的转换逻辑不得在各模型中重复实现。
-- 转换 MUST 保持原子顺序；Hotpot 内部索引为 0-based。只有面向人的 CLI 或报告 MAY 显示为 1-based，并必须明确转换。
-- 已存在的 `Molecule` 输入不应被无故复制、重新解析或经 SMILES 往返，从而丢失坐标、键元数据或配位信息。
+## 3. 架构与职责边界
 
-### 3.2 后端职责边界
+### 3.1 Hotpot 对象是内部化学事实源
 
-- Open Babel 负责受支持文件的读取及其能够提供的感知信息。
-- NetworkX 是 Hotpot 子结构搜索和 SMARTS 匹配的图后端。
-- RDKit MAY 用于模型特征、构象、格式桥接和绘图，但不得替代 Hotpot 的生产 search backend。
-- 模型后端不得成为 Core 化学语义的隐式事实源。
+- 外部输入在系统边界通过 `hotpot.cheminfo.convert.to_hotpot_mol()` 归一化。
+- 内部化学语义、原子索引、site detection 和结果挂载使用 Hotpot `Molecule`、`Atom`、`Bond`。
+- RDKit、Open Babel、Pybel 或第三方 graph 的转换只存在于共享边界层，不得在各业务模块重复实现。
+- Open Babel 负责读取其支持的分子文件，并提供它能够感知的信息；其结果仍受 Hotpot 边界契约约束。
+- 转换 MUST 保留原子顺序、已知键语义和可用元数据。Hotpot 内部索引为 0-based；只有面向人的输出 MAY 显示 1-based。
+- 已是 `Molecule` 的输入 SHOULD NOT 被无故复制、重新解析或经 SMILES 往返，以免丢失对象身份、坐标、键元数据或配位信息。
+- 第三方后端提供输入感知或数值证据，不自动成为 Core 化学语义的规范真值。
 
-## 4. 保持既有抽象和公共契约
+若某个可变对象工作流需要事务和提交语义，该语义 MUST 由所属模块契约单独定义；本通用规范不对所有 Hotpot 函数强制同一种事务模型。
 
-### 4.1 Search 抽象
+### 3.2 事实、评价、控制、记录和展示 `[DEV-ARCH-001]`
 
-以下对象结构是稳定抽象，除非有经过论证且获准的架构变更，否则 MUST 保留：
+- 事实层只返回度量、关系、后端结果和不确定性，不作超出其学科边界的价值判断。
+- 评价层将事实映射为化学、模型适用域或力场质量结论。
+- 控制器独占重试、扰动、回滚、选择和退出权；这些决策必须在主流程中显式可见。
+- 记录器可记录、查询、评分、排序和保存事实，但不得决定流程跳转。
+- CLI、plot 和 movie 属于展示层，serialization/persistence 属于交付层；两者都不得改变科学计算路径。
+- Core 便利方法和 CLI 应为薄入口，不得复制业务实现。
 
-- `Query`、`QueryAtom`、`QueryBond`
-- `Substructure`
-- `Searcher`
-- `Hit`、`Hits`
+## 4. 公共契约、兼容性与源码结构
 
-活跃 SMARTS 编译入口是 `hotpot.cheminfo.search.smarts.substructure_from_smarts()`；`Molecule.search_substructure()` 是便利入口。不得创建一套平行的 search API。
+### 4.1 有证据的兼容性 `[DEV-COMP-001]`
 
-搜索结果 MUST 遵守以下契约：
+- 只为明确支持的已发布公共 API、artifact schema、Python 版本或 backend 版本保留兼容。
+- 不得仅为内部实现方便改变公共返回类型、对象关系、只读属性或异常语义。
+- 无历史契约的内部字段直接使用当前严格契约；禁止推测性旧字段默认值、别名或 wrapper。
+- 版本或后端选择必须集中在一个明确的 composition boundary；专用实现放入隔离的 façade/adapter，共享业务保持单一事实源。
+- 平行 façade 的公共名、签名、返回类型、单位和异常契约 MUST 一致，并由自动化测试核对。
+- 预留但尚未实施的公共参数必须在 docstring 中明确标记当前行为，不得伪装已生效。
 
-- query-to-target mapping 对调用者只读；
-- 同一目标原子集合的 query automorphism 合并为一个 `Hit`；
-- `Hit.bonds` 只表示 query 边对应的目标键；
-- 额外的目标诱导边通过 `Hit.induced_bonds` 表示；
-- 存在性判断使用 `has_match()`；
-- 大型或高对称查询使用 `iter_mappings()` / `max_matches` 限界；
-- 截断必须通过 `Hits.truncated` 显式暴露，禁止静默截断。
+### 4.2 类型与化学对象命名
 
-### 4.2 兼容性优先
+- 除了无法静态表达的最小动态第三方边界，禁止使用 `Any`。
+- 不可避免的 `Any` MUST 在邻近注释或文档中说明原因，且 MUST NOT 沿调用链扩散到内部领域逻辑。
+- 已知 Hotpot 对象使用 `Molecule`、`Atom`、`Bond`、`Crystal` 等具体类型。循环导入应通过
+  `TYPE_CHECKING`、延迟注解或 forward reference 解决。
+- 结构化多态使用最小 `Protocol`、类型别名、泛型或联合类型；序列化 payload 优先使用 `TypedDict`、dataclass 或递归值类型。
+- 类名表达完整领域概念；局部变量和形式参数优先使用 `mol`、`atom`、`bond`、`cbond` 等约定简称。
+- 对象存在来源、所有权或生命周期差异时，名称应包含对象和角色，例如 `source_mol`、`clone_mol`、`working_mol`、`target_atom`。
+- 当某语义在当前 API 层是唯一默认时，使用基础名称；只有真实存在并列语义时才增加限定词。
 
-- 新能力 SHOULD 通过新增明确参数、枚举、profile 或方法实现。
-- 不得仅为内部方便改变公共返回类型、对象关系或属性的只读性质。
-- 修复旧行为时 MUST 增加覆盖旧入口的回归测试。
-- 删除疑似遗留模块前，必须确认生产引用和可能的外部深层导入影响。
+### 4.3 模块公共面与排布 `[DEV-MOD-001]`
 
-### 4.3 类型标注与化学对象命名
+对新建或大幅重构的模块：
 
-- 除非确实无法表达边界类型，否则禁止使用 `Any` 作为类型标注。已知的 Hotpot
-  对象 MUST 标注为具体领域类型，例如 `Molecule`、`Atom`、`Bond` 或 `Crystal`。
-- 循环导入不得作为使用 `Any` 的理由；SHOULD 使用 `TYPE_CHECKING`、延迟注解或
-  forward reference 表达真实类型。存在真实的结构化多态时，SHOULD 定义最小
-  `Protocol`、类型别名、泛型或联合类型，而不是退化为 `Any`。
-- 未知但不需要执行任意操作的值应标注为 `object`；异构序列化数据应优先定义
-  `TypedDict`、dataclass 或递归值类型。只有无法以这些方式描述、且必须调用动态
-  第三方接口的最小边界 MAY 使用 `Any`。这种使用 MUST 在邻近注释或文档中说明
-  原因；`Any` 不得沿调用链向内部领域逻辑扩散。
-- 类、实例和形式参数的命名 MUST 优先表达化学对象，而不是只表达模糊的程序状态。
-  类名使用完整领域名称，例如 `Molecule`、`Atom`、`Bond`、`Crystal`；局部变量和
-  形式参数优先使用简洁且约定明确的名称，例如 `mol`、`atom`、`bond`、`cbond`。
-- 当同一种化学对象同时具有来源、所有权或生命周期差异时，名称 MUST 同时保留
-  化学对象和角色，例如 `source_mol`、`clone_mol`、`working_mol`、`target_atom`。
-  在类型已知为分子时，不应只使用 `working`、`obj` 或 `data` 等无法说明化学对象
-  的名称。
-- 当某一语义在当前 API 层已经是唯一或默认语义时，名称 MUST 使用简洁的基础名称，
-  不得重复编码默认值。只有同一层级确实存在并列语义时才添加限定词。例如，化学业务
-  层的默认环使用 `ring`，不使用 `relevant_ring`；非默认旧环族使用
-  `cycle_basis_ring`。算法层的 `relevant_cycles()` 仍应保留标准算法名称。
-- 每个限定词都必须区分真实存在的后端、算法、化学语义、来源或生命周期。不能仅为
-  强调实现细节而增加 `default_`、`current_`、`relevant_`、`standard_` 等修饰。
+- 文件顶部通过 `__all__` 明确公共面；
+- Exception、Enum 和数据契约放在实现 helper 之前；
+- 私有 helper 按职责分区；
+- 公开操作放在支撑实现之后，由低层到高层排列；
+- 公开或持久化的有限状态集 SHOULD 使用 `Enum`；局部静态类型限制 MAY 使用 `Literal`；
+- 生产模块不保留未使用 import。星号导入只允许在受 `__all__` 约束的 package 组装入口使用。
 
-## 5. 化学语义必须显式且非破坏性
+### 4.4 新实现接管后的清理 `[DEV-CLEAN-001]`
 
-### 5.1 命名语义 profile
-
-涉及不同化学解释时，MUST 使用命名 profile，而不是含混的 Boolean 开关或隐藏分支。
-
-当前 SMARTS 目标语义包括：
-
-- `FULL_GRAPH`：默认语义，保持完整分子图行为；
-- `LIGAND_SKELETON`：配体骨架 descriptor view，在非金属侧排除 metal–ligand 边对 `D/X/v/R/r` 的影响。
-
-descriptor view MUST 在复制或只读视图上计算，不得临时删除、添加或恢复原分子中的键。递归 SMARTS MUST 继承父查询的 semantics。未来若需要有机金属共价语义，应新增独立命名 profile，不得偷偷改变现有 profile。
-
-### 5.2 键的语义与数值键级分离
-
-`BondKind` 是化学键语义的事实来源，必须保留：
-
-- `SINGLE`
-- `DOUBLE`
-- `TRIPLE`
-- `AROMATIC`
-- `ZERO`
-- `DATIVE`
-- `UNKNOWN`
-
-键方向、来源和 source metadata 在上游可提供时 MUST 保留。不得仅根据 numeric bond order 猜测 `UNKNOWN`、`ZERO` 或 `DATIVE`。不能无损表示的转换 SHOULD 明确失败，而不是悄悄改成单键。
-
-### 5.3 尊重输入感知结果
-
-- 语义 profile 不得暗中重新计算 implicit hydrogen、芳香性或键类型。
-- Open Babel 或其他 reader 的信息损失必须通过 `UNKNOWN`、异常、fixture 和文档显式表达。
-- 外部工具的结果是比较证据，不自动构成 Hotpot 的规范真值。
-- Hotpot 的 `M`、`Ln`、`An`、`NP`、`NG` 等扩展不得未经翻译直接交给其他 SMARTS 引擎作为 oracle。
-
-## 6. 错误处理与控制流
-
-- 未知异常 MUST 向上传播；不得把失败转换为成功结果、空结果或零值。
-- 禁止使用宽泛 `try/except`、层叠 `if/else` 或默认值进行无条件兜底。
-- 只有产品契约明确允许的 fallback 才可存在，并且 MUST 有名称、文档、日志或结果标记以及专门测试。
-- 语法错误、已识别但不支持的功能、输入感知错误和模型适用域错误必须可区分。
-- SMARTS malformed input 使用 `SmartsSyntaxError`；已识别但未实现的语法使用 `UnsupportedSmartsError`。
-- 只读科学属性在尚未计算时应抛出带调用指引的 `AttributeError`，不得返回 `0`、`None` 或伪造值。
-
-## 7. AI 模型与科学结果
-
-### 7.1 分层
-
-模型接入 SHOULD 保持以下层次独立：
-
-1. 输入转换与 domain checks；
-2. 特征与构象构建；
-3. ONNX runtime；
-4. 原始模型输出；
-5. site detection 或其他科学筛选；
-6. Core 对象属性挂载；
-7. Python API 与 CLI。
-
-不得在 CLI、Core property 或绘图代码中重新实现模型推理及位点规则。
-
-### 7.2 原始预测与可靠位点分离
-
-MCA 的两个结果层次不得混淆：
-
-- `Atom.mca`：模型对每个受支持原子的 MCA 预测；
-- `Molecule.mca_sites`：经 site detection 和适用域规则筛选的重要、较可靠位点。
-
-全原子预测不等于该原子属于模型已验证的反应位点。金属中心及直接配位原子等适用域规则必须独立、明确、可测试。
-
-### 7.3 科学边界
-
-- 物理量单位 MUST 写入字段、表头、文档和图例，例如 `mca_kj_mol`、`MCA(kJ/mol)`。
-- 训练域之外的输入必须默认拒绝或显式标注；不得无提示外推。
-- MCA 当前默认拒绝显式氢目标、分子总电荷与原子形式电荷不一致的图，以及未经验证的 charged molecule。
-- 越域开关（如 `allow_charged=True`）必须由用户主动指定，且不应被描述为已验证结果。
-- MCA 不得与 Mayr `N` 或 `s_N N` 混称。
-
-### 7.4 纯推理发布
-
-- 生产发布路径 SHOULD 使用 ONNX Runtime，不包含训练循环、优化器、私有 checkpoint 或私有训练数据。
-- 模型 artifact MUST 配有 manifest、哈希、外部权重完整性检查、model card、license、适用域和数值 parity 结果。
-- 明确请求 `device="cuda"` 而 CUDA provider 不可用时 MUST 报错；只有 `device="auto"` 可以自动回落到 CPU。
-- 动态 shape 优先于“每种输入尺寸一个 ONNX”。模型必须有明确尺寸上限及越界异常。
-- 剪枝、FP16、INT8 或其他压缩必须先与原 checkpoint 做定量 parity；达不到科学容差的候选不得发布。
-
-## 8. CLI 原则
-
-CLI 是现有 Python API 的薄封装：
-
-- MUST 复用 reader、predictor、site detection 和 draw backend；
-- stdout 只输出稳定、可重定向的数据，不混入 `Done`、调试文字或进度信息；
-- `-o` 和 stdout 重定向必须产生相同的数据内容；
-- 日志和警告写入 stderr；
-- CLI 不捕获并隐藏底层解析、domain 或 runtime 异常；
-- 表格、JSON 或图片中的索引、单位和 site 含义必须稳定并有测试；
-- 可视化只是结果展示，不得改变预测或 site selection。
-
-## 9. 测试与科学证据
-
-### 9.1 测试位置
-
-所有测试模块和 test-only fixture MUST 位于 `tests/`。禁止把测试脚本、临时数据或 benchmark 输出混入 `hotpot/` 生产包。
-
-### 9.2 分层测试
-
-每项改动至少包含与风险相称的测试：
-
-1. 纯函数或对象契约单元测试；
-2. 模块间集成测试；
-3. 真实 reader / model / CLI 闭环测试；
-4. 涉及安装内容时的 wheel-outside-source-tree smoke test。
-
-配位化学和 SMARTS 语义 SHOULD 覆盖三层目标：
-
-- 不依赖感知后端的纯 Hotpot 图；
-- 通过 Open Babel 读取的 MOL2/SDF fixture；
-- 真实 CIF 或其他代表性结构文件。
-
-不得仅用不含金属的有机分子证明配位语义正确。
-
-### 9.3 SMARTS conformance
-
-SMARTS 改动 MUST 同步检查：
-
-- parser 与 matcher 的 focused regression；
-- `tests/smarts_conformance` strict contract；
-- corpus schema、case ID、classification、feature tag、evidence 和 license；
-- coordination fixture manifest；
-- differential、fuzz 和 benchmark 中受影响的证据。
-
-Golden expectation 必须人工审查 diff。任何工具都不得根据当前实现自动覆盖 golden，从而把回归伪装成新标准。
-
-### 9.4 兼容性声明
-
-修改 Core、conversion、search、MCA 或 CBond 后，合并前 MUST 运行：
-
-```bash
-bash tests/run_inference_compatibility.sh 3.9 3.10 3.11 3.12 3.13 3.14
-```
-
-该矩阵只证明其覆盖的推理、转换和搜索路径，不代表整个 legacy repository 在所有版本上均兼容。测试报告不得把 scoped green 扩大表述为全仓 green。
-
-## 10. 性能、缓存与确定性
-
-- 性能优化不得改变化学语义或结果顺序契约。
-- 缓存 key/signature MUST 覆盖被计算逻辑消费的全部 atom、bond、connectivity、`BondKind`、aromaticity 和 semantics 状态。
-- 缓存不得依赖先修改原图、计算、再恢复的流程。
-- 对存在组合爆炸风险的搜索，应提供 existence fast path、流式迭代和显式上限，而不是静默丢弃结果。
-- 测试、构象生成、fuzz 和 benchmark 应使用固定 seed；非确定性来源必须记录。
-
-## 11. 包装与依赖
-
-- 运行时依赖、entry point 或 package data 变化时，MUST 同步检查 `pyproject.toml`、`setup.py` 和 `MANIFEST.in`。
-- 模型 graph、external shard、manifest、规则文件和必要资源必须实际进入 wheel。
-- 发布前 MUST 构建 wheel，在源码目录之外安装，并执行真实推理或目标功能 smoke test。
-- 推理包不应为了类型标注或 import side effect 引入训练框架。
-- 可选重依赖应延迟导入，使不使用该功能的用户不承担无关导入失败。
-
-## 12. Git 与工作区纪律
+- 新事实源、生命周期或入口接通后，MUST 全仓搜索其消费者。
+- 删除已取代的私有 helper、字段、wrapper、测试和无依据兼容分支，不保留两套活跃实现。
+- 全仓零内部消费者只是死代码证据，不是删除已文档化公开抽象的充分条件。
+- 必须保留的旧公共 API 使用明确 deprecation 契约，不使用隐藏 wrapper 无期维持。
+
+## 5. 化学与科学语义
+
+- 不同化学解释使用具名 profile 或枚举，不使用含混 Boolean 或隐藏分支。
+- 语义视图在副本或只读视图上计算，不得通过临时删键、加键再恢复来修改原图。
+- `BondKind` 是键语义的事实源。不得只根据 numeric bond order 猜测 `UNKNOWN`、`ZERO` 或 `DATIVE`。
+- ring family 是算法契约的一部分；`cycle basis`、`relevant cycles` 与其他环集不得混称。下游逻辑不应依赖任意环基或输入顺序。
+- Geometry 提供几何度量与关系；化学合理性和修复策略由 chemistry/forcefields 等上层模块决定。
+- 单位必须在 API、字段、表头和图例中明确。后端数值在边界层一次性转换为内部单位。
+- 语义 profile 不得暗中重新计算 implicit hydrogen、芳香性或键类型。后端信息损失 MUST 以 `UNKNOWN`、异常、fixture 或文档显式表达。
+
+Search 保持 `Query*`、`Substructure`、`Searcher`、`Hit/Hits` 公共抽象，生产 SMARTS 匹配使用 NetworkX-backed Hotpot search。
+RDKit 可用于特征、构象、格式桥接和绘图，但不得隐式替代该事实源。
+
+## 6. 失败、诊断与控制流 `[DEV-ERR-001]`
+
+- 未知程序异常 MUST 原样向上传播，不得转换成成功、空结果、零值或 CPU 结果。
+- 执行失败、不可返回结果和“可返回但未通过科学质量标准”是不同状态，API 必须明确区分。
+- 禁止用宽泛 `try/except`、层叠 `if/else` 或默认值实现无条件兜底。
+- fallback 只能在产品契约明确允许时存在，并且必须有名称、状态标记、文档和专门测试。
+- 保留终止值、末帧、报告或诊断轨迹不等于宣告成功；失败状态必须仍显式可见。
+- 当 API 承诺失败证据时，warning-return 和 exception 路径都必须保留该证据。
+- 只读科学属性尚未计算时，应抛出带调用指引的 `AttributeError`，不返回伪造值。
+
+## 7. 可选的科学历史与持久化 `[DEV-OBS-001]`
+
+本节只适用于提供 history、trajectory 或 provenance 的工作流，不要求所有计算默认记录全部状态。
+
+- 全量历史记录 MUST 由用户或 API 显式开启。默认记录至多保留模块契约所需的有界摘要或选中终态，并必须说明资源成本。
+- 实施前必须评估帧数、状态大小、证据计算、内存、压缩和 I/O 开销；优先去重、池化或有界保留。
+- 每个观测必须包含解释它所需的最小完整状态。当拓扑变化时，coordinate-only conformer 不是权威记录。
+- 记录、显式选择、向业务对象物化和磁盘持久化是不同职责。
+- 持久格式必须声明 schema/format version、单位和缺失值语义；JSON 不得写入 `NaN`/`Infinity`。
+- 路径应可移植；读取不应依赖执行任意对象的 pickle；归档必须通过 round-trip 测试。
+- 覆写已有归档时必须确定性清理旧 artifact；有损格式必须声明省略的状态。
+
+## 8. 模型、API 与 CLI
+
+- 模型输入转换、特征/构象、runtime、原始输出、科学筛选、Core 属性挂载和 CLI 应保持分层。
+- 原始模型预测不等于经适用域验证的化学位点。训练域外的输入必须拒绝或显式标记。
+- 纯推理发布不包含私有训练代码、checkpoint 或训练数据。模型 artifact 需要 manifest、hash、license、适用域和数值 parity 证据。
+- 显式请求的计算后端不可用时必须报错；只有明确的 `auto` 模式允许自动选择后端。
+- 压缩、量化、剪枝或新模型发布前必须完成定量 parity 验证。
+- CLI 是 Python API 的薄封装；stdout 只输出稳定可重定向的数据，日志与警告写入 stderr。
+- CLI 不重新实现 reader、模型、site detection 或绘图的科学逻辑，也不隐藏底层异常。
+
+## 9. 验证与交付
+
+- 所有测试和 test-only fixture 位于 `tests/`。Benchmark 可位于独立目录或外部 artifact，但不得混入生产 package。
+- 测试深度与风险相称：纯函数/契约单测、模块集成、真实 reader/backend/CLI 闭环，以及影响包内容时的 wheel 外部 smoke test。
+- 至少覆盖与改动相关的成功和失败契约。测试 double 必须满足当前数据契约，不得要求生产代码兼容过时 mock。
+- 修改共享 API、安装内容或跨版本路径时，使用仓库提供的兼容 runner/CI；具体 corpus 和矩阵由相关模块测试文档维护。
+- focused green 只能证明已覆盖范围，不得扩大成全仓兼容结论。
+- Golden expectation 必须人工审查 diff，不得用当前实现自动覆写 golden 来隐藏回归。
+
+## 10. 性能、依赖与运行时边界
+
+- 性能优化不得改变化学语义、失败契约或结果顺序；性能声明需要可重复基准。
+- 全量历史记录 MUST 为 opt-in；默认历史必须有界。高成本搜索 SHOULD 为 opt-in 或有明确边界。
+- 缓存 key/signature 必须覆盖被计算消费的 atom、bond、connectivity、`BondKind`、aromaticity 和 semantics 状态。
+- 缓存不得依赖“修改原图→计算→恢复”的过程生成。
+- 可能组合爆炸的搜索应提供 existence fast path、流式迭代和显式上限，禁止静默截断。
+- 测试、fuzz 和 benchmark 应使用固定 seed。生产随机算法应提供可选 seed，但不要求默认固定；非确定性来源必须记录。
+- 运行时依赖、entry point 或 package data 变化时，同步检查 `pyproject.toml`、`setup.py` 和 `MANIFEST.in`。
+- 可选重依赖延迟导入，不使非相关用户承担导入失败。类型标注不应引入训练框架或其他重依赖。
+
+## 11. Git 与工作区纪律
 
 - 开发在专用 feature branch 上进行。
-- 一个逻辑节点对应一个可独立理解和回退的 commit。
-- commit message 使用 Conventional Commit 风格，例如 `test:`、`feat:`、`fix:`、`refactor:`、`docs:`、`ci:`、`build:`、`perf:`。
-- 测试围栏、实现、文档和构建变更可按逻辑节点分别提交，但最终提交序列必须能解释行为为何改变。
-- 不得提交用户拥有的无关修改、未跟踪目录、生成缓存、临时图片或本地环境文件。
-- 不得通过 reset、checkout 或整文件覆盖破坏他人尚未提交的工作；遇到重叠修改时应先检查并合并意图。
+- 一个逻辑节点对应一个可独立理解和回退的 commit，并使用 Conventional Commit message。
+- 测试围栏、实现、文档和构建变更可分开提交，但最终序列必须能解释行为为何改变。
+- 不得提交用户或其他开发者的无关修改、未跟踪目录、缓存、临时图片或本地环境文件。
+- 不得用 reset、checkout 或整文件覆盖破坏他人未提交工作；重叠修改必须先合并意图。
 
-## 13. 禁止的反模式
+## 12. Definition of Done
 
-以下做法原则上禁止：
+- [ ] 已确认契约、所有权、单位、适用域和失败语义。
+- [ ] 已复用现有抽象，新增抽象的不变量和职责边界明确。
+- [ ] 没有静默 fallback、吞异常、无条件兜底或伪成功结果。
+- [ ] 风险相称的成功/失败、集成、真实路径和包装测试已通过，报告未超出覆盖范围。
+- [ ] 若提供科学历史或持久化，已评估资源并验证 schema、round-trip、覆写和有损输出语义。
+- [ ] 新实现接管后已清理被取代路径，公共面、lint、格式和 `git diff --check` 通过。
+- [ ] 文档说明用户可见行为和限制，commit 原子化且未夹带无关文件。
 
-- 为单一模型复制 molecule converter 或文件 reader；
-- 使用 RDKit SMARTS 替换 NetworkX-backed Hotpot search；
-- 无必要改变 `Searcher`、`Hits`、`Hit`、`Query*` 的对象结构；
-- 使用 Boolean 或隐式分支代替命名化学 semantics；
-- 为计算 ligand rings 临时删除再恢复原图键；
-- 根据 numeric bond order 猜测丢失的 `BondKind`；
-- 宽泛捕获异常后返回空列表、默认值、CPU 结果或成功状态；
-- 静默截断搜索结果；
-- 把每原子模型预测直接宣称为可靠反应位点；
-- 未经 parity 验证就发布量化、剪枝或新模型；
-- 恢复 fixed-shape ONNX 文件矩阵；
-- 将测试数据、训练代码或 checkpoint 混入 inference runtime；
-- 只在源码树中测试，不验证安装后的 wheel；
-- 用局部测试通过宣称全仓库兼容。
+## 13. 当前有效规则来源
 
-## 14. Definition of Done
+| 规则 | 并入日期 | 暂存提交 | 实施证据提交 |
+|---|---|---|---|
+| `DEV-COMP-001` | 2026-09-23 | `339c53e` | `0e90c63`, `c604ef5`, `c5e53c9`, `f5a66a7`, `15cb23c` |
+| `DEV-ARCH-001` | 2026-09-23 | `339c53e` | `aa72c67`, `b8dc637`, `5e344ad`, `bf67119`, `ebb4a53`, `dc3fc2b` |
+| `DEV-ERR-001` | 2026-09-23 | `339c53e` | `43b83d9`, `186d7b4`, `1ea39cc`, `81fd33b` |
+| `DEV-OBS-001` | 2026-09-23 | `339c53e` | `81e02de`, `3631c7c`, `5795d8f`, `ebb4a53`, `dc3fc2b` |
+| `DEV-MOD-001` | 2026-09-23 | `339c53e` | `e789e7a`, `d08792a`, `f26ca0f`, `6b8755e`, `ba67c91` |
+| `DEV-CLEAN-001` | 2026-09-23 | `339c53e` | `08639d7`, `87277f0`, `c1ace9f`, `f5a66a7`, `15cb23c` |
+| `DEV-GOV-001` | 2026-09-23 | `339c53e` | `df78c7c`, `6e2ebac`, `a34375b`, `58a43df` |
 
-代码改动只有同时满足以下条件才视为完成：
-
-- [ ] 已确认并复用现有抽象，没有建立无必要的平行实现；
-- [ ] 公共 API、化学语义、单位、索引和异常契约明确；
-- [ ] 没有静默 fallback、吞异常或无条件兜底；
-- [ ] 新增回归测试位于 `tests/`，并覆盖成功与失败路径；
-- [ ] 真实文件、模型或 CLI 路径按风险完成闭环验证；
-- [ ] 相关 focused tests、strict contracts 和兼容矩阵通过；
-- [ ] 包装变化已通过 wheel 外部安装测试；
-- [ ] 文档说明适用域、已知限制和用户可见行为；
-- [ ] lint、格式和 `git diff --check` 通过；
-- [ ] 提交原子化，且未夹带用户或其他开发者的无关文件。
-
-## 15. 相关规范入口
+## 14. 模块契约与参考
 
 - `tests/README.md`
 - `tests/smarts_conformance/SMARTS_CONFORMANCE.md`
 - `tests/smarts_conformance/README.md`
+- `hotpot/cheminfo/geometry/README.md`
+- `hotpot/cheminfo/graph/README.md`
+- `hotpot/cheminfo/kekulize/Kekulize.md`
 - `hotpot/cheminfo/AImodels/INFERENCE_COMPATIBILITY.md`
 - `hotpot/cheminfo/AImodels/mca/MODEL_CARD.md`
 - `hotpot/cheminfo/AImodels/mca/README.md`
 - `hotpot/cheminfo/AImodels/cbond/README.md`
-- `.github/workflows/inference_compatibility.yml`
 
-当本文与更具体的模块契约发生表面冲突时，开发者必须先明确冲突原因并更新文档或设计，不得自行选择更宽松的解释。
+当本文与更具体的模块契约表面冲突时，必须先确定作用域和冲突原因，然后更新规范或模块设计；
+不得自行选择更宽松的解释。

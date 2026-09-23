@@ -36,6 +36,7 @@ from openbabel import openbabel as ob
 
 from .. import geometry as geo
 from ..obconvert import extract_obmol_coordinates, mol2obmol, set_obmol_coordinates
+from .coordinates import _copy_coordinates, _perturbed_coordinates, perturb
 from .trajectory import (
     AtomIdentity,
     BondTopology,
@@ -706,11 +707,6 @@ def _format_geometry_checks(
 
 
 # Shared molecular value and identity helpers.
-
-
-def _copy_coordinates(coordinates: np.ndarray) -> np.ndarray:
-    """Return an independent floating-point Cartesian-coordinate array."""
-    return np.asarray(coordinates, dtype=float).copy()
 
 
 def _atom_index_map(atoms: Sequence["Atom"]) -> dict[int, int]:
@@ -2677,17 +2673,6 @@ def _commit_working_copy(
         raise
 
 
-def _perturbed_coordinates(
-    coordinates: np.ndarray,
-    *,
-    sigma: float,
-    rng: np.random.Generator,
-) -> np.ndarray:
-    displacement = rng.normal(0.0, sigma, np.asarray(coordinates).shape)
-    displacement = np.clip(displacement, -2.0 * sigma, 2.0 * sigma)
-    return np.asarray(coordinates, dtype=float) + displacement
-
-
 # Stateful Open Babel optimization engine.
 
 
@@ -4422,22 +4407,6 @@ def is_structure_accepted(
         forcefield_stage=forcefield_stage,
         thresholds=thresholds,
     ).passed
-
-
-def perturb(
-    mol: "Molecule",
-    *,
-    sigma: float = 0.5,
-    seed: Optional[int] = None,
-) -> np.ndarray:
-    """Perturb current coordinates in place with a local random generator."""
-    coordinates = _perturbed_coordinates(
-        mol.coordinates,
-        sigma=sigma,
-        rng=np.random.default_rng(seed),
-    )
-    mol.coordinates = coordinates
-    return coordinates
 
 
 def collect_coordination_environments(

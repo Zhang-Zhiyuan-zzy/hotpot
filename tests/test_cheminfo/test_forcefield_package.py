@@ -176,6 +176,18 @@ def test_facades_export_shared_forcefield_contracts_by_identity():
         assert pickle.loads(pickle.dumps(contract)) is contract
 
 
+def test_coordinate_api_is_reexported_without_wrapping():
+    coordinates = importlib.import_module(f"{PACKAGE_NAME}.coordinates")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+    modern = importlib.import_module(MODERN_FACADE_NAME)
+    python39 = importlib.import_module(PYTHON39_FACADE_NAME)
+
+    assert shared.perturb is coordinates.perturb
+    assert modern.perturb is coordinates.perturb
+    assert python39.perturb is coordinates.perturb
+    assert pickle.loads(pickle.dumps(coordinates.perturb)) is coordinates.perturb
+
+
 def test_facades_only_wrap_worker_adapted_workflows():
     shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
     modern = importlib.import_module(MODERN_FACADE_NAME)

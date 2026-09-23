@@ -24,7 +24,7 @@ from .contracts import (
     ForceFieldError,
     RingUntanglingReport,
 )
-from .coordinates import _copy_coordinates
+from .coordinates import _copy_coordinates, _perturbed_coordinates
 from .repair import (
     _piercing_count,
     _scan_confirmed_ring_piercings,
@@ -55,6 +55,8 @@ class _LigandCandidate:
     attempt: int
     untangling: RingUntanglingReport
     trajectory: Optional[ForceFieldTrajectory] = None
+
+
 def _ligand_candidate_sort_key(
     candidate: _LigandCandidate,
 ) -> Tuple[int, bool, float, int]:
@@ -81,6 +83,7 @@ def _build_ligand_proxies(
     seed: Optional[int] = None,
     trajectory_attempts: Optional[list[ForceFieldTrajectory]] = None,
 ) -> Tuple[np.ndarray, ComplexBuildDiagnostics]:
+    """Build each ligand once, then explore bounded perturbative proposals."""
     started = time.monotonic()
     clone_mol = copy(mol)
     _copy_molecule_metadata(mol, clone_mol)
@@ -100,36 +103,90 @@ def _build_ligand_proxies(
             component_mol,
             allow_added_hydrogens=False,
         )
+
+        def start_attempt_trajectory(
+            attempt: int,
+        ) -> Optional[ForceFieldTrajectory]:
+            if trajectory_attempts is None:
+                return None
+            attempt_trajectory = ForceFieldTrajectory.from_molecule(
+                component_mol,
+                start=TrajectoryStart.LIGAND_BUILD,
+            )
+            trajectory_attempts.append(attempt_trajectory)
+            attempt_trajectory.record_molecule(
+                component_mol,
+                stage=TrajectoryStage.LIGAND_BUILD,
+                event=TrajectoryEvent.INITIAL,
+                component_index=component_index,
+                attempt=attempt,
+            )
+            return attempt_trajectory
+
         accepted_candidate: Optional[_LigandCandidate] = None
         fallback_candidates: list[_LigandCandidate] = []
-        component_attempts = 0
-        while accepted_candidate is None and component_attempts < max_attempts:
-            component_attempts += 1
-            total_attempts += 1
-            attempt_trajectory: Optional[ForceFieldTrajectory] = None
-            if trajectory_attempts is not None:
-                attempt_trajectory = ForceFieldTrajectory.from_molecule(
-                    component_mol,
-                    start=TrajectoryStart.LIGAND_BUILD,
-                )
-                trajectory_attempts.append(attempt_trajectory)
-                attempt_trajectory.record_molecule(
+        component_attempts = 1
+        total_attempts += 1
+        first_trajectory = start_attempt_trajectory(component_attempts)
+        try:
+            _ob_build(component_mol)
+        except ForceFieldError as exc:
+            if first_trajectory is not None:
+                terminal_frame = first_trajectory.record_molecule(
                     component_mol,
                     stage=TrajectoryStage.LIGAND_BUILD,
-                    event=TrajectoryEvent.INITIAL,
+                    event=TrajectoryEvent.TERMINAL,
                     component_index=component_index,
                     attempt=component_attempts,
                 )
-            try:
-                _ob_build(component_mol)
+                first_trajectory.select(terminal_frame.index)
+            rejections.append(
+                CandidateRejection(component_index, component_attempts, str(exc))
+            )
+            diagnostics = ComplexBuildDiagnostics(
+                attempt_count=total_attempts,
+                accepted_candidates=total_accepted,
+                rejected_candidates=tuple(rejections),
+                elapsed_seconds=time.monotonic() - started,
+                warning_messages=tuple(warning_messages),
+                ligand_untangling=tuple(selected_untangling_reports),
+            )
+            raise ComplexBuildError(
+                f"Component {component_index} failed its single OBBuilder call",
+                diagnostics,
+            ) from exc
+
+        built_coordinates = _copy_coordinates(component_mol.coordinates)
+        if first_trajectory is not None:
+            first_trajectory.record_molecule(
+                component_mol,
+                stage=TrajectoryStage.LIGAND_BUILD,
+                event=TrajectoryEvent.BUILD_COMPLETE,
+                component_index=component_index,
+                attempt=component_attempts,
+            )
+
+        for component_attempts in range(1, max_attempts + 1):
+            if component_attempts == 1:
+                attempt_trajectory = first_trajectory
+            else:
+                total_attempts += 1
+                component_mol.coordinates = built_coordinates
+                attempt_trajectory = start_attempt_trajectory(component_attempts)
+                component_mol.coordinates = _perturbed_coordinates(
+                    built_coordinates,
+                    sigma=perturb_sigma,
+                    rng=rng,
+                )
                 if attempt_trajectory is not None:
                     attempt_trajectory.record_molecule(
                         component_mol,
                         stage=TrajectoryStage.LIGAND_BUILD,
-                        event=TrajectoryEvent.BUILD_COMPLETE,
+                        event=TrajectoryEvent.PERTURBED,
                         component_index=component_index,
                         attempt=component_attempts,
                     )
+            try:
                 warmed = _single_ob_optimization(
                     component_mol,
                     effective_forcefield,
@@ -209,6 +266,7 @@ def _build_ligand_proxies(
 
             accepted_candidate = candidate
             total_accepted += 1
+            break
 
         if accepted_candidate is None and not fallback_candidates:
             diagnostics = ComplexBuildDiagnostics(

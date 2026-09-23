@@ -748,13 +748,19 @@ def test_generic_worker_coordinate_validation_uses_generic_failure_type():
 def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    calls = {"build": 0, "screen": 0, "closest": 0}
+    calls = {"build": 0, "perturb": 0, "screen": 0, "closest": 0}
     ring_sizes = []
 
     def fake_build(current):
         calls["build"] += 1
 
     monkeypatch.setattr(ligand, "_ob_build", fake_build)
+
+    def perturb(coordinates, **kwargs):
+        calls["perturb"] += 1
+        return np.asarray(coordinates).copy()
+
+    monkeypatch.setattr(ligand, "_perturbed_coordinates", perturb)
     monkeypatch.setattr(
         ligand,
         "_single_ob_optimization",
@@ -829,7 +835,7 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         ligand_untangling_attempts=1,
     )
 
-    assert calls == {"build": 3, "screen": 9, "closest": 3}
+    assert calls == {"build": 1, "perturb": 2, "screen": 9, "closest": 3}
     assert ring_sizes == [16] * 9
     assert diagnostics.attempt_count == 3
     assert diagnostics.accepted_candidates == 0
@@ -911,6 +917,7 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     build_calls = 0
+    quality_calls = 0
     first_failure = ff.AcceptanceCheck(
         name="minimum_distance",
         passed=False,
@@ -940,14 +947,15 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _piercing_report(),
     )
-    monkeypatch.setattr(
-        ligand,
-        "evaluate_structure_acceptance",
-        lambda *args, **kwargs: SimpleNamespace(
-            passed=build_calls >= 2,
-            failures=() if build_calls >= 2 else (first_failure,),
-        ),
-    )
+    def quality(*args, **kwargs):
+        nonlocal quality_calls
+        quality_calls += 1
+        return SimpleNamespace(
+            passed=quality_calls >= 2,
+            failures=() if quality_calls >= 2 else (first_failure,),
+        )
+
+    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
 
     _, diagnostics = ligand._build_ligand_proxies(
         molecule,
@@ -958,7 +966,8 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
         effective_forcefield="UFF",
     )
 
-    assert build_calls == 2
+    assert build_calls == 1
+    assert quality_calls == 3
     assert diagnostics.accepted_candidates == 1
     assert diagnostics.warning_messages == ()
 
@@ -1070,7 +1079,7 @@ def test_failed_ligand_build_persists_recorded_attempts(monkeypatch, tmp_path):
     assert restored.ligand_build_attempts[0][0].event is ff.TrajectoryEvent.TERMINAL
 
 
-def test_builder_failures_consume_the_attempt_budget(monkeypatch):
+def test_builder_failure_stops_after_the_single_builder_call(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
     calls = 0
@@ -1097,9 +1106,9 @@ def test_builder_failures_consume_the_attempt_budget(monkeypatch):
             effective_forcefield="UFF",
         )
 
-    assert calls == 3
-    assert caught.value.diagnostics.attempt_count == 3
-    assert len(caught.value.diagnostics.rejected_candidates) == 3
+    assert calls == 1
+    assert caught.value.diagnostics.attempt_count == 1
+    assert len(caught.value.diagnostics.rejected_candidates) == 1
 
 
 def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatch):
@@ -1133,6 +1142,84 @@ def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatc
         )
 
     assert recovery_calls == 0
+
+
+def test_ligand_retries_share_one_built_root_and_record_distinct_branches(
+    monkeypatch,
+):
+    molecule = read_mol("[Zn](N)", "smi")
+    trajectories = []
+    build_inputs = []
+    perturb_inputs = []
+    failure = ff.AcceptanceCheck(
+        name="minimum_distance",
+        passed=False,
+        measured=0.2,
+        threshold=0.4,
+    )
+
+    def build(component_mol):
+        build_inputs.append(component_mol.coordinates.copy())
+        component_mol.coordinates = np.ones_like(component_mol.coordinates)
+
+    def perturb(coordinates, **kwargs):
+        perturb_inputs.append(np.asarray(coordinates).copy())
+        return np.asarray(coordinates) + len(perturb_inputs)
+
+    def untangle(component_mol, *args, **kwargs):
+        return repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=1,
+                attempts_completed=0,
+                initial_piercing_count=0,
+                final_piercing_count=0,
+                minimum_piercing_count=0,
+                resolved=True,
+            ),
+            energy=float(component_mol.coordinates[0, 0]),
+        )
+
+    monkeypatch.setattr(ligand, "_ob_build", build)
+    monkeypatch.setattr(ligand, "_perturbed_coordinates", perturb)
+    monkeypatch.setattr(
+        ligand,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(
+            1.0,
+            "kJ/mol",
+            False,
+        ),
+    )
+    monkeypatch.setattr(ligand, "_untangle_ring_piercings", untangle)
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: SimpleNamespace(
+            passed=False,
+            failures=(failure,),
+        ),
+    )
+
+    ligand._build_ligand_proxies(
+        molecule,
+        max_attempts=3,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+        trajectory_attempts=trajectories,
+    )
+
+    assert len(build_inputs) == 1
+    assert len(perturb_inputs) == 2
+    assert all(np.array_equal(frame, np.ones_like(frame)) for frame in perturb_inputs)
+    events = tuple(
+        frame.event
+        for trajectory in trajectories
+        for frame in trajectory
+    )
+    assert events.count(ff.TrajectoryEvent.BUILD_COMPLETE) == 1
+    assert events.count(ff.TrajectoryEvent.PERTURBED) == 2
 
 
 def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
@@ -1347,7 +1434,8 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
 def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    state = {"build": 0}
+    state = {"build": 0, "proposal": 1}
+    perturb_inputs = []
     failure = ff.AcceptanceCheck(
         name="minimum_distance",
         passed=False,
@@ -1369,6 +1457,11 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
             False,
         )
 
+    def perturb(coordinates, **kwargs):
+        perturb_inputs.append(np.asarray(coordinates).copy())
+        state["proposal"] += 1
+        return np.full_like(coordinates, float(state["proposal"]))
+
     def quality(current, **options):
         return SimpleNamespace(passed=False, failures=(failure,))
 
@@ -1385,10 +1478,13 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
                 minimum_piercing_count=count,
                 resolved=False,
             ),
-            energy={1: 0.0, 2: 10.0, 3: 5.0}[state["build"]],
+            energy={1: 0.0, 2: 10.0, 3: 5.0}[
+                int(current.coordinates[0, 0])
+            ],
         )
 
     monkeypatch.setattr(ligand, "_ob_build", build)
+    monkeypatch.setattr(ligand, "_perturbed_coordinates", perturb)
     monkeypatch.setattr(ligand, "_single_ob_optimization", optimize)
     monkeypatch.setattr(
         ligand,
@@ -1412,6 +1508,9 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
     )
 
     np.testing.assert_array_equal(component.coordinates, np.full((2, 3), 3.0))
+    assert state["build"] == 1
+    assert len(perturb_inputs) == 2
+    assert all(np.array_equal(frame, np.ones((2, 3))) for frame in perturb_inputs)
     assert diagnostics.accepted_candidates == 0
     assert len(diagnostics.rejected_candidates) == 3
     assert diagnostics.ligand_untangling[0].final_piercing_count == 1

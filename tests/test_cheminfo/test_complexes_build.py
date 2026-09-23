@@ -11,6 +11,7 @@ from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import workers
 
 
 def _send_large_worker(connection):
@@ -610,7 +611,7 @@ def test_successful_worker_receives_a_separate_exit_grace_period(monkeypatch):
 def test_ready_sentinel_is_followed_by_bounded_exitcode_refresh(monkeypatch):
     monkeypatch.setattr(ob_backend, "_WORKER_EXIT_GRACE_SECONDS", 0.25)
     monkeypatch.setattr(
-        ff,
+        workers,
         "wait_for_connections",
         lambda objects, timeout: list(objects),
     )
@@ -645,7 +646,7 @@ def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatc
         wait_calls.append((objects, timeout))
         return []
 
-    monkeypatch.setattr(ff, "wait_for_connections", wait_for_exit)
+    monkeypatch.setattr(workers, "wait_for_connections", wait_for_exit)
     diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
     receive_connection = _ReadyConnection(
         ff.BuildWorkerResult(
@@ -1448,8 +1449,8 @@ def test_worker_boundary_serializes_an_exception(monkeypatch):
             self.closed = True
 
     connection = Connection()
-    monkeypatch.setattr(ff, "_build_ligand_proxies", fail)
-    ff._build_ligand_proxies_worker(
+    monkeypatch.setattr(workers, "_build_ligand_proxies", fail)
+    workers._build_ligand_proxies_worker(
         object(),
         connection,
         1,

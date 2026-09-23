@@ -9,7 +9,7 @@ from typing import Optional, TYPE_CHECKING
 
 from openbabel import openbabel as ob
 
-from . import utils as _utils
+from . import workers as _workers
 
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ def _build_ligand_proxies_worker(
     record_ligand_trajectories: bool = False,
 ) -> None:
     """Run the shared ligand-proxy worker with the Open Babel 3.1 RNG."""
-    _utils._run_ligand_proxy_worker(
+    _workers._run_ligand_proxy_worker(
         mol,
         connection,
         max_attempts,
@@ -63,7 +63,7 @@ def _seeded_ob_build_worker(
     seed: int,
 ) -> None:
     """Run the shared OBBuilder worker with the Open Babel 3.1 RNG."""
-    _utils._run_seeded_ob_build_worker(
+    _workers._run_seeded_ob_build_worker(
         mol,
         connection,
         seed,

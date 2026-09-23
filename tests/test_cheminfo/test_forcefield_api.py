@@ -11,6 +11,7 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo import forcefields as ff_api
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields import workers
 from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.core import Molecule
 
@@ -599,11 +600,11 @@ def test_current_seed_worker_uses_backend_seed_adapter(monkeypatch):
             seed_initializer=seed_initializer,
         )
 
-    monkeypatch.setattr(ff, "_run_seeded_ob_build_worker", run_worker)
+    monkeypatch.setattr(workers, "_run_seeded_ob_build_worker", run_worker)
     molecule = object()
     connection = object()
 
-    ff._seeded_ob_build_worker(molecule, connection, 37)
+    workers._seeded_ob_build_worker(molecule, connection, 37)
 
     assert received == {
         "molecule": molecule,
@@ -652,12 +653,12 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
 
         @staticmethod
         def Process(*, target, args):
-            assert target is ff._seeded_ob_build_worker
+            assert target is workers._seeded_ob_build_worker
             assert args == ("worker-mol", send_connection, 43)
             return process
 
-    monkeypatch.setattr(ff, "_make_worker_mol", lambda current: "worker-mol")
-    monkeypatch.setattr(ff.mp, "get_context", lambda method: Context())
+    monkeypatch.setattr(workers, "_make_worker_mol", lambda current: "worker-mol")
+    monkeypatch.setattr(workers.mp, "get_context", lambda method: Context())
 
     def receive(current_process, receive, send, **options):
         calls.append((current_process, receive, send, options))
@@ -666,14 +667,14 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
             coordinates=np.zeros((1, 3)),
         )
 
-    monkeypatch.setattr(ff, "_receive_worker_result", receive)
+    monkeypatch.setattr(workers, "_receive_worker_result", receive)
     molecule = SimpleNamespace(atoms=(object(),))
 
-    coordinates = ff._seeded_ob_build_coordinates(
+    coordinates = workers._seeded_ob_build_coordinates(
         molecule,
         43,
         timeout=4.25,
-        worker_target=ff._seeded_ob_build_worker,
+        worker_target=workers._seeded_ob_build_worker,
     )
 
     np.testing.assert_array_equal(coordinates, np.zeros((1, 3)))

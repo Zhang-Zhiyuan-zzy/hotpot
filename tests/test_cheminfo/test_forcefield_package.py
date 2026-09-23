@@ -142,6 +142,16 @@ OPTIMIZER_COMPATIBILITY_EXPORTS = (
 
 LIGAND_COMPATIBILITY_EXPORTS = ("_build_ligand_proxies",)
 
+WORKER_COMPATIBILITY_EXPORTS = (
+    "_ComplexBuildWorker",
+    "_SeededBuildWorker",
+    "_build_ligand_proxies_worker",
+    "_receive_worker_result",
+    "_seeded_ob_build_coordinates",
+    "_seeded_ob_build_worker",
+    "_validated_worker_coordinates",
+)
+
 
 def _selected_facade_name() -> str:
     if sys.version_info[:2] == (3, 9):
@@ -321,6 +331,14 @@ def test_ligand_workflow_seams_are_reexported_without_wrapping():
 
     for name in LIGAND_COMPATIBILITY_EXPORTS:
         assert getattr(shared, name) is getattr(ligand, name)
+
+
+def test_worker_workflow_seams_are_reexported_without_wrapping():
+    workers = importlib.import_module(f"{PACKAGE_NAME}.workers")
+    shared = importlib.import_module(f"{PACKAGE_NAME}.utils")
+
+    for name in WORKER_COMPATIBILITY_EXPORTS:
+        assert getattr(shared, name) is getattr(workers, name)
 
 
 def test_facades_only_wrap_worker_adapted_workflows():
@@ -527,6 +545,8 @@ assert not hasattr(utils, 'ctypes')
 @pytest.mark.parametrize(
     ("module_name", "worker_name"),
     (
+        (f"{PACKAGE_NAME}.workers", "_build_ligand_proxies_worker"),
+        (f"{PACKAGE_NAME}.workers", "_seeded_ob_build_worker"),
         (f"{PACKAGE_NAME}.utils", "_build_ligand_proxies_worker"),
         (f"{PACKAGE_NAME}.utils", "_seeded_ob_build_worker"),
         (f"{PACKAGE_NAME}.utils39", "_build_ligand_proxies_worker"),

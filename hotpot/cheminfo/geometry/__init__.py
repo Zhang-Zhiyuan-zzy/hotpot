@@ -65,6 +65,7 @@ from .convert import (
     measure_atom_pair_distances,
     point_from_atom,
     scan_bond_ring_relations,
+    screen_bonds_against_rings,
     screen_bond_ring_relations,
     segment_from_bond,
 )
@@ -132,6 +133,7 @@ __all__ = (
     "determine_bond_ring_relation",
     "iter_bond_ring_findings",
     "scan_bond_ring_relations",
+    "screen_bonds_against_rings",
     "screen_bond_ring_relations",
     "determine_bond_ring_piercing_state",
 )

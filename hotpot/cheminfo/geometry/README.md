@@ -196,7 +196,7 @@ for finding in report.piercings:
 | `BondRingScanReport` | frozen generic dataclass | Dense scan report for a selected ring scope |
 | `BondRingScreeningReport` | frozen generic dataclass | Sparse all-pair piercing screen with coverage and AABB counters |
 
-### 2.6 Conversion functions (13 names)
+### 2.6 Conversion functions (14 names)
 
 | Name | Purpose |
 |---|---|
@@ -211,6 +211,7 @@ for finding in report.piercings:
 | `determine_bond_ring_relation` | Classify one chemical Ring × Bond pair |
 | `iter_bond_ring_findings` | Lazily scan Ring × Bond pairs in a requested scope |
 | `scan_bond_ring_relations` | Return a complete dense scan report for a requested scope |
+| `screen_bonds_against_rings` | Screen an explicit bond collection against a requested ring scope |
 | `screen_bond_ring_relations` | Screen a complete scope while retaining only actionable findings |
 | `determine_bond_ring_piercing_state` | Aggregate a whole molecule to a three-state piercing result with early exit |
 
@@ -1558,7 +1559,33 @@ The report covers every selected pair but retains complete findings only for
 `candidate_pair_count`; `aabb_separated_pair_count + exact_pair_count` does as
 well.
 
-### 8.26 `screen_bond_ring_relations`
+### 8.26 `screen_bonds_against_rings`
+
+```python
+def screen_bonds_against_rings(
+    mol: _MoleculeLike[AtomT, BondT, RingT],
+    bonds: Iterable[BondT],
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+Screens only the explicitly supplied bonds against the rings selected from
+`mol`. A supplied bond need not already occur in `mol.bonds`. Ring boundary
+edges are excluded in the same way as in a full molecular scan. The cycle
+AABB is prepared once per ring and reused across the supplied bond batch.
+
+The sparse screen preserves every confirmed `PIERCES` result and retains full
+relations for all `PIERCES` and `UNDETERMINED` pairs. A strictly separated AABB
+is a finite-segment proof of `DOES_NOT_PIERCE`, so sparse screening may resolve
+an extreme-scale pair that the pair-local dense numerical kernel reports as
+`UNDETERMINED`. It intentionally does not preserve non-piercing auxiliary
+facts such as an infinite-line extension crossing; use the dense API when
+those facts are required.
+
+### 8.27 `screen_bond_ring_relations`
 
 ```python
 def screen_bond_ring_relations(
@@ -1571,6 +1598,7 @@ def screen_bond_ring_relations(
 ```
 
 Screens the complete requested Ring × Bond scope with a guarded AABB broad
-phase, falling back to the complete relation kernel whenever separation is not
-strictly proven. Use `scan_bond_ring_relations()` when complete evidence for
-every non-piercing pair is required.
+phase by forwarding `mol.bonds` to `screen_bonds_against_rings()`. It falls
+back to the complete relation kernel whenever separation is not strictly
+proven. Use `scan_bond_ring_relations()` when complete evidence for every
+non-piercing pair is required.

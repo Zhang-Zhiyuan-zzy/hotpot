@@ -179,7 +179,7 @@ for finding in report.piercings:
 | `BondRingScanReport` | frozen generic dataclass | 指定环范围内的稠密扫描报告 |
 | `BondRingScreeningReport` | frozen generic dataclass | 含覆盖范围和 AABB 计数的稀疏全范围筛查报告 |
 
-### 2.6 转换函数（13 项）
+### 2.6 转换函数（14 项）
 
 | 名称 | 作用 |
 |---|---|
@@ -194,6 +194,7 @@ for finding in report.piercings:
 | `determine_bond_ring_relation` | 判定一个化学 Ring × Bond 对 |
 | `iter_bond_ring_findings` | 惰性扫描指定范围内的 Ring × Bond 对 |
 | `scan_bond_ring_relations` | 返回指定范围内的完整稠密扫描报告 |
+| `screen_bonds_against_rings` | 将显式给定的键集合与指定环范围进行筛查 |
 | `screen_bond_ring_relations` | 覆盖完整范围但只保留需处理 finding 的筛查报告 |
 | `determine_bond_ring_piercing_state` | 早退式聚合整个分子的穿环三态 |
 
@@ -1438,7 +1439,30 @@ BondRingScreeningReport[RingT, BondT](
 报告覆盖全部已选 pair，但只为 `PIERCES` 和 `UNDETERMINED` 保留完整 finding。三态计数之和
 以及 AABB/精确路径计数之和都必须等于 `candidate_pair_count`。
 
-### 8.26 `screen_bond_ring_relations`
+### 8.26 `screen_bonds_against_rings`
+
+```python
+def screen_bonds_against_rings(
+    mol: _MoleculeLike[AtomT, BondT, RingT],
+    bonds: Iterable[BondT],
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+只将显式给出的键与从 `mol` 选出的环进行筛查。给定键无需已经存在于
+`mol.bonds`；环自身的边仍与全分子扫描一样被排除。每个环的 AABB 只准备一次，
+并由整批给定键复用。
+
+稀疏筛查保留全部已确认的 `PIERCES`，并为 `PIERCES` 与 `UNDETERMINED` pair
+保留完整 relation。严格分离的 AABB 是有限线段 `DOES_NOT_PIERCE` 的证明；因此在
+极端尺度下，稀疏筛查可能把受 pair-local 数值宽容影响而由稠密内核返回的
+`UNDETERMINED` 确定为 `DOES_NOT_PIERCE`。稀疏筛查有意不保留无限延长线穿越等
+不穿环辅助事实；需要这些事实时应使用稠密 API。
+
+### 8.27 `screen_bond_ring_relations`
 
 ```python
 def screen_bond_ring_relations(
@@ -1450,5 +1474,6 @@ def screen_bond_ring_relations(
 ) -> BondRingScreeningReport[RingT, BondT]
 ```
 
-对请求的完整 Ring × Bond 范围执行带保护宽容的 AABB broad phase；不能严格证明分离时回退
-完整关系内核。需要每个不穿环 pair 的完整证据时，应使用 `scan_bond_ring_relations()`。
+将 `mol.bonds` 转发给 `screen_bonds_against_rings()`，对请求的完整 Ring × Bond
+范围执行带保护宽容的 AABB broad phase；不能严格证明分离时回退完整关系内核。
+需要每个不穿环 pair 的完整证据时，应使用 `scan_bond_ring_relations()`。

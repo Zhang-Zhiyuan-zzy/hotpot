@@ -59,6 +59,7 @@ __all__ = (
     "determine_bond_ring_relation",
     "iter_bond_ring_findings",
     "scan_bond_ring_relations",
+    "screen_bonds_against_rings",
     "screen_bond_ring_relations",
     "determine_bond_ring_piercing_state",
 )
@@ -391,8 +392,8 @@ def _iter_bond_ring_findings_from_rings(
 
 
 def _iter_bond_ring_screenings_from_rings(
-        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         rings: Sequence[RingSourceT],
+        bonds: Iterable[BondSourceT],
         settings: GeometrySettings,
 ) -> Iterator[
     Tuple[
@@ -403,14 +404,14 @@ def _iter_bond_ring_screenings_from_rings(
         bool,
     ]
 ]:
-    bonds = tuple(sorted(mol.bonds, key=_bond_key))
+    sorted_bonds = tuple(sorted(bonds, key=_bond_key))
     for ring in rings:
         ring_geometry = RingGeometry(
             ring=ring,
             cycle=cycle_from_ring(ring),
             key=_ring_key(ring),
         )
-        targets = _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
+        targets = _iter_bond_ring_targets_for_ring(ring_geometry, sorted_bonds)
         finding_targets, screening_targets = tee(targets)
         screenings = iter_segment_cycle_screenings(
             (target.bond.segment for target in screening_targets),
@@ -610,14 +611,15 @@ def scan_bond_ring_relations(
     )
 
 
-def screen_bond_ring_relations(
+def screen_bonds_against_rings(
         mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
+        bonds: Iterable[BondSourceT],
         *,
         ring_scope: RingScope,
         max_ring_size: int,
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> BondRingScreeningReport[RingSourceT, BondSourceT]:
-    """Screen every selected bond--ring pair while retaining actionable facts."""
+    """Screen explicit bonds against selected rings with strict AABB culling."""
     selected_rings, excluded_ring_count = _selected_rings(
         mol,
         ring_scope,
@@ -631,7 +633,7 @@ def screen_bond_ring_relations(
     undetermined_pair_count = 0
     scan_complete = True
     for target, state, relation, aabb_separated, surface_complete in (
-        _iter_bond_ring_screenings_from_rings(mol, selected_rings, settings)
+        _iter_bond_ring_screenings_from_rings(selected_rings, bonds, settings)
     ):
         candidate_pair_count += 1
         aabb_separated_pair_count += aabb_separated
@@ -664,6 +666,23 @@ def screen_bond_ring_relations(
     )
 
 
+def screen_bond_ring_relations(
+        mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
+        *,
+        ring_scope: RingScope,
+        max_ring_size: int,
+        settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningReport[RingSourceT, BondSourceT]:
+    """Screen all molecular bonds against the selected ring scope."""
+    return screen_bonds_against_rings(
+        mol,
+        mol.bonds,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+        settings=settings,
+    )
+
+
 def determine_bond_ring_piercing_state(
         mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
         *,
@@ -675,8 +694,8 @@ def determine_bond_ring_piercing_state(
     selected_rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
     aggregate = PiercingState.DOES_NOT_PIERCE
     for _, state, _, _, _ in _iter_bond_ring_screenings_from_rings(
-        mol,
         selected_rings,
+        mol.bonds,
         settings,
     ):
         if state is PiercingState.PIERCES:

@@ -3,6 +3,7 @@ from dataclasses import replace
 
 import pytest
 
+from hotpot.cheminfo.geometry import relation as relation_module
 from hotpot.cheminfo.geometry.object import Cycle, Segment
 from hotpot.cheminfo.geometry.relation import (
     CycleSurfaceModel,
@@ -102,6 +103,32 @@ def test_aabb_screening_proves_far_planar_segment_does_not_pierce(square):
     assert screening.surface_complete
     assert screening.relation is None
     assert relation.state is PiercingState.DOES_NOT_PIERCE
+
+
+def test_aabb_screening_reuses_one_cycle_bound_for_a_segment_batch(
+        square,
+        monkeypatch,
+):
+    calls = []
+    original_aabb_bounds = relation_module._aabb_bounds
+
+    def counted_aabb_bounds(coordinates):
+        calls.append(coordinates)
+        return original_aabb_bounds(coordinates)
+
+    monkeypatch.setattr(relation_module, "_aabb_bounds", counted_aabb_bounds)
+    screenings = tuple(iter_segment_cycle_screenings(
+        (
+            Segment((10, 10, 0), (11, 10, 0)),
+            Segment((12, 10, 0), (13, 10, 0)),
+            Segment((14, 10, 0), (15, 10, 0)),
+        ),
+        square,
+    ))
+
+    assert len(calls) == 1
+    assert len(screenings) == 3
+    assert all(screening.aabb_separated for screening in screenings)
 
 
 def test_dense_relation_keeps_line_extension_fact_skipped_by_aabb_screening(square):

@@ -584,22 +584,28 @@ def _aabb_stably_separated(
     )
 
 
+def _aabb_bounds(coordinates: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    return np.min(coordinates, axis=0), np.max(coordinates, axis=0)
+
+
 def _segment_cycle_aabbs_stably_separated(
     segment: Segment,
-    cycle: Cycle,
+    cycle_bounds: Tuple[np.ndarray, np.ndarray],
     padding: float,
 ) -> bool:
     """Return whether guarded finite-segment and cycle bounds are disjoint."""
-    return _aabb_stably_separated(
-        np.asarray(
-            (segment.start.coordinates, segment.end.coordinates),
-            dtype=np.float64,
-        ),
-        np.asarray(
-            [vertex.coordinates for vertex in cycle.vertices],
-            dtype=np.float64,
-        ),
-        padding,
+    segment_coordinates = np.asarray(
+        (segment.start.coordinates, segment.end.coordinates),
+        dtype=np.float64,
+    )
+    segment_minimum = np.min(segment_coordinates, axis=0)
+    segment_maximum = np.max(segment_coordinates, axis=0)
+    cycle_minimum, cycle_maximum = cycle_bounds
+    return bool(
+        np.any(
+            (segment_maximum + padding < cycle_minimum)
+            | (cycle_maximum + padding < segment_minimum)
+        )
     )
 
 
@@ -1994,6 +2000,10 @@ def iter_segment_cycle_screenings(
     cases continue through the complete relation kernel.
     """
 
+    cycle_coordinates = np.asarray(
+        [vertex.coordinates for vertex in cycle.vertices], dtype=np.float64
+    )
+    cycle_bounds = _aabb_bounds(cycle_coordinates)
     planarity = measure_planarity(cycle, settings)
     planar_simplicity: Optional[_PolygonSimplicity] = None
     if planarity.kind is PlanarityKind.PLANAR:
@@ -2002,7 +2012,7 @@ def iter_segment_cycle_screenings(
         normal = np.asarray(planarity.normal, dtype=np.float64)
         origin = _point_array(planarity.centroid)
         polygon = _project_to_plane(
-            np.asarray([vertex.coordinates for vertex in cycle.vertices]),
+            cycle_coordinates,
             origin,
             normal,
         )
@@ -2048,7 +2058,7 @@ def iter_segment_cycle_screenings(
             (planar_surface_is_valid or nonplanar_surface_is_valid)
             and _segment_cycle_aabbs_stably_separated(
                 segment,
-                cycle,
+                cycle_bounds,
                 tolerances.aabb,
             )
         ):

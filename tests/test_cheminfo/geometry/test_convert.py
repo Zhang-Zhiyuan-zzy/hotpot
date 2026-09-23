@@ -357,6 +357,69 @@ def test_screening_report_covers_all_pairs_and_retains_only_actionable_findings(
     assert report.scan_complete
 
 
+def test_explicit_bond_screen_includes_bond_absent_from_molecular_bond_table(
+        square_molecule: FakeMolecule,
+) -> None:
+    crossing_bond = square_molecule.bonds[-1]
+    molecule_without_crossing_bond = FakeMolecule(
+        atoms=square_molecule.atoms,
+        bonds=square_molecule.bonds[:-1],
+        rings_by_scope=square_molecule.rings_by_scope,
+    )
+
+    report = convert.screen_bonds_against_rings(
+        molecule_without_crossing_bond,
+        (crossing_bond,),
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert report.candidate_pair_count == 1
+    assert report.piercing_pair_count == 1
+    assert report.piercings[0].target.bond.bond is crossing_bond
+
+
+def test_explicit_bond_screen_excludes_ring_edges_and_counts_aabb_paths(
+        square_molecule: FakeMolecule,
+) -> None:
+    far_atoms = (
+        FakeAtom(7, (10.0, 10.0, 3.0)),
+        FakeAtom(8, (11.0, 10.0, 3.0)),
+    )
+    far_bond = FakeBond(*far_atoms)
+
+    report = convert.screen_bonds_against_rings(
+        square_molecule,
+        (square_molecule.bonds[0], square_molecule.bonds[-1], far_bond),
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert report.candidate_pair_count == 2
+    assert report.piercing_pair_count == 1
+    assert report.does_not_pierce_pair_count == 1
+    assert report.aabb_separated_pair_count == 1
+    assert report.exact_pair_count == 1
+
+
+def test_full_molecule_screen_wraps_explicit_bond_screen(
+        square_molecule: FakeMolecule,
+) -> None:
+    explicit_report = convert.screen_bonds_against_rings(
+        square_molecule,
+        square_molecule.bonds,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+    full_report = convert.screen_bond_ring_relations(
+        square_molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert full_report == explicit_report
+
+
 def test_dense_scan_is_incomplete_when_surface_enumeration_is_incomplete(
         square_molecule: FakeMolecule,
         monkeypatch: pytest.MonkeyPatch,

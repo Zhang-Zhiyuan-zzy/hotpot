@@ -254,6 +254,15 @@ class BondRingScreeningReport(Generic[RingSourceT, BondSourceT]):
     scan_complete: bool
 
     @property
+    def state(self) -> PiercingState:
+        """Return the aggregate three-state result for the screened scope."""
+        if self.piercing_pair_count:
+            return PiercingState.PIERCES
+        if self.undetermined_pair_count:
+            return PiercingState.UNDETERMINED
+        return PiercingState.DOES_NOT_PIERCE
+
+    @property
     def piercings(
             self,
     ) -> Tuple[BondRingFinding[RingSourceT, BondSourceT], ...]:
@@ -663,8 +672,8 @@ def determine_bond_ring_piercing_state(
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> PiercingState:
     """Return a lazy aggregate, stopping at the first confirmed piercing."""
-    aggregate = PiercingState.DOES_NOT_PIERCE
     selected_rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
+    aggregate = PiercingState.DOES_NOT_PIERCE
     for _, state, _, _, _ in _iter_bond_ring_screenings_from_rings(
         mol,
         selected_rings,

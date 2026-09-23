@@ -316,6 +316,11 @@ def _bond_ring_finding(ring, bond):
 
 def _piercing_report(*ring_bond_pairs):
     return SimpleNamespace(
+        state=(
+            geo.PiercingState.PIERCES
+            if ring_bond_pairs
+            else geo.PiercingState.DOES_NOT_PIERCE
+        ),
         piercings=tuple(
             _bond_ring_finding(ring, bond)
             for ring, bond in ring_bond_pairs
@@ -743,8 +748,8 @@ def test_generic_worker_coordinate_validation_uses_generic_failure_type():
 def test_candidate_attempts_are_bounded_and_use_geometry_relations(monkeypatch):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    calls = {"build": 0, "lazy": 0, "dense": 0, "closest": 0}
-    ring_sizes = {"lazy": [], "dense": []}
+    calls = {"build": 0, "screen": 0, "closest": 0}
+    ring_sizes = []
 
     def fake_build(current):
         calls["build"] += 1
@@ -762,14 +767,9 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         lambda mol, **options: object(),
     )
 
-    def piercing_state(*args, **kwargs):
-        calls["lazy"] += 1
-        ring_sizes["lazy"].append(kwargs["max_ring_size"])
-        return geo.PiercingState.PIERCES
-
-    def scan_relations(*args, **kwargs):
-        calls["dense"] += 1
-        ring_sizes["dense"].append(kwargs["max_ring_size"])
+    def screen_relations(*args, **kwargs):
+        calls["screen"] += 1
+        ring_sizes.append(kwargs["max_ring_size"])
         return _piercing_report(("ring", "probe"))
 
     def closest(*args, **kwargs):
@@ -784,12 +784,7 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         atom_indices=(3, 4),
         bond_indices=(2,),
     )
-    monkeypatch.setattr(
-        geo,
-        "determine_bond_ring_piercing_state",
-        piercing_state,
-    )
-    monkeypatch.setattr(geo, "scan_bond_ring_relations", scan_relations)
+    monkeypatch.setattr(geo, "screen_bond_ring_relations", screen_relations)
     monkeypatch.setattr(repair, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
         ligand,
@@ -815,8 +810,8 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         ligand_untangling_attempts=1,
     )
 
-    assert calls == {"build": 3, "lazy": 9, "dense": 9, "closest": 3}
-    assert ring_sizes == {"lazy": [16] * 9, "dense": [16] * 9}
+    assert calls == {"build": 3, "screen": 9, "closest": 3}
+    assert ring_sizes == [16] * 9
     assert diagnostics.attempt_count == 3
     assert diagnostics.accepted_candidates == 0
     assert len(diagnostics.rejected_candidates) == 3
@@ -843,7 +838,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
 ):
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    calls = {"lazy": 0, "acceptance": 0}
+    calls = {"screen": 0, "acceptance": 0}
 
     monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
     monkeypatch.setattr(
@@ -858,9 +853,11 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
 
-    def determine_state(*args, **kwargs):
-        calls["lazy"] += 1
-        return piercing_state
+    def screen_relations(*args, **kwargs):
+        calls["screen"] += 1
+        report = _piercing_report()
+        report.state = piercing_state
+        return report
 
     def accept(*args, **kwargs):
         calls["acceptance"] += 1
@@ -868,15 +865,8 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
 
     monkeypatch.setattr(
         geo,
-        "determine_bond_ring_piercing_state",
-        determine_state,
-    )
-    monkeypatch.setattr(
-        geo,
-        "scan_bond_ring_relations",
-        lambda *args, **kwargs: pytest.fail(
-            "a non-piercing aggregate triggered the dense scan"
-        ),
+        "screen_bond_ring_relations",
+        screen_relations,
     )
     monkeypatch.setattr(ligand, "evaluate_structure_acceptance", accept)
 
@@ -892,7 +882,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     np.testing.assert_array_equal(coordinates, molecule.coordinates)
     assert diagnostics.accepted_candidates == 1
     assert diagnostics.rejected_candidates == ()
-    assert calls == {"lazy": 3, "acceptance": 2}
+    assert calls == {"screen": 3, "acceptance": 2}
     assert component.hidden == []
 
 
@@ -928,8 +918,8 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         geo,
-        "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
+        "screen_bond_ring_relations",
+        lambda *args, **kwargs: _piercing_report(),
     )
     monkeypatch.setattr(
         ligand,
@@ -979,8 +969,8 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         geo,
-        "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
+        "screen_bond_ring_relations",
+        lambda *args, **kwargs: _piercing_report(),
     )
     monkeypatch.setattr(
         ligand,
@@ -1152,8 +1142,8 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
     )
     monkeypatch.setattr(
         geo,
-        "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
+        "screen_bond_ring_relations",
+        lambda *args, **kwargs: _piercing_report(),
     )
     monkeypatch.setattr(
         ligand,
@@ -1212,8 +1202,8 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
     )
     monkeypatch.setattr(
         geo,
-        "determine_bond_ring_piercing_state",
-        lambda *args, **kwargs: geo.PiercingState.DOES_NOT_PIERCE,
+        "screen_bond_ring_relations",
+        lambda *args, **kwargs: _piercing_report(),
     )
 
     def quality(*args, **kwargs):
@@ -1287,24 +1277,17 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         lambda mol, **options: object(),
     )
 
-    def piercing_state(*args, **kwargs):
+    def screen_relations(*args, **kwargs):
         nonlocal relation_calls
         relation_calls += 1
-        return (
-            geo.PiercingState.DOES_NOT_PIERCE
-            if relation_calls <= 2
-            else geo.PiercingState.PIERCES
+        return _piercing_report(
+            *(("ring", "probe"),) if relation_calls > 2 else ()
         )
 
     monkeypatch.setattr(
         geo,
-        "determine_bond_ring_piercing_state",
-        piercing_state,
-    )
-    monkeypatch.setattr(
-        geo,
-        "scan_bond_ring_relations",
-        lambda *args, **kwargs: _piercing_report(("ring", "probe")),
+        "screen_bond_ring_relations",
+        screen_relations,
     )
     monkeypatch.setattr(
         ligand,

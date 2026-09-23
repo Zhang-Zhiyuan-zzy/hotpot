@@ -128,7 +128,7 @@ def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch)
 
     monkeypatch.setattr(
         acceptance_policy.geo,
-        "scan_bond_ring_relations",
+        "screen_bond_ring_relations",
         scan_relations,
     )
 
@@ -264,7 +264,7 @@ def test_confirmed_bond_ring_piercing_fails_acceptance(monkeypatch):
 
     monkeypatch.setattr(
         geo,
-        "scan_bond_ring_relations",
+        "screen_bond_ring_relations",
         scan_relations,
     )
 
@@ -283,7 +283,7 @@ def test_confirmed_bond_ring_piercing_fails_acceptance(monkeypatch):
 def test_undetermined_bond_ring_relation_warns_without_rejection(monkeypatch):
     monkeypatch.setattr(
         geo,
-        "scan_bond_ring_relations",
+        "screen_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.UNDETERMINED
         ),
@@ -305,7 +305,7 @@ def test_undetermined_bond_ring_relation_warns_without_rejection(monkeypatch):
 def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
     monkeypatch.setattr(
         geo,
-        "scan_bond_ring_relations",
+        "screen_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.DOES_NOT_PIERCE,
             excluded_ring_count=2,
@@ -329,7 +329,7 @@ def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
 def test_complete_ring_scope_has_no_coverage_warning(monkeypatch):
     monkeypatch.setattr(
         geo,
-        "scan_bond_ring_relations",
+        "screen_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.DOES_NOT_PIERCE,
             excluded_ring_count=0,

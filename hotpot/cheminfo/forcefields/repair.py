@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -48,7 +48,10 @@ class _CoordinationRelationCounts:
 
 
 def _piercing_count(
-    report: Optional["geo.BondRingScanReport[Ring, Bond]"],
+    report: Optional[Union[
+        "geo.BondRingScanReport[Ring, Bond]",
+        "geo.BondRingScreeningReport[Ring, Bond]",
+    ]],
 ) -> int:
     """Return the confirmed piercing count of an optional geometry scan."""
     return 0 if report is None else len(report.piercings)
@@ -107,26 +110,26 @@ def _scan_confirmed_ring_piercings(
     ring_scope: geo.RingScope,
 ) -> Tuple[
     geo.PiercingState,
-    Optional["geo.BondRingScanReport[Ring, Bond]"],
+    Optional["geo.BondRingScreeningReport[Ring, Bond]"],
 ]:
-    """Return a dense report only when a confirmed piercing needs repair."""
-    state = geo.determine_bond_ring_piercing_state(
+    """Return one sparse full-scope screen when piercing needs repair."""
+    report = geo.screen_bond_ring_relations(
         mol,
         ring_scope=ring_scope,
         max_ring_size=_BOND_RING_MAX_SIZE,
     )
+    state = report.state
     if state is not geo.PiercingState.PIERCES:
         return state, None
-    return state, geo.scan_bond_ring_relations(
-        mol,
-        ring_scope=ring_scope,
-        max_ring_size=_BOND_RING_MAX_SIZE,
-    )
+    return state, report
 
 
 def _first_openable_ring_edge(
     mol: "Molecule",
-    report: "geo.BondRingScanReport[Ring, Bond]",
+    report: Union[
+        "geo.BondRingScanReport[Ring, Bond]",
+        "geo.BondRingScreeningReport[Ring, Bond]",
+    ],
 ) -> Optional["Bond"]:
     """Choose one deterministic ring edge for the next repair attempt."""
     for finding in report.piercings:
@@ -195,7 +198,10 @@ def _untangle_ring_piercings(
         *,
         energy: Optional[float] = None,
         state: Optional[geo.PiercingState] = None,
-        report: Optional["geo.BondRingScanReport[Ring, Bond]"] = None,
+        report: Optional[Union[
+            "geo.BondRingScanReport[Ring, Bond]",
+            "geo.BondRingScreeningReport[Ring, Bond]",
+        ]] = None,
         confirmed_piercing_count: Optional[int] = None,
         attempt: Optional[int] = None,
     ) -> Optional[int]:

@@ -12,6 +12,7 @@ from typing import (
     Tuple,
     TYPE_CHECKING,
     TypedDict,
+    Union,
 )
 
 import numpy as np
@@ -499,7 +500,10 @@ def _coordination_metrics(
 
 def _bond_ring_acceptance_checks(
     mol: "Molecule",
-    report: "geo.BondRingScanReport[Ring, Bond]",
+    report: Union[
+        "geo.BondRingScanReport[Ring, Bond]",
+        "geo.BondRingScreeningReport[Ring, Bond]",
+    ],
 ) -> Tuple[AcceptanceCheck, ...]:
     bond_positions = {
         _bond_key(candidate): index
@@ -806,7 +810,7 @@ def _bond_ring_coordination_acceptance_section(
     dict[str, ForceFieldDiagnosticValue],
 ]:
     """Return bond-ring checks and coordination-environment metrics."""
-    bond_ring_report = geo.scan_bond_ring_relations(
+    bond_ring_report = geo.screen_bond_ring_relations(
         mol,
         ring_scope="ligand_skeleton",
         max_ring_size=_BOND_RING_MAX_SIZE,

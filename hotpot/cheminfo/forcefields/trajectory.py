@@ -404,7 +404,7 @@ class ForceFieldTrajectory:
         mol.conformer_load(materialized_index)
 
     def write(self, path: Union[str, Path], *, include_sdf: bool = True) -> None:
-        """Write a lossless JSON/NPZ record and an optional topology-aware SDF."""
+        """Write with single-writer failure-atomic directory publication."""
         _TrajectoryWriter.write_trajectory(Path(path), self, include_sdf=include_sdf)
 
     @classmethod
@@ -483,7 +483,7 @@ class ForceFieldTrajectoryArchive:
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
 
     def write(self, path: Union[str, Path], *, include_sdf: bool = True) -> None:
-        """Write the main trajectory and every independent build branch."""
+        """Write every branch with single-writer failure-atomic publication."""
         _TrajectoryWriter.write_archive(Path(path), self, include_sdf=include_sdf)
 
     @classmethod
@@ -512,7 +512,7 @@ class _TrajectoryWriter:
             )
             cls._publish_directory(staging_directory, directory)
         finally:
-            cls._remove_path(staging_directory)
+            cls._best_effort_remove(staging_directory)
 
     @classmethod
     def _write_trajectory_tree(
@@ -614,7 +614,7 @@ class _TrajectoryWriter:
             )
             cls._publish_directory(staging_directory, directory)
         finally:
-            cls._remove_path(staging_directory)
+            cls._best_effort_remove(staging_directory)
 
     @classmethod
     def _write_archive_tree(
@@ -661,7 +661,11 @@ class _TrajectoryWriter:
 
     @classmethod
     def _publish_directory(cls, staging_directory: Path, directory: Path) -> None:
-        """Publish one complete tree with single-writer failure atomicity."""
+        """Publish one complete tree with single-writer failure atomicity.
+
+        This protects the target from ordinary serialization and publication
+        failures.  It is not a crash-durability or concurrent-reader protocol.
+        """
         backup_directory: Optional[Path] = None
         if directory.exists():
             backup_directory = cls._make_sibling_directory(directory, "backup")
@@ -674,9 +678,17 @@ class _TrajectoryWriter:
             if backup_directory is not None:
                 backup_directory.replace(directory)
             raise
-        finally:
-            if backup_directory is not None and directory.exists():
-                cls._remove_path(backup_directory)
+        else:
+            if backup_directory is not None:
+                cls._best_effort_remove(backup_directory)
+
+    @classmethod
+    def _best_effort_remove(cls, path: Path) -> None:
+        """Remove a temporary path without changing the operation's outcome."""
+        try:
+            cls._remove_path(path)
+        except OSError:
+            pass
 
     @staticmethod
     def _remove_path(path: Path) -> None:

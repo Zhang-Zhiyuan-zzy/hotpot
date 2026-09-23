@@ -19,6 +19,7 @@ from hotpot.cheminfo.forcefields.trajectory import (
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,
+    _TrajectoryWriter,
 )
 
 
@@ -371,6 +372,63 @@ def test_failed_archive_publish_restores_the_existing_archive(
 
     assert _directory_contents(path) == original_contents
     assert _publish_temporary_paths(path) == ()
+
+
+def test_backup_cleanup_failure_does_not_turn_a_successful_publish_into_failure(
+    tmp_path,
+    monkeypatch,
+):
+    _, main, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory_archive"
+    ForceFieldTrajectoryArchive(main).write(path, include_sdf=True)
+    original_remove_path = _TrajectoryWriter._remove_path
+
+    def fail_backup_cleanup(temporary_path):
+        if ".backup-" in temporary_path.name:
+            raise PermissionError("backup cleanup failed")
+        original_remove_path(temporary_path)
+
+    monkeypatch.setattr(
+        _TrajectoryWriter,
+        "_remove_path",
+        staticmethod(fail_backup_cleanup),
+    )
+
+    ForceFieldTrajectoryArchive(main).write(path, include_sdf=False)
+
+    assert not (path / "main" / "trajectory.sdf").exists()
+    assert ForceFieldTrajectoryArchive.read(path).main.frames == main.frames
+    assert any(".backup-" in item.name for item in _publish_temporary_paths(path))
+
+
+def test_staging_cleanup_failure_does_not_mask_the_serialization_failure(
+    tmp_path,
+    monkeypatch,
+):
+    _, trajectory, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory"
+    original_remove_path = _TrajectoryWriter._remove_path
+
+    def fail_to_write_coordinates(*args, **kwargs):
+        raise RuntimeError("coordinate serialization failed")
+
+    def fail_staging_cleanup(temporary_path):
+        if ".staging-" in temporary_path.name:
+            raise PermissionError("staging cleanup failed")
+        original_remove_path(temporary_path)
+
+    monkeypatch.setattr(np, "savez_compressed", fail_to_write_coordinates)
+    monkeypatch.setattr(
+        _TrajectoryWriter,
+        "_remove_path",
+        staticmethod(fail_staging_cleanup),
+    )
+
+    with pytest.raises(RuntimeError, match="coordinate serialization failed"):
+        trajectory.write(path)
+
+    assert not path.exists()
+    assert any(".staging-" in item.name for item in _publish_temporary_paths(path))
 
 
 def test_sdf_uses_the_topology_of_each_frame(tmp_path):

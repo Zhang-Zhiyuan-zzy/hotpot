@@ -1,7 +1,8 @@
 """Behavioral tests for the private scalar prepared-cycle seam."""
 
-from typing import Callable, Iterator, Union
+from typing import Callable, Iterator, Optional, Union
 
+import numpy as np
 import pytest
 
 from hotpot.cheminfo.geometry import relation
@@ -126,8 +127,114 @@ def test_prepared_cycle_owns_read_only_coordinate_facts() -> None:
 
     assert not prepared_cycle.coordinates.flags.writeable
     assert all(not bound.flags.writeable for bound in prepared_cycle.bounds)
+    assert not prepared_cycle.edge_coordinates.flags.writeable
+    assert prepared_cycle.planar_projection is not None
+    assert not prepared_cycle.planar_projection.flags.writeable
     with pytest.raises(ValueError):
         prepared_cycle.coordinates[0, 0] = 1.0
+
+
+def test_nonplanar_preparation_reuses_one_cycle_coordinate_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cycle = Cycle(
+        ((0.0, 0.0, 0.0), (2.0, 0.0, 0.0), (2.0, 2.0, 0.4), (0.0, 2.0, 0.0))
+    )
+    original_prepare = relation._prepare_nonplanar_surface_family
+    coordinate_snapshots = []
+
+    def recorded_prepare(
+        cycle: Cycle,
+        settings: GeometrySettings,
+        coordinates: Optional[np.ndarray] = None,
+    ):
+        coordinate_snapshots.append(coordinates)
+        return original_prepare(cycle, settings, coordinates)
+
+    monkeypatch.setattr(
+        relation,
+        "_prepare_nonplanar_surface_family",
+        recorded_prepare,
+    )
+
+    prepared_cycle = relation._prepare_cycle_geometry(
+        cycle,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    )
+
+    assert len(coordinate_snapshots) == 1
+    assert coordinate_snapshots[0] is prepared_cycle.coordinates
+
+
+def test_unique_triangle_facts_are_reused_and_read_only() -> None:
+    cycle = Cycle(tuple(
+        (
+            2.0 * np.cos(index * np.pi / 4.0),
+            2.0 * np.sin(index * np.pi / 4.0),
+            0.2 if index % 2 else -0.15,
+        )
+        for index in range(8)
+    ))
+
+    prepared_cycle = relation._prepare_cycle_geometry(
+        cycle,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    )
+    family = prepared_cycle.nonplanar_surface_family
+
+    assert family is not None
+    assert len(family.unique_triangles) == 56
+    unique_ids = {id(triangle) for triangle in family.unique_triangles}
+    assert all(
+        id(triangle) in unique_ids
+        for surface in family.embedded_surfaces
+        for triangle in surface.triangles
+    )
+    for triangle in family.unique_triangles:
+        assert not triangle.coordinates.flags.writeable
+        assert not triangle.normal.flags.writeable
+        assert all(not bound.flags.writeable for bound in triangle.bounds)
+        assert all(not edge.coordinates.flags.writeable for edge in triangle.edges)
+
+
+def test_batched_aabb_mask_matches_scalar_bounds_predicate() -> None:
+    rng = np.random.default_rng(147)
+    cycle = Cycle(
+        ((0.0, 0.0, 0.0), (2.0, 0.0, 0.0), (2.0, 2.0, 0.0), (0.0, 2.0, 0.0))
+    )
+    prepared_cycle = relation._prepare_cycle_geometry(
+        cycle,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    )
+    segments = tuple(
+        Segment(rng.normal(size=3), rng.normal(size=3))
+        for _ in range(64)
+    )
+    queries = tuple(
+        relation._prepare_segment_cycle_query(
+            segment,
+            cycle,
+            relation.DEFAULT_GEOMETRY_SETTINGS,
+        )
+        for segment in segments
+    )
+
+    batch = relation._segment_cycle_aabb_separation_mask(
+        queries,
+        prepared_cycle.bounds,
+    )
+    scalar = np.asarray([
+        relation._bounds_stably_separated(
+            query.geometry.bounds,
+            prepared_cycle.bounds,
+            query.tolerances.aabb,
+        )
+        if not query.causes and query.tolerances is not None
+        else False
+        for query in queries
+    ])
+
+    assert np.array_equal(batch, scalar)
 
 
 def test_prepared_aabb_does_not_hide_an_invalid_cycle() -> None:

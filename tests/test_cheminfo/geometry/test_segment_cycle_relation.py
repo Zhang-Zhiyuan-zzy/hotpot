@@ -378,10 +378,10 @@ def test_batch_relations_prepare_nonplanar_surface_once(monkeypatch):
     prepare = relation_module._prepare_nonplanar_surface_family
     calls = 0
 
-    def counted_prepare(cycle, settings):
+    def counted_prepare(cycle, settings, coordinates=None):
         nonlocal calls
         calls += 1
-        return prepare(cycle, settings)
+        return prepare(cycle, settings, coordinates)
 
     monkeypatch.setattr(
         relation_module, "_prepare_nonplanar_surface_family", counted_prepare

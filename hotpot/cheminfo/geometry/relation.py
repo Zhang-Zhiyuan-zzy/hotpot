@@ -261,21 +261,66 @@ class _CycleTopologyTemplate:
     """Immutable, coordinate-free topology shared by equal-sized cycles."""
 
     triangulations: Tuple[_SurfaceIndices, ...]
+    unique_triangles: Tuple[_TriangleIndices, ...]
+    surface_triangle_positions: Tuple[Tuple[int, ...], ...]
     internal_edges: Tuple[Tuple[_EdgeIndices, ...], ...]
     triangle_pairs: Tuple[Tuple[Tuple[int, int], ...], ...]
     shared_simplices: Tuple[Tuple[Tuple[int, ...], ...], ...]
 
 
 @dataclass(frozen=True)
+class _PreparedSegmentGeometry:
+    """Coordinate facts for one segment within one immutable frame."""
+
+    segment: Segment
+    coordinates: np.ndarray
+    direction: np.ndarray
+    length: float
+    bounds: Tuple[np.ndarray, np.ndarray]
+
+
+@dataclass(frozen=True)
+class _PreparedSegmentCycleQuery:
+    """One segment plus its cycle-relative tolerance facts."""
+
+    geometry: _PreparedSegmentGeometry
+    tolerances: Optional[_PredicateTolerances]
+    causes: FrozenSet[SegmentCycleIndeterminacy]
+
+
+@dataclass(frozen=True)
+class _PreparedTriangleGeometry:
+    """Coordinate facts for one unique triangle within one immutable frame."""
+
+    indices: _TriangleIndices
+    triangle: Triangle
+    coordinates: np.ndarray
+    normal: np.ndarray
+    normal_length: float
+    bounds: Tuple[np.ndarray, np.ndarray]
+    edges: Tuple[_PreparedSegmentGeometry, ...]
+
+
+@dataclass(frozen=True)
+class _PreparedSurfaceGeometry:
+    """One triangulated surface assembled from prepared unique triangles."""
+
+    triangles: Tuple[_PreparedTriangleGeometry, ...]
+    internal_edges: Tuple[_EdgeIndices, ...]
+    triangle_pairs: Tuple[Tuple[int, int], ...]
+    shared_simplices: Tuple[Tuple[int, ...], ...]
+
+
+@dataclass(frozen=True)
 class _PreparedNonplanarSurfaceFamily:
     enumeration_complete: bool
     enumerated_surface_count: int
-    embedded_surfaces: Tuple[Tuple[Tuple[int, int, int], ...], ...]
-    embedded_internal_edges: Tuple[Tuple[_EdgeIndices, ...], ...]
+    embedded_surfaces: Tuple[_PreparedSurfaceGeometry, ...]
     proven_non_embedded_surface_count: int
     construction_undetermined_count: int
     triangle_pair_tests_used: int
     causes: FrozenSet[SegmentCycleIndeterminacy]
+    unique_triangles: Tuple[_PreparedTriangleGeometry, ...]
 
 
 @dataclass(frozen=True)
@@ -285,7 +330,9 @@ class _PreparedCycleGeometry:
     cycle: Cycle
     coordinates: np.ndarray
     bounds: Tuple[np.ndarray, np.ndarray]
+    edge_coordinates: np.ndarray
     planarity: PlanarityMeasurement
+    planar_projection: Optional[np.ndarray]
     planar_simplicity: Optional[_PolygonSimplicity]
     nonplanar_surface_family: Optional[_PreparedNonplanarSurfaceFamily]
 
@@ -638,6 +685,46 @@ def _segment_cycle_aabbs_stably_separated(
     )
 
 
+def _bounds_stably_separated(
+    first: Tuple[np.ndarray, np.ndarray],
+    second: Tuple[np.ndarray, np.ndarray],
+    padding: float,
+) -> bool:
+    """Return whether two precomputed AABBs are strictly separated."""
+
+    first_minimum, first_maximum = first
+    second_minimum, second_maximum = second
+    return bool(
+        np.any(
+            (first_maximum + padding < second_minimum)
+            | (second_maximum + padding < first_minimum)
+        )
+    )
+
+
+def _prepare_segment_geometry(segment: Segment) -> _PreparedSegmentGeometry:
+    """Prepare reusable coordinate facts for a finite segment."""
+
+    coordinates = np.asarray(_segment_arrays(segment), dtype=np.float64)
+    direction = coordinates[1] - coordinates[0]
+    bounds = (
+        np.min(coordinates, axis=0),
+        np.max(coordinates, axis=0),
+    )
+    length = float(np.linalg.norm(direction))
+    coordinates.setflags(write=False)
+    direction.setflags(write=False)
+    for bound in bounds:
+        bound.setflags(write=False)
+    return _PreparedSegmentGeometry(
+        segment,
+        coordinates,
+        direction,
+        length,
+        bounds,
+    )
+
+
 def _projected_polygon_simplicity(
     polygon: np.ndarray,
     tolerances: _PredicateTolerances,
@@ -755,24 +842,19 @@ def _projected_segment_polygon_contact(
 
 
 def _coplanar_segment_triangle_contact(
-    segment: Segment,
-    triangle: Triangle,
+    segment: _PreparedSegmentGeometry,
+    triangle: _PreparedTriangleGeometry,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
 ) -> Tuple[bool, bool]:
-    triangle_coordinates = np.asarray(
-        [vertex.coordinates for vertex in triangle.vertices], dtype=np.float64
-    )
-    normal = np.cross(
-        triangle_coordinates[1] - triangle_coordinates[0],
-        triangle_coordinates[2] - triangle_coordinates[0],
-    )
+    triangle_coordinates = triangle.coordinates
+    normal = triangle.normal.copy()
     normal /= _scale_safe_norm(normal)
     projected_triangle = _project_to_plane(
         triangle_coordinates, triangle_coordinates[0], normal
     )
     projected_segment = _project_to_plane(
-        np.asarray(_segment_arrays(segment)), triangle_coordinates[0], normal
+        segment.coordinates, triangle_coordinates[0], normal
     )
     return _projected_segment_polygon_contact(
         projected_segment, projected_triangle, tolerances, settings
@@ -817,27 +899,25 @@ def _classify_barycentric(
 
 
 def _segment_triangle_relation(
-    segment: Segment,
-    triangle: Triangle,
+    segment: _PreparedSegmentGeometry,
+    triangle: _PreparedTriangleGeometry,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
 ) -> _TriangleHit:
-    start, end = _segment_arrays(segment)
-    first, second, third = (
-        _point_array(vertex) for vertex in triangle.vertices
-    )
+    start, end = segment.coordinates
+    first, second, third = triangle.coordinates
     if not _all_finite((start, end, first, second, third)):
         return _TriangleHit(_TriangleHitKind.UNDETERMINED, None, None)
 
     guard = settings.tolerance.predicate_guard_factor
-    segment_length = float(np.linalg.norm(end - start))
+    segment_length = segment.length
     if segment_length <= tolerances.length:
         return _TriangleHit(_TriangleHitKind.DEGENERATE, None, None)
     if segment_length <= guard * tolerances.length:
         return _TriangleHit(_TriangleHitKind.UNDETERMINED, None, None)
 
-    normal = np.cross(second - first, third - first)
-    normal_length = float(np.linalg.norm(normal))
+    normal = triangle.normal
+    normal_length = triangle.normal_length
     if normal_length <= tolerances.area:
         return _TriangleHit(_TriangleHitKind.DEGENERATE, None, None)
     if normal_length <= guard * tolerances.area:
@@ -979,6 +1059,19 @@ def _cycle_topology_template(vertex_count: int) -> _CycleTopologyTemplate:
     """Return coordinate-free triangulation facts for one cycle size."""
 
     triangulations = _enumerate_cycle_triangulations(vertex_count)
+    unique_triangles = tuple(dict.fromkeys(
+        triangle
+        for surface in triangulations
+        for triangle in surface
+    ))
+    triangle_positions = {
+        triangle: position
+        for position, triangle in enumerate(unique_triangles)
+    }
+    surface_triangle_positions = tuple(
+        tuple(triangle_positions[triangle] for triangle in surface)
+        for surface in triangulations
+    )
     internal_edges = tuple(
         _surface_internal_edges(surface, vertex_count)
         for surface in triangulations
@@ -1002,56 +1095,77 @@ def _cycle_topology_template(vertex_count: int) -> _CycleTopologyTemplate:
     )
     return _CycleTopologyTemplate(
         triangulations,
+        unique_triangles,
+        surface_triangle_positions,
         internal_edges,
         triangle_pairs,
         shared_simplices,
     )
 
 
-def _triangle_from_indices(
+def _prepare_triangle_geometry(
     cycle: Cycle,
-    indices: Tuple[int, int, int],
-) -> Triangle:
-    return Triangle(*(cycle.vertices[index] for index in indices))
+    coordinates: np.ndarray,
+    indices: _TriangleIndices,
+) -> _PreparedTriangleGeometry:
+    triangle = Triangle(*(cycle.vertices[index] for index in indices))
+    triangle_coordinates = coordinates[np.asarray(indices, dtype=np.intp)]
+    normal = np.cross(
+        triangle_coordinates[1] - triangle_coordinates[0],
+        triangle_coordinates[2] - triangle_coordinates[0],
+    )
+    bounds = (
+        np.min(triangle_coordinates, axis=0),
+        np.max(triangle_coordinates, axis=0),
+    )
+    edges = tuple(
+        _prepare_segment_geometry(edge)
+        for edge in triangle.edges
+    )
+    triangle_coordinates.setflags(write=False)
+    normal.setflags(write=False)
+    for bound in bounds:
+        bound.setflags(write=False)
+    return _PreparedTriangleGeometry(
+        indices,
+        triangle,
+        triangle_coordinates,
+        normal,
+        float(np.linalg.norm(normal)),
+        bounds,
+        edges,
+    )
 
 
 def _point_to_shared_simplex_distance(
     point: np.ndarray,
-    cycle: Cycle,
+    cycle_coordinates: np.ndarray,
     shared_indices: Tuple[int, ...],
 ) -> float:
     if not shared_indices:
         return float("inf")
     if len(shared_indices) == 1:
         return float(
-            np.linalg.norm(point - _point_array(cycle.vertices[shared_indices[0]]))
+            np.linalg.norm(point - cycle_coordinates[shared_indices[0]])
         )
-    first = _point_array(cycle.vertices[shared_indices[0]])
-    second = _point_array(cycle.vertices[shared_indices[1]])
+    first = cycle_coordinates[shared_indices[0]]
+    second = cycle_coordinates[shared_indices[1]]
     return _point_segment_distance_arrays(point, first, second)
 
 
 def _coplanar_triangle_pair_state(
-    first_indices: Tuple[int, int, int],
-    second_indices: Tuple[int, int, int],
-    cycle: Cycle,
+    first: _PreparedTriangleGeometry,
+    second: _PreparedTriangleGeometry,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
     shared: Tuple[int, ...],
 ) -> SurfaceEmbeddingState:
-    first_coordinates = np.asarray(
-        [cycle.vertices[index].coordinates for index in first_indices],
-        dtype=np.float64,
-    )
-    second_coordinates = np.asarray(
-        [cycle.vertices[index].coordinates for index in second_indices],
-        dtype=np.float64,
-    )
-    normal = np.cross(
-        first_coordinates[1] - first_coordinates[0],
-        first_coordinates[2] - first_coordinates[0],
-    )
-    normal /= np.linalg.norm(normal)
+    first_indices = first.indices
+    second_indices = second.indices
+    first_coordinates = first.coordinates
+    second_coordinates = second.coordinates
+    normal = first.normal.copy()
+    normal /= first.normal_length
     first_projected = _project_to_plane(
         first_coordinates, first_coordinates[0], normal
     )
@@ -1124,36 +1238,26 @@ def _coplanar_triangle_pair_state(
 
 
 def _triangle_pair_state(
-    first_indices: Tuple[int, int, int],
-    second_indices: Tuple[int, int, int],
-    cycle: Cycle,
+    first_triangle: _PreparedTriangleGeometry,
+    second_triangle: _PreparedTriangleGeometry,
+    cycle_coordinates: np.ndarray,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
     shared: Tuple[int, ...],
 ) -> SurfaceEmbeddingState:
-    first_triangle = _triangle_from_indices(cycle, first_indices)
-    second_triangle = _triangle_from_indices(cycle, second_indices)
-    first_coordinates = np.asarray(
-        [vertex.coordinates for vertex in first_triangle.vertices], dtype=np.float64
-    )
-    second_coordinates = np.asarray(
-        [vertex.coordinates for vertex in second_triangle.vertices], dtype=np.float64
-    )
-    if not shared and _aabb_stably_separated(
-        first_coordinates, second_coordinates, tolerances.aabb
+    first_indices = first_triangle.indices
+    second_indices = second_triangle.indices
+    first_coordinates = first_triangle.coordinates
+    second_coordinates = second_triangle.coordinates
+    if not shared and _bounds_stably_separated(
+        first_triangle.bounds, second_triangle.bounds, tolerances.aabb
     ):
         return SurfaceEmbeddingState.EMBEDDED
 
-    first_normal = np.cross(
-        first_coordinates[1] - first_coordinates[0],
-        first_coordinates[2] - first_coordinates[0],
-    )
-    second_normal = np.cross(
-        second_coordinates[1] - second_coordinates[0],
-        second_coordinates[2] - second_coordinates[0],
-    )
-    first_normal_length = float(np.linalg.norm(first_normal))
-    second_normal_length = float(np.linalg.norm(second_normal))
+    first_normal = first_triangle.normal
+    second_normal = second_triangle.normal
+    first_normal_length = first_triangle.normal_length
+    second_normal_length = second_triangle.normal_length
     guard = settings.tolerance.predicate_guard_factor
     if (
         first_normal_length <= tolerances.area
@@ -1187,9 +1291,8 @@ def _triangle_pair_state(
     residuals = first_residuals + second_residuals
     if residuals and all(value <= tolerances.volume for value in residuals):
         return _coplanar_triangle_pair_state(
-            first_indices,
-            second_indices,
-            cycle,
+            first_triangle,
+            second_triangle,
             tolerances,
             settings,
             shared,
@@ -1225,7 +1328,11 @@ def _triangle_pair_state(
                 _TriangleHitKind.LINE_EXTENSION_INTERIOR,
             ):
                 continue
-            distance = _point_to_shared_simplex_distance(hit.point, cycle, shared)
+            distance = _point_to_shared_simplex_distance(
+                hit.point,
+                cycle_coordinates,
+                shared,
+            )
             if distance > guard * tolerances.length:
                 return SurfaceEmbeddingState.PROVEN_NON_EMBEDDED
             if distance > tolerances.length:
@@ -1234,35 +1341,23 @@ def _triangle_pair_state(
 
 
 def _determine_surface_embedding(
-    surface: _SurfaceIndices,
-    triangle_pairs: Tuple[Tuple[int, int], ...],
-    shared_simplices: Tuple[Tuple[int, ...], ...],
-    cycle: Cycle,
+    surface: _PreparedSurfaceGeometry,
+    cycle_coordinates: np.ndarray,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
     counters: _SurfaceCounters,
 ) -> SurfaceEmbeddingState:
     guard = settings.tolerance.predicate_guard_factor
-    for indices in surface:
-        coordinates = np.asarray(
-            [cycle.vertices[index].coordinates for index in indices],
-            dtype=np.float64,
-        )
-        area_measure = float(
-            np.linalg.norm(
-                np.cross(
-                    coordinates[1] - coordinates[0],
-                    coordinates[2] - coordinates[0],
-                )
-            )
-        )
+    for triangle in surface.triangles:
+        area_measure = triangle.normal_length
         if area_measure <= tolerances.area:
             return SurfaceEmbeddingState.PROVEN_NON_EMBEDDED
         if area_measure <= guard * tolerances.area:
             return SurfaceEmbeddingState.CONSTRUCTION_UNDETERMINED
 
     for (first_index, second_index), shared in zip(
-        triangle_pairs, shared_simplices
+        surface.triangle_pairs,
+        surface.shared_simplices,
     ):
         if (
             counters.triangle_pair_tests
@@ -1272,9 +1367,9 @@ def _determine_surface_embedding(
             return SurfaceEmbeddingState.CONSTRUCTION_UNDETERMINED
         counters.triangle_pair_tests += 1
         pair_state = _triangle_pair_state(
-            surface[first_index],
-            surface[second_index],
-            cycle,
+            surface.triangles[first_index],
+            surface.triangles[second_index],
+            cycle_coordinates,
             tolerances,
             settings,
             shared,
@@ -1287,14 +1382,14 @@ def _determine_surface_embedding(
 def _point_near_internal_simplex(
     point: np.ndarray,
     internal_edges: Tuple[Tuple[int, int], ...],
-    cycle: Cycle,
+    cycle_coordinates: np.ndarray,
     tolerance: float,
 ) -> bool:
     for first_index, second_index in internal_edges:
         distance = _point_segment_distance_arrays(
             point,
-            _point_array(cycle.vertices[first_index]),
-            _point_array(cycle.vertices[second_index]),
+            cycle_coordinates[first_index],
+            cycle_coordinates[second_index],
         )
         if distance <= tolerance:
             return True
@@ -1303,12 +1398,12 @@ def _point_near_internal_simplex(
 
 def _point_boundary_feature(
     point: np.ndarray,
-    cycle: Cycle,
+    cycle_coordinates: np.ndarray,
     tolerances: _PredicateTolerances,
 ) -> SegmentCycleFeature:
     if any(
-        float(np.linalg.norm(point - _point_array(vertex))) <= tolerances.length
-        for vertex in cycle.vertices
+        float(np.linalg.norm(point - vertex)) <= tolerances.length
+        for vertex in cycle_coordinates
     ):
         return SegmentCycleFeature.CYCLE_VERTEX_CONTACT
     return SegmentCycleFeature.CYCLE_EDGE_CONTACT
@@ -1329,10 +1424,9 @@ def _merge_points(
 
 
 def _surface_segment_relation(
-    segment: Segment,
-    surface: _SurfaceIndices,
-    internal_edges: Tuple[_EdgeIndices, ...],
-    cycle: Cycle,
+    segment: _PreparedSegmentGeometry,
+    surface: _PreparedSurfaceGeometry,
+    prepared_cycle: _PreparedCycleGeometry,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
     counters: _SurfaceCounters,
@@ -1344,7 +1438,7 @@ def _surface_segment_relation(
     evaluation_undetermined = False
     guard = settings.tolerance.predicate_guard_factor
 
-    for indices in surface:
+    for triangle in surface.triangles:
         if (
             counters.segment_triangle_tests
             >= settings.surface.maximum_segment_triangle_tests
@@ -1354,7 +1448,6 @@ def _surface_segment_relation(
             evaluation_undetermined = True
             break
         counters.segment_triangle_tests += 1
-        triangle = _triangle_from_indices(cycle, indices)
         hit = _segment_triangle_relation(
             segment,
             triangle,
@@ -1364,8 +1457,8 @@ def _surface_segment_relation(
         if hit.kind is _TriangleHitKind.STRICT_INTERIOR and hit.point is not None:
             if _point_near_internal_simplex(
                 hit.point,
-                internal_edges,
-                cycle,
+                surface.internal_edges,
+                prepared_cycle.coordinates,
                 guard * tolerances.length,
             ):
                 evaluation_undetermined = True
@@ -1379,36 +1472,44 @@ def _surface_segment_relation(
         elif hit.kind is _TriangleHitKind.TRIANGLE_BOUNDARY and hit.point is not None:
             if _point_near_internal_simplex(
                 hit.point,
-                internal_edges,
-                cycle,
+                surface.internal_edges,
+                prepared_cycle.coordinates,
                 guard * tolerances.length,
             ):
                 evaluation_undetermined = True
                 causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
             else:
-                features.add(_point_boundary_feature(hit.point, cycle, tolerances))
+                features.add(_point_boundary_feature(
+                    hit.point,
+                    prepared_cycle.coordinates,
+                    tolerances,
+                ))
                 points.append(hit.point)
         elif hit.kind is _TriangleHitKind.SEGMENT_ENDPOINT:
             if hit.point is not None:
                 on_cycle_boundary = any(
                     _point_segment_distance_arrays(
                         hit.point,
-                        _point_array(edge.start),
-                        _point_array(edge.end),
+                        edge[0],
+                        edge[1],
                     )
                     <= tolerances.length
-                    for edge in cycle.edges
+                    for edge in prepared_cycle.edge_coordinates
                 )
                 if on_cycle_boundary:
                     features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
                     features.add(
-                        _point_boundary_feature(hit.point, cycle, tolerances)
+                        _point_boundary_feature(
+                            hit.point,
+                            prepared_cycle.coordinates,
+                            tolerances,
+                        )
                     )
                     points.append(hit.point)
                 elif _point_near_internal_simplex(
                     hit.point,
-                    internal_edges,
-                    cycle,
+                    surface.internal_edges,
+                    prepared_cycle.coordinates,
                     guard * tolerances.length,
                 ):
                     evaluation_undetermined = True
@@ -1473,6 +1574,61 @@ def _segment_cycle_base_data(
     return tolerances, frozenset()
 
 
+def _prepare_segment_cycle_query(
+    segment: Segment,
+    cycle: Cycle,
+    settings: GeometrySettings,
+) -> _PreparedSegmentCycleQuery:
+    """Prepare one segment and its cycle-relative numerical tolerances."""
+
+    tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
+    return _PreparedSegmentCycleQuery(
+        _prepare_segment_geometry(segment),
+        tolerances,
+        causes,
+    )
+
+
+def _segment_cycle_aabb_separation_mask(
+    queries: Sequence[_PreparedSegmentCycleQuery],
+    cycle_bounds: Tuple[np.ndarray, np.ndarray],
+) -> np.ndarray:
+    """Batch the strict AABB predicate without changing its guard band."""
+
+    separated = np.zeros(len(queries), dtype=np.bool_)
+    valid_positions = tuple(
+        position
+        for position, query in enumerate(queries)
+        if not query.causes and query.tolerances is not None
+    )
+    if not valid_positions:
+        return separated
+
+    segment_minima = np.asarray(
+        [queries[position].geometry.bounds[0] for position in valid_positions],
+        dtype=np.float64,
+    )
+    segment_maxima = np.asarray(
+        [queries[position].geometry.bounds[1] for position in valid_positions],
+        dtype=np.float64,
+    )
+    paddings = np.asarray(
+        [
+            cast(_PredicateTolerances, queries[position].tolerances).aabb
+            for position in valid_positions
+        ],
+        dtype=np.float64,
+    )[:, np.newaxis]
+    cycle_minimum, cycle_maximum = cycle_bounds
+    valid_separated = np.any(
+        (segment_maxima + paddings < cycle_minimum)
+        | (cycle_maximum + paddings < segment_minima),
+        axis=1,
+    )
+    separated[np.asarray(valid_positions, dtype=np.intp)] = valid_separated
+    return separated
+
+
 def _undetermined_segment_cycle_relation(
     segment: Segment,
     cycle: Cycle,
@@ -1494,21 +1650,18 @@ def _undetermined_segment_cycle_relation(
 
 
 def _planar_segment_cycle_relation(
-    segment: Segment,
-    cycle: Cycle,
+    segment: _PreparedSegmentGeometry,
+    prepared_cycle: _PreparedCycleGeometry,
     planarity: PlanarityMeasurement,
     simplicity: _PolygonSimplicity,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
 ) -> SegmentCycleRelation:
+    cycle = prepared_cycle.cycle
     normal = np.asarray(planarity.normal, dtype=np.float64)
     origin = _point_array(planarity.centroid)
-    polygon = _project_to_plane(
-        np.asarray([vertex.coordinates for vertex in cycle.vertices]),
-        origin,
-        normal,
-    )
-    closest = closest_cycle_edge(cycle, segment, settings)
+    polygon = cast(np.ndarray, prepared_cycle.planar_projection)
+    closest = closest_cycle_edge(cycle, segment.segment, settings)
     if simplicity is _PolygonSimplicity.SELF_INTERSECTING:
         evidence = SurfaceFamilyEvidence(True, 1, 0, 1, 0, 0, 0, 0, 0, 0)
         return SegmentCycleRelation(
@@ -1534,7 +1687,7 @@ def _planar_segment_cycle_relation(
             settings,
         )
 
-    start, end = _segment_arrays(segment)
+    start, end = segment.coordinates
     start_height = float(np.dot(normal, start - origin))
     end_height = float(np.dot(normal, end - origin))
     start_absolute = abs(start_height)
@@ -1587,7 +1740,11 @@ def _planar_segment_cycle_relation(
                 features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
                 points.append(point)
             if location is PointCycleLocation.BOUNDARY:
-                features.add(_point_boundary_feature(point, cycle, tolerances))
+                features.add(_point_boundary_feature(
+                    point,
+                    prepared_cycle.coordinates,
+                    tolerances,
+                ))
             elif location is PointCycleLocation.UNDETERMINED:
                 state = PiercingState.UNDETERMINED
                 causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
@@ -1634,7 +1791,11 @@ def _planar_segment_cycle_relation(
                     causes.add(SegmentCycleIndeterminacy.NUMERIC_BAND)
             elif location is PointCycleLocation.BOUNDARY:
                 if parameter_inside or parameter_endpoint:
-                    features.add(_point_boundary_feature(point, cycle, tolerances))
+                    features.add(_point_boundary_feature(
+                        point,
+                        prepared_cycle.coordinates,
+                        tolerances,
+                    ))
                     if parameter_endpoint:
                         features.add(SegmentCycleFeature.SEGMENT_ENDPOINT_CONTACT)
                     points.append(point)
@@ -1678,6 +1839,7 @@ def _planar_segment_cycle_relation(
 def _prepare_nonplanar_surface_family(
     cycle: Cycle,
     settings: GeometrySettings,
+    coordinates: Optional[np.ndarray] = None,
 ) -> _PreparedNonplanarSurfaceFamily:
     surface_settings = settings.surface
     vertex_count = len(cycle)
@@ -1686,11 +1848,11 @@ def _prepare_nonplanar_surface_family(
             False,
             0,
             tuple(),
-            tuple(),
             0,
             0,
             0,
             frozenset({SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY}),
+            tuple(),
         )
 
     length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
@@ -1699,15 +1861,38 @@ def _prepare_nonplanar_surface_family(
             False,
             0,
             tuple(),
-            tuple(),
             0,
             1,
             0,
             frozenset({SegmentCycleIndeterminacy.SURFACE_CONSTRUCTION}),
+            tuple(),
         )
     tolerances = _predicate_tolerances(length_scale, settings)
 
     topology = _cycle_topology_template(vertex_count)
+    cycle_coordinates = (
+        coordinates
+        if coordinates is not None
+        else np.asarray(
+            [vertex.coordinates for vertex in cycle.vertices],
+            dtype=np.float64,
+        )
+    )
+    unique_triangles = tuple(
+        _prepare_triangle_geometry(cycle, cycle_coordinates, indices)
+        for indices in topology.unique_triangles
+    )
+    prepared_surfaces = tuple(
+        _PreparedSurfaceGeometry(
+            tuple(unique_triangles[position] for position in triangle_positions),
+            topology.internal_edges[surface_index],
+            topology.triangle_pairs[surface_index],
+            topology.shared_simplices[surface_index],
+        )
+        for surface_index, triangle_positions in enumerate(
+            topology.surface_triangle_positions
+        )
+    )
     triangulations = topology.triangulations
     expected_count = comb(2 * vertex_count - 4, vertex_count - 2) // (
         vertex_count - 1
@@ -1724,18 +1909,15 @@ def _prepare_nonplanar_surface_family(
     proven_nonembedded = 0
     construction_unknown = 0
     causes = set()
-    embedded_surfaces: List[Tuple[Tuple[int, int, int], ...]] = []
-    embedded_internal_edges: List[Tuple[_EdgeIndices, ...]] = []
+    embedded_surfaces: List[_PreparedSurfaceGeometry] = []
 
-    for surface_index, surface in enumerate(triangulations):
+    for surface in prepared_surfaces[:len(triangulations)]:
         if counters.triangle_pair_budget_exhausted:
             enumeration_complete = False
             break
         embedding = _determine_surface_embedding(
             surface,
-            topology.triangle_pairs[surface_index],
-            topology.shared_simplices[surface_index],
-            cycle,
+            cycle_coordinates,
             tolerances,
             settings,
             counters,
@@ -1753,7 +1935,6 @@ def _prepare_nonplanar_surface_family(
             continue
 
         embedded_surfaces.append(surface)
-        embedded_internal_edges.append(topology.internal_edges[surface_index])
 
     if not enumeration_complete:
         causes.add(SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY)
@@ -1762,17 +1943,17 @@ def _prepare_nonplanar_surface_family(
         enumeration_complete,
         enumerated,
         tuple(embedded_surfaces),
-        tuple(embedded_internal_edges),
         proven_nonembedded,
         construction_unknown,
         counters.triangle_pair_tests,
         frozenset(causes),
+        unique_triangles,
     )
 
 
 def _nonplanar_segment_cycle_relation(
-    segment: Segment,
-    cycle: Cycle,
+    segment: _PreparedSegmentGeometry,
+    prepared_cycle: _PreparedCycleGeometry,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
     prepared: _PreparedNonplanarSurfaceFamily,
@@ -1791,14 +1972,11 @@ def _nonplanar_segment_cycle_relation(
         triangle_pair_tests=prepared.triangle_pair_tests_used
     )
 
-    for surface_index, (surface, internal_edges) in enumerate(zip(
-        embedded_surfaces, prepared.embedded_internal_edges
-    )):
+    for surface_index, surface in enumerate(embedded_surfaces):
         surface_result = _surface_segment_relation(
             segment,
             surface,
-            internal_edges,
-            cycle,
+            prepared_cycle,
             tolerances,
             settings,
             counters,
@@ -1863,7 +2041,7 @@ def _nonplanar_segment_cycle_relation(
         frozenset(causes),
         model,
         _merge_points(points, tolerances.merge),
-        closest_cycle_edge(cycle, segment, settings),
+        closest_cycle_edge(prepared_cycle.cycle, segment.segment, settings),
         evidence,
         settings,
     )
@@ -1880,10 +2058,16 @@ def _prepare_cycle_geometry(
         dtype=np.float64,
     )
     bounds = _aabb_bounds(coordinates)
+    edge_coordinates = np.stack(
+        (coordinates, np.roll(coordinates, -1, axis=0)),
+        axis=1,
+    )
     coordinates.setflags(write=False)
+    edge_coordinates.setflags(write=False)
     for bound in bounds:
         bound.setflags(write=False)
     planarity = measure_planarity(cycle, settings)
+    planar_projection: Optional[np.ndarray] = None
     planar_simplicity: Optional[_PolygonSimplicity] = None
     if planarity.kind is PlanarityKind.PLANAR:
         length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
@@ -1891,13 +2075,15 @@ def _prepare_cycle_geometry(
         normal = np.asarray(planarity.normal, dtype=np.float64)
         origin = _point_array(planarity.centroid)
         polygon = _project_to_plane(coordinates, origin, normal)
+        polygon.setflags(write=False)
+        planar_projection = polygon
         planar_simplicity = _projected_polygon_simplicity(
             polygon,
             tolerances,
             settings,
         )
     nonplanar_surface_family = (
-        _prepare_nonplanar_surface_family(cycle, settings)
+        _prepare_nonplanar_surface_family(cycle, settings, coordinates)
         if planarity.kind is PlanarityKind.NONPLANAR
         else None
     )
@@ -1905,14 +2091,16 @@ def _prepare_cycle_geometry(
         cycle=cycle,
         coordinates=coordinates,
         bounds=bounds,
+        edge_coordinates=edge_coordinates,
         planarity=planarity,
+        planar_projection=planar_projection,
         planar_simplicity=planar_simplicity,
         nonplanar_surface_family=nonplanar_surface_family,
     )
 
 
 def _prepared_segment_cycle_relation(
-    segment: Segment,
+    segment: _PreparedSegmentGeometry,
     prepared_cycle: _PreparedCycleGeometry,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
@@ -1924,7 +2112,7 @@ def _prepared_segment_cycle_relation(
     if planarity.kind is PlanarityKind.PLANAR:
         return _planar_segment_cycle_relation(
             segment,
-            cycle,
+            prepared_cycle,
             planarity,
             cast(_PolygonSimplicity, prepared_cycle.planar_simplicity),
             tolerances,
@@ -1933,7 +2121,7 @@ def _prepared_segment_cycle_relation(
     if planarity.kind is PlanarityKind.NONPLANAR:
         return _nonplanar_segment_cycle_relation(
             segment,
-            cycle,
+            prepared_cycle,
             tolerances,
             settings,
             cast(
@@ -1947,7 +2135,7 @@ def _prepared_segment_cycle_relation(
         else SegmentCycleIndeterminacy.NUMERIC_BAND
     )
     return _undetermined_segment_cycle_relation(
-        segment,
+        segment.segment,
         cycle,
         None,
         settings,
@@ -1964,20 +2152,20 @@ def _iter_prepared_segment_cycle_relations(
 
     cycle = prepared_cycle.cycle
     for segment in segments:
-        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
-        if causes:
+        query = _prepare_segment_cycle_query(segment, cycle, settings)
+        if query.causes:
             yield _undetermined_segment_cycle_relation(
                 segment,
                 cycle,
                 None,
                 settings,
-                causes,
+                query.causes,
             )
             continue
         yield _prepared_segment_cycle_relation(
-            segment,
+            query.geometry,
             prepared_cycle,
-            cast(_PredicateTolerances, tolerances),
+            cast(_PredicateTolerances, query.tolerances),
             settings,
         )
 
@@ -2004,15 +2192,25 @@ def _iter_prepared_segment_cycle_screenings(
         and bool(nonplanar_surface_family.embedded_surfaces)
     )
 
-    for segment in segments:
-        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
-        if causes:
+    queries = tuple(
+        _prepare_segment_cycle_query(segment, cycle, settings)
+        for segment in segments
+    )
+    separated = (
+        _segment_cycle_aabb_separation_mask(queries, prepared_cycle.bounds)
+        if planar_surface_is_valid or nonplanar_surface_is_valid
+        else np.zeros(len(queries), dtype=np.bool_)
+    )
+
+    for position, query in enumerate(queries):
+        segment = query.geometry.segment
+        if query.causes:
             relation = _undetermined_segment_cycle_relation(
                 segment,
                 cycle,
                 None,
                 settings,
-                causes,
+                query.causes,
             )
             yield SegmentCycleScreening(
                 relation.state,
@@ -2021,16 +2219,9 @@ def _iter_prepared_segment_cycle_screenings(
                 relation.surface_evidence.enumeration_complete,
             )
             continue
-        tolerances = cast(_PredicateTolerances, tolerances)
+        tolerances = cast(_PredicateTolerances, query.tolerances)
 
-        if (
-            (planar_surface_is_valid or nonplanar_surface_is_valid)
-            and _segment_cycle_aabbs_stably_separated(
-                segment,
-                prepared_cycle.bounds,
-                tolerances.aabb,
-            )
-        ):
+        if separated[position]:
             yield SegmentCycleScreening(
                 PiercingState.DOES_NOT_PIERCE,
                 None,
@@ -2040,7 +2231,7 @@ def _iter_prepared_segment_cycle_screenings(
             continue
 
         relation = _prepared_segment_cycle_relation(
-            segment,
+            query.geometry,
             prepared_cycle,
             tolerances,
             settings,

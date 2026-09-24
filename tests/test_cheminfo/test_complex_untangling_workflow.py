@@ -1170,7 +1170,7 @@ def test_coordination_restoration_forces_after_infeasible_metal_relocation(
     assert result.report.metal_relocation_attempt_count == 1
     assert result.report.relocated_metal_indices == ()
     assert result.report.infeasible_metal_indices == (0,)
-    assert result.report.rejected_piercing_trial_count == 2
+    assert result.report.rejected_piercing_trial_count == 1
     assert any(
         "metal-only placement infeasible" in message
         for message in result.report.warning_messages
@@ -1223,14 +1223,10 @@ def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
         TrajectoryEvent.BOND_REJECTED,
         TrajectoryEvent.METAL_RELOCATION_TRIAL,
         TrajectoryEvent.METAL_RELOCATION_FAILED,
-        TrajectoryEvent.BOND_TRIAL,
-        TrajectoryEvent.BOND_REJECTED,
         TrajectoryEvent.BOND_FORCED,
         TrajectoryEvent.TERMINAL,
     )
     assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
-        0,
-        0,
         0,
         0,
         0,
@@ -1247,13 +1243,13 @@ def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
         relocation_status="infeasible",
         relocation_candidates_evaluated=6,
     )
-    assert trajectory[7].evidence == CoordinationFrameEvidence(
+    assert trajectory[5].evidence == CoordinationFrameEvidence(
         bond_atom_indices=_key(second),
         accepted=False,
         pending_bond_count=0,
         forced=True,
     )
-    assert trajectory[8].energy_kj_mol is None
+    assert trajectory[6].energy_kj_mol is None
 
 
 def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
@@ -1512,8 +1508,6 @@ def test_each_unbound_metal_relocation_is_followed_by_candidate_rescreening(
         ("scan", _key(bonds[0])),
         ("scan", _key(bonds[1])),
         ("relocate", 2),
-        ("scan", _key(bonds[0])),
-        ("scan", _key(bonds[1])),
     ]
     assert result.report.metal_relocation_attempt_count == 2
     assert result.report.relocated_metal_indices == (0,)

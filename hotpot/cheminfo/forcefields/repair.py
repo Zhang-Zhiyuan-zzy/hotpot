@@ -1107,7 +1107,9 @@ def _restore_coordination_bonds_incrementally(
                     ),
                     attempt=stalled_attempts,
                 )
-                continue
+                if relocation.moved:
+                    continue
+                break
             if (
                 relocation_attempted_metal_indices
                 and not _active_coordination_metal_indices(mol)

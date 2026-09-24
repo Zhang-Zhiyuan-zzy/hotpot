@@ -75,6 +75,7 @@ TRAJECTORY_TYPE_ALIASES = (
 )
 
 PUBLIC_DATA_CONTRACTS = (
+    "OptimizationStoppingCriteria",
     "ForceFieldRunReport",
     "Build3DReport",
     "CandidateRejection",

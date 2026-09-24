@@ -22,6 +22,7 @@ ForceFieldFrame = _utils.ForceFieldFrame
 ForceFieldTrajectory = _utils.ForceFieldTrajectory
 ForceFieldTrajectoryArchive = _utils.ForceFieldTrajectoryArchive
 OptimizationAlgorithm = _utils.OptimizationAlgorithm
+OptimizationStoppingCriteria = _utils.OptimizationStoppingCriteria
 TerminationReason = _utils.TerminationReason
 ForceFieldDiagnosticValue = _utils.ForceFieldDiagnosticValue
 ForceFieldRunReport = _utils.ForceFieldRunReport

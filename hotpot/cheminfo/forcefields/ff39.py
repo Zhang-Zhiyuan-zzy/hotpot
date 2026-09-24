@@ -30,6 +30,7 @@ ForceFieldFrame = _utils.ForceFieldFrame
 ForceFieldTrajectory = _utils.ForceFieldTrajectory
 ForceFieldTrajectoryArchive = _utils.ForceFieldTrajectoryArchive
 OptimizationAlgorithm = _utils.OptimizationAlgorithm
+OptimizationStoppingCriteria = _utils.OptimizationStoppingCriteria
 TerminationReason = _utils.TerminationReason
 ForceFieldDiagnosticValue = _utils.ForceFieldDiagnosticValue
 ForceFieldRunReport = _utils.ForceFieldRunReport
@@ -163,6 +164,7 @@ def complexes_build(
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -193,6 +195,7 @@ def complexes_build(
         seed=seed,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
+        stopping_criteria=stopping_criteria,
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -218,6 +221,7 @@ def build_and_optimize(
     timeout: float = 1000.0,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -249,6 +253,7 @@ def build_and_optimize(
         timeout=timeout,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
+        stopping_criteria=stopping_criteria,
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,

@@ -28,6 +28,7 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
     quality_thresholds = ff.StructureAcceptanceThresholds(
         standard_minimum_distance=0.4
     )
+    stopping_criteria = ff.OptimizationStoppingCriteria(window=3)
     trajectory_start = ff.TrajectoryStart.COORDINATION_RESTORATION
     trajectory_path = Path("build-trajectory")
     calls = []
@@ -45,6 +46,7 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
         add_hydrogens=False,
         quality_level="basic",
         quality_thresholds=quality_thresholds,
+        stopping_criteria=stopping_criteria,
         seed=19,
         timeout=2.5,
         trajectory_start=trajectory_start,
@@ -63,6 +65,7 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
     assert options["add_hydrogens"] is False
     assert options["quality_level"] == "basic"
     assert options["quality_thresholds"] is quality_thresholds
+    assert options["stopping_criteria"] is stopping_criteria
     assert options["seed"] == 19
     assert options["timeout"] == 2.5
     assert options["trajectory_start"] is trajectory_start
@@ -77,6 +80,7 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
     quality_thresholds = ff.StructureAcceptanceThresholds(
         standard_minimum_distance=0.45
     )
+    stopping_criteria = ff.OptimizationStoppingCriteria(window=4)
     trajectory_start = ff.TrajectoryStart.FINAL_OPTIMIZATION
     trajectory_path = Path("optimization-trajectory")
     calls = []
@@ -93,6 +97,7 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
         steps_per_epoch=11,
         quality_level="strict",
         quality_thresholds=quality_thresholds,
+        stopping_criteria=stopping_criteria,
         seed=23,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -107,6 +112,7 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
     assert options["steps_per_epoch"] == 11
     assert options["quality_level"] == "strict"
     assert options["quality_thresholds"] is quality_thresholds
+    assert options["stopping_criteria"] is stopping_criteria
     assert options["seed"] == 23
     assert options["trajectory_start"] is trajectory_start
     assert options["trajectory_path"] is trajectory_path
@@ -164,6 +170,24 @@ def test_complexes_build_exposes_only_canonical_parameters():
 
     with pytest.raises(TypeError, match="unexpected keyword argument 'steps'"):
         ff_api.complexes_build(object(), steps=4)
+
+
+@pytest.mark.parametrize(
+    "entrypoint",
+    (
+        Molecule.build3d,
+        Molecule.optimize,
+        ff_api.optimize,
+        ff_api.optimize_complex,
+        ff_api.complexes_build,
+        ff_api.build_and_optimize,
+        ff_api.auto_optimize,
+    ),
+)
+def test_optimization_entrypoints_expose_opt_in_stopping_criteria(entrypoint):
+    parameter = inspect.signature(entrypoint).parameters["stopping_criteria"]
+
+    assert parameter.default is None
 
 
 @pytest.mark.parametrize(

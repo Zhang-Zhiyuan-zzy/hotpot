@@ -20,6 +20,7 @@ from .contracts import (
     ForceFieldRunReport,
     GeometryQualityError,
     OptimizationAlgorithm,
+    OptimizationStoppingCriteria,
     TerminationReason,
 )
 from .coordinates import _perturbed_coordinates
@@ -87,6 +88,48 @@ class _ObservedFrame:
         )
 
 
+def _segment_satisfies_stopping_criteria(
+    frame: _ObservedFrame,
+    energy_changes: Sequence[float],
+    max_displacements: Sequence[float],
+    rms_gradients: Sequence[float],
+    max_gradients: Sequence[float],
+    criteria: OptimizationStoppingCriteria,
+) -> bool:
+    """Return whether the current numerical segment is stably stationary."""
+    if frame.exploded or not (
+        frame.has_finite_coordinates
+        and frame.has_finite_energy
+        and frame.has_finite_gradients
+    ):
+        return False
+    if (
+        len(energy_changes) < criteria.window
+        or len(max_displacements) < criteria.window
+        or len(rms_gradients) < criteria.window
+        or len(max_gradients) < criteria.window
+    ):
+        return False
+    recent_energy_changes = energy_changes[-criteria.window:]
+    recent_displacements = max_displacements[-criteria.window:]
+    recent_rms_gradients = rms_gradients[-criteria.window:]
+    recent_max_gradients = max_gradients[-criteria.window:]
+    return bool(
+        np.all(np.isfinite(recent_energy_changes))
+        and np.all(np.isfinite(recent_displacements))
+        and np.all(np.isfinite(recent_rms_gradients))
+        and np.all(np.isfinite(recent_max_gradients))
+        and max(recent_energy_changes)
+        <= criteria.maximum_energy_change_kj_mol
+        and max(recent_displacements)
+        <= criteria.maximum_atom_displacement_angstrom
+        and max(recent_rms_gradients)
+        <= criteria.maximum_rms_gradient_kj_mol_angstrom
+        and max(recent_max_gradients)
+        <= criteria.maximum_gradient_kj_mol_angstrom
+    )
+
+
 class _OpenBabelOptimizer:
     """One stateful Open Babel optimizer used by every public workflow."""
 
@@ -105,6 +148,7 @@ class _OpenBabelOptimizer:
         vdw_cutoff_start: float,
         vdw_cutoff_end: float,
         seed: Optional[int],
+        stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
         energy_tolerance: float = 1.0e-6,
     ) -> None:
         if epochs < 1:
@@ -130,6 +174,7 @@ class _OpenBabelOptimizer:
         self.increasing_vdw = increasing_vdw
         self.vdw_cutoff_start = vdw_cutoff_start
         self.vdw_cutoff_end = vdw_cutoff_end
+        self.stopping_criteria = stopping_criteria
         self.energy_tolerance = energy_tolerance
         self.rng = np.random.default_rng(seed)
         self.backend = _get_forcefield(effective_forcefield)
@@ -295,6 +340,8 @@ class _OpenBabelOptimizer:
         last_frame: Optional[_ObservedFrame] = None
         energy_change_segments: list[list[float]] = [[]]
         displacement_segments: list[list[float]] = [[]]
+        rms_gradient_segments: list[list[float]] = [[]]
+        max_gradient_segments: list[list[float]] = [[]]
         segment_index = 0
         epoch_energies: list[float] = []
         previous_coordinates = None
@@ -332,6 +379,8 @@ class _OpenBabelOptimizer:
                 self._setup(mol, obmol)
                 energy_change_segments.append([])
                 displacement_segments.append([])
+                rms_gradient_segments.append([])
+                max_gradient_segments.append([])
                 segment_index += 1
                 previous_coordinates = None
                 previous_energy = None
@@ -415,6 +464,8 @@ class _OpenBabelOptimizer:
                     ),
                 )
             last_frame = frame
+            rms_gradient_segments[segment_index].append(frame.rms_gradient)
+            max_gradient_segments[segment_index].append(frame.max_gradient)
             if frame.has_returnable_coordinates(expected_coordinate_shape):
                 latest_returnable_frame = frame
                 latest_returnable_epoch = epoch
@@ -434,8 +485,25 @@ class _OpenBabelOptimizer:
             previous_coordinates = frame.coordinates
             previous_energy = frame.energy
 
+            stability_reached = bool(
+                not backend_converged
+                and not self.increasing_vdw
+                and self.stopping_criteria is not None
+                and _segment_satisfies_stopping_criteria(
+                    frame,
+                    energy_change_segments[segment_index],
+                    displacement_segments[segment_index],
+                    rms_gradient_segments[segment_index],
+                    max_gradient_segments[segment_index],
+                    self.stopping_criteria,
+                )
+            )
+            if stability_reached:
+                segment_active = False
+                termination_reason = "stability_reached"
+
             if (
-                backend_converged
+                (backend_converged or stability_reached)
                 and not self.increasing_vdw
                 and self.perturb_interval is None
             ):
@@ -506,6 +574,7 @@ def _optimize_working_mol(
     trajectory: ForceFieldTrajectory,
     trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
     trajectory_attempt: Optional[int] = None,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
         requested_forcefield,
@@ -520,6 +589,7 @@ def _optimize_working_mol(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
         seed=seed,
+        stopping_criteria=stopping_criteria,
     )
     return optimizer.optimize(
         working_mol,

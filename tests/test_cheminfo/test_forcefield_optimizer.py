@@ -155,6 +155,25 @@ class _SegmentConvergingBackend(_Backend):
     SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
 
 
+class _ScriptedBackend(_Backend):
+    def __init__(self, energies, continues, unit="kJ/mol"):
+        super().__init__(energies, unit=unit)
+        self.continues = continues
+
+    def ConjugateGradientsTakeNSteps(self, steps):
+        self.take_calls.append(steps)
+        self.index += 1
+        self.has_new_coordinates = True
+        return self.continues[self.index]
+
+    SteepestDescentTakeNSteps = ConjugateGradientsTakeNSteps
+
+
+class _ExplodingBackend(_BudgetBackend):
+    def DetectExplosion(self):
+        return True
+
+
 class _OptimizerMolecule:
     def __init__(self):
         self.coordinates = np.zeros((2, 3), dtype=float)
@@ -399,6 +418,197 @@ def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
     assert report.initialization_steps == 1
     assert report.steps_completed is None
     assert report.terminal_converged is False
+    assert report.termination_reason == "budget_exhausted"
+
+
+def test_opt_in_stability_stopping_requires_a_full_current_segment_window(
+    monkeypatch,
+):
+    frames = [
+        np.full((2, 3), index * 1.0e-6)
+        for index in range(6)
+    ]
+    energies = [1.0 - index * 1.0e-6 for index in range(6)]
+    backend = _BudgetBackend(energies, unit="kJ/mol")
+    optimizer = _optimizer(
+        monkeypatch,
+        backend,
+        frames,
+        stopping_criteria=ff.OptimizationStoppingCriteria(window=2),
+    )
+    optimizer.epochs = 6
+    optimizer.increasing_vdw = False
+
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
+
+    assert len(backend.take_calls) == 3
+    assert report.epochs_completed == 3
+    assert report.terminal_converged is False
+    assert report.termination_reason == "stability_reached"
+
+
+def test_stability_stopping_requires_every_numerical_threshold():
+    criteria = ff.OptimizationStoppingCriteria(
+        window=2,
+        maximum_energy_change_kj_mol=0.1,
+        maximum_atom_displacement_angstrom=0.2,
+        maximum_rms_gradient_kj_mol_angstrom=0.3,
+        maximum_gradient_kj_mol_angstrom=0.4,
+    )
+
+    def frame(*, rms_gradient=0.3, max_gradient=0.4):
+        return optimizer_impl._ObservedFrame(
+            coordinates=np.zeros((2, 3)),
+            energy=1.0,
+            rms_gradient=rms_gradient,
+            max_gradient=max_gradient,
+            exploded=False,
+            converged=False,
+            segment_epochs_completed=3,
+            segment_index=0,
+            history_length=2,
+        )
+
+    assert optimizer_impl._segment_satisfies_stopping_criteria(
+        frame(),
+        (0.1, 0.1),
+        (0.2, 0.2),
+        (0.3, 0.3),
+        (0.4, 0.4),
+        criteria,
+    )
+    assert not optimizer_impl._segment_satisfies_stopping_criteria(
+        frame(),
+        (0.1, 0.100001),
+        (0.2, 0.2),
+        (0.3, 0.3),
+        (0.4, 0.4),
+        criteria,
+    )
+    assert not optimizer_impl._segment_satisfies_stopping_criteria(
+        frame(),
+        (0.1, 0.1),
+        (0.2, 0.200001),
+        (0.3, 0.3),
+        (0.4, 0.4),
+        criteria,
+    )
+    assert not optimizer_impl._segment_satisfies_stopping_criteria(
+        frame(),
+        (0.1, 0.1),
+        (0.2, 0.2),
+        (0.300001, 0.3),
+        (0.4, 0.4),
+        criteria,
+    )
+    assert not optimizer_impl._segment_satisfies_stopping_criteria(
+        frame(),
+        (0.1, 0.1),
+        (0.2, 0.2),
+        (0.3, 0.3),
+        (0.400001, 0.4),
+        criteria,
+    )
+
+
+def test_none_stopping_criteria_preserves_the_full_optimizer_budget(monkeypatch):
+    frames = [
+        np.full((2, 3), index * 1.0e-6)
+        for index in range(4)
+    ]
+    backend = _BudgetBackend(
+        [1.0 - index * 1.0e-6 for index in range(4)],
+        unit="kJ/mol",
+    )
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.epochs = 4
+    optimizer.increasing_vdw = False
+
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
+
+    assert len(backend.take_calls) == 4
+    assert report.epochs_completed == 4
+    assert report.termination_reason == "budget_exhausted"
+
+
+def test_stability_stopping_is_disabled_during_increasing_vdw(
+    monkeypatch,
+):
+    frames = [np.full((2, 3), index * 1.0e-6) for index in range(3)]
+    backend = _BudgetBackend([1.0, 1.0, 1.0], unit="kJ/mol")
+    optimizer = _optimizer(
+        monkeypatch,
+        backend,
+        frames,
+        stopping_criteria=ff.OptimizationStoppingCriteria(window=1),
+    )
+    monkeypatch.setattr(
+        optimizer_impl,
+        "_segment_satisfies_stopping_criteria",
+        lambda *args: pytest.fail("stability stopping ran during VDW annealing"),
+    )
+
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
+
+    assert report.epochs_completed == 3
+
+
+def test_later_perturbation_segment_replaces_an_earlier_stability_reason(
+    monkeypatch,
+):
+    frames = [
+        np.zeros((2, 3)),
+        np.full((2, 3), 1.0e-6),
+        np.full((2, 3), 2.0e-6),
+    ]
+    backend = _ScriptedBackend(
+        [1.0, 1.0 - 1.0e-6, 0.5],
+        [True, True, False],
+    )
+    optimizer = _optimizer(
+        monkeypatch,
+        backend,
+        frames,
+        stopping_criteria=ff.OptimizationStoppingCriteria(window=1),
+    )
+    optimizer.epochs = 5
+    optimizer.perturb_interval = 3
+    optimizer.increasing_vdw = False
+
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
+
+    assert len(backend.take_calls) == 3
+    assert report.epochs_completed == 3
+    assert report.terminal_converged is True
+    assert report.termination_reason == "converged"
+
+
+@pytest.mark.parametrize(
+    "backend",
+    (
+        _BudgetBackend([1.0, float("nan"), 1.0], unit="kJ/mol"),
+        _ExplodingBackend([1.0, 1.0, 1.0], unit="kJ/mol"),
+    ),
+)
+def test_nonfinite_or_exploded_frames_take_priority_over_stability_stopping(
+    monkeypatch,
+    backend,
+):
+    frames = [
+        np.full((2, 3), index * 1.0e-6)
+        for index in range(3)
+    ]
+    optimizer = _optimizer(
+        monkeypatch,
+        backend,
+        frames,
+        stopping_criteria=ff.OptimizationStoppingCriteria(window=1),
+    )
+    optimizer.increasing_vdw = False
+
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
+
+    assert report.epochs_completed == 3
     assert report.termination_reason == "budget_exhausted"
 
 
@@ -893,9 +1103,40 @@ def test_optimizer_rejects_invalid_control_parameters(options, message):
         optimizer_impl._OpenBabelOptimizer("UFF", "UFF", **defaults)
 
 
+@pytest.mark.parametrize(
+    ("options", "message"),
+    (
+        ({"window": 0}, "positive integer"),
+        ({"window": 2.5}, "positive integer"),
+        ({"window": True}, "positive integer"),
+        ({"maximum_energy_change_kj_mol": -1.0}, "non-negative"),
+        ({"maximum_atom_displacement_angstrom": -1.0}, "non-negative"),
+        ({"maximum_rms_gradient_kj_mol_angstrom": -1.0}, "non-negative"),
+        ({"maximum_gradient_kj_mol_angstrom": -1.0}, "non-negative"),
+        ({"maximum_gradient_kj_mol_angstrom": float("nan")}, "non-negative"),
+        ({"maximum_gradient_kj_mol_angstrom": float("inf")}, "finite"),
+    ),
+)
+def test_stopping_criteria_reject_invalid_values(options, message):
+    with pytest.raises(ValueError, match=message):
+        ff.OptimizationStoppingCriteria(**options)
+
+
+def test_stopping_criteria_defaults_are_the_documented_numerical_limits():
+    criteria = ff.OptimizationStoppingCriteria()
+
+    assert criteria.window == 5
+    assert criteria.maximum_energy_change_kj_mol == pytest.approx(1.0e-4)
+    assert criteria.maximum_atom_displacement_angstrom == pytest.approx(1.0e-4)
+    assert criteria.maximum_rms_gradient_kj_mol_angstrom == pytest.approx(1.0)
+    assert criteria.maximum_gradient_kj_mol_angstrom == pytest.approx(5.0)
+    assert criteria.__dataclass_params__.frozen is True
+
+
 def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
     molecule = read_mol("CCO", "smi")
     captured = {}
+    stopping_criteria = ff.OptimizationStoppingCriteria(window=3)
 
     def fake_run(working, **options):
         captured.update(options)
@@ -918,10 +1159,16 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
 
     monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
 
-    ff.optimize(molecule, forcefield=None, add_hydrogens=False)
+    ff.optimize(
+        molecule,
+        forcefield=None,
+        add_hydrogens=False,
+        stopping_criteria=stopping_criteria,
+    )
 
     assert captured["requested_forcefield"] is None
     assert captured["effective_forcefield"] == "MMFF94s"
+    assert captured["stopping_criteria"] is stopping_criteria
 
 
 def test_organic_build_and_optimize_integration():

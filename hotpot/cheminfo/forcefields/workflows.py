@@ -32,6 +32,7 @@ from .contracts import (
     GeometryQualityError,
     GeometryQualityWarning,
     OptimizationAlgorithm,
+    OptimizationStoppingCriteria,
     RingUntanglingReport,
     StructureAcceptanceThresholds,
     TrajectoryPath,
@@ -380,6 +381,7 @@ def _optimize_complex_working_mol(
     seed: Optional[int],
     perturb_interval: Optional[int],
     perturb_sigma: float,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     retain_epoch_history: bool,
     increasing_vdw: bool,
     vdw_cutoff_start: float,
@@ -445,6 +447,7 @@ def _optimize_complex_working_mol(
             trajectory=trajectory,
             trajectory_stage=TrajectoryStage.FINAL_OPTIMIZATION,
             trajectory_attempt=0,
+            stopping_criteria=stopping_criteria,
         ))
         checkpoint_report = _scan_ring_checkpoint(
             working_mol,
@@ -500,6 +503,7 @@ def _optimize_complex_working_mol(
             trajectory=trajectory,
             trajectory_stage=TrajectoryStage.COMPLEX_UNTANGLING,
             trajectory_attempt=len(optimization_reports),
+            stopping_criteria=stopping_criteria,
         ))
         checkpoint_report = _scan_ring_checkpoint(
             working_mol,
@@ -564,6 +568,7 @@ def _complexes_build_workflow(
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -614,6 +619,7 @@ def _complexes_build_workflow(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
+            stopping_criteria=stopping_criteria,
             retain_epoch_history=save_movie,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
@@ -729,6 +735,7 @@ def optimize(
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.FINAL_OPTIMIZATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -767,6 +774,7 @@ def optimize(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
+            stopping_criteria=stopping_criteria,
         )
         quality_report = evaluate_structure_acceptance(
             working_mol,
@@ -949,6 +957,7 @@ def optimize_complex(
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COMPLEX_UNTANGLING,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -987,6 +996,7 @@ def optimize_complex(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
+            stopping_criteria=stopping_criteria,
             retain_epoch_history=save_movie,
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
@@ -1025,6 +1035,7 @@ def _build_and_optimize_workflow(
     timeout: float = 1000.0,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1066,6 +1077,7 @@ def _build_and_optimize_workflow(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
+            stopping_criteria=stopping_criteria,
             save_movie=save_movie,
             trajectory_start=(
                 trajectory_start
@@ -1100,6 +1112,7 @@ def _build_and_optimize_workflow(
         seed=seed,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
+        stopping_criteria=stopping_criteria,
         save_movie=save_movie,
         trajectory_start=(
             trajectory_start
@@ -1145,6 +1158,7 @@ def complexes_build(
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1184,6 +1198,7 @@ def complexes_build(
         seed=seed,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
+        stopping_criteria=stopping_criteria,
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -1209,6 +1224,7 @@ def build_and_optimize(
     timeout: float = 1000.0,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1249,6 +1265,7 @@ def build_and_optimize(
         timeout=timeout,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
+        stopping_criteria=stopping_criteria,
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -1283,6 +1300,7 @@ def auto_optimize(
     seed: Optional[int] = None,
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
+    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1305,6 +1323,7 @@ def auto_optimize(
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
+            stopping_criteria=stopping_criteria,
             save_movie=save_movie,
             trajectory_start=(
                 trajectory_start
@@ -1328,6 +1347,7 @@ def auto_optimize(
         seed=seed,
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
+        stopping_criteria=stopping_criteria,
         save_movie=save_movie,
         trajectory_start=(
             trajectory_start

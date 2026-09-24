@@ -48,6 +48,13 @@ class _CoordinationRelationCounts:
     excluded_rings: int
 
 
+@dataclass(frozen=True)
+class _CoordinationTrialStatistics:
+    rejected_piercing_trial_count: int
+    undetermined_trial_count: int
+    excluded_ring_observation_count: int
+
+
 @dataclass(frozen=True, order=True)
 class _BondRingPairKey:
     ring_atom_indices: Tuple[int, ...]
@@ -597,37 +604,15 @@ def _untangle_ring_piercings(
     )
 
 
-def _is_coordination_cycle_closure(
-    finding: "geo.BondRingFinding[Ring, Bond]",
-    coordination_bond: "Bond",
-) -> bool:
-    """Identify a geometric finding created only by closing a chelate cycle."""
-    candidate_key = _bond_key(coordination_bond)
-    return (
-        finding.target.bond.key == candidate_key
-        and set(candidate_key).issubset(finding.target.ring.key)
-    )
-
-
-def _scan_full_graph_bond_ring_relations(
-    mol: "Molecule",
-) -> "geo.BondRingScreeningReport[Ring, Bond]":
-    return geo.screen_bond_ring_relations(
-        mol,
-        ring_scope="full_graph",
-        max_ring_size=_BOND_RING_MAX_SIZE,
-    )
-
-
 def _screen_coordination_bond_relations(
     mol: "Molecule",
     coordination_bond: "Bond",
 ) -> "geo.BondRingScreeningReport[Ring, Bond]":
-    """Screen one proposed coordination bond against ligand-only rings."""
+    """Screen one hidden coordination candidate against the pre-addition graph."""
     return geo.screen_bonds_against_rings(
         mol,
         (coordination_bond,),
-        ring_scope="ligand_skeleton",
+        ring_scope="full_graph",
         max_ring_size=_BOND_RING_MAX_SIZE,
     )
 
@@ -642,49 +627,6 @@ def _candidate_coordination_relation_counts(
     undetermined_count = 0
     for finding in report.actionable_findings:
         if finding.target.bond.key != candidate_key:
-            continue
-        if _is_coordination_cycle_closure(finding, coordination_bond):
-            continue
-        if finding.relation.state is geo.PiercingState.PIERCES:
-            piercing_count += 1
-        elif finding.relation.state is geo.PiercingState.UNDETERMINED:
-            undetermined_count += 1
-    return _CoordinationRelationCounts(
-        piercing=piercing_count,
-        undetermined=undetermined_count,
-        excluded_rings=report.excluded_ring_count,
-    )
-
-
-def _coordination_topology_relation_counts(
-    report: "geo.BondRingScreeningReport[Ring, Bond]",
-    coordination_bonds: Sequence["Bond"],
-) -> _CoordinationRelationCounts:
-    """Count unique relations associated with the restored coordination graph."""
-    coordination_by_key = {
-        _bond_key(bond): bond for bond in coordination_bonds
-    }
-    endpoint_sets = tuple(
-        set(candidate_key) for candidate_key in coordination_by_key
-    )
-    piercing_count = 0
-    undetermined_count = 0
-    for finding in report.actionable_findings:
-        target_key = finding.target.bond.key
-        associated_ring = any(
-            endpoints.issubset(finding.target.ring.key)
-            for endpoints in endpoint_sets
-        )
-        if target_key not in coordination_by_key and not associated_ring:
-            continue
-        target_coordination_bond = coordination_by_key.get(target_key)
-        if (
-            target_coordination_bond is not None
-            and _is_coordination_cycle_closure(
-                finding,
-                target_coordination_bond,
-            )
-        ):
             continue
         if finding.relation.state is geo.PiercingState.PIERCES:
             piercing_count += 1
@@ -703,8 +645,8 @@ def _restore_next_nonpiercing_coordination_bond(
     *,
     trajectory: Optional[ForceFieldTrajectory] = None,
     attempt: Optional[int] = None,
-) -> Tuple[Optional["Bond"], Tuple[str, ...]]:
-    """Restore the first bond whose post-addition graph has no new piercing."""
+) -> Tuple[Optional["Bond"], Tuple[str, ...], _CoordinationTrialStatistics]:
+    """Restore the first hidden bond whose hypothetical segment does not pierce."""
     records_trajectory = (
         trajectory is not None
         and trajectory.records(TrajectoryStage.COORDINATION_RESTORATION)
@@ -729,10 +671,10 @@ def _restore_next_nonpiercing_coordination_bond(
                 bond_atom_indices=_bond_key(bond),
                 accepted=accepted,
                 pending_bond_count=pending_count,
-                introduced_piercing_count=(
+                piercing_relation_count=(
                     0 if relation_counts is None else relation_counts.piercing
                 ),
-                introduced_undetermined_count=(
+                undetermined_relation_count=(
                     0 if relation_counts is None else relation_counts.undetermined
                 ),
                 excluded_ring_count=(
@@ -742,50 +684,45 @@ def _restore_next_nonpiercing_coordination_bond(
         )
 
     warning_messages = []
+    rejected_piercing_trials = 0
+    undetermined_trials = 0
+    excluded_ring_observations = 0
     for bond in tuple(pending_bonds):
-        mol.restore_bonds(bond, clear_conformers=False)
         record_candidate(
             TrajectoryEvent.BOND_TRIAL,
             bond,
             accepted=None,
             pending_count=len(pending_bonds),
         )
-        keep_restored = False
-        try:
-            relation_counts = _candidate_coordination_relation_counts(
-                _screen_coordination_bond_relations(mol, bond),
-                bond,
-            )
-            keep_restored = relation_counts.piercing == 0
-            record_candidate(
-                (
-                    TrajectoryEvent.BOND_ACCEPTED
-                    if keep_restored
-                    else TrajectoryEvent.BOND_REJECTED
-                ),
-                bond,
-                accepted=keep_restored,
-                pending_count=(
-                    len(pending_bonds) - 1
-                    if keep_restored
-                    else len(pending_bonds)
-                ),
-                relation_counts=relation_counts,
-            )
-        finally:
-            if not keep_restored:
-                mol.hide_bonds(bond, clear_conformers=False)
-                record_candidate(
-                    TrajectoryEvent.BOND_ROLLBACK,
-                    bond,
-                    accepted=False,
-                    pending_count=len(pending_bonds),
-                )
+        relation_counts = _candidate_coordination_relation_counts(
+            _screen_coordination_bond_relations(mol, bond),
+            bond,
+        )
+        rejected_piercing_trials += int(relation_counts.piercing > 0)
+        undetermined_trials += int(relation_counts.undetermined > 0)
+        excluded_ring_observations += relation_counts.excluded_rings
+        keep_restored = relation_counts.piercing == 0
+        if keep_restored:
+            mol.restore_bonds(bond, clear_conformers=False)
+        record_candidate(
+            (
+                TrajectoryEvent.BOND_ACCEPTED
+                if keep_restored
+                else TrajectoryEvent.BOND_REJECTED
+            ),
+            bond,
+            accepted=keep_restored,
+            pending_count=(
+                len(pending_bonds) - 1
+                if keep_restored
+                else len(pending_bonds)
+            ),
+            relation_counts=relation_counts,
+        )
         if relation_counts.undetermined:
             warning_messages.append(
-                f"Coordination bond {_bond_key(bond)} has "
-                f"{relation_counts.undetermined} newly introduced, "
-                "mathematically undetermined "
+                f"Hypothetical coordination bond {_bond_key(bond)} has "
+                f"{relation_counts.undetermined} mathematically undetermined "
                 "ring relation(s)"
             )
         if relation_counts.excluded_rings:
@@ -797,8 +734,24 @@ def _restore_next_nonpiercing_coordination_bond(
         if relation_counts.piercing:
             continue
         pending_bonds.remove(bond)
-        return bond, tuple(warning_messages)
-    return None, tuple(warning_messages)
+        return (
+            bond,
+            tuple(warning_messages),
+            _CoordinationTrialStatistics(
+                rejected_piercing_trial_count=rejected_piercing_trials,
+                undetermined_trial_count=undetermined_trials,
+                excluded_ring_observation_count=excluded_ring_observations,
+            ),
+        )
+    return (
+        None,
+        tuple(warning_messages),
+        _CoordinationTrialStatistics(
+            rejected_piercing_trial_count=rejected_piercing_trials,
+            undetermined_trial_count=undetermined_trials,
+            excluded_ring_observation_count=excluded_ring_observations,
+        ),
+    )
 
 
 def _restore_coordination_bonds_incrementally(
@@ -856,12 +809,13 @@ def _restore_coordination_bonds_incrementally(
                 attempt_limit=attempt_limit,
                 attempts_completed=0,
                 bond_count=0,
-                restored_without_forcing=0,
+                metal_relocation_attempt_count=0,
+                relocated_metal_indices=(),
+                infeasible_metal_indices=(),
                 forced_bond_keys=(),
-                final_piercing_count=0,
-                final_undetermined_count=0,
-                excluded_ring_count=0,
-                resolved=True,
+                rejected_piercing_trial_count=0,
+                undetermined_trial_count=0,
+                excluded_ring_observation_count=0,
             ),
         )
 
@@ -878,9 +832,12 @@ def _restore_coordination_bonds_incrementally(
     warning_messages: list[str] = []
     stalled_attempts = 0
     last_energy: Optional[float] = None
+    rejected_piercing_trial_count = 0
+    undetermined_trial_count = 0
+    excluded_ring_observation_count = 0
 
     while pending_bonds:
-        restored_bond, relation_warnings = (
+        restored_bond, relation_warnings, relation_observations = (
             _restore_next_nonpiercing_coordination_bond(
                 mol,
                 pending_bonds,
@@ -889,6 +846,13 @@ def _restore_coordination_bonds_incrementally(
             )
         )
         warning_messages.extend(relation_warnings)
+        rejected_piercing_trial_count += (
+            relation_observations.rejected_piercing_trial_count
+        )
+        undetermined_trial_count += relation_observations.undetermined_trial_count
+        excluded_ring_observation_count += (
+            relation_observations.excluded_ring_observation_count
+        )
         if restored_bond is None:
             if stalled_attempts >= attempt_limit:
                 break
@@ -937,42 +901,17 @@ def _restore_coordination_bonds_incrementally(
             f"after {attempt_limit} stalled attempts"
         )
 
-    final_relation_counts = _coordination_topology_relation_counts(
-        _scan_full_graph_bond_ring_relations(mol),
-        coordination_bonds,
-    )
-    if final_relation_counts.piercing:
-        warning_messages.append(
-            f"The restored coordination topology has "
-            f"{final_relation_counts.piercing} confirmed bond-ring piercing "
-            "relation(s); Stage 2.2 will repair the complete complex"
-        )
-    if final_relation_counts.undetermined:
-        warning_messages.append(
-            f"The restored coordination topology has "
-            f"{final_relation_counts.undetermined} mathematically "
-            "undetermined bond-ring relation(s)"
-        )
-    if final_relation_counts.excluded_rings:
-        warning_messages.append(
-            f"The coordination topology contains "
-            f"{final_relation_counts.excluded_rings} ring(s) larger than "
-            f"{_BOND_RING_MAX_SIZE} atoms that were not tested for piercing"
-        )
-
     report = CoordinationBondRestorationReport(
         attempt_limit=attempt_limit,
         attempts_completed=stalled_attempts,
         bond_count=len(coordination_bonds),
-        restored_without_forcing=len(coordination_bonds) - len(forced_bond_keys),
+        metal_relocation_attempt_count=0,
+        relocated_metal_indices=(),
+        infeasible_metal_indices=(),
         forced_bond_keys=forced_bond_keys,
-        final_piercing_count=final_relation_counts.piercing,
-        final_undetermined_count=final_relation_counts.undetermined,
-        excluded_ring_count=final_relation_counts.excluded_rings,
-        resolved=(
-            not forced_bond_keys
-            and final_relation_counts.piercing == 0
-        ),
+        rejected_piercing_trial_count=rejected_piercing_trial_count,
+        undetermined_trial_count=undetermined_trial_count,
+        excluded_ring_observation_count=excluded_ring_observation_count,
         warning_messages=_unique_messages(warning_messages),
     )
     terminal_index = record_restoration_frame(
@@ -980,12 +919,9 @@ def _restore_coordination_bonds_incrementally(
         energy=last_energy,
         evidence=CoordinationFrameEvidence(
             bond_atom_indices=None,
-            accepted=report.resolved,
+            accepted=not forced_bond_keys,
             pending_bond_count=0,
             forced=bool(forced_bond_keys),
-            introduced_piercing_count=final_relation_counts.piercing,
-            introduced_undetermined_count=final_relation_counts.undetermined,
-            excluded_ring_count=final_relation_counts.excluded_rings,
         ),
         attempt=stalled_attempts,
     )

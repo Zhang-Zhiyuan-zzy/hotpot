@@ -172,8 +172,8 @@ class CoordinationFrameEvidence:
     accepted: Optional[bool]
     pending_bond_count: int = 0
     forced: bool = False
-    introduced_piercing_count: int = 0
-    introduced_undetermined_count: int = 0
+    piercing_relation_count: int = 0
+    undetermined_relation_count: int = 0
     excluded_ring_count: int = 0
 
 
@@ -838,11 +838,11 @@ class _TrajectoryWriter:
                 accepted=cls._optional_bool(evidence_data["accepted"]),
                 pending_bond_count=int(cast(int, evidence_data["pending_bond_count"])),
                 forced=bool(evidence_data["forced"]),
-                introduced_piercing_count=int(
-                    cast(int, evidence_data["introduced_piercing_count"])
+                piercing_relation_count=int(
+                    cast(int, evidence_data["piercing_relation_count"])
                 ),
-                introduced_undetermined_count=int(
-                    cast(int, evidence_data["introduced_undetermined_count"])
+                undetermined_relation_count=int(
+                    cast(int, evidence_data["undetermined_relation_count"])
                 ),
                 excluded_ring_count=int(
                     cast(int, evidence_data["excluded_ring_count"])

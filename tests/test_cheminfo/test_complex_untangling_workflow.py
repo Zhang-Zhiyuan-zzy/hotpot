@@ -231,11 +231,6 @@ def _coordination_molecule():
 def _mock_coordination_scans(monkeypatch, candidate_counts):
     monkeypatch.setattr(
         repair,
-        "_scan_full_graph_bond_ring_relations",
-        lambda *args, **kwargs: object(),
-    )
-    monkeypatch.setattr(
-        repair,
         "_screen_coordination_bond_relations",
         lambda *args, **kwargs: object(),
     )
@@ -243,11 +238,6 @@ def _mock_coordination_scans(monkeypatch, candidate_counts):
         repair,
         "_candidate_coordination_relation_counts",
         candidate_counts,
-    )
-    monkeypatch.setattr(
-        repair,
-        "_coordination_topology_relation_counts",
-        lambda *args, **kwargs: _coordination_counts(),
     )
 
 
@@ -794,15 +784,13 @@ def test_coordination_bonds_are_restored_one_by_one_after_safe_checks(monkeypatc
         ("hide", ((0, 2), (0, 3))),
         ("restore", ((0, 2),)),
         ("restore", ((0, 3),)),
-        ("hide", ((0, 3),)),
-        ("restore", ((0, 3),)),
     ]
     assert result.report.attempts_completed == 1
-    assert result.report.restored_without_forcing == 2
+    assert result.report.rejected_piercing_trial_count == 1
     assert result.report.forced_bond_keys == ()
 
 
-def test_coordination_trajectory_records_trial_outcome_and_rollback_topology(
+def test_coordination_trajectory_records_hidden_trial_without_rollback_topology(
     monkeypatch,
 ):
     molecule, (first, second) = _coordination_molecule()
@@ -847,7 +835,6 @@ def test_coordination_trajectory_records_trial_outcome_and_rollback_topology(
         TrajectoryEvent.OPTIMIZED,
         TrajectoryEvent.BOND_TRIAL,
         TrajectoryEvent.BOND_REJECTED,
-        TrajectoryEvent.BOND_ROLLBACK,
         TrajectoryEvent.OPTIMIZED,
         TrajectoryEvent.BOND_TRIAL,
         TrajectoryEvent.BOND_ACCEPTED,
@@ -856,14 +843,13 @@ def test_coordination_trajectory_records_trial_outcome_and_rollback_topology(
     )
     assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
         0,
+        0,
         1,
         1,
         1,
-        2,
-        2,
         1,
         1,
-        2,
+        1,
         2,
         2,
         2,
@@ -877,12 +863,12 @@ def test_coordination_trajectory_records_trial_outcome_and_rollback_topology(
         bond_atom_indices=_key(second),
         accepted=False,
         pending_bond_count=1,
-        introduced_piercing_count=1,
+        piercing_relation_count=1,
     )
-    assert trajectory[6].topology_revision == trajectory[3].topology_revision
+    assert trajectory[5].topology_revision == trajectory[3].topology_revision
+    assert trajectory[9].energy_kj_mol == 3.0
     assert trajectory[10].energy_kj_mol == 3.0
-    assert trajectory[11].energy_kj_mol == 3.0
-    assert trajectory.selected_index == 11
+    assert trajectory.selected_index == 10
 
 
 def test_safe_coordination_bonds_do_not_consume_the_stalled_attempt_budget(
@@ -917,7 +903,6 @@ def test_safe_coordination_bonds_do_not_consume_the_stalled_attempt_budget(
 
     assert optimization_calls == 3
     assert result.report.attempts_completed == 0
-    assert result.report.restored_without_forcing == 3
     assert result.report.forced_bond_keys == ()
 
 
@@ -959,10 +944,10 @@ def test_coordination_restoration_perturbs_without_progress_then_forces_all(
     assert optimize_calls == 2
     assert molecule.events[-1] == ("restore", ((0, 2),))
     assert result.report.forced_bond_keys == ((0, 2),)
-    assert not result.report.resolved
+    assert result.report.rejected_piercing_trial_count == 3
 
 
-def test_coordination_trajectory_records_each_forced_bond_after_rollback(
+def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
     monkeypatch,
 ):
     molecule, bonds = _coordination_molecule()
@@ -997,33 +982,29 @@ def test_coordination_trajectory_records_each_forced_bond_after_rollback(
         TrajectoryEvent.COORDINATION_READY,
         TrajectoryEvent.BOND_TRIAL,
         TrajectoryEvent.BOND_REJECTED,
-        TrajectoryEvent.BOND_ROLLBACK,
         TrajectoryEvent.OPTIMIZED,
         TrajectoryEvent.BOND_TRIAL,
         TrajectoryEvent.BOND_REJECTED,
-        TrajectoryEvent.BOND_ROLLBACK,
         TrajectoryEvent.BOND_FORCED,
         TrajectoryEvent.TERMINAL,
     )
     assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
         0,
-        1,
-        1,
         0,
         0,
-        1,
-        1,
+        0,
+        0,
         0,
         1,
         1,
     )
-    assert trajectory[8].evidence == CoordinationFrameEvidence(
+    assert trajectory[6].evidence == CoordinationFrameEvidence(
         bond_atom_indices=_key(second),
         accepted=False,
         pending_bond_count=0,
         forced=True,
     )
-    assert trajectory[9].energy_kj_mol is None
+    assert trajectory[7].energy_kj_mol is None
 
 
 def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
@@ -1061,7 +1042,6 @@ def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
         rng=np.random.default_rng(3),
     )
 
-    assert result.report.restored_without_forcing == 1
     assert result.report.forced_bond_keys == ((0, 3),)
     np.testing.assert_array_equal(molecule.coordinates, np.full((4, 3), 4.0))
 
@@ -1096,90 +1076,7 @@ def test_coordination_bond_restored_in_a_round_is_relaxed(monkeypatch):
 
     assert optimization_calls == 2
     assert result.report.attempts_completed == 1
-    assert result.report.resolved
-
-
-def test_coordination_restoration_reports_piercing_created_by_relaxation(
-    monkeypatch,
-):
-    bond = _Bond(0, 2, coordination=True)
-    molecule = _CoordinationMolecule((bond,))
-    _mock_coordination_scans(
-        monkeypatch,
-        lambda *args, **kwargs: _coordination_counts(),
-    )
-    monkeypatch.setattr(
-        repair,
-        "_coordination_topology_relation_counts",
-        lambda *args, **kwargs: _coordination_counts(piercing=1),
-    )
-    monkeypatch.setattr(
-        repair,
-        "_single_ob_optimization",
-        lambda *args, **kwargs: _optimization(1.0),
-    )
-
-    result = repair._restore_coordination_bonds_incrementally(
-        molecule,
-        "UFF",
-        attempt_limit=1,
-        relaxation_steps=5,
-        perturb_sigma=0.5,
-        rng=np.random.default_rng(3),
-    )
-
     assert result.report.forced_bond_keys == ()
-    assert result.report.final_piercing_count == 1
-    assert not result.report.resolved
-
-
-def test_chelate_cycle_filter_only_ignores_the_candidate_bond_itself():
-    candidate = _Bond(0, 4, coordination=True)
-    same_cycle = SimpleNamespace(
-        target=SimpleNamespace(
-            bond=SimpleNamespace(key=(0, 4)),
-            ring=SimpleNamespace(key=(0, 1, 2, 3, 4)),
-        )
-    )
-    other_bond = SimpleNamespace(
-        target=SimpleNamespace(
-            bond=SimpleNamespace(key=(1, 3)),
-            ring=SimpleNamespace(key=(0, 1, 2, 3, 4)),
-        )
-    )
-    unrelated_cycle = SimpleNamespace(
-        target=SimpleNamespace(
-            bond=SimpleNamespace(key=(0, 4)),
-            ring=SimpleNamespace(key=(0, 1, 2, 3)),
-        )
-    )
-
-    assert repair._is_coordination_cycle_closure(same_cycle, candidate)
-    assert not repair._is_coordination_cycle_closure(other_bond, candidate)
-    assert not repair._is_coordination_cycle_closure(
-        unrelated_cycle,
-        candidate,
-    )
-
-
-def test_coordination_bond_check_ignores_self_closure():
-    candidate = _Bond(0, 4, coordination=True)
-    finding = SimpleNamespace(
-        target=SimpleNamespace(
-            bond=SimpleNamespace(key=(0, 4)),
-            ring=SimpleNamespace(key=(0, 1, 2, 3, 4)),
-        ),
-        relation=SimpleNamespace(state=repair.geo.PiercingState.PIERCES),
-    )
-    report = SimpleNamespace(
-        actionable_findings=(finding,),
-        excluded_ring_count=0,
-    )
-
-    assert repair._candidate_coordination_relation_counts(
-        report,
-        candidate,
-    ) == _coordination_counts()
 
 
 def test_coordination_bond_check_counts_candidate_through_ligand_ring():
@@ -1232,7 +1129,7 @@ def test_coordination_bond_check_reports_excluded_large_rings():
     ) == _coordination_counts(excluded_rings=3)
 
 
-def test_failed_post_addition_check_rehides_candidate_bond(monkeypatch):
+def test_failed_hypothetical_check_never_restores_candidate_bond(monkeypatch):
     candidate = _Bond(0, 2, coordination=True)
     molecule = _CoordinationMolecule((candidate,))
     molecule.hide_bonds(candidate, clear_conformers=False)
@@ -1259,7 +1156,7 @@ def test_failed_post_addition_check_rehides_candidate_bond(monkeypatch):
         relation_counts,
     )
 
-    restored, warnings = (
+    restored, warnings, observations = (
         repair._restore_next_nonpiercing_coordination_bond(
             molecule,
             [candidate],
@@ -1268,7 +1165,8 @@ def test_failed_post_addition_check_rehides_candidate_bond(monkeypatch):
 
     assert restored is None
     assert warnings == ()
-    assert scan_states == [True]
+    assert observations == repair._CoordinationTrialStatistics(1, 0, 0)
+    assert scan_states == [False]
     assert candidate not in molecule.bonds
 
 
@@ -1292,7 +1190,7 @@ def test_real_post_addition_chelate_cycle_does_not_reject_its_closing_bond():
     molecule.hide_bonds(candidate, clear_conformers=False)
     pending = [candidate]
 
-    restored, warnings = (
+    restored, warnings, observations = (
         repair._restore_next_nonpiercing_coordination_bond(
             molecule,
             pending,
@@ -1302,6 +1200,7 @@ def test_real_post_addition_chelate_cycle_does_not_reject_its_closing_bond():
     assert restored is candidate
     assert pending == []
     assert warnings == ()
+    assert observations == repair._CoordinationTrialStatistics(0, 0, 0)
     assert {
         frozenset(atom.idx for atom in ring.atoms)
         for ring in molecule.rings_for_scope("full_graph")
@@ -1332,7 +1231,7 @@ def test_real_post_addition_bond_through_ligand_ring_is_rejected():
     molecule.hide_bonds(candidate, clear_conformers=False)
     pending = [candidate]
 
-    restored, _ = repair._restore_next_nonpiercing_coordination_bond(
+    restored, _, observations = repair._restore_next_nonpiercing_coordination_bond(
         molecule,
         pending,
     )
@@ -1340,6 +1239,7 @@ def test_real_post_addition_bond_through_ligand_ring_is_rejected():
     assert restored is None
     assert pending == [candidate]
     assert candidate not in molecule.bonds
+    assert observations == repair._CoordinationTrialStatistics(1, 0, 0)
 
 
 def test_public_staged_workflow_attempt_defaults_match_between_versions():

@@ -236,12 +236,13 @@ class CoordinationBondRestorationReport:
     attempt_limit: int
     attempts_completed: int
     bond_count: int
-    restored_without_forcing: int
+    metal_relocation_attempt_count: int
+    relocated_metal_indices: Tuple[int, ...]
+    infeasible_metal_indices: Tuple[int, ...]
     forced_bond_keys: Tuple[Tuple[int, int], ...]
-    final_piercing_count: int
-    final_undetermined_count: int
-    excluded_ring_count: int
-    resolved: bool
+    rejected_piercing_trial_count: int
+    undetermined_trial_count: int
+    excluded_ring_observation_count: int
     warning_messages: Tuple[str, ...] = ()
 
 

@@ -38,7 +38,12 @@ def _coordination_trajectory():
         stage=TrajectoryStage.COORDINATION_RESTORATION,
         event=TrajectoryEvent.BOND_ACCEPTED,
         energy_kj_mol=-12.5,
-        evidence=CoordinationFrameEvidence((0, 1), accepted=True),
+        evidence=CoordinationFrameEvidence(
+            (0, 1),
+            accepted=True,
+            undetermined_relation_count=2,
+            excluded_ring_count=1,
+        ),
     )
     molecule.coordinates = molecule.coordinates + np.array([0.25, 0.0, 0.0])
     third = trajectory.record_molecule(

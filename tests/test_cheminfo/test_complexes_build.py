@@ -327,7 +327,9 @@ def _piercing_report(*ring_bond_pairs):
             for ring, bond in ring_bond_pairs
         ),
         undetermined=(),
+        undetermined_pair_count=0,
         excluded_ring_count=0,
+        max_ring_size=16,
         ring_scope="ligand_skeleton",
     )
 
@@ -814,12 +816,7 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
     monkeypatch.setattr(repair, "_select_ring_opening_edge", closest)
     monkeypatch.setattr(
         ligand,
-        "_bond_ring_acceptance_checks",
-        lambda current, found: (intersection_failure,),
-    )
-    monkeypatch.setattr(
-        ligand,
-        "evaluate_structure_acceptance",
+        "evaluate_structure_acceptance_at_checkpoint",
         lambda *args, **kwargs: SimpleNamespace(
             passed=False,
             failures=(intersection_failure,),
@@ -894,7 +891,11 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
         "screen_bond_ring_relations",
         screen_relations,
     )
-    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance_at_checkpoint",
+        accept,
+    )
 
     coordinates, diagnostics = ligand._build_ligand_proxies(
         molecule,
@@ -956,7 +957,11 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
             failures=() if quality_calls >= 2 else (first_failure,),
         )
 
-    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance_at_checkpoint",
+        quality,
+    )
 
     _, diagnostics = ligand._build_ligand_proxies(
         molecule,
@@ -1003,7 +1008,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
     )
     monkeypatch.setattr(
         ligand,
-        "evaluate_structure_acceptance",
+        "evaluate_structure_acceptance_at_checkpoint",
         lambda *args, **kwargs: SimpleNamespace(passed=True, failures=()),
     )
 
@@ -1195,7 +1200,7 @@ def test_ligand_retries_share_one_built_root_and_record_distinct_branches(
     monkeypatch.setattr(ligand, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(
         ligand,
-        "evaluate_structure_acceptance",
+        "evaluate_structure_acceptance_at_checkpoint",
         lambda *args, **kwargs: SimpleNamespace(
             passed=False,
             failures=(failure,),
@@ -1255,7 +1260,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
     )
     monkeypatch.setattr(
         ligand,
-        "evaluate_structure_acceptance",
+        "evaluate_structure_acceptance_at_checkpoint",
         lambda *args, **kwargs: SimpleNamespace(
             passed=False,
             failures=(failure,),
@@ -1327,7 +1332,11 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
             failures=() if passed else (failure,),
         )
 
-    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance_at_checkpoint",
+        quality,
+    )
 
     _, diagnostics = ligand._build_ligand_proxies(
         molecule,
@@ -1397,11 +1406,24 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         "screen_bond_ring_relations",
         screen_relations,
     )
-    monkeypatch.setattr(
-        ligand,
-        "_bond_ring_acceptance_checks",
-        lambda current, found: (failure,),
-    )
+
+    def untangle(current, *args, **kwargs):
+        checkpoint = kwargs["checkpoint_report"]
+        count = len(checkpoint.piercings)
+        return repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=0,
+                initial_piercing_count=count,
+                final_piercing_count=count,
+                minimum_piercing_count=count,
+                resolved=count == 0,
+            ),
+            energy=1.0,
+            checkpoint_report=checkpoint,
+        )
+
+    monkeypatch.setattr(ligand, "_untangle_ring_piercings", untangle)
 
     def quality(*args, **kwargs):
         nonlocal quality_calls
@@ -1409,12 +1431,12 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         assert kwargs["forcefield_stage"] == "candidate"
         return SimpleNamespace(
             passed=quality_calls == 1,
-            failures=() if quality_calls == 1 else (gate_failure,),
+            failures=() if quality_calls == 1 else (failure, gate_failure),
         )
 
     monkeypatch.setattr(
         ligand,
-        "evaluate_structure_acceptance",
+        "evaluate_structure_acceptance_at_checkpoint",
         quality,
     )
 
@@ -1452,7 +1474,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
 
     def optimize(current, forcefield, steps):
         marker = float(current.coordinates[0, 0])
-        energies = {1.0: 0.0, 2.0: 10.0, 3.0: 5.0}
+        energies = {1.0: 0.0, 2.0: -100.0, 3.0: 100.0}
         return ob_backend._CandidateOptimizationResult(
             energies[marker],
             "kJ/mol",
@@ -1480,7 +1502,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
                 minimum_piercing_count=count,
                 resolved=False,
             ),
-            energy={1: 0.0, 2: 10.0, 3: 5.0}[
+            energy={1: 0.0, 2: -100.0, 3: 100.0}[
                 int(current.coordinates[0, 0])
             ],
             checkpoint_report=kwargs["checkpoint_report"],
@@ -1504,7 +1526,11 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
         "_scan_ring_checkpoint",
         lambda *args, **kwargs: _piercing_report(),
     )
-    monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance_at_checkpoint",
+        quality,
+    )
 
     _, diagnostics = ligand._build_ligand_proxies(
         molecule,

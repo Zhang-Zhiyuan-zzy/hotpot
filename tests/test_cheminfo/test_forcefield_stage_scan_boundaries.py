@@ -1,10 +1,11 @@
-"""Characterize force-field topology scans before the three-stage refactor.
+"""Characterize force-field topology scans during the three-stage refactor.
 
 These tests intentionally record the current scan boundaries.  Assertions marked
 as current behavior are expected to change when the corresponding refactor step
 moves topology checks to explicit stage checkpoints.
 """
 
+from dataclasses import fields
 from types import SimpleNamespace
 
 import numpy as np
@@ -34,6 +35,26 @@ def _empty_screening_report(*, ring_scope="full_graph"):
         aabb_separated_pair_count=0,
         exact_pair_count=0,
         piercing_pair_count=0,
+        does_not_pierce_pair_count=0,
+        undetermined_pair_count=0,
+        scan_complete=True,
+    )
+
+
+def _piercing_screening_report(*, ring_scope="ligand_skeleton"):
+    finding = SimpleNamespace(
+        relation=SimpleNamespace(state=geo.PiercingState.PIERCES),
+    )
+    return geo.BondRingScreeningReport(
+        actionable_findings=(finding,),
+        ring_scope=ring_scope,
+        max_ring_size=16,
+        selected_ring_count=1,
+        excluded_ring_count=0,
+        candidate_pair_count=1,
+        aabb_separated_pair_count=0,
+        exact_pair_count=1,
+        piercing_pair_count=1,
         does_not_pierce_pair_count=0,
         undetermined_pair_count=0,
         scan_complete=True,
@@ -75,10 +96,15 @@ def _forcefield_run_report(*, epochs_completed=1):
     )
 
 
-def test_current_stage1_runs_untangling_then_a_post_refinement_scan(monkeypatch):
-    """Stage 1 currently adds one explicit scan after the untangling helper."""
+def test_stage1_reuses_each_checkpoint_report_for_acceptance(monkeypatch):
+    """Stage 1 acceptance consumes the exact report returned by its checkpoint."""
     mol = read_mol("[Zn](N)", "smi")
     calls = []
+    scanned_reports = []
+    accepted_reports = []
+    candidate_terminal_report = _empty_screening_report(
+        ring_scope="ligand_skeleton"
+    )
 
     monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
     monkeypatch.setattr(
@@ -93,23 +119,36 @@ def test_current_stage1_runs_untangling_then_a_post_refinement_scan(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
 
     def untangle(*args, **kwargs):
-        calls.append(("untangle", kwargs["checkpoint_report"].ring_scope))
-        return _untangling_result(attempt_limit=kwargs["attempt_limit"])
+        checkpoint_report = kwargs["checkpoint_report"]
+        calls.append(("untangle", checkpoint_report.ring_scope))
+        assert checkpoint_report is scanned_reports[-1]
+        result = _untangling_result(attempt_limit=kwargs["attempt_limit"])
+        return repair._RingUntanglingResult(
+            report=result.report,
+            energy=result.energy,
+            checkpoint_report=candidate_terminal_report,
+        )
 
     def scan(*args, **kwargs):
         calls.append(("checkpoint", kwargs["ring_scope"]))
-        return _empty_screening_report(ring_scope=kwargs["ring_scope"])
+        report = _empty_screening_report(ring_scope=kwargs["ring_scope"])
+        scanned_reports.append(report)
+        return report
+
+    def accept(*args, **kwargs):
+        accepted_reports.append(kwargs["bond_ring_report"])
+        return ff.ForceFieldValidationReport(
+            level="basic",
+            passed=True,
+            checks=(),
+        )
 
     monkeypatch.setattr(ligand, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(ligand, "_scan_ring_checkpoint", scan)
     monkeypatch.setattr(
         ligand,
-        "evaluate_structure_acceptance",
-        lambda *args, **kwargs: ff.ForceFieldValidationReport(
-            level="basic",
-            passed=True,
-            checks=(),
-        ),
+        "evaluate_structure_acceptance_at_checkpoint",
+        accept,
     )
 
     ligand._build_ligand_proxies(
@@ -126,38 +165,166 @@ def test_current_stage1_runs_untangling_then_a_post_refinement_scan(monkeypatch)
         ("untangle", "ligand_skeleton"),
         ("checkpoint", "ligand_skeleton"),
     ]
+    assert accepted_reports[0] is candidate_terminal_report
+    assert accepted_reports[1] is scanned_reports[1]
 
 
-def test_current_stage2_scans_each_restored_candidate_then_the_full_graph(
+def test_stage1_basic_gate_still_rejects_confirmed_piercing(monkeypatch):
+    mol = read_mol("[Zn](N)", "smi")
+    piercing_report = _piercing_screening_report()
+
+    monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ligand,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(
+            0.0,
+            "kJ/mol",
+            False,
+        ),
+    )
+    monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        ligand,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: _empty_screening_report(
+            ring_scope="ligand_skeleton"
+        ),
+    )
+    monkeypatch.setattr(
+        ligand,
+        "_untangle_ring_piercings",
+        lambda *args, **kwargs: repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=0,
+                initial_piercing_count=1,
+                final_piercing_count=1,
+                minimum_piercing_count=1,
+                resolved=False,
+            ),
+            energy=0.0,
+            checkpoint_report=piercing_report,
+        ),
+    )
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance_at_checkpoint",
+        lambda *args, **kwargs: ff.ForceFieldValidationReport(
+            level="basic",
+            passed=True,
+            checks=(),
+        ),
+    )
+
+    _, diagnostics = ligand._build_ligand_proxies(
+        mol,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
+
+    assert diagnostics.accepted_candidates == 0
+    assert diagnostics.ligand_untangling[0].final_piercing_count == 1
+
+
+def test_stage1_refinement_piercing_reenters_untangling(monkeypatch):
+    mol = read_mol("[Zn](N)", "smi")
+    entry_report = _empty_screening_report(ring_scope="ligand_skeleton")
+    refined_report = _piercing_screening_report(ring_scope="ligand_skeleton")
+    candidate_terminal = _empty_screening_report(ring_scope="ligand_skeleton")
+    refined_terminal = _empty_screening_report(ring_scope="ligand_skeleton")
+    scan_reports = iter((entry_report, refined_report))
+    untangling_inputs = []
+    accepted_reports = []
+
+    monkeypatch.setattr(ligand, "_ob_build", lambda current: None)
+    monkeypatch.setattr(
+        ligand,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(
+            0.0,
+            "kJ/mol",
+            False,
+        ),
+    )
+    monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        ligand,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: next(scan_reports),
+    )
+
+    def untangle(*args, **kwargs):
+        checkpoint_report = kwargs["checkpoint_report"]
+        untangling_inputs.append(checkpoint_report)
+        terminal_report = (
+            candidate_terminal
+            if checkpoint_report is entry_report
+            else refined_terminal
+        )
+        return repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=0,
+                initial_piercing_count=len(checkpoint_report.piercings),
+                final_piercing_count=0,
+                minimum_piercing_count=0,
+                resolved=True,
+            ),
+            energy=0.0,
+            checkpoint_report=terminal_report,
+        )
+
+    def accept(*args, **kwargs):
+        accepted_reports.append(kwargs["bond_ring_report"])
+        return ff.ForceFieldValidationReport(
+            level="basic",
+            passed=True,
+            checks=(),
+        )
+
+    monkeypatch.setattr(ligand, "_untangle_ring_piercings", untangle)
+    monkeypatch.setattr(
+        ligand,
+        "evaluate_structure_acceptance_at_checkpoint",
+        accept,
+    )
+
+    _, diagnostics = ligand._build_ligand_proxies(
+        mol,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+    )
+
+    assert diagnostics.accepted_candidates == 1
+    assert untangling_inputs == [entry_report, refined_report]
+    assert accepted_reports == [candidate_terminal, refined_terminal]
+
+
+def test_stage2_screens_hidden_candidate_against_full_graph_without_terminal_scan(
     monkeypatch,
 ):
-    """Stage 2 currently mutates each candidate before a ligand-ring scan."""
+    """Stage 2 screens the hypothetical bond before changing graph topology."""
     mol = read_mol("[Zn](N)", "smi")
     candidate_topologies = []
-    terminal_scans = []
 
     def candidate_scan(current, bond):
         candidate_topologies.append(
             tuple(sorted(repair._bond_key(candidate) for candidate in current.bonds))
         )
-        assert bond in current.bonds
-        return _empty_screening_report(ring_scope="ligand_skeleton")
-
-    def terminal_scan(current):
-        terminal_scans.append(
-            tuple(sorted(repair._bond_key(bond) for bond in current.bonds))
-        )
+        assert bond not in current.bonds
         return _empty_screening_report(ring_scope="full_graph")
 
     monkeypatch.setattr(
         repair,
         "_screen_coordination_bond_relations",
         candidate_scan,
-    )
-    monkeypatch.setattr(
-        repair,
-        "_scan_full_graph_bond_ring_relations",
-        terminal_scan,
     )
     monkeypatch.setattr(
         repair,
@@ -179,9 +346,48 @@ def test_current_stage2_scans_each_restored_candidate_then_the_full_graph(
     )
 
     assert len(candidate_topologies) == 1
-    assert candidate_topologies[0] == ((0, 1),)
-    assert terminal_scans == [((0, 1),)]
-    assert result.report.restored_without_forcing == 1
+    assert candidate_topologies[0] == ()
+    assert result.report.forced_bond_keys == ()
+    assert result.report.rejected_piercing_trial_count == 0
+
+
+def test_stage2_candidate_screen_uses_full_graph_and_ring_size_limit(monkeypatch):
+    mol = read_mol("[Zn](N)", "smi")
+    candidate = mol.bonds[0]
+    mol.hide_bonds(candidate, clear_conformers=False)
+    calls = []
+
+    def screen(current, bonds, **kwargs):
+        calls.append((current, tuple(bonds), kwargs))
+        return _empty_screening_report(ring_scope=kwargs["ring_scope"])
+
+    monkeypatch.setattr(repair.geo, "screen_bonds_against_rings", screen)
+
+    report = repair._screen_coordination_bond_relations(mol, candidate)
+
+    assert candidate not in mol.bonds
+    assert calls == [(
+        mol,
+        (candidate,),
+        {"ring_scope": "full_graph", "max_ring_size": 16},
+    )]
+    assert report.ring_scope == "full_graph"
+
+
+def test_coordination_restoration_report_has_stage2_mechanical_facts_only():
+    assert tuple(field.name for field in fields(ff.CoordinationBondRestorationReport)) == (
+        "attempt_limit",
+        "attempts_completed",
+        "bond_count",
+        "metal_relocation_attempt_count",
+        "relocated_metal_indices",
+        "infeasible_metal_indices",
+        "forced_bond_keys",
+        "rejected_piercing_trial_count",
+        "undetermined_trial_count",
+        "excluded_ring_observation_count",
+        "warning_messages",
+    )
 
 
 def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch):

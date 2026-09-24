@@ -11,13 +11,13 @@ import numpy as np
 
 from .. import geometry as geo
 from .acceptance import (
-    _bond_ring_acceptance_checks,
     _format_geometry_checks,
     _has_unreturnable_frame_failure,
-    evaluate_structure_acceptance,
+    evaluate_structure_acceptance_at_checkpoint,
 )
 from .backend import _ob_build, _single_ob_optimization
 from .contracts import (
+    AcceptanceCheck,
     CandidateRejection,
     ComplexBuildDiagnostics,
     ComplexBuildError,
@@ -54,20 +54,52 @@ class _LigandCandidate:
     energy: float
     attempt: int
     untangling: RingUntanglingReport
+    checkpoint_report: "geo.BondRingScreeningReport"
     trajectory: Optional[ForceFieldTrajectory] = None
 
 
 def _ligand_candidate_sort_key(
     candidate: _LigandCandidate,
-) -> Tuple[int, bool, float, int]:
-    """Rank usable fallback starts by piercing count and finite energy."""
-    finite_energy = bool(np.isfinite(candidate.energy))
+) -> Tuple[int, int]:
+    """Rank fallbacks by confirmed piercings, preferring the latest tie."""
     return (
         candidate.untangling.final_piercing_count,
-        not finite_energy,
-        candidate.energy if finite_energy else float("inf"),
-        candidate.attempt,
+        -candidate.attempt,
     )
+
+
+def _candidate_rejection_reason(
+    prefix: str,
+    failures: Tuple[AcceptanceCheck, ...],
+    confirmed_piercing_count: int,
+) -> str:
+    """Describe a rejected checkpoint without recomputing its evidence."""
+    if failures:
+        return _format_geometry_checks(prefix, failures)
+    return (
+        f"{prefix}: confirmed_bond_ring_piercing_count="
+        f"{confirmed_piercing_count}"
+    )
+
+
+def _checkpoint_warning_messages(
+    component_index: int,
+    report: "geo.BondRingScreeningReport",
+) -> Tuple[str, ...]:
+    """Return non-fatal Stage 1 coverage and indeterminacy warnings."""
+    messages = []
+    if report.undetermined_pair_count:
+        messages.append(
+            f"Component {component_index}: "
+            f"{report.undetermined_pair_count} bond-ring relations remain "
+            "mathematically undetermined"
+        )
+    if report.excluded_ring_count:
+        messages.append(
+            f"Component {component_index}: {report.excluded_ring_count} rings "
+            f"larger than {report.max_ring_size} atoms were not scanned"
+        )
+    return tuple(messages)
 
 
 def _build_ligand_proxies(
@@ -233,8 +265,10 @@ def _build_ligand_proxies(
                 )
                 continue
 
-            candidate_quality = evaluate_structure_acceptance(
+            candidate_checkpoint = untangling.checkpoint_report
+            candidate_quality = evaluate_structure_acceptance_at_checkpoint(
                 component_mol,
+                bond_ring_report=candidate_checkpoint,
                 level="basic",
                 topology_reference=component_reference,
                 forcefield_report={
@@ -250,18 +284,21 @@ def _build_ligand_proxies(
                 energy=float(untangling.energy),
                 attempt=component_attempts,
                 untangling=untangling.report,
+                checkpoint_report=candidate_checkpoint,
                 trajectory=attempt_trajectory,
             )
             if not _has_unreturnable_frame_failure(candidate_quality):
                 fallback_candidates.append(candidate)
-            if not candidate_quality.passed:
+            candidate_piercing_count = _piercing_count(candidate_checkpoint)
+            if not candidate_quality.passed or candidate_piercing_count:
                 rejections.append(
                     CandidateRejection(
                         component_index,
                         component_attempts,
-                        _format_geometry_checks(
+                        _candidate_rejection_reason(
                             "candidate geometry gate",
                             tuple(candidate_quality.failures),
+                            candidate_piercing_count,
                         ),
                         tuple(candidate_quality.failures),
                     )
@@ -297,7 +334,7 @@ def _build_ligand_proxies(
                 f"Component {component_index}: no candidate passed the basic "
                 f"geometry gate after {component_attempts} attempts; retaining "
                 "the usable attempted geometry with the lowest confirmed "
-                "bond-ring piercing count and energy as the next-stage start"
+                "bond-ring piercing count as the next-stage start"
             )
         else:
             selected_candidate = accepted_candidate
@@ -345,39 +382,58 @@ def _build_ligand_proxies(
                     component_mol,
                     ring_scope="ligand_skeleton",
                 )
-                refined_state = refined_report.state
+                if refined_report.state is geo.PiercingState.PIERCES:
+                    refined_untangling = _untangle_ring_piercings(
+                        component_mol,
+                        effective_forcefield,
+                        attempt_limit=ligand_untangling_attempts,
+                        short_steps=candidate_warmup_steps,
+                        settling_steps=candidate_score_steps,
+                        perturb_sigma=perturb_sigma,
+                        rng=rng,
+                        checkpoint_report=refined_report,
+                        initial_energy=float(refined.energy),
+                        trajectory=selected_candidate.trajectory,
+                        trajectory_stage=TrajectoryStage.LIGAND_BUILD,
+                    )
+                    refined_report = refined_untangling.checkpoint_report
+                    refined_energy = float(refined_untangling.energy)
+                    refined_untangling_report = refined_untangling.report
+                    refined_frame = None
+                else:
+                    refined_energy = float(refined.energy)
+                    refined_untangling_report = replace(
+                        selected_candidate.untangling,
+                        final_piercing_count=_piercing_count(refined_report),
+                        minimum_piercing_count=min(
+                            selected_candidate.untangling.minimum_piercing_count,
+                            _piercing_count(refined_report),
+                        ),
+                        resolved=_piercing_count(refined_report) == 0,
+                    )
                 refined_piercing_count = _piercing_count(refined_report)
-                refined_quality = evaluate_structure_acceptance(
+                refined_quality = evaluate_structure_acceptance_at_checkpoint(
                     component_mol,
+                    bond_ring_report=refined_report,
                     level="basic",
                     topology_reference=component_reference,
                     forcefield_report={
                         "setup_succeeded": True,
-                        "final_energy": refined.energy,
+                        "final_energy": refined_energy,
                         "energy_unit": refined.energy_unit,
                         "exploded": refined.exploded,
                     },
                     forcefield_stage="candidate",
                 )
-                if not refined_quality.passed:
-                    intersection_failures = tuple(
-                        check
-                        for check in _bond_ring_acceptance_checks(
-                            component_mol,
-                            refined_report,
-                        )
-                        if not check.passed
-                    )
-                    failures = (
-                        tuple(intersection_failures)
-                        + tuple(refined_quality.failures)
-                    )
+                if not refined_quality.passed or refined_piercing_count:
+                    failures = tuple(refined_quality.failures)
                     rejections.append(CandidateRejection(
                         component_index,
                         selected_candidate.attempt,
-                        _format_geometry_checks(
+                        _candidate_rejection_reason(
                             "refined candidate geometry gate",
                             failures,
+                            refined_piercing_count,
                         ),
                         failures,
                     ))
@@ -398,25 +454,13 @@ def _build_ligand_proxies(
                         "the basic geometry gate; retaining the "
                         "medium-optimized candidate"
                     )
-                elif (
-                    refined_piercing_count
-                    <= selected_candidate.untangling.final_piercing_count
-                ):
+                else:
                     selected_candidate = _LigandCandidate(
                         coordinates=_copy_coordinates(component_mol.coordinates),
-                        energy=float(refined.energy),
+                        energy=refined_energy,
                         attempt=selected_candidate.attempt,
-                        untangling=replace(
-                            selected_candidate.untangling,
-                            final_piercing_count=refined_piercing_count,
-                            minimum_piercing_count=min(
-                                selected_candidate.untangling.minimum_piercing_count,
-                                refined_piercing_count,
-                            ),
-                            resolved=(
-                                refined_state is not geo.PiercingState.PIERCES
-                            ),
-                        ),
+                        untangling=refined_untangling_report,
+                        checkpoint_report=refined_report,
                         trajectory=selected_candidate.trajectory,
                     )
                     if (
@@ -424,28 +468,16 @@ def _build_ligand_proxies(
                         and selected_candidate.trajectory is not None
                     ):
                         selected_candidate.trajectory.select(refined_frame.index)
-                else:
-                    component_mol.coordinates = selected_candidate.coordinates
-                    if selected_candidate.trajectory is not None:
-                        rollback_frame = (
-                            selected_candidate.trajectory.record_molecule(
-                                component_mol,
-                                stage=TrajectoryStage.LIGAND_BUILD,
-                                event=TrajectoryEvent.ROLLED_BACK,
-                                component_index=component_index,
-                                attempt=selected_candidate.attempt,
-                            )
-                        )
-                        selected_candidate.trajectory.select(rollback_frame.index)
-                    warning_messages.append(
-                        f"Component {component_index}: long refinement increased "
-                        "the confirmed piercing count; retaining the "
-                        "pre-refinement closed-topology frame"
-                    )
 
         warning_messages.extend(
             f"Component {component_index}: {message}"
             for message in selected_candidate.untangling.warning_messages
+        )
+        warning_messages.extend(
+            _checkpoint_warning_messages(
+                component_index,
+                selected_candidate.checkpoint_report,
+            )
         )
         selected_untangling_reports.append(selected_candidate.untangling)
         component_mol.coordinates = selected_candidate.coordinates

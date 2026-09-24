@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from itertools import combinations
 from typing import (
+    Callable,
     Iterator,
     Literal,
     Optional,
@@ -805,16 +806,12 @@ def _bond_ring_coordination_acceptance_section(
     mol: "Molecule",
     atoms: Sequence["Atom"],
     coordinates: np.ndarray,
+    bond_ring_report: "geo.BondRingScreeningReport[Ring, Bond]",
 ) -> Tuple[
     Tuple[AcceptanceCheck, ...],
     dict[str, ForceFieldDiagnosticValue],
 ]:
     """Return bond-ring checks and coordination-environment metrics."""
-    bond_ring_report = geo.screen_bond_ring_relations(
-        mol,
-        ring_scope="ligand_skeleton",
-        max_ring_size=_BOND_RING_MAX_SIZE,
-    )
     metrics: dict[str, ForceFieldDiagnosticValue] = {
         "bond_ring_piercing_count": bond_ring_report.piercing_pair_count,
         "bond_ring_undetermined_count": bond_ring_report.undetermined_pair_count,
@@ -832,9 +829,13 @@ def _bond_ring_coordination_acceptance_section(
     return _bond_ring_acceptance_checks(mol, bond_ring_report), metrics
 
 
-def evaluate_structure_acceptance(
+def _evaluate_structure_acceptance(
     mol: "Molecule",
     *,
+    bond_ring_report_provider: Callable[
+        [], "geo.BondRingScreeningReport[Ring, Bond]"
+    ],
+    consume_bond_ring_report: bool,
     level: AcceptanceLevel = "standard",
     topology_reference: Optional[TopologyReference] = None,
     forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
@@ -876,26 +877,25 @@ def evaluate_structure_acceptance(
     checks.extend(atom_pair_checks)
     metrics.update(atom_pair_metrics)
 
-    if level == "off":
-        passed = _acceptance_checks_pass(checks)
-        return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+    if level != "off":
+        bond_checks, bond_metrics = _bond_geometry_acceptance_section(
+            mol,
+            atoms,
+            coordinates,
+            level,
+            limits,
+        )
+        checks.extend(bond_checks)
+        metrics.update(bond_metrics)
 
-    bond_checks, bond_metrics = _bond_geometry_acceptance_section(
-        mol,
-        atoms,
-        coordinates,
-        level,
-        limits,
-    )
-    checks.extend(bond_checks)
-    metrics.update(bond_metrics)
-
-    if level in ("standard", "strict"):
+    if consume_bond_ring_report:
+        bond_ring_report = bond_ring_report_provider()
         bond_ring_checks, bond_ring_metrics = (
             _bond_ring_coordination_acceptance_section(
                 mol,
                 atoms,
                 coordinates,
+                bond_ring_report,
             )
         )
         checks.extend(bond_ring_checks)
@@ -903,6 +903,58 @@ def evaluate_structure_acceptance(
 
     passed = _acceptance_checks_pass(checks)
     return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+
+
+def evaluate_structure_acceptance_at_checkpoint(
+    mol: "Molecule",
+    *,
+    bond_ring_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    level: AcceptanceLevel = "standard",
+    topology_reference: Optional[TopologyReference] = None,
+    forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
+    forcefield_stage: ForceFieldStage = "final",
+    thresholds: Optional[StructureAcceptanceThresholds] = None,
+) -> ForceFieldValidationReport:
+    """Evaluate a stage checkpoint using its existing bond-ring evidence."""
+    return _evaluate_structure_acceptance(
+        mol,
+        bond_ring_report_provider=lambda: bond_ring_report,
+        consume_bond_ring_report=True,
+        level=level,
+        topology_reference=topology_reference,
+        forcefield_report=forcefield_report,
+        forcefield_stage=forcefield_stage,
+        thresholds=thresholds,
+    )
+
+
+def evaluate_structure_acceptance(
+    mol: "Molecule",
+    *,
+    level: AcceptanceLevel = "standard",
+    topology_reference: Optional[TopologyReference] = None,
+    forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
+    forcefield_stage: ForceFieldStage = "final",
+    thresholds: Optional[StructureAcceptanceThresholds] = None,
+) -> ForceFieldValidationReport:
+    """Apply chemistry and force-field acceptance policy to geometry facts."""
+    def scan_bond_ring_relations() -> "geo.BondRingScreeningReport[Ring, Bond]":
+        return geo.screen_bond_ring_relations(
+            mol,
+            ring_scope="ligand_skeleton",
+            max_ring_size=_BOND_RING_MAX_SIZE,
+        )
+
+    return _evaluate_structure_acceptance(
+        mol,
+        bond_ring_report_provider=scan_bond_ring_relations,
+        consume_bond_ring_report=level in ("standard", "strict"),
+        level=level,
+        topology_reference=topology_reference,
+        forcefield_report=forcefield_report,
+        forcefield_stage=forcefield_stage,
+        thresholds=thresholds,
+    )
 
 
 def is_structure_accepted(

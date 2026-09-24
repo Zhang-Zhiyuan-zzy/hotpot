@@ -261,6 +261,18 @@ class _PreparedNonplanarSurfaceFamily:
     causes: FrozenSet[SegmentCycleIndeterminacy]
 
 
+@dataclass(frozen=True)
+class _PreparedCycleGeometry:
+    """Coordinate-dependent facts shared by segment--cycle predicates."""
+
+    cycle: Cycle
+    coordinates: np.ndarray
+    bounds: Tuple[np.ndarray, np.ndarray]
+    planarity: PlanarityMeasurement
+    planar_simplicity: Optional[_PolygonSimplicity]
+    nonplanar_surface_family: Optional[_PreparedNonplanarSurfaceFamily]
+
+
 # Dimension-aware numerical helpers.
 
 
@@ -1774,6 +1786,190 @@ def _nonplanar_segment_cycle_relation(
     )
 
 
+def _prepare_cycle_geometry(
+    cycle: Cycle,
+    settings: GeometrySettings,
+) -> _PreparedCycleGeometry:
+    """Prepare the coordinate facts shared by a batch of segment queries."""
+
+    coordinates = np.asarray(
+        [vertex.coordinates for vertex in cycle.vertices],
+        dtype=np.float64,
+    )
+    bounds = _aabb_bounds(coordinates)
+    coordinates.setflags(write=False)
+    for bound in bounds:
+        bound.setflags(write=False)
+    planarity = measure_planarity(cycle, settings)
+    planar_simplicity: Optional[_PolygonSimplicity] = None
+    if planarity.kind is PlanarityKind.PLANAR:
+        length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
+        tolerances = _predicate_tolerances(length_scale, settings)
+        normal = np.asarray(planarity.normal, dtype=np.float64)
+        origin = _point_array(planarity.centroid)
+        polygon = _project_to_plane(coordinates, origin, normal)
+        planar_simplicity = _projected_polygon_simplicity(
+            polygon,
+            tolerances,
+            settings,
+        )
+    nonplanar_surface_family = (
+        _prepare_nonplanar_surface_family(cycle, settings)
+        if planarity.kind is PlanarityKind.NONPLANAR
+        else None
+    )
+    return _PreparedCycleGeometry(
+        cycle=cycle,
+        coordinates=coordinates,
+        bounds=bounds,
+        planarity=planarity,
+        planar_simplicity=planar_simplicity,
+        nonplanar_surface_family=nonplanar_surface_family,
+    )
+
+
+def _prepared_segment_cycle_relation(
+    segment: Segment,
+    prepared_cycle: _PreparedCycleGeometry,
+    tolerances: _PredicateTolerances,
+    settings: GeometrySettings,
+) -> SegmentCycleRelation:
+    """Apply the scalar relation kernel to one prepared cycle."""
+
+    cycle = prepared_cycle.cycle
+    planarity = prepared_cycle.planarity
+    if planarity.kind is PlanarityKind.PLANAR:
+        return _planar_segment_cycle_relation(
+            segment,
+            cycle,
+            planarity,
+            cast(_PolygonSimplicity, prepared_cycle.planar_simplicity),
+            tolerances,
+            settings,
+        )
+    if planarity.kind is PlanarityKind.NONPLANAR:
+        return _nonplanar_segment_cycle_relation(
+            segment,
+            cycle,
+            tolerances,
+            settings,
+            cast(
+                _PreparedNonplanarSurfaceFamily,
+                prepared_cycle.nonplanar_surface_family,
+            ),
+        )
+    cause = (
+        SegmentCycleIndeterminacy.DEGENERATE_CYCLE
+        if planarity.kind is PlanarityKind.DEGENERATE
+        else SegmentCycleIndeterminacy.NUMERIC_BAND
+    )
+    return _undetermined_segment_cycle_relation(
+        segment,
+        cycle,
+        None,
+        settings,
+        frozenset({cause}),
+    )
+
+
+def _iter_prepared_segment_cycle_relations(
+    segments: Iterable[Segment],
+    prepared_cycle: _PreparedCycleGeometry,
+    settings: GeometrySettings,
+) -> Iterator[SegmentCycleRelation]:
+    """Classify segments through the scalar kernel using one cycle preparation."""
+
+    cycle = prepared_cycle.cycle
+    for segment in segments:
+        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
+        if causes:
+            yield _undetermined_segment_cycle_relation(
+                segment,
+                cycle,
+                None,
+                settings,
+                causes,
+            )
+            continue
+        yield _prepared_segment_cycle_relation(
+            segment,
+            prepared_cycle,
+            cast(_PredicateTolerances, tolerances),
+            settings,
+        )
+
+
+def _iter_prepared_segment_cycle_screenings(
+    segments: Iterable[Segment],
+    prepared_cycle: _PreparedCycleGeometry,
+    settings: GeometrySettings,
+) -> Iterator[SegmentCycleScreening]:
+    """Screen segments through AABB and scalar kernels for one prepared cycle."""
+
+    cycle = prepared_cycle.cycle
+    planarity = prepared_cycle.planarity
+    nonplanar_surface_family = prepared_cycle.nonplanar_surface_family
+    planar_surface_is_valid = (
+        planarity.kind is PlanarityKind.PLANAR
+        and prepared_cycle.planar_simplicity is _PolygonSimplicity.SIMPLE
+    )
+    nonplanar_surface_is_valid = (
+        planarity.kind is PlanarityKind.NONPLANAR
+        and nonplanar_surface_family is not None
+        and nonplanar_surface_family.enumeration_complete
+        and nonplanar_surface_family.construction_undetermined_count == 0
+        and bool(nonplanar_surface_family.embedded_surfaces)
+    )
+
+    for segment in segments:
+        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
+        if causes:
+            relation = _undetermined_segment_cycle_relation(
+                segment,
+                cycle,
+                None,
+                settings,
+                causes,
+            )
+            yield SegmentCycleScreening(
+                relation.state,
+                relation,
+                False,
+                relation.surface_evidence.enumeration_complete,
+            )
+            continue
+        tolerances = cast(_PredicateTolerances, tolerances)
+
+        if (
+            (planar_surface_is_valid or nonplanar_surface_is_valid)
+            and _segment_cycle_aabbs_stably_separated(
+                segment,
+                prepared_cycle.bounds,
+                tolerances.aabb,
+            )
+        ):
+            yield SegmentCycleScreening(
+                PiercingState.DOES_NOT_PIERCE,
+                None,
+                True,
+                True,
+            )
+            continue
+
+        relation = _prepared_segment_cycle_relation(
+            segment,
+            prepared_cycle,
+            tolerances,
+            settings,
+        )
+        yield SegmentCycleScreening(
+            relation.state,
+            relation,
+            False,
+            relation.surface_evidence.enumeration_complete,
+        )
+
+
 # Public primitive measurements and classifiers.
 
 
@@ -2000,112 +2196,11 @@ def iter_segment_cycle_screenings(
     cases continue through the complete relation kernel.
     """
 
-    cycle_coordinates = np.asarray(
-        [vertex.coordinates for vertex in cycle.vertices], dtype=np.float64
+    yield from _iter_prepared_segment_cycle_screenings(
+        segments,
+        _prepare_cycle_geometry(cycle, settings),
+        settings,
     )
-    cycle_bounds = _aabb_bounds(cycle_coordinates)
-    planarity = measure_planarity(cycle, settings)
-    planar_simplicity: Optional[_PolygonSimplicity] = None
-    if planarity.kind is PlanarityKind.PLANAR:
-        cycle_length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
-        cycle_tolerances = _predicate_tolerances(cycle_length_scale, settings)
-        normal = np.asarray(planarity.normal, dtype=np.float64)
-        origin = _point_array(planarity.centroid)
-        polygon = _project_to_plane(
-            cycle_coordinates,
-            origin,
-            normal,
-        )
-        planar_simplicity = _projected_polygon_simplicity(
-            polygon, cycle_tolerances, settings
-        )
-    prepared = (
-        _prepare_nonplanar_surface_family(cycle, settings)
-        if planarity.kind is PlanarityKind.NONPLANAR
-        else None
-    )
-    for segment in segments:
-        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
-        if causes:
-            relation = _undetermined_segment_cycle_relation(
-                segment,
-                cycle,
-                None,
-                settings,
-                causes,
-            )
-            yield SegmentCycleScreening(
-                relation.state,
-                relation,
-                False,
-                relation.surface_evidence.enumeration_complete,
-            )
-            continue
-        tolerances = cast(_PredicateTolerances, tolerances)
-
-        planar_surface_is_valid = (
-            planarity.kind is PlanarityKind.PLANAR
-            and planar_simplicity is _PolygonSimplicity.SIMPLE
-        )
-        nonplanar_surface_is_valid = (
-            planarity.kind is PlanarityKind.NONPLANAR
-            and prepared is not None
-            and prepared.enumeration_complete
-            and prepared.construction_undetermined_count == 0
-            and bool(prepared.embedded_surfaces)
-        )
-        if (
-            (planar_surface_is_valid or nonplanar_surface_is_valid)
-            and _segment_cycle_aabbs_stably_separated(
-                segment,
-                cycle_bounds,
-                tolerances.aabb,
-            )
-        ):
-            yield SegmentCycleScreening(
-                PiercingState.DOES_NOT_PIERCE,
-                None,
-                True,
-                True,
-            )
-            continue
-
-        if planarity.kind is PlanarityKind.PLANAR:
-            relation = _planar_segment_cycle_relation(
-                segment,
-                cycle,
-                planarity,
-                cast(_PolygonSimplicity, planar_simplicity),
-                tolerances,
-                settings,
-            )
-        elif planarity.kind is PlanarityKind.NONPLANAR:
-            relation = _nonplanar_segment_cycle_relation(
-                segment,
-                cycle,
-                tolerances,
-                settings,
-                cast(_PreparedNonplanarSurfaceFamily, prepared),
-            )
-        else:
-            cause = (
-                SegmentCycleIndeterminacy.DEGENERATE_CYCLE
-                if planarity.kind is PlanarityKind.DEGENERATE
-                else SegmentCycleIndeterminacy.NUMERIC_BAND
-            )
-            relation = _undetermined_segment_cycle_relation(
-                segment,
-                cycle,
-                None,
-                settings,
-                frozenset({cause}),
-            )
-        yield SegmentCycleScreening(
-            relation.state,
-            relation,
-            False,
-            relation.surface_evidence.enumeration_complete,
-        )
 
 
 def iter_segment_cycle_relations(
@@ -2115,70 +2210,11 @@ def iter_segment_cycle_relations(
 ) -> Iterator[SegmentCycleRelation]:
     """Classify segments while preparing the shared cycle surface only once."""
 
-    planarity = measure_planarity(cycle, settings)
-    planar_simplicity: Optional[_PolygonSimplicity] = None
-    if planarity.kind is PlanarityKind.PLANAR:
-        cycle_length_scale = _local_length_scale(cycle.vertices, cycle=cycle)
-        cycle_tolerances = _predicate_tolerances(cycle_length_scale, settings)
-        normal = np.asarray(planarity.normal, dtype=np.float64)
-        origin = _point_array(planarity.centroid)
-        polygon = _project_to_plane(
-            np.asarray([vertex.coordinates for vertex in cycle.vertices]),
-            origin,
-            normal,
-        )
-        planar_simplicity = _projected_polygon_simplicity(
-            polygon, cycle_tolerances, settings
-        )
-    prepared = (
-        _prepare_nonplanar_surface_family(cycle, settings)
-        if planarity.kind is PlanarityKind.NONPLANAR
-        else None
+    yield from _iter_prepared_segment_cycle_relations(
+        segments,
+        _prepare_cycle_geometry(cycle, settings),
+        settings,
     )
-    for segment in segments:
-        tolerances, causes = _segment_cycle_base_data(segment, cycle, settings)
-        if causes:
-            yield _undetermined_segment_cycle_relation(
-                segment,
-                cycle,
-                None,
-                settings,
-                causes,
-            )
-            continue
-        tolerances = cast(_PredicateTolerances, tolerances)
-
-        if planarity.kind is PlanarityKind.PLANAR:
-            yield _planar_segment_cycle_relation(
-                segment,
-                cycle,
-                planarity,
-                cast(_PolygonSimplicity, planar_simplicity),
-                tolerances,
-                settings,
-            )
-            continue
-        if planarity.kind is PlanarityKind.NONPLANAR:
-            yield _nonplanar_segment_cycle_relation(
-                segment,
-                cycle,
-                tolerances,
-                settings,
-                cast(_PreparedNonplanarSurfaceFamily, prepared),
-            )
-            continue
-        cause = (
-            SegmentCycleIndeterminacy.DEGENERATE_CYCLE
-            if planarity.kind is PlanarityKind.DEGENERATE
-            else SegmentCycleIndeterminacy.NUMERIC_BAND
-        )
-        yield _undetermined_segment_cycle_relation(
-            segment,
-            cycle,
-            None,
-            settings,
-            frozenset({cause}),
-        )
 
 
 def determine_segment_cycle_relation(

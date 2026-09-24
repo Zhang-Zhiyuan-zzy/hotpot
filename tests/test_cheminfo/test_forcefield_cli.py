@@ -186,6 +186,44 @@ def test_invalid_output_contract_is_concise(capsys):
     assert captured.err == "hotpot ff: --trajectory-start requires --trajectory\n"
 
 
+@pytest.mark.parametrize(
+    ("output_option", "result_name", "trajectory_name"),
+    (
+        ("--output", "trajectory/result.mol2", "trajectory"),
+        ("--report", "trajectory/report.json", "trajectory"),
+        ("--output", "result.mol2", "result.mol2/trajectory"),
+    ),
+)
+def test_trajectory_and_result_paths_must_not_overlap(
+    tmp_path,
+    output_option,
+    result_name,
+    trajectory_name,
+):
+    args = cli.build_parser().parse_args(
+        [
+            "CN",
+            output_option,
+            str(tmp_path / result_name),
+            "--trajectory",
+            str(tmp_path / trajectory_name),
+        ]
+    )
+
+    with pytest.raises(ValueError, match="must not overlap"):
+        cli._check_output_paths(args)
+
+
+def test_invalid_smiles_is_a_concise_input_error(capsys):
+    status = cli.main(["not-a-smiles??"])
+
+    captured = capsys.readouterr()
+    assert status == 2
+    assert captured.out == ""
+    assert "Could not read molecule input" in captured.err
+    assert "Traceback" not in captured.err
+
+
 def test_top_level_dispatches_ff(monkeypatch):
     observed = []
 
@@ -435,6 +473,18 @@ def test_output_file_is_byte_equivalent_to_stdout(monkeypatch, tmp_path, capsys)
     assert output_path.read_bytes() == stdout_payload.encode("utf-8")
 
 
+def test_output_dash_explicitly_selects_stdout(monkeypatch, capsys):
+    mol = _Molecule("stdout")
+    _install_reader(monkeypatch, [mol])
+    monkeypatch.setattr(cli, "build_and_optimize", lambda *args, **kwargs: _report())
+
+    assert cli.main(["CN", "--output", "-"]) == 0
+
+    captured = capsys.readouterr()
+    assert captured.out == "mol2:stdout\n"
+    assert captured.err == ""
+
+
 def test_stdin_dash_uses_requested_input_format(monkeypatch, capsys):
     mol = _Molecule("stdin")
     observed_reader = []
@@ -560,6 +610,30 @@ def test_known_forcefield_error_is_nonzero_without_fake_payload(
     assert mol.write_calls == []
 
 
+def test_failed_overwrite_does_not_leave_stale_structure(
+    monkeypatch,
+    tmp_path,
+    capsys,
+):
+    mol = _Molecule("failed")
+    _install_reader(monkeypatch, [mol])
+    output_path = tmp_path / "stale.mol2"
+    output_path.write_text("old structure\n", encoding="utf-8")
+
+    def fail(*args, **kwargs):
+        raise ForceFieldError("optimization failed")
+
+    monkeypatch.setattr(cli, "build_and_optimize", fail)
+
+    assert (
+        cli.main(["CN", "--output", str(output_path), "--overwrite"])
+        == 1
+    )
+
+    assert not output_path.exists()
+    assert capsys.readouterr().out == ""
+
+
 def test_forcefield_error_report_preserves_typed_evidence(
     monkeypatch,
     tmp_path,
@@ -635,6 +709,38 @@ def test_tiny_real_smiles_forcefield_smoke(capsys):
     assert captured.out.startswith("@<TRIPOS>MOLECULE\n")
     assert "@<TRIPOS>ATOM\n" in captured.out
     assert "@<TRIPOS>BOND\n" in captured.out
+    assert captured.err == ""
+
+
+def test_real_parallel_smiles_preserve_output_order(tmp_path, capsys):
+    assert (
+        cli.main(
+            [
+                "CC",
+                "CO",
+                "--jobs",
+                "2",
+                "--epochs",
+                "1",
+                "--steps-per-epoch",
+                "2",
+                "--quality",
+                "off",
+                "--seed",
+                "1",
+                "--output-format",
+                "sdf",
+            ]
+        )
+        == 0
+    )
+
+    captured = capsys.readouterr()
+    output_path = tmp_path / "parallel.sdf"
+    output_path.write_text(captured.out, encoding="utf-8")
+    molecules = tuple(cli.MolReader(output_path, fmt="sdf"))
+
+    assert tuple(len(mol.atoms) for mol in molecules) == (8, 6)
     assert captured.err == ""
 
 

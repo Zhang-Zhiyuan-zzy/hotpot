@@ -9,6 +9,7 @@ import numpy as np
 
 from .. import geometry as geo
 from .backend import _single_ob_optimization
+from .coordination import _relocate_unbound_metal
 from .contracts import CoordinationBondRestorationReport, RingUntanglingReport
 from .coordinates import _copy_coordinates, _perturbed_coordinates
 from .settings import _BOND_RING_MAX_SIZE
@@ -23,7 +24,7 @@ from .trajectory import (
 
 
 if TYPE_CHECKING:
-    from ..core import Bond, Molecule, Ring
+    from ..core import Atom, Bond, Molecule, Ring
 
 
 __all__ = ()
@@ -53,6 +54,13 @@ class _CoordinationTrialStatistics:
     rejected_piercing_trial_count: int
     undetermined_trial_count: int
     excluded_ring_observation_count: int
+    piercing_bond_keys: Tuple[Tuple[int, int], ...] = ()
+
+
+@dataclass(frozen=True)
+class _BlockedMetalCenter:
+    metal: "Atom"
+    pending_bonds: Tuple["Bond", ...]
 
 
 @dataclass(frozen=True, order=True)
@@ -654,6 +662,52 @@ def _candidate_coordination_relation_counts(
     )
 
 
+def _coordination_metal(coordination_bond: "Bond") -> "Atom":
+    """Return the metal endpoint of one metal--ligand bond."""
+    return (
+        coordination_bond.atom1
+        if coordination_bond.atom1.is_metal
+        else coordination_bond.atom2
+    )
+
+
+def _active_coordination_metal_indices(mol: "Molecule") -> set[int]:
+    """Return metal centers already anchored by an active coordination bond."""
+    return {
+        _coordination_metal(bond).idx
+        for bond in mol.bonds
+        if bond.is_metal_ligand_bond
+    }
+
+
+def _blocked_unbound_metal_centers(
+    mol: "Molecule",
+    pending_bonds: Sequence["Bond"],
+    piercing_bond_keys: Sequence[Tuple[int, int]],
+    attempted_metal_indices: set[int],
+) -> Tuple[_BlockedMetalCenter, ...]:
+    """Group fully blocked pending paths of not-yet-anchored metal centers."""
+    piercing_keys = set(piercing_bond_keys)
+    pending_by_metal: dict[int, list["Bond"]] = {}
+    metals_by_index: dict[int, "Atom"] = {}
+    for bond in pending_bonds:
+        metal = _coordination_metal(bond)
+        metals_by_index[metal.idx] = metal
+        pending_by_metal.setdefault(metal.idx, []).append(bond)
+
+    active_metal_indices = _active_coordination_metal_indices(mol)
+    return tuple(
+        _BlockedMetalCenter(
+            metals_by_index[metal_idx],
+            tuple(sorted(bonds, key=_bond_key)),
+        )
+        for metal_idx, bonds in sorted(pending_by_metal.items())
+        if metal_idx not in active_metal_indices
+        and metal_idx not in attempted_metal_indices
+        and all(_bond_key(bond) in piercing_keys for bond in bonds)
+    )
+
+
 def _restore_next_nonpiercing_coordination_bond(
     mol: "Molecule",
     pending_bonds: list["Bond"],
@@ -702,6 +756,7 @@ def _restore_next_nonpiercing_coordination_bond(
     rejected_piercing_trials = 0
     undetermined_trials = 0
     excluded_ring_observations = 0
+    piercing_bond_keys = []
     for bond in tuple(pending_bonds):
         record_candidate(
             TrajectoryEvent.BOND_TRIAL,
@@ -714,6 +769,8 @@ def _restore_next_nonpiercing_coordination_bond(
             bond,
         )
         rejected_piercing_trials += int(relation_counts.piercing > 0)
+        if relation_counts.piercing:
+            piercing_bond_keys.append(_bond_key(bond))
         undetermined_trials += int(relation_counts.undetermined > 0)
         excluded_ring_observations += relation_counts.excluded_rings
         keep_restored = relation_counts.piercing == 0
@@ -756,6 +813,7 @@ def _restore_next_nonpiercing_coordination_bond(
                 rejected_piercing_trial_count=rejected_piercing_trials,
                 undetermined_trial_count=undetermined_trials,
                 excluded_ring_observation_count=excluded_ring_observations,
+                piercing_bond_keys=tuple(piercing_bond_keys),
             ),
         )
     return (
@@ -765,6 +823,7 @@ def _restore_next_nonpiercing_coordination_bond(
             rejected_piercing_trial_count=rejected_piercing_trials,
             undetermined_trial_count=undetermined_trials,
             excluded_ring_observation_count=excluded_ring_observations,
+            piercing_bond_keys=tuple(piercing_bond_keys),
         ),
     )
 
@@ -850,6 +909,10 @@ def _restore_coordination_bonds_incrementally(
     rejected_piercing_trial_count = 0
     undetermined_trial_count = 0
     excluded_ring_observation_count = 0
+    metal_relocation_attempt_count = 0
+    relocation_attempted_metal_indices: set[int] = set()
+    relocated_metal_indices: set[int] = set()
+    infeasible_metal_indices: set[int] = set()
 
     while pending_bonds:
         restored_bond, relation_warnings, relation_observations = (
@@ -869,6 +932,75 @@ def _restore_coordination_bonds_incrementally(
             relation_observations.excluded_ring_observation_count
         )
         if restored_bond is None:
+            blocked_centers = _blocked_unbound_metal_centers(
+                mol,
+                pending_bonds,
+                relation_observations.piercing_bond_keys,
+                relocation_attempted_metal_indices,
+            )
+            if blocked_centers:
+                center = blocked_centers[0]
+                record_restoration_frame(
+                    TrajectoryEvent.METAL_RELOCATION_TRIAL,
+                    evidence=CoordinationFrameEvidence(
+                        bond_atom_indices=None,
+                        accepted=None,
+                        pending_bond_count=len(pending_bonds),
+                        metal_atom_index=center.metal.idx,
+                    ),
+                    attempt=stalled_attempts,
+                )
+                relocation = _relocate_unbound_metal(
+                    mol,
+                    center.metal,
+                    center.pending_bonds,
+                )
+                metal_relocation_attempt_count += 1
+                relocation_attempted_metal_indices.add(relocation.metal_idx)
+                if relocation.moved:
+                    relocated_metal_indices.add(relocation.metal_idx)
+                else:
+                    infeasible_metal_indices.add(relocation.metal_idx)
+                    warning_messages.append(
+                        "metal-only placement infeasible for unbound metal "
+                        f"atom {relocation.metal_idx} after evaluating "
+                        f"{relocation.candidates_evaluated} candidate(s)"
+                    )
+                record_restoration_frame(
+                    (
+                        TrajectoryEvent.METAL_RELOCATED
+                        if relocation.moved
+                        else TrajectoryEvent.METAL_RELOCATION_FAILED
+                    ),
+                    evidence=CoordinationFrameEvidence(
+                        bond_atom_indices=None,
+                        accepted=relocation.moved,
+                        pending_bond_count=len(pending_bonds),
+                        metal_atom_index=relocation.metal_idx,
+                        relocation_status=relocation.status,
+                        relocation_candidates_evaluated=(
+                            relocation.candidates_evaluated
+                        ),
+                        safe_donor_atom_indices=relocation.safe_donor_indices,
+                        minimum_normalized_clearance=(
+                            relocation.minimum_normalized_clearance
+                        ),
+                        coordination_distance_deviation=(
+                            relocation.coordination_distance_deviation
+                        ),
+                    ),
+                    attempt=stalled_attempts,
+                )
+                continue
+            active_metal_indices = _active_coordination_metal_indices(mol)
+            if (
+                relocation_attempted_metal_indices
+                and not any(
+                    _coordination_metal(bond).idx in active_metal_indices
+                    for bond in pending_bonds
+                )
+            ):
+                break
             if stalled_attempts >= attempt_limit:
                 break
             if stalled_attempts:
@@ -913,16 +1045,18 @@ def _restore_coordination_bonds_incrementally(
         last_energy = None
         warning_messages.append(
             f"Forced restoration of {len(pending_bonds)} coordination bond(s) "
-            f"after {attempt_limit} stalled attempts"
+            "after Stage 2 could not expose a nonpiercing path "
+            f"({stalled_attempts} stalled relaxation attempt(s), "
+            f"{metal_relocation_attempt_count} metal relocation attempt(s))"
         )
 
     report = CoordinationBondRestorationReport(
         attempt_limit=attempt_limit,
         attempts_completed=stalled_attempts,
         bond_count=len(coordination_bonds),
-        metal_relocation_attempt_count=0,
-        relocated_metal_indices=(),
-        infeasible_metal_indices=(),
+        metal_relocation_attempt_count=metal_relocation_attempt_count,
+        relocated_metal_indices=tuple(sorted(relocated_metal_indices)),
+        infeasible_metal_indices=tuple(sorted(infeasible_metal_indices)),
         forced_bond_keys=forced_bond_keys,
         rejected_piercing_trial_count=rejected_piercing_trial_count,
         undetermined_trial_count=undetermined_trial_count,

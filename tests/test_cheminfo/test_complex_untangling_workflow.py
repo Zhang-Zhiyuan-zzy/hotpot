@@ -6,6 +6,7 @@ import numpy as np
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.forcefields import ff, ff39
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields import coordination
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import utils as forcefield_utils
 from hotpot.cheminfo.forcefields import workflows
@@ -22,6 +23,10 @@ from hotpot.cheminfo.core import Molecule
 class _Atom:
     def __init__(self, index):
         self.idx = index
+
+    @property
+    def is_metal(self):
+        return self.idx == 0
 
 
 class _Bond:
@@ -182,6 +187,26 @@ def _coordination_counts(piercing=0, undetermined=0, excluded_rings=0):
         piercing=piercing,
         undetermined=undetermined,
         excluded_rings=excluded_rings,
+    )
+
+
+def _metal_relocation_result(
+    metal,
+    *,
+    status,
+    candidates_evaluated=4,
+    safe_donor_indices=(),
+):
+    coordinates = (3.0, 0.0, 0.0) if status == "relocated" else None
+    return coordination._MetalRelocationResult(
+        metal_idx=metal.idx,
+        status=status,
+        candidates_evaluated=candidates_evaluated,
+        original_coordinates=(0.0, 0.0, 0.0),
+        selected_coordinates=coordinates,
+        safe_donor_indices=safe_donor_indices,
+        minimum_normalized_clearance=(1.25 if coordinates is not None else None),
+        coordination_distance_deviation=(0.15 if coordinates is not None else None),
     )
 
 
@@ -846,6 +871,15 @@ def test_coordination_bonds_are_restored_one_by_one_after_safe_checks(monkeypatc
         )
 
     _mock_coordination_scans(monkeypatch, relation_counts)
+
+    def reject_unexpected_relocation(*args, **kwargs):
+        raise AssertionError("An anchored metal center must not be relocated")
+
+    monkeypatch.setattr(
+        repair,
+        "_relocate_unbound_metal",
+        reject_unexpected_relocation,
+    )
     monkeypatch.setattr(
         repair,
         "_single_ob_optimization",
@@ -987,7 +1021,7 @@ def test_safe_coordination_bonds_do_not_consume_the_stalled_attempt_budget(
     assert result.report.forced_bond_keys == ()
 
 
-def test_coordination_restoration_perturbs_without_progress_then_forces_all(
+def test_coordination_restoration_forces_after_infeasible_metal_relocation(
     monkeypatch,
 ):
     bond = _Bond(0, 2, coordination=True)
@@ -1011,6 +1045,15 @@ def test_coordination_restoration_perturbs_without_progress_then_forces_all(
     )
     monkeypatch.setattr(repair, "_perturbed_coordinates", perturb)
     monkeypatch.setattr(repair, "_single_ob_optimization", optimize)
+    monkeypatch.setattr(
+        repair,
+        "_relocate_unbound_metal",
+        lambda current_molecule, metal, pending_bonds: _metal_relocation_result(
+            metal,
+            status="infeasible",
+            candidates_evaluated=8,
+        ),
+    )
 
     result = repair._restore_coordination_bonds_incrementally(
         molecule,
@@ -1021,11 +1064,19 @@ def test_coordination_restoration_perturbs_without_progress_then_forces_all(
         rng=np.random.default_rng(3),
     )
 
-    assert perturb_calls == 1
-    assert optimize_calls == 2
+    assert perturb_calls == 0
+    assert optimize_calls == 0
     assert molecule.events[-1] == ("restore", ((0, 2),))
     assert result.report.forced_bond_keys == ((0, 2),)
-    assert result.report.rejected_piercing_trial_count == 3
+    assert result.report.attempts_completed == 0
+    assert result.report.metal_relocation_attempt_count == 1
+    assert result.report.relocated_metal_indices == ()
+    assert result.report.infeasible_metal_indices == (0,)
+    assert result.report.rejected_piercing_trial_count == 2
+    assert any(
+        "metal-only placement infeasible" in message
+        for message in result.report.warning_messages
+    )
 
 
 def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
@@ -1042,6 +1093,15 @@ def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
         repair,
         "_single_ob_optimization",
         lambda *args, **kwargs: _optimization(3.0),
+    )
+    monkeypatch.setattr(
+        repair,
+        "_relocate_unbound_metal",
+        lambda current_molecule, metal, pending_bonds: _metal_relocation_result(
+            metal,
+            status="infeasible",
+            candidates_evaluated=6,
+        ),
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         molecule,
@@ -1063,7 +1123,8 @@ def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
         TrajectoryEvent.COORDINATION_READY,
         TrajectoryEvent.BOND_TRIAL,
         TrajectoryEvent.BOND_REJECTED,
-        TrajectoryEvent.OPTIMIZED,
+        TrajectoryEvent.METAL_RELOCATION_TRIAL,
+        TrajectoryEvent.METAL_RELOCATION_FAILED,
         TrajectoryEvent.BOND_TRIAL,
         TrajectoryEvent.BOND_REJECTED,
         TrajectoryEvent.BOND_FORCED,
@@ -1076,16 +1137,25 @@ def test_coordination_trajectory_records_each_forced_bond_after_hidden_trials(
         0,
         0,
         0,
+        0,
         1,
         1,
     )
-    assert trajectory[6].evidence == CoordinationFrameEvidence(
+    assert trajectory[4].evidence == CoordinationFrameEvidence(
+        bond_atom_indices=None,
+        accepted=False,
+        pending_bond_count=1,
+        metal_atom_index=0,
+        relocation_status="infeasible",
+        relocation_candidates_evaluated=6,
+    )
+    assert trajectory[7].evidence == CoordinationFrameEvidence(
         bond_atom_indices=_key(second),
         accepted=False,
         pending_bond_count=0,
         forced=True,
     )
-    assert trajectory[7].energy_kj_mol is None
+    assert trajectory[8].energy_kj_mol is None
 
 
 def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
@@ -1127,7 +1197,9 @@ def test_coordination_restoration_forces_pending_bonds_on_last_relaxed_frame(
     np.testing.assert_array_equal(molecule.coordinates, np.full((4, 3), 4.0))
 
 
-def test_coordination_bond_restored_in_a_round_is_relaxed(monkeypatch):
+def test_coordination_bond_is_rescreened_immediately_after_metal_relocation(
+    monkeypatch,
+):
     bond = _Bond(0, 2, coordination=True)
     molecule = _CoordinationMolecule((bond,))
     relation_results = iter(
@@ -1146,6 +1218,16 @@ def test_coordination_bond_restored_in_a_round_is_relaxed(monkeypatch):
     )
     monkeypatch.setattr(repair, "_single_ob_optimization", optimize)
 
+    def relocate(current_molecule, metal, pending_bonds):
+        current_molecule.coordinates[metal.idx] = (3.0, 0.0, 0.0)
+        return _metal_relocation_result(
+            metal,
+            status="relocated",
+            safe_donor_indices=(2,),
+        )
+
+    monkeypatch.setattr(repair, "_relocate_unbound_metal", relocate)
+
     result = repair._restore_coordination_bonds_incrementally(
         molecule,
         "UFF",
@@ -1155,9 +1237,136 @@ def test_coordination_bond_restored_in_a_round_is_relaxed(monkeypatch):
         rng=np.random.default_rng(3),
     )
 
-    assert optimization_calls == 2
-    assert result.report.attempts_completed == 1
+    assert optimization_calls == 1
+    assert result.report.attempts_completed == 0
+    assert result.report.metal_relocation_attempt_count == 1
+    assert result.report.relocated_metal_indices == (0,)
+    assert result.report.infeasible_metal_indices == ()
     assert result.report.forced_bond_keys == ()
+
+
+def test_blocked_unbound_center_relocates_even_when_another_metal_is_anchored(
+    monkeypatch,
+):
+    molecule = Molecule()
+    for atomic_number, coordinate in zip(
+        (30, 7, 30, 7),
+        (
+            (0.0, 0.0, 0.0),
+            (2.0, 0.0, 0.0),
+            (6.0, 0.0, 0.0),
+            (8.0, 0.0, 0.0),
+        ),
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            coordinates=coordinate,
+        )
+    anchored_bond = molecule.add_bond(0, 1, bond_order=1.0)
+    blocked_bond = molecule.add_bond(2, 3, bond_order=1.0)
+
+    def relation_counts(report, bond):
+        return (
+            _coordination_counts()
+            if bond is anchored_bond
+            else _coordination_counts(piercing=1)
+        )
+
+    _mock_coordination_scans(monkeypatch, relation_counts)
+    monkeypatch.setattr(
+        repair,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: _optimization(1.0),
+    )
+    relocated_centers = []
+
+    def relocate(current_molecule, metal, pending_bonds):
+        relocated_centers.append(metal.idx)
+        return _metal_relocation_result(
+            metal,
+            status="infeasible",
+            candidates_evaluated=10,
+        )
+
+    monkeypatch.setattr(repair, "_relocate_unbound_metal", relocate)
+
+    result = repair._restore_coordination_bonds_incrementally(
+        molecule,
+        "UFF",
+        attempt_limit=2,
+        relaxation_steps=5,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+    )
+
+    assert relocated_centers == [2]
+    assert result.report.metal_relocation_attempt_count == 1
+    assert result.report.infeasible_metal_indices == (2,)
+    assert result.report.forced_bond_keys == (_key(blocked_bond),)
+    assert anchored_bond in molecule.bonds
+    assert blocked_bond in molecule.bonds
+
+
+def test_each_unbound_metal_relocation_is_followed_by_candidate_rescreening(
+    monkeypatch,
+):
+    molecule = Molecule()
+    for atomic_number, coordinate in zip(
+        (30, 7, 30, 7),
+        (
+            (0.0, 0.0, 0.0),
+            (2.0, 0.0, 0.0),
+            (6.0, 0.0, 0.0),
+            (8.0, 0.0, 0.0),
+        ),
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            coordinates=coordinate,
+        )
+    bonds = (
+        molecule.add_bond(0, 1, bond_order=1.0),
+        molecule.add_bond(2, 3, bond_order=1.0),
+    )
+    events = []
+
+    def relation_counts(report, bond):
+        events.append(("scan", _key(bond)))
+        return _coordination_counts(piercing=1)
+
+    def relocate(current_molecule, metal, pending_bonds):
+        events.append(("relocate", metal.idx))
+        status = "relocated" if metal.idx == 0 else "infeasible"
+        if status == "relocated":
+            current_molecule.coordinates[metal.idx] = (3.0, 0.0, 0.0)
+        return _metal_relocation_result(metal, status=status)
+
+    _mock_coordination_scans(monkeypatch, relation_counts)
+    monkeypatch.setattr(repair, "_relocate_unbound_metal", relocate)
+
+    result = repair._restore_coordination_bonds_incrementally(
+        molecule,
+        "UFF",
+        attempt_limit=1,
+        relaxation_steps=5,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+    )
+
+    assert events == [
+        ("scan", _key(bonds[0])),
+        ("scan", _key(bonds[1])),
+        ("relocate", 0),
+        ("scan", _key(bonds[0])),
+        ("scan", _key(bonds[1])),
+        ("relocate", 2),
+        ("scan", _key(bonds[0])),
+        ("scan", _key(bonds[1])),
+    ]
+    assert result.report.metal_relocation_attempt_count == 2
+    assert result.report.relocated_metal_indices == (0,)
+    assert result.report.infeasible_metal_indices == (2,)
+    assert result.report.forced_bond_keys == tuple(map(_key, bonds))
 
 
 def test_coordination_bond_check_counts_candidate_through_ligand_ring():
@@ -1246,7 +1455,12 @@ def test_failed_hypothetical_check_never_restores_candidate_bond(monkeypatch):
 
     assert restored is None
     assert warnings == ()
-    assert observations == repair._CoordinationTrialStatistics(1, 0, 0)
+    assert observations == repair._CoordinationTrialStatistics(
+        1,
+        0,
+        0,
+        (_key(candidate),),
+    )
     assert scan_states == [False]
     assert candidate not in molecule.bonds
 
@@ -1320,7 +1534,12 @@ def test_real_post_addition_bond_through_ligand_ring_is_rejected():
     assert restored is None
     assert pending == [candidate]
     assert candidate not in molecule.bonds
-    assert observations == repair._CoordinationTrialStatistics(1, 0, 0)
+    assert observations == repair._CoordinationTrialStatistics(
+        1,
+        0,
+        0,
+        (_key(candidate),),
+    )
 
 
 def test_public_staged_workflow_attempt_defaults_match_between_versions():

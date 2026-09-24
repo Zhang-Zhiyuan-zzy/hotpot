@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Iterator,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -81,6 +82,9 @@ class TrajectoryEvent(str, Enum):
     BOND_REJECTED = "bond_rejected"
     BOND_ROLLBACK = "bond_rollback"
     BOND_FORCED = "bond_forced"
+    METAL_RELOCATION_TRIAL = "metal_relocation_trial"
+    METAL_RELOCATED = "metal_relocated"
+    METAL_RELOCATION_FAILED = "metal_relocation_failed"
     RING_OPENED = "ring_opened"
     PERTURBED = "perturbed"
     OPTIMIZED = "optimized"
@@ -175,6 +179,12 @@ class CoordinationFrameEvidence:
     piercing_relation_count: int = 0
     undetermined_relation_count: int = 0
     excluded_ring_count: int = 0
+    metal_atom_index: Optional[int] = None
+    relocation_status: Optional[Literal["relocated", "infeasible"]] = None
+    relocation_candidates_evaluated: int = 0
+    safe_donor_atom_indices: Tuple[int, ...] = ()
+    minimum_normalized_clearance: Optional[float] = None
+    coordination_distance_deviation: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -218,7 +228,7 @@ class ForceFieldFrame:
 class ForceFieldTrajectory:
     """A topology-aware sequence of force-field workflow frames."""
 
-    _FORMAT_VERSION = 2
+    _FORMAT_VERSION = 3
 
     def __init__(
         self,
@@ -720,6 +730,9 @@ class _TrajectoryWriter:
             (directory / "archive.json").read_text(encoding="utf-8")
         )
         manifest = cast(Mapping[str, object], manifest_object)
+        format_version = int(cast(int, manifest["format_version"]))
+        if format_version != ForceFieldTrajectory._FORMAT_VERSION:
+            raise ValueError(f"Unsupported trajectory format version {format_version}")
         main = cls.read_trajectory(directory / str(manifest["main"]))
         attempts = tuple(
             cls.read_trajectory(directory / str(relative_path))
@@ -793,6 +806,12 @@ class _TrajectoryWriter:
             data["type"] = "ring"
         elif isinstance(evidence, CoordinationFrameEvidence):
             data["type"] = "coordination"
+            data["minimum_normalized_clearance"] = cls._finite_float_or_none(
+                evidence.minimum_normalized_clearance
+            )
+            data["coordination_distance_deviation"] = cls._finite_float_or_none(
+                evidence.coordination_distance_deviation
+            )
         else:
             data["type"] = "optimization"
             data["rms_gradient_kj_mol_angstrom"] = cls._finite_float_or_none(
@@ -846,6 +865,27 @@ class _TrajectoryWriter:
                 ),
                 excluded_ring_count=int(
                     cast(int, evidence_data["excluded_ring_count"])
+                ),
+                metal_atom_index=cls._optional_int(
+                    evidence_data["metal_atom_index"]
+                ),
+                relocation_status=cast(
+                    Optional[Literal["relocated", "infeasible"]],
+                    evidence_data["relocation_status"],
+                ),
+                relocation_candidates_evaluated=int(cast(
+                    int,
+                    evidence_data["relocation_candidates_evaluated"],
+                )),
+                safe_donor_atom_indices=tuple(cast(
+                    Sequence[int],
+                    evidence_data["safe_donor_atom_indices"],
+                )),
+                minimum_normalized_clearance=cls._optional_float(
+                    evidence_data["minimum_normalized_clearance"]
+                ),
+                coordination_distance_deviation=cls._optional_float(
+                    evidence_data["coordination_distance_deviation"]
                 ),
             )
         if evidence_type == "optimization":

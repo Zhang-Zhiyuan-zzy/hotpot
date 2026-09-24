@@ -216,6 +216,53 @@ def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
     assert (archive_path / "main" / "coordinates.npz").is_file()
     assert (archive_path / "main" / "trajectory.json").is_file()
     assert (archive_path / "main" / "trajectory.sdf").is_file()
+    archive_manifest = json.loads(
+        (archive_path / "archive.json").read_text(encoding="utf-8")
+    )
+    assert archive_manifest["format_version"] == 3
+
+
+def test_metal_relocation_evidence_round_trip(tmp_path):
+    molecule = read_mol("[Zn].N", "smi")
+    trajectory = ForceFieldTrajectory.from_molecule(molecule)
+    evidence = CoordinationFrameEvidence(
+        bond_atom_indices=None,
+        accepted=True,
+        pending_bond_count=1,
+        metal_atom_index=0,
+        relocation_status="relocated",
+        relocation_candidates_evaluated=24,
+        safe_donor_atom_indices=(1,),
+        minimum_normalized_clearance=1.25,
+        coordination_distance_deviation=0.15,
+    )
+    frame = trajectory.record_molecule(
+        molecule,
+        stage=TrajectoryStage.COORDINATION_RESTORATION,
+        event=TrajectoryEvent.METAL_RELOCATED,
+        evidence=evidence,
+    )
+    trajectory.select(frame.index)
+    path = tmp_path / "metal_relocation"
+
+    trajectory.write(path)
+    restored = ForceFieldTrajectory.read(path)
+
+    assert restored[0].event is TrajectoryEvent.METAL_RELOCATED
+    assert restored[0].evidence == evidence
+
+
+def test_archive_reader_rejects_wrong_format_version(tmp_path):
+    _, trajectory, _ = _coordination_trajectory()
+    path = tmp_path / "trajectory_archive"
+    ForceFieldTrajectoryArchive(trajectory).write(path)
+    manifest_path = path / "archive.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["format_version"] = 2
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Unsupported trajectory format version 2"):
+        ForceFieldTrajectoryArchive.read(path)
 
 
 def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
@@ -256,7 +303,7 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
     assert restored_evidence.finite_energy is False
     assert restored_evidence.finite_gradients is False
     manifest_text = (path / "trajectory.json").read_text(encoding="utf-8")
-    assert json.loads(manifest_text)["format_version"] == 2
+    assert json.loads(manifest_text)["format_version"] == 3
     assert "NaN" not in manifest_text
     assert "Infinity" not in manifest_text
     json.loads(manifest_text, parse_constant=lambda value: pytest.fail(value))

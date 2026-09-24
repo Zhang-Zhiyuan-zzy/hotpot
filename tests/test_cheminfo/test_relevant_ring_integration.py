@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from types import SimpleNamespace
 
 import networkx as nx
 import pytest
@@ -129,12 +130,23 @@ def test_forcefield_ring_opening_ignores_the_legacy_cycle_basis(
         property(reject_legacy_cycle_basis_property),
     )
 
-    selected_edge = repair._select_ring_opening_edge(
-        mol,
-        small_ring,
-        mol.bond(11, 12),
+    target_bond = mol.bond(11, 12)
+    checkpoint = SimpleNamespace(
         ring_scope="full_graph",
+        piercings=(SimpleNamespace(
+            target=SimpleNamespace(
+                ring=SimpleNamespace(
+                    key=tuple(atom.idx for atom in small_ring.atoms),
+                    ring=small_ring,
+                ),
+                bond=SimpleNamespace(
+                    key=repair._bond_key(target_bond),
+                ),
+            ),
+        ),),
     )
+    watch = repair._ring_piercing_watch(mol, checkpoint)
+    selected_edge = repair._select_ring_opening_edge(mol, watch)
 
     assert {len(ring) for ring in mol.rings} == {4, 9}
     assert selected_edge is not None

@@ -21,6 +21,9 @@ on:
       - "hotpot/cheminfo/calculator.py"
       - "hotpot/calculator.py"
       - "hotpot/__init__.py"
+      - "hotpot/__main__.py"
+      - "hotpot/_cli.py"
+      - "hotpot/utils/configs/logging_config.py"
       - "hotpot/utils/types.py"
       - "tests/mca/**"
       - "tests/cbond/**"
@@ -66,6 +69,9 @@ on:
       - "hotpot/cheminfo/calculator.py"
       - "hotpot/calculator.py"
       - "hotpot/__init__.py"
+      - "hotpot/__main__.py"
+      - "hotpot/_cli.py"
+      - "hotpot/utils/configs/logging_config.py"
       - "hotpot/utils/types.py"
       - "tests/mca/**"
       - "tests/cbond/**"
@@ -160,6 +166,9 @@ jobs:
           import tarfile
 
           expected = {
+              "hotpot/_cli.py",
+              "hotpot/cheminfo/forcefields/cli.py",
+              "hotpot/cheminfo/forcefields/cli_doc.md",
               "hotpot/cheminfo/forcefields/__init__.py",
               "hotpot/cheminfo/forcefields/ff.py",
               "hotpot/cheminfo/forcefields/ff39.py",
@@ -228,6 +237,21 @@ jobs:
           assert "[Eu" in cbond_result
           assert len(cbond_result.splitlines()) == 1
 
+          pipeline_result = subprocess.run(
+              [
+                  "hotpot", "ff", "-", "--input-format", "smi",
+                  "--epochs", "1", "--steps-per-epoch", "5",
+                  "--quality", "off", "--seed", "1", "--timeout", "30",
+              ],
+              input=f"{cbond_result}\n",
+              check=True,
+              capture_output=True,
+              text=True,
+          )
+          assert pipeline_result.stdout.startswith("@<TRIPOS>MOLECULE\n")
+          assert "@<TRIPOS>ATOM\n" in pipeline_result.stdout
+          assert "@<TRIPOS>BOND\n" in pipeline_result.stdout
+
           cbond_documentation = subprocess.run(
               ["hotpot", "cbond", "--doc"],
               check=True,
@@ -237,6 +261,29 @@ jobs:
           assert "hotpot cbond" in cbond_documentation
           assert "Enumerate terminal coordination structures" in cbond_documentation
           assert "default mode must not be interpreted as an alias for Rank 1" in cbond_documentation
+
+          forcefield_documentation = subprocess.run(
+              ["hotpot", "ff", "--doc"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          assert "hotpot ff" in forcefield_documentation
+          assert "Standard input and pipelines" in forcefield_documentation
+
+          forcefield_result = subprocess.run(
+              [
+                  "hotpot", "ff", "CC", "--epochs", "1",
+                  "--steps-per-epoch", "5", "--quality", "off",
+                  "--seed", "1", "--timeout", "30",
+              ],
+              check=True,
+              capture_output=True,
+              text=True,
+          )
+          assert forcefield_result.stdout.startswith("@<TRIPOS>MOLECULE\n")
+          assert "@<TRIPOS>ATOM\n" in forcefield_result.stdout
+          assert "@<TRIPOS>BOND\n" in forcefield_result.stdout
 
           cbond_ranked = subprocess.run(
               [

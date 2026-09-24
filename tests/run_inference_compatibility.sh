@@ -49,8 +49,12 @@ assert actual == expected
             tests/test_cheminfo/test_geometry_quality.py \
             tests/test_cheminfo/test_forcefield_acceptance.py \
             tests/test_cheminfo/test_forcefield_api.py \
+            tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py \
+            tests/test_cheminfo/test_forcefield_cli.py \
+            tests/test_cheminfo/test_forcefield_metal_relocation.py \
             tests/test_cheminfo/test_forcefield_package.py \
             tests/test_cheminfo/test_forcefield_optimizer.py \
+            tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py \
             tests/test_cheminfo/test_forcefield_trajectory.py \
             tests/test_cheminfo/test_forcefield_integration.py \
             tests/test_cheminfo/test_complexes_build.py \

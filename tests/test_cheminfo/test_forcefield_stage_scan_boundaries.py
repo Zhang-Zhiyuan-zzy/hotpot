@@ -776,6 +776,223 @@ def test_stage3_does_not_optimize_an_unresolved_entry_piercing(monkeypatch):
     assert accepted_reports == [checkpoint_report]
 
 
+def test_stage3_invalidates_numerical_evidence_after_unresolved_repair(
+    monkeypatch,
+):
+    """A repaired return frame must not inherit an earlier frame's numbers."""
+    mol = read_mol("[Zn](N)", "smi")
+    optimized_coordinates = np.full_like(mol.coordinates, 1.0)
+    repaired_coordinates = np.full_like(mol.coordinates, 2.0)
+    clear_report = _empty_screening_report(ring_scope="full_graph")
+    piercing_report = _piercing_screening_report(ring_scope="full_graph")
+    scan_reports = iter((clear_report, piercing_report))
+    accepted_evidence = []
+
+    numerical_report = ff.ForceFieldRunReport(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        setup_succeeded=True,
+        converged=True,
+        epochs_completed=3,
+        steps_submitted=30,
+        initialization_steps=1,
+        steps_completed=None,
+        final_energy=12.0,
+        best_energy=10.0,
+        energy_unit="kJ/mol",
+        rms_gradient=1.5,
+        max_gradient=2.5,
+        exploded=False,
+        best_epoch=1,
+        selected_segment_epochs_completed=2,
+        epoch_energies=(12.0, 10.0, 11.0),
+    )
+
+    def optimize(working_mol, *args, **kwargs):
+        working_mol.coordinates = optimized_coordinates
+        return numerical_report
+
+    def untangle(working_mol, *args, **kwargs):
+        working_mol.coordinates = repaired_coordinates
+        return repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=1,
+                initial_piercing_count=1,
+                final_piercing_count=1,
+                minimum_piercing_count=1,
+                resolved=False,
+            ),
+            energy=float("nan"),
+            checkpoint_report=piercing_report,
+        )
+
+    monkeypatch.setattr(
+        workflows,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: next(scan_reports),
+    )
+    monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
+    monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
+    monkeypatch.setattr(workflows.warnings, "warn", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        workflows,
+        "evaluate_structure_acceptance_at_checkpoint",
+        lambda *args, **kwargs: (
+            accepted_evidence.append(kwargs["forcefield_report"])
+            or ff.ForceFieldValidationReport(
+                level="basic",
+                passed=False,
+                checks=(),
+            )
+        ),
+    )
+
+    result = workflows._optimize_complex_working_mol(
+        mol,
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        algorithm="conjugate",
+        epochs=3,
+        steps_per_epoch=10,
+        complex_untangling_attempts=1,
+        quality_level="basic",
+        topology_reference=object(),
+        quality_thresholds=None,
+        seed=7,
+        perturb_interval=None,
+        perturb_sigma=0.0,
+        retain_epoch_history=True,
+        increasing_vdw=False,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.5,
+        trajectory=ForceFieldTrajectory.from_molecule(
+            mol,
+            start=TrajectoryStart.FINAL_OPTIMIZATION,
+        ),
+    )
+
+    assert np.array_equal(mol.coordinates, repaired_coordinates)
+    assert result.epochs_completed == numerical_report.epochs_completed
+    assert result.steps_submitted == numerical_report.steps_submitted
+    assert result.epoch_energies == numerical_report.epoch_energies
+    assert result.best_epoch == -1
+    assert result.selected_segment_epochs_completed == 0
+    assert result.termination_reason == "topology_blocked"
+    assert result.setup_succeeded is False
+    assert np.isnan(result.final_energy)
+    assert np.isnan(result.best_energy)
+    assert np.isnan(result.rms_gradient)
+    assert np.isnan(result.max_gradient)
+    assert len(accepted_evidence) == 1
+    assert accepted_evidence[0]["setup_succeeded"] is False
+    assert np.isnan(accepted_evidence[0]["final_energy"])
+    assert np.isnan(accepted_evidence[0]["rms_gradient"])
+    assert np.isnan(accepted_evidence[0]["max_gradient"])
+
+
+def test_stage3_stabilizes_coordinates_changed_by_an_earlier_repair(
+    monkeypatch,
+):
+    """Repair history is compared with the last numerically evaluated frame."""
+    mol = read_mol("[Zn](N)", "smi")
+    first_optimized_coordinates = np.full_like(mol.coordinates, 1.0)
+    repaired_coordinates = np.full_like(mol.coordinates, 2.0)
+    final_optimized_coordinates = np.full_like(mol.coordinates, 3.0)
+    clear_report = _empty_screening_report(ring_scope="full_graph")
+    piercing_report = _piercing_screening_report(ring_scope="full_graph")
+    scan_reports = iter((clear_report, piercing_report, clear_report))
+    repair_reports = iter((piercing_report, clear_report))
+    initial_energies = []
+    optimize_calls = 0
+
+    def optimize(working_mol, *args, **kwargs):
+        nonlocal optimize_calls
+        optimize_calls += 1
+        working_mol.coordinates = (
+            first_optimized_coordinates
+            if optimize_calls == 1
+            else final_optimized_coordinates
+        )
+        return _forcefield_run_report()
+
+    def untangle(working_mol, *args, **kwargs):
+        initial_energies.append(kwargs["initial_energy"])
+        if len(initial_energies) == 1:
+            working_mol.coordinates = repaired_coordinates
+        checkpoint_report = next(repair_reports)
+        return repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=1,
+                initial_piercing_count=1,
+                final_piercing_count=(
+                    1
+                    if checkpoint_report.state is geo.PiercingState.PIERCES
+                    else 0
+                ),
+                minimum_piercing_count=(
+                    1
+                    if checkpoint_report.state is geo.PiercingState.PIERCES
+                    else 0
+                ),
+                resolved=(
+                    checkpoint_report.state is not geo.PiercingState.PIERCES
+                ),
+            ),
+            energy=float("nan"),
+            checkpoint_report=checkpoint_report,
+        )
+
+    monkeypatch.setattr(
+        workflows,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: next(scan_reports),
+    )
+    monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
+    monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
+    monkeypatch.setattr(
+        workflows,
+        "evaluate_structure_acceptance_at_checkpoint",
+        lambda *args, **kwargs: ff.ForceFieldValidationReport(
+            level="basic",
+            passed=True,
+            checks=(),
+        ),
+    )
+
+    result = workflows._optimize_complex_working_mol(
+        mol,
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        algorithm="conjugate",
+        epochs=1,
+        steps_per_epoch=1,
+        complex_untangling_attempts=2,
+        quality_level="basic",
+        topology_reference=object(),
+        quality_thresholds=None,
+        seed=7,
+        perturb_interval=None,
+        perturb_sigma=0.0,
+        retain_epoch_history=False,
+        increasing_vdw=False,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.5,
+        trajectory=ForceFieldTrajectory.from_molecule(
+            mol,
+            start=TrajectoryStart.FINAL_OPTIMIZATION,
+        ),
+    )
+
+    assert optimize_calls == 2
+    assert initial_energies[0] == 0.0
+    assert np.isnan(initial_energies[1])
+    assert np.array_equal(mol.coordinates, final_optimized_coordinates)
+    assert result.epochs_completed == 2
+    assert result.best_epoch == 1
+
+
 class _EpochBackend:
     def __init__(self, frames):
         self.frames = frames

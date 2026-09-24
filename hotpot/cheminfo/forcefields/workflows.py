@@ -396,6 +396,7 @@ def _optimize_complex_working_mol(
     remaining_attempts = complex_untangling_attempts
     untangling_reports = []
     optimization_reports = []
+    numerical_frame_coordinates: Optional[np.ndarray] = None
     checkpoint_report = _scan_ring_checkpoint(
         working_mol,
         ring_scope="full_graph",
@@ -456,6 +457,10 @@ def _optimize_complex_working_mol(
             trajectory_attempt=0,
             stopping_criteria=stopping_criteria,
         ))
+        numerical_frame_coordinates = np.asarray(
+            working_mol.coordinates,
+            dtype=float,
+        ).copy()
         checkpoint_report = _scan_ring_checkpoint(
             working_mol,
             ring_scope="full_graph",
@@ -473,10 +478,6 @@ def _optimize_complex_working_mol(
         and checkpoint_report.state is geo.PiercingState.PIERCES
         and remaining_attempts > 0
     ):
-        coordinates_before_repair = np.asarray(
-            working_mol.coordinates,
-            dtype=float,
-        ).copy()
         untangling = _untangle_ring_piercings(
             working_mol,
             effective_forcefield,
@@ -486,7 +487,17 @@ def _optimize_complex_working_mol(
             perturb_sigma=perturb_sigma,
             rng=rng,
             checkpoint_report=checkpoint_report,
-            initial_energy=optimization_reports[-1].best_energy,
+            initial_energy=(
+                optimization_reports[-1].best_energy
+                if (
+                    numerical_frame_coordinates is not None
+                    and np.array_equal(
+                        numerical_frame_coordinates,
+                        working_mol.coordinates,
+                    )
+                )
+                else float("nan")
+            ),
             trajectory=trajectory,
         )
         untangling_reports.append(untangling.report)
@@ -497,7 +508,13 @@ def _optimize_complex_working_mol(
             break
         if checkpoint_report.state is geo.PiercingState.PIERCES:
             continue
-        if np.array_equal(coordinates_before_repair, working_mol.coordinates):
+        if (
+            numerical_frame_coordinates is not None
+            and np.array_equal(
+                numerical_frame_coordinates,
+                working_mol.coordinates,
+            )
+        ):
             continue
 
         optimization_reports.append(_optimize_working_mol(
@@ -519,6 +536,10 @@ def _optimize_complex_working_mol(
             trajectory_attempt=len(optimization_reports),
             stopping_criteria=stopping_criteria,
         ))
+        numerical_frame_coordinates = np.asarray(
+            working_mol.coordinates,
+            dtype=float,
+        ).copy()
         checkpoint_report = _scan_ring_checkpoint(
             working_mol,
             ring_scope="full_graph",
@@ -530,6 +551,18 @@ def _optimize_complex_working_mol(
             stage=TrajectoryStage.COMPLEX_UNTANGLING,
             energy=optimization_reports[-1].best_energy,
         )
+
+    if (
+        numerical_frame_coordinates is not None
+        and not np.array_equal(
+            numerical_frame_coordinates,
+            working_mol.coordinates,
+        )
+    ):
+        optimization_reports.append(_unoptimized_forcefield_report(
+            requested_forcefield,
+            effective_forcefield,
+        ))
 
     final_state = checkpoint_report.state
     final_piercing_count = _piercing_count(checkpoint_report)

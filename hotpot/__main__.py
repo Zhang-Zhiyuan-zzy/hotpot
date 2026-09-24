@@ -177,18 +177,11 @@ def main(argv: list[str] = None):
         args = parser.parse_args(raw_args)
 
 
-    try:
-        return_code = run(args)
-        if return_code == -2:
-            parser.print_help()
-            return 1
-        return return_code
-    except Exception as exc:
-        raise exc
-        # print(f"[ERROR] {exc}", file=sys.stderr)
-        # if os.environ.get("HOTPOT_DEBUG"):
-        #     raise exc
-        # return 2
+    return_code = run(args)
+    if return_code == -2:
+        parser.print_help()
+        return 1
+    return return_code
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ from importlib import resources
 from numbers import Integral, Real
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Mapping, Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import Mapping, Optional, Sequence, TYPE_CHECKING, Tuple, Union
 
 from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo._io import MolReader
@@ -133,6 +133,19 @@ def _positive_float(value: str) -> float:
     if not math.isfinite(parsed) or parsed <= 0.0:
         raise argparse.ArgumentTypeError("value must be a finite positive number")
     return parsed
+
+
+def _load_molecules(
+    source: Union[str, Path],
+    input_format: Optional[str],
+    source_name: str,
+) -> tuple["Molecule", ...]:
+    try:
+        return tuple(MolReader(source, fmt=input_format))
+    except OSError as error:
+        raise _CLIUsageError(
+            f"Could not read molecule input {source_name!r}: {error}"
+        ) from error
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
@@ -273,14 +286,18 @@ def _read_molecules(
             with TemporaryDirectory(prefix="hotpot-ff-stdin-") as directory:
                 stdin_path = Path(directory) / f"stdin.{stdin_format}"
                 stdin_path.write_text(content, encoding="utf-8")
-                molecules = tuple(MolReader(stdin_path, fmt=stdin_format))
+                molecules = _load_molecules(stdin_path, stdin_format, "stdin")
             source_name = "stdin"
         elif os.path.isfile(source):
-            molecules = tuple(MolReader(source, fmt=input_format))
             source_name = source
+            molecules = _load_molecules(source, input_format, source_name)
         else:
-            molecules = tuple(MolReader(source, fmt=input_format or "smi"))
             source_name = source
+            molecules = _load_molecules(
+                source,
+                input_format or "smi",
+                source_name,
+            )
 
         if not molecules:
             raise _CLIUsageError(f"No molecules were found in {source_name!r}")
@@ -581,10 +598,20 @@ def _check_output_paths(args: argparse.Namespace) -> None:
         if path and path != "-"
     }
     paths = tuple(named_paths.values())
-    if len(set(paths)) != len(paths):
-        raise _CLIUsageError(
-            "--output, --report, and --trajectory must name different paths"
-        )
+    resolved_paths = tuple(
+        (name, path.expanduser().resolve())
+        for name, path in named_paths.items()
+    )
+    for index, (left_name, left_path) in enumerate(resolved_paths):
+        for right_name, right_path in resolved_paths[index + 1 :]:
+            if (
+                left_path == right_path
+                or left_path in right_path.parents
+                or right_path in left_path.parents
+            ):
+                raise _CLIUsageError(
+                    f"{left_name} and {right_name} paths must not overlap"
+                )
     if args.report == "-":
         raise _CLIUsageError(
             "--report - would collide with the molecular stdout payload"
@@ -593,6 +620,12 @@ def _check_output_paths(args: argparse.Namespace) -> None:
         raise _CLIUsageError("--trajectory requires a directory path, not '-'")
     if args.trajectory_start is not None and args.trajectory is None:
         raise _CLIUsageError("--trajectory-start requires --trajectory")
+    for option_name in ("output", "report"):
+        path = getattr(args, option_name)
+        if path and path != "-" and Path(path).is_dir():
+            raise _CLIUsageError(f"--{option_name} requires a file path")
+    if args.trajectory and Path(args.trajectory).is_file():
+        raise _CLIUsageError("--trajectory requires a directory path")
     if not args.overwrite:
         existing = tuple(path for path in paths if path.exists())
         if existing:
@@ -653,6 +686,8 @@ def run(args: argparse.Namespace) -> int:
     if args.output and args.output != "-":
         if molecular_payload:
             _write_text(args.output, molecular_payload)
+        elif args.overwrite:
+            Path(args.output).unlink(missing_ok=True)
     else:
         sys.stdout.write(molecular_payload)
 

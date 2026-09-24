@@ -21,7 +21,12 @@ from hotpot.cheminfo._io import MolReader
 
 from . import (
     BuildAndOptimizeReport,
+    BuildWorkerError,
+    ComplexBuildError,
+    ComplexBuildWorkerError,
     ForceFieldError,
+    ForceFieldSetupError,
+    GeometryQualityError,
     TrajectoryStart,
     auto_optimize,
     build3d,
@@ -56,6 +61,10 @@ _FORCEFIELDS = {
 _TRAJECTORY_STARTS = {
     value.value.replace("_", "-"): value for value in TrajectoryStart
 }
+
+
+class _CLIUsageError(ValueError):
+    """A command request that is invalid before force-field execution."""
 
 
 @dataclass(frozen=True)
@@ -100,6 +109,7 @@ class _Outcome:
     report: Optional[object]
     error_type: Optional[str] = None
     error_message: Optional[str] = None
+    error_evidence: Optional[Mapping[str, object]] = None
 
 
 def load_cli_documentation() -> str:
@@ -251,14 +261,14 @@ def _read_molecules(
     input_format: Optional[str],
 ) -> Tuple[_InputRecord, ...]:
     if sources.count("-") > 1:
-        raise ValueError("stdin '-' may be specified only once")
+        raise _CLIUsageError("stdin '-' may be specified only once")
 
     records = []
     for source in sources:
         if source == "-":
             content = sys.stdin.read()
             if not content.strip():
-                raise ValueError("stdin did not contain a molecule")
+                raise _CLIUsageError("stdin did not contain a molecule")
             stdin_format = input_format or "smi"
             with TemporaryDirectory(prefix="hotpot-ff-stdin-") as directory:
                 stdin_path = Path(directory) / f"stdin.{stdin_format}"
@@ -273,7 +283,7 @@ def _read_molecules(
             source_name = source
 
         if not molecules:
-            raise ValueError(f"No molecules were found in {source_name!r}")
+            raise _CLIUsageError(f"No molecules were found in {source_name!r}")
         for source_record_index, mol in enumerate(molecules):
             records.append(
                 _InputRecord(
@@ -344,7 +354,7 @@ def _requires_build(mol: "Molecule", options: _RunOptions) -> bool:
         return True
     if options.optimize_only:
         if not mol.has_3d:
-            raise ValueError(
+            raise _CLIUsageError(
                 "--optimize-only requires non-coincident existing coordinates"
             )
         return False
@@ -356,7 +366,7 @@ def _validate_forcefield_request(mol: "Molecule", options: _RunOptions) -> None:
         options.route == "auto" and mol.has_metal
     )
     if complex_route and options.forcefield not in {None, "UFF"}:
-        raise ValueError(
+        raise _CLIUsageError(
             "Complex force-field workflows currently support only UFF; "
             "use --forcefield auto or --forcefield uff"
         )
@@ -432,10 +442,45 @@ def _normalize_molecule_payload(text: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
+def _forcefield_error_evidence(error: ForceFieldError) -> dict[str, object]:
+    evidence: dict[str, object] = {}
+    if isinstance(error, ForceFieldSetupError) and error.report is not None:
+        evidence["setup_report"] = error.report
+    if isinstance(error, GeometryQualityError) and error.report is not None:
+        evidence["quality_report"] = error.report
+    if (
+        isinstance(error, (BuildWorkerError, ComplexBuildError))
+        and error.diagnostics is not None
+    ):
+        evidence["build_diagnostics"] = error.diagnostics
+    if isinstance(error, (BuildWorkerError, ComplexBuildWorkerError)):
+        evidence["worker_error"] = {
+            "type": error.error_type,
+            "message": error.error_message,
+            "traceback": error.worker_traceback,
+        }
+    if error.trajectory is not None:
+        evidence["trajectory_available"] = True
+    if error.ligand_build_attempts:
+        evidence["ligand_build_attempt_count"] = len(error.ligand_build_attempts)
+    return evidence
+
+
 def _process_work_item(item: _WorkItem) -> _Outcome:
     record = item.record
     try:
         report = _run_forcefield(record.mol, item.options, item.trajectory_path)
+    except _CLIUsageError as error:
+        return _Outcome(
+            index=record.index,
+            source=record.source,
+            source_record_index=record.source_record_index,
+            status="error",
+            payload=None,
+            report=None,
+            error_type="InputError",
+            error_message=str(error),
+        )
     except ForceFieldError as error:
         return _Outcome(
             index=record.index,
@@ -443,9 +488,10 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             source_record_index=record.source_record_index,
             status="error",
             payload=None,
-            report=getattr(error, "report", None),
+            report=None,
             error_type=type(error).__name__,
             error_message=str(error),
+            error_evidence=_forcefield_error_evidence(error),
         )
 
     quality_report = report.quality_report
@@ -508,10 +554,13 @@ def _report_payload(outcomes: Sequence[_Outcome]) -> str:
         if outcome.report is not None:
             result["forcefield_report"] = _json_value(outcome.report)
         if outcome.error_type is not None:
-            result["error"] = {
+            error: dict[str, object] = {
                 "type": outcome.error_type,
                 "message": outcome.error_message,
             }
+            if outcome.error_evidence:
+                error["evidence"] = _json_value(outcome.error_evidence)
+            result["error"] = error
         results.append(result)
     return json.dumps(
         {"schema_version": 1, "results": results},
@@ -533,20 +582,22 @@ def _check_output_paths(args: argparse.Namespace) -> None:
     }
     paths = tuple(named_paths.values())
     if len(set(paths)) != len(paths):
-        raise ValueError(
+        raise _CLIUsageError(
             "--output, --report, and --trajectory must name different paths"
         )
     if args.report == "-":
-        raise ValueError("--report - would collide with the molecular stdout payload")
+        raise _CLIUsageError(
+            "--report - would collide with the molecular stdout payload"
+        )
     if args.trajectory == "-":
-        raise ValueError("--trajectory requires a directory path, not '-'")
+        raise _CLIUsageError("--trajectory requires a directory path, not '-'")
     if args.trajectory_start is not None and args.trajectory is None:
-        raise ValueError("--trajectory-start requires --trajectory")
+        raise _CLIUsageError("--trajectory-start requires --trajectory")
     if not args.overwrite:
         existing = tuple(path for path in paths if path.exists())
         if existing:
             joined = ", ".join(str(path) for path in existing)
-            raise FileExistsError(
+            raise _CLIUsageError(
                 f"Refusing to replace existing path(s): {joined}; use --overwrite"
             )
 
@@ -559,8 +610,12 @@ def _write_text(path: str, text: str) -> None:
 
 def run(args: argparse.Namespace) -> int:
     """Execute one parsed ``hotpot ff`` command."""
-    _check_output_paths(args)
-    records = _read_molecules(args.inputs, args.input_format)
+    try:
+        _check_output_paths(args)
+        records = _read_molecules(args.inputs, args.input_format)
+    except _CLIUsageError as error:
+        print(f"hotpot ff: {error}", file=sys.stderr)
+        return 2
     output_format = _infer_output_format(args.output, args.output_format)
     trajectory_start = (
         None
@@ -610,6 +665,14 @@ def run(args: argparse.Namespace) -> int:
                 f"hotpot ff: {outcome.source} record "
                 f"{outcome.source_record_index}: {outcome.error_type}: "
                 f"{outcome.error_message}",
+                file=sys.stderr,
+            )
+        elif outcome.status == "quality-failed":
+            print(
+                f"hotpot ff: {outcome.source} record "
+                f"{outcome.source_record_index}: quality profile "
+                f"{args.quality!r} failed; the inspectable structure was emitted"
+                + (f"; see {args.report}" if args.report else ""),
                 file=sys.stderr,
             )
     return 0 if all(outcome.status == "ok" for outcome in outcomes) else 1

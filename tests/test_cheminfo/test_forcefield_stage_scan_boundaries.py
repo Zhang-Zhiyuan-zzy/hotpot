@@ -314,11 +314,12 @@ def test_stage2_screens_hidden_candidate_against_full_graph_without_terminal_sca
     mol = read_mol("[Zn](N)", "smi")
     candidate_topologies = []
 
-    def candidate_scan(current, bond):
+    def candidate_scan(bond, workspace):
         candidate_topologies.append(
-            tuple(sorted(repair._bond_key(candidate) for candidate in current.bonds))
+            tuple(sorted(repair._bond_key(candidate) for candidate in mol.bonds))
         )
-        assert bond not in current.bonds
+        assert bond not in mol.bonds
+        assert workspace.plan.ring_scope == "full_graph"
         return _empty_screening_report(ring_scope="full_graph")
 
     monkeypatch.setattr(
@@ -355,23 +356,139 @@ def test_stage2_candidate_screen_uses_full_graph_and_ring_size_limit(monkeypatch
     mol = read_mol("[Zn](N)", "smi")
     candidate = mol.bonds[0]
     mol.hide_bonds(candidate, clear_conformers=False)
-    calls = []
+    plans = []
+    workspaces = []
+    segments = []
 
-    def screen(current, bonds, **kwargs):
-        calls.append((current, tuple(bonds), kwargs))
-        return _empty_screening_report(ring_scope=kwargs["ring_scope"])
+    def prepare_plan(current, **kwargs):
+        plans.append((current, kwargs))
+        return SimpleNamespace(ring_scope=kwargs["ring_scope"])
 
-    monkeypatch.setattr(repair.geo, "screen_bonds_against_rings", screen)
+    def prepare_frame(plan):
+        workspaces.append(plan)
+        return SimpleNamespace(plan=plan)
 
-    report = repair._screen_coordination_bond_relations(mol, candidate)
+    def screen(bonds, workspace, **kwargs):
+        segments.append((tuple(bonds), workspace, kwargs))
+        return _empty_screening_report(ring_scope=workspace.plan.ring_scope)
+
+    monkeypatch.setattr(
+        repair.geo,
+        "prepare_bond_ring_screening_plan",
+        prepare_plan,
+    )
+    monkeypatch.setattr(repair.geo, "prepare_bond_ring_frame", prepare_frame)
+    monkeypatch.setattr(
+        repair.geo,
+        "screen_segments_against_ring_workspace",
+        screen,
+    )
+
+    workspace = repair._prepare_coordination_screening_workspace(mol)
+    report = repair._screen_coordination_bond_relations(candidate, workspace)
 
     assert candidate not in mol.bonds
-    assert calls == [(
+    assert plans == [(
         mol,
-        (candidate,),
-        {"ring_scope": "full_graph", "max_ring_size": 16},
+        {
+            "ring_scope": "full_graph",
+            "max_ring_size": 16,
+            "bonds": (),
+        },
     )]
+    assert len(workspaces) == 1
+    assert workspaces[0].ring_scope == "full_graph"
+    assert len(segments) == 1
+    bond_geometries, workspace, options = segments[0]
+    assert workspace.plan.ring_scope == "full_graph"
+    assert options == {"stop_after_confirmed": True}
+    assert tuple(geometry.bond for geometry in bond_geometries) == (candidate,)
+    assert tuple(geometry.key for geometry in bond_geometries) == (
+        repair._bond_key(candidate),
+    )
     assert report.ring_scope == "full_graph"
+
+
+def test_stage2_reuses_one_workspace_per_unchanged_candidate_batch(monkeypatch):
+    mol = read_mol("[Zn](N)(N)", "smi")
+    candidate_keys = tuple(sorted(repair._bond_key(bond) for bond in mol.bonds))
+    plans = []
+    frames = []
+    screening_calls = []
+
+    def prepare_plan(current, **kwargs):
+        plan = SimpleNamespace(index=len(plans), mol=current, kwargs=kwargs)
+        plans.append(plan)
+        return plan
+
+    def prepare_frame(plan):
+        workspace = SimpleNamespace(index=len(frames), plan=plan)
+        frames.append(workspace)
+        return workspace
+
+    def screen(bond, workspace):
+        screening_calls.append((repair._bond_key(bond), workspace.index))
+        return SimpleNamespace(bond=bond, workspace=workspace)
+
+    def relation_counts(report, bond):
+        assert report.bond is bond
+        first_candidate_is_initially_blocked = (
+            repair._bond_key(bond) == candidate_keys[0]
+            and report.workspace.index == 0
+        )
+        return repair._CoordinationRelationCounts(
+            piercing=int(first_candidate_is_initially_blocked),
+            undetermined=0,
+            excluded_rings=0,
+        )
+
+    monkeypatch.setattr(
+        repair.geo,
+        "prepare_bond_ring_screening_plan",
+        prepare_plan,
+    )
+    monkeypatch.setattr(repair.geo, "prepare_bond_ring_frame", prepare_frame)
+    monkeypatch.setattr(repair, "_screen_coordination_bond_relations", screen)
+    monkeypatch.setattr(
+        repair,
+        "_candidate_coordination_relation_counts",
+        relation_counts,
+    )
+    monkeypatch.setattr(
+        repair,
+        "_single_ob_optimization",
+        lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(
+            0.0,
+            "kJ/mol",
+            False,
+        ),
+    )
+
+    result = repair._restore_coordination_bonds_incrementally(
+        mol,
+        "UFF",
+        attempt_limit=1,
+        relaxation_steps=1,
+        perturb_sigma=0.0,
+        rng=np.random.default_rng(7),
+    )
+
+    assert len(plans) == 2
+    assert len(frames) == 2
+    assert all(
+        plan.kwargs == {
+            "ring_scope": "full_graph",
+            "max_ring_size": 16,
+            "bonds": (),
+        }
+        for plan in plans
+    )
+    assert screening_calls == [
+        (candidate_keys[0], 0),
+        (candidate_keys[1], 0),
+        (candidate_keys[0], 1),
+    ]
+    assert result.report.forced_bond_keys == ()
 
 
 def test_coordination_restoration_report_has_stage2_mechanical_facts_only():

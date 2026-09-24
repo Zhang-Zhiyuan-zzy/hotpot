@@ -627,16 +627,33 @@ def _untangle_ring_piercings(
     )
 
 
-def _screen_coordination_bond_relations(
+def _prepare_coordination_screening_workspace(
     mol: "Molecule",
-    coordination_bond: "Bond",
-) -> "geo.BondRingScreeningReport[Ring, Bond]":
-    """Screen one hidden coordination candidate against the pre-addition graph."""
-    return geo.screen_bonds_against_rings(
+) -> "geo.BondRingFrameWorkspace[Ring, Bond]":
+    """Prepare the current-ring facts shared by one Stage 2 trial batch."""
+    plan = geo.prepare_bond_ring_screening_plan(
         mol,
-        (coordination_bond,),
         ring_scope="full_graph",
         max_ring_size=_BOND_RING_MAX_SIZE,
+        bonds=(),
+    )
+    return geo.prepare_bond_ring_frame(plan)
+
+
+def _screen_coordination_bond_relations(
+    coordination_bond: "Bond",
+    workspace: "geo.BondRingFrameWorkspace[Ring, Bond]",
+) -> "geo.BondRingScreeningReport[Ring, Bond]":
+    """Screen one hidden coordination candidate against prepared current rings."""
+    bond_geometry = geo.BondGeometry(
+        bond=coordination_bond,
+        segment=geo.segment_from_bond(coordination_bond),
+        key=_bond_key(coordination_bond),
+    )
+    return geo.screen_segments_against_ring_workspace(
+        (bond_geometry,),
+        workspace,
+        stop_after_confirmed=True,
     )
 
 
@@ -712,6 +729,7 @@ def _restore_next_nonpiercing_coordination_bond(
     mol: "Molecule",
     pending_bonds: list["Bond"],
     *,
+    workspace: "geo.BondRingFrameWorkspace[Ring, Bond]",
     trajectory: Optional[ForceFieldTrajectory] = None,
     attempt: Optional[int] = None,
 ) -> Tuple[Optional["Bond"], Tuple[str, ...], _CoordinationTrialStatistics]:
@@ -764,8 +782,9 @@ def _restore_next_nonpiercing_coordination_bond(
             accepted=None,
             pending_count=len(pending_bonds),
         )
+        relation_report = _screen_coordination_bond_relations(bond, workspace)
         relation_counts = _candidate_coordination_relation_counts(
-            _screen_coordination_bond_relations(mol, bond),
+            relation_report,
             bond,
         )
         rejected_piercing_trials += int(relation_counts.piercing > 0)
@@ -915,10 +934,12 @@ def _restore_coordination_bonds_incrementally(
     infeasible_metal_indices: set[int] = set()
 
     while pending_bonds:
+        screening_workspace = _prepare_coordination_screening_workspace(mol)
         restored_bond, relation_warnings, relation_observations = (
             _restore_next_nonpiercing_coordination_bond(
                 mol,
                 pending_bonds,
+                workspace=screening_workspace,
                 trajectory=trajectory,
                 attempt=stalled_attempts,
             )

@@ -255,6 +255,16 @@ def _coordination_molecule():
 
 def _mock_coordination_scans(monkeypatch, candidate_counts):
     monkeypatch.setattr(
+        repair.geo,
+        "prepare_bond_ring_screening_plan",
+        lambda *args, **kwargs: object(),
+    )
+    monkeypatch.setattr(
+        repair.geo,
+        "prepare_bond_ring_frame",
+        lambda plan: object(),
+    )
+    monkeypatch.setattr(
         repair,
         "_screen_coordination_bond_relations",
         lambda *args, **kwargs: object(),
@@ -1426,9 +1436,10 @@ def test_failed_hypothetical_check_never_restores_candidate_bond(monkeypatch):
 
     scan_states = []
 
-    def scan(current_molecule, bond):
+    def scan(bond, workspace):
         assert bond is candidate
-        scan_states.append(candidate in current_molecule.bonds)
+        assert workspace is not None
+        scan_states.append(candidate in molecule.bonds)
         return object()
 
     def relation_counts(report, bond):
@@ -1450,6 +1461,7 @@ def test_failed_hypothetical_check_never_restores_candidate_bond(monkeypatch):
         repair._restore_next_nonpiercing_coordination_bond(
             molecule,
             [candidate],
+            workspace=object(),
         )
     )
 
@@ -1465,7 +1477,7 @@ def test_failed_hypothetical_check_never_restores_candidate_bond(monkeypatch):
     assert candidate not in molecule.bonds
 
 
-def test_real_post_addition_chelate_cycle_does_not_reject_its_closing_bond():
+def test_hidden_chelate_closing_bond_does_not_screen_its_future_cycle():
     molecule = Molecule()
     coordinates = (
         (0.0, -1.0, 0.0),
@@ -1484,11 +1496,13 @@ def test_real_post_addition_chelate_cycle_does_not_reject_its_closing_bond():
     candidate = molecule.add_bond(4, 0, bond_order=1.0)
     molecule.hide_bonds(candidate, clear_conformers=False)
     pending = [candidate]
+    workspace = repair._prepare_coordination_screening_workspace(molecule)
 
     restored, warnings, observations = (
         repair._restore_next_nonpiercing_coordination_bond(
             molecule,
             pending,
+            workspace=workspace,
         )
     )
 
@@ -1525,10 +1539,12 @@ def test_real_post_addition_bond_through_ligand_ring_is_rejected():
     candidate = molecule.add_bond(6, 7, bond_order=1.0)
     molecule.hide_bonds(candidate, clear_conformers=False)
     pending = [candidate]
+    workspace = repair._prepare_coordination_screening_workspace(molecule)
 
     restored, _, observations = repair._restore_next_nonpiercing_coordination_bond(
         molecule,
         pending,
+        workspace=workspace,
     )
 
     assert restored is None

@@ -1677,7 +1677,13 @@ class Molecule:
         @return: Whether the molecular structure has 3D coordinates.
         @rtype: bool
         """
-        return any(a.coordinates != self.atoms[0] for a in self.atoms)
+        if len(self.atoms) < 2:
+            return False
+        reference = self.atoms[0].coordinates
+        return any(
+            bool(np.any(atom.coordinates != reference))
+            for atom in self.atoms[1:]
+        )
 
     @property
     def has_metal(self) -> bool:

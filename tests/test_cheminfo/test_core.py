@@ -27,6 +27,18 @@ outdir = Path(tests.output_dir)
 
 class TestChemInfo(ut.TestCase):
 
+    def test_molecule_has_3d_requires_distinct_atom_coordinates(self):
+        mol = hp.read_mol("CC", "smi")
+
+        self.assertFalse(mol.has_3d)
+
+        mol.coordinates = np.array(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            dtype=float,
+        )
+
+        self.assertTrue(mol.has_3d)
+
     @ut.skip
     def test_MolReader_iter(self):
         from tqdm import tqdm

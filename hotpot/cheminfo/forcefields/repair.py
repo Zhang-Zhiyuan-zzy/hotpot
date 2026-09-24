@@ -99,10 +99,7 @@ class _RingTrajectoryRecorder:
         *,
         energy: Optional[float] = None,
         state: Optional[geo.PiercingState] = None,
-        report: Optional[Union[
-            "geo.BondRingScanReport[Ring, Bond]",
-            "geo.BondRingScreeningReport[Ring, Bond]",
-        ]] = None,
+        report: Optional["geo.BondRingScreeningReport[Ring, Bond]"] = None,
         confirmed_piercing_count: Optional[int] = None,
         attempt: Optional[int] = None,
     ) -> Optional[int]:
@@ -126,6 +123,25 @@ class _RingTrajectoryRecorder:
             ),
         )
         return frame.index
+
+    def record_checkpoint(
+        self,
+        checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+        *,
+        energy: Optional[float] = None,
+        attempt: Optional[int] = None,
+    ) -> Optional[int]:
+        """Record an already-computed full-scope checkpoint report."""
+        if not self.enabled:
+            return None
+        return _record_ring_checkpoint(
+            self.mol,
+            checkpoint_report,
+            trajectory=self.trajectory,
+            stage=self.stage,
+            energy=energy,
+            attempt=attempt,
+        )
 
     def select(self, frame_index: Optional[int]) -> None:
         """Select a recorded frame when trajectory capture is enabled."""
@@ -296,10 +312,7 @@ def _scan_ring_checkpoint(
 
 def _ring_frame_evidence(
     state: geo.PiercingState,
-    report: Optional[Union[
-        "geo.BondRingScanReport[Ring, Bond]",
-        "geo.BondRingScreeningReport[Ring, Bond]",
-    ]],
+    report: Optional["geo.BondRingScreeningReport[Ring, Bond]"],
     *,
     confirmed_piercing_count: Optional[int] = None,
 ) -> RingFrameEvidence:
@@ -308,16 +321,69 @@ def _ring_frame_evidence(
         uncertain_relation_count = (
             None if state is geo.PiercingState.UNDETERMINED else 0
         )
-    else:
-        uncertain_relation_count = len(report.undetermined)
-    return RingFrameEvidence(
-        confirmed_piercing_count=(
-            _piercing_count(report)
+        observed_piercing_count = (
+            0
             if confirmed_piercing_count is None
             else confirmed_piercing_count
-        ),
+        )
+    else:
+        uncertain_relation_count = report.undetermined_pair_count
+        observed_piercing_count = (
+            report.piercing_pair_count
+            if confirmed_piercing_count is None
+            else confirmed_piercing_count
+        )
+    return RingFrameEvidence(
+        confirmed_piercing_count=observed_piercing_count,
         uncertain_relation_count=uncertain_relation_count,
+        ring_scope=None if report is None else report.ring_scope,
+        max_ring_size=None if report is None else report.max_ring_size,
+        selected_ring_count=(
+            None if report is None else report.selected_ring_count
+        ),
+        excluded_ring_count=(
+            None if report is None else report.excluded_ring_count
+        ),
+        candidate_pair_count=(
+            None if report is None else report.candidate_pair_count
+        ),
+        aabb_separated_pair_count=(
+            None if report is None else report.aabb_separated_pair_count
+        ),
+        exact_pair_count=None if report is None else report.exact_pair_count,
+        does_not_pierce_pair_count=(
+            None if report is None else report.does_not_pierce_pair_count
+        ),
+        scan_complete=None if report is None else report.scan_complete,
     )
+
+
+def _record_ring_checkpoint(
+    mol: "Molecule",
+    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    *,
+    trajectory: Optional[ForceFieldTrajectory],
+    stage: TrajectoryStage,
+    energy: Optional[float] = None,
+    component_index: Optional[int] = None,
+    attempt: Optional[int] = None,
+) -> Optional[int]:
+    """Record one existing full-scope report without recomputing geometry."""
+    if trajectory is None or not trajectory.records(stage):
+        return None
+    frame = trajectory.record_molecule(
+        mol,
+        stage=stage,
+        event=TrajectoryEvent.TOPOLOGY_CHECKPOINT,
+        energy_kj_mol=energy,
+        component_index=component_index,
+        attempt=attempt,
+        evidence=_ring_frame_evidence(
+            checkpoint_report.state,
+            checkpoint_report,
+        ),
+    )
+    return frame.index
 
 
 def _repair_watched_ring_piercings_once(
@@ -468,13 +534,6 @@ def _resolve_ring_piercings(
     watch_best_coordinates = _copy_coordinates(mol.coordinates)
     watch_best_energy = best_energy
     watch_minimum_count = len(watch)
-    trajectory_recorder.record(
-        TrajectoryEvent.INITIAL,
-        energy=best_trace_energy,
-        state=state,
-        report=report,
-        attempt=0,
-    )
 
     while True:
         if state is not geo.PiercingState.PIERCES:
@@ -512,11 +571,9 @@ def _resolve_ring_piercings(
                 best_report = report
                 best_energy = float(optimized.energy)
                 best_trace_energy = float(optimized.energy)
-            trajectory_recorder.record(
-                TrajectoryEvent.SETTLED,
+            trajectory_recorder.record_checkpoint(
+                report,
                 energy=float(optimized.energy),
-                state=state,
-                report=report,
                 attempt=attempts_completed,
             )
             continue
@@ -568,10 +625,8 @@ def _resolve_ring_piercings(
             watch_best_coordinates = _copy_coordinates(mol.coordinates)
             watch_best_energy = float("nan")
             watch_minimum_count = len(watch)
-            trajectory_recorder.record(
-                TrajectoryEvent.RING_CLOSED,
-                state=state,
-                report=report,
+            trajectory_recorder.record_checkpoint(
+                report,
                 attempt=attempts_completed,
             )
             if current_count <= minimum_count:
@@ -597,14 +652,22 @@ def _resolve_ring_piercings(
 
     if unresolved_reason is not None:
         mol.coordinates = watch_best_coordinates
-        candidate_report = (
-            checkpoint_report
-            if attempts_completed == 0
-            else _scan_ring_checkpoint(
+        if attempts_completed == 0:
+            candidate_report = checkpoint_report
+        else:
+            candidate_report = _scan_ring_checkpoint(
                 mol,
                 ring_scope=ring_scope,
             )
-        )
+            trajectory_recorder.record_checkpoint(
+                candidate_report,
+                energy=(
+                    watch_best_energy
+                    if np.isfinite(watch_best_energy)
+                    else None
+                ),
+                attempt=attempts_completed,
+            )
         candidate_state = candidate_report.state
         candidate_count = _piercing_count(candidate_report)
         if candidate_count <= minimum_count:
@@ -627,9 +690,6 @@ def _resolve_ring_piercings(
         trajectory_recorder.record(
             TrajectoryEvent.ROLLED_BACK,
             energy=best_trace_energy,
-            state=state,
-            report=report,
-            confirmed_piercing_count=current_count,
             attempt=attempts_completed,
         )
         if settling_steps:
@@ -650,11 +710,9 @@ def _resolve_ring_piercings(
             )
             settled_state = settled_report.state
             settled_count = _piercing_count(settled_report)
-            trajectory_recorder.record(
-                TrajectoryEvent.SETTLED,
+            trajectory_recorder.record_checkpoint(
+                settled_report,
                 energy=float(optimized.energy),
-                state=settled_state,
-                report=settled_report,
                 attempt=attempts_completed,
             )
             if settled_count <= retained_count:
@@ -689,9 +747,6 @@ def _resolve_ring_piercings(
     terminal_index = trajectory_recorder.record(
         TrajectoryEvent.TERMINAL,
         energy=best_trace_energy,
-        state=state,
-        report=report,
-        confirmed_piercing_count=current_count,
         attempt=attempts_completed,
     )
     trajectory_recorder.select(terminal_index)

@@ -86,6 +86,7 @@ def test_enum_contract_and_default_start():
     assert trajectory.start is TrajectoryStart.COORDINATION_RESTORATION
     assert TrajectoryStage.COMPLEX_UNTANGLING.value == "complex_untangling"
     assert TrajectoryEvent.RING_OPENED.value == "ring_opened"
+    assert TrajectoryEvent.TOPOLOGY_CHECKPOINT.value == "topology_checkpoint"
 
 
 @pytest.mark.parametrize(
@@ -188,13 +189,26 @@ def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
         branch_molecule,
         start=TrajectoryStart.LIGAND_BUILD,
     )
+    ring_evidence = RingFrameEvidence(
+        confirmed_piercing_count=1,
+        uncertain_relation_count=2,
+        ring_scope="ligand_skeleton",
+        max_ring_size=16,
+        selected_ring_count=3,
+        excluded_ring_count=1,
+        candidate_pair_count=20,
+        aabb_separated_pair_count=12,
+        exact_pair_count=8,
+        does_not_pierce_pair_count=17,
+        scan_complete=False,
+    )
     branch_frame = branch.record_molecule(
         branch_molecule,
         stage=TrajectoryStage.LIGAND_BUILD,
-        event=TrajectoryEvent.BUILD_COMPLETE,
+        event=TrajectoryEvent.TOPOLOGY_CHECKPOINT,
         component_index=0,
         attempt=2,
-        evidence=RingFrameEvidence(confirmed_piercing_count=1),
+        evidence=ring_evidence,
     )
     branch.select(branch_frame.index)
     archive = ForceFieldTrajectoryArchive(main, (branch,))
@@ -213,13 +227,14 @@ def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
             main.coordinates(frame.index),
         )
     assert restored.ligand_build_attempts[0].frames == branch.frames
+    assert restored.ligand_build_attempts[0][0].evidence == ring_evidence
     assert (archive_path / "main" / "coordinates.npz").is_file()
     assert (archive_path / "main" / "trajectory.json").is_file()
     assert (archive_path / "main" / "trajectory.sdf").is_file()
     archive_manifest = json.loads(
         (archive_path / "archive.json").read_text(encoding="utf-8")
     )
-    assert archive_manifest["format_version"] == 3
+    assert archive_manifest["format_version"] == 4
 
 
 def test_metal_relocation_evidence_round_trip(tmp_path):
@@ -258,10 +273,10 @@ def test_archive_reader_rejects_wrong_format_version(tmp_path):
     ForceFieldTrajectoryArchive(trajectory).write(path)
     manifest_path = path / "archive.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    manifest["format_version"] = 2
+    manifest["format_version"] = 3
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="Unsupported trajectory format version 2"):
+    with pytest.raises(ValueError, match="Unsupported trajectory format version 3"):
         ForceFieldTrajectoryArchive.read(path)
 
 
@@ -303,7 +318,7 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
     assert restored_evidence.finite_energy is False
     assert restored_evidence.finite_gradients is False
     manifest_text = (path / "trajectory.json").read_text(encoding="utf-8")
-    assert json.loads(manifest_text)["format_version"] == 3
+    assert json.loads(manifest_text)["format_version"] == 4
     assert "NaN" not in manifest_text
     assert "Infinity" not in manifest_text
     json.loads(manifest_text, parse_constant=lambda value: pytest.fail(value))

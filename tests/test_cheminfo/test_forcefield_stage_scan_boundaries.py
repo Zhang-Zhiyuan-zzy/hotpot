@@ -20,6 +20,8 @@ from hotpot.cheminfo.forcefields import utils as ff
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
+    RingFrameEvidence,
+    TrajectoryEvent,
     TrajectoryStart,
 )
 
@@ -102,6 +104,7 @@ def test_stage1_reuses_each_checkpoint_report_for_acceptance(monkeypatch):
     calls = []
     scanned_reports = []
     accepted_reports = []
+    trajectories = []
     candidate_terminal_report = _empty_screening_report(
         ring_scope="ligand_skeleton"
     )
@@ -158,6 +161,7 @@ def test_stage1_reuses_each_checkpoint_report_for_acceptance(monkeypatch):
         candidate_score_steps=1,
         best_candidate_refine_steps=1,
         effective_forcefield="UFF",
+        trajectory_attempts=trajectories,
     )
 
     assert calls == [
@@ -167,6 +171,18 @@ def test_stage1_reuses_each_checkpoint_report_for_acceptance(monkeypatch):
     ]
     assert accepted_reports[0] is candidate_terminal_report
     assert accepted_reports[1] is scanned_reports[1]
+    checkpoint_frames = tuple(
+        frame
+        for frame in trajectories[0]
+        if frame.event is TrajectoryEvent.TOPOLOGY_CHECKPOINT
+    )
+    assert len(checkpoint_frames) == len(scanned_reports) == 2
+    assert all(
+        isinstance(frame.evidence, RingFrameEvidence)
+        and frame.evidence.ring_scope == "ligand_skeleton"
+        and frame.evidence.scan_complete is True
+        for frame in checkpoint_frames
+    )
 
 
 def test_stage1_basic_gate_still_rejects_confirmed_piercing(monkeypatch):
@@ -555,7 +571,7 @@ def test_stage3_reuses_full_graph_terminal_checkpoint_for_acceptance(monkeypatch
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         mol,
-        start=TrajectoryStart.FINAL_OPTIMIZATION,
+        start=TrajectoryStart.COMPLEX_UNTANGLING,
     )
 
     result = workflows._optimize_complex_working_mol(
@@ -587,6 +603,18 @@ def test_stage3_reuses_full_graph_terminal_checkpoint_for_acceptance(monkeypatch
     ]
     assert result.untangling.attempts_completed == 0
     assert result.untangling.initial_piercing_count == 0
+    checkpoint_frames = tuple(
+        frame
+        for frame in trajectory
+        if frame.event is TrajectoryEvent.TOPOLOGY_CHECKPOINT
+    )
+    assert len(checkpoint_frames) == len(scanned_reports) == 2
+    assert all(
+        isinstance(frame.evidence, RingFrameEvidence)
+        and frame.evidence.ring_scope == "full_graph"
+        and frame.evidence.scan_complete is True
+        for frame in checkpoint_frames
+    )
 
 
 def test_stage3_passes_entry_checkpoint_directly_to_repair(monkeypatch):

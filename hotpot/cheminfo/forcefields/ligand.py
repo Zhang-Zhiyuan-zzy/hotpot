@@ -27,6 +27,7 @@ from .contracts import (
 from .coordinates import _copy_coordinates, _perturbed_coordinates
 from .repair import (
     _piercing_count,
+    _record_ring_checkpoint,
     _scan_ring_checkpoint,
     _untangle_ring_piercings,
 )
@@ -237,6 +238,15 @@ def _build_ligand_proxies(
                     component_mol,
                     ring_scope="ligand_skeleton",
                 )
+                _record_ring_checkpoint(
+                    component_mol,
+                    checkpoint_report,
+                    trajectory=attempt_trajectory,
+                    stage=TrajectoryStage.LIGAND_BUILD,
+                    energy=float(warmed.energy),
+                    component_index=component_index,
+                    attempt=component_attempts,
+                )
                 untangling = _untangle_ring_piercings(
                     component_mol,
                     effective_forcefield,
@@ -381,6 +391,15 @@ def _build_ligand_proxies(
                 refined_report = _scan_ring_checkpoint(
                     component_mol,
                     ring_scope="ligand_skeleton",
+                )
+                _record_ring_checkpoint(
+                    component_mol,
+                    refined_report,
+                    trajectory=selected_candidate.trajectory,
+                    stage=TrajectoryStage.LIGAND_BUILD,
+                    energy=float(refined.energy),
+                    component_index=component_index,
+                    attempt=selected_candidate.attempt,
                 )
                 if refined_report.state is geo.PiercingState.PIERCES:
                     refined_untangling = _untangle_ring_piercings(

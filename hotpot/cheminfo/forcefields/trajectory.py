@@ -85,6 +85,7 @@ class TrajectoryEvent(str, Enum):
     METAL_RELOCATION_TRIAL = "metal_relocation_trial"
     METAL_RELOCATED = "metal_relocated"
     METAL_RELOCATION_FAILED = "metal_relocation_failed"
+    TOPOLOGY_CHECKPOINT = "topology_checkpoint"
     RING_OPENED = "ring_opened"
     PERTURBED = "perturbed"
     OPTIMIZED = "optimized"
@@ -166,6 +167,15 @@ class RingFrameEvidence:
 
     confirmed_piercing_count: int
     uncertain_relation_count: Optional[int] = 0
+    ring_scope: Optional[Literal["full_graph", "ligand_skeleton"]] = None
+    max_ring_size: Optional[int] = None
+    selected_ring_count: Optional[int] = None
+    excluded_ring_count: Optional[int] = None
+    candidate_pair_count: Optional[int] = None
+    aabb_separated_pair_count: Optional[int] = None
+    exact_pair_count: Optional[int] = None
+    does_not_pierce_pair_count: Optional[int] = None
+    scan_complete: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -228,7 +238,7 @@ class ForceFieldFrame:
 class ForceFieldTrajectory:
     """A topology-aware sequence of force-field workflow frames."""
 
-    _FORMAT_VERSION = 3
+    _FORMAT_VERSION = 4
 
     def __init__(
         self,
@@ -844,6 +854,34 @@ class _TrajectoryWriter:
                 ),
                 uncertain_relation_count=cls._optional_int(
                     evidence_data["uncertain_relation_count"]
+                ),
+                ring_scope=cast(
+                    Optional[Literal["full_graph", "ligand_skeleton"]],
+                    evidence_data["ring_scope"],
+                ),
+                max_ring_size=cls._optional_int(
+                    evidence_data["max_ring_size"]
+                ),
+                selected_ring_count=cls._optional_int(
+                    evidence_data["selected_ring_count"]
+                ),
+                excluded_ring_count=cls._optional_int(
+                    evidence_data["excluded_ring_count"]
+                ),
+                candidate_pair_count=cls._optional_int(
+                    evidence_data["candidate_pair_count"]
+                ),
+                aabb_separated_pair_count=cls._optional_int(
+                    evidence_data["aabb_separated_pair_count"]
+                ),
+                exact_pair_count=cls._optional_int(
+                    evidence_data["exact_pair_count"]
+                ),
+                does_not_pierce_pair_count=cls._optional_int(
+                    evidence_data["does_not_pierce_pair_count"]
+                ),
+                scan_complete=cls._optional_bool(
+                    evidence_data["scan_complete"]
                 ),
             )
         if evidence_type == "coordination":

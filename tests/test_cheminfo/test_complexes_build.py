@@ -316,6 +316,7 @@ def _bond_ring_finding(ring, bond):
 
 
 def _piercing_report(*ring_bond_pairs):
+    pair_count = len(ring_bond_pairs)
     return SimpleNamespace(
         state=(
             geo.PiercingState.PIERCES
@@ -328,7 +329,14 @@ def _piercing_report(*ring_bond_pairs):
         ),
         undetermined=(),
         undetermined_pair_count=0,
+        selected_ring_count=len({id(ring) for ring, _ in ring_bond_pairs}),
         excluded_ring_count=0,
+        candidate_pair_count=pair_count,
+        aabb_separated_pair_count=0,
+        exact_pair_count=pair_count,
+        piercing_pair_count=pair_count,
+        does_not_pierce_pair_count=0,
+        scan_complete=True,
         max_ring_size=16,
         ring_scope="ligand_skeleton",
     )

@@ -44,6 +44,7 @@ from .coordination import (
 from .optimizer import _combine_forcefield_run_reports, _optimize_working_mol
 from .repair import (
     _piercing_count,
+    _record_ring_checkpoint,
     _restore_coordination_bonds_incrementally,
     _scan_ring_checkpoint,
     _unique_messages,
@@ -399,6 +400,12 @@ def _optimize_complex_working_mol(
         working_mol,
         ring_scope="full_graph",
     )
+    _record_ring_checkpoint(
+        working_mol,
+        checkpoint_report,
+        trajectory=trajectory,
+        stage=TrajectoryStage.COMPLEX_UNTANGLING,
+    )
     initial_piercing_count = _piercing_count(checkpoint_report)
 
     if checkpoint_report.state is geo.PiercingState.PIERCES:
@@ -452,6 +459,13 @@ def _optimize_complex_working_mol(
         checkpoint_report = _scan_ring_checkpoint(
             working_mol,
             ring_scope="full_graph",
+        )
+        _record_ring_checkpoint(
+            working_mol,
+            checkpoint_report,
+            trajectory=trajectory,
+            stage=TrajectoryStage.FINAL_OPTIMIZATION,
+            energy=optimization_reports[-1].best_energy,
         )
 
     while (
@@ -508,6 +522,13 @@ def _optimize_complex_working_mol(
         checkpoint_report = _scan_ring_checkpoint(
             working_mol,
             ring_scope="full_graph",
+        )
+        _record_ring_checkpoint(
+            working_mol,
+            checkpoint_report,
+            trajectory=trajectory,
+            stage=TrajectoryStage.COMPLEX_UNTANGLING,
+            energy=optimization_reports[-1].best_energy,
         )
 
     final_state = checkpoint_report.state

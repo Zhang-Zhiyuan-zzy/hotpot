@@ -14,7 +14,6 @@ from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     CoordinationFrameEvidence,
     ForceFieldTrajectory,
-    RingFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,
@@ -140,6 +139,16 @@ def _report(count):
         piercings=findings,
         undetermined=(),
         ring_scope="ligand_skeleton",
+        max_ring_size=16,
+        selected_ring_count=1 if count else 0,
+        excluded_ring_count=0,
+        candidate_pair_count=count,
+        aabb_separated_pair_count=0,
+        exact_pair_count=count,
+        piercing_pair_count=count,
+        does_not_pierce_pair_count=0,
+        undetermined_pair_count=0,
+        scan_complete=True,
         state=(
             repair.geo.PiercingState.PIERCES
             if count
@@ -644,6 +653,12 @@ def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
         molecule,
         start=TrajectoryStart.COMPLEX_UNTANGLING,
     )
+    repair._record_ring_checkpoint(
+        molecule,
+        initial_checkpoint,
+        trajectory=trajectory,
+        stage=TrajectoryStage.COMPLEX_UNTANGLING,
+    )
 
     repair._untangle_ring_piercings(
         molecule,
@@ -658,12 +673,12 @@ def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
     )
 
     assert tuple(frame.event for frame in trajectory) == (
-        TrajectoryEvent.INITIAL,
+        TrajectoryEvent.TOPOLOGY_CHECKPOINT,
         TrajectoryEvent.RING_OPENED,
         TrajectoryEvent.PERTURBED,
         TrajectoryEvent.OPTIMIZED,
-        TrajectoryEvent.RING_CLOSED,
-        TrajectoryEvent.SETTLED,
+        TrajectoryEvent.TOPOLOGY_CHECKPOINT,
+        TrajectoryEvent.TOPOLOGY_CHECKPOINT,
         TrajectoryEvent.TERMINAL,
     )
     assert tuple(len(trajectory.topology(frame.index).bonds) for frame in trajectory) == (
@@ -684,8 +699,14 @@ def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
         9.0,
         9.0,
     )
-    assert trajectory[0].evidence == RingFrameEvidence(1, 0)
-    assert trajectory[4].evidence == RingFrameEvidence(0, 0)
+    assert trajectory[0].evidence == repair._ring_frame_evidence(
+        geo.PiercingState.PIERCES,
+        initial_checkpoint,
+    )
+    assert trajectory[4].evidence == repair._ring_frame_evidence(
+        geo.PiercingState.DOES_NOT_PIERCE,
+        _report(0),
+    )
     assert trajectory.selected_index == 6
 
 
@@ -1650,6 +1671,17 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     monkeypatch,
 ):
     molecule = _TraceMolecule((np.zeros((2, 3)),))
+    molecule.atoms = tuple(
+        SimpleNamespace(
+            idx=index,
+            id=index,
+            atomic_number=6,
+            formal_charge=0,
+            symbol="C",
+        )
+        for index in range(2)
+    )
+    molecule.bonds = ()
     events = []
     untangling_calls = 0
     optimization_calls = []
@@ -1721,8 +1753,8 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
         increasing_vdw=False,
         vdw_cutoff_start=0.0,
         vdw_cutoff_end=12.5,
-        trajectory=ForceFieldTrajectory(
-            (),
+        trajectory=ForceFieldTrajectory.from_molecule(
+            molecule,
             start=TrajectoryStart.COMPLEX_UNTANGLING,
         ),
     )

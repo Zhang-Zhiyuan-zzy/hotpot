@@ -829,20 +829,13 @@ def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
     opening_edge = _Bond(0, 1)
     initial_checkpoint = _report(3)
     selected_checkpoint = _report(1)
-    rejected_checkpoint = _report(2)
-    scans = iter(
-        (
-            selected_checkpoint,
-            rejected_checkpoint,
-        )
-    )
     full_scan_count = 0
     optimization_count = 0
 
     def scan(*args, **kwargs):
         nonlocal full_scan_count
         full_scan_count += 1
-        return next(scans)
+        return selected_checkpoint
 
     def optimize(current_molecule, forcefield, steps):
         nonlocal optimization_count
@@ -889,24 +882,25 @@ def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
     assert result.report.minimum_piercing_count == 1
     assert result.report.final_piercing_count == 1
     assert not result.report.resolved
-    assert full_scan_count == 2
+    assert full_scan_count == 1
     assert result.checkpoint_report is selected_checkpoint
     np.testing.assert_array_equal(molecule.coordinates, np.full((3, 3), 2.0))
 
 
-def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
+def test_budget_exhaustion_returns_best_frame_without_settling_or_rescanning(
     monkeypatch,
 ):
     molecule = _UntanglingMolecule()
     opening_edge = _Bond(0, 1)
     initial_checkpoint = _report(3)
-    scans = iter(
-        (
-            _report(1),
-            _report(2),
-        )
-    )
+    selected_checkpoint = _report(1)
+    full_scan_count = 0
     optimization_steps = []
+
+    def scan(*args, **kwargs):
+        nonlocal full_scan_count
+        full_scan_count += 1
+        return selected_checkpoint
 
     def optimize(current_molecule, forcefield, steps):
         optimization_steps.append(steps)
@@ -917,7 +911,7 @@ def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
     monkeypatch.setattr(
         repair,
         "_scan_ring_checkpoint",
-        lambda *args, **kwargs: next(scans),
+        scan,
     )
     _mock_ring_watch(
         monkeypatch,
@@ -946,8 +940,14 @@ def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
         checkpoint_report=initial_checkpoint,
     )
 
-    assert optimization_steps == [4, 9]
+    assert optimization_steps == [4]
+    assert full_scan_count == 1
     assert result.report.final_piercing_count == 1
+    assert result.checkpoint_report is selected_checkpoint
+    assert result.report.warning_messages == (
+        "Confirmed bond-ring piercing remains after 1 untangling attempts; "
+        "retaining the closed-topology frame with the lowest piercing count",
+    )
     np.testing.assert_array_equal(molecule.coordinates, np.ones((3, 3)))
 
 

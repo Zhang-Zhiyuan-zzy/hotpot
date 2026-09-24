@@ -692,51 +692,6 @@ def _resolve_ring_piercings(
             energy=best_trace_energy,
             attempt=attempts_completed,
         )
-        if settling_steps:
-            retained_coordinates = best_coordinates.copy()
-            retained_energy = best_energy
-            retained_trace_energy = best_trace_energy
-            retained_count = minimum_count
-            retained_state = state
-            retained_report = report
-            optimized = _single_ob_optimization(
-                mol,
-                effective_forcefield,
-                settling_steps,
-            )
-            settled_report = _scan_ring_checkpoint(
-                mol,
-                ring_scope=ring_scope,
-            )
-            settled_state = settled_report.state
-            settled_count = _piercing_count(settled_report)
-            trajectory_recorder.record_checkpoint(
-                settled_report,
-                energy=float(optimized.energy),
-                attempt=attempts_completed,
-            )
-            if settled_count <= retained_count:
-                state = settled_state
-                report = settled_report
-                current_count = settled_count
-                minimum_count = settled_count
-                best_coordinates = _copy_coordinates(mol.coordinates)
-                best_energy = float(optimized.energy)
-                best_trace_energy = float(optimized.energy)
-            else:
-                mol.coordinates = retained_coordinates
-                state = retained_state
-                report = retained_report
-                current_count = retained_count
-                best_energy = retained_energy
-                best_trace_energy = retained_trace_energy
-                trajectory_recorder.record(
-                    TrajectoryEvent.ROLLED_BACK,
-                    energy=best_trace_energy,
-                    state=state,
-                    confirmed_piercing_count=retained_count,
-                    attempt=attempts_completed,
-                )
         if state is geo.PiercingState.PIERCES:
             warning_messages.append(unresolved_reason)
         elif state is geo.PiercingState.UNDETERMINED:

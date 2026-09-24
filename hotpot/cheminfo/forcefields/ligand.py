@@ -27,7 +27,7 @@ from .contracts import (
 from .coordinates import _copy_coordinates, _perturbed_coordinates
 from .repair import (
     _piercing_count,
-    _scan_confirmed_ring_piercings,
+    _scan_ring_checkpoint,
     _untangle_ring_piercings,
 )
 from .topology import capture_topology
@@ -201,6 +201,10 @@ def _build_ligand_proxies(
                         component_index=component_index,
                         attempt=component_attempts,
                     )
+                checkpoint_report = _scan_ring_checkpoint(
+                    component_mol,
+                    ring_scope="ligand_skeleton",
+                )
                 untangling = _untangle_ring_piercings(
                     component_mol,
                     effective_forcefield,
@@ -209,7 +213,7 @@ def _build_ligand_proxies(
                     settling_steps=candidate_score_steps,
                     perturb_sigma=perturb_sigma,
                     rng=rng,
-                    ring_scope="ligand_skeleton",
+                    checkpoint_report=checkpoint_report,
                     initial_energy=float(warmed.energy),
                     trajectory=attempt_trajectory,
                     trajectory_stage=TrajectoryStage.LIGAND_BUILD,
@@ -337,10 +341,11 @@ def _build_ligand_proxies(
                         component_index=component_index,
                         attempt=selected_candidate.attempt,
                     )
-                refined_state, refined_report = _scan_confirmed_ring_piercings(
+                refined_report = _scan_ring_checkpoint(
                     component_mol,
                     ring_scope="ligand_skeleton",
                 )
+                refined_state = refined_report.state
                 refined_piercing_count = _piercing_count(refined_report)
                 refined_quality = evaluate_structure_acceptance(
                     component_mol,
@@ -355,13 +360,13 @@ def _build_ligand_proxies(
                     forcefield_stage="candidate",
                 )
                 if not refined_quality.passed:
-                    intersection_failures = (
-                        _bond_ring_acceptance_checks(
+                    intersection_failures = tuple(
+                        check
+                        for check in _bond_ring_acceptance_checks(
                             component_mol,
                             refined_report,
                         )
-                        if refined_report is not None
-                        else ()
+                        if not check.passed
                     )
                     failures = (
                         tuple(intersection_failures)

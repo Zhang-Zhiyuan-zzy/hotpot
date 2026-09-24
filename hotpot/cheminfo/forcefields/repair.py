@@ -33,6 +33,7 @@ __all__ = ()
 class _RingUntanglingResult:
     report: RingUntanglingReport
     energy: float
+    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]"
 
 
 @dataclass(frozen=True)
@@ -202,24 +203,17 @@ def _scan_ring_piercing_watch(
     return _RingPiercingWatchResult(aggregate, tuple(confirmed))
 
 
-def _scan_confirmed_ring_piercings(
+def _scan_ring_checkpoint(
     mol: "Molecule",
     *,
     ring_scope: geo.RingScope,
-) -> Tuple[
-    geo.PiercingState,
-    Optional["geo.BondRingScreeningReport[Ring, Bond]"],
-]:
-    """Return one sparse full-scope screen when piercing needs repair."""
-    report = geo.screen_bond_ring_relations(
+) -> "geo.BondRingScreeningReport[Ring, Bond]":
+    """Return one complete full-scope bond--ring checkpoint report."""
+    return geo.screen_bond_ring_relations(
         mol,
         ring_scope=ring_scope,
         max_ring_size=_BOND_RING_MAX_SIZE,
     )
-    state = report.state
-    if state is not geo.PiercingState.PIERCES:
-        return state, None
-    return state, report
 
 
 def _ring_frame_evidence(
@@ -257,12 +251,18 @@ def _untangle_ring_piercings(
     settling_steps: int,
     perturb_sigma: float,
     rng: np.random.Generator,
-    ring_scope: geo.RingScope = "ligand_skeleton",
+    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
     initial_energy: float = float("nan"),
     trajectory: Optional[ForceFieldTrajectory] = None,
     trajectory_stage: TrajectoryStage = TrajectoryStage.COMPLEX_UNTANGLING,
 ) -> _RingUntanglingResult:
     """Repair confirmed ring piercing without rebuilding the molecular graph.
+
+    The caller supplies the entry checkpoint.  This routine builds its initial
+    watch from that exact report and performs no duplicate entry scan.  Full
+    checkpoints are recomputed only when the watch clears or becomes invalid,
+    after settling, and when the attempt budget requires closed-topology
+    selection.
 
     One covalent ring edge is opened per attempt.  The open structure is
     perturbed and relaxed, then the exact bond object is restored before the
@@ -273,6 +273,7 @@ def _untangle_ring_piercings(
         trajectory is not None
         and trajectory.records(trajectory_stage)
     )
+    ring_scope = checkpoint_report.ring_scope
 
     def record_ring_frame(
         event: TrajectoryEvent,
@@ -306,7 +307,8 @@ def _untangle_ring_piercings(
         )
         return frame.index
 
-    state, report = _scan_confirmed_ring_piercings(mol, ring_scope=ring_scope)
+    report = checkpoint_report
+    state = report.state
     initial_count = _piercing_count(report)
     current_count = initial_count
     minimum_count = initial_count
@@ -321,7 +323,11 @@ def _untangle_ring_piercings(
     attempts_completed = 0
     settled = False
     unresolved_reason: Optional[str] = None
-    watch = _ring_piercing_watch(mol, report) if report is not None else ()
+    watch = (
+        _ring_piercing_watch(mol, report)
+        if state is geo.PiercingState.PIERCES
+        else ()
+    )
     current_piercings = watch
     watch_best_coordinates = _copy_coordinates(mol.coordinates)
     watch_best_energy = best_energy
@@ -348,12 +354,17 @@ def _untangle_ring_piercings(
                 settling_steps,
             )
             settled = True
-            state, report = _scan_confirmed_ring_piercings(
+            report = _scan_ring_checkpoint(
                 mol,
                 ring_scope=ring_scope,
             )
+            state = report.state
             current_count = _piercing_count(report)
-            watch = _ring_piercing_watch(mol, report) if report is not None else ()
+            watch = (
+                _ring_piercing_watch(mol, report)
+                if state is geo.PiercingState.PIERCES
+                else ()
+            )
             current_piercings = watch
             watch_best_coordinates = _copy_coordinates(mol.coordinates)
             watch_best_energy = float(optimized.energy)
@@ -431,12 +442,17 @@ def _untangle_ring_piercings(
             watched_result is None
             or watched_result.state is not geo.PiercingState.PIERCES
         ):
-            state, report = _scan_confirmed_ring_piercings(
+            report = _scan_ring_checkpoint(
                 mol,
                 ring_scope=ring_scope,
             )
+            state = report.state
             current_count = _piercing_count(report)
-            watch = _ring_piercing_watch(mol, report) if report is not None else ()
+            watch = (
+                _ring_piercing_watch(mol, report)
+                if state is geo.PiercingState.PIERCES
+                else ()
+            )
             current_piercings = watch
             watch_best_coordinates = _copy_coordinates(mol.coordinates)
             watch_best_energy = float("nan")
@@ -470,10 +486,11 @@ def _untangle_ring_piercings(
 
     if unresolved_reason is not None:
         mol.coordinates = watch_best_coordinates
-        candidate_state, candidate_report = _scan_confirmed_ring_piercings(
+        candidate_report = _scan_ring_checkpoint(
             mol,
             ring_scope=ring_scope,
         )
+        candidate_state = candidate_report.state
         candidate_count = _piercing_count(candidate_report)
         if candidate_count <= minimum_count:
             current_count = candidate_count
@@ -512,10 +529,11 @@ def _untangle_ring_piercings(
                 effective_forcefield,
                 settling_steps,
             )
-            settled_state, settled_report = _scan_confirmed_ring_piercings(
+            settled_report = _scan_ring_checkpoint(
                 mol,
                 ring_scope=ring_scope,
             )
+            settled_state = settled_report.state
             settled_count = _piercing_count(settled_report)
             record_ring_frame(
                 TrajectoryEvent.SETTLED,
@@ -575,6 +593,7 @@ def _untangle_ring_piercings(
             warning_messages=_unique_messages(warning_messages),
         ),
         energy=best_energy,
+        checkpoint_report=report,
     )
 
 

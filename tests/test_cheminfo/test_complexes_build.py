@@ -257,6 +257,7 @@ class _DummyComponent:
     def __init__(self):
         self.coordinates = np.zeros((2, 3))
         self.atoms = [_DummyAtom(0), _DummyAtom(1)]
+        self.bonds = []
         self.hidden = []
 
     def recover_hided_covalent_bonds(self, clear_conformers=False):
@@ -1177,6 +1178,7 @@ def test_ligand_retries_share_one_built_root_and_record_distinct_branches(
                 resolved=True,
             ),
             energy=float(component_mol.coordinates[0, 0]),
+            checkpoint_report=kwargs["checkpoint_report"],
         )
 
     monkeypatch.setattr(ligand, "_ob_build", build)
@@ -1481,6 +1483,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
             energy={1: 0.0, 2: 10.0, 3: 5.0}[
                 int(current.coordinates[0, 0])
             ],
+            checkpoint_report=kwargs["checkpoint_report"],
         )
 
     monkeypatch.setattr(ligand, "_ob_build", build)
@@ -1495,6 +1498,11 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
         ligand,
         "_untangle_ring_piercings",
         untangle,
+    )
+    monkeypatch.setattr(
+        ligand,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: _piercing_report(),
     )
     monkeypatch.setattr(ligand, "evaluate_structure_acceptance", quality)
 

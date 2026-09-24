@@ -41,6 +41,7 @@ def _empty_screening_report(*, ring_scope="full_graph"):
 
 
 def _untangling_result(*, attempt_limit=1):
+    checkpoint_report = _empty_screening_report(ring_scope="ligand_skeleton")
     return repair._RingUntanglingResult(
         report=ff.RingUntanglingReport(
             attempt_limit=attempt_limit,
@@ -51,6 +52,7 @@ def _untangling_result(*, attempt_limit=1):
             resolved=True,
         ),
         energy=0.0,
+        checkpoint_report=checkpoint_report,
     )
 
 
@@ -91,17 +93,15 @@ def test_current_stage1_runs_untangling_then_a_post_refinement_scan(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
 
     def untangle(*args, **kwargs):
-        calls.append(("untangle", kwargs["ring_scope"]))
+        calls.append(("untangle", kwargs["checkpoint_report"].ring_scope))
         return _untangling_result(attempt_limit=kwargs["attempt_limit"])
 
     def scan(*args, **kwargs):
-        calls.append(("post_refinement_scan", kwargs["ring_scope"]))
-        return geo.PiercingState.DOES_NOT_PIERCE, _empty_screening_report(
-            ring_scope=kwargs["ring_scope"]
-        )
+        calls.append(("checkpoint", kwargs["ring_scope"]))
+        return _empty_screening_report(ring_scope=kwargs["ring_scope"])
 
     monkeypatch.setattr(ligand, "_untangle_ring_piercings", untangle)
-    monkeypatch.setattr(ligand, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(ligand, "_scan_ring_checkpoint", scan)
     monkeypatch.setattr(
         ligand,
         "evaluate_structure_acceptance",
@@ -122,8 +122,9 @@ def test_current_stage1_runs_untangling_then_a_post_refinement_scan(monkeypatch)
     )
 
     assert calls == [
+        ("checkpoint", "ligand_skeleton"),
         ("untangle", "ligand_skeleton"),
-        ("post_refinement_scan", "ligand_skeleton"),
+        ("checkpoint", "ligand_skeleton"),
     ]
 
 
@@ -190,7 +191,7 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
     run_report = _forcefield_run_report()
 
     def untangle(*args, **kwargs):
-        calls.append(("untangle", kwargs["ring_scope"]))
+        calls.append(("untangle", kwargs["checkpoint_report"].ring_scope))
         return _untangling_result(attempt_limit=kwargs["attempt_limit"])
 
     def optimize(*args, **kwargs):
@@ -198,10 +199,8 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
         return run_report
 
     def scan(*args, **kwargs):
-        calls.append(("post_optimizer_scan", kwargs["ring_scope"]))
-        return geo.PiercingState.DOES_NOT_PIERCE, _empty_screening_report(
-            ring_scope=kwargs["ring_scope"]
-        )
+        calls.append(("checkpoint", kwargs["ring_scope"]))
+        return _empty_screening_report(ring_scope=kwargs["ring_scope"])
 
     def accept(*args, **kwargs):
         calls.append(("terminal_acceptance", kwargs["forcefield_stage"]))
@@ -213,7 +212,7 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
 
     monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
-    monkeypatch.setattr(workflows, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(workflows, "_scan_ring_checkpoint", scan)
     monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(
         workflows,
@@ -247,9 +246,10 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
     )
 
     assert calls == [
+        ("checkpoint", "ligand_skeleton"),
         ("untangle", "ligand_skeleton"),
         ("optimizer",),
-        ("post_optimizer_scan", "ligand_skeleton"),
+        ("checkpoint", "ligand_skeleton"),
         ("terminal_acceptance", "final"),
     ]
 

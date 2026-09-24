@@ -43,7 +43,7 @@ from .optimizer import _combine_forcefield_run_reports, _optimize_working_mol
 from .repair import (
     _piercing_count,
     _restore_coordination_bonds_incrementally,
-    _scan_confirmed_ring_piercings,
+    _scan_ring_checkpoint,
     _unique_messages,
     _untangle_ring_piercings,
 )
@@ -371,6 +371,10 @@ def _optimize_complex_working_mol(
     untangling_reports = []
     optimization_reports = []
     consecutive_stalled_repairs = 0
+    checkpoint_report = _scan_ring_checkpoint(
+        working_mol,
+        ring_scope="ligand_skeleton",
+    )
 
     while True:
         untangling = _untangle_ring_piercings(
@@ -381,7 +385,7 @@ def _optimize_complex_working_mol(
             settling_steps=0,
             perturb_sigma=perturb_sigma,
             rng=rng,
-            ring_scope="ligand_skeleton",
+            checkpoint_report=checkpoint_report,
             initial_energy=(
                 optimization_reports[-1].best_energy
                 if optimization_reports
@@ -418,15 +422,17 @@ def _optimize_complex_working_mol(
         )
         optimization_reports.append(report)
         remaining_epochs = max(remaining_epochs - report.epochs_completed, 0)
-        final_state, final_scan = _scan_confirmed_ring_piercings(
+        final_scan = _scan_ring_checkpoint(
             working_mol,
             ring_scope="ligand_skeleton",
         )
+        final_state = final_scan.state
         final_piercing_count = _piercing_count(final_scan)
         if final_state is not geo.PiercingState.PIERCES:
             break
         if remaining_attempts == 0:
             break
+        checkpoint_report = final_scan
         consecutive_stalled_repairs = (
             consecutive_stalled_repairs + 1
             if untangling.report.attempts_completed == 0

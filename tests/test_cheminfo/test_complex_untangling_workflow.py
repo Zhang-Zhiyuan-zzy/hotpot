@@ -133,6 +133,11 @@ def _report(count):
         piercings=findings,
         undetermined=(),
         ring_scope="ligand_skeleton",
+        state=(
+            repair.geo.PiercingState.PIERCES
+            if count
+            else repair.geo.PiercingState.DOES_NOT_PIERCE
+        ),
     )
 
 
@@ -281,17 +286,18 @@ def _untangling_result(
     return repair._RingUntanglingResult(
         report=report,
         energy=1.0,
+        checkpoint_report=_report(0),
     )
 
 
 def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatch):
     molecule = _UntanglingMolecule()
     opening_edge = _Bond(0, 1)
+    initial_checkpoint = _report(1)
     scans = iter(
         (
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.DOES_NOT_PIERCE, None),
-            (repair.geo.PiercingState.DOES_NOT_PIERCE, None),
+            _report(0),
+            _report(0),
         )
     )
 
@@ -307,7 +313,7 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
         molecule.events.append(("optimize", steps))
         return _optimization(steps)
 
-    monkeypatch.setattr(repair, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(repair, "_scan_ring_checkpoint", scan)
     _mock_ring_watch(
         monkeypatch,
         (repair.geo.PiercingState.DOES_NOT_PIERCE,),
@@ -329,10 +335,10 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
         settling_steps=9,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
+        checkpoint_report=initial_checkpoint,
     )
 
     assert molecule.events == [
-        ("scan",),
         ("open", (opening_edge,)),
         ("perturb",),
         ("optimize", 4),
@@ -344,17 +350,17 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
     ]
     assert result.report.resolved
     assert result.report.attempts_completed == 1
+    assert result.checkpoint_report.state is geo.PiercingState.DOES_NOT_PIERCE
 
 
 def test_ring_piercing_watch_tracks_only_the_confirmed_pair():
     molecule = _pierced_ring_molecule()
-    state, report = repair._scan_confirmed_ring_piercings(
+    report = repair._scan_ring_checkpoint(
         molecule,
         ring_scope="ligand_skeleton",
     )
 
-    assert state is geo.PiercingState.PIERCES
-    assert report is not None
+    assert report.state is geo.PiercingState.PIERCES
     watch = repair._ring_piercing_watch(molecule, report)
     assert len(watch) == 1
     assert repair._scan_ring_piercing_watch(molecule, watch) == (
@@ -375,22 +381,71 @@ def test_ring_piercing_watch_tracks_only_the_confirmed_pair():
     )
 
 
+def test_ring_checkpoint_preserves_a_non_piercing_report(monkeypatch):
+    molecule = _UntanglingMolecule()
+    expected = _report(0)
+    calls = []
+
+    def screen(current_molecule, *, ring_scope, max_ring_size):
+        calls.append((current_molecule, ring_scope, max_ring_size))
+        return expected
+
+    monkeypatch.setattr(repair.geo, "screen_bond_ring_relations", screen)
+
+    result = repair._scan_ring_checkpoint(
+        molecule,
+        ring_scope="full_graph",
+    )
+
+    assert result is expected
+    assert calls == [(molecule, "full_graph", repair._BOND_RING_MAX_SIZE)]
+
+
+def test_ring_untangling_consumes_the_entry_checkpoint_without_rescanning(
+    monkeypatch,
+):
+    molecule = _UntanglingMolecule()
+    checkpoint = _report(0)
+
+    monkeypatch.setattr(
+        repair,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("the repair entry must not rescan")
+        ),
+    )
+
+    result = repair._untangle_ring_piercings(
+        molecule,
+        "UFF",
+        attempt_limit=2,
+        short_steps=4,
+        settling_steps=0,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+        checkpoint_report=checkpoint,
+    )
+
+    assert result.report.resolved
+    assert result.checkpoint_report is checkpoint
+
+
 def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
     monkeypatch,
 ):
     molecule = _ring_molecule()
     opening_edge = molecule.bond(0, 1)
+    initial_checkpoint = _report(1)
     scans = iter(
         (
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.DOES_NOT_PIERCE, None),
-            (repair.geo.PiercingState.DOES_NOT_PIERCE, None),
+            _report(0),
+            _report(0),
         )
     )
 
     monkeypatch.setattr(
         repair,
-        "_scan_confirmed_ring_piercings",
+        "_scan_ring_checkpoint",
         lambda *args, **kwargs: next(scans),
     )
     _mock_ring_watch(
@@ -425,6 +480,7 @@ def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
         settling_steps=9,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
+        checkpoint_report=initial_checkpoint,
         trajectory=trajectory,
     )
 
@@ -465,16 +521,16 @@ def test_ring_untangling_does_not_assign_open_topology_energy_to_closed_frame(
 ):
     molecule = _ring_molecule()
     opening_edge = molecule.bond(0, 1)
+    initial_checkpoint = _report(1)
     scans = iter(
         (
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.PIERCES, _report(2)),
+            _report(1),
+            _report(2),
         )
     )
     monkeypatch.setattr(
         repair,
-        "_scan_confirmed_ring_piercings",
+        "_scan_ring_checkpoint",
         lambda *args, **kwargs: next(scans),
     )
     _mock_ring_watch(
@@ -509,6 +565,7 @@ def test_ring_untangling_does_not_assign_open_topology_energy_to_closed_frame(
         settling_steps=9,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
+        checkpoint_report=initial_checkpoint,
         trajectory=trajectory,
     )
 
@@ -525,16 +582,16 @@ def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
     preexisting_hidden_bond = _Bond(1, 2)
     opening_edge = _Bond(0, 1)
     molecule.hidden_bonds.append(preexisting_hidden_bond)
+    initial_checkpoint = _report(1)
     scans = iter(
         (
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.DOES_NOT_PIERCE, None),
+            _report(0),
         )
     )
 
     monkeypatch.setattr(
         repair,
-        "_scan_confirmed_ring_piercings",
+        "_scan_ring_checkpoint",
         lambda *args, **kwargs: next(scans),
     )
     _mock_ring_watch(
@@ -565,6 +622,7 @@ def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
         settling_steps=0,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
+        checkpoint_report=initial_checkpoint,
     )
 
     assert molecule.hidden_bonds == [preexisting_hidden_bond]
@@ -575,11 +633,13 @@ def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
 def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
     molecule = _UntanglingMolecule()
     opening_edge = _Bond(0, 1)
+    initial_checkpoint = _report(3)
+    selected_checkpoint = _report(1)
+    rejected_checkpoint = _report(2)
     scans = iter(
         (
-            (repair.geo.PiercingState.PIERCES, _report(3)),
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.PIERCES, _report(2)),
+            selected_checkpoint,
+            rejected_checkpoint,
         )
     )
     full_scan_count = 0
@@ -598,7 +658,7 @@ def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
 
     monkeypatch.setattr(
         repair,
-        "_scan_confirmed_ring_piercings",
+        "_scan_ring_checkpoint",
         scan,
     )
     _mock_ring_watch(
@@ -628,13 +688,15 @@ def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
         settling_steps=9,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
+        checkpoint_report=initial_checkpoint,
     )
 
     assert result.report.initial_piercing_count == 3
     assert result.report.minimum_piercing_count == 1
     assert result.report.final_piercing_count == 1
     assert not result.report.resolved
-    assert full_scan_count == 3
+    assert full_scan_count == 2
+    assert result.checkpoint_report is selected_checkpoint
     np.testing.assert_array_equal(molecule.coordinates, np.full((3, 3), 2.0))
 
 
@@ -643,11 +705,11 @@ def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
 ):
     molecule = _UntanglingMolecule()
     opening_edge = _Bond(0, 1)
+    initial_checkpoint = _report(3)
     scans = iter(
         (
-            (repair.geo.PiercingState.PIERCES, _report(3)),
-            (repair.geo.PiercingState.PIERCES, _report(1)),
-            (repair.geo.PiercingState.PIERCES, _report(2)),
+            _report(1),
+            _report(2),
         )
     )
     optimization_steps = []
@@ -660,7 +722,7 @@ def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
 
     monkeypatch.setattr(
         repair,
-        "_scan_confirmed_ring_piercings",
+        "_scan_ring_checkpoint",
         lambda *args, **kwargs: next(scans),
     )
     _mock_ring_watch(
@@ -687,6 +749,7 @@ def test_budget_exhaustion_settles_best_frame_and_rolls_back_if_it_worsens(
         settling_steps=9,
         perturb_sigma=0.5,
         rng=np.random.default_rng(3),
+        checkpoint_report=initial_checkpoint,
     )
 
     assert optimization_steps == [4, 9]
@@ -1329,8 +1392,8 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     def scan(current_molecule, **kwargs):
         events.append("scan")
         if float(current_molecule.coordinates[0, 0]) == 1.0:
-            return geo.PiercingState.PIERCES, _report(1)
-        return geo.PiercingState.DOES_NOT_PIERCE, None
+            return _report(1)
+        return _report(0)
 
     def accept(*args, **kwargs):
         events.append("accept")
@@ -1342,7 +1405,7 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
 
     monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
-    monkeypatch.setattr(workflows, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(workflows, "_scan_ring_checkpoint", scan)
     monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
 
     report = workflows._optimize_complex_working_mol(
@@ -1370,6 +1433,7 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     )
 
     assert events == [
+        "scan",
         "untangle",
         "optimize",
         "scan",

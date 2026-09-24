@@ -41,6 +41,7 @@ def show_version():
 def build_parser(load_optional_commands=True):
     from .cheminfo.AImodels.cbond import cli as cbond_cli
     from .cheminfo.AImodels.mca import cli as mca_cli
+    from .cheminfo.forcefields import cli as ff_cli
 
     parser = argparse.ArgumentParser(
         prog='hotpot',
@@ -85,6 +86,13 @@ def build_parser(load_optional_commands=True):
         help='Build metal-ligand coordination bonds with the CBond model',
     )
     cbond_cli.add_arguments(cbond_parser)
+
+    # Force-field geometry construction and optimization arguments
+    ff_parser = works.add_parser(
+        'ff',
+        help='Build and optimize molecular geometries with force fields',
+    )
+    ff_cli.add_arguments(ff_parser)
     return parser
 
 
@@ -138,6 +146,11 @@ def run(args):
 
         return cbond_cli.run(args)
 
+    elif args.works == 'ff':
+        from .cheminfo.forcefields import cli as ff_cli
+
+        return ff_cli.run(args)
+
     else:
         return -2  # indicate the work type not be specified
 
@@ -146,7 +159,7 @@ def run(args):
 
 
 def main(argv: list[str] = None):
-    setup_logging()
+    setup_logging(to_stdout=False)
 
     raw_args = sys.argv[1:] if argv is None else argv
     command = next(
@@ -179,6 +192,4 @@ def main(argv: list[str] = None):
 
 
 if __name__ == '__main__':
-    # print(sys.argv )
-    # logging.basicConfig(level=logging.DEBUG)
-    main()
+    raise SystemExit(main())

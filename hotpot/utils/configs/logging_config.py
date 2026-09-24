@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 def setup_logging(debug=False, to_stdout=True):
-    console = Console(file=sys.stdout) if to_stdout else Console()  # Console() defaults to stderr
+    console = Console(file=sys.stdout if to_stdout else sys.stderr)
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.INFO,
         format="%(message)s",                # let Rich handle the rest

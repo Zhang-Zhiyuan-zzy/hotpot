@@ -2,6 +2,7 @@ import inspect
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.forcefields import ff, ff39
@@ -15,6 +16,7 @@ from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
     RingFrameEvidence,
     TrajectoryEvent,
+    TrajectoryStage,
     TrajectoryStart,
 )
 from hotpot.cheminfo.core import Molecule
@@ -376,6 +378,71 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
     assert result.report.resolved
     assert result.report.attempts_completed == 1
     assert result.checkpoint_report.state is geo.PiercingState.DOES_NOT_PIERCE
+
+
+def test_single_watched_repair_only_observes_the_fixed_watch_batch(monkeypatch):
+    molecule = _UntanglingMolecule()
+    opening_edge = _Bond(0, 1)
+    watch = _mock_ring_watch(
+        monkeypatch,
+        (repair.geo.PiercingState.DOES_NOT_PIERCE,),
+        events=molecule.events,
+    )
+    monkeypatch.setattr(
+        repair,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: pytest.fail(
+            "a single watched repair must not run a full checkpoint"
+        ),
+    )
+    monkeypatch.setattr(
+        repair,
+        "_select_ring_opening_edge",
+        lambda *args, **kwargs: opening_edge,
+    )
+
+    def perturb(coordinates, **kwargs):
+        molecule.events.append(("perturb",))
+        return np.asarray(coordinates) + 1.0
+
+    def optimize(current_molecule, forcefield, steps):
+        molecule.events.append(("optimize", steps))
+        return _optimization(steps)
+
+    monkeypatch.setattr(repair, "_perturbed_coordinates", perturb)
+    monkeypatch.setattr(repair, "_single_ob_optimization", optimize)
+    trajectory_recorder = repair._RingTrajectoryRecorder(
+        mol=molecule,
+        trajectory=None,
+        stage=TrajectoryStage.COMPLEX_UNTANGLING,
+        enabled=False,
+    )
+
+    observation = repair._repair_watched_ring_piercings_once(
+        molecule,
+        "UFF",
+        current_piercings=watch,
+        watch_batch=watch,
+        attempt=1,
+        short_steps=4,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+        trajectory_recorder=trajectory_recorder,
+    )
+
+    assert observation == repair._WatchedRingRepairObservation(
+        repair._RingPiercingWatchResult(
+            repair.geo.PiercingState.DOES_NOT_PIERCE,
+            (),
+        )
+    )
+    assert molecule.events == [
+        ("open", (opening_edge,)),
+        ("perturb",),
+        ("optimize", 4),
+        ("restore", (opening_edge,)),
+        ("targeted_scan",),
+    ]
 
 
 def test_ring_piercing_watch_tracks_only_the_confirmed_pair():

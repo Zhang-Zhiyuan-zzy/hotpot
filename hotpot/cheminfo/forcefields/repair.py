@@ -81,6 +81,58 @@ class _RingPiercingWatchResult:
     piercings: Tuple[_WatchedRingPiercing, ...]
 
 
+@dataclass(frozen=True)
+class _WatchedRingRepairObservation:
+    watch_result: Optional[_RingPiercingWatchResult]
+
+
+@dataclass(frozen=True)
+class _RingTrajectoryRecorder:
+    mol: "Molecule"
+    trajectory: Optional[ForceFieldTrajectory]
+    stage: TrajectoryStage
+    enabled: bool
+
+    def record(
+        self,
+        event: TrajectoryEvent,
+        *,
+        energy: Optional[float] = None,
+        state: Optional[geo.PiercingState] = None,
+        report: Optional[Union[
+            "geo.BondRingScanReport[Ring, Bond]",
+            "geo.BondRingScreeningReport[Ring, Bond]",
+        ]] = None,
+        confirmed_piercing_count: Optional[int] = None,
+        attempt: Optional[int] = None,
+    ) -> Optional[int]:
+        """Record one ring-repair frame without making workflow decisions."""
+        if not self.enabled or self.trajectory is None:
+            return None
+        frame = self.trajectory.record_molecule(
+            self.mol,
+            stage=self.stage,
+            event=event,
+            energy_kj_mol=energy,
+            attempt=attempt,
+            evidence=(
+                None
+                if state is None
+                else _ring_frame_evidence(
+                    state,
+                    report,
+                    confirmed_piercing_count=confirmed_piercing_count,
+                )
+            ),
+        )
+        return frame.index
+
+    def select(self, frame_index: Optional[int]) -> None:
+        """Select a recorded frame when trajectory capture is enabled."""
+        if frame_index is not None and self.trajectory is not None:
+            self.trajectory.select(frame_index)
+
+
 def _piercing_count(
     report: Optional[Union[
         "geo.BondRingScanReport[Ring, Bond]",
@@ -268,6 +320,63 @@ def _ring_frame_evidence(
     )
 
 
+def _repair_watched_ring_piercings_once(
+    mol: "Molecule",
+    effective_forcefield: str,
+    *,
+    current_piercings: Tuple[_WatchedRingPiercing, ...],
+    watch_batch: Tuple[_WatchedRingPiercing, ...],
+    attempt: int,
+    short_steps: int,
+    perturb_sigma: float,
+    rng: np.random.Generator,
+    trajectory_recorder: _RingTrajectoryRecorder,
+) -> Optional[_WatchedRingRepairObservation]:
+    """Repair once and observe only the fixed ring--bond watch batch."""
+    ring_edge = _select_ring_opening_edge(mol, current_piercings)
+    if ring_edge is None:
+        return None
+
+    mol.hide_bonds(ring_edge, clear_conformers=False)
+    trajectory_recorder.record(
+        TrajectoryEvent.RING_OPENED,
+        attempt=attempt,
+    )
+    optimized_successfully = False
+    try:
+        mol.coordinates = _perturbed_coordinates(
+            mol.coordinates,
+            sigma=perturb_sigma,
+            rng=rng,
+        )
+        trajectory_recorder.record(
+            TrajectoryEvent.PERTURBED,
+            attempt=attempt,
+        )
+        optimized = _single_ob_optimization(
+            mol,
+            effective_forcefield,
+            short_steps,
+        )
+        optimized_successfully = True
+        trajectory_recorder.record(
+            TrajectoryEvent.OPTIMIZED,
+            energy=float(optimized.energy),
+            attempt=attempt,
+        )
+    finally:
+        mol.restore_bonds(ring_edge, clear_conformers=False)
+        if not optimized_successfully:
+            trajectory_recorder.record(
+                TrajectoryEvent.RING_CLOSED,
+                attempt=attempt,
+            )
+
+    return _WatchedRingRepairObservation(
+        watch_result=_scan_ring_piercing_watch(mol, watch_batch),
+    )
+
+
 def _untangle_ring_piercings(
     mol: "Molecule",
     effective_forcefield: str,
@@ -295,43 +404,44 @@ def _untangle_ring_piercings(
     next geometric observation.  A shared trajectory records both the open
     and closed topology revisions without taking over workflow control.
     """
-    records_trajectory = (
-        trajectory is not None
-        and trajectory.records(trajectory_stage)
+    trajectory_recorder = _RingTrajectoryRecorder(
+        mol=mol,
+        trajectory=trajectory,
+        stage=trajectory_stage,
+        enabled=(
+            trajectory is not None
+            and trajectory.records(trajectory_stage)
+        ),
     )
-    ring_scope = checkpoint_report.ring_scope
+    return _resolve_ring_piercings(
+        mol,
+        effective_forcefield,
+        attempt_limit=attempt_limit,
+        short_steps=short_steps,
+        settling_steps=settling_steps,
+        perturb_sigma=perturb_sigma,
+        rng=rng,
+        checkpoint_report=checkpoint_report,
+        initial_energy=initial_energy,
+        trajectory_recorder=trajectory_recorder,
+    )
 
-    def record_ring_frame(
-        event: TrajectoryEvent,
-        *,
-        energy: Optional[float] = None,
-        state: Optional[geo.PiercingState] = None,
-        report: Optional[Union[
-            "geo.BondRingScanReport[Ring, Bond]",
-            "geo.BondRingScreeningReport[Ring, Bond]",
-        ]] = None,
-        confirmed_piercing_count: Optional[int] = None,
-        attempt: Optional[int] = None,
-    ) -> Optional[int]:
-        if not records_trajectory or trajectory is None:
-            return None
-        frame = trajectory.record_molecule(
-            mol,
-            stage=trajectory_stage,
-            event=event,
-            energy_kj_mol=energy,
-            attempt=attempt,
-            evidence=(
-                None
-                if state is None
-                else _ring_frame_evidence(
-                    state,
-                    report,
-                    confirmed_piercing_count=confirmed_piercing_count,
-                )
-            ),
-        )
-        return frame.index
+
+def _resolve_ring_piercings(
+    mol: "Molecule",
+    effective_forcefield: str,
+    *,
+    attempt_limit: int,
+    short_steps: int,
+    settling_steps: int,
+    perturb_sigma: float,
+    rng: np.random.Generator,
+    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    initial_energy: float,
+    trajectory_recorder: _RingTrajectoryRecorder,
+) -> _RingUntanglingResult:
+    """Control targeted watch batches and their full checkpoint transitions."""
+    ring_scope = checkpoint_report.ring_scope
 
     report = checkpoint_report
     state = report.state
@@ -358,7 +468,7 @@ def _untangle_ring_piercings(
     watch_best_coordinates = _copy_coordinates(mol.coordinates)
     watch_best_energy = best_energy
     watch_minimum_count = len(watch)
-    record_ring_frame(
+    trajectory_recorder.record(
         TrajectoryEvent.INITIAL,
         energy=best_trace_energy,
         state=state,
@@ -402,7 +512,7 @@ def _untangle_ring_piercings(
                 best_report = report
                 best_energy = float(optimized.energy)
                 best_trace_energy = float(optimized.energy)
-            record_ring_frame(
+            trajectory_recorder.record(
                 TrajectoryEvent.SETTLED,
                 energy=float(optimized.energy),
                 state=state,
@@ -419,8 +529,18 @@ def _untangle_ring_piercings(
             )
             break
 
-        ring_edge = _select_ring_opening_edge(mol, current_piercings)
-        if ring_edge is None:
+        repair_observation = _repair_watched_ring_piercings_once(
+            mol,
+            effective_forcefield,
+            current_piercings=current_piercings,
+            watch_batch=watch,
+            attempt=attempts_completed + 1,
+            short_steps=short_steps,
+            perturb_sigma=perturb_sigma,
+            rng=rng,
+            trajectory_recorder=trajectory_recorder,
+        )
+        if repair_observation is None:
             unresolved_reason = (
                 "Confirmed bond-ring piercing has no eligible ring-opening edge; "
                 "retaining the closed-topology frame with the lowest piercing count"
@@ -428,42 +548,7 @@ def _untangle_ring_piercings(
             break
 
         attempts_completed += 1
-        mol.hide_bonds(ring_edge, clear_conformers=False)
-        record_ring_frame(
-            TrajectoryEvent.RING_OPENED,
-            attempt=attempts_completed,
-        )
-        optimized_successfully = False
-        try:
-            mol.coordinates = _perturbed_coordinates(
-                mol.coordinates,
-                sigma=perturb_sigma,
-                rng=rng,
-            )
-            record_ring_frame(
-                TrajectoryEvent.PERTURBED,
-                attempt=attempts_completed,
-            )
-            optimized = _single_ob_optimization(
-                mol,
-                effective_forcefield,
-                short_steps,
-            )
-            optimized_successfully = True
-            record_ring_frame(
-                TrajectoryEvent.OPTIMIZED,
-                energy=float(optimized.energy),
-                attempt=attempts_completed,
-            )
-        finally:
-            mol.restore_bonds(ring_edge, clear_conformers=False)
-            if not optimized_successfully:
-                record_ring_frame(
-                    TrajectoryEvent.RING_CLOSED,
-                    attempt=attempts_completed,
-                )
-
-        watched_result = _scan_ring_piercing_watch(mol, watch)
+        watched_result = repair_observation.watch_result
         if (
             watched_result is None
             or watched_result.state is not geo.PiercingState.PIERCES
@@ -483,7 +568,7 @@ def _untangle_ring_piercings(
             watch_best_coordinates = _copy_coordinates(mol.coordinates)
             watch_best_energy = float("nan")
             watch_minimum_count = len(watch)
-            record_ring_frame(
+            trajectory_recorder.record(
                 TrajectoryEvent.RING_CLOSED,
                 state=state,
                 report=report,
@@ -504,7 +589,7 @@ def _untangle_ring_piercings(
                 watch_minimum_count = len(current_piercings)
                 watch_best_coordinates = _copy_coordinates(mol.coordinates)
                 watch_best_energy = float("nan")
-            record_ring_frame(
+            trajectory_recorder.record(
                 TrajectoryEvent.RING_CLOSED,
                 attempt=attempts_completed,
             )
@@ -539,7 +624,7 @@ def _untangle_ring_piercings(
         best_trace_energy = (
             best_energy if np.isfinite(best_energy) else None
         )
-        record_ring_frame(
+        trajectory_recorder.record(
             TrajectoryEvent.ROLLED_BACK,
             energy=best_trace_energy,
             state=state,
@@ -565,7 +650,7 @@ def _untangle_ring_piercings(
             )
             settled_state = settled_report.state
             settled_count = _piercing_count(settled_report)
-            record_ring_frame(
+            trajectory_recorder.record(
                 TrajectoryEvent.SETTLED,
                 energy=float(optimized.energy),
                 state=settled_state,
@@ -587,7 +672,7 @@ def _untangle_ring_piercings(
                 current_count = retained_count
                 best_energy = retained_energy
                 best_trace_energy = retained_trace_energy
-                record_ring_frame(
+                trajectory_recorder.record(
                     TrajectoryEvent.ROLLED_BACK,
                     energy=best_trace_energy,
                     state=state,
@@ -601,7 +686,7 @@ def _untangle_ring_piercings(
                 "A bond-ring relation remained mathematically undetermined"
             )
     resolved = current_count == 0
-    terminal_index = record_ring_frame(
+    terminal_index = trajectory_recorder.record(
         TrajectoryEvent.TERMINAL,
         energy=best_trace_energy,
         state=state,
@@ -609,8 +694,7 @@ def _untangle_ring_piercings(
         confirmed_piercing_count=current_count,
         attempt=attempts_completed,
     )
-    if terminal_index is not None and trajectory is not None:
-        trajectory.select(terminal_index)
+    trajectory_recorder.select(terminal_index)
 
     return _RingUntanglingResult(
         report=RingUntanglingReport(

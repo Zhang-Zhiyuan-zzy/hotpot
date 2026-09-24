@@ -11,7 +11,10 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING, cast
 import numpy as np
 
 from .. import geometry as geo
-from .acceptance import evaluate_structure_acceptance
+from .acceptance import (
+    _format_geometry_checks,
+    evaluate_structure_acceptance,
+)
 from .backend import _ob_build, _resolve_complex_forcefield, _resolve_organic_forcefield
 from .contracts import (
     AcceptanceLevel,
@@ -21,7 +24,9 @@ from .contracts import (
     ComplexBuildReport,
     ComplexBuildWarning,
     ForceFieldError,
+    ForceFieldAcceptanceEvidence,
     ForceFieldRunReport,
+    ForceFieldValidationReport,
     ForceFieldWorkflowReport,
     GeometryQualityError,
     GeometryQualityWarning,
@@ -82,6 +87,40 @@ class _PreparedComplex:
     diagnostics: ComplexBuildDiagnostics
     trajectory: ForceFieldTrajectory
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
+
+
+def _forcefield_acceptance_evidence(
+    report: ForceFieldRunReport,
+) -> ForceFieldAcceptanceEvidence:
+    """Translate the selected numerical frame into acceptance evidence."""
+    return {
+        "setup_succeeded": report.setup_succeeded,
+        "converged": report.converged,
+        "epochs_completed": report.epochs_completed,
+        "segment_epochs_completed": report.selected_segment_epochs_completed,
+        "final_energy": report.best_energy,
+        "energy_unit": report.energy_unit,
+        "rms_gradient": report.rms_gradient,
+        "max_gradient": report.max_gradient,
+        "exploded": report.exploded,
+        "energy_changes": report.energy_changes,
+        "max_displacements": report.max_displacements,
+    }
+
+
+def _warn_failed_acceptance(
+    report: ForceFieldValidationReport,
+    *,
+    prefix: str,
+) -> None:
+    """Warn while retaining a finite diagnostic structure."""
+    if report.passed:
+        return
+    warnings.warn(
+        _format_geometry_checks(prefix, tuple(report.failures)),
+        GeometryQualityWarning,
+        stacklevel=3,
+    )
 
 
 # Non-committing workflow stages with explicit worker injection.
@@ -366,9 +405,6 @@ def _optimize_complex_working_mol(
             algorithm=algorithm,
             epochs=segment_epochs,
             steps_per_epoch=steps_per_epoch,
-            quality_level=quality_level,
-            topology_reference=topology_reference,
-            quality_thresholds=quality_thresholds,
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
@@ -376,7 +412,6 @@ def _optimize_complex_working_mol(
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
-            stop_on_ring_piercing=True,
             trajectory=trajectory,
             trajectory_stage=trajectory_stage,
             trajectory_attempt=len(optimization_reports),
@@ -408,8 +443,25 @@ def _optimize_complex_working_mol(
     )
     for message in untangling_report.warning_messages:
         warnings.warn(message, GeometryQualityWarning, stacklevel=3)
+    combined_report = _combine_forcefield_run_reports(optimization_reports)
+    quality_report = evaluate_structure_acceptance(
+        working_mol,
+        level=quality_level,
+        topology_reference=topology_reference,
+        forcefield_report=_forcefield_acceptance_evidence(combined_report),
+        forcefield_stage="final",
+        thresholds=quality_thresholds,
+    )
+    _warn_failed_acceptance(
+        quality_report,
+        prefix=(
+            "The selected complex optimization frame failed terminal "
+            "structure acceptance; retaining it for inspection"
+        ),
+    )
     return replace(
-        _combine_forcefield_run_reports(optimization_reports),
+        combined_report,
+        quality_report=quality_report,
         untangling=untangling_report,
     )
 
@@ -631,9 +683,6 @@ def optimize(
             algorithm=algorithm,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
-            quality_level=quality_level,
-            topology_reference=topology_reference,
-            quality_thresholds=quality_thresholds,
             seed=seed,
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
@@ -643,6 +692,22 @@ def optimize(
             vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
         )
+        quality_report = evaluate_structure_acceptance(
+            working_mol,
+            level=quality_level,
+            topology_reference=topology_reference,
+            forcefield_report=_forcefield_acceptance_evidence(report),
+            forcefield_stage="final",
+            thresholds=quality_thresholds,
+        )
+        _warn_failed_acceptance(
+            quality_report,
+            prefix=(
+                "The selected optimization frame failed terminal structure "
+                "acceptance; retaining it for inspection"
+            ),
+        )
+        report = replace(report, quality_report=quality_report)
     except ForceFieldError as error:
         _preserve_failed_trajectory(
             error,

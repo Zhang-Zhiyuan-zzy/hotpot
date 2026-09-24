@@ -56,8 +56,6 @@ TrajectoryPath = Union[str, os.PathLike[str]]
 TerminationReason = Literal[
     "converged",
     "budget_exhausted",
-    "ring_piercing",
-    "quality_gate_failed",
 ]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
@@ -186,8 +184,8 @@ class ForceFieldRunReport:
     energy_changes: Tuple[float, ...] = ()
     max_displacements: Tuple[float, ...] = ()
     best_epoch: int = 0
+    selected_segment_epochs_completed: int = 0
     epoch_energies: Tuple[float, ...] = ()
-    epoch_quality_reports: Tuple[ForceFieldValidationReport, ...] = ()
     termination_reason: TerminationReason = "budget_exhausted"
     terminal_converged: bool = False
     untangling: Optional["RingUntanglingReport"] = None

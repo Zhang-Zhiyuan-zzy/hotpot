@@ -179,13 +179,17 @@ class CoordinationFrameEvidence:
 
 @dataclass(frozen=True)
 class OptimizationFrameEvidence:
-    """Quality observations associated with an optimization frame."""
+    """Numerical observations associated with an optimization frame."""
 
-    accepted: bool
     converged: bool
+    exploded: bool
+    finite_coordinates: bool
+    finite_energy: bool
+    finite_gradients: bool
     rms_gradient_kj_mol_angstrom: Optional[float] = None
     max_gradient_kj_mol_angstrom: Optional[float] = None
-    failed_checks: Tuple[str, ...] = ()
+    energy_change_kj_mol: Optional[float] = None
+    max_displacement_angstrom: Optional[float] = None
 
 
 FrameEvidence = Union[
@@ -214,7 +218,7 @@ class ForceFieldFrame:
 class ForceFieldTrajectory:
     """A topology-aware sequence of force-field workflow frames."""
 
-    _FORMAT_VERSION = 1
+    _FORMAT_VERSION = 2
 
     def __init__(
         self,
@@ -797,6 +801,12 @@ class _TrajectoryWriter:
             data["max_gradient_kj_mol_angstrom"] = cls._finite_float_or_none(
                 evidence.max_gradient_kj_mol_angstrom
             )
+            data["energy_change_kj_mol"] = cls._finite_float_or_none(
+                evidence.energy_change_kj_mol
+            )
+            data["max_displacement_angstrom"] = cls._finite_float_or_none(
+                evidence.max_displacement_angstrom
+            )
         return data
 
     @classmethod
@@ -840,17 +850,22 @@ class _TrajectoryWriter:
             )
         if evidence_type == "optimization":
             return OptimizationFrameEvidence(
-                accepted=bool(evidence_data["accepted"]),
                 converged=bool(evidence_data["converged"]),
+                exploded=bool(evidence_data["exploded"]),
+                finite_coordinates=bool(evidence_data["finite_coordinates"]),
+                finite_energy=bool(evidence_data["finite_energy"]),
+                finite_gradients=bool(evidence_data["finite_gradients"]),
                 rms_gradient_kj_mol_angstrom=_TrajectoryWriter._optional_float(
                     evidence_data["rms_gradient_kj_mol_angstrom"]
                 ),
                 max_gradient_kj_mol_angstrom=_TrajectoryWriter._optional_float(
                     evidence_data["max_gradient_kj_mol_angstrom"]
                 ),
-                failed_checks=tuple(
-                    str(item)
-                    for item in cast(Sequence[object], evidence_data["failed_checks"])
+                energy_change_kj_mol=_TrajectoryWriter._optional_float(
+                    evidence_data["energy_change_kj_mol"]
+                ),
+                max_displacement_angstrom=_TrajectoryWriter._optional_float(
+                    evidence_data["max_displacement_angstrom"]
                 ),
             )
         raise ValueError(f"Unknown frame evidence type {evidence_type!r}")

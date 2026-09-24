@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo import geometry
+from hotpot.cheminfo.forcefields import acceptance as acceptance_impl
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
@@ -199,14 +201,6 @@ class _OptimizerMolecule:
         self._conformers_index = index
 
 
-def _acceptance_report(passed=True, checks=()):
-    return ff.ForceFieldValidationReport(
-        level="standard",
-        passed=passed,
-        checks=tuple(checks),
-    )
-
-
 def _optimizer(monkeypatch, backend, frames, **kwargs):
     backend.frames = frames
     obmol = SimpleNamespace(coordinates=np.zeros_like(frames[0], dtype=float))
@@ -234,15 +228,6 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
             current, "coordinates", np.asarray(coordinates, dtype=float).copy()
         ),
     )
-    def evaluate_quality(*args, **options):
-        assert options["forcefield_stage"] == "final"
-        return _acceptance_report()
-
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        evaluate_quality,
-    )
     return optimizer_impl._OpenBabelOptimizer(
         "MMFF94s",
         "MMFF94s",
@@ -260,12 +245,12 @@ def _optimizer(monkeypatch, backend, frames, **kwargs):
     )
 
 
-def _run_optimizer(optimizer, molecule, **options):
+def _run_optimizer(optimizer, molecule):
     trajectory = ForceFieldTrajectory.from_molecule(
         molecule,
         start=TrajectoryStart.FINAL_OPTIMIZATION,
     )
-    report = optimizer.optimize(molecule, trajectory=trajectory, **options)
+    report = optimizer.optimize(molecule, trajectory=trajectory)
     trajectory.materialize(molecule, keep_all=optimizer.retain_epoch_history)
     return report
 
@@ -280,13 +265,7 @@ def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeyp
     optimizer = _optimizer(monkeypatch, backend, frames)
     molecule = _OptimizerMolecule()
 
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, molecule)
 
     assert backend.initializations == [
         (21, pytest.approx(1.0e-6)),
@@ -316,6 +295,7 @@ def test_optimizer_uses_segmented_steps_vdw_interpolation_and_best_frame(monkeyp
     assert np.array_equal(molecule.coordinates, frames[1])
     assert molecule.energy == pytest.approx(report.best_energy)
     assert report.best_epoch == 1
+    assert report.selected_segment_epochs_completed == 1
     assert molecule._conformers_index == 2
     assert len(molecule.frames) == 4
 
@@ -327,6 +307,7 @@ def test_optimizer_records_into_shared_trajectory_without_materializing(monkeypa
         np.full((2, 3), 2.0),
     ]
     optimizer = _optimizer(monkeypatch, _Backend([3.0, 1.0, 2.0]), frames)
+    optimizer.increasing_vdw = False
     molecule = _OptimizerMolecule()
     trajectory = ForceFieldTrajectory.from_molecule(
         molecule,
@@ -335,9 +316,6 @@ def test_optimizer_records_into_shared_trajectory_without_materializing(monkeypa
 
     report = optimizer.optimize(
         molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
         trajectory=trajectory,
     )
 
@@ -359,6 +337,13 @@ def test_optimizer_records_into_shared_trajectory_without_materializing(monkeypa
         isinstance(frame.evidence, OptimizationFrameEvidence)
         for frame in trajectory.frames[1:]
     )
+    evidence = tuple(frame.evidence for frame in trajectory.frames[1:])
+    assert evidence[0].energy_change_kj_mol is None
+    assert evidence[0].max_displacement_angstrom is None
+    assert evidence[1].energy_change_kj_mol == pytest.approx(8.368)
+    assert evidence[1].max_displacement_angstrom == pytest.approx(np.sqrt(12.0))
+    assert evidence[2].energy_change_kj_mol == pytest.approx(4.184)
+    assert evidence[2].max_displacement_angstrom == pytest.approx(np.sqrt(3.0))
     assert trajectory.selected_index == 2
     assert report.best_epoch == 1
 
@@ -378,13 +363,7 @@ def test_vdw_frames_are_ranked_only_under_the_final_cutoff(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     molecule = _OptimizerMolecule()
 
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, molecule)
 
     assert backend.scored_cutoffs == [12.0, 12.0, 12.0]
     assert report.best_epoch == 0
@@ -397,13 +376,7 @@ def test_optimizer_reports_early_backend_stop_as_converged(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
 
-    report = _run_optimizer(
-        optimizer,
-        _OptimizerMolecule(),
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
 
     assert report.epochs_completed == 1
     assert report.converged is True
@@ -420,13 +393,7 @@ def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
 
-    report = _run_optimizer(
-        optimizer,
-        _OptimizerMolecule(),
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
 
     assert report.steps_submitted == 20
     assert report.initialization_steps == 1
@@ -435,9 +402,7 @@ def test_optimizer_reports_external_step_budget_exhaustion(monkeypatch):
     assert report.termination_reason == "budget_exhausted"
 
 
-def test_optimizer_stops_at_first_ring_piercing_and_retains_that_frame(
-    monkeypatch,
-):
+def test_optimizer_epochs_do_not_run_acceptance_or_topology_scans(monkeypatch):
     frames = [
         np.zeros((2, 3)),
         np.ones((2, 3)),
@@ -446,69 +411,28 @@ def test_optimizer_stops_at_first_ring_piercing_and_retains_that_frame(
     backend = _BudgetBackend([3.0, 2.0, 1.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
-    optimizer.stop_on_ring_piercing = True
-
-    def evaluate_quality(molecule, **options):
-        piercing_count = int(float(molecule.coordinates[0, 0]) == 1.0)
-        return ff.ForceFieldValidationReport(
-            level="standard",
-            passed=not piercing_count,
-            checks=(),
-            metrics={"bond_ring_piercing_count": piercing_count},
-        )
-
     monkeypatch.setattr(
-        optimizer_impl,
+        acceptance_impl,
         "evaluate_structure_acceptance",
-        evaluate_quality,
+        lambda *args, **kwargs: pytest.fail("acceptance ran inside optimizer"),
+    )
+    monkeypatch.setattr(
+        geometry,
+        "determine_bond_ring_piercing_state",
+        lambda *args, **kwargs: pytest.fail("topology scan ran inside optimizer"),
+    )
+    monkeypatch.setattr(
+        geometry,
+        "screen_bond_ring_relations",
+        lambda *args, **kwargs: pytest.fail("topology scan ran inside optimizer"),
     )
     molecule = _OptimizerMolecule()
 
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, molecule)
 
-    assert report.epochs_completed == 2
-    assert report.termination_reason == "ring_piercing"
-    assert report.terminal_converged is False
-    np.testing.assert_array_equal(molecule.coordinates, frames[1])
-
-
-def test_ring_piercing_stop_retains_finite_failed_frame_for_repair(monkeypatch):
-    frames = [np.zeros((2, 3))]
-    backend = _BudgetBackend([1.0], unit="kJ/mol")
-    optimizer = _optimizer(monkeypatch, backend, frames)
-    optimizer.increasing_vdw = False
-    optimizer.stop_on_ring_piercing = True
-    rejected = ff.ForceFieldValidationReport(
-        level="standard",
-        passed=False,
-        checks=(
-            ff.AcceptanceCheck(name="backend_explosion", passed=False),
-        ),
-        metrics={"bond_ring_piercing_count": 1},
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        lambda *args, **kwargs: rejected,
-    )
-
-    molecule = _OptimizerMolecule()
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
-
-    assert report.quality_report is rejected
-    assert report.termination_reason == "ring_piercing"
+    assert report.epochs_completed == 3
+    assert report.quality_report is None
+    assert report.termination_reason == "budget_exhausted"
     assert report.terminal_converged is False
     np.testing.assert_array_equal(molecule.coordinates, frames[-1])
 
@@ -537,13 +461,7 @@ def test_backend_limit_sentinel_does_not_masquerade_as_convergence(
     optimizer.algorithm = algorithm
     optimizer.increasing_vdw = False
 
-    report = _run_optimizer(
-        optimizer,
-        _OptimizerMolecule(),
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
 
     assert backend.initializations == [(expected_limit, pytest.approx(1.0e-6))]
     assert report.steps_submitted == expected_submitted
@@ -558,13 +476,7 @@ def test_selected_and_terminal_convergence_are_reported_separately(monkeypatch):
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.increasing_vdw = False
 
-    report = _run_optimizer(
-        optimizer,
-        _OptimizerMolecule(),
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
 
     assert report.best_epoch == 0
     assert report.converged is False
@@ -585,13 +497,7 @@ def test_scheduled_perturbations_restart_converged_segments(monkeypatch):
     optimizer.increasing_vdw = False
     molecule = _OptimizerMolecule()
 
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, molecule)
 
     assert backend.initializations == [
         (49, pytest.approx(1.0e-6)),
@@ -601,12 +507,13 @@ def test_scheduled_perturbations_restart_converged_segments(monkeypatch):
     assert backend.take_calls == [6, 6, 6]
     assert report.epochs_completed == 3
     assert report.best_epoch == 6
+    assert report.selected_segment_epochs_completed == 1
     assert len(molecule.frames) == 4
     assert molecule._conformers_index == 3
     assert np.array_equal(molecule.coordinates, frames[2])
 
 
-def test_default_output_keeps_only_one_frame_and_bounded_scalar_history(monkeypatch):
+def test_default_output_keeps_only_one_frame_and_numerical_history(monkeypatch):
     frames = [np.full((2, 3), float(index + 1)) for index in range(50)]
     backend = _BudgetBackend(
         [float(value) for value in range(50, 0, -1)],
@@ -620,18 +527,13 @@ def test_default_output_keeps_only_one_frame_and_bounded_scalar_history(monkeypa
     optimizer.retain_epoch_history = False
     molecule = _OptimizerMolecule()
 
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, molecule)
 
     assert len(molecule.frames) == 1
     assert report.epoch_energies == ()
-    assert len(report.energy_changes) == 5
-    assert len(report.max_displacements) == 5
+    assert len(report.energy_changes) == 49
+    assert len(report.max_displacements) == 49
+    assert report.selected_segment_epochs_completed == 50
 
 
 def test_single_step_conjugate_budget_is_consumed_by_initialization(monkeypatch):
@@ -642,13 +544,7 @@ def test_single_step_conjugate_budget_is_consumed_by_initialization(monkeypatch)
     optimizer.steps_per_epoch = 1
     optimizer.increasing_vdw = False
 
-    report = _run_optimizer(
-        optimizer,
-        _OptimizerMolecule(),
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, _OptimizerMolecule())
 
     assert backend.initializations == [(1, pytest.approx(1.0e-6))]
     assert backend.take_calls == []
@@ -657,7 +553,7 @@ def test_single_step_conjugate_budget_is_consumed_by_initialization(monkeypatch)
     assert report.termination_reason == "budget_exhausted"
 
 
-def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
+def test_optimizer_selects_lowest_energy_numerically_usable_frame(monkeypatch):
     frames = [
         np.full((2, 3), 3.0),
         np.full((2, 3), 1.0),
@@ -666,266 +562,113 @@ def test_optimizer_selects_lowest_energy_frame_that_passes_gate(monkeypatch):
     backend = _Backend([3.0, 1.0, 2.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
     optimizer.retain_epoch_history = False
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        lambda mol, **options: _acceptance_report(
-            passed=float(mol.coordinates[0, 0]) != 1.0,
-        ),
-    )
     molecule = _OptimizerMolecule()
 
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
+    report = _run_optimizer(optimizer, molecule)
 
-    assert report.best_energy == pytest.approx(2.0)
-    assert np.array_equal(molecule.coordinates, frames[2])
+    assert report.best_energy == pytest.approx(1.0)
+    assert report.quality_report is None
+    assert np.array_equal(molecule.coordinates, frames[1])
     assert len(molecule.frames) == 1
 
 
-@pytest.mark.parametrize("save_movie", (False, True))
-def test_optimizer_warns_and_retains_finite_frames_when_none_passes_gate(
-    monkeypatch,
-    save_movie,
-):
+def test_optimizer_skips_lower_energy_frame_with_nonfinite_gradients(monkeypatch):
     frames = [
-        np.zeros((2, 3)),
-        np.ones((2, 3)),
+        np.full((2, 3), 3.0),
+        np.full((2, 3), 1.0),
         np.full((2, 3), 2.0),
     ]
-    backend = _Backend([3.0, 2.0, 1.0], unit="kJ/mol")
+    backend = _Backend([3.0, 1.0, 2.0], unit="kJ/mol")
     optimizer = _optimizer(monkeypatch, backend, frames)
-    optimizer.retain_epoch_history = save_movie
-    rejected = ff.ForceFieldValidationReport(
-        level="standard",
-        passed=False,
-        checks=(
-            ff.AcceptanceCheck(
-                name="atom_too_close",
-                passed=False,
-                measured=0.2,
-                threshold=0.4,
-            ),
-        ),
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        lambda *args, **options: rejected,
-    )
+    optimizer.increasing_vdw = False
+
+    def gradients(obmol, factor):
+        if backend.index == 1:
+            return float("nan"), float("nan")
+        return 0.0, 0.0
+
+    monkeypatch.setattr(optimizer, "_gradients", gradients)
     molecule = _OptimizerMolecule()
 
-    with pytest.warns(ff.GeometryQualityWarning, match="acceptance"):
-        report = _run_optimizer(
-            optimizer,
-            molecule,
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+    report = _run_optimizer(optimizer, molecule)
 
-    assert report.quality_report is rejected
-    assert report.quality_report.passed is False
     assert report.best_epoch == 2
-    assert report.best_energy == pytest.approx(1.0)
-    assert report.termination_reason == "quality_gate_failed"
-    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
-    assert len(molecule.frames) == (4 if save_movie else 1)
-    assert molecule._conformers_index == (3 if save_movie else 0)
-    assert len(report.epoch_energies) == (3 if save_movie else 0)
+    assert report.best_energy == pytest.approx(2.0)
+    np.testing.assert_array_equal(molecule.coordinates, frames[2])
 
 
-@pytest.mark.parametrize("save_movie", (False, True))
-def test_optimizer_retains_failed_terminal_frame_after_an_accepted_frame(
+def test_optimizer_uses_latest_finite_coordinate_when_no_frame_is_usable(
     monkeypatch,
-    save_movie,
 ):
     frames = [
         np.zeros((2, 3)),
         np.ones((2, 3)),
         np.full((2, 3), 2.0),
     ]
-    optimizer = _optimizer(
-        monkeypatch,
-        _Backend([3.0, 2.0, 1.0], unit="kJ/mol"),
-        frames,
-    )
-    optimizer.retain_epoch_history = save_movie
-    failure = ff.AcceptanceCheck(
-        name="finite_rms_gradient",
-        passed=False,
-        measured=float("nan"),
-        threshold=True,
-    )
-
-    def quality(current, **options):
-        failed = float(current.coordinates[0, 0]) == 2.0
-        return _acceptance_report(
-            passed=not failed,
-            checks=(failure,) if failed else (),
-        )
-
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        quality,
-    )
+    backend = _Backend([float("nan")] * 3, unit="kJ/mol")
+    optimizer = _optimizer(monkeypatch, backend, frames)
+    optimizer.increasing_vdw = False
     molecule = _OptimizerMolecule()
 
-    with pytest.warns(ff.GeometryQualityWarning, match="finite_rms_gradient"):
-        report = _run_optimizer(
-            optimizer,
-            molecule,
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+    report = _run_optimizer(optimizer, molecule)
 
-    assert report.quality_report.passed is False
-    assert report.termination_reason == "quality_gate_failed"
+    assert report.quality_report is None
     assert report.best_epoch == 2
-    assert report.best_energy == pytest.approx(1.0)
+    assert np.isnan(report.best_energy)
     np.testing.assert_array_equal(molecule.coordinates, frames[-1])
-    assert len(molecule.frames) == (4 if save_movie else 1)
-    assert molecule._conformers_index == (3 if save_movie else 0)
 
 
-@pytest.mark.parametrize(
-    "warning_name",
-    ("bond_ring_piercing", "bond_ring_scope_coverage"),
-)
-def test_optimizer_selects_best_frame_despite_bond_ring_warning(
-    monkeypatch,
-    warning_name,
-):
-    frames = [np.zeros((2, 3)), np.ones((2, 3))]
+def test_optimizer_rejects_run_without_any_finite_coordinate_frame(monkeypatch):
+    frames = [
+        np.full((2, 3), np.nan),
+        np.full((2, 3), np.inf),
+        np.full((2, 3), np.nan),
+    ]
     optimizer = _optimizer(
         monkeypatch,
-        _Backend([1.0, 2.0], unit="kJ/mol"),
-        frames,
-    )
-    optimizer.epochs = 2
-    undetermined = ff.ForceFieldValidationReport(
-        level="standard",
-        passed=True,
-        checks=(
-            ff.AcceptanceCheck(
-                name=warning_name,
-                passed=False,
-                severity="warning",
-            ),
-        ),
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        lambda *args, **options: undetermined,
-    )
-    molecule = _OptimizerMolecule()
-
-    report = _run_optimizer(
-        optimizer,
-        molecule,
-        quality_level="standard",
-        topology_reference=object(),
-        quality_thresholds=None,
-    )
-
-    assert report.quality_report is undetermined
-    assert report.best_epoch == 0
-    np.testing.assert_array_equal(molecule.coordinates, frames[0])
-
-
-@pytest.mark.parametrize(
-    "failure_name",
-    ("coordinate_shape", "finite_coordinates", "topology_atom_identity"),
-)
-def test_optimizer_raises_for_unreturnable_frame_failures(
-    monkeypatch,
-    failure_name,
-):
-    frames = [np.zeros((2, 3))]
-    optimizer = _optimizer(
-        monkeypatch,
-        _Backend([1.0], unit="kJ/mol"),
+        _BudgetBackend([3.0, 2.0, 1.0], unit="kJ/mol"),
         frames,
     )
     optimizer.increasing_vdw = False
-    rejected = ff.ForceFieldValidationReport(
-        level="standard",
-        passed=False,
-        checks=(ff.AcceptanceCheck(name=failure_name, passed=False),),
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        lambda *args, **options: rejected,
-    )
+    molecule = _OptimizerMolecule()
+    molecule.coordinates[:] = np.nan
 
     with pytest.raises(ff.GeometryQualityError) as caught:
-        _run_optimizer(
-            optimizer,
-            _OptimizerMolecule(),
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+        _run_optimizer(optimizer, molecule)
 
-    assert caught.value.report is rejected
+    assert caught.value.report is None
 
 
-@pytest.mark.parametrize(
-    "failure_name",
-    (
-        "finite_final_energy",
-        "finite_rms_gradient",
-        "finite_max_gradient",
-        "backend_explosion",
-        "atom_too_close",
-        "bond_length_ratio",
-    ),
-)
-def test_optimizer_retains_finite_frame_with_diagnostic_failure(
+def test_optimizer_restores_finite_initial_frame_when_all_epochs_are_nonreturnable(
     monkeypatch,
-    failure_name,
 ):
-    frames = [np.ones((2, 3))]
+    frames = [
+        np.full((2, 3), np.nan),
+        np.full((2, 3), np.inf),
+        np.full((2, 3), np.nan),
+    ]
     optimizer = _optimizer(
         monkeypatch,
-        _Backend([1.0], unit="kJ/mol"),
+        _BudgetBackend([3.0, 2.0, 1.0], unit="kJ/mol"),
         frames,
     )
     optimizer.increasing_vdw = False
-    rejected = ff.ForceFieldValidationReport(
-        level="standard",
-        passed=False,
-        checks=(ff.AcceptanceCheck(name=failure_name, passed=False),),
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "evaluate_structure_acceptance",
-        lambda *args, **options: rejected,
-    )
     molecule = _OptimizerMolecule()
+    initial_coordinates = molecule.coordinates.copy()
 
-    with pytest.warns(ff.GeometryQualityWarning, match=failure_name):
-        report = _run_optimizer(
-            optimizer,
-            molecule,
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+    report = _run_optimizer(optimizer, molecule)
 
-    assert report.quality_report is rejected
-    assert report.termination_reason == "quality_gate_failed"
-    np.testing.assert_array_equal(molecule.coordinates, frames[-1])
-    assert len(molecule.frames) == 2
+    assert report.best_epoch == -1
+    assert report.selected_segment_epochs_completed == 0
+    assert report.converged is False
+    assert report.exploded is False
+    assert np.isnan(report.final_energy)
+    assert np.isnan(report.best_energy)
+    assert np.isnan(report.rms_gradient)
+    assert np.isnan(report.max_gradient)
+    assert report.energy_changes == ()
+    assert report.max_displacements == ()
+    np.testing.assert_array_equal(molecule.coordinates, initial_coordinates)
 
 
 def test_local_perturbation_is_reproducible_without_changing_global_rng():
@@ -1024,13 +767,7 @@ def test_optimizer_setup_failure_has_structured_diagnostics(monkeypatch):
     )
 
     with pytest.raises(ff.ForceFieldSetupError) as caught:
-        _run_optimizer(
-            optimizer,
-            _OptimizerMolecule(),
-            quality_level="standard",
-            topology_reference=object(),
-            quality_thresholds=None,
-        )
+        _run_optimizer(optimizer, _OptimizerMolecule())
 
     assert caught.value.report == ff.ForceFieldSetupReport(
         requested_forcefield="MMFF94s",

@@ -48,9 +48,14 @@ def _coordination_trajectory():
         energy_kj_mol=-13.0,
         step=1,
         evidence=OptimizationFrameEvidence(
-            accepted=True,
             converged=False,
+            exploded=False,
+            finite_coordinates=True,
+            finite_energy=True,
+            finite_gradients=True,
             rms_gradient_kj_mol_angstrom=0.4,
+            energy_change_kj_mol=0.25,
+            max_displacement_angstrom=0.10,
         ),
     )
     trajectory.select(third.index)
@@ -217,10 +222,15 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
         event=TrajectoryEvent.INITIAL,
         energy_kj_mol=float("nan"),
         evidence=OptimizationFrameEvidence(
-            accepted=False,
             converged=False,
+            exploded=False,
+            finite_coordinates=True,
+            finite_energy=False,
+            finite_gradients=False,
             rms_gradient_kj_mol_angstrom=float("nan"),
             max_gradient_kj_mol_angstrom=float("inf"),
+            energy_change_kj_mol=float("nan"),
+            max_displacement_angstrom=float("inf"),
         ),
     )
     trajectory.select(frame.index)
@@ -235,7 +245,13 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
     assert isinstance(restored_evidence, OptimizationFrameEvidence)
     assert restored_evidence.rms_gradient_kj_mol_angstrom is None
     assert restored_evidence.max_gradient_kj_mol_angstrom is None
+    assert restored_evidence.energy_change_kj_mol is None
+    assert restored_evidence.max_displacement_angstrom is None
+    assert restored_evidence.finite_coordinates is True
+    assert restored_evidence.finite_energy is False
+    assert restored_evidence.finite_gradients is False
     manifest_text = (path / "trajectory.json").read_text(encoding="utf-8")
+    assert json.loads(manifest_text)["format_version"] == 2
     assert "NaN" not in manifest_text
     assert "Infinity" not in manifest_text
     json.loads(manifest_text, parse_constant=lambda value: pytest.fail(value))

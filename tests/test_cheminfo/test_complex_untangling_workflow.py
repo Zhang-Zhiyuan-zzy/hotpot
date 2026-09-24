@@ -1319,9 +1319,7 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
         )
 
     def optimize(current_molecule, **kwargs):
-        optimization_calls.append(
-            (kwargs["epochs"], kwargs["stop_on_ring_piercing"])
-        )
+        optimization_calls.append(kwargs["epochs"])
         events.append("optimize")
         current_molecule.coordinates[:] = (
             1.0 if len(optimization_calls) == 1 else 3.0
@@ -1334,9 +1332,18 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
             return geo.PiercingState.PIERCES, _report(1)
         return geo.PiercingState.DOES_NOT_PIERCE, None
 
+    def accept(*args, **kwargs):
+        events.append("accept")
+        return forcefield_utils.ForceFieldValidationReport(
+            level="standard",
+            passed=True,
+            checks=(),
+        )
+
     monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
     monkeypatch.setattr(workflows, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
 
     report = workflows._optimize_complex_working_mol(
         molecule,
@@ -1369,9 +1376,10 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
         "untangle",
         "optimize",
         "scan",
+        "accept",
     ]
     assert report.untangling.initial_piercing_count == 0
     assert report.untangling.final_piercing_count == 0
     assert report.untangling.attempts_completed == 2
-    assert optimization_calls == [(2, True), (1, True)]
+    assert optimization_calls == [2, 1]
     np.testing.assert_array_equal(molecule.coordinates, np.full((2, 3), 3.0))

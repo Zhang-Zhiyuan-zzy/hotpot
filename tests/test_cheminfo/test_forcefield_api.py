@@ -371,7 +371,13 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
         exploded=False,
     )
     expected_archive = object()
+    quality = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=True,
+        checks=(),
+    )
     calls = []
+    acceptance_calls = []
 
     monkeypatch.setattr(
         workflows,
@@ -394,6 +400,11 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
         return expected
 
     monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    def accept(current, **options):
+        acceptance_calls.append((current, options))
+        return quality
+
+    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(
         workflows,
         "_finalize_trajectory",
@@ -417,7 +428,13 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     assert calls[0][0] is working
     assert calls[0][1]["requested_forcefield"] == "UFF"
     assert calls[0][1]["effective_forcefield"] == "UFF"
-    assert calls[0][1]["quality_level"] == "standard"
+    assert "quality_level" not in calls[0][1]
+    assert "quality_thresholds" not in calls[0][1]
+    assert "topology_reference" not in calls[0][1]
+    assert result.quality_report is quality
+    assert len(acceptance_calls) == 1
+    assert acceptance_calls[0][0] is working
+    assert acceptance_calls[0][1]["forcefield_stage"] == "final"
     assert calls[1] == (molecule, working)
 
 
@@ -773,6 +790,12 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
         max_gradient=0.0,
         exploded=False,
     )
+    quality = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=True,
+        checks=(),
+    )
+    acceptance_calls = []
 
     monkeypatch.setattr(
         workflows,
@@ -790,15 +813,26 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
         return expected
 
     monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    def accept(current, **options):
+        acceptance_calls.append((current, options))
+        return quality
+
+    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.optimize(molecule, forcefield, add_hydrogens=False)
 
-    assert replace(result, trajectory=None) == expected
+    assert replace(result, trajectory=None) == replace(
+        expected,
+        quality_report=quality,
+    )
     assert result.trajectory is not None
     assert calls[0][0] is molecule
     assert calls[0][1]["requested_forcefield"] == forcefield
     assert calls[0][1]["effective_forcefield"] == forcefield
+    assert len(acceptance_calls) == 1
+    assert acceptance_calls[0][0] is molecule
+    assert acceptance_calls[0][1]["forcefield_stage"] == "final"
 
 
 def test_optimize_persists_recorded_frames_when_forcefield_stage_fails(
@@ -853,7 +887,11 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         rms_gradient=0.0,
         max_gradient=0.0,
         exploded=False,
-        quality_report="quality",
+    )
+    quality = ff.ForceFieldValidationReport(
+        level="standard",
+        passed=True,
+        checks=(),
     )
 
     monkeypatch.setattr(
@@ -871,14 +909,17 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "evaluate_structure_acceptance",
-        lambda *args, **kwargs: SimpleNamespace(passed=True),
+        lambda *args, **kwargs: quality,
     )
     monkeypatch.setattr(workflows, "_optimize_working_mol", lambda *args, **kwargs: expected)
     monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)
 
-    assert replace(result.optimization, trajectory=None) == expected
+    assert replace(result.optimization, trajectory=None) == replace(
+        expected,
+        quality_report=quality,
+    )
     assert result.optimization.trajectory is not None
     assert isinstance(result.build, ff.Build3DReport)
     assert hydrogen_requests.count(True) == 1

@@ -184,7 +184,7 @@ def test_current_stage2_scans_each_restored_candidate_then_the_full_graph(
 
 
 def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch):
-    """Stage 3 currently requests a topology-aware optimizer between two scans."""
+    """Stage 3 keeps topology scans outside the numerical optimizer."""
     mol = read_mol("[Zn](N)", "smi")
     calls = []
     run_report = _forcefield_run_report()
@@ -194,7 +194,7 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
         return _untangling_result(attempt_limit=kwargs["attempt_limit"])
 
     def optimize(*args, **kwargs):
-        calls.append(("optimizer", kwargs["stop_on_ring_piercing"]))
+        calls.append(("optimizer",))
         return run_report
 
     def scan(*args, **kwargs):
@@ -203,9 +203,18 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
             ring_scope=kwargs["ring_scope"]
         )
 
+    def accept(*args, **kwargs):
+        calls.append(("terminal_acceptance", kwargs["forcefield_stage"]))
+        return ff.ForceFieldValidationReport(
+            level="basic",
+            passed=True,
+            checks=(),
+        )
+
     monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
     monkeypatch.setattr(workflows, "_scan_confirmed_ring_piercings", scan)
+    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(
         workflows,
         "_combine_forcefield_run_reports",
@@ -239,8 +248,9 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
 
     assert calls == [
         ("untangle", "ligand_skeleton"),
-        ("optimizer", True),
+        ("optimizer",),
         ("post_optimizer_scan", "ligand_skeleton"),
+        ("terminal_acceptance", "final"),
     ]
 
 
@@ -281,10 +291,10 @@ class _EpochBackend:
         return "kJ/mol"
 
 
-def test_current_optimizer_evaluates_acceptance_and_topology_each_epoch(
+def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch(
     monkeypatch,
 ):
-    """The current numerical loop performs acceptance and fallback scans per epoch."""
+    """The numerical loop leaves scientific acceptance to workflow checkpoints."""
     mol = read_mol("CC", "smi")
     frames = [
         np.full_like(mol.coordinates, 1.0),
@@ -293,7 +303,6 @@ def test_current_optimizer_evaluates_acceptance_and_topology_each_epoch(
     ]
     backend = _EpochBackend(frames)
     obmol = SimpleNamespace(coordinates=np.asarray(mol.coordinates).copy())
-    acceptance_calls = []
     topology_calls = []
 
     monkeypatch.setattr(optimizer_impl, "_get_forcefield", lambda name: backend)
@@ -314,19 +323,10 @@ def test_current_optimizer_evaluates_acceptance_and_topology_each_epoch(
         lambda current: np.asarray(current.coordinates).copy(),
     )
 
-    def accept(*args, **kwargs):
-        acceptance_calls.append(kwargs["forcefield_report"]["epochs_completed"])
-        return ff.ForceFieldValidationReport(
-            level="off",
-            passed=True,
-            checks=(),
-        )
-
     def scan(*args, **kwargs):
         topology_calls.append(kwargs["ring_scope"])
         return geo.PiercingState.DOES_NOT_PIERCE
 
-    monkeypatch.setattr(optimizer_impl, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(geo, "determine_bond_ring_piercing_state", scan)
     optimizer = optimizer_impl._OpenBabelOptimizer(
         "UFF",
@@ -341,7 +341,6 @@ def test_current_optimizer_evaluates_acceptance_and_topology_each_epoch(
         vdw_cutoff_start=0.0,
         vdw_cutoff_end=12.5,
         seed=7,
-        stop_on_ring_piercing=True,
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         mol,
@@ -350,12 +349,9 @@ def test_current_optimizer_evaluates_acceptance_and_topology_each_epoch(
 
     report = optimizer.optimize(
         mol,
-        quality_level="off",
-        topology_reference=object(),
-        quality_thresholds=None,
         trajectory=trajectory,
     )
 
     assert report.epochs_completed == 3
-    assert acceptance_calls == [1, 2, 3]
-    assert topology_calls == ["ligand_skeleton"] * 3
+    assert not hasattr(optimizer_impl, "evaluate_structure_acceptance")
+    assert topology_calls == []

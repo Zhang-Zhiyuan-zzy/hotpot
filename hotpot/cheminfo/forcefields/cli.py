@@ -11,6 +11,7 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 from importlib import resources
+from multiprocessing import get_context
 from numbers import Integral, Real
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -532,7 +533,10 @@ def _process_work_items(
 ) -> Tuple[_Outcome, ...]:
     if jobs == 1:
         return tuple(_process_work_item(item) for item in items)
-    with ProcessPoolExecutor(max_workers=jobs) as executor:
+    with ProcessPoolExecutor(
+        max_workers=jobs,
+        mp_context=get_context("spawn"),
+    ) as executor:
         return tuple(executor.map(_process_work_item, items, chunksize=1))
 
 

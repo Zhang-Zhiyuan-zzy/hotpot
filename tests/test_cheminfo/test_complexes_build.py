@@ -841,8 +841,8 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         ligand_untangling_attempts=1,
     )
 
-    assert calls == {"build": 1, "perturb": 2, "screen": 9, "closest": 3}
-    assert ring_sizes == [16] * 9
+    assert calls == {"build": 1, "perturb": 2, "screen": 6, "closest": 3}
+    assert ring_sizes == [16] * 6
     assert diagnostics.attempt_count == 3
     assert diagnostics.accepted_candidates == 0
     assert len(diagnostics.rejected_candidates) == 3

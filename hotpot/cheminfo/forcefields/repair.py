@@ -842,7 +842,10 @@ def _blocked_unbound_metal_centers(
     piercing_bond_keys: Sequence[Tuple[int, int]],
     attempted_metal_indices: set[int],
 ) -> Tuple[_BlockedMetalCenter, ...]:
-    """Group fully blocked pending paths of not-yet-anchored metal centers."""
+    """Group blocked centers only before any coordination bond is accepted."""
+    if _active_coordination_metal_indices(mol):
+        return ()
+
     piercing_keys = set(piercing_bond_keys)
     pending_by_metal: dict[int, list["Bond"]] = {}
     metals_by_index: dict[int, "Atom"] = {}
@@ -851,15 +854,13 @@ def _blocked_unbound_metal_centers(
         metals_by_index[metal.idx] = metal
         pending_by_metal.setdefault(metal.idx, []).append(bond)
 
-    active_metal_indices = _active_coordination_metal_indices(mol)
     return tuple(
         _BlockedMetalCenter(
             metals_by_index[metal_idx],
             tuple(sorted(bonds, key=_bond_key)),
         )
         for metal_idx, bonds in sorted(pending_by_metal.items())
-        if metal_idx not in active_metal_indices
-        and metal_idx not in attempted_metal_indices
+        if metal_idx not in attempted_metal_indices
         and all(_bond_key(bond) in piercing_keys for bond in bonds)
     )
 

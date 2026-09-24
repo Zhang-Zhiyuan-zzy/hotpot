@@ -1343,7 +1343,7 @@ def test_coordination_bond_is_rescreened_immediately_after_metal_relocation(
     assert result.report.forced_bond_keys == ()
 
 
-def test_blocked_unbound_center_relocates_even_when_another_metal_is_anchored(
+def test_blocked_unbound_center_does_not_relocate_after_any_bond_is_accepted(
     monkeypatch,
 ):
     molecule = Molecule()
@@ -1376,17 +1376,13 @@ def test_blocked_unbound_center_relocates_even_when_another_metal_is_anchored(
         "_single_ob_optimization",
         lambda *args, **kwargs: _optimization(1.0),
     )
-    relocated_centers = []
-
-    def relocate(current_molecule, metal, pending_bonds):
-        relocated_centers.append(metal.idx)
-        return _metal_relocation_result(
-            metal,
-            status="infeasible",
-            candidates_evaluated=10,
-        )
-
-    monkeypatch.setattr(repair, "_relocate_unbound_metal", relocate)
+    monkeypatch.setattr(
+        repair,
+        "_relocate_unbound_metal",
+        lambda *args, **kwargs: pytest.fail(
+            "Metal relocation requires globally zero accepted coordination bonds"
+        ),
+    )
 
     result = repair._restore_coordination_bonds_incrementally(
         molecule,
@@ -1397,9 +1393,8 @@ def test_blocked_unbound_center_relocates_even_when_another_metal_is_anchored(
         rng=np.random.default_rng(3),
     )
 
-    assert relocated_centers == [2]
-    assert result.report.metal_relocation_attempt_count == 1
-    assert result.report.infeasible_metal_indices == (2,)
+    assert result.report.metal_relocation_attempt_count == 0
+    assert result.report.infeasible_metal_indices == ()
     assert result.report.forced_bond_keys == (_key(blocked_bond),)
     assert anchored_bond in molecule.bonds
     assert blocked_bond in molecule.bonds

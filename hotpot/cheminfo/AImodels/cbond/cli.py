@@ -6,6 +6,7 @@ import argparse
 from importlib import resources
 from pathlib import Path
 
+from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo.convert import to_hotpot_mol
 
 from .apply import auto_build_cbond, build_all_possible_cbond, get_cbond_runtime
@@ -18,20 +19,12 @@ def load_cli_documentation() -> str:
     )
 
 
-class _DocumentationAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        from rich.console import Console
-        from rich.markdown import Markdown
-
-        Console().print(Markdown(load_cli_documentation()))
-        parser.exit()
-
-
 def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--doc",
-        action=_DocumentationAction,
+        action=MarkdownDocumentationAction,
         nargs=0,
+        document_loader=load_cli_documentation,
         help="show detailed Markdown usage documentation and exit",
     )
     parser.add_argument(

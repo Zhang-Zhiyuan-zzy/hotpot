@@ -506,11 +506,85 @@ def test_scheduled_perturbations_restart_converged_segments(monkeypatch):
     ]
     assert backend.take_calls == [6, 6, 6]
     assert report.epochs_completed == 3
-    assert report.best_epoch == 6
+    assert report.best_epoch == 2
+    assert report.epoch_energies[report.best_epoch] == report.best_energy
     assert report.selected_segment_epochs_completed == 1
     assert len(molecule.frames) == 4
     assert molecule._conformers_index == 3
     assert np.array_equal(molecule.coordinates, frames[2])
+
+
+def _numerical_report(
+    *,
+    epochs_completed,
+    best_epoch,
+    best_energy,
+    epoch_energies,
+    selected_segment_epochs_completed=1,
+):
+    return ff.ForceFieldRunReport(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        setup_succeeded=True,
+        converged=False,
+        epochs_completed=epochs_completed,
+        steps_submitted=epochs_completed,
+        initialization_steps=0,
+        steps_completed=None,
+        final_energy=best_energy,
+        best_energy=best_energy,
+        energy_unit="kJ/mol",
+        rms_gradient=1.0,
+        max_gradient=2.0,
+        exploded=False,
+        best_epoch=best_epoch,
+        selected_segment_epochs_completed=selected_segment_epochs_completed,
+        epoch_energies=epoch_energies,
+    )
+
+
+def test_combined_report_offsets_observed_best_epoch():
+    first = _numerical_report(
+        epochs_completed=2,
+        best_epoch=1,
+        best_energy=2.0,
+        epoch_energies=(3.0, 2.0),
+    )
+    final = _numerical_report(
+        epochs_completed=3,
+        best_epoch=1,
+        best_energy=0.5,
+        epoch_energies=(1.0, 0.5, 0.75),
+        selected_segment_epochs_completed=2,
+    )
+
+    combined = optimizer_impl._combine_forcefield_run_reports((first, final))
+
+    assert combined.best_epoch == 3
+    assert combined.epoch_energies[combined.best_epoch] == combined.best_energy
+    assert combined.selected_segment_epochs_completed == 2
+
+
+def test_combined_report_preserves_initial_frame_sentinel():
+    first = _numerical_report(
+        epochs_completed=2,
+        best_epoch=1,
+        best_energy=2.0,
+        epoch_energies=(3.0, 2.0),
+    )
+    final = _numerical_report(
+        epochs_completed=1,
+        best_epoch=-1,
+        best_energy=float("nan"),
+        epoch_energies=(float("nan"),),
+        selected_segment_epochs_completed=0,
+    )
+
+    combined = optimizer_impl._combine_forcefield_run_reports((first, final))
+
+    assert combined.best_epoch == -1
+    assert np.isnan(combined.best_energy)
+    assert combined.selected_segment_epochs_completed == 0
 
 
 def test_default_output_keeps_only_one_frame_and_numerical_history(monkeypatch):
@@ -662,7 +736,7 @@ def test_optimizer_restores_finite_initial_frame_when_all_epochs_are_nonreturnab
     assert report.selected_segment_epochs_completed == 0
     assert report.converged is False
     assert report.exploded is False
-    assert np.isnan(report.final_energy)
+    assert report.final_energy == pytest.approx(1.0)
     assert np.isnan(report.best_energy)
     assert np.isnan(report.rms_gradient)
     assert np.isnan(report.max_gradient)

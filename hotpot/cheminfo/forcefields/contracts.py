@@ -162,6 +162,11 @@ class ForceFieldRunReport:
     ``initialization_steps`` records the first steps performed by conjugate
     gradient initialization. ``steps_completed`` remains ``None`` rather than
     claiming how many submitted steps Open Babel completed before stopping.
+    ``best_epoch`` is the zero-based ordinal among frames actually observed by
+    the optimizer, not the outer scheduling-loop index.  A value of ``-1``
+    means that the selected coordinates are the segment's unoptimized initial
+    frame.  ``selected_segment_epochs_completed`` counts observations in the
+    numerical segment that produced the selected frame.
     """
 
     requested_forcefield: Optional[str]

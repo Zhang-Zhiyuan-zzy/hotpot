@@ -48,8 +48,8 @@ class _ObservedFrame:
     exploded: bool
     converged: bool
     segment_epochs_completed: int
-    energy_changes: Tuple[float, ...]
-    max_displacements: Tuple[float, ...]
+    segment_index: int
+    history_length: int
 
     @property
     def has_finite_coordinates(self) -> bool:
@@ -198,6 +198,7 @@ class _OpenBabelOptimizer:
         factor: float,
         converged: bool,
         segment_epochs_completed: int,
+        segment_index: int,
         previous_coordinates: Optional[np.ndarray],
         previous_energy: Optional[float],
         energy_changes: list[float],
@@ -224,8 +225,8 @@ class _OpenBabelOptimizer:
             exploded=exploded,
             converged=converged,
             segment_epochs_completed=segment_epochs_completed,
-            energy_changes=tuple(energy_changes),
-            max_displacements=tuple(max_displacements),
+            segment_index=segment_index,
+            history_length=len(energy_changes),
         )
 
     @_serialized_forcefield_call
@@ -248,8 +249,8 @@ class _OpenBabelOptimizer:
             exploded=False,
             converged=False,
             segment_epochs_completed=0,
-            energy_changes=(),
-            max_displacements=(),
+            segment_index=0,
+            history_length=0,
         )
         initial_frame_index: Optional[int] = None
         if records_trajectory:
@@ -292,8 +293,9 @@ class _OpenBabelOptimizer:
             initial_frame_index if initial_is_returnable else None
         )
         last_frame: Optional[_ObservedFrame] = None
-        energy_changes: list[float] = []
-        max_displacements: list[float] = []
+        energy_change_segments: list[list[float]] = [[]]
+        displacement_segments: list[list[float]] = [[]]
+        segment_index = 0
         epoch_energies: list[float] = []
         previous_coordinates = None
         previous_energy = None
@@ -328,8 +330,9 @@ class _OpenBabelOptimizer:
             restart_segment = reset_history or (self.increasing_vdw and epoch > 0)
             if restart_segment:
                 self._setup(mol, obmol)
-                energy_changes.clear()
-                max_displacements.clear()
+                energy_change_segments.append([])
+                displacement_segments.append([])
+                segment_index += 1
                 previous_coordinates = None
                 previous_energy = None
                 segment_epochs_completed = 0
@@ -375,10 +378,11 @@ class _OpenBabelOptimizer:
                 factor=factor,
                 converged=reported_converged,
                 segment_epochs_completed=segment_epochs_completed,
+                segment_index=segment_index,
                 previous_coordinates=previous_coordinates,
                 previous_energy=previous_energy,
-                energy_changes=energy_changes,
-                max_displacements=max_displacements,
+                energy_changes=energy_change_segments[segment_index],
+                max_displacements=displacement_segments[segment_index],
             )
             mol.coordinates = frame.coordinates
             trajectory_frame: Optional[ForceFieldFrame] = None
@@ -399,13 +403,13 @@ class _OpenBabelOptimizer:
                         rms_gradient_kj_mol_angstrom=frame.rms_gradient,
                         max_gradient_kj_mol_angstrom=frame.max_gradient,
                         energy_change_kj_mol=(
-                            frame.energy_changes[-1]
-                            if frame.energy_changes
+                            energy_change_segments[segment_index][-1]
+                            if energy_change_segments[segment_index]
                             else None
                         ),
                         max_displacement_angstrom=(
-                            frame.max_displacements[-1]
-                            if frame.max_displacements
+                            displacement_segments[segment_index][-1]
+                            if displacement_segments[segment_index]
                             else None
                         ),
                     ),
@@ -421,7 +425,7 @@ class _OpenBabelOptimizer:
                 best_frame is None or frame.energy < best_frame.energy
             ):
                 best_frame = frame
-                best_epoch = epoch
+                best_epoch = epochs_completed - 1
                 best_frame_index = (
                     None if trajectory_frame is None else trajectory_frame.index
                 )
@@ -445,8 +449,6 @@ class _OpenBabelOptimizer:
             best_epoch = latest_returnable_epoch
             best_frame_index = latest_returnable_frame_index
 
-        selected_initial_frame = best_epoch == -1
-
         mol.coordinates = best_frame.coordinates
         if best_frame_index is not None:
             trajectory.select(best_frame_index)
@@ -460,11 +462,7 @@ class _OpenBabelOptimizer:
             steps_submitted=steps_submitted,
             initialization_steps=initialization_steps,
             steps_completed=None,
-            final_energy=(
-                float("nan")
-                if selected_initial_frame
-                else float(last_frame.energy)
-            ),
+            final_energy=float(last_frame.energy),
             best_energy=float(best_frame.energy),
             energy_unit="kJ/mol",
             rms_gradient=float(best_frame.rms_gradient),
@@ -472,8 +470,16 @@ class _OpenBabelOptimizer:
             exploded=best_frame.exploded,
             backend_energy_unit=backend_unit,
             gradient_unit="kJ/(mol*angstrom)",
-            energy_changes=best_frame.energy_changes,
-            max_displacements=best_frame.max_displacements,
+            energy_changes=tuple(
+                energy_change_segments[best_frame.segment_index][
+                    :best_frame.history_length
+                ]
+            ),
+            max_displacements=tuple(
+                displacement_segments[best_frame.segment_index][
+                    :best_frame.history_length
+                ]
+            ),
             best_epoch=best_epoch,
             selected_segment_epochs_completed=(
                 best_frame.segment_epochs_completed
@@ -536,7 +542,11 @@ def _combine_forcefield_run_reports(
         initialization_steps=sum(
             report.initialization_steps for report in reports
         ),
-        best_epoch=preceding_epochs + final_report.best_epoch,
+        best_epoch=(
+            -1
+            if final_report.best_epoch < 0
+            else preceding_epochs + final_report.best_epoch
+        ),
         epoch_energies=tuple(
             energy
             for report in reports

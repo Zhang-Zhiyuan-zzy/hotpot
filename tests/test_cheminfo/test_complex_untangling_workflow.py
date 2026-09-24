@@ -1400,6 +1400,65 @@ def test_blocked_unbound_center_does_not_relocate_after_any_bond_is_accepted(
     assert blocked_bond in molecule.bonds
 
 
+def test_accepted_bond_allows_relaxation_after_prior_metal_relocation(
+    monkeypatch,
+):
+    molecule = Molecule()
+    for atomic_number, coordinate in zip(
+        (30, 7, 30, 7),
+        (
+            (0.0, 0.0, 0.0),
+            (2.0, 0.0, 0.0),
+            (6.0, 0.0, 0.0),
+            (8.0, 0.0, 0.0),
+        ),
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            coordinates=coordinate,
+        )
+    first_bond = molecule.add_bond(0, 1, bond_order=1.0)
+    blocked_bond = molecule.add_bond(2, 3, bond_order=1.0)
+    relocated = False
+    optimization_calls = 0
+
+    def relation_counts(report, bond):
+        if bond is first_bond and relocated:
+            return _coordination_counts()
+        return _coordination_counts(piercing=1)
+
+    def relocate(current_molecule, metal, pending_bonds):
+        nonlocal relocated
+        relocated = True
+        return _metal_relocation_result(metal, status="relocated")
+
+    def optimize(*args, **kwargs):
+        nonlocal optimization_calls
+        optimization_calls += 1
+        return _optimization(float(optimization_calls))
+
+    _mock_coordination_scans(monkeypatch, relation_counts)
+    monkeypatch.setattr(repair, "_relocate_unbound_metal", relocate)
+    monkeypatch.setattr(repair, "_single_ob_optimization", optimize)
+
+    result = repair._restore_coordination_bonds_incrementally(
+        molecule,
+        "UFF",
+        attempt_limit=1,
+        relaxation_steps=5,
+        perturb_sigma=0.5,
+        rng=np.random.default_rng(3),
+    )
+
+    assert optimization_calls == 2
+    assert result.report.metal_relocation_attempt_count == 1
+    assert result.report.relocated_metal_indices == (0,)
+    assert result.report.attempts_completed == 1
+    assert result.report.forced_bond_keys == (_key(blocked_bond),)
+    assert first_bond in molecule.bonds
+    assert blocked_bond in molecule.bonds
+
+
 def test_each_unbound_metal_relocation_is_followed_by_candidate_rescreening(
     monkeypatch,
 ):

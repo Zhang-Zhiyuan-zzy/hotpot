@@ -1153,13 +1153,9 @@ def _restore_coordination_bonds_incrementally(
                     attempt=stalled_attempts,
                 )
                 continue
-            active_metal_indices = _active_coordination_metal_indices(mol)
             if (
                 relocation_attempted_metal_indices
-                and not any(
-                    _coordination_metal(bond).idx in active_metal_indices
-                    for bond in pending_bonds
-                )
+                and not _active_coordination_metal_indices(mol)
             ):
                 break
             if stalled_attempts >= attempt_limit:

@@ -148,3 +148,63 @@ def test_prepared_aabb_does_not_hide_an_invalid_cycle() -> None:
     assert screening.state is PiercingState.UNDETERMINED
     assert not screening.aabb_separated
     assert screening.relation is not None
+
+
+def test_cycle_topology_template_is_reused_by_vertex_count() -> None:
+    relation._cycle_topology_template.cache_clear()
+
+    first = relation._cycle_topology_template(4)
+    second = relation._cycle_topology_template(4)
+    different_size = relation._cycle_topology_template(5)
+
+    assert first is second
+    assert first is not different_size
+    assert relation._cycle_topology_template.cache_info().hits == 1
+    assert relation._cycle_topology_template.cache_info().misses == 2
+    assert all(isinstance(surface, tuple) for surface in first.triangulations)
+    assert all(isinstance(edges, tuple) for edges in first.internal_edges)
+    assert all(isinstance(pairs, tuple) for pairs in first.triangle_pairs)
+    assert all(
+        isinstance(simplices, tuple)
+        for simplices in first.shared_simplices
+    )
+
+
+def test_topology_cache_never_reuses_coordinate_facts() -> None:
+    relation._cycle_topology_template.cache_clear()
+    first_cycle = Cycle(
+        ((0.0, 0.0, 0.0), (2.0, 0.0, 0.0), (2.0, 2.0, 0.4), (0.0, 2.0, 0.0))
+    )
+    shifted_cycle = Cycle(tuple(
+        (point.x + 10.0, point.y, point.z)
+        for point in first_cycle.vertices
+    ))
+
+    first = relation._prepare_cycle_geometry(
+        first_cycle,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    )
+    shifted = relation._prepare_cycle_geometry(
+        shifted_cycle,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    )
+    segment = (Segment((0.6, 0.8, -1.0), (0.6, 0.8, 1.0)),)
+    first_result = tuple(relation._iter_prepared_segment_cycle_screenings(
+        segment,
+        first,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    ))
+    shifted_result = tuple(relation._iter_prepared_segment_cycle_screenings(
+        segment,
+        shifted,
+        relation.DEFAULT_GEOMETRY_SETTINGS,
+    ))
+
+    assert relation._cycle_topology_template.cache_info().misses == 1
+    assert relation._cycle_topology_template.cache_info().hits == 1
+    assert first is not shifted
+    assert first.nonplanar_surface_family is not shifted.nonplanar_surface_family
+    assert not (first.coordinates == shifted.coordinates).all()
+    assert first_result[0].state is PiercingState.PIERCES
+    assert shifted_result[0].state is PiercingState.DOES_NOT_PIERCE
+    assert shifted_result[0].aabb_separated

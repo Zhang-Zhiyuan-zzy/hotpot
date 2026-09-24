@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from functools import lru_cache
 from math import atan2, comb, pi, sqrt
 from typing import Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Tuple, cast
 
@@ -250,11 +251,27 @@ class _SurfaceCounters:
     triangle_pair_budget_exhausted: bool = False
 
 
+_TriangleIndices = Tuple[int, int, int]
+_SurfaceIndices = Tuple[_TriangleIndices, ...]
+_EdgeIndices = Tuple[int, int]
+
+
+@dataclass(frozen=True)
+class _CycleTopologyTemplate:
+    """Immutable, coordinate-free topology shared by equal-sized cycles."""
+
+    triangulations: Tuple[_SurfaceIndices, ...]
+    internal_edges: Tuple[Tuple[_EdgeIndices, ...], ...]
+    triangle_pairs: Tuple[Tuple[Tuple[int, int], ...], ...]
+    shared_simplices: Tuple[Tuple[Tuple[int, ...], ...], ...]
+
+
 @dataclass(frozen=True)
 class _PreparedNonplanarSurfaceFamily:
     enumeration_complete: bool
     enumerated_surface_count: int
     embedded_surfaces: Tuple[Tuple[Tuple[int, int, int], ...], ...]
+    embedded_internal_edges: Tuple[Tuple[_EdgeIndices, ...], ...]
     proven_non_embedded_surface_count: int
     construction_undetermined_count: int
     triangle_pair_tests_used: int
@@ -902,7 +919,7 @@ def _segment_triangle_relation(
 
 def _enumerate_cycle_triangulations(
     vertex_count: int,
-) -> Tuple[Tuple[Tuple[int, int, int], ...], ...]:
+) -> Tuple[_SurfaceIndices, ...]:
     cache: Dict[
         Tuple[int, int], Tuple[Tuple[Tuple[int, int, int], ...], ...]
     ] = {}
@@ -929,6 +946,66 @@ def _enumerate_cycle_triangulations(
         return result
 
     return enumerate_interval(0, vertex_count - 1)
+
+
+def _surface_internal_edges(
+    surface: _SurfaceIndices,
+    vertex_count: int,
+) -> Tuple[_EdgeIndices, ...]:
+    counts: Dict[_EdgeIndices, int] = {}
+    for triangle_indices in surface:
+        for index in range(3):
+            edge = cast(
+                _EdgeIndices,
+                tuple(sorted((
+                    triangle_indices[index],
+                    triangle_indices[(index + 1) % 3],
+                ))),
+            )
+            counts[edge] = counts.get(edge, 0) + 1
+    cycle_edges = {
+        tuple(sorted((index, (index + 1) % vertex_count)))
+        for index in range(vertex_count)
+    }
+    return tuple(
+        edge
+        for edge, count in counts.items()
+        if count == 2 and edge not in cycle_edges
+    )
+
+
+@lru_cache(maxsize=None)
+def _cycle_topology_template(vertex_count: int) -> _CycleTopologyTemplate:
+    """Return coordinate-free triangulation facts for one cycle size."""
+
+    triangulations = _enumerate_cycle_triangulations(vertex_count)
+    internal_edges = tuple(
+        _surface_internal_edges(surface, vertex_count)
+        for surface in triangulations
+    )
+    triangle_pairs = tuple(
+        tuple(
+            (first_index, second_index)
+            for first_index in range(len(surface))
+            for second_index in range(first_index + 1, len(surface))
+        )
+        for surface in triangulations
+    )
+    shared_simplices = tuple(
+        tuple(
+            tuple(sorted(
+                set(surface[first_index]) & set(surface[second_index])
+            ))
+            for first_index, second_index in surface_pairs
+        )
+        for surface, surface_pairs in zip(triangulations, triangle_pairs)
+    )
+    return _CycleTopologyTemplate(
+        triangulations,
+        internal_edges,
+        triangle_pairs,
+        shared_simplices,
+    )
 
 
 def _triangle_from_indices(
@@ -960,6 +1037,7 @@ def _coplanar_triangle_pair_state(
     cycle: Cycle,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
+    shared: Tuple[int, ...],
 ) -> SurfaceEmbeddingState:
     first_coordinates = np.asarray(
         [cycle.vertices[index].coordinates for index in first_indices],
@@ -980,7 +1058,6 @@ def _coplanar_triangle_pair_state(
     second_projected = _project_to_plane(
         second_coordinates, first_coordinates[0], normal
     )
-    shared = tuple(sorted(set(first_indices) & set(second_indices)))
     guard = settings.tolerance.predicate_guard_factor
 
     for first_edge_index in range(3):
@@ -1052,6 +1129,7 @@ def _triangle_pair_state(
     cycle: Cycle,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
+    shared: Tuple[int, ...],
 ) -> SurfaceEmbeddingState:
     first_triangle = _triangle_from_indices(cycle, first_indices)
     second_triangle = _triangle_from_indices(cycle, second_indices)
@@ -1061,7 +1139,6 @@ def _triangle_pair_state(
     second_coordinates = np.asarray(
         [vertex.coordinates for vertex in second_triangle.vertices], dtype=np.float64
     )
-    shared = tuple(sorted(set(first_indices) & set(second_indices)))
     if not shared and _aabb_stably_separated(
         first_coordinates, second_coordinates, tolerances.aabb
     ):
@@ -1110,7 +1187,12 @@ def _triangle_pair_state(
     residuals = first_residuals + second_residuals
     if residuals and all(value <= tolerances.volume for value in residuals):
         return _coplanar_triangle_pair_state(
-            first_indices, second_indices, cycle, tolerances, settings
+            first_indices,
+            second_indices,
+            cycle,
+            tolerances,
+            settings,
+            shared,
         )
     if any(
         tolerances.volume < value <= guard * tolerances.volume
@@ -1152,7 +1234,9 @@ def _triangle_pair_state(
 
 
 def _determine_surface_embedding(
-    surface: Tuple[Tuple[int, int, int], ...],
+    surface: _SurfaceIndices,
+    triangle_pairs: Tuple[Tuple[int, int], ...],
+    shared_simplices: Tuple[Tuple[int, ...], ...],
     cycle: Cycle,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
@@ -1177,48 +1261,27 @@ def _determine_surface_embedding(
         if area_measure <= guard * tolerances.area:
             return SurfaceEmbeddingState.CONSTRUCTION_UNDETERMINED
 
-    for first_index in range(len(surface)):
-        for second_index in range(first_index + 1, len(surface)):
-            if (
-                counters.triangle_pair_tests
-                >= settings.surface.maximum_triangle_pair_tests
-            ):
-                counters.triangle_pair_budget_exhausted = True
-                return SurfaceEmbeddingState.CONSTRUCTION_UNDETERMINED
-            counters.triangle_pair_tests += 1
-            pair_state = _triangle_pair_state(
-                surface[first_index],
-                surface[second_index],
-                cycle,
-                tolerances,
-                settings,
-            )
-            if pair_state is not SurfaceEmbeddingState.EMBEDDED:
-                return pair_state
+    for (first_index, second_index), shared in zip(
+        triangle_pairs, shared_simplices
+    ):
+        if (
+            counters.triangle_pair_tests
+            >= settings.surface.maximum_triangle_pair_tests
+        ):
+            counters.triangle_pair_budget_exhausted = True
+            return SurfaceEmbeddingState.CONSTRUCTION_UNDETERMINED
+        counters.triangle_pair_tests += 1
+        pair_state = _triangle_pair_state(
+            surface[first_index],
+            surface[second_index],
+            cycle,
+            tolerances,
+            settings,
+            shared,
+        )
+        if pair_state is not SurfaceEmbeddingState.EMBEDDED:
+            return pair_state
     return SurfaceEmbeddingState.EMBEDDED
-
-
-def _surface_internal_edges(
-    surface: Tuple[Tuple[int, int, int], ...],
-    cycle: Cycle,
-) -> Tuple[Tuple[int, int], ...]:
-    counts: Dict[Tuple[int, int], int] = {}
-    for triangle_indices in surface:
-        for index in range(3):
-            edge = tuple(
-                sorted(
-                    (
-                        triangle_indices[index],
-                        triangle_indices[(index + 1) % 3],
-                    )
-                )
-            )
-            counts[edge] = counts.get(edge, 0) + 1
-    cycle_edges = {
-        tuple(sorted((index, (index + 1) % len(cycle))))
-        for index in range(len(cycle))
-    }
-    return tuple(edge for edge, count in counts.items() if count == 2 and edge not in cycle_edges)
 
 
 def _point_near_internal_simplex(
@@ -1267,7 +1330,8 @@ def _merge_points(
 
 def _surface_segment_relation(
     segment: Segment,
-    surface: Tuple[Tuple[int, int, int], ...],
+    surface: _SurfaceIndices,
+    internal_edges: Tuple[_EdgeIndices, ...],
     cycle: Cycle,
     tolerances: _PredicateTolerances,
     settings: GeometrySettings,
@@ -1278,7 +1342,6 @@ def _surface_segment_relation(
     points: List[np.ndarray] = []
     confirmed_intersection = False
     evaluation_undetermined = False
-    internal_edges = _surface_internal_edges(surface, cycle)
     guard = settings.tolerance.predicate_guard_factor
 
     for indices in surface:
@@ -1623,6 +1686,7 @@ def _prepare_nonplanar_surface_family(
             False,
             0,
             tuple(),
+            tuple(),
             0,
             0,
             0,
@@ -1635,6 +1699,7 @@ def _prepare_nonplanar_surface_family(
             False,
             0,
             tuple(),
+            tuple(),
             0,
             1,
             0,
@@ -1642,7 +1707,8 @@ def _prepare_nonplanar_surface_family(
         )
     tolerances = _predicate_tolerances(length_scale, settings)
 
-    triangulations = _enumerate_cycle_triangulations(vertex_count)
+    topology = _cycle_topology_template(vertex_count)
+    triangulations = topology.triangulations
     expected_count = comb(2 * vertex_count - 4, vertex_count - 2) // (
         vertex_count - 1
     )
@@ -1659,13 +1725,20 @@ def _prepare_nonplanar_surface_family(
     construction_unknown = 0
     causes = set()
     embedded_surfaces: List[Tuple[Tuple[int, int, int], ...]] = []
+    embedded_internal_edges: List[Tuple[_EdgeIndices, ...]] = []
 
-    for surface in triangulations:
+    for surface_index, surface in enumerate(triangulations):
         if counters.triangle_pair_budget_exhausted:
             enumeration_complete = False
             break
         embedding = _determine_surface_embedding(
-            surface, cycle, tolerances, settings, counters
+            surface,
+            topology.triangle_pairs[surface_index],
+            topology.shared_simplices[surface_index],
+            cycle,
+            tolerances,
+            settings,
+            counters,
         )
         enumerated += 1
         if embedding is SurfaceEmbeddingState.PROVEN_NON_EMBEDDED:
@@ -1680,6 +1753,7 @@ def _prepare_nonplanar_surface_family(
             continue
 
         embedded_surfaces.append(surface)
+        embedded_internal_edges.append(topology.internal_edges[surface_index])
 
     if not enumeration_complete:
         causes.add(SegmentCycleIndeterminacy.INCOMPLETE_SURFACE_FAMILY)
@@ -1688,6 +1762,7 @@ def _prepare_nonplanar_surface_family(
         enumeration_complete,
         enumerated,
         tuple(embedded_surfaces),
+        tuple(embedded_internal_edges),
         proven_nonembedded,
         construction_unknown,
         counters.triangle_pair_tests,
@@ -1716,9 +1791,17 @@ def _nonplanar_segment_cycle_relation(
         triangle_pair_tests=prepared.triangle_pair_tests_used
     )
 
-    for surface_index, surface in enumerate(embedded_surfaces):
+    for surface_index, (surface, internal_edges) in enumerate(zip(
+        embedded_surfaces, prepared.embedded_internal_edges
+    )):
         surface_result = _surface_segment_relation(
-            segment, surface, cycle, tolerances, settings, counters
+            segment,
+            surface,
+            internal_edges,
+            cycle,
+            tolerances,
+            settings,
+            counters,
         )
         features.update(surface_result.features)
         causes.update(surface_result.causes)

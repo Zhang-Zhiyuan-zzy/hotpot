@@ -56,6 +56,7 @@ TrajectoryPath = Union[str, os.PathLike[str]]
 TerminationReason = Literal[
     "converged",
     "budget_exhausted",
+    "topology_blocked",
 ]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]

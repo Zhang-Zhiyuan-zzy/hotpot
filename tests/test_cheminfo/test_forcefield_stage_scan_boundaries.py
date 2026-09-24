@@ -390,10 +390,11 @@ def test_coordination_restoration_report_has_stage2_mechanical_facts_only():
     )
 
 
-def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch):
-    """Stage 3 keeps topology scans outside the numerical optimizer."""
+def test_stage3_reuses_full_graph_terminal_checkpoint_for_acceptance(monkeypatch):
+    """Stage 3 scans full graph only at its explicit boundary checkpoints."""
     mol = read_mol("[Zn](N)", "smi")
     calls = []
+    scanned_reports = []
     run_report = _forcefield_run_report()
 
     def untangle(*args, **kwargs):
@@ -406,10 +407,16 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
 
     def scan(*args, **kwargs):
         calls.append(("checkpoint", kwargs["ring_scope"]))
-        return _empty_screening_report(ring_scope=kwargs["ring_scope"])
+        report = _empty_screening_report(ring_scope=kwargs["ring_scope"])
+        scanned_reports.append(report)
+        return report
 
     def accept(*args, **kwargs):
-        calls.append(("terminal_acceptance", kwargs["forcefield_stage"]))
+        calls.append((
+            "terminal_acceptance",
+            kwargs["forcefield_stage"],
+            kwargs["bond_ring_report"],
+        ))
         return ff.ForceFieldValidationReport(
             level="basic",
             passed=True,
@@ -419,7 +426,11 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
     monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
     monkeypatch.setattr(workflows, "_scan_ring_checkpoint", scan)
-    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(
+        workflows,
+        "evaluate_structure_acceptance_at_checkpoint",
+        accept,
+    )
     monkeypatch.setattr(
         workflows,
         "_combine_forcefield_run_reports",
@@ -430,7 +441,7 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
         start=TrajectoryStart.FINAL_OPTIMIZATION,
     )
 
-    workflows._optimize_complex_working_mol(
+    result = workflows._optimize_complex_working_mol(
         mol,
         requested_forcefield="UFF",
         effective_forcefield="UFF",
@@ -452,12 +463,172 @@ def test_current_stage3_uses_ligand_scope_before_and_after_optimizer(monkeypatch
     )
 
     assert calls == [
-        ("checkpoint", "ligand_skeleton"),
-        ("untangle", "ligand_skeleton"),
+        ("checkpoint", "full_graph"),
         ("optimizer",),
-        ("checkpoint", "ligand_skeleton"),
-        ("terminal_acceptance", "final"),
+        ("checkpoint", "full_graph"),
+        ("terminal_acceptance", "final", scanned_reports[-1]),
     ]
+    assert result.untangling.attempts_completed == 0
+    assert result.untangling.initial_piercing_count == 0
+
+
+def test_stage3_passes_entry_checkpoint_directly_to_repair(monkeypatch):
+    mol = read_mol("[Zn](N)", "smi")
+    entry_report = _piercing_screening_report(ring_scope="full_graph")
+    repaired_report = _empty_screening_report(ring_scope="full_graph")
+    terminal_report = _empty_screening_report(ring_scope="full_graph")
+    scan_reports = iter((entry_report, terminal_report))
+    repaired_inputs = []
+    accepted_reports = []
+
+    def untangle(*args, **kwargs):
+        repaired_inputs.append(kwargs["checkpoint_report"])
+        return repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=1,
+                initial_piercing_count=1,
+                final_piercing_count=0,
+                minimum_piercing_count=0,
+                resolved=True,
+            ),
+            energy=0.0,
+            checkpoint_report=repaired_report,
+        )
+
+    monkeypatch.setattr(
+        workflows,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: next(scan_reports),
+    )
+    monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
+    monkeypatch.setattr(
+        workflows,
+        "_optimize_working_mol",
+        lambda *args, **kwargs: _forcefield_run_report(),
+    )
+    monkeypatch.setattr(
+        workflows,
+        "_combine_forcefield_run_reports",
+        lambda reports: reports[-1],
+    )
+    monkeypatch.setattr(
+        workflows,
+        "evaluate_structure_acceptance_at_checkpoint",
+        lambda *args, **kwargs: (
+            accepted_reports.append(kwargs["bond_ring_report"])
+            or ff.ForceFieldValidationReport(
+                level="basic",
+                passed=True,
+                checks=(),
+            )
+        ),
+    )
+
+    workflows._optimize_complex_working_mol(
+        mol,
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        algorithm="conjugate",
+        epochs=1,
+        steps_per_epoch=1,
+        complex_untangling_attempts=2,
+        quality_level="basic",
+        topology_reference=object(),
+        quality_thresholds=None,
+        seed=7,
+        perturb_interval=None,
+        perturb_sigma=0.0,
+        retain_epoch_history=False,
+        increasing_vdw=False,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.5,
+        trajectory=ForceFieldTrajectory.from_molecule(
+            mol,
+            start=TrajectoryStart.FINAL_OPTIMIZATION,
+        ),
+    )
+
+    assert repaired_inputs == [entry_report]
+    assert accepted_reports == [terminal_report]
+
+
+def test_stage3_does_not_optimize_an_unresolved_entry_piercing(monkeypatch):
+    mol = read_mol("[Zn](N)", "smi")
+    checkpoint_report = _piercing_screening_report(ring_scope="full_graph")
+    accepted_reports = []
+
+    def fail_optimize(*args, **kwargs):
+        raise AssertionError("topology-blocked coordinates reached optimizer")
+
+    monkeypatch.setattr(
+        workflows,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: checkpoint_report,
+    )
+    monkeypatch.setattr(
+        workflows,
+        "_untangle_ring_piercings",
+        lambda *args, **kwargs: repair._RingUntanglingResult(
+            report=ff.RingUntanglingReport(
+                attempt_limit=kwargs["attempt_limit"],
+                attempts_completed=0,
+                initial_piercing_count=1,
+                final_piercing_count=1,
+                minimum_piercing_count=1,
+                resolved=False,
+            ),
+            energy=float("nan"),
+            checkpoint_report=checkpoint_report,
+        ),
+    )
+    monkeypatch.setattr(
+        workflows,
+        "_optimize_working_mol",
+        fail_optimize,
+    )
+    monkeypatch.setattr(workflows.warnings, "warn", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        workflows,
+        "evaluate_structure_acceptance_at_checkpoint",
+        lambda *args, **kwargs: (
+            accepted_reports.append(kwargs["bond_ring_report"])
+            or ff.ForceFieldValidationReport(
+                level="basic",
+                passed=False,
+                checks=(),
+            )
+        ),
+    )
+
+    result = workflows._optimize_complex_working_mol(
+        mol,
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        algorithm="conjugate",
+        epochs=1,
+        steps_per_epoch=1,
+        complex_untangling_attempts=2,
+        quality_level="basic",
+        topology_reference=object(),
+        quality_thresholds=None,
+        seed=7,
+        perturb_interval=None,
+        perturb_sigma=0.0,
+        retain_epoch_history=False,
+        increasing_vdw=False,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.5,
+        trajectory=ForceFieldTrajectory.from_molecule(
+            mol,
+            start=TrajectoryStart.FINAL_OPTIMIZATION,
+        ),
+    )
+
+    assert result.epochs_completed == 0
+    assert result.termination_reason == "topology_blocked"
+    assert result.untangling.final_piercing_count == 1
+    assert accepted_reports == [checkpoint_report]
 
 
 class _EpochBackend:

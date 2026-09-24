@@ -371,6 +371,87 @@ def test_ring_piercing_watch_tracks_only_the_confirmed_pair():
     )
 
 
+def test_chelate_ring_watch_only_exposes_metal_ligand_opening_edges():
+    molecule = Molecule()
+    for atomic_number, coordinate in zip(
+        (30, 7, 6, 6, 6),
+        (
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.5, 1.0, 0.0),
+            (0.5, 0.3, -1.0),
+            (0.5, 0.3, 1.0),
+        ),
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            coordinates=coordinate,
+        )
+    metal_nitrogen = molecule.add_bond(0, 1, bond_order=1.0)
+    organic_edge = molecule.add_bond(1, 2, bond_order=1.0)
+    metal_carbon = molecule.add_bond(2, 0, bond_order=1.0)
+    target_bond = molecule.add_bond(3, 4, bond_order=1.0)
+    ring = molecule.rings_for_scope("full_graph")[0]
+    finding = SimpleNamespace(
+        target=SimpleNamespace(
+            ring=SimpleNamespace(
+                key=tuple(atom.idx for atom in ring.atoms),
+                ring=ring,
+            ),
+            bond=SimpleNamespace(key=_key(target_bond), bond=target_bond),
+        ),
+    )
+    report = SimpleNamespace(
+        ring_scope="full_graph",
+        piercings=(finding,),
+    )
+
+    watch = repair._ring_piercing_watch(molecule, report)
+
+    assert watch[0].opening_edge_keys == tuple(sorted((
+        _key(metal_nitrogen),
+        _key(metal_carbon),
+    )))
+    assert _key(organic_edge) not in watch[0].opening_edge_keys
+
+
+def test_unrepairable_chelate_watch_warns_without_opening_a_bond(monkeypatch):
+    molecule = _UntanglingMolecule()
+    molecule.bonds = ()
+    checkpoint = _report(1)
+    watch = (
+        repair._WatchedRingPiercing(
+            repair._BondRingPairKey((0, 1, 2), (3, 4)),
+            (),
+        ),
+    )
+    monkeypatch.setattr(
+        repair,
+        "_ring_piercing_watch",
+        lambda *args, **kwargs: watch,
+    )
+    monkeypatch.setattr(
+        repair,
+        "_scan_ring_checkpoint",
+        lambda *args, **kwargs: checkpoint,
+    )
+
+    result = repair._untangle_ring_piercings(
+        molecule,
+        "UFF",
+        attempt_limit=3,
+        short_steps=1,
+        settling_steps=0,
+        perturb_sigma=0.0,
+        rng=np.random.default_rng(7),
+        checkpoint_report=checkpoint,
+    )
+
+    assert result.report.attempts_completed == 0
+    assert result.report.resolved is False
+    assert "no eligible ring-opening edge" in result.report.warning_messages[0]
+    assert not any(event[0] == "open" for event in molecule.events)
+
 def test_ring_checkpoint_preserves_a_non_piercing_report(monkeypatch):
     molecule = _UntanglingMolecule()
     expected = _report(0)
@@ -1270,11 +1351,15 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     events = []
     untangling_calls = 0
     optimization_calls = []
+    checkpoint_reports = []
+    repair_inputs = []
+    acceptance_inputs = []
 
     def untangle(current_molecule, *args, **kwargs):
         nonlocal untangling_calls
         untangling_calls += 1
         events.append("untangle")
+        repair_inputs.append(kwargs["checkpoint_report"])
         marker = 0.0 if untangling_calls == 1 else 2.0
         current_molecule.coordinates[:] = marker
         return _untangling_result(
@@ -1292,11 +1377,15 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     def scan(current_molecule, **kwargs):
         events.append("scan")
         if float(current_molecule.coordinates[0, 0]) == 1.0:
-            return _report(1)
-        return _report(0)
+            report = _report(1)
+        else:
+            report = _report(0)
+        checkpoint_reports.append(report)
+        return report
 
     def accept(*args, **kwargs):
         events.append("accept")
+        acceptance_inputs.append(kwargs["bond_ring_report"])
         return forcefield_utils.ForceFieldValidationReport(
             level="standard",
             passed=True,
@@ -1306,7 +1395,11 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
     monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
     monkeypatch.setattr(workflows, "_scan_ring_checkpoint", scan)
-    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(
+        workflows,
+        "evaluate_structure_acceptance_at_checkpoint",
+        accept,
+    )
 
     report = workflows._optimize_complex_working_mol(
         molecule,
@@ -1334,7 +1427,6 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
 
     assert events == [
         "scan",
-        "untangle",
         "optimize",
         "scan",
         "untangle",
@@ -1344,6 +1436,8 @@ def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
     ]
     assert report.untangling.initial_piercing_count == 0
     assert report.untangling.final_piercing_count == 0
-    assert report.untangling.attempts_completed == 2
+    assert report.untangling.attempts_completed == 1
     assert optimization_calls == [2, 1]
+    assert repair_inputs == [checkpoint_reports[1]]
+    assert acceptance_inputs == [checkpoint_reports[-1]]
     np.testing.assert_array_equal(molecule.coordinates, np.full((2, 3), 3.0))

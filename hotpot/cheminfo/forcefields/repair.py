@@ -147,14 +147,25 @@ def _ring_piercing_watch(
         if key in seen:
             continue
         seen.add(key)
-        opening_edge_keys = tuple(
-            sorted(
-                _bond_key(edge)
-                for edge in finding.target.ring.ring.bonds
+        ring = finding.target.ring.ring
+        contains_metal = any(atom.is_metal for atom in ring.atoms)
+        if contains_metal:
+            eligible_edges = (
+                edge
+                for edge in ring.bonds
+                if edge.is_metal_ligand_bond
+            )
+        else:
+            eligible_edges = (
+                edge
+                for edge in ring.bonds
                 if float(edge.bond_order) == 1.0
                 and memberships.get(_bond_key(edge), 0) == 1
             )
-        )
+        opening_edge_keys = tuple(sorted(
+            _bond_key(edge)
+            for edge in eligible_edges
+        ))
         watched.append(_WatchedRingPiercing(key, opening_edge_keys))
     return tuple(watched)
 
@@ -403,7 +414,7 @@ def _untangle_ring_piercings(
         ring_edge = _select_ring_opening_edge(mol, current_piercings)
         if ring_edge is None:
             unresolved_reason = (
-                "Confirmed bond-ring piercing has no eligible single ring edge; "
+                "Confirmed bond-ring piercing has no eligible ring-opening edge; "
                 "retaining the closed-topology frame with the lowest piercing count"
             )
             break
@@ -493,9 +504,13 @@ def _untangle_ring_piercings(
 
     if unresolved_reason is not None:
         mol.coordinates = watch_best_coordinates
-        candidate_report = _scan_ring_checkpoint(
-            mol,
-            ring_scope=ring_scope,
+        candidate_report = (
+            checkpoint_report
+            if attempts_completed == 0
+            else _scan_ring_checkpoint(
+                mol,
+                ring_scope=ring_scope,
+            )
         )
         candidate_state = candidate_report.state
         candidate_count = _piercing_count(candidate_report)

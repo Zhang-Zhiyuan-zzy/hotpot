@@ -14,6 +14,7 @@ from .. import geometry as geo
 from .acceptance import (
     _format_geometry_checks,
     evaluate_structure_acceptance,
+    evaluate_structure_acceptance_at_checkpoint,
 )
 from .backend import _ob_build, _resolve_complex_forcefield, _resolve_organic_forcefield
 from .contracts import (
@@ -299,14 +300,11 @@ def _prepare_complex_working_mol(
         trajectory=trajectory,
         ligand_build_attempts=ligand_build_attempts,
     )
-
-
-
-
 def _summarize_complex_untangling(
     reports: Sequence[RingUntanglingReport],
     *,
     attempt_limit: int,
+    initial_piercing_count: int,
     final_state: geo.PiercingState,
     final_piercing_count: int,
 ) -> RingUntanglingReport:
@@ -319,7 +317,7 @@ def _summarize_complex_untangling(
     if final_state is geo.PiercingState.PIERCES:
         warning_messages.append(
             "Confirmed bond-ring piercing remains after full-complex "
-            "untangling; retaining the final optimized frame"
+            "untangling; retaining the final available frame"
         )
     elif final_state is geo.PiercingState.UNDETERMINED:
         warning_messages.append(
@@ -333,11 +331,37 @@ def _summarize_complex_untangling(
     return RingUntanglingReport(
         attempt_limit=attempt_limit,
         attempts_completed=sum(report.attempts_completed for report in reports),
-        initial_piercing_count=reports[0].initial_piercing_count,
+        initial_piercing_count=initial_piercing_count,
         final_piercing_count=final_piercing_count,
         minimum_piercing_count=min(minimum_count, final_piercing_count),
         resolved=final_state is not geo.PiercingState.PIERCES,
         warning_messages=_unique_messages(warning_messages),
+    )
+
+
+def _unoptimized_forcefield_report(
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+) -> ForceFieldRunReport:
+    """Describe a topology-blocked stage without claiming an optimizer run."""
+    return ForceFieldRunReport(
+        requested_forcefield=requested_forcefield,
+        effective_forcefield=effective_forcefield,
+        setup_succeeded=False,
+        converged=False,
+        epochs_completed=0,
+        steps_submitted=0,
+        initialization_steps=0,
+        steps_completed=None,
+        final_energy=float("nan"),
+        best_energy=float("nan"),
+        energy_unit="kJ/mol",
+        rms_gradient=float("nan"),
+        max_gradient=float("nan"),
+        exploded=False,
+        best_epoch=-1,
+        selected_segment_epochs_completed=0,
+        termination_reason="topology_blocked",
     )
 
 
@@ -362,21 +386,20 @@ def _optimize_complex_working_mol(
     vdw_cutoff_end: float,
     trajectory: ForceFieldTrajectory,
 ) -> ForceFieldRunReport:
-    """Interleave bounded untangling with complete-complex relaxation."""
+    """Run full-graph topology gates around numerical complex relaxation."""
     if complex_untangling_attempts < 1:
         raise ValueError("complex_untangling_attempts must be at least 1")
     rng = np.random.default_rng(seed)
     remaining_attempts = complex_untangling_attempts
-    remaining_epochs = epochs
     untangling_reports = []
     optimization_reports = []
-    consecutive_stalled_repairs = 0
     checkpoint_report = _scan_ring_checkpoint(
         working_mol,
-        ring_scope="ligand_skeleton",
+        ring_scope="full_graph",
     )
+    initial_piercing_count = _piercing_count(checkpoint_report)
 
-    while True:
+    if checkpoint_report.state is geo.PiercingState.PIERCES:
         untangling = _untangle_ring_piercings(
             working_mol,
             effective_forcefield,
@@ -395,19 +418,22 @@ def _optimize_complex_working_mol(
         )
         untangling_reports.append(untangling.report)
         remaining_attempts -= untangling.report.attempts_completed
+        checkpoint_report = untangling.checkpoint_report
 
-        segment_epochs = remaining_epochs if remaining_epochs else 1
-        trajectory_stage = (
-            TrajectoryStage.FINAL_OPTIMIZATION
-            if untangling.report.resolved
-            else TrajectoryStage.COMPLEX_UNTANGLING
-        )
-        report = _optimize_working_mol(
+    if checkpoint_report.state is geo.PiercingState.PIERCES:
+        optimizer_ran = False
+        optimization_reports.append(_unoptimized_forcefield_report(
+            requested_forcefield,
+            effective_forcefield,
+        ))
+    else:
+        optimizer_ran = True
+        optimization_reports.append(_optimize_working_mol(
             working_mol,
             requested_forcefield=requested_forcefield,
             effective_forcefield=effective_forcefield,
             algorithm=algorithm,
-            epochs=segment_epochs,
+            epochs=epochs,
             steps_per_epoch=steps_per_epoch,
             seed=seed,
             perturb_interval=perturb_interval,
@@ -417,41 +443,85 @@ def _optimize_complex_working_mol(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
-            trajectory_stage=trajectory_stage,
-            trajectory_attempt=len(optimization_reports),
-        )
-        optimization_reports.append(report)
-        remaining_epochs = max(remaining_epochs - report.epochs_completed, 0)
-        final_scan = _scan_ring_checkpoint(
+            trajectory_stage=TrajectoryStage.FINAL_OPTIMIZATION,
+            trajectory_attempt=0,
+        ))
+        checkpoint_report = _scan_ring_checkpoint(
             working_mol,
-            ring_scope="ligand_skeleton",
+            ring_scope="full_graph",
         )
-        final_state = final_scan.state
-        final_piercing_count = _piercing_count(final_scan)
-        if final_state is not geo.PiercingState.PIERCES:
-            break
-        if remaining_attempts == 0:
-            break
-        checkpoint_report = final_scan
-        consecutive_stalled_repairs = (
-            consecutive_stalled_repairs + 1
-            if untangling.report.attempts_completed == 0
-            else 0
+
+    while (
+        optimizer_ran
+        and checkpoint_report.state is geo.PiercingState.PIERCES
+        and remaining_attempts > 0
+    ):
+        coordinates_before_repair = np.asarray(
+            working_mol.coordinates,
+            dtype=float,
+        ).copy()
+        untangling = _untangle_ring_piercings(
+            working_mol,
+            effective_forcefield,
+            attempt_limit=remaining_attempts,
+            short_steps=steps_per_epoch,
+            settling_steps=0,
+            perturb_sigma=perturb_sigma,
+            rng=rng,
+            checkpoint_report=checkpoint_report,
+            initial_energy=optimization_reports[-1].best_energy,
+            trajectory=trajectory,
         )
-        if consecutive_stalled_repairs >= 2:
+        untangling_reports.append(untangling.report)
+        attempts_completed = untangling.report.attempts_completed
+        remaining_attempts -= attempts_completed
+        checkpoint_report = untangling.checkpoint_report
+        if attempts_completed == 0:
             break
+        if checkpoint_report.state is geo.PiercingState.PIERCES:
+            continue
+        if np.array_equal(coordinates_before_repair, working_mol.coordinates):
+            continue
+
+        optimization_reports.append(_optimize_working_mol(
+            working_mol,
+            requested_forcefield=requested_forcefield,
+            effective_forcefield=effective_forcefield,
+            algorithm=algorithm,
+            epochs=1,
+            steps_per_epoch=steps_per_epoch,
+            seed=seed,
+            perturb_interval=None,
+            perturb_sigma=perturb_sigma,
+            retain_epoch_history=retain_epoch_history,
+            increasing_vdw=increasing_vdw,
+            vdw_cutoff_start=vdw_cutoff_start,
+            vdw_cutoff_end=vdw_cutoff_end,
+            trajectory=trajectory,
+            trajectory_stage=TrajectoryStage.COMPLEX_UNTANGLING,
+            trajectory_attempt=len(optimization_reports),
+        ))
+        checkpoint_report = _scan_ring_checkpoint(
+            working_mol,
+            ring_scope="full_graph",
+        )
+
+    final_state = checkpoint_report.state
+    final_piercing_count = _piercing_count(checkpoint_report)
 
     untangling_report = _summarize_complex_untangling(
         untangling_reports,
         attempt_limit=complex_untangling_attempts,
+        initial_piercing_count=initial_piercing_count,
         final_state=final_state,
         final_piercing_count=final_piercing_count,
     )
     for message in untangling_report.warning_messages:
         warnings.warn(message, GeometryQualityWarning, stacklevel=3)
     combined_report = _combine_forcefield_run_reports(optimization_reports)
-    quality_report = evaluate_structure_acceptance(
+    quality_report = evaluate_structure_acceptance_at_checkpoint(
         working_mol,
+        bond_ring_report=checkpoint_report,
         level=quality_level,
         topology_reference=topology_reference,
         forcefield_report=_forcefield_acceptance_evidence(combined_report),

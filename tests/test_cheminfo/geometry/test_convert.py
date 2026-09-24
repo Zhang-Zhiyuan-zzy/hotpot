@@ -14,6 +14,7 @@ from hotpot.cheminfo.geometry.relation import (
     SegmentCycleScreening,
     SurfaceFamilyEvidence,
 )
+from hotpot.cheminfo.geometry.object import Segment
 
 
 @dataclass(frozen=True)
@@ -418,6 +419,226 @@ def test_full_molecule_screen_wraps_explicit_bond_screen(
     )
 
     assert full_report == explicit_report
+
+
+def test_screening_plan_and_workspace_preserve_one_shot_behavior(
+        square_molecule: FakeMolecule,
+) -> None:
+    plan = convert.prepare_bond_ring_screening_plan(
+        square_molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+    workspace = convert.prepare_bond_ring_frame(plan)
+
+    workspace_report = convert.screen_bond_ring_workspace(workspace)
+    one_shot_report = convert.screen_bond_ring_relations(
+        square_molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert plan.ring_atom_keys == ((0, 1, 2, 3),)
+    assert plan.ring_edge_keys == (frozenset({
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (0, 3),
+    }),)
+    assert plan.candidate_bond_keys_by_ring == (((0, 4), (5, 6)),)
+    assert workspace_report == one_shot_report
+
+
+def test_workspace_screen_is_differentially_equal_to_legacy_pair_iteration(
+        square_molecule: FakeMolecule,
+) -> None:
+    far_atoms = (
+        FakeAtom(7, (10.0, 10.0, 3.0)),
+        FakeAtom(8, (11.0, 10.0, 3.0)),
+    )
+    bonds = (square_molecule.bonds[-1], FakeBond(*far_atoms))
+    rings, excluded_ring_count = convert._selected_rings(
+        square_molecule,
+        "full_graph",
+        8,
+    )
+    legacy = tuple(convert._iter_bond_ring_screenings_from_rings(
+        rings,
+        bonds,
+        convert.DEFAULT_GEOMETRY_SETTINGS,
+    ))
+    workspace = convert.prepare_bond_ring_frame(
+        convert.prepare_bond_ring_screening_plan(
+            square_molecule,
+            bonds=bonds,
+            ring_scope="full_graph",
+            max_ring_size=8,
+        )
+    )
+    report = convert.screen_bond_ring_workspace(workspace)
+
+    assert report.selected_ring_count == len(rings)
+    assert report.excluded_ring_count == excluded_ring_count
+    assert report.candidate_pair_count == len(legacy)
+    assert report.aabb_separated_pair_count == sum(item[3] for item in legacy)
+    assert report.piercing_pair_count == sum(
+        state is PiercingState.PIERCES for _, state, _, _, _ in legacy
+    )
+    assert report.does_not_pierce_pair_count == sum(
+        state is PiercingState.DOES_NOT_PIERCE
+        for _, state, _, _, _ in legacy
+    )
+    assert report.undetermined_pair_count == sum(
+        state is PiercingState.UNDETERMINED for _, state, _, _, _ in legacy
+    )
+    assert tuple(
+        (
+            finding.target.ring.key,
+            finding.target.bond.key,
+            finding.relation.state,
+        )
+        for finding in report.actionable_findings
+    ) == tuple(
+        (target.ring.key, target.bond.key, state)
+        for target, state, _, _, _ in legacy
+        if state is not PiercingState.DOES_NOT_PIERCE
+    )
+
+
+def test_frame_workspace_is_a_read_only_coordinate_snapshot(
+        square_molecule: FakeMolecule,
+) -> None:
+    plan = convert.prepare_bond_ring_screening_plan(
+        square_molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+    original_workspace = convert.prepare_bond_ring_frame(plan)
+    crossing_start = square_molecule.atoms[5]
+    coordinate_row = original_workspace.coordinate_keys.index(crossing_start.idx)
+
+    with pytest.raises(ValueError, match="read-only"):
+        original_workspace.coordinates[coordinate_row, 0] = 20.0
+
+    object.__setattr__(crossing_start, "coordinates", (10.0, 10.0, -1.0))
+    refreshed_workspace = convert.prepare_bond_ring_frame(plan)
+
+    assert tuple(original_workspace.coordinates[coordinate_row]) == (0.0, 0.0, -1.0)
+    assert tuple(refreshed_workspace.coordinates[coordinate_row]) == (
+        10.0,
+        10.0,
+        -1.0,
+    )
+    assert (
+        convert.screen_bond_ring_workspace(original_workspace).state
+        is PiercingState.PIERCES
+    )
+    assert (
+        convert.screen_bond_ring_workspace(refreshed_workspace).state
+        is not PiercingState.PIERCES
+    )
+
+
+def test_topology_plan_remains_a_snapshot_until_rebuilt(
+        square_molecule: FakeMolecule,
+) -> None:
+    plan = convert.prepare_bond_ring_screening_plan(
+        square_molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+    square_molecule.bonds = square_molecule.bonds[:-1]
+
+    stale_plan_report = convert.screen_bond_ring_workspace(
+        convert.prepare_bond_ring_frame(plan)
+    )
+    rebuilt_plan_report = convert.screen_bond_ring_relations(
+        square_molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert stale_plan_report.state is PiercingState.PIERCES
+    assert rebuilt_plan_report.state is not PiercingState.PIERCES
+
+
+def test_workspace_key_selection_preserves_canonical_pair_order(
+        square_molecule: FakeMolecule,
+) -> None:
+    workspace = convert.prepare_bond_ring_frame(
+        convert.prepare_bond_ring_screening_plan(
+            square_molecule,
+            ring_scope="full_graph",
+            max_ring_size=8,
+        )
+    )
+
+    crossing_only = convert.screen_bond_ring_workspace(
+        workspace,
+        bond_keys=((5, 6),),
+        ring_keys=((0, 1, 2, 3),),
+    )
+    no_rings = convert.screen_bond_ring_workspace(
+        workspace,
+        ring_keys=((20, 21, 22),),
+    )
+
+    assert crossing_only.candidate_pair_count == 1
+    assert crossing_only.piercing_pair_count == 1
+    assert crossing_only.piercings[0].target.bond.key == (5, 6)
+    assert no_rings.selected_ring_count == 0
+    assert no_rings.candidate_pair_count == 0
+
+
+def test_workspace_can_stop_after_first_confirmed_piercing(
+        square_molecule: FakeMolecule,
+) -> None:
+    far_atoms = (
+        FakeAtom(7, (10.0, 10.0, 3.0)),
+        FakeAtom(8, (11.0, 10.0, 3.0)),
+    )
+    plan = convert.prepare_bond_ring_screening_plan(
+        square_molecule,
+        bonds=(square_molecule.bonds[-1], FakeBond(*far_atoms)),
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    report = convert.screen_bond_ring_workspace(
+        convert.prepare_bond_ring_frame(plan),
+        stop_after_confirmed=True,
+    )
+
+    assert report.state is PiercingState.PIERCES
+    assert report.candidate_pair_count == 1
+    assert not report.scan_complete
+
+
+def test_explicit_segment_snapshot_uses_workspace_rings(
+        square_molecule: FakeMolecule,
+) -> None:
+    crossing_bond = square_molecule.bonds[-1]
+    workspace = convert.prepare_bond_ring_frame(
+        convert.prepare_bond_ring_screening_plan(
+            square_molecule,
+            bonds=(crossing_bond,),
+            ring_scope="full_graph",
+            max_ring_size=8,
+        )
+    )
+    displaced_segment = convert.BondGeometry(
+        bond=crossing_bond,
+        segment=Segment((10.0, 10.0, -1.0), (10.0, 10.0, 1.0)),
+        key=(5, 6),
+    )
+
+    report = convert.screen_segments_against_ring_workspace(
+        (displaced_segment,),
+        workspace,
+    )
+
+    assert report.state is PiercingState.DOES_NOT_PIERCE
+    assert report.aabb_separated_pair_count == 1
 
 
 def test_dense_scan_is_incomplete_when_surface_enumeration_is_incomplete(

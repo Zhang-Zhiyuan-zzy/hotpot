@@ -179,7 +179,7 @@ for finding in report.piercings:
 | `determine_segment_cycle_relation` | Determine whether one finite segment pierces a cycle |
 | `closest_cycle_edge` | Find the cycle edge nearest to a target segment |
 
-### 2.5 Conversion vocabulary and result records (12 names)
+### 2.5 Conversion vocabulary and result records (14 names)
 
 | Name | Kind | Meaning |
 |---|---|---|
@@ -195,8 +195,10 @@ for finding in report.piercings:
 | `RingEdgeDistance` | frozen generic dataclass | Source ring bond and nearest-edge distance record |
 | `BondRingScanReport` | frozen generic dataclass | Dense scan report for a selected ring scope |
 | `BondRingScreeningReport` | frozen generic dataclass | Sparse all-pair piercing screen with coverage and AABB counters |
+| `BondRingScreeningPlan` | frozen generic dataclass | Coordinate-free ring and bond selection for one topology |
+| `BondRingFrameWorkspace` | frozen generic dataclass | Immutable coordinates and prepared cycles for one frame |
 
-### 2.6 Conversion functions (14 names)
+### 2.6 Conversion functions (18 names)
 
 | Name | Purpose |
 |---|---|
@@ -211,6 +213,10 @@ for finding in report.piercings:
 | `determine_bond_ring_relation` | Classify one chemical Ring × Bond pair |
 | `iter_bond_ring_findings` | Lazily scan Ring × Bond pairs in a requested scope |
 | `scan_bond_ring_relations` | Return a complete dense scan report for a requested scope |
+| `prepare_bond_ring_screening_plan` | Prepare reusable topology-derived ring and bond selections |
+| `prepare_bond_ring_frame` | Snapshot coordinates and prepare the selected cycles |
+| `screen_bond_ring_workspace` | Screen snapshotted plan bonds, optionally selected by key |
+| `screen_segments_against_ring_workspace` | Screen caller-supplied keyed segments against prepared rings |
 | `screen_bonds_against_rings` | Screen an explicit bond collection against a requested ring scope |
 | `screen_bond_ring_relations` | Screen a complete scope while retaining only actionable findings |
 | `determine_bond_ring_piercing_state` | Aggregate a whole molecule to a three-state piercing result with early exit |
@@ -1554,10 +1560,11 @@ BondRingScreeningReport[RingT, BondT](
 )
 ```
 
-The report covers every selected pair but retains complete findings only for
-`PIERCES` and `UNDETERMINED`. The three state counts always sum to
-`candidate_pair_count`; `aabb_separated_pair_count + exact_pair_count` does as
-well.
+For a complete screen, the report covers every selected pair but retains full
+findings only for `PIERCES` and `UNDETERMINED`. An explicitly requested early
+stop covers only evaluated pairs and sets `scan_complete=False` if pairs remain.
+The three state counts always sum to `candidate_pair_count`;
+`aabb_separated_pair_count + exact_pair_count` does as well.
 
 ### 8.26 `screen_bonds_against_rings`
 
@@ -1602,3 +1609,87 @@ phase by forwarding `mol.bonds` to `screen_bonds_against_rings()`. It falls
 back to the complete relation kernel whenever separation is not strictly
 proven. Use `scan_bond_ring_relations()` when complete evidence for every
 non-piercing pair is required.
+
+### 8.28 `BondRingScreeningPlan`
+
+```python
+BondRingScreeningPlan[RingT, BondT]
+```
+
+An immutable, coordinate-free description of one molecular topology. It
+retains source ring and bond references, canonical keys, ring-edge keys,
+candidate-pair mappings, scope, size limit, and numerical settings. Rebuild it
+after connectivity changes; coordinate changes require only a new frame.
+
+### 8.29 `BondRingFrameWorkspace`
+
+```python
+BondRingFrameWorkspace[RingT, BondT]
+```
+
+One immutable coordinate snapshot prepared from a screening plan. Its NumPy
+coordinate table and prepared cycle arrays are read-only. Moving source atoms
+does not alter an existing workspace; rebuild the frame after coordinate
+changes.
+
+### 8.30 `prepare_bond_ring_screening_plan`
+
+```python
+def prepare_bond_ring_screening_plan(
+    mol,
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+    bonds: Optional[Iterable[BondT]] = None,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningPlan[RingT, BondT]
+```
+
+Builds the topology plan in canonical ring-then-bond order. `bonds=None`
+selects `mol.bonds`; an explicit iterable may contain hypothetical bonds that
+are absent from the molecular bond table.
+
+### 8.31 `prepare_bond_ring_frame`
+
+```python
+def prepare_bond_ring_frame(
+    plan: BondRingScreeningPlan[RingT, BondT],
+) -> BondRingFrameWorkspace[RingT, BondT]
+```
+
+Copies current source coordinates and prepares each selected cycle once. The
+returned workspace remains a factual snapshot after source coordinates change.
+
+### 8.32 `screen_bond_ring_workspace`
+
+```python
+def screen_bond_ring_workspace(
+    workspace: BondRingFrameWorkspace[RingT, BondT],
+    *,
+    bond_keys: Optional[Iterable[tuple[int, int]]] = None,
+    ring_keys: Optional[Iterable[tuple[int, ...]]] = None,
+    stop_after_confirmed: bool = False,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+Screens the workspace's snapshotted bonds. Optional key filters preserve plan
+order. With `stop_after_confirmed=True`, evaluation ends at the first
+`PIERCES`; `scan_complete` is false if selected pairs remain untested.
+
+### 8.33 `screen_segments_against_ring_workspace`
+
+```python
+def screen_segments_against_ring_workspace(
+    segments: Iterable[BondGeometry[BondT]],
+    workspace: BondRingFrameWorkspace[RingT, BondT],
+    *,
+    bond_keys: Optional[Iterable[tuple[int, int]]] = None,
+    ring_keys: Optional[Iterable[tuple[int, ...]]] = None,
+    stop_after_confirmed: bool = False,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+Screens caller-supplied immutable keyed segments against prepared rings. This
+allows hypothetical bond geometry to reuse one ring frame without changing
+molecular topology. Ring-edge exclusion and report order match
+`screen_bond_ring_workspace()`.

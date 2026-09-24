@@ -162,7 +162,7 @@ for finding in report.piercings:
 | `determine_segment_cycle_relation` | 判定一条有限线段是否穿过一个环 |
 | `closest_cycle_edge` | 查找距目标线段最近的环边 |
 
-### 2.5 转换词汇和结果记录（12 项）
+### 2.5 转换词汇和结果记录（14 项）
 
 | 名称 | 种类 | 含义 |
 |---|---|---|
@@ -178,8 +178,10 @@ for finding in report.piercings:
 | `RingEdgeDistance` | frozen generic dataclass | 来源环键与最近边距离记录 |
 | `BondRingScanReport` | frozen generic dataclass | 指定环范围内的稠密扫描报告 |
 | `BondRingScreeningReport` | frozen generic dataclass | 含覆盖范围和 AABB 计数的稀疏全范围筛查报告 |
+| `BondRingScreeningPlan` | frozen generic dataclass | 单个拓扑的无坐标环键筛查计划 |
+| `BondRingFrameWorkspace` | frozen generic dataclass | 单帧不可变坐标和已准备环工作区 |
 
-### 2.6 转换函数（14 项）
+### 2.6 转换函数（18 项）
 
 | 名称 | 作用 |
 |---|---|
@@ -194,6 +196,10 @@ for finding in report.piercings:
 | `determine_bond_ring_relation` | 判定一个化学 Ring × Bond 对 |
 | `iter_bond_ring_findings` | 惰性扫描指定范围内的 Ring × Bond 对 |
 | `scan_bond_ring_relations` | 返回指定范围内的完整稠密扫描报告 |
+| `prepare_bond_ring_screening_plan` | 准备可复用的拓扑环键选择 |
+| `prepare_bond_ring_frame` | 建立坐标快照并准备选中环 |
+| `screen_bond_ring_workspace` | 筛查计划中的键快照，可按键选择 |
+| `screen_segments_against_ring_workspace` | 使用调用方的带键线段筛查已准备环 |
 | `screen_bonds_against_rings` | 将显式给定的键集合与指定环范围进行筛查 |
 | `screen_bond_ring_relations` | 覆盖完整范围但只保留需处理 finding 的筛查报告 |
 | `determine_bond_ring_piercing_state` | 早退式聚合整个分子的穿环三态 |
@@ -1436,8 +1442,10 @@ BondRingScreeningReport[RingT, BondT](
 )
 ```
 
-报告覆盖全部已选 pair，但只为 `PIERCES` 和 `UNDETERMINED` 保留完整 finding。三态计数之和
-以及 AABB/精确路径计数之和都必须等于 `candidate_pair_count`。
+完整筛查时，报告覆盖全部已选 pair，但只为 `PIERCES` 和 `UNDETERMINED` 保留
+完整 finding。显式要求早退时只覆盖已求值 pair；若仍有未检查 pair，
+`scan_complete=False`。三态计数之和以及 AABB/精确路径计数之和都必须等于
+`candidate_pair_count`。
 
 ### 8.26 `screen_bonds_against_rings`
 
@@ -1477,3 +1485,82 @@ def screen_bond_ring_relations(
 将 `mol.bonds` 转发给 `screen_bonds_against_rings()`，对请求的完整 Ring × Bond
 范围执行带保护宽容的 AABB broad phase；不能严格证明分离时回退完整关系内核。
 需要每个不穿环 pair 的完整证据时，应使用 `scan_bond_ring_relations()`。
+
+### 8.28 `BondRingScreeningPlan`
+
+```python
+BondRingScreeningPlan[RingT, BondT]
+```
+
+一个分子图拓扑的不可变、无坐标事实筛查计划。它保留源环与键引用、规范键、
+环边键、候选配对映射、环范围、尺寸上限和数值设置。分子连接关系改变后必须
+重建计划；仅坐标改变时只需建立新的 frame。
+
+### 8.29 `BondRingFrameWorkspace`
+
+```python
+BondRingFrameWorkspace[RingT, BondT]
+```
+
+由筛查计划准备的单个不可变坐标快照。其 NumPy 坐标表和已准备环数组均只读。
+源原子坐标之后发生改变不会影响已有 workspace；坐标改变后应重建 frame。
+
+### 8.30 `prepare_bond_ring_screening_plan`
+
+```python
+def prepare_bond_ring_screening_plan(
+    mol,
+    *,
+    ring_scope: RingScope,
+    max_ring_size: int,
+    bonds: Optional[Iterable[BondT]] = None,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> BondRingScreeningPlan[RingT, BondT]
+```
+
+按规范的先环后键顺序建立拓扑计划。`bonds=None` 选择 `mol.bonds`；显式 iterable
+可以包含尚未出现在分子键表中的假想键。
+
+### 8.31 `prepare_bond_ring_frame`
+
+```python
+def prepare_bond_ring_frame(
+    plan: BondRingScreeningPlan[RingT, BondT],
+) -> BondRingFrameWorkspace[RingT, BondT]
+```
+
+复制源对象当前坐标，并且只准备一次每个选中环。源坐标改变后，返回的 workspace
+仍保持原有事实快照。
+
+### 8.32 `screen_bond_ring_workspace`
+
+```python
+def screen_bond_ring_workspace(
+    workspace: BondRingFrameWorkspace[RingT, BondT],
+    *,
+    bond_keys: Optional[Iterable[tuple[int, int]]] = None,
+    ring_keys: Optional[Iterable[tuple[int, ...]]] = None,
+    stop_after_confirmed: bool = False,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+筛查 workspace 中的键快照。可选键筛选保持计划中的规范顺序。
+`stop_after_confirmed=True` 时在第一个 `PIERCES` 处停止；如果仍有选中配对未检查，
+则 `scan_complete` 为 false。
+
+### 8.33 `screen_segments_against_ring_workspace`
+
+```python
+def screen_segments_against_ring_workspace(
+    segments: Iterable[BondGeometry[BondT]],
+    workspace: BondRingFrameWorkspace[RingT, BondT],
+    *,
+    bond_keys: Optional[Iterable[tuple[int, int]]] = None,
+    ring_keys: Optional[Iterable[tuple[int, ...]]] = None,
+    stop_after_confirmed: bool = False,
+) -> BondRingScreeningReport[RingT, BondT]
+```
+
+使用调用方提供的不可变带键线段筛查已准备环。该接口允许假想键几何在不改变分子
+拓扑的情况下复用同一环 frame；环自身边排除规则和结果顺序与
+`screen_bond_ring_workspace()` 一致。

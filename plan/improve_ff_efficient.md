@@ -1,448 +1,343 @@
-# Force-field ring-screening efficiency refactor and 187-molecule validation
+# Force-field three-stage refactor and validation report
 
-Date: 2026-09-23  
-Branch: `perf/forcefield-ring-scan`  
-Implementation baseline: `5946f62`  
-Validated implementation: `fa0ec9b`
+Date: 2026-09-24
 
-## 1. Executive conclusion
+Branch: `refactor/forcefield-three-stage`
 
-The approved performance changes are implemented:
+Planning baseline: `b55ae69`
 
-1. Full molecule bond--ring screening now uses a strict AABB broad phase.
-2. Ring untangling performs a full scan only to establish or validate a repair
-   checkpoint. Between checkpoints it watches only the currently confirmed
-   piercing ring--bond pairs.
-3. Incremental coordination restoration screens only the newly restored bond,
-   with the same AABB broad phase. Previously accepted coordination bonds are
-   not rescanned for every trial.
-4. Each disconnected ligand component invokes `OBBuilder` exactly once.
-   Additional candidate attempts start from the same built coordinates and use
-   independent perturbation plus optimization.
-5. The failed ring-repair path no longer retrospectively performs a full scan
-   for every saved frame. It ranks the current watch batch by its active
-   piercing count, fully scans one selected candidate, and compares it with the
-   best already validated checkpoint.
+Validated production commit: `f0a6e7c`
 
-On the same 187-input, 16-process Eu--extractant benchmark, wall time decreased
-from **2317.87 s (38 min 37.87 s)** to **380.59 s (6 min 20.59 s)**: a
-**6.09x speed-up** and **83.58% reduction**. Final quality passes increased from
-168 to 171. All 178 CBond-success cases retained readable trajectories and
-optimized structures, and all 178 final PNGs were generated.
+## 1. Result
 
-This is a performance and workflow refactor, not a proof that generated
-coordinates are chemically identical to the baseline. Five cases changed
-quality status; four improved and one, case 0070, regressed to an atom-overlap
-failure. That case is retained with its full trajectory for diagnosis.
+The three-stage complex construction and optimization workflow is implemented
+and validated on the standard 187-molecule Eu--extractant set.
 
-## 2. Scope and implementation
+| Metric | Previous baseline | Current | Change |
+|---|---:|---:|---:|
+| Inputs | 187 | 187 | unchanged |
+| CBond success | 178 | 178 | unchanged |
+| Quality pass | 171 | 171 | unchanged |
+| Quality failure | 7 | 7 | unchanged |
+| CBond failure | 9 | 9 | unchanged |
+| Validation wall time | 380.590 s | 157.776 s | -58.54%; 2.41x faster |
+| Aggregate case time | 5669.518 s | 2365.233 s | -58.28%; 2.40x faster |
+| Median case time | 20.699 s | 11.672 s | -43.61% |
+| P95 case time | 81.496 s | 23.587 s | -71.06% |
+| Maximum case time | 207.612 s | 71.749 s | -65.44% |
 
-### 2.1 Strict AABB broad phase
+All 187 status assignments are identical to the previous baseline. No case
+changed from pass to fail or from fail to pass.
 
-Relevant implementation:
-
-- `hotpot/cheminfo/geometry/relation.py`
-  - `SegmentCycleScreening`
-  - `iter_segment_cycle_screenings()`
-- `hotpot/cheminfo/geometry/convert.py`
-  - `BondRingScreeningReport`
-  - `screen_bonds_against_rings()`
-  - `screen_bond_ring_relations()`
-- `hotpot/cheminfo/forcefields/acceptance.py`
-  - force-field acceptance consumes the sparse screening report
-
-For segment endpoints \(\mathbf p_0,\mathbf p_1\) and cycle vertices
-\(\mathbf v_i\), define component-wise bounds
-
-\[
-\mathbf s_{\min}=\min(\mathbf p_0,\mathbf p_1),\qquad
-\mathbf s_{\max}=\max(\mathbf p_0,\mathbf p_1),
-\]
-
-\[
-\mathbf c_{\min}=\min_i\mathbf v_i,\qquad
-\mathbf c_{\max}=\max_i\mathbf v_i.
-\]
-
-After the ring surface has first been shown to be valid and complete, the
-finite segment is proven not to pierce that surface when at least one Cartesian
-axis satisfies
-
-\[
-s_{\max,k}+\epsilon_{\mathrm{AABB}} < c_{\min,k}
-\quad\text{or}\quad
-c_{\max,k}+\epsilon_{\mathrm{AABB}} < s_{\min,k}.
-\]
-
-Only this strict-separation case skips the complete relation kernel. Boundary
-cases, invalid planar polygons, incomplete non-planar surface families, and
-overlapping AABBs use the full geometric predicates. Cycle bounds and surface
-preparation are cached once for an entire segment batch.
-
-The sparse API intentionally records only actionable `PIERCES` and
-`UNDETERMINED` relations while retaining complete scope counts. The original
-dense API remains available when callers need line-extension, boundary-contact,
-or complete per-pair evidence.
-
-Important numerical contract: strict finite-segment AABB separation is itself
-a proof of `DOES_NOT_PIERCE`. At extreme coordinate scales, the old dense
-kernel can conservatively return `UNDETERMINED` because its pair-local tolerance
-becomes large, while the sparse screen returns the stronger AABB-proven
-`DOES_NOT_PIERCE`. The sparse path therefore preserves geometric safety and all
-confirmed piercings, but is not promised to reproduce every conservative
-numerical uncertainty emitted by the dense diagnostic API.
-
-### 2.2 Active piercing-pair watch during ring repair
-
-Relevant implementation:
-
-- `hotpot/cheminfo/forcefields/repair.py`
-  - `_BondRingPairKey`
-  - `_WatchedRingPiercing`
-  - `_scan_ring_piercing_watch()`
-  - `_scan_confirmed_ring_piercings()`
-  - `_untangle_ring_piercings()`
-
-The repair loop now follows this sequence:
+The complete validation artifacts are stored in:
 
 ```text
-full AABB-screened scan
-        |
-        +-- no confirmed piercing --> optional settling --> full acceptance scan
-        |
-        `-- confirmed piercings --> freeze stable ring/bond graph keys
-                                      |
-                                      v
-                           open one eligible ring edge
-                           perturb and short-optimize
-                           restore the same ring edge
-                                      |
-                                      v
-                           scan watched pairs only (AABB + exact fallback)
-                                      |
-                    +-----------------+------------------+
-                    |                                    |
-          watched piercing remains              watch clears/is invalid
-                    |                                    |
-          continue targeted repair                 full checkpoint scan
-                                                         |
-                                        +----------------+--------------+
-                                        |                               |
-                               new piercing batch                 no piercing
-                               -> replace watch                  -> settle/exit
-```
-
-Ring and bond identities are stored as atom-index keys, rather than object
-identity, so the watch survives coordinate changes and bond hide/restore
-operations. Eligible opening edges are calculated at a full checkpoint and
-remain tied to that batch.
-
-If the attempt budget is exhausted, all trajectory frames remain serialized,
-but they are not all rescanned. The implementation retains the frame with the
-lowest active-watch count (latest frame wins a tie), performs one full scan on
-that candidate, and compares it with the best previously full-scanned
-checkpoint. A settling optimization is then accepted only if its final full
-scan does not increase the confirmed piercing count.
-
-This preserves a safe fallback while changing worst-case rescan cost from
-approximately
-
-\[
-O(A\,R\,B\,K)
-\]
-
-to
-
-\[
-O(A\,W\,K)+O(C\,R\,B\,K),
-\]
-
-where \(A\) is the number of repair attempts, \(W\) the current watched-pair
-count, \(C\) the small number of full checkpoints, \(R\) the ring count,
-\(B\) the bond count, and \(K\) the exact relation-kernel cost.
-
-### 2.3 Incremental coordination-bond restoration
-
-Relevant implementation:
-
-- `hotpot/cheminfo/forcefields/repair.py`
-  - `_screen_coordination_bond_relations()`
-  - `_restore_next_nonpiercing_coordination_bond()`
-  - `_restore_coordination_bonds_incrementally()`
-
-For each proposed metal--ligand bond, the workflow now:
-
-1. temporarily restores that one bond;
-2. screens only that bond against ligand-skeleton rings;
-3. excludes the expected chelate-cycle closure when the tested ring contains
-   both endpoints of the proposed coordination bond;
-4. accepts or rolls back the trial;
-5. performs a full-graph AABB-screened validation after restoration finishes.
-
-Previously accepted bonds are not repeatedly rescanned. The per-trial scope is
-reduced from all `ring x bond` pairs to `ring x 1 candidate bond`.
-
-### 2.4 One OBBuilder call per ligand component
-
-Relevant implementation:
-
-- `hotpot/cheminfo/forcefields/ligand.py`
-  - `_build_ligand_proxies()`
-
-Each non-metal connected component is embedded once with `OBBuilder`. The built
-coordinates are copied as an immutable proposal root. Attempt 1 evaluates that
-geometry directly; later attempts independently reset to the root, perturb it,
-and run the existing warm-up/scoring/untangling sequence. A builder failure is
-reported immediately because repeating the same builder call with the same
-input and seed does not add useful conformational diversity.
-
-`max_attempts` remains the upper bound for perturbative candidate search. This
-change removes repeated embedding; it does not remove the candidate-selection
-or fallback policy.
-
-## 3. Commits
-
-| Commit | Change |
-|---|---|
-| `3bae2a5` | Add strict segment--cycle AABB screening primitives. |
-| `ace544c` | Use sparse screening in force-field acceptance and repair. |
-| `878c948` | Add explicit-bond screening and cache each ring AABB. |
-| `1e8a437` | Track active piercing pairs between full checkpoints. |
-| `fead9f2` | Screen only the proposed bond during coordination restoration. |
-| `76d1297` | Reuse one ligand embedding for perturbative proposals. |
-| `a1ac0d1` | Remove all-history full rescans from failed ring repair. |
-| `fa0ec9b` | Update the geometry public-export regression fence. |
-
-## 4. Verification
-
-### 4.1 Automated regression tests
-
-The current branch passed **625 relevant tests in 34.65 s** under Python
-3.11.16. The suite covers:
-
-- all `hotpot.cheminfo.geometry` tests;
-- geometry/Core integration and export contracts;
-- force-field API, package, optimizer, acceptance, and trajectory behavior;
-- complex construction, hydrogen handling, hidden-bond restoration, and staged
-  ring-untangling workflows;
-- relevant-ring integration.
-
-Focused complex construction and untangling tests independently passed
-**80/80**. The watch-path regression test verifies that intermediate attempts
-do not invoke full scans; the only scans on budget exhaustion are the initial
-checkpoint, the selected terminal candidate, and optional post-settling
-acceptance.
-
-`compileall` passed for `geometry`, `forcefields`, Core, and the affected tests
-under Python 3.11. A Python 3.9 interpreter also passed syntax compilation; a
-full 3.9 runtime test was not possible because the available 3.9 environments
-do not contain Open Babel.
-
-The repository-wide test collection was not claimed as clean because the
-current runtime lacks unrelated optional dependencies including
-`torch_geometric`, `requests`, and `sklearn`. No failure remained in the
-625-test change-focused suite.
-
-### 4.2 End-to-end configuration
-
-Input:
-
-`molecules/extractant/extractants.smi` (187 non-comment records)
-
-Final output:
-
-`movie/extractants_eu_forcefield_efficiency_final_16c_20260923`
-
-Execution used 16 worker processes pinned to CPUs 0--15 and one native thread
-per worker. Both baseline and optimized runs used:
-
-| Parameter | Value |
-|---|---:|
-| Metal | Eu |
-| CBond threshold | -0.125 |
-| Epochs / steps per epoch | 100 / 100 |
-| Candidate maximum attempts | 50 |
-| Candidate warm-up / score / refinement steps | 500 / 1000 / 3000 |
-| Ligand / coordination / complex repair limits | 20 / 20 / 30 |
-| Coordination relaxation steps | 100 |
-| Perturbation sigma | 0.5 |
-| Seed | 20260921 + sample index |
-| Quality level | standard |
-| Trajectory start | ligand build |
-| ONNX provider | CPUExecutionProvider |
-| Open Babel | 3.2.1 |
-
-### 4.3 Performance comparison
-
-Baseline: `movie/extractants_eu_forcefield_refactor_16c_20260923`  
-Optimized: `movie/extractants_eu_forcefield_efficiency_final_16c_20260923`
-
-| Metric | Baseline | Optimized | Change |
-|---|---:|---:|---:|
-| Wall time | 2317.87 s | 380.59 s | **-83.58%, 6.09x faster** |
-| Aggregate per-case time | 32473.68 s | 5669.52 s | **-82.54%, 5.73x faster** |
-| Median case | 113.46 s | 20.70 s | **-81.76%, 5.48x faster** |
-| P90 | 345.37 s | 60.95 s | **-82.35%, 5.67x faster** |
-| P95 | 547.24 s | 81.50 s | **-85.11%, 6.71x faster** |
-| P99 | 956.61 s | 132.45 s | **-86.15%, 7.22x faster** |
-| Maximum case | 1738.32 s | 207.61 s | **-88.06%, 8.37x faster** |
-
-Phase totals over the 178 CBond-success cases:
-
-| Phase | Baseline | Optimized | Change |
-|---|---:|---:|---:|
-| CBond inference | 28.47 s | 28.84 s | +1.31%; effectively unchanged |
-| Complex construction | 15126.61 s | 1445.62 s | **-90.44%, 10.46x faster** |
-| Post-build/final optimization | 17309.62 s | 4185.31 s | **-75.82%, 4.14x faster** |
-| Complete force-field workflow | 32436.23 s | 5630.93 s | **-82.64%, 5.76x faster** |
-
-The measurements establish the combined speed-up, but do not uniquely assign
-time to each individual code change because no full factorial ablation was
-run. The strongest direct evidence for the dominant construction improvement
-is the collapse of ligand proposal branches:
-
-| Activity / artifact | Baseline | Optimized | Change |
-|---|---:|---:|---:|
-| Ligand proposal branches | 1208 | 284 | -76.49% |
-| Ligand proposal frames | 7729 | 2150 | -72.18% |
-| Maximum proposals for one case | 50 | 4 | -92.00% |
-| Main trajectory frames | 9525 | 8823 | -7.37% |
-| All logical trajectory frames | 17254 | 10973 | -36.40% |
-| Serialized trajectory bytes | 233196904 | 143402449 | -38.51% |
-| Complete result-file bytes | 322432250 | 230870465 | -28.40% |
-
-### 4.4 Result quality and status transitions
-
-| Outcome | Baseline | Optimized |
-|---|---:|---:|
-| Total inputs | 187 | 187 |
-| CBond success | 178 | 178 |
-| CBond failure | 9 | 9 |
-| Final quality pass | 168 | **171** |
-| Final quality failure | 10 | **7** |
-| Force-field converged | 159 | 158 |
-| Quality pass and converged | 155 | **156** |
-
-The same nine inputs failed CBond inference: 0022, 0134, 0136, 0139, 0141,
-0182, 0185, 0186, and 0187. These fail before force-field construction and are
-not caused by this refactor.
-
-Status transitions relative to the baseline were:
-
-- 167 `passed -> passed`;
-- 6 `failed_quality -> failed_quality`;
-- 9 `failed_cbond -> failed_cbond`;
-- 4 improvements: cases 0017, 0044, 0126, and 0140 changed from
-  `failed_quality` to `passed`;
-- 1 regression: case 0070 changed from `passed` to `failed_quality` because the
-  final structure contains an exact atom overlap between atom indices 120 and
-  121. It remains available with its entire trajectory and final PNG.
-
-The seven final quality-failure cases are 0031, 0045, 0046, 0047, 0054, 0061,
-and 0070. No final report contains a confirmed bond--ring piercing as an error;
-remaining failures are non-finite gradients, short/abnormal bond lengths,
-close atoms, or the case-0070 overlap.
-
-The net pass-rate change is:
-
-- all inputs: 168/187 (89.84%) -> 171/187 (91.44%);
-- among CBond-success inputs: 168/178 (94.38%) -> 171/178 (96.07%).
-
-Because the single-embedding candidate path deliberately changes conformer
-generation, coordinate-level equality with the old run is neither expected nor
-claimed. The quality gate, complete trajectory, and explicit status-transition
-audit are the comparison contract.
-
-### 4.5 Remaining long tail
-
-The optimized P95 threshold is 81.50 s. The ten slowest cases are 0070, 0062,
-0048, 0045, 0047, 0090, 0089, 0157, 0117, and 0094. Eight of these consume the
-full 100 optimization epochs. Cases 0048 and 0089 additionally require 14 and
-7 ligand ring-repair attempts, respectively.
-
-The dominant remaining cost is therefore the final optimizer, not repeated
-OBBuilder calls or full scans inside the ring-opening loop. The post-build
-stage now accounts for 74.33% of total force-field time. A future optimization
-could cache fixed-topology ring conversion and split the per-epoch acceptance
-path into cheap frame checks plus less frequent full geometric evidence. That
-change was deliberately not included here because per-epoch acceptance affects
-best-frame selection and early stopping and therefore needs its own behavioral
-review.
-
-## 5. Artifact integrity
-
-The final output contains:
-
-```text
-movie/extractants_eu_forcefield_efficiency_final_16c_20260923/
-├── summary.json
-├── results.csv
-├── integrity.json
-├── trajectory_integrity.json
-├── passed.smi
-├── failed_quality.smi
-├── failed_cbond.smi
-├── optimized_all.sdf
-├── optimized_passed.sdf
-├── cases/
+movie/extractants_eu_three_stage_refactor_16c_20260924/
+├── cases/                         # 187 per-case directories
 │   └── NNNN/
-│       ├── input.smi
-│       ├── cbond.smi
+│       ├── report.json
+│       ├── trajectory/            # lossless trajectory archive, when CBond succeeds
 │       ├── optimized.mol2
 │       ├── optimized.sdf
-│       ├── final.png
-│       └── trajectory/
-└── final_png/
-    ├── rendered.json
-    └── contact_sheet_001.png ... contact_sheet_012.png
+│       └── final.png
+├── optimized_all.sdf
+├── optimized_passed.sdf
+├── final_png/                     # 12 contact sheets
+├── summary.json
+├── integrity.json
+├── trajectory_integrity.json
+├── baseline_comparison.json
+└── analysis_report.md
 ```
 
-The deep archive audit loaded every trajectory through the public
-`ForceFieldTrajectoryArchive` API and checked frame/revision bounds, topology
-indices, finite coordinates, SDF frame counts, selected-frame correspondence,
-and image validity:
+## 2. Implemented workflow
 
-- 187 reports;
-- 178 readable trajectory archives;
-- 178 optimized MOL2 files;
-- 178 optimized SDF files;
-- 178 case-level final PNG files;
-- 12 contact sheets;
-- 10973 logical trajectory frames;
-- zero global or case-level integrity issues;
-- maximum selected-frame versus MOL2 coordinate difference:
-  \(4.9996\times10^{-5}\) angstrom, within the configured
-  \(10^{-4}\) angstrom serialization tolerance.
+### 2.1 Stage 1: ligand construction
 
-## 6. Remaining limitations and next priority
+Each non-metal connected component calls `OBBuilder` once. Candidate retries
+start from a copy of that embedded structure and use perturbation plus force-
+field optimization. They do not call `OBBuilder` again.
 
-1. Case 0070 is a real final-quality regression and must not be counted as a
-   successful structure. Its retained trajectory should be inspected before
-   altering chemistry policy.
-2. The final optimizer still runs a sparse full-scope AABB screen as part of
-   each epoch's acceptance report. This is distinct from the ring-opening
-   repair loop optimized here, but it is now the clearest remaining screening
-   optimization opportunity.
-3. Rings larger than the force-field scope limit of 16 remain excluded and
-   generate coverage warnings. This follows the established policy: large,
-   normally flexible rings are not actively opened by this workflow.
-4. AABB screening is designed for the finite bond--ring piercing question. Use
-   the dense geometry API for complete line-extension and boundary-contact
-   diagnostics.
+Each candidate uses `ligand_skeleton` topology checkpoints. A confirmed
+ring--bond piercing initializes a fixed watch set. Repair attempts repeat:
 
-## 7. Reproduction commands
-
-```bash
-$ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
-$ export LD_LIBRARY_PATH=/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib
-$ taskset -c 0-15 /home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python \
-    movie/extractants_eu_forcefield_refactor_16c_20260923/run_validation.py \
-    --input molecules/extractant/extractants.smi \
-    --output movie/extractants_eu_forcefield_efficiency_final_16c_20260923 \
-    --workers 16
-$ taskset -c 0-15 /home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python \
-    movie/render_final_png.py \
-    movie/extractants_eu_forcefield_efficiency_final_16c_20260923 \
-    --title 'Eu-extractant force-field final structures (optimized sparse scan)' \
-    --workers 16
+```text
+open one eligible ring edge
+→ perturb
+→ short optimization
+→ restore the exact edge and metadata
+→ rescan only the watched ring--bond pairs
 ```
+
+When the watch set clears, the workflow returns to one full AABB-screened
+checkpoint. If the repair budget is exhausted, it restores the best closed-
+topology frame, performs exactly one final checkpoint scan, warns, and returns.
+It no longer performs a second settling optimization that can overwrite that
+fallback frame.
+
+A ligand candidate with a remaining confirmed piercing cannot pass the basic
+gate. `UNDETERMINED` is recorded and warned about, but does not trigger an
+automatic ring-opening operation.
+
+### 2.2 Stage 2: coordination-bond construction
+
+All intended metal--ligand bonds are initially hidden. For each candidate bond,
+the code prepares the current `full_graph` Relevant Cycles before adding that
+candidate. It then checks only the hypothetical finite metal--donor segment
+against those rings.
+
+This boundary has two useful properties:
+
+- existing organic and metal--organic chelate rings are visible;
+- the candidate's own newly closed chelate ring does not yet exist, so it
+  cannot create a self-closure false positive.
+
+The first candidate without a confirmed piercing is restored and relaxed.
+Coordinates or topology changes invalidate the workspace; the next round
+prepares a new one. Stage 2 does not perform a terminal whole-molecule scan;
+Stage 3 owns that checkpoint.
+
+Metal relocation is conditional. It is permitted only while the complete
+system has zero accepted coordination bonds and every pending path for the
+selected unbound center is confirmed blocked. Ligands remain fixed. Once any
+coordination bond is accepted, remaining blocked candidates use the bounded
+relaxation path. An infeasible relocation that changes no coordinates proceeds
+directly to the bounded fallback instead of rebuilding and rescanning the same
+workspace.
+
+### 2.3 Stage 3: full-complex optimization
+
+Stage 3 performs a `full_graph` checkpoint at entry. Confirmed piercings enter
+the same fixed-watch repair workflow. Once topology is clear, the main Open
+Babel optimizer runs as a purely numerical loop; its epochs do not execute
+bond--ring scans. A final `full_graph` checkpoint validates the result. If this
+checkpoint finds a confirmed piercing, the workflow re-enters repair and then
+stabilizes a successfully changed structure with a short numerical segment.
+
+Numerical evidence has explicit coordinate ownership. Energy, gradient,
+`best_epoch`, and convergence values are reused only while the current
+coordinates equal the last optimizer-selected frame. If repair exhausts its
+budget after changing coordinates, the returned report retains historical
+epoch and step counts but marks current-frame numerical values unknown
+(`NaN`, `best_epoch=-1`, `termination_reason=topology_blocked`). This prevents
+an optimized report from describing a different coordinate frame.
+
+### 2.4 Geometry execution
+
+The geometry package supplies facts only. Forcefields decides whether those
+facts permit bond restoration, require repair, produce a warning, or fail
+acceptance.
+
+The implementation uses:
+
+- immutable cycle topology templates;
+- one frame workspace for all candidates sharing coordinates and topology;
+- a strict AABB broad phase;
+- prepared per-cycle numeric kernels;
+- scalar exact segment--cycle classification only for AABB-overlapping pairs;
+- three states: `PIERCES`, `DOES_NOT_PIERCE`, and `UNDETERMINED`.
+
+Only Relevant Cycles of at most 16 atoms are actionable in forcefield repair.
+Larger cycles are counted and warned about.
+
+## 3. Production commits
+
+| Commit | Purpose |
+|---|---|
+| `1f98f68` | Define the three-stage workflow and validation contract. |
+| `59d055a` | Add stage scan-boundary characterization tests. |
+| `0d38595` | Add the scalar prepared-cycle seam. |
+| `489d7d2` | Add checkpoint-based acceptance. |
+| `a5954d2` | Remove topology work from numerical epochs. |
+| `0b4e4f0` | Align numerical frame report semantics. |
+| `b995b07` | Reuse checkpoint evidence. |
+| `42dd4a4` | Screen hidden coordination candidates. |
+| `07e3db5` | Enforce zero-piercing ligand acceptance. |
+| `17be3ac` | Cache immutable cycle topology. |
+| `113c3ce` | Add bounded metal-position search. |
+| `b2942ee` | Gate complex optimization by full-graph topology. |
+| `fbd0922` | Connect relocation to the blocked unbound-metal path. |
+| `16beffb` | Precompute single-frame cycle kernels. |
+| `aea851f` | Add reusable bond--ring workspaces. |
+| `33906d9` | Add opt-in stability stopping; default remains disabled. |
+| `e80a226` | Reuse the Stage 2 screening workspace. |
+| `0ed5d10` | Align the Relevant Cycle integration fence. |
+| `eb66b25` | Isolate fixed-watch ring repair. |
+| `6ddc6a6` | Serialize complete topology-checkpoint evidence. |
+| `5e75b2a` | Require globally zero accepted bonds before metal relocation. |
+| `3f5fe7b` | Preserve relaxation after one metal becomes anchored. |
+| `d220a09` | Stop repair cleanly when its budget is exhausted. |
+| `d574d5c` | Align returned numerical reports with repaired coordinates. |
+| `0336029` | Align the scan-count regression fence. |
+| `f0a6e7c` | Skip unchanged rescans after infeasible relocation. |
+
+## 4. Automated verification
+
+The final focused regression suite passed **634 tests** under Python 3.11.16.
+It covers geometry, prepared-cycle equivalence, public forcefield APIs,
+acceptance, optimizer behavior, trajectory serialization, metal relocation,
+three-stage scan boundaries, complex construction, and Relevant Cycle
+integration.
+
+An attempt to collect all of `tests/test_cheminfo` stopped at
+`test_elements.py` because the active validation environment does not contain
+the optional `numba` package. This is an environment collection limitation;
+the affected three-stage modules and their integration tests completed.
+
+The final one-molecule smoke run passed before the full run. Its v4 trajectory
+archive, MOL2, SDF, and PNG were read back successfully; the MOL2-versus-archive
+maximum coordinate difference was \(4.98\times10^{-5}\) Å.
+
+## 5. Full 187-molecule validation
+
+### 5.1 Artifact integrity
+
+The audit reports `passed=true`:
+
+| Artifact check | Result |
+|---|---:|
+| Input reports | 187 / 187 |
+| CBond-complete cases | 178 |
+| Readable trajectory archives | 178 / 178 |
+| Optimized MOL2 | 178 / 178 |
+| Optimized SDF | 178 / 178 |
+| Final PNG | 178 / 178 |
+| Main trajectory frames | 8898 |
+| Ligand-build branches | 284 |
+| Ligand-build frames | 2330 |
+| Global/case integrity issues | 0 / 0 |
+| Maximum MOL2/archive coordinate difference | 4.9996e-5 Å |
+
+The nine CBond failures do not enter forcefields and therefore correctly have
+no optimization trajectory or final structure.
+
+### 5.2 Topology and screening evidence
+
+| Measurement | Count |
+|---|---:|
+| Total topology checkpoints | 1150 |
+| Stage 1 `ligand_skeleton` checkpoints | 787 |
+| Stage 3 `full_graph` checkpoints | 363 |
+| Selected rings across checkpoints | 5987 |
+| Excluded rings larger than 16 | 53 |
+| Candidate bond--ring pairs | 406103 |
+| AABB-separated pairs | 363777 (89.58%) |
+| Exact-kernel pairs | 42326 (10.42%) |
+| Confirmed piercing observations | 80 |
+| Mathematically undetermined observations | 6709 |
+
+Confirmed piercing evidence occurred at intermediate checkpoints in 31 cases.
+Every one of those cases finished with zero confirmed piercing. The 6709
+undetermined observations are geometric ambiguity records and are not counted
+as confirmed interpenetration.
+
+Stage 2 recorded 703 bond trials: 689 accepted and 14 rejected. All intended
+bonds were eventually restored without a forced bond. No metal relocation was
+needed by this mononuclear Eu dataset; relocation behavior is covered by unit
+tests, including the multi-metal boundary.
+
+`ComplexBuildDiagnostics.attempt_count=284` is the number of ligand candidate
+attempts, not builder calls. The trajectory structure implies 180 OBBuilder
+calls: 176 cases have one non-metal component, while cases 0059 and 0060 have
+two. This agrees with the one-builder-call-per-component implementation.
+
+### 5.3 Quality failures
+
+None of the seven failed-quality structures contains a confirmed final
+ring--bond piercing.
+
+| Case | Failure | Interpretation |
+|---:|---|---|
+| 0031 | 2 close contacts, 5 short bonds, 15 bond-ratio failures | Severe local collapse after the 100-epoch budget. |
+| 0045 | NaN gradients, close contact, 2 short bonds, 7 bond-ratio failures | Local collapse plus invalid gradient; final ring relations include mathematical uncertainty. |
+| 0046 | NaN RMS/max gradient | Finite energy but invalid gradient; final ring relations include mathematical uncertainty. |
+| 0047 | NaN gradients, close contact, 2 short bonds, 8 bond-ratio failures | Local collapse plus invalid gradient; final ring relations include mathematical uncertainty. |
+| 0054 | NaN RMS/max gradient | Backend reports convergence, but the quality gate correctly rejects the invalid gradient. |
+| 0061 | Two short Eu--donor bonds and two ratio failures | Distances 1.5193/1.5225 Å are below the 1.7485 Å lower threshold. |
+| 0070 | One atom overlap | Hydrogen atoms 120 and 121 occupy the same coordinates after the 100-epoch budget. |
+
+The aggregate failure signature is exactly the same as the baseline: 32 bond
+ratio failures, 11 short bonds, four close contacts, four non-finite RMS
+gradients, four non-finite maximum gradients, and one atom overlap.
+
+### 5.4 CBond failures
+
+Cases 0022, 0136, 0139, 0141, 0182, 0185, 0186, and 0187 have no candidate
+above the raw score threshold -0.125. Case 0134 contains multiple sodium ions,
+while CBond inference supports exactly one metal center. These failures occur
+before forcefield construction.
+
+### 5.5 Long-tail cases
+
+The current within-run P95 threshold is 23.587 s.
+
+| Case | Total (s) | Build (s) | Main cause |
+|---:|---:|---:|---|
+| 0070 | 71.749 | 29.235 | 143 atoms, 100 epochs, final H--H overlap. |
+| 0089 | 55.283 | 34.200 | 154-atom ligand build dominates. |
+| 0048 | 36.650 | 26.347 | Two ligand candidates; build dominates. |
+| 0010 | 31.999 | 21.859 | 175 atoms; build and CBond are both relatively expensive. |
+| 0062 | 30.459 | 13.363 | 100 global epochs and 131 main frames. |
+| 0045 | 27.267 | 9.716 | 100 epochs, collapsed geometry, NaN gradient. |
+| 0061 | 26.991 | 10.098 | 82 epochs; final Eu--donor bonds too short. |
+| 0047 | 26.501 | 9.330 | 100 epochs, collapsed geometry, NaN gradient. |
+| 0021 | 23.900 | 9.231 | 100 global epochs and 126 main frames. |
+| 0140 | 23.711 | 14.746 | Two ligand candidates; build dominates. |
+
+Across these ten cases, CBond consumes only 0.94% of total time. Six are
+dominated by global optimization and four by ligand construction.
+
+## 6. Coordinate comparison with the previous baseline
+
+All 178 forcefield cases have identical atom order and topology and can be
+compared after Kabsch alignment. The other nine are the CBond failures and have
+no trajectory in either run.
+
+| RMSD statistic | Value (Å) |
+|---|---:|
+| Median | 1.99e-15 |
+| P90 | 1.92e-14 |
+| P95 | 0.0350 |
+| P99 | 0.5916 |
+| Maximum | 1.3811 |
+
+Fifteen cases have RMSD greater than 0.001 Å. All retain the same pass/fail
+status as the baseline. The changes arise from altered terminal or selected
+optimizer frames after the workflow correction; they do not arise from atom
+reordering or topology mismatch.
+
+## 7. Isolated performance evidence
+
+The following measurements isolate the four requested optimizations. They are
+microbenchmarks or direct call-count measurements and must not be multiplied
+together to predict end-to-end speed.
+
+| Optimization | Measurement | Result |
+|---|---|---:|
+| Strict AABB broad phase | Real cases 0001 and 0048; dense versus sparse scan | 2.59x and 4.96x faster; confirmed piercing counts identical |
+| Frozen watch set | 101 full candidate pairs versus one watched pair, 200 repeats | 6.95x faster |
+| Stage 2 shared workspace | 12 blocked candidates, 30 repeats | 0.562 s to 0.334 s; 1.68x faster |
+| One OBBuilder call | Case 0010 ligand, 174 atoms with H, 20 calls | 0.04095 s/call; 49 avoided calls save about 2.01 s in a 50-attempt worst case |
+
+The immutable topology-template and frame-kernel implementation was also
+measured on real cases 0001, 0048, and 0070: 30.210 s decreased to 21.840 s
+(1.38x), with identical state, count, finding-key, and evidence output.
+
+## 8. Remaining limits
+
+1. Exact segment--cycle classification still iterates over the AABB-surviving
+   pairs. A batched exact kernel may improve performance, but it is not needed
+   for the present correctness target and must preserve all three-state and
+   tolerance semantics.
+2. The standard 187 set did not trigger metal relocation. The branch is
+   covered by focused single- and multi-metal tests, but needs a dedicated
+   real-complex corpus for empirical success-rate measurement.
+3. `UNDETERMINED` remains a warning. Forcefields repairs only mathematically
+   confirmed `PIERCES` relations, as specified.
+4. Trajectory schema is version 4. Older version-3 archives are rejected
+   explicitly; this repository currently has no archive-compatibility
+   requirement.
+5. `converged` describes the selected frame, whereas `terminal_converged` and
+   `termination_reason=converged` describe the terminal optimizer frame. Cases
+   0004 and 0064 therefore legitimately have a converged terminal frame while
+   their selected lower-energy frame is not marked converged.

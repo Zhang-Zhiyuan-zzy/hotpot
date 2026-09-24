@@ -2,10 +2,11 @@
 
 日期：2026-09-24
 
-状态：实施方案；尚未据此修改生产代码
+状态：已实施并完成 187 分子标准验证
 
-当前分支：`perf/forcefield-ring-scan`
-代码基线：`b55ae69`
+当前分支：`refactor/forcefield-three-stage`
+规划基线：`b55ae69`
+已验证生产代码：`f0a6e7c`
 
 配套流程图制品：`plan/forcefield_three_stage_workflow.archify.json` 与
 `plan/forcefield_three_stage_workflow.html`。
@@ -88,7 +89,7 @@ flowchart TD
 
 下一次 `D → H` 前检查尝试上限。预算耗尽时恢复最佳闭合拓扑帧，执行一次完整检查点扫描、记录警告，并遵循调用方回退策略。
 
-## 3. 当前实施审计
+## 3. 规划基线实施审计（`b55ae69`）
 
 | 阶段 | 当前实施 | 正确部分 | 与目标的差距 |
 |---|---|---|---|
@@ -656,3 +657,31 @@ tests，再丢弃该临时 worktree。只有“回撤后仍能构建并通过测
 - 添加静默 fallback；
 - 坐标变化后复用坐标相关 geometry；
 - 在完整验证证据审查前改变可选稳定性早停的默认行为。
+
+## 13. 实施与验收结果
+
+生产重构已在 `refactor/forcefield-three-stage` 分支完成。最终生产代码
+commit 为 `f0a6e7c`，包含三阶段边界、固定 watch 修复、AABB/workspace
+复用、全局零配位键金属平移条件、轨迹 checkpoint evidence，以及修复后
+坐标与数值报告的一致性约束。
+
+最终相关回归测试为 **634 passed**。标准 187 分子、16 进程验证结果为：
+
+| 指标 | 基线 | 重构后 |
+|---|---:|---:|
+| 质量通过 / 失败 | 171 / 7 | 171 / 7 |
+| CBond 失败 | 9 | 9 |
+| Wall time | 380.590 s | 157.776 s |
+| Aggregate case time | 5669.518 s | 2365.233 s |
+| Median / P95 | 20.699 / 81.496 s | 11.672 / 23.587 s |
+| 最长单例 | 207.612 s | 71.749 s |
+
+全部 187 个状态与基线一致。178 个进入力场的样本全部生成并通过读取校验的
+完整轨迹、MOL2、SDF 与 final PNG；无内部异常或产物缺失。AABB 在
+406103 个 checkpoint 候选 pair 中排除了 363777 个（89.58%），42326 个
+进入精确几何核。31 个样本曾出现确认互穿的中间 checkpoint，最终确认互穿数
+均为 0。
+
+完整实施说明、失败样本分析、长尾分析、坐标对比及四项独立性能证据见
+`plan/improve_ff_efficient.md`；机器可读结果见
+`movie/extractants_eu_three_stage_refactor_16c_20260924/`。

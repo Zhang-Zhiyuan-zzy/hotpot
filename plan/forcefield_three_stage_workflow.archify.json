@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "金属络合物三阶段力场工作流",
+    "locale": "zh-CN",
+    "output": "plan/forcefield_three_stage_workflow.html",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "control", "label": "流程控制" },
+    { "id": "ligand", "label": "阶段 1 · 配体构筑" },
+    { "id": "coordination", "label": "阶段 2 · 配位键构筑" },
+    { "id": "complex", "label": "阶段 3 · 络合物优化" },
+    { "id": "repair", "label": "环键开结", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "构筑", "fromCol": 0, "toCol": 2 },
+    { "id": "optimize", "label": "优化", "fromCol": 3, "toCol": 4, "variant": "emphasis" },
+    { "id": "accept", "label": "验收", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": [
+    "input",
+    "ligand_build",
+    "ligand_check",
+    "coord_build",
+    "candidate_screen",
+    "complex_check",
+    "numerical_opt",
+    "final_check",
+    "output"
+  ],
+  "semanticChecks": {
+    "allowedRoots": ["input"],
+    "allowedTerminals": ["output"],
+    "requiredPaths": [
+      { "from": "input", "to": "output" },
+      { "from": "ligand_check", "to": "ligand_repair" },
+      { "from": "candidate_screen", "to": "metal_relocate" },
+      { "from": "final_check", "to": "complex_repair" }
+    ]
+  },
+  "nodes": [
+    { "id": "input", "lane": "control", "col": 0, "type": "external", "label": "输入络合物拓扑" },
+    { "id": "ligand_build", "lane": "ligand", "col": 1, "type": "backend", "label": "配体构筑", "sublabel": "OBBuilder 一次" },
+    { "id": "ligand_check", "lane": "ligand", "col": 2, "width": 118, "type": "security", "label": "入口／验收检查点", "sublabel": "全量 AABB" },
+    { "id": "coord_build", "lane": "coordination", "col": 2, "type": "backend", "label": "准备当前环", "sublabel": "候选键保持隐藏" },
+    { "id": "candidate_screen", "lane": "coordination", "col": 3, "type": "security", "label": "候选键局部筛查", "sublabel": "假想线段 × 当前环" },
+    { "id": "metal_relocate", "lane": "coordination", "col": 4, "width": 108, "type": "backend", "label": "定向平移金属", "sublabel": "零已接纳键且全被拒绝" },
+    { "id": "complex_check", "lane": "complex", "col": 3, "type": "security", "label": "入口检查点", "sublabel": "full_graph AABB" },
+    { "id": "numerical_opt", "lane": "complex", "col": 4, "type": "backend", "label": "纯数值优化", "sublabel": "不扫描环键拓扑" },
+    { "id": "final_check", "lane": "complex", "col": 5, "type": "security", "label": "最终验收", "sublabel": "full_graph AABB" },
+    { "id": "output", "lane": "control", "col": 5, "width": 118, "type": "database", "label": "结构、报告与轨迹" },
+    { "id": "ligand_repair", "lane": "repair", "col": 2, "type": "messagebus", "label": "共享开结流程", "sublabel": "盯住当前互穿 pair" },
+    { "id": "complex_repair", "lane": "repair", "col": 4, "width": 100, "type": "messagebus", "label": "共享开结流程", "sublabel": "开环、微扰、短优化、闭环" }
+  ],
+  "edges": [
+    { "from": "input", "to": "ligand_build", "role": "main" },
+    { "from": "ligand_build", "to": "ligand_check", "role": "main" },
+    { "from": "ligand_check", "to": "coord_build", "label": "通过或有界回退", "role": "main" },
+    { "from": "coord_build", "to": "candidate_screen", "role": "main" },
+    { "from": "candidate_screen", "to": "complex_check", "label": "全部处理", "role": "main" },
+    { "from": "candidate_screen", "to": "metal_relocate", "label": "零键且全被拒绝", "role": "error", "variant": "security" },
+    { "from": "metal_relocate", "to": "coord_build", "label": "重建工作区", "role": "return", "variant": "security" },
+    { "from": "complex_check", "to": "numerical_opt", "label": "无确认互穿", "role": "main" },
+    { "from": "numerical_opt", "to": "final_check", "role": "main" },
+    { "from": "final_check", "to": "output", "label": "通过或有界失败", "role": "main" },
+    { "from": "ligand_check", "to": "ligand_repair", "label": "确认互穿", "role": "error", "variant": "security" },
+    { "from": "ligand_repair", "to": "ligand_check", "label": "全量复验", "role": "return", "variant": "security" },
+    { "from": "complex_check", "to": "complex_repair", "label": "确认互穿", "role": "error", "variant": "security" },
+    { "from": "final_check", "to": "complex_repair", "label": "确认互穿", "role": "error", "variant": "security" },
+    { "from": "complex_repair", "to": "complex_check", "label": "全量复验", "role": "return", "variant": "security" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "检查点边界", "items": ["阶段 1、3 仅在入口和验收执行全量 AABB 扫描", "修复期间只复查冻结的互穿 pair"] },
+    { "dot": "violet", "title": "配位键构筑", "items": ["候选键保持隐藏", "仅筛查假想候选线段与加键前当前环", "零已接纳键且全被拒绝时定向平移金属"] },
+    { "dot": "emerald", "title": "优化职责", "items": ["数值早停不含拓扑扫描", "最终拓扑由阶段控制器验收"] }
+  ]
+}

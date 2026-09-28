@@ -62,6 +62,8 @@ struct OptimizationOptions {
     std::size_t epochs;
     std::size_t steps_per_epoch;
     std::optional<std::size_t> perturb_interval;
+    bool retain_frames;
+    bool retain_epoch_history;
     bool increasing_vdw;
     double vdw_cutoff_start;
     double vdw_cutoff_end;
@@ -77,10 +79,12 @@ struct OptimizationFrame {
     double max_gradient;
     bool exploded;
     bool converged;
+    std::size_t epoch_index;
     std::size_t segment_epochs_completed;
     std::size_t segment_index;
     std::optional<double> energy_change;
     std::optional<double> max_displacement;
+    std::size_t history_length;
 };
 
 
@@ -103,6 +107,9 @@ struct OptimizationResult {
     std::string backend_energy_unit;
     std::string termination_reason;
     bool terminal_converged;
+    std::vector<double> energy_changes;
+    std::vector<double> max_displacements;
+    std::vector<double> epoch_energies;
     RulePlan rules;
 };
 
@@ -111,6 +118,7 @@ struct RuntimeInfo {
     std::string compiled_openbabel_version;
     std::string runtime_openbabel_version;
     int cxx11_abi;
+    std::string openbabel_library_path;
     std::string babel_libdir;
     std::string babel_datadir;
 };

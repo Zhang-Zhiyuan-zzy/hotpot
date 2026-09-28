@@ -15,6 +15,8 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <dlfcn.h>
+#include <filesystem>
 #include <limits>
 #include <mutex>
 #include <numeric>
@@ -51,6 +53,46 @@ namespace {
 
 
 std::recursive_mutex openbabel_mutex;
+std::once_flag openbabel_runtime_once;
+std::string openbabel_library_path;
+
+
+void set_environment(const char* name, const std::string& value) {
+#ifdef _WIN32
+    _putenv_s(name, value.c_str());
+#else
+    setenv(name, value.c_str(), 1);
+#endif
+}
+
+
+void ensure_openbabel_runtime() {
+    std::call_once(openbabel_runtime_once, []() {
+        Dl_info library_info{};
+        if (dladdr(
+                reinterpret_cast<void*>(OpenBabel::OBReleaseVersion),
+                &library_info
+            ) != 0
+            && library_info.dli_fname != nullptr) {
+            const auto library = std::filesystem::canonical(
+                library_info.dli_fname
+            );
+            openbabel_library_path = library.string();
+            const auto library_dir = library.parent_path();
+            const auto version = OpenBabel::OBReleaseVersion();
+            const auto plugin_dir = library_dir / "openbabel" / version;
+            const auto data_dir = library_dir.parent_path()
+                / "share" / "openbabel" / version;
+            if (std::filesystem::is_directory(plugin_dir)) {
+                set_environment("BABEL_LIBDIR", plugin_dir.string());
+            }
+            if (std::filesystem::is_directory(data_dir)) {
+                set_environment("BABEL_DATADIR", data_dir.string());
+            }
+        }
+        OpenBabel::OBPlugin::LoadAllPlugins();
+    });
+}
 
 
 std::string uppercase(std::string value) {
@@ -147,7 +189,7 @@ RulePlan prepare_optimization(
 
 
 OpenBabel::OBForceField& find_forcefield(const std::string& name) {
-    OpenBabel::OBPlugin::LoadAllPlugins();
+    ensure_openbabel_runtime();
     auto* forcefield = static_cast<OpenBabel::OBForceField*>(
         OpenBabel::OBPlugin::GetPlugin("forcefields", name.c_str())
     );
@@ -423,6 +465,7 @@ void validate_options(
 
 
 RuntimeInfo runtime_info() {
+    ensure_openbabel_runtime();
     const auto environment_value = [](const char* name) {
         const auto* value = std::getenv(name);
         return value == nullptr ? std::string{} : std::string(value);
@@ -431,6 +474,7 @@ RuntimeInfo runtime_info() {
         BABEL_VERSION,
         OpenBabel::OBReleaseVersion(),
         _GLIBCXX_USE_CXX11_ABI,
+        openbabel_library_path,
         environment_value("BABEL_LIBDIR"),
         environment_value("BABEL_DATADIR"),
     };
@@ -439,11 +483,7 @@ RuntimeInfo runtime_info() {
 
 void seed_random(std::uint32_t seed) {
     const auto text = std::to_string(seed);
-#ifdef _WIN32
-    _putenv_s("OB_RANDOM_SEED", text.c_str());
-#else
-    setenv("OB_RANDOM_SEED", text.c_str(), 1);
-#endif
+    set_environment("OB_RANDOM_SEED", text);
 #if OB_VERSION < OB_VERSION_CHECK(3, 2, 0)
     OpenBabel::vector3 probe;
     probe.randomUnitVector();
@@ -457,6 +497,7 @@ BuildResult build(
     std::optional<bool> stereo_warnings
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    ensure_openbabel_runtime();
     auto obmol = make_obmol(molecule);
     auto plan = rule_registry().execute(
         RuleStage::PRE_BUILD,
@@ -578,7 +619,13 @@ OptimizationResult optimize(
 
     auto initialization_for_epoch = initialize(total_steps);
     std::vector<OptimizationFrame> frames;
-    frames.reserve(options.epochs);
+    if (options.retain_frames) {
+        frames.reserve(options.epochs);
+    }
+    std::vector<double> epoch_energies;
+    if (options.retain_epoch_history) {
+        epoch_energies.reserve(options.epochs);
+    }
     std::vector<std::vector<double>> energy_change_segments(1);
     std::vector<std::vector<double>> displacement_segments(1);
     std::vector<std::vector<double>> rms_gradient_segments(1);
@@ -594,6 +641,25 @@ OptimizationResult optimize(
     bool segment_active = true;
     bool terminal_converged = false;
     std::string termination_reason = "budget_exhausted";
+    const double not_a_number = std::numeric_limits<double>::quiet_NaN();
+    OptimizationFrame latest_returnable_frame{
+        molecule.coordinates,
+        not_a_number,
+        not_a_number,
+        not_a_number,
+        false,
+        false,
+        0,
+        0,
+        0,
+        std::nullopt,
+        std::nullopt,
+        0,
+    };
+    long latest_returnable_epoch = -1;
+    std::optional<OptimizationFrame> best_frame;
+    long best_epoch = -1;
+    std::optional<OptimizationFrame> last_frame;
 
     for (std::size_t epoch = 0; epoch < options.epochs; ++epoch) {
         const bool reset_history = options.perturb_interval.has_value()
@@ -701,28 +767,47 @@ OptimizationResult optimize(
             gradients.second,
             forcefield.DetectExplosion(),
             reported_converged,
+            epoch,
             segment_epochs_completed,
             segment_index,
             energy_change,
             displacement,
+            energy_change_segments[segment_index].size(),
         };
         rms_gradient_segments[segment_index].push_back(frame.rms_gradient);
         max_gradient_segments[segment_index].push_back(frame.max_gradient);
         previous_coordinates = frame.coordinates;
         previous_energy = frame.energy;
-        frames.push_back(std::move(frame));
 
         const bool stable = !backend_converged
             && !options.increasing_vdw
             && options.stopping_criteria.has_value()
             && stability_reached(
-                frames.back(),
+                frame,
                 energy_change_segments[segment_index],
                 displacement_segments[segment_index],
                 rms_gradient_segments[segment_index],
                 max_gradient_segments[segment_index],
                 *options.stopping_criteria
             );
+        const long observed_epoch = static_cast<long>(epochs_completed - 1);
+        if (finite_coordinates(frame.coordinates)) {
+            latest_returnable_frame = frame;
+            latest_returnable_epoch = observed_epoch;
+        }
+        if (frame_is_usable(frame)
+            && (!best_frame.has_value()
+                || frame.energy < best_frame->energy)) {
+            best_frame = frame;
+            best_epoch = observed_epoch;
+        }
+        if (options.retain_epoch_history) {
+            epoch_energies.push_back(frame.energy);
+        }
+        last_frame = frame;
+        if (options.retain_frames) {
+            frames.push_back(std::move(frame));
+        }
         if (stable) {
             segment_active = false;
             termination_reason = "stability_reached";
@@ -734,76 +819,45 @@ OptimizationResult optimize(
         }
     }
 
-    if (frames.empty()) {
+    if (!last_frame.has_value()) {
         throw std::runtime_error("Open Babel produced no optimization frame");
     }
-    long selected_frame_index = -1;
-    long latest_returnable_frame_index = -1;
-    for (std::size_t index = 0; index < frames.size(); ++index) {
-        if (finite_coordinates(frames[index].coordinates)) {
-            latest_returnable_frame_index = static_cast<long>(index);
-        }
-        if (frame_is_usable(frames[index])
-            && (selected_frame_index < 0
-                || frames[index].energy
-                    < frames[static_cast<std::size_t>(
-                        selected_frame_index
-                    )].energy)) {
-            selected_frame_index = static_cast<long>(index);
-        }
+    if (!best_frame.has_value()) {
+        best_frame = latest_returnable_frame;
+        best_epoch = latest_returnable_epoch;
     }
-
-    const auto& terminal = frames.back();
-    if (selected_frame_index < 0) {
-        if (latest_returnable_frame_index >= 0) {
-            selected_frame_index = latest_returnable_frame_index;
-        }
-    }
-    if (selected_frame_index < 0) {
-        return OptimizationResult{
-            molecule.coordinates,
-            terminal.coordinates,
-            std::move(frames),
-            -1,
-            -1,
-            terminal.energy,
-            std::numeric_limits<double>::quiet_NaN(),
-            std::numeric_limits<double>::quiet_NaN(),
-            std::numeric_limits<double>::quiet_NaN(),
-            false,
-            false,
-            epochs_completed,
-            steps_submitted,
-            initialization_steps,
-            0,
-            backend_unit,
-            termination_reason,
-            terminal_converged,
-            std::move(all_rules),
-        };
-    }
-    const auto& selected = frames[
-        static_cast<std::size_t>(selected_frame_index)
-    ];
+    const auto selected_energy_changes = std::vector<double>(
+        energy_change_segments[best_frame->segment_index].begin(),
+        energy_change_segments[best_frame->segment_index].begin()
+            + static_cast<std::ptrdiff_t>(best_frame->history_length)
+    );
+    const auto selected_displacements = std::vector<double>(
+        displacement_segments[best_frame->segment_index].begin(),
+        displacement_segments[best_frame->segment_index].begin()
+            + static_cast<std::ptrdiff_t>(best_frame->history_length)
+    );
     return OptimizationResult{
-        selected.coordinates,
-        terminal.coordinates,
+        best_frame->coordinates,
+        last_frame->coordinates,
         std::move(frames),
-        selected_frame_index,
-        selected_frame_index,
-        terminal.energy,
-        selected.energy,
-        selected.rms_gradient,
-        selected.max_gradient,
-        selected.exploded,
-        selected.converged,
+        best_epoch,
+        best_epoch,
+        last_frame->energy,
+        best_frame->energy,
+        best_frame->rms_gradient,
+        best_frame->max_gradient,
+        best_frame->exploded,
+        best_frame->converged,
         epochs_completed,
         steps_submitted,
         initialization_steps,
-        selected.segment_epochs_completed,
+        best_frame->segment_epochs_completed,
         backend_unit,
         termination_reason,
         terminal_converged,
+        selected_energy_changes,
+        selected_displacements,
+        std::move(epoch_energies),
         std::move(all_rules),
     };
 }

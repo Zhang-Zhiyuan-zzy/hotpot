@@ -1,0 +1,812 @@
+#include "native_engine.hpp"
+
+#include "openbabel_adapter.hpp"
+#include "registry.hpp"
+
+#include <openbabel/builder.h>
+#include <openbabel/babelconfig.h>
+#include <openbabel/base.h>
+#include <openbabel/forcefield.h>
+#include <openbabel/math/vector3.h>
+#include <openbabel/plugin.h>
+
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <limits>
+#include <mutex>
+#include <numeric>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+
+namespace hotpot::obwrappers {
+
+
+ForceFieldSetupFailure::ForceFieldSetupFailure(
+    std::string forcefield,
+    std::string stage,
+    std::string message
+) :
+    std::runtime_error(std::move(message)),
+    forcefield_(std::move(forcefield)),
+    stage_(std::move(stage)) {}
+
+
+const std::string& ForceFieldSetupFailure::forcefield() const noexcept {
+    return forcefield_;
+}
+
+
+const std::string& ForceFieldSetupFailure::stage() const noexcept {
+    return stage_;
+}
+
+
+namespace {
+
+
+std::recursive_mutex openbabel_mutex;
+
+
+std::string uppercase(std::string value) {
+    std::transform(
+        value.begin(),
+        value.end(),
+        value.begin(),
+        [](unsigned char character) {
+            return static_cast<char>(std::toupper(character));
+        }
+    );
+    return value;
+}
+
+
+void append_rule_plan(RulePlan& destination, const RulePlan& source) {
+    destination.applications.insert(
+        destination.applications.end(),
+        source.applications.begin(),
+        source.applications.end()
+    );
+}
+
+
+class HybridizationGuard {
+public:
+    HybridizationGuard(OpenBabel::OBMol& molecule, const RulePlan& plan) :
+        molecule_(molecule),
+        plan_(plan) {
+        for (const auto& application : plan_.applications) {
+            for (const auto& change : application.hybridization_changes) {
+                molecule_.GetAtom(
+                    static_cast<int>(change.atom_index + 1)
+                )->SetHyb(change.after);
+            }
+        }
+    }
+
+    ~HybridizationGuard() {
+        for (auto application = plan_.applications.rbegin();
+             application != plan_.applications.rend();
+             ++application) {
+            for (auto change = application->hybridization_changes.rbegin();
+                 change != application->hybridization_changes.rend();
+                 ++change) {
+                molecule_.GetAtom(
+                    static_cast<int>(change->atom_index + 1)
+                )->SetHyb(change->before);
+            }
+        }
+    }
+
+    HybridizationGuard(const HybridizationGuard&) = delete;
+    HybridizationGuard& operator=(const HybridizationGuard&) = delete;
+
+private:
+    OpenBabel::OBMol& molecule_;
+    const RulePlan& plan_;
+};
+
+
+void apply_coordinate_changes(
+    OpenBabel::OBMol& molecule,
+    const RulePlan& plan
+) {
+    for (const auto& application : plan.applications) {
+        for (const auto& change : application.coordinate_changes) {
+            molecule.GetAtom(
+                static_cast<int>(change.atom_index + 1)
+            )->SetVector(change.after[0], change.after[1], change.after[2]);
+        }
+    }
+}
+
+
+RulePlan prepare_optimization(
+    OpenBabel::OBMol& molecule,
+    const std::string& forcefield,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    RulePlan plan{RuleStage::PRE_FORCEFIELD_SETUP, {}};
+    if (uppercase(forcefield) != "UFF") {
+        return plan;
+    }
+    plan = rule_registry().execute(
+        RuleStage::PRE_FORCEFIELD_SETUP,
+        snapshot_obmol(molecule, true),
+        RuleParameters{singularity_threshold, repair_angle_radians}
+    );
+    apply_coordinate_changes(molecule, plan);
+    return plan;
+}
+
+
+OpenBabel::OBForceField& find_forcefield(const std::string& name) {
+    OpenBabel::OBPlugin::LoadAllPlugins();
+    auto* forcefield = static_cast<OpenBabel::OBForceField*>(
+        OpenBabel::OBPlugin::GetPlugin("forcefields", name.c_str())
+    );
+    if (forcefield == nullptr) {
+        throw ForceFieldSetupFailure(
+            name,
+            "lookup",
+            "unknown Open Babel force field: " + name
+        );
+    }
+    return *forcefield;
+}
+
+
+double energy_factor_to_kj(const std::string& unit) {
+    std::string normalized;
+    normalized.reserve(unit.size());
+    for (const auto character : unit) {
+        if (!std::isspace(static_cast<unsigned char>(character))) {
+            normalized.push_back(
+                static_cast<char>(
+                    std::tolower(static_cast<unsigned char>(character))
+                )
+            );
+        }
+    }
+    if (normalized == "kj/mol"
+        || normalized == "kjmol-1"
+        || normalized == "kjmol^-1") {
+        return 1.0;
+    }
+    if (normalized == "kcal/mol"
+        || normalized == "kcalmol-1"
+        || normalized == "kcalmol^-1") {
+        return 4.184;
+    }
+    throw std::runtime_error(
+        "unsupported Open Babel energy unit: " + unit
+    );
+}
+
+
+double forcefield_energy_kj(
+    OpenBabel::OBForceField& forcefield,
+    bool calculate_gradients = true
+) {
+    return forcefield.Energy(calculate_gradients)
+        * energy_factor_to_kj(forcefield.GetUnit());
+}
+
+
+std::pair<double, double> gradient_metrics(
+    OpenBabel::OBForceField& forcefield,
+    OpenBabel::OBMol& molecule,
+    double factor
+) {
+    double squared_norm_sum = 0.0;
+    double maximum_norm = 0.0;
+    for (unsigned int index = 1; index <= molecule.NumAtoms(); ++index) {
+        const auto gradient = forcefield.GetGradient(
+            molecule.GetAtom(static_cast<int>(index))
+        );
+        const double x = gradient.GetX() * factor;
+        const double y = gradient.GetY() * factor;
+        const double z = gradient.GetZ() * factor;
+        const double squared_norm = x * x + y * y + z * z;
+        squared_norm_sum += squared_norm;
+        maximum_norm = std::max(maximum_norm, std::sqrt(squared_norm));
+    }
+    return {
+        std::sqrt(squared_norm_sum / molecule.NumAtoms()),
+        maximum_norm,
+    };
+}
+
+
+bool finite_coordinates(const std::vector<Coordinate>& coordinates) {
+    return std::all_of(
+        coordinates.begin(),
+        coordinates.end(),
+        [](const Coordinate& coordinate) {
+            return std::all_of(
+                coordinate.begin(),
+                coordinate.end(),
+                [](double value) { return std::isfinite(value); }
+            );
+        }
+    );
+}
+
+
+double maximum_displacement(
+    const std::vector<Coordinate>& current,
+    const std::vector<Coordinate>& previous
+) {
+    double maximum = 0.0;
+    for (std::size_t index = 0; index < current.size(); ++index) {
+        const double x = current[index][0] - previous[index][0];
+        const double y = current[index][1] - previous[index][1];
+        const double z = current[index][2] - previous[index][2];
+        maximum = std::max(maximum, std::sqrt(x * x + y * y + z * z));
+    }
+    return maximum;
+}
+
+
+bool frame_is_usable(const OptimizationFrame& frame) {
+    return finite_coordinates(frame.coordinates)
+        && std::isfinite(frame.energy)
+        && std::isfinite(frame.rms_gradient)
+        && std::isfinite(frame.max_gradient)
+        && !frame.exploded;
+}
+
+
+bool recent_values_below(
+    const std::vector<double>& values,
+    std::size_t window,
+    double maximum
+) {
+    if (values.size() < window) {
+        return false;
+    }
+    return std::all_of(
+        values.end() - static_cast<std::ptrdiff_t>(window),
+        values.end(),
+        [maximum](double value) {
+            return std::isfinite(value) && value <= maximum;
+        }
+    );
+}
+
+
+bool stability_reached(
+    const OptimizationFrame& frame,
+    const std::vector<double>& energy_changes,
+    const std::vector<double>& displacements,
+    const std::vector<double>& rms_gradients,
+    const std::vector<double>& max_gradients,
+    const StoppingCriteria& criteria
+) {
+    return frame_is_usable(frame)
+        && recent_values_below(
+            energy_changes,
+            criteria.window,
+            criteria.maximum_energy_change_kj_mol
+        )
+        && recent_values_below(
+            displacements,
+            criteria.window,
+            criteria.maximum_atom_displacement_angstrom
+        )
+        && recent_values_below(
+            rms_gradients,
+            criteria.window,
+            criteria.maximum_rms_gradient_kj_mol_angstrom
+        )
+        && recent_values_below(
+            max_gradients,
+            criteria.window,
+            criteria.maximum_gradient_kj_mol_angstrom
+        );
+}
+
+
+RulePlan setup_forcefield(
+    OpenBabel::OBForceField& forcefield,
+    OpenBabel::OBMol& molecule,
+    const std::string& forcefield_name,
+    bool update_pairs,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    auto plan = prepare_optimization(
+        molecule,
+        forcefield_name,
+        singularity_threshold,
+        repair_angle_radians
+    );
+    OpenBabel::OBFFConstraints constraints;
+    if (!forcefield.Setup(molecule, constraints)) {
+        throw ForceFieldSetupFailure(
+            forcefield_name,
+            "setup",
+            "Open Babel could not initialize force field " + forcefield_name
+        );
+    }
+    if (update_pairs) {
+        forcefield.UpdatePairsSimple();
+    }
+    if (!plan.applications.empty()) {
+        const auto energy = forcefield.Energy(true);
+        bool finite_gradients = true;
+        for (unsigned int index = 1; index <= molecule.NumAtoms(); ++index) {
+            const auto gradient = forcefield.GetGradient(
+                molecule.GetAtom(static_cast<int>(index))
+            );
+            finite_gradients = finite_gradients
+                && std::isfinite(gradient.GetX())
+                && std::isfinite(gradient.GetY())
+                && std::isfinite(gradient.GetZ());
+        }
+        if (!std::isfinite(energy) || !finite_gradients) {
+            throw ForceFieldSetupFailure(
+                forcefield_name,
+                "preflight-validation",
+                "Open Babel retained a non-finite force-field state after "
+                "registered coordinate preparation"
+            );
+        }
+    }
+    return plan;
+}
+
+
+void validate_options(
+    const MoleculeData& molecule,
+    const OptimizationOptions& options,
+    const std::vector<std::vector<Coordinate>>& perturbation_offsets
+) {
+    if (options.epochs < 1 || options.steps_per_epoch < 1) {
+        throw std::invalid_argument(
+            "epochs and steps_per_epoch must be positive"
+        );
+    }
+    if (options.algorithm != "conjugate"
+        && options.algorithm != "steepest") {
+        throw std::invalid_argument(
+            "algorithm must be 'conjugate' or 'steepest'"
+        );
+    }
+    if (options.perturb_interval.has_value()
+        && *options.perturb_interval < 1) {
+        throw std::invalid_argument("perturb_interval must be positive");
+    }
+    if (!options.perturb_interval.has_value()
+        && !perturbation_offsets.empty()) {
+        throw std::invalid_argument(
+            "perturbation offsets require perturb_interval"
+        );
+    }
+    std::size_t expected_offsets = 0;
+    if (options.perturb_interval.has_value()) {
+        expected_offsets = (options.epochs - 1) / *options.perturb_interval;
+    }
+    if (perturbation_offsets.size() != expected_offsets) {
+        throw std::invalid_argument(
+            "perturbation offset count does not match the schedule"
+        );
+    }
+    for (const auto& offsets : perturbation_offsets) {
+        if (offsets.size() != molecule.atom_count()
+            || !finite_coordinates(offsets)) {
+            throw std::invalid_argument(
+                "each perturbation offset must be finite and shaped (N, 3)"
+            );
+        }
+    }
+    if (options.increasing_vdw
+        && options.vdw_cutoff_end < options.vdw_cutoff_start) {
+        throw std::invalid_argument(
+            "vdw_cutoff_end must not be smaller than vdw_cutoff_start"
+        );
+    }
+    if (options.stopping_criteria.has_value()
+        && options.stopping_criteria->window < 1) {
+        throw std::invalid_argument("stopping window must be positive");
+    }
+}
+
+
+}  // namespace
+
+
+RuntimeInfo runtime_info() {
+    const auto environment_value = [](const char* name) {
+        const auto* value = std::getenv(name);
+        return value == nullptr ? std::string{} : std::string(value);
+    };
+    return RuntimeInfo{
+        BABEL_VERSION,
+        OpenBabel::OBReleaseVersion(),
+        _GLIBCXX_USE_CXX11_ABI,
+        environment_value("BABEL_LIBDIR"),
+        environment_value("BABEL_DATADIR"),
+    };
+}
+
+
+void seed_random(std::uint32_t seed) {
+    const auto text = std::to_string(seed);
+#ifdef _WIN32
+    _putenv_s("OB_RANDOM_SEED", text.c_str());
+#else
+    setenv("OB_RANDOM_SEED", text.c_str(), 1);
+#endif
+#if OB_VERSION < OB_VERSION_CHECK(3, 2, 0)
+    OpenBabel::vector3 probe;
+    probe.randomUnitVector();
+    std::srand(seed);
+#endif
+}
+
+
+BuildResult build(
+    const MoleculeData& molecule,
+    std::optional<bool> stereo_warnings
+) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    auto obmol = make_obmol(molecule);
+    auto plan = rule_registry().execute(
+        RuleStage::PRE_BUILD,
+        snapshot_obmol(obmol, false),
+        RuleParameters{}
+    );
+    HybridizationGuard hybridization_guard(obmol, plan);
+    OpenBabel::OBBuilder builder;
+    const bool succeeded = stereo_warnings.has_value()
+        ? builder.Build(obmol, *stereo_warnings)
+        : builder.Build(obmol);
+    return BuildResult{succeeded, extract_coordinates(obmol), std::move(plan)};
+}
+
+
+SingleOptimizationResult single_optimize(
+    const MoleculeData& molecule,
+    const std::string& forcefield_name,
+    std::size_t steps,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    auto obmol = make_obmol(molecule);
+    auto& forcefield = find_forcefield(forcefield_name);
+    forcefield.EnableCutOff(false);
+    auto plan = setup_forcefield(
+        forcefield,
+        obmol,
+        forcefield_name,
+        false,
+        singularity_threshold,
+        repair_angle_radians
+    );
+    forcefield.SteepestDescent(static_cast<int>(steps));
+    forcefield.GetCoordinates(obmol);
+    return SingleOptimizationResult{
+        extract_coordinates(obmol),
+        forcefield_energy_kj(forcefield),
+        forcefield.GetUnit(),
+        forcefield.DetectExplosion(),
+        std::move(plan),
+    };
+}
+
+
+OptimizationResult optimize(
+    const MoleculeData& molecule,
+    const OptimizationOptions& options,
+    const std::vector<std::vector<Coordinate>>& perturbation_offsets,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    molecule.validate();
+    validate_options(molecule, options, perturbation_offsets);
+    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    auto obmol = make_obmol(molecule);
+    auto& forcefield = find_forcefield(options.forcefield);
+    RulePlan all_rules{RuleStage::PRE_FORCEFIELD_SETUP, {}};
+
+    const auto set_vdw_cutoff = [&forcefield](double cutoff) {
+        forcefield.EnableCutOff(true);
+        forcefield.SetVDWCutOff(cutoff);
+        forcefield.SetElectrostaticCutOff(1.0e6);
+    };
+    if (options.increasing_vdw) {
+        set_vdw_cutoff(options.vdw_cutoff_end);
+    } else {
+        forcefield.EnableCutOff(false);
+    }
+    auto setup_plan = setup_forcefield(
+        forcefield,
+        obmol,
+        options.forcefield,
+        options.increasing_vdw,
+        singularity_threshold,
+        repair_angle_radians
+    );
+    append_rule_plan(all_rules, setup_plan);
+
+    const auto total_steps = options.epochs * options.steps_per_epoch;
+    const auto backend_unit = forcefield.GetUnit();
+    const double factor = energy_factor_to_kj(backend_unit);
+    if (options.increasing_vdw) {
+        const double first_cutoff = options.vdw_cutoff_start
+            + (options.vdw_cutoff_end - options.vdw_cutoff_start)
+                / options.epochs;
+        set_vdw_cutoff(first_cutoff);
+        setup_plan = setup_forcefield(
+            forcefield,
+            obmol,
+            options.forcefield,
+            true,
+            singularity_threshold,
+            repair_angle_radians
+        );
+        append_rule_plan(all_rules, setup_plan);
+    }
+
+    const auto initialize = [&forcefield, &options](std::size_t steps) {
+        if (options.algorithm == "conjugate") {
+            forcefield.ConjugateGradientsInitialize(
+                static_cast<int>(steps), options.energy_tolerance
+            );
+            return std::size_t{1};
+        }
+        forcefield.SteepestDescentInitialize(
+            static_cast<int>(steps), options.energy_tolerance
+        );
+        return std::size_t{0};
+    };
+    const auto take_steps = [&forcefield, &options](std::size_t steps) {
+        return options.algorithm == "conjugate"
+            ? forcefield.ConjugateGradientsTakeNSteps(
+                static_cast<int>(steps)
+            )
+            : forcefield.SteepestDescentTakeNSteps(static_cast<int>(steps));
+    };
+
+    auto initialization_for_epoch = initialize(total_steps);
+    std::vector<OptimizationFrame> frames;
+    frames.reserve(options.epochs);
+    std::vector<std::vector<double>> energy_change_segments(1);
+    std::vector<std::vector<double>> displacement_segments(1);
+    std::vector<std::vector<double>> rms_gradient_segments(1);
+    std::vector<std::vector<double>> max_gradient_segments(1);
+    std::optional<std::vector<Coordinate>> previous_coordinates;
+    std::optional<double> previous_energy;
+    std::size_t segment_index = 0;
+    std::size_t segment_epochs_completed = 0;
+    std::size_t epochs_completed = 0;
+    std::size_t steps_submitted = 0;
+    std::size_t initialization_steps = 0;
+    std::size_t perturbation_index = 0;
+    bool segment_active = true;
+    bool terminal_converged = false;
+    std::string termination_reason = "budget_exhausted";
+
+    for (std::size_t epoch = 0; epoch < options.epochs; ++epoch) {
+        const bool reset_history = options.perturb_interval.has_value()
+            && epoch > 0
+            && epoch % *options.perturb_interval == 0;
+        if (reset_history) {
+            auto coordinates = extract_coordinates(obmol);
+            const auto& offsets = perturbation_offsets[perturbation_index++];
+            for (std::size_t index = 0; index < coordinates.size(); ++index) {
+                for (std::size_t axis = 0; axis < 3; ++axis) {
+                    coordinates[index][axis] += offsets[index][axis];
+                }
+            }
+            set_coordinates(obmol, coordinates);
+        }
+
+        if (options.increasing_vdw && epoch > 0) {
+            const double cutoff = options.vdw_cutoff_start
+                + (static_cast<double>(epoch + 1) / options.epochs)
+                    * (options.vdw_cutoff_end - options.vdw_cutoff_start);
+            set_vdw_cutoff(cutoff);
+        }
+
+        const bool restart_segment = reset_history
+            || (options.increasing_vdw && epoch > 0);
+        if (restart_segment) {
+            setup_plan = setup_forcefield(
+                forcefield,
+                obmol,
+                options.forcefield,
+                options.increasing_vdw,
+                singularity_threshold,
+                repair_angle_radians
+            );
+            append_rule_plan(all_rules, setup_plan);
+            energy_change_segments.emplace_back();
+            displacement_segments.emplace_back();
+            rms_gradient_segments.emplace_back();
+            max_gradient_segments.emplace_back();
+            ++segment_index;
+            previous_coordinates.reset();
+            previous_energy.reset();
+            segment_epochs_completed = 0;
+            const auto remaining_steps =
+                (options.epochs - epoch) * options.steps_per_epoch;
+            initialization_for_epoch = initialize(remaining_steps);
+            segment_active = true;
+        }
+
+        if (!segment_active) {
+            continue;
+        }
+
+        const auto steps_to_take =
+            options.steps_per_epoch - initialization_for_epoch;
+        initialization_steps += initialization_for_epoch;
+        const bool backend_continues = steps_to_take == 0
+            || take_steps(steps_to_take);
+        steps_submitted += steps_to_take;
+        initialization_for_epoch = 0;
+        ++epochs_completed;
+        ++segment_epochs_completed;
+        const bool backend_converged = !backend_continues;
+        segment_active = backend_continues;
+        forcefield.GetCoordinates(obmol);
+        terminal_converged = backend_converged;
+        termination_reason = backend_converged
+            ? "converged"
+            : "budget_exhausted";
+
+        if (options.increasing_vdw && epoch < options.epochs - 1) {
+            set_vdw_cutoff(options.vdw_cutoff_end);
+            setup_plan = setup_forcefield(
+                forcefield,
+                obmol,
+                options.forcefield,
+                true,
+                singularity_threshold,
+                repair_angle_radians
+            );
+            append_rule_plan(all_rules, setup_plan);
+        }
+
+        const bool reported_converged = backend_converged
+            && (!options.increasing_vdw || epoch == options.epochs - 1);
+        auto coordinates = extract_coordinates(obmol);
+        const double energy = forcefield_energy_kj(forcefield);
+        const auto gradients = gradient_metrics(forcefield, obmol, factor);
+        std::optional<double> energy_change;
+        std::optional<double> displacement;
+        if (previous_energy.has_value()) {
+            energy_change = std::abs(energy - *previous_energy);
+            energy_change_segments[segment_index].push_back(*energy_change);
+        }
+        if (previous_coordinates.has_value()) {
+            displacement = maximum_displacement(
+                coordinates, *previous_coordinates
+            );
+            displacement_segments[segment_index].push_back(*displacement);
+        }
+        OptimizationFrame frame{
+            std::move(coordinates),
+            energy,
+            gradients.first,
+            gradients.second,
+            forcefield.DetectExplosion(),
+            reported_converged,
+            segment_epochs_completed,
+            segment_index,
+            energy_change,
+            displacement,
+        };
+        rms_gradient_segments[segment_index].push_back(frame.rms_gradient);
+        max_gradient_segments[segment_index].push_back(frame.max_gradient);
+        previous_coordinates = frame.coordinates;
+        previous_energy = frame.energy;
+        frames.push_back(std::move(frame));
+
+        const bool stable = !backend_converged
+            && !options.increasing_vdw
+            && options.stopping_criteria.has_value()
+            && stability_reached(
+                frames.back(),
+                energy_change_segments[segment_index],
+                displacement_segments[segment_index],
+                rms_gradient_segments[segment_index],
+                max_gradient_segments[segment_index],
+                *options.stopping_criteria
+            );
+        if (stable) {
+            segment_active = false;
+            termination_reason = "stability_reached";
+        }
+        if ((backend_converged || stable)
+            && !options.increasing_vdw
+            && !options.perturb_interval.has_value()) {
+            break;
+        }
+    }
+
+    if (frames.empty()) {
+        throw std::runtime_error("Open Babel produced no optimization frame");
+    }
+    long selected_frame_index = -1;
+    long latest_returnable_frame_index = -1;
+    for (std::size_t index = 0; index < frames.size(); ++index) {
+        if (finite_coordinates(frames[index].coordinates)) {
+            latest_returnable_frame_index = static_cast<long>(index);
+        }
+        if (frame_is_usable(frames[index])
+            && (selected_frame_index < 0
+                || frames[index].energy
+                    < frames[static_cast<std::size_t>(
+                        selected_frame_index
+                    )].energy)) {
+            selected_frame_index = static_cast<long>(index);
+        }
+    }
+
+    const auto& terminal = frames.back();
+    if (selected_frame_index < 0) {
+        if (latest_returnable_frame_index >= 0) {
+            selected_frame_index = latest_returnable_frame_index;
+        }
+    }
+    if (selected_frame_index < 0) {
+        return OptimizationResult{
+            molecule.coordinates,
+            terminal.coordinates,
+            std::move(frames),
+            -1,
+            -1,
+            terminal.energy,
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN(),
+            false,
+            false,
+            epochs_completed,
+            steps_submitted,
+            initialization_steps,
+            0,
+            backend_unit,
+            termination_reason,
+            terminal_converged,
+            std::move(all_rules),
+        };
+    }
+    const auto& selected = frames[
+        static_cast<std::size_t>(selected_frame_index)
+    ];
+    return OptimizationResult{
+        selected.coordinates,
+        terminal.coordinates,
+        std::move(frames),
+        selected_frame_index,
+        selected_frame_index,
+        terminal.energy,
+        selected.energy,
+        selected.rms_gradient,
+        selected.max_gradient,
+        selected.exploded,
+        selected.converged,
+        epochs_completed,
+        steps_submitted,
+        initialization_steps,
+        selected.segment_epochs_completed,
+        backend_unit,
+        termination_reason,
+        terminal_converged,
+        std::move(all_rules),
+    };
+}
+
+
+}  // namespace hotpot::obwrappers

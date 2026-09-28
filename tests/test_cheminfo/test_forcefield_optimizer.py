@@ -1060,6 +1060,41 @@ def test_optimizer_setup_failure_has_structured_diagnostics(monkeypatch):
     )
 
 
+def test_wrapper_preflight_failure_has_structured_diagnostics(monkeypatch):
+    backend = _Backend([0.0], unit="kJ/mol")
+    obmol = object()
+    molecule = _OptimizerMolecule()
+    monkeypatch.setattr(ob_backend, "_make_constraints", lambda _: object())
+    monkeypatch.setattr(
+        ob_backend,
+        "prepare_optimization",
+        lambda current, forcefield: SimpleNamespace(applied=True),
+    )
+    monkeypatch.setattr(
+        ob_backend,
+        "validate_forcefield_state",
+        lambda current_backend, current_obmol: SimpleNamespace(
+            passed=False,
+            nonfinite_gradient_atom_indices=(1,),
+        ),
+    )
+
+    with pytest.raises(ff.ForceFieldSetupError) as caught:
+        ob_backend._setup_forcefield_backend(
+            backend,
+            molecule,
+            obmol,
+            requested_forcefield="UFF",
+            effective_forcefield="UFF",
+        )
+
+    assert caught.value.report == ff.ForceFieldSetupReport(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        stage="preflight-validation",
+    )
+
+
 def test_forcefield_lookup_returns_the_serialized_plugin(monkeypatch):
     backend = object()
     monkeypatch.setattr(

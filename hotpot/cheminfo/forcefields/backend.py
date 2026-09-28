@@ -11,6 +11,11 @@ from typing import Callable, Optional, TYPE_CHECKING, TypeVar, cast
 from openbabel import openbabel as ob
 
 from ..obconvert import extract_obmol_coordinates, mol2obmol
+from ..obWrappers import (
+    build as build_obmol,
+    prepare_optimization,
+    validate_forcefield_state,
+)
 from .contracts import ForceFieldError, ForceFieldSetupError, ForceFieldSetupReport
 
 
@@ -87,14 +92,32 @@ def _setup_forcefield_backend(
     effective_forcefield: str,
 ) -> None:
     """Set up an Open Babel force field or raise structured diagnostics."""
-    if backend.Setup(obmol, _make_constraints(mol)):
+    preparation = prepare_optimization(obmol, effective_forcefield)
+    if not backend.Setup(obmol, _make_constraints(mol)):
+        raise ForceFieldSetupError(
+            f"Open Babel could not initialize force field {effective_forcefield!r}",
+            ForceFieldSetupReport(
+                requested_forcefield,
+                effective_forcefield,
+                "setup",
+            ),
+        )
+    if not preparation.applied:
+        return
+
+    state = validate_forcefield_state(backend, obmol)
+    if state.passed:
         return
     raise ForceFieldSetupError(
-        f"Open Babel could not initialize force field {effective_forcefield!r}",
+        (
+            f"Open Babel force field {effective_forcefield!r} retained a "
+            "non-finite state after registered coordinate preparation; "
+            f"non-finite gradient atoms={state.nonfinite_gradient_atom_indices!r}"
+        ),
         ForceFieldSetupReport(
             requested_forcefield,
             effective_forcefield,
-            "setup",
+            "preflight-validation",
         ),
     )
 
@@ -171,6 +194,6 @@ def _ob_build(mol: "Molecule") -> None:
     """Run OBBuilder directly on an internal working molecule."""
     builder = ob.OBBuilder()
     obmol, _ = mol2obmol(mol)
-    if not builder.Build(obmol):
+    if not build_obmol(obmol, builder=builder).succeeded:
         raise ForceFieldError("Open Babel could not build initial 3D coordinates")
     mol.coordinates = extract_obmol_coordinates(obmol)

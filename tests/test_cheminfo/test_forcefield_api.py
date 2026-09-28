@@ -522,7 +522,7 @@ def test_direct_ob_build_waits_for_worker_seed_environment(monkeypatch):
             return True
 
     molecule = SimpleNamespace(coordinates=None)
-    obmol = object()
+    obmol = ob_backend.ob.OBMol()
     monkeypatch.setattr(
         ob_backend,
         "_WORKER_LIFECYCLE_LOCK",
@@ -565,7 +565,8 @@ def test_direct_ob_build_cannot_observe_a_worker_seed_window(monkeypatch):
     molecule = SimpleNamespace(coordinates=None)
     monkeypatch.setenv("OB_RANDOM_SEED", "parent")
     monkeypatch.setattr(ob_backend.ob, "OBBuilder", Builder)
-    monkeypatch.setattr(ob_backend, "mol2obmol", lambda current: (object(), {}))
+    obmol = ob_backend.ob.OBMol()
+    monkeypatch.setattr(ob_backend, "mol2obmol", lambda current: (obmol, {}))
     monkeypatch.setattr(
         ob_backend,
         "extract_obmol_coordinates",

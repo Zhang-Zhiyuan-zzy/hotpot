@@ -242,3 +242,28 @@ def test_fused_aromatic_build_and_optimization_passes_geometry_gate():
 
     assert report.quality_report.passed
     assert np.isfinite(report.optimization.best_energy)
+
+
+def test_phosphoryl_builder_rule_prevents_nonfinite_uff_gradients():
+    molecule = read_mol(
+        "CCOP(=O)(OCC)c1ccc2ccc3ccc(P(=O)(OCC)OCC)nc3c2n1",
+        "smi",
+    )
+
+    report = ff.build_and_optimize(
+        molecule,
+        forcefield="UFF",
+        epochs=1,
+        steps_per_epoch=20,
+        quality_level="off",
+    )
+
+    assert np.all(
+        np.isfinite(
+            (
+                report.optimization.best_energy,
+                report.optimization.rms_gradient,
+                report.optimization.max_gradient,
+            )
+        )
+    )

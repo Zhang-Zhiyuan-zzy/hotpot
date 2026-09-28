@@ -361,8 +361,8 @@ This ordering is checked by
 Delegate a non-matching molecule:
 
 ```python
-from openbabel import openbabel as ob
 from hotpot.cheminfo.obWrappers import build
+from openbabel import openbabel as ob
 
 conversion = ob.OBConversion()
 conversion.SetInFormat("smi")
@@ -384,8 +384,8 @@ The one-call native delegation is checked by
 Build a matching P(V) molecule without retaining the temporary hybridization:
 
 ```python
-from openbabel import openbabel as ob
 from hotpot.cheminfo.obWrappers import build
+from openbabel import openbabel as ob
 
 conversion = ob.OBConversion()
 conversion.SetInFormat("smi")
@@ -585,9 +585,10 @@ fails. All nine P(V)-associated non-finite-gradient failures are removed. One
 of those nine, case 54, now reaches a finite UFF result but remains a quality
 failure because an atom is too close to Eu; it is not counted among the eight
 new passes. Cases 61 and 109 retain their pre-existing geometric failures. The
-wall-time increase includes the eight cases that now proceed through the full
-optimization instead of ending with non-finite gradients, as well as the
-snapshot/planning overhead of the guard layer.
+aggregate force-field time increased by 150.097 s (7.70%); among the 161
+non-P-containing cases that passed in both runs, the median increase was
+0.708 s. This is the measured cost of the current portable SWIG snapshot and
+planning boundary, not a zero-overhead abstraction.
 
 Current limits:
 

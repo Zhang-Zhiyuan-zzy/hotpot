@@ -309,8 +309,8 @@ print([
 委托一个未命中的分子：
 
 ```python
-from openbabel import openbabel as ob
 from hotpot.cheminfo.obWrappers import build
+from openbabel import openbabel as ob
 
 conversion = ob.OBConversion()
 conversion.SetInFormat("smi")
@@ -331,8 +331,8 @@ True False 0
 构筑一个匹配的 P(V) 分子，并验证临时杂化没有残留：
 
 ```python
-from openbabel import openbabel as ob
 from hotpot.cheminfo.obWrappers import build
+from openbabel import openbabel as ob
 
 conversion = ob.OBConversion()
 conversion.SetInFormat("smi")
@@ -494,7 +494,7 @@ $ python -m pytest -q -p no:cacheprovider \
 | 非有限梯度案例 | 9 / 187 | 0 / 187 |
 | 16 workers 墙钟时间 | 128.431 s | 138.753 s |
 
-8 个原失败结构变为通过，没有原本通过的结构变为失败；9 个与 P(V) 有关的非有限梯度失败全部消失。其中 case 54 已得到有限 UFF 结果，但因某原子与 Eu 距离过近仍未通过质量门控，所以不计入 8 个新增通过案例。Case 61 和 case 109 保留原有的几何失败。墙钟时间增加同时包含两部分：8 个案例不再因非有限梯度提前结束而执行了完整优化，以及 guard 层的快照与规则规划开销。
+8 个原失败结构变为通过，没有原本通过的结构变为失败；9 个与 P(V) 有关的非有限梯度失败全部消失。其中 case 54 已得到有限 UFF 结果，但因某原子与 Eu 距离过近仍未通过质量门控，所以不计入 8 个新增通过案例。Case 61 和 case 109 保留原有的几何失败。力场累计时间增加 150.097 s（7.70%）；在前后均通过且不含 P 的 161 个案例中，单例耗时增量中位数为 0.708 s。这是当前可移植 SWIG 快照与规则规划边界的实测成本，不应把它描述成零开销抽象。
 
 当前限制：
 

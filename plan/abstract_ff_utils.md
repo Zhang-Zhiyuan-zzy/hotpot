@@ -470,3 +470,96 @@ Open Babel 能量读取统一为 `_forcefield_energy_in_kj()`，函数体直接�
 - `candidate_count` 仍是预留公开参数，多构型搜索不属于本轮实施。
 - 全帧记录尚未对大原子数、长 epoch 业务作专项内存基准。
 - Python 3.14 测试中仍有 multiprocessing `fork()` 弃用警告；未造成本轮测试失败，但需在后续并发生命周期整改中单独处理。
+
+---
+
+# 复审差距与四项决议（2026-09-23，实施方交付之后）
+
+> 交付后现状：`utils.py` 5165 行、`ff.py` 78、`ff39.py` 293、新增 `trajectory.py` 869。
+> 复审确认实施方已完成：A1–A6/A7/B3/B4/B8/B9 微抽象（helper 簇 `utils.py:711-756`）、
+> B1 帧记录（升级为拓扑感知 `ForceFieldTrajectory`，优于原 `_MovieTrace` 提议）、
+> **C2 验收函数分段**（`_coordinate/_atom_pair_distance/_bond_geometry/_bond_ring_coordination_acceptance_section`
+> = 1247/1291/1382/1491，`evaluate_structure_acceptance`@4326 已是 75 行编排器）、ff.py 赋值化。
+> 以下四项按用户提问顺序（门面 / 持久化 / 拆分 / C 项）记录决议。行号为本复审快照值。
+
+## 15. 决议 1：双门面风格统一（保留双门面）
+
+不一致点 = 4 个 worker 函数：ff.py 用赋值（`build3d = _utils.build3d`），ff39.py 用手写 wrapper
+（`build3d`@83 / `build_complex3d`@99 / `complexes_build`@151 / `build_and_optimize`@223，注入 `_utils39.*`；
+并把 `candidate_count` 保留说明重复 3 遍）。其余 ~50 个名字两门面都是赋值。
+
+**Option A（推荐）**：utils.py 增 `bind_worker_api` 工厂，两门面都退化为对称赋值。
+
+```python
+# utils.py
+class _WorkerBoundApi(NamedTuple):
+    build3d: Callable[..., Build3DReport]
+    build_complex3d: Callable[..., ComplexBuildReport]
+    complexes_build: Callable[..., ComplexBuildReport]
+    build_and_optimize: Callable[..., ForceFieldWorkflowReport]
+
+def bind_worker_api(*, seeded_ob_build_worker, build_ligand_proxies_worker) -> _WorkerBoundApi:
+    def build3d(mol, *, add_hydrogens=True, seed=None, timeout=1000.0):   # 唯一一份签名+body
+        return _build3d_workflow(mol, add_hydrogens=add_hydrogens, seed=seed,
+                                 timeout=timeout, worker_target=seeded_ob_build_worker)
+    def build_complex3d(...): ...
+    def complexes_build(...): ...
+    def build_and_optimize(...): ...
+    return _WorkerBoundApi(build3d, build_complex3d, complexes_build, build_and_optimize)
+
+_default_api = bind_worker_api(seeded_ob_build_worker=_seeded_ob_build_worker,
+                               build_ligand_proxies_worker=_build_ligand_proxies_worker)
+build3d, build_complex3d, complexes_build, build_and_optimize = _default_api
+# ff39.py 同形，仅把 worker 换成 _utils39.*
+```
+
+| 维度 | Option A（工厂+对称赋值，推荐） | Option B（两门面都显式 wrapper） |
+|---|---|---|
+| 一致性 | 完全对称 | 完全对称 |
+| 复用 | 4 body + `candidate_count` 文案只一份；ff39 293→~85 | 4 body 在两文件各写一遍（~140 行重复） |
+| 契约 | 同工厂产出 ⇒ `inspect.signature` 恒相等，守卫测试恒过 | 靠既有签名对拍测试防漂移 |
+| 静态签名可见 | 4 函数仅运行时可见（与"真实签名可见"围栏有轻张力） | 静态可见 |
+
+推荐 A（去 210 行重复 + 测试兜底签名）；仅当"静态签名可跳转"是硬要求时退回 B。
+
+## 16. 决议 2：轨迹持久化 = 真实需求（撤回范围质疑）
+
+`trajectory.py` 的 JSON/NPZ/SDF/archive（~375 行）是交付功能，非重构副产物（工作树 `movie/` 印证）。
+故本轮成果按**能力 + 抽象质量**衡量，不以"减行数"判定；reduce 目标只适用于 §3–§5 与本节 §17–§18。
+
+## 17. 决议 3：utils.py 拆分（应做，增量）
+
+5165 行"上帝模块"，作者自带 15 段 section 注释即天然缝。按依赖分层（叶→根 DAG，无环）：
+
+| 模块 | 职责 | 现有 section / 行段 | 依赖 |
+|---|---|---|---|
+| `contracts.py` | dataclass / TypedDict / enum / 异常 / 类型别名 | 186,469,562（~100-670） | — |
+| `_helpers.py` | 值/身份微工具 + 诊断格式化 | 672,708（711-767） | contracts |
+| `acceptance.py` | 验收策略（4 个 `_*_acceptance_section` + `evaluate_structure_acceptance` + checks） | 769（~775-1521）+ 4326-4410 | contracts,_helpers,geometry |
+| `repair.py` | 分阶段修复控制器（环解缠 + 配位键恢复及扫描） | 1522-2300 | backend,trajectory,geometry,_helpers |
+| `backend.py` | OB 后端 + **版本 seam** `_seed_openbabel_random` + 锁/力场解析/能量 | 2301-2454 | contracts |
+| `transaction.py` | working-copy + 事务提交/回滚 | 2455-2682 | contracts,_helpers |
+| `optimizer.py` | `_OpenBabelOptimizer` + `_optimize_working_mol` | 2683-3123 | backend,acceptance,trajectory,transaction |
+| `ligand.py` | `_build_ligand_proxies` | 3124-3475 | backend,acceptance,repair,trajectory,transaction |
+| `workers.py` | spawn/IPC 生命周期 + worker 入口 | 3476-3778 | ligand,backend,transaction |
+| `workflows.py` | 编排 + 公共 API + `bind_worker_api` | 3779-end | 以上全部 |
+| `trajectory.py` | 已独立 | — | contracts |
+
+**两个必须先解决的迁移风险**：
+
+1. **monkeypatch 目标**：测试大量 `monkeypatch.setattr(forcefield_utils, "_single_ob_optimization"/"_scan_confirmed_ring_piercings"/"_untangle_ring_piercings", …)`（仅 `test_complex_untangling_workflow.py` ~20 处）。函数迁走后 **re-export 兜底无效**（`repair` 内部调自身名字，patch `utils.X` 不影响 `repair.X`）。必须把这些测试改为 patch **定义所在模块**，模块内调用用**模块限定**（`backend._single_ob_optimization(...)`）以保持可 patch。
+2. **环依赖**：严格按上表单向 DAG；`workflows` 是唯一"知道全部"的根。
+
+**落地策略**：`utils.py` 暂留作 re-export 聚合器（ff/ff39/外部 `import utils` 不动）；**先抽无 monkeypatch 纠缠的叶子**（contracts、_helpers、acceptance、backend、transaction），**repair/optimizer/workers/workflows 最后**并同步改造其测试为模块限定 patch。分模块单独提交、每步全绿。
+
+## 18. 决议 4：C 项剩余 reduce（C2 已完成，勿再动结构）
+
+C2 分段已由实施方完成（见顶部注）。**剩余仅三项纯机械 reduce**：
+
+| 编号 | 改动 | 现状证据 | 做法 | 原因 | 收益 / 风险 |
+|---|---|---|---|---|---|
+| C1 | `AcceptanceCheck` 工厂 | 32 处 longhand（如 1313-1327,1355-1378） | 加 `AcceptanceCheck.ok(name,*,measured=None,threshold=None,message="")` 与 `.failure(name,*,measured,threshold,atom_indices=(),bond_indices=(),severity="error",message="")`；32 处改用 | 每处重复 `passed=True/False`+关键字脚手架；工厂让通过/失败意图一眼可辨 | −40~60；风险≈0 |
+| C2′ | `_checks_or_pass` helper（原 B6） | "有失败则 extend，否则 append 一条通过"在 overlap/too_close/bond_distance/ratio/short_bond/bond_ring 约 6 处同构 | `def _checks_or_pass(fails, make_pass): return tuple(fails) if fails else (make_pass(),)` | 6 处 if/extend/else/append 收敛为 1 处 | −40~70；风险低（保 check 顺序/名称） |
+| C3′ | `_passes` helper（原 B7） | `passed = all(c.passed or c.severity!="error" …)` 编排器 3 次（4361,4373,4399） | 抽 `def _passes(checks): return all(c.passed or c.severity!="error" for c in checks)` | 同一判定语义单点化，防阈值/严重度规则漂移 | −4；风险≈0 |
+
+合计约 −80~130 行。**建议执行 C1+C2′+C3′，以验收测试套件为回归护栏逐条提交**；**不得**再动已拆好的 section 结构或验收语义（check 名称/顺序被 `.failures` 与 `_has_unreturnable_frame_failure` 依赖）。

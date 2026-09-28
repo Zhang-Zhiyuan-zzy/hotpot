@@ -205,10 +205,7 @@ RulePlan plan_build(
 }
 
 
-RulePlan plan_optimization(
-    std::vector<AtomSnapshot> atoms,
-    std::vector<BondSnapshot> bonds,
-    std::vector<Coordinate> coordinates,
+void validate_rule_parameters(
     double singularity_threshold,
     double repair_angle_radians
 ) {
@@ -233,6 +230,20 @@ RulePlan plan_optimization(
             "above singularity_threshold"
         );
     }
+}
+
+
+RulePlan plan_optimization(
+    std::vector<AtomSnapshot> atoms,
+    std::vector<BondSnapshot> bonds,
+    std::vector<Coordinate> coordinates,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    validate_rule_parameters(
+        singularity_threshold,
+        repair_angle_radians
+    );
     return rule_registry().execute(
         RuleStage::PRE_FORCEFIELD_SETUP,
         make_snapshot(

@@ -63,6 +63,15 @@ class ForceFieldSetupError(RuntimeError):
     stage: str
 
 
+class ForceFieldEnergyUnitError(RuntimeError):
+    forcefield: str
+    unit: str
+
+
+class OptimizationFrameError(RuntimeError):
+    forcefield: str
+
+
 class MoleculeData:
     def __init__(
         self,

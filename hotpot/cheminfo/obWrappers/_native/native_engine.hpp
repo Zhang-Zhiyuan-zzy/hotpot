@@ -31,6 +31,33 @@ private:
 };
 
 
+class ForceFieldEnergyUnitFailure : public std::runtime_error {
+public:
+    ForceFieldEnergyUnitFailure(
+        std::string forcefield,
+        std::string unit
+    );
+
+    const std::string& forcefield() const noexcept;
+    const std::string& unit() const noexcept;
+
+private:
+    std::string forcefield_;
+    std::string unit_;
+};
+
+
+class OptimizationFrameFailure : public std::runtime_error {
+public:
+    explicit OptimizationFrameFailure(std::string forcefield);
+
+    const std::string& forcefield() const noexcept;
+
+private:
+    std::string forcefield_;
+};
+
+
 struct BuildResult {
     bool succeeded;
     std::vector<Coordinate> coordinates;

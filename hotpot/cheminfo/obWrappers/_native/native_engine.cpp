@@ -11,6 +11,7 @@
 #include <openbabel/plugin.h>
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstddef>
@@ -46,6 +47,41 @@ const std::string& ForceFieldSetupFailure::forcefield() const noexcept {
 
 const std::string& ForceFieldSetupFailure::stage() const noexcept {
     return stage_;
+}
+
+
+ForceFieldEnergyUnitFailure::ForceFieldEnergyUnitFailure(
+    std::string forcefield,
+    std::string unit
+) :
+    std::runtime_error(
+        "unsupported energy unit '" + unit
+        + "' reported by Open Babel force field " + forcefield
+    ),
+    forcefield_(std::move(forcefield)),
+    unit_(std::move(unit)) {}
+
+
+const std::string& ForceFieldEnergyUnitFailure::forcefield() const noexcept {
+    return forcefield_;
+}
+
+
+const std::string& ForceFieldEnergyUnitFailure::unit() const noexcept {
+    return unit_;
+}
+
+
+OptimizationFrameFailure::OptimizationFrameFailure(std::string forcefield) :
+    std::runtime_error(
+        "Open Babel force field " + forcefield
+        + " completed without producing an optimization frame"
+    ),
+    forcefield_(std::move(forcefield)) {}
+
+
+const std::string& OptimizationFrameFailure::forcefield() const noexcept {
+    return forcefield_;
 }
 
 
@@ -207,7 +243,10 @@ OpenBabel::OBForceField& find_forcefield(const std::string& name) {
 }
 
 
-double energy_factor_to_kj(const std::string& unit) {
+double energy_factor_to_kj(
+    const std::string& forcefield,
+    const std::string& unit
+) {
     std::string normalized;
     normalized.reserve(unit.size());
     for (const auto character : unit) {
@@ -229,18 +268,17 @@ double energy_factor_to_kj(const std::string& unit) {
         || normalized == "kcalmol^-1") {
         return 4.184;
     }
-    throw std::runtime_error(
-        "unsupported Open Babel energy unit: " + unit
-    );
+    throw ForceFieldEnergyUnitFailure(forcefield, unit);
 }
 
 
 double forcefield_energy_kj(
     OpenBabel::OBForceField& forcefield,
+    const std::string& forcefield_name,
     bool calculate_gradients = true
 ) {
     return forcefield.Energy(calculate_gradients)
-        * energy_factor_to_kj(forcefield.GetUnit());
+        * energy_factor_to_kj(forcefield_name, forcefield.GetUnit());
 }
 
 
@@ -305,6 +343,26 @@ bool frame_is_usable(const OptimizationFrame& frame) {
         && std::isfinite(frame.rms_gradient)
         && std::isfinite(frame.max_gradient)
         && !frame.exploded;
+}
+
+
+std::optional<std::string> frame_failure_reason(
+    const OptimizationFrame& frame
+) {
+    if (!finite_coordinates(frame.coordinates)) {
+        return "nonfinite_coordinates";
+    }
+    if (!std::isfinite(frame.energy)) {
+        return "nonfinite_energy";
+    }
+    if (!std::isfinite(frame.rms_gradient)
+        || !std::isfinite(frame.max_gradient)) {
+        return "nonfinite_gradients";
+    }
+    if (frame.exploded) {
+        return "explosion_detected";
+    }
+    return std::nullopt;
 }
 
 
@@ -413,6 +471,9 @@ void validate_options(
     const OptimizationOptions& options,
     const std::vector<std::vector<Coordinate>>& perturbation_offsets
 ) {
+    if (options.forcefield.empty()) {
+        throw std::invalid_argument("forcefield must not be empty");
+    }
     if (options.epochs < 1 || options.steps_per_epoch < 1) {
         throw std::invalid_argument(
             "epochs and steps_per_epoch must be positive"
@@ -422,6 +483,14 @@ void validate_options(
         && options.algorithm != "steepest") {
         throw std::invalid_argument(
             "algorithm must be 'conjugate' or 'steepest'"
+        );
+    }
+    const auto maximum_backend_steps = static_cast<std::size_t>(
+        std::numeric_limits<int>::max()
+    );
+    if (options.epochs > maximum_backend_steps / options.steps_per_epoch) {
+        throw std::invalid_argument(
+            "epochs * steps_per_epoch exceeds the Open Babel step limit"
         );
     }
     if (options.perturb_interval.has_value()
@@ -451,15 +520,49 @@ void validate_options(
             );
         }
     }
+    if (!std::isfinite(options.vdw_cutoff_start)
+        || !std::isfinite(options.vdw_cutoff_end)
+        || options.vdw_cutoff_start < 0.0
+        || options.vdw_cutoff_end < 0.0) {
+        throw std::invalid_argument(
+            "vdw cutoffs must be finite and nonnegative"
+        );
+    }
     if (options.increasing_vdw
         && options.vdw_cutoff_end < options.vdw_cutoff_start) {
         throw std::invalid_argument(
             "vdw_cutoff_end must not be smaller than vdw_cutoff_start"
         );
     }
-    if (options.stopping_criteria.has_value()
-        && options.stopping_criteria->window < 1) {
+    if (!std::isfinite(options.energy_tolerance)
+        || options.energy_tolerance < 0.0) {
+        throw std::invalid_argument(
+            "energy_tolerance must be finite and nonnegative"
+        );
+    }
+    if (!options.stopping_criteria.has_value()) {
+        return;
+    }
+    const auto& criteria = *options.stopping_criteria;
+    if (criteria.window < 1) {
         throw std::invalid_argument("stopping window must be positive");
+    }
+    const std::array<double, 4> limits = {
+        criteria.maximum_energy_change_kj_mol,
+        criteria.maximum_atom_displacement_angstrom,
+        criteria.maximum_rms_gradient_kj_mol_angstrom,
+        criteria.maximum_gradient_kj_mol_angstrom,
+    };
+    if (std::any_of(
+            limits.begin(),
+            limits.end(),
+            [](double value) {
+                return !std::isfinite(value) || value < 0.0;
+            }
+        )) {
+        throw std::invalid_argument(
+            "stopping thresholds must be finite and nonnegative"
+        );
     }
 }
 
@@ -485,6 +588,7 @@ RuntimeInfo runtime_info() {
 
 
 void seed_random(std::uint32_t seed) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
     const auto text = std::to_string(seed);
     set_environment("OB_RANDOM_SEED", text);
 #if OB_VERSION < OB_VERSION_CHECK(3, 2, 0)
@@ -502,6 +606,11 @@ RulePlan inspect_rules(
     double repair_angle_radians
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    molecule.validate();
+    validate_rule_parameters(
+        singularity_threshold,
+        repair_angle_radians
+    );
     auto obmol = make_obmol(molecule);
     auto snapshot = snapshot_obmol(
         obmol,
@@ -528,6 +637,7 @@ BuildResult build(
     std::optional<bool> stereo_warnings
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    molecule.validate();
     ensure_openbabel_runtime();
     auto obmol = make_obmol(molecule);
     auto plan = rule_registry().execute(
@@ -552,6 +662,22 @@ SingleOptimizationResult single_optimize(
     double repair_angle_radians
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    molecule.validate();
+    validate_rule_parameters(
+        singularity_threshold,
+        repair_angle_radians
+    );
+    if (forcefield_name.empty()) {
+        throw std::invalid_argument("forcefield must not be empty");
+    }
+    if (steps < 1
+        || steps > static_cast<std::size_t>(
+            std::numeric_limits<int>::max()
+        )) {
+        throw std::invalid_argument(
+            "steps must be positive and fit the Open Babel step limit"
+        );
+    }
     auto obmol = make_obmol(molecule);
     auto& forcefield = find_forcefield(forcefield_name);
     forcefield.EnableCutOff(false);
@@ -567,7 +693,7 @@ SingleOptimizationResult single_optimize(
     forcefield.GetCoordinates(obmol);
     return SingleOptimizationResult{
         extract_coordinates(obmol),
-        forcefield_energy_kj(forcefield),
+        forcefield_energy_kj(forcefield, forcefield_name),
         forcefield.GetUnit(),
         forcefield.DetectExplosion(),
         std::move(plan),
@@ -583,6 +709,10 @@ OptimizationResult optimize(
     double repair_angle_radians
 ) {
     molecule.validate();
+    validate_rule_parameters(
+        singularity_threshold,
+        repair_angle_radians
+    );
     validate_options(molecule, options, perturbation_offsets);
     std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
     auto obmol = make_obmol(molecule);
@@ -611,7 +741,10 @@ OptimizationResult optimize(
 
     const auto total_steps = options.epochs * options.steps_per_epoch;
     const auto backend_unit = forcefield.GetUnit();
-    const double factor = energy_factor_to_kj(backend_unit);
+    const double factor = energy_factor_to_kj(
+        options.forcefield,
+        backend_unit
+    );
     if (options.increasing_vdw) {
         const double first_cutoff = options.vdw_cutoff_start
             + (options.vdw_cutoff_end - options.vdw_cutoff_start)
@@ -777,7 +910,10 @@ OptimizationResult optimize(
         const bool reported_converged = backend_converged
             && (!options.increasing_vdw || epoch == options.epochs - 1);
         auto coordinates = extract_coordinates(obmol);
-        const double energy = forcefield_energy_kj(forcefield);
+        const double energy = forcefield_energy_kj(
+            forcefield,
+            options.forcefield
+        );
         const auto gradients = gradient_metrics(forcefield, obmol, factor);
         std::optional<double> energy_change;
         std::optional<double> displacement;
@@ -839,6 +975,13 @@ OptimizationResult optimize(
         if (options.retain_frames) {
             frames.push_back(std::move(frame));
         }
+        const auto numerical_failure = frame_failure_reason(*last_frame);
+        if (numerical_failure.has_value()) {
+            segment_active = false;
+            terminal_converged = false;
+            termination_reason = *numerical_failure;
+            break;
+        }
         if (stable) {
             segment_active = false;
             termination_reason = "stability_reached";
@@ -851,7 +994,7 @@ OptimizationResult optimize(
     }
 
     if (!last_frame.has_value()) {
-        throw std::runtime_error("Open Babel produced no optimization frame");
+        throw OptimizationFrameFailure(options.forcefield);
     }
     if (!best_frame.has_value()) {
         best_frame = latest_returnable_frame;

@@ -51,6 +51,12 @@ RulePlan plan_build(
 );
 
 
+void validate_rule_parameters(
+    double singularity_threshold,
+    double repair_angle_radians
+);
+
+
 RulePlan plan_optimization(
     std::vector<AtomSnapshot> atoms,
     std::vector<BondSnapshot> bonds,

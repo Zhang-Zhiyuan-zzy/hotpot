@@ -316,7 +316,9 @@ def test_repair_angle_must_escape_the_singularity_threshold():
 def test_rule_registry_is_stable_ordered_and_stage_filterable():
     first = _ob_rules.available_rules()
     second = _ob_rules.available_rules()
-    identity = lambda rule: (rule.rule_id, rule.version, rule.stage, rule.priority)
+
+    def identity(rule):
+        return rule.rule_id, rule.version, rule.stage, rule.priority
 
     assert [identity(rule) for rule in first] == [identity(rule) for rule in second]
     assert len({rule.rule_id for rule in first}) == len(first)

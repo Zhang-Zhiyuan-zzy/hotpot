@@ -22,6 +22,7 @@ test_targets=(
   tests/test_cheminfo/test_ligand_rings.py
   tests/test_cheminfo/test_relevant_ring_integration.py
   tests/test_cheminfo/test_hidden_bond_restoration.py
+  tests/test_cheminfo/obWrappers
   tests/test_cheminfo/geometry
   tests/test_cheminfo/test_geometry.py
   tests/test_cheminfo/test_geometry_core_integration.py

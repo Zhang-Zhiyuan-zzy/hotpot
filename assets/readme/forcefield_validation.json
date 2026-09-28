@@ -1,0 +1,49 @@
+{
+  "protocol": {
+    "molecules": [
+      "CCO",
+      "CC(=O)O",
+      "c1ccccc1",
+      "c1ccccc1CN",
+      "CCN(CC)CC",
+      "O=C(O)c1ccccc1O",
+      "C1CCCCC1",
+      "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"
+    ],
+    "repeats": 3,
+    "forcefield": "UFF",
+    "optimization_steps": 200,
+    "validation": "hotpot standard"
+  },
+  "versions": {
+    "hotpot-zzy": "0.5.3.0",
+    "openbabel": "3.2.1",
+    "rdkit": "2026.3.6"
+  },
+  "results": [
+    {
+      "backend": "RDKit native",
+      "molecule_count": 24,
+      "successful_runs": 24,
+      "quality_passes": 24,
+      "median_workflow_ms": 7.946169935166836,
+      "total_workflow_ms": 243.40169318020344
+    },
+    {
+      "backend": "Open Babel native",
+      "molecule_count": 24,
+      "successful_runs": 24,
+      "quality_passes": 20,
+      "median_workflow_ms": 26.55997220426798,
+      "total_workflow_ms": 586.3427482545376
+    },
+    {
+      "backend": "Hotpot",
+      "molecule_count": 24,
+      "successful_runs": 24,
+      "quality_passes": 22,
+      "median_workflow_ms": 1517.79511757195,
+      "total_workflow_ms": 35965.74702858925
+    }
+  ]
+}

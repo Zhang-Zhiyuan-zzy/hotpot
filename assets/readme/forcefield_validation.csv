@@ -1,0 +1,4 @@
+backend,molecule_count,successful_runs,quality_passes,median_workflow_ms,total_workflow_ms
+RDKit native,24,24,24,7.946169935166836,243.40169318020344
+Open Babel native,24,24,20,26.55997220426798,586.3427482545376
+Hotpot,24,24,22,1517.79511757195,35965.74702858925

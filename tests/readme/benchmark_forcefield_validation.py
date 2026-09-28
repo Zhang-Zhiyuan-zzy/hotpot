@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import importlib.metadata
 import json
+import os
 import statistics
 import time
 from dataclasses import asdict, dataclass
@@ -56,14 +58,22 @@ def _openbabel_build(smiles: str, seed: int) -> hp.Molecule:
     molecule = hp.read_mol(smiles)
     molecule.add_hydrogens()
     obmol = molecule.to_obmol()
-    ob_builder = ob.OBBuilder()
-    if not ob_builder.Build(obmol):
-        raise RuntimeError("Open Babel could not embed the molecule")
-    backend = ob.OBForceField.FindForceField("UFF")
-    if backend is None or not backend.Setup(obmol):
-        raise RuntimeError("Open Babel could not initialize UFF")
-    backend.ConjugateGradients(200)
-    backend.GetCoordinates(obmol)
+    previous_seed = os.environ.get("OB_RANDOM_SEED")
+    os.environ["OB_RANDOM_SEED"] = str(seed)
+    try:
+        ob_builder = ob.OBBuilder()
+        if not ob_builder.Build(obmol):
+            raise RuntimeError("Open Babel could not embed the molecule")
+        backend = ob.OBForceField.FindForceField("UFF")
+        if backend is None or not backend.Setup(obmol):
+            raise RuntimeError("Open Babel could not initialize UFF")
+        backend.ConjugateGradients(200)
+        backend.GetCoordinates(obmol)
+    finally:
+        if previous_seed is None:
+            os.environ.pop("OB_RANDOM_SEED", None)
+        else:
+            os.environ["OB_RANDOM_SEED"] = previous_seed
     return hp.to_hotpot_mol(obmol)
 
 
@@ -130,8 +140,22 @@ def run_benchmark(
 def write_results(results: tuple[BenchmarkResult, ...], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     rows = [asdict(result) for result in results]
+    evidence = {
+        "protocol": {
+            "molecules": README_BENCHMARK_SMILES,
+            "repeats": results[0].molecule_count // len(README_BENCHMARK_SMILES),
+            "forcefield": "UFF",
+            "optimization_steps": 200,
+            "validation": "hotpot standard",
+        },
+        "versions": {
+            package: importlib.metadata.version(package)
+            for package in ("hotpot-zzy", "openbabel", "rdkit")
+        },
+        "results": rows,
+    }
     (output_dir / "forcefield_validation.json").write_text(
-        json.dumps(rows, indent=2) + "\n",
+        json.dumps(evidence, indent=2) + "\n",
         encoding="utf-8",
     )
     with (output_dir / "forcefield_validation.csv").open(

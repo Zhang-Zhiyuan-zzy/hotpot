@@ -18,3 +18,5 @@ plan/
 tests/coverage/
 /:memory:.ses
 .codex
+movie/
+agent_features/

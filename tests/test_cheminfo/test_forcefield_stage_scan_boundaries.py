@@ -993,43 +993,6 @@ def test_stage3_stabilizes_coordinates_changed_by_an_earlier_repair(
     assert result.best_epoch == 1
 
 
-class _EpochBackend:
-    def __init__(self, frames):
-        self.frames = frames
-        self.index = -1
-        self.obmol = None
-
-    def Setup(self, obmol, constraints):
-        self.obmol = obmol
-        return True
-
-    def EnableCutOff(self, enabled):
-        return None
-
-    def ConjugateGradientsInitialize(self, steps, tolerance):
-        return None
-
-    def ConjugateGradientsTakeNSteps(self, steps):
-        self.index += 1
-        return True
-
-    def GetCoordinates(self, obmol):
-        if self.index >= 0:
-            obmol.coordinates = self.frames[self.index].copy()
-
-    def Energy(self, calc_grad=True):
-        return float(self.index + 1)
-
-    def GetGradient(self, atom):
-        return SimpleNamespace(GetX=lambda: 0.0, GetY=lambda: 0.0, GetZ=lambda: 0.0)
-
-    def DetectExplosion(self):
-        return False
-
-    def GetUnit(self):
-        return "kJ/mol"
-
-
 def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch(
     monkeypatch,
 ):
@@ -1040,32 +1003,50 @@ def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch
         np.full_like(mol.coordinates, 2.0),
         np.full_like(mol.coordinates, 3.0),
     ]
-    backend = _EpochBackend(frames)
-    obmol = SimpleNamespace(coordinates=np.asarray(mol.coordinates).copy())
+    native_frames = tuple(
+        SimpleNamespace(
+            coordinates=coordinates,
+            energy=float(epoch_index + 1),
+            rms_gradient=0.0,
+            max_gradient=0.0,
+            exploded=False,
+            converged=False,
+            epoch_index=epoch_index,
+            energy_change=None,
+            max_displacement=None,
+        )
+        for epoch_index, coordinates in enumerate(frames)
+    )
+    native_calls = []
     topology_calls = []
 
-    monkeypatch.setattr(optimizer_impl, "_get_forcefield", lambda name: backend)
-    monkeypatch.setattr(ob_backend, "_make_constraints", lambda current: object())
-    monkeypatch.setattr(
-        ob_backend,
-        "prepare_optimization",
-        lambda current, forcefield: SimpleNamespace(applied=False),
-    )
-    monkeypatch.setattr(
-        optimizer_impl.ob,
-        "OBMolAtomIter",
-        lambda current: (object(),) * len(mol.atoms),
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "mol2obmol",
-        lambda current: (obmol, {index: index + 1 for index in range(len(mol.atoms))}),
-    )
-    monkeypatch.setattr(
-        optimizer_impl,
-        "extract_obmol_coordinates",
-        lambda current: np.asarray(current.coordinates).copy(),
-    )
+    def native_optimize(current, forcefield, **options):
+        native_calls.append((current, forcefield, options))
+        return SimpleNamespace(
+            coordinates=frames[-1],
+            frames=native_frames,
+            selected_frame_index=2,
+            best_epoch=2,
+            final_energy=3.0,
+            best_energy=3.0,
+            rms_gradient=0.0,
+            max_gradient=0.0,
+            exploded=False,
+            converged=False,
+            epochs_completed=3,
+            steps_submitted=6,
+            initialization_steps=1,
+            selected_segment_epochs_completed=3,
+            energy_unit="kJ/mol",
+            backend_energy_unit="kJ/mol",
+            termination_reason="budget_exhausted",
+            terminal_converged=False,
+            energy_changes=(),
+            max_displacements=(),
+            epoch_energies=(),
+        )
+
+    monkeypatch.setattr(optimizer_impl, "_native_optimize", native_optimize)
 
     def scan(*args, **kwargs):
         topology_calls.append(kwargs["ring_scope"])
@@ -1097,5 +1078,9 @@ def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch
     )
 
     assert report.epochs_completed == 3
+    assert len(native_calls) == 1
+    assert native_calls[0][0] is mol
+    assert native_calls[0][1] == "UFF"
+    assert native_calls[0][2]["epochs"] == 3
     assert not hasattr(optimizer_impl, "evaluate_structure_acceptance")
     assert topology_calls == []

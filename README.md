@@ -204,6 +204,7 @@ Available optional dependency groups are:
 
 | Extra | Installation | Scope |
 |---|---|---|
+| `pymol` | `pip install 'hotpot-zzy[pymol]'` | PyMOL 3.1 compatibility profile using NumPy 1.26.x; PyMOL itself is not installed |
 | `optimize` | `pip install 'hotpot-zzy[optimize]'` | optimization and classical ML workflows |
 | `datasets` | `pip install 'hotpot-zzy[datasets]'` | downloads, HDF5 and PyG datasets |
 | `complexformer` | `pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA support |
@@ -211,6 +212,21 @@ Available optional dependency groups are:
 | `legacy-search` | `pip install 'hotpot-zzy[legacy-search]'` | archived SymPy-based search modules |
 | `dev` | `pip install -e '.[dev]'` | tests, linting and package builds |
 | `all` | `pip install -e '.[all,dev]'` | all pip-installable optional components |
+
+PyMOL 3.1 requires `numpy>=1.26.4,<2`, while Hotpot also supports newer
+NumPy releases when PyMOL is absent. Install the explicit compatibility
+profile in an environment that also contains PyMOL:
+
+```bash
+python -m pip install --upgrade 'numpy>=1.26.4,<2' 'hotpot-zzy[pymol]'
+python -m pip check
+```
+
+For an editable source checkout, replace the package name with `-e '.[pymol]'`.
+The `pymol` extra constrains NumPy but deliberately does not install PyMOL,
+because PyMOL may come from PyPI, Conda, or a licensed distribution. Use a
+separate Python 3.11 environment when PyMOL compatibility is required; do not
+apply this profile to Hotpot's Python 3.13/3.14 compatibility environments.
 
 `torch-cluster` and `torch-scatter` in the `complexformer` extra may require a
 PyTorch/CUDA-specific wheel index. CCDC is proprietary, while Gaussian, xTB,

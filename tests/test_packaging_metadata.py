@@ -89,4 +89,17 @@ def test_expected_optional_dependency_groups_are_published():
         "legacy-search",
         "onnx-export",
         "optimize",
+        "pymol",
     } <= extras.keys()
+
+
+def test_pymol_compatibility_extra_selects_numpy_1x():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        extras = tomllib.load(stream)["project"]["optional-dependencies"]
+
+    requirements = tuple(map(Requirement, extras["pymol"]))
+
+    assert len(requirements) == 1
+    assert canonicalize_name(requirements[0].name) == "numpy"
+    assert str(requirements[0].specifier) == "<2,>=1.26.4"
+    assert requirements[0].marker is None

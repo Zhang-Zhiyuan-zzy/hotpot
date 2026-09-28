@@ -1,581 +1,426 @@
-![banner](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/picture/banner.png)
-# 🥘HOTPOT(火锅): A **H**uman-**O**riented **T**oolkit with Chemical **P**riors for **O**pen-Ended Cheminformatics **T**asks
+![Hotpot banner](doc/picture/banner.png)
 
-> **Bridging the gap between Chemical Intuition and Artificial Intelligence.** *From Empirical Rules to Data-Driven Foundation Models.*  
-> **In Hotpot, every ingredient is cookable.** *什么都能涮*  
-> **In Data-Driven, every problem is computable.** *什么都能算*  
-> *(The Chinese phrases are just the Chinese versions of the English lines. “涮 / shuàn” (“to dip in hotpot”) and “算 / suàn” (“to compute”) form a wordplay because of their similar sound.)*
+# 🥘 Hotpot (火锅)
 
+**A Human- and LLM-Oriented Toolkit with Chemical Priors for Open-Ended Cheminformatics Tasks**
+
+> **In Hotpot, every ingredient is cookable.** 什么都能涮
+> **In data-driven chemistry, every problem is computable.** 什么都能算
+
+Hotpot presents chemistry through two equally important conceptual entry
+points: `Molecule` for molecular systems and `Crystal` for periodic systems.
+`Molecule` is the mature working interface today; `Crystal` defines an equal
+part of the long-term public model and remains under active development.
+
+Hotpot is designed around four layers:
+
+1. a frontend that chemists can read and use directly;
+2. a structured CLI that language models and automation agents can call
+   reliably;
+3. a silent cheminformatics layer that applies domain rules without burdening
+   the caller with implementation details; and
+4. AI backends exposed as chemistry operations rather than training code.
+
+The public documentation therefore focuses on observable behavior, scientific
+scope, and stable interfaces. Internal chemical decision policies and model
+implementation details are intentionally kept outside the user-facing API.
 
 ## Contents
-- [Introduction](#-introduction)
-- [Key Features](#-key-features--architecture)
-- [Installation](#-installation)
-- [Usage Examples](#usage-examples)
 
-## 📖 Introduction
+- [Command-line interface](#command-line-interface)
+- [Installation](#installation)
+- [Python interface](#python-interface)
+- [Chemistry capabilities](#chemistry-capabilities)
+- [Geometry and force-field validation](#geometry-and-force-field-validation)
+- [Validation evidence](#validation-evidence)
+- [Scientific boundaries](#scientific-boundaries)
+- [Roadmap](#roadmap)
+- [Development](#development)
 
-Hotpot is not just a chemical informatics toolkit; it is a **research-grade infrastructure** designed to 
-digitize, model, and analyze chemistry environments.
+## Command-line interface
 
-Unlike traditional tools (e.g., RDKit, OpenBabel) that rely heavily on explicit valence rules—which 
-often fail in metal-ligand scenarios—Hotpot adopts a **Data-Driven Philosophy**. It seamlessly 
-integrates a robust chemical kernel with modern deep learning pipelines, enabling "Fuzzy Modeling" 
-for complex chemical intuition that cannot be captured by simple mathematical formulas.
+The CLI is the preferred interface for shell workflows, language-model tool
+use, and reproducible pipelines. Each command accepts `--help`; the chemistry
+commands also provide extended examples through `--doc`.
 
-**Crucially, Hotpot abstracts the complexity of Artificial Intelligence into a silent, high-performance backend.**
+| Command | Purpose | Typical output | Detailed guide |
+|---|---|---|---|
+| `hotpot mca` | Predict site-resolved methyl cation affinity (MCA) | Atom table in kJ/mol | [MCA CLI](hotpot/cheminfo/AImodels/mca/cli_doc.md) |
+| `hotpot cbond` | Predict and construct metal–ligand coordination bonds | Complex SMILES or ranked structures | [CBond CLI](hotpot/cheminfo/AImodels/cbond/cli_doc.md) |
+| `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/cheminfo/forcefields/cli_doc.md) |
 
-To the user, Hotpot feels like the familiar tools you already use. It simulates manipulating actual 
-chemical entities -- whether a single `Molecule` or a periodic `Crystal` Lattice. You interact solely with 
-intuitive `Molecule` and `Crystal` objects—the standard vernacular of chemistry. The massive AI training 
-frameworks and complex inference engines run entirely behind the scenes, invisible and automated.
+### MCA prediction
 
-+ **Minimal-AI Code**: Users typically do not need to touch tensors, write training loops, or configure neural networks.
-+ **Seamless Adaptation**: For standard tasks, the default models work out of the box. For specific domains, 
-you simply organize your private data into Molecule objects; Hotpot ingests the data and refines the 
-engine automatically.
-
-
-## 🏗️ Key Features & Architecture
-
-Hotpot is built on a modular architecture designed to hide complexity. It consists of a robust 
-**Chemical Kernel** for data handling and a silent **AI Engine** for intelligence.
-
-### 1. The Chemical Kernel (`hotpot.core`)
-*The robust foundation that digitizes chemistry.*
-
-+ **Chemist-Centric Interface**:
-  - **Intuitive Operations**: Operates in the natural vernacular of chemistry. You interact with `Molecule`,
-    `Atom`, and `Bond` objects directly—manipulating structures in code feels exactly like building models in a lab.
-  - Plays nicely with existing cheminformatics tools and workflows, preserving the interfaces users are already used to.
-+ **Multi-Scale Property Integration**:
-  - **Micro to Macro**: A unified interface for managing diverse physical properties. Effortlessly manage microscopic descriptors
-    (`Atom.elements`, `Molecule.descriptors`) alongside macroscopic observables (`Molecule.get_thermo()`).
-+ **Universal I/O Bridge**: 
-  - **Read/Write Common Formats**: Seamlessly handles standard chemistry formats such as `.mol2`, `.cif`, `.xyz`, and Gaussian `.gjf`.  
-  - **AI-Ready Graphs**: Transparently converts structures into graph representations suitable for modern deep learning
-    models, without exposing low-level details to the user. 
-
-### 2. Data-Driven Analysis (Pre-trained & Ready)
-*Intelligence baked into the `Molecule` object (especially, for Coordination Chemistry).*
-
-+ **Coordination pattern determination**:
-  - **`AIModel.cbond`**: Surpasses traditional valence rules by using deep learning to predict 
-  coordinate bonds in complex transition metal environments.
-+ **Site-resolved methyl cation affinity**:
-  - **`MCAPredictor`**: Predicts MCA values in kJ/mol for every heavy atom and
-    separately identifies important nucleophilic sites from a SMILES string, an RDKit molecule, a hotpot
-    `Molecule`, or a lightweight molecular graph. CPU inference is always
-    available and CUDA is selected automatically when a compatible ONNX
-    Runtime provider is installed.
-  - Predictions can be attached directly to atoms through the calculator API:
-    ```python
-    from hotpot import read_mol
-    from hotpot.calculator import mca
-
-    mol = read_mol("c1ccccc1CN")
-    mca(mol)
-    for atom in mol.atoms:
-        print(atom.mca)  # all-atom MCA prediction in kJ/mol
-    for atom, value in mol.mca_sites.items():
-        print(atom, value)  # important, reliably classified sites
-    ```
-  - The same predictor is available from the command line. Output is a plain
-    atom table suitable for terminal display or redirection:
-    ```bash
-    hotpot mca 'c1ccccc1CN'
-    hotpot mca molecules.sdf -o mca.txt
-    hotpot mca 'c1ccccc1CN' --plot mca.png
-    hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
-    ```
-+ **Coordination-bond CLI**:
-  - Build a metal-ligand coordination graph from a ligand SMILES or molecule
-    file and print its canonical SMILES:
-    ```bash
-    $ hotpot cbond Eu 'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3'
-    $ hotpot cbond Eu ligand.mol2 -o europium-complex.smi
-    $ hotpot cbond Eu ligand.mol2 --all-structures --bond-detail
-    $ hotpot cbond --doc
-    ```
-  - The default raw-logit threshold is `-0.125`. Ranked probabilities from
-    `--all-structures` are normalized path weights, not calibrated physical
-    probabilities.
-+ **3D Structure Initialization** (`Molecule.build3d`):
-  - **Complex-aware 3D build**: A specialized force-field pipeline for generating metal complexes
-  - **Topology-aware optimization**: Adds continuous topological inspection during geometry optimization 
-  and applies tailored breaking / reconstruction strategies, preventing common failures in metal complex 
-  3D generation, such as tangled chain, interlocked rings, and other non-optimizable artifacts.
-  - Missing hydrogens are added on a transactional working copy. Energies are
-    reported in kJ/mol, and `quality_level="standard"` is used by default.
-  - Complex force-field requests currently resolve to UFF. This workflow does
-    not infer oxidation states or guarantee a ligand-field geometry.
-+ **Connecting microscopic models with macroscopic observables**:
-  - Macroscopic properties (`logβ`, `logD`, ...) are typically statistical constructs emerging from ensembles of microscopic 
-  states, rather than from any single configuration. Relying on a small number of static microscopic 
-  models to infer macroscopic behavior can therefore introduce substantial bias and be misleading.
-  - Hotpot combines approximate microscopic models with rich molecular representations and environmental
-  variables to make this micro–macro connection more reliable. Embracing the idea that “all models are wrong, 
-  but some are useful”, Hotpot uses AI-based fuzzy modeling to improve the robustness and accuracy of inferring
-  macroscopic observables from microscopic model.
-+ **Oxidation state identification** - *coming soon ...*
-+ **Other important chemical problems**  
-  - If there is a core chemistry task you think should be “built-in” to the `Molecule` object, feel free to open an issue and describe your use case.
-
-### 3. Assembly & Generation of Virtual Molecules
-*From fragment-based enumeration to AI-driven molecular design.*
-
-+ **High-throughput fragment-based assembly**  
-  - Assemble virtual molecules from scaffolds and fragments at scale, enabling grid-like exploration of targeted
-  chemical spaces (e.g. focused libraries around a given scaffold or motif).
-
-+ **AI-based molecular generation**  
-  - **Molecular generation**: Generate new candidate molecules by learning from a small set of example structures, 
-  proposing novel analogues in the same “chemical family” or design space.
-  - **Conditional molecular generation**: Generate molecules under explicit goals or constraints — e.g. guided by
-  target properties, property predictors, or user-defined objective functions — to search for structures that optimize
-  (maximize / minimize) desired performance while respecting structural patterns of the examples.
-
-### 4. Optimization of Wet Experiments
-*Close the loop between computation and lab experiments.*
-
-+ **Multiple optimization strategies**  
-  - Supports a range of optimization backends, including Bayesian optimization (BO) and evolutionary algorithms (EA), 
-  for efficient exploration of experimental parameter spaces.
-
-+ **Structure-aware experimental optimization**  
-  - Combines experimental parameters with optional structural / molecular representations, enabling joint optimization
-  over both reaction conditions and molecular features.
-
-+ **Mixed-type design spaces**  
-  - Handles continuous and discrete variables in a unified framework, suitable for real experimental design problems
-  (temperatures, pH, solvents, ligands, catalysts, etc.).
-
-+ **Manifold / parameter-space visualization**  
-  - Provides visualization of the explored parameter manifold and optimization trajectory to help chemists understand
-  where the optimizer is searching and why.
-
-+ **CLI integration**
-  - Exposed via a simple command-line interface, e.g. `hotpot optimize ...`, so optimization workflows can be scripted
-  and automated without additional boilerplate.
----
-
-## 📥 Installation
-
-Python 3.9–3.14 is supported by the chemical kernel, search layer and ONNX
-inference path. Python 3.10–3.14 use Open Babel 3.2.x; Python 3.9 remains a
-compatibility target and uses `openbabel-wheel` 3.1.1.23 because Open Babel
-3.2.x does not publish a Python 3.9 package.
-
-### PyPI installation
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_mca_cli_output -->
 
 ```bash
-conda create -n hp python=3.11 pip -y
-conda activate hp
-python -m pip install --upgrade pip
-python -m pip install hotpot-zzy
+$ hotpot mca 'c1ccccc1CN' --device cpu
 ```
 
-The PyPI installation includes the chemical kernel, MCA/CBond ONNX inference
-and molecular plotting. On Python 3.10 or newer it installs the official
-`openbabel` 3.2.x package; Python 3.9 installs `openbabel-wheel` 3.1.1.23.
-Do not mix PyPI `openbabel`, `openbabel-wheel`, and Conda `openbabel` in one
-environment because they provide the same Python modules and native libraries.
+```text
+No.  Atom  MCA(kJ/mol)  is_Nuc_site
+1    C     319.00       False
+2    C     304.00       False
+3    C     329.25       False
+4    C     303.50       False
+5    C     318.75       False
+6    C     324.00       False
+7    C     314.50       False
+8    N     489.50       True
+```
 
-### Editable source installation
+MCA is reported for every heavy atom. `is_Nuc_site` marks the sites selected
+by the supported nucleophilic-site definition.
+
+### Coordination-bond construction
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_cbond_cli_output -->
 
 ```bash
-git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
-cd hotpot
-conda create -n hp python=3.11 pip -y
-conda activate hp
-python -m pip install --upgrade pip
-python -m pip install -e .
+$ hotpot cbond Eu 'CN' --device cpu
 ```
 
-For the fixed Python 3.11/Open Babel 3.2 development environment described by
-`environment.yml`, run the following from the repository root:
+```text
+C[NH2+][Eu]
+```
+
+The ligand may also be supplied as a molecular file. Use `--all-structures`
+for ranked alternatives and `--bond-detail` for site-level scores.
+
+### Force-field optimization
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_forcefield_cli_output -->
 
 ```bash
-conda env create -f environment.yml
-conda activate hp
+$ hotpot ff CC --epochs 1 --steps-per-epoch 20 --quality standard \
+    --seed 2026 --report ethane.json -o ethane.mol2
 ```
 
-Available optional dependency groups are:
+This writes a parseable, hydrogen-complete 3D structure to `ethane.mol2` and
+a machine-readable validation report to `ethane.json`. A successful report
+contains `"status": "ok"`.
+
+Commands compose through standard input and output, which makes the public
+surface convenient for both people and LLM-driven tools:
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_cbond_forcefield_pipeline -->
+
+```bash
+$ hotpot cbond Eu 'CN' --device cpu \
+    | hotpot ff - --input-format smi --epochs 1 --steps-per-epoch 20 \
+        --quality off --seed 2026 -o eu-methylamine.mol2
+```
+
+## Installation
+
+Hotpot supports Python 3.9–3.14 for its chemical kernel, search layer, and
+ONNX inference path. Python 3.10 or newer is recommended.
+
+### Install from PyPI
+
+```bash
+$ conda create -n hp python=3.11 pip -y
+$ conda activate hp
+$ python -m pip install --upgrade pip
+$ python -m pip install hotpot-zzy
+```
+
+### Install the current source
+
+```bash
+$ git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
+$ cd hotpot
+$ conda create -n hp python=3.11 pip -y
+$ conda activate hp
+$ python -m pip install --upgrade pip
+$ python -m pip install -e .
+```
+
+The source tree can contain interfaces newer than the latest PyPI release.
+
+### Optional dependency profiles
 
 | Extra | Installation | Scope |
 |---|---|---|
-| `pymol` | `pip install 'hotpot-zzy[pymol]'` | PyMOL 3.1 compatibility profile using NumPy 1.26.x; PyMOL itself is not installed |
-| `optimize` | `pip install 'hotpot-zzy[optimize]'` | optimization and classical ML workflows |
-| `datasets` | `pip install 'hotpot-zzy[datasets]'` | downloads, HDF5 and PyG datasets |
-| `complexformer` | `pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA support |
-| `onnx-export` | `pip install 'hotpot-zzy[onnx-export]'` | ONNX export and inspection tools |
-| `legacy-search` | `pip install 'hotpot-zzy[legacy-search]'` | archived SymPy-based search modules |
-| `dev` | `pip install -e '.[dev]'` | tests, linting and package builds |
-| `all` | `pip install -e '.[all,dev]'` | all pip-installable optional components |
+| `pymol` | `python -m pip install 'hotpot-zzy[pymol]'` | NumPy profile compatible with PyMOL 3.1; PyMOL itself is not installed |
+| `optimize` | `python -m pip install 'hotpot-zzy[optimize]'` | Classical optimization and machine-learning workflows |
+| `datasets` | `python -m pip install 'hotpot-zzy[datasets]'` | Dataset download, HDF5, and PyG support |
+| `complexformer` | `python -m pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA dependencies |
+| `onnx-export` | `python -m pip install 'hotpot-zzy[onnx-export]'` | ONNX export and inspection tools |
+| `dev` | `python -m pip install -e '.[dev]'` | Tests, linting, coverage, and package builds |
 
-PyMOL 3.1 requires `numpy>=1.26.4,<2`, while Hotpot also supports newer
-NumPy releases when PyMOL is absent. Install the explicit compatibility
-profile in an environment that also contains PyMOL:
+PyMOL 3.1 requires `numpy>=1.26.4,<2`. Use the `pymol` profile in an isolated
+environment if PyMOL is required.
 
-```bash
-python -m pip install --upgrade 'numpy>=1.26.4,<2' 'hotpot-zzy[pymol]'
-python -m pip check
-```
+ONNX inference uses CPU by default and automatically selects an available GPU
+provider. GPU users must install an `onnxruntime-gpu` build compatible with
+the machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
+compatible with every installed CUDA version.
 
-For an editable source checkout, replace the package name with `-e '.[pymol]'`.
-The `pymol` extra constrains NumPy but deliberately does not install PyMOL,
-because PyMOL may come from PyPI, Conda, or a licensed distribution. Use a
-separate Python 3.11 environment when PyMOL compatibility is required; do not
-apply this profile to Hotpot's Python 3.13/3.14 compatibility environments.
+## Python interface
 
-`torch-cluster` and `torch-scatter` in the `complexformer` extra may require a
-PyTorch/CUDA-specific wheel index. CCDC is proprietary, while Gaussian, xTB,
-Zeo++ and LAMMPS are external programs; none can be installed reliably as a
-portable PyPI dependency.
+The Python API expresses the same operations through native chemical objects.
 
-For GPU ONNX inference, replace the CPU runtime after installation:
+### Site-resolved MCA
 
-```bash
-python -m pip uninstall -y onnxruntime
-python -m pip install onnxruntime-gpu
-```
----
-## 📌 Usage examples
-### 1.Building a metal-ligand pair
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_mca_python_api_output -->
+
 ```python
-import hotpot as hp
-smi = 'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3'  # (CyMe4)Pyz-PrMe-DIPhen extractant
-ligand = hp.read_mol(smi)
+from hotpot import read_mol
+from hotpot.calculator import mca
 
-pair = ligand.auto_pair_metal('Eu')
-print(pair.smiles)
+mol = read_mol("c1ccccc1CN")
+mca(mol, device="cpu")
+for atom, value in mol.mca_sites.items():
+    print(atom.label, f"{value:.2f}")
 ```
 
-Generate and optimize 3D coordinates through the canonical `build3d` method.
-Complex building uses a spawned worker, so executable scripts should use the
-standard Python main guard. By default, the first chemically acceptable ligand
-geometry is refined. If no attempt passes the basic geometry gate, Hotpot
-warns and sends the usable attempt with the lowest confirmed bond-ring
-piercing count and energy into the next stage. `candidate_count` is retained
-as a reserved API parameter but currently has no effect. Future
-multi-conformer support will generate independent conformers, deduplicate or
-cluster them, rank them using topology, geometry, and energy evidence, and
-refine the selected conformer:
+```text
+N7 489.50
+```
+
+`atom.mca` is a read-only result. Accessing it before prediction raises an
+error that directs the caller to the calculator.
+
+### Molecular objects, rings, and aromaticity
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_core_ring_and_aromaticity_output -->
 
 ```python
 import hotpot as hp
 
-SMILES = (
-    "O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C("
-    "C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3"
-)
-
-
-def main():
-    pair = hp.read_mol(SMILES).auto_pair_metal("Eu")
-    report = pair.build3d(
-        seed=20260916,
-        max_attempts=20,
-        epochs=20,
-        steps_per_epoch=500,
-    )
-    print(report.optimization.best_energy, report.optimization.energy_unit)
-    pair.write("./Eu-pair.mol2")
-
-
-if __name__ == "__main__":
-    main()
-```
-The [mol2 file](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/mol_file/Eu-pair.mol2) 
-and [movie](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/picture/Eu-pair.gif) after coordination generation.
-
-Coordination-bond candidates are proposed by the AI model. The resulting 3D
-complex is built and screened by the topology-aware force-field workflow.
-
-### 2.Cheminformatics support
-The `Molecule` object is designed to be a familiar, standard cheminformatics tool for chemists.
-You can access the `Atom`, `Bond`, `Rings`, and fragment `Molecule` objects directly through
-the *properties* of `Molecule`.
-
-##### Properties
-Continuing with the *Eu-ligand pair* example:
-```pycon
-print(pair.atoms)
-print(pair.bonds)
-print(pair.rings)                       # full-graph Relevant Cycles
-print(pair.ligand_rings)                # ligand-skeleton Relevant Cycles
-print(pair.cycle_basis_rings)           # explicit legacy cycle basis
-
-assert len(pair.components) == 1
-pair.hide_metal_ligand_bonds()          # Hide the coordination bonds temporarily
-assert len(pair.components) == 2        # Now appears as two fragments: [ligand, metal]
-pair.recover_hided_metal_ligand_bonds()
-assert len(pair.components) == 1        # Restored to a whole pair
-
-eu_metal = pair.metals[0]
-print(eu_metal.neighbours)              # [Atom(N), Atom(N), Atom(N), Atom(O)]
-
-print(pair.link_matrix)                 # Connectivity graph table
+mol = hp.read_mol("c1ccccc1O")
+print(len(mol.atoms))
+print([len(ring.atoms) for ring in mol.rings])
+print([ring.is_aromatic for ring in mol.rings])
 ```
 
-Relevant-Cycle access returns the complete requested family or raises
-`RelevantCycleLimitExceeded` at the default 10,000-cycle safety limit; it never
-returns a silently truncated family. Use
-`rings_for_scope(..., max_cycles=None)` only when unbounded enumeration is
-intentional. Existing trained ring-feature models continue to use the explicit
-legacy cycle-basis APIs for their ring tensors; aromaticity perception itself
-uses Relevant Cycles.
-
-##### SMARTS Support & Extensions
-
-Searching for coordination centers using SMARTS patterns:
-```pycon
-hits = pair.search_substructure('[Ln](n)(n)(n)O')  # [Ln] --> lanthanide
-print(len(hits))  # == 1
-print(hits[0].atoms)  # [Atom(N32), Atom(O0), Atom(Eu67), Atom(N10), Atom(N17)]
-
-hits = pair.search_substructure('[Ln](n)(n)O')
-print(len(hits))  # == 3
-
-hits = pair.search_substructure('[An](n)(n)(n)O')  # [An] --> actinide
-print(len(hits))  # == 0
-```
-Hotpot features a built-in SMARTS parser ([API](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/smarts.md))
-that compiles atom, bond, logical and anchored recursive expressions into the
-NetworkX-backed `Searcher` objects. Unsupported stereochemical, directional-bond
-and isotope constraints fail explicitly instead of being treated as unconstrained.
-
-Topology-sensitive SMARTS can select one of two named semantics profiles. The
-default preserves the complete molecular graph; the ligand profile removes
-metal--nonmetal edges only when calculating ligand-local descriptors and never
-mutates the molecule or replaces the NetworkX search backend:
-
-```pycon
-from hotpot import SmartsSemantics
-
-full_hits = pair.search_substructure(
-    "[N;D4;X4]", semantics=SmartsSemantics.FULL_GRAPH
-)
-ligand_hits = pair.search_substructure(
-    "[N;D3;X3]", semantics=SmartsSemantics.LIGAND_SKELETON
-)
+```text
+7
+[6]
+[True]
 ```
 
-| Profile | `D` / `X` | `v` | `R` / `r` |
-|:--------|:----------|:----|:----------|
-| `FULL_GRAPH` (default) | All graph neighbours; `X` also includes implicit H | Sum of numeric bond orders plus implicit H | Relevant Cycles from `Molecule.rings` |
-| `LIGAND_SKELETON` | Non-metal atoms exclude metal--ligand edges; metal centres retain their full coordination number | Uses the same ligand view and counts only `SINGLE`, `DOUBLE`, `TRIPLE`, and `AROMATIC` bond kinds | Relevant Cycles from `Molecule.ligand_rings` |
+Hotpot exposes molecular rings and performs aromaticity perception. More
+detail about graph-level ring APIs is available in the
+[graph package guide](hotpot/cheminfo/graph/README.md).
 
-Both profiles use the `Atom.implicit_hydrogens` produced by the input reader;
-switching profiles does not reperceive or recalculate hydrogens. For example,
-Open Babel 3.1 and 3.2 assign the same coordinated amine donor zero implicit H
-from the supplied MOL2 fixture but one implicit H from its SDF counterpart, so
-their `X` and `v` values remain format-dependent even in `LIGAND_SKELETON`.
+### Interoperability
 
-Bond matching uses semantic `BondKind` metadata. `-` and an implicit aliphatic
-single bond match `SINGLE`, not `DATIVE`, `UNKNOWN`, or `ZERO`; `~` matches any
-edge. Open Babel 3.1 and 3.2 collapse MOL2 `du`, `un`, and `nc` bond tokens to
-order zero and do not retain which token was present, so Hotpot conservatively
-records those imported edges as `UNKNOWN`.
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_conversion_output -->
 
-The MCA calculator uses `LIGAND_SKELETON` to classify organic motifs, but its
-reported reliable sites deliberately exclude metal atoms and atoms directly
-bound to a metal. Per-atom model output and reliable-site selection are
-separate concepts; the latter is an applicability-domain decision rather than
-a general SMARTS rule.
-
-To specifically address the demand in **Coordination Chemistry**, the syntax has been extended with custom 
-wildcards for metals and periodic table properties:
-
-| Symbol      | Definition | Description                                      | Example            |
-|:------------|:-----------|:-------------------------------------------------|:-------------------|
-| **`M`**     | Metal      | Matches any metal atom                           | `[M]~[O]`          |
-| **`!M`**    | Non-Metal  | Matches any non-metal atom                       | `[!M]`             |
-| **`Ln`**    | Lanthanide | Matches Lanthanide series (La-Lu)                | `[Ln](n)(n)(n)`    |
-| **`An`**    | Actinide   | Matches Actinide series (Ac-Lr)                  | `[An]~[O]`         |
-| **`NP<n>`** | Period     | Matches elements in Period *n* (supports ranges) | `[NP4]`, `[NP3-5]` |
-| **`NG<n>`** | Group      | Matches elements in Group *n* (supports ranges)  | `[NG1]`, `[NG1-2]` |
-
-##### Conversion with `RDKit` and `OpenBabel`
-
-Interfacing with other cheminformatics tools:
-```pycon
-obMol = pair.to_obmol()
-rdMol = pair.to_rdmol()
-
-# The shared input converter also accepts SMILES, paths, RDKit Mol, OBMol,
-# Pybel Molecule, and objects exposing to_rdmol().
-assert hp.to_hotpot_mol(pair) is pair
-from_rdkit = hp.to_hotpot_mol(rdMol)
-from_openbabel = hp.to_hotpot_mol(obMol)
-from_smiles = hp.to_hotpot_mol("CCN")
-```
-External molecules are copied while preserving source atom order. Convert the
-whole molecule first, then retrieve a corresponding Hotpot atom by source index;
-isolated external atoms are deliberately not converted without their graph.
-Converting to [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data) Data:
-```pycon
-data = pair.to_pyg_data()
-print(data.x)                       # Tensor of atom attributes
-print(data.x_names)                 # atom attribute name
-print(data.edge_index)
-print(data.edge_attr)
-print(data.edge_attr_names)
-print(data.pair_index)              # atom pairs indices
-print(data.pair_attr)               # pair attrs
-print(data.pair_attr_names)
-print(data.rings_node_index)
-print(data.rings_attr)              # Tensor with shape [rings_num, 2]
-print(data.rings_attr_names)        # ['is_aromatic', 'has_metal']
-print(data.rings_node_nums)         # How many atoms in a ring
-print(data.mol_rings_node_nums)     # How many rings in the molecule
-print(data.coordinates)
-```
-
-See the [cheminfo.core API Documentation](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/cheminfo.md) for more details.
-
-### 3.Molecular properties, descriptors, and representation
-Extracting thermodynamic properties using [`thermo`](https://thermo.readthedocs.io/) library:
-```pycon
+```python
 import hotpot as hp
-mol = hp.read_mol('c1ccc(O)cc1', 'smi')  # read a phenol by SMILES
+
+mol = hp.read_mol("CCN")
+print(len(hp.to_hotpot_mol(mol.to_rdmol()).atoms))
+print(len(hp.to_hotpot_mol(mol.to_obmol()).atoms))
+```
+
+```text
+3
+3
+```
+
+`to_hotpot_mol` is the shared conversion entry point for Hotpot, RDKit, and
+Open Babel molecular objects.
+
+### Thermodynamic and graph representations
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_thermo_output -->
+
+```python
+import hotpot as hp
+
+mol = hp.read_mol("c1ccc(O)cc1", "smi")
 thermo = mol.get_thermo(temp=298.15, pressure=101325)
-print(thermo.Tc)  # the critical temperature (K)
-print(thermo.Psat)  # the saturation vapor pressure 
-print(...)
+print(thermo.Tc)
+print(thermo.Psat)
 ```
-Extracting the Graph-Spectral representation:
+
+```text
+694.2
+80.20201686
+```
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_graph_spectrum_output -->
+
 ```python
 import hotpot as hp
-mol1 = hp.read_mol('c1ccc(O)cc1', 'smi')
-mol2 = hp.read_mol('c1ccccc1C(=O)O', 'smi')
-mol1_ = hp.read_mol('c1ccccc1O', 'smi')     # Same molecule, different atom ordering
 
-spectral1 = mol1.graph_spectral()
-spectral2 = mol2.graph_spectral()
-spectral1_ = mol1_.graph_spectral()
+phenol = hp.read_mol("c1ccc(O)cc1", "smi").graph_spectral()
+benzoic_acid = hp.read_mol("c1ccccc1C(=O)O", "smi").graph_spectral()
+reordered_phenol = hp.read_mol("c1ccccc1O", "smi").graph_spectral()
 
-similarity_diff = spectral1 | spectral2
-print(similarity_diff)                      # Similarity in graph spectrum: 0.907590226292854
-similarity_same = spectral1 | spectral1_
-print(similarity_same)                      # Similarity in graph spectrum: 1.0
-
-print(spectral1.vectors.shape)              # numpy array: shape=[6, 13]
-print(spectral2.vectors.shape)              # numpy array: shape=[6, 15]
+print(phenol.vectors.shape)
+print(benzoic_acid.vectors.shape)
+print(phenol | benzoic_acid)
+print(phenol | reordered_phenol)
 ```
 
-### 4.Molecular assembly
-The molecular assembly is handled by the standalone module 
-[`hotpot.MolAssembly`](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/mol_assemble/README.md) temporarily.
-### Generic description
-The molecular assembly (`hotpot.cheminfo.mol_assemble`) module iteratively generates virtual 
-molecular structures based on the user-specified molecular Framework (`hotpot.Molecule`) and
-assembly fragments `hotpot.cheminfo.mol_assemble.Fragment`. The Framework is a standard 
-`Molecule` object, while the assembly operation is specifically implemented using the `Fragment`. 
-
-An instantiated `Fragment` must specify the following four factors:
-1) The 2D molecular structure of the fragment (a `Molecule` object)
-2) The atom(s) (specified by index) on the fragment used for connection with the Framework
-3) The searcher for locating connection sites on the Framework (a `hotpot.cheminfo.search.Searcher` object)
-4) The specific connection operation (specified in an `action_func` function) between the `Fragment` and 
-the Framework at the connection sites.
-
-The `Fragment` provides users the flexibility to customize their own assembly strategies. 
-Of course, `Hotpot` has predefined some common molecular assembly `Fragment` (named `Assembler`).
-When handling the `Assembler`, users only need to specify its fragment structure and indicate the
-(optional) `action_points` indices (i.e., specify which Fragmental atoms as the `"reaction site"` to
-react with the frame `Molecule`).
-
-So far, the predefined `Assembler` include (see the following `Scheme 1` for details):
-1) EdgeShoulder (required two `action_points`)
-2) AtomLink (required one `action_points`)
-3) BondAdding (No `action_points` required)
-4) AtomReplace (No `action_points` required)
-5) AlkylGraft (No `action_points` required, just a specific `AtomLink`)
-6) RingWedge (required one `action_points`)
-
-![Scheme of Assemblers](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/mol_assemble/Assemblers.svg)
-
-***Scheme 1** Illustration of Assembly of Molecule by different Assemblers*
-
-
-### 5.Wet-lab experimental optimization
-
-**Hotpot** also integrates a module for optimizing the *wet-lab experiments* using an active learning scheme.
-For pure parameter optimization, you can use the CLI interface:
-```bash
-hotpot optimize [input_excel] [output_dir] --flags args ...
-hotpot optimize --help  # for help
+```text
+(6, 13)
+(6, 15)
+0.907590226292854
+1.0
 ```
-Simply follow the instructions in the command‑line interface to obtain the optimized recommended parameters.
-The results and the manifold visualization of the explored parameter space are saved in `output_dir`.
-The `input_excel` file should be organized as follows:
 
-| feature1 | feature2 | ... | featureN | target |
-|----------|----------|-----|----------|--------|
-| 0.64654  | 148.792  | ... | -30.897  | 0.3433 |
-| ...      | ...      | ... | ...      | ...    |
----------------------------------------------------
+## Chemistry capabilities
 
-For optimization involving molecule structures:
+### Native chemical objects
+
+- `Molecule`, `Atom`, `Bond`, and `Ring` represent molecular structure and
+  expose chemistry-oriented operations.
+- `Crystal` is the co-equal periodic-system concept in Hotpot's public model;
+  its mature workflow remains on the roadmap.
+- Common molecular formats can be read and written through a single object
+  model.
+
+### Search and SMARTS
+
+Hotpot provides a NetworkX-based SMARTS and substructure search system while
+preserving metal-aware matching. See the
+[SMARTS guide](hotpot/cheminfo/smarts.md) for its public syntax and examples.
+
+### Molecular assembly
+
+The assembly API supports fragment joining and ring-based construction.
+`RingWedge` is part of the public interface for explicitly describing a ring
+wedge used in assembly. See the
+[assembly guide](hotpot/cheminfo/mol_assemble/README.md).
+
+### AI-backed chemistry
+
+The currently packaged inference capabilities include site-resolved MCA and
+metal–ligand coordination-bond prediction. Models are distributed for
+inference through stable chemistry-facing interfaces; users do not need the
+training implementation to call them.
+
+## Geometry and force-field validation
+
+Geometry provides mathematical measurements and spatial relationships;
+force-field code decides how those facts affect a chemical workflow. Public
+geometry concepts and relation functions are documented in the
+[geometry package guide](hotpot/cheminfo/geometry/README.md).
+
+The public force-field validation interface can assess a structure independently
+of the optimizer that produced it:
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_forcefield_validation_python_output -->
+
 ```python
-import numpy as np
 import hotpot as hp
+from hotpot.cheminfo import forcefields as ff
 
-list_smi = [
-    'c1cccc1',
-    'c1cccc1C(=O)O',
-    # ...
-]
-
-mol_space = [hp.read_mol(smi) for smi in list_smi]
-samples = [
-    hp.read_mol(list_smi[i]) for i in np.random.randint(2, size=100).tolist()
-]
-for mol, params in zip(samples, np.random.randn(100, 3)):
-    mol.add_envs(params, name=['T', 'P', 'Conc.'])
-
-bundle = hp.MolBundle(samples)
-
-result = bundle.optimize(
-    mol_space=mol_space,  # Optional
-    env_space=...,        # Optional
-    maximize=True,        # Default
-    n_trails=20,
-    batch_size=5,
-    mol_repr='ComplexFormer_nano',  # Optional[rdkit, fp, spectrum], The optimize method automatically selects a suitable representation.
-    visualize=True
+mol = hp.read_mol("CC")
+mol.build3d(
+    forcefield="UFF",
+    epochs=1,
+    steps_per_epoch=20,
+    quality_level="standard",
+    seed=2026,
 )
-
-print(result.mol.smiles)
-print(result.env)
-result.fig.show()  # Displays the manifold visualization
+report = ff.evaluate_structure_acceptance(mol, level="standard")
+print(report.passed)
 ```
 
+```text
+True
+```
 
-## 🛤️ Roadmap & Project Evolution
+This common report makes native Open Babel, native RDKit, Hotpot, or external
+optimization results comparable under the same public geometry-quality gate.
 
-Hotpot initially started as a more Pythonic wrapper around OpenBabel and RDKit, aiming to:
+## Validation evidence
 
-- provide a cleaner, chemist-friendly interface on the Python side, and  
-- avoid low-level C++ issues (e.g., segmentation faults / exit code 139) ..., and the unnatural modeling of metal complexes.
+### Native Open Babel and RDKit comparison
 
-During development, it became clear that heuristic, rule-based logic is not sufficient for many real chemical problems,
-especially in coordination chemistry. Many chemical and biological insights are empirical and resist explicit coding.
+The following reproducible smoke benchmark uses eight neutral organic
+molecules, three seeded runs per molecule, UFF, and 200 optimization steps.
+Every returned structure is checked by Hotpot's `standard` quality level.
+It measures the complete build-and-optimize workflow, not force-field kernel
+speed alone.
 
-Hotpot is therefore evolving from a **rule-based wrapper** into a **data-driven infrastructure** that tries to capture
-such *tacit knowledge* through large-scale pre-training on coordination chemistry and related databases.
+| Workflow | Successful runs | Standard-quality passes | Median workflow time |
+|---|---:|---:|---:|
+| RDKit native | 24/24 | 24/24 | 0.0079 s |
+| Open Babel native | 24/24 | 20/24 | 0.0266 s |
+| Hotpot | 24/24 | 22/24 | 1.5178 s |
 
-**Current Status**
+![Native backend and Hotpot force-field validation comparison](assets/readme/forcefield_validation.png)
 
-- The current `main` branch focuses on a stable, chemist-centric core (`hotpot.cheminfo.core`) and classical utilities.
-- Several advanced AI-backed components described in this README currently live in  research branches and
-  internal prototypes, and will be merged step by step.
-- Public APIs in `hotpot.cheminfo.core` will be kept as stable as possible to ensure backward compatibility as new 
-  models and pipelines are integrated.
+The native RDKit workflow is the best choice in this small neutral-organic
+benchmark when raw turnaround is the priority. Hotpot adds process isolation,
+structured reporting, integrated quality assessment, and a workflow intended
+to extend to coordination complexes, so the timing is not a backend ranking.
 
-**Planned Timeline**
+The script and machine-readable evidence are versioned with the repository:
 
-A large part of the AI backend is closely tied to ongoing Ph.D. research work.  
-Major model components and pipelines are planned to be merged into the public repository progressively as the
-research is completed and stabilized (target: around late 2026).
+- [benchmark script](tests/readme/benchmark_forcefield_validation.py)
+- [CSV results](assets/readme/forcefield_validation.csv)
+- [JSON protocol and results](assets/readme/forcefield_validation.json)
+
+### Coordination-complex regression set
+
+The standard 187-extractant validation run produced these observed results:
+
+- 178 structures entered force-field processing;
+- 171 passed the configured final quality gate;
+- 7 retained their final diagnostic structures with quality warnings;
+- 9 were rejected before force-field processing; and
+- the measured wall time decreased from 380.590 s to 157.776 s in the
+  documented optimized workflow.
+
+These counts are regression evidence for the tested inputs, not a universal
+success-rate claim for arbitrary coordination chemistry.
+
+## Scientific boundaries
+
+- MCA values are model predictions in kJ/mol and are not Mayr nucleophilicity
+  parameters.
+- Ranked CBond path probabilities are model-relative weights, not calibrated
+  experimental probabilities.
+- A force-field quality pass means that the configured structural checks
+  passed; it does not prove that the global minimum, oxidation state, ligand
+  field, or experimentally dominant conformer is correct.
+- Macroscopic observables generally describe ensembles and environments. A
+  single optimized molecular structure should not be treated as a complete
+  thermodynamic or experimental model.
+
+## Roadmap
+
+- Mature `Crystal` workflows for periodic structures.
+- A stable `Molecule.descriptors` interface.
+- Automatic fine-tuning of compatible models from private molecular datasets,
+  with an explicit user-controlled workflow.
+- Molecule-aware experimental optimization across mixed chemical and process
+  variables.
+- AI-assisted molecular generation and conditional design.
+- Oxidation-state perception for coordination systems.
+
+Roadmap entries are design intentions rather than currently supported APIs.
+
+## Development
+
+README examples are executable regression tests. Run them with:
+
+```bash
+$ python -m pytest -q tests/readme
+```
+
+Run the documented benchmark and regenerate its evidence with:
+
+```bash
+$ python tests/readme/benchmark_forcefield_validation.py \
+    --output-dir assets/readme --repeats 3
+```
+
+The complete test suite and coverage shortcut is:
+
+```bash
+$ ./tests/run_coverage.sh
+```
+
+## License
+
+Hotpot is released under the [MIT License](LICENSE).

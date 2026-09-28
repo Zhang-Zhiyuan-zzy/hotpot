@@ -84,6 +84,21 @@ def test_readme_forcefield_cli_output(tmp_path: Path) -> None:
     assert '"status": "ok"' in report_path.read_text(encoding="utf-8")
 
 
+def test_readme_forcefield_validation_python_output() -> None:
+    molecule = hp.read_mol("CC")
+    molecule.build3d(
+        forcefield="UFF",
+        epochs=1,
+        steps_per_epoch=20,
+        quality_level="standard",
+        seed=2026,
+    )
+
+    report = ff.evaluate_structure_acceptance(molecule, level="standard")
+
+    assert report.passed
+
+
 def test_readme_cbond_forcefield_pipeline(tmp_path: Path) -> None:
     cbond = _run_hotpot("cbond", "Eu", "CN", "--device", "cpu")
     output_path = tmp_path / "eu-methylamine.mol2"

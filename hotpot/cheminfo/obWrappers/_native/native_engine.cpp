@@ -178,10 +178,13 @@ RulePlan prepare_optimization(
     if (uppercase(forcefield) != "UFF") {
         return plan;
     }
-    plan = rule_registry().execute(
-        RuleStage::PRE_FORCEFIELD_SETUP,
-        snapshot_obmol(molecule, true),
-        RuleParameters{singularity_threshold, repair_angle_radians}
+    auto snapshot = snapshot_obmol(molecule, true);
+    plan = plan_optimization(
+        std::move(snapshot.atoms),
+        std::move(snapshot.bonds),
+        std::move(snapshot.coordinates),
+        singularity_threshold,
+        repair_angle_radians
     );
     apply_coordinate_changes(molecule, plan);
     return plan;
@@ -500,13 +503,22 @@ RulePlan inspect_rules(
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
     auto obmol = make_obmol(molecule);
-    return rule_registry().execute(
-        stage,
-        snapshot_obmol(
-            obmol,
-            stage == RuleStage::PRE_FORCEFIELD_SETUP
-        ),
-        RuleParameters{singularity_threshold, repair_angle_radians}
+    auto snapshot = snapshot_obmol(
+        obmol,
+        stage == RuleStage::PRE_FORCEFIELD_SETUP
+    );
+    if (stage == RuleStage::PRE_BUILD) {
+        return plan_build(
+            std::move(snapshot.atoms),
+            std::move(snapshot.bonds)
+        );
+    }
+    return plan_optimization(
+        std::move(snapshot.atoms),
+        std::move(snapshot.bonds),
+        std::move(snapshot.coordinates),
+        singularity_threshold,
+        repair_angle_radians
     );
 }
 

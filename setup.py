@@ -17,6 +17,16 @@ ext_modules = [
         ],
         cxx_std=17,
     ),
+    Pybind11Extension(
+        "hotpot.cheminfo.obWrappers._ob_rules",
+        [
+            "hotpot/cheminfo/obWrappers/_native/bindings.cpp",
+            "hotpot/cheminfo/obWrappers/_native/registry.cpp",
+            "hotpot/cheminfo/obWrappers/_native/phosphorus_builder.cpp",
+            "hotpot/cheminfo/obWrappers/_native/degenerate_torsion.cpp",
+        ],
+        cxx_std=17,
+    ),
 ]
 
 

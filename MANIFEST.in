@@ -15,3 +15,5 @@ include hotpot/cheminfo/graph/_relevant_cycles.pyi
 recursive-include hotpot/cheminfo/graph/_native *.cpp *.hpp *.md
 include hotpot/cheminfo/kekulize/Kekulize.md
 recursive-include hotpot/cheminfo/graph/_native LICENSE*
+include hotpot/cheminfo/obWrappers/_ob_rules.pyi
+recursive-include hotpot/cheminfo/obWrappers/_native *.cpp *.hpp

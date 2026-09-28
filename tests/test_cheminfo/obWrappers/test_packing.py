@@ -22,7 +22,7 @@ def test_pack_molecule_preserves_order_semantics_and_exact_dtypes():
     assert buffers.coordinates.dtype == np.float64
     assert buffers.atom_aromatic.dtype == np.uint8
     assert buffers.bond_indices.dtype == np.int32
-    assert buffers.bond_orders.dtype == np.int32
+    assert buffers.bond_orders.dtype == np.float64
     assert buffers.bond_kinds.dtype == np.uint8
     assert buffers.bond_aromatic.dtype == np.uint8
     assert all(

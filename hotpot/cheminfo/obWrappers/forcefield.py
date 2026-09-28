@@ -1,77 +1,149 @@
-"""Rule-aware preparation and validation around Open Babel force fields."""
+"""Hotpot-molecule facade for native Open Babel force-field operations."""
 
 from __future__ import annotations
 
-from math import isfinite
+from typing import Optional, TYPE_CHECKING
 
-from openbabel import openbabel as ob
+import numpy as np
 
 from .contracts import (
-    ForceFieldStateReport,
-    OptimizationPreparationReport,
-    RuleExecutionReport,
-    RuleStage,
+    OptimizationFrame,
+    OptimizationReport,
+    SingleOptimizationReport,
 )
+from .native import _native_module, _native_molecule_data
+from .reports import _execution_report
 from .settings import (
     TORSION_REPAIR_ANGLE_RADIANS,
     TORSION_SINGULARITY_THRESHOLD,
 )
-from .snapshot import (
-    _apply_coordinate_changes,
-    _execution_report,
-    _optimization_plan,
-)
 
 
-__all__ = ("prepare_optimization", "validate_forcefield_state")
+if TYPE_CHECKING:
+    from ..core import Molecule
 
 
-def prepare_optimization(
-    obmol: ob.OBMol,
+__all__ = ("optimize",)
+
+
+def _single_optimize(
+    mol: "Molecule",
     forcefield: str,
+    steps: int,
     *,
     singularity_threshold: float = TORSION_SINGULARITY_THRESHOLD,
     repair_angle_radians: float = TORSION_REPAIR_ANGLE_RADIANS,
-) -> OptimizationPreparationReport:
-    """Apply deterministic coordinate guards before native UFF setup."""
-    if forcefield.upper() != "UFF":
-        return OptimizationPreparationReport(
-            forcefield=forcefield,
-            rules=RuleExecutionReport(RuleStage.PRE_FORCEFIELD_SETUP),
-        )
-
-    rules = _execution_report(
-        _optimization_plan(
-            obmol,
-            singularity_threshold=singularity_threshold,
-            repair_angle_radians=repair_angle_radians,
-        )
+) -> SingleOptimizationReport:
+    """Run one native steepest-descent segment and update ``mol``."""
+    result = _native_module().single_optimize(
+        _native_molecule_data(mol),
+        forcefield,
+        steps,
+        singularity_threshold,
+        repair_angle_radians,
     )
-    _apply_coordinate_changes(obmol, rules)
-    return OptimizationPreparationReport(forcefield=forcefield, rules=rules)
+    coordinates = np.asarray(result.coordinates, dtype=np.float64)
+    mol.coordinates = coordinates
+    return SingleOptimizationReport(
+        coordinates=coordinates,
+        energy=result.energy_kj_mol,
+        energy_unit="kJ/mol",
+        backend_energy_unit=result.backend_energy_unit,
+        exploded=result.exploded,
+        rules=_execution_report(result.rules),
+    )
 
 
-def validate_forcefield_state(
-    backend: ob.OBForceField,
-    obmol: ob.OBMol,
-) -> ForceFieldStateReport:
-    """Return finite-energy and finite-gradient facts for a set-up backend."""
-    energy = float(backend.Energy(True))
-    nonfinite_atom_indices = []
-    for atom in ob.OBMolAtomIter(obmol):
-        gradient = backend.GetGradient(atom)
-        if not all(
-            isfinite(component)
-            for component in (
-                gradient.GetX(),
-                gradient.GetY(),
-                gradient.GetZ(),
-            )
-        ):
-            nonfinite_atom_indices.append(atom.GetIdx() - 1)
-    return ForceFieldStateReport(
-        energy=energy,
-        finite_energy=isfinite(energy),
-        finite_gradients=not nonfinite_atom_indices,
-        nonfinite_gradient_atom_indices=tuple(nonfinite_atom_indices),
+def optimize(
+    mol: "Molecule",
+    forcefield: str,
+    *,
+    algorithm: str = "conjugate",
+    epochs: int = 100,
+    steps_per_epoch: int = 5,
+    perturb_interval: Optional[int] = None,
+    perturbation_offsets: Optional[np.ndarray] = None,
+    increasing_vdw: bool = False,
+    vdw_cutoff_start: float = 1.0,
+    vdw_cutoff_end: float = 10.0,
+    energy_tolerance: float = 1.0e-6,
+    stopping_window: Optional[int] = None,
+    maximum_energy_change_kj_mol: float = 1.0e-4,
+    maximum_atom_displacement_angstrom: float = 1.0e-4,
+    maximum_rms_gradient_kj_mol_angstrom: float = 1.0,
+    maximum_gradient_kj_mol_angstrom: float = 5.0,
+    singularity_threshold: float = TORSION_SINGULARITY_THRESHOLD,
+    repair_angle_radians: float = TORSION_REPAIR_ANGLE_RADIANS,
+) -> OptimizationReport:
+    """Optimize ``mol`` using the direct native Open Babel backend."""
+    offsets = None
+    if perturbation_offsets is not None:
+        offsets = np.ascontiguousarray(
+            perturbation_offsets,
+            dtype=np.float64,
+        )
+    result = _native_module().optimize(
+        _native_molecule_data(mol),
+        forcefield,
+        algorithm,
+        epochs,
+        steps_per_epoch,
+        perturb_interval,
+        offsets,
+        increasing_vdw,
+        vdw_cutoff_start,
+        vdw_cutoff_end,
+        energy_tolerance,
+        stopping_window,
+        maximum_energy_change_kj_mol,
+        maximum_atom_displacement_angstrom,
+        maximum_rms_gradient_kj_mol_angstrom,
+        maximum_gradient_kj_mol_angstrom,
+        singularity_threshold,
+        repair_angle_radians,
+    )
+    coordinates = np.asarray(result.coordinates, dtype=np.float64)
+    terminal_coordinates = np.asarray(
+        result.terminal_coordinates,
+        dtype=np.float64,
+    )
+    mol.coordinates = coordinates
+    frames = tuple(
+        OptimizationFrame(
+            coordinates=np.asarray(frame.coordinates, dtype=np.float64),
+            energy=frame.energy,
+            rms_gradient=frame.rms_gradient,
+            max_gradient=frame.max_gradient,
+            exploded=frame.exploded,
+            converged=frame.converged,
+            segment_epochs_completed=frame.segment_epochs_completed,
+            segment_index=frame.segment_index,
+            energy_change=frame.energy_change,
+            max_displacement=frame.max_displacement,
+        )
+        for frame in result.frames
+    )
+    return OptimizationReport(
+        coordinates=coordinates,
+        terminal_coordinates=terminal_coordinates,
+        frames=frames,
+        selected_frame_index=result.selected_frame_index,
+        best_epoch=result.best_epoch,
+        final_energy=result.final_energy,
+        best_energy=result.best_energy,
+        rms_gradient=result.rms_gradient,
+        max_gradient=result.max_gradient,
+        exploded=result.exploded,
+        converged=result.converged,
+        epochs_completed=result.epochs_completed,
+        steps_submitted=result.steps_submitted,
+        initialization_steps=result.initialization_steps,
+        selected_segment_epochs_completed=(
+            result.selected_segment_epochs_completed
+        ),
+        energy_unit="kJ/mol",
+        backend_energy_unit=result.backend_energy_unit,
+        termination_reason=result.termination_reason,
+        terminal_converged=result.terminal_converged,
+        rules=_execution_report(result.rules),
     )

@@ -6,18 +6,22 @@ from dataclasses import dataclass
 from enum import Enum, IntEnum
 from typing import Optional, Tuple
 
+import numpy as np
+from numpy.typing import NDArray
+
 
 __all__ = (
     "BuildReport",
     "BondKindCode",
     "CoordinateChange",
-    "ForceFieldStateReport",
     "HybridizationChange",
-    "OptimizationPreparationReport",
+    "OptimizationFrame",
+    "OptimizationReport",
     "RuleApplication",
     "RuleDescriptor",
     "RuleExecutionReport",
     "RuleStage",
+    "SingleOptimizationReport",
 )
 
 
@@ -100,26 +104,54 @@ class BuildReport:
 
 
 @dataclass(frozen=True)
-class OptimizationPreparationReport:
-    """Coordinate preparation performed before force-field setup."""
+class SingleOptimizationReport:
+    """Result of one native steepest-descent optimization."""
 
-    forcefield: str
+    coordinates: NDArray[np.float64]
+    energy: float
+    energy_unit: str
+    backend_energy_unit: str
+    exploded: bool
     rules: RuleExecutionReport
-
-    @property
-    def applied(self) -> bool:
-        return self.rules.applied
 
 
 @dataclass(frozen=True)
-class ForceFieldStateReport:
-    """Finite-energy and finite-gradient status after force-field setup."""
+class OptimizationFrame:
+    """Numerical facts recorded after one native optimization epoch."""
 
+    coordinates: NDArray[np.float64]
     energy: float
-    finite_energy: bool
-    finite_gradients: bool
-    nonfinite_gradient_atom_indices: Tuple[int, ...]
+    rms_gradient: float
+    max_gradient: float
+    exploded: bool
+    converged: bool
+    segment_epochs_completed: int
+    segment_index: int
+    energy_change: Optional[float]
+    max_displacement: Optional[float]
 
-    @property
-    def passed(self) -> bool:
-        return self.finite_energy and self.finite_gradients
+
+@dataclass(frozen=True)
+class OptimizationReport:
+    """Complete result returned by the native Open Babel optimizer."""
+
+    coordinates: NDArray[np.float64]
+    terminal_coordinates: NDArray[np.float64]
+    frames: Tuple[OptimizationFrame, ...]
+    selected_frame_index: int
+    best_epoch: int
+    final_energy: float
+    best_energy: float
+    rms_gradient: float
+    max_gradient: float
+    exploded: bool
+    converged: bool
+    epochs_completed: int
+    steps_submitted: int
+    initialization_steps: int
+    selected_segment_epochs_completed: int
+    energy_unit: str
+    backend_energy_unit: str
+    termination_reason: str
+    terminal_converged: bool
+    rules: RuleExecutionReport

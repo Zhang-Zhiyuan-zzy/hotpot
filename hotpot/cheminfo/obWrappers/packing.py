@@ -42,7 +42,7 @@ class _MoleculeBuffers:
     coordinates: NDArray[np.float64]
     atom_aromatic: NDArray[np.uint8]
     bond_indices: NDArray[np.int32]
-    bond_orders: NDArray[np.int32]
+    bond_orders: NDArray[np.float64]
     bond_kinds: NDArray[np.uint8]
     bond_aromatic: NDArray[np.uint8]
     unit_cell: Optional[NDArray[np.float64]]
@@ -99,8 +99,8 @@ def _pack_molecule(mol: "Molecule") -> _MoleculeBuffers:
         else _empty_matrix(2, np.dtype(np.int32))
     )
     bond_orders = np.fromiter(
-        (int(bond.bond_order) for bond in bonds),
-        dtype=np.int32,
+        (bond.bond_order for bond in bonds),
+        dtype=np.float64,
         count=len(bonds),
     )
     bond_kinds = np.fromiter(

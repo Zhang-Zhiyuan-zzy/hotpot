@@ -423,6 +423,15 @@ PYBIND11_MODULE(_ob_native, module) {
 
     module.def("runtime_info", &runtime_info);
     module.def("seed_random", &seed_random, py::arg("seed"));
+    module.def(
+        "inspect_rules",
+        &inspect_rules,
+        py::arg("molecule"),
+        py::arg("stage"),
+        py::arg("singularity_threshold") = 1.0e-6,
+        py::arg("repair_angle_radians") = 1.0e-3,
+        py::call_guard<py::gil_scoped_release>()
+    );
 
     module.def(
         "available_rules",

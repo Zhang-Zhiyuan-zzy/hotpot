@@ -492,6 +492,25 @@ void seed_random(std::uint32_t seed) {
 }
 
 
+RulePlan inspect_rules(
+    const MoleculeData& molecule,
+    RuleStage stage,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    auto obmol = make_obmol(molecule);
+    return rule_registry().execute(
+        stage,
+        snapshot_obmol(
+            obmol,
+            stage == RuleStage::PRE_FORCEFIELD_SETUP
+        ),
+        RuleParameters{singularity_threshold, repair_angle_radians}
+    );
+}
+
+
 BuildResult build(
     const MoleculeData& molecule,
     std::optional<bool> stereo_warnings

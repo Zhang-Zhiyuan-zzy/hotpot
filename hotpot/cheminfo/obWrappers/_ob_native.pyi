@@ -149,6 +149,13 @@ def runtime_info() -> RuntimeInfo: ...
 
 def seed_random(seed: int) -> None: ...
 
+def inspect_rules(
+    molecule: MoleculeData,
+    stage: RuleStage,
+    singularity_threshold: float = ...,
+    repair_angle_radians: float = ...,
+) -> RulePlan: ...
+
 
 def available_rules(stage: Optional[RuleStage] = ...) -> List[RuleDescriptor]: ...
 

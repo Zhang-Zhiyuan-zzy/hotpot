@@ -129,6 +129,14 @@ RuntimeInfo runtime_info();
 void seed_random(std::uint32_t seed);
 
 
+RulePlan inspect_rules(
+    const MoleculeData& molecule,
+    RuleStage stage,
+    double singularity_threshold,
+    double repair_angle_radians
+);
+
+
 BuildResult build(
     const MoleculeData& molecule,
     std::optional<bool> stereo_warnings

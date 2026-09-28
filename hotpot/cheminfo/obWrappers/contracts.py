@@ -125,6 +125,7 @@ class OptimizationFrame:
     max_gradient: float
     exploded: bool
     converged: bool
+    epoch_index: int
     segment_epochs_completed: int
     segment_index: int
     energy_change: Optional[float]

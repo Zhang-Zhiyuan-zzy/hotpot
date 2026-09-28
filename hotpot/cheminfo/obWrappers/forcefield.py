@@ -120,6 +120,7 @@ def optimize(
             max_gradient=frame.max_gradient,
             exploded=frame.exploded,
             converged=frame.converged,
+            epoch_index=frame.epoch_index,
             segment_epochs_completed=frame.segment_epochs_completed,
             segment_index=frame.segment_index,
             energy_change=frame.energy_change,

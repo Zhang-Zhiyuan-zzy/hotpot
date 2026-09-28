@@ -15,7 +15,7 @@ from .contracts import (
     SingleOptimizationReport,
 )
 from .forcefield import optimize
-from .registry import available_rules
+from .registry import available_rules, inspect_rules
 
 
 __all__ = (
@@ -32,5 +32,6 @@ __all__ = (
     "SingleOptimizationReport",
     "available_rules",
     "build",
+    "inspect_rules",
     "optimize",
 )

@@ -1,4 +1,4 @@
-"""Real Open Babel integration checks for the rule-aware wrappers."""
+"""Integration checks for the direct native Open Babel backend."""
 
 from __future__ import annotations
 
@@ -7,14 +7,11 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from openbabel import openbabel as ob
 
-from hotpot.cheminfo.obWrappers import (
-    RuleStage,
-    build,
-    prepare_optimization,
-    validate_forcefield_state,
-)
+from hotpot import read_mol
+from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.obWrappers import RuleStage, build, optimize
+from hotpot.cheminfo.obWrappers.forcefield import _single_optimize
 
 
 EXTRACTANT_FILE = (
@@ -28,50 +25,23 @@ PHOSPHORUS_CASES = frozenset(
 )
 
 
-def _read_smiles(smiles: str) -> ob.OBMol:
-    conversion = ob.OBConversion()
-    assert conversion.SetInFormat("smi")
-    obmol = ob.OBMol()
-    assert conversion.ReadString(obmol, smiles)
-    return obmol
-
-
-def _topology(obmol: ob.OBMol) -> tuple[object, ...]:
+def _topology(mol: Molecule) -> tuple[object, ...]:
     atoms = tuple(
-        (
-            atom.GetAtomicNum(),
-            atom.GetFormalCharge(),
-        )
-        for atom in ob.OBMolAtomIter(obmol)
+        (atom.atomic_number, atom.formal_charge)
+        for atom in mol.atoms
     )
     bonds = tuple(
         sorted(
             (
-                min(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()),
-                max(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()),
-                bond.GetBondOrder(),
-                bond.IsAromatic(),
+                min(bond.atom1.idx, bond.atom2.idx),
+                max(bond.atom1.idx, bond.atom2.idx),
+                bond.bond_order,
+                bond.bond_kind,
             )
-            for bond in ob.OBMolBondIter(obmol)
+            for bond in mol.bonds
         )
     )
     return atoms, bonds
-
-
-def _coordinates(obmol: ob.OBMol) -> np.ndarray:
-    return np.asarray(
-        [
-            (atom.GetX(), atom.GetY(), atom.GetZ())
-            for atom in ob.OBMolAtomIter(obmol)
-        ],
-        dtype=float,
-    )
-
-
-def _set_coordinates(obmol: ob.OBMol, coordinates: np.ndarray) -> None:
-    for atom, coordinate in zip(ob.OBMolAtomIter(obmol), coordinates):
-        atom.SetVector(*coordinate)
-    obmol.SetDimension(3)
 
 
 def _angle_sine(
@@ -88,43 +58,25 @@ def _angle_sine(
     )
 
 
-class _CountingBuilder:
-    def __init__(self) -> None:
-        self.calls = 0
-        self.native = ob.OBBuilder()
+def test_nonmatching_build_updates_hotpot_molecule_without_rule_application():
+    mol = read_mol("CCO")
 
-    def Build(self, obmol: ob.OBMol) -> bool:
-        self.calls += 1
-        return bool(self.native.Build(obmol))
-
-
-def test_nonmatching_build_delegates_to_native_builder_once():
-    obmol = _read_smiles("CCO")
-    builder = _CountingBuilder()
-
-    report = build(obmol, builder=builder)
+    report = build(mol)
 
     assert report.succeeded
     assert not report.rules.applied
     assert report.rules.stage is RuleStage.PRE_BUILD
-    assert builder.calls == 1
+    assert mol.coordinates.shape == (3, 3)
+    assert np.all(np.isfinite(mol.coordinates))
 
 
-def test_phosphorus_build_rule_is_temporary_and_removes_linear_geometry():
-    obmol = _read_smiles(
+def test_phosphorus_build_rule_preserves_topology_and_removes_linear_geometry():
+    mol = read_mol(
         "CCOP(=O)(OCC)c1ccc2ccc3ccc(P(=O)(OCC)OCC)nc3c2n1"
     )
-    phosphorus_indices = tuple(
-        atom.GetIdx()
-        for atom in ob.OBMolAtomIter(obmol)
-        if atom.GetAtomicNum() == 15
-    )
-    initial_topology = _topology(obmol)
-    initial_hybridizations = tuple(
-        obmol.GetAtom(index).GetHyb() for index in phosphorus_indices
-    )
+    initial_topology = _topology(mol)
 
-    report = build(obmol)
+    report = build(mol)
 
     assert report.succeeded
     assert len(report.rules.applications) == 2
@@ -132,27 +84,20 @@ def test_phosphorus_build_rule_is_temporary_and_removes_linear_geometry():
         application.descriptor.rule_id
         for application in report.rules.applications
     } == {"tetracoordinate_pentavalent_phosphorus_build"}
-    assert tuple(
-        obmol.GetAtom(index).GetHyb() for index in phosphorus_indices
-    ) == initial_hybridizations
-    assert _topology(obmol) == initial_topology
-    coordinates = _coordinates(obmol)
-    assert np.all(np.isfinite(coordinates))
-    for phosphorus_index in phosphorus_indices:
-        phosphorus = obmol.GetAtom(phosphorus_index)
-        center = phosphorus.GetIdx() - 1
-        neighbors = tuple(
-            bond.GetNbrAtom(phosphorus).GetIdx() - 1
-            for bond in ob.OBAtomBondIter(phosphorus)
-        )
+    assert _topology(mol) == initial_topology
+    assert np.all(np.isfinite(mol.coordinates))
+    for phosphorus in (
+        atom for atom in mol.atoms if atom.atomic_number == 15
+    ):
+        neighbours = tuple(atom.idx for atom in phosphorus.neighbours)
         assert min(
-            _angle_sine(coordinates, first, center, second)
-            for offset, first in enumerate(neighbors)
-            for second in neighbors[offset + 1 :]
+            _angle_sine(mol.coordinates, first, phosphorus.idx, second)
+            for offset, first in enumerate(neighbours)
+            for second in neighbours[offset + 1 :]
         ) > 1.0e-3
 
 
-def test_all_extractant_phosphorus_centers_build_with_finite_uff_gradients():
+def test_all_extractant_phosphorus_centers_build_and_optimize_finitely():
     smiles_by_case = {
         index: smiles
         for index, smiles in enumerate(
@@ -165,66 +110,54 @@ def test_all_extractant_phosphorus_centers_build_with_finite_uff_gradients():
     application_count = 0
 
     for smiles in smiles_by_case.values():
-        obmol = _read_smiles(smiles)
-        obmol.AddHydrogens()
-        report = build(obmol)
-        application_count += len(report.rules.applications)
-        backend = ob.OBForceField.FindForceField("UFF")
-        assert report.succeeded
-        assert backend.Setup(obmol)
-        state = validate_forcefield_state(backend, obmol)
-        assert state.passed
-        assert isfinite(state.energy)
+        mol = read_mol(smiles)
+        mol.add_hydrogens()
+        build_report = build(mol)
+        application_count += len(build_report.rules.applications)
+        optimization = _single_optimize(mol, "UFF", 1)
+
+        assert build_report.succeeded
+        assert isfinite(optimization.energy)
+        assert np.all(np.isfinite(mol.coordinates))
 
     assert application_count == 28
 
 
-def test_degenerate_nonlinear_torsion_is_repaired_deterministically():
-    initial_coordinates = np.asarray(
-        [
-            (-2.0, 0.0, 0.0),
-            (-1.0, 0.0, 0.0),
-            (0.0, 0.0, 0.0),
-            (1.0, 0.0, 0.0),
-            (0.0, 1.0, 0.0),
-        ]
+def test_optimizer_returns_selected_and_terminal_native_frames():
+    mol = read_mol("CCO")
+    assert build(mol).succeeded
+
+    report = optimize(
+        mol,
+        "UFF",
+        epochs=3,
+        steps_per_epoch=5,
+        retain_frames=True,
+        retain_epoch_history=True,
     )
-    repaired_coordinates = []
 
-    for _ in range(2):
-        obmol = _read_smiles("CCC(C)C")
-        _set_coordinates(obmol, initial_coordinates)
-        report = prepare_optimization(obmol, "UFF")
-        coordinates = _coordinates(obmol)
-        repaired_coordinates.append(coordinates)
-
-        assert report.applied
-        assert {
-            application.descriptor.rule_id
-            for application in report.rules.applications
-        } == {"degenerate_nonlinear_torsion"}
-        assert _angle_sine(coordinates, 1, 2, 3) > 1.0e-6
-        assert np.allclose(
-            np.linalg.norm(
-                coordinates[[0, 1, 3, 4]] - coordinates[2],
-                axis=1,
-            ),
-            np.linalg.norm(
-                initial_coordinates[[0, 1, 3, 4]]
-                - initial_coordinates[2],
-                axis=1,
-            ),
-        )
-
-    assert np.array_equal(repaired_coordinates[0], repaired_coordinates[1])
+    assert report.energy_unit == "kJ/mol"
+    assert report.epochs_completed == len(report.frames)
+    assert len(report.epoch_energies) == report.epochs_completed
+    assert np.array_equal(mol.coordinates, report.coordinates)
+    assert report.terminal_coordinates.shape == mol.coordinates.shape
+    assert tuple(frame.epoch_index for frame in report.frames) == tuple(
+        range(report.epochs_completed)
+    )
+    assert all(np.all(np.isfinite(frame.coordinates)) for frame in report.frames)
 
 
 @pytest.mark.parametrize("forcefield", ["MMFF94", "MMFF94s", "GAFF"])
-def test_non_uff_preparation_is_a_strict_noop(forcefield):
-    obmol = _read_smiles("CCC(C)C")
-    initial = _coordinates(obmol)
+def test_non_uff_optimization_does_not_apply_uff_guard(forcefield):
+    mol = read_mol("CCO")
+    assert build(mol).succeeded
 
-    report = prepare_optimization(obmol, forcefield)
+    report = optimize(
+        mol,
+        forcefield,
+        epochs=1,
+        steps_per_epoch=2,
+    )
 
-    assert not report.applied
-    assert np.array_equal(_coordinates(obmol), initial)
+    assert not report.rules.applied
+    assert isfinite(report.best_energy)

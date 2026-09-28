@@ -14,6 +14,7 @@ for version in "${versions[@]}"; do
     (
         cd "$repo_root"
         uv run --no-project --python "$version" \
+            --with-requirements tests/requirements-inference.txt \
             --with 'setuptools>=77,<82' \
             --with 'pybind11>=3,<4' \
             python setup.py build_ext --inplace --force

@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import ctypes
-import os
 from multiprocessing.connection import Connection
 from typing import Optional, TYPE_CHECKING
 
-from openbabel import openbabel as ob
-
+from ..obWrappers.native import _native_module
 from . import workers as _workers
 
 
@@ -18,13 +15,7 @@ if TYPE_CHECKING:
 
 def _seed_openbabel_random(seed: int) -> None:
     """Seed the legacy Open Babel 3.1 process-local random generators."""
-    os.environ["OB_RANDOM_SEED"] = str(seed)
-    probe = ob.vector3()
-    probe.randomUnitVector()
-    process_c_library = ctypes.CDLL(None)
-    process_c_library.srand.argtypes = (ctypes.c_uint,)
-    process_c_library.srand.restype = None
-    process_c_library.srand(ctypes.c_uint(seed))
+    _native_module().seed_random(seed)
 
 
 def _build_ligand_proxies_worker(

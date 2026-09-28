@@ -1,21 +1,14 @@
-"""Serialized Open Babel force-field and coordinate-build primitives."""
+"""Native Open Babel force-field and coordinate-build primitives."""
 
 from __future__ import annotations
 
-import os
 import threading
 from dataclasses import dataclass
-from functools import wraps
-from typing import Callable, Optional, TYPE_CHECKING, TypeVar, cast
+from typing import NoReturn, Optional, TYPE_CHECKING
 
-from openbabel import openbabel as ob
-
-from ..obconvert import extract_obmol_coordinates, mol2obmol
-from ..obWrappers import (
-    build as build_obmol,
-    prepare_optimization,
-    validate_forcefield_state,
-)
+from ..obWrappers import build as build_molecule
+from ..obWrappers.forcefield import _single_optimize as _native_single_optimize
+from ..obWrappers.native import _native_module
 from .contracts import ForceFieldError, ForceFieldSetupError, ForceFieldSetupReport
 
 
@@ -26,10 +19,9 @@ if TYPE_CHECKING:
 __all__ = ()
 
 
-CallableT = TypeVar("CallableT", bound=Callable[..., object])
-
-
-_SUPPORTED_FORCEFIELDS = frozenset({"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"})
+_SUPPORTED_FORCEFIELDS = frozenset(
+    {"UFF", "MMFF94", "MMFF94s", "GAFF", "Ghemical"}
+)
 
 
 @dataclass(frozen=True)
@@ -40,27 +32,7 @@ class _CandidateOptimizationResult:
 
 
 _WORKER_LIFECYCLE_LOCK = threading.Lock()
-_OPENBABEL_FORCEFIELD_LOCK = threading.RLock()
 _WORKER_EXIT_GRACE_SECONDS = 30.0
-
-
-def _serialized_forcefield_call(function: CallableT) -> CallableT:
-    @wraps(function)
-    def synchronized(*args: object, **kwargs: object) -> object:
-        with _OPENBABEL_FORCEFIELD_LOCK:
-            return function(*args, **kwargs)
-
-    return cast(CallableT, synchronized)
-
-
-def _serialized_builder_call(function: CallableT) -> CallableT:
-    @wraps(function)
-    def synchronized(*args: object, **kwargs: object) -> object:
-        with _WORKER_LIFECYCLE_LOCK:
-            with _OPENBABEL_FORCEFIELD_LOCK:
-                return function(*args, **kwargs)
-
-    return cast(CallableT, synchronized)
 
 
 def _resolve_complex_forcefield(requested: Optional[str]) -> str:
@@ -78,122 +50,52 @@ def _resolve_organic_forcefield(requested: Optional[str]) -> str:
     return effective
 
 
-def _make_constraints(mol: "Molecule") -> ob.OBFFConstraints:
-    """Return the intentionally empty force-field constraint adapter."""
-    return ob.OBFFConstraints()
+def _seed_openbabel_random(seed: int) -> None:
+    """Seed the version-matched native Open Babel random generators."""
+    _native_module().seed_random(seed)
 
 
-def _setup_forcefield_backend(
-    backend: ob.OBForceField,
-    mol: "Molecule",
-    obmol: ob.OBMol,
+def _raise_forcefield_setup_error(
+    error: BaseException,
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
-) -> None:
-    """Set up an Open Babel force field or raise structured diagnostics."""
-    preparation = prepare_optimization(obmol, effective_forcefield)
-    if not backend.Setup(obmol, _make_constraints(mol)):
-        raise ForceFieldSetupError(
-            f"Open Babel could not initialize force field {effective_forcefield!r}",
-            ForceFieldSetupReport(
-                requested_forcefield,
-                effective_forcefield,
-                "setup",
-            ),
-        )
-    if not preparation.applied:
-        return
-
-    state = validate_forcefield_state(backend, obmol)
-    if state.passed:
-        return
+    stage: str,
+) -> NoReturn:
+    """Translate one structured native setup failure into the public error."""
     raise ForceFieldSetupError(
-        (
-            f"Open Babel force field {effective_forcefield!r} retained a "
-            "non-finite state after registered coordinate preparation; "
-            f"non-finite gradient atoms={state.nonfinite_gradient_atom_indices!r}"
-        ),
+        str(error),
         ForceFieldSetupReport(
             requested_forcefield,
             effective_forcefield,
-            "preflight-validation",
+            stage,
         ),
-    )
+    ) from error
 
 
-def _energy_factor_to_kj(unit: str) -> float:
-    normalized = unit.strip().lower().replace(" ", "")
-    if normalized in {"kj/mol", "kjmol-1", "kjmol^-1"}:
-        return 1.0
-    if normalized in {"kcal/mol", "kcalmol-1", "kcalmol^-1"}:
-        return 4.184
-    raise ValueError(f"Unsupported Open Babel energy unit: {unit!r}")
-
-
-def _forcefield_energy_in_kj(
-    ob_forcefield: ob.OBForceField,
-    calc_grad: bool = True,
-) -> float:
-    return float(ob_forcefield.Energy(calc_grad)) * _energy_factor_to_kj(
-        ob_forcefield.GetUnit()
-    )
-
-
-@_serialized_forcefield_call
-def _get_forcefield(name: str) -> ob.OBForceField:
-    """Retrieve a force-field plugin guarded by the process-local FF lock."""
-    backend = _find_forcefield_prototype(name)
-    if backend is None:
-        raise ForceFieldSetupError(
-            f"Unknown Open Babel force field: {name!r}",
-            ForceFieldSetupReport(name, name, "lookup"),
-        )
-    return backend
-
-
-def _find_forcefield_prototype(name: str) -> Optional[ob.OBForceField]:
-    return ob.OBForceField.FindType(name)
-
-
-def _seed_openbabel_random(seed: int) -> None:
-    """Seed the current Open Babel RNG before using ``OBBuilder``."""
-    os.environ["OB_RANDOM_SEED"] = str(seed)
-
-
-@_serialized_forcefield_call
 def _single_ob_optimization(
     mol: "Molecule", forcefield: str, steps: int
 ) -> _CandidateOptimizationResult:
-    backend = _get_forcefield(forcefield)
-    backend.EnableCutOff(False)
-    obmol, _ = mol2obmol(mol)
-    _setup_forcefield_backend(
-        backend,
-        mol,
-        obmol,
-        requested_forcefield=forcefield,
-        effective_forcefield=forcefield,
-    )
-    backend.SteepestDescent(steps)
-    backend.GetCoordinates(obmol)
-    mol.coordinates = extract_obmol_coordinates(obmol)
-    energy = _forcefield_energy_in_kj(backend)
+    """Run one native steepest-descent segment on ``mol``."""
+    native = _native_module()
+    try:
+        result = _native_single_optimize(mol, forcefield, steps)
+    except native.ForceFieldSetupError as error:
+        _raise_forcefield_setup_error(
+            error,
+            requested_forcefield=forcefield,
+            effective_forcefield=forcefield,
+            stage=error.stage,
+        )
     return _CandidateOptimizationResult(
-        energy=energy,
-        energy_unit="kJ/mol",
-        exploded=bool(backend.DetectExplosion()),
+        energy=result.energy,
+        energy_unit=result.energy_unit,
+        exploded=result.exploded,
     )
 
 
-# Low-level Open Babel build and optimization primitives.
-
-
-@_serialized_builder_call
 def _ob_build(mol: "Molecule") -> None:
-    """Run OBBuilder directly on an internal working molecule."""
-    builder = ob.OBBuilder()
-    obmol, _ = mol2obmol(mol)
-    if not build_obmol(obmol, builder=builder).succeeded:
-        raise ForceFieldError("Open Babel could not build initial 3D coordinates")
-    mol.coordinates = extract_obmol_coordinates(obmol)
+    """Build coordinates in the native backend under the seed lifecycle lock."""
+    with _WORKER_LIFECYCLE_LOCK:
+        if not build_molecule(mol).succeeded:
+            raise ForceFieldError("Open Babel could not build initial 3D coordinates")

@@ -14,6 +14,10 @@ from hotpot.cheminfo import forcefields as ff
 
 
 ROOT = Path(__file__).resolve().parents[2]
+COMPLEX_EXTRACTANT_SMILES = (
+    "O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C("
+    "C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3"
+)
 
 
 def _run_hotpot(*arguments: str) -> subprocess.CompletedProcess[str]:
@@ -51,9 +55,26 @@ def test_readme_mca_cli_output() -> None:
 
 
 def test_readme_cbond_cli_output() -> None:
-    output = _run_hotpot("cbond", "Eu", "CN", "--device", "cpu").stdout.strip()
+    output = _run_hotpot(
+        "cbond",
+        "Eu",
+        COMPLEX_EXTRACTANT_SMILES,
+        "--device",
+        "cpu",
+        "--bond-detail",
+    ).stdout.strip()
 
-    assert output == "C[NH2+][Eu]"
+    assert output == (
+        "CCCN(C1=[O][Eu@]23n4c1ccc1c4c4n3c("
+        "-[c]3n2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C\n"
+        "Cbond Detail:\n"
+        "AtomIdx  Atom  Score\n"
+        "10       N     4.04834\n"
+        "17       N     7.02889\n"
+        "0        O     6.10205\n"
+        "32       N     4.98739\n"
+        "-- End --"
+    )
 
 
 def test_readme_forcefield_cli_output(tmp_path: Path) -> None:
@@ -100,8 +121,14 @@ def test_readme_forcefield_validation_python_output() -> None:
 
 
 def test_readme_cbond_forcefield_pipeline(tmp_path: Path) -> None:
-    cbond = _run_hotpot("cbond", "Eu", "CN", "--device", "cpu")
-    output_path = tmp_path / "eu-methylamine.mol2"
+    cbond = _run_hotpot(
+        "cbond",
+        "Eu",
+        COMPLEX_EXTRACTANT_SMILES,
+        "--device",
+        "cpu",
+    )
+    output_path = tmp_path / "eu-extractant.mol2"
     forcefield = subprocess.run(
         [
             sys.executable,
@@ -132,7 +159,7 @@ def test_readme_cbond_forcefield_pipeline(tmp_path: Path) -> None:
     assert forcefield.stdout == ""
     molecule = hp.read_mol(output_path)
     assert [atom.symbol for atom in molecule.metals] == ["Eu"]
-    assert len(molecule.c_bonds) == 1
+    assert len(molecule.c_bonds) == 4
 
 
 def test_readme_mca_python_api_output() -> None:

@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-28",
+  "source_commit": "9812cf4",
+  "input": "molecules/extractant/extractants.smi",
+  "protocol": {
+    "input_count": 187,
+    "metal": "Eu",
+    "cbond_threshold": -0.125,
+    "workers": 16,
+    "epochs": 100,
+    "steps_per_epoch": 100,
+    "seed": 20260921,
+    "quality_level": "standard",
+    "trajectory_start": "ligand_build",
+    "cbond_device": "cpu"
+  },
+  "versions": {
+    "python": "3.11.16",
+    "openbabel": "3.2.1",
+    "onnxruntime": "1.30.0"
+  },
+  "results": {
+    "status_counts": {
+      "passed": 170,
+      "failed_quality": 8,
+      "failed_cbond": 9
+    },
+    "cbond_completed": 178,
+    "forcefield_completed": 178,
+    "trajectory_archive_count": 178,
+    "optimized_mol2_count": 178,
+    "optimized_sdf_count": 178,
+    "trajectory_main_frame_total": 8867,
+    "wall_seconds": 154.25849021971226,
+    "aggregate_case_seconds": 2319.7026708833873,
+    "median_case_seconds": 11.556680172681808,
+    "maximum_case_seconds": 56.446333872154355
+  },
+  "failed_quality_indices": [24, 31, 45, 46, 47, 54, 61, 70],
+  "failed_cbond_indices": [22, 134, 136, 139, 141, 182, 185, 186, 187],
+  "integrity": {
+    "report_count": 187,
+    "missing_report_indices": [],
+    "missing_archive_after_cbond_indices": [],
+    "missing_optimized_output_indices": [],
+    "readback_issues": []
+  }
+}

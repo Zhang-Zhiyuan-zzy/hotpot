@@ -24,6 +24,9 @@ Hotpot is designed around four layers:
 The public documentation therefore focuses on observable behavior, scientific
 scope, and stable interfaces. Internal chemical decision policies and model
 implementation details are intentionally kept outside the user-facing API.
+The preceding project description is preserved as
+[README.2026.md](README.2026.md) for historical reference; this document is
+the description of the current checkout.
 
 ## Contents
 
@@ -34,6 +37,7 @@ implementation details are intentionally kept outside the user-facing API.
 - [Geometry and force-field validation](#geometry-and-force-field-validation)
 - [Validation evidence](#validation-evidence)
 - [Scientific boundaries](#scientific-boundaries)
+- [References](#references)
 - [Roadmap](#roadmap)
 - [Development](#development)
 
@@ -77,15 +81,29 @@ by the supported nucleophilic-site definition.
 <!-- Verified by tests/readme/test_readme_examples.py::test_readme_cbond_cli_output -->
 
 ```bash
-$ hotpot cbond Eu 'CN' --device cpu
+$ hotpot cbond Eu \
+    'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3' \
+    --device cpu --bond-detail
 ```
 
 ```text
-C[NH2+][Eu]
+CCCN(C1=[O][Eu@]23n4c1ccc1c4c4n3c(-[c]3n2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C
+Cbond Detail:
+AtomIdx  Atom  Score
+10       N     4.04834
+17       N     7.02889
+0        O     6.10205
+32       N     4.98739
+-- End --
 ```
 
-The ligand may also be supplied as a molecular file. Use `--all-structures`
-for ranked alternatives and `--bond-detail` for site-level scores.
+This is the `(CyMe4)Pyz-PrMe-DIPhen` extractant used in Hotpot's coordination
+chemistry examples. The result is not a decorative single-bond demonstration:
+the model selects four donor atoms across a chemically complex ligand,
+constructs the Eu coordination graph, and reports the score associated with
+each selected metal–donor bond. The ligand may also be supplied as a molecular
+file. Use `--all-structures` when ranked alternative coordination structures
+are required.
 
 ### Force-field optimization
 
@@ -106,9 +124,11 @@ surface convenient for both people and LLM-driven tools:
 <!-- Verified by tests/readme/test_readme_examples.py::test_readme_cbond_forcefield_pipeline -->
 
 ```bash
-$ hotpot cbond Eu 'CN' --device cpu \
+$ hotpot cbond Eu \
+    'O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C(C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3' \
+    --device cpu \
     | hotpot ff - --input-format smi --epochs 1 --steps-per-epoch 20 \
-        --quality off --seed 2026 -o eu-methylamine.mol2
+        --quality off --seed 2026 -o eu-extractant.mol2
 ```
 
 ## Installation
@@ -362,17 +382,25 @@ The script and machine-readable evidence are versioned with the repository:
 
 ### Coordination-complex regression set
 
-The standard 187-extractant validation run produced these observed results:
+The complete 187-extractant set was rerun on 28 September 2026 with 16 worker
+processes, fixed seeds, the packaged CPU CBond model, complete trajectories,
+and the `standard` final quality gate. The observed results were:
 
-- 178 structures entered force-field processing;
-- 171 passed the configured final quality gate;
-- 7 retained their final diagnostic structures with quality warnings;
-- 9 were rejected before force-field processing; and
-- the measured wall time decreased from 380.590 s to 157.776 s in the
-  documented optimized workflow.
+- 187/187 inputs produced case reports;
+- 178 structures entered and completed force-field processing;
+- 170 passed the configured final quality gate;
+- 8 retained their final diagnostic structures with quality warnings;
+- 9 were rejected by CBond before force-field processing;
+- all 178 force-field cases produced readable trajectory archives, MOL2, and
+  SDF structures; and
+- wall time was 154.258 s; aggregate case time was 2319.703 s, median case
+  time was 11.557 s, and the longest case took 56.446 s.
 
 These counts are regression evidence for the tested inputs, not a universal
 success-rate claim for arbitrary coordination chemistry.
+The [machine-readable run summary](assets/readme/extractant_validation_20260928.json)
+records the exact software versions, status counts, and artifact-integrity
+checks.
 
 ## Scientific boundaries
 
@@ -386,6 +414,17 @@ success-rate claim for arbitrary coordination chemistry.
 - Macroscopic observables generally describe ensembles and environments. A
   single optimized molecular structure should not be treated as a complete
   thermodynamic or experimental model.
+
+## References
+
+If Hotpot contributes to published work, please cite the application paper
+relevant to the workflow:
+
+1. Z. Zhang, D. Yang, Y. Que, Y. Wu and C. Liu,
+   “Coordination-informed machine learning enables virtual screening of
+   phenanthroline ligands by predicting Am/Eu binding preferences,”
+   *Chemical Communications*, **62** (2026), 17426–17430.
+   [https://doi.org/10.1039/D6CC03919G](https://doi.org/10.1039/D6CC03919G)
 
 ## Roadmap
 

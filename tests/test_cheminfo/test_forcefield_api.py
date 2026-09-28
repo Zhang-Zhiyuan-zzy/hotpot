@@ -516,38 +516,24 @@ def test_direct_ob_build_waits_for_worker_seed_environment(monkeypatch):
         def __exit__(self, exc_type, exc_value, traceback):
             events.append(("exit", self.name))
 
-    class Builder:
-        def Build(self, obmol):
-            events.append(("build", obmol))
-            return True
-
     molecule = SimpleNamespace(coordinates=None)
-    obmol = ob_backend.ob.OBMol()
+
+    def build(current):
+        events.append(("build", current))
+        return SimpleNamespace(succeeded=True)
+
     monkeypatch.setattr(
         ob_backend,
         "_WORKER_LIFECYCLE_LOCK",
         TracingLock("worker"),
     )
-    monkeypatch.setattr(
-        ob_backend,
-        "_OPENBABEL_FORCEFIELD_LOCK",
-        TracingLock("forcefield"),
-    )
-    monkeypatch.setattr(ob_backend.ob, "OBBuilder", Builder)
-    monkeypatch.setattr(ob_backend, "mol2obmol", lambda current: (obmol, {}))
-    monkeypatch.setattr(
-        ob_backend,
-        "extract_obmol_coordinates",
-        lambda current: np.zeros((1, 3)),
-    )
+    monkeypatch.setattr(ob_backend, "build_molecule", build)
 
     ob_backend._ob_build(molecule)
 
     assert events == [
         ("enter", "worker"),
-        ("enter", "forcefield"),
-        ("build", obmol),
-        ("exit", "forcefield"),
+        ("build", molecule),
         ("exit", "worker"),
     ]
 
@@ -556,22 +542,14 @@ def test_direct_ob_build_cannot_observe_a_worker_seed_window(monkeypatch):
     builder_entered = threading.Event()
     observed_seeds = []
 
-    class Builder:
-        def Build(self, obmol):
-            observed_seeds.append(os.environ["OB_RANDOM_SEED"])
-            builder_entered.set()
-            return True
+    def build(current):
+        observed_seeds.append(os.environ["OB_RANDOM_SEED"])
+        builder_entered.set()
+        return SimpleNamespace(succeeded=True)
 
     molecule = SimpleNamespace(coordinates=None)
     monkeypatch.setenv("OB_RANDOM_SEED", "parent")
-    monkeypatch.setattr(ob_backend.ob, "OBBuilder", Builder)
-    obmol = ob_backend.ob.OBMol()
-    monkeypatch.setattr(ob_backend, "mol2obmol", lambda current: (obmol, {}))
-    monkeypatch.setattr(
-        ob_backend,
-        "extract_obmol_coordinates",
-        lambda current: np.zeros((1, 3)),
-    )
+    monkeypatch.setattr(ob_backend, "build_molecule", build)
 
     with ob_backend._WORKER_LIFECYCLE_LOCK:
         monkeypatch.setenv("OB_RANDOM_SEED", "37")

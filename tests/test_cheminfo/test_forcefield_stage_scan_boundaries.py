@@ -1047,6 +1047,11 @@ def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch
     monkeypatch.setattr(optimizer_impl, "_get_forcefield", lambda name: backend)
     monkeypatch.setattr(ob_backend, "_make_constraints", lambda current: object())
     monkeypatch.setattr(
+        ob_backend,
+        "prepare_optimization",
+        lambda current, forcefield: SimpleNamespace(applied=False),
+    )
+    monkeypatch.setattr(
         optimizer_impl.ob,
         "OBMolAtomIter",
         lambda current: (object(),) * len(mol.atoms),

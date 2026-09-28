@@ -70,6 +70,17 @@ def test_nonmatching_build_updates_hotpot_molecule_without_rule_application():
     assert np.all(np.isfinite(mol.coordinates))
 
 
+def test_native_boundary_rejects_lossy_dative_bond_conversion():
+    mol = read_mol("N.[Eu+3]", fmt="smi")
+    mol.add_bond(0, 1, bond_order=1.0, bond_kind="dative")
+
+    with pytest.raises(
+        ValueError,
+        match="cannot represent dative bonds losslessly",
+    ):
+        build(mol)
+
+
 def test_phosphorus_build_rule_preserves_topology_and_removes_linear_geometry():
     mol = read_mol(
         "CCOP(=O)(OCC)c1ccc2ccc3ccc(P(=O)(OCC)OCC)nc3c2n1"

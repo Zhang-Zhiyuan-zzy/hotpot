@@ -84,12 +84,49 @@ def test_readme_forcefield_cli_output(tmp_path: Path) -> None:
     assert '"status": "ok"' in report_path.read_text(encoding="utf-8")
 
 
+def test_readme_cbond_forcefield_pipeline(tmp_path: Path) -> None:
+    cbond = _run_hotpot("cbond", "Eu", "CN", "--device", "cpu")
+    output_path = tmp_path / "eu-methylamine.mol2"
+    forcefield = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "hotpot",
+            "ff",
+            "-",
+            "--input-format",
+            "smi",
+            "--epochs",
+            "1",
+            "--steps-per-epoch",
+            "20",
+            "--quality",
+            "off",
+            "--seed",
+            "2026",
+            "-o",
+            str(output_path),
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        input=cbond.stdout,
+    )
+
+    assert forcefield.stdout == ""
+    molecule = hp.read_mol(output_path)
+    assert [atom.symbol for atom in molecule.metals] == ["Eu"]
+    assert len(molecule.c_bonds) == 1
+
+
 def test_readme_mca_python_api_output() -> None:
     molecule = hp.read_mol("c1ccccc1CN")
 
     mca(molecule, device="cpu")
 
     assert molecule.atoms[7].mca == pytest.approx(489.5)
+    assert molecule.atoms[7].label == "N7"
     assert tuple(
         (atom.symbol, value) for atom, value in molecule.mca_sites.items()
     ) == (("N", pytest.approx(489.5)),)

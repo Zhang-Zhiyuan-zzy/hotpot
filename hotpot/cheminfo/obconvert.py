@@ -117,6 +117,7 @@ def obmol2mol(obmol, mol):
 
 def mol2obmol(mol):
     obmol = ob.OBMol()
+    obmol.BeginModify()
 
     row_to_idx = {}
     for i, atom in enumerate(mol.atoms):
@@ -125,9 +126,6 @@ def mol2obmol(mol):
         oba.SetFormalCharge(atom.formal_charge)
         oba.SetPartialCharge(atom.partial_charge)
         oba.SetVector(*atom.coordinates)
-        # oba.IsAromatic()
-        oba.SetAromatic(atom.is_aromatic)  # Convert to bool
-        oba.IsAromatic()
 
         # Store mapping from label to atom index (1-based indexing in OBMol)
         row_to_idx[i] = oba.GetIdx()
@@ -143,13 +141,19 @@ def mol2obmol(mol):
             row_to_idx[end_atom_idx],
             int(bond_order)
         )
-        obb = obmol.GetBond(row_to_idx[begin_atom_idx], row_to_idx[end_atom_idx])
-        if obb:  # TODO: the `obb` might a None, WHY??
-            obb.IsAromatic()
-            obb.SetAromatic(
-                bond.bond_kind.value == "aromatic" or bond.is_aromatic
-            )
-            obb.IsAromatic()
+
+    obmol.EndModify()
+    for row, atom in enumerate(mol.atoms):
+        obmol.GetAtom(row_to_idx[row]).SetAromatic(atom.is_aromatic)
+    for bond in mol.bonds:
+        obb = obmol.GetBond(
+            row_to_idx[bond.atom1.idx],
+            row_to_idx[bond.atom2.idx],
+        )
+        obb.SetAromatic(
+            bond.bond_kind.value == "aromatic" or bond.is_aromatic
+        )
+    obmol.SetAromaticPerceived(True)
 
     # Add UnitCell
     if mol.crystal:

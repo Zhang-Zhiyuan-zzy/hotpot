@@ -226,3 +226,19 @@ def test_real_seeded_ordinary_build_is_reproducible():
         rtol=0.0,
         atol=1e-12,
     )
+
+
+def test_fused_aromatic_build_and_optimization_passes_geometry_gate():
+    molecule = read_mol("OCc1ccc2ccc3ccc(CO)nc3c2n1", "smi")
+
+    report = ff.build_and_optimize(
+        molecule,
+        forcefield="UFF",
+        epochs=2,
+        steps_per_epoch=100,
+        quality_level="standard",
+        seed=20260930,
+    )
+
+    assert report.quality_report.passed
+    assert np.isfinite(report.optimization.best_energy)

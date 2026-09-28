@@ -227,3 +227,41 @@ def test_openbabel_export_preserves_explicit_aromatic_kind():
     exported, _ = mol2obmol(bond.mol)
 
     assert exported.GetBond(1, 2).IsAromatic()
+
+
+@pytest.mark.parametrize(
+    ("smiles", "expected_ring_count"),
+    [
+        ("C1CCCCC1", 1),
+        ("c1ccc2ccc3ccccc3c2c1", 3),
+    ],
+)
+def test_openbabel_export_perceives_complete_ring_graph(
+    smiles,
+    expected_ring_count,
+):
+    conversion = ob.OBConversion()
+    assert conversion.SetInFormat("smi")
+    native = ob.OBMol()
+    assert conversion.ReadString(native, smiles)
+    molecule = obmol2mol(native, Molecule())
+
+    exported, _ = mol2obmol(molecule)
+
+    assert exported.HasAromaticPerceived()
+    assert not exported.HasSSSRPerceived()
+    assert not exported.HasRingAtomsAndBondsPerceived()
+    native_rings = tuple(ob.OBMolRingIter(native))
+    exported_rings = tuple(ob.OBMolRingIter(exported))
+    assert exported.HasSSSRPerceived()
+    assert exported.HasRingAtomsAndBondsPerceived()
+    assert len(exported_rings) == len(native_rings) == expected_ring_count
+    assert sum(bond.IsInRing() for bond in ob.OBMolBondIter(exported)) == sum(
+        bond.IsInRing() for bond in ob.OBMolBondIter(native)
+    )
+    assert sum(atom.IsAromatic() for atom in ob.OBMolAtomIter(exported)) == sum(
+        atom.IsAromatic() for atom in ob.OBMolAtomIter(native)
+    )
+    assert sum(bond.IsAromatic() for bond in ob.OBMolBondIter(exported)) == sum(
+        bond.IsAromatic() for bond in ob.OBMolBondIter(native)
+    )

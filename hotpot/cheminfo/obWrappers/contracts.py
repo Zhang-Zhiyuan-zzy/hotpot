@@ -154,4 +154,7 @@ class OptimizationReport:
     backend_energy_unit: str
     termination_reason: str
     terminal_converged: bool
+    energy_changes: Tuple[float, ...]
+    max_displacements: Tuple[float, ...]
+    epoch_energies: Tuple[float, ...]
     rules: RuleExecutionReport

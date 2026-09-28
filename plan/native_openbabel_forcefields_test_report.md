@@ -44,19 +44,19 @@
 已完成 clean wheel 构建：
 
 ```text
-/tmp/hotpot-wheel-check.uMNoEM/dist/
+/tmp/hotpot-final-wheel.HpFg37/dist/
 └── hotpot_zzy-0.5.3.0-cp311-cp311-linux_x86_64.whl
 ```
 
 wheel 内容检查通过：包含 `_ob_native`、类型 stub、Python facade 和原生源文件；不包含已删除的 `_ob_rules` 或 `snapshot.py`。
 
-该 wheel 已在 `/tmp/hotpot-wheel-check.uMNoEM/venv` 中完成隔离安装和运行验收：
+该最终 HEAD wheel 已在 `/tmp/hotpot-wheel-check.uMNoEM/venv` 中完成隔离安装和运行验收：
 
 - `hotpot` 与 `_ob_native` 均从虚拟环境 `site-packages` 加载，无源码树遮蔽；
 - 清除 `PYTHONPATH` 和 `LD_LIBRARY_PATH` 后仍可正常加载；
 - 编译和运行时 Open Babel 均为 3.2.1，C++ ABI 为 0；
 - `libopenbabel.so.8` 正确解析到隔离环境的 `openbabel/lib`；
-- CCO 原生构筑成功且坐标有限；UFF 优化在 2 个 epoch 后收敛，最优能量为 `6.873761168643569e-10 kJ/mol`；
+- CCO 原生构筑成功且坐标有限；UFF 优化在 2 个 epoch 后收敛，最优能量为 `6.848073313014533e-10 kJ/mol`；
 - 安装 wheel 声明的依赖后，`pip check` 输出 `No broken requirements found.`。
 
 测试环境最初使用的 `tests/requirements-inference.txt` 不含项目元数据声明的 `openpyxl`；以 `--no-deps` 安装 wheel 时需额外补装它。正常依赖解析安装 wheel 不存在这一缺项。

@@ -17,6 +17,7 @@ import unittest as ut
 
 
 import hotpot as hp
+import hotpot.cheminfo.mol_assemble as mol_assemble
 
 
 
@@ -29,3 +30,6 @@ class TestMolAssemble(unittest.TestCase):
 
     def test_bond_shoulder(self):
         ...
+
+    def test_ring_wedge_is_public(self):
+        self.assertIs(hp.RingWedge, mol_assemble.RingWedge)

@@ -44,6 +44,7 @@ __all__ = [
     "AlkylGraft",
     "BondAdding",
     "AtomReplace",
+    "RingWedge",
     "AssembleFactory"
 ]
 
@@ -560,4 +561,3 @@ if __name__ == '__main__':
     )
 
     res = rw_assembler.graft(ci.read_mol(phen_smi, fmt='smi'))
-

@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Optional, Tuple
 
 
 __all__ = (
     "BuildReport",
+    "BondKindCode",
     "CoordinateChange",
     "ForceFieldStateReport",
     "HybridizationChange",
@@ -18,6 +19,18 @@ __all__ = (
     "RuleExecutionReport",
     "RuleStage",
 )
+
+
+class BondKindCode(IntEnum):
+    """Stable native-boundary codes for Hotpot bond semantics."""
+
+    SINGLE = 1
+    DOUBLE = 2
+    TRIPLE = 3
+    AROMATIC = 4
+    ZERO = 5
+    DATIVE = 6
+    UNKNOWN = 7
 
 
 class RuleStage(Enum):

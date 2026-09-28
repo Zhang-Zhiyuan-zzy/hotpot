@@ -1,5 +1,5 @@
 ![banner](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/doc/picture/banner.png)
-# 🥘Hotpot(火锅): AI-Driven Infrastructure for Chemistry
+# 🥘HOTPOT(火锅): A **H**uman-**O**riented **T**oolkit with Chemical **P**riors for **O**pen-Ended Cheminformatics **T**asks
 
 > **Bridging the gap between Chemical Intuition and Artificial Intelligence.** *From Empirical Rules to Data-Driven Foundation Models.*  
 > **In Hotpot, every ingredient is cookable.** *什么都能涮*  

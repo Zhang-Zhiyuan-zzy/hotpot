@@ -61,6 +61,8 @@ NumericTolerances = _native.NumericTolerances
 PointSegmentMeasurement = _native.PointSegmentMeasurement
 SegmentSegmentMeasurement = _native.SegmentSegmentMeasurement
 PreparedPlanarCycle = _native.PreparedPlanarCycle
+SurfaceEnumerationLimits = _native.SurfaceEnumerationLimits
+PreparedNonplanarSurfaceFamily = _native.PreparedNonplanarSurfaceFamily
 
 Coordinates = Union[Sequence[float], Point]
 BoundsInput = Union[np.ndarray, Sequence[Sequence[float]]]
@@ -138,6 +140,18 @@ def _native_tolerances(settings: GeometrySettings) -> NumericTolerances:
     )
 
 
+def _surface_enumeration_limits(
+    settings: GeometrySettings,
+) -> SurfaceEnumerationLimits:
+    surface = settings.surface
+    return SurfaceEnumerationLimits(
+        surface.maximum_cycle_vertices,
+        surface.maximum_surface_count,
+        surface.maximum_segment_triangle_tests,
+        surface.maximum_triangle_pair_tests,
+    )
+
+
 def _planarity_result(
     result: _native.PlanarityMeasurement,
 ) -> PlanarityMeasurement:
@@ -179,6 +193,19 @@ def prepare_planar_cycle(
     return _native.prepare_planar_cycle(
         _cycle_matrix(cycle),
         _native_tolerances(settings),
+    )
+
+
+def _prepare_nonplanar_surface_family(
+    cycle: Cycle,
+    settings: GeometrySettings,
+) -> PreparedNonplanarSurfaceFamily:
+    """Prepare internal nonplanar surface evidence through the C++ kernel."""
+
+    return _native.prepare_nonplanar_surface_family(
+        _cycle_matrix(cycle),
+        _native_tolerances(settings),
+        _surface_enumeration_limits(settings),
     )
 
 

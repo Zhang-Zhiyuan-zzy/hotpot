@@ -38,6 +38,7 @@ ext_modules = [
         [
             "hotpot/cheminfo/geometry/_native/bindings.cpp",
             "hotpot/cheminfo/geometry/_native/cycle_surface.cpp",
+            "hotpot/cheminfo/geometry/_native/nonplanar_surface.cpp",
             "hotpot/cheminfo/geometry/_native/planar_predicates.cpp",
             "hotpot/cheminfo/geometry/_native/primitives.cpp",
             "hotpot/cheminfo/geometry/_native/segment_cycle.cpp",

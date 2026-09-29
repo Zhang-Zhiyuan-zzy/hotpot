@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import FrozenSet, List, Optional, Tuple
 
 import numpy as np
 
@@ -30,6 +30,17 @@ class PointCycleLocation:
     BOUNDARY: "PointCycleLocation"
     EXTERIOR: "PointCycleLocation"
     UNDETERMINED: "PointCycleLocation"
+
+
+class SurfaceEmbeddingState:
+    EMBEDDED: "SurfaceEmbeddingState"
+    PROVEN_NON_EMBEDDED: "SurfaceEmbeddingState"
+    CONSTRUCTION_UNDETERMINED: "SurfaceEmbeddingState"
+
+
+class NonplanarSurfaceCause:
+    INCOMPLETE_SURFACE_FAMILY: "NonplanarSurfaceCause"
+    SURFACE_CONSTRUCTION: "NonplanarSurfaceCause"
 
 
 class PiercingState:
@@ -134,6 +145,35 @@ class PreparedPlanarCycle:
     has_simple_planar_surface: bool
 
 
+class SurfaceEnumerationLimits:
+    maximum_cycle_vertices: int
+    maximum_surface_count: int
+    maximum_segment_triangle_tests: int
+    maximum_triangle_pair_tests: int
+
+    def __init__(
+        self,
+        maximum_cycle_vertices: int,
+        maximum_surface_count: int,
+        maximum_segment_triangle_tests: int,
+        maximum_triangle_pair_tests: int,
+    ) -> None: ...
+
+
+class PreparedNonplanarSurfaceFamily:
+    coordinates: List[Tuple[float, float, float]]
+    tolerances: NumericTolerances
+    limits: SurfaceEnumerationLimits
+    enumeration_complete: bool
+    enumerated_surface_count: int
+    embedded_surface_count: int
+    proven_non_embedded_surface_count: int
+    construction_undetermined_count: int
+    triangle_pair_tests_used: int
+    causes: FrozenSet[NonplanarSurfaceCause]
+    surface_states: List[SurfaceEmbeddingState]
+
+
 class ClosestCycleEdge:
     edge_index: int
     distance: float
@@ -179,6 +219,13 @@ def prepare_planar_cycle(
     cycle: np.ndarray,
     tolerances: NumericTolerances,
 ) -> PreparedPlanarCycle: ...
+
+
+def prepare_nonplanar_surface_family(
+    cycle: np.ndarray,
+    tolerances: NumericTolerances,
+    limits: SurfaceEnumerationLimits,
+) -> PreparedNonplanarSurfaceFamily: ...
 
 
 def locate_point_in_planar_cycle(

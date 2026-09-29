@@ -1,4 +1,5 @@
 #include "cycle_surface.hpp"
+#include "nonplanar_surface.hpp"
 #include "primitives.hpp"
 #include "segment_cycle.hpp"
 #include "spatial.hpp"
@@ -308,6 +309,23 @@ NumericTolerances make_tolerances(
 }
 
 
+SurfaceEnumerationLimits make_surface_limits(
+    std::size_t maximum_cycle_vertices,
+    std::size_t maximum_surface_count,
+    std::size_t maximum_segment_triangle_tests,
+    std::size_t maximum_triangle_pair_tests
+) {
+    SurfaceEnumerationLimits limits{
+        maximum_cycle_vertices,
+        maximum_surface_count,
+        maximum_segment_triangle_tests,
+        maximum_triangle_pair_tests,
+    };
+    limits.validate();
+    return limits;
+}
+
+
 }  // namespace
 
 
@@ -328,6 +346,27 @@ PYBIND11_MODULE(_geometry_native, module) {
         .value("BOUNDARY", PointCycleLocation::BOUNDARY)
         .value("EXTERIOR", PointCycleLocation::EXTERIOR)
         .value("UNDETERMINED", PointCycleLocation::UNDETERMINED);
+
+    py::enum_<SurfaceEmbeddingState>(module, "SurfaceEmbeddingState")
+        .value("EMBEDDED", SurfaceEmbeddingState::EMBEDDED)
+        .value(
+            "PROVEN_NON_EMBEDDED",
+            SurfaceEmbeddingState::PROVEN_NON_EMBEDDED
+        )
+        .value(
+            "CONSTRUCTION_UNDETERMINED",
+            SurfaceEmbeddingState::CONSTRUCTION_UNDETERMINED
+        );
+
+    py::enum_<NonplanarSurfaceCause>(module, "NonplanarSurfaceCause")
+        .value(
+            "INCOMPLETE_SURFACE_FAMILY",
+            NonplanarSurfaceCause::INCOMPLETE_SURFACE_FAMILY
+        )
+        .value(
+            "SURFACE_CONSTRUCTION",
+            NonplanarSurfaceCause::SURFACE_CONSTRUCTION
+        );
 
     py::enum_<PiercingState>(module, "PiercingState")
         .value("PIERCES", PiercingState::PIERCES)
@@ -454,6 +493,85 @@ PYBIND11_MODULE(_geometry_native, module) {
         .def_property_readonly(
             "has_simple_planar_surface",
             &PreparedPlanarCycle::has_simple_planar_surface
+        );
+
+    py::class_<SurfaceEnumerationLimits>(module, "SurfaceEnumerationLimits")
+        .def(
+            py::init(&make_surface_limits),
+            py::arg("maximum_cycle_vertices"),
+            py::arg("maximum_surface_count"),
+            py::arg("maximum_segment_triangle_tests"),
+            py::arg("maximum_triangle_pair_tests")
+        )
+        .def_readonly(
+            "maximum_cycle_vertices",
+            &SurfaceEnumerationLimits::maximum_cycle_vertices
+        )
+        .def_readonly(
+            "maximum_surface_count",
+            &SurfaceEnumerationLimits::maximum_surface_count
+        )
+        .def_readonly(
+            "maximum_segment_triangle_tests",
+            &SurfaceEnumerationLimits::maximum_segment_triangle_tests
+        )
+        .def_readonly(
+            "maximum_triangle_pair_tests",
+            &SurfaceEnumerationLimits::maximum_triangle_pair_tests
+        );
+
+    py::class_<PreparedNonplanarSurfaceFamily>(
+        module,
+        "PreparedNonplanarSurfaceFamily"
+    )
+        .def_property_readonly(
+            "coordinates",
+            [](const PreparedNonplanarSurfaceFamily& family) {
+                return point_list(family.coordinates);
+            }
+        )
+        .def_readonly(
+            "tolerances",
+            &PreparedNonplanarSurfaceFamily::tolerances
+        )
+        .def_readonly("limits", &PreparedNonplanarSurfaceFamily::limits)
+        .def_readonly(
+            "enumeration_complete",
+            &PreparedNonplanarSurfaceFamily::enumeration_complete
+        )
+        .def_readonly(
+            "enumerated_surface_count",
+            &PreparedNonplanarSurfaceFamily::enumerated_surface_count
+        )
+        .def_property_readonly(
+            "embedded_surface_count",
+            &PreparedNonplanarSurfaceFamily::embedded_surface_count
+        )
+        .def_readonly(
+            "proven_non_embedded_surface_count",
+            &PreparedNonplanarSurfaceFamily::proven_non_embedded_surface_count
+        )
+        .def_readonly(
+            "construction_undetermined_count",
+            &PreparedNonplanarSurfaceFamily::construction_undetermined_count
+        )
+        .def_readonly(
+            "triangle_pair_tests_used",
+            &PreparedNonplanarSurfaceFamily::triangle_pair_tests_used
+        )
+        .def_property_readonly(
+            "causes",
+            [](const PreparedNonplanarSurfaceFamily& family) {
+                py::set causes;
+                for (const NonplanarSurfaceCause cause : family.causes) {
+                    causes.add(py::cast(cause));
+                }
+                return py::frozenset(causes);
+            }
+        )
+        .def_readonly(
+            "surface_states",
+            &PreparedNonplanarSurfaceFamily::surface_states
         );
 
     py::class_<ClosestCycleEdge>(module, "ClosestCycleEdge")
@@ -651,6 +769,24 @@ PYBIND11_MODULE(_geometry_native, module) {
         },
         py::arg("cycle"),
         py::arg("tolerances")
+    );
+
+    module.def(
+        "prepare_nonplanar_surface_family",
+        [](const py::array& cycle,
+           const NumericTolerances& tolerances,
+           const SurfaceEnumerationLimits& limits) {
+            const std::vector<Point3> coordinates = read_cycle(cycle, "cycle");
+            py::gil_scoped_release release;
+            return prepare_nonplanar_surface_family(
+                ArrayView<Point3>(coordinates),
+                tolerances,
+                limits
+            );
+        },
+        py::arg("cycle"),
+        py::arg("tolerances"),
+        py::arg("limits")
     );
 
     module.def(

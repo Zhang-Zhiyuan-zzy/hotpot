@@ -1,0 +1,427 @@
+{
+  "batch": {
+    "relation_states": [
+      "pierces",
+      "does_not_pierce",
+      "does_not_pierce"
+    ],
+    "screenings": [
+      {
+        "aabb_separated": false,
+        "relation_materialized": true,
+        "state": "pierces",
+        "surface_complete": true
+      },
+      {
+        "aabb_separated": true,
+        "relation_materialized": false,
+        "state": "does_not_pierce",
+        "surface_complete": true
+      },
+      {
+        "aabb_separated": true,
+        "relation_materialized": false,
+        "state": "does_not_pierce",
+        "surface_complete": true
+      }
+    ]
+  },
+  "closest_edge_tie": {
+    "distance": 1.0,
+    "edge": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        2.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "edge_index": 0
+  },
+  "coordinate_unit": "angstrom",
+  "distances": {
+    "below_strict_threshold": [
+      [
+        0,
+        1,
+        1.0
+      ],
+      [
+        1,
+        2,
+        2.0
+      ]
+    ],
+    "line": 1.0,
+    "point_pairs": [
+      [
+        0,
+        1,
+        1.0
+      ],
+      [
+        0,
+        2,
+        3.0
+      ],
+      [
+        1,
+        2,
+        2.0
+      ]
+    ],
+    "point_segment": 1.0,
+    "segment_segment": 0.0
+  },
+  "line_relations": {
+    "coincident": {
+      "distance": 0.0,
+      "kind": "coincident",
+      "parallel_measure": 0.0
+    },
+    "intersecting": {
+      "distance": 0.0,
+      "kind": "intersecting",
+      "parallel_measure": 1.0
+    },
+    "parallel": {
+      "distance": 1.0,
+      "kind": "parallel",
+      "parallel_measure": 0.0
+    },
+    "skew": {
+      "distance": 1.0,
+      "kind": "skew",
+      "parallel_measure": 1.0
+    }
+  },
+  "planarity": {
+    "collinear_cycle": {
+      "centroid": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "kind": "degenerate",
+      "length_scale": 2.0,
+      "length_tolerance": 1.02e-08,
+      "maximum_deviation": "nan",
+      "normal": null,
+      "rms_deviation": "nan",
+      "singular_values": [
+        1.414213562373,
+        0.0,
+        0.0
+      ]
+    },
+    "planar_square": {
+      "centroid": [
+        1.0,
+        1.0,
+        0.0
+      ],
+      "kind": "planar",
+      "length_scale": 2.828427124746,
+      "length_tolerance": 1.0283e-08,
+      "maximum_deviation": 0.0,
+      "normal": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "rms_deviation": 0.0,
+      "singular_values": [
+        2.0,
+        2.0,
+        0.0
+      ]
+    },
+    "warped_square": {
+      "centroid": [
+        1.0,
+        1.0,
+        0.1
+      ],
+      "kind": "nonplanar",
+      "length_scale": 2.856571371417,
+      "length_tolerance": 1.0286e-08,
+      "maximum_deviation": 0.100955367837,
+      "normal": [
+        0.099975406997,
+        0.099975406997,
+        -0.989954461575
+      ],
+      "rms_deviation": 0.099005146363,
+      "singular_values": [
+        2.020097008555,
+        2.0,
+        0.198010292727
+      ]
+    }
+  },
+  "point_cycle_locations": {
+    "boundary": "boundary",
+    "exterior": "exterior",
+    "interior": "interior"
+  },
+  "schema_version": 1,
+  "segment_cycle_relations": {
+    "edge_contact": {
+      "closest_boundary_edge": {
+        "distance": 0.0,
+        "edge": [
+          [
+            0.0,
+            2.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "edge_index": 3
+      },
+      "features": [
+        "cycle_edge_contact"
+      ],
+      "indeterminacy_causes": [],
+      "intersection_points": [
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "state": "does_not_pierce",
+      "surface_evidence": {
+        "construction_undetermined_count": 0,
+        "embedded_surface_count": 1,
+        "enumerated_surface_count": 1,
+        "enumeration_complete": true,
+        "evaluation_undetermined_count": 0,
+        "intersecting_surface_count": 0,
+        "non_piercing_surface_count": 1,
+        "proven_non_embedded_surface_count": 0,
+        "segment_triangle_tests_used": 0,
+        "triangle_pair_tests_used": 0
+      },
+      "surface_model": "planar_polygon"
+    },
+    "line_extension": {
+      "closest_boundary_edge": {
+        "distance": 1.414213562373,
+        "edge": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "edge_index": 0
+      },
+      "features": [
+        "line_extension_interior"
+      ],
+      "indeterminacy_causes": [],
+      "intersection_points": [],
+      "state": "does_not_pierce",
+      "surface_evidence": {
+        "construction_undetermined_count": 0,
+        "embedded_surface_count": 1,
+        "enumerated_surface_count": 1,
+        "enumeration_complete": true,
+        "evaluation_undetermined_count": 0,
+        "intersecting_surface_count": 0,
+        "non_piercing_surface_count": 1,
+        "proven_non_embedded_surface_count": 0,
+        "segment_triangle_tests_used": 0,
+        "triangle_pair_tests_used": 0
+      },
+      "surface_model": "planar_polygon"
+    },
+    "nonplanar_piercing": {
+      "closest_boundary_edge": {
+        "distance": 0.6,
+        "edge": [
+          [
+            0.0,
+            2.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "edge_index": 3
+      },
+      "features": [
+        "transverse_interior"
+      ],
+      "indeterminacy_causes": [],
+      "intersection_points": [
+        [
+          0.6,
+          0.8,
+          0.0
+        ],
+        [
+          0.6,
+          0.8,
+          0.12
+        ]
+      ],
+      "state": "pierces",
+      "surface_evidence": {
+        "construction_undetermined_count": 0,
+        "embedded_surface_count": 2,
+        "enumerated_surface_count": 2,
+        "enumeration_complete": true,
+        "evaluation_undetermined_count": 0,
+        "intersecting_surface_count": 2,
+        "non_piercing_surface_count": 0,
+        "proven_non_embedded_surface_count": 0,
+        "segment_triangle_tests_used": 4,
+        "triangle_pair_tests_used": 2
+      },
+      "surface_model": "vertex_triangulation_family"
+    },
+    "nonplanar_uncertain": {
+      "closest_boundary_edge": {
+        "distance": 0.8,
+        "edge": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "edge_index": 0
+      },
+      "features": [
+        "transverse_interior"
+      ],
+      "indeterminacy_causes": [
+        "numeric_band"
+      ],
+      "intersection_points": [
+        [
+          0.8,
+          0.8,
+          0.0
+        ]
+      ],
+      "state": "undetermined",
+      "surface_evidence": {
+        "construction_undetermined_count": 0,
+        "embedded_surface_count": 2,
+        "enumerated_surface_count": 2,
+        "enumeration_complete": true,
+        "evaluation_undetermined_count": 1,
+        "intersecting_surface_count": 1,
+        "non_piercing_surface_count": 0,
+        "proven_non_embedded_surface_count": 0,
+        "segment_triangle_tests_used": 4,
+        "triangle_pair_tests_used": 2
+      },
+      "surface_model": "vertex_triangulation_family"
+    },
+    "planar_piercing": {
+      "closest_boundary_edge": {
+        "distance": 1.0,
+        "edge": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "edge_index": 0
+      },
+      "features": [
+        "transverse_interior"
+      ],
+      "indeterminacy_causes": [],
+      "intersection_points": [
+        [
+          1.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "state": "pierces",
+      "surface_evidence": {
+        "construction_undetermined_count": 0,
+        "embedded_surface_count": 1,
+        "enumerated_surface_count": 1,
+        "enumeration_complete": true,
+        "evaluation_undetermined_count": 0,
+        "intersecting_surface_count": 1,
+        "non_piercing_surface_count": 0,
+        "proven_non_embedded_surface_count": 0,
+        "segment_triangle_tests_used": 0,
+        "triangle_pair_tests_used": 0
+      },
+      "surface_model": "planar_polygon"
+    },
+    "self_intersecting_cycle": {
+      "closest_boundary_edge": {
+        "distance": 0.353553390593,
+        "edge": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            2.0,
+            0.0
+          ]
+        ],
+        "edge_index": 0
+      },
+      "features": [],
+      "indeterminacy_causes": [
+        "self_intersection"
+      ],
+      "intersection_points": [],
+      "state": "undetermined",
+      "surface_evidence": {
+        "construction_undetermined_count": 0,
+        "embedded_surface_count": 0,
+        "enumerated_surface_count": 1,
+        "enumeration_complete": true,
+        "evaluation_undetermined_count": 0,
+        "intersecting_surface_count": 0,
+        "non_piercing_surface_count": 0,
+        "proven_non_embedded_surface_count": 1,
+        "segment_triangle_tests_used": 0,
+        "triangle_pair_tests_used": 0
+      },
+      "surface_model": "planar_polygon"
+    }
+  }
+}

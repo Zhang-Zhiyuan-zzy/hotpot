@@ -61,6 +61,11 @@ ext_modules = [
     Pybind11Extension(
         "hotpot.cheminfo.obWrappers._ob_native",
         [
+            "hotpot/cheminfo/forcefields/_native/bindings.cpp",
+            "hotpot/cheminfo/forcefields/_native/contracts.cpp",
+            "hotpot/cheminfo/forcefields/_native/stage_contracts.cpp",
+            "hotpot/cheminfo/forcefields/_native/structure_session.cpp",
+            "hotpot/cheminfo/forcefields/_native/trajectory.cpp",
             "hotpot/cheminfo/obWrappers/_native/native_bindings.cpp",
             "hotpot/cheminfo/obWrappers/_native/molecule_data.cpp",
             "hotpot/cheminfo/obWrappers/_native/openbabel_adapter.cpp",

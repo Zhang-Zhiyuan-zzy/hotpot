@@ -1,6 +1,7 @@
 #include "molecule_data.hpp"
 #include "native_engine.hpp"
 #include "registry.hpp"
+#include "../../forcefields/_native/bindings.hpp"
 
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -268,6 +269,7 @@ void bind_rule_contracts(py::module_& module) {
 PYBIND11_MODULE(_ob_native, module) {
     module.doc() = "Direct Open Babel C++ force-field backend for Hotpot";
     bind_rule_contracts(module);
+    hotpot::forcefields::bind_native_forcefield_contracts(module);
     py::exception<ForceFieldSetupFailure> setup_error(
         module, "ForceFieldSetupError", PyExc_RuntimeError
     );

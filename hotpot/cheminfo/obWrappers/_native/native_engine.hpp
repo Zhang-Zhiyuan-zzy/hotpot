@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -12,6 +13,9 @@
 
 
 namespace hotpot::obwrappers {
+
+
+std::recursive_mutex& openbabel_runtime_mutex();
 
 
 class ForceFieldSetupFailure : public std::runtime_error {

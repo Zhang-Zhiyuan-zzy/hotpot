@@ -30,6 +30,12 @@
 namespace hotpot::obwrappers {
 
 
+std::recursive_mutex& openbabel_runtime_mutex() {
+    static std::recursive_mutex mutex;
+    return mutex;
+}
+
+
 ForceFieldSetupFailure::ForceFieldSetupFailure(
     std::string forcefield,
     std::string stage,
@@ -88,7 +94,6 @@ const std::string& OptimizationFrameFailure::forcefield() const noexcept {
 namespace {
 
 
-std::recursive_mutex openbabel_mutex;
 std::once_flag openbabel_runtime_once;
 std::string openbabel_library_path;
 
@@ -588,7 +593,7 @@ RuntimeInfo runtime_info() {
 
 
 void seed_random(std::uint32_t seed) {
-    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     const auto text = std::to_string(seed);
     set_environment("OB_RANDOM_SEED", text);
 #if OB_VERSION < OB_VERSION_CHECK(3, 2, 0)
@@ -605,7 +610,7 @@ RulePlan inspect_rules(
     double singularity_threshold,
     double repair_angle_radians
 ) {
-    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     molecule.validate();
     validate_rule_parameters(
         singularity_threshold,
@@ -636,7 +641,7 @@ BuildResult build(
     const MoleculeData& molecule,
     std::optional<bool> stereo_warnings
 ) {
-    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     molecule.validate();
     ensure_openbabel_runtime();
     auto obmol = make_obmol(molecule);
@@ -661,7 +666,7 @@ SingleOptimizationResult single_optimize(
     double singularity_threshold,
     double repair_angle_radians
 ) {
-    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     molecule.validate();
     validate_rule_parameters(
         singularity_threshold,
@@ -714,7 +719,7 @@ OptimizationResult optimize(
         repair_angle_radians
     );
     validate_options(molecule, options, perturbation_offsets);
-    std::lock_guard<std::recursive_mutex> lock(openbabel_mutex);
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     auto obmol = make_obmol(molecule);
     auto& forcefield = find_forcefield(options.forcefield);
     RulePlan all_rules{RuleStage::PRE_FORCEFIELD_SETUP, {}};

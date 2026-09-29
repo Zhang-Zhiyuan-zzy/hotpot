@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -153,6 +153,485 @@ class RuntimeInfo:
     babel_libdir: str
     babel_datadir: str
 
+
+class FrameDetail(Enum):
+    NONE: FrameDetail
+    OPTIMIZATION: FrameDetail
+    ALL_ATTEMPTS: FrameDetail
+
+
+class NativeStageStatus(Enum):
+    COMPLETED: NativeStageStatus
+    PARTIAL: NativeStageStatus
+    FAILED: NativeStageStatus
+
+
+class NativeTrajectoryStart(Enum):
+    LIGAND_BUILD: NativeTrajectoryStart
+    COORDINATION_RESTORATION: NativeTrajectoryStart
+    COMPLEX_UNTANGLING: NativeTrajectoryStart
+    FINAL_OPTIMIZATION: NativeTrajectoryStart
+
+
+class NativeTrajectoryStage(Enum):
+    LIGAND_BUILD: NativeTrajectoryStage
+    COORDINATION_RESTORATION: NativeTrajectoryStage
+    COMPLEX_UNTANGLING: NativeTrajectoryStage
+    FINAL_OPTIMIZATION: NativeTrajectoryStage
+
+
+class NativeTrajectoryEvent(Enum):
+    INITIAL: NativeTrajectoryEvent
+    BUILD_COMPLETE: NativeTrajectoryEvent
+    WARMUP_COMPLETE: NativeTrajectoryEvent
+    COORDINATION_READY: NativeTrajectoryEvent
+    BOND_TRIAL: NativeTrajectoryEvent
+    BOND_ACCEPTED: NativeTrajectoryEvent
+    BOND_REJECTED: NativeTrajectoryEvent
+    BOND_ROLLBACK: NativeTrajectoryEvent
+    BOND_FORCED: NativeTrajectoryEvent
+    METAL_RELOCATION_TRIAL: NativeTrajectoryEvent
+    METAL_RELOCATED: NativeTrajectoryEvent
+    METAL_RELOCATION_FAILED: NativeTrajectoryEvent
+    TOPOLOGY_CHECKPOINT: NativeTrajectoryEvent
+    RING_OPENED: NativeTrajectoryEvent
+    PERTURBED: NativeTrajectoryEvent
+    OPTIMIZED: NativeTrajectoryEvent
+    RING_CLOSED: NativeTrajectoryEvent
+    SETTLED: NativeTrajectoryEvent
+    ROLLED_BACK: NativeTrajectoryEvent
+    EPOCH_COMPLETE: NativeTrajectoryEvent
+    TERMINAL: NativeTrajectoryEvent
+
+
+class ComplexSessionInput:
+    def __init__(
+        self,
+        schema_version: int,
+        atomic_numbers: npt.NDArray[np.int32],
+        formal_charges: npt.NDArray[np.int32],
+        partial_charges: npt.NDArray[np.float64],
+        coordinates: npt.NDArray[np.float64],
+        atom_aromatic: npt.NDArray[np.uint8],
+        ligand_bond_indices: npt.NDArray[np.int32],
+        ligand_bond_orders: npt.NDArray[np.float64],
+        ligand_bond_kinds: npt.NDArray[np.uint8],
+        ligand_bond_aromatic: npt.NDArray[np.uint8],
+        metal_indices: npt.NDArray[np.int32],
+        intended_coordination_bonds: npt.NDArray[np.int32],
+        intended_coordination_orders: npt.NDArray[np.float64],
+        intended_coordination_kinds: npt.NDArray[np.uint8],
+        unit_cell: Optional[npt.NDArray[np.float64]] = ...,
+    ) -> None: ...
+
+    atom_count: int
+    ligand_bond_count: int
+    intended_coordination_bond_count: int
+
+
+class PerturbationOffsetBatch:
+    def __init__(self, offsets: npt.NDArray[np.float64]) -> None: ...
+
+    atom_count: int
+    frame_count: int
+    offsets: npt.NDArray[np.float64]
+
+
+class StructureSession:
+    atom_count: int
+    ligand_bond_count: int
+    intended_coordination_bond_count: int
+
+
+class StructureSnapshot:
+    coordinates: npt.NDArray[np.float64]
+    active_ligand_bond_mask: npt.NDArray[np.uint8]
+    active_coordination_mask: npt.NDArray[np.uint8]
+    component_ids: npt.NDArray[np.int32]
+    ligand_bond_count: int
+    active_bond_count: int
+    coordinate_revision: int
+    topology_revision: int
+
+
+class OptimizationStoppingOptions:
+    def __init__(
+        self,
+        window: int,
+        maximum_energy_change_kj_mol: float,
+        maximum_atom_displacement_angstrom: float,
+        maximum_rms_gradient_kj_mol_angstrom: float,
+        maximum_gradient_kj_mol_angstrom: float,
+    ) -> None: ...
+
+    window: int
+    maximum_energy_change_kj_mol: float
+    maximum_atom_displacement_angstrom: float
+    maximum_rms_gradient_kj_mol_angstrom: float
+    maximum_gradient_kj_mol_angstrom: float
+
+
+class CoordinationStageOptions:
+    def __init__(
+        self,
+        forcefield: str,
+        attempt_limit: int,
+        relaxation_steps: int,
+        perturb_sigma: float,
+        trajectory_start: NativeTrajectoryStart,
+        frame_detail: FrameDetail,
+    ) -> None: ...
+
+    forcefield: str
+    attempt_limit: int
+    relaxation_steps: int
+    perturb_sigma: float
+    trajectory_start: NativeTrajectoryStart
+    frame_detail: FrameDetail
+
+
+class ComplexOptimizationOptions:
+    def __init__(
+        self,
+        forcefield: str,
+        algorithm: str,
+        epochs: int,
+        steps_per_epoch: int,
+        untangling_attempt_limit: int,
+        perturb_interval: Optional[int],
+        perturb_sigma: float,
+        trajectory_start: NativeTrajectoryStart,
+        frame_detail: FrameDetail,
+        retain_epoch_history: bool,
+        increasing_vdw: bool,
+        vdw_cutoff_start: float,
+        vdw_cutoff_end: float,
+        energy_tolerance: float,
+        stopping: Optional[OptimizationStoppingOptions],
+    ) -> None: ...
+
+    forcefield: str
+    algorithm: str
+    epochs: int
+    steps_per_epoch: int
+    untangling_attempt_limit: int
+    perturb_interval: Optional[int]
+    perturb_sigma: float
+    trajectory_start: NativeTrajectoryStart
+    frame_detail: FrameDetail
+    retain_epoch_history: bool
+    increasing_vdw: bool
+    vdw_cutoff_start: float
+    vdw_cutoff_end: float
+    energy_tolerance: float
+    stopping: Optional[OptimizationStoppingOptions]
+
+
+class NativeRingFrameEvidence:
+    def __init__(
+        self,
+        confirmed_piercing_count: int,
+        uncertain_relation_count: Optional[int],
+        ring_scope: Optional[str],
+        max_ring_size: Optional[int],
+        selected_ring_count: Optional[int],
+        excluded_ring_count: Optional[int],
+        candidate_pair_count: Optional[int],
+        aabb_separated_pair_count: Optional[int],
+        exact_pair_count: Optional[int],
+        does_not_pierce_pair_count: Optional[int],
+        scan_complete: Optional[bool],
+    ) -> None: ...
+
+    confirmed_piercing_count: int
+    uncertain_relation_count: Optional[int]
+    ring_scope: Optional[str]
+    max_ring_size: Optional[int]
+    selected_ring_count: Optional[int]
+    excluded_ring_count: Optional[int]
+    candidate_pair_count: Optional[int]
+    aabb_separated_pair_count: Optional[int]
+    exact_pair_count: Optional[int]
+    does_not_pierce_pair_count: Optional[int]
+    scan_complete: Optional[bool]
+
+
+class NativeCoordinationFrameEvidence:
+    def __init__(
+        self,
+        bond_atom_indices: Optional[Tuple[int, int]],
+        accepted: Optional[bool],
+        pending_bond_count: int,
+        forced: bool,
+        piercing_relation_count: int,
+        undetermined_relation_count: int,
+        excluded_ring_count: int,
+        metal_atom_index: Optional[int],
+        relocation_status: Optional[str],
+        relocation_candidates_evaluated: int,
+        safe_donor_atom_indices: List[int],
+        minimum_normalized_clearance: Optional[float],
+        coordination_distance_deviation: Optional[float],
+    ) -> None: ...
+
+    bond_atom_indices: Optional[Tuple[int, int]]
+    accepted: Optional[bool]
+    pending_bond_count: int
+    forced: bool
+    piercing_relation_count: int
+    undetermined_relation_count: int
+    excluded_ring_count: int
+    metal_atom_index: Optional[int]
+    relocation_status: Optional[str]
+    relocation_candidates_evaluated: int
+    safe_donor_atom_indices: List[int]
+    minimum_normalized_clearance: Optional[float]
+    coordination_distance_deviation: Optional[float]
+
+
+class NativeOptimizationFrameEvidence:
+    def __init__(
+        self,
+        converged: bool,
+        exploded: bool,
+        finite_coordinates: bool,
+        finite_energy: bool,
+        finite_gradients: bool,
+        rms_gradient_kj_mol_angstrom: Optional[float],
+        max_gradient_kj_mol_angstrom: Optional[float],
+        energy_change_kj_mol: Optional[float],
+        max_displacement_angstrom: Optional[float],
+    ) -> None: ...
+
+    converged: bool
+    exploded: bool
+    finite_coordinates: bool
+    finite_energy: bool
+    finite_gradients: bool
+    rms_gradient_kj_mol_angstrom: Optional[float]
+    max_gradient_kj_mol_angstrom: Optional[float]
+    energy_change_kj_mol: Optional[float]
+    max_displacement_angstrom: Optional[float]
+
+
+class NativeTopologyRevision:
+    def __init__(
+        self,
+        active_ligand_bond_mask: npt.NDArray[np.uint8],
+        active_coordination_bond_mask: npt.NDArray[np.uint8],
+    ) -> None: ...
+
+    active_ligand_bond_mask: npt.NDArray[np.uint8]
+    active_coordination_bond_mask: npt.NDArray[np.uint8]
+
+
+NativeFrameEvidence = Optional[
+    Union[
+        NativeRingFrameEvidence,
+        NativeCoordinationFrameEvidence,
+        NativeOptimizationFrameEvidence,
+    ]
+]
+
+
+class NativeTrajectoryFrame:
+    def __init__(
+        self,
+        coordinates: npt.NDArray[np.float64],
+        stage: NativeTrajectoryStage,
+        event: NativeTrajectoryEvent,
+        component_index: Optional[int],
+        attempt: Optional[int],
+        step: Optional[int],
+        energy_kj_mol: Optional[float],
+        evidence: NativeFrameEvidence,
+        topology_revision: int,
+    ) -> None: ...
+
+    coordinates: npt.NDArray[np.float64]
+    stage: NativeTrajectoryStage
+    event: NativeTrajectoryEvent
+    component_index: Optional[int]
+    attempt: Optional[int]
+    step: Optional[int]
+    energy_kj_mol: Optional[float]
+    evidence: NativeFrameEvidence
+    topology_revision: int
+
+
+class NativeTrajectoryBatch:
+    def __init__(
+        self,
+        atom_count: int,
+        ligand_bond_count: int,
+        intended_coordination_bond_count: int,
+        start: NativeTrajectoryStart,
+        topology_revisions: List[NativeTopologyRevision],
+        frames: List[NativeTrajectoryFrame],
+        selected_frame_index: Optional[int],
+        terminal_frame_index: Optional[int],
+    ) -> None: ...
+
+    atom_count: int
+    ligand_bond_count: int
+    intended_coordination_bond_count: int
+    start: NativeTrajectoryStart
+    topology_revisions: List[NativeTopologyRevision]
+    frame_count: int
+    frames: List[NativeTrajectoryFrame]
+    selected_frame_index: Optional[int]
+    terminal_frame_index: Optional[int]
+
+
+class CoordinationStageResult:
+    def __init__(
+        self,
+        status: NativeStageStatus,
+        selected_coordinates: npt.NDArray[np.float64],
+        terminal_coordinates: npt.NDArray[np.float64],
+        final_active_coordination_mask: npt.NDArray[np.uint8],
+        attempt_limit: int,
+        attempts_completed: int,
+        metal_relocation_attempt_count: int,
+        relocated_metal_indices: List[int],
+        infeasible_metal_indices: List[int],
+        forced_bond_keys: List[Tuple[int, int]],
+        rejected_piercing_trial_count: int,
+        undetermined_trial_count: int,
+        excluded_ring_observation_count: int,
+        warning_codes: List[str],
+        trajectory: NativeTrajectoryBatch,
+    ) -> None: ...
+
+    status: NativeStageStatus
+    selected_coordinates: npt.NDArray[np.float64]
+    terminal_coordinates: npt.NDArray[np.float64]
+    final_active_coordination_mask: npt.NDArray[np.uint8]
+    attempt_limit: int
+    attempts_completed: int
+    metal_relocation_attempt_count: int
+    relocated_metal_indices: List[int]
+    infeasible_metal_indices: List[int]
+    forced_bond_keys: npt.NDArray[np.int32]
+    rejected_piercing_trial_count: int
+    undetermined_trial_count: int
+    excluded_ring_observation_count: int
+    warning_codes: List[str]
+    trajectory: NativeTrajectoryBatch
+
+
+class ComplexOptimizationResult:
+    def __init__(
+        self,
+        status: NativeStageStatus,
+        selected_coordinates: npt.NDArray[np.float64],
+        terminal_coordinates: npt.NDArray[np.float64],
+        final_active_coordination_mask: npt.NDArray[np.uint8],
+        untangling_attempt_limit: int,
+        untangling_attempts_completed: int,
+        initial_piercing_count: int,
+        final_piercing_count: int,
+        minimum_piercing_count: int,
+        untangling_resolved: bool,
+        selected_frame_index: int,
+        best_epoch: int,
+        final_energy_kj_mol: float,
+        best_energy_kj_mol: float,
+        rms_gradient_kj_mol_angstrom: float,
+        max_gradient_kj_mol_angstrom: float,
+        energy_changes: List[float],
+        max_displacements: List[float],
+        epoch_energies: List[float],
+        exploded: bool,
+        converged: bool,
+        terminal_converged: bool,
+        epochs_completed: int,
+        steps_submitted: int,
+        initialization_steps: int,
+        selected_segment_epochs_completed: int,
+        backend_energy_unit: str,
+        termination_reason: str,
+        warning_codes: List[str],
+        trajectory: NativeTrajectoryBatch,
+    ) -> None: ...
+
+    status: NativeStageStatus
+    selected_coordinates: npt.NDArray[np.float64]
+    terminal_coordinates: npt.NDArray[np.float64]
+    final_active_coordination_mask: npt.NDArray[np.uint8]
+    untangling_attempt_limit: int
+    untangling_attempts_completed: int
+    initial_piercing_count: int
+    final_piercing_count: int
+    minimum_piercing_count: int
+    untangling_resolved: bool
+    selected_frame_index: int
+    best_epoch: int
+    final_energy_kj_mol: float
+    best_energy_kj_mol: float
+    rms_gradient_kj_mol_angstrom: float
+    max_gradient_kj_mol_angstrom: float
+    energy_changes: List[float]
+    max_displacements: List[float]
+    epoch_energies: List[float]
+    exploded: bool
+    converged: bool
+    terminal_converged: bool
+    epochs_completed: int
+    steps_submitted: int
+    initialization_steps: int
+    selected_segment_epochs_completed: int
+    backend_energy_unit: str
+    termination_reason: str
+    warning_codes: List[str]
+    trajectory: NativeTrajectoryBatch
+
+
+class ComplexWorkflowResult:
+    def __init__(
+        self,
+        coordination: CoordinationStageResult,
+        optimization: ComplexOptimizationResult,
+        selected_coordinates: npt.NDArray[np.float64],
+        terminal_coordinates: npt.NDArray[np.float64],
+        final_active_coordination_mask: npt.NDArray[np.uint8],
+        warning_codes: List[str],
+        trajectory: NativeTrajectoryBatch,
+    ) -> None: ...
+
+    coordination: CoordinationStageResult
+    optimization: ComplexOptimizationResult
+    selected_coordinates: npt.NDArray[np.float64]
+    terminal_coordinates: npt.NDArray[np.float64]
+    final_active_coordination_mask: npt.NDArray[np.uint8]
+    warning_codes: List[str]
+    trajectory: NativeTrajectoryBatch
+
+
+def create_coordination_session(
+    session_input: ComplexSessionInput,
+) -> StructureSession: ...
+
+def create_optimization_session(
+    session_input: ComplexSessionInput,
+) -> StructureSession: ...
+
+def snapshot_structure(session: StructureSession) -> StructureSnapshot: ...
+
+def update_structure_coordinates(
+    session: StructureSession,
+    coordinates: npt.NDArray[np.float64],
+) -> None: ...
+
+def set_ligand_bond_active_mask(
+    session: StructureSession,
+    active_mask: npt.NDArray[np.uint8],
+) -> None: ...
+
+def set_coordination_active_mask(
+    session: StructureSession,
+    active_mask: npt.NDArray[np.uint8],
+) -> None: ...
 
 def runtime_info() -> RuntimeInfo: ...
 

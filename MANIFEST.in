@@ -8,6 +8,7 @@ include hotpot/cheminfo/AImodels/cbond/cli_doc.md
 graft hotpot/cheminfo/AImodels/mca/models
 include hotpot/cheminfo/AImodels/mca/cli_doc.md
 include hotpot/cheminfo/forcefields/cli_doc.md
+recursive-include hotpot/cheminfo/forcefields/_native *.cpp *.hpp
 include hotpot/cheminfo/geometry/README.md
 include hotpot/cheminfo/geometry/README.zh.md
 include hotpot/cheminfo/geometry/_geometry_native.pyi

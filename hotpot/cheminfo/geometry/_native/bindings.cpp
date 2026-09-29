@@ -1,4 +1,5 @@
 #include "cycle_surface.hpp"
+#include "nonplanar_segment.hpp"
 #include "nonplanar_surface.hpp"
 #include "primitives.hpp"
 #include "segment_cycle.hpp"
@@ -474,18 +475,27 @@ PYBIND11_MODULE(_geometry_native, module) {
         .def_property_readonly(
             "coordinates",
             [](const PreparedPlanarCycle& cycle) {
-                return point_list(cycle.coordinates);
+                return point_list(cycle.coordinates());
             }
         )
-        .def_readonly("planarity", &PreparedPlanarCycle::planarity)
-        .def_readonly("tolerances", &PreparedPlanarCycle::tolerances)
+        .def_property_readonly(
+            "planarity",
+            &PreparedPlanarCycle::planarity
+        )
+        .def_property_readonly(
+            "tolerances",
+            &PreparedPlanarCycle::tolerances
+        )
         .def_property_readonly(
             "projection",
             [](const PreparedPlanarCycle& cycle) {
-                return point2_list(cycle.projection);
+                return point2_list(cycle.projection());
             }
         )
-        .def_readonly("simplicity", &PreparedPlanarCycle::simplicity)
+        .def_property_readonly(
+            "simplicity",
+            &PreparedPlanarCycle::simplicity
+        )
         .def_property_readonly(
             "has_planar_surface",
             &PreparedPlanarCycle::has_planar_surface
@@ -527,19 +537,22 @@ PYBIND11_MODULE(_geometry_native, module) {
         .def_property_readonly(
             "coordinates",
             [](const PreparedNonplanarSurfaceFamily& family) {
-                return point_list(family.coordinates);
+                return point_list(family.coordinates());
             }
         )
-        .def_readonly(
+        .def_property_readonly(
             "tolerances",
             &PreparedNonplanarSurfaceFamily::tolerances
         )
-        .def_readonly("limits", &PreparedNonplanarSurfaceFamily::limits)
-        .def_readonly(
+        .def_property_readonly(
+            "limits",
+            &PreparedNonplanarSurfaceFamily::limits
+        )
+        .def_property_readonly(
             "enumeration_complete",
             &PreparedNonplanarSurfaceFamily::enumeration_complete
         )
-        .def_readonly(
+        .def_property_readonly(
             "enumerated_surface_count",
             &PreparedNonplanarSurfaceFamily::enumerated_surface_count
         )
@@ -547,15 +560,15 @@ PYBIND11_MODULE(_geometry_native, module) {
             "embedded_surface_count",
             &PreparedNonplanarSurfaceFamily::embedded_surface_count
         )
-        .def_readonly(
+        .def_property_readonly(
             "proven_non_embedded_surface_count",
             &PreparedNonplanarSurfaceFamily::proven_non_embedded_surface_count
         )
-        .def_readonly(
+        .def_property_readonly(
             "construction_undetermined_count",
             &PreparedNonplanarSurfaceFamily::construction_undetermined_count
         )
-        .def_readonly(
+        .def_property_readonly(
             "triangle_pair_tests_used",
             &PreparedNonplanarSurfaceFamily::triangle_pair_tests_used
         )
@@ -563,13 +576,13 @@ PYBIND11_MODULE(_geometry_native, module) {
             "causes",
             [](const PreparedNonplanarSurfaceFamily& family) {
                 py::set causes;
-                for (const NonplanarSurfaceCause cause : family.causes) {
+                for (const NonplanarSurfaceCause cause : family.causes()) {
                     causes.add(py::cast(cause));
                 }
                 return py::frozenset(causes);
             }
         )
-        .def_readonly(
+        .def_property_readonly(
             "surface_states",
             &PreparedNonplanarSurfaceFamily::surface_states
         );
@@ -886,6 +899,62 @@ PYBIND11_MODULE(_geometry_native, module) {
         },
         py::arg("segments"),
         py::arg("cycle")
+    );
+
+    module.def(
+        "determine_nonplanar_segment_cycle_relation",
+        [](const py::array& segment_start,
+           const py::array& segment_end,
+           const PreparedNonplanarSurfaceFamily& family) {
+            const Segment3 segment{
+                read_point(segment_start, "segment_start"),
+                read_point(segment_end, "segment_end"),
+            };
+            py::gil_scoped_release release;
+            return determine_nonplanar_segment_cycle_relation(
+                segment,
+                family
+            );
+        },
+        py::arg("segment_start"),
+        py::arg("segment_end"),
+        py::arg("family")
+    );
+
+    module.def(
+        "nonplanar_segment_cycle_relations",
+        [](const py::array& segments,
+           const PreparedNonplanarSurfaceFamily& family) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            py::gil_scoped_release release;
+            return nonplanar_segment_cycle_relations(
+                ArrayView<Segment3>(native_segments),
+                family
+            );
+        },
+        py::arg("segments"),
+        py::arg("family")
+    );
+
+    module.def(
+        "nonplanar_segment_cycle_screenings",
+        [](const py::array& segments,
+           const PreparedNonplanarSurfaceFamily& family) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            py::gil_scoped_release release;
+            return nonplanar_segment_cycle_screenings(
+                ArrayView<Segment3>(native_segments),
+                family
+            );
+        },
+        py::arg("segments"),
+        py::arg("family")
     );
 
     module.def(

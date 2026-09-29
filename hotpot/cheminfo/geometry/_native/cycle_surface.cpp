@@ -380,17 +380,17 @@ PreparedPlanarCycle prepare_planar_cycle(
     if (!prepared.has_planar_surface()) {
         return prepared;
     }
-    prepared.projection = project_to_plane(
+    prepared.projection_ = project_to_plane(
         cycle,
-        prepared.planarity.centroid,
-        *prepared.planarity.normal
+        prepared.planarity_.centroid,
+        *prepared.planarity_.normal
     );
     const PredicateTolerances predicate_tolerances = derive_predicate_tolerances(
         cycle_length_scale(cycle),
         tolerances
     );
-    prepared.simplicity = projected_polygon_simplicity(
-        ArrayView<Point2>(prepared.projection),
+    prepared.simplicity_ = projected_polygon_simplicity(
+        ArrayView<Point2>(prepared.projection_),
         predicate_tolerances,
         tolerances
     );
@@ -415,9 +415,9 @@ PointCycleLocation locate_point_in_planar_cycle(
     const Point3& plane_origin,
     const Point3& plane_normal
 ) {
-    const ArrayView<Point3> coordinates(cycle.coordinates);
+    const ArrayView<Point3> coordinates(cycle.coordinates());
     detail::require_cycle(coordinates);
-    const NumericTolerances& tolerances = cycle.tolerances;
+    const NumericTolerances& tolerances = cycle.tolerances();
     if (
         !finite(point)
         || !finite(plane_origin)

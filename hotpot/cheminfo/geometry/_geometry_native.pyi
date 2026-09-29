@@ -262,6 +262,25 @@ def planar_segment_cycle_screenings(
 ) -> List[SegmentCycleScreening]: ...
 
 
+def determine_nonplanar_segment_cycle_relation(
+    segment_start: np.ndarray,
+    segment_end: np.ndarray,
+    family: PreparedNonplanarSurfaceFamily,
+) -> SegmentCycleRelation: ...
+
+
+def nonplanar_segment_cycle_relations(
+    segments: np.ndarray,
+    family: PreparedNonplanarSurfaceFamily,
+) -> List[SegmentCycleRelation]: ...
+
+
+def nonplanar_segment_cycle_screenings(
+    segments: np.ndarray,
+    family: PreparedNonplanarSurfaceFamily,
+) -> List[SegmentCycleScreening]: ...
+
+
 def determine_line_relation(
     first_origin: np.ndarray,
     first_direction: np.ndarray,

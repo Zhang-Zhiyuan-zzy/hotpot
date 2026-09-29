@@ -307,6 +307,80 @@ def _segment_cycle_relation_result(
     )
 
 
+def _segment_cycle_screening_result(
+    result: _native.SegmentCycleScreening,
+    cycle: Cycle,
+    settings: GeometrySettings,
+) -> SegmentCycleScreening:
+    from .relation import PiercingState, SegmentCycleScreening
+
+    return SegmentCycleScreening(
+        PiercingState[result.state.name],
+        (
+            None
+            if result.relation is None
+            else _segment_cycle_relation_result(
+                result.relation,
+                cycle,
+                settings,
+            )
+        ),
+        result.aabb_separated,
+        result.surface_complete,
+    )
+
+
+def _determine_nonplanar_segment_cycle_relation(
+    segment: Segment,
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> SegmentCycleRelation:
+    """Classify one segment against a prepared nonplanar surface family."""
+
+    result = _native.determine_nonplanar_segment_cycle_relation(
+        _point_array(segment.start),
+        _point_array(segment.end),
+        _prepare_nonplanar_surface_family(cycle, settings),
+    )
+    return _segment_cycle_relation_result(result, cycle, settings)
+
+
+def _nonplanar_segment_cycle_relations(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Tuple[SegmentCycleRelation, ...]:
+    """Classify a segment batch with one native nonplanar preparation."""
+
+    segment_tuple = tuple(segments)
+    results = _native.nonplanar_segment_cycle_relations(
+        _segment_batch(segment_tuple),
+        _prepare_nonplanar_surface_family(cycle, settings),
+    )
+    return tuple(
+        _segment_cycle_relation_result(result, cycle, settings)
+        for result in results
+    )
+
+
+def _nonplanar_segment_cycle_screenings(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Tuple[SegmentCycleScreening, ...]:
+    """Screen a segment batch with one native nonplanar preparation."""
+
+    segment_tuple = tuple(segments)
+    results = _native.nonplanar_segment_cycle_screenings(
+        _segment_batch(segment_tuple),
+        _prepare_nonplanar_surface_family(cycle, settings),
+    )
+    return tuple(
+        _segment_cycle_screening_result(result, cycle, settings)
+        for result in results
+    )
+
+
 def determine_planar_segment_cycle_relation(
     segment: Segment,
     cycle: Cycle,
@@ -348,28 +422,13 @@ def planar_segment_cycle_screenings(
 ) -> Tuple[SegmentCycleScreening, ...]:
     """Screen a planar segment batch with strict native AABB exclusion."""
 
-    from .relation import PiercingState, SegmentCycleScreening
-
     segment_tuple = tuple(segments)
     results = _native.planar_segment_cycle_screenings(
         _segment_batch(segment_tuple),
         prepare_planar_cycle(cycle, settings),
     )
     return tuple(
-        SegmentCycleScreening(
-            PiercingState[result.state.name],
-            (
-                None
-                if result.relation is None
-                else _segment_cycle_relation_result(
-                    result.relation,
-                    cycle,
-                    settings,
-                )
-            ),
-            result.aabb_separated,
-            result.surface_complete,
-        )
+        _segment_cycle_screening_result(result, cycle, settings)
         for result in results
     )
 

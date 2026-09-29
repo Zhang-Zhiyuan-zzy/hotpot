@@ -1,6 +1,7 @@
 #include "nonplanar_surface.hpp"
 
 #include "planar_predicates.hpp"
+#include "triangle_predicates.hpp"
 #include "vector_math.hpp"
 
 #include <algorithm>
@@ -19,24 +20,6 @@ namespace {
 
 using SurfaceIndices = std::vector<TriangleIndices>;
 using Triangulations = std::vector<SurfaceIndices>;
-
-
-enum class TriangleHitKind : std::uint8_t {
-    STRICT_INTERIOR,
-    TRIANGLE_BOUNDARY,
-    SEGMENT_ENDPOINT,
-    LINE_EXTENSION_INTERIOR,
-    COPLANAR,
-    SEPARATED,
-    DEGENERATE,
-    UNDETERMINED,
-};
-
-
-struct TriangleHit {
-    TriangleHitKind kind;
-    std::optional<Point3> point;
-};
 
 
 struct CycleTopology {
@@ -64,7 +47,10 @@ using detail::dot;
 using detail::finite;
 using detail::norm;
 using detail::point_segment_distance_2d;
+using detail::segment_triangle_relation;
 using detail::subtract;
+using detail::TriangleHit;
+using detail::TriangleHitKind;
 
 
 bool contains_index(
@@ -377,221 +363,6 @@ PreparedTriangleGeometry prepare_triangle(
         aabb_bounds(ArrayView<Point3>(coordinates.data(), coordinates.size())),
         edges,
     };
-}
-
-
-std::array<double, 3> barycentric_coordinates(
-    const Point3& point,
-    const PreparedTriangleGeometry& triangle
-) noexcept {
-    const Point3& first = triangle.coordinates[0];
-    const Point3& second = triangle.coordinates[1];
-    const Point3& third = triangle.coordinates[2];
-    const double squared_normal = dot(triangle.normal, triangle.normal);
-    const double first_weight = dot(
-        cross(subtract(second, point), subtract(third, point)),
-        triangle.normal
-    ) / squared_normal;
-    const double second_weight = dot(
-        cross(subtract(third, point), subtract(first, point)),
-        triangle.normal
-    ) / squared_normal;
-    return {
-        first_weight,
-        second_weight,
-        1.0 - first_weight - second_weight,
-    };
-}
-
-
-TriangleHitKind classify_barycentric(
-    const std::array<double, 3>& barycentric,
-    double parameter_tolerance,
-    double guard
-) noexcept {
-    if (std::all_of(
-            barycentric.begin(),
-            barycentric.end(),
-            [guard, parameter_tolerance](double value) {
-                return value > guard * parameter_tolerance;
-            }
-        )) {
-        return TriangleHitKind::STRICT_INTERIOR;
-    }
-    if (
-        std::all_of(
-            barycentric.begin(),
-            barycentric.end(),
-            [parameter_tolerance](double value) {
-                return value >= -parameter_tolerance;
-            }
-        )
-        && std::any_of(
-            barycentric.begin(),
-            barycentric.end(),
-            [parameter_tolerance](double value) {
-                return std::abs(value) <= parameter_tolerance;
-            }
-        )
-    ) {
-        return TriangleHitKind::TRIANGLE_BOUNDARY;
-    }
-    if (std::any_of(
-            barycentric.begin(),
-            barycentric.end(),
-            [guard, parameter_tolerance](double value) {
-                return value < -guard * parameter_tolerance;
-            }
-        )) {
-        return TriangleHitKind::SEPARATED;
-    }
-    return TriangleHitKind::UNDETERMINED;
-}
-
-
-TriangleHit segment_triangle_relation(
-    const Segment3& segment,
-    const PreparedTriangleGeometry& triangle,
-    const PredicateTolerances& predicate_tolerances,
-    const NumericTolerances& tolerances
-) {
-    if (
-        !finite(segment.start)
-        || !finite(segment.end)
-        || !all_finite(ArrayView<Point3>(
-            triangle.coordinates.data(), triangle.coordinates.size()
-        ))
-    ) {
-        return {TriangleHitKind::UNDETERMINED, std::nullopt};
-    }
-
-    const double guard = tolerances.predicate_guard_factor;
-    const double segment_length = norm(subtract(segment.end, segment.start));
-    if (segment_length <= predicate_tolerances.length) {
-        return {TriangleHitKind::DEGENERATE, std::nullopt};
-    }
-    if (segment_length <= guard * predicate_tolerances.length) {
-        return {TriangleHitKind::UNDETERMINED, std::nullopt};
-    }
-    if (triangle.normal_length <= predicate_tolerances.area) {
-        return {TriangleHitKind::DEGENERATE, std::nullopt};
-    }
-    if (triangle.normal_length <= guard * predicate_tolerances.area) {
-        return {TriangleHitKind::UNDETERMINED, std::nullopt};
-    }
-
-    Point3 unit_normal = triangle.normal;
-    for (double& value : unit_normal) {
-        value /= triangle.normal_length;
-    }
-    const Point3& first = triangle.coordinates[0];
-    const double start_height = dot(
-        unit_normal, subtract(segment.start, first)
-    );
-    const double end_height = dot(unit_normal, subtract(segment.end, first));
-    const double start_absolute = std::abs(start_height);
-    const double end_absolute = std::abs(end_height);
-    if (
-        start_absolute <= predicate_tolerances.length
-        && end_absolute <= predicate_tolerances.length
-    ) {
-        return {TriangleHitKind::COPLANAR, std::nullopt};
-    }
-    if (
-        (
-            predicate_tolerances.length < start_absolute
-            && start_absolute <= guard * predicate_tolerances.length
-        )
-        || (
-            predicate_tolerances.length < end_absolute
-            && end_absolute <= guard * predicate_tolerances.length
-        )
-    ) {
-        return {TriangleHitKind::UNDETERMINED, std::nullopt};
-    }
-
-    const bool one_endpoint = (
-        (
-            start_absolute <= predicate_tolerances.length
-            && end_absolute > guard * predicate_tolerances.length
-        )
-        || (
-            end_absolute <= predicate_tolerances.length
-            && start_absolute > guard * predicate_tolerances.length
-        )
-    );
-    const double height_difference = start_height - end_height;
-    if (one_endpoint) {
-        const Point3 point = start_absolute <= predicate_tolerances.length
-            ? segment.start
-            : segment.end;
-        const TriangleHitKind location = classify_barycentric(
-            barycentric_coordinates(point, triangle),
-            predicate_tolerances.parameter,
-            guard
-        );
-        if (
-            location == TriangleHitKind::STRICT_INTERIOR
-            || location == TriangleHitKind::TRIANGLE_BOUNDARY
-        ) {
-            return {TriangleHitKind::SEGMENT_ENDPOINT, point};
-        }
-        return {location, point};
-    }
-
-    if (std::abs(height_difference) <= predicate_tolerances.length) {
-        return {TriangleHitKind::SEPARATED, std::nullopt};
-    }
-    if (
-        std::abs(height_difference)
-        <= guard * predicate_tolerances.length
-    ) {
-        return {TriangleHitKind::UNDETERMINED, std::nullopt};
-    }
-    if (guard * predicate_tolerances.parameter >= 0.5) {
-        return {TriangleHitKind::UNDETERMINED, std::nullopt};
-    }
-
-    const double parameter = start_height / height_difference;
-    const Point3 direction = subtract(segment.end, segment.start);
-    const Point3 point = {
-        segment.start[0] + parameter * direction[0],
-        segment.start[1] + parameter * direction[1],
-        segment.start[2] + parameter * direction[2],
-    };
-    const TriangleHitKind location = classify_barycentric(
-        barycentric_coordinates(point, triangle),
-        predicate_tolerances.parameter,
-        guard
-    );
-    if (
-        location == TriangleHitKind::TRIANGLE_BOUNDARY
-        || location == TriangleHitKind::UNDETERMINED
-        || location == TriangleHitKind::SEPARATED
-    ) {
-        return {location, point};
-    }
-
-    const double parameter_tolerance = predicate_tolerances.parameter;
-    if (
-        guard * parameter_tolerance < parameter
-        && parameter < 1.0 - guard * parameter_tolerance
-    ) {
-        return {TriangleHitKind::STRICT_INTERIOR, point};
-    }
-    if (
-        std::abs(parameter) <= parameter_tolerance
-        || std::abs(1.0 - parameter) <= parameter_tolerance
-    ) {
-        return {TriangleHitKind::SEGMENT_ENDPOINT, point};
-    }
-    if (
-        parameter < -guard * parameter_tolerance
-        || parameter > 1.0 + guard * parameter_tolerance
-    ) {
-        return {TriangleHitKind::LINE_EXTENSION_INTERIOR, point};
-    }
-    return {TriangleHitKind::UNDETERMINED, point};
 }
 
 
@@ -979,30 +750,19 @@ PreparedNonplanarSurfaceFamily prepare_nonplanar_surface_family(
         std::vector<Point3>(cycle.begin(), cycle.end()),
         tolerances,
         limits,
-        std::nullopt,
-        false,
-        0,
-        0,
-        0,
-        0,
-        {},
-        {},
-        {},
-        {},
-        {},
     };
 
     if (cycle.size() > limits.maximum_cycle_vertices) {
         add_cause(
-            prepared.causes,
+            prepared.causes_,
             NonplanarSurfaceCause::INCOMPLETE_SURFACE_FAMILY
         );
         return prepared;
     }
     if (!all_finite(cycle)) {
-        prepared.construction_undetermined_count = 1;
+        prepared.construction_undetermined_count_ = 1;
         add_cause(
-            prepared.causes,
+            prepared.causes_,
             NonplanarSurfaceCause::SURFACE_CONSTRUCTION
         );
         return prepared;
@@ -1012,14 +772,14 @@ PreparedNonplanarSurfaceFamily prepare_nonplanar_surface_family(
         !std::isfinite(length_scale)
         || length_scale <= tolerances.absolute_length
     ) {
-        prepared.construction_undetermined_count = 1;
+        prepared.construction_undetermined_count_ = 1;
         add_cause(
-            prepared.causes,
+            prepared.causes_,
             NonplanarSurfaceCause::SURFACE_CONSTRUCTION
         );
         return prepared;
     }
-    prepared.predicate_tolerances = derive_predicate_tolerances(
+    prepared.predicate_tolerances_ = derive_predicate_tolerances(
         length_scale, tolerances
     );
 
@@ -1031,11 +791,11 @@ PreparedNonplanarSurfaceFamily prepare_nonplanar_surface_family(
         )
     );
     const CycleTopology& topology = *topology_owner;
-    prepared.unique_triangles.reserve(topology.unique_triangles.size());
+    prepared.unique_triangles_.reserve(topology.unique_triangles.size());
     for (const TriangleIndices& indices : topology.unique_triangles) {
-        prepared.unique_triangles.push_back(prepare_triangle(cycle, indices));
+        prepared.unique_triangles_.push_back(prepare_triangle(cycle, indices));
     }
-    prepared.enumeration_complete = (
+    prepared.enumeration_complete_ = (
         !expected_count.overflowed
         && expected_count.value <= limits.maximum_surface_count
         && topology.surface_count == expected_count.value
@@ -1043,50 +803,50 @@ PreparedNonplanarSurfaceFamily prepare_nonplanar_surface_family(
 
     const std::size_t surface_count = topology.surfaces.size();
     SurfaceCounters counters;
-    prepared.surfaces.reserve(surface_count);
-    prepared.surface_states.reserve(surface_count);
+    prepared.surfaces_.reserve(surface_count);
+    prepared.surface_states_.reserve(surface_count);
     for (
         std::size_t surface_index = 0;
         surface_index < surface_count;
         ++surface_index
     ) {
         if (counters.triangle_pair_budget_exhausted) {
-            prepared.enumeration_complete = false;
+            prepared.enumeration_complete_ = false;
             break;
         }
         const PreparedSurfaceGeometry& surface = topology.surfaces[surface_index];
         const SurfaceEmbeddingState state = determine_surface_embedding(
             surface,
-            prepared.unique_triangles,
-            ArrayView<Point3>(prepared.coordinates),
-            *prepared.predicate_tolerances,
-            prepared.tolerances,
-            prepared.limits,
+            prepared.unique_triangles_,
+            ArrayView<Point3>(prepared.coordinates_),
+            *prepared.predicate_tolerances_,
+            prepared.tolerances_,
+            prepared.limits_,
             counters
         );
-        prepared.surfaces.push_back(surface);
-        prepared.surface_states.push_back(state);
-        ++prepared.enumerated_surface_count;
+        prepared.surfaces_.push_back(surface);
+        prepared.surface_states_.push_back(state);
+        ++prepared.enumerated_surface_count_;
         if (state == SurfaceEmbeddingState::EMBEDDED) {
-            prepared.embedded_surface_indices.push_back(surface_index);
+            prepared.embedded_surface_indices_.push_back(surface_index);
         } else if (state == SurfaceEmbeddingState::PROVEN_NON_EMBEDDED) {
-            ++prepared.proven_non_embedded_surface_count;
+            ++prepared.proven_non_embedded_surface_count_;
         } else {
-            ++prepared.construction_undetermined_count;
+            ++prepared.construction_undetermined_count_;
             add_cause(
-                prepared.causes,
+                prepared.causes_,
                 NonplanarSurfaceCause::SURFACE_CONSTRUCTION
             );
             if (counters.triangle_pair_budget_exhausted) {
-                prepared.enumeration_complete = false;
+                prepared.enumeration_complete_ = false;
                 break;
             }
         }
     }
-    prepared.triangle_pair_tests_used = counters.triangle_pair_tests;
-    if (!prepared.enumeration_complete) {
+    prepared.triangle_pair_tests_used_ = counters.triangle_pair_tests;
+    if (!prepared.enumeration_complete_) {
         add_cause(
-            prepared.causes,
+            prepared.causes_,
             NonplanarSurfaceCause::INCOMPLETE_SURFACE_FAMILY
         );
     }

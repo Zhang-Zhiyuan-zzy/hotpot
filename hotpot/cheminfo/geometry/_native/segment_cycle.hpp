@@ -88,6 +88,32 @@ struct SegmentCycleScreening {
 };
 
 
+namespace detail {
+
+
+struct SegmentCycleQuery {
+    std::optional<PredicateTolerances> predicate_tolerances;
+    std::optional<SegmentCycleIndeterminacy> cause;
+};
+
+
+SegmentCycleQuery prepare_segment_cycle_query(
+    const Segment3& segment,
+    ArrayView<Point3> cycle,
+    const NumericTolerances& tolerances
+);
+
+
+std::optional<ClosestCycleEdge> closest_cycle_edge(
+    ArrayView<Point3> cycle,
+    const Segment3& segment,
+    const NumericTolerances& tolerances
+);
+
+
+}  // namespace detail
+
+
 std::optional<ClosestCycleEdge> closest_cycle_edge(
     const PreparedPlanarCycle& cycle,
     const Segment3& segment

@@ -87,53 +87,6 @@ void add_cause(
 }
 
 
-std::optional<SegmentCycleIndeterminacy> query_indeterminacy(
-    const Segment3& segment,
-    const PreparedPlanarCycle& cycle,
-    PredicateTolerances& predicate_tolerances
-) {
-    const NumericTolerances& tolerances = cycle.tolerances;
-    if (
-        !finite(segment.start)
-        || !finite(segment.end)
-        || !all_finite(ArrayView<Point3>(cycle.coordinates))
-    ) {
-        return SegmentCycleIndeterminacy::NONFINITE_INPUT;
-    }
-    const double length_scale = segment_cycle_length_scale(
-        segment,
-        ArrayView<Point3>(cycle.coordinates)
-    );
-    if (!std::isfinite(length_scale)) {
-        return SegmentCycleIndeterminacy::NUMERIC_BAND;
-    }
-    if (length_scale <= tolerances.absolute_length) {
-        return SegmentCycleIndeterminacy::DEGENERATE_CYCLE;
-    }
-    predicate_tolerances = derive_predicate_tolerances(
-        length_scale,
-        tolerances
-    );
-    if (
-        tolerances.predicate_guard_factor * predicate_tolerances.parameter
-        >= 0.5
-    ) {
-        return SegmentCycleIndeterminacy::TOLERANCE_DOMAIN;
-    }
-    const double segment_length = norm(subtract(segment.end, segment.start));
-    if (segment_length <= predicate_tolerances.length) {
-        return SegmentCycleIndeterminacy::DEGENERATE_SEGMENT;
-    }
-    if (
-        segment_length
-        <= tolerances.predicate_guard_factor * predicate_tolerances.length
-    ) {
-        return SegmentCycleIndeterminacy::NUMERIC_BAND;
-    }
-    return std::nullopt;
-}
-
-
 SegmentCycleRelation undetermined_relation(
     const Segment3& segment,
     const PreparedPlanarCycle& cycle,
@@ -157,24 +110,66 @@ SegmentCycleRelation undetermined_relation(
 }  // namespace
 
 
-std::optional<ClosestCycleEdge> closest_cycle_edge(
-    const PreparedPlanarCycle& cycle,
-    const Segment3& segment
+namespace detail {
+
+
+SegmentCycleQuery prepare_segment_cycle_query(
+    const Segment3& segment,
+    ArrayView<Point3> cycle,
+    const NumericTolerances& tolerances
 ) {
-    const ArrayView<Point3> coordinates(cycle.coordinates);
-    detail::require_cycle(coordinates);
-    const NumericTolerances& tolerances = cycle.tolerances;
+    require_cycle(cycle);
+    if (!finite(segment.start) || !finite(segment.end) || !all_finite(cycle)) {
+        return {std::nullopt, SegmentCycleIndeterminacy::NONFINITE_INPUT};
+    }
+    const double length_scale = segment_cycle_length_scale(segment, cycle);
+    if (!std::isfinite(length_scale)) {
+        return {std::nullopt, SegmentCycleIndeterminacy::NUMERIC_BAND};
+    }
+    if (length_scale <= tolerances.absolute_length) {
+        return {std::nullopt, SegmentCycleIndeterminacy::DEGENERATE_CYCLE};
+    }
+    const PredicateTolerances predicate_tolerances =
+        derive_predicate_tolerances(length_scale, tolerances);
     if (
-        !all_finite(coordinates)
-        || !finite(segment.start)
-        || !finite(segment.end)
+        tolerances.predicate_guard_factor * predicate_tolerances.parameter
+        >= 0.5
     ) {
+        return {
+            predicate_tolerances,
+            SegmentCycleIndeterminacy::TOLERANCE_DOMAIN,
+        };
+    }
+    const double segment_length = norm(subtract(segment.end, segment.start));
+    if (segment_length <= predicate_tolerances.length) {
+        return {
+            predicate_tolerances,
+            SegmentCycleIndeterminacy::DEGENERATE_SEGMENT,
+        };
+    }
+    if (
+        segment_length
+        <= tolerances.predicate_guard_factor * predicate_tolerances.length
+    ) {
+        return {
+            predicate_tolerances,
+            SegmentCycleIndeterminacy::NUMERIC_BAND,
+        };
+    }
+    return {predicate_tolerances, std::nullopt};
+}
+
+
+std::optional<ClosestCycleEdge> closest_cycle_edge(
+    ArrayView<Point3> cycle,
+    const Segment3& segment,
+    const NumericTolerances& tolerances
+) {
+    require_cycle(cycle);
+    if (!all_finite(cycle) || !finite(segment.start) || !finite(segment.end)) {
         return std::nullopt;
     }
-    const double length_scale = segment_cycle_length_scale(
-        segment,
-        coordinates
-    );
+    const double length_scale = segment_cycle_length_scale(segment, cycle);
     if (
         !std::isfinite(length_scale)
         || length_scale <= tolerances.absolute_length
@@ -186,14 +181,11 @@ std::optional<ClosestCycleEdge> closest_cycle_edge(
         tolerances
     ).length;
     std::vector<double> distances;
-    distances.reserve(coordinates.size());
+    distances.reserve(cycle.size());
     double minimum = std::numeric_limits<double>::infinity();
-    for (std::size_t index = 0; index < coordinates.size(); ++index) {
+    for (std::size_t index = 0; index < cycle.size(); ++index) {
         const double distance = segment_segment_distance(
-            {
-                coordinates[index],
-                coordinates[(index + 1) % coordinates.size()],
-            },
+            {cycle[index], cycle[(index + 1) % cycle.size()]},
             segment,
             tolerances
         );
@@ -217,22 +209,37 @@ std::optional<ClosestCycleEdge> closest_cycle_edge(
 }
 
 
+}  // namespace detail
+
+
+std::optional<ClosestCycleEdge> closest_cycle_edge(
+    const PreparedPlanarCycle& cycle,
+    const Segment3& segment
+) {
+    const ArrayView<Point3> coordinates(cycle.coordinates());
+    return detail::closest_cycle_edge(coordinates, segment, cycle.tolerances());
+}
+
+
 SegmentCycleRelation determine_planar_segment_cycle_relation(
     const Segment3& segment,
     const PreparedPlanarCycle& cycle
 ) {
-    detail::require_cycle(ArrayView<Point3>(cycle.coordinates));
-    const NumericTolerances& tolerances = cycle.tolerances;
-    PredicateTolerances predicate_tolerances{};
-    const std::optional<SegmentCycleIndeterminacy> query_cause = (
-        query_indeterminacy(segment, cycle, predicate_tolerances)
+    detail::require_cycle(ArrayView<Point3>(cycle.coordinates()));
+    const NumericTolerances& tolerances = cycle.tolerances();
+    const detail::SegmentCycleQuery query = detail::prepare_segment_cycle_query(
+        segment,
+        ArrayView<Point3>(cycle.coordinates()),
+        cycle.tolerances()
     );
-    if (query_cause.has_value()) {
-        return undetermined_relation(segment, cycle, *query_cause);
+    if (query.cause.has_value()) {
+        return undetermined_relation(segment, cycle, *query.cause);
     }
+    const PredicateTolerances& predicate_tolerances =
+        *query.predicate_tolerances;
     if (!cycle.has_planar_surface()) {
         const SegmentCycleIndeterminacy cause = (
-            cycle.planarity.kind == PlanarityKind::DEGENERATE
+            cycle.planarity().kind == PlanarityKind::DEGENERATE
             ? SegmentCycleIndeterminacy::DEGENERATE_CYCLE
             : SegmentCycleIndeterminacy::NUMERIC_BAND
         );
@@ -243,7 +250,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
         cycle,
         segment
     );
-    if (cycle.simplicity == PolygonSimplicity::SELF_INTERSECTING) {
+    if (cycle.simplicity() == PolygonSimplicity::SELF_INTERSECTING) {
         SurfaceFamilyEvidence evidence = empty_evidence(true);
         evidence.enumerated_surface_count = 1;
         evidence.proven_non_embedded_surface_count = 1;
@@ -257,7 +264,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             evidence,
         };
     }
-    if (cycle.simplicity == PolygonSimplicity::UNDETERMINED) {
+    if (cycle.simplicity() == PolygonSimplicity::UNDETERMINED) {
         SurfaceFamilyEvidence evidence = empty_evidence(true);
         evidence.enumerated_surface_count = 1;
         evidence.construction_undetermined_count = 1;
@@ -272,8 +279,8 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
         };
     }
 
-    const Point3& normal = *cycle.planarity.normal;
-    const Point3& origin = cycle.planarity.centroid;
+    const Point3& normal = *cycle.planarity().normal;
+    const Point3& origin = cycle.planarity().centroid;
     const Point3 direction = subtract(segment.end, segment.start);
     const double start_height = dot(normal, subtract(segment.start, origin));
     const double end_height = dot(normal, subtract(segment.end, origin));
@@ -296,7 +303,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
         const auto [has_contact, contact_undetermined] = (
             projected_segment_polygon_contact(
                 projected_segment,
-                ArrayView<Point2>(cycle.projection),
+                ArrayView<Point2>(cycle.projection()),
                 predicate_tolerances,
                 tolerances
             )
@@ -339,7 +346,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             );
             const PointCycleLocation location = locate_projected_point(
                 project_point_to_plane(point, origin, normal),
-                ArrayView<Point2>(cycle.projection),
+                ArrayView<Point2>(cycle.projection()),
                 predicate_tolerances,
                 tolerances
             );
@@ -355,7 +362,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
                     features,
                     point_boundary_feature(
                         point,
-                        ArrayView<Point3>(cycle.coordinates),
+                        ArrayView<Point3>(cycle.coordinates()),
                         predicate_tolerances
                     )
                 );
@@ -376,7 +383,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             const Point3 point = add_scaled(segment.start, direction, parameter);
             const PointCycleLocation location = locate_projected_point(
                 project_point_to_plane(point, origin, normal),
-                ArrayView<Point2>(cycle.projection),
+                ArrayView<Point2>(cycle.projection()),
                 predicate_tolerances,
                 tolerances
             );
@@ -419,7 +426,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
                         features,
                         point_boundary_feature(
                             point,
-                            ArrayView<Point3>(cycle.coordinates),
+                            ArrayView<Point3>(cycle.coordinates()),
                             predicate_tolerances
                         )
                     );
@@ -457,7 +464,7 @@ std::vector<SegmentCycleRelation> planar_segment_cycle_relations(
     ArrayView<Segment3> segments,
     const PreparedPlanarCycle& cycle
 ) {
-    detail::require_cycle(ArrayView<Point3>(cycle.coordinates));
+    detail::require_cycle(ArrayView<Point3>(cycle.coordinates()));
     std::vector<SegmentCycleRelation> relations;
     relations.reserve(segments.size());
     for (const Segment3& segment : segments) {
@@ -474,18 +481,18 @@ std::vector<SegmentCycleScreening> planar_segment_cycle_screenings(
     ArrayView<Segment3> segments,
     const PreparedPlanarCycle& cycle
 ) {
-    detail::require_cycle(ArrayView<Point3>(cycle.coordinates));
+    detail::require_cycle(ArrayView<Point3>(cycle.coordinates()));
     std::vector<SegmentCycleScreening> screenings;
     screenings.reserve(segments.size());
     for (const Segment3& segment : segments) {
-        PredicateTolerances predicate_tolerances{};
-        const std::optional<SegmentCycleIndeterminacy> cause = query_indeterminacy(
-            segment,
-            cycle,
-            predicate_tolerances
-        );
+        const detail::SegmentCycleQuery query =
+            detail::prepare_segment_cycle_query(
+                segment,
+                ArrayView<Point3>(cycle.coordinates()),
+                cycle.tolerances()
+            );
         if (
-            !cause.has_value()
+            !query.cause.has_value()
             && cycle.has_simple_planar_surface()
         ) {
             const std::array<Point3, 2> endpoints = {
@@ -497,8 +504,8 @@ std::vector<SegmentCycleScreening> planar_segment_cycle_screenings(
                         endpoints.data(),
                         endpoints.size()
                     )),
-                    cycle.bounds,
-                    predicate_tolerances.aabb
+                    cycle.bounds(),
+                    query.predicate_tolerances->aabb
                 )) {
                 screenings.push_back({
                     PiercingState::DOES_NOT_PIERCE,

@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 
@@ -81,21 +82,75 @@ struct PlanarityMeasurement {
 };
 
 
-struct PreparedPlanarCycle {
-    std::vector<Point3> coordinates;
-    Aabb bounds;
-    PlanarityMeasurement planarity;
-    NumericTolerances tolerances;
-    std::vector<Point2> projection;
-    PolygonSimplicity simplicity;
+class PreparedPlanarCycle {
+public:
+    PreparedPlanarCycle(const PreparedPlanarCycle&) = default;
+    PreparedPlanarCycle(PreparedPlanarCycle&&) = default;
+    PreparedPlanarCycle& operator=(const PreparedPlanarCycle&) = delete;
+    PreparedPlanarCycle& operator=(PreparedPlanarCycle&&) = delete;
+
+    const std::vector<Point3>& coordinates() const noexcept {
+        return coordinates_;
+    }
+
+    const Aabb& bounds() const noexcept {
+        return bounds_;
+    }
+
+    const PlanarityMeasurement& planarity() const noexcept {
+        return planarity_;
+    }
+
+    const NumericTolerances& tolerances() const noexcept {
+        return tolerances_;
+    }
+
+    const std::vector<Point2>& projection() const noexcept {
+        return projection_;
+    }
+
+    PolygonSimplicity simplicity() const noexcept {
+        return simplicity_;
+    }
 
     bool has_planar_surface() const noexcept {
-        return planarity.kind == PlanarityKind::PLANAR;
+        return planarity_.kind == PlanarityKind::PLANAR;
     }
 
     bool has_simple_planar_surface() const noexcept {
-        return has_planar_surface() && simplicity == PolygonSimplicity::SIMPLE;
+        return (
+            has_planar_surface()
+            && simplicity_ == PolygonSimplicity::SIMPLE
+        );
     }
+
+private:
+    PreparedPlanarCycle(
+        std::vector<Point3> coordinates,
+        Aabb bounds,
+        PlanarityMeasurement planarity,
+        NumericTolerances tolerances,
+        std::vector<Point2> projection,
+        PolygonSimplicity simplicity
+    ) :
+        coordinates_(std::move(coordinates)),
+        bounds_(bounds),
+        planarity_(planarity),
+        tolerances_(tolerances),
+        projection_(std::move(projection)),
+        simplicity_(simplicity) {}
+
+    std::vector<Point3> coordinates_;
+    Aabb bounds_;
+    PlanarityMeasurement planarity_;
+    NumericTolerances tolerances_;
+    std::vector<Point2> projection_;
+    PolygonSimplicity simplicity_;
+
+    friend PreparedPlanarCycle prepare_planar_cycle(
+        ArrayView<Point3> cycle,
+        const NumericTolerances& tolerances
+    );
 };
 
 

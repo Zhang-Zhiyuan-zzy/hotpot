@@ -1,4 +1,5 @@
 #include "primitives.hpp"
+#include "vector_math.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -9,125 +10,20 @@
 namespace hotpot::geometry {
 namespace {
 
-
-constexpr double nan_value() noexcept {
-    return std::numeric_limits<double>::quiet_NaN();
-}
-
-
-Point3 subtract(const Point3& first, const Point3& second) noexcept {
-    return {
-        first[0] - second[0],
-        first[1] - second[1],
-        first[2] - second[2],
-    };
-}
+using detail::add_scaled;
+using detail::cross;
+using detail::diameter;
+using detail::dot;
+using detail::finite;
+using detail::nan_value;
+using detail::normalized;
+using detail::point_distance;
+using detail::scale_safe_norm;
+using detail::subtract;
 
 
-Point3 add_scaled(
-    const Point3& point,
-    const Point3& direction,
-    double scale
-) noexcept {
-    return {
-        point[0] + scale * direction[0],
-        point[1] + scale * direction[1],
-        point[2] + scale * direction[2],
-    };
-}
-
-
-double dot(const Point3& first, const Point3& second) noexcept {
-    return (
-        first[0] * second[0]
-        + first[1] * second[1]
-        + first[2] * second[2]
-    );
-}
-
-
-Point3 cross(const Point3& first, const Point3& second) noexcept {
-    return {
-        first[1] * second[2] - first[2] * second[1],
-        first[2] * second[0] - first[0] * second[2],
-        first[0] * second[1] - first[1] * second[0],
-    };
-}
-
-
-bool finite(const Point3& point) noexcept {
-    return (
-        std::isfinite(point[0])
-        && std::isfinite(point[1])
-        && std::isfinite(point[2])
-    );
-}
-
-
-double scale_safe_norm(const Point3& vector) noexcept {
-    const double maximum = std::max({
-        std::abs(vector[0]),
-        std::abs(vector[1]),
-        std::abs(vector[2]),
-    });
-    if (maximum == 0.0) {
-        return 0.0;
-    }
-    if (!std::isfinite(maximum)) {
-        return nan_value();
-    }
-    const double first = vector[0] / maximum;
-    const double second = vector[1] / maximum;
-    const double third = vector[2] / maximum;
-    return maximum * std::sqrt(
-        first * first + second * second + third * third
-    );
-}
-
-
-std::optional<Point3> normalized(const Point3& direction) noexcept {
-    if (!finite(direction)) {
-        return std::nullopt;
-    }
-    const double maximum = std::max({
-        std::abs(direction[0]),
-        std::abs(direction[1]),
-        std::abs(direction[2]),
-    });
-    if (maximum == 0.0) {
-        return std::nullopt;
-    }
-    const Point3 scaled = {
-        direction[0] / maximum,
-        direction[1] / maximum,
-        direction[2] / maximum,
-    };
-    const double length = scale_safe_norm(scaled);
-    return Point3{
-        scaled[0] / length,
-        scaled[1] / length,
-        scaled[2] / length,
-    };
-}
-
-
-double point_distance(const Point3& first, const Point3& second) noexcept {
-    if (!finite(first) || !finite(second)) {
-        return nan_value();
-    }
-    const Point3 difference = subtract(first, second);
-    return std::sqrt(dot(difference, difference));
-}
-
-
-double diameter(ArrayView<Point3> points) noexcept {
-    double result = 0.0;
-    for (std::size_t first = 0; first < points.size(); ++first) {
-        for (std::size_t second = first + 1; second < points.size(); ++second) {
-            result = std::max(result, point_distance(points[first], points[second]));
-        }
-    }
-    return result;
+double clamp_parameter(double value) noexcept {
+    return std::isnan(value) ? 0.0 : std::clamp(value, 0.0, 1.0);
 }
 
 
@@ -148,10 +44,8 @@ PointSegmentMeasurement point_segment_measurement_unchecked(
     }
 
     const double squared_length = dot(direction, direction);
-    const double parameter = std::clamp(
-        dot(subtract(point, segment.start), direction) / squared_length,
-        0.0,
-        1.0
+    const double parameter = clamp_parameter(
+        dot(subtract(point, segment.start), direction) / squared_length
     );
     const Point3 closest = add_scaled(segment.start, direction, parameter);
     return {
@@ -377,7 +271,7 @@ SegmentSegmentMeasurement segment_segment_measurement(
             point_segment_measurement_unchecked(
                 first.start,
                 second,
-                length_tolerance
+                0.0
             );
         return {
             measurement.distance,
@@ -394,7 +288,7 @@ SegmentSegmentMeasurement segment_segment_measurement(
             point_segment_measurement_unchecked(
                 second.start,
                 first,
-                length_tolerance
+                0.0
             );
         return {
             measurement.distance,
@@ -415,13 +309,11 @@ SegmentSegmentMeasurement segment_segment_measurement(
     );
     double first_parameter = 0.0;
     if (denominator != 0.0) {
-        first_parameter = std::clamp(
+        first_parameter = clamp_parameter(
             (
                 direction_dot * second_offset
                 - first_offset * second_squared
-            ) / denominator,
-            0.0,
-            1.0
+            ) / denominator
         );
     }
     double second_parameter = (
@@ -429,17 +321,11 @@ SegmentSegmentMeasurement segment_segment_measurement(
     ) / second_squared;
     if (second_parameter < 0.0) {
         second_parameter = 0.0;
-        first_parameter = std::clamp(
-            -first_offset / first_squared,
-            0.0,
-            1.0
-        );
+        first_parameter = clamp_parameter(-first_offset / first_squared);
     } else if (second_parameter > 1.0) {
         second_parameter = 1.0;
-        first_parameter = std::clamp(
-            (direction_dot - first_offset) / first_squared,
-            0.0,
-            1.0
+        first_parameter = clamp_parameter(
+            (direction_dot - first_offset) / first_squared
         );
     }
 

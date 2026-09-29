@@ -1,4 +1,6 @@
+#include "cycle_surface.hpp"
 #include "primitives.hpp"
+#include "segment_cycle.hpp"
 #include "spatial.hpp"
 #include "tolerances.hpp"
 #include "types.hpp"
@@ -41,6 +43,11 @@ const Value* require_array(
             std::string(name) + " has an unexpected number of dimensions"
         );
     }
+    if (
+        reinterpret_cast<std::uintptr_t>(array.data()) % alignof(Value) != 0
+    ) {
+        throw py::value_error(std::string(name) + " must be memory-aligned");
+    }
     return static_cast<const Value*>(array.data());
 }
 
@@ -69,6 +76,17 @@ std::vector<Point3> read_points(const py::array& array, const char* name) {
         });
     }
     return points;
+}
+
+
+std::vector<Point3> read_cycle(const py::array& array, const char* name) {
+    std::vector<Point3> cycle = read_points(array, name);
+    if (cycle.size() < detail::minimum_cycle_vertex_count) {
+        throw py::value_error(
+            std::string(name) + " requires at least three vertices"
+        );
+    }
+    return cycle;
 }
 
 
@@ -227,6 +245,42 @@ py::array_t<std::int64_t> index_pair_array(
 }
 
 
+py::tuple point_tuple(const Point3& point) {
+    return py::make_tuple(point[0], point[1], point[2]);
+}
+
+
+py::tuple point2_tuple(const Point2& point) {
+    return py::make_tuple(point[0], point[1]);
+}
+
+
+py::list point_list(const std::vector<Point3>& points) {
+    py::list result;
+    for (const Point3& point : points) {
+        result.append(point_tuple(point));
+    }
+    return result;
+}
+
+
+py::list point2_list(const std::vector<Point2>& points) {
+    py::list result;
+    for (const Point2& point : points) {
+        result.append(point2_tuple(point));
+    }
+    return result;
+}
+
+
+py::object optional_point_tuple(const std::optional<Point3>& point) {
+    if (point.has_value()) {
+        return point_tuple(*point);
+    }
+    return py::none();
+}
+
+
 NumericTolerances make_tolerances(
     double absolute_length,
     double relative_length,
@@ -258,6 +312,222 @@ NumericTolerances make_tolerances(
 
 
 PYBIND11_MODULE(_geometry_native, module) {
+    py::enum_<PlanarityKind>(module, "PlanarityKind")
+        .value("PLANAR", PlanarityKind::PLANAR)
+        .value("NONPLANAR", PlanarityKind::NONPLANAR)
+        .value("DEGENERATE", PlanarityKind::DEGENERATE)
+        .value("UNDETERMINED", PlanarityKind::UNDETERMINED);
+
+    py::enum_<PolygonSimplicity>(module, "PolygonSimplicity")
+        .value("SIMPLE", PolygonSimplicity::SIMPLE)
+        .value("SELF_INTERSECTING", PolygonSimplicity::SELF_INTERSECTING)
+        .value("UNDETERMINED", PolygonSimplicity::UNDETERMINED);
+
+    py::enum_<PointCycleLocation>(module, "PointCycleLocation")
+        .value("INTERIOR", PointCycleLocation::INTERIOR)
+        .value("BOUNDARY", PointCycleLocation::BOUNDARY)
+        .value("EXTERIOR", PointCycleLocation::EXTERIOR)
+        .value("UNDETERMINED", PointCycleLocation::UNDETERMINED);
+
+    py::enum_<PiercingState>(module, "PiercingState")
+        .value("PIERCES", PiercingState::PIERCES)
+        .value("DOES_NOT_PIERCE", PiercingState::DOES_NOT_PIERCE)
+        .value("UNDETERMINED", PiercingState::UNDETERMINED);
+
+    py::enum_<SegmentCycleFeature>(module, "SegmentCycleFeature")
+        .value("TRANSVERSE_INTERIOR", SegmentCycleFeature::TRANSVERSE_INTERIOR)
+        .value(
+            "LINE_EXTENSION_INTERIOR",
+            SegmentCycleFeature::LINE_EXTENSION_INTERIOR
+        )
+        .value("CYCLE_EDGE_CONTACT", SegmentCycleFeature::CYCLE_EDGE_CONTACT)
+        .value(
+            "CYCLE_VERTEX_CONTACT",
+            SegmentCycleFeature::CYCLE_VERTEX_CONTACT
+        )
+        .value(
+            "SEGMENT_ENDPOINT_CONTACT",
+            SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT
+        )
+        .value("COPLANAR_CONTACT", SegmentCycleFeature::COPLANAR_CONTACT);
+
+    py::enum_<SegmentCycleIndeterminacy>(
+        module,
+        "SegmentCycleIndeterminacy"
+    )
+        .value(
+            "NONFINITE_INPUT",
+            SegmentCycleIndeterminacy::NONFINITE_INPUT
+        )
+        .value("NUMERIC_BAND", SegmentCycleIndeterminacy::NUMERIC_BAND)
+        .value(
+            "TOLERANCE_DOMAIN",
+            SegmentCycleIndeterminacy::TOLERANCE_DOMAIN
+        )
+        .value(
+            "DEGENERATE_CYCLE",
+            SegmentCycleIndeterminacy::DEGENERATE_CYCLE
+        )
+        .value(
+            "DEGENERATE_SEGMENT",
+            SegmentCycleIndeterminacy::DEGENERATE_SEGMENT
+        )
+        .value(
+            "DEGENERATE_TRIANGLE",
+            SegmentCycleIndeterminacy::DEGENERATE_TRIANGLE
+        )
+        .value(
+            "SELF_INTERSECTION",
+            SegmentCycleIndeterminacy::SELF_INTERSECTION
+        )
+        .value(
+            "SURFACE_DISAGREEMENT",
+            SegmentCycleIndeterminacy::SURFACE_DISAGREEMENT
+        )
+        .value(
+            "INCOMPLETE_SURFACE_FAMILY",
+            SegmentCycleIndeterminacy::INCOMPLETE_SURFACE_FAMILY
+        )
+        .value(
+            "SURFACE_CONSTRUCTION",
+            SegmentCycleIndeterminacy::SURFACE_CONSTRUCTION
+        );
+
+    py::enum_<CycleSurfaceModel>(module, "CycleSurfaceModel")
+        .value("PLANAR_POLYGON", CycleSurfaceModel::PLANAR_POLYGON)
+        .value(
+            "VERTEX_TRIANGULATION_FAMILY",
+            CycleSurfaceModel::VERTEX_TRIANGULATION_FAMILY
+        );
+
+    py::class_<PlanarityMeasurement>(module, "PlanarityMeasurement")
+        .def_readonly("kind", &PlanarityMeasurement::kind)
+        .def_property_readonly(
+            "centroid",
+            [](const PlanarityMeasurement& result) {
+                return point_tuple(result.centroid);
+            }
+        )
+        .def_property_readonly(
+            "normal",
+            [](const PlanarityMeasurement& result) {
+                return optional_point_tuple(result.normal);
+            }
+        )
+        .def_property_readonly(
+            "singular_values",
+            [](const PlanarityMeasurement& result) {
+                return point_tuple(result.singular_values);
+            }
+        )
+        .def_readonly(
+            "maximum_deviation",
+            &PlanarityMeasurement::maximum_deviation
+        )
+        .def_readonly("rms_deviation", &PlanarityMeasurement::rms_deviation)
+        .def_readonly("length_scale", &PlanarityMeasurement::length_scale)
+        .def_readonly(
+            "length_tolerance",
+            &PlanarityMeasurement::length_tolerance
+        );
+
+    py::class_<PreparedPlanarCycle>(module, "PreparedPlanarCycle")
+        .def_property_readonly(
+            "coordinates",
+            [](const PreparedPlanarCycle& cycle) {
+                return point_list(cycle.coordinates);
+            }
+        )
+        .def_readonly("planarity", &PreparedPlanarCycle::planarity)
+        .def_readonly("tolerances", &PreparedPlanarCycle::tolerances)
+        .def_property_readonly(
+            "projection",
+            [](const PreparedPlanarCycle& cycle) {
+                return point2_list(cycle.projection);
+            }
+        )
+        .def_readonly("simplicity", &PreparedPlanarCycle::simplicity)
+        .def_property_readonly(
+            "has_planar_surface",
+            &PreparedPlanarCycle::has_planar_surface
+        )
+        .def_property_readonly(
+            "has_simple_planar_surface",
+            &PreparedPlanarCycle::has_simple_planar_surface
+        );
+
+    py::class_<ClosestCycleEdge>(module, "ClosestCycleEdge")
+        .def_readonly("edge_index", &ClosestCycleEdge::edge_index)
+        .def_readonly("distance", &ClosestCycleEdge::distance);
+
+    py::class_<SurfaceFamilyEvidence>(module, "SurfaceFamilyEvidence")
+        .def_readonly(
+            "enumeration_complete",
+            &SurfaceFamilyEvidence::enumeration_complete
+        )
+        .def_readonly(
+            "enumerated_surface_count",
+            &SurfaceFamilyEvidence::enumerated_surface_count
+        )
+        .def_readonly(
+            "embedded_surface_count",
+            &SurfaceFamilyEvidence::embedded_surface_count
+        )
+        .def_readonly(
+            "proven_non_embedded_surface_count",
+            &SurfaceFamilyEvidence::proven_non_embedded_surface_count
+        )
+        .def_readonly(
+            "construction_undetermined_count",
+            &SurfaceFamilyEvidence::construction_undetermined_count
+        )
+        .def_readonly(
+            "intersecting_surface_count",
+            &SurfaceFamilyEvidence::intersecting_surface_count
+        )
+        .def_readonly(
+            "non_piercing_surface_count",
+            &SurfaceFamilyEvidence::non_piercing_surface_count
+        )
+        .def_readonly(
+            "evaluation_undetermined_count",
+            &SurfaceFamilyEvidence::evaluation_undetermined_count
+        )
+        .def_readonly(
+            "segment_triangle_tests_used",
+            &SurfaceFamilyEvidence::segment_triangle_tests_used
+        )
+        .def_readonly(
+            "triangle_pair_tests_used",
+            &SurfaceFamilyEvidence::triangle_pair_tests_used
+        );
+
+    py::class_<SegmentCycleRelation>(module, "SegmentCycleRelation")
+        .def_readonly("state", &SegmentCycleRelation::state)
+        .def_readonly("features", &SegmentCycleRelation::features)
+        .def_readonly(
+            "indeterminacy_causes",
+            &SegmentCycleRelation::indeterminacy_causes
+        )
+        .def_readonly("surface_model", &SegmentCycleRelation::surface_model)
+        .def_property_readonly(
+            "intersection_points",
+            [](const SegmentCycleRelation& relation) {
+                return point_list(relation.intersection_points);
+            }
+        )
+        .def_readonly(
+            "closest_boundary_edge",
+            &SegmentCycleRelation::closest_boundary_edge
+        )
+        .def_readonly("surface_evidence", &SegmentCycleRelation::surface_evidence);
+
+    py::class_<SegmentCycleScreening>(module, "SegmentCycleScreening")
+        .def_readonly("state", &SegmentCycleScreening::state)
+        .def_readonly("relation", &SegmentCycleScreening::relation)
+        .def_readonly("aabb_separated", &SegmentCycleScreening::aabb_separated)
+        .def_readonly("surface_complete", &SegmentCycleScreening::surface_complete);
+
     module.doc() = (
         "Open-Babel-independent C++ geometry kernels for Hotpot"
     );
@@ -268,8 +538,7 @@ PYBIND11_MODULE(_geometry_native, module) {
         .value("COINCIDENT", LineRelationKind::COINCIDENT)
         .value("SKEW", LineRelationKind::SKEW)
         .value("DEGENERATE", LineRelationKind::DEGENERATE)
-        .value("UNDETERMINED", LineRelationKind::UNDETERMINED)
-        .export_values();
+        .value("UNDETERMINED", LineRelationKind::UNDETERMINED);
 
     py::class_<NumericTolerances>(module, "NumericTolerances")
         .def(
@@ -316,9 +585,11 @@ PYBIND11_MODULE(_geometry_native, module) {
         "PointSegmentMeasurement"
     )
         .def_readonly("distance", &PointSegmentMeasurement::distance)
-        .def_readonly(
+        .def_property_readonly(
             "closest_point",
-            &PointSegmentMeasurement::closest_point
+            [](const PointSegmentMeasurement& result) {
+                return point_tuple(result.closest_point);
+            }
         )
         .def_readonly("parameter", &PointSegmentMeasurement::parameter)
         .def_readonly(
@@ -331,13 +602,17 @@ PYBIND11_MODULE(_geometry_native, module) {
         "SegmentSegmentMeasurement"
     )
         .def_readonly("distance", &SegmentSegmentMeasurement::distance)
-        .def_readonly(
+        .def_property_readonly(
             "first_closest_point",
-            &SegmentSegmentMeasurement::first_closest_point
+            [](const SegmentSegmentMeasurement& result) {
+                return point_tuple(result.first_closest_point);
+            }
         )
-        .def_readonly(
+        .def_property_readonly(
             "second_closest_point",
-            &SegmentSegmentMeasurement::second_closest_point
+            [](const SegmentSegmentMeasurement& result) {
+                return point_tuple(result.second_closest_point);
+            }
         )
         .def_readonly(
             "first_parameter",
@@ -355,6 +630,127 @@ PYBIND11_MODULE(_geometry_native, module) {
             "second_segment_degenerate",
             &SegmentSegmentMeasurement::second_segment_degenerate
         );
+
+    module.def(
+        "measure_planarity",
+        [](const py::array& cycle, const NumericTolerances& tolerances) {
+            const std::vector<Point3> coordinates = read_cycle(cycle, "cycle");
+            py::gil_scoped_release release;
+            return measure_planarity(ArrayView<Point3>(coordinates), tolerances);
+        },
+        py::arg("cycle"),
+        py::arg("tolerances")
+    );
+
+    module.def(
+        "prepare_planar_cycle",
+        [](const py::array& cycle, const NumericTolerances& tolerances) {
+            const std::vector<Point3> coordinates = read_cycle(cycle, "cycle");
+            py::gil_scoped_release release;
+            return prepare_planar_cycle(ArrayView<Point3>(coordinates), tolerances);
+        },
+        py::arg("cycle"),
+        py::arg("tolerances")
+    );
+
+    module.def(
+        "locate_point_in_planar_cycle",
+        [](const py::array& point,
+           const PreparedPlanarCycle& cycle,
+           const py::array& plane_origin,
+           const py::array& plane_normal) {
+            const Point3 native_point = read_point(point, "point");
+            const Point3 origin = read_point(plane_origin, "plane_origin");
+            const Point3 normal = read_point(plane_normal, "plane_normal");
+            py::gil_scoped_release release;
+            return locate_point_in_planar_cycle(
+                native_point,
+                cycle,
+                origin,
+                normal
+            );
+        },
+        py::arg("point"),
+        py::arg("cycle"),
+        py::arg("plane_origin"),
+        py::arg("plane_normal")
+    );
+
+    module.def(
+        "closest_cycle_edge",
+        [](const PreparedPlanarCycle& cycle,
+           const py::array& segment_start,
+           const py::array& segment_end) {
+            const Segment3 segment{
+                read_point(segment_start, "segment_start"),
+                read_point(segment_end, "segment_end"),
+            };
+            py::gil_scoped_release release;
+            return closest_cycle_edge(
+                cycle,
+                segment
+            );
+        },
+        py::arg("cycle"),
+        py::arg("segment_start"),
+        py::arg("segment_end")
+    );
+
+    module.def(
+        "determine_planar_segment_cycle_relation",
+        [](const py::array& segment_start,
+           const py::array& segment_end,
+           const PreparedPlanarCycle& cycle) {
+            const Segment3 segment{
+                read_point(segment_start, "segment_start"),
+                read_point(segment_end, "segment_end"),
+            };
+            py::gil_scoped_release release;
+            return determine_planar_segment_cycle_relation(
+                segment,
+                cycle
+            );
+        },
+        py::arg("segment_start"),
+        py::arg("segment_end"),
+        py::arg("cycle")
+    );
+
+    module.def(
+        "planar_segment_cycle_relations",
+        [](const py::array& segments,
+           const PreparedPlanarCycle& cycle) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            py::gil_scoped_release release;
+            return planar_segment_cycle_relations(
+                ArrayView<Segment3>(native_segments),
+                cycle
+            );
+        },
+        py::arg("segments"),
+        py::arg("cycle")
+    );
+
+    module.def(
+        "planar_segment_cycle_screenings",
+        [](const py::array& segments,
+           const PreparedPlanarCycle& cycle) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            py::gil_scoped_release release;
+            return planar_segment_cycle_screenings(
+                ArrayView<Segment3>(native_segments),
+                cycle
+            );
+        },
+        py::arg("segments"),
+        py::arg("cycle")
+    );
 
     module.def(
         "determine_line_relation",

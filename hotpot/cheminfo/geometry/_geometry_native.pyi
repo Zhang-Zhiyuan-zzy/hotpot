@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -10,6 +10,59 @@ class LineRelationKind:
     SKEW: "LineRelationKind"
     DEGENERATE: "LineRelationKind"
     UNDETERMINED: "LineRelationKind"
+
+
+class PlanarityKind:
+    PLANAR: "PlanarityKind"
+    NONPLANAR: "PlanarityKind"
+    DEGENERATE: "PlanarityKind"
+    UNDETERMINED: "PlanarityKind"
+
+
+class PolygonSimplicity:
+    SIMPLE: "PolygonSimplicity"
+    SELF_INTERSECTING: "PolygonSimplicity"
+    UNDETERMINED: "PolygonSimplicity"
+
+
+class PointCycleLocation:
+    INTERIOR: "PointCycleLocation"
+    BOUNDARY: "PointCycleLocation"
+    EXTERIOR: "PointCycleLocation"
+    UNDETERMINED: "PointCycleLocation"
+
+
+class PiercingState:
+    PIERCES: "PiercingState"
+    DOES_NOT_PIERCE: "PiercingState"
+    UNDETERMINED: "PiercingState"
+
+
+class SegmentCycleFeature:
+    TRANSVERSE_INTERIOR: "SegmentCycleFeature"
+    LINE_EXTENSION_INTERIOR: "SegmentCycleFeature"
+    CYCLE_EDGE_CONTACT: "SegmentCycleFeature"
+    CYCLE_VERTEX_CONTACT: "SegmentCycleFeature"
+    SEGMENT_ENDPOINT_CONTACT: "SegmentCycleFeature"
+    COPLANAR_CONTACT: "SegmentCycleFeature"
+
+
+class SegmentCycleIndeterminacy:
+    NONFINITE_INPUT: "SegmentCycleIndeterminacy"
+    NUMERIC_BAND: "SegmentCycleIndeterminacy"
+    TOLERANCE_DOMAIN: "SegmentCycleIndeterminacy"
+    DEGENERATE_CYCLE: "SegmentCycleIndeterminacy"
+    DEGENERATE_SEGMENT: "SegmentCycleIndeterminacy"
+    DEGENERATE_TRIANGLE: "SegmentCycleIndeterminacy"
+    SELF_INTERSECTION: "SegmentCycleIndeterminacy"
+    SURFACE_DISAGREEMENT: "SegmentCycleIndeterminacy"
+    INCOMPLETE_SURFACE_FAMILY: "SegmentCycleIndeterminacy"
+    SURFACE_CONSTRUCTION: "SegmentCycleIndeterminacy"
+
+
+class CycleSurfaceModel:
+    PLANAR_POLYGON: "CycleSurfaceModel"
+    VERTEX_TRIANGULATION_FAMILY: "CycleSurfaceModel"
 
 
 class NumericTolerances:
@@ -58,6 +111,108 @@ class SegmentSegmentMeasurement:
     second_parameter: float
     first_segment_degenerate: bool
     second_segment_degenerate: bool
+
+
+class PlanarityMeasurement:
+    kind: PlanarityKind
+    centroid: Tuple[float, float, float]
+    normal: Optional[Tuple[float, float, float]]
+    singular_values: Tuple[float, float, float]
+    maximum_deviation: float
+    rms_deviation: float
+    length_scale: float
+    length_tolerance: float
+
+
+class PreparedPlanarCycle:
+    coordinates: List[Tuple[float, float, float]]
+    planarity: PlanarityMeasurement
+    tolerances: NumericTolerances
+    projection: List[Tuple[float, float]]
+    simplicity: PolygonSimplicity
+    has_planar_surface: bool
+    has_simple_planar_surface: bool
+
+
+class ClosestCycleEdge:
+    edge_index: int
+    distance: float
+
+
+class SurfaceFamilyEvidence:
+    enumeration_complete: bool
+    enumerated_surface_count: int
+    embedded_surface_count: int
+    proven_non_embedded_surface_count: int
+    construction_undetermined_count: int
+    intersecting_surface_count: int
+    non_piercing_surface_count: int
+    evaluation_undetermined_count: int
+    segment_triangle_tests_used: int
+    triangle_pair_tests_used: int
+
+
+class SegmentCycleRelation:
+    state: PiercingState
+    features: List[SegmentCycleFeature]
+    indeterminacy_causes: List[SegmentCycleIndeterminacy]
+    surface_model: Optional[CycleSurfaceModel]
+    intersection_points: List[Tuple[float, float, float]]
+    closest_boundary_edge: Optional[ClosestCycleEdge]
+    surface_evidence: SurfaceFamilyEvidence
+
+
+class SegmentCycleScreening:
+    state: PiercingState
+    relation: Optional[SegmentCycleRelation]
+    aabb_separated: bool
+    surface_complete: bool
+
+
+def measure_planarity(
+    cycle: np.ndarray,
+    tolerances: NumericTolerances,
+) -> PlanarityMeasurement: ...
+
+
+def prepare_planar_cycle(
+    cycle: np.ndarray,
+    tolerances: NumericTolerances,
+) -> PreparedPlanarCycle: ...
+
+
+def locate_point_in_planar_cycle(
+    point: np.ndarray,
+    cycle: PreparedPlanarCycle,
+    plane_origin: np.ndarray,
+    plane_normal: np.ndarray,
+) -> PointCycleLocation: ...
+
+
+def closest_cycle_edge(
+    cycle: PreparedPlanarCycle,
+    segment_start: np.ndarray,
+    segment_end: np.ndarray,
+) -> Optional[ClosestCycleEdge]: ...
+
+
+def determine_planar_segment_cycle_relation(
+    segment_start: np.ndarray,
+    segment_end: np.ndarray,
+    cycle: PreparedPlanarCycle,
+) -> SegmentCycleRelation: ...
+
+
+def planar_segment_cycle_relations(
+    segments: np.ndarray,
+    cycle: PreparedPlanarCycle,
+) -> List[SegmentCycleRelation]: ...
+
+
+def planar_segment_cycle_screenings(
+    segments: np.ndarray,
+    cycle: PreparedPlanarCycle,
+) -> List[SegmentCycleScreening]: ...
 
 
 def determine_line_relation(

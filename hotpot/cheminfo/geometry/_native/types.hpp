@@ -26,7 +26,9 @@ public:
         : data_(values.data()), size_(values.size()) {}
 
     const Value* begin() const noexcept { return data_; }
-    const Value* end() const noexcept { return data_ + size_; }
+    const Value* end() const noexcept {
+        return size_ == 0 ? data_ : data_ + size_;
+    }
     const Value& operator[](std::size_t index) const noexcept {
         return data_[index];
     }

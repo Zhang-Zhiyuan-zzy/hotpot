@@ -977,22 +977,25 @@ def _segment_triangle_relation(
     location = _classify_barycentric(
         barycentric, tolerances.parameter, guard
     )
-    if location in (
-        _TriangleHitKind.TRIANGLE_BOUNDARY,
-        _TriangleHitKind.UNDETERMINED,
-    ):
+    if location is _TriangleHitKind.UNDETERMINED:
         return _TriangleHit(location, point, barycentric)
     if location is _TriangleHitKind.SEPARATED:
         return _TriangleHit(location, point, barycentric)
 
     parameter_tolerance = tolerances.parameter
     if guard * parameter_tolerance < parameter < 1.0 - guard * parameter_tolerance:
-        return _TriangleHit(_TriangleHitKind.STRICT_INTERIOR, point, barycentric)
+        return _TriangleHit(location, point, barycentric)
     if abs(parameter) <= parameter_tolerance or abs(1.0 - parameter) <= parameter_tolerance:
         return _TriangleHit(_TriangleHitKind.SEGMENT_ENDPOINT, point, barycentric)
     if parameter < -guard * parameter_tolerance or parameter > 1.0 + guard * parameter_tolerance:
         return _TriangleHit(
-            _TriangleHitKind.LINE_EXTENSION_INTERIOR, point, barycentric
+            (
+                _TriangleHitKind.LINE_EXTENSION_INTERIOR
+                if location is _TriangleHitKind.STRICT_INTERIOR
+                else _TriangleHitKind.SEPARATED
+            ),
+            point,
+            barycentric,
         )
     return _TriangleHit(_TriangleHitKind.UNDETERMINED, point, barycentric)
 

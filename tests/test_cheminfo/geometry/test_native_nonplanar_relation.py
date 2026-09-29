@@ -1,7 +1,7 @@
 """Differential fence for native nonplanar segment--cycle relations."""
 
-from dataclasses import replace
 import math
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -191,6 +191,21 @@ def test_native_nonplanar_batch_budget_resets_for_each_segment():
     for expected_relation, actual_relation in zip(expected, actual):
         _assert_relation_equal(expected_relation, actual_relation)
         assert actual_relation.surface_evidence.segment_triangle_tests_used == 1
+
+
+def test_triangle_boundary_on_line_extension_is_not_finite_segment_contact():
+    segment = Segment((0, 1, 1), (0, 1, 2))
+
+    expected = determine_segment_cycle_relation(segment, WARPED_SQUARE)
+    actual = native._determine_nonplanar_segment_cycle_relation(
+        segment,
+        WARPED_SQUARE,
+    )
+
+    _assert_relation_equal(expected, actual)
+    assert expected.state.name == "DOES_NOT_PIERCE"
+    assert expected.features == frozenset()
+    assert expected.intersection_points == ()
 
 
 def test_raw_nonplanar_result_order_and_owned_settings_are_stable():

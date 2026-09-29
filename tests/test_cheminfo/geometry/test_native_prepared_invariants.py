@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.geometry import _geometry_native
-from hotpot.cheminfo.geometry import native
+from hotpot.cheminfo.geometry import _geometry_native, native
 from hotpot.cheminfo.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 

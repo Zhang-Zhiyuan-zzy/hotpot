@@ -199,8 +199,7 @@ TriangleHit segment_triangle_relation(
         guard
     );
     if (
-        location == TriangleHitKind::TRIANGLE_BOUNDARY
-        || location == TriangleHitKind::UNDETERMINED
+        location == TriangleHitKind::UNDETERMINED
         || location == TriangleHitKind::SEPARATED
     ) {
         return {location, point};
@@ -211,7 +210,7 @@ TriangleHit segment_triangle_relation(
         guard * parameter_tolerance < parameter
         && parameter < 1.0 - guard * parameter_tolerance
     ) {
-        return {TriangleHitKind::STRICT_INTERIOR, point};
+        return {location, point};
     }
     if (
         std::abs(parameter) <= parameter_tolerance
@@ -223,7 +222,12 @@ TriangleHit segment_triangle_relation(
         parameter < -guard * parameter_tolerance
         || parameter > 1.0 + guard * parameter_tolerance
     ) {
-        return {TriangleHitKind::LINE_EXTENSION_INTERIOR, point};
+        return {
+            location == TriangleHitKind::STRICT_INTERIOR
+                ? TriangleHitKind::LINE_EXTENSION_INTERIOR
+                : TriangleHitKind::SEPARATED,
+            point,
+        };
     }
     return {TriangleHitKind::UNDETERMINED, point};
 }

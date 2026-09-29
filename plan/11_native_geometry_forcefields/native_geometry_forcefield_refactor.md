@@ -549,8 +549,8 @@ ComplexSessionInput
 ├── ligand_bond_aromatic: uint8[B]
 ├── metal_indices: int32[K]
 ├── intended_coordination_bonds: int32[C, 2]
+├── intended_coordination_orders: float64[C]
 ├── intended_coordination_kinds: uint8[C]
-├── component_ids: int32[N]
 ├── optional_unit_cell: float64[6]
 └── session and stage options
 ```
@@ -563,6 +563,12 @@ Ligand covalent bonds and intended coordination bonds must be separate:
 - candidate rings must be perceived from the pre-addition topology;
 - the current Open Babel `MoleculeData` cannot silently encode every dative
   bond as an ordinary bond without losing Hotpot semantics.
+
+Ligand component membership is derived once inside C++ from the ligand-bond
+graph.  It is not accepted as a second caller-supplied source of graph truth.
+The intended coordination-bond records preserve directed metal/donor indices,
+bond order and bond kind; trajectory topology may canonicalize endpoint order
+only when it serializes a topology revision.
 
 The native session obtains Relevant Cycles directly from the existing C++ graph
 implementation. It must not substitute Open Babel ring perception.
@@ -580,6 +586,14 @@ ComplexOptimizationResult optimize_complex(
 );
 ```
 
+Two explicit factories establish the initial topology instead of inferring it
+from an ambiguous mask: `create_coordination_session(...)` starts with all
+intended coordination bonds inactive, while
+`create_optimization_session(...)` starts from an already assembled complex
+with those bonds active. The session is non-copyable and exposes neither its
+`OBMol` nor writable coordinate storage through Python. Component membership
+is derived from the ligand covalent graph when the session is created.
+
 Stage 1 retains its spawn-safe Python controller and calls the sole native
 Open Babel `build` and `single_optimize` backends.  Each migrated Stage 2/3
 computational entry is bound to Python.  Exact new names are frozen before
@@ -591,6 +605,11 @@ build_report = ff.build_complex3d(mol, ...)  # existing Stage 1 + Stage 2 facade
 optimization_report = ff.optimize_complex(mol, ...)  # existing Stage 3 facade
 workflow_report = ff.complexes_build(mol, ...)  # explicit three-stage composition
 ```
+
+Phase 5 introduces only real input, session, snapshot, option, result and
+trajectory round trips. It must not publish placeholder functions named
+`restore_coordination()` or `optimize_complex()` before their scientific
+controllers exist in Phase 7.
 
 The full-workflow fast path may enter one native coordinator after Stage 1.
 That coordinator only calls the independent Stage 2 and Stage 3 C++ functions
@@ -609,7 +628,7 @@ complex preserves the current working-copy and atomic-commit behaviour.
 ### 8.3 Stage and workflow outputs
 
 ```text
-LigandBuildResult
+BuildWorkerResult (existing Python Stage 1 contract)
 ├── coordinates
 ├── ligand_build_report
 └── optional ligand trajectory
@@ -640,17 +659,22 @@ ComplexWorkflowResult
     └── compact topology revisions or active-bond masks
 ```
 
-The internal retention policy is an enum rather than several booleans:
+The native frame-detail request is an enum rather than several booleans:
 
-- `NONE`: selected and terminal structures only;
-- `OPTIMIZATION`: Stage 2 relaxation, untangling and optimizer epoch frames;
+- `NONE`: no additional diagnostic attempt frames beyond the facts required by
+  the existing trajectory contract;
+- `OPTIMIZATION`: additionally retain optimizer epoch coordinates where the
+  existing `retain_epoch_history` contract requests them;
 - `ALL_ATTEMPTS`: additionally include the input structure and every placement
   proposal selected for exact evaluation.
 
-The existing public `save_movie=False/True` option maps to `NONE` and
-`OPTIMIZATION`; a separate explicit diagnostic option requests
-`ALL_ATTEMPTS`. This preserves the common low-memory path while allowing full
-visual diagnosis.
+The existing trajectory always records the events selected by
+`TrajectoryStart`; `save_movie` does not turn that factual record on or off.
+It currently controls conformer materialization and whether optimizer epoch
+history is requested.  Native batching must preserve this distinction.  The
+existing public `save_movie=False/True` option therefore controls epoch-frame
+detail and final materialization, while a separate explicit diagnostic option
+may request `ALL_ATTEMPTS` without changing which structure is selected.
 
 When `retain_frames=False`, C++ keeps only the current, selected, terminal and
 minimal rollback states. When enabled, raw coordinate storage is approximately
@@ -757,7 +781,7 @@ workflow may reuse native state, but no stage implicitly enters the next one:
 Stage 1 -- ligand construction
     spawned worker boundary retained
     build -> candidate relaxation -> ligand ring untangling
-    returns LigandBuildResult
+    returns the existing Python BuildWorkerResult
         |
         | explicit result; workflow may stop and inspect here
         v
@@ -863,9 +887,9 @@ No phase may mix a mathematical semantic change with a performance rewrite.
 
 ### Phase 5: native session and stage-contract seams
 
-- Add `ComplexSessionInput`, `LigandBuildResult`,
-  `CoordinationStageResult`, `ComplexOptimizationResult` and composed-result
-  contracts.
+- Add `ComplexSessionInput`, `CoordinationStageResult`,
+  `ComplexOptimizationResult` and composed-result contracts.  Stage 1 retains
+  its existing Python `BuildWorkerResult`/`ComplexBuildDiagnostics` contracts.
 - Reuse the existing molecule buffer fields and add separated intended
   coordination bonds, metal indices and component IDs.
 - Expose direct C++ and Python-bound entries for each migrated stage

@@ -153,13 +153,13 @@ def test_quad_surface_order_and_exact_consensus_counters_are_stable():
         ),
         (
             Segment((0.2, 0, 0), (1.5, 0, 0)),
-            PiercingState.UNDETERMINED,
+            PiercingState.DOES_NOT_PIERCE,
             frozenset({SegmentCycleFeature.COPLANAR_CONTACT}),
-            frozenset({SegmentCycleIndeterminacy.NUMERIC_BAND}),
+            frozenset(),
             (),
             0,
-            0,
             2,
+            0,
         ),
     ),
 )

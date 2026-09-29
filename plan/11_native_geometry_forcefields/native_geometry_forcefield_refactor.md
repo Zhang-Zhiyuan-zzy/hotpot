@@ -697,16 +697,16 @@ and actions are made by `forcefields/_native`.
 | Finite candidate | finite mask for the proposed point and relevant coordinates | non-finite candidates are unusable | discard candidate and count the reason |
 | Metal--non-donor atom | $d_{MA}=\|M-A\|$ | hard clash when $d_{MA}<\max(0.50\,\text{Å},0.55(r_M+r_A))$ | discard candidate |
 | Metal--ligand bond | point--segment distance, closest point and parameter $t$ | an interior contact with an unrelated covalent bond is a hard obstruction | discard candidate |
-| Other metal | point--point distance | apply the configured metal--metal exclusion model unless explicitly bridged | discard or downgrade according to declared topology |
+| Other metal | point--point distance | apply the same declared centre-clash rule; a separate metal--metal topology policy is outside this phase | discard a colliding placement candidate |
 | Local crowding | raw neighbour distances inside a broad-phase radius | compute radius-normalized crowding; it is not called an energy | use only for ranking |
-| Metal--donor distance | $d_i=\|M-D_i\|$ and ratio to a supplied scale | target provider chooses $d_i^*$; current broad reachability remains $0.65\le d_i/d_i^*\le1.60$ | mark each donor reachable/unreachable |
+| Metal--donor distance | $d_i=\|M-D_i\|$ and ratio to a supplied scale | target provider chooses $d_i^*$; current placement reachability remains $0.70\le d_i/d_i^*\le1.50$ | mark each donor reachable/unreachable |
 | Two-donor feasibility | sphere separation/intersection facts | required target shells must be mutually reachable in the frozen ligand frame | choose exact intersection seeds or mark the pair partial |
 | Multi-donor fit | residuals from sphere/trilateration candidates | evaluate required donor and chelate-group coverage | refine promising seeds and classify coverage |
 | M--D path versus atom | point--segment distance, closest point and $t$ | unrelated atoms obstruct only the interior path; the intended endpoint is excluded | reject that donor path or downgrade the candidate |
 | M--D path versus bond | segment--segment distance and both parameters | expected shared endpoint contact is allowed; an unrelated interior crossing is not | reject that donor path or downgrade the candidate |
 | M--D path versus ring | `PIERCES/DOES_NOT_PIERCE/UNDETERMINED` and evidence | `PIERCES` rejects the path; `UNDETERMINED` cannot be called safe | reject or classify as `PARTIAL`; record warning evidence |
 | Donor approach direction | $\angle(M-D_i-X)$ for donor neighbours | no universal N/O/S/π-donor hard threshold in this stage | soft ranking only |
-| Donor angular distribution | $\angle(D_i-M-D_j)$ and Gram/eigenvalue facts | without an explicit geometry template, do not impose tetrahedral/octahedral ideals | soft ranking; template policy remains optional |
+| Donor angular distribution | $\angle(D_i-M-D_j)$ and Gram/eigenvalue facts | without an explicit geometry template, do not impose tetrahedral/octahedral ideals | retain as evidence only; template policy remains optional |
 | Ligand/chelate-group coverage | index membership and reachable counts | a candidate covering one donor must not hide failure of another required group | determine `FULLY_FEASIBLE` versus `PARTIAL` |
 | Ring scope | relevant-cycle indices and sizes | placement uses ligand-skeleton rings; rings over 16 are reported but not repaired | select the native cycle workspace and warning codes |
 | Displacement | $\|M_{candidate}-M_{input}\|$ | equal-quality candidates should move the metal less | final tie-break |
@@ -734,9 +734,16 @@ Ranking is lexicographic, never a single opaque weighted score:
 6. worst donor-distance deviation;
 7. RMS donor-distance deviation;
 8. undetermined-relation count;
-9. angular dispersion as a tie-break only;
-10. displacement from the input position;
-11. deterministic proposal sequence.
+9. displacement from the input position;
+10. deterministic proposal sequence.
+
+The placement reachability interval above is deliberately distinct from the
+broader final-acceptance interval.  Changing either interval is a scientific
+policy change and must not be hidden inside this native migration.  Candidate
+zero is the input metal coordinate: when it is fully feasible it is retained
+bit-for-bit and no relocation proposals are generated.  Angular measurements
+may be reported as factual evidence but do not affect ranking until a separate
+coordination-template policy has been approved.
 
 ### 9.1 Candidate generation and action sequence
 

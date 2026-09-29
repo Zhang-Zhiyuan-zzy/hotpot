@@ -64,6 +64,9 @@ PreparedPlanarCycle = _native.PreparedPlanarCycle
 SurfaceEnumerationLimits = _native.SurfaceEnumerationLimits
 PreparedNonplanarSurfaceFamily = _native.PreparedNonplanarSurfaceFamily
 PreparedCycle = _native.PreparedCycle
+PreparedCycleBatch = _native.PreparedCycleBatch
+SegmentCycleBatch = _native.SegmentCycleBatch
+DetailLevel = _native.DetailLevel
 
 Coordinates = Union[Sequence[float], Point]
 BoundsInput = Union[np.ndarray, Sequence[Sequence[float]]]
@@ -79,6 +82,17 @@ def _aligned_array(values: ArrayValues, shape: Tuple[int, ...]) -> np.ndarray:
     return np.require(
         values,
         dtype=np.float64,
+        requirements=("C", "A"),
+    ).reshape(shape)
+
+
+def _aligned_index_array(
+    values: Union[np.ndarray, Sequence[int], Sequence[Sequence[int]]],
+    shape: Tuple[int, ...],
+) -> np.ndarray:
+    return np.require(
+        values,
+        dtype=np.int64,
         requirements=("C", "A"),
     ).reshape(shape)
 
@@ -220,6 +234,58 @@ def _prepare_cycle(
         _cycle_matrix(cycle),
         _native_tolerances(settings),
         _surface_enumeration_limits(settings),
+    )
+
+
+def _prepare_cycles(
+    coordinates: Iterable[Coordinates],
+    cycle_indices: Union[np.ndarray, Sequence[int]],
+    cycle_offsets: Union[np.ndarray, Sequence[int]],
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> PreparedCycleBatch:
+    """Prepare cycles from one coordinate table and CSR index arrays."""
+
+    return _native.prepare_cycles(
+        _point_matrix(coordinates),
+        _aligned_index_array(cycle_indices, (-1,)),
+        _aligned_index_array(cycle_offsets, (-1,)),
+        _native_tolerances(settings),
+        _surface_enumeration_limits(settings),
+    )
+
+
+def _determine_segment_cycle_relations(
+    cycles: PreparedCycleBatch,
+    segments: Iterable[Segment],
+    candidate_pairs: Union[np.ndarray, Sequence[Sequence[int]]],
+) -> Tuple[_native.SegmentCycleRelation, ...]:
+    """Return one exact native relation for every requested pair."""
+
+    return tuple(
+        _native.determine_segment_cycle_relations(
+            cycles,
+            _segment_batch(segments),
+            _aligned_index_array(candidate_pairs, (-1, 2)),
+        )
+    )
+
+
+def _screen_segments(
+    cycles: PreparedCycleBatch,
+    segments: Iterable[Segment],
+    candidate_pairs: Union[np.ndarray, Sequence[Sequence[int]]],
+    detail: DetailLevel,
+    *,
+    stop_after_confirmed: bool = False,
+) -> SegmentCycleBatch:
+    """Screen an ordered segment-cycle pair batch through native geometry."""
+
+    return _native.screen_segments(
+        cycles,
+        _segment_batch(segments),
+        _aligned_index_array(candidate_pairs, (-1, 2)),
+        detail,
+        stop_after_confirmed,
     )
 
 

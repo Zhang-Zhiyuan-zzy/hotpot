@@ -87,26 +87,6 @@ void add_cause(
 }
 
 
-SegmentCycleRelation undetermined_relation(
-    const Segment3& segment,
-    const PreparedPlanarCycle& cycle,
-    SegmentCycleIndeterminacy cause
-) {
-    return {
-        PiercingState::UNDETERMINED,
-        {},
-        {cause},
-        std::nullopt,
-        {},
-        closest_cycle_edge(
-            cycle,
-            segment
-        ),
-        empty_evidence(),
-    };
-}
-
-
 }  // namespace
 
 
@@ -221,19 +201,65 @@ std::optional<ClosestCycleEdge> closest_cycle_edge(
 }
 
 
-SegmentCycleRelation determine_planar_segment_cycle_relation(
+namespace {
+
+
+struct PlanarRelationDetails {
+    std::vector<SegmentCycleFeature> features;
+    std::vector<SegmentCycleIndeterminacy> causes;
+    std::vector<Point3> points;
+};
+
+
+struct PlanarRelationFacts {
+    PiercingState state;
+    std::optional<CycleSurfaceModel> surface_model;
+    SurfaceFamilyEvidence surface_evidence;
+};
+
+
+void record_feature(
+    PlanarRelationDetails* details,
+    SegmentCycleFeature feature
+) {
+    if (details != nullptr) {
+        add_feature(details->features, feature);
+    }
+}
+
+
+void record_cause(
+    PlanarRelationDetails* details,
+    SegmentCycleIndeterminacy cause
+) {
+    if (details != nullptr) {
+        add_cause(details->causes, cause);
+    }
+}
+
+
+void record_point(PlanarRelationDetails* details, const Point3& point) {
+    if (details != nullptr) {
+        details->points.push_back(point);
+    }
+}
+
+
+PlanarRelationFacts evaluate_planar_segment_cycle_relation(
     const Segment3& segment,
-    const PreparedPlanarCycle& cycle
+    const PreparedPlanarCycle& cycle,
+    const detail::SegmentCycleQuery& query,
+    PlanarRelationDetails* details
 ) {
     detail::require_cycle(ArrayView<Point3>(cycle.coordinates()));
     const NumericTolerances& tolerances = cycle.tolerances();
-    const detail::SegmentCycleQuery query = detail::prepare_segment_cycle_query(
-        segment,
-        ArrayView<Point3>(cycle.coordinates()),
-        cycle.tolerances()
-    );
     if (query.cause.has_value()) {
-        return undetermined_relation(segment, cycle, *query.cause);
+        record_cause(details, *query.cause);
+        return {
+            PiercingState::UNDETERMINED,
+            std::nullopt,
+            empty_evidence(),
+        };
     }
     const PredicateTolerances& predicate_tolerances =
         *query.predicate_tolerances;
@@ -243,24 +269,22 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             ? SegmentCycleIndeterminacy::DEGENERATE_CYCLE
             : SegmentCycleIndeterminacy::NUMERIC_BAND
         );
-        return undetermined_relation(segment, cycle, cause);
+        record_cause(details, cause);
+        return {
+            PiercingState::UNDETERMINED,
+            std::nullopt,
+            empty_evidence(),
+        };
     }
 
-    const std::optional<ClosestCycleEdge> closest = closest_cycle_edge(
-        cycle,
-        segment
-    );
     if (cycle.simplicity() == PolygonSimplicity::SELF_INTERSECTING) {
         SurfaceFamilyEvidence evidence = empty_evidence(true);
         evidence.enumerated_surface_count = 1;
         evidence.proven_non_embedded_surface_count = 1;
+        record_cause(details, SegmentCycleIndeterminacy::SELF_INTERSECTION);
         return {
             PiercingState::UNDETERMINED,
-            {},
-            {SegmentCycleIndeterminacy::SELF_INTERSECTION},
             CycleSurfaceModel::PLANAR_POLYGON,
-            {},
-            closest,
             evidence,
         };
     }
@@ -268,13 +292,10 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
         SurfaceFamilyEvidence evidence = empty_evidence(true);
         evidence.enumerated_surface_count = 1;
         evidence.construction_undetermined_count = 1;
+        record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
         return {
             PiercingState::UNDETERMINED,
-            {},
-            {SegmentCycleIndeterminacy::NUMERIC_BAND},
             CycleSurfaceModel::PLANAR_POLYGON,
-            {},
-            closest,
             evidence,
         };
     }
@@ -287,9 +308,6 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
     const double start_absolute = std::abs(start_height);
     const double end_absolute = std::abs(end_height);
     const double guard = tolerances.predicate_guard_factor;
-    std::vector<SegmentCycleFeature> features;
-    std::vector<SegmentCycleIndeterminacy> causes;
-    std::vector<Point3> points;
     PiercingState state = PiercingState::DOES_NOT_PIERCE;
 
     if (
@@ -309,10 +327,10 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             )
         );
         if (has_contact) {
-            add_feature(features, SegmentCycleFeature::COPLANAR_CONTACT);
+            record_feature(details, SegmentCycleFeature::COPLANAR_CONTACT);
         } else if (contact_undetermined) {
             state = PiercingState::UNDETERMINED;
-            add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+            record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
         }
     } else if (
         (
@@ -325,7 +343,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
         )
     ) {
         state = PiercingState::UNDETERMINED;
-        add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+        record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
     } else {
         const double height_difference = start_height - end_height;
         const bool one_endpoint = (
@@ -354,21 +372,26 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
                 location == PointCycleLocation::INTERIOR
                 || location == PointCycleLocation::BOUNDARY
             ) {
-                add_feature(features, SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT);
-                points.push_back(point);
+                record_feature(
+                    details,
+                    SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT
+                );
+                record_point(details, point);
             }
             if (location == PointCycleLocation::BOUNDARY) {
-                add_feature(
-                    features,
-                    point_boundary_feature(
-                        point,
-                        ArrayView<Point3>(cycle.coordinates()),
-                        predicate_tolerances
-                    )
-                );
+                if (details != nullptr) {
+                    record_feature(
+                        details,
+                        point_boundary_feature(
+                            point,
+                            ArrayView<Point3>(cycle.coordinates()),
+                            predicate_tolerances
+                        )
+                    );
+                }
             } else if (location == PointCycleLocation::UNDETERMINED) {
                 state = PiercingState::UNDETERMINED;
-                add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+                record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
             }
         } else if (std::abs(height_difference) <= predicate_tolerances.length) {
             // The segment and plane are stably separated.
@@ -377,7 +400,7 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             <= guard * predicate_tolerances.length
         ) {
             state = PiercingState::UNDETERMINED;
-            add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+            record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
         } else {
             const double parameter = start_height / height_difference;
             const Point3 point = add_scaled(segment.start, direction, parameter);
@@ -403,59 +426,168 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
             if (location == PointCycleLocation::INTERIOR) {
                 if (parameter_inside) {
                     state = PiercingState::PIERCES;
-                    add_feature(features, SegmentCycleFeature::TRANSVERSE_INTERIOR);
-                    points.push_back(point);
+                    record_feature(
+                        details,
+                        SegmentCycleFeature::TRANSVERSE_INTERIOR
+                    );
+                    record_point(details, point);
                 } else if (parameter_endpoint) {
-                    add_feature(
-                        features,
+                    record_feature(
+                        details,
                         SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT
                     );
-                    points.push_back(point);
+                    record_point(details, point);
                 } else if (parameter_outside) {
-                    add_feature(
-                        features,
+                    record_feature(
+                        details,
                         SegmentCycleFeature::LINE_EXTENSION_INTERIOR
                     );
                 } else {
                     state = PiercingState::UNDETERMINED;
-                    add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+                    record_cause(
+                        details,
+                        SegmentCycleIndeterminacy::NUMERIC_BAND
+                    );
                 }
             } else if (location == PointCycleLocation::BOUNDARY) {
                 if (parameter_inside || parameter_endpoint) {
-                    add_feature(
-                        features,
-                        point_boundary_feature(
-                            point,
-                            ArrayView<Point3>(cycle.coordinates()),
-                            predicate_tolerances
-                        )
-                    );
+                    if (details != nullptr) {
+                        record_feature(
+                            details,
+                            point_boundary_feature(
+                                point,
+                                ArrayView<Point3>(cycle.coordinates()),
+                                predicate_tolerances
+                            )
+                        );
+                    }
                     if (parameter_endpoint) {
-                        add_feature(
-                            features,
+                        record_feature(
+                            details,
                             SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT
                         );
                     }
-                    points.push_back(point);
+                    record_point(details, point);
                 } else if (!parameter_outside) {
                     state = PiercingState::UNDETERMINED;
-                    add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+                    record_cause(
+                        details,
+                        SegmentCycleIndeterminacy::NUMERIC_BAND
+                    );
                 }
             } else if (location == PointCycleLocation::UNDETERMINED) {
                 state = PiercingState::UNDETERMINED;
-                add_cause(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+                record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
             }
         }
     }
 
     return {
         state,
-        std::move(features),
-        std::move(causes),
         CycleSurfaceModel::PLANAR_POLYGON,
-        std::move(points),
-        closest,
         planar_evidence(state),
+    };
+}
+
+
+SegmentCycleRelation materialize_planar_relation(
+    const Segment3& segment,
+    const PreparedPlanarCycle& cycle,
+    const detail::SegmentCycleQuery& query
+) {
+    PlanarRelationDetails details;
+    const PlanarRelationFacts facts = evaluate_planar_segment_cycle_relation(
+        segment,
+        cycle,
+        query,
+        &details
+    );
+    return {
+        facts.state,
+        std::move(details.features),
+        std::move(details.causes),
+        facts.surface_model,
+        std::move(details.points),
+        closest_cycle_edge(cycle, segment),
+        facts.surface_evidence,
+    };
+}
+
+
+}  // namespace
+
+
+SegmentCycleRelation determine_planar_segment_cycle_relation(
+    const Segment3& segment,
+    const PreparedPlanarCycle& cycle
+) {
+    const detail::SegmentCycleQuery query = detail::prepare_segment_cycle_query(
+        segment,
+        ArrayView<Point3>(cycle.coordinates()),
+        cycle.tolerances()
+    );
+    return materialize_planar_relation(segment, cycle, query);
+}
+
+
+SegmentCycleScreening screen_planar_segment_cycle(
+    const Segment3& segment,
+    const PreparedPlanarCycle& cycle,
+    bool materialize_relation
+) {
+    const detail::SegmentCycleQuery query = detail::prepare_segment_cycle_query(
+        segment,
+        ArrayView<Point3>(cycle.coordinates()),
+        cycle.tolerances()
+    );
+    if (!query.cause.has_value() && cycle.has_simple_planar_surface()) {
+        const std::array<Point3, 2> endpoints = {
+            segment.start,
+            segment.end,
+        };
+        if (aabb_stably_separated(
+                aabb_bounds(ArrayView<Point3>(
+                    endpoints.data(),
+                    endpoints.size()
+                )),
+                cycle.bounds(),
+                query.predicate_tolerances->aabb
+            )) {
+            return {
+                PiercingState::DOES_NOT_PIERCE,
+                std::nullopt,
+                true,
+                true,
+            };
+        }
+    }
+    if (materialize_relation) {
+        SegmentCycleRelation relation = materialize_planar_relation(
+            segment,
+            cycle,
+            query
+        );
+        const PiercingState state = relation.state;
+        const bool surface_complete =
+            relation.surface_evidence.enumeration_complete;
+        return {
+            state,
+            std::move(relation),
+            false,
+            surface_complete,
+        };
+    }
+    const PlanarRelationFacts facts = evaluate_planar_segment_cycle_relation(
+        segment,
+        cycle,
+        query,
+        nullptr
+    );
+    return {
+        facts.state,
+        std::nullopt,
+        false,
+        facts.surface_evidence.enumeration_complete,
     };
 }
 
@@ -485,49 +617,7 @@ std::vector<SegmentCycleScreening> planar_segment_cycle_screenings(
     std::vector<SegmentCycleScreening> screenings;
     screenings.reserve(segments.size());
     for (const Segment3& segment : segments) {
-        const detail::SegmentCycleQuery query =
-            detail::prepare_segment_cycle_query(
-                segment,
-                ArrayView<Point3>(cycle.coordinates()),
-                cycle.tolerances()
-            );
-        if (
-            !query.cause.has_value()
-            && cycle.has_simple_planar_surface()
-        ) {
-            const std::array<Point3, 2> endpoints = {
-                segment.start,
-                segment.end,
-            };
-            if (aabb_stably_separated(
-                    aabb_bounds(ArrayView<Point3>(
-                        endpoints.data(),
-                        endpoints.size()
-                    )),
-                    cycle.bounds(),
-                    query.predicate_tolerances->aabb
-                )) {
-                screenings.push_back({
-                    PiercingState::DOES_NOT_PIERCE,
-                    std::nullopt,
-                    true,
-                    true,
-                });
-                continue;
-            }
-        }
-        SegmentCycleRelation relation = determine_planar_segment_cycle_relation(
-            segment,
-            cycle
-        );
-        const bool surface_complete = relation.surface_evidence.enumeration_complete;
-        const PiercingState state = relation.state;
-        screenings.push_back({
-            state,
-            std::move(relation),
-            false,
-            surface_complete,
-        });
+        screenings.push_back(screen_planar_segment_cycle(segment, cycle, true));
     }
     return screenings;
 }

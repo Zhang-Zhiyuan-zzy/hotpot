@@ -36,6 +36,7 @@ ext_modules = [
     Pybind11Extension(
         "hotpot.cheminfo.geometry._geometry_native",
         [
+            "hotpot/cheminfo/geometry/_native/batch.cpp",
             "hotpot/cheminfo/geometry/_native/bindings.cpp",
             "hotpot/cheminfo/geometry/_native/cycle_surface.cpp",
             "hotpot/cheminfo/geometry/_native/nonplanar_surface.cpp",

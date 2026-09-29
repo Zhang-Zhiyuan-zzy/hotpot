@@ -1,3 +1,4 @@
+#include "batch.hpp"
 #include "cycle_surface.hpp"
 #include "nonplanar_segment.hpp"
 #include "nonplanar_surface.hpp"
@@ -190,6 +191,52 @@ std::vector<IndexPair> read_index_pairs(
 }
 
 
+std::vector<std::size_t> read_indices(
+    const py::array& array,
+    const char* name
+) {
+    const std::int64_t* data = require_array<std::int64_t>(array, name, 1);
+    std::vector<std::size_t> indices;
+    indices.reserve(static_cast<std::size_t>(array.shape(0)));
+    for (py::ssize_t position = 0; position < array.shape(0); ++position) {
+        if (data[position] < 0) {
+            throw py::value_error(
+                std::string(name) + " contains a negative index"
+            );
+        }
+        indices.push_back(static_cast<std::size_t>(data[position]));
+    }
+    return indices;
+}
+
+
+std::vector<SegmentCyclePair> read_segment_cycle_pairs(
+    const py::array& array,
+    const char* name
+) {
+    const std::int64_t* data = require_array<std::int64_t>(array, name, 2);
+    if (array.shape(1) != 2) {
+        throw py::value_error(std::string(name) + " must have shape (N, 2)");
+    }
+    std::vector<SegmentCyclePair> pairs;
+    pairs.reserve(static_cast<std::size_t>(array.shape(0)));
+    for (py::ssize_t row = 0; row < array.shape(0); ++row) {
+        const std::int64_t segment_index = data[row * 2];
+        const std::int64_t cycle_index = data[row * 2 + 1];
+        if (segment_index < 0 || cycle_index < 0) {
+            throw py::value_error(
+                std::string(name) + " contains a negative index"
+            );
+        }
+        pairs.push_back({
+            static_cast<std::size_t>(segment_index),
+            static_cast<std::size_t>(cycle_index),
+        });
+    }
+    return pairs;
+}
+
+
 py::array_t<double> aabb_array(const Aabb& bounds) {
     py::array_t<double> array({std::size_t{2}, std::size_t{3}});
     std::memcpy(array.mutable_data(), bounds.minimum.data(), 3 * sizeof(double));
@@ -198,6 +245,25 @@ py::array_t<double> aabb_array(const Aabb& bounds) {
         bounds.maximum.data(),
         3 * sizeof(double)
     );
+    return array;
+}
+
+
+py::array_t<double> aabb_batch_array(const std::vector<Aabb>& bounds) {
+    py::array_t<double> array({
+        bounds.size(),
+        std::size_t{2},
+        std::size_t{3},
+    });
+    double* data = array.mutable_data();
+    for (std::size_t index = 0; index < bounds.size(); ++index) {
+        std::memcpy(data + index * 6, bounds[index].minimum.data(), 3 * sizeof(double));
+        std::memcpy(
+            data + index * 6 + 3,
+            bounds[index].maximum.data(),
+            3 * sizeof(double)
+        );
+    }
     return array;
 }
 
@@ -374,6 +440,20 @@ PYBIND11_MODULE(_geometry_native, module) {
         .value("PIERCES", PiercingState::PIERCES)
         .value("DOES_NOT_PIERCE", PiercingState::DOES_NOT_PIERCE)
         .value("UNDETERMINED", PiercingState::UNDETERMINED);
+
+    py::enum_<DetailLevel>(module, "DetailLevel")
+        .value("STATE_ONLY", DetailLevel::STATE_ONLY)
+        .value("ACTIONABLE", DetailLevel::ACTIONABLE)
+        .value("FULL", DetailLevel::FULL);
+
+    py::class_<SegmentCyclePair>(module, "SegmentCyclePair")
+        .def(
+            py::init<std::size_t, std::size_t>(),
+            py::arg("segment_index"),
+            py::arg("cycle_index")
+        )
+        .def_readonly("segment_index", &SegmentCyclePair::segment_index)
+        .def_readonly("cycle_index", &SegmentCyclePair::cycle_index);
 
     py::enum_<SegmentCycleFeature>(module, "SegmentCycleFeature")
         .value("TRANSVERSE_INTERIOR", SegmentCycleFeature::TRANSVERSE_INTERIOR)
@@ -609,6 +689,42 @@ PYBIND11_MODULE(_geometry_native, module) {
             &PreparedCycle::uses_nonplanar_surface_family
         );
 
+    py::class_<PreparedCycleBatch>(module, "PreparedCycleBatch")
+        .def_property_readonly(
+            "coordinate_count",
+            &PreparedCycleBatch::coordinate_count
+        )
+        .def_property_readonly(
+            "cycle_count",
+            &PreparedCycleBatch::cycle_count
+        )
+        .def_property_readonly(
+            "coordinates",
+            [](const PreparedCycleBatch& cycles) {
+                return point_list(cycles.coordinates());
+            }
+        )
+        .def_property_readonly(
+            "cycle_indices",
+            &PreparedCycleBatch::cycle_indices
+        )
+        .def_property_readonly(
+            "cycle_offsets",
+            &PreparedCycleBatch::cycle_offsets
+        )
+        .def_property_readonly(
+            "cycle_bounds",
+            [](const PreparedCycleBatch& cycles) {
+                return aabb_batch_array(cycles.cycle_bounds());
+            }
+        )
+        .def(
+            "cycle",
+            &PreparedCycleBatch::cycle,
+            py::arg("index"),
+            py::return_value_policy::reference_internal
+        );
+
     py::class_<ClosestCycleEdge>(module, "ClosestCycleEdge")
         .def_readonly("edge_index", &ClosestCycleEdge::edge_index)
         .def_readonly("distance", &ClosestCycleEdge::distance);
@@ -680,6 +796,59 @@ PYBIND11_MODULE(_geometry_native, module) {
         .def_readonly("relation", &SegmentCycleScreening::relation)
         .def_readonly("aabb_separated", &SegmentCycleScreening::aabb_separated)
         .def_readonly("surface_complete", &SegmentCycleScreening::surface_complete);
+
+    py::class_<SegmentCycleBatch>(module, "SegmentCycleBatch")
+        .def_property_readonly("detail", &SegmentCycleBatch::detail)
+        .def_property_readonly(
+            "requested_pair_count",
+            &SegmentCycleBatch::requested_pair_count
+        )
+        .def_property_readonly(
+            "evaluated_pair_count",
+            &SegmentCycleBatch::evaluated_pair_count
+        )
+        .def_property_readonly(
+            "aabb_separated_pair_count",
+            &SegmentCycleBatch::aabb_separated_pair_count
+        )
+        .def_property_readonly(
+            "exact_pair_count",
+            &SegmentCycleBatch::exact_pair_count
+        )
+        .def_property_readonly(
+            "piercing_pair_count",
+            &SegmentCycleBatch::piercing_pair_count
+        )
+        .def_property_readonly(
+            "does_not_pierce_pair_count",
+            &SegmentCycleBatch::does_not_pierce_pair_count
+        )
+        .def_property_readonly(
+            "undetermined_pair_count",
+            &SegmentCycleBatch::undetermined_pair_count
+        )
+        .def_property_readonly(
+            "scan_complete",
+            &SegmentCycleBatch::scan_complete
+        )
+        .def_property_readonly("states", &SegmentCycleBatch::states)
+        .def_property_readonly(
+            "aabb_separated",
+            [](const SegmentCycleBatch& result) {
+                return boolean_array(result.aabb_separated());
+            }
+        )
+        .def_property_readonly(
+            "surface_complete",
+            [](const SegmentCycleBatch& result) {
+                return boolean_array(result.surface_complete());
+            }
+        )
+        .def_property_readonly(
+            "relation_positions",
+            &SegmentCycleBatch::relation_positions
+        )
+        .def_property_readonly("relations", &SegmentCycleBatch::relations);
 
     module.doc() = (
         "Open-Babel-independent C++ geometry kernels for Hotpot"
@@ -840,6 +1009,93 @@ PYBIND11_MODULE(_geometry_native, module) {
         py::arg("cycle"),
         py::arg("tolerances"),
         py::arg("limits")
+    );
+
+    module.def(
+        "prepare_cycles",
+        [](const py::array& coordinates,
+           const py::array& cycle_indices,
+           const py::array& cycle_offsets,
+           const NumericTolerances& tolerances,
+           const SurfaceEnumerationLimits& limits) {
+            const std::vector<Point3> native_coordinates = read_points(
+                coordinates,
+                "coordinates"
+            );
+            const std::vector<std::size_t> native_indices = read_indices(
+                cycle_indices,
+                "cycle_indices"
+            );
+            const std::vector<std::size_t> native_offsets = read_indices(
+                cycle_offsets,
+                "cycle_offsets"
+            );
+            py::gil_scoped_release release;
+            return prepare_cycles(
+                ArrayView<Point3>(native_coordinates),
+                ArrayView<std::size_t>(native_indices),
+                ArrayView<std::size_t>(native_offsets),
+                tolerances,
+                limits
+            );
+        },
+        py::arg("coordinates"),
+        py::arg("cycle_indices"),
+        py::arg("cycle_offsets"),
+        py::arg("tolerances"),
+        py::arg("limits")
+    );
+
+    module.def(
+        "determine_segment_cycle_relations",
+        [](const PreparedCycleBatch& cycles,
+           const py::array& segments,
+           const py::array& candidate_pairs) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            const std::vector<SegmentCyclePair> native_pairs =
+                read_segment_cycle_pairs(candidate_pairs, "candidate_pairs");
+            py::gil_scoped_release release;
+            return determine_segment_cycle_relations(
+                cycles,
+                ArrayView<Segment3>(native_segments),
+                ArrayView<SegmentCyclePair>(native_pairs)
+            );
+        },
+        py::arg("cycles"),
+        py::arg("segments"),
+        py::arg("candidate_pairs")
+    );
+
+    module.def(
+        "screen_segments",
+        [](const PreparedCycleBatch& cycles,
+           const py::array& segments,
+           const py::array& candidate_pairs,
+           DetailLevel detail,
+           bool stop_after_confirmed) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            const std::vector<SegmentCyclePair> native_pairs =
+                read_segment_cycle_pairs(candidate_pairs, "candidate_pairs");
+            py::gil_scoped_release release;
+            return screen_segments(
+                cycles,
+                ArrayView<Segment3>(native_segments),
+                ArrayView<SegmentCyclePair>(native_pairs),
+                detail,
+                stop_after_confirmed
+            );
+        },
+        py::arg("cycles"),
+        py::arg("segments"),
+        py::arg("candidate_pairs"),
+        py::arg("detail"),
+        py::arg("stop_after_confirmed") = false
     );
 
     module.def(

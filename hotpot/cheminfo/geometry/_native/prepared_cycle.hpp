@@ -76,6 +76,11 @@ private:
         const Segment3& segment,
         const PreparedCycle& cycle
     );
+    friend SegmentCycleScreening screen_segment_cycle(
+        const Segment3& segment,
+        const PreparedCycle& cycle,
+        bool materialize_relation
+    );
     friend std::vector<SegmentCycleRelation> segment_cycle_relations(
         ArrayView<Segment3> segments,
         const PreparedCycle& cycle
@@ -103,6 +108,13 @@ std::optional<ClosestCycleEdge> closest_cycle_edge(
 SegmentCycleRelation determine_segment_cycle_relation(
     const Segment3& segment,
     const PreparedCycle& cycle
+);
+
+
+SegmentCycleScreening screen_segment_cycle(
+    const Segment3& segment,
+    const PreparedCycle& cycle,
+    bool materialize_relation
 );
 
 

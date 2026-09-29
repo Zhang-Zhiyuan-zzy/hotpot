@@ -49,6 +49,19 @@ class PiercingState:
     UNDETERMINED: "PiercingState"
 
 
+class DetailLevel:
+    STATE_ONLY: "DetailLevel"
+    ACTIONABLE: "DetailLevel"
+    FULL: "DetailLevel"
+
+
+class SegmentCyclePair:
+    segment_index: int
+    cycle_index: int
+
+    def __init__(self, segment_index: int, cycle_index: int) -> None: ...
+
+
 class SegmentCycleFeature:
     TRANSVERSE_INTERIOR: "SegmentCycleFeature"
     LINE_EXTENSION_INTERIOR: "SegmentCycleFeature"
@@ -207,6 +220,22 @@ class PreparedCycle:
     def uses_nonplanar_surface_family(self) -> bool: ...
 
 
+class PreparedCycleBatch:
+    @property
+    def coordinate_count(self) -> int: ...
+    @property
+    def cycle_count(self) -> int: ...
+    @property
+    def coordinates(self) -> List[Tuple[float, float, float]]: ...
+    @property
+    def cycle_indices(self) -> List[int]: ...
+    @property
+    def cycle_offsets(self) -> List[int]: ...
+    @property
+    def cycle_bounds(self) -> np.ndarray: ...
+    def cycle(self, index: int) -> PreparedCycle: ...
+
+
 class ClosestCycleEdge:
     edge_index: int
     distance: float
@@ -242,6 +271,37 @@ class SegmentCycleScreening:
     surface_complete: bool
 
 
+class SegmentCycleBatch:
+    @property
+    def detail(self) -> DetailLevel: ...
+    @property
+    def requested_pair_count(self) -> int: ...
+    @property
+    def evaluated_pair_count(self) -> int: ...
+    @property
+    def aabb_separated_pair_count(self) -> int: ...
+    @property
+    def exact_pair_count(self) -> int: ...
+    @property
+    def piercing_pair_count(self) -> int: ...
+    @property
+    def does_not_pierce_pair_count(self) -> int: ...
+    @property
+    def undetermined_pair_count(self) -> int: ...
+    @property
+    def scan_complete(self) -> bool: ...
+    @property
+    def states(self) -> List[PiercingState]: ...
+    @property
+    def aabb_separated(self) -> np.ndarray: ...
+    @property
+    def surface_complete(self) -> np.ndarray: ...
+    @property
+    def relation_positions(self) -> List[int]: ...
+    @property
+    def relations(self) -> List[SegmentCycleRelation]: ...
+
+
 def measure_planarity(
     cycle: np.ndarray,
     tolerances: NumericTolerances,
@@ -266,6 +326,31 @@ def prepare_cycle(
     tolerances: NumericTolerances,
     limits: SurfaceEnumerationLimits,
 ) -> PreparedCycle: ...
+
+
+def prepare_cycles(
+    coordinates: np.ndarray,
+    cycle_indices: np.ndarray,
+    cycle_offsets: np.ndarray,
+    tolerances: NumericTolerances,
+    limits: SurfaceEnumerationLimits,
+) -> PreparedCycleBatch: ...
+
+
+def determine_segment_cycle_relations(
+    cycles: PreparedCycleBatch,
+    segments: np.ndarray,
+    candidate_pairs: np.ndarray,
+) -> List[SegmentCycleRelation]: ...
+
+
+def screen_segments(
+    cycles: PreparedCycleBatch,
+    segments: np.ndarray,
+    candidate_pairs: np.ndarray,
+    detail: DetailLevel,
+    stop_after_confirmed: bool = False,
+) -> SegmentCycleBatch: ...
 
 
 def locate_point_in_planar_cycle(

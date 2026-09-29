@@ -22,11 +22,23 @@ enum class SurfaceSegmentState : std::uint8_t {
 };
 
 
-struct SurfaceSegmentResult {
+struct SurfaceSegmentFacts {
     SurfaceSegmentState state;
+    bool segment_triangle_budget_exhausted;
+};
+
+
+struct NonplanarRelationDetails {
     std::vector<SegmentCycleFeature> features;
     std::vector<SegmentCycleIndeterminacy> causes;
     std::vector<Point3> points;
+};
+
+
+struct NonplanarRelationFacts {
+    PiercingState state;
+    std::optional<CycleSurfaceModel> surface_model;
+    SurfaceFamilyEvidence surface_evidence;
 };
 
 
@@ -48,6 +60,36 @@ template <typename Value>
 void add_unique(std::vector<Value>& values, Value value) {
     if (std::find(values.begin(), values.end(), value) == values.end()) {
         values.push_back(value);
+    }
+}
+
+
+void record_feature(
+    NonplanarRelationDetails* details,
+    SegmentCycleFeature feature
+) {
+    if (details != nullptr) {
+        add_unique(details->features, feature);
+    }
+}
+
+
+void record_cause(
+    NonplanarRelationDetails* details,
+    SegmentCycleIndeterminacy cause
+) {
+    if (details != nullptr) {
+        add_unique(details->causes, cause);
+    }
+}
+
+
+void record_point(
+    NonplanarRelationDetails* details,
+    const Point3& point
+) {
+    if (details != nullptr) {
+        details->points.push_back(point);
     }
 }
 
@@ -193,18 +235,17 @@ std::pair<bool, bool> coplanar_segment_triangle_contact(
 }
 
 
-SurfaceSegmentResult determine_surface_segment_relation(
+SurfaceSegmentFacts determine_surface_segment_relation(
     const Segment3& segment,
     const PreparedSurfaceGeometry& surface,
     const PreparedNonplanarSurfaceFamily& family,
     const PredicateTolerances& predicate_tolerances,
-    SegmentTriangleCounters& counters
+    SegmentTriangleCounters& counters,
+    NonplanarRelationDetails* details
 ) {
-    std::vector<SegmentCycleFeature> features;
-    std::vector<SegmentCycleIndeterminacy> causes;
-    std::vector<Point3> points;
     bool confirmed_intersection = false;
     bool evaluation_undetermined = false;
+    bool segment_triangle_budget_exhausted = false;
     const double guard = family.tolerances().predicate_guard_factor;
     const ArrayView<Point3> cycle(family.coordinates());
 
@@ -213,11 +254,12 @@ SurfaceSegmentResult determine_surface_segment_relation(
             counters.tests
             >= family.limits().maximum_segment_triangle_tests
         ) {
-            add_unique(
-                causes,
+            record_cause(
+                details,
                 SegmentCycleIndeterminacy::INCOMPLETE_SURFACE_FAMILY
             );
             evaluation_undetermined = true;
+            segment_triangle_budget_exhausted = true;
             break;
         }
         ++counters.tests;
@@ -240,18 +282,21 @@ SurfaceSegmentResult determine_surface_segment_relation(
                     guard * predicate_tolerances.length
                 )) {
                 evaluation_undetermined = true;
-                add_unique(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+                record_cause(
+                    details,
+                    SegmentCycleIndeterminacy::NUMERIC_BAND
+                );
             } else {
                 confirmed_intersection = true;
-                add_unique(
-                    features,
+                record_feature(
+                    details,
                     SegmentCycleFeature::TRANSVERSE_INTERIOR
                 );
-                points.push_back(*hit.point);
+                record_point(details, *hit.point);
             }
         } else if (hit.kind == TriangleHitKind::LINE_EXTENSION_INTERIOR) {
-            add_unique(
-                features,
+            record_feature(
+                details,
                 SegmentCycleFeature::LINE_EXTENSION_INTERIOR
             );
         } else if (
@@ -265,17 +310,22 @@ SurfaceSegmentResult determine_surface_segment_relation(
                     guard * predicate_tolerances.length
                 )) {
                 evaluation_undetermined = true;
-                add_unique(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
-            } else {
-                add_unique(
-                    features,
-                    point_boundary_feature(
-                        *hit.point,
-                        cycle,
-                        predicate_tolerances.length
-                    )
+                record_cause(
+                    details,
+                    SegmentCycleIndeterminacy::NUMERIC_BAND
                 );
-                points.push_back(*hit.point);
+            } else {
+                if (details != nullptr) {
+                    record_feature(
+                        details,
+                        point_boundary_feature(
+                            *hit.point,
+                            cycle,
+                            predicate_tolerances.length
+                        )
+                    );
+                    record_point(details, *hit.point);
+                }
             }
         } else if (hit.kind == TriangleHitKind::SEGMENT_ENDPOINT) {
             if (hit.point.has_value()) {
@@ -284,19 +334,21 @@ SurfaceSegmentResult determine_surface_segment_relation(
                         cycle,
                         predicate_tolerances.length
                     )) {
-                    add_unique(
-                        features,
+                    record_feature(
+                        details,
                         SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT
                     );
-                    add_unique(
-                        features,
-                        point_boundary_feature(
-                            *hit.point,
-                            cycle,
-                            predicate_tolerances.length
-                        )
-                    );
-                    points.push_back(*hit.point);
+                    if (details != nullptr) {
+                        record_feature(
+                            details,
+                            point_boundary_feature(
+                                *hit.point,
+                                cycle,
+                                predicate_tolerances.length
+                            )
+                        );
+                        record_point(details, *hit.point);
+                    }
                 } else if (point_near_internal_edge(
                         *hit.point,
                         surface,
@@ -304,16 +356,16 @@ SurfaceSegmentResult determine_surface_segment_relation(
                         guard * predicate_tolerances.length
                     )) {
                     evaluation_undetermined = true;
-                    add_unique(
-                        causes,
+                    record_cause(
+                        details,
                         SegmentCycleIndeterminacy::NUMERIC_BAND
                     );
                 } else {
-                    add_unique(
-                        features,
+                    record_feature(
+                        details,
                         SegmentCycleFeature::SEGMENT_ENDPOINT_CONTACT
                     );
-                    points.push_back(*hit.point);
+                    record_point(details, *hit.point);
                 }
             }
         } else if (hit.kind == TriangleHitKind::COPLANAR) {
@@ -325,23 +377,26 @@ SurfaceSegmentResult determine_surface_segment_relation(
                     family.tolerances()
                 );
             if (has_contact) {
-                add_unique(
-                    features,
+                record_feature(
+                    details,
                     SegmentCycleFeature::COPLANAR_CONTACT
                 );
             } else if (contact_undetermined) {
                 evaluation_undetermined = true;
-                add_unique(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+                record_cause(
+                    details,
+                    SegmentCycleIndeterminacy::NUMERIC_BAND
+                );
             }
         } else if (hit.kind == TriangleHitKind::DEGENERATE) {
             evaluation_undetermined = true;
-            add_unique(
-                causes,
+            record_cause(
+                details,
                 SegmentCycleIndeterminacy::DEGENERATE_TRIANGLE
             );
         } else if (hit.kind == TriangleHitKind::UNDETERMINED) {
             evaluation_undetermined = true;
-            add_unique(causes, SegmentCycleIndeterminacy::NUMERIC_BAND);
+            record_cause(details, SegmentCycleIndeterminacy::NUMERIC_BAND);
         }
     }
 
@@ -353,9 +408,7 @@ SurfaceSegmentResult determine_surface_segment_relation(
     }
     return {
         state,
-        std::move(features),
-        std::move(causes),
-        merge_points(points, predicate_tolerances.merge),
+        segment_triangle_budget_exhausted,
     };
 }
 
@@ -373,34 +426,19 @@ SurfaceFamilyEvidence empty_evidence() noexcept {
 }
 
 
-SegmentCycleRelation undetermined_query_relation(
+NonplanarRelationFacts evaluate_prepared_relation(
     const Segment3& segment,
     const PreparedNonplanarSurfaceFamily& family,
-    SegmentCycleIndeterminacy cause
-) {
-    return {
-        PiercingState::UNDETERMINED,
-        {},
-        {cause},
-        std::nullopt,
-        {},
-        detail::closest_cycle_edge(
-            ArrayView<Point3>(family.coordinates()),
-            segment,
-            family.tolerances()
-        ),
-        empty_evidence(),
-    };
-}
-
-
-SegmentCycleRelation determine_prepared_relation(
-    const Segment3& segment,
-    const PreparedNonplanarSurfaceFamily& family,
-    const detail::SegmentCycleQuery& query
+    const detail::SegmentCycleQuery& query,
+    NonplanarRelationDetails* details
 ) {
     if (query.cause.has_value()) {
-        return undetermined_query_relation(segment, family, *query.cause);
+        record_cause(details, *query.cause);
+        return {
+            PiercingState::UNDETERMINED,
+            std::nullopt,
+            empty_evidence(),
+        };
     }
     const PredicateTolerances& predicate_tolerances =
         *query.predicate_tolerances;
@@ -409,31 +447,22 @@ SegmentCycleRelation determine_prepared_relation(
     std::size_t intersecting = 0;
     std::size_t non_piercing = 0;
     std::size_t evaluation_undetermined = 0;
-    std::vector<SegmentCycleFeature> features;
-    std::vector<SegmentCycleIndeterminacy> causes;
     for (const NonplanarSurfaceCause cause : family.causes()) {
-        add_unique(causes, map_surface_cause(cause));
+        record_cause(details, map_surface_cause(cause));
     }
-    std::vector<Point3> points;
     SegmentTriangleCounters counters;
 
     for (std::size_t ordinal = 0; ordinal < embedded; ++ordinal) {
         const std::size_t surface_index =
             family.embedded_surface_indices()[ordinal];
-        const SurfaceSegmentResult result = determine_surface_segment_relation(
+        const SurfaceSegmentFacts result = determine_surface_segment_relation(
             segment,
             family.surfaces()[surface_index],
             family,
             predicate_tolerances,
-            counters
+            counters,
+            details
         );
-        for (const SegmentCycleFeature feature : result.features) {
-            add_unique(features, feature);
-        }
-        for (const SegmentCycleIndeterminacy cause : result.causes) {
-            add_unique(causes, cause);
-        }
-        points.insert(points.end(), result.points.begin(), result.points.end());
         if (result.state == SurfaceSegmentState::INTERSECTING) {
             ++intersecting;
         } else if (result.state == SurfaceSegmentState::NON_PIERCING) {
@@ -441,14 +470,10 @@ SegmentCycleRelation determine_prepared_relation(
         } else {
             ++evaluation_undetermined;
         }
-        if (std::find(
-                result.causes.begin(),
-                result.causes.end(),
-                SegmentCycleIndeterminacy::INCOMPLETE_SURFACE_FAMILY
-            ) != result.causes.end()) {
+        if (result.segment_triangle_budget_exhausted) {
             enumeration_complete = false;
-            add_unique(
-                causes,
+            record_cause(
+                details,
                 SegmentCycleIndeterminacy::INCOMPLETE_SURFACE_FAMILY
             );
             evaluation_undetermined += embedded - ordinal - 1;
@@ -457,7 +482,10 @@ SegmentCycleRelation determine_prepared_relation(
     }
 
     if (intersecting > 0 && non_piercing > 0) {
-        add_unique(causes, SegmentCycleIndeterminacy::SURFACE_DISAGREEMENT);
+        record_cause(
+            details,
+            SegmentCycleIndeterminacy::SURFACE_DISAGREEMENT
+        );
     }
     const SurfaceFamilyEvidence evidence{
         enumeration_complete,
@@ -489,22 +517,50 @@ SegmentCycleRelation determine_prepared_relation(
         && non_piercing == embedded
     ) {
         state = PiercingState::DOES_NOT_PIERCE;
-    } else if (causes.empty()) {
-        add_unique(causes, SegmentCycleIndeterminacy::SURFACE_DISAGREEMENT);
+    } else if (details != nullptr && details->causes.empty()) {
+        record_cause(
+            details,
+            SegmentCycleIndeterminacy::SURFACE_DISAGREEMENT
+        );
     }
 
     return {
         state,
-        std::move(features),
-        std::move(causes),
         CycleSurfaceModel::VERTEX_TRIANGULATION_FAMILY,
-        merge_points(points, predicate_tolerances.merge),
+        evidence,
+    };
+}
+
+
+SegmentCycleRelation materialize_prepared_relation(
+    const Segment3& segment,
+    const PreparedNonplanarSurfaceFamily& family,
+    const detail::SegmentCycleQuery& query
+) {
+    NonplanarRelationDetails details;
+    const NonplanarRelationFacts facts = evaluate_prepared_relation(
+        segment,
+        family,
+        query,
+        &details
+    );
+    return {
+        facts.state,
+        std::move(details.features),
+        std::move(details.causes),
+        facts.surface_model,
+        merge_points(
+            details.points,
+            query.predicate_tolerances.has_value()
+                ? query.predicate_tolerances->merge
+                : 0.0
+        ),
         detail::closest_cycle_edge(
             ArrayView<Point3>(family.coordinates()),
             segment,
             family.tolerances()
         ),
-        evidence,
+        facts.surface_evidence,
     };
 }
 
@@ -524,7 +580,92 @@ SegmentCycleRelation determine_nonplanar_segment_cycle_relation(
             cycle,
             family.tolerances()
         );
-    return determine_prepared_relation(segment, family, query);
+    return materialize_prepared_relation(segment, family, query);
+}
+
+
+SegmentCycleScreening screen_nonplanar_segment_cycle(
+    const Segment3& segment,
+    const PreparedNonplanarSurfaceFamily& family,
+    const Aabb& cycle_bounds,
+    bool materialize_relation
+) {
+    const ArrayView<Point3> cycle(family.coordinates());
+    detail::require_cycle(cycle);
+    const detail::SegmentCycleQuery query =
+        detail::prepare_segment_cycle_query(
+            segment,
+            cycle,
+            family.tolerances()
+        );
+    const bool surface_is_valid = (
+        family.enumeration_complete()
+        && family.construction_undetermined_count() == 0
+        && !family.embedded_surface_indices().empty()
+    );
+    if (!query.cause.has_value() && surface_is_valid) {
+        const std::array<Point3, 2> endpoints = {
+            segment.start,
+            segment.end,
+        };
+        if (aabb_stably_separated(
+                aabb_bounds(ArrayView<Point3>(
+                    endpoints.data(),
+                    endpoints.size()
+                )),
+                cycle_bounds,
+                query.predicate_tolerances->aabb
+            )) {
+            return {
+                PiercingState::DOES_NOT_PIERCE,
+                std::nullopt,
+                true,
+                true,
+            };
+        }
+    }
+    if (materialize_relation) {
+        SegmentCycleRelation relation = materialize_prepared_relation(
+            segment,
+            family,
+            query
+        );
+        const PiercingState state = relation.state;
+        const bool surface_complete =
+            relation.surface_evidence.enumeration_complete;
+        return {
+            state,
+            std::move(relation),
+            false,
+            surface_complete,
+        };
+    }
+    const NonplanarRelationFacts facts = evaluate_prepared_relation(
+        segment,
+        family,
+        query,
+        nullptr
+    );
+    return {
+        facts.state,
+        std::nullopt,
+        false,
+        facts.surface_evidence.enumeration_complete,
+    };
+}
+
+
+SegmentCycleScreening screen_nonplanar_segment_cycle(
+    const Segment3& segment,
+    const PreparedNonplanarSurfaceFamily& family,
+    bool materialize_relation
+) {
+    return screen_nonplanar_segment_cycle(
+        segment,
+        family,
+        aabb_bounds(ArrayView<Point3>(family.coordinates())),
+        materialize_relation
+    );
 }
 
 
@@ -543,7 +684,7 @@ std::vector<SegmentCycleRelation> nonplanar_segment_cycle_relations(
                 cycle,
                 family.tolerances()
             );
-        relations.push_back(determine_prepared_relation(
+        relations.push_back(materialize_prepared_relation(
             segment,
             family,
             query
@@ -559,72 +700,16 @@ std::vector<SegmentCycleScreening> nonplanar_segment_cycle_screenings(
 ) {
     const ArrayView<Point3> cycle(family.coordinates());
     detail::require_cycle(cycle);
-    const bool surface_is_valid = (
-        family.enumeration_complete()
-        && family.construction_undetermined_count() == 0
-        && !family.embedded_surface_indices().empty()
-    );
     const Aabb cycle_bounds = aabb_bounds(cycle);
     std::vector<SegmentCycleScreening> screenings;
     screenings.reserve(segments.size());
     for (const Segment3& segment : segments) {
-        const detail::SegmentCycleQuery query =
-            detail::prepare_segment_cycle_query(
-                segment,
-                cycle,
-                family.tolerances()
-            );
-        if (query.cause.has_value()) {
-            SegmentCycleRelation relation = undetermined_query_relation(
-                segment,
-                family,
-                *query.cause
-            );
-            const bool complete = relation.surface_evidence.enumeration_complete;
-            const PiercingState state = relation.state;
-            screenings.push_back({
-                state,
-                std::move(relation),
-                false,
-                complete,
-            });
-            continue;
-        }
-        const std::array<Point3, 2> endpoints = {
-            segment.start,
-            segment.end,
-        };
-        if (
-            surface_is_valid
-            && aabb_stably_separated(
-                aabb_bounds(ArrayView<Point3>(
-                    endpoints.data(), endpoints.size()
-                )),
-                cycle_bounds,
-                query.predicate_tolerances->aabb
-            )
-        ) {
-            screenings.push_back({
-                PiercingState::DOES_NOT_PIERCE,
-                std::nullopt,
-                true,
-                true,
-            });
-            continue;
-        }
-        SegmentCycleRelation relation = determine_prepared_relation(
+        screenings.push_back(screen_nonplanar_segment_cycle(
             segment,
             family,
-            query
-        );
-        const bool complete = relation.surface_evidence.enumeration_complete;
-        const PiercingState state = relation.state;
-        screenings.push_back({
-            state,
-            std::move(relation),
-            false,
-            complete,
-        });
+            cycle_bounds,
+            true
+        ));
     }
     return screenings;
 }

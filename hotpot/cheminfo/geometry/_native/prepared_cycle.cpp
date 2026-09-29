@@ -121,6 +121,27 @@ SegmentCycleRelation determine_segment_cycle_relation(
 }
 
 
+SegmentCycleScreening screen_segment_cycle(
+    const Segment3& segment,
+    const PreparedCycle& cycle,
+    bool materialize_relation
+) {
+    if (cycle.uses_nonplanar_surface_family()) {
+        return screen_nonplanar_segment_cycle(
+            segment,
+            cycle.nonplanar_family(),
+            cycle.bounds(),
+            materialize_relation
+        );
+    }
+    return screen_planar_segment_cycle(
+        segment,
+        cycle.planar_cycle(),
+        materialize_relation
+    );
+}
+
+
 std::vector<SegmentCycleRelation> segment_cycle_relations(
     ArrayView<Segment3> segments,
     const PreparedCycle& cycle

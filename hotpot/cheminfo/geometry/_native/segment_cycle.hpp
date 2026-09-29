@@ -126,6 +126,13 @@ SegmentCycleRelation determine_planar_segment_cycle_relation(
 );
 
 
+SegmentCycleScreening screen_planar_segment_cycle(
+    const Segment3& segment,
+    const PreparedPlanarCycle& cycle,
+    bool materialize_relation
+);
+
+
 std::vector<SegmentCycleRelation> planar_segment_cycle_relations(
     ArrayView<Segment3> segments,
     const PreparedPlanarCycle& cycle

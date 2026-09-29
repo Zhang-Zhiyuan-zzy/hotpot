@@ -14,6 +14,7 @@ on:
       - "hotpot/cheminfo/forcefields/**"
       - "hotpot/cheminfo/geometry/**"
       - "hotpot/cheminfo/graph/**"
+      - "hotpot/cheminfo/obWrappers/**"
       - "hotpot/works/convert.py"
       - "hotpot/cheminfo/rdconvert.py"
       - "hotpot/cheminfo/obconvert.py"
@@ -35,6 +36,7 @@ on:
       - "tests/test_cheminfo/test_geometry*.py"
       - "tests/test_cheminfo/geometry/**"
       - "tests/test_cheminfo/graph/**"
+      - "tests/test_cheminfo/obWrappers/**"
       - "tests/test_cheminfo/test_forcefield*.py"
       - "tests/test_cheminfo/test_complex*.py"
       - "tests/test_cheminfo/test_topology_determinism.py"
@@ -62,6 +64,7 @@ on:
       - "hotpot/cheminfo/forcefields/**"
       - "hotpot/cheminfo/geometry/**"
       - "hotpot/cheminfo/graph/**"
+      - "hotpot/cheminfo/obWrappers/**"
       - "hotpot/works/convert.py"
       - "hotpot/cheminfo/rdconvert.py"
       - "hotpot/cheminfo/obconvert.py"
@@ -83,6 +86,7 @@ on:
       - "tests/test_cheminfo/test_geometry*.py"
       - "tests/test_cheminfo/geometry/**"
       - "tests/test_cheminfo/graph/**"
+      - "tests/test_cheminfo/obWrappers/**"
       - "tests/test_cheminfo/test_forcefield*.py"
       - "tests/test_cheminfo/test_complex*.py"
       - "tests/test_cheminfo/test_topology_determinism.py"
@@ -171,6 +175,8 @@ jobs:
               "hotpot/cheminfo/forcefields/cli_doc.md",
               "hotpot/cheminfo/forcefields/__init__.py",
               "hotpot/cheminfo/forcefields/ff.py",
+          }
+          obsolete = {
               "hotpot/cheminfo/forcefields/ff39.py",
               "hotpot/cheminfo/forcefields/utils.py",
               "hotpot/cheminfo/forcefields/utils39.py",
@@ -182,6 +188,7 @@ jobs:
                   for name in archive.getnames()
               }
           assert expected <= members
+          assert obsolete.isdisjoint(members)
           PY
           python -m pip install --no-deps --force-reinstall dist/*.whl
       - name: Smoke-test installed package outside the checkout
@@ -198,8 +205,9 @@ jobs:
           assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)
 
           forcefield_package = files("hotpot.cheminfo.forcefields")
-          for module_name in ("ff.py", "ff39.py", "utils.py", "utils39.py"):
-              assert forcefield_package.joinpath(module_name).is_file()
+          assert forcefield_package.joinpath("ff.py").is_file()
+          for obsolete_module in ("ff39.py", "utils.py", "utils39.py"):
+              assert not forcefield_package.joinpath(obsolete_module).is_file()
 
           geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
               "README.md"

@@ -14,5 +14,6 @@ This directory preserves Hotpot design, audit, implementation, and validation re
 | 08 | [Force-field performance](08_forcefields_performance/) | Ring-scan optimization and three-stage workflow |
 | 09 | [Native Open Babel force fields](09_native_openbabel_forcefields/) | Typed-buffer C++ backend implementation and validation |
 | 10 | [Coordination benchmark](10_coordination_benchmark/) | Reusable 187-case benchmark and failure analysis |
+| 11 | [Native geometry and force-field pipeline](11_native_geometry_forcefields/) | Dual-entry C++ geometry kernels and independent staged coordination workflow |
 
 Each topic README records the Git commits associated with that stage. Files under `artifacts/` are diagram sources, rendered HTML, or visual-review evidence. A `visual-check.json` whose status is `pending` is retained as provenance and is not evidence of a successful visual review.

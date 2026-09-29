@@ -14,7 +14,6 @@ build/
 hotpot/plugins/xtb/.cache.json
 dist/
 hotpot_zzy.egg-info
-plan/
 tests/coverage/
 /:memory:.ses
 .codex

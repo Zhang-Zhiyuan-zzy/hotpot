@@ -2,7 +2,7 @@
 
 Date: 2026-09-29
 
-Status: revised design for user review; production implementation not started
+Status: approved; phased implementation in progress
 
 Planning baseline: `9c70ef63f337`
 
@@ -839,8 +839,9 @@ No phase may mix a mathematical semantic change with a performance rewrite.
 
 ### Phase 2: native planar cycle relations
 
-- Port plane fitting, canonical normal orientation, 2D projection, polygon
-  simplicity/contact and planar segment--cycle relations.
+- Port plane fitting while preserving the documented non-canonical normal-sign
+  contract, together with 2D projection, polygon simplicity/contact and planar
+  segment--cycle relations.
 - Switch only after exact state/evidence parity.
 
 ### Phase 3: native non-planar cycle relations
@@ -934,9 +935,11 @@ No phase may mix a mathematical semantic change with a performance rewrite.
   documented incomplete/undetermined path.
 
 The C++ build must not use `-ffast-math`: IEEE NaN/Inf behaviour and numerical
-guard bands are part of the geometry contract. NumPy SVD normal sign is made
-canonical before public comparison. Non-planar triangulation and budget order,
-and closest-edge tie-breaking, must match the current definitions.
+guard bands are part of the geometry contract.  The existing public contract
+does not fix the sign of the best-fit-plane normal, so differential checks
+compare $\mathbf{n}$ and $-\mathbf{n}$ as equivalent and the migration must not
+introduce a new sign promise. Non-planar triangulation and budget order, and
+closest-edge tie-breaking, must match the current definitions.
 
 ### 12.2 Placement correctness
 

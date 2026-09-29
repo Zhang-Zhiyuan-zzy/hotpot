@@ -8,7 +8,7 @@ protocols instead of importing :mod:`hotpot.cheminfo.core` at runtime.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from itertools import combinations, tee
+from itertools import combinations
 from typing import (
     Dict,
     FrozenSet,
@@ -26,7 +26,7 @@ from typing import (
 
 import numpy as np
 
-from . import relation as _relation
+from . import native as _native
 from .object import Cycle, Point, Segment
 from .relation import (
     ClosestCycleEdge,
@@ -34,9 +34,6 @@ from .relation import (
     PointPairDistance,
     SegmentCycleRelation,
     determine_segment_cycle_relation,
-    iter_segment_cycle_relations,
-    iter_segment_cycle_screenings,
-    point_pair_distances,
 )
 from .settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 
@@ -325,7 +322,7 @@ class BondRingScreeningPlan(Generic[RingSourceT, BondSourceT]):
 class _PreparedRingFrame(Generic[RingSourceT]):
     ring: RingGeometry[RingSourceT]
     edge_keys: FrozenSet[BondKey]
-    prepared_cycle: _relation._PreparedCycleGeometry
+    cycle_index: int
 
 
 @dataclass(frozen=True, eq=False)
@@ -343,13 +340,40 @@ class BondRingFrameWorkspace(Generic[RingSourceT, BondSourceT]):
     bonds: Tuple[BondGeometry[BondSourceT], ...]
 
     def __post_init__(self) -> None:
-        coordinate_snapshot = np.array(
-            self.coordinates,
-            dtype=np.float64,
-            copy=True,
-        )
-        coordinate_snapshot.setflags(write=False)
+        coordinate_snapshot = np.asarray(self.coordinates, dtype=np.float64)
+        if (
+            coordinate_snapshot.flags.writeable
+            or not coordinate_snapshot.flags.owndata
+            or not coordinate_snapshot.flags.c_contiguous
+        ):
+            coordinate_snapshot = coordinate_snapshot.copy()
+            coordinate_snapshot.setflags(write=False)
         object.__setattr__(self, "coordinates", coordinate_snapshot)
+        coordinate_position = {
+            key: position for position, key in enumerate(self.coordinate_keys)
+        }
+        cycle_indices: List[int] = []
+        cycle_offsets = [0]
+        for ring_frame in self.rings:
+            cycle_indices.extend(
+                coordinate_position[_atom_key(atom)]
+                for atom in ring_frame.ring.ring.atoms
+            )
+            cycle_offsets.append(len(cycle_indices))
+        object.__setattr__(
+            self,
+            "_native_cycle_batch",
+            _native._prepare_cycles(
+                coordinate_snapshot,
+                cycle_indices,
+                cycle_offsets,
+                self.plan.settings,
+            ),
+        )
+
+    @property
+    def _prepared_cycles(self) -> _native.PreparedCycleBatch:
+        return object.__getattribute__(self, "_native_cycle_batch")
 
 # Stable source keys and chemical graph selection.
 
@@ -434,66 +458,6 @@ def _iter_bond_ring_targets_for_ring(
             )
 
 
-def _iter_bond_ring_findings_from_rings(
-    mol: _MoleculeLike[AtomSourceT, BondSourceT, RingSourceT],
-    rings: Sequence[RingSourceT],
-    settings: GeometrySettings,
-) -> Iterator[BondRingFinding[RingSourceT, BondSourceT]]:
-    bonds = tuple(sorted(mol.bonds, key=_bond_key))
-    for ring in rings:
-        ring_geometry = RingGeometry(
-            ring=ring,
-            cycle=cycle_from_ring(ring),
-            key=_ring_key(ring),
-        )
-        targets = _iter_bond_ring_targets_for_ring(ring_geometry, bonds)
-        finding_targets, relation_targets = tee(targets)
-        relations = iter_segment_cycle_relations(
-            (target.bond.segment for target in relation_targets),
-            ring_geometry.cycle,
-            settings,
-        )
-        for target, relation in zip(finding_targets, relations):
-            yield BondRingFinding(target=target, relation=relation)
-
-
-def _iter_bond_ring_screenings_from_rings(
-        rings: Sequence[RingSourceT],
-        bonds: Iterable[BondSourceT],
-        settings: GeometrySettings,
-) -> Iterator[
-    Tuple[
-        BondRingTarget[RingSourceT, BondSourceT],
-        PiercingState,
-        Optional[SegmentCycleRelation],
-        bool,
-        bool,
-    ]
-]:
-    sorted_bonds = tuple(sorted(bonds, key=_bond_key))
-    for ring in rings:
-        ring_geometry = RingGeometry(
-            ring=ring,
-            cycle=cycle_from_ring(ring),
-            key=_ring_key(ring),
-        )
-        targets = _iter_bond_ring_targets_for_ring(ring_geometry, sorted_bonds)
-        finding_targets, screening_targets = tee(targets)
-        screenings = iter_segment_cycle_screenings(
-            (target.bond.segment for target in screening_targets),
-            ring_geometry.cycle,
-            settings,
-        )
-        for target, screening in zip(finding_targets, screenings):
-            yield (
-                target,
-                screening.state,
-                screening.relation,
-                screening.aabb_separated,
-                screening.surface_complete,
-            )
-
-
 def _selected_workspace_rings(
     workspace: BondRingFrameWorkspace[RingSourceT, BondSourceT],
     ring_keys: Optional[Iterable[RingKey]],
@@ -529,6 +493,67 @@ def _selected_workspace_bonds(
     )
 
 
+def _workspace_candidates(
+    segments: Iterable[BondGeometry[BondSourceT]],
+    workspace: BondRingFrameWorkspace[RingSourceT, BondSourceT],
+    *,
+    bond_keys: Optional[Iterable[BondKey]],
+    ring_keys: Optional[Iterable[RingKey]],
+) -> Tuple[
+    Tuple[_PreparedRingFrame[RingSourceT], ...],
+    Tuple[BondGeometry[BondSourceT], ...],
+    Tuple[BondRingTarget[RingSourceT, BondSourceT], ...],
+    Tuple[Tuple[int, int], ...],
+]:
+    """Select sources and pack native pair indices in canonical ring order."""
+
+    selected_rings = _selected_workspace_rings(workspace, ring_keys)
+    selected_bonds = _selected_workspace_bonds(segments, bond_keys)
+    targets = []
+    candidate_pairs = []
+    for ring_frame in selected_rings:
+        for segment_index, bond in enumerate(selected_bonds):
+            if bond.key in ring_frame.edge_keys:
+                continue
+            targets.append(BondRingTarget(ring=ring_frame.ring, bond=bond))
+            candidate_pairs.append((segment_index, ring_frame.cycle_index))
+    return (
+        selected_rings,
+        selected_bonds,
+        tuple(targets),
+        tuple(candidate_pairs),
+    )
+
+
+def _dense_workspace_findings(
+    workspace: BondRingFrameWorkspace[RingSourceT, BondSourceT],
+) -> Tuple[BondRingFinding[RingSourceT, BondSourceT], ...]:
+    """Evaluate every planned ring--bond pair in one exact native call."""
+
+    _, selected_bonds, targets, candidate_pairs = _workspace_candidates(
+        workspace.bonds,
+        workspace,
+        bond_keys=None,
+        ring_keys=None,
+    )
+    native_relations = _native._determine_segment_cycle_relations(
+        workspace._prepared_cycles,
+        (bond.segment for bond in selected_bonds),
+        candidate_pairs,
+    )
+    return tuple(
+        BondRingFinding(
+            target=target,
+            relation=_native._segment_cycle_relation_result(
+                native_relation,
+                target.ring.cycle,
+                workspace.plan.settings,
+            ),
+        )
+        for target, native_relation in zip(targets, native_relations)
+    )
+
+
 def _screen_segment_geometries(
     segments: Iterable[BondGeometry[BondSourceT]],
     workspace: BondRingFrameWorkspace[RingSourceT, BondSourceT],
@@ -537,76 +562,51 @@ def _screen_segment_geometries(
     ring_keys: Optional[Iterable[RingKey]],
     stop_after_confirmed: bool,
 ) -> BondRingScreeningReport[RingSourceT, BondSourceT]:
-    selected_rings = _selected_workspace_rings(workspace, ring_keys)
-    selected_bonds = _selected_workspace_bonds(segments, bond_keys)
-    total_candidate_pair_count = sum(
-        bond.key not in ring_frame.edge_keys
-        for ring_frame in selected_rings
-        for bond in selected_bonds
+    selected_rings, selected_bonds, targets, candidate_pairs = (
+        _workspace_candidates(
+            segments,
+            workspace,
+            bond_keys=bond_keys,
+            ring_keys=ring_keys,
+        )
     )
-    actionable_findings = []
-    candidate_pair_count = 0
-    aabb_separated_pair_count = 0
-    piercing_pair_count = 0
-    does_not_pierce_pair_count = 0
-    undetermined_pair_count = 0
-    surface_scan_complete = True
-    stop = False
-
-    for ring_frame in selected_rings:
-        ring_bonds = tuple(
-            bond for bond in selected_bonds if bond.key not in ring_frame.edge_keys
+    batch = _native._screen_segments(
+        workspace._prepared_cycles,
+        (bond.segment for bond in selected_bonds),
+        candidate_pairs,
+        _native.DetailLevel.ACTIONABLE,
+        stop_after_confirmed=stop_after_confirmed,
+    )
+    actionable_findings = tuple(
+        BondRingFinding(
+            target=targets[position],
+            relation=_native._segment_cycle_relation_result(
+                native_relation,
+                targets[position].ring.cycle,
+                workspace.plan.settings,
+            ),
         )
-        screenings = _relation._iter_prepared_segment_cycle_screenings(
-            (bond.segment for bond in ring_bonds),
-            ring_frame.prepared_cycle,
-            workspace.plan.settings,
+        for position, native_relation in zip(
+            batch.relation_positions,
+            batch.relations,
         )
-        for bond, screening in zip(ring_bonds, screenings):
-            candidate_pair_count += 1
-            aabb_separated_pair_count += screening.aabb_separated
-            surface_scan_complete = (
-                surface_scan_complete and screening.surface_complete
-            )
-            if screening.state is PiercingState.PIERCES:
-                piercing_pair_count += 1
-            elif screening.state is PiercingState.UNDETERMINED:
-                undetermined_pair_count += 1
-            else:
-                does_not_pierce_pair_count += 1
-            if screening.state is not PiercingState.DOES_NOT_PIERCE:
-                if screening.relation is None:
-                    raise RuntimeError(
-                        "An actionable screening state requires a relation"
-                    )
-                actionable_findings.append(BondRingFinding(
-                    target=BondRingTarget(ring=ring_frame.ring, bond=bond),
-                    relation=screening.relation,
-                ))
-            if (
-                stop_after_confirmed
-                and screening.state is PiercingState.PIERCES
-            ):
-                stop = True
-                break
-        if stop:
-            break
+    )
 
     return BondRingScreeningReport(
-        actionable_findings=tuple(actionable_findings),
+        actionable_findings=actionable_findings,
         ring_scope=workspace.plan.ring_scope,
         max_ring_size=workspace.plan.max_ring_size,
         selected_ring_count=len(selected_rings),
         excluded_ring_count=workspace.plan.excluded_ring_count,
-        candidate_pair_count=candidate_pair_count,
-        aabb_separated_pair_count=aabb_separated_pair_count,
-        exact_pair_count=candidate_pair_count - aabb_separated_pair_count,
-        piercing_pair_count=piercing_pair_count,
-        does_not_pierce_pair_count=does_not_pierce_pair_count,
-        undetermined_pair_count=undetermined_pair_count,
+        candidate_pair_count=batch.evaluated_pair_count,
+        aabb_separated_pair_count=batch.aabb_separated_pair_count,
+        exact_pair_count=batch.exact_pair_count,
+        piercing_pair_count=batch.piercing_pair_count,
+        does_not_pierce_pair_count=batch.does_not_pierce_pair_count,
+        undetermined_pair_count=batch.undetermined_pair_count,
         scan_complete=(
-            surface_scan_complete
-            and candidate_pair_count == total_candidate_pair_count
+            batch.scan_complete
+            and all(batch.surface_complete)
         ),
     )
 
@@ -693,23 +693,34 @@ def measure_atom_pair_distances(
         atom_geometry.key: position
         for position, atom_geometry in enumerate(atom_geometries)
     }
-    measurement_by_positions = {
-        (measurement.first_index, measurement.second_index): measurement
-        for measurement in point_pair_distances(
-            tuple(atom_geometry.point for atom_geometry in atom_geometries)
+    bonded_keys = frozenset(_bond_key(bond) for bond in structure.bonds)
+    targets = tuple(
+        AtomPairTarget(
+            first=first,
+            second=second,
+            bonded=(tuple(sorted((first.key, second.key))) in bonded_keys),
         )
-    }
+        for first, second in combinations(atom_geometries, 2)
+        if (
+            pair_scope == "all"
+            or (pair_scope == "bonded")
+            == (tuple(sorted((first.key, second.key))) in bonded_keys)
+        )
+    )
+    pair_indices = tuple(
+        (
+            position_by_key[target.first.key],
+            position_by_key[target.second.key],
+        )
+        for target in targets
+    )
+    measurements = _native._selected_point_pair_distances(
+        tuple(atom_geometry.point for atom_geometry in atom_geometries),
+        pair_indices,
+    )
     return tuple(
-        AtomPairDistance(
-            target=target,
-            measurement=measurement_by_positions[
-                (
-                    position_by_key[target.first.key],
-                    position_by_key[target.second.key],
-                )
-            ],
-        )
-        for target in iter_atom_pair_targets(structure, pair_scope)
+        AtomPairDistance(target=target, measurement=measurement)
+        for target, measurement in zip(targets, measurements)
     )
 
 
@@ -749,9 +760,15 @@ def iter_bond_ring_findings(
         max_ring_size: int,
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> Iterator[BondRingFinding[RingSourceT, BondSourceT]]:
-    """Lazily evaluate selected bond-ring pairs in canonical key order."""
-    rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
-    yield from _iter_bond_ring_findings_from_rings(mol, rings, settings)
+    """Evaluate one packed frame and yield findings in canonical pair order."""
+
+    plan = prepare_bond_ring_screening_plan(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+        settings=settings,
+    )
+    yield from _dense_workspace_findings(prepare_bond_ring_frame(plan))
 
 
 def scan_bond_ring_relations(
@@ -762,14 +779,13 @@ def scan_bond_ring_relations(
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> BondRingScanReport[RingSourceT, BondSourceT]:
     """Return a dense factual report for the declared ring selection scope."""
-    selected_rings, excluded_ring_count = _selected_rings(
+    plan = prepare_bond_ring_screening_plan(
         mol,
-        ring_scope,
-        max_ring_size,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+        settings=settings,
     )
-    findings = tuple(
-        _iter_bond_ring_findings_from_rings(mol, selected_rings, settings)
-    )
+    findings = _dense_workspace_findings(prepare_bond_ring_frame(plan))
     piercing_pair_count = sum(
         finding.relation.state is PiercingState.PIERCES
         for finding in findings
@@ -786,8 +802,8 @@ def scan_bond_ring_relations(
         findings=findings,
         ring_scope=ring_scope,
         max_ring_size=max_ring_size,
-        selected_ring_count=len(selected_rings),
-        excluded_ring_count=excluded_ring_count,
+        selected_ring_count=len(plan.rings),
+        excluded_ring_count=plan.excluded_ring_count,
         piercing_pair_count=piercing_pair_count,
         does_not_pierce_pair_count=does_not_pierce_pair_count,
         undetermined_pair_count=undetermined_pair_count,
@@ -846,17 +862,28 @@ def prepare_bond_ring_frame(
         atom_by_key.setdefault(_atom_key(bond.atom1), bond.atom1)
         atom_by_key.setdefault(_atom_key(bond.atom2), bond.atom2)
     coordinate_keys = tuple(sorted(atom_by_key))
-    coordinates = np.asarray(
+    coordinates = np.array(
         [atom_by_key[key].coordinates for key in coordinate_keys],
         dtype=np.float64,
+        copy=True,
     )
+    coordinates.setflags(write=False)
+    coordinate_position = {
+        key: position for position, key in enumerate(coordinate_keys)
+    }
     ring_frames: List[_PreparedRingFrame[RingSourceT]] = []
-    for ring, ring_key, edge_keys in zip(
+    for cycle_index, (ring, ring_key, edge_keys) in enumerate(zip(
         plan.rings,
         plan.ring_atom_keys,
         plan.ring_edge_keys,
-    ):
-        cycle = cycle_from_ring(ring)
+    )):
+        ordered_positions = tuple(
+            coordinate_position[_atom_key(atom)] for atom in ring.atoms
+        )
+        cycle = Cycle(tuple(
+            Point(tuple(float(value) for value in coordinates[position]))
+            for position in ordered_positions
+        ))
         ring_frames.append(_PreparedRingFrame(
             ring=RingGeometry(
                 ring=ring,
@@ -864,15 +891,21 @@ def prepare_bond_ring_frame(
                 key=ring_key,
             ),
             edge_keys=edge_keys,
-            prepared_cycle=_relation._prepare_cycle_geometry(
-                cycle,
-                plan.settings,
-            ),
+            cycle_index=cycle_index,
         ))
     bond_frames = tuple(
         BondGeometry(
             bond=bond,
-            segment=segment_from_bond(bond),
+            segment=Segment(
+                Point(tuple(
+                    float(value)
+                    for value in coordinates[coordinate_position[_atom_key(bond.atom1)]]
+                )),
+                Point(tuple(
+                    float(value)
+                    for value in coordinates[coordinate_position[_atom_key(bond.atom2)]]
+                )),
+            ),
             key=key,
         )
         for bond, key in zip(plan.bonds, plan.bond_keys)
@@ -972,16 +1005,29 @@ def determine_bond_ring_piercing_state(
         max_ring_size: int,
         settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> PiercingState:
-    """Return a lazy aggregate, stopping at the first confirmed piercing."""
-    selected_rings, _ = _selected_rings(mol, ring_scope, max_ring_size)
-    aggregate = PiercingState.DOES_NOT_PIERCE
-    for _, state, _, _, _ in _iter_bond_ring_screenings_from_rings(
-        selected_rings,
-        mol.bonds,
-        settings,
-    ):
-        if state is PiercingState.PIERCES:
-            return PiercingState.PIERCES
-        if state is PiercingState.UNDETERMINED:
-            aggregate = PiercingState.UNDETERMINED
-    return aggregate
+    """Return an aggregate native state, stopping at the first piercing."""
+
+    workspace = prepare_bond_ring_frame(prepare_bond_ring_screening_plan(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+        settings=settings,
+    ))
+    _, bonds, _, candidate_pairs = _workspace_candidates(
+        workspace.bonds,
+        workspace,
+        bond_keys=None,
+        ring_keys=None,
+    )
+    batch = _native._screen_segments(
+        workspace._prepared_cycles,
+        (bond.segment for bond in bonds),
+        candidate_pairs,
+        _native.DetailLevel.STATE_ONLY,
+        stop_after_confirmed=True,
+    )
+    if batch.piercing_pair_count:
+        return PiercingState.PIERCES
+    if batch.undetermined_pair_count:
+        return PiercingState.UNDETERMINED
+    return PiercingState.DOES_NOT_PIERCE

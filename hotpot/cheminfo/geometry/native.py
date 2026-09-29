@@ -334,7 +334,7 @@ def closest_cycle_edge(
 
     return _closest_cycle_edge_result(
         _native.closest_cycle_edge(
-            prepare_planar_cycle(cycle, settings),
+            _prepare_cycle(cycle, settings),
             _point_array(segment.start),
             _point_array(segment.end),
         ),
@@ -410,23 +410,6 @@ def _segment_cycle_screening_result(
     )
 
 
-def _closest_prepared_cycle_edge(
-    cycle: Cycle,
-    segment: Segment,
-    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
-) -> Optional[ClosestCycleEdge]:
-    """Return nearest boundary evidence through the general preparation."""
-
-    return _closest_cycle_edge_result(
-        _native.closest_cycle_edge(
-            _prepare_cycle(cycle, settings),
-            _point_array(segment.start),
-            _point_array(segment.end),
-        ),
-        cycle,
-    )
-
-
 def _determine_segment_cycle_relation(
     segment: Segment,
     cycle: Cycle,
@@ -460,6 +443,23 @@ def _segment_cycle_relations(
     )
 
 
+def _iter_segment_cycle_relations(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Iterable[SegmentCycleRelation]:
+    """Yield relations lazily while reusing one native cycle preparation."""
+
+    prepared_cycle = _prepare_cycle(cycle, settings)
+    for segment in segments:
+        result = _native.determine_segment_cycle_relation(
+            _point_array(segment.start),
+            _point_array(segment.end),
+            prepared_cycle,
+        )
+        yield _segment_cycle_relation_result(result, cycle, settings)
+
+
 def _segment_cycle_screenings(
     segments: Iterable[Segment],
     cycle: Cycle,
@@ -476,6 +476,22 @@ def _segment_cycle_screenings(
         _segment_cycle_screening_result(result, cycle, settings)
         for result in results
     )
+
+
+def _iter_segment_cycle_screenings(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Iterable[SegmentCycleScreening]:
+    """Yield screenings lazily while reusing one native cycle preparation."""
+
+    prepared_cycle = _prepare_cycle(cycle, settings)
+    for segment in segments:
+        result = _native.segment_cycle_screenings(
+            _segment_batch((segment,)),
+            prepared_cycle,
+        )[0]
+        yield _segment_cycle_screening_result(result, cycle, settings)
 
 
 def _determine_nonplanar_segment_cycle_relation(
@@ -701,6 +717,20 @@ def point_pair_distances(
 
     return _point_pair_results(
         _native.point_pair_distances(_point_matrix(points), None)
+    )
+
+
+def _selected_point_pair_distances(
+    points: Sequence[Point],
+    pair_indices: Union[np.ndarray, Sequence[Sequence[int]]],
+) -> Tuple[PointPairDistance, ...]:
+    """Measure only the requested point pairs through the native kernel."""
+
+    return _point_pair_results(
+        _native.point_pair_distances(
+            _point_matrix(points),
+            _aligned_index_array(pair_indices, (-1, 2)),
+        )
     )
 
 

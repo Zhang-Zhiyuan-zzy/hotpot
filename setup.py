@@ -34,6 +34,15 @@ openbabel_include_dir, openbabel_library_dir = _openbabel_build_paths()
 
 ext_modules = [
     Pybind11Extension(
+        "hotpot.cheminfo.geometry._geometry_native",
+        [
+            "hotpot/cheminfo/geometry/_native/bindings.cpp",
+            "hotpot/cheminfo/geometry/_native/primitives.cpp",
+            "hotpot/cheminfo/geometry/_native/spatial.cpp",
+        ],
+        cxx_std=17,
+    ),
+    Pybind11Extension(
         "hotpot.cheminfo.graph._relevant_cycles",
         [
             "hotpot/cheminfo/graph/_native/bindings.cpp",

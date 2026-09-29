@@ -1,6 +1,7 @@
 #include "cycle_surface.hpp"
 #include "nonplanar_segment.hpp"
 #include "nonplanar_surface.hpp"
+#include "prepared_cycle.hpp"
 #include "primitives.hpp"
 #include "segment_cycle.hpp"
 #include "spatial.hpp"
@@ -587,6 +588,27 @@ PYBIND11_MODULE(_geometry_native, module) {
             &PreparedNonplanarSurfaceFamily::surface_states
         );
 
+    py::class_<PreparedCycle>(module, "PreparedCycle")
+        .def_property_readonly(
+            "coordinates",
+            [](const PreparedCycle& cycle) {
+                return point_list(cycle.coordinates());
+            }
+        )
+        .def_property_readonly(
+            "bounds",
+            [](const PreparedCycle& cycle) {
+                return aabb_array(cycle.bounds());
+            }
+        )
+        .def_property_readonly("planarity", &PreparedCycle::planarity)
+        .def_property_readonly("tolerances", &PreparedCycle::tolerances)
+        .def_property_readonly("limits", &PreparedCycle::limits)
+        .def_property_readonly(
+            "uses_nonplanar_surface_family",
+            &PreparedCycle::uses_nonplanar_surface_family
+        );
+
     py::class_<ClosestCycleEdge>(module, "ClosestCycleEdge")
         .def_readonly("edge_index", &ClosestCycleEdge::edge_index)
         .def_readonly("distance", &ClosestCycleEdge::distance);
@@ -803,6 +825,24 @@ PYBIND11_MODULE(_geometry_native, module) {
     );
 
     module.def(
+        "prepare_cycle",
+        [](const py::array& cycle,
+           const NumericTolerances& tolerances,
+           const SurfaceEnumerationLimits& limits) {
+            const std::vector<Point3> coordinates = read_cycle(cycle, "cycle");
+            py::gil_scoped_release release;
+            return prepare_cycle(
+                ArrayView<Point3>(coordinates),
+                tolerances,
+                limits
+            );
+        },
+        py::arg("cycle"),
+        py::arg("tolerances"),
+        py::arg("limits")
+    );
+
+    module.def(
         "locate_point_in_planar_cycle",
         [](const py::array& point,
            const PreparedPlanarCycle& cycle,
@@ -839,6 +879,23 @@ PYBIND11_MODULE(_geometry_native, module) {
                 cycle,
                 segment
             );
+        },
+        py::arg("cycle"),
+        py::arg("segment_start"),
+        py::arg("segment_end")
+    );
+
+    module.def(
+        "closest_cycle_edge",
+        [](const PreparedCycle& cycle,
+           const py::array& segment_start,
+           const py::array& segment_end) {
+            const Segment3 segment{
+                read_point(segment_start, "segment_start"),
+                read_point(segment_end, "segment_end"),
+            };
+            py::gil_scoped_release release;
+            return closest_cycle_edge(cycle, segment);
         },
         py::arg("cycle"),
         py::arg("segment_start"),
@@ -955,6 +1012,57 @@ PYBIND11_MODULE(_geometry_native, module) {
         },
         py::arg("segments"),
         py::arg("family")
+    );
+
+    module.def(
+        "determine_segment_cycle_relation",
+        [](const py::array& segment_start,
+           const py::array& segment_end,
+           const PreparedCycle& cycle) {
+            const Segment3 segment{
+                read_point(segment_start, "segment_start"),
+                read_point(segment_end, "segment_end"),
+            };
+            py::gil_scoped_release release;
+            return determine_segment_cycle_relation(segment, cycle);
+        },
+        py::arg("segment_start"),
+        py::arg("segment_end"),
+        py::arg("cycle")
+    );
+
+    module.def(
+        "segment_cycle_relations",
+        [](const py::array& segments, const PreparedCycle& cycle) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            py::gil_scoped_release release;
+            return segment_cycle_relations(
+                ArrayView<Segment3>(native_segments),
+                cycle
+            );
+        },
+        py::arg("segments"),
+        py::arg("cycle")
+    );
+
+    module.def(
+        "segment_cycle_screenings",
+        [](const py::array& segments, const PreparedCycle& cycle) {
+            const std::vector<Segment3> native_segments = read_segments(
+                segments,
+                "segments"
+            );
+            py::gil_scoped_release release;
+            return segment_cycle_screenings(
+                ArrayView<Segment3>(native_segments),
+                cycle
+            );
+        },
+        py::arg("segments"),
+        py::arg("cycle")
     );
 
     module.def(

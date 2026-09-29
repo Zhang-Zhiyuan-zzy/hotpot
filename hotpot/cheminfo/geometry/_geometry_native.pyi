@@ -1,4 +1,4 @@
-from typing import FrozenSet, List, Optional, Tuple
+from typing import FrozenSet, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -136,13 +136,20 @@ class PlanarityMeasurement:
 
 
 class PreparedPlanarCycle:
-    coordinates: List[Tuple[float, float, float]]
-    planarity: PlanarityMeasurement
-    tolerances: NumericTolerances
-    projection: List[Tuple[float, float]]
-    simplicity: PolygonSimplicity
-    has_planar_surface: bool
-    has_simple_planar_surface: bool
+    @property
+    def coordinates(self) -> List[Tuple[float, float, float]]: ...
+    @property
+    def planarity(self) -> PlanarityMeasurement: ...
+    @property
+    def tolerances(self) -> NumericTolerances: ...
+    @property
+    def projection(self) -> List[Tuple[float, float]]: ...
+    @property
+    def simplicity(self) -> PolygonSimplicity: ...
+    @property
+    def has_planar_surface(self) -> bool: ...
+    @property
+    def has_simple_planar_surface(self) -> bool: ...
 
 
 class SurfaceEnumerationLimits:
@@ -161,17 +168,43 @@ class SurfaceEnumerationLimits:
 
 
 class PreparedNonplanarSurfaceFamily:
-    coordinates: List[Tuple[float, float, float]]
-    tolerances: NumericTolerances
-    limits: SurfaceEnumerationLimits
-    enumeration_complete: bool
-    enumerated_surface_count: int
-    embedded_surface_count: int
-    proven_non_embedded_surface_count: int
-    construction_undetermined_count: int
-    triangle_pair_tests_used: int
-    causes: FrozenSet[NonplanarSurfaceCause]
-    surface_states: List[SurfaceEmbeddingState]
+    @property
+    def coordinates(self) -> List[Tuple[float, float, float]]: ...
+    @property
+    def tolerances(self) -> NumericTolerances: ...
+    @property
+    def limits(self) -> SurfaceEnumerationLimits: ...
+    @property
+    def enumeration_complete(self) -> bool: ...
+    @property
+    def enumerated_surface_count(self) -> int: ...
+    @property
+    def embedded_surface_count(self) -> int: ...
+    @property
+    def proven_non_embedded_surface_count(self) -> int: ...
+    @property
+    def construction_undetermined_count(self) -> int: ...
+    @property
+    def triangle_pair_tests_used(self) -> int: ...
+    @property
+    def causes(self) -> FrozenSet[NonplanarSurfaceCause]: ...
+    @property
+    def surface_states(self) -> List[SurfaceEmbeddingState]: ...
+
+
+class PreparedCycle:
+    @property
+    def coordinates(self) -> List[Tuple[float, float, float]]: ...
+    @property
+    def bounds(self) -> np.ndarray: ...
+    @property
+    def planarity(self) -> PlanarityMeasurement: ...
+    @property
+    def tolerances(self) -> NumericTolerances: ...
+    @property
+    def limits(self) -> SurfaceEnumerationLimits: ...
+    @property
+    def uses_nonplanar_surface_family(self) -> bool: ...
 
 
 class ClosestCycleEdge:
@@ -228,6 +261,13 @@ def prepare_nonplanar_surface_family(
 ) -> PreparedNonplanarSurfaceFamily: ...
 
 
+def prepare_cycle(
+    cycle: np.ndarray,
+    tolerances: NumericTolerances,
+    limits: SurfaceEnumerationLimits,
+) -> PreparedCycle: ...
+
+
 def locate_point_in_planar_cycle(
     point: np.ndarray,
     cycle: PreparedPlanarCycle,
@@ -237,7 +277,7 @@ def locate_point_in_planar_cycle(
 
 
 def closest_cycle_edge(
-    cycle: PreparedPlanarCycle,
+    cycle: Union[PreparedPlanarCycle, PreparedCycle],
     segment_start: np.ndarray,
     segment_end: np.ndarray,
 ) -> Optional[ClosestCycleEdge]: ...
@@ -278,6 +318,25 @@ def nonplanar_segment_cycle_relations(
 def nonplanar_segment_cycle_screenings(
     segments: np.ndarray,
     family: PreparedNonplanarSurfaceFamily,
+) -> List[SegmentCycleScreening]: ...
+
+
+def determine_segment_cycle_relation(
+    segment_start: np.ndarray,
+    segment_end: np.ndarray,
+    cycle: PreparedCycle,
+) -> SegmentCycleRelation: ...
+
+
+def segment_cycle_relations(
+    segments: np.ndarray,
+    cycle: PreparedCycle,
+) -> List[SegmentCycleRelation]: ...
+
+
+def segment_cycle_screenings(
+    segments: np.ndarray,
+    cycle: PreparedCycle,
 ) -> List[SegmentCycleScreening]: ...
 
 

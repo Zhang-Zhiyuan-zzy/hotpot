@@ -41,6 +41,7 @@ ext_modules = [
             "hotpot/cheminfo/geometry/_native/nonplanar_surface.cpp",
             "hotpot/cheminfo/geometry/_native/nonplanar_segment.cpp",
             "hotpot/cheminfo/geometry/_native/planar_predicates.cpp",
+            "hotpot/cheminfo/geometry/_native/prepared_cycle.cpp",
             "hotpot/cheminfo/geometry/_native/primitives.cpp",
             "hotpot/cheminfo/geometry/_native/segment_cycle.cpp",
             "hotpot/cheminfo/geometry/_native/spatial.cpp",

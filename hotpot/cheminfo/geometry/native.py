@@ -63,6 +63,7 @@ SegmentSegmentMeasurement = _native.SegmentSegmentMeasurement
 PreparedPlanarCycle = _native.PreparedPlanarCycle
 SurfaceEnumerationLimits = _native.SurfaceEnumerationLimits
 PreparedNonplanarSurfaceFamily = _native.PreparedNonplanarSurfaceFamily
+PreparedCycle = _native.PreparedCycle
 
 Coordinates = Union[Sequence[float], Point]
 BoundsInput = Union[np.ndarray, Sequence[Sequence[float]]]
@@ -209,6 +210,19 @@ def _prepare_nonplanar_surface_family(
     )
 
 
+def _prepare_cycle(
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> PreparedCycle:
+    """Prepare the canonical native planar/nonplanar cycle dispatcher."""
+
+    return _native.prepare_cycle(
+        _cycle_matrix(cycle),
+        _native_tolerances(settings),
+        _surface_enumeration_limits(settings),
+    )
+
+
 def locate_point_in_planar_cycle(
     point: Point,
     cycle: Cycle,
@@ -327,6 +341,74 @@ def _segment_cycle_screening_result(
         ),
         result.aabb_separated,
         result.surface_complete,
+    )
+
+
+def _closest_prepared_cycle_edge(
+    cycle: Cycle,
+    segment: Segment,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Optional[ClosestCycleEdge]:
+    """Return nearest boundary evidence through the general preparation."""
+
+    return _closest_cycle_edge_result(
+        _native.closest_cycle_edge(
+            _prepare_cycle(cycle, settings),
+            _point_array(segment.start),
+            _point_array(segment.end),
+        ),
+        cycle,
+    )
+
+
+def _determine_segment_cycle_relation(
+    segment: Segment,
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> SegmentCycleRelation:
+    """Classify one segment through the native cycle dispatcher."""
+
+    result = _native.determine_segment_cycle_relation(
+        _point_array(segment.start),
+        _point_array(segment.end),
+        _prepare_cycle(cycle, settings),
+    )
+    return _segment_cycle_relation_result(result, cycle, settings)
+
+
+def _segment_cycle_relations(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Tuple[SegmentCycleRelation, ...]:
+    """Classify a segment batch through one native cycle preparation."""
+
+    segment_tuple = tuple(segments)
+    results = _native.segment_cycle_relations(
+        _segment_batch(segment_tuple),
+        _prepare_cycle(cycle, settings),
+    )
+    return tuple(
+        _segment_cycle_relation_result(result, cycle, settings)
+        for result in results
+    )
+
+
+def _segment_cycle_screenings(
+    segments: Iterable[Segment],
+    cycle: Cycle,
+    settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
+) -> Tuple[SegmentCycleScreening, ...]:
+    """Screen a segment batch through one native cycle preparation."""
+
+    segment_tuple = tuple(segments)
+    results = _native.segment_cycle_screenings(
+        _segment_batch(segment_tuple),
+        _prepare_cycle(cycle, settings),
+    )
+    return tuple(
+        _segment_cycle_screening_result(result, cycle, settings)
+        for result in results
     )
 
 

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 
@@ -222,16 +223,16 @@ void test_planar_cycle_relations() {
     const geo::PreparedPlanarCycle square = prepare_square();
     const geo::PlanarityMeasurement planarity = geo::measure_planarity(
         geo::ArrayView<geo::Point3>(
-            square.coordinates.data(),
-            square.coordinates.size()
+            square.coordinates().data(),
+            square.coordinates().size()
         ),
         tolerances
     );
     assert(planarity.kind == geo::PlanarityKind::PLANAR);
-    assert(square.planarity.kind == geo::PlanarityKind::PLANAR);
-    assert(square.simplicity == geo::PolygonSimplicity::SIMPLE);
+    assert(square.planarity().kind == geo::PlanarityKind::PLANAR);
+    assert(square.simplicity() == geo::PolygonSimplicity::SIMPLE);
     assert(square.has_simple_planar_surface());
-    assert(square.tolerances.absolute_length == tolerances.absolute_length);
+    assert(square.tolerances().absolute_length == tolerances.absolute_length);
 
     const geo::Point3 origin = {0.0, 0.0, 0.0};
     const geo::Point3 normal = {0.0, 0.0, 1.0};
@@ -318,51 +319,18 @@ void test_short_cycle_contract() {
         geo::prepare_planar_cycle(short_cycle, tolerances);
     });
 
-    const geo::PreparedPlanarCycle malformed{
-        std::vector<geo::Point3>(vertices.begin(), vertices.end()),
-        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}},
-        {
-            geo::PlanarityKind::PLANAR,
-            {0.5, 0.0, 0.0},
-            geo::Point3({0.0, 0.0, 1.0}),
-            {1.0, 1.0, 0.0},
-            0.0,
-            0.0,
-            1.0,
-            1.0e-8,
-        },
-        tolerances,
-        {{0.0, 0.0}, {1.0, 0.0}},
-        geo::PolygonSimplicity::SIMPLE,
-    };
-    const std::array<geo::Segment3, 1> segments = {{segment}};
-
-    assert_invalid_argument([&] {
-        geo::locate_point_in_planar_cycle(
-            {0.5, 0.0, 0.0},
-            malformed,
-            {0.0, 0.0, 0.0},
-            {0.0, 0.0, 1.0}
-        );
-    });
-    assert_invalid_argument([&] {
-        geo::closest_cycle_edge(malformed, segment);
-    });
-    assert_invalid_argument([&] {
-        geo::determine_planar_segment_cycle_relation(segment, malformed);
-    });
-    assert_invalid_argument([&] {
-        geo::planar_segment_cycle_relations(
-            geo::ArrayView<geo::Segment3>(segments.data(), segments.size()),
-            malformed
-        );
-    });
-    assert_invalid_argument([&] {
-        geo::planar_segment_cycle_screenings(
-            geo::ArrayView<geo::Segment3>(segments.data(), segments.size()),
-            malformed
-        );
-    });
+    static_assert(!std::is_default_constructible_v<geo::PreparedPlanarCycle>);
+    static_assert(!std::is_constructible_v<
+        geo::PreparedPlanarCycle,
+        std::vector<geo::Point3>,
+        geo::Aabb,
+        geo::PlanarityMeasurement,
+        geo::NumericTolerances,
+        std::vector<geo::Point2>,
+        geo::PolygonSimplicity
+    >);
+    static_assert(!std::is_copy_assignable_v<geo::PreparedPlanarCycle>);
+    static_assert(!std::is_move_assignable_v<geo::PreparedPlanarCycle>);
 }
 
 

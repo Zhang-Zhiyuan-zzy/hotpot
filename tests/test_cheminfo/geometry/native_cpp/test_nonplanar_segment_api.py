@@ -1,4 +1,4 @@
-"""Build and execute the native nonplanar-surface source API fence."""
+"""Build and execute the native nonplanar relation source API fence."""
 
 from __future__ import annotations
 
@@ -22,10 +22,10 @@ def _compiler_command() -> list[str]:
     pytest.skip("no C++ compiler is available")
 
 
-def test_nonplanar_surface_cpp_source_api(tmp_path: Path) -> None:
+def test_nonplanar_segment_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
     native_directory = repository / "hotpot/cheminfo/geometry/_native"
-    executable = tmp_path / "nonplanar_surface_api"
+    executable = tmp_path / "nonplanar_segment_api"
     command = [
         *_compiler_command(),
         "-std=c++17",
@@ -35,12 +35,14 @@ def test_nonplanar_surface_cpp_source_api(tmp_path: Path) -> None:
         "-Wextra",
         "-Werror",
         f"-I{native_directory}",
-        str(Path(__file__).with_name("nonplanar_surface_api.cpp")),
-        str(native_directory / "primitives.cpp"),
-        str(native_directory / "spatial.cpp"),
-        str(native_directory / "planar_predicates.cpp"),
+        str(Path(__file__).with_name("nonplanar_segment_api.cpp")),
         str(native_directory / "cycle_surface.cpp"),
+        str(native_directory / "nonplanar_segment.cpp"),
         str(native_directory / "nonplanar_surface.cpp"),
+        str(native_directory / "planar_predicates.cpp"),
+        str(native_directory / "primitives.cpp"),
+        str(native_directory / "segment_cycle.cpp"),
+        str(native_directory / "spatial.cpp"),
         str(native_directory / "triangle_predicates.cpp"),
         "-o",
         str(executable),

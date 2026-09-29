@@ -146,6 +146,31 @@ def test_native_segment_segment_measurement_matches_scalar_public_semantics():
     )
 
 
+def test_native_segment_distance_preserves_projection_between_two_short_segments():
+    settings = GeometrySettings(
+        tolerance=NumericToleranceSettings(
+            absolute_length=1.0,
+            relative_length=0.0,
+        )
+    )
+    first = Segment((0.0, 0.0, 0.0), (0.5, 0.0, 0.0))
+    second = Segment((0.5, 0.1, 0.0), (0.0, 0.1, 0.0))
+
+    expected = python_segment_segment_distance(first, second, settings)
+
+    assert expected == pytest.approx(0.1)
+    assert native.segment_segment_distance(
+        first,
+        second,
+        settings,
+    ) == pytest.approx(expected)
+    assert native.segment_segment_distance(
+        second,
+        first,
+        settings,
+    ) == pytest.approx(expected)
+
+
 def test_native_point_pair_batches_preserve_order_nan_and_strict_threshold():
     points = (
         Point((0, 0, 0)),
@@ -170,6 +195,11 @@ def test_native_point_pair_batches_preserve_order_nan_and_strict_threshold():
         else:
             assert actual.distance == pytest.approx(expected.distance)
     assert actual_below == expected_below
+
+
+def test_native_point_pair_batches_accept_empty_inputs():
+    assert native.point_pair_distances(()) == ()
+    assert native.find_point_pairs_below_distance((), 1.0) == ()
 
 
 def test_raw_native_pair_subset_uses_typed_batch_contract():
@@ -286,3 +316,37 @@ def test_raw_native_contract_rejects_implicit_dtype_and_invalid_tolerances():
             4.0,
             4.0,
         )
+
+
+def test_raw_native_contract_rejects_unaligned_buffers_and_adapter_aligns_them():
+    storage = np.zeros(1 + 6 * np.dtype(np.float64).itemsize, dtype=np.uint8)
+    unaligned = np.ndarray(
+        (1, 2, 3),
+        dtype=np.float64,
+        buffer=storage,
+        offset=1,
+    )
+    unaligned[...] = (((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),)
+    aligned = np.asarray(
+        (((2.0, 0.0, 0.0), (3.0, 1.0, 1.0)),),
+        dtype=np.float64,
+    )
+    paddings = np.asarray((0.0,), dtype=np.float64)
+
+    assert unaligned.flags.c_contiguous
+    assert not unaligned.flags.aligned
+    with pytest.raises(ValueError, match="aligned"):
+        _geometry_native.aabb_separation_mask(
+            unaligned,
+            aligned,
+            paddings,
+        )
+    assert native.aabb_separation_mask(
+        unaligned,
+        aligned,
+        paddings,
+    ).tolist() == [True]
+
+
+def test_native_enum_values_do_not_pollute_the_extension_module():
+    assert not hasattr(_geometry_native, "INTERSECTING")

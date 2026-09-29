@@ -12,6 +12,15 @@
 #include <vector>
 
 
+namespace OpenBabel {
+
+
+class OBMol;
+
+
+}  // namespace OpenBabel
+
+
 namespace hotpot::obwrappers {
 
 
@@ -183,8 +192,26 @@ SingleOptimizationResult single_optimize(
 );
 
 
+SingleOptimizationResult single_optimize_in_place(
+    OpenBabel::OBMol& molecule,
+    const std::string& forcefield,
+    std::size_t steps,
+    double singularity_threshold,
+    double repair_angle_radians
+);
+
+
 OptimizationResult optimize(
     const MoleculeData& molecule,
+    const OptimizationOptions& options,
+    const std::vector<std::vector<Coordinate>>& perturbation_offsets,
+    double singularity_threshold,
+    double repair_angle_radians
+);
+
+
+OptimizationResult optimize_in_place(
+    OpenBabel::OBMol& molecule,
     const OptimizationOptions& options,
     const std::vector<std::vector<Coordinate>>& perturbation_offsets,
     double singularity_threshold,

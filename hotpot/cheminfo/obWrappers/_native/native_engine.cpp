@@ -195,6 +195,37 @@ private:
 };
 
 
+class CoordinateRollbackGuard {
+public:
+    explicit CoordinateRollbackGuard(OpenBabel::OBMol& molecule) :
+        molecule_(molecule),
+        coordinates_(extract_coordinates(molecule)) {}
+
+    ~CoordinateRollbackGuard() noexcept {
+        if (!committed_) {
+            set_coordinates(molecule_, coordinates_);
+        }
+    }
+
+    CoordinateRollbackGuard(const CoordinateRollbackGuard&) = delete;
+    CoordinateRollbackGuard& operator=(const CoordinateRollbackGuard&) =
+        delete;
+
+    const std::vector<Coordinate>& coordinates() const noexcept {
+        return coordinates_;
+    }
+
+    void commit() noexcept {
+        committed_ = true;
+    }
+
+private:
+    OpenBabel::OBMol& molecule_;
+    std::vector<Coordinate> coordinates_;
+    bool committed_ = false;
+};
+
+
 void apply_coordinate_changes(
     OpenBabel::OBMol& molecule,
     const RulePlan& plan
@@ -472,7 +503,7 @@ RulePlan setup_forcefield(
 
 
 void validate_options(
-    const MoleculeData& molecule,
+    std::size_t atom_count,
     const OptimizationOptions& options,
     const std::vector<std::vector<Coordinate>>& perturbation_offsets
 ) {
@@ -518,7 +549,7 @@ void validate_options(
         );
     }
     for (const auto& offsets : perturbation_offsets) {
-        if (offsets.size() != molecule.atom_count()
+        if (offsets.size() != atom_count
             || !finite_coordinates(offsets)) {
             throw std::invalid_argument(
                 "each perturbation offset must be finite and shaped (N, 3)"
@@ -668,6 +699,25 @@ SingleOptimizationResult single_optimize(
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     molecule.validate();
+    auto obmol = make_obmol(molecule);
+    return single_optimize_in_place(
+        obmol,
+        forcefield_name,
+        steps,
+        singularity_threshold,
+        repair_angle_radians
+    );
+}
+
+
+SingleOptimizationResult single_optimize_in_place(
+    OpenBabel::OBMol& molecule,
+    const std::string& forcefield_name,
+    std::size_t steps,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     validate_rule_parameters(
         singularity_threshold,
         repair_angle_radians
@@ -683,26 +733,28 @@ SingleOptimizationResult single_optimize(
             "steps must be positive and fit the Open Babel step limit"
         );
     }
-    auto obmol = make_obmol(molecule);
+    CoordinateRollbackGuard rollback(molecule);
     auto& forcefield = find_forcefield(forcefield_name);
     forcefield.EnableCutOff(false);
     auto plan = setup_forcefield(
         forcefield,
-        obmol,
+        molecule,
         forcefield_name,
         false,
         singularity_threshold,
         repair_angle_radians
     );
     forcefield.SteepestDescent(static_cast<int>(steps));
-    forcefield.GetCoordinates(obmol);
-    return SingleOptimizationResult{
-        extract_coordinates(obmol),
+    forcefield.GetCoordinates(molecule);
+    SingleOptimizationResult result{
+        extract_coordinates(molecule),
         forcefield_energy_kj(forcefield, forcefield_name),
         forcefield.GetUnit(),
         forcefield.DetectExplosion(),
         std::move(plan),
     };
+    rollback.commit();
+    return result;
 }
 
 
@@ -714,13 +766,34 @@ OptimizationResult optimize(
     double repair_angle_radians
 ) {
     molecule.validate();
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
+    auto obmol = make_obmol(molecule);
+    return optimize_in_place(
+        obmol,
+        options,
+        perturbation_offsets,
+        singularity_threshold,
+        repair_angle_radians
+    );
+}
+
+
+OptimizationResult optimize_in_place(
+    OpenBabel::OBMol& molecule,
+    const OptimizationOptions& options,
+    const std::vector<std::vector<Coordinate>>& perturbation_offsets,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     validate_rule_parameters(
         singularity_threshold,
         repair_angle_radians
     );
-    validate_options(molecule, options, perturbation_offsets);
-    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
-    auto obmol = make_obmol(molecule);
+    validate_options(
+        molecule.NumAtoms(), options, perturbation_offsets
+    );
+    CoordinateRollbackGuard rollback(molecule);
     auto& forcefield = find_forcefield(options.forcefield);
     RulePlan all_rules{RuleStage::PRE_FORCEFIELD_SETUP, {}};
 
@@ -736,7 +809,7 @@ OptimizationResult optimize(
     }
     auto setup_plan = setup_forcefield(
         forcefield,
-        obmol,
+        molecule,
         options.forcefield,
         options.increasing_vdw,
         singularity_threshold,
@@ -757,7 +830,7 @@ OptimizationResult optimize(
         set_vdw_cutoff(first_cutoff);
         setup_plan = setup_forcefield(
             forcefield,
-            obmol,
+            molecule,
             options.forcefield,
             true,
             singularity_threshold,
@@ -812,7 +885,7 @@ OptimizationResult optimize(
     std::string termination_reason = "budget_exhausted";
     const double not_a_number = std::numeric_limits<double>::quiet_NaN();
     OptimizationFrame latest_returnable_frame{
-        molecule.coordinates,
+        rollback.coordinates(),
         not_a_number,
         not_a_number,
         not_a_number,
@@ -835,14 +908,14 @@ OptimizationResult optimize(
             && epoch > 0
             && epoch % *options.perturb_interval == 0;
         if (reset_history) {
-            auto coordinates = extract_coordinates(obmol);
+            auto coordinates = extract_coordinates(molecule);
             const auto& offsets = perturbation_offsets[perturbation_index++];
             for (std::size_t index = 0; index < coordinates.size(); ++index) {
                 for (std::size_t axis = 0; axis < 3; ++axis) {
                     coordinates[index][axis] += offsets[index][axis];
                 }
             }
-            set_coordinates(obmol, coordinates);
+            set_coordinates(molecule, coordinates);
         }
 
         if (options.increasing_vdw && epoch > 0) {
@@ -857,7 +930,7 @@ OptimizationResult optimize(
         if (restart_segment) {
             setup_plan = setup_forcefield(
                 forcefield,
-                obmol,
+                molecule,
                 options.forcefield,
                 options.increasing_vdw,
                 singularity_threshold,
@@ -893,7 +966,7 @@ OptimizationResult optimize(
         ++segment_epochs_completed;
         const bool backend_converged = !backend_continues;
         segment_active = backend_continues;
-        forcefield.GetCoordinates(obmol);
+        forcefield.GetCoordinates(molecule);
         terminal_converged = backend_converged;
         termination_reason = backend_converged
             ? "converged"
@@ -903,7 +976,7 @@ OptimizationResult optimize(
             set_vdw_cutoff(options.vdw_cutoff_end);
             setup_plan = setup_forcefield(
                 forcefield,
-                obmol,
+                molecule,
                 options.forcefield,
                 true,
                 singularity_threshold,
@@ -914,12 +987,12 @@ OptimizationResult optimize(
 
         const bool reported_converged = backend_converged
             && (!options.increasing_vdw || epoch == options.epochs - 1);
-        auto coordinates = extract_coordinates(obmol);
+        auto coordinates = extract_coordinates(molecule);
         const double energy = forcefield_energy_kj(
             forcefield,
             options.forcefield
         );
-        const auto gradients = gradient_metrics(forcefield, obmol, factor);
+        const auto gradients = gradient_metrics(forcefield, molecule, factor);
         std::optional<double> energy_change;
         std::optional<double> displacement;
         if (previous_energy.has_value()) {
@@ -1015,7 +1088,7 @@ OptimizationResult optimize(
         displacement_segments[best_frame->segment_index].begin()
             + static_cast<std::ptrdiff_t>(best_frame->history_length)
     );
-    return OptimizationResult{
+    OptimizationResult result{
         best_frame->coordinates,
         last_frame->coordinates,
         std::move(frames),
@@ -1039,6 +1112,9 @@ OptimizationResult optimize(
         std::move(epoch_energies),
         std::move(all_rules),
     };
+    set_coordinates(molecule, result.coordinates);
+    rollback.commit();
+    return result;
 }
 
 

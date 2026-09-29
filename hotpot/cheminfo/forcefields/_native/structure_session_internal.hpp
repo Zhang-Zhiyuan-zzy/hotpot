@@ -19,6 +19,12 @@ public:
     ) noexcept {
         return *session.obmol_;
     }
+
+    static void record_coordinate_change(
+        StructureSession& session
+    ) noexcept {
+        ++session.coordinate_revision_;
+    }
 };
 
 

@@ -3,7 +3,7 @@ from dataclasses import replace
 
 import pytest
 
-from hotpot.cheminfo.geometry import relation as relation_module
+from hotpot.cheminfo.geometry import native
 from hotpot.cheminfo.geometry.object import Cycle, Segment
 from hotpot.cheminfo.geometry.relation import (
     CycleSurfaceModel,
@@ -110,13 +110,13 @@ def test_aabb_screening_reuses_one_cycle_bound_for_a_segment_batch(
         monkeypatch,
 ):
     calls = []
-    original_aabb_bounds = relation_module._aabb_bounds
+    original_prepare = native._prepare_cycle
 
-    def counted_aabb_bounds(coordinates):
-        calls.append(coordinates)
-        return original_aabb_bounds(coordinates)
+    def counted_prepare(cycle, settings=DEFAULT_GEOMETRY_SETTINGS):
+        calls.append(cycle)
+        return original_prepare(cycle, settings)
 
-    monkeypatch.setattr(relation_module, "_aabb_bounds", counted_aabb_bounds)
+    monkeypatch.setattr(native, "_prepare_cycle", counted_prepare)
     screenings = tuple(iter_segment_cycle_screenings(
         (
             Segment((10, 10, 0), (11, 10, 0)),
@@ -365,8 +365,6 @@ def test_segment_budget_accounts_for_every_embedded_surface():
 
 
 def test_batch_relations_prepare_nonplanar_surface_once(monkeypatch):
-    import hotpot.cheminfo.geometry.relation as relation_module
-
     cycle = Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0.4), (0, 2, 0)])
     segments = (
         Segment((0.6, 0.8, -1), (0.6, 0.8, 1)),
@@ -375,17 +373,15 @@ def test_batch_relations_prepare_nonplanar_surface_once(monkeypatch):
     expected = tuple(
         determine_segment_cycle_relation(segment, cycle) for segment in segments
     )
-    prepare = relation_module._prepare_nonplanar_surface_family
+    prepare = native._prepare_cycle
     calls = 0
 
-    def counted_prepare(cycle, settings, coordinates=None):
+    def counted_prepare(cycle, settings=DEFAULT_GEOMETRY_SETTINGS):
         nonlocal calls
         calls += 1
-        return prepare(cycle, settings, coordinates)
+        return prepare(cycle, settings)
 
-    monkeypatch.setattr(
-        relation_module, "_prepare_nonplanar_surface_family", counted_prepare
-    )
+    monkeypatch.setattr(native, "_prepare_cycle", counted_prepare)
 
     actual = tuple(iter_segment_cycle_relations(segments, cycle))
 

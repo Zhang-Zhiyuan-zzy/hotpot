@@ -104,15 +104,23 @@ def _coordinates(point: geo.Point) -> List[SerializedNumber]:
     return [_number(value) for value in point.coordinates]
 
 
+def _unoriented_normal(
+    normal: Optional[Tuple[float, float, float]],
+) -> Optional[List[SerializedNumber]]:
+    """Serialize a plane normal modulo its mathematically arbitrary sign."""
+
+    if normal is None:
+        return None
+    direction = next((value for value in normal if value != 0.0), 0.0)
+    sign = -1.0 if direction < 0.0 else 1.0
+    return [_number(sign * value) for value in normal]
+
+
 def _planarity(measurement: geo.PlanarityMeasurement) -> Dict[str, JSONValue]:
     return {
         "kind": measurement.kind.value,
         "centroid": _coordinates(measurement.centroid),
-        "normal": (
-            None
-            if measurement.normal is None
-            else [_number(value) for value in measurement.normal]
-        ),
+        "normal": _unoriented_normal(measurement.normal),
         "singular_values": [
             _number(value) for value in measurement.singular_values
         ],

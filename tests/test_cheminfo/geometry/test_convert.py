@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Dict, Optional, Sequence, Tuple
 
 import pytest
 
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.geometry import convert
+from hotpot.cheminfo.geometry import convert, native
 from hotpot.cheminfo.geometry.relation import (
     PiercingState,
-    SegmentCycleScreening,
-    SurfaceFamilyEvidence,
 )
 from hotpot.cheminfo.geometry.object import Segment
+from hotpot.cheminfo.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 
 @dataclass(frozen=True)
@@ -92,27 +91,6 @@ if TYPE_CHECKING:
         del atom_geometry, report
 
 
-@dataclass(frozen=True)
-class FakeRelation:
-    state: PiercingState
-    surface_evidence: SurfaceFamilyEvidence
-
-
-def surface_evidence(*, enumeration_complete: bool = True) -> SurfaceFamilyEvidence:
-    return SurfaceFamilyEvidence(
-        enumeration_complete=enumeration_complete,
-        enumerated_surface_count=0,
-        embedded_surface_count=0,
-        proven_non_embedded_surface_count=0,
-        construction_undetermined_count=0,
-        intersecting_surface_count=0,
-        non_piercing_surface_count=0,
-        evaluation_undetermined_count=0,
-        segment_triangle_tests_used=0,
-        triangle_pair_tests_used=0,
-    )
-
-
 @pytest.fixture
 def square_molecule() -> FakeMolecule:
     ring_atoms = (
@@ -177,6 +155,35 @@ def test_atom_pair_scopes_and_measurements_use_the_chemical_graph() -> None:
     assert len(nonbonded) == 2
     assert len(all_pairs) == 3
     assert all(not item.target.bonded for item in nonbonded)
+
+
+def test_atom_pair_measurement_requests_only_the_selected_native_pairs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    atoms = (
+        FakeAtom(10, (0.0, 0.0, 0.0)),
+        FakeAtom(20, (3.0, 4.0, 0.0)),
+        FakeAtom(30, (0.0, 0.0, 12.0)),
+    )
+    structure = FakeMolecule(
+        atoms=atoms,
+        bonds=(FakeBond(atoms[0], atoms[2]),),
+        rings_by_scope={"full_graph": (), "ligand_skeleton": ()},
+    )
+    calls = []
+    measure = native._selected_point_pair_distances
+
+    def counted_measure(points, pair_indices):
+        pairs = tuple(pair_indices)
+        calls.append(pairs)
+        return measure(points, pairs)
+
+    monkeypatch.setattr(native, "_selected_point_pair_distances", counted_measure)
+
+    result = convert.measure_atom_pair_distances(structure, "bonded")
+
+    assert calls == [((0, 2),)]
+    assert result[0].measurement.distance == pytest.approx(12.0)
 
 
 def test_invalid_pair_scope_is_rejected() -> None:
@@ -274,17 +281,7 @@ def test_core_ring_scope_query_does_not_populate_ring_caches() -> None:
 
 def test_dense_scan_records_every_pair_and_coverage(
         square_molecule: FakeMolecule,
-        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    states = iter((PiercingState.DOES_NOT_PIERCE, PiercingState.UNDETERMINED))
-    monkeypatch.setattr(
-        convert,
-        "iter_segment_cycle_relations",
-        lambda segments, cycle, settings: (
-            FakeRelation(next(states), surface_evidence()) for _ in segments
-        ),
-    )
-
     report = convert.scan_bond_ring_relations(
         square_molecule,
         ring_scope="full_graph",
@@ -295,10 +292,10 @@ def test_dense_scan_records_every_pair_and_coverage(
     assert report.selected_ring_count == 1
     assert report.excluded_ring_count == 0
     assert report.candidate_pair_count == len(report.findings) == 2
-    assert report.piercing_pair_count == 0
+    assert report.piercing_pair_count == 1
     assert report.does_not_pierce_pair_count == 1
-    assert report.undetermined_pair_count == 1
-    assert report.undetermined == (report.findings[1],)
+    assert report.undetermined_pair_count == 0
+    assert report.piercings == (report.findings[1],)
     assert report.scan_complete
 
 
@@ -306,17 +303,20 @@ def test_dense_scan_batches_all_bonds_for_each_ring(
         square_molecule: FakeMolecule,
         monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    batch_sizes = []
+    calls = []
+    determine = native._determine_segment_cycle_relations
 
-    def fake_relations(segments, cycle, settings):
-        batch = tuple(segments)
-        batch_sizes.append(len(batch))
-        return iter(
-            FakeRelation(PiercingState.DOES_NOT_PIERCE, surface_evidence())
-            for _ in batch
-        )
+    def counted_determine(cycles, segments, candidate_pairs):
+        segment_batch = tuple(segments)
+        pair_batch = tuple(candidate_pairs)
+        calls.append((cycles.cycle_count, len(segment_batch), pair_batch))
+        return determine(cycles, segment_batch, pair_batch)
 
-    monkeypatch.setattr(convert, "iter_segment_cycle_relations", fake_relations)
+    monkeypatch.setattr(
+        native,
+        "_determine_segment_cycle_relations",
+        counted_determine,
+    )
 
     report = convert.scan_bond_ring_relations(
         square_molecule,
@@ -325,7 +325,7 @@ def test_dense_scan_batches_all_bonds_for_each_ring(
     )
 
     assert report.candidate_pair_count == 2
-    assert batch_sizes == [2]
+    assert calls == [(1, 6, ((2, 0), (5, 0)))]
 
 
 def test_screening_report_covers_all_pairs_and_retains_only_actionable_findings(
@@ -449,7 +449,120 @@ def test_screening_plan_and_workspace_preserve_one_shot_behavior(
     assert workspace_report == one_shot_report
 
 
-def test_workspace_screen_is_differentially_equal_to_legacy_pair_iteration(
+def test_dense_batch_preserves_ring_major_order_and_source_identity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first_ring_atoms = tuple(
+        FakeAtom(index, coordinates)
+        for index, coordinates in enumerate((
+            (10.0, -1.0, 0.0),
+            (12.0, -1.0, 0.0),
+            (12.0, 1.0, 0.0),
+            (10.0, 1.0, 0.0),
+        ))
+    )
+    second_ring_atoms = tuple(
+        FakeAtom(index + 10, coordinates)
+        for index, coordinates in enumerate((
+            (-1.0, -1.0, 0.0),
+            (1.0, -1.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (-1.0, 1.0, 0.0),
+        ))
+    )
+    first_crossing_atoms = (
+        FakeAtom(20, (11.0, 0.0, -1.0)),
+        FakeAtom(21, (11.0, 0.0, 1.0)),
+    )
+    second_crossing_atoms = (
+        FakeAtom(30, (0.0, 0.0, -1.0)),
+        FakeAtom(31, (0.0, 0.0, 1.0)),
+    )
+    first_ring = FakeRing(first_ring_atoms)
+    second_ring = FakeRing(second_ring_atoms)
+    first_bond = FakeBond(*first_crossing_atoms)
+    second_bond = FakeBond(*second_crossing_atoms)
+    molecule = FakeMolecule(
+        atoms=(
+            first_ring_atoms
+            + second_ring_atoms
+            + first_crossing_atoms
+            + second_crossing_atoms
+        ),
+        bonds=(first_bond, second_bond),
+        rings_by_scope={
+            "full_graph": (second_ring, first_ring),
+            "ligand_skeleton": (),
+        },
+    )
+    calls = []
+    determine = native._determine_segment_cycle_relations
+
+    def counted_determine(cycles, segments, candidate_pairs):
+        segment_batch = tuple(segments)
+        pair_batch = tuple(candidate_pairs)
+        calls.append((cycles.cycle_count, len(segment_batch), pair_batch))
+        return determine(cycles, segment_batch, pair_batch)
+
+    monkeypatch.setattr(
+        native,
+        "_determine_segment_cycle_relations",
+        counted_determine,
+    )
+
+    report = convert.scan_bond_ring_relations(
+        molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert len(calls) == 1
+    assert calls[0] == (2, 2, ((0, 0), (1, 0), (0, 1), (1, 1)))
+    assert all(
+        finding.target.ring.ring is expected
+        for finding, expected in zip(
+            report.findings,
+            (first_ring, first_ring, second_ring, second_ring),
+        )
+    )
+    assert all(
+        finding.target.bond.bond is expected
+        for finding, expected in zip(
+            report.findings,
+            (first_bond, second_bond, first_bond, second_bond),
+        )
+    )
+    assert tuple(finding.relation.state for finding in report.findings) == (
+        PiercingState.PIERCES,
+        PiercingState.DOES_NOT_PIERCE,
+        PiercingState.DOES_NOT_PIERCE,
+        PiercingState.PIERCES,
+    )
+
+
+def test_dense_batch_maps_equal_key_bonds_by_position_not_dictionary_key(
+    square_molecule: FakeMolecule,
+) -> None:
+    first_bond = square_molecule.bonds[-1]
+    second_bond = FakeBond(first_bond.atom1, first_bond.atom2)
+    molecule = FakeMolecule(
+        atoms=square_molecule.atoms,
+        bonds=tuple(square_molecule.bonds[:4]) + (first_bond, second_bond),
+        rings_by_scope=square_molecule.rings_by_scope,
+    )
+
+    report = convert.scan_bond_ring_relations(
+        molecule,
+        ring_scope="full_graph",
+        max_ring_size=8,
+    )
+
+    assert len(report.findings) == 2
+    assert report.findings[0].target.bond.bond is first_bond
+    assert report.findings[1].target.bond.bond is second_bond
+
+
+def test_workspace_screen_matches_public_scalar_pair_iteration(
         square_molecule: FakeMolecule,
 ) -> None:
     far_atoms = (
@@ -457,16 +570,6 @@ def test_workspace_screen_is_differentially_equal_to_legacy_pair_iteration(
         FakeAtom(8, (11.0, 10.0, 3.0)),
     )
     bonds = (square_molecule.bonds[-1], FakeBond(*far_atoms))
-    rings, excluded_ring_count = convert._selected_rings(
-        square_molecule,
-        "full_graph",
-        8,
-    )
-    legacy = tuple(convert._iter_bond_ring_screenings_from_rings(
-        rings,
-        bonds,
-        convert.DEFAULT_GEOMETRY_SETTINGS,
-    ))
     workspace = convert.prepare_bond_ring_frame(
         convert.prepare_bond_ring_screening_plan(
             square_molecule,
@@ -476,20 +579,25 @@ def test_workspace_screen_is_differentially_equal_to_legacy_pair_iteration(
         )
     )
     report = convert.screen_bond_ring_workspace(workspace)
+    ring = square_molecule.rings_by_scope["full_graph"][0]
+    scalar = tuple(
+        convert.determine_bond_ring_relation(ring, bond)
+        for bond in bonds
+    )
 
-    assert report.selected_ring_count == len(rings)
-    assert report.excluded_ring_count == excluded_ring_count
-    assert report.candidate_pair_count == len(legacy)
-    assert report.aabb_separated_pair_count == sum(item[3] for item in legacy)
+    assert report.selected_ring_count == 1
+    assert report.excluded_ring_count == 0
+    assert report.candidate_pair_count == len(scalar)
     assert report.piercing_pair_count == sum(
-        state is PiercingState.PIERCES for _, state, _, _, _ in legacy
+        finding.relation.state is PiercingState.PIERCES for finding in scalar
     )
     assert report.does_not_pierce_pair_count == sum(
-        state is PiercingState.DOES_NOT_PIERCE
-        for _, state, _, _, _ in legacy
+        finding.relation.state is PiercingState.DOES_NOT_PIERCE
+        for finding in scalar
     )
     assert report.undetermined_pair_count == sum(
-        state is PiercingState.UNDETERMINED for _, state, _, _, _ in legacy
+        finding.relation.state is PiercingState.UNDETERMINED
+        for finding in scalar
     )
     assert tuple(
         (
@@ -499,9 +607,13 @@ def test_workspace_screen_is_differentially_equal_to_legacy_pair_iteration(
         )
         for finding in report.actionable_findings
     ) == tuple(
-        (target.ring.key, target.bond.key, state)
-        for target, state, _, _, _ in legacy
-        if state is not PiercingState.DOES_NOT_PIERCE
+        (
+            finding.target.ring.key,
+            finding.target.bond.key,
+            finding.relation.state,
+        )
+        for finding in scalar
+        if finding.relation.state is not PiercingState.DOES_NOT_PIERCE
     )
 
 
@@ -642,28 +754,45 @@ def test_explicit_segment_snapshot_uses_workspace_rings(
 
 
 def test_dense_scan_is_incomplete_when_surface_enumeration_is_incomplete(
-        square_molecule: FakeMolecule,
-        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(
-        convert,
-        "iter_segment_cycle_relations",
-        lambda segments, cycle, settings: (
-            FakeRelation(
-                PiercingState.UNDETERMINED,
-                surface_evidence(enumeration_complete=False),
-            )
-            for _ in segments
+    ring_atoms = (
+        FakeAtom(0, (0.0, 0.0, 0.0)),
+        FakeAtom(1, (2.0, 0.0, 0.0)),
+        FakeAtom(2, (2.0, 2.0, 0.4)),
+        FakeAtom(3, (0.0, 2.0, 0.0)),
+    )
+    crossing_atoms = (
+        FakeAtom(4, (0.6, 0.8, -1.0)),
+        FakeAtom(5, (0.6, 0.8, 1.0)),
+    )
+    molecule = FakeMolecule(
+        atoms=ring_atoms + crossing_atoms,
+        bonds=tuple(
+            FakeBond(ring_atoms[index], ring_atoms[(index + 1) % 4])
+            for index in range(4)
+        ) + (FakeBond(*crossing_atoms),),
+        rings_by_scope={
+            "full_graph": (FakeRing(ring_atoms),),
+            "ligand_skeleton": (),
+        },
+    )
+    settings = replace(
+        DEFAULT_GEOMETRY_SETTINGS,
+        surface=replace(
+            DEFAULT_GEOMETRY_SETTINGS.surface,
+            maximum_surface_count=1,
         ),
     )
 
     report = convert.scan_bond_ring_relations(
-        square_molecule,
+        molecule,
         ring_scope="full_graph",
         max_ring_size=8,
+        settings=settings,
     )
 
-    assert report.candidate_pair_count == 2
+    assert report.candidate_pair_count == 1
+    assert report.undetermined_pair_count == 1
     assert not report.scan_complete
 
 
@@ -682,28 +811,32 @@ def test_ring_size_coverage_distinguishes_excluded_and_empty_scan(
     assert report.scan_complete
 
 
-def test_lazy_state_stops_on_first_confirmed_piercing(
+def test_state_query_uses_state_only_native_early_stop(
         square_molecule: FakeMolecule,
         monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    consumed = []
+    calls = []
+    screen = native._screen_segments
 
-    def fake_screenings(segments, cycle, settings):
-        for segment in segments:
-            consumed.append(segment)
-            state = (
-                PiercingState.PIERCES
-                if len(consumed) == 1
-                else PiercingState.UNDETERMINED
-            )
-            relation = FakeRelation(state, surface_evidence())
-            yield SegmentCycleScreening(state, relation, False, True)
+    def counted_screen(
+        cycles,
+        segments,
+        candidate_pairs,
+        detail,
+        *,
+        stop_after_confirmed=False,
+    ):
+        result = screen(
+            cycles,
+            tuple(segments),
+            tuple(candidate_pairs),
+            detail,
+            stop_after_confirmed=stop_after_confirmed,
+        )
+        calls.append((detail, stop_after_confirmed, result.evaluated_pair_count))
+        return result
 
-    monkeypatch.setattr(
-        convert,
-        "iter_segment_cycle_screenings",
-        fake_screenings,
-    )
+    monkeypatch.setattr(native, "_screen_segments", counted_screen)
 
     state = convert.determine_bond_ring_piercing_state(
         square_molecule,
@@ -712,34 +845,28 @@ def test_lazy_state_stops_on_first_confirmed_piercing(
     )
 
     assert state is PiercingState.PIERCES
-    assert len(consumed) == 1
+    assert calls == [(native.DetailLevel.STATE_ONLY, True, 2)]
 
 
-def test_lazy_state_does_not_construct_targets_after_first_piercing(
+def test_state_query_prepares_one_packed_frame_and_one_native_batch(
         square_molecule: FakeMolecule,
         monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    converted_bonds = []
-    original_segment_from_bond = convert.segment_from_bond
+    prepare_calls = []
+    screen_calls = []
+    prepare = native._prepare_cycles
+    screen = native._screen_segments
 
-    def counted_segment_from_bond(bond):
-        converted_bonds.append(bond)
-        return original_segment_from_bond(bond)
+    def counted_prepare(coordinates, indices, offsets, settings):
+        prepare_calls.append((tuple(indices), tuple(offsets)))
+        return prepare(coordinates, indices, offsets, settings)
 
-    def first_relation_pierces(segments, cycle, settings):
-        for _ in segments:
-            relation = FakeRelation(PiercingState.PIERCES, surface_evidence())
-            yield SegmentCycleScreening(
-                PiercingState.PIERCES,
-                relation,
-                False,
-                True,
-            )
+    def counted_screen(*args, **kwargs):
+        screen_calls.append((args, kwargs))
+        return screen(*args, **kwargs)
 
-    monkeypatch.setattr(convert, "segment_from_bond", counted_segment_from_bond)
-    monkeypatch.setattr(
-        convert, "iter_segment_cycle_screenings", first_relation_pierces
-    )
+    monkeypatch.setattr(native, "_prepare_cycles", counted_prepare)
+    monkeypatch.setattr(native, "_screen_segments", counted_screen)
 
     state = convert.determine_bond_ring_piercing_state(
         square_molecule,
@@ -748,34 +875,38 @@ def test_lazy_state_does_not_construct_targets_after_first_piercing(
     )
 
     assert state is PiercingState.PIERCES
-    assert len(converted_bonds) == 1
+    assert prepare_calls == [((0, 1, 2, 3), (0, 4))]
+    assert len(screen_calls) == 1
 
 
-def test_lazy_state_consumes_all_pairs_to_preserve_undetermined(
-        square_molecule: FakeMolecule,
-        monkeypatch: pytest.MonkeyPatch,
+def test_state_query_preserves_undetermined_without_a_piercing(
 ) -> None:
-    states = iter((PiercingState.UNDETERMINED, PiercingState.DOES_NOT_PIERCE))
-    consumed = []
-
-    def fake_screenings(segments, cycle, settings):
-        for segment in segments:
-            consumed.append(segment)
-            state = next(states)
-            relation = FakeRelation(state, surface_evidence())
-            yield SegmentCycleScreening(state, relation, False, True)
-
-    monkeypatch.setattr(
-        convert,
-        "iter_segment_cycle_screenings",
-        fake_screenings,
+    ring_atoms = (
+        FakeAtom(0, (0.0, 0.0, 0.0)),
+        FakeAtom(1, (2.0, 2.0, 0.0)),
+        FakeAtom(2, (0.0, 2.0, 0.0)),
+        FakeAtom(3, (2.0, 0.0, 0.0)),
+    )
+    far_atoms = (
+        FakeAtom(4, (10.0, 10.0, 4.0)),
+        FakeAtom(5, (11.0, 10.0, 4.0)),
+    )
+    molecule = FakeMolecule(
+        atoms=ring_atoms + far_atoms,
+        bonds=tuple(
+            FakeBond(ring_atoms[index], ring_atoms[(index + 1) % 4])
+            for index in range(4)
+        ) + (FakeBond(*far_atoms),),
+        rings_by_scope={
+            "full_graph": (FakeRing(ring_atoms),),
+            "ligand_skeleton": (),
+        },
     )
 
     state = convert.determine_bond_ring_piercing_state(
-        square_molecule,
+        molecule,
         ring_scope="full_graph",
         max_ring_size=8,
     )
 
     assert state is PiercingState.UNDETERMINED
-    assert len(consumed) == 2

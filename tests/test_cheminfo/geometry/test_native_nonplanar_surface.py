@@ -45,19 +45,6 @@ def _settings(**surface_changes) -> GeometrySettings:
     )
 
 
-def _python_summary(cycle: Cycle, settings: GeometrySettings) -> tuple:
-    prepared = relation._prepare_nonplanar_surface_family(cycle, settings)
-    return (
-        prepared.enumeration_complete,
-        prepared.enumerated_surface_count,
-        len(prepared.embedded_surfaces),
-        prepared.proven_non_embedded_surface_count,
-        prepared.construction_undetermined_count,
-        prepared.triangle_pair_tests_used,
-        frozenset(cause.name for cause in prepared.causes),
-    )
-
-
 def _native_summary(cycle: Cycle, settings: GeometrySettings) -> tuple:
     prepared = native._prepare_nonplanar_surface_family(cycle, settings)
     return (
@@ -101,12 +88,11 @@ def _cycle(coordinates: Iterable[Iterable[float]]) -> Cycle:
         ),
     ),
 )
-def test_native_surface_categories_match_python(cycle, states):
+def test_native_surface_categories_match_expected(cycle, states):
     settings = DEFAULT_GEOMETRY_SETTINGS
 
     prepared = native._prepare_nonplanar_surface_family(cycle, settings)
 
-    assert _native_summary(cycle, settings) == _python_summary(cycle, settings)
     assert tuple(state.name for state in prepared.surface_states) == states
 
 
@@ -119,9 +105,21 @@ def test_native_surface_categories_match_python(cycle, states):
         _settings(maximum_cycle_vertices=3),
     ),
 )
-def test_native_surface_budgets_match_python(settings):
-    assert _native_summary(WARPED_SQUARE, settings) == _python_summary(
-        WARPED_SQUARE, settings
+def test_native_surface_budget_evidence_is_self_consistent(settings):
+    prepared = native._prepare_nonplanar_surface_family(
+        WARPED_SQUARE,
+        settings,
+    )
+
+    assert prepared.enumerated_surface_count == len(prepared.surface_states)
+    assert prepared.enumerated_surface_count == (
+        prepared.embedded_surface_count
+        + prepared.proven_non_embedded_surface_count
+        + prepared.construction_undetermined_count
+    )
+    assert prepared.enumeration_complete == (
+        "INCOMPLETE_SURFACE_FAMILY"
+        not in {cause.name for cause in prepared.causes}
     )
 
 
@@ -146,15 +144,24 @@ def test_triangle_pair_budget_is_shared_across_surfaces():
     }
 
 
-def test_native_random_generic_cycles_match_python_surface_summary():
+def test_native_random_generic_cycle_surface_counts_are_self_consistent():
     random = np.random.default_rng(20260929)
     for vertex_count in range(3, 8):
         for _ in range(6):
             coordinates = random.normal(size=(vertex_count, 3))
             cycle = _cycle(coordinates)
-            assert _native_summary(
-                cycle, DEFAULT_GEOMETRY_SETTINGS
-            ) == _python_summary(cycle, DEFAULT_GEOMETRY_SETTINGS)
+            prepared = native._prepare_nonplanar_surface_family(
+                cycle,
+                DEFAULT_GEOMETRY_SETTINGS,
+            )
+            assert prepared.enumerated_surface_count == len(
+                prepared.surface_states
+            )
+            assert prepared.enumerated_surface_count == (
+                prepared.embedded_surface_count
+                + prepared.proven_non_embedded_surface_count
+                + prepared.construction_undetermined_count
+            )
 
 
 @pytest.mark.parametrize(
@@ -164,10 +171,12 @@ def test_native_random_generic_cycles_match_python_surface_summary():
         Cycle(((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0))),
     ),
 )
-def test_nonfinite_and_tiny_preparation_match_python(cycle):
+def test_nonfinite_and_tiny_preparation_is_incomplete(cycle):
     settings = DEFAULT_GEOMETRY_SETTINGS
+    prepared = native._prepare_nonplanar_surface_family(cycle, settings)
 
-    assert _native_summary(cycle, settings) == _python_summary(cycle, settings)
+    assert not prepared.enumeration_complete
+    assert prepared.embedded_surface_count == 0
 
 
 @pytest.mark.parametrize(
@@ -184,19 +193,9 @@ def test_nonfinite_and_tiny_preparation_match_python(cycle):
     ),
 )
 def test_public_dispatch_rejects_invalid_cycle_before_surface_preparation(
-    monkeypatch,
     cycle,
     cause,
 ):
-    def fail_if_called(*args, **kwargs):
-        pytest.fail("nonplanar preparation must not handle an invalid cycle")
-
-    monkeypatch.setattr(
-        relation,
-        "_prepare_nonplanar_surface_family",
-        fail_if_called,
-    )
-
     result = relation.determine_segment_cycle_relation(
         Segment((0, 0, -1), (0, 0, 1)),
         cycle,

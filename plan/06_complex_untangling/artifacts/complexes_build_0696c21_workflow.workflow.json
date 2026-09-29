@@ -1,0 +1,187 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "0696c21 旧版：配体代理开环与分裂的完整体系路径",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [1240, 800]
+  },
+  "lanes": [
+    { "id": "control", "label": "入口与本体准备" },
+    { "id": "optimization", "label": "配体代理构筑" },
+    { "id": "gate_repair", "label": "穿环检测与临时开环" },
+    { "id": "refinement", "label": "候选精修与可选完整体系" },
+    { "id": "exit", "label": "返回或挂起", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "原位准备", "fromCol": 0, "toCol": 0 },
+    { "id": "proxy", "label": "无界配体候选循环", "fromCol": 1, "toCol": 2, "variant": "emphasis" },
+    { "id": "finish", "label": "检测、精修与分裂出口", "fromCol": 3, "toCol": 3, "variant": "dashed" }
+  ],
+  "mainPath": [
+    "entry",
+    "proxy_setup",
+    "attempt_build",
+    "restore_detect",
+    "candidate_collect"
+  ],
+  "semanticChecks": {
+    "allowedRoots": ["entry"],
+    "allowedTerminals": ["output", "hang"],
+    "requiredPaths": [
+      { "from": "entry", "to": "output" },
+      { "from": "restore_detect", "to": "select_hide" },
+      { "from": "select_hide", "to": "attempt_build" },
+      { "from": "refine", "to": "full_optimize" }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "entry",
+      "lane": "control",
+      "col": 0,
+      "width": 170,
+      "type": "backend",
+      "label": "旧入口；原位预处理",
+      "sublabel": "build3d / _optimize_；改 H/ID"
+    },
+    {
+      "id": "proxy_setup",
+      "lane": "control",
+      "col": 1,
+      "width": 150,
+      "type": "messagebus",
+      "label": "clone；隐藏配位键",
+      "sublabel": "逐 ligand component"
+    },
+    {
+      "id": "attempt_build",
+      "lane": "optimization",
+      "col": 2,
+      "width": 154,
+      "type": "cloud",
+      "label": "OBBuilder + 初始 UFF",
+      "sublabel": "重试时可能开环"
+    },
+    {
+      "id": "restore_detect",
+      "lane": "gate_repair",
+      "col": 3,
+      "width": 156,
+      "type": "security",
+      "label": "复环后立即检测",
+      "sublabel": "早于闭环 score 优化"
+    },
+    {
+      "id": "select_hide",
+      "lane": "gate_repair",
+      "col": 2,
+      "width": 158,
+      "type": "messagebus",
+      "label": "argmax 选“最远”边",
+      "sublabel": "无限直线距离；任意键"
+    },
+    {
+      "id": "candidate_collect",
+      "lane": "optimization",
+      "col": 3,
+      "width": 156,
+      "type": "cloud",
+      "label": "闭环 score；存候选",
+      "sublabel": "优化后不复检"
+    },
+    {
+      "id": "refine",
+      "lane": "refinement",
+      "col": 3,
+      "width": 168,
+      "type": "cloud",
+      "label": "最低候选精修并回填",
+      "sublabel": "只试一个；不复检"
+    },
+    {
+      "id": "full_optimize",
+      "lane": "refinement",
+      "col": 1,
+      "width": 160,
+      "type": "cloud",
+      "label": "完整体系 OBFF_",
+      "sublabel": "仅 _optimize_；默认扰动"
+    },
+    {
+      "id": "output",
+      "lane": "exit",
+      "col": 3,
+      "width": 154,
+      "type": "database",
+      "label": "返回最后一帧",
+      "sublabel": "无最终质量门控"
+    },
+    {
+      "id": "hang",
+      "lane": "exit",
+      "col": 1,
+      "width": 158,
+      "type": "external",
+      "label": "无界重试或 queue 挂起",
+      "sublabel": "rebuild_time += 0"
+    }
+  ],
+  "edges": [
+    { "from": "entry", "to": "proxy_setup", "role": "main" },
+    { "from": "proxy_setup", "to": "attempt_build", "role": "main" },
+    { "from": "attempt_build", "to": "restore_detect", "role": "main" },
+    {
+      "from": "restore_detect",
+      "to": "select_hide",
+      "label": "检测到穿环",
+      "role": "branch",
+      "variant": "emphasis"
+    },
+    {
+      "from": "select_hide",
+      "to": "attempt_build",
+      "label": "下一 attempt 才开环构筑；无有效上限",
+      "role": "return"
+    },
+    {
+      "from": "restore_detect",
+      "to": "candidate_collect",
+      "label": "此刻未检出穿环",
+      "role": "main"
+    },
+    {
+      "from": "candidate_collect",
+      "to": "attempt_build",
+      "label": "候选少于 build_times",
+      "role": "return"
+    },
+    {
+      "from": "candidate_collect",
+      "to": "refine",
+      "label": "收满五个候选",
+      "role": "main"
+    },
+    {
+      "from": "refine",
+      "to": "output",
+      "label": "默认 build3d 到此结束",
+      "role": "main"
+    },
+    {
+      "from": "refine",
+      "to": "full_optimize",
+      "label": "仅 complexes_build_optimize_",
+      "role": "branch"
+    },
+    { "from": "full_optimize", "to": "output", "role": "main" },
+    {
+      "from": "attempt_build",
+      "to": "hang",
+      "label": "持续穿环或 child 无结果",
+      "role": "error",
+      "variant": "security"
+    }
+  ]
+}

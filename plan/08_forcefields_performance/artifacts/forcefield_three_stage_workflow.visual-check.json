@@ -6,9 +6,9 @@
   "status": "skipped",
   "visualReview": "pending",
   "artifact": {
-    "path": "/home/zhangzhiyuan/hotpot/plan/geo_refactor_call_graph.html",
-    "sha256": "9bc580035988e7709004e6b09b5f9a699cdaa44c2513f0c3e5a4fd823225f9e4",
-    "bytes": 711726
+    "path": "/home/zhangzhiyuan/hotpot/plan/08_forcefields_performance/artifacts/forcefield_three_stage_workflow.html",
+    "sha256": "c2b2d9adc0d61dbe068989d0619da8977df85a023970b783c5d0accd9ff849cc",
+    "bytes": 722022
   },
   "state": {
     "detail": "read",
@@ -24,7 +24,7 @@
       "severity": "warning",
       "message": "Chrome or Chromium is unavailable. Set ARCHIFY_CHROME to its executable path.",
       "subject": {
-        "artifact": "/home/zhangzhiyuan/hotpot/plan/geo_refactor_call_graph.html"
+        "artifact": "/home/zhangzhiyuan/hotpot/plan/08_forcefields_performance/artifacts/forcefield_three_stage_workflow.html"
       },
       "evidence": {
         "executable": null
@@ -53,8 +53,8 @@
     "contactSheet": null
   },
   "sidecars": {
-    "receipt": "geo_refactor_call_graph.visual-check.json",
-    "contactSheet": "geo_refactor_call_graph.visual-check.html"
+    "receipt": "forcefield_three_stage_workflow.visual-check.json",
+    "contactSheet": "forcefield_three_stage_workflow.visual-check.html"
   },
   "error": "Chrome or Chromium is unavailable. Set ARCHIFY_CHROME to its executable path."
 }

@@ -6,9 +6,9 @@
 >
 > 核心目标：可靠报告有限键线段与平面/非平面环边界之间的空间关系
 >
-> 数学实施契约与 API 说明：[geometry/README.md](../hotpot/cheminfo/geometry/README.md)；中文镜像见 [README.zh.md](../hotpot/cheminfo/geometry/README.zh.md)。必须先改契约，再改 `settings.py` / `relation.py`
+> 数学实施契约与 API 说明：[geometry/README.md](../../hotpot/cheminfo/geometry/README.md)；中文镜像见 [README.zh.md](../../hotpot/cheminfo/geometry/README.zh.md)。必须先改契约，再改 `settings.py` / `relation.py`
 >
-> 配套五模块调用图：[HTML](./geo_refactor_call_graph.html) · [Archify 源文件](./geo_refactor_call_graph.architecture.json)
+> 配套五模块调用图：[HTML](artifacts/geo_refactor_call_graph.html) · [Archify 源文件](artifacts/geo_refactor_call_graph.architecture.json)
 
 ## 1. 最终架构决策
 
@@ -79,7 +79,7 @@ hotpot/cheminfo/geometry/
 
 ## 2. 当前实现审计
 
-当前 [`geometry.py`](../hotpot/cheminfo/geometry.py) 共 1838 行，公开面包括 4 个类型别名、
+当前 [`geometry.py`](../../hotpot/cheminfo/geometry.py) 共 1838 行，公开面包括 4 个类型别名、
 1 个枚举、7 个数据类、4 个几何对象类和 17 个函数。它实际混合了四类职责：
 
 1. 纯几何对象与数值关系；
@@ -121,17 +121,17 @@ forcefields.py
 
 源码位置：
 
-- Core 导入和对象门面：[`core.py:34`](../hotpot/cheminfo/core.py#L34)、
-  [`core.py:1626`](../hotpot/cheminfo/core.py#L1626)、
-  [`core.py:4576`](../hotpot/cheminfo/core.py#L4576)、
-  [`core.py:5277`](../hotpot/cheminfo/core.py#L5277)；
-- Force-field 候选与逐帧门控：[`forcefields.py:22`](../hotpot/cheminfo/forcefields.py#L22)、
-  [`forcefields.py:832`](../hotpot/cheminfo/forcefields.py#L832)、
-  [`forcefields.py:1093`](../hotpot/cheminfo/forcefields.py#L1093)；
-- 当前环面 kernel：[`geometry.py:318`](../hotpot/cheminfo/geometry.py#L318)、
-  [`geometry.py:436`](../hotpot/cheminfo/geometry.py#L436)；
-- 当前布尔键—环 API：[`geometry.py:1411`](../hotpot/cheminfo/geometry.py#L1411)；
-- 当前综合质量门控：[`geometry.py:1584`](../hotpot/cheminfo/geometry.py#L1584)。
+- Core 导入和对象门面：[`core.py:34`](../../hotpot/cheminfo/core.py#L34)、
+  [`core.py:1626`](../../hotpot/cheminfo/core.py#L1626)、
+  [`core.py:4576`](../../hotpot/cheminfo/core.py#L4576)、
+  [`core.py:5277`](../../hotpot/cheminfo/core.py#L5277)；
+- Force-field 候选与逐帧门控：[`forcefields.py:22`](../../hotpot/cheminfo/forcefields.py#L22)、
+  [`forcefields.py:832`](../../hotpot/cheminfo/forcefields.py#L832)、
+  [`forcefields.py:1093`](../../hotpot/cheminfo/forcefields.py#L1093)；
+- 当前环面 kernel：[`geometry.py:318`](../../hotpot/cheminfo/geometry.py#L318)、
+  [`geometry.py:436`](../../hotpot/cheminfo/geometry.py#L436)；
+- 当前布尔键—环 API：[`geometry.py:1411`](../../hotpot/cheminfo/geometry.py#L1411)；
+- 当前综合质量门控：[`geometry.py:1584`](../../hotpot/cheminfo/geometry.py#L1584)。
 
 ### 2.2 当前实现的核心问题
 
@@ -148,7 +148,7 @@ forcefields.py
 | 开环策略放错层 | `closest_ring_opening_edge()` 同时检查单键、稠合成员数和距离 | geometry 越权决定化学/修复资格 |
 | `Any` 大量掩盖真实对象 | Molecule/Atom/Bond/Ring 和报告均被标作 `Any` | 难以检查调用边界和循环依赖 |
 
-当前测试 [`test_nonplanar_ring_keeps_center_fan_surface_semantics`](../tests/test_cheminfo/test_geometry.py#L144)
+当前测试 [`test_nonplanar_ring_keeps_center_fan_surface_semantics`](../../tests/test_cheminfo/test_geometry.py#L144)
 只锁定历史行为，并未证明该行为是正确的非平面穿环定义。
 
 ## 3. 事实层与策略层的硬边界
@@ -363,7 +363,7 @@ hotpot/cheminfo/geometry/
 - settings 均为不可变数据类；默认实例名为 `DEFAULT_GEOMETRY_SETTINGS`。
 - 所有带判定的 relation 接口接收同一个 `GeometrySettings`；不得再并列暴露散装 tolerance 参数。
 - 数学常数 $0,1,2,\pi$ 和由公式直接推导的数组维度不属于可配置阈值。
-- 参数名称、默认值、单位、允许范围和唯一用途以 [geometry/README.md](../hotpot/cheminfo/geometry/README.md) 第 4 节为准。
+- 参数名称、默认值、单位、允许范围和唯一用途以 [geometry/README.md](../../hotpot/cheminfo/geometry/README.md) 第 4 节为准。
 
 ### 4.4 关系层约束
 
@@ -373,7 +373,7 @@ hotpot/cheminfo/geometry/
 - 返回值必须携带可并存的空间特征、使用的 surface model、数值容差、未决原因和
   surface-family 完成状态。
 - `UNDETERMINED` 不得被内部或 façade 静默转换为 `False`。
-- 每个判定分支、符号、公式和 settings 映射必须先写入 [geometry/README.md](../hotpot/cheminfo/geometry/README.md)，再写 Python；
+- 每个判定分支、符号、公式和 settings 映射必须先写入 [geometry/README.md](../../hotpot/cheminfo/geometry/README.md)，再写 Python；
   Python 实现与测试不得自行发明文档外阈值。
 
 依赖只能沿下列方向流动：
@@ -394,7 +394,7 @@ relation <- convert       # convert 可引用纯关系结果类型；反向依�
 
 ### 5.1 `GeometrySettings`
 
-配置对象只在 `settings.py` 定义；完整默认值、范围与唯一用途见 [geometry/README.md](../hotpot/cheminfo/geometry/README.md) 第 4 节。
+配置对象只在 `settings.py` 定义；完整默认值、范围与唯一用途见 [geometry/README.md](../../hotpot/cheminfo/geometry/README.md) 第 4 节。
 relation 根据本次对象的局部长度尺度 $L$ 推导分量纲容差：
 
 $\epsilon_r=\max(\epsilon_{\mathrm{rel}},k_{\mathrm{mach}}\epsilon_{\mathrm{machine}})$
@@ -610,7 +610,7 @@ Cycle vertices
 `intersecting_surface_count`、`non_piercing_surface_count`、`evaluation_undetermined_count`
 恰有一个为 1。已证明自交的平面边界记录一个 `proven_non_embedded_surface_count`，最终为
 `UNDETERMINED`。非有限、退化、模型选择未决和预算中止的全字段赋值严格采用
-[geometry/README.md 第 6.14 节](../hotpot/cheminfo/geometry/README.md)；不得以
+[geometry/README.md 第 6.14 节](../../hotpot/cheminfo/geometry/README.md)；不得以
 `surface_evidence=None` 绕过统一契约。
 
 这里特别避免两个旧错误：延长线命中不等于有限键穿环；接触事实也不等于 geometry 认为
@@ -637,7 +637,7 @@ Cycle vertices
 $f(T_i)\cap f(T_j)=f(T_i\cap T_j)$。稳定出现额外交集为
 `PROVEN_NON_EMBEDDED`；谓词落入保护带或交集维数无法确定为
 `CONSTRUCTION_UNDETERMINED`。完整公式与允许交集表见
-[geometry/README.md 第 7.9 节](../hotpot/cheminfo/geometry/README.md)。
+[geometry/README.md 第 7.9 节](../../hotpot/cheminfo/geometry/README.md)。
 
 8 元环的凸组合三角剖分上限为 Catalan 数 132；这在当前 forcefields 调用方明确选择的
 `max_ring_size=8` 下可控。超过调用方预算的环不偷偷采用一个便宜 surface，而是在 scan report
@@ -795,8 +795,8 @@ forcefields 公开为 `evaluate_structure_acceptance()`；`is_geometry_reasonabl
 
 交互式 Archify 图：
 
-- [目标调用关系图](./geo_refactor_call_graph.html)
-- [可审查 JSON 图源](./geo_refactor_call_graph.architecture.json)
+- [目标调用关系图](artifacts/geo_refactor_call_graph.html)
+- [可审查 JSON 图源](artifacts/geo_refactor_call_graph.architecture.json)
 
 核心依赖方向为：
 
@@ -1101,7 +1101,7 @@ tests/performance/
 4. Core 和 forcefields 都能读取 `PIERCES / DOES_NOT_PIERCE / UNDETERMINED` 及细粒度证据；
 5. FF 决策与 geometry fact 在代码和测试中分层；
 6. 没有 `Any` 被用来掩盖已知 Hotpot 化学对象；
-7. 所有 relation 数值参数只来自 `settings.py`，实现与 [geometry/README.md](../hotpot/cheminfo/geometry/README.md) 逐项对应；
+7. 所有 relation 数值参数只来自 `settings.py`，实现与 [geometry/README.md](../../hotpot/cheminfo/geometry/README.md) 逐项对应；
 8. lazy early-exit、dense report、逐帧性能和 `UNDETERMINED` 分布均有基线；
 9. import-order、wheel、Python 3.9–3.14、事实矩阵和 FF 集成测试全部通过；
 10. 五模块 Archify 调用图达到 showcase 9/9；有可用浏览器时必须完成视觉审查，无可用浏览器时
@@ -1126,9 +1126,9 @@ tests/performance/
   `geometry/__init__.py`，`geometry.__all__` 的 60 个名称全部唯一且可解析；wheel 中仅含五个
   geometry package 文件，不含旧 `geometry.py` 或 `_legacy.py`；
 - 显式性能采集器位于
-  [`tests/performance/test_segment_cycle_relation_benchmark.py`](../tests/performance/test_segment_cycle_relation_benchmark.py)，
+  [`tests/performance/test_segment_cycle_relation_benchmark.py`](../../tests/performance/test_segment_cycle_relation_benchmark.py)，
   初始 median/p95 及三态分布记录在
-  [`tests/performance/README.md`](../tests/performance/README.md)；
+  [`tests/performance/README.md`](../../tests/performance/README.md)；
 - 最终 Archify 调用图通过 showcase `9/9`、0 error、0 warning；specification SHA-256 为
   `df68ec7e921d5beb72e9bcfc047aa4a5ba65cec868f3d5d961e805559a5e3675`，HTML SHA-256 为
   `9bc580035988e7709004e6b09b5f9a699cdaa44c2513f0c3e5a4fd823225f9e4`。当前机器无

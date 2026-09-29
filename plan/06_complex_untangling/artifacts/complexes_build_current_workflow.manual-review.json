@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "artifact": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/06_complex_untangling/artifacts/complexes_build_current_workflow.html",
+    "sha256": "c554913e94a7ab0179c9be984d43ab47a32b5b6f6c7fe81ee448ba25abf47574",
+    "bytes": 720370
+  },
+  "browser": "Firefox 136 headless",
+  "state": {
+    "detail": "read",
+    "motion": "still"
+  },
+  "viewports": [
+    [1440, 900],
+    [1600, 1000],
+    [1920, 1080],
+    [2048, 1320]
+  ],
+  "themes": ["dark", "light"],
+  "visualReview": "passed",
+  "observations": [
+    "The complete diagram and legend remain visible at every inspected viewport.",
+    "Node labels and edge labels are legible in both themes.",
+    "No visible edge crossing, label overlap, clipping, or excessive empty lower band was observed."
+  ]
+}

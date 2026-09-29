@@ -94,7 +94,7 @@
 | 项 | 说明 |
 |---|---|
 | 正交性 | 本文全部条目位于 `utils.py` 共享逻辑层，与 `ff.py`/`ff39.py`/`utils39.py` 的版本分派互不影响，可独立落地。 |
-| 既有政策 | 版本分派是既定设计，见 `plan/reviews/forcefields_python39_module_split.md`（真实签名可见、`isinstance`/pickle 一致、adapter 显式注入、`utils.py` 保持无 `ctypes`、版本选择只在包入口）。 |
+| 既有政策 | 版本分派是既定设计，见 [`forcefields_python39_module_split.md`](../03_forcefields_review/reviews/forcefields_python39_module_split.md)（真实签名可见、`isinstance`/pickle 一致、adapter 显式注入、`utils.py` 保持无 `ctypes`、版本选择只在包入口）。 |
 | 折叠议题 | 三文件折叠（约 −1000~1150 行）见 §7；它会触碰上述部分围栏，权衡与围栏修订建议见 §7.4 与 §8。 |
 
 ## 7. 版本折叠：ff / ff39 / utils39 → 单一实现
@@ -144,7 +144,7 @@ def _seed_openbabel_random(seed: int) -> None:
 
 ### 7.4 与既有围栏的关系（需评审 / 修订）
 
-参见 `plan/reviews/forcefields_python39_module_split.md`。
+参见 [`forcefields_python39_module_split.md`](../03_forcefields_review/reviews/forcefields_python39_module_split.md)。
 
 | 既有围栏 | 折叠后的处置 |
 |---|---|

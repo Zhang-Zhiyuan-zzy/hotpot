@@ -4,7 +4,7 @@
   "meta": {
     "title": "Hotpot geometry 包化后的调用关系",
     "locale": "zh-CN",
-    "output": "plan/geo_refactor_call_graph.html",
+    "output": "plan/04_geometry_package/artifacts/geo_refactor_call_graph.html",
     "quality_profile": "showcase"
   },
   "layout": {

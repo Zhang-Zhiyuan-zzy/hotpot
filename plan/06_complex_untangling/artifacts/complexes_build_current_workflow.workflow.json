@@ -1,0 +1,206 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "complexes_build 当前实施：配体代理解结与完整体系门控",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [1200, 780]
+  },
+  "lanes": [
+    { "id": "control", "label": "准备与候选控制" },
+    { "id": "optimization", "label": "构筑与优化" },
+    { "id": "gate_repair", "label": "几何门控与临时开环" },
+    { "id": "refinement", "label": "候选精修与完整体系" },
+    { "id": "exit", "label": "提交或失败", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "事务性准备", "fromCol": 0, "toCol": 1 },
+    { "id": "proxy", "label": "配体代理候选循环", "fromCol": 2, "toCol": 4, "variant": "emphasis" },
+    { "id": "finish", "label": "精修与完整络合物", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": [
+    "entry",
+    "proxy_setup",
+    "attempt",
+    "open_build",
+    "restore_score",
+    "candidate_gate"
+  ],
+  "semanticChecks": {
+    "allowedRoots": ["entry"],
+    "allowedTerminals": ["commit", "failure"],
+    "requiredPaths": [
+      { "from": "entry", "to": "commit" },
+      { "from": "candidate_gate", "to": "select_hide" },
+      { "from": "select_hide", "to": "attempt" },
+      { "from": "full_optimize", "to": "failure" }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "entry",
+      "lane": "control",
+      "col": 0,
+      "width": 150,
+      "type": "backend",
+      "label": "complexes_build",
+      "sublabel": "建立 working_mol"
+    },
+    {
+      "id": "proxy_setup",
+      "lane": "control",
+      "col": 1,
+      "width": 148,
+      "type": "messagebus",
+      "label": "隐藏配位键",
+      "sublabel": "建立 ligand proxies"
+    },
+    {
+      "id": "attempt",
+      "lane": "control",
+      "col": 2,
+      "width": 150,
+      "type": "backend",
+      "label": "候选 attempt",
+      "sublabel": "有界重试"
+    },
+    {
+      "id": "open_build",
+      "lane": "optimization",
+      "col": 3,
+      "width": 166,
+      "type": "cloud",
+      "label": "开环构筑 + warmup",
+      "sublabel": "开环来自上轮"
+    },
+    {
+      "id": "restore_score",
+      "lane": "optimization",
+      "col": 4,
+      "width": 166,
+      "type": "cloud",
+      "label": "复环 + score 优化",
+      "sublabel": "闭环拓扑"
+    },
+    {
+      "id": "candidate_gate",
+      "lane": "gate_repair",
+      "col": 5,
+      "width": 170,
+      "type": "security",
+      "label": "穿环 / basic gate",
+      "sublabel": "本轮首次检测"
+    },
+    {
+      "id": "select_hide",
+      "lane": "gate_repair",
+      "col": 4,
+      "width": 166,
+      "type": "messagebus",
+      "label": "选边并 hide",
+      "sublabel": "最近、单键、非共享"
+    },
+    {
+      "id": "candidate_refine",
+      "lane": "refinement",
+      "col": 4,
+      "width": 166,
+      "type": "cloud",
+      "label": "累计候选并精修",
+      "sublabel": "预评分排序"
+    },
+    {
+      "id": "full_optimize",
+      "lane": "refinement",
+      "col": 5,
+      "width": 166,
+      "type": "cloud",
+      "label": "完整体系 UFF",
+      "sublabel": "恢复配位键；可选扰动；门控"
+    },
+    {
+      "id": "commit",
+      "lane": "exit",
+      "col": 5,
+      "width": 146,
+      "type": "database",
+      "label": "原子提交",
+      "sublabel": "存在通过帧"
+    },
+    {
+      "id": "failure",
+      "lane": "exit",
+      "col": 4,
+      "width": 156,
+      "type": "external",
+      "label": "失败且不提交",
+      "sublabel": "候选耗尽或门控失败"
+    }
+  ],
+  "edges": [
+    { "from": "entry", "to": "proxy_setup", "role": "main" },
+    { "from": "proxy_setup", "to": "attempt", "role": "main" },
+    { "from": "attempt", "to": "open_build", "role": "main" },
+    { "from": "open_build", "to": "restore_score", "role": "main" },
+    { "from": "restore_score", "to": "candidate_gate", "role": "main" },
+    {
+      "from": "candidate_gate",
+      "to": "select_hide",
+      "label": "检测到穿环",
+      "role": "branch",
+      "variant": "emphasis"
+    },
+    {
+      "from": "select_hide",
+      "to": "attempt",
+      "label": "下一 attempt 才在开环图上构筑",
+      "role": "return"
+    },
+    {
+      "from": "candidate_gate",
+      "to": "attempt",
+      "label": "无穿环但 basic gate 失败",
+      "role": "return"
+    },
+    {
+      "from": "candidate_gate",
+      "to": "candidate_refine",
+      "label": "无穿环且 basic gate 通过",
+      "role": "main"
+    },
+    {
+      "from": "candidate_refine",
+      "to": "attempt",
+      "label": "候选尚未收齐",
+      "role": "return"
+    },
+    {
+      "from": "candidate_refine",
+      "to": "full_optimize",
+      "label": "精修首个通过",
+      "role": "main"
+    },
+    {
+      "from": "full_optimize",
+      "to": "commit",
+      "label": "至少一个通过帧",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "from": "attempt",
+      "to": "failure",
+      "label": "max_attempts 耗尽",
+      "role": "error",
+      "variant": "security"
+    },
+    {
+      "from": "full_optimize",
+      "to": "failure",
+      "label": "无合格帧",
+      "role": "error",
+      "variant": "security"
+    }
+  ]
+}

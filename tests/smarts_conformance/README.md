@@ -1,7 +1,8 @@
 # SMARTS conformance tests
 
 This directory implements the test layers required by
-`plan/test_search_and_SMARTS.md`. It exercises only the active NetworkX-backed
+`plan/01_search_smarts/test_search_and_SMARTS.md`. It exercises only the active
+NetworkX-backed
 parser and matcher, including the `FULL_GRAPH` and `LIGAND_SKELETON`
 coordination semantics profiles.
 

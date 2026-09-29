@@ -7,7 +7,7 @@
 
 ## 1. 审查范围
 
-父记录：[`plan/forcefields_incremental_review.md`](../forcefields_incremental_review.md)
+父记录：[`forcefields_incremental_review.md`](../forcefields_incremental_review.md)
 
 依据 `skills/development.md` 第 4.3 节的新规则，本附件只审查：
 

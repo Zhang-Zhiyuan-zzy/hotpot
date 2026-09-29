@@ -8,8 +8,8 @@
 规划基线：`b55ae69`
 已验证生产代码：`f0a6e7c`
 
-配套流程图制品：`plan/forcefield_three_stage_workflow.archify.json` 与
-`plan/forcefield_three_stage_workflow.html`。
+配套流程图制品：[`forcefield_three_stage_workflow.archify.json`](artifacts/forcefield_three_stage_workflow.archify.json) 与
+[`forcefield_three_stage_workflow.html`](artifacts/forcefield_three_stage_workflow.html)。
 
 ## 1. 核心决策
 
@@ -683,5 +683,5 @@ commit 为 `f0a6e7c`，包含三阶段边界、固定 watch 修复、AABB/worksp
 均为 0。
 
 完整实施说明、失败样本分析、长尾分析、坐标对比及四项独立性能证据见
-`plan/improve_ff_efficient.md`；机器可读结果见
+[`improve_ff_efficient.md`](improve_ff_efficient.md)；机器可读结果见
 `movie/extractants_eu_three_stage_refactor_16c_20260924/`。

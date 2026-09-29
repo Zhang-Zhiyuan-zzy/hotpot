@@ -4,7 +4,7 @@
   "meta": {
     "title": "金属络合物三阶段力场工作流",
     "locale": "zh-CN",
-    "output": "plan/forcefield_three_stage_workflow.html",
+    "output": "plan/08_forcefields_performance/artifacts/forcefield_three_stage_workflow.html",
     "quality_profile": "showcase"
   },
   "lanes": [

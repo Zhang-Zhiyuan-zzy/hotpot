@@ -17,7 +17,8 @@
 - C++ 内执行 `OBBuilder`、单段最速下降和完整分 epoch 力场优化。
 - C++ 内执行 Open Babel 特例规则：P(V) 构筑规则与线性扭转奇点修复规则。
 - 原生层输出能量、梯度、收敛状态、终止原因、选中帧、末帧、epoch 历史和规则证据。
-- `forcefields.backend`、`forcefields.optimizer` 和 Python 3.9 适配路径改接原生后端。
+- `forcefields.backend`、`forcefields.optimizer` 及统一的 Python 3.9--3.14
+  业务路径改接原生后端。
 - 构建系统按 Python 版本选择 Open Babel 3.1/3.2，并链接对应 wheel 中的头文件和动态库。
 
 ### 2.2 本轮不实施
@@ -33,9 +34,10 @@
 ```text
 hotpot/cheminfo/
 ├── forcefields/
+│   ├── __init__.py             # 公开包入口，直接重导出统一 facade
+│   ├── ff.py                   # Python 3.9--3.14 统一公开 facade
 │   ├── backend.py              # 高层构筑/短优化适配及错误翻译
-│   ├── optimizer.py            # Hotpot 轨迹与原生批量优化结果适配
-│   └── utils39.py              # Python 3.9 业务路径，复用原生随机种子入口
+│   └── optimizer.py            # Hotpot 轨迹与原生批量优化结果适配
 └── obWrappers/
     ├── __init__.py             # 稳定公开入口
     ├── contracts.py            # Python 只读结果、规则和帧数据类

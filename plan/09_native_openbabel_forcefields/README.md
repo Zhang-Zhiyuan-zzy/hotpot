@@ -20,3 +20,5 @@ Production typed-buffer/C++ migration:
 a227df8 ede42bb 633f1d4 1d603f0 24f954f 16f4819 b68b10e
 3ac1f68 3755636 b1bfe09 50b458d 2d42ef6
 ```
+
+Legacy-label documentation cleanup: `9350ee0`.

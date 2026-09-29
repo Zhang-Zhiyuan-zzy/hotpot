@@ -66,8 +66,12 @@ minimum and have radius ratios 0.5603 and 0.5581. The run exhausts 100 epochs
 at 7,796.65 kJ/mol and does not converge.
 
 Unlike cases 54/109, the initial Eu atom is not already collapsed onto the
-failing donors. The failure develops as an overconstrained five-coordinate
-topology is added to a generic UFF representation.
+failing donors. The observed contraction develops while five coordination
+links are restored sequentially and represented to generic UFF as ordinary
+single bonds. The present trajectory proves that this path lacks a safe
+post-relaxation acceptance gate; by itself it does not distinguish an
+unfavorable placement or bond-addition order from inadequate UFF
+parameterization of the final coordination environment.
 
 ## Exact control-flow gap in `2d42ef6`
 

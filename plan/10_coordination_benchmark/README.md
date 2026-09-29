@@ -18,7 +18,7 @@ a227df8 ede42bb 633f1d4 1d603f0 24f954f 16f4819 b68b10e
 Current cleanup and reusable benchmark:
 
 ```text
-74d60b1 1e14f28
+74d60b1 1e14f28 58ba57f
 ```
 
 The benchmark implementation is under

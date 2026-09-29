@@ -6,7 +6,7 @@
 
 本轮明确**没有设计或引入 `HpMol`，也没有新增与 `core.py` 并列的 `core.cpp`**。C++ 中的 `MoleculeData` 只是一次调用期间使用的只读传输值，不是 `hotpot.Molecule` 的替代后端。
 
-迁移后的高层业务流程仍由 `hotpot.cheminfo.forcefields` 管理；`hotpot.cheminfo.obWrappers` 负责 Open Babel 原生执行、特例规则和可审计结果。旧的 Python/SWIG 规则规划器以标签 `obWrappers.old`（提交 `503f2a5`）保留为基线，生产代码不再保留两套执行路径。
+迁移后的高层业务流程仍由 `hotpot.cheminfo.forcefields` 管理；`hotpot.cheminfo.obWrappers` 负责 Open Babel 原生执行、特例规则和可审计结果。旧的 Python/SWIG 规则规划器仅以历史提交 `503f2a5` 保留为基准证据；本地 `obWrappers.old` 标签和生产兼容路径均已删除。
 
 ## 2. 范围与非范围
 

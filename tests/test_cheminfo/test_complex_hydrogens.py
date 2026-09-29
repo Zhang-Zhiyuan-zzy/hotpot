@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import working_copy
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.core import BondKind

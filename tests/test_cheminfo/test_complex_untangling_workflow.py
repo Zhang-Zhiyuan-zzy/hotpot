@@ -5,11 +5,11 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo import geometry as geo
-from hotpot.cheminfo.forcefields import ff, ff39
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import coordination
 from hotpot.cheminfo.forcefields import repair
-from hotpot.cheminfo.forcefields import utils as forcefield_utils
+from hotpot.cheminfo.forcefields import ff as forcefield_utils
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     CoordinationFrameEvidence,
@@ -1694,25 +1694,24 @@ def test_real_post_addition_bond_through_ligand_ring_is_rejected():
     )
 
 
-def test_public_staged_workflow_attempt_defaults_match_between_versions():
+def test_public_staged_workflow_attempt_defaults():
     expected_defaults = {
         "ligand_untangling_attempts": 20,
         "coordination_restoration_attempts": 20,
         "coordination_relaxation_steps": 100,
         "complex_untangling_attempts": 30,
     }
-    for module in (ff, ff39):
-        build_parameters = inspect.signature(module.build_complex3d).parameters
-        optimize_parameters = inspect.signature(module.optimize_complex).parameters
-        workflow_parameters = inspect.signature(module.complexes_build).parameters
+    build_parameters = inspect.signature(ff.build_complex3d).parameters
+    optimize_parameters = inspect.signature(ff.optimize_complex).parameters
+    workflow_parameters = inspect.signature(ff.complexes_build).parameters
 
-        assert build_parameters["ligand_untangling_attempts"].default == 20
-        assert build_parameters["coordination_restoration_attempts"].default == 20
-        assert optimize_parameters["complex_untangling_attempts"].default == 30
-        assert {
-            name: workflow_parameters[name].default
-            for name in expected_defaults
-        } == expected_defaults
+    assert build_parameters["ligand_untangling_attempts"].default == 20
+    assert build_parameters["coordination_restoration_attempts"].default == 20
+    assert optimize_parameters["complex_untangling_attempts"].default == 30
+    assert {
+        name: workflow_parameters[name].default
+        for name in expected_defaults
+    } == expected_defaults
 
 
 def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(

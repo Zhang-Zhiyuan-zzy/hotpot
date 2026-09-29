@@ -9,7 +9,7 @@ from hotpot.cheminfo.forcefields import acceptance as acceptance_impl
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
-from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
-from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.core import Molecule
 

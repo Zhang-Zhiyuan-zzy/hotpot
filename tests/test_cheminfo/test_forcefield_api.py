@@ -11,10 +11,11 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo import forcefields as ff_api
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
 from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import workers
 from hotpot.cheminfo.forcefields import workflows
-from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.core import Molecule
 
 
@@ -582,8 +583,8 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_seeded_ob_build_coordinates",
-        lambda current, seed, *, timeout, worker_target: calls.append(
-            ("seeded-build", current, seed, timeout, worker_target)
+        lambda current, seed, *, timeout: calls.append(
+            ("seeded-build", current, seed, timeout)
         ) or coordinates,
     )
     monkeypatch.setattr(
@@ -605,35 +606,42 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     ff.build3d(molecule, add_hydrogens=False, seed=37, timeout=2.5)
 
     assert calls == [
-        ("seeded-build", molecule, 37, 2.5, workers._seeded_ob_build_worker),
+        ("seeded-build", molecule, 37, 2.5),
         ("commit", molecule, molecule),
     ]
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
 
 
-def test_current_seed_worker_uses_backend_seed_adapter(monkeypatch):
-    received = {}
+def test_seed_worker_uses_canonical_backend_and_sends_result(monkeypatch):
+    calls = []
 
-    def run_worker(molecule, connection, seed, *, seed_initializer):
-        received.update(
-            molecule=molecule,
-            connection=connection,
-            seed=seed,
-            seed_initializer=seed_initializer,
-        )
+    class Connection:
+        def send(self, result):
+            calls.append(("send", result))
 
-    monkeypatch.setattr(workers, "_run_seeded_ob_build_worker", run_worker)
-    molecule = object()
-    connection = object()
+        def close(self):
+            calls.append(("close",))
 
-    workers._seeded_ob_build_worker(molecule, connection, 37)
+    molecule = SimpleNamespace(coordinates=np.ones((2, 3)))
+    monkeypatch.setattr(
+        ob_backend,
+        "_seed_openbabel_random",
+        lambda seed: calls.append(("seed", seed)),
+    )
+    monkeypatch.setattr(
+        workers,
+        "_ob_build",
+        lambda current: calls.append(("build", current)),
+    )
 
-    assert received == {
-        "molecule": molecule,
-        "connection": connection,
-        "seed": 37,
-        "seed_initializer": ob_backend._seed_openbabel_random,
-    }
+    workers._seeded_ob_build_worker(molecule, Connection(), 37)
+
+    assert calls[0] == ("seed", 37)
+    assert calls[1] == ("build", molecule)
+    assert calls[2][0] == "send"
+    assert calls[2][1].status == "ok"
+    np.testing.assert_array_equal(calls[2][1].coordinates, molecule.coordinates)
+    assert calls[3] == ("close",)
 
 
 def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):
@@ -645,7 +653,7 @@ def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):
     )
     original_coordinates = molecule.coordinates.copy()
 
-    def fail_build(current, seed, *, timeout, worker_target):
+    def fail_build(current, seed, *, timeout):
         raise ff.BuildWorkerError("RuntimeError", "deliberate failure", None)
 
     monkeypatch.setattr(workflows, "_seeded_ob_build_coordinates", fail_build)
@@ -684,7 +692,7 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
 
     def receive(current_process, receive, send, **options):
         calls.append((current_process, receive, send, options))
-        return ff.BuildWorkerResult(
+        return BuildWorkerResult(
             status="ok",
             coordinates=np.zeros((1, 3)),
         )
@@ -696,7 +704,6 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
         molecule,
         43,
         timeout=4.25,
-        worker_target=workers._seeded_ob_build_worker,
     )
 
     np.testing.assert_array_equal(coordinates, np.zeros((1, 3)))
@@ -746,7 +753,6 @@ def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
                 "add_hydrogens": True,
                 "seed": 47,
                 "timeout": 3.75,
-                "worker_target": workers._seeded_ob_build_worker,
             },
         )
     ]

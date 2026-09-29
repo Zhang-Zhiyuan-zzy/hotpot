@@ -27,7 +27,6 @@ __all__ = (
     "RingUntanglingReport",
     "CoordinationBondRestorationReport",
     "ComplexBuildDiagnostics",
-    "BuildWorkerResult",
     "ForceFieldWorkflowReport",
     "BuildAndOptimizeReport",
     "ComplexBuildReport",

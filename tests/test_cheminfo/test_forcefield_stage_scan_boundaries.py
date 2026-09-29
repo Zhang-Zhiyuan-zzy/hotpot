@@ -16,7 +16,7 @@ from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
 from hotpot.cheminfo.forcefields import repair
-from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,

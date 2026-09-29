@@ -6,7 +6,7 @@ import multiprocessing as mp
 import os
 import traceback as traceback_module
 from multiprocessing.connection import Connection, wait as wait_for_connections
-from typing import Optional, Protocol, Union, TYPE_CHECKING
+from typing import Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -31,39 +31,6 @@ if TYPE_CHECKING:
 __all__ = ()
 
 
-class _SeededBuildWorker(Protocol):
-    def __call__(
-        self,
-        mol: "Molecule",
-        connection: Connection,
-        seed: int,
-    ) -> None:
-        ...
-
-
-class _ComplexBuildWorker(Protocol):
-    def __call__(
-        self,
-        mol: "Molecule",
-        connection: Connection,
-        max_attempts: int,
-        candidate_warmup_steps: int,
-        candidate_score_steps: int,
-        best_candidate_refine_steps: int,
-        effective_forcefield: str,
-        seed: Optional[int],
-        ligand_untangling_attempts: int,
-        perturb_sigma: float,
-        record_ligand_trajectories: bool,
-    ) -> None:
-        ...
-
-
-class _SeedInitializer(Protocol):
-    def __call__(self, seed: int) -> None:
-        ...
-
-
 def _build_ligand_proxies_worker(
     mol: "Molecule",
     connection: Connection,
@@ -78,44 +45,12 @@ def _build_ligand_proxies_worker(
     record_ligand_trajectories: bool = False,
 ) -> None:
     """Child-process boundary that always sends one structured envelope."""
-    _run_ligand_proxy_worker(
-        mol,
-        connection,
-        max_attempts,
-        candidate_warmup_steps,
-        candidate_score_steps,
-        best_candidate_refine_steps,
-        effective_forcefield,
-        seed,
-        ligand_untangling_attempts,
-        perturb_sigma,
-        record_ligand_trajectories,
-        seed_initializer=_backend._seed_openbabel_random,
-    )
-
-
-def _run_ligand_proxy_worker(
-    mol: "Molecule",
-    connection: Connection,
-    max_attempts: int,
-    candidate_warmup_steps: int,
-    candidate_score_steps: int,
-    best_candidate_refine_steps: int,
-    effective_forcefield: str,
-    seed: Optional[int],
-    ligand_untangling_attempts: int = 20,
-    perturb_sigma: float = 0.5,
-    record_ligand_trajectories: bool = False,
-    *,
-    seed_initializer: _SeedInitializer,
-) -> None:
-    """Run the shared ligand-proxy worker body with an explicit RNG adapter."""
     trajectory_attempts: Optional[list[ForceFieldTrajectory]] = (
         [] if record_ligand_trajectories else None
     )
     try:
         if seed is not None:
-            seed_initializer(seed)
+            _backend._seed_openbabel_random(seed)
         coordinates, diagnostics = _build_ligand_proxies(
             mol,
             max_attempts=max_attempts,
@@ -155,24 +90,8 @@ def _seeded_ob_build_worker(
     seed: int,
 ) -> None:
     """Run OBBuilder in a fresh process whose static RNG starts from ``seed``."""
-    _run_seeded_ob_build_worker(
-        mol,
-        connection,
-        seed,
-        seed_initializer=_backend._seed_openbabel_random,
-    )
-
-
-def _run_seeded_ob_build_worker(
-    mol: "Molecule",
-    connection: Connection,
-    seed: int,
-    *,
-    seed_initializer: _SeedInitializer,
-) -> None:
-    """Run the shared OBBuilder worker body with an explicit RNG adapter."""
     try:
-        seed_initializer(seed)
+        _backend._seed_openbabel_random(seed)
         _ob_build(mol)
         result = BuildWorkerResult(
             status="ok",
@@ -336,14 +255,13 @@ def _seeded_ob_build_coordinates(
     seed: int,
     *,
     timeout: float,
-    worker_target: _SeededBuildWorker,
 ) -> np.ndarray:
     """Build coordinates in an isolated process for repeatable Open Babel RNG."""
     worker_mol = _make_worker_mol(mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
-        target=worker_target,
+        target=_seeded_ob_build_worker,
         args=(worker_mol, send_connection, seed),
     )
     result = _receive_worker_result(

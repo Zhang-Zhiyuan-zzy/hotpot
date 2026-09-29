@@ -59,12 +59,9 @@ from .trajectory import (
 )
 from .working_copy import _commit_working_copy, _hydrogenated_working_copy, _make_worker_mol
 from .workers import (
-    _ComplexBuildWorker,
-    _SeededBuildWorker,
     _build_ligand_proxies_worker,
     _receive_worker_result,
     _seeded_ob_build_coordinates,
-    _seeded_ob_build_worker,
     _validated_worker_coordinates,
 )
 
@@ -126,7 +123,7 @@ def _warn_failed_acceptance(
     )
 
 
-# Non-committing workflow stages with explicit worker injection.
+# Non-committing workflow stages.
 
 
 def _finalize_trajectory(
@@ -183,7 +180,6 @@ def _prepare_complex_working_mol(
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str],
-    worker_target: _ComplexBuildWorker,
 ) -> _PreparedComplex:
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
@@ -216,7 +212,7 @@ def _prepare_complex_working_mol(
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
     process = context.Process(
-        target=worker_target,
+        target=_build_ligand_proxies_worker,
         args=(
             worker_mol,
             send_connection,
@@ -630,7 +626,6 @@ def _complexes_build_workflow(
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
     coordination_geometry: Optional[str] = None,
-    worker_target: _ComplexBuildWorker,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
     _require_explicit_complex(mol)
@@ -656,7 +651,6 @@ def _complexes_build_workflow(
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
-        worker_target=worker_target,
     )
     try:
         optimization_report = _optimize_complex_working_mol(
@@ -721,7 +715,6 @@ def _build3d_workflow(
     add_hydrogens: bool = True,
     seed: Optional[int] = None,
     timeout: float = 1000.0,
-    worker_target: _SeededBuildWorker,
 ) -> Build3DReport:
     """Generate initial 3D coordinates with OBBuilder, without optimization."""
     topology_reference = capture_topology(
@@ -741,7 +734,6 @@ def _build3d_workflow(
             working_mol,
             seed,
             timeout=timeout,
-            worker_target=worker_target,
         )
     quality_report = evaluate_structure_acceptance(
         working_mol,
@@ -772,7 +764,6 @@ def build3d(
         add_hydrogens=add_hydrogens,
         seed=seed,
         timeout=timeout,
-        worker_target=_seeded_ob_build_worker,
     )
 
 
@@ -883,7 +874,6 @@ def _build_complex3d_workflow(
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str] = None,
-    worker_target: _ComplexBuildWorker,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
     _require_explicit_complex(mol)
@@ -909,7 +899,6 @@ def _build_complex3d_workflow(
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
-        worker_target=worker_target,
     )
     quality_report = evaluate_structure_acceptance(
         prepared.mol,
@@ -993,7 +982,6 @@ def build_complex3d(
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
-        worker_target=_build_ligand_proxies_worker,
     )
 
 
@@ -1105,8 +1093,6 @@ def _build_and_optimize_workflow(
     coordination_relaxation_steps: int = 100,
     complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
-    seeded_build_worker: _SeededBuildWorker,
-    complex_build_worker: _ComplexBuildWorker,
 ) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow."""
     if mol.has_metal:
@@ -1143,7 +1129,6 @@ def _build_and_optimize_workflow(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             coordination_geometry=coordination_geometry,
-            worker_target=complex_build_worker,
         )
 
     working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False)
@@ -1152,7 +1137,6 @@ def _build_and_optimize_workflow(
         add_hydrogens=add_hydrogens,
         seed=seed,
         timeout=timeout,
-        worker_target=seeded_build_worker,
     )
     optimization_report = optimize(
         working_mol,
@@ -1260,7 +1244,6 @@ def complexes_build(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
         coordination_geometry=coordination_geometry,
-        worker_target=_build_ligand_proxies_worker,
     )
 
 
@@ -1335,8 +1318,6 @@ def build_and_optimize(
         coordination_relaxation_steps=coordination_relaxation_steps,
         complex_untangling_attempts=complex_untangling_attempts,
         coordination_geometry=coordination_geometry,
-        seeded_build_worker=_seeded_ob_build_worker,
-        complex_build_worker=_build_ligand_proxies_worker,
     )
 
 

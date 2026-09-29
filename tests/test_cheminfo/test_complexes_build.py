@@ -9,9 +9,10 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo import geometry as geo
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
 from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import repair
-from hotpot.cheminfo.forcefields import utils as ff
+from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import workers
 from hotpot.cheminfo.forcefields import workflows
 
@@ -19,7 +20,7 @@ from hotpot.cheminfo.forcefields import workflows
 def _send_large_worker(connection):
     diagnostics = ff.ComplexBuildDiagnostics(1, 1, (), 0.0)
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.ones((250_000, 3)),
             diagnostics=diagnostics,
@@ -38,7 +39,7 @@ def _share_single_ob_optimization(monkeypatch):
 
 def _send_error_worker(connection):
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="error",
             error_type="ValueError",
             error_message="dative conversion failed",
@@ -58,7 +59,7 @@ def _blocking_complex_worker(molecule, connection, *args):
 
 def _failing_complex_worker(molecule, connection, *args):
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="error",
             error_type="RuntimeError",
             error_message="deliberate public worker failure",
@@ -77,7 +78,7 @@ def _ligand_fallback_warning_worker(molecule, connection, *args):
         ("no ligand candidate passed; retaining the best usable attempt",),
     )
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=molecule.coordinates,
             diagnostics=diagnostics,
@@ -98,7 +99,7 @@ def _failing_ligand_trajectory_worker(molecule, connection, *args):
     )
     trajectory.select(frame.index)
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="error",
             error_type="ForceFieldError",
             error_message="deliberate ligand build failure",
@@ -115,7 +116,7 @@ def _malformed_worker(connection):
 
 def _invalid_status_worker(connection):
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="unknown",
             coordinates=np.zeros((1, 3)),
         )
@@ -124,14 +125,14 @@ def _invalid_status_worker(connection):
 
 
 def _incomplete_success_worker(connection):
-    connection.send(ff.BuildWorkerResult(status="ok"))
+    connection.send(BuildWorkerResult(status="ok"))
     connection.close()
 
 
 def _send_seed_worker(connection):
     diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.asarray([[float(os.environ["OB_RANDOM_SEED"]), 0.0, 0.0]]),
             diagnostics=diagnostics,
@@ -143,7 +144,7 @@ def _send_seed_worker(connection):
 def _send_small_worker(connection):
     diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.zeros((1, 3)),
             diagnostics=diagnostics,
@@ -154,7 +155,7 @@ def _send_small_worker(connection):
 
 def _send_coordinates_only_worker(connection):
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.zeros((1, 3)),
         )
@@ -170,7 +171,7 @@ def _send_then_exit_slowly_worker(connection):
 def _send_tagged_worker(connection, tag):
     diagnostics = ff.ComplexBuildDiagnostics(1, 1, (), 0.0)
     connection.send(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.asarray([[float(tag), 0.0, 0.0]]),
             diagnostics=diagnostics,
@@ -635,7 +636,7 @@ def test_ready_sentinel_is_followed_by_bounded_exitcode_refresh(monkeypatch):
     )
     diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
     receive_connection = _ReadyConnection(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.zeros((1, 3)),
             diagnostics=diagnostics,
@@ -667,7 +668,7 @@ def test_successful_message_does_not_hide_a_worker_that_fails_to_exit(monkeypatc
     monkeypatch.setattr(workers, "wait_for_connections", wait_for_exit)
     diagnostics = ff.ComplexBuildDiagnostics(0, 0, (), 0.0)
     receive_connection = _ReadyConnection(
-        ff.BuildWorkerResult(
+        BuildWorkerResult(
             status="ok",
             coordinates=np.zeros((1, 3)),
             diagnostics=diagnostics,
@@ -728,7 +729,7 @@ def test_complex_worker_coordinates_are_validated_before_native_optimization(
     coordinates,
 ):
     diagnostics = ff.ComplexBuildDiagnostics(1, 1, (), 0.0)
-    result = ff.BuildWorkerResult(
+    result = BuildWorkerResult(
         status="ok",
         coordinates=coordinates,
         diagnostics=diagnostics,
@@ -741,7 +742,7 @@ def test_complex_worker_coordinates_are_validated_before_native_optimization(
 
 
 def test_generic_worker_coordinate_validation_uses_generic_failure_type():
-    result = ff.BuildWorkerResult(
+    result = BuildWorkerResult(
         status="ok",
         coordinates=np.zeros((1, 3)),
     )
@@ -1039,6 +1040,11 @@ def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
     molecule = read_mol("[Zn](N)", "smi")
     fork_context = mp.get_context("fork")
     monkeypatch.setattr(workflows.mp, "get_context", lambda method: fork_context)
+    monkeypatch.setattr(
+        workflows,
+        "_build_ligand_proxies_worker",
+        _ligand_fallback_warning_worker,
+    )
 
     with pytest.warns(
         ff.ComplexBuildWarning,
@@ -1055,7 +1061,6 @@ def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
             add_hydrogens=False,
             seed=None,
             coordination_geometry=None,
-            worker_target=_ligand_fallback_warning_worker,
         )
 
     assert prepared.diagnostics.warning_messages == (
@@ -1068,6 +1073,11 @@ def test_failed_ligand_build_persists_recorded_attempts(monkeypatch, tmp_path):
     trajectory_path = tmp_path / "failed-complex-build"
     fork_context = mp.get_context("fork")
     monkeypatch.setattr(workflows.mp, "get_context", lambda method: fork_context)
+    monkeypatch.setattr(
+        workflows,
+        "_build_ligand_proxies_worker",
+        _failing_ligand_trajectory_worker,
+    )
 
     with pytest.raises(ff.ComplexBuildWorkerError) as caught:
         workflows._prepare_complex_working_mol(
@@ -1083,7 +1093,6 @@ def test_failed_ligand_build_persists_recorded_attempts(monkeypatch, tmp_path):
             trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
             trajectory_path=trajectory_path,
             coordination_geometry=None,
-            worker_target=_failing_ligand_trajectory_worker,
         )
 
     restored = ff.ForceFieldTrajectoryArchive.read(trajectory_path)

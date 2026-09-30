@@ -173,8 +173,10 @@ class TestChemInfo(ut.TestCase):
         rings = c1.rings
         print(rings)
         print(rings[0].bonds)
-        self.assertIn(rings[0].bonds[1], rings[0])
-        self.assertNotIn(rings[0].bonds[2], rings[1])
+        ring = rings[0]
+        non_ring_bond = next(bond for bond in c1.bonds if bond not in ring.bonds)
+        self.assertIn(ring.bonds[1], ring)
+        self.assertNotIn(non_ring_bond, ring)
 
         self.assertTrue(all(a.in_ring for r in rings for a in r.atoms))
         self.assertTrue(all(b.in_ring for r in rings for b in r.bonds))

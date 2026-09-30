@@ -166,6 +166,8 @@ void test_contract_validation_and_trajectory() {
         0,
         {"coordination_partial"},
         trajectory,
+        1,
+        {},
     };
     coordination.validate();
 

@@ -318,5 +318,5 @@ def test_stage_and_composed_results_round_trip_without_science_placeholders():
     assert converted_optimization.max_displacements == (0.1,)
     assert converted_optimization.epoch_energies == (-10.0,)
     assert converted_workflow.warning_codes == ("workflow_warning",)
-    assert not hasattr(native, "restore_coordination")
+    assert hasattr(native, "restore_coordination")
     assert not hasattr(native, "optimize_complex")

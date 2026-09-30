@@ -255,6 +255,26 @@ def test_topology_blocked_result_does_not_report_setup_success() -> None:
     assert report.termination_reason == "topology_blocked"
 
 
+def test_topology_blocked_tail_overrides_earlier_optimizer_work() -> None:
+    mol = _complex()
+    result = _native_workflow_result(pack_complex_session_input(mol))
+    blocked_result = replace(
+        result.optimization,
+        termination_reason="topology_blocked",
+        epochs_completed=3,
+        steps_submitted=300,
+        initialization_steps=1,
+    )
+
+    report = forcefield_run_report(
+        blocked_result,
+        requested_forcefield=None,
+        effective_forcefield="UFF",
+    )
+
+    assert not report.setup_succeeded
+
+
 def test_selected_structure_updates_coordinates_and_reuses_bond_objects() -> None:
     mol = _complex()
     session_input = pack_complex_session_input(mol)

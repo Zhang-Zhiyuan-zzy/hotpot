@@ -1,0 +1,4 @@
+backend,sample_count,build_success_count,build_success_rate,forcefield_supported_count,forcefield_supported_rate,forcefield_fully_parameterized_count,forcefield_fully_parameterized_rate,optimization_success_count,optimization_success_rate,convergence_reported_count,converged_count,finite_coordinate_count,topology_preserved_count,quality_pass_count,quality_pass_rate,median_case_seconds,aggregate_case_seconds
+hotpot,178,178,1.0,178,1.0,178,1.0,178,1.0,178,16,178,178,177,0.9943820224719101,9.295995232649148,1848.9961591418833
+rdkit,178,174,0.9775280898876404,174,0.9775280898876404,0,0.0,174,0.9775280898876404,174,165,174,174,27,0.15168539325842698,0.2718154713511467,388.7156383804977
+openbabel,178,177,0.9943820224719101,177,0.9943820224719101,177,0.9943820224719101,177,0.9943820224719101,0,0,177,177,162,0.9101123595505618,1.9959779884666204,492.13379363901913

@@ -9,7 +9,12 @@ from typing import NoReturn, Optional, TYPE_CHECKING
 from ..obWrappers import build as build_molecule
 from ..obWrappers.forcefield import _single_optimize as _native_single_optimize
 from ..obWrappers.native import _native_module
-from .contracts import ForceFieldError, ForceFieldSetupError, ForceFieldSetupReport
+from .contracts import (
+    ForceFieldError,
+    ForceFieldSetupError,
+    ForceFieldSetupReport,
+    ForceFieldSetupStage,
+)
 
 
 if TYPE_CHECKING:
@@ -60,7 +65,7 @@ def _raise_forcefield_setup_error(
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
-    stage: str,
+    stage: ForceFieldSetupStage,
 ) -> NoReturn:
     """Translate one structured native setup failure into the public error."""
     raise ForceFieldSetupError(

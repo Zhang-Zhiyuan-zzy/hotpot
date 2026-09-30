@@ -1,9 +1,8 @@
 """Typed Python adapters for the canonical C++ geometry kernels.
 
-This module is the direct Python entry to the native geometry API during the
-staged migration. It intentionally does not provide a Python numerical
-fallback. The stable package facade is switched to these adapters only after
-each migration phase passes its characterization fence.
+This module is the direct Python entry to the canonical native geometry API.
+It intentionally does not provide a second Python numerical implementation;
+the stable package facade delegates numerical kernels to these adapters.
 """
 
 from __future__ import annotations

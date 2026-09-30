@@ -98,6 +98,7 @@ def test_native_stage_three_maps_final_checkpoint_and_required_frames() -> None:
     )
 
     assert result.status is NativeStageStatus.COMPLETED
+    assert result.elapsed_seconds > 0.0
     assert result.final_checkpoint.state is PiercingState.DOES_NOT_PIERCE
     assert result.final_checkpoint.scope is NativeRingGraphScope.FULL_GRAPH
     assert result.final_checkpoint.maximum_actionable_ring_size == 16

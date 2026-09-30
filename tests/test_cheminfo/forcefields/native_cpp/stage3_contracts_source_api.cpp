@@ -315,6 +315,12 @@ void test_complex_result_history_and_cross_field_contracts() {
     invalid.final_checkpoint.scope =
         ff::NativeRingGraphScope::LIGAND_SKELETON;
     expect_invalid([&invalid]() { invalid.validate(); });
+    invalid = result;
+    invalid.elapsed_seconds = -1.0;
+    expect_invalid([&invalid]() { invalid.validate(); });
+    invalid = result;
+    invalid.elapsed_seconds = std::numeric_limits<double>::infinity();
+    expect_invalid([&invalid]() { invalid.validate(); });
 }
 
 

@@ -106,6 +106,7 @@ def test_empty_stage_returns_before_metal_placement() -> None:
     assert result.status is NativeStageStatus.COMPLETED
     assert result.bond_count == 0
     assert result.placement_report.metals == []
+    assert result.elapsed_seconds > 0.0
     assert result.trajectory.events == (
         TrajectoryEvent.COORDINATION_READY,
         TrajectoryEvent.TERMINAL,

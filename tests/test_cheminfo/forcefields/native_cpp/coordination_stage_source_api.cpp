@@ -73,6 +73,16 @@ void test_empty_coordination_stage_is_a_selected_terminal_state() {
     assert(result.trajectory.frame_count() == 2);
     assert(result.trajectory.selected_frame_index == 1);
     assert(result.trajectory.terminal_frame_index == 1);
+    assert(result.elapsed_seconds > 0.0);
+    auto invalid = result;
+    invalid.elapsed_seconds = -1.0;
+    bool rejected = false;
+    try {
+        invalid.validate();
+    } catch (const std::invalid_argument&) {
+        rejected = true;
+    }
+    assert(rejected);
 }
 
 

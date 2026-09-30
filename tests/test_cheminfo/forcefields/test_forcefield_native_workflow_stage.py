@@ -68,6 +68,8 @@ def test_workflow_preserves_stage_reports_and_merges_their_trajectories() -> Non
 
     coordination_frames = result.coordination.trajectory.frame_count
     optimization_frames = result.optimization.trajectory.frame_count
+    assert result.coordination.elapsed_seconds > 0.0
+    assert result.optimization.elapsed_seconds > 0.0
     assert result.trajectory.frame_count == (
         coordination_frames + optimization_frames
     )

@@ -297,6 +297,8 @@ def test_stage1_refinement_piercing_reenters_untangling(monkeypatch):
     )
 
     assert diagnostics.accepted_candidates == 1
+    assert diagnostics.ligand_build_elapsed_seconds > 0.0
+    assert diagnostics.elapsed_seconds == diagnostics.ligand_build_elapsed_seconds
     assert untangling_inputs == [entry_report, refined_report]
     assert accepted_reports == [candidate_terminal, refined_terminal]
 

@@ -88,16 +88,109 @@ def test_public_iterators_are_lazy_and_prepare_the_cycle_once(
         return original_prepare(cycle, settings)
 
     monkeypatch.setattr(native, "_prepare_cycle", counted_prepare)
+    monkeypatch.setattr(native, "_SEGMENT_CYCLE_BATCH_SIZE", 2)
     results = iterator(segment_source(), cycle)
 
     assert consumed == []
     assert prepared == []
     next(results)
-    assert consumed == [_segments()[0]]
+    assert consumed == list(_segments()[:2])
     assert prepared == [cycle]
     tuple(results)
     assert consumed == list(_segments())
     assert prepared == [cycle]
+
+
+@pytest.mark.parametrize(
+    ("iterator", "native_batch_name"),
+    (
+        (relation.iter_segment_cycle_relations, "segment_cycle_relations"),
+        (relation.iter_segment_cycle_screenings, "segment_cycle_screenings"),
+    ),
+    ids=("relations", "screenings"),
+)
+def test_public_iterators_batch_one_shot_inputs_in_order(
+    iterator: Callable[
+        [Iterator[Segment], Cycle],
+        Union[Iterator[SegmentCycleRelation], Iterator[SegmentCycleScreening]],
+    ],
+    native_batch_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cycle = Cycle(((0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)))
+    segment_count = native._SEGMENT_CYCLE_BATCH_SIZE * 2 + 1
+    segments = tuple(
+        Segment((1, 1, -1), (1, 1, 1))
+        if index % 2 == 0
+        else Segment((10 + index, 10, -1), (10 + index, 10, 1))
+        for index in range(segment_count)
+    )
+    iteration_count = 0
+    yielded_segments: list[Segment] = []
+    batch_sizes: list[int] = []
+
+    class OneShotSegments:
+        def __iter__(self) -> Iterator[Segment]:
+            nonlocal iteration_count
+            iteration_count += 1
+            assert iteration_count == 1
+            for segment in segments:
+                yielded_segments.append(segment)
+                yield segment
+
+    native_batch = getattr(native._native, native_batch_name)
+
+    def counted_batch(segment_array, prepared_cycle):
+        batch_sizes.append(len(segment_array))
+        return native_batch(segment_array, prepared_cycle)
+
+    monkeypatch.setattr(native._native, native_batch_name, counted_batch)
+
+    results = iterator(OneShotSegments(), cycle)
+    assert yielded_segments == []
+
+    states = tuple(result.state for result in results)
+
+    assert iteration_count == 1
+    assert yielded_segments == list(segments)
+    assert batch_sizes == [
+        native._SEGMENT_CYCLE_BATCH_SIZE,
+        native._SEGMENT_CYCLE_BATCH_SIZE,
+        1,
+    ]
+    assert states == tuple(
+        PiercingState.PIERCES
+        if index % 2 == 0
+        else PiercingState.DOES_NOT_PIERCE
+        for index in range(segment_count)
+    )
+
+
+@pytest.mark.parametrize(
+    ("iterator", "native_batch_name"),
+    (
+        (relation.iter_segment_cycle_relations, "segment_cycle_relations"),
+        (relation.iter_segment_cycle_screenings, "segment_cycle_screenings"),
+    ),
+    ids=("relations", "screenings"),
+)
+def test_public_iterators_skip_native_work_for_empty_inputs(
+    iterator: Callable[
+        [Iterator[Segment], Cycle],
+        Union[Iterator[SegmentCycleRelation], Iterator[SegmentCycleScreening]],
+    ],
+    native_batch_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cycle = Cycle(((0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)))
+
+    def unexpected_call(*args, **kwargs):
+        raise AssertionError("empty input must not prepare or enter native code")
+
+    monkeypatch.setattr(native, "_prepare_cycle", unexpected_call)
+    monkeypatch.setattr(native._native, native_batch_name, unexpected_call)
+
+    assert tuple(iterator(iter(()), cycle)) == ()
 
 
 def test_public_screening_does_not_hide_invalid_cycles_behind_aabb() -> None:

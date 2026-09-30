@@ -7,6 +7,7 @@ the stable package facade delegates numerical kernels to these adapters.
 
 from __future__ import annotations
 
+from itertools import islice
 from typing import TYPE_CHECKING, Iterable, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -67,6 +68,8 @@ PreparedCycleBatch = _native.PreparedCycleBatch
 SegmentCycleBatch = _native.SegmentCycleBatch
 DetailLevel = _native.DetailLevel
 
+_SEGMENT_CYCLE_BATCH_SIZE = 256
+
 Coordinates = Union[Sequence[float], Point]
 BoundsInput = Union[np.ndarray, Sequence[Sequence[float]]]
 ArrayValues = Union[
@@ -119,6 +122,14 @@ def _segment_batch(segments: Iterable[Segment]) -> np.ndarray:
         ],
         (-1, 2, 3),
     )
+
+
+def _segment_chunks(
+    segments: Iterable[Segment],
+) -> Iterable[Tuple[Segment, ...]]:
+    segment_iterator = iter(segments)
+    while chunk := tuple(islice(segment_iterator, _SEGMENT_CYCLE_BATCH_SIZE)):
+        yield chunk
 
 
 def _cycle_matrix(cycle: Cycle) -> np.ndarray:
@@ -447,16 +458,18 @@ def _iter_segment_cycle_relations(
     cycle: Cycle,
     settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> Iterable[SegmentCycleRelation]:
-    """Yield relations lazily while reusing one native cycle preparation."""
+    """Yield relations lazily from fixed-size native segment batches."""
 
-    prepared_cycle = _prepare_cycle(cycle, settings)
-    for segment in segments:
-        result = _native.determine_segment_cycle_relation(
-            _point_array(segment.start),
-            _point_array(segment.end),
+    prepared_cycle = None
+    for segment_chunk in _segment_chunks(segments):
+        if prepared_cycle is None:
+            prepared_cycle = _prepare_cycle(cycle, settings)
+        results = _native.segment_cycle_relations(
+            _segment_batch(segment_chunk),
             prepared_cycle,
         )
-        yield _segment_cycle_relation_result(result, cycle, settings)
+        for result in results:
+            yield _segment_cycle_relation_result(result, cycle, settings)
 
 
 def _segment_cycle_screenings(
@@ -482,15 +495,18 @@ def _iter_segment_cycle_screenings(
     cycle: Cycle,
     settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS,
 ) -> Iterable[SegmentCycleScreening]:
-    """Yield screenings lazily while reusing one native cycle preparation."""
+    """Yield screenings lazily from fixed-size native segment batches."""
 
-    prepared_cycle = _prepare_cycle(cycle, settings)
-    for segment in segments:
-        result = _native.segment_cycle_screenings(
-            _segment_batch((segment,)),
+    prepared_cycle = None
+    for segment_chunk in _segment_chunks(segments):
+        if prepared_cycle is None:
+            prepared_cycle = _prepare_cycle(cycle, settings)
+        results = _native.segment_cycle_screenings(
+            _segment_batch(segment_chunk),
             prepared_cycle,
-        )[0]
-        yield _segment_cycle_screening_result(result, cycle, settings)
+        )
+        for result in results:
+            yield _segment_cycle_screening_result(result, cycle, settings)
 
 
 def _determine_nonplanar_segment_cycle_relation(

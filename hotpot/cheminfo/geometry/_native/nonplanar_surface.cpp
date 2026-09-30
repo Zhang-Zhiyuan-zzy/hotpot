@@ -714,30 +714,6 @@ SurfaceEmbeddingState determine_surface_embedding(
 }  // namespace
 
 
-void SurfaceEnumerationLimits::validate() const {
-    if (maximum_cycle_vertices < detail::minimum_cycle_vertex_count) {
-        throw std::invalid_argument(
-            "maximum_cycle_vertices must be at least three"
-        );
-    }
-    if (maximum_surface_count == 0) {
-        throw std::invalid_argument(
-            "maximum_surface_count must be greater than zero"
-        );
-    }
-    if (maximum_segment_triangle_tests == 0) {
-        throw std::invalid_argument(
-            "maximum_segment_triangle_tests must be greater than zero"
-        );
-    }
-    if (maximum_triangle_pair_tests == 0) {
-        throw std::invalid_argument(
-            "maximum_triangle_pair_tests must be greater than zero"
-        );
-    }
-}
-
-
 PreparedNonplanarSurfaceFamily prepare_nonplanar_surface_family(
     ArrayView<Point3> cycle,
     const NumericTolerances& tolerances,

@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -39,8 +40,34 @@ struct SurfaceEnumerationLimits {
     std::size_t maximum_segment_triangle_tests;
     std::size_t maximum_triangle_pair_tests;
 
-    void validate() const;
+    void validate() const {
+        if (maximum_cycle_vertices < 3) {
+            throw std::invalid_argument(
+                "maximum_cycle_vertices must be at least three"
+            );
+        }
+        if (maximum_surface_count == 0) {
+            throw std::invalid_argument(
+                "maximum_surface_count must be greater than zero"
+            );
+        }
+        if (maximum_segment_triangle_tests == 0) {
+            throw std::invalid_argument(
+                "maximum_segment_triangle_tests must be greater than zero"
+            );
+        }
+        if (maximum_triangle_pair_tests == 0) {
+            throw std::invalid_argument(
+                "maximum_triangle_pair_tests must be greater than zero"
+            );
+        }
+    }
 };
+
+
+inline SurfaceEnumerationLimits default_surface_enumeration_limits() noexcept {
+    return {8, 132, 792, 1980};
+}
 
 
 struct PreparedTriangleGeometry {

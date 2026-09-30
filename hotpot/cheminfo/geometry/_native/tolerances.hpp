@@ -102,4 +102,19 @@ struct NumericTolerances {
 };
 
 
+inline NumericTolerances default_numeric_tolerances() noexcept {
+    return {
+        1.0e-8,
+        1.0e-10,
+        1.0e-10,
+        64.0,
+        4.0,
+        1.0,
+        1.0e-10,
+        4.0,
+        4.0,
+    };
+}
+
+
 }  // namespace hotpot::geometry

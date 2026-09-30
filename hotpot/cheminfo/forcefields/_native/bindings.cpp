@@ -2,6 +2,7 @@
 
 #include "contracts.hpp"
 #include "coordination_stage.hpp"
+#include "optimization_stage.hpp"
 #include "placement_engine.hpp"
 #include "placement_policy.hpp"
 #include "radii.hpp"
@@ -880,6 +881,72 @@ void bind_stage_options(py::module_& module) {
         .value("COMPLETED", NativeStageStatus::COMPLETED)
         .value("PARTIAL", NativeStageStatus::PARTIAL)
         .value("FAILED", NativeStageStatus::FAILED);
+    py::enum_<NativeRingGraphScope>(module, "NativeRingGraphScope")
+        .value(
+            "LIGAND_SKELETON",
+            NativeRingGraphScope::LIGAND_SKELETON
+        )
+        .value("FULL_GRAPH", NativeRingGraphScope::FULL_GRAPH);
+    py::enum_<hotpot::geometry::PiercingState>(
+        module,
+        "NativePiercingState",
+        py::module_local()
+    )
+        .value("PIERCES", hotpot::geometry::PiercingState::PIERCES)
+        .value(
+            "DOES_NOT_PIERCE",
+            hotpot::geometry::PiercingState::DOES_NOT_PIERCE
+        )
+        .value(
+            "UNDETERMINED",
+            hotpot::geometry::PiercingState::UNDETERMINED
+        );
+    py::enum_<hotpot::geometry::SegmentCycleIndeterminacy>(
+        module,
+        "NativeSegmentCycleIndeterminacy",
+        py::module_local()
+    )
+        .value(
+            "NONFINITE_INPUT",
+            hotpot::geometry::SegmentCycleIndeterminacy::NONFINITE_INPUT
+        )
+        .value(
+            "NUMERIC_BAND",
+            hotpot::geometry::SegmentCycleIndeterminacy::NUMERIC_BAND
+        )
+        .value(
+            "TOLERANCE_DOMAIN",
+            hotpot::geometry::SegmentCycleIndeterminacy::TOLERANCE_DOMAIN
+        )
+        .value(
+            "DEGENERATE_CYCLE",
+            hotpot::geometry::SegmentCycleIndeterminacy::DEGENERATE_CYCLE
+        )
+        .value(
+            "DEGENERATE_SEGMENT",
+            hotpot::geometry::SegmentCycleIndeterminacy::DEGENERATE_SEGMENT
+        )
+        .value(
+            "DEGENERATE_TRIANGLE",
+            hotpot::geometry::SegmentCycleIndeterminacy::DEGENERATE_TRIANGLE
+        )
+        .value(
+            "SELF_INTERSECTION",
+            hotpot::geometry::SegmentCycleIndeterminacy::SELF_INTERSECTION
+        )
+        .value(
+            "SURFACE_DISAGREEMENT",
+            hotpot::geometry::SegmentCycleIndeterminacy::SURFACE_DISAGREEMENT
+        )
+        .value(
+            "INCOMPLETE_SURFACE_FAMILY",
+            hotpot::geometry::SegmentCycleIndeterminacy::
+                INCOMPLETE_SURFACE_FAMILY
+        )
+        .value(
+            "SURFACE_CONSTRUCTION",
+            hotpot::geometry::SegmentCycleIndeterminacy::SURFACE_CONSTRUCTION
+        );
     py::enum_<NativeTrajectoryStart>(module, "NativeTrajectoryStart")
         .value("LIGAND_BUILD", NativeTrajectoryStart::LIGAND_BUILD)
         .value(
@@ -930,6 +997,150 @@ void bind_stage_options(py::module_& module) {
         .def_readonly(
             "maximum_gradient_kj_mol_angstrom",
             &OptimizationStoppingOptions::maximum_gradient_kj_mol_angstrom
+        );
+
+    py::class_<RingScreeningOptions>(module, "RingScreeningOptions")
+        .def(py::init([](
+            std::size_t maximum_actionable_ring_size,
+            std::size_t maximum_relevant_cycle_count,
+            double geometry_absolute_length,
+            double geometry_relative_length,
+            double geometry_parameter,
+            double geometry_machine_epsilon_factor,
+            double geometry_predicate_guard_factor,
+            double geometry_planarity_factor,
+            double geometry_winding_residual,
+            double geometry_intersection_merge_factor,
+            double geometry_aabb_padding_factor,
+            std::size_t surface_maximum_cycle_vertices,
+            std::size_t surface_maximum_surface_count,
+            std::size_t surface_maximum_segment_triangle_tests,
+            std::size_t surface_maximum_triangle_pair_tests
+        ) {
+            RingScreeningOptions options{
+                maximum_actionable_ring_size,
+                maximum_relevant_cycle_count,
+                {
+                    geometry_absolute_length,
+                    geometry_relative_length,
+                    geometry_parameter,
+                    geometry_machine_epsilon_factor,
+                    geometry_predicate_guard_factor,
+                    geometry_planarity_factor,
+                    geometry_winding_residual,
+                    geometry_intersection_merge_factor,
+                    geometry_aabb_padding_factor,
+                },
+                {
+                    surface_maximum_cycle_vertices,
+                    surface_maximum_surface_count,
+                    surface_maximum_segment_triangle_tests,
+                    surface_maximum_triangle_pair_tests,
+                },
+            };
+            options.validate();
+            return options;
+        }),
+        py::arg("maximum_actionable_ring_size"),
+        py::arg("maximum_relevant_cycle_count"),
+        py::arg("geometry_absolute_length"),
+        py::arg("geometry_relative_length"),
+        py::arg("geometry_parameter"),
+        py::arg("geometry_machine_epsilon_factor"),
+        py::arg("geometry_predicate_guard_factor"),
+        py::arg("geometry_planarity_factor"),
+        py::arg("geometry_winding_residual"),
+        py::arg("geometry_intersection_merge_factor"),
+        py::arg("geometry_aabb_padding_factor"),
+        py::arg("surface_maximum_cycle_vertices"),
+        py::arg("surface_maximum_surface_count"),
+        py::arg("surface_maximum_segment_triangle_tests"),
+        py::arg("surface_maximum_triangle_pair_tests"))
+        .def_readonly(
+            "maximum_actionable_ring_size",
+            &RingScreeningOptions::maximum_actionable_ring_size
+        )
+        .def_readonly(
+            "maximum_relevant_cycle_count",
+            &RingScreeningOptions::maximum_relevant_cycle_count
+        )
+        .def_property_readonly(
+            "geometry_absolute_length",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.absolute_length;
+            }
+        )
+        .def_property_readonly(
+            "geometry_relative_length",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.relative_length;
+            }
+        )
+        .def_property_readonly(
+            "geometry_parameter",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.parameter;
+            }
+        )
+        .def_property_readonly(
+            "geometry_machine_epsilon_factor",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.machine_epsilon_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_predicate_guard_factor",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.predicate_guard_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_planarity_factor",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.planarity_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_winding_residual",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.winding_residual;
+            }
+        )
+        .def_property_readonly(
+            "geometry_intersection_merge_factor",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.intersection_merge_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_aabb_padding_factor",
+            [](const RingScreeningOptions& options) {
+                return options.geometry_tolerances.aabb_padding_factor;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_cycle_vertices",
+            [](const RingScreeningOptions& options) {
+                return options.surface_limits.maximum_cycle_vertices;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_surface_count",
+            [](const RingScreeningOptions& options) {
+                return options.surface_limits.maximum_surface_count;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_segment_triangle_tests",
+            [](const RingScreeningOptions& options) {
+                return options.surface_limits.maximum_segment_triangle_tests;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_triangle_pair_tests",
+            [](const RingScreeningOptions& options) {
+                return options.surface_limits.maximum_triangle_pair_tests;
+            }
         );
 
     py::class_<CoordinationStageOptions>(module, "CoordinationStageOptions")
@@ -1005,7 +1216,10 @@ void bind_stage_options(py::module_& module) {
             double vdw_cutoff_start,
             double vdw_cutoff_end,
             double energy_tolerance,
-            std::optional<OptimizationStoppingOptions> stopping
+            std::optional<OptimizationStoppingOptions> stopping,
+            double torsion_singularity_threshold,
+            double torsion_repair_angle_radians,
+            RingScreeningOptions ring_screening
         ) {
             ComplexOptimizationOptions options{
                 std::move(forcefield),
@@ -1023,6 +1237,9 @@ void bind_stage_options(py::module_& module) {
                 vdw_cutoff_end,
                 energy_tolerance,
                 std::move(stopping),
+                torsion_singularity_threshold,
+                torsion_repair_angle_radians,
+                std::move(ring_screening),
             };
             options.validate();
             return options;
@@ -1041,7 +1258,10 @@ void bind_stage_options(py::module_& module) {
         py::arg("vdw_cutoff_start"),
         py::arg("vdw_cutoff_end"),
         py::arg("energy_tolerance"),
-        py::arg("stopping"))
+        py::arg("stopping"),
+        py::arg("torsion_singularity_threshold"),
+        py::arg("torsion_repair_angle_radians"),
+        py::arg("ring_screening"))
         .def_readonly("forcefield", &ComplexOptimizationOptions::forcefield)
         .def_readonly("algorithm", &ComplexOptimizationOptions::algorithm)
         .def_readonly("epochs", &ComplexOptimizationOptions::epochs)
@@ -1076,7 +1296,18 @@ void bind_stage_options(py::module_& module) {
         .def_readonly(
             "energy_tolerance", &ComplexOptimizationOptions::energy_tolerance
         )
-        .def_readonly("stopping", &ComplexOptimizationOptions::stopping);
+        .def_readonly("stopping", &ComplexOptimizationOptions::stopping)
+        .def_readonly(
+            "torsion_singularity_threshold",
+            &ComplexOptimizationOptions::torsion_singularity_threshold
+        )
+        .def_readonly(
+            "torsion_repair_angle_radians",
+            &ComplexOptimizationOptions::torsion_repair_angle_radians
+        )
+        .def_readonly(
+            "ring_screening", &ComplexOptimizationOptions::ring_screening
+        );
 }
 
 
@@ -1532,6 +1763,172 @@ void bind_trajectory_contracts(py::module_& module) {
 
 
 void bind_stage_results(py::module_& module) {
+    py::class_<NativeBondRingFinding>(module, "NativeBondRingFinding")
+        .def(py::init([](
+            std::size_t ring_index,
+            std::vector<std::size_t> ring_atom_indices,
+            BondIndex bond_key,
+            hotpot::geometry::PiercingState state,
+            std::vector<hotpot::geometry::SegmentCycleIndeterminacy>
+                indeterminacy_causes,
+            bool aabb_separated,
+            bool surface_complete
+        ) {
+            NativeBondRingFinding finding{
+                ring_index,
+                std::move(ring_atom_indices),
+                bond_key,
+                state,
+                std::move(indeterminacy_causes),
+                aabb_separated,
+                surface_complete,
+            };
+            finding.validate();
+            return finding;
+        }),
+        py::arg("ring_index"),
+        py::arg("ring_atom_indices"),
+        py::arg("bond_key"),
+        py::arg("state"),
+        py::arg("indeterminacy_causes"),
+        py::arg("aabb_separated"),
+        py::arg("surface_complete"))
+        .def_readonly("ring_index", &NativeBondRingFinding::ring_index)
+        .def_readonly(
+            "ring_atom_indices", &NativeBondRingFinding::ring_atom_indices
+        )
+        .def_property_readonly(
+            "bond_key",
+            [](const NativeBondRingFinding& finding) {
+                return py::make_tuple(
+                    finding.bond_key[0], finding.bond_key[1]
+                );
+            }
+        )
+        .def_readonly("state", &NativeBondRingFinding::state)
+        .def_readonly(
+            "indeterminacy_causes",
+            &NativeBondRingFinding::indeterminacy_causes
+        )
+        .def_readonly(
+            "aabb_separated", &NativeBondRingFinding::aabb_separated
+        )
+        .def_readonly(
+            "surface_complete", &NativeBondRingFinding::surface_complete
+        );
+
+    py::class_<NativeRingCheckpointReport>(
+        module, "NativeRingCheckpointReport"
+    )
+        .def(py::init([](
+            hotpot::geometry::PiercingState state,
+            NativeRingGraphScope scope,
+            std::size_t maximum_actionable_ring_size,
+            std::size_t maximum_relevant_cycle_count,
+            std::size_t relevant_cycle_count,
+            std::size_t selected_ring_count,
+            std::size_t excluded_ring_count,
+            std::size_t active_bond_count,
+            std::size_t candidate_pair_count,
+            std::size_t aabb_separated_pair_count,
+            std::size_t exact_pair_count,
+            std::size_t piercing_pair_count,
+            std::size_t does_not_pierce_pair_count,
+            std::size_t undetermined_pair_count,
+            bool scan_complete,
+            std::vector<NativeBondRingFinding> actionable_findings
+        ) {
+            NativeRingCheckpointReport report{
+                state,
+                scope,
+                maximum_actionable_ring_size,
+                maximum_relevant_cycle_count,
+                relevant_cycle_count,
+                selected_ring_count,
+                excluded_ring_count,
+                active_bond_count,
+                candidate_pair_count,
+                aabb_separated_pair_count,
+                exact_pair_count,
+                piercing_pair_count,
+                does_not_pierce_pair_count,
+                undetermined_pair_count,
+                scan_complete,
+                std::move(actionable_findings),
+            };
+            report.validate();
+            return report;
+        }),
+        py::arg("state"),
+        py::arg("scope"),
+        py::arg("maximum_actionable_ring_size"),
+        py::arg("maximum_relevant_cycle_count"),
+        py::arg("relevant_cycle_count"),
+        py::arg("selected_ring_count"),
+        py::arg("excluded_ring_count"),
+        py::arg("active_bond_count"),
+        py::arg("candidate_pair_count"),
+        py::arg("aabb_separated_pair_count"),
+        py::arg("exact_pair_count"),
+        py::arg("piercing_pair_count"),
+        py::arg("does_not_pierce_pair_count"),
+        py::arg("undetermined_pair_count"),
+        py::arg("scan_complete"),
+        py::arg("actionable_findings"))
+        .def_readonly("state", &NativeRingCheckpointReport::state)
+        .def_readonly("scope", &NativeRingCheckpointReport::scope)
+        .def_readonly(
+            "maximum_actionable_ring_size",
+            &NativeRingCheckpointReport::maximum_actionable_ring_size
+        )
+        .def_readonly(
+            "maximum_relevant_cycle_count",
+            &NativeRingCheckpointReport::maximum_relevant_cycle_count
+        )
+        .def_readonly(
+            "relevant_cycle_count",
+            &NativeRingCheckpointReport::relevant_cycle_count
+        )
+        .def_readonly(
+            "selected_ring_count",
+            &NativeRingCheckpointReport::selected_ring_count
+        )
+        .def_readonly(
+            "excluded_ring_count",
+            &NativeRingCheckpointReport::excluded_ring_count
+        )
+        .def_readonly(
+            "active_bond_count", &NativeRingCheckpointReport::active_bond_count
+        )
+        .def_readonly(
+            "candidate_pair_count",
+            &NativeRingCheckpointReport::candidate_pair_count
+        )
+        .def_readonly(
+            "aabb_separated_pair_count",
+            &NativeRingCheckpointReport::aabb_separated_pair_count
+        )
+        .def_readonly(
+            "exact_pair_count", &NativeRingCheckpointReport::exact_pair_count
+        )
+        .def_readonly(
+            "piercing_pair_count",
+            &NativeRingCheckpointReport::piercing_pair_count
+        )
+        .def_readonly(
+            "does_not_pierce_pair_count",
+            &NativeRingCheckpointReport::does_not_pierce_pair_count
+        )
+        .def_readonly(
+            "undetermined_pair_count",
+            &NativeRingCheckpointReport::undetermined_pair_count
+        )
+        .def_readonly("scan_complete", &NativeRingCheckpointReport::scan_complete)
+        .def_readonly(
+            "actionable_findings",
+            &NativeRingCheckpointReport::actionable_findings
+        );
+
     py::class_<CoordinationStageResult>(module, "CoordinationStageResult")
         .def(py::init([](
             NativeStageStatus status,
@@ -1682,7 +2079,8 @@ void bind_stage_results(py::module_& module) {
             std::string backend_energy_unit,
             std::string termination_reason,
             std::vector<std::string> warning_codes,
-            NativeTrajectoryBatch trajectory
+            NativeTrajectoryBatch trajectory,
+            NativeRingCheckpointReport final_checkpoint
         ) {
             ComplexOptimizationResult result{
                 status,
@@ -1718,6 +2116,7 @@ void bind_stage_results(py::module_& module) {
                 std::move(termination_reason),
                 std::move(warning_codes),
                 std::move(trajectory),
+                std::move(final_checkpoint),
             };
             result.validate();
             return result;
@@ -1751,7 +2150,8 @@ void bind_stage_results(py::module_& module) {
         py::arg("backend_energy_unit"),
         py::arg("termination_reason"),
         py::arg("warning_codes"),
-        py::arg("trajectory"))
+        py::arg("trajectory"),
+        py::arg("final_checkpoint"))
         .def_readonly("status", &ComplexOptimizationResult::status)
         .def_property_readonly(
             "selected_coordinates",
@@ -1854,7 +2254,10 @@ void bind_stage_results(py::module_& module) {
             &ComplexOptimizationResult::termination_reason
         )
         .def_readonly("warning_codes", &ComplexOptimizationResult::warning_codes)
-        .def_readonly("trajectory", &ComplexOptimizationResult::trajectory);
+        .def_readonly("trajectory", &ComplexOptimizationResult::trajectory)
+        .def_readonly(
+            "final_checkpoint", &ComplexOptimizationResult::final_checkpoint
+        );
 
     py::class_<ComplexWorkflowResult>(module, "ComplexWorkflowResult")
         .def(py::init([](
@@ -1936,6 +2339,25 @@ void bind_native_forcefield_contracts(py::module_& module) {
         py::arg("session"),
         py::arg("options"),
         py::arg("perturbation_offsets")
+    );
+    module.def(
+        "optimize_complex",
+        [](StructureSession& session,
+           const ComplexOptimizationOptions& options,
+           const PerturbationOffsetBatch& untangling_offsets,
+           const PerturbationOffsetBatch& optimization_offsets) {
+            py::gil_scoped_release release;
+            return optimize_complex(
+                session,
+                options,
+                untangling_offsets,
+                optimization_offsets
+            );
+        },
+        py::arg("session"),
+        py::arg("options"),
+        py::arg("untangling_offsets"),
+        py::arg("optimization_offsets")
     );
 }
 

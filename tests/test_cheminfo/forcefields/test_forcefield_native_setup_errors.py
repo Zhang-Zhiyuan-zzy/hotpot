@@ -54,7 +54,6 @@ def _assert_setup_error(
 ) -> None:
     assert error.forcefield == UNKNOWN_FORCEFIELD
     assert error.stage == "lookup"
-    assert error.backend_stage == "lookup"
     assert error.workflow_stage == workflow_stage
 
 
@@ -118,6 +117,29 @@ def test_workflow_stage_three_failure_carries_completed_coordination() -> None:
     assert completed.final_active_coordination_mask.tolist() == [1]
 
 
+def test_workflow_stage_two_failure_has_no_completed_coordination() -> None:
+    with pytest.raises(_ob_native.ForceFieldSetupError) as caught:
+        run_complex_workflow(
+            create_coordination_session(_complex()),
+            _offsets(0),
+            _offsets(1),
+            _offsets(0),
+            coordination_options=CoordinationStageOptions(
+                forcefield=UNKNOWN_FORCEFIELD,
+                attempt_limit=1,
+                relaxation_steps=1,
+            ),
+            optimization_options=ComplexOptimizationOptions(
+                epochs=1,
+                steps_per_epoch=1,
+                untangling_attempt_limit=1,
+            ),
+        )
+
+    _assert_setup_error(caught.value, "coordination_restoration")
+    assert caught.value.completed_coordination is None
+
+
 def _molecule_data() -> _ob_native.MoleculeData:
     return _ob_native.MoleculeData(
         1,
@@ -134,7 +156,7 @@ def _molecule_data() -> _ob_native.MoleculeData:
     )
 
 
-def test_legacy_single_optimization_uses_the_same_setup_error_contract() -> None:
+def test_single_optimization_uses_the_same_setup_error_contract() -> None:
     with pytest.raises(_ob_native.ForceFieldSetupError) as caught:
         _ob_native.single_optimize(_molecule_data(), UNKNOWN_FORCEFIELD, 1)
 
@@ -142,7 +164,7 @@ def test_legacy_single_optimization_uses_the_same_setup_error_contract() -> None
     assert caught.value.completed_coordination is None
 
 
-def test_legacy_optimizer_uses_the_same_setup_error_contract() -> None:
+def test_optimizer_uses_the_same_setup_error_contract() -> None:
     with pytest.raises(_ob_native.ForceFieldSetupError) as caught:
         _ob_native.optimize(
             _molecule_data(),

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
-from typing import cast, Optional, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, cast
 
 import numpy as np
 
@@ -23,7 +22,6 @@ from .trajectory import (
     TrajectoryEvent,
     TrajectoryStage,
 )
-
 
 if TYPE_CHECKING:
     from ..core import Molecule
@@ -279,30 +277,4 @@ def _optimize_working_mol(
         trajectory=trajectory,
         trajectory_stage=trajectory_stage,
         trajectory_attempt=trajectory_attempt,
-    )
-
-
-def _combine_forcefield_run_reports(
-    reports: Sequence[ForceFieldRunReport],
-) -> ForceFieldRunReport:
-    """Combine sequential optimizer segments around topology repairs."""
-    final_report = reports[-1]
-    preceding_epochs = sum(report.epochs_completed for report in reports[:-1])
-    return replace(
-        final_report,
-        epochs_completed=sum(report.epochs_completed for report in reports),
-        steps_submitted=sum(report.steps_submitted for report in reports),
-        initialization_steps=sum(
-            report.initialization_steps for report in reports
-        ),
-        best_epoch=(
-            -1
-            if final_report.best_epoch < 0
-            else preceding_epochs + final_report.best_epoch
-        ),
-        epoch_energies=tuple(
-            energy
-            for report in reports
-            for energy in report.epoch_energies
-        ),
     )

@@ -3,6 +3,7 @@
 #include "untangling_engine.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -740,6 +741,7 @@ ComplexOptimizationResult optimize_complex(
     const PerturbationOffsetBatch& untangling_offsets,
     const PerturbationOffsetBatch& optimization_offsets
 ) {
+    const auto stage_started = std::chrono::steady_clock::now();
     validate_complex_optimization_request(
         session,
         options,
@@ -979,6 +981,9 @@ ComplexOptimizationResult optimize_complex(
         warning_codes,
         std::move(trajectory_batch),
         native_ring_checkpoint_report(checkpoint),
+        std::chrono::duration<double>(
+            std::chrono::steady_clock::now() - stage_started
+        ).count(),
     };
     result.validate();
     return result;

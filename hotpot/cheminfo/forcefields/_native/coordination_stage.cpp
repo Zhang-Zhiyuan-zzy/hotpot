@@ -8,6 +8,7 @@
 #include "../../obWrappers/_native/native_engine.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -286,6 +287,7 @@ CoordinationStageResult restore_coordination(
     const CoordinationStageOptions& options,
     const PerturbationOffsetBatch& perturbation_offsets
 ) {
+    const auto stage_started = std::chrono::steady_clock::now();
     validate_coordination_request(session, options, perturbation_offsets);
 
     set_coordination_active_mask(
@@ -334,6 +336,9 @@ CoordinationStageResult restore_coordination(
             terminal.active_coordination_mask;
         result.attempt_limit = options.attempt_limit;
         result.trajectory = trajectory.finish();
+        result.elapsed_seconds = std::chrono::duration<double>(
+            std::chrono::steady_clock::now() - stage_started
+        ).count();
         result.validate();
         return result;
     }
@@ -582,6 +587,9 @@ CoordinationStageResult restore_coordination(
     result.trajectory = trajectory.finish();
     result.bond_count = bond_order.size();
     result.placement_report = std::move(placement_report);
+    result.elapsed_seconds = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - stage_started
+    ).count();
     result.validate();
     return result;
 }

@@ -383,6 +383,11 @@ void CoordinationStageResult::validate() const {
             "attempts_completed must not exceed attempt_limit"
         );
     }
+    if (!nonnegative_finite(elapsed_seconds)) {
+        throw std::invalid_argument(
+            "elapsed_seconds must be finite and non-negative"
+        );
+    }
     if (bond_count != final_active_coordination_mask.size()) {
         throw std::invalid_argument(
             "bond_count must match the final coordination mask"
@@ -415,6 +420,11 @@ void ComplexOptimizationResult::validate() const {
     if (untangling_attempts_completed > untangling_attempt_limit) {
         throw std::invalid_argument(
             "untangling attempts must not exceed the attempt limit"
+        );
+    }
+    if (!nonnegative_finite(elapsed_seconds)) {
+        throw std::invalid_argument(
+            "elapsed_seconds must be finite and non-negative"
         );
     }
     final_checkpoint.validate();

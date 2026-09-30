@@ -171,6 +171,7 @@ struct CoordinationStageResult {
     NativeTrajectoryBatch trajectory;
     std::size_t bond_count = 0;
     MetalPlacementReport placement_report;
+    double elapsed_seconds = 0.0;
 
     std::size_t atom_count() const noexcept;
     void validate() const;
@@ -209,6 +210,7 @@ struct ComplexOptimizationResult {
     std::vector<std::string> warning_codes;
     NativeTrajectoryBatch trajectory;
     NativeRingCheckpointReport final_checkpoint;
+    double elapsed_seconds = 0.0;
 
     std::size_t atom_count() const noexcept;
     void validate() const;

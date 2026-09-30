@@ -19,11 +19,13 @@ from .native_packing import ComplexSessionInput, pack_complex_session_input
 from .native_reports import (
     ComplexOptimizationResult as NativeComplexOptimizationResult,
 )
+from .native_reports import ComplexWorkflowResult as NativeComplexWorkflowResult
 from .native_reports import (
     CoordinationStageResult as NativeCoordinationStageResult,
 )
 from .native_reports import (
     _complex_optimization_result,
+    _complex_workflow_result,
     _coordination_stage_result,
 )
 from .trajectory import TrajectoryStart
@@ -48,6 +50,7 @@ __all__ = (
     "place_metal",
     "place_metals",
     "restore_coordination",
+    "run_complex_workflow",
     "set_coordination_active_mask",
     "set_ligand_bond_active_mask",
     "snapshot_structure",
@@ -488,6 +491,14 @@ def _native_ring_screening_options(
     )
 
 
+def _native_perturbation_offsets(
+    offsets: NDArray[np.float64],
+) -> "_ob_native.PerturbationOffsetBatch":
+    return _native_module().PerturbationOffsetBatch(
+        np.ascontiguousarray(offsets, dtype=np.float64)
+    )
+
+
 def restore_coordination(
     session: "_ob_native.StructureSession",
     perturbation_offsets: NDArray[np.float64],
@@ -496,13 +507,10 @@ def restore_coordination(
 ) -> NativeCoordinationStageResult:
     """Run native Stage 2 with an explicit, deterministic offset schedule."""
     native = _native_module()
-    offsets = native.PerturbationOffsetBatch(
-        np.ascontiguousarray(perturbation_offsets, dtype=np.float64)
-    )
     result = native.restore_coordination(
         session,
         _native_coordination_stage_options(options),
-        offsets,
+        _native_perturbation_offsets(perturbation_offsets),
     )
     return _coordination_stage_result(result)
 
@@ -519,11 +527,31 @@ def optimize_complex(
     result = native.optimize_complex(
         session,
         _native_complex_optimization_options(options),
-        native.PerturbationOffsetBatch(
-            np.ascontiguousarray(untangling_offsets, dtype=np.float64)
-        ),
-        native.PerturbationOffsetBatch(
-            np.ascontiguousarray(optimization_offsets, dtype=np.float64)
-        ),
+        _native_perturbation_offsets(untangling_offsets),
+        _native_perturbation_offsets(optimization_offsets),
     )
     return _complex_optimization_result(result)
+
+
+def run_complex_workflow(
+    session: "_ob_native.StructureSession",
+    coordination_offsets: NDArray[np.float64],
+    untangling_offsets: NDArray[np.float64],
+    optimization_offsets: NDArray[np.float64],
+    *,
+    coordination_options: CoordinationStageOptions = CoordinationStageOptions(),
+    optimization_options: ComplexOptimizationOptions = (
+        ComplexOptimizationOptions()
+    ),
+) -> NativeComplexWorkflowResult:
+    """Run native Stages 2 and 3 sequentially on one structure session."""
+    native = _native_module()
+    result = native.run_complex_workflow(
+        session,
+        _native_coordination_stage_options(coordination_options),
+        _native_complex_optimization_options(optimization_options),
+        _native_perturbation_offsets(coordination_offsets),
+        _native_perturbation_offsets(untangling_offsets),
+        _native_perturbation_offsets(optimization_offsets),
+    )
+    return _complex_workflow_result(result)

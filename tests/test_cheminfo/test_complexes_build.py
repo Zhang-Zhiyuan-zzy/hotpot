@@ -1663,7 +1663,7 @@ def test_complexes_build_final_failure_does_not_modify_caller(
     )
     monkeypatch.setattr(
         workflows,
-        "_native_run_complex_workflow",
+        "_native_run_complex_workflow_from_input",
         fail_native_workflow,
     )
 

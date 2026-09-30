@@ -9,6 +9,7 @@
 #include "stage_contracts.hpp"
 #include "structure_session.hpp"
 #include "trajectory.hpp"
+#include "workflow_stage.hpp"
 
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
@@ -2356,6 +2357,31 @@ void bind_native_forcefield_contracts(py::module_& module) {
         },
         py::arg("session"),
         py::arg("options"),
+        py::arg("untangling_offsets"),
+        py::arg("optimization_offsets")
+    );
+    module.def(
+        "run_complex_workflow",
+        [](StructureSession& session,
+           const CoordinationStageOptions& coordination_options,
+           const ComplexOptimizationOptions& optimization_options,
+           const PerturbationOffsetBatch& coordination_offsets,
+           const PerturbationOffsetBatch& untangling_offsets,
+           const PerturbationOffsetBatch& optimization_offsets) {
+            py::gil_scoped_release release;
+            return run_complex_workflow(
+                session,
+                coordination_options,
+                optimization_options,
+                coordination_offsets,
+                untangling_offsets,
+                optimization_offsets
+            );
+        },
+        py::arg("session"),
+        py::arg("coordination_options"),
+        py::arg("optimization_options"),
+        py::arg("coordination_offsets"),
         py::arg("untangling_offsets"),
         py::arg("optimization_offsets")
     );

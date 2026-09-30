@@ -49,6 +49,7 @@ class CanonicalCase:
     hotpot_status: str
     hotpot_validation: Mapping[str, object]
     hotpot_total_seconds: Optional[float]
+    hotpot_converged: Optional[bool] = None
 
     @classmethod
     def from_dict(cls, value: Mapping[str, object]) -> "CanonicalCase":
@@ -68,6 +69,11 @@ class CanonicalCase:
                 None
                 if value.get("hotpot_total_seconds") is None
                 else float(value["hotpot_total_seconds"])
+            ),
+            hotpot_converged=(
+                None
+                if value.get("hotpot_converged") is None
+                else bool(value["hotpot_converged"])
             ),
         )
 
@@ -220,6 +226,11 @@ def export_canonical_manifest(
                 None
                 if report.get("total_seconds") is None
                 else float(report["total_seconds"])
+            ),
+            hotpot_converged=(
+                None
+                if (report.get("optimization") or {}).get("converged") is None
+                else bool(report["optimization"]["converged"])
             ),
         )
         _rebuild_complex(provisional)
@@ -658,6 +669,7 @@ def _hotpot_records(cases: Sequence[CanonicalCase]) -> list[dict[str, object]]:
                 "forcefield_supported": True,
                 "forcefield_fully_parameterized": True,
                 "optimization_succeeded": bool(case.hotpot_validation),
+                "converged": case.hotpot_converged,
                 "finite_final_coordinates": finite,
                 "topology_preserved": topology,
                 "quality_passed": bool(case.hotpot_validation.get("passed", False)),
@@ -683,6 +695,11 @@ def _summary_row(backend: str, records: Sequence[Mapping[str, object]]) -> dict[
     finite_count = sum(bool(record.get("finite_final_coordinates")) for record in records)
     topology_count = sum(bool(record.get("topology_preserved")) for record in records)
     quality_count = sum(bool(record.get("quality_passed")) for record in records)
+    convergence_values = [
+        bool(record["converged"])
+        for record in records
+        if record.get("converged") is not None
+    ]
     return {
         "backend": backend,
         "sample_count": count,
@@ -694,6 +711,8 @@ def _summary_row(backend: str, records: Sequence[Mapping[str, object]]) -> dict[
         "forcefield_fully_parameterized_rate": fully_parameterized_count / count,
         "optimization_success_count": optimized_count,
         "optimization_success_rate": optimized_count / count,
+        "convergence_reported_count": len(convergence_values),
+        "converged_count": sum(convergence_values),
         "finite_coordinate_count": finite_count,
         "topology_preserved_count": topology_count,
         "quality_pass_count": quality_count,
@@ -719,7 +738,7 @@ def write_comparison_plot(rows: Sequence[Mapping[str, object]], path: Path) -> N
     figure, axis = plt.subplots(figsize=(9.2, 4.8))
     series = (
         ("3D build", "build_success_rate", "#4C78A8"),
-        ("Native FF optimization", "optimization_success_rate", "#F58518"),
+        ("Finite optimized output", "optimization_success_rate", "#F58518"),
         ("Standard geometry gate", "quality_pass_rate", "#54A24B"),
     )
     for offset, (label, field, color) in zip((-width, 0.0, width), series):
@@ -788,9 +807,16 @@ def aggregate_comparison(
                 "ETKDGv3 (random coordinates, smoothing failures allowed); "
                 "full MMFF, otherwise full or explicitly labelled partial UFF"
             ),
-            "openbabel": "OBBuilder; UFF conjugate gradients, 10000 steps",
+            "openbabel": (
+                "OBBuilder; UFF conjugate gradients, 10000 steps; the upstream "
+                "builder does not guarantee deterministic seeding"
+            ),
             "hotpot": "frozen reference result",
             "validation": "Hotpot standard structure-acceptance gate",
+            "optimization_success_definition": (
+                "optimizer returned finite coordinates; this does not imply "
+                "convergence to a backend stopping criterion"
+            ),
         },
         "provenance": {
             "canonical_manifest_sha256": sha256_file(canonical_manifest_path),
@@ -820,6 +846,7 @@ def aggregate_comparison(
         "forcefield_parameterization",
         "forcefield_name",
         "optimization_succeeded",
+        "converged",
         "finite_final_coordinates",
         "topology_preserved",
         "quality_passed",

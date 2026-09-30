@@ -1,11 +1,14 @@
 from enum import Enum
-from typing import List, Optional, overload, Tuple, Union
+from typing import Dict, List, Optional, overload, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
 
 
 Coordinate = Tuple[float, float, float]
+
+
+def _default_torsion_settings_snapshot() -> Dict[str, float]: ...
 
 
 class RuleStage(Enum):
@@ -365,6 +368,19 @@ class MetalPlacementOptions:
     broad_phase_skin_angstrom: float
     duplicate_tolerance_angstrom: float
     retain_candidate_evidence: bool
+    geometry_absolute_length: float
+    geometry_relative_length: float
+    geometry_parameter: float
+    geometry_machine_epsilon_factor: float
+    geometry_predicate_guard_factor: float
+    geometry_planarity_factor: float
+    geometry_winding_residual: float
+    geometry_intersection_merge_factor: float
+    geometry_aabb_padding_factor: float
+    surface_maximum_cycle_vertices: int
+    surface_maximum_surface_count: int
+    surface_maximum_segment_triangle_tests: int
+    surface_maximum_triangle_pair_tests: int
 
 
 class DonorApproachEvidence:
@@ -572,6 +588,13 @@ class ComplexOptimizationOptions:
     torsion_singularity_threshold: float
     torsion_repair_angle_radians: float
     ring_screening: RingScreeningOptions
+
+
+_DEFAULT_METAL_PLACEMENT_OPTIONS: MetalPlacementOptions
+_DEFAULT_OPTIMIZATION_STOPPING_OPTIONS: OptimizationStoppingOptions
+_DEFAULT_RING_SCREENING_OPTIONS: RingScreeningOptions
+_DEFAULT_COORDINATION_STAGE_OPTIONS: CoordinationStageOptions
+_DEFAULT_COMPLEX_OPTIMIZATION_OPTIONS: ComplexOptimizationOptions
 
 
 class NativeRingFrameEvidence:

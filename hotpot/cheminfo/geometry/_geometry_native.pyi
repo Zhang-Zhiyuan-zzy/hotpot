@@ -1,6 +1,9 @@
-from typing import FrozenSet, List, Optional, Tuple, Union
+from typing import Dict, FrozenSet, List, Optional, Tuple, Union
 
 import numpy as np
+
+
+def _default_settings_snapshot() -> Dict[str, Dict[str, Union[float, int]]]: ...
 
 
 class LineRelationKind:

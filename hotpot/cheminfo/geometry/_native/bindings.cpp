@@ -249,6 +249,39 @@ py::array_t<double> aabb_array(const Aabb& bounds) {
 }
 
 
+py::dict default_settings_snapshot() {
+    const NumericTolerances tolerance = default_numeric_tolerances();
+    const SurfaceEnumerationLimits surface =
+        default_surface_enumeration_limits();
+    py::dict tolerance_values;
+    tolerance_values["absolute_length"] = tolerance.absolute_length;
+    tolerance_values["relative_length"] = tolerance.relative_length;
+    tolerance_values["parameter"] = tolerance.parameter;
+    tolerance_values["machine_epsilon_factor"] =
+        tolerance.machine_epsilon_factor;
+    tolerance_values["predicate_guard_factor"] =
+        tolerance.predicate_guard_factor;
+    tolerance_values["planarity_factor"] = tolerance.planarity_factor;
+    tolerance_values["winding_residual"] = tolerance.winding_residual;
+    tolerance_values["intersection_merge_factor"] =
+        tolerance.intersection_merge_factor;
+    tolerance_values["aabb_padding_factor"] = tolerance.aabb_padding_factor;
+
+    py::dict surface_values;
+    surface_values["maximum_cycle_vertices"] = surface.maximum_cycle_vertices;
+    surface_values["maximum_surface_count"] = surface.maximum_surface_count;
+    surface_values["maximum_segment_triangle_tests"] =
+        surface.maximum_segment_triangle_tests;
+    surface_values["maximum_triangle_pair_tests"] =
+        surface.maximum_triangle_pair_tests;
+
+    py::dict snapshot;
+    snapshot["tolerance"] = std::move(tolerance_values);
+    snapshot["surface"] = std::move(surface_values);
+    return snapshot;
+}
+
+
 py::array_t<double> aabb_batch_array(const std::vector<Aabb>& bounds) {
     py::array_t<double> array({
         bounds.size(),
@@ -398,6 +431,7 @@ SurfaceEnumerationLimits make_surface_limits(
 
 
 PYBIND11_MODULE(_geometry_native, module) {
+    module.def("_default_settings_snapshot", &default_settings_snapshot);
     py::enum_<PlanarityKind>(module, "PlanarityKind")
         .value("PLANAR", PlanarityKind::PLANAR)
         .value("NONPLANAR", PlanarityKind::NONPLANAR)

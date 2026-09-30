@@ -624,6 +624,84 @@ void bind_stage_options(py::module_& module) {
         .def_readonly(
             "retain_candidate_evidence",
             &MetalPlacementOptions::retain_candidate_evidence
+        )
+        .def_property_readonly(
+            "geometry_absolute_length",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.absolute_length;
+            }
+        )
+        .def_property_readonly(
+            "geometry_relative_length",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.relative_length;
+            }
+        )
+        .def_property_readonly(
+            "geometry_parameter",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.parameter;
+            }
+        )
+        .def_property_readonly(
+            "geometry_machine_epsilon_factor",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.machine_epsilon_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_predicate_guard_factor",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.predicate_guard_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_planarity_factor",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.planarity_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_winding_residual",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.winding_residual;
+            }
+        )
+        .def_property_readonly(
+            "geometry_intersection_merge_factor",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.intersection_merge_factor;
+            }
+        )
+        .def_property_readonly(
+            "geometry_aabb_padding_factor",
+            [](const MetalPlacementOptions& options) {
+                return options.geometry_tolerances.aabb_padding_factor;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_cycle_vertices",
+            [](const MetalPlacementOptions& options) {
+                return options.surface_limits.maximum_cycle_vertices;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_surface_count",
+            [](const MetalPlacementOptions& options) {
+                return options.surface_limits.maximum_surface_count;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_segment_triangle_tests",
+            [](const MetalPlacementOptions& options) {
+                return options.surface_limits.maximum_segment_triangle_tests;
+            }
+        )
+        .def_property_readonly(
+            "surface_maximum_triangle_pair_tests",
+            [](const MetalPlacementOptions& options) {
+                return options.surface_limits.maximum_triangle_pair_tests;
+            }
         );
 
     py::class_<DonorApproachEvidence>(module, "DonorApproachEvidence")
@@ -1310,6 +1388,17 @@ void bind_stage_options(py::module_& module) {
         .def_readonly(
             "ring_screening", &ComplexOptimizationOptions::ring_screening
         );
+
+    module.attr("_DEFAULT_METAL_PLACEMENT_OPTIONS") =
+        py::cast(MetalPlacementOptions{});
+    module.attr("_DEFAULT_OPTIMIZATION_STOPPING_OPTIONS") =
+        py::cast(OptimizationStoppingOptions{});
+    module.attr("_DEFAULT_RING_SCREENING_OPTIONS") =
+        py::cast(RingScreeningOptions{});
+    module.attr("_DEFAULT_COORDINATION_STAGE_OPTIONS") =
+        py::cast(CoordinationStageOptions{});
+    module.attr("_DEFAULT_COMPLEX_OPTIMIZATION_OPTIONS") =
+        py::cast(ComplexOptimizationOptions{});
 }
 
 

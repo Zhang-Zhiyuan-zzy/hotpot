@@ -256,6 +256,14 @@ void bind_rule_contracts(py::module_& module) {
 
 PYBIND11_MODULE(_ob_native, module) {
     module.doc() = "Direct Open Babel C++ force-field backend for Hotpot";
+    module.def("_default_torsion_settings_snapshot", []() {
+        py::dict snapshot;
+        snapshot["singularity_threshold"] =
+            detail::default_torsion_singularity_threshold;
+        snapshot["repair_angle_radians"] =
+            detail::default_torsion_repair_angle_radians;
+        return snapshot;
+    });
     py::exception<ForceFieldSetupFailure> setup_error(
         module, "ForceFieldSetupError", PyExc_RuntimeError
     );

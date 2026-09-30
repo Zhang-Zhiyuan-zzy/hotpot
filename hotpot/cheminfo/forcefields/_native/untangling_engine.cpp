@@ -1,5 +1,7 @@
 #include "untangling_engine.hpp"
 
+#include "internal_helpers.hpp"
+
 #include "../../geometry/_native/prepared_cycle.hpp"
 #include "../../geometry/_native/primitives.hpp"
 
@@ -20,12 +22,8 @@ namespace hotpot::forcefields {
 namespace {
 
 
-BondIndex canonical_bond_key(BondIndex key) noexcept {
-    if (key[1] < key[0]) {
-        std::swap(key[0], key[1]);
-    }
-    return key;
-}
+using internal::append_unique;
+using internal::canonical_bond_key;
 
 
 bool declared_metal(
@@ -480,16 +478,6 @@ detail::BondRingCheckpoint full_checkpoint(
         cache.prepare(session.input(), snapshot, options.ring_workspace),
         options.ring_workspace
     );
-}
-
-
-void append_unique(
-    std::vector<std::string>& values,
-    const std::string& value
-) {
-    if (std::find(values.begin(), values.end(), value) == values.end()) {
-        values.push_back(value);
-    }
 }
 
 

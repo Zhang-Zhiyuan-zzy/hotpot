@@ -1,5 +1,6 @@
 #include "optimization_stage.hpp"
 
+#include "internal_helpers.hpp"
 #include "untangling_engine.hpp"
 
 #include <algorithm>
@@ -42,6 +43,9 @@ bool post_repair_requires_stabilization(
 namespace {
 
 
+using internal::append_unique;
+
+
 bool all_active(const std::vector<std::uint8_t>& mask) {
     return std::all_of(mask.begin(), mask.end(), [](std::uint8_t active) {
         return active != 0;
@@ -61,16 +65,6 @@ bool finite_coordinates(const std::vector<Coordinate>& coordinates) {
             );
         }
     );
-}
-
-
-void append_unique(
-    std::vector<std::string>& values,
-    const std::string& value
-) {
-    if (std::find(values.begin(), values.end(), value) == values.end()) {
-        values.push_back(value);
-    }
 }
 
 

@@ -1,5 +1,7 @@
 #include "topology_workspace.hpp"
 
+#include "internal_helpers.hpp"
+
 #include "../../geometry/_native/types.hpp"
 #include "../../graph/_native/relevant_cycles.hpp"
 
@@ -21,14 +23,7 @@ using hotpot::geometry::ArrayView;
 using hotpot::geometry::PiercingState;
 using hotpot::geometry::Point3;
 using hotpot::geometry::Segment3;
-
-
-BondIndex canonical_bond_key(BondIndex endpoints) noexcept {
-    if (endpoints[1] < endpoints[0]) {
-        std::swap(endpoints[0], endpoints[1]);
-    }
-    return endpoints;
-}
+using hotpot::forcefields::internal::canonical_bond_key;
 
 
 bool declared_metal(

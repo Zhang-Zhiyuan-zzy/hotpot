@@ -1,6 +1,7 @@
 #include "workflow_stage.hpp"
 
-#include <algorithm>
+#include "internal_helpers.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -12,14 +13,7 @@ namespace hotpot::forcefields {
 namespace {
 
 
-void append_unique(
-    std::vector<std::string>& values,
-    const std::string& value
-) {
-    if (std::find(values.begin(), values.end(), value) == values.end()) {
-        values.push_back(value);
-    }
-}
+using internal::append_unique;
 
 
 NativeTrajectoryStart earliest_start(

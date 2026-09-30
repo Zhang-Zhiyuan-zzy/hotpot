@@ -1,5 +1,6 @@
 #include "coordination_stage.hpp"
 
+#include "internal_helpers.hpp"
 #include "placement_engine.hpp"
 #include "session_optimization.hpp"
 #include "topology_workspace.hpp"
@@ -24,22 +25,8 @@ namespace hotpot::forcefields {
 namespace {
 
 
-BondIndex canonical_bond_key(BondIndex endpoints) noexcept {
-    if (endpoints[1] < endpoints[0]) {
-        std::swap(endpoints[0], endpoints[1]);
-    }
-    return endpoints;
-}
-
-
-void append_unique(
-    std::vector<std::string>& values,
-    const std::string& value
-) {
-    if (std::find(values.begin(), values.end(), value) == values.end()) {
-        values.push_back(value);
-    }
-}
+using internal::append_unique;
+using internal::canonical_bond_key;
 
 
 class CoordinationTrajectoryRecorder final {

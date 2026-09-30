@@ -127,6 +127,53 @@ def test_build_complex3d_routes_only_through_native_stage_two(
     assert report.trajectory is not None
 
 
+def test_build_complex3d_setup_failure_preserves_stage_one_diagnostics(
+    monkeypatch,
+) -> None:
+    mol = _complex()
+    original_coordinates = mol.coordinates.copy()
+    original_bonds = tuple(mol.bonds)
+    prepared = _prepared_complex(
+        mol,
+        trajectory_start=workflows.TrajectoryStart.COORDINATION_RESTORATION,
+    )
+    real_coordination_options = workflows._coordination_options
+
+    def unavailable_coordination_forcefield(**kwargs):
+        return replace(
+            real_coordination_options(**kwargs),
+            forcefield="HOTPOT_MISSING_FORCEFIELD",
+        )
+
+    monkeypatch.setattr(
+        workflows,
+        "_prepare_complex_working_mol",
+        lambda *args, **kwargs: prepared,
+    )
+    monkeypatch.setattr(
+        workflows,
+        "_coordination_options",
+        unavailable_coordination_forcefield,
+    )
+
+    with pytest.raises(ForceFieldSetupError) as caught:
+        workflows.build_complex3d(
+            mol,
+            add_hydrogens=False,
+            coordination_restoration_attempts=1,
+            coordination_relaxation_steps=1,
+            seed=2026,
+        )
+
+    error = caught.value
+    assert error.report is not None
+    assert error.report.workflow_stage == "coordination_restoration"
+    assert error.diagnostics == prepared.diagnostics
+    assert error.trajectory is not None
+    np.testing.assert_array_equal(mol.coordinates, original_coordinates)
+    assert tuple(mol.bonds) == original_bonds
+
+
 def test_optimize_complex_uses_native_stage_three_and_checkpoint_acceptance(
     monkeypatch,
 ) -> None:
@@ -332,6 +379,8 @@ def test_native_setup_failure_is_typed_and_does_not_commit(
         "native setup failed"
     )
     native_error.stage = "setup"
+    native_error.workflow_stage = "complex_optimization"
+    native_error.completed_coordination = None
 
     def fail_setup(*args, **kwargs):
         raise native_error
@@ -351,5 +400,60 @@ def test_native_setup_failure_is_typed_and_does_not_commit(
 
     assert caught.value.report is not None
     assert caught.value.report.stage == "setup"
+    assert caught.value.report.workflow_stage == "complex_optimization"
+    assert caught.value.diagnostics is None
     np.testing.assert_array_equal(mol.coordinates, coordinates_before)
     assert tuple(mol.bonds) == bonds_before
+
+
+def test_composed_setup_failure_preserves_completed_coordination_facts(
+    monkeypatch,
+) -> None:
+    mol = _complex()
+    original_coordinates = mol.coordinates.copy()
+    original_bonds = tuple(mol.bonds)
+    prepared = _prepared_complex(
+        mol,
+        trajectory_start=workflows.TrajectoryStart.COORDINATION_RESTORATION,
+    )
+    real_optimization_options = workflows._optimization_options
+
+    def unavailable_optimization_forcefield(**kwargs):
+        return replace(
+            real_optimization_options(**kwargs),
+            forcefield="HOTPOT_MISSING_FORCEFIELD",
+        )
+
+    monkeypatch.setattr(
+        workflows,
+        "_prepare_complex_working_mol",
+        lambda *args, **kwargs: prepared,
+    )
+    monkeypatch.setattr(
+        workflows,
+        "_optimization_options",
+        unavailable_optimization_forcefield,
+    )
+
+    with pytest.raises(ForceFieldSetupError) as caught:
+        workflows.complexes_build(
+            mol,
+            epochs=1,
+            steps_per_epoch=1,
+            coordination_restoration_attempts=1,
+            coordination_relaxation_steps=1,
+            complex_untangling_attempts=1,
+            add_hydrogens=False,
+            quality_level="off",
+            seed=2026,
+        )
+
+    error = caught.value
+    assert error.report is not None
+    assert error.report.workflow_stage == "complex_optimization"
+    assert error.diagnostics is not None
+    assert error.diagnostics.coordination_restoration is not None
+    assert error.trajectory is not None
+    assert len(error.trajectory.main) > 0
+    np.testing.assert_array_equal(mol.coordinates, original_coordinates)
+    assert tuple(mol.bonds) == original_bonds

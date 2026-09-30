@@ -257,8 +257,8 @@ std::optional<double> finite_energy(double energy) {
 }  // namespace
 
 
-CoordinationStageResult restore_coordination(
-    StructureSession& session,
+void validate_coordination_request(
+    const StructureSession& session,
     const CoordinationStageOptions& options,
     const PerturbationOffsetBatch& perturbation_offsets
 ) {
@@ -278,6 +278,15 @@ CoordinationStageResult restore_coordination(
             "coordination perturbation count must equal attempt_limit - 1"
         );
     }
+}
+
+
+CoordinationStageResult restore_coordination(
+    StructureSession& session,
+    const CoordinationStageOptions& options,
+    const PerturbationOffsetBatch& perturbation_offsets
+) {
+    validate_coordination_request(session, options, perturbation_offsets);
 
     set_coordination_active_mask(
         session,

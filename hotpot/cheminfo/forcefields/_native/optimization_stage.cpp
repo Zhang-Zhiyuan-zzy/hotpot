@@ -704,8 +704,8 @@ hotpot::obwrappers::OptimizationResult combine_optimization_segments(
 }  // namespace
 
 
-ComplexOptimizationResult optimize_complex(
-    StructureSession& session,
+void validate_complex_optimization_request(
+    const StructureSession& session,
     const ComplexOptimizationOptions& options,
     const PerturbationOffsetBatch& untangling_offsets,
     const PerturbationOffsetBatch& optimization_offsets
@@ -730,6 +730,21 @@ ComplexOptimizationResult optimize_complex(
         session.atom_count(),
         expected_optimization_offset_count(options),
         "optimization perturbation"
+    );
+}
+
+
+ComplexOptimizationResult optimize_complex(
+    StructureSession& session,
+    const ComplexOptimizationOptions& options,
+    const PerturbationOffsetBatch& untangling_offsets,
+    const PerturbationOffsetBatch& optimization_offsets
+) {
+    validate_complex_optimization_request(
+        session,
+        options,
+        untangling_offsets,
+        optimization_offsets
     );
     const auto entry_snapshot = snapshot_structure(session);
     if (!all_active(entry_snapshot.active_ligand_bond_mask)

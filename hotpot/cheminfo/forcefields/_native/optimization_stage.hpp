@@ -6,6 +6,14 @@
 namespace hotpot::forcefields {
 
 
+void validate_complex_optimization_request(
+    const StructureSession& session,
+    const ComplexOptimizationOptions& options,
+    const PerturbationOffsetBatch& untangling_offsets,
+    const PerturbationOffsetBatch& optimization_offsets
+);
+
+
 ComplexOptimizationResult optimize_complex(
     StructureSession& session,
     const ComplexOptimizationOptions& options,

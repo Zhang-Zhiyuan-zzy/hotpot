@@ -8,6 +8,13 @@
 namespace hotpot::forcefields {
 
 
+void validate_coordination_request(
+    const StructureSession& session,
+    const CoordinationStageOptions& options,
+    const PerturbationOffsetBatch& perturbation_offsets
+);
+
+
 CoordinationStageResult restore_coordination(
     StructureSession& session,
     const CoordinationStageOptions& options,

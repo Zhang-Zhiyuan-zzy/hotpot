@@ -6,13 +6,10 @@
 #include "../../geometry/_native/primitives.hpp"
 #include "../../geometry/_native/spatial.hpp"
 #include "../../geometry/_native/vector_math.hpp"
-#include "../../graph/_native/relevant_cycles.hpp"
-
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
-#include <map>
 #include <set>
 #include <stdexcept>
 #include <tuple>
@@ -30,10 +27,14 @@ using hotpot::geometry::Segment3;
 using hotpot::geometry::detail::finite;
 using hotpot::geometry::detail::point_distance;
 using detail::MetalPlacementTarget;
-using detail::PlacementCycleWorkspace;
+using detail::PreparedRingWorkspace;
 using detail::PlacementDonorTarget;
 using detail::PlacementEvaluationWorkspace;
 using detail::PlacementProposal;
+using detail::RingGraphScope;
+using detail::RingWorkspaceOptions;
+using detail::default_maximum_relevant_cycle_count;
+using detail::prepare_ring_workspace;
 using detail::select_metal_placement_target;
 
 
@@ -58,93 +59,28 @@ bool ligand_skeleton_bond(
 }
 
 
-std::vector<std::size_t> ordered_cycle_vertices(
-    const std::vector<hotpot::graph::Edge>& edges,
-    const hotpot::graph::CycleEdges& cycle_edges
-) {
-    std::map<std::size_t, std::vector<std::size_t>> adjacency;
-    for (const auto edge_index : cycle_edges) {
-        const auto& edge = edges[edge_index];
-        adjacency[edge[0]].push_back(edge[1]);
-        adjacency[edge[1]].push_back(edge[0]);
-    }
-    for (auto& item : adjacency) {
-        std::sort(item.second.begin(), item.second.end());
-        if (item.second.size() != 2) {
-            throw std::runtime_error(
-                "Relevant Cycles returned a non-simple cycle"
-            );
-        }
-    }
-    const std::size_t start = adjacency.begin()->first;
-    std::vector<std::size_t> ordered{start};
-    std::size_t previous = std::numeric_limits<std::size_t>::max();
-    std::size_t current = start;
-    while (ordered.size() < adjacency.size()) {
-        const auto& neighbours = adjacency.at(current);
-        const std::size_t next = neighbours[0] == previous
-            ? neighbours[1]
-            : neighbours[0];
-        if (next == start) {
-            throw std::runtime_error("Relevant Cycle closed prematurely");
-        }
-        ordered.push_back(next);
-        previous = current;
-        current = next;
-    }
-    const auto& final_neighbours = adjacency.at(current);
-    if (final_neighbours[0] != start && final_neighbours[1] != start) {
-        throw std::runtime_error("Relevant Cycle is not closed");
-    }
-    return ordered;
-}
-
-
-PlacementCycleWorkspace prepare_ligand_cycles(
+PreparedRingWorkspace prepare_ligand_cycles(
     const ComplexSessionInput& input,
     const std::vector<Coordinate>& coordinates,
     const std::vector<std::uint8_t>& active_ligand_bond_mask,
     const MetalPlacementOptions& options
 ) {
-    std::vector<hotpot::graph::Edge> graph_edges;
-    graph_edges.reserve(input.ligand_bond_count());
-    for (std::size_t index = 0; index < input.ligand_bond_count(); ++index) {
-        if (active_ligand_bond_mask[index] == 0) {
-            continue;
-        }
-        const auto& endpoints = input.ligand_bond_indices[index];
-        if (!ligand_skeleton_bond(input, endpoints)) {
-            continue;
-        }
-        graph_edges.push_back({
-            static_cast<hotpot::graph::VertexId>(endpoints[0]),
-            static_cast<hotpot::graph::VertexId>(endpoints[1]),
-        });
-    }
-    PlacementCycleWorkspace workspace;
-    const auto cycles = hotpot::graph::relevant_cycles(
-        graph_edges,
-        {std::nullopt, std::nullopt}
-    );
-    for (const auto& cycle_edges : cycles) {
-        auto atom_indices = ordered_cycle_vertices(graph_edges, cycle_edges);
-        if (atom_indices.size() > options.maximum_actionable_ring_size) {
-            ++workspace.excluded_large_cycle_count;
-            continue;
-        }
-        std::vector<Point3> cycle_coordinates;
-        cycle_coordinates.reserve(atom_indices.size());
-        for (const auto atom : atom_indices) {
-            cycle_coordinates.push_back(coordinates[atom]);
-        }
-        workspace.atom_indices.push_back(std::move(atom_indices));
-        workspace.prepared_cycles.push_back(hotpot::geometry::prepare_cycle(
-            ArrayView<Point3>(cycle_coordinates),
+    return prepare_ring_workspace(
+        input,
+        coordinates,
+        active_ligand_bond_mask,
+        std::vector<std::uint8_t>(
+            input.intended_coordination_bond_count(),
+            0
+        ),
+        RingWorkspaceOptions{
+            RingGraphScope::LIGAND_SKELETON,
+            options.maximum_actionable_ring_size,
+            default_maximum_relevant_cycle_count,
             options.geometry_tolerances,
-            options.surface_limits
-        ));
-    }
-    return workspace;
+            options.surface_limits,
+        }
+    );
 }
 
 
@@ -199,7 +135,8 @@ std::vector<CandidateBroadPhaseMasks> build_broad_phase_batch(
     const std::size_t atom_count = workspace.input->atom_count();
     const std::size_t bond_count = workspace.active_ligand_bonds.size();
     const std::size_t donor_count = workspace.target.donors.size();
-    const std::size_t cycle_count = workspace.cycles.prepared_cycles.size();
+    const std::size_t cycle_count =
+        workspace.cycles->prepared_cycles.cycle_count();
     const auto metal = static_cast<std::size_t>(workspace.target.metal_index);
     std::vector<CandidateBroadPhaseMasks> result;
     result.reserve(proposals.size());
@@ -409,7 +346,9 @@ std::vector<CandidateBroadPhaseMasks> build_broad_phase_batch(
             );
             for (std::size_t cycle = 0; cycle < cycle_count; ++cycle) {
                 first.push_back(path_bounds);
-                second.push_back(workspace.cycles.prepared_cycles[cycle].bounds());
+                second.push_back(
+                    workspace.cycles->prepared_cycles.cycle(cycle).bounds()
+                );
                 paddings.push_back(options.broad_phase_skin_angstrom);
                 locations.push_back({candidate, donor, cycle});
             }
@@ -617,10 +556,12 @@ DonorPathEvidence evaluate_donor_path(
     std::size_t undetermined_count = 0;
     for (
         std::size_t cycle_position = 0;
-        cycle_position < workspace.cycles.prepared_cycles.size();
+        cycle_position < workspace.cycles->prepared_cycles.cycle_count();
         ++cycle_position
     ) {
-        const auto& cycle = workspace.cycles.prepared_cycles[cycle_position];
+        const auto& cycle = workspace.cycles->prepared_cycles.cycle(
+            cycle_position
+        );
         ++cycle_pair_count;
         if (broad_phase.cycles[cycle_position] != 0) {
             ++cycle_aabb_rejected_pair_count;
@@ -776,12 +717,12 @@ PlacementEvaluationWorkspace prepare_placement_evaluation(
             );
         }
     }
-    workspace.cycles = prepare_ligand_cycles(
+    workspace.cycles.emplace(prepare_ligand_cycles(
         input,
         coordinates,
         active_ligand_bond_mask,
         options
-    );
+    ));
     return workspace;
 }
 
@@ -849,7 +790,7 @@ PlacementCandidateEvidence evaluate_metal_position_with_masks(
         candidate,
         proposal_kind,
         PlacementStatus::INFEASIBLE,
-        workspace.cycles.excluded_large_cycle_count,
+        workspace.cycles->topology.excluded_large_cycle_count,
         0,
         0,
         0,

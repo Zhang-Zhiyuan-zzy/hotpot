@@ -59,7 +59,7 @@ MetalPlacementResult finish_result(
     }
     std::vector<std::string> warnings;
     append_status_warning(selected.status, warnings);
-    if (workspace.cycles.excluded_large_cycle_count != 0) {
+    if (workspace.cycles->topology.excluded_large_cycle_count != 0) {
         warnings.push_back("metal_placement_large_cycles_excluded");
     }
     const std::size_t candidate_count = evaluated.size();
@@ -75,7 +75,7 @@ MetalPlacementResult finish_result(
         candidate_count,
         std::move(selected),
         std::move(evaluated),
-        workspace.cycles.excluded_large_cycle_count,
+        workspace.cycles->topology.excluded_large_cycle_count,
         std::move(warnings),
     };
 }

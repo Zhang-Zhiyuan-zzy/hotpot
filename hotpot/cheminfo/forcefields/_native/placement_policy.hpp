@@ -2,6 +2,7 @@
 
 #include "placement_evidence.hpp"
 #include "target_selection.hpp"
+#include "topology_workspace.hpp"
 
 #include "../../geometry/_native/nonplanar_surface.hpp"
 #include "../../geometry/_native/prepared_cycle.hpp"
@@ -12,6 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -24,7 +26,8 @@ struct MetalPlacementOptions {
     std::size_t fibonacci_direction_count = 32;
     std::size_t sphere_intersection_count = 24;
     std::size_t least_squares_iteration_count = 16;
-    std::size_t maximum_actionable_ring_size = 16;
+    std::size_t maximum_actionable_ring_size =
+        detail::default_maximum_actionable_ring_size;
     double coordination_distance_scale = 1.0;
     double coordination_distance_ratio_minimum = 0.70;
     double coordination_distance_ratio_maximum = 1.50;
@@ -84,13 +87,6 @@ struct MetalPlacementOptions {
 namespace detail {
 
 
-struct PlacementCycleWorkspace {
-    std::vector<std::vector<std::size_t>> atom_indices;
-    std::vector<hotpot::geometry::PreparedCycle> prepared_cycles;
-    std::size_t excluded_large_cycle_count = 0;
-};
-
-
 struct PlacementEvaluationWorkspace {
     const ComplexSessionInput* input;
     const std::vector<Coordinate>* coordinates;
@@ -101,7 +97,7 @@ struct PlacementEvaluationWorkspace {
     std::vector<BondIndex> active_ligand_bonds;
     std::vector<hotpot::geometry::Aabb> atom_bounds;
     std::vector<hotpot::geometry::Aabb> active_ligand_bond_bounds;
-    PlacementCycleWorkspace cycles;
+    std::optional<PreparedRingWorkspace> cycles;
 };
 
 

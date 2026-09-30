@@ -17,7 +17,13 @@ from ..obWrappers.settings import (
 )
 from .native_packing import ComplexSessionInput, pack_complex_session_input
 from .native_reports import (
+    ComplexOptimizationResult as NativeComplexOptimizationResult,
+)
+from .native_reports import (
     CoordinationStageResult as NativeCoordinationStageResult,
+)
+from .native_reports import (
+    _complex_optimization_result,
     _coordination_stage_result,
 )
 from .trajectory import TrajectoryStart
@@ -33,10 +39,12 @@ __all__ = (
     "FrameDetail",
     "MetalPlacementOptions",
     "OptimizationStoppingOptions",
+    "RingScreeningOptions",
     "StructureSnapshot",
     "assess_metal_position",
     "create_coordination_session",
     "create_optimization_session",
+    "optimize_complex",
     "place_metal",
     "place_metals",
     "restore_coordination",
@@ -94,6 +102,15 @@ _DEFAULT_METAL_PLACEMENT_OPTIONS = MetalPlacementOptions()
 
 
 @dataclass(frozen=True)
+class RingScreeningOptions:
+    """Full-graph ring screening policy used by native Stage 3."""
+
+    maximum_actionable_ring_size: int = 16
+    maximum_relevant_cycle_count: int = 10000
+    geometry_settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS
+
+
+@dataclass(frozen=True)
 class CoordinationStageOptions:
     forcefield: str = "UFF"
     attempt_limit: int = 20
@@ -125,6 +142,11 @@ class ComplexOptimizationOptions:
     vdw_cutoff_end: float = 12.5
     energy_tolerance: float = 1.0e-6
     stopping: Optional[OptimizationStoppingOptions] = None
+    torsion_singularity_threshold: float = TORSION_SINGULARITY_THRESHOLD
+    torsion_repair_angle_radians: float = TORSION_REPAIR_ANGLE_RADIANS
+    ring_screening: RingScreeningOptions = field(
+        default_factory=RingScreeningOptions
+    )
 
 
 @dataclass(frozen=True)
@@ -421,6 +443,48 @@ def _native_complex_optimization_options(
         vdw_cutoff_end=options.vdw_cutoff_end,
         energy_tolerance=options.energy_tolerance,
         stopping=stopping,
+        torsion_singularity_threshold=options.torsion_singularity_threshold,
+        torsion_repair_angle_radians=options.torsion_repair_angle_radians,
+        ring_screening=_native_ring_screening_options(
+            options.ring_screening
+        ),
+    )
+
+
+def _native_ring_screening_options(
+    options: RingScreeningOptions,
+) -> "_ob_native.RingScreeningOptions":
+    settings = options.geometry_settings
+    return _native_module().RingScreeningOptions(
+        maximum_actionable_ring_size=options.maximum_actionable_ring_size,
+        maximum_relevant_cycle_count=options.maximum_relevant_cycle_count,
+        geometry_absolute_length=settings.tolerance.absolute_length,
+        geometry_relative_length=settings.tolerance.relative_length,
+        geometry_parameter=settings.tolerance.parameter,
+        geometry_machine_epsilon_factor=(
+            settings.tolerance.machine_epsilon_factor
+        ),
+        geometry_predicate_guard_factor=(
+            settings.tolerance.predicate_guard_factor
+        ),
+        geometry_planarity_factor=settings.tolerance.planarity_factor,
+        geometry_winding_residual=settings.tolerance.winding_residual,
+        geometry_intersection_merge_factor=(
+            settings.tolerance.intersection_merge_factor
+        ),
+        geometry_aabb_padding_factor=settings.tolerance.aabb_padding_factor,
+        surface_maximum_cycle_vertices=(
+            settings.surface.maximum_cycle_vertices
+        ),
+        surface_maximum_surface_count=(
+            settings.surface.maximum_surface_count
+        ),
+        surface_maximum_segment_triangle_tests=(
+            settings.surface.maximum_segment_triangle_tests
+        ),
+        surface_maximum_triangle_pair_tests=(
+            settings.surface.maximum_triangle_pair_tests
+        ),
     )
 
 
@@ -441,3 +505,25 @@ def restore_coordination(
         offsets,
     )
     return _coordination_stage_result(result)
+
+
+def optimize_complex(
+    session: "_ob_native.StructureSession",
+    untangling_offsets: NDArray[np.float64],
+    optimization_offsets: NDArray[np.float64],
+    *,
+    options: ComplexOptimizationOptions = ComplexOptimizationOptions(),
+) -> NativeComplexOptimizationResult:
+    """Run native Stage 3 with two explicit, deterministic offset streams."""
+    native = _native_module()
+    result = native.optimize_complex(
+        session,
+        _native_complex_optimization_options(options),
+        native.PerturbationOffsetBatch(
+            np.ascontiguousarray(untangling_offsets, dtype=np.float64)
+        ),
+        native.PerturbationOffsetBatch(
+            np.ascontiguousarray(optimization_offsets, dtype=np.float64)
+        ),
+    )
+    return _complex_optimization_result(result)

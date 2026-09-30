@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import cast, Optional, TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple, cast
 
 import numpy as np
 from numpy.typing import NDArray
 
+from ..geometry import PiercingState, SegmentCycleIndeterminacy
 from .trajectory import (
     CoordinationFrameEvidence,
     FrameEvidence,
@@ -19,7 +20,6 @@ from .trajectory import (
     TrajectoryStart,
 )
 
-
 if TYPE_CHECKING:
     from ..obWrappers import _ob_native
 
@@ -28,6 +28,9 @@ __all__ = (
     "ComplexOptimizationResult",
     "ComplexWorkflowResult",
     "CoordinationStageResult",
+    "NativeBondRingFinding",
+    "NativeRingCheckpointReport",
+    "NativeRingGraphScope",
     "NativeStageStatus",
     "NativeTopologyRevision",
     "NativeTrajectoryBatch",
@@ -38,6 +41,42 @@ class NativeStageStatus(str, Enum):
     COMPLETED = "completed"
     PARTIAL = "partial"
     FAILED = "failed"
+
+
+class NativeRingGraphScope(str, Enum):
+    LIGAND_SKELETON = "ligand_skeleton"
+    FULL_GRAPH = "full_graph"
+
+
+@dataclass(frozen=True)
+class NativeBondRingFinding:
+    ring_index: int
+    ring_atom_indices: Tuple[int, ...]
+    bond_key: Tuple[int, int]
+    state: PiercingState
+    indeterminacy_causes: Tuple[SegmentCycleIndeterminacy, ...]
+    aabb_separated: bool
+    surface_complete: bool
+
+
+@dataclass(frozen=True)
+class NativeRingCheckpointReport:
+    state: PiercingState
+    scope: NativeRingGraphScope
+    maximum_actionable_ring_size: int
+    maximum_relevant_cycle_count: int
+    relevant_cycle_count: int
+    selected_ring_count: int
+    excluded_ring_count: int
+    active_bond_count: int
+    candidate_pair_count: int
+    aabb_separated_pair_count: int
+    exact_pair_count: int
+    piercing_pair_count: int
+    does_not_pierce_pair_count: int
+    undetermined_pair_count: int
+    scan_complete: bool
+    actionable_findings: Tuple[NativeBondRingFinding, ...]
 
 
 @dataclass(frozen=True)
@@ -120,6 +159,7 @@ class ComplexOptimizationResult:
     termination_reason: str
     warning_codes: Tuple[str, ...]
     trajectory: NativeTrajectoryBatch
+    final_checkpoint: NativeRingCheckpointReport
 
 
 @dataclass(frozen=True)
@@ -307,6 +347,49 @@ def _coordination_stage_result(
     )
 
 
+def _native_bond_ring_finding(
+    finding: "_ob_native.NativeBondRingFinding",
+) -> NativeBondRingFinding:
+    return NativeBondRingFinding(
+        ring_index=finding.ring_index,
+        ring_atom_indices=tuple(finding.ring_atom_indices),
+        bond_key=tuple(finding.bond_key),
+        state=PiercingState[finding.state.name],
+        indeterminacy_causes=tuple(
+            SegmentCycleIndeterminacy[cause.name]
+            for cause in finding.indeterminacy_causes
+        ),
+        aabb_separated=finding.aabb_separated,
+        surface_complete=finding.surface_complete,
+    )
+
+
+def _native_ring_checkpoint_report(
+    report: "_ob_native.NativeRingCheckpointReport",
+) -> NativeRingCheckpointReport:
+    return NativeRingCheckpointReport(
+        state=PiercingState[report.state.name],
+        scope=NativeRingGraphScope[report.scope.name],
+        maximum_actionable_ring_size=report.maximum_actionable_ring_size,
+        maximum_relevant_cycle_count=report.maximum_relevant_cycle_count,
+        relevant_cycle_count=report.relevant_cycle_count,
+        selected_ring_count=report.selected_ring_count,
+        excluded_ring_count=report.excluded_ring_count,
+        active_bond_count=report.active_bond_count,
+        candidate_pair_count=report.candidate_pair_count,
+        aabb_separated_pair_count=report.aabb_separated_pair_count,
+        exact_pair_count=report.exact_pair_count,
+        piercing_pair_count=report.piercing_pair_count,
+        does_not_pierce_pair_count=report.does_not_pierce_pair_count,
+        undetermined_pair_count=report.undetermined_pair_count,
+        scan_complete=report.scan_complete,
+        actionable_findings=tuple(
+            _native_bond_ring_finding(finding)
+            for finding in report.actionable_findings
+        ),
+    )
+
+
 def _complex_optimization_result(
     result: "_ob_native.ComplexOptimizationResult",
 ) -> ComplexOptimizationResult:
@@ -356,6 +439,9 @@ def _complex_optimization_result(
         termination_reason=result.termination_reason,
         warning_codes=tuple(result.warning_codes),
         trajectory=_native_trajectory_batch(result.trajectory),
+        final_checkpoint=_native_ring_checkpoint_report(
+            result.final_checkpoint
+        ),
     )
 
 

@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -109,6 +110,24 @@ void test_direct_obmol_entries_leave_selected_coordinates() {
         obw::extract_coordinates(molecule), iterative.coordinates
     ));
     assert(iterative.terminal_coordinates.size() == input.atom_count());
+    assert(
+        iterative.initialization_steps + iterative.steps_submitted
+        <= optimization_options().epochs
+            * optimization_options().steps_per_epoch
+    );
+}
+
+
+void test_backend_stop_requires_global_gradient_convergence() {
+    assert(!obw::detail::backend_stop_is_converged(false, 0.0, 1.0));
+    assert(obw::detail::backend_stop_is_converged(true, 0.1, 1.0));
+    assert(!obw::detail::backend_stop_is_converged(true, 0.1001, 1.0));
+    assert(obw::detail::backend_stop_is_converged(true, 0.4184, 4.184));
+    assert(!obw::detail::backend_stop_is_converged(
+        true,
+        std::numeric_limits<double>::quiet_NaN(),
+        1.0
+    ));
 }
 
 
@@ -212,6 +231,7 @@ void test_session_adapter_updates_only_coordinate_revision() {
 
 int main() {
     test_direct_obmol_entries_leave_selected_coordinates();
+    test_backend_stop_requires_global_gradient_convergence();
     test_iterative_entry_restores_selected_not_terminal_frame();
     test_molecule_data_and_obmol_entries_share_results();
     test_in_place_failure_restores_coordinates();

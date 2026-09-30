@@ -134,7 +134,13 @@ class OptimizationFrame:
 
 @dataclass(frozen=True)
 class OptimizationReport:
-    """Complete result returned by the native Open Babel optimizer."""
+    """Complete result returned by the native Open Babel optimizer.
+
+    ``converged`` and ``terminal_converged`` require both an Open Babel stop
+    signal and independent verification of the global maximum atom gradient.
+    A backend stop that fails that verification restarts within the original
+    epoch/step budget.
+    """
 
     coordinates: NDArray[np.float64]
     terminal_coordinates: NDArray[np.float64]

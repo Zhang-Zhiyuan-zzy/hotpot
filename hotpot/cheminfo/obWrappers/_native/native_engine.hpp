@@ -24,6 +24,19 @@ class OBMol;
 namespace hotpot::obwrappers {
 
 
+namespace detail {
+
+
+bool backend_stop_is_converged(
+    bool backend_stopped,
+    double maximum_gradient_kj_mol_angstrom,
+    double energy_unit_to_kj
+) noexcept;
+
+
+}  // namespace detail
+
+
 std::recursive_mutex& openbabel_runtime_mutex();
 
 

@@ -134,19 +134,20 @@ def test_real_openbabel_vdw_schedule_is_enabled_and_uses_final_potential():
     assert np.all(np.isfinite(molecule.coordinates))
 
 
-def test_real_first_epoch_convergence_can_pass_the_strict_gate():
+def test_real_backend_stop_confirmation_can_pass_the_strict_gate():
     molecule = read_mol("CC", "smi")
 
     report = ff.build_and_optimize(
         molecule,
         forcefield="MMFF94s",
-        epochs=1,
-        steps_per_epoch=1000,
+        epochs=2,
+        steps_per_epoch=500,
         quality_level="strict",
         seed=43,
     )
 
     assert report.optimization.converged
+    assert report.optimization.initialization_steps == 2
     assert report.quality_report.passed
     assert report.optimization.energy_changes == ()
     assert report.optimization.max_displacements == ()

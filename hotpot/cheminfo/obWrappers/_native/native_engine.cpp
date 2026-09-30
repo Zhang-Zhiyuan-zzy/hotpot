@@ -30,6 +30,28 @@
 namespace hotpot::obwrappers {
 
 
+namespace detail {
+
+
+bool backend_stop_is_converged(
+    bool backend_stopped,
+    double maximum_gradient_kj_mol_angstrom,
+    double energy_unit_to_kj
+) noexcept {
+    // Open Babel uses 0.1 in backend energy units per angstrom as its
+    // gradient target.  Its 3.1/3.2 optimizers accumulate the minimum atom
+    // gradient internally, so verify the intended maximum independently.
+    constexpr double openbabel_gradient_threshold = 0.1;
+    return backend_stopped
+        && std::isfinite(maximum_gradient_kj_mol_angstrom)
+        && maximum_gradient_kj_mol_angstrom
+            <= openbabel_gradient_threshold * energy_unit_to_kj;
+}
+
+
+}  // namespace detail
+
+
 std::recursive_mutex& openbabel_runtime_mutex() {
     static std::recursive_mutex mutex;
     return mutex;
@@ -964,13 +986,9 @@ OptimizationResult optimize_in_place(
         initialization_for_epoch = 0;
         ++epochs_completed;
         ++segment_epochs_completed;
-        const bool backend_converged = !backend_continues;
+        const bool backend_stopped = !backend_continues;
         segment_active = backend_continues;
         forcefield.GetCoordinates(molecule);
-        terminal_converged = backend_converged;
-        termination_reason = backend_converged
-            ? "converged"
-            : "budget_exhausted";
 
         if (options.increasing_vdw && epoch < options.epochs - 1) {
             set_vdw_cutoff(options.vdw_cutoff_end);
@@ -985,14 +1003,23 @@ OptimizationResult optimize_in_place(
             append_rule_plan(all_rules, setup_plan);
         }
 
-        const bool reported_converged = backend_converged
-            && (!options.increasing_vdw || epoch == options.epochs - 1);
         auto coordinates = extract_coordinates(molecule);
         const double energy = forcefield_energy_kj(
             forcefield,
             options.forcefield
         );
         const auto gradients = gradient_metrics(forcefield, molecule, factor);
+        const bool backend_converged = detail::backend_stop_is_converged(
+            backend_stopped,
+            gradients.second,
+            factor
+        );
+        const bool reported_converged = backend_converged
+            && (!options.increasing_vdw || epoch == options.epochs - 1);
+        terminal_converged = reported_converged;
+        termination_reason = reported_converged
+            ? "converged"
+            : "budget_exhausted";
         std::optional<double> energy_change;
         std::optional<double> displacement;
         if (previous_energy.has_value()) {
@@ -1024,7 +1051,7 @@ OptimizationResult optimize_in_place(
         previous_coordinates = frame.coordinates;
         previous_energy = frame.energy;
 
-        const bool stable = !backend_converged
+        const bool stable = !reported_converged
             && !options.increasing_vdw
             && options.stopping_criteria.has_value()
             && stability_reached(
@@ -1064,7 +1091,33 @@ OptimizationResult optimize_in_place(
             segment_active = false;
             termination_reason = "stability_reached";
         }
-        if ((backend_converged || stable)
+        const bool next_epoch_restarts_segment = epoch + 1 < options.epochs
+            && (options.increasing_vdw
+                || (options.perturb_interval.has_value()
+                    && (epoch + 1) % *options.perturb_interval == 0));
+        if (backend_stopped
+            && !reported_converged
+            && !stable
+            && epoch + 1 < options.epochs
+            && !next_epoch_restarts_segment) {
+            // TakeNSteps() returns false for either convergence or exhaustion
+            // of its current step budget.  A false stop with a large global
+            // gradient is neither, so restart from the current coordinates
+            // within the caller's remaining epoch/step budget.
+            energy_change_segments.emplace_back();
+            displacement_segments.emplace_back();
+            rms_gradient_segments.emplace_back();
+            max_gradient_segments.emplace_back();
+            ++segment_index;
+            previous_coordinates.reset();
+            previous_energy.reset();
+            segment_epochs_completed = 0;
+            const auto remaining_steps =
+                (options.epochs - epoch - 1) * options.steps_per_epoch;
+            initialization_for_epoch = initialize(remaining_steps);
+            segment_active = true;
+        }
+        if ((reported_converged || stable)
             && !options.increasing_vdw
             && !options.perturb_interval.has_value()) {
             break;

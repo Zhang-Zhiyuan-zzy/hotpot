@@ -174,11 +174,12 @@ void test_contract_validation_and_trajectory() {
     ff::ComplexOptimizationResult optimization;
     optimization.selected_coordinates = complex_input().coordinates;
     optimization.terminal_coordinates = complex_input().coordinates;
-    optimization.final_active_coordination_mask = {0};
+    optimization.final_active_coordination_mask = {1};
     optimization.untangling_attempt_limit = 30;
     optimization.initial_piercing_count = 0;
     optimization.final_piercing_count = 0;
     optimization.minimum_piercing_count = 0;
+    optimization.selected_frame_index = 0;
     optimization.trajectory = trajectory;
     optimization.validate();
 

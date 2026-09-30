@@ -30,6 +30,7 @@ from .contracts import (
     ForceFieldRunReport,
     ForceFieldSetupError,
     ForceFieldSetupReport,
+    ForceFieldWorkflowStage,
     ForceFieldValidationReport,
     ForceFieldWorkflowReport,
     GeometryQualityError,
@@ -65,7 +66,11 @@ from .native_adapters import (
     native_warning_messages,
 )
 from .native_packing import ComplexSessionInput, pack_complex_session_input
-from .native_reports import ComplexOptimizationResult, CoordinationStageResult
+from .native_reports import (
+    ComplexOptimizationResult,
+    CoordinationStageResult,
+    _coordination_stage_result,
+)
 from .optimizer import _optimize_working_mol
 from .topology import TopologyReference, capture_topology
 from .trajectory import (
@@ -362,15 +367,29 @@ def _native_setup_error(
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
+    diagnostics: Optional[ComplexBuildDiagnostics] = None,
 ) -> ForceFieldSetupError:
+    workflow_stage = error.workflow_stage
     return ForceFieldSetupError(
         str(error),
         ForceFieldSetupReport(
             requested_forcefield=requested_forcefield,
             effective_forcefield=effective_forcefield,
             stage=error.stage,
+            workflow_stage=cast(
+                Optional[ForceFieldWorkflowStage],
+                workflow_stage,
+            ),
         ),
+        diagnostics=diagnostics,
     )
+
+
+def _completed_coordination_result(
+    error: "_ob_native.ForceFieldSetupError",
+) -> Optional[CoordinationStageResult]:
+    completed = error.completed_coordination
+    return None if completed is None else _coordination_stage_result(completed)
 
 
 def _prepared_with_coordination_report(
@@ -576,10 +595,22 @@ def _complexes_build_workflow(
             quality_thresholds=quality_thresholds,
         )
     except _native_module().ForceFieldSetupError as native_error:
+        completed_coordination = _completed_coordination_result(native_error)
+        if completed_coordination is not None:
+            ingest_native_trajectory(
+                prepared.trajectory,
+                completed_coordination.trajectory,
+                session_input,
+            )
+            prepared = _prepared_with_coordination_report(
+                prepared,
+                completed_coordination,
+            )
         error = _native_setup_error(
             native_error,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
+            diagnostics=prepared.diagnostics,
         )
         _preserve_failed_trajectory(
             error,
@@ -843,6 +874,7 @@ def _build_complex3d_workflow(
             native_error,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
+            diagnostics=prepared.diagnostics,
         )
         _preserve_failed_trajectory(
             error,

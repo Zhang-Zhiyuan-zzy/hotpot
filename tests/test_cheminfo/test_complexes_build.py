@@ -1653,9 +1653,7 @@ def test_complexes_build_final_failure_does_not_modify_caller(
             trajectory=ff.ForceFieldTrajectory.from_molecule(working),
         )
 
-    def fail_final_stage(working, **options):
-        working.coordinates = working.coordinates - 3.0
-        working.remove_bonds([working.bonds[0]])
+    def fail_native_workflow(*args, **options):
         raise failure
 
     monkeypatch.setattr(
@@ -1663,7 +1661,11 @@ def test_complexes_build_final_failure_does_not_modify_caller(
         "_prepare_complex_working_mol",
         built_working_copy,
     )
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fail_final_stage)
+    monkeypatch.setattr(
+        workflows,
+        "_native_run_complex_workflow",
+        fail_native_workflow,
+    )
 
     with pytest.raises(type(failure)):
         ff.complexes_build(

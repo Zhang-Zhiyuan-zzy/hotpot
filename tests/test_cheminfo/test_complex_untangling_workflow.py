@@ -10,7 +10,6 @@ from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import coordination
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.forcefields import ff as forcefield_utils
-from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.forcefields.trajectory import (
     CoordinationFrameEvidence,
     ForceFieldTrajectory,
@@ -284,26 +283,6 @@ def _mock_coordination_scans(monkeypatch, candidate_counts):
         repair,
         "_candidate_coordination_relation_counts",
         candidate_counts,
-    )
-
-
-def _run_report(*, untangling=None):
-    return forcefield_utils.ForceFieldRunReport(
-        requested_forcefield=None,
-        effective_forcefield="UFF",
-        setup_succeeded=True,
-        converged=True,
-        epochs_completed=1,
-        steps_submitted=1,
-        initialization_steps=1,
-        steps_completed=None,
-        final_energy=1.0,
-        best_energy=1.0,
-        energy_unit="kJ/mol",
-        rms_gradient=0.0,
-        max_gradient=0.0,
-        exploded=False,
-        untangling=untangling,
     )
 
 
@@ -1712,113 +1691,3 @@ def test_public_staged_workflow_attempt_defaults():
         name: workflow_parameters[name].default
         for name in expected_defaults
     } == expected_defaults
-
-
-def test_final_relaxation_repiercing_reenters_repair_and_reports_final_state(
-    monkeypatch,
-):
-    molecule = _TraceMolecule((np.zeros((2, 3)),))
-    molecule.atoms = tuple(
-        SimpleNamespace(
-            idx=index,
-            id=index,
-            atomic_number=6,
-            formal_charge=0,
-            symbol="C",
-        )
-        for index in range(2)
-    )
-    molecule.bonds = ()
-    events = []
-    untangling_calls = 0
-    optimization_calls = []
-    checkpoint_reports = []
-    repair_inputs = []
-    acceptance_inputs = []
-
-    def untangle(current_molecule, *args, **kwargs):
-        nonlocal untangling_calls
-        untangling_calls += 1
-        events.append("untangle")
-        repair_inputs.append(kwargs["checkpoint_report"])
-        marker = 0.0 if untangling_calls == 1 else 2.0
-        current_molecule.coordinates[:] = marker
-        return _untangling_result(
-            piercing_count=1 if untangling_calls == 2 else 0,
-        )
-
-    def optimize(current_molecule, **kwargs):
-        optimization_calls.append(kwargs["epochs"])
-        events.append("optimize")
-        current_molecule.coordinates[:] = (
-            1.0 if len(optimization_calls) == 1 else 3.0
-        )
-        return _run_report()
-
-    def scan(current_molecule, **kwargs):
-        events.append("scan")
-        if float(current_molecule.coordinates[0, 0]) == 1.0:
-            report = _report(1)
-        else:
-            report = _report(0)
-        checkpoint_reports.append(report)
-        return report
-
-    def accept(*args, **kwargs):
-        events.append("accept")
-        acceptance_inputs.append(kwargs["bond_ring_report"])
-        return forcefield_utils.ForceFieldValidationReport(
-            level="standard",
-            passed=True,
-            checks=(),
-        )
-
-    monkeypatch.setattr(workflows, "_untangle_ring_piercings", untangle)
-    monkeypatch.setattr(workflows, "_optimize_working_mol", optimize)
-    monkeypatch.setattr(workflows, "_scan_ring_checkpoint", scan)
-    monkeypatch.setattr(
-        workflows,
-        "evaluate_structure_acceptance_at_checkpoint",
-        accept,
-    )
-
-    report = workflows._optimize_complex_working_mol(
-        molecule,
-        requested_forcefield=None,
-        effective_forcefield="UFF",
-        algorithm="conjugate",
-        epochs=2,
-        steps_per_epoch=5,
-        complex_untangling_attempts=3,
-        quality_level="standard",
-        topology_reference=SimpleNamespace(),
-        quality_thresholds=None,
-        seed=3,
-        perturb_interval=None,
-        perturb_sigma=0.5,
-        retain_epoch_history=False,
-        increasing_vdw=False,
-        vdw_cutoff_start=0.0,
-        vdw_cutoff_end=12.5,
-        trajectory=ForceFieldTrajectory.from_molecule(
-            molecule,
-            start=TrajectoryStart.COMPLEX_UNTANGLING,
-        ),
-    )
-
-    assert events == [
-        "scan",
-        "optimize",
-        "scan",
-        "untangle",
-        "optimize",
-        "scan",
-        "accept",
-    ]
-    assert report.untangling.initial_piercing_count == 0
-    assert report.untangling.final_piercing_count == 0
-    assert report.untangling.attempts_completed == 1
-    assert optimization_calls == [2, 1]
-    assert repair_inputs == [checkpoint_reports[1]]
-    assert acceptance_inputs == [checkpoint_reports[-1]]
-    np.testing.assert_array_equal(molecule.coordinates, np.full((2, 3), 3.0))

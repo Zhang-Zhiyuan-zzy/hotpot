@@ -176,13 +176,15 @@ def _build_ligand_proxies(
             rejections.append(
                 CandidateRejection(component_index, component_attempts, str(exc))
             )
+            elapsed_seconds = time.monotonic() - started
             diagnostics = ComplexBuildDiagnostics(
                 attempt_count=total_attempts,
                 accepted_candidates=total_accepted,
                 rejected_candidates=tuple(rejections),
-                elapsed_seconds=time.monotonic() - started,
+                elapsed_seconds=elapsed_seconds,
                 warning_messages=tuple(warning_messages),
                 ligand_untangling=tuple(selected_untangling_reports),
+                ligand_build_elapsed_seconds=elapsed_seconds,
             )
             raise ComplexBuildError(
                 f"Component {component_index} failed its single OBBuilder call",
@@ -320,13 +322,15 @@ def _build_ligand_proxies(
             break
 
         if accepted_candidate is None and not fallback_candidates:
+            elapsed_seconds = time.monotonic() - started
             diagnostics = ComplexBuildDiagnostics(
                 attempt_count=total_attempts,
                 accepted_candidates=total_accepted,
                 rejected_candidates=tuple(rejections),
-                elapsed_seconds=time.monotonic() - started,
+                elapsed_seconds=elapsed_seconds,
                 warning_messages=tuple(warning_messages),
                 ligand_untangling=tuple(selected_untangling_reports),
+                ligand_build_elapsed_seconds=elapsed_seconds,
             )
             raise ComplexBuildError(
                 f"Component {component_index} produced no usable candidate "
@@ -507,12 +511,14 @@ def _build_ligand_proxies(
             }
         )
 
+    elapsed_seconds = time.monotonic() - started
     diagnostics = ComplexBuildDiagnostics(
         attempt_count=total_attempts,
         accepted_candidates=total_accepted,
         rejected_candidates=tuple(rejections),
-        elapsed_seconds=time.monotonic() - started,
+        elapsed_seconds=elapsed_seconds,
         warning_messages=tuple(warning_messages),
         ligand_untangling=tuple(selected_untangling_reports),
+        ligand_build_elapsed_seconds=elapsed_seconds,
     )
     return clone_mol.coordinates, diagnostics

@@ -51,7 +51,8 @@ def _prepared_complex(mol, **kwargs):
             attempt_count=1,
             accepted_candidates=1,
             rejected_candidates=(),
-            elapsed_seconds=0.0,
+            elapsed_seconds=0.25,
+            ligand_build_elapsed_seconds=0.25,
         ),
         trajectory=trajectory,
     )
@@ -124,6 +125,11 @@ def test_build_complex3d_routes_only_through_native_stage_two(
     assert calls == {"stage_two": 1}
     assert report.optimization is None
     assert report.build.coordination_restoration is not None
+    assert report.build.ligand_build_elapsed_seconds == 0.25
+    assert report.build.elapsed_seconds == (
+        report.build.ligand_build_elapsed_seconds
+        + report.build.coordination_restoration.elapsed_seconds
+    )
     assert report.trajectory is not None
 
 

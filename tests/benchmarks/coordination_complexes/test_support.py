@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
@@ -72,6 +73,9 @@ def test_aggregate_writes_reports_and_integrity(tmp_path: Path) -> None:
         "output_frame_role": "selected_success_frame",
         "visualization_topology_lossy": False,
         "cbond_seconds": 0.1,
+        "ligand_build_seconds": 0.03,
+        "coordination_restoration_seconds": 0.04,
+        "complex_optimization_seconds": 0.12,
         "forcefield_seconds": 0.2,
         "total_seconds": 0.3,
     }
@@ -92,7 +96,25 @@ def test_aggregate_writes_reports_and_integrity(tmp_path: Path) -> None:
     )
 
     assert summary["overall_success_rate"] == 1.0
+    assert summary["aggregate_ligand_build_seconds"] == 0.03
+    assert summary["aggregate_coordination_restoration_seconds"] == 0.04
+    assert summary["aggregate_complex_optimization_seconds"] == 0.12
     assert (tmp_path / "results.csv").is_file()
+    with (tmp_path / "results.csv").open(encoding="utf-8", newline="") as stream:
+        result_row = next(csv.DictReader(stream))
+    assert result_row["ligand_build_seconds"] == "0.03"
+    assert result_row["coordination_restoration_seconds"] == "0.04"
+    assert result_row["complex_optimization_seconds"] == "0.12"
+    report_text = (tmp_path / "report.md").read_text(encoding="utf-8")
+    assert "Aggregate Stage 1 ligand-build time: 0.030 s" in report_text
+    assert (
+        "Aggregate Stage 2 coordination-restoration time: 0.040 s"
+        in report_text
+    )
+    assert (
+        "Aggregate Stage 3 complex-optimization time: 0.120 s"
+        in report_text
+    )
     assert (tmp_path / "summary.json").is_file()
     assert (tmp_path / "integrity.json").is_file()
     assert (tmp_path / "report.md").is_file()

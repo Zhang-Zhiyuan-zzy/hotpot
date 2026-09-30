@@ -254,6 +254,15 @@ def run_hotpot_case(
                 diagnostics = getattr(error, "diagnostics", None)
                 if diagnostics is not None:
                     record["error_diagnostics"] = json_value(diagnostics)
+                if isinstance(diagnostics, ff.ComplexBuildDiagnostics):
+                    record["ligand_build_seconds"] = (
+                        diagnostics.ligand_build_elapsed_seconds
+                    )
+                    restoration = diagnostics.coordination_restoration
+                    if restoration is not None:
+                        record["coordination_restoration_seconds"] = (
+                            restoration.elapsed_seconds
+                        )
                 error_report = getattr(error, "report", None)
                 if isinstance(error_report, ff.ForceFieldValidationReport):
                     validation = _quality_payload(error_report)
@@ -261,6 +270,10 @@ def run_hotpot_case(
                     record["error_quality"] = validation
                 elif error_report is not None:
                     record["error_report"] = json_value(error_report)
+                    if isinstance(error_report, ff.ForceFieldRunReport):
+                        record["complex_optimization_seconds"] = (
+                            error_report.elapsed_seconds
+                        )
                 if error.trajectory is None:
                     record["output_structure_unavailable_reason"] = (
                         "force-field failure did not preserve a trajectory archive"
@@ -279,10 +292,25 @@ def run_hotpot_case(
                         )
             else:
                 validation = _quality_payload(forcefield_report.quality_report)
+                build_report = forcefield_report.build
+                optimization_report = forcefield_report.optimization
                 record.update(
                     forcefield_seconds=perf_counter() - phase_started,
+                    ligand_build_seconds=(
+                        build_report.ligand_build_elapsed_seconds
+                    ),
+                    coordination_restoration_seconds=(
+                        build_report.coordination_restoration.elapsed_seconds
+                        if build_report.coordination_restoration is not None
+                        else None
+                    ),
+                    complex_optimization_seconds=(
+                        optimization_report.elapsed_seconds
+                        if optimization_report is not None
+                        else None
+                    ),
                     warnings=emitted_messages,
-                    optimization=json_value(forcefield_report.optimization),
+                    optimization=json_value(optimization_report),
                     forcefield={
                         "requested_forcefield": (
                             forcefield_report.requested_forcefield
@@ -370,6 +398,13 @@ def flatten_record(record: Mapping[str, object]) -> dict[str, object]:
         "main_frame_count": trajectory.get("main_frame_count"),
         "ligand_build_attempt_count": trajectory.get("ligand_build_attempt_count"),
         "cbond_seconds": record.get("cbond_seconds"),
+        "ligand_build_seconds": record.get("ligand_build_seconds"),
+        "coordination_restoration_seconds": record.get(
+            "coordination_restoration_seconds"
+        ),
+        "complex_optimization_seconds": record.get(
+            "complex_optimization_seconds"
+        ),
         "forcefield_seconds": record.get("forcefield_seconds"),
         "total_seconds": record.get("total_seconds"),
         "error_type": record.get("error_type"),

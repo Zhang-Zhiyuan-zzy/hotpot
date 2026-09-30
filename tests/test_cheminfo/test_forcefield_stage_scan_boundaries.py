@@ -314,6 +314,7 @@ def test_coordination_restoration_report_has_stage2_mechanical_facts_only():
         "undetermined_trial_count",
         "excluded_ring_observation_count",
         "warning_messages",
+        "elapsed_seconds",
     )
 
 

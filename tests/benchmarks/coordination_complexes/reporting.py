@@ -199,6 +199,21 @@ def _summary_payload(
         for record in records
         if record.get("cbond_seconds") is not None
     ]
+    ligand_build_values = [
+        float(record["ligand_build_seconds"])
+        for record in records
+        if record.get("ligand_build_seconds") is not None
+    ]
+    coordination_restoration_values = [
+        float(record["coordination_restoration_seconds"])
+        for record in records
+        if record.get("coordination_restoration_seconds") is not None
+    ]
+    complex_optimization_values = [
+        float(record["complex_optimization_seconds"])
+        for record in records
+        if record.get("complex_optimization_seconds") is not None
+    ]
     main_frame_counts = [
         int(record["trajectory"]["main_frame_count"])
         for record in records
@@ -252,6 +267,13 @@ def _summary_payload(
         ),
         "aggregate_case_seconds": sum(elapsed_values),
         "aggregate_cbond_seconds": sum(cbond_values),
+        "aggregate_ligand_build_seconds": sum(ligand_build_values),
+        "aggregate_coordination_restoration_seconds": sum(
+            coordination_restoration_values
+        ),
+        "aggregate_complex_optimization_seconds": sum(
+            complex_optimization_values
+        ),
         "aggregate_forcefield_seconds": sum(forcefield_values),
         "wall_seconds": wall_seconds,
         "wall_seconds_scope": wall_seconds_scope,
@@ -357,6 +379,9 @@ inspection without reclassifying that frame as successful.
 
 - Aggregate case time: {summary["aggregate_case_seconds"]:.3f} s
 - Aggregate CBond time: {summary["aggregate_cbond_seconds"]:.3f} s
+- Aggregate Stage 1 ligand-build time: {summary["aggregate_ligand_build_seconds"]:.3f} s
+- Aggregate Stage 2 coordination-restoration time: {summary["aggregate_coordination_restoration_seconds"]:.3f} s
+- Aggregate Stage 3 complex-optimization time: {summary["aggregate_complex_optimization_seconds"]:.3f} s
 - Aggregate force-field time: {summary["aggregate_forcefield_seconds"]:.3f} s
 - Median case time: {summary["median_case_seconds"]} s
 - P95 case time: {summary["p95_case_seconds"]} s

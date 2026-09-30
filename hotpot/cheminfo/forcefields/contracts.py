@@ -212,6 +212,7 @@ class ForceFieldRunReport:
     means that the selected coordinates are the segment's unoptimized initial
     frame.  ``selected_segment_epochs_completed`` counts observations in the
     numerical segment that produced the selected frame.
+    ``elapsed_seconds`` is the native Stage 3 wall-clock duration.
     """
 
     requested_forcefield: Optional[str]
@@ -240,6 +241,7 @@ class ForceFieldRunReport:
     terminal_converged: bool = False
     untangling: Optional["RingUntanglingReport"] = None
     trajectory: Optional[ForceFieldTrajectoryArchive] = None
+    elapsed_seconds: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -276,6 +278,7 @@ class CoordinationBondRestorationReport:
 
     ``attempts_completed`` counts stalled relax-and-retry rounds.  Successful
     one-bond restoration rounds do not consume that failure budget.
+    ``elapsed_seconds`` is the native Stage 2 wall-clock duration.
     """
 
     attempt_limit: int
@@ -289,10 +292,18 @@ class CoordinationBondRestorationReport:
     undetermined_trial_count: int
     excluded_ring_observation_count: int
     warning_messages: Tuple[str, ...] = ()
+    elapsed_seconds: float = 0.0
 
 
 @dataclass(frozen=True)
 class ComplexBuildDiagnostics:
+    """Stage 1/2 diagnostics for complex construction.
+
+    ``ligand_build_elapsed_seconds`` records Stage 1 alone, while
+    ``elapsed_seconds`` retains its established cumulative Stage 1 + Stage 2
+    meaning after coordination restoration has completed.
+    """
+
     attempt_count: int
     accepted_candidates: int
     rejected_candidates: Tuple[CandidateRejection, ...]
@@ -300,6 +311,7 @@ class ComplexBuildDiagnostics:
     warning_messages: Tuple[str, ...] = ()
     ligand_untangling: Tuple[RingUntanglingReport, ...] = ()
     coordination_restoration: Optional[CoordinationBondRestorationReport] = None
+    ligand_build_elapsed_seconds: float = 0.0
 
 
 @dataclass(frozen=True)

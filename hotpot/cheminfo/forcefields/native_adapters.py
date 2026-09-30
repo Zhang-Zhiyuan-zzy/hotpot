@@ -247,6 +247,7 @@ def coordination_restoration_report(
             result.excluded_ring_observation_count
         ),
         warning_messages=native_warning_messages(result.warning_codes),
+        elapsed_seconds=result.elapsed_seconds,
     )
 
 
@@ -305,6 +306,7 @@ def forcefield_run_report(
         terminal_converged=result.terminal_converged,
         untangling=ring_untangling_report(result),
         trajectory=trajectory,
+        elapsed_seconds=result.elapsed_seconds,
     )
 
 

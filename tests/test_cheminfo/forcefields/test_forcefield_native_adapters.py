@@ -219,12 +219,14 @@ def test_native_stage_results_map_to_existing_python_reports() -> None:
     assert coordination.warning_messages == (
         NATIVE_WARNING_MESSAGES["coordination_bonds_forced"],
     )
+    assert coordination.elapsed_seconds == coordination_result.elapsed_seconds
     assert optimization.requested_forcefield is None
     assert optimization.effective_forcefield == "UFF"
     assert optimization.setup_succeeded
     assert optimization.steps_completed is None
     assert optimization.energy_unit == "kJ/mol"
     assert optimization.final_energy == optimization_result.final_energy_kj_mol
+    assert optimization.elapsed_seconds == optimization_result.elapsed_seconds
     assert optimization.untangling is not None
     assert optimization.untangling.final_piercing_count == (
         optimization_result.final_piercing_count

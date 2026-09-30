@@ -28,7 +28,8 @@ The native structure is workflow-scoped.  It is not a second persistent
 
 ## 2. Build and runtime requirements
 
-Hotpot supports Python 3.9 through 3.14.  Building from source requires:
+The native/inference stack is validated on Python 3.9 through 3.14. Building
+from source requires:
 
 - a C++17 compiler;
 - `setuptools`, `wheel`, and `pybind11`;
@@ -351,10 +352,14 @@ result = native.run_complex_workflow_from_input(
 )
 ```
 
-These advanced functions do not mutate the source `Molecule`.  They return
-selected and terminal coordinates, masks, stage reports, warning codes, and a
-native trajectory batch.  The stable workflow layer is responsible for
-mapping reports, ingesting trajectory frames, and atomically committing the
+`restore_coordination()`, `optimize_complex()`, and
+`run_complex_workflow()` mutate their explicit native `StructureSession`.
+`run_complex_workflow_from_input()` owns and mutates an internal session.
+None of them mutates a source `Molecule`. Their stage results expose selected
+and terminal coordinates, masks, reports, warning codes, and a native
+trajectory batch. Snapshot, mask-setter, assessment, and placement functions
+instead return their own operation-specific contracts. The stable workflow
+layer maps reports, ingests trajectory frames, and atomically commits the
 selected result to the caller's molecule.
 
 ## 6. Geometry Python/native boundary
@@ -433,9 +438,10 @@ compatibility.
 
 ## 8. Trajectory semantics
 
-High-level workflows return a `ForceFieldTrajectoryArchive` through their
-report.  An archive contains one main trajectory and optional Stage 1 ligand
-build attempts.  Every frame records:
+Optimization and complex high-level workflows return a
+`ForceFieldTrajectoryArchive` through their report. `build3d()` is the
+exception: its `Build3DReport` has no trajectory. An archive contains one main
+trajectory and optional Stage 1 ligand-build attempts. Every frame records:
 
 - stage and event;
 - a pooled coordinate revision;

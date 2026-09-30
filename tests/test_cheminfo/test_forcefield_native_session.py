@@ -268,11 +268,29 @@ def test_stage_and_composed_results_round_trip_without_science_placeholders():
         ["coordination_partial"],
         trajectory,
     )
+    final_checkpoint = native.NativeRingCheckpointReport(
+        native.NativePiercingState.DOES_NOT_PIERCE,
+        native.NativeRingGraphScope.FULL_GRAPH,
+        16,
+        10000,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        True,
+        [],
+    )
     optimization = native.ComplexOptimizationResult(
         native.NativeStageStatus.COMPLETED,
         coordinates,
         terminal_coordinates,
-        np.asarray((0,), dtype=np.uint8),
+        np.asarray((1,), dtype=np.uint8),
         30,
         0,
         0,
@@ -299,6 +317,7 @@ def test_stage_and_composed_results_round_trip_without_science_placeholders():
         "converged",
         [],
         trajectory,
+        final_checkpoint,
     )
     workflow = native.ComplexWorkflowResult(
         coordination,
@@ -319,4 +338,4 @@ def test_stage_and_composed_results_round_trip_without_science_placeholders():
     assert converted_optimization.epoch_energies == (-10.0,)
     assert converted_workflow.warning_codes == ("workflow_warning",)
     assert hasattr(native, "restore_coordination")
-    assert not hasattr(native, "optimize_complex")
+    assert hasattr(native, "optimize_complex")

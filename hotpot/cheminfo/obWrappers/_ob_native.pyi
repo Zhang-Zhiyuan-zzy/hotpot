@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, overload, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -254,6 +254,178 @@ class StructureSnapshot:
     topology_revision: int
 
 
+class RadiusSource(Enum):
+    OPENBABEL_COVALENT: RadiusSource
+    DEFAULT_COVALENT: RadiusSource
+
+
+class AtomicRadius:
+    angstrom: float
+    source: RadiusSource
+
+
+class PlacementStatus(Enum):
+    FULLY_FEASIBLE: PlacementStatus
+    PARTIAL: PlacementStatus
+    INFEASIBLE: PlacementStatus
+
+
+class DonorPathStatus(Enum):
+    SAFE: DonorPathStatus
+    UNDETERMINED: DonorPathStatus
+    OUT_OF_RANGE: DonorPathStatus
+    ATOM_OBSTRUCTION: DonorPathStatus
+    BOND_OBSTRUCTION: DonorPathStatus
+    RING_PIERCING: DonorPathStatus
+
+
+class PlacementProposalKind(Enum):
+    CURRENT: PlacementProposalKind
+    TARGET_SPHERE: PlacementProposalKind
+    SPHERE_INTERSECTION: PlacementProposalKind
+    LEAST_SQUARES: PlacementProposalKind
+    FIBONACCI_FALLBACK: PlacementProposalKind
+
+
+class MetalPlacementOptions:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        maximum_candidate_count: int,
+        fibonacci_direction_count: int,
+        sphere_intersection_count: int,
+        least_squares_iteration_count: int,
+        maximum_actionable_ring_size: int,
+        coordination_distance_scale: float,
+        coordination_distance_ratio_minimum: float,
+        coordination_distance_ratio_maximum: float,
+        absolute_center_clearance_angstrom: float,
+        center_covalent_radius_scale: float,
+        minimum_path_atom_clearance: float,
+        minimum_path_bond_clearance: float,
+        broad_phase_skin_angstrom: float,
+        duplicate_tolerance_angstrom: float,
+        retain_candidate_evidence: bool,
+        geometry_absolute_length: float,
+        geometry_relative_length: float,
+        geometry_parameter: float,
+        geometry_machine_epsilon_factor: float,
+        geometry_predicate_guard_factor: float,
+        geometry_planarity_factor: float,
+        geometry_winding_residual: float,
+        geometry_intersection_merge_factor: float,
+        geometry_aabb_padding_factor: float,
+        surface_maximum_cycle_vertices: int,
+        surface_maximum_surface_count: int,
+        surface_maximum_segment_triangle_tests: int,
+        surface_maximum_triangle_pair_tests: int,
+    ) -> None: ...
+
+    maximum_candidate_count: int
+    fibonacci_direction_count: int
+    sphere_intersection_count: int
+    least_squares_iteration_count: int
+    maximum_actionable_ring_size: int
+    coordination_distance_scale: float
+    coordination_distance_ratio_minimum: float
+    coordination_distance_ratio_maximum: float
+    absolute_center_clearance_angstrom: float
+    center_covalent_radius_scale: float
+    minimum_path_atom_clearance: float
+    minimum_path_bond_clearance: float
+    broad_phase_skin_angstrom: float
+    duplicate_tolerance_angstrom: float
+    retain_candidate_evidence: bool
+
+
+class DonorApproachEvidence:
+    neighbour_index: int
+    metal_donor_neighbour_angle_degrees: Optional[float]
+
+
+class DonorPathEvidence:
+    donor_index: int
+    group_index: int
+    status: DonorPathStatus
+    distance_reachable: bool
+    atom_obstructed: bool
+    bond_obstructed: bool
+    target_distance_angstrom: float
+    distance_angstrom: float
+    distance_ratio: float
+    normalized_atom_clearance: float
+    normalized_bond_clearance: float
+    definite_piercing_count: int
+    undetermined_relation_count: int
+    atom_pair_count: int
+    atom_aabb_rejected_pair_count: int
+    bond_pair_count: int
+    bond_aabb_rejected_pair_count: int
+    cycle_pair_count: int
+    cycle_aabb_rejected_pair_count: int
+    approach_angles: List[DonorApproachEvidence]
+
+
+class DonorPairEvidence:
+    first_donor_index: int
+    second_donor_index: int
+    donor_separation_angstrom: float
+    target_distance_sum_angstrom: float
+    target_distance_difference_angstrom: float
+    target_shells_intersect: bool
+    donor_metal_donor_angle_degrees: Optional[float]
+
+
+class PlacementCandidateEvidence:
+    coordinates: Coordinate
+    proposal_kind: PlacementProposalKind
+    status: PlacementStatus
+    excluded_large_cycle_count: int
+    covered_group_count: int
+    safe_donor_count: int
+    out_of_range_donor_count: int
+    atom_obstruction_count: int
+    bond_obstruction_count: int
+    definite_piercing_count: int
+    hard_obstruction_count: int
+    minimum_normalized_clearance: float
+    worst_distance_deviation: float
+    rms_distance_deviation: float
+    undetermined_relation_count: int
+    atom_pair_count: int
+    atom_aabb_rejected_pair_count: int
+    bond_pair_count: int
+    bond_aabb_rejected_pair_count: int
+    cycle_pair_count: int
+    cycle_aabb_rejected_pair_count: int
+    displacement_angstrom: float
+    proposal_ordinal: int
+    donor_paths: List[DonorPathEvidence]
+    donor_pairs: List[DonorPairEvidence]
+
+
+class MetalPlacementResult:
+    metal_index: int
+    status: PlacementStatus
+    original_coordinates: Coordinate
+    selected_coordinates: Coordinate
+    moved: bool
+    candidates_evaluated: int
+    selected_evidence: PlacementCandidateEvidence
+    retained_candidates: List[PlacementCandidateEvidence]
+    excluded_large_cycle_count: int
+    warning_codes: List[str]
+
+
+class MetalPlacementReport:
+    metals: List[MetalPlacementResult]
+    selected_coordinates: npt.NDArray[np.float64]
+    warning_codes: List[str]
+
+
 class OptimizationStoppingOptions:
     def __init__(
         self,
@@ -280,6 +452,7 @@ class CoordinationStageOptions:
         perturb_sigma: float,
         trajectory_start: NativeTrajectoryStart,
         frame_detail: FrameDetail,
+        placement: MetalPlacementOptions = ...,
     ) -> None: ...
 
     forcefield: str
@@ -288,6 +461,7 @@ class CoordinationStageOptions:
     perturb_sigma: float
     trajectory_start: NativeTrajectoryStart
     frame_detail: FrameDetail
+    placement: MetalPlacementOptions
 
 
 class ComplexOptimizationOptions:
@@ -632,6 +806,26 @@ def set_coordination_active_mask(
     session: StructureSession,
     active_mask: npt.NDArray[np.uint8],
 ) -> None: ...
+
+def covalent_radius(atomic_number: int) -> AtomicRadius: ...
+
+def assess_metal_position(
+    session: StructureSession,
+    metal_index: int,
+    candidate: Coordinate,
+    options: MetalPlacementOptions = ...,
+) -> PlacementCandidateEvidence: ...
+
+def place_metal(
+    session: StructureSession,
+    metal_index: int,
+    options: MetalPlacementOptions = ...,
+) -> MetalPlacementResult: ...
+
+def place_metals(
+    session: StructureSession,
+    options: MetalPlacementOptions = ...,
+) -> MetalPlacementReport: ...
 
 def runtime_info() -> RuntimeInfo: ...
 

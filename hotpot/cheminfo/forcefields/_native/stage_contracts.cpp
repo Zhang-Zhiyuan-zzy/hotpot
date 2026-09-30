@@ -103,6 +103,7 @@ void CoordinationStageOptions::validate() const {
             "perturb_sigma must be finite and nonnegative"
         );
     }
+    placement.validate();
 }
 
 

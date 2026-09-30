@@ -1,6 +1,9 @@
 #include "bindings.hpp"
 
 #include "contracts.hpp"
+#include "placement_engine.hpp"
+#include "placement_policy.hpp"
+#include "radii.hpp"
 #include "stage_contracts.hpp"
 #include "structure_session.hpp"
 #include "trajectory.hpp"
@@ -424,6 +427,450 @@ void bind_session_contracts(py::module_& module) {
 
 
 void bind_stage_options(py::module_& module) {
+    py::enum_<RadiusSource>(module, "RadiusSource")
+        .value("OPENBABEL_COVALENT", RadiusSource::OPENBABEL_COVALENT)
+        .value("DEFAULT_COVALENT", RadiusSource::DEFAULT_COVALENT);
+    py::class_<AtomicRadius>(module, "AtomicRadius")
+        .def_readonly("angstrom", &AtomicRadius::angstrom)
+        .def_readonly("source", &AtomicRadius::source);
+    module.def("covalent_radius", &covalent_radius, py::arg("atomic_number"));
+
+    py::enum_<PlacementStatus>(module, "PlacementStatus")
+        .value("FULLY_FEASIBLE", PlacementStatus::FULLY_FEASIBLE)
+        .value("PARTIAL", PlacementStatus::PARTIAL)
+        .value("INFEASIBLE", PlacementStatus::INFEASIBLE);
+    py::enum_<DonorPathStatus>(module, "DonorPathStatus")
+        .value("SAFE", DonorPathStatus::SAFE)
+        .value("UNDETERMINED", DonorPathStatus::UNDETERMINED)
+        .value("OUT_OF_RANGE", DonorPathStatus::OUT_OF_RANGE)
+        .value("ATOM_OBSTRUCTION", DonorPathStatus::ATOM_OBSTRUCTION)
+        .value("BOND_OBSTRUCTION", DonorPathStatus::BOND_OBSTRUCTION)
+        .value("RING_PIERCING", DonorPathStatus::RING_PIERCING);
+    py::enum_<PlacementProposalKind>(module, "PlacementProposalKind")
+        .value("CURRENT", PlacementProposalKind::CURRENT)
+        .value("TARGET_SPHERE", PlacementProposalKind::TARGET_SPHERE)
+        .value(
+            "SPHERE_INTERSECTION",
+            PlacementProposalKind::SPHERE_INTERSECTION
+        )
+        .value("LEAST_SQUARES", PlacementProposalKind::LEAST_SQUARES)
+        .value(
+            "FIBONACCI_FALLBACK",
+            PlacementProposalKind::FIBONACCI_FALLBACK
+        );
+
+    py::class_<MetalPlacementOptions>(module, "MetalPlacementOptions")
+        .def(py::init<>())
+        .def(py::init([](
+            std::size_t maximum_candidate_count,
+            std::size_t fibonacci_direction_count,
+            std::size_t sphere_intersection_count,
+            std::size_t least_squares_iteration_count,
+            std::size_t maximum_actionable_ring_size,
+            double coordination_distance_scale,
+            double coordination_distance_ratio_minimum,
+            double coordination_distance_ratio_maximum,
+            double absolute_center_clearance_angstrom,
+            double center_covalent_radius_scale,
+            double minimum_path_atom_clearance,
+            double minimum_path_bond_clearance,
+            double broad_phase_skin_angstrom,
+            double duplicate_tolerance_angstrom,
+            bool retain_candidate_evidence,
+            double geometry_absolute_length,
+            double geometry_relative_length,
+            double geometry_parameter,
+            double geometry_machine_epsilon_factor,
+            double geometry_predicate_guard_factor,
+            double geometry_planarity_factor,
+            double geometry_winding_residual,
+            double geometry_intersection_merge_factor,
+            double geometry_aabb_padding_factor,
+            std::size_t surface_maximum_cycle_vertices,
+            std::size_t surface_maximum_surface_count,
+            std::size_t surface_maximum_segment_triangle_tests,
+            std::size_t surface_maximum_triangle_pair_tests
+        ) {
+            MetalPlacementOptions options;
+            options.maximum_candidate_count = maximum_candidate_count;
+            options.fibonacci_direction_count = fibonacci_direction_count;
+            options.sphere_intersection_count = sphere_intersection_count;
+            options.least_squares_iteration_count =
+                least_squares_iteration_count;
+            options.maximum_actionable_ring_size =
+                maximum_actionable_ring_size;
+            options.coordination_distance_scale = coordination_distance_scale;
+            options.coordination_distance_ratio_minimum =
+                coordination_distance_ratio_minimum;
+            options.coordination_distance_ratio_maximum =
+                coordination_distance_ratio_maximum;
+            options.absolute_center_clearance_angstrom =
+                absolute_center_clearance_angstrom;
+            options.center_covalent_radius_scale = center_covalent_radius_scale;
+            options.minimum_path_atom_clearance = minimum_path_atom_clearance;
+            options.minimum_path_bond_clearance = minimum_path_bond_clearance;
+            options.broad_phase_skin_angstrom = broad_phase_skin_angstrom;
+            options.duplicate_tolerance_angstrom =
+                duplicate_tolerance_angstrom;
+            options.retain_candidate_evidence = retain_candidate_evidence;
+            options.geometry_tolerances = {
+                geometry_absolute_length,
+                geometry_relative_length,
+                geometry_parameter,
+                geometry_machine_epsilon_factor,
+                geometry_predicate_guard_factor,
+                geometry_planarity_factor,
+                geometry_winding_residual,
+                geometry_intersection_merge_factor,
+                geometry_aabb_padding_factor,
+            };
+            options.surface_limits = {
+                surface_maximum_cycle_vertices,
+                surface_maximum_surface_count,
+                surface_maximum_segment_triangle_tests,
+                surface_maximum_triangle_pair_tests,
+            };
+            options.validate();
+            return options;
+        }),
+        py::arg("maximum_candidate_count"),
+        py::arg("fibonacci_direction_count"),
+        py::arg("sphere_intersection_count"),
+        py::arg("least_squares_iteration_count"),
+        py::arg("maximum_actionable_ring_size"),
+        py::arg("coordination_distance_scale"),
+        py::arg("coordination_distance_ratio_minimum"),
+        py::arg("coordination_distance_ratio_maximum"),
+        py::arg("absolute_center_clearance_angstrom"),
+        py::arg("center_covalent_radius_scale"),
+        py::arg("minimum_path_atom_clearance"),
+        py::arg("minimum_path_bond_clearance"),
+        py::arg("broad_phase_skin_angstrom"),
+        py::arg("duplicate_tolerance_angstrom"),
+        py::arg("retain_candidate_evidence"),
+        py::arg("geometry_absolute_length"),
+        py::arg("geometry_relative_length"),
+        py::arg("geometry_parameter"),
+        py::arg("geometry_machine_epsilon_factor"),
+        py::arg("geometry_predicate_guard_factor"),
+        py::arg("geometry_planarity_factor"),
+        py::arg("geometry_winding_residual"),
+        py::arg("geometry_intersection_merge_factor"),
+        py::arg("geometry_aabb_padding_factor"),
+        py::arg("surface_maximum_cycle_vertices"),
+        py::arg("surface_maximum_surface_count"),
+        py::arg("surface_maximum_segment_triangle_tests"),
+        py::arg("surface_maximum_triangle_pair_tests"))
+        .def_readonly(
+            "maximum_candidate_count",
+            &MetalPlacementOptions::maximum_candidate_count
+        )
+        .def_readonly(
+            "fibonacci_direction_count",
+            &MetalPlacementOptions::fibonacci_direction_count
+        )
+        .def_readonly(
+            "sphere_intersection_count",
+            &MetalPlacementOptions::sphere_intersection_count
+        )
+        .def_readonly(
+            "least_squares_iteration_count",
+            &MetalPlacementOptions::least_squares_iteration_count
+        )
+        .def_readonly(
+            "maximum_actionable_ring_size",
+            &MetalPlacementOptions::maximum_actionable_ring_size
+        )
+        .def_readonly(
+            "coordination_distance_scale",
+            &MetalPlacementOptions::coordination_distance_scale
+        )
+        .def_readonly(
+            "coordination_distance_ratio_minimum",
+            &MetalPlacementOptions::coordination_distance_ratio_minimum
+        )
+        .def_readonly(
+            "coordination_distance_ratio_maximum",
+            &MetalPlacementOptions::coordination_distance_ratio_maximum
+        )
+        .def_readonly(
+            "absolute_center_clearance_angstrom",
+            &MetalPlacementOptions::absolute_center_clearance_angstrom
+        )
+        .def_readonly(
+            "center_covalent_radius_scale",
+            &MetalPlacementOptions::center_covalent_radius_scale
+        )
+        .def_readonly(
+            "minimum_path_atom_clearance",
+            &MetalPlacementOptions::minimum_path_atom_clearance
+        )
+        .def_readonly(
+            "minimum_path_bond_clearance",
+            &MetalPlacementOptions::minimum_path_bond_clearance
+        )
+        .def_readonly(
+            "broad_phase_skin_angstrom",
+            &MetalPlacementOptions::broad_phase_skin_angstrom
+        )
+        .def_readonly(
+            "duplicate_tolerance_angstrom",
+            &MetalPlacementOptions::duplicate_tolerance_angstrom
+        )
+        .def_readonly(
+            "retain_candidate_evidence",
+            &MetalPlacementOptions::retain_candidate_evidence
+        );
+
+    py::class_<DonorApproachEvidence>(module, "DonorApproachEvidence")
+        .def_readonly(
+            "neighbour_index",
+            &DonorApproachEvidence::neighbour_index
+        )
+        .def_readonly(
+            "metal_donor_neighbour_angle_degrees",
+            &DonorApproachEvidence::metal_donor_neighbour_angle_degrees
+        );
+    py::class_<DonorPathEvidence>(module, "DonorPathEvidence")
+        .def_readonly("donor_index", &DonorPathEvidence::donor_index)
+        .def_readonly("group_index", &DonorPathEvidence::group_index)
+        .def_readonly("status", &DonorPathEvidence::status)
+        .def_readonly(
+            "distance_reachable",
+            &DonorPathEvidence::distance_reachable
+        )
+        .def_readonly("atom_obstructed", &DonorPathEvidence::atom_obstructed)
+        .def_readonly("bond_obstructed", &DonorPathEvidence::bond_obstructed)
+        .def_readonly(
+            "target_distance_angstrom",
+            &DonorPathEvidence::target_distance_angstrom
+        )
+        .def_readonly("distance_angstrom", &DonorPathEvidence::distance_angstrom)
+        .def_readonly("distance_ratio", &DonorPathEvidence::distance_ratio)
+        .def_readonly(
+            "normalized_atom_clearance",
+            &DonorPathEvidence::normalized_atom_clearance
+        )
+        .def_readonly(
+            "normalized_bond_clearance",
+            &DonorPathEvidence::normalized_bond_clearance
+        )
+        .def_readonly(
+            "definite_piercing_count",
+            &DonorPathEvidence::definite_piercing_count
+        )
+        .def_readonly(
+            "undetermined_relation_count",
+            &DonorPathEvidence::undetermined_relation_count
+        )
+        .def_readonly("atom_pair_count", &DonorPathEvidence::atom_pair_count)
+        .def_readonly(
+            "atom_aabb_rejected_pair_count",
+            &DonorPathEvidence::atom_aabb_rejected_pair_count
+        )
+        .def_readonly("bond_pair_count", &DonorPathEvidence::bond_pair_count)
+        .def_readonly(
+            "bond_aabb_rejected_pair_count",
+            &DonorPathEvidence::bond_aabb_rejected_pair_count
+        )
+        .def_readonly("cycle_pair_count", &DonorPathEvidence::cycle_pair_count)
+        .def_readonly(
+            "cycle_aabb_rejected_pair_count",
+            &DonorPathEvidence::cycle_aabb_rejected_pair_count
+        )
+        .def_readonly("approach_angles", &DonorPathEvidence::approach_angles);
+    py::class_<DonorPairEvidence>(module, "DonorPairEvidence")
+        .def_readonly(
+            "first_donor_index",
+            &DonorPairEvidence::first_donor_index
+        )
+        .def_readonly(
+            "second_donor_index",
+            &DonorPairEvidence::second_donor_index
+        )
+        .def_readonly(
+            "donor_separation_angstrom",
+            &DonorPairEvidence::donor_separation_angstrom
+        )
+        .def_readonly(
+            "target_distance_sum_angstrom",
+            &DonorPairEvidence::target_distance_sum_angstrom
+        )
+        .def_readonly(
+            "target_distance_difference_angstrom",
+            &DonorPairEvidence::target_distance_difference_angstrom
+        )
+        .def_readonly(
+            "target_shells_intersect",
+            &DonorPairEvidence::target_shells_intersect
+        )
+        .def_readonly(
+            "donor_metal_donor_angle_degrees",
+            &DonorPairEvidence::donor_metal_donor_angle_degrees
+        );
+    py::class_<PlacementCandidateEvidence>(
+        module,
+        "PlacementCandidateEvidence"
+    )
+        .def_readonly("coordinates", &PlacementCandidateEvidence::coordinates)
+        .def_readonly("proposal_kind", &PlacementCandidateEvidence::proposal_kind)
+        .def_readonly("status", &PlacementCandidateEvidence::status)
+        .def_readonly(
+            "excluded_large_cycle_count",
+            &PlacementCandidateEvidence::excluded_large_cycle_count
+        )
+        .def_readonly(
+            "covered_group_count",
+            &PlacementCandidateEvidence::covered_group_count
+        )
+        .def_readonly("safe_donor_count", &PlacementCandidateEvidence::safe_donor_count)
+        .def_readonly(
+            "out_of_range_donor_count",
+            &PlacementCandidateEvidence::out_of_range_donor_count
+        )
+        .def_readonly(
+            "atom_obstruction_count",
+            &PlacementCandidateEvidence::atom_obstruction_count
+        )
+        .def_readonly(
+            "bond_obstruction_count",
+            &PlacementCandidateEvidence::bond_obstruction_count
+        )
+        .def_readonly(
+            "definite_piercing_count",
+            &PlacementCandidateEvidence::definite_piercing_count
+        )
+        .def_readonly(
+            "hard_obstruction_count",
+            &PlacementCandidateEvidence::hard_obstruction_count
+        )
+        .def_readonly(
+            "minimum_normalized_clearance",
+            &PlacementCandidateEvidence::minimum_normalized_clearance
+        )
+        .def_readonly(
+            "worst_distance_deviation",
+            &PlacementCandidateEvidence::worst_distance_deviation
+        )
+        .def_readonly(
+            "rms_distance_deviation",
+            &PlacementCandidateEvidence::rms_distance_deviation
+        )
+        .def_readonly(
+            "undetermined_relation_count",
+            &PlacementCandidateEvidence::undetermined_relation_count
+        )
+        .def_readonly(
+            "atom_pair_count",
+            &PlacementCandidateEvidence::atom_pair_count
+        )
+        .def_readonly(
+            "atom_aabb_rejected_pair_count",
+            &PlacementCandidateEvidence::atom_aabb_rejected_pair_count
+        )
+        .def_readonly(
+            "bond_pair_count",
+            &PlacementCandidateEvidence::bond_pair_count
+        )
+        .def_readonly(
+            "bond_aabb_rejected_pair_count",
+            &PlacementCandidateEvidence::bond_aabb_rejected_pair_count
+        )
+        .def_readonly(
+            "cycle_pair_count",
+            &PlacementCandidateEvidence::cycle_pair_count
+        )
+        .def_readonly(
+            "cycle_aabb_rejected_pair_count",
+            &PlacementCandidateEvidence::cycle_aabb_rejected_pair_count
+        )
+        .def_readonly(
+            "displacement_angstrom",
+            &PlacementCandidateEvidence::displacement_angstrom
+        )
+        .def_readonly("proposal_ordinal", &PlacementCandidateEvidence::proposal_ordinal)
+        .def_readonly("donor_paths", &PlacementCandidateEvidence::donor_paths)
+        .def_readonly("donor_pairs", &PlacementCandidateEvidence::donor_pairs);
+    py::class_<MetalPlacementResult>(module, "MetalPlacementResult")
+        .def_readonly("metal_index", &MetalPlacementResult::metal_index)
+        .def_readonly("status", &MetalPlacementResult::status)
+        .def_readonly(
+            "original_coordinates",
+            &MetalPlacementResult::original_coordinates
+        )
+        .def_readonly(
+            "selected_coordinates",
+            &MetalPlacementResult::selected_coordinates
+        )
+        .def_readonly("moved", &MetalPlacementResult::moved)
+        .def_readonly(
+            "candidates_evaluated",
+            &MetalPlacementResult::candidates_evaluated
+        )
+        .def_readonly(
+            "selected_evidence",
+            &MetalPlacementResult::selected_evidence
+        )
+        .def_readonly(
+            "retained_candidates",
+            &MetalPlacementResult::retained_candidates
+        )
+        .def_readonly(
+            "excluded_large_cycle_count",
+            &MetalPlacementResult::excluded_large_cycle_count
+        )
+        .def_readonly("warning_codes", &MetalPlacementResult::warning_codes);
+    py::class_<MetalPlacementReport>(module, "MetalPlacementReport")
+        .def_readonly("metals", &MetalPlacementReport::metals)
+        .def_property_readonly(
+            "selected_coordinates",
+            [](const MetalPlacementReport& report) {
+                return coordinate_array(report.selected_coordinates);
+            }
+        )
+        .def_readonly("warning_codes", &MetalPlacementReport::warning_codes);
+
+    module.def(
+        "assess_metal_position",
+        [](const StructureSession& session,
+           std::int32_t metal_index,
+           const Coordinate& candidate,
+           const MetalPlacementOptions& options) {
+            py::gil_scoped_release release;
+            return assess_metal_position(
+                session,
+                metal_index,
+                candidate,
+                options
+            );
+        },
+        py::arg("session"),
+        py::arg("metal_index"),
+        py::arg("candidate"),
+        py::arg("options") = MetalPlacementOptions{}
+    );
+    module.def(
+        "place_metal",
+        [](StructureSession& session,
+           std::int32_t metal_index,
+           const MetalPlacementOptions& options) {
+            py::gil_scoped_release release;
+            return place_metal(session, metal_index, options);
+        },
+        py::arg("session"),
+        py::arg("metal_index"),
+        py::arg("options") = MetalPlacementOptions{}
+    );
+    module.def(
+        "place_metals",
+        [](StructureSession& session, const MetalPlacementOptions& options) {
+            py::gil_scoped_release release;
+            return place_metals(session, options);
+        },
+        py::arg("session"),
+        py::arg("options") = MetalPlacementOptions{}
+    );
+
     py::enum_<FrameDetail>(module, "FrameDetail")
         .value("NONE", FrameDetail::NONE)
         .value("OPTIMIZATION", FrameDetail::OPTIMIZATION)
@@ -491,7 +938,8 @@ void bind_stage_options(py::module_& module) {
             std::size_t relaxation_steps,
             double perturb_sigma,
             NativeTrajectoryStart trajectory_start,
-            FrameDetail frame_detail
+            FrameDetail frame_detail,
+            MetalPlacementOptions placement
         ) {
             CoordinationStageOptions options{
                 std::move(forcefield),
@@ -500,6 +948,7 @@ void bind_stage_options(py::module_& module) {
                 perturb_sigma,
                 trajectory_start,
                 frame_detail,
+                std::move(placement),
             };
             options.validate();
             return options;
@@ -509,7 +958,8 @@ void bind_stage_options(py::module_& module) {
         py::arg("relaxation_steps"),
         py::arg("perturb_sigma"),
         py::arg("trajectory_start"),
-        py::arg("frame_detail"))
+        py::arg("frame_detail"),
+        py::arg("placement") = MetalPlacementOptions{})
         .def_readonly("forcefield", &CoordinationStageOptions::forcefield)
         .def_readonly("attempt_limit", &CoordinationStageOptions::attempt_limit)
         .def_readonly(
@@ -519,7 +969,8 @@ void bind_stage_options(py::module_& module) {
         .def_readonly(
             "trajectory_start", &CoordinationStageOptions::trajectory_start
         )
-        .def_readonly("frame_detail", &CoordinationStageOptions::frame_detail);
+        .def_readonly("frame_detail", &CoordinationStageOptions::frame_detail)
+        .def_readonly("placement", &CoordinationStageOptions::placement);
 
     py::class_<ComplexOptimizationOptions>(
         module, "ComplexOptimizationOptions"

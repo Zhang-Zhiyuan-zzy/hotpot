@@ -1,6 +1,7 @@
 #pragma once
 
 #include "contracts.hpp"
+#include "placement_policy.hpp"
 #include "trajectory.hpp"
 
 #include <cstddef>
@@ -39,6 +40,7 @@ struct CoordinationStageOptions {
     NativeTrajectoryStart trajectory_start =
         NativeTrajectoryStart::COORDINATION_RESTORATION;
     FrameDetail frame_detail = FrameDetail::NONE;
+    MetalPlacementOptions placement;
 
     void validate() const;
 };

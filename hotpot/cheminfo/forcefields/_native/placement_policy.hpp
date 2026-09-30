@@ -1,5 +1,6 @@
 #pragma once
 
+#include "defaults.hpp"
 #include "placement_evidence.hpp"
 #include "target_selection.hpp"
 #include "topology_workspace.hpp"
@@ -22,21 +23,34 @@ namespace hotpot::forcefields {
 
 
 struct MetalPlacementOptions {
-    std::size_t maximum_candidate_count = 96;
-    std::size_t fibonacci_direction_count = 32;
-    std::size_t sphere_intersection_count = 24;
-    std::size_t least_squares_iteration_count = 16;
+    std::size_t maximum_candidate_count =
+        detail::default_maximum_placement_candidate_count;
+    std::size_t fibonacci_direction_count =
+        detail::default_fibonacci_direction_count;
+    std::size_t sphere_intersection_count =
+        detail::default_sphere_intersection_count;
+    std::size_t least_squares_iteration_count =
+        detail::default_least_squares_iteration_count;
     std::size_t maximum_actionable_ring_size =
         detail::default_maximum_actionable_ring_size;
-    double coordination_distance_scale = 1.0;
-    double coordination_distance_ratio_minimum = 0.70;
-    double coordination_distance_ratio_maximum = 1.50;
-    double absolute_center_clearance_angstrom = 0.50;
-    double center_covalent_radius_scale = 0.55;
-    double minimum_path_atom_clearance = 0.35;
-    double minimum_path_bond_clearance = 0.50;
-    double broad_phase_skin_angstrom = 0.25;
-    double duplicate_tolerance_angstrom = 1.0e-8;
+    double coordination_distance_scale =
+        detail::default_coordination_distance_scale;
+    double coordination_distance_ratio_minimum =
+        detail::default_coordination_distance_ratio_minimum;
+    double coordination_distance_ratio_maximum =
+        detail::default_coordination_distance_ratio_maximum;
+    double absolute_center_clearance_angstrom =
+        detail::default_absolute_center_clearance_angstrom;
+    double center_covalent_radius_scale =
+        detail::default_center_covalent_radius_scale;
+    double minimum_path_atom_clearance =
+        detail::default_minimum_path_atom_clearance;
+    double minimum_path_bond_clearance =
+        detail::default_minimum_path_bond_clearance;
+    double broad_phase_skin_angstrom =
+        detail::default_broad_phase_skin_angstrom;
+    double duplicate_tolerance_angstrom =
+        detail::default_duplicate_tolerance_angstrom;
     bool retain_candidate_evidence = false;
     hotpot::geometry::NumericTolerances geometry_tolerances =
         hotpot::geometry::default_numeric_tolerances();

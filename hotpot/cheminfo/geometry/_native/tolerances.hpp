@@ -1,5 +1,7 @@
 #pragma once
 
+#include "defaults.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -104,15 +106,15 @@ struct NumericTolerances {
 
 inline NumericTolerances default_numeric_tolerances() noexcept {
     return {
-        1.0e-8,
-        1.0e-10,
-        1.0e-10,
-        64.0,
-        4.0,
-        1.0,
-        1.0e-10,
-        4.0,
-        4.0,
+        detail::default_absolute_length,
+        detail::default_relative_length,
+        detail::default_parameter_tolerance,
+        detail::default_machine_epsilon_factor,
+        detail::default_predicate_guard_factor,
+        detail::default_planarity_factor,
+        detail::default_winding_residual,
+        detail::default_intersection_merge_factor,
+        detail::default_aabb_padding_factor,
     };
 }
 

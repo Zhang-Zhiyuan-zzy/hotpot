@@ -1,12 +1,14 @@
 #pragma once
 
 #include "contracts.hpp"
+#include "defaults.hpp"
 #include "placement_policy.hpp"
 #include "trajectory.hpp"
 
 #include "../../geometry/_native/nonplanar_surface.hpp"
 #include "../../geometry/_native/segment_cycle.hpp"
 #include "../../geometry/_native/tolerances.hpp"
+#include "../../obWrappers/_native/defaults.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -42,8 +44,10 @@ enum class NativeRingGraphScope : std::uint8_t {
 
 
 struct RingScreeningOptions {
-    std::size_t maximum_actionable_ring_size = 16;
-    std::size_t maximum_relevant_cycle_count = 10000;
+    std::size_t maximum_actionable_ring_size =
+        detail::default_maximum_actionable_ring_size;
+    std::size_t maximum_relevant_cycle_count =
+        detail::default_maximum_relevant_cycle_count;
     hotpot::geometry::NumericTolerances geometry_tolerances =
         hotpot::geometry::default_numeric_tolerances();
     hotpot::geometry::SurfaceEnumerationLimits surface_limits =
@@ -54,26 +58,33 @@ struct RingScreeningOptions {
 
 
 struct OptimizationStoppingOptions {
-    std::size_t window = 5;
-    double maximum_energy_change_kj_mol = 1.0e-4;
-    double maximum_atom_displacement_angstrom = 1.0e-4;
-    double maximum_rms_gradient_kj_mol_angstrom = 1.0;
-    double maximum_gradient_kj_mol_angstrom = 5.0;
+    std::size_t window = detail::default_stopping_window;
+    double maximum_energy_change_kj_mol =
+        detail::default_maximum_energy_change_kj_mol;
+    double maximum_atom_displacement_angstrom =
+        detail::default_maximum_atom_displacement_angstrom;
+    double maximum_rms_gradient_kj_mol_angstrom =
+        detail::default_maximum_rms_gradient_kj_mol_angstrom;
+    double maximum_gradient_kj_mol_angstrom =
+        detail::default_maximum_gradient_kj_mol_angstrom;
 
     void validate() const;
 };
 
 
 struct CoordinationStageOptions {
-    std::string forcefield = "UFF";
-    std::size_t attempt_limit = 20;
-    std::size_t relaxation_steps = 100;
-    double perturb_sigma = 0.5;
+    std::string forcefield = detail::default_forcefield;
+    std::size_t attempt_limit = detail::default_coordination_attempt_limit;
+    std::size_t relaxation_steps =
+        detail::default_coordination_relaxation_steps;
+    double perturb_sigma = detail::default_perturb_sigma;
     NativeTrajectoryStart trajectory_start =
         NativeTrajectoryStart::COORDINATION_RESTORATION;
     FrameDetail frame_detail = FrameDetail::NONE;
-    double torsion_singularity_threshold = 1.0e-6;
-    double torsion_repair_angle_radians = 1.0e-3;
+    double torsion_singularity_threshold =
+        hotpot::obwrappers::detail::default_torsion_singularity_threshold;
+    double torsion_repair_angle_radians =
+        hotpot::obwrappers::detail::default_torsion_repair_angle_radians;
     MetalPlacementOptions placement;
 
     void validate() const;
@@ -81,24 +92,27 @@ struct CoordinationStageOptions {
 
 
 struct ComplexOptimizationOptions {
-    std::string forcefield = "UFF";
+    std::string forcefield = detail::default_forcefield;
     std::string algorithm = "conjugate";
-    std::size_t epochs = 100;
-    std::size_t steps_per_epoch = 100;
-    std::size_t untangling_attempt_limit = 30;
+    std::size_t epochs = detail::default_optimization_epochs;
+    std::size_t steps_per_epoch = detail::default_steps_per_epoch;
+    std::size_t untangling_attempt_limit =
+        detail::default_untangling_attempt_limit;
     std::optional<std::size_t> perturb_interval;
-    double perturb_sigma = 0.5;
+    double perturb_sigma = detail::default_perturb_sigma;
     NativeTrajectoryStart trajectory_start =
         NativeTrajectoryStart::COMPLEX_UNTANGLING;
     FrameDetail frame_detail = FrameDetail::NONE;
     bool retain_epoch_history = false;
     bool increasing_vdw = false;
-    double vdw_cutoff_start = 0.0;
-    double vdw_cutoff_end = 12.5;
-    double energy_tolerance = 1.0e-6;
+    double vdw_cutoff_start = detail::default_vdw_cutoff_start;
+    double vdw_cutoff_end = detail::default_vdw_cutoff_end;
+    double energy_tolerance = detail::default_energy_tolerance;
     std::optional<OptimizationStoppingOptions> stopping;
-    double torsion_singularity_threshold = 1.0e-6;
-    double torsion_repair_angle_radians = 1.0e-3;
+    double torsion_singularity_threshold =
+        hotpot::obwrappers::detail::default_torsion_singularity_threshold;
+    double torsion_repair_angle_radians =
+        hotpot::obwrappers::detail::default_torsion_repair_angle_radians;
     RingScreeningOptions ring_screening;
 
     void validate() const;
@@ -124,8 +138,10 @@ struct NativeRingCheckpointReport {
     hotpot::geometry::PiercingState state =
         hotpot::geometry::PiercingState::DOES_NOT_PIERCE;
     NativeRingGraphScope scope = NativeRingGraphScope::FULL_GRAPH;
-    std::size_t maximum_actionable_ring_size = 16;
-    std::size_t maximum_relevant_cycle_count = 10000;
+    std::size_t maximum_actionable_ring_size =
+        detail::default_maximum_actionable_ring_size;
+    std::size_t maximum_relevant_cycle_count =
+        detail::default_maximum_relevant_cycle_count;
     std::size_t relevant_cycle_count = 0;
     std::size_t selected_ring_count = 0;
     std::size_t excluded_ring_count = 0;

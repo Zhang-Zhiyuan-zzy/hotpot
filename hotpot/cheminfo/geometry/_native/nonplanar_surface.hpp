@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cycle_surface.hpp"
+#include "defaults.hpp"
 #include "spatial.hpp"
 #include "tolerances.hpp"
 #include "types.hpp"
@@ -66,7 +67,12 @@ struct SurfaceEnumerationLimits {
 
 
 inline SurfaceEnumerationLimits default_surface_enumeration_limits() noexcept {
-    return {8, 132, 792, 1980};
+    return {
+        detail::default_maximum_surface_cycle_vertices,
+        detail::default_maximum_surface_count,
+        detail::default_maximum_segment_triangle_tests,
+        detail::default_maximum_triangle_pair_tests,
+    };
 }
 
 

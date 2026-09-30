@@ -1,6 +1,7 @@
 #pragma once
 
 #include "contracts.hpp"
+#include "defaults.hpp"
 
 #include "../../geometry/_native/batch.hpp"
 
@@ -13,10 +14,6 @@
 
 namespace hotpot::forcefields {
 namespace detail {
-
-
-inline constexpr std::size_t default_maximum_actionable_ring_size = 16;
-inline constexpr std::size_t default_maximum_relevant_cycle_count = 10000;
 
 
 enum class RingGraphScope : std::uint8_t {

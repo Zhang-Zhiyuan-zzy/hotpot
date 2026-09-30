@@ -1,7 +1,10 @@
 #pragma once
 
+#include "defaults.hpp"
 #include "session_optimization.hpp"
 #include "topology_workspace.hpp"
+
+#include "../../obWrappers/_native/defaults.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -14,10 +17,13 @@ namespace hotpot::forcefields {
 
 
 struct RingUntanglingOptions {
-    std::string forcefield = "UFF";
-    std::size_t short_optimization_steps = 100;
-    double torsion_singularity_threshold = 1.0e-6;
-    double torsion_repair_angle_radians = 1.0e-3;
+    std::string forcefield = detail::default_forcefield;
+    std::size_t short_optimization_steps =
+        detail::default_untangling_short_optimization_steps;
+    double torsion_singularity_threshold =
+        hotpot::obwrappers::detail::default_torsion_singularity_threshold;
+    double torsion_repair_angle_radians =
+        hotpot::obwrappers::detail::default_torsion_repair_angle_radians;
     detail::RingWorkspaceOptions ring_workspace;
 
     void validate() const;
@@ -25,7 +31,7 @@ struct RingUntanglingOptions {
 
 
 struct RingUntanglingAttemptCursor {
-    std::size_t attempt_limit = 30;
+    std::size_t attempt_limit = detail::default_untangling_attempt_limit;
     std::size_t attempts_completed = 0;
 
     std::size_t remaining() const noexcept;

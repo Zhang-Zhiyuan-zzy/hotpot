@@ -2,6 +2,7 @@
 #include "native_engine.hpp"
 #include "python_errors.hpp"
 #include "registry.hpp"
+#include "defaults.hpp"
 #include "../../forcefields/_native/bindings.hpp"
 
 #include <pybind11/numpy.h>
@@ -452,8 +453,10 @@ PYBIND11_MODULE(_ob_native, module) {
         &inspect_rules,
         py::arg("molecule"),
         py::arg("stage"),
-        py::arg("singularity_threshold") = 1.0e-6,
-        py::arg("repair_angle_radians") = 1.0e-3,
+        py::arg("singularity_threshold") =
+            detail::default_torsion_singularity_threshold,
+        py::arg("repair_angle_radians") =
+            detail::default_torsion_repair_angle_radians,
         py::call_guard<py::gil_scoped_release>()
     );
 
@@ -501,8 +504,10 @@ PYBIND11_MODULE(_ob_native, module) {
         py::arg("molecule"),
         py::arg("forcefield"),
         py::arg("steps"),
-        py::arg("singularity_threshold") = 1.0e-6,
-        py::arg("repair_angle_radians") = 1.0e-3
+        py::arg("singularity_threshold") =
+            detail::default_torsion_singularity_threshold,
+        py::arg("repair_angle_radians") =
+            detail::default_torsion_repair_angle_radians
     );
     module.def(
         "optimize",
@@ -592,7 +597,9 @@ PYBIND11_MODULE(_ob_native, module) {
         py::arg("maximum_atom_displacement_angstrom") = 1.0e-4,
         py::arg("maximum_rms_gradient_kj_mol_angstrom") = 1.0,
         py::arg("maximum_gradient_kj_mol_angstrom") = 5.0,
-        py::arg("singularity_threshold") = 1.0e-6,
-        py::arg("repair_angle_radians") = 1.0e-3
+        py::arg("singularity_threshold") =
+            detail::default_torsion_singularity_threshold,
+        py::arg("repair_angle_radians") =
+            detail::default_torsion_repair_angle_radians
     );
 }

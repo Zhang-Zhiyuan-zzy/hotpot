@@ -43,11 +43,14 @@ if TYPE_CHECKING:
 
 __all__ = (
     "NATIVE_WARNING_MESSAGES",
+    "NativeOptimizationPerturbationStreams",
     "NativePerturbationStreams",
     "apply_native_selected_structure",
     "coordination_restoration_report",
     "forcefield_run_report",
     "ingest_native_trajectory",
+    "native_coordination_offsets",
+    "native_optimization_offsets",
     "native_perturbation_streams",
     "native_warning_messages",
     "ring_untangling_report",
@@ -107,6 +110,14 @@ class _SelectedStructureResult(Protocol):
 
 
 @dataclass(frozen=True)
+class NativeOptimizationPerturbationStreams:
+    """Independent deterministic offset schedules for native Stage 3."""
+
+    untangling: NDArray[np.float64]
+    optimization: NDArray[np.float64]
+
+
+@dataclass(frozen=True)
 class NativePerturbationStreams:
     """Independent deterministic offset schedules for native Stages 2 and 3."""
 
@@ -137,6 +148,49 @@ def _offset_schedule(
     return offsets
 
 
+def native_coordination_offsets(
+    atom_count: int,
+    seed: Optional[int],
+    *,
+    options: CoordinationStageOptions = CoordinationStageOptions(),
+) -> NDArray[np.float64]:
+    """Generate the deterministic perturbation offsets used by Stage 2."""
+    return _offset_schedule(
+        atom_count,
+        options.attempt_limit - 1,
+        options.perturb_sigma,
+        seed,
+    )
+
+
+def native_optimization_offsets(
+    atom_count: int,
+    seed: Optional[int],
+    *,
+    options: ComplexOptimizationOptions = ComplexOptimizationOptions(),
+) -> NativeOptimizationPerturbationStreams:
+    """Generate the independent untangling and optimization Stage 3 offsets."""
+    optimization_count = (
+        0
+        if options.perturb_interval is None
+        else (options.epochs - 1) // options.perturb_interval
+    )
+    return NativeOptimizationPerturbationStreams(
+        untangling=_offset_schedule(
+            atom_count,
+            options.untangling_attempt_limit,
+            options.perturb_sigma,
+            seed,
+        ),
+        optimization=_offset_schedule(
+            atom_count,
+            optimization_count,
+            options.perturb_sigma,
+            seed,
+        ),
+    )
+
+
 def native_perturbation_streams(
     atom_count: int,
     seed: Optional[int],
@@ -147,33 +201,20 @@ def native_perturbation_streams(
     ),
 ) -> NativePerturbationStreams:
     """Reproduce the three independent random streams used by Python workflows."""
-    optimization_count = (
-        0
-        if optimization_options.perturb_interval is None
-        else (
-            (optimization_options.epochs - 1)
-            // optimization_options.perturb_interval
-        )
+    coordination = native_coordination_offsets(
+        atom_count,
+        seed,
+        options=coordination_options,
+    )
+    optimization = native_optimization_offsets(
+        atom_count,
+        seed,
+        options=optimization_options,
     )
     return NativePerturbationStreams(
-        coordination=_offset_schedule(
-            atom_count,
-            coordination_options.attempt_limit - 1,
-            coordination_options.perturb_sigma,
-            seed,
-        ),
-        untangling=_offset_schedule(
-            atom_count,
-            optimization_options.untangling_attempt_limit,
-            optimization_options.perturb_sigma,
-            seed,
-        ),
-        optimization=_offset_schedule(
-            atom_count,
-            optimization_count,
-            optimization_options.perturb_sigma,
-            seed,
-        ),
+        coordination=coordination,
+        untangling=optimization.untangling,
+        optimization=optimization.optimization,
     )
 
 

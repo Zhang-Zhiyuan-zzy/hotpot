@@ -28,6 +28,10 @@ from .native_reports import (
     _complex_workflow_result,
     _coordination_stage_result,
 )
+from .settings import (
+    _BOND_RING_MAX_SIZE,
+    _MAXIMUM_RELEVANT_CYCLE_COUNT,
+)
 from .trajectory import TrajectoryStart
 
 if TYPE_CHECKING:
@@ -88,7 +92,7 @@ class MetalPlacementOptions:
     fibonacci_direction_count: int = 32
     sphere_intersection_count: int = 24
     least_squares_iteration_count: int = 16
-    maximum_actionable_ring_size: int = 16
+    maximum_actionable_ring_size: int = _BOND_RING_MAX_SIZE
     coordination_distance_scale: float = 1.0
     coordination_distance_ratio_minimum: float = 0.70
     coordination_distance_ratio_maximum: float = 1.50
@@ -109,8 +113,8 @@ _DEFAULT_METAL_PLACEMENT_OPTIONS = MetalPlacementOptions()
 class RingScreeningOptions:
     """Full-graph ring screening policy used by native Stage 3."""
 
-    maximum_actionable_ring_size: int = 16
-    maximum_relevant_cycle_count: int = 10000
+    maximum_actionable_ring_size: int = _BOND_RING_MAX_SIZE
+    maximum_relevant_cycle_count: int = _MAXIMUM_RELEVANT_CYCLE_COUNT
     geometry_settings: GeometrySettings = DEFAULT_GEOMETRY_SETTINGS
 
 

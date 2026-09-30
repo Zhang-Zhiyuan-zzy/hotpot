@@ -1946,7 +1946,8 @@ void bind_stage_results(py::module_& module) {
             std::size_t undetermined_trial_count,
             std::size_t excluded_ring_observation_count,
             std::vector<std::string> warning_codes,
-            NativeTrajectoryBatch trajectory
+            NativeTrajectoryBatch trajectory,
+            double elapsed_seconds
         ) {
             CoordinationStageResult result{
                 status,
@@ -1969,6 +1970,7 @@ void bind_stage_results(py::module_& module) {
                 std::move(trajectory),
             };
             result.bond_count = result.final_active_coordination_mask.size();
+            result.elapsed_seconds = elapsed_seconds;
             result.validate();
             return result;
         }),
@@ -1986,7 +1988,8 @@ void bind_stage_results(py::module_& module) {
         py::arg("undetermined_trial_count"),
         py::arg("excluded_ring_observation_count"),
         py::arg("warning_codes"),
-        py::arg("trajectory"))
+        py::arg("trajectory"),
+        py::arg("elapsed_seconds") = 0.0)
         .def_readonly("status", &CoordinationStageResult::status)
         .def_property_readonly(
             "selected_coordinates",
@@ -2045,6 +2048,9 @@ void bind_stage_results(py::module_& module) {
         .def_readonly("bond_count", &CoordinationStageResult::bond_count)
         .def_readonly(
             "placement_report", &CoordinationStageResult::placement_report
+        )
+        .def_readonly(
+            "elapsed_seconds", &CoordinationStageResult::elapsed_seconds
         );
 
     py::class_<ComplexOptimizationResult>(
@@ -2081,7 +2087,8 @@ void bind_stage_results(py::module_& module) {
             std::string termination_reason,
             std::vector<std::string> warning_codes,
             NativeTrajectoryBatch trajectory,
-            NativeRingCheckpointReport final_checkpoint
+            NativeRingCheckpointReport final_checkpoint,
+            double elapsed_seconds
         ) {
             ComplexOptimizationResult result{
                 status,
@@ -2118,6 +2125,7 @@ void bind_stage_results(py::module_& module) {
                 std::move(warning_codes),
                 std::move(trajectory),
                 std::move(final_checkpoint),
+                elapsed_seconds,
             };
             result.validate();
             return result;
@@ -2152,7 +2160,8 @@ void bind_stage_results(py::module_& module) {
         py::arg("termination_reason"),
         py::arg("warning_codes"),
         py::arg("trajectory"),
-        py::arg("final_checkpoint"))
+        py::arg("final_checkpoint"),
+        py::arg("elapsed_seconds") = 0.0)
         .def_readonly("status", &ComplexOptimizationResult::status)
         .def_property_readonly(
             "selected_coordinates",
@@ -2258,6 +2267,9 @@ void bind_stage_results(py::module_& module) {
         .def_readonly("trajectory", &ComplexOptimizationResult::trajectory)
         .def_readonly(
             "final_checkpoint", &ComplexOptimizationResult::final_checkpoint
+        )
+        .def_readonly(
+            "elapsed_seconds", &ComplexOptimizationResult::elapsed_seconds
         );
 
     py::class_<ComplexWorkflowResult>(module, "ComplexWorkflowResult")

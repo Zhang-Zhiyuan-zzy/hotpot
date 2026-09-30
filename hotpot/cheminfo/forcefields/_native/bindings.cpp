@@ -1,6 +1,7 @@
 #include "bindings.hpp"
 
 #include "contracts.hpp"
+#include "coordination_stage.hpp"
 #include "placement_engine.hpp"
 #include "placement_policy.hpp"
 #include "radii.hpp"
@@ -939,6 +940,8 @@ void bind_stage_options(py::module_& module) {
             double perturb_sigma,
             NativeTrajectoryStart trajectory_start,
             FrameDetail frame_detail,
+            double torsion_singularity_threshold,
+            double torsion_repair_angle_radians,
             MetalPlacementOptions placement
         ) {
             CoordinationStageOptions options{
@@ -948,6 +951,8 @@ void bind_stage_options(py::module_& module) {
                 perturb_sigma,
                 trajectory_start,
                 frame_detail,
+                torsion_singularity_threshold,
+                torsion_repair_angle_radians,
                 std::move(placement),
             };
             options.validate();
@@ -959,6 +964,8 @@ void bind_stage_options(py::module_& module) {
         py::arg("perturb_sigma"),
         py::arg("trajectory_start"),
         py::arg("frame_detail"),
+        py::arg("torsion_singularity_threshold"),
+        py::arg("torsion_repair_angle_radians"),
         py::arg("placement") = MetalPlacementOptions{})
         .def_readonly("forcefield", &CoordinationStageOptions::forcefield)
         .def_readonly("attempt_limit", &CoordinationStageOptions::attempt_limit)
@@ -970,6 +977,14 @@ void bind_stage_options(py::module_& module) {
             "trajectory_start", &CoordinationStageOptions::trajectory_start
         )
         .def_readonly("frame_detail", &CoordinationStageOptions::frame_detail)
+        .def_readonly(
+            "torsion_singularity_threshold",
+            &CoordinationStageOptions::torsion_singularity_threshold
+        )
+        .def_readonly(
+            "torsion_repair_angle_radians",
+            &CoordinationStageOptions::torsion_repair_angle_radians
+        )
         .def_readonly("placement", &CoordinationStageOptions::placement);
 
     py::class_<ComplexOptimizationOptions>(
@@ -1555,6 +1570,7 @@ void bind_stage_results(py::module_& module) {
                 std::move(warning_codes),
                 std::move(trajectory),
             };
+            result.bond_count = result.final_active_coordination_mask.size();
             result.validate();
             return result;
         }),
@@ -1627,7 +1643,11 @@ void bind_stage_results(py::module_& module) {
             &CoordinationStageResult::excluded_ring_observation_count
         )
         .def_readonly("warning_codes", &CoordinationStageResult::warning_codes)
-        .def_readonly("trajectory", &CoordinationStageResult::trajectory);
+        .def_readonly("trajectory", &CoordinationStageResult::trajectory)
+        .def_readonly("bond_count", &CoordinationStageResult::bond_count)
+        .def_readonly(
+            "placement_report", &CoordinationStageResult::placement_report
+        );
 
     py::class_<ComplexOptimizationResult>(
         module, "ComplexOptimizationResult"
@@ -1901,6 +1921,22 @@ void bind_native_forcefield_contracts(py::module_& module) {
     bind_stage_options(module);
     bind_trajectory_contracts(module);
     bind_stage_results(module);
+    module.def(
+        "restore_coordination",
+        [](StructureSession& session,
+           const CoordinationStageOptions& options,
+           const PerturbationOffsetBatch& perturbation_offsets) {
+            py::gil_scoped_release release;
+            return restore_coordination(
+                session,
+                options,
+                perturbation_offsets
+            );
+        },
+        py::arg("session"),
+        py::arg("options"),
+        py::arg("perturbation_offsets")
+    );
 }
 
 

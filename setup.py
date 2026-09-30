@@ -64,10 +64,12 @@ ext_modules = [
         [
             "hotpot/cheminfo/forcefields/_native/bindings.cpp",
             "hotpot/cheminfo/forcefields/_native/contracts.cpp",
+            "hotpot/cheminfo/forcefields/_native/coordination_stage.cpp",
             "hotpot/cheminfo/forcefields/_native/placement_candidates.cpp",
             "hotpot/cheminfo/forcefields/_native/placement_engine.cpp",
             "hotpot/cheminfo/forcefields/_native/placement_policy.cpp",
             "hotpot/cheminfo/forcefields/_native/radii.cpp",
+            "hotpot/cheminfo/forcefields/_native/session_optimization.cpp",
             "hotpot/cheminfo/forcefields/_native/stage_contracts.cpp",
             "hotpot/cheminfo/forcefields/_native/structure_session.cpp",
             "hotpot/cheminfo/forcefields/_native/target_selection.cpp",

@@ -11,7 +11,15 @@ from numpy.typing import NDArray
 
 from ..geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 from ..obWrappers.native import _native_module
+from ..obWrappers.settings import (
+    TORSION_REPAIR_ANGLE_RADIANS,
+    TORSION_SINGULARITY_THRESHOLD,
+)
 from .native_packing import ComplexSessionInput, pack_complex_session_input
+from .native_reports import (
+    CoordinationStageResult as NativeCoordinationStageResult,
+    _coordination_stage_result,
+)
 from .trajectory import TrajectoryStart
 
 if TYPE_CHECKING:
@@ -31,6 +39,7 @@ __all__ = (
     "create_optimization_session",
     "place_metal",
     "place_metals",
+    "restore_coordination",
     "set_coordination_active_mask",
     "set_ligand_bond_active_mask",
     "snapshot_structure",
@@ -92,6 +101,8 @@ class CoordinationStageOptions:
     perturb_sigma: float = 0.5
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION
     frame_detail: FrameDetail = FrameDetail.NONE
+    torsion_singularity_threshold: float = TORSION_SINGULARITY_THRESHOLD
+    torsion_repair_angle_radians: float = TORSION_REPAIR_ANGLE_RADIANS
     placement: MetalPlacementOptions = field(
         default_factory=MetalPlacementOptions
     )
@@ -376,6 +387,8 @@ def _native_coordination_stage_options(
             options.trajectory_start.name,
         ),
         frame_detail=getattr(native.FrameDetail, options.frame_detail.name),
+        torsion_singularity_threshold=options.torsion_singularity_threshold,
+        torsion_repair_angle_radians=options.torsion_repair_angle_radians,
         placement=_native_metal_placement_options(options.placement),
     )
 
@@ -409,3 +422,22 @@ def _native_complex_optimization_options(
         energy_tolerance=options.energy_tolerance,
         stopping=stopping,
     )
+
+
+def restore_coordination(
+    session: "_ob_native.StructureSession",
+    perturbation_offsets: NDArray[np.float64],
+    *,
+    options: CoordinationStageOptions = CoordinationStageOptions(),
+) -> NativeCoordinationStageResult:
+    """Run native Stage 2 with an explicit, deterministic offset schedule."""
+    native = _native_module()
+    offsets = native.PerturbationOffsetBatch(
+        np.ascontiguousarray(perturbation_offsets, dtype=np.float64)
+    )
+    result = native.restore_coordination(
+        session,
+        _native_coordination_stage_options(options),
+        offsets,
+    )
+    return _coordination_stage_result(result)

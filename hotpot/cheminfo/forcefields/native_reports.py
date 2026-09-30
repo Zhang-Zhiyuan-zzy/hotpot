@@ -84,6 +84,8 @@ class CoordinationStageResult:
     excluded_ring_observation_count: int
     warning_codes: Tuple[str, ...]
     trajectory: NativeTrajectoryBatch
+    bond_count: int
+    placement_report: "_ob_native.MetalPlacementReport"
 
 
 @dataclass(frozen=True)
@@ -300,6 +302,8 @@ def _coordination_stage_result(
         ),
         warning_codes=tuple(result.warning_codes),
         trajectory=_native_trajectory_batch(result.trajectory),
+        bond_count=result.bond_count,
+        placement_report=result.placement_report,
     )
 
 

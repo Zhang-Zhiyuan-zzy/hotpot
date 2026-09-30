@@ -40,6 +40,8 @@ struct CoordinationStageOptions {
     NativeTrajectoryStart trajectory_start =
         NativeTrajectoryStart::COORDINATION_RESTORATION;
     FrameDetail frame_detail = FrameDetail::NONE;
+    double torsion_singularity_threshold = 1.0e-6;
+    double torsion_repair_angle_radians = 1.0e-3;
     MetalPlacementOptions placement;
 
     void validate() const;
@@ -84,6 +86,8 @@ struct CoordinationStageResult {
     std::size_t excluded_ring_observation_count = 0;
     std::vector<std::string> warning_codes;
     NativeTrajectoryBatch trajectory;
+    std::size_t bond_count = 0;
+    MetalPlacementReport placement_report;
 
     std::size_t atom_count() const noexcept;
     void validate() const;

@@ -103,6 +103,23 @@ void CoordinationStageOptions::validate() const {
             "perturb_sigma must be finite and nonnegative"
         );
     }
+    if (!std::isfinite(torsion_singularity_threshold)
+        || torsion_singularity_threshold < 0.0
+        || torsion_singularity_threshold >= 1.0) {
+        throw std::invalid_argument(
+            "torsion_singularity_threshold must be finite and in [0, 1)"
+        );
+    }
+    if (!std::isfinite(torsion_repair_angle_radians)
+        || torsion_repair_angle_radians <= 0.0
+        || torsion_repair_angle_radians >= 3.14159265358979323846
+        || std::abs(std::sin(torsion_repair_angle_radians))
+            <= torsion_singularity_threshold) {
+        throw std::invalid_argument(
+            "torsion_repair_angle_radians must be finite, in (0, pi), "
+            "and leave the singular region"
+        );
+    }
     placement.validate();
 }
 
@@ -170,6 +187,20 @@ void CoordinationStageResult::validate() const {
     if (attempts_completed > attempt_limit) {
         throw std::invalid_argument(
             "attempts_completed must not exceed attempt_limit"
+        );
+    }
+    if (bond_count != final_active_coordination_mask.size()) {
+        throw std::invalid_argument(
+            "bond_count must match the final coordination mask"
+        );
+    }
+    if (
+        !placement_report.selected_coordinates.empty()
+        && placement_report.selected_coordinates.size()
+            != selected_coordinates.size()
+    ) {
+        throw std::invalid_argument(
+            "placement report atom count must match the stage result"
         );
     }
 }

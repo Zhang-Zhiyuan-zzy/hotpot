@@ -452,6 +452,8 @@ class CoordinationStageOptions:
         perturb_sigma: float,
         trajectory_start: NativeTrajectoryStart,
         frame_detail: FrameDetail,
+        torsion_singularity_threshold: float,
+        torsion_repair_angle_radians: float,
         placement: MetalPlacementOptions = ...,
     ) -> None: ...
 
@@ -461,6 +463,8 @@ class CoordinationStageOptions:
     perturb_sigma: float
     trajectory_start: NativeTrajectoryStart
     frame_detail: FrameDetail
+    torsion_singularity_threshold: float
+    torsion_repair_angle_radians: float
     placement: MetalPlacementOptions
 
 
@@ -692,6 +696,8 @@ class CoordinationStageResult:
     excluded_ring_observation_count: int
     warning_codes: List[str]
     trajectory: NativeTrajectoryBatch
+    bond_count: int
+    placement_report: MetalPlacementReport
 
 
 class ComplexOptimizationResult:
@@ -785,6 +791,12 @@ class ComplexWorkflowResult:
 def create_coordination_session(
     session_input: ComplexSessionInput,
 ) -> StructureSession: ...
+
+def restore_coordination(
+    session: StructureSession,
+    options: CoordinationStageOptions,
+    perturbation_offsets: PerturbationOffsetBatch,
+) -> CoordinationStageResult: ...
 
 def create_optimization_session(
     session_input: ComplexSessionInput,

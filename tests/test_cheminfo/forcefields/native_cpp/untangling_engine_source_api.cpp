@@ -168,6 +168,8 @@ void test_no_piercing_consumes_no_shared_attempt() {
     assert(result.attempts_used == 0);
     assert(cursor.attempts_completed == 0);
     assert(result.steps.size() == 1);
+    assert(result.steps.front().checkpoint_evidence.has_value());
+    assert(result.steps.front().checkpoint_evidence->piercing_pair_count == 0);
 }
 
 
@@ -227,6 +229,36 @@ void test_open_attempt_is_observable_and_exactly_restores_topology() {
         == initial.topology_revision + 2);
     assert(ff::snapshot_structure(*session).active_ligand_bond_mask
         == initial.active_ligand_bond_mask);
+    const auto recorded_scan_count = std::count_if(
+        result.steps.begin() + 1,
+        result.steps.end(),
+        [](const ff::RingUntanglingStep& step) {
+            return step.checkpoint_evidence.has_value();
+        }
+    );
+    assert(static_cast<std::size_t>(recorded_scan_count)
+        == result.full_checkpoint_count);
+    for (const auto& step : result.steps) {
+        if (!step.checkpoint_evidence.has_value()) {
+            continue;
+        }
+        assert(step.event
+            == ff::RingUntanglingEvent::TOPOLOGY_CHECKPOINT);
+        assert(step.observed_state == step.checkpoint_evidence->state);
+        assert(step.confirmed_piercing_count
+            == step.checkpoint_evidence->piercing_pair_count);
+    }
+    for (auto step = result.steps.begin() + 1;
+         step != result.steps.end();
+         ++step) {
+        if (!step->checkpoint_evidence.has_value()) {
+            continue;
+        }
+        assert((step - 1)->event
+            == ff::RingUntanglingEvent::ROLLED_BACK
+            || (step - 1)->event
+                == ff::RingUntanglingEvent::RING_CLOSED);
+    }
 }
 
 
@@ -252,6 +284,15 @@ void test_no_eligible_edge_returns_inspectable_closed_structure() {
                 == ff::RingUntanglingEvent::TOPOLOGY_CHECKPOINT;
         }
     ) == 1);
+    assert(result.steps.front().checkpoint_evidence.has_value());
+    assert(result.steps.front().checkpoint_evidence->piercing_pair_count == 1);
+    assert(std::none_of(
+        result.steps.begin(),
+        result.steps.end(),
+        [](const ff::RingUntanglingStep& step) {
+            return step.event == ff::RingUntanglingEvent::ROLLED_BACK;
+        }
+    ));
     assert(result.warning_codes
         == std::vector<std::string>({"ring_piercing_has_no_opening_edge"}));
     const auto final_snapshot = ff::snapshot_structure(*session);

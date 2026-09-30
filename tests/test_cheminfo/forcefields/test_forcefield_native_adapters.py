@@ -22,6 +22,8 @@ from hotpot.cheminfo.forcefields.native_adapters import (
     coordination_restoration_report,
     forcefield_run_report,
     ingest_native_trajectory,
+    native_coordination_offsets,
+    native_optimization_offsets,
     native_perturbation_streams,
     native_warning_messages,
 )
@@ -92,23 +94,16 @@ def _native_workflow_result(
     )
 
 
-def test_offset_streams_exactly_reproduce_independent_legacy_rngs() -> None:
+def test_coordination_offsets_exactly_reproduce_stage_2_rng() -> None:
     coordination_options = CoordinationStageOptions(
         attempt_limit=4,
         perturb_sigma=0.5,
     )
-    optimization_options = ComplexOptimizationOptions(
-        epochs=7,
-        untangling_attempt_limit=3,
-        perturb_interval=2,
-        perturb_sigma=0.5,
-    )
 
-    streams = native_perturbation_streams(
+    offsets = native_coordination_offsets(
         4,
         19,
-        coordination_options=coordination_options,
-        optimization_options=optimization_options,
+        options=coordination_options,
     )
     rng = np.random.default_rng(19)
     origin = np.zeros((4, 3), dtype=np.float64)
@@ -117,13 +112,74 @@ def test_offset_streams_exactly_reproduce_independent_legacy_rngs() -> None:
         for _ in range(3)
     ))
 
-    np.testing.assert_array_equal(streams.coordination, expected)
-    np.testing.assert_array_equal(streams.untangling, expected)
-    np.testing.assert_array_equal(streams.optimization, expected)
-    assert not streams.coordination.flags.writeable
+    np.testing.assert_array_equal(offsets, expected)
+    assert not offsets.flags.writeable
+    assert np.max(np.abs(offsets)) <= 1.0
+
+
+def test_optimization_offsets_exactly_reproduce_independent_stage_3_rngs(
+) -> None:
+    options = ComplexOptimizationOptions(
+        epochs=7,
+        untangling_attempt_limit=2,
+        perturb_interval=2,
+        perturb_sigma=0.5,
+    )
+
+    streams = native_optimization_offsets(4, 19, options=options)
+    origin = np.zeros((4, 3), dtype=np.float64)
+    untangling_rng = np.random.default_rng(19)
+    expected_untangling = np.stack(tuple(
+        _perturbed_coordinates(origin, sigma=0.5, rng=untangling_rng)
+        for _ in range(2)
+    ))
+    optimization_rng = np.random.default_rng(19)
+    expected_optimization = np.stack(tuple(
+        _perturbed_coordinates(origin, sigma=0.5, rng=optimization_rng)
+        for _ in range(3)
+    ))
+
+    np.testing.assert_array_equal(streams.untangling, expected_untangling)
+    np.testing.assert_array_equal(streams.optimization, expected_optimization)
     assert not streams.untangling.flags.writeable
     assert not streams.optimization.flags.writeable
-    assert np.max(np.abs(streams.coordination)) <= 1.0
+
+
+def test_combined_offset_streams_compose_stage_specific_outputs() -> None:
+    coordination_options = CoordinationStageOptions(
+        attempt_limit=4,
+        perturb_sigma=0.25,
+    )
+    optimization_options = ComplexOptimizationOptions(
+        epochs=7,
+        untangling_attempt_limit=2,
+        perturb_interval=2,
+        perturb_sigma=0.5,
+    )
+
+    combined = native_perturbation_streams(
+        4,
+        19,
+        coordination_options=coordination_options,
+        optimization_options=optimization_options,
+    )
+    coordination = native_coordination_offsets(
+        4,
+        19,
+        options=coordination_options,
+    )
+    optimization = native_optimization_offsets(
+        4,
+        19,
+        options=optimization_options,
+    )
+
+    np.testing.assert_array_equal(combined.coordination, coordination)
+    np.testing.assert_array_equal(combined.untangling, optimization.untangling)
+    np.testing.assert_array_equal(
+        combined.optimization,
+        optimization.optimization,
+    )
 
 
 def test_warning_mapping_is_complete_and_rejects_unknown_codes() -> None:

@@ -1,4 +1,4 @@
-"""Build and execute the native metal-placement C++ source API fence."""
+"""Build and execute the shared topology-workspace C++ source API fence."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import os
 import shlex
 import shutil
 import subprocess
-from importlib.util import find_spec
 from pathlib import Path
 
 import pytest
@@ -23,34 +22,15 @@ def _compiler_command() -> list[str]:
     pytest.skip("no C++ compiler is available")
 
 
-def _openbabel_paths() -> tuple[Path, Path]:
-    specification = find_spec("openbabel")
-    if specification is None or specification.origin is None:
-        pytest.skip("Open Babel is unavailable")
-    package = Path(specification.origin).resolve().parent
-    include = package / "include/openbabel3"
-    library = package / "lib"
-    if not include.is_dir() or not library.is_dir():
-        pytest.skip("Open Babel native headers or libraries are unavailable")
-    return include, library
-
-
-def test_metal_placement_cpp_source_api(tmp_path: Path) -> None:
+def test_topology_workspace_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
     forcefields = repository / "hotpot/cheminfo/forcefields/_native"
     geometry = repository / "hotpot/cheminfo/geometry/_native"
     graph = repository / "hotpot/cheminfo/graph/_native"
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
-    include, library = _openbabel_paths()
-    executable = tmp_path / "placement_source_api"
+    executable = tmp_path / "topology_workspace_source_api"
     sources = (
         forcefields / "contracts.cpp",
-        forcefields / "placement_candidates.cpp",
-        forcefields / "placement_engine.cpp",
-        forcefields / "placement_policy.cpp",
-        forcefields / "radii.cpp",
-        forcefields / "structure_session.cpp",
-        forcefields / "target_selection.cpp",
         forcefields / "topology_workspace.cpp",
         geometry / "batch.cpp",
         geometry / "construction.cpp",
@@ -65,11 +45,6 @@ def test_metal_placement_cpp_source_api(tmp_path: Path) -> None:
         geometry / "triangle_predicates.cpp",
         graph / "relevant_cycles.cpp",
         wrappers / "molecule_data.cpp",
-        wrappers / "openbabel_adapter.cpp",
-        wrappers / "native_engine.cpp",
-        wrappers / "registry.cpp",
-        wrappers / "phosphorus_builder.cpp",
-        wrappers / "degenerate_torsion.cpp",
     )
     command = [
         *_compiler_command(),
@@ -79,18 +54,10 @@ def test_metal_placement_cpp_source_api(tmp_path: Path) -> None:
         "-Wall",
         "-Wextra",
         "-Werror",
-        "-Wno-error=deprecated-copy",
-        "-Wno-error=deprecated-declarations",
-        "-D_GLIBCXX_USE_CXX11_ABI=0",
         f"-I{forcefields}",
         f"-I{geometry}",
-        f"-I{include}",
-        str(Path(__file__).with_name("placement_source_api.cpp")),
+        str(Path(__file__).with_name("topology_workspace_source_api.cpp")),
         *(str(source) for source in sources),
-        f"-L{library}",
-        "-lopenbabel",
-        "-ldl",
-        f"-Wl,-rpath,{library}",
         "-o",
         str(executable),
     ]

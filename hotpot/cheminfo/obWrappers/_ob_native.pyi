@@ -746,6 +746,7 @@ class CoordinationStageResult:
         excluded_ring_observation_count: int,
         warning_codes: List[str],
         trajectory: NativeTrajectoryBatch,
+        elapsed_seconds: float = 0.0,
     ) -> None: ...
 
     status: NativeStageStatus
@@ -765,6 +766,7 @@ class CoordinationStageResult:
     trajectory: NativeTrajectoryBatch
     bond_count: int
     placement_report: MetalPlacementReport
+    elapsed_seconds: float
 
 
 class NativeBondRingFinding:
@@ -861,6 +863,7 @@ class ComplexOptimizationResult:
         warning_codes: List[str],
         trajectory: NativeTrajectoryBatch,
         final_checkpoint: NativeRingCheckpointReport,
+        elapsed_seconds: float = 0.0,
     ) -> None: ...
 
     status: NativeStageStatus
@@ -894,6 +897,7 @@ class ComplexOptimizationResult:
     warning_codes: List[str]
     trajectory: NativeTrajectoryBatch
     final_checkpoint: NativeRingCheckpointReport
+    elapsed_seconds: float
 
 
 class ComplexWorkflowResult:

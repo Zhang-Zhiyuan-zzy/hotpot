@@ -125,6 +125,7 @@ class CoordinationStageResult:
     trajectory: NativeTrajectoryBatch
     bond_count: int
     placement_report: "_ob_native.MetalPlacementReport"
+    elapsed_seconds: float
 
 
 @dataclass(frozen=True)
@@ -160,6 +161,7 @@ class ComplexOptimizationResult:
     warning_codes: Tuple[str, ...]
     trajectory: NativeTrajectoryBatch
     final_checkpoint: NativeRingCheckpointReport
+    elapsed_seconds: float
 
 
 @dataclass(frozen=True)
@@ -344,6 +346,7 @@ def _coordination_stage_result(
         trajectory=_native_trajectory_batch(result.trajectory),
         bond_count=result.bond_count,
         placement_report=result.placement_report,
+        elapsed_seconds=result.elapsed_seconds,
     )
 
 
@@ -442,6 +445,7 @@ def _complex_optimization_result(
         final_checkpoint=_native_ring_checkpoint_report(
             result.final_checkpoint
         ),
+        elapsed_seconds=result.elapsed_seconds,
     )
 
 

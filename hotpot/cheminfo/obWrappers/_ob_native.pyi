@@ -949,6 +949,15 @@ def run_complex_workflow(
     optimization_offsets: PerturbationOffsetBatch,
 ) -> ComplexWorkflowResult: ...
 
+def run_complex_workflow_from_input(
+    session_input: ComplexSessionInput,
+    coordination_options: CoordinationStageOptions,
+    optimization_options: ComplexOptimizationOptions,
+    coordination_offsets: PerturbationOffsetBatch,
+    untangling_offsets: PerturbationOffsetBatch,
+    optimization_offsets: PerturbationOffsetBatch,
+) -> ComplexWorkflowResult: ...
+
 def create_optimization_session(
     session_input: ComplexSessionInput,
 ) -> StructureSession: ...

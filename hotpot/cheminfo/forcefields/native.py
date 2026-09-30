@@ -51,6 +51,7 @@ __all__ = (
     "place_metals",
     "restore_coordination",
     "run_complex_workflow",
+    "run_complex_workflow_from_input",
     "set_coordination_active_mask",
     "set_ligand_bond_active_mask",
     "snapshot_structure",
@@ -548,6 +549,30 @@ def run_complex_workflow(
     native = _native_module()
     result = native.run_complex_workflow(
         session,
+        _native_coordination_stage_options(coordination_options),
+        _native_complex_optimization_options(optimization_options),
+        _native_perturbation_offsets(coordination_offsets),
+        _native_perturbation_offsets(untangling_offsets),
+        _native_perturbation_offsets(optimization_offsets),
+    )
+    return _complex_workflow_result(result)
+
+
+def run_complex_workflow_from_input(
+    source: Union["Molecule", ComplexSessionInput],
+    coordination_offsets: NDArray[np.float64],
+    untangling_offsets: NDArray[np.float64],
+    optimization_offsets: NDArray[np.float64],
+    *,
+    coordination_options: CoordinationStageOptions = CoordinationStageOptions(),
+    optimization_options: ComplexOptimizationOptions = (
+        ComplexOptimizationOptions()
+    ),
+) -> NativeComplexWorkflowResult:
+    """Run native Stages 2 and 3 in one input-owned structure session."""
+    native = _native_module()
+    result = native.run_complex_workflow_from_input(
+        _native_session_input(source),
         _native_coordination_stage_options(coordination_options),
         _native_complex_optimization_options(optimization_options),
         _native_perturbation_offsets(coordination_offsets),

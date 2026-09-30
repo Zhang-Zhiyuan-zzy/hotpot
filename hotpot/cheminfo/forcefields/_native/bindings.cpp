@@ -2432,6 +2432,46 @@ void bind_native_forcefield_contracts(
         py::arg("untangling_offsets"),
         py::arg("optimization_offsets")
     );
+    module.def(
+        "run_complex_workflow_from_input",
+        [forcefield_setup_error](const ComplexSessionInput& input,
+           const CoordinationStageOptions& coordination_options,
+           const ComplexOptimizationOptions& optimization_options,
+           const PerturbationOffsetBatch& coordination_offsets,
+           const PerturbationOffsetBatch& untangling_offsets,
+           const PerturbationOffsetBatch& optimization_offsets) {
+            try {
+                py::gil_scoped_release release;
+                return run_complex_workflow(
+                    input,
+                    coordination_options,
+                    optimization_options,
+                    coordination_offsets,
+                    untangling_offsets,
+                    optimization_offsets
+                );
+            } catch (const ComplexWorkflowSetupFailure& error) {
+                hotpot::obwrappers::raise_forcefield_setup_error(
+                    forcefield_setup_error,
+                    error,
+                    "complex_optimization",
+                    py::cast(error.completed_coordination())
+                );
+            } catch (const hotpot::obwrappers::ForceFieldSetupFailure& error) {
+                hotpot::obwrappers::raise_forcefield_setup_error(
+                    forcefield_setup_error,
+                    error,
+                    "coordination_restoration"
+                );
+            }
+        },
+        py::arg("session_input"),
+        py::arg("coordination_options"),
+        py::arg("optimization_options"),
+        py::arg("coordination_offsets"),
+        py::arg("untangling_offsets"),
+        py::arg("optimization_offsets")
+    );
 }
 
 

@@ -10,6 +10,7 @@ from hotpot.cheminfo.forcefields.native import (
     CoordinationStageOptions,
     create_coordination_session,
     run_complex_workflow,
+    run_complex_workflow_from_input,
     snapshot_structure,
 )
 from hotpot.cheminfo.forcefields.native_packing import ComplexSessionInput
@@ -112,6 +113,31 @@ def test_workflow_preserves_stage_reports_and_merges_their_trajectories() -> Non
     )
 
 
+def test_input_owned_workflow_creates_and_consumes_its_native_session() -> None:
+    result = run_complex_workflow_from_input(
+        _complex(),
+        _offsets(0),
+        _offsets(1),
+        _offsets(0),
+        coordination_options=CoordinationStageOptions(
+            attempt_limit=1,
+            relaxation_steps=1,
+        ),
+        optimization_options=ComplexOptimizationOptions(
+            epochs=1,
+            steps_per_epoch=1,
+            untangling_attempt_limit=1,
+        ),
+    )
+
+    assert result.coordination.bond_count == 1
+    assert result.optimization.final_active_coordination_mask.tolist() == [1]
+    assert result.trajectory.frame_count == (
+        result.coordination.trajectory.frame_count
+        + result.optimization.trajectory.frame_count
+    )
+
+
 def test_workflow_keeps_independent_entries_and_respects_stage_filtering() -> None:
     session = create_coordination_session(_complex())
 
@@ -144,6 +170,7 @@ def test_workflow_keeps_independent_entries_and_respects_stage_filtering() -> No
     assert hasattr(_ob_native, "restore_coordination")
     assert hasattr(_ob_native, "optimize_complex")
     assert hasattr(_ob_native, "run_complex_workflow")
+    assert hasattr(_ob_native, "run_complex_workflow_from_input")
 
 
 def test_invalid_stage_three_offsets_do_not_mutate_the_shared_session() -> None:

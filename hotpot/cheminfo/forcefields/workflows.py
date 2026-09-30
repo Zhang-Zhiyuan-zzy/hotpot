@@ -53,7 +53,7 @@ from .native import (
     create_optimization_session,
     optimize_complex as _native_optimize_complex,
     restore_coordination as _native_restore_coordination,
-    run_complex_workflow as _native_run_complex_workflow,
+    run_complex_workflow_from_input as _native_run_complex_workflow_from_input,
 )
 from .native_adapters import (
     apply_native_selected_structure,
@@ -536,7 +536,6 @@ def _complexes_build_workflow(
         coordination_geometry=coordination_geometry,
     )
     session_input = pack_complex_session_input(prepared.mol)
-    session = create_coordination_session(session_input)
     coordination_options = _coordination_options(
         effective_forcefield=effective_forcefield,
         attempt_limit=coordination_restoration_attempts,
@@ -567,8 +566,8 @@ def _complexes_build_workflow(
         optimization_options=optimization_options,
     )
     try:
-        native_result = _native_run_complex_workflow(
-            session,
+        native_result = _native_run_complex_workflow_from_input(
+            session_input,
             streams.coordination,
             streams.untangling,
             streams.optimization,

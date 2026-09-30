@@ -158,4 +158,24 @@ ComplexWorkflowResult run_complex_workflow(
 }
 
 
+ComplexWorkflowResult run_complex_workflow(
+    const ComplexSessionInput& input,
+    const CoordinationStageOptions& coordination_options,
+    const ComplexOptimizationOptions& optimization_options,
+    const PerturbationOffsetBatch& coordination_offsets,
+    const PerturbationOffsetBatch& untangling_offsets,
+    const PerturbationOffsetBatch& optimization_offsets
+) {
+    auto session = create_coordination_session(input);
+    return run_complex_workflow(
+        *session,
+        coordination_options,
+        optimization_options,
+        coordination_offsets,
+        untangling_offsets,
+        optimization_offsets
+    );
+}
+
+
 }  // namespace hotpot::forcefields

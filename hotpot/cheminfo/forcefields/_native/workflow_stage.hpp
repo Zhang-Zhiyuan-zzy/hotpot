@@ -41,4 +41,14 @@ ComplexWorkflowResult run_complex_workflow(
 );
 
 
+ComplexWorkflowResult run_complex_workflow(
+    const ComplexSessionInput& input,
+    const CoordinationStageOptions& coordination_options,
+    const ComplexOptimizationOptions& optimization_options,
+    const PerturbationOffsetBatch& coordination_offsets,
+    const PerturbationOffsetBatch& untangling_offsets,
+    const PerturbationOffsetBatch& optimization_offsets
+);
+
+
 }  // namespace hotpot::forcefields

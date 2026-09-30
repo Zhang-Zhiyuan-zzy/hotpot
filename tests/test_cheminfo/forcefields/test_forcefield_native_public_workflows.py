@@ -110,7 +110,7 @@ def test_build_complex3d_routes_only_through_native_stage_two(
     )
     monkeypatch.setattr(
         workflows,
-        "_native_run_complex_workflow",
+        "_native_run_complex_workflow_from_input",
         _unexpected_call("native workflow coordinator"),
     )
 
@@ -211,7 +211,7 @@ def test_optimize_complex_uses_native_stage_three_and_checkpoint_acceptance(
     )
     monkeypatch.setattr(
         workflows,
-        "_native_run_complex_workflow",
+        "_native_run_complex_workflow_from_input",
         _unexpected_call("native workflow coordinator"),
     )
     monkeypatch.setattr(
@@ -240,7 +240,7 @@ def test_complexes_build_calls_coordinator_once_and_ingests_once(
 ) -> None:
     mol = _complex()
     calls = {"coordinator": 0, "ingest": 0}
-    real_coordinator = workflows._native_run_complex_workflow
+    real_coordinator = workflows._native_run_complex_workflow_from_input
     real_ingest = workflows.ingest_native_trajectory
 
     def coordinator(*args, **kwargs):
@@ -258,8 +258,13 @@ def test_complexes_build_calls_coordinator_once_and_ingests_once(
     )
     monkeypatch.setattr(
         workflows,
-        "_native_run_complex_workflow",
+        "_native_run_complex_workflow_from_input",
         coordinator,
+    )
+    monkeypatch.setattr(
+        workflows,
+        "create_coordination_session",
+        _unexpected_call("Python-created coordination session"),
     )
     monkeypatch.setattr(workflows, "ingest_native_trajectory", ingest)
     monkeypatch.setattr(

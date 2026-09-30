@@ -13,6 +13,7 @@ from hotpot.cheminfo.forcefields.native import (
     optimize_complex,
     restore_coordination,
     run_complex_workflow,
+    run_complex_workflow_from_input,
 )
 from hotpot.cheminfo.forcefields.native_packing import ComplexSessionInput
 from hotpot.cheminfo.obWrappers import _ob_native
@@ -138,6 +139,31 @@ def test_workflow_stage_two_failure_has_no_completed_coordination() -> None:
 
     _assert_setup_error(caught.value, "coordination_restoration")
     assert caught.value.completed_coordination is None
+
+
+def test_input_owned_workflow_preserves_stage_three_setup_context() -> None:
+    with pytest.raises(_ob_native.ForceFieldSetupError) as caught:
+        run_complex_workflow_from_input(
+            _complex(),
+            _offsets(0),
+            _offsets(1),
+            _offsets(0),
+            coordination_options=CoordinationStageOptions(
+                attempt_limit=1,
+                relaxation_steps=1,
+            ),
+            optimization_options=ComplexOptimizationOptions(
+                forcefield=UNKNOWN_FORCEFIELD,
+                epochs=1,
+                steps_per_epoch=1,
+                untangling_attempt_limit=1,
+            ),
+        )
+
+    _assert_setup_error(caught.value, "complex_optimization")
+    completed = caught.value.completed_coordination
+    assert isinstance(completed, _ob_native.CoordinationStageResult)
+    assert completed.final_active_coordination_mask.tolist() == [1]
 
 
 def _molecule_data() -> _ob_native.MoleculeData:

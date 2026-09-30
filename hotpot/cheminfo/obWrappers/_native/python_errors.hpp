@@ -20,7 +20,6 @@ namespace hotpot::obwrappers {
     );
     instance.attr("forcefield") = error.forcefield();
     instance.attr("stage") = error.stage();
-    instance.attr("backend_stage") = error.stage();
     instance.attr("workflow_stage") = workflow_stage;
     instance.attr("completed_coordination") = completed_coordination;
     PyErr_SetObject(exception_type, instance.ptr());

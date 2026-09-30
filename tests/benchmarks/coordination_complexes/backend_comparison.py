@@ -184,6 +184,10 @@ def export_canonical_manifest(
     expected_count: Optional[int] = 178,
 ) -> dict[str, object]:
     """Export compact, coordinate-free cases from one completed Hotpot run."""
+    reference_manifest_path = reference_root / "manifest.json"
+    reference_manifest = json.loads(
+        reference_manifest_path.read_text(encoding="utf-8")
+    )
     cases = []
     for report in load_case_reports(reference_root):
         cbond = report.get("cbond")
@@ -228,7 +232,13 @@ def export_canonical_manifest(
         "schema_version": SCHEMA_VERSION,
         "source": {
             "reference_root": str(reference_root.resolve()),
-            "manifest_sha256": sha256_file(reference_root / "manifest.json"),
+            "manifest_sha256": sha256_file(reference_manifest_path),
+            "git": reference_manifest.get("git"),
+            "input_sha256": (
+                reference_manifest.get("scientific_configuration", {}).get(
+                    "input_sha256"
+                )
+            ),
             "coordinate_source": None,
             "topology_reference": "selected trajectory frame",
         },
@@ -698,10 +708,15 @@ def write_comparison_plot(rows: Sequence[Mapping[str, object]], path: Path) -> N
     """Plot build, optimization, and final common-gate success rates."""
     import matplotlib.pyplot as plt
 
-    labels = [str(row["backend"]) for row in rows]
+    display_names = {
+        "hotpot": "Hotpot",
+        "rdkit": "RDKit",
+        "openbabel": "Open Babel",
+    }
+    labels = [display_names[str(row["backend"])] for row in rows]
     x = np.arange(len(labels), dtype=float)
     width = 0.24
-    figure, axis = plt.subplots(figsize=(8.6, 4.6))
+    figure, axis = plt.subplots(figsize=(9.2, 4.8))
     series = (
         ("3D build", "build_success_rate", "#4C78A8"),
         ("Native FF optimization", "optimization_success_rate", "#F58518"),
@@ -715,10 +730,16 @@ def write_comparison_plot(rows: Sequence[Mapping[str, object]], path: Path) -> N
     axis.set_ylabel(
         f"Success rate across {int(rows[0]['sample_count'])} CBond complexes (%)"
     )
-    axis.set_ylim(0.0, 108.0)
-    axis.legend(loc="lower left", frameon=False)
+    axis.set_ylim(0.0, 110.0)
+    axis.set_title("Build–optimization outcomes for Eu–ligand complexes")
+    axis.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.12),
+        frameon=False,
+        ncol=3,
+    )
     axis.grid(axis="y", alpha=0.2)
-    figure.tight_layout()
+    figure.tight_layout(rect=(0.0, 0.08, 1.0, 1.0))
     figure.savefig(path, dpi=200)
     plt.close(figure)
 
@@ -729,6 +750,11 @@ def aggregate_comparison(
     backends: Sequence[str],
 ) -> dict[str, object]:
     """Write per-case and aggregate three-backend evidence."""
+    canonical_manifest_path = output_root / "canonical_cases.json"
+    canonical_manifest = json.loads(
+        canonical_manifest_path.read_text(encoding="utf-8")
+    )
+    canonical_source = canonical_manifest["source"]
     by_backend: dict[str, list[dict[str, object]]] = {
         "hotpot": _hotpot_records(cases)
     }
@@ -754,7 +780,10 @@ def aggregate_comparison(
         "schema_version": SCHEMA_VERSION,
         "protocol": {
             "sample_count": len(cases),
-            "input": "identical coordinate-free explicit-H Eu-CBond topology",
+            "input": (
+                "identical coordinate-free explicit-H atom table and Eu-CBond "
+                "connectivity; backend-native metal-bond encoding"
+            ),
             "rdkit": (
                 "ETKDGv3 (random coordinates, smoothing failures allowed); "
                 "full MMFF, otherwise full or explicitly labelled partial UFF"
@@ -764,9 +793,10 @@ def aggregate_comparison(
             "validation": "Hotpot standard structure-acceptance gate",
         },
         "provenance": {
-            "canonical_manifest_sha256": sha256_file(
-                output_root / "canonical_cases.json"
-            ),
+            "canonical_manifest_sha256": sha256_file(canonical_manifest_path),
+            "hotpot_reference_manifest_sha256": canonical_source["manifest_sha256"],
+            "hotpot_reference_git": canonical_source.get("git"),
+            "input_sha256": canonical_source.get("input_sha256"),
             "python": platform.python_version(),
             "hotpot-zzy": importlib.metadata.version("hotpot-zzy"),
             "rdkit": importlib.metadata.version("rdkit"),
@@ -798,13 +828,19 @@ def aggregate_comparison(
         "total_seconds",
         "error_type",
         "error_message",
+        "failed_checks",
     )
     with (output_root / "case_results.csv").open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=case_fields)
         writer.writeheader()
         for backend in ("hotpot", *backends):
             for record in sorted(by_backend[backend], key=lambda item: int(item["index"])):
-                writer.writerow({field: record.get(field) for field in case_fields})
+                row = {field: record.get(field) for field in case_fields}
+                row["failed_checks"] = ";".join(
+                    str(check["name"])
+                    for check in (record.get("validation") or {}).get("failures", ())
+                )
+                writer.writerow(row)
     write_comparison_plot(rows, output_root / "comparison.png")
     return payload
 

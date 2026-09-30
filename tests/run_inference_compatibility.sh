@@ -45,6 +45,7 @@ assert actual == expected
             tests/test_cheminfo/test_hidden_bond_restoration.py \
             tests/test_cheminfo/kekulize \
             tests/test_cheminfo/obWrappers \
+            tests/test_cheminfo/forcefields \
             tests/test_cheminfo/geometry \
             tests/test_cheminfo/test_geometry.py \
             tests/test_cheminfo/test_geometry_core_integration.py \
@@ -53,7 +54,6 @@ assert actual == expected
             tests/test_cheminfo/test_forcefield_api.py \
             tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py \
             tests/test_cheminfo/test_forcefield_cli.py \
-            tests/test_cheminfo/test_forcefield_metal_relocation.py \
             tests/test_cheminfo/test_forcefield_package.py \
             tests/test_cheminfo/test_forcefield_optimizer.py \
             tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py \

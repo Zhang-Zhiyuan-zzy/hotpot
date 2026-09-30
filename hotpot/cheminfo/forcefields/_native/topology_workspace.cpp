@@ -123,6 +123,56 @@ bool same_options(
 }
 
 
+std::vector<BondIndex> active_bond_keys(
+    const ComplexSessionInput& input,
+    const std::vector<std::uint8_t>& active_ligand_bond_mask,
+    const std::vector<std::uint8_t>& active_coordination_mask,
+    RingGraphScope scope
+) {
+    std::vector<BondIndex> active_edges;
+    active_edges.reserve(
+        input.ligand_bond_count()
+        + input.intended_coordination_bond_count()
+    );
+    for (std::size_t index = 0; index < input.ligand_bond_count(); ++index) {
+        if (active_ligand_bond_mask[index] == 0) {
+            continue;
+        }
+        const auto endpoints = canonical_bond_key(
+            input.ligand_bond_indices[index]
+        );
+        if (
+            scope == RingGraphScope::LIGAND_SKELETON
+            && (
+                declared_metal(input, static_cast<std::size_t>(endpoints[0]))
+                || declared_metal(
+                    input,
+                    static_cast<std::size_t>(endpoints[1])
+                )
+            )
+        ) {
+            continue;
+        }
+        active_edges.push_back(endpoints);
+    }
+    if (scope == RingGraphScope::FULL_GRAPH) {
+        for (
+            std::size_t index = 0;
+            index < input.intended_coordination_bond_count();
+            ++index
+        ) {
+            if (active_coordination_mask[index] != 0) {
+                active_edges.push_back(canonical_bond_key(
+                    input.intended_coordination_bonds[index]
+                ));
+            }
+        }
+    }
+    std::sort(active_edges.begin(), active_edges.end());
+    return active_edges;
+}
+
+
 }  // namespace
 
 
@@ -157,46 +207,12 @@ RingTopologyWorkspace prepare_ring_topology(
         );
     }
 
-    std::vector<BondIndex> active_edges;
-    active_edges.reserve(
-        input.ligand_bond_count()
-        + input.intended_coordination_bond_count()
+    const auto active_edges = active_bond_keys(
+        input,
+        active_ligand_bond_mask,
+        active_coordination_mask,
+        options.scope
     );
-    for (std::size_t index = 0; index < input.ligand_bond_count(); ++index) {
-        if (active_ligand_bond_mask[index] == 0) {
-            continue;
-        }
-        const auto endpoints = canonical_bond_key(
-            input.ligand_bond_indices[index]
-        );
-        if (
-            options.scope == RingGraphScope::LIGAND_SKELETON
-            && (
-                declared_metal(input, static_cast<std::size_t>(endpoints[0]))
-                || declared_metal(
-                    input,
-                    static_cast<std::size_t>(endpoints[1])
-                )
-            )
-        ) {
-            continue;
-        }
-        active_edges.push_back(endpoints);
-    }
-    if (options.scope == RingGraphScope::FULL_GRAPH) {
-        for (
-            std::size_t index = 0;
-            index < input.intended_coordination_bond_count();
-            ++index
-        ) {
-            if (active_coordination_mask[index] != 0) {
-                active_edges.push_back(canonical_bond_key(
-                    input.intended_coordination_bonds[index]
-                ));
-            }
-        }
-    }
-    std::sort(active_edges.begin(), active_edges.end());
 
     std::vector<hotpot::graph::Edge> graph_edges;
     graph_edges.reserve(active_edges.size());
@@ -208,25 +224,44 @@ RingTopologyWorkspace prepare_ring_topology(
     }
 
     RingTopologyWorkspace workspace;
+    workspace.active_bond_keys = active_edges;
     const auto cycles = hotpot::graph::relevant_cycles(
         graph_edges,
         {std::nullopt, options.maximum_relevant_cycle_count}
     );
     workspace.relevant_cycle_count = cycles.size();
+    struct OrderedCycle {
+        std::vector<std::size_t> atom_indices;
+        std::vector<BondIndex> edge_keys;
+    };
+    std::vector<OrderedCycle> selected_cycles;
     for (const auto& cycle_edges : cycles) {
         auto atoms = ordered_cycle_vertices(graph_edges, cycle_edges);
+        std::vector<BondIndex> edge_keys;
+        edge_keys.reserve(cycle_edges.size());
+        for (const auto edge_index : cycle_edges) {
+            const BondIndex edge_key = active_edges[edge_index];
+            edge_keys.push_back(edge_key);
+            ++workspace.edge_memberships[edge_key];
+        }
         if (atoms.size() > options.maximum_actionable_ring_size) {
             ++workspace.excluded_large_cycle_count;
             continue;
         }
-        std::vector<BondIndex> edge_keys;
-        edge_keys.reserve(cycle_edges.size());
-        for (const auto edge_index : cycle_edges) {
-            edge_keys.push_back(active_edges[edge_index]);
-        }
         std::sort(edge_keys.begin(), edge_keys.end());
-        workspace.atom_indices.push_back(std::move(atoms));
-        workspace.edge_keys.push_back(std::move(edge_keys));
+        selected_cycles.push_back({std::move(atoms), std::move(edge_keys)});
+    }
+    std::sort(
+        selected_cycles.begin(),
+        selected_cycles.end(),
+        [](const OrderedCycle& first, const OrderedCycle& second) {
+            return std::tie(first.atom_indices, first.edge_keys)
+                < std::tie(second.atom_indices, second.edge_keys);
+        }
+    );
+    for (auto& cycle : selected_cycles) {
+        workspace.atom_indices.push_back(std::move(cycle.atom_indices));
+        workspace.edge_keys.push_back(std::move(cycle.edge_keys));
     }
     return workspace;
 }
@@ -342,6 +377,110 @@ SegmentRingScreeningReport screen_segment_against_rings(
         report.state = PiercingState::UNDETERMINED;
     }
     return report;
+}
+
+
+BondRingCheckpoint scan_bond_ring_checkpoint(
+    const PreparedRingWorkspace& workspace,
+    const RingWorkspaceOptions& options
+) {
+    options.validate();
+    BondRingCheckpoint checkpoint;
+    checkpoint.scope = options.scope;
+    checkpoint.maximum_actionable_ring_size =
+        options.maximum_actionable_ring_size;
+    checkpoint.maximum_relevant_cycle_count =
+        options.maximum_relevant_cycle_count;
+    checkpoint.relevant_cycle_count =
+        workspace.topology.relevant_cycle_count;
+    checkpoint.selected_ring_count = workspace.prepared_cycles.cycle_count();
+    checkpoint.excluded_ring_count =
+        workspace.topology.excluded_large_cycle_count;
+    checkpoint.active_bond_count =
+        workspace.topology.active_bond_keys.size();
+
+    std::vector<Segment3> segments;
+    segments.reserve(workspace.topology.active_bond_keys.size());
+    for (const BondIndex& bond_key : workspace.topology.active_bond_keys) {
+        segments.push_back({
+            workspace.prepared_cycles.coordinates()[
+                static_cast<std::size_t>(bond_key[0])
+            ],
+            workspace.prepared_cycles.coordinates()[
+                static_cast<std::size_t>(bond_key[1])
+            ],
+        });
+    }
+
+    std::vector<hotpot::geometry::SegmentCyclePair> candidate_pairs;
+    for (
+        std::size_t ring_index = 0;
+        ring_index < workspace.prepared_cycles.cycle_count();
+        ++ring_index
+    ) {
+        const auto& ring_edges = workspace.topology.edge_keys[ring_index];
+        for (
+            std::size_t bond_index = 0;
+            bond_index < workspace.topology.active_bond_keys.size();
+            ++bond_index
+        ) {
+            if (std::binary_search(
+                ring_edges.begin(),
+                ring_edges.end(),
+                workspace.topology.active_bond_keys[bond_index]
+            )) {
+                continue;
+            }
+            candidate_pairs.push_back({bond_index, ring_index});
+        }
+    }
+
+    const auto batch = hotpot::geometry::screen_segments(
+        workspace.prepared_cycles,
+        ArrayView<Segment3>(segments),
+        ArrayView<hotpot::geometry::SegmentCyclePair>(candidate_pairs),
+        hotpot::geometry::DetailLevel::ACTIONABLE,
+        false
+    );
+    checkpoint.candidate_pair_count = batch.requested_pair_count();
+    checkpoint.aabb_separated_pair_count =
+        batch.aabb_separated_pair_count();
+    checkpoint.exact_pair_count = batch.exact_pair_count();
+    checkpoint.piercing_pair_count = batch.piercing_pair_count();
+    checkpoint.does_not_pierce_pair_count =
+        batch.does_not_pierce_pair_count();
+    checkpoint.undetermined_pair_count = batch.undetermined_pair_count();
+    checkpoint.scan_complete = batch.scan_complete()
+        && std::all_of(
+            batch.surface_complete().begin(),
+            batch.surface_complete().end(),
+            [](std::uint8_t complete) { return complete != 0; }
+        );
+    if (checkpoint.piercing_pair_count != 0) {
+        checkpoint.state = PiercingState::PIERCES;
+    } else if (checkpoint.undetermined_pair_count != 0) {
+        checkpoint.state = PiercingState::UNDETERMINED;
+    }
+
+    checkpoint.actionable_findings.reserve(batch.relations().size());
+    for (
+        std::size_t relation_index = 0;
+        relation_index < batch.relations().size();
+        ++relation_index
+    ) {
+        const std::size_t pair_position =
+            batch.relation_positions()[relation_index];
+        const auto& pair = candidate_pairs[pair_position];
+        checkpoint.actionable_findings.push_back({
+            pair.cycle_index,
+            workspace.topology.atom_indices[pair.cycle_index],
+            workspace.topology.active_bond_keys[pair.segment_index],
+            batch.relations()[relation_index],
+            batch.aabb_separated()[pair_position] != 0,
+            batch.surface_complete()[pair_position] != 0,
+        });
+    }
+    return checkpoint;
 }
 
 

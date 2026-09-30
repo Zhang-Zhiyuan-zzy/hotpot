@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -42,6 +43,8 @@ struct RingWorkspaceOptions {
 struct RingTopologyWorkspace {
     std::vector<std::vector<std::size_t>> atom_indices;
     std::vector<std::vector<BondIndex>> edge_keys;
+    std::vector<BondIndex> active_bond_keys;
+    std::map<BondIndex, std::size_t> edge_memberships;
     std::size_t relevant_cycle_count = 0;
     std::size_t excluded_large_cycle_count = 0;
 };
@@ -65,6 +68,39 @@ struct SegmentRingScreeningReport {
     std::size_t does_not_pierce_pair_count = 0;
     std::size_t undetermined_pair_count = 0;
     bool scan_complete = true;
+};
+
+
+struct BondRingFinding {
+    std::size_t ring_index = 0;
+    std::vector<std::size_t> ring_atom_indices;
+    BondIndex bond_key = {0, 0};
+    hotpot::geometry::SegmentCycleRelation relation;
+    bool aabb_separated = false;
+    bool surface_complete = true;
+};
+
+
+struct BondRingCheckpoint {
+    hotpot::geometry::PiercingState state =
+        hotpot::geometry::PiercingState::DOES_NOT_PIERCE;
+    RingGraphScope scope = RingGraphScope::FULL_GRAPH;
+    std::size_t maximum_actionable_ring_size =
+        default_maximum_actionable_ring_size;
+    std::size_t maximum_relevant_cycle_count =
+        default_maximum_relevant_cycle_count;
+    std::size_t relevant_cycle_count = 0;
+    std::size_t selected_ring_count = 0;
+    std::size_t excluded_ring_count = 0;
+    std::size_t active_bond_count = 0;
+    std::size_t candidate_pair_count = 0;
+    std::size_t aabb_separated_pair_count = 0;
+    std::size_t exact_pair_count = 0;
+    std::size_t piercing_pair_count = 0;
+    std::size_t does_not_pierce_pair_count = 0;
+    std::size_t undetermined_pair_count = 0;
+    bool scan_complete = true;
+    std::vector<BondRingFinding> actionable_findings;
 };
 
 
@@ -97,6 +133,12 @@ SegmentRingScreeningReport screen_segment_against_rings(
     const PreparedRingWorkspace& workspace,
     std::optional<BondIndex> segment_bond_key = std::nullopt,
     bool stop_after_confirmed = false
+);
+
+
+BondRingCheckpoint scan_bond_ring_checkpoint(
+    const PreparedRingWorkspace& workspace,
+    const RingWorkspaceOptions& options
 );
 
 

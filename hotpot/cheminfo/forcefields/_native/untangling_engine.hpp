@@ -52,6 +52,7 @@ struct RingUntanglingStep {
     std::optional<double> energy_kj_mol;
     std::optional<hotpot::geometry::PiercingState> observed_state;
     std::optional<std::size_t> confirmed_piercing_count;
+    std::optional<detail::BondRingCheckpoint> checkpoint_evidence;
 };
 
 

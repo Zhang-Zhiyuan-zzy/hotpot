@@ -453,7 +453,9 @@ void append_step(
     std::optional<BondIndex> opening_bond_key = std::nullopt,
     std::optional<double> energy_kj_mol = std::nullopt,
     std::optional<hotpot::geometry::PiercingState> state = std::nullopt,
-    std::optional<std::size_t> piercing_count = std::nullopt
+    std::optional<std::size_t> piercing_count = std::nullopt,
+    std::optional<detail::BondRingCheckpoint> checkpoint_evidence =
+        std::nullopt
 ) {
     result.steps.push_back({
         event,
@@ -463,6 +465,7 @@ void append_step(
         energy_kj_mol,
         state,
         piercing_count,
+        std::move(checkpoint_evidence),
     });
 }
 
@@ -579,7 +582,8 @@ RingUntanglingResult untangle_ring_piercings(
         std::nullopt,
         std::nullopt,
         entry_checkpoint.state,
-        entry_checkpoint.piercing_pair_count
+        entry_checkpoint.piercing_pair_count,
+        entry_checkpoint
     );
     if (entry_checkpoint.piercing_pair_count == 0) {
         result.resolved = true;
@@ -700,7 +704,8 @@ RingUntanglingResult untangle_ring_piercings(
             std::nullopt,
             std::nullopt,
             checkpoint.state,
-            checkpoint.piercing_pair_count
+            checkpoint.piercing_pair_count,
+            checkpoint
         );
         if (checkpoint.piercing_pair_count <= global_minimum) {
             global_minimum = checkpoint.piercing_pair_count;
@@ -741,6 +746,12 @@ RingUntanglingResult untangle_ring_piercings(
         auto checkpoint = entry_checkpoint;
         if (result.attempts_used != 0) {
             update_structure_coordinates(session, watch_best_coordinates);
+            append_step(
+                result,
+                session,
+                RingUntanglingEvent::ROLLED_BACK,
+                attempt_cursor.attempts_completed
+            );
             checkpoint = scan_full();
             append_step(
                 result,
@@ -750,7 +761,8 @@ RingUntanglingResult untangle_ring_piercings(
                 std::nullopt,
                 std::nullopt,
                 checkpoint.state,
-                checkpoint.piercing_pair_count
+                checkpoint.piercing_pair_count,
+                checkpoint
             );
             if (checkpoint.piercing_pair_count <= global_minimum) {
                 global_minimum = checkpoint.piercing_pair_count;
@@ -761,22 +773,29 @@ RingUntanglingResult untangle_ring_piercings(
                 update_structure_coordinates(
                     session, global_best_coordinates
                 );
+                append_step(
+                    result,
+                    session,
+                    RingUntanglingEvent::ROLLED_BACK,
+                    attempt_cursor.attempts_completed
+                );
                 checkpoint = scan_full();
+                append_step(
+                    result,
+                    session,
+                    RingUntanglingEvent::TOPOLOGY_CHECKPOINT,
+                    attempt_cursor.attempts_completed,
+                    std::nullopt,
+                    std::nullopt,
+                    checkpoint.state,
+                    checkpoint.piercing_pair_count,
+                    checkpoint
+                );
             }
         }
         result.final_checkpoint = checkpoint;
         result.minimum_piercing_count = std::min(
             result.minimum_piercing_count, global_minimum
-        );
-        append_step(
-            result,
-            session,
-            RingUntanglingEvent::ROLLED_BACK,
-            attempt_cursor.attempts_completed,
-            std::nullopt,
-            std::nullopt,
-            checkpoint.state,
-            checkpoint.piercing_pair_count
         );
     }
 

@@ -10,6 +10,7 @@ import pytest
 
 from hotpot import __main__ as hotpot_main
 from hotpot.cheminfo.forcefields import (
+    ComplexBuildDiagnostics,
     ForceFieldError,
     ForceFieldSetupError,
     ForceFieldSetupReport,
@@ -645,10 +646,16 @@ def test_forcefield_error_report_preserves_typed_evidence(
         effective_forcefield="GAFF",
         stage="setup",
         setup_succeeded=False,
+        workflow_stage="complex_optimization",
     )
+    diagnostics = ComplexBuildDiagnostics(1, 1, (), 0.25)
 
     def fail(*args, **kwargs):
-        raise ForceFieldSetupError("GAFF setup failed", setup_report)
+        raise ForceFieldSetupError(
+            "GAFF setup failed",
+            setup_report,
+            diagnostics,
+        )
 
     monkeypatch.setattr(cli, "build_and_optimize", fail)
     report_path = tmp_path / "failure.json"
@@ -663,7 +670,10 @@ def test_forcefield_error_report_preserves_typed_evidence(
         "requested_forcefield": "GAFF",
         "setup_succeeded": False,
         "stage": "setup",
+        "workflow_stage": "complex_optimization",
     }
+    assert error["evidence"]["build_diagnostics"]["attempt_count"] == 1
+    assert error["evidence"]["build_diagnostics"]["elapsed_seconds"] == 0.25
 
 
 def test_quality_failure_returns_payload_and_nonzero(monkeypatch, capsys):

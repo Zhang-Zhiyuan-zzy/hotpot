@@ -5,15 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from itertools import combinations
 from typing import (
+    TYPE_CHECKING,
     Callable,
     Iterator,
     Literal,
     Optional,
     Sequence,
     Tuple,
-    TYPE_CHECKING,
     TypedDict,
-    Union,
 )
 
 import numpy as np
@@ -29,6 +28,11 @@ from .contracts import (
     StructureAcceptanceThresholds,
 )
 from .coordination import _iter_metal_donor_pairs
+from .native_reports import (
+    NativeBondRingFinding,
+    NativeRingCheckpointReport,
+    NativeRingGraphScope,
+)
 from .settings import _BOND_RING_MAX_SIZE
 from .topology import (
     TopologyReference,
@@ -38,7 +42,6 @@ from .topology import (
     _bond_key,
     _topology_bond_signature,
 )
-
 
 if TYPE_CHECKING:
     from ..core import Atom, Bond, Molecule, Ring
@@ -56,6 +59,52 @@ class _CoordinationMetrics(TypedDict):
     donor_indices: Tuple[int, ...]
     distances: Tuple[float, ...]
     angles: Tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class _BondRingAcceptanceFinding:
+    """Source-independent bond--ring evidence consumed by acceptance policy."""
+
+    ring_key: Tuple[int, ...]
+    bond_key: Tuple[int, int]
+    state: geo.PiercingState
+    indeterminacy_causes: Tuple[geo.SegmentCycleIndeterminacy, ...]
+
+
+@dataclass(frozen=True)
+class _BondRingAcceptanceFacts:
+    """Normalized facts from one completed bond--ring checkpoint."""
+
+    actionable_findings: Tuple[_BondRingAcceptanceFinding, ...]
+    ring_scope: geo.RingScope
+    max_ring_size: int
+    selected_ring_count: int
+    excluded_ring_count: int
+    piercing_pair_count: int
+    undetermined_pair_count: int
+    scan_complete: bool
+
+    @property
+    def piercings(self) -> Tuple[_BondRingAcceptanceFinding, ...]:
+        return tuple(
+            finding
+            for finding in self.actionable_findings
+            if finding.state is geo.PiercingState.PIERCES
+        )
+
+    @property
+    def undetermined(self) -> Tuple[_BondRingAcceptanceFinding, ...]:
+        return tuple(
+            finding
+            for finding in self.actionable_findings
+            if finding.state is geo.PiercingState.UNDETERMINED
+        )
+
+
+_NATIVE_RING_SCOPES: dict[NativeRingGraphScope, geo.RingScope] = {
+    NativeRingGraphScope.LIGAND_SKELETON: "ligand_skeleton",
+    NativeRingGraphScope.FULL_GRAPH: "full_graph",
+}
 
 
 _UNRETURNABLE_FRAME_FAILURES = frozenset({
@@ -499,49 +548,114 @@ def _coordination_metrics(
     return tuple(environments)
 
 
+def _geometry_bond_ring_acceptance_finding(
+    finding: "geo.BondRingFinding[Ring, Bond]",
+) -> _BondRingAcceptanceFinding:
+    state = finding.relation.state
+    return _BondRingAcceptanceFinding(
+        ring_key=tuple(finding.target.ring.key),
+        bond_key=tuple(finding.target.bond.key),
+        state=state,
+        indeterminacy_causes=(
+            tuple(finding.relation.indeterminacy_causes)
+            if state is geo.PiercingState.UNDETERMINED
+            else ()
+        ),
+    )
+
+
+def _geometry_bond_ring_acceptance_facts(
+    report: "geo.BondRingScreeningReport[Ring, Bond]",
+) -> _BondRingAcceptanceFacts:
+    return _BondRingAcceptanceFacts(
+        actionable_findings=tuple(
+            _geometry_bond_ring_acceptance_finding(finding)
+            for finding in (*report.piercings, *report.undetermined)
+        ),
+        ring_scope=report.ring_scope,
+        max_ring_size=report.max_ring_size,
+        selected_ring_count=report.selected_ring_count,
+        excluded_ring_count=report.excluded_ring_count,
+        piercing_pair_count=report.piercing_pair_count,
+        undetermined_pair_count=report.undetermined_pair_count,
+        scan_complete=report.scan_complete,
+    )
+
+
+def _native_bond_ring_acceptance_finding(
+    finding: NativeBondRingFinding,
+) -> _BondRingAcceptanceFinding:
+    state = finding.state
+    return _BondRingAcceptanceFinding(
+        ring_key=tuple(finding.ring_atom_indices),
+        bond_key=tuple(finding.bond_key),
+        state=state,
+        indeterminacy_causes=(
+            tuple(finding.indeterminacy_causes)
+            if state is geo.PiercingState.UNDETERMINED
+            else ()
+        ),
+    )
+
+
+def _native_bond_ring_acceptance_facts(
+    report: NativeRingCheckpointReport,
+) -> _BondRingAcceptanceFacts:
+    return _BondRingAcceptanceFacts(
+        actionable_findings=tuple(
+            _native_bond_ring_acceptance_finding(finding)
+            for finding in report.actionable_findings
+        ),
+        ring_scope=_NATIVE_RING_SCOPES[report.scope],
+        max_ring_size=report.maximum_actionable_ring_size,
+        selected_ring_count=report.selected_ring_count,
+        excluded_ring_count=report.excluded_ring_count,
+        piercing_pair_count=report.piercing_pair_count,
+        undetermined_pair_count=report.undetermined_pair_count,
+        scan_complete=report.scan_complete,
+    )
+
+
 def _bond_ring_acceptance_checks(
     mol: "Molecule",
-    report: Union[
-        "geo.BondRingScanReport[Ring, Bond]",
-        "geo.BondRingScreeningReport[Ring, Bond]",
-    ],
+    facts: _BondRingAcceptanceFacts,
 ) -> Tuple[AcceptanceCheck, ...]:
     bond_positions = {
         _bond_key(candidate): index
         for index, candidate in enumerate(mol.bonds)
     }
     checks = []
-    for finding in report.piercings:
-        bond_key = finding.target.bond.key
+    for finding in facts.piercings:
+        bond_key = finding.bond_key
         checks.append(AcceptanceCheck(
             name="bond_ring_piercing",
             passed=False,
-            measured=finding.target.ring.key,
+            measured=finding.ring_key,
             threshold=geo.PiercingState.DOES_NOT_PIERCE.value,
             atom_indices=bond_key,
             bond_indices=(bond_positions[bond_key],),
             message="A finite bond segment pierces a selected ring surface",
         ))
-    for finding in report.undetermined:
-        bond_key = finding.target.bond.key
+    for finding in facts.undetermined:
+        bond_key = finding.bond_key
         checks.append(AcceptanceCheck(
             name="bond_ring_piercing",
             passed=False,
             severity="warning",
             measured=tuple(
-                sorted(cause.value for cause in finding.relation.indeterminacy_causes)
+                sorted(cause.value for cause in finding.indeterminacy_causes)
             ),
             threshold=geo.PiercingState.DOES_NOT_PIERCE.value,
             atom_indices=bond_key,
             bond_indices=(bond_positions[bond_key],),
             message="The bond-ring spatial relation is mathematically undetermined",
         ))
-    if report.excluded_ring_count:
+    if facts.excluded_ring_count:
         checks.append(AcceptanceCheck(
             name="bond_ring_scope_coverage",
             passed=False,
             severity="warning",
-            measured=report.excluded_ring_count,
+            measured=facts.excluded_ring_count,
             threshold=0,
             message=(
                 "Some rings exceed the configured maximum size and were not "
@@ -806,35 +920,33 @@ def _bond_ring_coordination_acceptance_section(
     mol: "Molecule",
     atoms: Sequence["Atom"],
     coordinates: np.ndarray,
-    bond_ring_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    bond_ring_facts: _BondRingAcceptanceFacts,
 ) -> Tuple[
     Tuple[AcceptanceCheck, ...],
     dict[str, ForceFieldDiagnosticValue],
 ]:
     """Return bond-ring checks and coordination-environment metrics."""
     metrics: dict[str, ForceFieldDiagnosticValue] = {
-        "bond_ring_piercing_count": bond_ring_report.piercing_pair_count,
-        "bond_ring_undetermined_count": bond_ring_report.undetermined_pair_count,
-        "bond_ring_scan_complete": bond_ring_report.scan_complete,
-        "bond_ring_selected_ring_count": bond_ring_report.selected_ring_count,
-        "bond_ring_excluded_ring_count": bond_ring_report.excluded_ring_count,
-        "bond_ring_max_ring_size": bond_ring_report.max_ring_size,
-        "bond_ring_scope": bond_ring_report.ring_scope,
+        "bond_ring_piercing_count": bond_ring_facts.piercing_pair_count,
+        "bond_ring_undetermined_count": bond_ring_facts.undetermined_pair_count,
+        "bond_ring_scan_complete": bond_ring_facts.scan_complete,
+        "bond_ring_selected_ring_count": bond_ring_facts.selected_ring_count,
+        "bond_ring_excluded_ring_count": bond_ring_facts.excluded_ring_count,
+        "bond_ring_max_ring_size": bond_ring_facts.max_ring_size,
+        "bond_ring_scope": bond_ring_facts.ring_scope,
         "coordination_environments": _coordination_metrics(
             mol,
             atoms,
             coordinates,
         ),
     }
-    return _bond_ring_acceptance_checks(mol, bond_ring_report), metrics
+    return _bond_ring_acceptance_checks(mol, bond_ring_facts), metrics
 
 
 def _evaluate_structure_acceptance(
     mol: "Molecule",
     *,
-    bond_ring_report_provider: Callable[
-        [], "geo.BondRingScreeningReport[Ring, Bond]"
-    ],
+    bond_ring_facts_provider: Callable[[], _BondRingAcceptanceFacts],
     consume_bond_ring_report: bool,
     level: AcceptanceLevel = "standard",
     topology_reference: Optional[TopologyReference] = None,
@@ -889,13 +1001,13 @@ def _evaluate_structure_acceptance(
         metrics.update(bond_metrics)
 
     if consume_bond_ring_report:
-        bond_ring_report = bond_ring_report_provider()
+        bond_ring_facts = bond_ring_facts_provider()
         bond_ring_checks, bond_ring_metrics = (
             _bond_ring_coordination_acceptance_section(
                 mol,
                 atoms,
                 coordinates,
-                bond_ring_report,
+                bond_ring_facts,
             )
         )
         checks.extend(bond_ring_checks)
@@ -918,7 +1030,34 @@ def evaluate_structure_acceptance_at_checkpoint(
     """Evaluate a stage checkpoint using its existing bond-ring evidence."""
     return _evaluate_structure_acceptance(
         mol,
-        bond_ring_report_provider=lambda: bond_ring_report,
+        bond_ring_facts_provider=lambda: (
+            _geometry_bond_ring_acceptance_facts(bond_ring_report)
+        ),
+        consume_bond_ring_report=True,
+        level=level,
+        topology_reference=topology_reference,
+        forcefield_report=forcefield_report,
+        forcefield_stage=forcefield_stage,
+        thresholds=thresholds,
+    )
+
+
+def evaluate_structure_acceptance_at_native_checkpoint(
+    mol: "Molecule",
+    *,
+    bond_ring_report: NativeRingCheckpointReport,
+    level: AcceptanceLevel = "standard",
+    topology_reference: Optional[TopologyReference] = None,
+    forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
+    forcefield_stage: ForceFieldStage = "final",
+    thresholds: Optional[StructureAcceptanceThresholds] = None,
+) -> ForceFieldValidationReport:
+    """Evaluate a native checkpoint without repeating bond-ring geometry."""
+    return _evaluate_structure_acceptance(
+        mol,
+        bond_ring_facts_provider=lambda: (
+            _native_bond_ring_acceptance_facts(bond_ring_report)
+        ),
         consume_bond_ring_report=True,
         level=level,
         topology_reference=topology_reference,
@@ -938,16 +1077,18 @@ def evaluate_structure_acceptance(
     thresholds: Optional[StructureAcceptanceThresholds] = None,
 ) -> ForceFieldValidationReport:
     """Apply chemistry and force-field acceptance policy to geometry facts."""
-    def scan_bond_ring_relations() -> "geo.BondRingScreeningReport[Ring, Bond]":
-        return geo.screen_bond_ring_relations(
-            mol,
-            ring_scope="ligand_skeleton",
-            max_ring_size=_BOND_RING_MAX_SIZE,
+    def scan_bond_ring_relations() -> _BondRingAcceptanceFacts:
+        return _geometry_bond_ring_acceptance_facts(
+            geo.screen_bond_ring_relations(
+                mol,
+                ring_scope="ligand_skeleton",
+                max_ring_size=_BOND_RING_MAX_SIZE,
+            )
         )
 
     return _evaluate_structure_acceptance(
         mol,
-        bond_ring_report_provider=scan_bond_ring_relations,
+        bond_ring_facts_provider=scan_bond_ring_relations,
         consume_bond_ring_report=level in ("standard", "strict"),
         level=level,
         topology_reference=topology_reference,

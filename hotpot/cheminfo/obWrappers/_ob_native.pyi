@@ -166,6 +166,30 @@ class NativeStageStatus(Enum):
     FAILED: NativeStageStatus
 
 
+class NativeRingGraphScope(Enum):
+    LIGAND_SKELETON: NativeRingGraphScope
+    FULL_GRAPH: NativeRingGraphScope
+
+
+class NativePiercingState(Enum):
+    PIERCES: NativePiercingState
+    DOES_NOT_PIERCE: NativePiercingState
+    UNDETERMINED: NativePiercingState
+
+
+class NativeSegmentCycleIndeterminacy(Enum):
+    NONFINITE_INPUT: NativeSegmentCycleIndeterminacy
+    NUMERIC_BAND: NativeSegmentCycleIndeterminacy
+    TOLERANCE_DOMAIN: NativeSegmentCycleIndeterminacy
+    DEGENERATE_CYCLE: NativeSegmentCycleIndeterminacy
+    DEGENERATE_SEGMENT: NativeSegmentCycleIndeterminacy
+    DEGENERATE_TRIANGLE: NativeSegmentCycleIndeterminacy
+    SELF_INTERSECTION: NativeSegmentCycleIndeterminacy
+    SURFACE_DISAGREEMENT: NativeSegmentCycleIndeterminacy
+    INCOMPLETE_SURFACE_FAMILY: NativeSegmentCycleIndeterminacy
+    SURFACE_CONSTRUCTION: NativeSegmentCycleIndeterminacy
+
+
 class NativeTrajectoryStart(Enum):
     LIGAND_BUILD: NativeTrajectoryStart
     COORDINATION_RESTORATION: NativeTrajectoryStart
@@ -443,6 +467,43 @@ class OptimizationStoppingOptions:
     maximum_gradient_kj_mol_angstrom: float
 
 
+class RingScreeningOptions:
+    def __init__(
+        self,
+        maximum_actionable_ring_size: int,
+        maximum_relevant_cycle_count: int,
+        geometry_absolute_length: float,
+        geometry_relative_length: float,
+        geometry_parameter: float,
+        geometry_machine_epsilon_factor: float,
+        geometry_predicate_guard_factor: float,
+        geometry_planarity_factor: float,
+        geometry_winding_residual: float,
+        geometry_intersection_merge_factor: float,
+        geometry_aabb_padding_factor: float,
+        surface_maximum_cycle_vertices: int,
+        surface_maximum_surface_count: int,
+        surface_maximum_segment_triangle_tests: int,
+        surface_maximum_triangle_pair_tests: int,
+    ) -> None: ...
+
+    maximum_actionable_ring_size: int
+    maximum_relevant_cycle_count: int
+    geometry_absolute_length: float
+    geometry_relative_length: float
+    geometry_parameter: float
+    geometry_machine_epsilon_factor: float
+    geometry_predicate_guard_factor: float
+    geometry_planarity_factor: float
+    geometry_winding_residual: float
+    geometry_intersection_merge_factor: float
+    geometry_aabb_padding_factor: float
+    surface_maximum_cycle_vertices: int
+    surface_maximum_surface_count: int
+    surface_maximum_segment_triangle_tests: int
+    surface_maximum_triangle_pair_tests: int
+
+
 class CoordinationStageOptions:
     def __init__(
         self,
@@ -486,6 +547,9 @@ class ComplexOptimizationOptions:
         vdw_cutoff_end: float,
         energy_tolerance: float,
         stopping: Optional[OptimizationStoppingOptions],
+        torsion_singularity_threshold: float,
+        torsion_repair_angle_radians: float,
+        ring_screening: RingScreeningOptions,
     ) -> None: ...
 
     forcefield: str
@@ -503,6 +567,9 @@ class ComplexOptimizationOptions:
     vdw_cutoff_end: float
     energy_tolerance: float
     stopping: Optional[OptimizationStoppingOptions]
+    torsion_singularity_threshold: float
+    torsion_repair_angle_radians: float
+    ring_screening: RingScreeningOptions
 
 
 class NativeRingFrameEvidence:
@@ -700,6 +767,66 @@ class CoordinationStageResult:
     placement_report: MetalPlacementReport
 
 
+class NativeBondRingFinding:
+    def __init__(
+        self,
+        ring_index: int,
+        ring_atom_indices: List[int],
+        bond_key: Tuple[int, int],
+        state: NativePiercingState,
+        indeterminacy_causes: List[NativeSegmentCycleIndeterminacy],
+        aabb_separated: bool,
+        surface_complete: bool,
+    ) -> None: ...
+
+    ring_index: int
+    ring_atom_indices: List[int]
+    bond_key: Tuple[int, int]
+    state: NativePiercingState
+    indeterminacy_causes: List[NativeSegmentCycleIndeterminacy]
+    aabb_separated: bool
+    surface_complete: bool
+
+
+class NativeRingCheckpointReport:
+    def __init__(
+        self,
+        state: NativePiercingState,
+        scope: NativeRingGraphScope,
+        maximum_actionable_ring_size: int,
+        maximum_relevant_cycle_count: int,
+        relevant_cycle_count: int,
+        selected_ring_count: int,
+        excluded_ring_count: int,
+        active_bond_count: int,
+        candidate_pair_count: int,
+        aabb_separated_pair_count: int,
+        exact_pair_count: int,
+        piercing_pair_count: int,
+        does_not_pierce_pair_count: int,
+        undetermined_pair_count: int,
+        scan_complete: bool,
+        actionable_findings: List[NativeBondRingFinding],
+    ) -> None: ...
+
+    state: NativePiercingState
+    scope: NativeRingGraphScope
+    maximum_actionable_ring_size: int
+    maximum_relevant_cycle_count: int
+    relevant_cycle_count: int
+    selected_ring_count: int
+    excluded_ring_count: int
+    active_bond_count: int
+    candidate_pair_count: int
+    aabb_separated_pair_count: int
+    exact_pair_count: int
+    piercing_pair_count: int
+    does_not_pierce_pair_count: int
+    undetermined_pair_count: int
+    scan_complete: bool
+    actionable_findings: List[NativeBondRingFinding]
+
+
 class ComplexOptimizationResult:
     def __init__(
         self,
@@ -733,6 +860,7 @@ class ComplexOptimizationResult:
         termination_reason: str,
         warning_codes: List[str],
         trajectory: NativeTrajectoryBatch,
+        final_checkpoint: NativeRingCheckpointReport,
     ) -> None: ...
 
     status: NativeStageStatus
@@ -765,6 +893,7 @@ class ComplexOptimizationResult:
     termination_reason: str
     warning_codes: List[str]
     trajectory: NativeTrajectoryBatch
+    final_checkpoint: NativeRingCheckpointReport
 
 
 class ComplexWorkflowResult:
@@ -797,6 +926,13 @@ def restore_coordination(
     options: CoordinationStageOptions,
     perturbation_offsets: PerturbationOffsetBatch,
 ) -> CoordinationStageResult: ...
+
+def optimize_complex(
+    session: StructureSession,
+    options: ComplexOptimizationOptions,
+    untangling_offsets: PerturbationOffsetBatch,
+    optimization_offsets: PerturbationOffsetBatch,
+) -> ComplexOptimizationResult: ...
 
 def create_optimization_session(
     session_input: ComplexSessionInput,

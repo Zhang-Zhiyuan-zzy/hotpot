@@ -31,6 +31,8 @@ __all__ = (
     "BuildAndOptimizeReport",
     "ComplexBuildReport",
     "ForceFieldSetupReport",
+    "ForceFieldSetupStage",
+    "ForceFieldWorkflowStage",
     "AcceptanceCheck",
     "StructureAcceptanceThresholds",
     "ForceFieldAcceptanceEvidence",
@@ -58,6 +60,15 @@ TerminationReason = Literal[
     "budget_exhausted",
     "stability_reached",
     "topology_blocked",
+]
+ForceFieldWorkflowStage = Literal[
+    "coordination_restoration",
+    "complex_optimization",
+]
+ForceFieldSetupStage = Literal[
+    "lookup",
+    "setup",
+    "preflight-validation",
 ]
 AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
 ForceFieldStage = Literal["candidate", "final"]
@@ -327,8 +338,9 @@ class ComplexBuildReport(ForceFieldWorkflowReport):
 class ForceFieldSetupReport:
     requested_forcefield: Optional[str]
     effective_forcefield: str
-    stage: Literal["lookup", "setup"]
+    stage: ForceFieldSetupStage
     setup_succeeded: bool = False
+    workflow_stage: Optional[ForceFieldWorkflowStage] = None
 
 
 @dataclass(frozen=True)
@@ -372,9 +384,11 @@ class ForceFieldSetupError(ForceFieldError):
         self,
         message: str,
         report: Optional[ForceFieldSetupReport] = None,
+        diagnostics: Optional[ComplexBuildDiagnostics] = None,
     ) -> None:
         super().__init__(message)
         self.report = report
+        self.diagnostics = diagnostics
 
 
 class BuildWorkerError(ForceFieldError):

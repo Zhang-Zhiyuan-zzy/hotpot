@@ -3,20 +3,21 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-import time
 import warnings
 from dataclasses import dataclass, replace
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING, cast
 
-import numpy as np
-
-from .. import geometry as geo
+from ..obWrappers.native import _native_module
 from .acceptance import (
     _format_geometry_checks,
     evaluate_structure_acceptance,
-    evaluate_structure_acceptance_at_checkpoint,
+    evaluate_structure_acceptance_at_native_checkpoint,
 )
-from .backend import _ob_build, _resolve_complex_forcefield, _resolve_organic_forcefield
+from .backend import (
+    _ob_build,
+    _resolve_complex_forcefield,
+    _resolve_organic_forcefield,
+)
 from .contracts import (
     AcceptanceLevel,
     Build3DReport,
@@ -27,13 +28,14 @@ from .contracts import (
     ForceFieldError,
     ForceFieldAcceptanceEvidence,
     ForceFieldRunReport,
+    ForceFieldSetupError,
+    ForceFieldSetupReport,
     ForceFieldValidationReport,
     ForceFieldWorkflowReport,
     GeometryQualityError,
     GeometryQualityWarning,
     OptimizationAlgorithm,
     OptimizationStoppingCriteria,
-    RingUntanglingReport,
     StructureAcceptanceThresholds,
     TrajectoryPath,
 )
@@ -41,20 +43,34 @@ from .coordination import (
     _require_explicit_complex,
     prepare_coordination_geometry,
 )
-from .optimizer import _combine_forcefield_run_reports, _optimize_working_mol
-from .repair import (
-    _piercing_count,
-    _record_ring_checkpoint,
-    _restore_coordination_bonds_incrementally,
-    _scan_ring_checkpoint,
-    _unique_messages,
-    _untangle_ring_piercings,
+from .native import (
+    ComplexOptimizationOptions,
+    CoordinationStageOptions,
+    FrameDetail,
+    OptimizationStoppingOptions,
+    create_coordination_session,
+    create_optimization_session,
+    optimize_complex as _native_optimize_complex,
+    restore_coordination as _native_restore_coordination,
+    run_complex_workflow as _native_run_complex_workflow,
 )
+from .native_adapters import (
+    apply_native_selected_structure,
+    coordination_restoration_report,
+    forcefield_run_report,
+    ingest_native_trajectory,
+    native_coordination_offsets,
+    native_optimization_offsets,
+    native_perturbation_streams,
+    native_warning_messages,
+)
+from .native_packing import ComplexSessionInput, pack_complex_session_input
+from .native_reports import ComplexOptimizationResult, CoordinationStageResult
+from .optimizer import _optimize_working_mol
 from .topology import TopologyReference, capture_topology
 from .trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
-    TrajectoryStage,
     TrajectoryStart,
 )
 from .working_copy import _commit_working_copy, _hydrogenated_working_copy, _make_worker_mol
@@ -68,6 +84,7 @@ from .workers import (
 
 if TYPE_CHECKING:
     from ..core import Molecule
+    from ..obWrappers import _ob_native
 
 
 __all__ = (
@@ -171,8 +188,6 @@ def _prepare_complex_working_mol(
     candidate_score_steps: int,
     best_candidate_refine_steps: int,
     ligand_untangling_attempts: int = 20,
-    coordination_restoration_attempts: int = 20,
-    coordination_relaxation_steps: int = 100,
     timeout: float,
     add_hydrogens: bool,
     seed: Optional[int],
@@ -181,20 +196,17 @@ def _prepare_complex_working_mol(
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str],
 ) -> _PreparedComplex:
+    """Run Stage 1 and return built ligand coordinates without restoring bonds."""
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
     if ligand_untangling_attempts < 1:
         raise ValueError("ligand_untangling_attempts must be at least 1")
-    if coordination_restoration_attempts < 1:
-        raise ValueError("coordination_restoration_attempts must be at least 1")
     if min(
         candidate_warmup_steps,
         candidate_score_steps,
         best_candidate_refine_steps,
     ) < 1:
         raise ValueError("all candidate optimization step counts must be at least 1")
-    if coordination_relaxation_steps < 1:
-        raise ValueError("coordination_relaxation_steps must be at least 1")
     if perturb_sigma < 0.0:
         raise ValueError("perturb_sigma must be non-negative")
     if timeout <= 0.0:
@@ -258,327 +270,160 @@ def _prepare_complex_working_mol(
         prepare_coordination_geometry(
             working_mol, strategy=coordination_geometry, seed=seed
         )
-    restoration_started = time.monotonic()
-    try:
-        restoration = _restore_coordination_bonds_incrementally(
-            working_mol,
-            effective_forcefield,
-            attempt_limit=coordination_restoration_attempts,
-            relaxation_steps=coordination_relaxation_steps,
-            perturb_sigma=perturb_sigma,
-            rng=np.random.default_rng(seed),
-            trajectory=trajectory,
-        )
-    except ForceFieldError as error:
-        _preserve_failed_trajectory(
-            error,
-            trajectory,
-            ligand_build_attempts=ligand_build_attempts,
-            trajectory_path=trajectory_path,
-        )
-        raise
-    diagnostics = replace(
-        diagnostics,
-        elapsed_seconds=(
-            diagnostics.elapsed_seconds
-            + time.monotonic()
-            - restoration_started
-        ),
-        warning_messages=(
-            diagnostics.warning_messages
-            + restoration.report.warning_messages
-        ),
-        coordination_restoration=restoration.report,
-    )
-    for message in restoration.report.warning_messages:
-        warnings.warn(message, ComplexBuildWarning, stacklevel=3)
     return _PreparedComplex(
         mol=working_mol,
         diagnostics=diagnostics,
         trajectory=trajectory,
         ligand_build_attempts=ligand_build_attempts,
     )
-def _summarize_complex_untangling(
-    reports: Sequence[RingUntanglingReport],
+
+
+def _native_frame_detail(save_movie: bool) -> FrameDetail:
+    """Select native diagnostics without changing mandatory stage frames."""
+    return FrameDetail.ALL_ATTEMPTS if save_movie else FrameDetail.NONE
+
+
+def _native_stopping_options(
+    criteria: Optional[OptimizationStoppingCriteria],
+) -> Optional[OptimizationStoppingOptions]:
+    """Translate the public stopping contract to the native stage contract."""
+    if criteria is None:
+        return None
+    return OptimizationStoppingOptions(
+        window=criteria.window,
+        maximum_energy_change_kj_mol=criteria.maximum_energy_change_kj_mol,
+        maximum_atom_displacement_angstrom=(
+            criteria.maximum_atom_displacement_angstrom
+        ),
+        maximum_rms_gradient_kj_mol_angstrom=(
+            criteria.maximum_rms_gradient_kj_mol_angstrom
+        ),
+        maximum_gradient_kj_mol_angstrom=(
+            criteria.maximum_gradient_kj_mol_angstrom
+        ),
+    )
+
+
+def _coordination_options(
     *,
-    attempt_limit: int,
-    initial_piercing_count: int,
-    final_state: geo.PiercingState,
-    final_piercing_count: int,
-) -> RingUntanglingReport:
-    """Summarize every repair pass against the final optimized coordinates."""
-    warning_messages = [
-        message
-        for report in reports
-        for message in report.warning_messages
-    ]
-    if final_state is geo.PiercingState.PIERCES:
-        warning_messages.append(
-            "Confirmed bond-ring piercing remains after full-complex "
-            "untangling; retaining the final available frame"
-        )
-    elif final_state is geo.PiercingState.UNDETERMINED:
-        warning_messages.append(
-            "The final complex contains a mathematically undetermined "
-            "bond-ring relation"
-        )
-    minimum_count = min(
-        (report.minimum_piercing_count for report in reports),
-        default=final_piercing_count,
-    )
-    return RingUntanglingReport(
-        attempt_limit=attempt_limit,
-        attempts_completed=sum(report.attempts_completed for report in reports),
-        initial_piercing_count=initial_piercing_count,
-        final_piercing_count=final_piercing_count,
-        minimum_piercing_count=min(minimum_count, final_piercing_count),
-        resolved=final_state is not geo.PiercingState.PIERCES,
-        warning_messages=_unique_messages(warning_messages),
-    )
-
-
-def _unoptimized_forcefield_report(
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
-) -> ForceFieldRunReport:
-    """Describe a topology-blocked stage without claiming an optimizer run."""
-    return ForceFieldRunReport(
-        requested_forcefield=requested_forcefield,
-        effective_forcefield=effective_forcefield,
-        setup_succeeded=False,
-        converged=False,
-        epochs_completed=0,
-        steps_submitted=0,
-        initialization_steps=0,
-        steps_completed=None,
-        final_energy=float("nan"),
-        best_energy=float("nan"),
-        energy_unit="kJ/mol",
-        rms_gradient=float("nan"),
-        max_gradient=float("nan"),
-        exploded=False,
-        best_epoch=-1,
-        selected_segment_epochs_completed=0,
-        termination_reason="topology_blocked",
+    attempt_limit: int,
+    relaxation_steps: int,
+    perturb_sigma: float,
+    trajectory_start: TrajectoryStart,
+    save_movie: bool,
+) -> CoordinationStageOptions:
+    return CoordinationStageOptions(
+        forcefield=effective_forcefield,
+        attempt_limit=attempt_limit,
+        relaxation_steps=relaxation_steps,
+        perturb_sigma=perturb_sigma,
+        trajectory_start=trajectory_start,
+        frame_detail=_native_frame_detail(save_movie),
     )
 
 
-def _optimize_complex_working_mol(
-    working_mol: "Molecule",
+def _optimization_options(
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
     algorithm: OptimizationAlgorithm,
     epochs: int,
     steps_per_epoch: int,
-    complex_untangling_attempts: int,
-    quality_level: AcceptanceLevel,
-    topology_reference: TopologyReference,
-    quality_thresholds: Optional[StructureAcceptanceThresholds],
-    seed: Optional[int],
+    untangling_attempt_limit: int,
     perturb_interval: Optional[int],
     perturb_sigma: float,
-    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
-    retain_epoch_history: bool,
+    trajectory_start: TrajectoryStart,
+    save_movie: bool,
+    stopping_criteria: Optional[OptimizationStoppingCriteria],
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
-    trajectory: ForceFieldTrajectory,
+) -> ComplexOptimizationOptions:
+    return ComplexOptimizationOptions(
+        forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        untangling_attempt_limit=untangling_attempt_limit,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        trajectory_start=trajectory_start,
+        frame_detail=_native_frame_detail(save_movie),
+        retain_epoch_history=save_movie,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+        stopping=_native_stopping_options(stopping_criteria),
+    )
+
+
+def _native_setup_error(
+    error: "_ob_native.ForceFieldSetupError",
+    *,
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+) -> ForceFieldSetupError:
+    return ForceFieldSetupError(
+        str(error),
+        ForceFieldSetupReport(
+            requested_forcefield=requested_forcefield,
+            effective_forcefield=effective_forcefield,
+            stage=error.stage,
+        ),
+    )
+
+
+def _prepared_with_coordination_report(
+    prepared: _PreparedComplex,
+    result: CoordinationStageResult,
+) -> _PreparedComplex:
+    restoration = coordination_restoration_report(result)
+    diagnostics = replace(
+        prepared.diagnostics,
+        elapsed_seconds=prepared.diagnostics.elapsed_seconds + result.elapsed_seconds,
+        warning_messages=(
+            prepared.diagnostics.warning_messages + restoration.warning_messages
+        ),
+        coordination_restoration=restoration,
+    )
+    for message in restoration.warning_messages:
+        warnings.warn(message, ComplexBuildWarning, stacklevel=3)
+    return replace(prepared, diagnostics=diagnostics)
+
+
+def _apply_coordination_result(
+    prepared: _PreparedComplex,
+    session_input: ComplexSessionInput,
+    result: CoordinationStageResult,
+) -> _PreparedComplex:
+    ingest_native_trajectory(prepared.trajectory, result.trajectory, session_input)
+    apply_native_selected_structure(prepared.mol, session_input, result)
+    return _prepared_with_coordination_report(prepared, result)
+
+
+def _native_optimization_report(
+    working_mol: "Molecule",
+    result: ComplexOptimizationResult,
+    *,
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+    quality_level: AcceptanceLevel,
+    topology_reference: TopologyReference,
+    quality_thresholds: Optional[StructureAcceptanceThresholds],
 ) -> ForceFieldRunReport:
-    """Run full-graph topology gates around numerical complex relaxation."""
-    if complex_untangling_attempts < 1:
-        raise ValueError("complex_untangling_attempts must be at least 1")
-    rng = np.random.default_rng(seed)
-    remaining_attempts = complex_untangling_attempts
-    untangling_reports = []
-    optimization_reports = []
-    numerical_frame_coordinates: Optional[np.ndarray] = None
-    checkpoint_report = _scan_ring_checkpoint(
-        working_mol,
-        ring_scope="full_graph",
+    report = forcefield_run_report(
+        result,
+        requested_forcefield=requested_forcefield,
+        effective_forcefield=effective_forcefield,
     )
-    _record_ring_checkpoint(
-        working_mol,
-        checkpoint_report,
-        trajectory=trajectory,
-        stage=TrajectoryStage.COMPLEX_UNTANGLING,
-    )
-    initial_piercing_count = _piercing_count(checkpoint_report)
-
-    if checkpoint_report.state is geo.PiercingState.PIERCES:
-        untangling = _untangle_ring_piercings(
-            working_mol,
-            effective_forcefield,
-            attempt_limit=remaining_attempts,
-            short_steps=steps_per_epoch,
-            settling_steps=0,
-            perturb_sigma=perturb_sigma,
-            rng=rng,
-            checkpoint_report=checkpoint_report,
-            initial_energy=(
-                optimization_reports[-1].best_energy
-                if optimization_reports
-                else float("nan")
-            ),
-            trajectory=trajectory,
-        )
-        untangling_reports.append(untangling.report)
-        remaining_attempts -= untangling.report.attempts_completed
-        checkpoint_report = untangling.checkpoint_report
-
-    if checkpoint_report.state is geo.PiercingState.PIERCES:
-        optimizer_ran = False
-        optimization_reports.append(_unoptimized_forcefield_report(
-            requested_forcefield,
-            effective_forcefield,
-        ))
-    else:
-        optimizer_ran = True
-        optimization_reports.append(_optimize_working_mol(
-            working_mol,
-            requested_forcefield=requested_forcefield,
-            effective_forcefield=effective_forcefield,
-            algorithm=algorithm,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            seed=seed,
-            perturb_interval=perturb_interval,
-            perturb_sigma=perturb_sigma,
-            retain_epoch_history=retain_epoch_history,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
-            trajectory=trajectory,
-            trajectory_stage=TrajectoryStage.FINAL_OPTIMIZATION,
-            trajectory_attempt=0,
-            stopping_criteria=stopping_criteria,
-        ))
-        numerical_frame_coordinates = np.asarray(
-            working_mol.coordinates,
-            dtype=float,
-        ).copy()
-        checkpoint_report = _scan_ring_checkpoint(
-            working_mol,
-            ring_scope="full_graph",
-        )
-        _record_ring_checkpoint(
-            working_mol,
-            checkpoint_report,
-            trajectory=trajectory,
-            stage=TrajectoryStage.FINAL_OPTIMIZATION,
-            energy=optimization_reports[-1].best_energy,
-        )
-
-    while (
-        optimizer_ran
-        and checkpoint_report.state is geo.PiercingState.PIERCES
-        and remaining_attempts > 0
-    ):
-        untangling = _untangle_ring_piercings(
-            working_mol,
-            effective_forcefield,
-            attempt_limit=remaining_attempts,
-            short_steps=steps_per_epoch,
-            settling_steps=0,
-            perturb_sigma=perturb_sigma,
-            rng=rng,
-            checkpoint_report=checkpoint_report,
-            initial_energy=(
-                optimization_reports[-1].best_energy
-                if (
-                    numerical_frame_coordinates is not None
-                    and np.array_equal(
-                        numerical_frame_coordinates,
-                        working_mol.coordinates,
-                    )
-                )
-                else float("nan")
-            ),
-            trajectory=trajectory,
-        )
-        untangling_reports.append(untangling.report)
-        attempts_completed = untangling.report.attempts_completed
-        remaining_attempts -= attempts_completed
-        checkpoint_report = untangling.checkpoint_report
-        if attempts_completed == 0:
-            break
-        if checkpoint_report.state is geo.PiercingState.PIERCES:
-            continue
-        if (
-            numerical_frame_coordinates is not None
-            and np.array_equal(
-                numerical_frame_coordinates,
-                working_mol.coordinates,
-            )
-        ):
-            continue
-
-        optimization_reports.append(_optimize_working_mol(
-            working_mol,
-            requested_forcefield=requested_forcefield,
-            effective_forcefield=effective_forcefield,
-            algorithm=algorithm,
-            epochs=1,
-            steps_per_epoch=steps_per_epoch,
-            seed=seed,
-            perturb_interval=None,
-            perturb_sigma=perturb_sigma,
-            retain_epoch_history=retain_epoch_history,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
-            trajectory=trajectory,
-            trajectory_stage=TrajectoryStage.COMPLEX_UNTANGLING,
-            trajectory_attempt=len(optimization_reports),
-            stopping_criteria=stopping_criteria,
-        ))
-        numerical_frame_coordinates = np.asarray(
-            working_mol.coordinates,
-            dtype=float,
-        ).copy()
-        checkpoint_report = _scan_ring_checkpoint(
-            working_mol,
-            ring_scope="full_graph",
-        )
-        _record_ring_checkpoint(
-            working_mol,
-            checkpoint_report,
-            trajectory=trajectory,
-            stage=TrajectoryStage.COMPLEX_UNTANGLING,
-            energy=optimization_reports[-1].best_energy,
-        )
-
-    if (
-        numerical_frame_coordinates is not None
-        and not np.array_equal(
-            numerical_frame_coordinates,
-            working_mol.coordinates,
-        )
-    ):
-        optimization_reports.append(_unoptimized_forcefield_report(
-            requested_forcefield,
-            effective_forcefield,
-        ))
-
-    final_state = checkpoint_report.state
-    final_piercing_count = _piercing_count(checkpoint_report)
-
-    untangling_report = _summarize_complex_untangling(
-        untangling_reports,
-        attempt_limit=complex_untangling_attempts,
-        initial_piercing_count=initial_piercing_count,
-        final_state=final_state,
-        final_piercing_count=final_piercing_count,
-    )
-    for message in untangling_report.warning_messages:
+    for message in native_warning_messages(result.warning_codes):
         warnings.warn(message, GeometryQualityWarning, stacklevel=3)
-    combined_report = _combine_forcefield_run_reports(optimization_reports)
-    quality_report = evaluate_structure_acceptance_at_checkpoint(
+    quality_report = evaluate_structure_acceptance_at_native_checkpoint(
         working_mol,
-        bond_ring_report=checkpoint_report,
+        bond_ring_report=result.final_checkpoint,
         level=quality_level,
         topology_reference=topology_reference,
-        forcefield_report=_forcefield_acceptance_evidence(combined_report),
+        forcefield_report=_forcefield_acceptance_evidence(report),
         forcefield_stage="final",
         thresholds=quality_thresholds,
     )
@@ -589,10 +434,31 @@ def _optimize_complex_working_mol(
             "structure acceptance; retaining it for inspection"
         ),
     )
-    return replace(
-        combined_report,
-        quality_report=quality_report,
-        untangling=untangling_report,
+    return replace(report, quality_report=quality_report)
+
+
+def _complete_native_optimization(
+    working_mol: "Molecule",
+    session_input: ComplexSessionInput,
+    result: ComplexOptimizationResult,
+    *,
+    requested_forcefield: Optional[str],
+    effective_forcefield: str,
+    quality_level: AcceptanceLevel,
+    topology_reference: TopologyReference,
+    quality_thresholds: Optional[StructureAcceptanceThresholds],
+    trajectory: ForceFieldTrajectory,
+) -> ForceFieldRunReport:
+    ingest_native_trajectory(trajectory, result.trajectory, session_input)
+    apply_native_selected_structure(working_mol, session_input, result)
+    return _native_optimization_report(
+        working_mol,
+        result,
+        requested_forcefield=requested_forcefield,
+        effective_forcefield=effective_forcefield,
+        quality_level=quality_level,
+        topology_reference=topology_reference,
+        quality_thresholds=quality_thresholds,
     )
 
 
@@ -642,8 +508,6 @@ def _complexes_build_workflow(
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
         ligand_untangling_attempts=ligand_untangling_attempts,
-        coordination_restoration_attempts=coordination_restoration_attempts,
-        coordination_relaxation_steps=coordination_relaxation_steps,
         timeout=timeout,
         add_hydrogens=add_hydrogens,
         seed=seed,
@@ -652,28 +516,78 @@ def _complexes_build_workflow(
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
     )
+    session_input = pack_complex_session_input(prepared.mol)
+    session = create_coordination_session(session_input)
+    coordination_options = _coordination_options(
+        effective_forcefield=effective_forcefield,
+        attempt_limit=coordination_restoration_attempts,
+        relaxation_steps=coordination_relaxation_steps,
+        perturb_sigma=perturb_sigma,
+        trajectory_start=trajectory_start,
+        save_movie=save_movie,
+    )
+    optimization_options = _optimization_options(
+        effective_forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        untangling_attempt_limit=complex_untangling_attempts,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        trajectory_start=trajectory_start,
+        save_movie=save_movie,
+        stopping_criteria=stopping_criteria,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    streams = native_perturbation_streams(
+        len(prepared.mol.atoms),
+        seed,
+        coordination_options=coordination_options,
+        optimization_options=optimization_options,
+    )
     try:
-        optimization_report = _optimize_complex_working_mol(
+        native_result = _native_run_complex_workflow(
+            session,
+            streams.coordination,
+            streams.untangling,
+            streams.optimization,
+            coordination_options=coordination_options,
+            optimization_options=optimization_options,
+        )
+        ingest_native_trajectory(
+            prepared.trajectory,
+            native_result.trajectory,
+            session_input,
+        )
+        apply_native_selected_structure(prepared.mol, session_input, native_result)
+        prepared = _prepared_with_coordination_report(
+            prepared,
+            native_result.coordination,
+        )
+        optimization_report = _native_optimization_report(
             prepared.mol,
+            native_result.optimization,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
-            algorithm=algorithm,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            complex_untangling_attempts=complex_untangling_attempts,
             quality_level=quality_level,
             topology_reference=topology_reference,
             quality_thresholds=quality_thresholds,
-            seed=seed,
-            perturb_interval=perturb_interval,
-            perturb_sigma=perturb_sigma,
-            stopping_criteria=stopping_criteria,
-            retain_epoch_history=save_movie,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
-            trajectory=prepared.trajectory,
         )
+    except _native_module().ForceFieldSetupError as native_error:
+        error = _native_setup_error(
+            native_error,
+            requested_forcefield=forcefield,
+            effective_forcefield=effective_forcefield,
+        )
+        _preserve_failed_trajectory(
+            error,
+            prepared.trajectory,
+            ligand_build_attempts=prepared.ligand_build_attempts,
+            trajectory_path=trajectory_path,
+        )
+        raise error from native_error
     except ForceFieldError as error:
         _preserve_failed_trajectory(
             error,
@@ -890,8 +804,6 @@ def _build_complex3d_workflow(
         candidate_score_steps=candidate_score_steps,
         best_candidate_refine_steps=best_candidate_refine_steps,
         ligand_untangling_attempts=ligand_untangling_attempts,
-        coordination_restoration_attempts=coordination_restoration_attempts,
-        coordination_relaxation_steps=coordination_relaxation_steps,
         timeout=timeout,
         add_hydrogens=add_hydrogens,
         seed=seed,
@@ -900,6 +812,53 @@ def _build_complex3d_workflow(
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
     )
+    session_input = pack_complex_session_input(prepared.mol)
+    session = create_coordination_session(session_input)
+    options = _coordination_options(
+        effective_forcefield=effective_forcefield,
+        attempt_limit=coordination_restoration_attempts,
+        relaxation_steps=coordination_relaxation_steps,
+        perturb_sigma=perturb_sigma,
+        trajectory_start=trajectory_start,
+        save_movie=save_movie,
+    )
+    offsets = native_coordination_offsets(
+        len(prepared.mol.atoms),
+        seed,
+        options=options,
+    )
+    try:
+        native_result = _native_restore_coordination(
+            session,
+            offsets,
+            options=options,
+        )
+        prepared = _apply_coordination_result(
+            prepared,
+            session_input,
+            native_result,
+        )
+    except _native_module().ForceFieldSetupError as native_error:
+        error = _native_setup_error(
+            native_error,
+            requested_forcefield=forcefield,
+            effective_forcefield=effective_forcefield,
+        )
+        _preserve_failed_trajectory(
+            error,
+            prepared.trajectory,
+            ligand_build_attempts=prepared.ligand_build_attempts,
+            trajectory_path=trajectory_path,
+        )
+        raise error from native_error
+    except ForceFieldError as error:
+        _preserve_failed_trajectory(
+            error,
+            prepared.trajectory,
+            ligand_build_attempts=prepared.ligand_build_attempts,
+            trajectory_path=trajectory_path,
+        )
+        raise
     quality_report = evaluate_structure_acceptance(
         prepared.mol,
         level="off",
@@ -1023,28 +982,58 @@ def optimize_complex(
         start=trajectory_start,
     )
     effective_forcefield = _resolve_complex_forcefield(forcefield)
+    session_input = pack_complex_session_input(working_mol)
+    session = create_optimization_session(session_input)
+    options = _optimization_options(
+        effective_forcefield=effective_forcefield,
+        algorithm=algorithm,
+        epochs=epochs,
+        steps_per_epoch=steps_per_epoch,
+        untangling_attempt_limit=complex_untangling_attempts,
+        perturb_interval=perturb_interval,
+        perturb_sigma=perturb_sigma,
+        trajectory_start=trajectory_start,
+        save_movie=save_movie,
+        stopping_criteria=stopping_criteria,
+        increasing_vdw=increasing_vdw,
+        vdw_cutoff_start=vdw_cutoff_start,
+        vdw_cutoff_end=vdw_cutoff_end,
+    )
+    offsets = native_optimization_offsets(
+        len(working_mol.atoms),
+        seed,
+        options=options,
+    )
     try:
-        report = _optimize_complex_working_mol(
+        native_result = _native_optimize_complex(
+            session,
+            offsets.untangling,
+            offsets.optimization,
+            options=options,
+        )
+        report = _complete_native_optimization(
             working_mol,
+            session_input,
+            native_result,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
-            algorithm=algorithm,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            complex_untangling_attempts=complex_untangling_attempts,
             quality_level=quality_level,
             topology_reference=topology_reference,
             quality_thresholds=quality_thresholds,
-            seed=seed,
-            perturb_interval=perturb_interval,
-            perturb_sigma=perturb_sigma,
-            stopping_criteria=stopping_criteria,
-            retain_epoch_history=save_movie,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
         )
+    except _native_module().ForceFieldSetupError as native_error:
+        error = _native_setup_error(
+            native_error,
+            requested_forcefield=forcefield,
+            effective_forcefield=effective_forcefield,
+        )
+        _preserve_failed_trajectory(
+            error,
+            trajectory,
+            trajectory_path=trajectory_path,
+        )
+        raise error from native_error
     except ForceFieldError as error:
         _preserve_failed_trajectory(
             error,

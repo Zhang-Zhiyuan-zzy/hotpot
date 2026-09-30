@@ -273,11 +273,7 @@ def forcefield_run_report(
     trajectory: Optional[ForceFieldTrajectoryArchive] = None,
 ) -> ForceFieldRunReport:
     """Map one native Stage 3 result to the established optimizer report."""
-    setup_succeeded = any((
-        result.epochs_completed,
-        result.steps_submitted,
-        result.initialization_steps,
-    ))
+    setup_succeeded = result.termination_reason != "topology_blocked"
     return ForceFieldRunReport(
         requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,

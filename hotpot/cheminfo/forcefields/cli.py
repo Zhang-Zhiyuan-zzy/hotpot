@@ -464,6 +464,8 @@ def _forcefield_error_evidence(error: ForceFieldError) -> dict[str, object]:
     evidence: dict[str, object] = {}
     if isinstance(error, ForceFieldSetupError) and error.report is not None:
         evidence["setup_report"] = error.report
+    if isinstance(error, ForceFieldSetupError) and error.diagnostics is not None:
+        evidence["build_diagnostics"] = error.diagnostics
     if isinstance(error, GeometryQualityError) and error.report is not None:
         evidence["quality_report"] = error.report
     if (

@@ -95,10 +95,72 @@ execution. `--render auto` uses PyMOL when installed. `--render required`
 turns missing PyMOL into an explicit error. Install the project with its
 `pymol` extra before using the required mode.
 
-Only the `hotpot` backend currently implements the complete CBond-to-force-
-field pipeline. The backend option is explicit so future optimizer adapters
-can be added without claiming that RDKit or Open Babel provides Hotpot's
+Only the `hotpot` backend implements the complete CBond-to-force-field
+pipeline above. The separate backend comparison described below deliberately
+holds CBond output fixed; it does not claim that RDKit or Open Babel provides
 CBond inference.
+
+## Fixed-topology backend comparison
+
+`backend_comparison.py` compares only 3D construction and native force-field
+optimization. It exports the 178 CBond-successful cases from one completed
+Hotpot run as a coordinate-free contract containing the original ligand
+SMILES, donor indices, and expected atom/bond counts and topology hash. The
+runner reconstructs and verifies the selected explicit-hydrogen topology;
+coordinates are not retained. RDKit uses its native dative representation for
+metal bonds; Hotpot and Open Babel use single bonds. RDKit and Open Babel
+independently generate all coordinates, and the same Hotpot `standard`
+geometry gate is used for all three reported workflows.
+
+Run RDKit and native Open Babel with 16 workers, retaining the existing
+Hotpot result as the frozen reference:
+
+```bash
+$ python -m tests.benchmarks.coordination_complexes.backend_comparison \
+  --reference movie/benchmarks/extractants_eu_187_59e5741_20260930 \
+  --output movie/benchmarks/extractants_eu_178_backend_comparison \
+  --workers 16
+```
+
+Use `--resume` to reuse already completed per-case backend reports. Use
+`--backends rdkit` or `--backends openbabel` to run one adapter. Aggregation
+still requires reports for every selected backend and verifies that every
+backend covers exactly the same canonical cohort.
+
+The native protocols are:
+
+- RDKit: donor-to-Eu dative bonds, relaxed property-cache valence handling
+  (`strict=False`), seeded ETKDGv3 with random coordinates and smoothing
+  failures allowed, then fully parameterized MMFF when available or full/
+  explicitly labelled partial UFF otherwise;
+- Open Babel: `OBBuilder`, followed by UFF conjugate gradients for up to
+  10,000 steps; its upstream builder does not guarantee deterministic output
+  from `OB_RANDOM_SEED`; and
+- Hotpot: the frozen result from the reference run, without rerunning its
+  chemistry.
+
+Build success, force-field support, complete parameterization, finite
+optimized output, backend-reported convergence, topology preservation, and
+common-gate acceptance are separate fields. “Finite optimized output” does not
+mean that the backend convergence threshold was reached. In particular, a
+partial-UFF RDKit result is never reported as fully parameterized. A `standard`
+gate pass establishes only the tested numerical, topology, and geometry
+invariants; it does not establish experimental-structure accuracy or
+metal-force-field validity.
+
+The comparison output is:
+
+```text
+<comparison-output>/
+├── canonical_cases.json
+├── comparison.json
+├── comparison.csv
+├── case_results.csv
+├── comparison.png
+└── cases/
+    ├── rdkit/NNNN/report.json
+    └── openbabel/NNNN/report.json
+```
 
 ## Output contract
 

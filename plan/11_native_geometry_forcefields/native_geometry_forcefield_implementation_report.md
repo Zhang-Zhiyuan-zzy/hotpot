@@ -2,7 +2,8 @@
 
 Date: 2026-09-30
 
-Status: implementation record for Phases 0--9; Phase 10 validation is pending
+Status: production implementation complete; in-scope Phase 10 validation
+completed, with declared project-global and historical-ablation limits
 
 Approved plan: [`native_geometry_forcefield_refactor.md`](native_geometry_forcefield_refactor.md)
 
@@ -10,9 +11,11 @@ Planning baseline: `9c70ef63f337`
 
 This report records what was implemented, how the runtime boundary changed,
 which commits belong to each implementation phase, and which performance
-statements are currently supported by evidence. It deliberately does not fill
-Phase 10 fields with estimates. Every table cell marked **PENDING** requires a
-new measurement on the exact final HEAD named in the future validation report.
+statements are supported by the final validation. Detailed commands, raw-result
+summaries and case-level analysis are in
+[`native_geometry_forcefield_test_report.md`](native_geometry_forcefield_test_report.md),
+and supported entry points are documented in
+[`native_api_and_usage.md`](native_api_and_usage.md).
 
 ## 1. Scope and fixed decisions
 
@@ -79,6 +82,9 @@ hotpot/cheminfo/
 │       ├── batch.*                 # packed batch screening
 │       ├── construction.*          # native construction utilities
 │       └── bindings.cpp            # Python entry to the canonical kernels
+├── graph/
+│   └── _native/
+│       └── relevant_cycles.*        # Relevant Cycles C++ kernel and binding
 ├── forcefields/
 │   ├── workflows.py                # public workflow composition/commit
 │   ├── native.py                   # independent native stage facade
@@ -109,17 +115,20 @@ hotpot/cheminfo/
         └── native_bindings.cpp       # sole Open Babel extension module
 ```
 
-`setup.py` builds two extension modules:
+`setup.py` builds three extension modules:
 
 - `hotpot.cheminfo.geometry._geometry_native`, which exposes the public
   geometry Python entry;
+- `hotpot.cheminfo.graph._relevant_cycles`, which exposes the Relevant Cycles
+  graph kernel;
 - `hotpot.cheminfo.obWrappers._ob_native`, which contains the Open Babel
   engine, the native force-field stages and the same canonical geometry C++
   sources needed by the native hot loops.
 
-This is one mathematical source implementation compiled into two extension
-artifacts for two entry boundaries, not two independently maintained geometry
-algorithms.
+The geometry sources are one mathematical implementation compiled into the
+geometry extension and again inside the Open Babel/force-field extension for
+two entry boundaries; they are not two independently maintained geometry
+algorithms. The third extension is the separate Relevant Cycles graph kernel.
 
 ## 3. Architecture before and after
 
@@ -206,7 +215,7 @@ checkpoint evidence and trajectory events remain separate and inspectable.
 | Stage 3 ring repair | Python orchestration | native checkpoint/untangling controller | source and focused tests |
 | Stage 3 numerical loop | already native per optimizer call | native stage on shared session | source and focused tests |
 | Stage 2 -> Stage 3 state | Python `Molecule` handoff | explicit results over one workflow session | source and composition tests |
-| Composed boundary | repeated calls | one native request/return after Stage 1 | routing tests; runtime count still pending |
+| Composed boundary | repeated calls | one native request/return after Stage 1 | routing/source tests; no production counter emitted |
 | Trajectory transfer | Python frame-by-frame production | native batch, one Python ingestion step | source and ingestion tests |
 | Failure after completed Stage 2 | generic setup failure could lose Stage 2 context | typed failure carries completed Stage 2 diagnostics/frames | focused failure tests |
 | Legacy Python Stage 2/3 implementations | active | removed after public cut-over | source and stale-symbol tests |
@@ -379,9 +388,9 @@ targets, classifications and coordinate actions.
 | `d1888f6` | split perturbation streams so Stage 2 and Stage 3 retain independent deterministic inputs |
 | `98c67c4` | verified stage-specific perturbation streams |
 
-Native `elapsed_seconds` fields exist, but the reusable 187-case reporter does
-not yet expose all of them separately. This is an evidence-export gap to fix
-before the final Phase 10 run, not permission to estimate stage timings.
+Native `elapsed_seconds` fields existed at this point. Phase 10 commit
+`b497b78` subsequently exposed the Stage 1, Stage 2 and Stage 3 timings in the
+reusable 187-case report.
 
 ### Phase 9 -- public switch, cleanup and failure-contract hardening
 
@@ -414,6 +423,28 @@ before the final Phase 10 run, not permission to estimate stage timings.
 preparation. It adds compatibility-suite coverage but is not itself a completed
 Python 3.9--3.14 matrix result.
 
+### Phase 10 -- measurement, integration hardening and final validation
+
+| Commit | Change |
+|---|---|
+| `5fb99f1` | isolated Open Babel system headers for the compatibility build |
+| `b497b78` | exported Stage 1, Stage 2 and Stage 3 benchmark timings |
+| `ee60315` | added the fresh-process trajectory-retention/RSS profiler |
+| `9a0bb6b` | batched lazy segment iterators in the native geometry path |
+| `443ea8a` | centralized native force-field helpers |
+| `b60ae94` | verified Stage 1 timing attribution |
+| `74431a0` | reduced the composed Stage 2 + Stage 3 path to one Python/native entry |
+| `1b4a770` | centralized Python ring-screening defaults |
+| `601e4f6` | centralized native computational defaults |
+| `6c80213` | enforced Python/C++ default-value parity |
+| `fb20ec3` | targeted the workflow seam owned by the caller's input molecule |
+| `0219e64` | removed cycle-order dependence from ring-containment tests |
+| `2518a0c` | rejected Open Babel's premature optimizer stop unless the global maximum atom gradient also meets its intended threshold |
+
+`59e5741` adds the API guide only. The clean final benchmark manifest names
+that commit; `2518a0c` is its production-code ancestor and there are no source
+or test changes between them.
+
 ## 6. Correctness evidence already present
 
 The repository contains the following committed verification mechanisms:
@@ -433,8 +464,8 @@ The repository contains the following committed verification mechanisms:
   result when Stage 3 setup fails.
 
 These tests support implementation and behavior statements. They do not
-replace the final complete-suite, version-matrix or 187-case results requested
-by Phase 10.
+replace the final compatibility matrix or 187-case result requested by Phase
+10.
 
 ## 7. Evidence classification
 
@@ -586,33 +617,38 @@ Those three measurements justify hotspot selection, but their exact ad-hoc
 driver and raw output were not retained. They must not be presented as a
 strict before/after benchmark.
 
-## 9. Current evidence gaps before Phase 10 completion
+## 9. Final evidence and remaining limits
 
-The implementation is not performance-complete until the following gaps are
-closed:
+Phase 10 produced the required in-scope functional evidence:
 
-1. No final-HEAD geometry profile JSON has been recorded.
-2. No final-HEAD 187-case run has been recorded.
-3. No final Python 3.9--3.14 build/test matrix has been recorded.
-4. The reusable 187 reporter currently aggregates total force-field time but
-   does not persist and aggregate Stage 2 and Stage 3 native elapsed time as
-   separate top-level metrics.
-5. Native call count and `OBMol` construction/rebuild count are structurally
-   constrained by tests and architecture, but no runtime counters are emitted.
-6. AABB/exact-kernel counts exist in checkpoint trajectory evidence, but the
-   current benchmark summary does not aggregate them.
-7. Peak resident memory with and without retained frames has not been measured.
-   The existing geometry profiler reports Python `tracemalloc` peak only; that
-   is not total native RSS.
-8. No per-phase timing artifact exists for every Phase 1--9 boundary. Earlier
-   native implementations were not always connected to the public workflow,
-   so end-to-end 187 runs at every commit would not isolate their effect.
-9. Historical full runs are single runs. Stable speed claims need repeated,
-   interleaved baseline/current measurements on the same idle machine.
-10. `movie/` is ignored by Git. Final machine-readable evidence needs an
-    explicit retention decision or a compact tracked summary with hashes.
+1. a clean-worktree 187-case standard run with complete trajectories and
+   renders;
+2. strict reconstruction and integrity checks over every case artifact;
+3. final native geometry profiles and a three-repeat trajectory-retention/RSS
+   profile;
+4. a successful Python 3.9--3.14 native/inference compatibility matrix,
+   including Open Babel
+   3.1 on Python 3.9 and Open Babel 3.2 on newer interpreters.
 
-## 10. Phase 10 reproducible commands
+The following measurement limits remain and are reported explicitly rather
+than filled with estimates:
+
+- no machine-readable Phase 0 output from the present profiler was committed;
+  the locally retained Python baseline is usable for descriptive comparison;
+- native-call, `OBMol` rebuild and aggregated AABB/exact-kernel counters are
+  structurally tested but are not emitted by the 187 reporter;
+- several early phase commits were not connected to the public workflow, so a
+  per-phase end-to-end timing ablation would compare different executable
+  paths rather than isolate one change;
+- the baseline and final 187 measurements are one complete run each. Their
+  difference is an observed same-machine result, not a confidence interval;
+- `movie/` and `/tmp` evidence are locally auditable but intentionally ignored
+  by Git. The compact numerical conclusions are retained in the test report;
+- PNG validation checks file integrity and render metadata. Cases 54, 61, 109
+  and 125 were visually spot-checked, but the full set did not receive an
+  independent human assessment of chemical plausibility.
+
+## 10. Phase 10 commands
 
 Record the exact final commit and a clean worktree before running any command.
 Use the same machine, environment and CPU-affinity policy for baseline/current
@@ -621,204 +657,272 @@ comparisons.
 ### 10.1 Public geometry boundary profile
 
 ```bash
-python -m tests.performance.profile_geometry_boundary \
+LD_LIBRARY_PATH=/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib \
+/tmp/hotpot-native-env/bin/python -m tests.performance.profile_geometry_boundary \
   --repeats 20 \
-  --output /tmp/hotpot-native-geometry-profile.json
+  --output /tmp/59e5741.geometry-profile.json
 ```
 
 ### 10.2 Segment--cycle benchmark
 
 ```bash
-python -m tests.performance.test_segment_cycle_relation_benchmark \
+LD_LIBRARY_PATH=/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib \
+/tmp/hotpot-native-env/bin/python \
+  -m tests.performance.test_segment_cycle_relation_benchmark \
   --repeats 20 \
-  --output /tmp/hotpot-native-segment-cycle.json
+  --output /tmp/59e5741.segment-cycle.json
 ```
 
-### 10.3 Standard 187-case benchmark
+### 10.3 Trajectory-retention/RSS profile
 
 ```bash
-python -m tests.benchmarks.coordination_complexes \
+LD_LIBRARY_PATH=/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib \
+/tmp/hotpot-native-env/bin/python \
+  -m tests.performance.profile_forcefield_retention \
+  --cases 1,54,61,109,125 \
+  --repeats 3 \
+  --profile standard \
+  --output /tmp/59e5741.retention-rss.json
+```
+
+### 10.4 Standard 187-case benchmark
+
+```bash
+LD_LIBRARY_PATH=/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib \
+/tmp/hotpot-native-env/bin/python -m tests.benchmarks.coordination_complexes \
   --suite extractants-eu-187 \
+  --backend hotpot \
+  --profile standard \
   --workers 16 \
   --render required \
-  --output movie/benchmarks/extractants_eu_187_native_geometry_<commit>_<date>
+  --render-workers 16 \
+  --output movie/benchmarks/extractants_eu_187_59e5741_20260930
 ```
 
 The 187-case run must not use `--resume` when reporting total wall time. A
 resumed partial run intentionally marks complete-invocation wall time as
 unavailable.
 
-## 11. Pending final-HEAD profile tables
+### 10.5 Python compatibility matrix
 
-All values in this section are intentionally pending.
+```bash
+UV_CACHE_DIR=/tmp/hotpot-uv-cache \
+bash tests/run_inference_compatibility.sh 3.9 3.10 3.11 3.12 3.13 3.14
+```
+
+## 11. Final profile results
 
 ### 11.1 Run identity
 
 | Field | Final value |
 |---|---|
-| Git commit | **PENDING** |
-| Worktree clean | **PENDING** |
-| Date/time and timezone | **PENDING** |
-| Host/CPU model | **PENDING** |
-| Logical/physical CPU count | **PENDING** |
-| CPU affinity/governor policy | **PENDING** |
-| RAM | **PENDING** |
-| OS/kernel | **PENDING** |
-| Compiler and flags | **PENDING** |
-| Python | **PENDING** |
-| NumPy | **PENDING** |
-| Open Babel build/runtime | **PENDING** |
-| ONNX Runtime/provider | **PENDING** |
-| Input SHA-256 | **PENDING** |
+| Git commit | `59e5741b9cac26b8dc787edd481a40ba6ad41d38` (`2518a0c` production code plus API documentation only) |
+| Worktree clean | yes, recorded as `dirty: false` in the benchmark manifest |
+| Date/time and timezone | 2026-09-30, Asia/Shanghai (manifest UTC timestamp `2026-09-30T09:09:48.171801+00:00`) |
+| Host/CPU model | `chemlex-ai-2`; AMD Ryzen Threadripper PRO 3995WX |
+| Logical/physical CPU count | 128 / 64 |
+| CPU affinity/governor policy | CPUs 0--127 / `ondemand` |
+| RAM | 503 GiB |
+| OS/kernel | Linux 5.15.0-139-generic, x86-64 |
+| Compiler and flags | g++ 9.4.0; C++17, optimized build, no `-ffast-math` |
+| Python | 3.11.16 |
+| NumPy | 1.26.4 |
+| Open Babel build/runtime | 3.2.1 / 3.2.1 |
+| ONNX Runtime/provider | 1.30.0 / CPU and Azure providers |
+| Input SHA-256 | `77ef4913363bb10f0d134d6150c4f9e7214ddfaf03f8e6fc23f57308d5d3443f` |
 
 ### 11.2 Public geometry characterization
 
 | Metric | Phase 0 baseline | Final HEAD | Absolute change | Relative change |
 |---|---:|---:|---:|---:|
-| Median workload time (ms) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| P95 workload time (ms) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Minimum / maximum (ms) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Total profiled calls | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Python geometry calls | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Native geometry calls | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Peak Python traced bytes | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
+| Median workload time (ms) | 54.363675 | 2.639308 | -51.724367 | -95.14% (20.60x) |
+| P95 workload time (ms) | 54.580590 | 3.025497 | -51.555094 | -94.46% (18.04x) |
+| Minimum / maximum (ms) | 52.980962 / 54.604692 | 2.602829 / 3.148385 | -- | -- |
+| Total profiled calls | 36,568 | 3,672 | -32,896 | -89.96% |
+| Python geometry calls | 9,265 | 1,169 | -8,096 | -87.38% |
+| Native geometry calls | 0 | 36 | +36 | expected cut-over |
+| Peak Python traced bytes | 110,141 | 199,823 | +89,682 | +81.42% |
+
+The higher `tracemalloc` peak is about 88 KiB and measures Python-visible
+temporary allocations only. It is not total process RSS and does not offset
+the approximately 20.6x workload-time reduction.
 
 ### 11.3 Segment--cycle workloads
 
 | Workload | Historical median | Final median | Historical P95 | Final P95 | Median speedup |
 |---|---:|---:|---:|---:|---:|
-| planar 6-membered pair | 1.334 ms | **PENDING** | 1.401 ms | **PENDING** | **PENDING** |
-| planar 8-membered pair | 1.698 ms | **PENDING** | 1.710 ms | **PENDING** | **PENDING** |
-| nonplanar 6-membered pair | 21.183 ms | **PENDING** | 21.523 ms | **PENDING** | **PENDING** |
-| nonplanar 8-membered pair | 312.748 ms | **PENDING** | 354.966 ms | **PENDING** | **PENDING** |
-| lazy frame relation gate | 8.027 ms | **PENDING** | 8.142 ms | **PENDING** | **PENDING** |
-| dense 16-pair frame scan | 16.186 ms | **PENDING** | 16.262 ms | **PENDING** | **PENDING** |
+| planar 6-membered pair | 1.334 ms | 0.040307 ms | 1.401 ms | 0.050062 ms | 33.10x |
+| planar 8-membered pair | 1.698 ms | 0.040547 ms | 1.710 ms | 0.044250 ms | 41.88x |
+| nonplanar 6-membered pair | 21.183 ms | 0.063601 ms | 21.523 ms | 0.070634 ms | 333.06x |
+| nonplanar 8-membered pair | 312.748 ms | 0.287997 ms | 354.966 ms | 0.310284 ms | 1,085.94x |
+| lazy frame relation gate | 8.027 ms | 0.281224 ms | 8.142 ms | 0.321435 ms | 28.54x |
+| dense 16-pair frame scan | 16.186 ms | 0.660328 ms | 16.262 ms | 0.700197 ms | 24.51x |
 
-The historical and final environments must be shown beside this table. If
-they differ materially, the table is descriptive rather than a controlled
-speedup calculation.
+The historical run used CPython 3.11.15 and NumPy 2.3.5; the final run used
+CPython 3.11.16 and NumPy 1.26.4. The large reductions are consistent with the
+native cut-over, but the environment difference makes them descriptive rather
+than a perfectly controlled A/B comparison. Full details are in the test
+report.
 
-### 11.4 Native stage and boundary profile
+### 11.4 Native stage and memory evidence
 
-| Metric | Baseline | Final HEAD | Absolute change | Relative change |
-|---|---:|---:|---:|---:|
-| Stage 1 elapsed (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| session packing/materialization (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Stage 2 elapsed (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| placement elapsed (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| coordination restoration/relaxation (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| ring untangling elapsed (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Stage 3 numerical optimization (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| final validation/materialization (s) | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| Python -> native entries after Stage 1 | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| `OBMol` constructions/rebuilds | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| AABB candidate pairs | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| AABB-separated pairs | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| exact planar/nonplanar pairs | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| peak RSS, retain frames off | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
-| peak RSS, retain frames on | **PENDING** | **PENDING** | **PENDING** | **PENDING** |
+The final 187 run records 543.905 s in Stage 1, 59.167 s in Stage 2 and
+958.042 s in Stage 3 across the 178 CBond-successful cases. These are summed
+case CPU/wall durations under 16-way case parallelism; they are not additive
+to the benchmark wall clock.
 
-This table requires explicit counters or a documented external profiler.
-Structural expectations must not be copied into measured columns.
+The three-repeat fresh-worker retention profile over cases 1, 54, 61, 109 and
+125 produced:
 
-## 12. Pending 187-case comparison
+| Metric | `save_movie=False` | `save_movie=True` | Observed difference |
+|---|---:|---:|---:|
+| Samples | 15 | 15 | -- |
+| Median retained frames | 26 | 122 | +96 |
+| Median explicitly retained coordinate bytes | 14,400 | 294,240 | +279,840 bytes |
+| Median process peak RSS | 270,296 KiB | 270,380 KiB | +84 KiB (+0.031%) |
+| Median workflow wall time | 3.755380 s | 3.756492 s | +0.001112 s (+0.030%) |
+
+The explicit coordinate increase is real. The process-RSS delta is smaller
+than run-to-run noise in the paired samples, so it supports “no material RSS
+regression detected,” not a precise 84 KiB memory claim. Runtime counters for
+native entries, `OBMol` reconstruction, AABB candidates and exact kernel calls
+were not added solely for this report; their structural invariants remain
+covered by source and routing tests.
+
+## 12. Final 187-case comparison
 
 Preferred baseline: `1e14f28`, described in Section 8.3.
 
 | Metric | `1e14f28` baseline | Final HEAD | Absolute change | Relative change |
 |---|---:|---:|---:|---:|
-| Passed / quality failed / CBond failed | 175 / 3 / 9 | **PENDING** | **PENDING** | -- |
-| Overall success rate | 93.5829% | **PENDING** | **PENDING** | -- |
-| Success after CBond | 98.3146% | **PENDING** | **PENDING** | -- |
-| Wall time | 135.986209 s | **PENDING** | **PENDING** | **PENDING** |
-| Aggregate case time | 2060.754837 s | **PENDING** | **PENDING** | **PENDING** |
-| Aggregate CBond time | 23.868330 s | **PENDING** | **PENDING** | **PENDING** |
-| Aggregate force-field time | 2028.690725 s | **PENDING** | **PENDING** | **PENDING** |
-| Median case time | 10.058320 s | **PENDING** | **PENDING** | **PENDING** |
-| P95 case time | 20.606408 s | **PENDING** | **PENDING** | **PENDING** |
-| Maximum case time | 69.294549 s | **PENDING** | **PENDING** | **PENDING** |
-| Throughput | 1.375139 cases/s | **PENDING** | **PENDING** | **PENDING** |
-| Complete trajectories | 178 | **PENDING** | **PENDING** | -- |
-| Main trajectory frames | 8545 | **PENDING** | **PENDING** | **PENDING** |
-| Missing/corrupt artifacts | 0 | **PENDING** | **PENDING** | -- |
+| Passed / quality failed / CBond failed | 175 / 3 / 9 | 177 / 1 / 9 | +2 / -2 / 0 | -- |
+| Overall success rate | 93.5829% | 94.6524% | +1.0695 percentage points | -- |
+| Success after CBond | 98.3146% | 99.4382% | +1.1236 percentage points | -- |
+| Wall time | 135.986209 s | 125.233353 s | -10.752856 s | -7.91% |
+| Aggregate case time | 2060.754837 s | 1849.082543 s | -211.672294 s | -10.27% |
+| Aggregate CBond time | 23.868330 s | 23.583082 s | -0.285248 s | -1.20% |
+| Aggregate force-field time | 2028.690725 s | 1817.255579 s | -211.435146 s | -10.42% |
+| Median case time | 10.058320 s | 9.083435 s | -0.974885 s | -9.69% |
+| P95 case time | 20.606408 s | 20.071277 s | -0.535131 s | -2.60% |
+| Maximum case time | 69.294549 s | 42.413686 s | -26.880863 s | -38.79% |
+| Throughput | 1.375139 cases/s | 1.493212 cases/s | +0.118073 cases/s | +8.59% |
+| Complete trajectories | 178 | 178 | 0 | -- |
+| Main trajectory frames | 8,545 | 20,291 | +11,746 | +137.46% |
+| Missing/corrupt artifacts | 0 | 0 | 0 | -- |
 
 Required scientific comparison beyond aggregate counts:
 
 | Check | Final result |
 |---|---|
-| Per-case status transition table | **PENDING** |
-| Newly failing cases | **PENDING** |
-| Newly passing cases with reason | **PENDING** |
-| Case 61 remains a declared failure without relaxed thresholds | **PENDING** |
-| Case 54 outcome and evidence | **PENDING** |
-| Case 109 placement/collision outcome and evidence | **PENDING** |
-| Final confirmed ring--bond piercing count | **PENDING** |
-| Atom order and intended topology preserved | **PENDING** |
-| Every CBond-success case has readable trajectory and output structure | **PENDING** |
-| Required per-case and contact-sheet PNG files present | **PENDING** |
+| Per-case status transition table | cases 54 and 109 changed `failed_quality -> passed`; case 61 remained `failed_quality`; no new failures |
+| Newly failing cases | none |
+| Newly passing cases with reason | 54 and 109: native metal placement removed Eu collision/collapse; 125 also passes relative to pre-fix `0219e64` after false convergence was corrected |
+| Case 61 remains a declared failure without relaxed thresholds | yes; two Eu--N distances remain 1.5073 and 1.5012 Angstrom, failing the unchanged short-bond and radius-ratio checks |
+| Case 54 outcome and evidence | passed; Eu--S distances 2.754/2.639 Angstrom, no final piercing, RMS/max gradient 0.458/1.648 |
+| Case 109 placement/collision outcome and evidence | passed and truly converged; both Eu--N distances 2.34291 Angstrom, RMS/max gradient 0.0495/0.0928 |
+| Case 125 outcome after convergence fix | passed after 100 epochs/9,968 submitted steps; quality checks pass, but correctly reports budget exhaustion rather than convergence |
+| Final confirmed ring--bond piercing count | zero for the highlighted cases; all 177 accepted cases pass the terminal hard gate |
+| Atom order and intended topology preserved | all 178 outputs match the authoritative selected frame; Eu adjacency exactly matches the reported CBond donor set |
+| Every CBond-success case has readable trajectory and output structure | yes, 178/178 |
+| Required per-case and contact-sheet PNG files present | yes; 178 molecular renders, 9 explicit CBond-failure placeholders, and one root contact sheet |
 
-## 13. Pending per-phase ablation record
+The intermediate `0219e64` build completed in 95.751 s but inherited Open
+Babel's premature stopping behavior. After `2518a0c`, 162 cases truthfully
+report budget exhaustion instead of 19, Stage 3 aggregate time increases from
+496.684 s to 958.042 s, and main trajectory frames increase from 9,142 to
+20,291. That is the cost of executing the requested optimizer budget rather
+than accepting a false global convergence result. The final implementation is
+still 7.91% faster on wall time than the original baseline and improves the
+chemical pass count from 175 to 177.
 
-The table must be completed only with runs that isolate the named boundary.
-An end-to-end 187 run before a feature is connected to the public path cannot
-measure that feature's performance contribution.
+## 13. Per-phase ablation disposition
 
-| Phase | Suggested anchor | Isolated workload | Before | After | Speedup | Counters/notes |
-|---:|---|---|---:|---:|---:|---|
-| 0 | `5931d44` | characterization baseline | **PENDING** | -- | -- | calls, RSS, outputs |
-| 1 | `6806276` | direct primitive C++ vs frozen Python | **PENDING** | **PENDING** | **PENDING** | direct-entry differential run |
-| 2 | `1ddd7eb` | planar pair and batch kernels | **PENDING** | **PENDING** | **PENDING** | identical states/evidence required |
-| 3 | `cb73b99` | nonplanar prepare/classify/batch | **PENDING** | **PENDING** | **PENDING** | preparation and exact kernel split |
-| 4 | `7cbbd16` | public geometry characterization | **PENDING** | **PENDING** | **PENDING** | Python materialization included |
-| 5 | `c53a09f` | repeated relaxations, rebuilt vs shared session | **PENDING** | **PENDING** | **PENDING** | native calls and OBMol builds |
-| 6 | `eb1a65a` | placement candidate/check corpus | **PENDING** | **PENDING** | **PENDING** | candidate and exact-check counts |
-| 7 | `accffa5` | independent calls vs composed shared session | **PENDING** | **PENDING** | **PENDING** | same stage results required |
-| 8 | `8562706` | frame-wise transfer vs native batch ingestion | **PENDING** | **PENDING** | **PENDING** | frame count and peak memory |
-| 9 | `0bf9b71` | public pre-switch vs native public workflow | **PENDING** | **PENDING** | **PENDING** | use focused + selected corpus before 187 |
+A strict wall-time value for every Phase 1--9 commit is **not recoverable**.
+Several commits introduced native kernels before the public path called them;
+later commits changed evidence collection and convergence correctness. Running
+the 187 workflow at every commit would therefore compare inactive code or
+different scientific contracts, not isolate one implementation change.
 
-The final report may mark an ablation **not recoverable** if its exact parent
-implementation cannot be built or no longer shares the same scientific
-contract. It must not manufacture a delta by comparing unrelated workloads.
+The retained evidence instead separates three defensible scopes:
 
-## 14. Pending Python 3.9--3.14 compatibility matrix
+| Scope | Evidence | Result |
+|---|---|---|
+| Geometry migration | identical public workload before/after | 20.60x median boundary speedup; 24.51x--1,085.94x across focused segment--cycle workloads |
+| Integrated native workflow before convergence correction | `1e14f28` vs `0219e64` | 29.59% lower wall time, but one false-convergence regression (case 125) |
+| Final chemically corrected workflow | `1e14f28` vs `59e5741` | 7.91% lower wall time and two additional passing structures |
 
-`efe9572` makes the native force-field suite discoverable by the compatibility
-runner. It does not fill this matrix.
+Commit-level source and differential tests remain the evidence for individual
+phase correctness. No timing number is assigned to a phase that did not have
+an executable, contract-equivalent before/after pair.
 
-| Python | Environment identity | NumPy | Open Babel | Native build | Focused geometry | Focused forcefields | Complete suite | Notes |
+## 14. Python 3.9--3.14 compatibility matrix
+
+The isolated compatibility runner rebuilt all native extensions for every
+interpreter before running the same selected project suite and SMARTS suite.
+
+| Python | Environment identity | NumPy | Open Babel | Native build | Focused geometry | Focused forcefields | Compatibility suite | Notes |
 |---|---|---|---|---|---|---|---|---|
-| 3.9 | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | |
-| 3.10 | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | |
-| 3.11 | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | |
-| 3.12 | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | |
-| 3.13 | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | |
-| 3.14 | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | **PENDING** | |
+| 3.9 | isolated `uv --no-project` | 2.0.2 | 3.1.0 | pass | included/pass | included/pass | 1,189 passed, 4 skipped, 3 xfailed; SMARTS 255 passed | 34 warnings |
+| 3.10 | isolated `uv --no-project` | 2.2.6 | 3.2.1 | pass | included/pass | included/pass | 1,189 passed, 4 skipped, 3 xfailed; SMARTS 255 passed | 49 subtests; 5 warnings |
+| 3.11 | isolated `uv --no-project` | 1.26.4 | 3.2.1 | pass | included/pass | included/pass | 1,189 passed, 4 skipped, 3 xfailed; SMARTS 255 passed | 49 subtests; 5 warnings |
+| 3.12 | isolated `uv --no-project` | 2.5.3 | 3.2.1 | pass | included/pass | included/pass | 1,189 passed, 4 skipped, 3 xfailed; SMARTS 255 passed | 49 subtests; 44 warnings |
+| 3.13 | isolated `uv --no-project` | 2.5.3 | 3.2.1 | pass | included/pass | included/pass | 1,189 passed, 4 skipped, 3 xfailed; SMARTS 255 passed | 49 subtests; 44 warnings |
+| 3.14 | isolated `uv --no-project` | 2.5.3 | 3.2.1 | pass | included/pass | included/pass | 1,189 passed, 4 skipped, 3 xfailed; SMARTS 255 passed | 49 subtests; 44 warnings |
 
 The matrix must distinguish “interpreter unavailable” from a build or test
 failure. Open Babel build/runtime versions and C++ ABI must be recorded because
 Python version alone does not characterize this extension.
 
-## 15. Pending complete-suite result
+## 15. Compatibility-suite and artifact result
 
 | Item | Final result |
 |---|---|
-| Exact command | **PENDING** |
-| Collected tests | **PENDING** |
-| Passed | **PENDING** |
-| Failed | **PENDING** |
-| Skipped / xfailed | **PENDING** |
-| Warnings | **PENDING** |
-| Wall time | **PENDING** |
-| Coverage command/result, if run | **PENDING** |
-| Failure analysis links | **PENDING** |
+| Exact command | `UV_CACHE_DIR=/tmp/hotpot-uv-cache bash tests/run_inference_compatibility.sh 3.9 3.10 3.11 3.12 3.13 3.14` |
+| Collected tests per interpreter | 1,196 main outcomes plus 255 SMARTS conformance tests |
+| Passed | 1,189 main + 255 SMARTS on every interpreter |
+| Failed | 0 on every interpreter |
+| Skipped / xfailed | 4 / 3 on every interpreter |
+| Warnings | 34 on Python 3.9; 5 on 3.10--3.11; 44 on 3.12--3.14 |
+| Main-suite wall time | 219.57--235.99 s per interpreter; complete six-version runner about 35 minutes |
+| Coverage command/result | not run in Phase 10; this phase validates behavior and compatibility, not a coverage target |
+| Failure analysis | case 61 and the Open Babel false-convergence correction are detailed in the test report |
+
+This is the repository's defined native/inference compatibility selection,
+not every test file under the checkout. A project-global `pytest --collect-only`
+audit found 1,535 tests but cannot complete in the lean inference environment:
+unrelated example/plugin tests require optional `torch`, `torch_geometric`,
+`numba`, `requests`, and `scikit-learn` dependencies, and default pytest import
+mode collides on duplicate test basenames. No project-global pass is claimed.
+
+The final artifact audit additionally established:
+
+- all 733 JSON files parse strictly without `NaN` or `Infinity`;
+- all 178 trajectory archives deserialize through
+  `ForceFieldTrajectoryArchive.read()` and contain 20,291 valid main frames
+  plus 186 valid ligand-build branches;
+- all selected coordinates, coordinate/topology revisions, energies and bond
+  indices are finite and internally consistent;
+- 178 MOL2 outputs match their authoritative selected-frame atom order,
+  coordinates and undirected bond set; each has one Eu and its Eu adjacency
+  exactly matches the CBond donor indices;
+- aggregate SDF counts are 178 for all outputs and 177 for passing outputs;
+- 178 molecular PNGs, 9 explicit failure placeholders and the root contact
+  sheet are valid; no staging, backup or temporary artifacts remain.
 
 ## 16. Completion statement
 
-Phases 0--9 have produced the intended native source architecture and public
-cut-over. That statement is supported by the source tree, commit history and
-focused behavioral tests.
+The production work in Phases 0--9 and the defined in-scope Phase 10 validation
+are complete. The project-global optional test collection and irrecoverable
+historical per-phase timing ablations are explicit exceptions, not silently
+claimed results. The refactor preserves the three independent scientific
+stages and the stable Python API while providing direct C++ and Python access
+to one numerical implementation. The final standard corpus has no new
+failures, fixes cases 54 and 109 relative to the reusable baseline, and
+corrects case 125's false convergence without weakening a chemistry threshold.
+Case 61 remains the one declared force-field quality failure.
 
-Phase 10 is not complete in this report. Completion requires all pending final
-HEAD tables to be filled from retained artifacts, with scientific equivalence
-evaluated before performance. Until then, the only quantitative claims are the
-historical observations explicitly classified in Section 8.
+The measured final workflow is 7.91% faster in wall time than the original
+same-machine baseline. More importantly, it reports convergence truthfully:
+budget exhaustion is no longer accepted merely because Open Babel stopped on
+one atom's small gradient. The detailed evidence and reproducibility limits
+are part of the test report and must accompany any performance claim.

@@ -2,9 +2,27 @@
 
 Date: 2026-09-29
 
-Status: approved; phased implementation in progress
+Status: production implementation complete; in-scope Phase 10 validation
+complete, with declared project-global and historical-ablation limits
 
 Planning baseline: `9c70ef63f337`
+
+Complete production-code commit: `2518a0c`
+
+Validation manifest commit: `59e5741` (documentation-only; adds the native
+API guide and does not change production behaviour)
+
+As-built records:
+
+- [Implementation report](native_geometry_forcefield_implementation_report.md)
+- [Validation and benchmark report](native_geometry_forcefield_test_report.md)
+- [Native API and usage guide](native_api_and_usage.md)
+
+This document remains the approved implementation plan and the historical
+planning baseline. In particular, Sections 2 and 3 describe the implementation
+that existed at the planning baseline, not the final as-built code. The reports
+above are authoritative for the resulting layout, measured behaviour and
+validation evidence.
 
 ## 1. Decisions and scope
 
@@ -80,10 +98,10 @@ The retained Python Stage 1 controller and the native Stage 2/3 controllers
 remain independently testable.  Migrated native subcomponents are callable
 either from Python bindings or directly by C++ composition.
 
-## 2. Current implementation baseline
+## 2. Planning-time implementation baseline
 
-This section records the current code as fact.  It is the behavioural and
-boundary baseline for the refactor, not the target architecture.
+This section records the code at `9c70ef63f337` as fact. It is the behavioural
+and boundary baseline for the refactor, not the final as-built architecture.
 
 ### 2.1 Current three-stage ownership
 
@@ -206,11 +224,12 @@ details even though Python currently allows an explicit private import.
 | Native Stage 3 epoch loop | `obWrappers/_native/native_engine.cpp:704-1036` |
 | Relevant Cycles cache path | `core.py:2379-2388`; `graph/cycles.py:155-161` |
 
-## 3. Located performance hotspots
+## 3. Planning-time performance hotspots
 
 ### 3.1 Measured evidence
 
-The current `geometry` package has no native implementation. Its approximately
+At the planning baseline, the `geometry` package had no native implementation.
+Its approximately
 2,500-line relation kernel repeatedly combines Python loops with very small
 NumPy arrays. A read-only `cProfile` spot check on the planning baseline found:
 
@@ -850,7 +869,7 @@ business contract; native numerical failure must not erase the trajectory.
 Each numbered phase is a separate, revertible commit or short commit series.
 No phase may mix a mathematical semantic change with a performance rewrite.
 
-### Phase 0: characterization fence
+### Phase 0: characterization fence — completed
 
 - Add reproducible cProfile/native timing scripts under tests or benchmarks.
 - Freeze the current three-stage call graph, public API inventory, stage reports
@@ -860,7 +879,7 @@ No phase may mix a mathematical semantic change with a performance rewrite.
 - Record current Python/C++ crossing counts, OBMol rebuild counts, Stage 2/3
   times and peak memory on selected small/large/long-tail cases.
 
-### Phase 1: native geometry primitives
+### Phase 1: native geometry primitives — completed
 
 - Add C++ value types, dimension-aware tolerances, distances, projections,
   angles and AABB batch kernels.
@@ -868,21 +887,21 @@ No phase may mix a mathematical semantic change with a performance rewrite.
   differential tests for every migrated public operation.
 - Keep public Python signatures and return dataclasses unchanged.
 
-### Phase 2: native planar cycle relations
+### Phase 2: native planar cycle relations — completed
 
 - Port plane fitting while preserving the documented non-canonical normal-sign
   contract, together with 2D projection, polygon simplicity/contact and planar
   segment--cycle relations.
 - Switch only after exact state/evidence parity.
 
-### Phase 3: native non-planar cycle relations
+### Phase 3: native non-planar cycle relations — completed
 
 - Port triangulation order, embedded-surface proof, triangle-pair and
   segment-triangle kernels, budgets and consensus state.
 - Preserve enumeration and comparison order exactly.
 - Add batched workspace and detail-level outputs.
 
-### Phase 4: geometry Python cut-over
+### Phase 4: geometry Python cut-over — completed
 
 - Convert `relation.py` to public wrappers and result mapping.
 - Convert `convert.py` to one-shot packed batch calls while retaining source
@@ -892,7 +911,7 @@ No phase may mix a mathematical semantic change with a performance rewrite.
 - Remove replaced Python numerical kernels after parity; do not retain a hidden
   fallback.
 
-### Phase 5: native session and stage-contract seams
+### Phase 5: native session and stage-contract seams — completed
 
 - Add `ComplexSessionInput`, `CoordinationStageResult`,
   `ComplexOptimizationResult` and composed-result contracts.  Stage 1 retains
@@ -905,7 +924,7 @@ No phase may mix a mathematical semantic change with a performance rewrite.
   composition and optional batched-frame transport without changing scientific
   behaviour.
 
-### Phase 6: native metal placement
+### Phase 6: native metal placement — completed
 
 - Implement target/radius policy, obstacle selection and the full check matrix.
 - Implement current-position assessment, single/two/multi-donor candidate
@@ -913,7 +932,7 @@ No phase may mix a mathematical semantic change with a performance rewrite.
 - Keep placement as an isolated engine; integrate it before the first Stage 2
   bond is restored.
 
-### Phase 7: independent native stages with session reuse
+### Phase 7: independent native stages with session reuse — completed
 
 - Link force-field orchestration sources into the sole Open Babel extension.
 - Move current Stage 2 control and short relaxation into its own controller and
@@ -924,14 +943,14 @@ No phase may mix a mathematical semantic change with a performance rewrite.
   the same `StructureSession&`; it must contain no duplicated stage logic.
 - Eliminate repeated molecule packing and avoidable OBMol reconstruction.
 
-### Phase 8: trajectory and result integration
+### Phase 8: trajectory and result integration — completed
 
 - Add native stage/event/evidence contracts and batch frame export.
 - Add `ForceFieldTrajectory.ingest_native_batch(...)`.
 - Preserve current selected-versus-terminal semantics, topology revisions,
   warning codes and failure artifacts.
 
-### Phase 9: public workflow switch and cleanup
+### Phase 9: public workflow switch and cleanup — completed
 
 - Make existing independent and composed complex APIs use the same native stage
   controllers.  The composed facade must not replace the independent entries.
@@ -939,14 +958,31 @@ No phase may mix a mathematical semantic change with a performance rewrite.
   native-call adapters and duplicate thresholds.
 - Keep no unconditional `try/except` or alternative compatibility path.
 
-### Phase 10: validation and performance report
+### Phase 10: validation and performance report — validated in scope
 
-- Run focused unit/property/differential tests, the complete project suite and
-  Python 3.9--3.14 build matrix.
-- Run the full 187-complex standard benchmark with retained trajectories and
-  final PNGs.
-- Publish an ablation report for every phase: absolute time, relative speedup,
-  native call count, OBMol rebuild count, exact kernel count and memory.
+- [x] Run focused unit/property/differential tests and the complete
+  native/inference compatibility selection.
+- [ ] Project-global test collection: **environment-blocked outside this
+  refactor's scope**. The lean inference environment lacks optional
+  `torch`, `torch_geometric`, `numba`, `requests`, and `scikit-learn`
+  dependencies used by unrelated example/plugin tests, while default pytest
+  import mode also encounters duplicate test basenames. No project-global
+  pass is claimed.
+- [x] Run the Python 3.9--3.14 native build and test matrix.
+- [x] Run the full 187-complex standard benchmark with retained trajectories
+  and final PNGs.
+- [x] Record reproducible end-to-end timing, kernel profiles, native stage
+  timing, trajectory-retention memory and scientific pass/fail evidence in the
+  implementation and validation reports.
+- [ ] Per-phase timing ablation: **not recoverable**. The historical phase
+  commits did not each preserve a directly comparable end-to-end benchmark
+  manifest and runtime environment. Reconstructing values now would mix later
+  correctness fixes, test-corpus changes and build state, so no absolute time
+  or relative speedup is attributed to an individual phase without evidence.
+- [ ] Low-level production counters: **not instrumented in this iteration**.
+  Stage timing and external memory are measured, while Python/native entry,
+  `OBMol` rebuild, AABB-candidate and exact-kernel counts remain verified by
+  routing/source tests rather than emitted as benchmark counters.
 
 ## 12. Verification gates
 
@@ -989,7 +1025,9 @@ closest-edge tie-breaking, must match the current definitions.
 
 ### 12.3 Scientific regression
 
-- the complete existing test suite passes;
+- the complete native/inference compatibility selection passes; unrelated
+  optional plugin/example collections are reported separately rather than
+  silently skipped;
 - geometry public API names and value-object types remain available;
 - Stage 1, Stage 2 and Stage 3 remain independently invocable, testable and
   reportable, while the composed workflow produces the same staged results;
@@ -998,13 +1036,17 @@ closest-edge tie-breaking, must match the current definitions.
 - current 175 passing structures among 178 CBond-success cases do not regress;
 - case 61 remains a declared non-goal and must not be made to pass by weakening
   thresholds;
-- case 54 is monitored but not claimed fixed: its observed collapse happens
-  after bond restoration, and this stage intentionally does not add the
-  deferred post-relaxation transaction gate;
+- case 54 is monitored without weakening thresholds; the as-built native metal
+  placement and subsequent optimization remove its original Eu collision;
 - all returned final structures and retained trajectories remain readable and
   have the intended topology.
 
 ### 12.4 Performance evidence
+
+Final disposition: the as-built reports contain public geometry profiles,
+Stage 1/2/3 timing, end-to-end timing and fresh-process RSS. The finer-grained
+counter list below remains the approved ideal instrumentation target; counters
+not emitted by the implementation are declared rather than estimated.
 
 The report must separately measure:
 
@@ -1072,7 +1114,10 @@ This refactor is complete only when all of the following are true:
    and optional complete frame batch are returned even for inspectable failure
    outcomes.
 8. Replaced Python hot loops and duplicate policy constants are removed.
-9. Python 3.9--3.14 native builds, the complete test suite and the 187-case
-   benchmark pass the stated gates.
-10. The implementation report provides per-phase profile evidence rather than
-   attributing all improvement to the rewrite as a whole.
+9. Python 3.9--3.14 native builds, the complete native/inference compatibility
+   selection and the 187-case benchmark pass the stated gates; project-global
+   optional-test limitations are stated explicitly.
+10. The implementation and validation reports provide reproducible aggregate
+    and component profile evidence. Per-phase timing ablation is explicitly
+    recorded as **not recoverable**, rather than estimated or attributed
+    without comparable historical manifests.

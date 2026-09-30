@@ -33,6 +33,8 @@ import numpy as np
 
 if TYPE_CHECKING:
     from ..core import Atom, Bond, Molecule
+    from .native_packing import ComplexSessionInput
+    from .native_reports import NativeTrajectoryBatch
 
 
 __all__ = (
@@ -254,6 +256,7 @@ class ForceFieldTrajectory:
         self._topology_index: dict[Tuple[BondTopology, ...], int] = {}
         self._frames: list[ForceFieldFrame] = []
         self._selected_index: Optional[int] = None
+        self._terminal_index: Optional[int] = None
 
     @classmethod
     def from_molecule(
@@ -304,6 +307,16 @@ class ForceFieldTrajectory:
         if self._selected_index is None:
             return None
         return self._frames[self._selected_index]
+
+    @property
+    def terminal_index(self) -> Optional[int]:
+        return self._terminal_index
+
+    @property
+    def terminal_frame(self) -> Optional[ForceFieldFrame]:
+        if self._terminal_index is None:
+            return None
+        return self._frames[self._terminal_index]
 
     def __len__(self) -> int:
         return len(self._frames)
@@ -396,6 +409,44 @@ class ForceFieldTrajectory:
         frame = self._frames[frame_index]
         self._selected_index = frame.index
         return frame
+
+    def set_terminal(self, frame_index: int) -> ForceFieldFrame:
+        """Mark a recorded frame as the workflow's terminal state."""
+        frame = self._frames[frame_index]
+        self._terminal_index = frame.index
+        return frame
+
+    def ingest_native_batch(
+        self,
+        batch: "NativeTrajectoryBatch",
+        session_input: "ComplexSessionInput",
+    ) -> Tuple[int, ...]:
+        """Append one native batch and return its native-to-global frame map."""
+        from .native_packing import unpack_native_topology_revisions
+
+        topologies = unpack_native_topology_revisions(
+            session_input,
+            batch.topology_revisions,
+        )
+        frame_indices = tuple(
+            self.record(
+                batch.coordinates[native_index],
+                topologies[int(batch.frame_topology_revisions[native_index])],
+                stage=batch.stages[native_index],
+                event=batch.events[native_index],
+                energy_kj_mol=float(batch.energies_kj_mol[native_index]),
+                component_index=batch.component_indices[native_index],
+                attempt=batch.attempts[native_index],
+                step=batch.steps[native_index],
+                evidence=batch.evidence[native_index],
+            ).index
+            for native_index in range(batch.frame_count)
+        )
+        if batch.selected_frame_index is not None:
+            self.select(frame_indices[batch.selected_frame_index])
+        if batch.terminal_frame_index is not None:
+            self.set_terminal(frame_indices[batch.terminal_frame_index])
+        return frame_indices
 
     def materialize(self, mol: "Molecule", *, keep_all: bool) -> None:
         """Expose trajectory coordinates through ``Molecule.conformers``.
@@ -620,6 +671,9 @@ class _TrajectoryWriter:
         selected_index = cls._optional_int(manifest["selected_index"])
         if selected_index is not None:
             trajectory.select(selected_index)
+        terminal_index = cls._optional_int(manifest.get("terminal_index"))
+        if terminal_index is not None:
+            trajectory.set_terminal(terminal_index)
         return trajectory
 
     @classmethod
@@ -778,6 +832,7 @@ class _TrajectoryWriter:
             ],
             "frames": [cls._frame_data(frame) for frame in trajectory.frames],
             "selected_index": trajectory.selected_index,
+            "terminal_index": trajectory.terminal_index,
             "sdf_frame_indices": [
                 frame.index
                 for frame in trajectory.frames
@@ -1021,6 +1076,11 @@ class _TrajectoryWriter:
             lines,
             "HOTpot Selected",
             str(frame.index == trajectory.selected_index),
+        )
+        cls._append_sdf_property(
+            lines,
+            "HOTpot Terminal",
+            str(frame.index == trajectory.terminal_index),
         )
         if frame.energy_kj_mol is not None:
             cls._append_sdf_property(

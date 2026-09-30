@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -18,12 +18,21 @@ from ..obWrappers.packing import (
 
 if TYPE_CHECKING:
     from ..core import Bond, Molecule
+    from .native_reports import NativeTopologyRevision
+    from .trajectory import BondTopology
 
 
 __all__ = (
     "ComplexSessionInput",
     "pack_complex_session_input",
+    "unpack_native_topology_revisions",
 )
+
+
+_BOND_KIND_NAMES = {
+    int(kind_code): kind_name
+    for kind_name, kind_code in _BOND_KIND_CODES.items()
+}
 
 
 @dataclass(frozen=True)
@@ -58,6 +67,23 @@ def _coordination_bonds(mol: "Molecule") -> tuple["Bond", ...]:
             seen.add(identity)
             unique.append(bond)
     return tuple(unique)
+
+
+def _bond_topologies(
+    atom_indices: NDArray[np.int32],
+    bond_orders: NDArray[np.float64],
+    bond_kinds: NDArray[np.uint8],
+) -> Tuple["BondTopology", ...]:
+    from .trajectory import BondTopology
+
+    return tuple(
+        BondTopology(
+            atom_indices=(int(indices[0]), int(indices[1])),
+            bond_order=float(order),
+            bond_kind=_BOND_KIND_NAMES[int(kind)],
+        )
+        for indices, order, kind in zip(atom_indices, bond_orders, bond_kinds)
+    )
 
 
 def pack_complex_session_input(mol: "Molecule") -> ComplexSessionInput:
@@ -148,4 +174,36 @@ def pack_complex_session_input(mol: "Molecule") -> ComplexSessionInput:
             intended_coordination_kinds
         ),
         unit_cell=molecule.unit_cell,
+    )
+
+
+def unpack_native_topology_revisions(
+    session_input: ComplexSessionInput,
+    revisions: Sequence["NativeTopologyRevision"],
+) -> Tuple[Tuple["BondTopology", ...], ...]:
+    """Rebuild trajectory bond tables from native active-bond masks."""
+    ligand_bonds = _bond_topologies(
+        session_input.ligand_bond_indices,
+        session_input.ligand_bond_orders,
+        session_input.ligand_bond_kinds,
+    )
+    coordination_bonds = _bond_topologies(
+        session_input.intended_coordination_bonds,
+        session_input.intended_coordination_orders,
+        session_input.intended_coordination_kinds,
+    )
+    bonds = ligand_bonds + coordination_bonds
+    return tuple(
+        tuple(
+            bond
+            for bond, active in zip(
+                bonds,
+                (
+                    *revision.active_ligand_bond_mask,
+                    *revision.active_coordination_bond_mask,
+                ),
+            )
+            if active
+        )
+        for revision in revisions
     )

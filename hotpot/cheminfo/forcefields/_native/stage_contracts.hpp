@@ -4,6 +4,10 @@
 #include "placement_policy.hpp"
 #include "trajectory.hpp"
 
+#include "../../geometry/_native/nonplanar_surface.hpp"
+#include "../../geometry/_native/segment_cycle.hpp"
+#include "../../geometry/_native/tolerances.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -14,10 +18,38 @@
 namespace hotpot::forcefields {
 
 
+namespace detail {
+
+
+struct BondRingCheckpoint;
+struct RingWorkspaceOptions;
+
+
+}  // namespace detail
+
+
 enum class NativeStageStatus : std::uint8_t {
     COMPLETED = 0,
     PARTIAL = 1,
     FAILED = 2,
+};
+
+
+enum class NativeRingGraphScope : std::uint8_t {
+    LIGAND_SKELETON = 0,
+    FULL_GRAPH = 1,
+};
+
+
+struct RingScreeningOptions {
+    std::size_t maximum_actionable_ring_size = 16;
+    std::size_t maximum_relevant_cycle_count = 10000;
+    hotpot::geometry::NumericTolerances geometry_tolerances =
+        hotpot::geometry::default_numeric_tolerances();
+    hotpot::geometry::SurfaceEnumerationLimits surface_limits =
+        hotpot::geometry::default_surface_enumeration_limits();
+
+    void validate() const;
 };
 
 
@@ -65,9 +97,60 @@ struct ComplexOptimizationOptions {
     double vdw_cutoff_end = 12.5;
     double energy_tolerance = 1.0e-6;
     std::optional<OptimizationStoppingOptions> stopping;
+    double torsion_singularity_threshold = 1.0e-6;
+    double torsion_repair_angle_radians = 1.0e-3;
+    RingScreeningOptions ring_screening;
 
     void validate() const;
 };
+
+
+struct NativeBondRingFinding {
+    std::size_t ring_index = 0;
+    std::vector<std::size_t> ring_atom_indices;
+    BondIndex bond_key = {0, 0};
+    hotpot::geometry::PiercingState state =
+        hotpot::geometry::PiercingState::DOES_NOT_PIERCE;
+    std::vector<hotpot::geometry::SegmentCycleIndeterminacy>
+        indeterminacy_causes;
+    bool aabb_separated = false;
+    bool surface_complete = true;
+
+    void validate() const;
+};
+
+
+struct NativeRingCheckpointReport {
+    hotpot::geometry::PiercingState state =
+        hotpot::geometry::PiercingState::DOES_NOT_PIERCE;
+    NativeRingGraphScope scope = NativeRingGraphScope::FULL_GRAPH;
+    std::size_t maximum_actionable_ring_size = 16;
+    std::size_t maximum_relevant_cycle_count = 10000;
+    std::size_t relevant_cycle_count = 0;
+    std::size_t selected_ring_count = 0;
+    std::size_t excluded_ring_count = 0;
+    std::size_t active_bond_count = 0;
+    std::size_t candidate_pair_count = 0;
+    std::size_t aabb_separated_pair_count = 0;
+    std::size_t exact_pair_count = 0;
+    std::size_t piercing_pair_count = 0;
+    std::size_t does_not_pierce_pair_count = 0;
+    std::size_t undetermined_pair_count = 0;
+    bool scan_complete = true;
+    std::vector<NativeBondRingFinding> actionable_findings;
+
+    void validate() const;
+};
+
+
+detail::RingWorkspaceOptions full_graph_ring_workspace_options(
+    const RingScreeningOptions& options
+);
+
+
+NativeRingCheckpointReport native_ring_checkpoint_report(
+    const detail::BondRingCheckpoint& checkpoint
+);
 
 
 struct CoordinationStageResult {
@@ -125,6 +208,7 @@ struct ComplexOptimizationResult {
     std::string termination_reason;
     std::vector<std::string> warning_codes;
     NativeTrajectoryBatch trajectory;
+    NativeRingCheckpointReport final_checkpoint;
 
     std::size_t atom_count() const noexcept;
     void validate() const;

@@ -10,6 +10,7 @@
 #include "structure_session.hpp"
 #include "trajectory.hpp"
 #include "workflow_stage.hpp"
+#include "../../obWrappers/_native/python_errors.hpp"
 
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
@@ -2332,22 +2333,33 @@ void bind_stage_results(py::module_& module) {
 }  // namespace
 
 
-void bind_native_forcefield_contracts(py::module_& module) {
+void bind_native_forcefield_contracts(
+    py::module_& module,
+    PyObject* forcefield_setup_error
+) {
     bind_session_contracts(module);
     bind_stage_options(module);
     bind_trajectory_contracts(module);
     bind_stage_results(module);
     module.def(
         "restore_coordination",
-        [](StructureSession& session,
+        [forcefield_setup_error](StructureSession& session,
            const CoordinationStageOptions& options,
            const PerturbationOffsetBatch& perturbation_offsets) {
-            py::gil_scoped_release release;
-            return restore_coordination(
-                session,
-                options,
-                perturbation_offsets
-            );
+            try {
+                py::gil_scoped_release release;
+                return restore_coordination(
+                    session,
+                    options,
+                    perturbation_offsets
+                );
+            } catch (const hotpot::obwrappers::ForceFieldSetupFailure& error) {
+                hotpot::obwrappers::raise_forcefield_setup_error(
+                    forcefield_setup_error,
+                    error,
+                    "coordination_restoration"
+                );
+            }
         },
         py::arg("session"),
         py::arg("options"),
@@ -2355,17 +2367,25 @@ void bind_native_forcefield_contracts(py::module_& module) {
     );
     module.def(
         "optimize_complex",
-        [](StructureSession& session,
+        [forcefield_setup_error](StructureSession& session,
            const ComplexOptimizationOptions& options,
            const PerturbationOffsetBatch& untangling_offsets,
            const PerturbationOffsetBatch& optimization_offsets) {
-            py::gil_scoped_release release;
-            return optimize_complex(
-                session,
-                options,
-                untangling_offsets,
-                optimization_offsets
-            );
+            try {
+                py::gil_scoped_release release;
+                return optimize_complex(
+                    session,
+                    options,
+                    untangling_offsets,
+                    optimization_offsets
+                );
+            } catch (const hotpot::obwrappers::ForceFieldSetupFailure& error) {
+                hotpot::obwrappers::raise_forcefield_setup_error(
+                    forcefield_setup_error,
+                    error,
+                    "complex_optimization"
+                );
+            }
         },
         py::arg("session"),
         py::arg("options"),
@@ -2374,21 +2394,36 @@ void bind_native_forcefield_contracts(py::module_& module) {
     );
     module.def(
         "run_complex_workflow",
-        [](StructureSession& session,
+        [forcefield_setup_error](StructureSession& session,
            const CoordinationStageOptions& coordination_options,
            const ComplexOptimizationOptions& optimization_options,
            const PerturbationOffsetBatch& coordination_offsets,
            const PerturbationOffsetBatch& untangling_offsets,
            const PerturbationOffsetBatch& optimization_offsets) {
-            py::gil_scoped_release release;
-            return run_complex_workflow(
-                session,
-                coordination_options,
-                optimization_options,
-                coordination_offsets,
-                untangling_offsets,
-                optimization_offsets
-            );
+            try {
+                py::gil_scoped_release release;
+                return run_complex_workflow(
+                    session,
+                    coordination_options,
+                    optimization_options,
+                    coordination_offsets,
+                    untangling_offsets,
+                    optimization_offsets
+                );
+            } catch (const ComplexWorkflowSetupFailure& error) {
+                hotpot::obwrappers::raise_forcefield_setup_error(
+                    forcefield_setup_error,
+                    error,
+                    "complex_optimization",
+                    py::cast(error.completed_coordination())
+                );
+            } catch (const hotpot::obwrappers::ForceFieldSetupFailure& error) {
+                hotpot::obwrappers::raise_forcefield_setup_error(
+                    forcefield_setup_error,
+                    error,
+                    "coordination_restoration"
+                );
+            }
         },
         py::arg("session"),
         py::arg("coordination_options"),

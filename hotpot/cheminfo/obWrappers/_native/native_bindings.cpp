@@ -1,5 +1,6 @@
 #include "molecule_data.hpp"
 #include "native_engine.hpp"
+#include "python_errors.hpp"
 #include "registry.hpp"
 #include "../../forcefields/_native/bindings.hpp"
 
@@ -180,20 +181,6 @@ py::array_t<double> coordinate_array(
 }
 
 
-[[noreturn]] void raise_setup_error(
-    const py::exception<ForceFieldSetupFailure>& exception_type,
-    const ForceFieldSetupFailure& error
-) {
-    py::object instance = py::reinterpret_borrow<py::object>(
-        exception_type.ptr()
-    )(error.what());
-    instance.attr("forcefield") = error.forcefield();
-    instance.attr("stage") = error.stage();
-    PyErr_SetObject(exception_type.ptr(), instance.ptr());
-    throw py::error_already_set();
-}
-
-
 [[noreturn]] void raise_energy_unit_error(
     const py::exception<ForceFieldEnergyUnitFailure>& exception_type,
     const ForceFieldEnergyUnitFailure& error
@@ -268,8 +255,6 @@ void bind_rule_contracts(py::module_& module) {
 
 PYBIND11_MODULE(_ob_native, module) {
     module.doc() = "Direct Open Babel C++ force-field backend for Hotpot";
-    bind_rule_contracts(module);
-    hotpot::forcefields::bind_native_forcefield_contracts(module);
     py::exception<ForceFieldSetupFailure> setup_error(
         module, "ForceFieldSetupError", PyExc_RuntimeError
     );
@@ -278,6 +263,10 @@ PYBIND11_MODULE(_ob_native, module) {
     );
     py::exception<OptimizationFrameFailure> frame_error(
         module, "OptimizationFrameError", PyExc_RuntimeError
+    );
+    bind_rule_contracts(module);
+    hotpot::forcefields::bind_native_forcefield_contracts(
+        module, setup_error.ptr()
     );
 
     py::enum_<BondKind>(module, "BondKind")
@@ -502,7 +491,9 @@ PYBIND11_MODULE(_ob_native, module) {
                     repair_angle_radians
                 );
             } catch (const ForceFieldSetupFailure& error) {
-                raise_setup_error(setup_error, error);
+                raise_forcefield_setup_error(
+                    setup_error.ptr(), error, "single_optimization"
+                );
             } catch (const ForceFieldEnergyUnitFailure& error) {
                 raise_energy_unit_error(energy_unit_error, error);
             }
@@ -574,7 +565,9 @@ PYBIND11_MODULE(_ob_native, module) {
                     repair_angle_radians
                 );
             } catch (const ForceFieldSetupFailure& error) {
-                raise_setup_error(setup_error, error);
+                raise_forcefield_setup_error(
+                    setup_error.ptr(), error, "optimization"
+                );
             } catch (const ForceFieldEnergyUnitFailure& error) {
                 raise_energy_unit_error(energy_unit_error, error);
             } catch (const OptimizationFrameFailure& error) {

@@ -61,6 +61,9 @@ class RulePlan:
 class ForceFieldSetupError(RuntimeError):
     forcefield: str
     stage: str
+    backend_stage: str
+    workflow_stage: str
+    completed_coordination: Optional["CoordinationStageResult"]
 
 
 class ForceFieldEnergyUnitError(RuntimeError):

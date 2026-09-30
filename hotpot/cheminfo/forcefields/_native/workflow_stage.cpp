@@ -125,12 +125,17 @@ ComplexWorkflowResult run_complex_workflow(
     auto coordination = restore_coordination(
         session, coordination_options, coordination_offsets
     );
-    auto optimization = optimize_complex(
-        session,
-        optimization_options,
-        untangling_offsets,
-        optimization_offsets
-    );
+    ComplexOptimizationResult optimization;
+    try {
+        optimization = optimize_complex(
+            session,
+            optimization_options,
+            untangling_offsets,
+            optimization_offsets
+        );
+    } catch (const hotpot::obwrappers::ForceFieldSetupFailure& error) {
+        throw ComplexWorkflowSetupFailure(error, std::move(coordination));
+    }
     auto trajectory = combine_trajectories(coordination, optimization);
 
     std::vector<std::string> warning_codes;

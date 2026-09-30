@@ -77,6 +77,7 @@ ext_modules = [
             "hotpot/cheminfo/forcefields/_native/topology_workspace.cpp",
             "hotpot/cheminfo/forcefields/_native/trajectory.cpp",
             "hotpot/cheminfo/forcefields/_native/untangling_engine.cpp",
+            "hotpot/cheminfo/forcefields/_native/workflow_stage.cpp",
             "hotpot/cheminfo/geometry/_native/batch.cpp",
             "hotpot/cheminfo/geometry/_native/construction.cpp",
             "hotpot/cheminfo/geometry/_native/cycle_surface.cpp",

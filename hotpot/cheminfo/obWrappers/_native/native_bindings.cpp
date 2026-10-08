@@ -722,6 +722,6 @@ PYBIND11_MODULE(_ob_native, module) {
             detail::default_torsion_singularity_threshold,
         py::arg("repair_angle_radians") =
             detail::default_torsion_repair_angle_radians,
-        py::arg("convergence_level") = ConvergenceLevel::STRICT
+        py::arg("convergence_level") = ConvergenceLevel::FAST
     );
 }

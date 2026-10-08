@@ -8,7 +8,10 @@ from typing import Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
 
 import numpy as np
 
-from ..obWrappers.contracts import ConvergenceLevel
+from ..obWrappers.contracts import (
+    ConvergenceLevel,
+    DEFAULT_CONVERGENCE_LEVEL,
+)
 
 from .topology import (
     AtomTopologySignature,
@@ -21,6 +24,7 @@ __all__ = (
     "TrajectoryPath",
     "OptimizationAlgorithm",
     "ConvergenceLevel",
+    "DEFAULT_CONVERGENCE_LEVEL",
     "OptimizationStoppingCriteria",
     "TerminationReason",
     "ForceFieldDiagnosticValue",
@@ -245,7 +249,7 @@ class ForceFieldRunReport:
     untangling: Optional["RingUntanglingReport"] = None
     trajectory: Optional[ForceFieldTrajectoryArchive] = None
     elapsed_seconds: float = 0.0
-    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT
+    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL
 
 
 @dataclass(frozen=True)

@@ -23,6 +23,7 @@ from numpy.typing import NDArray
 
 from .contracts import (
     ConvergenceLevel,
+    DEFAULT_CONVERGENCE_LEVEL,
     CoordinationBondRestorationReport,
     ForceFieldRunReport,
     RingUntanglingReport,
@@ -272,7 +273,7 @@ def forcefield_run_report(
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
-    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
+    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
     trajectory: Optional[ForceFieldTrajectoryArchive] = None,
 ) -> ForceFieldRunReport:
     """Map one native Stage 3 result to the established optimizer report."""

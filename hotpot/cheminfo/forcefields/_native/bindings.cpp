@@ -1345,7 +1345,7 @@ void bind_stage_options(py::module_& module) {
         py::arg("torsion_repair_angle_radians"),
         py::arg("ring_screening"),
         py::arg("convergence_level") =
-            hotpot::obwrappers::ConvergenceLevel::STRICT)
+            hotpot::obwrappers::ConvergenceLevel::FAST)
         .def_readonly("forcefield", &ComplexOptimizationOptions::forcefield)
         .def_readonly("algorithm", &ComplexOptimizationOptions::algorithm)
         .def_readonly("epochs", &ComplexOptimizationOptions::epochs)

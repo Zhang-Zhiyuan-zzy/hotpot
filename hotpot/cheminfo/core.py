@@ -958,7 +958,7 @@ class Molecule:
             perturb_sigma: float = 0.5,
             stopping_criteria: Optional["ff.OptimizationStoppingCriteria"] = None,
             convergence_level: "ff.ConvergenceLevel" = (
-                ff.ConvergenceLevel.STRICT
+                ff.DEFAULT_CONVERGENCE_LEVEL
             ),
             save_movie: bool = False,
             trajectory_start: Optional["ff.TrajectoryStart"] = None,
@@ -1184,7 +1184,7 @@ class Molecule:
             perturb_sigma: float = 0.5,
             stopping_criteria: Optional["ff.OptimizationStoppingCriteria"] = None,
             convergence_level: "ff.ConvergenceLevel" = (
-                ff.ConvergenceLevel.STRICT
+                ff.DEFAULT_CONVERGENCE_LEVEL
             ),
             save_movie: bool = False,
             trajectory_start: Optional["ff.TrajectoryStart"] = None,

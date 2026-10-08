@@ -11,6 +11,7 @@ from ..obWrappers.native import _native_module
 from .backend import _raise_forcefield_setup_error
 from .contracts import (
     ConvergenceLevel,
+    DEFAULT_CONVERGENCE_LEVEL,
     ForceFieldRunReport,
     OptimizationAlgorithm,
     OptimizationStoppingCriteria,
@@ -50,7 +51,7 @@ class _OpenBabelOptimizer:
         vdw_cutoff_end: float,
         seed: Optional[int],
         stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
-        convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
+        convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
         energy_tolerance: float = 1.0e-6,
     ) -> None:
         if epochs < 1:
@@ -261,7 +262,7 @@ def _optimize_working_mol(
     trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
     trajectory_attempt: Optional[int] = None,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
-    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
+    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
         requested_forcefield,

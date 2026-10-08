@@ -116,7 +116,7 @@ struct ComplexOptimizationOptions {
         hotpot::obwrappers::detail::default_torsion_repair_angle_radians;
     RingScreeningOptions ring_screening;
     hotpot::obwrappers::ConvergenceLevel convergence_level =
-        hotpot::obwrappers::ConvergenceLevel::STRICT;
+        hotpot::obwrappers::ConvergenceLevel::FAST;
 
     void validate() const;
 };

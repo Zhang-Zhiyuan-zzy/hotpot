@@ -8,6 +8,7 @@ import numpy as np
 
 from .contracts import (
     ConvergenceLevel,
+    DEFAULT_CONVERGENCE_LEVEL,
     OptimizationFrame,
     OptimizationReport,
 )
@@ -42,7 +43,7 @@ def optimize(
     vdw_cutoff_start: float = 1.0,
     vdw_cutoff_end: float = 10.0,
     energy_tolerance: float = 1.0e-6,
-    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
+    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
     stopping_window: Optional[int] = None,
     maximum_energy_change_kj_mol: float = 1.0e-4,
     maximum_atom_displacement_angstrom: float = 1.0e-4,

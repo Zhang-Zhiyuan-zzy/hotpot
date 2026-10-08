@@ -163,6 +163,14 @@ def test_native_result_records_requested_convergence_level(level_name):
     assert result.convergence_level == level
 
 
+def test_native_optimizer_defaults_to_fast_convergence() -> None:
+    _, molecule = _native_molecule()
+
+    result = _optimize(molecule)
+
+    assert result.convergence_level == native.ConvergenceLevel.FAST
+
+
 @pytest.mark.parametrize("retain_frames", (False, True))
 def test_nonfinite_backend_state_returns_terminal_evidence(retain_frames):
     molecule = _native_molecule_with_coordinates(

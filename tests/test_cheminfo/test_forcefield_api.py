@@ -132,6 +132,27 @@ def test_legacy_molecule_forcefield_entrypoints_are_removed():
     assert not hasattr(ff_api, "ob_optimize")
 
 
+@pytest.mark.parametrize(
+    "entrypoint",
+    (
+        Molecule.build3d,
+        Molecule.optimize,
+        ff_api.optimize,
+        ff_api.optimize_complex,
+        ff_api.complexes_build,
+        ff_api.build_and_optimize,
+        ff_api.auto_optimize,
+    ),
+)
+def test_public_optimization_entrypoints_default_to_fast_convergence(
+    entrypoint,
+):
+    parameter = inspect.signature(entrypoint).parameters["convergence_level"]
+
+    assert parameter.default is ff.DEFAULT_CONVERGENCE_LEVEL
+    assert parameter.default is ff.ConvergenceLevel.FAST
+
+
 @pytest.mark.parametrize("add_hydrogens", (False, True))
 def test_build3d_captures_the_requested_hydrogen_policy(
     monkeypatch,

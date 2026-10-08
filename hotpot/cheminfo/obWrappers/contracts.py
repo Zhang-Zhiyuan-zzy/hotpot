@@ -15,6 +15,7 @@ __all__ = (
     "BondKindCode",
     "CoordinateChange",
     "ConvergenceLevel",
+    "DEFAULT_CONVERGENCE_LEVEL",
     "HybridizationChange",
     "OptimizationFrame",
     "OptimizationCheckReport",
@@ -64,6 +65,9 @@ class ConvergenceLevel(IntEnum):
     FAST = 1
     BALANCED = 2
     STRICT = 3
+
+
+DEFAULT_CONVERGENCE_LEVEL = ConvergenceLevel.FAST
 
 
 @dataclass(frozen=True)
@@ -210,4 +214,4 @@ class OptimizationReport:
     max_displacements: Tuple[float, ...]
     epoch_energies: Tuple[float, ...]
     rules: RuleExecutionReport
-    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT
+    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL

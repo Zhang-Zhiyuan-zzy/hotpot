@@ -26,6 +26,13 @@ class BondKind(Enum):
     UNKNOWN: BondKind
 
 
+class ConvergenceLevel(Enum):
+    OPENBABEL: ConvergenceLevel
+    FAST: ConvergenceLevel
+    BALANCED: ConvergenceLevel
+    STRICT: ConvergenceLevel
+
+
 class RuleDescriptor:
     rule_id: str
     version: str
@@ -174,6 +181,7 @@ class OptimizationResult:
     backend_energy_unit: str
     termination_reason: str
     terminal_converged: bool
+    convergence_level: ConvergenceLevel
     energy_changes: List[float]
     max_displacements: List[float]
     epoch_energies: List[float]
@@ -598,6 +606,7 @@ class ComplexOptimizationOptions:
         torsion_singularity_threshold: float,
         torsion_repair_angle_radians: float,
         ring_screening: RingScreeningOptions,
+        convergence_level: ConvergenceLevel = ...,
     ) -> None: ...
 
     forcefield: str
@@ -618,6 +627,7 @@ class ComplexOptimizationOptions:
     torsion_singularity_threshold: float
     torsion_repair_angle_radians: float
     ring_screening: RingScreeningOptions
+    convergence_level: ConvergenceLevel
 
 
 _DEFAULT_METAL_PLACEMENT_OPTIONS: MetalPlacementOptions
@@ -1109,4 +1119,5 @@ def optimize(
     maximum_gradient_kj_mol_angstrom: float = ...,
     singularity_threshold: float = ...,
     repair_angle_radians: float = ...,
+    convergence_level: ConvergenceLevel = ...,
 ) -> OptimizationResult: ...

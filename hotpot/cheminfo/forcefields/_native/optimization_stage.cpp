@@ -100,6 +100,7 @@ hotpot::obwrappers::OptimizationOptions optimizer_options(
         options.vdw_cutoff_end,
         options.energy_tolerance,
         stopping_criteria(options.stopping),
+        options.convergence_level,
     };
 }
 
@@ -171,7 +172,8 @@ std::size_t expected_optimization_offset_count(
 
 
 hotpot::obwrappers::OptimizationResult topology_blocked_result(
-    const StructureSnapshot& snapshot
+    const StructureSnapshot& snapshot,
+    hotpot::obwrappers::ConvergenceLevel convergence_level
 ) {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     return hotpot::obwrappers::OptimizationResult{
@@ -197,6 +199,7 @@ hotpot::obwrappers::OptimizationResult topology_blocked_result(
         {},
         {},
         {hotpot::obwrappers::RuleStage::PRE_FORCEFIELD_SETUP, {}},
+        convergence_level,
     };
 }
 
@@ -806,7 +809,7 @@ ComplexOptimizationResult optimize_complex(
             warning_codes, "ring_piercing_blocks_complex_optimization"
         );
         segments.push_back(topology_blocked_result(
-            snapshot_structure(session)
+            snapshot_structure(session), options.convergence_level
         ));
     } else {
         const auto optimizer_input = snapshot_structure(session);
@@ -918,7 +921,7 @@ ComplexOptimizationResult optimize_complex(
                 checkpoint.piercing_pair_count
             )) {
             segments.push_back(topology_blocked_result(
-                snapshot_structure(session)
+                snapshot_structure(session), options.convergence_level
             ));
         }
     }

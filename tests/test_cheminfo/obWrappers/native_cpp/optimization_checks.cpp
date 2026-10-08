@@ -83,6 +83,41 @@ void test_backend_stop_semantics() {
 }
 
 
+void test_convergence_levels() {
+    auto measurements = usable_measurements();
+    measurements.gradients = {2.5, 9.0};
+    assert(obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::OPENBABEL
+    ));
+    assert(obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::FAST
+    ));
+    assert(!obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::BALANCED
+    ));
+    assert(!obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::STRICT
+    ));
+
+    measurements.gradients = {0.8, 4.0};
+    assert(obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::BALANCED
+    ));
+    assert(!obw::convergence_reached(
+        false, measurements, 1.0, obw::ConvergenceLevel::OPENBABEL
+    ));
+
+    measurements.gradients.maximum_kj_mol_angstrom = 0.1;
+    measurements.exploded = true;
+    assert(obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::STRICT
+    ));
+    assert(!obw::convergence_reached(
+        true, measurements, 1.0, obw::ConvergenceLevel::OPENBABEL
+    ));
+}
+
+
 void test_stability_window() {
     const std::vector<double> energy_changes{0.5, 0.02, 0.01};
     const std::vector<double> displacements{0.1, 0.002, 0.001};
@@ -172,6 +207,7 @@ int main() {
     test_coordinate_facts();
     test_failure_classification();
     test_backend_stop_semantics();
+    test_convergence_levels();
     test_stability_window();
     test_forcefield_measurements();
 }

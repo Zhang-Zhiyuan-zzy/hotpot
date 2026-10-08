@@ -177,6 +177,41 @@ bool backend_stop_is_converged(
 }
 
 
+bool convergence_reached(
+    bool backend_stopped,
+    const OptimizationMeasurements& measurements,
+    double energy_unit_to_kj,
+    ConvergenceLevel level
+) noexcept {
+    if (!backend_stopped) {
+        return false;
+    }
+    if (level == ConvergenceLevel::STRICT) {
+        return backend_stop_is_converged(
+            backend_stopped,
+            measurements.gradients.maximum_kj_mol_angstrom,
+            energy_unit_to_kj
+        );
+    }
+    if (!optimization_state_is_usable(measurements)) {
+        return false;
+    }
+    switch (level) {
+        case ConvergenceLevel::OPENBABEL:
+            return true;
+        case ConvergenceLevel::FAST:
+            return measurements.gradients.rms_kj_mol_angstrom <= 3.0
+                && measurements.gradients.maximum_kj_mol_angstrom <= 10.0;
+        case ConvergenceLevel::BALANCED:
+            return measurements.gradients.rms_kj_mol_angstrom <= 1.0
+                && measurements.gradients.maximum_kj_mol_angstrom <= 5.0;
+        case ConvergenceLevel::STRICT:
+            return false;
+    }
+    return false;
+}
+
+
 bool recent_values_at_most(
     ScalarHistoryView history,
     std::size_t window,

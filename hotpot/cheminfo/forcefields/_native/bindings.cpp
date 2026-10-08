@@ -1299,7 +1299,8 @@ void bind_stage_options(py::module_& module) {
             std::optional<OptimizationStoppingOptions> stopping,
             double torsion_singularity_threshold,
             double torsion_repair_angle_radians,
-            RingScreeningOptions ring_screening
+            RingScreeningOptions ring_screening,
+            hotpot::obwrappers::ConvergenceLevel convergence_level
         ) {
             ComplexOptimizationOptions options{
                 std::move(forcefield),
@@ -1320,6 +1321,7 @@ void bind_stage_options(py::module_& module) {
                 torsion_singularity_threshold,
                 torsion_repair_angle_radians,
                 std::move(ring_screening),
+                convergence_level,
             };
             options.validate();
             return options;
@@ -1341,7 +1343,9 @@ void bind_stage_options(py::module_& module) {
         py::arg("stopping"),
         py::arg("torsion_singularity_threshold"),
         py::arg("torsion_repair_angle_radians"),
-        py::arg("ring_screening"))
+        py::arg("ring_screening"),
+        py::arg("convergence_level") =
+            hotpot::obwrappers::ConvergenceLevel::STRICT)
         .def_readonly("forcefield", &ComplexOptimizationOptions::forcefield)
         .def_readonly("algorithm", &ComplexOptimizationOptions::algorithm)
         .def_readonly("epochs", &ComplexOptimizationOptions::epochs)
@@ -1375,6 +1379,9 @@ void bind_stage_options(py::module_& module) {
         )
         .def_readonly(
             "energy_tolerance", &ComplexOptimizationOptions::energy_tolerance
+        )
+        .def_readonly(
+            "convergence_level", &ComplexOptimizationOptions::convergence_level
         )
         .def_readonly("stopping", &ComplexOptimizationOptions::stopping)
         .def_readonly(

@@ -273,6 +273,12 @@ PYBIND11_MODULE(_ob_native, module) {
     py::exception<OptimizationFrameFailure> frame_error(
         module, "OptimizationFrameError", PyExc_RuntimeError
     );
+    py::enum_<ConvergenceLevel>(module, "ConvergenceLevel")
+        .value("OPENBABEL", ConvergenceLevel::OPENBABEL)
+        .value("FAST", ConvergenceLevel::FAST)
+        .value("BALANCED", ConvergenceLevel::BALANCED)
+        .value("STRICT", ConvergenceLevel::STRICT);
+
     bind_rule_contracts(module);
     hotpot::forcefields::bind_native_forcefield_contracts(
         module, setup_error.ptr()
@@ -489,6 +495,9 @@ PYBIND11_MODULE(_ob_native, module) {
         .def_readonly(
             "terminal_converged", &OptimizationResult::terminal_converged
         )
+        .def_readonly(
+            "convergence_level", &OptimizationResult::convergence_level
+        )
         .def_readonly("energy_changes", &OptimizationResult::energy_changes)
         .def_readonly(
             "max_displacements", &OptimizationResult::max_displacements
@@ -641,7 +650,8 @@ PYBIND11_MODULE(_ob_native, module) {
             double maximum_rms_gradient_kj_mol_angstrom,
             double maximum_gradient_kj_mol_angstrom,
             double singularity_threshold,
-            double repair_angle_radians
+            double repair_angle_radians,
+            ConvergenceLevel convergence_level
         ) {
             const auto offsets = read_perturbation_offsets(
                 perturbation_offsets, molecule.atom_count()
@@ -669,6 +679,7 @@ PYBIND11_MODULE(_ob_native, module) {
                 vdw_cutoff_end,
                 energy_tolerance,
                 stopping,
+                convergence_level,
             };
             try {
                 py::gil_scoped_release release;
@@ -710,6 +721,7 @@ PYBIND11_MODULE(_ob_native, module) {
         py::arg("singularity_threshold") =
             detail::default_torsion_singularity_threshold,
         py::arg("repair_angle_radians") =
-            detail::default_torsion_repair_angle_radians
+            detail::default_torsion_repair_angle_radians,
+        py::arg("convergence_level") = ConvergenceLevel::STRICT
     );
 }

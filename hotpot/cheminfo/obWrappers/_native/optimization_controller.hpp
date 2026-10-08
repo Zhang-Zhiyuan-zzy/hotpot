@@ -51,6 +51,7 @@ struct OptimizationOptions {
     double vdw_cutoff_end;
     double energy_tolerance;
     std::optional<StoppingCriteria> stopping_criteria;
+    ConvergenceLevel convergence_level = ConvergenceLevel::STRICT;
 };
 
 
@@ -93,6 +94,7 @@ struct OptimizationResult {
     std::vector<double> max_displacements;
     std::vector<double> epoch_energies;
     RulePlan rules;
+    ConvergenceLevel convergence_level = ConvergenceLevel::STRICT;
 };
 
 

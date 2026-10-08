@@ -11,6 +11,7 @@ from numpy.typing import NDArray
 
 from ..geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 from ..obWrappers.native import _native_module
+from ..obWrappers.contracts import ConvergenceLevel
 from ..obWrappers.settings import (
     TORSION_REPAIR_ANGLE_RADIANS,
     TORSION_SINGULARITY_THRESHOLD,
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "ComplexOptimizationOptions",
+    "ConvergenceLevel",
     "CoordinationStageOptions",
     "FrameDetail",
     "MetalPlacementOptions",
@@ -155,6 +157,7 @@ class ComplexOptimizationOptions:
     ring_screening: RingScreeningOptions = field(
         default_factory=RingScreeningOptions
     )
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT
 
 
 @dataclass(frozen=True)
@@ -455,6 +458,9 @@ def _native_complex_optimization_options(
         torsion_repair_angle_radians=options.torsion_repair_angle_radians,
         ring_screening=_native_ring_screening_options(
             options.ring_screening
+        ),
+        convergence_level=getattr(
+            native.ConvergenceLevel, options.convergence_level.name
         ),
     )
 

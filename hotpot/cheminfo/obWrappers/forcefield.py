@@ -7,6 +7,7 @@ from typing import Optional, TYPE_CHECKING
 import numpy as np
 
 from .contracts import (
+    ConvergenceLevel,
     OptimizationFrame,
     OptimizationReport,
 )
@@ -41,6 +42,7 @@ def optimize(
     vdw_cutoff_start: float = 1.0,
     vdw_cutoff_end: float = 10.0,
     energy_tolerance: float = 1.0e-6,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     stopping_window: Optional[int] = None,
     maximum_energy_change_kj_mol: float = 1.0e-4,
     maximum_atom_displacement_angstrom: float = 1.0e-4,
@@ -77,6 +79,7 @@ def optimize(
         maximum_gradient_kj_mol_angstrom,
         singularity_threshold,
         repair_angle_radians,
+        _native_module().ConvergenceLevel(convergence_level.value),
     )
     coordinates = np.asarray(result.coordinates, dtype=np.float64)
     terminal_coordinates = np.asarray(
@@ -122,6 +125,7 @@ def optimize(
         backend_energy_unit=result.backend_energy_unit,
         termination_reason=result.termination_reason,
         terminal_converged=result.terminal_converged,
+        convergence_level=ConvergenceLevel(result.convergence_level.value),
         energy_changes=tuple(result.energy_changes),
         max_displacements=tuple(result.max_displacements),
         epoch_energies=tuple(result.epoch_energies),

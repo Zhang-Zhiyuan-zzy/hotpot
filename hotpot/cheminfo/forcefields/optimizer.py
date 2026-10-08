@@ -10,6 +10,7 @@ from ..obWrappers import optimize as _native_optimize
 from ..obWrappers.native import _native_module
 from .backend import _raise_forcefield_setup_error
 from .contracts import (
+    ConvergenceLevel,
     ForceFieldRunReport,
     OptimizationAlgorithm,
     OptimizationStoppingCriteria,
@@ -49,6 +50,7 @@ class _OpenBabelOptimizer:
         vdw_cutoff_end: float,
         seed: Optional[int],
         stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+        convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
         energy_tolerance: float = 1.0e-6,
     ) -> None:
         if epochs < 1:
@@ -75,6 +77,7 @@ class _OpenBabelOptimizer:
         self.vdw_cutoff_start = vdw_cutoff_start
         self.vdw_cutoff_end = vdw_cutoff_end
         self.stopping_criteria = stopping_criteria
+        self.convergence_level = convergence_level
         self.energy_tolerance = energy_tolerance
         self.rng = np.random.default_rng(seed)
 
@@ -134,6 +137,7 @@ class _OpenBabelOptimizer:
                 vdw_cutoff_start=self.vdw_cutoff_start,
                 vdw_cutoff_end=self.vdw_cutoff_end,
                 energy_tolerance=self.energy_tolerance,
+                convergence_level=self.convergence_level,
                 stopping_window=None if stopping is None else stopping.window,
                 maximum_energy_change_kj_mol=(
                     1.0e-4
@@ -234,6 +238,7 @@ class _OpenBabelOptimizer:
                 result.termination_reason,
             ),
             terminal_converged=result.terminal_converged,
+            convergence_level=self.convergence_level,
         )
 
 
@@ -256,6 +261,7 @@ def _optimize_working_mol(
     trajectory_stage: TrajectoryStage = TrajectoryStage.FINAL_OPTIMIZATION,
     trajectory_attempt: Optional[int] = None,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
         requested_forcefield,
@@ -271,6 +277,7 @@ def _optimize_working_mol(
         vdw_cutoff_end=vdw_cutoff_end,
         seed=seed,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
     )
     return optimizer.optimize(
         working_mol,

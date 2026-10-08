@@ -150,6 +150,19 @@ def test_forcefield_setup_failure_is_structured():
     assert issubclass(native.OptimizationFrameError, RuntimeError)
 
 
+@pytest.mark.parametrize(
+    "level_name",
+    ("OPENBABEL", "FAST", "BALANCED", "STRICT"),
+)
+def test_native_result_records_requested_convergence_level(level_name):
+    _, molecule = _native_molecule()
+    level = getattr(native.ConvergenceLevel, level_name)
+
+    result = _optimize(molecule, convergence_level=level)
+
+    assert result.convergence_level == level
+
+
 @pytest.mark.parametrize("retain_frames", (False, True))
 def test_nonfinite_backend_state_returns_terminal_evidence(retain_frames):
     molecule = _native_molecule_with_coordinates(

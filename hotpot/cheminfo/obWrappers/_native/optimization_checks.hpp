@@ -3,6 +3,7 @@
 #include "rules.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <vector>
 
@@ -46,6 +47,14 @@ enum class OptimizationFailure {
     NONFINITE_ENERGY,
     NONFINITE_GRADIENTS,
     EXPLOSION_DETECTED,
+};
+
+
+enum class ConvergenceLevel : std::uint8_t {
+    OPENBABEL = 0,
+    FAST = 1,
+    BALANCED = 2,
+    STRICT = 3,
 };
 
 
@@ -150,6 +159,14 @@ bool backend_stop_is_converged(
     double maximum_gradient_kj_mol_angstrom,
     double energy_unit_to_kj,
     double backend_maximum_gradient = 0.1
+) noexcept;
+
+
+bool convergence_reached(
+    bool backend_stopped,
+    const OptimizationMeasurements& measurements,
+    double energy_unit_to_kj,
+    ConvergenceLevel level
 ) noexcept;
 
 

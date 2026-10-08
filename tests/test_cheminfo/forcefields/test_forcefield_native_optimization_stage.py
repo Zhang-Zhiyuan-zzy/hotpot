@@ -9,6 +9,7 @@ import pytest
 
 from hotpot.cheminfo.forcefields.native import (
     ComplexOptimizationOptions,
+    ConvergenceLevel,
     RingScreeningOptions,
     _native_complex_optimization_options,
     create_optimization_session,
@@ -69,6 +70,7 @@ def _offsets(frame_count: int) -> np.ndarray:
 
 def test_stage_three_options_forward_ring_and_torsion_policy() -> None:
     options = _options(
+        convergence_level=ConvergenceLevel.FAST,
         torsion_singularity_threshold=2.0e-6,
         torsion_repair_angle_radians=2.0e-3,
         ring_screening=RingScreeningOptions(
@@ -80,6 +82,7 @@ def test_stage_three_options_forward_ring_and_torsion_policy() -> None:
     native_options = _native_complex_optimization_options(options)
 
     assert native_options.torsion_singularity_threshold == 2.0e-6
+    assert native_options.convergence_level.name == "FAST"
     assert native_options.torsion_repair_angle_radians == 2.0e-3
     assert native_options.ring_screening.maximum_actionable_ring_size == 12
     assert native_options.ring_screening.maximum_relevant_cycle_count == 321

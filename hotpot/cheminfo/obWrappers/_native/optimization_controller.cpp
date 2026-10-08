@@ -320,10 +320,11 @@ OptimizationResult run_optimization_controller(
             previous_energy,
             energy_unit_to_kj
         );
-        const bool backend_converged = backend_stop_is_converged(
+        const bool backend_converged = convergence_reached(
             backend_stopped,
-            measurements.gradients.maximum_kj_mol_angstrom,
-            energy_unit_to_kj
+            measurements,
+            energy_unit_to_kj,
+            options.convergence_level
         );
         const bool reported_converged = backend_converged
             && (!options.increasing_vdw || epoch == options.epochs - 1);
@@ -473,6 +474,7 @@ OptimizationResult run_optimization_controller(
         selected_displacements,
         std::move(epoch_energies),
         std::move(all_rules),
+        options.convergence_level,
     };
     set_coordinates(molecule, result.coordinates);
     return result;

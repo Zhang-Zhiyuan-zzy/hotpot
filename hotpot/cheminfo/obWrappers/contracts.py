@@ -14,6 +14,7 @@ __all__ = (
     "BuildReport",
     "BondKindCode",
     "CoordinateChange",
+    "ConvergenceLevel",
     "HybridizationChange",
     "OptimizationFrame",
     "OptimizationCheckReport",
@@ -54,6 +55,15 @@ class OptimizationFailure(IntEnum):
     NONFINITE_ENERGY = 2
     NONFINITE_GRADIENTS = 3
     EXPLOSION_DETECTED = 4
+
+
+class ConvergenceLevel(IntEnum):
+    """Required evidence when Open Babel reports that optimization stopped."""
+
+    OPENBABEL = 0
+    FAST = 1
+    BALANCED = 2
+    STRICT = 3
 
 
 @dataclass(frozen=True)
@@ -200,3 +210,4 @@ class OptimizationReport:
     max_displacements: Tuple[float, ...]
     epoch_energies: Tuple[float, ...]
     rules: RuleExecutionReport
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT

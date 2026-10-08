@@ -35,6 +35,7 @@ from .contracts import (
     ForceFieldWorkflowReport,
     GeometryQualityError,
     GeometryQualityWarning,
+    ConvergenceLevel,
     OptimizationAlgorithm,
     OptimizationStoppingCriteria,
     StructureAcceptanceThresholds,
@@ -340,6 +341,7 @@ def _optimization_options(
     trajectory_start: TrajectoryStart,
     save_movie: bool,
     stopping_criteria: Optional[OptimizationStoppingCriteria],
+    convergence_level: ConvergenceLevel,
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
@@ -359,6 +361,7 @@ def _optimization_options(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
         stopping=_native_stopping_options(stopping_criteria),
+        convergence_level=convergence_level,
     )
 
 
@@ -426,6 +429,7 @@ def _native_optimization_report(
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
+    convergence_level: ConvergenceLevel,
     quality_level: AcceptanceLevel,
     topology_reference: TopologyReference,
     quality_thresholds: Optional[StructureAcceptanceThresholds],
@@ -434,6 +438,7 @@ def _native_optimization_report(
         result,
         requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,
+        convergence_level=convergence_level,
     )
     for message in native_warning_messages(result.warning_codes):
         warnings.warn(message, GeometryQualityWarning, stacklevel=3)
@@ -463,6 +468,7 @@ def _complete_native_optimization(
     *,
     requested_forcefield: Optional[str],
     effective_forcefield: str,
+    convergence_level: ConvergenceLevel,
     quality_level: AcceptanceLevel,
     topology_reference: TopologyReference,
     quality_thresholds: Optional[StructureAcceptanceThresholds],
@@ -475,6 +481,7 @@ def _complete_native_optimization(
         result,
         requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,
+        convergence_level=convergence_level,
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
@@ -504,6 +511,7 @@ def _complexes_build_workflow(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -555,6 +563,7 @@ def _complexes_build_workflow(
         trajectory_start=trajectory_start,
         save_movie=save_movie,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -589,6 +598,7 @@ def _complexes_build_workflow(
             native_result.optimization,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
+            convergence_level=convergence_level,
             quality_level=quality_level,
             topology_reference=topology_reference,
             quality_thresholds=quality_thresholds,
@@ -725,6 +735,7 @@ def optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.FINAL_OPTIMIZATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -764,6 +775,7 @@ def optimize(
             vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
             stopping_criteria=stopping_criteria,
+            convergence_level=convergence_level,
         )
         quality_report = evaluate_structure_acceptance(
             working_mol,
@@ -990,6 +1002,7 @@ def optimize_complex(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COMPLEX_UNTANGLING,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1026,6 +1039,7 @@ def optimize_complex(
         trajectory_start=trajectory_start,
         save_movie=save_movie,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
@@ -1048,6 +1062,7 @@ def optimize_complex(
             native_result,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
+            convergence_level=convergence_level,
             quality_level=quality_level,
             topology_reference=topology_reference,
             quality_thresholds=quality_thresholds,
@@ -1098,6 +1113,7 @@ def _build_and_optimize_workflow(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1138,6 +1154,7 @@ def _build_and_optimize_workflow(
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
             stopping_criteria=stopping_criteria,
+            convergence_level=convergence_level,
             save_movie=save_movie,
             trajectory_start=(
                 trajectory_start
@@ -1171,6 +1188,7 @@ def _build_and_optimize_workflow(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
         save_movie=save_movie,
         trajectory_start=(
             trajectory_start
@@ -1217,6 +1235,7 @@ def complexes_build(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1257,6 +1276,7 @@ def complexes_build(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -1282,6 +1302,7 @@ def build_and_optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1323,6 +1344,7 @@ def build_and_optimize(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -1356,6 +1378,7 @@ def auto_optimize(
     perturb_interval: Optional[int] = None,
     perturb_sigma: float = 0.5,
     stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.STRICT,
     save_movie: bool = False,
     trajectory_start: Optional[TrajectoryStart] = None,
     trajectory_path: Optional[TrajectoryPath] = None,
@@ -1379,6 +1402,7 @@ def auto_optimize(
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
             stopping_criteria=stopping_criteria,
+            convergence_level=convergence_level,
             save_movie=save_movie,
             trajectory_start=(
                 trajectory_start
@@ -1403,6 +1427,7 @@ def auto_optimize(
         perturb_interval=perturb_interval,
         perturb_sigma=perturb_sigma,
         stopping_criteria=stopping_criteria,
+        convergence_level=convergence_level,
         save_movie=save_movie,
         trajectory_start=(
             trajectory_start

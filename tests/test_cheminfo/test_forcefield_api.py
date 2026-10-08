@@ -48,6 +48,7 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
         quality_level="basic",
         quality_thresholds=quality_thresholds,
         stopping_criteria=stopping_criteria,
+        convergence_level=ff.ConvergenceLevel.FAST,
         seed=19,
         timeout=2.5,
         trajectory_start=trajectory_start,
@@ -67,6 +68,7 @@ def test_molecule_build3d_is_a_single_forcefield_facade(monkeypatch):
     assert options["quality_level"] == "basic"
     assert options["quality_thresholds"] is quality_thresholds
     assert options["stopping_criteria"] is stopping_criteria
+    assert options["convergence_level"] is ff.ConvergenceLevel.FAST
     assert options["seed"] == 19
     assert options["timeout"] == 2.5
     assert options["trajectory_start"] is trajectory_start
@@ -99,6 +101,7 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
         quality_level="strict",
         quality_thresholds=quality_thresholds,
         stopping_criteria=stopping_criteria,
+        convergence_level=ff.ConvergenceLevel.BALANCED,
         seed=23,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
@@ -114,6 +117,7 @@ def test_molecule_optimize_is_a_single_forcefield_facade(monkeypatch):
     assert options["quality_level"] == "strict"
     assert options["quality_thresholds"] is quality_thresholds
     assert options["stopping_criteria"] is stopping_criteria
+    assert options["convergence_level"] is ff.ConvergenceLevel.BALANCED
     assert options["seed"] == 23
     assert options["trajectory_start"] is trajectory_start
     assert options["trajectory_path"] is trajectory_path

@@ -957,6 +957,9 @@ class Molecule:
             perturb_interval: Optional[int] = None,
             perturb_sigma: float = 0.5,
             stopping_criteria: Optional["ff.OptimizationStoppingCriteria"] = None,
+            convergence_level: "ff.ConvergenceLevel" = (
+                ff.ConvergenceLevel.STRICT
+            ),
             save_movie: bool = False,
             trajectory_start: Optional["ff.TrajectoryStart"] = None,
             trajectory_path: Optional["ff.TrajectoryPath"] = None,
@@ -996,6 +999,7 @@ class Molecule:
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
             stopping_criteria=stopping_criteria,
+            convergence_level=convergence_level,
             save_movie=save_movie,
             trajectory_start=trajectory_start,
             trajectory_path=trajectory_path,
@@ -1179,6 +1183,9 @@ class Molecule:
             perturb_interval: Optional[int] = None,
             perturb_sigma: float = 0.5,
             stopping_criteria: Optional["ff.OptimizationStoppingCriteria"] = None,
+            convergence_level: "ff.ConvergenceLevel" = (
+                ff.ConvergenceLevel.STRICT
+            ),
             save_movie: bool = False,
             trajectory_start: Optional["ff.TrajectoryStart"] = None,
             trajectory_path: Optional["ff.TrajectoryPath"] = None,
@@ -1201,6 +1208,7 @@ class Molecule:
             perturb_interval=perturb_interval,
             perturb_sigma=perturb_sigma,
             stopping_criteria=stopping_criteria,
+            convergence_level=convergence_level,
             save_movie=save_movie,
             trajectory_start=trajectory_start,
             trajectory_path=trajectory_path,

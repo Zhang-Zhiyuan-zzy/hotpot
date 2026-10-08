@@ -9,6 +9,7 @@
 #include "../../geometry/_native/segment_cycle.hpp"
 #include "../../geometry/_native/tolerances.hpp"
 #include "../../obWrappers/_native/defaults.hpp"
+#include "../../obWrappers/_native/optimization_checks.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -114,6 +115,8 @@ struct ComplexOptimizationOptions {
     double torsion_repair_angle_radians =
         hotpot::obwrappers::detail::default_torsion_repair_angle_radians;
     RingScreeningOptions ring_screening;
+    hotpot::obwrappers::ConvergenceLevel convergence_level =
+        hotpot::obwrappers::ConvergenceLevel::STRICT;
 
     void validate() const;
 };

@@ -235,7 +235,11 @@ def test_optimizer_forwards_native_controls_and_translates_report(monkeypatch):
         max_displacements=(0.3, 0.2),
         epoch_energies=(12.552, 4.184, 8.368),
     )
-    optimizer, calls = _optimizer(monkeypatch, result)
+    optimizer, calls = _optimizer(
+        monkeypatch,
+        result,
+        convergence_level=ff.ConvergenceLevel.FAST,
+    )
     molecule = _OptimizerMolecule()
 
     report, _ = _run_optimizer(optimizer, molecule)
@@ -256,6 +260,7 @@ def test_optimizer_forwards_native_controls_and_translates_report(monkeypatch):
         "vdw_cutoff_start": 0.0,
         "vdw_cutoff_end": 12.0,
         "energy_tolerance": 1.0e-6,
+        "convergence_level": ff.ConvergenceLevel.FAST,
         "stopping_window": None,
         "maximum_energy_change_kj_mol": 1.0e-4,
         "maximum_atom_displacement_angstrom": 1.0e-4,
@@ -270,6 +275,7 @@ def test_optimizer_forwards_native_controls_and_translates_report(monkeypatch):
     assert report.steps_completed is None
     assert report.converged is True
     assert report.terminal_converged is True
+    assert report.convergence_level is ff.ConvergenceLevel.FAST
     assert report.termination_reason == "converged"
     assert report.best_energy == pytest.approx(4.184)
     assert report.final_energy == pytest.approx(8.368)

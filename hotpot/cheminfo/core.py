@@ -548,24 +548,46 @@ class Molecule:
     def build_all_pair_links(
             self,
             metal,
-            threshold=-0.125,
+            threshold: Optional[float] = None,
             greedy=True,
+            *,
+            first_threshold: Optional[float] = None,
     ):
         from .AImodels.cbond.apply import build_all_possible_cbond
-        return build_all_possible_cbond(self, metal, threshold, greedy)
+        return build_all_possible_cbond(
+            self,
+            metal,
+            threshold,
+            greedy,
+            first_threshold=first_threshold,
+        )
 
     def auto_pair_metal(
             self,
             metal,
-            threshold=-0.125,
+            threshold: Optional[float] = None,
             greedy=True,
-            probability: bool = False
+            probability: bool = False,
+            *,
+            first_threshold: Optional[float] = None,
     ) -> Union['Molecule', tuple['Molecule', float]]:
         from .AImodels.cbond.apply import auto_build_cbond
         if probability:
-            return auto_build_cbond(self, metal, threshold, greedy)
+            return auto_build_cbond(
+                self,
+                metal,
+                threshold,
+                greedy,
+                first_threshold=first_threshold,
+            )
         else:
-            return auto_build_cbond(self, metal, threshold, greedy)[0]
+            return auto_build_cbond(
+                self,
+                metal,
+                threshold,
+                greedy,
+                first_threshold=first_threshold,
+            )[0]
 
     def replace_atom(
             self,

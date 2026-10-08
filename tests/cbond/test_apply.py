@@ -5,7 +5,10 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.AImodels.cbond import apply
-from hotpot.cheminfo.AImodels.cbond.constants import DEFAULT_CBOND_THRESHOLD
+from hotpot.cheminfo.AImodels.cbond.constants import (
+    DEFAULT_FIRST_CBOND_THRESHOLD,
+    DEFAULT_SUBSEQUENT_CBOND_THRESHOLD,
+)
 from hotpot.cheminfo.core import Atom, Molecule
 
 
@@ -91,10 +94,10 @@ def test_state_graph_has_no_metal_self_loop_or_duplicate_edges(monkeypatch):
     assert {atom.symbol for atom in metal.neighbours} == {"N", "O"}
 
 
-def test_default_threshold_is_strict(monkeypatch):
+def test_default_first_threshold_is_strict(monkeypatch):
     def predict_state(context, donor_indices, runtime):
         return {
-            atom_index: DEFAULT_CBOND_THRESHOLD
+            atom_index: DEFAULT_FIRST_CBOND_THRESHOLD
             for atom_index in context.candidate_indices
         }
 
@@ -108,18 +111,162 @@ def test_default_threshold_is_strict(monkeypatch):
     assert probabilities == []
 
 
-def test_single_structure_raises_when_no_bond_clears_threshold(monkeypatch):
+def test_single_structure_raises_when_no_bond_clears_first_threshold(monkeypatch):
     monkeypatch.setattr(
         apply,
         "_predict_state",
         lambda context, donor_indices, runtime: {
-            atom_index: DEFAULT_CBOND_THRESHOLD
+            atom_index: DEFAULT_FIRST_CBOND_THRESHOLD
             for atom_index in context.candidate_indices
         },
     )
 
     with pytest.raises(ValueError, match="No coordination bond exceeded"):
         apply.auto_build_cbond(read_mol("CN"), "Eu")
+
+
+def test_default_policy_accepts_first_bond_but_rejects_same_later_score(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        apply,
+        "_predict_state",
+        lambda context, donor_indices, runtime: {
+            atom_index: -0.25 for atom_index in context.candidate_indices
+        },
+    )
+
+    result = apply.auto_build_cbond(
+        read_mol("NCCO"),
+        "Eu",
+        return_details=True,
+    )
+
+    assert len(result.steps) == 1
+
+
+def test_default_later_threshold_is_strict(monkeypatch):
+    def predict_state(context, donor_indices, runtime):
+        score = 0.0 if not donor_indices else DEFAULT_SUBSEQUENT_CBOND_THRESHOLD
+        return {atom_index: score for atom_index in context.candidate_indices}
+
+    monkeypatch.setattr(apply, "_predict_state", predict_state)
+    result = apply.auto_build_cbond(
+        read_mol("NCCO"),
+        "Eu",
+        return_details=True,
+    )
+
+    assert len(result.steps) == 1
+
+
+def test_explicit_legacy_threshold_applies_to_first_and_later_bonds(monkeypatch):
+    monkeypatch.setattr(
+        apply,
+        "_predict_state",
+        lambda context, donor_indices, runtime: {
+            atom_index: -0.5 for atom_index in context.candidate_indices
+        },
+    )
+
+    with pytest.raises(ValueError, match="raw-score threshold 0.0"):
+        apply.auto_build_cbond(read_mol("CN"), "Eu", threshold=0.0)
+
+    molecules, probabilities = apply.build_all_possible_cbond(
+        read_mol("CN"),
+        "Eu",
+        threshold=0.0,
+    )
+    assert molecules == []
+    assert probabilities == []
+
+    def predict_after_first(context, donor_indices, runtime):
+        score = 0.5 if not donor_indices else -0.5
+        return {atom_index: score for atom_index in context.candidate_indices}
+
+    monkeypatch.setattr(apply, "_predict_state", predict_after_first)
+    result = apply.auto_build_cbond(
+        read_mol("NCCO"),
+        "Eu",
+        threshold=0.0,
+        return_details=True,
+    )
+    assert len(result.steps) == 1
+
+
+def test_independent_first_and_later_thresholds(monkeypatch):
+    def predict_state(context, donor_indices, runtime):
+        score = -0.5 if not donor_indices else -0.1
+        return {atom_index: score for atom_index in context.candidate_indices}
+
+    monkeypatch.setattr(apply, "_predict_state", predict_state)
+    result = apply.auto_build_cbond(
+        read_mol("NCCO"),
+        "Eu",
+        threshold=-0.05,
+        first_threshold=-0.75,
+        return_details=True,
+    )
+
+    assert len(result.steps) == 1
+    assert result.steps[0].score == -0.5
+
+
+def test_existing_donor_uses_later_threshold(monkeypatch):
+    molecule = read_mol("NCCO")
+    metal = molecule.add_atom(Atom(symbol="Eu"))
+    nitrogen = next(atom for atom in molecule.atoms if atom.symbol == "N")
+    molecule.add_bond(metal, nitrogen)
+    monkeypatch.setattr(
+        apply,
+        "_predict_state",
+        lambda context, donor_indices, runtime: {
+            atom_index: -0.5 for atom_index in context.candidate_indices
+        },
+    )
+
+    result = apply.auto_build_cbond(
+        molecule,
+        metal,
+        return_details=True,
+    )
+
+    assert result.steps == ()
+    assert result.donor_indices == (nitrogen.idx,)
+
+
+def test_all_structures_uses_first_threshold_only_for_initial_frontier(monkeypatch):
+    monkeypatch.setattr(
+        apply,
+        "_predict_state",
+        lambda context, donor_indices, runtime: {
+            atom_index: -0.25 for atom_index in context.candidate_indices
+        },
+    )
+
+    results = apply.build_all_possible_cbond(
+        read_mol("NCCO"),
+        "Eu",
+        return_details=True,
+    )
+
+    assert len(results) == 2
+    assert all(len(result.steps) == 1 for result in results)
+
+
+def test_build_one_cbond_uses_first_bond_default(monkeypatch):
+    monkeypatch.setattr(
+        apply,
+        "_predict_state",
+        lambda context, donor_indices, runtime: {
+            atom_index: -0.25 for atom_index in context.candidate_indices
+        },
+    )
+
+    molecule, scores = apply.build_one_cbond(read_mol("CN"), "Eu")
+
+    assert molecule is not None
+    assert scores == [-0.25]
 
 
 def test_negative_logit_above_threshold_is_selected(monkeypatch):
@@ -269,25 +416,49 @@ def test_all_structures_with_no_candidate_returns_empty():
 def test_public_backend_defaults_are_synchronized():
     assert (
         inspect.signature(apply.auto_build_cbond).parameters["threshold"].default
-        == DEFAULT_CBOND_THRESHOLD
+        is None
     )
     assert (
         inspect.signature(Molecule.build_all_pair_links).parameters["threshold"].default
-        == DEFAULT_CBOND_THRESHOLD
+        is None
     )
     assert (
         inspect.signature(Molecule.auto_pair_metal).parameters["threshold"].default
-        == DEFAULT_CBOND_THRESHOLD
+        is None
     )
     assert (
         inspect.signature(apply.build_one_cbond).parameters["threshold"].default
-        == DEFAULT_CBOND_THRESHOLD
+        == DEFAULT_FIRST_CBOND_THRESHOLD
     )
     assert (
         inspect.signature(apply.build_all_possible_cbond)
         .parameters["threshold"]
         .default
-        == DEFAULT_CBOND_THRESHOLD
+        is None
+    )
+    assert (
+        inspect.signature(apply.auto_build_cbond)
+        .parameters["first_threshold"]
+        .default
+        is None
+    )
+    assert (
+        inspect.signature(Molecule.build_all_pair_links)
+        .parameters["first_threshold"]
+        .default
+        is None
+    )
+    assert (
+        inspect.signature(Molecule.auto_pair_metal)
+        .parameters["first_threshold"]
+        .default
+        is None
+    )
+    assert (
+        inspect.signature(apply.build_all_possible_cbond)
+        .parameters["first_threshold"]
+        .default
+        is None
     )
 
 

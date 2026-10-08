@@ -5,7 +5,6 @@ import pytest
 from hotpot import __main__ as hotpot_main
 from hotpot import read_mol
 from hotpot.cheminfo.AImodels.cbond import cli
-from hotpot.cheminfo.AImodels.cbond.constants import DEFAULT_CBOND_THRESHOLD
 
 
 def _step(atom_index, element, score):
@@ -40,6 +39,7 @@ def _install_backend(monkeypatch):
         greedy,
         runtime,
         *,
+        first_threshold,
         return_details,
     ):
         observed["molecule"] = molecule
@@ -48,6 +48,7 @@ def _install_backend(monkeypatch):
             threshold,
             greedy,
             runtime,
+            first_threshold,
             return_details,
         )
         return _result(
@@ -62,6 +63,7 @@ def _install_backend(monkeypatch):
         greedy,
         runtime,
         *,
+        first_threshold,
         max_states,
         return_details,
     ):
@@ -71,6 +73,7 @@ def _install_backend(monkeypatch):
             threshold,
             greedy,
             runtime,
+            first_threshold,
             max_states,
             return_details,
         )
@@ -95,17 +98,19 @@ def test_top_level_cbond_prints_result_smiles(monkeypatch, capsys):
     assert observed["runtime_options"] == ("cpu", None)
     assert observed["single_options"] == (
         "Eu",
-        DEFAULT_CBOND_THRESHOLD,
+        None,
         True,
         observed["runtime"],
+        None,
         True,
     )
 
 
-def test_parser_uses_shared_default_threshold():
+def test_parser_uses_split_default_threshold_policy():
     args = cli.build_parser().parse_args(["Eu", "CN"])
 
-    assert args.threshold == DEFAULT_CBOND_THRESHOLD
+    assert args.threshold is None
+    assert args.first_threshold is None
 
 
 def test_cbond_reads_mol2_and_writes_output(monkeypatch, tmp_path, capsys):
@@ -125,6 +130,8 @@ def test_cbond_reads_mol2_and_writes_output(monkeypatch, tmp_path, capsys):
                 "mol2",
                 "--threshold",
                 "1.25",
+                "--first-threshold",
+                "-0.75",
                 "--no-greedy",
                 "--device",
                 "cuda",
@@ -142,6 +149,7 @@ def test_cbond_reads_mol2_and_writes_output(monkeypatch, tmp_path, capsys):
     assert [atom.symbol for atom in observed["molecule"].atoms] == ["C", "N"]
     assert observed["runtime_options"] == ("cuda", str(model_dir))
     assert observed["single_options"][:3] == (63, 1.25, False)
+    assert observed["single_options"][4] == -0.75
 
 
 def test_bond_detail_omits_rank_and_probability(monkeypatch, capsys):
@@ -177,9 +185,10 @@ def test_all_structures_prints_ranked_probabilities(monkeypatch, capsys):
     )
     assert observed["all_options"] == (
         "Eu",
-        DEFAULT_CBOND_THRESHOLD,
+        None,
         True,
         observed["runtime"],
+        None,
         17,
         True,
     )

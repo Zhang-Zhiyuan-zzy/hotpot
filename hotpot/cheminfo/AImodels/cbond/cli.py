@@ -10,7 +10,11 @@ from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo.convert import to_hotpot_mol
 
 from .apply import auto_build_cbond, build_all_possible_cbond, get_cbond_runtime
-from .constants import DEFAULT_CBOND_THRESHOLD, DEFAULT_MAX_STATES
+from .constants import (
+    DEFAULT_FIRST_CBOND_THRESHOLD,
+    DEFAULT_MAX_STATES,
+    DEFAULT_SUBSEQUENT_CBOND_THRESHOLD,
+)
 
 
 def load_cli_documentation() -> str:
@@ -48,8 +52,19 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--threshold",
         type=float,
-        default=DEFAULT_CBOND_THRESHOLD,
-        help=(f"minimum raw CBond model score (default: {DEFAULT_CBOND_THRESHOLD})"),
+        help=(
+            "minimum raw CBond score for later bonds; when explicitly supplied "
+            "without --first-threshold, also applies to the first bond "
+            f"(later-bond default: {DEFAULT_SUBSEQUENT_CBOND_THRESHOLD})"
+        ),
+    )
+    parser.add_argument(
+        "--first-threshold",
+        type=float,
+        help=(
+            "minimum raw CBond score for the first bond "
+            f"(default: {DEFAULT_FIRST_CBOND_THRESHOLD})"
+        ),
     )
     parser.add_argument(
         "--no-greedy",
@@ -144,6 +159,7 @@ def run(args: argparse.Namespace) -> int:
             ligand,
             metal,
             threshold=args.threshold,
+            first_threshold=args.first_threshold,
             greedy=args.greedy,
             runtime=runtime,
             max_states=args.max_states,
@@ -155,6 +171,7 @@ def run(args: argparse.Namespace) -> int:
             ligand,
             metal,
             threshold=args.threshold,
+            first_threshold=args.first_threshold,
             greedy=args.greedy,
             runtime=runtime,
             return_details=True,

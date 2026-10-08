@@ -234,7 +234,7 @@ pair = ligand.auto_pair_metal('Eu')                     # → Molecule（配合�
 pair, prob = ligand.auto_pair_metal('Eu', probability=True)
 ```
 
-`auto_pair_metal(metal, threshold=-0.125, greedy=True, probability=False)`：用 CBond 模型自动加配位键。
+`auto_pair_metal(metal, threshold=None, greedy=True, probability=False, *, first_threshold=None)`：用 CBond 模型自动加配位键。默认首键阈值为 `-0.5`、后续键阈值为 `-0.125`；只显式传入旧参数 `threshold=X` 时，`X` 仍应用于全部成键步骤。
 `metal` 可为元素符号或原子序数。`probability=True` 时返回 `(Molecule, float)`。这是"预测连接性"，
 不涉及氧化态推断或几何优化。
 
@@ -362,7 +362,7 @@ from hotpot.cheminfo.AImodels.cbond.apply import (
     get_cbond_runtime, auto_build_cbond, build_all_possible_cbond,
 )
 runtime = get_cbond_runtime(device=None, model_dir=None)
-result  = auto_build_cbond(mol, "Eu", threshold=-0.125, greedy=True, runtime=runtime,
+result  = auto_build_cbond(mol, "Eu", first_threshold=-0.5, threshold=-0.125, greedy=True, runtime=runtime,
                            return_details=True)
 ```
 
@@ -466,7 +466,7 @@ hotpot cbond --doc                                    # 完整文档
 - `--all-structures` 的 `Prob` 是**归一化相对路径权重**，不是校准物理概率/平衡布居/热力学量。不同
   `--threshold` 下的 `Prob` 不可直接比较。
 - `--bond-detail` 的 `Score` 是**原始 logit**，`AtomIdx` 是 **0-based** Hotpot 索引（非文件中的原子序号）。
-- `--threshold` 默认 `-0.125`，严格 `score > threshold`；`--max-states` 默认 4096（仅 `--all-structures`
+- 首键默认 `--first-threshold -0.5`，后续成键默认 `--threshold -0.125`，均严格使用 `score > threshold`；显式只给 `--threshold X` 时为兼容旧调用会将 `X` 用于全部步骤。`--max-states` 默认 4096（仅 `--all-structures`
   用，超限抛 `RuntimeError`）；`--no-greedy`、`--device`、`--model-dir`。
 - **空结果语义有别**：单结构模式退出码 1 并抛 `ValueError`；`--all-structures` 模式退出码 0 并打印
   "No coordination structures exceeded the threshold."

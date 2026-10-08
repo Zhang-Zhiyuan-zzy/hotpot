@@ -6,13 +6,17 @@ from dataclasses import dataclass
 from functools import lru_cache
 import logging
 import os
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
 from ...core import Atom, Molecule
 from .. import data_extract as de
-from .constants import DEFAULT_CBOND_THRESHOLD, DEFAULT_MAX_STATES
+from .constants import (
+    DEFAULT_FIRST_CBOND_THRESHOLD,
+    DEFAULT_MAX_STATES,
+    DEFAULT_SUBSEQUENT_CBOND_THRESHOLD,
+)
 from .runtime import CBondRuntime, padding_rings
 
 
@@ -268,6 +272,23 @@ def _eligible_candidates(
     ]
 
 
+def _resolve_cbond_thresholds(
+    threshold: Optional[float],
+    first_threshold: Optional[float],
+) -> tuple[float, float]:
+    """Resolve default and backward-compatible explicit threshold policy."""
+    subsequent_threshold = (
+        DEFAULT_SUBSEQUENT_CBOND_THRESHOLD if threshold is None else threshold
+    )
+    if first_threshold is not None:
+        resolved_first_threshold = first_threshold
+    elif threshold is not None:
+        resolved_first_threshold = threshold
+    else:
+        resolved_first_threshold = DEFAULT_FIRST_CBOND_THRESHOLD
+    return resolved_first_threshold, subsequent_threshold
+
+
 def _step(context: _SearchContext, atom_index: int, score: float) -> CBondStep:
     return CBondStep(
         atom_index=atom_index,
@@ -290,21 +311,40 @@ def _materialize_state(
 def auto_build_cbond(
     mol: Molecule,
     metal: Union[int, str, Atom],
-    threshold: float = DEFAULT_CBOND_THRESHOLD,
+    threshold: Optional[float] = None,
     greedy: bool = True,
     sum_prob: bool = True,
     runtime: CBondRuntime = None,
     *,
+    first_threshold: Optional[float] = None,
     return_details: bool = False,
 ):
-    """Greedily add the highest-scoring eligible bond until convergence."""
+    """Greedily add the highest-scoring eligible bond until convergence.
+
+    With no explicit thresholds, the first inferred bond uses
+    ``DEFAULT_FIRST_CBOND_THRESHOLD`` and later bonds use
+    ``DEFAULT_SUBSEQUENT_CBOND_THRESHOLD``. Passing the historical
+    ``threshold`` argument alone applies that value to every inferred bond.
+    """
     context = _prepare_search(mol, metal)
     donor_indices = context.existing_donors
     steps = []
+    resolved_first_threshold, subsequent_threshold = _resolve_cbond_thresholds(
+        threshold,
+        first_threshold,
+    )
 
     while True:
         scores = _predict_state(context, donor_indices, runtime)
-        eligible = _eligible_candidates(scores, donor_indices, threshold, greedy)
+        state_threshold = (
+            resolved_first_threshold if not donor_indices else subsequent_threshold
+        )
+        eligible = _eligible_candidates(
+            scores,
+            donor_indices,
+            state_threshold,
+            greedy,
+        )
         if not eligible:
             break
         atom_index, score = max(
@@ -321,7 +361,8 @@ def auto_build_cbond(
 
     if not steps and not context.existing_donors:
         raise ValueError(
-            f"No coordination bond exceeded the raw-score threshold {threshold}"
+            "No coordination bond exceeded the raw-score threshold "
+            f"{resolved_first_threshold}"
         )
 
     for atom_index in sorted(donor_indices - context.existing_donors):
@@ -344,7 +385,7 @@ def auto_build_cbond(
 def build_one_cbond(
     mol: Molecule,
     metal: Union[int, str, Atom],
-    threshold: float = DEFAULT_CBOND_THRESHOLD,
+    threshold: float = DEFAULT_FIRST_CBOND_THRESHOLD,
     get_all: bool = False,
     runtime: CBondRuntime = None,
 ):
@@ -411,21 +452,23 @@ def _merge_child_state(
 def build_all_possible_cbond(
     mol: Molecule,
     m: Union[int, str, Atom],
-    threshold: float = DEFAULT_CBOND_THRESHOLD,
+    threshold: Optional[float] = None,
     greedy: bool = True,
     normalize_prob: bool = True,
     runtime: CBondRuntime = None,
     *,
+    first_threshold: Optional[float] = None,
     max_states: int = DEFAULT_MAX_STATES,
     return_details: bool = False,
 ):
-    """Enumerate every terminal coordination state above ``threshold``.
+    """Enumerate every terminal coordination state admitted by the thresholds.
 
     Each unique donor-index set is evaluated once. Different bond-order paths
     reaching the same state are merged in log space. Terminal path weights are
     normalized over the returned detailed results. For compatibility, the
     legacy tuple contains raw merged path weights when ``normalize_prob`` is
-    false.
+    false. Passing the historical ``threshold`` argument alone applies that
+    value to every inferred bond.
     """
     metal_spec = m.atomic_number if isinstance(m, Atom) else m
     context = _prepare_search(mol.copy(), metal_spec)
@@ -440,16 +483,23 @@ def build_all_possible_cbond(
     }
     terminal_states = {}
     discovered_states = 1
+    resolved_first_threshold, subsequent_threshold = _resolve_cbond_thresholds(
+        threshold,
+        first_threshold,
+    )
 
     while frontier:
         next_states = {}
         for donor_indices in sorted(frontier, key=lambda state: tuple(sorted(state))):
             state = frontier[donor_indices]
             scores = _predict_state(context, donor_indices, runtime)
+            state_threshold = (
+                resolved_first_threshold if not donor_indices else subsequent_threshold
+            )
             eligible = _eligible_candidates(
                 scores,
                 donor_indices,
-                threshold,
+                state_threshold,
                 greedy,
             )
             if not eligible:

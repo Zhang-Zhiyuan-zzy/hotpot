@@ -112,8 +112,8 @@ isomorphism. Symmetry-related donor sets can therefore remain separate and may
 occasionally print the same canonical SMILES.
 
 A state is terminal only when no unconnected candidate has a raw score above
-the threshold. `--all-structures` does not return every arbitrary subset of
-donor atoms.
+the threshold applicable to that bond-addition step. `--all-structures` does
+not return every arbitrary subset of donor atoms.
 
 ## Show bond details
 
@@ -184,19 +184,24 @@ output is no longer a one-record SMILES file. ONNX Runtime warnings written to
 standard error remain visible in the terminal and are not included in these
 files.
 
-## Threshold and empty results
+## Thresholds and empty results
 
-The default threshold is `-0.125` and is applied to each raw model logit using
-the strict rule `score > threshold`:
+The default first-bond threshold is `-0.5`. After the first bond has been
+added, the default threshold is `-0.125`. Both comparisons use the strict rule
+`score > threshold`.
+
+Use `--first-threshold` and `--threshold` to control the two stages
+independently:
 
 ```bash
-$ hotpot cbond Eu 'CN' --threshold -0.125
+$ hotpot cbond Eu 'CN' --first-threshold -0.75 --threshold -0.05
 ```
 
-A higher threshold explores fewer bond additions; a lower threshold can
-produce more states. Because the terminal candidate set can change,
-normalized `Prob` values from different thresholds are not directly
-comparable.
+For backward compatibility, an explicitly supplied `--threshold` without
+`--first-threshold` applies to every bond, including the first. A higher
+threshold explores fewer bond additions; a lower threshold can produce more
+states. Because the terminal candidate set can change, normalized `Prob`
+values from different thresholds are not directly comparable.
 
 The two output modes intentionally report an empty search differently. This
 single-structure command was verified to exit with status 1 and end with the

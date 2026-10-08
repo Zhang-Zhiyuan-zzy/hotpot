@@ -66,3 +66,25 @@ making the evaluated cohort smaller.
 It is deliberately independent of optimizer convergence. The summary also
 reports paired geometry regressions and improvements against `STRICT`; energy
 deltas compare the selected minimum-energy frames that are returned to users.
+
+## Reference result and default selection
+
+The 2026-10-08 run used 187 ligand starts and 181 complex starts (one complex
+start was non-finite and remained in every denominator):
+
+| Target | Level | Geometry pass | Aggregate optimizer time | Saving vs `STRICT` |
+|---|---|---:|---:|---:|
+| Ligand | `OPENBABEL` | 185/187 | 183.6 s | 72.3% |
+| Ligand | `FAST` | 185/187 | 315.8 s | 52.4% |
+| Ligand | `BALANCED` | 185/187 | 598.6 s | 9.8% |
+| Ligand | `STRICT` | 185/187 | 664.0 s | baseline |
+| Complex | `OPENBABEL` | 165/181 | 316.2 s | 59.3% |
+| Complex | `FAST` | 165/181 | 482.4 s | 38.0% |
+| Complex | `BALANCED` | 165/181 | 718.7 s | 7.6% |
+| Complex | `STRICT` | 166/181 | 777.7 s | baseline |
+
+Against `STRICT`, `FAST` had no ligand geometry regression. For complexes it
+had two paired regressions and one paired improvement, a net reduction of one
+pass. `FAST` was therefore selected as the runtime default: it provides a
+large speed improvement with a small measured quality trade-off. `STRICT`
+remains available for exact compatibility with the former stopping rule.

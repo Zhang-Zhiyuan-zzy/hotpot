@@ -23,6 +23,21 @@ The package currently provides:
 - a read-only registry of narrowly scoped Open Babel workaround rules; and
 - auditable evidence for every applied rule.
 
+The optimizer is split by responsibility without adding a Python callback to
+the epoch loop:
+
+| Layer | Python entry point | Native C++ entry point | Responsibility |
+|---|---|---|---|
+| Operation | `single_optimize(...)` | `OptimizationOperation` in `optimization_operation.hpp` | Force-field setup and direct optimization operations |
+| Checks | `check_optimization_state(...)` | functions in `optimization_checks.hpp` | Energy, gradients, displacement, finite-state, explosion, and convergence facts |
+| Controller | `optimize(...)` | `run_optimization_controller(...)` | Epoch sequencing, restarts, perturbations, frame selection, and termination |
+
+The controller, operation, and checks all execute inside one native call. The
+separation therefore adds no per-epoch Python/C++ crossings. Registered
+workarounds still run at the same pre-build and pre-force-field-setup points;
+the package remains an extensible correction layer around Open Babel rather
+than a replacement backend.
+
 It does not implement a replacement force field, decide whether a structure
 is chemically acceptable, repair ring--bond piercing, restore coordination
 bonds, or relocate a metal center. Those policies belong to
@@ -93,6 +108,8 @@ implementation details.
 | API | Purpose | Return value |
 |---|---|---|
 | `build(mol, *, stereo_warnings=None)` | Build 3D coordinates through native `OBBuilder` and apply pre-build rules | `BuildReport` |
+| `single_optimize(mol, forcefield, steps, *, ...)` | Run one standalone native steepest-descent operation | `SingleOptimizationReport` |
+| `check_optimization_state(mol, forcefield, *, ...)` | Measure one state without modifying the molecule | `OptimizationCheckReport` |
 | `optimize(mol, forcefield, *, ...)` | Run a native, epoch-based Open Babel optimization | `OptimizationReport` |
 | `available_rules(stage=None)` | List compiled rules in deterministic execution order | `tuple[RuleDescriptor, ...]` |
 | `inspect_rules(mol, stage, *, ...)` | Report which rules would apply without building or optimizing | `RuleExecutionReport` |
@@ -140,6 +157,7 @@ optimize(
     vdw_cutoff_start: float = 1.0,
     vdw_cutoff_end: float = 10.0,
     energy_tolerance: float = 1.0e-6,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.FAST,
     stopping_window: int | None = None,
     maximum_energy_change_kj_mol: float = 1.0e-4,
     maximum_atom_displacement_angstrom: float = 1.0e-4,
@@ -162,6 +180,7 @@ Important parameters:
 | `retain_frames` | Return every executed epoch as an `OptimizationFrame` |
 | `retain_epoch_history` | Retain the scalar energy history independently of coordinate frames |
 | `increasing_vdw` | Rebuild the force-field segment with a linearly increasing van der Waals cutoff |
+| `convergence_level` | Evidence required after Open Babel reports a stop; `FAST` is the measured default |
 | `stopping_window` | Enable stable-window termination; `None` disables this extra stopping rule |
 | `singularity_threshold`, `repair_angle_radians` | Numerical controls for the registered degenerate-torsion guard; they are not chemical acceptance criteria |
 
@@ -196,7 +215,80 @@ report = optimize(
 print(report.epochs_completed, report.best_energy)
 ```
 
-### 3.3 `available_rules`
+#### Convergence levels
+
+Hard numerical failures—non-finite coordinates, energy or gradients, and
+Open Babel explosion detection—remain active at every level.
+
+| Value | Name | Additional evidence after an Open Babel stop signal |
+|---:|---|---|
+| 0 | `OPENBABEL` | No gradient threshold; accept a numerically usable Open Babel stop |
+| 1 | `FAST` (default) | RMS gradient <= 3 and maximum gradient <= 10 kJ/(mol Å) |
+| 2 | `BALANCED` | RMS gradient <= 1 and maximum gradient <= 5 kJ/(mol Å) |
+| 3 | `STRICT` | Maximum gradient <= 0.1 in the backend energy unit per Å; this exactly preserves the former behavior |
+
+The paired 187-ligand/181-complex benchmark selected `FAST`: relative to
+`STRICT`, aggregate optimizer time fell by 52.4% for ligands and 38.0% for
+complexes. Ligand geometry passes remained 185/187. Complex passes changed
+from 166/181 to 165/181 (two paired regressions and one improvement). This is
+the intended small reliability trade-off for a large runtime reduction. Use
+`STRICT` when reproducing the former stopping behavior exactly. The runnable
+benchmark and its metric definitions are documented in
+`tests/benchmarks/obwrapper_convergence/README.md`.
+
+### 3.3 `single_optimize`
+
+```python
+single_optimize(
+    mol: Molecule,
+    forcefield: str,
+    steps: int,
+    *,
+    singularity_threshold: float = 1.0e-6,
+    repair_angle_radians: float = 1.0e-3,
+) -> SingleOptimizationReport
+```
+
+This operation performs one native steepest-descent block, applies registered
+pre-force-field rules, and updates `mol.coordinates`. It does not run the
+epoch controller or chemical geometry acceptance.
+
+```python
+from hotpot import read_mol
+from hotpot.cheminfo.obWrappers import build, single_optimize
+
+mol = read_mol("CCO", "smi")
+build(mol)
+report = single_optimize(mol, "UFF", 100)
+print(report.energy, report.exploded)
+```
+
+### 3.4 `check_optimization_state`
+
+```python
+check_optimization_state(
+    mol: Molecule,
+    forcefield: str,
+    *,
+    previous_coordinates: numpy.ndarray | None = None,
+    previous_energy_kj_mol: float | None = None,
+    singularity_threshold: float = 1.0e-6,
+    repair_angle_radians: float = 1.0e-3,
+) -> OptimizationCheckReport
+```
+
+This read-only operation returns energy, RMS and maximum gradient, optional
+energy/displacement changes, finite-coordinate state, explosion state, and a
+structured numerical-failure classification.
+
+```python
+from hotpot.cheminfo.obWrappers import check_optimization_state
+
+state = check_optimization_state(mol, "UFF")
+print(state.energy, state.rms_gradient, state.failure.name)
+```
+
+### 3.5 `available_rules`
 
 ```python
 available_rules(
@@ -214,7 +306,7 @@ for rule in available_rules(RuleStage.PRE_BUILD):
     print(rule.rule_id, rule.version, rule.priority)
 ```
 
-### 3.4 `inspect_rules`
+### 3.6 `inspect_rules`
 
 ```python
 inspect_rules(
@@ -251,6 +343,9 @@ but report attributes and rule records cannot be reassigned.
 | `BuildReport` | Builder success flag and pre-build rule evidence |
 | `OptimizationReport` | Selected and terminal coordinates, frames, energy/gradient facts, budgets, termination facts, and all setup-rule evidence |
 | `OptimizationFrame` | Facts recorded after one executed epoch |
+| `OptimizationCheckReport` | Read-only energy, gradient, displacement, finite-state, explosion, and failure facts |
+| `OptimizationFailure` | Structured numerical-state classification |
+| `ConvergenceLevel` | Integer policy levels `OPENBABEL=0` through `STRICT=3` |
 | `RuleExecutionReport` | Ordered applications for one lifecycle stage; `.applied` is true when nonempty |
 | `RuleApplication` | One rule's targets, metric, hybridization changes, and coordinate changes |
 | `RuleDescriptor` | Stable rule ID, semantic version, stage, and priority |
@@ -424,7 +519,9 @@ or become an unconditional fallback.
 hotpot/cheminfo/obWrappers/
 ├── __init__.py                 # supported public exports
 ├── builder.py                  # Hotpot-Molecule build facade
-├── forcefield.py               # Hotpot-Molecule optimization facade
+├── operation.py                # standalone optimization-operation facade
+├── checks.py                   # standalone read-only check facade
+├── forcefield.py               # complete optimization-controller facade
 ├── registry.py                 # read-only rule inspection
 ├── contracts.py                # immutable public reports
 ├── reports.py                  # native-to-public report conversion
@@ -435,7 +532,10 @@ hotpot/cheminfo/obWrappers/
 └── _native/
     ├── molecule_data.*         # transient C++ value buffers
     ├── openbabel_adapter.*     # value buffers <-> temporary OBMol
-    ├── native_engine.*         # builder and force-field execution
+    ├── native_engine.*         # runtime facade and transaction boundary
+    ├── optimization_operation.* # force-field operation primitives
+    ├── optimization_checks.*    # numerical measurements and decisions
+    ├── optimization_controller.* # epoch-level flow control
     ├── rules.hpp               # native rule/report contracts
     ├── registry.*              # deterministic compiled registry
     ├── phosphorus_builder.cpp  # P(V) builder guard

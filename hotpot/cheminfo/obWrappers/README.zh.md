@@ -21,6 +21,18 @@ Python 先将分子复制为具有明确 dtype、C 连续布局的 NumPy 数组�
 - 只读的、针对明确 Open Babel 缺陷的规则注册表；
 - 每次规则应用的可审计证据。
 
+优化器按职责拆分，且不会在 epoch 循环中增加 Python 回调：
+
+| 层次 | Python 入口 | 原生 C++ 入口 | 职责 |
+|---|---|---|---|
+| 优化操作 | `single_optimize(...)` | `optimization_operation.hpp` 中的 `OptimizationOperation` | 力场建立和直接优化操作 |
+| 状态检查 | `check_optimization_state(...)` | `optimization_checks.hpp` 中的函数 | 能量、梯度、位移、有限性、爆炸和收敛事实 |
+| 流程控制 | `optimize(...)` | `run_optimization_controller(...)` | epoch 编排、重启、微扰、选帧和终止 |
+
+流程控制、优化操作和状态检查都在一次原生调用内完成，因此拆分没有增加
+逐 epoch 的 Python/C++ 往返。注册的修正规则仍在原有的构筑前和力场建立前
+节点执行；该包仍是 Open Babel 外围的可扩展缺陷修正层，而不是替代力场。
+
 本包不实现新力场，不判断结构在化学上是否可接受，不处理环—键互穿、
 配位键恢复或金属重定位。这些科学与流程策略属于上层
 `hotpot.cheminfo.forcefields` 以及 geometry/chemistry 模块。
@@ -87,6 +99,8 @@ print(optimization.termination_reason)
 | API | 作用 | 返回值 |
 |---|---|---|
 | `build(mol, *, stereo_warnings=None)` | 通过原生 `OBBuilder` 构筑三维坐标，并应用构筑前规则 | `BuildReport` |
+| `single_optimize(mol, forcefield, steps, *, ...)` | 执行一次独立的原生最速下降操作 | `SingleOptimizationReport` |
+| `check_optimization_state(mol, forcefield, *, ...)` | 只读测量当前状态，不修改分子 | `OptimizationCheckReport` |
 | `optimize(mol, forcefield, *, ...)` | 运行原生、按 epoch 组织的 Open Babel 优化 | `OptimizationReport` |
 | `available_rules(stage=None)` | 按确定顺序列出编译期规则 | `tuple[RuleDescriptor, ...]` |
 | `inspect_rules(mol, stage, *, ...)` | 不构筑、不优化，仅报告将命中的规则 | `RuleExecutionReport` |
@@ -133,6 +147,7 @@ optimize(
     vdw_cutoff_start: float = 1.0,
     vdw_cutoff_end: float = 10.0,
     energy_tolerance: float = 1.0e-6,
+    convergence_level: ConvergenceLevel = ConvergenceLevel.FAST,
     stopping_window: int | None = None,
     maximum_energy_change_kj_mol: float = 1.0e-4,
     maximum_atom_displacement_angstrom: float = 1.0e-4,
@@ -155,6 +170,7 @@ optimize(
 | `retain_frames` | 将每个实际执行 epoch 作为 `OptimizationFrame` 返回 |
 | `retain_epoch_history` | 独立于坐标帧保留标量能量历史 |
 | `increasing_vdw` | 使用线性增大的范德华截断反复建立力场 segment |
+| `convergence_level` | Open Babel 报告停止后所需的收敛证据；实测默认值为 `FAST` |
 | `stopping_window` | 启用稳定窗口停止；`None` 表示不采用该额外停止规则 |
 | `singularity_threshold`、`repair_angle_radians` | 退化扭转规则的数值参数，不是化学验收标准 |
 
@@ -188,7 +204,76 @@ report = optimize(
 print(report.epochs_completed, report.best_energy)
 ```
 
-### 3.3 `available_rules`
+#### 收敛档位
+
+所有档位都会执行硬性数值失败检查，包括非有限坐标、能量或梯度，以及
+Open Babel 的结构爆炸检测。
+
+| 数值 | 名称 | Open Babel 发出停止信号后所需的附加证据 |
+|---:|---|---|
+| 0 | `OPENBABEL` | 不附加梯度阈值；数值状态可用即可接受 Open Babel 停止信号 |
+| 1 | `FAST`（默认） | RMS 梯度 <= 3、最大梯度 <= 10 kJ/(mol Å) |
+| 2 | `BALANCED` | RMS 梯度 <= 1、最大梯度 <= 5 kJ/(mol Å) |
+| 3 | `STRICT` | 最大梯度 <= 0.1 后端能量单位/Å；逐字保持此前的停止行为 |
+
+基于相同三维起点的 187 个配体、181 个络合物配对基准选择了 `FAST`：相对
+`STRICT`，配体累计优化时间减少 52.4%，络合物减少 38.0%。配体几何门控
+保持 185/187；络合物由 166/181 变为 165/181（逐样本有 2 个退化、1 个
+改善）。这对应“轻微可靠性妥协、显著缩短运行时间”的默认策略。需要完全
+复现旧停止行为时应显式使用 `STRICT`。可运行基准及口径见
+`tests/benchmarks/obwrapper_convergence/README.md`。
+
+### 3.3 `single_optimize`
+
+```python
+single_optimize(
+    mol: Molecule,
+    forcefield: str,
+    steps: int,
+    *,
+    singularity_threshold: float = 1.0e-6,
+    repair_angle_radians: float = 1.0e-3,
+) -> SingleOptimizationReport
+```
+
+该操作执行一个原生最速下降步块，应用已注册的力场建立前规则，并更新
+`mol.coordinates`；它不运行 epoch 控制器或化学几何验收。
+
+```python
+from hotpot import read_mol
+from hotpot.cheminfo.obWrappers import build, single_optimize
+
+mol = read_mol("CCO", "smi")
+build(mol)
+report = single_optimize(mol, "UFF", 100)
+print(report.energy, report.exploded)
+```
+
+### 3.4 `check_optimization_state`
+
+```python
+check_optimization_state(
+    mol: Molecule,
+    forcefield: str,
+    *,
+    previous_coordinates: numpy.ndarray | None = None,
+    previous_energy_kj_mol: float | None = None,
+    singularity_threshold: float = 1.0e-6,
+    repair_angle_radians: float = 1.0e-3,
+) -> OptimizationCheckReport
+```
+
+该只读操作返回能量、RMS/最大梯度、可选的能量/位移变化、坐标有限性、
+爆炸状态和结构化数值失败分类。
+
+```python
+from hotpot.cheminfo.obWrappers import check_optimization_state
+
+state = check_optimization_state(mol, "UFF")
+print(state.energy, state.rms_gradient, state.failure.name)
+```
+
+### 3.5 `available_rules`
 
 ```python
 available_rules(
@@ -206,7 +291,7 @@ for rule in available_rules(RuleStage.PRE_BUILD):
     print(rule.rule_id, rule.version, rule.priority)
 ```
 
-### 3.4 `inspect_rules`
+### 3.6 `inspect_rules`
 
 ```python
 inspect_rules(
@@ -242,6 +327,9 @@ for application in report.applications:
 | `BuildReport` | 构筑成功标志和构筑前规则证据 |
 | `OptimizationReport` | 选中/末帧坐标、帧、能量/梯度事实、预算、终止事实和全部 setup 规则证据 |
 | `OptimizationFrame` | 一次实际执行 epoch 后记录的数值事实 |
+| `OptimizationCheckReport` | 只读能量、梯度、位移、有限性、爆炸和失败事实 |
+| `OptimizationFailure` | 结构化的数值状态分类 |
+| `ConvergenceLevel` | 从 `OPENBABEL=0` 到 `STRICT=3` 的整数策略档位 |
 | `RuleExecutionReport` | 某生命周期阶段的有序规则应用；非空时 `.applied` 为真 |
 | `RuleApplication` | 一次规则应用的目标、度量、杂化变化和坐标变化 |
 | `RuleDescriptor` | 稳定规则 ID、语义版本、阶段和优先级 |
@@ -398,7 +486,9 @@ condition/action 必须保持狭窄：它们可以为已经证实的 Open Babel 
 hotpot/cheminfo/obWrappers/
 ├── __init__.py                 # 受支持的公开导出
 ├── builder.py                  # Hotpot Molecule 构筑 facade
-├── forcefield.py               # Hotpot Molecule 优化 facade
+├── operation.py                # 独立优化操作 facade
+├── checks.py                   # 独立只读检查 facade
+├── forcefield.py               # 完整优化流程控制 facade
 ├── registry.py                 # 只读规则检查
 ├── contracts.py                # 不可变公开报告
 ├── reports.py                  # 原生报告到公开报告的转换
@@ -409,7 +499,10 @@ hotpot/cheminfo/obWrappers/
 └── _native/
     ├── molecule_data.*         # 瞬态 C++ 值 buffer
     ├── openbabel_adapter.*     # 值 buffer <-> 临时 OBMol
-    ├── native_engine.*         # builder 与力场执行
+    ├── native_engine.*         # 运行时 facade 与事务边界
+    ├── optimization_operation.* # 力场优化操作原语
+    ├── optimization_checks.*    # 数值测量与判定
+    ├── optimization_controller.* # epoch 级流程控制
     ├── rules.hpp               # 原生规则/报告契约
     ├── registry.*              # 确定性编译期注册表
     ├── phosphorus_builder.cpp  # P(V) 构筑保护

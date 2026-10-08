@@ -1,12 +1,15 @@
 """Auditable rule wrappers around selected Open Babel operations."""
 
 from .builder import build
+from .checks import check_optimization_state
 from .contracts import (
     BondKindCode,
     BuildReport,
     CoordinateChange,
     HybridizationChange,
     OptimizationFrame,
+    OptimizationCheckReport,
+    OptimizationFailure,
     OptimizationReport,
     RuleApplication,
     RuleDescriptor,
@@ -15,6 +18,7 @@ from .contracts import (
     SingleOptimizationReport,
 )
 from .forcefield import optimize
+from .operation import single_optimize
 from .registry import available_rules, inspect_rules
 
 
@@ -24,6 +28,8 @@ __all__ = (
     "CoordinateChange",
     "HybridizationChange",
     "OptimizationFrame",
+    "OptimizationCheckReport",
+    "OptimizationFailure",
     "OptimizationReport",
     "RuleApplication",
     "RuleDescriptor",
@@ -32,6 +38,8 @@ __all__ = (
     "SingleOptimizationReport",
     "available_rules",
     "build",
+    "check_optimization_state",
     "inspect_rules",
     "optimize",
+    "single_optimize",
 )

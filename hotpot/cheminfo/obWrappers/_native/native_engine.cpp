@@ -376,6 +376,61 @@ SingleOptimizationResult single_optimize_in_place(
 }
 
 
+OptimizationCheckResult check_optimization_state(
+    const MoleculeData& molecule,
+    const std::string& forcefield_name,
+    const std::optional<std::vector<Coordinate>>& previous_coordinates,
+    std::optional<double> previous_energy_kj_mol,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
+    molecule.validate();
+    validate_rule_parameters(
+        singularity_threshold,
+        repair_angle_radians
+    );
+    if (previous_coordinates.has_value()
+        && previous_coordinates->size() != molecule.atom_count()) {
+        throw std::invalid_argument(
+            "previous_coordinates must contain one coordinate per atom"
+        );
+    }
+    auto obmol = make_obmol(molecule);
+    auto& forcefield = find_forcefield(forcefield_name);
+    OptimizationOperation operation(
+        forcefield,
+        forcefield_name,
+        OptimizationAlgorithm::STEEPEST,
+        0.0
+    );
+    auto plan = operation.setup_and_validate(
+        obmol,
+        false,
+        singularity_threshold,
+        repair_angle_radians
+    );
+    const auto coordinates = extract_coordinates(obmol);
+    const auto backend_unit = forcefield.GetUnit();
+    const auto measurements = measure_optimization_state(
+        forcefield,
+        obmol,
+        coordinates,
+        previous_coordinates.has_value() ? &*previous_coordinates : nullptr,
+        previous_energy_kj_mol,
+        energy_factor_to_kj(forcefield_name, backend_unit)
+    );
+    const auto failure = optimization_failure(measurements);
+    return {
+        coordinates,
+        measurements,
+        failure,
+        backend_unit,
+        std::move(plan),
+    };
+}
+
+
 OptimizationResult optimize(
     const MoleculeData& molecule,
     const OptimizationOptions& options,

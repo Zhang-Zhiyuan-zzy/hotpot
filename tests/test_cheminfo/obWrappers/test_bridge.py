@@ -10,8 +10,14 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.obWrappers import RuleStage, build, optimize
-from hotpot.cheminfo.obWrappers.forcefield import _single_optimize
+from hotpot.cheminfo.obWrappers import (
+    RuleStage,
+    build,
+    check_optimization_state,
+    OptimizationFailure,
+    optimize,
+    single_optimize,
+)
 
 
 EXTRACTANT_FILE = (
@@ -125,7 +131,7 @@ def test_all_extractant_phosphorus_centers_build_and_optimize_finitely():
         mol.add_hydrogens()
         build_report = build(mol)
         application_count += len(build_report.rules.applications)
-        optimization = _single_optimize(mol, "UFF", 1)
+        optimization = single_optimize(mol, "UFF", 1)
 
         assert build_report.succeeded
         assert isfinite(optimization.energy)
@@ -156,6 +162,44 @@ def test_optimizer_returns_selected_and_terminal_native_frames():
         range(report.epochs_completed)
     )
     assert all(np.all(np.isfinite(frame.coordinates)) for frame in report.frames)
+
+
+def test_check_optimization_state_is_read_only_and_reports_numerical_facts():
+    mol = read_mol("CCO")
+    assert build(mol).succeeded
+    original_coordinates = mol.coordinates.copy()
+
+    report = check_optimization_state(
+        mol,
+        "UFF",
+        previous_coordinates=original_coordinates + 0.1,
+        previous_energy_kj_mol=0.0,
+    )
+
+    assert np.array_equal(mol.coordinates, original_coordinates)
+    assert isfinite(report.energy)
+    assert isfinite(report.rms_gradient)
+    assert isfinite(report.max_gradient)
+    assert report.energy_change == pytest.approx(abs(report.energy))
+    assert report.max_displacement == pytest.approx(np.sqrt(0.03))
+    assert report.finite_coordinates
+    assert report.usable
+    assert report.failure is OptimizationFailure.NONE
+    assert np.array_equal(report.evaluated_coordinates, original_coordinates)
+    assert report.energy_unit == "kJ/mol"
+    assert report.gradient_unit == "kJ/(mol*angstrom)"
+
+
+def test_single_optimize_is_a_public_operation():
+    mol = read_mol("CCO")
+    assert build(mol).succeeded
+    initial_coordinates = mol.coordinates.copy()
+
+    report = single_optimize(mol, "UFF", 2)
+
+    assert np.array_equal(report.coordinates, mol.coordinates)
+    assert not np.array_equal(mol.coordinates, initial_coordinates)
+    assert isfinite(report.energy)
 
 
 @pytest.mark.parametrize("forcefield", ["MMFF94", "MMFF94s", "GAFF"])

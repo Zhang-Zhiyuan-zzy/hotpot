@@ -164,6 +164,32 @@ void test_molecule_data_and_obmol_entries_share_results() {
 }
 
 
+void test_check_entry_reports_state_without_mutating_input() {
+    const auto input = molecule_data();
+    const auto previous = std::vector<obw::Coordinate>{
+        {0.1, 0.1, 0.1}, {2.3, 0.1, 0.1}
+    };
+    const auto result = obw::check_optimization_state(
+        input, "UFF", previous, 0.0, 1.0e-8, 0.05
+    );
+    assert(std::isfinite(result.measurements.energy_kj_mol));
+    assert(std::isfinite(
+        result.measurements.gradients.rms_kj_mol_angstrom
+    ));
+    assert(std::isfinite(
+        result.measurements.gradients.maximum_kj_mol_angstrom
+    ));
+    assert(result.measurements.energy_change_kj_mol.has_value());
+    assert(result.measurements.maximum_displacement_angstrom.has_value());
+    assert(std::abs(
+        *result.measurements.maximum_displacement_angstrom
+        - std::sqrt(0.03)
+    ) < 1.0e-12);
+    assert(result.failure == obw::OptimizationFailure::NONE);
+    assert(same_coordinates(result.evaluated_coordinates, input.coordinates));
+}
+
+
 void test_in_place_failure_restores_coordinates() {
     auto molecule = obw::make_obmol(molecule_data());
     const auto before = obw::extract_coordinates(molecule);
@@ -234,6 +260,7 @@ int main() {
     test_backend_stop_requires_global_gradient_convergence();
     test_iterative_entry_restores_selected_not_terminal_frame();
     test_molecule_data_and_obmol_entries_share_results();
+    test_check_entry_reports_state_without_mutating_input();
     test_in_place_failure_restores_coordinates();
     test_session_adapter_updates_only_coordinate_revision();
 }

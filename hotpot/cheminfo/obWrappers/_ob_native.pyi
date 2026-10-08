@@ -111,6 +111,36 @@ class SingleOptimizationResult:
     rules: RulePlan
 
 
+class GradientMetrics:
+    rms_kj_mol_angstrom: float
+    maximum_kj_mol_angstrom: float
+
+
+class OptimizationMeasurements:
+    energy_kj_mol: float
+    gradients: GradientMetrics
+    energy_change_kj_mol: Optional[float]
+    maximum_displacement_angstrom: Optional[float]
+    finite_coordinates: bool
+    exploded: bool
+
+
+class OptimizationFailure(Enum):
+    NONE: OptimizationFailure
+    NONFINITE_COORDINATES: OptimizationFailure
+    NONFINITE_ENERGY: OptimizationFailure
+    NONFINITE_GRADIENTS: OptimizationFailure
+    EXPLOSION_DETECTED: OptimizationFailure
+
+
+class OptimizationCheckResult:
+    evaluated_coordinates: npt.NDArray[np.float64]
+    measurements: OptimizationMeasurements
+    failure: OptimizationFailure
+    backend_energy_unit: str
+    rules: RulePlan
+
+
 class OptimizationFrame:
     coordinates: npt.NDArray[np.float64]
     energy: float
@@ -1048,6 +1078,15 @@ def single_optimize(
     singularity_threshold: float = ...,
     repair_angle_radians: float = ...,
 ) -> SingleOptimizationResult: ...
+
+def check_optimization_state(
+    molecule: MoleculeData,
+    forcefield: str,
+    previous_coordinates: Optional[npt.NDArray[np.float64]] = ...,
+    previous_energy_kj_mol: Optional[float] = ...,
+    singularity_threshold: float = ...,
+    repair_angle_radians: float = ...,
+) -> OptimizationCheckResult: ...
 
 def optimize(
     molecule: MoleculeData,

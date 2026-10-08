@@ -367,6 +367,64 @@ PYBIND11_MODULE(_ob_native, module) {
         .def_readonly("exploded", &SingleOptimizationResult::exploded)
         .def_readonly("rules", &SingleOptimizationResult::rules);
 
+    py::class_<GradientMetrics>(module, "GradientMetrics")
+        .def_readonly(
+            "rms_kj_mol_angstrom",
+            &GradientMetrics::rms_kj_mol_angstrom
+        )
+        .def_readonly(
+            "maximum_kj_mol_angstrom",
+            &GradientMetrics::maximum_kj_mol_angstrom
+        );
+
+    py::class_<OptimizationMeasurements>(module, "OptimizationMeasurements")
+        .def_readonly("energy_kj_mol", &OptimizationMeasurements::energy_kj_mol)
+        .def_readonly("gradients", &OptimizationMeasurements::gradients)
+        .def_readonly(
+            "energy_change_kj_mol",
+            &OptimizationMeasurements::energy_change_kj_mol
+        )
+        .def_readonly(
+            "maximum_displacement_angstrom",
+            &OptimizationMeasurements::maximum_displacement_angstrom
+        )
+        .def_readonly(
+            "finite_coordinates",
+            &OptimizationMeasurements::finite_coordinates
+        )
+        .def_readonly("exploded", &OptimizationMeasurements::exploded);
+
+    py::enum_<OptimizationFailure>(module, "OptimizationFailure")
+        .value("NONE", OptimizationFailure::NONE)
+        .value(
+            "NONFINITE_COORDINATES",
+            OptimizationFailure::NONFINITE_COORDINATES
+        )
+        .value("NONFINITE_ENERGY", OptimizationFailure::NONFINITE_ENERGY)
+        .value(
+            "NONFINITE_GRADIENTS",
+            OptimizationFailure::NONFINITE_GRADIENTS
+        )
+        .value(
+            "EXPLOSION_DETECTED",
+            OptimizationFailure::EXPLOSION_DETECTED
+        );
+
+    py::class_<OptimizationCheckResult>(module, "OptimizationCheckResult")
+        .def_property_readonly(
+            "evaluated_coordinates",
+            [](const OptimizationCheckResult& result) {
+                return coordinate_array(result.evaluated_coordinates);
+            }
+        )
+        .def_readonly("measurements", &OptimizationCheckResult::measurements)
+        .def_readonly("failure", &OptimizationCheckResult::failure)
+        .def_readonly(
+            "backend_energy_unit",
+            &OptimizationCheckResult::backend_energy_unit
+        )
+        .def_readonly("rules", &OptimizationCheckResult::rules);
+
     py::class_<OptimizationFrame>(module, "OptimizationFrame")
         .def_property_readonly(
             "coordinates",
@@ -512,6 +570,50 @@ PYBIND11_MODULE(_ob_native, module) {
         py::arg("molecule"),
         py::arg("forcefield"),
         py::arg("steps"),
+        py::arg("singularity_threshold") =
+            detail::default_torsion_singularity_threshold,
+        py::arg("repair_angle_radians") =
+            detail::default_torsion_repair_angle_radians
+    );
+    module.def(
+        "check_optimization_state",
+        [setup_error, energy_unit_error](
+            const MoleculeData& molecule,
+            const std::string& forcefield,
+            const py::object& previous_coordinates,
+            std::optional<double> previous_energy_kj_mol,
+            double singularity_threshold,
+            double repair_angle_radians
+        ) {
+            std::optional<std::vector<Coordinate>> previous;
+            if (!previous_coordinates.is_none()) {
+                previous = read_coordinates(
+                    py::cast<py::array>(previous_coordinates),
+                    "previous_coordinates"
+                );
+            }
+            try {
+                py::gil_scoped_release release;
+                return check_optimization_state(
+                    molecule,
+                    forcefield,
+                    previous,
+                    previous_energy_kj_mol,
+                    singularity_threshold,
+                    repair_angle_radians
+                );
+            } catch (const ForceFieldSetupFailure& error) {
+                raise_forcefield_setup_error(
+                    setup_error.ptr(), error, "optimization_check"
+                );
+            } catch (const ForceFieldEnergyUnitFailure& error) {
+                raise_energy_unit_error(energy_unit_error, error);
+            }
+        },
+        py::arg("molecule"),
+        py::arg("forcefield"),
+        py::arg("previous_coordinates") = py::none(),
+        py::arg("previous_energy_kj_mol") = std::nullopt,
         py::arg("singularity_threshold") =
             detail::default_torsion_singularity_threshold,
         py::arg("repair_angle_radians") =

@@ -81,6 +81,15 @@ struct SingleOptimizationResult {
 };
 
 
+struct OptimizationCheckResult {
+    std::vector<Coordinate> evaluated_coordinates;
+    OptimizationMeasurements measurements;
+    OptimizationFailure failure;
+    std::string backend_energy_unit;
+    RulePlan rules;
+};
+
+
 struct RuntimeInfo {
     std::string compiled_openbabel_version;
     std::string runtime_openbabel_version;
@@ -123,6 +132,16 @@ SingleOptimizationResult single_optimize_in_place(
     OpenBabel::OBMol& molecule,
     const std::string& forcefield,
     std::size_t steps,
+    double singularity_threshold,
+    double repair_angle_radians
+);
+
+
+OptimizationCheckResult check_optimization_state(
+    const MoleculeData& molecule,
+    const std::string& forcefield,
+    const std::optional<std::vector<Coordinate>>& previous_coordinates,
+    std::optional<double> previous_energy_kj_mol,
     double singularity_threshold,
     double repair_angle_radians
 );

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import NoReturn, Optional, TYPE_CHECKING
 
 from ..obWrappers import build as build_molecule
-from ..obWrappers.forcefield import _single_optimize as _native_single_optimize
+from ..obWrappers import single_optimize as _native_single_optimize
 from ..obWrappers.native import _native_module
 from .contracts import (
     ForceFieldError,

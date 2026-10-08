@@ -16,6 +16,8 @@ __all__ = (
     "CoordinateChange",
     "HybridizationChange",
     "OptimizationFrame",
+    "OptimizationCheckReport",
+    "OptimizationFailure",
     "OptimizationReport",
     "RuleApplication",
     "RuleDescriptor",
@@ -42,6 +44,16 @@ class RuleStage(Enum):
 
     PRE_BUILD = "pre_build"
     PRE_FORCEFIELD_SETUP = "pre_forcefield_setup"
+
+
+class OptimizationFailure(IntEnum):
+    """Numerical failure classification for a force-field state."""
+
+    NONE = 0
+    NONFINITE_COORDINATES = 1
+    NONFINITE_ENERGY = 2
+    NONFINITE_GRADIENTS = 3
+    EXPLOSION_DETECTED = 4
 
 
 @dataclass(frozen=True)
@@ -113,6 +125,29 @@ class SingleOptimizationReport:
     backend_energy_unit: str
     exploded: bool
     rules: RuleExecutionReport
+
+
+@dataclass(frozen=True)
+class OptimizationCheckReport:
+    """Read-only numerical facts for one force-field state."""
+
+    evaluated_coordinates: NDArray[np.float64]
+    energy: float
+    energy_unit: str
+    backend_energy_unit: str
+    rms_gradient: float
+    max_gradient: float
+    gradient_unit: str
+    energy_change: Optional[float]
+    max_displacement: Optional[float]
+    finite_coordinates: bool
+    exploded: bool
+    failure: OptimizationFailure
+    rules: RuleExecutionReport
+
+    @property
+    def usable(self) -> bool:
+        return self.failure is OptimizationFailure.NONE
 
 
 @dataclass(frozen=True)

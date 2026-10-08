@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from hotpot import Atom, read_mol
+from hotpot.cheminfo import forcefields as ff
 from hotpot.cheminfo.forcefields.working_copy import _hydrogenated_working_copy
 
 from .backend_comparison import (
@@ -21,6 +22,11 @@ from .backend_comparison import (
     export_canonical_manifest,
     load_canonical_cases,
     run_backend_case,
+)
+from .four_way_comparison import (
+    WORKFLOWS,
+    _summary_row as _four_way_summary_row,
+    build_parser as build_four_way_parser,
 )
 
 
@@ -147,6 +153,51 @@ def test_rdkit_labels_partial_forcefield_without_hiding_successful_embedding(
     assert (
         tmp_path / "cases" / "rdkit" / "0001" / "report.json"
     ).is_file()
+    trajectory_path = tmp_path / "cases" / "rdkit" / "0001" / "trajectory"
+    trajectory = ff.ForceFieldTrajectoryArchive.read(trajectory_path).main
+    assert tuple(frame.event for frame in trajectory.frames[:2]) == (
+        ff.TrajectoryEvent.INITIAL,
+        ff.TrajectoryEvent.BUILD_COMPLETE,
+    )
+    assert trajectory.frames[-1].event is ff.TrajectoryEvent.EPOCH_COMPLETE
+    assert trajectory.selected_index == trajectory.terminal_index
+    assert record["trajectory"]["interval_steps"] == 100
+    assert (trajectory_path / "main" / "trajectory.sdf").is_file()
+
+
+def test_openbabel_writes_build_and_optimization_trajectory(
+    tmp_path: Path,
+) -> None:
+    complex_mol = _synthetic_complex()
+    case = CanonicalCase(
+        index=1,
+        smiles="N",
+        metal="Eu",
+        donor_indices=(0,),
+        seed=43,
+        complex_smiles=complex_mol.smiles,
+        atom_count=len(complex_mol.atoms),
+        bond_count=len(complex_mol.bonds),
+        topology_sha256=_topology_sha256(_normalized_topology(complex_mol)),
+        hotpot_status="passed",
+        hotpot_validation={"passed": True, "checks": ()},
+        hotpot_total_seconds=1.0,
+    )
+
+    record = run_backend_case(asdict(case), "openbabel", str(tmp_path))
+
+    assert record["build_succeeded"] is True
+    assert record["optimization_succeeded"] is True
+    trajectory_path = tmp_path / "cases" / "openbabel" / "0001" / "trajectory"
+    trajectory = ff.ForceFieldTrajectoryArchive.read(trajectory_path).main
+    assert tuple(frame.event for frame in trajectory.frames[:2]) == (
+        ff.TrajectoryEvent.INITIAL,
+        ff.TrajectoryEvent.BUILD_COMPLETE,
+    )
+    assert trajectory.frames[-1].event is ff.TrajectoryEvent.EPOCH_COMPLETE
+    assert trajectory.selected_index == trajectory.terminal_index
+    assert record["trajectory"]["interval_steps"] == 100
+    assert (trajectory_path / "main" / "trajectory.sdf").is_file()
 
 
 def test_summary_rates_use_the_complete_fixed_cohort() -> None:
@@ -202,3 +253,66 @@ def test_cli_accepts_explicit_backend_subset(tmp_path: Path) -> None:
 
     assert arguments.backends == ["openbabel"]
     assert arguments.workers == 16
+
+
+def test_four_way_summary_separates_cbond_rejection_from_forcefield_failure() -> None:
+    records = (
+        {
+            "cbond_succeeded": True,
+            "status": "passed",
+            "build_succeeded": True,
+            "optimization_succeeded": True,
+            "finite_final_coordinates": True,
+            "topology_preserved": True,
+            "quality_passed": True,
+            "forcefield_fully_parameterized": False,
+            "converged": True,
+            "workflow_seconds": 2.0,
+            "trajectory_frame_count": 3,
+            "trajectory_sdf_written": True,
+        },
+        {
+            "cbond_succeeded": False,
+            "status": "not_attempted_cbond",
+            "build_succeeded": None,
+            "optimization_succeeded": None,
+            "finite_final_coordinates": None,
+            "topology_preserved": None,
+            "quality_passed": None,
+            "forcefield_fully_parameterized": None,
+            "converged": None,
+            "workflow_seconds": None,
+            "trajectory_frame_count": None,
+            "trajectory_sdf_written": None,
+        },
+    )
+
+    summary = _four_way_summary_row("rdkit", records, input_count=2)
+
+    assert summary["cbond_eligible_count"] == 1
+    assert summary["not_attempted_count"] == 1
+    assert summary["build_success_count"] == 1
+    assert summary["quality_pass_count"] == 1
+    assert summary["quality_pass_rate"] == 1.0
+    assert summary["end_to_end_quality_pass_rate"] == 0.5
+
+
+def test_four_way_cli_declares_all_evidence_inputs(tmp_path: Path) -> None:
+    arguments = build_four_way_parser().parse_args(
+        (
+            "--optimizer-results",
+            str(tmp_path / "optimizer"),
+            "--native-results",
+            str(tmp_path / "native"),
+            "--output-dir",
+            str(tmp_path / "assets"),
+        )
+    )
+
+    assert WORKFLOWS == (
+        "hotpot_optimize_complex",
+        "hotpot_optimize",
+        "rdkit",
+        "openbabel",
+    )
+    assert arguments.output_dir == tmp_path / "assets"

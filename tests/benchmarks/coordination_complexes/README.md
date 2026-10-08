@@ -19,6 +19,9 @@ contains exactly 187 records and stores its SHA-256 digest in `manifest.json`.
 The manifest also records the Git commit and whether the worktree was dirty.
 It is deliberately not a default pytest test.
 
+The recorded CBond policy is intentionally asymmetric: the first bond uses a
+raw-score threshold of `-0.5`, while every subsequent bond uses `-0.125`.
+
 ## Commands
 
 Run the complete standard benchmark with 16 workers and require all PNG
@@ -90,77 +93,69 @@ python -m tests.benchmarks.coordination_complexes \
   --output movie/benchmarks/my_suite
 ```
 
-`--render off` is the default and keeps rendering independent of scientific
-execution. `--render auto` uses PyMOL when installed. `--render required`
-turns missing PyMOL into an explicit error. Install the project with its
-`pymol` extra before using the required mode.
+## Four independent workflow benchmarks
 
-Only the `hotpot` backend implements the complete CBond-to-force-field
-pipeline above. The separate backend comparison described below deliberately
-holds CBond output fixed; it does not claim that RDKit or Open Babel provides
-CBond inference.
+The comparison uses the same 187 ligands and frozen 181-member Eu–ligand
+cohort in four independently launchable workflows. Each workflow evaluates
+both the isolated ligand and, when CBond produced a topology, the metal–ligand
+complex. All final structures are assessed by the same Hotpot `standard`
+geometry gate.
 
-## Fixed-topology backend comparison
+| Launcher | Ligand workflow | Eu–ligand workflow |
+|---|---|---|
+| `rdkit_benchmark` | RDKit ETKDG + MMFF/UFF | RDKit ETKDG + MMFF/UFF |
+| `openbabel_benchmark` | Native OBBuilder + UFF | Native OBBuilder + UFF |
+| `obwrappers_benchmark` | `obWrappers.build()` + `optimize()` | `obWrappers.build()` + `optimize()` |
+| `optimize_complex_benchmark` | `ff.build3d()` + `ff.optimize()` | `ff.build_complex3d()` + `ff.optimize_complex()` |
 
-`backend_comparison.py` compares only 3D construction and native force-field
-optimization. It exports the 178 CBond-successful cases from one completed
-Hotpot run as a coordinate-free contract containing the original ligand
-SMILES, donor indices, and expected atom/bond counts and topology hash. The
-runner reconstructs and verifies the selected explicit-hydrogen topology;
-coordinates are not retained. RDKit uses its native dative representation for
-metal bonds; Hotpot and Open Babel use single bonds. RDKit and Open Babel
-independently generate all coordinates, and the same Hotpot `standard`
-geometry gate is used for all three reported workflows.
-
-Run RDKit and native Open Babel with 16 workers, retaining the existing
-Hotpot result as the frozen reference:
+Run each workflow separately with 16 workers:
 
 ```bash
-$ python -m tests.benchmarks.coordination_complexes.backend_comparison \
-  --reference movie/benchmarks/extractants_eu_187_59e5741_20260930 \
-  --output movie/benchmarks/extractants_eu_178_backend_comparison \
-  --workers 16
+$ REFERENCE=movie/benchmarks/extractants_eu_187
+$ OUTPUT=movie/benchmarks/four_workflows
+$ python -m tests.benchmarks.coordination_complexes.rdkit_benchmark \
+  --input molecules/extractant/extractants.smi \
+  --reference "$REFERENCE" \
+  --output "$OUTPUT/rdkit" --workers 16
+
+$ python -m tests.benchmarks.coordination_complexes.openbabel_benchmark \
+  --input molecules/extractant/extractants.smi \
+  --cohort "$OUTPUT/rdkit/canonical_cases.json" \
+  --output "$OUTPUT/openbabel" --workers 16
+
+$ python -m tests.benchmarks.coordination_complexes.obwrappers_benchmark \
+  --input molecules/extractant/extractants.smi \
+  --cohort "$OUTPUT/rdkit/canonical_cases.json" \
+  --output "$OUTPUT/obwrappers" --workers 16
+
+$ python -m tests.benchmarks.coordination_complexes.optimize_complex_benchmark \
+  --input molecules/extractant/extractants.smi \
+  --cohort "$OUTPUT/rdkit/canonical_cases.json" \
+  --output "$OUTPUT/hotpot_optimize_complex" --workers 16
 ```
 
-Use `--resume` to reuse already completed per-case backend reports. Use
-`--backends rdkit` or `--backends openbabel` to run one adapter. Aggregation
-still requires reports for every selected backend and verifies that every
-backend covers exactly the same canonical cohort.
+Alternatively, replace `--cohort` with `--reference <completed-hotpot-run>` to
+export the frozen cohort from an existing standard benchmark. Add `--resume`
+to continue an interrupted run whose manifest is unchanged.
 
-The native protocols are:
+Aggregate the four completed workflows without rerunning chemistry:
 
-- RDKit: donor-to-Eu dative bonds, relaxed property-cache valence handling
-  (`strict=False`), seeded ETKDGv3 with random coordinates and smoothing
-  failures allowed, then fully parameterized MMFF when available or full/
-  explicitly labelled partial UFF otherwise;
-- Open Babel: `OBBuilder`, followed by UFF conjugate gradients for up to
-  10,000 steps; its upstream builder does not guarantee deterministic output
-  from `OB_RANDOM_SEED`; and
-- Hotpot: the frozen result from the reference run, without rerunning its
-  chemistry.
-
-Build success, force-field support, complete parameterization, finite
-optimized output, backend-reported convergence, topology preservation, and
-common-gate acceptance are separate fields. “Finite optimized output” does not
-mean that the backend convergence threshold was reached. In particular, a
-partial-UFF RDKit result is never reported as fully parameterized. A `standard`
-gate pass establishes only the tested numerical, topology, and geometry
-invariants; it does not establish experimental-structure accuracy or
-metal-force-field validity.
-
-The comparison output is:
-
-```text
-<comparison-output>/
-├── canonical_cases.json
-├── comparison.json
-├── comparison.csv
-├── case_results.csv
-├── comparison.png
-└── cases/
-    ├── rdkit/NNNN/report.json
-    └── openbabel/NNNN/report.json
+```bash
+$ OUTPUT=movie/benchmarks/four_workflows
+$ python -m tests.benchmarks.coordination_complexes.workflow_comparison \
+  --rdkit "$OUTPUT/rdkit" \
+  --openbabel "$OUTPUT/openbabel" \
+  --obwrappers "$OUTPUT/obwrappers" \
+  --hotpot-optimize-complex "$OUTPUT/hotpot_optimize_complex" \
+  --output-dir assets/readme
 ```
+
+The reported efficiency is the median build-plus-optimize time among workflows
+that completed both operations. CBond inference, final geometry validation,
+serialization, and rendering are outside this timing boundary.
+
+Each workflow root contains `manifest.json`, `summary.json`, and one
+`cases/NNNN/report.json` with separate `ligand` and `complex` targets.
 
 ## Output contract
 

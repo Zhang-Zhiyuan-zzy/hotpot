@@ -41,7 +41,8 @@ class BenchmarkSuite:
 class BenchmarkSettings:
     """CBond and force-field settings recorded with every result."""
 
-    cbond_threshold: float = -0.125
+    first_cbond_threshold: float = -0.5
+    subsequent_cbond_threshold: float = -0.125
     epochs: int = 100
     steps_per_epoch: int = 100
     max_attempts: int = 50

@@ -8,12 +8,37 @@ import warnings
 from collections import Counter
 from pathlib import Path
 from time import perf_counter
-from typing import Mapping, Optional
+from typing import Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 
 from .configuration import BenchmarkSettings
 from .io import json_value, write_json
+
+if TYPE_CHECKING:
+    from hotpot import Molecule
+    from hotpot.cheminfo.AImodels.cbond.apply import CBondPathResult
+
+
+def _infer_cbond(
+    ligand: "Molecule",
+    metal: str,
+    settings: BenchmarkSettings,
+) -> "CBondPathResult":
+    """Apply the benchmark's explicitly recorded two-threshold policy."""
+    from hotpot.cheminfo.AImodels.cbond.apply import (
+        auto_build_cbond,
+        get_cbond_runtime,
+    )
+
+    return auto_build_cbond(
+        ligand,
+        metal,
+        threshold=settings.subsequent_cbond_threshold,
+        first_threshold=settings.first_cbond_threshold,
+        runtime=get_cbond_runtime("cpu"),
+        return_details=True,
+    )
 
 
 def _quality_payload(report: object) -> dict[str, object]:
@@ -146,10 +171,6 @@ def run_hotpot_case(
     """Run one end-to-end case in a spawn-safe worker process."""
     from hotpot import read_mol
     from hotpot.cheminfo import forcefields as ff
-    from hotpot.cheminfo.AImodels.cbond.apply import (
-        auto_build_cbond,
-        get_cbond_runtime,
-    )
 
     case_dir = Path(output_root_text) / "cases" / f"{index:04d}"
     case_dir.mkdir(parents=True, exist_ok=True)
@@ -161,6 +182,7 @@ def run_hotpot_case(
         "index": index,
         "smiles": smiles,
         "backend": "hotpot",
+        "workflow": "cbond-complexes-build",
         "status": "running",
         "phase": "read",
         "settings": settings.to_manifest(),
@@ -177,13 +199,7 @@ def run_hotpot_case(
         record["phase"] = "cbond"
         phase_started = perf_counter()
         try:
-            cbond_result = auto_build_cbond(
-                ligand,
-                metal,
-                threshold=settings.cbond_threshold,
-                runtime=get_cbond_runtime("cpu"),
-                return_details=True,
-            )
+            cbond_result = _infer_cbond(ligand, metal, settings)
         except Exception as error:
             record.update(
                 status="failed_cbond",
@@ -380,6 +396,7 @@ def flatten_record(record: Mapping[str, object]) -> dict[str, object]:
     trajectory = record.get("trajectory") or {}
     return {
         "index": record["index"],
+        "workflow": record.get("workflow", "cbond-complexes-build"),
         "status": record["status"],
         "phase": record["phase"],
         "smiles": record["smiles"],

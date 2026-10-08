@@ -22,15 +22,26 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from time import perf_counter
-from typing import Mapping, Optional, Sequence
+from typing import Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from .io import json_value, load_case_reports, sha256_file, write_json
+from .pipeline import _trajectory_payload
 
 
 BACKENDS = ("rdkit", "openbabel")
 SCHEMA_VERSION = 1
+OPTIMIZATION_STEPS = 10_000
+TRAJECTORY_INTERVAL_STEPS = 100
+
+
+if TYPE_CHECKING:
+    from hotpot.cheminfo.forcefields import (
+        ForceFieldTrajectory,
+        TrajectoryEvent,
+        TrajectoryStage,
+    )
 
 
 @dataclass(frozen=True)
@@ -187,13 +198,24 @@ def export_canonical_manifest(
     output_path: Path,
     *,
     metal: str = "Eu",
-    expected_count: Optional[int] = 178,
+    expected_count: Optional[int] = None,
 ) -> dict[str, object]:
     """Export compact, coordinate-free cases from one completed Hotpot run."""
     reference_manifest_path = reference_root / "manifest.json"
     reference_manifest = json.loads(
         reference_manifest_path.read_text(encoding="utf-8")
     )
+    reference_summary_path = reference_root / "summary.json"
+    reference_summary = (
+        json.loads(reference_summary_path.read_text(encoding="utf-8"))
+        if reference_summary_path.is_file()
+        else {}
+    )
+    if (
+        expected_count is None
+        and reference_summary.get("cbond_success_count") is not None
+    ):
+        expected_count = int(reference_summary["cbond_success_count"])
     cases = []
     for report in load_case_reports(reference_root):
         cbond = report.get("cbond")
@@ -284,6 +306,44 @@ def _quality_payload(report: object) -> dict[str, object]:
     }
 
 
+def _record_native_frame(
+    trajectory: "ForceFieldTrajectory",
+    complex_mol: object,
+    *,
+    stage: "TrajectoryStage",
+    event: "TrajectoryEvent",
+    energy_kj_mol: Optional[float] = None,
+    step: Optional[int] = None,
+) -> None:
+    """Record one native-backend checkpoint and select it when finite."""
+    frame = trajectory.record_molecule(
+        complex_mol,
+        stage=stage,
+        event=event,
+        energy_kj_mol=energy_kj_mol,
+        step=step,
+    )
+    if np.all(np.isfinite(complex_mol.coordinates)):
+        trajectory.select(frame.index)
+
+
+def _write_native_trajectory(
+    trajectory: "ForceFieldTrajectory",
+    output_path: Path,
+) -> tuple[object, bool]:
+    """Persist every retained frame and return its archive plus SDF status."""
+    from hotpot.cheminfo import forcefields as ff
+
+    trajectory.set_terminal(len(trajectory) - 1)
+    archive = ff.ForceFieldTrajectoryArchive(main=trajectory)
+    all_coordinates_finite = all(
+        np.all(np.isfinite(trajectory.coordinates(frame.index)))
+        for frame in trajectory.frames
+    )
+    archive.write(output_path, include_sdf=all_coordinates_finite)
+    return archive, all_coordinates_finite
+
+
 def _rdkit_coordinate_map(complex_mol: object, rd_mol: object) -> np.ndarray:
     """Map RDKit's AddHs ordering back to the canonical Hotpot atom table."""
     canonical_heavy = [
@@ -343,9 +403,14 @@ def _rdkit_coordinate_map(complex_mol: object, rd_mol: object) -> np.ndarray:
     return mapping
 
 
-def _run_rdkit(complex_mol: object, case: CanonicalCase) -> dict[str, object]:
+def _run_rdkit(
+    complex_mol: object,
+    case: CanonicalCase,
+    trajectory: "ForceFieldTrajectory",
+) -> dict[str, object]:
     from rdkit import Chem
     from rdkit.Chem import AllChem
+    from hotpot.cheminfo import forcefields as ff
 
     ligand = Chem.MolFromSmiles(case.smiles)
     if ligand is None:
@@ -381,11 +446,24 @@ def _run_rdkit(complex_mol: object, case: CanonicalCase) -> dict[str, object]:
     rd_coordinates = np.asarray(conformer.GetPositions(), dtype=float)
     coordinates = rd_coordinates[coordinate_map]
     if not np.all(np.isfinite(coordinates)):
+        complex_mol.coordinates = coordinates
+        _record_native_frame(
+            trajectory,
+            complex_mol,
+            stage=ff.TrajectoryStage.LIGAND_BUILD,
+            event=ff.TrajectoryEvent.BUILD_COMPLETE,
+        )
         raise _CaseFailure(
             "nonfinite_coordinates",
             "RDKit ETKDGv3 produced non-finite coordinates",
         )
     complex_mol.coordinates = coordinates
+    _record_native_frame(
+        trajectory,
+        complex_mol,
+        stage=ff.TrajectoryStage.LIGAND_BUILD,
+        event=ff.TrajectoryEvent.BUILD_COMPLETE,
+    )
     result: dict[str, object] = {
         "build_succeeded": True,
         "build_seconds": build_seconds,
@@ -438,8 +516,34 @@ def _run_rdkit(complex_mol: object, case: CanonicalCase) -> dict[str, object]:
     )
     optimize_started = perf_counter()
     forcefield.Initialize()
-    optimize_status = int(forcefield.Minimize(maxIts=10000))
+    optimize_status = 1
+    snapshot_count = 0
+    for snapshot_count in range(1, OPTIMIZATION_STEPS // TRAJECTORY_INTERVAL_STEPS + 1):
+        optimize_status = int(
+            forcefield.Minimize(maxIts=TRAJECTORY_INTERVAL_STEPS)
+        )
+        coordinates = np.asarray(
+            rd_mol.GetConformer().GetPositions(), dtype=float
+        )[coordinate_map]
+        complex_mol.coordinates = coordinates
+        energy_kj_mol = (
+            float(forcefield.CalcEnergy()) * 4.184
+            if np.all(np.isfinite(coordinates))
+            else None
+        )
+        _record_native_frame(
+            trajectory,
+            complex_mol,
+            stage=ff.TrajectoryStage.FINAL_OPTIMIZATION,
+            event=ff.TrajectoryEvent.EPOCH_COMPLETE,
+            energy_kj_mol=energy_kj_mol,
+            step=snapshot_count,
+        )
+        if optimize_status <= 0:
+            break
     result["optimization_seconds"] = perf_counter() - optimize_started
+    result["trajectory_interval_steps"] = TRAJECTORY_INTERVAL_STEPS
+    result["optimization_snapshot_count"] = snapshot_count
     if optimize_status < 0:
         raise _CaseFailure(
             "optimization_failed",
@@ -466,8 +570,13 @@ def _run_rdkit(complex_mol: object, case: CanonicalCase) -> dict[str, object]:
     return result
 
 
-def _run_openbabel(complex_mol: object, case: CanonicalCase) -> dict[str, object]:
+def _run_openbabel(
+    complex_mol: object,
+    case: CanonicalCase,
+    trajectory: "ForceFieldTrajectory",
+) -> dict[str, object]:
     from openbabel import openbabel as ob
+    from hotpot.cheminfo import forcefields as ff
     from hotpot.cheminfo.obconvert import extract_obmol_coordinates
 
     obmol = complex_mol.to_obmol()
@@ -497,11 +606,24 @@ def _run_openbabel(complex_mol: object, case: CanonicalCase) -> dict[str, object
         )
     coordinates = extract_obmol_coordinates(obmol)
     if not np.all(np.isfinite(coordinates)):
+        complex_mol.coordinates = coordinates
+        _record_native_frame(
+            trajectory,
+            complex_mol,
+            stage=ff.TrajectoryStage.LIGAND_BUILD,
+            event=ff.TrajectoryEvent.BUILD_COMPLETE,
+        )
         raise _CaseFailure(
             "nonfinite_coordinates",
             "Open Babel OBBuilder produced non-finite coordinates",
         )
     complex_mol.coordinates = coordinates
+    _record_native_frame(
+        trajectory,
+        complex_mol,
+        stage=ff.TrajectoryStage.LIGAND_BUILD,
+        event=ff.TrajectoryEvent.BUILD_COMPLETE,
+    )
     result: dict[str, object] = {
         "build_succeeded": True,
         "build_seconds": build_seconds,
@@ -531,10 +653,33 @@ def _run_openbabel(complex_mol: object, case: CanonicalCase) -> dict[str, object
     result["forcefield_parameterization"] = "full"
     result["forcefield_fully_parameterized"] = True
     optimize_started = perf_counter()
-    forcefield.ConjugateGradients(10000)
-    forcefield.GetCoordinates(obmol)
+    forcefield.ConjugateGradientsInitialize(OPTIMIZATION_STEPS)
+    snapshot_count = 0
+    for snapshot_count in range(1, OPTIMIZATION_STEPS // TRAJECTORY_INTERVAL_STEPS + 1):
+        continue_optimization = bool(
+            forcefield.ConjugateGradientsTakeNSteps(TRAJECTORY_INTERVAL_STEPS)
+        )
+        forcefield.GetCoordinates(obmol)
+        coordinates = extract_obmol_coordinates(obmol)
+        complex_mol.coordinates = coordinates
+        energy_kj_mol = (
+            float(forcefield.Energy())
+            if np.all(np.isfinite(coordinates))
+            else None
+        )
+        _record_native_frame(
+            trajectory,
+            complex_mol,
+            stage=ff.TrajectoryStage.FINAL_OPTIMIZATION,
+            event=ff.TrajectoryEvent.EPOCH_COMPLETE,
+            energy_kj_mol=energy_kj_mol,
+            step=snapshot_count,
+        )
+        if not continue_optimization:
+            break
     result["optimization_seconds"] = perf_counter() - optimize_started
-    coordinates = extract_obmol_coordinates(obmol)
+    result["trajectory_interval_steps"] = TRAJECTORY_INTERVAL_STEPS
+    result["optimization_snapshot_count"] = snapshot_count
     if not np.all(np.isfinite(coordinates)):
         raise _CaseFailure(
             "nonfinite_coordinates",
@@ -594,8 +739,19 @@ def run_backend_case(
         "quality_passed": False,
     }
     started = perf_counter()
+    trajectory = None
     try:
         complex_mol = _rebuild_complex(case)
+        trajectory = ff.ForceFieldTrajectory.from_molecule(
+            complex_mol,
+            start=ff.TrajectoryStart.LIGAND_BUILD,
+        )
+        _record_native_frame(
+            trajectory,
+            complex_mol,
+            stage=ff.TrajectoryStage.LIGAND_BUILD,
+            event=ff.TrajectoryEvent.INITIAL,
+        )
         topology_reference = ff.capture_topology(
             complex_mol,
             allow_added_hydrogens=False,
@@ -603,7 +759,11 @@ def run_backend_case(
         record["phase"] = "build_optimize"
         backend_result: dict[str, object] = {}
         try:
-            backend_result = _BACKEND_RUNNERS[backend](complex_mol, case)
+            backend_result = _BACKEND_RUNNERS[backend](
+                complex_mol,
+                case,
+                trajectory,
+            )
         except _CaseFailure as error:
             record.update(error.evidence)
             record.update(
@@ -630,6 +790,16 @@ def run_backend_case(
             record["quality_passed"] = bool(validation.passed)
             record["status"] = "passed" if validation.passed else "failed_quality"
             record["phase"] = "complete"
+            complex_mol.write(
+                report_path.parent / "optimized.mol2",
+                overwrite=True,
+                write_single=True,
+            )
+            complex_mol.write(
+                report_path.parent / "optimized.sdf",
+                overwrite=True,
+                write_single=True,
+            )
     except _CaseFailure as error:
         record.update(
             status=error.status,
@@ -643,6 +813,23 @@ def run_backend_case(
             error_message=str(error),
             traceback=traceback.format_exc(),
         )
+    if trajectory is not None:
+        try:
+            archive, sdf_written = _write_native_trajectory(
+                trajectory,
+                report_path.parent / "trajectory",
+            )
+            record["trajectory"] = _trajectory_payload(archive)
+            record["trajectory"]["sdf_written"] = sdf_written
+            record["trajectory"]["interval_steps"] = TRAJECTORY_INTERVAL_STEPS
+        except Exception as error:
+            record.update(
+                status="failed_internal",
+                phase="trajectory_write",
+                error_type=type(error).__name__,
+                error_message=str(error),
+                traceback=traceback.format_exc(),
+            )
     record["total_seconds"] = perf_counter() - started
     write_json(report_path, record)
     return record
@@ -700,6 +887,11 @@ def _summary_row(backend: str, records: Sequence[Mapping[str, object]]) -> dict[
         for record in records
         if record.get("converged") is not None
     ]
+    trajectories = [
+        record["trajectory"]
+        for record in records
+        if record.get("trajectory") is not None
+    ]
     return {
         "backend": backend,
         "sample_count": count,
@@ -713,6 +905,15 @@ def _summary_row(backend: str, records: Sequence[Mapping[str, object]]) -> dict[
         "optimization_success_rate": optimized_count / count,
         "convergence_reported_count": len(convergence_values),
         "converged_count": sum(convergence_values),
+        "trajectory_archive_count": len(trajectories),
+        "trajectory_frame_count": sum(
+            int(trajectory["main_frame_count"])
+            for trajectory in trajectories
+        ),
+        "trajectory_sdf_count": sum(
+            trajectory.get("sdf_written") is True
+            for trajectory in trajectories
+        ),
         "finite_coordinate_count": finite_count,
         "topology_preserved_count": topology_count,
         "quality_pass_count": quality_count,
@@ -805,11 +1006,18 @@ def aggregate_comparison(
             ),
             "rdkit": (
                 "ETKDGv3 (random coordinates, smoothing failures allowed); "
-                "full MMFF, otherwise full or explicitly labelled partial UFF"
+                "full MMFF, otherwise full or explicitly labelled partial UFF; "
+                f"minimization in {TRAJECTORY_INTERVAL_STEPS}-step chunks"
             ),
             "openbabel": (
-                "OBBuilder; UFF conjugate gradients, 10000 steps; the upstream "
-                "builder does not guarantee deterministic seeding"
+                "OBBuilder; incrementally stepped UFF conjugate gradients, "
+                f"{OPTIMIZATION_STEPS} steps maximum; the upstream builder does "
+                "not guarantee deterministic seeding"
+            ),
+            "trajectory": (
+                "zero-coordinate canonical input, completed native build, and "
+                f"optimization checkpoints every {TRAJECTORY_INTERVAL_STEPS} "
+                "requested steps; native builder internals are not exposed"
             ),
             "hotpot": "frozen reference result",
             "validation": "Hotpot standard structure-acceptance gate",
@@ -856,6 +1064,8 @@ def aggregate_comparison(
         "error_type",
         "error_message",
         "failed_checks",
+        "trajectory_frame_count",
+        "trajectory_sdf_written",
     )
     with (output_root / "case_results.csv").open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=case_fields)
@@ -867,6 +1077,11 @@ def aggregate_comparison(
                     str(check["name"])
                     for check in (record.get("validation") or {}).get("failures", ())
                 )
+                trajectory = record.get("trajectory") or {}
+                row["trajectory_frame_count"] = trajectory.get(
+                    "main_frame_count"
+                )
+                row["trajectory_sdf_written"] = trajectory.get("sdf_written")
                 writer.writerow(row)
     write_comparison_plot(rows, output_root / "comparison.png")
     return payload

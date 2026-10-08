@@ -120,7 +120,8 @@ def run_worker(
         cbond_result = auto_build_cbond(
             ligand,
             suite.metal,
-            threshold=settings.cbond_threshold,
+            threshold=settings.subsequent_cbond_threshold,
+            first_threshold=settings.first_cbond_threshold,
             runtime=get_cbond_runtime("cpu"),
             return_details=True,
         )

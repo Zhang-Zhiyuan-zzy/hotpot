@@ -31,7 +31,7 @@ test_targets=(
   tests/test_cheminfo/test_forcefield_api.py
   tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py
   tests/test_cheminfo/test_forcefield_cli.py
-  tests/test_cheminfo/test_forcefield_metal_relocation.py
+  tests/test_cheminfo/forcefields
   tests/test_cheminfo/test_forcefield_package.py
   tests/test_cheminfo/test_forcefield_optimizer.py
   tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py
@@ -47,6 +47,8 @@ test_targets=(
   tests/test_cheminfo/test_import_safety.py
   tests/test_smart_parser.py
   tests/smarts_conformance
+  tests/benchmarks/coordination_complexes/test_support.py
+  tests/benchmarks/coordination_complexes/test_backend_comparison.py
   tests/test_works/test_convert.py
 )
 

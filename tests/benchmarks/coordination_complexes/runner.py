@@ -61,6 +61,7 @@ def _scientific_configuration(
 ) -> dict[str, object]:
     return {
         "backend": backend,
+        "workflow": "cbond-complexes-build",
         "suite": suite.to_manifest(),
         "profile": profile.value,
         "input_sha256": input_sha256,
@@ -107,6 +108,7 @@ def _failed_worker_record(
         "index": index,
         "smiles": smiles,
         "backend": "hotpot",
+        "workflow": "cbond-complexes-build",
         "status": "failed_worker",
         "phase": "worker",
         "error_type": type(error).__name__,

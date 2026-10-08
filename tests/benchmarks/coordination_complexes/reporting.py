@@ -220,12 +220,21 @@ def _summary_payload(
         if record.get("trajectory")
     ]
     cbond_completed = sum(bool(record.get("cbond")) for record in records)
+    cbond_success_cases = [
+        {
+            "index": int(record["index"]),
+            "smiles": str(record["smiles"]),
+        }
+        for record in records
+        if record.get("cbond")
+    ]
     passed = status_counts["passed"]
     return {
         "suite": suite.to_manifest(),
         "profile": profile.value,
         "sample_count": len(records),
         "settings": settings.to_manifest(),
+        "workflow": "cbond-complexes-build",
         "status_counts": dict(status_counts),
         "overall_success_rate": passed / len(records) if records else None,
         "success_rate_after_cbond": (
@@ -246,6 +255,8 @@ def _summary_payload(
             )
         ),
         "cbond_completed": cbond_completed,
+        "cbond_success_count": cbond_completed,
+        "cbond_success_cases": cbond_success_cases,
         "forcefield_attempted": cbond_completed,
         "validation_completed": sum(
             record.get("validation") is not None for record in records
@@ -342,13 +353,22 @@ def _write_markdown_report(
         )
     if len(failure_rows) == 2:
         failure_rows.append("| - | - | - | None |")
+    cbond_rows = ["| Case | Ligand SMILES |", "|---:|---|"]
+    for item in summary["cbond_success_cases"]:
+        escaped_smiles = item["smiles"].replace("|", "\\|")
+        cbond_rows.append(f"| {item['index']:04d} | `{escaped_smiles}` |")
+    if len(cbond_rows) == 2:
+        cbond_rows.append("| - | None |")
     text = f"""# Coordination-complex benchmark report
 
 ## Scope
 
 - Suite: `{summary["suite"]["name"]}`
 - Profile: `{summary["profile"]}`
-- Backend: `hotpot` (Hotpot CBond + Hotpot force-field workflow)
+- Workflow: `{summary["workflow"]}`
+- Backend: `hotpot` (Hotpot CBond + `forcefields.complexes_build`)
+- First CBond threshold: `{summary["settings"]["first_cbond_threshold"]}`
+- Subsequent CBond threshold: `{summary["settings"]["subsequent_cbond_threshold"]}`
 - Cases: {summary["sample_count"]}
 - Overall success: {_format_rate(summary["overall_success_rate"])}
 - Success after CBond: {_format_rate(summary["success_rate_after_cbond"])}
@@ -362,6 +382,12 @@ inspection without reclassifying that frame as successful.
 ## Outcomes
 
 {_markdown_table(summary["status_counts"])}
+
+## CBond-successful cases
+
+Count: {summary["cbond_completed"]}
+
+{chr(10).join(cbond_rows)}
 
 ## Validation failures
 

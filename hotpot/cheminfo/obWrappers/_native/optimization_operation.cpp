@@ -1,12 +1,14 @@
 #include "optimization_operation.hpp"
 
 #include "openbabel_adapter.hpp"
+#include "optimization_checks.hpp"
 #include "registry.hpp"
 
 #include <openbabel/forcefield.h>
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <stdexcept>
 #include <utility>
 
@@ -137,6 +139,38 @@ RulePlan OptimizationOperation::setup(
     }
     if (update_pairs) {
         forcefield_.UpdatePairsSimple();
+    }
+    return plan;
+}
+
+
+RulePlan OptimizationOperation::setup_and_validate(
+    OpenBabel::OBMol& molecule,
+    bool update_pairs,
+    double singularity_threshold,
+    double repair_angle_radians
+) {
+    auto plan = setup(
+        molecule,
+        update_pairs,
+        singularity_threshold,
+        repair_angle_radians
+    );
+    if (!plan.applications.empty()) {
+        const auto energy = optimization_energy_kj(forcefield_, 1.0, true);
+        const auto gradients = optimization_gradient_metrics(
+            forcefield_, molecule, 1.0
+        );
+        if (!std::isfinite(energy)
+            || !std::isfinite(gradients.rms_kj_mol_angstrom)
+            || !std::isfinite(gradients.maximum_kj_mol_angstrom)) {
+            throw ForceFieldSetupFailure(
+                forcefield_name_,
+                "preflight-validation",
+                "Open Babel retained a non-finite force-field state after "
+                "registered coordinate preparation"
+            );
+        }
     }
     return plan;
 }

@@ -62,6 +62,13 @@ public:
         double repair_angle_radians
     );
 
+    RulePlan setup_and_validate(
+        OpenBabel::OBMol& molecule,
+        bool update_pairs,
+        double singularity_threshold,
+        double repair_angle_radians
+    );
+
     void disable_cutoff();
     void set_vdw_cutoff(double cutoff);
 

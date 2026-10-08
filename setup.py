@@ -95,6 +95,7 @@ ext_modules = [
             "hotpot/cheminfo/obWrappers/_native/openbabel_adapter.cpp",
             "hotpot/cheminfo/obWrappers/_native/native_engine.cpp",
             "hotpot/cheminfo/obWrappers/_native/optimization_checks.cpp",
+            "hotpot/cheminfo/obWrappers/_native/optimization_controller.cpp",
             "hotpot/cheminfo/obWrappers/_native/optimization_operation.cpp",
             "hotpot/cheminfo/obWrappers/_native/registry.cpp",
             "hotpot/cheminfo/obWrappers/_native/phosphorus_builder.cpp",

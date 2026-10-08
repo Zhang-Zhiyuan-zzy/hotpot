@@ -63,6 +63,7 @@ def test_forcefield_optimization_cpp_source_api(tmp_path: Path) -> None:
         str(wrappers / "molecule_data.cpp"),
         str(wrappers / "openbabel_adapter.cpp"),
         str(wrappers / "native_engine.cpp"),
+        str(wrappers / "optimization_operation.cpp"),
         str(wrappers / "registry.cpp"),
         str(wrappers / "phosphorus_builder.cpp"),
         str(wrappers / "degenerate_torsion.cpp"),

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "molecule_data.hpp"
+#include "optimization_operation.hpp"
 #include "rules.hpp"
 
 #include <cstddef>
@@ -38,23 +39,6 @@ bool backend_stop_is_converged(
 
 
 std::recursive_mutex& openbabel_runtime_mutex();
-
-
-class ForceFieldSetupFailure : public std::runtime_error {
-public:
-    ForceFieldSetupFailure(
-        std::string forcefield,
-        std::string stage,
-        std::string message
-    );
-
-    const std::string& forcefield() const noexcept;
-    const std::string& stage() const noexcept;
-
-private:
-    std::string forcefield_;
-    std::string stage_;
-};
 
 
 class ForceFieldEnergyUnitFailure : public std::runtime_error {

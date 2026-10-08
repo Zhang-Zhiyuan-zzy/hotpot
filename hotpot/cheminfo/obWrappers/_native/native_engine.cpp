@@ -1,6 +1,7 @@
 #include "native_engine.hpp"
 
 #include "openbabel_adapter.hpp"
+#include "optimization_operation.hpp"
 #include "registry.hpp"
 
 #include <openbabel/builder.h>
@@ -55,26 +56,6 @@ bool backend_stop_is_converged(
 std::recursive_mutex& openbabel_runtime_mutex() {
     static std::recursive_mutex mutex;
     return mutex;
-}
-
-
-ForceFieldSetupFailure::ForceFieldSetupFailure(
-    std::string forcefield,
-    std::string stage,
-    std::string message
-) :
-    std::runtime_error(std::move(message)),
-    forcefield_(std::move(forcefield)),
-    stage_(std::move(stage)) {}
-
-
-const std::string& ForceFieldSetupFailure::forcefield() const noexcept {
-    return forcefield_;
-}
-
-
-const std::string& ForceFieldSetupFailure::stage() const noexcept {
-    return stage_;
 }
 
 
@@ -158,19 +139,6 @@ void ensure_openbabel_runtime() {
 }
 
 
-std::string uppercase(std::string value) {
-    std::transform(
-        value.begin(),
-        value.end(),
-        value.begin(),
-        [](unsigned char character) {
-            return static_cast<char>(std::toupper(character));
-        }
-    );
-    return value;
-}
-
-
 void append_rule_plan(RulePlan& destination, const RulePlan& source) {
     destination.applications.insert(
         destination.applications.end(),
@@ -246,43 +214,6 @@ private:
     std::vector<Coordinate> coordinates_;
     bool committed_ = false;
 };
-
-
-void apply_coordinate_changes(
-    OpenBabel::OBMol& molecule,
-    const RulePlan& plan
-) {
-    for (const auto& application : plan.applications) {
-        for (const auto& change : application.coordinate_changes) {
-            molecule.GetAtom(
-                static_cast<int>(change.atom_index + 1)
-            )->SetVector(change.after[0], change.after[1], change.after[2]);
-        }
-    }
-}
-
-
-RulePlan prepare_optimization(
-    OpenBabel::OBMol& molecule,
-    const std::string& forcefield,
-    double singularity_threshold,
-    double repair_angle_radians
-) {
-    RulePlan plan{RuleStage::PRE_FORCEFIELD_SETUP, {}};
-    if (uppercase(forcefield) != "UFF") {
-        return plan;
-    }
-    auto snapshot = snapshot_obmol(molecule, true);
-    plan = plan_optimization(
-        std::move(snapshot.atoms),
-        std::move(snapshot.bonds),
-        std::move(snapshot.coordinates),
-        singularity_threshold,
-        repair_angle_radians
-    );
-    apply_coordinate_changes(molecule, plan);
-    return plan;
-}
 
 
 OpenBabel::OBForceField& find_forcefield(const std::string& name) {
@@ -475,30 +406,19 @@ bool stability_reached(
 
 
 RulePlan setup_forcefield(
-    OpenBabel::OBForceField& forcefield,
+    OptimizationOperation& operation,
     OpenBabel::OBMol& molecule,
-    const std::string& forcefield_name,
     bool update_pairs,
     double singularity_threshold,
     double repair_angle_radians
 ) {
-    auto plan = prepare_optimization(
+    auto plan = operation.setup(
         molecule,
-        forcefield_name,
+        update_pairs,
         singularity_threshold,
         repair_angle_radians
     );
-    OpenBabel::OBFFConstraints constraints;
-    if (!forcefield.Setup(molecule, constraints)) {
-        throw ForceFieldSetupFailure(
-            forcefield_name,
-            "setup",
-            "Open Babel could not initialize force field " + forcefield_name
-        );
-    }
-    if (update_pairs) {
-        forcefield.UpdatePairsSimple();
-    }
+    auto& forcefield = operation.forcefield();
     if (!plan.applications.empty()) {
         const auto energy = forcefield.Energy(true);
         bool finite_gradients = true;
@@ -513,7 +433,7 @@ RulePlan setup_forcefield(
         }
         if (!std::isfinite(energy) || !finite_gradients) {
             throw ForceFieldSetupFailure(
-                forcefield_name,
+                operation.forcefield_name(),
                 "preflight-validation",
                 "Open Babel retained a non-finite force-field state after "
                 "registered coordinate preparation"
@@ -757,17 +677,22 @@ SingleOptimizationResult single_optimize_in_place(
     }
     CoordinateRollbackGuard rollback(molecule);
     auto& forcefield = find_forcefield(forcefield_name);
-    forcefield.EnableCutOff(false);
-    auto plan = setup_forcefield(
+    OptimizationOperation operation(
         forcefield,
-        molecule,
         forcefield_name,
+        OptimizationAlgorithm::STEEPEST,
+        0.0
+    );
+    operation.disable_cutoff();
+    auto plan = setup_forcefield(
+        operation,
+        molecule,
         false,
         singularity_threshold,
         repair_angle_radians
     );
-    forcefield.SteepestDescent(static_cast<int>(steps));
-    forcefield.GetCoordinates(molecule);
+    operation.run_steepest_descent(steps);
+    operation.synchronize_coordinates(molecule);
     SingleOptimizationResult result{
         extract_coordinates(molecule),
         forcefield_energy_kj(forcefield, forcefield_name),
@@ -817,22 +742,22 @@ OptimizationResult optimize_in_place(
     );
     CoordinateRollbackGuard rollback(molecule);
     auto& forcefield = find_forcefield(options.forcefield);
+    OptimizationOperation operation(
+        forcefield,
+        options.forcefield,
+        optimization_algorithm(options.algorithm),
+        options.energy_tolerance
+    );
     RulePlan all_rules{RuleStage::PRE_FORCEFIELD_SETUP, {}};
 
-    const auto set_vdw_cutoff = [&forcefield](double cutoff) {
-        forcefield.EnableCutOff(true);
-        forcefield.SetVDWCutOff(cutoff);
-        forcefield.SetElectrostaticCutOff(1.0e6);
-    };
     if (options.increasing_vdw) {
-        set_vdw_cutoff(options.vdw_cutoff_end);
+        operation.set_vdw_cutoff(options.vdw_cutoff_end);
     } else {
-        forcefield.EnableCutOff(false);
+        operation.disable_cutoff();
     }
     auto setup_plan = setup_forcefield(
-        forcefield,
+        operation,
         molecule,
-        options.forcefield,
         options.increasing_vdw,
         singularity_threshold,
         repair_angle_radians
@@ -849,11 +774,10 @@ OptimizationResult optimize_in_place(
         const double first_cutoff = options.vdw_cutoff_start
             + (options.vdw_cutoff_end - options.vdw_cutoff_start)
                 / options.epochs;
-        set_vdw_cutoff(first_cutoff);
+        operation.set_vdw_cutoff(first_cutoff);
         setup_plan = setup_forcefield(
-            forcefield,
+            operation,
             molecule,
-            options.forcefield,
             true,
             singularity_threshold,
             repair_angle_radians
@@ -861,27 +785,7 @@ OptimizationResult optimize_in_place(
         append_rule_plan(all_rules, setup_plan);
     }
 
-    const auto initialize = [&forcefield, &options](std::size_t steps) {
-        if (options.algorithm == "conjugate") {
-            forcefield.ConjugateGradientsInitialize(
-                static_cast<int>(steps), options.energy_tolerance
-            );
-            return std::size_t{1};
-        }
-        forcefield.SteepestDescentInitialize(
-            static_cast<int>(steps), options.energy_tolerance
-        );
-        return std::size_t{0};
-    };
-    const auto take_steps = [&forcefield, &options](std::size_t steps) {
-        return options.algorithm == "conjugate"
-            ? forcefield.ConjugateGradientsTakeNSteps(
-                static_cast<int>(steps)
-            )
-            : forcefield.SteepestDescentTakeNSteps(static_cast<int>(steps));
-    };
-
-    auto initialization_for_epoch = initialize(total_steps);
+    auto initialization_for_epoch = operation.initialize(total_steps);
     std::vector<OptimizationFrame> frames;
     if (options.retain_frames) {
         frames.reserve(options.epochs);
@@ -944,16 +848,15 @@ OptimizationResult optimize_in_place(
             const double cutoff = options.vdw_cutoff_start
                 + (static_cast<double>(epoch + 1) / options.epochs)
                     * (options.vdw_cutoff_end - options.vdw_cutoff_start);
-            set_vdw_cutoff(cutoff);
+            operation.set_vdw_cutoff(cutoff);
         }
 
         const bool restart_segment = reset_history
             || (options.increasing_vdw && epoch > 0);
         if (restart_segment) {
             setup_plan = setup_forcefield(
-                forcefield,
+                operation,
                 molecule,
-                options.forcefield,
                 options.increasing_vdw,
                 singularity_threshold,
                 repair_angle_radians
@@ -969,7 +872,7 @@ OptimizationResult optimize_in_place(
             segment_epochs_completed = 0;
             const auto remaining_steps =
                 (options.epochs - epoch) * options.steps_per_epoch;
-            initialization_for_epoch = initialize(remaining_steps);
+            initialization_for_epoch = operation.initialize(remaining_steps);
             segment_active = true;
         }
 
@@ -981,21 +884,20 @@ OptimizationResult optimize_in_place(
             options.steps_per_epoch - initialization_for_epoch;
         initialization_steps += initialization_for_epoch;
         const bool backend_continues = steps_to_take == 0
-            || take_steps(steps_to_take);
+            || operation.take_steps(steps_to_take);
         steps_submitted += steps_to_take;
         initialization_for_epoch = 0;
         ++epochs_completed;
         ++segment_epochs_completed;
         const bool backend_stopped = !backend_continues;
         segment_active = backend_continues;
-        forcefield.GetCoordinates(molecule);
+        operation.synchronize_coordinates(molecule);
 
         if (options.increasing_vdw && epoch < options.epochs - 1) {
-            set_vdw_cutoff(options.vdw_cutoff_end);
+            operation.set_vdw_cutoff(options.vdw_cutoff_end);
             setup_plan = setup_forcefield(
-                forcefield,
+                operation,
                 molecule,
-                options.forcefield,
                 true,
                 singularity_threshold,
                 repair_angle_radians
@@ -1114,7 +1016,7 @@ OptimizationResult optimize_in_place(
             segment_epochs_completed = 0;
             const auto remaining_steps =
                 (options.epochs - epoch - 1) * options.steps_per_epoch;
-            initialization_for_epoch = initialize(remaining_steps);
+            initialization_for_epoch = operation.initialize(remaining_steps);
             segment_active = true;
         }
         if ((reported_converged || stable)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "molecule_data.hpp"
+#include "optimization_checks.hpp"
 #include "optimization_operation.hpp"
 #include "rules.hpp"
 
@@ -28,11 +29,17 @@ namespace hotpot::obwrappers {
 namespace detail {
 
 
-bool backend_stop_is_converged(
+inline bool backend_stop_is_converged(
     bool backend_stopped,
     double maximum_gradient_kj_mol_angstrom,
     double energy_unit_to_kj
-) noexcept;
+) noexcept {
+    return hotpot::obwrappers::backend_stop_is_converged(
+        backend_stopped,
+        maximum_gradient_kj_mol_angstrom,
+        energy_unit_to_kj
+    );
+}
 
 
 }  // namespace detail
@@ -81,15 +88,6 @@ struct SingleOptimizationResult {
     std::string backend_energy_unit;
     bool exploded;
     RulePlan rules;
-};
-
-
-struct StoppingCriteria {
-    std::size_t window;
-    double maximum_energy_change_kj_mol;
-    double maximum_atom_displacement_angstrom;
-    double maximum_rms_gradient_kj_mol_angstrom;
-    double maximum_gradient_kj_mol_angstrom;
 };
 
 

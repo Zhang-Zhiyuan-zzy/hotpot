@@ -1,4 +1,4 @@
-"""Build and execute the in-place force-field C++ API fence."""
+"""Compile and execute the standalone optimization-checks C++ API test."""
 
 from __future__ import annotations
 
@@ -35,12 +35,11 @@ def _openbabel_paths() -> tuple[Path, Path]:
     return include, library
 
 
-def test_forcefield_optimization_cpp_source_api(tmp_path: Path) -> None:
+def test_optimization_checks_cpp_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
     include, library = _openbabel_paths()
-    executable = tmp_path / "optimization_source_api"
+    executable = tmp_path / "optimization_checks"
     command = [
         *_compiler_command(),
         "-std=c++17",
@@ -52,29 +51,30 @@ def test_forcefield_optimization_cpp_source_api(tmp_path: Path) -> None:
         "-Wno-error=deprecated-copy",
         "-Wno-error=deprecated-declarations",
         "-D_GLIBCXX_USE_CXX11_ABI=0",
-        f"-I{forcefields}",
         f"-I{wrappers}",
         "-isystem",
         str(include),
-        str(Path(__file__).with_name("optimization_source_api.cpp")),
-        str(forcefields / "contracts.cpp"),
-        str(forcefields / "structure_session.cpp"),
-        str(forcefields / "session_optimization.cpp"),
-        str(wrappers / "molecule_data.cpp"),
-        str(wrappers / "openbabel_adapter.cpp"),
-        str(wrappers / "native_engine.cpp"),
+        str(Path(__file__).with_name("optimization_checks.cpp")),
         str(wrappers / "optimization_checks.cpp"),
-        str(wrappers / "optimization_operation.cpp"),
-        str(wrappers / "registry.cpp"),
-        str(wrappers / "phosphorus_builder.cpp"),
-        str(wrappers / "degenerate_torsion.cpp"),
         f"-L{library}",
         "-lopenbabel",
-        "-ldl",
         f"-Wl,-rpath,{library}",
         "-o",
         str(executable),
     ]
 
     subprocess.run(command, check=True, capture_output=True, text=True)
-    subprocess.run([str(executable)], check=True, capture_output=True, text=True)
+    environment = os.environ.copy()
+    plugin_roots = sorted((library / "openbabel").glob("*"))
+    data_roots = sorted((library.parent / "share/openbabel").glob("*"))
+    if plugin_roots:
+        environment["BABEL_LIBDIR"] = str(plugin_roots[-1])
+    if data_roots:
+        environment["BABEL_DATADIR"] = str(data_roots[-1])
+    subprocess.run(
+        [str(executable)],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )

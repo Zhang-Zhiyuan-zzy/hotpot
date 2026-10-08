@@ -1,6 +1,7 @@
 #include "native_engine.hpp"
 
 #include "openbabel_adapter.hpp"
+#include "optimization_checks.hpp"
 #include "optimization_operation.hpp"
 #include "registry.hpp"
 
@@ -29,28 +30,6 @@
 
 
 namespace hotpot::obwrappers {
-
-
-namespace detail {
-
-
-bool backend_stop_is_converged(
-    bool backend_stopped,
-    double maximum_gradient_kj_mol_angstrom,
-    double energy_unit_to_kj
-) noexcept {
-    // Open Babel uses 0.1 in backend energy units per angstrom as its
-    // gradient target.  Its 3.1/3.2 optimizers accumulate the minimum atom
-    // gradient internally, so verify the intended maximum independently.
-    constexpr double openbabel_gradient_threshold = 0.1;
-    return backend_stopped
-        && std::isfinite(maximum_gradient_kj_mol_angstrom)
-        && maximum_gradient_kj_mol_angstrom
-            <= openbabel_gradient_threshold * energy_unit_to_kj;
-}
-
-
-}  // namespace detail
 
 
 std::recursive_mutex& openbabel_runtime_mutex() {
@@ -261,150 +240,6 @@ double energy_factor_to_kj(
 }
 
 
-double forcefield_energy_kj(
-    OpenBabel::OBForceField& forcefield,
-    const std::string& forcefield_name,
-    bool calculate_gradients = true
-) {
-    return forcefield.Energy(calculate_gradients)
-        * energy_factor_to_kj(forcefield_name, forcefield.GetUnit());
-}
-
-
-std::pair<double, double> gradient_metrics(
-    OpenBabel::OBForceField& forcefield,
-    OpenBabel::OBMol& molecule,
-    double factor
-) {
-    double squared_norm_sum = 0.0;
-    double maximum_norm = 0.0;
-    for (unsigned int index = 1; index <= molecule.NumAtoms(); ++index) {
-        const auto gradient = forcefield.GetGradient(
-            molecule.GetAtom(static_cast<int>(index))
-        );
-        const double x = gradient.GetX() * factor;
-        const double y = gradient.GetY() * factor;
-        const double z = gradient.GetZ() * factor;
-        const double squared_norm = x * x + y * y + z * z;
-        squared_norm_sum += squared_norm;
-        maximum_norm = std::max(maximum_norm, std::sqrt(squared_norm));
-    }
-    return {
-        std::sqrt(squared_norm_sum / molecule.NumAtoms()),
-        maximum_norm,
-    };
-}
-
-
-bool finite_coordinates(const std::vector<Coordinate>& coordinates) {
-    return std::all_of(
-        coordinates.begin(),
-        coordinates.end(),
-        [](const Coordinate& coordinate) {
-            return std::all_of(
-                coordinate.begin(),
-                coordinate.end(),
-                [](double value) { return std::isfinite(value); }
-            );
-        }
-    );
-}
-
-
-double maximum_displacement(
-    const std::vector<Coordinate>& current,
-    const std::vector<Coordinate>& previous
-) {
-    double maximum = 0.0;
-    for (std::size_t index = 0; index < current.size(); ++index) {
-        const double x = current[index][0] - previous[index][0];
-        const double y = current[index][1] - previous[index][1];
-        const double z = current[index][2] - previous[index][2];
-        maximum = std::max(maximum, std::sqrt(x * x + y * y + z * z));
-    }
-    return maximum;
-}
-
-
-bool frame_is_usable(const OptimizationFrame& frame) {
-    return finite_coordinates(frame.coordinates)
-        && std::isfinite(frame.energy)
-        && std::isfinite(frame.rms_gradient)
-        && std::isfinite(frame.max_gradient)
-        && !frame.exploded;
-}
-
-
-std::optional<std::string> frame_failure_reason(
-    const OptimizationFrame& frame
-) {
-    if (!finite_coordinates(frame.coordinates)) {
-        return "nonfinite_coordinates";
-    }
-    if (!std::isfinite(frame.energy)) {
-        return "nonfinite_energy";
-    }
-    if (!std::isfinite(frame.rms_gradient)
-        || !std::isfinite(frame.max_gradient)) {
-        return "nonfinite_gradients";
-    }
-    if (frame.exploded) {
-        return "explosion_detected";
-    }
-    return std::nullopt;
-}
-
-
-bool recent_values_below(
-    const std::vector<double>& values,
-    std::size_t window,
-    double maximum
-) {
-    if (values.size() < window) {
-        return false;
-    }
-    return std::all_of(
-        values.end() - static_cast<std::ptrdiff_t>(window),
-        values.end(),
-        [maximum](double value) {
-            return std::isfinite(value) && value <= maximum;
-        }
-    );
-}
-
-
-bool stability_reached(
-    const OptimizationFrame& frame,
-    const std::vector<double>& energy_changes,
-    const std::vector<double>& displacements,
-    const std::vector<double>& rms_gradients,
-    const std::vector<double>& max_gradients,
-    const StoppingCriteria& criteria
-) {
-    return frame_is_usable(frame)
-        && recent_values_below(
-            energy_changes,
-            criteria.window,
-            criteria.maximum_energy_change_kj_mol
-        )
-        && recent_values_below(
-            displacements,
-            criteria.window,
-            criteria.maximum_atom_displacement_angstrom
-        )
-        && recent_values_below(
-            rms_gradients,
-            criteria.window,
-            criteria.maximum_rms_gradient_kj_mol_angstrom
-        )
-        && recent_values_below(
-            max_gradients,
-            criteria.window,
-            criteria.maximum_gradient_kj_mol_angstrom
-        );
-}
-
-
 RulePlan setup_forcefield(
     OptimizationOperation& operation,
     OpenBabel::OBMol& molecule,
@@ -420,18 +255,13 @@ RulePlan setup_forcefield(
     );
     auto& forcefield = operation.forcefield();
     if (!plan.applications.empty()) {
-        const auto energy = forcefield.Energy(true);
-        bool finite_gradients = true;
-        for (unsigned int index = 1; index <= molecule.NumAtoms(); ++index) {
-            const auto gradient = forcefield.GetGradient(
-                molecule.GetAtom(static_cast<int>(index))
-            );
-            finite_gradients = finite_gradients
-                && std::isfinite(gradient.GetX())
-                && std::isfinite(gradient.GetY())
-                && std::isfinite(gradient.GetZ());
-        }
-        if (!std::isfinite(energy) || !finite_gradients) {
+        const auto energy = optimization_energy_kj(forcefield, 1.0, true);
+        const auto gradients = optimization_gradient_metrics(
+            forcefield, molecule, 1.0
+        );
+        if (!std::isfinite(energy)
+            || !std::isfinite(gradients.rms_kj_mol_angstrom)
+            || !std::isfinite(gradients.maximum_kj_mol_angstrom)) {
             throw ForceFieldSetupFailure(
                 operation.forcefield_name(),
                 "preflight-validation",
@@ -492,7 +322,7 @@ void validate_options(
     }
     for (const auto& offsets : perturbation_offsets) {
         if (offsets.size() != atom_count
-            || !finite_coordinates(offsets)) {
+            || !coordinates_are_finite(offsets)) {
             throw std::invalid_argument(
                 "each perturbation offset must be finite and shaped (N, 3)"
             );
@@ -695,7 +525,10 @@ SingleOptimizationResult single_optimize_in_place(
     operation.synchronize_coordinates(molecule);
     SingleOptimizationResult result{
         extract_coordinates(molecule),
-        forcefield_energy_kj(forcefield, forcefield_name),
+        optimization_energy_kj(
+            forcefield,
+            energy_factor_to_kj(forcefield_name, forcefield.GetUnit())
+        ),
         forcefield.GetUnit(),
         forcefield.DetectExplosion(),
         std::move(plan),
@@ -906,14 +739,19 @@ OptimizationResult optimize_in_place(
         }
 
         auto coordinates = extract_coordinates(molecule);
-        const double energy = forcefield_energy_kj(
+        const auto measurements = measure_optimization_state(
             forcefield,
-            options.forcefield
+            molecule,
+            coordinates,
+            previous_coordinates.has_value()
+                ? &*previous_coordinates
+                : nullptr,
+            previous_energy,
+            factor
         );
-        const auto gradients = gradient_metrics(forcefield, molecule, factor);
         const bool backend_converged = detail::backend_stop_is_converged(
             backend_stopped,
-            gradients.second,
+            measurements.gradients.maximum_kj_mol_angstrom,
             factor
         );
         const bool reported_converged = backend_converged
@@ -922,30 +760,28 @@ OptimizationResult optimize_in_place(
         termination_reason = reported_converged
             ? "converged"
             : "budget_exhausted";
-        std::optional<double> energy_change;
-        std::optional<double> displacement;
-        if (previous_energy.has_value()) {
-            energy_change = std::abs(energy - *previous_energy);
-            energy_change_segments[segment_index].push_back(*energy_change);
-        }
-        if (previous_coordinates.has_value()) {
-            displacement = maximum_displacement(
-                coordinates, *previous_coordinates
+        if (measurements.energy_change_kj_mol.has_value()) {
+            energy_change_segments[segment_index].push_back(
+                *measurements.energy_change_kj_mol
             );
-            displacement_segments[segment_index].push_back(*displacement);
+        }
+        if (measurements.maximum_displacement_angstrom.has_value()) {
+            displacement_segments[segment_index].push_back(
+                *measurements.maximum_displacement_angstrom
+            );
         }
         OptimizationFrame frame{
             std::move(coordinates),
-            energy,
-            gradients.first,
-            gradients.second,
-            forcefield.DetectExplosion(),
+            measurements.energy_kj_mol,
+            measurements.gradients.rms_kj_mol_angstrom,
+            measurements.gradients.maximum_kj_mol_angstrom,
+            measurements.exploded,
             reported_converged,
             epoch,
             segment_epochs_completed,
             segment_index,
-            energy_change,
-            displacement,
+            measurements.energy_change_kj_mol,
+            measurements.maximum_displacement_angstrom,
             energy_change_segments[segment_index].size(),
         };
         rms_gradient_segments[segment_index].push_back(frame.rms_gradient);
@@ -957,7 +793,7 @@ OptimizationResult optimize_in_place(
             && !options.increasing_vdw
             && options.stopping_criteria.has_value()
             && stability_reached(
-                frame,
+                measurements,
                 energy_change_segments[segment_index],
                 displacement_segments[segment_index],
                 rms_gradient_segments[segment_index],
@@ -965,11 +801,11 @@ OptimizationResult optimize_in_place(
                 *options.stopping_criteria
             );
         const long observed_epoch = static_cast<long>(epochs_completed - 1);
-        if (finite_coordinates(frame.coordinates)) {
+        if (coordinates_are_finite(frame.coordinates)) {
             latest_returnable_frame = frame;
             latest_returnable_epoch = observed_epoch;
         }
-        if (frame_is_usable(frame)
+        if (optimization_state_is_usable(measurements)
             && (!best_frame.has_value()
                 || frame.energy < best_frame->energy)) {
             best_frame = frame;
@@ -982,11 +818,11 @@ OptimizationResult optimize_in_place(
         if (options.retain_frames) {
             frames.push_back(std::move(frame));
         }
-        const auto numerical_failure = frame_failure_reason(*last_frame);
-        if (numerical_failure.has_value()) {
+        const auto failure = optimization_failure(measurements);
+        if (failure != OptimizationFailure::NONE) {
             segment_active = false;
             terminal_converged = false;
-            termination_reason = *numerical_failure;
+            termination_reason = optimization_failure_reason(failure);
             break;
         }
         if (stable) {

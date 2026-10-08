@@ -103,7 +103,8 @@ the model selects four donor atoms across a chemically complex ligand,
 constructs the Eu coordination graph, and reports the score associated with
 each selected metal–donor bond. The ligand may also be supplied as a molecular
 file. Use `--all-structures` when ranked alternative coordination structures
-are required.
+are required. By default, the first coordination bond uses a raw-score
+threshold of `-0.5`; subsequent bonds use `-0.125`.
 
 ### Force-field optimization
 
@@ -353,80 +354,26 @@ optimization results comparable under the same public geometry-quality gate.
 
 ## Validation evidence
 
-### Native Open Babel and RDKit comparison
+### Ligand and Eu–ligand benchmark
 
-The following reproducible smoke benchmark uses eight neutral organic
-molecules, three seeded runs per molecule, UFF, and 200 optimization steps.
-Every returned structure is checked by Hotpot's `standard` quality level.
-It measures the complete build-and-optimize workflow, not force-field kernel
-speed alone.
+Four independently launched workflows were evaluated on the same 187 isolated
+ligands and the same 181 CBond-eligible Eu–ligand complexes. Times are median
+build-plus-optimize durations among completed workflows in a 16-worker run;
+CBond inference, geometry validation, serialization, and rendering are excluded.
 
-| Workflow | Successful runs | Standard-quality passes | Median workflow time |
-|---|---:|---:|---:|
-| RDKit native | 24/24 | 24/24 | 0.0079 s |
-| Open Babel native | 24/24 | 20/24 | 0.0266 s |
-| Hotpot | 24/24 | 22/24 | 1.5178 s |
+| Workflow | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
+|---|---:|---:|---:|---:|
+| RDKit | 185/187 (98.9%) | 0.306 s | 31/181 (17.1%) | 0.446 s |
+| Open Babel | 182/187 (97.3%) | 1.089 s | 165/181 (91.2%) | 1.921 s |
+| Hotpot `obWrappers` | 184/187 (98.4%) | 3.802 s | 167/181 (92.3%) | 4.223 s |
+| Hotpot `optimize_complex` workflow | 182/187 (97.3%) | 6.004 s | 180/181 (99.4%) | 8.938 s |
 
-![Native backend and Hotpot force-field validation comparison](assets/readme/forcefield_validation.png)
+![Ligand and Eu coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
 
-The native RDKit workflow is the best choice in this small neutral-organic
-benchmark when raw turnaround is the priority. Hotpot adds process isolation,
-structured reporting, integrated quality assessment, and a workflow intended
-to extend to coordination complexes, so the timing is not a backend ranking.
+The independent launch commands and evidence files are documented with the
+benchmark:
 
-The script and machine-readable evidence are versioned with the repository:
-
-- [benchmark script](tests/readme/benchmark_forcefield_validation.py)
-- [CSV results](assets/readme/forcefield_validation.csv)
-- [JSON protocol and results](assets/readme/forcefield_validation.json)
-
-### Eu coordination-complex backend comparison
-
-The comparison below fixes the same 178 Eu complexes for which CBond produced
-a coordination topology in the 187-extractant suite. The benchmark reconstructs
-and hash-verifies the same coordinate-free, explicit-hydrogen atom table and
-Eu–donor connectivity for every backend. Metal bonds use the backend-native
-representation (RDKit dative; Hotpot/Open Babel single), after which only 3D
-construction and force-field optimization differ. All returned structures are
-judged by Hotpot's same `standard` geometry gate.
-
-| Workflow | 3D build | Finite optimized output | Standard geometry pass |
-|---|---:|---:|---:|
-| Hotpot | 178/178 (100.0%) | 178/178 (100.0%) | 177/178 (99.4%) |
-| RDKit | 174/178 (97.8%) | 174/178 (97.8%) | 27/178 (15.2%) |
-| Open Babel | 177/178 (99.4%) | 177/178 (99.4%) | 162/178 (91.0%) |
-
-![Eu coordination-complex build and optimization comparison](assets/readme/coordination_complex_backend_comparison.png)
-
-RDKit uses donor-to-Eu dative bonds and relaxed property-cache valence
-handling (`strict=False`), followed by seeded ETKDGv3 embedding. It prefers a
-fully parameterized MMFF force field, otherwise UFF. None of these 178 Eu
-complexes had complete RDKit MMFF or UFF parameters; the 174 optimization
-runs therefore used explicitly labelled **partial UFF**. Their 27 geometry
-passes demonstrate only that those returned coordinates passed the common
-gate, not that RDKit provides an accurate Eu force field. Open Babel uses
-`OBBuilder` followed by UFF conjugate gradients for up to 10,000 steps; one
-`OBBuilder` result contained non-finite coordinates before optimization and is
-not counted as a usable build/optimization result.
-
-“Finite optimized output” means that the optimizer returned finite coordinates,
-not that it satisfied a backend convergence threshold. The backend-specific,
-non-comparable signals reported convergence for 16/178 Hotpot runs and 165/174
-RDKit runs; the Open Babel Python interface used here exposes no equivalent
-per-run result. RDKit and Hotpot use recorded per-case seeds; Open Babel's
-upstream `OBBuilder` is not bitwise reproducible from `OB_RANDOM_SEED`, so its
-aggregate should be treated as one recorded run.
-
-The common gate checks numerical, topology, and geometry invariants. Passing
-it is not evidence of agreement with an experimental structure, the global
-minimum, or the correct coordination-state energetics. The counts are fixed-
-cohort regression evidence rather than universal success rates for
-coordination chemistry.
-
-The benchmark implementation and machine-readable evidence are versioned
-with the repository:
-
-- [benchmark script](tests/benchmarks/coordination_complexes/backend_comparison.py)
+- [benchmark commands](tests/benchmarks/coordination_complexes/README.md)
 - [aggregate CSV](assets/readme/coordination_complex_backend_comparison.csv)
 - [protocol and aggregate JSON](assets/readme/coordination_complex_backend_comparison.json)
 - [per-case CSV](assets/readme/coordination_complex_backend_comparison_cases.csv)
@@ -476,26 +423,9 @@ README examples are executable regression tests. Run them with:
 $ python -m pytest -q tests/readme
 ```
 
-Run the documented benchmark and regenerate its evidence with:
-
-```bash
-$ python tests/readme/benchmark_forcefield_validation.py \
-    --output-dir assets/readme --repeats 3
-```
-
-Reproduce the 178-complex native-backend comparison from a completed Hotpot
-reference run with:
-
-```bash
-$ python -m tests.benchmarks.coordination_complexes.backend_comparison \
-    --reference movie/benchmarks/extractants_eu_187_59e5741_20260930 \
-    --output movie/benchmarks/extractants_eu_178_backend_comparison \
-    --workers 16
-```
-
-The reference supplies only ligand SMILES, CBond donor indices, and the
-selected chemical topology; its coordinates are never supplied to RDKit or
-Open Babel.
+The four independent benchmark launchers and the evidence aggregation command
+are listed in the
+[coordination-complex benchmark guide](tests/benchmarks/coordination_complexes/README.md).
 
 The complete test suite and coverage shortcut is:
 

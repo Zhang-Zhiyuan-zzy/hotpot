@@ -1,101 +1,133 @@
 {
   "schema_version": 1,
   "protocol": {
-    "sample_count": 178,
-    "input": "identical coordinate-free explicit-H atom table and Eu-CBond connectivity; backend-native metal-bond encoding",
-    "rdkit": "ETKDGv3 (random coordinates, smoothing failures allowed); full MMFF, otherwise full or explicitly labelled partial UFF",
-    "openbabel": "OBBuilder; UFF conjugate gradients, 10000 steps; the upstream builder does not guarantee deterministic seeding",
-    "hotpot": "frozen reference result",
-    "validation": "Hotpot standard structure-acceptance gate",
-    "optimization_success_definition": "optimizer returned finite coordinates; this does not imply convergence to a backend stopping criterion"
+    "input_sample_count": 187,
+    "complex_sample_count": 181,
+    "targets": [
+      "ligand",
+      "complex"
+    ],
+    "geometry_gate": "Hotpot standard geometry acceptance policy",
+    "efficiency": "median build + optimize compute time among completed workflows"
   },
   "provenance": {
-    "canonical_manifest_sha256": "481d5a4d334bd9502d916ff6d9f182880694f6dff84b133d7c46415ad213af9d",
-    "hotpot_reference_manifest_sha256": "a991ba5370e71fbdddb3a71f18e0feb8d5945ab59d76d1cb7ae6edc21fa52736",
-    "hotpot_reference_git": {
-      "commit": "59e5741b9cac26b8dc787edd481a40ba6ad41d38",
-      "dirty": false
-    },
     "input_sha256": "77ef4913363bb10f0d134d6150c4f9e7214ddfaf03f8e6fc23f57308d5d3443f",
-    "python": "3.11.16",
-    "hotpot-zzy": "0.5.3.0",
-    "rdkit": "2026.3.6",
-    "openbabel": "3.2.1"
+    "cohort_sha256": "91d363a2add3428bd5b31332ef99a502f33edad145ef5a870b0e7b97911ea1fb",
+    "runs": {
+      "rdkit": {
+        "manifest_sha256": "47f2c0db30030b55c8d466b81adaf4fc237869adf87adbd24cdc99280022b4c6",
+        "summary_sha256": "c9724dbb56c88b886d3ebb819924acbbb60b910ce17d82e380e0c527e154cb43"
+      },
+      "openbabel": {
+        "manifest_sha256": "fc77de090c872b5db5cd81a6313a73f9a88066f8582aaa7992c739a1631797a4",
+        "summary_sha256": "4314a9d35a18d4d740150455f72554e7508847f0d540fd6fa665b0af9acaa5e0"
+      },
+      "obwrappers": {
+        "manifest_sha256": "3dd0f47289c2bb3454beaf6392aa0b06b2e470765a6633dae9617e75a0b573ac",
+        "summary_sha256": "982e083bfe5f4bea750ef8637ba281566ebc0d1ce3a6e60ff4be7baab6c6f9ca"
+      },
+      "hotpot_optimize_complex": {
+        "manifest_sha256": "01ba14a978a6fbe2a7781c9cb72158bf1c8c0385a02a09af6102f0a54e7c475f",
+        "summary_sha256": "fabc47439155f6ed1568383740040d9de3c638322f46c45d7fbb341fd55c9d74"
+      }
+    }
   },
   "results": [
     {
-      "backend": "hotpot",
-      "sample_count": 178,
-      "build_success_count": 178,
-      "build_success_rate": 1.0,
-      "forcefield_supported_count": 178,
-      "forcefield_supported_rate": 1.0,
-      "forcefield_fully_parameterized_count": 178,
-      "forcefield_fully_parameterized_rate": 1.0,
-      "optimization_success_count": 178,
-      "optimization_success_rate": 1.0,
-      "convergence_reported_count": 178,
-      "converged_count": 16,
-      "finite_coordinate_count": 178,
-      "topology_preserved_count": 178,
-      "quality_pass_count": 177,
-      "quality_pass_rate": 0.9943820224719101,
-      "median_case_seconds": 9.295995232649148,
-      "aggregate_case_seconds": 1848.9961591418833,
-      "status_counts": {
-        "passed": 177,
-        "failed_quality": 1
-      }
+      "workflow": "rdkit",
+      "display_name": "RDKit",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 185,
+      "quality_pass_rate": 0.9893048128342246,
+      "timed_sample_count": 186,
+      "median_compute_seconds": 0.3064329596236348,
+      "aggregate_compute_seconds": 117.65083131380379
     },
     {
-      "backend": "rdkit",
-      "sample_count": 178,
-      "build_success_count": 174,
-      "build_success_rate": 0.9775280898876404,
-      "forcefield_supported_count": 174,
-      "forcefield_supported_rate": 0.9775280898876404,
-      "forcefield_fully_parameterized_count": 0,
-      "forcefield_fully_parameterized_rate": 0.0,
-      "optimization_success_count": 174,
-      "optimization_success_rate": 0.9775280898876404,
-      "convergence_reported_count": 174,
-      "converged_count": 165,
-      "finite_coordinate_count": 174,
-      "topology_preserved_count": 174,
-      "quality_pass_count": 27,
-      "quality_pass_rate": 0.15168539325842698,
-      "median_case_seconds": 0.2718154713511467,
-      "aggregate_case_seconds": 388.7156383804977,
-      "status_counts": {
-        "failed_quality": 147,
-        "passed": 27,
-        "build_failed": 4
-      }
+      "workflow": "rdkit",
+      "display_name": "RDKit",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 181,
+      "quality_pass_count": 31,
+      "quality_pass_rate": 0.1712707182320442,
+      "timed_sample_count": 176,
+      "median_compute_seconds": 0.446213873103261,
+      "aggregate_compute_seconds": 187.27857865020633
     },
     {
-      "backend": "openbabel",
-      "sample_count": 178,
-      "build_success_count": 177,
-      "build_success_rate": 0.9943820224719101,
-      "forcefield_supported_count": 177,
-      "forcefield_supported_rate": 0.9943820224719101,
-      "forcefield_fully_parameterized_count": 177,
-      "forcefield_fully_parameterized_rate": 0.9943820224719101,
-      "optimization_success_count": 177,
-      "optimization_success_rate": 0.9943820224719101,
-      "convergence_reported_count": 0,
-      "converged_count": 0,
-      "finite_coordinate_count": 177,
-      "topology_preserved_count": 177,
-      "quality_pass_count": 162,
-      "quality_pass_rate": 0.9101123595505618,
-      "median_case_seconds": 1.9959779884666204,
-      "aggregate_case_seconds": 492.13379363901913,
-      "status_counts": {
-        "passed": 162,
-        "failed_quality": 15,
-        "nonfinite_coordinates": 1
-      }
+      "workflow": "openbabel",
+      "display_name": "Open Babel",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 182,
+      "quality_pass_rate": 0.9732620320855615,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 1.0893359687179327,
+      "aggregate_compute_seconds": 325.1794625874609
+    },
+    {
+      "workflow": "openbabel",
+      "display_name": "Open Babel",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 181,
+      "quality_pass_count": 165,
+      "quality_pass_rate": 0.9116022099447514,
+      "timed_sample_count": 180,
+      "median_compute_seconds": 1.9211977990344167,
+      "aggregate_compute_seconds": 460.29601390101016
+    },
+    {
+      "workflow": "obwrappers",
+      "display_name": "Hotpot obWrappers",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 184,
+      "quality_pass_rate": 0.983957219251337,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 3.802231676876545,
+      "aggregate_compute_seconds": 779.5005909707397
+    },
+    {
+      "workflow": "obwrappers",
+      "display_name": "Hotpot obWrappers",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 181,
+      "quality_pass_count": 167,
+      "quality_pass_rate": 0.9226519337016574,
+      "timed_sample_count": 180,
+      "median_compute_seconds": 4.222738996148109,
+      "aggregate_compute_seconds": 844.4744458850473
+    },
+    {
+      "workflow": "hotpot_optimize_complex",
+      "display_name": "Hotpot optimize_complex",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 182,
+      "quality_pass_rate": 0.9732620320855615,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 6.0037956312298775,
+      "aggregate_compute_seconds": 1144.0719810109586
+    },
+    {
+      "workflow": "hotpot_optimize_complex",
+      "display_name": "Hotpot optimize_complex",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 181,
+      "quality_pass_count": 180,
+      "quality_pass_rate": 0.994475138121547,
+      "timed_sample_count": 181,
+      "median_compute_seconds": 8.938034182414412,
+      "aggregate_compute_seconds": 1770.060548035428
     }
   ]
 }

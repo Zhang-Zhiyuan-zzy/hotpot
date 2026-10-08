@@ -34,61 +34,85 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
     evidence = json.loads(json_path.read_text(encoding="utf-8"))
-    results = {row["backend"]: row for row in evidence["results"]}
-    expected = {
-        "hotpot": (178, 178, 177, 178),
-        "rdkit": (174, 174, 27, 0),
-        "openbabel": (177, 177, 162, 177),
+    results = {
+        (row["workflow"], row["target"]): row for row in evidence["results"]
+    }
+    expected_passes = {
+        ("rdkit", "ligand"): 185,
+        ("rdkit", "complex"): 31,
+        ("openbabel", "ligand"): 182,
+        ("openbabel", "complex"): 165,
+        ("obwrappers", "ligand"): 184,
+        ("obwrappers", "complex"): 167,
+        ("hotpot_optimize_complex", "ligand"): 182,
+        ("hotpot_optimize_complex", "complex"): 180,
+    }
+    labels = {
+        "rdkit": "RDKit",
+        "openbabel": "Open Babel",
+        "obwrappers": "Hotpot `obWrappers`",
+        "hotpot_optimize_complex": "Hotpot `optimize_complex` workflow",
     }
 
-    assert evidence["protocol"]["sample_count"] == 178
-    assert set(results) == set(expected)
-    assert results["hotpot"]["convergence_reported_count"] == 178
-    assert results["hotpot"]["converged_count"] == 16
-    assert results["rdkit"]["convergence_reported_count"] == 174
-    assert results["rdkit"]["converged_count"] == 165
-    for backend, (
-        build_count,
-        optimization_count,
-        quality_count,
-        fully_parameterized_count,
-    ) in expected.items():
-        result = results[backend]
-        assert result["sample_count"] == 178
-        assert result["build_success_count"] == build_count
-        assert result["optimization_success_count"] == optimization_count
-        assert result["quality_pass_count"] == quality_count
-        assert (
-            result["forcefield_fully_parameterized_count"]
-            == fully_parameterized_count
-        )
+    assert evidence["schema_version"] == 1
+    assert evidence["protocol"]["input_sample_count"] == 187
+    assert evidence["protocol"]["complex_sample_count"] == 181
+    assert set(results) == set(expected_passes)
+    for key, pass_count in expected_passes.items():
+        result = results[key]
+        denominator = 187 if key[1] == "ligand" else 181
+        assert result["sample_count"] == denominator
+        assert result["quality_pass_count"] == pass_count
+        assert result["quality_pass_rate"] == pass_count / denominator
+        assert 0 < result["timed_sample_count"] <= denominator
+        assert result["median_compute_seconds"] > 0.0
 
     with csv_path.open(encoding="utf-8", newline="") as stream:
-        aggregate_rows = {row["backend"]: row for row in csv.DictReader(stream)}
-    assert set(aggregate_rows) == set(expected)
-    for backend, counts in expected.items():
-        assert int(aggregate_rows[backend]["sample_count"]) == 178
-        assert int(aggregate_rows[backend]["build_success_count"]) == counts[0]
-        assert (
-            int(aggregate_rows[backend]["optimization_success_count"])
-            == counts[1]
-        )
-        assert int(aggregate_rows[backend]["quality_pass_count"]) == counts[2]
+        aggregate_rows = {
+            (row["workflow"], row["target"]): row
+            for row in csv.DictReader(stream)
+        }
+    assert set(aggregate_rows) == set(expected_passes)
+    for key, result in results.items():
+        assert int(aggregate_rows[key]["quality_pass_count"]) == result[
+            "quality_pass_count"
+        ]
+        assert float(aggregate_rows[key]["median_compute_seconds"]) == result[
+            "median_compute_seconds"
+        ]
 
     with case_csv_path.open(encoding="utf-8", newline="") as stream:
         case_rows = tuple(csv.DictReader(stream))
-    assert len(case_rows) == 3 * 178
-    assert {
-        backend: sum(row["backend"] == backend for row in case_rows)
-        for backend in expected
-    } == {backend: 178 for backend in expected}
+    assert len(case_rows) == 4 * 187 * 2
+    for workflow in labels:
+        workflow_rows = [row for row in case_rows if row["workflow"] == workflow]
+        assert len(workflow_rows) == 187 * 2
+        assert sum(row["eligible"] == "True" for row in workflow_rows) == 187 + 181
+        assert {
+            int(row["index"])
+            for row in workflow_rows
+            if row["status"] == "not_eligible"
+        } == {134, 139, 182, 185, 186, 187}
+
+        ligand = results[(workflow, "ligand")]
+        complex_result = results[(workflow, "complex")]
+        expected_row = (
+            f"| {labels[workflow]} | "
+            f"{ligand['quality_pass_count']}/187 "
+            f"({100.0 * ligand['quality_pass_rate']:.1f}%) | "
+            f"{ligand['median_compute_seconds']:.3f} s | "
+            f"{complex_result['quality_pass_count']}/181 "
+            f"({100.0 * complex_result['quality_pass_rate']:.1f}%) | "
+            f"{complex_result['median_compute_seconds']:.3f} s |"
+        )
+        assert expected_row in readme
 
     assert png_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
     assert png_path.stat().st_size > 10_000
     assert "coordination_complex_backend_comparison.png" in readme
-    assert "| Hotpot | 178/178 (100.0%)" in readme
-    assert "| RDKit | 174/178 (97.8%)" in readme
-    assert "| Open Babel | 177/178 (99.4%)" in readme
-    assert "27/178 (15.2%)" in readme
-    assert "162/178 (91.0%)" in readme
-    assert "partial UFF" in readme
+    benchmark_section = readme.split("## Validation evidence", maxsplit=1)[1].split(
+        "## Scientific boundaries", maxsplit=1
+    )[0]
+    assert "3D build" not in benchmark_section
+    assert "partial UFF" not in benchmark_section
+    assert "Case 61" not in benchmark_section

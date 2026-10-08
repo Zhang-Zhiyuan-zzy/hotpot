@@ -86,6 +86,7 @@ def test_parser_defaults_and_documented_choices():
     assert args.algorithm == "conjugate"
     assert args.epochs == 100
     assert args.steps_per_epoch == 100
+    assert args.convergence_level == "fast"
     assert args.add_hydrogens is True
     assert args.quality == "standard"
     assert args.seed is None
@@ -107,6 +108,8 @@ def test_parser_defaults_and_documented_choices():
             "steepest",
             "--quality",
             "strict",
+            "--convergence-level",
+            "strict",
             "--trajectory-start",
             "coordination-restoration",
         ]
@@ -115,6 +118,7 @@ def test_parser_defaults_and_documented_choices():
     assert explicit.forcefield == "uff"
     assert explicit.algorithm == "steepest"
     assert explicit.quality == "strict"
+    assert explicit.convergence_level == "strict"
     assert explicit.trajectory_start == "coordination-restoration"
 
 
@@ -124,6 +128,7 @@ def test_parser_defaults_and_documented_choices():
         ("--route", "unknown"),
         ("--forcefield", "unknown"),
         ("--algorithm", "unknown"),
+        ("--convergence-level", "unknown"),
         ("--quality", "unknown"),
         ("--trajectory-start", "unknown"),
         ("--epochs", "0"),
@@ -252,7 +257,17 @@ def test_direct_smiles_without_3d_builds_and_optimizes(monkeypatch, capsys):
     monkeypatch.setattr(cli, "build_and_optimize", build_and_optimize)
     monkeypatch.setattr(cli, "auto_optimize", _fail_if_called("auto_optimize"))
 
-    assert cli.main(["CN", "--seed", "19", "--epochs", "3"]) == 0
+    assert cli.main(
+        [
+            "CN",
+            "--seed",
+            "19",
+            "--epochs",
+            "3",
+            "--convergence-level",
+            "strict",
+        ]
+    ) == 0
 
     captured = capsys.readouterr()
     assert captured.out == "mol2:CN\n"
@@ -265,6 +280,7 @@ def test_direct_smiles_without_3d_builds_and_optimizes(monkeypatch, capsys):
         "algorithm": "conjugate",
         "epochs": 3,
         "steps_per_epoch": 100,
+        "convergence_level": cli.ConvergenceLevel.STRICT,
         "add_hydrogens": True,
         "quality_level": "standard",
         "seed": 19,

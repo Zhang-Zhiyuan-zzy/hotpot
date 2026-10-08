@@ -327,6 +327,7 @@ under the corresponding result's `error.evidence` object.
 | `--algorithm {conjugate,steepest}` | Select the minimization algorithm. |
 | `--epochs N` | Set the optimization epoch limit. |
 | `--steps-per-epoch N` | Set Open Babel steps per epoch. |
+| `--convergence-level {openbabel,fast,balanced,strict}` | Select convergence evidence; `fast` is the default and `strict` preserves the former behavior. |
 | `--no-add-hydrogens` | Preserve the supplied hydrogen topology. |
 | `--quality {off,basic,standard,strict}` | Select final quality acceptance. |
 | `--seed N` | Seed stochastic build and perturbation operations. |

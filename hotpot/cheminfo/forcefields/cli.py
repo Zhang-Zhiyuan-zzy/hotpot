@@ -25,6 +25,7 @@ from . import (
     BuildWorkerError,
     ComplexBuildError,
     ComplexBuildWorkerError,
+    ConvergenceLevel,
     ForceFieldError,
     ForceFieldSetupError,
     GeometryQualityError,
@@ -62,6 +63,9 @@ _FORCEFIELDS = {
 _TRAJECTORY_STARTS = {
     value.value.replace("_", "-"): value for value in TrajectoryStart
 }
+_CONVERGENCE_LEVELS = {
+    level.name.lower(): level for level in ConvergenceLevel
+}
 
 
 class _CLIUsageError(ValueError):
@@ -91,6 +95,7 @@ class _RunOptions:
     timeout: float
     trajectory_start: Optional[TrajectoryStart]
     output_format: str
+    convergence_level: ConvergenceLevel = ConvergenceLevel.FAST
 
 
 @dataclass(frozen=True)
@@ -217,6 +222,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         type=_positive_int,
         default=100,
         help="Open Babel steps submitted per epoch (default: 100)",
+    )
+    parser.add_argument(
+        "--convergence-level",
+        choices=tuple(_CONVERGENCE_LEVELS),
+        default="fast",
+        help="optimizer convergence evidence level (default: fast)",
     )
     parser.add_argument(
         "--no-add-hydrogens",
@@ -347,6 +358,7 @@ def _optimization_options(
         "algorithm": options.algorithm,
         "epochs": options.epochs,
         "steps_per_epoch": options.steps_per_epoch,
+        "convergence_level": options.convergence_level,
         "add_hydrogens": options.add_hydrogens,
         "quality_level": options.quality_level,
         "seed": options.seed,
@@ -669,6 +681,7 @@ def run(args: argparse.Namespace) -> int:
         algorithm=args.algorithm,
         epochs=args.epochs,
         steps_per_epoch=args.steps_per_epoch,
+        convergence_level=_CONVERGENCE_LEVELS[args.convergence_level],
         add_hydrogens=args.add_hydrogens,
         quality_level=args.quality,
         seed=args.seed,

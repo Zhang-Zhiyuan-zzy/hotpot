@@ -6,13 +6,14 @@ import json
 import traceback
 import warnings
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
 from typing import Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 
-from .configuration import BenchmarkSettings
+from .configuration import BUILTIN_BACKENDS, BenchmarkBackend, BenchmarkSettings
 from .io import json_value, write_json
 
 if TYPE_CHECKING:
@@ -68,6 +69,10 @@ def _trajectory_payload(archive: object) -> Optional[dict[str, object]]:
         "ligand_build_frame_counts": [
             len(trajectory) for trajectory in archive.ligand_build_attempts
         ],
+        "preliminary_attempt_count": len(archive.preliminary_attempts),
+        "preliminary_attempt_frame_counts": [
+            len(trajectory) for trajectory in archive.preliminary_attempts
+        ],
     }
 
 
@@ -81,6 +86,103 @@ def _cbond_payload(result: object) -> dict[str, object]:
     }
 
 
+@dataclass(frozen=True)
+class _ForceFieldOutcome:
+    """Normalized evidence returned by either Hotpot force-field workflow."""
+
+    optimization: object
+    quality_report: object
+    trajectory: object
+    requested_forcefield: Optional[str]
+    effective_forcefield: str
+    build_diagnostics: Optional[object] = None
+    routing_report: Optional[object] = None
+
+
+def _forcefield_options(
+    ff: object,
+    settings: BenchmarkSettings,
+    index: int,
+) -> dict[str, object]:
+    """Return the settings shared by complete and automatic workflows."""
+    return {
+        "epochs": settings.epochs,
+        "steps_per_epoch": settings.steps_per_epoch,
+        "max_attempts": settings.max_attempts,
+        "candidate_warmup_steps": settings.candidate_warmup_steps,
+        "candidate_score_steps": settings.candidate_score_steps,
+        "best_candidate_refine_steps": settings.best_candidate_refine_steps,
+        "ligand_untangling_attempts": settings.ligand_untangling_attempts,
+        "coordination_restoration_attempts": (
+            settings.coordination_restoration_attempts
+        ),
+        "coordination_relaxation_steps": settings.coordination_relaxation_steps,
+        "complex_untangling_attempts": settings.complex_untangling_attempts,
+        "timeout": settings.timeout,
+        "quality_level": settings.quality_level,
+        "seed": settings.seed + index,
+        "perturb_sigma": settings.perturb_sigma,
+        "convergence_level": ff.ConvergenceLevel.FAST,
+        "save_movie": True,
+        "trajectory_start": ff.TrajectoryStart(settings.trajectory_start),
+        "trajectory_path": None,
+    }
+
+
+def _run_forcefield_backend(
+    complex_mol: "Molecule",
+    backend: BenchmarkBackend,
+    settings: BenchmarkSettings,
+    index: int,
+) -> _ForceFieldOutcome:
+    """Run one configured backend without an external duplicate quality gate."""
+    from hotpot.cheminfo import forcefields as ff
+
+    options = _forcefield_options(ff, settings, index)
+    if backend.name == "hotpot":
+        workflow_report = ff.complexes_build(complex_mol, "UFF", **options)
+        optimization_report = workflow_report.optimization
+        if optimization_report is None or workflow_report.trajectory is None:
+            raise RuntimeError("The complex workflow omitted its final evidence")
+        return _ForceFieldOutcome(
+            optimization=optimization_report,
+            quality_report=workflow_report.quality_report,
+            trajectory=workflow_report.trajectory,
+            requested_forcefield=workflow_report.requested_forcefield,
+            effective_forcefield=workflow_report.effective_forcefield,
+            build_diagnostics=workflow_report.build,
+        )
+    if backend.name == "hotpot-auto":
+        optimization_report = ff.auto_optimize(complex_mol, "UFF", **options)
+        if (
+            optimization_report.quality_report is None
+            or optimization_report.trajectory is None
+            or optimization_report.routing_report is None
+        ):
+            raise RuntimeError("The automatic workflow omitted its final evidence")
+        return _ForceFieldOutcome(
+            optimization=optimization_report,
+            quality_report=optimization_report.quality_report,
+            trajectory=optimization_report.trajectory,
+            requested_forcefield=optimization_report.requested_forcefield,
+            effective_forcefield=optimization_report.effective_forcefield,
+            routing_report=optimization_report.routing_report,
+        )
+    raise ValueError(f"unsupported benchmark backend {backend.name!r}")
+
+
+def _complex_build_diagnostics_from_routing(
+    routing_report: object,
+) -> Optional[object]:
+    """Return fallback build diagnostics when the automatic route used them."""
+    if routing_report is None:
+        return None
+    for attempt in routing_report.attempts:
+        if attempt.route.value == "complex_workflow":
+            return attempt.build_diagnostics
+    return None
+
+
 def _last_finite_main_frame_index(archive: object) -> Optional[int]:
     for frame in reversed(archive.main.frames):
         if np.all(np.isfinite(archive.main.coordinates(frame.index))):
@@ -88,14 +190,20 @@ def _last_finite_main_frame_index(archive: object) -> Optional[int]:
     return None
 
 
-def _materialize_main_frame(
-    archive: object,
+def _selected_or_last_finite_main_frame_index(archive: object) -> Optional[int]:
+    selected_index = archive.main.selected_index
+    if np.all(np.isfinite(archive.main.coordinates(selected_index))):
+        return int(selected_index)
+    return _last_finite_main_frame_index(archive)
+
+
+def _materialize_trajectory_frame(
+    trajectory: object,
     frame_index: int,
 ) -> tuple[object, bool]:
     """Build a serializable molecule from an immutable trajectory frame."""
     from hotpot import Molecule
 
-    trajectory = archive.main
     output_mol = Molecule()
     for atom, coordinate in zip(
         trajectory.atoms,
@@ -127,8 +235,23 @@ def _write_frame_outputs(
     *,
     output_frame_role: str,
 ) -> dict[str, object]:
-    output_mol, visualization_topology_lossy = _materialize_main_frame(
-        archive,
+    return _write_trajectory_frame_outputs(
+        case_dir,
+        archive.main,
+        frame_index,
+        output_frame_role=output_frame_role,
+    )
+
+
+def _write_trajectory_frame_outputs(
+    case_dir: Path,
+    trajectory: object,
+    frame_index: int,
+    *,
+    output_frame_role: str,
+) -> dict[str, object]:
+    output_mol, visualization_topology_lossy = _materialize_trajectory_frame(
+        trajectory,
         frame_index,
     )
     output_mol.write(case_dir / "optimized.mol2", overwrite=True, write_single=True)
@@ -146,32 +269,83 @@ def _write_last_finite_failure_frame(
     archive: object,
 ) -> dict[str, object]:
     frame_index = _last_finite_main_frame_index(archive)
+    if frame_index is not None:
+        return _write_frame_outputs(
+            case_dir,
+            archive,
+            frame_index,
+            output_frame_role="last_finite_failure_frame",
+        )
+    for attempt_index in range(len(archive.preliminary_attempts) - 1, -1, -1):
+        trajectory = archive.preliminary_attempts[attempt_index]
+        for frame in reversed(trajectory.frames):
+            if np.all(np.isfinite(trajectory.coordinates(frame.index))):
+                return _write_trajectory_frame_outputs(
+                    case_dir,
+                    trajectory,
+                    int(frame.index),
+                    output_frame_role=(
+                        f"last_finite_preliminary_attempt_{attempt_index}"
+                    ),
+                )
+    return {
+        "output_structure_unavailable_reason": (
+            "trajectory archive contains no finite coordinate frame"
+        )
+    }
+
+
+def _write_quality_failure_frame(
+    case_dir: Path,
+    archive: object,
+) -> dict[str, object]:
+    frame_index = _selected_or_last_finite_main_frame_index(archive)
     if frame_index is None:
         return {
             "output_structure_unavailable_reason": (
                 "trajectory main branch contains no finite coordinate frame"
             )
         }
+    selected_index = int(archive.main.selected_index)
+    role = (
+        "selected_quality_failure_frame"
+        if frame_index == selected_index
+        else "last_finite_quality_failure_frame"
+    )
     return _write_frame_outputs(
         case_dir,
         archive,
         frame_index,
-        output_frame_role="last_finite_failure_frame",
+        output_frame_role=role,
     )
 
 
-def run_hotpot_case(
+def _record_stage_timings(
+    record: dict[str, object],
+    diagnostics: Optional[object],
+) -> None:
+    if diagnostics is None:
+        return
+    record["ligand_build_seconds"] = diagnostics.ligand_build_elapsed_seconds
+    restoration = diagnostics.coordination_restoration
+    if restoration is not None:
+        record["coordination_restoration_seconds"] = restoration.elapsed_seconds
+
+
+def _run_case(
     index: int,
     smiles: str,
     output_root_text: str,
     metal: str,
     settings: BenchmarkSettings,
     resume: bool,
+    backend_name: str,
 ) -> dict[str, object]:
     """Run one end-to-end case in a spawn-safe worker process."""
     from hotpot import read_mol
     from hotpot.cheminfo import forcefields as ff
 
+    backend = BUILTIN_BACKENDS[backend_name]
     case_dir = Path(output_root_text) / "cases" / f"{index:04d}"
     case_dir.mkdir(parents=True, exist_ok=True)
     report_path = case_dir / "report.json"
@@ -181,11 +355,12 @@ def run_hotpot_case(
     record: dict[str, object] = {
         "index": index,
         "smiles": smiles,
-        "backend": "hotpot",
-        "workflow": "cbond-complexes-build",
+        "backend": backend.name,
+        "workflow": backend.workflow,
         "status": "running",
         "phase": "read",
         "settings": settings.to_manifest(),
+        "routing_report": None,
     }
     (case_dir / "input.smi").write_text(smiles + "\n", encoding="utf-8")
     started = perf_counter()
@@ -200,7 +375,7 @@ def run_hotpot_case(
         phase_started = perf_counter()
         try:
             cbond_result = _infer_cbond(ligand, metal, settings)
-        except Exception as error:
+        except ValueError as error:
             record.update(
                 status="failed_cbond",
                 error_type=type(error).__name__,
@@ -223,62 +398,32 @@ def run_hotpot_case(
             try:
                 with warnings.catch_warnings(record=True) as emitted_warnings:
                     warnings.simplefilter("always")
-                    forcefield_report = ff.complexes_build(
+                    forcefield_outcome = _run_forcefield_backend(
                         complex_mol,
-                        epochs=settings.epochs,
-                        steps_per_epoch=settings.steps_per_epoch,
-                        max_attempts=settings.max_attempts,
-                        candidate_warmup_steps=settings.candidate_warmup_steps,
-                        candidate_score_steps=settings.candidate_score_steps,
-                        best_candidate_refine_steps=(
-                            settings.best_candidate_refine_steps
-                        ),
-                        ligand_untangling_attempts=(
-                            settings.ligand_untangling_attempts
-                        ),
-                        coordination_restoration_attempts=(
-                            settings.coordination_restoration_attempts
-                        ),
-                        coordination_relaxation_steps=(
-                            settings.coordination_relaxation_steps
-                        ),
-                        complex_untangling_attempts=(
-                            settings.complex_untangling_attempts
-                        ),
-                        timeout=settings.timeout,
-                        quality_level=settings.quality_level,
-                        seed=settings.seed + index,
-                        perturb_sigma=settings.perturb_sigma,
-                        save_movie=True,
-                        trajectory_start=ff.TrajectoryStart(settings.trajectory_start),
-                        trajectory_path=case_dir / "trajectory",
+                        backend,
+                        settings,
+                        index,
                     )
                 emitted_messages = [str(item.message) for item in emitted_warnings]
             except ff.ForceFieldError as error:
                 emitted_messages.extend(
-                    str(item.message) for item in locals().get("emitted_warnings", ())
+                    str(item.message) for item in emitted_warnings
                 )
+                forcefield_seconds = perf_counter() - phase_started
                 record.update(
                     status="failed_forcefield",
                     error_type=type(error).__name__,
                     error_message=str(error),
                     traceback=traceback.format_exc(),
                     warnings=emitted_messages,
-                    forcefield_seconds=perf_counter() - phase_started,
+                    forcefield_seconds=forcefield_seconds,
                     trajectory=_trajectory_payload(error.trajectory),
                 )
                 diagnostics = getattr(error, "diagnostics", None)
                 if diagnostics is not None:
                     record["error_diagnostics"] = json_value(diagnostics)
                 if isinstance(diagnostics, ff.ComplexBuildDiagnostics):
-                    record["ligand_build_seconds"] = (
-                        diagnostics.ligand_build_elapsed_seconds
-                    )
-                    restoration = diagnostics.coordination_restoration
-                    if restoration is not None:
-                        record["coordination_restoration_seconds"] = (
-                            restoration.elapsed_seconds
-                        )
+                    _record_stage_timings(record, diagnostics)
                 error_report = getattr(error, "report", None)
                 if isinstance(error_report, ff.ForceFieldValidationReport):
                     validation = _quality_payload(error_report)
@@ -290,11 +435,15 @@ def run_hotpot_case(
                         record["complex_optimization_seconds"] = (
                             error_report.elapsed_seconds
                         )
+                        routing_report = error_report.routing_report
+                        if routing_report is not None:
+                            record["routing_report"] = json_value(routing_report)
                 if error.trajectory is None:
                     record["output_structure_unavailable_reason"] = (
                         "force-field failure did not preserve a trajectory archive"
                     )
                 else:
+                    error.trajectory.write(case_dir / "trajectory")
                     try:
                         record.update(
                             _write_last_finite_failure_frame(
@@ -307,42 +456,40 @@ def run_hotpot_case(
                             f"{type(output_error).__name__}: {output_error}"
                         )
             else:
-                validation = _quality_payload(forcefield_report.quality_report)
-                build_report = forcefield_report.build
-                optimization_report = forcefield_report.optimization
+                forcefield_seconds = perf_counter() - phase_started
+                forcefield_outcome.trajectory.write(case_dir / "trajectory")
+                validation = _quality_payload(forcefield_outcome.quality_report)
+                routing_report = forcefield_outcome.routing_report
+                build_diagnostics = forcefield_outcome.build_diagnostics
+                if build_diagnostics is None:
+                    build_diagnostics = _complex_build_diagnostics_from_routing(
+                        routing_report
+                    )
+                _record_stage_timings(record, build_diagnostics)
                 record.update(
-                    forcefield_seconds=perf_counter() - phase_started,
-                    ligand_build_seconds=(
-                        build_report.ligand_build_elapsed_seconds
-                    ),
-                    coordination_restoration_seconds=(
-                        build_report.coordination_restoration.elapsed_seconds
-                        if build_report.coordination_restoration is not None
-                        else None
-                    ),
+                    forcefield_seconds=forcefield_seconds,
                     complex_optimization_seconds=(
-                        optimization_report.elapsed_seconds
-                        if optimization_report is not None
-                        else None
+                        forcefield_outcome.optimization.elapsed_seconds
                     ),
                     warnings=emitted_messages,
-                    optimization=json_value(optimization_report),
+                    optimization=json_value(forcefield_outcome.optimization),
+                    routing_report=json_value(routing_report),
                     forcefield={
                         "requested_forcefield": (
-                            forcefield_report.requested_forcefield
+                            forcefield_outcome.requested_forcefield
                         ),
                         "effective_forcefield": (
-                            forcefield_report.effective_forcefield
+                            forcefield_outcome.effective_forcefield
                         ),
-                        "build": json_value(forcefield_report.build),
+                        "build": json_value(build_diagnostics),
                         "quality_report": validation,
                     },
                     validation=validation,
-                    trajectory=_trajectory_payload(forcefield_report.trajectory),
+                    trajectory=_trajectory_payload(forcefield_outcome.trajectory),
                 )
                 record["status"] = (
                     "passed"
-                    if forcefield_report.quality_report.passed
+                    if forcefield_outcome.quality_report.passed
                     else "failed_quality"
                 )
                 if record["status"] == "passed":
@@ -359,18 +506,16 @@ def run_hotpot_case(
                     record.update(
                         optimized_atom_count=len(complex_mol.atoms),
                         output_frame_index=(
-                            forcefield_report.trajectory.main.selected_index
+                            forcefield_outcome.trajectory.main.selected_index
                         ),
                         output_frame_role="selected_success_frame",
                         visualization_topology_lossy=False,
                     )
                 else:
                     record.update(
-                        _write_frame_outputs(
+                        _write_quality_failure_frame(
                             case_dir,
-                            forcefield_report.trajectory,
-                            forcefield_report.trajectory.main.selected_index,
-                            output_frame_role="selected_quality_failure_frame",
+                            forcefield_outcome.trajectory,
                         )
                     )
                 record["phase"] = "complete"
@@ -387,6 +532,46 @@ def run_hotpot_case(
     return record
 
 
+def run_hotpot_case(
+    index: int,
+    smiles: str,
+    output_root_text: str,
+    metal: str,
+    settings: BenchmarkSettings,
+    resume: bool,
+) -> dict[str, object]:
+    """Run one complete three-stage Hotpot benchmark case."""
+    return _run_case(
+        index,
+        smiles,
+        output_root_text,
+        metal,
+        settings,
+        resume,
+        "hotpot",
+    )
+
+
+def run_hotpot_auto_case(
+    index: int,
+    smiles: str,
+    output_root_text: str,
+    metal: str,
+    settings: BenchmarkSettings,
+    resume: bool,
+) -> dict[str, object]:
+    """Run native FAST first and the complete complex fallback when needed."""
+    return _run_case(
+        index,
+        smiles,
+        output_root_text,
+        metal,
+        settings,
+        resume,
+        "hotpot-auto",
+    )
+
+
 def flatten_record(record: Mapping[str, object]) -> dict[str, object]:
     """Flatten one case into the stable tabular result schema."""
     cbond = record.get("cbond") or {}
@@ -394,9 +579,11 @@ def flatten_record(record: Mapping[str, object]) -> dict[str, object]:
     optimization = record.get("optimization") or {}
     validation = record.get("validation") or {}
     trajectory = record.get("trajectory") or {}
+    routing_report = record.get("routing_report") or {}
     return {
         "index": record["index"],
-        "workflow": record.get("workflow", "cbond-complexes-build"),
+        "backend": record["backend"],
+        "workflow": record["workflow"],
         "status": record["status"],
         "phase": record["phase"],
         "smiles": record["smiles"],
@@ -414,6 +601,8 @@ def flatten_record(record: Mapping[str, object]) -> dict[str, object]:
         "visualization_topology_lossy": record.get("visualization_topology_lossy"),
         "main_frame_count": trajectory.get("main_frame_count"),
         "ligand_build_attempt_count": trajectory.get("ligand_build_attempt_count"),
+        "preliminary_attempt_count": trajectory.get("preliminary_attempt_count"),
+        "selected_route": routing_report.get("selected_route"),
         "cbond_seconds": record.get("cbond_seconds"),
         "ligand_build_seconds": record.get("ligand_build_seconds"),
         "coordination_restoration_seconds": record.get(
@@ -431,4 +620,5 @@ def flatten_record(record: Mapping[str, object]) -> dict[str, object]:
 
 CASE_RUNNERS = {
     "hotpot": run_hotpot_case,
+    "hotpot-auto": run_hotpot_auto_case,
 }

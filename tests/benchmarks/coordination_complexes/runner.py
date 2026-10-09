@@ -15,8 +15,10 @@ from time import perf_counter
 from typing import Optional, Sequence
 
 from .configuration import (
+    BUILTIN_BACKENDS,
     BUILTIN_SUITES,
     REPOSITORY_ROOT,
+    BenchmarkBackend,
     BenchmarkSettings,
     BenchmarkSuite,
     RunProfile,
@@ -59,9 +61,11 @@ def _scientific_configuration(
     selected_indices: Sequence[int],
     backend: str,
 ) -> dict[str, object]:
+    backend_configuration = BUILTIN_BACKENDS[backend]
     return {
-        "backend": backend,
-        "workflow": "cbond-complexes-build",
+        "backend": backend_configuration.name,
+        "backend_configuration": backend_configuration.to_manifest(),
+        "workflow": backend_configuration.workflow,
         "suite": suite.to_manifest(),
         "profile": profile.value,
         "input_sha256": input_sha256,
@@ -103,12 +107,13 @@ def _failed_worker_record(
     index: int,
     smiles: str,
     error: BaseException,
+    backend: BenchmarkBackend,
 ) -> dict[str, object]:
     return {
         "index": index,
         "smiles": smiles,
-        "backend": "hotpot",
-        "workflow": "cbond-complexes-build",
+        "backend": backend.name,
+        "workflow": backend.workflow,
         "status": "failed_worker",
         "phase": "worker",
         "error_type": type(error).__name__,
@@ -135,6 +140,7 @@ def run_benchmark(
 ) -> dict[str, object]:
     """Execute or re-aggregate one reproducible benchmark selection."""
     resolved_settings = settings or settings_for_profile(profile)
+    backend_configuration = BUILTIN_BACKENDS[backend]
     output_root = output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)
     if aggregate_only and not (output_root / "manifest.json").is_file():
@@ -213,7 +219,12 @@ def run_benchmark(
                 try:
                     record = future.result()
                 except Exception as error:
-                    record = _failed_worker_record(index, smiles, error)
+                    record = _failed_worker_record(
+                        index,
+                        smiles,
+                        error,
+                        backend_configuration,
+                    )
                     case_dir = output_root / "cases" / f"{index:04d}"
                     case_dir.mkdir(parents=True, exist_ok=True)
                     write_json(case_dir / "report.json", record)
@@ -239,6 +250,7 @@ def run_benchmark(
         expected_indices,
         wall_seconds=wall_seconds,
         wall_seconds_scope=wall_seconds_scope,
+        backend=backend_configuration,
     )
     if render_mode != "off" or not (output_root / "render_report.json").is_file():
         render_experiment(

@@ -12,6 +12,7 @@ import numpy as np
 
 from .cli import build_parser
 from .configuration import (
+    BUILTIN_BACKENDS,
     BUILTIN_SUITES,
     SMOKE_SETTINGS,
     STANDARD_SETTINGS,
@@ -29,7 +30,14 @@ from .optimizer_comparison import (
 )
 from .rendering import render_experiment
 from .reporting import aggregate_run
-from .pipeline import _infer_cbond
+from .pipeline import (
+    CASE_RUNNERS,
+    _infer_cbond,
+    _run_forcefield_backend,
+    _trajectory_payload,
+    _write_quality_failure_frame,
+    run_hotpot_auto_case,
+)
 from .runner import _scientific_configuration, _write_or_check_manifest
 
 
@@ -40,6 +48,16 @@ def test_builtin_extractant_suite_has_187_records() -> None:
     assert len(records) == suite.expected_count == 187
     assert records[0][0] == 1
     assert records[-1][0] == 187
+
+
+def test_builtin_am_suite_reuses_all_187_extractants() -> None:
+    suite = BUILTIN_SUITES["extractants-am-187"]
+
+    assert suite.metal == "Am"
+    assert suite.expected_count == 187
+    assert load_smiles(suite.input_path) == load_smiles(
+        BUILTIN_SUITES["extractants-eu-187"].input_path
+    )
 
 
 def test_smoke_profile_is_explicitly_smaller_than_standard() -> None:
@@ -65,6 +83,195 @@ def test_cbond_threshold_policy_is_explicit_in_settings_and_manifest() -> None:
     assert manifest["workflow"] == "cbond-complexes-build"
     assert manifest["settings"]["first_cbond_threshold"] == -0.5
     assert manifest["settings"]["subsequent_cbond_threshold"] == -0.125
+
+
+def test_am_automatic_manifest_has_configured_backend_and_workflow() -> None:
+    manifest = _scientific_configuration(
+        BUILTIN_SUITES["extractants-am-187"],
+        STANDARD_SETTINGS,
+        RunProfile.STANDARD,
+        "synthetic-sha256",
+        (1,),
+        "hotpot-auto",
+    )
+
+    assert manifest["backend"] == "hotpot-auto"
+    assert manifest["workflow"] == "cbond-auto-optimize"
+    assert manifest["backend_configuration"] == (
+        BUILTIN_BACKENDS["hotpot-auto"].to_manifest()
+    )
+    assert manifest["suite"]["metal"] == "Am"
+    assert CASE_RUNNERS["hotpot-auto"].__name__ == "run_hotpot_auto_case"
+
+
+def test_hotpot_auto_backend_calls_auto_directly_without_external_gate(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from hotpot.cheminfo import forcefields as ff
+
+    calls = []
+    quality_report = _SyntheticQualityReport()
+    trajectory = object()
+    routing_report = SimpleNamespace(attempts=(), selected_route="native_fast")
+    optimization_report = SimpleNamespace(
+        requested_forcefield="UFF",
+        effective_forcefield="UFF",
+        quality_report=quality_report,
+        trajectory=trajectory,
+        routing_report=routing_report,
+    )
+
+    def fake_auto_optimize(mol, forcefield, **options):
+        calls.append((mol, forcefield, options))
+        return optimization_report
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("automatic benchmark must not prebuild or re-gate")
+
+    monkeypatch.setattr(ff, "auto_optimize", fake_auto_optimize)
+    monkeypatch.setattr(ff, "complexes_build", forbidden)
+    monkeypatch.setattr(ff, "evaluate_structure_acceptance", forbidden)
+    molecule = object()
+    outcome = _run_forcefield_backend(
+        molecule,
+        BUILTIN_BACKENDS["hotpot-auto"],
+        SMOKE_SETTINGS,
+        7,
+    )
+
+    assert outcome.optimization is optimization_report
+    assert outcome.quality_report is quality_report
+    assert outcome.routing_report is routing_report
+    assert len(calls) == 1
+    assert calls[0][0] is molecule
+    assert calls[0][1] == "UFF"
+    assert calls[0][2]["convergence_level"] is ff.ConvergenceLevel.FAST
+    assert calls[0][2]["trajectory_path"] is None
+    assert calls[0][2]["save_movie"] is True
+
+
+def test_quality_failure_exports_last_finite_frame_when_selection_is_nonfinite(
+    tmp_path: Path,
+) -> None:
+    from hotpot import read_mol
+    from hotpot.cheminfo import forcefields as ff
+
+    molecule = read_mol("N", fmt="smi")
+    molecule.coordinates = np.asarray(((0.0, 0.0, 0.0),), dtype=float)
+    trajectory = ff.ForceFieldTrajectory.from_molecule(
+        molecule,
+        start=ff.TrajectoryStart.FINAL_OPTIMIZATION,
+    )
+    finite_frame = trajectory.record_molecule(
+        molecule,
+        stage=ff.TrajectoryStage.FINAL_OPTIMIZATION,
+        event=ff.TrajectoryEvent.INITIAL,
+    )
+    molecule.coordinates = np.asarray(((np.nan, 0.0, 0.0),), dtype=float)
+    nonfinite_frame = trajectory.record_molecule(
+        molecule,
+        stage=ff.TrajectoryStage.FINAL_OPTIMIZATION,
+        event=ff.TrajectoryEvent.EPOCH_COMPLETE,
+    )
+    trajectory.select(nonfinite_frame.index)
+    trajectory.set_terminal(nonfinite_frame.index)
+    archive = ff.ForceFieldTrajectoryArchive(main=trajectory)
+
+    evidence = _write_quality_failure_frame(tmp_path, archive)
+
+    assert evidence["output_frame_index"] == finite_frame.index
+    assert evidence["output_frame_role"] == "last_finite_quality_failure_frame"
+    assert (tmp_path / "optimized.mol2").is_file()
+
+
+def test_trajectory_payload_counts_rejected_preliminary_attempts() -> None:
+    class _SizedMain:
+        coordinate_revision_count = 2
+        topology_revision_count = 1
+        selected_index = 1
+        start = SimpleNamespace(value="ligand_build")
+        frames = (
+            SimpleNamespace(
+                stage=SimpleNamespace(value="ligand_build"),
+                event=SimpleNamespace(value="initial"),
+            ),
+        )
+
+        def __len__(self):
+            return 1
+
+    archive = SimpleNamespace(
+        main=_SizedMain(),
+        ligand_build_attempts=(),
+        preliminary_attempts=((1, 2),),
+    )
+
+    payload = _trajectory_payload(archive)
+
+    assert payload["preliminary_attempt_count"] == 1
+    assert payload["preliminary_attempt_frame_counts"] == [2]
+
+
+def test_hotpot_auto_forcefield_error_persists_last_finite_frame(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from hotpot import read_mol
+    from hotpot.cheminfo import forcefields as ff
+    from . import pipeline
+
+    complex_mol = read_mol("[Am]N", fmt="smi")
+    complex_mol.coordinates = np.asarray(
+        ((0.0, 0.0, 0.0), (2.2, 0.0, 0.0)),
+        dtype=float,
+    )
+    trajectory = ff.ForceFieldTrajectory.from_molecule(
+        complex_mol,
+        start=ff.TrajectoryStart.LIGAND_BUILD,
+    )
+    frame = trajectory.record_molecule(
+        complex_mol,
+        stage=ff.TrajectoryStage.LIGAND_BUILD,
+        event=ff.TrajectoryEvent.INITIAL,
+    )
+    trajectory.select(frame.index)
+    trajectory.set_terminal(frame.index)
+    archive = ff.ForceFieldTrajectoryArchive(main=trajectory)
+    error = ff.ForceFieldError("synthetic force-field failure")
+    error.trajectory = archive
+    cbond_result = SimpleNamespace(
+        molecule=complex_mol,
+        donor_indices=(1,),
+        path_probability=1.0,
+        steps=(),
+    )
+
+    monkeypatch.setattr(
+        pipeline,
+        "_infer_cbond",
+        lambda ligand, metal, settings: cbond_result,
+    )
+    monkeypatch.setattr(
+        ff,
+        "auto_optimize",
+        lambda *args, **kwargs: (_ for _ in ()).throw(error),
+    )
+
+    record = run_hotpot_auto_case(
+        1,
+        "N",
+        str(tmp_path),
+        "Am",
+        SMOKE_SETTINGS,
+        False,
+    )
+
+    assert record["status"] == "failed_forcefield"
+    assert record["output_frame_role"] == "last_finite_failure_frame"
+    assert (tmp_path / "cases/0001/optimized.mol2").is_file()
+    assert (tmp_path / "cases/0001/optimized.sdf").is_file()
+    assert (tmp_path / "cases/0001/trajectory/archive.json").is_file()
 
 
 def test_cbond_inference_receives_both_recorded_thresholds(monkeypatch) -> None:
@@ -276,6 +483,8 @@ def test_aggregate_writes_reports_and_integrity(tmp_path: Path) -> None:
     record = {
         "index": 1,
         "smiles": "N",
+        "backend": "hotpot",
+        "workflow": "cbond-complexes-build",
         "status": "passed",
         "phase": "complete",
         "cbond": {"donor_count": 1},
@@ -313,6 +522,7 @@ def test_aggregate_writes_reports_and_integrity(tmp_path: Path) -> None:
         STANDARD_SETTINGS,
         RunProfile.STANDARD,
         (1,),
+        backend=BUILTIN_BACKENDS["hotpot"],
         wall_seconds=0.4,
         wall_seconds_scope="unit_test",
     )

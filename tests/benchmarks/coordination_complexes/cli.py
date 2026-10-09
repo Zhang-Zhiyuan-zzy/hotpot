@@ -23,7 +23,7 @@ def _indices(value: str) -> tuple[int, ...]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Run the opt-in Eu coordination-complex benchmark: Hotpot CBond, "
+            "Run an opt-in coordination-complex benchmark: Hotpot CBond, "
             "force-field optimization, geometry validation, full trajectory "
             "persistence, reporting, and optional PyMOL rendering."
         )

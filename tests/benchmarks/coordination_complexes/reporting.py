@@ -10,7 +10,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Mapping, Optional, Sequence
 
-from .configuration import BenchmarkSettings, BenchmarkSuite, RunProfile
+from .configuration import (
+    BenchmarkBackend,
+    BenchmarkSettings,
+    BenchmarkSuite,
+    RunProfile,
+)
 from .io import write_json
 from .pipeline import flatten_record
 
@@ -183,6 +188,7 @@ def _summary_payload(
     suite: BenchmarkSuite,
     settings: BenchmarkSettings,
     profile: RunProfile,
+    backend: BenchmarkBackend,
     wall_seconds: Optional[float],
     wall_seconds_scope: str,
 ) -> dict[str, object]:
@@ -220,6 +226,21 @@ def _summary_payload(
         if record.get("trajectory")
     ]
     cbond_completed = sum(bool(record.get("cbond")) for record in records)
+    selected_routes = Counter(
+        str(record["routing_report"]["selected_route"])
+        for record in records
+        if record.get("routing_report") is not None
+    )
+    route_attempt_statuses = Counter(
+        f"{attempt['route']}:{attempt['status']}"
+        for record in records
+        for attempt in (record.get("routing_report") or {}).get("attempts", ())
+    )
+    preliminary_attempt_counts = [
+        int(record["trajectory"].get("preliminary_attempt_count", 0))
+        for record in records
+        if record.get("trajectory")
+    ]
     cbond_success_cases = [
         {
             "index": int(record["index"]),
@@ -231,10 +252,11 @@ def _summary_payload(
     passed = status_counts["passed"]
     return {
         "suite": suite.to_manifest(),
+        "backend": backend.to_manifest(),
         "profile": profile.value,
         "sample_count": len(records),
         "settings": settings.to_manifest(),
-        "workflow": "cbond-complexes-build",
+        "workflow": backend.workflow,
         "status_counts": dict(status_counts),
         "overall_success_rate": passed / len(records) if records else None,
         "success_rate_after_cbond": (
@@ -266,6 +288,9 @@ def _summary_payload(
             bool((record.get("optimization") or {}).get("converged"))
             for record in records
         ),
+        "selected_route_counts": dict(selected_routes),
+        "route_attempt_status_counts": dict(route_attempt_statuses),
+        "preliminary_attempt_total": sum(preliminary_attempt_counts),
         "validation_failure_checks": dict(validation_failures),
         "validation_warning_checks": dict(validation_warnings),
         "trajectory_archive_count": len(main_frame_counts),
@@ -359,6 +384,21 @@ def _write_markdown_report(
         cbond_rows.append(f"| {item['index']:04d} | `{escaped_smiles}` |")
     if len(cbond_rows) == 2:
         cbond_rows.append("| - | None |")
+    routing_section = ""
+    if summary["backend"]["name"] == "hotpot-auto":
+        routing_section = f"""
+## Automatic routing
+
+Selected routes:
+
+{_markdown_table(summary["selected_route_counts"])}
+
+Route attempt outcomes:
+
+{_markdown_table(summary["route_attempt_status_counts"])}
+
+Rejected preliminary trajectories retained: {summary["preliminary_attempt_total"]}
+"""
     text = f"""# Coordination-complex benchmark report
 
 ## Scope
@@ -366,7 +406,7 @@ def _write_markdown_report(
 - Suite: `{summary["suite"]["name"]}`
 - Profile: `{summary["profile"]}`
 - Workflow: `{summary["workflow"]}`
-- Backend: `hotpot` (Hotpot CBond + `forcefields.complexes_build`)
+- Backend: `{summary["backend"]["name"]}` ({summary["backend"]["description"]})
 - First CBond threshold: `{summary["settings"]["first_cbond_threshold"]}`
 - Subsequent CBond threshold: `{summary["settings"]["subsequent_cbond_threshold"]}`
 - Cases: {summary["sample_count"]}
@@ -382,6 +422,8 @@ inspection without reclassifying that frame as successful.
 ## Outcomes
 
 {_markdown_table(summary["status_counts"])}
+
+{routing_section}
 
 ## CBond-successful cases
 
@@ -444,12 +486,24 @@ def aggregate_run(
     profile: RunProfile,
     expected_indices: Sequence[int],
     *,
+    backend: BenchmarkBackend,
     wall_seconds: Optional[float] = None,
     wall_seconds_scope: str = "unavailable",
 ) -> dict[str, object]:
     """Write all aggregate artifacts and return the summary payload."""
     output_root.mkdir(parents=True, exist_ok=True)
     ordered_records = sorted(records, key=lambda item: int(item["index"]))
+    observed_identities = {
+        (str(record["backend"]), str(record["workflow"]))
+        for record in ordered_records
+    }
+    expected_identity = {(backend.name, backend.workflow)}
+    if observed_identities != expected_identity:
+        raise ValueError(
+            "case reports do not match the configured backend and workflow: "
+            f"expected={sorted(expected_identity)}, "
+            f"observed={sorted(observed_identities)}"
+        )
     _write_structure_collections(output_root, ordered_records)
     rows = [flatten_record(record) for record in ordered_records]
     if rows:
@@ -467,6 +521,7 @@ def aggregate_run(
         suite,
         settings,
         profile,
+        backend,
         wall_seconds,
         wall_seconds_scope,
     )

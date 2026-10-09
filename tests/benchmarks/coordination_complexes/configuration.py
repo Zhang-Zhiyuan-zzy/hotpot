@@ -38,6 +38,18 @@ class BenchmarkSuite:
 
 
 @dataclass(frozen=True)
+class BenchmarkBackend:
+    """Stable identity and description of one benchmark implementation."""
+
+    name: str
+    workflow: str
+    description: str
+
+    def to_manifest(self) -> dict[str, str]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
 class BenchmarkSettings:
     """CBond and force-field settings recorded with every result."""
 
@@ -85,6 +97,30 @@ BUILTIN_SUITES = {
         name="extractants-eu-187",
         input_path=REPOSITORY_ROOT / "molecules/extractant/extractants.smi",
         expected_count=187,
+    ),
+    "extractants-am-187": BenchmarkSuite(
+        name="extractants-am-187",
+        input_path=REPOSITORY_ROOT / "molecules/extractant/extractants.smi",
+        expected_count=187,
+        metal="Am",
+        title="Am coordination complexes from extractant ligands",
+    ),
+}
+
+
+BUILTIN_BACKENDS = {
+    "hotpot": BenchmarkBackend(
+        name="hotpot",
+        workflow="cbond-complexes-build",
+        description="Hotpot CBond followed by forcefields.complexes_build",
+    ),
+    "hotpot-auto": BenchmarkBackend(
+        name="hotpot-auto",
+        workflow="cbond-auto-optimize",
+        description=(
+            "Hotpot CBond followed by native FAST optimization with the complete "
+            "complex workflow as fallback"
+        ),
     ),
 }
 

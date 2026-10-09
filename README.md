@@ -159,6 +159,35 @@ $ python -m pip install -e .
 
 The source tree can contain interfaces newer than the latest PyPI release.
 
+### Install with Docker
+
+Build the Conda-based Hotpot image from the repository root. The image build
+installs Hotpot and its compiled extensions, then checks the installed package
+before completing:
+
+```bash
+$ docker build --build-arg PYTHON_VERSION=3.13 \
+    --tag hotpot-test:py313-conda \
+    --file docker/test/Dockerfile .
+```
+
+Run a Hotpot command in the isolated environment:
+
+```bash
+$ docker run --rm hotpot-test:py313-conda hotpot --help
+```
+
+Running the image without an additional command executes the complete test and
+coverage suite:
+
+```bash
+$ docker run --rm hotpot-test:py313-conda
+```
+
+Python 3.9 through 3.14 images and host-source test containers can also be
+managed with the repository scripts. See the [Docker guide](docker/README.md)
+for version selection, interactive use, and image export.
+
 ### Optional dependency profiles
 
 | Extra | Installation | Scope |

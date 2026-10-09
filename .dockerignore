@@ -3,8 +3,11 @@
 .pytest_cache
 .ruff_cache
 .mypy_cache
+.venv
 __pycache__
 *.py[cod]
+*.so
+*.pyd
 *.egg-info
 build
 dist
@@ -12,5 +15,6 @@ tests/coverage
 doc/html
 agent_features/tmp
 :memory:.ses
+movie
 docker/image
 docker/**/*.tar

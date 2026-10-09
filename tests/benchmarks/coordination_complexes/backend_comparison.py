@@ -350,6 +350,13 @@ def _write_native_trajectory(
 
 def _rdkit_coordinate_map(complex_mol: object, rd_mol: object) -> np.ndarray:
     """Map RDKit's AddHs ordering back to the canonical Hotpot atom table."""
+    canonical_metal = [atom.idx for atom in complex_mol.atoms if atom.is_metal]
+    if len(canonical_metal) != 1:
+        raise _CaseFailure(
+            "backend_topology_mismatch",
+            "the comparison requires exactly one metal centre",
+        )
+    metal_atomic_number = complex_mol.atoms[canonical_metal[0]].atomic_number
     canonical_heavy = [
         atom.idx
         for atom in complex_mol.atoms
@@ -358,7 +365,7 @@ def _rdkit_coordinate_map(complex_mol: object, rd_mol: object) -> np.ndarray:
     rd_heavy = [
         atom.GetIdx()
         for atom in rd_mol.GetAtoms()
-        if atom.GetAtomicNum() not in (1, 63)
+        if atom.GetAtomicNum() not in (1, metal_atomic_number)
     ]
     if [complex_mol.atoms[i].atomic_number for i in canonical_heavy] != [
         rd_mol.GetAtomWithIdx(i).GetAtomicNum() for i in rd_heavy
@@ -371,14 +378,15 @@ def _rdkit_coordinate_map(complex_mol: object, rd_mol: object) -> np.ndarray:
     for canonical_index, rd_index in zip(canonical_heavy, rd_heavy):
         mapping[canonical_index] = rd_index
 
-    canonical_metal = [atom.idx for atom in complex_mol.atoms if atom.is_metal]
     rd_metal = [
-        atom.GetIdx() for atom in rd_mol.GetAtoms() if atom.GetAtomicNum() == 63
+        atom.GetIdx()
+        for atom in rd_mol.GetAtoms()
+        if atom.GetAtomicNum() == metal_atomic_number
     ]
-    if len(canonical_metal) != 1 or len(rd_metal) != 1:
+    if len(rd_metal) != 1:
         raise _CaseFailure(
             "backend_topology_mismatch",
-            "the comparison requires exactly one Eu centre",
+            "the RDKit molecule must contain the canonical metal centre",
         )
     mapping[canonical_metal[0]] = rd_metal[0]
 

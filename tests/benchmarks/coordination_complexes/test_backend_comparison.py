@@ -15,6 +15,7 @@ from hotpot.cheminfo.forcefields.working_copy import _hydrogenated_working_copy
 from .backend_comparison import (
     CanonicalCase,
     _normalized_topology,
+    _rdkit_coordinate_map,
     _rebuild_complex,
     _summary_row,
     _topology_sha256,
@@ -30,13 +31,29 @@ from .four_way_comparison import (
 )
 
 
-def _synthetic_complex():
+def _synthetic_complex(metal_symbol: str = "Eu"):
     molecule = read_mol("N", fmt="smi")
     molecule.add_hydrogens()
     molecule.force_remove_polar_hydrogens()
-    metal = molecule.add_atom(Atom(symbol="Eu"))
+    metal = molecule.add_atom(Atom(symbol=metal_symbol))
     molecule.add_bond(metal, molecule.atoms[0])
     return _hydrogenated_working_copy(molecule, add_hydrogens=True, seed=43)
+
+
+def test_rdkit_coordinate_map_uses_the_canonical_metal_element() -> None:
+    from rdkit import Chem
+
+    complex_mol = _synthetic_complex("Am")
+    rd_mol = Chem.AddHs(Chem.MolFromSmiles("N"))
+    editable = Chem.RWMol(rd_mol)
+    metal_index = editable.AddAtom(Chem.Atom("Am"))
+    editable.AddBond(0, metal_index, Chem.BondType.DATIVE)
+
+    mapping = _rdkit_coordinate_map(complex_mol, editable.GetMol())
+
+    canonical_metal = next(atom for atom in complex_mol.atoms if atom.is_metal)
+    mapped_metal = editable.GetAtomWithIdx(int(mapping[canonical_metal.idx]))
+    assert mapped_metal.GetSymbol() == "Am"
 
 
 def _write_reference(root: Path) -> None:

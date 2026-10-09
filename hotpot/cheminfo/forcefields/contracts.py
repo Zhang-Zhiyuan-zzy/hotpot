@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import asdict, dataclass, field
+from enum import Enum
 from typing import Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
 
 import numpy as np
@@ -27,6 +28,10 @@ __all__ = (
     "DEFAULT_CONVERGENCE_LEVEL",
     "OptimizationStoppingCriteria",
     "TerminationReason",
+    "OptimizationRoute",
+    "OptimizationAttemptStatus",
+    "OptimizationAttemptReport",
+    "OptimizationRoutingReport",
     "ForceFieldDiagnosticValue",
     "ForceFieldRunReport",
     "Build3DReport",
@@ -67,6 +72,10 @@ TerminationReason = Literal[
     "budget_exhausted",
     "stability_reached",
     "topology_blocked",
+    "nonfinite_coordinates",
+    "nonfinite_energy",
+    "nonfinite_gradients",
+    "explosion_detected",
 ]
 ForceFieldWorkflowStage = Literal[
     "coordination_restoration",
@@ -90,6 +99,23 @@ ForceFieldDiagnosticValue = Union[
     Tuple["ForceFieldDiagnosticValue", ...],
     Mapping[str, "ForceFieldDiagnosticValue"],
 ]
+
+
+class OptimizationRoute(str, Enum):
+    """Implementation selected by an automatic force-field workflow."""
+
+    NATIVE_FAST = "native_fast"
+    ORDINARY = "ordinary"
+    COMPLEX_WORKFLOW = "complex_workflow"
+
+
+class OptimizationAttemptStatus(str, Enum):
+    """Outcome of one route attempted by an automatic workflow."""
+
+    ACCEPTED = "accepted"
+    BUILD_FAILED = "build_failed"
+    QUALITY_REJECTED = "quality_rejected"
+    NUMERICAL_FAILURE = "numerical_failure"
 
 
 @dataclass(frozen=True)
@@ -168,6 +194,28 @@ class ForceFieldValidationReport:
     def to_dict(self) -> dict[str, ForceFieldDiagnosticValue]:
         """Return a JSON-serializable representation of the report."""
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class OptimizationAttemptReport:
+    """Ordered provenance for one route attempted by an automatic workflow."""
+
+    route: OptimizationRoute
+    status: OptimizationAttemptStatus
+    quality_report: Optional[ForceFieldValidationReport] = None
+    termination_reason: Optional[TerminationReason] = None
+    build_succeeded: Optional[bool] = None
+    build_diagnostics: Optional["ComplexBuildDiagnostics"] = None
+    message: Optional[str] = None
+    elapsed_seconds: float = 0.0
+
+
+@dataclass(frozen=True)
+class OptimizationRoutingReport:
+    """Ordered attempts and the route supplying the returned structure."""
+
+    attempts: Tuple[OptimizationAttemptReport, ...]
+    selected_route: OptimizationRoute
 
 
 @dataclass(frozen=True)
@@ -250,6 +298,7 @@ class ForceFieldRunReport:
     trajectory: Optional[ForceFieldTrajectoryArchive] = None
     elapsed_seconds: float = 0.0
     convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL
+    routing_report: Optional[OptimizationRoutingReport] = None
 
 
 @dataclass(frozen=True)

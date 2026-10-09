@@ -240,7 +240,7 @@ class ForceFieldFrame:
 class ForceFieldTrajectory:
     """A topology-aware sequence of force-field workflow frames."""
 
-    _FORMAT_VERSION = 4
+    _FORMAT_VERSION = 5
 
     def __init__(
         self,
@@ -553,10 +553,11 @@ class ForceFieldTrajectory:
 
 @dataclass(frozen=True)
 class ForceFieldTrajectoryArchive:
-    """Main continuous trajectory plus optional ligand-build branches."""
+    """Selected trajectory plus factual branches from rejected attempts."""
 
     main: ForceFieldTrajectory
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
+    preliminary_attempts: Tuple[ForceFieldTrajectory, ...] = ()
 
     def write(self, path: Union[str, Path], *, include_sdf: bool = True) -> None:
         """Write every branch with single-writer failure-atomic publication."""
@@ -718,10 +719,20 @@ class _TrajectoryWriter:
                 include_sdf=include_sdf,
             )
             attempt_paths.append(relative_path.as_posix())
+        preliminary_paths = []
+        for attempt_index, trajectory in enumerate(archive.preliminary_attempts):
+            relative_path = Path("preliminary_attempts") / f"{attempt_index:04d}"
+            cls._write_trajectory_tree(
+                directory / relative_path,
+                trajectory,
+                include_sdf=include_sdf,
+            )
+            preliminary_paths.append(relative_path.as_posix())
         manifest: dict[str, object] = {
             "format_version": ForceFieldTrajectory._FORMAT_VERSION,
             "main": "main",
             "ligand_build_attempts": attempt_paths,
+            "preliminary_attempts": preliminary_paths,
         }
         (directory / "archive.json").write_text(
             json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False),
@@ -798,14 +809,25 @@ class _TrajectoryWriter:
         if format_version != ForceFieldTrajectory._FORMAT_VERSION:
             raise ValueError(f"Unsupported trajectory format version {format_version}")
         main = cls.read_trajectory(directory / str(manifest["main"]))
-        attempts = tuple(
+        ligand_build_attempts = tuple(
             cls.read_trajectory(directory / str(relative_path))
             for relative_path in cast(
                 Sequence[object],
                 manifest["ligand_build_attempts"],
             )
         )
-        return ForceFieldTrajectoryArchive(main, attempts)
+        preliminary_attempts = tuple(
+            cls.read_trajectory(directory / str(relative_path))
+            for relative_path in cast(
+                Sequence[object],
+                manifest["preliminary_attempts"],
+            )
+        )
+        return ForceFieldTrajectoryArchive(
+            main=main,
+            ligand_build_attempts=ligand_build_attempts,
+            preliminary_attempts=preliminary_attempts,
+        )
 
     @classmethod
     def write_sdf(cls, path: Path, trajectory: ForceFieldTrajectory) -> None:

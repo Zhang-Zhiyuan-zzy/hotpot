@@ -11,6 +11,7 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo import forcefields as ff_api
 from hotpot.cheminfo.forcefields import backend as ob_backend
+from hotpot.cheminfo.forcefields import attempts
 from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
 from hotpot.cheminfo.forcefields import ligand
 from hotpot.cheminfo.forcefields import workers
@@ -358,49 +359,6 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
     assert calls[2][1:] == (molecule, working)
 
 
-@pytest.mark.parametrize(
-    ("has_metal", "expected_function", "expected_forcefield"),
-    ((False, "ordinary", None), (True, "complex", None)),
-)
-def test_auto_optimize_dispatches_by_molecule_type(
-    monkeypatch,
-    has_metal,
-    expected_function,
-    expected_forcefield,
-):
-    molecule = SimpleNamespace(has_metal=has_metal)
-    calls = []
-    expected = object()
-
-    def fake_ordinary(current, forcefield, **options):
-        calls.append(("ordinary", current, forcefield, options))
-        return expected
-
-    def fake_complex(current, forcefield, **options):
-        calls.append(("complex", current, forcefield, options))
-        return expected
-
-    monkeypatch.setattr(workflows, "optimize", fake_ordinary)
-    monkeypatch.setattr(workflows, "optimize_complex", fake_complex)
-
-    result = ff.auto_optimize(
-        molecule,
-        epochs=5,
-        steps_per_epoch=19,
-        seed=31,
-    )
-
-    assert result is expected
-    assert len(calls) == 1
-    function, current, forcefield, options = calls[0]
-    assert function == expected_function
-    assert current is molecule
-    assert forcefield == expected_forcefield
-    assert options["epochs"] == 5
-    assert options["steps_per_epoch"] == 19
-    assert options["seed"] == 31
-
-
 def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     molecule = SimpleNamespace(has_metal=True)
     working = read_mol("CC", "smi")
@@ -449,12 +407,12 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fake_run)
     def accept(current, **options):
         acceptance_calls.append((current, options))
         return quality
 
-    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(attempts, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(
         workflows,
         "_finalize_trajectory",
@@ -513,7 +471,7 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
         lambda *args, **kwargs: SimpleNamespace(passed=True),
     )
     monkeypatch.setattr(
-        workflows,
+        attempts,
         "_optimize_working_mol",
         lambda *args, **kwargs: pytest.fail("build3d invoked optimization"),
     )
@@ -846,12 +804,12 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fake_run)
     def accept(current, **options):
         acceptance_calls.append((current, options))
         return quality
 
-    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(attempts, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.optimize(molecule, forcefield, add_hydrogens=False)
@@ -887,7 +845,7 @@ def test_optimize_persists_recorded_frames_when_forcefield_stage_fails(
         trajectory.select(frame.index)
         raise failure
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fail_after_recording)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fail_after_recording)
 
     with pytest.raises(ff.GeometryQualityError) as caught:
         ff.optimize(
@@ -945,7 +903,12 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: quality,
     )
-    monkeypatch.setattr(workflows, "_optimize_working_mol", lambda *args, **kwargs: expected)
+    monkeypatch.setattr(
+        attempts,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: quality,
+    )
+    monkeypatch.setattr(attempts, "_optimize_working_mol", lambda *args, **kwargs: expected)
     monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)

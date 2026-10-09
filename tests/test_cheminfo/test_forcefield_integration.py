@@ -143,6 +143,7 @@ def test_real_backend_stop_confirmation_can_pass_the_strict_gate():
         epochs=2,
         steps_per_epoch=500,
         quality_level="strict",
+        convergence_level=ff.ConvergenceLevel.STRICT,
         seed=43,
     )
 

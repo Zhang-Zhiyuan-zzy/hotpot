@@ -211,7 +211,23 @@ def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
         evidence=ring_evidence,
     )
     branch.select(branch_frame.index)
-    archive = ForceFieldTrajectoryArchive(main, (branch,))
+    preliminary_molecule = read_mol("CO", "smi")
+    preliminary = ForceFieldTrajectory.from_molecule(
+        preliminary_molecule,
+        start=TrajectoryStart.FINAL_OPTIMIZATION,
+    )
+    preliminary_frame = preliminary.record_molecule(
+        preliminary_molecule,
+        stage=TrajectoryStage.FINAL_OPTIMIZATION,
+        event=TrajectoryEvent.TERMINAL,
+        energy_kj_mol=-3.5,
+    )
+    preliminary.select(preliminary_frame.index)
+    archive = ForceFieldTrajectoryArchive(
+        main=main,
+        ligand_build_attempts=(branch,),
+        preliminary_optimization_attempts=(preliminary,),
+    )
 
     archive_path = tmp_path / "trajectory_archive"
     archive.write(archive_path)
@@ -228,13 +244,21 @@ def test_trajectory_archive_round_trip_preserves_frames_and_evidence(tmp_path):
         )
     assert restored.ligand_build_attempts[0].frames == branch.frames
     assert restored.ligand_build_attempts[0][0].evidence == ring_evidence
+    assert restored.preliminary_optimization_attempts[0].frames == preliminary.frames
+    assert np.array_equal(
+        restored.preliminary_optimization_attempts[0].coordinates(0),
+        preliminary.coordinates(0),
+    )
     assert (archive_path / "main" / "coordinates.npz").is_file()
     assert (archive_path / "main" / "trajectory.json").is_file()
     assert (archive_path / "main" / "trajectory.sdf").is_file()
     archive_manifest = json.loads(
         (archive_path / "archive.json").read_text(encoding="utf-8")
     )
-    assert archive_manifest["format_version"] == 4
+    assert archive_manifest["format_version"] == 5
+    assert archive_manifest["preliminary_optimization_attempts"] == [
+        "preliminary_optimization_attempts/0000"
+    ]
 
 
 def test_metal_relocation_evidence_round_trip(tmp_path):
@@ -318,7 +342,7 @@ def test_nonfinite_energy_is_serialized_as_unknown(tmp_path):
     assert restored_evidence.finite_energy is False
     assert restored_evidence.finite_gradients is False
     manifest_text = (path / "trajectory.json").read_text(encoding="utf-8")
-    assert json.loads(manifest_text)["format_version"] == 4
+    assert json.loads(manifest_text)["format_version"] == 5
     assert "NaN" not in manifest_text
     assert "Infinity" not in manifest_text
     json.loads(manifest_text, parse_constant=lambda value: pytest.fail(value))

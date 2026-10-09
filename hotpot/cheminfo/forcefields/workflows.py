@@ -13,6 +13,10 @@ from .acceptance import (
     evaluate_structure_acceptance,
     evaluate_structure_acceptance_at_native_checkpoint,
 )
+from .attempts import (
+    _forcefield_acceptance_evidence,
+    _run_ordinary_optimization_attempt,
+)
 from .backend import (
     _ob_build,
     _resolve_complex_forcefield,
@@ -26,7 +30,6 @@ from .contracts import (
     ComplexBuildReport,
     ComplexBuildWarning,
     ForceFieldError,
-    ForceFieldAcceptanceEvidence,
     ForceFieldRunReport,
     ForceFieldSetupError,
     ForceFieldSetupReport,
@@ -73,7 +76,6 @@ from .native_reports import (
     CoordinationStageResult,
     _coordination_stage_result,
 )
-from .optimizer import _optimize_working_mol
 from .topology import TopologyReference, capture_topology
 from .trajectory import (
     ForceFieldTrajectory,
@@ -101,7 +103,6 @@ __all__ = (
     "optimize_complex",
     "complexes_build",
     "build_and_optimize",
-    "auto_optimize",
 )
 
 
@@ -111,25 +112,6 @@ class _PreparedComplex:
     diagnostics: ComplexBuildDiagnostics
     trajectory: ForceFieldTrajectory
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
-
-
-def _forcefield_acceptance_evidence(
-    report: ForceFieldRunReport,
-) -> ForceFieldAcceptanceEvidence:
-    """Translate the selected numerical frame into acceptance evidence."""
-    return {
-        "setup_succeeded": report.setup_succeeded,
-        "converged": report.converged,
-        "epochs_completed": report.epochs_completed,
-        "segment_epochs_completed": report.selected_segment_epochs_completed,
-        "final_energy": report.best_energy,
-        "energy_unit": report.energy_unit,
-        "rms_gradient": report.rms_gradient,
-        "max_gradient": report.max_gradient,
-        "exploded": report.exploded,
-        "energy_changes": report.energy_changes,
-        "max_displacements": report.max_displacements,
-    }
 
 
 def _warn_failed_acceptance(
@@ -145,8 +127,6 @@ def _warn_failed_acceptance(
         GeometryQualityWarning,
         stacklevel=3,
     )
-
-
 # Non-committing workflow stages.
 
 
@@ -760,7 +740,7 @@ def optimize(
     )
     effective_forcefield = _resolve_organic_forcefield(forcefield)
     try:
-        report = _optimize_working_mol(
+        report = _run_ordinary_optimization_attempt(
             working_mol,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
@@ -775,17 +755,15 @@ def optimize(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
+            quality_level=quality_level,
+            topology_reference=topology_reference,
+            quality_thresholds=quality_thresholds,
             stopping_criteria=stopping_criteria,
             convergence_level=convergence_level,
         )
-        quality_report = evaluate_structure_acceptance(
-            working_mol,
-            level=quality_level,
-            topology_reference=topology_reference,
-            forcefield_report=_forcefield_acceptance_evidence(report),
-            forcefield_stage="final",
-            thresholds=quality_thresholds,
-        )
+        quality_report = report.quality_report
+        if quality_report is None:
+            raise RuntimeError("The ordinary optimizer omitted its quality report")
         _warn_failed_acceptance(
             quality_report,
             prefix=(
@@ -793,7 +771,6 @@ def optimize(
                 "acceptance; retaining it for inspection"
             ),
         )
-        report = replace(report, quality_report=quality_report)
     except ForceFieldError as error:
         _preserve_failed_trajectory(
             error,
@@ -1361,82 +1338,4 @@ def build_and_optimize(
         coordination_relaxation_steps=coordination_relaxation_steps,
         complex_untangling_attempts=complex_untangling_attempts,
         coordination_geometry=coordination_geometry,
-    )
-
-
-def auto_optimize(
-    mol: "Molecule",
-    forcefield: Optional[str] = None,
-    *,
-    algorithm: OptimizationAlgorithm = "conjugate",
-    epochs: int = 100,
-    steps_per_epoch: int = 100,
-    complex_untangling_attempts: int = 30,
-    add_hydrogens: bool = True,
-    quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
-    seed: Optional[int] = None,
-    perturb_interval: Optional[int] = None,
-    perturb_sigma: float = 0.5,
-    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
-    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
-    save_movie: bool = False,
-    trajectory_start: Optional[TrajectoryStart] = None,
-    trajectory_path: Optional[TrajectoryPath] = None,
-    increasing_vdw: bool = False,
-    vdw_cutoff_start: float = 0.0,
-    vdw_cutoff_end: float = 12.5,
-) -> ForceFieldRunReport:
-    """Optimize existing coordinates through the appropriate workflow."""
-    if mol.has_metal:
-        return optimize_complex(
-            mol,
-            forcefield,
-            algorithm=algorithm,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            complex_untangling_attempts=complex_untangling_attempts,
-            add_hydrogens=add_hydrogens,
-            quality_level=quality_level,
-            quality_thresholds=quality_thresholds,
-            seed=seed,
-            perturb_interval=perturb_interval,
-            perturb_sigma=perturb_sigma,
-            stopping_criteria=stopping_criteria,
-            convergence_level=convergence_level,
-            save_movie=save_movie,
-            trajectory_start=(
-                trajectory_start
-                if trajectory_start is not None
-                else TrajectoryStart.COMPLEX_UNTANGLING
-            ),
-            trajectory_path=trajectory_path,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
-        )
-    return optimize(
-        mol,
-        forcefield,
-        algorithm=algorithm,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        add_hydrogens=add_hydrogens,
-        quality_level=quality_level,
-        quality_thresholds=quality_thresholds,
-        seed=seed,
-        perturb_interval=perturb_interval,
-        perturb_sigma=perturb_sigma,
-        stopping_criteria=stopping_criteria,
-        convergence_level=convergence_level,
-        save_movie=save_movie,
-        trajectory_start=(
-            trajectory_start
-            if trajectory_start is not None
-            else TrajectoryStart.FINAL_OPTIMIZATION
-        ),
-        trajectory_path=trajectory_path,
-        increasing_vdw=increasing_vdw,
-        vdw_cutoff_start=vdw_cutoff_start,
-        vdw_cutoff_end=vdw_cutoff_end,
     )

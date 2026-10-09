@@ -331,6 +331,7 @@ def _render_pymol(
 
     object_name = "gallery_structure"
     cmd.reinitialize()
+    cmd.set("retain_order", 1)
     cmd.load(str(source), object_name)
     cmd.load_coords(oriented_coordinates.tolist(), object_name, state=1)
     _configure_materials_studio_style(object_name, parameters.am_color_rgb)

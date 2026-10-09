@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 from PIL import Image
 
 from . import am_gallery
@@ -104,6 +105,90 @@ def test_maximum_moment_axis_is_the_display_view_axis() -> None:
     assert np.allclose(np.diag(displayed_tensor), result.moments)
     assert np.allclose(displayed_tensor - np.diag(np.diag(displayed_tensor)), 0.0)
     assert result.moments[2] >= result.moments[1] >= result.moments[0]
+
+
+def test_pymol_render_preserves_mol2_atom_identity_after_orientation(
+    tmp_path: Path,
+) -> None:
+    pytest.importorskip("pymol")
+    from pymol import cmd
+
+    source = tmp_path / "ordered.mol2"
+    target = tmp_path / "rendered.png"
+    _write_mol2(source)
+    source_bytes = source.read_bytes()
+    geometry = am_gallery._read_mol2_geometry(source)
+    orientation = am_gallery.mass_weighted_principal_axes(
+        geometry.coordinates,
+        geometry.masses,
+    )
+    source_edges = ((1, 2), (2, 3))
+    source_lengths = {
+        edge: float(
+            np.linalg.norm(
+                geometry.coordinates[edge[0] - 1]
+                - geometry.coordinates[edge[1] - 1]
+            )
+        )
+        for edge in source_edges
+    }
+
+    try:
+        am_gallery._render_pymol(
+            source,
+            target,
+            orientation.oriented_coordinates,
+            am_gallery.GalleryParameters(
+                image_width=160,
+                image_height=120,
+                ray_dpi=72,
+            ),
+        )
+        model = cmd.get_model("gallery_structure", state=1)
+        atom_ids = [int(atom.id) for atom in model.atom]
+        coordinates_by_id = {
+            int(atom.id): np.asarray(atom.coord, dtype=float)
+            for atom in model.atom
+        }
+        symbols_by_id = {int(atom.id): atom.symbol for atom in model.atom}
+        displayed_edges = {
+            tuple(sorted((atom_ids[bond.index[0]], atom_ids[bond.index[1]])))
+            for bond in model.bond
+        }
+
+        assert atom_ids == [1, 2, 3]
+        assert tuple(symbols_by_id[index] for index in atom_ids) == (
+            "Am",
+            "N",
+            "H",
+        )
+        assert displayed_edges == set(source_edges)
+        for atom_id, expected in enumerate(
+            orientation.oriented_coordinates,
+            start=1,
+        ):
+            np.testing.assert_allclose(
+                coordinates_by_id[atom_id],
+                expected,
+                rtol=0.0,
+                atol=1.0e-5,
+            )
+        for edge, source_length in source_lengths.items():
+            displayed_length = float(
+                np.linalg.norm(
+                    coordinates_by_id[edge[0]] - coordinates_by_id[edge[1]]
+                )
+            )
+            np.testing.assert_allclose(
+                displayed_length,
+                source_length,
+                rtol=0.0,
+                atol=1.0e-5,
+            )
+        assert source.read_bytes() == source_bytes
+        assert target.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    finally:
+        cmd.reinitialize()
 
 
 def test_principal_moments_and_view_axis_are_rotation_invariant() -> None:

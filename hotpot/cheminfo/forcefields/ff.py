@@ -1,6 +1,7 @@
 """Public force-field API."""
 
 from .acceptance import evaluate_structure_acceptance, is_structure_accepted
+from .auto import auto_optimize
 from .contracts import (
     AcceptanceCheck,
     Build3DReport,
@@ -70,7 +71,6 @@ from .trajectory import (
     TrajectoryStart,
 )
 from .workflows import (
-    auto_optimize,
     build3d,
     build_and_optimize,
     build_complex3d,

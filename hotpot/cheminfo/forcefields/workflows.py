@@ -103,7 +103,6 @@ __all__ = (
     "optimize_complex",
     "complexes_build",
     "build_and_optimize",
-    "auto_optimize",
 )
 
 
@@ -128,7 +127,6 @@ def _warn_failed_acceptance(
         GeometryQualityWarning,
         stacklevel=3,
     )
-
 
 # Non-committing workflow stages.
 
@@ -1341,82 +1339,4 @@ def build_and_optimize(
         coordination_relaxation_steps=coordination_relaxation_steps,
         complex_untangling_attempts=complex_untangling_attempts,
         coordination_geometry=coordination_geometry,
-    )
-
-
-def auto_optimize(
-    mol: "Molecule",
-    forcefield: Optional[str] = None,
-    *,
-    algorithm: OptimizationAlgorithm = "conjugate",
-    epochs: int = 100,
-    steps_per_epoch: int = 100,
-    complex_untangling_attempts: int = 30,
-    add_hydrogens: bool = True,
-    quality_level: AcceptanceLevel = "standard",
-    quality_thresholds: Optional[StructureAcceptanceThresholds] = None,
-    seed: Optional[int] = None,
-    perturb_interval: Optional[int] = None,
-    perturb_sigma: float = 0.5,
-    stopping_criteria: Optional[OptimizationStoppingCriteria] = None,
-    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
-    save_movie: bool = False,
-    trajectory_start: Optional[TrajectoryStart] = None,
-    trajectory_path: Optional[TrajectoryPath] = None,
-    increasing_vdw: bool = False,
-    vdw_cutoff_start: float = 0.0,
-    vdw_cutoff_end: float = 12.5,
-) -> ForceFieldRunReport:
-    """Optimize existing coordinates through the appropriate workflow."""
-    if mol.has_metal:
-        return optimize_complex(
-            mol,
-            forcefield,
-            algorithm=algorithm,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            complex_untangling_attempts=complex_untangling_attempts,
-            add_hydrogens=add_hydrogens,
-            quality_level=quality_level,
-            quality_thresholds=quality_thresholds,
-            seed=seed,
-            perturb_interval=perturb_interval,
-            perturb_sigma=perturb_sigma,
-            stopping_criteria=stopping_criteria,
-            convergence_level=convergence_level,
-            save_movie=save_movie,
-            trajectory_start=(
-                trajectory_start
-                if trajectory_start is not None
-                else TrajectoryStart.COMPLEX_UNTANGLING
-            ),
-            trajectory_path=trajectory_path,
-            increasing_vdw=increasing_vdw,
-            vdw_cutoff_start=vdw_cutoff_start,
-            vdw_cutoff_end=vdw_cutoff_end,
-        )
-    return optimize(
-        mol,
-        forcefield,
-        algorithm=algorithm,
-        epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        add_hydrogens=add_hydrogens,
-        quality_level=quality_level,
-        quality_thresholds=quality_thresholds,
-        seed=seed,
-        perturb_interval=perturb_interval,
-        perturb_sigma=perturb_sigma,
-        stopping_criteria=stopping_criteria,
-        convergence_level=convergence_level,
-        save_movie=save_movie,
-        trajectory_start=(
-            trajectory_start
-            if trajectory_start is not None
-            else TrajectoryStart.FINAL_OPTIMIZATION
-        ),
-        trajectory_path=trajectory_path,
-        increasing_vdw=increasing_vdw,
-        vdw_cutoff_start=vdw_cutoff_start,
-        vdw_cutoff_end=vdw_cutoff_end,
     )

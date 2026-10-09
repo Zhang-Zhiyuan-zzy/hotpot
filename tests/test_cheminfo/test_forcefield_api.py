@@ -359,30 +359,40 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
     assert calls[2][1:] == (molecule, working)
 
 
-@pytest.mark.parametrize(
-    ("has_metal", "expected_function", "expected_forcefield"),
-    ((False, "ordinary", None), (True, "complex", None)),
-)
-def test_auto_optimize_dispatches_by_molecule_type(
+def test_auto_optimize_dispatches_organic_molecules_to_ordinary_optimizer(
     monkeypatch,
-    has_metal,
-    expected_function,
-    expected_forcefield,
 ):
-    molecule = SimpleNamespace(has_metal=has_metal)
+    from hotpot.cheminfo.forcefields import auto as auto_workflow
+
+    molecule = SimpleNamespace(has_metal=False)
     calls = []
-    expected = object()
+    expected = ff.ForceFieldRunReport(
+        requested_forcefield=None,
+        effective_forcefield="MMFF94s",
+        setup_succeeded=True,
+        converged=True,
+        epochs_completed=1,
+        steps_submitted=1,
+        initialization_steps=1,
+        steps_completed=None,
+        final_energy=1.0,
+        best_energy=1.0,
+        energy_unit="kJ/mol",
+        rms_gradient=0.0,
+        max_gradient=0.0,
+        exploded=False,
+        quality_report=ff.ForceFieldValidationReport(
+            level="standard",
+            passed=True,
+            checks=(),
+        ),
+    )
 
     def fake_ordinary(current, forcefield, **options):
         calls.append(("ordinary", current, forcefield, options))
         return expected
 
-    def fake_complex(current, forcefield, **options):
-        calls.append(("complex", current, forcefield, options))
-        return expected
-
-    monkeypatch.setattr(workflows, "optimize", fake_ordinary)
-    monkeypatch.setattr(workflows, "optimize_complex", fake_complex)
+    monkeypatch.setattr(auto_workflow, "optimize", fake_ordinary)
 
     result = ff.auto_optimize(
         molecule,
@@ -391,12 +401,12 @@ def test_auto_optimize_dispatches_by_molecule_type(
         seed=31,
     )
 
-    assert result is expected
+    assert replace(result, routing_report=None) == expected
     assert len(calls) == 1
     function, current, forcefield, options = calls[0]
-    assert function == expected_function
+    assert function == "ordinary"
     assert current is molecule
-    assert forcefield == expected_forcefield
+    assert forcefield is None
     assert options["epochs"] == 5
     assert options["steps_per_epoch"] == 19
     assert options["seed"] == 31

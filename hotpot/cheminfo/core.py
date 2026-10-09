@@ -1193,7 +1193,7 @@ class Molecule:
             vdw_cutoff_start: float = 0.0,
             vdw_cutoff_end: float = 12.5,
     ):
-        """Optimize the current coordinates with the appropriate workflow."""
+        """Automatically build and optimize with the appropriate workflow."""
         return ff.auto_optimize(
             self,
             forcefield=forcefield,

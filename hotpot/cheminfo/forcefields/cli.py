@@ -410,6 +410,24 @@ def _run_forcefield(
     _validate_forcefield_request(mol, options)
     requires_build = _requires_build(mol, options)
     if options.route == "auto":
+        if options.optimize_only:
+            optimizer = optimize_complex if mol.has_metal else optimize
+            return optimizer(
+                mol,
+                options.forcefield,
+                **_optimization_options(options, trajectory_path),
+            )
+        if mol.has_metal:
+            auto_options = (
+                _build_options(options, trajectory_path)
+                if requires_build
+                else _optimization_options(options, trajectory_path)
+            )
+            return auto_optimize(
+                mol,
+                options.forcefield,
+                **auto_options,
+            )
         if requires_build:
             return build_and_optimize(
                 mol,

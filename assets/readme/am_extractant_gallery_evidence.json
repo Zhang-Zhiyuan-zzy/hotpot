@@ -3,10 +3,10 @@
   "input_sha256": "e6150b2f42718bb0a69c16ade9d75537bbb827f4b0a131b021fb66817957eea6",
   "benchmark_commit": "2c79f9a930398baec1e29339dde739197d13cc6c",
   "renderer_git": {
-    "commit": "18ba6da18d91f3eba70af0ce88e60381469c91e4",
+    "commit": "11b1f8feeee58ef7fd16bace71923058347843d8",
     "dirty": false
   },
-  "renderer_sha256": "bcc3e4139894d5fb6d8677ff0bc380bf7991e6605d1db5c84fd12dbe82d61844",
+  "renderer_sha256": "6f98aeaa19e3a2dd2bbe5a6c4a56d26025a8566ffe11881189d3c99369091813",
   "parameters": {
     "image_width": 1000,
     "image_height": 750,
@@ -230,13 +230,13 @@
   "contact_sheets": {
     "cbond": {
       "filename": "am_cbond_complexes.png",
-      "sha256": "b1317988389f161e7a5c544eef3dbdebc48ec65d6e5ace342d3722022e657858",
+      "sha256": "d8b8148158263d3880a6c17950799a557072d7c0b12bbd807bb9be00034d41c8",
       "width": 6900,
       "height": 4640
     },
     "failed_cbond": {
       "filename": "am_failed_cbond_ligands.png",
-      "sha256": "931ef96593e80e0d2766caf23dacc81f4d139bba6399961ddc107b81ef8bea78",
+      "sha256": "ac2dbd8670494de98a6a1fc57fd717a8bec8424e9c7cb7170057e19c548dbbd9",
       "width": 2760,
       "height": 440
     }
@@ -2776,17 +2776,17 @@
       "output_frame_role": null,
       "report_sha256": "590216e63b7652e2bc9e28c4ccaf5b07371ea6f86cac380f525012ce54c6f93e",
       "input_source_sha256": "9a830f6674377f57f7ba3697f95145e64f61fe2d0a38b3c8ad151a7683c6b5b0",
-      "rendered_structure_sha256": "39ab00d04fb4cc11e9b86289da4dbcd94ed8cdb2c358f7c4de5b922e362f9f22",
+      "rendered_structure_sha256": "0937bebb50faff4a4ef4a13d96a748ce278bd9bc8be393e52789659d0a7795be",
       "structure_origin": "visualization_only_explicit_hydrogen_3d_ligand",
       "render_status": "rendered",
       "explicit_hydrogen_count": 19,
       "americium_count": 0,
       "principal_moments_amu_angstrom2": [
-        7756.665241472244,
-        61480.04576125748,
-        63276.036019296655
+        7834.469751157536,
+        61316.32445722161,
+        62476.6708585895
       ],
-      "basis_determinant": 1.0000000000000002
+      "basis_determinant": 1.0000000000000004
     },
     {
       "index": 135,
@@ -3688,17 +3688,17 @@
       "output_frame_role": null,
       "report_sha256": "034c01fed92ccb38dcab259183e3b9d268195215ac5316b8e2e4e45cc9fc34ff",
       "input_source_sha256": "def02437da705c1111653f3f4f7ccdb686ede943f80a022cba3feba8215e7962",
-      "rendered_structure_sha256": "41a22fed18b2dd248a95127dfc674ed3ba450ec65bfe60760fb622551a7a6a13",
+      "rendered_structure_sha256": "d414c686cb6858bd1350e9fd79061ea2ec2a21fe44e375b6e94cc34fcde3f5ee",
       "structure_origin": "visualization_only_explicit_hydrogen_3d_ligand",
       "render_status": "rendered",
       "explicit_hydrogen_count": 14,
       "americium_count": 0,
       "principal_moments_amu_angstrom2": [
-        191.09576651224594,
-        502.4579781903882,
-        583.6234013539066
+        191.02276815336955,
+        502.9099634184525,
+        584.1352521764529
       ],
-      "basis_determinant": 0.9999999999999999
+      "basis_determinant": 1.0000000000000007
     },
     {
       "index": 183,
@@ -3745,15 +3745,15 @@
       "output_frame_role": null,
       "report_sha256": "5a252c39100826b0c2d4d6ec3d1d2b422b8f21fe22738c2a5f9d3dffbcb45466",
       "input_source_sha256": "d7bbcb2f2e36830736b0571b58185795a9433783ef0c72a51b62b9c0a4942c16",
-      "rendered_structure_sha256": "4df5ffb848de9e203e5dc1ec6aee7355d56c30d817d2c20b0d8e8fbee42b278e",
+      "rendered_structure_sha256": "30320dc8df3a841840823194448bcebe6e603e3716fed6ed56f20bd5f0adf464",
       "structure_origin": "visualization_only_explicit_hydrogen_3d_ligand",
       "render_status": "rendered",
       "explicit_hydrogen_count": 5,
       "americium_count": 0,
       "principal_moments_amu_angstrom2": [
-        358.4338619236124,
-        996.4656140576834,
-        1115.8230039303426
+        358.1093114055667,
+        993.2737255528358,
+        1118.4722431716882
       ],
       "basis_determinant": 1.0
     },
@@ -3764,15 +3764,15 @@
       "output_frame_role": null,
       "report_sha256": "9b42e1b6295ae9e34a616ea353c10a79b3914753f95e743ff72e117b6e5fcf43",
       "input_source_sha256": "ea5b7556464e45ab009e251da5893d9a8b48bd751e2e723957cfbcc60260dbf8",
-      "rendered_structure_sha256": "e104e88d7e30dfb93df686b74b52abc1cef12441bfa90289146547629187465f",
+      "rendered_structure_sha256": "83a5f43f076cce68d999f64cba62799918563185cde61b14af94d65120e772bd",
       "structure_origin": "visualization_only_explicit_hydrogen_3d_ligand",
       "render_status": "rendered",
       "explicit_hydrogen_count": 26,
       "americium_count": 0,
       "principal_moments_amu_angstrom2": [
-        168.9364278807559,
-        1701.0586425567221,
-        1707.982926987658
+        168.93805023165294,
+        1701.0926984880343,
+        1708.0177202019186
       ],
       "basis_determinant": 1.0000000000000002
     },
@@ -3783,17 +3783,17 @@
       "output_frame_role": null,
       "report_sha256": "1223dde72e0d5e64c5cb3738ce9269f8da5edb78388563ce374ad04742ab542f",
       "input_source_sha256": "94a7265af0e6b70f838078170c0799012c220159a23befefd397aa8bcfb9bb94",
-      "rendered_structure_sha256": "7a321cdadf8301e8cd78d618d44a1fadcde81936176d0278345b1c2df10225f7",
+      "rendered_structure_sha256": "95c701367e8c32dcc059d9b9ebc10982a027d5e4cd6cb7d0e51c459b17388f5c",
       "structure_origin": "visualization_only_explicit_hydrogen_3d_ligand",
       "render_status": "rendered",
       "explicit_hydrogen_count": 4,
       "americium_count": 0,
       "principal_moments_amu_angstrom2": [
-        321.6489199203718,
-        1028.3115280089303,
-        1231.2974347393836
+        322.7440935780756,
+        1020.1721514227648,
+        1225.7605173343593
       ],
-      "basis_determinant": 0.9999999999999997
+      "basis_determinant": 1.0000000000000004
     }
   ]
 }

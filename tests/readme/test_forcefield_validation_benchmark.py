@@ -184,7 +184,8 @@ def test_am_gallery_evidence_matches_readme() -> None:
 
     assert "**181/187** inputs" in readme
     assert "**6/187** inputs" in readme
-    assert "**181/181** constructed complexes" in readme
+    assert "**181/181** optimized outputs" in readme
+    assert "current generic geometry gate" in readme
     assert "Materials Studio-inspired" in readme
     assert "maximum principal moment axis" in readme
     assert "visualization-only 3D" in readme

@@ -1,4 +1,4 @@
-"""Independent ligand/complex benchmark runner for four fixed backends."""
+"""Independent ligand/complex benchmark runner for five fixed backends."""
 
 from __future__ import annotations
 
@@ -42,6 +42,7 @@ BACKENDS = (
     "openbabel",
     "obwrappers",
     "hotpot_optimize_complex",
+    "hotpot_auto",
 )
 FORCEFIELD = "UFF"
 OPTIMIZATION_EPOCHS = 100
@@ -371,6 +372,7 @@ def _run_obwrappers_target(
         steps_per_epoch=STEPS_PER_EPOCH,
         retain_frames=True,
         retain_epoch_history=True,
+        convergence_level=ff.ConvergenceLevel.FAST,
     )
     optimization_seconds = perf_counter() - optimize_started
     _record_obwrappers_trajectory(mol, trajectory, optimization_report)
@@ -387,6 +389,7 @@ def _run_obwrappers_target(
 
 
 def _run_hotpot_target(
+    backend: str,
     target: str,
     mol: Molecule,
     case_dir: Path,
@@ -416,7 +419,24 @@ def _run_hotpot_target(
     mol.write(case_dir / "built.mol2", overwrite=True, write_single=True)
 
     optimize_started = perf_counter()
-    if target == "ligand":
+    if backend == "hotpot_auto":
+        optimization_report = ff.auto_optimize(
+            mol,
+            FORCEFIELD,
+            epochs=OPTIMIZATION_EPOCHS,
+            steps_per_epoch=STEPS_PER_EPOCH,
+            add_hydrogens=False,
+            quality_level="standard",
+            seed=seed,
+            convergence_level=ff.ConvergenceLevel.FAST,
+            save_movie=True,
+            trajectory_start=(
+                ff.TrajectoryStart.FINAL_OPTIMIZATION
+                if target == "ligand"
+                else ff.TrajectoryStart.COMPLEX_UNTANGLING
+            ),
+        )
+    elif target == "ligand":
         optimization_report = ff.optimize(
             mol,
             FORCEFIELD,
@@ -425,6 +445,7 @@ def _run_hotpot_target(
             add_hydrogens=False,
             quality_level="off",
             seed=seed,
+            convergence_level=ff.ConvergenceLevel.FAST,
             save_movie=True,
             trajectory_start=ff.TrajectoryStart.FINAL_OPTIMIZATION,
         )
@@ -437,6 +458,7 @@ def _run_hotpot_target(
             add_hydrogens=False,
             quality_level="off",
             seed=seed,
+            convergence_level=ff.ConvergenceLevel.FAST,
             save_movie=True,
             trajectory_start=ff.TrajectoryStart.COMPLEX_UNTANGLING,
         )
@@ -445,7 +467,7 @@ def _run_hotpot_target(
         build_report.trajectory.write(build_trajectory_path)
     if optimization_report.trajectory is not None:
         optimization_report.trajectory.write(optimize_trajectory_path)
-    return {
+    result = {
         "build_seconds": build_seconds,
         "optimization_seconds": optimization_seconds,
         "compute_seconds": build_seconds + optimization_seconds,
@@ -454,6 +476,7 @@ def _run_hotpot_target(
         "termination_reason": optimization_report.termination_reason,
         "build_report": json_value(build_report),
         "optimization_report": json_value(optimization_report),
+        "routing_report": json_value(optimization_report.routing_report),
         "trajectory": {
             "build": (
                 str(build_trajectory_path.relative_to(case_dir))
@@ -463,6 +486,15 @@ def _run_hotpot_target(
             "optimize": str(optimize_trajectory_path.relative_to(case_dir)),
         },
     }
+    if backend == "hotpot_auto":
+        quality_report = optimization_report.quality_report
+        if quality_report is None:
+            raise RuntimeError("auto_optimize omitted its quality report")
+        result.update(
+            validation=_quality_payload(quality_report),
+            quality_passed=bool(quality_report.passed),
+        )
+    return result
 
 
 def _write_structure(case_dir: Path, mol: Molecule) -> dict[str, str]:
@@ -531,6 +563,7 @@ def _run_target(
                 result = _run_obwrappers_target(mol, trajectory)
             else:
                 result = _run_hotpot_target(
+                    backend,
                     target,
                     mol,
                     target_dir,
@@ -541,14 +574,17 @@ def _run_target(
         finite_coordinates = bool(np.all(np.isfinite(mol.coordinates)))
         record["finite_final_coordinates"] = finite_coordinates
         if finite_coordinates:
-            validation = ff.evaluate_structure_acceptance(
-                mol,
-                level="standard",
-                topology_reference=topology_reference,
+            if record["validation"] is None:
+                validation = ff.evaluate_structure_acceptance(
+                    mol,
+                    level="standard",
+                    topology_reference=topology_reference,
+                )
+                record["validation"] = _quality_payload(validation)
+                record["quality_passed"] = bool(validation.passed)
+            record["status"] = (
+                "passed" if record["quality_passed"] else "failed_quality"
             )
-            record["validation"] = _quality_payload(validation)
-            record["quality_passed"] = bool(validation.passed)
-            record["status"] = "passed" if validation.passed else "failed_quality"
             record["structure"] = _write_structure(target_dir, mol)
         else:
             record["status"] = "failed_quality"
@@ -655,6 +691,11 @@ def _target_summary(
     ]
     pass_count = sum(bool(record.get("quality_passed")) for record in target_records)
     denominator = len(target_records)
+    selected_routes = Counter(
+        str(record["routing_report"]["selected_route"])
+        for record in target_records
+        if record.get("routing_report") is not None
+    )
     return {
         "denominator": denominator,
         "report_count": denominator,
@@ -666,6 +707,7 @@ def _target_summary(
         "status_counts": dict(
             Counter(str(record["status"]) for record in target_records)
         ),
+        "selected_route_counts": dict(selected_routes),
     }
 
 
@@ -720,6 +762,11 @@ def _manifest_payload(backend: str, cohort: BenchmarkCohort) -> dict[str, object
             "optimization_steps": OPTIMIZATION_STEPS,
             "seed": SEED,
             "quality_level": "standard",
+            "convergence_level": (
+                "FAST"
+                if backend in {"obwrappers", "hotpot_optimize_complex", "hotpot_auto"}
+                else None
+            ),
             "timing_scope": "build and optimize calls only",
         },
     }

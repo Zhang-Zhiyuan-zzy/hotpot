@@ -1,9 +1,10 @@
-"""Aggregate four independent coordination-structure benchmark workflows.
+"""Aggregate five independent coordination-structure benchmark workflows.
 
 This module performs no molecular construction or optimization.  It accepts
 the completed RDKit, Open Babel, Hotpot ``obWrappers`` and Hotpot
-``optimize_complex`` result roots, validates their shared corpus identities,
-and publishes the compact evidence used by the project README.
+``optimize_complex`` and FAST-first ``auto_optimize`` result roots, validates
+their shared corpus identities, and publishes the compact evidence used by
+the project README.
 """
 
 from __future__ import annotations
@@ -28,13 +29,18 @@ WORKFLOWS = (
     "openbabel",
     "obwrappers",
     "hotpot_optimize_complex",
+    "hotpot_auto",
+)
+FAST_WORKFLOWS = frozenset(
+    {"obwrappers", "hotpot_optimize_complex", "hotpot_auto"}
 )
 TARGETS = ("ligand", "complex")
 DISPLAY_NAMES = {
     "rdkit": "RDKit",
     "openbabel": "Open Babel",
-    "obwrappers": "Hotpot obWrappers",
-    "hotpot_optimize_complex": "Hotpot optimize_complex",
+    "obwrappers": "Hotpot obWrappers FAST",
+    "hotpot_optimize_complex": "Hotpot optimize_complex FAST",
+    "hotpot_auto": "Hotpot auto FAST-first",
 }
 TARGET_NAMES = {
     "ligand": "Ligand",
@@ -190,6 +196,10 @@ def _validate_run(
         raise ValueError(f"{summary_path} has an unsupported schema version")
     if manifest.get("workflow") != workflow or summary.get("workflow") != workflow:
         raise ValueError(f"{root} does not contain the {workflow} workflow")
+    if workflow in FAST_WORKFLOWS:
+        settings = _mapping(manifest["settings"], f"{workflow} manifest.settings")
+        if settings.get("convergence_level") != "FAST":
+            raise ValueError(f"{workflow} must use FAST convergence")
 
     input_identity = _mapping(manifest["input"], f"{workflow} manifest.input")
     cohort_identity = _mapping(manifest["cohort"], f"{workflow} manifest.cohort")
@@ -403,7 +413,7 @@ def write_comparison_plot(
     x = list(range(len(WORKFLOWS)))
     width = 0.36
     colors = {"ligand": "#4C78A8", "complex": "#F58518"}
-    figure, (gate_axis, time_axis) = plt.subplots(1, 2, figsize=(12.0, 4.8))
+    figure, (gate_axis, time_axis) = plt.subplots(1, 2, figsize=(14.0, 4.8))
     for position, target in enumerate(TARGETS):
         offset = (position - 0.5) * width
         pass_rates = [
@@ -451,14 +461,16 @@ def aggregate_workflow_comparison(
     openbabel_root: Path,
     obwrappers_root: Path,
     hotpot_optimize_complex_root: Path,
+    hotpot_auto_root: Path,
     output_directory: Path,
 ) -> dict[str, object]:
-    """Validate four independent runs and publish compact README evidence."""
+    """Validate five independent runs and publish compact README evidence."""
     roots = {
         "rdkit": rdkit_root,
         "openbabel": openbabel_root,
         "obwrappers": obwrappers_root,
         "hotpot_optimize_complex": hotpot_optimize_complex_root,
+        "hotpot_auto": hotpot_auto_root,
     }
     manifests: dict[str, dict[str, object]] = {}
     summary_rows: list[dict[str, object]] = []
@@ -565,6 +577,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--openbabel", type=Path, required=True)
     parser.add_argument("--obwrappers", type=Path, required=True)
     parser.add_argument("--hotpot-optimize-complex", type=Path, required=True)
+    parser.add_argument("--hotpot-auto", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     return parser
 
@@ -576,6 +589,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         arguments.openbabel.resolve(),
         arguments.obwrappers.resolve(),
         arguments.hotpot_optimize_complex.resolve(),
+        arguments.hotpot_auto.resolve(),
         arguments.output_dir.resolve(),
     )
 

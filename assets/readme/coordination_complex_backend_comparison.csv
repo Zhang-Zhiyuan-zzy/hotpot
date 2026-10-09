@@ -7,5 +7,5 @@ obwrappers,Hotpot obWrappers FAST,ligand,Ligand,187,184,0.983957219251337,187,1.
 obwrappers,Hotpot obWrappers FAST,complex,Metal–ligand complex,181,165,0.9116022099447514,180,2.541943782940507,604.0521525461227
 hotpot_optimize_complex,Hotpot optimize_complex FAST,ligand,Ligand,187,182,0.9732620320855615,187,3.3143015429377556,801.4183783084154
 hotpot_optimize_complex,Hotpot optimize_complex FAST,complex,Metal–ligand complex,181,180,0.994475138121547,181,7.529325056821108,1595.6737380791456
-hotpot_auto,Hotpot auto: native FAST → complex fallback,ligand,Ligand,187,182,0.9732620320855615,187,3.327568108215928,798.8197621181607
-hotpot_auto,Hotpot auto: native FAST → complex fallback,complex,Metal–ligand complex,181,180,0.994475138121547,181,3.336789095774293,944.5184998419136
+hotpot_auto,Hotpot auto: native FAST → complex fallback,ligand,Ligand,187,182,0.9732620320855615,187,3.3050832841545343,800.2670018561184
+hotpot_auto,Hotpot auto: native FAST → complex fallback,complex,Metal–ligand complex,181,180,0.994475138121547,181,3.8684564251452684,944.8181460686028

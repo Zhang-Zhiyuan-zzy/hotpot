@@ -370,7 +370,7 @@ cost and therefore remain inside its reported duration.
 | Open Babel | 182/187 (97.3%) | 1.089 s | 165/181 (91.2%) | 1.921 s |
 | Hotpot `obWrappers` (`FAST`) | 184/187 (98.4%) | 1.465 s | 165/181 (91.2%) | 2.542 s |
 | Hotpot `optimize_complex` workflow (`FAST`) | 182/187 (97.3%) | 3.314 s | 180/181 (99.4%) | 7.529 s |
-| Hotpot automatic workflow (`FAST` first, complex fallback) | 182/187 (97.3%) | 3.328 s | 180/181 (99.4%) | 3.337 s |
+| Hotpot automatic workflow (`FAST` first, complex fallback) | 182/187 (97.3%) | 3.305 s | 180/181 (99.4%) | 3.868 s |
 
 ![Ligand and Eu coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
 
@@ -382,8 +382,8 @@ benchmark:
 - [protocol and aggregate JSON](assets/readme/coordination_complex_backend_comparison.json)
 - [per-case CSV](assets/readme/coordination_complex_backend_comparison_cases.csv)
 
-For Eu–ligand complexes, the automatic workflow accepted 166 native `FAST`
-results directly and sent 15 rejected candidates through the complete complex
+For Eu–ligand complexes, the automatic workflow accepted 163 native `FAST`
+results directly and sent 18 rejected candidates through the complete complex
 workflow. All four convergence policies remain selectable through the Python
 API and `hotpot ff --convergence-level`; automatic fallback does not silently
 upgrade the caller's selected policy to `STRICT`.

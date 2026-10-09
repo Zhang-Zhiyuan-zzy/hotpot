@@ -624,7 +624,9 @@ def _run_target(
                 )
                 record["validation"] = _quality_payload(validation)
                 record["quality_passed"] = bool(validation.passed)
-            record["status"] = "passed" if validation.passed else "failed_quality"
+            record["status"] = (
+                "passed" if record["quality_passed"] else "failed_quality"
+            )
             record["structure"] = _write_structure(target_dir, mol)
         else:
             record["status"] = "failed_quality"

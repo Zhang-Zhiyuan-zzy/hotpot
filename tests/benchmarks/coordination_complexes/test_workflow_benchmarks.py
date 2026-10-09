@@ -175,6 +175,53 @@ def test_hotpot_manifests_describe_fast_auto_fallback() -> None:
     )
 
 
+def test_hotpot_auto_reuses_internal_quality_gate(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    import numpy as np
+
+    molecule = _DummyMolecule()
+    molecule.coordinates = np.zeros((1, 3), dtype=float)
+    validation = {"level": "standard", "passed": True, "failures": []}
+    monkeypatch.setattr(
+        "tests.benchmarks.coordination_complexes.workflow_runner._prepare_ligand",
+        lambda case: molecule,
+    )
+    monkeypatch.setattr(ff, "capture_topology", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        ff,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: pytest.fail("quality gate was evaluated twice"),
+    )
+    monkeypatch.setattr(
+        (
+            "tests.benchmarks.coordination_complexes.workflow_runner."
+            "_run_hotpot_auto_target"
+        ),
+        lambda *args, **kwargs: {
+            "compute_seconds": 1.0,
+            "validation": validation,
+            "quality_passed": True,
+        },
+    )
+    monkeypatch.setattr(
+        "tests.benchmarks.coordination_complexes.workflow_runner._write_structure",
+        lambda *args, **kwargs: {"mol2": "optimized.mol2"},
+    )
+
+    record = _run_target(
+        "hotpot_auto",
+        "ligand",
+        LigandCase(index=1, smiles="N", seed=43),
+        None,
+        tmp_path,
+    )
+
+    assert record["status"] == "passed"
+    assert record["validation"] is validation
+
+
 def test_target_summary_excludes_ineligible_complexes() -> None:
     records = (
         {

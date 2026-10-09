@@ -10,6 +10,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo import forcefields as ff_api
+from hotpot.cheminfo.forcefields import attempts
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
 from hotpot.cheminfo.forcefields import ligand
@@ -449,12 +450,12 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fake_run)
     def accept(current, **options):
         acceptance_calls.append((current, options))
         return quality
 
-    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(attempts, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(
         workflows,
         "_finalize_trajectory",
@@ -513,7 +514,7 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
         lambda *args, **kwargs: SimpleNamespace(passed=True),
     )
     monkeypatch.setattr(
-        workflows,
+        attempts,
         "_optimize_working_mol",
         lambda *args, **kwargs: pytest.fail("build3d invoked optimization"),
     )
@@ -846,12 +847,12 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
         calls.append((current, options))
         return expected
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fake_run)
     def accept(current, **options):
         acceptance_calls.append((current, options))
         return quality
 
-    monkeypatch.setattr(workflows, "evaluate_structure_acceptance", accept)
+    monkeypatch.setattr(attempts, "evaluate_structure_acceptance", accept)
     monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.optimize(molecule, forcefield, add_hydrogens=False)
@@ -887,7 +888,7 @@ def test_optimize_persists_recorded_frames_when_forcefield_stage_fails(
         trajectory.select(frame.index)
         raise failure
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fail_after_recording)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fail_after_recording)
 
     with pytest.raises(ff.GeometryQualityError) as caught:
         ff.optimize(
@@ -945,7 +946,12 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         "evaluate_structure_acceptance",
         lambda *args, **kwargs: quality,
     )
-    monkeypatch.setattr(workflows, "_optimize_working_mol", lambda *args, **kwargs: expected)
+    monkeypatch.setattr(
+        attempts,
+        "evaluate_structure_acceptance",
+        lambda *args, **kwargs: quality,
+    )
+    monkeypatch.setattr(attempts, "_optimize_working_mol", lambda *args, **kwargs: expected)
     monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)

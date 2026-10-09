@@ -6,6 +6,7 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo import geometry
 from hotpot.cheminfo.forcefields import acceptance as acceptance_impl
+from hotpot.cheminfo.forcefields import attempts
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
@@ -716,7 +717,7 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
             exploded=False,
         )
 
-    monkeypatch.setattr(workflows, "_optimize_working_mol", fake_run)
+    monkeypatch.setattr(attempts, "_optimize_working_mol", fake_run)
 
     ff.optimize(
         molecule,

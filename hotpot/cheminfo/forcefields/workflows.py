@@ -13,6 +13,10 @@ from .acceptance import (
     evaluate_structure_acceptance,
     evaluate_structure_acceptance_at_native_checkpoint,
 )
+from .attempts import (
+    _forcefield_acceptance_evidence,
+    _run_ordinary_optimization_attempt,
+)
 from .backend import (
     _ob_build,
     _resolve_complex_forcefield,
@@ -26,7 +30,6 @@ from .contracts import (
     ComplexBuildReport,
     ComplexBuildWarning,
     ForceFieldError,
-    ForceFieldAcceptanceEvidence,
     ForceFieldRunReport,
     ForceFieldSetupError,
     ForceFieldSetupReport,
@@ -73,7 +76,6 @@ from .native_reports import (
     CoordinationStageResult,
     _coordination_stage_result,
 )
-from .optimizer import _optimize_working_mol
 from .topology import TopologyReference, capture_topology
 from .trajectory import (
     ForceFieldTrajectory,
@@ -111,25 +113,6 @@ class _PreparedComplex:
     diagnostics: ComplexBuildDiagnostics
     trajectory: ForceFieldTrajectory
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
-
-
-def _forcefield_acceptance_evidence(
-    report: ForceFieldRunReport,
-) -> ForceFieldAcceptanceEvidence:
-    """Translate the selected numerical frame into acceptance evidence."""
-    return {
-        "setup_succeeded": report.setup_succeeded,
-        "converged": report.converged,
-        "epochs_completed": report.epochs_completed,
-        "segment_epochs_completed": report.selected_segment_epochs_completed,
-        "final_energy": report.best_energy,
-        "energy_unit": report.energy_unit,
-        "rms_gradient": report.rms_gradient,
-        "max_gradient": report.max_gradient,
-        "exploded": report.exploded,
-        "energy_changes": report.energy_changes,
-        "max_displacements": report.max_displacements,
-    }
 
 
 def _warn_failed_acceptance(
@@ -760,7 +743,7 @@ def optimize(
     )
     effective_forcefield = _resolve_organic_forcefield(forcefield)
     try:
-        report = _optimize_working_mol(
+        report = _run_ordinary_optimization_attempt(
             working_mol,
             requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
@@ -775,17 +758,15 @@ def optimize(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             trajectory=trajectory,
+            quality_level=quality_level,
+            topology_reference=topology_reference,
+            quality_thresholds=quality_thresholds,
             stopping_criteria=stopping_criteria,
             convergence_level=convergence_level,
         )
-        quality_report = evaluate_structure_acceptance(
-            working_mol,
-            level=quality_level,
-            topology_reference=topology_reference,
-            forcefield_report=_forcefield_acceptance_evidence(report),
-            forcefield_stage="final",
-            thresholds=quality_thresholds,
-        )
+        quality_report = report.quality_report
+        if quality_report is None:
+            raise RuntimeError("The ordinary optimizer omitted its quality report")
         _warn_failed_acceptance(
             quality_report,
             prefix=(
@@ -793,7 +774,6 @@ def optimize(
                 "acceptance; retaining it for inspection"
             ),
         )
-        report = replace(report, quality_report=quality_report)
     except ForceFieldError as error:
         _preserve_failed_trajectory(
             error,

@@ -354,24 +354,24 @@ optimization results comparable under the same public geometry-quality gate.
 
 ## Validation evidence
 
-### Ligand and Eu–ligand benchmark
+### Ligand and Am–ligand benchmark
 
 Four independently launched workflows were evaluated on the same 187 isolated
-ligands and the same 181 CBond-eligible Eu–ligand complexes. Hotpot uses its
+ligands and the same 182 CBond-eligible Am–ligand complexes. Hotpot uses its
 default `FAST` convergence policy. Times are median construction-plus-optimize
 durations among completed workflows in a 16-worker run; CBond inference,
 serialization, rendering, and any external post-validation are excluded.
 Hotpot `optimize_complex` uses internal acceptance checks to select its route;
 their cost therefore remains inside its reported duration.
 
-| Workflow | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
+| Workflow | Ligand geometry pass | Ligand median time | Am–ligand geometry pass | Am–ligand median time |
 |---|---:|---:|---:|---:|
-| RDKit | 185/187 (98.9%) | 0.306 s | 31/181 (17.1%) | 0.446 s |
-| Open Babel | 182/187 (97.3%) | 1.089 s | 165/181 (91.2%) | 1.921 s |
-| Hotpot `obWrappers` (`FAST`) | 184/187 (98.4%) | 1.465 s | 165/181 (91.2%) | 2.542 s |
-| Hotpot `optimize_complex` | 182/187 (97.3%) | 3.305 s | 180/181 (99.4%) | 3.868 s |
+| RDKit | 186/187 (99.5%) | 0.314 s | 30/182 (16.5%) | 0.457 s |
+| Open Babel | 181/187 (96.8%) | 1.159 s | 162/182 (89.0%) | 2.134 s |
+| Hotpot `obWrappers` (`FAST`) | 183/187 (97.9%) | 1.759 s | 164/182 (90.1%) | 2.919 s |
+| Hotpot `optimize_complex` | 182/187 (97.3%) | 3.372 s | 182/182 (100.0%) | 3.732 s |
 
-![Ligand and Eu coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
+![Ligand and Am coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
 
 The independent launch commands and evidence files are documented with the
 benchmark:
@@ -381,7 +381,7 @@ benchmark:
 - [protocol and aggregate JSON](assets/readme/coordination_complex_backend_comparison.json)
 - [per-case CSV](assets/readme/coordination_complex_backend_comparison_cases.csv)
 
-For Eu–ligand complexes, Hotpot `optimize_complex` accepted 163 native `FAST`
+For Am–ligand complexes, Hotpot `optimize_complex` accepted 164 native `FAST`
 results directly and sent 18 rejected candidates through the complete complex
 workflow. All four convergence policies remain selectable through the Python
 API and `hotpot ff --convergence-level`; automatic fallback does not silently

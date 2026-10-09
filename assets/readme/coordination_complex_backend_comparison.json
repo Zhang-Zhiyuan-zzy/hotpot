@@ -2,7 +2,7 @@
   "schema_version": 1,
   "protocol": {
     "input_sample_count": 187,
-    "complex_sample_count": 181,
+    "complex_sample_count": 182,
     "targets": [
       "ligand",
       "complex"
@@ -11,24 +11,24 @@
     "efficiency": "median build + optimize compute time among completed workflows"
   },
   "provenance": {
-    "input_sha256": "77ef4913363bb10f0d134d6150c4f9e7214ddfaf03f8e6fc23f57308d5d3443f",
-    "cohort_sha256": "91d363a2add3428bd5b31332ef99a502f33edad145ef5a870b0e7b97911ea1fb",
+    "input_sha256": "e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7",
+    "cohort_sha256": "4416bb8558ef420fad3176a82845d02bd1e83d9b271347c97d65174f799a0377",
     "runs": {
       "rdkit": {
-        "manifest_sha256": "47f2c0db30030b55c8d466b81adaf4fc237869adf87adbd24cdc99280022b4c6",
-        "summary_sha256": "c9724dbb56c88b886d3ebb819924acbbb60b910ce17d82e380e0c527e154cb43"
+        "manifest_sha256": "7418245a69721bee7fddb90f79ec05945c3662a96188af78f15e9e46de759caf",
+        "summary_sha256": "4bdb7fb3e4edd2d77c8f6ac0ba29b54caf3845cd20805f004d8714303206a36f"
       },
       "openbabel": {
-        "manifest_sha256": "fc77de090c872b5db5cd81a6313a73f9a88066f8582aaa7992c739a1631797a4",
-        "summary_sha256": "4314a9d35a18d4d740150455f72554e7508847f0d540fd6fa665b0af9acaa5e0"
+        "manifest_sha256": "be6c73985ef85bb1a941c99d34b9f9ed8af8daa8df0586a2e7897ae9e359827d",
+        "summary_sha256": "604693f969441e16cacc880e83dc167140c60ae2a27da6e9ae9816ce30045471"
       },
       "obwrappers": {
-        "manifest_sha256": "0d3acc76948a747d64242073593dab5bb4a6f6a9dbbde2206f6bc701b370b064",
-        "summary_sha256": "05515e989f28c0b445fed6156b80cecbee8520d2c4cb8d6b3a4b887c5c4ddc65"
+        "manifest_sha256": "3524914525dd1c9ca2c9eafb2bf561119de4b8640e25069d71b629c4ab712e95",
+        "summary_sha256": "d70696762c1dbbbe1af76c59bd7ed2df23b74b61fa8fccb60f529bfcb3afaf6c"
       },
       "hotpot_auto": {
-        "manifest_sha256": "12905c6322a206f85d749269a2ceeaf9f525327e617c9f59eec33b2e6d819a6e",
-        "summary_sha256": "1270140a014536ed0f9c41f4e220306bf520633b8980cd88fa8502b8cc03e96c"
+        "manifest_sha256": "e0aee45f6d6538de9e76058c9992027a8c0d8d39791f59e8333a62537d44ae9a",
+        "summary_sha256": "c77bfa957d8801b45a2816af7b8a18751ce985ada35ee9316f7b797c3fea0136"
       }
     }
   },
@@ -39,23 +39,23 @@
       "target": "ligand",
       "target_name": "Ligand",
       "sample_count": 187,
-      "quality_pass_count": 185,
-      "quality_pass_rate": 0.9893048128342246,
-      "timed_sample_count": 186,
-      "median_compute_seconds": 0.3064329596236348,
-      "aggregate_compute_seconds": 117.65083131380379
+      "quality_pass_count": 186,
+      "quality_pass_rate": 0.9946524064171123,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 0.314192283898592,
+      "aggregate_compute_seconds": 122.02910655550659
     },
     {
       "workflow": "rdkit",
       "display_name": "RDKit",
       "target": "complex",
       "target_name": "Metal–ligand complex",
-      "sample_count": 181,
-      "quality_pass_count": 31,
-      "quality_pass_rate": 0.1712707182320442,
-      "timed_sample_count": 176,
-      "median_compute_seconds": 0.446213873103261,
-      "aggregate_compute_seconds": 187.27857865020633
+      "sample_count": 182,
+      "quality_pass_count": 30,
+      "quality_pass_rate": 0.16483516483516483,
+      "timed_sample_count": 171,
+      "median_compute_seconds": 0.456731453537941,
+      "aggregate_compute_seconds": 167.3449294473976
     },
     {
       "workflow": "openbabel",
@@ -63,71 +63,71 @@
       "target": "ligand",
       "target_name": "Ligand",
       "sample_count": 187,
-      "quality_pass_count": 182,
-      "quality_pass_rate": 0.9732620320855615,
+      "quality_pass_count": 181,
+      "quality_pass_rate": 0.9679144385026738,
       "timed_sample_count": 187,
-      "median_compute_seconds": 1.0893359687179327,
-      "aggregate_compute_seconds": 325.1794625874609
+      "median_compute_seconds": 1.1592831462621689,
+      "aggregate_compute_seconds": 337.9436090234667
     },
     {
       "workflow": "openbabel",
       "display_name": "Open Babel",
       "target": "complex",
       "target_name": "Metal–ligand complex",
-      "sample_count": 181,
-      "quality_pass_count": 165,
-      "quality_pass_rate": 0.9116022099447514,
-      "timed_sample_count": 180,
-      "median_compute_seconds": 1.9211977990344167,
-      "aggregate_compute_seconds": 460.29601390101016
-    },
-    {
-      "workflow": "obwrappers",
-      "display_name": "Hotpot obWrappers FAST",
-      "target": "ligand",
-      "target_name": "Ligand",
-      "sample_count": 187,
-      "quality_pass_count": 184,
-      "quality_pass_rate": 0.983957219251337,
-      "timed_sample_count": 187,
-      "median_compute_seconds": 1.4646855909377337,
-      "aggregate_compute_seconds": 450.0909051839262
-    },
-    {
-      "workflow": "obwrappers",
-      "display_name": "Hotpot obWrappers FAST",
-      "target": "complex",
-      "target_name": "Metal–ligand complex",
-      "sample_count": 181,
-      "quality_pass_count": 165,
-      "quality_pass_rate": 0.9116022099447514,
-      "timed_sample_count": 180,
-      "median_compute_seconds": 2.541943782940507,
-      "aggregate_compute_seconds": 604.0521525461227
-    },
-    {
-      "workflow": "hotpot_auto",
-      "display_name": "Hotpot optimize_complex",
-      "target": "ligand",
-      "target_name": "Ligand",
-      "sample_count": 187,
-      "quality_pass_count": 182,
-      "quality_pass_rate": 0.9732620320855615,
-      "timed_sample_count": 187,
-      "median_compute_seconds": 3.3050832841545343,
-      "aggregate_compute_seconds": 800.2670018561184
-    },
-    {
-      "workflow": "hotpot_auto",
-      "display_name": "Hotpot optimize_complex",
-      "target": "complex",
-      "target_name": "Metal–ligand complex",
-      "sample_count": 181,
-      "quality_pass_count": 180,
-      "quality_pass_rate": 0.994475138121547,
+      "sample_count": 182,
+      "quality_pass_count": 162,
+      "quality_pass_rate": 0.8901098901098901,
       "timed_sample_count": 181,
-      "median_compute_seconds": 3.8684564251452684,
-      "aggregate_compute_seconds": 944.8181460686028
+      "median_compute_seconds": 2.1342350374907255,
+      "aggregate_compute_seconds": 521.4084611739963
+    },
+    {
+      "workflow": "obwrappers",
+      "display_name": "Hotpot obWrappers FAST",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 183,
+      "quality_pass_rate": 0.9786096256684492,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 1.7585125174373388,
+      "aggregate_compute_seconds": 466.4169698935002
+    },
+    {
+      "workflow": "obwrappers",
+      "display_name": "Hotpot obWrappers FAST",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 182,
+      "quality_pass_count": 164,
+      "quality_pass_rate": 0.9010989010989011,
+      "timed_sample_count": 181,
+      "median_compute_seconds": 2.919480212032795,
+      "aggregate_compute_seconds": 683.0627394840121
+    },
+    {
+      "workflow": "hotpot_auto",
+      "display_name": "Hotpot optimize_complex",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 182,
+      "quality_pass_rate": 0.9732620320855615,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 3.3721685223281384,
+      "aggregate_compute_seconds": 808.9540947023779
+    },
+    {
+      "workflow": "hotpot_auto",
+      "display_name": "Hotpot optimize_complex",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 182,
+      "quality_pass_count": 182,
+      "quality_pass_rate": 1.0,
+      "timed_sample_count": 182,
+      "median_compute_seconds": 3.7316520400345325,
+      "aggregate_compute_seconds": 1041.3856941722333
     }
   ]
 }

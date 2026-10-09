@@ -41,14 +41,14 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
         (row["workflow"], row["target"]): row for row in evidence["results"]
     }
     expected_passes = {
-        ("rdkit", "ligand"): 185,
-        ("rdkit", "complex"): 31,
-        ("openbabel", "ligand"): 182,
-        ("openbabel", "complex"): 165,
-        ("obwrappers", "ligand"): 184,
-        ("obwrappers", "complex"): 165,
+        ("rdkit", "ligand"): 186,
+        ("rdkit", "complex"): 30,
+        ("openbabel", "ligand"): 181,
+        ("openbabel", "complex"): 162,
+        ("obwrappers", "ligand"): 183,
+        ("obwrappers", "complex"): 164,
         ("hotpot_auto", "ligand"): 182,
-        ("hotpot_auto", "complex"): 180,
+        ("hotpot_auto", "complex"): 182,
     }
     labels = {
         "rdkit": "RDKit",
@@ -59,11 +59,11 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
 
     assert evidence["schema_version"] == 1
     assert evidence["protocol"]["input_sample_count"] == 187
-    assert evidence["protocol"]["complex_sample_count"] == 181
+    assert evidence["protocol"]["complex_sample_count"] == 182
     assert set(results) == set(expected_passes)
     for key, pass_count in expected_passes.items():
         result = results[key]
-        denominator = 187 if key[1] == "ligand" else 181
+        denominator = 187 if key[1] == "ligand" else 182
         assert result["sample_count"] == denominator
         assert result["quality_pass_count"] == pass_count
         assert result["quality_pass_rate"] == pass_count / denominator
@@ -90,12 +90,12 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
     for workflow in labels:
         workflow_rows = [row for row in case_rows if row["workflow"] == workflow]
         assert len(workflow_rows) == 187 * 2
-        assert sum(row["eligible"] == "True" for row in workflow_rows) == 187 + 181
+        assert sum(row["eligible"] == "True" for row in workflow_rows) == 187 + 182
         assert {
             int(row["index"])
             for row in workflow_rows
             if row["status"] == "not_eligible"
-        } == {134, 139, 182, 185, 186, 187}
+        } == {139, 182, 185, 186, 187}
 
         ligand = results[(workflow, "ligand")]
         complex_result = results[(workflow, "complex")]
@@ -104,7 +104,7 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
             f"{ligand['quality_pass_count']}/187 "
             f"({100.0 * ligand['quality_pass_rate']:.1f}%) | "
             f"{ligand['median_compute_seconds']:.3f} s | "
-            f"{complex_result['quality_pass_count']}/181 "
+            f"{complex_result['quality_pass_count']}/182 "
             f"({100.0 * complex_result['quality_pass_rate']:.1f}%) | "
             f"{complex_result['median_compute_seconds']:.3f} s |"
         )

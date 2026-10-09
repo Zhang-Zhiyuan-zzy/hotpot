@@ -4,6 +4,9 @@
 
 **A cheminformatics harness for coordination chemistry**
 
+**HOTPOT** — a **H**uman- and LLM-**O**riented **T**oolkit with chemical
+**P**riors for **O**pen-ended cheminformatics **T**asks.
+
 > **In Hotpot, every ingredient is cookable.** 什么都能涮
 > **In data-driven chemistry, every problem is computable.** 什么都能算
 

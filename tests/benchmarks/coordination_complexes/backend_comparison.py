@@ -197,7 +197,7 @@ def export_canonical_manifest(
     reference_root: Path,
     output_path: Path,
     *,
-    metal: str = "Eu",
+    metal: Optional[str] = None,
     expected_count: Optional[int] = None,
 ) -> dict[str, object]:
     """Export compact, coordinate-free cases from one completed Hotpot run."""
@@ -211,6 +211,10 @@ def export_canonical_manifest(
         if reference_summary_path.is_file()
         else {}
     )
+    if metal is None:
+        metal = str(
+            reference_manifest["scientific_configuration"]["suite"]["metal"]
+        )
     if (
         expected_count is None
         and reference_summary.get("cbond_success_count") is not None

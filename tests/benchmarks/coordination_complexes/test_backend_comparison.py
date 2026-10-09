@@ -106,6 +106,7 @@ def test_canonical_manifest_rebuilds_selected_topology_without_coordinates(
     payload = export_canonical_manifest(
         reference,
         output,
+        metal="Eu",
         expected_count=1,
     )
     case = load_canonical_cases(output)[0]

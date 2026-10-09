@@ -60,6 +60,20 @@ def test_builtin_am_suite_reuses_all_187_extractants() -> None:
     )
 
 
+def test_case_134_is_the_counterion_free_tetraanion() -> None:
+    from hotpot import read_mol
+
+    records = dict(
+        load_smiles(BUILTIN_SUITES["extractants-am-187"].input_path)
+    )
+    smiles = records[134]
+    ligand = read_mol(smiles, fmt="smi")
+
+    assert "Na" not in smiles
+    assert all(atom.symbol != "Na" for atom in ligand.atoms)
+    assert sum(atom.formal_charge for atom in ligand.atoms) == -4
+
+
 def test_smoke_profile_is_explicitly_smaller_than_standard() -> None:
     assert SMOKE_SETTINGS.epochs < STANDARD_SETTINGS.epochs
     assert SMOKE_SETTINGS.steps_per_epoch < STANDARD_SETTINGS.steps_per_epoch

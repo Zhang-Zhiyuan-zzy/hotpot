@@ -131,7 +131,7 @@ Clc1nnc(-c2cccc(-c3nnc(Cl)c(Cl)n3)n2)nc1Cl
 CC12CCC(c3nnc(-c4cccc(-c5nnc6c(n5)C5(C)CCC6C5(C)C)n4)nc31)C2(C)C
 CCc1nnc(-c2cccc(-c3cccc(-c4nnc(CC)c(CC)n4)n3)n2)nc1CC
 CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC
-O=S(=O)([O][Na+])c1cccc(-c2nnc(-c3cccc(-c4nnc(-c5cccc(S(=O)(=O)[O][Na+])c5)c(-c5cccc(S(=O)(=O)[O][Na+])c5)n4)n3)nc2-c2cccc(S(=O)(=O)[O][Na+])c2)c1
+[O-]S(=O)(=O)c1cccc(-c2nnc(-c3cccc(-c4nnc(-c5cccc(S(=O)(=O)[O-])c5)c(-c5cccc(S(=O)(=O)[O-])c5)n4)n3)nc2-c2cccc(S(=O)(=O)[O-])c2)c1
 CCCCCCCCN(CCCCCCCC)C(=S)c1ccc2ccc3ccc(C(=S)N(CCCCCCCC)CCCCCCCC)nc3c2n1
 CCCCCCC(Br)C(=O)O
 CC(C)CN(CC(C)C)C(=O)c1ccc2ccc3ccc(C(=O)N(CC(C)C)CC(C)C)nc3c2n1

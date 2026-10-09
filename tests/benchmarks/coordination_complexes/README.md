@@ -3,7 +3,7 @@
 This opt-in benchmark measures an end-to-end chemical workflow:
 
 1. read ligand SMILES;
-2. predict Eu coordination bonds with Hotpot CBond;
+2. predict metal coordination bonds with Hotpot CBond;
 3. construct and optimize the coordination complex with
    `forcefields.complexes_build()`;
 4. apply the force-field geometry and numerical quality gate;
@@ -119,13 +119,13 @@ python -m tests.benchmarks.coordination_complexes.am_gallery \
 
 ## Five independent workflow benchmarks
 
-The comparison uses the same 187 ligands and frozen 181-member Eu–ligand
+The comparison uses the same 187 ligands and frozen 182-member Am–ligand
 cohort in five independently launchable workflows. Each workflow evaluates
 both the isolated ligand and, when CBond produced a topology, the metal–ligand
 complex. All final structures are assessed by the same Hotpot `standard`
 geometry gate.
 
-| Launcher | Ligand workflow | Eu–ligand workflow |
+| Launcher | Ligand workflow | Am–ligand workflow |
 |---|---|---|
 | `rdkit_benchmark` | RDKit ETKDG + MMFF/UFF | RDKit ETKDG + MMFF/UFF |
 | `openbabel_benchmark` | Native OBBuilder + UFF | Native OBBuilder + UFF |
@@ -136,8 +136,8 @@ geometry gate.
 Run each workflow separately with 16 workers:
 
 ```bash
-$ REFERENCE=movie/benchmarks/extractants_eu_187
-$ OUTPUT=movie/benchmarks/five_workflows
+$ REFERENCE=movie/benchmarks/extractants_am_187_auto
+$ OUTPUT=movie/benchmarks/extractants_am_187_five_workflows
 $ python -m tests.benchmarks.coordination_complexes.rdkit_benchmark \
   --input molecules/extractant/extractants.smi \
   --reference "$REFERENCE" \

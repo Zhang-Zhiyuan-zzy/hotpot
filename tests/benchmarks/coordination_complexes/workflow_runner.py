@@ -857,7 +857,7 @@ def run_benchmark(
     workers: int = 16,
     resume: bool = False,
 ) -> dict[str, object]:
-    """Run one fixed backend across all 187 ligand and 181 complex targets."""
+    """Run one fixed backend across all 187 ligand and 182 complex targets."""
     if backend not in BACKENDS:
         raise ValueError(f"unsupported benchmark backend {backend!r}")
     output_root = output_root.resolve()
@@ -914,7 +914,7 @@ def build_parser(backend: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             f"Run the {backend} benchmark for 187 ligands and the frozen "
-            "181-complex CBond cohort."
+            "182-complex CBond cohort."
         )
     )
     parser.set_defaults(backend=backend)

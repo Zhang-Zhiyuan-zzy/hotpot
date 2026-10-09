@@ -17,7 +17,7 @@ from .io import load_smiles, sha256_file
 
 SCHEMA_VERSION = 1
 EXPECTED_INPUT_COUNT = 187
-EXPECTED_COMPLEX_COUNT = 181
+EXPECTED_COMPLEX_COUNT = 182
 
 
 @dataclass(frozen=True)
@@ -77,7 +77,7 @@ def resolve_cohort(
     cohort_path: Optional[Path] = None,
     seed: int = 20260921,
 ) -> BenchmarkCohort:
-    """Load and cross-check the 187 ligands and frozen 181-complex cohort."""
+    """Load and cross-check the 187 ligands and frozen 182-complex cohort."""
     input_path = input_path.resolve()
     output_root = output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)

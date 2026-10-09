@@ -22,7 +22,7 @@ from .io import sha256_file, write_json
 
 SCHEMA_VERSION = 1
 INPUT_SAMPLE_COUNT = 187
-COMPLEX_SAMPLE_COUNT = 181
+COMPLEX_SAMPLE_COUNT = 182
 WORKFLOWS = (
     "rdkit",
     "openbabel",

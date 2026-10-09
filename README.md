@@ -387,6 +387,33 @@ workflow. All four convergence policies remain selectable through the Python
 API and `hotpot ff --convergence-level`; automatic fallback does not silently
 upgrade the caller's selected policy to `STRICT`.
 
+### Am–ligand construction gallery
+
+The same 187 extractant ligands were submitted to Hotpot's automatic complex
+workflow with Am: native `FAST` optimization first, followed by the complete
+complex workflow only when the preliminary structure was rejected. Hotpot
+inferred at least one Am–donor coordination bond for **181/187** inputs;
+**6/187** inputs produced no Am CBond. All **181/181** constructed complexes
+passed the standard geometry gate.
+
+The galleries use explicit hydrogens and a white-background, orthographic,
+Materials Studio-inspired ball-and-stick style. Each structure is viewed along
+the maximum principal moment axis of its mass-weighted inertia tensor.
+
+![Am coordination complexes constructed from CBond-positive extractants](assets/readme/am_extractant_cbond_complexes.png)
+
+*CBond-positive inputs. Each panel shows the workflow-selected final
+structure.*
+
+![Extractant ligands without an inferred Am coordination bond](assets/readme/am_extractant_no_cbond_ligands.png)
+
+*Inputs for which no Am CBond was inferred. These are visualization-only 3D
+ligand structures, not Am complexes.*
+
+The path-free [gallery evidence](assets/readme/am_extractant_gallery_evidence.json)
+records the exhaustive case partition, structure and report hashes, explicit-H
+and Am counts, rendering status, principal moments, and image hashes.
+
 ## Scientific boundaries
 
 - MCA values are model predictions in kJ/mol and are not Mayr nucleophilicity

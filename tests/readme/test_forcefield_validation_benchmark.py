@@ -1,8 +1,11 @@
 """Regression tests for force-field evidence published in README.md."""
 
 import csv
+import hashlib
 import json
 from pathlib import Path
+
+from PIL import Image
 
 from tests.readme.benchmark_forcefield_validation import run_benchmark
 
@@ -116,3 +119,77 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
     assert "3D build" not in benchmark_section
     assert "partial UFF" not in benchmark_section
     assert "Case 61" not in benchmark_section
+
+
+def test_am_gallery_evidence_matches_readme() -> None:
+    asset_root = ROOT / "assets" / "readme"
+    evidence_path = asset_root / "am_extractant_gallery_evidence.json"
+    image_paths = {
+        "cbond": asset_root / "am_extractant_cbond_complexes.png",
+        "failed_cbond": asset_root / "am_extractant_no_cbond_ligands.png",
+    }
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    evidence_text = evidence_path.read_text(encoding="utf-8")
+    evidence = json.loads(evidence_text)
+    cases = evidence["cases"]
+    groups = {
+        name: set(group["case_indices"])
+        for name, group in evidence["groups"].items()
+    }
+
+    assert evidence["schema_version"] == 1
+    assert evidence["sample_count"] == 187
+    assert len(cases) == 187
+    assert groups["cbond"].isdisjoint(groups["failed_cbond"])
+    assert groups["cbond"] | groups["failed_cbond"] == set(range(1, 188))
+    assert evidence["groups"]["cbond"]["count"] == 181
+    assert evidence["groups"]["failed_cbond"]["count"] == 6
+    assert groups["failed_cbond"] == {134, 139, 182, 185, 186, 187}
+    assert evidence["quality_passed_count"] == 181
+    assert evidence["rendered_count"] == 187
+    assert evidence["placeholder_count"] == 0
+
+    cbond_cases = [item for item in cases if item["group"] == "cbond"]
+    no_cbond_cases = [item for item in cases if item["group"] == "failed_cbond"]
+    assert all(item["benchmark_status"] == "passed" for item in cbond_cases)
+    assert all(
+        item["benchmark_status"] == "failed_cbond" for item in no_cbond_cases
+    )
+    assert all(item["render_status"] == "rendered" for item in cases)
+    assert all(item["explicit_hydrogen_count"] > 0 for item in cases)
+    assert all(item["americium_count"] == 1 for item in cbond_cases)
+    assert all(item["americium_count"] == 0 for item in no_cbond_cases)
+    assert all(
+        item["structure_origin"]
+        == "optimized_or_last_finite_benchmark_frame"
+        for item in cbond_cases
+    )
+    assert all(
+        item["structure_origin"]
+        == "visualization_only_explicit_hydrogen_3d_ligand"
+        for item in no_cbond_cases
+    )
+
+    for group, image_path in image_paths.items():
+        image_bytes = image_path.read_bytes()
+        image_evidence = evidence["contact_sheets"][group]
+        assert image_bytes.startswith(b"\x89PNG\r\n\x1a\n")
+        assert len(image_bytes) > 10_000
+        assert hashlib.sha256(image_bytes).hexdigest() == image_evidence["sha256"]
+        with Image.open(image_path) as image:
+            assert list(image.size) == [
+                image_evidence["width"],
+                image_evidence["height"],
+            ]
+
+    assert "**181/187** inputs" in readme
+    assert "**6/187** inputs" in readme
+    assert "**181/181** constructed complexes" in readme
+    assert "Materials Studio-inspired" in readme
+    assert "maximum principal moment axis" in readme
+    assert "visualization-only 3D" in readme
+    assert "not Am complexes" in readme
+    assert "assets/readme/am_extractant_cbond_complexes.png" in readme
+    assert "assets/readme/am_extractant_no_cbond_ligands.png" in readme
+    assert "/home/" not in evidence_text
+    assert "zhangzhiyuan" not in evidence_text.lower()

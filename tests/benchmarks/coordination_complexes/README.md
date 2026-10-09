@@ -93,6 +93,30 @@ python -m tests.benchmarks.coordination_complexes \
   --output movie/benchmarks/my_suite
 ```
 
+Run the 187-ligand Am suite through the public automatic route (native `FAST`
+first, complete complex fallback) and retain the full trajectories:
+
+```bash
+python -m tests.benchmarks.coordination_complexes \
+  --suite extractants-am-187 \
+  --backend hotpot-auto \
+  --workers 16 \
+  --render off \
+  --output movie/benchmarks/extractants_am_187_auto
+```
+
+Render the completed Am run as exhaustive CBond and no-CBond galleries. The
+renderer adds explicit hydrogens and views each structure along the maximum
+principal moment axis of its mass-weighted inertia tensor:
+
+```bash
+python -m tests.benchmarks.coordination_complexes.am_gallery \
+  movie/benchmarks/extractants_am_187_auto \
+  --output movie/benchmarks/extractants_am_187_auto/am_gallery \
+  --workers 8 \
+  --columns 15
+```
+
 ## Five independent workflow benchmarks
 
 The comparison uses the same 187 ligands and frozen 181-member Eu–ligand

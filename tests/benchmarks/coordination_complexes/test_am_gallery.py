@@ -204,12 +204,25 @@ def test_gallery_writes_case_images_two_sheets_and_auditable_json(
             "index": case.index,
             "group": case.group,
             "benchmark_status": case.status,
+            "output_frame_role": case.output_frame_role,
+            "report_sha256": case.report_sha256,
+            "input_source_sha256": case.source_sha256,
+            "rendered_structure_sha256": case.source_sha256,
+            "structure_origin": (
+                "optimized_or_last_finite_benchmark_frame"
+                if case.group == "cbond"
+                else "visualization_only_explicit_hydrogen_3d_ligand"
+            ),
             "image": str(image_path),
             "render_status": "rendered",
             "render_error": None,
+            "explicit_hydrogen_count": 1,
+            "americium_count": int(case.group == "cbond"),
             "inertia": {
                 "mass_weighted": True,
                 "view_axis": "maximum principal moment",
+                "principal_moments_amu_angstrom2": [1.0, 2.0, 3.0],
+                "basis_determinant": 1.0,
             },
         }
 
@@ -239,6 +252,15 @@ def test_gallery_writes_case_images_two_sheets_and_auditable_json(
     assert (output_root / "cases" / "0002.png").is_file()
     assert (output_root / "am_cbond_complexes.png").is_file()
     assert (output_root / "am_failed_cbond_ligands.png").is_file()
+    evidence_path = output_root / "gallery_evidence.json"
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    assert evidence["sample_count"] == 2
+    assert evidence["quality_passed_count"] == 1
+    assert evidence["placeholder_count"] == 0
+    assert evidence["contact_sheets"]["cbond"]["filename"] == (
+        "am_cbond_complexes.png"
+    )
+    assert str(tmp_path) not in evidence_path.read_text(encoding="utf-8")
     assert json.loads((output_root / "gallery.json").read_text())[
         "parameters"
     ]["view"] == "mass-weighted maximum principal moment of inertia axis"

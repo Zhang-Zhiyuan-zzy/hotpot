@@ -597,6 +597,81 @@ def _aggregate_input_hash(cases: Sequence[GalleryCase]) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def _contact_sheet_evidence(path: Path) -> dict[str, object]:
+    with Image.open(path) as image:
+        width, height = image.size
+    return {
+        "filename": path.name,
+        "sha256": _sha256(path),
+        "width": width,
+        "height": height,
+    }
+
+
+def _public_evidence_payload(
+    payload: Mapping[str, object],
+    output_root: Path,
+) -> dict[str, object]:
+    """Return path-free evidence suitable for a tracked README asset."""
+    cases = payload["cases"]
+    public_cases = [
+        {
+            "index": item["index"],
+            "group": item["group"],
+            "benchmark_status": item["benchmark_status"],
+            "output_frame_role": item["output_frame_role"],
+            "report_sha256": item["report_sha256"],
+            "input_source_sha256": item["input_source_sha256"],
+            "rendered_structure_sha256": item["rendered_structure_sha256"],
+            "structure_origin": item["structure_origin"],
+            "render_status": item["render_status"],
+            "explicit_hydrogen_count": item["explicit_hydrogen_count"],
+            "americium_count": item["americium_count"],
+            "principal_moments_amu_angstrom2": (
+                item["inertia"]["principal_moments_amu_angstrom2"]
+                if item["inertia"] is not None
+                else None
+            ),
+            "basis_determinant": (
+                item["inertia"]["basis_determinant"]
+                if item["inertia"] is not None
+                else None
+            ),
+        }
+        for item in cases
+    ]
+    return {
+        "schema_version": 1,
+        "input_sha256": payload["input_sha256"],
+        "benchmark_commit": payload["benchmark_commit"],
+        "renderer_git": payload["renderer_git"],
+        "renderer_sha256": payload["renderer_sha256"],
+        "parameters": payload["parameters"],
+        "sample_count": len(public_cases),
+        "quality_passed_count": sum(
+            item["benchmark_status"] == "passed" for item in public_cases
+        ),
+        "groups": {
+            group: {
+                "count": group_payload["count"],
+                "case_indices": group_payload["case_indices"],
+            }
+            for group, group_payload in payload["groups"].items()
+        },
+        "rendered_count": payload["rendered_count"],
+        "placeholder_count": payload["placeholder_count"],
+        "contact_sheets": {
+            GROUP_CBOND: _contact_sheet_evidence(
+                output_root / "am_cbond_complexes.png"
+            ),
+            GROUP_FAILED_CBOND: _contact_sheet_evidence(
+                output_root / "am_failed_cbond_ligands.png"
+            ),
+        },
+        "cases": public_cases,
+    }
+
+
 def render_am_gallery(
     benchmark_root: Path,
     output_root: Path,
@@ -681,6 +756,11 @@ def render_am_gallery(
     }
     (output_root / "gallery.json").write_text(
         json.dumps(payload, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    public_evidence = _public_evidence_payload(payload, output_root)
+    (output_root / "gallery_evidence.json").write_text(
+        json.dumps(public_evidence, indent=2) + "\n",
         encoding="utf-8",
     )
     return payload

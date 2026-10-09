@@ -1,4 +1,4 @@
-"""Independent ligand/complex benchmark runner for four fixed backends."""
+"""Independent ligand/complex benchmark runner for five fixed backends."""
 
 from __future__ import annotations
 
@@ -42,6 +42,7 @@ BACKENDS = (
     "openbabel",
     "obwrappers",
     "hotpot_optimize_complex",
+    "hotpot_auto",
 )
 FORCEFIELD = "UFF"
 OPTIMIZATION_EPOCHS = 100
@@ -371,6 +372,7 @@ def _run_obwrappers_target(
         steps_per_epoch=STEPS_PER_EPOCH,
         retain_frames=True,
         retain_epoch_history=True,
+        convergence_level=ff.ConvergenceLevel.FAST,
     )
     optimization_seconds = perf_counter() - optimize_started
     _record_obwrappers_trajectory(mol, trajectory, optimization_report)
@@ -465,6 +467,72 @@ def _run_hotpot_target(
     }
 
 
+def _run_hotpot_auto_target(
+    target: str,
+    mol: Molecule,
+    case_dir: Path,
+    seed: int,
+) -> dict[str, object]:
+    """Run auto directly from the raw target without a preliminary build."""
+    from hotpot.cheminfo import forcefields as ff
+
+    trajectory_path = case_dir / "trajectory"
+    started = perf_counter()
+    if target == "ligand":
+        workflow_report = ff.build_and_optimize(
+            mol,
+            FORCEFIELD,
+            epochs=OPTIMIZATION_EPOCHS,
+            steps_per_epoch=STEPS_PER_EPOCH,
+            add_hydrogens=False,
+            quality_level="standard",
+            seed=seed,
+            convergence_level=ff.ConvergenceLevel.FAST,
+            save_movie=True,
+            trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
+            trajectory_path=trajectory_path,
+        )
+        optimization_report = workflow_report.optimization
+        quality_report = workflow_report.quality_report
+    else:
+        optimization_report = ff.auto_optimize(
+            mol,
+            FORCEFIELD,
+            epochs=OPTIMIZATION_EPOCHS,
+            steps_per_epoch=STEPS_PER_EPOCH,
+            add_hydrogens=False,
+            quality_level="standard",
+            seed=seed,
+            convergence_level=ff.ConvergenceLevel.FAST,
+            save_movie=True,
+            trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
+            trajectory_path=trajectory_path,
+        )
+        quality_report = optimization_report.quality_report
+    compute_seconds = perf_counter() - started
+    if optimization_report is None or quality_report is None:
+        raise RuntimeError("The automatic workflow omitted its final report")
+    routing_report = optimization_report.routing_report
+    return {
+        "compute_seconds": compute_seconds,
+        "forcefield_name": FORCEFIELD,
+        "converged": bool(optimization_report.converged),
+        "termination_reason": optimization_report.termination_reason,
+        "optimization_report": json_value(optimization_report),
+        "routing_report": json_value(routing_report),
+        "validation": _quality_payload(quality_report),
+        "quality_passed": bool(quality_report.passed),
+        "trajectory": {
+            "path": str(trajectory_path.relative_to(case_dir)),
+            "selected_route": (
+                None
+                if routing_report is None
+                else routing_report.selected_route.value
+            ),
+        },
+    }
+
+
 def _write_structure(case_dir: Path, mol: Molecule) -> dict[str, str]:
     mol2_path = case_dir / "optimized.mol2"
     sdf_path = case_dir / "optimized.sdf"
@@ -529,6 +597,13 @@ def _run_target(
             elif backend == "obwrappers":
                 trajectory = _new_trajectory(mol)
                 result = _run_obwrappers_target(mol, trajectory)
+            elif backend == "hotpot_auto":
+                result = _run_hotpot_auto_target(
+                    target,
+                    mol,
+                    target_dir,
+                    ligand_case.seed,
+                )
             else:
                 result = _run_hotpot_target(
                     target,
@@ -541,13 +616,14 @@ def _run_target(
         finite_coordinates = bool(np.all(np.isfinite(mol.coordinates)))
         record["finite_final_coordinates"] = finite_coordinates
         if finite_coordinates:
-            validation = ff.evaluate_structure_acceptance(
-                mol,
-                level="standard",
-                topology_reference=topology_reference,
-            )
-            record["validation"] = _quality_payload(validation)
-            record["quality_passed"] = bool(validation.passed)
+            if record["validation"] is None:
+                validation = ff.evaluate_structure_acceptance(
+                    mol,
+                    level="standard",
+                    topology_reference=topology_reference,
+                )
+                record["validation"] = _quality_payload(validation)
+                record["quality_passed"] = bool(validation.passed)
             record["status"] = "passed" if validation.passed else "failed_quality"
             record["structure"] = _write_structure(target_dir, mol)
         else:
@@ -655,6 +731,11 @@ def _target_summary(
     ]
     pass_count = sum(bool(record.get("quality_passed")) for record in target_records)
     denominator = len(target_records)
+    selected_routes = Counter(
+        str(record["routing_report"]["selected_route"])
+        for record in target_records
+        if record.get("routing_report") is not None
+    )
     return {
         "denominator": denominator,
         "report_count": denominator,
@@ -666,6 +747,7 @@ def _target_summary(
         "status_counts": dict(
             Counter(str(record["status"]) for record in target_records)
         ),
+        "selected_route_counts": dict(selected_routes),
     }
 
 
@@ -720,6 +802,20 @@ def _manifest_payload(backend: str, cohort: BenchmarkCohort) -> dict[str, object
             "optimization_steps": OPTIMIZATION_STEPS,
             "seed": SEED,
             "quality_level": "standard",
+            "convergence_level": (
+                "FAST"
+                if backend in {
+                    "obwrappers",
+                    "hotpot_optimize_complex",
+                    "hotpot_auto",
+                }
+                else None
+            ),
+            "strategy": (
+                "obwrappers_fast_then_complex_workflow"
+                if backend == "hotpot_auto"
+                else None
+            ),
             "timing_scope": "build and optimize calls only",
         },
     }

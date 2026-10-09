@@ -142,10 +142,10 @@ def test_am_gallery_evidence_matches_readme() -> None:
     assert len(cases) == 187
     assert groups["cbond"].isdisjoint(groups["failed_cbond"])
     assert groups["cbond"] | groups["failed_cbond"] == set(range(1, 188))
-    assert evidence["groups"]["cbond"]["count"] == 181
-    assert evidence["groups"]["failed_cbond"]["count"] == 6
-    assert groups["failed_cbond"] == {134, 139, 182, 185, 186, 187}
-    assert evidence["quality_passed_count"] == 181
+    assert evidence["groups"]["cbond"]["count"] == 182
+    assert evidence["groups"]["failed_cbond"]["count"] == 5
+    assert groups["failed_cbond"] == {139, 182, 185, 186, 187}
+    assert evidence["quality_passed_count"] == 182
     assert evidence["rendered_count"] == 187
     assert evidence["placeholder_count"] == 0
 
@@ -182,9 +182,9 @@ def test_am_gallery_evidence_matches_readme() -> None:
                 image_evidence["height"],
             ]
 
-    assert "**181/187** inputs" in readme
-    assert "**6/187** inputs" in readme
-    assert "**181/181** optimized outputs" in readme
+    assert "**182/187** inputs" in readme
+    assert "**5/187** inputs" in readme
+    assert "**182/182** optimized outputs" in readme
     assert "current generic geometry gate" in readme
     assert "Materials Studio-inspired" in readme
     assert "maximum principal moment axis" in readme

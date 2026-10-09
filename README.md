@@ -392,8 +392,8 @@ upgrade the caller's selected policy to `STRICT`.
 The same 187 extractant ligands were submitted to Hotpot's automatic complex
 workflow with Am: native `FAST` optimization first, followed by the complete
 complex workflow only when the preliminary structure was rejected. Hotpot
-inferred at least one Am–donor coordination bond for **181/187** inputs;
-**6/187** inputs produced no Am CBond. All **181/181** optimized outputs
+inferred at least one Am–donor coordination bond for **182/187** inputs;
+**5/187** inputs produced no Am CBond. All **182/182** optimized outputs
 passed the current generic geometry gate; this does not establish that every
 coordination environment is chemically definitive.
 

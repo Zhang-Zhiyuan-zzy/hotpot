@@ -1,4 +1,4 @@
-"""Frozen input contracts shared by the four force-field benchmarks."""
+"""Frozen input contracts shared by the five force-field benchmarks."""
 
 from __future__ import annotations
 

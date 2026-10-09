@@ -43,15 +43,18 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
         ("openbabel", "ligand"): 182,
         ("openbabel", "complex"): 165,
         ("obwrappers", "ligand"): 184,
-        ("obwrappers", "complex"): 167,
+        ("obwrappers", "complex"): 165,
         ("hotpot_optimize_complex", "ligand"): 182,
         ("hotpot_optimize_complex", "complex"): 180,
+        ("hotpot_auto", "ligand"): 182,
+        ("hotpot_auto", "complex"): 180,
     }
     labels = {
         "rdkit": "RDKit",
         "openbabel": "Open Babel",
-        "obwrappers": "Hotpot `obWrappers`",
-        "hotpot_optimize_complex": "Hotpot `optimize_complex` workflow",
+        "obwrappers": "Hotpot `obWrappers` (`FAST`)",
+        "hotpot_optimize_complex": "Hotpot `optimize_complex` workflow (`FAST`)",
+        "hotpot_auto": "Hotpot automatic `FAST`-first workflow",
     }
 
     assert evidence["schema_version"] == 1
@@ -83,7 +86,7 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
 
     with case_csv_path.open(encoding="utf-8", newline="") as stream:
         case_rows = tuple(csv.DictReader(stream))
-    assert len(case_rows) == 4 * 187 * 2
+    assert len(case_rows) == 5 * 187 * 2
     for workflow in labels:
         workflow_rows = [row for row in case_rows if row["workflow"] == workflow]
         assert len(workflow_rows) == 187 * 2

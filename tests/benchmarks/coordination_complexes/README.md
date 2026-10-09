@@ -93,13 +93,14 @@ python -m tests.benchmarks.coordination_complexes \
   --output movie/benchmarks/my_suite
 ```
 
-## Four independent workflow benchmarks
+## Five independent workflow benchmarks
 
 The comparison uses the same 187 ligands and frozen 181-member Eu–ligand
-cohort in four independently launchable workflows. Each workflow evaluates
+cohort in five independently launchable workflows. Each workflow evaluates
 both the isolated ligand and, when CBond produced a topology, the metal–ligand
 complex. All final structures are assessed by the same Hotpot `standard`
-geometry gate.
+geometry gate. Every Hotpot workflow explicitly uses the `FAST` convergence
+policy.
 
 | Launcher | Ligand workflow | Eu–ligand workflow |
 |---|---|---|
@@ -107,12 +108,13 @@ geometry gate.
 | `openbabel_benchmark` | Native OBBuilder + UFF | Native OBBuilder + UFF |
 | `obwrappers_benchmark` | `obWrappers.build()` + `optimize()` | `obWrappers.build()` + `optimize()` |
 | `optimize_complex_benchmark` | `ff.build3d()` + `ff.optimize()` | `ff.build_complex3d()` + `ff.optimize_complex()` |
+| `auto_optimize_benchmark` | `ff.build3d()` + `ff.auto_optimize()` | `ff.build_complex3d()` + `ff.auto_optimize()` |
 
 Run each workflow separately with 16 workers:
 
 ```bash
 $ REFERENCE=movie/benchmarks/extractants_eu_187
-$ OUTPUT=movie/benchmarks/four_workflows
+$ OUTPUT=movie/benchmarks/five_workflows
 $ python -m tests.benchmarks.coordination_complexes.rdkit_benchmark \
   --input molecules/extractant/extractants.smi \
   --reference "$REFERENCE" \
@@ -132,21 +134,27 @@ $ python -m tests.benchmarks.coordination_complexes.optimize_complex_benchmark \
   --input molecules/extractant/extractants.smi \
   --cohort "$OUTPUT/rdkit/canonical_cases.json" \
   --output "$OUTPUT/hotpot_optimize_complex" --workers 16
+
+$ python -m tests.benchmarks.coordination_complexes.auto_optimize_benchmark \
+  --input molecules/extractant/extractants.smi \
+  --cohort "$OUTPUT/rdkit/canonical_cases.json" \
+  --output "$OUTPUT/hotpot_auto" --workers 16
 ```
 
 Alternatively, replace `--cohort` with `--reference <completed-hotpot-run>` to
 export the frozen cohort from an existing standard benchmark. Add `--resume`
 to continue an interrupted run whose manifest is unchanged.
 
-Aggregate the four completed workflows without rerunning chemistry:
+Aggregate the five completed workflows without rerunning chemistry:
 
 ```bash
-$ OUTPUT=movie/benchmarks/four_workflows
+$ OUTPUT=movie/benchmarks/five_workflows
 $ python -m tests.benchmarks.coordination_complexes.workflow_comparison \
   --rdkit "$OUTPUT/rdkit" \
   --openbabel "$OUTPUT/openbabel" \
   --obwrappers "$OUTPUT/obwrappers" \
   --hotpot-optimize-complex "$OUTPUT/hotpot_optimize_complex" \
+  --hotpot-auto "$OUTPUT/hotpot_auto" \
   --output-dir assets/readme
 ```
 

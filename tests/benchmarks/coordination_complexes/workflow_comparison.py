@@ -42,6 +42,13 @@ DISPLAY_NAMES = {
     "hotpot_optimize_complex": "Hotpot optimize_complex FAST",
     "hotpot_auto": "Hotpot auto FAST-first",
 }
+PLOT_LABELS = {
+    "rdkit": "RDKit",
+    "openbabel": "Open\nBabel",
+    "obwrappers": "Hotpot\nobWrappers\nFAST",
+    "hotpot_optimize_complex": "Hotpot\noptimize_complex\nFAST",
+    "hotpot_auto": "Hotpot\nauto\nFAST-first",
+}
 TARGET_NAMES = {
     "ligand": "Ligand",
     "complex": "Metal–ligand complex",
@@ -440,7 +447,7 @@ def write_comparison_plot(
         gate_axis.bar_label(gate_bars, fmt="%.1f%%", padding=2, fontsize=8)
         time_axis.bar_label(time_bars, fmt="%.3g s", padding=2, fontsize=8)
 
-    labels = [DISPLAY_NAMES[workflow].replace(" ", "\n", 1) for workflow in WORKFLOWS]
+    labels = [PLOT_LABELS[workflow] for workflow in WORKFLOWS]
     for axis in (gate_axis, time_axis):
         axis.set_xticks(x, labels)
         axis.grid(axis="y", alpha=0.2)

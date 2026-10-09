@@ -356,19 +356,20 @@ optimization results comparable under the same public geometry-quality gate.
 
 ### Ligand and Eu–ligand benchmark
 
-Four independently launched workflows were evaluated on the same 187 isolated
-ligands and the same 181 CBond-eligible Eu–ligand complexes. The two Hotpot
-rows use the `STRICT` convergence policy retained for historical comparison.
-Times are median build-plus-optimize durations among completed workflows in a
-16-worker run; CBond inference, geometry validation, serialization, and
-rendering are excluded.
+Five independently launched workflows were evaluated on the same 187 isolated
+ligands and the same 181 CBond-eligible Eu–ligand complexes. The three Hotpot
+workflows use the default `FAST` convergence policy. Times are median
+build-plus-optimize durations among completed workflows in a 16-worker run;
+CBond inference, geometry validation, serialization, and rendering are
+excluded.
 
 | Workflow | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
 |---|---:|---:|---:|---:|
 | RDKit | 185/187 (98.9%) | 0.306 s | 31/181 (17.1%) | 0.446 s |
 | Open Babel | 182/187 (97.3%) | 1.089 s | 165/181 (91.2%) | 1.921 s |
-| Hotpot `obWrappers` (`STRICT`) | 184/187 (98.4%) | 3.802 s | 167/181 (92.3%) | 4.223 s |
-| Hotpot `optimize_complex` workflow (`STRICT`) | 182/187 (97.3%) | 6.004 s | 180/181 (99.4%) | 8.938 s |
+| Hotpot `obWrappers` (`FAST`) | 184/187 (98.4%) | 1.465 s | 165/181 (91.2%) | 2.542 s |
+| Hotpot `optimize_complex` workflow (`FAST`) | 182/187 (97.3%) | 3.314 s | 180/181 (99.4%) | 7.529 s |
+| Hotpot automatic `FAST`-first workflow | 182/187 (97.3%) | 3.354 s | 180/181 (99.4%) | 7.593 s |
 
 ![Ligand and Eu coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
 
@@ -380,12 +381,8 @@ benchmark:
 - [protocol and aggregate JSON](assets/readme/coordination_complex_backend_comparison.json)
 - [per-case CSV](assets/readme/coordination_complex_backend_comparison_cases.csv)
 
-The current optimizer default is `FAST`. In a separate paired test from the
-same saved 3D starts, it reduced aggregate `obWrappers` optimization time by
-52.4% for ligands and 38.0% for complexes relative to `STRICT`, while changing
-the complex geometry-pass total from 166/181 to 165/181. All four policies,
-including `STRICT` for the former behavior, remain selectable through the
-Python API and `hotpot ff --convergence-level`.
+All four convergence policies remain selectable through the Python API and
+`hotpot ff --convergence-level`.
 
 ## Scientific boundaries
 
@@ -432,7 +429,7 @@ README examples are executable regression tests. Run them with:
 $ python -m pytest -q tests/readme
 ```
 
-The four independent benchmark launchers and the evidence aggregation command
+The five independent benchmark launchers and the evidence aggregation command
 are listed in the
 [coordination-complex benchmark guide](tests/benchmarks/coordination_complexes/README.md).
 

@@ -147,6 +147,9 @@ def test_organic_route_calls_ordinary_optimizer_once(monkeypatch):
     assert options["steps_per_epoch"] == 19
     assert options["seed"] == 31
     assert result.routing_report.selected_route is ff.OptimizationRoute.ORDINARY
+    assert result.routing_report.attempts[0].elapsed_seconds == pytest.approx(
+        result.elapsed_seconds
+    )
 
 
 def test_native_attempt_orders_build_optimize_and_one_gate(monkeypatch):

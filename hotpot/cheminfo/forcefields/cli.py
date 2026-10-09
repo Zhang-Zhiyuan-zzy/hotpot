@@ -418,15 +418,10 @@ def _run_forcefield(
                 **_optimization_options(options, trajectory_path),
             )
         if mol.has_metal:
-            auto_options = (
-                _build_options(options, trajectory_path)
-                if requires_build
-                else _optimization_options(options, trajectory_path)
-            )
             return auto_optimize(
                 mol,
                 options.forcefield,
-                **auto_options,
+                **_build_options(options, trajectory_path),
             )
         if requires_build:
             return build_and_optimize(

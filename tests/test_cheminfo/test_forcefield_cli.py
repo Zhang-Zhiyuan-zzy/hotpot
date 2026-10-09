@@ -314,8 +314,9 @@ def test_existing_3d_uses_auto_optimize(monkeypatch, capsys):
     assert "timeout" not in observed_calls[0][2]
 
 
-def test_unbuilt_complex_uses_native_fast_auto_route(monkeypatch):
-    mol = _Molecule("complex", has_metal=True)
+@pytest.mark.parametrize("has_3d", [False, True])
+def test_complex_uses_native_fast_auto_route(monkeypatch, has_3d):
+    mol = _Molecule("complex", has_3d=has_3d, has_metal=True)
     options = cli._RunOptions(
         rebuild=False,
         optimize_only=False,

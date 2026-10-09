@@ -252,9 +252,8 @@ def _archive_with_preliminary_attempt(
     archive: ForceFieldTrajectoryArchive,
     preliminary: ForceFieldTrajectory,
 ) -> ForceFieldTrajectoryArchive:
-    return ForceFieldTrajectoryArchive(
-        main=archive.main,
-        ligand_build_attempts=archive.ligand_build_attempts,
+    return replace(
+        archive,
         preliminary_attempts=(preliminary,) + archive.preliminary_attempts,
     )
 
@@ -432,6 +431,7 @@ def auto_optimize(
         attempt = _optimization_attempt_report(
             report,
             OptimizationRoute.ORDINARY,
+            elapsed_seconds=report.elapsed_seconds,
         )
         return replace(
             report,

@@ -27,17 +27,21 @@ Quote direct SMILES so that shell metacharacters are not interpreted.
 
 ## Default workflow
 
-Without `--rebuild` or `--optimize-only`, the command follows the input. Hotpot
-considers coordinates three-dimensional when the molecule has at least two
-atoms and their coordinate vectors are not all coincident:
+Without `--rebuild` or `--optimize-only`, the command selects its workflow from
+the molecular topology. Hotpot considers coordinates three-dimensional when
+the molecule has at least two atoms and their coordinate vectors are not all
+coincident:
 
-- a molecule with non-coincident coordinates is optimized from those
+- an organic molecule with non-coincident coordinates is optimized from those
   coordinates;
-- a molecule whose coordinates are all coincident is built in 3D and then
-  optimized;
-- an organic molecule uses the organic workflow;
-- a metal-containing molecule uses the complex workflow, including
-  coordination-bond restoration and confirmed ring--bond untangling.
+- an organic molecule whose coordinates are all coincident is built in 3D and
+  then optimized;
+- a metal-containing molecule first receives a fresh native `FAST` build and
+  optimization; if that candidate fails the geometry gate, Hotpot discards it
+  and runs the complete complex build workflow from the original topology.
+
+Use `--optimize-only` when an existing metal-complex geometry must be retained
+as the optimization starting point.
 
 Missing hydrogens are added before force-field work by default. Pass
 `--no-add-hydrogens` only when the supplied hydrogen topology must be retained
@@ -71,7 +75,7 @@ $ hotpot ff 'c1ccccc1CN' --output-format sdf > benzylamine.sdf
 
 ## Molecule files
 
-Optimize an existing three-dimensional structure:
+Process a molecule file with automatic routing:
 
 ```bash
 $ hotpot ff complex.mol2 -o complex-optimized.mol2
@@ -96,8 +100,8 @@ geometry, and optimize it:
 $ hotpot ff complex.mol2 --rebuild -o complex-rebuilt.mol2
 ```
 
-Use `--optimize-only` to require non-coincident input coordinates and prohibit
-an implicit build:
+Use `--optimize-only` to require non-coincident input coordinates, prohibit an
+implicit build, and optimize from the supplied geometry:
 
 ```bash
 $ hotpot ff complex.mol2 --optimize-only -o complex-optimized.mol2
@@ -165,7 +169,7 @@ with status 1. Use `--report` to retain per-input status and diagnostics.
 
 | Value | Meaning |
 | --- | --- |
-| `auto` | Select `complex` for a metal-containing topology and `organic` otherwise. This is the default. |
+| `auto` | Use the organic route for an organic topology. For a metal-containing topology, try a fresh native `FAST` build first and fall back to the complete complex workflow only if it is rejected. This is the default. |
 | `organic` | Use the ordinary molecular build/optimization workflow explicitly. |
 | `complex` | Use coordination restoration, ring--bond untangling, and complex optimization explicitly. |
 

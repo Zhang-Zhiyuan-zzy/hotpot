@@ -502,6 +502,57 @@ def test_optimize_only_rejects_input_without_3d():
         cli._run_forcefield(mol, options, None)
 
 
+@pytest.mark.parametrize(
+    ("has_metal", "optimizer_name"),
+    [(False, "optimize"), (True, "optimize_complex")],
+)
+def test_optimize_only_preserves_existing_coordinates(
+    monkeypatch,
+    has_metal,
+    optimizer_name,
+):
+    mol = _Molecule("existing", has_3d=True, has_metal=has_metal)
+    options = cli._RunOptions(
+        rebuild=False,
+        optimize_only=True,
+        route="auto",
+        forcefield=None,
+        algorithm="conjugate",
+        epochs=1,
+        steps_per_epoch=1,
+        add_hydrogens=True,
+        quality_level="standard",
+        seed=None,
+        timeout=10.0,
+        trajectory_start=None,
+        output_format="mol2",
+    )
+    observed = []
+
+    for name in ("optimize", "optimize_complex"):
+        if name == optimizer_name:
+            monkeypatch.setattr(
+                cli,
+                name,
+                lambda molecule, forcefield, _name=name, **kwargs: (
+                    observed.append((_name, molecule, forcefield, kwargs))
+                    or _report()
+                ),
+            )
+        else:
+            monkeypatch.setattr(cli, name, _fail_if_called(name))
+    monkeypatch.setattr(cli, "auto_optimize", _fail_if_called("auto_optimize"))
+    monkeypatch.setattr(
+        cli,
+        "build_and_optimize",
+        _fail_if_called("build_and_optimize"),
+    )
+
+    assert cli._run_forcefield(mol, options, None) == _report()
+    assert observed[0][0] == optimizer_name
+    assert "timeout" not in observed[0][3]
+
+
 def test_output_file_is_byte_equivalent_to_stdout(monkeypatch, tmp_path, capsys):
     mol_stdout = _Molecule("same")
     mol_file = _Molecule("same")

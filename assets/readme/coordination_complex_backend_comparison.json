@@ -23,12 +23,16 @@
         "summary_sha256": "4314a9d35a18d4d740150455f72554e7508847f0d540fd6fa665b0af9acaa5e0"
       },
       "obwrappers": {
-        "manifest_sha256": "3dd0f47289c2bb3454beaf6392aa0b06b2e470765a6633dae9617e75a0b573ac",
-        "summary_sha256": "982e083bfe5f4bea750ef8637ba281566ebc0d1ce3a6e60ff4be7baab6c6f9ca"
+        "manifest_sha256": "0d3acc76948a747d64242073593dab5bb4a6f6a9dbbde2206f6bc701b370b064",
+        "summary_sha256": "05515e989f28c0b445fed6156b80cecbee8520d2c4cb8d6b3a4b887c5c4ddc65"
       },
       "hotpot_optimize_complex": {
-        "manifest_sha256": "01ba14a978a6fbe2a7781c9cb72158bf1c8c0385a02a09af6102f0a54e7c475f",
-        "summary_sha256": "fabc47439155f6ed1568383740040d9de3c638322f46c45d7fbb341fd55c9d74"
+        "manifest_sha256": "13a7253b50d6551c144d0b54305c0a0643ad858d5c477a7ef5be1b60d976cbeb",
+        "summary_sha256": "12909fca34997311fdec64a2fde906bf2b11c15db9e8d58b4179b150aebc627b"
+      },
+      "hotpot_auto": {
+        "manifest_sha256": "12905c6322a206f85d749269a2ceeaf9f525327e617c9f59eec33b2e6d819a6e",
+        "summary_sha256": "476b0323af4f6748cfd91e59fd99dccb8936f34842fe0a5fcb754e97907e4b32"
       }
     }
   },
@@ -83,51 +87,75 @@
     },
     {
       "workflow": "obwrappers",
-      "display_name": "Hotpot obWrappers",
+      "display_name": "Hotpot obWrappers FAST",
       "target": "ligand",
       "target_name": "Ligand",
       "sample_count": 187,
       "quality_pass_count": 184,
       "quality_pass_rate": 0.983957219251337,
       "timed_sample_count": 187,
-      "median_compute_seconds": 3.802231676876545,
-      "aggregate_compute_seconds": 779.5005909707397
+      "median_compute_seconds": 1.4646855909377337,
+      "aggregate_compute_seconds": 450.0909051839262
     },
     {
       "workflow": "obwrappers",
-      "display_name": "Hotpot obWrappers",
+      "display_name": "Hotpot obWrappers FAST",
       "target": "complex",
       "target_name": "Metal–ligand complex",
       "sample_count": 181,
-      "quality_pass_count": 167,
-      "quality_pass_rate": 0.9226519337016574,
+      "quality_pass_count": 165,
+      "quality_pass_rate": 0.9116022099447514,
       "timed_sample_count": 180,
-      "median_compute_seconds": 4.222738996148109,
-      "aggregate_compute_seconds": 844.4744458850473
+      "median_compute_seconds": 2.541943782940507,
+      "aggregate_compute_seconds": 604.0521525461227
     },
     {
       "workflow": "hotpot_optimize_complex",
-      "display_name": "Hotpot optimize_complex",
+      "display_name": "Hotpot optimize_complex FAST",
       "target": "ligand",
       "target_name": "Ligand",
       "sample_count": 187,
       "quality_pass_count": 182,
       "quality_pass_rate": 0.9732620320855615,
       "timed_sample_count": 187,
-      "median_compute_seconds": 6.0037956312298775,
-      "aggregate_compute_seconds": 1144.0719810109586
+      "median_compute_seconds": 3.3143015429377556,
+      "aggregate_compute_seconds": 801.4183783084154
     },
     {
       "workflow": "hotpot_optimize_complex",
-      "display_name": "Hotpot optimize_complex",
+      "display_name": "Hotpot optimize_complex FAST",
       "target": "complex",
       "target_name": "Metal–ligand complex",
       "sample_count": 181,
       "quality_pass_count": 180,
       "quality_pass_rate": 0.994475138121547,
       "timed_sample_count": 181,
-      "median_compute_seconds": 8.938034182414412,
-      "aggregate_compute_seconds": 1770.060548035428
+      "median_compute_seconds": 7.529325056821108,
+      "aggregate_compute_seconds": 1595.6737380791456
+    },
+    {
+      "workflow": "hotpot_auto",
+      "display_name": "Hotpot auto: native FAST → complex fallback",
+      "target": "ligand",
+      "target_name": "Ligand",
+      "sample_count": 187,
+      "quality_pass_count": 182,
+      "quality_pass_rate": 0.9732620320855615,
+      "timed_sample_count": 187,
+      "median_compute_seconds": 3.327568108215928,
+      "aggregate_compute_seconds": 798.8197621181607
+    },
+    {
+      "workflow": "hotpot_auto",
+      "display_name": "Hotpot auto: native FAST → complex fallback",
+      "target": "complex",
+      "target_name": "Metal–ligand complex",
+      "sample_count": 181,
+      "quality_pass_count": 180,
+      "quality_pass_rate": 0.994475138121547,
+      "timed_sample_count": 181,
+      "median_compute_seconds": 3.336789095774293,
+      "aggregate_compute_seconds": 944.5184998419136
     }
   ]
 }

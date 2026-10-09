@@ -112,6 +112,7 @@ def test_hotpot_auto_complex_starts_without_preliminary_complex_build(
     tmp_path,
 ) -> None:
     calls = []
+    trajectory_writes = []
     quality = SimpleNamespace(
         level="standard",
         passed=True,
@@ -124,6 +125,9 @@ def test_hotpot_auto_complex_starts_without_preliminary_complex_build(
         selected_route=ff.OptimizationRoute.NATIVE_FAST,
         attempts=(),
     )
+    trajectory = SimpleNamespace(
+        write=lambda path: trajectory_writes.append(path),
+    )
 
     def auto_optimize(molecule, forcefield, **options):
         calls.append((molecule, forcefield, options))
@@ -132,7 +136,7 @@ def test_hotpot_auto_complex_starts_without_preliminary_complex_build(
             termination_reason="converged",
             quality_report=quality,
             routing_report=routing,
-            trajectory=None,
+            trajectory=trajectory,
         )
 
     monkeypatch.setattr(ff, "auto_optimize", auto_optimize)
@@ -152,6 +156,8 @@ def test_hotpot_auto_complex_starts_without_preliminary_complex_build(
     assert len(calls) == 1
     assert calls[0][2]["convergence_level"] is ff.ConvergenceLevel.FAST
     assert calls[0][2]["trajectory_start"] is ff.TrajectoryStart.LIGAND_BUILD
+    assert calls[0][2]["trajectory_path"] is None
+    assert trajectory_writes == [tmp_path / "trajectory"]
     assert result["quality_passed"] is True
     assert result["routing_report"]["selected_route"] == "native_fast"
 

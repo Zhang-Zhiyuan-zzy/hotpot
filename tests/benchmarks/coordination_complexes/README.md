@@ -160,6 +160,8 @@ $ python -m tests.benchmarks.coordination_complexes.workflow_comparison \
 The reported efficiency is the median build-plus-optimize time among workflows
 that completed both operations. CBond inference, final geometry validation,
 serialization, and rendering are outside this timing boundary.
+Acceptance checks used internally to select an automatic route are intrinsic to
+that workflow and remain inside its timing boundary.
 
 Each workflow root contains `manifest.json`, `summary.json`, and one
 `cases/NNNN/report.json` with separate `ligand` and `complex` targets.

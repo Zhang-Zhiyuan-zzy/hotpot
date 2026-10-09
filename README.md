@@ -361,6 +361,8 @@ ligands and the same 181 CBond-eligible Eu–ligand complexes. Hotpot uses its
 default `FAST` convergence policy. Times are median construction-plus-optimize
 durations among completed workflows in a 16-worker run; CBond inference,
 serialization, rendering, and any external post-validation are excluded.
+The automatic workflow's internal acceptance checks are part of its routing
+cost and therefore remain inside its reported duration.
 
 | Workflow | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
 |---|---:|---:|---:|---:|

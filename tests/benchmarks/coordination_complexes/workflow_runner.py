@@ -490,10 +490,11 @@ def _run_hotpot_auto_target(
             convergence_level=ff.ConvergenceLevel.FAST,
             save_movie=True,
             trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
-            trajectory_path=trajectory_path,
+            trajectory_path=None,
         )
         optimization_report = workflow_report.optimization
         quality_report = workflow_report.quality_report
+        trajectory_archive = workflow_report.trajectory
     else:
         optimization_report = ff.auto_optimize(
             mol,
@@ -506,12 +507,16 @@ def _run_hotpot_auto_target(
             convergence_level=ff.ConvergenceLevel.FAST,
             save_movie=True,
             trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
-            trajectory_path=trajectory_path,
+            trajectory_path=None,
         )
         quality_report = optimization_report.quality_report
+        trajectory_archive = optimization_report.trajectory
     compute_seconds = perf_counter() - started
     if optimization_report is None or quality_report is None:
         raise RuntimeError("The automatic workflow omitted its final report")
+    if trajectory_archive is None:
+        raise RuntimeError("The automatic workflow omitted its trajectory")
+    trajectory_archive.write(trajectory_path)
     routing_report = optimization_report.routing_report
     return {
         "compute_seconds": compute_seconds,

@@ -53,7 +53,7 @@ dependencies = [
     "openpyxl>=3.1,<4",
 ]
 
-description = "A python package designed to communicate among various chemical and materials calculational tools"
+description = "A cheminformatics harness for coordination chemistry"
 
 [project.optional-dependencies]
 pymol = [

@@ -2,7 +2,7 @@
 
 # 🥘 Hotpot (火锅)
 
-**A Human- and LLM-Oriented Toolkit with Chemical Priors for Open-Ended Cheminformatics Tasks**
+**A cheminformatics harness for coordination chemistry**
 
 > **In Hotpot, every ingredient is cookable.** 什么都能涮
 > **In data-driven chemistry, every problem is computable.** 什么都能算

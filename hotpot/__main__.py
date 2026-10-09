@@ -19,6 +19,9 @@ from . import version
 from hotpot.utils.configs.logging_config import setup_logging
 
 
+PROJECT_DESCRIPTION = "A cheminformatics harness for coordination chemistry"
+
+
 def is_running_in_foreground():
     """
     Check if the script is running in foreground based on input/output capabilities.
@@ -35,7 +38,7 @@ def is_running_in_foreground():
 
 def show_version():
     print(f"Hotpot version: {version()}")
-    print("A C++/python package designed to communicate among various chemical and materials calculational tools")
+    print(PROJECT_DESCRIPTION)
 
 
 def build_parser(load_optional_commands=True):
@@ -45,7 +48,7 @@ def build_parser(load_optional_commands=True):
 
     parser = argparse.ArgumentParser(
         prog='hotpot',
-        description="A C++/python package designed to communicate among various chemical and materials calculational tools"
+        description=PROJECT_DESCRIPTION,
     )
 
     parser.add_argument('-d', '--debug', action='store_true', help='debug mode')

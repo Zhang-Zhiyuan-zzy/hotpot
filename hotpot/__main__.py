@@ -43,6 +43,7 @@ def show_version():
 
 def build_parser(load_optional_commands=True):
     from .cheminfo.AImodels.cbond import cli as cbond_cli
+    from .cheminfo.AImodels.artifacts import cli as models_cli
     from .cheminfo.AImodels.mca import cli as mca_cli
     from .cheminfo.forcefields import cli as ff_cli
 
@@ -89,6 +90,12 @@ def build_parser(load_optional_commands=True):
         help='Build metal-ligand coordination bonds with the CBond model',
     )
     cbond_cli.add_arguments(cbond_parser)
+
+    models_parser = works.add_parser(
+        'models',
+        help='Install and verify external inference models',
+    )
+    models_cli.add_arguments(models_parser)
 
     # Force-field geometry construction and optimization arguments
     ff_parser = works.add_parser(
@@ -148,6 +155,11 @@ def run(args):
         from .cheminfo.AImodels.cbond import cli as cbond_cli
 
         return cbond_cli.run(args)
+
+    elif args.works == 'models':
+        from .cheminfo.AImodels.artifacts import cli as models_cli
+
+        return models_cli.run(args)
 
     elif args.works == 'ff':
         from .cheminfo.forcefields import cli as ff_cli

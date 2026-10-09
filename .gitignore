@@ -19,3 +19,7 @@ tests/coverage/
 .codex
 movie/
 agent_features/
+hotpot/cheminfo/AImodels/mca/models/*.onnx
+hotpot/cheminfo/AImodels/mca/models/*.weight
+hotpot/cheminfo/AImodels/mca/models/*.data
+hotpot/cheminfo/AImodels/cbond/onnx/*.onnx

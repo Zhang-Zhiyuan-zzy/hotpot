@@ -1,6 +1,13 @@
 {
   "format": "hotpot-cbond-onnx",
   "format_version": 2,
+  "artifact": {
+    "id": "cbond",
+    "version": "1",
+    "repo_id": "Zhang-Zhiyuan-zzy/hotpot-models",
+    "revision": "adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe",
+    "subfolder": "cbond/v1"
+  },
   "opset": 21,
   "limits": {
     "max_rings_num": 32,

@@ -75,10 +75,12 @@ class _SearchContext:
 def get_cbond_runtime(
     device: str = None,
     model_dir: str = None,
+    model_source: str = None,
 ) -> CBondRuntime:
     return CBondRuntime(
         model_dir=model_dir,
         device=device or os.environ.get("HOTPOT_CBOND_DEVICE", "auto"),
+        model_source=model_source,
     )
 
 

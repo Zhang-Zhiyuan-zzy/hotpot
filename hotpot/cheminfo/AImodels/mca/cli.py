@@ -58,6 +58,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--model-dir", help="directory containing the MCA ONNX release")
     parser.add_argument(
+        "--model-source",
+        choices=("auto", "local", "hub"),
+        help="model source policy (default: HOTPOT_MODEL_SOURCE or auto)",
+    )
+    parser.add_argument(
         "--device",
         choices=("auto", "cpu", "cuda"),
         default="auto",
@@ -199,6 +204,7 @@ def run(args: argparse.Namespace) -> int:
         batch_size=args.batch_size,
         conformer_seed=args.conformer_seed,
         allow_charged=args.allow_charged,
+        model_source=args.model_source,
     )
     predictions = predictor.predict(molecules)
     text = format_predictions(predictions)

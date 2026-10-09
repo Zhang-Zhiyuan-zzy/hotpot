@@ -13,6 +13,7 @@ cd "$repo_root"
 python -m coverage erase
 
 test_targets=(
+  tests/model_artifacts
   tests/mca
   tests/cbond
   tests/test_cheminfo/test_mca_calculator.py

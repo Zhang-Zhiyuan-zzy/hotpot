@@ -1,6 +1,13 @@
 {
   "format": "MeCAP-MCA-ONNX",
   "format_version": 2,
+  "artifact": {
+    "id": "mca",
+    "version": "1",
+    "repo_id": "Zhang-Zhiyuan-zzy/hotpot-models",
+    "revision": "adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe",
+    "subfolder": "mca/v1"
+  },
   "property": "methyl_cation_affinity",
   "unit": "kJ/mol",
   "architecture": "Uni-Mol v2 84m",

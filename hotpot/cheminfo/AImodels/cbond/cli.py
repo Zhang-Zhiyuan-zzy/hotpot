@@ -101,6 +101,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "--model-dir",
         help="directory containing the CBond ONNX release",
     )
+    parser.add_argument(
+        "--model-source",
+        choices=("auto", "local", "hub"),
+        help="model source policy (default: HOTPOT_MODEL_SOURCE or auto)",
+    )
 
 
 def _parse_metal(value: str):
@@ -151,7 +156,7 @@ def format_all_results(results, bond_detail: bool = False) -> str:
 
 def run(args: argparse.Namespace) -> int:
     ligand = to_hotpot_mol(args.ligand, fmt=args.input_format)
-    runtime = get_cbond_runtime(args.device, args.model_dir)
+    runtime = get_cbond_runtime(args.device, args.model_dir, args.model_source)
     metal = _parse_metal(args.metal)
 
     if args.all_structures:

@@ -103,3 +103,18 @@ def test_pymol_compatibility_extra_selects_numpy_1x():
     assert canonicalize_name(requirements[0].name) == "numpy"
     assert str(requirements[0].specifier) == "<2,>=1.26.4"
     assert requirements[0].marker is None
+
+
+def test_production_model_weights_are_external():
+    model_directories = (
+        ROOT / "hotpot" / "cheminfo" / "AImodels" / "mca" / "models",
+        ROOT / "hotpot" / "cheminfo" / "AImodels" / "cbond" / "onnx",
+    )
+    binary_suffixes = {".onnx", ".weight", ".data"}
+
+    assert not [
+        path
+        for directory in model_directories
+        for path in directory.iterdir()
+        if path.suffix in binary_suffixes
+    ]

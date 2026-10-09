@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
-version = "0.5.3.0"
+version = "0.5.4.0"
 requires-python = ">=3.9,<3.15"
 readme = "README.md"
 license = "MIT"
@@ -51,6 +51,7 @@ dependencies = [
     "Pillow>=10,<13",
     "packaging>=23,<27",
     "openpyxl>=3.1,<4",
+    "huggingface_hub>=0.28,<2",
 ]
 
 description = "A cheminformatics harness for coordination chemistry"

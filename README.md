@@ -344,10 +344,18 @@ wedge used in assembly. See the
 
 ### AI-backed chemistry
 
-The currently packaged inference capabilities include site-resolved MCA and
-metal–ligand coordination-bond prediction. Models are distributed for
-inference through stable chemistry-facing interfaces; users do not need the
-training implementation to call them.
+The inference capabilities include site-resolved MCA and metal–ligand
+coordination-bond prediction. Versioned weights are downloaded from the public
+[Hotpot model repository](https://huggingface.co/Zhang-Zhiyuan-zzy/hotpot-models)
+on first use, pinned to an immutable revision, cached locally, and verified by
+SHA-256. They can also be installed before an offline run:
+
+```bash
+$ hotpot models install --all
+```
+
+Users do not need the training implementation to call the stable
+chemistry-facing interfaces.
 
 ## Geometry and force-field validation
 

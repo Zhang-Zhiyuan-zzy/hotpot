@@ -1,13 +1,13 @@
 # `hotpot cbond`
 
-`hotpot cbond` uses Hotpot's packaged CBond ONNX model to add coordination
+`hotpot cbond` uses Hotpot's versioned CBond ONNX model to add coordination
 bonds between one metal centre and one ligand graph. It prints the resulting
 connectivity as SMILES; it does not optimize a three-dimensional structure.
 
 ## Verification basis
 
 The concrete output blocks below were captured from an installed
-`hotpot-zzy 0.5.3.0` wheel using the packaged CBond models, ONNX Runtime
+`hotpot-zzy 0.5.3.0` wheel using the CBond v1 models, ONNX Runtime
 1.30.0, Open Babel 3.2.1, and CPU inference. They are command output, not
 invented formatting examples.
 
@@ -290,13 +290,21 @@ $ hotpot cbond Eu ligand.mol2 --model-dir /absolute/path/to/cbond/onnx
 `HOTPOT_CBOND_MODEL_DIR` provides the same model-directory setting. The
 directory must contain the expected manifest and ONNX artifacts.
 
+Without an explicit directory, Hotpot downloads the pinned model revision from
+Hugging Face on first use and verifies its SHA-256 checksums. Use
+`--model-source local` to prohibit network access, or preinstall the model:
+
+```bash
+$ hotpot models install cbond
+```
+
 ## Scope and interpretation
 
 - One metal centre and one ligand graph are supported per invocation.
 - Candidate donor elements are currently O, N, S, P, Si, and B.
 - The command predicts connectivity; it does not optimize geometry, calculate
   binding energy, or estimate thermodynamic stability.
-- The packaged runtime accepts at most 32 ligand rings and 64 atoms in one
+- The runtime accepts at most 32 ligand rings and 64 atoms in one
   ring.
 - Scores and rankings remain model outputs and should be validated downstream
   when used outside the model's training domain.

@@ -28,8 +28,8 @@ def _install_backend(monkeypatch):
     runtime = object()
     observed["runtime"] = runtime
 
-    def get_runtime(device, model_dir):
-        observed["runtime_options"] = (device, model_dir)
+    def get_runtime(device, model_dir, model_source):
+        observed["runtime_options"] = (device, model_dir, model_source)
         return runtime
 
     def build_single(
@@ -95,7 +95,7 @@ def test_top_level_cbond_prints_result_smiles(monkeypatch, capsys):
 
     assert capsys.readouterr().out == "CN[Eu]\n"
     assert [atom.symbol for atom in observed["molecule"].atoms] == ["C", "N"]
-    assert observed["runtime_options"] == ("cpu", None)
+    assert observed["runtime_options"] == ("cpu", None, None)
     assert observed["single_options"] == (
         "Eu",
         None,
@@ -147,7 +147,7 @@ def test_cbond_reads_mol2_and_writes_output(monkeypatch, tmp_path, capsys):
     assert capsys.readouterr().out == ""
     assert output_path.read_text(encoding="utf-8") == "CN[Eu]\n"
     assert [atom.symbol for atom in observed["molecule"].atoms] == ["C", "N"]
-    assert observed["runtime_options"] == ("cuda", str(model_dir))
+    assert observed["runtime_options"] == ("cuda", str(model_dir), None)
     assert observed["single_options"][:3] == (63, 1.25, False)
     assert observed["single_options"][4] == -0.75
 

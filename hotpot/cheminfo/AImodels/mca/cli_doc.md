@@ -134,13 +134,13 @@ rows submitted per ONNX call rather than the number of molecules read at once.
 
 ## Model selection
 
-The packaged FP16 model is selected by default:
+The pinned FP16 model is selected by default:
 
 ```bash
 $ hotpot mca molecules.smi --variant fp16
 ```
 
-A separately distributed model bundle can be selected explicitly:
+A local compatible model bundle can be selected explicitly:
 
 ```bash
 $ hotpot mca molecules.smi --model-dir /absolute/path/to/mca/models
@@ -149,6 +149,15 @@ $ hotpot mca molecules.smi --model-dir /absolute/path/to/mca/models
 The directory must contain a compatible `manifest.json` and all ONNX external
 data files referenced by that manifest. The same path may be configured with
 the `HOTPOT_MCA_MODEL_DIR` environment variable.
+
+Without an explicit directory, Hotpot downloads the pinned model revision from
+Hugging Face on first use and verifies its graph and external-data SHA-256
+checksums. Use `--model-source local` to prohibit network access, or preinstall
+the model:
+
+```bash
+$ hotpot models install mca
+```
 
 ## Charged molecules and applicability
 

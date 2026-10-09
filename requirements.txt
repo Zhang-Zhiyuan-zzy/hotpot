@@ -20,3 +20,4 @@ cairosvg>=2.7,<3
 Pillow>=10,<13
 packaging>=23,<27
 openpyxl>=3.1,<4
+huggingface_hub>=0.28,<2

@@ -38,8 +38,15 @@ class MCAPredictor:
         conformer_seed: int = 42,
         verify_model: bool = True,
         allow_charged: bool = False,
+        model_source=None,
     ):
-        self.runtime = MCARuntime(model_dir, device, variant, verify_model)
+        self.runtime = MCARuntime(
+            model_dir,
+            device,
+            variant,
+            verify_model,
+            model_source,
+        )
         self.batch_size = batch_size
         self.conformer_seed = conformer_seed
         self.max_atoms = int(self.runtime.manifest["max_atoms"])

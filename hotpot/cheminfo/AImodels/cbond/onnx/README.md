@@ -1,4 +1,12 @@
-# CBond ONNX artifacts
+# CBond model pointer
+
+`manifest.json` pins the public CBond v1 bundle in
+`Zhang-Zhiyuan-zzy/hotpot-models` to an immutable Hugging Face commit. Hotpot
+downloads and SHA-256-verifies the two ONNX graphs on first use. Use
+`hotpot models install cbond` for explicit installation or
+`HOTPOT_MODEL_SOURCE=local` for strictly offline execution.
+
+# Runtime graphs
 
 Runtime inference uses two graphs:
 

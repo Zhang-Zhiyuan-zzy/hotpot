@@ -2,25 +2,20 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-import os
 from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
 
+from hotpot.cheminfo.AImodels.artifacts import (
+    ModelArtifact,
+    load_manifest,
+    verify_artifact,
+)
+
 
 MAX_RINGS_NUMS = 32
 MAX_RINGS_SIZE = 64
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def padding_rings(xg, rings_node_index, rings_node_nums):
@@ -42,17 +37,25 @@ def padding_rings(xg, rings_node_index, rings_node_nums):
 class CBondRuntime:
     def __init__(
         self,
-        model_dir: str | os.PathLike | None = None,
+        model_dir=None,
         device: str = "auto",
         verify: bool = True,
+        model_source=None,
     ):
-        configured = model_dir or os.environ.get("HOTPOT_CBOND_MODEL_DIR")
-        self.model_dir = Path(configured) if configured else Path(__file__).with_name("onnx")
-        self.manifest = json.loads((self.model_dir / "manifest.json").read_text(encoding="utf-8"))
+        pointer = Path(__file__).with_name("onnx") / "manifest.json"
+        self.model_dir = ModelArtifact(
+            pointer,
+            "HOTPOT_CBOND_MODEL_DIR",
+            model_dir=model_dir,
+            source=model_source,
+        ).resolve()
+        self.manifest = load_manifest(self.model_dir / "manifest.json")
+        if verify:
+            verify_artifact(self.model_dir, self.manifest)
         self.requested_device = self._resolve_device(device)
 
-        graph_path = self._model_path("graph", verify)
-        cbond_path = self._model_path("cbond", verify)
+        graph_path = self._model_path("graph")
+        cbond_path = self._model_path("cbond")
         providers = (
             ["CUDAExecutionProvider", "CPUExecutionProvider"]
             if self.requested_device == "cuda"
@@ -83,14 +86,9 @@ class CBondRuntime:
             raise RuntimeError("CUDAExecutionProvider is not available")
         return device
 
-    def _model_path(self, name: str, verify: bool) -> Path:
+    def _model_path(self, name: str) -> Path:
         entry = self.manifest["models"][name]
-        path = self.model_dir / entry["file"]
-        if not path.is_file():
-            raise FileNotFoundError(f"CBond ONNX artifact not found: {path}")
-        if verify and _sha256(path) != entry["sha256"]:
-            raise RuntimeError(f"SHA-256 mismatch for {path}")
-        return path
+        return self.model_dir / entry["file"]
 
     def embed_graph(self, x, edge_index):
         return self.graph_session.run(["xg"], {"x": x, "edge_index": edge_index})[0]

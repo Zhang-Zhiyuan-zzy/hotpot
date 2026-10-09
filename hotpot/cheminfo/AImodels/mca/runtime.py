@@ -23,8 +23,13 @@ class MCARuntime:
         device: str = "auto",
         variant: str | None = None,
         verify_model: bool = True,
+        model_source=None,
     ):
-        store = ModelStore(model_dir=model_dir, verify=verify_model)
+        store = ModelStore(
+            model_dir=model_dir,
+            verify=verify_model,
+            model_source=model_source,
+        )
         path, self.variant, providers, resolved_device = store.resolve(device, variant)
         self.manifest = store.manifest
         options = ort.SessionOptions()

@@ -1,9 +1,9 @@
-"""Aggregate five independent coordination-structure benchmark workflows.
+"""Aggregate four independent coordination-structure benchmark workflows.
 
 This module performs no molecular construction or optimization.  It accepts
-the completed RDKit, Open Babel, Hotpot ``obWrappers`` and Hotpot
-``optimize_complex`` and automatic fallback result roots, validates their
-shared corpus identities, and publishes compact project README evidence.
+the completed RDKit, Open Babel, Hotpot ``obWrappers`` and automatic complex
+optimization result roots, validates their shared corpus identities, and
+publishes compact project README evidence.
 """
 
 from __future__ import annotations
@@ -27,19 +27,15 @@ WORKFLOWS = (
     "rdkit",
     "openbabel",
     "obwrappers",
-    "hotpot_optimize_complex",
     "hotpot_auto",
 )
-FAST_WORKFLOWS = frozenset(
-    {"obwrappers", "hotpot_optimize_complex", "hotpot_auto"}
-)
+FAST_WORKFLOWS = frozenset({"obwrappers", "hotpot_auto"})
 TARGETS = ("ligand", "complex")
 DISPLAY_NAMES = {
     "rdkit": "RDKit",
     "openbabel": "Open Babel",
     "obwrappers": "Hotpot obWrappers FAST",
-    "hotpot_optimize_complex": "Hotpot optimize_complex FAST",
-    "hotpot_auto": "Hotpot auto: native FAST → complex fallback",
+    "hotpot_auto": "Hotpot optimize_complex",
 }
 TARGET_NAMES = {
     "ligand": "Ligand",
@@ -459,16 +455,14 @@ def aggregate_workflow_comparison(
     rdkit_root: Path,
     openbabel_root: Path,
     obwrappers_root: Path,
-    hotpot_optimize_complex_root: Path,
     hotpot_auto_root: Path,
     output_directory: Path,
 ) -> dict[str, object]:
-    """Validate five independent runs and publish compact README evidence."""
+    """Validate four independent runs and publish compact README evidence."""
     roots = {
         "rdkit": rdkit_root,
         "openbabel": openbabel_root,
         "obwrappers": obwrappers_root,
-        "hotpot_optimize_complex": hotpot_optimize_complex_root,
         "hotpot_auto": hotpot_auto_root,
     }
     manifests: dict[str, dict[str, object]] = {}
@@ -575,7 +569,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rdkit", type=Path, required=True)
     parser.add_argument("--openbabel", type=Path, required=True)
     parser.add_argument("--obwrappers", type=Path, required=True)
-    parser.add_argument("--hotpot-optimize-complex", type=Path, required=True)
     parser.add_argument("--hotpot-auto", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     return parser
@@ -587,7 +580,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         arguments.rdkit.resolve(),
         arguments.openbabel.resolve(),
         arguments.obwrappers.resolve(),
-        arguments.hotpot_optimize_complex.resolve(),
         arguments.hotpot_auto.resolve(),
         arguments.output_dir.resolve(),
     )

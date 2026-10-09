@@ -356,21 +356,20 @@ optimization results comparable under the same public geometry-quality gate.
 
 ### Ligand and Eu–ligand benchmark
 
-Five independently launched workflows were evaluated on the same 187 isolated
+Four independently launched workflows were evaluated on the same 187 isolated
 ligands and the same 181 CBond-eligible Eu–ligand complexes. Hotpot uses its
 default `FAST` convergence policy. Times are median construction-plus-optimize
 durations among completed workflows in a 16-worker run; CBond inference,
 serialization, rendering, and any external post-validation are excluded.
-The automatic workflow's internal acceptance checks are part of its routing
-cost and therefore remain inside its reported duration.
+Hotpot `optimize_complex` uses internal acceptance checks to select its route;
+their cost therefore remains inside its reported duration.
 
 | Workflow | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
 |---|---:|---:|---:|---:|
 | RDKit | 185/187 (98.9%) | 0.306 s | 31/181 (17.1%) | 0.446 s |
 | Open Babel | 182/187 (97.3%) | 1.089 s | 165/181 (91.2%) | 1.921 s |
 | Hotpot `obWrappers` (`FAST`) | 184/187 (98.4%) | 1.465 s | 165/181 (91.2%) | 2.542 s |
-| Hotpot `optimize_complex` workflow (`FAST`) | 182/187 (97.3%) | 3.314 s | 180/181 (99.4%) | 7.529 s |
-| Hotpot automatic workflow (`FAST` first, complex fallback) | 182/187 (97.3%) | 3.305 s | 180/181 (99.4%) | 3.868 s |
+| Hotpot `optimize_complex` | 182/187 (97.3%) | 3.305 s | 180/181 (99.4%) | 3.868 s |
 
 ![Ligand and Eu coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
 
@@ -382,7 +381,7 @@ benchmark:
 - [protocol and aggregate JSON](assets/readme/coordination_complex_backend_comparison.json)
 - [per-case CSV](assets/readme/coordination_complex_backend_comparison_cases.csv)
 
-For Eu–ligand complexes, the automatic workflow accepted 163 native `FAST`
+For Eu–ligand complexes, Hotpot `optimize_complex` accepted 163 native `FAST`
 results directly and sent 18 rejected candidates through the complete complex
 workflow. All four convergence policies remain selectable through the Python
 API and `hotpot ff --convergence-level`; automatic fallback does not silently
@@ -433,8 +432,7 @@ README examples are executable regression tests. Run them with:
 $ python -m pytest -q tests/readme
 ```
 
-The five independent benchmark launchers and the evidence aggregation command
-are listed in the
+The benchmark launchers and evidence aggregation command are listed in the
 [coordination-complex benchmark guide](tests/benchmarks/coordination_complexes/README.md).
 
 The complete test suite and coverage shortcut is:

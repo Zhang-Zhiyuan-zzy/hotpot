@@ -458,12 +458,11 @@ def test_workflow_comparison_aggregates_both_targets(
         roots["rdkit"],
         roots["openbabel"],
         roots["obwrappers"],
-        roots["hotpot_optimize_complex"],
         roots["hotpot_auto"],
         output,
     )
 
-    assert len(payload["results"]) == 10
+    assert len(payload["results"]) == 8
     assert {row["target"] for row in payload["results"]} == {
         "ligand",
         "complex",

@@ -144,7 +144,7 @@ Alternatively, replace `--cohort` with `--reference <completed-hotpot-run>` to
 export the frozen cohort from an existing standard benchmark. Add `--resume`
 to continue an interrupted run whose manifest is unchanged.
 
-Aggregate the five completed workflows without rerunning chemistry:
+Aggregate the four README workflows without rerunning chemistry:
 
 ```bash
 $ OUTPUT=movie/benchmarks/five_workflows
@@ -152,7 +152,6 @@ $ python -m tests.benchmarks.coordination_complexes.workflow_comparison \
   --rdkit "$OUTPUT/rdkit" \
   --openbabel "$OUTPUT/openbabel" \
   --obwrappers "$OUTPUT/obwrappers" \
-  --hotpot-optimize-complex "$OUTPUT/hotpot_optimize_complex" \
   --hotpot-auto "$OUTPUT/hotpot_auto" \
   --output-dir assets/readme
 ```

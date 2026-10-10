@@ -15,6 +15,7 @@ _COMMAND_MODULES = (
     "hotpot.cheminfo.AImodels.artifacts.cli",
     "hotpot.cheminfo.forcefields.cli",
     "hotpot.plugins.xtb.cli",
+    "hotpot.pipeline.cli",
 )
 
 
@@ -76,3 +77,16 @@ def test_forcefield_help_does_not_load_xtb_or_model_commands() -> None:
     assert loaded["hotpot.plugins.xtb.cli"] is False
     assert loaded["hotpot.cheminfo.AImodels.cbond.cli"] is False
     assert loaded["hotpot.cheminfo.AImodels.mca.cli"] is False
+    assert loaded["hotpot.pipeline.cli"] is False
+
+
+def test_pipeline_help_loads_only_the_selected_command_module() -> None:
+    status, loaded = _loaded_after(("run", "--help"))
+
+    assert status == 0
+    assert loaded["hotpot.pipeline.cli"] is True
+    assert all(
+        not is_loaded
+        for name, is_loaded in loaded.items()
+        if name != "hotpot.pipeline.cli"
+    )

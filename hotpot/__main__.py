@@ -55,6 +55,10 @@ _COMMANDS = {
         "Run an independent GFN-FF or GFN-xTB calculation",
         "hotpot.plugins.xtb.cli",
     ),
+    "run": _CommandSpec(
+        "Run a controlled sequence of molecular calculation stages",
+        "hotpot.pipeline.cli",
+    ),
 }
 
 
@@ -170,8 +174,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     setup_logging(to_stdout=False)
     raw_args = tuple(sys.argv[1:] if argv is None else argv)
     command = _selected_command(raw_args)
+    pipeline_tail = ()
+    if command == "run" and "--" in raw_args:
+        separator_index = raw_args.index("--")
+        pipeline_tail = raw_args[separator_index + 1 :]
+        raw_args = raw_args[:separator_index]
     parser = build_parser(selected_command=command)
     args = parser.parse_args(raw_args)
+    if pipeline_tail:
+        args.pipeline_tokens.extend(pipeline_tail)
     return_code = run(args)
     if return_code == -2:
         parser.print_help()

@@ -1,9 +1,4 @@
-"""Strict contracts for the controlled ``hotpot run`` command.
-
-These tests intentionally remain strict expected failures until the Phase 15
-controller implementation lands.  Imports of the planned package stay inside
-the tests so this Phase 14 contract file remains collectable on the baseline.
-"""
+"""Strict contracts for the controlled ``hotpot run`` command."""
 
 from __future__ import annotations
 
@@ -11,12 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 15 controlled molecular pipeline is not implemented yet",
-)
 
 
 def _write_workflow(path: Path, payload: object) -> Path:
@@ -346,6 +335,30 @@ def test_preflight_failure_does_not_create_results_directory(
     assert status == 2
     assert capsys.readouterr().err
     assert not results_directory.exists()
+
+
+def test_existing_results_directory_is_a_definition_error(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    from hotpot.pipeline import cli
+
+    results_directory = tmp_path / "already-exists"
+    results_directory.mkdir()
+
+    status = cli.main(
+        [
+            "--results-dir",
+            str(results_directory),
+            "--",
+            "ff",
+            "--route",
+            "organic",
+        ]
+    )
+
+    assert status == 2
+    assert str(results_directory) in capsys.readouterr().err
 
 
 def test_help_and_documentation_do_not_require_a_workflow(capsys) -> None:

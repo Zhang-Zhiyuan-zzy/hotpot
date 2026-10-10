@@ -3,6 +3,7 @@ name: Inference compatibility
 on:
   pull_request:
     paths:
+      - "README.md"
       - "hotpot/cheminfo/AImodels/artifacts/**"
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
@@ -59,12 +60,14 @@ on:
       - "tests/requirements-inference.txt"
       - "tests/run_inference_compatibility.sh"
       - "tests/run_coverage.sh"
+      - "tests/readme/test_readme_examples.py"
       - "pyproject.toml"
       - "setup.py"
       - "MANIFEST.in"
       - ".github/workflows/inference_compatibility.yml"
   push:
     paths:
+      - "README.md"
       - "hotpot/cheminfo/AImodels/artifacts/**"
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
@@ -121,6 +124,7 @@ on:
       - "tests/requirements-inference.txt"
       - "tests/run_inference_compatibility.sh"
       - "tests/run_coverage.sh"
+      - "tests/readme/test_readme_examples.py"
       - "pyproject.toml"
       - "setup.py"
       - "MANIFEST.in"
@@ -216,8 +220,10 @@ jobs:
               "hotpot/cheminfo/forcefields/ff.py",
               "hotpot/plugins/xtb/cli.py",
               "hotpot/plugins/xtb/cli_doc.md",
+              "hotpot/plugins/xtb/README.md",
               "hotpot/plugins/xtb/stage.py",
               "hotpot/plugins/xtb/workflow.py",
+              "hotpot/pipeline/README.md",
           }
           obsolete = {
               "hotpot/cheminfo/forcefields/ff39.py",
@@ -265,6 +271,10 @@ jobs:
 
           xtb_package = files("hotpot.plugins.xtb")
           assert xtb_package.joinpath("cli_doc.md").is_file()
+          xtb_api_documentation = xtb_package.joinpath("README.md").read_text(
+              encoding="utf-8"
+          )
+          assert xtb_api_documentation.startswith("# Hotpot xTB plugin")
           for obsolete_module in ("core.py", "xtb_doc.md", ".cache.json"):
               assert not xtb_package.joinpath(obsolete_module).is_file()
 
@@ -272,6 +282,12 @@ jobs:
               "cli_doc.md"
           ).read_text(encoding="utf-8")
           assert pipeline_documentation.startswith("# `hotpot run`")
+          pipeline_api_documentation = files("hotpot.pipeline").joinpath(
+              "README.md"
+          ).read_text(encoding="utf-8")
+          assert pipeline_api_documentation.startswith(
+              "# Hotpot controlled molecular pipeline"
+          )
 
           geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
               "README.md"
@@ -294,6 +310,24 @@ jobs:
           ).stdout
           assert "hotpot mca" in documentation
           assert "Command synopsis" in documentation
+
+          xtb_documentation = subprocess.run(
+              ["hotpot", "xtb", "--doc"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          assert "hotpot xtb" in xtb_documentation
+          assert "Independent methods" in xtb_documentation
+
+          run_documentation = subprocess.run(
+              ["hotpot", "run", "--doc"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          assert "hotpot run" in run_documentation
+          assert "Results and failure semantics" in run_documentation
 
           molecule = hotpot.to_hotpot_mol("C1CCCCN1")
           prediction = MCAPredictor(device="cpu").predict(molecule)

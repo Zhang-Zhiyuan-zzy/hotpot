@@ -36,6 +36,25 @@ def test_readme_primary_cli_surface() -> None:
     assert "mca" in output
     assert "cbond" in output
     assert "ff" in output
+    assert "xtb" in output
+    assert "run" in output
+
+
+def test_readme_xtb_documentation_surface() -> None:
+    output = _run_hotpot("xtb", "--doc").stdout
+
+    assert "hotpot xtb" in output
+    assert "explicit-atom 3D" in output
+    assert "GFN-FF" in output
+    assert "standard input" in output.lower()
+
+
+def test_readme_pipeline_documentation_surface() -> None:
+    output = _run_hotpot("run", "--doc").stdout
+
+    assert "hotpot run" in output
+    assert "::" in output
+    assert "results" in output.lower()
 
 
 def test_readme_mca_cli_output() -> None:

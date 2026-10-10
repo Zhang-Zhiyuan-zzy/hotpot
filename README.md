@@ -55,6 +55,8 @@ commands also provide extended examples through `--doc`.
 | `hotpot mca` | Predict site-resolved methyl cation affinity (MCA) | Atom table in kJ/mol | [MCA CLI](hotpot/cheminfo/AImodels/mca/cli_doc.md) |
 | `hotpot cbond` | Predict and construct metal–ligand coordination bonds | Complex SMILES or ranked structures | [CBond CLI](hotpot/cheminfo/AImodels/cbond/cli_doc.md) |
 | `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/cheminfo/forcefields/cli_doc.md) |
+| `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | SDF molecular stream and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
+| `hotpot run` | Execute registered molecular stages with an ordered evidence tree | Result directory, manifest, stage artifacts, and final SDF | [Pipeline CLI](hotpot/pipeline/cli_doc.md) |
 
 ### MCA prediction
 
@@ -135,6 +137,40 @@ $ hotpot cbond Eu \
         --quality off --seed 2026 -o eu-extractant.mol2
 ```
 
+### xTB and controlled workflows
+
+`hotpot xtb` accepts complete explicit-atom structures with finite 3D
+coordinates. It wraps an independently installed official xTB executable; it
+does not build a bare SMILES or silently replace an unsupported method.
+GFN-FF and GFN-xTB remain independent nodes and can be composed as a pure SDF
+stream:
+
+<!-- Verified by tests/test_plugin/test_xtb/test_pipeline_integration.py::test_standalone_shell_composes_gfnff_then_gfn2_as_pure_sdf -->
+
+```bash
+$ hotpot xtb input.sdf --method gfnff --task optimize \
+    | hotpot xtb - --input-format sdf --method gfn2 --task optimize \
+    > refined.sdf
+```
+
+For multi-stage automation, `hotpot run` transfers molecular objects in memory
+and creates an ordered, content-addressed evidence tree. The exact `::` token
+separates stages; no stage argument is evaluated by a shell:
+
+<!-- Verified by tests/test_cli/test_run_cli.py::test_inline_and_json_workflows_normalize_to_identical_stage_specs and tests/test_plugin/test_xtb/test_pipeline_integration.py::test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts -->
+
+```bash
+$ hotpot run --results-dir results/eu-001 -- \
+    cbond Eu 'O=C(O)C' \
+    :: ff --route complex --forcefield uff \
+    :: xtb --method gfnff --task optimize \
+    :: xtb --method gfn2 --task optimize
+```
+
+The xTB [Python API and plugin guide](hotpot/plugins/xtb/README.md) and the
+[controlled-pipeline API](hotpot/pipeline/README.md) define state propagation,
+artifact ownership, failure semantics, and scientific limits.
+
 ## Installation
 
 Hotpot supports Python 3.9–3.14 for its chemical kernel, search layer, and
@@ -212,6 +248,10 @@ ONNX inference uses CPU by default and automatically selects an available GPU
 provider. GPU users must install an `onnxruntime-gpu` build compatible with
 the machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
 compatible with every installed CUDA version.
+
+The xTB integration requires a separately installed official `xtb`
+executable. Select it with `--xtb-executable`, `HOTPOT_XTB_EXECUTABLE`, or
+`PATH`, in that order. Hotpot does not bundle or replace the numerical backend.
 
 ## Python interface
 
@@ -470,6 +510,9 @@ and Am counts, rendering status, principal moments, and image hashes.
 - Macroscopic observables generally describe ensembles and environments. A
   single optimized molecular structure should not be treated as a complete
   thermodynamic or experimental model.
+- Automatic xTB charge/spin preparation records its assumptions. The default
+  spin rule is electron-parity based and is not a prediction of oxidation
+  state, ligand field, or physical ground-state multiplicity.
 
 ## References
 

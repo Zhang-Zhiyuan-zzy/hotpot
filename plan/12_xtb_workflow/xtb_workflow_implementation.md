@@ -1,6 +1,7 @@
 # Hotpot composable xTB workflow: implementation plan
 
-Status: **review draft; do not implement before approval**
+Status: **approved and implemented; see the implementation and validation
+reports for delivered scope and remaining scientific validation gaps**
 
 Branch: `feature/xtb-workflow`
 
@@ -1377,6 +1378,12 @@ The existing 187-ligand corpus will be used in opt-in stages:
    post-geometry-quality failure into one success-rate denominator.
 
 ## 11. Acceptance criteria
+
+The production architecture is implemented, but the original full scientific
+acceptance set below is not yet completely satisfied. In particular, the
+official optimization/ionic/radical cases, 187-structure benchmark, and full
+3.9-3.14 runtime matrix remain open. Exact completed and unmet evidence is
+recorded in `xtb_workflow_validation_report.md`.
 
 Implementation is complete only when:
 

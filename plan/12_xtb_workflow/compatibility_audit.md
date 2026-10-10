@@ -1,9 +1,9 @@
 # Compatibility audit for the calculator, xTB and pipeline refactor
 
-Status: **read-only pre-implementation audit**
+Status: **implemented migration record**
 
 This report is intentionally separate from the implementation plan. It records
-interfaces and behavior that will change, remain stable, or require migration.
+interfaces and behavior that changed, remained stable, or required migration.
 
 ## 1. Executive classification
 
@@ -208,20 +208,19 @@ success remains plugin-specific. A common plugin Protocol and dynamic entry
 points are deferred until a second modern external calculation backend provides
 real comparison evidence.
 
-## 7. Compatibility gates before removal
+## 7. Compatibility-gate disposition
 
-The breaking removals occur only after these checks pass:
+| Planned gate | Observed disposition |
+|---|---|
+| Consumer search for old calculator and xTB paths | Passed before prototype removal |
+| Active docs, examples and error-message migration | Passed for active content; `README.2026.md` remains an explicit historical snapshot |
+| Pre/post calculator behavior comparison | Passed the maintained calculator regression suite |
+| Fake and real xTB parity | Hermetic failure/composition matrix passed; official parity currently covers neutral GFN-FF and GFN2 single points only |
+| Standalone and controlled round trips | Passed with the fake backend and typed SDF stream |
+| Python 3.9-3.14 source and wheel validation | Active sources passed 3.9-3.14 compilation; isolated wheel/install validation was performed on CPython 3.11, not the complete six-version runtime matrix |
+| Wheel/sdist content inspection | Passed; obsolete modules and cache files are absent |
+| Migration and implementation reports | Completed in this stage directory |
 
-1. full consumer searches for old calculator and xTB paths;
-2. README, active command documentation, skills, examples and error-message
-   migration;
-3. pre/post calculator behavioral comparison;
-4. fake and real xTB parity tests;
-5. standalone CLI and controlled-pipeline round trips;
-6. source and wheel installation tests on Python 3.9-3.14;
-7. inspection of wheel contents for stale modules/cache files;
-8. the active migration documentation and stage implementation report contain
-   the import, serialization and executable-resolution migration tables.
-
-These gates verify the intended clean break. They do not authorize hidden
-compatibility branches.
+The clean breaks were implemented without hidden compatibility branches. The
+remaining real-backend and interpreter-matrix gaps are listed explicitly in
+the validation report rather than being treated as passed gates.

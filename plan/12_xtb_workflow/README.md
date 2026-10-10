@@ -16,5 +16,10 @@ as a versioned backend capability. In particular, xTB 6.7.1 does not provide a
 valid Am path; only a validated extended GFN-FF build may accept Am, and
 GFN0/1/2-xTB remain limited to `Z <= 86`.
 
+The reviewed revision also splits the calculator module into a focused package,
+adds a controlled `hotpot run` results pipeline, and makes xTB the first
+reference implementation over narrow reusable external-process primitives.
+
 - [Detailed implementation plan](xtb_workflow_implementation.md)
+- [Separate compatibility audit](compatibility_audit.md)
 

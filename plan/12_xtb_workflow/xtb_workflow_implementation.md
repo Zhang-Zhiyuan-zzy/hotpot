@@ -58,6 +58,33 @@ also used to verify version-dependent behavior.
    xTB 6.7.1. It may enter GFN-FF only when the resolved official installation
    exposes and passes validation for the extended parameter set; it can never
    continue into GFN0/1/2-xTB under the inspected official backend.
+10. `hotpot/cheminfo/calculator.py` becomes the singular package
+    `hotpot/cheminfo/calculator/`. The singular name follows the explicitly
+    requested façade path and preserves the existing
+    `hotpot.cheminfo.calculator` import boundary. Independent calculators live
+    in separate modules or subpackages below it. The root-level
+    `hotpot/calculator.py` façade is deleted rather than retained as a shim.
+11. Exact bare shell commands such as `ff` and `xtb` will not be installed.
+    `xtb` would collide with the official backend executable and can cause
+    recursive self-resolution; `ff` is too generic for the global command
+    namespace. Standalone nodes retain the unambiguous form `hotpot cbond`,
+    `hotpot ff`, and `hotpot xtb`.
+12. Hotpot gains a separate pipeline controller for concise composition and
+    ordered artifacts. Its inline form is:
+
+    ```text
+    hotpot run --results-dir RESULTS -- \
+      cbond ... :: ff ... :: xtb ... :: <registered-stage> ...
+    ```
+
+    The controller interprets stage names internally; it does not invoke a
+    shell or shadow third-party executables.
+13. xTB becomes the reference implementation for wrapping an external
+    calculation program. Only execution primitives proven generic are placed
+    in a private `hotpot/plugins/_harness/`; chemistry, method applicability,
+    parsing, units, convergence and coordinate commit remain owned by
+    `hotpot/plugins/xtb/`. No universal plugin base class is introduced from a
+    single example.
 
 ## 2. Confirmed current state
 
@@ -142,6 +169,45 @@ workflow:
 Once the new implementation takes ownership, this prototype, the empty xTB
 writer plugin, `.cache.json`, and obsolete documentation/tests will be removed
 rather than retained as a second compatibility path.
+
+### 2.4 Current calculator module boundary
+
+`hotpot/cheminfo/calculator.py` currently mixes four independent concerns:
+
+| Concern | Current public surface | Required destination |
+|---|---|---|
+| Calculator marker | `Calculator` | `calculator/base.py` |
+| Classical formal charge | `formal_charge()` plus charge model aliases | `calculator/formal_charge.py` initially; grow into a subpackage only when multiple files are needed |
+| Legacy molecular-charge heuristic | `MolChargeCalculator` | `calculator/molecular_charge.py`, isolated from the new electronic-state rules |
+| MCA inference adapter | `mca()` and lazy predictor cache | `calculator/mca.py` |
+
+The root-level `hotpot/calculator.py` currently re-exports four names, while
+documentation and tests consume both that façade and
+`hotpot.cheminfo.calculator`. The migration is atomic: remove the single file,
+create the same-stem package, update all repository consumers, and never leave
+`calculator.py` beside `calculator/`. The new package `__init__.py` is the only
+public façade and defines an explicit `__all__`.
+
+The `formal_charge()` assigning API remains mutating. Pure charge inference is
+implemented beneath the same package and shared by that façade; moving files is
+not permission to alter unrelated calculator behavior.
+
+### 2.5 Current CLI and stream boundary
+
+- `pyproject.toml` installs only the `hotpot` console script.
+- `hotpot/__main__.py` imports several optional command modules while building
+  the parser; this weakens node independence and must be replaced by lazy,
+  selected-command registration.
+- default single-result CBond stdout is a SMILES and can feed `hotpot ff`;
+  `--bond-detail` and `--all-structures` emit human text and are not molecular
+  streams.
+- force-field stdout already contains molecular payload only and stderr is
+  diagnostic, but callers must explicitly supply stdin as `-`.
+- current SDF conversion does not round-trip arbitrary `Molecule.properties`.
+  Electronic-state tags therefore require an explicitly tested stream codec;
+  they cannot be assumed to survive the existing generic writer.
+- separate shell processes cannot share a first command's `--results-dir`.
+  Ordered cross-stage artifacts require a parent pipeline controller.
 
 ## 3. Official xTB I/O audit
 
@@ -258,16 +324,27 @@ diagnosis without being labelled successful.
 ### 5.1 Package layout
 
 ```text
-hotpot/cheminfo/electronic_state/
-├── __init__.py
-├── contracts.py      # Enums, immutable result records and Protocols
-├── charge.py         # Pure fragment/formal/total-charge inference
-├── spin.py           # Pure unpaired-electron inference
-└── resolver.py       # Explicit overrides + composition only
+hotpot/cheminfo/calculator/
+├── __init__.py                  # Sole public calculator façade and __all__
+├── base.py                      # Calculator marker/base
+├── formal_charge.py             # Pure inference + assigning formal_charge()
+├── molecular_charge.py          # Isolated legacy MolChargeCalculator
+├── mca.py                       # MCA adapter and lazy predictor cache
+└── electronic_state/
+    ├── __init__.py
+    ├── contracts.py             # Immutable results and estimator Protocols
+    ├── spin.py                  # Pure unpaired-electron inference
+    └── resolver.py              # Charge/spin composition and overrides
 ```
 
-The package is chemistry policy, not geometry. It does not invoke xTB and does
-not perform coordinate optimization.
+Simple calculators remain modules; only electronic state warrants a nested
+subpackage because it has contracts, independent inference policies and a
+resolver. `electronic_state` imports the pure charge operation from
+`formal_charge.py`; it does not contain a second Lewis-rule implementation.
+
+This package is chemistry policy, not geometry. It does not invoke xTB and does
+not perform coordinate optimization. Its `__init__.py` re-exports the approved
+public entry points. No root-level `hotpot/calculator.py` remains.
 
 ### 5.2 Public contracts
 
@@ -421,20 +498,73 @@ explicit nuclei sent to xTB.
   already resolved spin metadata for a following GFN-xTB node, that metadata
   may be preserved in the Hotpot record but is marked unapplied by GFN-FF.
 
-## 6. xTB backend package
+## 6. External-program harness and xTB reference plugin
 
-### 6.1 Proposed layout
+### 6.1 Shared execution primitives
+
+The current `hotpot/plugins/` tree is heterogeneous and is not retrofitted to
+one base class. This stage adds only the external-process facts already needed
+by xTB:
+
+```text
+hotpot/plugins/_harness/
+├── __init__.py
+├── contracts.py       # ProcessRequest and NativeProcessResult
+├── executable.py      # Explicit/env/PATH resolution and generic version call
+├── process.py         # shell=False process execution and byte/text capture
+├── workspace.py       # Per-record isolated workspace lifecycle
+└── provenance.py      # Backend identity, timing, log and artifact records
+```
+
+| Shared `_harness` owns | The xTB plugin owns |
+|---|---|
+| absolute executable resolution | xTB version/capability interpretation |
+| argv/cwd/environment/timeout execution | method options and element applicability |
+| isolated workspace creation/retention | XYZ, `.CHRG` and `.UHF` generation |
+| raw return code/stdout/stderr/elapsed time | convergence and finite-result decisions |
+| generic artifact paths, hashes and provenance | artifact meaning, units and parsing |
+| no molecular mutation | atom mapping and transactional coordinate commit |
+
+The generic process runner reports facts only. It cannot declare a chemical
+calculation successful. This stage deliberately does not add a universal
+`Plugin`, `Calculator`, or `prepare/run/collect` Protocol. A second modern
+external backend is required before extracting a common lifecycle interface.
+
+The intentionally narrow core contract is:
+
+```python
+@dataclass(frozen=True)
+class ProcessRequest:
+    argv: tuple[str, ...]
+    cwd: Path
+    env: Mapping[str, str]
+    timeout_seconds: Optional[float] = None
+
+@dataclass(frozen=True)
+class NativeProcessResult:
+    argv: tuple[str, ...]
+    cwd: Path
+    return_code: int
+    stdout: str
+    stderr: str
+    elapsed_seconds: float
+
+def run_process(request: ProcessRequest) -> NativeProcessResult: ...
+```
+
+### 6.2 xTB reference-plugin layout
 
 ```text
 hotpot/plugins/xtb/
 ├── __init__.py          # Explicit public exports
 ├── contracts.py         # Enums, requests, results, reports and exceptions
-├── executable.py        # Executable resolution and version probe
+├── backend.py           # xTB-specific version and parameter-set probe
 ├── capabilities.py      # Method/element and parameter-set applicability
 ├── adapter.py           # Molecule/state -> xTB files; result -> coordinates
-├── runner.py            # Isolated subprocess lifecycle
+├── runner.py            # xTB argv, artifacts and scientific success contract
 ├── workflow.py          # Independent GFN-FF and GFN-xTB public operations
 ├── stream.py            # stdin/stdout molecule records and metadata
+├── stage.py             # Thin `hotpot run` molecular-stage adapter
 ├── cli.py               # Thin CLI over workflow.py
 ├── cli_doc.md            # Tested command examples
 └── README.md             # Backend API, units, domains and limitations
@@ -449,7 +579,34 @@ hotpot/plugins/xtb/.cache.json
 hotpot/cheminfo/_io/xtb.py   # currently an empty writer hook
 ```
 
-### 6.2 Public backend types
+The package README also serves as the implementation template for a future
+`hotpot/plugins/xxxx/`: it identifies which five layers remain plugin-owned
+(`contracts`, `adapter`, `runner/workflow`, `stream/cli`, and validation) and
+which process primitives may be reused.
+
+```text
+hotpot/plugins/xxxx/
+├── __init__.py
+├── contracts.py       # Software-specific request/result and units
+├── backend.py         # Identity, version and executable-specific probing
+├── capabilities.py    # Methods, elements and feature domain
+├── adapter.py         # Hotpot objects <-> native inputs/results
+├── runner.py          # Native argv/artifacts and success interpretation
+├── workflow.py        # Independent public operations
+├── stream.py          # Molecular CLI records and reserved metadata
+├── stage.py           # Optional controlled-pipeline adapter
+├── cli.py
+├── cli_doc.md
+└── README.md          # Installation, API, limitations and validation evidence
+```
+
+A plugin may omit layers it does not need. This is a documented ownership
+pattern, not an inheritance hierarchy.
+
+No Gaussian, ORCA, remote API, or existing plugin is migrated in this stage.
+There is no dynamic entry-point discovery yet.
+
+### 6.3 Public backend types
 
 ```python
 from typing import Optional, Union
@@ -493,7 +650,7 @@ The report will include at minimum:
 - whether optimized coordinates were committed;
 - optional post-stage Hotpot geometry-quality report.
 
-### 6.3 Executable resolution
+### 6.4 Executable resolution
 
 Resolution precedence is deterministic:
 
@@ -509,7 +666,7 @@ Hotpot records provenance but cannot prove that an arbitrary executable is an
 official build. Documentation will recommend official `grimme-lab/xtb`
 releases or a trusted conda-forge package.
 
-### 6.4 Process lifecycle
+### 6.5 Process lifecycle
 
 - Build argv as a sequence and invoke without `shell=True`.
 - Never call process-global `os.chdir()`; supply `cwd=` to `subprocess.run()`.
@@ -531,7 +688,7 @@ releases or a trusted conda-forge package.
   A failed stage leaves the caller's coordinates unchanged.
 - Retain the temporary directory only when explicitly requested.
 
-### 6.5 Independent public operations
+### 6.6 Independent public operations
 
 ```python
 def run_gfnff(
@@ -561,7 +718,7 @@ def run_gfn_xtb(
 calls the other. Their public method domains do not overlap. Skipping GFN-FF
 therefore changes only the user's composition, not an internal mode branch.
 
-## 7. CLI design
+## 7. Standalone CLI and pipeline controller
 
 ### 7.1 Command
 
@@ -615,13 +772,27 @@ connectivity and formal-charge annotations better than XYZ. The xTB process
 adapter may still use a private XYZ file internally. xTB output coordinates are
 applied to the original Hotpot graph, and Hotpot then serializes the result.
 
-The xTB wrapper will add reserved SDF data fields for the resolved total charge,
-unpaired-electron count, method and energy. A following `hotpot xtb` node treats
-those fields as explicit provenance rather than recomputing them. For formats
-that cannot carry these fields, users must repeat explicit state options or
-accept a newly reported inference.
+The current generic Open Babel conversion does not preserve arbitrary Hotpot
+properties. `plugins/xtb/stream.py` will therefore own and test a narrow SDF
+property codec for reserved total-charge, unpaired-electron, method, energy and
+provenance fields. A following `hotpot xtb` node accepts them only after a
+complete round trip and consistency check against the molecular record. This
+does not silently promote every `Molecule.properties` value into SDF.
+
+For formats that cannot carry these fields, users must repeat explicit state
+options or accept newly reported inference. Under `hotpot run`, the controller
+also stores the typed state in its manifest and does not rely on SDF alone.
+
+CBond's human-only `--bond-detail` and current textual `--all-structures`
+outputs are not valid upstream streams. The new CBond stage adapter calls the
+existing Python result API, writes molecular records separately, and stores
+details in its JSON report. Existing human CLI formatting remains unchanged.
 
 ### 7.3 Intended shell compositions
+
+The canonical standalone form deliberately repeats `hotpot`. Bare `ff` and
+`xtb` executables are not installed because of global-name and official-xTB
+collisions.
 
 Full pipeline:
 
@@ -671,21 +842,130 @@ $ hotpot xtb am_complex.sdf --method gfnff --charge 3 -o am_gfnff.sdf
 Attempting `--method gfn2` on Am must fail before launch with an applicability
 error; it must not fall back silently to GFN-FF.
 
+### 7.4 `hotpot run` controller
+
+The concise inline form is:
+
+```bash
+$ hotpot run --results-dir results/eu-001 -- \
+    cbond Eu 'LIGAND_SMILES' \
+    :: ff --route complex --forcefield uff \
+    :: xtb --method gfnff --task optimize \
+    :: xtb --method gfn2 --task optimize
+```
+
+`::` is parsed only as an argv-stage separator. No command is evaluated as a
+shell string. Removing the GFN-FF segment removes that node without changing
+the others. A JSON workflow file will provide the equivalent non-inline form
+for long or repeatedly executed pipelines.
+
+```json
+{
+  "stages": [
+    {"name": "cbond", "argv": ["Eu", "ligand.smi"]},
+    {"name": "ff", "argv": ["--route", "complex", "--forcefield", "uff"]},
+    {"name": "xtb", "argv": ["--method", "gfnff", "--task", "optimize"]},
+    {"name": "xtb", "argv": ["--method", "gfn2", "--task", "optimize"]}
+  ]
+}
+```
+
+```bash
+$ hotpot run workflow.json --results-dir results/eu-001
+```
+
+The controller is separate from the external-process harness:
+
+```text
+hotpot/pipeline/
+├── __init__.py
+├── contracts.py       # MolecularStage, StageContext, StageResult, Artifact
+├── registry.py        # Explicit, lazy built-in stage registry
+├── runner.py          # Ordered execution and failure propagation
+├── artifacts.py       # Atomic stage directories, hashes and manifest
+└── cli.py             # `hotpot run` inline/JSON parsing
+```
+
+The existing scientific modules expose thin adapters without changing their
+kernels:
+
+```text
+hotpot/cheminfo/AImodels/cbond/stage.py
+hotpot/cheminfo/forcefields/stage.py
+hotpot/plugins/xtb/stage.py
+```
+
+The first controller version is explicitly a molecular-record pipeline. It is
+not an arbitrary shell runner. A later non-molecular stage must declare a new
+typed payload contract rather than pass an untyped object.
+
+Every run has one ordered artifact tree:
+
+```text
+RESULTS/
+├── manifest.json
+├── input/
+├── stages/
+│   ├── 00-cbond/
+│   │   ├── output.sdf
+│   │   ├── report.json
+│   │   ├── stderr.log
+│   │   └── artifacts/
+│   ├── 01-ff/
+│   │   ├── output.sdf
+│   │   ├── report.json
+│   │   ├── stderr.log
+│   │   └── trajectory/
+│   ├── 02-xtb-gfnff/
+│   │   ├── output.sdf
+│   │   ├── report.json
+│   │   ├── native.log
+│   │   └── native/
+│   └── 03-xtb-gfn2/
+│       ├── output.sdf
+│       ├── report.json
+│       ├── native.log
+│       └── native/
+└── final.sdf
+```
+
+`manifest.json` records the complete argv, Hotpot version, stage order and
+status, start/end time, input/output SHA-256 lineage, resolved electronic state
+and provenance, third-party executable identity, and artifact paths. Each stage
+writes to a temporary sibling and is atomically renamed only after its manifest
+is complete. Failure stops downstream execution by default while retaining the
+failed stage evidence. A future explicit policy may permit selected diagnostic
+continuation; it is not an unconditional fallback.
+
+In controlled mode every adapter receives a stage-local workspace under the
+temporary stage directory. Third-party inputs, outputs, logs and trajectories
+are created there or copied there before commit, so a successful run has no
+untracked workflow artifact outside `RESULTS/`.
+
+Standalone node CLIs and the controller call the same public operation/stage
+adapter. The controller does not reimplement CBond, force-field, or xTB
+scientific logic.
+
 ## 8. Planned source changes
 
 | Location | Planned change | Kernel impact |
 |---|---|---|
-| `hotpot/cheminfo/electronic_state/**` | Add pure charge/spin inference contracts and composition | New chemistry service |
-| `hotpot/cheminfo/calculator.py` | Move existing pure charge machinery behind the new inference service; keep `formal_charge()` as the assigning façade | Behavior-preserving refactor plus evidence return path |
-| `hotpot/calculator.py` | Export intentionally public inference operations if approved | Public façade only |
+| `hotpot/cheminfo/calculator.py` -> `hotpot/cheminfo/calculator/**` | Atomically split independent calculators; retain one explicit package façade | Structural refactor; existing calculator behavior retained |
+| `hotpot/cheminfo/calculator/electronic_state/**` | Add pure charge/spin inference contracts and composition | New chemistry service |
+| `hotpot/calculator.py` | Delete root façade and migrate all repository consumers | Deliberate public-path removal; no shim |
+| `hotpot/plugins/_harness/**` | Add narrow executable/process/workspace/provenance primitives | New non-chemical infrastructure |
 | `hotpot/plugins/xtb/**` | Replace prototype with typed adapter, runner, workflows, CLI and documentation | New downstream backend |
-| `hotpot/__main__.py` | Register `hotpot xtb` | CLI composition only |
+| `hotpot/pipeline/**` | Add typed molecular-stage controller and ordered result manifests | New orchestration; no scientific kernel |
+| `hotpot/cheminfo/AImodels/cbond/stage.py` | Adapt existing CBond result API to machine records/reports | Downstream adapter only |
+| `hotpot/cheminfo/forcefields/stage.py` | Adapt existing FF public operations and trajectory artifacts | Downstream adapter only |
+| `hotpot/__main__.py` | Register `hotpot xtb` and `hotpot run`; make command loading lazy | CLI composition only |
 | `hotpot/cheminfo/_io/xtb.py` | Remove empty writer hook after replacement | Dead-code cleanup |
-| `tests/test_cheminfo/electronic_state/**` | Charge/spin unit and regression tests | Test only |
+| `tests/test_cheminfo/calculator/**` | Calculator split plus charge/spin unit and regression tests | Test only |
+| `tests/test_pipeline/**` | Stage parsing, manifests, failure propagation and result-tree tests | Test only |
 | `tests/test_plugin/test_xtb/**` | Fake executable, real backend and API tests | Test only |
 | `tests/test_cli/test_xtb_cli.py` | stdin/stdout/stderr and shell-pipeline tests | Test only |
 | `tests/benchmarks/coordination_complexes/**` | Optional xTB/GFN-FF benchmark adapter and report | Benchmark only |
-| `pyproject.toml`, package manifests | Include docs; no mandatory xTB Python dependency | Packaging only |
+| `pyproject.toml`, package manifests | Include new packages/docs; keep only the `hotpot` console script and no mandatory xTB Python dependency | Packaging only |
 
 No planned production changes are permitted in:
 
@@ -694,6 +974,7 @@ hotpot/cheminfo/AImodels/cbond/apply.py
 hotpot/cheminfo/forcefields/_native/**
 hotpot/cheminfo/obWrappers/_native/**
 hotpot/cheminfo/forcefields/workflows.py   # except no change is currently needed
+hotpot/cheminfo/obconvert.py               # xTB owns its narrow SDF metadata codec
 hotpot/cheminfo/geometry/**
 hotpot/cheminfo/graph/**
 ```
@@ -708,43 +989,78 @@ necessary split. Every commit is pushed to `feature/xtb-workflow` after its
 focused tests pass.
 
 1. `docs(plan): define composable xtb workflow`
-   - commit this reviewed plan and archive index entry.
-2. `test(state): define charge and spin inference contracts`
-   - add regression fixtures for neutral molecules, ions, radicals, metal
-     complexes and ambiguous states before changing production code.
-3. `refactor(state): expose pure fragment charge inference`
-   - extract/reuse the existing formal-charge calculation;
-   - preserve `formal_charge()` assignment behavior;
-   - verify source molecules are not mutated by inference.
-4. `feat(state): add explicit lowest-spin inference`
+   - retain planning commit `4d4fbbb` and commit this reviewed revision plus the
+     separate compatibility audit.
+2. `test(calculator): lock calculator behavior before split`
+   - cover the four current façade names, formal-charge mutation, legacy charge
+     behavior, MCA lazy loading and exact import consumers.
+3. `refactor(calculator): split cheminfo calculator package`
+   - atomically replace `cheminfo/calculator.py` with the package layout;
+   - delete `hotpot/calculator.py` and migrate code, docs, skills and tests;
+   - preserve lazy MCA loading and explicitly verify wheel contents.
+4. `test(state): define charge and spin inference contracts`
+   - add neutral, ionic, radical, metal, explicit/implicit-H and ambiguity
+     fixtures before changing charge rules.
+5. `refactor(state): expose pure fragment charge inference`
+   - correct H representation handling and extract/reuse the existing
+     formal-charge calculation;
+   - preserve the assigning `formal_charge()` behavior and prove inference does
+     not mutate the source molecule.
+6. `feat(state): add explicit lowest-spin inference`
    - add independent spin estimator and combined resolver;
-   - connect existing default spin conveniences to the single formula where
-     doing so preserves their contract.
-5. `test(xtb): define executable and process contracts`
-   - add a deterministic fake xTB executable fixture and failure cases.
-6. `feat(xtb): add typed executable runner`
-   - executable discovery, version probe, unique workspaces, process capture and
-     explicit failure objects.
-7. `feat(xtb): add molecule and result adapters`
-   - XYZ/state files, atom-order checks, artifact parsing, transactional
-     coordinate commit and unit-labelled results.
-8. `feat(xtb): expose independent gfnff and gfn-xtb nodes`
-   - public Python operations and method-domain preflight.
-9. `feat(cli): add composable hotpot xtb command`
-   - stdin/stdout/stderr contract, SDF state tags, reports and documentation.
-10. `test(xtb): validate official backend parity and pipeline`
-    - real official xTB tests, direct CLI parity, optional GFN-FF path and full
-      shell composition.
-11. `refactor(xtb): remove superseded prototype`
+   - connect existing default spin conveniences to the single formula only when
+     their public contract is preserved.
+7. `test(harness): define external process facts`
+   - specify path resolution, argv/cwd/env, timeout, log capture, workspace and
+     provenance behavior without xTB semantics.
+8. `feat(harness): add external process primitives`
+   - implement the narrow private `_harness` and its isolated tests.
+9. `test(xtb): define backend and artifact contracts`
+   - add a deterministic fake xTB executable and success/failure fixtures.
+10. `feat(xtb): add backend probe and typed runner`
+    - xTB version/parameter capability, argv construction, process invocation,
+      artifacts and explicit failure objects.
+11. `feat(xtb): add molecule and result adapters`
+    - XYZ/state files, fragment checks, atom-order checks, artifact parsing,
+      finite-value validation and transactional coordinate commit.
+12. `feat(xtb): expose independent gfnff and gfn-xtb nodes`
+    - public Python operations and method-domain preflight.
+13. `feat(cli): add composable hotpot xtb command`
+    - stdin/stdout/stderr contract, dedicated SDF state codec, reports and
+      tested documentation.
+14. `test(pipeline): define controller and artifact contracts`
+    - inline `::` parsing, JSON workflows, stage order, atomic directories,
+      hashes, manifests and failure propagation.
+15. `feat(pipeline): add controller and built-in stage adapters`
+    - add `hotpot run`, lazy stage registration, ordered result directories,
+      and thin CBond/FF/xTB adapters without kernel changes.
+16. `test(xtb): validate official backend and both pipeline forms`
+    - direct official CLI parity, standalone shell composition, controlled
+      pipeline composition and optional GFN-FF path.
+17. `refactor(xtb): remove superseded prototype`
     - remove `core.py`, `.cache.json`, empty writer hook and obsolete tests/docs;
-    - full consumer search and packaging checks.
-12. `docs(xtb): publish api limits and validation report`
-    - record supported versions/elements, inference assumptions, measured
-      runtime and benchmark evidence.
+    - complete consumer search, packaging and installed-wheel smoke checks.
+18. `docs(xtb): publish template, api limits and validation report`
+    - document the external-software wrapper template, supported
+      versions/elements, inference assumptions, runtime and benchmark evidence.
 
 ## 10. Validation plan
 
-### 10.1 Charge inference
+### 10.1 Calculator package migration
+
+- pre-split and post-split public calculator results are identical on the same
+  fixtures;
+- `hotpot.cheminfo.calculator` exposes only its declared `__all__` and retains
+  lazy MCA model loading;
+- all repository imports, documentation examples and core error messages use
+  the new canonical façade;
+- `import hotpot.calculator` fails after installation, proving the deleted root
+  façade was not accidentally retained in the wheel;
+- no same-stem `cheminfo/calculator.py` remains beside the package;
+- the installed wheel passes calculator, MCA and charge tests on Python
+  3.9-3.14.
+
+### 10.2 Charge inference
 
 Minimum fixtures:
 
@@ -765,7 +1081,7 @@ Assertions cover original atom order, no source mutation, deterministic fragment
 order, atom/fragment/total sum equality, and preserved public `formal_charge()`
 behavior.
 
-### 10.2 Spin inference
+### 10.3 Spin inference
 
 - neutral even-electron molecule -> `0`, singlet;
 - odd-electron radical -> `1`, doublet;
@@ -776,7 +1092,12 @@ behavior.
   than inferred physical ground states;
 - custom and future AI estimators satisfy the same Protocol tests.
 
-### 10.3 Hermetic runner tests
+### 10.4 Hermetic harness and runner tests
+
+The generic `_harness` is first tested without xTB for executable precedence,
+absolute paths, cwd isolation, environment and timeout handling, concurrent
+workspaces, exact stdout/stderr capture, elapsed time and artifact hashes. These
+tests assert process facts only.
 
 A fake executable will reproduce official file names and controlled outcomes:
 
@@ -795,7 +1116,7 @@ A fake executable will reproduce official file names and controlled outcomes:
 
 These tests run in the normal Python 3.9-3.14 CI matrix without requiring xTB.
 
-### 10.4 Real official xTB tests
+### 10.5 Real official xTB tests
 
 Against a recorded official binary version:
 
@@ -816,7 +1137,7 @@ Against a recorded official binary version:
 Real-backend tests are marked integration tests and skip with a clear reason
 when xTB is unavailable; fake-runner tests remain mandatory.
 
-### 10.5 CLI and full pipeline
+### 10.6 Standalone CLI and shell pipeline
 
 - stdout contains only parseable molecular records;
 - all native logs and warnings are on stderr or in the requested log file;
@@ -829,7 +1150,24 @@ when xTB is unavailable; fake-runner tests remain mandatory.
 - `--charge` and `--unpaired-electrons` override defaults in both Python and CLI;
 - a quality-failed terminal structure is distinguishable from a successful one.
 
-### 10.6 Coordination benchmark
+### 10.7 Controlled pipeline and results directory
+
+- inline `::` and JSON definitions produce the same normalized stage plan;
+- stage tokens are passed as argv arrays and never interpreted by a shell;
+- CBond detail/all-structure evidence goes to reports while molecular output
+  remains parseable;
+- standalone and controlled execution use the same stage operations;
+- every stage directory contains output, status, elapsed time and SHA-256
+  lineage consistent with `manifest.json`;
+- a terminated or failed stage cannot leave a completed-looking directory;
+- failure retains evidence and prevents downstream execution by default;
+- concurrent runs using the same parent directory receive distinct run roots;
+- no bare `ff` or `xtb` console script is installed, and xTB backend resolution
+  cannot resolve to Hotpot itself;
+- lazy CLI registration allows `hotpot ff` to start without loading CBond or
+  xTB optional dependencies.
+
+### 10.8 Coordination benchmark
 
 The existing 187-ligand corpus will be used in opt-in stages:
 
@@ -850,7 +1188,12 @@ The existing 187-ligand corpus will be used in opt-in stages:
 
 Implementation is complete only when:
 
+- calculator logic is separated under `hotpot.cheminfo.calculator`, the root
+  `hotpot.calculator` module is absent, and all in-repository consumers use the
+  canonical façade;
 - CBond and force-field kernel diffs are empty;
+- generic process facts are implemented once in `_harness` while all xTB
+  scientific decisions remain in the xTB plugin;
 - GFN-FF and GFN-xTB can each run independently from Python and CLI;
 - the optional GFN-FF node can be inserted or removed without internal mode
   changes;
@@ -862,6 +1205,9 @@ Implementation is complete only when:
 - unsupported xTB element domains fail before launch without fallback;
 - source molecule coordinates change only after a valid successful result;
 - units, energy, convergence, provenance and failure evidence are explicit;
+- `hotpot run` executes the same node operations, creates the specified ordered
+  artifact tree, and records verified SHA-256 lineage;
+- no bare `ff` or `xtb` executable is installed;
 - fake-runner tests pass across Python 3.9-3.14;
 - real official-backend parity tests pass on the declared supported xTB version;
 - old xTB code and mutable package cache have been removed;
@@ -877,6 +1223,11 @@ Implementation is complete only when:
 - supporting GFN-xTB for elements absent from official parameter files;
 - implementing a Hotpot geometry optimizer around the xTB C API;
 - forking or distributing a patched xTB binary inside the Hotpot wheel;
+- refactoring existing Gaussian, ORCA, ML, plotting, or database plugins into
+  the new external-process primitives;
+- defining a universal calculation-plugin base class or dynamic third-party
+  plugin discovery from the xTB example alone;
+- accepting arbitrary shell strings in `hotpot run`;
 - inferring protonation/tautomer states not encoded by the input structure;
 - silently changing Hotpot bond topology from xTB bond orders.
 
@@ -886,6 +1237,9 @@ Implementation starts only after review accepts all of the following:
 
 - use the official external xTB executable through an isolated temporary-file
   adapter; do not fork or recompile xTB;
+- replace `cheminfo/calculator.py` with the same-name package, split its
+  independent calculators, and intentionally delete the root-level
+  `hotpot/calculator.py` façade;
 - keep CBond and the existing UFF/complex force-field kernels unchanged;
 - expose GFN-FF and GFN-xTB as independent Python and CLI nodes;
 - require complete explicit-atom 3D input at the xTB node and reject bare
@@ -900,6 +1254,11 @@ Implementation starts only after review accepts all of the following:
   xTB 6.7.1 versus extended-GFN-FF Am boundary;
 - reserve stdout for molecular payload and route native diagnostics to stderr
   or an explicit log file;
+- keep standalone commands as `hotpot <node>` and use `hotpot run` for concise
+  composition and one controlled results directory; do not install bare command
+  aliases;
+- make xTB the documented reference plugin while sharing only proven generic
+  external-process primitives;
 - remove the superseded legacy xTB prototype after the new path passes parity
   and integration tests, rather than keeping compatibility branches.
 

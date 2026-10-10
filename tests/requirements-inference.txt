@@ -18,3 +18,4 @@ pandas>=2,<4
 tqdm>=4.65,<5
 PubChemPy>=1,<2
 thermo>=0.4,<1
+huggingface_hub>=0.28,<2

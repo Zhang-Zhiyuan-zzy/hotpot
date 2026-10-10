@@ -3,6 +3,7 @@ name: Inference compatibility
 on:
   pull_request:
     paths:
+      - "hotpot/cheminfo/AImodels/artifacts/**"
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
       - "hotpot/cheminfo/search/**"
@@ -53,6 +54,7 @@ on:
       - ".github/workflows/inference_compatibility.yml"
   push:
     paths:
+      - "hotpot/cheminfo/AImodels/artifacts/**"
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
       - "hotpot/cheminfo/search/**"
@@ -117,6 +119,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+      - name: Cache inference models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/hotpot/models
+          key: ${{ runner.os }}-hotpot-models-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
       - name: Install compatibility runner
         run: python -m pip install uv
       - name: Test maintained inference and graph-search matrix
@@ -160,6 +167,11 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - name: Cache inference models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/hotpot/models
+          key: ${{ runner.os }}-hotpot-models-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
       - name: Install build and inference dependencies
         run: python -m pip install build -r tests/requirements-inference.txt
       - name: Build distributions and install wheel

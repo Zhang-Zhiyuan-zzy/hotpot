@@ -59,6 +59,10 @@ jobs:
           HOTPOT_MODEL_SOURCE: local
         run: ./tests/run_coverage.sh
 
+      - name: Annotate test failures
+        if: ${{ failure() && hashFiles('tests/coverage/junit.xml') != '' }}
+        run: python tests/annotate_junit.py tests/coverage/junit.xml
+
       - name: Upload coverage reports to Codecov
         if: ${{ always() && hashFiles('tests/coverage/coverage.xml') != '' }}
         uses: codecov/codecov-action@v5

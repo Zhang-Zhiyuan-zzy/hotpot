@@ -53,6 +53,7 @@ test_targets=(
   tests/smarts_conformance
   tests/benchmarks/coordination_complexes/test_support.py
   tests/benchmarks/coordination_complexes/test_backend_comparison.py
+  tests/benchmarks/coordination_complexes/test_xtb_benchmark.py
   tests/test_works/test_convert.py
   tests/test_cli/test_run_cli.py
   tests/test_cli/test_xtb_cli.py

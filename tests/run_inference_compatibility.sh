@@ -82,7 +82,8 @@ assert actual == expected
             tests/test_main/test_command_loading.py \
             tests/test_pipeline \
             tests/test_plugin/test_harness \
-            tests/test_plugin/test_xtb
+            tests/test_plugin/test_xtb \
+            tests/benchmarks/coordination_complexes/test_xtb_benchmark.py
 
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \

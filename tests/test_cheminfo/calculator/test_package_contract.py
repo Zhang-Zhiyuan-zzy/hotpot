@@ -1,13 +1,5 @@
 """Public contracts for calculator electronic-state services."""
 
-import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="electronic-state calculator services are implemented in phases 5-6",
-)
-
 
 def test_electronic_state_package_exposes_typed_services() -> None:
     from hotpot.cheminfo.calculator import (

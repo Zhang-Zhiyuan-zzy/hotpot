@@ -6,12 +6,6 @@ import hotpot
 import pytest
 
 
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="spin inference is implemented in phase 6",
-)
-
-
 @pytest.mark.parametrize(
     ("smiles", "charge", "electron_count", "unpaired", "multiplicity"),
     (

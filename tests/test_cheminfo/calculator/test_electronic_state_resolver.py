@@ -6,12 +6,6 @@ import hotpot
 import pytest
 
 
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="electronic-state resolver is implemented in phase 6",
-)
-
-
 def _explicit_molecule(smiles: str):
     mol = hotpot.read_mol(smiles, "smi")
     mol.add_hydrogens(rm_polar_hs=False)

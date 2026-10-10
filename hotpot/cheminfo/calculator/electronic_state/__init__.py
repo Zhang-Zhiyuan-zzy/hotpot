@@ -14,6 +14,7 @@ from .contracts import (
     SpinInferenceResult,
     SpinInferenceSource,
 )
+from .spin import LowestSpinEstimator, infer_lowest_spin
 
 __all__ = [
     "AmbiguousHydrogenRepresentationError",
@@ -25,8 +26,10 @@ __all__ = [
     "ElectronicStateError",
     "FragmentCharge",
     "IncompleteExplicitAtomError",
+    "LowestSpinEstimator",
     "SpinEstimator",
     "SpinInferenceResult",
     "SpinInferenceSource",
+    "infer_lowest_spin",
 ]
 

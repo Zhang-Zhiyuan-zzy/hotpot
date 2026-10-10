@@ -15,7 +15,9 @@ PUBLIC_CALCULATOR_NAMES = (
     "MolChargeCalculator",
     "formal_charge",
     "infer_charge",
+    "infer_lowest_spin",
     "mca",
+    "resolve_electronic_state",
 )
 
 

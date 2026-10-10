@@ -9,12 +9,6 @@ import sys
 import pytest
 
 
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 8 implements hotpot.plugins._harness",
-)
-
-
 def test_process_uses_requested_cwd_environment_and_exact_streams(
     tmp_path: Path,
 ) -> None:

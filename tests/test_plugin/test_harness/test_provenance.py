@@ -4,15 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 8 implements hotpot.plugins._harness",
-)
-
-
 def test_sha256_file_returns_the_content_digest(tmp_path: Path) -> None:
     from hotpot.plugins._harness.provenance import sha256_file
 

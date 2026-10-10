@@ -5,15 +5,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 8 implements hotpot.plugins._harness",
-)
-
-
 def _write_executable(directory: Path, name: str) -> Path:
     executable = directory / name
     executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")

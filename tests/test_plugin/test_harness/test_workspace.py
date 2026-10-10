@@ -4,15 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 8 implements hotpot.plugins._harness",
-)
-
-
 def test_workspaces_are_isolated_and_removed_by_default(tmp_path: Path) -> None:
     from hotpot.plugins._harness.workspace import isolated_workspace
 

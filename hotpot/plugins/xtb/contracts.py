@@ -19,7 +19,9 @@ __all__ = [
     "XTBExecutableError",
     "XTBExecutionError",
     "XTBInputError",
+    "XTBGeometry",
     "XTBMethod",
+    "XTBParsedResult",
     "XTBRequest",
     "XTBResultError",
     "XTBRunReport",
@@ -49,6 +51,25 @@ class XTBTask(str, Enum):
 
     SINGLEPOINT = "singlepoint"
     OPTIMIZE = "optimize"
+
+
+@dataclass(frozen=True)
+class XTBGeometry:
+    """Immutable atom order and Cartesian coordinates exchanged with xTB."""
+
+    symbols: Tuple[str, ...]
+    coordinates: Tuple[Tuple[float, float, float], ...]
+
+
+@dataclass(frozen=True)
+class XTBParsedResult:
+    """Validated numerical and geometry facts parsed from xTB artifacts."""
+
+    energy_hartree: float
+    gradient_norm: Optional[float]
+    partial_charges: Optional[Tuple[float, ...]]
+    optimized_geometry: Optional[XTBGeometry]
+    atom_order_verified: bool
 
 
 @dataclass(frozen=True)

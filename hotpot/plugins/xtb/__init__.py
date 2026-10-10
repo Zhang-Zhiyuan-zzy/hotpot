@@ -1,5 +1,11 @@
 """Public xTB plugin exports."""
 
+from .adapter import (
+    commit_xtb_coordinates,
+    molecule_to_xtb_geometry,
+    parse_xtb_artifacts,
+    prepare_xtb_input,
+)
 from .backend import probe_xtb_backend
 from .capabilities import validate_element_support
 from .contracts import (
@@ -9,9 +15,11 @@ from .contracts import (
     XTBBackendInfo,
     XTBError,
     XTBExecutableError,
+    XTBGeometry,
     XTBExecutionError,
     XTBInputError,
     XTBMethod,
+    XTBParsedResult,
     XTBRequest,
     XTBResultError,
     XTBRunReport,
@@ -28,15 +36,21 @@ __all__ = [
     "XTBBackendInfo",
     "XTBError",
     "XTBExecutableError",
+    "XTBGeometry",
     "XTBExecutionError",
     "XTBInputError",
     "XTBMethod",
+    "XTBParsedResult",
     "XTBRequest",
     "XTBResultError",
     "XTBRunReport",
     "XTBTask",
     "XtbCalculator",
+    "commit_xtb_coordinates",
+    "molecule_to_xtb_geometry",
+    "parse_xtb_artifacts",
     "probe_xtb_backend",
+    "prepare_xtb_input",
     "run_xtb",
     "validate_element_support",
     "xtb_batch_run",

@@ -46,9 +46,16 @@ class FakeXTBFactory(Protocol):
 
 
 def _molecule() -> Molecule:
-    mol = hotpot.read_mol("CO", "smi")
+    mol = hotpot.read_mol("[H]C([H])([H])O[H]", "smi")
     mol.coordinates = np.asarray(
-        ((0.0, 0.0, 0.0), (1.42, 0.0, 0.0)),
+        (
+            (-0.63, 0.90, 0.00),
+            (0.00, 0.00, 0.00),
+            (-0.63, -0.90, 0.00),
+            (0.00, 0.00, 1.00),
+            (1.42, 0.00, 0.00),
+            (1.82, 0.72, 0.00),
+        ),
         dtype=float,
     )
     return mol

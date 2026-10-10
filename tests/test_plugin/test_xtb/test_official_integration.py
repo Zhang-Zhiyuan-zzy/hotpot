@@ -22,9 +22,16 @@ def test_official_gfn2_singlepoint_matches_public_result_contract() -> None:
     except ModuleNotFoundError:
         pytest.xfail("Phase 9 public xTB workflow API is not implemented yet")
 
-    mol = hotpot.read_mol("CO", "smi")
+    mol = hotpot.read_mol("[H]C([H])([H])O[H]", "smi")
     mol.coordinates = np.asarray(
-        ((0.0, 0.0, 0.0), (1.42, 0.0, 0.0)),
+        (
+            (-0.63, 0.90, 0.00),
+            (0.00, 0.00, 0.00),
+            (-0.63, -0.90, 0.00),
+            (0.00, 0.00, 1.00),
+            (1.42, 0.00, 0.00),
+            (1.82, 0.72, 0.00),
+        ),
         dtype=float,
     )
     report = run_gfn_xtb(

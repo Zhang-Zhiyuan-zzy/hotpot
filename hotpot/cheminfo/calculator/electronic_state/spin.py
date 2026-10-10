@@ -5,10 +5,15 @@ from __future__ import annotations
 from ...core import Molecule
 from . import contracts
 
-__all__ = ["LowestSpinEstimator", "infer_lowest_spin"]
+__all__ = [
+    "LowestSpinEstimator",
+    "infer_lowest_spin",
+    "require_complete_explicit_atoms",
+]
 
 
-def _require_complete_explicit_atoms(mol: Molecule) -> None:
+def require_complete_explicit_atoms(mol: Molecule) -> None:
+    """Require every stored hydrogen to exist in the molecular atom list."""
     for atom in mol.heavy_atoms:
         explicit_hydrogen_count = len(atom.hydrogens)
         if atom.implicit_hydrogens and (
@@ -28,7 +33,7 @@ def infer_lowest_spin(mol: Molecule, charge: int) -> contracts.SpinInferenceResu
     the numerical backend. This policy is an execution default, not a physical
     ground-state prediction.
     """
-    _require_complete_explicit_atoms(mol)
+    require_complete_explicit_atoms(mol)
     electron_count = sum(atom.atomic_number for atom in mol.atoms) - charge
     if electron_count < 0:
         raise ValueError("Total charge leaves a negative electron count")

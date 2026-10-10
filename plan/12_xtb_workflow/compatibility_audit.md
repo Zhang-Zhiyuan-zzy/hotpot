@@ -38,9 +38,9 @@ atomically deletes the file and creates the package.
 
 ### 2.2 Current consumers that must move
 
-Root imports from `hotpot.calculator` currently appear in:
+Root imports from `hotpot.calculator` currently appear in active content in:
 
-- `README.md` and `README.2026.md`;
+- `README.md`;
 - `skills/usage.claude.md`;
 - README example tests and charge/MCA calculator tests;
 - `hotpot/cheminfo/AImodels/mca/README.md`.
@@ -52,8 +52,12 @@ module.
 
 Current direct consumers of `hotpot.cheminfo.calculator` are limited to tests.
 One test imports private `_get_mca_predictor`; after the split it must import the
-private helper from `hotpot.cheminfo.calculator.mca`, not from the public
+private helper from `hotpot.cheminfo.calculator.mca_inference`, not from the public
 façade.
+
+`README.2026.md` is an explicitly retained historical snapshot. It is not an
+active API guide and will remain unchanged; preserving its historical text does
+not imply that the removed import path remains supported.
 
 ### 2.3 Public migration table
 
@@ -73,8 +77,8 @@ Moving `Calculator`, `MolChargeCalculator` and functions into implementation
 modules changes their `__module__` values. Old pickle, joblib or cloudpickle
 payloads that record implementation paths may not deserialize. The project has
 no evidence that such payloads are a supported interchange format, so no
-module-alias compatibility code is planned. The release notes must state this
-break.
+module-alias compatibility code is planned. The active migration section and
+the stage implementation report must state this break.
 
 ### 2.5 Behavioral boundary
 
@@ -189,8 +193,9 @@ The repository still contains consumers of `XtbCalculator` and
 
 The new typed operations do not preserve those signatures. Before deleting the
 prototype, the example is migrated or explicitly retired, tests are replaced,
-and generated documentation is regenerated or removed. No wrapper that routes
-the old broad API through the new runner is planned.
+and the tracked HTML documentation is regenerated so the legacy class entries
+disappear. No wrapper that routes the old broad API through the new runner is
+planned.
 
 Executable resolution changes from mutable package `.cache.json` and legacy
 paths to explicit argument, environment variable, then PATH. Existing local
@@ -214,14 +219,15 @@ real comparison evidence.
 The breaking removals occur only after these checks pass:
 
 1. full consumer searches for old calculator and xTB paths;
-2. README, skills, examples and error-message migration;
+2. README, active command documentation, skills, examples and error-message
+   migration;
 3. pre/post calculator behavioral comparison;
 4. fake and real xTB parity tests;
 5. standalone CLI and controlled-pipeline round trips;
 6. source and wheel installation tests on Python 3.9-3.14;
 7. inspection of wheel contents for stale modules/cache files;
-8. release notes containing the import, serialization and executable-resolution
-   migration tables.
+8. the active migration documentation and stage implementation report contain
+   the import, serialization and executable-resolution migration tables.
 
 These gates verify the intended clean break. They do not authorize hidden
 compatibility branches.

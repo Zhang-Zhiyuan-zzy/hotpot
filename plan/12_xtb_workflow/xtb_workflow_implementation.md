@@ -177,9 +177,9 @@ rather than retained as a second compatibility path.
 | Concern | Current public surface | Required destination |
 |---|---|---|
 | Calculator marker | `Calculator` | `calculator/base.py` |
-| Classical formal charge | `formal_charge()` plus charge model aliases | `calculator/formal_charge.py` initially; grow into a subpackage only when multiple files are needed |
+| Classical formal charge | `formal_charge()` plus charge model aliases | `calculator/formal_charges.py` initially; grow into a subpackage only when multiple files are needed |
 | Legacy molecular-charge heuristic | `MolChargeCalculator` | `calculator/molecular_charge.py`, isolated from the new electronic-state rules |
-| MCA inference adapter | `mca()` and lazy predictor cache | `calculator/mca.py` |
+| MCA inference adapter | `mca()` and lazy predictor cache | `calculator/mca_inference.py` |
 
 The root-level `hotpot/calculator.py` currently re-exports four names, while
 documentation and tests consume both that façade and
@@ -327,9 +327,9 @@ diagnosis without being labelled successful.
 hotpot/cheminfo/calculator/
 ├── __init__.py                  # Sole public calculator façade and __all__
 ├── base.py                      # Calculator marker/base
-├── formal_charge.py             # Pure inference + assigning formal_charge()
+├── formal_charges.py            # Pure inference + assigning formal_charge()
 ├── molecular_charge.py          # Isolated legacy MolChargeCalculator
-├── mca.py                       # MCA adapter and lazy predictor cache
+├── mca_inference.py             # MCA adapter and lazy predictor cache
 └── electronic_state/
     ├── __init__.py
     ├── contracts.py             # Immutable results and estimator Protocols
@@ -340,7 +340,7 @@ hotpot/cheminfo/calculator/
 Simple calculators remain modules; only electronic state warrants a nested
 subpackage because it has contracts, independent inference policies and a
 resolver. `electronic_state` imports the pure charge operation from
-`formal_charge.py`; it does not contain a second Lewis-rule implementation.
+`formal_charges.py`; it does not contain a second Lewis-rule implementation.
 
 This package is chemistry policy, not geometry. It does not invoke xTB and does
 not perform coordinate optimization. Its `__init__.py` re-exports the approved
@@ -883,7 +883,9 @@ hotpot/pipeline/
 ├── registry.py        # Explicit, lazy built-in stage registry
 ├── runner.py          # Ordered execution and failure propagation
 ├── artifacts.py       # Atomic stage directories, hashes and manifest
-└── cli.py             # `hotpot run` inline/JSON parsing
+├── cli.py             # `hotpot run` inline/JSON parsing
+├── cli_doc.md         # Tested CLI examples rendered by `--doc`
+└── README.md          # Controller API, payload and artifact contracts
 ```
 
 The existing scientific modules expose thin adapters without changing their
@@ -946,7 +948,195 @@ Standalone node CLIs and the controller call the same public operation/stage
 adapter. The controller does not reimplement CBond, force-field, or xTB
 scientific logic.
 
-## 8. Planned source changes
+## 8. Completed-state file tree and source changes
+
+### 8.1 Status legend and scope
+
+- `[M]` (**modify**) is an existing file that will be edited in place.
+- `[A]` (**add**) is a new target file that does not exist at the implementation
+  baseline.
+- `[D]` (**delete**) is an existing file that will be removed without a
+  compatibility shim.
+- `[G]` (**regenerate**) is a generator-owned subtree whose output contains a
+  mixture of added, modified and deleted files.
+- `[R]` (**runtime cleanup**) is an existing untracked runtime file that will be
+  removed together with the source logic that creates it.
+
+The tree below is the authoritative completed-state change boundary for this
+stage. It lists every hand-maintained file that must be added, modified or
+deleted; unrelated repository files are intentionally omitted. The `[G]`
+subtree is regenerated as one unit rather than hand-edited file by file.
+Planning files already created on the planning branch are marked `[M]`.
+If implementation requires another production file, the plan must be revised
+before that file is changed.
+
+### 8.2 Complete in-scope tree
+
+```text
+.
+├── [M] .gitignore
+├── [M] README.md
+├── [M] MANIFEST.in
+├── .github/
+│   └── workflows/
+│       ├── [M] inference_compatibility.yml
+│       └── [M] publish_pypi.yml
+├── doc/
+│   ├── [M] command.md
+│   └── [G] html/**
+│       # Regenerated output; remove legacy XtbCalculator references and
+│       # describe the replacement API without manual per-file edits.
+├── examples/
+│   └── BayesianDesign/
+│       └── [M] data_process.py
+├── skills/
+│   ├── [M] usage.claude.md
+│   └── [M] usage.codex.md
+├── hotpot/
+│   ├── [M] __main__.py
+│   ├── [D] calculator.py
+│   ├── cheminfo/
+│   │   ├── [M] core.py
+│   │   ├── [D] calculator.py
+│   │   ├── calculator/
+│   │   │   ├── [A] __init__.py
+│   │   │   ├── [A] base.py
+│   │   │   ├── [A] formal_charges.py
+│   │   │   ├── [A] molecular_charge.py
+│   │   │   ├── [A] mca_inference.py
+│   │   │   └── electronic_state/
+│   │   │       ├── [A] __init__.py
+│   │   │       ├── [A] contracts.py
+│   │   │       ├── [A] spin.py
+│   │   │       └── [A] resolver.py
+│   │   ├── _io/
+│   │   │   └── [D] xtb.py
+│   │   ├── AImodels/
+│   │   │   ├── cbond/
+│   │   │   │   └── [A] stage.py
+│   │   │   └── mca/
+│   │   │       └── [M] README.md
+│   │   └── forcefields/
+│   │       └── [A] stage.py
+│   ├── pipeline/
+│   │   ├── [A] __init__.py
+│   │   ├── [A] contracts.py
+│   │   ├── [A] registry.py
+│   │   ├── [A] runner.py
+│   │   ├── [A] artifacts.py
+│   │   ├── [A] cli.py
+│   │   ├── [A] cli_doc.md
+│   │   └── [A] README.md
+│   └── plugins/
+│       ├── _harness/
+│       │   ├── [A] __init__.py
+│       │   ├── [A] contracts.py
+│       │   ├── [A] executable.py
+│       │   ├── [A] process.py
+│       │   ├── [A] workspace.py
+│       │   └── [A] provenance.py
+│       └── xtb/
+│           ├── [M] __init__.py
+│           ├── [R] .cache.json
+│           ├── [D] core.py
+│           ├── [D] xtb_doc.md
+│           ├── [A] contracts.py
+│           ├── [A] backend.py
+│           ├── [A] capabilities.py
+│           ├── [A] adapter.py
+│           ├── [A] runner.py
+│           ├── [A] workflow.py
+│           ├── [A] stream.py
+│           ├── [A] stage.py
+│           ├── [A] cli.py
+│           ├── [A] cli_doc.md
+│           └── [A] README.md
+├── tests/
+│   ├── [M] run_coverage.sh
+│   ├── [M] run_inference_compatibility.sh
+│   ├── cbond/
+│   │   └── [A] test_stage.py
+│   ├── readme/
+│   │   └── [M] test_readme_examples.py
+│   ├── test_main/
+│   │   └── [A] test_command_loading.py
+│   ├── test_cheminfo/
+│   │   ├── [M] test_calculator.py
+│   │   ├── [M] test_charge_calculators.py
+│   │   ├── [M] test_import_safety.py
+│   │   ├── [M] test_mca_calculator.py
+│   │   ├── calculator/
+│   │   │   ├── [A] test_package_contract.py
+│   │   │   ├── [A] test_charge_inference.py
+│   │   │   ├── [A] test_hydrogen_representation.py
+│   │   │   ├── [A] test_spin_inference.py
+│   │   │   └── [A] test_electronic_state_resolver.py
+│   │   └── forcefields/
+│   │       └── [A] test_stage.py
+│   ├── test_plugin/
+│   │   ├── [D] test_xtb.py
+│   │   ├── test_harness/
+│   │   │   ├── [A] test_executable.py
+│   │   │   ├── [A] test_process.py
+│   │   │   ├── [A] test_workspace.py
+│   │   │   └── [A] test_provenance.py
+│   │   └── test_xtb/
+│   │       ├── [A] conftest.py
+│   │       ├── fixtures/
+│   │       │   └── [A] fake_xtb.py
+│   │       ├── [A] test_backend.py
+│   │       ├── [A] test_capabilities.py
+│   │       ├── [A] test_adapter.py
+│   │       ├── [A] test_runner.py
+│   │       ├── [A] test_workflow.py
+│   │       ├── [A] test_stream.py
+│   │       ├── [A] test_documentation.py
+│   │       └── [A] test_real_backend.py
+│   ├── test_cli/
+│   │   ├── [A] test_xtb_cli.py
+│   │   └── [A] test_run_cli.py
+│   ├── test_pipeline/
+│   │   ├── [A] test_contracts.py
+│   │   ├── [A] test_registry.py
+│   │   ├── [A] test_runner.py
+│   │   ├── [A] test_artifacts.py
+│   │   └── [A] test_builtin_stages.py
+│   └── benchmarks/
+│       └── coordination_complexes/
+│           ├── [M] README.md
+│           ├── [M] cli.py
+│           ├── [A] xtb_workflow.py
+│           └── [A] test_xtb_workflow.py
+└── plan/
+    ├── [M] README.md
+    └── 12_xtb_workflow/
+        ├── [M] README.md
+        ├── [M] xtb_workflow_implementation.md
+        ├── [M] compatibility_audit.md
+        ├── [A] xtb_workflow_implementation_report.md
+        └── [A] xtb_workflow_validation_report.md
+```
+
+`README.2026.md` is deliberately absent: it is a historical snapshot, not an
+active API guide, and will not be rewritten to conceal the old interface that
+it documented. `pyproject.toml` also remains unchanged: existing `hotpot*`
+package discovery already includes the new packages and xTB remains an external
+executable rather than a new mandatory Python dependency. Runtime Markdown is
+included through `MANIFEST.in`, and wheel/sdist contents are enforced by the
+modified publishing workflow.
+
+The names `formal_charges.py` and `mca_inference.py` are intentional. A module
+named `formal_charge.py` or `mca.py` would compete with the same-named function
+exported by `calculator/__init__.py` through Python package attributes. The
+implementation names avoid that collision while preserving the public
+functions `formal_charge()` and `mca()`.
+
+`hotpot/plugins/xtb/.cache.json` currently exists only as ignored runtime state,
+not as a Git-tracked source file. `[R]` means that the migration removes the
+local file and the code that recreates it; `[M] .gitignore` removes its now-dead
+ignore rule.
+
+### 8.3 Change summary
 
 | Location | Planned change | Kernel impact |
 |---|---|---|
@@ -960,12 +1150,14 @@ scientific logic.
 | `hotpot/cheminfo/forcefields/stage.py` | Adapt existing FF public operations and trajectory artifacts | Downstream adapter only |
 | `hotpot/__main__.py` | Register `hotpot xtb` and `hotpot run`; make command loading lazy | CLI composition only |
 | `hotpot/cheminfo/_io/xtb.py` | Remove empty writer hook after replacement | Dead-code cleanup |
+| `.gitignore` and `hotpot/plugins/xtb/.cache.json` | Remove the obsolete mutable package-cache mechanism and its ignore rule | Dead-state cleanup |
 | `tests/test_cheminfo/calculator/**` | Calculator split plus charge/spin unit and regression tests | Test only |
 | `tests/test_pipeline/**` | Stage parsing, manifests, failure propagation and result-tree tests | Test only |
-| `tests/test_plugin/test_xtb/**` | Fake executable, real backend and API tests | Test only |
-| `tests/test_cli/test_xtb_cli.py` | stdin/stdout/stderr and shell-pipeline tests | Test only |
+| `tests/test_plugin/test_harness/**`, `tests/test_plugin/test_xtb/**` | Generic process tests plus fake executable, real backend and API tests | Test only |
+| `tests/test_cli/**`, `tests/test_main/test_command_loading.py` | stdin/stdout/stderr, shell pipeline, controlled pipeline and lazy command-loading tests | Test only |
 | `tests/benchmarks/coordination_complexes/**` | Optional xTB/GFN-FF benchmark adapter and report | Benchmark only |
-| `pyproject.toml`, package manifests | Include new packages/docs; keep only the `hotpot` console script and no mandatory xTB Python dependency | Packaging only |
+| `README.md`, `doc/command.md`, skills, examples, generated API documentation | Publish active imports, CLI usage and the replacement xTB API | Documentation/consumer migration only |
+| `MANIFEST.in`, CI workflows and test launchers | Include runtime docs, exercise new suites and inspect built distributions | Packaging/CI only |
 
 No planned production changes are permitted in:
 

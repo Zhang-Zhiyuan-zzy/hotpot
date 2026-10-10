@@ -12,15 +12,20 @@ not used as a substitute for another.
 | Main validation Python | CPython 3.11.16 |
 | Official backend | xTB 6.7.1, revision `edcfbbe` |
 | Official executable | Resolved environment executable; absolute path retained in integration artifacts |
-| Final coverage suite | `1697 passed, 8 skipped, 4 warnings, 49 subtests passed` |
-| Coverage-suite wall time | 264.16 s |
+| Final coverage suite | `1715 passed, 8 skipped, 4 warnings, 49 subtests passed` |
+| Coverage-suite wall time | 281.75 s |
 | Aggregate measured coverage | 36% |
 | Official opt-in integration suite | `8 passed in 5.78 s` |
+| README executable/evidence suite | `18 passed` |
 
 All eight coverage-suite skips are the official opt-in tests when their
 integration environment variables are absent. With the official xTB and CBond
 integration resources enabled, all five direct-parity tests and all three
 controlled end-to-end tests passed.
+
+The hosted workflows do not install the official xTB executable, so the eight
+official tests are intentionally opt-in there. Their local official-backend
+result is reported separately from the hermetic CI result.
 
 ## 2. Automated evidence
 
@@ -80,6 +85,40 @@ stages, and successful FF/GFN-FF/GFN2 geometry gates. `--rebuild` is
 intentional: CBond defines coordination topology, but its retained input
 coordinates must not be mistaken for a completed 3D complex build.
 
+### 2.4 Reproduction commands
+
+The maintained hermetic and README suites are launched by one repository
+entry point:
+
+```bash
+./tests/run_coverage.sh
+```
+
+That runner includes `tests/readme`; a README push therefore validates its
+executable examples and the machine-readable evidence behind its benchmark
+tables rather than merely triggering an unrelated workflow.
+
+The source/runtime matrix is launched with:
+
+```bash
+./tests/run_inference_compatibility.sh
+```
+
+The official integration suite requires an independently installed xTB and
+the real CBond model:
+
+```bash
+HOTPOT_XTB_INTEGRATION=1 HOTPOT_CBOND_INTEGRATION=1 \
+  python -m pytest -q \
+    tests/test_plugin/test_xtb/test_official_integration.py \
+    tests/test_plugin/test_xtb/test_official_pipeline_integration.py
+```
+
+The complete corpus command and its source/cohort identity requirements are
+maintained in `tests/benchmarks/coordination_complexes/README.md`. The
+benchmark is opt-in and always requires `--official`; it is not silently
+launched by pytest.
+
 ## 3. The 187-structure coordination benchmark
 
 ### 3.1 Execution contract
@@ -97,11 +136,19 @@ All routes retain electronic-state provenance, native logs, last finite/final
 structures and geometry-gate reports. The complete run took 683.41 s wall time.
 The benchmark manifest SHA-256 is
 `389a939c193ea9c4067ebb8a482be113f36e194ad619666b54e3500472090865`.
+The retained aggregate `summary.json` SHA-256 is
+`c2e3312baef2fd930dfc7d635e62e16be9a0b2673ac6b9bbf9dc1d5b5b801945`.
 The ligand denominator is 187. CBond produced 182 Eu-ligand complex inputs, so
 the complex denominator is 182; these denominators are not merged. The full
 upstream Hotpot run passed the standard geometry gate for 182/187 ligand
 records and 181/182 complex records. Terminal structures that failed that
 upstream gate were retained as explicit inputs rather than silently removed.
+
+The public, path-free aggregate evidence is stored in
+`assets/readme/xtb_coordination_benchmark.json`. A README regression test checks
+its internal count/rate/resource consistency, checks route statistics against
+both the root README and this report, and checks the retained manifest and
+summary digests against this report.
 
 ### 3.2 Results
 
@@ -148,9 +195,27 @@ claimed speed or robustness step.
 - The source distribution content contract also passed. New calculator,
   harness, xTB and pipeline modules were present; the removed calculator
   facade, old xTB prototype, mutable cache and empty writer were absent.
+- The published README chemistry examples are mapped to executable tests, and
+  its force-field, gallery and xTB benchmark tables are checked against tracked
+  artifacts.
 
 The maintained-suite warnings are known force-field quality warnings and an
 existing `search/logic.py` syntax warning. None was attributed to xTB.
+
+### 4.1 GitHub workflow gates
+
+Every push runs `.github/workflows/test_push.yml`, which executes the maintained
+coverage runner and uploads its XML report to Codecov. Changes to README, xTB,
+pipeline, calculator, force-field, model or related test paths also run
+`.github/workflows/inference_compatibility.yml` with:
+
+- one package/sdist content and installed-wheel smoke job;
+- CPython 3.9, 3.10, 3.11, 3.12, 3.13 and 3.14 runtime jobs;
+- native-wheel build/install/smoke jobs for all six CPython ABIs.
+
+Official numerical xTB tests remain an explicit local/integration gate because
+the hosted runner has no official xTB backend. Hermetic xTB, CLI, pipeline and
+benchmark-contract tests run in hosted CI on every supported Python version.
 
 ## 5. Explicit scientific boundaries
 

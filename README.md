@@ -55,7 +55,7 @@ commands also provide extended examples through `--doc`.
 | `hotpot mca` | Predict site-resolved methyl cation affinity (MCA) | Atom table in kJ/mol | [MCA CLI](hotpot/cheminfo/AImodels/mca/cli_doc.md) |
 | `hotpot cbond` | Predict and construct metal–ligand coordination bonds | Complex SMILES or ranked structures | [CBond CLI](hotpot/cheminfo/AImodels/cbond/cli_doc.md) |
 | `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/cheminfo/forcefields/cli_doc.md) |
-| `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | SDF molecular stream and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
+| `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | 3D molecular records (SDF by default) and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
 | `hotpot run` | Execute registered molecular stages with an ordered evidence tree | Result directory, manifest, stage artifacts, and final SDF | [Pipeline CLI](hotpot/pipeline/cli_doc.md) |
 
 ### MCA prediction
@@ -143,7 +143,9 @@ $ hotpot cbond Eu \
 coordinates. It wraps an independently installed official xTB executable; it
 does not build a bare SMILES or silently replace an unsupported method.
 GFN-FF and GFN-xTB remain independent nodes and can be composed as a pure SDF
-stream:
+stream. Explicit electronic-state values take precedence; otherwise Hotpot
+records its charge and spin inference provenance. GFN-FF consumes total
+charge, while GFN0/1/2-xTB consume total charge and unpaired-electron count.
 
 <!-- Verified by tests/test_plugin/test_xtb/test_pipeline_integration.py::test_standalone_shell_composes_gfnff_then_gfn2_as_pure_sdf -->
 
@@ -259,6 +261,8 @@ compatible with every installed CUDA version.
 The xTB integration requires a separately installed official `xtb`
 executable. Select it with `--xtb-executable`, `HOTPOT_XTB_EXECUTABLE`, or
 `PATH`, in that order. Hotpot does not bundle or replace the numerical backend.
+The official validation reported below used xTB 6.7.1; neither the Python
+package nor the Docker images bundle that executable.
 
 ## Python interface
 
@@ -505,6 +509,30 @@ The path-free [gallery evidence](assets/readme/am_extractant_gallery_evidence.js
 records the exhaustive case partition, structure and report hashes, explicit-H
 and Am counts, rendering status, principal moments, and image hashes.
 
+### xTB workflow validation
+
+The wrapper passed five direct-parity checks against official xTB 6.7.1:
+neutral GFN2 and GFN-FF energies, GFN2 optimized energy and coordinates, a
+chloride anion, and a hydrogen radical. Absolute tolerances were `1e-12 Eh`
+for energy and `1e-8 Å` for optimized coordinates. Three controlled
+coordination pipelines also passed: two Zn/NCCO routes and the exact
+Eu/acetate workflow shown above.
+
+The four-route benchmark used the same 187 ligands and the 182 Eu complexes
+for which CBond supplied an input structure. Times are all-record medians from
+a 16-worker run with four xTB threads per case.
+
+| xTB route | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
+|---|---:|---:|---:|---:|
+| Direct GFN2 | 182/187 (97.3%) | 5.637 s | 151/182 (83.0%) | 7.561 s |
+| GFN-FF → GFN2 | 182/187 (97.3%) | 3.936 s | 132/182 (72.5%) | 6.647 s |
+
+For this Eu corpus, direct GFN2 was the more reliable complex route. The lower
+all-record median of the GFN-FF chain is confounded by more early failures and
+does not demonstrate faster successful paths; GFN-FF therefore remains an
+optional node. See the [complete validation report](plan/12_xtb_workflow/xtb_workflow_validation_report.md)
+and its path-free [benchmark evidence](assets/readme/xtb_coordination_benchmark.json).
+
 ## Scientific boundaries
 
 - MCA values are model predictions in kJ/mol and are not Mayr nucleophilicity
@@ -520,6 +548,13 @@ and Am counts, rendering status, principal moments, and image hashes.
 - Automatic xTB charge/spin preparation records its assumptions. The default
   spin rule is electron-parity based and is not a prediction of oxidation
   state, ligand field, or physical ground-state multiplicity.
+- Hotpot's declared applicability domain for stable official xTB 6.7.1 stops
+  at Rn (`Z <= 86`) for bundled GFN-FF and GFN0/1/2-xTB parameters. It rejects
+  Am before launch; the Am force-field benchmark and gallery above do not
+  imply xTB support for Am.
+- Native convergence and a Hotpot post-geometry pass are separate facts. An
+  xTB benchmark pass requires both successful native execution and the
+  requested Hotpot geometry gate.
 
 ## References
 

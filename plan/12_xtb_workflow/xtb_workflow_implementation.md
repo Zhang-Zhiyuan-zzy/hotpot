@@ -1255,6 +1255,9 @@ focused tests pass.
       validate CPython 3.9-3.14 and all six ABI wheels from this snapshot.
 26. `test(xtb): validate README europium workflow`
     - execute the exact Eu/acetate/GFN-FF/GFN2 optimization example.
+27. `docs(xtb): close workflow validation`
+    - reconcile final coverage, CPython 3.9-3.14 runtime and six-wheel evidence;
+    - remove stale pending language and qualify the GFN-FF timing conclusion.
 
 ## 10. Validation plan
 

@@ -61,10 +61,15 @@ compatibility path.
 | Python-matrix test inclusion | `8313d55` |
 | Rebuild documentation and benchmark CI | `b54b59b`, `5751e00` |
 | Final reports and Eu README pipeline | `d6a948f`, `8e015d3` |
+| Runtime/wheel validation closure | `b4827ba` |
 
 The validation report records five official direct-parity checks, three real
 controlled coordination pipelines, the complete four-route 187-structure Eu
 benchmark, the CPython 3.9-3.14 runtime matrix and six clean ABI-wheel checks.
 Stable xTB 6.7.1 still has no valid Am path, and no result in this stage claims
 otherwise.
+
+The root README publishes a compact subset of the corpus result. Its tracked
+source is `assets/readme/xtb_coordination_benchmark.json`; the full protocol,
+failure analysis and applicability limits remain in the validation report.
 

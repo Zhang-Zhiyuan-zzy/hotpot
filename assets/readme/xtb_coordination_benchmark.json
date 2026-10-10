@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "backend": {
+    "name": "xTB",
+    "version": "6.7.1",
+    "revision": "edcfbbe"
+  },
+  "protocol": {
+    "metal": "Eu",
+    "input_sample_count": 187,
+    "complex_sample_count": 182,
+    "case_workers": 16,
+    "threads_per_case": 4,
+    "requested_cores": 64,
+    "wall_seconds": 683.4117333907634,
+    "manifest_sha256": "389a939c193ea9c4067ebb8a482be113f36e194ad619666b54e3500472090865",
+    "summary_sha256": "c2e3312baef2fd930dfc7d635e62e16be9a0b2673ac6b9bbf9dc1d5b5b801945"
+  },
+  "official_validation": {
+    "direct_parity_passed": 5,
+    "controlled_pipeline_passed": 3
+  },
+  "results": [
+    {
+      "target": "ligand",
+      "route": "direct-gfn2",
+      "sample_count": 187,
+      "quality_pass_count": 182,
+      "quality_failure_count": 3,
+      "execution_failure_count": 2,
+      "quality_pass_rate": 0.9732620320855615,
+      "median_seconds": 5.637072244659066
+    },
+    {
+      "target": "ligand",
+      "route": "gfnff-gfn2",
+      "sample_count": 187,
+      "quality_pass_count": 182,
+      "quality_failure_count": 3,
+      "execution_failure_count": 2,
+      "quality_pass_rate": 0.9732620320855615,
+      "median_seconds": 3.936292991042137
+    },
+    {
+      "target": "complex",
+      "route": "direct-gfn2",
+      "sample_count": 182,
+      "quality_pass_count": 151,
+      "quality_failure_count": 9,
+      "execution_failure_count": 22,
+      "quality_pass_rate": 0.8296703296703297,
+      "median_seconds": 7.561094397678971
+    },
+    {
+      "target": "complex",
+      "route": "gfnff-gfn2",
+      "sample_count": 182,
+      "quality_pass_count": 132,
+      "quality_failure_count": 6,
+      "execution_failure_count": 44,
+      "quality_pass_rate": 0.7252747252747253,
+      "median_seconds": 6.646531361155212
+    }
+  ]
+}

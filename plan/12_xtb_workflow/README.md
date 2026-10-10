@@ -1,7 +1,8 @@
 # Stage 12: composable xTB workflow
 
-Status: Phases 1–18 implemented; core production and documented validation
-complete, with the remaining scientific acceptance gaps listed below.
+Status: production implementation and stable-xTB scientific acceptance are
+complete for the declared Eu/GFN-FF/GFN2 scope. Extended actinide support and
+the complete six-interpreter runtime matrix remain explicit boundaries.
 
 Planning branch: `feature/xtb-workflow`
 
@@ -52,9 +53,14 @@ compatibility path.
 | Generic process harness | `a214128`, `db9fc49` |
 | xTB backend, adapters, nodes, and CLI | `439122a`, `bda6eef`, `796c597`, `b4a9761`, `ea93af4` |
 | Controlled pipeline | `8ea5083`, `aa7d34c`, `03724ff`, `d58c1e3`, `ab04158` |
-| Official validation and prototype removal | `e17c2af`, `5328071` |
+| Initial official validation and prototype removal | `e17c2af`, `5328071`, `64ec730` |
+| Extended official parity | `b791f5e`, `652a3c7` |
+| Real coordination pipelines | `9fbf984` |
+| 187-structure benchmark | `837c804` |
+| Python-matrix test inclusion | `8313d55` |
 
-The validation report explicitly lists the remaining scientific acceptance
-gaps; implementation completion does not imply that every optional benchmark
-from the original plan has been executed.
+The validation report records five official direct-parity checks, two real
+controlled coordination pipelines, and the complete four-route 187-structure
+Eu benchmark. Stable xTB 6.7.1 still has no valid Am path, and no result in
+this stage claims otherwise.
 

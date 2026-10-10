@@ -1,7 +1,8 @@
 # Hotpot composable xTB workflow: implementation plan
 
-Status: **approved and implemented; see the implementation and validation
-reports for delivered scope and remaining scientific validation gaps**
+Status: **approved and implemented; stable-xTB official parity, real
+coordination pipelines and the 187-structure Eu benchmark are complete; see
+the reports for the explicit extended-actinide and interpreter-matrix bounds**
 
 Branch: `feature/xtb-workflow`
 
@@ -850,7 +851,7 @@ The concise inline form is:
 ```bash
 $ hotpot run --results-dir results/eu-001 -- \
     cbond Eu 'LIGAND_SMILES' \
-    :: ff --route complex --forcefield uff \
+    :: ff --route complex --rebuild --forcefield uff \
     :: xtb --method gfnff --task optimize \
     :: xtb --method gfn2 --task optimize
 ```
@@ -864,7 +865,7 @@ for long or repeatedly executed pipelines.
 {
   "stages": [
     {"name": "cbond", "argv": ["Eu", "ligand.smi"]},
-    {"name": "ff", "argv": ["--route", "complex", "--forcefield", "uff"]},
+    {"name": "ff", "argv": ["--route", "complex", "--rebuild", "--forcefield", "uff"]},
     {"name": "xtb", "argv": ["--method", "gfnff", "--task", "optimize"]},
     {"name": "xtb", "argv": ["--method", "gfn2", "--task", "optimize"]}
   ]
@@ -1362,7 +1363,7 @@ when xTB is unavailable; fake-runner tests remain mandatory.
 
 ### 10.8 Coordination benchmark
 
-The existing 187-ligand corpus will be used in opt-in stages:
+The existing 187-ligand corpus was executed in opt-in stages:
 
 1. run charge/spin inference and xTB input preparation on every structure for
    which CBond + UFF produced a structure;
@@ -1377,13 +1378,21 @@ The existing 187-ligand corpus will be used in opt-in stages:
 7. do not merge unsupported-element, execution-failure, non-convergence and
    post-geometry-quality failure into one success-rate denominator.
 
+The completed run used Eu, official xTB 6.7.1 and 64 requested cores. Direct
+GFN2 passed 182/187 ligands and 151/182 available Eu complexes. Optional
+GFN-FF pre-refinement followed by GFN2 passed 182/187 ligands and 132/182
+complexes. The lower complex-chain reliability is retained as measured
+evidence, not hidden by a combined denominator or fallback. Exact timing and
+failure classes are recorded in `xtb_workflow_validation_report.md`.
+
 ## 11. Acceptance criteria
 
-The production architecture is implemented, but the original full scientific
-acceptance set below is not yet completely satisfied. In particular, the
-official optimization/ionic/radical cases, 187-structure benchmark, and full
-3.9-3.14 runtime matrix remain open. Exact completed and unmet evidence is
-recorded in `xtb_workflow_validation_report.md`.
+The production architecture, official optimization/ionic/radical cases, real
+controlled coordination pipelines and 187-structure Eu benchmark are
+complete. Extended-GFN-FF fragment-charge/actinide validation and the complete
+CPython 3.9-3.14 runtime/wheel matrix remain separate boundaries. Exact
+completed and unmet evidence is recorded in
+`xtb_workflow_validation_report.md`.
 
 Implementation is complete only when:
 

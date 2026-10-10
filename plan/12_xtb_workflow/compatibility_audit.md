@@ -215,12 +215,13 @@ real comparison evidence.
 | Consumer search for old calculator and xTB paths | Passed before prototype removal |
 | Active docs, examples and error-message migration | Passed for active content; `README.2026.md` remains an explicit historical snapshot |
 | Pre/post calculator behavior comparison | Passed the maintained calculator regression suite |
-| Fake and real xTB parity | Hermetic failure/composition matrix passed; official parity currently covers neutral GFN-FF and GFN2 single points only |
-| Standalone and controlled round trips | Passed with the fake backend and typed SDF stream |
+| Fake and real xTB parity | Hermetic failure/composition matrix passed; five official xTB 6.7.1 checks cover neutral GFN-FF/GFN2 energies, GFN2 optimized coordinates, chloride and a hydrogen radical |
+| Standalone and controlled round trips | Fake-backend round trips passed; two real CBond -> FF `--rebuild` -> official-xTB pipelines also passed |
 | Python 3.9-3.14 source and wheel validation | Active sources passed 3.9-3.14 compilation; isolated wheel/install validation was performed on CPython 3.11, not the complete six-version runtime matrix |
 | Wheel/sdist content inspection | Passed; obsolete modules and cache files are absent |
 | Migration and implementation reports | Completed in this stage directory |
 
 The clean breaks were implemented without hidden compatibility branches. The
-remaining real-backend and interpreter-matrix gaps are listed explicitly in
-the validation report rather than being treated as passed gates.
+four-route 187-structure Eu benchmark is complete. Stable xTB 6.7.1 actinide
+limits and the remaining interpreter-matrix gate are listed explicitly in the
+validation report rather than being treated as supported or passed.

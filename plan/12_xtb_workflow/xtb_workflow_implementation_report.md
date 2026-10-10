@@ -6,13 +6,14 @@ Branch: `feature/xtb-workflow`
 
 Baseline: `116a255`
 
-Implemented production range: `4d4fbbb..5328071`
+Implemented and validated range: `4d4fbbb..8313d55`
 
 The approved calculator split, electronic-state services, external-process
 harness, official xTB plugin, standalone `hotpot xtb` command, controlled
 `hotpot run` pipeline, built-in CBond/FF/xTB stage adapters, and legacy xTB
-prototype removal are complete. Phase 18 adds the public API/template guides
-and this closeout report.
+prototype removal are complete. Subsequent validation phases add official
+charged/open-shell and optimization parity, two real coordination pipelines,
+and a reproducible four-route 187-structure benchmark.
 
 The implementation does not change the CBond prediction kernel or the native
 three-stage coordination-complex force-field kernel. The force-field CLI was
@@ -117,6 +118,11 @@ contracts. No conditional compatibility branch was added for them.
 | 14–15 | `8ea5083`, `aa7d34c`, `03724ff`, `d58c1e3`, `ab04158` | Specify and implement the controlled pipeline and built-in stages |
 | 16 | `e17c2af` | Validate official backend parity and both composition forms |
 | 17 | `5328071` | Remove the superseded prototype and verify distributions |
+| 18 | `64ec730` | Publish API limits and the initial validation report |
+| 19 | `b791f5e`, `652a3c7` | Add official optimization, ionic and radical parity with Python 3.9-compatible tests |
+| 20 | `9fbf984` | Validate two real CBond/FF/official-xTB coordination pipelines |
+| 21 | `837c804` | Add and execute the four-route 187-structure coordination benchmark |
+| 22 | `8313d55` | Include CLI, pipeline, harness and xTB tests in the Python matrix |
 
 ## 7. Deferred work
 
@@ -128,8 +134,20 @@ separate validation or future-design work:
 - official extended-GFN-FF actinide support;
 - physical oxidation-state or spin-state prediction;
 - pipeline resume or parallel stage execution;
-- the full 187-complex xTB benchmark and the additional real-backend cases
-  listed in the validation report.
+- complete runtime and wheel validation on every CPython 3.9-3.14
+  interpreter.
 
 The xTB package is documented as a reference responsibility layout, not as a
 premature mandatory superclass for unrelated software.
+
+The installed stable xTB 6.7.1 backend has received direct energy,
+optimization-coordinate, ionic and radical parity checks, plus real
+coordination-pipeline validation. The 187-structure benchmark found that
+direct GFN2 passed 151/182 Eu complexes, whereas optional GFN-FF pre-refinement
+followed by GFN2 passed 132/182. This evidence supports composition and failure
+reporting; it does not justify claiming that GFN-FF improves complex
+robustness.
+
+Stable xTB 6.7.1 remains explicitly unable to process Am. Extended-GFN-FF
+fragment-charge or actinide behavior is outside the validated implementation
+until a corresponding official backend is built, identified and tested.

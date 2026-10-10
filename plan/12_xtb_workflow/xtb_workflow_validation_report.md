@@ -17,6 +17,8 @@ not used as a substitute for another.
 | Aggregate measured coverage | 36% |
 | Official opt-in integration suite | `8 passed in 5.78 s` |
 | README executable/evidence suite | `18 passed` |
+| Hosted coverage and Codecov gate | Run `38050145537`: pass |
+| Hosted compatibility gate | Run `38050145565`: 13/13 jobs pass |
 
 All eight coverage-suite skips are the official opt-in tests when their
 integration environment variables are absent. With the official xTB and CBond
@@ -190,8 +192,8 @@ claimed speed or robustness step.
 - Six ABI-specific wheels passed clean isolated validation: cp39, cp310, cp311,
   cp312, cp313 and cp314. For every wheel, ordinary `pip install`, `pip check`,
   native graph loading, xTB imports/resources and `hotpot xtb --doc` passed.
-- The six-wheel snapshot was commit `d6a948f`; later changes through `8e015d3`
-  affect only documentation and tests, not package ABI or production code.
+- The six-wheel snapshot was commit `d6a948f`; later changes through `5c4dc8f`
+  affect only documentation, tests and CI, not package ABI or production code.
 - The source distribution content contract also passed. New calculator,
   harness, xTB and pipeline modules were present; the removed calculator
   facade, old xTB prototype, mutable cache and empty writer were absent.
@@ -216,6 +218,32 @@ pipeline, calculator, force-field, model or related test paths also run
 Official numerical xTB tests remain an explicit local/integration gate because
 the hosted runner has no official xTB backend. Hermetic xTB, CLI, pipeline and
 benchmark-contract tests run in hosted CI on every supported Python version.
+
+### 4.2 Final hosted-CI closure
+
+Adding `tests/readme` to maintained coverage exposed a single cross-platform
+assertion: one non-site carbon printed as 324.00 kJ/mol in the recorded CPU
+output and 324.25 kJ/mol on the hosted ONNX Runtime. Atom order, every other
+value, the nucleophilic N value and all site flags were unchanged. The test now
+keeps atom/table/site checks exact and permits only the observed 0.25 kJ/mol
+display boundary for MCA values. This is not a scientific acceptance
+tolerance for model training or benchmark scores.
+
+The coverage workflow also now caches and explicitly verifies both inference
+model bundles before running tests with local-only model resolution. JUnit
+failures are emitted as workflow annotations, so a public failure identifies
+the exact test instead of exposing only pytest's exit code. An initial attempt
+at this change placed `runner.temp` in job-level `env`; GitHub rejected that
+context before creating a job. Commit `1706de4` moved it to the executable
+steps, and the invalid intermediate configuration is not part of the final
+workflow contract.
+
+The final commit under test was `5c4dc8f`. Hosted
+[`Tests and coverage`](https://github.com/Zhang-Zhiyuan-zzy/hotpot/actions/runs/38050145537)
+passed the maintained suite and Codecov upload. Hosted
+[`Inference compatibility`](https://github.com/Zhang-Zhiyuan-zzy/hotpot/actions/runs/38050145565)
+passed package smoke, all six CPython 3.9-3.14 runtime jobs and all six native
+wheel jobs.
 
 ## 5. Explicit scientific boundaries
 

@@ -62,6 +62,7 @@ compatibility path.
 | Rebuild documentation and benchmark CI | `b54b59b`, `5751e00` |
 | Final reports and Eu README pipeline | `d6a948f`, `8e015d3` |
 | Runtime/wheel validation closure | `b4827ba` |
+| README evidence and hosted CI closure | `565c639`, `bb9a737`, `1706de4`, `9477d3f`, `5c4dc8f` |
 
 The validation report records five official direct-parity checks, three real
 controlled coordination pipelines, the complete four-route 187-structure Eu

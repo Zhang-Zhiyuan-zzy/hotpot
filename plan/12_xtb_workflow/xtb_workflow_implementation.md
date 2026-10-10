@@ -1258,6 +1258,15 @@ focused tests pass.
 27. `docs(xtb): close workflow validation`
     - reconcile final coverage, CPython 3.9-3.14 runtime and six-wheel evidence;
     - remove stale pending language and qualify the GFN-FF timing conclusion.
+28. `docs(xtb): publish README evidence and close hosted CI`
+    - publish the official parity, real-pipeline and 187-structure aggregate
+      evidence in the root README and a path-free tracked JSON artifact;
+    - execute all README examples in maintained coverage with explicitly
+      materialized inference models;
+    - preserve strict atom, table and site checks while allowing the measured
+      0.25 kJ/mol cross-platform MCA display-rounding boundary;
+    - require successful coverage/Codecov and CPython 3.9-3.14 compatibility
+      workflows before closing the phase.
 
 ## 10. Validation plan
 

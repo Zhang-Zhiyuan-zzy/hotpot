@@ -7,8 +7,8 @@ Branch: `feature/xtb-workflow`
 Baseline: `116a255`
 
 Implementation and validation record: Phase 1 started at commit `4d4fbbb` and
-Phase 27 closed at commit `b4827ba` (33 commits after baseline; use
-`git log 4d4fbbb^..b4827ba` for the inclusive range).
+Phase 28 closed at commit `5c4dc8f` (38 commits after baseline; use
+`git log 4d4fbbb^..5c4dc8f` for the inclusive range).
 
 The approved calculator split, electronic-state services, external-process
 harness, official xTB plugin, standalone `hotpot xtb` command, controlled
@@ -164,7 +164,7 @@ declared artifact has a relative path, byte size, and SHA-256 digest.
 Private module and serialized Python-object paths are not compatibility
 contracts. No conditional compatibility branch was added for them.
 
-## 6. Complete Phase 1–27 implementation record
+## 6. Complete Phase 1–28 implementation record
 
 The distinction between a test fence, an implementation commit, CI inclusion,
 and a completed external run is preserved below. Adding a test to a matrix is
@@ -200,8 +200,9 @@ not reported as the corpus result.
 | 25 | `d6a948f` | Recorded five direct parity cases, two real pipelines and the full 187-structure Eu benchmark; froze the production snapshot used for wheel validation. | Four-route aggregate results and failures were checked against the retained manifest and artifacts. |
 | 26 | `8e015d3` | Added the exact README Eu/acetate four-node workflow as a real official integration case. | Eu–O topology, charge `+3`, zero unpaired electrons, both coordinate commits and all quality gates passed; official suite became eight. |
 | 27 | `b4827ba` | Closed the reports, removed stale matrix-pending language and corrected the GFN-FF timing interpretation. | Final coverage, CPython 3.9–3.14 runtimes and six ABI wheels were reconciled with their retained logs. |
+| 28 | `565c639`, `bb9a737`, `1706de4`, `9477d3f`, `5c4dc8f` | Published the root README xTB evidence and path-free corpus summary, brought every README test into maintained coverage, made model materialization explicit, added JUnit failure annotations, and defined the observed 0.25 kJ/mol MCA display tolerance without weakening atom/site checks. | README tests passed locally; hosted coverage run `38050145537` and all 13 jobs of compatibility run `38050145565` passed. The two corrective CI iterations are retained in the validation report rather than hidden. |
 
-Across the Phase 1–27 snapshot, 107 tracked files changed relative to baseline.
+Across the Phase 1–28 snapshot, 111 tracked files changed relative to baseline.
 The scientific kernels for CBond prediction and the native three-stage complex
 force-field workflow were not changed by this work.
 

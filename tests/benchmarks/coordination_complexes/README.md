@@ -189,6 +189,44 @@ that workflow and remain inside its timing boundary.
 Each workflow root contains `manifest.json`, `summary.json`, and one
 `cases/NNNN/report.json` with separate `ligand` and `complex` targets.
 
+## xTB refinement benchmark
+
+The opt-in xTB benchmark consumes already prepared UFF structures and runs
+four target/route combinations from the same starting coordinates:
+
+| Target | Route |
+|---|---|
+| Ligand | UFF → GFN2-xTB |
+| Ligand | UFF → GFN-FF → GFN2-xTB |
+| Eu–ligand complex | UFF → GFN2-xTB |
+| Eu–ligand complex | UFF → GFN-FF → GFN2-xTB |
+
+`--source` must name an independent workflow benchmark root containing
+`manifest.json` and `cases/NNNN/{ligand,complex}/optimized.sdf`.
+`--cohort` must identify the matching `canonical_cases.json`; the source
+manifest, ligand corpus, and cohort SHA-256 identities must agree. Complex
+targets currently require an Eu cohort.
+
+The following example runs the 187-ligand corpus with at most 64 xTB threads
+(`16` worker processes × `4` threads per xTB process):
+
+```bash
+$ SOURCE=movie/benchmarks/extractants_eu_187_five_workflows/hotpot_auto
+$ python -m tests.benchmarks.coordination_complexes.xtb_benchmark \
+    --official \
+    --input molecules/extractant/extractants.smi \
+    --cohort "$SOURCE/canonical_cases.json" \
+    --source "$SOURCE" \
+    --output movie/benchmarks/extractants_eu_187_xtb \
+    --targets both --routes both \
+    --workers 16 --threads 4
+```
+
+The executable is resolved from `PATH` unless `--xtb-executable` is supplied.
+`--official` is mandatory because this command launches the external numerical
+backend. Use `--resume` only with an unchanged manifest and scientific
+configuration.
+
 ## Output contract
 
 ```text

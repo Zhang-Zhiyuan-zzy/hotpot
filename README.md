@@ -162,10 +162,14 @@ separates stages; no stage argument is evaluated by a shell:
 ```bash
 $ hotpot run --results-dir results/eu-001 -- \
     cbond Eu 'O=C(O)C' \
-    :: ff --route complex --forcefield uff \
+    :: ff --rebuild --route complex --forcefield uff \
     :: xtb --method gfnff --task optimize \
     :: xtb --method gfn2 --task optimize
 ```
+
+`--rebuild` is explicit here because CBond defines the coordination topology
+but its retained 2D coordinates are not a force-field-built 3D starting
+structure.
 
 The xTB [Python API and plugin guide](hotpot/plugins/xtb/README.md) and the
 [controlled-pipeline API](hotpot/pipeline/README.md) define state propagation,

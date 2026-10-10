@@ -11,10 +11,14 @@ Use the exact `::` argument token between stages:
 ```bash
 $ hotpot run --results-dir results/eu-001 -- \
     cbond Eu 'O=C(O)C' \
-    :: ff --route complex --forcefield uff \
+    :: ff --rebuild --route complex --forcefield uff \
     :: xtb --method gfnff --task optimize \
     :: xtb --method gfn2 --task optimize
 ```
+
+The force-field stage uses `--rebuild` because the CBond payload carries the
+new topology with retained 2D coordinates, not a force-field-built 3D starting
+structure.
 
 The controller never evaluates shell syntax. It accepts either the inline form
 above or a strict JSON workflow; see [`cli_doc.md`](cli_doc.md).

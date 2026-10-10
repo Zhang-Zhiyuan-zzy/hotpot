@@ -12,10 +12,14 @@ stage options cannot be consumed as controller options:
 ```bash
 $ hotpot run --results-dir results/eu-001 -- \
     cbond Eu 'O=C(O)C' \
-    :: ff --route complex --forcefield uff \
+    :: ff --rebuild --route complex --forcefield uff \
     :: xtb --method gfnff --task optimize \
     :: xtb --method gfn2 --task optimize
 ```
+
+Use `--rebuild` after CBond: its payload defines the coordination topology but
+retains 2D coordinates, which must not be treated as an optimized 3D starting
+structure.
 
 `::` is the only separator. The controller does not apply shell expansion,
 globbing, command substitution, or `shlex` parsing. A ligand SMILES containing
@@ -30,7 +34,7 @@ Long workflows can use a strict JSON file:
 {
   "stages": [
     {"name": "cbond", "argv": ["Eu", "O=C(O)C"]},
-    {"name": "ff", "argv": ["--route", "complex", "--forcefield", "uff"]},
+    {"name": "ff", "argv": ["--rebuild", "--route", "complex", "--forcefield", "uff"]},
     {"name": "xtb", "argv": ["--method", "gfn2", "--task", "optimize"]}
   ]
 }

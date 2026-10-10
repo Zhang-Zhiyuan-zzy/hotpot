@@ -26,6 +26,7 @@ def test_inline_and_json_workflows_normalize_to_identical_stage_specs(
             "O=C(O)C",
             "::",
             "ff",
+            "--rebuild",
             "--route",
             "complex",
             "--forcefield",
@@ -51,7 +52,13 @@ def test_inline_and_json_workflows_normalize_to_identical_stage_specs(
                 {"name": "cbond", "argv": ["Eu", "O=C(O)C"]},
                 {
                     "name": "ff",
-                    "argv": ["--route", "complex", "--forcefield", "uff"],
+                    "argv": [
+                        "--rebuild",
+                        "--route",
+                        "complex",
+                        "--forcefield",
+                        "uff",
+                    ],
                 },
                 {
                     "name": "xtb",
@@ -69,7 +76,7 @@ def test_inline_and_json_workflows_normalize_to_identical_stage_specs(
         StageSpec("cbond", ("Eu", "O=C(O)C")),
         StageSpec(
             "ff",
-            ("--route", "complex", "--forcefield", "uff"),
+            ("--rebuild", "--route", "complex", "--forcefield", "uff"),
         ),
         StageSpec(
             "xtb",

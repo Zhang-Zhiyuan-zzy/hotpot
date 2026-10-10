@@ -114,19 +114,21 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - name: Cache inference models
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
-          path: ~/.cache/hotpot/models
-          key: ${{ runner.os }}-hotpot-models-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+          path: ${{ runner.temp }}/hotpot-models
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
       - name: Install compatibility runner
         run: python -m pip install uv
       - name: Test maintained inference and graph-search matrix
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
         run: ./tests/run_inference_compatibility.sh "${{ matrix.python-version }}"
 
   native-wheel:
@@ -137,8 +139,8 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -162,16 +164,16 @@ jobs:
   package-smoke:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
       - name: Cache inference models
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
-          path: ~/.cache/hotpot/models
-          key: ${{ runner.os }}-hotpot-models-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+          path: ${{ runner.temp }}/hotpot-models
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
       - name: Install build and inference dependencies
         run: python -m pip install build -r tests/requirements-inference.txt
       - name: Build distributions and install wheel
@@ -203,8 +205,16 @@ jobs:
           assert obsolete.isdisjoint(members)
           PY
           python -m pip install --no-deps --force-reinstall dist/*.whl
+      - name: Install and verify inference models
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+        run: hotpot models install --all
       - name: Smoke-test installed package outside the checkout
         working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
         run: |
           python - <<'PY'
           from importlib.resources import files

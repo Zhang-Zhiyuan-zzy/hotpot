@@ -33,6 +33,12 @@ assert actual == expected
 
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \
+            python -m hotpot models install --all
+
+        export HOTPOT_MODEL_SOURCE=local
+
+        uv run --no-project --python "$version" \
+            --with-requirements tests/requirements-inference.txt \
             python -m pytest -q -p no:cacheprovider \
             --import-mode=importlib \
             tests/mca tests/cbond \

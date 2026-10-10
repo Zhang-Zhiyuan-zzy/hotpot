@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: To workdir
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Cache conda
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           CACHE_NUMBER: 0
         with:

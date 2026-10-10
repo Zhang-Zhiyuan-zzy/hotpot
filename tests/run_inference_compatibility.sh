@@ -76,7 +76,13 @@ assert actual == expected
             tests/test_cheminfo/graph \
             tests/test_works/test_convert.py \
             tests/test_cheminfo/test_import_safety.py \
-            tests/test_smart_parser.py
+            tests/test_smart_parser.py \
+            tests/test_cli/test_run_cli.py \
+            tests/test_cli/test_xtb_cli.py \
+            tests/test_main/test_command_loading.py \
+            tests/test_pipeline \
+            tests/test_plugin/test_harness \
+            tests/test_plugin/test_xtb
 
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \

@@ -139,6 +139,9 @@ $ hotpot cbond Eu \
 
 Hotpot supports Python 3.9–3.14 for its chemical kernel, search layer, and
 ONNX inference path. Python 3.10 or newer is recommended.
+PyPI provides native manylinux x86-64 wheels for every supported CPython
+version; other platforms build the native extensions from the source
+distribution.
 
 ### Install from PyPI
 

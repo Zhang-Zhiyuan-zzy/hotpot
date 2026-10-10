@@ -1,0 +1,92 @@
+name: Build and publish Python distributions
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the validated distributions to PyPI
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  wheels:
+    name: Wheel ${{ matrix.python-tag }} / manylinux x86-64
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-tag: [cp39, cp310, cp311, cp312, cp313, cp314]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test wheel
+        uses: pypa/cibuildwheel@v4.3.0
+        env:
+          CIBW_BUILD: ${{ matrix.python-tag }}-manylinux_x86_64
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >-
+            auditwheel repair
+            --exclude libopenbabel.so.7
+            --exclude libopenbabel.so.8
+            -w {dest_dir} {wheel}
+          CIBW_TEST_COMMAND: >-
+            python -c "from hotpot.cheminfo.geometry import _geometry_native;
+            from hotpot.cheminfo.graph import _relevant_cycles, relevant_cycles;
+            from hotpot.cheminfo.obWrappers import _ob_native;
+            assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)"
+      - name: Upload wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheel-${{ matrix.python-tag }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Build source distribution
+        run: |
+          python -m pip install build
+          python -m build --sdist --outdir dist
+      - name: Upload source distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || inputs.publish }}
+    needs: [wheels, sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/hotpot-zzy
+    permissions:
+      id-token: write
+    steps:
+      - name: Download validated distributions
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "*"
+          path: dist
+          merge-multiple: true
+      - name: Publish distributions
+        uses: pypa/gh-action-pypi-publish@v1.14.2
+        with:
+          packages-dir: dist
+          skip-existing: true

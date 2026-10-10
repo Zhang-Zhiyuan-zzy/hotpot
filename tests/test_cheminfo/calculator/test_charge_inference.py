@@ -6,12 +6,6 @@ import hotpot
 import pytest
 
 
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="pure charge inference is implemented in phase 5",
-)
-
-
 @pytest.mark.parametrize(
     ("smiles", "expected_charges", "expected_total"),
     (
@@ -43,6 +37,7 @@ def test_infer_charge_does_not_mutate_the_source_molecule() -> None:
 
     mol = hotpot.read_mol("[Zn](Cl)Cl", "smi")
     mol.properties["sentinel"] = "unchanged"
+    cached_obmol = mol.to_obmol()
     before = (
         tuple(atom.formal_charge for atom in mol.atoms),
         mol.charge,
@@ -60,6 +55,7 @@ def test_infer_charge_does_not_mutate_the_source_molecule() -> None:
     )
     assert result.atom_formal_charges == (2, -1, -1)
     assert after == before
+    assert mol._obmol is cached_obmol
 
 
 def test_fragment_order_follows_the_smallest_original_atom_index() -> None:

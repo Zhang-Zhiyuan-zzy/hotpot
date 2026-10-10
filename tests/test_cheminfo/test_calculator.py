@@ -14,11 +14,12 @@ PUBLIC_CALCULATOR_NAMES = (
     "Calculator",
     "MolChargeCalculator",
     "formal_charge",
+    "infer_charge",
     "mca",
 )
 
 
-def test_calculator_package_exposes_only_the_four_public_objects() -> None:
+def test_calculator_package_exposes_only_the_declared_public_objects() -> None:
     assert tuple(calculator.__all__) == PUBLIC_CALCULATOR_NAMES
     assert all(hasattr(calculator, name) for name in PUBLIC_CALCULATOR_NAMES)
 

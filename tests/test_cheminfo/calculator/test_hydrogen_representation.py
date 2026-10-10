@@ -6,12 +6,6 @@ import hotpot
 import pytest
 
 
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="representation-aware valence inference is implemented in phase 5",
-)
-
-
 @pytest.mark.parametrize("smiles", ("C", "CCO", "[BH4-]"))
 def test_materializing_hydrogens_preserves_total_and_heavy_atom_charges(
     smiles: str,

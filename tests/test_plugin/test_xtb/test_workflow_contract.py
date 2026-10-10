@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from importlib.util import find_spec
 from pathlib import Path
 from typing import Optional, Protocol
 
@@ -12,29 +11,14 @@ import hotpot
 from hotpot.cheminfo.core import Molecule
 
 
-PUBLIC_XTB_API_AVAILABLE = all(
-    find_spec(module_name) is not None
-    for module_name in (
-        "hotpot.plugins.xtb.contracts",
-        "hotpot.plugins.xtb.workflow",
-    )
+from hotpot.plugins.xtb.contracts import (
+    GFNXTBMethod,
+    XTBExecutionError,
+    XTBResultError,
+    XTBRunReport,
+    XTBTask,
 )
-if PUBLIC_XTB_API_AVAILABLE:
-    from hotpot.plugins.xtb.contracts import (
-        GFNXTBMethod,
-        XTBExecutionError,
-        XTBResultError,
-        XTBRunReport,
-        XTBTask,
-    )
-    from hotpot.plugins.xtb.workflow import run_gfn_xtb, run_gfnff
-
-
-requires_public_xtb_api = pytest.mark.xfail(
-    not PUBLIC_XTB_API_AVAILABLE,
-    reason="Phase 9 public xTB workflow API is not implemented yet",
-    strict=True,
-)
+from hotpot.plugins.xtb.workflow import run_gfn_xtb, run_gfnff
 
 
 class FakeXTBFactory(Protocol):
@@ -90,7 +74,6 @@ def _run(
     )
 
 
-@requires_public_xtb_api
 @pytest.mark.parametrize("workflow", ("gfn2", "gfnff"))
 @pytest.mark.parametrize("task_name", ("SINGLEPOINT", "OPTIMIZE"))
 def test_gfn_workflows_accept_complete_success_artifacts(
@@ -128,7 +111,6 @@ def test_gfn_workflows_accept_complete_success_artifacts(
         np.testing.assert_array_equal(mol.coordinates, initial_coordinates)
 
 
-@requires_public_xtb_api
 def test_nonempty_stderr_does_not_turn_success_into_failure(
     fake_xtb_factory: FakeXTBFactory,
 ) -> None:
@@ -144,7 +126,6 @@ def test_nonempty_stderr_does_not_turn_success_into_failure(
     assert "informational diagnostic" in report.stderr
 
 
-@requires_public_xtb_api
 def test_nonzero_exit_is_execution_failure(
     fake_xtb_factory: FakeXTBFactory,
 ) -> None:
@@ -164,7 +145,6 @@ def test_nonzero_exit_is_execution_failure(
     np.testing.assert_array_equal(mol.coordinates, initial_coordinates)
 
 
-@requires_public_xtb_api
 @pytest.mark.parametrize(
     "scenario, task, workflow",
     (
@@ -198,7 +178,6 @@ def test_invalid_or_incomplete_results_are_rejected_without_coordinate_commit(
     np.testing.assert_array_equal(mol.coordinates, initial_coordinates)
 
 
-@requires_public_xtb_api
 def test_executable_and_workspace_paths_may_contain_spaces(
     fake_xtb_factory: FakeXTBFactory,
     tmp_path: Path,
@@ -218,7 +197,6 @@ def test_executable_and_workspace_paths_may_contain_spaces(
     assert Path(report.work_directory).is_dir()
 
 
-@requires_public_xtb_api
 def test_simultaneous_runs_use_isolated_workspaces(
     fake_xtb_factory: FakeXTBFactory,
 ) -> None:

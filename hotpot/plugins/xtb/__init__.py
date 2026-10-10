@@ -27,6 +27,7 @@ from .contracts import (
 )
 from .core import XtbCalculator, xtb_batch_run
 from .runner import run_xtb
+from .workflow import run_gfn_xtb, run_gfnff
 
 
 __all__ = [
@@ -52,6 +53,8 @@ __all__ = [
     "probe_xtb_backend",
     "prepare_xtb_input",
     "run_xtb",
+    "run_gfn_xtb",
+    "run_gfnff",
     "validate_element_support",
     "xtb_batch_run",
 ]

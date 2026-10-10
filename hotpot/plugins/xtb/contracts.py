@@ -7,6 +7,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
+from hotpot.cheminfo.calculator.electronic_state import (
+    ChargeInferenceSource,
+    SpinInferenceSource,
+)
 from hotpot.plugins._harness import NativeProcessResult, ProcessProvenance
 
 
@@ -135,6 +139,11 @@ class XTBRunReport:
     gradient_norm: Optional[float] = None
     atom_order_verified: bool = False
     coordinates_committed: bool = False
+    charge_source: Optional[ChargeInferenceSource] = None
+    spin_source: Optional[SpinInferenceSource] = None
+    state_assumptions: Tuple[str, ...] = ()
+    fragment_charges: Tuple[int, ...] = ()
+    workspace_retained: bool = False
 
 
 class XTBError(RuntimeError):

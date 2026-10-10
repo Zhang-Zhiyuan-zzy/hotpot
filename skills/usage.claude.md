@@ -89,7 +89,7 @@ python -m pip install hotpot-zzy      # 或源码目录内 pip install -e .
 非顶层但常用（需显式导入）：
 
 ```python
-from hotpot.calculator import mca, formal_charge, MolChargeCalculator   # §9
+from hotpot.cheminfo.calculator import mca, formal_charge, MolChargeCalculator  # §9
 from hotpot.cheminfo.AImodels.cbond.apply import (                      # §9 进阶
     auto_build_cbond, build_all_possible_cbond, get_cbond_runtime,
 )
@@ -325,7 +325,7 @@ print(s1.vectors.shape)             # .vectors 是谱矩阵 np.ndarray 的别名
 
 ```python
 from hotpot import read_mol
-from hotpot.calculator import mca
+from hotpot.cheminfo.calculator import mca
 
 mol = read_mol("c1ccccc1CN")
 prediction = mca(mol)                       # 就地把结果挂到原子/分子上
@@ -343,7 +343,7 @@ for atom, value in mol.mca_sites.items():
 ### 9.2 形式电荷
 
 ```python
-from hotpot.calculator import formal_charge
+from hotpot.cheminfo.calculator import formal_charge
 
 charges = formal_charge(mol, model="valence")            # → tuple[int, ...]，按原子顺序
 # model: "valence" | "valence-constrained" | "preserve"
@@ -498,8 +498,8 @@ CLI 选项、默认值、单位与退出语义可能随版本演进。**面向�
 | 找配位中心 / 子结构 | `mol.search_substructure(SMARTS)` | — |
 | 金属-配体配位键（2D） | `mol.auto_pair_metal` / `cbond.apply.*` | `hotpot cbond` |
 | 生成 / 优化 3D | `mol.build3d` / `mol.optimize` | — |
-| MCA / 亲核位点 | `hotpot.calculator.mca` | `hotpot mca` |
-| 形式电荷 | `hotpot.calculator.formal_charge` | — |
+| MCA / 亲核位点 | `hotpot.cheminfo.calculator.mca` | `hotpot mca` |
+| 形式电荷 | `hotpot.cheminfo.calculator.formal_charge` | — |
 | 热力学性质 | `mol.get_thermo` | — |
 | 图谱相似度 | `mol.graph_spectral` | — |
 | 虚拟分子组装 | `hp.EdgeShoulder`/`AtomLink`/… + `AssembleFactory` | — |

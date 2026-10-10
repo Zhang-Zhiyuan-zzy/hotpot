@@ -1,36 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-===========================================================
- Project   : hotpot
- File      : calculator
- Created   : 2025/5/19 11:07
- Author    : zhang
- Python    : 
------------------------------------------------------------
- Description
- ----------------------------------------------------------
-  The collection of `Calculators` to determine Crystal, Molecule, Ring, Bond, Atom
- attributes
- 
-===========================================================
-"""
-import os
-from functools import lru_cache
+"""Formal-charge assignment from native Hotpot molecular graphs."""
+
 from typing import Callable, Literal, Union
 
-from .core import Atom, Molecule
+from ..core import Atom, Molecule
 
-
-_inorg_frag_charges = {
-    "C12=C3C4=C5C6=C7C3=C3C8=C1C1=C9C%10=C2C4=C2C4=C%10C%10=C%11C%12=C4C4=C%13C%14=C(C5=C24)C6=C2C4=C7C3=C3C5=C8C1=C1C(=C9%10)C6=C%11C7=C8C9=C6C1=C5C1=C9C5=C(C4=C31)C2=C%14C(=C85)C%13=C%127": 0,
-    'O[Te](F)(F)(F)(F)F': -1,
-
-}
-
-
-class Calculator:
-    """ The base class of calculator """
-    pass
+__all__ = ["formal_charge"]
 
 
 FormalChargeModel = Literal["valence", "valence-constrained", "preserve"]
@@ -109,8 +83,8 @@ def _valence_formal_charges(atoms: tuple[Atom, ...]) -> tuple[int, ...]:
 
 
 def _constrained_valence_formal_charges(
-        atoms: tuple[Atom, ...],
-        total_charge: int,
+    atoms: tuple[Atom, ...],
+    total_charge: int,
 ) -> tuple[int, ...]:
     _check_supported_valence_atoms(atoms)
     states = {0: (0, ())}
@@ -137,17 +111,17 @@ def _constrained_valence_formal_charges(
 
 
 def _separate_metal_ligand_fragments(
-        mol: Molecule,
+    mol: Molecule,
 ) -> tuple[tuple[tuple[int, Atom], ...], tuple[int, ...]]:
     """Split a copy at metal-ligand bonds and retain original atom indices."""
-    clone = mol.copy()
-    for atom_index, atom in enumerate(clone.atoms):
+    clone_mol = mol.copy()
+    for atom_index, atom in enumerate(clone_mol.atoms):
         atom.id = atom_index
-    clone.hide_metal_ligand_bonds(clear_conformers=False)
+    clone_mol.hide_metal_ligand_bonds(clear_conformers=False)
 
     ligand_fragments = []
     metal_indices = []
-    for component in clone.components:
+    for component in clone_mol.components:
         indexed_atoms = tuple((atom.id, atom) for atom in component.atoms)
         if all(atom.is_metal for atom in component.atoms):
             metal_indices.extend(atom_index for atom_index, atom in indexed_atoms)
@@ -162,9 +136,9 @@ def _separate_metal_ligand_fragments(
 
 
 def _resolve_metal_charge(
-        atom: Atom,
-        mol: Molecule,
-        metal_model: MetalChargeModel,
+    atom: Atom,
+    mol: Molecule,
+    metal_model: MetalChargeModel,
 ) -> int:
     if callable(metal_model):
         return int(metal_model(atom, mol))
@@ -181,10 +155,10 @@ def _resolve_metal_charge(
 
 
 def formal_charge(
-        mol: Molecule,
-        model: FormalChargeModel = "valence",
-        *,
-        metal_model: MetalChargeModel = "default",
+    mol: Molecule,
+    model: FormalChargeModel = "valence",
+    *,
+    metal_model: MetalChargeModel = "default",
 ) -> tuple[int, ...]:
     """Assign classical integer formal charges from the native Hotpot graph.
 
@@ -234,9 +208,9 @@ def formal_charge(
     calculate partial charges, or infer transition-metal oxidation states.
     """
     if (
-            model in {"valence", "valence-constrained"}
-            and not callable(metal_model)
-            and metal_model not in {"default", "preserve"}
+        model in {"valence", "valence-constrained"}
+        and not callable(metal_model)
+        and metal_model not in {"default", "preserve"}
     ):
         raise ValueError(
             f"Unknown metal formal-charge model {metal_model!r}; choose 'default', "
@@ -297,86 +271,3 @@ def formal_charge(
     mol._obmol = None
     return charges
 
-
-def _calc_mol_charge(mol: Molecule, pH: float = 7.4) -> int:
-    if mol.is_organic or mol.is_full_halogenated:
-        if len(mol.hydrogens) == 0:
-            return 0
-        else:
-            obmol = mol.to_obmol()
-            obmol.AddHydrogens(False, True, pH)
-            return len(mol.atoms) - obmol.NumAtoms()
-
-    elif len(mol.atoms) == 1:
-        atom = mol.atoms[0]
-        if atom.formal_charge == 0:
-            return mol.atoms[0].get_formal_charge()
-        else:
-            return atom.formal_charge
-
-    elif len(mol.metals) >= 1:
-        clone = mol.copy()
-        clone.hide_metal_ligand_bonds()
-        return sum(_calc_mol_charge(c, pH=pH) for c in clone.components)
-
-    # If the molecule is inorganic fragment
-    elif mol.smiles in _inorg_frag_charges:
-        return _inorg_frag_charges[mol.smiles]
-
-    else:
-        raise ValueError(f'Unknown molecule fragment: {mol.smiles}')
-
-
-class MolChargeCalculator(Calculator):
-    def __call__(self, mol, pH: float = 7.4) -> float:
-        return _calc_mol_charge(mol, pH=pH)
-
-
-@lru_cache(maxsize=8)
-def _get_mca_predictor(
-        device: str,
-        allow_charged: bool,
-        model_source: str = None,
-        model_dir: str = None,
-):
-    from .AImodels.mca import MCAPredictor
-
-    return MCAPredictor(
-        device=device,
-        allow_charged=allow_charged,
-        model_source=model_source,
-        model_dir=model_dir,
-    )
-
-
-def mca(
-        mol: Molecule,
-        *,
-        device: str = None,
-        allow_charged: bool = False,
-        model_source: str = None,
-        model_dir: str = None,
-):
-    """Predict every atom's MCA and identify important nucleophilic sites."""
-    selected_device = device or os.environ.get("HOTPOT_MCA_DEVICE", "auto")
-    prediction = _get_mca_predictor(
-        selected_device,
-        allow_charged,
-        model_source,
-        model_dir,
-    ).predict(mol)
-    atom_values = {
-        atom.atom_index: atom.mca_kj_mol
-        for atom in prediction.atom_predictions
-    }
-    site_values = {site.atom_index: site.mca_kj_mol for site in prediction.sites}
-
-    for atom in mol.atoms:
-        object.__setattr__(atom, "_mca", atom_values[atom.idx])
-    object.__setattr__(
-        mol,
-        "_mca_sites",
-        {mol.atoms[index]: value for index, value in site_values.items()},
-    )
-    mol.properties["mca"] = prediction
-    return prediction

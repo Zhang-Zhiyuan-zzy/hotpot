@@ -1774,7 +1774,7 @@ class Molecule:
         if "_mca_sites" not in self.__dict__:
             raise AttributeError(
                 "MCA sites have not been calculated for this molecule; "
-                "call hotpot.calculator.mca(mol) first"
+                "call hotpot.cheminfo.calculator.mca(mol) first"
             )
         return dict(self._mca_sites)
 
@@ -3578,7 +3578,7 @@ class Atom(MolBlock):
         if "_mca" not in self.__dict__:
             raise AttributeError(
                 "MCA has not been calculated for this atom; "
-                "call hotpot.calculator.mca(atom.mol) first"
+                "call hotpot.cheminfo.calculator.mca(atom.mol) first"
             )
         return self._mca
 

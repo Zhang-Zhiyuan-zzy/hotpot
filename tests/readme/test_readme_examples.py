@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 import hotpot as hp
-from hotpot.calculator import mca
+from hotpot.cheminfo.calculator import mca
 from hotpot.cheminfo import forcefields as ff
 
 

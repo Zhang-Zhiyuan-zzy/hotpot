@@ -2,7 +2,7 @@ import math
 import unittest
 
 import hotpot as hp
-from hotpot.calculator import formal_charge
+from hotpot.cheminfo.calculator import formal_charge
 from hotpot.cheminfo.core import OPENBABEL_PARTIAL_CHARGE_MODELS
 
 

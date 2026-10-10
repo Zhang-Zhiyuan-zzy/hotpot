@@ -1,16 +1,16 @@
 import pytest
 
 from hotpot import read_mol
-from hotpot.calculator import mca
-from hotpot.cheminfo.calculator import _get_mca_predictor
+from hotpot.cheminfo.calculator import mca
+from hotpot.cheminfo.calculator.mca_inference import _get_mca_predictor
 
 
 def test_mca_is_attached_to_atoms_as_a_read_only_property():
     mol = read_mol("C1CCCCN1")
 
-    with pytest.raises(AttributeError, match="hotpot.calculator.mca"):
+    with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
         _ = mol.atoms[0].mca
-    with pytest.raises(AttributeError, match="hotpot.calculator.mca"):
+    with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
         _ = mol.mca_sites
 
     prediction = mca(mol, device="cpu")

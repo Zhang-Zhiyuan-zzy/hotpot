@@ -223,7 +223,7 @@ The Python API expresses the same operations through native chemical objects.
 
 ```python
 from hotpot import read_mol
-from hotpot.calculator import mca
+from hotpot.cheminfo.calculator import mca
 
 mol = read_mol("c1ccccc1CN")
 mca(mol, device="cpu")

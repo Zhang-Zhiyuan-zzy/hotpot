@@ -11,9 +11,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
-      HOTPOT_MODEL_SOURCE: local
     defaults:
       run:
         shell: bash -el {0}
@@ -52,9 +49,14 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Install and verify inference models
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
         run: hotpot models install --all
 
       - name: Run maintained tests with coverage
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
         run: ./tests/run_coverage.sh
 
       - name: Upload coverage reports to Codecov

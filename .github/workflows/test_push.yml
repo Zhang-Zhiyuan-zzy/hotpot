@@ -11,6 +11,9 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+      HOTPOT_MODEL_SOURCE: local
     defaults:
       run:
         shell: bash -el {0}
@@ -27,6 +30,12 @@ jobs:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('environment.yml', 'pyproject.toml') }}
 
+      - name: Cache inference models
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/hotpot-models
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+
       - name: Set up conda-env
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -41,6 +50,9 @@ jobs:
           conda info
           conda list
         working-directory: ${{ github.workspace }}
+
+      - name: Install and verify inference models
+        run: hotpot models install --all
 
       - name: Run maintained tests with coverage
         run: ./tests/run_coverage.sh

@@ -125,6 +125,20 @@ class TestFormalChargeCalculator(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown metal formal-charge model"):
             formal_charge(mol, metal_model="unknown")
 
+    def test_assignment_invalidates_cached_openbabel_molecule(self):
+        mol = hp.read_mol("CCO", "smi")
+        mol.to_obmol()
+
+        formal_charge(mol)
+
+        self.assertIsNone(mol._obmol)
+
+    def test_unsupported_nonmetal_fails_explicitly(self):
+        mol = hp.read_mol("[Xe]", "smi")
+
+        with self.assertRaisesRegex(ValueError, "unsupported nonmetal"):
+            formal_charge(mol)
+
 
 if __name__ == "__main__":
     unittest.main()

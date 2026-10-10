@@ -1,44 +1,56 @@
-# -*- coding: utf-8 -*-
-"""
-===========================================================
- Project   : hotpot
- File      : test_calculator
- Created   : 2025/5/19 17:09
- Author    : zhang
- Python    : 
------------------------------------------------------------
- Description
- ----------------------------------------------------------
- 
-===========================================================
-"""
-import os
-import os.path as osp
-import unittest as ut
+"""Regression contracts for the pre-split calculator façade."""
 
-import hotpot as hp
-from hotpot.cheminfo.calculator import MolChargeCalculator
+from __future__ import annotations
 
-class TestCalculator(ut.TestCase):
-    def test_MolChargeCalculator(self):
-        pair_dir = '/home/zz1/docker/proj/raws_ds/reduced_mono_ml_pair'
+import subprocess
+import sys
 
-        error_list = {}
-        for file in os.listdir(pair_dir):
-            path_pair = osp.join(pair_dir, file)
+import hotpot
+import hotpot.calculator as public_calculator
+import hotpot.cheminfo.calculator as calculator_implementation
+import pytest
 
-            try:
-                mol = hp.read_mol(path_pair)
-            except StopIteration as e:
-                print(file)
-                raise e
 
-            calc = MolChargeCalculator()
-            try:
-                print(f"{osp.splitext(file)[0]}, {mol.metals[0].symbol}: {calc(mol)}")
-            except Exception as e:
-                error_list[file] = mol.smiles
+PUBLIC_CALCULATOR_NAMES = (
+    "Calculator",
+    "MolChargeCalculator",
+    "formal_charge",
+    "mca",
+)
 
-        for key, value in error_list.items():
-            print(f"{key}: {value}")
-        print(len(error_list))
+
+def test_root_and_cheminfo_facades_share_the_four_public_objects() -> None:
+    assert tuple(public_calculator.__all__) == PUBLIC_CALCULATOR_NAMES
+    for name in PUBLIC_CALCULATOR_NAMES:
+        assert getattr(public_calculator, name) is getattr(
+            calculator_implementation,
+            name,
+        )
+
+
+def test_legacy_molecular_charge_calculator_has_deterministic_fixtures() -> None:
+    calculator = public_calculator.MolChargeCalculator()
+
+    assert calculator(hotpot.read_mol("CCO", "smi")) == 0
+    assert calculator(hotpot.read_mol("[NH4+]", "smi")) == 1
+    assert calculator(hotpot.read_mol("CC(=O)[O-]", "smi")) == 0
+    assert calculator(hotpot.read_mol("O[Te](F)(F)(F)(F)F", "smi")) == -1
+
+    with pytest.raises(ValueError, match="Unknown molecule fragment"):
+        calculator(hotpot.read_mol("ClCl", "smi"))
+
+
+def test_importing_calculator_does_not_import_the_mca_runtime() -> None:
+    completed = subprocess.run(
+        (
+            sys.executable,
+            "-c",
+            "import sys; import hotpot.cheminfo.calculator; "
+            "assert 'hotpot.cheminfo.AImodels.mca' not in sys.modules",
+        ),
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr

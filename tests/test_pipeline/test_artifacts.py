@@ -7,23 +7,20 @@ import json
 from pathlib import Path
 from typing import Callable
 
+import numpy as np
 import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 15 pipeline artifact implementation is pending",
-)
 
 
 def _water():
     import hotpot
 
     mol = hotpot.read_mol("[H]O[H]", "smi")
-    mol.coordinates = (
-        (-0.75, 0.0, 0.0),
-        (0.0, 0.5, 0.0),
-        (0.75, 0.0, 0.0),
+    mol.coordinates = np.asarray(
+        (
+            (-0.75, 0.0, 0.0),
+            (0.0, 0.5, 0.0),
+            (0.75, 0.0, 0.0),
+        )
     )
     return mol
 
@@ -94,6 +91,23 @@ def test_payload_hash_covers_geometry_topology_and_electronic_state() -> None:
     assert payload_sha256(payload) != payload_sha256(charged)
 
 
+def test_artifact_from_file_records_one_stage_relative_regular_file(
+    tmp_path: Path,
+) -> None:
+    from hotpot.pipeline.artifacts import artifact_from_file
+
+    stage_directory = tmp_path / "stage"
+    artifact_path = stage_directory / "native" / "result.json"
+    artifact_path.parent.mkdir(parents=True)
+    artifact_path.write_bytes(b'{"energy": -1.0}\n')
+
+    artifact = artifact_from_file(stage_directory, artifact_path)
+
+    assert artifact.relative_path == Path("native/result.json")
+    assert artifact.sha256 == hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+    assert artifact.size_bytes == artifact_path.stat().st_size
+
+
 def test_successful_stage_is_atomically_committed_with_verified_lineage(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -145,6 +159,8 @@ def test_successful_stage_is_atomically_committed_with_verified_lineage(
     assert manifest["final"] == "final.sdf"
     final_path = results_directory / "final.sdf"
     assert final_path.is_file()
+    stage_output = results_directory / "stages" / "00-identity" / "output.sdf"
+    assert final_path.read_bytes() == stage_output.read_bytes()
     assert "$$$$" in final_path.read_text(encoding="utf-8")
     assert manifest["final_sha256"] == hashlib.sha256(
         final_path.read_bytes()

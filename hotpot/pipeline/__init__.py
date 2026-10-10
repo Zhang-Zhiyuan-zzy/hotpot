@@ -1,5 +1,6 @@
 """Typed molecular pipeline contracts and lazy stage registration."""
 
+from .artifacts import artifact_from_file, payload_sha256
 from .contracts import (
     Artifact,
     JSONScalar,
@@ -26,6 +27,7 @@ from .registry import (
     register_stage,
     stage_import_path,
 )
+from .runner import run_pipeline
 
 
 __all__ = [
@@ -47,8 +49,11 @@ __all__ = [
     "StageSpec",
     "StageStatus",
     "UnknownStageError",
+    "artifact_from_file",
     "builtin_stage_names",
     "get_stage",
     "register_stage",
+    "run_pipeline",
     "stage_import_path",
+    "payload_sha256",
 ]

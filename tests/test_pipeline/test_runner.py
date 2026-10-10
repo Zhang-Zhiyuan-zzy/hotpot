@@ -6,23 +6,20 @@ import json
 from pathlib import Path
 from typing import Callable
 
+import numpy as np
 import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 15 pipeline controller implementation is pending",
-)
 
 
 def _water():
     import hotpot
 
     mol = hotpot.read_mol("[H]O[H]", "smi")
-    mol.coordinates = (
-        (-0.75, 0.0, 0.0),
-        (0.0, 0.5, 0.0),
-        (0.75, 0.0, 0.0),
+    mol.coordinates = np.asarray(
+        (
+            (-0.75, 0.0, 0.0),
+            (0.0, 0.5, 0.0),
+            (0.75, 0.0, 0.0),
+        )
     )
     return mol
 
@@ -40,6 +37,44 @@ def _fake_stage_factory(operation: Callable):
             return PreparedStage(spec)
 
     return Stage()
+
+
+def test_all_stages_are_prepared_before_results_root_is_created(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from hotpot.pipeline.contracts import (
+        MolecularPayload,
+        PipelineDefinitionError,
+        StageSpec,
+    )
+    from hotpot.pipeline import runner
+
+    preparations: list[str] = []
+
+    class FirstStage:
+        def prepare(self, spec):
+            preparations.append(spec.name)
+            return object()
+
+    class InvalidStage:
+        def prepare(self, spec):
+            preparations.append(spec.name)
+            raise PipelineDefinitionError("invalid second stage")
+
+    stages = {"first": FirstStage(), "invalid": InvalidStage()}
+    monkeypatch.setattr(runner, "get_stage", stages.__getitem__)
+    results_directory = tmp_path / "not-created"
+
+    with pytest.raises(PipelineDefinitionError, match="invalid second stage"):
+        runner.run_pipeline(
+            (StageSpec("first", ()), StageSpec("invalid", ())),
+            results_directory=results_directory,
+            initial_payload=MolecularPayload(()),
+        )
+
+    assert preparations == ["first", "invalid"]
+    assert not results_directory.exists()
 
 
 def test_pipeline_runs_stages_in_order_and_passes_payload_in_memory(

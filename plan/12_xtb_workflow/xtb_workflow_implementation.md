@@ -2,7 +2,7 @@
 
 Status: **approved and implemented; stable-xTB official parity, real
 coordination pipelines and the 187-structure Eu benchmark are complete; see
-the reports for the explicit extended-actinide and interpreter-matrix bounds**
+the reports for the explicit extended-actinide scientific boundary**
 
 Branch: `feature/xtb-workflow`
 
@@ -1237,6 +1237,24 @@ focused tests pass.
 18. `docs(xtb): publish template, api limits and validation report`
     - document the external-software wrapper template, supported
       versions/elements, inference assumptions, runtime and benchmark evidence.
+19. `test(xtb): extend official state and optimization parity`
+    - add GFN2 coordinate, ionic and radical parity checks.
+20. `test(xtb): validate official coordination pipelines`
+    - run real CBond/FF/GFN2 pipelines with and without optional GFN-FF.
+21. `test(xtb): add coordination refinement benchmark`
+    - execute the four-route 187-structure Eu benchmark with retained failures.
+22. `ci(xtb): include pipeline tests in Python matrix`
+    - add the calculator, harness, xTB and pipeline suites to the maintained
+      CPython compatibility runner.
+23. `docs(xtb): require rebuild in controlled workflows`
+    - make the CBond-to-force-field coordinate contract explicit.
+24. `ci(xtb): exercise refinement benchmark contracts`
+    - include the benchmark module in coverage and compatibility CI.
+25. `docs(xtb): record official and corpus validation`
+    - record the official parity and four-route Eu benchmark evidence, then
+      validate CPython 3.9-3.14 and all six ABI wheels from this snapshot.
+26. `test(xtb): validate README europium workflow`
+    - execute the exact Eu/acetate/GFN-FF/GFN2 optimization example.
 
 ## 10. Validation plan
 
@@ -1382,16 +1400,18 @@ The completed run used Eu, official xTB 6.7.1 and 64 requested cores. Direct
 GFN2 passed 182/187 ligands and 151/182 available Eu complexes. Optional
 GFN-FF pre-refinement followed by GFN2 passed 182/187 ligands and 132/182
 complexes. The lower complex-chain reliability is retained as measured
-evidence, not hidden by a combined denominator or fallback. Exact timing and
-failure classes are recorded in `xtb_workflow_validation_report.md`.
+evidence, not hidden by a combined denominator or fallback. Its lower
+all-record median is affected by frequent early termination and is not evidence
+that successful paths are faster. Exact timing and failure classes are
+recorded in `xtb_workflow_validation_report.md`.
 
 ## 11. Acceptance criteria
 
 The production architecture, official optimization/ionic/radical cases, real
 controlled coordination pipelines and 187-structure Eu benchmark are
-complete. Extended-GFN-FF fragment-charge/actinide validation and the complete
-CPython 3.9-3.14 runtime/wheel matrix remain separate boundaries. Exact
-completed and unmet evidence is recorded in
+complete. CPython 3.9-3.14 runtime tests and all six ABI-wheel checks also pass.
+Extended-GFN-FF fragment-charge/actinide validation is the remaining scientific
+boundary. Exact completed evidence and applicability limits are recorded in
 `xtb_workflow_validation_report.md`.
 
 Implementation is complete only when:

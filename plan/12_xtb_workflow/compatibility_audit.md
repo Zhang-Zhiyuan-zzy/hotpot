@@ -216,12 +216,14 @@ real comparison evidence.
 | Active docs, examples and error-message migration | Passed for active content; `README.2026.md` remains an explicit historical snapshot |
 | Pre/post calculator behavior comparison | Passed the maintained calculator regression suite |
 | Fake and real xTB parity | Hermetic failure/composition matrix passed; five official xTB 6.7.1 checks cover neutral GFN-FF/GFN2 energies, GFN2 optimized coordinates, chloride and a hydrogen radical |
-| Standalone and controlled round trips | Fake-backend round trips passed; two real CBond -> FF `--rebuild` -> official-xTB pipelines also passed |
-| Python 3.9-3.14 source and wheel validation | Active sources passed 3.9-3.14 compilation; isolated wheel/install validation was performed on CPython 3.11, not the complete six-version runtime matrix |
+| Standalone and controlled round trips | Fake-backend round trips passed; three real CBond -> FF `--rebuild` -> official-xTB pipelines also passed |
+| Python 3.9-3.14 runtime validation | Passed on all six interpreters; 3.9 used Open Babel 3.1.0 and 3.10-3.14 used 3.2.1 |
+| Python 3.9-3.14 wheel validation | All six ABI wheels passed isolated install, `pip check`, native graph, xTB resources/import and `xtb --doc` checks |
 | Wheel/sdist content inspection | Passed; obsolete modules and cache files are absent |
 | Migration and implementation reports | Completed in this stage directory |
 
 The clean breaks were implemented without hidden compatibility branches. The
 four-route 187-structure Eu benchmark is complete. Stable xTB 6.7.1 actinide
-limits and the remaining interpreter-matrix gate are listed explicitly in the
-validation report rather than being treated as supported or passed.
+limits and unvalidated extended-GFN-FF fragment-charge/actinide behavior are
+listed explicitly in the validation report rather than being treated as
+supported.

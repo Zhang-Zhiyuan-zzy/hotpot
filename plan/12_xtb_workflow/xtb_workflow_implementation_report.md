@@ -6,14 +6,15 @@ Branch: `feature/xtb-workflow`
 
 Baseline: `116a255`
 
-Implemented and validated range: `4d4fbbb..8313d55`
+Implemented and validated range: `4d4fbbb..8e015d3`
 
 The approved calculator split, electronic-state services, external-process
 harness, official xTB plugin, standalone `hotpot xtb` command, controlled
 `hotpot run` pipeline, built-in CBond/FF/xTB stage adapters, and legacy xTB
 prototype removal are complete. Subsequent validation phases add official
-charged/open-shell and optimization parity, two real coordination pipelines,
-and a reproducible four-route 187-structure benchmark.
+charged/open-shell and optimization parity, three real coordination pipelines,
+a reproducible four-route 187-structure benchmark, the CPython 3.9-3.14
+runtime matrix, and six clean ABI-wheel checks.
 
 The implementation does not change the CBond prediction kernel or the native
 three-stage coordination-complex force-field kernel. The force-field CLI was
@@ -123,31 +124,42 @@ contracts. No conditional compatibility branch was added for them.
 | 20 | `9fbf984` | Validate two real CBond/FF/official-xTB coordination pipelines |
 | 21 | `837c804` | Add and execute the four-route 187-structure coordination benchmark |
 | 22 | `8313d55` | Include CLI, pipeline, harness and xTB tests in the Python matrix |
+| 23 | `b54b59b` | Require force-field rebuild in controlled workflow documentation |
+| 24 | `5751e00` | Add refinement benchmark contracts to coverage and compatibility CI |
+| 25 | `d6a948f` | Record official/corpus evidence and freeze the production snapshot used for six-wheel validation |
+| 26 | `8e015d3` | Validate the exact README Eu coordination workflow |
 
-## 7. Deferred work
+## 7. Scientific boundary and optional future directions
 
-The following were not required to keep the delivered API honest and remain
-separate validation or future-design work:
+The only unclosed scientific boundary in this stage is real extended-GFN-FF
+fragment-charge/actinide behavior. Am is rejected before launch by stable xTB
+6.7.1, and no extended backend has yet been validated.
+
+The following are optional future architecture or model directions. They are
+not incomplete acceptance requirements for the delivered workflow:
 
 - a universal plugin base class or dynamic third-party entry-point discovery;
 - an in-process xTB C API backend;
-- official extended-GFN-FF actinide support;
 - physical oxidation-state or spin-state prediction;
-- pipeline resume or parallel stage execution;
-- complete runtime and wheel validation on every CPython 3.9-3.14
-  interpreter.
+- pipeline resume or parallel stage execution.
 
 The xTB package is documented as a reference responsibility layout, not as a
 premature mandatory superclass for unrelated software.
 
 The installed stable xTB 6.7.1 backend has received direct energy,
-optimization-coordinate, ionic and radical parity checks, plus real
-coordination-pipeline validation. The 187-structure benchmark found that
+optimization-coordinate, ionic and radical parity checks, plus three real
+coordination-pipeline validations. The 187-structure benchmark found that
 direct GFN2 passed 151/182 Eu complexes, whereas optional GFN-FF pre-refinement
 followed by GFN2 passed 132/182. This evidence supports composition and failure
-reporting; it does not justify claiming that GFN-FF improves complex
-robustness.
+reporting. The chain's lower all-record median is confounded by frequent early
+failure and does not justify claiming that GFN-FF improves successful-path
+speed or complex robustness.
 
 Stable xTB 6.7.1 remains explicitly unable to process Am. Extended-GFN-FF
 fragment-charge or actinide behavior is outside the validated implementation
 until a corresponding official backend is built, identified and tested.
+
+The final coverage suite passed `1697` tests with 8 official opt-in skips,
+4 warnings and 49 subtests in 264.16 s at 36% aggregate coverage. Runtime tests
+passed on CPython 3.9-3.14, and cp39/cp310/cp311/cp312/cp313/cp314 wheels each
+passed clean isolated installation and native/resource smoke checks.

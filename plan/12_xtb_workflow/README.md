@@ -1,15 +1,16 @@
 # Stage 12: composable xTB workflow
 
 Status: production implementation and stable-xTB scientific acceptance are
-complete for the declared Eu/GFN-FF/GFN2 scope. Extended actinide support and
-the complete six-interpreter runtime matrix remain explicit boundaries.
+complete for the declared Eu/GFN-FF/GFN2 scope. Extended-GFN-FF
+fragment-charge/actinide behavior is the remaining explicit scientific
+boundary.
 
 Planning branch: `feature/xtb-workflow`
 
 Planning baseline: `116a255`
 
-This stage will turn the legacy xTB prototype into independent, composable
-GFN-FF and GFN-xTB calculation nodes. It will reuse the existing CBond and UFF
+This stage replaced the legacy xTB prototype with independent, composable
+GFN-FF and GFN-xTB calculation nodes. It reuses the existing CBond and UFF
 complex-building workflows without changing their computational kernels.
 
 The design uses the official external xTB executable behind a molecular-stream
@@ -58,9 +59,12 @@ compatibility path.
 | Real coordination pipelines | `9fbf984` |
 | 187-structure benchmark | `837c804` |
 | Python-matrix test inclusion | `8313d55` |
+| Rebuild documentation and benchmark CI | `b54b59b`, `5751e00` |
+| Final reports and Eu README pipeline | `d6a948f`, `8e015d3` |
 
-The validation report records five official direct-parity checks, two real
-controlled coordination pipelines, and the complete four-route 187-structure
-Eu benchmark. Stable xTB 6.7.1 still has no valid Am path, and no result in
-this stage claims otherwise.
+The validation report records five official direct-parity checks, three real
+controlled coordination pipelines, the complete four-route 187-structure Eu
+benchmark, the CPython 3.9-3.14 runtime matrix and six clean ABI-wheel checks.
+Stable xTB 6.7.1 still has no valid Am path, and no result in this stage claims
+otherwise.
 

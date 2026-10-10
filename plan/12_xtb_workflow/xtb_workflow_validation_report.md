@@ -12,16 +12,15 @@ not used as a substitute for another.
 | Main validation Python | CPython 3.11.16 |
 | Official backend | xTB 6.7.1, revision `edcfbbe` |
 | Official executable | Resolved environment executable; absolute path retained in integration artifacts |
-| Maintained suite before the final benchmark additions | `1686 passed, 2 skipped, 4 warnings, 49 subtests passed` |
-| Maintained-suite wall time | 264.33 s |
+| Final coverage suite | `1697 passed, 8 skipped, 4 warnings, 49 subtests passed` |
+| Coverage-suite wall time | 264.16 s |
 | Aggregate measured coverage | 36% |
-| Final focused xTB/pipeline/CLI suite | `182 passed, 7 skipped` |
-| Official opt-in integration suite | `7 passed` |
+| Official opt-in integration suite | `8 passed in 5.78 s` |
 
-The seven focused skips are the opt-in official-backend tests when their
+All eight coverage-suite skips are the official opt-in tests when their
 integration environment variables are absent. With the official xTB and CBond
-integration resources enabled, all five direct-parity tests and both controlled
-end-to-end tests passed.
+integration resources enabled, all five direct-parity tests and all three
+controlled end-to-end tests passed.
 
 ## 2. Automated evidence
 
@@ -63,26 +62,23 @@ do not commit coordinates; the successful optimization does.
 
 ### 2.3 Official controlled coordination pipelines
 
-Two real pipelines use the production CBond model, Hotpot force-field stage and
-official xTB executable:
+Three real pipelines use the production CBond model, Hotpot force-field stage
+and official xTB executable:
 
 ```text
 Zn + NCCO -> CBond -> FF --rebuild -> GFN2 single point
 Zn + NCCO -> CBond -> FF --rebuild -> GFN-FF optimize -> GFN2 single point
+Eu + O=C(O)C -> CBond -> FF --rebuild -> GFN-FF optimize -> GFN2 optimize
 ```
 
-Both passed. The tests verify the complete stage manifest and artifacts,
-inferred charge `+2` and zero unpaired electrons, standard post-stage geometry
-gates, retained Zn-N/Zn-O coordination topology, finite energies and final 3D
-coordinates. `--rebuild` is intentional: CBond defines coordination topology,
-but its retained input coordinates must not be mistaken for a completed 3D
-complex build.
-
-A separate Eu/corpus-case-1 manual run of the full four-node workflow also
-completed successfully. The observed stage times were 0.172 s for CBond,
-1.634 s for the Hotpot FF build, 0.098 s for GFN-FF and 0.166 s for GFN2. Its
-GFN-FF and GFN2 energies were `-1.945034 Eh` and `-55.680347 Eh`, respectively.
-This is an operability check, not a population-level timing estimate.
+All three passed. The tests verify the complete stage manifest and artifacts,
+standard post-stage geometry gates, finite energies and final 3D coordinates.
+The Zn workflows retain Zn-N/Zn-O coordination, charge `+2` and zero unpaired
+electrons. The exact README Eu workflow retains Eu-O coordination, charge
+`+3`, zero unpaired electrons, coordinate commits from both optimization
+stages, and successful FF/GFN-FF/GFN2 geometry gates. `--rebuild` is
+intentional: CBond defines coordination topology, but its retained input
+coordinates must not be mistaken for a completed 3D complex build.
 
 ## 3. The 187-structure coordination benchmark
 
@@ -99,6 +95,8 @@ compared four routes:
 
 All routes retain electronic-state provenance, native logs, last finite/final
 structures and geometry-gate reports. The complete run took 683.41 s wall time.
+The benchmark manifest SHA-256 is
+`389a939c193ea9c4067ebb8a482be113f36e194ad619666b54e3500472090865`.
 The ligand denominator is 187. CBond produced 182 Eu-ligand complex inputs, so
 the complex denominator is 182; these denominators are not merged. The full
 upstream Hotpot run passed the standard geometry gate for 182/187 ligand
@@ -128,30 +126,33 @@ input and an extreme-gradient case. These records remain failures; the
 benchmark does not silently repair or remove them.
 
 The measured conclusion is limited but clear: for this Eu corpus and xTB 6.7.1,
-direct GFN2 is the more reliable complex route. GFN-FF pre-refinement reduces
-median time among the complete population but introduces a substantial native
-failure class. It must remain optional rather than a claimed robustness step.
+direct GFN2 is the more reliable complex route. The lower all-record median of
+the GFN-FF chain is confounded by its higher failure rate and early termination;
+it is not evidence that successful complex paths are faster. GFN-FF introduces
+a substantial native failure class and must remain optional rather than a
+claimed speed or robustness step.
 
 ## 4. Packaging and compatibility evidence
 
-- An isolated CPython 3.11 wheel was built:
-  `hotpot_zzy-0.5.4.0-cp311-cp311-linux_x86_64.whl`.
-- The wheel installed outside the checkout and passed import/resource/CLI
-  smoke checks.
-- The source distribution was built and its content contract passed.
-- xTB/pipeline API READMEs were present in the wheel and source distribution,
-  alongside their runtime CLI guides.
-- New calculator, harness, xTB and pipeline modules were present; removed
-  calculator facade, old xTB prototype, mutable cache and empty writer were
-  absent.
-- Active calculator/xTB/pipeline sources compile with CPython 3.9 through 3.14.
-  The complete six-interpreter runtime matrix remains a distinct gate until
-  its run finishes successfully.
+- The complete CPython 3.9-3.14 runtime matrix passed. CPython 3.9-3.13 each
+  passed the 1400-test core suite, 255 SMARTS cases, and the final xTB delta of
+  `41 passed, 3 skipped`.
+- CPython 3.14 completed the final clean runner with
+  `1411 passed, 12 skipped, 3 xfailed`, plus 255 SMARTS cases, and exit code 0.
+- CPython 3.9 used Open Babel 3.1.0; CPython 3.10-3.14 used Open Babel 3.2.1.
+- Six ABI-specific wheels passed clean isolated validation: cp39, cp310, cp311,
+  cp312, cp313 and cp314. For every wheel, ordinary `pip install`, `pip check`,
+  native graph loading, xTB imports/resources and `hotpot xtb --doc` passed.
+- The six-wheel snapshot was commit `d6a948f`; later changes through `8e015d3`
+  affect only documentation and tests, not package ABI or production code.
+- The source distribution content contract also passed. New calculator,
+  harness, xTB and pipeline modules were present; the removed calculator
+  facade, old xTB prototype, mutable cache and empty writer were absent.
 
 The maintained-suite warnings are known force-field quality warnings and an
 existing `search/logic.py` syntax warning. None was attributed to xTB.
 
-## 5. Explicit boundaries and remaining work
+## 5. Explicit scientific boundaries
 
 The following acceptance items are closed by this report: official energy
 parity, official optimization-coordinate parity, ionic and radical states,
@@ -166,6 +167,3 @@ Two boundaries remain and must not be inferred as supported:
 2. Real extended-GFN-FF fragment-charge and actinide behavior has not been
    validated. It requires an identified, built and versioned official backend
    with those capabilities. Stable-xTB Eu results cannot establish it.
-
-The complete CPython 3.9-3.14 runtime/wheel matrix is also an engineering gate
-separate from the scientific xTB acceptance evidence above.

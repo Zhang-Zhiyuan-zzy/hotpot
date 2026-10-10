@@ -15,12 +15,6 @@ from hotpot.cheminfo.calculator.electronic_state import (
 from hotpot.cheminfo.core import Molecule
 
 
-pytestmark = pytest.mark.xfail(
-    reason="Phase 14 specifies the pipeline contracts before Phase 15 implements them",
-    strict=True,
-)
-
-
 def _state(charge: int, unpaired_electrons: int) -> ElectronicState:
     return ElectronicState(
         charge=charge,

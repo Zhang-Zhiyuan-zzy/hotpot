@@ -10,12 +10,6 @@ from types import ModuleType
 import pytest
 
 
-pytestmark = pytest.mark.xfail(
-    reason="Phase 14 specifies the stage registry before Phase 15 implements it",
-    strict=True,
-)
-
-
 def _fresh_registry() -> ModuleType:
     registry = importlib.import_module("hotpot.pipeline.registry")
     return importlib.reload(registry)
@@ -81,6 +75,10 @@ def test_custom_stage_registration_is_lazy() -> None:
 
 
 @pytest.mark.parametrize("name", ("cbond", "ff", "xtb"))
+@pytest.mark.xfail(
+    strict=True,
+    reason="built-in stage adapters land in the next Phase 15 substep",
+)
 def test_builtin_stage_resolves_to_molecular_stage(name: str) -> None:
     from hotpot.pipeline.contracts import MolecularStage
 
@@ -93,6 +91,10 @@ def test_builtin_stage_resolves_to_molecular_stage(name: str) -> None:
     assert getattr(MolecularStage, "_is_protocol", False)
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="the xTB stage adapter lands in the next Phase 15 substep",
+)
 def test_repeated_xtb_stages_prepare_independently() -> None:
     from hotpot.pipeline.contracts import StageSpec
 

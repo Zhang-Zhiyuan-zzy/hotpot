@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import pytest
@@ -76,7 +77,7 @@ def _direct_run(
     *,
     task: XTBTask,
     charge: int,
-    unpaired_electrons: int | None,
+    unpaired_electrons: Optional[int],
 ) -> subprocess.CompletedProcess[str]:
     input_path = work_directory / "input.xyz"
     prepare_xtb_input(mol, input_path)

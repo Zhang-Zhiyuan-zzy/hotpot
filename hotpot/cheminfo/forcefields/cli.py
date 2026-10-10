@@ -8,11 +8,9 @@ import math
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import dataclass, fields, is_dataclass
-from enum import Enum
+from dataclasses import dataclass
 from importlib import resources
 from multiprocessing import get_context
-from numbers import Integral, Real
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Mapping, Optional, Sequence, TYPE_CHECKING, Tuple, Union
@@ -21,7 +19,6 @@ from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo._io import MolReader
 
 from . import (
-    BuildAndOptimizeReport,
     BuildWorkerError,
     ComplexBuildError,
     ComplexBuildWorkerError,
@@ -36,6 +33,12 @@ from . import (
     complexes_build,
     optimize,
     optimize_complex,
+)
+from .stage import (
+    ForceFieldRouteOperations,
+    ForceFieldRouteOptions,
+    execute_forcefield_route,
+    json_value,
 )
 
 
@@ -350,135 +353,43 @@ def _trajectory_path(
     return str(Path(base_path) / f"{record.index:04d}")
 
 
-def _optimization_options(
-    options: _RunOptions,
-    trajectory_path: Optional[str],
-) -> dict[str, object]:
-    values: dict[str, object] = {
-        "algorithm": options.algorithm,
-        "epochs": options.epochs,
-        "steps_per_epoch": options.steps_per_epoch,
-        "convergence_level": options.convergence_level,
-        "add_hydrogens": options.add_hydrogens,
-        "quality_level": options.quality_level,
-        "seed": options.seed,
-        "save_movie": trajectory_path is not None,
-        "trajectory_path": trajectory_path,
-    }
-    if options.trajectory_start is not None:
-        values["trajectory_start"] = options.trajectory_start
-    return values
-
-
-def _build_options(
-    options: _RunOptions,
-    trajectory_path: Optional[str],
-) -> dict[str, object]:
-    values = _optimization_options(options, trajectory_path)
-    values["timeout"] = options.timeout
-    return values
-
-
-def _requires_build(mol: "Molecule", options: _RunOptions) -> bool:
-    if options.rebuild:
-        return True
-    if options.optimize_only:
-        if not mol.has_3d:
-            raise _CLIUsageError(
-                "--optimize-only requires non-coincident existing coordinates"
-            )
-        return False
-    return not mol.has_3d
-
-
-def _validate_forcefield_request(mol: "Molecule", options: _RunOptions) -> None:
-    complex_route = options.route == "complex" or (
-        options.route == "auto" and mol.has_metal
-    )
-    if complex_route and options.forcefield not in {None, "UFF"}:
-        raise _CLIUsageError(
-            "Complex force-field workflows currently support only UFF; "
-            "use --forcefield auto or --forcefield uff"
-        )
-
-
 def _run_forcefield(
     mol: "Molecule",
     options: _RunOptions,
     trajectory_path: Optional[str],
 ) -> object:
-    _validate_forcefield_request(mol, options)
-    requires_build = _requires_build(mol, options)
-    if options.route == "auto":
-        if options.optimize_only:
-            optimizer = optimize_complex if mol.has_metal else optimize
-            return optimizer(
-                mol,
-                options.forcefield,
-                **_optimization_options(options, trajectory_path),
-            )
-        if mol.has_metal:
-            return auto_optimize(
-                mol,
-                options.forcefield,
-                **_build_options(options, trajectory_path),
-            )
-        if requires_build:
-            return build_and_optimize(
-                mol,
-                options.forcefield,
-                **_build_options(options, trajectory_path),
-            )
-        return auto_optimize(
-            mol,
-            options.forcefield,
-            **_optimization_options(options, trajectory_path),
-        )
-
-    if options.route == "complex":
-        if requires_build:
-            return complexes_build(
-                mol,
-                options.forcefield,
-                **_build_options(options, trajectory_path),
-            )
-        return optimize_complex(
-            mol,
-            options.forcefield,
-            **_optimization_options(options, trajectory_path),
-        )
-
-    if requires_build:
-        build_report = build3d(
-            mol,
-            add_hydrogens=options.add_hydrogens,
-            seed=options.seed,
-            timeout=options.timeout,
-        )
-        optimization_report = optimize(
-            mol,
-            options.forcefield,
-            **{
-                **_optimization_options(options, trajectory_path),
-                "add_hydrogens": False,
-            },
-        )
-        quality_report = optimization_report.quality_report
-        if quality_report is None:
-            raise RuntimeError("The force-field optimizer omitted its quality report")
-        return BuildAndOptimizeReport(
-            requested_forcefield=optimization_report.requested_forcefield,
-            effective_forcefield=optimization_report.effective_forcefield,
-            build=build_report,
-            optimization=optimization_report,
-            quality_report=quality_report,
-            trajectory=optimization_report.trajectory,
-        )
-    return optimize(
-        mol,
-        options.forcefield,
-        **_optimization_options(options, trajectory_path),
+    route_options = ForceFieldRouteOptions(
+        rebuild=options.rebuild,
+        optimize_only=options.optimize_only,
+        route=options.route,
+        forcefield=options.forcefield,
+        algorithm=options.algorithm,
+        epochs=options.epochs,
+        steps_per_epoch=options.steps_per_epoch,
+        convergence_level=options.convergence_level,
+        add_hydrogens=options.add_hydrogens,
+        quality_level=options.quality_level,
+        seed=options.seed,
+        timeout=options.timeout,
+        trajectory_start=options.trajectory_start,
     )
+    operations = ForceFieldRouteOperations(
+        build3d=build3d,
+        build_and_optimize=build_and_optimize,
+        auto_optimize=auto_optimize,
+        complexes_build=complexes_build,
+        optimize_complex=optimize_complex,
+        optimize=optimize,
+    )
+    try:
+        return execute_forcefield_route(
+            mol,
+            route_options,
+            trajectory_path=trajectory_path,
+            operations=operations,
+        )
+    except ValueError as error:
+        raise _CLIUsageError(str(error)) from error
 
 
 def _normalize_molecule_payload(text: str) -> str:
@@ -568,26 +479,7 @@ def _process_work_items(
 
 
 def _json_value(value: object) -> object:
-    if value is None or isinstance(value, (bool, str)):
-        return value
-    if isinstance(value, Integral):
-        return int(value)
-    if isinstance(value, Real):
-        number = float(value)
-        return number if math.isfinite(number) else None
-    if isinstance(value, Enum):
-        return _json_value(value.value)
-    if is_dataclass(value) and not isinstance(value, type):
-        return {
-            field.name: _json_value(getattr(value, field.name))
-            for field in fields(value)
-            if field.name != "trajectory"
-        }
-    if isinstance(value, Mapping):
-        return {str(key): _json_value(item) for key, item in value.items()}
-    if isinstance(value, (tuple, list)):
-        return [_json_value(item) for item in value]
-    raise TypeError(f"Cannot serialize force-field report value {type(value)!r}")
+    return json_value(value)
 
 
 def _report_payload(outcomes: Sequence[_Outcome]) -> str:

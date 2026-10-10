@@ -6,23 +6,20 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
-
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="Phase 15 built-in pipeline stage adapters are pending",
-)
 
 
 def _water():
     import hotpot
 
     mol = hotpot.read_mol("[H]O[H]", "smi")
-    mol.coordinates = (
-        (-0.75, 0.0, 0.0),
-        (0.0, 0.5, 0.0),
-        (0.75, 0.0, 0.0),
+    mol.coordinates = np.asarray(
+        (
+            (-0.75, 0.0, 0.0),
+            (0.0, 0.5, 0.0),
+            (0.75, 0.0, 0.0),
+        )
     )
     return mol
 
@@ -34,6 +31,19 @@ def _context(stage_spec, tmp_path: Path):
     stage_directory = run_directory / "stages" / ".00-stage.tmp-test"
     stage_directory.mkdir(parents=True)
     return StageContext(run_directory, stage_directory, 0, stage_spec)
+
+
+@dataclass(frozen=True)
+class _QualityReport:
+    passed: bool
+
+
+@dataclass(frozen=True)
+class _ForceFieldReport:
+    quality_report: _QualityReport
+    trajectory: None
+    requested_forcefield: str
+    effective_forcefield: str
 
 
 def test_cbond_stage_calls_detailed_public_result_api_once(
@@ -57,6 +67,7 @@ def test_cbond_stage_calls_detailed_public_result_api_once(
         )
 
     monkeypatch.setattr(apply, "auto_build_cbond", auto_build_cbond)
+    monkeypatch.setattr(apply, "get_cbond_runtime", lambda *args: object())
     spec = StageSpec("cbond", ("Eu", "NCCO", "--device", "cpu"))
     prepared = cbond_stage.get_stage().prepare(spec)
 
@@ -68,6 +79,53 @@ def test_cbond_stage_calls_detailed_public_result_api_once(
     assert len(result.payload.records) == 1
     assert result.payload.records[0].molecule is output_mol
     assert "cbond" in result.report
+
+
+def test_cbond_stage_emits_all_structures_as_molecular_records(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from hotpot.cheminfo.AImodels.cbond import apply
+    from hotpot.cheminfo.AImodels.cbond import stage as cbond_stage
+    from hotpot.pipeline.contracts import MolecularPayload, StageSpec
+
+    structures = (_water(), _water())
+    calls: list[int] = []
+
+    def build_all_possible_cbond(mol, metal, **options):
+        calls.append(options["max_states"])
+        return tuple(
+            SimpleNamespace(
+                molecule=structure,
+                probability=0.75 - index * 0.5,
+                steps=(),
+                donor_indices=(index,),
+                path_count=1,
+            )
+            for index, structure in enumerate(structures)
+        )
+
+    monkeypatch.setattr(
+        apply,
+        "build_all_possible_cbond",
+        build_all_possible_cbond,
+    )
+    monkeypatch.setattr(apply, "get_cbond_runtime", lambda *args: object())
+    spec = StageSpec(
+        "cbond",
+        ("Eu", "NCCO", "--all-structures", "--max-states", "7"),
+    )
+
+    result = cbond_stage.get_stage().prepare(spec).execute(
+        MolecularPayload(()),
+        _context(spec, tmp_path),
+    )
+
+    assert calls == [7]
+    assert tuple(record.molecule for record in result.payload.records) == structures
+    assert tuple(
+        structure["rank"] for structure in result.report["cbond"]["structures"]
+    ) == (1, 2)
 
 
 def test_forcefield_stage_uses_one_public_route_operation_without_duplicate_gate(
@@ -89,10 +147,10 @@ def test_forcefield_stage_uses_one_public_route_operation_without_duplicate_gate
     def optimize(mol, forcefield=None, **options):
         nonlocal calls
         calls += 1
-        return SimpleNamespace(
-            quality_report=SimpleNamespace(passed=True),
+        return _ForceFieldReport(
+            quality_report=_QualityReport(passed=True),
             trajectory=None,
-            requested_forcefield=forcefield,
+            requested_forcefield=forcefield or "UFF",
             effective_forcefield="UFF",
         )
 
@@ -255,4 +313,8 @@ def test_gfnff_stage_calls_only_gfnff_node(
 
     assert calls == ["gfnff"]
     assert result.status is StageStatus.SUCCEEDED
+    state = result.payload.records[0].electronic_state
+    assert state is not None
+    assert state.charge == 0
+    assert state.unpaired_electrons == 0
 

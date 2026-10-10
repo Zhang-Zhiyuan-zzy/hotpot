@@ -56,14 +56,7 @@ def _stage_specs(
             ),
         ),
     ]
-    xtb_options = (
-        "--xtb-executable",
-        str(executable),
-        "--threads",
-        "1",
-        "--post-check",
-        "standard",
-    )
+    xtb_options = _xtb_options(executable)
     if include_gfnff:
         specs.append(
             StageSpec(
@@ -78,6 +71,42 @@ def _stage_specs(
         )
     )
     return tuple(specs)
+
+
+def _xtb_options(executable: Path) -> tuple[str, ...]:
+    return (
+        "--xtb-executable",
+        str(executable),
+        "--threads",
+        "1",
+        "--post-check",
+        "standard",
+    )
+
+
+def _readme_stage_specs(executable: Path) -> tuple[StageSpec, ...]:
+    xtb_options = _xtb_options(executable)
+    return (
+        StageSpec("cbond", ("Eu", "O=C(O)C", "--device", "cpu")),
+        StageSpec(
+            "ff",
+            (
+                "--rebuild",
+                "--route",
+                "complex",
+                "--forcefield",
+                "uff",
+            ),
+        ),
+        StageSpec(
+            "xtb",
+            ("--method", "gfnff", "--task", "optimize", *xtb_options),
+        ),
+        StageSpec(
+            "xtb",
+            ("--method", "gfn2", "--task", "optimize", *xtb_options),
+        ),
+    )
 
 
 def _quality_passed(report: dict[str, object]) -> bool:
@@ -168,5 +197,75 @@ def test_official_controlled_coordination_pipeline(
     assert final_mol.has_metal
     metal = next(atom for atom in final_mol.atoms if atom.symbol == _METAL)
     assert {atom.symbol for atom in metal.neighbours} == {"N", "O"}
+    assert final_mol.has_3d
+    assert np.isfinite(np.asarray(final_mol.coordinates, dtype=float)).all()
+
+
+def test_official_readme_europium_pipeline(tmp_path: Path) -> None:
+    executable = _integration_resources()
+    results_directory = tmp_path / "official-readme-europium"
+
+    result = run_pipeline(
+        _readme_stage_specs(executable),
+        results_directory=results_directory,
+        initial_payload=MolecularPayload(()),
+    )
+
+    assert result.status.value == "succeeded"
+    assert result.payload is not None
+    assert len(result.payload.records) == 1
+    state = result.payload.records[0].electronic_state
+    assert state is not None
+    assert state.charge == 3
+    assert state.unpaired_electrons == 0
+
+    manifest = json.loads(
+        (results_directory / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["status"] == "succeeded"
+    assert [stage["name"] for stage in manifest["stages"]] == [
+        "cbond",
+        "ff",
+        "xtb",
+        "xtb",
+    ]
+    assert all(stage["status"] == "succeeded" for stage in manifest["stages"])
+    assert _quality_passed(
+        manifest["stages"][1]["report"]["forcefield"][0]["quality_report"]
+    )
+
+    xtb_stages = manifest["stages"][2:]
+    xtb_reports = [stage["report"]["xtb"] for stage in xtb_stages]
+    assert [report["requested_method"] for report in xtb_reports] == [
+        "gfnff",
+        "gfn2",
+    ]
+    assert [report["task"] for report in xtb_reports] == [
+        "optimize",
+        "optimize",
+    ]
+    assert all(report["process_succeeded"] for report in xtb_reports)
+    assert all(report["converged"] for report in xtb_reports)
+    assert all(report["coordinates_committed"] for report in xtb_reports)
+    assert all(math.isfinite(report["energy_hartree"]) for report in xtb_reports)
+    assert all(
+        report["electronic_state"]["charge"] == 3 for report in xtb_reports
+    )
+    assert all(
+        report["electronic_state"]["unpaired_electrons"] == 0
+        for report in xtb_reports
+    )
+    assert all(
+        _quality_passed(stage["report"]["post_check"][0])
+        for stage in xtb_stages
+    )
+
+    final_records = read_sdf_records(
+        (results_directory / "final.sdf").read_text(encoding="utf-8")
+    )
+    assert len(final_records) == 1
+    final_mol = final_records[0].mol
+    europium = next(atom for atom in final_mol.atoms if atom.symbol == "Eu")
+    assert {atom.symbol for atom in europium.neighbours} == {"O"}
     assert final_mol.has_3d
     assert np.isfinite(np.asarray(final_mol.coordinates, dtype=float)).all()

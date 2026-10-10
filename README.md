@@ -157,7 +157,10 @@ For multi-stage automation, `hotpot run` transfers molecular objects in memory
 and creates an ordered, content-addressed evidence tree. The exact `::` token
 separates stages; no stage argument is evaluated by a shell:
 
-<!-- Verified by tests/test_cli/test_run_cli.py::test_inline_and_json_workflows_normalize_to_identical_stage_specs and tests/test_plugin/test_xtb/test_pipeline_integration.py::test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts -->
+<!-- Verified by
+tests/test_cli/test_run_cli.py::test_inline_and_json_workflows_normalize_to_identical_stage_specs,
+tests/test_plugin/test_xtb/test_pipeline_integration.py::test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts,
+and tests/test_plugin/test_xtb/test_official_pipeline_integration.py::test_official_readme_europium_pipeline. -->
 
 ```bash
 $ hotpot run --results-dir results/eu-001 -- \

@@ -4,39 +4,21 @@ from __future__ import annotations
 
 import json
 import os
-from importlib.util import find_spec
 from pathlib import Path
 from typing import Optional, Protocol
 
 import pytest
 
-
-PHASE10_RUNNER_API_AVAILABLE = all(
-    find_spec(module_name) is not None
-    for module_name in (
-        "hotpot.plugins.xtb.backend",
-        "hotpot.plugins.xtb.contracts",
-        "hotpot.plugins.xtb.runner",
-    )
+from hotpot.plugins.xtb.backend import probe_xtb_backend
+from hotpot.plugins.xtb.contracts import (
+    XTBExecutionError,
+    XTBInputError,
+    XTBMethod,
+    XTBRequest,
+    XTBResultError,
+    XTBTask,
 )
-if PHASE10_RUNNER_API_AVAILABLE:
-    from hotpot.plugins.xtb.backend import probe_xtb_backend
-    from hotpot.plugins.xtb.contracts import (
-        XTBExecutionError,
-        XTBInputError,
-        XTBMethod,
-        XTBRequest,
-        XTBResultError,
-        XTBTask,
-    )
-    from hotpot.plugins.xtb.runner import run_xtb
-
-
-requires_phase10_runner = pytest.mark.xfail(
-    not PHASE10_RUNNER_API_AVAILABLE,
-    reason="Phase 10 typed xTB runner is not implemented yet",
-    strict=True,
-)
+from hotpot.plugins.xtb.runner import run_xtb
 
 
 class FakeXTBFactory(Protocol):
@@ -83,7 +65,6 @@ def _request(
     )
 
 
-@requires_phase10_runner
 @pytest.mark.parametrize(
     "method_name, task_name, expected_method, expected_task, result_name",
     (
@@ -123,6 +104,14 @@ def test_runner_builds_method_and_task_specific_argv_and_artifacts(
     assert "--chrg" in report.argv
     assert report.argv[report.argv.index("--chrg") + 1] == "-1"
     assert result_name in report.artifacts
+    assert report.provenance.executable == executable.resolve()
+    assert report.provenance.executable_sha256 == request.backend_info.executable_sha256
+    artifact_hashes = {
+        artifact.path.name: artifact.sha256
+        for artifact in report.provenance.artifacts
+    }
+    assert result_name in artifact_hashes
+    assert len(artifact_hashes[result_name]) == 64
     assert not executable.with_name("version_argv.json").exists()
     if method_name == "GFN2_XTB":
         assert report.argv[report.argv.index("--uhf") + 1] == "2"
@@ -132,7 +121,6 @@ def test_runner_builds_method_and_task_specific_argv_and_artifacts(
         assert ".xtboptok" in report.artifacts
 
 
-@requires_phase10_runner
 def test_gfnff_rejects_unpaired_electrons_instead_of_forwarding_uhf(
     fake_xtb_factory: FakeXTBFactory,
     tmp_path: Path,
@@ -149,7 +137,6 @@ def test_gfnff_rejects_unpaired_electrons_instead_of_forwarding_uhf(
         run_xtb(request)
 
 
-@requires_phase10_runner
 def test_stderr_text_is_preserved_without_turning_success_into_failure(
     fake_xtb_factory: FakeXTBFactory,
     tmp_path: Path,
@@ -168,7 +155,6 @@ def test_stderr_text_is_preserved_without_turning_success_into_failure(
     assert "informational diagnostic" in report.stderr
 
 
-@requires_phase10_runner
 def test_nonzero_exit_raises_with_complete_failure_report(
     fake_xtb_factory: FakeXTBFactory,
     tmp_path: Path,
@@ -188,7 +174,6 @@ def test_nonzero_exit_raises_with_complete_failure_report(
     assert "fake execution failure" in error.value.report.stderr
 
 
-@requires_phase10_runner
 def test_missing_method_specific_result_is_an_explicit_result_failure(
     fake_xtb_factory: FakeXTBFactory,
     tmp_path: Path,

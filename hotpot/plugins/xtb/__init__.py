@@ -1,25 +1,43 @@
-from .core import *
+"""Public xTB plugin exports."""
+
+from .backend import probe_xtb_backend
+from .capabilities import validate_element_support
+from .contracts import (
+    GFNXTBMethod,
+    XTBApplicabilityError,
+    XTBArtifact,
+    XTBBackendInfo,
+    XTBError,
+    XTBExecutableError,
+    XTBExecutionError,
+    XTBInputError,
+    XTBMethod,
+    XTBRequest,
+    XTBResultError,
+    XTBRunReport,
+    XTBTask,
+)
+from .core import XtbCalculator, xtb_batch_run
+from .runner import run_xtb
 
 
-def __create_cache_file():
-    """
-    Creates a cache file in the module's directory if it does not already exist.
-
-    The function checks for the existence of a cache file named '.cache.json'
-    in the module's root directory. If the file does not exist, it will create
-    the file and initialize it with an empty JSON object.
-
-    Returns
-    -------
-    None
-    """
-    import os.path as osp
-    import json
-    module_root = osp.dirname(__file__)
-    cache_dir = osp.join(module_root, '.cache.json')
-
-    if not osp.exists(cache_dir):
-        with open(cache_dir, 'w') as writer:
-            json.dump({}, writer)
-
-__create_cache_file()
+__all__ = [
+    "GFNXTBMethod",
+    "XTBApplicabilityError",
+    "XTBArtifact",
+    "XTBBackendInfo",
+    "XTBError",
+    "XTBExecutableError",
+    "XTBExecutionError",
+    "XTBInputError",
+    "XTBMethod",
+    "XTBRequest",
+    "XTBResultError",
+    "XTBRunReport",
+    "XTBTask",
+    "XtbCalculator",
+    "probe_xtb_backend",
+    "run_xtb",
+    "validate_element_support",
+    "xtb_batch_run",
+]

@@ -4,32 +4,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import replace
-from importlib.util import find_spec
 from pathlib import Path
 from typing import Protocol
 
 import pytest
 
-
-PHASE10_CAPABILITY_API_AVAILABLE = all(
-    find_spec(module_name) is not None
-    for module_name in (
-        "hotpot.plugins.xtb.backend",
-        "hotpot.plugins.xtb.capabilities",
-        "hotpot.plugins.xtb.contracts",
-    )
-)
-if PHASE10_CAPABILITY_API_AVAILABLE:
-    from hotpot.plugins.xtb.backend import probe_xtb_backend
-    from hotpot.plugins.xtb.capabilities import validate_element_support
-    from hotpot.plugins.xtb.contracts import XTBApplicabilityError, XTBMethod
-
-
-requires_phase10_capabilities = pytest.mark.xfail(
-    not PHASE10_CAPABILITY_API_AVAILABLE,
-    reason="Phase 10 xTB capability checks are not implemented yet",
-    strict=True,
-)
+from hotpot.plugins.xtb.backend import probe_xtb_backend
+from hotpot.plugins.xtb.capabilities import validate_element_support
+from hotpot.plugins.xtb.contracts import XTBApplicabilityError, XTBMethod
 
 
 class FakeXTBFactory(Protocol):
@@ -40,7 +22,6 @@ class FakeXTBFactory(Protocol):
     ) -> Path: ...
 
 
-@requires_phase10_capabilities
 @pytest.mark.parametrize(
     "method_name",
     ("GFNFF", "GFN0_XTB", "GFN1_XTB", "GFN2_XTB"),
@@ -61,7 +42,6 @@ def test_stable_671_backend_accepts_elements_through_radon(
     )
 
 
-@requires_phase10_capabilities
 @pytest.mark.parametrize(
     "method_name",
     ("GFNFF", "GFN0_XTB", "GFN1_XTB", "GFN2_XTB"),
@@ -83,7 +63,6 @@ def test_stable_671_backend_rejects_americium_before_execution(
         )
 
 
-@requires_phase10_capabilities
 def test_extended_gfnff_domain_does_not_expand_gfn_xtb_domain(
     fake_xtb_factory: FakeXTBFactory,
 ) -> None:

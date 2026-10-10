@@ -12,6 +12,9 @@ from hotpot.cheminfo.AImodels.cbond.constants import (
 from hotpot.cheminfo.core import Atom, Molecule
 
 
+_ONNX_CROSS_PLATFORM_ATOL = 5e-6
+
+
 def _scores_by_element(context, values):
     return {
         atom_index: values[context.molecule.atoms[atom_index].symbol]
@@ -488,7 +491,8 @@ def test_documented_aminodiol_reference_matches_packaged_model(runtime):
         "NC[C@@H]1CO[Eu]O1",
     ]
     assert [result.probability for result in results] == pytest.approx(
-        [0.5787371244916796, 0.4212628755083204]
+        [0.5787371244916796, 0.4212628755083204],
+        abs=_ONNX_CROSS_PLATFORM_ATOL,
     )
     assert [
         [(step.atom_index, step.element) for step in result.steps] for result in results
@@ -500,5 +504,6 @@ def test_documented_aminodiol_reference_matches_packaged_model(runtime):
             4.415280342102051,
             2.3229620456695557,
             3.092538833618164,
-        ]
+        ],
+        abs=_ONNX_CROSS_PLATFORM_ATOL,
     )

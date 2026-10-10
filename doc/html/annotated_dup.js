@@ -248,11 +248,6 @@ var annotated_dup =
               [ "Options", "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1Options.html", "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1Options" ]
             ] ]
           ] ]
-        ] ],
-        [ "xtb", null, [
-          [ "core", null, [
-            [ "XtbCalculator", "classhotpot_1_1plugins_1_1xtb_1_1core_1_1XtbCalculator.html", null ]
-          ] ]
         ] ]
       ] ],
       [ "utils", "namespacehotpot_1_1utils.html", [

@@ -25,7 +25,6 @@ from .contracts import (
     XTBRunReport,
     XTBTask,
 )
-from .core import XtbCalculator, xtb_batch_run
 from .runner import run_xtb
 from .stream import (
     XTBStreamError,
@@ -59,7 +58,6 @@ __all__ = [
     "XTBStreamProvenance",
     "XTBStreamRecord",
     "XTBTask",
-    "XtbCalculator",
     "commit_xtb_coordinates",
     "molecule_to_xtb_geometry",
     "metadata_from_report",
@@ -72,5 +70,4 @@ __all__ = [
     "read_sdf_records",
     "validate_element_support",
     "write_sdf_records",
-    "xtb_batch_run",
 ]

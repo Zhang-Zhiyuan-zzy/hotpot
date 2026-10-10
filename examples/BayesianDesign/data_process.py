@@ -10,7 +10,6 @@ from matplotlib import cm
 import hotpot as hp
 from hotpot.plugins.PyG import data as pyg_data
 from hotpot.plugins.ccdc_api import statistics as cc_stat
-from hotpot.plugins.xtb import xtb_batch_run
 
 import torch
 from torch_geometric.loader import DataLoader
@@ -25,9 +24,7 @@ else:
 
 
 ccdc_files_dir = osp.join(project_root, 'ccdc')
-ccdc_all_file_dir = osp.join(ccdc_files_dir, 'all_mol2')
 ccdc_mono_file_dir = osp.join(ccdc_files_dir, 'mono')
-ccdc_xtb_file_dir = osp.join(ccdc_files_dir, 'xtb')
 
 
 def statistic_node_type_weight():
@@ -116,16 +113,6 @@ def _filter_mol(mol):
     return True
 
 
-def export_xtb_files():
-    print('Export XTB files')
-    xtb_batch_run(
-        mol_file_dir=ccdc_all_file_dir,
-        res_file_dir=ccdc_xtb_file_dir,
-        perform=False,
-        charge=0
-    )
-
-
 def draw_periodic_table():
     pos = {
         1: {1:'H', 18:'H'},
@@ -187,7 +174,6 @@ def test_():
 
 if __name__ == '__main__':
     # extract_pyg_data_from_tmQm()
-    # export_xtb_files()
     # test_()
     # nt = statistic_node_type_weight()
     extract_pyg_data_from_ccdc_mono()

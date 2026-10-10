@@ -106,8 +106,7 @@ var hierarchy =
       [ "hotpot.cheminfo.core_.Molecule", "classhotpot_1_1cheminfo_1_1core___1_1Molecule.html", null ],
       [ "hotpot.cheminfo.mol_statistics.ComplexStatistics", "classhotpot_1_1cheminfo_1_1mol__statistics_1_1ComplexStatistics.html", null ],
       [ "hotpot.plugins.ccdc_api.statistics.ComplexStatistics", "classhotpot_1_1plugins_1_1ccdc__api_1_1statistics_1_1ComplexStatistics.html", null ],
-      [ "hotpot.plugins.complex_model.train.Printer", "classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html", null ],
-      [ "hotpot.plugins.xtb.core.XtbCalculator", "classhotpot_1_1plugins_1_1xtb_1_1core_1_1XtbCalculator.html", null ]
+      [ "hotpot.plugins.complex_model.train.Printer", "classhotpot_1_1plugins_1_1pyg_1_1train_1_1Printer.html", null ]
     ] ],
     [ "hotpot.plugins.qm.gaussian.gauss.OptionPath", "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1OptionPath.html", null ],
     [ "hotpot.plugins.qm.gaussian.gauss.Options", "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1Options.html", null ],

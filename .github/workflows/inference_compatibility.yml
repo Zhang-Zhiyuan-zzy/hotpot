@@ -6,6 +6,7 @@ on:
       - "hotpot/cheminfo/AImodels/artifacts/**"
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
+      - "hotpot/cheminfo/calculator/**"
       - "hotpot/cheminfo/search/**"
       - "hotpot/cheminfo/convert.py"
       - "hotpot/cheminfo/__init__.py"
@@ -20,8 +21,9 @@ on:
       - "hotpot/cheminfo/rdconvert.py"
       - "hotpot/cheminfo/obconvert.py"
       - "hotpot/cheminfo/ob2chem.py"
-      - "hotpot/cheminfo/calculator.py"
-      - "hotpot/calculator.py"
+      - "hotpot/pipeline/**"
+      - "hotpot/plugins/_harness/**"
+      - "hotpot/plugins/xtb/**"
       - "hotpot/__init__.py"
       - "hotpot/__main__.py"
       - "hotpot/_cli.py"
@@ -30,6 +32,9 @@ on:
       - "tests/mca/**"
       - "tests/cbond/**"
       - "tests/test_cheminfo/test_mca_calculator.py"
+      - "tests/test_cheminfo/calculator/**"
+      - "tests/test_cheminfo/test_calculator.py"
+      - "tests/test_cheminfo/test_charge_calculators.py"
       - "tests/test_cheminfo/test_molecule_conversion.py"
       - "tests/test_cheminfo/test_ob2chem_compat.py"
       - "tests/test_cheminfo/test_bond_metadata.py"
@@ -42,6 +47,12 @@ on:
       - "tests/test_cheminfo/test_complex*.py"
       - "tests/test_cheminfo/test_topology_determinism.py"
       - "tests/test_works/**"
+      - "tests/test_cli/test_run_cli.py"
+      - "tests/test_cli/test_xtb_cli.py"
+      - "tests/test_main/test_command_loading.py"
+      - "tests/test_pipeline/**"
+      - "tests/test_plugin/test_harness/**"
+      - "tests/test_plugin/test_xtb/**"
       - "tests/test_cheminfo/test_search*.py"
       - "tests/test_smart_parser.py"
       - "tests/smarts_conformance/**"
@@ -57,6 +68,7 @@ on:
       - "hotpot/cheminfo/AImodels/artifacts/**"
       - "hotpot/cheminfo/AImodels/mca/**"
       - "hotpot/cheminfo/AImodels/cbond/**"
+      - "hotpot/cheminfo/calculator/**"
       - "hotpot/cheminfo/search/**"
       - "hotpot/cheminfo/convert.py"
       - "hotpot/cheminfo/__init__.py"
@@ -71,8 +83,9 @@ on:
       - "hotpot/cheminfo/rdconvert.py"
       - "hotpot/cheminfo/obconvert.py"
       - "hotpot/cheminfo/ob2chem.py"
-      - "hotpot/cheminfo/calculator.py"
-      - "hotpot/calculator.py"
+      - "hotpot/pipeline/**"
+      - "hotpot/plugins/_harness/**"
+      - "hotpot/plugins/xtb/**"
       - "hotpot/__init__.py"
       - "hotpot/__main__.py"
       - "hotpot/_cli.py"
@@ -81,6 +94,9 @@ on:
       - "tests/mca/**"
       - "tests/cbond/**"
       - "tests/test_cheminfo/test_mca_calculator.py"
+      - "tests/test_cheminfo/calculator/**"
+      - "tests/test_cheminfo/test_calculator.py"
+      - "tests/test_cheminfo/test_charge_calculators.py"
       - "tests/test_cheminfo/test_molecule_conversion.py"
       - "tests/test_cheminfo/test_ob2chem_compat.py"
       - "tests/test_cheminfo/test_bond_metadata.py"
@@ -93,6 +109,12 @@ on:
       - "tests/test_cheminfo/test_complex*.py"
       - "tests/test_cheminfo/test_topology_determinism.py"
       - "tests/test_works/**"
+      - "tests/test_cli/test_run_cli.py"
+      - "tests/test_cli/test_xtb_cli.py"
+      - "tests/test_main/test_command_loading.py"
+      - "tests/test_pipeline/**"
+      - "tests/test_plugin/test_harness/**"
+      - "tests/test_plugin/test_xtb/**"
       - "tests/test_cheminfo/test_search*.py"
       - "tests/test_smart_parser.py"
       - "tests/smarts_conformance/**"
@@ -186,15 +208,24 @@ jobs:
 
           expected = {
               "hotpot/_cli.py",
+              "hotpot/pipeline/cli.py",
+              "hotpot/pipeline/cli_doc.md",
               "hotpot/cheminfo/forcefields/cli.py",
               "hotpot/cheminfo/forcefields/cli_doc.md",
               "hotpot/cheminfo/forcefields/__init__.py",
               "hotpot/cheminfo/forcefields/ff.py",
+              "hotpot/plugins/xtb/cli.py",
+              "hotpot/plugins/xtb/cli_doc.md",
+              "hotpot/plugins/xtb/stage.py",
+              "hotpot/plugins/xtb/workflow.py",
           }
           obsolete = {
               "hotpot/cheminfo/forcefields/ff39.py",
               "hotpot/cheminfo/forcefields/utils.py",
               "hotpot/cheminfo/forcefields/utils39.py",
+              "hotpot/cheminfo/_io/xtb.py",
+              "hotpot/plugins/xtb/core.py",
+              "hotpot/plugins/xtb/xtb_doc.md",
           }
           (sdist,) = Path("dist").glob("*.tar.gz")
           with tarfile.open(sdist) as archive:
@@ -231,6 +262,16 @@ jobs:
           assert forcefield_package.joinpath("ff.py").is_file()
           for obsolete_module in ("ff39.py", "utils.py", "utils39.py"):
               assert not forcefield_package.joinpath(obsolete_module).is_file()
+
+          xtb_package = files("hotpot.plugins.xtb")
+          assert xtb_package.joinpath("cli_doc.md").is_file()
+          for obsolete_module in ("core.py", "xtb_doc.md", ".cache.json"):
+              assert not xtb_package.joinpath(obsolete_module).is_file()
+
+          pipeline_documentation = files("hotpot.pipeline").joinpath(
+              "cli_doc.md"
+          ).read_text(encoding="utf-8")
+          assert pipeline_documentation.startswith("# `hotpot run`")
 
           geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
               "README.md"

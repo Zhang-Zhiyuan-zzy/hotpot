@@ -9,7 +9,6 @@ var NAVTREEINDEX4 =
 "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1Options.html#a6045ae8590d87e431f6671a3e50115b4":[1,0,0,3,6,0,1,3,0],
 "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1Options.html#aebd391c9b1ea5cf67054f3a619d0d392":[0,0,0,5,7,0,1,3,1],
 "classhotpot_1_1plugins_1_1qm_1_1gaussian_1_1gauss_1_1Options.html#aebd391c9b1ea5cf67054f3a619d0d392":[1,0,0,3,6,0,1,3,1],
-"classhotpot_1_1plugins_1_1xtb_1_1core_1_1XtbCalculator.html":[1,0,0,3,7,0,0],
 "classhotpot_1_1utils_1_1types_1_1ModelLike.html":[0,0,0,6,2,0],
 "classhotpot_1_1utils_1_1types_1_1ModelLike.html":[1,0,0,4,0,0],
 "functions.html":[1,3,0],

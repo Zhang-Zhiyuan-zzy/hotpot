@@ -182,20 +182,14 @@ The new xTB node also requires complete explicit-atom finite 3D input. Inputs
 accepted by the old prototype despite missing a valid xTB geometry can now be
 rejected earlier. This is a correctness change, not a compatibility fallback.
 
-## 5. Legacy xTB plugin breakpoints
+## 5. Legacy xTB plugin removal
 
-The repository still contains consumers of `XtbCalculator` and
-`xtb_batch_run`:
-
-- `examples/BayesianDesign/data_process.py`;
-- `tests/test_plugin/test_xtb.py`;
-- generated HTML API files and `plugins/xtb/xtb_doc.md`.
-
-The new typed operations do not preserve those signatures. Before deleting the
-prototype, the example is migrated or explicitly retired, tests are replaced,
-and the tracked HTML documentation is regenerated so the legacy class entries
-disappear. No wrapper that routes the old broad API through the new runner is
-planned.
+The legacy `XtbCalculator` and `xtb_batch_run` prototype, its mutable package
+cache, empty writer hook, tests and documentation were removed after the typed
+runner, standalone stream and controlled-pipeline parity gates passed. The
+export-only Bayesian-design helper and its old artifact-layout filter were
+retired with the prototype. No wrapper routes the old broad API through the new
+runner.
 
 Executable resolution changes from mutable package `.cache.json` and legacy
 paths to explicit argument, environment variable, then PATH. Existing local

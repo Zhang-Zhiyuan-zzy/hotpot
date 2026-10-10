@@ -16,6 +16,9 @@ test_targets=(
   tests/model_artifacts
   tests/mca
   tests/cbond
+  tests/test_cheminfo/calculator
+  tests/test_cheminfo/test_calculator.py
+  tests/test_cheminfo/test_charge_calculators.py
   tests/test_cheminfo/test_mca_calculator.py
   tests/test_cheminfo/test_molecule_conversion.py
   tests/test_cheminfo/test_ob2chem_compat.py
@@ -51,6 +54,12 @@ test_targets=(
   tests/benchmarks/coordination_complexes/test_support.py
   tests/benchmarks/coordination_complexes/test_backend_comparison.py
   tests/test_works/test_convert.py
+  tests/test_cli/test_run_cli.py
+  tests/test_cli/test_xtb_cli.py
+  tests/test_main/test_command_loading.py
+  tests/test_pipeline
+  tests/test_plugin/test_harness
+  tests/test_plugin/test_xtb
 )
 
 set +e

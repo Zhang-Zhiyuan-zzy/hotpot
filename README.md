@@ -79,7 +79,8 @@ No.  Atom  MCA(kJ/mol)  is_Nuc_site
 ```
 
 MCA is reported for every heavy atom. `is_Nuc_site` marks the sites selected
-by the supported nucleophilic-site definition.
+by the supported nucleophilic-site definition. Printed MCA values can differ
+by 0.25 kJ/mol at numerical rounding boundaries across supported platforms.
 
 ### Coordination-bond construction
 

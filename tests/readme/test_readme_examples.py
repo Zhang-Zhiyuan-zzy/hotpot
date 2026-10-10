@@ -59,18 +59,26 @@ def test_readme_pipeline_documentation_surface() -> None:
 
 def test_readme_mca_cli_output() -> None:
     output = _run_hotpot("mca", "c1ccccc1CN", "--device", "cpu").stdout.strip()
-
-    assert output == (
-        "No.  Atom  MCA(kJ/mol)  is_Nuc_site\n"
-        "1    C     319.00       False\n"
-        "2    C     304.00       False\n"
-        "3    C     329.25       False\n"
-        "4    C     303.50       False\n"
-        "5    C     318.75       False\n"
-        "6    C     324.00       False\n"
-        "7    C     314.50       False\n"
-        "8    N     489.50       True"
+    lines = output.splitlines()
+    expected = (
+        (1, "C", 319.00, False),
+        (2, "C", 304.00, False),
+        (3, "C", 329.25, False),
+        (4, "C", 303.50, False),
+        (5, "C", 318.75, False),
+        (6, "C", 324.00, False),
+        (7, "C", 314.50, False),
+        (8, "N", 489.50, True),
     )
+
+    assert lines[0] == "No.  Atom  MCA(kJ/mol)  is_Nuc_site"
+    assert len(lines[1:]) == len(expected)
+    for line, (number, element, mca_kj_mol, is_site) in zip(lines[1:], expected):
+        fields = line.split()
+        assert len(fields) == 4
+        assert fields[:2] == [str(number), element]
+        assert abs(float(fields[2]) - mca_kj_mol) <= 0.25
+        assert fields[3] == str(is_site)
 
 
 def test_readme_cbond_cli_output() -> None:

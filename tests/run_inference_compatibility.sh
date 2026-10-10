@@ -40,6 +40,7 @@ assert actual == expected
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \
             python -m pytest -q -p no:cacheprovider \
+            --exclude-warning-annotations \
             --import-mode=importlib \
             tests/mca tests/cbond \
             tests/test_cheminfo/test_mca_calculator.py \
@@ -80,6 +81,7 @@ assert actual == expected
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \
             python -m pytest -q -p no:cacheprovider \
+            --exclude-warning-annotations \
             --import-mode=importlib \
             -m smarts_core tests/smarts_conformance
     )

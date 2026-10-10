@@ -107,6 +107,7 @@ on:
 
 jobs:
   cpu-inference:
+    needs: package-smoke
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

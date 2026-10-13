@@ -204,7 +204,7 @@ class Molecule:
         return self._crystal
 
     def create_crystal(self, a, b, c, alpha, beta, gamma):
-        self._crystal = cryst.Crystal(a, b, c, alpha, beta, gamma)
+        self._crystal = cryst.Crystal(a, b, c, alpha, beta, gamma, mol=self)
         return self._crystal
 
     def setattr(self, **attrs):

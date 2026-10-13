@@ -1,0 +1,69 @@
+{
+  "schema_version": "hotpot-ds-submission/current",
+  "dataset": {
+    "name": "example_dataset",
+    "version": "1.0",
+    "title": "Example dataset",
+    "description": "One immutable release prepared for Hotpot DS.",
+    "license": "CC-BY-4.0",
+    "access_policy": "open",
+    "provenance": {
+      "created_by": "replace with the responsible person or workflow"
+    },
+    "quality_level": "B0_collection",
+    "core_labels": [
+      "oxidation_state"
+    ],
+    "core_info": [
+      "structures"
+    ],
+    "quality": {}
+  },
+  "property_types": {},
+  "sources": {
+    "paper-1": {
+      "source_type": "publication",
+      "citation": "Replace with a complete citation.",
+      "doi": null,
+      "license": "CC-BY-4.0",
+      "access_policy": "open",
+      "metadata": {}
+    }
+  },
+  "records": [
+    {
+      "id": "AAAKSI",
+      "identifiers": {
+        "CSD": "AAAKSI"
+      },
+      "metadata": {},
+      "structures": [
+        {
+          "role": "reported_crystal_structure",
+          "primary": true,
+          "formal_charge": 0,
+          "representations": {
+            "mol2": {
+              "path": "structures/AAAKSI.mol2"
+            }
+          }
+        }
+      ],
+      "labels": {
+        "oxidation_state": {
+          "value": 2,
+          "evidence_level": "E2_explicit_reported",
+          "evidence": [
+            {
+              "source": "paper-1",
+              "evidence_type": "reported_value",
+              "locator": "page and table",
+              "quote": "Replace with the supporting text.",
+              "role": "supports"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

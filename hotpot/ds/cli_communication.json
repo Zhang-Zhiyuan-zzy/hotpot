@@ -1,0 +1,100 @@
+{
+  "envelope_keys": [
+    "key",
+    "channel",
+    "protocol_sha256",
+    "payload"
+  ],
+  "contracts": {
+    "hotpot.ds.data_collection": {
+      "bindings": {
+        "dataset": {
+          "path": "payload.dataset",
+          "properties": {
+            "database": "string",
+            "name": "string",
+            "release_id": "string",
+            "version": "string",
+            "version_serial": "string"
+          },
+          "type": "object"
+        },
+        "selectors": {
+          "items_type": "string",
+          "path": "payload.items[].id",
+          "type": "array"
+        }
+      }
+    }
+  },
+  "producers": {
+    "hotpot.ds.certify": {
+      "default": null
+    },
+    "hotpot.ds.detail": {
+      "default": null
+    },
+    "hotpot.ds.detail.audit": {
+      "default": null
+    },
+    "hotpot.ds.detail.query.claims": {
+      "default": null
+    },
+    "hotpot.ds.detail.status": {
+      "default": null
+    },
+    "hotpot.ds.export": {
+      "default": null
+    },
+    "hotpot.ds.get": {
+      "default": "hotpot.ds.data_collection",
+      "structure": "hotpot.ds.data_collection"
+    },
+    "hotpot.ds.info": {
+      "default": null
+    },
+    "hotpot.ds.ingest": {
+      "default": null
+    },
+    "hotpot.ds.labels": {
+      "default": null
+    },
+    "hotpot.ds.list": {
+      "default": null
+    },
+    "hotpot.ds.search": {
+      "data": "hotpot.ds.data_collection",
+      "dataset": null,
+      "smarts": "hotpot.ds.data_collection"
+    },
+    "hotpot.ds.subset": {
+      "default": "hotpot.ds.data_collection"
+    }
+  },
+  "consumers": {
+    "hotpot.ds.export": {
+      "accepts": {
+        "hotpot.ds.data_collection": {
+          "cardinality": {
+            "field": "selectors",
+            "maximum": null,
+            "minimum": 1
+          },
+          "duplicates": "reject"
+        }
+      }
+    },
+    "hotpot.ds.get": {
+      "accepts": {
+        "hotpot.ds.data_collection": {
+          "cardinality": {
+            "field": "selectors",
+            "maximum": null,
+            "minimum": 0
+          },
+          "duplicates": "preserve"
+        }
+      }
+    }
+  }
+}

@@ -20,7 +20,7 @@ class Crystal:
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-        self.mol = None
+        self.mol = mol
         self._obcell = None
 
     @staticmethod

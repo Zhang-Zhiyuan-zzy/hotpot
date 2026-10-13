@@ -59,6 +59,10 @@ _COMMANDS = {
         "Run a controlled sequence of molecular calculation stages",
         "hotpot.pipeline.cli",
     ),
+    "ds": _CommandSpec(
+        "Assess, store, and query governed scientific datasets",
+        "hotpot.ds.cli",
+    ),
 }
 
 
@@ -109,7 +113,7 @@ def build_parser(
         action="store_true",
         help="run command in background; use together with '&' or nohup",
     )
-    parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument("-v", "--version", action="store_true", dest="show_version")
 
     works = parser.add_subparsers(title="works", dest="works")
     for command, spec in _COMMANDS.items():
@@ -147,7 +151,7 @@ def _run_convert(args: argparse.Namespace) -> int:
 
 def run(args: argparse.Namespace) -> int:
     """Run one parsed Hotpot command."""
-    if args.version:
+    if args.show_version:
         show_version()
         return 0
     if args.works == "convert":

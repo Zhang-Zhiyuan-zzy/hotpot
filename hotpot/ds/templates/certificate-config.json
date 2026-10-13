@@ -1,0 +1,21 @@
+{
+  "schema_version": "hotpot-ds-certificate-config/current",
+  "generic": {
+    "min_records": 1,
+    "require_structure_or_label": true
+  },
+  "datasets": {
+    "example_dataset": {
+      "core_labels": [
+        "oxidation_state"
+      ],
+      "core_info": [
+        "structures",
+        "identifiers.CSD"
+      ],
+      "minimum_evidence": {
+        "oxidation_state": "E2_explicit_reported"
+      }
+    }
+  }
+}

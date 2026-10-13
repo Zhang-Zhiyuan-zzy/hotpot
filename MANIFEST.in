@@ -1,8 +1,13 @@
 include LICENSE
 include README.md
 include hotpot/__version__.py
+recursive-include hotpot/ds *.md
+recursive-include hotpot/ds *.json
+include hotpot/dataset/README.md
+recursive-include hotpot/dataset/docs *.md
+recursive-include hotpot/dataset/schemas *.json *.sql
+recursive-include hotpot/dataset/manifests *.json
 graft hotpot/cheminfo/ChemData
-graft hotpot/dataset/ChemData
 include hotpot/cheminfo/AImodels/cbond/onnx/manifest.json
 include hotpot/cheminfo/AImodels/cbond/onnx/README.md
 include hotpot/cheminfo/AImodels/cbond/cli_doc.md

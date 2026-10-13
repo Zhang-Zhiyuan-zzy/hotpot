@@ -1,0 +1,21 @@
+{
+  "layout": "hotpot-dataset-local/current",
+  "code_root": "hotpot/ds",
+  "resource_root": "hotpot/dataset",
+  "tracked": [
+    "hotpot/dataset/README.md",
+    "hotpot/dataset/docs",
+    "hotpot/dataset/schemas",
+    "hotpot/dataset/manifests"
+  ],
+  "ignored_payload_root": "hotpot/dataset/data",
+  "payload_directories": {
+    "store": "hotpot/dataset/data/store",
+    "sources": "hotpot/dataset/data/sources",
+    "structures": "hotpot/dataset/data/structures",
+    "audits": "hotpot/dataset/data/audits"
+  },
+  "default_store": "hotpot/dataset/data/store/datasets.sqlite3",
+  "version_policy": "The checkout supports only its current schema; Git records implementation history.",
+  "benchmark_policy": "Benchmark readiness is a quality designation or subset, not a storage namespace."
+}

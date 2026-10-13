@@ -10,7 +10,7 @@ import torch
 from torch_geometric.data import Data
 
 from hotpot.cheminfo.core import Molecule
-from hotpot.dataset import tmqm
+from hotpot.ds.providers import tmqm
 from ._base import BaseDataset
 from .utils import *
 

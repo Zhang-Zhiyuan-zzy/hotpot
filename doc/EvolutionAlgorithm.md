@@ -60,12 +60,12 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from xgboost import XGBRegressor
 
 from sklearn.model_selection import cross_val_score, KFold
+import pandas as pd
 
-from hotpot.dataset import load_dataset
 from hotpot.plugins.opti.ev import Earth, Individual
 
 # define fitness func
-data = load_dataset('logβ1')
+data = pd.read_csv('training.csv')
 X, y = data.iloc[:, :-1].values, data.iloc[:, -1].values
 
 def fitness_function(individual: Individual) -> float:

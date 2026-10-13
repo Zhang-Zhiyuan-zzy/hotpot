@@ -14,7 +14,7 @@ This opt-in benchmark measures an end-to-end chemical workflow:
 8. optionally render every case and an experiment contact sheet with PyMOL.
 
 The built-in `extractants-eu-187` suite reads
-`molecules/extractant/extractants.smi`. The runner verifies that this corpus
+`hotpot/dataset/data/sources/formal-charge/structures/extractants.smi`. The runner verifies that this corpus
 contains exactly 187 records and stores its SHA-256 digest in `manifest.json`.
 The manifest also records the Git commit and whether the worktree was dirty.
 It is deliberately not a default pytest test.
@@ -139,27 +139,27 @@ Run each workflow separately with 16 workers:
 $ REFERENCE=movie/benchmarks/extractants_am_187_auto
 $ OUTPUT=movie/benchmarks/extractants_am_187_five_workflows
 $ python -m tests.benchmarks.coordination_complexes.rdkit_benchmark \
-  --input molecules/extractant/extractants.smi \
+  --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
   --reference "$REFERENCE" \
   --output "$OUTPUT/rdkit" --workers 16
 
 $ python -m tests.benchmarks.coordination_complexes.openbabel_benchmark \
-  --input molecules/extractant/extractants.smi \
+  --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
   --cohort "$OUTPUT/rdkit/canonical_cases.json" \
   --output "$OUTPUT/openbabel" --workers 16
 
 $ python -m tests.benchmarks.coordination_complexes.obwrappers_benchmark \
-  --input molecules/extractant/extractants.smi \
+  --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
   --cohort "$OUTPUT/rdkit/canonical_cases.json" \
   --output "$OUTPUT/obwrappers" --workers 16
 
 $ python -m tests.benchmarks.coordination_complexes.optimize_complex_benchmark \
-  --input molecules/extractant/extractants.smi \
+  --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
   --cohort "$OUTPUT/rdkit/canonical_cases.json" \
   --output "$OUTPUT/hotpot_optimize_complex" --workers 16
 
 $ python -m tests.benchmarks.coordination_complexes.auto_optimize_benchmark \
-  --input molecules/extractant/extractants.smi \
+  --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
   --cohort "$OUTPUT/rdkit/canonical_cases.json" \
   --output "$OUTPUT/hotpot_auto" --workers 16
 ```
@@ -214,7 +214,7 @@ The following example runs the 187-ligand corpus with at most 64 xTB threads
 $ SOURCE=movie/benchmarks/extractants_eu_187_five_workflows/hotpot_auto
 $ python -m tests.benchmarks.coordination_complexes.xtb_benchmark \
     --official \
-    --input molecules/extractant/extractants.smi \
+    --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
     --cohort "$SOURCE/canonical_cases.json" \
     --source "$SOURCE" \
     --output movie/benchmarks/extractants_eu_187_xtb \

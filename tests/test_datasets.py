@@ -13,7 +13,7 @@ import unittest as ut
 
 from torch_geometric.loader import DataLoader
 
-from hotpot.dataset.tmqm import TmQmDataset
+from hotpot.ds.providers.tmqm import TmQmDataset
 from hotpot.plugins.complex_model import data as pyg_data
 from tests import test_dir
 test_out_dir = osp.join(test_dir, 'outdir')

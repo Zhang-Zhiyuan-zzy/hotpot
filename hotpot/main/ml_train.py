@@ -358,7 +358,6 @@ def _example_of_selective_factors(work_dir, args):
 
 
 if __name__ == '__main__':
-    # os.system('python ../ ml_train ../dataset/ChemData/logβ1.xlsx --example logK_LnAn')
     # _example_of_stability_constant('/home/zz1/wf', 'aa')
     _train_LnAn_logK_by_linear_lightgbm()
     # _coef_stability_analysis()

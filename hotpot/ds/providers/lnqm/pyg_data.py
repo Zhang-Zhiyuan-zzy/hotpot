@@ -37,7 +37,7 @@ class LnQM_Dataset(InMemoryDataset):
                 for prop, val in np_arrays.items():
                     if val.dtype == np.uint64:
                         np_arrays[prop] = val.astype(np.int64)
-                # uid is of dtype string, so we got to handle it seperately
+                # uid is of dtype string, so we handle it separately
                 if key == "uid":
                     uids = [s.decode("utf-8") for s in np_arrays["data"].tolist()]
                     data[key] = uids

@@ -19,7 +19,7 @@ From the repository root:
 $ python -m tests.benchmarks.obwrapper_convergence \
     --source movie/benchmarks/extractants_eu_187_four_workflows_m05_20261008/obwrappers \
     --cohort movie/benchmarks/extractants_eu_187_native_backends_traces_m05_20261008/canonical_cases.json \
-    --input molecules/extractant/extractants.smi \
+    --input hotpot/dataset/data/sources/formal-charge/structures/extractants.smi \
     --output movie/benchmarks/obwrapper_convergence_levels_20261008 \
     --workers 16
 ```

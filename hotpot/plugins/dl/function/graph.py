@@ -14,7 +14,6 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_smiles
 
 import hotpot as hp
-from hotpot.dataset import load_dataset
 from hotpot.cheminfo.graph import calc_spectrum
 
 from . import base
@@ -197,13 +196,3 @@ def tensor_sort(inputs: torch.Tensor, key: Callable = None, dim: int = None, des
     sort_indices = torch.argsort(temp, dim=dim, descending=descending)
 
     return torch.gather(inputs, -1, sort_indices)
-
-
-if __name__ == '__main__':
-    smiles_loader = load_dataset('SMILES')
-    # for smi in smiles_loader:
-    #     mol = next(hp.Molecule.read(smi, 'smi'))
-    #
-    #     ChemData = data_with_spectrum(smi)
-    #
-    #     print(ChemData['spectrum'].shape)

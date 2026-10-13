@@ -15,9 +15,6 @@ from sklearn.manifold import TSNE, MDS
 import matplotlib.pyplot as plt
 
 
-from hotpot.dataset import load_dataset
-
-
 def scatter_discriminant_analysis(
         X: np.ndarray,
         y: np.ndarray,
@@ -66,15 +63,4 @@ def plot_scatter_discriminant_lines(X, y, lines, dim_method=TSNE(n_components=2)
         ax.scatter(X[:, 0], X[:, 1], c=y)
         for line in lines:
             y_lin = np.dot(line[0], X_lin) + line[1]
-
-
-if __name__ == "__main__":
-    data = load_dataset('logβ1')
-
-    X, y = data[['dG', 'logK']].values, data['SMR_VSA1'].values
-
-    lin = scatter_discriminant_analysis(X, y)
-
-    # clf = LinearDiscriminantAnalysis()
-    # clf.fit(X, y)
 

@@ -95,12 +95,12 @@ SMOKE_SETTINGS = BenchmarkSettings(
 BUILTIN_SUITES = {
     "extractants-eu-187": BenchmarkSuite(
         name="extractants-eu-187",
-        input_path=REPOSITORY_ROOT / "molecules/extractant/extractants.smi",
+        input_path=REPOSITORY_ROOT / "hotpot/dataset/data/sources/formal-charge/structures/extractants.smi",
         expected_count=187,
     ),
     "extractants-am-187": BenchmarkSuite(
         name="extractants-am-187",
-        input_path=REPOSITORY_ROOT / "molecules/extractant/extractants.smi",
+        input_path=REPOSITORY_ROOT / "hotpot/dataset/data/sources/formal-charge/structures/extractants.smi",
         expected_count=187,
         metal="Am",
         title="Am coordination complexes from extractant ligands",

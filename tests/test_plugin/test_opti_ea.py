@@ -16,7 +16,7 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from xgboost import XGBRegressor
 
-from hotpot.dataset import load_dataset
+from hotpot.ds._paths import DATA_ROOT
 import hotpot.plugins.opti.ev.core as ev
 
 logging.basicConfig(level=logging.INFO)
@@ -24,11 +24,17 @@ logging.basicConfig(level=logging.INFO)
 
 class TestOptiEa(ut.TestCase):
 
+    def _filled_electric(self):
+        path = DATA_ROOT / "sources" / "chemdata" / "filled_electric.xlsx"
+        if not path.is_file() or path.read_bytes().startswith(b"version https://git-lfs"):
+            self.skipTest("local ChemData payload is not installed")
+        return pd.read_excel(path)
+
     def test_sklearn_optimizer(self):
         print(sys.platform)
         print(os.getcwd())
 
-        data = load_dataset("filled_electric")
+        data = self._filled_electric()
 
         data = data.drop(
             ['Volume_ratio_Ar', '_Dielectric_constant_imag', '_Dielectric_loss_Angle_tangent_value'],
@@ -59,7 +65,7 @@ class TestOptiEa(ut.TestCase):
         optimizer.optimize()
 
     def test_imp(self):
-        data = load_dataset("filled_electric")
+        data = self._filled_electric()
 
         data = data.drop(
             ['Volume_ratio_Ar', '_Dielectric_constant_imag', '_Dielectric_loss_Angle_tangent_value'],
@@ -73,7 +79,9 @@ class TestOptiEa(ut.TestCase):
         print(estimator.feature_importances_)
 
     def test_machine_learning_ea_with_feature_engineering(self):
-        data_path = Path(__file__).parents[2].joinpath('hotpot/dataset/ChemData/examples/logβ.xlsx')
+        data_path = DATA_ROOT / "sources" / "chemdata" / "examples" / "logβ.xlsx"
+        if not data_path.is_file():
+            self.skipTest("local ChemData example payload is not installed")
 
         with pd.ExcelFile(data_path) as excel:
             data = excel.parse(sheet_name='ChemData', index_col=0)

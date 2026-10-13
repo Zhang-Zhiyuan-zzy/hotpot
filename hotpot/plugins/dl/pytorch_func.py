@@ -18,9 +18,7 @@ import torch.nn.functional as F
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Batch
 
-from hotpot.dataset import load_dataset
 from hotpot.plugins.dl.generate.vae import VAE, GraphEncoder, GraphDecoder, graph_vae_loss
-from hotpot.dataset.graphs.spectrum import SpectrumDataset
 # from hotpot.plugins.dl.function.graph import graph_spectrum_loss
 
 
@@ -218,33 +216,3 @@ def to_valid(target, out):
         'Atom Error median': torch.median(torch.abs(pred_atom_num - true_atom_num)).item(),
         "KL divergence": torch.mean(-0.5 * torch.sum(1 + logvar - mu ** 2 - logvar.exp(), dim = 1), dim = 0)
     }
-
-
-if __name__ == "__main__":
-    latent_size = 256
-
-    loader = DataLoader(SpectrumDataset(), batch_size=256)
-    model = VAE(
-        encoder=GraphEncoder(
-            in_channels=9,
-            gnn_pool_ratio=0.8,
-            latent_size=latent_size
-        ),
-        decoder=GraphDecoder(
-            latent_size=latent_size
-        )
-    )
-    model.decoder.pred_node_num.bias = torch.nn.Parameter(torch.tensor([43.]))
-
-    train(
-        model=model,
-        dataloader=loader,
-        loss_fn=graph_vae_loss,
-        opti_cls=Adam,
-        learning_rate=1e-3,
-        epoch_num=10,
-        device=torch.device('cuda'),
-        loss_organizer=loss_organizer,
-        valid_func=to_valid,
-        valid_per_batch=10
-    )

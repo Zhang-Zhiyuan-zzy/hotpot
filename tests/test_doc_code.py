@@ -19,13 +19,12 @@ class TestDocCode(ut.TestCase):
         from xgboost import XGBRegressor
 
         from sklearn.model_selection import cross_val_score, KFold
+        from sklearn.datasets import make_regression
 
-        from hotpot.dataset import load_dataset
         from hotpot.plugins.opti.ev import Earth, Individual
 
         # define fitness func
-        data = load_dataset('logβ1')
-        X, y = data.iloc[:, :-1].values, data.iloc[:, -1].values
+        X, y = make_regression(n_samples=60, n_features=4, random_state=0)
 
         def fitness_function(individual: Individual) -> float:
             algor = models[individual.species_name]

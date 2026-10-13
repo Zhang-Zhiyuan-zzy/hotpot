@@ -15,19 +15,21 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 from hotpot.plugins.ml.wf import MachineLearning_
-from hotpot.dataset import load_dataset
+from hotpot.ds._paths import DATA_ROOT
 
 logging.basicConfig(level=logging.DEBUG)
 class TestWf(ut.TestCase):
     def test_ml_(self):
         from hotpot.plugins.ml.wf import MachineLearning_
-        from hotpot.dataset import load_dataset
 
         work_dir = Path(__file__).parents[1].joinpath('outdir', 'wf')
         if work_dir.exists():
             shutil.rmtree(work_dir)
 
-        data = load_dataset('logβ1')
+        data_path = DATA_ROOT / "sources" / "chemdata" / "logβ1.xlsx"
+        if not data_path.is_file() or data_path.read_bytes().startswith(b"version https://git-lfs"):
+            self.skipTest("local ChemData payload is not installed")
+        data = pd.read_excel(data_path)
 
         wf = MachineLearning_(
             work_dir=work_dir,
@@ -42,7 +44,9 @@ class TestWf(ut.TestCase):
         wf.train_surrogate_tree()
 
     def test_wf_skip_some_feature_engineering_procedures(self):
-        data_path = Path(__file__).parents[2].joinpath('hotpot/dataset/ChemData/examples/logβ.xlsx')
+        data_path = DATA_ROOT / "sources" / "chemdata" / "examples" / "logβ.xlsx"
+        if not data_path.is_file():
+            self.skipTest("local ChemData example payload is not installed")
 
         with pd.ExcelFile(data_path) as excel:
             data = excel.parse(sheet_name='ChemData', index_col=0)

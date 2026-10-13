@@ -1,0 +1,51 @@
+{
+  "schema": "hotpot-dataset-inventory/current",
+  "generated_on": "2026-10-13",
+  "payload_root": "hotpot/dataset/data",
+  "git_tracked": false,
+  "store": {
+    "path": "store/datasets.sqlite3",
+    "sha256": "076096dead161b0689764d275ddd141cdf59e1fe3167881b883877dc8e22b72b",
+    "size_bytes": 1136664576,
+    "schema": "1",
+    "record_standard": "hotpot-dataset/current",
+    "integrity_check": "ok",
+    "counts": {
+      "datasets": 3,
+      "dataset_releases": 3,
+      "subsets": 10,
+      "records": 252665,
+      "entities": 594631,
+      "entity_relations": 28,
+      "assets": 2280,
+      "structures": 2280,
+      "computed_descriptors": 16310,
+      "observations": 201501,
+      "claims": 69596,
+      "evidence_items": 277072
+    }
+  },
+  "shared_structures": {
+    "object_count": 2280,
+    "object_bytes": 7092342,
+    "index_sha256": "df41f588200f4cd7dd096696350cae7525dd4f7761aa5c541743d99fc8908362",
+    "record_link_sha256": "edd1a8c03257fa00e4945405c0d250232229cbfa6184a1f6a6a5275437f4aaa0"
+  },
+  "source_digests": {
+    "oxidation/gold/sse17/labels.csv": "4b857d0ee4954cc879c4a7cf709b1a91141b0edfccd2d17afc4a052830fcd9c7",
+    "oxidation/gold/sco95/labels.csv": "2afa127f60642f9d39435dec645ad3ec6fa5055373ade6b6892fa6073604383b",
+    "oxidation/silver/tm_oxidation/labels.csv": "f178ddbabe3e17381804233feafeec46960432a6c36a657d3fcb191c0e14012a",
+    "spin/gold/sse17/labels.csv": "2fab9edde07f2348d43349423940d91d9335666ccbd8570f7529df77363d6bdf",
+    "spin/gold/sco95/labels.csv": "d54d8eb6ded7c54dfe6af051441217e7cd617e0a94414edb8e627b3f0341b221",
+    "spin/silver/tm_gsspin/labels.csv": "08bf413e3c7fc694b801f3076d14c517a50f8fd6e77a39d9de78cf3dbef714c2",
+    "csd-electronic-state/electronic_states.sqlite3": "ae06f4bcb3c241e7233d7644fa1dd489afa740d996a1a745e40fced73229612f",
+    "formal-charge/extractants.csv": "82fd6ca3f4b6b2c9825ca956f6821f9766135029f97556116f21ce45609f7190",
+    "formal-charge/pair-charges.csv": "a7898c4944227fd0c8bbd8aaf944d669bcfdef5975770bc8ad07eb14431e5a07",
+    "formal-charge/polar-H-variant-charges.csv": "55c466b8b194f7d72b0672efd50a58b9e2fe0709a3946fbc01e1bcdf1605ef00",
+    "formal-charge/structures/extractants.smi": "e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7",
+    "formal-charge/structures/Eu-pair.smi": "20bf1b5e1f0a69e3c7f3ced90d8c97e7dbbac715711414f40c8b4058ecad925f",
+    "formal-charge/structures/Am-pair.smi": "fffab41e04b34fed03f1cd2daea361b9d0bc842798b3eaf41c0b86e1b93de90f",
+    "audits/csd-electronic-state-quality.json": "7b0a280620253b822513828ee18273ae00a038d13443e62028723d52457eff37",
+    "audits/evidence_regrade_audit.json": "dac1bc2a0c139274c84390720422ae3567714fae6f73067e48e11eb6ac07d9af"
+  }
+}

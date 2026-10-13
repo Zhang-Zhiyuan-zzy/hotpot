@@ -1,25 +1,13 @@
-"""
-python v3.9.0
-@Project: hotpot
-@File   : __init__.py
-@Auther : Zhiyuan Zhang
-@Data   : 2024/12/24
-@Time   : 15:33
-Notes: This script manages TmQm dataset processing and provides utilities to parse and generate molecular data 
-from various file formats (XYZ, CSV, Q, BO). It includes classes to handle downloading, file setup, property extraction,  
-and molecule creation for further computational tasks.
-"""
+"""Internal source reader for the raw tmQM distribution."""
 import os
-from os import path
-from os.path import join as opj
 import multiprocessing as mp
 
 from . import download
 from hotpot import Molecule
+from hotpot.ds._paths import DATA_ROOT
 import csv
 
-_module_root = path.dirname(__file__)
-_data_dir = opj(_module_root, 'data')
+_data_dir = DATA_ROOT / "sources" / "tmqm"
 
 class DataGenerator:
     """
@@ -366,14 +354,14 @@ class TmQmDataset:
     def __init__(self, nproc=None):
         """"""
         # 如果数据目录不存在，则创建目录并下载文件
-        if not path.exists(_data_dir):
-            os.mkdir(_data_dir)
+        if not _data_dir.exists():
+            _data_dir.mkdir(parents=True)
             download.download_files()
         else:
             list_data = os.listdir(_data_dir)
             for ext, url in download.urls.items():
                 if f'tmQm.{ext}' not in list_data:
-                    file_path = opj(_data_dir, f'tmQm.{ext}.gz')
+                    file_path = _data_dir / f'tmQm.{ext}.gz'
                     download.download_file(file_path, url)
                     download.uncompress_all_gz(file_path)
                     os.remove(file_path)  # 删除压缩包文件

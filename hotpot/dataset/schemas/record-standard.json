@@ -1,0 +1,319 @@
+{
+  "assessor_version": "hotpot-ds-quality/current",
+  "asset_integrity_policy": "admission verifies local content under asset_root; remote assets must be mirrored locally",
+  "quality_level_scope": "dataset release or subset; data-level values are derived from applicable subsets",
+  "quality_levels": {
+    "B0_collection": {
+      "additional_artifacts": [],
+      "criteria": []
+    },
+    "B1_candidate": {
+      "additional_artifacts": [
+        "provenance_record",
+        "subject_mapping_report",
+        "task_definition"
+      ],
+      "criteria": [
+        "provenance_complete",
+        "subject_mapping_rule_audited"
+      ]
+    },
+    "B2_curated": {
+      "additional_artifacts": [
+        "review_report",
+        "review_coverage",
+        "accuracy_estimate",
+        "conflict_policy",
+        "family_group_key"
+      ],
+      "criteria": [
+        "provenance_complete",
+        "subject_mapping_rule_audited",
+        "domain_reviewed",
+        "all_records_reviewed",
+        "conflicts_resolved",
+        "family_groups_available",
+        "accuracy_estimate_available"
+      ]
+    },
+    "B3_validated": {
+      "additional_artifacts": [
+        "primary_source_review_report",
+        "independent_review_report",
+        "split_manifest",
+        "metric_definition",
+        "leakage_report",
+        "conditions_policy",
+        "uncertainty_policy"
+      ],
+      "criteria": [
+        "provenance_complete",
+        "subject_mapping_rule_audited",
+        "domain_reviewed",
+        "all_records_reviewed",
+        "conflicts_resolved",
+        "family_groups_available",
+        "accuracy_estimate_available",
+        "primary_source_supported_adjudication",
+        "dual_review",
+        "split_frozen",
+        "metric_frozen",
+        "leakage_audited",
+        "conditions_complete",
+        "uncertainty_policy_defined"
+      ]
+    },
+    "B4_reference": {
+      "additional_artifacts": [
+        "external_audit_report",
+        "corroboration_report",
+        "release_manifest_sha256"
+      ],
+      "criteria": [
+        "provenance_complete",
+        "subject_mapping_rule_audited",
+        "domain_reviewed",
+        "all_records_reviewed",
+        "conflicts_resolved",
+        "family_groups_available",
+        "accuracy_estimate_available",
+        "primary_source_supported_adjudication",
+        "dual_review",
+        "split_frozen",
+        "metric_frozen",
+        "leakage_audited",
+        "conditions_complete",
+        "uncertainty_policy_defined",
+        "external_audit",
+        "multi_source_corroboration",
+        "reproducible_fixed_release"
+      ]
+    }
+  },
+  "builtin_property_types": [
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "range_is_not_a_validity_constraint": true,
+        "subject_kind": "metal_site_or_complex",
+        "typical_range_for_review": [
+          -5,
+          10
+        ]
+      },
+      "name": "Oxidation state",
+      "property_type_id": "oxidation_state",
+      "schema_version": "current",
+      "value_kind": "integer"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "subject_kind": "molecular_structure"
+      },
+      "name": "Molecular formal charge",
+      "property_type_id": "molecular_formal_charge",
+      "schema_version": "current",
+      "value_kind": "integer"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "subject_kind": "metal_site_or_complex"
+      },
+      "name": "Spin multiplicity (2S+1)",
+      "property_type_id": "spin_multiplicity",
+      "schema_version": "current",
+      "value_kind": "integer"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "allowed_values": [
+          "low_spin",
+          "intermediate_spin",
+          "high_spin"
+        ],
+        "subject_kind": "metal_site_or_complex"
+      },
+      "name": "Reported spin category",
+      "property_type_id": "spin_category",
+      "schema_version": "current",
+      "value_kind": "category"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "allowed_values": [
+          "spin_crossover",
+          "spin_transition",
+          "spin_switching"
+        ],
+        "condition_dependent": true,
+        "required_conditions": [
+          "stimulus",
+          "measurement_protocol"
+        ]
+      },
+      "name": "Spin-transition behavior",
+      "property_type_id": "spin_transition_behavior",
+      "schema_version": "current",
+      "value_kind": "category"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "claim_only_by_default": true
+      },
+      "name": "Unresolved spin-state text",
+      "property_type_id": "spin_state_text",
+      "schema_version": "current",
+      "value_kind": "text"
+    },
+    {
+      "canonical_unit": "kcal/mol",
+      "metadata": {
+        "required_conditions": [
+          "lower_spin_multiplicity",
+          "upper_spin_multiplicity",
+          "energy_definition"
+        ],
+        "sign_convention": "must be declared per observation"
+      },
+      "name": "Spin-state energy difference",
+      "property_type_id": "spin_energy_gap",
+      "schema_version": "current",
+      "value_kind": "real"
+    },
+    {
+      "canonical_unit": "K",
+      "metadata": {
+        "condition_dependent": true,
+        "required_conditions": [
+          "stimulus",
+          "measurement_protocol",
+          "branch"
+        ]
+      },
+      "name": "Spin-transition temperature",
+      "property_type_id": "spin_transition_temperature",
+      "schema_version": "current",
+      "value_kind": "real"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "required_conditions": [
+          "temperature",
+          "medium",
+          "ionic_strength",
+          "standard_state"
+        ],
+        "required_participant_roles": [
+          "complex"
+        ]
+      },
+      "name": "Stability constant",
+      "property_type_id": "stability_constant",
+      "schema_version": "current",
+      "value_kind": "real"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "log_base": 10,
+        "required_conditions": [
+          "temperature",
+          "medium",
+          "ionic_strength",
+          "standard_state"
+        ],
+        "required_participant_roles": [
+          "complex"
+        ]
+      },
+      "name": "Log stability constant",
+      "property_type_id": "log_stability_constant",
+      "schema_version": "current",
+      "value_kind": "real"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "required_conditions": [
+          "temperature",
+          "aqueous_phase",
+          "organic_phase",
+          "aqueous_pH"
+        ],
+        "required_participant_roles": [
+          "numerator_analyte",
+          "denominator_analyte"
+        ]
+      },
+      "name": "Separation factor",
+      "property_type_id": "separation_factor",
+      "schema_version": "current",
+      "value_kind": "real"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "required_conditions": [
+          "temperature",
+          "aqueous_phase",
+          "organic_phase",
+          "aqueous_pH"
+        ],
+        "required_participant_roles": [
+          "analyte"
+        ]
+      },
+      "name": "Distribution ratio",
+      "property_type_id": "distribution_ratio",
+      "schema_version": "current",
+      "value_kind": "real"
+    },
+    {
+      "canonical_unit": null,
+      "metadata": {
+        "axis_metadata_required": true
+      },
+      "name": "Spectrum",
+      "property_type_id": "spectrum",
+      "schema_version": "current",
+      "value_kind": "series_asset"
+    }
+  ],
+  "certificate_attestation": "self_hashed_integrity_gate",
+  "certificate_limit": "certifies machine-checkable admission and declared support artifacts; does not independently establish scientific truth",
+  "claim_resolution_types": [
+    "accepted_as_observation",
+    "contradicted_by_observation",
+    "partially_resolved_by"
+  ],
+  "claim_statuses": [
+    "rejected",
+    "resolved",
+    "unresolved"
+  ],
+  "evidence_levels": [
+    "E0_insufficient",
+    "E1_extracted",
+    "E2_explicit_reported",
+    "E3_primary_source_supported",
+    "E4_independently_corroborated"
+  ],
+  "observation_statuses": [
+    "active",
+    "retracted",
+    "superseded"
+  ],
+  "record_standard_version": "hotpot-dataset/current",
+  "required_admission_flow": [
+    "load_bundle",
+    "write_certificate",
+    "store.ingest"
+  ],
+  "storage_requires_passing_certificate": true
+}

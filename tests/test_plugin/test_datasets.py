@@ -7,7 +7,7 @@ python v3.9.0
 @Time   : 11:16
 """
 import unittest as ut
-from hotpot.dataset.tmqm import TmQmDataset
+from hotpot.ds.providers.tmqm import TmQmDataset
 
 
 class TestDataset(ut.TestCase):

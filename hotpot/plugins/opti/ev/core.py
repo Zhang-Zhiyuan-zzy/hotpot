@@ -1216,32 +1216,3 @@ class MLOptimizer:
         model = self.model(**self.best_params)
         model.fit(self.X_train, self.y_train)
         return model
-
-
-
-if __name__ == "__main__":
-    from hotpot.plugins import load_dataset
-    data = load_dataset("filled_electric")
-
-    data = data.drop(['Volume_ratio_Ar', '_Dielectric_constant_imag', '_Dielectric_loss_Angle_tangent_value'])
-    y = data['_Dielectric_constant_real']
-    X = data.drop(['_Dielectric_constant_real'])
-
-    spaces = {
-            'loss': ['squared_error', 'absolute_error', 'huber', 'quantile'],
-            'learning_rate': [0.01, 0.02, 0.05, 0.1, 0.2, 0.5],
-            'n_estimators': [25, 50, 75, 100, 125, 150, 200, 300, 400, 500],
-            'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            'criterion': ['friedman_mse', 'squared_error'],
-            'min_samples_split': [2, 3, 4, 5, 8, 10],
-            'min_samples_leaf': [1, 2, 3, 5],
-            'max_depth': [None, 2, 3, 5, 7, 10]
-    }
-
-
-    optimizer = MLOptimizer(
-        model=GradientBoostingRegressor,
-        X_train=X, y_train=y,
-        params_space=spaces
-    )
-    optimizer.optimize()

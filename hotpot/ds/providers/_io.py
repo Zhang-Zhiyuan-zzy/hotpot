@@ -1,12 +1,16 @@
+"""Shared file-transfer helpers for internal dataset source readers."""
+
 import os
-import requests
 import gzip
 import zipfile
+from pathlib import Path
 from tqdm import tqdm
 
 
 # Function to download files
 def download_file(fp, _url):
+    import requests
+
     response = requests.get(_url)
     if response.status_code == 200:
         total_size = int(response.headers.get('content-length', 0))
@@ -21,7 +25,7 @@ def download_file(fp, _url):
 
 
 def uncompress_all_gz(file_path):
-    output_path = os.path.join(file_path[:-3])  # Remove .gz extension
+    output_path = Path(file_path).with_suffix("")
     with gzip.open(file_path, 'rb') as f_in, open(output_path, 'wb') as f_out:
         # Get the total size of the compressed file for the progress bar
         total_size = os.path.getsize(file_path)

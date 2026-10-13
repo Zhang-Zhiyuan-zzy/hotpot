@@ -57,6 +57,20 @@ commands also provide extended examples through `--doc`.
 | `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/cheminfo/forcefields/cli_doc.md) |
 | `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | 3D molecular records (SDF by default) and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
 | `hotpot run` | Execute registered molecular stages with an ordered evidence tree | Result directory, manifest, stage artifacts, and final SDF | [Pipeline CLI](hotpot/pipeline/cli_doc.md) |
+| `hotpot ds` | Assess, store, audit, and query scientific datasets | Certified bundles and a normalized SQLite store | [CLI](hotpot/ds/cli_doc.md) · [Python API](hotpot/ds/README.md) · [dataset organization](hotpot/dataset/README.md) |
+
+### Dataset management
+
+`hotpot/ds/` contains the dataset API, CLI, assessment, and storage implementation.
+`hotpot/dataset/` is the single resource namespace for dataset documentation, schemas,
+manifests, and local payloads. The payload root, `hotpot/dataset/data/`, is ignored by Git;
+licensed structures and generated databases therefore remain local while their organization
+and validation rules remain reviewable.
+
+A benchmark is a governed quality state of data or a subset, expressed through
+`quality_level` together with its evidence and policy metadata. It is not a parallel storage
+tree or a separate kind of dataset. Hotpot implements only the dataset schema and CLI
+protocol in the current Git revision; superseded implementations are not retained.
 
 ### MCA prediction
 

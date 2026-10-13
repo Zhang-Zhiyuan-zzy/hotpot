@@ -17,7 +17,20 @@
 
 ## Inbox
 
-No pending rules.
+### `DEV-VCS-001` — one current implementation per Git revision
+
+- **Scope:** repository-wide software, API, CLI, and wire-protocol implementations; this
+  does not collapse scientific dataset releases or provenance history.
+- **Proposed rule:** Git is the sole owner of implementation-version history. Every checkout
+  MUST expose exactly one current behavior and MUST NOT retain runtime version negotiation,
+  legacy compatibility modes, aliases, fallback readers, or parallel old/new
+  implementations or in-tree migration paths. Historical recovery, when required, is an
+  external one-off operation that produces the sole current representation.
+- **Rationale:** a current source revision should be internally coherent and directly
+  testable. Compatibility branches multiply behavior, obscure failure semantics, and leave
+  users and automation unable to determine which contract is authoritative.
+- **Evidence:** explicit user instruction on 2026-10-13; implemented first for the
+  `hotpot ds` stdin/stdout protocol in the current working change (commit pending).
 
 ## Most recent integration receipt
 

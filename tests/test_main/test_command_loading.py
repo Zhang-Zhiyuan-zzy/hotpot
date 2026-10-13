@@ -16,6 +16,7 @@ _COMMAND_MODULES = (
     "hotpot.cheminfo.forcefields.cli",
     "hotpot.plugins.xtb.cli",
     "hotpot.pipeline.cli",
+    "hotpot.ds.cli",
 )
 
 
@@ -90,3 +91,26 @@ def test_pipeline_help_loads_only_the_selected_command_module() -> None:
         for name, is_loaded in loaded.items()
         if name != "hotpot.pipeline.cli"
     )
+
+
+def test_ds_help_loads_only_the_dataset_command_module() -> None:
+    status, loaded = _loaded_after(("ds", "--help"))
+
+    assert status == 0
+    assert loaded["hotpot.ds.cli"] is True
+    assert all(
+        not is_loaded
+        for name, is_loaded in loaded.items()
+        if name != "hotpot.ds.cli"
+    )
+
+
+def test_root_version_flag_does_not_collide_with_dataset_release_version() -> None:
+    from hotpot import __main__ as entry
+
+    args = entry.build_parser(selected_command="ds").parse_args(
+        ["ds", "info", "oxidation", "--version", "001"]
+    )
+
+    assert args.show_version is False
+    assert args.version == "001"

@@ -38,6 +38,7 @@ def test_readme_primary_cli_surface() -> None:
     assert "ff" in output
     assert "xtb" in output
     assert "run" in output
+    assert "ds" in output
 
 
 def test_readme_xtb_documentation_surface() -> None:

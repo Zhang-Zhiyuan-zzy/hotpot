@@ -6,8 +6,10 @@ cpp/out/
 hotpot/__pycache__
 **/__pycache__
 hotpot_zzy.egg-infogit
-hotpot/dataset/tmqm/data
-hotpot/dataset/lnqm/data
+# Local dataset payloads, derived stores, certificates, and supplier records.
+# Only documentation, schemas, and manifests outside this directory are tracked.
+/hotpot/dataset/data/**
+/doc/html/
 **/*.html
 **/*.so
 build/

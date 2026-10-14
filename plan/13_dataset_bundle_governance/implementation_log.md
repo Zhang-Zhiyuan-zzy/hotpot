@@ -689,6 +689,106 @@ Necessary adjustment and final decision:
   contradiction; it does not add a second identity model or a compatibility
   format.
 
+### Step 18 — Finalize the concise persisted-query API
+
+Status: complete
+
+Planned:
+
+- implement only the documented Dataset/Data/search surface over current
+  TargetStore releases.
+
+Performed:
+
+- added ordinary-plus-benchmark default reads and explicit incomplete/mixed
+  views without allowing a subset to widen its source population;
+- fixed `<namespace>_identifier` lookup, nested subset/search fields, label
+  coverage counts, and JSON-safe Data/Dataset summaries;
+- made multi-structure access select one explicit primary before format lookup
+  and reject ambiguity; and
+- verified target-owned CAS path, digest, and size before structure access or
+  Molecule/Crystal construction.
+
+Verification:
+
+- query suite: `5 passed`;
+- query, storage, and Bundle integration slice: `18 passed`.
+
+Unexpected finding:
+
+- the requested `dataset.CSD_identifier[...]` spelling was being interpreted
+  as a literal `CSD_identifier` namespace rather than the stored `CSD`
+  namespace; label counts also summed numeric values instead of counting Cases.
+
+Necessary adjustment and final decision:
+
+- `_identifier` is the public accessor suffix, not part of the persisted
+  namespace. Label coverage counts presence once per Case. Both corrections
+  implement the already documented user semantics.
+
+### Step 19 — Make every Case edit one source transaction
+
+Status: complete
+
+Planned:
+
+- commit each user-visible Case mutation with one revision and one audit event.
+
+Performed:
+
+- moved read-latest, state-dependent validation, mutation, schema validation,
+  digest/revision update, and audit insertion under the Bundle file lock and
+  one SQLite `BEGIN IMMEDIATE` transaction; and
+- made evidence verification test active evidence and append the verification
+  in that same transaction.
+
+Verification:
+
+- Case/Bundle/BundleState/governance slice: `39 passed, 1 skipped`.
+
+Unexpected finding:
+
+- the first Case implementation read a defensive snapshot before acquiring the
+  mutation lock, so two valid callers could overwrite one another or verify
+  evidence that another caller had just withdrawn.
+
+Necessary adjustment and final decision:
+
+- transaction callbacks operate on the latest canonical Case payload. They
+  remain private implementation machinery and do not enlarge the public Case
+  API.
+
+### Step 20 — Close identifier multiplicity and first-level facade contracts
+
+Status: complete
+
+Planned:
+
+- enforce the frozen eleven-name public facade and stable external identifier
+  lookup.
+
+Performed:
+
+- added exact first-level/signature-tree tests; and
+- removed the target-store uniqueness rule that incorrectly required one Case
+  per `(namespace, value)` while retaining per-Case identifier uniqueness.
+
+Verification:
+
+- public API, query, and storage slice: `18 passed`.
+
+Unexpected finding:
+
+- the managed source contains one real `CSD` identifier associated with two
+  spin Cases. The query API already returns a Dataset for multi-matches, but the
+  first target schema would have rejected that valid source relationship.
+
+Necessary adjustment and final decision:
+
+- external identifiers are lookup keys, not globally unique scientific
+  identities. Multiple matches remain explicit in the returned Dataset and no
+  Case merging is performed.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -697,4 +797,5 @@ Necessary adjustment and final decision:
 | 2 | Steps 5–7: Gate policy, target store, canonical Bundle facts | `f3c093f..dcff2b6` | focused Stage 13 suites passed | pushed to `origin/refactor/unified-dataset-management` |
 | 3 | Steps 8–10: governance, assessment generations, release/trust intake closure | `e3bb3cb..e64dbc5` | governance `8 passed, 1 skipped`; generation `9 passed`; Bundle state `15 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 4 | Steps 11–14: configured assessment, governance CAS, certificate envelope, target ownership | `ffbc244..87599f3` | configured Gate slice `36 passed`; Bundle-state flow `31 passed`; certificate/storage slice `20 passed` | pushed to `origin/refactor/unified-dataset-management` |
-| 5 | Steps 15–17: stable asset snapshots, complete Bundle lifecycle, identity-policy intake | `db5b4de..0f44279` plus log commit | generation `12 passed`; Bundle lifecycle `27 passed`; BundleState `19 passed` | pending push |
+| 5 | Steps 15–17: stable asset snapshots, complete Bundle lifecycle, identity-policy intake | `db5b4de..4a0d59f` | generation `12 passed`; Bundle lifecycle `27 passed`; BundleState `19 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 6 | Steps 18–20: query API, atomic Case edits, facade/identifier closure | `5242694..c453e76` plus log commit | query integration `18 passed`; mutation slice `39 passed, 1 skipped`; facade/storage/query `18 passed` | pending push |

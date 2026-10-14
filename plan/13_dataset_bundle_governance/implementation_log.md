@@ -437,10 +437,157 @@ during governance/generation review.
 Adjustment: none to workflow; these constraints make the frozen identity and
 trust rules executable.
 
+### Step 11 — Execute persisted Gate policy at managed scale
+
+Status: complete
+
+Planned:
+
+- make persisted Gate configuration, rather than hard-coded defaults, the
+  complete assessment authority; and
+- preserve deterministic conflict results without unbounded group memory or
+  repeated full-table scans.
+
+Performed:
+
+- wired configured evidence/quality level maps, enabled/disabled built-ins,
+  structure checks, Benchmark direct routes, vetoes, and numeric tolerances
+  through assessment generations;
+- made custom checks require the verified isolated-runner boundary and fail
+  closed on unavailable isolation, exceptions, or malformed results;
+- replaced conflict-group materialization with deterministic SQLite range
+  streaming and added a Case-to-conflict link index; and
+- streamed archive indexes during generation write and verification.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_assessment.py
+  tests/test_ds/test_stage13_gate_integration.py
+  tests/test_ds/test_stage13_generation.py tests/test_ds/test_stage13_gates.py`
+- result: `36 passed`.
+
+Unexpected finding:
+
+- the initial generation implementation preserved deterministic output but
+  materialized every row in an identity/property group and scanned the full
+  conflict table for each Case. This was not safe for the measured managed
+  dataset.
+
+Necessary adjustment and final decision:
+
+- use indexed, output-sensitive streaming. Exact pairwise conflict semantics
+  necessarily remain proportional to the number of emitted candidate pairs,
+  but avoidable unbounded memory and repeated scans are removed.
+
+### Step 12 — Bind immutable manifest and governance state
+
+Status: complete
+
+Planned:
+
+- make synchronization a proof over all persisted control state.
+
+Performed:
+
+- compared live `bundle.json` semantically with the canonical built manifest
+  on every state access and mutation;
+- persisted current and synchronized governance registry revision/digest; and
+- added audited governance refresh plus governance-aware generation
+  compare-and-swap publication.
+
+Verification:
+
+- BundleState, generation, and Bundle flow slice: `31 passed`.
+
+Unexpected finding:
+
+- a Bundle object opened before an out-of-band manifest edit could previously
+  synchronize against the changed file and then become impossible to reopen;
+  registry rotation also did not invalidate a draft assessment.
+
+Necessary adjustment and final decision:
+
+- manifest identity is immutable after build and the trusted registry binding
+  is a first-class synchronization input. Both are required for reproducible
+  certificates and cannot be treated as display metadata.
+
+### Step 13 — Replace certification with the current closed envelope
+
+Status: complete
+
+Planned:
+
+- serialize only a current synchronized generation; and
+- permit lossless root-certificate restoration without rerunning assessment.
+
+Performed:
+
+- removed the old configurable assessment/certificate facade;
+- added the root-only closed envelope, atomic publication, strict JSON/path
+  checks, certified positive and negative scientific-asset states, facts,
+  checker, policy, target, summary, and generation-manifest bindings; and
+- made verification associate the certificate with exactly one Bundle root.
+
+Verification:
+
+- certificate focused suite: `9 passed`;
+- certificate, Bundle, and target-store slice: `20 passed`.
+
+Unexpected finding:
+
+- the obsolete public `store` export imported removed Certificate/Configure
+  types and prevented collection as soon as the no-compatibility certificate
+  replacement landed.
+
+Necessary adjustment and final decision:
+
+- remove `store` from both first-level export lists immediately. This follows
+  the already frozen closed API and prevents an obsolete facade from dictating
+  the new certificate model.
+
+### Step 14 — Enforce certified target ownership and preconditions
+
+Status: complete
+
+Planned:
+
+- make the target own all bytes required by an immutable release; and
+- recheck certified target identity and policy inside the write transaction.
+
+Performed:
+
+- added generic scientific-asset references for evidence, withdrawn history,
+  and observed hash-mismatch bytes in addition to active structure views;
+- added release control-asset references for exact checker sources and the
+  frozen governance registry;
+- copied and verified every materialized object into target-owned SHA-256
+  storage; and
+- bound and rechecked canonical target path, schema, store UUID, dataset-state
+  precondition, and exact policy during ingestion.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_storage.py`
+- result: `9 passed`.
+
+Unexpected finding:
+
+- the first target implementation owned active structure bytes only. Evidence
+  and control artifacts could still disappear with the Bundle folder, and a
+  replacement SQLite file at the same path was not rejected transactionally.
+
+Necessary adjustment and final decision:
+
+- target ownership covers all positively materialized scientific and policy
+  control bytes. Asset reuse remains content-addressed while scientific
+  identity remains Case/declaration based. This is required for sealed-release
+  durability and does not expose another public storage API.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
 | --- | --- | --- | --- | --- |
 | 1 | Steps 0–4: specification, baseline, mapping, Case model, assessment primitives | `b8322f7..e387af9` | baseline `104 passed`; new focused `10 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 2 | Steps 5–7: Gate policy, target store, canonical Bundle facts | `f3c093f..dcff2b6` | focused Stage 13 suites passed | pushed to `origin/refactor/unified-dataset-management` |
-| 3 | Steps 8–10: governance, assessment generations, release/trust intake closure | `e3bb3cb..10bd137` plus log commit | governance `8 passed, 1 skipped`; generation `9 passed`; Bundle state `15 passed` | pending push |
+| 3 | Steps 8–10: governance, assessment generations, release/trust intake closure | `e3bb3cb..e64dbc5` | governance `8 passed, 1 skipped`; generation `9 passed`; Bundle state `15 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 4 | Steps 11–14: configured assessment, governance CAS, certificate envelope, target ownership | `ffbc244..81d12bb` plus log commit | configured Gate slice `36 passed`; Bundle-state flow `31 passed`; certificate/storage slice `20 passed` | pending push |

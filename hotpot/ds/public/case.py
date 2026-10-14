@@ -9,7 +9,105 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from copy import deepcopy
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Union
+
+
+_EVIDENCE_DETAIL_FIELDS = {
+    "doi",
+    "url",
+    "scientific_work_id",
+    "source_lineage_id",
+    "derived_from",
+}
+_VERIFICATION_DETAIL_FIELDS = {"procedure_version", "verified_at"}
+_VERIFICATION_PROCEDURE = "hotpot.ds.evidence-verification/current"
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _evidence_details(
+    source: str, details: Optional[Mapping[str, Any]]
+) -> Dict[str, Any]:
+    values = deepcopy(dict(details or {}))
+    unsupported = values.keys() - _EVIDENCE_DETAIL_FIELDS
+    if unsupported:
+        raise ValueError(
+            "unsupported evidence detail fields: " + ", ".join(sorted(unsupported))
+        )
+    for field in _EVIDENCE_DETAIL_FIELDS - {"derived_from"}:
+        if field in values and (
+            not isinstance(values[field], str) or not values[field].strip()
+        ):
+            raise ValueError(f"evidence details.{field} must be a non-empty string")
+    if "derived_from" in values:
+        parents = values["derived_from"]
+        if isinstance(parents, str) or not isinstance(parents, Sequence):
+            raise ValueError("evidence details.derived_from must be a sequence")
+        if any(not isinstance(item, str) or not item.strip() for item in parents):
+            raise ValueError(
+                "evidence details.derived_from must contain non-empty strings"
+            )
+        if len(parents) != len(set(parents)):
+            raise ValueError("evidence details.derived_from cannot contain duplicates")
+        values["derived_from"] = list(parents)
+
+    lowered = source.casefold()
+    inferred: Dict[str, str] = {}
+    if lowered.startswith("doi:"):
+        doi = source[4:].strip()
+        if not doi:
+            raise ValueError("doi evidence source must include an identifier")
+        inferred = {"doi": doi, "scientific_work_id": f"doi:{doi.casefold()}"}
+    elif lowered.startswith("url:"):
+        url = source[4:].strip()
+        if not url:
+            raise ValueError("url evidence source must include a URL")
+        inferred = {"url": url}
+    elif lowered.startswith(("http://", "https://")):
+        inferred = {"url": source}
+        doi_marker = "doi.org/"
+        marker_index = lowered.find(doi_marker)
+        if marker_index >= 0:
+            doi = source[marker_index + len(doi_marker) :].strip()
+            inferred.update(
+                {"doi": doi, "scientific_work_id": f"doi:{doi.casefold()}"}
+            )
+    for field, value in inferred.items():
+        supplied = values.get(field)
+        if supplied is not None and supplied.casefold() != value.casefold():
+            raise ValueError(
+                f"evidence details.{field} conflicts with the source reference"
+            )
+        values.setdefault(field, value)
+    return values
+
+
+def _verification_details(
+    details: Optional[Mapping[str, Any]],
+) -> Dict[str, str]:
+    values = deepcopy(dict(details or {}))
+    unsupported = values.keys() - _VERIFICATION_DETAIL_FIELDS
+    if unsupported:
+        raise ValueError(
+            "unsupported verification detail fields: "
+            + ", ".join(sorted(unsupported))
+        )
+    for field, value in values.items():
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(
+                f"verification details.{field} must be a non-empty string"
+            )
+    if "verified_at" in values:
+        timestamp = values["verified_at"].replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(timestamp)
+        if parsed.tzinfo is None:
+            raise ValueError("verification details.verified_at must include a timezone")
+    values.setdefault("procedure_version", _VERIFICATION_PROCEDURE)
+    values.setdefault("verified_at", _utc_now())
+    return values
 
 
 class CaseOwnershipError(RuntimeError):
@@ -233,7 +331,13 @@ class Case:
         relation: str = "supports",
         locator: Optional[str] = None,
         note: Optional[str] = None,
+        details: Optional[Mapping[str, Any]] = None,
     ) -> str:
+        if relation not in {"supports", "contradicts", "context"}:
+            raise ValueError(
+                "evidence relation must be 'supports', 'contradicts', or 'context'"
+            )
+        provenance = _evidence_details(source, details)
         return self._add(
             "evidence",
             "evidence_id",
@@ -244,6 +348,7 @@ class Case:
                 "locator": locator,
                 "note": note,
                 "status": "active",
+                **provenance,
             },
             "evidence.add",
         )
@@ -255,9 +360,13 @@ class Case:
         method: str,
         verifier: str,
         note: Optional[str] = None,
+        details: Optional[Mapping[str, Any]] = None,
     ) -> str:
         if method not in {"AI", "Human"}:
             raise ValueError("evidence verification method must be 'AI' or 'Human'")
+        if not isinstance(verifier, str) or not verifier.strip():
+            raise ValueError("evidence verifier must be a non-empty string")
+        verification_details = _verification_details(details)
 
         def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
             self._active_item(facts, "evidence", "evidence_id", evidence_id)
@@ -270,6 +379,7 @@ class Case:
                     "verifier": verifier,
                     "note": note,
                     "status": "active",
+                    **verification_details,
                 }
             )
             return {"verification_id": verification_id}, verification_id
@@ -293,7 +403,10 @@ class Case:
         reason: str,
         locator: Optional[str] = None,
         note: Optional[str] = None,
+        details: Optional[Mapping[str, Any]] = None,
     ) -> str:
+        provenance = _evidence_details(source, details)
+
         def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
             previous = self._active_item(
                 facts, "evidence", "evidence_id", evidence_id
@@ -301,9 +414,16 @@ class Case:
             replacement = {
                 key: deepcopy(value)
                 for key, value in previous.items()
-                if key not in {"evidence_id", "status", "withdrawal_reason"}
+                if key in {"target", "target_kind", "relation"}
             }
-            replacement.update({"source": source, "locator": locator, "note": note})
+            replacement.update(
+                {
+                    "source": source,
+                    "locator": locator,
+                    "note": note,
+                    **provenance,
+                }
+            )
             new_id = self._new_identifier("evidence")
             previous["status"] = "superseded"
             previous["superseded_by"] = new_id

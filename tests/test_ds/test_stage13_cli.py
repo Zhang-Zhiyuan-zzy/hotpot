@@ -9,6 +9,7 @@ import pytest
 import hotpot.ds.cli as ds_cli
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
+from hotpot.ds.public.bundle import load_bundle
 
 
 def _case(case_id: str, index: int, *, approved: bool = False, complete: bool = True) -> dict:
@@ -149,6 +150,81 @@ def test_bundle_cli_has_explicit_transitions_and_closed_channels(tmp_path: Path,
     assert code == 0
     assert result["payload"]["is_synchronized"] is False
     assert result["payload"]["event_ids"][0].startswith("event-")
+
+
+def test_bundle_cli_preserves_evidence_and_verification_details(
+    tmp_path: Path, capsys
+) -> None:
+    root = _root(tmp_path)
+    database = tmp_path / "datasets.sqlite3"
+    code, _, _ = _invoke(
+        ["bundle", "build", str(root), "--dataset", "demo", "--db", str(database)],
+        capsys,
+    )
+    assert code == 0
+
+    evidence_input = tmp_path / "evidence.json"
+    evidence_input.write_text(
+        json.dumps(
+            {
+                "case_id": "ordinary",
+                "target": "obs-ordinary",
+                "source": "doi:10.1000/cli",
+                "locator": "Table 3",
+                "details": {"source_lineage_id": "experiment:cli"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, _, _ = _invoke(
+        [
+            "bundle",
+            "--root",
+            str(root),
+            "set",
+            "case.add_evidence",
+            str(evidence_input),
+        ],
+        capsys,
+    )
+    assert code == 0
+    bundle = load_bundle(root, "demo", db=database)
+    evidence = bundle.cases[0].evidence[0]
+
+    verification_input = tmp_path / "verification.json"
+    verification_input.write_text(
+        json.dumps(
+            {
+                "case_id": "ordinary",
+                "evidence_id": evidence["evidence_id"],
+                "method": "AI",
+                "verifier": "review-tool/current",
+                "details": {
+                    "procedure_version": "cli-review/current",
+                    "verified_at": "2026-10-14T01:30:00Z",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, _, _ = _invoke(
+        [
+            "bundle",
+            "--root",
+            str(root),
+            "set",
+            "case.verify_evidence",
+            str(verification_input),
+        ],
+        capsys,
+    )
+    assert code == 0
+
+    facts = bundle._state.get_case("ordinary")
+    assert facts["evidence"][0]["scientific_work_id"] == "doi:10.1000/cli"
+    assert facts["evidence"][0]["source_lineage_id"] == "experiment:cli"
+    assert facts["verifications"][0]["procedure_version"] == "cli-review/current"
+    assert facts["verifications"][0]["verified_at"] == "2026-10-14T01:30:00Z"
 
 
 def test_certify_ingest_query_archive_opt_in_and_protocol_pipeline(tmp_path: Path, capsys, monkeypatch) -> None:

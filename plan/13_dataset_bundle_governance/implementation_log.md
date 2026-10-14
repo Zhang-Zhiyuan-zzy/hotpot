@@ -1055,6 +1055,124 @@ Necessary adjustment and final decision:
 - source tools report facts and recommended record kinds only. B/E and
   benchmark state are derived for one exact Bundle generation.
 
+### Step 29 — Replace intake templates with the current Bundle contract
+
+Status: complete
+
+Performed:
+
+- removed the obsolete certificate-config and flat dataset templates; and
+- added one current Bundle manifest and one current Case template.
+
+Verification:
+
+- a temporary Bundle was constructed from the templates and loaded by the
+  current implementation.
+
+Unexpected finding and necessary adjustment:
+
+- the old templates described a deleted ingestion model. They could not remain
+  as examples because that would preserve a second, incompatible user path.
+
+### Step 30 — Remove the obsolete dataset implementation island
+
+Status: complete
+
+Performed:
+
+- removed the superseded database, model, quality, adapter, detail, and old
+  public-ingestion modules and their compatibility tests; and
+- retained the raw scientific-source regression sentinel in a current test.
+
+Verification:
+
+- current dataset suite excluding the not-yet-committed migration tests:
+  `160 passed, 1 skipped`.
+
+Unexpected finding and necessary adjustment:
+
+- several old tests validated the removed API rather than scientific facts.
+  Only the source-fact sentinel was retained; no compatibility wrapper was
+  introduced.
+
+### Step 31 — Implement an auditable legacy-store migration
+
+Status: implementation complete; independent cutover hardening in progress
+
+Performed:
+
+- added a strict read-only schema-1 reader, explicit owner bootstrap, stable
+  Case/identifier mapping, rollback snapshot, Bundle export, certification,
+  ingestion, parity reports, and atomic generation activation;
+- preserved the intentional duplicate `spin/CSD/DOQRAC` identifier on both
+  Cases instead of merging them; and
+- distinguished an explicitly missing source asset from a copied asset that
+  subsequently disappeared. Declared hash mismatch and copied-asset damage now
+  fail source/export parity.
+
+Verification:
+
+- migration plus Bundle/storage/certificate slice: `34 passed`;
+- a 2,175-Case oxidation smoke export and parity pass completed successfully.
+
+Unexpected finding and necessary adjustment:
+
+- independent review found that global row inventories and target counts were
+  insufficient proof for a 252,665-Case cutover. The real migration is paused
+  until per-Case operative-fact parity, exact included/excluded ID-set binding,
+  release-owned migration controls, frozen-source use, identity-relation
+  coverage, and pre-activation rollback/target revalidation are executable.
+  These checks are mandatory because a count-preserving corruption must never
+  pass migration merely for operational convenience.
+
+### Step 32 — Route the runtime through one atomic store generation
+
+Status: complete
+
+Performed:
+
+- changed the default store to
+  `hotpot/dataset/data/store/active/datasets.sqlite3`;
+- defined the immutable `store/generations` root and the `store/active`
+  directory-symlink contract; and
+- aligned the tracked layout manifest, storage documentation, and path tests.
+
+Verification:
+
+- path, documentation, and query slice: `21 passed`.
+
+Unexpected finding and necessary adjustment:
+
+- the prior audited cutover JSON was provenance only and was never consumed by
+  runtime queries. Runtime selection therefore had to use the same atomic
+  directory pointer that switches the database and adjacent CAS assets.
+
+### Step 33 — Make E3/E4 evidence facts reachable through the concise API
+
+Status: complete
+
+Performed:
+
+- added one optional, closed `details` mapping to evidence add/replace/verify
+  operations and the same CLI mutation documents;
+- persisted scientific-work identity, DOI/URL, lineage/derivation, procedure,
+  and verification time; and
+- required attributable Human verification while retaining automatic current
+  procedure/time defaults.
+
+Verification:
+
+- evidence/API/CLI focused slice: `29 passed`;
+- current dataset suite excluding migration: `166 passed, 1 skipped`.
+
+Unexpected finding and necessary adjustment:
+
+- the planned simple signatures could create evidence but could not provide
+  the facts the Gate itself requires for E3/E4. A single closed mapping is the
+  minimum correction: it keeps the first-level API small while preventing an
+  unreachable assessment level. The signature tree and evidence section were
+  amended as an audit-required plan correction.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -1066,4 +1184,4 @@ Necessary adjustment and final decision:
 | 5 | Steps 15–17: stable asset snapshots, complete Bundle lifecycle, identity-policy intake | `db5b4de..4a0d59f` | generation `12 passed`; Bundle lifecycle `27 passed`; BundleState `19 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 6 | Steps 18–20: query API, atomic Case edits, facade/identifier closure | `5242694..5bbfcc6` | query integration `18 passed`; mutation slice `39 passed, 1 skipped`; facade/storage/query `18 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 7 | Steps 21–24: protocol, current CLI, formal documentation, package resources | `c83d661..798b840` | independent CLI slice `41 passed`; handoff `45 passed`; docs `32 passed`; package declarations verified | pushed to `origin/refactor/unified-dataset-management` |
-| 8 | Steps 25–28: sealed governance, documentation assertions, property policy, source-audit boundary | `b5ba161..bf04624` plus log commit | lifecycle/property `72 passed`; sealed slice `51 passed`; docs/help `30 passed`; source metadata `15 passed` | pending push |
+| 8 | Steps 25–28: sealed governance, documentation assertions, property policy, source-audit boundary | `b5ba161..315a120` | lifecycle/property `72 passed`; sealed slice `51 passed`; docs/help `30 passed`; source metadata `15 passed` | pushed to `origin/refactor/unified-dataset-management` |

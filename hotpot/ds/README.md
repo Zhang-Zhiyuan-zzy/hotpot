@@ -74,8 +74,9 @@ explicit `archive_class` opt-in. A filtered Dataset cannot reintroduce archive
 classes excluded by its original `load`.
 
 The default local store is
-`hotpot/dataset/data/store/datasets.sqlite3`. Dataset payloads are not bundled
-with source distributions, so a clean installation commonly needs `db=`.
+`hotpot/dataset/data/store/active/datasets.sqlite3`. Dataset payloads are not
+bundled with source distributions, so a clean installation commonly needs
+`db=`.
 
 ## 2. `Dataset` and `Data`
 
@@ -351,13 +352,15 @@ case.replace_claim(claim_id, data, *, reason) -> str
 case.withdraw_claim(claim_id, *, reason) -> None
 
 case.add_evidence(
-    target, source, *, relation="supports", locator=None, note=None
+    target, source, *, relation="supports", locator=None, note=None, details=None
 ) -> str
 case.replace_evidence(
-    evidence_id, source, *, reason, locator=None, note=None
+    evidence_id, source, *, reason, locator=None, note=None, details=None
 ) -> str
 case.withdraw_evidence(evidence_id, *, reason) -> None
-case.verify_evidence(evidence_id, *, method, verifier, note=None) -> str
+case.verify_evidence(
+    evidence_id, *, method, verifier, note=None, details=None
+) -> str
 case.withdraw_verification(verification_id, *, reason) -> None
 
 case.attest_benchmark(
@@ -374,8 +377,9 @@ fact and append an audit event.
 ```python
 evidence_id = case.add_evidence(
     target="observation-1",
-    source="https://doi.org/10.1000/example",
+    source="doi:10.1000/example",
     locator="Table 2",
+    details={"source_lineage_id": "experiment:example"},
 )
 case.verify_evidence(
     evidence_id,
@@ -384,6 +388,26 @@ case.verify_evidence(
 )
 bundle.synchronize()
 ```
+
+`source` accepts `doi:...`, `url:...`, `file:...`, and
+`source:<existing-source-id>` references. DOI and URL identities are extracted
+from the first two forms. `details` is a small closed provenance object so the
+Gate can use, rather than merely store, the facts required for E3/E4:
+
+```text
+Evidence details:     doi, url, scientific_work_id, source_lineage_id,
+                      derived_from
+Verification details: procedure_version, verified_at
+```
+
+`derived_from` is a JSON array of result-lineage IDs. Two E3 evidence chains
+can reach E4 only when both their canonical scientific works and independent
+lineage roots differ. Verification automatically records the current Hotpot
+procedure and a UTC timestamp when those fields are omitted; callers may
+supply the actual procedure and timezone-aware timestamp for an earlier review.
+For AI review, `verifier` names the tool/model and its version. Unknown detail
+keys are rejected, and all accepted fields remain source facts covered by the
+Bundle source digest, synchronization, and certificate.
 
 Evidence and quality levels have no setters. A benchmark opinion uses an
 attributable attestation, not `case.benchmark = True`. Public callers may attest

@@ -52,14 +52,41 @@ def test_evidence_requires_independent_verified_lineage_for_e4():
         },
     ]
     case["verifications"] = [
-        {"verification_id": "v1", "evidence_id": "e1", "method": "Human"},
-        {"verification_id": "v2", "evidence_id": "e2", "method": "Human"},
+        {
+            "verification_id": "v1",
+            "evidence_id": "e1",
+            "method": "Human",
+            "verifier": "reviewer-one",
+        },
+        {
+            "verification_id": "v2",
+            "evidence_id": "e2",
+            "method": "Human",
+            "verifier": "reviewer-two",
+        },
     ]
     assert assess_evidence(case)["aggregate"] == "E4"
     case["evidence"][1]["source_lineage_id"] = "result:one"
     result = assess_evidence(case)
     assert result["aggregate"] == "E3"
     assert result["reasons"][0]["code"] == "evidence_independence_unproven"
+
+
+def test_human_verification_requires_an_attributable_reviewer():
+    case = _case()
+    case["evidence"] = [
+        {
+            "evidence_id": "e1",
+            "target": "c1:o1",
+            "locator": "p.1",
+            "scientific_work_id": "doi:one",
+        }
+    ]
+    case["verifications"] = [
+        {"verification_id": "v1", "evidence_id": "e1", "method": "Human"}
+    ]
+
+    assert assess_evidence(case)["aggregate"] == "E2"
 
 
 def test_numeric_conflict_requires_comparable_context_and_tolerance():

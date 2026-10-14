@@ -46,6 +46,7 @@ def _case(*, attestations=(), with_evidence: bool = False) -> dict:
                 "verification_id": "verification-1",
                 "evidence_id": "evidence-1",
                 "method": "Human",
+                "verifier": "test-reviewer",
             }
         ]
     return case

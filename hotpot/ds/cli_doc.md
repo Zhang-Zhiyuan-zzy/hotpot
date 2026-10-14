@@ -291,11 +291,40 @@ arguments:
 {
   "case_id": "case-0001",
   "target": "observation-0001",
-  "source": "https://doi.org/10.1000/example",
+  "source": "doi:10.1000/example",
   "relation": "supports",
-  "locator": "Table 2"
+  "locator": "Table 2",
+  "details": {
+    "source_lineage_id": "experiment:example"
+  }
 }
 ```
+
+The optional `details` object is deliberately closed. For
+`case.add_evidence`, it accepts `doi`, `url`, `scientific_work_id`,
+`source_lineage_id`, and `derived_from` (an array of lineage IDs). DOI and URL
+facts are inferred from `doi:...` and `url:...` source references. For
+`case.verify_evidence`, it accepts `procedure_version` and a timezone-aware
+`verified_at` timestamp:
+
+```json
+{
+  "case_id": "case-0001",
+  "evidence_id": "case-0001:evidence:...",
+  "method": "AI",
+  "verifier": "review-tool/current",
+  "details": {
+    "procedure_version": "primary-source-review/current",
+    "verified_at": "2026-10-14T01:30:00Z"
+  }
+}
+```
+
+When verification details are omitted, Hotpot records its current procedure
+identifier and the current UTC time. AI `verifier` values must identify the
+model/tool and its version. These facts are preserved in the Case source
+record and participate in synchronization and certification; they do not
+directly assign an evidence level.
 
 ### Inspect or edit Gates
 

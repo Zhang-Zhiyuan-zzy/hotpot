@@ -552,7 +552,7 @@ def _verification_is_valid(
     verification: Mapping[str, Any], evidence: Mapping[str, Any]
 ) -> bool:
     if verification.get("method") == "Human":
-        return True
+        return bool(verification.get("verifier"))
     return verification.get("method") == "AI" and all(
         verification.get(field)
         for field in ("verifier", "procedure_version", "verified_at")

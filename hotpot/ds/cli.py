@@ -505,8 +505,16 @@ _MUTATIONS = {
     "case.set_core_info": ({"case_id", "name", "value"}, {"reason"}, "set_core_info"),
     "case.replace_structure": ({"case_id", "structure_id", "data", "reason"}, set(), "replace_structure"),
     "case.add_observation": ({"case_id", "data"}, set(), "add_observation"),
-    "case.add_evidence": ({"case_id", "target", "source"}, {"relation", "locator", "note"}, "add_evidence"),
-    "case.verify_evidence": ({"case_id", "evidence_id", "method", "verifier"}, {"note"}, "verify_evidence"),
+    "case.add_evidence": (
+        {"case_id", "target", "source"},
+        {"relation", "locator", "note", "details"},
+        "add_evidence",
+    ),
+    "case.verify_evidence": (
+        {"case_id", "evidence_id", "method", "verifier"},
+        {"note", "details"},
+        "verify_evidence",
+    ),
     "case.attest_benchmark": ({"case_id", "approved", "authority", "actor"}, {"reason"}, "attest_benchmark"),
 }
 
@@ -526,6 +534,8 @@ def _validate_mutation(action: str, document: Mapping[str, Any]) -> None:
             raise ValueError(f"{action}.{name} must be a non-empty string")
     if "data" in document and not isinstance(document["data"], Mapping):
         raise ValueError(f"{action}.data must be a JSON object")
+    if "details" in document and not isinstance(document["details"], Mapping):
+        raise ValueError(f"{action}.details must be a JSON object")
     if action == "case.attest_benchmark":
         if type(document["approved"]) is not bool:
             raise ValueError("case.attest_benchmark.approved must be a boolean")

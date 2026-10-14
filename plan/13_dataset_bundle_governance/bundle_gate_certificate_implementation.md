@@ -437,6 +437,7 @@ hotpot.ds
 |  |      relation: str = "supports",
 |  |      locator: Optional[str] = None,
 |  |      note: Optional[str] = None,
+|  |      details: Optional[Mapping[str, Any]] = None,
 |  |  ) -> str
 |  |- case.verify_evidence(
 |  |      evidence_id: str,
@@ -444,6 +445,7 @@ hotpot.ds
 |  |      method: str,
 |  |      verifier: str,
 |  |      note: Optional[str] = None,
+|  |      details: Optional[Mapping[str, Any]] = None,
 |  |  ) -> str
 |  |- case.withdraw_verification(
 |  |      verification_id: str,
@@ -457,6 +459,7 @@ hotpot.ds
 |  |      reason: str,
 |  |      locator: Optional[str] = None,
 |  |      note: Optional[str] = None,
+|  |      details: Optional[Mapping[str, Any]] = None,
 |  |  ) -> str
 |  |- case.withdraw_evidence(
 |  |      evidence_id: str,
@@ -1339,6 +1342,7 @@ evidence_id = case.add_evidence(
     relation: str = "supports",
     locator: str | None = None,
     note: str | None = None,
+    details: Mapping[str, Any] | None = None,
 ) -> str
 ```
 
@@ -1354,7 +1358,11 @@ source:existing-source-id
 
 `relation` is one of `supports`, `contradicts`, or `context`. Local files must
 remain inside the Bundle root and are hashed automatically. Adding evidence
-does not mark it verified.
+does not mark it verified. `details` is a closed, optional provenance object;
+it accepts `doi`, `url`, `scientific_work_id`, `source_lineage_id`, and
+`derived_from`. Keeping these related facts in one object avoids a long public
+signature while making the primary-work and independent-lineage facts required
+for E3/E4 available to the Gate.
 
 Verification is a separate, auditable action:
 
@@ -1365,13 +1373,16 @@ verification_id = case.verify_evidence(
     method: str,       # "AI" or "Human"
     verifier: str,
     note: str | None = None,
+    details: Mapping[str, Any] | None = None,
 ) -> str
 ```
 
 AI verification metadata must include the model/tool and version in
 `verifier`; the event also records the current procedure version and time.
 Human verification records the reviewer's declared identity or stable local
-identifier.
+identifier. The closed verification `details` object accepts only
+`procedure_version` and timezone-aware `verified_at`; Hotpot supplies current
+values when they are omitted.
 
 An incorrect verification is withdrawn rather than edited:
 
@@ -1389,6 +1400,7 @@ new_id = case.replace_evidence(
     reason: str,
     locator: str | None = None,
     note: str | None = None,
+    details: Mapping[str, Any] | None = None,
 ) -> str
 
 case.withdraw_evidence(evidence_id: str, *, reason: str) -> None

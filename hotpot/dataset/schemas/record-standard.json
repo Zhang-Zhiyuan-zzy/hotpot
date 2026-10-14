@@ -1,319 +1,271 @@
 {
-  "assessor_version": "hotpot-ds-quality/current",
-  "asset_integrity_policy": "admission verifies local content under asset_root; remote assets must be mirrored locally",
-  "quality_level_scope": "dataset release or subset; data-level values are derived from applicable subsets",
-  "quality_levels": {
-    "B0_collection": {
-      "additional_artifacts": [],
-      "criteria": []
-    },
-    "B1_candidate": {
-      "additional_artifacts": [
-        "provenance_record",
-        "subject_mapping_report",
-        "task_definition"
-      ],
-      "criteria": [
-        "provenance_complete",
-        "subject_mapping_rule_audited"
-      ]
-    },
-    "B2_curated": {
-      "additional_artifacts": [
-        "review_report",
-        "review_coverage",
-        "accuracy_estimate",
-        "conflict_policy",
-        "family_group_key"
-      ],
-      "criteria": [
-        "provenance_complete",
-        "subject_mapping_rule_audited",
-        "domain_reviewed",
-        "all_records_reviewed",
-        "conflicts_resolved",
-        "family_groups_available",
-        "accuracy_estimate_available"
-      ]
-    },
-    "B3_validated": {
-      "additional_artifacts": [
-        "primary_source_review_report",
-        "independent_review_report",
-        "split_manifest",
-        "metric_definition",
-        "leakage_report",
-        "conditions_policy",
-        "uncertainty_policy"
-      ],
-      "criteria": [
-        "provenance_complete",
-        "subject_mapping_rule_audited",
-        "domain_reviewed",
-        "all_records_reviewed",
-        "conflicts_resolved",
-        "family_groups_available",
-        "accuracy_estimate_available",
-        "primary_source_supported_adjudication",
-        "dual_review",
-        "split_frozen",
-        "metric_frozen",
-        "leakage_audited",
-        "conditions_complete",
-        "uncertainty_policy_defined"
-      ]
-    },
-    "B4_reference": {
-      "additional_artifacts": [
-        "external_audit_report",
-        "corroboration_report",
-        "release_manifest_sha256"
-      ],
-      "criteria": [
-        "provenance_complete",
-        "subject_mapping_rule_audited",
-        "domain_reviewed",
-        "all_records_reviewed",
-        "conflicts_resolved",
-        "family_groups_available",
-        "accuracy_estimate_available",
-        "primary_source_supported_adjudication",
-        "dual_review",
-        "split_frozen",
-        "metric_frozen",
-        "leakage_audited",
-        "conditions_complete",
-        "uncertainty_policy_defined",
-        "external_audit",
-        "multi_source_corroboration",
-        "reproducible_fixed_release"
-      ]
-    }
+  "standard": "hotpot-dataset-information-fence/current",
+  "language": "en",
+  "scope": "One current-format Bundle contains one dataset release and the source facts needed for Case-level assessment, certification, and ingestion.",
+  "authoritative_schemas": {
+    "manifest": "hotpot/ds/schemas/bundle/manifest.schema.json",
+    "case": "hotpot/ds/schemas/bundle/case.schema.json",
+    "sqlite_intake": "hotpot/ds/schemas/bundle/sqlite-intake.sql"
   },
-  "builtin_property_types": [
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "range_is_not_a_validity_constraint": true,
-        "subject_kind": "metal_site_or_complex",
-        "typical_range_for_review": [
-          -5,
-          10
-        ]
-      },
-      "name": "Oxidation state",
-      "property_type_id": "oxidation_state",
-      "schema_version": "current",
-      "value_kind": "integer"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "subject_kind": "molecular_structure"
-      },
-      "name": "Molecular formal charge",
-      "property_type_id": "molecular_formal_charge",
-      "schema_version": "current",
-      "value_kind": "integer"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "subject_kind": "metal_site_or_complex"
-      },
-      "name": "Spin multiplicity (2S+1)",
-      "property_type_id": "spin_multiplicity",
-      "schema_version": "current",
-      "value_kind": "integer"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "allowed_values": [
-          "low_spin",
-          "intermediate_spin",
-          "high_spin"
-        ],
-        "subject_kind": "metal_site_or_complex"
-      },
-      "name": "Reported spin category",
-      "property_type_id": "spin_category",
-      "schema_version": "current",
-      "value_kind": "category"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "allowed_values": [
-          "spin_crossover",
-          "spin_transition",
-          "spin_switching"
-        ],
-        "condition_dependent": true,
-        "required_conditions": [
-          "stimulus",
-          "measurement_protocol"
-        ]
-      },
-      "name": "Spin-transition behavior",
-      "property_type_id": "spin_transition_behavior",
-      "schema_version": "current",
-      "value_kind": "category"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "claim_only_by_default": true
-      },
-      "name": "Unresolved spin-state text",
-      "property_type_id": "spin_state_text",
-      "schema_version": "current",
-      "value_kind": "text"
-    },
-    {
-      "canonical_unit": "kcal/mol",
-      "metadata": {
-        "required_conditions": [
-          "lower_spin_multiplicity",
-          "upper_spin_multiplicity",
-          "energy_definition"
-        ],
-        "sign_convention": "must be declared per observation"
-      },
-      "name": "Spin-state energy difference",
-      "property_type_id": "spin_energy_gap",
-      "schema_version": "current",
-      "value_kind": "real"
-    },
-    {
-      "canonical_unit": "K",
-      "metadata": {
-        "condition_dependent": true,
-        "required_conditions": [
-          "stimulus",
-          "measurement_protocol",
-          "branch"
-        ]
-      },
-      "name": "Spin-transition temperature",
-      "property_type_id": "spin_transition_temperature",
-      "schema_version": "current",
-      "value_kind": "real"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "required_conditions": [
-          "temperature",
-          "medium",
-          "ionic_strength",
-          "standard_state"
-        ],
-        "required_participant_roles": [
-          "complex"
-        ]
-      },
-      "name": "Stability constant",
-      "property_type_id": "stability_constant",
-      "schema_version": "current",
-      "value_kind": "real"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "log_base": 10,
-        "required_conditions": [
-          "temperature",
-          "medium",
-          "ionic_strength",
-          "standard_state"
-        ],
-        "required_participant_roles": [
-          "complex"
-        ]
-      },
-      "name": "Log stability constant",
-      "property_type_id": "log_stability_constant",
-      "schema_version": "current",
-      "value_kind": "real"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "required_conditions": [
-          "temperature",
-          "aqueous_phase",
-          "organic_phase",
-          "aqueous_pH"
-        ],
-        "required_participant_roles": [
-          "numerator_analyte",
-          "denominator_analyte"
-        ]
-      },
-      "name": "Separation factor",
-      "property_type_id": "separation_factor",
-      "schema_version": "current",
-      "value_kind": "real"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "required_conditions": [
-          "temperature",
-          "aqueous_phase",
-          "organic_phase",
-          "aqueous_pH"
-        ],
-        "required_participant_roles": [
-          "analyte"
-        ]
-      },
-      "name": "Distribution ratio",
-      "property_type_id": "distribution_ratio",
-      "schema_version": "current",
-      "value_kind": "real"
-    },
-    {
-      "canonical_unit": null,
-      "metadata": {
-        "axis_metadata_required": true
-      },
-      "name": "Spectrum",
-      "property_type_id": "spectrum",
-      "schema_version": "current",
-      "value_kind": "series_asset"
-    }
+  "principles": [
+    "Source facts and expert statements are preserved with provenance even when their support is weak.",
+    "Quality, evidence, archive class, and benchmark status are derived assessments, not source assignments.",
+    "Case identity, scientific sample identity, chemical entity identity, Structure identity, and Asset byte identity are separate.",
+    "One checkout implements one current format; Git carries history and the runtime has no compatibility mode.",
+    "Incomplete material can be retained explicitly without being presented as ordinary or benchmark data."
   ],
-  "certificate_attestation": "self_hashed_integrity_gate",
-  "certificate_limit": "certifies machine-checkable admission and declared support artifacts; does not independently establish scientific truth",
-  "claim_resolution_types": [
-    "accepted_as_observation",
-    "contradicted_by_observation",
-    "partially_resolved_by"
-  ],
-  "claim_statuses": [
-    "rejected",
-    "resolved",
-    "unresolved"
-  ],
-  "evidence_levels": [
-    "E0_insufficient",
-    "E1_extracted",
-    "E2_explicit_reported",
-    "E3_primary_source_supported",
-    "E4_independently_corroborated"
-  ],
-  "observation_statuses": [
-    "active",
-    "retracted",
-    "superseded"
-  ],
-  "record_standard_version": "hotpot-dataset/current",
-  "required_admission_flow": [
-    "load_bundle",
-    "write_certificate",
-    "store.ingest"
-  ],
-  "storage_requires_passing_certificate": true
+  "bundle_manifest": {
+    "schema_value": "hotpot-ds-bundle/current",
+    "required_fields": [
+      "schema",
+      "ds_name",
+      "release_id",
+      "version",
+      "title",
+      "description",
+      "license",
+      "access_policy",
+      "provenance",
+      "core_labels",
+      "core_info",
+      "intake",
+      "identity_schema",
+      "required_structure_roles"
+    ],
+    "optional_fields": [
+      "dataset_id",
+      "release_serial",
+      "property_definitions",
+      "property_comparators"
+    ],
+    "rules": [
+      "ds_name is required and dataset_id, when present, must equal ds_name.",
+      "core_labels and core_info are explicit lists and may be empty.",
+      "required_structure_roles is explicit and may be empty.",
+      "identity_schema contains only identity-bearing components; core_info is not automatically an identity key.",
+      "intake declares exactly one JSON Lines or SQLite Case source by a safe Bundle-relative path.",
+      "A Bundle represents exactly one release and binds one canonical target store."
+    ]
+  },
+  "case_facts": {
+    "required_intake_fields": [
+      "id",
+      "local_id"
+    ],
+    "canonical_identity_fields": [
+      "id",
+      "local_id",
+      "public_index"
+    ],
+    "mapping_fields": [
+      "identifiers",
+      "metadata",
+      "core_info"
+    ],
+    "fact_collections": {
+      "entities": "Each row has a unique entity_id within the Case.",
+      "structures": "Each row has a unique structure_id and declares its scientific role and available or expected representations.",
+      "observations": "Each row has a unique observation_id, one unambiguous property name, a value, and the context required by property policy.",
+      "claims": "Each row has a unique claim_id and preserves an attributable statement that need not yet be accepted as an observation.",
+      "evidence": "Each row has a unique evidence_id and links source material to one observation or claim target.",
+      "verifications": "Each row has a unique verification_id and records how linked evidence was checked.",
+      "attestations": "Each row has a unique attestation_id and records an attributable benchmark approval or rejection."
+    },
+    "source_claim_fields": [
+      "claimed_quality_level",
+      "claimed_evidence_level",
+      "claimed_archive_class",
+      "claimed_benchmark"
+    ],
+    "source_claim_rule": "Supplier or user classifications may be retained only as non-operative claims with provenance.",
+    "forbidden_operative_input_fields": [
+      "quality_level",
+      "evidence_level",
+      "archive_class",
+      "benchmark"
+    ],
+    "public_index_rule": "JSON Lines intake may omit public_index and receive its zero-based line order; SQLite intake supplies it explicitly. The canonical Case always persists it and filtering never renumbers it.",
+    "mutation_rule": "Facts are changed only through audited Bundle-owned Case methods; replacement or withdrawal preserves history and makes the Bundle unsynchronized."
+  },
+  "scientific_assets": {
+    "positive_declaration": [
+      "Use a safe Bundle-relative path for local bytes.",
+      "Declare format and an expected SHA-256 when known.",
+      "A Structure may declare several representations and roles without merging their Structure identities."
+    ],
+    "negative_declaration": [
+      "Name the expected path or URI and any expected digest even when bytes are unavailable.",
+      "Do not create placeholder or fabricated structure/evidence bytes.",
+      "Synchronization records missing, invalid, hash-mismatched, and remote-not-materialized states as assessed negative facts.",
+      "A certificate binds the negative state; only positively materialized assets are copied into target-owned content-addressed storage."
+    ],
+    "identity_rule": "Equal asset bytes permit deduplication only; they do not prove equal Case, sample, entity, or Structure identity."
+  },
+  "evidence_facts": {
+    "link_fields": [
+      "evidence_id",
+      "target",
+      "source",
+      "relation",
+      "locator"
+    ],
+    "primary_source_identifiers": [
+      "doi",
+      "scientific_work_id",
+      "url"
+    ],
+    "explicit_report_fields": [
+      "locator",
+      "quote",
+      "matched_text"
+    ],
+    "independence_fields": [
+      "source_lineage_id",
+      "derived_from"
+    ],
+    "rules": [
+      "Evidence is assessed for each active observation or claim target.",
+      "A source link alone proves neither primary-source verification nor independent corroboration.",
+      "Independent corroboration requires distinct scientific works and distinct primary result-lineage roots."
+    ]
+  },
+  "verification_facts": {
+    "required_fields": [
+      "verification_id",
+      "evidence_id",
+      "method",
+      "verifier"
+    ],
+    "methods": [
+      "AI",
+      "Human"
+    ],
+    "ai_assurance_fields": [
+      "procedure_version",
+      "verified_at"
+    ],
+    "rules": [
+      "Human verification is strong support when it checks an identified primary source and its relevant statement.",
+      "AI verification reaches primary-source support only when verifier, procedure_version, verified_at, and a checked source locator are present.",
+      "Verification is an auditable fact and does not directly assign an E level."
+    ]
+  },
+  "benchmark_attestation_facts": {
+    "required_fields": [
+      "attestation_id",
+      "approved",
+      "authority",
+      "actor"
+    ],
+    "authorities": [
+      "Hotpot",
+      "User",
+      "Other"
+    ],
+    "rules": [
+      "Public Case APIs may create User or Other attestations; effective Hotpot authority comes only from the trusted signed governance path.",
+      "One active Hotpot or User approval satisfies the default direct-entry check.",
+      "An active Hotpot or User rejection blocks default benchmark admission.",
+      "Other preserves an expert opinion but does not grant default direct entry.",
+      "Concurrent active approval and rejection is benchmark_attestation_disagreement, not a scientific value conflict.",
+      "signature_verified is derived trust state and is forbidden in ordinary Case input."
+    ]
+  },
+  "property_policy": {
+    "property_names": "Dataset-defined, extensible identifiers such as oxidation_state, spin_multiplicity, molecular_formal_charge, stability_constant, separation_factor, distribution_ratio, spectrum, or a structure-only collection.",
+    "definition_fields": [
+      "type",
+      "schema_version",
+      "unit",
+      "allowed_values",
+      "normalizer",
+      "context_fields"
+    ],
+    "value_types": [
+      "integer",
+      "real",
+      "category",
+      "text",
+      "boolean",
+      "json"
+    ],
+    "context_roots": [
+      "subject",
+      "site",
+      "phase",
+      "conditions",
+      "participants",
+      "method",
+      "branch"
+    ],
+    "comparator_fields": [
+      "kind",
+      "absolute_tolerance",
+      "relative_tolerance",
+      "use_uncertainty",
+      "unit_conversions"
+    ],
+    "comparator_kinds": [
+      "exact",
+      "numeric",
+      "categorical"
+    ],
+    "conflict_rule": [
+      "Cases must first match as the same sample under identity_schema.",
+      "Observations must name the same property and have comparable declared context, phase, participants, method, branch, units, and uncertainty semantics.",
+      "Only then may the configured comparator report a scientific_value_conflict."
+    ]
+  },
+  "gates": {
+    "EvidenceGate": "Derives target E levels and the conservative Case evidence aggregate from linked evidence and verification facts.",
+    "QualityGate": "Derives Case quality from provenance, completeness, subject mapping, structure checks, review, conflicts, evidence, validation controls, and reproducibility.",
+    "BenchmarkGate": "Controls benchmark admission through its checklist or direct-entry route while always applying incompleteness and enabled vetoes.",
+    "policy_ownership": "A new dataset may propose Gates. First ingestion persists them; later Bundles for that dataset must use the stored policy and cannot replace it."
+  },
+  "quality_levels": {
+    "scope": "CaseAssessment only; Dataset exposes a distribution, not one scalar grade.",
+    "B0": "Governed collection material; may be incomplete.",
+    "B1": "Traceable candidate with provenance and audited subject mapping.",
+    "B2": "Complete, reviewed, and conflict-adjudicated Case.",
+    "B3": "Primary-source-supported Case with configured validation and review controls.",
+    "B4": "Independently corroborated reference Case under reproducible policy."
+  },
+  "evidence_levels": {
+    "scope": "EvidenceAssessment is target-specific; CaseAssessment stores the minimum level across required targets, or null when no evidence-bearing target is required.",
+    "E0": "No usable linked support or an unresolved evidence-integrity failure.",
+    "E1": "Linked extracted material exists but the relevant statement is not verified.",
+    "E2": "The linked source explicitly reports the target and supplies a usable locator or matched text.",
+    "E3": "The relevant statement is verified against an identified primary source.",
+    "E4": "At least two independent primary result lineages corroborate the target under E3 conditions."
+  },
+  "archive_classes": {
+    "incomplete": "Missing required core label/info, missing or invalid required Structure, or significant unresolved scientific value conflict.",
+    "ordinary": "Complete and archivable but not admitted by BenchmarkGate.",
+    "benchmark": "Complete, archivable, and admitted by BenchmarkGate.",
+    "visibility": "Normal persisted queries include ordinary and benchmark and exclude incomplete unless explicitly requested."
+  },
+  "assessment_and_audit": {
+    "source_authority": "bundle.json plus canonical cases/facts.sqlite3 and referenced scientific assets.",
+    "derived_authority": "One immutable assessment generation produced only by Bundle.synchronize().",
+    "audit_rule": "Every Case or new-dataset Gate edit appends an event, advances a revision, makes derived results unavailable as current, and makes any certificate stale.",
+    "separation_rule": "Synchronization assesses; certification serializes and verifies; ingestion publishes. None implicitly performs an earlier step."
+  },
+  "certificate_and_storage": {
+    "certificate_path": "<bundle-root>/certificate.json",
+    "certificate_requires": "A complete synchronized generation.",
+    "certificate_binds": [
+      "release manifest and canonical facts digest",
+      "source, policy, and governance revisions and digests",
+      "Gate and checker policy artifacts",
+      "complete assessment-generation manifest and summary",
+      "positive and negative scientific-asset inventory",
+      "canonical target-store precondition"
+    ],
+    "certificate_limit": "The certificate proves current machine-checkable integrity and recorded assessment results; it does not independently establish scientific truth, expert identity, or redistribution rights.",
+    "ingestion_api": "Bundle.ingest(include_incomplete=False, reason=None)",
+    "ingestion_requires": "A current root certificate and the exact bound synchronized Bundle and target context.",
+    "incomplete_ingestion": "Including incomplete Cases requires explicit opt-in and a non-empty reason; they remain in a separate archive class.",
+    "target": "The current SQLite target stores canonical facts, policy, assessment headers, indexes, and one authoritative receipt; positive assets are copied to adjacent content-addressed storage.",
+    "release_rule": "Successful ingestion seals the release. Corrections create a successor release rather than modifying the published release in place."
+  }
 }

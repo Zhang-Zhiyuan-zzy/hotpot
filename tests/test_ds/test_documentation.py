@@ -1,4 +1,5 @@
 import json
+import re
 import sqlite3
 from pathlib import Path
 
@@ -9,6 +10,9 @@ ROOT = Path(__file__).resolve().parents[2]
 API_DOCUMENTATION = ROOT / "hotpot" / "ds" / "README.md"
 CLI_DOCUMENTATION = ROOT / "hotpot" / "ds" / "cli_doc.md"
 DATASET_DOCUMENTATION = ROOT / "hotpot" / "dataset" / "README.md"
+RECORD_STANDARD = (
+    ROOT / "hotpot" / "dataset" / "schemas" / "record-standard.json"
+)
 PUBLIC_API = [
     "datasets_list",
     "load",
@@ -118,3 +122,87 @@ def test_documentation_uses_the_canonical_dataset_namespace() -> None:
         assert "datasets/database/" not in text
         assert "benchmark/database/" not in text
         assert "hotpot.benchmark_data" not in text
+
+
+def test_record_standard_is_the_current_case_level_information_fence() -> None:
+    standard = json.loads(RECORD_STANDARD.read_text(encoding="utf-8"))
+    serialized = json.dumps(standard, ensure_ascii=False, sort_keys=True)
+    manifest_schema = json.loads(
+        (
+            ROOT / "hotpot" / "ds" / "schemas" / "bundle" / "manifest.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    case_schema = json.loads(
+        (
+            ROOT / "hotpot" / "ds" / "schemas" / "bundle" / "case.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert standard["standard"] == "hotpot-dataset-information-fence/current"
+    assert set(standard["bundle_manifest"]["required_fields"]) == set(
+        manifest_schema["required"]
+    )
+    assert set(standard["bundle_manifest"]["optional_fields"]) == (
+        set(manifest_schema["properties"]) - set(manifest_schema["required"])
+    )
+    assert set(standard["case_facts"]["required_intake_fields"]) == set(
+        case_schema["required"]
+    )
+    assert set(standard["property_policy"]["definition_fields"]) == set(
+        manifest_schema["$defs"]["propertyDefinition"]["properties"]
+    )
+    assert set(standard["property_policy"]["comparator_fields"]) == set(
+        manifest_schema["$defs"]["propertyComparator"]["properties"]
+    )
+    assert set(standard["quality_levels"]) == {
+        "scope",
+        "B0",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+    }
+    assert set(standard["evidence_levels"]) == {
+        "scope",
+        "E0",
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+    }
+    assert set(standard["archive_classes"]) == {
+        "incomplete",
+        "ordinary",
+        "benchmark",
+        "visibility",
+    }
+    assert set(standard["gates"]) >= {
+        "EvidenceGate",
+        "QualityGate",
+        "BenchmarkGate",
+    }
+    assert set(standard["case_facts"]["forbidden_operative_input_fields"]) == {
+        "quality_level",
+        "evidence_level",
+        "archive_class",
+        "benchmark",
+    }
+    assert "public_index" in standard["case_facts"]["canonical_identity_fields"]
+    assert standard["certificate_and_storage"]["ingestion_api"].startswith(
+        "Bundle.ingest("
+    )
+    assert "negative_declaration" in standard["scientific_assets"]
+    assert "property_comparators" in standard["bundle_manifest"]["optional_fields"]
+
+    assert re.search(r"\b[BE][0-4]_[A-Za-z]", serialized) is None
+    for obsolete in (
+        "Certificate.Configure",
+        "submission",
+        "store.ingest",
+        "assessor_version",
+        "required_admission_flow",
+        "quality_level_scope",
+        "release_quality_level",
+        "release_evidence_level",
+    ):
+        assert obsolete not in serialized

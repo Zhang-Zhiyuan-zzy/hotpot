@@ -1,0 +1,164 @@
+# Stage 13 implementation log
+
+## Recording policy
+
+This log is updated during implementation, not reconstructed afterward. Each
+step records:
+
+- the planned result;
+- the work actually performed;
+- verification evidence;
+- unexpected findings;
+- whether the implementation plan required an adjustment and why; and
+- the commit and push checkpoint that published the work.
+
+Only Stage 13 files are staged. Pre-existing changes under `plan/12_xtb_workflow`
+and `plan/README.md` are outside this implementation and remain untouched.
+
+## Baseline
+
+| Item | Result |
+| --- | --- |
+| Date | 2026-10-14 |
+| Working branch | `refactor/unified-dataset-management` |
+| Starting commit | `8142cf1` |
+| Remote | `origin/refactor/unified-dataset-management` |
+| Baseline ds test command | `python -m pytest -q tests/test_ds` |
+| Baseline result | `104 passed in 84.27s` |
+
+The existing branch already isolates the unified dataset-management work and is
+tracking the corresponding GitHub branch. Creating another branch would split
+one logical refactor without improving rollback or review, so implementation
+continues on this branch.
+
+An initial plain `pytest` invocation resolved the user-level executable under a
+different Python installation and failed before collection because that
+interpreter lacked RDKit. The active project interpreter is selected reliably
+with `python -m pytest`; this is an execution-environment correction, not a
+product or test-plan relaxation.
+
+## Step record
+
+### Step 0 — Freeze the reviewed specification
+
+Status: complete
+
+Planned:
+
+- freeze the Bundle/Gate/certificate design before implementation;
+- keep the public facade small; and
+- obtain independent reviews of state, scientific identity, CLI, scale, and
+  security semantics.
+
+Performed:
+
+- completed `bundle_gate_certificate_implementation.md` and the Stage 13
+  overview;
+- resolved all blocking findings from three independent read-only reviews; and
+- verified English-only formal documentation, balanced Markdown fences,
+  non-duplicated headings, and valid local links.
+
+Adjustment:
+
+- the reviewed design added explicit build/load separation, deterministic
+  conflict candidates, a certificate-bound governance registry, idempotent
+  ingestion receipts, sealed-release behavior, and generation GC. These changes
+  were mandatory because the earlier design could not guarantee reproducible
+  trust decisions, crash-safe publication, or unambiguous release ownership.
+
+### Step 1 — Establish the executable baseline
+
+Status: complete
+
+Planned:
+
+- run the complete current `tests/test_ds` suite before changing behavior.
+
+Performed:
+
+- ran `python -m pytest -q tests/test_ds`;
+- confirmed all 104 existing dataset tests pass.
+
+Unexpected finding:
+
+- the shell-level `pytest` executable used the wrong interpreter. The command
+  was corrected to `python -m pytest`; no dependency or test was skipped.
+
+Adjustment: none to product design.
+
+### Step 2 — Map implementation boundaries
+
+Status: complete
+
+Planned:
+
+- map the current API, storage, CLI, protocol, and tests to the Stage 13 phases;
+- sequence changes so every commit has focused verification.
+
+Execution batches:
+
+1. current schemas, Gate contracts, canonical Bundle facts, and returned Case
+   objects;
+2. deterministic synchronization, evidence/quality/benchmark assessment, and
+   immutable generations;
+3. certificate round trip, ingestion receipt, sealed release, and database
+   projections;
+4. public query API integration and current-version schema rebuild;
+5. CLI build/status/get/set/gate/synchronize/certify/ingest and the closed stdio
+   contract;
+6. migration tools, formal documentation, API/CLI integration tests, and final
+   report.
+
+No compatibility implementation will be added. Tests that describe superseded
+behavior will be replaced in the same commit as the corresponding current API.
+
+Performed:
+
+- audited the public API/model, CLI/protocol, and target storage independently;
+- mapped every superseded entry point to its current replacement;
+- measured the managed store before designing migration: 252,665 records,
+  594,631 entities, 201,501 observations, 69,596 claims, and 277,072 evidence
+  items in an approximately 1.136 GB SQLite database;
+- confirmed that 2,185 of 2,280 stored structure assets are shared between the
+  oxidation and spin datasets; and
+- identified the test slices and the 3–5-step push boundaries used below.
+
+Unexpected findings:
+
+1. The existing schema gives `coordinate_hash` a uniqueness constraint and the
+   concise importer derives structure and entity identity from the same asset
+   digest. That proves byte reuse, not scientific identity.
+2. Existing ingestion leaves scientific files owned by the caller's source
+   path. A sealed release could therefore lose its structures after a Bundle
+   folder is moved or deleted.
+3. Referencing an external CLI payload schema by path alone does not bind its
+   content to `protocol_sha256`.
+4. The reviewed CLI prose named Gate concepts but did not yet freeze all
+   add/remove flags, Case-selection flags, zero-threshold evidence behavior, or
+   the parent-option layout.
+5. Existing import and synchronization paths fully materialize large tuples or
+   lists. This is unacceptable for the measured 252,665-record store.
+
+Necessary plan adjustments and final decisions:
+
+- one Bundle now represents exactly one release; multi-release intake is split
+  before build. This removes ambiguity in sealing, receipts, and stable IDs;
+- ingestion streams local assets to a target-owned SHA-256 object area and
+  stores only derived class indexes over one fact copy. This is required for
+  durable releases without confusing byte equality with scientific identity;
+- the CLI map records and verifies each payload schema SHA-256, so the protocol
+  fingerprint covers its complete validation contract;
+- Gate mutation flags, `bundle get cases` flags, `-e 0` semantics, and Bundle
+  locator option placement are now closed in the plan; and
+- synchronization, migration, and ingestion must stream/iterate rows rather
+  than materializing the managed dataset.
+
+These adjustments refine implementation boundaries without changing the
+owner-confirmed scientific or governance model. They are mandatory correctness
+constraints, not optional compatibility behavior.
+
+## Push checkpoints
+
+| Checkpoint | Included steps | Commit range | Verification | Push result |
+| --- | --- | --- | --- | --- |
+| 1 | Specification, baseline, implementation mapping | pending | `104 passed` baseline | pending |

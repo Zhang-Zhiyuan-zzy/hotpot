@@ -1,3 +1,4 @@
+from hotpot.ds.gates import BenchmarkGate
 from hotpot.ds.public._assessment import (
     assess_case,
     assess_evidence,
@@ -101,10 +102,7 @@ def test_incomplete_vetoes_direct_user_benchmark_approval():
         required_structure_roles=["reported"],
         asset_assessments=[],
         conflicting=False,
-        benchmark_policy={
-            "checklist": {"verified_primary_source": True, "conflict_free": True},
-            "structure_checks": {},
-        },
+        benchmark_policy=BenchmarkGate().info,
     )
     assert result["archive_class"] == "incomplete"
     assert not result["benchmark"]
@@ -127,10 +125,7 @@ def test_user_approval_alone_admits_complete_case():
         required_structure_roles=[],
         asset_assessments=[],
         conflicting=False,
-        benchmark_policy={
-            "checklist": {"verified_primary_source": True, "conflict_free": True},
-            "structure_checks": {},
-        },
+        benchmark_policy=BenchmarkGate().info,
     )
     assert result["archive_class"] == "benchmark"
     assert result["benchmark_status"] == "admitted"

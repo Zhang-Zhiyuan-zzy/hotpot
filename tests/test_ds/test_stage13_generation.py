@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,11 @@ from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
 from hotpot.ds.public._generation import (
     AssessmentGeneration,
     GenerationIntegrityError,
+    _assess_conflicts,
+    _initialize_assessment_database,
+    _initialize_work_database,
 )
+from hotpot.ds.public._assessment import canonical_json, compare_observations
 
 
 def _policy() -> dict:
@@ -331,3 +336,165 @@ def test_hotpot_authority_is_verified_on_a_derived_copy_only(tmp_path: Path) -> 
     assert "signature_verified" not in state.get_case("claimed-hotpot")[
         "attestations"
     ][0]
+
+
+def _conflict_databases() -> tuple[sqlite3.Connection, sqlite3.Connection]:
+    assessment = sqlite3.connect(":memory:")
+    work = sqlite3.connect(":memory:")
+    _initialize_assessment_database(assessment)
+    _initialize_work_database(work)
+    return assessment, work
+
+
+def _insert_candidate(
+    work: sqlite3.Connection,
+    case_id: str,
+    observation_id: str,
+    value: object,
+) -> dict:
+    observation = {
+        "observation_id": observation_id,
+        "property": "spin",
+        "value": value,
+    }
+    work.execute(
+        "INSERT INTO candidates VALUES (?,?,?,?,?)",
+        ("sample", "spin", case_id, observation_id, canonical_json(observation)),
+    )
+    return observation
+
+
+def test_streamed_conflicts_preserve_pair_order_digest_and_case_links() -> None:
+    assessment, work = _conflict_databases()
+    rows = [
+        ("case-b", "observation-2", "low"),
+        ("case-a", "observation-2", "high"),
+        ("case-a", "observation-1", "low"),
+        ("case-c", "observation-1", "low"),
+    ]
+    observations = {
+        (case_id, observation_id): _insert_candidate(
+            work, case_id, observation_id, value
+        )
+        for case_id, observation_id, value in rows
+    }
+
+    _assess_conflicts(assessment, work, {})
+
+    ordered_rows = sorted(observations)
+    ordered_digest = hashlib.sha256()
+    expected_exceptions = []
+    consistent = 0
+    for left_index, left_key in enumerate(ordered_rows):
+        for right_key in ordered_rows[left_index + 1 :]:
+            result = compare_observations(
+                observations[left_key], observations[right_key], {}
+            )
+            pair = {
+                "sample_key": "sample",
+                "property_key": "spin",
+                "left_case_id": left_key[0],
+                "right_case_id": right_key[0],
+                "left_observation_id": left_key[1],
+                "right_observation_id": right_key[1],
+                **result,
+            }
+            encoded = canonical_json(pair).encode("utf-8")
+            ordered_digest.update(len(encoded).to_bytes(8, "big"))
+            ordered_digest.update(encoded)
+            if result["outcome"] == "consistent":
+                consistent += 1
+            else:
+                expected_exceptions.append(pair)
+
+    group = json.loads(
+        assessment.execute(
+            "SELECT assessment_json FROM conflict_groups"
+        ).fetchone()[0]
+    )
+    assert group == {
+        "sample_key": "sample",
+        "property_key": "spin",
+        "candidate_count": 6,
+        "consistent_count": consistent,
+        "exception_count": len(expected_exceptions),
+        "ordered_results_digest": ordered_digest.hexdigest(),
+    }
+    observed_exceptions = [
+        json.loads(row[0])
+        for row in assessment.execute(
+            "SELECT assessment_json FROM conflict_assessments ORDER BY conflict_id"
+        )
+    ]
+    assert observed_exceptions == sorted(
+        expected_exceptions,
+        key=lambda pair: "conflict-"
+        + hashlib.sha256(canonical_json(pair).encode("utf-8")).hexdigest()[:32],
+    )
+    expected_links = sum(
+        len({pair["left_case_id"], pair["right_case_id"]})
+        for pair in expected_exceptions
+    )
+    assert assessment.execute(
+        "SELECT count(*) FROM conflict_case_links"
+    ).fetchone()[0] == expected_links
+
+
+def test_large_conflict_group_is_streamed_and_case_lookup_uses_primary_index() -> None:
+    assessment, work = _conflict_databases()
+    size = 256
+    for index in range(size):
+        _insert_candidate(
+            work,
+            f"case-{index:04d}",
+            f"observation-{index:04d}",
+            "same-value",
+        )
+
+    _assess_conflicts(assessment, work, {})
+
+    group = json.loads(
+        assessment.execute(
+            "SELECT assessment_json FROM conflict_groups"
+        ).fetchone()[0]
+    )
+    assert group["candidate_count"] == size * (size - 1) // 2
+    assert group["consistent_count"] == group["candidate_count"]
+    assert group["exception_count"] == 0
+    assert assessment.execute(
+        "SELECT count(*) FROM conflict_assessments"
+    ).fetchone()[0] == 0
+
+    candidate_plan = " ".join(
+        row[3]
+        for row in work.execute(
+            """
+            EXPLAIN QUERY PLAN
+            SELECT case_id,observation_id,observation_json
+            FROM candidates
+            WHERE sample_key=? AND property_key=?
+              AND (case_id,observation_id)>(?,?)
+            ORDER BY case_id,observation_id
+            """,
+            ("sample", "spin", "case-0000", "observation-0000"),
+        )
+    )
+    assert "PRIMARY KEY" in candidate_plan
+    assert "sample_key=? AND property_key=?" in candidate_plan
+
+    case_lookup_plan = " ".join(
+        row[3]
+        for row in assessment.execute(
+            """
+            EXPLAIN QUERY PLAN
+            SELECT conflict_assessments.assessment_json
+            FROM conflict_case_links
+            JOIN conflict_assessments USING(conflict_id)
+            WHERE conflict_case_links.case_id=?
+            ORDER BY conflict_case_links.conflict_id
+            """,
+            ("case-0000",),
+        )
+    )
+    assert "conflict_case_links" in case_lookup_plan
+    assert "case_id=?" in case_lookup_plan

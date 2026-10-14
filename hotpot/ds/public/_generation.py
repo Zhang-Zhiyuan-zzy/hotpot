@@ -184,29 +184,14 @@ def _gate_info(policy: Mapping[str, Any], gate_name: str) -> Dict[str, Any]:
     return _json_copy(direct) if isinstance(direct, Mapping) else {}
 
 
-def _enabled_checks(value: Any) -> Dict[str, bool]:
-    if not isinstance(value, Mapping):
-        return {}
-    enabled = {}
-    for name, setting in value.items():
-        if isinstance(setting, Mapping):
-            enabled[str(name)] = bool(setting.get("enabled", True))
-        else:
-            enabled[str(name)] = setting is not False
-    return enabled
-
-
-def _assessment_policy(policy: Mapping[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    benchmark = _gate_info(policy, "BenchmarkGate")
+def _assessment_policy(
+    policy: Mapping[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    evidence = _gate_info(policy, "EvidenceGate")
     quality = _gate_info(policy, "QualityGate")
-    benchmark_policy = {
-        "checklist": _enabled_checks(benchmark.get("checklist", {})),
-        "direct_entry": _enabled_checks(benchmark.get("direct_entry", {})),
-        "vetoes": list(benchmark.get("vetoes", ())),
-        "numeric_tolerances": _json_copy(benchmark.get("numeric_tolerances", {})),
-        "structure_checks": _enabled_checks(quality.get("structure_checks", {})),
-    }
-    return benchmark_policy, benchmark_policy["numeric_tolerances"]
+    benchmark = _gate_info(policy, "BenchmarkGate")
+    tolerances = _json_copy(benchmark.get("numeric_tolerances", {}))
+    return evidence, quality, benchmark, tolerances
 
 
 def _expected_sha256(*values: Mapping[str, Any]) -> Optional[str]:
@@ -441,6 +426,13 @@ def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
             assessment_json TEXT NOT NULL
         ) WITHOUT ROWID;
 
+        CREATE TABLE conflict_case_links(
+            case_id TEXT NOT NULL,
+            conflict_id TEXT NOT NULL,
+            PRIMARY KEY(case_id, conflict_id),
+            FOREIGN KEY(conflict_id) REFERENCES conflict_assessments(conflict_id)
+        ) WITHOUT ROWID;
+
         CREATE TABLE conflict_groups(
             group_id TEXT PRIMARY KEY,
             sample_key TEXT NOT NULL,
@@ -544,34 +536,49 @@ def _assess_conflicts(
         "ORDER BY sample_key,property_key"
     )
     for sample_key, property_key in groups:
-        rows = list(
-            work.execute(
-                """
-                SELECT case_id,observation_id,observation_json FROM candidates
-                WHERE sample_key=? AND property_key=?
-                ORDER BY case_id,observation_id
-                """,
-                (sample_key, property_key),
-            )
+        left_candidates = work.execute(
+            """
+            SELECT case_id,observation_id,observation_json
+            FROM candidates
+            WHERE sample_key=? AND property_key=?
+            ORDER BY case_id,observation_id
+            """,
+            (sample_key, property_key),
         )
         candidate_count = 0
         consistent_count = 0
         exception_count = 0
         ordered = hashlib.sha256()
-        for left_index, left_row in enumerate(rows):
-            for right_row in rows[left_index + 1 :]:
-                left = json.loads(left_row[2])
-                right = json.loads(right_row[2])
-                result = compare_observations(left, right, tolerances)
+        for left_case_id, left_observation_id, left_json in left_candidates:
+            left = json.loads(left_json)
+            right_candidates = work.execute(
+                """
+                SELECT case_id,observation_id,observation_json
+                FROM candidates
+                WHERE sample_key=? AND property_key=?
+                  AND (case_id,observation_id)>(?,?)
+                ORDER BY case_id,observation_id
+                """,
+                (
+                    sample_key,
+                    property_key,
+                    left_case_id,
+                    left_observation_id,
+                ),
+            )
+            for right_case_id, right_observation_id, right_json in right_candidates:
+                result = compare_observations(
+                    left, json.loads(right_json), tolerances
+                )
                 if result["outcome"] == "noncandidate":
                     continue
                 pair = {
                     "sample_key": sample_key,
                     "property_key": property_key,
-                    "left_case_id": left_row[0],
-                    "right_case_id": right_row[0],
-                    "left_observation_id": left_row[1],
-                    "right_observation_id": right_row[1],
+                    "left_case_id": left_case_id,
+                    "right_case_id": right_case_id,
+                    "left_observation_id": left_observation_id,
+                    "right_observation_id": right_observation_id,
                     **result,
                 }
                 encoded = _canonical_bytes(pair)
@@ -594,20 +601,25 @@ def _assess_conflicts(
                         conflict_id,
                         sample_key,
                         property_key,
-                        left_row[0],
-                        right_row[0],
+                        left_case_id,
+                        right_case_id,
                         result["outcome"],
                         canonical_json(pair),
                     ),
                 )
+                for case_id in dict.fromkeys((left_case_id, right_case_id)):
+                    assessment.execute(
+                        "INSERT INTO conflict_case_links(case_id,conflict_id) VALUES (?,?)",
+                        (case_id, conflict_id),
+                    )
                 if result["outcome"] == "conflict":
                     work.execute(
                         "INSERT OR IGNORE INTO conflicting_cases(case_id) VALUES (?)",
-                        (left_row[0],),
+                        (left_case_id,),
                     )
                     work.execute(
                         "INSERT OR IGNORE INTO conflicting_cases(case_id) VALUES (?)",
-                        (right_row[0],),
+                        (right_case_id,),
                     )
         group = {
             "sample_key": sample_key,
@@ -635,8 +647,11 @@ def _assess_cases(
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     manifest: Mapping[str, Any],
+    evidence_policy: Mapping[str, Any],
+    quality_policy: Mapping[str, Any],
     benchmark_policy: Mapping[str, Any],
     governance_registry: Any,
+    isolated_runner: Optional[Any],
 ) -> None:
     for source_case in state.iter_cases():
         case, governance_assessments = _case_with_verified_attestations(
@@ -655,11 +670,13 @@ def _assess_cases(
             json.loads(row[0])
             for row in assessment.execute(
                 """
-                SELECT assessment_json FROM conflict_assessments
-                WHERE left_case_id=? OR right_case_id=?
-                ORDER BY conflict_id
+                SELECT conflict_assessments.assessment_json
+                FROM conflict_case_links
+                JOIN conflict_assessments USING(conflict_id)
+                WHERE conflict_case_links.case_id=?
+                ORDER BY conflict_case_links.conflict_id
                 """,
-                (case_id, case_id),
+                (case_id,),
             )
         ]
         identity_reasons = json.loads(
@@ -682,6 +699,25 @@ def _assess_cases(
             asset_assessments=assets,
             conflicting=conflicting,
             benchmark_policy=benchmark_policy,
+            evidence_policy=evidence_policy,
+            quality_policy=quality_policy,
+            conflict_assessments=conflict_rows,
+            checker_context={
+                "dataset": {
+                    "ds_name": manifest["ds_name"],
+                    "release_id": manifest["release_id"],
+                    "version": manifest["version"],
+                },
+                "required": {
+                    "core_labels": manifest["core_labels"],
+                    "core_info": manifest["core_info"],
+                    "structure_roles": manifest["required_structure_roles"],
+                },
+                "identity": {"reasons": identity_reasons},
+                "conflicts": conflict_rows,
+                "assets": assets,
+            },
+            isolated_runner=isolated_runner,
         )
         result["input_digest"] = canonical_digest(source_case)
         result["asset_assessments"] = assets
@@ -757,6 +793,22 @@ def _inventory(directory: Path) -> list[Dict[str, Any]]:
     return result
 
 
+def _write_archive_index(path: Path, rows: Iterator[Sequence[Any]]) -> None:
+    with path.open("wb") as stream:
+        for row in rows:
+            stream.write(f"{row[0]}\n".encode("utf-8"))
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def _archive_index_matches(path: Path, rows: Iterator[Sequence[Any]]) -> bool:
+    with path.open("r", encoding="utf-8") as stream:
+        for row in rows:
+            if stream.readline() != f"{row[0]}\n":
+                return False
+        return stream.readline() == ""
+
+
 def _logical_manifest(manifest: Mapping[str, Any]) -> Dict[str, Any]:
     return {
         key: _json_copy(manifest[key])
@@ -791,6 +843,8 @@ class AssessmentGeneration:
         state: BundleState,
         policy: Mapping[str, Any],
         governance_registry: Mapping[str, Any],
+        *,
+        isolated_runner: Optional[Any] = None,
     ) -> "AssessmentGeneration":
         bundle_root = Path(root).resolve()
         if bundle_root != state.root:
@@ -815,7 +869,9 @@ class AssessmentGeneration:
         registry_digest = verified_registry.digest
         manifest = state.manifest
         identity_schema = _identity_schema(manifest)
-        benchmark_policy, tolerances = _assessment_policy(policy_value)
+        evidence_policy, quality_policy, benchmark_policy, tolerances = (
+            _assessment_policy(policy_value)
+        )
 
         generations = bundle_root / "assessments" / "generations"
         generations.mkdir(parents=True, exist_ok=True)
@@ -843,8 +899,11 @@ class AssessmentGeneration:
                     assessment,
                     work,
                     manifest,
+                    evidence_policy,
+                    quality_policy,
                     benchmark_policy,
                     verified_registry,
+                    isolated_runner,
                 )
                 for key, value in (
                     ("source_revision", status["source_revision"]),
@@ -880,16 +939,14 @@ class AssessmentGeneration:
             )
             for archive_class in _ARCHIVE_CLASSES:
                 with sqlite3.connect(assessment_path) as connection:
-                    identifiers = [
-                        row[0]
-                        for row in connection.execute(
+                    _write_archive_index(
+                        temporary / f"{archive_class}.ids",
+                        connection.execute(
                             "SELECT case_id FROM case_assessments "
                             "WHERE archive_class=? ORDER BY public_index,case_id",
                             (archive_class,),
-                        )
-                    ]
-                encoded = "".join(f"{case_id}\n" for case_id in identifiers).encode("utf-8")
-                _write_fsynced(temporary / f"{archive_class}.ids", encoded)
+                        ),
+                    )
 
             files = _inventory(temporary)
             generation_manifest = {
@@ -1063,18 +1120,14 @@ class AssessmentGeneration:
             if summary != computed_summary or canonical_digest(summary) != manifest["summary_digest"]:
                 raise GenerationIntegrityError("generation summary does not match assessments")
             for archive_class in _ARCHIVE_CLASSES:
-                expected_ids = [
-                    row[0]
-                    for row in connection.execute(
+                if not _archive_index_matches(
+                    directory / f"{archive_class}.ids",
+                    connection.execute(
                         "SELECT case_id FROM case_assessments "
                         "WHERE archive_class=? ORDER BY public_index,case_id",
                         (archive_class,),
-                    )
-                ]
-                actual_ids = (directory / f"{archive_class}.ids").read_text(
-                    encoding="utf-8"
-                ).splitlines()
-                if actual_ids != expected_ids:
+                    ),
+                ):
                     raise GenerationIntegrityError(
                         f"{archive_class} index does not match assessments"
                     )

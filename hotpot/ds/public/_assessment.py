@@ -11,11 +11,102 @@ import hashlib
 import json
 from collections import Counter, defaultdict
 from copy import deepcopy
+from functools import lru_cache
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
+
+from ..gates._checker import (
+    CheckerIsolationUnavailableError,
+    _CheckerDefinition,
+    evaluate_configured_check,
+)
 
 
 B_LEVELS = tuple(f"B{index}" for index in range(5))
 E_LEVELS = tuple(f"E{index}" for index in range(5))
+
+_DEFAULT_EVIDENCE_CHECKS = {
+    name: {"kind": "builtin", "enabled": True}
+    for name in (
+        "extracted_material",
+        "explicit_report",
+        "usable_locator",
+        "primary_source_verified",
+        "independent_corroboration",
+    )
+}
+_DEFAULT_EVIDENCE_LEVELS = {
+    "E0": (),
+    "E1": ("extracted_material",),
+    "E2": ("extracted_material", "explicit_report", "usable_locator"),
+    "E3": (
+        "extracted_material",
+        "explicit_report",
+        "usable_locator",
+        "primary_source_verified",
+    ),
+    "E4": (
+        "extracted_material",
+        "explicit_report",
+        "usable_locator",
+        "primary_source_verified",
+        "independent_corroboration",
+    ),
+}
+_DEFAULT_QUALITY_CHECKS = {
+    name: {"kind": "builtin", "enabled": True}
+    for name in (
+        "governed_collection",
+        "provenance_complete",
+        "subject_mapping_audited",
+        "case_complete",
+        "reviewed",
+        "conflict_adjudicated",
+        "primary_source_supported",
+        "validation_controls",
+        "independent_corroboration",
+        "reproducible_policy",
+    )
+}
+_DEFAULT_QUALITY_LEVELS = {
+    "B0": (),
+    "B1": ("provenance_complete", "subject_mapping_audited"),
+    "B2": (
+        "provenance_complete",
+        "subject_mapping_audited",
+        "case_complete",
+        "reviewed",
+        "conflict_adjudicated",
+    ),
+    "B3": (
+        "provenance_complete",
+        "subject_mapping_audited",
+        "case_complete",
+        "reviewed",
+        "conflict_adjudicated",
+        "primary_source_supported",
+        "validation_controls",
+    ),
+    "B4": (
+        "provenance_complete",
+        "subject_mapping_audited",
+        "case_complete",
+        "reviewed",
+        "conflict_adjudicated",
+        "primary_source_supported",
+        "validation_controls",
+        "independent_corroboration",
+        "reproducible_policy",
+    ),
+}
+_DEFAULT_STRUCTURE_CHECKS = {
+    name: {"kind": "builtin", "enabled": True}
+    for name in (
+        "asset_available",
+        "asset_hash_valid",
+        "asset_parseable",
+        "declared_role_valid",
+    )
+}
 
 
 def canonical_json(value: Any) -> str:
@@ -45,10 +136,114 @@ def _target_id(row: Mapping[str, Any], kind: str, offset: int) -> str:
     return str(row.get(f"{kind}_id") or f"{kind}:{offset}")
 
 
+@lru_cache(maxsize=128)
+def _definition_from_json(encoded: str) -> _CheckerDefinition:
+    return _CheckerDefinition.from_info(json.loads(encoded))
+
+
+def _definition(value: Any) -> _CheckerDefinition:
+    return _definition_from_json(canonical_json(value))
+
+
+def _configured_checks(
+    configured: Mapping[str, Any],
+    builtin_results: Mapping[str, Tuple[bool, str]],
+    case: Mapping[str, Any],
+    checker_context: Mapping[str, Any],
+    isolated_runner: Optional[Any],
+) -> Dict[str, Dict[str, Any]]:
+    results: Dict[str, Dict[str, Any]] = {}
+    for name, value in sorted(configured.items()):
+        checker = _definition(value)
+        if checker.kind == "builtin" and checker.enabled is False:
+            results[name] = {
+                "kind": "builtin",
+                "status": "disabled",
+                "passed": False,
+                "reason": "disabled_by_policy",
+            }
+            continue
+        try:
+            passed, explanation = evaluate_configured_check(
+                checker,
+                case,
+                checker_context,
+                builtin_result=builtin_results.get(
+                    name, (False, "builtin_check_not_available")
+                ),
+                isolated_runner=isolated_runner,
+            )
+        except CheckerIsolationUnavailableError:
+            raise
+        except Exception as exc:
+            results[name] = {
+                "kind": checker.kind,
+                "status": "checker_error",
+                "passed": False,
+                "reason": "checker_error",
+                "error_type": type(exc).__name__,
+            }
+            continue
+        results[name] = {
+            "kind": checker.kind,
+            "status": "passed" if passed else "failed",
+            "passed": passed,
+            "reason": explanation,
+        }
+    return results
+
+
+def _highest_level(
+    levels: Sequence[str],
+    requirements: Mapping[str, Sequence[str]],
+    checks: Mapping[str, Mapping[str, Any]],
+) -> str:
+    achieved = levels[0]
+    for level in levels:
+        required = requirements.get(level, ())
+        if all(checks.get(name, {}).get("passed") is True for name in required):
+            achieved = level
+        else:
+            break
+    return achieved
+
+
+def _verification_is_valid(
+    verification: Mapping[str, Any], evidence: Mapping[str, Any]
+) -> bool:
+    if verification.get("method") == "Human":
+        return True
+    return verification.get("method") == "AI" and all(
+        verification.get(field)
+        for field in ("verifier", "procedure_version", "verified_at")
+    ) and bool(
+        evidence.get("locator")
+        or evidence.get("quote")
+        or evidence.get("matched_text")
+    )
+
+
+def _identified_primary_source(evidence: Mapping[str, Any]) -> bool:
+    return bool(
+        evidence.get("doi")
+        or evidence.get("scientific_work_id")
+        or str(evidence.get("url", "")).startswith(("http://", "https://"))
+    )
+
+
 def assess_evidence(
-    case: Mapping[str, Any], required_targets: Optional[Iterable[str]] = None
+    case: Mapping[str, Any],
+    required_targets: Optional[Iterable[str]] = None,
+    *,
+    policy: Optional[Mapping[str, Any]] = None,
+    checker_context: Optional[Mapping[str, Any]] = None,
+    isolated_runner: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Assess active observation/claim support and its conservative Case level."""
+
+    configured_policy = dict(policy or {})
+    configured_checks = configured_policy.get("checks", _DEFAULT_EVIDENCE_CHECKS)
+    level_checks = configured_policy.get("level_checks", _DEFAULT_EVIDENCE_LEVELS)
 
     observations = _active(case.get("observations", []))
     claims = _active(case.get("claims", []))
@@ -68,34 +263,22 @@ def assess_evidence(
         )
 
     levels: Dict[str, str] = {}
+    target_checks: Dict[str, Dict[str, Any]] = {}
     reasons: list[Dict[str, Any]] = []
     for target_id, _target in targets:
         linked = [item for item in evidence if str(item.get("target")) == target_id]
-        level = "E0"
-        if linked:
-            level = "E1"
         explicitly_located = [
             item
             for item in linked
             if item.get("locator") or item.get("quote") or item.get("matched_text")
         ]
-        if explicitly_located:
-            level = "E2"
         verified = []
         for item in explicitly_located:
             checks = verification_by_evidence.get(str(item.get("evidence_id")), [])
-            for check in checks:
-                if check.get("method") == "Human":
-                    verified.append(item)
-                    break
-                if check.get("method") == "AI" and all(
-                    check.get(field)
-                    for field in ("verifier", "procedure_version", "verified_at")
-                ):
-                    verified.append(item)
-                    break
-        if verified:
-            level = "E3"
+            if _identified_primary_source(item) and any(
+                _verification_is_valid(check, item) for check in checks
+            ):
+                verified.append(item)
 
         independent_roots = set()
         independent_works = set()
@@ -105,9 +288,10 @@ def assess_evidence(
             if lineage and work and not item.get("derived_from"):
                 independent_roots.add(str(lineage).strip().lower())
                 independent_works.add(str(work).strip().lower())
-        if len(independent_roots) >= 2 and len(independent_works) >= 2:
-            level = "E4"
-        elif len(verified) >= 2:
+        independently_corroborated = (
+            len(independent_roots) >= 2 and len(independent_works) >= 2
+        )
+        if len(verified) >= 2 and not independently_corroborated:
             reasons.append(
                 _reason(
                     "evidence_independence_unproven",
@@ -115,6 +299,36 @@ def assess_evidence(
                     target=target_id,
                 )
             )
+        builtin = {
+            "extracted_material": (bool(linked), "linked_material_present"),
+            "explicit_report": (
+                bool(explicitly_located),
+                "explicit_report_present",
+            ),
+            "usable_locator": (bool(explicitly_located), "usable_locator_present"),
+            "primary_source_verified": (
+                bool(verified),
+                "identified_primary_source_verified",
+            ),
+            "independent_corroboration": (
+                independently_corroborated,
+                "independent_primary_results_corroborate",
+            ),
+        }
+        context = deepcopy(dict(checker_context or {}))
+        context["evidence_target"] = {
+            "target_id": target_id,
+            "target": deepcopy(_target),
+        }
+        evaluated = _configured_checks(
+            configured_checks,
+            builtin,
+            case,
+            context,
+            isolated_runner,
+        )
+        target_checks[target_id] = evaluated
+        level = _highest_level(E_LEVELS, level_checks, evaluated)
         levels[target_id] = level
 
     required = list(required_targets) if required_targets is not None else [
@@ -139,6 +353,7 @@ def assess_evidence(
     return {
         "levels": levels,
         "aggregate": aggregate,
+        "checks": target_checks,
         "reasons": reasons,
     }
 
@@ -353,6 +568,11 @@ def assess_case(
     asset_assessments: Sequence[Mapping[str, Any]],
     conflicting: bool,
     benchmark_policy: Mapping[str, Any],
+    evidence_policy: Optional[Mapping[str, Any]] = None,
+    quality_policy: Optional[Mapping[str, Any]] = None,
+    conflict_assessments: Sequence[Mapping[str, Any]] = (),
+    checker_context: Optional[Mapping[str, Any]] = None,
+    isolated_runner: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Compute the sole authoritative CaseAssessment for one generation."""
 
@@ -423,7 +643,11 @@ def assess_case(
                 "No structure was supplied; this dataset does not require one.",
             )
         )
-    if structures and not benchmark_policy.get("structure_checks"):
+    chemistry_checks = dict(quality_policy or {}).get("structure_checks", {})
+    if structures and not any(
+        isinstance(definition, Mapping) and definition.get("kind") == "custom"
+        for definition in chemistry_checks.values()
+    ):
         reasons.append(
             _reason(
                 "structure_chemistry_not_checked",
@@ -443,7 +667,13 @@ def assess_case(
         for offset, item in enumerate(observations)
         if (item.get("property") or item.get("property_type_id")) in core_labels
     ]
-    evidence = assess_evidence(case, required_target_ids if core_labels else None)
+    evidence = assess_evidence(
+        case,
+        required_target_ids if core_labels else None,
+        policy=evidence_policy,
+        checker_context=checker_context,
+        isolated_runner=isolated_runner,
+    )
     reasons.extend(evidence["reasons"])
     evidence_level = evidence["aggregate"]
 
@@ -455,25 +685,120 @@ def assess_case(
         "scientific_value_conflict",
     }
     incomplete = any(item["code"] in incomplete_codes for item in reasons)
-    has_provenance = bool(case.get("provenance") or case.get("metadata"))
-    subject_mapped = bool(case.get("identifiers") or structures)
     e_index = -1 if evidence_level is None else int(evidence_level[1])
     human_verified = any(
         item.get("method") == "Human"
         for item in _active(case.get("verifications", []))
     )
-
+    configured_quality = dict(quality_policy or {})
+    quality_checks = configured_quality.get("checks", _DEFAULT_QUALITY_CHECKS)
+    structure_check_config = configured_quality.get(
+        "structure_checks",
+        _DEFAULT_STRUCTURE_CHECKS,
+    )
+    declared_structure_ids = {
+        str(item.get("structure_id")) for item in structures
+    }
+    structure_assets = [
+        item
+        for item in asset_assessments
+        if str(item.get("structure_id")) in declared_structure_ids
+    ]
+    has_structures = bool(structures)
+    structure_builtins = {
+        "asset_available": (
+            not has_structures
+            or bool(structure_assets)
+            and all(item.get("presence") == "present" for item in structure_assets),
+            "declared_structure_assets_are_available",
+        ),
+        "asset_hash_valid": (
+            not has_structures
+            or bool(structure_assets)
+            and all(
+                item.get("hash_result") in {"match", "unchecked"}
+                for item in structure_assets
+            ),
+            "declared_structure_asset_hashes_have_no_mismatch",
+        ),
+        "asset_parseable": (
+            not has_structures
+            or all(
+                any(
+                    item.get("parse_result") == "valid"
+                    for item in structure_assets
+                    if str(item.get("structure_id"))
+                    == str(structure.get("structure_id"))
+                )
+                for structure in structures
+            ),
+            "each_declared_structure_has_a_parseable_representation",
+        ),
+        "declared_role_valid": (
+            all(item.get("role") for item in structures)
+            and all(
+                any(item.get("role") == role for item in structures)
+                for role in required_structure_roles
+            ),
+            "structure_roles_are_declared_and_required_roles_are_present",
+        ),
+    }
+    structure_results = _configured_checks(
+        structure_check_config,
+        structure_builtins,
+        case,
+        dict(checker_context or {}),
+        isolated_runner,
+    )
+    enabled_structure_results = [
+        item for item in structure_results.values() if item["status"] != "disabled"
+    ]
+    structure_controls_passed = all(
+        item["passed"] is True for item in enabled_structure_results
+    )
+    quality_builtins = {
+        "governed_collection": (True, "canonical_bundle_integrity_checked"),
+        "provenance_complete": (
+            bool(case.get("provenance") or case.get("metadata")),
+            "case_provenance_present",
+        ),
+        "subject_mapping_audited": (
+            bool(case.get("identifiers") or structures),
+            "case_subject_is_mapped",
+        ),
+        "case_complete": (not incomplete, "required_case_facts_are_complete"),
+        "reviewed": (e_index >= 3, "required_targets_are_verified"),
+        "conflict_adjudicated": (
+            not conflicting,
+            "no_unresolved_scientific_value_conflict",
+        ),
+        "primary_source_supported": (
+            e_index >= 3,
+            "required_targets_have_verified_primary_support",
+        ),
+        "validation_controls": (
+            human_verified and structure_controls_passed,
+            "human_review_and_enabled_structure_controls_pass",
+        ),
+        "independent_corroboration": (
+            e_index >= 4,
+            "required_targets_are_independently_corroborated",
+        ),
+        "reproducible_policy": (True, "persisted_policy_is_digest_bound"),
+    }
+    quality_results = _configured_checks(
+        quality_checks,
+        quality_builtins,
+        case,
+        dict(checker_context or {}),
+        isolated_runner,
+    )
+    quality = _highest_level(
+        B_LEVELS,
+        configured_quality.get("level_checks", _DEFAULT_QUALITY_LEVELS),
+        quality_results,
+    )
     if incomplete:
-        quality = "B0"
-    elif has_provenance and subject_mapped:
-        quality = "B1"
-        if e_index >= 2:
-            quality = "B2"
-        if e_index >= 3 and human_verified:
-            quality = "B3"
-        if e_index >= 4:
-            quality = "B4"
-    else:
         quality = "B0"
 
     attestations = _active(case.get("attestations", []))
@@ -500,19 +825,78 @@ def assess_case(
         )
 
     primary_verified = _verified_primary_source(case, required_target_ids)
-    checklist = benchmark_policy.get("checklist", {})
-    checklist_results = {
-        "verified_primary_source": primary_verified,
-        "conflict_free": not conflicting,
+    comparison_indeterminate = any(
+        item.get("outcome") == "indeterminate" for item in conflict_assessments
+    )
+    conflict_free = not conflicting and not comparison_indeterminate
+    benchmark_builtins = {
+        "verified_primary_source": (
+            primary_verified,
+            "every_core_target_has_verified_primary_support",
+        ),
+        "conflict_free": (
+            conflict_free,
+            "no_conflict_or_indeterminate_comparison",
+        ),
+        "hotpot_or_user_attestation": (
+            bool(approvals),
+            "active_verified_hotpot_or_user_approval_present",
+        ),
+        "attestation_not_rejected": (
+            not rejections and not disagreement,
+            "no_active_hotpot_or_user_rejection_or_disagreement",
+        ),
     }
+    checklist = benchmark_policy["checklist"]
+    direct_config = benchmark_policy["direct_entry"]
+    veto_names = tuple(benchmark_policy["vetoes"])
+    checklist_results = _configured_checks(
+        checklist,
+        benchmark_builtins,
+        case,
+        dict(checker_context or {}),
+        isolated_runner,
+    )
+    direct_results = _configured_checks(
+        direct_config,
+        benchmark_builtins,
+        case,
+        dict(checker_context or {}),
+        isolated_runner,
+    )
+    veto_config = {}
+    for name in veto_names:
+        if name in checklist:
+            definition = checklist[name]
+        elif name in direct_config:
+            definition = direct_config[name]
+        else:
+            definition = {"kind": "builtin", "enabled": True}
+        if (
+            isinstance(definition, Mapping)
+            and definition.get("kind") == "builtin"
+            and definition.get("enabled") is False
+        ):
+            definition = {"kind": "builtin", "enabled": True}
+        veto_config[name] = definition
+    veto_results = _configured_checks(
+        veto_config,
+        benchmark_builtins,
+        case,
+        dict(checker_context or {}),
+        isolated_runner,
+    )
     enabled_checklist = [
-        name for name, setting in checklist.items() if setting is not False
+        item for item in checklist_results.values() if item["status"] != "disabled"
+    ]
+    enabled_direct = [
+        item for item in direct_results.values() if item["status"] != "disabled"
     ]
     checklist_passed = bool(enabled_checklist) and all(
-        checklist_results.get(name, False) for name in enabled_checklist
+        item["passed"] is True for item in enabled_checklist
     )
-    direct = bool(approvals)
-    veto_passed = not conflicting and not rejections and not disagreement
+    direct = any(item["passed"] is True for item in enabled_direct)
+    veto_passed = all(item["passed"] is True for item in veto_results.values())
     benchmark = bool(
         not incomplete and veto_passed and (direct or checklist_passed)
     )
@@ -522,6 +906,8 @@ def assess_case(
         benchmark_status = "admitted"
     elif disagreement or rejections:
         benchmark_status = "rejected"
+    elif not veto_passed:
+        benchmark_status = "vetoed"
     else:
         benchmark_status = "not_admitted"
     archive_class = "incomplete" if incomplete else "benchmark" if benchmark else "ordinary"
@@ -535,9 +921,19 @@ def assess_case(
         "benchmark": benchmark,
         "benchmark_status": benchmark_status,
         "completeness": "incomplete" if incomplete else "complete",
-        "checklist": checklist_results,
+        "checklist": {
+            name: item["passed"] for name, item in checklist_results.items()
+        },
         "direct_entry": direct,
         "veto_passed": veto_passed,
+        "gate_results": {
+            "evidence": evidence["checks"],
+            "quality": quality_results,
+            "structure": structure_results,
+            "benchmark_checklist": checklist_results,
+            "benchmark_direct_entry": direct_results,
+            "benchmark_vetoes": veto_results,
+        },
         "reasons": reasons,
         "input_digest": canonical_digest(case),
     }
@@ -548,20 +944,25 @@ def _verified_primary_source(
 ) -> bool:
     evidence = _active(case.get("evidence", []))
     verifications = _active(case.get("verifications", []))
-    verified_ids = {
-        str(item.get("evidence_id"))
-        for item in verifications
-        if item.get("method") in {"AI", "Human"}
-    }
+    verification_by_evidence: Dict[str, list[Dict[str, Any]]] = defaultdict(list)
+    for verification in verifications:
+        verification_by_evidence[str(verification.get("evidence_id"))].append(
+            verification
+        )
     targets = list(required_targets)
     if not targets:
         return False
     for target in targets:
         candidates = [item for item in evidence if str(item.get("target")) == target]
         if not any(
-            str(item.get("evidence_id")) in verified_ids
-            and (item.get("doi") or str(item.get("url", "")).startswith(("http://", "https://")))
+            _identified_primary_source(item)
             and (item.get("locator") or item.get("quote") or item.get("matched_text"))
+            and any(
+                _verification_is_valid(verification, item)
+                for verification in verification_by_evidence.get(
+                    str(item.get("evidence_id")), []
+                )
+            )
             for item in candidates
         ):
             return False

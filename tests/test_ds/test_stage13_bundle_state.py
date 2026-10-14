@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import hotpot.ds.public._bundle_state as bundle_state_module
 from hotpot.ds.public._bundle_state import (
     BUNDLE_SCHEMA,
     BundleAlreadyBuiltError,
@@ -217,7 +218,9 @@ def test_actual_asset_bytes_participate_in_source_digest(tmp_path: Path) -> None
 
 def test_built_manifest_identity_cannot_be_changed_out_of_band(tmp_path: Path) -> None:
     root = _root(tmp_path)
-    _build(root)
+    state = _build(root)
+    frozen = state.status
+    case = state.get_case("case-1")
     manifest_path = root / "bundle.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["release_id"] = "different-release"
@@ -225,6 +228,52 @@ def test_built_manifest_identity_cannot_be_changed_out_of_band(tmp_path: Path) -
 
     with pytest.raises(BundleStateError, match="immutable built manifest"):
         BundleState.open(root, "demo")
+
+    for read in (
+        lambda: state.manifest,
+        lambda: state.status,
+        lambda: state.source_digest,
+        lambda: state.policy,
+        lambda: state.target_context,
+        lambda: len(state),
+        lambda: state.get_case("case-1"),
+        lambda: tuple(state.iter_cases()),
+        lambda: state.refresh_source_state(),
+        lambda: state.refresh_governance_state(),
+        lambda: state.mutate_case("case-1", case, "no_op", {}),
+        lambda: state.publish_generation(
+            "generation-1",
+            "a" * 64,
+            expected_source_revision=frozen["source_revision"],
+            expected_source_digest=frozen["source_digest"],
+            expected_policy_revision=frozen["policy_revision"],
+            expected_policy_digest=frozen["policy_digest"],
+            expected_governance_registry_revision=frozen[
+                "governance_registry_revision"
+            ],
+            expected_governance_registry_digest=frozen[
+                "governance_registry_digest"
+            ],
+        ),
+    ):
+        with pytest.raises(BundleStateError, match="immutable built manifest"):
+            read()
+
+
+def test_manifest_formatting_is_not_an_out_of_band_semantic_change(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    state = _build(root)
+    manifest_path = root / "bundle.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=4, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    assert state.manifest["release_id"] == "demo-r1"
+    assert state.status["source_digest"] == state.status["recorded_source_digest"]
 
 
 def test_case_mutation_commits_revision_and_audit_atomically(tmp_path: Path) -> None:
@@ -279,6 +328,10 @@ def test_generation_publication_is_compare_and_swap(tmp_path: Path) -> None:
         expected_source_digest=status["source_digest"],
         expected_policy_revision=status["policy_revision"],
         expected_policy_digest=status["policy_digest"],
+        expected_governance_registry_revision=status[
+            "governance_registry_revision"
+        ],
+        expected_governance_registry_digest=status["governance_registry_digest"],
     )
     assert result["generation_id"] == "generation-1"
     assert state.status["is_synchronized"] is True
@@ -295,6 +348,103 @@ def test_generation_publication_is_compare_and_swap(tmp_path: Path) -> None:
             expected_source_digest=status["source_digest"],
             expected_policy_revision=status["policy_revision"],
             expected_policy_digest=status["policy_digest"],
+            expected_governance_registry_revision=status[
+                "governance_registry_revision"
+            ],
+            expected_governance_registry_digest=status[
+                "governance_registry_digest"
+            ],
+        )
+
+
+def test_governance_binding_is_persisted_and_part_of_synchronization(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    initial = state.status
+    assert initial["recorded_governance_registry_revision"] == initial[
+        "governance_registry_revision"
+    ]
+    assert initial["recorded_governance_registry_digest"] == initial[
+        "governance_registry_digest"
+    ]
+
+    state.publish_generation(
+        "generation-1",
+        "a" * 64,
+        expected_source_revision=initial["source_revision"],
+        expected_source_digest=initial["source_digest"],
+        expected_policy_revision=initial["policy_revision"],
+        expected_policy_digest=initial["policy_digest"],
+        expected_governance_registry_revision=initial[
+            "governance_registry_revision"
+        ],
+        expected_governance_registry_digest=initial[
+            "governance_registry_digest"
+        ],
+    )
+    assert state.status["is_synchronized"] is True
+
+    advanced = (initial["governance_registry_revision"] + 1, "b" * 64)
+    monkeypatch.setattr(
+        bundle_state_module, "_trusted_governance_binding", lambda: advanced
+    )
+    stale = state.status
+    assert stale["is_synchronized"] is False
+    assert stale["governance_registry_revision"] == advanced[0]
+    assert stale["recorded_governance_registry_revision"] == initial[
+        "governance_registry_revision"
+    ]
+
+    refreshed = state.refresh_governance_state()
+    assert refreshed["changed"] is True
+    assert refreshed["governance_registry_revision"] == advanced[0]
+    recorded = state.status
+    assert recorded["recorded_governance_registry_digest"] == advanced[1]
+    assert recorded["is_synchronized"] is False
+
+    state.publish_generation(
+        "generation-2",
+        "c" * 64,
+        expected_source_revision=recorded["source_revision"],
+        expected_source_digest=recorded["source_digest"],
+        expected_policy_revision=recorded["policy_revision"],
+        expected_policy_digest=recorded["policy_digest"],
+        expected_governance_registry_revision=recorded[
+            "governance_registry_revision"
+        ],
+        expected_governance_registry_digest=recorded[
+            "governance_registry_digest"
+        ],
+    )
+    assert state.status["is_synchronized"] is True
+
+
+def test_governance_publication_cas_rejects_a_registry_advance(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    frozen = state.status
+    monkeypatch.setattr(
+        bundle_state_module,
+        "_trusted_governance_binding",
+        lambda: (frozen["governance_registry_revision"] + 1, "d" * 64),
+    )
+
+    with pytest.raises(ConcurrentStateError):
+        state.publish_generation(
+            "generation-1",
+            "a" * 64,
+            expected_source_revision=frozen["source_revision"],
+            expected_source_digest=frozen["source_digest"],
+            expected_policy_revision=frozen["policy_revision"],
+            expected_policy_digest=frozen["policy_digest"],
+            expected_governance_registry_revision=frozen[
+                "governance_registry_revision"
+            ],
+            expected_governance_registry_digest=frozen[
+                "governance_registry_digest"
+            ],
         )
 
 

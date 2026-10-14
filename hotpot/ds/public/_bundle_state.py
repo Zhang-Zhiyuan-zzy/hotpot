@@ -109,6 +109,15 @@ class ConcurrentStateError(BundleStateError):
     """Raised when a compare-and-swap publication observes changed inputs."""
 
 
+def _trusted_governance_binding() -> tuple[int, str]:
+    """Return the current package-trusted registry revision and digest."""
+
+    from ..governance import default_registry_snapshot, verify_registry
+
+    verified = verify_registry(default_registry_snapshot())
+    return verified.revision, verified.digest
+
+
 def _canonical_bytes(value: Any) -> bytes:
     return json.dumps(
         value,
@@ -409,6 +418,7 @@ class BundleState:
         policy = _json_copy(dict(policy_json))
         target = _json_copy(dict(target_context))
         policy_digest = _digest_json(policy)
+        governance_revision, governance_digest = _trusted_governance_binding()
         intake = _safe_relative_path(
             bundle_root,
             manifest["intake"]["path"],
@@ -465,10 +475,17 @@ class BundleState:
                     """
                     INSERT INTO control(
                         singleton, source_revision, source_digest,
-                        policy_revision, policy_digest
-                    ) VALUES (1, 0, ?, 0, ?)
+                        policy_revision, policy_digest,
+                        governance_registry_revision,
+                        governance_registry_digest
+                    ) VALUES (1, 0, ?, 0, ?, ?, ?)
                     """,
-                    (source_digest, policy_digest),
+                    (
+                        source_digest,
+                        policy_digest,
+                        governance_revision,
+                        governance_digest,
+                    ),
                 )
                 connection.execute(
                     """
@@ -546,7 +563,7 @@ class BundleState:
             with state.connect() as connection:
                 if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise BundleStateError("facts.sqlite3 failed integrity_check")
-                if connection.execute("PRAGMA user_version").fetchone()[0] != 1:
+                if connection.execute("PRAGMA user_version").fetchone()[0] != 2:
                     raise BundleStateError("facts.sqlite3 is not the current schema")
                 stored_manifest = json.loads(
                     connection.execute(
@@ -576,21 +593,23 @@ class BundleState:
 
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:
+        if not self.path.is_file():
+            raise BundleNotBuiltError(
+                "Bundle is not built; construct it with Bundle(...) first"
+            )
         connection = sqlite3.connect(self.path)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys=ON")
         try:
+            self._assert_manifest_unchanged(connection)
             yield connection
         finally:
             connection.close()
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return _validate_manifest(
-            self.root,
-            _read_json(self.root / "bundle.json", "bundle.json"),
-            self.ds_name,
-        )
+        with self.connect() as connection:
+            return self._stored_manifest(connection)
 
     @property
     def policy(self) -> Dict[str, Any]:
@@ -631,9 +650,10 @@ class BundleState:
 
     @property
     def source_digest(self) -> str:
-        manifest = self.manifest
         with self.connect() as connection:
-            return self._compute_source_digest(connection, manifest)
+            return self._compute_source_digest(
+                connection, self._stored_manifest(connection)
+            )
 
     @property
     def policy_digest(self) -> str:
@@ -641,15 +661,32 @@ class BundleState:
 
     @property
     def status(self) -> Dict[str, Any]:
-        source_digest = self.source_digest
-        policy_digest = self.policy_digest
         with self.connect() as connection:
+            governance_revision, governance_digest = _trusted_governance_binding()
+            source_digest = self._compute_source_digest(
+                connection, self._stored_manifest(connection)
+            )
+            policy_digest = _digest_json(
+                json.loads(
+                    connection.execute(
+                        "SELECT policy_json FROM policy WHERE singleton=1"
+                    ).fetchone()[0]
+                )
+            )
             row = connection.execute("SELECT * FROM control WHERE singleton=1").fetchone()
         status = dict(row)
         status["recorded_source_digest"] = status.pop("source_digest")
         status["recorded_policy_digest"] = status.pop("policy_digest")
+        status["recorded_governance_registry_revision"] = status.pop(
+            "governance_registry_revision"
+        )
+        status["recorded_governance_registry_digest"] = status.pop(
+            "governance_registry_digest"
+        )
         status["source_digest"] = source_digest
         status["policy_digest"] = policy_digest
+        status["governance_registry_revision"] = governance_revision
+        status["governance_registry_digest"] = governance_digest
         status["is_synchronized"] = bool(
             status["current_generation_id"]
             and status["source_revision"] == status["synchronized_source_revision"]
@@ -658,6 +695,14 @@ class BundleState:
             and status["policy_revision"] == status["synchronized_policy_revision"]
             and policy_digest == status["recorded_policy_digest"]
             and policy_digest == status["synchronized_policy_digest"]
+            and governance_revision
+            == status["recorded_governance_registry_revision"]
+            and governance_digest
+            == status["recorded_governance_registry_digest"]
+            and governance_revision
+            == status["synchronized_governance_registry_revision"]
+            and governance_digest
+            == status["synchronized_governance_registry_digest"]
         )
         status.pop("singleton", None)
         return _json_copy(status)
@@ -671,7 +716,9 @@ class BundleState:
                 control = connection.execute(
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
-                digest = self._compute_source_digest(connection, self.manifest)
+                digest = self._compute_source_digest(
+                    connection, self._stored_manifest(connection)
+                )
                 if digest == control["source_digest"]:
                     connection.rollback()
                     return {
@@ -719,6 +766,74 @@ class BundleState:
             "event_id": event_id,
         }
 
+    def refresh_governance_state(self) -> Dict[str, Any]:
+        """Persist the latest trusted registry binding before reassessment."""
+
+        with self.connect() as connection:
+            revision, digest = _trusted_governance_binding()
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                control = connection.execute(
+                    "SELECT * FROM control WHERE singleton=1"
+                ).fetchone()
+                previous_revision = control["governance_registry_revision"]
+                previous_digest = control["governance_registry_digest"]
+                if (revision, digest) == (previous_revision, previous_digest):
+                    connection.rollback()
+                    return {
+                        "changed": False,
+                        "governance_registry_revision": revision,
+                        "governance_registry_digest": digest,
+                        "event_id": None,
+                    }
+                if revision < previous_revision:
+                    raise BundleStateError(
+                        "trusted governance registry revision cannot regress"
+                    )
+                if revision == previous_revision:
+                    raise BundleStateError(
+                        "trusted governance registry digest changed without a revision"
+                    )
+                event_id = f"event-{uuid.uuid4().hex}"
+                connection.execute(
+                    "UPDATE control SET governance_registry_revision=?, "
+                    "governance_registry_digest=? WHERE singleton=1",
+                    (revision, digest),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO audit_events(
+                        event_id, created_at, action, case_id, details_json,
+                        source_revision, policy_revision
+                    ) VALUES (?, ?, 'governance_registry_advanced', NULL, ?, ?, ?)
+                    """,
+                    (
+                        event_id,
+                        _utc_now(),
+                        _canonical_text(
+                            {
+                                "previous_revision": previous_revision,
+                                "previous_digest": previous_digest,
+                                "current_revision": revision,
+                                "current_digest": digest,
+                            }
+                        ),
+                        control["source_revision"],
+                        control["policy_revision"],
+                    ),
+                )
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        self.write_audit_projection()
+        return {
+            "changed": True,
+            "governance_registry_revision": revision,
+            "governance_registry_digest": digest,
+            "event_id": event_id,
+        }
+
     def mutate_case(
         self,
         case_id: str,
@@ -751,7 +866,9 @@ class BundleState:
                     "UPDATE cases SET payload_json=? WHERE case_id=?",
                     (_canonical_text(case), case_id),
                 )
-                digest = self._compute_source_digest(connection, self.manifest)
+                digest = self._compute_source_digest(
+                    connection, self._stored_manifest(connection)
+                )
                 connection.execute(
                     "UPDATE control SET source_revision=?, source_digest=? WHERE singleton=1",
                     (revision, digest),
@@ -856,16 +973,21 @@ class BundleState:
         expected_source_digest: str,
         expected_policy_revision: int,
         expected_policy_digest: str,
+        expected_governance_registry_revision: int,
+        expected_governance_registry_digest: str,
     ) -> Dict[str, Any]:
         _nonempty_string(generation_id, "generation_id")
         _nonempty_string(generation_digest, "generation_digest")
         with self.connect() as connection:
+            governance_revision, governance_digest = _trusted_governance_binding()
             connection.execute("BEGIN IMMEDIATE")
             try:
                 control = connection.execute(
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
-                current_source = self._compute_source_digest(connection, self.manifest)
+                current_source = self._compute_source_digest(
+                    connection, self._stored_manifest(connection)
+                )
                 current_policy = _digest_json(
                     json.loads(
                         connection.execute(
@@ -878,12 +1000,20 @@ class BundleState:
                     current_source,
                     control["policy_revision"],
                     current_policy,
+                    control["governance_registry_revision"],
+                    control["governance_registry_digest"],
+                    governance_revision,
+                    governance_digest,
                 )
                 expected = (
                     expected_source_revision,
                     expected_source_digest,
                     expected_policy_revision,
                     expected_policy_digest,
+                    expected_governance_registry_revision,
+                    expected_governance_registry_digest,
+                    expected_governance_registry_revision,
+                    expected_governance_registry_digest,
                 )
                 if actual != expected:
                     raise ConcurrentStateError(
@@ -896,23 +1026,31 @@ class BundleState:
                         synchronized_source_digest=?,
                         synchronized_policy_revision=?,
                         synchronized_policy_digest=?,
+                        synchronized_governance_registry_revision=?,
+                        synchronized_governance_registry_digest=?,
                         current_generation_id=?,
                         current_generation_digest=?
                     WHERE singleton=1
                       AND source_revision=? AND source_digest=?
                       AND policy_revision=? AND policy_digest=?
+                      AND governance_registry_revision=?
+                      AND governance_registry_digest=?
                     """,
                     (
                         expected_source_revision,
                         expected_source_digest,
                         expected_policy_revision,
                         expected_policy_digest,
+                        expected_governance_registry_revision,
+                        expected_governance_registry_digest,
                         generation_id,
                         generation_digest,
                         expected_source_revision,
                         expected_source_digest,
                         expected_policy_revision,
                         expected_policy_digest,
+                        expected_governance_registry_revision,
+                        expected_governance_registry_digest,
                     ),
                 ).rowcount
                 if changed != 1:
@@ -928,6 +1066,8 @@ class BundleState:
             "generation_digest": generation_digest,
             "source_revision": expected_source_revision,
             "policy_revision": expected_policy_revision,
+            "governance_registry_revision": expected_governance_registry_revision,
+            "governance_registry_digest": expected_governance_registry_digest,
         }
 
     def write_audit_projection(self) -> Path:
@@ -969,7 +1109,7 @@ class BundleState:
             PRAGMA foreign_keys=ON;
             PRAGMA journal_mode=DELETE;
             PRAGMA synchronous=FULL;
-            PRAGMA user_version=1;
+            PRAGMA user_version=2;
 
             CREATE TABLE metadata(
                 key TEXT PRIMARY KEY,
@@ -982,10 +1122,15 @@ class BundleState:
                 source_digest TEXT NOT NULL,
                 policy_revision INTEGER NOT NULL CHECK(policy_revision >= 0),
                 policy_digest TEXT NOT NULL,
+                governance_registry_revision INTEGER NOT NULL
+                    CHECK(governance_registry_revision >= 0),
+                governance_registry_digest TEXT NOT NULL,
                 synchronized_source_revision INTEGER,
                 synchronized_source_digest TEXT,
                 synchronized_policy_revision INTEGER,
                 synchronized_policy_digest TEXT,
+                synchronized_governance_registry_revision INTEGER,
+                synchronized_governance_registry_digest TEXT,
                 current_generation_id TEXT,
                 current_generation_digest TEXT
             ) STRICT;
@@ -1014,6 +1159,34 @@ class BundleState:
             ) STRICT;
             """
         )
+
+    def _stored_manifest(self, connection: sqlite3.Connection) -> Dict[str, Any]:
+        try:
+            row = connection.execute(
+                "SELECT value_json FROM metadata WHERE key='manifest'"
+            ).fetchone()
+            if row is None:
+                raise BundleStateError(
+                    "facts.sqlite3 has no canonical built manifest"
+                )
+            value = json.loads(row[0])
+        except (sqlite3.Error, TypeError, json.JSONDecodeError) as exc:
+            raise BundleStateError(
+                "facts.sqlite3 has no valid canonical built manifest"
+            ) from exc
+        return _validate_manifest(self.root, value, self.ds_name)
+
+    def _assert_manifest_unchanged(self, connection: sqlite3.Connection) -> None:
+        stored = self._stored_manifest(connection)
+        current = _validate_manifest(
+            self.root,
+            _read_json(self.root / "bundle.json", "bundle.json"),
+            self.ds_name,
+        )
+        if current != stored:
+            raise BundleStateError(
+                "bundle.json differs from the immutable built manifest"
+            )
 
     def _iter_intake(
         self, manifest: Mapping[str, Any], intake: Path

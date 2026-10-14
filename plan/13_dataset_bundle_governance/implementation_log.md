@@ -789,6 +789,141 @@ Necessary adjustment and final decision:
   identities. Multiple matches remain explicit in the returned Dataset and no
   Case merging is performed.
 
+### Step 21 — Freeze the CLI communication protocol
+
+Status: complete
+
+Planned:
+
+- make every machine-facing `hotpot ds` pipeline use one closed, versionless
+  JSON contract while keeping screen-oriented rendering off stdout.
+
+Performed:
+
+- froze the complete 19-producer inventory and its allowed consumer edges;
+- required the four fields `protocol`, `schema_sha256`, `key`, and `payload`
+  on every envelope;
+- bound both emission and ingestion to the shipped closed payload schema; and
+- rejected undeclared keys, channels, consumers, fields, and schema bytes.
+
+Verification:
+
+- focused protocol, CLI, query, and structure-rendering slice: `41 passed`.
+
+Unexpected finding:
+
+- the previous protocol described producers in one JSON file but did not bind
+  runtime messages to the exact payload-schema bytes, leaving documentation and
+  implementation able to drift independently.
+
+Necessary adjustment and final decision:
+
+- the schema digest is now part of every message and is checked at both ends.
+  This is a current protocol contract, not a compatibility-version mechanism.
+
+### Step 22 — Replace the CLI with the current Bundle workflow
+
+Status: complete
+
+Planned:
+
+- expose the concise query, export, Bundle, certify, and ingest lifecycle over
+  only current storage and object models.
+
+Performed:
+
+- implemented positional dataset/item grammar, multi-structure selectors,
+  format conversion, stable export layouts, quality/evidence/archive filters,
+  fixed Bundle mutations, Gate editing, explicit synchronization, and
+  certificate-required ingestion;
+- kept machine output on stdout and human structure rendering on stderr; and
+- reimplemented diagnostic `detail` producers over `TargetStore` without the
+  deleted Python detail API.
+
+Verification:
+
+- CLI/protocol/help/export/structure and Bundle-focused handoff: `45 passed`;
+- independent CLI/protocol/query/structure slice: `41 passed`.
+
+Unexpected finding:
+
+- the old export test built data through the removed submission/load/store API,
+  so retaining it would have required restoring precisely the compatibility
+  surface the plan prohibits.
+
+Necessary adjustment and final decision:
+
+- replace that test with current TargetStore and Bundle end-to-end coverage.
+  No adapter or fallback route was added.
+
+### Step 23 — Publish one current English documentation set
+
+Status: complete
+
+Planned:
+
+- document the exact public API, Bundle/storage organization, quality workflow,
+  CLI grammar, and communication protocol in English.
+
+Performed:
+
+- rewrote the dataset and `hotpot.ds` entry documentation around the eleven
+  first-level API names and current lifecycle;
+- documented incomplete-data visibility, multiple structures, migration and
+  cutover, certificate-gated ingestion, and the fixed CLI mutation allowlist;
+  and
+- replaced the protocol skill reference with the schema-bound current contract.
+
+Verification:
+
+- documentation-related Stage 13 slice: `32 passed`;
+- skill validation and `git diff --check`: passed;
+- no Chinese formal dataset documentation or legacy public API names found.
+
+Unexpected finding:
+
+- partial drafts used legacy suffixed B/E strings, a non-existent assessment
+  directory layout, and more CLI mutations than the intentionally small CLI
+  allowlist.
+
+Necessary adjustment and final decision:
+
+- documentation follows executable current facts: `B0`–`B4`, `E0`–`E4`,
+  `cases/facts.sqlite3`, generation-local indexes, and six fixed CLI Case
+  mutations. The broader Python Case API remains documented separately.
+
+### Step 24 — Ship every runtime schema as package data
+
+Status: complete
+
+Planned:
+
+- make a wheel installation contain the same schemas used from a source tree.
+
+Performed:
+
+- added explicit package-data rules for Bundle JSON schemas, the SQLite intake
+  schema, and the CLI protocol schema; and
+- removed the package-data reference to the obsolete detail documentation.
+
+Verification:
+
+- package-data declarations and every named schema source were programmatically
+  verified.
+
+Unexpected finding:
+
+- the source tests passed while the prior wheel manifest omitted all nested
+  schema files. A wheel build in this environment is additionally blocked by a
+  missing build-only `pybind11` dependency; `python -m build` is shadowed by the
+  repository's `build` package.
+
+Necessary adjustment and final decision:
+
+- package the resources explicitly and record the environment-specific build
+  limitation rather than claiming an unperformed artifact test. Final source
+  and installed-CLI tests remain separate gates.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -798,4 +933,5 @@ Necessary adjustment and final decision:
 | 3 | Steps 8–10: governance, assessment generations, release/trust intake closure | `e3bb3cb..e64dbc5` | governance `8 passed, 1 skipped`; generation `9 passed`; Bundle state `15 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 4 | Steps 11–14: configured assessment, governance CAS, certificate envelope, target ownership | `ffbc244..87599f3` | configured Gate slice `36 passed`; Bundle-state flow `31 passed`; certificate/storage slice `20 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 5 | Steps 15–17: stable asset snapshots, complete Bundle lifecycle, identity-policy intake | `db5b4de..4a0d59f` | generation `12 passed`; Bundle lifecycle `27 passed`; BundleState `19 passed` | pushed to `origin/refactor/unified-dataset-management` |
-| 6 | Steps 18–20: query API, atomic Case edits, facade/identifier closure | `5242694..c453e76` plus log commit | query integration `18 passed`; mutation slice `39 passed, 1 skipped`; facade/storage/query `18 passed` | pending push |
+| 6 | Steps 18–20: query API, atomic Case edits, facade/identifier closure | `5242694..5bbfcc6` | query integration `18 passed`; mutation slice `39 passed, 1 skipped`; facade/storage/query `18 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 7 | Steps 21–24: protocol, current CLI, formal documentation, package resources | `c83d661..d0052bb` plus log commit | independent CLI slice `41 passed`; handoff `45 passed`; docs `32 passed`; package declarations verified | pending push |

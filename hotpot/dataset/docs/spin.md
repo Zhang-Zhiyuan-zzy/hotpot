@@ -14,5 +14,7 @@ The TM-GSspin labels are computed candidates. SCO-95 temperature pairs must rema
 their two structures are not independent random-split samples. A categorical phrase such as
 `high_spin` must not be converted to numerical `S` or multiplicity without explicit evidence.
 
-Source files are local under `data/sources/spin/`. Shared coordinate objects reside in
-`data/structures/`; attribution records are tracked in `docs/attributions/`.
+Source files are local under `data/sources/spin/`. Bundle facts retain all
+low-/high-temperature Structure roles; equal bytes may deduplicate only in the
+target-owned Asset store. Attribution records are tracked in
+`docs/attributions/`.

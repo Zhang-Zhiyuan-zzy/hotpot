@@ -18,13 +18,17 @@ Apply this workflow:
 1. Classify each output as a machine result, terminal presentation, or diagnostic.
 2. Keep machine stdout exclusively in the exact JSON envelope defined by the reference.
 3. Give every producer an exact `hotpot.<group>.<command>` key and a declared channel.
-4. Add producer-to-contract and consumer acceptance entries to the communication map.
-5. Activate stdin only through a documented positional `-`; never infer it from pipe state.
-6. Project fields with the map's non-executable path/constant operations. Never use `eval`,
+4. Add a named, closed payload contract for every producer/channel, including terminal
+   results. Never use a `null` contract to bypass validation.
+5. Store every payload JSON Schema under the current schema root, record its lowercase
+   SHA-256 in the map, and verify it at runtime. The map fingerprint must therefore bind
+   referenced schemas transitively.
+6. Activate stdin only through a documented positional `-`; never infer it from pipe state.
+7. Project fields with the map's non-executable path/constant operations. Never use `eval`,
    executable JSONPath extensions, or command-specific fallback parsing.
-7. Validate the complete input and compute the complete output before emitting anything.
-8. Keep human presentation off stdout. Put equivalent machine content in the envelope.
-9. Update implementation, map, English command documentation, package data, and tests in
+8. Validate the complete input and compute the complete output before emitting anything.
+9. Keep human presentation off stdout. Put equivalent machine content in the envelope.
+10. Update implementation, map, schemas, English command documentation, package data, and tests in
    one atomic change.
 
 Run the focused command tests and validate this skill with:

@@ -1,23 +1,66 @@
-# Shared structure objects
+# Structure and asset identity
 
-Oxidation and spin records reuse a content-addressed coordinate store without merging their
-datasets or targets.
+Hotpot may reuse identical structure-file bytes across oxidation, spin, and
+other datasets, but byte reuse never merges their Cases or scientific targets.
 
-The current local inventory contains 2,280 unique coordinate objects. Oxidation references
-2,185 of them; spin references all 2,280. The two collections share 2,185 coordinate-identical
-objects, while 95 high-temperature SCO-95 structures occur only in spin data.
+The historical local inventory contains 2,280 unique coordinate objects.
+Oxidation references 2,185; spin references all 2,280; and the collections
+share 2,185 coordinate-identical objects. These counts describe asset reuse,
+not a claim that the corresponding records have identical chemical identity or
+labels.
 
-Coordinate identity is based on ordered element symbols and three-dimensional coordinates
-rounded to eight decimal places. It intentionally ignores task-bearing XYZ comments. This
-supports byte reuse, but it does not establish chemical identity when protonation, bond order,
-periodicity, or disorder differ.
+## Separate identity namespaces
 
-The local relation files and objects live in `data/structures/`:
+Hotpot keeps these identities distinct:
 
-- `structures.csv` maps structure IDs to physical objects and hashes;
-- `record_structure_links.csv` maps dataset records and structure roles to shared objects;
-- `oxidation_spin_overlap.csv` records cross-dataset coordinate matches;
-- `objects/` contains the content-addressed coordinate payload.
+- Case identity: one independently assessable dataset record;
+- sample identity: a policy-controlled scientific equivalence relation;
+- chemical entity identity: the represented chemical subject;
+- Structure identity: one scientific structure instance or variant;
+- Asset identity: exact stored bytes, addressed by SHA-256.
 
-These payloads are excluded from Git. New normalized stores should express the same links in
-the current dataset schema rather than interpreting “benchmark” as a storage namespace.
+Equal coordinates or files can prove asset reuse. They do not by themselves
+prove equal protonation, bond order, stereochemistry, periodic context,
+disorder model, measurement condition, or scientific sample. Sample matching
+uses the persisted dataset identity schema and can return `same`, `different`,
+or `indeterminate`.
+
+`core_info` is a completeness contract, not an automatic identity key. Only
+fields and Structure roles explicitly named by the persisted identity schema
+participate in sample matching. Target values, evidence/quality levels,
+benchmark decisions, and assessment results never participate.
+
+The historical overlap audit compared ordered element symbols and Cartesian
+coordinates rounded to eight decimal places while ignoring task-bearing XYZ
+comments. That comparator remains useful migration evidence, but it is not a
+universal chemical-identity rule.
+
+Even a `same` sample match does not by itself make two observations comparable.
+Scientific conflict assessment also requires the same property proposition,
+subject/site, compatible conditions and phase, participant roles and
+stoichiometry, method branch, units, and uncertainty semantics.
+
+## Bundle and target representation
+
+In a Bundle, every Case-to-Structure relation has an explicit Structure ID and
+role. A Structure can declare one or more root-relative representations such as
+SMI, MOL2, XYZ, or CIF. Multi-structure records retain all roles; neither query
+nor conversion silently substitutes a different variant.
+
+After ingestion, positive asset bytes live in target-owned content-addressed
+storage:
+
+```text
+<database>.assets/objects/sha256/<prefix>/<sha256>
+```
+
+Canonical Case and Structure rows reference those objects. Equal bytes are
+stored once, while all Case, Structure, entity, and role relations remain
+separate. Missing, invalid, or remote-only declarations remain explicit facts
+and never fabricate an object.
+
+Historical relation files under local source/audit directories are migration
+inputs. Current stores express the same valid links in canonical Case facts and
+record every corrected legacy identity relationship in the certificate-bound
+identity migration map. They are not interpreted through a separate benchmark
+namespace.

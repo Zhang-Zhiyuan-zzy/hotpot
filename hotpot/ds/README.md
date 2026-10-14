@@ -1,468 +1,550 @@
 # `hotpot.ds` public API
 
-`hotpot.ds` has one small public workflow. Its first-level API contains exactly these
-names, in this order:
+`hotpot.ds` is Hotpot's concise interface for governed scientific datasets. It
+separates immutable dataset queries from an explicit Bundle workflow for
+assessment, certification, and ingestion. Benchmark membership is a derived
+state within a dataset, not a separate database.
+
+Hotpot reports what the available evidence supports; it does not overwrite a
+user's scientific statement or require benchmark-grade evidence merely to
+preserve a record. Unsupported statements remain attributable facts, while
+Gate-derived quality, evidence, and benchmark results remain separate.
+
+The first-level namespace is intentionally closed and ordered as follows:
 
 ```python
-[
+hotpot.ds.__all__ == [
     "datasets_list", "load",
     "Dataset", "Data",
     "BaseSearcher", "DataSearcher", "DatasetSearcher", "SmartsSearcher",
-    "write_certificate", "load_bundle", "Bundle",
-    "store",
+    "load_bundle", "Bundle", "write_certificate",
 ]
 ```
 
-Normalized tables, certificate implementation classes, and forensic
-queries are intentionally absent from this namespace. Automation that needs those details
-may use `hotpot.ds.detail`.
+Backend rows, certificates, assessment generations, stores, Cases, and Gate
+classes are not additional first-level APIs. Gate configuration is available
+only from `hotpot.ds.gates`.
 
-## 1. `datasets_list` and `load`
+## 1. Query datasets
 
 ### `datasets_list`
-
-`ds.datasets_list` is a printable, iterable sequence of names in the default database.
-Call it with `db=` to inspect another database.
 
 ```python
 import hotpot.ds as ds
 
-print(ds.datasets_list)  # ['csd-electronic-state', 'oxidation', 'spin']
-names = ds.datasets_list(db="work/datasets.sqlite3")
+print(ds.datasets_list)
+names = list(ds.datasets_list)
+other_names = ds.datasets_list(db="work/datasets.sqlite3")
 ```
 
-| Form | Result |
-| --- | --- |
-| `list(ds.datasets_list)` | Names in the default database |
-| `ds.datasets_list(db=path)` | Names in the selected database |
+`datasets_list` is an iterable view of the default store and is callable for an
+explicit store:
 
-The default repository store is resolved independently of the current working directory at
-`hotpot/dataset/data/store/datasets.sqlite3`. The complete `hotpot/dataset/data/` payload
-root is ignored by Git, so a clean clone or an installation without a local store must pass
-`db=`. Licensed structures and generated databases are never copied into wheels.
+```text
+list(ds.datasets_list) -> list[str]
+ds.datasets_list(*, db: str | Path | None = None) -> list[str]
+```
 
 ### `load`
 
 ```python
-dataset = ds.load(ds_name="oxidation")
-older = ds.load(ds_name="oxidation", version="001")
-local = ds.load(ds_name="my-dataset", db="work/datasets.sqlite3")
+dataset = ds.load("oxidation")
+release = ds.load("oxidation", version="001", db="work/datasets.sqlite3")
+incomplete = ds.load("oxidation", archive_class="incomplete")
+mixed = ds.load(
+    "oxidation",
+    archive_class={"incomplete", "ordinary", "benchmark"},
+)
 ```
 
-| Parameter | Meaning |
-| --- | --- |
-| `ds_name` | Dataset name from `datasets_list` |
-| `version` | Optional source version, release identifier, integer serial, or three-digit serial |
-| `db` | Optional Hotpot dataset SQLite path |
+```text
+ds.load(
+    ds_name: str,
+    version: str | int | None = None,
+    *,
+    db: str | Path | None = None,
+    archive_class: str | Iterable[str] | None = None,
+) -> Dataset
+```
 
-`load` returns a `Dataset`. `dataset.info` is the JSON-compatible description of the
-selected immutable release.
+`version` accepts a source version, immutable release ID, integer release
+serial, or three-digit serial. By default, `load` returns the latest release
+and includes `ordinary` and `benchmark` records. Incomplete records require an
+explicit `archive_class` opt-in. A filtered Dataset cannot reintroduce archive
+classes excluded by its original `load`.
 
-Dataset release identifiers describe scientific data identity. They do not select an older
-Hotpot implementation, schema, or compatibility mode; Git owns implementation history.
+The default local store is
+`hotpot/dataset/data/store/datasets.sqlite3`. Dataset payloads are not bundled
+with source distributions, so a clean installation commonly needs `db=`.
 
 ## 2. `Dataset` and `Data`
 
-### `Dataset`
-
-A `Dataset` is a sequence-like view of one release. `Dataset` and `Data` are returned by
-the query API rather than constructed as submission inputs. Indexing returns `Data`; slicing
-and filtering return another `Dataset` while preserving the original identities.
-
-| Member | Result |
-| --- | --- |
-| `dataset[index]` | One `Data`; a slice returns `Dataset` |
-| `dataset.info` | Dataset properties, version, size, license, labels, and provenance |
-| `dataset.handle` | Sorted DOI or citation handles represented in the view |
-| `dataset.labels` | `{label_name: data_count}` for active labels |
-| `dataset.core_labels` | Labels required on every item; may be `[]` |
-| `dataset.subset(**filters)` | AND-filtered `Dataset` |
-| `dataset.<source>_identifier[value]` | Dataset-specific external-identifier lookup |
-
-Collection-valued filters use IN semantics. Lists, sets, tuples, and frozen sets are
-accepted. Nested paths use `__`.
+`Dataset` is a sequence-like view over one immutable release. Users obtain it
+through `load`, slicing, searching, or `subset`; its constructor is not an
+intake interface.
 
 ```python
-dataset = ds.load(ds_name="oxidation")
-
-first = dataset[0]
+first = dataset[0]                 # Data
+window = dataset[10:20]           # Dataset
 selected = dataset.subset(
-    labels__oxidation_state=[2, 3],
-    quality_level={"B2_curated", "B3_validated"},
+    labels__oxidation_state={2, 3},
+    quality_level={"B2", "B3", "B4"},
 )
-
-# Identifier handles are dataset-specific.
-csd_data = dataset.CSD_identifier["ACAHUJ"]
+by_refcode = dataset.CSD_identifier["AAAKSI"]
 ```
 
-If an identifier is unique, lookup returns `Data`; if it is repeated, lookup returns a
-`Dataset` containing all matches.
+Scalar criteria use equality. Lists, sets, tuples, and frozen sets use IN
+semantics; all criteria are ANDed. A dataset-specific identifier lookup returns
+one `Data` when unique and a `Dataset` when repeated.
 
-### `Data`
-
-| Member | Result |
-| --- | --- |
-| `data.id` | Stable Hotpot identity |
-| `data.info` | Complete JSON-compatible public record |
-| `data.label` | Active label dictionary |
-| `data.quality_level` | B0-B4 quality string |
-| `data.evidence_level` | Conservative E0-E4 evidence string |
-| `data.structures()` | Sorted stored formats, for example `['smi', 'mol2']` |
-| `data.structures.smi` | Verified SMILES text or `None` |
-| `data.structures.mol2` | Verified MOL2 text or `None` |
-| `data.molecule` | Fresh `hotpot.Molecule` from the primary structure |
-| `data.crystal` | Crystal object when lattice data are available; otherwise raises |
-
-The identity format is:
+### Dataset members
 
 ```text
-hp-<dataset_name>[<three-digit-release-serial>]-<zero-based-index>
+len(dataset) -> int
+iter(dataset) -> Iterator[Data]
+dataset[index: int] -> Data
+dataset[index: slice] -> Dataset
+dataset.subset(**criteria) -> Dataset
+dataset.<namespace>_identifier[value] -> Data | Dataset
+
+dataset.name -> str
+dataset.dataset_id -> str
+dataset.release_id -> str
+dataset.version -> str
+dataset.version_serial -> int
+dataset.info -> dict
+dataset.handle -> list[str]
+dataset.labels -> dict[str, int]
+dataset.core_labels -> list[str]
+dataset.quality_levels -> dict[str, int]
+dataset.evidence_levels -> dict[str, int]
+dataset.identifier_namespaces -> tuple[str, ...]
 ```
 
-For example, the first item of the first `oxidation` release is
-`hp-oxidation[001]-0`. Subsets never renumber it.
+`dataset.handle` collects the release's DOI, URL, citation, and repository
+handles. `dataset.labels` reports how many visible records contain each label.
+`dataset.core_labels` may be empty. Quality and evidence on a Dataset are
+distributions; a heterogeneous collection has no single B or E level. Cases
+without an evidence-bearing required target have `evidence_level is None` and
+are counted in the `not_applicable` distribution bucket.
 
-Structure format access returns `None` when the selected primary structure lacks that
-format. With multiple scientific variants, a primary role must be declared; Hotpot never
-selects a different variant merely because it has the requested representation. Local
-assets remain inside their registered root and are rechecked against SHA-256 before use.
+### Data members
 
-The originating `Data` is attached to a loaded molecule or crystal as `.data`. If that
-name is already owned by the object, Hotpot uses `.ds_data`.
+```text
+data.id -> str
+data.record_id -> str
+data.local_id -> str
+data.metadata -> dict
+data.info -> dict
+data.label -> dict
+data.identifiers -> dict
+data.entities -> list[dict]
+data.quality_level -> str
+data.evidence_level -> str | None
+data.archive_class -> str
+data.structures() -> list[str]
+data.structures.<format> -> str | None
+data.molecule -> hotpot.Molecule
+data.crystal -> Crystal
+```
 
-Quality and evidence are independent string vocabularies:
+Hotpot IDs use
+`hp-<dataset_name>[<three-digit-release-serial>]-<persistent-index>`, for
+example `hp-oxidation[001]-0`. Slicing and filtering never renumber them.
 
-| Quality | Interpretation |
-| --- | --- |
-| `B0_collection` | Governed collection |
-| `B1_candidate` | Provenance-complete candidate with audited mapping |
-| `B2_curated` | Item-level review and conflict adjudication |
-| `B3_validated` | Primary-source support, dual review, and frozen evaluation rules |
-| `B4_reference` | Independently corroborated reference release |
+`data.structures()` lists available representations. Attribute access such as
+`data.structures.smi` and `data.structures.mol2` returns verified content or
+`None`; it does not raise merely because that format is absent.
+If a Data item contains several Structure IDs, the accessor uses the unique
+`primary` Structure; no unique primary raises an ambiguity error instead of
+silently choosing a variant.
+`data.molecule` returns a fresh `hotpot.Molecule` and attaches the originating
+Data as `.data`, or `.ds_data` if the object already owns `.data`.
+`data.crystal` requires crystallographic information and otherwise raises.
 
-| Evidence | Interpretation |
-| --- | --- |
-| `E0_insufficient` | Insufficient support |
-| `E1_extracted` | Extracted but unconfirmed |
-| `E2_explicit_reported` | Explicit source statement |
-| `E3_primary_source_supported` | Auditable primary-source support |
-| `E4_independently_corroborated` | Independent corroboration |
-
-## 3. `BaseSearcher`, `DataSearcher`, `DatasetSearcher`, and `SmartsSearcher`
-
-`BaseSearcher` is the abstract common interface. Every concrete searcher supports
-`match(item)`, `search(target)`, and direct calling as a predicate.
+## 3. Search
 
 ```python
-data_query = (
-    ds.DataSearcher(labels__oxidation_state=[2, 3])
-    & ~ds.DataSearcher(quality_level="B0_collection")
+query = (
+    ds.DataSearcher(labels__oxidation_state={2, 3})
+    & ~ds.DataSearcher(archive_class="incomplete")
 )
-matching_data = data_query.search(dataset)
+matches = query.search(dataset)
 
 dataset_query = ds.DatasetSearcher(core_labels="oxidation_state")
-matching_datasets = dataset_query.search(ds.datasets_list)
+matched_datasets = dataset_query.search(ds.datasets_list)
 
 substructure_query = ds.SmartsSearcher("[N]-[C]")
-matching_structures = substructure_query.search(dataset)
+matched_structures = substructure_query.search(dataset)
 ```
-
-| Searcher | Target |
-| --- | --- |
-| `DataSearcher(**filters)` | Fields in `data.info` |
-| `DatasetSearcher(**filters)` | Fields in `dataset.info` |
-| `SmartsSearcher(smarts, semantics=None)` | Readable molecular structures |
-
-| Common operation | Result |
-| --- | --- |
-| `searcher.match(item)` | `True` when one item matches |
-| `searcher(item)` | Predicate shorthand for `match` |
-| `searcher.search(target)` | Matching `Dataset` view or tuple |
-| `searcher.not_()` | Negated search expression |
-
-Expressions compose as follows:
-
-- `a & b`: both match;
-- `a | b`: either matches;
-- `a ^ b`: exactly one matches;
-- `~a` or `a.not_()`: logical NOT.
-
-Python does not provide an overloadable unary `!` operator. Using Python `and`, `or`, or
-`not` on search expressions raises an explanatory error.
-
-For a non-default database, construct the dataset targets explicitly:
-
-```python
-db = "work/datasets.sqlite3"
-targets = [ds.load(name, db=db) for name in ds.datasets_list(db=db)]
-matching_datasets = dataset_query.search(targets)
-```
-
-## 4. `write_certificate`, `load_bundle`, and `Bundle`
-
-The only supported write preparation flow is:
-
-```python
-bundle = ds.load_bundle("my-submission")
-certificate = ds.write_certificate(
-    bundle,
-    "my-submission.certificate.json",
-    core_labels=["oxidation_state"],
-)
-```
-
-### `load_bundle` and `Bundle`
-
-```python
-bundle = ds.load_bundle(source, asset_root=None)
-```
-
-`Bundle(source, *, asset_root=None)` is the equivalent direct constructor;
-`load_bundle` is preferred for readability. `asset_root` is keyword-only and overrides the
-root used to resolve relative structure paths.
-
-`source` may be a submission folder, compact SQLite exchange database, or manifest
-mapping. The returned `Bundle` is deliberately small:
-
-| Member | Result |
-| --- | --- |
-| `bundle.name` | Submitted dataset name |
-| `bundle.version` | Version when exactly one release is present |
-| `bundle.versions` | Submitted version list |
-| `bundle.info` | JSON-compatible name, title, description, versions, and size |
-| `len(bundle)` | Number of submitted data records |
-
-The normalized relational rows remain private.
-
-### Assessment input fences
-
-#### Folder input
 
 ```text
-my-submission/
-├── dataset.json
-└── structures/
-    └── AAAKSI.mol2
+BaseSearcher                         # abstract
+  .match(item) -> bool
+  .search(target) -> Dataset | tuple
+  .not_() -> BaseSearcher
+  __call__(item) -> bool
+  &, |, ^, ~
+
+DataSearcher(**criteria)
+DatasetSearcher(**criteria)
+SmartsSearcher(smarts: str, *, semantics=None)
 ```
 
-`dataset.json` connects record identities, structures, labels, and evidence:
+`&`, `|`, `^`, and `~` mean AND, OR, XOR, and NOT. Python has no overloadable
+unary `!`; use `~query` or `query.not_()`. Do not use Python `and`, `or`, or
+`not` with search expressions.
 
-```json
-{
-  "schema_version": "hotpot-ds-submission/current",
-  "dataset": {
-    "name": "csd-example",
-    "version": "2026.1",
-    "title": "CSD example",
-    "description": "Chemist-labelled coordination complexes",
-    "license": "CCDC licensed",
-    "access_policy": "restricted",
-    "provenance": {"source": "CSD"}
-  },
-  "records": [
-    {
-      "id": "AAAKSI",
-      "identifiers": {"CSD_identifier": "AAAKSI"},
-      "metadata": {"compound_name": "example"},
-      "structures": [
-        {
-          "role": "reported_crystal_structure",
-          "primary": true,
-          "representations": {
-            "mol2": {"path": "structures/AAAKSI.mol2"}
-          }
-        }
-      ],
-      "labels": {
-        "oxidation_state": {
-          "value": 2,
-          "evidence_level": "E2_explicit_reported",
-          "evidence": [
-            {
-              "source": "paper-1",
-              "evidence_type": "reported_value",
-              "locator": "page 4",
-              "quote": "The metal is reported as Eu(II).",
-              "role": "supports"
-            }
-          ]
-        }
-      }
-    }
-  ],
-  "sources": {
-    "paper-1": {
-      "source_type": "publication",
-      "citation": "Complete citation",
-      "doi": null,
-      "license": "CC-BY-4.0",
-      "access_policy": "open",
-      "metadata": {}
-    }
-  }
-}
-```
+## 4. Build and manage a Bundle
 
-Every record must explicitly contain `structures` and `labels`; either may be empty.
-Paths must be safe relative paths under the submission root. Multiple structures are linked
-by their record, role, and optional `primary` flag. A reusable skeleton is available at
-[`templates/dataset.json`](templates/dataset.json).
-
-#### Compact SQLite input
-
-The exchange database must contain these four tables:
-
-| Table | Required columns |
-| --- | --- |
-| `dataset` | `name`, `version`, `title`, `description`, `license`, `access_policy`, `provenance_json` |
-| `data` | `id`, `metadata_json`, `identifiers_json` |
-| `structures` | `data_id`, `format`, `path` |
-| `labels` | `data_id`, `name`, `value_json` |
-
-`data.id` is the relationship key used by `structures.data_id` and `labels.data_id`.
-Structure paths are resolved relative to the directory containing the SQLite file. The
-`dataset` table must contain exactly one row. A minimal schema is:
-
-```sql
-CREATE TABLE dataset (
-  name TEXT NOT NULL,
-  version TEXT NOT NULL,
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  license TEXT NOT NULL,
-  access_policy TEXT NOT NULL,
-  provenance_json TEXT NOT NULL
-);
-CREATE TABLE data (
-  id TEXT PRIMARY KEY,
-  metadata_json TEXT NOT NULL,
-  identifiers_json TEXT NOT NULL
-);
-CREATE TABLE structures (
-  data_id TEXT NOT NULL REFERENCES data(id),
-  format TEXT NOT NULL,
-  path TEXT NOT NULL
-);
-CREATE TABLE labels (
-  data_id TEXT NOT NULL REFERENCES data(id),
-  name TEXT NOT NULL,
-  value_json TEXT NOT NULL
-);
-```
-
-The relationship can be inspected without Hotpot-specific backend tables:
-
-```sql
-SELECT d.id, s.format, s.path, l.name, l.value_json
-FROM data AS d
-LEFT JOIN structures AS s ON s.data_id = d.id
-LEFT JOIN labels AS l ON l.data_id = d.id
-ORDER BY d.id, s.format, l.name;
-```
-
-Recommended optional structure columns are `structure_id`, `role`, and `primary`. Optional
-label columns include unit, uncertainty, conditions, method, evidence level, status, and
-evidence JSON. Optional `sources` and `property_types` tables hold citations and custom
-property definitions. Equivalent SQL views may be used instead of copying source tables.
-
-### `write_certificate`
-
-For a new dataset, explicitly supply at least one of `quality_level`, `core_labels`, or
-`core_info`. An empty list is an explicit declaration that no core field exists; omission
-is not equivalent.
+A Bundle owns exactly one dataset release in exactly one directory. The normal
+workflow is explicit:
 
 ```python
-certificate = ds.write_certificate(
-    bundle,
-    "certificate.json",
-    quality_level="B1_candidate",
-    core_labels=["oxidation_state"],
-    core_info=["metadata.compound_name", "structures"],
-    configure="policy.json",
+import hotpot.ds as ds
+
+# One-time canonical build from an unbuilt current-format intake folder.
+bundle = ds.Bundle(
+    "submission",
+    "my-dataset",
+    db="work/datasets.sqlite3",
 )
+
+# Batch edits are allowed before one explicit reassessment.
+bundle.synchronize()
+certificate = bundle.write_certificate()
+receipt = bundle.ingest()
 ```
 
-| Parameter | Meaning |
-| --- | --- |
-| `bundle` | `Bundle` returned by `load_bundle` |
-| `path` | Output certificate JSON path |
-| `quality_level` | Optional B0-B4 declaration for a new dataset |
-| `core_labels` | Labels required on every record; `[]` explicitly means none |
-| `core_info` | Information paths required on every record; `[]` explicitly means none |
-| `configure` | Policy JSON path or standard mapping for a new dataset |
-| `dataset` | Existing `Dataset` or existing dataset name; omit for a new dataset |
-| `db` | Database path when `dataset` is an existing name |
-
-The return value is the certificate `Path`.
-
-For an established dataset, provide the loaded `Dataset`. Its persisted rules replace all
-caller configuration, and successful ingestion creates a new immutable release.
+Later processes reopen, rather than rebuild, the canonical Bundle:
 
 ```python
-established = ds.load("csd-example", db="work/datasets.sqlite3")
-certificate = ds.write_certificate(
-    bundle,
-    "next-release.certificate.json",
-    dataset=established,
+bundle = ds.load_bundle(
+    "submission",
+    "my-dataset",
+    db="work/datasets.sqlite3",
 )
-```
 
-Alternatively, pass `dataset="csd-example"` together with `db=`. Existing-dataset mode
-rejects `quality_level`, `core_labels`, `core_info`, and `configure` overrides.
-
-`configure` accepts a policy JSON path or an equivalent mapping. Dataset-specific rules
-override general rules; identity, relationship, safe-path, asset-hash, schema, and
-certificate-integrity gates cannot be disabled.
-
-```json
-{
-  "schema_version": "hotpot-ds-certificate-config/current",
-  "generic": {
-    "min_records": 1,
-    "require_structure_or_label": true
-  },
-  "datasets": {
-    "csd-example": {
-      "core_labels": ["oxidation_state"],
-      "core_info": ["metadata.compound_name"],
-      "minimum_evidence": {
-        "oxidation_state": "E2_explicit_reported"
-      }
-    }
-  }
-}
-```
-
-The template is available at
-[`templates/certificate-config.json`](templates/certificate-config.json).
-`write_certificate` writes the integrity-bound assessment and returns its `Path`. The JSON
-field `certificate.passed` records the result. A certificate proves content integrity and
-policy evaluation; it is not an external chemical endorsement.
-
-## 5. `store.ingest`
-
-`store` is the single public storage object. There is no public storage-class constructor.
-
-```python
-result = ds.store.ingest(
-    bundle,
-    certificate=certificate,
+restored = ds.Bundle.from_certificate(
+    "submission/certificate.json",
     db="work/datasets.sqlite3",
 )
 ```
 
-| Parameter | Meaning |
+```text
+ds.Bundle(root, ds_name, *, db=None, gates=None)
+ds.load_bundle(root, ds_name, *, db=None) -> Bundle
+ds.Bundle.from_certificate(path, *, db=None) -> Bundle
+ds.write_certificate(bundle) -> Path
+```
+
+`root` is the one Bundle directory; `ds_name` must equal
+`bundle.json.ds_name`; `db` is the target current store used to decide whether
+the dataset is new or established. `gates` accepts at most one of each Gate
+type and is valid only for a new dataset. `from_certificate` reopens the Bundle
+named by the root certificate and verifies its controls and materialized
+assets. A certified missing/invalid asset remains a bound negative fact; it is
+not treated as an unexpectedly missing control file.
+
+`Bundle(...)` is the only public one-time build entry. `load_bundle(...)` is
+validation-only and never imports, repairs, or rewrites facts. The thin module
+function `write_certificate(bundle)` calls `bundle.write_certificate()` and
+contains no assessment policy.
+
+### Bundle members
+
+```text
+len(bundle) -> int
+bundle.root -> Path
+bundle.name -> str
+bundle.mode -> "new" | "existing"
+bundle.info -> dict
+bundle.status -> dict
+bundle.is_synchronized -> bool
+bundle.summary -> dict
+bundle.gates -> Mapping[str, Gate]
+bundle.certificate_path -> Path
+bundle.certificate_stale -> bool
+bundle.cases -> CaseCollection
+bundle.incomplete -> CaseView
+bundle.ordinary -> CaseView
+bundle.benchmark -> CaseView
+bundle.use_gate(gate) -> None
+bundle.synchronize() -> dict
+bundle.write_certificate() -> Path
+bundle.ingest(*, include_incomplete=False, reason=None) -> dict
+```
+
+`bundle.status` and raw facts remain readable while the Bundle is stale.
+Derived levels, classifications, summaries, and derived views require a
+synchronized generation. The lifecycle has no implicit transitions:
+
+```text
+fact or new-dataset Gate edit
+    -> unsynchronized, certificate stale
+bundle.synchronize()
+    -> synchronized, certificate stale
+bundle.write_certificate()
+    -> synchronized, certificate current
+bundle.ingest()
+    -> immutable sealed release
+```
+
+Certification never synchronizes, and ingestion never synchronizes or
+certifies. Successful ingestion seals the whole release. Later scientific
+corrections require a successor release.
+
+For a new dataset, omitted Gates use Hotpot defaults and supplied Gates become
+the proposed persistent dataset policy. An existing dataset loads its stored
+policy: passing `gates` or calling `use_gate` is an error.
+
+### Case access and editing
+
+`bundle.cases` contains every Case, including incomplete Cases, and remains the
+single collection entry point:
+
+```python
+case = bundle.cases[0]
+candidate = bundle.cases.select(
+    archive_class={"ordinary", "benchmark"},
+    min_quality="B2",
+    min_evidence="E2",
+)
+```
+
+```text
+len(bundle.cases) -> int
+iter(bundle.cases) -> Iterator[Case]
+bundle.cases[index: int] -> Case
+bundle.cases[index: slice] -> CaseView
+bundle.cases.select(**criteria) -> CaseView
+case.id -> str
+```
+
+Selection accepts only `archive_class`, `quality_level`, `min_quality`,
+`evidence_level`, `min_evidence`, `benchmark_status`, `reason`, `verification`,
+and `attestation`. Views return the original Bundle-owned Case objects; Cases
+cannot be appended, removed, reparented, or moved between Bundles.
+
+Raw Case properties include `info`, `core_info`, `structures`, `labels`,
+`observations`, `claims`, `evidence`, and `attestations`. Derived read-only
+properties include `evidence_levels`, `evidence_level`, `quality_level`,
+`archive_class`, `benchmark`, `benchmark_status`, `reasons`, and `assessment`.
+All mapping and sequence results are defensive snapshots.
+
+Facts change only through named audited methods:
+
+```text
+case.set_core_info(name, value, *, reason=None) -> None
+case.remove_core_info(name, *, reason) -> None
+
+case.add_structure(data) -> str
+case.replace_structure(structure_id, data, *, reason) -> str
+case.withdraw_structure(structure_id, *, reason) -> None
+
+case.add_observation(data) -> str
+case.replace_observation(observation_id, data, *, reason) -> str
+case.withdraw_observation(observation_id, *, reason) -> None
+
+case.add_claim(data) -> str
+case.replace_claim(claim_id, data, *, reason) -> str
+case.withdraw_claim(claim_id, *, reason) -> None
+
+case.add_evidence(
+    target, source, *, relation="supports", locator=None, note=None
+) -> str
+case.replace_evidence(
+    evidence_id, source, *, reason, locator=None, note=None
+) -> str
+case.withdraw_evidence(evidence_id, *, reason) -> None
+case.verify_evidence(evidence_id, *, method, verifier, note=None) -> str
+case.withdraw_verification(verification_id, *, reason) -> None
+
+case.attest_benchmark(
+    approved, *, authority, actor, reason=None
+) -> str
+case.withdraw_attestation(attestation_id, *, reason) -> None
+```
+
+`data` arguments above are JSON-compatible mappings. `method` is `"AI"` or
+`"Human"`; public `authority` is `"User"` or `"Other"`. Add and replacement
+methods return the new fact ID. Replacement and withdrawal preserve the old
+fact and append an audit event.
+
+```python
+evidence_id = case.add_evidence(
+    target="observation-1",
+    source="https://doi.org/10.1000/example",
+    locator="Table 2",
+)
+case.verify_evidence(
+    evidence_id,
+    method="Human",
+    verifier="reviewer@example.org",
+)
+bundle.synchronize()
+```
+
+Evidence and quality levels have no setters. A benchmark opinion uses an
+attributable attestation, not `case.benchmark = True`. Public callers may attest
+as `User` or `Other`; effective `Hotpot` authority comes only from Hotpot's
+private signed governance path.
+
+## 5. Gates and levels
+
+Gate classes live in their own submodule:
+
+```python
+from hotpot.ds.gates import BenchmarkGate, EvidenceGate, QualityGate
+```
+
+```text
+EvidenceGate(checks=None, *, level_checks=None, require_locator=True)
+QualityGate(checks=None, *, level_checks=None, structure_checks=None)
+BenchmarkGate(
+    checklist=None,
+    direct_entry=None,
+    *,
+    vetoes=None,
+    numeric_tolerances=None,
+)
+```
+
+Each Gate exposes immutable JSON-compatible `.info` and a content `.digest`.
+`checks`, `structure_checks`, `checklist`, and `direct_entry` map stable names
+to a Boolean built-in switch or a checker function. `level_checks` maps each
+`B0`-`B4` or `E0`-`E4` level to the required check names. `vetoes` names
+BenchmarkGate checks that no admission route may bypass, and each numeric
+tolerance supplies nonnegative `absolute` and/or `relative` values.
+Custom checks use one fixed signature:
+
+```python
+def checker(case: Mapping, bundle: Mapping) -> tuple[bool, str]:
+    """Return (passed, reason)."""
+```
+
+Hotpot persists the exact source and digest for a new dataset. Checkers must be
+deterministic top-level functions, use only allowed imports, avoid network and
+side effects, and execute through the isolated checker worker. Unsupported
+isolation fails closed; there is no unsafe in-process fallback.
+
+```python
+from hotpot.ds.gates import BenchmarkGate
+
+gate = BenchmarkGate(
+    checklist={"verified_primary_source": True, "conflict_free": True},
+    direct_entry={"hotpot_or_user_attestation": True},
+    numeric_tolerances={"oxidation_state": {"absolute": 0.0}},
+)
+bundle = ds.Bundle("submission", "my-dataset", gates=[gate])
+```
+
+Gate arguments are accepted only while building a new dataset. A later
+new-dataset policy edit constructs another immutable Gate and passes it to
+`bundle.use_gate(gate)`. Existing datasets always use their persisted policy.
+
+Quality and evidence are independent Case assessments:
+
+| Quality | Meaning |
 | --- | --- |
-| `bundle` | The exact assessed `Bundle` |
-| `certificate` | Path returned by `write_certificate`; mandatory |
-| `db` | Target SQLite dataset store; required to prevent accidental writes to a catalog |
+| `B0` | Governed collection only |
+| `B1` | Provenance-complete candidate with audited mapping |
+| `B2` | Item review and conflict adjudication |
+| `B3` | Primary support and reproducible validation controls |
+| `B4` | Independently corroborated reference material |
 
-The method returns a JSON-compatible count dictionary. Before writing, Hotpot verifies the
-certificate envelope, normalized bundle digest, configured rules, asset paths and hashes,
-and established-dataset policy. A failed, mismatched, or modified certificate is
-rejected. Existing data are integrated as a new immutable release; certified releases are
-never modified in place.
+| Evidence | Meaning |
+| --- | --- |
+| `E0` | No usable linked support |
+| `E1` | Extracted material, not yet explicit and verified |
+| `E2` | Explicit source statement with a usable locator |
+| `E3` | Verified primary-source support |
+| `E4` | Independent primary result-lineage corroboration |
 
-For commands, see the [`hotpot ds` CLI reference](cli_doc.md). For normalized backend
-automation, see [`hotpot.ds.detail`](detail/README.md). The tracked resource layout and
-ignored payload boundary are documented in [`hotpot/dataset`](../dataset/README.md).
+The default BenchmarkGate admits only complete, safely archivable Cases. It
+requires its ordinary checklist or one active Hotpot/User approval, and always
+applies enabled vetoes. An active Hotpot/User rejection blocks every default
+route. `Other` preserves an expert statement but does not grant direct entry.
+Scientific value conflict, identity indeterminacy, and attestation disagreement
+remain separate reason categories.
+
+The three archive classes are:
+
+| Class | Meaning | Default query visibility |
+| --- | --- | --- |
+| `incomplete` | Missing required facts/assets, invalid required structure, or significant unresolved scientific conflict | Excluded |
+| `ordinary` | Complete and archivable, but not admitted by BenchmarkGate | Included |
+| `benchmark` | Complete, archivable, and admitted by BenchmarkGate | Included |
+
+Incomplete Cases can be preserved deliberately with
+`bundle.ingest(include_incomplete=True, reason="...")`; they remain classified
+and isolated as incomplete.
+
+## 6. Intake organization
+
+A Bundle root contains one authoritative `bundle.json` and one Case source,
+plus root-relative scientific assets. A concise JSON Lines intake is:
+
+```text
+submission/
+|-- bundle.json
+|-- cases.jsonl
+|-- structures/
+|   `-- record-0001.mol2
+`-- evidence/
+    `-- paper.pdf
+```
+
+A minimal manifest names every required contract explicitly, including empty
+requirements:
+
+```json
+{
+  "schema": "hotpot-ds-bundle/current",
+  "ds_name": "metal-oxidation",
+  "release_id": "metal-oxidation-r1",
+  "release_serial": 1,
+  "version": "1.0.0",
+  "title": "Metal oxidation states",
+  "description": "Reviewed oxidation-state records",
+  "license": "project-specific",
+  "access_policy": "local",
+  "provenance": {"doi": "10.1000/example"},
+  "core_labels": ["oxidation_state"],
+  "core_info": ["CSD_identifier"],
+  "identity_schema": {},
+  "required_structure_roles": ["complex"],
+  "property_comparators": {},
+  "intake": {"format": "jsonl", "path": "cases.jsonl"}
+}
+```
+
+Each nonblank JSONL line is one Case fact object. Operative B/E levels and
+archive classes are deliberately absent because synchronization derives them:
+
+```json
+{"id":"case-0001","local_id":"AAAKSI","public_index":0,"identifiers":{"CSD":"AAAKSI"},"core_info":{"CSD_identifier":"AAAKSI"},"entities":[{"entity_id":"entity-0001"}],"structures":[{"structure_id":"structure-0001","role":"complex","format":"mol2","path":"structures/case-0001.mol2"}],"observations":[{"observation_id":"observation-0001","property":"oxidation_state","value":2}],"claims":[],"evidence":[],"verifications":[],"attestations":[]}
+```
+
+The equivalent structured intake is one `intake.sqlite3` conforming to the
+current intake schema. A bare SQLite path is not a Bundle; place it inside a
+Bundle root and declare it in `bundle.json`. Do not provide both active JSONL
+and SQLite Case sources.
+
+`bundle.json` declares one dataset/release identity, release serial, required
+core labels/info, required structure roles, identity schema, comparison policy,
+and the active Case source. Every local path must be safe, POSIX-style, and
+relative to the Bundle root. Case records connect structures, observations,
+claims, evidence, verifications, attestations, identifiers, and entities by
+explicit IDs. Missing scientific assets are declared as negative facts rather
+than replaced with invented content.
+
+`Bundle(...)` publishes canonical facts and policy projections under the same
+root. Synchronization creates an immutable assessment generation with separate
+derived indexes for incomplete, ordinary, and benchmark Cases. The root
+certificate is always `certificate.json`.
+
+For concrete schemas and examples, inspect
+[`schemas/bundle`](schemas/bundle/) and the
+[dataset storage contract](../dataset/docs/storage.md). The CLI workflow and
+its JSON transport are documented in [cli_doc.md](cli_doc.md).

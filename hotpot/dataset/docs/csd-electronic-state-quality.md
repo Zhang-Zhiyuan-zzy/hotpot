@@ -16,8 +16,9 @@ statement rather than an independent primary-literature adjudication.
 - Incomplete cores and ambiguous or conflicting mappings remain unresolved evidence.
 - No automatic subset qualifies as a curated, validated, or reference benchmark.
 
-Quality and evidence levels must be assigned independently. A structurally consistent CSD
-entry does not make its electronic-state phrase a validated label.
+Quality and evidence levels are derived independently by the persisted Gates;
+they are not assigned by the source. A structurally consistent CSD entry does
+not make its electronic-state phrase a validated label.
 
 ## Known risks
 

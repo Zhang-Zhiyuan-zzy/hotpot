@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -14,6 +16,7 @@ from hotpot.ds.tools.spin import validate as validate_spin
 
 
 TOOLS_ROOT = Path(analyze_structure_composition.__file__).parent
+DATASET_ROOT = _paths.DATASET_ROOT
 
 
 def test_tool_defaults_use_canonical_dataset_layout() -> None:
@@ -55,6 +58,30 @@ def test_tools_contain_no_repository_level_storage_paths() -> None:
     assert "benchmark/" not in sources
     assert "datasets/" not in sources
     assert "structure_store" not in sources
+
+
+def test_dataset_metadata_uses_current_fact_and_payload_contracts() -> None:
+    layout = json.loads(
+        (DATASET_ROOT / "manifests" / "layout.json").read_text(encoding="utf-8")
+    )
+    assert layout["payload_directories"]["bundles"] == (
+        "hotpot/dataset/data/bundles"
+    )
+    assert layout["payload_directories"]["target_assets"] == (
+        "hotpot/dataset/data/store/datasets.sqlite3.assets"
+    )
+
+    decisions_path = (
+        DATASET_ROOT / "manifests" / "evidence-regrade-owner-decisions.json"
+    )
+    decisions = json.loads(decisions_path.read_text(encoding="utf-8"))
+    assert all("retained_fact_kind" in item for item in decisions["decisions"])
+    legacy_level = re.compile(r"\b[BE][0-4]_[A-Za-z]")
+    assert legacy_level.search(json.dumps(decisions)) is None
+
+    audit_source = Path(assess_quality.__file__).read_text(encoding="utf-8")
+    assert legacy_level.search(audit_source) is None
+    assert '"assigned_levels"' not in audit_source
 
 
 @pytest.mark.parametrize(

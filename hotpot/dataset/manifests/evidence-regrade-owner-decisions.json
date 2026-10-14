@@ -2,6 +2,7 @@
   "schema": "hotpot-owner-adjudication/current",
   "adjudicated_on": "2026-10-13",
   "authority": "Hotpot dataset owner",
+  "assessment_boundary": "These are owner factual dispositions and preserved historical claims. Current quality, evidence, and benchmark states are derived only by Bundle Gates for an exact release.",
   "supplier_audit": {
     "local_path": "hotpot/dataset/data/audits/evidence_regrade_audit.json",
     "sha256": "dac1bc2a0c139274c84390720422ae3567714fae6f73067e48e11eb6ac07d9af",
@@ -16,29 +17,43 @@
     {
       "scope": "SIQKEJ/Hg/+9",
       "supplier_fact_accepted": true,
-      "disposition": "Preserve the extracted source text, reject the oxidation-state claim, assign E0_insufficient, and exclude it from active targets."
+      "retained_fact_kind": "source_evidence",
+      "claim_status": "rejected",
+      "support_status": "not_supporting_an_active_target",
+      "disposition": "Preserve the extracted source text, reject the oxidation-state claim, and exclude it from active targets."
     },
     {
       "scope": "36 context-qualified spin entries",
       "supplier_fact_accepted": true,
-      "disposition": "Move the claims out of the unqualified-spin subset while retaining E1_extracted and the original source evidence."
+      "retained_fact_kind": "unresolved_claim",
+      "claim_status": "unresolved",
+      "support_status": "reported_text_with_context_qualification",
+      "disposition": "Move the claims out of the unqualified-spin subset while retaining the unresolved claims and original source evidence."
     },
     {
       "scope": "ACAHUJ and ZEKDOK oxidation",
       "supplier_fact_accepted": true,
-      "disposition": "Remove the contested CSD values from active observations. Keep each explicit reported-text assertion as an unresolved E2 source claim, mark it ineligible as a benchmark target, and link the conflicting curated evidence."
+      "retained_fact_kind": "unresolved_claim",
+      "claim_status": "unresolved",
+      "support_status": "explicit_reported_text_conflicting_with_curated_observation",
+      "disposition": "Remove the contested CSD values from active observations. Keep each explicit reported-text assertion as an unresolved source claim, mark it ineligible as a benchmark target, and link the conflicting curated evidence."
     },
     {
       "scope": "28 exact SCO95 spin-structure matches",
       "supplier_fact_accepted": true,
       "supplier_value_recommendation_accepted": false,
-      "disposition": "Retain each CSD text claim at E1_extracted. Store a relation to the independently curated structure-level observation instead of upgrading or duplicating the CSD claim."
+      "retained_fact_kind": "unresolved_claim",
+      "claim_status": "unresolved",
+      "support_status": "reported_database_text_only",
+      "disposition": "Retain each CSD text claim as unresolved. Store a relation to the independently curated structure-level observation instead of upgrading or duplicating the CSD claim."
     },
     {
       "scope": "350 nominal local-spin derivations",
       "supplier_fact_accepted": true,
       "supplier_value_recommendation_accepted": false,
-      "disposition": "Store the derived multiplicity as a ComputedDescriptor with method, assumptions, and references. Do not create an Observation and do not invent an E1-derived evidence enum."
+      "retained_fact_kind": "computed_descriptor",
+      "support_status": "derived_from_declared_nominal_local_spin_assumptions",
+      "disposition": "Store the derived multiplicity as a ComputedDescriptor with method, assumptions, and references. Do not create an Observation or assign an evidence level."
     }
   ],
   "expected_counts": {

@@ -289,36 +289,58 @@ def assess(database: Path) -> Dict[str, object]:
                 "declare the actual CCDC/CSD license and keep access restricted until redistribution is confirmed",
                 "store raw mentions as evidence; keep ambiguous/conditional rows as claims",
                 "create oxidation observations only for uniquely mapped active OX-T1 rows",
-                "keep every spin mention as an E1 unresolved claim until subject coreference, site, and conditions are manually reviewed",
+                "keep every spin mention as an unresolved source claim until subject coreference, site, and conditions are manually reviewed",
                 "never convert spin category or transition behavior to numeric S or multiplicity",
                 "group train/validation/test splits by base refcode family and chemical identity",
             ],
-            "assigned_levels": {
-                "full_collection": "B0_collection",
-                "OX-T1_active": "B1_candidate",
-                "all_spin_text_including_SP-T1_active_regex_unflagged": (
-                    "B0_collection; E1 unresolved claims only"
-                ),
-                "conditional_spin_or_incomplete_core": "B0_collection claim/evidence only for fixed-state tasks",
-                "T2_to_T4": "B0_collection claim/evidence only",
+            "assessment_boundary": (
+                "This source audit records facts and recommended record kinds; it does "
+                "not assign operative quality, evidence, or benchmark levels. Those are "
+                "derived only when the current Bundle Gates assess an exact release."
+            ),
+            "recommended_fact_handling": {
+                "full_collection": {
+                    "record_kind": "source_claim_collection",
+                    "support_status": "reported_database_text",
+                },
+                "OX-T1_active": {
+                    "record_kind": "candidate_observation",
+                    "support_status": "explicit_text_with_deterministic_site_mapping",
+                },
+                "all_spin_text_including_SP-T1_active_regex_unflagged": {
+                    "record_kind": "unresolved_claim",
+                    "support_status": "reported_text_without_primary_source_verification",
+                },
+                "conditional_spin_or_incomplete_core": {
+                    "record_kind": "unresolved_claim",
+                    "support_status": "context_qualified_or_subject_incomplete",
+                },
+                "T2_to_T4": {
+                    "record_kind": "unresolved_claim",
+                    "support_status": "extracted_text_outside_fixed_single_site_scope",
+                },
             },
-            "not_currently_eligible": ["B2_curated", "B3_validated", "B4_reference"],
+            "unsupported_promotions": [
+                "record-level curated status",
+                "primary-source-validated status",
+                "independently corroborated reference status",
+            ],
         },
         "upgrade_requirements": {
-            "B2": [
+            "record_level_curation": [
                 "domain review of every record in the promoted subset with reviewed_count equal to total_count",
                 "primary-paper/CIF inspection with site and condition resolution",
-                "stratified probability sampling may estimate B1 collection error but cannot promote unreviewed rows",
+                "stratified probability sampling may estimate collection error but cannot promote unreviewed rows",
                 "accuracy estimate names the adjudicated reference standard and quantity assessed",
                 "accuracy sample_size equals the fully reviewed subset count",
                 "all known conflicts and high-risk strata explicitly resolved",
             ],
-            "B3": [
+            "primary_source_validation": [
                 "primary-source-supported row adjudication and dual independent review are both required",
                 "separate primary-source and independent-review reports",
                 "frozen task, metric, family-grouped split, leakage audit, condition and uncertainty policies",
             ],
-            "B4": [
+            "independent_reference_corroboration": [
                 "multi-source or repeated-experiment corroboration and external audit",
             ],
         },

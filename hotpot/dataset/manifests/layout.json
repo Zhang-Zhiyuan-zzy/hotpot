@@ -11,6 +11,8 @@
   "ignored_payload_root": "hotpot/dataset/data",
   "payload_directories": {
     "store": "hotpot/dataset/data/store",
+    "target_assets": "hotpot/dataset/data/store/datasets.sqlite3.assets",
+    "bundles": "hotpot/dataset/data/bundles",
     "sources": "hotpot/dataset/data/sources",
     "structures": "hotpot/dataset/data/structures",
     "audits": "hotpot/dataset/data/audits"

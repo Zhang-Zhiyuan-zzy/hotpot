@@ -35,18 +35,23 @@ Snapshot contract
     }
 
 Each item in ``cases`` is a mapping with ``id``, ``public_index``,
-``local_id``, ``facts``, ``assessment``, ``identifiers``, and ``structures``.
+``local_id``, ``facts``, ``assessment``, ``identifiers``, ``structures``, and
+``assets``.
 ``facts`` is the canonical source payload. ``assessment`` contains
 ``archive_class`` (``ordinary``, ``benchmark``, or ``incomplete``), optional
 ``quality_level`` and ``evidence_level``, and optional ``benchmark``.
 ``identifiers`` is an iterable of ``{"namespace": str, "value": str}``.
-``structures`` is an iterable of positive, materialized asset descriptors::
+``structures`` contains the active, valid molecular representations projected
+by the read API. ``assets`` contains every positively materialized scientific
+asset, including evidence, withdrawn history, and observed bytes that fail an
+expected hash::
 
     {
-        "structure_id": str,
-        "format": str,
+        "collection": "structures" | "evidence",
+        "declaration_id": str,
+        "asset_index": int,
         "role": str,
-        "primary": bool,
+        "status": str,
         "source_path": str | Path,
         "sha256": lowercase SHA-256,
         "size": non-negative int,
@@ -195,6 +200,31 @@ CREATE TABLE IF NOT EXISTS structure_asset_refs(
  FOREIGN KEY(dataset_id,release_id,case_id)
    REFERENCES cases(dataset_id,release_id,case_id)
 );
+CREATE TABLE IF NOT EXISTS scientific_asset_refs(
+ dataset_id TEXT NOT NULL,
+ release_id TEXT NOT NULL,
+ case_id TEXT NOT NULL,
+ collection TEXT NOT NULL CHECK(collection IN ('structures','evidence')),
+ declaration_id TEXT NOT NULL,
+ asset_index INTEGER NOT NULL CHECK(asset_index>=0),
+ role TEXT NOT NULL,
+ status TEXT NOT NULL,
+ content_sha256 TEXT NOT NULL REFERENCES target_assets(content_sha256),
+ PRIMARY KEY(
+   dataset_id,release_id,case_id,collection,declaration_id,asset_index
+ ),
+ FOREIGN KEY(dataset_id,release_id,case_id)
+   REFERENCES cases(dataset_id,release_id,case_id)
+);
+CREATE TABLE IF NOT EXISTS release_control_asset_refs(
+ dataset_id TEXT NOT NULL,
+ release_id TEXT NOT NULL,
+ category TEXT NOT NULL,
+ name TEXT NOT NULL,
+ content_sha256 TEXT NOT NULL REFERENCES target_assets(content_sha256),
+ PRIMARY KEY(dataset_id,release_id,category,name),
+ FOREIGN KEY(dataset_id,release_id) REFERENCES releases(dataset_id,release_id)
+);
 CREATE TABLE IF NOT EXISTS ingestion_receipts(
  receipt_id TEXT PRIMARY KEY,
  store_uuid TEXT NOT NULL,
@@ -224,6 +254,10 @@ CREATE INDEX IF NOT EXISTS ix_identifiers_lookup
  ON identifiers(dataset_id,namespace,value);
 CREATE INDEX IF NOT EXISTS ix_structure_refs_asset
  ON structure_asset_refs(content_sha256);
+CREATE INDEX IF NOT EXISTS ix_scientific_refs_asset
+ ON scientific_asset_refs(content_sha256);
+CREATE INDEX IF NOT EXISTS ix_control_refs_asset
+ ON release_control_asset_refs(content_sha256);
 """
 
 
@@ -503,6 +537,7 @@ class TargetStore:
             "included_count": receipt["included_count"],
             "excluded_count": receipt["excluded_count"],
             "committed_at": receipt["committed_at"],
+            "binding": json.loads(receipt["binding_json"]),
         }
 
     def iter_cases(
@@ -576,6 +611,105 @@ class TargetStore:
         finally:
             connection.close()
 
+    def iter_case_headers(
+        self,
+        dataset: str,
+        release: str,
+        *,
+        archive_classes: Optional[Iterable[str]] = None,
+    ) -> Iterator[Dict[str, Any]]:
+        """Stream lightweight Case headers for a public Dataset view."""
+
+        classes = (
+            ("ordinary", "benchmark")
+            if archive_classes is None
+            else tuple(dict.fromkeys(archive_classes))
+        )
+        if not classes or any(item not in _ARCHIVE_CLASSES for item in classes):
+            raise ValueError("archive_classes must contain current archive classes")
+        connection = self._connect()
+        try:
+            self._metadata(connection)
+            placeholders = ",".join("?" for _ in classes)
+            rows = connection.execute(
+                "SELECT c.case_id,c.public_index,c.local_id,a.quality_level,"
+                "a.evidence_level,a.archive_class,a.benchmark "
+                "FROM cases c JOIN case_assessments a "
+                "USING(dataset_id,release_id,case_id) WHERE c.dataset_id=? "
+                "AND c.release_id=? AND a.archive_class IN ("
+                + placeholders
+                + ") ORDER BY c.public_index",
+                (dataset, release, *classes),
+            )
+            for row in rows:
+                yield {
+                    "id": row["case_id"],
+                    "public_index": row["public_index"],
+                    "local_id": row["local_id"],
+                    "quality_level": row["quality_level"],
+                    "evidence_level": row["evidence_level"],
+                    "archive_class": row["archive_class"],
+                    "benchmark": bool(row["benchmark"]),
+                }
+        finally:
+            connection.close()
+
+    def get_case(
+        self, dataset: str, release: str, case_id: str
+    ) -> Dict[str, Any]:
+        """Load one stored Case and its target-owned structure references."""
+
+        connection = self._connect()
+        try:
+            self._metadata(connection)
+            row = connection.execute(
+                "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_json,"
+                "a.assessment_json FROM cases c JOIN case_assessments a "
+                "USING(dataset_id,release_id,case_id) WHERE c.dataset_id=? "
+                "AND c.release_id=? AND c.case_id=?",
+                (dataset, release, case_id),
+            ).fetchone()
+            if row is None:
+                raise KeyError(case_id)
+            identifiers = [
+                {"namespace": item["namespace"], "value": item["value"]}
+                for item in connection.execute(
+                    "SELECT namespace,value FROM identifiers WHERE dataset_id=? "
+                    "AND release_id=? AND case_id=? ORDER BY namespace,value",
+                    (dataset, release, case_id),
+                )
+            ]
+            structures = [
+                {
+                    "structure_id": item["structure_id"],
+                    "format": item["format"],
+                    "role": item["role"],
+                    "primary": bool(item["is_primary"]),
+                    "sha256": item["content_sha256"],
+                    "size": item["size"],
+                    "path": self.asset_root / item["relative_path"],
+                }
+                for item in connection.execute(
+                    "SELECT r.structure_id,r.format,r.role,r.is_primary,"
+                    "r.content_sha256,t.size,t.relative_path "
+                    "FROM structure_asset_refs r JOIN target_assets t "
+                    "USING(content_sha256) WHERE r.dataset_id=? AND r.release_id=? "
+                    "AND r.case_id=? ORDER BY r.structure_id,r.format,r.role",
+                    (dataset, release, case_id),
+                )
+            ]
+            return {
+                "id": row["case_id"],
+                "public_index": row["public_index"],
+                "local_id": row["local_id"],
+                "facts": json.loads(row["source_payload_json"]),
+                "assessment": json.loads(row["assessment_json"]),
+                "identifiers": identifiers,
+                "structures": structures,
+            }
+        finally:
+            connection.close()
+
     def ingest(
         self,
         snapshot: Mapping[str, Any],
@@ -588,9 +722,21 @@ class TargetStore:
             raise SnapshotError("include_incomplete=True requires a non-empty reason")
         reason = reason.strip() if include_incomplete else None
         header, policy, digests = self._snapshot_header(snapshot)
-        metadata = self.initialize()
+        target_context = self._target_context(snapshot)
+        metadata = (
+            self.metadata()
+            if target_context["store_state"] == "existing"
+            else self.initialize()
+        )
+        self._assert_target_context(metadata, target_context)
         binding = self._receipt_binding(
-            metadata["store_uuid"], header, policy, digests, include_incomplete, reason
+            metadata["store_uuid"],
+            header,
+            policy,
+            digests,
+            target_context,
+            include_incomplete,
+            reason,
         )
 
         existing = self._read_receipt(header["dataset"], header["release"])
@@ -606,6 +752,7 @@ class TargetStore:
             counts = self._spool_cases(
                 spool_path,
                 snapshot["cases"],
+                control_assets=snapshot.get("control_assets", ()),
                 include_incomplete=include_incomplete,
             )
             self._verify_spool_digests(spool_path, digests, include_incomplete)
@@ -614,9 +761,55 @@ class TargetStore:
                 header,
                 policy,
                 digests,
+                target_context,
                 binding,
                 counts,
             )
+
+    def _target_context(self, snapshot: Mapping[str, Any]) -> Dict[str, Any]:
+        context = dict(snapshot["target_context"])
+        expected = {
+            "canonical_path",
+            "store_state",
+            "store_uuid",
+            "schema_id",
+            "dataset_state",
+            "dataset_policy_revision",
+            "dataset_policy_digest",
+        }
+        if set(context) != expected:
+            raise SnapshotError("target_context fields do not match the current contract")
+        if Path(context["canonical_path"]).resolve() != self.path:
+            raise SnapshotError("target_context canonical path does not match TargetStore")
+        if context["schema_id"] != TARGET_SCHEMA_ID:
+            raise SnapshotError("target_context schema is not current")
+        if context["store_state"] not in {"absent", "existing"}:
+            raise SnapshotError("target_context store_state is invalid")
+        if context["dataset_state"] not in {"absent", "present"}:
+            raise SnapshotError("target_context dataset_state is invalid")
+        if context["store_state"] == "absent" and context["store_uuid"] is not None:
+            raise SnapshotError("an absent target store cannot declare a UUID")
+        if context["dataset_state"] == "absent" and any(
+            context[field] is not None
+            for field in ("dataset_policy_revision", "dataset_policy_digest")
+        ):
+            raise SnapshotError("an absent target dataset cannot declare a policy")
+        if context["dataset_state"] == "present":
+            if not isinstance(context["dataset_policy_revision"], int):
+                raise SnapshotError("present target dataset requires a policy revision")
+            _require_digest(
+                context["dataset_policy_digest"],
+                "target_context.dataset_policy_digest",
+            )
+        return context
+
+    @staticmethod
+    def _assert_target_context(
+        metadata: Mapping[str, str], context: Mapping[str, Any]
+    ) -> None:
+        expected_uuid = context["store_uuid"]
+        if expected_uuid is not None and metadata["store_uuid"] != expected_uuid:
+            raise ReceiptConflictError("certified target store UUID does not match")
 
     @staticmethod
     def _snapshot_header(
@@ -667,6 +860,7 @@ class TargetStore:
         header: Mapping[str, Any],
         policy: Mapping[str, Any],
         digests: Mapping[str, str],
+        target_context: Mapping[str, Any],
         include_incomplete: bool,
         reason: Optional[str],
     ) -> Dict[str, Any]:
@@ -676,6 +870,7 @@ class TargetStore:
             "release": header["release"],
             "version": header["version"],
             "requested_release_serial": header["release_serial"],
+            "target_context": dict(target_context),
             "policy_revision": policy["revision"],
             "policy_digest": policy["digest"],
             "bundle_digest": digests["bundle"],
@@ -723,6 +918,7 @@ class TargetStore:
         spool_path: Path,
         cases: Iterable[Mapping[str, Any]],
         *,
+        control_assets: Iterable[Mapping[str, Any]],
         include_incomplete: bool,
     ) -> Dict[str, int]:
         spool = sqlite3.connect(str(spool_path))
@@ -742,8 +938,34 @@ class TargetStore:
                   sha256 TEXT PRIMARY KEY,
                   size INTEGER NOT NULL
                 );
+                CREATE TABLE spool_control_assets(
+                  category TEXT NOT NULL,
+                  name TEXT NOT NULL,
+                  asset_json TEXT NOT NULL,
+                  PRIMARY KEY(category,name)
+                );
                 """
             )
+            for item in control_assets:
+                asset = self._normalize_control_asset(item)
+                self._store_asset(asset)
+                existing = spool.execute(
+                    "SELECT size FROM spool_assets WHERE sha256=?",
+                    (asset["sha256"],),
+                ).fetchone()
+                if existing is not None and existing[0] != asset["size"]:
+                    raise AssetIntegrityError(
+                        "one content digest was declared with different sizes"
+                    )
+                spool.execute(
+                    "INSERT OR IGNORE INTO spool_assets(sha256,size) VALUES(?,?)",
+                    (asset["sha256"], asset["size"]),
+                )
+                spool.execute(
+                    "INSERT INTO spool_control_assets(category,name,asset_json) "
+                    "VALUES(?,?,?)",
+                    (asset["category"], asset["name"], _canonical_json(asset)),
+                )
             included = 0
             excluded = 0
             for case in cases:
@@ -752,19 +974,19 @@ class TargetStore:
                 selected = archive_class != "incomplete" or include_incomplete
                 if selected:
                     included += 1
-                    for structure in normalized["structures"]:
-                        self._store_asset(structure)
+                    for asset in normalized["assets"]:
+                        self._store_asset(asset)
                         existing = spool.execute(
                             "SELECT size FROM spool_assets WHERE sha256=?",
-                            (structure["sha256"],),
+                            (asset["sha256"],),
                         ).fetchone()
-                        if existing is not None and existing[0] != structure["size"]:
+                        if existing is not None and existing[0] != asset["size"]:
                             raise AssetIntegrityError(
                                 "one content digest was declared with different sizes"
                             )
                         spool.execute(
                             "INSERT OR IGNORE INTO spool_assets(sha256,size) VALUES(?,?)",
-                            (structure["sha256"], structure["size"]),
+                            (asset["sha256"], asset["size"]),
                         )
                 else:
                     excluded += 1
@@ -786,6 +1008,20 @@ class TargetStore:
             raise SnapshotError(f"duplicate Case identity or index: {exc}") from exc
         finally:
             spool.close()
+
+    @staticmethod
+    def _normalize_control_asset(item: Mapping[str, Any]) -> Dict[str, Any]:
+        digest = _require_digest(item["sha256"], "control_asset.sha256")
+        size = item["size"]
+        if not isinstance(size, int) or size < 0:
+            raise SnapshotError("control_asset.size must be a non-negative integer")
+        return {
+            "category": str(item["category"]),
+            "name": str(item["name"]),
+            "source_path": str(Path(item["source_path"]).expanduser().resolve()),
+            "sha256": digest,
+            "size": size,
+        }
 
     @staticmethod
     def _normalize_case(case: Mapping[str, Any]) -> Dict[str, Any]:
@@ -818,6 +1054,30 @@ class TargetStore:
                     "size": size,
                 }
             )
+        assets = []
+        for item in case.get("assets", ()):
+            digest = _require_digest(item["sha256"], "asset.sha256")
+            size = item["size"]
+            asset_index = item["asset_index"]
+            collection = str(item["collection"])
+            if collection not in {"structures", "evidence"}:
+                raise SnapshotError("asset.collection must be structures or evidence")
+            if not isinstance(asset_index, int) or asset_index < 0:
+                raise SnapshotError("asset.asset_index must be a non-negative integer")
+            if not isinstance(size, int) or size < 0:
+                raise SnapshotError("asset.size must be a non-negative integer")
+            assets.append(
+                {
+                    "collection": collection,
+                    "declaration_id": str(item["declaration_id"]),
+                    "asset_index": asset_index,
+                    "role": str(item.get("role", "asset")),
+                    "status": str(item.get("status", "active")),
+                    "source_path": str(Path(item["source_path"]).expanduser().resolve()),
+                    "sha256": digest,
+                    "size": size,
+                }
+            )
         normalized = {
             "id": str(case["id"]),
             "public_index": int(case["public_index"]),
@@ -826,6 +1086,7 @@ class TargetStore:
             "assessment": assessment,
             "identifiers": identifiers,
             "structures": structures,
+            "assets": assets,
         }
         if normalized["public_index"] < 0:
             raise SnapshotError("Case public_index must be non-negative")
@@ -941,6 +1202,7 @@ class TargetStore:
         header: Mapping[str, Any],
         policy: Mapping[str, Any],
         digests: Mapping[str, str],
+        target_context: Mapping[str, Any],
         binding: Mapping[str, Any],
         counts: Mapping[str, int],
     ) -> TargetIngestResult:
@@ -950,8 +1212,12 @@ class TargetStore:
         try:
             connection.execute("BEGIN IMMEDIATE")
             metadata = self._metadata(connection)
+            self._assert_target_context(metadata, target_context)
             if metadata["store_uuid"] != binding["store_uuid"]:
                 raise ReceiptConflictError("target store identity changed before commit")
+            self._assert_dataset_precondition(
+                connection, header["dataset"], target_context, policy
+            )
             receipt = connection.execute(
                 "SELECT r.*,d.release_serial FROM ingestion_receipts r "
                 "JOIN releases d USING(dataset_id,release_id) WHERE r.store_uuid=? "
@@ -969,6 +1235,12 @@ class TargetStore:
                 "SELECT case_json FROM spool_cases WHERE selected=1 ORDER BY sequence"
             ):
                 self._insert_case(connection, header, json.loads(row["case_json"]))
+            for row in spool.execute(
+                "SELECT asset_json FROM spool_control_assets ORDER BY category,name"
+            ):
+                self._insert_control_asset(
+                    connection, header, json.loads(row["asset_json"])
+                )
             receipt_id = "receipt-" + _json_digest(binding)
             connection.execute(
                 "INSERT INTO ingestion_receipts("
@@ -1012,6 +1284,37 @@ class TargetStore:
         finally:
             spool.close()
             connection.close()
+
+    @staticmethod
+    def _assert_dataset_precondition(
+        connection: sqlite3.Connection,
+        dataset: str,
+        context: Mapping[str, Any],
+        policy: Mapping[str, Any],
+    ) -> None:
+        persisted = connection.execute(
+            "SELECT revision,policy_json,policy_digest FROM dataset_policies "
+            "WHERE dataset_id=?",
+            (dataset,),
+        ).fetchone()
+        if context["dataset_state"] == "present":
+            if persisted is None:
+                raise PolicyMismatchError("certified target dataset is missing")
+            if (
+                persisted["revision"] != context["dataset_policy_revision"]
+                or persisted["policy_digest"] != context["dataset_policy_digest"]
+            ):
+                raise PolicyMismatchError(
+                    "certified target dataset policy precondition changed"
+                )
+        if persisted is not None and (
+            persisted["revision"] != policy["revision"]
+            or persisted["policy_json"] != _canonical_json(policy["value"])
+            or persisted["policy_digest"] != policy["digest"]
+        ):
+            raise PolicyMismatchError(
+                "concurrently established dataset policy differs from the snapshot"
+            )
 
     @staticmethod
     def _establish_dataset(
@@ -1156,6 +1459,73 @@ class TargetStore:
                     structure["sha256"],
                 ),
             )
+        for asset in case["assets"]:
+            relative = str(
+                Path("objects")
+                / "sha256"
+                / asset["sha256"][:2]
+                / asset["sha256"]
+            )
+            connection.execute(
+                "INSERT OR IGNORE INTO target_assets(content_sha256,size,relative_path) "
+                "VALUES(?,?,?)",
+                (asset["sha256"], asset["size"], relative),
+            )
+            target = connection.execute(
+                "SELECT size,relative_path FROM target_assets WHERE content_sha256=?",
+                (asset["sha256"],),
+            ).fetchone()
+            if target["size"] != asset["size"] or target["relative_path"] != relative:
+                raise AssetIntegrityError("target asset row conflicts with its content digest")
+            connection.execute(
+                "INSERT INTO scientific_asset_refs(dataset_id,release_id,case_id,"
+                "collection,declaration_id,asset_index,role,status,content_sha256) "
+                "VALUES(?,?,?,?,?,?,?,?,?)",
+                values
+                + (
+                    asset["collection"],
+                    asset["declaration_id"],
+                    asset["asset_index"],
+                    asset["role"],
+                    asset["status"],
+                    asset["sha256"],
+                ),
+            )
+
+    @staticmethod
+    def _insert_control_asset(
+        connection: sqlite3.Connection,
+        header: Mapping[str, Any],
+        asset: Mapping[str, Any],
+    ) -> None:
+        relative = str(
+            Path("objects")
+            / "sha256"
+            / asset["sha256"][:2]
+            / asset["sha256"]
+        )
+        connection.execute(
+            "INSERT OR IGNORE INTO target_assets(content_sha256,size,relative_path) "
+            "VALUES(?,?,?)",
+            (asset["sha256"], asset["size"], relative),
+        )
+        target = connection.execute(
+            "SELECT size,relative_path FROM target_assets WHERE content_sha256=?",
+            (asset["sha256"],),
+        ).fetchone()
+        if target["size"] != asset["size"] or target["relative_path"] != relative:
+            raise AssetIntegrityError("target asset row conflicts with its content digest")
+        connection.execute(
+            "INSERT INTO release_control_asset_refs(dataset_id,release_id,category,"
+            "name,content_sha256) VALUES(?,?,?,?,?)",
+            (
+                header["dataset"],
+                header["release"],
+                asset["category"],
+                asset["name"],
+                asset["sha256"],
+            ),
+        )
 
 
 __all__ = [

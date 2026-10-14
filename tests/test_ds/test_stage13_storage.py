@@ -69,6 +69,7 @@ def _case(
 
 
 def _snapshot(
+    store,
     cases,
     *,
     release="release-1",
@@ -86,9 +87,46 @@ def _snapshot(
         or include_incomplete
     ]
     excluded = [case for case in cases if case not in included]
-    assets = [structure for case in included for structure in case["structures"]]
+    for case in cases:
+        case["assets"] = [
+            {
+                "collection": "structures",
+                "declaration_id": structure["structure_id"],
+                "asset_index": index,
+                "role": structure["role"],
+                "status": "active",
+                "source_path": structure["source_path"],
+                "sha256": structure["sha256"],
+                "size": structure["size"],
+            }
+            for index, structure in enumerate(case["structures"])
+        ]
+    assets = [asset for case in included for asset in case["assets"]]
+    if store.path.is_file():
+        metadata = store.metadata()
+        established = store.read_policy("spin")
+        target_context = {
+            "canonical_path": str(store.path),
+            "store_state": "existing",
+            "store_uuid": metadata["store_uuid"],
+            "schema_id": metadata["schema_id"],
+            "dataset_state": "present" if established else "absent",
+            "dataset_policy_revision": None if established is None else established["revision"],
+            "dataset_policy_digest": None if established is None else established["digest"],
+        }
+    else:
+        target_context = {
+            "canonical_path": str(store.path),
+            "store_state": "absent",
+            "store_uuid": None,
+            "schema_id": TARGET_SCHEMA_ID,
+            "dataset_state": "absent",
+            "dataset_policy_revision": None,
+            "dataset_policy_digest": None,
+        }
     marker = f"{release}:{version}"
     return {
+        "target_context": target_context,
         "bundle": {
             "dataset": "spin",
             "release": release,
@@ -135,7 +173,7 @@ def test_equal_coordinate_bytes_do_not_merge_case_or_structure_identity(tmp_path
     ]
     store = TargetStore(tmp_path / "datasets.sqlite3")
 
-    store.ingest(_snapshot(cases))
+    store.ingest(_snapshot(store, cases))
 
     with sqlite3.connect(store.path) as connection:
         assert connection.execute("SELECT COUNT(*) FROM target_assets").fetchone()[0] == 1
@@ -157,8 +195,8 @@ def test_exact_receipt_retry_survives_source_removal_and_digest_change_conflicts
 ):
     source = tmp_path / "source.xyz"
     source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
-    snapshot = _snapshot([_case("case-a", 0, asset=source)])
     store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, asset=source)])
 
     first = store.ingest(snapshot)
     source.unlink()
@@ -178,12 +216,13 @@ def test_exact_receipt_retry_survives_source_removal_and_digest_change_conflicts
 
 def test_existing_dataset_accepts_only_exact_persisted_policy(tmp_path):
     store = TargetStore(tmp_path / "datasets.sqlite3")
-    store.ingest(_snapshot([_case("case-a", 0)]))
+    store.ingest(_snapshot(store, [_case("case-a", 0)]))
     changed_policy = {"gates": {"quality": "strict"}}
 
     with pytest.raises(PolicyMismatchError):
         store.ingest(
             _snapshot(
+                store,
                 [_case("case-b", 0)],
                 release="release-2",
                 version="2.0",
@@ -195,7 +234,7 @@ def test_existing_dataset_accepts_only_exact_persisted_policy(tmp_path):
 def test_incomplete_partition_requires_reason_and_default_reads_exclude_it(tmp_path):
     cases = [_case("ordinary", 7), _case("broken", 11, "incomplete")]
     store = TargetStore(tmp_path / "datasets.sqlite3")
-    forced = _snapshot(cases, include_incomplete=True)
+    forced = _snapshot(store, cases, include_incomplete=True)
 
     with pytest.raises(SnapshotError, match="non-empty reason"):
         store.ingest(forced, include_incomplete=True)
@@ -227,7 +266,7 @@ def test_excluded_incomplete_cases_are_receipt_bound_but_not_stored(tmp_path):
     cases = [_case("ordinary", 2), _case("broken", 8, "incomplete")]
     store = TargetStore(tmp_path / "datasets.sqlite3")
 
-    result = store.ingest(_snapshot(cases))
+    result = store.ingest(_snapshot(store, cases))
 
     assert (result.included_count, result.excluded_count) == (1, 1)
     assert [
@@ -241,10 +280,10 @@ def test_excluded_incomplete_cases_are_receipt_bound_but_not_stored(tmp_path):
 def test_release_serial_and_public_indexes_remain_stable(tmp_path):
     store = TargetStore(tmp_path / "datasets.sqlite3")
     first = store.ingest(
-        _snapshot([_case("case-a", 42)], release_serial=7)
+        _snapshot(store, [_case("case-a", 42)], release_serial=7)
     )
     second = store.ingest(
-        _snapshot([_case("case-b", 4)], release="release-2", version="2.0")
+        _snapshot(store, [_case("case-b", 4)], release="release-2", version="2.0")
     )
 
     assert first.release_serial == 7
@@ -255,3 +294,78 @@ def test_release_serial_and_public_indexes_remain_stable(tmp_path):
         7,
         8,
     ]
+
+
+def test_target_owns_materialized_evidence_and_withdrawn_assets(tmp_path):
+    source = tmp_path / "supplier-note.txt"
+    source.write_text("reported spin = 3\n", encoding="utf-8")
+    digest, size = _sha(source)
+    checker = tmp_path / "checker.py"
+    checker.write_text("def check(case, context):\n    return True\n", encoding="utf-8")
+    checker_digest, checker_size = _sha(checker)
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0)])
+    snapshot["cases"][0]["assets"].append(
+        {
+            "collection": "evidence",
+            "declaration_id": "evidence-1",
+            "asset_index": 0,
+            "role": "supplier_text",
+            "status": "withdrawn",
+            "source_path": source,
+            "sha256": digest,
+            "size": size,
+        }
+    )
+    snapshot["control_assets"] = [
+        {
+            "category": "checker",
+            "name": "checker.py",
+            "source_path": checker,
+            "sha256": checker_digest,
+            "size": checker_size,
+        }
+    ]
+    snapshot["digests"]["asset_inventory"] = asset_inventory_digest(
+        snapshot["cases"][0]["assets"] + snapshot["control_assets"]
+    )
+
+    store.ingest(snapshot)
+    source.unlink()
+    checker.unlink()
+
+    with sqlite3.connect(store.path) as connection:
+        row = connection.execute(
+            "SELECT collection,declaration_id,status,content_sha256 "
+            "FROM scientific_asset_refs"
+        ).fetchone()
+    assert row == ("evidence", "evidence-1", "withdrawn", digest)
+    with sqlite3.connect(store.path) as connection:
+        control = connection.execute(
+            "SELECT category,name,content_sha256 FROM release_control_asset_refs"
+        ).fetchone()
+    assert control == ("checker", "checker.py", checker_digest)
+    owned = store.asset_root / "objects" / "sha256" / digest[:2] / digest
+    assert owned.read_text(encoding="utf-8") == "reported spin = 3\n"
+    owned_checker = (
+        store.asset_root
+        / "objects"
+        / "sha256"
+        / checker_digest[:2]
+        / checker_digest
+    )
+    assert owned_checker.read_text(encoding="utf-8").startswith("def check")
+
+
+def test_existing_target_uuid_is_rechecked_before_ingest(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    store.initialize()
+    snapshot = _snapshot(store, [_case("case-a", 0)])
+    original_uuid = snapshot["target_context"]["store_uuid"]
+
+    store.path.unlink()
+    replacement_uuid = store.initialize()["store_uuid"]
+    assert replacement_uuid != original_uuid
+
+    with pytest.raises(ReceiptConflictError, match="UUID"):
+        store.ingest(snapshot)

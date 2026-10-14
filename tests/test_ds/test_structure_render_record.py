@@ -1,65 +1,84 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
-from hotpot.ds import _export
+import hotpot
+
+from hotpot.ds._export import render_structure_record
 
 
-class _Asset:
-    format = "smi"
+class _Structures:
+    def __init__(self, rows, paths):
+        self._values = tuple(rows)
+        self._paths = paths
 
-    def text(self) -> str:
-        return "O\n"
+    def _rows(self):
+        return self._values
+
+    def _verified_path(self, row):
+        return self._paths[row["structure_id"]]
 
 
-def test_render_structure_record_preserves_direct_content_and_identity(monkeypatch) -> None:
-    structure = SimpleNamespace(
-        structure_id="structure-1",
-        roles=("primary",),
-        asset=lambda fmt: _Asset() if fmt == "smi" else None,
+def _data(rows, paths):
+    return SimpleNamespace(
+        id="hp-demo[001]-7",
+        structures=_Structures(rows, paths),
     )
-    monkeypatch.setattr(_export, "_select_structure", lambda *args, **kwargs: structure)
-    data = SimpleNamespace(id="hp-demo[001]-0")
 
-    record = _export.render_structure_record(data, "smiles", structure_index=0)
 
-    assert record == {
-        "data_id": "hp-demo[001]-0",
+def test_render_structure_record_preserves_direct_bytes_and_identity(tmp_path: Path) -> None:
+    path = tmp_path / "record.smi"
+    path.write_text("[NH4+]\n", encoding="utf-8")
+    data = _data(
+        [{"structure_id": "structure-1", "format": "smi", "role": "primary", "primary": True}],
+        {"structure-1": path},
+    )
+
+    result = render_structure_record(data, "smi")
+
+    assert result == {
+        "data_id": "hp-demo[001]-7",
         "structure_id": "structure-1",
         "structure_roles": ["primary"],
         "selection": {
-            "mode": "index",
-            "structure_index": 0,
+            "mode": "primary",
+            "structure_index": None,
             "structure_role": None,
             "structure_id": None,
         },
         "format": "smi",
         "source_format": "smi",
         "converted": False,
-        "content": "O\n",
+        "content": "[NH4+]\n",
     }
 
 
-def test_render_structure_record_performs_one_conversion(monkeypatch) -> None:
-    structure = SimpleNamespace(
-        structure_id="structure-2",
-        roles=("reported",),
-        asset=lambda fmt: None,
+def test_render_structure_record_converts_once_from_selected_current_asset(
+    tmp_path: Path, monkeypatch
+) -> None:
+    path = tmp_path / "record.xyz"
+    path.write_text("1\nrecord\nH 0 0 0\n", encoding="utf-8")
+    data = _data(
+        [{"structure_id": "structure-2", "format": "xyz", "role": "reported", "primary": True}],
+        {"structure-2": path},
     )
     calls = []
-    monkeypatch.setattr(_export, "_select_structure", lambda *args, **kwargs: structure)
 
-    def convert(selected, fmt, data_id):
-        calls.append((selected, fmt, data_id))
-        return "3\nwater\n...\n", "mol2"
+    class Molecule:
+        smiles = "[H]"
 
-    monkeypatch.setattr(_export, "_convert_structure", convert)
-    data = SimpleNamespace(id="hp-demo[001]-1")
+        @classmethod
+        def read_one(cls, source, fmt):
+            calls.append((source, fmt))
+            return cls()
 
-    record = _export.render_structure_record(data, "xyz", structure_role="reported")
+    monkeypatch.setattr(hotpot, "Molecule", Molecule)
 
-    assert record["content"] == "3\nwater\n...\n"
-    assert record["source_format"] == "mol2"
-    assert record["converted"] is True
-    assert calls == [(structure, "xyz", "hp-demo[001]-1")]
+    result = render_structure_record(data, "smi", structure_role="reported")
 
+    assert calls == [(str(path), "xyz")]
+    assert result["content"] == "[H]\n"
+    assert result["source_format"] == "xyz"
+    assert result["converted"] is True
+    assert result["selection"]["mode"] == "role"

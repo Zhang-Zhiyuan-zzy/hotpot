@@ -3,7 +3,7 @@ import argparse
 import pytest
 
 from hotpot.__main__ import build_parser as build_hotpot_parser
-from hotpot.ds.cli import HELP_FORMATTER, build_parser as build_ds_parser, run
+from hotpot.ds.cli import HELP_FORMATTER, build_parser as build_ds_parser
 
 
 def _hotpot_help(arguments: list[str], capsys: pytest.CaptureFixture[str]) -> str:
@@ -45,6 +45,7 @@ def test_hotpot_ds_top_level_help(capsys: pytest.CaptureFixture[str]) -> None:
         "subset",
         "search",
         "export",
+        "bundle",
         "certify",
         "ingest",
         "detail",
@@ -62,6 +63,7 @@ def test_hotpot_ds_top_level_help(capsys: pytest.CaptureFixture[str]) -> None:
         "subset",
         "search",
         "export",
+        "bundle",
         "certify",
         "ingest",
         "detail",
@@ -173,17 +175,16 @@ def test_certify_and_ingest_expose_the_certificate_gate(
     certify = _hotpot_help(["certify", "--help"], capsys)
     ingest = _hotpot_help(["ingest", "--help"], capsys)
 
-    assert "SOURCE DATASET" in certify
-    assert "--dataset" not in certify
-    assert "--core-label" in certify
-    assert "--core-info" in certify
-    assert "--quality-level" in certify
-    assert "--certificate PATH" in ingest
+    assert "BUNDLE_ROOT" in certify
+    assert "--dataset NAME" in certify
+    assert "--core-label" not in certify
+    assert "--quality-level" not in certify
+    assert "--certificate" not in certify
+    assert "BUNDLE_ROOT" in ingest
+    assert "--db PATH" in ingest
 
     with pytest.raises(SystemExit):
-        build_ds_parser().parse_args(
-            ["ingest", "submission", "--certificate", "certificate.json"]
-        )
+        build_ds_parser().parse_args(["ingest", "submission"])
 
 
 @pytest.mark.parametrize(
@@ -196,40 +197,22 @@ def test_certify_and_ingest_expose_the_certificate_gate(
         ("--configure", "policy.json"),
     ),
 )
-def test_existing_certification_rejects_new_dataset_policy_options(
-    option: tuple[str, ...], capsys: pytest.CaptureFixture[str]
+def test_removed_certification_policy_options_are_not_parseable(
+    option: tuple[str, ...],
 ) -> None:
-    arguments = build_ds_parser().parse_args(
-        [
-            "certify",
-            "submission",
-            "demo",
-            "--certificate",
-            "certificate.json",
-            "--existing",
-            *option,
-        ]
+    with pytest.raises(SystemExit):
+        build_ds_parser().parse_args(["certify", "submission", *option])
+
+
+def test_bundle_locator_and_transitions_have_one_current_layout() -> None:
+    parser = build_ds_parser()
+    build = parser.parse_args(
+        ["bundle", "build", "submission", "--dataset", "demo", "--db", "store.sqlite3"]
     )
-
-    assert run(arguments) == 2
-    assert "--existing" in capsys.readouterr().err
-
-
-def test_no_core_fields_rejects_nonempty_core_declarations(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    arguments = build_ds_parser().parse_args(
-        [
-            "certify",
-            "submission",
-            "demo",
-            "--certificate",
-            "certificate.json",
-            "--no-core-fields",
-            "--core-label",
-            "oxidation_state",
-        ]
+    assert build.bundle_root == "submission"
+    concise = parser.parse_args(["bundle", "status"])
+    assert concise.bundle_action == "status"
+    explicit = parser.parse_args(
+        ["bundle", "--root", "submission", "--dataset", "demo", "status"]
     )
-
-    assert run(arguments) == 2
-    assert "cannot be combined" in capsys.readouterr().err
+    assert explicit.root == "submission"

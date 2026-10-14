@@ -36,7 +36,8 @@
       "dataset_id",
       "release_serial",
       "property_definitions",
-      "property_comparators"
+      "property_comparators",
+      "control_assets"
     ],
     "rules": [
       "ds_name is required and dataset_id, when present, must equal ds_name.",
@@ -44,6 +45,7 @@
       "required_structure_roles is explicit and may be empty. The reserved value '*' requires at least one active Structure with a present, hash-valid, parse-valid representation regardless of role; every named value independently requires that role.",
       "identity_schema contains only identity-bearing components; core_info is not automatically an identity key.",
       "intake declares exactly one JSON Lines or SQLite Case source by a safe Bundle-relative path.",
+      "control_assets, when present, declares closed Bundle-relative release controls by category, name, SHA-256, and byte size.",
       "A Bundle represents exactly one release and binds one canonical target store."
     ]
   },

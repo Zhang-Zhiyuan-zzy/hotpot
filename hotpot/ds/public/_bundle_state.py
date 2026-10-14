@@ -45,6 +45,7 @@ _MANIFEST_ALLOWED = _MANIFEST_REQUIRED | {
     "release_serial",
     "property_definitions",
     "property_comparators",
+    "control_assets",
 }
 _CASE_ALLOWED = {
     "id",
@@ -195,6 +196,62 @@ def _read_json(path: Path, name: str) -> Any:
         raise BundleStateError(f"cannot read valid {name}: {path}") from exc
 
 
+def _validate_control_assets(root: Path, value: Any) -> list[Dict[str, Any]]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise BundleStateError("bundle.json.control_assets must be an array")
+    result = []
+    identities = set()
+    paths = set()
+    fields = {"category", "name", "path", "sha256", "size"}
+    for index, raw in enumerate(value):
+        name = f"bundle.json.control_assets[{index}]"
+        if not isinstance(raw, dict) or set(raw) != fields:
+            raise BundleStateError(f"{name} fields must be exactly {sorted(fields)}")
+        category = _nonempty_string(raw["category"], f"{name}.category")
+        asset_name = _nonempty_string(raw["name"], f"{name}.name")
+        path = _safe_relative_path(root, raw["path"], f"{name}.path")
+        digest = raw["sha256"]
+        size = raw["size"]
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise BundleStateError(f"{name}.sha256 must be a lowercase SHA-256 digest")
+        if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+            raise BundleStateError(f"{name}.size must be a non-negative integer")
+        identity = (category, asset_name)
+        path_text = path.relative_to(root).as_posix()
+        if identity in identities:
+            raise BundleStateError("bundle.json.control_assets contains a duplicate category/name")
+        if path_text in paths:
+            raise BundleStateError("bundle.json.control_assets contains a duplicate path")
+        identities.add(identity)
+        paths.add(path_text)
+        if path.is_symlink() or not path.is_file():
+            raise BundleStateError(f"{name}.path must name a regular Bundle file")
+        observed = hashlib.sha256()
+        observed_size = 0
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                observed.update(block)
+                observed_size += len(block)
+        if observed.hexdigest() != digest or observed_size != size:
+            raise BundleStateError(f"{name} does not match its declared bytes")
+        result.append(
+            {
+                "category": category,
+                "name": asset_name,
+                "path": path_text,
+                "sha256": digest,
+                "size": size,
+            }
+        )
+    return sorted(result, key=lambda item: (item["category"], item["name"]))
+
+
 def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
     if not isinstance(value, dict):
         raise BundleStateError("bundle.json must contain a JSON object")
@@ -262,6 +319,7 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
         value["required_structure_roles"],
         "bundle.json.required_structure_roles",
     )
+    control_assets = _validate_control_assets(root, value.get("control_assets"))
     intake = value["intake"]
     if not isinstance(intake, dict) or set(intake) != {"format", "path"}:
         raise BundleStateError("bundle.json.intake requires only format and path")
@@ -270,6 +328,8 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
     _safe_relative_path(root, intake["path"], "bundle.json.intake.path")
     normalized = _json_copy(value)
     normalized["dataset_id"] = dataset_id
+    if control_assets:
+        normalized["control_assets"] = control_assets
     return normalized
 
 

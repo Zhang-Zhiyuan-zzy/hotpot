@@ -487,6 +487,12 @@ class Bundle:
             return self.certificate_path
         from .certificate import write_bundle_certificate
 
+        _target_control_asset_descriptors(
+            self.root,
+            self._require_generation(),
+            self._state.manifest,
+            include_certificate=False,
+        )
         return write_bundle_certificate(self)
 
     def ingest(
@@ -830,7 +836,10 @@ class Bundle:
         included_ids = []
         excluded_ids = []
         assets = []
-        control_assets = _target_control_asset_descriptors(self.root, generation)
+        manifest = self._state.manifest
+        control_assets = _target_control_asset_descriptors(
+            self.root, generation, manifest
+        )
         assets.extend(control_assets)
         for case in self._state.iter_cases():
             assessment = generation.get_case(case["id"])
@@ -840,7 +849,6 @@ class Bundle:
             (included_ids if selected else excluded_ids).append(case["id"])
             if selected:
                 assets.extend(_target_scientific_asset_descriptors(self.root, case))
-        manifest = self._state.manifest
         bundle_digest = canonical_digest(
             {
                 "manifest": manifest,
@@ -1038,19 +1046,70 @@ def _target_scientific_asset_descriptors(
 
 
 def _target_control_asset_descriptors(
-    root: Path, generation: Any
+    root: Path,
+    generation: Any,
+    manifest: Mapping[str, Any],
+    *,
+    include_certificate: bool = True,
 ) -> list[Dict[str, Any]]:
-    paths = [("governance", "governance-registry.json", generation.manifest_path.parent / "governance-registry.json")]
+    paths = [
+        ("bundle", "bundle.json", root / "bundle.json", None),
+        ("facts", "facts.sqlite3", root / "cases" / "facts.sqlite3", None),
+        (
+            "governance",
+            "governance-registry.json",
+            generation.manifest_path.parent / "governance-registry.json",
+            None,
+        ),
+    ]
+    if include_certificate:
+        paths.append(
+            ("certificate", "certificate.json", root / "certificate.json", None)
+        )
+    generation_root = generation.manifest_path.parent
+    paths.extend(
+        (
+            "generation",
+            path.relative_to(generation_root).as_posix(),
+            path,
+            None,
+        )
+        for path in sorted(generation_root.rglob("*"))
+        if path.is_file()
+        and path != generation_root / "governance-registry.json"
+    )
     checker_root = root / "policy" / "checkers"
     if checker_root.is_dir():
         paths.extend(
-            ("checker", path.relative_to(checker_root).as_posix(), path)
+            ("checker", path.relative_to(checker_root).as_posix(), path, None)
             for path in sorted(checker_root.rglob("*.py"))
             if path.is_file()
         )
+    paths.extend(
+        (
+            str(item["category"]),
+            str(item["name"]),
+            root / item["path"],
+            item,
+        )
+        for item in manifest.get("control_assets", [])
+    )
     result = []
-    for category, name, path in paths:
+    identities = set()
+    for category, name, path, declaration in paths:
+        identity = (category, name)
+        if identity in identities:
+            raise ValueError(
+                f"duplicate release control asset identity: {category}/{name}"
+            )
+        identities.add(identity)
         digest, size = _hash_file(path)
+        if declaration is not None and (
+            digest != declaration["sha256"] or size != declaration["size"]
+        ):
+            raise ValueError(
+                f"release control asset changed: {declaration['path']}"
+            )
         result.append(
             {
                 "category": category,
@@ -1060,7 +1119,7 @@ def _target_control_asset_descriptors(
                 "size": size,
             }
         )
-    return result
+    return sorted(result, key=lambda item: (item["category"], item["name"]))
 
 
 def _hash_file(path: Path) -> tuple[str, int]:

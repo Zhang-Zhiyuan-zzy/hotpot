@@ -45,6 +45,11 @@
       "propertyNames": {"$ref": "#/$defs/nonempty"},
       "additionalProperties": {"$ref": "#/$defs/propertyComparator"}
     },
+    "control_assets": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/controlAsset"},
+      "uniqueItems": true
+    },
     "required_structure_roles": {
       "$ref": "#/$defs/uniqueStrings",
       "description": "Required scientific Structure roles. The reserved value '*' requires at least one active Structure with a present, hash-valid, parse-valid representation, regardless of role. Every named role remains independently required."
@@ -115,6 +120,22 @@
           "propertyNames": {"$ref": "#/$defs/nonempty"},
           "additionalProperties": {"$ref": "#/$defs/unitConversion"}
         }
+      }
+    },
+    "controlAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "name", "path", "sha256", "size"],
+      "properties": {
+        "category": {"$ref": "#/$defs/nonempty"},
+        "name": {"$ref": "#/$defs/nonempty"},
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+        },
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size": {"type": "integer", "minimum": 0}
       }
     },
     "unitConversion": {

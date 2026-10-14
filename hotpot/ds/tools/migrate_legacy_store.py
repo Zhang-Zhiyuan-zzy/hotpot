@@ -24,7 +24,7 @@ from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Sequence, T
 
 from ..gates import BenchmarkGate, EvidenceGate, QualityGate
 from ..gates._persistence import deserialize_gate_configs
-from ..storage import TargetStore
+from ..storage import TargetStore, asset_inventory_digest
 
 
 LEGACY_SCHEMA_VERSION = "1"
@@ -205,6 +205,19 @@ def _digest_json(value: Any) -> str:
     return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
 
 
+def _stream_json_array_digest(values: Iterable[Any]) -> str:
+    digest = hashlib.sha256()
+    digest.update(b"[")
+    first = True
+    for value in values:
+        if not first:
+            digest.update(b",")
+        digest.update(_canonical_json(value).encode("utf-8"))
+        first = False
+    digest.update(b"]")
+    return digest.hexdigest()
+
+
 def _sha256_file(path: Path) -> Tuple[str, int]:
     digest = hashlib.sha256()
     size = 0
@@ -255,6 +268,10 @@ def _row(connection: sqlite3.Connection, sql: str, parameters: Sequence[Any]) ->
 def _case_child_id(case_id: str, kind: str, legacy_id: str) -> str:
     token = hashlib.sha256(legacy_id.encode("utf-8")).hexdigest()[:20]
     return f"{case_id}:{kind}:{token}"
+
+
+def _identifier_namespace(value: str) -> str:
+    return "CSD" if value == "CSD_identifier" else value
 
 
 def _inventory_identity(table: str, row: Mapping[str, Any]) -> Dict[str, Any]:
@@ -321,7 +338,14 @@ class _RowInventory:
     def summary(self) -> Dict[str, Dict[str, Any]]:
         self.connection.commit()
         result: Dict[str, Dict[str, Any]] = {}
-        for table in _SCOPED_TABLES:
+        names = set(_SCOPED_TABLES)
+        names.update(
+            row[0]
+            for row in self.connection.execute(
+                "SELECT DISTINCT table_name FROM rows"
+            )
+        )
+        for table in sorted(names):
             digest = hashlib.sha256()
             count = 0
             for (row_digest,) in self.connection.execute(
@@ -1000,9 +1024,7 @@ def _identity_migration_rows(
                     outcome = "replaced"
                     reason = "the byte asset is retained while its Structure target becomes Case-scoped"
                 elif table == "external_identifiers":
-                    namespace = (
-                        "CSD" if row["namespace"] == "CSD_identifier" else row["namespace"]
-                    )
+                    namespace = _identifier_namespace(row["namespace"])
                     old_ids = [row["entity_id"], f"{row['namespace']}:{row['value']}"]
                     new_ids = [entity_map[row["entity_id"]], f"{namespace}:{row['value']}"]
                     outcome = "replaced"
@@ -1050,10 +1072,65 @@ def _identity_migration_rows(
                 yield value
 
 
+def _identity_mapping_is_valid(value: Mapping[str, Any]) -> bool:
+    case_id = value["case_id"]
+    table = value["affected_relations"][0]
+    old_ids = value["old_ids"]
+    new_ids = value["new_ids"]
+    expected_mapping_id = _digest_json(
+        {
+            "inventory": value["legacy_inventory_row_id"],
+            "case": case_id,
+            "new_ids": new_ids,
+        }
+    )
+    if value["mapping_id"] != expected_mapping_id:
+        return False
+    entity_prefix = f"{case_id}:entity:"
+    structure_prefix = f"{case_id}:structure:"
+    if table == "records":
+        return new_ids == [case_id]
+    if table == "entities":
+        return len(new_ids) == 1 and new_ids[0].startswith(entity_prefix)
+    if table == "record_entities":
+        return (
+            len(new_ids) == 2
+            and new_ids[0] == case_id
+            and new_ids[1].startswith(entity_prefix)
+        )
+    if table == "structures":
+        return (
+            len(new_ids) == 2
+            and new_ids[0].startswith(structure_prefix)
+            and new_ids[1].startswith(entity_prefix)
+        )
+    if table == "structure_assets":
+        return (
+            len(new_ids) == 2
+            and new_ids[0].startswith(structure_prefix)
+            and new_ids[1] == old_ids[1]
+        )
+    if table == "external_identifiers":
+        return (
+            len(new_ids) == 2
+            and new_ids[0].startswith(entity_prefix)
+            and not new_ids[1].startswith("CSD_identifier:")
+        )
+    if table == "entity_relations":
+        if value["outcome"] == "unresolved":
+            return len(new_ids) < 2
+        return len(new_ids) == 2 and all(
+            item.startswith(entity_prefix) for item in new_ids
+        )
+    return False
+
+
 def _asset_descriptor(
     asset: Mapping[str, Any],
     legacy_asset_root: Path,
     bundle_root: Path,
+    *,
+    materialize: bool = True,
 ) -> Dict[str, Any]:
     metadata = _json_value(asset["metadata_json"]) or {}
     descriptor: Dict[str, Any] = {
@@ -1079,17 +1156,18 @@ def _asset_descriptor(
     actual, _ = _sha256_file(source_path)
     suffix = source_path.suffix.lower() or ".bin"
     relative = Path("assets") / "objects" / actual[:2] / f"{actual}{suffix}"
-    destination = bundle_root / relative
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    if destination.exists():
-        found, _ = _sha256_file(destination)
-        if found != actual:
-            raise LegacyMigrationError(f"migration asset collision at {destination}")
-    else:
-        try:
-            os.link(source_path, destination)
-        except OSError:
-            shutil.copy2(source_path, destination)
+    if materialize:
+        destination = bundle_root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.exists():
+            found, _ = _sha256_file(destination)
+            if found != actual:
+                raise LegacyMigrationError(f"migration asset collision at {destination}")
+        else:
+            try:
+                os.link(source_path, destination)
+            except OSError:
+                shutil.copy2(source_path, destination)
     descriptor["path"] = relative.as_posix()
     descriptor["observed_sha256"] = actual
     descriptor["legacy_uri"] = asset["uri"]
@@ -1112,7 +1190,7 @@ def _normalize_identifiers(
     for item in rows["external_identifiers"]:
         if item["entity_id"] not in record_entities:
             continue
-        namespace = "CSD" if item["namespace"] == "CSD_identifier" else item["namespace"]
+        namespace = _identifier_namespace(item["namespace"])
         values = grouped.setdefault(namespace, [])
         if item["value"] not in values:
             values.append(item["value"])
@@ -1132,10 +1210,20 @@ def _normalize_entities(
         roles.setdefault(relation["entity_id"], []).append(relation["role"])
     identifiers: Dict[str, list[Dict[str, Any]]] = {}
     for identifier in rows["external_identifiers"]:
-        identifiers.setdefault(identifier["entity_id"], []).append(identifier)
+        normalized = dict(identifier)
+        normalized["entity_id"] = entity_map[identifier["entity_id"]]
+        normalized["namespace"] = _identifier_namespace(identifier["namespace"])
+        identifiers.setdefault(identifier["entity_id"], []).append(normalized)
     relations: Dict[str, list[Dict[str, Any]]] = {}
     for relation in rows["entity_relations"]:
-        relations.setdefault(relation["subject_entity_id"], []).append(relation)
+        subject = relation["subject_entity_id"]
+        object_ = relation["object_entity_id"]
+        if subject not in entity_map or object_ not in entity_map:
+            continue
+        normalized = dict(relation)
+        normalized["subject_entity_id"] = entity_map[subject]
+        normalized["object_entity_id"] = entity_map[object_]
+        relations.setdefault(subject, []).append(normalized)
     result = []
     for raw in rows["entities"]:
         old_id = raw["entity_id"]
@@ -1163,6 +1251,8 @@ def _normalize_structures(
     entity_map: Mapping[str, str],
     legacy_asset_root: Path,
     bundle_root: Path,
+    *,
+    materialize_assets: bool = True,
 ) -> list[Dict[str, Any]]:
     roles: Dict[str, list[str]] = {}
     for relation in rows["record_entities"]:
@@ -1171,7 +1261,12 @@ def _normalize_structures(
     by_structure: Dict[str, list[Dict[str, Any]]] = {}
     for relation in rows["structure_assets"]:
         asset = dict(assets[relation["asset_id"]])
-        descriptor = _asset_descriptor(asset, legacy_asset_root, bundle_root)
+        descriptor = _asset_descriptor(
+            asset,
+            legacy_asset_root,
+            bundle_root,
+            materialize=materialize_assets,
+        )
         descriptor["role"] = relation["role"]
         by_structure.setdefault(relation["structure_id"], []).append(descriptor)
     result = []
@@ -1323,30 +1418,22 @@ def _core_info(
     return result
 
 
-def _migration_evidence(
-    release_id: str,
-    inventory_path: Path,
-    migration_path: Path,
-    source_inventory_path: Path,
-    root: Path,
-) -> list[Dict[str, Any]]:
+def _migration_control_descriptors(root: Path) -> list[Dict[str, Any]]:
+    paths = (
+        ("legacy-identity-relationships", root / "evidence" / "migration" / "legacy-identity-relationships.jsonl"),
+        ("identity-migration", root / "evidence" / "migration" / "identity-migration.jsonl"),
+        ("legacy-source-inventory", root / "evidence" / "migration" / "legacy-source-inventory.json"),
+    )
     result = []
-    for kind, path in (
-        ("legacy-identity-relationships", inventory_path),
-        ("identity-migration", migration_path),
-        ("legacy-source-inventory", source_inventory_path),
-    ):
-        digest, _ = _sha256_file(path)
+    for name, path in paths:
+        digest, size = _sha256_file(path)
         result.append(
             {
-                "evidence_id": f"{release_id}:migration:{kind}",
-                "target": release_id,
-                "target_kind": "release_migration",
-                "evidence_type": "migration_provenance",
-                "locator": path.relative_to(root).as_posix(),
+                "category": "migration",
+                "name": name,
                 "path": path.relative_to(root).as_posix(),
-                "expected_sha256": digest,
-                "status": "provenance",
+                "sha256": digest,
+                "size": size,
             }
         )
     return result
@@ -1380,14 +1467,14 @@ def _normalized_case(
     bootstrap: DatasetBootstrap,
     legacy_asset_root: Path,
     bundle_root: Path,
-    migration_assets: Sequence[Mapping[str, Any]],
     identifier_collisions: set[Tuple[str, str]],
+    *,
+    materialize_assets: bool = True,
 ) -> Dict[str, Any]:
     case_id = record["record_id"]
     entity_map = _entity_mapping(case_id, rows)
     release = rows["dataset_releases"][0]
     evidence = _normalize_evidence(rows)
-    evidence.extend(dict(item) for item in migration_assets)
     attestations = _supplier_attestations(case_id, record, rows)
     claimed_subsets = [item["name"] for item in rows["subsets"]]
     return {
@@ -1401,11 +1488,19 @@ def _normalized_case(
             "legacy_subsets": claimed_subsets,
             "migration_rows": rows,
             "migration_schema": MIGRATION_SCHEMA,
+            "quarantined_entity_relations": [
+                dict(relation)
+                for relation in rows["entity_relations"]
+                if relation["subject_entity_id"] not in entity_map
+                or relation["object_entity_id"] not in entity_map
+            ],
             "shared_identifier_relations": [
-                {"namespace": namespace, "value": value}
+                {"namespace": _identifier_namespace(namespace), "value": value}
                 for namespace, value in sorted(identifier_collisions)
                 if any(
-                    item["namespace"] == namespace and item["value"] == value
+                    _identifier_namespace(item["namespace"])
+                    == _identifier_namespace(namespace)
+                    and item["value"] == value
                     for item in rows["external_identifiers"]
                 )
             ],
@@ -1413,7 +1508,12 @@ def _normalized_case(
         "core_info": _core_info(record, bootstrap.core_info),
         "entities": _normalize_entities(case_id, rows, entity_map),
         "structures": _normalize_structures(
-            case_id, rows, entity_map, legacy_asset_root, bundle_root
+            case_id,
+            rows,
+            entity_map,
+            legacy_asset_root,
+            bundle_root,
+            materialize_assets=materialize_assets,
         ),
         "observations": _normalize_observations(rows, entity_map),
         "claims": _normalize_claims(rows, entity_map),
@@ -1479,14 +1579,8 @@ def export_legacy_release(
             },
         )
         source_inventory_sha, _ = _sha256_file(source_inventory_path)
-        migration_assets = _migration_evidence(
-            release_id,
-            inventory_path,
-            mapping_path,
-            source_inventory_path,
-            root,
-        )
         identifier_collisions = source.identifier_collisions(connection, release_id)
+        migration_controls = _migration_control_descriptors(root)
 
         manifest = {
             "schema": "hotpot-ds-bundle/current",
@@ -1511,6 +1605,7 @@ def export_legacy_release(
                     "identity_inventory_sha256": inventory_sha,
                     "identity_migration_sha256": mapping_sha,
                     "source_inventory_sha256": source_inventory_sha,
+                    "asset_root": str(assets_root),
                 },
                 "owner_bootstrap": {
                     "owner": bootstrap.owner,
@@ -1523,6 +1618,7 @@ def export_legacy_release(
             "property_definitions": dict(bootstrap.property_definitions),
             "property_comparators": dict(bootstrap.property_comparators),
             "required_structure_roles": list(bootstrap.required_structure_roles),
+            "control_assets": migration_controls,
             "intake": {"format": "jsonl", "path": "cases.jsonl"},
         }
         _atomic_json(root / "bundle.json", manifest)
@@ -1533,14 +1629,12 @@ def export_legacy_release(
         with cases_path.open("wb") as stream:
             for record in source.records(connection, release_id):
                 rows = case_rows.rows_for_case(record["record_id"])
-                attached = migration_assets if count == 0 else ()
                 case = _normalized_case(
                     record,
                     rows,
                     bootstrap,
                     assets_root,
                     root,
-                    attached,
                     identifier_collisions,
                 )
                 line = (_canonical_json(case) + "\n").encode("utf-8")
@@ -1559,6 +1653,7 @@ def export_legacy_release(
             "bundle_root": str(root),
             "case_count": count,
             "cases_sha256": digest.hexdigest(),
+            "source_asset_root": str(assets_root),
             "source_inventory": source_inventory,
             "identifier_collisions": [
                 {"namespace": namespace, "value": value}
@@ -1576,6 +1671,7 @@ def export_legacy_release(
                 "size": mapping_size,
                 "rows": mapping_count,
             },
+            "migration_controls": migration_controls,
         }
         _atomic_json(root / "migration-export.json", report)
         return report
@@ -1589,100 +1685,193 @@ def verify_bundle_export(
     legacy_db: Union[str, Path],
     release_id: str,
     bundle_root: Union[str, Path],
+    legacy_asset_root: Optional[Union[str, Path]] = None,
 ) -> Dict[str, Any]:
-    """Independently compare source rows with the exported migration facts."""
+    """Independently compare every source Case and operative exported fact."""
 
-    source = LegacyNormalizedStore(legacy_db)
+    database = Path(legacy_db).expanduser().resolve()
+    source = LegacyNormalizedStore(database)
     root = Path(bundle_root).expanduser().resolve()
+    manifest = json.loads((root / "bundle.json").read_text(encoding="utf-8"))
+    export_report = json.loads(
+        (root / "migration-export.json").read_text(encoding="utf-8")
+    )
+    asset_root = Path(
+        export_report["source_asset_root"]
+        if legacy_asset_root is None
+        else legacy_asset_root
+    ).expanduser().resolve()
+    database_digest_before, _ = _sha256_file(database)
+    if manifest["provenance"]["legacy"]["database_sha256"] != database_digest_before:
+        raise MigrationParityError("legacy database differs from the exported source snapshot")
     connection = source.connect()
+    source_rows: Optional[_ReleaseCaseRows] = None
     try:
-        if not any(
-            item["release_id"] == release_id for item in source.releases(connection)
-        ):
+        release = next(
+            (item for item in source.releases(connection) if item["release_id"] == release_id),
+            None,
+        )
+        if release is None:
             raise LegacyMigrationError(f"unknown legacy release: {release_id}")
-        source_rows = _ReleaseCaseRows(Path(legacy_db).resolve(), release_id, root)
+        source_rows = _ReleaseCaseRows(database, release_id, root)
+        source_inventory = source_rows.release_inventory(root)
+        identifier_collisions = source.identifier_collisions(connection, release_id)
+        records = source.records(connection, release_id)
+        actual = _RowInventory(root)
+        case_ids = set()
+        indexes = set()
+        case_count = 0
+        case_mismatches = []
+        case_projection_digest = hashlib.sha256()
+        asset_hash_cache: Dict[str, str] = {}
+        asset_summary = {
+            "present": 0,
+            "source_missing": 0,
+            "remote_not_materialized": 0,
+            "declared_hash_mismatch": 0,
+            "copy_integrity_failures": 0,
+        }
         try:
-            source_inventory = source_rows.release_inventory(root)
+            with (root / "cases.jsonl").open("r", encoding="utf-8") as stream:
+                for record in records:
+                    case_count += 1
+                    line = stream.readline()
+                    if not line:
+                        case_mismatches.append(
+                            {"case_id": record["record_id"], "reason": "missing_export_case"}
+                        )
+                        continue
+                    case = json.loads(line)
+                    rows = source_rows.rows_for_case(record["record_id"])
+                    expected_case = _normalized_case(
+                        record,
+                        rows,
+                        DatasetBootstrap(
+                            ds_name=manifest["ds_name"],
+                            core_labels=tuple(manifest["core_labels"]),
+                            core_info=tuple(manifest["core_info"]),
+                            identity_schema=manifest["identity_schema"],
+                            property_definitions=manifest["property_definitions"],
+                            property_comparators=manifest["property_comparators"],
+                            required_structure_roles=tuple(manifest["required_structure_roles"]),
+                            gates=(),
+                            owner="parity",
+                            decision="parity",
+                            include_incomplete=False,
+                        ),
+                        asset_root,
+                        root,
+                        identifier_collisions,
+                        materialize_assets=False,
+                    )
+                    case_ids.add(case.get("id"))
+                    indexes.add(case.get("public_index"))
+                    expected_digest = _digest_json(expected_case)
+                    actual_digest = _digest_json(case)
+                    case_projection_digest.update(bytes.fromhex(actual_digest))
+                    if expected_digest != actual_digest and len(case_mismatches) < 25:
+                        case_mismatches.append(
+                            {
+                                "case_id": record["record_id"],
+                                "reason": "operative_case_projection_changed",
+                                "source_sha256": expected_digest,
+                                "export_sha256": actual_digest,
+                            }
+                        )
+                    migration_rows = case.get("metadata", {}).get("migration_rows", {})
+                    for table, table_rows in migration_rows.items():
+                        if table in _SCOPED_TABLES:
+                            for row in table_rows:
+                                actual.add(table, row)
+                    descriptors = []
+                    for structure in case.get("structures", []):
+                        descriptors.extend(structure.get("representations", []))
+                    descriptors.extend(
+                        item for item in case.get("evidence", []) if "path" in item
+                    )
+                    for descriptor in descriptors:
+                        path_text = descriptor.get("path")
+                        if not path_text:
+                            asset_summary["remote_not_materialized"] += 1
+                            continue
+                        path = root / path_text
+                        if not path.is_file():
+                            if descriptor.get("source_missing") is True:
+                                asset_summary["source_missing"] += 1
+                            else:
+                                asset_summary["copy_integrity_failures"] += 1
+                            continue
+                        if path_text not in asset_hash_cache:
+                            asset_hash_cache[path_text] = _sha256_file(path)[0]
+                        digest = asset_hash_cache[path_text]
+                        if digest != descriptor.get("observed_sha256", digest):
+                            asset_summary["copy_integrity_failures"] += 1
+                        expected = descriptor.get("expected_sha256")
+                        if expected is not None and digest != expected:
+                            asset_summary["declared_hash_mismatch"] += 1
+                        asset_summary["present"] += 1
+                if stream.readline():
+                    case_mismatches.append(
+                        {"case_id": None, "reason": "unexpected_extra_export_case"}
+                    )
+            actual_inventory = actual.summary()
         finally:
-            source_rows.close()
+            actual.close()
+
+        inventory_path = root / "evidence" / "migration" / "legacy-identity-relationships.jsonl"
+        migration_path = root / "evidence" / "migration" / "identity-migration.jsonl"
+        coverage = _RowInventory(root)
+        inventory_digest = hashlib.sha256()
+        mapping_digest = hashlib.sha256()
+        mapping_count = 0
+        unresolved = 0
+        identity_new_ids_valid = True
+        try:
+            for value in _identity_inventory_rows(source, connection, release_id):
+                inventory_digest.update(
+                    (_canonical_json(value) + "\n").encode("utf-8")
+                )
+                coverage.add("identity_inventory", {"id": value["row_id"]})
+            for value in _identity_migration_rows(
+                source, connection, release_id, source_rows
+            ):
+                mapping_digest.update(
+                    (_canonical_json(value) + "\n").encode("utf-8")
+                )
+                coverage.add(
+                    "identity_mapped",
+                    {"id": value["legacy_inventory_row_id"]},
+                )
+                mapping_count += 1
+                unresolved += value["outcome"] == "unresolved"
+                identity_new_ids_valid = (
+                    identity_new_ids_valid and _identity_mapping_is_valid(value)
+                )
+            coverage_summary = coverage.summary()
+        finally:
+            coverage.close()
+        inventory_expected_sha = inventory_digest.hexdigest()
+        mapping_expected_sha = mapping_digest.hexdigest()
+        identity_file_mismatches = []
+        if _sha256_file(inventory_path)[0] != inventory_expected_sha:
+            identity_file_mismatches.append("legacy_identity_inventory")
+        if _sha256_file(migration_path)[0] != mapping_expected_sha:
+            identity_file_mismatches.append("identity_migration")
+
+        identity_coverage_complete = (
+            coverage_summary["identity_inventory"]
+            == coverage_summary["identity_mapped"]
+        )
     finally:
+        if source_rows is not None:
+            source_rows.close()
         connection.close()
 
-    actual = _RowInventory(root)
-    case_ids = set()
-    indexes = set()
-    case_count = 0
-    asset_hash_cache: Dict[str, str] = {}
-    asset_summary = {
-        "present": 0,
-        "source_missing": 0,
-        "remote_not_materialized": 0,
-        "declared_hash_mismatch": 0,
-        "copy_integrity_failures": 0,
-    }
-    try:
-        with (root / "cases.jsonl").open("r", encoding="utf-8") as stream:
-            for line in stream:
-                case = json.loads(line)
-                case_count += 1
-                case_ids.add(case["id"])
-                indexes.add(case["public_index"])
-                migration_rows = case["metadata"]["migration_rows"]
-                for table, rows in migration_rows.items():
-                    for row in rows:
-                        actual.add(table, row)
-                descriptors = []
-                for structure in case.get("structures", []):
-                    descriptors.extend(structure.get("representations", []))
-                descriptors.extend(
-                    item for item in case.get("evidence", []) if "path" in item
-                )
-                for descriptor in descriptors:
-                    path_text = descriptor.get("path")
-                    if not path_text:
-                        asset_summary["remote_not_materialized"] += 1
-                        continue
-                    path = root / path_text
-                    if not path.is_file():
-                        if descriptor.get("source_missing") is True:
-                            asset_summary["source_missing"] += 1
-                        else:
-                            asset_summary["copy_integrity_failures"] += 1
-                        continue
-                    if path_text not in asset_hash_cache:
-                        asset_hash_cache[path_text] = _sha256_file(path)[0]
-                    digest = asset_hash_cache[path_text]
-                    observed = descriptor.get("observed_sha256", digest)
-                    if digest != observed:
-                        asset_summary["copy_integrity_failures"] += 1
-                    expected = descriptor.get("expected_sha256")
-                    if expected is not None and digest != expected:
-                        asset_summary["declared_hash_mismatch"] += 1
-                    asset_summary["present"] += 1
-        actual_inventory = actual.summary()
-    finally:
-        actual.close()
-
-    inventory_path = root / "evidence" / "migration" / "legacy-identity-relationships.jsonl"
-    migration_path = root / "evidence" / "migration" / "identity-migration.jsonl"
-    inventory_rows: Dict[str, str] = {}
-    with inventory_path.open("r", encoding="utf-8") as stream:
-        for line in stream:
-            value = json.loads(line)
-            if value["row_sha256"] != _digest_json(value["row"]):
-                raise MigrationParityError("legacy identity inventory contains a changed row")
-            inventory_rows[value["row_id"]] = value["row_sha256"]
-    unresolved = 0
-    mapping_count = 0
-    with migration_path.open("r", encoding="utf-8") as stream:
-        for line in stream:
-            value = json.loads(line)
-            mapping_count += 1
-            expected = inventory_rows.get(value["legacy_inventory_row_id"])
-            if expected != value["legacy_inventory_row_sha256"]:
-                raise MigrationParityError("identity migration does not bind its inventory row")
-            unresolved += value["outcome"] == "unresolved"
-
+    database_digest_after, _ = _sha256_file(database)
+    stable_source_snapshot = database_digest_before == database_digest_after
+    control_bindings_valid = (
+        manifest.get("control_assets") == _migration_control_descriptors(root)
+    )
     mismatches = {
         table: {"source": source_inventory[table], "export": actual_inventory[table]}
         for table in _SCOPED_TABLES
@@ -1691,6 +1880,12 @@ def verify_bundle_export(
     contiguous = indexes == set(range(case_count))
     passed = (
         not mismatches
+        and not case_mismatches
+        and not identity_file_mismatches
+        and identity_coverage_complete
+        and identity_new_ids_valid
+        and stable_source_snapshot
+        and control_bindings_valid
         and len(case_ids) == case_count
         and contiguous
         and asset_summary["declared_hash_mismatch"] == 0
@@ -1699,18 +1894,26 @@ def verify_bundle_export(
     result = {
         "schema": MIGRATION_SCHEMA,
         "phase": "source-export-parity",
-        "dataset": json.loads((root / "bundle.json").read_text(encoding="utf-8"))["ds_name"],
+        "dataset": manifest["ds_name"],
         "release": release_id,
         "passed": passed,
         "case_count": case_count,
         "unique_case_ids": len(case_ids),
         "persistent_indices_contiguous": contiguous,
+        "stable_source_snapshot": stable_source_snapshot,
+        "source_database_sha256": database_digest_after,
+        "control_bindings_valid": control_bindings_valid,
+        "case_projection_sha256": case_projection_digest.hexdigest(),
+        "case_mismatches": case_mismatches,
         "source_inventory": source_inventory,
         "export_inventory": actual_inventory,
         "mismatches": mismatches,
         "asset_parity": asset_summary,
         "identity_migration_rows": mapping_count,
         "identity_indeterminate_rows": unresolved,
+        "identity_inventory_coverage_complete": identity_coverage_complete,
+        "identity_new_ids_valid": identity_new_ids_valid,
+        "identity_file_mismatches": identity_file_mismatches,
     }
     _atomic_json(root / "migration-parity.json", result)
     if not passed:
@@ -1719,6 +1922,18 @@ def verify_bundle_export(
             failures.append("declared asset hash mismatch")
         if asset_summary["copy_integrity_failures"]:
             failures.append("copied asset integrity failure")
+        if case_mismatches:
+            failures.append("per-Case operative fact mismatch")
+        if (
+            identity_file_mismatches
+            or not identity_coverage_complete
+            or not identity_new_ids_valid
+        ):
+            failures.append("identity migration coverage mismatch")
+        if not stable_source_snapshot:
+            failures.append("source database changed during parity")
+        if not control_bindings_valid:
+            failures.append("release control binding mismatch")
         if len(case_ids) != case_count:
             failures.append("duplicate Case identifier")
         if not contiguous:
@@ -1754,8 +1969,9 @@ def create_rollback_artifact(
         source_connection.close()
 
     legacy_assets = Path(legacy_asset_root).expanduser().resolve()
+    snapshot_assets = root / "source-assets"
     asset_rows = []
-    connection = source.connect()
+    connection = LegacyNormalizedStore(backup).connect()
     try:
         for row in connection.execute("SELECT * FROM assets ORDER BY asset_id"):
             asset = dict(row)
@@ -1768,6 +1984,7 @@ def create_rollback_artifact(
                 "sha256": None,
                 "size": None,
                 "rollback_path": None,
+                "snapshot_path": None,
             }
             if path is not None and path.is_file():
                 digest, size = _sha256_file(path)
@@ -1778,12 +1995,29 @@ def create_rollback_artifact(
                 if not target.exists():
                     shutil.copy2(path, target)
                     os.chmod(target, 0o444)
+                snapshot = _safe_legacy_asset(snapshot_assets, asset["uri"])
+                if snapshot is None:
+                    raise LegacyMigrationError("local rollback asset became remote")
+                snapshot.parent.mkdir(parents=True, exist_ok=True)
+                if snapshot.exists():
+                    snapshot_digest, snapshot_size = _sha256_file(snapshot)
+                    if snapshot_digest != digest or snapshot_size != size:
+                        raise LegacyMigrationError(
+                            f"rollback source-path collision: {asset['uri']}"
+                        )
+                else:
+                    try:
+                        os.link(target, snapshot)
+                    except OSError:
+                        shutil.copy2(target, snapshot)
+                        os.chmod(snapshot, 0o444)
                 item.update(
                     {
                         "state": "present" if asset["content_sha256"] in (None, digest) else "hash_mismatch",
                         "sha256": digest,
                         "size": size,
                         "rollback_path": relative.as_posix(),
+                        "snapshot_path": snapshot.relative_to(root).as_posix(),
                     }
                 )
             asset_rows.append(item)
@@ -1808,10 +2042,96 @@ def create_rollback_artifact(
         "asset_manifest_size": asset_size,
         "asset_count": asset_count,
         "asset_failures": sum(item["state"] in {"missing", "hash_mismatch"} for item in asset_rows),
+        "snapshot_asset_root": str(snapshot_assets),
     }
     _atomic_json(root / "rollback.json", result)
     os.chmod(backup, 0o444)
     os.chmod(asset_manifest, 0o444)
+    os.chmod(root / "rollback.json", 0o444)
+    return result
+
+
+def verify_rollback_artifact(rollback_root: Union[str, Path]) -> Dict[str, Any]:
+    """Verify the immutable database/asset snapshot used as migration input."""
+
+    root = Path(rollback_root).expanduser().resolve()
+    manifest_path = root / "rollback.json"
+    report = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if report.get("schema") != MIGRATION_SCHEMA or report.get("phase") != "rollback-snapshot":
+        raise LegacyMigrationError("rollback manifest uses an unsupported schema")
+    database = root / "legacy-store.sqlite3"
+    database_digest, database_size = _sha256_file(database)
+    database_connection = LegacyNormalizedStore(database).connect()
+    database_connection.close()
+    database_valid = (
+        database_digest == report["rollback_database_sha256"]
+        and database_size == report["rollback_database_size"]
+    )
+    asset_manifest = root / "legacy-assets.jsonl"
+    asset_manifest_digest, asset_manifest_size = _sha256_file(asset_manifest)
+    manifest_valid = (
+        asset_manifest_digest == report["asset_manifest_sha256"]
+        and asset_manifest_size == report["asset_manifest_size"]
+    )
+    asset_count = 0
+    missing_negative_facts = 0
+    undeclared_losses = 0
+    declared_hash_mismatches = 0
+    with asset_manifest.open("r", encoding="utf-8") as stream:
+        for line in stream:
+            item = json.loads(line)
+            asset_count += 1
+            state = item["state"]
+            if state == "missing":
+                missing_negative_facts += 1
+                if item["rollback_path"] is not None or item["snapshot_path"] is not None:
+                    undeclared_losses += 1
+                continue
+            if state == "remote":
+                if item["rollback_path"] is not None or item["snapshot_path"] is not None:
+                    undeclared_losses += 1
+                continue
+            if state == "hash_mismatch":
+                declared_hash_mismatches += 1
+            if state not in {"present", "hash_mismatch"}:
+                undeclared_losses += 1
+                continue
+            paths = (item["rollback_path"], item["snapshot_path"])
+            for path_text in paths:
+                if not isinstance(path_text, str):
+                    undeclared_losses += 1
+                    continue
+                path = root / path_text
+                if not path.is_file():
+                    undeclared_losses += 1
+                    continue
+                digest, size = _sha256_file(path)
+                if digest != item["sha256"] or size != item["size"]:
+                    undeclared_losses += 1
+    passed = (
+        database_valid
+        and manifest_valid
+        and asset_count == report["asset_count"]
+        and undeclared_losses == 0
+        and declared_hash_mismatches == 0
+    )
+    result = {
+        "schema": MIGRATION_SCHEMA,
+        "phase": "rollback-verification",
+        "passed": passed,
+        "rollback_database_sha256": database_digest,
+        "asset_manifest_sha256": asset_manifest_digest,
+        "asset_count": asset_count,
+        "missing_negative_facts": missing_negative_facts,
+        "undeclared_losses": undeclared_losses,
+        "declared_hash_mismatches": declared_hash_mismatches,
+        "snapshot_database": str(database),
+        "snapshot_asset_root": str(root / "source-assets"),
+    }
+    if not passed:
+        raise MigrationParityError(
+            "rollback snapshot failed integrity or declared-hash verification"
+        )
     return result
 
 
@@ -1820,25 +2140,228 @@ def verify_target_parity(
     bundle_root: Union[str, Path],
     source_export_parity: Mapping[str, Any],
 ) -> Dict[str, Any]:
-    """Verify stored and certified-excluded Cases account for the source."""
+    """Bind target Cases, facts, policy, certificate, generation, and assets."""
 
+    from ..public.bundle import load_bundle
+    from ..public.certificate import certificate_digest, load_certificate_envelope
+
+    target = Path(target_db).expanduser().resolve()
     root = Path(bundle_root).expanduser().resolve()
     manifest = json.loads((root / "bundle.json").read_text(encoding="utf-8"))
-    store = TargetStore(target_db)
+    store = TargetStore(target)
     release = store.load_release_metadata(manifest["ds_name"], manifest["release_id"])
     if release is None or release["receipt"] is None:
         raise MigrationParityError("migrated release has no authoritative target receipt")
     receipt = release["receipt"]
+    bundle = load_bundle(root, manifest["ds_name"], db=target)
+    bundle._authoritative_receipt()
+    generation = bundle._frozen_generation()
+    certificate_path = root / "certificate.json"
+    certificate = load_certificate_envelope(certificate_path)["certificate"]
+    status = bundle._state.status
+
+    descriptor, parity_name = tempfile.mkstemp(
+        prefix=".migration-target-parity-", suffix=".sqlite3", dir=root
+    )
+    os.close(descriptor)
+    parity_path = Path(parity_name)
+    parity_db = sqlite3.connect(parity_path)
+    parity_db.execute(
+        "CREATE TABLE source_cases(case_id TEXT PRIMARY KEY,public_index INTEGER NOT NULL,"
+        "local_id TEXT NOT NULL,fact_digest TEXT NOT NULL,selected INTEGER NOT NULL)"
+    )
+    parity_db.execute(
+        "CREATE TABLE target_cases(case_id TEXT PRIMARY KEY,public_index INTEGER NOT NULL,"
+        "local_id TEXT NOT NULL,fact_digest TEXT NOT NULL)"
+    )
+    source_case_projection_digest = hashlib.sha256()
+    try:
+        assessments = generation.iter_cases()
+        with (root / "cases.jsonl").open("r", encoding="utf-8") as stream:
+            for line in stream:
+                case = json.loads(line)
+                case_digest = _digest_json(case)
+                source_case_projection_digest.update(bytes.fromhex(case_digest))
+                try:
+                    assessment = next(assessments)
+                except StopIteration as error:
+                    raise MigrationParityError(
+                        "assessment generation has fewer Cases than the source"
+                    ) from error
+                if assessment["case_id"] != case["id"]:
+                    raise MigrationParityError(
+                        "assessment generation Case order differs from the source"
+                    )
+                selected = int(
+                    assessment["archive_class"] != "incomplete"
+                    or receipt["include_incomplete"]
+                )
+                parity_db.execute(
+                    "INSERT INTO source_cases VALUES(?,?,?,?,?)",
+                    (
+                        case["id"], case["public_index"], case["local_id"],
+                        case_digest, selected,
+                    ),
+                )
+        try:
+            next(assessments)
+        except StopIteration:
+            pass
+        else:
+            raise MigrationParityError(
+                "assessment generation has more Cases than the source"
+            )
+        target_connection = sqlite3.connect(target)
+        try:
+            target_rows = target_connection.execute(
+                "SELECT case_id,public_index,local_id,source_payload_json FROM cases "
+                "WHERE dataset_id=? AND release_id=? ORDER BY public_index,case_id",
+                (manifest["ds_name"], manifest["release_id"]),
+            )
+            for case_id, public_index, local_id, source_payload_json in target_rows:
+                parity_db.execute(
+                    "INSERT INTO target_cases VALUES(?,?,?,?)",
+                    (
+                        case_id,
+                        public_index,
+                        local_id,
+                        _digest_json(json.loads(source_payload_json)),
+                    ),
+                )
+        finally:
+            target_connection.close()
+        parity_db.commit()
+        expected_included_count = parity_db.execute(
+            "SELECT COUNT(*) FROM source_cases WHERE selected=1"
+        ).fetchone()[0]
+        expected_excluded_count = parity_db.execute(
+            "SELECT COUNT(*) FROM source_cases WHERE selected=0"
+        ).fetchone()[0]
+        included_digest = _stream_json_array_digest(
+            row[0]
+            for row in parity_db.execute(
+                "SELECT case_id FROM source_cases WHERE selected=1 ORDER BY case_id"
+            )
+        )
+        excluded_digest = _stream_json_array_digest(
+            row[0]
+            for row in parity_db.execute(
+                "SELECT case_id FROM source_cases WHERE selected=0 ORDER BY case_id"
+            )
+        )
+        target_case_digest = _stream_json_array_digest(
+            row[0]
+            for row in parity_db.execute(
+                "SELECT case_id FROM target_cases ORDER BY case_id"
+            )
+        )
+        fact_mismatches = [
+            row[0]
+            for row in parity_db.execute(
+                "SELECT s.case_id FROM source_cases s LEFT JOIN target_cases t USING(case_id) "
+                "WHERE s.selected=1 AND (t.case_id IS NULL OR s.public_index!=t.public_index "
+                "OR s.local_id!=t.local_id OR s.fact_digest!=t.fact_digest) "
+                "UNION SELECT t.case_id FROM target_cases t LEFT JOIN source_cases s USING(case_id) "
+                "WHERE s.case_id IS NULL OR s.selected=0 ORDER BY 1 LIMIT 25"
+            )
+        ]
+        source_fact_digest = _stream_json_array_digest(
+            [row[0], row[1]]
+            for row in parity_db.execute(
+                "SELECT case_id,fact_digest FROM source_cases WHERE selected=1 ORDER BY case_id"
+            )
+        )
+        target_fact_digest = _stream_json_array_digest(
+            [row[0], row[1]]
+            for row in parity_db.execute(
+                "SELECT case_id,fact_digest FROM target_cases ORDER BY case_id"
+            )
+        )
+    finally:
+        parity_db.close()
+        parity_path.unlink(missing_ok=True)
+    persisted_policy = store.read_policy(manifest["ds_name"])
+
+    connection = sqlite3.connect(target)
+    connection.row_factory = sqlite3.Row
+    try:
+        asset_rows = list(
+            connection.execute(
+                "SELECT DISTINCT t.content_sha256,t.size,t.relative_path FROM target_assets t "
+                "JOIN (SELECT content_sha256 FROM scientific_asset_refs WHERE dataset_id=? AND release_id=? "
+                "UNION SELECT content_sha256 FROM structure_asset_refs WHERE dataset_id=? AND release_id=? "
+                "UNION SELECT content_sha256 FROM release_control_asset_refs WHERE dataset_id=? AND release_id=?) r "
+                "USING(content_sha256) ORDER BY t.content_sha256",
+                (
+                    manifest["ds_name"], manifest["release_id"],
+                    manifest["ds_name"], manifest["release_id"],
+                    manifest["ds_name"], manifest["release_id"],
+                ),
+            )
+        )
+        control_rows = [
+            dict(row)
+            for row in connection.execute(
+                "SELECT category,name,content_sha256 FROM release_control_asset_refs "
+                "WHERE dataset_id=? AND release_id=? ORDER BY category,name",
+                (manifest["ds_name"], manifest["release_id"]),
+            )
+        ]
+    finally:
+        connection.close()
+    asset_failures = []
+    for row in asset_rows:
+        path = store.asset_root / row["relative_path"]
+        if not path.is_file():
+            asset_failures.append(row["content_sha256"])
+            continue
+        digest, size = _sha256_file(path)
+        if digest != row["content_sha256"] or size != row["size"]:
+            asset_failures.append(row["content_sha256"])
+    target_asset_digest = asset_inventory_digest(
+        {"sha256": row["content_sha256"], "size": row["size"]}
+        for row in asset_rows
+    )
+    expected_migration_controls = sorted([
+        {
+            "category": item["category"],
+            "name": item["name"],
+            "content_sha256": item["sha256"],
+        }
+        for item in _migration_control_descriptors(root)
+    ], key=lambda item: (item["category"], item["name"]))
+    stored_migration_controls = [
+        item for item in control_rows if item["category"] == "migration"
+    ]
+
     expected = int(source_export_parity["case_count"])
     stored = sum(release["counts"].values())
     included = int(receipt["included_count"])
     excluded = int(receipt["excluded_count"])
+    bindings_valid = bool(
+        source_export_parity["case_projection_sha256"]
+        == source_case_projection_digest.hexdigest()
+        and certificate["source"]["digest"] == status["source_digest"]
+        and certificate["policy"]["digest"] == receipt["policy_digest"]
+        and certificate["generation"]["digest"] == receipt["generation_digest"]
+        and receipt["certificate_digest"] == certificate_digest(certificate_path)
+        and persisted_policy is not None
+        and persisted_policy["digest"] == receipt["policy_digest"]
+        and receipt["included_cases_digest"] == included_digest
+        and receipt["excluded_cases_digest"] == excluded_digest
+        and target_case_digest == included_digest
+        and receipt["asset_inventory_digest"] == target_asset_digest
+    )
     passed = bool(
         source_export_parity["passed"]
         and stored == included
         and included + excluded == expected
-        and isinstance(receipt.get("excluded_cases_digest"), str)
-        and len(receipt["excluded_cases_digest"]) == 64
+        and included == expected_included_count
+        and excluded == expected_excluded_count
+        and not fact_mismatches
+        and not asset_failures
+        and expected_migration_controls == stored_migration_controls
+        and bindings_valid
     )
     result = {
         "schema": MIGRATION_SCHEMA,
@@ -1850,15 +2373,30 @@ def verify_target_parity(
         "target_case_count": stored,
         "certified_included_case_count": included,
         "certified_excluded_case_count": excluded,
+        "included_case_ids_sha256": included_digest,
         "excluded_cases_digest": receipt["excluded_cases_digest"],
+        "target_case_ids_sha256": target_case_digest,
+        "source_case_facts_sha256": source_fact_digest,
+        "target_case_facts_sha256": target_fact_digest,
+        "case_fact_mismatches": fact_mismatches,
+        "source_digest": certificate["source"]["digest"],
+        "policy_digest": receipt["policy_digest"],
+        "certificate_digest": receipt["certificate_digest"],
+        "generation_digest": receipt["generation_digest"],
+        "target_asset_inventory_digest": target_asset_digest,
+        "target_asset_failures": asset_failures[:25],
+        "migration_control_assets": stored_migration_controls,
+        "bindings_valid": bindings_valid,
         "archive_counts": release["counts"],
         "receipt_id": receipt["receipt_id"],
+        "target_store_uuid": receipt["store_uuid"],
+        "target_database": str(target),
         "classification_changes_are_derived": True,
     }
     _atomic_json(root / "migration-target-parity.json", result)
     if not passed:
         raise MigrationParityError(
-            "stored plus certificate-bound excluded Cases do not account for the source release"
+            "target release does not exactly bind source Cases, facts, controls, and certified state"
         )
     return result
 
@@ -1912,7 +2450,12 @@ def activate_store_generation(
     ``<database-name>.assets`` tree visible as one generation.
     """
 
-    if not parity_reports or not all(report.get("passed") is True for report in parity_reports):
+    if not parity_reports or not all(
+        report.get("schema") == MIGRATION_SCHEMA
+        and report.get("phase") == "target-parity"
+        and report.get("passed") is True
+        for report in parity_reports
+    ):
         raise MigrationParityError("activation requires passing parity for every migrated release")
     target = Path(target_db).expanduser().resolve()
     store = TargetStore(target)
@@ -1920,14 +2463,87 @@ def activate_store_generation(
     store.asset_root.mkdir(parents=True, exist_ok=True)
     rollback = Path(rollback_root).expanduser().resolve()
     rollback_manifest = rollback / "rollback.json"
-    if not rollback_manifest.is_file():
-        raise LegacyMigrationError("activation requires an explicit rollback artifact")
+    rollback_verification = verify_rollback_artifact(rollback)
+    connection = sqlite3.connect(target)
+    connection.row_factory = sqlite3.Row
+    try:
+        if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise MigrationParityError("target database failed integrity_check before activation")
+        receipts = [
+            dict(row)
+            for row in connection.execute(
+                "SELECT dataset_id,release_id,receipt_id FROM ingestion_receipts "
+                "ORDER BY dataset_id,release_id"
+            )
+        ]
+        assets = [
+            dict(row)
+            for row in connection.execute(
+                "SELECT content_sha256,size,relative_path FROM target_assets "
+                "ORDER BY content_sha256"
+            )
+        ]
+    finally:
+        connection.close()
+    expected_receipts = sorted(
+        (
+            report["dataset"],
+            report["release"],
+            report["receipt_id"],
+            report["target_store_uuid"],
+            str(Path(report["target_database"]).resolve()),
+        )
+        for report in parity_reports
+    )
+    actual_receipts = [
+        (
+            item["dataset_id"], item["release_id"], item["receipt_id"],
+            metadata["store_uuid"], str(target),
+        )
+        for item in receipts
+    ]
+    if expected_receipts != actual_receipts:
+        raise MigrationParityError(
+            "activation parity reports do not exactly cover target receipts"
+        )
+    target_asset_failures = []
+    expected_asset_paths = {
+        (store.asset_root / item["relative_path"]).resolve() for item in assets
+    }
+    for item in assets:
+        path = store.asset_root / item["relative_path"]
+        if not path.is_file():
+            target_asset_failures.append(item["content_sha256"])
+            continue
+        digest, size = _sha256_file(path)
+        if digest != item["content_sha256"] or size != item["size"]:
+            target_asset_failures.append(item["content_sha256"])
+    if target_asset_failures:
+        raise MigrationParityError("target assets failed integrity verification before activation")
+    actual_asset_paths = {
+        path.resolve()
+        for path in (store.asset_root / "objects" / "sha256").rglob("*")
+        if path.is_file() and not path.name.startswith(".")
+    }
+    if actual_asset_paths != expected_asset_paths:
+        raise MigrationParityError(
+            "target asset directory differs from the target database inventory"
+        )
+    target_database_sha256, target_database_size = _sha256_file(target)
+    target_assets_sha256 = asset_inventory_digest(
+        {"sha256": item["content_sha256"], "size": item["size"]}
+        for item in assets
+    )
     link = Path(active_link).expanduser().absolute()
     link.parent.mkdir(parents=True, exist_ok=True)
     if link.exists() and not link.is_symlink():
         raise LegacyMigrationError("active store path must be absent or a directory symlink")
     generation = target.parent
-    if generation == link.parent or link.parent.is_relative_to(generation):
+    if (
+        generation == link.parent
+        or link.parent.is_relative_to(generation)
+        or generation.is_relative_to(link)
+    ):
         raise LegacyMigrationError("active link must live outside the target generation")
     previous = None
     if link.is_symlink():
@@ -1945,7 +2561,12 @@ def activate_store_generation(
         "previous_generation": previous,
         "rollback_artifact": str(rollback),
         "rollback_manifest_sha256": _sha256_file(rollback_manifest)[0],
+        "rollback_verification": rollback_verification,
         "parity_sha256": _digest_json([dict(report) for report in parity_reports]),
+        "target_database_sha256": target_database_sha256,
+        "target_database_size": target_database_size,
+        "target_assets_sha256": target_assets_sha256,
+        "target_asset_count": len(assets),
         "activated_at": _utc_now(),
     }
     _atomic_json(generation / "cutover-activation.json", activation)
@@ -1980,7 +2601,6 @@ def migrate_legacy_store(
 
     from ..public.bundle import Bundle
 
-    source = LegacyNormalizedStore(legacy_db)
     work = Path(work_root).expanduser().resolve()
     target = Path(target_db).expanduser().resolve()
     if target == Path(legacy_db).expanduser().resolve():
@@ -1989,9 +2609,46 @@ def migrate_legacy_store(
         raise LegacyMigrationError("migration target must be a new store")
     work.mkdir(parents=True, exist_ok=True)
     rollback = create_rollback_artifact(legacy_db, legacy_asset_root, rollback_root)
+    rollback_verification = verify_rollback_artifact(rollback_root)
+    snapshot_db = Path(rollback_verification["snapshot_database"])
+    snapshot_assets = Path(rollback_verification["snapshot_asset_root"])
+    source = LegacyNormalizedStore(snapshot_db)
     connection = source.connect()
     releases = list(source.releases(connection))
+    release_counts = {
+        release["release_id"]: connection.execute(
+            "SELECT COUNT(*) FROM records WHERE release_id=?",
+            (release["release_id"],),
+        ).fetchone()[0]
+        for release in releases
+    }
     connection.close()
+    releases.sort(
+        key=lambda release: (
+            release_counts[release["release_id"]],
+            release["dataset_id"],
+            release["release_serial"],
+            release["release_id"],
+        )
+    )
+    release_order = [
+        {
+            "position": index,
+            "dataset": release["dataset_id"],
+            "release": release["release_id"],
+            "source_case_count": release_counts[release["release_id"]],
+        }
+        for index, release in enumerate(releases)
+    ]
+    _atomic_json(
+        work / "migration-plan.json",
+        {
+            "schema": MIGRATION_SCHEMA,
+            "phase": "migration-plan",
+            "activation": "only_after_all_releases_pass",
+            "release_order": release_order,
+        },
+    )
     dataset_names = {item["dataset_id"] for item in releases}
     if set(bootstraps) != dataset_names:
         raise LegacyMigrationError(
@@ -2004,13 +2661,18 @@ def migrate_legacy_store(
         bootstrap = bootstraps[release["dataset_id"]]
         root = work / release["dataset_id"] / release["release_id"]
         export = export_legacy_release(
-            legacy_db,
-            legacy_asset_root,
+            snapshot_db,
+            snapshot_assets,
             release["release_id"],
             root,
             bootstrap,
         )
-        source_parity = verify_bundle_export(legacy_db, release["release_id"], root)
+        source_parity = verify_bundle_export(
+            snapshot_db,
+            release["release_id"],
+            root,
+            snapshot_assets,
+        )
         established = target.is_file() and TargetStore(target).read_policy(bootstrap.ds_name) is not None
         bundle = Bundle(
             root,
@@ -2065,8 +2727,11 @@ def migrate_legacy_store(
         "phase": "complete",
         "passed": all(item["passed"] for item in target_parity_reports),
         "legacy_database": str(Path(legacy_db).resolve()),
+        "source_snapshot_database": str(snapshot_db),
         "target_database": str(target),
         "rollback": rollback,
+        "rollback_verification": rollback_verification,
+        "release_order": release_order,
         "releases": migrated,
         "cutover": cutover,
         "activation": activation,
@@ -2136,6 +2801,7 @@ __all__ = [
     "main",
     "publish_cutover_pointer",
     "verify_bundle_export",
+    "verify_rollback_artifact",
     "verify_target_parity",
 ]
 

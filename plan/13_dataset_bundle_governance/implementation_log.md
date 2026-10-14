@@ -157,6 +157,36 @@ These adjustments refine implementation boundaries without changing the
 owner-confirmed scientific or governance model. They are mandatory correctness
 constraints, not optional compatibility behavior.
 
+### Step 3 — Add Bundle-owned Case behavior
+
+Status: complete
+
+Planned:
+
+- make Bundle the permanent owner of every Case;
+- expose defensive fact snapshots and synchronized assessment snapshots; and
+- cover every documented fact mutation without permitting direct B/E or
+  benchmark assignment.
+
+Performed:
+
+- added the returned `Case`, `CaseCollection`, and `CaseView` protocols;
+- made ownership and Case identity immutable and ensured filtered/sliced views
+  return the owner's original Case objects;
+- added the complete core-info, structure, observation, claim, evidence,
+  verification, and benchmark-attestation mutation surface; and
+- made replacements/withdrawals append-only and delegated every commit to the
+  owning Bundle so one fact transaction can update audit and revision state.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_case.py`
+- result: `5 passed`.
+
+Unexpected finding: none.
+
+Adjustment: none; this follows Phase 1 and the frozen signature tree.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |

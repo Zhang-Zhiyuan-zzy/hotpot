@@ -256,6 +256,40 @@ Adjustment:
 - retained the reviewed `verified_primary_source` identifier. This is not a
   design change; it prevents an accidental second policy vocabulary.
 
+### Step 6 — Add the current target store and asset ownership boundary
+
+Status: complete
+
+Planned:
+
+- replace release ingestion with a current-schema transactional target;
+- keep one canonical Case fact copy and separate derived class indexes; and
+- make the target store own all positively materialized assets.
+
+Performed:
+
+- added store UUID/schema identity, immutable dataset policies, stable release
+  serials and public Case indexes, assessments, identifiers, and separate
+  ordinary/benchmark/incomplete indexes;
+- added target-owned SHA-256 asset objects with streamed verification, atomic
+  publication, byte deduplication, and separate Structure references;
+- added bounded-memory Case spooling before the target transaction;
+- added authoritative release receipts, exact retry idempotence, digest-
+  different conflict detection, and in-transaction policy/release rechecks;
+  and
+- excluded incomplete Cases by default while requiring an explicit reason to
+  include them.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_storage.py`
+- result: `7 passed`;
+- full dataset suite at this boundary: `148 passed`.
+
+Unexpected finding: none beyond the asset-ownership gap recorded in Step 2.
+
+Adjustment: none; this implements the mandatory Step 2 storage decision.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |

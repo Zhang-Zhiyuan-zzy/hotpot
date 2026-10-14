@@ -337,8 +337,110 @@ Necessary adjustment and final decision:
   required to make the public Case contract and the persisted revision model
   agree; it does not add a user-facing workflow.
 
+### Step 8 — Establish the Hotpot attestation trust boundary
+
+Status: complete
+
+Planned:
+
+- authenticate Hotpot benchmark attestations outside caller-controlled Case
+  facts; and
+- freeze the governance registry used by each assessment generation.
+
+Performed:
+
+- added an installed, pinned Ed25519 genesis public key and a canonical signed
+  governance registry;
+- implemented key activation, rotation, prospective revocation, and exact
+  dataset/release/attestation context binding;
+- made Hotpot signing require a private capability object while verification
+  accepts only the pinned registry chain; and
+- kept caller-provided `signature_verified` out of canonical input facts.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_governance.py`
+- result: `8 passed, 1 skipped`; the skip covers the explicitly tested
+  fail-closed path when an optional cryptographic backend is unavailable.
+
+Unexpected finding:
+
+- no matching private key is stored in the repository, by design. Production
+  Hotpot attestations therefore require an owner-controlled signing service or
+  secret that corresponds to the installed public root.
+
+Adjustment: none to the trust model. The operational key provision will be
+documented without weakening the public-key boundary.
+
+### Step 9 — Publish immutable assessment generations
+
+Status: complete
+
+Planned:
+
+- reassess the complete Bundle into an atomic, immutable generation; and
+- bind summaries, three archive indexes, governance, and assessment rows by
+  digest.
+
+Performed:
+
+- added full-snapshot generation into a temporary directory followed by atomic
+  rename and Bundle-state compare-and-swap publication;
+- streamed canonical facts into SQLite work/assessment stores, parsed declared
+  assets, grouped comparable observations, and generated all three Case class
+  indexes;
+- wrote a deterministic manifest that inventories every generation artifact
+  and rejects changed, omitted, or unexpected files; and
+- exposed both the logical generation digest and the byte digest/path of
+  `generation.json` required by certificate binding.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_generation.py`
+- result: `9 passed`.
+
+Unexpected finding:
+
+- the first generation object exposed only its logical digest, whereas the
+  certificate specification separately binds the physical manifest file.
+
+Necessary adjustment and final decision:
+
+- expose read-only `manifest_path` and `manifest_digest` generation
+  properties. This is a private integration correction required to avoid
+  conflating logical content identity with file-integrity binding.
+
+### Step 10 — Close release and supplied-trust intake gaps
+
+Status: complete
+
+Planned:
+
+- keep source facts free of operative derived trust; and
+- preserve the stable three-digit public release identity.
+
+Performed:
+
+- allowed an optional, validated `release_serial` from 1 through 999 in the
+  one-release manifest; and
+- rejected caller-supplied `signature_verified` values at schema and loader
+  boundaries.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_bundle_state.py`
+- result: `15 passed`.
+
+Unexpected finding: none beyond the two integration gaps already identified
+during governance/generation review.
+
+Adjustment: none to workflow; these constraints make the frozen identity and
+trust rules executable.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
 | --- | --- | --- | --- | --- |
 | 1 | Steps 0–4: specification, baseline, mapping, Case model, assessment primitives | `b8322f7..e387af9` | baseline `104 passed`; new focused `10 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 2 | Steps 5–7: Gate policy, target store, canonical Bundle facts | `f3c093f..dcff2b6` | focused Stage 13 suites passed | pushed to `origin/refactor/unified-dataset-management` |
+| 3 | Steps 8–10: governance, assessment generations, release/trust intake closure | `e3bb3cb..10bd137` plus log commit | governance `8 passed, 1 skipped`; generation `9 passed`; Bundle state `15 passed` | pending push |

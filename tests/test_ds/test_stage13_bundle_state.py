@@ -120,6 +120,13 @@ def test_manifest_is_exactly_one_release_and_uses_safe_paths(tmp_path: Path) -> 
     with pytest.raises(BundleStateError, match="safe POSIX"):
         _build(root)
 
+    root = _root(tmp_path / "serial")
+    manifest_path = root / "bundle.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["release_serial"] = 7
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert _build(root).manifest["release_serial"] == 7
+
 
 @pytest.mark.parametrize(
     "cases, message",
@@ -168,6 +175,20 @@ def test_claimed_assessment_fields_are_preserved_as_nonoperative_facts(
     loaded = state.get_case("case-1")
     assert loaded["claimed_quality_level"] == "supplier-gold"
     assert loaded["observations"][0]["claimed_evidence_level"] == "supplier-primary"
+
+
+def test_hotpot_signature_verification_cannot_be_supplied_as_a_fact(tmp_path: Path) -> None:
+    case = _case()
+    case["attestations"] = [
+        {
+            "attestation_id": "attestation-1",
+            "authority": "Hotpot",
+            "approved": True,
+            "signature_verified": True,
+        }
+    ]
+    with pytest.raises(BundleStateError, match="derived trust result"):
+        _build(_root(tmp_path, [case]))
 
 
 def test_actual_asset_bytes_participate_in_source_digest(tmp_path: Path) -> None:

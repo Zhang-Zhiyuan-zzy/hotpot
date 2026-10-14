@@ -25,6 +25,7 @@
     "ds_name": {"$ref": "#/$defs/nonempty"},
     "dataset_id": {"$ref": "#/$defs/nonempty"},
     "release_id": {"$ref": "#/$defs/nonempty"},
+    "release_serial": {"type": "integer", "minimum": 1, "maximum": 999},
     "version": {"$ref": "#/$defs/nonempty"},
     "title": {"$ref": "#/$defs/nonempty"},
     "description": {"$ref": "#/$defs/nonempty"},

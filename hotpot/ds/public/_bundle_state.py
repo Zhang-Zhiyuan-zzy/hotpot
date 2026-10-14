@@ -38,7 +38,7 @@ _MANIFEST_REQUIRED = {
     "identity_schema",
     "required_structure_roles",
 }
-_MANIFEST_ALLOWED = _MANIFEST_REQUIRED | {"dataset_id"}
+_MANIFEST_ALLOWED = _MANIFEST_REQUIRED | {"dataset_id", "release_serial"}
 _CASE_ALLOWED = {
     "id",
     "local_id",
@@ -205,6 +205,15 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
         "access_policy",
     ):
         _nonempty_string(value[field], f"bundle.json.{field}")
+    release_serial = value.get("release_serial")
+    if release_serial is not None and (
+        not isinstance(release_serial, int)
+        or isinstance(release_serial, bool)
+        or not 1 <= release_serial <= 999
+    ):
+        raise BundleStateError(
+            "bundle.json.release_serial must be an integer from 1 to 999"
+        )
     if not isinstance(value["provenance"], dict):
         raise BundleStateError("bundle.json.provenance must be an object")
     if not isinstance(value["identity_schema"], dict):
@@ -296,6 +305,11 @@ def _validate_case(
                 raise BundleStateError(
                     f"case.{name}.{field} is an operative assessment field and is not input"
                 )
+    for attestation in case["attestations"]:
+        if "signature_verified" in attestation:
+            raise BundleStateError(
+                "case.attestations.signature_verified is a derived trust result and is not input"
+            )
     for name in _ASSET_FIELDS:
         for record in case[name]:
             for asset_path in _record_asset_paths(record):

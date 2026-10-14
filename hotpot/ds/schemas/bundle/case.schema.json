@@ -71,7 +71,7 @@
     },
     "attestationFacts": {
       "type": "array",
-      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["attestation_id"], "properties": {"attestation_id": {"$ref": "#/$defs/nonempty"}}}]}
+      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["attestation_id"], "properties": {"attestation_id": {"$ref": "#/$defs/nonempty"}}, "not": {"required": ["signature_verified"]}}]}
     },
     "fact": {
       "type": "object",

@@ -369,3 +369,17 @@ def test_existing_target_uuid_is_rechecked_before_ingest(tmp_path):
 
     with pytest.raises(ReceiptConflictError, match="UUID"):
         store.ingest(snapshot)
+
+
+def test_one_external_identifier_may_name_several_cases(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    cases = [_case("case-a", 0), _case("case-b", 1)]
+    cases[0]["identifiers"] = [{"namespace": "CSD", "value": "DOQRAC"}]
+    cases[1]["identifiers"] = [{"namespace": "CSD", "value": "DOQRAC"}]
+
+    store.ingest(_snapshot(store, cases))
+
+    with sqlite3.connect(store.path) as connection:
+        assert connection.execute(
+            "SELECT COUNT(*) FROM identifiers WHERE namespace='CSD' AND value='DOQRAC'"
+        ).fetchone()[0] == 2

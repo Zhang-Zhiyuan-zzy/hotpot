@@ -176,7 +176,6 @@ CREATE TABLE IF NOT EXISTS identifiers(
  namespace TEXT NOT NULL,
  value TEXT NOT NULL,
  PRIMARY KEY(dataset_id,release_id,case_id,namespace,value),
- UNIQUE(dataset_id,release_id,namespace,value),
  FOREIGN KEY(dataset_id,release_id,case_id)
    REFERENCES cases(dataset_id,release_id,case_id)
 );

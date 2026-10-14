@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-10-14T00:00:00Z",
+  "pinned_genesis_key_id": "hotpot-genesis-2026-10",
+  "public_key": "Wu3xfjVmwTeqxzGHLA7ZhLc+KY+kUAPNQnpmTw2hEK4=",
+  "schema": "hotpot.ds.governance-root/current",
+  "signature_schema": "hotpot.ds.ed25519/current"
+}

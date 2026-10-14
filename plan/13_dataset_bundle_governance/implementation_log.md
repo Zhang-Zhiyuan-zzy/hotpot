@@ -583,6 +583,112 @@ Necessary adjustment and final decision:
   identity remains Case/declaration based. This is required for sealed-release
   durability and does not expose another public storage API.
 
+### Step 15 — Freeze bytes across hashing and chemical parsing
+
+Status: complete
+
+Planned:
+
+- ensure an assessment generation describes one stable scientific-asset
+  snapshot even when files are changed outside Hotpot.
+
+Performed:
+
+- streamed each present asset into a private temporary snapshot while hashing;
+- made structure parsers read only that exact snapshot;
+- compared source and snapshot byte digests plus device/inode/mode/size/mtime/
+  ctime signatures before and after parsing; and
+- guaranteed bounded-memory copying and cleanup on success or failure.
+
+Verification:
+
+- generation suite: `12 passed`;
+- assessment/Gate/generation slice: `23 passed`.
+
+Unexpected finding:
+
+- checking only the aggregate source digest before and after synchronization
+  permits a transient `A -> B -> A` change while a parser observes `B`.
+
+Necessary adjustment and final decision:
+
+- hashing and parsing must consume the same immutable temporary bytes and any
+  source or private-snapshot mutation aborts synchronization. A Bundle lock
+  alone cannot govern external filesystem writers, so this byte-level check is
+  mandatory.
+
+### Step 16 — Complete the Bundle lifecycle
+
+Status: complete
+
+Planned:
+
+- connect one-time build, validation-only load, synchronization,
+  certification, ingestion, restoration, and sealing behind the concise
+  Bundle API.
+
+Performed:
+
+- implemented mandatory dataset/target resolution, new versus existing policy
+  behavior, Gate replacement in new mode, and all Case views;
+- added explicit full synchronization with source/governance refresh and CAS;
+- made certification and ingestion distinct, locked state transitions;
+- added target-owned scientific/control asset snapshots and transactional
+  ingestion; and
+- derived sealed state from the authoritative exact-bound receipt, rejected
+  receipt/certificate/policy/generation mismatch, supported exact retry, and
+  prohibited sealed mutation.
+
+Verification:
+
+- Bundle/certificate/storage/Case lifecycle slice: `27 passed`;
+- end-to-end Bundle flow: `4 passed`.
+
+Unexpected finding:
+
+- a receipt row with the same release name was initially treated as sufficient
+  proof of sealing, and certificate verification and asset copying were not in
+  one Bundle lock interval.
+
+Necessary adjustment and final decision:
+
+- sealing requires an exact source, policy, generation, certificate, Case-set,
+  asset, and original target-context binding. Ingestion verifies the
+  certificate both before and after snapshot construction and lets target
+  asset copying reject later byte changes. This closes the mixed-snapshot
+  window without introducing an implicit synchronize or certify operation.
+
+### Step 17 — Preserve entity and property-policy source facts
+
+Status: complete
+
+Planned:
+
+- keep the current intake schema sufficient for scientific identity and
+  property-context comparison.
+
+Performed:
+
+- admitted explicit entity facts with stable `entity_id` values; and
+- admitted property definitions and property comparator policy in the one
+  immutable release manifest and existing-dataset policy check.
+
+Verification:
+
+- BundleState suite: `19 passed`.
+
+Unexpected finding:
+
+- strict intake rejected entities promised by `Data.entities`, and Bundle
+  policy attempted to read property comparators that its own manifest schema
+  did not permit.
+
+Necessary adjustment and final decision:
+
+- make both concepts current canonical input. This removes an internal
+  contradiction; it does not add a second identity model or a compatibility
+  format.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -590,4 +696,5 @@ Necessary adjustment and final decision:
 | 1 | Steps 0–4: specification, baseline, mapping, Case model, assessment primitives | `b8322f7..e387af9` | baseline `104 passed`; new focused `10 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 2 | Steps 5–7: Gate policy, target store, canonical Bundle facts | `f3c093f..dcff2b6` | focused Stage 13 suites passed | pushed to `origin/refactor/unified-dataset-management` |
 | 3 | Steps 8–10: governance, assessment generations, release/trust intake closure | `e3bb3cb..e64dbc5` | governance `8 passed, 1 skipped`; generation `9 passed`; Bundle state `15 passed` | pushed to `origin/refactor/unified-dataset-management` |
-| 4 | Steps 11–14: configured assessment, governance CAS, certificate envelope, target ownership | `ffbc244..81d12bb` plus log commit | configured Gate slice `36 passed`; Bundle-state flow `31 passed`; certificate/storage slice `20 passed` | pending push |
+| 4 | Steps 11–14: configured assessment, governance CAS, certificate envelope, target ownership | `ffbc244..87599f3` | configured Gate slice `36 passed`; Bundle-state flow `31 passed`; certificate/storage slice `20 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 5 | Steps 15–17: stable asset snapshots, complete Bundle lifecycle, identity-policy intake | `db5b4de..0f44279` plus log commit | generation `12 passed`; Bundle lifecycle `27 passed`; BundleState `19 passed` | pending push |

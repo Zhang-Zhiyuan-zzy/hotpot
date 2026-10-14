@@ -1,4 +1,4 @@
-"""Small public dataset API; advanced normalized storage lives in ``detail``."""
+"""Concise public API for the one current Hotpot dataset implementation."""
 
 from .public.bundle import Bundle, load_bundle, write_certificate
 from .public.catalog import datasets_list, load
@@ -25,8 +25,6 @@ def __dir__():
     return list(__all__)
 
 
-# Importing implementation submodules registers them on their parent package. Remove those
-# incidental attributes so normal first-level introspection matches the documented facade.
-for _module_name in ("database", "levels", "models", "properties", "public", "quality"):
-    globals().pop(_module_name, None)
-del _module_name
+# Importing the implementation package registers it on its parent.  Keep normal
+# first-level introspection aligned with the deliberately small public facade.
+globals().pop("public", None)

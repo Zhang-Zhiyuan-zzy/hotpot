@@ -1,0 +1,54 @@
+{
+  "id": "case-AAAKSI",
+  "local_id": "AAAKSI",
+  "public_index": 0,
+  "identifiers": {
+    "CSD": "AAAKSI"
+  },
+  "metadata": {
+    "supplier": "replace with the source organization"
+  },
+  "core_info": {
+    "sample_id": "AAAKSI"
+  },
+  "entities": [
+    {
+      "entity_id": "entity-AAAKSI-metal",
+      "entity_kind": "metal_site"
+    }
+  ],
+  "structures": [
+    {
+      "structure_id": "structure-AAAKSI",
+      "role": "reported_structure",
+      "primary": true,
+      "representations": {
+        "mol2": {
+          "path": "structures/AAAKSI.mol2"
+        }
+      }
+    }
+  ],
+  "observations": [
+    {
+      "observation_id": "observation-AAAKSI-oxidation",
+      "property": "oxidation_state",
+      "schema_version": "current",
+      "value": 2,
+      "unit": null,
+      "subject": "entity-AAAKSI-metal",
+      "site": "metal-1",
+      "phase": "solid"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "evidence-AAAKSI-paper",
+      "target": "observation-AAAKSI-oxidation",
+      "source": "https://doi.org/10.0000/replace-me",
+      "relation": "supports",
+      "locator": "Table 1",
+      "status": "active"
+    }
+  ]
+}

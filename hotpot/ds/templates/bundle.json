@@ -1,0 +1,55 @@
+{
+  "schema": "hotpot-ds-bundle/current",
+  "ds_name": "example_dataset",
+  "dataset_id": "example_dataset",
+  "release_id": "example_dataset-r1",
+  "release_serial": 1,
+  "version": "1.0",
+  "title": "Example dataset",
+  "description": "One immutable release prepared for Hotpot DS.",
+  "license": "CC-BY-4.0",
+  "access_policy": "open",
+  "provenance": {
+    "created_by": "replace with the responsible person or workflow"
+  },
+  "core_labels": [
+    "oxidation_state"
+  ],
+  "core_info": [
+    "sample_id"
+  ],
+  "intake": {
+    "format": "jsonl",
+    "path": "cases.jsonl"
+  },
+  "identity_schema": {
+    "components": [
+      {
+        "key": "sample_id",
+        "path": "core_info.sample_id",
+        "required": true,
+        "normalizer": "text"
+      }
+    ]
+  },
+  "property_definitions": {
+    "oxidation_state": {
+      "type": "integer",
+      "schema_version": "current",
+      "unit": null,
+      "context_fields": [
+        "subject",
+        "site",
+        "phase"
+      ]
+    }
+  },
+  "property_comparators": {
+    "oxidation_state": {
+      "kind": "exact"
+    }
+  },
+  "required_structure_roles": [
+    "reported_structure"
+  ]
+}

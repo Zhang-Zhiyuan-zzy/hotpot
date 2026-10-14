@@ -23,7 +23,7 @@ hotpot/
     |-- schemas/                 # tracked source/record definitions
     |-- manifests/               # tracked inventories without payload bytes
     `-- data/                    # all local scientific data; ignored by Git
-        |-- store/               # current target database and owned assets
+        |-- store/               # immutable generations and active pointer
         |-- bundles/             # canonical Bundle roots
         |-- sources/             # source-native labels, evidence, structures
         `-- audits/              # supplier submissions and assessment reports
@@ -39,13 +39,13 @@ tools.
 The default query store is:
 
 ```text
-hotpot/dataset/data/store/datasets.sqlite3
+hotpot/dataset/data/store/active/datasets.sqlite3
 ```
 
 Its target-owned content-addressed assets are adjacent:
 
 ```text
-hotpot/dataset/data/store/datasets.sqlite3.assets/
+hotpot/dataset/data/store/active/datasets.sqlite3.assets/
 `-- objects/
     `-- sha256/
         `-- <first-two-hex>/
@@ -53,7 +53,10 @@ hotpot/dataset/data/store/datasets.sqlite3.assets/
 ```
 
 Package code resolves these locations through `hotpot.ds._paths`. Scripts must
-not introduce another dataset payload root.
+not introduce another dataset payload root. `store/active` is a directory
+symlink to one complete directory below `store/generations`; owner migration
+tools replace that pointer atomically only after the database and adjacent
+asset store pass parity checks.
 
 ## Responsibility boundaries
 

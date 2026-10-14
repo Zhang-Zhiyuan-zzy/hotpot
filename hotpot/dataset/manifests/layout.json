@@ -11,13 +11,16 @@
   "ignored_payload_root": "hotpot/dataset/data",
   "payload_directories": {
     "store": "hotpot/dataset/data/store",
-    "target_assets": "hotpot/dataset/data/store/datasets.sqlite3.assets",
+    "store_generations": "hotpot/dataset/data/store/generations",
+    "active_store": "hotpot/dataset/data/store/active",
+    "target_assets": "hotpot/dataset/data/store/active/datasets.sqlite3.assets",
     "bundles": "hotpot/dataset/data/bundles",
     "sources": "hotpot/dataset/data/sources",
     "structures": "hotpot/dataset/data/structures",
     "audits": "hotpot/dataset/data/audits"
   },
-  "default_store": "hotpot/dataset/data/store/datasets.sqlite3",
+  "default_store": "hotpot/dataset/data/store/active/datasets.sqlite3",
+  "activation_contract": "The active directory is an atomically replaced symlink to one complete directory below store/generations.",
   "version_policy": "The checkout supports only its current schema; Git records implementation history.",
   "benchmark_policy": "Benchmark readiness is a quality designation or subset, not a storage namespace."
 }

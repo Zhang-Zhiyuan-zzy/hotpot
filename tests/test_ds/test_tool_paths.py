@@ -20,6 +20,11 @@ DATASET_ROOT = _paths.DATASET_ROOT
 
 
 def test_tool_defaults_use_canonical_dataset_layout() -> None:
+    assert _paths.STORE_GENERATIONS_ROOT == _paths.STORE_ROOT / "generations"
+    assert _paths.ACTIVE_STORE_ROOT == _paths.STORE_ROOT / "active"
+    assert _paths.DEFAULT_STORE_PATH == (
+        _paths.ACTIVE_STORE_ROOT / "datasets.sqlite3"
+    )
     assert validate_oxidation.SOURCE_ROOT == _paths.SOURCES_ROOT / "oxidation"
     assert validate_spin.SOURCE_ROOT == _paths.SOURCES_ROOT / "spin"
     assert assess_quality.DEFAULT_DB == (
@@ -68,7 +73,16 @@ def test_dataset_metadata_uses_current_fact_and_payload_contracts() -> None:
         "hotpot/dataset/data/bundles"
     )
     assert layout["payload_directories"]["target_assets"] == (
-        "hotpot/dataset/data/store/datasets.sqlite3.assets"
+        "hotpot/dataset/data/store/active/datasets.sqlite3.assets"
+    )
+    assert layout["payload_directories"]["store_generations"] == (
+        "hotpot/dataset/data/store/generations"
+    )
+    assert layout["payload_directories"]["active_store"] == (
+        "hotpot/dataset/data/store/active"
+    )
+    assert layout["default_store"] == (
+        "hotpot/dataset/data/store/active/datasets.sqlite3"
     )
 
     decisions_path = (

@@ -12,9 +12,12 @@ excluded from Git:
 ```text
 data/
 |-- store/
-|   |-- datasets.sqlite3
-|   `-- datasets.sqlite3.assets/
-|       `-- objects/sha256/<prefix>/<sha256>
+|   |-- generations/
+|   |   `-- <generation-id>/
+|   |       |-- datasets.sqlite3
+|   |       `-- datasets.sqlite3.assets/
+|   |           `-- objects/sha256/<prefix>/<sha256>
+|   `-- active -> generations/<generation-id>
 |-- bundles/
 |   `-- <dataset>/<release>/
 |-- sources/
@@ -118,8 +121,13 @@ summary. It does not copy a per-Case assessment array into the certificate.
 The default target is:
 
 ```text
-hotpot/dataset/data/store/datasets.sqlite3
+hotpot/dataset/data/store/active/datasets.sqlite3
 ```
+
+`store/active` is a directory symlink to one complete immutable directory
+below `store/generations`. The database and its adjacent asset directory are
+therefore selected by one atomic pointer replacement; they are never switched
+independently.
 
 The SQLite target owns normalized dataset/release metadata, one canonical Case
 fact copy, assessment headers, persistent dataset policy, Gate/checker

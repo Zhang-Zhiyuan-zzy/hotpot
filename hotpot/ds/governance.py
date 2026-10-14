@@ -20,6 +20,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Callable, Mapping, Optional
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
 
 ROOT_SCHEMA = "hotpot.ds.governance-root/current"
 REGISTRY_SCHEMA = "hotpot.ds.governance-registry/current"
@@ -83,10 +86,6 @@ _IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]*$")
 
 class GovernanceError(ValueError):
     """Base error for an invalid governance object."""
-
-
-class GovernanceUnavailableError(GovernanceError):
-    """No vetted Ed25519 verification backend is installed."""
 
 
 class GovernanceVerificationError(GovernanceError):
@@ -179,24 +178,6 @@ def _digest_text(value: Any, field: str) -> str:
 
 
 def _verify_ed25519(public_key: bytes, signature: bytes, payload: bytes) -> bool:
-    try:
-        from cryptography.exceptions import InvalidSignature
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-            Ed25519PublicKey,
-        )
-    except ImportError:
-        try:
-            from nacl.exceptions import BadSignatureError
-            from nacl.signing import VerifyKey
-        except ImportError as exc:
-            raise GovernanceUnavailableError(
-                "Hotpot governance verification requires cryptography or PyNaCl"
-            ) from exc
-        try:
-            VerifyKey(public_key).verify(payload, signature)
-        except (BadSignatureError, ValueError):
-            return False
-        return True
     try:
         Ed25519PublicKey.from_public_bytes(public_key).verify(signature, payload)
     except (InvalidSignature, ValueError):
@@ -366,9 +347,8 @@ def _verify_authorization(
 def verify_registry(snapshot: Mapping[str, Any]) -> VerifiedRegistry:
     """Verify a complete registry snapshot back to the package trust root.
 
-    A genesis-only registry needs no signature and therefore remains readable
-    without a crypto backend.  Any rotation or revocation requires a vetted
-    Ed25519 backend and fails closed when none is installed.
+    A genesis-only registry has no signed events. Every rotation and revocation
+    is verified with the required Ed25519 runtime dependency.
     """
 
     registry = _exact_fields(snapshot, _REGISTRY_FIELDS, "governance registry")
@@ -578,8 +558,6 @@ def verify_hotpot_attestation(
             _canonical_bytes(payload),
         ):
             return False, "signature_invalid"
-    except GovernanceUnavailableError:
-        raise
     except GovernanceVerificationError:
         return False, "invalid_attestation"
     return True, "verified"
@@ -658,79 +636,77 @@ def _sign_hotpot_attestation(
     )
     if not trusted.key_is_active(signer.key_id, now):
         raise GovernanceAuthorizationError("signer key is not active")
-    facts = case._facts()
-    attestations = facts.setdefault("attestations", [])
-    supersedes = None
-    for previous in attestations:
-        if (
-            previous.get("authority") == "Hotpot"
-            and previous.get("actor") == actor
-            and previous.get("status", "active") == "active"
-        ):
-            supersedes = previous.get("attestation_id")
-
     attestation_id = owner._new_fact_identifier(case.id, "attestation")
     event_id = owner._new_fact_identifier(case.id, "governance-event")
-    payload = {
-        "domain": ATTESTATION_DOMAIN,
-        "schema": ATTESTATION_SCHEMA,
-        "dataset": dataset,
-        "release": release,
-        "case_id": case.id,
-        "decision": "approve" if bool(approved) else "reject",
-        "reason": reason,
-        "actor": actor,
-        "event_id": event_id,
-        "created_at": now,
-        "supersedes": supersedes,
-        "key_id": signer.key_id,
-    }
-    signature = signer.sign(_canonical_bytes(payload))
-    if not isinstance(signature, bytes) or len(signature) != 64:
-        raise GovernanceAuthorizationError("governance signer returned an invalid signature")
-    item = {
-        **payload,
-        "authority": "Hotpot",
-        "approved": bool(approved),
-        "signature_schema": SIGNATURE_SCHEMA,
-        "payload_digest": _digest(payload),
-        "signature": base64.b64encode(signature).decode("ascii"),
-        "status": "active",
-        "attestation_id": attestation_id,
-    }
-    valid, verification_reason = verify_hotpot_attestation(
-        item, dataset, release, case.id, trusted
-    )
-    if not valid:
-        raise GovernanceAuthorizationError(
-            f"new Hotpot signature did not verify: {verification_reason}"
-        )
-    if supersedes is not None:
+
+    def mutate(facts: dict[str, Any]) -> tuple[dict[str, Any], str]:
+        attestations = facts.setdefault("attestations", [])
+        supersedes = None
         for previous in attestations:
-            if previous.get("attestation_id") == supersedes:
-                previous["status"] = "superseded"
-                previous["superseded_by"] = attestation_id
-                break
-    attestations.append(item)
-    case._commit(
-        facts,
-        "benchmark.hotpot_attest",
-        {
+            if (
+                previous.get("authority") == "Hotpot"
+                and previous.get("actor") == actor
+                and previous.get("status", "active") == "active"
+            ):
+                supersedes = previous.get("attestation_id")
+        payload = {
+            "domain": ATTESTATION_DOMAIN,
+            "schema": ATTESTATION_SCHEMA,
+            "dataset": dataset,
+            "release": release,
+            "case_id": case.id,
+            "decision": "approve" if approved else "reject",
+            "reason": reason,
+            "actor": actor,
+            "event_id": event_id,
+            "created_at": now,
+            "supersedes": supersedes,
+            "key_id": signer.key_id,
+        }
+        signature = signer.sign(_canonical_bytes(payload))
+        if not isinstance(signature, bytes) or len(signature) != 64:
+            raise GovernanceAuthorizationError(
+                "governance signer returned an invalid signature"
+            )
+        item = {
+            **payload,
+            "authority": "Hotpot",
+            "approved": approved,
+            "signature_schema": SIGNATURE_SCHEMA,
+            "payload_digest": _digest(payload),
+            "signature": base64.b64encode(signature).decode("ascii"),
+            "status": "active",
+            "attestation_id": attestation_id,
+        }
+        valid, verification_reason = verify_hotpot_attestation(
+            item, dataset, release, case.id, trusted
+        )
+        if not valid:
+            raise GovernanceAuthorizationError(
+                f"new Hotpot signature did not verify: {verification_reason}"
+            )
+        if supersedes is not None:
+            for previous in attestations:
+                if previous.get("attestation_id") == supersedes:
+                    previous["status"] = "superseded"
+                    previous["superseded_by"] = attestation_id
+                    break
+        attestations.append(item)
+        return {
             "attestation_id": attestation_id,
             "event_id": event_id,
-            "approved": bool(approved),
+            "approved": approved,
             "actor": actor,
             "key_id": signer.key_id,
             "registry_digest": trusted.digest,
-        },
-    )
-    return attestation_id
+        }, attestation_id
+
+    return case._mutate("benchmark.hotpot_attest", mutate)
 
 
 __all__ = [
     "GovernanceAuthorizationError",
     "GovernanceError",
-    "GovernanceUnavailableError",
     "GovernanceVerificationError",
     "GovernanceKey",
     "PinnedRoot",

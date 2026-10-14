@@ -91,7 +91,7 @@ def test_pinned_root_has_stable_public_only_digest():
     assert len(base64.b64decode(root.public_key, validate=True)) == 32
 
 
-def test_genesis_only_registry_loads_without_crypto_backend(monkeypatch):
+def test_genesis_only_registry_has_no_signed_event_to_verify(monkeypatch):
     monkeypatch.setattr(
         governance,
         "_verify_ed25519",
@@ -207,7 +207,6 @@ def test_ordinary_signer_object_cannot_enter_private_signing_path():
 
 
 def test_rotation_revocation_attestation_and_private_signing(monkeypatch):
-    pytest.importorskip("cryptography")
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
@@ -339,3 +338,11 @@ def test_rotation_revocation_attestation_and_private_signing(monkeypatch):
     assert governance.verify_hotpot_attestation(
         item, "oxidation", "spin-001", "case-1", registry
     ) == (False, "context_mismatch")
+
+    tampered = deepcopy(item)
+    signature = bytearray(base64.b64decode(tampered["signature"], validate=True))
+    signature[0] ^= 1
+    tampered["signature"] = base64.b64encode(signature).decode("ascii")
+    assert governance.verify_hotpot_attestation(
+        tampered, "spin", "spin-001", "case-1", registry
+    ) == (False, "signature_invalid")

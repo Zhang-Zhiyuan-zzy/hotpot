@@ -246,7 +246,17 @@ class Bundle:
                 generation_valid = generation is not None
             except Exception:
                 generation_valid = False
-        synchronized = bool(state["is_synchronized"] and generation_valid)
+        receipt = None
+        receipt_integrity = "valid"
+        try:
+            receipt = self._authoritative_receipt()
+        except SealedIntegrityError:
+            receipt_integrity = "invalid"
+        sealed = receipt is not None or receipt_integrity == "invalid"
+        synchronized = bool(
+            receipt is not None
+            or (not sealed and state["is_synchronized"] and generation_valid)
+        )
         certificate_state = "absent"
         if self.certificate_path.is_file():
             try:
@@ -257,17 +267,20 @@ class Bundle:
             except Exception:
                 certificate_state = "stale"
         target_ready = self._target_precondition_satisfied()
-        receipt_integrity = "valid"
-        try:
-            sealed = self._authoritative_receipt() is not None
-        except SealedIntegrityError:
-            sealed = True
-            receipt_integrity = "invalid"
         ingest_ready = (
             synchronized
             and certificate_state == "current"
             and target_ready
-            and not sealed
+            and receipt_integrity == "valid"
+        )
+        assessment_governance = (
+            None if generation is None else generation.manifest["governance"]
+        )
+        governance_update_available = bool(
+            sealed
+            and assessment_governance is not None
+            and state["governance_registry_revision"]
+            > assessment_governance["revision"]
         )
         if receipt_integrity == "invalid":
             next_action = "repair_sealed_integrity"
@@ -286,6 +299,17 @@ class Bundle:
             "is_synchronized": synchronized,
             "generation_id": None if generation is None else generation.id,
             "generation_digest": None if generation is None else generation.digest,
+            "assessment_governance_registry_revision": (
+                None
+                if assessment_governance is None
+                else assessment_governance["revision"]
+            ),
+            "assessment_governance_registry_digest": (
+                None
+                if assessment_governance is None
+                else assessment_governance["digest"]
+            ),
+            "governance_update_available": governance_update_available,
             "certificate_state": certificate_state,
             "target_precondition_satisfied": target_ready,
             "ingest_ready": bool(ingest_ready),
@@ -300,6 +324,11 @@ class Bundle:
 
     @property
     def is_synchronized(self) -> bool:
+        try:
+            if self._authoritative_receipt() is not None:
+                return True
+        except SealedIntegrityError:
+            return False
         state = self._state.status
         if not state["is_synchronized"] or not state.get("current_generation_id"):
             return False
@@ -590,8 +619,9 @@ class Bundle:
         return True
 
     def _authoritative_receipt(self) -> Optional[Dict[str, Any]]:
+        local_receipt_exists = (self.root / "ingestion-receipt.json").is_file()
         if not self._database.is_file():
-            if (self.root / "ingestion-receipt.json").is_file():
+            if local_receipt_exists:
                 raise SealedIntegrityError(
                     "the authoritative target for a locally recorded sealed release is missing"
                 )
@@ -606,6 +636,10 @@ class Bundle:
             ) from error
         receipt = None if release is None else release.get("receipt")
         if receipt is None:
+            if local_receipt_exists:
+                raise SealedIntegrityError(
+                    "the authoritative target has lost the locally recorded sealed release"
+                )
             return None
         try:
             if not self.certificate_path.is_file():
@@ -613,8 +647,11 @@ class Bundle:
                     "sealed release root certificate is missing"
                 )
             certificate_sha256, _ = _hash_file(self.certificate_path)
+            generation = self._frozen_generation()
             snapshot = self._ingestion_snapshot(
-                certificate_sha256, bool(receipt["include_incomplete"])
+                certificate_sha256,
+                bool(receipt["include_incomplete"]),
+                generation=generation,
             )
             expected = snapshot["digests"]
             actual = {
@@ -645,6 +682,73 @@ class Bundle:
                 "sealed release receipt binding cannot be verified"
             ) from error
         return receipt
+
+    def _frozen_generation(self):
+        """Return the receipt-bound generation without consulting live governance."""
+
+        with self._state.connect() as connection:
+            control = dict(
+                connection.execute(
+                    "SELECT * FROM control WHERE singleton=1"
+                ).fetchone()
+            )
+            source_digest = self._state._compute_source_digest(
+                connection, self._state._stored_manifest(connection)
+            )
+            policy_digest = canonical_digest(
+                json.loads(
+                    connection.execute(
+                        "SELECT policy_json FROM policy WHERE singleton=1"
+                    ).fetchone()[0]
+                )
+            )
+        generation_id = control.get("current_generation_id")
+        if not generation_id:
+            raise SealedIntegrityError(
+                "sealed release has no complete assessment generation"
+            )
+        from ._generation import AssessmentGeneration
+
+        generation = AssessmentGeneration.open(
+            self.root,
+            generation_id,
+            expected_digest=control.get("current_generation_digest"),
+        )
+        manifest = generation.manifest
+        source_matches = (
+            control["source_revision"] == control["synchronized_source_revision"]
+            and source_digest == control["source_digest"]
+            and source_digest == control["synchronized_source_digest"]
+            and manifest["source"]
+            == {
+                "revision": control["source_revision"],
+                "digest": source_digest,
+            }
+        )
+        policy_matches = (
+            control["policy_revision"] == control["synchronized_policy_revision"]
+            and policy_digest == control["policy_digest"]
+            and policy_digest == control["synchronized_policy_digest"]
+            and manifest["policy"]
+            == {
+                "revision": control["policy_revision"],
+                "digest": policy_digest,
+            }
+        )
+        frozen_governance = manifest["governance"]
+        governance_matches = (
+            control["governance_registry_revision"]
+            == control["synchronized_governance_registry_revision"]
+            == frozen_governance["revision"]
+            and control["governance_registry_digest"]
+            == control["synchronized_governance_registry_digest"]
+            == frozen_governance["digest"]
+        )
+        if not (source_matches and policy_matches and governance_matches):
+            raise SealedIntegrityError(
+                "sealed release state does not match its frozen assessment generation"
+            )
+        return generation
 
     def _governance_registry_snapshot(self) -> Dict[str, Any]:
         from ..governance import default_registry_snapshot, verify_registry
@@ -713,9 +817,13 @@ class Bundle:
         )
 
     def _ingestion_snapshot(
-        self, certificate_sha256: str, include_incomplete: bool
+        self,
+        certificate_sha256: str,
+        include_incomplete: bool,
+        *,
+        generation: Optional[Any] = None,
     ) -> Dict[str, Any]:
-        generation = self._require_generation()
+        generation = self._require_generation() if generation is None else generation
         included_ids = []
         excluded_ids = []
         assets = []

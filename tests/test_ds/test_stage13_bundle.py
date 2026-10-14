@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleAlreadyBuiltError
+from hotpot.ds.public import _bundle_state as bundle_state_module
 from hotpot.ds.public.bundle import (
     Bundle,
     MissingCertificateError,
@@ -153,6 +154,7 @@ def test_certify_ingest_restore_retry_and_seal(tmp_path: Path) -> None:
     second = restored.ingest()
     assert second["receipt_id"] == first["receipt_id"]
     assert restored.status["release_state"] == "sealed"
+    assert restored.status["ingest_ready"] is True
     assert restored.status["next_action"] == "none"
     assert restored.write_certificate() == certificate
     with pytest.raises(SealedReleaseError):
@@ -177,3 +179,37 @@ def test_sealed_receipt_mismatch_fails_closed(tmp_path: Path) -> None:
         bundle.cases[0].set_core_info("forbidden", True)
     with pytest.raises(SealedIntegrityError):
         bundle.write_certificate()
+
+
+def test_sealed_release_uses_frozen_governance_and_reports_newer_registry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _root(tmp_path)
+    database = tmp_path / "datasets.sqlite3"
+    bundle = Bundle(root, "demo", db=database)
+    bundle.synchronize()
+    bundle.write_certificate()
+    first = bundle.ingest()
+    frozen = bundle.status
+
+    monkeypatch.setattr(
+        bundle_state_module,
+        "_trusted_governance_binding",
+        lambda: (
+            frozen["assessment_governance_registry_revision"] + 1,
+            "f" * 64,
+        ),
+    )
+
+    status = bundle.status
+    assert status["governance_registry_revision"] == (
+        status["assessment_governance_registry_revision"] + 1
+    )
+    assert status["governance_update_available"] is True
+    assert status["is_synchronized"] is True
+    assert status["certificate_state"] == "current"
+    assert status["ingest_ready"] is True
+    assert bundle.certificate_stale is False
+
+    retry = bundle.ingest()
+    assert retry["receipt_id"] == first["receipt_id"]

@@ -1097,7 +1097,7 @@ Unexpected finding and necessary adjustment:
 
 ### Step 31 — Implement an auditable legacy-store migration
 
-Status: implementation complete; independent cutover hardening in progress
+Status: complete
 
 Performed:
 
@@ -1121,8 +1121,12 @@ Unexpected finding and necessary adjustment:
   insufficient proof for a 252,665-Case cutover. The real migration is paused
   until per-Case operative-fact parity, exact included/excluded ID-set binding,
   release-owned migration controls, frozen-source use, identity-relation
-  coverage, and pre-activation rollback/target revalidation are executable.
-  These checks are mandatory because a count-preserving corruption must never
+  coverage, and pre-activation rollback/target revalidation are executable;
+- all listed controls were then implemented: migration reads the verified
+  rollback snapshot, receipt-bound release controls preserve the Bundle facts,
+  certificate and generation even when all Cases are excluded, and activation
+  rehashes both rollback and target before replacing the directory symlink.
+  These changes are mandatory because a count-preserving corruption must never
   pass migration merely for operational convenience.
 
 ### Step 32 — Route the runtime through one atomic store generation
@@ -1173,6 +1177,108 @@ Unexpected finding and necessary adjustment:
   unreachable assessment level. The signature tree and evidence section were
   amended as an audit-required plan correction.
 
+### Step 34 — Replace the legacy record card with one current information fence
+
+Status: complete
+
+Performed:
+
+- rewrote the tracked record standard around the current Bundle manifest,
+  Case source facts, property policy, three Gates, Case-level B/E assessment,
+  negative asset declarations, certificate, and sealed target release; and
+- added executable documentation checks against the authoritative Bundle JSON
+  schemas and prohibited legacy grade/API vocabulary.
+
+Verification:
+
+- JSON validation plus documentation/path tests: `16 passed`.
+
+Unexpected finding and necessary adjustment:
+
+- the previous card described release/subset scalar grades and the removed
+  `store.ingest` workflow. Keeping it would have made the formal information
+  fence contradict the only current implementation, so it was replaced rather
+  than retained as a compatibility document.
+
+### Step 35 — Express an any-valid-Structure dataset requirement
+
+Status: complete
+
+Performed:
+
+- defined reserved `required_structure_roles=["*"]` as at least one active
+  Structure with a present, hash-valid, parse-valid representation;
+- retained the existing all-named-roles semantics; and
+- documented and tested missing, invalid, and valid wildcard cases.
+
+Verification:
+
+- assessment, generation, Gate, documentation, and Bundle slice: `39 passed`.
+
+Unexpected finding and necessary adjustment:
+
+- oxidation and spin require a valid structure, but their scientific roles are
+  intentionally heterogeneous (`canonical_structure`, temperature variants,
+  and multiplicity variants). Requiring one literal role would either reject
+  valid Cases or erase scientific role meaning. The reserved wildcard adds the
+  required invariant without changing the public API or rewriting roles.
+
+### Step 36 — Freeze the owner-approved migration bootstrap
+
+Status: complete
+
+Performed:
+
+- added explicit current Gate, identity, property/context comparator, core
+  field, structure, incomplete-archive, owner, and decision policy for CSD
+  electronic state, oxidation, and spin; and
+- chose distinct per-Case identity keys until independent sample equivalence is
+  available, preserving duplicate external identifiers without merging.
+
+Verification:
+
+- strict bootstrap deserialization and policy assertions: `2 passed`.
+
+Unexpected finding and necessary adjustment:
+
+- source property metadata was descriptive but not executable comparator
+  policy. The bootstrap closes each observation vocabulary and makes numeric
+  context/tolerance decisions explicit before first current-schema ingestion;
+  it does not infer grades from old gold/silver membership.
+
+### Step 37 — Harden migration parity and atomic activation
+
+Status: complete
+
+Performed:
+
+- froze migration input on a verified rollback database and URI-preserving
+  asset snapshot;
+- compared every source/export Case's stable identity and complete operative
+  projection, normalized identifier namespaces and relation endpoints, and
+  quarantined unresolved cross-Case relations with full mapping coverage;
+- bound migration inventories, Bundle manifest/facts, certificate, generation,
+  governance, and checker files as release controls in the ingestion receipt;
+- recomputed included/excluded Case sets, stored fact digests, certificate and
+  policy/generation bindings, and every target CAS object; and
+- reverified rollback, target database, target assets, and exact receipt set
+  immediately before atomically replacing an existing active symlink.
+
+Verification:
+
+- migration, storage, Bundle, certificate, documentation, and owner-bootstrap
+  slice: `51 passed`.
+
+Unexpected finding and necessary adjustment:
+
+- the first migration implementation could pass global row/count parity after
+  a same-count operative-fact substitution, and migration evidence attached to
+  one excluded Case could disappear from the target. The revised design uses
+  disk-backed per-Case parity and deterministic release controls. This is an
+  audit-required correction to the plan, not optional defensive code, because
+  the former proof did not establish the scientific-content invariant it
+  claimed.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -1185,3 +1291,4 @@ Unexpected finding and necessary adjustment:
 | 6 | Steps 18–20: query API, atomic Case edits, facade/identifier closure | `5242694..5bbfcc6` | query integration `18 passed`; mutation slice `39 passed, 1 skipped`; facade/storage/query `18 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 7 | Steps 21–24: protocol, current CLI, formal documentation, package resources | `c83d661..798b840` | independent CLI slice `41 passed`; handoff `45 passed`; docs `32 passed`; package declarations verified | pushed to `origin/refactor/unified-dataset-management` |
 | 8 | Steps 25–28: sealed governance, documentation assertions, property policy, source-audit boundary | `b5ba161..315a120` | lifecycle/property `72 passed`; sealed slice `51 passed`; docs/help `30 passed`; source metadata `15 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 9 | Steps 29–33: current templates, legacy-code removal, migration foundation, active generations, evidence enrichment | `6a59fe1..cbc97fa` | current suite `160 passed, 1 skipped`; migration slice `34 passed`; paths `21 passed`; evidence slice `22 passed` | pushed to `origin/refactor/unified-dataset-management` |

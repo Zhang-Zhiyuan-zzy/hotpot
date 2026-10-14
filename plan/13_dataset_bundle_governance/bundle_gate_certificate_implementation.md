@@ -2420,16 +2420,28 @@ all oxidation, spin, CSD electronic-state, and other existing datasets enter
 
 The required cutover is:
 
-1. snapshot the current store and record database/file digests;
-2. export each current dataset/release to a canonical Bundle root;
-3. verify source asset hashes and produce the identity/relationship inventory;
-4. bootstrap and persist the owner-approved assessment policy;
-5. synchronize Cases into incomplete, ordinary, and benchmark derived indexes;
-6. regenerate the root certificate;
-7. ingest into a new temporary current-schema database;
-8. run parity checks for identities, structures, hashes, labels, sources,
-   relationships, and record counts by classification;
-9. atomically switch the configured store only after the parity report passes.
+1. snapshot the current store and assets, record database/file digests, and
+   verify the complete rollback artifact;
+2. use only that verified immutable snapshot as migration input; never combine
+   a rollback database with subsequently read live assets or rows;
+3. export each current dataset/release to a canonical Bundle root and verify
+   each Case's persistent ID/index/local ID plus its normalized structures,
+   observations, claims, identifiers, evidence, and exact legacy row inventory;
+4. verify source asset hashes and produce the complete identity/relationship
+   inventory and migration map; unresolved cross-Case relations remain exact
+   provenance but are not operative relations;
+5. bootstrap and persist the owner-approved assessment policy;
+6. synchronize Cases into incomplete, ordinary, and benchmark derived indexes;
+7. regenerate the root certificate;
+8. ingest into a new temporary current-schema database, with migration
+   inventories, canonical facts, the certificate, and generation files stored
+   as receipt-bound release control assets independent of Case selection;
+9. recompute exact included/excluded Case-ID-set digests, stored Case fact
+   digests, certificate/source/policy/generation bindings, and every target CAS
+   object; counts alone are not parity proof;
+10. immediately reverify the rollback artifact, target database, target asset
+    inventory, and complete receipt set, then atomically switch the directory
+    symlink selecting the database and adjacent assets.
 
 The previous database remains an immutable rollback artifact until acceptance
 is complete; it is not queried as a compatibility backend. The implementation
@@ -2438,6 +2450,12 @@ must not migrate the only live copy in place.
 Any count difference must be explained by the migration report. Classification
 changes are expected; unexplained loss or modification of source facts is a
 release blocker.
+
+A source-declared missing asset may survive as a certificate-bound negative
+fact and incomplete classification. A declared-hash mismatch, a copied asset
+that disappears, an unmapped operative identity relation, a receipt/control
+binding mismatch, or a same-count fact substitution blocks cutover. Failure at
+any point leaves the previous active generation unchanged.
 
 ## 12. CLI alignment
 
@@ -3167,6 +3185,13 @@ Exit criteria:
 - each previously ingested dataset has one persisted bootstrapped three-Gate
   policy before it can load in existing mode.
 - an unexplained source-fact count/hash difference prevents cutover.
+- source/export parity is per Case and rejects a count-preserving normalized
+  fact substitution or reassignment between Cases.
+- included and excluded Case-ID sets, stored included facts, release controls,
+  certificate/source/policy/generation digests, and target CAS bytes are
+  recomputed rather than accepted as well-formed digest strings.
+- migration reads only the verified rollback snapshot; activation reverifies
+  both rollback and target immediately before switching the directory pointer.
 - the rebuilt temporary database passes parity before the configured store is
   switched atomically.
 - the frozen pre-migration database remains recoverable but is never queried as

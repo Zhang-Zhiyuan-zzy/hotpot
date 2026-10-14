@@ -187,6 +187,38 @@ Unexpected finding: none.
 
 Adjustment: none; this follows Phase 1 and the frozen signature tree.
 
+### Step 4 — Implement deterministic assessment primitives
+
+Status: complete
+
+Planned:
+
+- keep evidence, identity, context comparison, conflict, quality, and benchmark
+  rules deterministic and separate from generation publication; and
+- ensure B/E values exist only in derived assessment output.
+
+Performed:
+
+- added automatic per-target E0–E4 assessment and a conservative Case
+  aggregate with a true `null`/not-applicable state;
+- required independently verified work and result-lineage roots for E4;
+- added policy-driven identity keys, observation-context comparison, numeric
+  tolerance/uncertainty comparison, and deterministic conflict groups;
+- implemented B0–B4 derivation, the three archive classes, and separate
+  scientific-conflict versus attestation-disagreement reasons; and
+- enforced incomplete and veto precedence over both checklist and direct User
+  approval.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_assessment.py`
+- result: `5 passed`.
+
+Unexpected finding: none.
+
+Adjustment: none; immutable generation publication is deliberately implemented
+as the next layer over these pure rules.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |

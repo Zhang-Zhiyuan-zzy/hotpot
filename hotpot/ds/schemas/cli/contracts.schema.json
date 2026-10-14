@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hotpot.invalid/schemas/ds/cli/contracts.schema.json",
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "[0-9a-f]{64}"},
+    "nonempty": {"type": "string", "minLength": 1},
+    "count": {"type": "integer", "minimum": 0},
+    "stringArray": {"type": "array", "items": {"type": "string"}},
+    "jsonObject": {
+      "type": "object", "required": [], "properties": {},
+      "patternProperties": {".+": {}}, "additionalProperties": false
+    },
+    "stringCountMap": {
+      "type": "object", "required": [], "properties": {},
+      "patternProperties": {".+": {"type": "integer", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "datasetLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "release_id", "version", "version_serial", "database"],
+      "properties": {
+        "name": {"$ref": "#/$defs/nonempty"},
+        "release_id": {"$ref": "#/$defs/nonempty"},
+        "version": {"$ref": "#/$defs/nonempty"},
+        "version_serial": {"type": "string", "pattern": "[0-9]{3}"},
+        "database": {"$ref": "#/$defs/nonempty"}
+      }
+    },
+    "bundleLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "dataset", "release_id", "database"],
+      "properties": {
+        "root": {"$ref": "#/$defs/nonempty"},
+        "dataset": {"$ref": "#/$defs/nonempty"},
+        "release_id": {"$ref": "#/$defs/nonempty"},
+        "database": {"$ref": "#/$defs/nonempty"}
+      }
+    },
+    "bundleInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "dataset_id", "release_id", "version", "title", "description", "license", "access_policy", "core_labels", "core_info", "size", "mode", "database"],
+      "properties": {
+        "name": {"type": "string"}, "dataset_id": {"type": "string"},
+        "release_id": {"type": "string"}, "version": {"type": "string"},
+        "title": {"type": "string"}, "description": {"type": "string"},
+        "license": {"type": "string"}, "access_policy": {"type": "string"},
+        "core_labels": {"$ref": "#/$defs/stringArray"},
+        "core_info": {"$ref": "#/$defs/stringArray"},
+        "size": {"$ref": "#/$defs/count"},
+        "mode": {"enum": ["new", "existing"]},
+        "database": {"type": "string"}
+      }
+    },
+    "bundleSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cases", "archive_class", "quality", "evidence", "benchmark", "reasons"],
+      "properties": {
+        "cases": {"$ref": "#/$defs/count"},
+        "archive_class": {"$ref": "#/$defs/stringCountMap"}, "quality": {"$ref": "#/$defs/stringCountMap"},
+        "evidence": {"$ref": "#/$defs/stringCountMap"}, "benchmark": {"$ref": "#/$defs/stringCountMap"},
+        "reasons": {"$ref": "#/$defs/stringCountMap"}
+      }
+    },
+    "caseCriteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "archive_class": {"$ref": "#/$defs/stringArray"},
+        "quality_level": {"$ref": "#/$defs/stringArray"},
+        "min_quality": {"type": "string"},
+        "evidence_level": {"$ref": "#/$defs/stringArray"},
+        "min_evidence": {"type": "string"},
+        "benchmark_status": {"$ref": "#/$defs/stringArray"},
+        "reason": {"$ref": "#/$defs/stringArray"},
+        "verification": {"$ref": "#/$defs/stringArray"},
+        "attestation": {"$ref": "#/$defs/stringArray"}
+      }
+    },
+    "caseId": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id"], "properties": {"case_id": {"type": "string"}}
+    },
+    "caseSetDigest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["count", "sha256"],
+      "properties": {"count": {"$ref": "#/$defs/count"}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "storeIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canonical_path", "store_uuid", "schema_id"],
+      "properties": {
+        "canonical_path": {"type": "string"}, "store_uuid": {"type": "string"},
+        "schema_id": {"type": "string"}
+      }
+    },
+    "representation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["data_id", "structure_id", "structure_roles", "selection", "format", "source_format", "converted", "content"],
+      "properties": {
+        "data_id": {"type": "string"}, "structure_id": {"type": "string"},
+        "structure_roles": {"$ref": "#/$defs/stringArray"},
+        "selection": {
+          "type": "object", "additionalProperties": false,
+          "required": ["mode", "structure_index", "structure_role", "structure_id"],
+          "properties": {
+            "mode": {"enum": ["primary", "index", "role", "id"]},
+            "structure_index": {"type": ["integer", "null"]},
+            "structure_role": {"type": ["string", "null"]},
+            "structure_id": {"type": ["string", "null"]}
+          }
+        }, "format": {"type": "string"},
+        "source_format": {"type": "string"}, "converted": {"type": "boolean"},
+        "content": {"type": "string"}
+      }
+    },
+    "dataItem": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"}, "record_id": {"type": "string"},
+        "local_id": {"type": "string"}, "dataset": {"type": "string"},
+        "release_id": {"type": "string"}, "metadata": {}, "facts": {},
+        "labels": {}, "identifiers": {}, "entities": {}, "structures": {},
+        "quality_level": {"type": "string"}, "evidence_level": {"type": ["string", "null"]},
+        "archive_class": {"type": "string"}, "assessment": {}
+      }
+    },
+    "dataset_list_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["database", "datasets"],
+      "properties": {"database": {"type": "string"}, "datasets": {"$ref": "#/$defs/stringArray"}}
+    },
+    "dataset_info_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset", "info"],
+      "properties": {"dataset": {"$ref": "#/$defs/datasetLocator"}, "info": {"$ref": "#/$defs/jsonObject"}}
+    },
+    "dataset_labels_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset", "core_labels", "labels"],
+      "properties": {"dataset": {"$ref": "#/$defs/datasetLocator"}, "core_labels": {"$ref": "#/$defs/stringArray"}, "labels": {"$ref": "#/$defs/stringCountMap"}}
+    },
+    "data_collection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset", "items", "representations", "count"],
+      "properties": {
+        "dataset": {"$ref": "#/$defs/datasetLocator"},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/dataItem"}},
+        "representations": {"type": "array", "items": {"$ref": "#/$defs/representation"}},
+        "count": {"$ref": "#/$defs/count"}
+      }
+    },
+    "dataset_collection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["items", "count"],
+      "properties": {"items": {"type": "array", "items": {"$ref": "#/$defs/jsonObject"}}, "count": {"$ref": "#/$defs/count"}}
+    },
+    "export_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["output", "dataset", "record_count", "structure_count", "requested_format"],
+      "properties": {
+        "output": {"type": "string"}, "dataset": {"$ref": "#/$defs/datasetLocator"},
+        "record_count": {"$ref": "#/$defs/count"}, "structure_count": {"$ref": "#/$defs/count"},
+        "requested_format": {"type": ["string", "null"]}
+      }
+    },
+    "detail_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["commands"], "properties": {"commands": {"$ref": "#/$defs/stringArray"}}
+    },
+    "audit_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["database", "passed", "issues", "counts"],
+      "properties": {"database": {"type": "string"}, "passed": {"type": "boolean"}, "issues": {"type": "array", "items": {"$ref": "#/$defs/jsonObject"}}, "counts": {"$ref": "#/$defs/stringCountMap"}}
+    },
+    "claims_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["items", "count"],
+      "properties": {"items": {"type": "array", "items": {"$ref": "#/$defs/jsonObject"}}, "count": {"$ref": "#/$defs/count"}}
+    },
+    "detail_status_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["database", "counts"],
+      "properties": {"database": {"type": "string"}, "counts": {"$ref": "#/$defs/stringCountMap"}}
+    },
+    "bundle_build_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "mode", "source_revision", "policy_revision", "policy_digest", "is_synchronized"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "mode": {"type": "string"},
+        "source_revision": {"$ref": "#/$defs/count"}, "policy_revision": {"$ref": "#/$defs/count"},
+        "policy_digest": {"$ref": "#/$defs/sha256"}, "is_synchronized": {"const": false}
+      }
+    },
+    "bundle_info_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "info"],
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "info": {"$ref": "#/$defs/bundleInfo"}}
+    },
+    "bundle_summary_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "summary"],
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "summary": {"$ref": "#/$defs/bundleSummary"}}
+    },
+    "bundle_cases_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "criteria", "items"],
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "criteria": {"$ref": "#/$defs/caseCriteria"}, "items": {"type": "array", "items": {"$ref": "#/$defs/caseId"}}}
+    },
+    "case_info_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "case_id", "info"],
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "case_id": {"type": "string"}, "info": {"$ref": "#/$defs/jsonObject"}}
+    },
+    "case_assessment_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "case_id", "assessment"],
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "case_id": {"type": "string"}, "assessment": {"$ref": "#/$defs/jsonObject"}}
+    },
+    "bundle_mutation_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "action", "case_id", "event_ids", "source_revision", "is_synchronized"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "action": {"type": "string"},
+        "case_id": {"type": "string"}, "event_ids": {"$ref": "#/$defs/stringArray"},
+        "source_revision": {"$ref": "#/$defs/count"}, "is_synchronized": {"const": false}
+      }
+    },
+    "bundle_gate_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "gate", "action", "configuration", "policy_revision", "policy_digest", "is_synchronized"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "gate": {"enum": ["benchmark", "quality", "evidence"]},
+        "action": {"enum": ["show", "edit"]}, "configuration": {"$ref": "#/$defs/jsonObject"},
+        "policy_revision": {"$ref": "#/$defs/count"}, "policy_digest": {"$ref": "#/$defs/sha256"},
+        "is_synchronized": {"type": "boolean"}
+      }
+    },
+    "bundle_status_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "source_revision", "source_digest", "policy_revision", "policy_digest", "generation_id", "generation_digest", "is_synchronized", "certificate_state", "target_precondition_satisfied", "ingest_ready", "release_state", "next_action"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "source_revision": {"$ref": "#/$defs/count"},
+        "source_digest": {"$ref": "#/$defs/sha256"}, "policy_revision": {"$ref": "#/$defs/count"},
+        "policy_digest": {"$ref": "#/$defs/sha256"}, "generation_id": {"type": ["string", "null"]},
+        "generation_digest": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "is_synchronized": {"type": "boolean"}, "certificate_state": {"type": "string"},
+        "target_precondition_satisfied": {"type": "boolean"}, "ingest_ready": {"type": "boolean"},
+        "release_state": {"type": "string"}, "next_action": {"type": "string"}
+      }
+    },
+    "bundle_synchronize_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "generation_id", "generation_digest", "archive_counts", "summary", "is_synchronized"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "generation_id": {"type": "string"},
+        "generation_digest": {"$ref": "#/$defs/sha256"},
+        "archive_counts": {
+          "type": "object", "additionalProperties": false,
+          "required": ["incomplete", "ordinary", "benchmark"],
+          "properties": {"incomplete": {"$ref": "#/$defs/count"}, "ordinary": {"$ref": "#/$defs/count"}, "benchmark": {"$ref": "#/$defs/count"}}
+        },
+        "summary": {"$ref": "#/$defs/bundleSummary"}, "is_synchronized": {"const": true}
+      }
+    },
+    "certificate_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "certificate_path", "certificate_digest", "source_digest", "policy_digest", "generation_digest"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "certificate_path": {"type": "string"},
+        "certificate_digest": {"$ref": "#/$defs/sha256"}, "source_digest": {"$ref": "#/$defs/sha256"},
+        "policy_digest": {"$ref": "#/$defs/sha256"}, "generation_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "ingestion_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "store", "receipt_digest", "included", "excluded", "idempotent"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"}, "store": {"$ref": "#/$defs/storeIdentity"},
+        "receipt_digest": {"$ref": "#/$defs/sha256"}, "included": {"$ref": "#/$defs/caseSetDigest"},
+        "excluded": {"$ref": "#/$defs/caseSetDigest"}, "idempotent": {"type": "boolean"}
+      }
+    }
+  }
+}

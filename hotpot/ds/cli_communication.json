@@ -1,100 +1,52 @@
 {
-  "envelope_keys": [
-    "key",
-    "channel",
-    "protocol_sha256",
-    "payload"
-  ],
+  "envelope_keys": ["key", "channel", "protocol_sha256", "payload"],
   "contracts": {
-    "hotpot.ds.data_collection": {
-      "bindings": {
-        "dataset": {
-          "path": "payload.dataset",
-          "properties": {
-            "database": "string",
-            "name": "string",
-            "release_id": "string",
-            "version": "string",
-            "version_serial": "string"
-          },
-          "type": "object"
-        },
-        "selectors": {
-          "items_type": "string",
-          "path": "payload.items[].id",
-          "type": "array"
-        }
-      }
-    }
+    "dataset_list_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/dataset_list_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "dataset_info_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/dataset_info_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "dataset_labels_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/dataset_labels_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "data_collection": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/data_collection", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {"dataset": {"path": "payload.dataset"}, "selectors": {"path": "payload.items[].id"}}},
+    "dataset_collection": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/dataset_collection", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "export_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/export_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "detail_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/detail_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "audit_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/audit_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "claims_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/claims_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "detail_status_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/detail_status_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_build_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_build_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_info_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_info_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_summary_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_summary_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_cases_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_cases_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "case_info_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/case_info_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "case_assessment_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/case_assessment_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_mutation_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_mutation_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_gate_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_gate_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_status_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_status_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "bundle_synchronize_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/bundle_synchronize_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "certificate_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/certificate_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}},
+    "ingestion_result": {"schema": {"path": "schemas/cli/contracts.schema.json", "pointer": "#/$defs/ingestion_result", "sha256": "1c5cf6410e47b9dbdbdf48f40f25a4b54ab1514976e6cb5f6ac675c1c889bcf8"}, "bindings": {}}
   },
   "producers": {
-    "hotpot.ds.certify": {
-      "default": null
-    },
-    "hotpot.ds.detail": {
-      "default": null
-    },
-    "hotpot.ds.detail.audit": {
-      "default": null
-    },
-    "hotpot.ds.detail.query.claims": {
-      "default": null
-    },
-    "hotpot.ds.detail.status": {
-      "default": null
-    },
-    "hotpot.ds.export": {
-      "default": null
-    },
-    "hotpot.ds.get": {
-      "default": "hotpot.ds.data_collection",
-      "structure": "hotpot.ds.data_collection"
-    },
-    "hotpot.ds.info": {
-      "default": null
-    },
-    "hotpot.ds.ingest": {
-      "default": null
-    },
-    "hotpot.ds.labels": {
-      "default": null
-    },
-    "hotpot.ds.list": {
-      "default": null
-    },
-    "hotpot.ds.search": {
-      "data": "hotpot.ds.data_collection",
-      "dataset": null,
-      "smarts": "hotpot.ds.data_collection"
-    },
-    "hotpot.ds.subset": {
-      "default": "hotpot.ds.data_collection"
-    }
+    "hotpot.ds.list": {"default": "dataset_list_result"},
+    "hotpot.ds.info": {"default": "dataset_info_result"},
+    "hotpot.ds.labels": {"default": "dataset_labels_result"},
+    "hotpot.ds.get": {"default": "data_collection", "structure": "data_collection"},
+    "hotpot.ds.subset": {"default": "data_collection"},
+    "hotpot.ds.search": {"data": "data_collection", "smarts": "data_collection", "dataset": "dataset_collection"},
+    "hotpot.ds.export": {"default": "export_result"},
+    "hotpot.ds.detail": {"default": "detail_result"},
+    "hotpot.ds.detail.audit": {"default": "audit_result"},
+    "hotpot.ds.detail.query.claims": {"default": "claims_result"},
+    "hotpot.ds.detail.status": {"default": "detail_status_result"},
+    "hotpot.ds.bundle.build": {"default": "bundle_build_result"},
+    "hotpot.ds.bundle.get": {"info": "bundle_info_result", "summary": "bundle_summary_result", "cases": "bundle_cases_result", "case_info": "case_info_result", "case_assessment": "case_assessment_result"},
+    "hotpot.ds.bundle.set": {"default": "bundle_mutation_result"},
+    "hotpot.ds.bundle.gate": {"default": "bundle_gate_result"},
+    "hotpot.ds.bundle.status": {"default": "bundle_status_result"},
+    "hotpot.ds.bundle.synchronize": {"default": "bundle_synchronize_result"},
+    "hotpot.ds.certify": {"default": "certificate_result"},
+    "hotpot.ds.ingest": {"default": "ingestion_result"}
   },
   "consumers": {
-    "hotpot.ds.export": {
-      "accepts": {
-        "hotpot.ds.data_collection": {
-          "cardinality": {
-            "field": "selectors",
-            "maximum": null,
-            "minimum": 1
-          },
-          "duplicates": "reject"
-        }
-      }
-    },
-    "hotpot.ds.get": {
-      "accepts": {
-        "hotpot.ds.data_collection": {
-          "cardinality": {
-            "field": "selectors",
-            "maximum": null,
-            "minimum": 0
-          },
-          "duplicates": "preserve"
-        }
-      }
-    }
+    "hotpot.ds.get": {"accepts": {"data_collection": {"cardinality": {"field": "selectors", "minimum": 0, "maximum": null}, "duplicates": "preserve"}}},
+    "hotpot.ds.export": {"accepts": {"data_collection": {"cardinality": {"field": "selectors", "minimum": 1, "maximum": null}, "duplicates": "reject"}}}
   }
 }

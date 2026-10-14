@@ -12,6 +12,7 @@
     "identifiers": {"type": "object"},
     "metadata": {"type": "object"},
     "core_info": {"type": "object"},
+    "entities": {"$ref": "#/$defs/entityFacts"},
     "structures": {"$ref": "#/$defs/structureFacts"},
     "observations": {"$ref": "#/$defs/observationFacts"},
     "claims": {"$ref": "#/$defs/claimFacts"},
@@ -25,6 +26,10 @@
   },
   "$defs": {
     "nonempty": {"type": "string", "minLength": 1},
+    "entityFacts": {
+      "type": "array",
+      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["entity_id"], "properties": {"entity_id": {"$ref": "#/$defs/nonempty"}}}]}
+    },
     "structureFacts": {
       "type": "array",
       "items": {

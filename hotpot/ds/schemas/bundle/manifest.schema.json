@@ -35,6 +35,8 @@
     "core_labels": {"$ref": "#/$defs/uniqueStrings"},
     "core_info": {"$ref": "#/$defs/uniqueStrings"},
     "identity_schema": {"type": "object"},
+    "property_definitions": {"type": "object"},
+    "property_comparators": {"type": "object"},
     "required_structure_roles": {"$ref": "#/$defs/uniqueStrings"},
     "intake": {
       "type": "object",

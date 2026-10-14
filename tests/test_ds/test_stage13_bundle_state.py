@@ -129,6 +129,27 @@ def test_manifest_is_exactly_one_release_and_uses_safe_paths(tmp_path: Path) -> 
     assert _build(root).manifest["release_serial"] == 7
 
 
+def test_manifest_property_policy_and_case_entities_are_canonical_facts(
+    tmp_path: Path,
+) -> None:
+    case = _case()
+    case["entities"] = [
+        {"entity_id": "entity-eu", "role": "metal", "element": "Eu"}
+    ]
+    root = _root(tmp_path, [case])
+    manifest_path = root / "bundle.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["property_definitions"] = {"spin": {"type": "integer"}}
+    manifest["property_comparators"] = {"spin": {"absolute_tolerance": 0}}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    state = _build(root)
+
+    assert state.manifest["property_definitions"]["spin"]["type"] == "integer"
+    assert state.manifest["property_comparators"]["spin"]["absolute_tolerance"] == 0
+    assert state.get_case("case-1")["entities"][0]["entity_id"] == "entity-eu"
+
+
 @pytest.mark.parametrize(
     "cases, message",
     [

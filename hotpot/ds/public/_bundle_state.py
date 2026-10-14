@@ -38,7 +38,12 @@ _MANIFEST_REQUIRED = {
     "identity_schema",
     "required_structure_roles",
 }
-_MANIFEST_ALLOWED = _MANIFEST_REQUIRED | {"dataset_id", "release_serial"}
+_MANIFEST_ALLOWED = _MANIFEST_REQUIRED | {
+    "dataset_id",
+    "release_serial",
+    "property_definitions",
+    "property_comparators",
+}
 _CASE_ALLOWED = {
     "id",
     "local_id",
@@ -46,6 +51,7 @@ _CASE_ALLOWED = {
     "identifiers",
     "metadata",
     "core_info",
+    "entities",
     "structures",
     "observations",
     "claims",
@@ -61,6 +67,7 @@ _CASE_DEFAULTS = {
     "identifiers": {},
     "metadata": {},
     "core_info": {},
+    "entities": [],
     "structures": [],
     "observations": [],
     "claims": [],
@@ -75,6 +82,7 @@ _OPERATIVE_FIELDS = {
     "benchmark",
 }
 _ARRAY_FIELDS = (
+    "entities",
     "structures",
     "observations",
     "claims",
@@ -84,6 +92,7 @@ _ARRAY_FIELDS = (
 )
 _ASSET_FIELDS = ("structures", "evidence")
 _RECORD_ID_FIELDS = {
+    "entities": "entity_id",
     "structures": "structure_id",
     "observations": "observation_id",
     "claims": "claim_id",
@@ -227,6 +236,9 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
         raise BundleStateError("bundle.json.provenance must be an object")
     if not isinstance(value["identity_schema"], dict):
         raise BundleStateError("bundle.json.identity_schema must be an object")
+    for field in ("property_definitions", "property_comparators"):
+        if field in value and not isinstance(value[field], dict):
+            raise BundleStateError(f"bundle.json.{field} must be an object")
     _string_list(value["core_labels"], "bundle.json.core_labels")
     _string_list(value["core_info"], "bundle.json.core_info")
     _string_list(

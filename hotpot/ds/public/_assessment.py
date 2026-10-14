@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import lru_cache
@@ -23,6 +24,41 @@ from ..gates._checker import (
 
 B_LEVELS = tuple(f"B{index}" for index in range(5))
 E_LEVELS = tuple(f"E{index}" for index in range(5))
+
+_PROPERTY_TYPES = {"integer", "real", "category", "text", "boolean", "json"}
+_PROPERTY_DEFINITION_FIELDS = {
+    "type",
+    "schema_version",
+    "unit",
+    "allowed_values",
+    "normalizer",
+    "context_fields",
+}
+_PROPERTY_COMPARATOR_FIELDS = {
+    "kind",
+    "absolute_tolerance",
+    "relative_tolerance",
+    "use_uncertainty",
+    "unit_conversions",
+}
+_CONTEXT_ROOTS = {
+    "subject",
+    "site",
+    "phase",
+    "conditions",
+    "participants",
+    "method",
+    "branch",
+}
+_DEFAULT_CONTEXT_FIELDS = (
+    "subject",
+    "site",
+    "phase",
+    "conditions",
+    "participants",
+    "method",
+    "branch",
+)
 
 _DEFAULT_EVIDENCE_CHECKS = {
     name: {"kind": "builtin", "enabled": True}
@@ -115,6 +151,310 @@ def canonical_json(value: Any) -> str:
 
 def canonical_digest(value: Any) -> str:
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def observation_property(observation: Mapping[str, Any]) -> Optional[str]:
+    """Resolve the current observation property namespace without guessing."""
+
+    supplied = [
+        observation.get(field)
+        for field in ("property", "property_type_id", "property_type")
+        if observation.get(field) is not None
+    ]
+    if not supplied:
+        return None
+    if any(not isinstance(value, str) or not value.strip() for value in supplied):
+        return None
+    normalized = {value.strip() for value in supplied}
+    if len(normalized) != 1:
+        return None
+    return normalized.pop()
+
+
+def validate_property_policy(
+    definitions: Mapping[str, Any], comparators: Mapping[str, Any]
+) -> None:
+    """Validate the compact, persisted property-policy vocabulary."""
+
+    if not isinstance(definitions, Mapping):
+        raise ValueError("property_definitions must be an object")
+    if not isinstance(comparators, Mapping):
+        raise ValueError("property_comparators must be an object")
+    for name, raw in definitions.items():
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("property definition names must be non-empty strings")
+        if not isinstance(raw, Mapping):
+            raise ValueError(f"property_definitions.{name} must be an object")
+        extra = set(raw) - _PROPERTY_DEFINITION_FIELDS
+        if extra:
+            raise ValueError(
+                f"property_definitions.{name} has unsupported fields: "
+                + ", ".join(sorted(extra))
+            )
+        value_type = raw.get("type")
+        if value_type not in _PROPERTY_TYPES:
+            raise ValueError(
+                f"property_definitions.{name}.type must be one of "
+                + ", ".join(sorted(_PROPERTY_TYPES))
+            )
+        schema_version = raw.get("schema_version", "current")
+        if not isinstance(schema_version, str) or not schema_version:
+            raise ValueError(
+                f"property_definitions.{name}.schema_version must be a non-empty string"
+            )
+        if "unit" in raw and raw["unit"] is not None and (
+            not isinstance(raw["unit"], str) or not raw["unit"]
+        ):
+            raise ValueError(
+                f"property_definitions.{name}.unit must be null or a non-empty string"
+            )
+        normalizer = raw.get("normalizer", "identity")
+        if normalizer not in {"identity", "casefold"}:
+            raise ValueError(
+                f"property_definitions.{name}.normalizer must be identity or casefold"
+            )
+        if normalizer == "casefold" and value_type not in {"category", "text"}:
+            raise ValueError(
+                f"property_definitions.{name}.normalizer casefold requires a string type"
+            )
+        allowed = raw.get("allowed_values")
+        if allowed is not None:
+            if value_type != "category" or not isinstance(allowed, list) or not allowed:
+                raise ValueError(
+                    f"property_definitions.{name}.allowed_values requires a non-empty category list"
+                )
+            if any(not isinstance(value, str) for value in allowed):
+                raise ValueError(
+                    f"property_definitions.{name}.allowed_values must contain strings"
+                )
+            normalized_allowed = [
+                value.casefold() if normalizer == "casefold" else value
+                for value in allowed
+            ]
+            if len(normalized_allowed) != len(set(normalized_allowed)):
+                raise ValueError(
+                    f"property_definitions.{name}.allowed_values contains duplicates"
+                )
+        context_fields = raw.get("context_fields", [])
+        if not isinstance(context_fields, list) or any(
+            not _valid_context_path(value) for value in context_fields
+        ):
+            raise ValueError(
+                f"property_definitions.{name}.context_fields contains an invalid path"
+            )
+        if len(context_fields) != len(set(context_fields)):
+            raise ValueError(
+                f"property_definitions.{name}.context_fields contains duplicates"
+            )
+
+    for name, raw in comparators.items():
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("property comparator names must be non-empty strings")
+        if definitions and name not in definitions:
+            raise ValueError(
+                f"property_comparators.{name} has no matching property definition"
+            )
+        if not isinstance(raw, Mapping):
+            raise ValueError(f"property_comparators.{name} must be an object")
+        extra = set(raw) - _PROPERTY_COMPARATOR_FIELDS
+        if extra:
+            raise ValueError(
+                f"property_comparators.{name} has unsupported fields: "
+                + ", ".join(sorted(extra))
+            )
+        definition = definitions.get(name, {})
+        kind = _comparator_kind(raw, definition)
+        if kind not in {"exact", "numeric", "categorical"}:
+            raise ValueError(
+                f"property_comparators.{name}.kind must be exact, numeric, or categorical"
+            )
+        if kind == "numeric" and definition.get("type") not in {
+            None,
+            "integer",
+            "real",
+        }:
+            raise ValueError(
+                f"property_comparators.{name} numeric comparison requires a numeric property"
+            )
+        if kind == "categorical" and definition.get("type") not in {
+            None,
+            "category",
+            "boolean",
+        }:
+            raise ValueError(
+                f"property_comparators.{name} categorical comparison requires a categorical property"
+            )
+        for field in ("absolute_tolerance", "relative_tolerance"):
+            value = raw.get(field, 0.0)
+            if (
+                not isinstance(value, (int, float))
+                or isinstance(value, bool)
+                or not math.isfinite(value)
+                or value < 0
+            ):
+                raise ValueError(
+                    f"property_comparators.{name}.{field} must be a finite non-negative number"
+                )
+            if kind != "numeric" and field in raw:
+                raise ValueError(
+                    f"property_comparators.{name}.{field} requires kind numeric"
+                )
+        if "use_uncertainty" in raw and not isinstance(raw["use_uncertainty"], bool):
+            raise ValueError(
+                f"property_comparators.{name}.use_uncertainty must be Boolean"
+            )
+        if "use_uncertainty" in raw and kind != "numeric":
+            raise ValueError(
+                f"property_comparators.{name}.use_uncertainty requires kind numeric"
+            )
+        conversions = raw.get("unit_conversions", {})
+        if not isinstance(conversions, Mapping):
+            raise ValueError(
+                f"property_comparators.{name}.unit_conversions must be an object"
+            )
+        if conversions and (
+            "unit" not in definition or not isinstance(definition.get("unit"), str)
+        ):
+            raise ValueError(
+                f"property_comparators.{name}.unit_conversions requires a canonical property unit"
+            )
+        for unit, conversion in conversions.items():
+            if not isinstance(unit, str) or not unit:
+                raise ValueError(
+                    f"property_comparators.{name}.unit_conversions has an invalid unit"
+                )
+            _conversion_parameters(conversion, f"property_comparators.{name}")
+
+
+def validate_observation(
+    observation: Mapping[str, Any],
+    definitions: Mapping[str, Any],
+    comparators: Mapping[str, Any],
+) -> None:
+    """Validate one source observation against declared dataset policy."""
+
+    name = observation_property(observation)
+    if name is None:
+        raise ValueError("observation property must be one unambiguous non-empty string")
+    if "value" not in observation:
+        raise ValueError(f"observation {name!r} requires value")
+    if definitions and name not in definitions:
+        raise ValueError(f"observation property {name!r} is not declared")
+    for field in ("conditions", "method"):
+        if field in observation and not isinstance(observation[field], Mapping):
+            raise ValueError(f"observation.{field} must be an object")
+    if "participants" in observation and not isinstance(observation["participants"], list):
+        raise ValueError("observation.participants must be an array")
+    if "unit" in observation and observation["unit"] is not None and (
+        not isinstance(observation["unit"], str) or not observation["unit"]
+    ):
+        raise ValueError("observation.unit must be null or a non-empty string")
+
+    definition = definitions.get(name)
+    if definition is None:
+        return
+    expected_schema = definition.get("schema_version", "current")
+    actual_schema = observation.get("schema_version", "current")
+    if actual_schema != expected_schema:
+        raise ValueError(
+            f"observation {name!r} schema_version must be {expected_schema!r}"
+        )
+    if not _value_matches_type(observation["value"], definition["type"]):
+        raise ValueError(
+            f"observation {name!r} value must have type {definition['type']}"
+        )
+    normalized_value = _normalize_property_value(observation["value"], definition)
+    if "allowed_values" in definition:
+        allowed = {
+            _normalize_property_value(value, definition)
+            for value in definition["allowed_values"]
+        }
+        if normalized_value not in allowed:
+            raise ValueError(
+                f"observation {name!r} value is outside allowed_values"
+            )
+    if "unit" in definition:
+        canonical_unit = definition["unit"]
+        actual_unit = observation.get("unit")
+        conversions = comparators.get(name, {}).get("unit_conversions", {})
+        if canonical_unit is None and actual_unit is not None:
+            raise ValueError(f"observation {name!r} must be unitless")
+        if canonical_unit is not None and actual_unit not in {
+            canonical_unit,
+            *conversions.keys(),
+        }:
+            raise ValueError(
+                f"observation {name!r} unit is not canonical or convertible"
+            )
+
+
+def _valid_context_path(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value.startswith(".") or value.endswith("."):
+        return False
+    parts = value.split(".")
+    if parts[0] not in _CONTEXT_ROOTS or any(not part for part in parts):
+        return False
+    return len(parts) == 1 or parts[0] in {"conditions", "method"}
+
+
+def _value_matches_type(value: Any, value_type: str) -> bool:
+    if value_type == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if value_type == "real":
+        return (
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(value)
+        )
+    if value_type in {"category", "text"}:
+        return isinstance(value, str)
+    if value_type == "boolean":
+        return isinstance(value, bool)
+    return True
+
+
+def _normalize_property_value(value: Any, definition: Mapping[str, Any]) -> Any:
+    if definition.get("normalizer") == "casefold" and isinstance(value, str):
+        return value.strip().casefold()
+    return value
+
+
+def _comparator_kind(
+    comparator: Mapping[str, Any], definition: Mapping[str, Any]
+) -> str:
+    declared = comparator.get("kind")
+    if declared is not None:
+        return str(declared)
+    if "absolute_tolerance" in comparator or "relative_tolerance" in comparator:
+        return "numeric"
+    if definition.get("type") in {"integer", "real"}:
+        return "numeric"
+    if definition.get("type") in {"category", "boolean"}:
+        return "categorical"
+    return "exact"
+
+
+def _conversion_parameters(value: Any, prefix: str) -> Tuple[float, float]:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        scale, offset = float(value), 0.0
+    elif isinstance(value, Mapping) and set(value) <= {"scale", "offset"}:
+        scale = value.get("scale", 1.0)
+        offset = value.get("offset", 0.0)
+        if any(
+            not isinstance(item, (int, float)) or isinstance(item, bool)
+            for item in (scale, offset)
+        ):
+            raise ValueError(f"{prefix}.unit_conversions values must be numeric")
+        scale, offset = float(scale), float(offset)
+    else:
+        raise ValueError(
+            f"{prefix}.unit_conversions values require scale and optional offset"
+        )
+    if not math.isfinite(scale) or not math.isfinite(offset) or scale == 0:
+        raise ValueError(
+            f"{prefix}.unit_conversions values require finite non-zero scale"
+        )
+    return scale, offset
 
 
 def _active(rows: Iterable[Mapping[str, Any]]) -> list[Dict[str, Any]]:
@@ -408,74 +748,353 @@ def identity_key(
     return canonical_digest(normalized), reasons
 
 
-def observation_context(observation: Mapping[str, Any]) -> Dict[str, Any]:
-    """Canonical comparison context, deliberately excluding the target value."""
+def observation_context(
+    observation: Mapping[str, Any],
+    definition: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Return the policy-relevant context without the observed value."""
 
-    return {
-        "property": observation.get("property")
-        or observation.get("property_type_id"),
+    fields = (
+        tuple(definition["context_fields"])
+        if definition is not None and "context_fields" in definition
+        else _DEFAULT_CONTEXT_FIELDS
+    )
+    context = {
+        "property": observation_property(observation),
         "schema_version": observation.get("schema_version", "current"),
-        "subject": observation.get("subject"),
-        "site": observation.get("site"),
-        "phase": observation.get("phase"),
-        "conditions": observation.get("conditions", {}),
-        "participants": observation.get("participants", []),
-        "method": observation.get("method", {}),
-        "branch": observation.get("branch"),
         "unit": observation.get("unit"),
     }
+    for field in fields:
+        present, value = _context_value(observation, field)
+        context[field] = _normalize_context_value(value) if present else None
+    return context
 
 
 def compare_observations(
     left: Mapping[str, Any],
     right: Mapping[str, Any],
     tolerances: Mapping[str, Mapping[str, float]],
+    *,
+    property_definitions: Optional[Mapping[str, Any]] = None,
+    property_comparators: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Compare one already same-sample candidate pair."""
+    """Compare one same-sample pair under persisted property policy."""
 
-    left_context = observation_context(left)
-    right_context = observation_context(right)
-    if left_context["property"] != right_context["property"]:
-        return {"outcome": "noncandidate", "reason": "different_property"}
-    if canonical_json(left_context) != canonical_json(right_context):
+    definitions = dict(property_definitions or {})
+    comparators = dict(property_comparators or {})
+    left_property = observation_property(left)
+    right_property = observation_property(right)
+    if left_property is None or right_property is None:
         return {
             "outcome": "indeterminate",
-            "reason": "observation_context_indeterminate",
+            "reason": "observation_property_indeterminate",
         }
-    left_value = left.get("value")
-    right_value = right.get("value")
-    if isinstance(left_value, (int, float)) and not isinstance(left_value, bool) and isinstance(
-        right_value, (int, float)
-    ) and not isinstance(right_value, bool):
-        property_name = str(left_context["property"])
-        rule = tolerances.get(property_name)
-        if left_value == right_value:
-            return {"outcome": "consistent", "reason": "numeric_equal"}
-        if rule is None:
+    if left_property != right_property:
+        return {"outcome": "noncandidate", "reason": "different_property"}
+    definition = definitions.get(left_property, {})
+    comparator, comparator_source = _effective_comparator(
+        left_property,
+        definition,
+        comparators,
+        tolerances,
+    )
+    comparator_digest = canonical_digest(
+        {
+            "property": left_property,
+            "definition": definition,
+            "comparator": comparator,
+            "source": comparator_source,
+        }
+    )
+    left_context = observation_context(left, definition)
+    right_context = observation_context(right, definition)
+    expected_schema = definition.get("schema_version", "current")
+    if left_context["schema_version"] != right_context["schema_version"]:
+        return {
+            "outcome": "noncomparable",
+            "reason": "property_schema_noncomparable",
+            "comparison_context": {"left": left_context, "right": right_context},
+            "comparator_digest": comparator_digest,
+        }
+    if definition and left_context["schema_version"] != expected_schema:
+        return {
+            "outcome": "indeterminate",
+            "reason": "property_schema_indeterminate",
+            "comparison_context": {"left": left_context, "right": right_context},
+            "comparator_digest": comparator_digest,
+        }
+
+    context_result = _compare_context(left, right, definition)
+    if context_result is not None:
+        context_result["comparator_digest"] = comparator_digest
+        return context_result
+
+    unit_error, values = _comparison_values(
+        left, right, definition, comparator or {}
+    )
+    if unit_error is not None:
+        outcome, reason = unit_error
+        return {
+            "outcome": outcome,
+            "reason": reason,
+            "comparison_context": {"left": left_context, "right": right_context},
+            "comparator_digest": comparator_digest,
+        }
+    left_value, right_value, left_uncertainty, right_uncertainty = values
+    comparable_context = {"left": left_context, "right": right_context}
+
+    if comparator is None:
+        if canonical_json(left_value) == canonical_json(right_value):
+            return {
+                "outcome": "consistent",
+                "reason": "value_equal",
+                "comparison_context": comparable_context,
+                "comparator_digest": comparator_digest,
+            }
+        return {
+            "outcome": "indeterminate",
+            "reason": "property_comparator_not_configured",
+            "comparison_context": comparable_context,
+            "comparator_digest": comparator_digest,
+        }
+
+    kind = _comparator_kind(comparator, definition)
+    if kind in {"exact", "categorical"}:
+        left_value = _normalize_property_value(left_value, definition)
+        right_value = _normalize_property_value(right_value, definition)
+        equal = canonical_json(left_value) == canonical_json(right_value)
+        return {
+            "outcome": "consistent" if equal else "conflict",
+            "reason": "exact_value_equal" if equal else "scientific_value_conflict",
+            "comparison_context": comparable_context,
+            "comparator_digest": comparator_digest,
+        }
+
+    if not all(
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+        for value in (left_value, right_value)
+    ):
+        return {
+            "outcome": "indeterminate",
+            "reason": "observation_value_invalid",
+            "comparison_context": comparable_context,
+            "comparator_digest": comparator_digest,
+        }
+    absolute = float(comparator.get("absolute_tolerance", 0.0))
+    relative = float(comparator.get("relative_tolerance", 0.0))
+    allowed = max(
+        absolute,
+        relative * max(abs(float(left_value)), abs(float(right_value))),
+    )
+    if comparator.get("use_uncertainty", True):
+        allowed = max(allowed, left_uncertainty, right_uncertainty)
+    difference = abs(float(left_value) - float(right_value))
+    equal = difference <= allowed
+    return {
+        "outcome": "consistent" if equal else "conflict",
+        "reason": "within_numeric_tolerance"
+        if equal
+        else "scientific_value_conflict",
+        "difference": difference,
+        "allowed": allowed,
+        "comparison_context": comparable_context,
+        "comparator_digest": comparator_digest,
+    }
+
+
+def _effective_comparator(
+    property_name: str,
+    definition: Mapping[str, Any],
+    comparators: Mapping[str, Any],
+    tolerances: Mapping[str, Mapping[str, float]],
+) -> Tuple[Optional[Dict[str, Any]], str]:
+    specific = comparators.get(property_name)
+    if specific is not None:
+        return dict(specific), "property_policy"
+    gate_rule = tolerances.get(property_name)
+    if gate_rule is not None:
+        return (
+            {
+                "kind": "numeric",
+                "absolute_tolerance": gate_rule.get("absolute", 0.0),
+                "relative_tolerance": gate_rule.get("relative", 0.0),
+                "use_uncertainty": True,
+            },
+            "benchmark_gate_fallback",
+        )
+    if definition.get("type") in {"category", "boolean"}:
+        return {"kind": "categorical"}, "property_definition_default"
+    return None, "unconfigured"
+
+
+def _context_value(
+    observation: Mapping[str, Any], path: str
+) -> Tuple[bool, Any]:
+    value: Any = observation
+    for offset, part in enumerate(path.split(".")):
+        if (
+            offset == 0
+            and part == "subject"
+            and isinstance(value, Mapping)
+            and "subject" not in value
+            and "subject_entity_id" in value
+        ):
+            value = value["subject_entity_id"]
+            continue
+        if not isinstance(value, Mapping) or part not in value:
+            return False, None
+        value = value[part]
+    if value in (None, "", [], {}):
+        return False, None
+    return True, value
+
+
+def _normalize_context_value(value: Any) -> Any:
+    if isinstance(value, list):
+        normalized = [_normalize_context_value(item) for item in value]
+        return sorted(normalized, key=canonical_json)
+    if isinstance(value, Mapping):
+        return {
+            str(key): _normalize_context_value(item)
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+        }
+    return value
+
+
+def _compare_context(
+    left: Mapping[str, Any],
+    right: Mapping[str, Any],
+    definition: Mapping[str, Any],
+) -> Optional[Dict[str, Any]]:
+    declared = "context_fields" in definition
+    fields = (
+        tuple(definition["context_fields"])
+        if declared
+        else _DEFAULT_CONTEXT_FIELDS
+    )
+    left_context = observation_context(left, definition)
+    right_context = observation_context(right, definition)
+    for field in fields:
+        left_present, left_value = _context_value(left, field)
+        right_present, right_value = _context_value(right, field)
+        if declared and (not left_present or not right_present):
             return {
                 "outcome": "indeterminate",
-                "reason": "numeric_tolerance_not_configured",
+                "reason": "observation_context_indeterminate",
+                "context_field": field,
+                "comparison_context": {
+                    "left": left_context,
+                    "right": right_context,
+                },
             }
-        absolute = float(rule.get("absolute", 0.0))
-        relative = float(rule.get("relative", 0.0))
-        allowed = max(absolute, relative * max(abs(left_value), abs(right_value)))
-        uncertainty = max(
+        if left_present != right_present:
+            return {
+                "outcome": "indeterminate",
+                "reason": "observation_context_indeterminate",
+                "context_field": field,
+                "comparison_context": {
+                    "left": left_context,
+                    "right": right_context,
+                },
+            }
+        if left_present and canonical_json(
+            _normalize_context_value(left_value)
+        ) != canonical_json(_normalize_context_value(right_value)):
+            return {
+                "outcome": "noncomparable",
+                "reason": "observation_context_noncomparable",
+                "context_field": field,
+                "comparison_context": {
+                    "left": left_context,
+                    "right": right_context,
+                },
+            }
+    return None
+
+
+def _comparison_values(
+    left: Mapping[str, Any],
+    right: Mapping[str, Any],
+    definition: Mapping[str, Any],
+    comparator: Mapping[str, Any],
+) -> Tuple[
+    Optional[Tuple[str, str]],
+    Optional[Tuple[Any, Any, float, float]],
+]:
+    left_value = left.get("value")
+    right_value = right.get("value")
+    left_unit = left.get("unit")
+    right_unit = right.get("unit")
+    if "unit" not in definition:
+        if left_unit != right_unit:
+            outcome = (
+                "indeterminate"
+                if left_unit is None or right_unit is None
+                else "noncomparable"
+            )
+            reason = (
+                "observation_unit_indeterminate"
+                if outcome == "indeterminate"
+                else "observation_unit_noncomparable"
+            )
+            return (outcome, reason), None
+        return None, (
+            left_value,
+            right_value,
             _uncertainty(left.get("uncertainty")),
             _uncertainty(right.get("uncertainty")),
         )
-        allowed = max(allowed, uncertainty)
-        difference = abs(left_value - right_value)
-        return {
-            "outcome": "consistent" if difference <= allowed else "conflict",
-            "reason": "within_numeric_tolerance"
-            if difference <= allowed
-            else "scientific_value_conflict",
-            "difference": difference,
-            "allowed": allowed,
-        }
-    if canonical_json(left_value) == canonical_json(right_value):
-        return {"outcome": "consistent", "reason": "categorical_equal"}
-    return {"outcome": "conflict", "reason": "scientific_value_conflict"}
+
+    canonical_unit = definition["unit"]
+    if canonical_unit is None:
+        if left_unit is not None or right_unit is not None:
+            return ("noncomparable", "observation_unit_noncomparable"), None
+        return None, (
+            left_value,
+            right_value,
+            _uncertainty(left.get("uncertainty")),
+            _uncertainty(right.get("uncertainty")),
+        )
+    if left_unit is None or right_unit is None:
+        return ("indeterminate", "observation_unit_indeterminate"), None
+    conversions = comparator.get("unit_conversions", {})
+    try:
+        left_scale, left_offset = (
+            (1.0, 0.0)
+            if left_unit == canonical_unit
+            else _conversion_parameters(
+                conversions[left_unit], "property comparator"
+            )
+        )
+        right_scale, right_offset = (
+            (1.0, 0.0)
+            if right_unit == canonical_unit
+            else _conversion_parameters(
+                conversions[right_unit], "property comparator"
+            )
+        )
+    except (KeyError, ValueError):
+        return ("noncomparable", "observation_unit_noncomparable"), None
+    if not all(
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        for value in (left_value, right_value)
+    ):
+        if left_unit != canonical_unit or right_unit != canonical_unit:
+            return ("indeterminate", "unit_conversion_requires_numeric_value"), None
+        return None, (
+            left_value,
+            right_value,
+            _uncertainty(left.get("uncertainty")),
+            _uncertainty(right.get("uncertainty")),
+        )
+    return None, (
+        float(left_value) * left_scale + left_offset,
+        float(right_value) * right_scale + right_offset,
+        _uncertainty(left.get("uncertainty")) * abs(left_scale),
+        _uncertainty(right.get("uncertainty")) * abs(right_scale),
+    )
 
 
 def _uncertainty(value: Any) -> float:
@@ -493,6 +1112,9 @@ def find_conflicts(
     cases: Iterable[Mapping[str, Any]],
     identity_schema: Mapping[str, Any],
     tolerances: Mapping[str, Mapping[str, float]],
+    *,
+    property_definitions: Optional[Mapping[str, Any]] = None,
+    property_comparators: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Deterministically compare unique candidates within identity groups."""
 
@@ -523,7 +1145,13 @@ def find_conflicts(
         exceptions = 0
         for left_index, (left_case, left) in enumerate(candidates):
             for right_case, right in candidates[left_index + 1 :]:
-                result = compare_observations(left, right, tolerances)
+                result = compare_observations(
+                    left,
+                    right,
+                    tolerances,
+                    property_definitions=property_definitions,
+                    property_comparators=property_comparators,
+                )
                 if result["outcome"] == "noncandidate":
                     continue
                 pair = {
@@ -1004,5 +1632,8 @@ __all__ = [
     "find_conflicts",
     "identity_key",
     "observation_context",
+    "observation_property",
     "summarize_assessments",
+    "validate_observation",
+    "validate_property_policy",
 ]

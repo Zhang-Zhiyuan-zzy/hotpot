@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Union
 
+from ._assessment import validate_observation, validate_property_policy
+
 
 BUNDLE_SCHEMA = "hotpot-ds-bundle/current"
 
@@ -239,7 +241,22 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
     for field in ("property_definitions", "property_comparators"):
         if field in value and not isinstance(value[field], dict):
             raise BundleStateError(f"bundle.json.{field} must be an object")
+    property_definitions = value.get("property_definitions", {})
+    property_comparators = value.get("property_comparators", {})
+    try:
+        validate_property_policy(property_definitions, property_comparators)
+    except ValueError as exc:
+        raise BundleStateError(f"invalid bundle property policy: {exc}") from exc
     _string_list(value["core_labels"], "bundle.json.core_labels")
+    if property_definitions:
+        missing_definitions = sorted(
+            set(value["core_labels"]) - set(property_definitions)
+        )
+        if missing_definitions:
+            raise BundleStateError(
+                "bundle.json.core_labels lack property definitions: "
+                + ", ".join(missing_definitions)
+            )
     _string_list(value["core_info"], "bundle.json.core_info")
     _string_list(
         value["required_structure_roles"],
@@ -283,6 +300,8 @@ def _validate_case(
     value: Any,
     *,
     supplied_public_index: Optional[int] = None,
+    property_definitions: Optional[Mapping[str, Any]] = None,
+    property_comparators: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Any]:
     if not isinstance(value, dict):
         raise BundleStateError("each case must be a JSON object")
@@ -326,6 +345,18 @@ def _validate_case(
                 raise BundleStateError(
                     f"case.{name}.{field} is an operative assessment field and is not input"
                 )
+    for record in case["observations"]:
+        try:
+            validate_observation(
+                record,
+                property_definitions or {},
+                property_comparators or {},
+            )
+        except ValueError as exc:
+            observation_id = record.get("observation_id", "<unknown>")
+            raise BundleStateError(
+                f"invalid observation {observation_id!r}: {exc}"
+            ) from exc
     for attestation in case["attestations"]:
         if "signature_verified" in attestation:
             raise BundleStateError(
@@ -428,6 +459,14 @@ class BundleState:
         )
         state = cls(bundle_root, ds_name)
         policy = _json_copy(dict(policy_json))
+        for field in ("property_definitions", "property_comparators"):
+            manifest_value = manifest.get(field, {})
+            if field in policy and policy[field] != manifest_value:
+                raise BundleStateError(
+                    f"persisted {field} must equal bundle.json.{field}"
+                )
+            if field in manifest:
+                policy[field] = _json_copy(manifest_value)
         target = _json_copy(dict(target_context))
         policy_digest = _digest_json(policy)
         governance_revision, governance_digest = _trusted_governance_binding()
@@ -596,6 +635,12 @@ class BundleState:
                         bundle_root,
                         json.loads(row["payload_json"]),
                         supplied_public_index=row["public_index"],
+                        property_definitions=stored_manifest.get(
+                            "property_definitions", {}
+                        ),
+                        property_comparators=stored_manifest.get(
+                            "property_comparators", {}
+                        ),
                     )
         except (sqlite3.Error, TypeError, KeyError, json.JSONDecodeError) as exc:
             if isinstance(exc, BundleStateError):
@@ -864,10 +909,17 @@ class BundleState:
                 old = json.loads(row["payload_json"])
                 new_payload = _json_copy(old)
                 details, result = mutation(new_payload)
+                manifest = self._stored_manifest(connection)
                 case = _validate_case(
                     self.root,
                     new_payload,
                     supplied_public_index=row["public_index"],
+                    property_definitions=manifest.get(
+                        "property_definitions", {}
+                    ),
+                    property_comparators=manifest.get(
+                        "property_comparators", {}
+                    ),
                 )
                 if case["id"] != case_id or case["local_id"] != row["local_id"]:
                     raise BundleStateError("case id and local_id are immutable")
@@ -933,6 +985,19 @@ class BundleState:
     ) -> Dict[str, Any]:
         _nonempty_string(action, "action")
         policy = _json_copy(dict(new_policy))
+        manifest = self.manifest
+        try:
+            validate_property_policy(
+                policy.get("property_definitions", {}),
+                policy.get("property_comparators", {}),
+            )
+        except ValueError as exc:
+            raise BundleStateError(f"invalid persisted property policy: {exc}") from exc
+        for field in ("property_definitions", "property_comparators"):
+            if policy.get(field, {}) != manifest.get(field, {}):
+                raise BundleStateError(
+                    f"persisted {field} cannot differ from the immutable manifest"
+                )
         digest = _digest_json(policy)
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -1225,6 +1290,12 @@ class BundleState:
                             supplied_public_index=value.get("public_index", index)
                             if isinstance(value, dict)
                             else index,
+                            property_definitions=manifest.get(
+                                "property_definitions", {}
+                            ),
+                            property_comparators=manifest.get(
+                                "property_comparators", {}
+                            ),
                         )
             except UnicodeError as exc:
                 raise BundleStateError("JSONL intake must be UTF-8") from exc
@@ -1261,6 +1332,12 @@ class BundleState:
                     self.root,
                     value,
                     supplied_public_index=row["public_index"],
+                    property_definitions=manifest.get(
+                        "property_definitions", {}
+                    ),
+                    property_comparators=manifest.get(
+                        "property_comparators", {}
+                    ),
                 )
         except sqlite3.Error as exc:
             raise BundleStateError("invalid SQLite intake") from exc

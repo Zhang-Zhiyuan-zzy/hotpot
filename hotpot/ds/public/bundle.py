@@ -121,6 +121,9 @@ def _policy_value(manifest: Mapping[str, Any], gates: Iterable[Any]) -> Dict[str
         "required_structure_roles": list(
             manifest.get("required_structure_roles", [])
         ),
+        "property_definitions": deepcopy(
+            manifest.get("property_definitions", {})
+        ),
         "property_comparators": deepcopy(
             manifest.get("property_comparators", {})
         ),
@@ -920,6 +923,12 @@ def _assert_manifest_policy(
     ):
         raise ExistingDatasetPolicyError(
             "bundle.json structure requirements differ from the established policy"
+        )
+    if manifest.get("property_definitions", {}) != policy.get(
+        "property_definitions", {}
+    ):
+        raise ExistingDatasetPolicyError(
+            "bundle.json property definitions differ from the established policy"
         )
     if manifest.get("property_comparators", {}) != policy.get(
         "property_comparators", {}

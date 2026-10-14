@@ -23,6 +23,7 @@ from ._assessment import (
     canonical_json,
     compare_observations,
     identity_key,
+    observation_property,
     summarize_assessments,
 )
 from ._bundle_state import BundleState
@@ -272,12 +273,21 @@ def _gate_info(policy: Mapping[str, Any], gate_name: str) -> Dict[str, Any]:
 
 def _assessment_policy(
     policy: Mapping[str, Any],
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+) -> Tuple[
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+    Dict[str, Any],
+]:
     evidence = _gate_info(policy, "EvidenceGate")
     quality = _gate_info(policy, "QualityGate")
     benchmark = _gate_info(policy, "BenchmarkGate")
     tolerances = _json_copy(benchmark.get("numeric_tolerances", {}))
-    return evidence, quality, benchmark, tolerances
+    definitions = _json_copy(policy.get("property_definitions", {}))
+    comparators = _json_copy(policy.get("property_comparators", {}))
+    return evidence, quality, benchmark, tolerances, definitions, comparators
 
 
 def _expected_sha256(*values: Mapping[str, Any]) -> Optional[str]:
@@ -605,12 +615,7 @@ def _stream_inputs(
                     value.get("observation_id") or f"{case_id}:observation:{offset}"
                 )
                 value["observation_id"] = observation_id
-                property_key = str(
-                    value.get("property")
-                    or value.get("property_type_id")
-                    or value.get("property_type")
-                    or "null"
-                )
+                property_key = str(observation_property(value) or "null")
                 work.execute(
                     """
                     INSERT INTO candidates(
@@ -653,7 +658,11 @@ def _assess_conflicts(
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     tolerances: Mapping[str, Mapping[str, float]],
+    property_definitions: Optional[Mapping[str, Any]] = None,
+    property_comparators: Optional[Mapping[str, Any]] = None,
 ) -> None:
+    definitions = dict(property_definitions or {})
+    comparators = dict(property_comparators or {})
     groups = work.execute(
         "SELECT DISTINCT sample_key,property_key FROM candidates "
         "ORDER BY sample_key,property_key"
@@ -691,7 +700,11 @@ def _assess_conflicts(
             )
             for right_case_id, right_observation_id, right_json in right_candidates:
                 result = compare_observations(
-                    left, json.loads(right_json), tolerances
+                    left,
+                    json.loads(right_json),
+                    tolerances,
+                    property_definitions=definitions,
+                    property_comparators=comparators,
                 )
                 if result["outcome"] == "noncandidate":
                     continue
@@ -773,6 +786,8 @@ def _assess_cases(
     evidence_policy: Mapping[str, Any],
     quality_policy: Mapping[str, Any],
     benchmark_policy: Mapping[str, Any],
+    property_definitions: Mapping[str, Any],
+    property_comparators: Mapping[str, Any],
     governance_registry: Any,
     isolated_runner: Optional[Any],
 ) -> None:
@@ -837,6 +852,10 @@ def _assess_cases(
                     "structure_roles": manifest["required_structure_roles"],
                 },
                 "identity": {"reasons": identity_reasons},
+                "property_policy": {
+                    "definitions": _json_copy(property_definitions),
+                    "comparators": _json_copy(property_comparators),
+                },
                 "conflicts": conflict_rows,
                 "assets": assets,
             },
@@ -992,9 +1011,14 @@ class AssessmentGeneration:
         registry_digest = verified_registry.digest
         manifest = state.manifest
         identity_schema = _identity_schema(manifest)
-        evidence_policy, quality_policy, benchmark_policy, tolerances = (
-            _assessment_policy(policy_value)
-        )
+        (
+            evidence_policy,
+            quality_policy,
+            benchmark_policy,
+            tolerances,
+            property_definitions,
+            property_comparators,
+        ) = _assessment_policy(policy_value)
 
         generations = bundle_root / "assessments" / "generations"
         generations.mkdir(parents=True, exist_ok=True)
@@ -1017,7 +1041,13 @@ class AssessmentGeneration:
                     manifest["required_structure_roles"],
                     temporary,
                 )
-                _assess_conflicts(assessment, work, tolerances)
+                _assess_conflicts(
+                    assessment,
+                    work,
+                    tolerances,
+                    property_definitions,
+                    property_comparators,
+                )
                 _assess_cases(
                     state,
                     assessment,
@@ -1026,6 +1056,8 @@ class AssessmentGeneration:
                     evidence_policy,
                     quality_policy,
                     benchmark_policy,
+                    property_definitions,
+                    property_comparators,
                     verified_registry,
                     isolated_runner,
                 )

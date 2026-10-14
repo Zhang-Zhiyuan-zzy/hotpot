@@ -70,7 +70,9 @@ def test_numeric_conflict_requires_comparable_context_and_tolerance():
     right["value"] = 1.2
     assert compare_observations(left, right, {"p": {"absolute": 0.1}})["outcome"] == "conflict"
     right["phase"] = "solution"
-    assert compare_observations(left, right, {"p": {"absolute": 0.1}})["outcome"] == "indeterminate"
+    result = compare_observations(left, right, {"p": {"absolute": 0.1}})
+    assert result["outcome"] == "noncomparable"
+    assert result["reason"] == "observation_context_noncomparable"
 
 
 def test_same_sample_conflict_propagates_to_both_cases():

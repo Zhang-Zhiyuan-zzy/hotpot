@@ -35,8 +35,16 @@
     "core_labels": {"$ref": "#/$defs/uniqueStrings"},
     "core_info": {"$ref": "#/$defs/uniqueStrings"},
     "identity_schema": {"type": "object"},
-    "property_definitions": {"type": "object"},
-    "property_comparators": {"type": "object"},
+    "property_definitions": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/nonempty"},
+      "additionalProperties": {"$ref": "#/$defs/propertyDefinition"}
+    },
+    "property_comparators": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/nonempty"},
+      "additionalProperties": {"$ref": "#/$defs/propertyComparator"}
+    },
     "required_structure_roles": {"$ref": "#/$defs/uniqueStrings"},
     "intake": {
       "type": "object",
@@ -58,6 +66,66 @@
       "type": "array",
       "items": {"$ref": "#/$defs/nonempty"},
       "uniqueItems": true
+    },
+    "propertyDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": ["integer", "real", "category", "text", "boolean", "json"]
+        },
+        "schema_version": {"$ref": "#/$defs/nonempty"},
+        "unit": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty"},
+            {"type": "null"}
+          ]
+        },
+        "allowed_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "normalizer": {"enum": ["identity", "casefold"]},
+        "context_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(subject|site|phase|participants|branch|conditions(?:\\.[^.]+)*|method(?:\\.[^.]+)*)$"
+          }
+        }
+      }
+    },
+    "propertyComparator": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"enum": ["exact", "numeric", "categorical"]},
+        "absolute_tolerance": {"type": "number", "minimum": 0},
+        "relative_tolerance": {"type": "number", "minimum": 0},
+        "use_uncertainty": {"type": "boolean"},
+        "unit_conversions": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/nonempty"},
+          "additionalProperties": {"$ref": "#/$defs/unitConversion"}
+        }
+      }
+    },
+    "unitConversion": {
+      "oneOf": [
+        {"type": "number"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "scale": {"type": "number"},
+            "offset": {"type": "number"}
+          }
+        }
+      ]
     }
   }
 }

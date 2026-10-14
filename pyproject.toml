@@ -138,7 +138,14 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
-"hotpot.ds" = ["*.md", "*.json", "detail/*.md", "templates/*.json"]
+"hotpot.ds" = [
+    "*.md",
+    "*.json",
+    "templates/*.json",
+    "schemas/bundle/*.json",
+    "schemas/bundle/*.sql",
+    "schemas/cli/*.json",
+]
 
 [tool.setuptools.packages.find]
 include = ["hotpot*"]

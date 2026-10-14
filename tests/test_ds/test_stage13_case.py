@@ -75,9 +75,12 @@ class Owner:
             raise UnsynchronizedBundleError("synchronize first")
         return deepcopy(self.assessments[case_id])
 
-    def _commit_case(self, case_id, payload, action, details):
-        self.payloads[case_id] = deepcopy(payload)
+    def _mutate_case(self, case_id, action, mutation):
+        payload = deepcopy(self.payloads[case_id])
+        _, result = mutation(payload)
+        self.payloads[case_id] = payload
         self.is_synchronized = False
+        return result
 
     def _new_fact_identifier(self, case_id, kind):
         self.counter += 1

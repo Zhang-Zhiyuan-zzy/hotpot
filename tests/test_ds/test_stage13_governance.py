@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+from copy import deepcopy
 
 import pytest
 
@@ -305,10 +306,13 @@ def test_rotation_revocation_attestation_and_private_signing(monkeypatch):
                 "registry": registry,
             }
 
-        def _commit_case(self, case_id, facts, action, details):
+        def _mutate_case(self, case_id, action, mutation):
+            facts = deepcopy(self.facts)
+            details, result = mutation(facts)
             self.facts = facts
             self.action = action
             self.details = details
+            return result
 
     owner = Owner()
     case = Case(owner, "case-1")

@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 import uuid
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
@@ -513,16 +513,17 @@ class Bundle:
     def _case_assessment(self, case_id: str) -> Dict[str, Any]:
         return deepcopy(self._require_generation().get_case(case_id))
 
-    def _commit_case(
+    def _mutate_case(
         self,
         case_id: str,
-        payload: Mapping[str, Any],
         action: str,
-        details: Mapping[str, Any],
-    ) -> None:
+        mutation: Callable[
+            [Dict[str, Any]], tuple[Mapping[str, Any], Any]
+        ],
+    ) -> Any:
         with self._locked():
             self._assert_editable()
-            self._state.mutate_case(case_id, payload, action, details)
+            return self._state.mutate_case(case_id, action, mutation)["result"]
 
     @contextmanager
     def _locked(self):

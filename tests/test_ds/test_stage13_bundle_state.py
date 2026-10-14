@@ -261,7 +261,7 @@ def test_built_manifest_identity_cannot_be_changed_out_of_band(tmp_path: Path) -
         lambda: tuple(state.iter_cases()),
         lambda: state.refresh_source_state(),
         lambda: state.refresh_governance_state(),
-        lambda: state.mutate_case("case-1", case, "no_op", {}),
+        lambda: state.mutate_case("case-1", "no_op", lambda facts: ({}, None)),
         lambda: state.publish_generation(
             "generation-1",
             "a" * 64,
@@ -303,18 +303,22 @@ def test_case_mutation_commits_revision_and_audit_atomically(tmp_path: Path) -> 
     with state.connect() as connection:
         audit_count = connection.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
 
-    invalid = state.get_case("case-1")
-    invalid["archive_class"] = "benchmark"
+    def make_invalid(facts):
+        facts["archive_class"] = "benchmark"
+        return {}, None
+
     with pytest.raises(BundleStateError):
-        state.mutate_case("case-1", invalid, "invalid", {})
+        state.mutate_case("case-1", "invalid", make_invalid)
     assert state.status["source_revision"] == before["source_revision"]
     with state.connect() as connection:
         assert connection.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0] == audit_count
 
-    changed = state.get_case("case-1")
-    changed["core_info"]["metal"] = "Am"
+    def change_metal(facts):
+        facts["core_info"]["metal"] = "Am"
+        return {"reason": "corrected"}, None
+
     result = state.mutate_case(
-        "case-1", changed, "core_info_changed", {"reason": "corrected"}
+        "case-1", "core_info_changed", change_metal
     )
     assert result["source_revision"] == before["source_revision"] + 1
     assert state.get_case("case-1")["core_info"]["metal"] == "Am"
@@ -357,9 +361,11 @@ def test_generation_publication_is_compare_and_swap(tmp_path: Path) -> None:
     assert result["generation_id"] == "generation-1"
     assert state.status["is_synchronized"] is True
 
-    changed = state.get_case("case-1")
-    changed["metadata"]["note"] = "later edit"
-    state.mutate_case("case-1", changed, "metadata_changed", {})
+    def change_note(facts):
+        facts["metadata"]["note"] = "later edit"
+        return {}, None
+
+    state.mutate_case("case-1", "metadata_changed", change_note)
     assert state.status["is_synchronized"] is False
     with pytest.raises(ConcurrentStateError):
         state.publish_generation(

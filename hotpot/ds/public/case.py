@@ -7,7 +7,7 @@ persists state: every read and mutation goes through its sole Bundle owner.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from copy import deepcopy
 from typing import Any, Dict, Optional, Union
 
@@ -48,13 +48,14 @@ class Case:
     def _derived(self) -> Dict[str, Any]:
         return deepcopy(self.__owner._case_assessment(self.__case_id))
 
-    def _commit(self, facts: Mapping[str, Any], action: str, details: Mapping[str, Any]) -> None:
-        self.__owner._commit_case(
-            self.__case_id,
-            deepcopy(dict(facts)),
-            action,
-            deepcopy(dict(details)),
-        )
+    def _mutate(
+        self,
+        action: str,
+        mutation: Callable[
+            [Dict[str, Any]], tuple[Mapping[str, Any], Any]
+        ],
+    ) -> Any:
+        return self.__owner._mutate_case(self.__case_id, action, mutation)
 
     @property
     def info(self) -> Dict[str, Any]:
@@ -135,27 +136,30 @@ class Case:
     def set_core_info(
         self, name: str, value: Any, *, reason: Optional[str] = None
     ) -> None:
-        facts = self._facts()
-        core_info = dict(facts.get("core_info", {}))
-        before = deepcopy(core_info.get(name))
-        core_info[name] = deepcopy(value)
-        facts["core_info"] = core_info
-        self._commit(
-            facts,
-            "core_info.set",
-            {"name": name, "before": before, "after": value, "reason": reason},
-        )
+        replacement = deepcopy(value)
+
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], None]:
+            core_info = dict(facts.get("core_info", {}))
+            before = deepcopy(core_info.get(name))
+            core_info[name] = deepcopy(replacement)
+            facts["core_info"] = core_info
+            return {
+                "name": name,
+                "before": before,
+                "after": replacement,
+                "reason": reason,
+            }, None
+
+        self._mutate("core_info.set", mutate)
 
     def remove_core_info(self, name: str, *, reason: str) -> None:
-        facts = self._facts()
-        core_info = dict(facts.get("core_info", {}))
-        before = core_info.pop(name)
-        facts["core_info"] = core_info
-        self._commit(
-            facts,
-            "core_info.remove",
-            {"name": name, "before": before, "reason": reason},
-        )
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], None]:
+            core_info = dict(facts.get("core_info", {}))
+            before = core_info.pop(name)
+            facts["core_info"] = core_info
+            return {"name": name, "before": before, "reason": reason}, None
+
+        self._mutate("core_info.remove", mutate)
 
     def add_structure(self, data: Mapping[str, Any]) -> str:
         return self._add("structures", "structure_id", data, "structure.add")
@@ -254,20 +258,23 @@ class Case:
     ) -> str:
         if method not in {"AI", "Human"}:
             raise ValueError("evidence verification method must be 'AI' or 'Human'")
-        facts = self._facts()
-        self._active_item(facts, "evidence", "evidence_id", evidence_id)
-        return self._add(
-            "verifications",
-            "verification_id",
-            {
-                "evidence_id": evidence_id,
-                "method": method,
-                "verifier": verifier,
-                "note": note,
-                "status": "active",
-            },
-            "evidence.verify",
-        )
+
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+            self._active_item(facts, "evidence", "evidence_id", evidence_id)
+            verification_id = self._new_identifier("verification")
+            facts.setdefault("verifications", []).append(
+                {
+                    "verification_id": verification_id,
+                    "evidence_id": evidence_id,
+                    "method": method,
+                    "verifier": verifier,
+                    "note": note,
+                    "status": "active",
+                }
+            )
+            return {"verification_id": verification_id}, verification_id
+
+        return self._mutate("evidence.verify", mutate)
 
     def withdraw_verification(self, verification_id: str, *, reason: str) -> None:
         self._withdraw(
@@ -287,33 +294,34 @@ class Case:
         locator: Optional[str] = None,
         note: Optional[str] = None,
     ) -> str:
-        facts = self._facts()
-        previous = self._active_item(
-            facts, "evidence", "evidence_id", evidence_id
-        )
-        replacement = {
-            key: deepcopy(value)
-            for key, value in previous.items()
-            if key not in {"evidence_id", "status", "withdrawal_reason"}
-        }
-        replacement.update({"source": source, "locator": locator, "note": note})
-        new_id = self._new_identifier("evidence")
-        previous["status"] = "superseded"
-        previous["superseded_by"] = new_id
-        replacement.update(
-            {
-                "evidence_id": new_id,
-                "status": "active",
-                "supersedes": evidence_id,
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+            previous = self._active_item(
+                facts, "evidence", "evidence_id", evidence_id
+            )
+            replacement = {
+                key: deepcopy(value)
+                for key, value in previous.items()
+                if key not in {"evidence_id", "status", "withdrawal_reason"}
             }
-        )
-        facts.setdefault("evidence", []).append(replacement)
-        self._commit(
-            facts,
-            "evidence.replace",
-            {"old_id": evidence_id, "new_id": new_id, "reason": reason},
-        )
-        return new_id
+            replacement.update({"source": source, "locator": locator, "note": note})
+            new_id = self._new_identifier("evidence")
+            previous["status"] = "superseded"
+            previous["superseded_by"] = new_id
+            replacement.update(
+                {
+                    "evidence_id": new_id,
+                    "status": "active",
+                    "supersedes": evidence_id,
+                }
+            )
+            facts.setdefault("evidence", []).append(replacement)
+            return {
+                "old_id": evidence_id,
+                "new_id": new_id,
+                "reason": reason,
+            }, new_id
+
+        return self._mutate("evidence.replace", mutate)
 
     def withdraw_evidence(self, evidence_id: str, *, reason: str) -> None:
         self._withdraw(
@@ -371,18 +379,35 @@ class Case:
         data: Mapping[str, Any],
         action: str,
     ) -> str:
-        facts = self._facts()
-        item = deepcopy(dict(data))
-        if any(key in item for key in ("quality_level", "evidence_level", "archive_class", "benchmark")):
+        item_template = deepcopy(dict(data))
+        if any(
+            key in item_template
+            for key in (
+                "quality_level",
+                "evidence_level",
+                "archive_class",
+                "benchmark",
+            )
+        ):
             raise ValueError("derived assessment fields cannot be supplied as facts")
-        item_id = str(item.get(id_key) or self._new_identifier(id_key.removesuffix("_id")))
-        if any(existing.get(id_key) == item_id for existing in facts.get(collection, [])):
-            raise ValueError(f"duplicate {id_key} {item_id!r}")
-        item[id_key] = item_id
-        item.setdefault("status", "active")
-        facts.setdefault(collection, []).append(item)
-        self._commit(facts, action, {id_key: item_id})
-        return item_id
+
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+            item = deepcopy(item_template)
+            item_id = str(
+                item.get(id_key)
+                or self._new_identifier(id_key.removesuffix("_id"))
+            )
+            if any(
+                existing.get(id_key) == item_id
+                for existing in facts.get(collection, [])
+            ):
+                raise ValueError(f"duplicate {id_key} {item_id!r}")
+            item[id_key] = item_id
+            item.setdefault("status", "active")
+            facts.setdefault(collection, []).append(item)
+            return {id_key: item_id}, item_id
+
+        return self._mutate(action, mutate)
 
     def _replace(
         self,
@@ -393,24 +418,43 @@ class Case:
         action: str,
         reason: str,
     ) -> str:
-        facts = self._facts()
-        previous = self._active_item(facts, collection, id_key, item_id)
-        replacement = deepcopy(dict(data))
-        if any(key in replacement for key in ("quality_level", "evidence_level", "archive_class", "benchmark")):
+        replacement_template = deepcopy(dict(data))
+        if any(
+            key in replacement_template
+            for key in (
+                "quality_level",
+                "evidence_level",
+                "archive_class",
+                "benchmark",
+            )
+        ):
             raise ValueError("derived assessment fields cannot be supplied as facts")
-        new_id = str(replacement.get(id_key) or self._new_identifier(id_key.removesuffix("_id")))
-        if any(existing.get(id_key) == new_id for existing in facts.get(collection, [])):
-            raise ValueError(f"duplicate {id_key} {new_id!r}")
-        previous["status"] = "superseded"
-        previous["superseded_by"] = new_id
-        replacement.update({id_key: new_id, "status": "active", "supersedes": item_id})
-        facts.setdefault(collection, []).append(replacement)
-        self._commit(
-            facts,
-            action,
-            {"old_id": item_id, "new_id": new_id, "reason": reason},
-        )
-        return new_id
+
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+            previous = self._active_item(facts, collection, id_key, item_id)
+            replacement = deepcopy(replacement_template)
+            new_id = str(
+                replacement.get(id_key)
+                or self._new_identifier(id_key.removesuffix("_id"))
+            )
+            if any(
+                existing.get(id_key) == new_id
+                for existing in facts.get(collection, [])
+            ):
+                raise ValueError(f"duplicate {id_key} {new_id!r}")
+            previous["status"] = "superseded"
+            previous["superseded_by"] = new_id
+            replacement.update(
+                {id_key: new_id, "status": "active", "supersedes": item_id}
+            )
+            facts.setdefault(collection, []).append(replacement)
+            return {
+                "old_id": item_id,
+                "new_id": new_id,
+                "reason": reason,
+            }, new_id
+
+        return self._mutate(action, mutate)
 
     def _withdraw(
         self,
@@ -420,11 +464,13 @@ class Case:
         action: str,
         reason: str,
     ) -> None:
-        facts = self._facts()
-        item = self._active_item(facts, collection, id_key, item_id)
-        item["status"] = "withdrawn"
-        item["withdrawal_reason"] = reason
-        self._commit(facts, action, {id_key: item_id, "reason": reason})
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], None]:
+            item = self._active_item(facts, collection, id_key, item_id)
+            item["status"] = "withdrawn"
+            item["withdrawal_reason"] = reason
+            return {id_key: item_id, "reason": reason}, None
+
+        self._mutate(action, mutate)
 
     def __repr__(self) -> str:
         return f"Case(id={self.id!r})"

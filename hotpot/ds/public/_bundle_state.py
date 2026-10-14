@@ -17,7 +17,7 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterator, Mapping, Optional, Union
+from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Union
 
 
 BUNDLE_SCHEMA = "hotpot-ds-bundle/current"
@@ -849,9 +849,8 @@ class BundleState:
     def mutate_case(
         self,
         case_id: str,
-        new_payload: Mapping[str, Any],
         action: str,
-        details: Mapping[str, Any],
+        mutation: Callable[[Dict[str, Any]], tuple[Mapping[str, Any], Any]],
     ) -> Dict[str, Any]:
         _nonempty_string(action, "action")
         with self.connect() as connection:
@@ -862,12 +861,14 @@ class BundleState:
                 ).fetchone()
                 if row is None:
                     raise KeyError(case_id)
+                old = json.loads(row["payload_json"])
+                new_payload = _json_copy(old)
+                details, result = mutation(new_payload)
                 case = _validate_case(
                     self.root,
-                    dict(new_payload),
+                    new_payload,
                     supplied_public_index=row["public_index"],
                 )
-                old = json.loads(row["payload_json"])
                 if case["id"] != case_id or case["local_id"] != row["local_id"]:
                     raise BundleStateError("case id and local_id are immutable")
                 control = connection.execute(
@@ -920,6 +921,7 @@ class BundleState:
             "event_id": event_id,
             "source_revision": revision,
             "source_digest": digest,
+            "result": result,
         }
 
     def mutate_policy(

@@ -1,869 +1,781 @@
-"""Small public facade for governed dataset assessment."""
+"""Private serialization and integrity checks for Bundle certificates.
+
+Assessment belongs to :meth:`Bundle.synchronize`; this module only binds the
+already synchronized facts, policy, generation, and scientific assets.  It is
+deliberately not a public assessment API.
+"""
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
-import sqlite3
-from dataclasses import dataclass, field, replace
-from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Sequence, Tuple, Union
+import os
+import uuid
+from contextlib import contextmanager
+from copy import deepcopy
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
+from typing import Any, Dict, Iterator, Mapping, Optional, Union
 
-from ..database import DatasetStore
-from ..levels import EvidenceLevel, QualityLevel
-from ..models import DatasetBundle, DatasetStandardError, canonical_json
-from ..quality import (
-    QualityCertificate,
-    QualityCheck,
-    QualityGateError,
-    assess_bundle,
-)
-from .inputs import Submission, SubmissionFenceError, load_submission
+from .case import UnsynchronizedBundleError
 
 
-CONFIGURE_VERSION = "hotpot-ds-certificate-config/current"
-CERTIFICATE_ENVELOPE_VERSION = "hotpot-ds-public-certificate/current"
+CERTIFICATE_SCHEMA = "hotpot-ds-certificate/current"
+ASSESSOR_VERSION = "hotpot-ds-assessor/current"
 
-
-class _Unset:
-    def __repr__(self) -> str:
-        return "UNSET"
-
-
-UNSET = _Unset()
-
-
-DEFAULT_GENERIC_RULES: Dict[str, Any] = {
-    "min_records": 1,
-    "require_structure_or_label": True,
-    "max_primary_structures": 1,
+_ENVELOPE_FIELDS = {"schema", "certificate", "envelope_sha256"}
+_CERTIFICATE_FIELDS = {
+    "assessor_version",
+    "dataset",
+    "release",
+    "target_context",
+    "facts",
+    "source",
+    "policy",
+    "generation",
+    "checker_artifacts",
+    "scientific_assets",
+    "summary",
+    "issuer",
+    "issued_at",
 }
-
-# These checks are implemented by the normalized model, assessor, and store.
-# A dataset rule may add stricter requirements, but it may not turn them off.
-IMMUTABLE_GATES = frozenset(
-    {
-        "record_standard",
-        "identity_uniqueness",
-        "relation_uniqueness",
-        "referential_integrity",
-        "record_entity_ownership",
-        "asset_integrity",
-        "certificate_integrity",
-    }
-)
-
-
-def _copy_json(value: Mapping[str, Any]) -> Dict[str, Any]:
-    return json.loads(json.dumps(value))
-
-
-def _validate_rule_map(rules: Mapping[str, Any], context: str) -> Dict[str, Any]:
-    if not isinstance(rules, Mapping):
-        raise TypeError(f"{context} must be a mapping")
-    copied = _copy_json(rules)
-    disabled = sorted(
-        gate for gate in IMMUTABLE_GATES if copied.get(gate) is False
-    )
-    if disabled:
-        raise ValueError(
-            f"{context} cannot disable immutable quality gates: {disabled}"
-        )
-    return copied
+_RELEASE_FIELDS = {"dataset_id", "release_id", "version", "release_serial"}
+_FILE_FIELDS = {"path", "sha256", "size"}
+_REVISION_FIELDS = {"revision", "digest"}
+_GENERATION_FIELDS = {"id", "digest", "manifest"}
+_CHECKER_FIELDS = {
+    "path",
+    "sha256",
+    "size",
+    "entrypoint",
+    "checker_protocol_digest",
+}
+_ASSET_CONTAINER_FIELDS = {"items", "digest"}
+_ASSET_FIELDS = {
+    "case_id",
+    "declaration_id",
+    "path",
+    "state",
+    "sha256",
+    "size",
+}
+_ASSET_STATES = {"present", "missing", "remote_not_materialized"}
 
 
-@dataclass(frozen=True)
-class Configure:
-    """Composable general and dataset-specific certification requirements.
-
-    Dataset-specific keys replace general keys.  The immutable integrity gates
-    remain mandatory regardless of configuration.
-    """
-
-    generic: Mapping[str, Any] = field(default_factory=dict)
-    datasets: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        generic = _validate_rule_map(self.generic, "generic rules")
-        if not isinstance(self.datasets, Mapping):
-            raise TypeError("datasets rules must be a mapping")
-        datasets = {
-            str(name): _validate_rule_map(rules, f"dataset rules for {name!r}")
-            for name, rules in self.datasets.items()
-        }
-        object.__setattr__(self, "generic", generic)
-        object.__setattr__(self, "datasets", datasets)
-
-    def effective(self, ds_name: str) -> Dict[str, Any]:
-        rules = {**DEFAULT_GENERIC_RULES, **self.generic}
-        rules.update(self.datasets.get(ds_name, {}))
-        return rules
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "schema_version": CONFIGURE_VERSION,
-            "generic": _copy_json(self.generic),
-            "datasets": _copy_json(self.datasets),
-        }
-
-    @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> "Configure":
-        if not isinstance(value, Mapping):
-            raise TypeError("certificate configuration must be a mapping")
-        expected = {"schema_version", "generic", "datasets"}
-        if set(value) != expected:
-            raise ValueError(
-                "certificate configuration fields must be exactly "
-                f"{sorted(expected)}"
-            )
-        if value["schema_version"] != CONFIGURE_VERSION:
-            raise ValueError(
-                f"unsupported certificate configuration: {value['schema_version']!r}"
-            )
-        return cls(generic=value["generic"], datasets=value["datasets"])
-
-    @classmethod
-    def from_file(cls, path: Union[str, Path]) -> "Configure":
-        with Path(path).open(encoding="utf-8") as handle:
-            value = json.load(handle)
-        return cls.from_dict(value)
+class CertificateError(RuntimeError):
+    """Base error for certificate creation and validation."""
 
 
-def _normalise_quality_level(value: Any) -> str:
-    if isinstance(value, QualityLevel):
-        return value.value
-    text = str(value)
-    short = {level.name: level.value for level in QualityLevel}
-    if text in short:
-        return short[text]
-    return QualityLevel(text).value
+class CertificateFormatError(CertificateError):
+    """The certificate JSON does not use the one current closed schema."""
 
 
-def _sequence(value: Any, name: str) -> Tuple[str, ...]:
-    if isinstance(value, str) or not isinstance(value, Sequence):
-        raise TypeError(f"{name} must be a list or tuple; use [] to declare none")
-    return tuple(str(item) for item in value)
+class CertificateIntegrityError(CertificateError):
+    """Certificate-bound state or bytes no longer match."""
 
 
-def _apply_declarations(
-    submission: Submission,
-    ds_name: str,
-    quality_level: Any = UNSET,
-    core_labels: Any = UNSET,
-    core_info: Any = UNSET,
-) -> Submission:
-    bundle = submission.bundle
-    if len(bundle.datasets) != 1 or bundle.datasets[0].dataset_id != ds_name:
-        names = [dataset.dataset_id for dataset in bundle.datasets]
-        raise SubmissionFenceError(
-            f"submission dataset identity {names!r} does not match ds_name={ds_name!r}"
-        )
-    if any(release.dataset_id != ds_name for release in bundle.releases):
-        raise SubmissionFenceError("all submitted releases must belong to ds_name")
-
-    level = UNSET if quality_level is UNSET else _normalise_quality_level(quality_level)
-    labels = UNSET if core_labels is UNSET else _sequence(core_labels, "core_labels")
-    info = UNSET if core_info is UNSET else _sequence(core_info, "core_info")
-    releases = []
-    for release in bundle.releases:
-        quality = dict(release.quality)
-        if labels is not UNSET:
-            quality["core_labels"] = list(labels)
-        if info is not UNSET:
-            quality["core_info"] = list(info)
-        releases.append(
-            replace(
-                release,
-                quality_level=release.quality_level if level is UNSET else level,
-                quality=quality,
-            )
-        )
-    updated = replace(bundle, releases=tuple(releases))
-    return replace(submission, bundle=updated)
+class CertificatePathError(CertificateIntegrityError):
+    """A certificate-bound path is unsafe or is not the root certificate."""
 
 
-def _record_facts(bundle: DatasetBundle) -> Dict[str, Dict[str, Any]]:
-    facts = {
-        record.record_id: {
-            "local_id": record.local_id,
-            "metadata": record.metadata,
-            "labels": set(),
-            "identifiers": {},
-            "structures": set(),
-        }
-        for record in bundle.records
-    }
-    record_entities: Dict[str, set] = {}
-    entity_records: Dict[str, set] = {}
-    for link in bundle.record_entities:
-        record_entities.setdefault(link.record_id, set()).add(link.entity_id)
-        entity_records.setdefault(link.entity_id, set()).add(link.record_id)
-    for observation in bundle.observations:
-        if observation.record_id in facts:
-            facts[observation.record_id]["labels"].add(observation.property_type_id)
-    for identifier in bundle.external_identifiers:
-        for record_id in entity_records.get(identifier.entity_id, ()):
-            facts[record_id]["identifiers"].setdefault(identifier.namespace, []).append(
-                identifier.value
-            )
-    structure_entities = {structure.entity_id: structure.structure_id for structure in bundle.structures}
-    for record_id, entity_ids in record_entities.items():
-        for entity_id in entity_ids:
-            if entity_id in structure_entities:
-                facts[record_id]["structures"].add(structure_entities[entity_id])
-    return facts
-
-
-def _path_present(fact: Mapping[str, Any], path: str) -> bool:
-    parts = path.split(".")
-    current: Any = fact
-    for part in parts:
-        if isinstance(current, Mapping) and part in current:
-            current = current[part]
-        else:
-            return False
-    return current is not None and current != "" and current != [] and current != {} and current != set()
-
-
-def _configured_issues(bundle: DatasetBundle, rules: Mapping[str, Any]) -> list:
-    issues = []
-    facts = _record_facts(bundle)
-    min_records = int(rules.get("min_records", 0))
-    if len(bundle.records) < min_records:
-        issues.append(
-            f"record count {len(bundle.records)} is below configured minimum {min_records}"
-        )
-
-    core_labels = tuple(str(item) for item in rules.get("core_labels", ()))
-    core_info = tuple(str(item) for item in rules.get("core_info", ()))
-    for record_id, fact in facts.items():
-        for label in core_labels:
-            if label not in fact["labels"]:
-                issues.append(f"{record_id}: missing core label {label}")
-        for path in core_info:
-            if not _path_present(fact, path):
-                issues.append(f"{record_id}: missing core info {path}")
-        if rules.get("require_structure_or_label", False):
-            if not fact["structures"] and not fact["labels"]:
-                issues.append(f"{record_id}: has neither a structure nor a label")
-
-    allowed_formats = rules.get("allowed_structure_formats")
-    if allowed_formats is not None:
-        allowed = {str(item).lower() for item in allowed_formats}
-        for link in bundle.structure_assets:
-            if link.role.lower() not in allowed:
-                issues.append(
-                    f"structure {link.structure_id}: format {link.role!r} is not allowed"
-                )
-
-    minimum_evidence = rules.get("minimum_evidence", {})
-    if minimum_evidence:
-        ranks = {level.value: index for index, level in enumerate(EvidenceLevel)}
-        for observation in bundle.observations:
-            required = minimum_evidence.get(observation.property_type_id)
-            if required is None:
-                continue
-            required_value = EvidenceLevel(required).value
-            if ranks[observation.evidence_level] < ranks[required_value]:
-                issues.append(
-                    f"{observation.observation_id}: {observation.evidence_level} is below "
-                    f"configured minimum {required_value}"
-                )
-    maximum_primary = rules.get("max_primary_structures")
-    if maximum_primary is not None:
-        primary_by_record: Dict[str, int] = {}
-        for link in bundle.record_entities:
-            if link.role.startswith("primary."):
-                primary_by_record[link.record_id] = primary_by_record.get(link.record_id, 0) + 1
-        for record_id, count in primary_by_record.items():
-            if count > int(maximum_primary):
-                issues.append(
-                    f"{record_id}: has {count} primary structures; configured maximum is {maximum_primary}"
-                )
-    return issues
-
-
-def _issue_with_configured_failure(
-    base: QualityCertificate, issues: Sequence[str]
-) -> QualityCertificate:
-    if not issues:
-        return base
-    check = QualityCheck(
-        "configured_requirements",
-        False,
-        len(issues),
-        len(issues),
-        tuple(issues[:25]),
-    )
-    return QualityCertificate.issue(
-        profile=base.profile,
-        subject_digest=base.subject_digest,
-        checks=(*base.checks, check),
-        assessed_levels=base.assessed_levels,
-        counts=base.counts,
-    )
-
-
-def _source_digest(source: Any) -> str:
-    digest = hashlib.sha256()
-    if isinstance(source, (str, Path)):
-        path = Path(source)
-        if path.is_file():
-            digest.update(path.read_bytes())
-        elif path.is_dir():
-            for item in sorted(candidate for candidate in path.rglob("*") if candidate.is_file()):
-                digest.update(item.relative_to(path).as_posix().encode())
-                digest.update(item.read_bytes())
-        else:
-            digest.update(f"missing:{path}".encode())
-    else:
-        digest.update(repr(source).encode())
-    return digest.hexdigest()
-
-
-def _failed_fence_certificate(source: Any, error: Exception) -> QualityCertificate:
-    return QualityCertificate.issue(
-        profile="admission",
-        subject_digest=_source_digest(source),
-        checks=(
-            QualityCheck(
-                "submission_fence",
-                False,
-                1,
-                1,
-                (f"{type(error).__name__}: {error}",),
-            ),
-        ),
-        assessed_levels={},
-        counts={},
-    )
-
-
-def _source_kind(source: Any) -> str:
-    if isinstance(source, DatasetBundle):
-        return "bundle"
-    if isinstance(source, Mapping):
-        return "manifest"
-    path = Path(source)
-    if path.is_dir():
-        return "folder"
-    if path.suffix.lower() in {".sqlite", ".sqlite3", ".db"}:
-        return "sqlite"
-    return "json"
-
-
-def _public_established_spec(spec: Mapping[str, Any]) -> Dict[str, Any]:
-    policy = spec.get("policy")
-    return {
-        "title": spec["title"],
-        "description": spec["description"],
-        "versions": sorted(spec["versions"]),
-        "core_labels": list(spec["core_labels"]),
-        "core_info": list(spec["core_info"]),
-        "quality_level": spec["quality_level"],
-        "release_id": spec["release_id"],
-        "policy_revision": policy["revision"] if policy is not None else None,
-        "policy_sha256": policy["config_sha256"] if policy is not None else None,
-    }
-
-
-def _store_path(store: Any) -> Path:
-    if isinstance(store, (str, Path)):
-        return Path(store)
-    if hasattr(store, "path"):
-        return Path(store.path)
-    if hasattr(store, "backend") and hasattr(store.backend, "path"):
-        return Path(store.backend.path)
-    if hasattr(store, "_backend") and hasattr(store._backend, "path"):
-        return Path(store._backend.path)
-    raise TypeError("store must be a database path, Store, or DatasetStore")
-
-
-def _store_backend(store: Any) -> DatasetStore:
-    if isinstance(store, DatasetStore):
-        return store
-    if hasattr(store, "backend") and isinstance(store.backend, DatasetStore):
-        return store.backend
-    if hasattr(store, "_backend") and isinstance(store._backend, DatasetStore):
-        return store._backend
-    return DatasetStore(_store_path(store))
-
-
-def _established_spec(store: Any, ds_name: str) -> Dict[str, Any]:
-    path = _store_path(store)
-    if not path.is_file():
-        raise ValueError(f"dataset store does not exist: {path}")
-    connection = sqlite3.connect(str(path))
-    connection.row_factory = sqlite3.Row
+def _canonical_bytes(value: Any) -> bytes:
     try:
-        dataset = connection.execute(
-            "SELECT dataset_id,title,description FROM datasets WHERE dataset_id=?",
-            (ds_name,),
-        ).fetchone()
-        if dataset is None:
-            raise ValueError(f"established dataset does not exist: {ds_name!r}")
-        release = connection.execute(
-            "SELECT release_id,version,quality_level,core_labels_json,quality_json "
-            "FROM dataset_releases "
-            "WHERE dataset_id=? ORDER BY release_serial DESC LIMIT 1",
-            (ds_name,),
-        ).fetchone()
-        quality = json.loads(release["quality_json"]) if release else {}
-        core_labels = json.loads(release["core_labels_json"]) if release else []
-        if not isinstance(core_labels, list):
-            raise ValueError("stored core_labels_json must be a JSON array")
-        policy = _store_backend(store).get_dataset_policy(ds_name)
-        return {
-            "title": dataset["title"],
-            "description": dataset["description"],
-            "versions": {
-                row[0]
-                for row in connection.execute(
-                    "SELECT version FROM dataset_releases WHERE dataset_id=?", (ds_name,)
-                )
-            },
-            "core_labels": list(core_labels or []),
-            "core_info": list(quality.get("core_info", [])),
-            "quality_level": release["quality_level"] if release else None,
-            "release_id": release["release_id"] if release else None,
-            "property_types": {
-                row["property_type_id"]: tuple(row)
-                for row in connection.execute(
-                    "SELECT property_type_id,name,value_kind,canonical_unit,schema_version,metadata_json "
-                    "FROM property_types"
-                )
-            },
-            "policy": policy,
-        }
-    except sqlite3.DatabaseError as error:
-        raise ValueError(f"cannot read established dataset specification: {error}") from error
-    finally:
-        connection.close()
+        return json.dumps(
+            value,
+            ensure_ascii=False,
+            allow_nan=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise CertificateFormatError(
+            "certificate content is not canonical JSON"
+        ) from error
 
 
-def _existing_issues(bundle: DatasetBundle, ds_name: str, spec: Mapping[str, Any]) -> list:
-    issues = []
-    if len(bundle.datasets) != 1 or bundle.datasets[0].dataset_id != ds_name:
-        issues.append(f"submission must contain only established dataset {ds_name!r}")
-        return issues
-    dataset = bundle.datasets[0]
-    if dataset.title != spec["title"] or dataset.description != spec["description"]:
-        issues.append("dataset title and description differ from the immutable catalog entry")
-    for release in bundle.releases:
-        if release.version in spec["versions"]:
-            issues.append(
-                f"release version {release.version!r} already exists; integration requires a new immutable release"
-            )
-    for definition in bundle.property_types:
-        existing = spec["property_types"].get(definition.property_type_id)
-        if existing is None:
-            continue
-        incoming = (
-            definition.property_type_id,
-            definition.name,
-            definition.value_kind,
-            definition.canonical_unit,
-            definition.schema_version,
-            json.dumps(definition.metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+def _json_copy(value: Any) -> Any:
+    return json.loads(_canonical_bytes(value))
+
+
+def _digest_value(value: Any) -> str:
+    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
+def _hash_file(path: Path) -> tuple[str, int]:
+    digest = hashlib.sha256()
+    size = 0
+    try:
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
+                size += len(block)
+    except OSError as error:
+        raise CertificateIntegrityError(
+            f"cannot read certificate-bound file: {path}"
+        ) from error
+    return digest.hexdigest(), size
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _closed_mapping(value: Any, fields: set[str], name: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping) or set(value) != fields:
+        raise CertificateFormatError(
+            f"{name} fields must be exactly {sorted(fields)}"
         )
-        if incoming != existing:
-            issues.append(
-                f"property type {definition.property_type_id!r} conflicts with its immutable stored definition"
+    return value
+
+
+def _nonempty_text(value: Any, name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise CertificateFormatError(f"{name} must be a non-empty string")
+    return value
+
+
+def _sha256(value: Any, name: str) -> str:
+    text = _nonempty_text(value, name)
+    if len(text) != 64 or any(character not in "0123456789abcdef" for character in text):
+        raise CertificateFormatError(f"{name} must be a lowercase SHA-256 digest")
+    return text
+
+
+def _size(value: Any, name: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise CertificateFormatError(f"{name} must be a non-negative integer")
+    return value
+
+
+def _revision(value: Any, name: str) -> int:
+    return _size(value, name)
+
+
+def _safe_path(root: Path, value: Any, name: str) -> Path:
+    text = _nonempty_text(value, name)
+    if "\\" in text or "\x00" in text:
+        raise CertificatePathError(f"{name} must be a safe POSIX relative path")
+    relative = PurePosixPath(text)
+    if relative.is_absolute() or any(
+        part in {"", ".", ".."} for part in relative.parts
+    ):
+        raise CertificatePathError(f"{name} must be a safe POSIX relative path")
+    path = root.joinpath(*relative.parts)
+    try:
+        path.resolve(strict=False).relative_to(root.resolve())
+    except ValueError as error:
+        raise CertificatePathError(f"{name} escapes the Bundle root") from error
+    return path
+
+
+def _relative_path(root: Path, path: Path, name: str) -> str:
+    try:
+        relative = path.resolve().relative_to(root.resolve()).as_posix()
+    except (OSError, ValueError) as error:
+        raise CertificatePathError(f"{name} is outside the Bundle root") from error
+    _safe_path(root, relative, name)
+    return relative
+
+
+def _file_descriptor(root: Path, path: Path, name: str) -> Dict[str, Any]:
+    relative = _relative_path(root, path, name)
+    if not path.is_file():
+        raise CertificateIntegrityError(f"{name} is not a regular file: {path}")
+    digest, size = _hash_file(path)
+    return {"path": relative, "sha256": digest, "size": size}
+
+
+def _verify_file_descriptor(
+    root: Path, value: Any, name: str, *, expected_path: Optional[str] = None
+) -> Path:
+    descriptor = _closed_mapping(value, _FILE_FIELDS, name)
+    path_text = _nonempty_text(descriptor["path"], f"{name}.path")
+    if expected_path is not None and path_text != expected_path:
+        raise CertificateIntegrityError(
+            f"{name}.path does not name {expected_path!r}"
+        )
+    path = _safe_path(root, path_text, f"{name}.path")
+    expected_digest = _sha256(descriptor["sha256"], f"{name}.sha256")
+    expected_size = _size(descriptor["size"], f"{name}.size")
+    if not path.is_file():
+        raise CertificateIntegrityError(f"certificate-bound file is missing: {path_text}")
+    digest, size = _hash_file(path)
+    if digest != expected_digest or size != expected_size:
+        raise CertificateIntegrityError(
+            f"certificate-bound file changed: {path_text}"
+        )
+    return path
+
+
+def _checker_definitions(value: Any) -> Iterator[Mapping[str, Any]]:
+    if isinstance(value, Mapping):
+        if value.get("kind") == "custom":
+            yield value
+        for child in value.values():
+            yield from _checker_definitions(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _checker_definitions(child)
+
+
+def _checker_inventory(root: Path, policy: Mapping[str, Any]) -> list[Dict[str, Any]]:
+    inventory = []
+    seen = set()
+    for definition in _checker_definitions(policy):
+        source_digest = _sha256(
+            definition.get("source_sha256"), "custom checker source_sha256"
+        )
+        entrypoint = _nonempty_text(
+            definition.get("entrypoint"), "custom checker entrypoint"
+        )
+        protocol_digest = _sha256(
+            definition.get("checker_protocol_digest"),
+            "custom checker protocol digest",
+        )
+        source = definition.get("source")
+        if (
+            not isinstance(source, str)
+            or hashlib.sha256(source.encode("utf-8")).hexdigest() != source_digest
+        ):
+            raise CertificateIntegrityError(
+                "custom checker source does not match its policy digest"
             )
-    return issues
-
-
-def _assessment_configuration(
-    configuration: Configure,
-    ds_name: str,
-    core_labels: Any,
-    core_info: Any,
-) -> Configure:
-    dataset_rules = dict(configuration.datasets.get(ds_name, {}))
-    if core_labels is not UNSET:
-        dataset_rules["core_labels"] = list(_sequence(core_labels, "core_labels"))
-    if core_info is not UNSET:
-        dataset_rules["core_info"] = list(_sequence(core_info, "core_info"))
-    return Configure(
-        generic=configuration.generic,
-        datasets={ds_name: dataset_rules},
+        key = (source_digest, entrypoint, protocol_digest)
+        if key in seen:
+            continue
+        seen.add(key)
+        path = root / "policy" / "checkers" / f"{source_digest}.py"
+        descriptor = _file_descriptor(root, path, "custom checker artifact")
+        if descriptor["sha256"] != source_digest:
+            raise CertificateIntegrityError(
+                "custom checker artifact does not match its policy digest"
+            )
+        inventory.append(
+            {
+                **descriptor,
+                "entrypoint": entrypoint,
+                "checker_protocol_digest": protocol_digest,
+            }
+        )
+    return sorted(
+        inventory,
+        key=lambda item: (
+            item["path"],
+            item["entrypoint"],
+            item["checker_protocol_digest"],
+        ),
     )
 
 
-def _bundle_core_declaration(bundle: DatasetBundle, field: str) -> Any:
-    declared = {
-        tuple(release.quality[field])
-        for release in bundle.releases
-        if field in release.quality
-    }
-    if len(declared) > 1:
-        raise SubmissionFenceError(
-            f"all releases in one assessment must declare the same {field}"
+def _normalize_assets(value: Any) -> list[Dict[str, Any]]:
+    if not isinstance(value, list):
+        raise CertificateFormatError("scientific asset inventory must be a list")
+    inventory = []
+    seen = set()
+    for index, raw in enumerate(value):
+        name = f"scientific_assets.items[{index}]"
+        item = _closed_mapping(raw, _ASSET_FIELDS, name)
+        state = item["state"]
+        if state not in _ASSET_STATES:
+            raise CertificateFormatError(f"{name}.state is not supported")
+        case_id = _nonempty_text(item["case_id"], f"{name}.case_id")
+        declaration_id = _nonempty_text(
+            item["declaration_id"], f"{name}.declaration_id"
         )
-    return next(iter(declared)) if declared else UNSET
-
-
-class Certificate:
-    """A public certificate plus its prepared submission when assessed in memory."""
-
-    Configure = Configure
-
-    def __init__(
-        self,
-        certificate: QualityCertificate,
-        submission: Optional[Submission] = None,
-        configure: Optional[Configure] = None,
-        *,
-        ds_name: Optional[str] = None,
-        mode: Optional[str] = None,
-        declarations: Optional[Mapping[str, Any]] = None,
-        established_spec: Optional[Mapping[str, Any]] = None,
-        source_kind: Optional[str] = None,
-        configuration_sha256: Optional[str] = None,
-        envelope_sha256: Optional[str] = None,
-    ):
-        self._certificate = certificate
-        self.submission = submission
-        self.configure = configure
-        self.ds_name = ds_name
-        self.mode = mode
-        self.declarations = dict(declarations or {})
-        self.established_spec = dict(established_spec or {})
-        self.source_kind = source_kind
-        expected_digest = self._configuration_digest() if self.facade_attested else None
-        self.configuration_sha256 = configuration_sha256 or expected_digest
-        if configuration_sha256 is not None and configuration_sha256 != expected_digest:
-            raise QualityGateError("certificate configuration integrity check failed")
-        expected_envelope_digest = self._envelope_digest() if self.facade_attested else None
-        self.envelope_sha256 = envelope_sha256 or expected_envelope_digest
-        if envelope_sha256 is not None and envelope_sha256 != expected_envelope_digest:
-            raise QualityGateError("public certificate envelope integrity check failed")
-
-    @property
-    def facade_attested(self) -> bool:
-        return (
-            self.configure is not None
-            and self.ds_name is not None
-            and self.mode in {"new", "existing"}
-        )
-
-    def _configuration_payload(self) -> Dict[str, Any]:
-        return {
-            "configuration": self.configure.to_dict() if self.configure is not None else None,
-            "dataset": self.ds_name,
-            "mode": self.mode,
-            "declarations": self.declarations,
-            "established_spec": self.established_spec,
-            "source_kind": self.source_kind,
-        }
-
-    def _configuration_digest(self) -> Optional[str]:
-        if not self.facade_attested:
-            return None
-        return hashlib.sha256(
-            canonical_json(self.configure.to_dict()).encode()
-        ).hexdigest()
-
-    def _unsigned_envelope(self) -> Dict[str, Any]:
-        return {
-            "schema_version": CERTIFICATE_ENVELOPE_VERSION,
-            "certificate": self._certificate.to_dict(),
-            **self._configuration_payload(),
-            "configuration_sha256": self.configuration_sha256,
-        }
-
-    def _envelope_digest(self) -> Optional[str]:
-        if not self.facade_attested:
-            return None
-        return hashlib.sha256(canonical_json(self._unsigned_envelope()).encode()).hexdigest()
-
-    @property
-    def raw(self) -> QualityCertificate:
-        return self._certificate
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self._certificate, name)
-
-    def to_dict(self) -> Dict[str, Any]:
-        if not self.facade_attested:
-            return self._certificate.to_dict()
-        return {**self._unsigned_envelope(), "envelope_sha256": self.envelope_sha256}
-
-    def verify_integrity(self) -> None:
-        self._certificate.verify_integrity()
-        if self.facade_attested and self.configuration_sha256 != self._configuration_digest():
-            raise QualityGateError("certificate configuration integrity check failed")
-        if self.facade_attested and self.envelope_sha256 != self._envelope_digest():
-            raise QualityGateError("public certificate envelope integrity check failed")
-
-    @classmethod
-    def assess_new(
-        cls,
-        source: Any,
-        *,
-        ds_name: str,
-        quality_level: Any = UNSET,
-        core_labels: Any = UNSET,
-        core_info: Any = UNSET,
-        configure: Optional[Configure] = None,
-        asset_root: Optional[Union[str, Path]] = None,
-    ) -> "Certificate":
-        requested_configuration = configure or Configure()
-        rules = requested_configuration.effective(ds_name)
-        declared_quality = (
-            rules.get("quality_level", UNSET) if quality_level is UNSET else quality_level
-        )
-        declared_labels = rules.get("core_labels", UNSET) if core_labels is UNSET else core_labels
-        declared_info = rules.get("core_info", UNSET) if core_info is UNSET else core_info
-        if (
-            declared_quality is UNSET
-            and declared_labels is UNSET
-            and declared_info is UNSET
-        ):
-            raise ValueError(
-                "new dataset assessment requires quality_level, core_labels, or core_info; "
-                "pass [] to explicitly declare that no core fields exist"
-            )
-        configuration = _assessment_configuration(
-            requested_configuration, ds_name, declared_labels, declared_info
-        )
-        rules = configuration.effective(ds_name)
-        try:
-            submission = load_submission(source, asset_root=asset_root)
-            submission = _apply_declarations(
-                submission,
-                ds_name,
-                declared_quality,
-                declared_labels,
-                declared_info,
-            )
-            policy_labels = (
-                _bundle_core_declaration(submission.bundle, "core_labels")
-                if declared_labels is UNSET
-                else declared_labels
-            )
-            policy_info = (
-                _bundle_core_declaration(submission.bundle, "core_info")
-                if declared_info is UNSET
-                else declared_info
-            )
-            configuration = _assessment_configuration(
-                requested_configuration, ds_name, policy_labels, policy_info
-            )
-            rules = configuration.effective(ds_name)
-        except (SubmissionFenceError, DatasetStandardError, ValueError) as error:
-            return cls(
-                _failed_fence_certificate(source, error),
-                None,
-                configuration,
-                ds_name=ds_name,
-                mode="new",
-                declarations={
-                    "quality_level": None if declared_quality is UNSET else declared_quality,
-                    "core_labels": None if declared_labels is UNSET else list(declared_labels),
-                    "core_info": None if declared_info is UNSET else list(declared_info),
-                },
-                source_kind=_source_kind(source),
-            )
-
-        effective = dict(rules)
-        if declared_labels is not UNSET:
-            effective["core_labels"] = list(_sequence(declared_labels, "core_labels"))
-        if declared_info is not UNSET:
-            effective["core_info"] = list(_sequence(declared_info, "core_info"))
-        base = assess_bundle(submission.bundle, submission.asset_root, profile="admission")
-        certificate = _issue_with_configured_failure(
-            base, _configured_issues(submission.bundle, effective)
-        )
-        return cls(
-            certificate,
-            submission,
-            configuration,
-            ds_name=ds_name,
-            mode="new",
-            declarations={
-                "quality_level": None
-                if declared_quality is UNSET
-                else _normalise_quality_level(declared_quality),
-                "core_labels": None
-                if declared_labels is UNSET
-                else list(_sequence(declared_labels, "core_labels")),
-                "core_info": None
-                if declared_info is UNSET
-                else list(_sequence(declared_info, "core_info")),
-            },
-            source_kind=_source_kind(source),
-        )
-
-    @classmethod
-    def assess_existing(
-        cls,
-        source: Any,
-        *,
-        ds_name: str,
-        store: Any,
-        configure: Optional[Configure] = None,
-        asset_root: Optional[Union[str, Path]] = None,
-    ) -> "Certificate":
-        if configure is not None:
-            raise ValueError(
-                "established dataset rules are loaded from the store and cannot be overridden"
-            )
-        spec = _established_spec(store, ds_name)
-        persisted_policy = spec["policy"]
-        if persisted_policy is None:
-            configuration = Configure(
-                datasets={
-                    ds_name: {
-                        "core_labels": list(spec["core_labels"]),
-                        "core_info": list(spec["core_info"]),
-                    }
-                }
-            )
-        else:
-            configuration = Configure.from_dict(persisted_policy["config"])
-            digest = hashlib.sha256(
-                canonical_json(configuration.to_dict()).encode()
-            ).hexdigest()
-            if digest != persisted_policy["config_sha256"]:
-                raise QualityGateError("stored dataset policy integrity check failed")
-        rules = configuration.effective(ds_name)
-        rules["core_labels"] = sorted(
-            set(rules.get("core_labels", ())) | set(spec["core_labels"])
-        )
-        rules["core_info"] = sorted(
-            set(rules.get("core_info", ())) | set(spec["core_info"])
-        )
-        try:
-            submission = load_submission(source, asset_root=asset_root)
-            submission = _apply_declarations(
-                submission,
-                ds_name,
-                UNSET,
-                rules["core_labels"],
-                rules["core_info"],
-            )
-        except (SubmissionFenceError, DatasetStandardError, ValueError) as error:
-            return cls(
-                _failed_fence_certificate(source, error),
-                None,
-                configuration,
-                ds_name=ds_name,
-                mode="existing",
-                declarations={
-                    "quality_level": None,
-                    "core_labels": list(rules["core_labels"]),
-                    "core_info": list(rules["core_info"]),
-                },
-                established_spec=_public_established_spec(spec),
-                source_kind=_source_kind(source),
-            )
-
-        base = assess_bundle(submission.bundle, submission.asset_root, profile="admission")
-        issues = _existing_issues(submission.bundle, ds_name, spec)
-        issues.extend(_configured_issues(submission.bundle, rules))
-        certificate = _issue_with_configured_failure(base, issues)
-        return cls(
-            certificate,
-            submission,
-            configuration,
-            ds_name=ds_name,
-            mode="existing",
-            declarations={
-                "quality_level": None,
-                "core_labels": list(rules["core_labels"]),
-                "core_info": list(rules["core_info"]),
-            },
-            established_spec=_public_established_spec(spec),
-            source_kind=_source_kind(source),
-        )
-
-    @classmethod
-    def assess(
-        cls,
-        source: Any,
-        *,
-        ds_name: str,
-        quality_level: Any = UNSET,
-        core_labels: Any = UNSET,
-        core_info: Any = UNSET,
-        configure: Optional[Configure] = None,
-        store: Any = None,
-        asset_root: Optional[Union[str, Path]] = None,
-    ) -> "Certificate":
-        if store is not None:
-            if any(value is not UNSET for value in (quality_level, core_labels, core_info)):
-                raise ValueError(
-                    "established dataset assessment loads its core specification from store"
+        path = item["path"]
+        digest = item["sha256"]
+        size = item["size"]
+        if state == "present":
+            _nonempty_text(path, f"{name}.path")
+            _sha256(digest, f"{name}.sha256")
+            _size(size, f"{name}.size")
+        elif state == "missing":
+            _nonempty_text(path, f"{name}.path")
+            if digest is not None or size is not None:
+                raise CertificateFormatError(
+                    f"{name} missing state cannot claim bytes"
                 )
-            return cls.assess_existing(
-                source,
-                ds_name=ds_name,
-                store=store,
-                configure=configure,
-                asset_root=asset_root,
-            )
-        return cls.assess_new(
-            source,
-            ds_name=ds_name,
-            quality_level=quality_level,
-            core_labels=core_labels,
-            core_info=core_info,
-            configure=configure,
-            asset_root=asset_root,
-        )
-
-    @classmethod
-    def load(cls, path: Union[str, Path]) -> "Certificate":
-        with Path(path).open(encoding="utf-8") as handle:
-            value = json.load(handle)
-        if not isinstance(value, dict):
-            raise QualityGateError("certificate file root must be an object")
-        if value.get("schema_version") != CERTIFICATE_ENVELOPE_VERSION:
-            raise QualityGateError("certificate does not use the current public envelope")
-        expected = {
-            "schema_version",
-            "certificate",
-            "configuration",
-            "dataset",
-            "mode",
-            "declarations",
-            "established_spec",
-            "source_kind",
-            "configuration_sha256",
-            "envelope_sha256",
+        else:
+            if path is not None or size is not None:
+                raise CertificateFormatError(
+                    f"{name} remote_not_materialized state cannot claim a local file"
+                )
+            if digest is not None:
+                _sha256(digest, f"{name}.sha256")
+        normalized = {
+            "case_id": case_id,
+            "declaration_id": declaration_id,
+            "path": path,
+            "state": state,
+            "sha256": digest,
+            "size": size,
         }
-        if set(value) != expected:
-            raise QualityGateError("public certificate envelope fields do not match the standard")
-        certificate = cls(
-            QualityCertificate.from_dict(value["certificate"]),
-            configure=Configure.from_dict(value["configuration"]),
-            ds_name=value["dataset"],
-            mode=value["mode"],
-            declarations=value["declarations"],
-            established_spec=value["established_spec"],
-            source_kind=value["source_kind"],
-            configuration_sha256=value["configuration_sha256"],
-            envelope_sha256=value["envelope_sha256"],
-        )
-        certificate.verify_integrity()
-        return certificate
+        key = (case_id, declaration_id, path, state)
+        if key in seen:
+            raise CertificateFormatError(
+                "scientific asset inventory contains a duplicate declaration state"
+            )
+        seen.add(key)
+        inventory.append(normalized)
+    return sorted(
+        inventory,
+        key=lambda item: (
+            item["case_id"],
+            item["declaration_id"],
+            "" if item["path"] is None else item["path"],
+            item["state"],
+        ),
+    )
 
-    def write(self, path: Union[str, Path]) -> None:
-        target = Path(path)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(
-            json.dumps(self.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
+
+def _verify_asset_files(root: Path, inventory: list[Dict[str, Any]]) -> None:
+    for item in inventory:
+        path_text = item["path"]
+        if item["state"] == "remote_not_materialized":
+            continue
+        path = _safe_path(root, path_text, "scientific asset path")
+        if item["state"] == "missing":
+            if os.path.lexists(path):
+                raise CertificateIntegrityError(
+                    f"certified-missing scientific asset appeared: {path_text}"
+                )
+            continue
+        if not path.is_file():
+            raise CertificateIntegrityError(
+                f"certificate-bound scientific asset is missing: {path_text}"
+            )
+        digest, size = _hash_file(path)
+        if digest != item["sha256"] or size != item["size"]:
+            raise CertificateIntegrityError(
+                f"certificate-bound scientific asset changed: {path_text}"
+            )
+
+
+def _release_identity(manifest: Mapping[str, Any]) -> Dict[str, Any]:
+    return {
+        "dataset_id": manifest["dataset_id"],
+        "release_id": manifest["release_id"],
+        "version": manifest["version"],
+        "release_serial": manifest.get("release_serial"),
+    }
+
+
+def _build_certificate(bundle: Any) -> Dict[str, Any]:
+    root = Path(bundle.root).resolve()
+    state = bundle._state
+    status = state.status
+    generation = bundle.current_generation
+    if generation is None:
+        raise UnsynchronizedBundleError(
+            "Bundle has no current assessment generation; run bundle.synchronize() first"
         )
+    manifest_path = Path(generation.manifest_path)
+    manifest_descriptor = _file_descriptor(
+        root, manifest_path, "assessment generation manifest"
+    )
+    if manifest_descriptor["sha256"] != generation.manifest_digest:
+        raise CertificateIntegrityError(
+            "assessment generation manifest digest does not match the generation"
+        )
+    assets = _normalize_assets(bundle._scientific_asset_inventory())
+    _verify_asset_files(root, assets)
+    policy = state.policy
+    checkers = _checker_inventory(root, policy)
+    facts = _file_descriptor(root, root / "cases" / "facts.sqlite3", "facts store")
+    if facts["path"] != "cases/facts.sqlite3":
+        raise CertificatePathError("facts store must be cases/facts.sqlite3")
+    return {
+        "assessor_version": ASSESSOR_VERSION,
+        "dataset": bundle.name,
+        "release": _release_identity(state.manifest),
+        "target_context": _json_copy(state.target_context),
+        "facts": facts,
+        "source": {
+            "revision": status["source_revision"],
+            "digest": status["source_digest"],
+        },
+        "policy": {
+            "revision": status["policy_revision"],
+            "digest": status["policy_digest"],
+        },
+        "generation": {
+            "id": generation.id,
+            "digest": generation.digest,
+            "manifest": manifest_descriptor,
+        },
+        "checker_artifacts": checkers,
+        "scientific_assets": {"items": assets, "digest": _digest_value(assets)},
+        "summary": _json_copy(generation.summary),
+        "issuer": "Hotpot",
+        "issued_at": _utc_now(),
+    }
+
+
+def _validate_file_syntax(value: Any, name: str) -> None:
+    descriptor = _closed_mapping(value, _FILE_FIELDS, name)
+    _nonempty_text(descriptor["path"], f"{name}.path")
+    _sha256(descriptor["sha256"], f"{name}.sha256")
+    _size(descriptor["size"], f"{name}.size")
+
+
+def _validate_certificate_syntax(certificate: Any, root: Path) -> Dict[str, Any]:
+    value = _closed_mapping(certificate, _CERTIFICATE_FIELDS, "certificate")
+    if value["assessor_version"] != ASSESSOR_VERSION:
+        raise CertificateFormatError("unsupported certificate assessor version")
+    _nonempty_text(value["dataset"], "certificate.dataset")
+    release = _closed_mapping(value["release"], _RELEASE_FIELDS, "certificate.release")
+    for field in ("dataset_id", "release_id", "version"):
+        _nonempty_text(release[field], f"certificate.release.{field}")
+    if release["dataset_id"] != value["dataset"]:
+        raise CertificateFormatError(
+            "certificate.release.dataset_id must equal certificate.dataset"
+        )
+    serial = release["release_serial"]
+    if serial is not None and (
+        not isinstance(serial, int)
+        or isinstance(serial, bool)
+        or not 1 <= serial <= 999
+    ):
+        raise CertificateFormatError(
+            "certificate.release.release_serial must be null or an integer from 1 to 999"
+        )
+    if not isinstance(value["target_context"], Mapping):
+        raise CertificateFormatError("certificate.target_context must be an object")
+    _validate_file_syntax(value["facts"], "certificate.facts")
+    if value["facts"]["path"] != "cases/facts.sqlite3":
+        raise CertificatePathError("certificate facts path must be cases/facts.sqlite3")
+    _safe_path(root, value["facts"]["path"], "certificate.facts.path")
+    for field in ("source", "policy"):
+        revision = _closed_mapping(
+            value[field], _REVISION_FIELDS, f"certificate.{field}"
+        )
+        _revision(revision["revision"], f"certificate.{field}.revision")
+        _sha256(revision["digest"], f"certificate.{field}.digest")
+    generation = _closed_mapping(
+        value["generation"], _GENERATION_FIELDS, "certificate.generation"
+    )
+    _nonempty_text(generation["id"], "certificate.generation.id")
+    _sha256(generation["digest"], "certificate.generation.digest")
+    _validate_file_syntax(
+        generation["manifest"], "certificate.generation.manifest"
+    )
+    _safe_path(
+        root,
+        generation["manifest"]["path"],
+        "certificate.generation.manifest.path",
+    )
+    if not isinstance(value["checker_artifacts"], list):
+        raise CertificateFormatError("certificate.checker_artifacts must be a list")
+    checker_keys = set()
+    for index, raw in enumerate(value["checker_artifacts"]):
+        name = f"certificate.checker_artifacts[{index}]"
+        checker = _closed_mapping(raw, _CHECKER_FIELDS, name)
+        _safe_path(root, checker["path"], f"{name}.path")
+        _sha256(checker["sha256"], f"{name}.sha256")
+        _size(checker["size"], f"{name}.size")
+        _nonempty_text(checker["entrypoint"], f"{name}.entrypoint")
+        _sha256(
+            checker["checker_protocol_digest"],
+            f"{name}.checker_protocol_digest",
+        )
+        key = (
+            checker["path"],
+            checker["entrypoint"],
+            checker["checker_protocol_digest"],
+        )
+        if key in checker_keys:
+            raise CertificateFormatError("duplicate checker artifact binding")
+        checker_keys.add(key)
+    if value["checker_artifacts"] != sorted(
+        value["checker_artifacts"],
+        key=lambda item: (
+            item["path"],
+            item["entrypoint"],
+            item["checker_protocol_digest"],
+        ),
+    ):
+        raise CertificateFormatError(
+            "certificate checker artifact inventory is not canonically ordered"
+        )
+    assets = _closed_mapping(
+        value["scientific_assets"],
+        _ASSET_CONTAINER_FIELDS,
+        "certificate.scientific_assets",
+    )
+    items = _normalize_assets(assets["items"])
+    if items != assets["items"]:
+        raise CertificateFormatError(
+            "certificate scientific asset inventory is not canonically ordered"
+        )
+    if (
+        _sha256(
+            assets["digest"], "certificate.scientific_assets.digest"
+        )
+        != _digest_value(items)
+    ):
+        raise CertificateIntegrityError(
+            "scientific asset inventory digest does not match"
+        )
+    for item in items:
+        if item["path"] is not None:
+            _safe_path(root, item["path"], "scientific asset path")
+    if not isinstance(value["summary"], Mapping):
+        raise CertificateFormatError("certificate.summary must be an object")
+    if value["issuer"] != "Hotpot":
+        raise CertificateFormatError("unsupported certificate issuer")
+    issued_at = _nonempty_text(value["issued_at"], "certificate.issued_at")
+    if not issued_at.endswith("Z"):
+        raise CertificateFormatError(
+            "certificate.issued_at must be an ISO-8601 UTC timestamp"
+        )
+    try:
+        parsed_time = datetime.fromisoformat(issued_at[:-1] + "+00:00")
+    except ValueError as error:
+        raise CertificateFormatError(
+            "certificate.issued_at must be an ISO-8601 timestamp"
+        ) from error
+    if parsed_time.tzinfo is None:
+        raise CertificateFormatError(
+            "certificate.issued_at must be an ISO-8601 UTC timestamp"
+        )
+    return _json_copy(value)
+
+
+def _load_json(path: Path) -> Any:
+    def closed_object(pairs: list[tuple[str, Any]]) -> Dict[str, Any]:
+        value: Dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise CertificateFormatError(f"duplicate JSON field: {key}")
+            value[key] = item
+        return value
+
+    def invalid_constant(value: str) -> None:
+        raise CertificateFormatError(f"invalid JSON number: {value}")
+
+    try:
+        with path.open("r", encoding="utf-8") as stream:
+            return json.load(
+                stream,
+                object_pairs_hook=closed_object,
+                parse_constant=invalid_constant,
+            )
+    except CertificateError:
+        raise
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise CertificateFormatError(
+            f"cannot read a valid Bundle certificate: {path}"
+        ) from error
+
+
+def _root_certificate(path: Union[str, Path]) -> tuple[Path, Path]:
+    supplied = Path(path).expanduser().absolute()
+    root = supplied.parent.resolve()
+    expected = root / "certificate.json"
+    try:
+        resolved = supplied.resolve(strict=True)
+    except OSError as error:
+        raise CertificateFormatError(
+            f"Bundle certificate does not exist: {supplied}"
+        ) from error
+    if supplied.name != "certificate.json" or resolved != expected:
+        raise CertificatePathError(
+            "a Bundle certificate must be the regular root/certificate.json file"
+        )
+    if not expected.is_file() or expected.is_symlink():
+        raise CertificatePathError(
+            "a Bundle certificate must be the regular root/certificate.json file"
+        )
+    return root, expected
+
+
+def load_certificate_envelope(path: Union[str, Path]) -> Dict[str, Any]:
+    """Validate one root certificate envelope without constructing a Bundle."""
+
+    root, certificate_path = _root_certificate(path)
+    envelope = _load_json(certificate_path)
+    value = _closed_mapping(envelope, _ENVELOPE_FIELDS, "certificate envelope")
+    if value["schema"] != CERTIFICATE_SCHEMA:
+        raise CertificateFormatError("unsupported certificate schema")
+    certificate = _validate_certificate_syntax(value["certificate"], root)
+    expected = _sha256(value["envelope_sha256"], "envelope_sha256")
+    if _digest_value(certificate) != expected:
+        raise CertificateIntegrityError("certificate envelope digest does not match")
+    return {
+        "schema": CERTIFICATE_SCHEMA,
+        "certificate": certificate,
+        "envelope_sha256": expected,
+    }
+
+
+def _verify_certificate_against_bundle(
+    bundle: Any, certificate: Mapping[str, Any]
+) -> None:
+    if not bundle.is_synchronized:
+        raise UnsynchronizedBundleError(
+            "Bundle is not synchronized; run bundle.synchronize() first"
+        )
+    root = Path(bundle.root).resolve()
+    state = bundle._state
+    status = state.status
+    generation = bundle.current_generation
+    if generation is None:
+        raise CertificateIntegrityError(
+            "certificate names a Bundle without a current assessment generation"
+        )
+    if certificate["dataset"] != bundle.name:
+        raise CertificateIntegrityError("certificate dataset does not match Bundle")
+    if certificate["release"] != _release_identity(state.manifest):
+        raise CertificateIntegrityError("certificate release does not match Bundle")
+    if certificate["target_context"] != _json_copy(state.target_context):
+        raise CertificateIntegrityError(
+            "certificate target context does not match Bundle"
+        )
+    source = certificate["source"]
+    if source != {
+        "revision": status["source_revision"],
+        "digest": status["source_digest"],
+    }:
+        raise CertificateIntegrityError("certificate source state is stale")
+    policy = certificate["policy"]
+    if policy != {
+        "revision": status["policy_revision"],
+        "digest": status["policy_digest"],
+    }:
+        raise CertificateIntegrityError("certificate policy state is stale")
+    expected_generation = {
+        "id": generation.id,
+        "digest": generation.digest,
+        "manifest": _file_descriptor(
+            root, Path(generation.manifest_path), "assessment generation manifest"
+        ),
+    }
+    if expected_generation["manifest"]["sha256"] != generation.manifest_digest:
+        raise CertificateIntegrityError(
+            "current generation manifest digest is inconsistent"
+        )
+    if certificate["generation"] != expected_generation:
+        raise CertificateIntegrityError(
+            "certificate assessment generation does not match Bundle"
+        )
+    _verify_file_descriptor(
+        root,
+        certificate["facts"],
+        "certificate.facts",
+        expected_path="cases/facts.sqlite3",
+    )
+    expected_checkers = _checker_inventory(root, state.policy)
+    if certificate["checker_artifacts"] != expected_checkers:
+        raise CertificateIntegrityError(
+            "certificate checker artifacts do not match Bundle policy"
+        )
+    for index, checker in enumerate(certificate["checker_artifacts"]):
+        descriptor = {
+            key: checker[key] for key in ("path", "sha256", "size")
+        }
+        _verify_file_descriptor(
+            root, descriptor, f"certificate.checker_artifacts[{index}]"
+        )
+    certified_assets = certificate["scientific_assets"]["items"]
+    current_assets = _normalize_assets(bundle._scientific_asset_inventory())
+    if certified_assets != current_assets:
+        raise CertificateIntegrityError(
+            "certificate scientific asset inventory does not match Bundle"
+        )
+    _verify_asset_files(root, certified_assets)
+    if certificate["summary"] != _json_copy(generation.summary):
+        raise CertificateIntegrityError(
+            "certificate assessment summary does not match Bundle"
+        )
+
+
+@contextmanager
+def _bundle_lock(root: Path) -> Iterator[None]:
+    descriptor = os.open(root / ".bundle.lock", os.O_CREAT | os.O_RDWR, 0o600)
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
+        os.close(descriptor)
+
+
+def _atomic_write(path: Path, value: Mapping[str, Any]) -> None:
+    payload = _canonical_bytes(value) + b"\n"
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temporary.open("xb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        descriptor = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def write_bundle_certificate(bundle: Any) -> Path:
+    """Atomically write the sole root certificate for a synchronized Bundle."""
+
+    root = Path(bundle.root).resolve()
+    if not bundle.is_synchronized:
+        raise UnsynchronizedBundleError(
+            "Bundle is not synchronized; run bundle.synchronize() first"
+        )
+    with _bundle_lock(root):
+        if not bundle.is_synchronized:
+            raise UnsynchronizedBundleError(
+                "Bundle changed before certification; run bundle.synchronize() first"
+            )
+        certificate = _validate_certificate_syntax(_build_certificate(bundle), root)
+        _verify_certificate_against_bundle(bundle, certificate)
+        envelope = {
+            "schema": CERTIFICATE_SCHEMA,
+            "certificate": certificate,
+            "envelope_sha256": _digest_value(certificate),
+        }
+        path = root / "certificate.json"
+        _atomic_write(path, envelope)
+        return path
+
+
+def verify_bundle_certificate(
+    bundle: Any, path: Optional[Union[str, Path]] = None
+) -> Dict[str, Any]:
+    """Verify a root certificate against the current Bundle without mutation."""
+
+    root = Path(bundle.root).resolve()
+    certificate_path = root / "certificate.json" if path is None else Path(path)
+    envelope = load_certificate_envelope(certificate_path)
+    if certificate_path.expanduser().resolve() != root / "certificate.json":
+        raise CertificatePathError(
+            "certificate path does not name this Bundle's root certificate"
+        )
+    _verify_certificate_against_bundle(bundle, envelope["certificate"])
+    return deepcopy(envelope)
+
+
+def certificate_digest(path: Union[str, Path]) -> str:
+    """Return the SHA-256 of the exact verified root-certificate bytes."""
+
+    _, certificate_path = _root_certificate(path)
+    load_certificate_envelope(certificate_path)
+    return _hash_file(certificate_path)[0]
 
 
 __all__ = [
-    "CONFIGURE_VERSION",
-    "CERTIFICATE_ENVELOPE_VERSION",
-    "DEFAULT_GENERIC_RULES",
-    "IMMUTABLE_GATES",
-    "UNSET",
-    "Certificate",
-    "Configure",
+    "CertificateError",
+    "CertificateFormatError",
+    "CertificateIntegrityError",
+    "CertificatePathError",
+    "certificate_digest",
+    "load_certificate_envelope",
+    "verify_bundle_certificate",
+    "write_bundle_certificate",
 ]

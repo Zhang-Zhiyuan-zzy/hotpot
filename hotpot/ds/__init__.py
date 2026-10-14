@@ -4,7 +4,6 @@ from .public.bundle import Bundle, load_bundle, write_certificate
 from .public.catalog import datasets_list, load
 from .public.dataset import Data, Dataset
 from .public.search import BaseSearcher, DataSearcher, DatasetSearcher, SmartsSearcher
-from .public.store import store
 
 
 __all__ = [
@@ -16,10 +15,9 @@ __all__ = [
     "DataSearcher",
     "DatasetSearcher",
     "SmartsSearcher",
-    "write_certificate",
     "load_bundle",
     "Bundle",
-    "store",
+    "write_certificate",
 ]
 
 

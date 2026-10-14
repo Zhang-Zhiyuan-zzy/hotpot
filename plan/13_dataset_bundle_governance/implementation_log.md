@@ -290,6 +290,53 @@ Unexpected finding: none beyond the asset-ownership gap recorded in Step 2.
 
 Adjustment: none; this implements the mandatory Step 2 storage decision.
 
+### Step 7 — Build the canonical Bundle fact authority
+
+Status: complete
+
+Planned:
+
+- build one release from a strict JSONL or SQLite intake exactly once;
+- reopen only by validation; and
+- commit facts, audit events, revisions, digests, and the current-generation
+  pointer through one SQLite authority.
+
+Performed:
+
+- added the strict one-release manifest and Case schemas, safe relative-path
+  checks, streaming JSONL/SQLite intake, atomic `facts.sqlite3` publication,
+  and validation-only reopen;
+- added defensive Case iteration, transactional fact/policy mutation, audit
+  and policy projections, source/policy revisions and digests, and
+  compare-and-swap generation publication;
+- made scientific asset bytes/existence part of the current source digest and
+  added an audited refresh that advances the source revision after an
+  out-of-band asset change; and
+- made the built manifest immutable and aligned child identities with the
+  frozen `structure_id`, `observation_id`, `claim_id`, `evidence_id`,
+  `verification_id`, and `attestation_id` API.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_bundle_state.py tests/test_ds/test_stage13_case.py`
+- result: `19 passed`;
+- all shipped Bundle JSON schemas parse as valid JSON.
+
+Unexpected findings:
+
+1. The first fact-store draft used one generic child `id`, which contradicted
+   the already frozen and implemented explicit Case method identities.
+2. Detecting a changed external asset made the Bundle correctly stale, but the
+   draft had no operation to record the new source digest/revision before CAS
+   generation publication.
+
+Necessary adjustment and final decision:
+
+- use only the explicit per-fact identity keys and audit external asset-state
+  changes through `refresh_source_state()` at synchronization start. This is
+  required to make the public Case contract and the persisted revision model
+  agree; it does not add a user-facing workflow.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |

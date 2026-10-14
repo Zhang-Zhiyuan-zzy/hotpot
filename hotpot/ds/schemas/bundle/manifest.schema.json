@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hotpot.invalid/schemas/ds/bundle/manifest.schema.json",
+  "title": "Hotpot Dataset Bundle Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "ds_name",
+    "release_id",
+    "version",
+    "title",
+    "description",
+    "license",
+    "access_policy",
+    "provenance",
+    "core_labels",
+    "core_info",
+    "intake",
+    "identity_schema",
+    "required_structure_roles"
+  ],
+  "properties": {
+    "schema": {"const": "hotpot-ds-bundle/current"},
+    "ds_name": {"$ref": "#/$defs/nonempty"},
+    "dataset_id": {"$ref": "#/$defs/nonempty"},
+    "release_id": {"$ref": "#/$defs/nonempty"},
+    "version": {"$ref": "#/$defs/nonempty"},
+    "title": {"$ref": "#/$defs/nonempty"},
+    "description": {"$ref": "#/$defs/nonempty"},
+    "license": {"$ref": "#/$defs/nonempty"},
+    "access_policy": {"$ref": "#/$defs/nonempty"},
+    "provenance": {"type": "object"},
+    "core_labels": {"$ref": "#/$defs/uniqueStrings"},
+    "core_info": {"$ref": "#/$defs/uniqueStrings"},
+    "identity_schema": {"type": "object"},
+    "required_structure_roles": {"$ref": "#/$defs/uniqueStrings"},
+    "intake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "path"],
+      "properties": {
+        "format": {"enum": ["jsonl", "sqlite"]},
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonempty": {"type": "string", "minLength": 1},
+    "uniqueStrings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/nonempty"},
+      "uniqueItems": true
+    }
+  }
+}

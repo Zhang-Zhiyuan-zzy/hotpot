@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hotpot.invalid/schemas/ds/bundle/case.schema.json",
+  "title": "Hotpot Dataset Bundle Case Fact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "local_id"],
+  "properties": {
+    "id": {"$ref": "#/$defs/nonempty"},
+    "local_id": {"$ref": "#/$defs/nonempty"},
+    "public_index": {"type": "integer", "minimum": 0},
+    "identifiers": {"type": "object"},
+    "metadata": {"type": "object"},
+    "core_info": {"type": "object"},
+    "structures": {"$ref": "#/$defs/structureFacts"},
+    "observations": {"$ref": "#/$defs/observationFacts"},
+    "claims": {"$ref": "#/$defs/claimFacts"},
+    "evidence": {"$ref": "#/$defs/evidenceFacts"},
+    "verifications": {"$ref": "#/$defs/verificationFacts"},
+    "attestations": {"$ref": "#/$defs/attestationFacts"},
+    "claimed_quality_level": {},
+    "claimed_evidence_level": {},
+    "claimed_archive_class": {},
+    "claimed_benchmark": {}
+  },
+  "$defs": {
+    "nonempty": {"type": "string", "minLength": 1},
+    "structureFacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["structure_id"],
+        "properties": {
+          "structure_id": {"$ref": "#/$defs/nonempty"},
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {"required": ["quality_level"]},
+            {"required": ["evidence_level"]},
+            {"required": ["archive_class"]},
+            {"required": ["benchmark"]}
+          ]
+        }
+      }
+    },
+    "observationFacts": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/fact"},
+          {"required": ["observation_id"], "properties": {"observation_id": {"$ref": "#/$defs/nonempty"}}}
+        ]
+      }
+    },
+    "claimFacts": {
+      "type": "array",
+      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["claim_id"], "properties": {"claim_id": {"$ref": "#/$defs/nonempty"}}}]}
+    },
+    "evidenceFacts": {
+      "type": "array",
+      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["evidence_id"], "properties": {"evidence_id": {"$ref": "#/$defs/nonempty"}}}]}
+    },
+    "verificationFacts": {
+      "type": "array",
+      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["verification_id"], "properties": {"verification_id": {"$ref": "#/$defs/nonempty"}}}]}
+    },
+    "attestationFacts": {
+      "type": "array",
+      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["attestation_id"], "properties": {"attestation_id": {"$ref": "#/$defs/nonempty"}}}]}
+    },
+    "fact": {
+      "type": "object",
+      "not": {
+        "anyOf": [
+          {"required": ["quality_level"]},
+          {"required": ["evidence_level"]},
+          {"required": ["archive_class"]},
+          {"required": ["benchmark"]}
+        ]
+      }
+    }
+  }
+}

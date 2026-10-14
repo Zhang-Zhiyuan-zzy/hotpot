@@ -1,129 +1,85 @@
-"""Small, user-facing dataset and data objects backed by the governed store."""
+"""Concise read-only Dataset and Data views over the current target store."""
 
 from __future__ import annotations
 
-import json
-from collections import Counter, defaultdict
-from functools import cached_property
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Tuple, Union
+from collections import Counter
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from copy import deepcopy
+from typing import Any, Dict, Optional, Union
 
-from ..levels import EvidenceLevel, QualityLevel
 from .structures import Structures
 
 
+_MULTI = (list, tuple, set, frozenset)
 _MISSING = object()
 
 
-def _json(value: str) -> Any:
-    return json.loads(value)
+def _value_at(value: Any, path: str) -> Any:
+    current = value
+    for part in path.replace("__", ".").split("."):
+        if isinstance(current, Mapping) and part in current:
+            current = current[part]
+        else:
+            return _MISSING
+    return current
 
 
-def _level_rank(value: str) -> int:
-    try:
-        return tuple(level.value for level in QualityLevel).index(value)
-    except ValueError:
-        return -1
-
-
-def _evidence_rank(value: str) -> int:
-    try:
-        return tuple(level.value for level in EvidenceLevel).index(value)
-    except ValueError:
-        return -1
-
-
-def _criterion_matches(actual: Any, expected: Any) -> bool:
-    expected_values = (
-        tuple(expected)
-        if isinstance(expected, (list, tuple, set, frozenset))
-        else (expected,)
-    )
-    actual_values = (
-        tuple(actual)
-        if isinstance(actual, (list, tuple, set, frozenset))
-        else (actual,)
-    )
-    return any(actual_value == expected_value for actual_value in actual_values for expected_value in expected_values)
-
-
-class DatasetInvariantError(RuntimeError):
-    """Stored public dataset metadata contradicts its declared invariant."""
+def _matches(actual: Any, expected: Any) -> bool:
+    if actual is _MISSING:
+        return False
+    if callable(expected):
+        return bool(expected(actual))
+    if isinstance(expected, _MULTI):
+        options = tuple(expected)
+        if isinstance(actual, _MULTI):
+            return any(item in options for item in actual)
+        return actual in options
+    if isinstance(actual, _MULTI):
+        return expected in actual
+    return actual == expected
 
 
 class IdentifierIndex:
-    """A dynamic record index for one external-identifier namespace."""
+    """Dataset-specific identifier lookup, e.g. ``dataset.CSD_identifier[x]``."""
 
-    def __init__(self, dataset: "Dataset", namespace: str, public_name: str) -> None:
-        self.dataset = dataset
-        self.namespace = namespace
-        self.public_name = public_name
+    def __init__(self, dataset: "Dataset", namespace: str) -> None:
+        self._dataset = dataset
+        self._namespace = namespace
 
-    def getall(self, value: str) -> "Dataset":
-        connection = self.dataset._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT DISTINCT re.record_id FROM external_identifiers x
-                JOIN record_entities re ON re.entity_id=x.entity_id
-                JOIN records rec ON rec.record_id=re.record_id
-                WHERE rec.release_id=? AND x.namespace=? AND x.value=?
-                ORDER BY re.record_id""",
-                (self.dataset.release_id, self.namespace, value),
-            ).fetchall()
-        finally:
-            connection.close()
-        wanted = {row["record_id"] for row in rows}
-        return self.dataset._select(
-            data for data in self.dataset if data.record_id in wanted
-        )
-
-    def __getitem__(self, value: str) -> Union["Data", "Dataset"]:
-        matches = self.getall(value)
+    def __getitem__(self, value: str) -> Union[Data, Dataset]:
+        matches = [
+            item
+            for item in self._dataset
+            if value in _identifier_values(item.identifiers.get(self._namespace))
+        ]
         if not matches:
             raise KeyError(value)
-        return matches[0] if len(matches) == 1 else matches
-
-    def __iter__(self) -> Iterator[str]:
-        visible = {data.record_id for data in self.dataset}
-        connection = self.dataset._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT DISTINCT x.value,re.record_id FROM external_identifiers x
-                JOIN record_entities re ON re.entity_id=x.entity_id
-                JOIN records rec ON rec.record_id=re.record_id
-                WHERE rec.release_id=? AND x.namespace=? ORDER BY x.value""",
-                (self.dataset.release_id, self.namespace),
-            ).fetchall()
-        finally:
-            connection.close()
-        yield from sorted({row["value"] for row in rows if row["record_id"] in visible})
-
-    def __len__(self) -> int:
-        return sum(1 for _ in self)
-
-    def __repr__(self) -> str:
-        return f"IdentifierIndex({self.public_name!r}, count={len(self)})"
+        if len(matches) == 1:
+            return matches[0]
+        return self._dataset._select_ids(item.record_id for item in matches)
 
 
 class Dataset(Sequence["Data"]):
-    """One immutable dataset release, optionally narrowed to a record view."""
+    """One immutable stored release or filtered view of that release."""
 
     def __init__(
         self,
-        store,
-        dataset_row: Mapping[str, Any],
-        release_row: Mapping[str, Any],
-        version_serial: int,
-        records: Sequence[Tuple[int, Mapping[str, Any]]],
+        store: Any,
+        dataset_info: Mapping[str, Any],
+        release: Mapping[str, Any],
+        headers: Iterable[Mapping[str, Any]],
+        *,
+        archive_classes: Iterable[str],
     ) -> None:
         self._store = store
-        self._dataset_row = dict(dataset_row)
-        self._release_row = dict(release_row)
-        self._version_serial = version_serial
-        self._records = tuple((index, dict(row)) for index, row in records)
+        self._dataset_info = deepcopy(dict(dataset_info))
+        self._release = deepcopy(dict(release))
+        self._headers = tuple(deepcopy(dict(item)) for item in headers)
+        self._archive_classes = frozenset(archive_classes)
 
     @property
     def name(self) -> str:
-        return self._dataset_row["dataset_id"]
+        return str(self._dataset_info["dataset"])
 
     @property
     def dataset_id(self) -> str:
@@ -131,460 +87,301 @@ class Dataset(Sequence["Data"]):
 
     @property
     def release_id(self) -> str:
-        return self._release_row["release_id"]
+        return str(self._release["release"])
 
     @property
     def version(self) -> str:
-        return self._release_row["version"]
+        return str(self._release["version"])
 
     @property
     def version_serial(self) -> int:
-        return self._version_serial
+        return int(self._release["release_serial"])
 
     @property
-    def quality_level(self) -> str:
-        return self._release_row["quality_level"]
-
-    def __len__(self) -> int:
-        return len(self._records)
-
-    @cached_property
-    def _items(self) -> Tuple["Data", ...]:
-        return tuple(Data(self, index, row) for index, row in self._records)
-
-    def __iter__(self) -> Iterator["Data"]:
-        return iter(self._items)
-
-    def __getitem__(self, index: Union[int, slice]) -> Union["Data", "Dataset"]:
-        if isinstance(index, slice):
-            return Dataset(
-                self._store,
-                self._dataset_row,
-                self._release_row,
-                self._version_serial,
-                self._records[index],
-            )
-        return self._items[index]
-
-    def __repr__(self) -> str:
-        return f"Dataset(name={self.name!r}, version={self.version!r}, size={len(self)})"
-
-    def _select(self, items: Iterable[Union["Data", str, int]]) -> "Dataset":
-        selected: List[Tuple[int, Mapping[str, Any]]] = []
-        by_record = {row["record_id"]: (index, row) for index, row in self._records}
-        by_index = {index: (index, row) for index, row in self._records}
-        seen = set()
-        for item in items:
-            if isinstance(item, Data):
-                key = item.record_id
-                candidate = by_record.get(key)
-            elif isinstance(item, int):
-                candidate = by_index.get(item)
-            else:
-                candidate = by_record.get(item)
-            if candidate is not None and candidate[0] not in seen:
-                seen.add(candidate[0])
-                selected.append(candidate)
-        return Dataset(
-            self._store,
-            self._dataset_row,
-            self._release_row,
-            self._version_serial,
-            selected,
-        )
-
-    def _filtered(self, predicate: Callable[["Data"], bool]) -> "Dataset":
-        return self._select(data for data in self if predicate(data))
-
-    @cached_property
-    def _labels_by_record(self) -> Dict[str, Dict[str, Any]]:
-        connection = self._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT o.record_id,o.property_type_id,o.value_json FROM observations o
-                JOIN records rec ON rec.record_id=o.record_id
-                WHERE rec.release_id=? AND o.status='active'
-                ORDER BY o.record_id,o.observation_id""",
-                (self.release_id,),
-            ).fetchall()
-        finally:
-            connection.close()
-        grouped: Dict[str, Dict[str, List[Any]]] = defaultdict(lambda: defaultdict(list))
-        for row in rows:
-            grouped[row["record_id"]][row["property_type_id"]].append(
-                _json(row["value_json"])
-            )
-        return {
-            record_id: {
-                name: values[0] if len(values) == 1 else values
-                for name, values in labels.items()
-            }
-            for record_id, labels in grouped.items()
-        }
-
-    @cached_property
-    def labels(self) -> Dict[str, int]:
-        visible = {row["record_id"] for _, row in self._records}
-        counts: Counter = Counter()
-        for record_id, labels in self._labels_by_record.items():
-            if record_id in visible:
-                counts.update(labels.keys())
-        return {
-            label: count for label, count in sorted(counts.items())
-        }
-
-    @cached_property
-    def _identifiers_by_record(self) -> Dict[str, Dict[str, Any]]:
-        connection = self._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT re.record_id,x.namespace,x.value
-                FROM external_identifiers x JOIN record_entities re USING(entity_id)
-                JOIN records rec USING(record_id) WHERE rec.release_id=?
-                ORDER BY re.record_id,x.namespace,x.value""",
-                (self.release_id,),
-            ).fetchall()
-        finally:
-            connection.close()
-        grouped: Dict[str, Dict[str, List[str]]] = defaultdict(lambda: defaultdict(list))
-        for row in rows:
-            values = grouped[row["record_id"]][row["namespace"]]
-            if row["value"] not in values:
-                values.append(row["value"])
-        return {
-            record_id: {
-                namespace: values[0] if len(values) == 1 else values
-                for namespace, values in identifiers.items()
-            }
-            for record_id, identifiers in grouped.items()
-        }
-
-    @cached_property
-    def _quality_by_record(self) -> Dict[str, str]:
-        levels: Dict[str, List[str]] = {
-            row["record_id"]: [self.quality_level] for _, row in self._records
-        }
-        connection = self._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT m.record_id,s.quality_level FROM subset_memberships m
-                JOIN subsets s USING(subset_id) WHERE s.release_id=?""",
-                (self.release_id,),
-            ).fetchall()
-        finally:
-            connection.close()
-        for row in rows:
-            if row["record_id"] in levels:
-                levels[row["record_id"]].append(row["quality_level"])
-        return {
-            record_id: max(values, key=_level_rank)
-            for record_id, values in levels.items()
-        }
-
-    @cached_property
-    def _evidence_by_record(self) -> Dict[str, str]:
-        levels: Dict[str, List[str]] = {
-            row["record_id"]: [] for _, row in self._records
-        }
-        connection = self._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT o.record_id,o.evidence_level FROM observations o
-                JOIN records rec USING(record_id)
-                WHERE rec.release_id=? AND o.status='active'
-                UNION ALL
-                SELECT c.record_id,c.evidence_level FROM claims c
-                JOIN records rec USING(record_id)
-                WHERE rec.release_id=? AND c.status!='rejected'""",
-                (self.release_id, self.release_id),
-            ).fetchall()
-        finally:
-            connection.close()
-        for row in rows:
-            if row["record_id"] in levels:
-                levels[row["record_id"]].append(row["evidence_level"])
-        return {
-            record_id: min(values, key=_evidence_rank)
-            if values
-            else EvidenceLevel.E0.value
-            for record_id, values in levels.items()
-        }
-
-    @cached_property
-    def core_labels(self) -> List[str]:
-        core = list(self._release_row["core_labels"])
-        incomplete = [name for name in core if self.labels.get(name, 0) != len(self)]
-        if incomplete:
-            raise DatasetInvariantError(
-                f"release {self.release_id!r} declares incomplete core labels: {incomplete}"
-            )
-        return core
-
-    @cached_property
-    def handle(self) -> List[str]:
-        visible = {row["record_id"] for _, row in self._records}
-        connection = self._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT o.record_id,s.source_id,s.citation,s.doi
-                FROM observations o JOIN observation_evidence oe USING(observation_id)
-                JOIN evidence_items ev USING(evidence_id) JOIN sources s USING(source_id)
-                JOIN records rec ON rec.record_id=o.record_id WHERE rec.release_id=?
-                UNION ALL
-                SELECT c.record_id,s.source_id,s.citation,s.doi
-                FROM claims c JOIN claim_evidence ce USING(claim_id)
-                JOIN evidence_items ev USING(evidence_id) JOIN sources s USING(source_id)
-                JOIN records rec ON rec.record_id=c.record_id WHERE rec.release_id=?""",
-                (self.release_id, self.release_id),
-            ).fetchall()
-        finally:
-            connection.close()
-        return sorted(
-            {
-                row["doi"] or row["citation"]
-                for row in rows
-                if row["record_id"] in visible
-            }
-        )
-
-    @cached_property
-    def identifier_namespaces(self) -> Tuple[str, ...]:
-        connection = self._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT DISTINCT x.namespace FROM external_identifiers x
-                JOIN record_entities re ON re.entity_id=x.entity_id
-                JOIN records rec ON rec.record_id=re.record_id
-                WHERE rec.release_id=? ORDER BY x.namespace""",
-                (self.release_id,),
-            ).fetchall()
-        finally:
-            connection.close()
-        return tuple(row["namespace"] for row in rows)
-
-    def _identifier_namespace(self, public_prefix: str) -> Optional[str]:
-        public_name = f"{public_prefix}_identifier"
-        canonical = [
-            namespace
-            for namespace in self.identifier_namespaces
-            if namespace.lower() == public_name.lower()
-        ]
-        if canonical:
-            return canonical[0]
-        exact = [
-            namespace
-            for namespace in self.identifier_namespaces
-            if namespace.lower() == public_prefix.lower()
-        ]
-        if exact:
-            return exact[0]
-        matches = [
-            namespace
-            for namespace in self.identifier_namespaces
-            if namespace.lower().startswith(public_prefix.lower() + "_")
-        ]
-        return matches[0] if len(matches) == 1 else None
-
-    def __getattr__(self, name: str):
-        if name.endswith("_identifier"):
-            prefix = name[: -len("_identifier")]
-            namespace = self._identifier_namespace(prefix)
-            if namespace is not None:
-                return IdentifierIndex(self, namespace, name)
-        raise AttributeError(name)
-
-    def __dir__(self) -> List[str]:
-        dynamic = {
-            f"{namespace.split('_', 1)[0]}_identifier"
-            for namespace in self.identifier_namespaces
-        }
-        return sorted(set(super().__dir__()).union(dynamic))
-
-    def subset(self, **criteria: Any) -> "Dataset":
-        """Return records matching every criterion; collection values mean ``IN``."""
-        def matches(data: "Data") -> bool:
-            for field, expected in criteria.items():
-                actual = data._lookup(field)
-                if actual is _MISSING or not _criterion_matches(actual, expected):
-                    return False
-            return True
-
-        return self._filtered(matches)
-
-    @cached_property
     def info(self) -> Dict[str, Any]:
         return {
             "name": self.name,
-            "title": self._dataset_row["title"],
-            "description": self._dataset_row["description"],
+            "dataset_id": self.dataset_id,
             "release_id": self.release_id,
             "version": self.version,
-            "version_serial": f"{self.version_serial:03d}",
+            "version_serial": self.version_serial,
+            "title": self._dataset_info["title"],
+            "description": self._dataset_info["description"],
+            "metadata": deepcopy(self._dataset_info.get("metadata", {})),
+            "release_metadata": deepcopy(self._release.get("metadata", {})),
             "size": len(self),
-            "quality_level": self.quality_level,
-            "license": self._release_row["license"],
-            "access_policy": self._release_row["access_policy"],
-            "core_labels": self.core_labels,
-            "labels": self.labels,
+            "archive_classes": sorted(self._archive_classes),
             "handle": self.handle,
+            "labels": self.labels,
+            "core_labels": self.core_labels,
+            "quality_levels": self.quality_levels,
+            "evidence_levels": self.evidence_levels,
             "identifier_namespaces": list(self.identifier_namespaces),
-            "provenance": self._release_row["provenance"],
-            "quality": self._release_row["quality"],
         }
+
+    @property
+    def handle(self) -> list[str]:
+        metadata = self._release.get("metadata", {})
+        provenance = metadata.get("provenance", {})
+        values = []
+        for key in ("doi", "url", "citation", "repository"):
+            raw = provenance.get(key)
+            if raw:
+                values.extend(raw if isinstance(raw, list) else [raw])
+        return [str(item) for item in values]
+
+    @property
+    def labels(self) -> Dict[str, int]:
+        counts: Counter[str] = Counter()
+        for data in self:
+            counts.update(data.label.keys())
+        return dict(sorted(counts.items()))
+
+    @property
+    def core_labels(self) -> list[str]:
+        return list(self._release.get("metadata", {}).get("core_labels", []))
+
+    @property
+    def quality_levels(self) -> Dict[str, int]:
+        return dict(
+            sorted(Counter(item.get("quality_level") for item in self._headers).items())
+        )
+
+    @property
+    def evidence_levels(self) -> Dict[str, int]:
+        return dict(
+            sorted(
+                Counter(
+                    item.get("evidence_level") or "not_applicable"
+                    for item in self._headers
+                ).items()
+            )
+        )
+
+    @property
+    def identifier_namespaces(self) -> tuple[str, ...]:
+        names = set()
+        for data in self:
+            names.update(data.identifiers)
+        return tuple(sorted(names))
+
+    def __len__(self) -> int:
+        return len(self._headers)
+
+    def __iter__(self) -> Iterator[Data]:
+        return (self._data(item) for item in self._headers)
+
+    def __getitem__(self, index: Union[int, slice]) -> Union[Data, Dataset]:
+        if isinstance(index, slice):
+            return self._with_headers(self._headers[index])
+        return self._data(self._headers[index])
+
+    def __getattr__(self, name: str) -> IdentifierIndex:
+        if name.startswith("_"):
+            raise AttributeError(name)
+        suffix = "_identifier"
+        if name.endswith(suffix):
+            namespace = name[: -len(suffix)]
+            if namespace in self.identifier_namespaces:
+                return IdentifierIndex(self, namespace)
+        raise AttributeError(name)
+
+    def subset(self, **criteria: Any) -> Dataset:
+        selected = []
+        for header in self._headers:
+            data = self._data(header)
+            if all(
+                _matches(_criterion_value(data, field), expected)
+                for field, expected in criteria.items()
+            ):
+                selected.append(header)
+        return self._with_headers(selected)
+
+    def _data(self, header: Mapping[str, Any]) -> Data:
+        return Data(
+            self,
+            self._store.get_case(self.name, self.release_id, str(header["id"])),
+        )
+
+    def _with_headers(self, headers: Iterable[Mapping[str, Any]]) -> Dataset:
+        return Dataset(
+            self._store,
+            self._dataset_info,
+            self._release,
+            headers,
+            archive_classes=self._archive_classes,
+        )
+
+    def _select_ids(self, case_ids: Iterable[str]) -> Dataset:
+        wanted = set(case_ids)
+        return self._with_headers(
+            item for item in self._headers if item["id"] in wanted
+        )
+
+    def _select(self, data: Iterable[Data]) -> Dataset:
+        return self._select_ids(item.record_id for item in data)
+
+    def _filtered(self, predicate: Any) -> Dataset:
+        return self._select(item for item in self if predicate(item))
+
+    def __repr__(self) -> str:
+        return (
+            f"Dataset(name={self.name!r}, version={self.version!r}, "
+            f"size={len(self)})"
+        )
 
 
 class Data:
-    """One record in a :class:`Dataset` release."""
+    """One immutable stored Case projected into the concise read API."""
 
-    def __init__(self, dataset: Dataset, index: int, row: Mapping[str, Any]) -> None:
+    def __init__(self, dataset: Dataset, value: Mapping[str, Any]) -> None:
         self.dataset = dataset
-        self._row = dict(row)
-        self.index = int(self._row.get("public_index", index))
+        self._value = deepcopy(dict(value))
+        self._structures = Structures(self)
 
     @property
     def id(self) -> str:
-        return f"hp-{self.dataset.name}[{self.dataset.version_serial:03d}]-{self.index}"
+        return (
+            f"hp-{self.dataset.name}[{self.dataset.version_serial:03d}]-"
+            f"{self._value['public_index']}"
+        )
 
     @property
     def record_id(self) -> str:
-        return self._row["record_id"]
+        return str(self._value["id"])
 
     @property
     def local_id(self) -> str:
-        return self._row["local_id"]
+        return str(self._value["local_id"])
 
     @property
     def metadata(self) -> Dict[str, Any]:
-        return self._row["metadata"]
+        return deepcopy(self._value["facts"].get("metadata", {}))
+
+    @property
+    def identifiers(self) -> Dict[str, Any]:
+        grouped: Dict[str, list[str]] = {}
+        for item in self._value.get("identifiers", []):
+            grouped.setdefault(str(item["namespace"]), []).append(str(item["value"]))
+        return {
+            key: values[0] if len(values) == 1 else values
+            for key, values in grouped.items()
+        }
+
+    @property
+    def entities(self) -> list[Dict[str, Any]]:
+        return deepcopy(self._value["facts"].get("entities", []))
+
+    @property
+    def label(self) -> Dict[str, Any]:
+        labels = self._value["facts"].get("labels")
+        if isinstance(labels, dict):
+            return deepcopy(labels)
+        result: Dict[str, Any] = {}
+        for item in self._value["facts"].get("observations", []):
+            if item.get("status", "active") != "active":
+                continue
+            name = item.get("property") or item.get("property_type_id")
+            if name is None:
+                continue
+            value = deepcopy(item.get("value"))
+            if name in result:
+                result[name] = (
+                    result[name] + [value]
+                    if isinstance(result[name], list)
+                    else [result[name], value]
+                )
+            else:
+                result[name] = value
+        return result
+
+    @property
+    def quality_level(self) -> str:
+        return str(self._value["assessment"]["quality_level"])
+
+    @property
+    def evidence_level(self) -> Optional[str]:
+        return self._value["assessment"].get("evidence_level")
+
+    @property
+    def archive_class(self) -> str:
+        return str(self._value["assessment"]["archive_class"])
+
+    @property
+    def info(self) -> Dict[str, Any]:
+        target_structures = []
+        for item in self._value.get("structures", []):
+            structure = deepcopy(dict(item))
+            structure["path"] = str(structure["path"])
+            target_structures.append(structure)
+        return {
+            "id": self.id,
+            "record_id": self.record_id,
+            "local_id": self.local_id,
+            "dataset": self.dataset.name,
+            "release_id": self.dataset.release_id,
+            "metadata": self.metadata,
+            "facts": deepcopy(self._value["facts"]),
+            "labels": self.label,
+            "identifiers": self.identifiers,
+            "entities": self.entities,
+            "structures": target_structures,
+            "quality_level": self.quality_level,
+            "evidence_level": self.evidence_level,
+            "archive_class": self.archive_class,
+            "assessment": deepcopy(self._value["assessment"]),
+        }
+
+    @property
+    def structures(self) -> Structures:
+        return self._structures
+
+    @property
+    def molecule(self):
+        molecule = self.structures.molecule()
+        attachment = "ds_data" if hasattr(molecule, "data") else "data"
+        setattr(molecule, attachment, self)
+        return molecule
+
+    @property
+    def crystal(self):
+        molecule = self.molecule
+        crystal = getattr(molecule, "crystal", None)
+        if crystal is None:
+            from .structures import CrystalStructureUnavailableError
+
+            raise CrystalStructureUnavailableError(
+                f"data {self.id} has no loadable crystal information"
+            )
+        attachment = "ds_data" if hasattr(crystal, "data") else "data"
+        setattr(crystal, attachment, self)
+        return crystal
 
     def __repr__(self) -> str:
         return f"Data(id={self.id!r}, local_id={self.local_id!r})"
 
-    @cached_property
-    def label(self) -> Dict[str, Any]:
-        return dict(self.dataset._labels_by_record.get(self.record_id, {}))
 
-    @cached_property
-    def identifiers(self) -> Dict[str, Any]:
-        return dict(self.dataset._identifiers_by_record.get(self.record_id, {}))
-
-    @cached_property
-    def entities(self) -> List[Dict[str, Any]]:
-        connection = self.dataset._store._connect()
-        try:
-            rows = connection.execute(
-                """SELECT e.entity_id,e.entity_kind,e.parent_entity_id,e.metadata_json,re.role
-                FROM record_entities re JOIN entities e USING(entity_id)
-                WHERE re.record_id=? ORDER BY re.role,e.entity_id""",
-                (self.record_id,),
-            ).fetchall()
-        finally:
-            connection.close()
-        return [
-            {
-                "entity_id": row["entity_id"],
-                "entity_kind": row["entity_kind"],
-                "parent_entity_id": row["parent_entity_id"],
-                "role": row["role"],
-                "metadata": _json(row["metadata_json"]),
-            }
-            for row in rows
-        ]
-
-    @cached_property
-    def quality_level(self) -> str:
-        return self.dataset._quality_by_record[self.record_id]
-
-    @cached_property
-    def evidence_level(self) -> str:
-        return self.dataset._evidence_by_record[self.record_id]
-
-    @cached_property
-    def structures(self) -> Structures:
-        return Structures(self)
-
-    @property
-    def molecule(self):
-        return self.structures.load_molecule()
-
-    @property
-    def crystal(self):
-        return self.structures.load_crystal()
-
-    def _lookup(self, field: str) -> Any:
-        if field == "id":
-            return self.id
-        if field == "record_id":
-            return self.record_id
-        if field == "local_id":
-            return self.local_id
-        if field == "quality_level":
-            return self.quality_level
-        if field == "evidence_level":
-            return self.evidence_level
-        if field in self.dataset.labels:
-            return self.label.get(field, _MISSING)
-        if field in self.metadata:
-            return self.metadata[field]
-        if field in self.dataset.identifier_namespaces:
-            return self.identifiers.get(field, _MISSING)
-        if field.endswith("_identifier"):
-            namespace = self.dataset._identifier_namespace(field[: -len("_identifier")])
-            if namespace is not None:
-                return self.identifiers.get(namespace, _MISSING)
-        current: Any = self.info
-        for part in field.replace("__", ".").split("."):
-            if not isinstance(current, Mapping) or part not in current:
-                return _MISSING
-            current = current[part]
-        return current
-
-    @cached_property
-    def info(self) -> Dict[str, Any]:
-        connection = self.dataset._store._connect()
-        try:
-            observation_ids = [
-                row["observation_id"]
-                for row in connection.execute(
-                    "SELECT observation_id FROM observations WHERE record_id=? ORDER BY observation_id",
-                    (self.record_id,),
-                )
-            ]
-            claim_ids = [
-                row["claim_id"]
-                for row in connection.execute(
-                    "SELECT claim_id FROM claims WHERE record_id=? ORDER BY claim_id",
-                    (self.record_id,),
-                )
-            ]
-        finally:
-            connection.close()
-        observations = [
-            self.dataset._store.get_observation(identity) for identity in observation_ids
-        ]
-        claims = [self.dataset._store.get_claim(identity) for identity in claim_ids]
-        return {
-            "id": self.id,
-            "dataset": self.dataset.name,
-            "dataset_version": self.dataset.version,
-            "record_id": self.record_id,
-            "local_id": self.local_id,
-            "quality_level": self.quality_level,
-            "evidence_level": self.evidence_level,
-            "label": self.label,
-            "labels": self.label,
-            "identifiers": self.identifiers,
-            "metadata": self.metadata,
-            "entities": self.entities,
-            "structures": self.structures.info,
-            "observations": observations,
-            "claims": claims,
-        }
+def _identifier_values(value: Any) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, list):
+        return tuple(str(item) for item in value)
+    return (str(value),)
 
 
-__all__ = [
-    "Data",
-    "Dataset",
-    "DatasetInvariantError",
-    "IdentifierIndex",
-]
+def _criterion_value(data: Data, field: str) -> Any:
+    value = _value_at(data.info, field)
+    if value is not _MISSING or "." in field or "__" in field:
+        return value
+    for mapping in (
+        data.label,
+        data.metadata,
+        data.identifiers,
+        data._value["facts"].get("core_info", {}),
+    ):
+        if field in mapping:
+            return mapping[field]
+    return _MISSING
+
+
+__all__ = ["Data", "Dataset"]

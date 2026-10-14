@@ -8,6 +8,7 @@ dataset views and third-party adapters without introducing an import cycle.
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from types import MappingProxyType
+from typing import Any
 
 
 __all__ = [
@@ -43,7 +44,7 @@ def _resolve_path(value, path):
     if exact is not _MISSING:
         return exact
 
-    parts = path.split(".") if "." in path else path.split("__")
+    parts = path.replace("__", ".").split(".")
     current = value
     for part in parts:
         current = _step(current, part)
@@ -200,7 +201,7 @@ def _as_candidates(target):
 class _FieldSearcher(BaseSearcher):
     """Shared field-query implementation for public data containers."""
 
-    def __init__(self, **criteria):
+    def __init__(self, **criteria: Any):
         self._criteria = MappingProxyType(dict(criteria))
 
     @property
@@ -238,7 +239,7 @@ class SmartsSearcher(BaseSearcher):
 
     scope = "data"
 
-    def __init__(self, smarts, *, semantics=None):
+    def __init__(self, smarts: str, *, semantics=None):
         from hotpot.cheminfo.search import Searcher, Substructure
 
         self.smarts = smarts

@@ -801,7 +801,7 @@ Planned:
 Performed:
 
 - froze the complete 19-producer inventory and its allowed consumer edges;
-- required the four fields `protocol`, `schema_sha256`, `key`, and `payload`
+- required the four fields `key`, `channel`, `protocol_sha256`, and `payload`
   on every envelope;
 - bound both emission and ingestion to the shipped closed payload schema; and
 - rejected undeclared keys, channels, consumers, fields, and schema bytes.
@@ -924,6 +924,137 @@ Necessary adjustment and final decision:
   limitation rather than claiming an unperformed artifact test. Final source
   and installed-CLI tests remain separate gates.
 
+### Step 25 — Verify sealed releases against frozen governance
+
+Status: complete
+
+Planned:
+
+- keep a sealed release immutable and verifiable after the trusted governance
+  registry advances, while preserving exact-receipt retry.
+
+Performed:
+
+- separated draft synchronization against live governance from sealed
+  verification against the receipt-bound generation;
+- removed the receipt-to-synchronization recursion;
+- reported newer governance as context without rewriting historical results;
+  and
+- made a valid exact receipt eligible for idempotent `ingest()` retry.
+
+Verification:
+
+- independent Bundle/BundleState/certificate/storage/Case slice: `51 passed`.
+
+Unexpected finding:
+
+- receipt verification called `_require_generation()`, which consulted live
+  governance and then called receipt verification again. A registry advance
+  could therefore make an intact sealed release appear corrupt.
+
+Necessary adjustment and final decision:
+
+- sealed integrity uses frozen source, policy, governance, generation,
+  certificate, and receipt bindings directly. Live governance is reported by
+  `governance_update_available` and affects only a successor release.
+
+### Step 26 — Make documentation assertions current-only
+
+Status: complete
+
+Planned:
+
+- test the documented eleven-name facade and every exposed CLI family.
+
+Performed:
+
+- removed assertions for the deleted `store` and Python `detail` APIs;
+- aligned heading/order checks with the new concise reference; and
+- documented current-store `detail` diagnostics as CLI-only TargetStore views.
+
+Verification:
+
+- documentation and CLI-help slice: `30 passed`.
+
+Unexpected finding:
+
+- the documentation test itself still required the obsolete public API and a
+  `python -m` fallback even after the formal documentation had been replaced.
+
+Necessary adjustment and final decision:
+
+- tests now enforce the current installed `hotpot ds` interface and distinguish
+  its diagnostic `detail` command from the removed Python package.
+
+### Step 27 — Make property policy executable
+
+Status: complete
+
+Planned:
+
+- persist the dataset's scientific property/context comparison contract and
+  use it for observation validation and conflict decisions.
+
+Performed:
+
+- added closed property definitions for type, unit, schema, vocabulary,
+  normalization, and comparison context;
+- added exact, categorical, and numeric comparators with tolerances,
+  uncertainty handling, and auditable linear unit conversions;
+- rejected invalid observations during intake and Case mutation;
+- bound comparator context and digest into conflict results; and
+- required an established dataset's later releases to use the exact persisted
+  definitions and comparators.
+
+Verification:
+
+- independent lifecycle/property/query/public-API slice: `72 passed`.
+
+Unexpected finding:
+
+- `property_definitions` had previously been accepted but ignored, and
+  `property_comparators` were persisted but conflict comparison used only a
+  BenchmarkGate tolerance. The apparent scientific policy was inert.
+
+Necessary adjustment and final decision:
+
+- property policy is now a real dataset policy. Different or missing required
+  context becomes noncomparable or indeterminate, never a fabricated
+  scientific conflict. Benchmark tolerances are only a documented fallback
+  when no property comparator exists.
+
+### Step 28 — Separate source audit facts from derived grades
+
+Status: complete
+
+Planned:
+
+- retain the CSD source audit and owner decisions without allowing them to
+  assign operative B/E or benchmark results.
+
+Performed:
+
+- replaced suffixed legacy grade assignments with record-kind and
+  support-status recommendations;
+- marked owner adjudications as preserved claims, evidence, or descriptors;
+  and
+- added Bundle and target-asset directories to the canonical local layout.
+
+Verification:
+
+- source-tool/layout/documentation slice: `15 passed`;
+- full 248,315-entry source audit completed without legacy suffixed grades.
+
+Unexpected finding:
+
+- an otherwise current source-quality tool still emitted release-level legacy
+  grades, which would compete with Case-level Gate assessment.
+
+Necessary adjustment and final decision:
+
+- source tools report facts and recommended record kinds only. B/E and
+  benchmark state are derived for one exact Bundle generation.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -934,4 +1065,5 @@ Necessary adjustment and final decision:
 | 4 | Steps 11–14: configured assessment, governance CAS, certificate envelope, target ownership | `ffbc244..87599f3` | configured Gate slice `36 passed`; Bundle-state flow `31 passed`; certificate/storage slice `20 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 5 | Steps 15–17: stable asset snapshots, complete Bundle lifecycle, identity-policy intake | `db5b4de..4a0d59f` | generation `12 passed`; Bundle lifecycle `27 passed`; BundleState `19 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 6 | Steps 18–20: query API, atomic Case edits, facade/identifier closure | `5242694..5bbfcc6` | query integration `18 passed`; mutation slice `39 passed, 1 skipped`; facade/storage/query `18 passed` | pushed to `origin/refactor/unified-dataset-management` |
-| 7 | Steps 21–24: protocol, current CLI, formal documentation, package resources | `c83d661..d0052bb` plus log commit | independent CLI slice `41 passed`; handoff `45 passed`; docs `32 passed`; package declarations verified | pending push |
+| 7 | Steps 21–24: protocol, current CLI, formal documentation, package resources | `c83d661..798b840` | independent CLI slice `41 passed`; handoff `45 passed`; docs `32 passed`; package declarations verified | pushed to `origin/refactor/unified-dataset-management` |
+| 8 | Steps 25–28: sealed governance, documentation assertions, property policy, source-audit boundary | `b5ba161..bf04624` plus log commit | lifecycle/property `72 passed`; sealed slice `51 passed`; docs/help `30 passed`; source metadata `15 passed` | pending push |

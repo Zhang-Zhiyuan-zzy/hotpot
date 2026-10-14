@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 from pathlib import Path
 
@@ -9,8 +10,10 @@ import pytest
 
 from hotpot.ds.gates._persistence import default_gates, serialize_gate_configs
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
+from hotpot.ds.public import _generation as generation_module
 from hotpot.ds.public._generation import (
     AssessmentGeneration,
+    AssetSourceChangedError,
     GenerationIntegrityError,
     _assess_conflicts,
     _initialize_assessment_database,
@@ -498,3 +501,54 @@ def test_large_conflict_group_is_streamed_and_case_lookup_uses_primary_index() -
     )
     assert "conflict_case_links" in case_lookup_plan
     assert "case_id=?" in case_lookup_plan
+
+
+def test_asset_snapshot_rejects_a_b_a_change_between_hash_and_parse(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = tmp_path / "structure.smi"
+    source.write_text("O\n", encoding="utf-8")
+    original_mtime = source.stat().st_mtime_ns
+    snapshots = tmp_path / "snapshots"
+    snapshots.mkdir()
+    parsed = {}
+
+    def mutate_source_while_parsing(snapshot: Path, fmt: str) -> bool:
+        source.write_text("N\n", encoding="utf-8")
+        parsed["path"] = snapshot
+        parsed["bytes"] = snapshot.read_bytes()
+        parsed["format"] = fmt
+        source.write_text("O\n", encoding="utf-8")
+        os.utime(source, ns=(original_mtime, original_mtime + 1_000_000))
+        return True
+
+    monkeypatch.setattr(
+        generation_module,
+        "_structure_is_parseable",
+        mutate_source_while_parsing,
+    )
+
+    with pytest.raises(AssetSourceChangedError, match="changed"):
+        generation_module._assess_asset(
+            tmp_path,
+            {
+                "asset_id": "asset-1",
+                "case_id": "case-1",
+                "collection": "structures",
+                "record_id": "structure-1",
+                "structure_id": "structure-1",
+                "role": "primary",
+                "path": "structure.smi",
+                "format": "smi",
+                "expected_sha256": None,
+            },
+            [],
+            snapshots,
+        )
+
+    assert parsed["path"] != source
+    assert parsed["bytes"] == b"O\n"
+    assert parsed["format"] == "smi"
+    assert source.read_bytes() == b"O\n"
+    assert list(snapshots.iterdir()) == []

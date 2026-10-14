@@ -54,6 +54,10 @@ class GenerationIntegrityError(AssessmentGenerationError):
     """Raised when an immutable generation fails content verification."""
 
 
+class AssetSourceChangedError(AssessmentGenerationError):
+    """Raised when a scientific asset changes while it is being observed."""
+
+
 def _canonical_bytes(value: Any) -> bytes:
     return canonical_json(value).encode("utf-8")
 
@@ -72,6 +76,88 @@ def _sha256_path(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _stat_signature(value: os.stat_result) -> Tuple[int, ...]:
+    return (
+        value.st_dev,
+        value.st_ino,
+        value.st_mode,
+        value.st_size,
+        value.st_mtime_ns,
+        value.st_ctime_ns,
+    )
+
+
+def _path_signature(path: Path) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+    return _stat_signature(path.lstat()), _stat_signature(path.stat())
+
+
+def _stable_digest(path: Path) -> Tuple[str, Tuple[Tuple[int, ...], Tuple[int, ...]]]:
+    before = _path_signature(path)
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        opened_before = _stat_signature(os.fstat(stream.fileno()))
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+        opened_after = _stat_signature(os.fstat(stream.fileno()))
+    after = _path_signature(path)
+    if opened_before != opened_after or before != after or opened_after != after[1]:
+        raise AssetSourceChangedError(
+            "scientific asset changed while its content was being hashed"
+        )
+    return digest.hexdigest(), after
+
+
+def _snapshot_asset(
+    source_path: Path,
+    snapshot_directory: Path,
+) -> Tuple[
+    Path,
+    str,
+    Tuple[Tuple[int, ...], Tuple[int, ...]],
+    Tuple[Tuple[int, ...], Tuple[int, ...]],
+]:
+    source_before = _path_signature(source_path)
+    source_digest = hashlib.sha256()
+    descriptor, snapshot_name = tempfile.mkstemp(
+        prefix=".asset-snapshot-", dir=snapshot_directory
+    )
+    snapshot_path = Path(snapshot_name)
+    try:
+        with os.fdopen(descriptor, "wb") as target, source_path.open("rb") as source:
+            opened_before = _stat_signature(os.fstat(source.fileno()))
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                source_digest.update(chunk)
+                target.write(chunk)
+            opened_after = _stat_signature(os.fstat(source.fileno()))
+            target.flush()
+            os.fsync(target.fileno())
+        source_after = _path_signature(source_path)
+        if (
+            opened_before != opened_after
+            or source_before != source_after
+            or opened_after != source_after[1]
+        ):
+            raise AssetSourceChangedError(
+                "scientific asset changed while its snapshot was being created"
+            )
+        snapshot_digest, snapshot_signature = _stable_digest(snapshot_path)
+        if snapshot_digest != source_digest.hexdigest():
+            raise AssessmentGenerationError(
+                "scientific asset snapshot does not match the observed source bytes"
+            )
+        return snapshot_path, snapshot_digest, source_after, snapshot_signature
+    except Exception:
+        snapshot_path.unlink(missing_ok=True)
+        raise
+
+
+def _structure_is_parseable(path: Path, fmt: str) -> bool:
+    from hotpot import Molecule
+
+    molecule = Molecule.read_one(str(path), "smi" if fmt == "smiles" else fmt)
+    return bool(molecule is not None and molecule.atoms)
 
 
 def _write_fsynced(path: Path, content: bytes) -> None:
@@ -300,6 +386,7 @@ def _assess_asset(
     root: Path,
     declaration: Mapping[str, Any],
     required_roles: Sequence[str],
+    snapshot_directory: Path,
 ) -> Dict[str, Any]:
     relative_path = declaration.get("path")
     path = None
@@ -318,13 +405,6 @@ def _assess_asset(
             raise AssessmentGenerationError("asset path escapes the Bundle root") from exc
 
     present = bool(path is not None and path.is_file())
-    observed = _sha256_path(path) if present else None
-    expected = declaration.get("expected_sha256")
-    if expected is None or not present:
-        hash_result = "unchecked"
-    else:
-        hash_result = "match" if observed == expected else "mismatch"
-
     declared_format = declaration.get("format")
     fmt = str(declared_format).lower().lstrip(".") if declared_format else ""
     if not fmt and path is not None:
@@ -332,19 +412,56 @@ def _assess_asset(
     parse_result = "not_run"
     parser = None
     parse_reason = None
-    if declaration.get("collection") == "structures" and present and fmt in _PARSEABLE_FORMATS:
-        parser = "hotpot.Molecule.read_one"
+    observed = None
+    snapshot_path = None
+    if present:
         try:
-            from hotpot import Molecule
+            (
+                snapshot_path,
+                observed,
+                source_signature,
+                snapshot_signature,
+            ) = _snapshot_asset(path, snapshot_directory)
+            if (
+                declaration.get("collection") == "structures"
+                and fmt in _PARSEABLE_FORMATS
+            ):
+                parser = "hotpot.Molecule.read_one"
+                try:
+                    parse_result = (
+                        "valid"
+                        if _structure_is_parseable(snapshot_path, fmt)
+                        else "invalid"
+                    )
+                except Exception:
+                    parse_result = "invalid"
+                if parse_result == "invalid":
+                    parse_reason = "structure_parse_failed"
 
-            molecule = Molecule.read_one(
-                str(path), "smi" if fmt == "smiles" else fmt
-            )
-            parse_result = "valid" if molecule is not None and molecule.atoms else "invalid"
-        except Exception:
-            parse_result = "invalid"
-        if parse_result == "invalid":
-            parse_reason = "structure_parse_failed"
+            snapshot_after, snapshot_signature_after = _stable_digest(snapshot_path)
+            source_after, signature_after = _stable_digest(path)
+            if (
+                snapshot_after != observed
+                or snapshot_signature_after != snapshot_signature
+                or source_after != observed
+                or signature_after != source_signature
+            ):
+                raise AssetSourceChangedError(
+                    "scientific asset changed while it was being assessed"
+                )
+        except OSError as exc:
+            raise AssetSourceChangedError(
+                "scientific asset became unavailable while it was being assessed"
+            ) from exc
+        finally:
+            if snapshot_path is not None:
+                snapshot_path.unlink(missing_ok=True)
+
+    expected = declaration.get("expected_sha256")
+    if expected is None or not present:
+        hash_result = "unchecked"
+    else:
+        hash_result = "match" if observed == expected else "mismatch"
 
     reasons = []
     if not present:
@@ -471,6 +588,7 @@ def _stream_inputs(
     work: sqlite3.Connection,
     identity_schema: Mapping[str, Any],
     required_roles: Sequence[str],
+    snapshot_directory: Path,
 ) -> None:
     for source_case in state.iter_cases():
         case = _normalize_case(source_case)
@@ -505,7 +623,12 @@ def _stream_inputs(
         for collection in ("structures", "evidence"):
             for record in _active(case.get(collection, [])):
                 for declaration in _asset_declarations(case_id, collection, record):
-                    asset = _assess_asset(state.root, declaration, required_roles)
+                    asset = _assess_asset(
+                        state.root,
+                        declaration,
+                        required_roles,
+                        snapshot_directory,
+                    )
                     assessment.execute(
                         """
                         INSERT INTO asset_assessments(
@@ -892,6 +1015,7 @@ class AssessmentGeneration:
                     work,
                     identity_schema,
                     manifest["required_structure_roles"],
+                    temporary,
                 )
                 _assess_conflicts(assessment, work, tolerances)
                 _assess_cases(
@@ -1223,5 +1347,6 @@ class AssessmentGeneration:
 __all__ = [
     "AssessmentGeneration",
     "AssessmentGenerationError",
+    "AssetSourceChangedError",
     "GenerationIntegrityError",
 ]

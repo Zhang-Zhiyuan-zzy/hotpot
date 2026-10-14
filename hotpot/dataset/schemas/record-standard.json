@@ -41,7 +41,7 @@
     "rules": [
       "ds_name is required and dataset_id, when present, must equal ds_name.",
       "core_labels and core_info are explicit lists and may be empty.",
-      "required_structure_roles is explicit and may be empty.",
+      "required_structure_roles is explicit and may be empty. The reserved value '*' requires at least one active Structure with a present, hash-valid, parse-valid representation regardless of role; every named value independently requires that role.",
       "identity_schema contains only identity-bearing components; core_info is not automatically an identity key.",
       "intake declares exactly one JSON Lines or SQLite Case source by a safe Bundle-relative path.",
       "A Bundle represents exactly one release and binds one canonical target store."

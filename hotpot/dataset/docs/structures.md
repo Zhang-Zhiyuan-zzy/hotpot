@@ -47,6 +47,13 @@ role. A Structure can declare one or more root-relative representations such as
 SMI, MOL2, XYZ, or CIF. Multi-structure records retain all roles; neither query
 nor conversion silently substitutes a different variant.
 
+`bundle.json.required_structure_roles` lists scientific roles that every Case
+must provide. The reserved value `"*"` instead requires at least one active
+Structure with a present, hash-valid, parse-valid representation, regardless of
+its role. It may be combined with named roles; each named role remains an
+independent requirement. An empty list means that the dataset does not require
+a Structure.
+
 After ingestion, positive asset bytes live in target-owned content-addressed
 storage:
 

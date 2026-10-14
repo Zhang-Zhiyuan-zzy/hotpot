@@ -158,3 +158,77 @@ def test_user_approval_alone_admits_complete_case():
     )
     assert result["archive_class"] == "benchmark"
     assert result["benchmark_status"] == "admitted"
+
+
+def _assess_with_any_structure(case, asset_assessments):
+    return assess_case(
+        case,
+        core_labels=["oxidation_state"],
+        core_info=["phase"],
+        required_structure_roles=["*"],
+        asset_assessments=asset_assessments,
+        conflicting=False,
+        benchmark_policy=BenchmarkGate().info,
+    )
+
+
+def test_any_structure_requirement_rejects_missing_structure():
+    result = _assess_with_any_structure(_case(), [])
+
+    assert result["archive_class"] == "incomplete"
+    declared_role = result["gate_results"]["structure"]["declared_role_valid"]
+    assert declared_role["passed"] is False
+    assert any(
+        reason["code"] == "missing_required_structure"
+        and reason["details"]["role"] == "*"
+        for reason in result["reasons"]
+    )
+
+
+def test_any_structure_requirement_rejects_invalid_representation():
+    case = _case()
+    case["structures"] = [{"structure_id": "s1", "role": "reported"}]
+    result = _assess_with_any_structure(
+        case,
+        [
+            {
+                "structure_id": "s1",
+                "presence": "present",
+                "hash_result": "match",
+                "parse_result": "invalid",
+            }
+        ],
+    )
+
+    assert result["archive_class"] == "incomplete"
+    declared_role = result["gate_results"]["structure"]["declared_role_valid"]
+    assert declared_role["passed"] is False
+    assert any(
+        reason["code"] == "invalid_required_structure"
+        and reason["details"]["role"] == "*"
+        for reason in result["reasons"]
+    )
+
+
+def test_any_structure_requirement_accepts_valid_representation_for_any_role():
+    case = _case()
+    case["structures"] = [{"structure_id": "s1", "role": "optimized"}]
+    result = _assess_with_any_structure(
+        case,
+        [
+            {
+                "structure_id": "s1",
+                "presence": "present",
+                "hash_result": "match",
+                "parse_result": "valid",
+            }
+        ],
+    )
+
+    assert result["completeness"] == "complete"
+    declared_role = result["gate_results"]["structure"]["declared_role_valid"]
+    assert declared_role["passed"] is True
+    assert not any(
+        reason["code"] in {"missing_required_structure", "invalid_required_structure"}
+        for reason in result["reasons"]
+    )

@@ -45,7 +45,10 @@
       "propertyNames": {"$ref": "#/$defs/nonempty"},
       "additionalProperties": {"$ref": "#/$defs/propertyComparator"}
     },
-    "required_structure_roles": {"$ref": "#/$defs/uniqueStrings"},
+    "required_structure_roles": {
+      "$ref": "#/$defs/uniqueStrings",
+      "description": "Required scientific Structure roles. The reserved value '*' requires at least one active Structure with a present, hash-valid, parse-valid representation, regardless of role. Every named role remains independently required."
+    },
     "intake": {
       "type": "object",
       "additionalProperties": false,

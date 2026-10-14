@@ -543,6 +543,12 @@ requirements:
 }
 ```
 
+`required_structure_roles` may be empty, may name roles such as `"complex"`,
+or may contain the reserved value `"*"`. The wildcard requires at least one
+active Structure with a present, hash-valid, parse-valid representation without
+requiring one exact scientific role. If wildcard and named roles are combined,
+every named role is still required.
+
 Each nonblank JSONL line is one Case fact object. Operative B/E levels and
 archive classes are deliberately absent because synchronization derives them:
 

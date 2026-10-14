@@ -1236,7 +1236,36 @@ def assess_case(
     asset_by_structure: Dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for assessment in asset_assessments:
         asset_by_structure[str(assessment.get("structure_id"))].append(assessment)
-    for role in required_structure_roles:
+
+    def has_valid_representation(structure: Mapping[str, Any]) -> bool:
+        return any(
+            assessment.get("presence") == "present"
+            and assessment.get("hash_result") in {"match", "unchecked"}
+            and assessment.get("parse_result") == "valid"
+            for assessment in asset_by_structure.get(
+                str(structure.get("structure_id")), []
+            )
+        )
+
+    any_structure_required = "*" in required_structure_roles
+    if any_structure_required:
+        if not structures:
+            reasons.append(
+                _reason(
+                    "missing_required_structure",
+                    "At least one structure is required, but none was supplied.",
+                    role="*",
+                )
+            )
+        elif not any(has_valid_representation(item) for item in structures):
+            reasons.append(
+                _reason(
+                    "invalid_required_structure",
+                    "No supplied structure has a valid representation.",
+                    role="*",
+                )
+            )
+    for role in (item for item in required_structure_roles if item != "*"):
         matching = [item for item in structures if item.get("role") == role]
         if not matching:
             reasons.append(
@@ -1247,15 +1276,7 @@ def assess_case(
                 )
             )
             continue
-        valid = any(
-            any(
-                assessment.get("presence") == "present"
-                and assessment.get("hash_result") in {"match", "unchecked"}
-                and assessment.get("parse_result") == "valid"
-                for assessment in asset_by_structure.get(str(item.get("structure_id")), [])
-            )
-            for item in matching
-        )
+        valid = any(has_valid_representation(item) for item in matching)
         if not valid:
             reasons.append(
                 _reason(
@@ -1364,11 +1385,16 @@ def assess_case(
         ),
         "declared_role_valid": (
             all(item.get("role") for item in structures)
+            and (
+                not any_structure_required
+                or any(has_valid_representation(item) for item in structures)
+            )
             and all(
                 any(item.get("role") == role for item in structures)
                 for role in required_structure_roles
+                if role != "*"
             ),
-            "structure_roles_are_declared_and_required_roles_are_present",
+            "structure_roles_are_declared_and_structure_requirements_are_satisfied",
         ),
     }
     structure_results = _configured_checks(

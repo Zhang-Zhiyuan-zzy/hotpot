@@ -18,10 +18,9 @@ PUBLIC_API = [
     "DataSearcher",
     "DatasetSearcher",
     "SmartsSearcher",
-    "write_certificate",
     "load_bundle",
     "Bundle",
-    "store",
+    "write_certificate",
 ]
 
 
@@ -30,8 +29,9 @@ def test_api_documentation_covers_the_supported_public_surface() -> None:
 
     assert ds.__all__ == PUBLIC_API
     for name in PUBLIC_API:
-        assert f"`{name}`" in text
-    assert "hotpot.ds.detail" in text
+        assert name in text
+    assert "hotpot.ds.detail" not in text
+    assert "ds.store" not in text
     for obsolete in (
         "ds.Certificate",
         "ds.Store",
@@ -44,11 +44,12 @@ def test_api_documentation_covers_the_supported_public_surface() -> None:
         assert obsolete not in text
 
     headings = [
-        "## 1. `datasets_list` and `load`",
+        "## 1. Query datasets",
         "## 2. `Dataset` and `Data`",
-        "## 3. `BaseSearcher`, `DataSearcher`, `DatasetSearcher`, and `SmartsSearcher`",
-        "## 4. `write_certificate`, `load_bundle`, and `Bundle`",
-        "## 5. `store.ingest`",
+        "## 3. Search",
+        "## 4. Build and manage a Bundle",
+        "## 5. Gates and levels",
+        "## 6. Intake organization",
     ]
     positions = [text.index(heading) for heading in headings]
     assert positions == sorted(positions)
@@ -60,7 +61,7 @@ def test_cli_documentation_uses_the_installed_console_entrypoint() -> None:
 
     assert 'hotpot = "hotpot.__main__:main"' in project_configuration
     assert "hotpot ds --help" in text
-    assert "python -m hotpot ds" in text  # documented only as the fallback entry
+    assert "python -m hotpot ds" not in text
     for command in (
         "list",
         "info",

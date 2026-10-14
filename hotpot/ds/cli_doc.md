@@ -178,6 +178,22 @@ OUTPUT/
 The operation never overwrites an existing output path and never leaves a
 partially populated result.
 
+### Current-store diagnostics
+
+These commands inspect the current `TargetStore`; they do not expose a second
+Python storage API:
+
+```bash
+hotpot ds detail status --db work/datasets.sqlite3
+hotpot ds detail audit --db work/datasets.sqlite3
+hotpot ds detail query claims --db work/datasets.sqlite3 \
+  --dataset spin --evidence-level E3 --limit 100
+```
+
+`status` reports table counts, `audit` runs SQLite integrity and foreign-key
+checks, and `query claims` returns current Case claim facts with their Case
+assessment level. These are diagnostics over the same store used by `load`.
+
 ## 2. Bundle commands
 
 A Bundle root contains exactly one dataset release. Build, synchronize,

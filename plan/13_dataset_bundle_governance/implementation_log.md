@@ -219,8 +219,45 @@ Unexpected finding: none.
 Adjustment: none; immutable generation publication is deliberately implemented
 as the next layer over these pure rules.
 
+### Step 5 — Add immutable Gate policy configuration
+
+Status: complete
+
+Planned:
+
+- provide the three compact Gate constructors from the frozen signature tree;
+- persist deterministic configurations and exact custom-checker source; and
+- fail closed when the required custom-code isolation boundary is unavailable.
+
+Performed:
+
+- added immutable `EvidenceGate`, `QualityGate`, and `BenchmarkGate` values with
+  defensive JSON summaries and content digests;
+- encoded cumulative B/E checks and the default benchmark checklist,
+  Hotpot-or-User direct route, vetoes, and numeric tolerances;
+- added strict top-level checker-source/signature/import inspection,
+  content-addressed source materialization, and round-trip serialization; and
+- prohibited in-process custom execution and required an explicitly verified
+  OS-isolated runner.
+
+Verification:
+
+- `python -m pytest -q tests/test_ds/test_stage13_gates.py`
+- result: `14 passed`.
+
+Unexpected finding:
+
+- an implementation-task note called the default item
+  `primary_source_verified`, while the reviewed plan consistently names it
+  `verified_primary_source`.
+
+Adjustment:
+
+- retained the reviewed `verified_primary_source` identifier. This is not a
+  design change; it prevents an accidental second policy vocabulary.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
 | --- | --- | --- | --- | --- |
-| 1 | Specification, baseline, implementation mapping | pending | `104 passed` baseline | pending |
+| 1 | Steps 0–4: specification, baseline, mapping, Case model, assessment primitives | `b8322f7..e387af9` | baseline `104 passed`; new focused `10 passed` | pushed to `origin/refactor/unified-dataset-management` |

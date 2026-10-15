@@ -700,23 +700,51 @@ class CaseCollection(CaseView):
         unknown = sorted(set(criteria) - self._ALLOWED)
         if unknown:
             raise TypeError(f"unknown Case selection fields: {unknown}")
-        selected = []
-        for case_id in self._ids:
-            case = self._owner._case_object(case_id)
-            if self._matches(case, criteria):
-                selected.append(case_id)
+        needs_facts = bool({"verification", "attestation"} & criteria.keys())
+        provider = getattr(self._owner, "_case_selection_records", None)
+        if provider is None:
+            records = (
+                (
+                    case_id,
+                    self._owner._case_assessment(case_id),
+                    self._owner._case_payload(case_id) if needs_facts else None,
+                )
+                for case_id in self._ids
+            )
+        else:
+            records = provider(self._ids, include_facts=needs_facts)
+        selected = [
+            case_id
+            for case_id, assessment, facts in records
+            if self._matches(assessment, criteria, facts=facts)
+        ]
         return CaseView(self._owner, selected)
 
     @classmethod
-    def _matches(cls, case: Case, criteria: Mapping[str, Any]) -> bool:
-        assessment = case.assessment
+    def _matches(
+        cls,
+        assessment: Mapping[str, Any],
+        criteria: Mapping[str, Any],
+        *,
+        facts: Optional[Mapping[str, Any]] = None,
+    ) -> bool:
         for name, expected in criteria.items():
             if name == "reason":
-                actual: Any = [item.get("code") for item in assessment.get("reasons", [])]
+                actual: Any = [
+                    item.get("code") for item in assessment.get("reasons", [])
+                ]
             elif name == "verification":
-                actual = [item.get("method") for item in case._facts().get("verifications", []) if item.get("status", "active") == "active"]
+                actual = [
+                    item.get("method")
+                    for item in (facts or {}).get("verifications", [])
+                    if item.get("status", "active") == "active"
+                ]
             elif name == "attestation":
-                actual = [item.get("authority") for item in case._facts().get("attestations", []) if item.get("status", "active") == "active"]
+                actual = [
+                    item.get("authority")
+                    for item in (facts or {}).get("attestations", [])
+                    if item.get("status", "active") == "active"
+                ]
             elif name == "min_quality":
                 actual_level = str(assessment["quality_level"])
                 wanted = str(expected)

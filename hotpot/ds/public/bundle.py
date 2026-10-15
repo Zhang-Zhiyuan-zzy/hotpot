@@ -422,6 +422,9 @@ class Bundle:
     @property
     def _current_generation(self):
         status = self._state.status
+        return self._generation_from_status(status)
+
+    def _generation_from_status(self, status: Mapping[str, Any]):
         generation_id = status.get("current_generation_id")
         if not generation_id:
             return None
@@ -603,6 +606,43 @@ class Bundle:
     def _case_assessment(self, case_id: str) -> Dict[str, Any]:
         return deepcopy(self._require_generation().get_case(case_id))
 
+    def _case_selection_records(
+        self,
+        case_ids: Iterable[str],
+        *,
+        include_facts: bool,
+    ) -> Iterator[tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
+        expected_ids = iter(case_ids)
+        generation = self._require_generation()
+        with generation._reader() as reader:
+            assessments = reader.iter_cases()
+            if include_facts:
+                with self._state.connect() as connection:
+                    facts = connection.execute(
+                        "SELECT case_id,payload_json FROM cases "
+                        "ORDER BY public_index,case_id"
+                    )
+                    for expected_id, assessment_row, fact_row in zip(
+                        expected_ids, assessments, facts, strict=True
+                    ):
+                        assessment_id, assessment = assessment_row
+                        fact_id = str(fact_row[0])
+                        if expected_id != assessment_id or expected_id != fact_id:
+                            raise RuntimeError(
+                                "Bundle facts and assessment order do not match"
+                            )
+                        yield expected_id, assessment, json.loads(fact_row[1])
+                return
+            for expected_id, assessment_row in zip(
+                expected_ids, assessments, strict=True
+            ):
+                assessment_id, assessment = assessment_row
+                if expected_id != assessment_id:
+                    raise RuntimeError(
+                        "Bundle cases and assessment order do not match"
+                    )
+                yield expected_id, assessment, None
+
     def _mutate_case(
         self,
         case_id: str,
@@ -630,11 +670,13 @@ class Bundle:
         return f"{case_id}:{kind}:{uuid.uuid4().hex}"
 
     def _require_generation(self):
-        if not self.is_synchronized:
+        receipt = self._authoritative_receipt()
+        status = self._state.status
+        if receipt is None and not status["is_synchronized"]:
             raise UnsynchronizedBundleError(
                 "derived results are stale; run bundle.synchronize() first"
             )
-        generation = self._current_generation
+        generation = self._generation_from_status(status)
         if generation is None:
             raise UnsynchronizedBundleError(
                 "no current assessment generation; run bundle.synchronize() first"

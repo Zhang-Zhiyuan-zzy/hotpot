@@ -71,6 +71,20 @@ class AssetSourceChangedError(AssessmentGenerationError):
     """Raised when a scientific asset changes while it is being observed."""
 
 
+class _AssessmentReader:
+    """One-connection reader for an already verified immutable generation."""
+
+    def __init__(self, connection: sqlite3.Connection):
+        self._connection = connection
+
+    def iter_cases(self) -> Iterator[Tuple[str, Dict[str, Any]]]:
+        for row in self._connection.execute(
+            "SELECT case_id,assessment_json FROM case_assessments "
+            "ORDER BY public_index,case_id"
+        ):
+            yield str(row[0]), json.loads(row[1])
+
+
 def _validate_generation_id(generation_id: Any) -> str:
     if (
         not isinstance(generation_id, str)
@@ -1694,6 +1708,20 @@ class AssessmentGeneration:
         if row is None:
             raise KeyError(case_id)
         return json.loads(row[0])
+
+    @contextmanager
+    def _reader(self) -> Iterator[_AssessmentReader]:
+        """Hold one lease and one read-only connection for a batch read."""
+
+        assessment_path = self._directory / "assessment.sqlite3"
+        with self.lease():
+            connection = sqlite3.connect(
+                f"file:{assessment_path.as_posix()}?mode=ro", uri=True
+            )
+            try:
+                yield _AssessmentReader(connection)
+            finally:
+                connection.close()
 
     def iter_cases(self) -> Iterator[Dict[str, Any]]:
         with self.lease():

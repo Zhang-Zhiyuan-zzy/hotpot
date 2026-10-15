@@ -549,10 +549,6 @@ class Bundle:
     ) -> Dict[str, Any]:
         with self._locked():
             require_current_runtime_policy(self._state.policy["runtime_policy"])
-            if not self.is_synchronized:
-                raise UnsynchronizedBundleError(
-                    "Bundle is not synchronized; run bundle.synchronize() first"
-                )
             if not self.certificate_path.is_file():
                 raise MissingCertificateError(
                     "No current Bundle certificate exists; run bundle.write_certificate() "
@@ -568,7 +564,6 @@ class Bundle:
                     include_incomplete,
                     generation=generation,
                 )
-                verify_bundle_certificate(self)
                 result = TargetStore(self._database).ingest(
                     snapshot,
                     include_incomplete=include_incomplete,
@@ -995,25 +990,38 @@ class Bundle:
         generation = self._require_generation() if generation is None else generation
         included_ids = []
         excluded_ids = []
-        assets = []
+        asset_inventory: Dict[str, int] = {}
+        file_cache = _FileDigestCache()
         manifest = self._state.manifest
         control_assets = _target_control_asset_descriptors(
-            self.root, generation, manifest
+            self.root, generation, manifest, file_cache=file_cache
         )
-        assets.extend(control_assets)
-        for case in self._state.iter_cases():
-            assessment = generation.get_case(case["id"])
-            selected = (
-                assessment["archive_class"] != "incomplete" or include_incomplete
-            )
-            (included_ids if selected else excluded_ids).append(case["id"])
-            if selected:
-                assets.extend(_target_scientific_asset_descriptors(self.root, case))
+        _extend_asset_inventory(asset_inventory, control_assets)
+
+        def content_rows() -> Iterator[Dict[str, Any]]:
+            with self._ingestion_records(generation) as records:
+                for case, assessment in records:
+                    selected = (
+                        assessment["archive_class"] != "incomplete"
+                        or include_incomplete
+                    )
+                    (included_ids if selected else excluded_ids).append(case["id"])
+                    if selected:
+                        _extend_asset_inventory(
+                            asset_inventory,
+                            _target_scientific_asset_descriptors(
+                                self.root, case, file_cache=file_cache
+                            ),
+                        )
+                    yield self._ingestion_case_projection(case, assessment)
+
+        content_digest = case_content_digest(content_rows())
+        state_status = self._state.status
         bundle_digest = canonical_digest(
             {
                 "manifest": manifest,
-                "source_digest": self._state.status["source_digest"],
-                "policy_digest": self._state.status["policy_digest"],
+                "source_digest": state_status["source_digest"],
+                "policy_digest": state_status["policy_digest"],
                 "generation_digest": generation.digest,
             }
         )
@@ -1024,10 +1032,7 @@ class Bundle:
         policy_revision = (
             current_policy["revision"]
             if current_policy is not None
-            else self._state.status["policy_revision"] + 1
-        )
-        content_digest = case_content_digest(
-            self._iter_ingestion_content(generation)
+            else state_status["policy_revision"] + 1
         )
         return {
             "target_context": self._state.target_context,
@@ -1058,10 +1063,15 @@ class Bundle:
                 "case_content": content_digest,
                 "included_cases": case_set_digest(included_ids),
                 "excluded_cases": case_set_digest(excluded_ids),
-                "asset_inventory": asset_inventory_digest(assets),
+                "asset_inventory": asset_inventory_digest(
+                    {"sha256": digest, "size": size}
+                    for digest, size in asset_inventory.items()
+                ),
             },
             "control_assets": control_assets,
-            "cases": self._iter_ingestion_cases(generation),
+            "cases": self._iter_ingestion_cases(
+                generation, file_cache=file_cache
+            ),
         }
 
     def _assert_ingestion_snapshot_current(
@@ -1094,42 +1104,71 @@ class Bundle:
                     "Bundle changed after ingestion snapshot creation; retry ingest"
                 )
 
-    def _iter_ingestion_cases(self, generation: Any) -> Iterator[Dict[str, Any]]:
-        for case in self._state.iter_cases():
-            assessment = generation.get_case(case["id"])
-            yield {
-                "id": case["id"],
-                "public_index": case["public_index"],
-                "local_id": case["local_id"],
-                "facts": case,
-                "assessment": assessment,
-                "identifiers": [
-                    {"namespace": str(namespace), "value": str(value)}
-                    for namespace, raw in case.get("identifiers", {}).items()
-                    for value in (raw if isinstance(raw, list) else [raw])
-                ],
-                "structures": _target_structure_descriptors(self.root, case),
-                "assets": _target_scientific_asset_descriptors(self.root, case),
-            }
-
-    def _iter_ingestion_content(
+    @contextmanager
+    def _ingestion_records(
         self, generation: Any
-    ) -> Iterator[Dict[str, Any]]:
-        """Project receipt-bound Case content without rehashing asset files."""
+    ) -> Iterator[Iterator[tuple[Dict[str, Any], Dict[str, Any]]]]:
+        facts = self._state.iter_cases()
+        missing = object()
+        try:
+            with generation._reader() as reader:
+                assessments = reader.iter_cases()
 
-        for case in self._state.iter_cases():
-            yield {
-                "id": case["id"],
-                "public_index": case["public_index"],
-                "local_id": case["local_id"],
-                "facts": case,
-                "assessment": generation.get_case(case["id"]),
-                "identifiers": [
-                    {"namespace": str(namespace), "value": str(value)}
-                    for namespace, raw in case.get("identifiers", {}).items()
-                    for value in (raw if isinstance(raw, list) else [raw])
-                ],
-            }
+                def paired() -> Iterator[tuple[Dict[str, Any], Dict[str, Any]]]:
+                    for case, assessment_row in zip_longest(
+                        facts, assessments, fillvalue=missing
+                    ):
+                        if case is missing or assessment_row is missing:
+                            raise SealedIntegrityError(
+                                "Bundle facts and assessment counts do not match"
+                            )
+                        assessment_id, assessment = assessment_row
+                        if case["id"] != assessment_id:
+                            raise SealedIntegrityError(
+                                "Bundle facts and assessment order do not match"
+                            )
+                        yield case, assessment
+
+                yield paired()
+        finally:
+            close = getattr(facts, "close", None)
+            if close is not None:
+                close()
+
+    @staticmethod
+    def _ingestion_case_projection(
+        case: Mapping[str, Any], assessment: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        return {
+            "id": case["id"],
+            "public_index": case["public_index"],
+            "local_id": case["local_id"],
+            "facts": case,
+            "assessment": assessment,
+            "identifiers": [
+                {"namespace": str(namespace), "value": str(value)}
+                for namespace, raw in case.get("identifiers", {}).items()
+                for value in (raw if isinstance(raw, list) else [raw])
+            ],
+        }
+
+    def _iter_ingestion_cases(
+        self,
+        generation: Any,
+        *,
+        file_cache: Optional["_FileDigestCache"] = None,
+    ) -> Iterator[Dict[str, Any]]:
+        with self._ingestion_records(generation) as records:
+            for case, assessment in records:
+                yield {
+                    **self._ingestion_case_projection(case, assessment),
+                    "structures": _target_structure_descriptors(
+                        self.root, case, file_cache=file_cache
+                    ),
+                    "assets": _target_scientific_asset_descriptors(
+                        self.root, case, file_cache=file_cache
+                    ),
+                }
 
 
 def _assert_manifest_policy(
@@ -1187,9 +1226,65 @@ def _asset_descriptors(record: Mapping[str, Any]) -> Iterator[Dict[str, Any]]:
                 yield dict(raw)
 
 
+class _FileDigestCache:
+    """One-operation stable digest cache for ingestion source files."""
+
+    def __init__(self) -> None:
+        self._values: Dict[Path, tuple[str, int, tuple[int, ...]]] = {}
+
+    @staticmethod
+    def _stamp(path: Path) -> tuple[int, ...]:
+        value = path.stat()
+        return (
+            value.st_dev,
+            value.st_ino,
+            value.st_mode,
+            value.st_size,
+            value.st_mtime_ns,
+            value.st_ctime_ns,
+        )
+
+    def digest(self, path: Path) -> tuple[str, int]:
+        resolved = path.resolve()
+        cached = self._values.get(resolved)
+        if cached is not None:
+            if self._stamp(resolved) != cached[2]:
+                raise SealedIntegrityError(
+                    f"ingestion source asset changed during snapshot: {path}"
+                )
+            return cached[0], cached[1]
+        before = self._stamp(resolved)
+        digest, size = _hash_file(resolved)
+        after = self._stamp(resolved)
+        if before != after or size != after[3]:
+            raise SealedIntegrityError(
+                f"ingestion source asset changed while being read: {path}"
+            )
+        self._values[resolved] = (digest, size, after)
+        return digest, size
+
+
+def _extend_asset_inventory(
+    inventory: Dict[str, int], descriptors: Iterable[Mapping[str, Any]]
+) -> None:
+    for descriptor in descriptors:
+        digest = str(descriptor["sha256"])
+        size = int(descriptor["size"])
+        existing = inventory.get(digest)
+        if existing is not None and existing != size:
+            raise SealedIntegrityError(
+                "one ingestion asset digest has conflicting declared sizes"
+            )
+        inventory[digest] = size
+
+
 def _target_structure_descriptors(
-    root: Path, case: Mapping[str, Any]
+    root: Path,
+    case: Mapping[str, Any],
+    *,
+    file_cache: Optional[_FileDigestCache] = None,
 ) -> list[Dict[str, Any]]:
+    cache = _FileDigestCache() if file_cache is None else file_cache
     result = []
     for structure in case.get("structures", []):
         if structure.get("status", "active") != "active":
@@ -1201,7 +1296,7 @@ def _target_structure_descriptors(
             path = (root / path_text).resolve()
             if not path.is_file():
                 continue
-            digest, size = _hash_file(path)
+            digest, size = cache.digest(path)
             expected = asset.get("expected_sha256") or asset.get("sha256")
             if expected is not None and expected != digest:
                 continue
@@ -1224,8 +1319,12 @@ def _target_structure_descriptors(
 
 
 def _target_scientific_asset_descriptors(
-    root: Path, case: Mapping[str, Any]
+    root: Path,
+    case: Mapping[str, Any],
+    *,
+    file_cache: Optional[_FileDigestCache] = None,
 ) -> list[Dict[str, Any]]:
+    cache = _FileDigestCache() if file_cache is None else file_cache
     result = []
     for collection in ("structures", "evidence"):
         for record in case.get(collection, []):
@@ -1237,7 +1336,7 @@ def _target_scientific_asset_descriptors(
                 path = (root / path_text).resolve()
                 if not path.is_file():
                     continue
-                digest, size = _hash_file(path)
+                digest, size = cache.digest(path)
                 result.append(
                     {
                         "collection": collection,
@@ -1264,7 +1363,9 @@ def _target_control_asset_descriptors(
     manifest: Mapping[str, Any],
     *,
     include_certificate: bool = True,
+    file_cache: Optional[_FileDigestCache] = None,
 ) -> list[Dict[str, Any]]:
+    cache = _FileDigestCache() if file_cache is None else file_cache
     paths = [
         ("bundle", "bundle.json", root / "bundle.json", None),
         ("facts", "facts.sqlite3", root / "cases" / "facts.sqlite3", None),
@@ -1316,7 +1417,7 @@ def _target_control_asset_descriptors(
                 f"duplicate release control asset identity: {category}/{name}"
             )
         identities.add(identity)
-        digest, size = _hash_file(path)
+        digest, size = cache.digest(path)
         if declaration is not None and (
             digest != declaration["sha256"] or size != declaration["size"]
         ):

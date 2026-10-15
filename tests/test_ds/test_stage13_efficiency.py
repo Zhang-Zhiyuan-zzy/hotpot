@@ -6,9 +6,11 @@ from pathlib import Path
 
 import pytest
 
+import hotpot.ds.public.bundle as bundle_module
+import hotpot.ds.public.certificate as certificate_module
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
 from hotpot.ds.public._generation import AssessmentGeneration, _AssessmentReader
-from hotpot.ds.public.bundle import Bundle
+from hotpot.ds.public.bundle import Bundle, SealedIntegrityError
 
 
 def _selection_bundle(tmp_path: Path, size: int) -> Bundle:
@@ -172,3 +174,83 @@ def test_case_selection_uses_one_generation_reader_independent_of_size(
         "lease": 1,
         "assessment_scan": 1,
     }
+
+
+def test_ingest_uses_three_bulk_scans_and_two_certificate_boundaries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 6)
+    bundle.write_certificate()
+    scans = 0
+    certificate_proofs = 0
+    original_scan = _AssessmentReader.iter_cases
+    original_verify = certificate_module.verify_bundle_certificate
+
+    def counted_scan(self):
+        nonlocal scans
+        scans += 1
+        yield from original_scan(self)
+
+    def counted_verify(*args, **kwargs):
+        nonlocal certificate_proofs
+        certificate_proofs += 1
+        return original_verify(*args, **kwargs)
+
+    def reject_point_read(self, case_id):
+        raise AssertionError(f"per-Case assessment read used for {case_id}")
+
+    monkeypatch.setattr(_AssessmentReader, "iter_cases", counted_scan)
+    monkeypatch.setattr(
+        certificate_module, "verify_bundle_certificate", counted_verify
+    )
+    monkeypatch.setattr(AssessmentGeneration, "get_case", reject_point_read)
+
+    result = bundle.ingest()
+
+    assert result["included_count"] == 6
+    assert result["excluded_count"] == 0
+    assert scans == 3
+    assert certificate_proofs == 2
+
+    scans = 0
+    assert bundle._authoritative_receipt() is not None
+    assert scans == 1
+
+
+def test_ingestion_snapshot_hashes_one_shared_asset_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 8)
+    bundle.write_certificate()
+    shared = (bundle.root / "structures" / "shared.smi").resolve()
+    calls = 0
+    original_hash = bundle_module._hash_file
+
+    def counted_hash(path: Path):
+        nonlocal calls
+        if Path(path).resolve() == shared:
+            calls += 1
+        return original_hash(path)
+
+    monkeypatch.setattr(bundle_module, "_hash_file", counted_hash)
+    snapshot = bundle._ingestion_snapshot("0" * 64, False)
+    list(snapshot["cases"])
+
+    assert calls == 1
+
+
+def test_ingestion_rejects_fact_assessment_count_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 3)
+    bundle.write_certificate()
+    original_scan = _AssessmentReader.iter_cases
+
+    def truncated_scan(self):
+        rows = iter(original_scan(self))
+        yield next(rows)
+
+    monkeypatch.setattr(_AssessmentReader, "iter_cases", truncated_scan)
+
+    with pytest.raises(SealedIntegrityError, match="counts do not match"):
+        bundle._ingestion_snapshot("0" * 64, False)

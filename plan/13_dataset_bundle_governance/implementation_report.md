@@ -273,3 +273,5 @@ built wheel and source-distribution archives contain neither retired module nor
 the bootstrap manifest. The current inventory and query closure were pushed
 through `3b18684`. The final current `tests/test_ds` suite passes `259 passed`
 in `65.60 s`, with no failures or skips. The Stage 13 release gate is closed.
+The complete operational evidence and report were committed in `8970cdc`;
+the subsequent record-only commit adds that immutable identifier to the log.

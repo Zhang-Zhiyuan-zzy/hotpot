@@ -47,16 +47,23 @@ class IdentifierIndex:
         self._namespace = namespace
 
     def __getitem__(self, value: str) -> Union[Data, Dataset]:
+        matched_ids = set(
+            self._dataset._store.find_case_ids_by_identifier(
+                self._dataset.name,
+                self._dataset.release_id,
+                self._namespace,
+                value,
+                archive_classes=self._dataset._archive_classes,
+            )
+        )
         matches = [
-            item
-            for item in self._dataset
-            if value in _identifier_values(item.identifiers.get(self._namespace))
+            item for item in self._dataset._headers if item["id"] in matched_ids
         ]
         if not matches:
             raise KeyError(value)
         if len(matches) == 1:
-            return matches[0]
-        return self._dataset._select_ids(item.record_id for item in matches)
+            return self._dataset._data(matches[0])
+        return self._dataset._with_headers(matches)
 
 
 class Dataset(Sequence["Data"]):
@@ -76,6 +83,7 @@ class Dataset(Sequence["Data"]):
         self._release = deepcopy(dict(release))
         self._headers = tuple(deepcopy(dict(item)) for item in headers)
         self._archive_classes = frozenset(archive_classes)
+        self._identifier_namespaces = None
 
     @property
     def name(self) -> str:
@@ -160,10 +168,23 @@ class Dataset(Sequence["Data"]):
 
     @property
     def identifier_namespaces(self) -> tuple[str, ...]:
-        names = set()
-        for data in self:
-            names.update(data.identifiers)
-        return tuple(sorted(names))
+        if self._identifier_namespaces is None:
+            expected_size = sum(
+                int(self._release["counts"].get(item, 0))
+                for item in self._archive_classes
+            )
+            visible_case_ids = (
+                None
+                if len(self._headers) == expected_size
+                else (str(item["id"]) for item in self._headers)
+            )
+            self._identifier_namespaces = self._store.identifier_namespaces(
+                self.name,
+                self.release_id,
+                archive_classes=self._archive_classes,
+                visible_case_ids=visible_case_ids,
+            )
+        return self._identifier_namespaces
 
     def __len__(self) -> int:
         return len(self._headers)
@@ -359,14 +380,6 @@ class Data:
 
     def __repr__(self) -> str:
         return f"Data(id={self.id!r}, local_id={self.local_id!r})"
-
-
-def _identifier_values(value: Any) -> tuple[str, ...]:
-    if value is None:
-        return ()
-    if isinstance(value, list):
-        return tuple(str(item) for item in value)
-    return (str(value),)
 
 
 def _criterion_value(data: Data, field: str) -> Any:

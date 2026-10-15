@@ -93,7 +93,12 @@ def _case(
     }
 
 
-def _database(tmp_path: Path, *, primary: bool = True) -> tuple[Path, list[Path]]:
+def _database(
+    tmp_path: Path,
+    *,
+    primary: bool = True,
+    shared_identifier: bool = False,
+) -> tuple[Path, list[Path]]:
     water = tmp_path / "water.smi"
     nitrogen = tmp_path / "nitrogen.smi"
     alternative = tmp_path / "alternative.mol2"
@@ -123,6 +128,11 @@ def _database(tmp_path: Path, *, primary: bool = True) -> tuple[Path, list[Path]
         ),
         _case("broken", 11, "incomplete", 5, "unknown", []),
     ]
+    if shared_identifier:
+        for case in cases[:2]:
+            case["identifiers"].append(
+                {"namespace": "shared", "value": "DUPLICATE"}
+            )
     for case in cases:
         indexes: dict[str, int] = {}
         scientific_assets = []
@@ -235,6 +245,46 @@ def test_catalog_identifier_subset_and_archive_opt_in(tmp_path: Path) -> None:
     assert [item.id for item in mixed.subset(archive_class="ordinary")] == [
         "hp-spin[001]-2"
     ]
+
+
+def test_identifier_lookup_uses_index_and_respects_the_current_view(
+    tmp_path: Path,
+) -> None:
+    database, _ = _database(tmp_path, shared_identifier=True)
+    dataset = load("spin", db=database)
+    loaded_case_ids = []
+    get_case = dataset._store.get_case
+
+    def track_get_case(dataset_name, release_id, case_id):
+        loaded_case_ids.append(case_id)
+        return get_case(dataset_name, release_id, case_id)
+
+    dataset._store.get_case = track_get_case
+
+    assert dataset.CSD_identifier["AAAKSI"].record_id == "aaaksi"
+    assert loaded_case_ids == ["aaaksi"]
+
+    loaded_case_ids.clear()
+    duplicate = dataset.shared_identifier["DUPLICATE"]
+    assert isinstance(duplicate, type(dataset))
+    assert loaded_case_ids == []
+    assert [item.record_id for item in duplicate] == ["aaaksi", "bbbbbb"]
+
+    view = dataset[1:]
+    loaded_case_ids.clear()
+    assert view.shared_identifier["DUPLICATE"].record_id == "bbbbbb"
+    assert loaded_case_ids == ["bbbbbb"]
+    with pytest.raises(KeyError):
+        _ = view.CSD_identifier["AAAKSI"]
+
+    reversed_view = dataset[::-1]
+    duplicate = reversed_view.shared_identifier["DUPLICATE"]
+    assert [item.record_id for item in duplicate] == ["bbbbbb", "aaaksi"]
+
+    oxygen = dataset.subset(family="oxygen")
+    loaded_case_ids.clear()
+    assert oxygen.shared_identifier["DUPLICATE"].record_id == "aaaksi"
+    assert loaded_case_ids == ["aaaksi"]
 
 
 def test_data_info_is_json_and_contains_full_fact_projection(tmp_path: Path) -> None:

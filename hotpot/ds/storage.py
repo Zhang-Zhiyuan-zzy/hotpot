@@ -699,6 +699,92 @@ class TargetStore:
         finally:
             connection.close()
 
+    def identifier_namespaces(
+        self,
+        dataset: str,
+        release: str,
+        *,
+        archive_classes: Iterable[str],
+        visible_case_ids: Optional[Iterable[str]] = None,
+    ) -> Tuple[str, ...]:
+        """Return identifier namespaces visible through one Dataset view."""
+
+        classes = tuple(dict.fromkeys(archive_classes))
+        if not classes or any(item not in _ARCHIVE_CLASSES for item in classes):
+            raise ValueError("archive_classes must contain current archive classes")
+        visible = None if visible_case_ids is None else set(visible_case_ids)
+        connection = self._connect()
+        try:
+            self._metadata(connection)
+            placeholders = ",".join("?" for _ in classes)
+            if visible is None:
+                candidates = connection.execute(
+                    "SELECT DISTINCT namespace FROM identifiers "
+                    "INDEXED BY ix_identifiers_lookup WHERE dataset_id=? "
+                    "AND release_id=? ORDER BY namespace",
+                    (dataset, release),
+                )
+                names = []
+                for candidate in candidates:
+                    found = connection.execute(
+                        "SELECT 1 FROM identifiers i "
+                        "INDEXED BY ix_identifiers_lookup JOIN case_assessments a "
+                        "USING(dataset_id,release_id,case_id) WHERE i.dataset_id=? "
+                        "AND i.release_id=? AND i.namespace=? "
+                        "AND a.archive_class IN ("
+                        + placeholders
+                        + ") LIMIT 1",
+                        (dataset, release, candidate["namespace"], *classes),
+                    ).fetchone()
+                    if found is not None:
+                        names.append(candidate["namespace"])
+                return tuple(names)
+            rows = connection.execute(
+                "SELECT DISTINCT i.case_id,i.namespace FROM identifiers i "
+                "JOIN case_assessments a USING(dataset_id,release_id,case_id) "
+                "WHERE i.dataset_id=? AND i.release_id=? AND a.archive_class IN ("
+                + placeholders
+                + ")",
+                (dataset, release, *classes),
+            )
+            return tuple(sorted({
+                row["namespace"] for row in rows if row["case_id"] in visible
+            }))
+        finally:
+            connection.close()
+
+    def find_case_ids_by_identifier(
+        self,
+        dataset: str,
+        release: str,
+        namespace: str,
+        value: str,
+        *,
+        archive_classes: Iterable[str],
+    ) -> Tuple[str, ...]:
+        """Find Case IDs through the indexed identifier table."""
+
+        classes = tuple(dict.fromkeys(archive_classes))
+        if not classes or any(item not in _ARCHIVE_CLASSES for item in classes):
+            raise ValueError("archive_classes must contain current archive classes")
+        connection = self._connect()
+        try:
+            self._metadata(connection)
+            placeholders = ",".join("?" for _ in classes)
+            rows = connection.execute(
+                "SELECT i.case_id FROM identifiers i "
+                "INDEXED BY ix_identifiers_lookup JOIN case_assessments a "
+                "USING(dataset_id,release_id,case_id) WHERE i.dataset_id=? "
+                "AND i.release_id=? AND i.namespace=? AND i.value=? "
+                "AND a.archive_class IN ("
+                + placeholders
+                + ")",
+                (dataset, release, namespace, value, *classes),
+            )
+            return tuple(row["case_id"] for row in rows)
+        finally:
+            connection.close()
+
     def get_case(
         self, dataset: str, release: str, case_id: str
     ) -> Dict[str, Any]:

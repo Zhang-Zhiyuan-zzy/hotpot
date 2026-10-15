@@ -1,8 +1,9 @@
 # Bundle-centered assessment, evidence, and benchmark governance
 
-Implementation status: the current-version design is implemented in the
-working branch. Final combined validation and managed-store activation remain
-the explicit Step 46 release gate in `implementation_log.md`.
+Implementation status: the current-version design is implemented and its
+complete current test suite is green. Managed-store activation and
+activated-store smoke tests remain the explicit Step 46 release gate in
+`implementation_log.md`.
 
 ## 1. Executive decision
 

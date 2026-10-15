@@ -1279,6 +1279,396 @@ Unexpected finding and necessary adjustment:
   the former proof did not establish the scientific-content invariant it
   claimed.
 
+### Step 38 — Make Ed25519 governance a mandatory verified dependency
+
+Status: complete; committed and pushed
+
+Planned:
+
+- keep Hotpot authority behind a private signing boundary;
+- verify every effective Hotpot attestation against the certificate-bound
+  governance registry; and
+- fail closed when the required signature implementation is unavailable.
+
+Performed:
+
+- declared `cryptography>=44,<47` as a direct project dependency;
+- reduced the governance implementation to one current Ed25519 backend instead
+  of an optional PyNaCl/cryptography compatibility path;
+- removed the test skip that made rotation, revocation, private signing, and
+  signed attestation verification conditional on the host environment; and
+- added a signature-bit tampering assertion in addition to the existing
+  cross-dataset/release context-replay checks.
+
+Verification:
+
+- with `cryptography 46.0.7` installed in the isolated
+  `/tmp/hotpot-crypto-deps` dependency path, the focused governance suite
+  completed with `9 passed`;
+- the implementation commit is `541b69d`.
+
+Unexpected finding and necessary adjustment:
+
+- final gap review found that a skipped signature test and optional crypto
+  backend made a core trust boundary environment-dependent. That contradicted
+  the plan's fail-closed Hotpot authority model. A required, pinned Ed25519
+  implementation and an always-executed real-signature test are therefore
+  correctness requirements, not deployment conveniences.
+
+### Step 39 — Isolate custom checkers and start runtime binding
+
+Status: checker containment complete and pushed; the complete runtime/parser
+binding is recorded in Step 45
+
+Planned:
+
+- execute user-defined checker code only across a real operating-system
+  isolation boundary;
+- use the fixed JSON snapshot/result protocol and fail closed on unavailable
+  isolation, timeout, malformed output, or resource exhaustion; and
+- bind certificates, assessment generations, and ingestion receipts to the
+  exact built-in assessment/parser/checker implementation used to derive them.
+
+Performed:
+
+- added a Bubblewrap worker with separate user, PID, network, IPC, and UTS
+  namespaces, a fixed minimal environment, read-only interpreter/library
+  mounts, unprivileged UID/GID, resource limits, a wall timeout, and JSON-only
+  input/output;
+- sent exact checker source and its digest inside bounded JSON stdin rather
+  than mounting the checker or exposing the Bundle/store;
+- verified that Bundle/store paths are not covered by runtime mounts and probed
+  filesystem, process-device, and network isolation before executing custom
+  code;
+- rejected generators, coroutines, interpreter-frame traversal, dunder escape
+  paths, and non-allowlisted imports in both admission and worker validation;
+- bound the fixed worker source, request/result fields, environment, limits,
+  imports, and isolation contract into the checker protocol digest; and
+- made a single timeout, exception, limit violation, or malformed response fail
+  closed as auditable `checker_error`, while inability to establish the OS
+  boundary blocks synchronization before publication.
+
+Verification:
+
+- focused isolation, protocol, malformed-output, timeout, and real
+  generator-frame escape regressions passed;
+- the implementation commit is `3cb191b` and is pushed.
+
+Unexpected finding and necessary adjustment:
+
+- source inspection and an import allow-list cannot contain the risks of
+  executing Python code, while source hashes alone cannot reproduce results if
+  built-in parser or assessment behavior changes. The audited design already
+  required both controls, but the runtime had not implemented them. OS
+  isolation and a deterministic implementation/protocol binding are mandatory
+  before the real migration can produce trustworthy current certificates. The
+  isolation boundary was completed here; the later audit found that the first
+  aggregate implementation digest was still too weak, so Step 45 replaces it
+  with one structurally validated, self-digesting runtime/parser policy.
+
+### Step 40 — Protect assessment generations with leases and safe collection
+
+Status: complete; committed and pushed
+
+Planned:
+
+- prevent a reader, certificate operation, or ingestion transaction from
+  observing a generation that is concurrently removed;
+- retain all current, certificate-referenced, receipt-referenced, or actively
+  leased generations; and
+- keep generation lifecycle machinery private so the concise public API does
+  not expand.
+
+Performed:
+
+- added shared operating-system leases for complete generation reads,
+  certificate work, and ingestion;
+- made garbage collection acquire a non-blocking exclusive lease and retain
+  current-pointer, certificate, receipt, active-reader, and conservatively
+  unknown references; and
+- relied on process-owned locks for crash release without unsafe timeouts,
+  while leaving lock files as non-certified runtime state.
+
+Verification:
+
+- the implementing agent reported a focused generation/certificate/Bundle
+  slice of `30 passed` using the isolated cryptography dependency path;
+- Python compilation and diff checks also completed cleanly;
+- the final combined dataset-suite result is recorded after the runtime-binding
+  and scientific-integrity changes settle, rather than treating this focused
+  slice as the release gate;
+- the implementation is part of commit `9839b61`, which is pushed.
+
+Unexpected finding and necessary adjustment:
+
+- immutable directories and an atomic current pointer do not protect an old
+  generation between pointer lookup and completion of a read. Deleting such a
+  generation is a race even when publication itself is atomic. Reference-safe
+  leases and conservative collection are therefore required for the lifecycle
+  invariant; exposing them as user-facing API would add complexity without
+  improving user control, so they remain private implementation details.
+
+### Step 41 — Make benchmark principal state unambiguous
+
+Status: complete; committed and pushed
+
+Planned:
+
+- retain the low-friction User/Other attestation API without permitting several
+  active decisions from the same principal to create accidental disagreement.
+
+Performed:
+
+- required an exact Boolean `approved` value and a non-empty actor;
+- made a new decision supersede every active attestation with the same
+  `(authority, actor)` rather than only one prior row; and
+- stored the complete supersession list so relationship validation and audit
+  reconstruction see the same principal history.
+
+Verification:
+
+- replacement, active-decision, invalid-type, and empty-actor regressions
+  passed;
+- the implementation commit is `73eb2fb` and is pushed.
+
+Unexpected finding and necessary adjustment:
+
+- a principal could accumulate multiple active decisions and truthy non-Boolean
+  input could cross the public boundary. Because direct benchmark entry depends
+  on exact approval/rejection state, normalizing these after assessment would
+  hide a governance ambiguity. Atomic supersession at fact mutation is the
+  necessary correction.
+
+### Step 42 — Bind local Evidence source bytes
+
+Status: complete; committed and pushed
+
+Planned:
+
+- ensure every `file:` evidence source participates in the same source,
+  certificate, and target-asset integrity chain as other local scientific
+  assets.
+
+Performed:
+
+- materialized the safe Bundle-relative `path` from `file:<path>` into the
+  Evidence fact; and
+- thereby made source-state hashing, certificate asset inventory, target CAS
+  copying, and sealed receipt verification discover the referenced bytes
+  without a second user parameter.
+
+Verification:
+
+- focused Evidence mutation and local-file binding tests passed;
+- the implementation commit is `2bdfb99` and is pushed.
+
+Unexpected finding and necessary adjustment:
+
+- retaining only the human-readable `source="file:..."` string left the common
+  asset walker unable to bind those bytes. Adding a parallel storage API would
+  violate the concise interface; deriving the canonical `path` inside the
+  existing operation closes the integrity gap without exposing another route.
+
+### Step 43 — Close evidence, identity, and relationship semantics
+
+Status: complete; committed and pushed
+
+Planned:
+
+- make the implemented Evidence/Quality/Benchmark ordering match the reviewed
+  scientific-integrity rules; and
+- prevent broken Case relations or indeterminate identity from being hidden by
+  a direct-entry attestation.
+
+Performed:
+
+- counted only explicit `supports` relations toward E levels and resolved an
+  Evidence target by exact ID or one unambiguous property/label alias;
+- normalized DOI/work identities, interpreted `derived_from` as result-lineage
+  IDs, checked ancestry resolution/cycles, and required distinct work and root
+  lineages for E4;
+- made an empty core-label policy aggregate all active targets and made a
+  missing declared core target E0;
+- validated active Evidence, verification, reciprocal supersession, lineage,
+  entity, participant, and subject links before benchmark assessment;
+- classified broken operative relationships as incomplete, while keeping
+  `identity_indeterminate` ordinary but benchmark-vetoed;
+- required the current explicit `relation` field in migrated Evidence instead
+  of preserving an implicit legacy default;
+- closed `bundle.json.identity_schema` to one components array, normalized its
+  scalar `core_info`/`identifiers` and role-aware semantic Structure paths,
+  materialized typed normalizer/exact-comparator protocol digests, and persisted
+  the normalized policy;
+- implemented exact three-valued `sample_match`, Case-reflexive local conflict
+  grouping when cross-Case identity is unavailable, and identity/property-policy
+  digests on conflict assessments; and
+- closed the tracked manifest JSON schema and current migration output to that
+  same identity/evidence contract.
+
+Verification:
+
+- focused assessment and Gate-integration regressions cover contradictory
+  Evidence, alias ambiguity, false E4, missing/cyclic lineage, empty/missing
+  core targets, identity indeterminacy, broken relations, and list-valued
+  attestation supersession;
+- the main scientific-integrity implementation commit is `4079fc9`; the
+  current migration/schema normalization follow-up is `a70ed5e`; both are
+  pushed.
+
+Unexpected finding and necessary adjustment:
+
+- earlier code could treat contradictory/context evidence as support, could
+  miss property-name targets, and could infer E4 from differently written
+  identifiers or unrelated Evidence IDs. It also allowed relationship defects
+  to survive direct entry. These were scientific-semantic defects, so the plan
+  now states the implemented resolution graph explicitly. Hotpot validates the
+  submitted graph; true independence of supplier-declared scientific lineages
+  still requires traceable source facts and owner review.
+
+### Step 44 — Seal ingestion against content and target races
+
+Status: complete; committed and pushed
+
+Planned:
+
+- prove that the certified Bundle snapshot is still the snapshot committed to
+  the target store; and
+- preserve established-dataset policy authority when target availability
+  changes.
+
+Performed:
+
+- derived `Bundle.mode` from persisted build-time target context rather than
+  the current target's presence;
+- materialized persisted custom-checker artifacts automatically when building
+  a successor Bundle for an established dataset;
+- added a canonical `case_content_digest` over ordered Case identity, facts,
+  assessment, and identifiers, and persisted it in the authoritative receipt;
+- revalidated target context, policy/runtime, certificate, generation,
+  Case-content, selection, and asset bindings after acquiring the target write
+  transaction and immediately before publication; and
+- made a target store without the new receipt column fail as non-current rather
+  than accepting a compatibility layout.
+
+Verification:
+
+- the dedicated ingest-integrity suite plus the related Bundle/storage/
+  certificate slice completed with `40 passed` before the final runtime-policy
+  integration;
+- the implementation is part of commit `9839b61`, which is pushed.
+
+Unexpected finding and necessary adjustment:
+
+- Case-set and asset digests alone do not detect a same-ID fact/assessment
+  substitution, and a pre-transaction check leaves a race while a large ingest
+  is spooled. The receipt therefore needs an operative content digest and the
+  Bundle needs an in-transaction compare-and-swap callback. Likewise, live
+  target disappearance must never convert an established-dataset Bundle into a
+  policy-authoring Bundle.
+
+### Step 45 — Replace aggregate implementation hashes with one runtime policy
+
+Status: complete; committed and pushed
+
+Planned:
+
+- bind every assessment result to the exact current scientific implementation
+  while preserving verification of sealed historical results without loading
+  old code.
+
+Performed:
+
+- replaced partial `runtime_bindings`/implementation-digest concepts with one
+  closed, self-digesting `runtime_policy` document;
+- bound full-file and selected semantic-symbol source digests, the assessment
+  store and checker protocols, parser registry/selection/protocol/source, Python
+  ABI, SQLite, and normalized relevant distribution identities;
+- separated structural validation of a frozen policy from equality with the
+  ambient current policy;
+- stored the exact document in dataset policy, generation, certificate, and
+  ingestion receipt, and included it in the generation logical digest;
+- recorded parser binding/protocol/source/distribution fields in every parsed
+  AssetAssessment and checked them against the frozen generation registry on
+  open; and
+- required the current policy only for build/mutation, synchronization, new
+  certificate issuance, and ingestion, while allowing historical generation,
+  certificate, and receipt verification against their internally consistent
+  frozen policy.
+
+Verification:
+
+- compilation and direct import/public-facade smoke tests passed during
+  integration;
+- focused implementation-binding, generation, certificate, storage, Bundle,
+  and historical-frozen/current-runtime tests are part of the `61 passed`
+  combined focused result recorded in Step 46;
+- the implementation is part of commit `9839b61`, which is pushed.
+
+Unexpected finding and necessary adjustment:
+
+- one top-level implementation digest did not prove parser selection,
+  distribution identity, or the complete nested protocol, while comparing an
+  old certificate only to the ambient runtime would make historical
+  verification impossible. The corrected split is: validate frozen content for
+  historical proof; require exact ambient equality only before creating a new
+  scientific result. No compatibility parser or runtime is retained.
+
+### Step 46 — Final integration, managed-store cutover, and report
+
+Status: integration and current-contract correction complete; managed-store
+cutover and activated-store smoke tests remain pending
+
+Verification recorded so far:
+
+- the combined focused Stage 13 audit slice completed with `61 passed`;
+- the first complete `tests/test_ds` run completed 260 tests with `259 passed`
+  and `1 failed`;
+- the current-interface correction in `8718923` and the subsequent runtime,
+  identity, scientific-integrity, migration-provenance, public-signature, CLI
+  contract, and formal-documentation corrections were integrated and pushed
+  through `93f50c7`;
+- the complete current `tests/test_ds` suite then passed `277 passed` in
+  `93.38 s`, with no failures or skips; and
+- the final public-documentation, CLI, signature-tree, and scientific-integrity
+  slice passed `29 passed` after the Plan/API prose correction.
+
+#### Interrupted migration rehearsal and mandatory clean restart
+
+The first real managed-store migration was intentionally interrupted before
+activation. During that run, the final scientific audit found that the then
+current implementation could infer primary literature from identifiers, did
+not completely bind AI tool/version metadata or file-backed Evidence
+assessment, and had not yet closed the CLI payload/summary contracts or owner
+migration provenance. Continuing would have produced internally consistent
+bytes under scientifically superseded rules. Reusing its generated oxidation,
+spin, or CSD Bundles would therefore have violated the current-only rule.
+
+The interruption did not change `store/active` and did not modify the legacy
+source store. Before cleanup, the source was rechecked as a valid SQLite
+database with 3 datasets and 252,665 records. Its retained file is
+1,136,664,576 bytes with SHA-256
+`076096dead161b0689764d275ddd141cdf59e1fe3167881b883877dc8e22b72b`.
+The generated rehearsal Bundle root, target generation, and rollback-copy
+directory were then removed after explicit path and non-symlink checks. A
+subsequent preflight reconfirmed that all three paths and `store/active` were
+absent while the source digest remained unchanged.
+
+The necessary adjustment was to close those scientific and protocol defects,
+bind normalized owner bootstrap/provenance into the certificate path, rerun the
+complete suite, and restart from the untouched legacy database. This was not an
+optional cleanup: assessment semantics are certificate inputs, so an old
+partial migration cannot be promoted after they change.
+
+Required completion evidence:
+
+- the complete `tests/test_ds` rerun passes under the declared dependency set;
+- the 252,665-record managed store is rebuilt, parity-verified, certified,
+  ingested, and atomically activated under the current schema;
+- API and CLI query/subset/get/export smoke tests run against the activated
+  store; and
+- final commit/push identifiers and measured migration resource results are
+  appended here and summarized in `implementation_report.md`.
+
 ## Push checkpoints
 
 | Checkpoint | Included steps | Commit range | Verification | Push result |
@@ -1292,3 +1682,7 @@ Unexpected finding and necessary adjustment:
 | 7 | Steps 21–24: protocol, current CLI, formal documentation, package resources | `c83d661..798b840` | independent CLI slice `41 passed`; handoff `45 passed`; docs `32 passed`; package declarations verified | pushed to `origin/refactor/unified-dataset-management` |
 | 8 | Steps 25–28: sealed governance, documentation assertions, property policy, source-audit boundary | `b5ba161..315a120` | lifecycle/property `72 passed`; sealed slice `51 passed`; docs/help `30 passed`; source metadata `15 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 9 | Steps 29–33: current templates, legacy-code removal, migration foundation, active generations, evidence enrichment | `6a59fe1..cbc97fa` | current suite `160 passed, 1 skipped`; migration slice `34 passed`; paths `21 passed`; evidence slice `22 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 10 | Steps 34–37: current information fence, any-Structure policy, owner migration policy, exact migration parity/activation | `6b94003..6e5b8e7` | migration, storage, Bundle, certificate, documentation, and bootstrap slice `51 passed` | pushed to `origin/refactor/unified-dataset-management` |
+| 11 | Steps 38, 39, and 41: mandatory Ed25519, checker containment, attestation principal state | `541b69d..73eb2fb` | governance, isolation/escape, checker protocol, and attestation regressions passed | pushed to `origin/refactor/unified-dataset-management` |
+| 12 | Steps 40 and 42–45: Evidence assets, scientific identity/integrity, generation leases, runtime/parser binding, ingestion CAS, migration normalization | `2bdfb99..a70ed5e` | combined focused slice `61 passed`; first full run `259 passed, 1 failed` | pushed through `a70ed5e` to `origin/refactor/unified-dataset-management` |
+| 13 | Step 46 integration closure before cutover: current facade, runtime/identity contracts, scientific evidence integrity, owner migration provenance, returned signatures, closed CLI payloads, formal dataset docs | `8718923..93f50c7` | focused scientific slice `60 passed`; migration slice `20 passed`; CLI slice `38 passed`; complete current suite `277 passed`; documentation/API/CLI/scientific slice `29 passed` | pushed through `93f50c7` to `origin/refactor/unified-dataset-management`; clean managed-store run still pending |

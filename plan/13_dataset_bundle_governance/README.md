@@ -1,6 +1,8 @@
 # Stage 13: Bundle-centered dataset governance
 
-Status: proposed design; implementation has not started.
+Status: feature implementation and the complete current test suite are green;
+the managed-store cutover and activated-store smoke tests remain pending and
+are tracked separately in the implementation log.
 
 This stage moves admission assessment, evidence grading, quality grading, and
 benchmark selection into an interactive, folder-backed `Bundle`. It preserves
@@ -40,8 +42,12 @@ and ingestion reject unsynchronized state and never invoke an earlier step
 implicitly.
 
 Sample identity is governed by a persisted dataset-specific identity schema,
-not inferred from coordinate/file equality or generic `core_info`. Scientific
-value conflicts are evaluated only for same-sample observations with comparable
+not inferred from coordinate/file equality or generic `core_info`. The Bundle
+manifest supplies one closed components list; canonical build materializes its
+typed exact-comparison protocol into persisted policy. Cross-Case matching is
+three-valued, while Case reflexivity ensures conflicting observations inside
+one Case are not hidden by missing cross-Case identity. Scientific value
+conflicts are evaluated only for same-sample observations with comparable
 property context. Governance disagreement remains a separate reason category.
 
 `Bundle.ingest()` requires an already current root certificate. The certificate
@@ -60,6 +66,13 @@ byte deduplication never implies shared scientific identity.
 signature. Public callers may record attributable `User` or `Other`
 attestations, but cannot turn a string into Hotpot authority.
 
+The complete assessment runtime is part of dataset policy. Policy,
+assessment generation, certificate, and ingestion receipt bind the same
+self-digesting runtime-policy document, including parser bindings. Historical
+sealed releases verify their frozen binding; new assessment, certification,
+and ingestion require the one current runtime. No historical implementation
+is loaded as a compatibility backend.
+
 Currently ingested datasets require a one-time owner/admin rebuild into this
 layout. Scientific source facts and asset hashes remain unchanged. Legacy
 SHA-derived entity/structure identifiers are audited rather than treated
@@ -70,6 +83,7 @@ incomplete/ordinary/benchmark organization.
 - [Complete implementation plan](bundle_gate_certificate_implementation.md)
 - [Complete first-level API signature tree](bundle_gate_certificate_implementation.md#41-complete-first-level-public-api-signature-tree)
 - [Implementation log](implementation_log.md)
+- [Implementation report](implementation_report.md)
 
 This is a current-version replacement plan. Git owns implementation history;
 the implementation must not preserve the superseded certification workflow as

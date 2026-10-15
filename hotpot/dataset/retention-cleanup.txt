@@ -1,0 +1,33 @@
+# Hotpot dataset retention cleanup manifest
+#
+# Syntax: repository-root-relative, Gitignore-style paths. A trailing slash
+# selects the directory and all of its contents. This file is declarative; no
+# Hotpot command executes it automatically.
+#
+# These paths become eligible for deletion only after the dataset owner has:
+# 1. ended the applicable retention period;
+# 2. retained an external archive, or explicitly waived restoration;
+# 3. verified that store/active resolves to stage13-current;
+# 4. run `hotpot ds detail audit` successfully;
+# 5. accepted that deleting a migration Bundle prevents loading that Bundle or
+#    reconstructing it from its root certificate without restoring the archive;
+# 6. preserved current-inventory.json, stage13-cutover.json,
+#    migration-report.json, migration-plan.json, and store/certificates/; and
+# 7. recorded the deletion as an owner-approved retention event.
+#
+# Never add the active generation, its asset store, source datasets, structure
+# sources, current audit reports, or current certificates to this manifest.
+
+# Superseded schema-1 source database. It is not used by the active runtime,
+# but remains original migration evidence until retention expires.
+/hotpot/dataset/data/store/datasets.sqlite3
+
+# Verified schema-1 rollback snapshot and rollback-only assets.
+/hotpot/dataset/data/store/rollback/schema1-20261015/
+
+# Materialized one-time migration Bundles. The small top-level migration plan
+# and report are deliberately retained because current-inventory.json refers to
+# the report and they document the completed cutover.
+/hotpot/dataset/data/bundles/stage13-migration/oxidation/
+/hotpot/dataset/data/bundles/stage13-migration/spin/
+/hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/

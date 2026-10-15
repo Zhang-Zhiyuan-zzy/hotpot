@@ -141,3 +141,31 @@ def test_public_attestation_cannot_claim_hotpot_authority():
         True, authority="User", actor="owner", reason="reviewed"
     )
     assert attestation_id.startswith("c1:attestation:")
+
+
+def test_public_attestation_requires_exact_boolean_and_named_actor():
+    owner = Owner()
+    case = CaseCollection(owner)[0]
+    with pytest.raises(TypeError, match="Boolean"):
+        case.attest_benchmark(1, authority="User", actor="owner")
+    with pytest.raises(ValueError, match="non-empty"):
+        case.attest_benchmark(True, authority="User", actor="")
+
+
+def test_new_attestation_supersedes_same_authority_and_actor_only():
+    owner = Owner()
+    case = CaseCollection(owner)[0]
+    first = case.attest_benchmark(False, authority="User", actor="owner")
+    owner.is_synchronized = True
+    other = case.attest_benchmark(False, authority="User", actor="reviewer")
+    owner.is_synchronized = True
+    replacement = case.attest_benchmark(True, authority="User", actor="owner")
+
+    rows = owner.payloads["c1"]["attestations"]
+    assert rows[0]["attestation_id"] == first
+    assert rows[0]["status"] == "superseded"
+    assert rows[0]["superseded_by"] == replacement
+    assert rows[1]["attestation_id"] == other
+    assert rows[1]["status"] == "active"
+    assert rows[2]["supersedes"] == [first]
+    assert rows[2]["approved"] is True

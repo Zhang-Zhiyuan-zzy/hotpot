@@ -456,20 +456,42 @@ class Case:
         actor: str,
         reason: Optional[str] = None,
     ) -> str:
+        if not isinstance(approved, bool):
+            raise TypeError("approved must be a Boolean")
         if authority not in {"User", "Other"}:
             raise ValueError("public benchmark authority must be 'User' or 'Other'")
-        return self._add(
-            "attestations",
-            "attestation_id",
-            {
-                "approved": bool(approved),
+        if not isinstance(actor, str) or not actor.strip():
+            raise ValueError("benchmark attestation actor must be a non-empty string")
+
+        def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
+            new_id = self._new_identifier("attestation")
+            superseded = []
+            for item in facts.setdefault("attestations", []):
+                if (
+                    item.get("status", "active") == "active"
+                    and item.get("authority") == authority
+                    and item.get("actor") == actor
+                ):
+                    item["status"] = "superseded"
+                    item["superseded_by"] = new_id
+                    superseded.append(str(item.get("attestation_id")))
+            attestation = {
+                "attestation_id": new_id,
+                "approved": approved,
                 "authority": authority,
                 "actor": actor,
                 "reason": reason,
                 "status": "active",
-            },
-            "benchmark.attest",
-        )
+            }
+            if superseded:
+                attestation["supersedes"] = superseded
+            facts["attestations"].append(attestation)
+            return {
+                "attestation_id": new_id,
+                "superseded": superseded,
+            }, new_id
+
+        return self._mutate("benchmark.attest", mutate)
 
     def withdraw_attestation(self, attestation_id: str, *, reason: str) -> None:
         self._withdraw(

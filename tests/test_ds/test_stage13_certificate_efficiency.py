@@ -221,6 +221,53 @@ def test_prepublication_cas_rejects_asset_tampering_and_preserves_certificate(
     assert not list(bundle.root.glob(".certificate.json.*.tmp"))
 
 
+@pytest.mark.parametrize("mutation", ["add", "remove", "replace"])
+def test_prepublication_cas_rejects_generation_tree_mutation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str
+) -> None:
+    bundle = _bundle(tmp_path)
+    path = write_bundle_certificate(bundle)
+    original_certificate = path.read_bytes()
+    envelope = load_certificate_envelope(path)
+    generation_directory = (
+        bundle.root
+        / envelope["certificate"]["generation"]["manifest"]["path"]
+    ).parent
+    rogue = generation_directory / "rogue.txt"
+    existing = generation_directory / "summary.json"
+    existing_bytes = existing.read_bytes()
+    original_atomic_write = certificate_module._atomic_write
+
+    def tampering_atomic_write(path, value, *, before_replace=None):
+        def tamper_then_check():
+            if mutation == "add":
+                rogue.write_text("unlisted\n", encoding="utf-8")
+            elif mutation == "remove":
+                existing.unlink()
+            else:
+                existing.write_bytes(existing_bytes + b"tampered")
+            before_replace()
+
+        return original_atomic_write(
+            path, value, before_replace=tamper_then_check
+        )
+
+    monkeypatch.setattr(
+        certificate_module, "_atomic_write", tampering_atomic_write
+    )
+
+    with pytest.raises(CertificateIntegrityError, match="generation tree changed"):
+        write_bundle_certificate(bundle)
+
+    assert path.read_bytes() == original_certificate
+    assert not list(bundle.root.glob(".certificate.json.*.tmp"))
+    if mutation == "add":
+        rogue.unlink()
+    else:
+        existing.write_bytes(existing_bytes)
+    assert verify_bundle_certificate(bundle) == envelope
+
+
 def test_bundle_lock_serializes_supported_edits_with_certificate_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

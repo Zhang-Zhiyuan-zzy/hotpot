@@ -145,6 +145,8 @@ class _CertificationSnapshot:
     summary: bytes
     issuer: str
     issued_at: str
+    generation_directory: Optional[Path]
+    generation_tree: tuple[tuple[str, _FileStamp], ...]
     observed_files: tuple[_ObservedFile, ...]
     absent_paths: tuple[Path, ...]
 
@@ -902,7 +904,7 @@ def _capture_current_generation(
             )
         for relative, stamp_value in after:
             hasher.observe_validated(directory / relative, stamp_value)
-        yield generation
+        yield generation, directory, after
 
 
 @contextmanager
@@ -913,7 +915,7 @@ def _capture_supplied_generation(bundle: Any) -> Iterator[Any]:
             "Bundle has no current assessment generation; run bundle.synchronize() first"
         )
     with generation.lease():
-        yield generation
+        yield generation, None, ()
 
 
 @contextmanager
@@ -925,11 +927,11 @@ def _certification_generation(
     if control.get("current_generation_id"):
         with _capture_current_generation(
             Path(bundle.root).resolve(), control, hasher
-        ) as generation:
-            yield generation
+        ) as captured:
+            yield captured
         return
-    with _capture_supplied_generation(bundle) as generation:
-        yield generation
+    with _capture_supplied_generation(bundle) as captured:
+        yield captured
 
 
 def _capture_supplied_state(
@@ -1009,7 +1011,8 @@ def _capture_certification_snapshot(
         governance_digest,
     ) = captured
     require_current_runtime_policy(policy["runtime_policy"])
-    with _certification_generation(bundle, control, hasher) as generation:
+    with _certification_generation(bundle, control, hasher) as captured_generation:
+        generation, generation_directory, generation_tree = captured_generation
         generation_manifest = generation.manifest
         expected_source = {
             "revision": control["source_revision"],
@@ -1077,6 +1080,8 @@ def _capture_certification_snapshot(
             summary=_canonical_bytes(summary),
             issuer="Hotpot",
             issued_at=_utc_now(),
+            generation_directory=generation_directory,
+            generation_tree=generation_tree,
             observed_files=hasher.observed_files,
             absent_paths=hasher.absent_paths,
         )
@@ -1384,6 +1389,14 @@ def _verify_certificate_against_bundle(
 
 
 def _assert_observations_current(snapshot: _CertificationSnapshot) -> None:
+    if (
+        snapshot.generation_directory is not None
+        and _generation_tree_stamps(snapshot.generation_directory)
+        != snapshot.generation_tree
+    ):
+        raise CertificateIntegrityError(
+            "assessment generation tree changed before certificate publication"
+        )
     for observed in snapshot.observed_files:
         if _current_file_stamp(observed.path) != observed.stamp:
             raise CertificateIntegrityError(

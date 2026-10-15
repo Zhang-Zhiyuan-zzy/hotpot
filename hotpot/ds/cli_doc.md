@@ -297,16 +297,20 @@ arguments:
   "relation": "supports",
   "locator": "Table 2",
   "details": {
+    "source_kind": "primary_literature",
     "source_lineage_id": "experiment:example"
   }
 }
 ```
 
 The optional `details` object is deliberately closed. For
-`case.add_evidence`, it accepts `doi`, `url`, `scientific_work_id`,
-`source_lineage_id`, and `derived_from` (an array of lineage IDs). DOI and URL
-facts are inferred from `doi:...` and `url:...` source references. For
-`case.verify_evidence`, it accepts `procedure_version` and a timezone-aware
+`case.add_evidence`, it accepts `source_kind`, `doi`, `url`,
+`scientific_work_id`, `source_lineage_id`, and `derived_from` (an array of
+lineage IDs). `source_kind` is one of `primary_literature`,
+`secondary_literature`, `database_record`, `expert_statement`, or `other`.
+DOI and URL facts are inferred from `doi:...` and `url:...` source references,
+but they never imply a source kind. For `case.verify_evidence`, `details`
+accepts `tool`, `tool_version`, `procedure_version`, and a timezone-aware
 `verified_at` timestamp:
 
 ```json
@@ -314,8 +318,10 @@ facts are inferred from `doi:...` and `url:...` source references. For
   "case_id": "case-0001",
   "evidence_id": "case-0001:evidence:...",
   "method": "AI",
-  "verifier": "review-tool/current",
+  "verifier": "review-agent@example.org",
   "details": {
+    "tool": "review-tool",
+    "tool_version": "2.1.0",
     "procedure_version": "primary-source-review/current",
     "verified_at": "2026-10-14T01:30:00Z"
   }
@@ -323,10 +329,13 @@ facts are inferred from `doi:...` and `url:...` source references. For
 ```
 
 When verification details are omitted, Hotpot records its current procedure
-identifier and the current UTC time. AI `verifier` values must identify the
-model/tool and its version. These facts are preserved in the Case source
-record and participate in synchronization and certification; they do not
-directly assign an evidence level.
+identifier and the current UTC time. AI verification still requires explicit
+`tool` and `tool_version`; `verifier` identifies the attributable agent.
+File-backed evidence whose bytes are missing or whose declared hash mismatches
+is retained as a negative fact and cannot contribute support. That condition
+alone does not make the Case incomplete; with no other usable support the
+affected target assesses at E0. These facts participate in synchronization and
+certification and do not directly assign an evidence level.
 
 ### Inspect or edit Gates
 

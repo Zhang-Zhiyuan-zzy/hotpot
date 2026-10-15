@@ -132,6 +132,7 @@ are counted in the `not_applicable` distribution bucket.
 ### Data members
 
 ```text
+data.dataset -> Dataset
 data.id -> str
 data.record_id -> str
 data.local_id -> str
@@ -145,6 +146,9 @@ data.evidence_level -> str | None
 data.archive_class -> str
 data.structures() -> list[str]
 data.structures.<format> -> str | None
+data.structures.content(format) -> str | None
+data.structures.path(format) -> Path | None
+data.structures.molecule() -> hotpot.Molecule
 data.molecule -> hotpot.Molecule
 data.crystal -> Crystal
 ```
@@ -188,7 +192,9 @@ BaseSearcher                         # abstract
   &, |, ^, ~
 
 DataSearcher(**criteria)
+  .criteria -> Mapping[str, Any]
 DatasetSearcher(**criteria)
+  .criteria -> Mapping[str, Any]
 SmartsSearcher(smarts: str, *, semantics=None)
 ```
 

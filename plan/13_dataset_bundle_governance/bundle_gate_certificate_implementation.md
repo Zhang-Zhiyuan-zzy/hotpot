@@ -1,5 +1,9 @@
 # Bundle-centered assessment, evidence, and benchmark governance
 
+Implementation status: the current-version design is implemented in the
+working branch. Final combined validation and managed-store activation remain
+the explicit Step 46 release gate in `implementation_log.md`.
+
 ## 1. Executive decision
 
 Hotpot must make it inexpensive to preserve an expert's judgment without
@@ -94,10 +98,11 @@ The current code affected most directly is:
 
 - `hotpot/ds/public/bundle.py`;
 - `hotpot/ds/public/certificate.py`;
-- `hotpot/ds/public/inputs.py`;
-- `hotpot/ds/public/store.py`;
-- `hotpot/ds/quality.py` and `hotpot/ds/levels.py`;
-- `hotpot/ds/models.py` and `hotpot/ds/database.py`;
+- `hotpot/ds/public/case.py`, `dataset.py`, and `structures.py`;
+- `hotpot/ds/public/_assessment.py`, `_bundle_state.py`, `_generation.py`,
+  and `_implementation.py`;
+- `hotpot/ds/gates/`, `hotpot/ds/storage.py`, and
+  `hotpot/ds/governance.py`;
 - `hotpot/ds/cli.py`, `hotpot/ds/README.md`, and `hotpot/ds/cli_doc.md`;
 - `hotpot/dataset/schemas/record-standard.json` and the data rebuild tools.
 
@@ -120,9 +125,10 @@ The current code affected most directly is:
   that another Case describes the same scientific sample.
 
 `Identity schema`
-: The persisted dataset-policy definition used to compare scientific sample
-  identity. It declares only identity-bearing fields, their namespaces and
-  normalization, selected structure roles, and comparator implementations.
+: The closed `identity_schema.components` list supplied in `bundle.json`,
+  normalized during canonical build, and persisted as dataset policy. It
+  declares only identity-bearing scalar paths or role-selected semantic
+  structure fields plus their typed normalizer and exact comparator.
   `core_info` remains a completeness contract and is not implicitly an identity
   key.
 
@@ -197,6 +203,8 @@ The current code affected most directly is:
     assessment results are never inputs to sample identity.
 18. A scientific value conflict can exist only between observations whose
     Cases match as the same sample and whose contexts are comparable.
+    Case reflexivity means distinct observations within the same Case remain
+    conflict candidates even when cross-Case identity is indeterminate.
 19. B0-B4 and E0-E4 are derived assessment results. Source observations and
     claims cannot carry an operative assigned grade.
 20. A missing scientific asset may be preserved as a negative declaration, and
@@ -212,6 +220,27 @@ The current code affected most directly is:
 24. Successful ingestion copies every positively materialized scientific asset
     into the target store's content-addressed asset area. Published data never
     relies on the continued existence of a caller-owned Bundle path.
+25. Ed25519 verification is a mandatory installed capability, provided by the
+    direct supported `cryptography` dependency. Governance never becomes
+    optional, weaker, or test-skipped because a crypto backend is absent.
+26. Every assessment is bound to one self-digesting runtime-policy document:
+    semantic assessment/parser source, checker and parser protocols, Python and
+    SQLite identities, and the relevant installed distribution versions. The
+    exact document is persisted in the dataset policy and repeated in the
+    generation, certificate, and ingestion receipt; it is not inferred from a
+    Git revision at verification time.
+27. Every parsed scientific asset records its selected parser, complete parser
+    binding digest, parser protocol, parser-source digest, and parser
+    distribution identity in its `AssetAssessment`; an unbound parser result
+    cannot contribute to a synchronized generation.
+28. Custom checker code executes only across the specified OS-isolation
+    boundary. Isolation unavailability blocks synchronization, while one
+    checker timeout, exception, resource-limit termination, or malformed result
+    fails that checker closed for the affected Case and remains auditable.
+29. Generation retention is reference-safe: current, certificate-bound,
+    receipt-bound, and actively leased generations cannot be collected.
+    Leasing and garbage collection remain private implementation concerns and
+    add no first-level API.
 
 ## 4. Target module structure
 
@@ -220,22 +249,30 @@ hotpot/ds/
 |- gates/
 |  |- __init__.py
 |  |- _base.py
-|  |- evidence.py        # EvidenceGate
-|  |- quality.py         # QualityGate
-|  `- benchmark.py       # BenchmarkGate
+|  |- _checker.py        # isolated custom-checker execution contract
+|  |- _gates.py          # current Gate implementations
+|  |- _persistence.py    # immutable Gate policy artifacts
+|  |- evidence.py        # focused EvidenceGate import
+|  |- quality.py         # focused QualityGate import
+|  `- benchmark.py       # focused BenchmarkGate import
 |- public/
 |  |- bundle.py          # Bundle, load_bundle, thin write_certificate wrapper
 |  |- case.py            # Case and returned read-only collections/views
 |  |- _bundle_state.py   # revisions, digests, and synchronization state
 |  |- _assessment.py     # immutable assessment generations
+|  |- _generation.py     # atomic assessment-generation publication
+|  |- _implementation.py # bound runtime-policy document
 |  |- certificate.py     # private envelope/serialization implementation
-|  `- inputs.py          # strict folder loader
+|  |- catalog.py         # datasets_list/load implementation
+|  |- dataset.py         # Dataset/Data query objects
+|  |- search.py          # public searchers
+|  `- structures.py      # lazy structure access and conversion
 |- storage.py            # private class-aware ingestion backend
 |- governance.py         # private Hotpot trust registry and signer boundary
 |- governance_root.json  # tracked public genesis trust root
-|- models.py             # normalized source and governance records
-|- database.py           # persisted current schema
-`- quality.py            # low-level integrity checks shared by gates
+|- _communication.py     # closed CLI JSON envelope protocol
+|- _export.py            # dataset export implementation
+`- schemas/              # canonical Bundle and CLI JSON/SQLite contracts
 ```
 
 The gate classes are imported from `hotpot.ds.gates`:
@@ -308,6 +345,7 @@ hotpot.ds
 |  `- dataset.identifier_namespaces -> tuple[str, ...]
 |
 |- Data                                     # returned object; no public constructor
+|  |- data.dataset -> Dataset
 |  |- data.id -> str
 |  |- data.record_id -> str
 |  |- data.local_id -> str
@@ -321,6 +359,9 @@ hotpot.ds
 |  |- data.archive_class -> str
 |  |- data.structures() -> list[str]
 |  |- data.structures.<format> -> Optional[str]
+|  |- data.structures.content(fmt: str) -> Optional[str]
+|  |- data.structures.path(fmt: str) -> Optional[Path]
+|  |- data.structures.molecule() -> hotpot.Molecule
 |  |- data.molecule -> hotpot.Molecule
 |  `- data.crystal -> Crystal
 |
@@ -335,7 +376,9 @@ hotpot.ds
 |  `- ~searcher -> BaseSearcher
 |
 |- DataSearcher(**criteria: Any) -> DataSearcher
+|  `- searcher.criteria -> Mapping[str, Any]
 |- DatasetSearcher(**criteria: Any) -> DatasetSearcher
+|  `- searcher.criteria -> Mapping[str, Any]
 |- SmartsSearcher(smarts: str, *, semantics=None) -> SmartsSearcher
 |
 |- load_bundle(
@@ -479,6 +522,19 @@ hotpot.ds
 |         reason: str,
 |     ) -> None
 |
+|- CaseCollection                           # returned via Bundle; read-only owner facade
+|  |- len(cases) -> int
+|  |- iter(cases) -> Iterator[Case]
+|  |- cases[index: int] -> Case
+|  |- cases[index: slice] -> CaseView
+|  `- cases.select(**criteria: Any) -> CaseView
+|
+|- CaseView                                 # returned filter; original Case objects
+|  |- len(view) -> int
+|  |- iter(view) -> Iterator[Case]
+|  |- view[index: int] -> Case
+|  `- view[index: slice] -> CaseView
+|
 `- write_certificate(bundle: Bundle) -> Path
 
 hotpot.ds.gates
@@ -613,18 +669,42 @@ AND policy_revision == synchronized_policy_revision
 AND policy_digest == synchronized_policy_digest
 AND governance_registry_revision == synchronized_governance_registry_revision
 AND governance_registry_digest == synchronized_governance_registry_digest
+AND the runtime-policy document inside policy is exactly current
 AND the referenced assessment generation is complete
 ```
+
+There is no parallel runtime revision or compatibility-policy column. The
+canonical policy contains the complete self-digesting `runtime_policy`; the
+ordinary policy digest therefore binds it transitively. Generation,
+certificate, and receipt repeat that exact document so each boundary can check
+equality without consulting a historical implementation.
 
 For a draft, the left-hand governance values are the latest trusted registry.
 For a sealed release, they are the immutable certificate/receipt-bound snapshot;
 any newer registry is reported separately and cannot make an immutable release
-look unsynchronized.
+look unsynchronized. Likewise, a valid receipt-bound release remains a
+synchronized historical snapshot when its runtime is no longer current, while
+`runtime_policy_current=false`, `ingest_ready=false`, and `next_action` direct
+the user to a successor release.
 
 Revision counters make normal checks inexpensive; canonical digests are the
 authority at process load, synchronization, certification, and ingestion
 boundaries. An external file edit therefore invalidates synchronization even if
 it bypasses the Python object.
+
+The current runtime-policy document is recomputed from the assessment, checker,
+and parser binding defined in Section 5.2.2. New synchronization, certificate
+issuance, and ingestion require exact equality with the policy document. A
+mismatch is not an ordinary dirty-Bundle state and cannot be repaired by
+repeatedly calling `synchronize()`. Structural validation and digest checking
+of a frozen generation, certificate, or receipt are intentionally independent
+of the ambient runtime: this permits a sealed historical release to prove what
+created it without executing that historical implementation. For an editable
+established dataset, `bundle.status.next_action` identifies an explicit
+owner/admin policy migration followed by reassessment and recertification. For
+a sealed release, it identifies creation of a successor release under the
+current policy. `bundle.status.runtime_policy_current` reports this distinction.
+No compatibility runtime is loaded.
 
 For an editable Bundle, a newer trusted governance registry also invalidates
 the assessment input. The next explicit `synchronize()` snapshots and audits
@@ -674,6 +754,8 @@ certificate_stale = NOT certificate_current
 ingest_ready = is_synchronized
                AND certificate_current
                AND target_precondition_satisfied
+               AND runtime_policy_current
+               AND receipt_integrity_valid
                AND (release_is_draft OR exact_receipt_allows_idempotent_retry)
 ```
 
@@ -771,17 +853,30 @@ Source is persisted instead of pickle, `marshal`, code objects, or `.pyc`
 files. Those formats are either unsafe to deserialize or tied to a Python
 implementation/version. Source inspection and an import allowlist are admission
 checks, not a Python sandbox. Custom code runs only in a separately spawned,
-low-privilege OS-isolated worker with canonical JSON on stdin, an empty
-environment and credential set, a dedicated isolated network namespace with no
+low-privilege OS-isolated worker with canonical JSON on stdin, a fixed minimal
+locale/timezone/Python environment and no inherited credentials, a dedicated
+isolated network namespace with no
 usable interfaces, routes, or sockets (or an equivalent OS-enforced deny-all
-network boundary), no Bundle/store access, no inherited file descriptors, and
-enforced wall-time, CPU, and memory limits.
+network boundary), no inherited file descriptors, and enforced wall-time, CPU,
+memory, process, file-size, and stdout/stderr limits. Its mount namespace
+contains only the minimum read-only interpreter/runtime files and an empty
+disposable `/tmp`; it exposes no Bundle root, dataset store, credentials, or
+caller working directory. The persisted checker source and its digest travel
+inside the bounded JSON request and are revalidated by the worker; no checker
+file is mounted. Before launching a worker, Hotpot resolves and rejects a
+runtime mount that is equal to, contains, or is contained by the Bundle root or
+target-store root.
 The worker exposes only the fixed checker entry point and a restricted built-in
-and import set; its temporary filesystem is empty and disposable. If the host
-cannot provide these isolation properties, Hotpot rejects custom checkers with
-`CheckerIsolationUnavailableError`; it never falls back to in-process or
-partially isolated execution. Built-in checkers do not require this user-code
-path.
+and import set; its temporary filesystem is empty and disposable. Stdout is one
+bounded canonical result message; stderr is bounded diagnostic material and
+never parsed as a result. A timeout, signal/resource-limit termination,
+exception, oversized output, malformed JSON, or invalid return tuple produces a
+stable `checker_error` reason and a failed result for that checker on that Case;
+the remaining assessment stays deterministic. If the host cannot provide every
+required isolation property, `synchronize()` raises
+`CheckerIsolationUnavailableError` before running custom code or publishing a
+generation; it never falls back to in-process or partially isolated execution.
+Built-in checkers do not require this user-code path.
 
 The persisted policy binds:
 
@@ -798,6 +893,45 @@ with `PolicyProtocolError`. Updating it is an explicit owner/admin dataset-polic
 migration followed by reassessment and recertification. Bundle cannot perform
 that migration or substitute a new checker. Git retains implementation history;
 the live database is migrated atomically to the one current policy format.
+
+#### 5.2.2 Deterministic assessment and parser runtime binding
+
+The assessment runtime is a scientific input, not ambient deployment detail.
+One canonical, self-digesting runtime-policy document records:
+
+- full-file and selected semantic-symbol SHA-256 digests for the Hotpot code
+  that implements Gate evaluation, identity/comparison, assessment generation,
+  structure parsing, and parser selection;
+- the assessment-store, custom-checker, parser, and parser-selection protocols;
+- Python implementation and full version;
+- SQLite library version and the schema/query protocol used by the assessment
+  stores; and
+- normalized name/version pairs for every relevant runtime distribution,
+  including Hotpot, the mandatory Ed25519 provider, and enabled chemistry or
+  structure-parser providers.
+
+Paths, timestamps, editable-install locations, and unrelated installed
+packages are excluded. Entries are canonically ordered and hashed as one
+embedded `digest`. The complete document is stored inside
+`DatasetAssessmentPolicy` and repeated byte-for-byte/canonically in each
+generation manifest, certificate, and ingestion-receipt binding. The
+generation's logical ordered-content digest directly includes this binding,
+rather than relying only on the outer manifest file hash.
+
+Each `AssetAssessment` additionally stores parser name, complete parser-binding
+digest, parser protocol, parser implementation/source digest, and relevant
+parser distribution identity and digest.
+Parser selection is deterministic for an asset role/format. A missing parser,
+digest mismatch, or runtime-policy mismatch fails closed; Hotpot does not reuse
+an assessment made by a different parser implementation and does not select an
+older compatibility parser. Certificate restoration verifies the frozen
+binding without rerunning the parser; new synchronization requires the current
+binding to match the established dataset policy or the owner action described
+in Section 4.2.
+
+These controls remain behind `Bundle`, its existing JSON-compatible status and
+certificate summaries, and private generation storage. They add no first-level
+class, function, lifecycle command, or compatibility option to Section 4.1.
 
 ### 5.3 `EvidenceGate`
 
@@ -817,14 +951,31 @@ Default interpretation:
 | E3 | The relevant statement was checked against an identified primary source by AI or a human |
 | E4 | At least two independent sources corroborate the result and satisfy the E3 conditions |
 
+The stored/public values are exactly `E0`, `E1`, `E2`, `E3`, or `E4`; level
+suffixes are not current values.
+
 Additional rules:
 
+- Only an active Evidence record whose explicit `relation` is `supports`
+  contributes toward E1-E4. `contradicts` and `context` remain available to
+  assessment and audit but never increase the support grade.
+- An evidence target must resolve to one active observation or claim by exact
+  record ID or by an unambiguous property/label alias. An absent, ambiguous, or
+  kind-mismatched target is a relationship-integrity failure and makes the Case
+  incomplete; it is never guessed from list position.
 - Human verification is recorded as a strong-assurance E3 route.
 - AI verification is a valid E3 route only when model/tool identity, version,
   procedure, date, and checked source locator are recorded.
 - AI plus human verification is retained as a stronger assurance annotation,
   but does not by itself create E4; E4 requires independent scientific source
   corroboration.
+- DOI/work identities are normalized before independence comparison.
+  `derived_from` names result-lineage IDs, not Evidence record IDs; missing
+  parents and cyclic ancestry are integrity failures. The Gate can prove
+  consistency of the submitted work/lineage graph, but it cannot by itself
+  prove that a supplier's lineage declaration is scientifically true. E4
+  therefore remains conditional on those traceable source facts and is subject
+  to owner review.
 - E4 requires two E3 evidence chains with distinct canonical scientific-work
   identifiers and distinct primary result-lineage roots. Each Evidence chain
   records a normalized `source_lineage_id` and any `derived_from` relation; the
@@ -840,12 +991,23 @@ Additional rules:
 - `Case.evidence_levels` is a read-only projection of the target assessments;
   it is not another source of grades.
 - `Case.evidence_level` is the minimum level among required/core targets. It is
-  `E0_insufficient` when an expected evidence-bearing target is absent or
-  unsupported. If the dataset declares no evidence-bearing required/core
-  target, the aggregate is not a grade: Python returns `None`, JSON and SQLite
-  store `null`, and aggregate distributions count the bucket key
-  `not_applicable`. The literal string `"not_applicable"` is never persisted as
-  the Case E value.
+  `E0` when an expected evidence-bearing target is absent or
+  unsupported. An explicitly empty `core_labels` policy aggregates every active
+  observation/claim target instead of disabling evidence assessment. Only a
+  Case with no evidence-bearing target at all has no aggregate grade: Python
+  returns `None`, JSON and SQLite store `null`, and aggregate distributions
+  count the bucket key `not_applicable`. The literal string
+  `"not_applicable"` is never persisted as the Case E value.
+
+Operative Case-local relationships are checked before direct benchmark entry.
+Active verifications must resolve to active Evidence; supersession links must
+resolve within their collection and be reciprocal (including a replacement
+that supersedes several prior attestations); entity/participant references must
+resolve within the Case; and evidence relations/lineage must satisfy the rules
+above. Invalid relationships remain preserved source facts, but they make the
+Case incomplete until corrected or superseded. `identity_indeterminate` is
+different: it blocks benchmark admission while the otherwise complete Case
+remains ordinary and archivable.
 
 ### 5.4 `QualityGate`
 
@@ -862,6 +1024,9 @@ The existing B0-B4 meanings remain:
 | B2 | Complete, reviewed, and conflict-adjudicated case |
 | B3 | Primary-source-supported case with the configured validation/review controls |
 | B4 | Independently corroborated reference case under a reproducible policy |
+
+The stored/public values are exactly `B0`, `B1`, `B2`, `B3`, or `B4`; level
+suffixes are not current values.
 
 QualityGate must not infer high quality from a bare dataset declaration. It
 derives quality only from evidence, review records, structure checks, conflict
@@ -887,12 +1052,14 @@ itself, while a cross-Case match is `indeterminate` unless persisted stable
 identity components prove equivalence.
 
 The assessment policy is the only schema authority. For a new dataset,
-`bundle.json` contains only a built-in schema key or digest/reference; the
-Bundle build step materializes the resolved component list into the canonical
-policy. An existing dataset loads its persisted schema and only verifies a
-local reference. A genuinely custom comparator uses the same fixed JSON input,
-source hashing, isolation, and persistence rules as a custom Gate checker; it
-does not introduce another public plugin interface.
+`bundle.json.identity_schema` is an object containing exactly one `components`
+array; the array may be empty when no cross-Case equivalence can be asserted.
+The Bundle build step validates this closed input, materializes every default
+and implementation/protocol digest, writes the normalized schema into the
+canonical manifest, and persists that exact normalized value in dataset
+policy. An existing dataset must present the same normalized manifest value and
+loads the authoritative persisted policy. There is no custom identity
+comparator or second plugin route in the current implementation.
 
 Each identity component records only:
 
@@ -904,6 +1071,26 @@ optional structure role
 mismatch-is-decisive Boolean
 implementation/protocol digest
 ```
+
+Each component is one of two current forms:
+
+- a scalar dotted path rooted at `core_info` or `identifiers`, with at least one
+  field after the root; or
+- a role-aware structure component with a non-empty `structure_role`. The role
+  must select exactly one active Structure through its `role`/`roles`
+  declarations, and the component path must be rooted at one of
+  `formal_charge`, `atom_count`, `molecular_graph`, `stereochemistry`,
+  `isotopes`, `protonation_state`, `tautomer_state`, `crystal_context`, or
+  `metadata` inside that Structure.
+
+The allowed normalizers/value kinds are the closed typed set `text`,
+`casefold`/text, `number`, `boolean`, `set`, and canonical `json`. The only
+comparator is exact canonical equality. Component keys are unique; unknown
+fields, unsafe/unsupported paths, type-normalizer mismatches, stale supplied
+implementation/protocol digests, and a structure role selecting zero or
+multiple Structures fail closed or produce identity indeterminacy as
+appropriate. Target observations, claims, B/E grades, and benchmark results
+cannot be component roots.
 
 `required` controls missing-value behavior only.
 `mismatch-is-decisive` separately declares whether an unequal present value
@@ -922,12 +1109,14 @@ For two Cases, Hotpot normalizes and compares the declared components:
 ```text
 sample_match(A, B):
     if A.case_id == B.case_id: same
-    else if any present component with mismatch-is-decisive is unequal:
-        different
-    else if a required component is missing, ambiguous, invalid,
-            or not comparable: indeterminate
-    else if any present non-decisive component is unequal: indeterminate
-    else if the persisted canonical keys/equivalence components match: same
+    else if the components list is empty: indeterminate
+    else if a required component is missing, ambiguous, or invalid on either
+            Case: indeterminate
+    else if an optional component is present on only one Case: indeterminate
+    else ignore an optional component missing from both Cases
+    else if any compared decisive component is unequal: different
+    else if any compared non-decisive component is unequal: indeterminate
+    else if at least one component was compared and every value is equal: same
     else: indeterminate
 ```
 
@@ -938,6 +1127,14 @@ Coordinate or file equality is evidence of asset reuse, not universal chemical
 identity; molecular graph, charge, isotope, stereochemistry, protomer/tautomer
 policy, crystallographic context, and structure role are used only when the
 dataset schema explicitly requires them.
+
+Full-generation conflict discovery uses the same normalized policy to create a
+canonical ordered component key. Cross-Case observations share a conflict group
+only when that key proves equivalence. An empty schema, or a missing/ambiguous/
+invalid required component, falls back to the Case-local key `case:<case_id>`.
+This fallback is deliberately Case-reflexive: distinct active observations in
+the same Case are still compared and can conflict even when cross-Case identity
+is indeterminate. It never merges two indeterminate Cases.
 
 Observation comparison is a second, independent step. It is attempted only
 when `sample_match(...) == same` and requires:
@@ -975,8 +1172,10 @@ comparison, so input order cannot change the generation digest. Every
 `conflict`, `noncomparable`, or `indeterminate` result is stored as an internal
 `ConflictAssessment` row in the immutable generation; individual `consistent`
 rows are compacted. Each row records the observation and Case IDs, canonical
-sample key and identity-schema digest, property-family key, normalized
-comparison context, comparator/policy digest, outcome, and reason codes. A
+sample key and digest of the complete normalized identity-schema policy,
+property-family key, normalized comparison context, effective property-
+comparator policy digest, outcome, and reason codes. Both policy digests also
+participate in the immutable generation's ordered logical digest. A
 `ConflictGroupAssessment` persists total candidate count, consistent count,
 exception-row count, and the digest of every canonical ordered pair/result, so
 compaction cannot hide omissions or change the logical generation digest. An
@@ -1094,12 +1293,15 @@ not benchmark admission.
 This checker requires all of the following for each core benchmark target:
 
 1. an active linked scientific source;
-2. a DOI or an HTTP(S) paper URL;
-3. a usable locator, quote, or matched source text;
-4. at least one active `AI` or `Human` verification record covering that
+2. an explicit `source_kind="primary_literature"` declaration;
+3. a DOI or an HTTP(S) paper URL;
+4. a usable locator, quote, or matched source text;
+5. at least one valid active `AI` or `Human` verification record covering that
    source and target.
 
-A DOI or URL without a verification record does not pass. AI and human
+A DOI or URL neither implies primary literature nor passes without a valid
+verification record. AI verification requires explicit tool and tool-version
+metadata; Human verification requires an attributable verifier. AI and human
 verification may coexist. Human verification is reported as very strong
 evidence, but both methods satisfy this particular checklist item.
 
@@ -1210,8 +1412,11 @@ enter the Bundle or dataset store. The operation appends the signed attestation
 through the same canonical fact/audit transaction as other attestations. It is
 not exported from `hotpot.ds` or exposed by public CLI.
 
-For the same `(Case, authority, actor)`, a new decision supersedes the previous
-one. An active approval and rejection from different Hotpot/User actors produce
+For the same `(Case, authority, actor)`, a new decision supersedes every prior
+active decision from that principal and records the complete supersession list.
+The public API accepts an exact Boolean decision and a non-empty actor; truthy
+surrogates and anonymous attestations are rejected. An active approval and
+rejection from different Hotpot/User actors produce
 `benchmark_attestation_disagreement`. The default
 `attestation_not_rejected` veto blocks every benchmark path while any active
 Hotpot/User rejection or disagreement remains; withdrawal or supersession
@@ -1250,8 +1455,10 @@ case.attestations
 
 Every mapping or sequence is a deep read-only snapshot or defensive copy. It
 must be impossible to mutate nested dictionaries and bypass the audit log.
-`case.info` contains source facts and synchronization state; it does not insert
-an old assessment as though it were current.
+`case.info` contains the Case ID and source facts. When and only when the Bundle
+is synchronized it also includes the current assessment; it never inserts an
+old assessment or a separate synchronization-state flag as though either were
+current.
 
 The following derived properties require synchronization:
 
@@ -1261,7 +1468,7 @@ case.evidence_level        # conservative core-target level
 case.quality_level         # computed B0-B4
 case.archive_class         # incomplete, ordinary, benchmark
 case.benchmark             # computed bool
-case.benchmark_status      # admitted, rejected, pending, vetoed
+case.benchmark_status      # admitted, rejected, vetoed, not_admitted, ineligible
 case.reasons               # structured classification reasons
 case.assessment            # full JSON-compatible overview
 ```
@@ -1274,17 +1481,17 @@ Each reason contains:
 
 ```json
 {
-  "code": "missing_core_label",
-  "category": "completeness",
-  "severity": "error",
-  "target": "oxidation_state",
-  "gate": "QualityGate",
-  "message": "Required core label oxidation_state is missing."
+  "code": "missing_core_labels",
+  "message": "Required core labels are missing.",
+  "details": {
+    "fields": ["oxidation_state"]
+  }
 }
 ```
 
-Stable reason codes are required for programmatic filtering. Messages are for
-people and may improve without changing the code.
+Every reason has `code` and `message`; `details` is present only when structured
+context exists. Stable reason codes are required for programmatic filtering.
+Messages are for people and may improve without changing the code.
 
 ### 6.2 Audited fact editing
 
@@ -1316,13 +1523,13 @@ revision, and makes the entire Bundle unsynchronized. It does not run a Gate.
 
 | Fact | Public operations | Audit category | Invalidates |
 | --- | --- | --- | --- |
-| core info | set, remove | `core_info_changed` | whole assessment generation |
-| structure | add, replace, withdraw | `structure_changed` | whole assessment generation |
-| observation | add, replace, withdraw | `observation_changed` | whole assessment generation |
-| claim | add, replace, withdraw | `claim_changed` | whole assessment generation |
-| evidence | add, replace, withdraw | `evidence_changed` | whole assessment generation |
-| verification | verify, withdraw | `verification_changed` | whole assessment generation |
-| attestation | attest, withdraw | `attestation_changed` | whole assessment generation |
+| core info | set, remove | `core_info.set`, `core_info.remove` | whole assessment generation |
+| structure | add, replace, withdraw | `structure.add`, `structure.replace`, `structure.withdraw` | whole assessment generation |
+| observation | add, replace, withdraw | `observation.add`, `observation.replace`, `observation.withdraw` | whole assessment generation |
+| claim | add, replace, withdraw | `claim.add`, `claim.replace`, `claim.withdraw` | whole assessment generation |
+| evidence | add, replace, withdraw | `evidence.add`, `evidence.replace`, `evidence.withdraw` | whole assessment generation |
+| verification | verify, withdraw | `evidence.verify`, `verification.withdraw` | whole assessment generation |
+| attestation | attest, withdraw | `benchmark.attest`, `benchmark_attestation.withdraw` | whole assessment generation |
 | new-dataset Gate | `use_gate` | `gate_policy_changed` | whole assessment generation |
 
 This full invalidation rule is intentionally simple and correct. A future
@@ -1357,12 +1564,22 @@ source:existing-source-id
 ```
 
 `relation` is one of `supports`, `contradicts`, or `context`. Local files must
-remain inside the Bundle root and are hashed automatically. Adding evidence
-does not mark it verified. `details` is a closed, optional provenance object;
-it accepts `doi`, `url`, `scientific_work_id`, `source_lineage_id`, and
-`derived_from`. Keeping these related facts in one object avoids a long public
-signature while making the primary-work and independent-lineage facts required
-for E3/E4 available to the Gate.
+remain inside the Bundle root. A `file:` reference materializes its safe
+Bundle-relative `path` in the Evidence fact, so source-state hashing,
+certificate inventory, and target-owned asset ingestion bind the referenced
+bytes automatically. Adding evidence does not mark it verified. `details` is a
+closed, optional provenance object; it accepts `source_kind`, `doi`, `url`,
+`scientific_work_id`, `source_lineage_id`, and `derived_from`. `source_kind` is
+explicit and closed to `primary_literature`, `secondary_literature`,
+`database_record`, `expert_statement`, and `other`; neither a DOI nor a URL
+implies primary literature. Keeping these related facts in one object avoids a
+long public signature while making the primary-work and independent-lineage
+facts required for E3/E4 available to the Gate.
+
+For file-backed Evidence, missing bytes or a declared SHA-256 mismatch is a
+certificate-bound negative asset fact. The affected Evidence cannot contribute
+support and may leave the target at E0, but this condition alone does not make
+the Case incomplete; independent completeness or integrity defects still do.
 
 Verification is a separate, auditable action:
 
@@ -1377,12 +1594,14 @@ verification_id = case.verify_evidence(
 ) -> str
 ```
 
-AI verification metadata must include the model/tool and version in
-`verifier`; the event also records the current procedure version and time.
-Human verification records the reviewer's declared identity or stable local
-identifier. The closed verification `details` object accepts only
-`procedure_version` and timezone-aware `verified_at`; Hotpot supplies current
-values when they are omitted.
+`verifier` always records the attributable agent or reviewer. AI verification
+additionally requires `details.tool` and `details.tool_version`; the closed
+`details` object also accepts `procedure_version` and timezone-aware
+`verified_at`, whose current values Hotpot supplies when omitted. Human
+verification records the reviewer's declared identity or stable local
+identifier and does not require tool metadata. In either route the linked
+Evidence must contain a locator, quote, or matched text before verification can
+support E3.
 
 An incorrect verification is withdrawn rather than edited:
 
@@ -1412,8 +1631,8 @@ from new gate calculations but preserves it in the audit history.
 
 After any evidence operation, the source change is durable but the Bundle is
 unsynchronized until the user calls `bundle.synchronize()`. Direct assignment
-such as `case.evidence_level = "E4..."` or
-`case.quality_level = "B4..."` raises `AttributeError` because those properties
+such as `case.evidence_level = "E4"` or
+`case.quality_level = "B4"` raises `AttributeError` because those properties
 have no setters.
 
 ### 6.4 Benchmark attestation API
@@ -1499,8 +1718,11 @@ its policy mode by querying `db` before materialization:
 
 A missing database file or a store that does not contain `ds_name` selects new
 mode without creating the store during construction. The resolved mode and
-policy are persisted in the canonical Bundle; reopening recomputes the current
-target context and verifies it rather than accepting caller overrides.
+target context are persisted in the canonical Bundle. `bundle.mode` is derived
+from that build-time context rather than from later target availability, so an
+existing-dataset successor cannot become policy-editable if the target is
+temporarily unavailable. Reopening validates the persisted context and the
+live target separately rather than accepting caller overrides.
 
 The persisted dataset assessment policy comprises the three Gates, identity
 schema, property/context comparators, tolerances, and custom checker artifacts.
@@ -1516,17 +1738,22 @@ bundle.use_gate(BenchmarkGate(...))
 ```
 
 In existing mode, a non-`None` `gates=` argument and `bundle.use_gate(...)` raise
-`EstablishedGateError`. Bundle cannot relax, strengthen, replace, or migrate an
+`ExistingDatasetPolicyError`. Bundle cannot relax, strengthen, replace, or migrate an
 existing dataset's assessment policy. A policy change is a separate owner/admin
 database operation outside Bundle and creates a fully audited current-policy
-replacement followed by recertification.
+replacement followed by reassessment and recertification for an editable
+release, or a successor release when the original is sealed.
 
-The selected mode, dataset name, target-store context, and assessment-policy
-digest are available through `bundle.info`. `new`/`existing` is a runtime policy
-resolution state, not part of scientific content identity. If another process
-creates the same dataset after a new-mode Bundle was built, ingestion succeeds
-only through the exact idempotent-receipt or exact persisted-policy cases in
-Section 10.3; it never silently adopts a different policy.
+For an existing dataset, the exact persisted custom-checker sources are
+materialized into the successor Bundle's content-addressed policy directory
+before canonical build; the caller neither resupplies nor substitutes them.
+The selected mode and dataset name are available through `bundle.info`;
+policy/runtime currency and target readiness are reported through
+`bundle.status`. `new`/`existing` is a policy-authority state, not part of
+scientific content identity. If another process creates the same dataset after
+a new-mode Bundle was built, ingestion succeeds only through the exact
+idempotent-receipt or exact persisted-policy cases in Section 10.3; it never
+silently adopts a different policy.
 
 Gate objects receive the Bundle to assess; they do not own or mutate its source
 facts.
@@ -1552,10 +1779,10 @@ When synchronized, Bundle also exposes:
 bundle.summary
 ```
 
-`summary` is one JSON object with named `integrity`, `completeness`, `evidence`,
-`quality`, `benchmark`, `attestation`, `conflict`, and `reasons` sections. It
-contains counts and reason-code distributions and does not hide failed or
-not-performed checks. Access while unsynchronized raises
+`summary` is one JSON object with scalar `cases` plus named `integrity`,
+`completeness`, `evidence`, `quality`, `benchmark`, `attestation`, `conflict`,
+and `reasons` sections. It contains counts and reason-code distributions and
+does not hide failed or not-performed checks. Access while unsynchronized raises
 `UnsynchronizedBundleError`; old assessment contents are not exposed as a
 current-looking fallback.
 
@@ -1580,16 +1807,16 @@ All other classifications use one entry point instead of a property for every
 level, reason, verifier, or attestor:
 
 ```python
-missing_or_unverified = bundle.cases.select(
-    archive_class={"incomplete", "ordinary"},
-    min_quality="B1_candidate",
-    reason={"missing_structure", "unverified_primary_source"},
+candidate_or_better = bundle.cases.select(min_quality="B1")
+missing_required = bundle.cases.select(
+    archive_class="incomplete",
+    reason={"missing_required_structure", "expected_evidence_target_missing"},
 )
 
 conflicted = bundle.cases.select(reason="scientific_value_conflict")
 human_checked = bundle.cases.select(verification="Human")
 hotpot_attested = bundle.cases.select(attestation="Hotpot")
-promotion_pending = bundle.cases.select(benchmark_status="pending")
+promotion_candidates = bundle.cases.select(benchmark_status="not_admitted")
 ```
 
 Explicit incomplete-data access examples are:
@@ -1657,9 +1884,10 @@ bundle-root/
 Rules:
 
 - `bundle.json` contains the required `ds_name`, release identity, core
-  labels/info, identity-schema key/digest reference, property definitions,
+  labels/info, closed `identity_schema.components` input, property definitions,
   relative asset roots, canonical inventory rules, and the one current intake
-  declaration. It does not contain a competing identity schema.
+  declaration. Canonical build materializes that input into the normalized
+  manifest/persisted policy; no competing identity reference or plugin exists.
 - A not-yet-built intake root uses the same safe relative-path rules and points
   from `bundle.json` to exactly one current-format record index or exchange
   SQLite artifact retained under `evidence/intake/`; referenced scientific
@@ -1699,9 +1927,13 @@ Rules:
   generation artifact. It writes and fsyncs `generation.json` last; that
   manifest binds every other file, the canonical ordered-row digest, all
   source/policy/governance revisions and digests, and the pinned genesis key
-  ID. Only after verifying the complete snapshot does synchronization publish
-  the generation pointer in one `facts.sqlite3` compare-and-swap transaction.
-  There is no second current pointer.
+  ID. It also stores the complete runtime-policy document and digest. The
+  generation logical digest directly incorporates that runtime-policy binding,
+  so replacing assessment or parser semantics changes the logical result even
+  if all Case-level rows happen to be equal. Only after verifying the complete
+  snapshot does synchronization publish the generation pointer in one
+  `facts.sqlite3` compare-and-swap transaction. There is no second current
+  pointer.
 - Structure and evidence paths are safe relative POSIX paths inside the root.
 - `certificate.json` is generated, not a source-of-truth replacement for case
   data.
@@ -1769,7 +2001,8 @@ Scientific assets separate submitted facts from derived checks:
 : observed local materialization (`present` or `missing`), observed SHA-256 when
   present, expected-hash result (`match`, `mismatch`, or `unchecked`), parse
   result (`valid`, `invalid`, or `not_run`), effective requiredness resolved
-  from dataset policy, checker/parser identity and digest, and reason codes.
+  from dataset policy, parser name/protocol/source digest and relevant
+  distribution identity, checker identity/digest, and reason codes.
 
 Dataset policy is the sole operative authority for which asset roles are
 required. A declaration can preserve a supplier's `claimed_required` opinion,
@@ -1827,9 +2060,12 @@ def write_certificate(bundle):
 Certificate writing requires `bundle.is_synchronized is True`. It does not
 flush pending edits, call `synchronize()`, execute Gates, or reuse an assessment
 whose input digest no longer matches. Failure reports the exact prerequisite and
-suggests `bundle.synchronize()`. It snapshots under the Bundle lock, rechecks
-source/policy/generation digests before atomic publication, and never leaves a
-certificate that was current for only part of a concurrent edit.
+suggests `bundle.synchronize()` only when synchronization is a feasible repair.
+A runtime-policy mismatch instead reports owner/admin dataset-policy migration
+or successor-release creation as specified in Section 4.2. It snapshots under
+the Bundle lock, rechecks source/policy/runtime-policy/generation digests before
+atomic publication, and never leaves a certificate that was current for only
+part of a concurrent edit.
 
 For a sealed release, Section 10.4 takes precedence: the method verifies and
 returns the already receipt-bound certificate path without rewriting it.
@@ -1849,9 +2085,11 @@ dataset name and release identity
 target-store precondition and target-context digest
 source revision and canonical source digest
 policy revision and Gate/identity/property-policy digest
+canonical assessment/parser runtime-policy document and digest
 assessment generation ID, relative generation-manifest path, and manifest SHA-256
 canonical ordered-assessment digest
 root-relative positive and negative scientific-asset inventory digest
+per-asset parser identity/protocol/implementation digest
 Gate configurations and configuration digests
 custom-checker entry points, source hashes, and checker protocol digest
 Hotpot-attestation signature/key IDs, pinned genesis key ID, and governance
@@ -1993,8 +2231,8 @@ bundle.ingest(
 ```
 
 `include_incomplete=True` requires a non-empty reason. The store records the
-actor/context available to the CLI or Python caller and keeps incomplete cases
-in a dedicated storage partition/table. This option does not change their
+reason and complete certified selection context and keeps incomplete cases in a
+dedicated storage partition/table. This option does not change their
 quality, evidence, or benchmark results.
 
 The certificate always covers all three classes. The ingestion receipt records
@@ -2028,12 +2266,20 @@ transaction it requires `bundle.is_synchronized is True` and
   permitted transition, and assessment-policy digest match the loaded Bundle;
 - an existing dataset still has the same persisted assessment policy;
 - every custom checker source/protocol digest and governance-registry
-  revision/digest matches the certified assessment input.
+  revision/digest matches the certified assessment input; and
+- policy, generation, certificate, and receipt input carry the same structurally
+  valid runtime-policy document, which must also be current for a new ingest.
 
-After opening the target database transaction, ingestion verifies the source,
-policy, complete assessment-generation manifest, certificate, store UUID/schema,
-dataset policy, release identity, and selected included/excluded Case-set
-digests again. A concurrent edit or store-policy race aborts the transaction.
+After opening the target database transaction, ingestion invokes the Bundle's
+compare-and-swap guard and verifies the target context, release header, complete
+policy/runtime document, source and Case-content digest, complete assessment
+generation, certificate, store UUID/schema, dataset policy, asset inventory,
+and selected included/excluded Case-set digests again. The Case-content digest
+canonically covers Case identity/order, source facts, assessment, and
+identifiers; materialized bytes remain covered by the separate asset-inventory
+digest. A concurrent edit, external byte change, certificate replacement, or
+store-policy race aborts before target rows or the authoritative receipt are
+committed.
 
 If the certificate is absent, the operation raises `MissingCertificateError`
 with the actionable message: `No current Bundle certificate exists; run
@@ -2055,17 +2301,21 @@ Target resolution uses these rules inside that transaction:
    established the dataset first, this Bundle may continue only when the
    persisted policy is byte-for-byte/digest-identical and the release ID is
    still unused; this is the sole permitted `new -> existing` policy transition.
-4. If the store already contains an ingestion receipt for the same dataset,
-   release, Bundle digest, certificate digest, and included/excluded set
-   digests, ingestion is idempotent and returns that receipt. The same release
-   identity with any different digest is a conflict and is never overwritten.
+4. If the store already contains an ingestion receipt for the same dataset and
+   release whose complete binding matches target, policy/runtime, Bundle,
+   certificate, generation, Case content, included/excluded sets, asset
+   inventory, and incomplete-selection reason, ingestion is idempotent and
+   returns that receipt. The same release identity with any different field is
+   a conflict and is never overwritten.
 
 The authoritative ingestion receipt is inserted in the target transaction and
 has a uniqueness key of `(store_uuid, dataset_id, release_id)`. The row stores
 the Bundle, certificate, and selection digests; equality makes a retry
 idempotent and inequality makes the occupied release a conflict. It also records
-final store schema, policy digest, assessment
-generation digest, included/excluded set digests, actor/reason, and commit ID.
+final store schema, complete frozen runtime-policy document, policy digest,
+assessment-generation digest, Case-content digest, included/excluded set
+digests, asset-inventory digest, incomplete-selection reason, deterministic
+receipt ID, and commit timestamp.
 Only after target commit does Hotpot write the optional local
 `ingestion-receipt.json` projection. If that local write fails, the ingestion is
 still committed; the next `load_bundle()` or `from_certificate()` query finds
@@ -2154,11 +2404,12 @@ migration that preserves its own audited migration record.
   control record.
 
 `IdentitySchemaPolicy`
-: dataset identity components, namespaces/paths, required flags, normalizers,
-  comparators, `mismatch_is_decisive` flags, selected structure roles, and
-  implementation/protocol digests. Every field participates in the policy
-  digest. It is persisted with the dataset policy and is normally supplied by a
-  built-in dataset template.
+: the normalized closed `components` array materialized from
+  `bundle.json.identity_schema`: unique key, allowed scalar path or role-aware
+  semantic Structure path, required flag, value kind, typed normalizer, exact
+  comparator, `mismatch_is_decisive`, and current implementation/protocol
+  digests. Every field participates in the dataset-policy digest. Existing
+  datasets use the persisted value exactly.
 
 Add current-schema records for:
 
@@ -2229,7 +2480,8 @@ Add current-schema records for:
 
 `AssessmentGeneration`
 : an immutable full-Bundle assessment store with generation ID, input and
-  policy digests, ordered-content digest, summaries, separate
+  policy/runtime-policy digests, an ordered-content digest that directly
+  includes the runtime-policy binding, summaries, separate
   incomplete/ordinary/benchmark indexes, and a manifest binding every
   generation artifact. Only a complete atomically published generation can be
   current.
@@ -2237,11 +2489,12 @@ Add current-schema records for:
 `DatasetAssessmentPolicy`
 : dataset name, Gate configurations, identity schema, property/context
   comparators, tolerances, policy/checker protocol digests, built-in
-  implementation digests, bound governance-registry input fields, owner
-  approval, creation time, and active status. Dataset-owned Gate/comparison
-  policy is inserted for a new dataset and read-only to Bundle thereafter;
-  trusted registry snapshots advance only through owner/admin governance, never
-  through Bundle input.
+  implementation digests, the canonical assessment/parser runtime-policy
+  document and digest, bound governance-registry input fields, owner approval,
+  creation time, and active status. Dataset-owned Gate/comparison policy is
+  inserted for a new dataset and read-only to Bundle thereafter; trusted
+  registry snapshots advance only through owner/admin governance, never through
+  Bundle input.
 
 `GateCheckerArtifact`
 : policy ID, checker key/list role, entry point, exact UTF-8 source text,
@@ -2250,13 +2503,14 @@ Add current-schema records for:
 
 `IngestionReceipt`
 : an authoritative target-store row unique on
-  `(store_uuid, dataset_id, release_id)`. Bundle, certificate, and
-  included/excluded Case-set digests are content fields used to distinguish an
-  idempotent retry from a conflicting reuse; they are not part of a key that
-  permits another row for the same release. The record also stores
-  schema/policy identity, assessment generation, actor/reason, commit ID, and
-  the ordered target-owned asset-object inventory digest. The root JSON receipt
-  is only a recoverable projection of this row.
+  `(store_uuid, dataset_id, release_id)`. Its canonical binding includes target
+  context, complete policy/runtime identity, Bundle, certificate, generation,
+  Case-content, included/excluded Case-set, and target-owned asset-inventory
+  digests plus the incomplete-selection flag/reason. Equality distinguishes an
+  idempotent retry from conflicting release reuse; the unique key never permits
+  another row for the same release. The record also stores a deterministic
+  receipt ID and database commit timestamp. The root JSON receipt is only a
+  recoverable projection of this row.
 
 ### 11.2 Existing field changes
 
@@ -2407,8 +2661,9 @@ datasets, an owner/admin migration must:
 2. define their identity schema and property/context comparison policy without
    treating legacy file hashes as sample identity;
 3. make an explicit owner decision for any rule that cannot be translated;
-4. persist the resulting policy, built-in implementation digest, protocol
-   digest, and any exact custom checker source;
+4. persist the resulting policy, complete canonical assessment/parser
+   runtime-policy document and digest, protocol digest, per-asset parser
+   bindings, and any exact custom checker source;
 5. reassess all Cases and generate a new root certificate.
 
 This bootstrap is not a Bundle Gate override. It runs once as an owner/admin
@@ -2487,8 +2742,9 @@ perform several edits and synchronize once. `synchronize` never writes a
 certificate. `certify` rejects an unsynchronized Bundle, writes only the root
 certificate, and never ingests. `ingest` requires an explicit target `--db`, a
 current synchronized generation, and a current certificate; it never performs
-either preceding operation. `certify --db` may use the package default, but the
-resolved store context is recorded in the certificate.
+either preceding operation. Omitting `certify --db` reuses the canonical target
+already persisted by the Bundle; it never silently retargets to a package
+default. The resolved store context is recorded in the certificate.
 
 Forced incomplete archival remains explicit:
 
@@ -2548,8 +2804,10 @@ The complete current editing flags are deliberately uniform and closed:
 ```text
 # all Gates
 --add-check NAME[=true|false]        --rm-check NAME
---set-level LEVEL=NAME[,NAME...]     --rm-level LEVEL
 --checker NAME=FILE:ENTRYPOINT
+
+# QualityGate and EvidenceGate only
+--set-level LEVEL=NAME[,NAME...]     --rm-level LEVEL
 
 # QualityGate only
 --add-structure-check NAME[=true|false]
@@ -2670,8 +2928,8 @@ Their required payload fields are:
 | `case_info_result` | `bundle: BundleLocator`, `case_id: string`, `info: CaseInfo` |
 | `case_assessment_result` | `bundle: BundleLocator`, `case_id: string`, `assessment: CaseAssessment` |
 | `bundle_mutation_result` | `bundle: BundleLocator`, `action: string`, `case_id: string`, `event_ids: [string]`, `source_revision: integer`, `is_synchronized: false` |
-| `bundle_gate_result` | `bundle: BundleLocator`, `gate: string`, `action: string`, `policy_revision: integer`, `policy_digest: string`, `is_synchronized: boolean` |
-| `bundle_status_result` | `bundle: BundleLocator`, `source_revision: integer`, `source_digest: string`, `policy_revision: integer`, `policy_digest: string`, `generation_id: string | null`, `generation_digest: string | null`, `is_synchronized: boolean`, `certificate_state: string`, `target_precondition_satisfied: boolean`, `ingest_ready: boolean`, `release_state: string`, `next_action: string` |
+| `bundle_gate_result` | `bundle: BundleLocator`, `gate: string`, `action: string`, `configuration: object`, `policy_revision: integer`, `policy_digest: string`, `is_synchronized: boolean` |
+| `bundle_status_result` | `bundle: BundleLocator`, `source_revision: integer`, `source_digest: string`, `policy_revision: integer`, `policy_digest: string`, `runtime_policy_current: boolean`, `generation_id: string | null`, `generation_digest: string | null`, `is_synchronized: boolean`, `certificate_state: string`, `target_precondition_satisfied: boolean`, `ingest_ready: boolean`, `release_state: string`, `next_action: string` |
 | `bundle_synchronize_result` | `bundle: BundleLocator`, `generation_id: string`, `generation_digest: string`, `archive_counts: {incomplete: integer, ordinary: integer, benchmark: integer}`, `summary: BundleSummary`, `is_synchronized: true` |
 | `certificate_result` | `bundle: BundleLocator`, `certificate_path: string`, `certificate_digest: string`, `source_digest: string`, `policy_digest: string`, `generation_digest: string` |
 | `ingestion_result` | `bundle: BundleLocator`, `store: StoreIdentity`, `receipt_digest: string`, `included: CaseSetDigest`, `excluded: CaseSetDigest`, `idempotent: boolean` |
@@ -2718,18 +2976,23 @@ Tasks:
    and CLI payload JSON Schemas.
 3. Freeze the Bundle revision/digest state machine, assessment-generation
    schema, and certified negative-asset states.
-4. Define B/E derivation tables, the dataset identity-schema protocol,
-   three-valued sample matching, property comparison contexts, and
-   scientific-versus-governance reason namespaces.
+4. Define B/E derivation tables, the closed typed-exact identity-components
+   protocol, three-valued and Case-reflexive sample matching, property
+   comparison contexts, and scientific-versus-governance reason namespaces.
 5. Freeze the canonical custom-checker JSON input, source restrictions, OS
    isolation requirements, and checker protocol digest procedure.
 6. Freeze the Hotpot signature payload, pinned genesis key, governance registry
    schema/digest, and prospective revocation semantics.
-7. Freeze the exact `hotpot.ds.__all__`, first-level signatures, and
+7. Freeze the canonical assessment/parser runtime-policy document, semantic
+   source inventory, Python/SQLite/distribution normalization, parser identity
+   fields, and digest procedure.
+8. Declare `cryptography` as the mandatory direct Ed25519 runtime dependency;
+   remove optional-backend branches and crypto-dependent test skips.
+9. Freeze the exact `hotpot.ds.__all__`, first-level signatures, and
    `hotpot.ds.gates` constructor signatures from Section 4.1.
-8. Freeze every CLI producer/channel/named payload contract and the single
+10. Freeze every CLI producer/channel/named payload contract and the single
    stdio exit-code behavior, including every referenced schema digest.
-9. Update `record-standard.json` before implementation so tests can target one
+11. Update `record-standard.json` before implementation so tests can target one
    declared contract.
 
 Exit criteria:
@@ -2760,6 +3023,9 @@ Tasks:
 7. Add immutable assessment-generation storage and atomic current-generation
    publication.
 8. Add reference-safe internal generation leases and garbage collection.
+9. Record the deterministic parser identity/digest in every AssetAssessment and
+   bind the complete runtime-policy document through policy, generation, and
+   certificate storage without adding a public lifecycle object.
 
 Exit criteria:
 
@@ -2776,8 +3042,11 @@ Tasks:
 1. Add evidence verification, EvidenceAssessment, ConflictAssessment,
    CaseAssessment, and governance event models.
 2. Implement automatic per-target E grades and one conservative Case aggregate,
-   including explicit `not_applicable` when no evidence-bearing target exists.
-3. Implement the persisted identity schema and three-valued sample matching.
+   including `null` plus the summary bucket `not_applicable` when no
+   evidence-bearing target exists.
+3. Implement normalization/persistence of the closed manifest identity schema,
+   three-valued sample matching, role-aware semantic Structure components,
+   Case-local fallback grouping, and policy-digest-bound conflict rows.
 4. Implement observation-context comparison before property-specific value
    conflict comparison.
 5. Implement completeness, structure, core-field, conflict, and B-grade rules.
@@ -2800,14 +3069,16 @@ Tasks:
 
 1. Implement Boolean/callable checklist and direct-entry maps.
 2. Implement fixed JSON-snapshot checker validation, source persistence,
-   isolated execution, and protocol fingerprinting.
+   real OS-isolated execution, bounded JSON/stdout/stderr and resources,
+   minimal mounts with Bundle/store overlap rejection, and protocol
+   fingerprinting.
 3. Implement source-verification and conflict built-ins.
 4. Implement numeric tolerance normalization and veto behavior.
 5. Implement Hotpot/User/Other attestations and Hotpot-or-User direct entry.
 6. Implement canonical Ed25519 Hotpot attestations, the private signer boundary,
    pinned-genesis registry persistence/rotation/revocation, and signature
-   verification at every trust boundary; keep attestation disagreement separate
-   from scientific conflict.
+   verification through mandatory `cryptography` at every trust boundary; keep
+   attestation disagreement separate from scientific conflict.
 7. Persist proposed policy/source artifacts for new datasets and load only
    database-owned policy/source artifacts for existing datasets.
 
@@ -2821,7 +3092,11 @@ Exit criteria:
 - active Hotpot/User rejection or cross-actor disagreement blocks every default
   benchmark route but does not make scientific data incomplete;
 - custom checker source and checker protocol hashes are reproducible and fully
-  auditable.
+  auditable;
+- unavailable OS isolation blocks synchronization before publication, whereas
+  a timeout, malformed result, or checker failure is a deterministic fail-closed
+  result for the affected Case; and
+- Ed25519 verification cannot be disabled by an absent optional backend.
 
 ### Phase 4: Bundle-centered certificates
 
@@ -2835,9 +3110,9 @@ Tasks:
 5. Implement `Bundle.from_certificate` and exact digest round trips without
    executing parsers or checkers during restoration.
 6. Bind dataset/release identity, target precondition, source/policy digests,
-   the complete generation manifest, custom checker digests, summaries, and
-   asset-state inventory without copying every Case assessment into the
-   certificate.
+   the complete generation manifest, runtime-policy binding, custom checker and
+   per-asset parser digests, summaries, and asset-state inventory without
+   copying every Case assessment into the certificate.
 
 Exit criteria:
 
@@ -2846,6 +3121,8 @@ Exit criteria:
 - missing required facts or positive assets prevent restoration while certified
   negative scientific-asset facts round-trip losslessly;
 - custom code is never executed from certificate JSON;
+- runtime-policy and parser-identity mismatches fail closed without invoking a
+  compatibility implementation; and
 - Bundle-to-certificate-to-Bundle is lossless under the documented invariant.
 
 ### Phase 5: class-aware store, query, and CLI
@@ -2859,7 +3136,8 @@ Tasks:
 3. Persist a new dataset's assessment policy and checker sources atomically
    with first ingestion; enforce read-only policy for existing datasets.
 4. Add authoritative transactional ingestion receipts, idempotent retry,
-   target-store recovery, and included/excluded Case-set digests.
+   target-store recovery, complete runtime/Case-content/asset bindings, and an
+   in-transaction compare-and-swap recheck.
 5. Require explicit reasoned opt-in for incomplete ingestion and seal the whole
    release after either inclusion choice.
 6. Exclude incomplete data from normal Dataset, export, subset, and search
@@ -2970,27 +3248,79 @@ Exit criteria:
   the verified existing file without rewriting it, and a digest mismatch raises
   `SealedIntegrityError`.
 
+### Runtime binding, cryptography, and checker isolation
+
+- the installed package declares and imports `cryptography` as a direct
+  dependency; Ed25519 rotation, revocation, attestation, and tamper tests run
+  unconditionally without backend-dependent skips;
+- runtime-policy serialization is stable across filesystem paths, timestamps,
+  and unrelated installed packages, but changes when bound semantic source,
+  Python, SQLite, or a relevant distribution identity changes;
+- policy, generation, certificate, and ingestion receipt contain the same
+  verified runtime-policy document and embedded digest, and changing it changes
+  the generation logical digest even when Case assessment rows are otherwise
+  identical;
+- every parsed AssetAssessment names the parser/protocol and binds its
+  implementation and relevant distribution digest; missing or substituted
+  parser bindings fail closed;
+- a runtime-policy mismatch cannot be repaired by `synchronize()` and reports
+  owner/admin policy migration for an editable established dataset or a
+  successor release for a sealed one;
+- custom checker probes cannot read Bundle/store files or undeclared host
+  paths, inherit credentials, or communicate over the network;
+  Bundle/store-overlapping mount candidates are rejected before launch;
+- stdout/stderr, CPU, memory, process count, file size, and wall time are
+  bounded; timeout, oversized/malformed output, exception, and abnormal exit
+  produce stable per-Case `checker_error` failures without partial output; and
+- when the complete OS-isolation boundary is unavailable, synchronization with
+  custom checkers fails before assessment publication and never runs code in
+  process.
+
 ### Gate semantics
 
 - DOI present but unverified: primary-source checklist fails.
-- Paper URL plus AI verification: primary-source checklist passes.
-- Paper URL plus human verification: passes and records strong assurance.
+- Evidence explicitly classified as `primary_literature`, identified by a DOI
+  or paper URL, located to the relevant statement, plus valid AI verification:
+  primary-source checklist passes.
+- The same explicit primary-literature evidence plus attributable human
+  verification passes and records strong assurance.
 - AI plus human verification: both methods are retained but do not create E4
   without a second independent source.
 - Two verified evidence chains with affirmatively independent primary result
   lineages: E4 is possible.
 - two URLs, mirrors, or database records for one scientific work do not create
   E4, and ambiguous source lineage remains E3.
-- a dataset with no evidence-bearing core target returns Python `None`, stores
+- a Case with no active observation/claim target returns Python `None`, stores
   JSON/SQLite `null`, and counts the distribution bucket `not_applicable`, not
-  E0.
+  E0; an explicitly empty `core_labels` policy aggregates all active targets,
+  while a missing declared core target produces E0.
+- only `relation="supports"` raises an evidence level; `contradicts` and
+  `context` never count as affirmative support.
+- evidence resolves by exact target ID or one unambiguous property/label alias;
+  absent, ambiguous, or kind-mismatched targets make the Case incomplete.
+- normalized duplicate DOI/work IDs and shared/derived result-lineage roots do
+  not produce false E4; missing lineage parents and cycles fail integrity.
+- broken verification, reciprocal supersession, entity, or participant links
+  remain auditable facts but make the operative Case incomplete.
 - one Case can expose different target E levels while retaining one
   conservative Case aggregate, all from the same assessment generation.
 - identical coordinate bytes with different protonation/bond-order identity
   facts do not establish the same sample.
+- `bundle.json.identity_schema` rejects unknown top-level/component fields and
+  unsafe roots, then canonical build materializes typed defaults plus current
+  implementation/protocol digests into manifest and persisted policy.
+- scalar identity paths are restricted to `core_info`/`identifiers`; semantic
+  Structure paths require exactly one active Structure with the configured
+  role, and zero or multiple role matches are indeterminate.
+- identity normalization is type-specific and the only current comparator is
+  exact; fuzzy/tolerance comparators are rejected rather than silently used for
+  equivalence grouping.
 - alternative structure representations can match when the persisted dataset
   identity schema says they describe the same sample.
 - missing required identity input returns `indeterminate`, never a conflict.
+- an empty cross-Case schema, or missing/ambiguous/invalid required identity,
+  uses a separate Case-local conflict key; multiple observations within that
+  Case remain reflexively grouped and can still reveal a scientific conflict.
 - sample grouping is reflexive, symmetric, transitive, and input-order
   independent; fuzzy geometry cannot create an equivalence class.
 - the same numeric property at a different site, phase, temperature, protocol,
@@ -3006,11 +3336,16 @@ Exit criteria:
 - conflict candidate pairs are unique, unordered, same-sample/same-property,
   self-pair-free, and input-order independent; group counts/digests detect any
   omitted compacted consistent result.
+- each stored conflict exception/group binds the normalized identity-schema
+  digest and effective property-comparator digest used to derive it.
 - Multiple unequal numeric values without a tolerance: veto fails closed.
 - Hotpot-only approval: direct entry despite ordinary source-check failure,
   provided completeness and vetoes pass.
 - User-only approval: the same default direct-entry behavior as Hotpot.
 - Other-only approval: no default direct entry.
+- a new decision supersedes every active decision from the same
+  authority/actor; exact Boolean and non-empty actor validation prevent
+  ambiguous active principal state.
 - ordinary callers cannot create an effective Hotpot attestation by supplying a
   string.
 - the private governance signer cannot be constructed from Bundle/CLI input and
@@ -3057,12 +3392,15 @@ Exit criteria:
 - a new dataset accepts supplied/default Gates and stages them for persistence.
 - an existing dataset loads only persisted Gates; constructor overrides and
   `bundle.use_gate` fail.
+- existing-dataset checker artifacts are recreated from the authoritative
+  persisted policy, and build-time existing/new mode remains fixed even when
+  live target availability changes.
 - `bundle.cases` returns every Case, including incomplete.
 - `bundle.incomplete` returns only incomplete cases.
 - combined class selection explicitly returns incomplete plus normal cases.
 - `bundle.cases.select` correctly filters missing/invalid structures, missing core
   fields, conflicts, verification methods, attestation authorities, and
-  pending-promotion status without additional magic properties.
+  benchmark status without additional magic properties.
 - no B0-B4/E0-E4 shortcut-property family is exposed.
 
 ### Folder and certificate integrity
@@ -3094,6 +3432,12 @@ Exit criteria:
 - generation GC retains the current pointer, stale/current certificate target,
   receipt target, and active shared-lock readers; only verified unreferenced or
   unpublished generations for which an exclusive lock succeeds are removed.
+- concurrent readers hold shared generation leases across complete reads;
+  non-blocking GC retains their generations, process exit/crash releases the
+  lease, and inability to prove exclusive ownership always retains data.
+- certificate and ingestion operations hold a generation lease for their whole
+  verify/write transaction, and unknown or malformed durable references cause
+  conservative retention rather than deletion.
 - a 252,665-Case synchronization uses bounded-memory iteration and atomic
   generation publication; certificate size is not linear in Case count.
 - canonical and assessment digests survive a complete round trip.
@@ -3109,16 +3453,18 @@ Exit criteria:
 - `Bundle.ingest()` without a certificate fails and recommends certification.
 - `Bundle.ingest()` rejects a stale or wrong-policy certificate and never
   recertifies implicitly.
-- ingestion rechecks source, policy, assessment, certificate, and store
-  identities inside its write transaction.
+- ingestion rechecks target context, source, policy/runtime, Case-content,
+  assessment, certificate, Case-set, asset-inventory, and store identities
+  through a Bundle compare-and-swap guard inside its write transaction.
 - absent and existing target stores use the documented path/UUID/schema and
   dataset-state preconditions; no whole-database file hash is treated as store
   identity.
 - first ingestion atomically persists the new dataset assessment policy and checker
   source; subsequent ingestion cannot alter either through Bundle.
 - incomplete ingestion requires both explicit opt-in and a reason.
-- successful ingestion records included/excluded Case-set digests and seals the
-  whole release even when incomplete Cases were excluded.
+- successful ingestion records the complete frozen runtime policy,
+  Case-content digest, included/excluded Case-set digests, and asset-inventory
+  digest, and seals the whole release even when incomplete Cases were excluded.
 - an identical retry returns the authoritative receipt; the same release with a
   different Bundle, certificate, or selection digest fails.
 - a committed target receipt restores sealed state when the optional local
@@ -3281,6 +3627,36 @@ The stage is complete only when all of the following are true:
     path.
 32. The communication-map fingerprint transitively binds every external CLI
     payload schema by its declared and runtime-verified SHA-256.
+33. `cryptography` is a mandatory direct dependency and all Ed25519 governance
+    paths and tests fail rather than becoming optional when it is unavailable.
+34. One deterministic, self-digesting assessment/checker/parser runtime-policy
+    document is stored and verified in policy, generation, certificate, and
+    ingestion receipt, and is included directly in the generation logical
+    digest.
+35. Every parsed asset binds its complete parser identity, protocol, source,
+    distribution, and implementation digest;
+    no ambient or compatibility parser can silently reproduce a prior verdict.
+36. Custom checkers run only in the required OS-isolated worker with minimal
+    non-overlapping mounts, no undeclared host/Bundle/store/network access, and
+    bounded I/O/resources; isolation absence blocks synchronization and
+    individual execution failures fail closed per Case.
+37. A runtime-policy mismatch reports the feasible owner migration or successor
+    release action instead of recommending an impossible synchronization.
+38. Only explicit supporting Evidence contributes to E levels; target,
+    verification, supersession, lineage, and entity relationships are resolved
+    before benchmark admission, with broken operative relationships classified
+    as incomplete rather than hidden by direct entry.
+39. Identity indeterminacy remains distinct from missing/broken data: it vetoes
+    benchmark admission but leaves a complete Case ordinarily archivable.
+40. An ingestion receipt binds complete canonical Case content as well as Case
+    sets and asset bytes, and the same snapshot is revalidated inside the target
+    write transaction before publication.
+41. Dataset mode is fixed by the Bundle's persisted build-time target context;
+    a missing or changed live target cannot grant new-dataset policy authority.
+42. The manifest identity schema is one closed components array whose normalized
+    typed/exact policy is persisted and digest-bound to every conflict result;
+    same-Case observations remain reflexive conflict candidates when cross-Case
+    identity cannot be established.
 
 ## 16. Owner-confirmed decisions
 
@@ -3323,3 +3699,10 @@ commented on are accepted as written:
     `load_bundle(...)` is validation-only and cannot accept Gates.
 15. Ingestion seals the complete release even when incomplete Cases are
     excluded, and records both included and excluded Case-set digests.
+16. Historical sealed releases are verified against their frozen runtime-policy
+    document, while new assessment/certification/ingestion uses only the one
+    current runtime. Hotpot does not execute an older compatibility runtime.
+17. Supplier assertions about work and result-lineage identity remain
+    provenance facts. Hotpot validates graph consistency and grades only what
+    those auditable facts support; it does not claim external scientific truth
+    that the submitted evidence cannot establish.

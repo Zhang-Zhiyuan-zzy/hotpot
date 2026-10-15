@@ -11,6 +11,7 @@ import fcntl
 import hashlib
 import json
 import os
+import sqlite3
 import stat
 import uuid
 from contextlib import contextmanager
@@ -634,6 +635,74 @@ def _asset_inventory_from_declarations(
     return _normalize_assets(inventory)
 
 
+def _manifest_snapshot(
+    root: Path,
+    value: Any,
+    ds_name: str,
+    hasher: _SnapshotHasher,
+) -> Dict[str, Any]:
+    from ._bundle_state import BundleStateError, _validate_manifest
+
+    if not isinstance(value, dict):
+        raise BundleStateError("bundle.json must contain a JSON object")
+    stripped = dict(value)
+    raw_assets = stripped.pop("control_assets", None)
+    normalized = _validate_manifest(root, stripped, ds_name)
+    if raw_assets is None:
+        return normalized
+    if not isinstance(raw_assets, list):
+        raise BundleStateError("bundle.json.control_assets must be an array")
+    fields = {"category", "name", "path", "sha256", "size"}
+    identities = set()
+    paths = set()
+    assets = []
+    for index, raw in enumerate(raw_assets):
+        name = f"bundle.json.control_assets[{index}]"
+        if not isinstance(raw, dict) or set(raw) != fields:
+            raise BundleStateError(
+                f"{name} fields must be exactly {sorted(fields)}"
+            )
+        category = _nonempty_text(raw["category"], f"{name}.category")
+        asset_name = _nonempty_text(raw["name"], f"{name}.name")
+        path_text = _nonempty_text(raw["path"], f"{name}.path")
+        path = _safe_path(root, path_text, f"{name}.path")
+        if path.is_symlink() or not path.is_file():
+            raise BundleStateError(
+                f"{name}.path must name a regular Bundle file"
+            )
+        expected_digest = _sha256(raw["sha256"], f"{name}.sha256")
+        expected_size = _size(raw["size"], f"{name}.size")
+        identity = (category, asset_name)
+        if identity in identities:
+            raise BundleStateError(
+                "bundle.json.control_assets contains a duplicate category/name"
+            )
+        if path_text in paths:
+            raise BundleStateError(
+                "bundle.json.control_assets contains a duplicate path"
+            )
+        identities.add(identity)
+        paths.add(path_text)
+        digest, size = hasher.digest(path)
+        if digest != expected_digest or size != expected_size:
+            raise CertificateIntegrityError(
+                f"{name} does not match its declared bytes"
+            )
+        assets.append(
+            {
+                "category": category,
+                "name": asset_name,
+                "path": path_text,
+                "sha256": digest,
+                "size": size,
+            }
+        )
+    normalized["control_assets"] = sorted(
+        assets, key=lambda item: (item["category"], item["name"])
+    )
+    return normalized
+
+
 def _capture_canonical_state(
     bundle: Any, hasher: _SnapshotHasher
 ) -> tuple[
@@ -657,7 +726,6 @@ def _capture_canonical_state(
     from .bundle import _asset_descriptors, _record_id
 
     root = Path(bundle.root).resolve()
-    state = bundle._state
     facts_path = root / "cases" / "facts.sqlite3"
     bundle_manifest_path = root / "bundle.json"
     facts_before = _current_file_stamp(facts_path)
@@ -665,8 +733,29 @@ def _capture_canonical_state(
     declarations: list[tuple[str, str, Mapping[str, Any]]] = []
     source_paths: set[str] = set()
     source_hasher = hashlib.sha256()
-    with state.connect() as connection:
-        manifest = state._stored_manifest(connection)
+    try:
+        connection = sqlite3.connect(
+            f"file:{facts_path.as_posix()}?mode=ro", uri=True
+        )
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA query_only=ON")
+        stored_manifest = json.loads(
+            connection.execute(
+                "SELECT value_json FROM metadata WHERE key='manifest'"
+            ).fetchone()[0]
+        )
+        current_manifest = json.loads(
+            bundle_manifest_path.read_text(encoding="utf-8")
+        )
+        manifest = _manifest_snapshot(
+            root, stored_manifest, bundle.name, hasher
+        )
+        if manifest != _manifest_snapshot(
+            root, current_manifest, bundle.name, hasher
+        ):
+            raise CertificateIntegrityError(
+                "bundle.json differs from the immutable built manifest"
+            )
         policy = json.loads(
             connection.execute(
                 "SELECT policy_json FROM policy WHERE singleton=1"
@@ -702,6 +791,15 @@ def _capture_canonical_state(
                         (str(case["id"]), declaration_id, descriptor)
                         for descriptor in _asset_descriptors(record)
                     )
+    except CertificateError:
+        raise
+    except (OSError, UnicodeError, json.JSONDecodeError, sqlite3.Error) as error:
+        raise CertificateIntegrityError(
+            "canonical Bundle state cannot be read for certification"
+        ) from error
+    finally:
+        if "connection" in locals():
+            connection.close()
     manifest_after = _current_file_stamp(bundle_manifest_path)
     if manifest_before != manifest_after:
         raise CertificateIntegrityError(
@@ -1303,8 +1401,18 @@ def _current_state_token(bundle: Any, snapshot: _CertificationSnapshot) -> _Stat
     if hasattr(state, "connect") and hasattr(state, "_stored_manifest"):
         from ._bundle_state import _trusted_governance_binding
 
-        with state.connect() as connection:
-            manifest = state._stored_manifest(connection)
+        facts_path = Path(bundle.root).resolve() / "cases" / "facts.sqlite3"
+        try:
+            connection = sqlite3.connect(
+                f"file:{facts_path.as_posix()}?mode=ro", uri=True
+            )
+            connection.row_factory = sqlite3.Row
+            connection.execute("PRAGMA query_only=ON")
+            manifest = json.loads(
+                connection.execute(
+                    "SELECT value_json FROM metadata WHERE key='manifest'"
+                ).fetchone()[0]
+            )
             policy = json.loads(
                 connection.execute(
                     "SELECT policy_json FROM policy WHERE singleton=1"
@@ -1320,6 +1428,13 @@ def _current_state_token(bundle: Any, snapshot: _CertificationSnapshot) -> _Stat
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
             )
+        except (json.JSONDecodeError, sqlite3.Error) as error:
+            raise CertificateIntegrityError(
+                "canonical Bundle state changed before certificate publication"
+            ) from error
+        finally:
+            if "connection" in locals():
+                connection.close()
         governance_revision, governance_digest = _trusted_governance_binding()
         return _StateToken(
             manifest=_canonical_bytes(manifest),

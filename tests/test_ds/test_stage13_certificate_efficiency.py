@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 from collections import Counter
@@ -56,6 +57,9 @@ def _bundle(tmp_path: Path) -> Bundle:
     structures = root / "structures"
     structures.mkdir()
     (structures / "shared.smi").write_text("O\n", encoding="utf-8")
+    control = root / "evidence" / "control.json"
+    control.write_text('{"source":"curated"}\n', encoding="utf-8")
+    control_bytes = control.read_bytes()
     (root / "bundle.json").write_text(
         json.dumps(
             {
@@ -86,6 +90,15 @@ def _bundle(tmp_path: Path) -> Bundle:
                     ]
                 },
                 "required_structure_roles": [],
+                "control_assets": [
+                    {
+                        "category": "provenance",
+                        "name": "curation-record",
+                        "path": "evidence/control.json",
+                        "sha256": hashlib.sha256(control_bytes).hexdigest(),
+                        "size": len(control_bytes),
+                    }
+                ],
             }
         ),
         encoding="utf-8",
@@ -132,6 +145,9 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
         source_digest_calls += 1
         return original_source_digest(*args, **kwargs)
 
+    def forbidden_state_connect(*args, **kwargs):
+        raise AssertionError("certificate capture must not call BundleState.connect")
+
     with monkeypatch.context() as patch:
         patch.setattr(
             AssessmentGeneration,
@@ -143,6 +159,7 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
         )
         patch.setattr(certificate_module, "_stable_hash_file", counted_hash)
         patch.setattr(BundleState, "_compute_source_digest", counted_source_digest)
+        patch.setattr(BundleState, "connect", forbidden_state_connect)
         path = write_bundle_certificate(bundle)
 
     envelope = load_certificate_envelope(path)
@@ -151,6 +168,7 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     ]["path"]
     facts = bundle.root / "cases" / "facts.sqlite3"
     shared_asset = bundle.root / "structures" / "shared.smi"
+    control_asset = bundle.root / "evidence" / "control.json"
 
     assert source_captures == 1
     assert source_digest_calls == 0
@@ -158,6 +176,7 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     assert bound_hashes[facts] == 1
     assert bound_hashes[generation_manifest] == 1
     assert bound_hashes[shared_asset] == 1
+    assert bound_hashes[control_asset] == 1
     assert max(bound_hashes.values()) == 1
     assert envelope["certificate"]["source"]["digest"] == expected_source_digest
     assert [
@@ -169,13 +188,17 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     assert verify_bundle_certificate(bundle) == envelope
 
 
+@pytest.mark.parametrize("target", ["scientific", "control"])
 def test_prepublication_cas_rejects_asset_tampering_and_preserves_certificate(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, target: str
 ) -> None:
     bundle = _bundle(tmp_path)
     path = write_bundle_certificate(bundle)
     original_certificate = path.read_bytes()
-    asset = bundle.root / "structures" / "shared.smi"
+    asset = {
+        "scientific": bundle.root / "structures" / "shared.smi",
+        "control": bundle.root / "evidence" / "control.json",
+    }[target]
     original_atomic_write = certificate_module._atomic_write
 
     def tampering_atomic_write(path, value, *, before_replace=None):
@@ -237,3 +260,15 @@ def test_bundle_lock_serializes_supported_edits_with_certificate_publication(
     assert edit_finished.is_set()
     assert load_certificate_envelope(path)["certificate"]["dataset"] == bundle.name
     assert bundle.is_synchronized is False
+
+
+def test_certificate_rejects_symlinked_control_asset(tmp_path: Path) -> None:
+    bundle = _bundle(tmp_path)
+    control = bundle.root / "evidence" / "control.json"
+    target = bundle.root / "evidence" / "control-target.json"
+    target.write_bytes(control.read_bytes())
+    control.unlink()
+    control.symlink_to(target.name)
+
+    with pytest.raises(ValueError, match="regular Bundle file"):
+        write_bundle_certificate(bundle)

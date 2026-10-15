@@ -63,17 +63,23 @@ def _item_info(item):
     return info() if callable(info) else info
 
 
-def _field_value(item, path):
-    """Read a public field, preferring the object's JSON-compatible ``info``."""
+def _field_value(item, path, *, object_first=False):
+    """Read a public field from an object or its JSON-compatible ``info``."""
+    if object_first:
+        value = _resolve_path(item, path)
+        if value is not _MISSING:
+            return value
+
     info = _item_info(item)
     if info is not _MISSING:
         value = _resolve_path(info, path)
         if value is not _MISSING:
             return value
 
-    value = _resolve_path(item, path)
-    if value is not _MISSING:
-        return value
+    if not object_first:
+        value = _resolve_path(item, path)
+        if value is not _MISSING:
+            return value
 
     if isinstance(item, str) and path in {
         "name",
@@ -201,6 +207,8 @@ def _as_candidates(target):
 class _FieldSearcher(BaseSearcher):
     """Shared field-query implementation for public data containers."""
 
+    _object_first = False
+
     def __init__(self, **criteria: Any):
         self._criteria = MappingProxyType(dict(criteria))
 
@@ -210,7 +218,9 @@ class _FieldSearcher(BaseSearcher):
 
     def match(self, item):
         return all(
-            _matches_value(_field_value(item, path), expected)
+            _matches_value(
+                _field_value(item, path, object_first=self._object_first), expected
+            )
             for path, expected in self._criteria.items()
         )
 
@@ -232,6 +242,7 @@ class DatasetSearcher(_FieldSearcher):
     """Search fields in ``dataset.info`` using equality and IN semantics."""
 
     scope = "dataset"
+    _object_first = True
 
 
 class SmartsSearcher(BaseSearcher):

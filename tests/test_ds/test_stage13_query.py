@@ -352,3 +352,14 @@ def test_field_and_smarts_searchers_preserve_dataset_views(tmp_path: Path) -> No
         for item in DatasetSearcher(name="spin").search((dataset,))
     ] == ["spin"]
 
+
+def test_dataset_searcher_resolves_public_attributes_before_info() -> None:
+    class DatasetProbe:
+        name = "spin"
+
+        @property
+        def info(self):
+            raise AssertionError("dataset.info must not be hydrated for name search")
+
+    assert DatasetSearcher(name="spin").match(DatasetProbe())
+

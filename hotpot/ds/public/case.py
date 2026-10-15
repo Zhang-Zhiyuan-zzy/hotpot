@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from copy import deepcopy
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union
 
 
 _EVIDENCE_DETAIL_FIELDS = {
@@ -487,7 +487,7 @@ class Case:
         self,
         approved: bool,
         *,
-        authority: str,
+        authority: Literal["User", "Other"],
         actor: str,
         reason: Optional[str] = None,
     ) -> str:

@@ -11,16 +11,19 @@ import fcntl
 import hashlib
 import json
 import os
+import stat
 import uuid
 from contextlib import contextmanager
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterator, Mapping, Optional, Union
+from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Union
 
 from ._implementation import (
     PolicyProtocolError,
     require_current_runtime_policy,
+    runtime_policy_is_current,
     validate_frozen_runtime_policy,
 )
 from .case import UnsynchronizedBundleError
@@ -85,6 +88,213 @@ class CertificatePathError(CertificateIntegrityError):
     """A certificate-bound path is unsafe or is not the root certificate."""
 
 
+@dataclass(frozen=True)
+class _FileStamp:
+    device: int
+    inode: int
+    mode: int
+    size: int
+    mtime_ns: int
+    ctime_ns: int
+
+
+@dataclass(frozen=True)
+class _ObservedFile:
+    path: Path
+    stamp: _FileStamp
+
+
+@dataclass(frozen=True)
+class _BoundFile:
+    path: str
+    sha256: str
+    size: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"path": self.path, "sha256": self.sha256, "size": self.size}
+
+
+@dataclass(frozen=True)
+class _StateToken:
+    manifest: bytes
+    policy: bytes
+    target_context: bytes
+    control: tuple[tuple[str, Any], ...]
+    governance_revision: int
+    governance_digest: str
+
+
+@dataclass(frozen=True)
+class _CertificationSnapshot:
+    root: Path
+    state_token: _StateToken
+    release: bytes
+    target_context: bytes
+    facts: _BoundFile
+    source_revision: int
+    source_digest: str
+    policy_revision: int
+    policy_digest: str
+    generation_id: str
+    generation_digest: str
+    generation_manifest: _BoundFile
+    runtime_policy: bytes
+    checker_artifacts: bytes
+    scientific_assets: bytes
+    summary: bytes
+    issuer: str
+    issued_at: str
+    observed_files: tuple[_ObservedFile, ...]
+    absent_paths: tuple[Path, ...]
+
+    def certificate(self) -> Dict[str, Any]:
+        assets = json.loads(self.scientific_assets)
+        return {
+            "assessor_version": ASSESSOR_VERSION,
+            "dataset": json.loads(self.release)["dataset_id"],
+            "release": json.loads(self.release),
+            "target_context": json.loads(self.target_context),
+            "facts": self.facts.to_dict(),
+            "source": {
+                "revision": self.source_revision,
+                "digest": self.source_digest,
+            },
+            "policy": {
+                "revision": self.policy_revision,
+                "digest": self.policy_digest,
+            },
+            "generation": {
+                "id": self.generation_id,
+                "digest": self.generation_digest,
+                "manifest": self.generation_manifest.to_dict(),
+            },
+            "runtime_policy": json.loads(self.runtime_policy),
+            "checker_artifacts": json.loads(self.checker_artifacts),
+            "scientific_assets": {
+                "items": assets,
+                "digest": _digest_value(assets),
+            },
+            "summary": json.loads(self.summary),
+            "issuer": self.issuer,
+            "issued_at": self.issued_at,
+        }
+
+
+def _file_stamp(metadata: os.stat_result) -> _FileStamp:
+    return _FileStamp(
+        device=metadata.st_dev,
+        inode=metadata.st_ino,
+        mode=metadata.st_mode,
+        size=metadata.st_size,
+        mtime_ns=metadata.st_mtime_ns,
+        ctime_ns=metadata.st_ctime_ns,
+    )
+
+
+def _current_file_stamp(path: Path) -> _FileStamp:
+    try:
+        metadata = path.stat()
+    except OSError as error:
+        raise CertificateIntegrityError(
+            f"certificate-bound file became unavailable: {path}"
+        ) from error
+    if not stat.S_ISREG(metadata.st_mode):
+        raise CertificateIntegrityError(
+            f"certificate-bound path is not a regular file: {path}"
+        )
+    return _file_stamp(metadata)
+
+
+def _stable_hash_file(path: Path) -> tuple[str, int, _FileStamp]:
+    digest = hashlib.sha256()
+    size = 0
+    try:
+        with path.open("rb") as stream:
+            before = _file_stamp(os.fstat(stream.fileno()))
+            if not stat.S_ISREG(before.mode):
+                raise CertificateIntegrityError(
+                    f"certificate-bound path is not a regular file: {path}"
+                )
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
+                size += len(block)
+            after = _file_stamp(os.fstat(stream.fileno()))
+        current = _current_file_stamp(path)
+    except CertificateError:
+        raise
+    except OSError as error:
+        raise CertificateIntegrityError(
+            f"cannot read certificate-bound file: {path}"
+        ) from error
+    if before != after or after != current or size != after.size:
+        raise CertificateIntegrityError(
+            f"certificate-bound file changed while it was read: {path}"
+        )
+    return digest.hexdigest(), size, after
+
+
+class _SnapshotHasher:
+    """Hash every logical path once and retain cheap pre-publication stamps."""
+
+    def __init__(self, root: Path):
+        self.root = root
+        self._files: Dict[Path, tuple[str, int, _FileStamp]] = {}
+        self._absent: set[Path] = set()
+
+    @staticmethod
+    def _key(path: Path) -> Path:
+        return Path(os.path.abspath(path))
+
+    def digest(self, path: Path) -> tuple[str, int]:
+        key = self._key(path)
+        observed = self._files.get(key)
+        if observed is None or not observed[0]:
+            hashed = _stable_hash_file(key)
+            if observed is not None and observed[2] != hashed[2]:
+                raise CertificateIntegrityError(
+                    f"certificate-bound file changed during validation: {path}"
+                )
+            observed = hashed
+            self._files[key] = hashed
+        return observed[0], observed[1]
+
+    def descriptor(self, path: Path, name: str) -> _BoundFile:
+        relative = _relative_path(self.root, path, name)
+        digest, size = self.digest(path)
+        return _BoundFile(relative, digest, size)
+
+    def observe_validated(self, path: Path, stamp: _FileStamp) -> None:
+        key = self._key(path)
+        existing = self._files.get(key)
+        if existing is not None and existing[2] != stamp:
+            raise CertificateIntegrityError(
+                f"certificate-bound file changed during validation: {path}"
+            )
+        if existing is None:
+            self._files[key] = ("", stamp.size, stamp)
+
+    def observe_absent(self, path: Path) -> None:
+        key = self._key(path)
+        if os.path.lexists(key):
+            raise CertificateIntegrityError(
+                f"certified-missing scientific asset appeared: {path}"
+            )
+        self._absent.add(key)
+
+    @property
+    def observed_files(self) -> tuple[_ObservedFile, ...]:
+        return tuple(
+            _ObservedFile(path, value[2])
+            for path, value in sorted(
+                self._files.items(), key=lambda item: item[0].as_posix()
+            )
+        )
+
+    @property
+    def absent_paths(self) -> tuple[Path, ...]:
+        return tuple(sorted(self._absent, key=Path.as_posix))
+
+
 def _canonical_bytes(value: Any) -> bytes:
     try:
         return json.dumps(
@@ -109,18 +319,8 @@ def _digest_value(value: Any) -> str:
 
 
 def _hash_file(path: Path) -> tuple[str, int]:
-    digest = hashlib.sha256()
-    size = 0
-    try:
-        with path.open("rb") as stream:
-            for block in iter(lambda: stream.read(1024 * 1024), b""):
-                digest.update(block)
-                size += len(block)
-    except OSError as error:
-        raise CertificateIntegrityError(
-            f"cannot read certificate-bound file: {path}"
-        ) from error
-    return digest.hexdigest(), size
+    digest, size, _ = _stable_hash_file(path)
+    return digest, size
 
 
 def _utc_now() -> str:
@@ -225,7 +425,12 @@ def _checker_definitions(value: Any) -> Iterator[Mapping[str, Any]]:
             yield from _checker_definitions(child)
 
 
-def _checker_inventory(root: Path, policy: Mapping[str, Any]) -> list[Dict[str, Any]]:
+def _checker_inventory(
+    root: Path,
+    policy: Mapping[str, Any],
+    *,
+    hasher: Optional[_SnapshotHasher] = None,
+) -> list[Dict[str, Any]]:
     inventory = []
     seen = set()
     for definition in _checker_definitions(policy):
@@ -252,7 +457,11 @@ def _checker_inventory(root: Path, policy: Mapping[str, Any]) -> list[Dict[str, 
             continue
         seen.add(key)
         path = root / "policy" / "checkers" / f"{source_digest}.py"
-        descriptor = _file_descriptor(root, path, "custom checker artifact")
+        descriptor = (
+            _file_descriptor(root, path, "custom checker artifact")
+            if hasher is None
+            else hasher.descriptor(path, "custom checker artifact").to_dict()
+        )
         if descriptor["sha256"] != source_digest:
             raise CertificateIntegrityError(
                 "custom checker artifact does not match its policy digest"
@@ -367,58 +576,413 @@ def _release_identity(manifest: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _build_certificate(bundle: Any) -> Dict[str, Any]:
+def _control_token(control: Mapping[str, Any]) -> tuple[tuple[str, Any], ...]:
+    return tuple(
+        sorted(
+            (key, value)
+            for key, value in control.items()
+            if key != "singleton"
+        )
+    )
+
+
+def _asset_inventory_from_declarations(
+    root: Path,
+    declarations: list[tuple[str, str, Mapping[str, Any]]],
+    hasher: _SnapshotHasher,
+) -> list[Dict[str, Any]]:
+    inventory = []
+    for case_id, declaration_id, descriptor in declarations:
+        path_text = descriptor.get("path")
+        if not path_text:
+            inventory.append(
+                {
+                    "case_id": case_id,
+                    "declaration_id": declaration_id,
+                    "path": None,
+                    "state": "remote_not_materialized",
+                    "sha256": descriptor.get("expected_sha256"),
+                    "size": None,
+                }
+            )
+            continue
+        path = _safe_path(root, path_text, "scientific asset path")
+        if not path.is_file():
+            hasher.observe_absent(path)
+            inventory.append(
+                {
+                    "case_id": case_id,
+                    "declaration_id": declaration_id,
+                    "path": path_text,
+                    "state": "missing",
+                    "sha256": None,
+                    "size": None,
+                }
+            )
+            continue
+        digest, size = hasher.digest(path)
+        inventory.append(
+            {
+                "case_id": case_id,
+                "declaration_id": declaration_id,
+                "path": path_text,
+                "state": "present",
+                "sha256": digest,
+                "size": size,
+            }
+        )
+    return _normalize_assets(inventory)
+
+
+def _capture_canonical_state(
+    bundle: Any, hasher: _SnapshotHasher
+) -> tuple[
+    Mapping[str, Any],
+    Mapping[str, Any],
+    Mapping[str, Any],
+    Mapping[str, Any],
+    str,
+    list[Dict[str, Any]],
+    int,
+    str,
+]:
+    from ._bundle_state import (
+        BUNDLE_SCHEMA,
+        _ASSET_FIELDS,
+        _frame,
+        _record_asset_paths,
+        _safe_relative_path,
+        _trusted_governance_binding,
+    )
+    from .bundle import _asset_descriptors, _record_id
+
     root = Path(bundle.root).resolve()
     state = bundle._state
-    status = state.status
+    facts_path = root / "cases" / "facts.sqlite3"
+    bundle_manifest_path = root / "bundle.json"
+    facts_before = _current_file_stamp(facts_path)
+    manifest_before = _current_file_stamp(bundle_manifest_path)
+    declarations: list[tuple[str, str, Mapping[str, Any]]] = []
+    source_paths: set[str] = set()
+    source_hasher = hashlib.sha256()
+    with state.connect() as connection:
+        manifest = state._stored_manifest(connection)
+        policy = json.loads(
+            connection.execute(
+                "SELECT policy_json FROM policy WHERE singleton=1"
+            ).fetchone()[0]
+        )
+        target_context = json.loads(
+            connection.execute(
+                "SELECT value_json FROM metadata WHERE key='target_context'"
+            ).fetchone()[0]
+        )
+        control = dict(
+            connection.execute(
+                "SELECT * FROM control WHERE singleton=1"
+            ).fetchone()
+        )
+        _frame(source_hasher, "schema", BUNDLE_SCHEMA.encode("utf-8"))
+        _frame(source_hasher, "manifest", _canonical_bytes(manifest))
+        for row in connection.execute(
+            "SELECT case_id,public_index,payload_json FROM cases "
+            "ORDER BY public_index,case_id"
+        ):
+            case = json.loads(row["payload_json"])
+            _frame(
+                source_hasher,
+                f"case:{row['public_index']}:{row['case_id']}",
+                _canonical_bytes(case),
+            )
+            for collection in _ASSET_FIELDS:
+                for record in case.get(collection, []):
+                    source_paths.update(_record_asset_paths(record))
+                    declaration_id = _record_id(record, collection)
+                    declarations.extend(
+                        (str(case["id"]), declaration_id, descriptor)
+                        for descriptor in _asset_descriptors(record)
+                    )
+    manifest_after = _current_file_stamp(bundle_manifest_path)
+    if manifest_before != manifest_after:
+        raise CertificateIntegrityError(
+            "bundle manifest changed during certification"
+        )
+    hasher.observe_validated(bundle_manifest_path, manifest_after)
+
+    for relative in sorted(source_paths):
+        path = _safe_relative_path(root, relative, "asset path")
+        if not path.exists():
+            _frame(source_hasher, f"asset:{relative}", b"missing")
+        elif not path.is_file():
+            _frame(source_hasher, f"asset:{relative}", b"not-a-regular-file")
+        else:
+            digest, _ = hasher.digest(path)
+            _frame(
+                source_hasher,
+                f"asset:{relative}",
+                b"present\0" + bytes.fromhex(digest),
+            )
+    assets = _asset_inventory_from_declarations(root, declarations, hasher)
+    source_digest = source_hasher.hexdigest()
+    policy_digest = _digest_value(policy)
+    governance_revision, governance_digest = _trusted_governance_binding()
+    synchronized = bool(
+        control["current_generation_id"]
+        and runtime_policy_is_current(policy.get("runtime_policy", {}))
+        and control["source_revision"] == control["synchronized_source_revision"]
+        and source_digest == control["source_digest"]
+        and source_digest == control["synchronized_source_digest"]
+        and control["policy_revision"] == control["synchronized_policy_revision"]
+        and policy_digest == control["policy_digest"]
+        and policy_digest == control["synchronized_policy_digest"]
+        and governance_revision == control["governance_registry_revision"]
+        and governance_digest == control["governance_registry_digest"]
+        and governance_revision
+        == control["synchronized_governance_registry_revision"]
+        and governance_digest
+        == control["synchronized_governance_registry_digest"]
+    )
+    if not synchronized:
+        raise UnsynchronizedBundleError(
+            "Bundle is not synchronized; run bundle.synchronize() first"
+        )
+    facts = hasher.descriptor(facts_path, "facts store")
+    if facts.path != "cases/facts.sqlite3" or facts_before != _current_file_stamp(
+        facts_path
+    ):
+        raise CertificateIntegrityError(
+            "facts store changed during certification"
+        )
+    return (
+        manifest,
+        policy,
+        target_context,
+        control,
+        source_digest,
+        assets,
+        governance_revision,
+        governance_digest,
+    )
+
+
+def _generation_tree_stamps(directory: Path) -> tuple[tuple[str, _FileStamp], ...]:
+    try:
+        paths = sorted(
+            (path for path in directory.rglob("*") if path.is_file()),
+            key=lambda path: path.relative_to(directory).as_posix(),
+        )
+    except OSError as error:
+        raise CertificateIntegrityError(
+            "assessment generation changed during certification"
+        ) from error
+    return tuple(
+        (path.relative_to(directory).as_posix(), _current_file_stamp(path))
+        for path in paths
+    )
+
+
+@contextmanager
+def _capture_current_generation(
+    root: Path,
+    control: Mapping[str, Any],
+    hasher: _SnapshotHasher,
+) -> Iterator[Any]:
+    from ._generation import AssessmentGeneration, _GenerationLease
+
+    generation_id = control["current_generation_id"]
+    generation_digest = control["current_generation_digest"]
+    directory = root / "assessments" / "generations" / generation_id
+    with _GenerationLease(root, generation_id):
+        before = _generation_tree_stamps(directory)
+        generation = AssessmentGeneration._open_without_lease(
+            root, generation_id, generation_digest
+        )
+        after = _generation_tree_stamps(directory)
+        if before != after:
+            raise CertificateIntegrityError(
+                "assessment generation changed during certification"
+            )
+        for relative, stamp_value in after:
+            hasher.observe_validated(directory / relative, stamp_value)
+        yield generation
+
+
+@contextmanager
+def _capture_supplied_generation(bundle: Any) -> Iterator[Any]:
     generation = bundle._current_generation
     if generation is None:
         raise UnsynchronizedBundleError(
             "Bundle has no current assessment generation; run bundle.synchronize() first"
         )
-    manifest_path = Path(generation.manifest_path)
-    manifest_descriptor = _file_descriptor(
-        root, manifest_path, "assessment generation manifest"
-    )
-    if manifest_descriptor["sha256"] != generation.manifest_digest:
-        raise CertificateIntegrityError(
-            "assessment generation manifest digest does not match the generation"
+    with generation.lease():
+        yield generation
+
+
+@contextmanager
+def _certification_generation(
+    bundle: Any,
+    control: Mapping[str, Any],
+    hasher: _SnapshotHasher,
+) -> Iterator[Any]:
+    if control.get("current_generation_id"):
+        with _capture_current_generation(
+            Path(bundle.root).resolve(), control, hasher
+        ) as generation:
+            yield generation
+        return
+    with _capture_supplied_generation(bundle) as generation:
+        yield generation
+
+
+def _capture_supplied_state(
+    bundle: Any, hasher: _SnapshotHasher
+) -> tuple[
+    Mapping[str, Any],
+    Mapping[str, Any],
+    Mapping[str, Any],
+    Mapping[str, Any],
+    str,
+    list[Dict[str, Any]],
+    int,
+    str,
+]:
+    if not bundle.is_synchronized:
+        raise UnsynchronizedBundleError(
+            "Bundle is not synchronized; run bundle.synchronize() first"
         )
-    assets = _normalize_assets(bundle._scientific_asset_inventory())
-    _verify_asset_files(root, assets)
-    policy = state.policy
-    checkers = _checker_inventory(root, policy)
-    facts = _file_descriptor(root, root / "cases" / "facts.sqlite3", "facts store")
-    if facts["path"] != "cases/facts.sqlite3":
-        raise CertificatePathError("facts store must be cases/facts.sqlite3")
-    return {
-        "assessor_version": ASSESSOR_VERSION,
-        "dataset": bundle.name,
-        "release": _release_identity(state.manifest),
-        "target_context": _json_copy(state.target_context),
-        "facts": facts,
-        "source": {
-            "revision": status["source_revision"],
-            "digest": status["source_digest"],
-        },
-        "policy": {
-            "revision": status["policy_revision"],
-            "digest": status["policy_digest"],
-        },
-        "generation": {
-            "id": generation.id,
-            "digest": generation.digest,
-            "manifest": manifest_descriptor,
-        },
-        "runtime_policy": validate_frozen_runtime_policy(
-            generation.manifest["runtime_policy"]
-        ),
-        "checker_artifacts": checkers,
-        "scientific_assets": {"items": assets, "digest": _digest_value(assets)},
-        "summary": _json_copy(generation.summary),
-        "issuer": "Hotpot",
-        "issued_at": _utc_now(),
+    state = bundle._state
+    status = state.status
+    declarations = _normalize_assets(bundle._scientific_asset_inventory())
+    assets = []
+    for item in declarations:
+        current = dict(item)
+        if item["state"] == "present":
+            path = _safe_path(Path(bundle.root).resolve(), item["path"], "asset path")
+            digest, size = hasher.digest(path)
+            if digest != item["sha256"] or size != item["size"]:
+                raise CertificateIntegrityError(
+                    "scientific asset inventory does not match its bytes"
+                )
+            current.update({"sha256": digest, "size": size})
+        elif item["state"] == "missing":
+            hasher.observe_absent(
+                _safe_path(Path(bundle.root).resolve(), item["path"], "asset path")
+            )
+        assets.append(current)
+    control = {
+        "source_revision": status["source_revision"],
+        "source_digest": status["source_digest"],
+        "policy_revision": status["policy_revision"],
+        "policy_digest": status["policy_digest"],
+        "current_generation_id": None,
+        "current_generation_digest": None,
     }
+    return (
+        state.manifest,
+        state.policy,
+        state.target_context,
+        control,
+        status["source_digest"],
+        assets,
+        0,
+        "",
+    )
+
+
+@contextmanager
+def _capture_certification_snapshot(
+    bundle: Any,
+) -> Iterator[_CertificationSnapshot]:
+    root = Path(bundle.root).resolve()
+    state = bundle._state
+    hasher = _SnapshotHasher(root)
+    if hasattr(state, "connect") and hasattr(state, "_stored_manifest"):
+        captured = _capture_canonical_state(bundle, hasher)
+    else:
+        captured = _capture_supplied_state(bundle, hasher)
+    (
+        manifest,
+        policy,
+        target_context,
+        control,
+        source_digest,
+        assets,
+        governance_revision,
+        governance_digest,
+    ) = captured
+    require_current_runtime_policy(policy["runtime_policy"])
+    with _certification_generation(bundle, control, hasher) as generation:
+        generation_manifest = generation.manifest
+        expected_source = {
+            "revision": control["source_revision"],
+            "digest": source_digest,
+        }
+        expected_policy = {
+            "revision": control["policy_revision"],
+            "digest": _digest_value(policy),
+        }
+        generation_governance = generation_manifest.get("governance", {})
+        if control.get("current_generation_id") and (
+            generation_manifest["source"] != expected_source
+            or generation_manifest["policy"] != expected_policy
+            or generation_governance.get("revision") != governance_revision
+            or generation_governance.get("digest") != governance_digest
+        ):
+            raise CertificateIntegrityError(
+                "assessment generation does not match synchronized Bundle state"
+            )
+        runtime = validate_frozen_runtime_policy(
+            generation_manifest["runtime_policy"]
+        )
+        if runtime != validate_frozen_runtime_policy(policy["runtime_policy"]):
+            raise CertificateIntegrityError(
+                "generation and policy runtime bindings differ"
+            )
+        manifest_binding = hasher.descriptor(
+            Path(generation.manifest_path), "assessment generation manifest"
+        )
+        if control.get("current_generation_id"):
+            summary = json.loads(
+                (Path(generation.manifest_path).parent / "summary.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+        else:
+            summary = generation.summary
+        checkers = _checker_inventory(root, policy, hasher=hasher)
+        facts = hasher.descriptor(
+            root / "cases" / "facts.sqlite3", "facts store"
+        )
+        snapshot = _CertificationSnapshot(
+            root=root,
+            state_token=_StateToken(
+                manifest=_canonical_bytes(manifest),
+                policy=_canonical_bytes(policy),
+                target_context=_canonical_bytes(target_context),
+                control=_control_token(control),
+                governance_revision=governance_revision,
+                governance_digest=governance_digest,
+            ),
+            release=_canonical_bytes(_release_identity(manifest)),
+            target_context=_canonical_bytes(target_context),
+            facts=facts,
+            source_revision=control["source_revision"],
+            source_digest=source_digest,
+            policy_revision=control["policy_revision"],
+            policy_digest=_digest_value(policy),
+            generation_id=generation.id,
+            generation_digest=generation.digest,
+            generation_manifest=manifest_binding,
+            runtime_policy=_canonical_bytes(runtime),
+            checker_artifacts=_canonical_bytes(checkers),
+            scientific_assets=_canonical_bytes(assets),
+            summary=_canonical_bytes(summary),
+            issuer="Hotpot",
+            issued_at=_utc_now(),
+            observed_files=hasher.observed_files,
+            absent_paths=hasher.absent_paths,
+        )
+        yield snapshot
 
 
 def _validate_file_syntax(value: Any, name: str) -> None:
@@ -721,6 +1285,81 @@ def _verify_certificate_against_bundle(
         )
 
 
+def _assert_observations_current(snapshot: _CertificationSnapshot) -> None:
+    for observed in snapshot.observed_files:
+        if _current_file_stamp(observed.path) != observed.stamp:
+            raise CertificateIntegrityError(
+                f"certificate-bound file changed before publication: {observed.path}"
+            )
+    for path in snapshot.absent_paths:
+        if os.path.lexists(path):
+            raise CertificateIntegrityError(
+                f"certified-missing scientific asset appeared: {path}"
+            )
+
+
+def _current_state_token(bundle: Any, snapshot: _CertificationSnapshot) -> _StateToken:
+    state = bundle._state
+    if hasattr(state, "connect") and hasattr(state, "_stored_manifest"):
+        from ._bundle_state import _trusted_governance_binding
+
+        with state.connect() as connection:
+            manifest = state._stored_manifest(connection)
+            policy = json.loads(
+                connection.execute(
+                    "SELECT policy_json FROM policy WHERE singleton=1"
+                ).fetchone()[0]
+            )
+            target_context = json.loads(
+                connection.execute(
+                    "SELECT value_json FROM metadata WHERE key='target_context'"
+                ).fetchone()[0]
+            )
+            control = dict(
+                connection.execute(
+                    "SELECT * FROM control WHERE singleton=1"
+                ).fetchone()
+            )
+        governance_revision, governance_digest = _trusted_governance_binding()
+        return _StateToken(
+            manifest=_canonical_bytes(manifest),
+            policy=_canonical_bytes(policy),
+            target_context=_canonical_bytes(target_context),
+            control=_control_token(control),
+            governance_revision=governance_revision,
+            governance_digest=governance_digest,
+        )
+    status = state.status
+    expected_control = dict(snapshot.state_token.control)
+    control = {key: status.get(key) for key in expected_control}
+    return _StateToken(
+        manifest=_canonical_bytes(state.manifest),
+        policy=_canonical_bytes(state.policy),
+        target_context=_canonical_bytes(state.target_context),
+        control=_control_token(control),
+        governance_revision=snapshot.state_token.governance_revision,
+        governance_digest=snapshot.state_token.governance_digest,
+    )
+
+
+def _assert_snapshot_current(bundle: Any, snapshot: _CertificationSnapshot) -> None:
+    _assert_observations_current(snapshot)
+    if _current_state_token(bundle, snapshot) != snapshot.state_token:
+        raise CertificateIntegrityError(
+            "Bundle state changed before certificate publication"
+        )
+    _assert_observations_current(snapshot)
+
+
+def _verify_certificate_against_snapshot(
+    snapshot: _CertificationSnapshot, certificate: Mapping[str, Any]
+) -> None:
+    if certificate != snapshot.certificate():
+        raise CertificateIntegrityError(
+            "constructed certificate differs from its certification snapshot"
+        )
+
+
 @contextmanager
 def _bundle_lock(root: Path) -> Iterator[None]:
     descriptor = os.open(root / ".bundle.lock", os.O_CREAT | os.O_RDWR, 0o600)
@@ -732,7 +1371,12 @@ def _bundle_lock(root: Path) -> Iterator[None]:
         os.close(descriptor)
 
 
-def _atomic_write(path: Path, value: Mapping[str, Any]) -> None:
+def _atomic_write(
+    path: Path,
+    value: Mapping[str, Any],
+    *,
+    before_replace: Optional[Callable[[], None]] = None,
+) -> None:
     payload = _canonical_bytes(value) + b"\n"
     temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
     try:
@@ -740,6 +1384,8 @@ def _atomic_write(path: Path, value: Mapping[str, Any]) -> None:
             stream.write(payload)
             stream.flush()
             os.fsync(stream.fileno())
+        if before_replace is not None:
+            before_replace()
         os.replace(temporary, path)
         descriptor = os.open(path.parent, os.O_RDONLY)
         try:
@@ -755,27 +1401,23 @@ def write_bundle_certificate(bundle: Any) -> Path:
     """Atomically write the sole root certificate for a synchronized Bundle."""
 
     root = Path(bundle.root).resolve()
-    if not bundle.is_synchronized:
-        raise UnsynchronizedBundleError(
-            "Bundle is not synchronized; run bundle.synchronize() first"
-        )
-    require_current_runtime_policy(bundle._state.policy["runtime_policy"])
     with _bundle_lock(root):
-        if not bundle.is_synchronized:
-            raise UnsynchronizedBundleError(
-                "Bundle changed before certification; run bundle.synchronize() first"
+        with _capture_certification_snapshot(bundle) as snapshot:
+            certificate = _validate_certificate_syntax(
+                snapshot.certificate(), root
             )
-        generation = bundle._current_generation
-        with generation.lease():
-            certificate = _validate_certificate_syntax(_build_certificate(bundle), root)
-            _verify_certificate_against_bundle(bundle, certificate)
+            _verify_certificate_against_snapshot(snapshot, certificate)
             envelope = {
                 "schema": CERTIFICATE_SCHEMA,
                 "certificate": certificate,
                 "envelope_sha256": _digest_value(certificate),
             }
             path = root / "certificate.json"
-            _atomic_write(path, envelope)
+            _atomic_write(
+                path,
+                envelope,
+                before_replace=lambda: _assert_snapshot_current(bundle, snapshot),
+            )
             return path
 
 

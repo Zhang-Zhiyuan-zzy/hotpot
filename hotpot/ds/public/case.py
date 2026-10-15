@@ -75,6 +75,11 @@ def _evidence_details(
             inferred.update(
                 {"doi": doi, "scientific_work_id": f"doi:{doi.casefold()}"}
             )
+    elif lowered.startswith("file:"):
+        path = source[5:].strip()
+        if not path:
+            raise ValueError("file evidence source must include a Bundle-relative path")
+        inferred = {"path": path}
     for field, value in inferred.items():
         supplied = values.get(field)
         if supplied is not None and supplied.casefold() != value.casefold():

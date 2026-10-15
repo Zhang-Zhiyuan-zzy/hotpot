@@ -169,3 +169,27 @@ def test_new_attestation_supersedes_same_authority_and_actor_only():
     assert rows[1]["status"] == "active"
     assert rows[2]["supersedes"] == [first]
     assert rows[2]["approved"] is True
+
+
+def test_file_evidence_source_materializes_a_local_asset_path():
+    owner = Owner()
+    case = CaseCollection(owner)[0]
+    evidence_id = case.add_evidence(
+        "observation-1",
+        "file:evidence/paper.pdf",
+        locator="Table 1",
+    )
+    item = owner.payloads["c1"]["evidence"][0]
+    assert item["evidence_id"] == evidence_id
+    assert item["source"] == "file:evidence/paper.pdf"
+    assert item["path"] == "evidence/paper.pdf"
+
+    owner.is_synchronized = True
+    replacement_id = case.replace_evidence(
+        evidence_id,
+        "file:evidence/correction.pdf",
+        reason="source correction",
+    )
+    replacement = owner.payloads["c1"]["evidence"][1]
+    assert replacement["evidence_id"] == replacement_id
+    assert replacement["path"] == "evidence/correction.pdf"

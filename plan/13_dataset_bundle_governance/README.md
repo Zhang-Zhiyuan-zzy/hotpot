@@ -1,8 +1,9 @@
 # Stage 13: Bundle-centered dataset governance
 
-Status: feature implementation and the complete current test suite are green;
-the managed-store cutover and activated-store smoke tests remain pending and
-are tracked separately in the implementation log.
+Status: complete. The 252,665-Case managed store was rebuilt, parity-checked,
+certified, ingested, and atomically activated on 2026-10-15. Activated-store
+API/CLI smoke tests and the final 259-test dataset suite are green; exact
+evidence is recorded in the implementation log and report.
 
 This stage moves admission assessment, evidence grading, quality grading, and
 benchmark selection into an interactive, folder-backed `Bundle`. It preserves
@@ -73,12 +74,12 @@ sealed releases verify their frozen binding; new assessment, certification,
 and ingestion require the one current runtime. No historical implementation
 is loaded as a compatibility backend.
 
-Currently ingested datasets require a one-time owner/admin rebuild into this
-layout. Scientific source facts and asset hashes remain unchanged. Legacy
-SHA-derived entity/structure identifiers are audited rather than treated
-automatically as sample identity; any correction is recorded in an identity
-migration map. Reassessment may change only derived
-incomplete/ordinary/benchmark organization.
+The oxidation, spin, and CSD electronic-state releases received their one-time
+owner/admin rebuild into this layout during the 2026-10-15 cutover. Scientific
+source facts and asset hashes remained unchanged. Legacy SHA-derived
+entity/structure identifiers were audited rather than treated automatically as
+sample identity; every correction is recorded in an identity migration map.
+Reassessment changed only derived incomplete/ordinary/benchmark organization.
 
 - [Complete implementation plan](bundle_gate_certificate_implementation.md)
 - [Complete first-level API signature tree](bundle_gate_certificate_implementation.md#41-complete-first-level-public-api-signature-tree)

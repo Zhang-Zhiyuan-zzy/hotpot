@@ -17,11 +17,11 @@ Quality and evidence grades remain derived; an attributable owner statement may
 admit an otherwise complete Case to the benchmark subset but cannot erase a
 scientific conflict, broken relationship, or invalid required structure.
 
-The feature implementation described below is present in the working tree. The
-final completion claim remains conditional on Step 46 of the
-[implementation log](implementation_log.md): the combined dataset suite,
-managed-store rebuild/cutover, and API/CLI smoke results must be recorded before
-this branch is declared operationally complete.
+Stage 13 is operationally complete on the implementation branch. The managed
+store was rebuilt from the verified legacy source, parity-checked, certified,
+ingested, and atomically activated. Activated-store API/CLI smoke tests and the
+final current dataset suite passed; exact evidence is recorded in Step 46 of
+the [implementation log](implementation_log.md).
 
 ## Delivered behavior
 
@@ -212,43 +212,64 @@ as compatibility paths. A non-current store is rebuilt through the audited
 owner migration and atomically activated. Git retains implementation history;
 runtime code does not emulate it.
 
-## Verification and release gate
+## Verification and release result
 
 The detailed incremental evidence, commit IDs, unexpected findings, and push
-checkpoints are in the [implementation log](implementation_log.md). Completed
-focused checks include governance signatures, checker containment and escape
-regressions, attestation replacement, evidence relations/lineage, assessment
-generation, certificate round trip, storage receipts, ingestion integrity,
-generation leases, compilation, and public-facade import smoke tests. The
-combined focused audit slice first passed all 61 tests. After the initial
-complete run exposed one current-interface failure (`259 passed, 1 failed`),
-the facade, runtime/identity contracts, scientific Evidence semantics,
-migration provenance, returned-object signatures, CLI payload schemas, and
-formal dataset documentation were corrected. Those implementation commits are
-pushed through `93f50c7`. The complete current `tests/test_ds` suite now passes
-`277 passed` in `93.38 s`, with no failures or skips. A final documentation,
-CLI, API-signature, and scientific-integrity slice also passes `29 passed`.
+checkpoints are in the [implementation log](implementation_log.md). Focused
+checks cover governance signatures, checker isolation and escape regressions,
+attestation replacement, Evidence relations/lineage, scientific identity and
+conflicts, assessment generations, certificate round trip, ingestion receipts
+and CAS, generation leases, public API signatures, CLI payload schemas, and
+formal documentation. The complete pre-cutover suite passed 277 tests.
 
-The first managed-store migration rehearsal was deliberately interrupted
-before activation when that scientific audit found the source-kind, AI
-verification, file-Evidence, and protocol defects. No active pointer was
-created. The generated rehearsal roots were explicitly removed, while the
-valid 3-dataset/252,665-record legacy source was retained unchanged at
-1,136,664,576 bytes and SHA-256
+The first managed-store rehearsal was intentionally discarded when the final
+scientific audit found incomplete source-kind, AI-verification, file-Evidence,
+owner-provenance, and protocol bindings. The valid 3-dataset/252,665-record
+legacy source remained unchanged at 1,136,664,576 bytes and SHA-256
 `076096dead161b0689764d275ddd141cdf59e1fe3167881b883877dc8e22b72b`.
-Because assessment semantics are certificate inputs, none of the partial
-rehearsal output may be reused; the final run starts clean from that verified
-source.
+This restart was mandatory because changed assessment semantics change the
+certificate input; partial output under the earlier semantics could not be
+promoted.
 
-The following results must still be appended after final execution; absence of
-these results must not be interpreted as a pass:
+The clean current run completed on 2026-10-15:
 
-- managed-store migration counts, parity digests, timing, peak resources, and
-  atomic activation record;
-- API query/subset/get/export smoke result against the activated store;
-- CLI status/query/subset/get/export and JSON-pipeline smoke result; and
-- push state for the final cutover and report commit range.
+- wall time: 2:22:39; maximum resident memory: 299,816 KiB; no swap;
+- active current-schema database: 5,093,584,896 bytes, SHA-256
+  `1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5`;
+- 252,665 Cases: 3,568 incomplete, 249,097 ordinary, and zero benchmark;
+- 592,436 identifiers, 2,317 target-owned content-addressed assets, and three
+  policies, releases, certificates, and authoritative receipts;
+- SQLite integrity/foreign-key checks, source/target Case parity, asset parity,
+  rollback verification, certificate bindings, and atomic activation passed;
+  and
+- activation parity SHA-256
+  `720a27ade4ab1f6c78a85d767fe2ec4d29fb252b1f4a03929aad78bcd676be76`.
 
-Until those entries are present, the correct conclusion is: the Stage 13 code
-and documentation model is implemented, but operational cutover certification
-is still pending final integrated evidence.
+Release classification is scientifically intentional: oxidation has 2,175
+ordinary Cases; spin has 2,080 ordinary and 95 incomplete Cases; CSD electronic
+state has 244,842 ordinary and 3,473 incomplete Cases. Every Case currently has
+E2 text-attribution evidence. Complete Cases are B1 and incomplete Cases B0.
+Supplier gold/`Other` assertions remain provenance, not forged User/Hotpot
+benchmark approvals, so no Case is promoted to benchmark without the required
+verified support or owner decision.
+
+Activated-store API smoke passed discovery, load, archive visibility, indexed
+identifier access, slices/subsets, structures/Molecule, field/SMARTS search,
+and Bundle/certificate state. CLI smoke passed list/info/labels, get,
+quality/evidence subset, the JSON pipeline, multi-structure selection,
+`--xyz`/`--smi`, export/conversion, and Bundle status. A late smoke-test finding
+showed that the first identifier implementation still hydrated the full CSD
+view. The final index/search/CLI corrections (`73a4c6c`, `1738375`, and
+`3b18684`) were therefore required for the public query contract: the exact
+244,842-visible-Case CSD CLI lookup now completes in 4.64 seconds and unique
+matches hydrate only one Case.
+
+After the successful cutover, the one-time schema-1 executable, bootstrap
+manifest, and migration-only tests were deleted. Git plus the generated
+content-addressed, certificate, receipt, parity, cutover, and rollback artifacts
+preserve the audit evidence; the installed current source contains no legacy
+converter or compatibility runtime. Both retired imports fail, and freshly
+built wheel and source-distribution archives contain neither retired module nor
+the bootstrap manifest. The current inventory and query closure were pushed
+through `3b18684`. The final current `tests/test_ds` suite passes `259 passed`
+in `65.60 s`, with no failures or skips. The Stage 13 release gate is closed.

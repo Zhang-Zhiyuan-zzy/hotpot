@@ -1615,8 +1615,8 @@ Unexpected finding and necessary adjustment:
 
 ### Step 46 — Final integration, managed-store cutover, and report
 
-Status: integration and current-contract correction complete; managed-store
-cutover and activated-store smoke tests remain pending
+Status: complete; managed-store cutover, activated-store smoke tests, current
+inventory, migration-path retirement, and final regression verification passed
 
 Verification recorded so far:
 
@@ -1659,15 +1659,89 @@ complete suite, and restart from the untouched legacy database. This was not an
 optional cleanup: assessment semantics are certificate inputs, so an old
 partial migration cannot be promoted after they change.
 
-Required completion evidence:
+#### Completed clean migration and activation
 
-- the complete `tests/test_ds` rerun passes under the declared dependency set;
-- the 252,665-record managed store is rebuilt, parity-verified, certified,
-  ingested, and atomically activated under the current schema;
-- API and CLI query/subset/get/export smoke tests run against the activated
-  store; and
-- final commit/push identifiers and measured migration resource results are
-  appended here and summarized in `implementation_report.md`.
+The clean restart completed on 2026-10-15 from the unchanged legacy source.
+The one process rebuilt, assessed, certified, ingested, parity-checked, and
+atomically activated all three releases. It exited zero after 2:22:39 wall
+time (6,632.78 s user CPU, 1,923.90 s system CPU), used 299,816 KiB maximum
+resident memory, and used no swap.
+
+The activated database is
+`hotpot/dataset/data/store/active/datasets.sqlite3`, with the active directory
+symlink resolving to `store/generations/stage13-current`. The database is
+5,093,584,896 bytes, has SHA-256
+`1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5`,
+uses schema `hotpot-ds-store/current`, and has store UUID
+`62db5feb-0f62-413c-aae7-08542f93ff35`. SQLite integrity checking passed and
+foreign-key checking returned no rows. The cutover parity digest is
+`720a27ade4ab1f6c78a85d767fe2ec4d29fb252b1f4a03929aad78bcd676be76`;
+the cutover report digest is
+`b11abf02a9f1f3520543d84565813b0962aa521e9d99d3bacdf9a559aa09a054`.
+
+Exact release results were:
+
+| Release | Cases | Incomplete | Ordinary | Benchmark | Quality | Evidence |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| `oxidation.v001` | 2,175 | 0 | 2,175 | 0 | B1: 2,175 | E2: 2,175 |
+| `spin.v001` | 2,175 | 95 | 2,080 | 0 | B0: 95; B1: 2,080 | E2: 2,175 |
+| `csd-electronic-state.vreported-text-v1` | 248,315 | 3,473 | 244,842 | 0 | B0: 3,473; B1: 244,842 | E2: 248,315 |
+
+The zero benchmark count is intentional: supplier `Other`/gold assertions are
+preserved as provenance, but they do not forge a User/Hotpot direct-entry
+decision, and E2 text attribution does not satisfy verified-primary-source
+admission. The target contains 252,665 Cases and Case assessments, 592,436
+identifiers, 2,317 content-addressed target assets, 4,465 structure references,
+and three policies, releases, and authoritative ingestion receipts. Rollback
+verification covered all 2,280 source structure assets with no declared hash
+mismatch, undeclared loss, or missing negative fact.
+
+`hotpot/dataset/manifests/current-inventory.json` now binds the active store,
+release/classification counts, content-addressed asset inventory, activation,
+migration audit, and source/audit digests. The generated dataset bytes,
+certificates, receipts, migration report, cutover report, and rollback material
+remain below the Git-ignored dataset payload root. After their successful use,
+the schema-1 migration executable, its bootstrap manifest, and migration-only
+tests were removed from the current checkout. Git and the generated signed or
+hashed artifacts retain the audit history; no legacy converter or compatibility
+runtime remains callable. Ignored orphan bytecode for the retired migration and
+rebuild modules was deleted, both imports now raise `ModuleNotFoundError`, and
+fresh wheel (664 members) and source-distribution (752 members) builds contain
+neither retired module nor the retired bootstrap manifest.
+
+#### Activated-store API, CLI, and performance verification
+
+Read-only API smoke covered dataset discovery and load for all three releases,
+archive filtering and incomplete opt-in, index/slice/subset access, stable
+Hotpot IDs, labels and structures, Molecule loading, field and SMARTS search,
+and synchronized/current Bundle and certificate status. CLI smoke covered
+help/list/info/labels, index and identifier `get`, quality/evidence `subset`,
+the JSON subset-to-get pipeline, multi-structure role/index selection,
+`--xyz`/`--smi`, single/default/converted export, and Bundle status. Protocol
+envelopes retained their declared producer keys and requested representations
+remained in JSON stdout under `payload.representations`; only the optional human
+mirror and diagnostics used stderr.
+
+The activated 244,842-visible-Case CSD view exposed one late performance defect:
+identifier selection in API/CLI and dataset-name search still caused per-record
+hydration. This was a release issue rather than optional cleanup because a
+single-record CLI request exceeded 60 seconds. Commits `73a4c6c`, `1738375`,
+and `3b18684` moved identifier access to the target-store index, made metadata
+search prefer direct Dataset properties, and routed CLI identifiers through the
+same index. The exact command
+`hotpot ds get csd-electronic-state AACANI10 --identifier CSD` then completed
+in 4.64 s with one result (including process startup and 244,842-header view
+construction); direct repeated Python index lookups take about 0.02 s after the
+initial load. Regression tests prove that CLI identifier selection does not
+call `Dataset.subset`, hydrates one Case for a unique match, and hydrates none
+for a multiple-match error.
+
+The final current `tests/test_ds` suite, after deliberate retirement of the
+migration-only tests, passed `259 passed` in `65.60 s`, with no failures or
+skips. The active inventory was committed in `1328dce`; one-time migration
+retirement in `14407dc`; indexed API/search/CLI closure in
+`73a4c6c..3b18684`. Those five commits were pushed to
+`origin/refactor/unified-dataset-management` on 2026-10-15.
 
 ## Push checkpoints
 
@@ -1685,4 +1759,5 @@ Required completion evidence:
 | 10 | Steps 34–37: current information fence, any-Structure policy, owner migration policy, exact migration parity/activation | `6b94003..6e5b8e7` | migration, storage, Bundle, certificate, documentation, and bootstrap slice `51 passed` | pushed to `origin/refactor/unified-dataset-management` |
 | 11 | Steps 38, 39, and 41: mandatory Ed25519, checker containment, attestation principal state | `541b69d..73eb2fb` | governance, isolation/escape, checker protocol, and attestation regressions passed | pushed to `origin/refactor/unified-dataset-management` |
 | 12 | Steps 40 and 42–45: Evidence assets, scientific identity/integrity, generation leases, runtime/parser binding, ingestion CAS, migration normalization | `2bdfb99..a70ed5e` | combined focused slice `61 passed`; first full run `259 passed, 1 failed` | pushed through `a70ed5e` to `origin/refactor/unified-dataset-management` |
-| 13 | Step 46 integration closure before cutover: current facade, runtime/identity contracts, scientific evidence integrity, owner migration provenance, returned signatures, closed CLI payloads, formal dataset docs | `8718923..93f50c7` | focused scientific slice `60 passed`; migration slice `20 passed`; CLI slice `38 passed`; complete current suite `277 passed`; documentation/API/CLI/scientific slice `29 passed` | pushed through `93f50c7` to `origin/refactor/unified-dataset-management`; clean managed-store run still pending |
+| 13 | Step 46 integration closure before cutover: current facade, runtime/identity contracts, scientific evidence integrity, owner migration provenance, returned signatures, closed CLI payloads, formal dataset docs | `8718923..93f50c7` | focused scientific slice `60 passed`; migration slice `20 passed`; CLI slice `38 passed`; complete pre-cutover suite `277 passed`; documentation/API/CLI/scientific slice `29 passed` | pushed through `93f50c7` to `origin/refactor/unified-dataset-management` |
+| 14 | Step 46 operational closure: clean rebuild/cutover, active inventory, migration-path retirement, indexed activated-store queries | `1328dce..3b18684` | exact parity/integrity checks; activated API/CLI smoke; final current suite `259 passed`; indexed CSD CLI get `4.64 s` | pushed through `3b18684` to `origin/refactor/unified-dataset-management` |

@@ -1,8 +1,9 @@
 # Bundle-centered assessment, evidence, and benchmark governance
 
-Implementation status: the current-version design is implemented and its
-complete current test suite is green. Managed-store activation and
-activated-store smoke tests remain the explicit Step 46 release gate in
+Implementation status: complete. The current-version design, managed-store
+rebuild, parity checks, certificates, ingestion, atomic activation, and
+activated-store API/CLI smoke tests passed. The final evidence and the retired
+one-time migration path are recorded under Step 46 in
 `implementation_log.md`.
 
 ## 1. Executive decision
@@ -2538,6 +2539,12 @@ Add current-schema records for:
 
 ### 11.3 Current-version replacement
 
+Completed outcome (2026-10-15): all items in this section were executed for the
+three managed releases. The active store now uses only the current schema, and
+the one-time converter and bootstrap input were retired after parity-verified
+activation. The imperative text below records the procedure that was followed;
+it is not a reusable runtime migration command.
+
 Update the current schema and rebuild repository-managed stores. Do not add
 legacy schema detection, compatibility aliases, or dual writers. Git preserves
 the old implementation. The rebuild must regenerate:
@@ -2549,9 +2556,10 @@ the old implementation. The rebuild must regenerate:
 
 ### 11.4 Impact on currently ingested datasets
 
-The current oxidation, spin, CSD electronic-state, and other managed datasets
-require a one-time organizational migration. This is a storage/governance
-rebuild, not an automatic scientific-data rewrite.
+The oxidation, spin, and CSD electronic-state releases required and completed
+their one-time organizational migration on 2026-10-15. This was a
+storage/governance rebuild, not an automatic scientific-data rewrite. The
+current source tree intentionally contains no reusable legacy converter.
 
 #### 11.4.1 Organizational changes
 
@@ -2652,6 +2660,11 @@ only when each difference is explained by this map. The map is provenance, not
 a runtime compatibility API.
 
 #### 11.4.4 Initial assessment-policy bootstrap
+
+Completed outcome (2026-10-15): the owner bootstrap below was persisted for all
+three managed datasets, used for their current certificates and receipts, and
+then removed as a callable migration input. The steps remain here as historical
+acceptance criteria.
 
 Currently ingested datasets predate the complete assessment policy and custom
 checker artifact model. Before the new Bundle API treats them as existing

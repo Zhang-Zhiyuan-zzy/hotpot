@@ -641,68 +641,10 @@ def _manifest_snapshot(
     root: Path,
     value: Any,
     ds_name: str,
-    hasher: _SnapshotHasher,
 ) -> Dict[str, Any]:
-    from ._bundle_state import BundleStateError, _validate_manifest
+    from ._bundle_state import _validate_manifest
 
-    if not isinstance(value, dict):
-        raise BundleStateError("bundle.json must contain a JSON object")
-    stripped = dict(value)
-    raw_assets = stripped.pop("control_assets", None)
-    normalized = _validate_manifest(root, stripped, ds_name)
-    if raw_assets is None:
-        return normalized
-    if not isinstance(raw_assets, list):
-        raise BundleStateError("bundle.json.control_assets must be an array")
-    fields = {"category", "name", "path", "sha256", "size"}
-    identities = set()
-    paths = set()
-    assets = []
-    for index, raw in enumerate(raw_assets):
-        name = f"bundle.json.control_assets[{index}]"
-        if not isinstance(raw, dict) or set(raw) != fields:
-            raise BundleStateError(
-                f"{name} fields must be exactly {sorted(fields)}"
-            )
-        category = _nonempty_text(raw["category"], f"{name}.category")
-        asset_name = _nonempty_text(raw["name"], f"{name}.name")
-        path_text = _nonempty_text(raw["path"], f"{name}.path")
-        path = _safe_path(root, path_text, f"{name}.path")
-        if path.is_symlink() or not path.is_file():
-            raise BundleStateError(
-                f"{name}.path must name a regular Bundle file"
-            )
-        expected_digest = _sha256(raw["sha256"], f"{name}.sha256")
-        expected_size = _size(raw["size"], f"{name}.size")
-        identity = (category, asset_name)
-        if identity in identities:
-            raise BundleStateError(
-                "bundle.json.control_assets contains a duplicate category/name"
-            )
-        if path_text in paths:
-            raise BundleStateError(
-                "bundle.json.control_assets contains a duplicate path"
-            )
-        identities.add(identity)
-        paths.add(path_text)
-        digest, size = hasher.digest(path)
-        if digest != expected_digest or size != expected_size:
-            raise CertificateIntegrityError(
-                f"{name} does not match its declared bytes"
-            )
-        assets.append(
-            {
-                "category": category,
-                "name": asset_name,
-                "path": path_text,
-                "sha256": digest,
-                "size": size,
-            }
-        )
-    normalized["control_assets"] = sorted(
-        assets, key=lambda item: (item["category"], item["name"])
-    )
-    return normalized
+    return _validate_manifest(root, value, ds_name)
 
 
 def _capture_canonical_state(
@@ -718,23 +660,29 @@ def _capture_canonical_state(
     str,
 ]:
     from ._bundle_state import (
-        BUNDLE_SCHEMA,
+        BundleStateError,
         _ASSET_FIELDS,
-        _frame,
-        _record_asset_paths,
-        _safe_relative_path,
         _trusted_governance_binding,
     )
     from .bundle import _asset_descriptors, _record_id
 
     root = Path(bundle.root).resolve()
+    state = bundle._state
     facts_path = root / "cases" / "facts.sqlite3"
     bundle_manifest_path = root / "bundle.json"
     facts_before = _current_file_stamp(facts_path)
     manifest_before = _current_file_stamp(bundle_manifest_path)
     declarations: list[tuple[str, str, Mapping[str, Any]]] = []
-    source_paths: set[str] = set()
-    source_hasher = hashlib.sha256()
+
+    def observe_case(case: Mapping[str, Any]) -> None:
+        for collection in _ASSET_FIELDS:
+            for record in case.get(collection, []):
+                declaration_id = _record_id(record, collection)
+                declarations.extend(
+                    (str(case["id"]), declaration_id, descriptor)
+                    for descriptor in _asset_descriptors(record)
+                )
+
     try:
         connection = sqlite3.connect(
             f"file:{facts_path.as_posix()}?mode=ro", uri=True
@@ -749,12 +697,8 @@ def _capture_canonical_state(
         current_manifest = json.loads(
             bundle_manifest_path.read_text(encoding="utf-8")
         )
-        manifest = _manifest_snapshot(
-            root, stored_manifest, bundle.name, hasher
-        )
-        if manifest != _manifest_snapshot(
-            root, current_manifest, bundle.name, hasher
-        ):
+        manifest = _manifest_snapshot(root, stored_manifest, bundle.name)
+        if manifest != _manifest_snapshot(root, current_manifest, bundle.name):
             raise CertificateIntegrityError(
                 "bundle.json differs from the immutable built manifest"
             )
@@ -773,28 +717,18 @@ def _capture_canonical_state(
                 "SELECT * FROM control WHERE singleton=1"
             ).fetchone()
         )
-        _frame(source_hasher, "schema", BUNDLE_SCHEMA.encode("utf-8"))
-        _frame(source_hasher, "manifest", _canonical_bytes(manifest))
-        for row in connection.execute(
-            "SELECT case_id,public_index,payload_json FROM cases "
-            "ORDER BY public_index,case_id"
-        ):
-            case = json.loads(row["payload_json"])
-            _frame(
-                source_hasher,
-                f"case:{row['public_index']}:{row['case_id']}",
-                _canonical_bytes(case),
-            )
-            for collection in _ASSET_FIELDS:
-                for record in case.get(collection, []):
-                    source_paths.update(_record_asset_paths(record))
-                    declaration_id = _record_id(record, collection)
-                    declarations.extend(
-                        (str(case["id"]), declaration_id, descriptor)
-                        for descriptor in _asset_descriptors(record)
-                    )
+        source_digest = state._compute_source_proof(
+            connection,
+            manifest,
+            file_digest=hasher.digest,
+            case_observer=observe_case,
+        )
     except CertificateError:
         raise
+    except BundleStateError as error:
+        raise CertificateIntegrityError(
+            "canonical Bundle state failed certification"
+        ) from error
     except (OSError, UnicodeError, json.JSONDecodeError, sqlite3.Error) as error:
         raise CertificateIntegrityError(
             "canonical Bundle state cannot be read for certification"
@@ -808,26 +742,12 @@ def _capture_canonical_state(
             "bundle manifest changed during certification"
         )
     hasher.observe_validated(bundle_manifest_path, manifest_after)
-
-    for relative in sorted(source_paths):
-        path = _safe_relative_path(root, relative, "asset path")
-        if not path.exists():
-            _frame(source_hasher, f"asset:{relative}", b"missing")
-        elif not path.is_file():
-            _frame(source_hasher, f"asset:{relative}", b"not-a-regular-file")
-        else:
-            digest, _ = hasher.digest(path)
-            _frame(
-                source_hasher,
-                f"asset:{relative}",
-                b"present\0" + bytes.fromhex(digest),
-            )
     assets = _asset_inventory_from_declarations(root, declarations, hasher)
-    source_digest = source_hasher.hexdigest()
     policy_digest = _digest_value(policy)
     governance_revision, governance_digest = _trusted_governance_binding()
     synchronized = bool(
         control["current_generation_id"]
+        and control["source_digest_state"] == "current"
         and runtime_policy_is_current(policy.get("runtime_policy", {}))
         and control["source_revision"] == control["synchronized_source_revision"]
         and source_digest == control["source_digest"]

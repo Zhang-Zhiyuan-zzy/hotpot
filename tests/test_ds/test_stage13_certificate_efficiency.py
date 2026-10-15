@@ -121,10 +121,12 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     source_captures = 0
     bound_hashes: Counter[Path] = Counter()
     source_digest_calls = 0
+    source_proof_calls = 0
     original_open = AssessmentGeneration._open_without_lease.__func__
     original_capture = certificate_module._capture_canonical_state
     original_hash = certificate_module._stable_hash_file
     original_source_digest = BundleState._compute_source_digest
+    original_source_proof = BundleState._compute_source_proof
 
     def counted_open(cls, *args, **kwargs):
         nonlocal generation_opens
@@ -145,6 +147,11 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
         source_digest_calls += 1
         return original_source_digest(*args, **kwargs)
 
+    def counted_source_proof(*args, **kwargs):
+        nonlocal source_proof_calls
+        source_proof_calls += 1
+        return original_source_proof(*args, **kwargs)
+
     def forbidden_state_connect(*args, **kwargs):
         raise AssertionError("certificate capture must not call BundleState.connect")
 
@@ -159,6 +166,7 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
         )
         patch.setattr(certificate_module, "_stable_hash_file", counted_hash)
         patch.setattr(BundleState, "_compute_source_digest", counted_source_digest)
+        patch.setattr(BundleState, "_compute_source_proof", counted_source_proof)
         patch.setattr(BundleState, "connect", forbidden_state_connect)
         path = write_bundle_certificate(bundle)
 
@@ -172,6 +180,7 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
 
     assert source_captures == 1
     assert source_digest_calls == 0
+    assert source_proof_calls == 1
     assert generation_opens == 1
     assert bound_hashes[facts] == 1
     assert bound_hashes[generation_manifest] == 1
@@ -317,5 +326,5 @@ def test_certificate_rejects_symlinked_control_asset(tmp_path: Path) -> None:
     control.unlink()
     control.symlink_to(target.name)
 
-    with pytest.raises(ValueError, match="regular Bundle file"):
+    with pytest.raises(CertificateIntegrityError, match="failed certification"):
         write_bundle_certificate(bundle)

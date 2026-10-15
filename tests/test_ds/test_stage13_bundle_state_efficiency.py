@@ -15,6 +15,8 @@ from hotpot.ds.public._bundle_state import (
     BundleState,
     BundleStateError,
 )
+from hotpot.ds.public.bundle import Bundle
+from hotpot.ds.public.case import UnsynchronizedBundleError
 from hotpot.ds.public._implementation import runtime_policy
 
 
@@ -189,6 +191,55 @@ def test_projection_append_fails_closed_and_explicit_refresh_repairs_it(
     assert projected[-1]["action"] == "metadata_changed"
 
 
+def test_projection_is_stale_if_process_stops_before_append(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    monkeypatch.setattr(
+        state, "_append_audit_projection_event", lambda *args, **kwargs: False
+    )
+
+    def edit(case):
+        case["metadata"]["note"] = "committed"
+        return {}, None
+
+    state.mutate_case("case-0", "metadata_changed", edit)
+    reopened = BundleState.open(state.root, "state-efficiency")
+    assert reopened.get_case("case-0")["metadata"]["note"] == "committed"
+    assert reopened.status["audit_projection_current"] is False
+    reopened.refresh_audit_projection()
+    assert reopened.status["audit_projection_current"] is True
+
+
+def test_projection_is_stale_if_process_stops_after_append_fsync(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    projection = state.root / "audit" / "events.jsonl"
+
+    def append_then_stop(event, **kwargs):
+        with projection.open("ab") as stream:
+            stream.write(state_module._canonical_bytes(dict(event)) + b"\n")
+            stream.flush()
+            state_module.os.fsync(stream.fileno())
+        raise RuntimeError("simulated process stop")
+
+    monkeypatch.setattr(state, "_append_audit_projection_event", append_then_stop)
+
+    def edit(case):
+        case["metadata"]["note"] = "committed"
+        return {}, None
+
+    with pytest.raises(RuntimeError, match="simulated process stop"):
+        state.mutate_case("case-0", "metadata_changed", edit)
+
+    reopened = BundleState.open(state.root, "state-efficiency")
+    assert reopened.get_case("case-0")["metadata"]["note"] == "committed"
+    assert reopened.status["audit_projection_current"] is False
+    reopened.refresh_audit_projection()
+    assert reopened.status["audit_projection_current"] is True
+
+
 def test_batched_build_rolls_back_without_publishing_partial_facts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -318,6 +369,26 @@ def test_default_source_hasher_rejects_a_file_changed_during_read(
     monkeypatch.setattr(state_module.os, "fstat", changed_after_read)
     with pytest.raises(BundleStateError, match="changed while hashing"):
         state_module._digest_file(asset)
+
+
+def test_dirty_bundle_rejects_derived_reads_certificate_and_ingest(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    bundle = Bundle(root, "state-efficiency", db=tmp_path / "datasets.sqlite3")
+    bundle.synchronize()
+    bundle.write_certificate()
+    case = bundle.cases[0]
+    case.set_core_info("sample", "edited")
+
+    assert case.core_info["sample"] == "edited"
+    assert bundle.status["source_digest_state"] == "dirty"
+    with pytest.raises(UnsynchronizedBundleError):
+        _ = case.quality_level
+    with pytest.raises(UnsynchronizedBundleError):
+        bundle.write_certificate()
+    with pytest.raises(UnsynchronizedBundleError):
+        bundle.ingest()
 
 
 def test_batched_build_publishes_canonical_equivalent_facts(

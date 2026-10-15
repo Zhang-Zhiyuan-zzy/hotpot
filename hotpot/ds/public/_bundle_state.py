@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import sqlite3
+import stat
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -487,21 +488,52 @@ def _frame(hasher: "hashlib._Hash", name: str, payload: bytes) -> None:
     hasher.update(payload)
 
 
-def _hash_file(hasher: "hashlib._Hash", path: Path) -> int:
-    size = 0
-    with path.open("rb") as stream:
-        while True:
-            chunk = stream.read(1024 * 1024)
-            if not chunk:
-                break
-            hasher.update(chunk)
-            size += len(chunk)
-    return size
-
-
 def _digest_file(path: Path) -> tuple[str, int]:
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise BundleStateError(f"cannot open stable source asset: {path}") from exc
     hasher = hashlib.sha256()
-    size = _hash_file(hasher, path)
+    size = 0
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode):
+            raise BundleStateError(f"source asset is not a regular file: {path}")
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                hasher.update(chunk)
+                size += len(chunk)
+        after = os.fstat(descriptor)
+    finally:
+        os.close(descriptor)
+    before_identity = (
+        before.st_dev,
+        before.st_ino,
+        before.st_mode,
+        before.st_size,
+        before.st_mtime_ns,
+        before.st_ctime_ns,
+    )
+    after_identity = (
+        after.st_dev,
+        after.st_ino,
+        after.st_mode,
+        after.st_size,
+        after.st_mtime_ns,
+        after.st_ctime_ns,
+    )
+    try:
+        live = os.stat(path, follow_symlinks=False)
+    except OSError as exc:
+        raise BundleStateError(f"source asset changed while hashing: {path}") from exc
+    if (
+        before_identity != after_identity
+        or size != after.st_size
+        or not stat.S_ISREG(live.st_mode)
+        or (live.st_dev, live.st_ino) != (after.st_dev, after.st_ino)
+    ):
+        raise BundleStateError(f"source asset changed while hashing: {path}")
     return hasher.hexdigest(), size
 
 
@@ -522,6 +554,114 @@ def _control_asset_source_binding(
         "sha256": sha256,
         "size": size,
     }
+
+
+def _compute_source_proof_rows(
+    root: Path,
+    manifest: Mapping[str, Any],
+    rows: Iterator[Mapping[str, Any]],
+    *,
+    file_digest: Callable[[Path], tuple[str, int]],
+    case_observer: Optional[Callable[[Mapping[str, Any]], None]],
+    scientific_paths: Optional[Iterator[str]] = None,
+) -> str:
+    """Compute the exact source proof from ordered canonical Case rows."""
+
+    hasher = hashlib.sha256()
+    _frame(hasher, "schema", _SOURCE_PROOF_SCHEMA.encode("utf-8"))
+    _frame(hasher, "manifest", _canonical_bytes(manifest))
+    discovered_paths: Optional[set[str]] = (
+        set() if scientific_paths is None else None
+    )
+    for row in rows:
+        payload = None
+        if discovered_paths is not None or case_observer is not None:
+            payload = json.loads(row["payload_json"])
+        if case_observer is not None:
+            case_observer(payload)
+        _frame(
+            hasher,
+            f"case:{row['public_index']}:{row['case_id']}",
+            row["payload_json"].encode("utf-8"),
+        )
+        if discovered_paths is not None:
+            for field in _ASSET_FIELDS:
+                for record in payload.get(field, []):
+                    discovered_paths.update(_record_asset_paths(record))
+
+    observations: Dict[str, tuple[str, Optional[str], Optional[int]]] = {}
+
+    def observe(relative: str) -> tuple[str, Optional[str], Optional[int]]:
+        observed = observations.get(relative)
+        if observed is not None:
+            return observed
+        path = _safe_relative_path(root, relative, "asset path")
+        if path.is_symlink():
+            observed = ("not-a-regular-file", None, None)
+        elif not path.exists():
+            observed = ("missing", None, None)
+        elif not path.is_file():
+            observed = ("not-a-regular-file", None, None)
+        else:
+            digest, size = file_digest(path)
+            if (
+                not isinstance(digest, str)
+                or len(digest) != 64
+                or any(
+                    character not in "0123456789abcdef" for character in digest
+                )
+                or not isinstance(size, int)
+                or isinstance(size, bool)
+                or size < 0
+            ):
+                raise BundleStateError(
+                    "source proof file digest callback returned an invalid result"
+                )
+            observed = ("present", digest, size)
+        observations[relative] = observed
+        return observed
+
+    for declaration in manifest.get("control_assets", []):
+        state, digest, size = observe(declaration["path"])
+        binding = _control_asset_source_binding(
+            declaration,
+            state=state,
+            sha256=digest,
+            size=size,
+        )
+        _frame(
+            hasher,
+            f"control:{declaration['category']}:{declaration['name']}",
+            _canonical_bytes(binding),
+        )
+        if (
+            state != "present"
+            or digest != declaration["sha256"]
+            or size != declaration["size"]
+        ):
+            raise BundleStateError(
+                "declared control asset does not match its current bytes: "
+                + declaration["path"]
+            )
+
+    paths = (
+        sorted(discovered_paths)
+        if discovered_paths is not None
+        else scientific_paths or ()
+    )
+    for relative in paths:
+        state, digest, _ = observe(relative)
+        if state == "missing":
+            _frame(hasher, f"asset:{relative}", b"missing")
+        elif state == "not-a-regular-file":
+            _frame(hasher, f"asset:{relative}", b"not-a-regular-file")
+        else:
+            _frame(
+                hasher,
+                f"asset:{relative}",
+                b"present\0" + bytes.fromhex(digest or ""),
+            )
+    return hasher.hexdigest()
 
 
 def _atomic_write(path: Path, content: bytes) -> None:
@@ -630,7 +770,12 @@ class BundleState:
                     "INSERT INTO policy(singleton, policy_json) VALUES (1, ?)",
                     (_canonical_text(policy),),
                 )
+                connection.execute(
+                    "CREATE TEMP TABLE build_source_assets("
+                    "path TEXT PRIMARY KEY) WITHOUT ROWID"
+                )
                 batch = []
+                asset_batch: set[str] = set()
                 for case in state._iter_intake(manifest, intake):
                     batch.append(
                         (
@@ -640,6 +785,9 @@ class BundleState:
                             _canonical_text(case),
                         )
                     )
+                    for field in _ASSET_FIELDS:
+                        for record in case.get(field, []):
+                            asset_batch.update(_record_asset_paths(record))
                     if len(batch) == _CASE_INSERT_BATCH_SIZE:
                         connection.executemany(
                             """
@@ -649,7 +797,12 @@ class BundleState:
                             """,
                             batch,
                         )
+                        connection.executemany(
+                            "INSERT OR IGNORE INTO build_source_assets(path) VALUES (?)",
+                            ((path,) for path in sorted(asset_batch)),
+                        )
                         batch.clear()
+                        asset_batch.clear()
                 if batch:
                     connection.executemany(
                         """
@@ -659,7 +812,41 @@ class BundleState:
                         """,
                         batch,
                     )
-                source_digest = state._compute_source_digest(connection, manifest)
+                    connection.executemany(
+                        "INSERT OR IGNORE INTO build_source_assets(path) VALUES (?)",
+                        ((path,) for path in sorted(asset_batch)),
+                    )
+                source_digest = _compute_source_proof_rows(
+                    state.root,
+                    manifest,
+                    connection.execute(
+                        "SELECT case_id,public_index,payload_json FROM cases "
+                        "ORDER BY public_index,case_id"
+                    ),
+                    file_digest=_digest_file,
+                    case_observer=None,
+                    scientific_paths=(
+                        row[0]
+                        for row in connection.execute(
+                            "SELECT path FROM build_source_assets ORDER BY path"
+                        )
+                    ),
+                )
+                projection_row = {
+                    "event_id": event_id,
+                    "created_at": created_at,
+                    "action": "bundle_built",
+                    "case_id": None,
+                    "details": {
+                        "ds_name": ds_name,
+                        "release_id": manifest["release_id"],
+                    },
+                    "source_revision": 0,
+                    "policy_revision": 0,
+                }
+                projection_path = state._write_audit_projection_rows(
+                    [projection_row]
+                )
                 connection.execute(
                     """
                     INSERT INTO control(
@@ -670,13 +857,14 @@ class BundleState:
                         governance_registry_digest,
                         audit_revision, audit_projection_revision,
                         audit_projection_size
-                    ) VALUES (1, 0, ?, 'current', 0, ?, ?, ?, 1, 0, 0)
+                    ) VALUES (1, 0, ?, 'current', 0, ?, ?, ?, 1, 1, ?)
                     """,
                     (
                         source_digest,
                         policy_digest,
                         governance_revision,
                         governance_digest,
+                        projection_path.stat().st_size,
                     ),
                 )
                 connection.execute(
@@ -689,36 +877,11 @@ class BundleState:
                     (
                         event_id,
                         created_at,
-                        _canonical_text(
-                            {
-                                "ds_name": ds_name,
-                                "release_id": manifest["release_id"],
-                            }
-                        ),
+                        _canonical_text(projection_row["details"]),
                     ),
                 )
-            projection_path = state._write_audit_projection_rows(
-                [
-                    {
-                        "event_id": event_id,
-                        "created_at": created_at,
-                        "action": "bundle_built",
-                        "case_id": None,
-                        "details": {
-                            "ds_name": ds_name,
-                            "release_id": manifest["release_id"],
-                        },
-                        "source_revision": 0,
-                        "policy_revision": 0,
-                    }
-                ]
-            )
-            connection.execute(
-                "UPDATE control SET audit_projection_revision=1, "
-                "audit_projection_size=? WHERE singleton=1",
-                (projection_path.stat().st_size,),
-            )
-            connection.commit()
+            if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise BundleStateError("new facts.sqlite3 failed integrity_check")
             connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             connection.close()
             connection = None
@@ -740,7 +903,7 @@ class BundleState:
                 temporary.unlink()
             fcntl.flock(lock_descriptor, fcntl.LOCK_UN)
             os.close(lock_descriptor)
-        return cls.open(bundle_root, ds_name)
+        return state
 
     @classmethod
     def open(
@@ -1775,92 +1938,16 @@ class BundleState:
         """
 
         digest_file = _digest_file if file_digest is None else file_digest
-        hasher = hashlib.sha256()
-        _frame(hasher, "schema", _SOURCE_PROOF_SCHEMA.encode("utf-8"))
-        _frame(hasher, "manifest", _canonical_bytes(manifest))
-        assets: set[str] = set()
-        for row in connection.execute(
-            "SELECT case_id, public_index, payload_json FROM cases "
-            "ORDER BY public_index, case_id"
-        ):
-            payload = json.loads(row["payload_json"])
-            if case_observer is not None:
-                case_observer(payload)
-            _frame(
-                hasher,
-                f"case:{row['public_index']}:{row['case_id']}",
-                row["payload_json"].encode("utf-8"),
-            )
-            for field in _ASSET_FIELDS:
-                for record in payload.get(field, []):
-                    assets.update(_record_asset_paths(record))
-
-        observations: Dict[str, tuple[str, Optional[str], Optional[int]]] = {}
-
-        def observe(relative: str) -> tuple[str, Optional[str], Optional[int]]:
-            observed = observations.get(relative)
-            if observed is not None:
-                return observed
-            path = _safe_relative_path(self.root, relative, "asset path")
-            if path.is_symlink():
-                observed = ("not-a-regular-file", None, None)
-            elif not path.exists():
-                observed = ("missing", None, None)
-            elif not path.is_file():
-                observed = ("not-a-regular-file", None, None)
-            else:
-                digest, size = digest_file(path)
-                if (
-                    not isinstance(digest, str)
-                    or len(digest) != 64
-                    or any(character not in "0123456789abcdef" for character in digest)
-                    or not isinstance(size, int)
-                    or isinstance(size, bool)
-                    or size < 0
-                ):
-                    raise BundleStateError(
-                        "source proof file digest callback returned an invalid result"
-                    )
-                observed = ("present", digest, size)
-            observations[relative] = observed
-            return observed
-
-        for declaration in manifest.get("control_assets", []):
-            state, digest, size = observe(declaration["path"])
-            binding = _control_asset_source_binding(
-                declaration,
-                state=state,
-                sha256=digest,
-                size=size,
-            )
-            _frame(
-                hasher,
-                f"control:{declaration['category']}:{declaration['name']}",
-                _canonical_bytes(binding),
-            )
-            if (
-                state != "present"
-                or digest != declaration["sha256"]
-                or size != declaration["size"]
-            ):
-                raise BundleStateError(
-                    "declared control asset does not match its current bytes: "
-                    + declaration["path"]
-                )
-
-        for relative in sorted(assets):
-            state, digest, _ = observe(relative)
-            if state == "missing":
-                _frame(hasher, f"asset:{relative}", b"missing")
-            elif state == "not-a-regular-file":
-                _frame(hasher, f"asset:{relative}", b"not-a-regular-file")
-            else:
-                _frame(
-                    hasher,
-                    f"asset:{relative}",
-                    b"present\0" + bytes.fromhex(digest or ""),
-                )
-        return hasher.hexdigest()
+        return _compute_source_proof_rows(
+            self.root,
+            manifest,
+            connection.execute(
+                "SELECT case_id,public_index,payload_json FROM cases "
+                "ORDER BY public_index,case_id"
+            ),
+            file_digest=digest_file,
+            case_observer=case_observer,
+        )
 
 
 __all__ = [

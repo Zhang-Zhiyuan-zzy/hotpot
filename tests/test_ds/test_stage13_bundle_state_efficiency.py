@@ -4,6 +4,7 @@ import hashlib
 import json
 import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -291,9 +292,57 @@ def test_open_rejects_schema_v2_without_compatibility(tmp_path: Path) -> None:
         BundleState.open(state.root, "state-efficiency")
 
 
-def test_batched_build_publishes_canonical_equivalent_facts(tmp_path: Path) -> None:
+def test_default_source_hasher_rejects_a_file_changed_during_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    asset = tmp_path / "asset.smi"
+    asset.write_text("O\n", encoding="utf-8")
+    real_fstat = state_module.os.fstat
+    calls = 0
+
+    def changed_after_read(descriptor: int):
+        nonlocal calls
+        calls += 1
+        observed = real_fstat(descriptor)
+        if calls == 2:
+            return SimpleNamespace(
+                st_dev=observed.st_dev,
+                st_ino=observed.st_ino,
+                st_mode=observed.st_mode,
+                st_size=observed.st_size + 1,
+                st_mtime_ns=observed.st_mtime_ns,
+                st_ctime_ns=observed.st_ctime_ns,
+            )
+        return observed
+
+    monkeypatch.setattr(state_module.os, "fstat", changed_after_read)
+    with pytest.raises(BundleStateError, match="changed while hashing"):
+        state_module._digest_file(asset)
+
+
+def test_batched_build_publishes_canonical_equivalent_facts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     cases = [_case(index) for index in range(7)]
+    validations = 0
+    build_proofs: list[bool] = []
+    original_validate = state_module._validate_case
+    original_proof = state_module._compute_source_proof_rows
+
+    def counted_validate(*args, **kwargs):
+        nonlocal validations
+        validations += 1
+        return original_validate(*args, **kwargs)
+
+    def counted_proof(*args, **kwargs):
+        build_proofs.append(kwargs.get("scientific_paths") is not None)
+        return original_proof(*args, **kwargs)
+
+    monkeypatch.setattr(state_module, "_validate_case", counted_validate)
+    monkeypatch.setattr(state_module, "_compute_source_proof_rows", counted_proof)
     state = _build(_root(tmp_path, cases=cases))
+    assert validations == len(cases)
+    assert build_proofs == [True]
 
     with state.connect() as connection:
         assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
@@ -318,3 +367,6 @@ def test_batched_build_publishes_canonical_equivalent_facts(tmp_path: Path) -> N
         for row in rows
     )
     assert direct == state.status["recorded_source_digest"]
+
+    BundleState.open(state.root, "state-efficiency")
+    assert validations == 2 * len(cases)

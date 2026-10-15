@@ -12,6 +12,7 @@ import json
 import math
 from collections import Counter, defaultdict
 from copy import deepcopy
+from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
@@ -151,6 +152,140 @@ def canonical_json(value: Any) -> str:
 
 def canonical_digest(value: Any) -> str:
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+_IDENTITY_COMPONENT_FIELDS = {
+    "key",
+    "path",
+    "required",
+    "value_kind",
+    "normalizer",
+    "comparator",
+    "structure_role",
+    "mismatch_is_decisive",
+    "implementation_digest",
+    "protocol_digest",
+}
+_IDENTITY_VALUE_KINDS = {"text", "number", "boolean", "set", "json"}
+_IDENTITY_NORMALIZERS = {"text", "casefold", "number", "boolean", "set", "json"}
+_IDENTITY_PATH_ROOTS = {"core_info", "identifiers"}
+_STRUCTURE_IDENTITY_ROOTS = {
+    "formal_charge",
+    "atom_count",
+    "molecular_graph",
+    "stereochemistry",
+    "isotopes",
+    "protonation_state",
+    "tautomer_state",
+    "crystal_context",
+    "metadata",
+}
+_IDENTITY_PROTOCOL = "hotpot-ds-identity/current"
+_IDENTITY_IMPLEMENTATION_DIGEST = hashlib.sha256(
+    b"hotpot-ds-identity/current:exact-components:v1"
+).hexdigest()
+
+
+def validate_identity_schema(value: Mapping[str, Any]) -> Dict[str, Any]:
+    """Validate and materialize the one current identity-policy schema."""
+
+    if not isinstance(value, Mapping) or set(value) != {"components"}:
+        raise ValueError("identity_schema requires only components")
+    components = value["components"]
+    if not isinstance(components, list):
+        raise ValueError("identity_schema.components must be an array")
+    normalized = []
+    keys = set()
+    for index, raw in enumerate(components):
+        prefix = f"identity_schema.components[{index}]"
+        if not isinstance(raw, Mapping):
+            raise ValueError(f"{prefix} must be an object")
+        extra = set(raw) - _IDENTITY_COMPONENT_FIELDS
+        if extra:
+            raise ValueError(
+                f"{prefix} contains unsupported fields: {', '.join(sorted(extra))}"
+            )
+        key = raw.get("key")
+        path = raw.get("path")
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError(f"{prefix}.key must be a non-empty string")
+        if key in keys:
+            raise ValueError(f"identity_schema contains duplicate key {key!r}")
+        keys.add(key)
+        if not isinstance(path, str) or not path.strip() or "__" in path:
+            raise ValueError(f"{prefix}.path must be a dotted current-schema path")
+        parts = path.split(".")
+        if any(not part or not part.replace("_", "a").isalnum() for part in parts):
+            raise ValueError(f"{prefix}.path contains an invalid path segment")
+        required = raw.get("required", False)
+        decisive = raw.get("mismatch_is_decisive", True)
+        if type(required) is not bool or type(decisive) is not bool:
+            raise ValueError(
+                f"{prefix}.required and mismatch_is_decisive must be Boolean"
+            )
+        normalizer = raw.get("normalizer", "text")
+        if normalizer not in _IDENTITY_NORMALIZERS:
+            raise ValueError(f"{prefix}.normalizer is not current")
+        default_kind = {
+            "text": "text",
+            "casefold": "text",
+            "number": "number",
+            "boolean": "boolean",
+            "set": "set",
+            "json": "json",
+        }[normalizer]
+        value_kind = raw.get("value_kind", default_kind)
+        if value_kind not in _IDENTITY_VALUE_KINDS or (
+            normalizer in {"casefold", "number", "boolean", "set"}
+            and value_kind != default_kind
+        ):
+            raise ValueError(f"{prefix}.value_kind does not match its normalizer")
+        comparator = raw.get("comparator", "exact")
+        if comparator != "exact":
+            raise ValueError(f"{prefix}.comparator must be 'exact'")
+        structure_role = raw.get("structure_role")
+        if structure_role is None:
+            if len(parts) < 2 or parts[0] not in _IDENTITY_PATH_ROOTS:
+                raise ValueError(
+                    f"{prefix}.path must start with core_info or identifiers"
+                )
+        else:
+            if not isinstance(structure_role, str) or not structure_role.strip():
+                raise ValueError(f"{prefix}.structure_role must be non-empty")
+            if parts[0] not in _STRUCTURE_IDENTITY_ROOTS:
+                raise ValueError(
+                    f"{prefix}.path is not a semantic structure identity field"
+                )
+        protocol_digest = canonical_digest(
+            {
+                "protocol": _IDENTITY_PROTOCOL,
+                "value_kind": value_kind,
+                "normalizer": normalizer,
+                "comparator": comparator,
+            }
+        )
+        for field, expected in (
+            ("implementation_digest", _IDENTITY_IMPLEMENTATION_DIGEST),
+            ("protocol_digest", protocol_digest),
+        ):
+            supplied = raw.get(field)
+            if supplied is not None and supplied != expected:
+                raise ValueError(f"{prefix}.{field} is not current")
+        component = {
+            "key": key,
+            "path": path,
+            "required": required,
+            "value_kind": value_kind,
+            "normalizer": normalizer,
+            "comparator": comparator,
+            "mismatch_is_decisive": decisive,
+            "implementation_digest": _IDENTITY_IMPLEMENTATION_DIGEST,
+            "protocol_digest": protocol_digest,
+        }
+        if structure_role is not None:
+            component["structure_role"] = structure_role
+        normalized.append(component)
+    return {"components": normalized}
 
 
 def observation_property(observation: Mapping[str, Any]) -> Optional[str]:
@@ -571,6 +706,449 @@ def _identified_primary_source(evidence: Mapping[str, Any]) -> bool:
     )
 
 
+def _is_supporting_evidence(evidence: Mapping[str, Any]) -> bool:
+    """Return whether an evidence link is explicit affirmative support."""
+
+    return evidence.get("relation") == "supports"
+
+
+def _evidence_targets(
+    case: Mapping[str, Any],
+) -> tuple[list[Tuple[str, str, Dict[str, Any]]], Dict[str, list[Tuple[str, str]]]]:
+    """Return canonical targets and their unambiguous public references."""
+
+    targets: list[Tuple[str, str, Dict[str, Any]]] = []
+    aliases: Dict[str, list[Tuple[str, str]]] = defaultdict(list)
+    for kind, name in (
+        ("observation", "observations"),
+        ("claim", "claims"),
+    ):
+        for offset, row in enumerate(_active(case.get(name, []))):
+            target_id = _target_id(row, kind, offset)
+            targets.append((target_id, kind, row))
+            aliases[target_id].append((target_id, kind))
+            property_name = observation_property(row)
+            label = row.get("label")
+            for alias in dict.fromkeys(
+                str(value).strip()
+                for value in (property_name, label)
+                if isinstance(value, str) and value.strip()
+            ):
+                aliases[alias].append((target_id, kind))
+    return targets, aliases
+
+
+def _resolve_evidence_target(
+    reference: Any,
+    aliases: Mapping[str, Sequence[Tuple[str, str]]],
+) -> list[Tuple[str, str]]:
+    target = str(reference or "")
+    candidates = list(dict.fromkeys(aliases.get(target, ())))
+    exact = [candidate for candidate in candidates if candidate[0] == target]
+    return exact if exact else candidates
+
+
+def _canonical_work_id(evidence: Mapping[str, Any]) -> Optional[str]:
+    """Normalize a scientific-work identity for independence comparison."""
+
+    doi = evidence.get("doi")
+    if doi:
+        value = str(doi).strip().casefold()
+    else:
+        value = str(evidence.get("scientific_work_id") or "").strip().casefold()
+    for prefix in (
+        "https://dx.doi.org/",
+        "http://dx.doi.org/",
+        "https://doi.org/",
+        "http://doi.org/",
+        "doi:",
+    ):
+        if value.startswith(prefix):
+            value = value[len(prefix) :].strip()
+            return f"doi:{value}" if value else None
+    if value.startswith("10.") and "/" in value:
+        return f"doi:{value}"
+    return value or None
+
+
+def _lineage_graph(
+    evidence: Sequence[Mapping[str, Any]],
+) -> Dict[str, set[str]]:
+    graph: Dict[str, set[str]] = defaultdict(set)
+    for item in evidence:
+        lineage = item.get("source_lineage_id")
+        if not isinstance(lineage, str) or not lineage.strip():
+            continue
+        lineage_id = lineage.strip().casefold()
+        graph.setdefault(lineage_id, set())
+        parents = item.get("derived_from", [])
+        if isinstance(parents, Sequence) and not isinstance(parents, str):
+            graph[lineage_id].update(
+                str(parent).strip().casefold()
+                for parent in parents
+                if isinstance(parent, str) and parent.strip()
+            )
+    return graph
+
+
+def _lineage_roots(
+    lineage: Any,
+    graph: Mapping[str, set[str]],
+) -> set[str]:
+    if not isinstance(lineage, str) or not lineage.strip():
+        return set()
+    start = lineage.strip().casefold()
+
+    def visit(node: str, trail: frozenset[str]) -> set[str]:
+        if node in trail or node not in graph:
+            return set()
+        parents = graph[node]
+        if not parents:
+            return {node}
+        roots: set[str] = set()
+        for parent in parents:
+            roots.update(visit(parent, trail | {node}))
+        return roots
+
+    return visit(start, frozenset())
+
+
+def _relationship_integrity_reasons(
+    case: Mapping[str, Any],
+) -> list[Dict[str, Any]]:
+    """Resolve operative Case-local relationships without discarding bad facts.
+
+    Invalid relations remain archivable source facts, but their Case becomes
+    incomplete and therefore cannot bypass integrity through direct benchmark
+    admission.
+    """
+
+    reasons: list[Dict[str, Any]] = []
+    collections = {
+        name: list(case.get(name, []))
+        for name in _ARRAY_FIELDS_FOR_RELATIONSHIPS
+    }
+    ids_by_collection = {}
+    for name, rows in collections.items():
+        id_field = _RELATIONSHIP_ID_FIELDS[name]
+        ids_by_collection[name] = {
+            str(item.get(id_field)): item
+            for item in rows
+            if item.get(id_field) not in (None, "")
+        }
+    active_ids = {
+        name: {
+            record_id
+            for record_id, item in records.items()
+            if item.get("status", "active") == "active"
+        }
+        for name, records in ids_by_collection.items()
+    }
+
+    _targets, target_aliases = _evidence_targets(case)
+    lineage_graph = _lineage_graph(collections["evidence"])
+
+    for item in _active(collections["evidence"]):
+        evidence_id = str(item.get("evidence_id"))
+        target = str(item.get("target") or "")
+        resolved = _resolve_evidence_target(target, target_aliases)
+        if not target or not resolved:
+            reasons.append(
+                _reason(
+                    "evidence_target_unresolved",
+                    "Active evidence does not resolve to an active observation or claim.",
+                    evidence_id=evidence_id,
+                    target=target or None,
+                )
+            )
+        elif len(resolved) != 1:
+            reasons.append(
+                _reason(
+                    "evidence_target_ambiguous",
+                    "Active evidence resolves to more than one Case target.",
+                    evidence_id=evidence_id,
+                    target=target,
+                )
+            )
+        target_kind = item.get("target_kind")
+        if target_kind is not None and (
+            target_kind not in {"observation", "claim"}
+            or len(resolved) != 1
+            or resolved[0][1] != target_kind
+        ):
+            reasons.append(
+                _reason(
+                    "evidence_target_kind_mismatch",
+                    "Evidence target_kind does not match the resolved target.",
+                    evidence_id=evidence_id,
+                    target=target or None,
+                    target_kind=target_kind,
+                )
+            )
+        relation = item.get("relation")
+        if relation not in {"supports", "contradicts", "context"}:
+            reasons.append(
+                _reason(
+                    "evidence_relation_invalid",
+                    "Evidence relation is outside the closed relation vocabulary.",
+                    evidence_id=evidence_id,
+                    relation=relation,
+                )
+            )
+
+        lineage = item.get("source_lineage_id")
+        parents = item.get("derived_from", [])
+        if isinstance(parents, str) or not isinstance(parents, Sequence):
+            reasons.append(
+                _reason(
+                    "evidence_lineage_invalid",
+                    "Evidence derived_from must be an array of result-lineage identifiers.",
+                    evidence_id=evidence_id,
+                )
+            )
+        else:
+            for parent in parents:
+                if not isinstance(parent, str) or not parent.strip():
+                    reasons.append(
+                        _reason(
+                            "evidence_lineage_invalid",
+                            "Each derived_from value must be a non-empty result-lineage identifier.",
+                            evidence_id=evidence_id,
+                        )
+                    )
+                    continue
+                parent_id = str(parent).strip().casefold()
+                if (
+                    not parent_id
+                    or (
+                        isinstance(lineage, str)
+                        and parent_id == lineage.strip().casefold()
+                    )
+                    or parent_id not in lineage_graph
+                ):
+                    reasons.append(
+                        _reason(
+                            "evidence_lineage_unresolved",
+                            "Evidence lineage does not resolve to another declared result lineage.",
+                            evidence_id=evidence_id,
+                            derived_from=parent_id or None,
+                        )
+                    )
+        if isinstance(lineage, str) and lineage.strip() and not _lineage_roots(
+            lineage, lineage_graph
+        ):
+            reasons.append(
+                _reason(
+                    "evidence_lineage_cycle",
+                    "Evidence result-lineage ancestry is cyclic or unresolved.",
+                    evidence_id=evidence_id,
+                    source_lineage_id=lineage,
+                )
+            )
+
+    for item in _active(collections["verifications"]):
+        verification_id = str(item.get("verification_id"))
+        evidence_id = str(item.get("evidence_id") or "")
+        if evidence_id not in active_ids["evidence"]:
+            reasons.append(
+                _reason(
+                    "verification_evidence_unresolved",
+                    "Active verification does not resolve to active evidence.",
+                    verification_id=verification_id,
+                    evidence_id=evidence_id or None,
+                )
+            )
+
+    for name, records in ids_by_collection.items():
+        id_field = _RELATIONSHIP_ID_FIELDS[name]
+        for record_id, item in records.items():
+            for relation, reciprocal in (
+                ("supersedes", "superseded_by"),
+                ("superseded_by", "supersedes"),
+            ):
+                raw_targets = item.get(relation)
+                if raw_targets is None:
+                    continue
+                targets = (
+                    list(raw_targets)
+                    if isinstance(raw_targets, list)
+                    else [raw_targets]
+                )
+                if not targets:
+                    reasons.append(
+                        _reason(
+                            "supersession_reference_unresolved",
+                            "A supersession link cannot be an empty array.",
+                            collection=name,
+                            record_id=record_id,
+                            relation=relation,
+                        )
+                    )
+                for target in targets:
+                    target_id = str(target)
+                    referenced = records.get(target_id)
+                    if target_id == record_id or referenced is None:
+                        reasons.append(
+                            _reason(
+                                "supersession_reference_unresolved",
+                                "A supersession link does not resolve within its fact collection.",
+                                collection=name,
+                                record_id=record_id,
+                                relation=relation,
+                                target=target_id,
+                            )
+                        )
+                        continue
+                    reciprocal_value = referenced.get(reciprocal)
+                    reciprocal_targets = (
+                        list(reciprocal_value)
+                        if isinstance(reciprocal_value, list)
+                        else [reciprocal_value]
+                    )
+                    if record_id not in {
+                        str(value)
+                        for value in reciprocal_targets
+                        if value is not None
+                    }:
+                        reasons.append(
+                            _reason(
+                                "supersession_relation_inconsistent",
+                                "A supersession link lacks its reciprocal relation.",
+                                collection=name,
+                                record_id=record_id,
+                                relation=relation,
+                                target=target_id,
+                                id_field=id_field,
+                            )
+                        )
+
+    entity_ids = active_ids["entities"]
+
+    def entity_reference(
+        value: Any, *, collection: str, record_id: str, field: str
+    ) -> None:
+        if value not in (None, "") and str(value) not in entity_ids:
+            reasons.append(
+                _reason(
+                    "entity_reference_unresolved",
+                    "An operative entity link does not resolve within the Case.",
+                    collection=collection,
+                    record_id=record_id,
+                    field=field,
+                    entity_id=str(value),
+                )
+            )
+
+    for item in _active(collections["entities"]):
+        record_id = str(item.get("entity_id"))
+        entity_reference(
+            item.get("parent_entity_id"),
+            collection="entities",
+            record_id=record_id,
+            field="parent_entity_id",
+        )
+        relations = item.get("relations", [])
+        if not isinstance(relations, list):
+            reasons.append(
+                _reason(
+                    "entity_relation_invalid",
+                    "Entity relations must be an array.",
+                    entity_id=record_id,
+                )
+            )
+            continue
+        for relation in relations:
+            if not isinstance(relation, Mapping):
+                reasons.append(
+                    _reason(
+                        "entity_relation_invalid",
+                        "Each entity relation must be an object.",
+                        entity_id=record_id,
+                    )
+                )
+                continue
+            if not isinstance(relation.get("predicate"), str) or not relation[
+                "predicate"
+            ].strip():
+                reasons.append(
+                    _reason(
+                        "entity_relation_invalid",
+                        "Each entity relation requires a non-empty predicate.",
+                        entity_id=record_id,
+                    )
+                )
+            if relation.get("subject_entity_id") not in (None, record_id):
+                reasons.append(
+                    _reason(
+                        "entity_relation_invalid",
+                        "An entity-owned relation must name that entity as its subject.",
+                        entity_id=record_id,
+                        subject_entity_id=relation.get("subject_entity_id"),
+                    )
+                )
+            for field in ("subject_entity_id", "object_entity_id"):
+                if relation.get(field) in (None, ""):
+                    reasons.append(
+                        _reason(
+                            "entity_relation_invalid",
+                            "Each entity relation requires both entity endpoints.",
+                            entity_id=record_id,
+                            field=field,
+                        )
+                    )
+                    continue
+                entity_reference(
+                    relation.get(field),
+                    collection="entities",
+                    record_id=record_id,
+                    field=f"relations.{field}",
+                )
+
+    for name in ("structures", "observations", "claims"):
+        id_field = _RELATIONSHIP_ID_FIELDS[name]
+        for item in _active(collections[name]):
+            record_id = str(item.get(id_field))
+            entity_reference(
+                item.get("entity_id") or item.get("subject_entity_id"),
+                collection=name,
+                record_id=record_id,
+                field=(
+                    "entity_id" if item.get("entity_id") is not None else "subject_entity_id"
+                ),
+            )
+            participants = item.get("participants", [])
+            if isinstance(participants, list):
+                for participant in participants:
+                    if isinstance(participant, Mapping):
+                        entity_reference(
+                            participant.get("entity_id"),
+                            collection=name,
+                            record_id=record_id,
+                            field="participants.entity_id",
+                        )
+    return reasons
+
+
+_ARRAY_FIELDS_FOR_RELATIONSHIPS = (
+    "entities",
+    "structures",
+    "observations",
+    "claims",
+    "evidence",
+    "verifications",
+    "attestations",
+)
+_RELATIONSHIP_ID_FIELDS = {
+    "entities": "entity_id",
+    "structures": "structure_id",
+    "observations": "observation_id",
+    "claims": "claim_id",
+    "evidence": "evidence_id",
+    "verifications": "verification_id",
+    "attestations": "attestation_id",
+}
+
+
 def assess_evidence(
     case: Mapping[str, Any],
     required_targets: Optional[Iterable[str]] = None,
@@ -585,15 +1163,7 @@ def assess_evidence(
     configured_checks = configured_policy.get("checks", _DEFAULT_EVIDENCE_CHECKS)
     level_checks = configured_policy.get("level_checks", _DEFAULT_EVIDENCE_LEVELS)
 
-    observations = _active(case.get("observations", []))
-    claims = _active(case.get("claims", []))
-    targets = [
-        (_target_id(row, "observation", offset), row)
-        for offset, row in enumerate(observations)
-    ] + [
-        (_target_id(row, "claim", offset), row)
-        for offset, row in enumerate(claims)
-    ]
+    targets, target_aliases = _evidence_targets(case)
     evidence = _active(case.get("evidence", []))
     verifications = _active(case.get("verifications", []))
     verification_by_evidence: Dict[str, list[Dict[str, Any]]] = defaultdict(list)
@@ -605,8 +1175,15 @@ def assess_evidence(
     levels: Dict[str, str] = {}
     target_checks: Dict[str, Dict[str, Any]] = {}
     reasons: list[Dict[str, Any]] = []
-    for target_id, _target in targets:
-        linked = [item for item in evidence if str(item.get("target")) == target_id]
+    lineage_graph = _lineage_graph(evidence)
+    for target_id, _target_kind, _target in targets:
+        linked = [
+            item
+            for item in evidence
+            if _resolve_evidence_target(item.get("target"), target_aliases)
+            == [(target_id, _target_kind)]
+            and _is_supporting_evidence(item)
+        ]
         explicitly_located = [
             item
             for item in linked
@@ -620,16 +1197,16 @@ def assess_evidence(
             ):
                 verified.append(item)
 
-        independent_roots = set()
-        independent_works = set()
+        independent_chains: list[Tuple[str, set[str]]] = []
         for item in verified:
-            lineage = item.get("source_lineage_id")
-            work = item.get("scientific_work_id") or item.get("doi")
-            if lineage and work and not item.get("derived_from"):
-                independent_roots.add(str(lineage).strip().lower())
-                independent_works.add(str(work).strip().lower())
-        independently_corroborated = (
-            len(independent_roots) >= 2 and len(independent_works) >= 2
+            work = _canonical_work_id(item)
+            roots = _lineage_roots(item.get("source_lineage_id"), lineage_graph)
+            if work and roots:
+                independent_chains.append((work, roots))
+        independently_corroborated = any(
+            left_work != right_work and left_roots.isdisjoint(right_roots)
+            for index, (left_work, left_roots) in enumerate(independent_chains)
+            for right_work, right_roots in independent_chains[index + 1 :]
         )
         if len(verified) >= 2 and not independently_corroborated:
             reasons.append(
@@ -671,9 +1248,16 @@ def assess_evidence(
         level = _highest_level(E_LEVELS, level_checks, evaluated)
         levels[target_id] = level
 
-    required = list(required_targets) if required_targets is not None else [
-        target_id for target_id, _ in targets
-    ]
+    required = list(
+        dict.fromkeys(
+            str(target_id)
+            for target_id in (
+                required_targets
+                if required_targets is not None
+                else (target_id for target_id, _, _ in targets)
+            )
+        )
+    )
     if not required:
         aggregate = None
     else:
@@ -698,46 +1282,101 @@ def assess_evidence(
     }
 
 
+def _identity_path_value(value: Mapping[str, Any], path: str) -> Tuple[bool, Any]:
+    current: Any = value
+    for part in path.split("."):
+        if not isinstance(current, Mapping) or part not in current:
+            return False, None
+        current = current[part]
+    if current is None or current == "" or current == [] or current == {}:
+        return False, None
+    return True, current
+
+
+def _identity_component_value(
+    case: Mapping[str, Any], component: Mapping[str, Any]
+) -> Tuple[str, Any]:
+    structure_role = component.get("structure_role")
+    source: Mapping[str, Any] = case
+    if structure_role is not None:
+        matches = []
+        for structure in _active(case.get("structures", [])):
+            roles = {structure.get("role"), *structure.get("roles", [])}
+            if structure_role in roles:
+                matches.append(structure)
+        if not matches:
+            return "missing", None
+        if len(matches) != 1:
+            return "ambiguous", None
+        source = matches[0]
+    present, value = _identity_path_value(source, str(component["path"]))
+    if not present:
+        return "missing", None
+    normalizer = component["normalizer"]
+    try:
+        if normalizer == "text":
+            if not isinstance(value, str) or not value.strip():
+                return "invalid", None
+            return "present", value.strip()
+        if normalizer == "casefold":
+            if not isinstance(value, str) or not value.strip():
+                return "invalid", None
+            return "present", value.strip().casefold()
+        if normalizer == "number":
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                return "invalid", None
+            number = Decimal(str(value))
+            if not number.is_finite():
+                return "invalid", None
+            normalized = number.normalize()
+            return "present", format(normalized, "f")
+        if normalizer == "boolean":
+            return ("present", value) if type(value) is bool else ("invalid", None)
+        if normalizer == "set":
+            if not isinstance(value, list):
+                return "invalid", None
+            unique = {canonical_json(item): deepcopy(item) for item in value}
+            return "present", [unique[key] for key in sorted(unique)]
+        canonical_json(value)
+        return "present", deepcopy(value)
+    except (InvalidOperation, TypeError, ValueError):
+        return "invalid", None
+
+
+def _identity_components(
+    case: Mapping[str, Any], identity_schema: Mapping[str, Any]
+) -> Tuple[Dict[str, Any], list[Dict[str, Any]]]:
+    values: Dict[str, Any] = {}
+    reasons = []
+    for component in identity_schema["components"]:
+        state, value = _identity_component_value(case, component)
+        key = component["key"]
+        if state == "present":
+            values[key] = value
+            continue
+        if state != "missing" or component["required"]:
+            reasons.append(
+                _reason(
+                    "identity_indeterminate",
+                    "An identity component is missing, ambiguous, or invalid.",
+                    component=key,
+                    state=state,
+                )
+            )
+    return values, reasons
+
+
 def identity_key(
     case: Mapping[str, Any], identity_schema: Mapping[str, Any]
 ) -> Tuple[Optional[str], list[Dict[str, Any]]]:
-    """Return a deterministic equivalence key or an indeterminate result."""
+    """Return a deterministic cross-Case equivalence key when proven."""
 
-    components = identity_schema.get("components", [])
-    if not components:
+    schema = validate_identity_schema(identity_schema)
+    if not schema["components"]:
         return f"case:{case['id']}", []
-    normalized = []
-    reasons = []
-    for component in components:
-        path = str(component["path"])
-        value: Any = case
-        for part in path.replace("__", ".").split("."):
-            if isinstance(value, Mapping) and part in value:
-                value = value[part]
-            else:
-                value = None
-                break
-        if value in (None, "", [], {}):
-            if component.get("required", False):
-                reasons.append(
-                    _reason(
-                        "identity_indeterminate",
-                        "A required identity component is missing.",
-                        component=component.get("key", path),
-                    )
-                )
-                return None, reasons
-            continue
-        normalizer = component.get("normalizer", "text")
-        if normalizer == "casefold":
-            value = str(value).strip().casefold()
-        elif normalizer == "number":
-            value = float(value)
-        elif normalizer == "set":
-            value = sorted(set(value))
-        else:
-            value = str(value).strip()
-        normalized.append([component.get("key", path), value])
+    normalized, reasons = _identity_components(case, schema)
+    if reasons:
+        return None, reasons
     if not normalized:
         return None, [
             _reason(
@@ -745,7 +1384,75 @@ def identity_key(
                 "No persisted identity component produced a comparable value.",
             )
         ]
-    return canonical_digest(normalized), reasons
+    ordered = [[item["key"], normalized[item["key"]]] for item in schema["components"] if item["key"] in normalized]
+    return canonical_digest(ordered), []
+
+
+def sample_match(
+    left: Mapping[str, Any],
+    right: Mapping[str, Any],
+    identity_schema: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Return ``same``, ``different``, or ``indeterminate`` under policy."""
+
+    if str(left["id"]) == str(right["id"]):
+        return {"outcome": "same", "reasons": []}
+    schema = validate_identity_schema(identity_schema)
+    if not schema["components"]:
+        return {
+            "outcome": "indeterminate",
+            "reasons": [
+                _reason(
+                    "identity_indeterminate",
+                    "No cross-Case identity components are configured.",
+                )
+            ],
+        }
+    left_values, left_reasons = _identity_components(left, schema)
+    right_values, right_reasons = _identity_components(right, schema)
+    reasons = left_reasons + right_reasons
+    if reasons:
+        return {"outcome": "indeterminate", "reasons": reasons}
+    compared = False
+    for component in schema["components"]:
+        key = component["key"]
+        if key not in left_values or key not in right_values:
+            continue
+        compared = True
+        if canonical_json(left_values[key]) == canonical_json(right_values[key]):
+            continue
+        if component["mismatch_is_decisive"]:
+            return {
+                "outcome": "different",
+                "reasons": [
+                    _reason(
+                        "identity_component_mismatch",
+                        "A decisive identity component differs.",
+                        component=key,
+                    )
+                ],
+            }
+        return {
+            "outcome": "indeterminate",
+            "reasons": [
+                _reason(
+                    "identity_indeterminate",
+                    "A non-decisive identity component differs.",
+                    component=key,
+                )
+            ],
+        }
+    return {
+        "outcome": "same" if compared else "indeterminate",
+        "reasons": []
+        if compared
+        else [
+            _reason(
+                "identity_indeterminate",
+                "No comparable cross-Case identity component is present.",
+            )
+        ],
+    }
 
 
 def observation_context(
@@ -768,6 +1475,106 @@ def observation_context(
         present, value = _context_value(observation, field)
         context[field] = _normalize_context_value(value) if present else None
     return context
+
+
+def observation_with_resolved_entities(
+    case: Mapping[str, Any], observation: Mapping[str, Any]
+) -> Dict[str, Any]:
+    """Resolve Case-local entity IDs into stable comparison descriptors."""
+
+    resolved = deepcopy(dict(observation))
+    candidates: Dict[str, list[Dict[str, Any]]] = defaultdict(list)
+    for structure in _active(case.get("structures", [])):
+        entity_id = structure.get("entity_id")
+        if not isinstance(entity_id, str) or not entity_id:
+            continue
+        roles = sorted(
+            {
+                role
+                for role in (structure.get("role"), *structure.get("roles", []))
+                if isinstance(role, str) and role
+            }
+        )
+        if roles:
+            candidates[entity_id].append({"kind": "structure", "roles": roles})
+    for entity in _active(case.get("entities", [])):
+        entity_id = entity.get("entity_id")
+        if not isinstance(entity_id, str) or not entity_id:
+            continue
+        identifiers = sorted(
+            (
+                {
+                    "namespace": str(item["namespace"]),
+                    "value": str(item["value"]),
+                }
+                for item in entity.get("external_identifiers", [])
+                if isinstance(item, Mapping)
+                and item.get("namespace") not in (None, "")
+                and item.get("value") not in (None, "")
+            ),
+            key=canonical_json,
+        )
+        if identifiers:
+            candidates[entity_id] = [
+                {"kind": "external_identifiers", "values": identifiers}
+            ]
+            continue
+        roles = sorted(
+            {
+                role
+                for role in (entity.get("role"), *entity.get("roles", []))
+                if isinstance(role, str) and role
+            }
+        )
+        if roles and not candidates.get(entity_id):
+            candidates[entity_id].append(
+                {
+                    "kind": "case_role",
+                    "entity_kind": entity.get("entity_kind"),
+                    "roles": roles,
+                }
+            )
+
+    descriptor_counts = Counter(
+        canonical_json(descriptor)
+        for values in candidates.values()
+        for descriptor in values
+    )
+
+    def resolve(reference: Any) -> Any:
+        if not isinstance(reference, str) or not reference:
+            return {
+                "_hotpot_entity_identity": "indeterminate",
+                "reason": "invalid_entity_reference",
+            }
+        descriptors = candidates.get(reference, [])
+        if len(descriptors) != 1:
+            return {
+                "_hotpot_entity_identity": "indeterminate",
+                "reason": "entity_reference_unresolved_or_ambiguous",
+            }
+        descriptor = descriptors[0]
+        if descriptor_counts[canonical_json(descriptor)] != 1:
+            return {
+                "_hotpot_entity_identity": "indeterminate",
+                "reason": "entity_role_ambiguous",
+            }
+        return descriptor
+
+    if "subject" not in resolved and "subject_entity_id" in resolved:
+        resolved["subject"] = resolve(resolved["subject_entity_id"])
+    if isinstance(resolved.get("site"), str):
+        resolved["site"] = resolve(resolved["site"])
+    participants = resolved.get("participants")
+    if isinstance(participants, list):
+        normalized_participants = []
+        for participant in participants:
+            item = deepcopy(participant)
+            if isinstance(item, dict) and "entity_id" in item:
+                item["entity_id"] = resolve(item["entity_id"])
+            normalized_participants.append(item)
+        resolved["participants"] = normalized_participants
+    return resolved
 
 
 def compare_observations(
@@ -999,6 +1806,19 @@ def _compare_context(
                     "right": right_context,
                 },
             }
+        if left_present and (
+            _contains_indeterminate_entity(left_value)
+            or _contains_indeterminate_entity(right_value)
+        ):
+            return {
+                "outcome": "indeterminate",
+                "reason": "observation_context_indeterminate",
+                "context_field": field,
+                "comparison_context": {
+                    "left": left_context,
+                    "right": right_context,
+                },
+            }
         if left_present and canonical_json(
             _normalize_context_value(left_value)
         ) != canonical_json(_normalize_context_value(right_value)):
@@ -1012,6 +1832,16 @@ def _compare_context(
                 },
             }
     return None
+
+
+def _contains_indeterminate_entity(value: Any) -> bool:
+    if isinstance(value, Mapping):
+        if value.get("_hotpot_entity_identity") == "indeterminate":
+            return True
+        return any(_contains_indeterminate_entity(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_indeterminate_entity(item) for item in value)
+    return False
 
 
 def _comparison_values(
@@ -1124,21 +1954,21 @@ def find_conflicts(
         case_id = str(case["id"])
         key, reasons = identity_key(case, identity_schema)
         identity_reasons[case_id] = reasons
-        if key is None:
-            continue
+        sample_key = key if key is not None else f"case:{case_id}"
         for offset, observation in enumerate(_active(case.get("observations", []))):
-            candidate = deepcopy(observation)
+            candidate = observation_with_resolved_entities(case, observation)
             candidate.setdefault(
                 "observation_id", f"{case_id}:observation:{offset}"
             )
-            groups[key].append((case_id, candidate))
+            groups[sample_key].append((case_id, candidate))
 
     rows = []
     conflicting_cases = set()
     summaries = []
     for sample_key in sorted(groups):
         candidates = sorted(
-            groups[sample_key], key=lambda item: str(item[1]["observation_id"])
+            groups[sample_key],
+            key=lambda item: (item[0], str(item[1]["observation_id"])),
         )
         pair_results = []
         consistent = 0
@@ -1199,12 +2029,16 @@ def assess_case(
     evidence_policy: Optional[Mapping[str, Any]] = None,
     quality_policy: Optional[Mapping[str, Any]] = None,
     conflict_assessments: Sequence[Mapping[str, Any]] = (),
+    identity_reasons: Sequence[Mapping[str, Any]] = (),
     checker_context: Optional[Mapping[str, Any]] = None,
     isolated_runner: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Compute the sole authoritative CaseAssessment for one generation."""
 
-    reasons: list[Dict[str, Any]] = []
+    reasons: list[Dict[str, Any]] = [
+        deepcopy(dict(reason)) for reason in identity_reasons
+    ]
+    reasons.extend(_relationship_integrity_reasons(case))
     observations = _active(case.get("observations", []))
     active_properties = {
         item.get("property") or item.get("property_type_id") for item in observations
@@ -1316,6 +2150,9 @@ def assess_case(
         for offset, item in enumerate(observations)
         if (item.get("property") or item.get("property_type_id")) in core_labels
     ]
+    required_target_ids.extend(
+        f"core-label:{name}" for name in missing_labels
+    )
     evidence = assess_evidence(
         case,
         required_target_ids if core_labels else None,
@@ -1332,9 +2169,24 @@ def assess_case(
         "missing_required_structure",
         "invalid_required_structure",
         "scientific_value_conflict",
+        "evidence_target_unresolved",
+        "evidence_target_ambiguous",
+        "evidence_target_kind_mismatch",
+        "evidence_relation_invalid",
+        "evidence_lineage_invalid",
+        "evidence_lineage_unresolved",
+        "evidence_lineage_cycle",
+        "verification_evidence_unresolved",
+        "supersession_reference_unresolved",
+        "supersession_relation_inconsistent",
+        "entity_reference_unresolved",
+        "entity_relation_invalid",
     }
     incomplete = any(item["code"] in incomplete_codes for item in reasons)
     e_index = -1 if evidence_level is None else int(evidence_level[1])
+    identity_determinate = not any(
+        item["code"] == "identity_indeterminate" for item in reasons
+    )
     human_verified = any(
         item.get("method") == "Human"
         for item in _active(case.get("verifications", []))
@@ -1552,7 +2404,10 @@ def assess_case(
     direct = any(item["passed"] is True for item in enabled_direct)
     veto_passed = all(item["passed"] is True for item in veto_results.values())
     benchmark = bool(
-        not incomplete and veto_passed and (direct or checklist_passed)
+        not incomplete
+        and identity_determinate
+        and veto_passed
+        and (direct or checklist_passed)
     )
     if incomplete:
         benchmark_status = "ineligible"
@@ -1560,7 +2415,7 @@ def assess_case(
         benchmark_status = "admitted"
     elif disagreement or rejections:
         benchmark_status = "rejected"
-    elif not veto_passed:
+    elif not identity_determinate or not veto_passed:
         benchmark_status = "vetoed"
     else:
         benchmark_status = "not_admitted"
@@ -1580,6 +2435,7 @@ def assess_case(
         },
         "direct_entry": direct,
         "veto_passed": veto_passed,
+        "identity_determinate": identity_determinate,
         "gate_results": {
             "evidence": evidence["checks"],
             "quality": quality_results,
@@ -1597,6 +2453,8 @@ def _verified_primary_source(
     case: Mapping[str, Any], required_targets: Sequence[str]
 ) -> bool:
     evidence = _active(case.get("evidence", []))
+    targets, target_aliases = _evidence_targets(case)
+    target_kinds = {target_id: kind for target_id, kind, _ in targets}
     verifications = _active(case.get("verifications", []))
     verification_by_evidence: Dict[str, list[Dict[str, Any]]] = defaultdict(list)
     for verification in verifications:
@@ -1607,7 +2465,16 @@ def _verified_primary_source(
     if not targets:
         return False
     for target in targets:
-        candidates = [item for item in evidence if str(item.get("target")) == target]
+        target_kind = target_kinds.get(target)
+        if target_kind is None:
+            return False
+        candidates = [
+            item
+            for item in evidence
+            if _resolve_evidence_target(item.get("target"), target_aliases)
+            == [(target, target_kind)]
+            and _is_supporting_evidence(item)
+        ]
         if not any(
             _identified_primary_source(item)
             and (item.get("locator") or item.get("quote") or item.get("matched_text"))

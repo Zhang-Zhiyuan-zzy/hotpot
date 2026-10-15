@@ -43,7 +43,7 @@
       "ds_name is required and dataset_id, when present, must equal ds_name.",
       "core_labels and core_info are explicit lists and may be empty.",
       "required_structure_roles is explicit and may be empty. The reserved value '*' requires at least one active Structure with a present, hash-valid, parse-valid representation regardless of role; every named value independently requires that role.",
-      "identity_schema contains only identity-bearing components; core_info is not automatically an identity key.",
+      "identity_schema has exactly one components array and contains only policy-declared identity-bearing components; core_info is not automatically an identity key.",
       "intake declares exactly one JSON Lines or SQLite Case source by a safe Bundle-relative path.",
       "control_assets, when present, declares closed Bundle-relative release controls by category, name, SHA-256, and byte size.",
       "A Bundle represents exactly one release and binds one canonical target store."
@@ -88,6 +88,21 @@
     ],
     "public_index_rule": "JSON Lines intake may omit public_index and receive its zero-based line order; SQLite intake supplies it explicitly. The canonical Case always persists it and filtering never renumbers it.",
     "mutation_rule": "Facts are changed only through audited Bundle-owned Case methods; replacement or withdrawal preserves history and makes the Bundle unsynchronized."
+  },
+  "identity_policy": {
+    "authority": "The persisted dataset identity_schema is the sole authority for cross-Case scientific sample identity; an established dataset does not accept a replacement from an intake Bundle.",
+    "schema": "The current schema is a closed object containing only components. Each component has a unique key, dotted path, required flag, value_kind, normalizer, exact comparator, decisive-mismatch flag, and protocol/implementation digests materialized by Hotpot.",
+    "value_kinds": [
+      "text",
+      "number",
+      "boolean",
+      "set",
+      "json"
+    ],
+    "case_paths": "A non-structure component must address core_info or identifiers. Neither namespace is an identity key unless the dataset policy names it.",
+    "structure_paths": "A structure component selects exactly one active Structure by declared role, then addresses a semantic field under formal_charge, atom_count, molecular_graph, stereochemistry, isotopes, protonation_state, tautomer_state, crystal_context, or semantic metadata.",
+    "excluded_inputs": "Raw coordinate bytes, representation paths, file or asset digests, and byte equality are not scientific sample identity evidence.",
+    "comparison": "Normalized component values are compared exactly. Equal comparable components establish same; a decisive mismatch establishes different; missing, invalid, ambiguous, or non-decisive evidence yields indeterminate."
   },
   "scientific_assets": {
     "positive_declaration": [
@@ -252,12 +267,27 @@
     "audit_rule": "Every Case or new-dataset Gate edit appends an event, advances a revision, makes derived results unavailable as current, and makes any certificate stale.",
     "separation_rule": "Synchronization assesses; certification serializes and verifies; ingestion publishes. None implicitly performs an earlier step."
   },
+  "runtime_policy": {
+    "authority": "The persisted dataset policy contains one complete self-digesting hotpot-ds-runtime-policy/current document.",
+    "contents": [
+      "assessment source and assessment-store protocol",
+      "isolated-checker protocol",
+      "parser selection plus parser source, protocol, and distribution identities",
+      "Python and SQLite identities",
+      "relevant installed distribution identities"
+    ],
+    "binding": "The assessment generation, root certificate, authoritative ingestion receipt, and parser-backed asset assessments bind the frozen runtime policy or the selected parser entry.",
+    "frozen_validation": "Closed-field and nested self-digest validation authenticates the runtime recorded by a sealed release without requiring ambient equality and without selecting a compatibility implementation.",
+    "current_execution": "Synchronization, certificate issuance, and ingestion require exact equality with the one current ambient runtime_policy.",
+    "drift": "Runtime drift makes an editable Bundle stale and requires explicit owner migration and reassessment. A sealed release remains immutable and verifiable against its frozen policy; scientific corrections create a successor release."
+  },
   "certificate_and_storage": {
     "certificate_path": "<bundle-root>/certificate.json",
     "certificate_requires": "A complete synchronized generation.",
     "certificate_binds": [
       "release manifest and canonical facts digest",
       "source, policy, and governance revisions and digests",
+      "complete self-digesting runtime_policy, including assessment, checker, parser, runtime, and distribution identities",
       "Gate and checker policy artifacts",
       "complete assessment-generation manifest and summary",
       "positive and negative scientific-asset inventory",

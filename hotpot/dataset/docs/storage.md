@@ -60,6 +60,17 @@ Local scientific paths must be safe relative POSIX paths inside the root. A
 missing remote or local asset is a declared negative fact. It is not silently
 downloaded or replaced with fabricated bytes.
 
+The persisted `identity_schema` is the sole cross-Case sample-identity policy.
+It is a closed object containing an array of typed, exactly compared
+components. Ordinary components address `core_info` or `identifiers`;
+structure components select exactly one active declared role and then a
+semantic structure field such as molecular graph, stereochemistry,
+isotope/protonation state, formal charge, or crystal context. Raw coordinates,
+representation paths, and asset-byte digests are not identity components.
+Equal coordinate bytes permit asset deduplication only. Missing, invalid,
+ambiguous, or non-decisive components produce an indeterminate comparison
+instead of guessed equality.
+
 The one-time build publishes the canonical control and fact store in the same
 root. Subsequent opens are validation-only. Implementations may maintain
 regenerable projections, but the root has one authoritative canonical Case fact
@@ -79,6 +90,7 @@ BUNDLE_ROOT/
 |-- audit/
 |   `-- events.jsonl
 |-- assessments/
+|   |-- leases/<generation-id>.lock
 |   `-- generations/<generation-id>/
 |       |-- generation.json
 |       |-- assessment.sqlite3
@@ -97,6 +109,15 @@ The authoritative current-generation ID and digest are stored transactionally
 in `cases/facts.sqlite3`; there is no editable filesystem pointer. Users must
 not edit generated controls, assessment databases, indexes, policy
 projections, certificates, or receipts.
+
+Generation retention is private maintenance. A reader holds a shared OS lock
+for the complete read, certificate, or ingestion operation. Collection obtains
+a non-blocking exclusive lock and removes a generation only after confirming
+that it is not current, root-certificate-bound, target-receipt-bound, or
+leased. Process failure releases a lease automatically; no timeout can expire a
+live reader. The small lock files are runtime state, are not certificate
+content, and may remain after a process exits. An unreadable durable reference
+or an unverifiable lock always causes conservative retention.
 
 ## Revisions and publication
 
@@ -178,6 +199,25 @@ Custom checker source is stored as UTF-8 source addressed by SHA-256, never as
 pickle, bytecode, or a Python-version compatibility object. A checker/protocol
 change requires an explicit current-policy migration; the loader does not adapt
 old code silently.
+
+The persisted policy additionally contains one complete, self-digesting
+`runtime_policy`. Its closed document binds the assessment source and store
+protocol, checker protocol, parser selection and parser
+source/protocol/distribution identities, Python and SQLite identities, and the
+relevant installed distributions. The assessment generation, root certificate,
+authoritative ingestion receipt, and parser-backed asset assessments bind that
+same frozen document or its selected parser entry.
+
+Frozen validation verifies the recorded document's closed structure and nested
+digests without comparing it to the ambient process. It therefore authenticates
+what a sealed release used without loading a compatibility implementation.
+Synchronization, certificate issuance, and ingestion additionally require the
+frozen document to equal the one current ambient `runtime_policy`. Drift makes
+an editable Bundle stale and requires an explicit owner policy migration and
+reassessment; a sealed release remains readable and verifiable against its
+frozen policy, but any scientific correction is a successor release. Custom
+checker execution requires the OS-isolated `bubblewrap` worker; missing
+isolation support is an error, never an in-process fallback.
 
 ## Query visibility
 

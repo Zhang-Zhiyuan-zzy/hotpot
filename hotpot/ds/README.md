@@ -412,7 +412,9 @@ Bundle source digest, synchronization, and certificate.
 Evidence and quality levels have no setters. A benchmark opinion uses an
 attributable attestation, not `case.benchmark = True`. Public callers may attest
 as `User` or `Other`; effective `Hotpot` authority comes only from Hotpot's
-private signed governance path.
+private signed governance path. Ed25519 verification uses Hotpot's required
+`cryptography` runtime dependency; governance never selects an optional or
+fallback signature backend.
 
 ## 5. Gates and levels
 
@@ -451,6 +453,32 @@ Hotpot persists the exact source and digest for a new dataset. Checkers must be
 deterministic top-level functions, use only allowed imports, avoid network and
 side effects, and execute through the isolated checker worker. Unsupported
 isolation fails closed; there is no unsafe in-process fallback.
+
+Production custom-checker execution requires Linux user, mount, PID, network,
+IPC, and UTS namespaces provided by `bubblewrap` (`bwrap`). The worker sees an
+isolated minimal root containing the read-only Python runtime and required
+loader-library mounts, plus a private temporary filesystem; Bundle/store
+roots, `/proc`, and `/dev` are absent. A fixed environment, resource limits,
+private process tree, bounded JSON protocol, and restricted imports make the
+execution contract deterministic and small. The startup probe verifies the
+filesystem and no-route network boundary before any persisted checker runs;
+any unavailable boundary or protocol failure aborts synchronization.
+
+Every dataset policy contains one complete, self-digesting `runtime_policy`.
+It binds the assessment source and store protocol, checker protocol, parser
+selection and parser source/protocol/distribution identity, Python and SQLite,
+and the relevant installed distributions. Parser-backed asset assessments
+reference the selected entry in that frozen parser registry. Assessment
+generations, certificates, and ingestion receipts bind the full document.
+
+Frozen validation checks the document's closed shape and nested digests without
+pretending that its runtime is the current process. This permits authenticating
+a sealed release against the runtime it actually recorded; it does not load or
+emulate old code. Any operation that executes assessment semantics--including
+synchronization, certificate issuance, or ingestion--requires exact equality
+with the one current `runtime_policy`. Drift makes an editable Bundle stale and
+requires an explicit owner migration and reassessment. A sealed release remains
+immutable, and scientific corrections use a successor release.
 
 ```python
 from hotpot.ds.gates import BenchmarkGate
@@ -504,6 +532,25 @@ Incomplete Cases can be preserved deliberately with
 `bundle.ingest(include_incomplete=True, reason="...")`; they remain classified
 and isolated as incomplete.
 
+### Scientific sample identity
+
+The dataset's persisted `identity_schema` is the authority for cross-Case
+sample identity. Its current format is a closed object containing a
+`components` array. Each
+component has a declared value type and normalizer and is compared exactly;
+paths address `core_info` or `identifiers`. A structure-based component must
+also name one structure role and one semantic field such as molecular graph,
+stereochemistry, isotope/protonation state, formal charge, or crystal context.
+Raw coordinate bytes, representation paths, and asset digests are not sample
+identity, and byte-identical coordinates prove only that an asset may be
+reused.
+
+Comparison is three-valued: matching normalized components establish `same`,
+a decisive mismatch establishes `different`, and missing, invalid, ambiguous,
+or non-decisive evidence yields `indeterminate`. The owner chooses the
+components when creating the dataset; an established dataset reuses its
+persisted identity policy.
+
 ## 6. Intake organization
 
 A Bundle root contains one authoritative `bundle.json` and one Case source,
@@ -536,7 +583,18 @@ requirements:
   "provenance": {"doi": "10.1000/example"},
   "core_labels": ["oxidation_state"],
   "core_info": ["CSD_identifier"],
-  "identity_schema": {},
+  "identity_schema": {
+    "components": [
+      {
+        "key": "csd_record",
+        "path": "core_info.CSD_identifier",
+        "required": true,
+        "value_kind": "text",
+        "normalizer": "casefold",
+        "comparator": "exact"
+      }
+    ]
+  },
   "required_structure_roles": ["complex"],
   "property_comparators": {},
   "intake": {"format": "jsonl", "path": "cases.jsonl"}
@@ -573,6 +631,13 @@ than replaced with invented content.
 root. Synchronization creates an immutable assessment generation with separate
 derived indexes for incomplete, ordinary, and benchmark Cases. The root
 certificate is always `certificate.json`.
+
+Generation leases and garbage collection are private lifecycle details, not
+additional public API. Reads, certification, and ingestion hold shared OS
+locks. Maintenance retains the current, certificate-bound, receipt-bound, and
+actively read generations and deletes only obsolete generations for which a
+non-blocking exclusive lock succeeds. A crashed process releases its lock at
+the operating-system boundary; no lease timeout can invalidate a live reader.
 
 For concrete schemas and examples, inspect
 [`schemas/bundle`](schemas/bundle/) and the

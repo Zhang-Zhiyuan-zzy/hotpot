@@ -220,7 +220,9 @@ Build also binds one canonical target store. Later Bundle commands inherit
 that target when `--db` is omitted and treat an explicit `--db` as a matching
 assertion. The publish operation `ingest` still requires the target explicitly.
 `bundle status` remains available while unsynchronized and reports the next
-valid action.
+valid action. Its machine payload includes `runtime_policy_current`, which is
+true only when the Bundle's persisted assessment, checker, parser, and runtime
+binding matches this installed Hotpot source tree.
 
 ### Inspect
 
@@ -339,8 +341,10 @@ Inspection works in both modes. Editing works only for a new dataset:
 ```text
 # All Gates
 --add-check NAME[=true|false]        --rm-check NAME
---set-level LEVEL=NAME[,NAME...]     --rm-level LEVEL
 --checker NAME=FILE:ENTRYPOINT
+
+# QualityGate and EvidenceGate only
+--set-level LEVEL=NAME[,NAME...]     --rm-level LEVEL
 
 # QualityGate only
 --add-structure-check NAME[=true|false]
@@ -475,7 +479,10 @@ profile. Their JSON file parameters remain normal artifact inputs.
 ### Current producer inventory
 
 Every producer/channel has a named closed payload contract; terminal outputs do
-not use a `null` schema escape hatch.
+not use a `null` schema escape hatch. `CaseInfo`, `CaseAssessment`, and the
+known fields nested in each data item have closed schemas. Dataset-defined
+metadata and scientific fact extensions remain explicit JSON maps whose values
+are recursively JSON-validated; they are not unvalidated object escapes.
 
 | Producer key | Channels and contracts |
 | --- | --- |

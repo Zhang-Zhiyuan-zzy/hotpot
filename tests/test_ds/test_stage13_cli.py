@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import io
 import json
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 import pytest
 
 import hotpot.ds.cli as ds_cli
+from hotpot.ds._communication import CommunicationError, make_envelope
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
 from hotpot.ds.public.bundle import load_bundle
@@ -123,6 +125,19 @@ def test_bundle_cli_has_explicit_transitions_and_closed_channels(tmp_path: Path,
     }
 
     code, result, _ = _invoke(
+        ["bundle", "--root", str(root), "status"], capsys
+    )
+    assert code == 0
+    assert result["payload"]["runtime_policy_current"] is True
+
+    for view in ("case.info", "case.assessment"):
+        code, result, _ = _invoke(
+            ["bundle", "--root", str(root), "get", view, "ordinary"], capsys
+        )
+        assert code == 0
+        assert result["payload"]["case_id"] == "ordinary"
+
+    code, result, _ = _invoke(
         ["bundle", "--root", str(root), "get", "cases", "--archive-class", "benchmark"],
         capsys,
     )
@@ -152,6 +167,21 @@ def test_bundle_cli_has_explicit_transitions_and_closed_channels(tmp_path: Path,
     assert result["payload"]["event_ids"][0].startswith("event-")
 
 
+def test_gate_level_flags_exist_only_on_quality_and_evidence_parsers() -> None:
+    parser = build_parser()
+
+    for gate, level in (("quality", "B2=case_complete"), ("evidence", "E2=explicit_report")):
+        parsed = parser.parse_args(
+            ["bundle", "gate", gate, "--set-level", level]
+        )
+        assert parsed.set_level == [level]
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(
+            ["bundle", "gate", "benchmark", "--set-level", "B2=conflict_free"]
+        )
+
+
 def test_bundle_cli_preserves_evidence_and_verification_details(
     tmp_path: Path, capsys
 ) -> None:
@@ -171,7 +201,10 @@ def test_bundle_cli_preserves_evidence_and_verification_details(
                 "target": "obs-ordinary",
                 "source": "doi:10.1000/cli",
                 "locator": "Table 3",
-                "details": {"source_lineage_id": "experiment:cli"},
+                "details": {
+                    "source_kind": "primary_literature",
+                    "source_lineage_id": "experiment:cli",
+                },
             }
         ),
         encoding="utf-8",
@@ -200,6 +233,8 @@ def test_bundle_cli_preserves_evidence_and_verification_details(
                 "method": "AI",
                 "verifier": "review-tool/current",
                 "details": {
+                    "tool": "review-tool",
+                    "tool_version": "current",
                     "procedure_version": "cli-review/current",
                     "verified_at": "2026-10-14T01:30:00Z",
                 },
@@ -282,6 +317,16 @@ def test_certify_ingest_query_archive_opt_in_and_protocol_pipeline(tmp_path: Pat
     )
     assert code == 0
     assert piped["payload"]["items"][0]["archive_class"] == "incomplete"
+
+    invalid = deepcopy(piped["payload"])
+    invalid["items"][0]["facts"]["undeclared_case_field"] = True
+    with pytest.raises(CommunicationError, match="unknown fields"):
+        make_envelope("hotpot.ds.get", invalid)
+
+    invalid = deepcopy(piped["payload"])
+    invalid["items"][0]["assessment"]["undeclared_assessment_field"] = True
+    with pytest.raises(CommunicationError, match="unknown fields"):
+        make_envelope("hotpot.ds.get", invalid)
 
 
 def test_export_uses_stable_public_indices_and_aligned_names(tmp_path: Path, capsys) -> None:

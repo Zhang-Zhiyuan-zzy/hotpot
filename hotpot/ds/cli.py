@@ -225,9 +225,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         child.add_argument("--show", action="store_true", help="show the current immutable Gate")
         child.add_argument("--add-check", action="append", default=[], metavar="NAME[=BOOL]", help="add or replace an ordinary check")
         child.add_argument("--rm-check", action="append", default=[], metavar="NAME", help="remove an ordinary check")
-        child.add_argument("--set-level", action="append", default=[], metavar="LEVEL=NAMES", help="set one cumulative B/E check list")
-        child.add_argument("--rm-level", action="append", default=[], metavar="LEVEL", help="remove a level before replacing it in the same edit")
         child.add_argument("--checker", action="append", default=[], metavar="NAME=FILE:ENTRYPOINT", help="bind source for a same-named custom check")
+        if gate_name in {"quality", "evidence"}:
+            child.add_argument("--set-level", action="append", default=[], metavar="LEVEL=NAMES", help="set one cumulative B/E check list")
+            child.add_argument("--rm-level", action="append", default=[], metavar="LEVEL", help="remove a level before replacing it in the same edit")
         if gate_name == "quality":
             child.add_argument("--add-structure-check", action="append", default=[], metavar="NAME[=BOOL]", help="add or replace a structure check")
             child.add_argument("--rm-structure-check", action="append", default=[], metavar="NAME", help="remove a structure check")
@@ -668,8 +669,6 @@ def _edit_gate(bundle: Bundle, args: argparse.Namespace):
         for value in args.set_level:
             level, raw = _assignment(value)
             levels[level] = [name for name in raw.split(",") if name]
-    elif args.set_level or args.rm_level:
-        raise ValueError("--set-level and --rm-level apply only to quality/evidence Gates")
     if args.gate_name == "quality":
         _put_checks(
             info["structure_checks"],
@@ -1011,6 +1010,7 @@ def run(args: argparse.Namespace) -> int:
                 fields = (
                     "source_revision", "source_digest", "policy_revision", "policy_digest",
                     "generation_id", "generation_digest", "is_synchronized", "certificate_state",
+                    "runtime_policy_current",
                     "target_precondition_satisfied", "ingest_ready", "release_state", "next_action",
                 )
                 emit_envelope(

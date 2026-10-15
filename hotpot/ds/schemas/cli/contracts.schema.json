@@ -10,6 +10,210 @@
       "type": "object", "required": [], "properties": {},
       "patternProperties": {".+": {}}, "additionalProperties": false
     },
+    "jsonValue": {
+      "anyOf": [
+        {"type": "null"}, {"type": "boolean"}, {"type": "number"},
+        {"type": "string"},
+        {"type": "array", "items": {"$ref": "#/$defs/jsonValue"}},
+        {"$ref": "#/$defs/jsonMap"}
+      ]
+    },
+    "jsonMap": {
+      "type": "object", "required": [], "properties": {},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "identifierValue": {
+      "anyOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true}
+      ]
+    },
+    "identifierMap": {
+      "type": "object", "required": [], "properties": {},
+      "patternProperties": {".+": {"$ref": "#/$defs/identifierValue"}},
+      "additionalProperties": false
+    },
+    "entityFact": {
+      "type": "object", "required": ["entity_id"],
+      "properties": {"entity_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "structureFact": {
+      "type": "object", "required": ["structure_id"],
+      "properties": {"structure_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "observationFact": {
+      "type": "object", "required": ["observation_id"],
+      "properties": {"observation_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "claimFact": {
+      "type": "object", "required": ["claim_id"],
+      "properties": {"claim_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "evidenceFact": {
+      "type": "object", "required": ["evidence_id"],
+      "properties": {"evidence_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "verificationFact": {
+      "type": "object", "required": ["verification_id"],
+      "properties": {"verification_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "attestationFact": {
+      "type": "object", "required": ["attestation_id"],
+      "properties": {"attestation_id": {"$ref": "#/$defs/nonempty"}},
+      "patternProperties": {".+": {"$ref": "#/$defs/jsonValue"}},
+      "additionalProperties": false
+    },
+    "caseFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "local_id", "public_index", "identifiers", "metadata", "core_info", "entities", "structures", "observations", "claims", "evidence", "verifications", "attestations"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonempty"},
+        "local_id": {"$ref": "#/$defs/nonempty"},
+        "public_index": {"type": "integer", "minimum": 0},
+        "identifiers": {"$ref": "#/$defs/jsonMap"},
+        "metadata": {"$ref": "#/$defs/jsonMap"},
+        "core_info": {"$ref": "#/$defs/jsonMap"},
+        "entities": {"type": "array", "items": {"$ref": "#/$defs/entityFact"}},
+        "structures": {"type": "array", "items": {"$ref": "#/$defs/structureFact"}},
+        "observations": {"type": "array", "items": {"$ref": "#/$defs/observationFact"}},
+        "claims": {"type": "array", "items": {"$ref": "#/$defs/claimFact"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidenceFact"}},
+        "verifications": {"type": "array", "items": {"$ref": "#/$defs/verificationFact"}},
+        "attestations": {"type": "array", "items": {"$ref": "#/$defs/attestationFact"}},
+        "claimed_quality_level": {"$ref": "#/$defs/jsonValue"},
+        "claimed_evidence_level": {"$ref": "#/$defs/jsonValue"},
+        "claimed_archive_class": {"$ref": "#/$defs/jsonValue"},
+        "claimed_benchmark": {"$ref": "#/$defs/jsonValue"}
+      }
+    },
+    "checkResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "status", "passed", "reason"],
+      "properties": {
+        "kind": {"enum": ["builtin", "custom"]},
+        "status": {"enum": ["disabled", "passed", "failed", "checker_error"]},
+        "passed": {"type": "boolean"},
+        "reason": {"$ref": "#/$defs/nonempty"},
+        "error_type": {"$ref": "#/$defs/nonempty"}
+      }
+    },
+    "checkResultMap": {
+      "type": "object", "required": [], "properties": {},
+      "patternProperties": {".+": {"$ref": "#/$defs/checkResult"}},
+      "additionalProperties": false
+    },
+    "reasonRecord": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"$ref": "#/$defs/nonempty"},
+        "message": {"$ref": "#/$defs/nonempty"},
+        "details": {"$ref": "#/$defs/jsonMap"}
+      }
+    },
+    "caseAssessment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "quality_level", "evidence_level", "evidence_levels", "archive_class", "benchmark", "benchmark_status", "completeness", "integrity_status", "attestation_status", "conflict_status", "checklist", "direct_entry", "veto_passed", "identity_determinate", "gate_results", "reasons", "input_digest", "asset_assessments", "conflict_assessments", "identity_reasons", "governance_assessments"],
+      "properties": {
+        "case_id": {"$ref": "#/$defs/nonempty"},
+        "quality_level": {"enum": ["B0", "B1", "B2", "B3", "B4"]},
+        "evidence_level": {"enum": [null, "E0", "E1", "E2", "E3", "E4"]},
+        "evidence_levels": {
+          "type": "object", "required": [], "properties": {},
+          "patternProperties": {".+": {"enum": ["E0", "E1", "E2", "E3", "E4"]}},
+          "additionalProperties": false
+        },
+        "archive_class": {"enum": ["incomplete", "ordinary", "benchmark"]},
+        "benchmark": {"type": "boolean"},
+        "benchmark_status": {"enum": ["ineligible", "admitted", "rejected", "vetoed", "not_admitted"]},
+        "completeness": {"enum": ["incomplete", "complete"]},
+        "integrity_status": {"enum": ["valid", "invalid", "indeterminate"]},
+        "attestation_status": {"enum": ["approved", "rejected", "disagreement", "none"]},
+        "conflict_status": {"enum": ["clear", "conflict", "indeterminate"]},
+        "checklist": {
+          "type": "object", "required": [], "properties": {},
+          "patternProperties": {".+": {"type": "boolean"}},
+          "additionalProperties": false
+        },
+        "direct_entry": {"type": "boolean"},
+        "veto_passed": {"type": "boolean"},
+        "identity_determinate": {"type": "boolean"},
+        "gate_results": {
+          "type": "object", "additionalProperties": false,
+          "required": ["evidence", "quality", "structure", "benchmark_checklist", "benchmark_direct_entry", "benchmark_vetoes"],
+          "properties": {
+            "evidence": {
+              "type": "object", "required": [], "properties": {},
+              "patternProperties": {".+": {"$ref": "#/$defs/checkResultMap"}},
+              "additionalProperties": false
+            },
+            "quality": {"$ref": "#/$defs/checkResultMap"},
+            "structure": {"$ref": "#/$defs/checkResultMap"},
+            "benchmark_checklist": {"$ref": "#/$defs/checkResultMap"},
+            "benchmark_direct_entry": {"$ref": "#/$defs/checkResultMap"},
+            "benchmark_vetoes": {"$ref": "#/$defs/checkResultMap"}
+          }
+        },
+        "reasons": {"type": "array", "items": {"$ref": "#/$defs/reasonRecord"}},
+        "input_digest": {"$ref": "#/$defs/sha256"},
+        "asset_assessments": {"type": "array", "items": {"$ref": "#/$defs/jsonMap"}},
+        "conflict_assessments": {"type": "array", "items": {"$ref": "#/$defs/jsonMap"}},
+        "identity_reasons": {"type": "array", "items": {"$ref": "#/$defs/reasonRecord"}},
+        "governance_assessments": {"type": "array", "items": {"$ref": "#/$defs/jsonMap"}}
+      }
+    },
+    "caseInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "local_id", "public_index", "identifiers", "metadata", "core_info", "entities", "structures", "observations", "claims", "evidence", "verifications", "attestations"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonempty"},
+        "local_id": {"$ref": "#/$defs/nonempty"},
+        "public_index": {"type": "integer", "minimum": 0},
+        "identifiers": {"$ref": "#/$defs/jsonMap"},
+        "metadata": {"$ref": "#/$defs/jsonMap"},
+        "core_info": {"$ref": "#/$defs/jsonMap"},
+        "entities": {"type": "array", "items": {"$ref": "#/$defs/entityFact"}},
+        "structures": {"type": "array", "items": {"$ref": "#/$defs/structureFact"}},
+        "observations": {"type": "array", "items": {"$ref": "#/$defs/observationFact"}},
+        "claims": {"type": "array", "items": {"$ref": "#/$defs/claimFact"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidenceFact"}},
+        "verifications": {"type": "array", "items": {"$ref": "#/$defs/verificationFact"}},
+        "attestations": {"type": "array", "items": {"$ref": "#/$defs/attestationFact"}},
+        "claimed_quality_level": {"$ref": "#/$defs/jsonValue"},
+        "claimed_evidence_level": {"$ref": "#/$defs/jsonValue"},
+        "claimed_archive_class": {"$ref": "#/$defs/jsonValue"},
+        "claimed_benchmark": {"$ref": "#/$defs/jsonValue"},
+        "assessment": {"$ref": "#/$defs/caseAssessment"}
+      }
+    },
+    "targetStructure": {
+      "type": "object", "additionalProperties": false,
+      "required": ["structure_id", "format", "role", "primary", "sha256", "size", "path"],
+      "properties": {
+        "structure_id": {"$ref": "#/$defs/nonempty"},
+        "format": {"$ref": "#/$defs/nonempty"},
+        "role": {"$ref": "#/$defs/nonempty"},
+        "primary": {"type": "boolean"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size": {"$ref": "#/$defs/count"},
+        "path": {"$ref": "#/$defs/nonempty"}
+      }
+    },
     "stringCountMap": {
       "type": "object", "required": [], "properties": {},
       "patternProperties": {".+": {"type": "integer", "minimum": 0}},
@@ -57,12 +261,41 @@
     "bundleSummary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cases", "archive_class", "quality", "evidence", "benchmark", "reasons"],
+      "required": ["cases", "integrity", "completeness", "evidence", "quality", "benchmark", "attestation", "conflict", "reasons"],
       "properties": {
         "cases": {"$ref": "#/$defs/count"},
-        "archive_class": {"$ref": "#/$defs/stringCountMap"}, "quality": {"$ref": "#/$defs/stringCountMap"},
-        "evidence": {"$ref": "#/$defs/stringCountMap"}, "benchmark": {"$ref": "#/$defs/stringCountMap"},
-        "reasons": {"$ref": "#/$defs/stringCountMap"}
+        "integrity": {
+          "type": "object", "additionalProperties": false, "required": ["status"],
+          "properties": {"status": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "completeness": {
+          "type": "object", "additionalProperties": false, "required": ["status", "archive_class"],
+          "properties": {"status": {"$ref": "#/$defs/stringCountMap"}, "archive_class": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "evidence": {
+          "type": "object", "additionalProperties": false, "required": ["level"],
+          "properties": {"level": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "quality": {
+          "type": "object", "additionalProperties": false, "required": ["level"],
+          "properties": {"level": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "benchmark": {
+          "type": "object", "additionalProperties": false, "required": ["status"],
+          "properties": {"status": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "attestation": {
+          "type": "object", "additionalProperties": false, "required": ["status"],
+          "properties": {"status": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "conflict": {
+          "type": "object", "additionalProperties": false, "required": ["status"],
+          "properties": {"status": {"$ref": "#/$defs/stringCountMap"}}
+        },
+        "reasons": {
+          "type": "object", "additionalProperties": false, "required": ["code"],
+          "properties": {"code": {"$ref": "#/$defs/stringCountMap"}}
+        }
       }
     },
     "caseCriteria": {
@@ -122,12 +355,19 @@
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string"}, "record_id": {"type": "string"},
-        "local_id": {"type": "string"}, "dataset": {"type": "string"},
-        "release_id": {"type": "string"}, "metadata": {}, "facts": {},
-        "labels": {}, "identifiers": {}, "entities": {}, "structures": {},
-        "quality_level": {"type": "string"}, "evidence_level": {"type": ["string", "null"]},
-        "archive_class": {"type": "string"}, "assessment": {}
+        "id": {"$ref": "#/$defs/nonempty"}, "record_id": {"$ref": "#/$defs/nonempty"},
+        "local_id": {"$ref": "#/$defs/nonempty"}, "dataset": {"$ref": "#/$defs/nonempty"},
+        "release_id": {"$ref": "#/$defs/nonempty"},
+        "metadata": {"$ref": "#/$defs/jsonMap"},
+        "facts": {"$ref": "#/$defs/caseFacts"},
+        "labels": {"$ref": "#/$defs/jsonMap"},
+        "identifiers": {"$ref": "#/$defs/identifierMap"},
+        "entities": {"type": "array", "items": {"$ref": "#/$defs/entityFact"}},
+        "structures": {"type": "array", "items": {"$ref": "#/$defs/targetStructure"}},
+        "quality_level": {"enum": ["B0", "B1", "B2", "B3", "B4"]},
+        "evidence_level": {"enum": [null, "E0", "E1", "E2", "E3", "E4"]},
+        "archive_class": {"enum": ["incomplete", "ordinary", "benchmark"]},
+        "assessment": {"$ref": "#/$defs/caseAssessment"}
       }
     },
     "dataset_list_result": {
@@ -215,12 +455,12 @@
     "case_info_result": {
       "type": "object", "additionalProperties": false,
       "required": ["bundle", "case_id", "info"],
-      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "case_id": {"type": "string"}, "info": {"$ref": "#/$defs/jsonObject"}}
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "case_id": {"type": "string"}, "info": {"$ref": "#/$defs/caseInfo"}}
     },
     "case_assessment_result": {
       "type": "object", "additionalProperties": false,
       "required": ["bundle", "case_id", "assessment"],
-      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "case_id": {"type": "string"}, "assessment": {"$ref": "#/$defs/jsonObject"}}
+      "properties": {"bundle": {"$ref": "#/$defs/bundleLocator"}, "case_id": {"type": "string"}, "assessment": {"$ref": "#/$defs/caseAssessment"}}
     },
     "bundle_mutation_result": {
       "type": "object", "additionalProperties": false,
@@ -243,13 +483,14 @@
     },
     "bundle_status_result": {
       "type": "object", "additionalProperties": false,
-      "required": ["bundle", "source_revision", "source_digest", "policy_revision", "policy_digest", "generation_id", "generation_digest", "is_synchronized", "certificate_state", "target_precondition_satisfied", "ingest_ready", "release_state", "next_action"],
+      "required": ["bundle", "source_revision", "source_digest", "policy_revision", "policy_digest", "generation_id", "generation_digest", "is_synchronized", "certificate_state", "runtime_policy_current", "target_precondition_satisfied", "ingest_ready", "release_state", "next_action"],
       "properties": {
         "bundle": {"$ref": "#/$defs/bundleLocator"}, "source_revision": {"$ref": "#/$defs/count"},
         "source_digest": {"$ref": "#/$defs/sha256"}, "policy_revision": {"$ref": "#/$defs/count"},
         "policy_digest": {"$ref": "#/$defs/sha256"}, "generation_id": {"type": ["string", "null"]},
         "generation_digest": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
         "is_synchronized": {"type": "boolean"}, "certificate_state": {"type": "string"},
+        "runtime_policy_current": {"type": "boolean"},
         "target_precondition_satisfied": {"type": "boolean"}, "ingest_ready": {"type": "boolean"},
         "release_state": {"type": "string"}, "next_action": {"type": "string"}
       }

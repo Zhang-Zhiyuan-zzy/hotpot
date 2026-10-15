@@ -1086,6 +1086,11 @@ class TargetStore:
                   sha256 TEXT PRIMARY KEY,
                   size INTEGER NOT NULL
                 );
+                CREATE TABLE spool_asset_sources(
+                  source_path TEXT PRIMARY KEY,
+                  sha256 TEXT NOT NULL,
+                  size INTEGER NOT NULL
+                );
                 CREATE TABLE spool_structures(
                   case_id TEXT NOT NULL,
                   structure_order INTEGER NOT NULL,
@@ -1221,21 +1226,44 @@ class TargetStore:
     def _spool_asset(
         self, spool: sqlite3.Connection, descriptor: Mapping[str, Any]
     ) -> None:
-        inserted = spool.execute(
+        source_inserted = spool.execute(
+            "INSERT OR IGNORE INTO spool_asset_sources(source_path,sha256,size) "
+            "VALUES(?,?,?)",
+            (
+                descriptor["source_path"],
+                descriptor["sha256"],
+                descriptor["size"],
+            ),
+        ).rowcount
+        if not source_inserted:
+            source_claim = spool.execute(
+                "SELECT sha256,size FROM spool_asset_sources WHERE source_path=?",
+                (descriptor["source_path"],),
+            ).fetchone()
+            if source_claim != (descriptor["sha256"], descriptor["size"]):
+                raise AssetIntegrityError(
+                    "one source asset path was declared with conflicting content"
+                )
+
+        content_inserted = spool.execute(
             "INSERT OR IGNORE INTO spool_assets(sha256,size) VALUES(?,?)",
             (descriptor["sha256"], descriptor["size"]),
         ).rowcount
-        if inserted:
-            self._store_asset(descriptor)
-            return
-        existing_size = spool.execute(
-            "SELECT size FROM spool_assets WHERE sha256=?",
-            (descriptor["sha256"],),
-        ).fetchone()[0]
-        if existing_size != descriptor["size"]:
-            raise AssetIntegrityError(
-                "one content digest was declared with different sizes"
-            )
+        if not content_inserted:
+            existing_size = spool.execute(
+                "SELECT size FROM spool_assets WHERE sha256=?",
+                (descriptor["sha256"],),
+            ).fetchone()[0]
+            if existing_size != descriptor["size"]:
+                raise AssetIntegrityError(
+                    "one content digest was declared with different sizes"
+                )
+
+        if source_inserted:
+            if content_inserted:
+                self._store_asset(descriptor)
+            else:
+                self._verify_asset_source(descriptor)
 
     @staticmethod
     def _normalize_control_asset(item: Mapping[str, Any]) -> Dict[str, Any]:
@@ -1321,7 +1349,8 @@ class TargetStore:
         _canonical_json(normalized)
         return normalized
 
-    def _store_asset(self, descriptor: Mapping[str, Any]) -> None:
+    @staticmethod
+    def _verify_asset_source(descriptor: Mapping[str, Any]) -> None:
         source = Path(descriptor["source_path"])
         expected_digest = descriptor["sha256"]
         expected_size = descriptor["size"]
@@ -1330,6 +1359,12 @@ class TargetStore:
         source_digest, source_size = _sha256_file(source)
         if source_digest != expected_digest or source_size != expected_size:
             raise AssetIntegrityError(f"source asset does not match its declaration: {source}")
+
+    def _store_asset(self, descriptor: Mapping[str, Any]) -> None:
+        self._verify_asset_source(descriptor)
+        source = Path(descriptor["source_path"])
+        expected_digest = descriptor["sha256"]
+        expected_size = descriptor["size"]
 
         parent = self.asset_root / "objects" / "sha256" / expected_digest[:2]
         parent.mkdir(parents=True, exist_ok=True)

@@ -12,6 +12,7 @@ import hotpot.ds.storage as storage_module
 from hotpot.ds.public._implementation import runtime_policy
 from hotpot.ds.storage import (
     TARGET_SCHEMA_ID,
+    AssetIntegrityError,
     SnapshotError,
     TargetStore,
     asset_inventory_digest,
@@ -165,6 +166,68 @@ def test_ingest_verifies_and_copies_each_unique_asset_once(
         "scientific_asset_refs": 2,
         "release_control_asset_refs": 1,
     }
+
+
+def test_ingest_verifies_each_distinct_source_path_once(
+    tmp_path: Path, monkeypatch
+) -> None:
+    first = tmp_path / "first.xyz"
+    second = tmp_path / "second.xyz"
+    payload = "1\n\nEu 0 0 0\n"
+    first.write_text(payload, encoding="utf-8")
+    second.write_text(payload, encoding="utf-8")
+    control = {
+        "category": "checker",
+        "name": "first.xyz",
+        **_asset(first),
+    }
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    verified_paths = []
+    original = TargetStore._verify_asset_source
+
+    def counted_verify(descriptor):
+        verified_paths.append(Path(descriptor["source_path"]))
+        return original(descriptor)
+
+    monkeypatch.setattr(
+        TargetStore,
+        "_verify_asset_source",
+        staticmethod(counted_verify),
+    )
+    store.ingest(_snapshot(store, [_case("case-a", 0, second)], [control]))
+
+    assert verified_paths == [first.resolve(), second.resolve()]
+    with sqlite3.connect(store.path) as connection:
+        asset_count = connection.execute(
+            "SELECT COUNT(*) FROM target_assets"
+        ).fetchone()[0]
+    assert asset_count == 1
+
+
+def test_digest_dedup_does_not_trust_an_unverified_source_path(
+    tmp_path: Path,
+) -> None:
+    valid = tmp_path / "valid.xyz"
+    malicious = tmp_path / "malicious.xyz"
+    valid.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    malicious.write_text("1\n\nAm 0 0 0\n", encoding="utf-8")
+    valid_asset = _asset(valid)
+    assert valid_asset["size"] == _asset(malicious)["size"]
+    control = {
+        "category": "checker",
+        "name": "valid.xyz",
+        **valid_asset,
+    }
+    case = _case("case-a", 0, malicious)
+    for descriptor in case["structures"] + case["assets"]:
+        descriptor["sha256"] = valid_asset["sha256"]
+        descriptor["size"] = valid_asset["size"]
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+
+    with pytest.raises(AssetIntegrityError, match="does not match its declaration"):
+        store.ingest(_snapshot(store, [case], [control]))
+
+    assert store.load_release_metadata("spin", "release-1") is None
 
 
 def test_ingest_commit_does_not_reparse_case_json(

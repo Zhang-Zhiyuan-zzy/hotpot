@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from hotpot.ds.gates import BenchmarkGate, EvidenceGate, QualityGate
+from hotpot.ds.gates._checker import CHECKER_PROTOCOL_DIGEST
 from hotpot.ds.tools.migrate_legacy_store import load_bootstraps
 
 
@@ -28,6 +29,10 @@ def test_owner_migration_bootstrap_is_explicit_and_current() -> None:
         assert dataset.include_incomplete is True
         assert dataset.owner == "Hotpot dataset owner"
         assert dataset.decision
+        assert all(
+            gate.info["checker_protocol_digest"] == CHECKER_PROTOCOL_DIGEST
+            for gate in dataset.gates
+        )
 
     assert datasets["csd-electronic-state"].core_labels == ()
     assert datasets["csd-electronic-state"].required_structure_roles == ()

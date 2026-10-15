@@ -34,7 +34,7 @@
     "provenance": {"type": "object"},
     "core_labels": {"$ref": "#/$defs/uniqueStrings"},
     "core_info": {"$ref": "#/$defs/uniqueStrings"},
-    "identity_schema": {"type": "object"},
+    "identity_schema": {"$ref": "#/$defs/identitySchema"},
     "property_definitions": {
       "type": "object",
       "propertyNames": {"$ref": "#/$defs/nonempty"},
@@ -74,6 +74,37 @@
       "type": "array",
       "items": {"$ref": "#/$defs/nonempty"},
       "uniqueItems": true
+    },
+    "identitySchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components"],
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/identityComponent"}
+        }
+      }
+    },
+    "identityComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "path"],
+      "properties": {
+        "key": {"$ref": "#/$defs/nonempty"},
+        "path": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)*$"
+        },
+        "required": {"type": "boolean"},
+        "value_kind": {"enum": ["text", "number", "boolean", "set", "json"]},
+        "normalizer": {"enum": ["text", "casefold", "number", "boolean", "set", "json"]},
+        "comparator": {"const": "exact"},
+        "structure_role": {"$ref": "#/$defs/nonempty"},
+        "mismatch_is_decisive": {"type": "boolean"},
+        "implementation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "protocol_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
     },
     "propertyDefinition": {
       "type": "object",

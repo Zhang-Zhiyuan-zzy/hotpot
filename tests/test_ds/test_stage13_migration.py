@@ -356,7 +356,8 @@ def test_export_preserves_source_rows_ids_indices_and_asset_hash(tmp_path):
     assert case["metadata"]["migration_rows"]["observations"][0]["value_json"] == "2"
     assert len(case["observations"]) == 1
     assert case["claims"][0]["claim_id"] == "claim:sample-1:reported-spin"
-    assert case["claims"][0]["status"] == "unresolved"
+    assert case["claims"][0]["status"] == "active"
+    assert case["claims"][0]["resolution_status"] == "unresolved"
     assert case["claims"][0]["claimed_evidence_level"] == "E3_supplier_claim"
     assert case["verifications"] == []
     assert case["claimed_benchmark"] is True

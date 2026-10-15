@@ -1095,19 +1095,7 @@ class TargetStore:
             )
             for item in control_assets:
                 asset = self._normalize_control_asset(item)
-                self._store_asset(asset)
-                existing = spool.execute(
-                    "SELECT size FROM spool_assets WHERE sha256=?",
-                    (asset["sha256"],),
-                ).fetchone()
-                if existing is not None and existing[0] != asset["size"]:
-                    raise AssetIntegrityError(
-                        "one content digest was declared with different sizes"
-                    )
-                spool.execute(
-                    "INSERT OR IGNORE INTO spool_assets(sha256,size) VALUES(?,?)",
-                    (asset["sha256"], asset["size"]),
-                )
+                self._spool_asset(spool, asset)
                 spool.execute(
                     "INSERT INTO spool_control_assets(category,name,asset_json) "
                     "VALUES(?,?,?)",
@@ -1121,20 +1109,12 @@ class TargetStore:
                 selected = archive_class != "incomplete" or include_incomplete
                 if selected:
                     included += 1
-                    for asset in normalized["assets"]:
-                        self._store_asset(asset)
-                        existing = spool.execute(
-                            "SELECT size FROM spool_assets WHERE sha256=?",
-                            (asset["sha256"],),
-                        ).fetchone()
-                        if existing is not None and existing[0] != asset["size"]:
-                            raise AssetIntegrityError(
-                                "one content digest was declared with different sizes"
-                            )
-                        spool.execute(
-                            "INSERT OR IGNORE INTO spool_assets(sha256,size) VALUES(?,?)",
-                            (asset["sha256"], asset["size"]),
-                        )
+                    for descriptors in (
+                        normalized["structures"],
+                        normalized["assets"],
+                    ):
+                        for asset in descriptors:
+                            self._spool_asset(spool, asset)
                 else:
                     excluded += 1
                 spool.execute(
@@ -1155,6 +1135,25 @@ class TargetStore:
             raise SnapshotError(f"duplicate Case identity or index: {exc}") from exc
         finally:
             spool.close()
+
+    def _spool_asset(
+        self, spool: sqlite3.Connection, descriptor: Mapping[str, Any]
+    ) -> None:
+        inserted = spool.execute(
+            "INSERT OR IGNORE INTO spool_assets(sha256,size) VALUES(?,?)",
+            (descriptor["sha256"], descriptor["size"]),
+        ).rowcount
+        if inserted:
+            self._store_asset(descriptor)
+            return
+        existing_size = spool.execute(
+            "SELECT size FROM spool_assets WHERE sha256=?",
+            (descriptor["sha256"],),
+        ).fetchone()[0]
+        if existing_size != descriptor["size"]:
+            raise AssetIntegrityError(
+                "one content digest was declared with different sizes"
+            )
 
     @staticmethod
     def _normalize_control_asset(item: Mapping[str, Any]) -> Dict[str, Any]:

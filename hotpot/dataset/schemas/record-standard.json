@@ -123,8 +123,16 @@
       "evidence_id",
       "target",
       "source",
+      "source_kind",
       "relation",
       "locator"
+    ],
+    "source_kind_values": [
+      "primary_literature",
+      "secondary_literature",
+      "database_record",
+      "expert_statement",
+      "other"
     ],
     "primary_source_identifiers": [
       "doi",
@@ -142,7 +150,10 @@
     ],
     "rules": [
       "Evidence is assessed for each active observation or claim target.",
+      "source_kind is an explicit closed classification. A DOI, scientific_work_id, or URL identifies a source but never implies primary_literature.",
+      "An identified source without source_kind is preserved but cannot count as primary support; an out-of-vocabulary source_kind is an integrity defect and makes the Case incomplete.",
       "A source link alone proves neither primary-source verification nor independent corroboration.",
+      "File-backed Evidence with missing bytes or a declared SHA-256 mismatch is excluded from support calculation and records an evidence-asset reason; that negative fact alone does not make the Case incomplete.",
       "Independent corroboration requires distinct scientific works and distinct primary result-lineage roots."
     ]
   },
@@ -157,13 +168,18 @@
       "AI",
       "Human"
     ],
-    "ai_assurance_fields": [
+    "ai_required_fields": [
+      "verifier",
+      "tool",
+      "tool_version",
       "procedure_version",
       "verified_at"
     ],
+    "linked_evidence_requirement": "For E3, the verified Evidence must be primary_literature, carry a DOI, scientific_work_id, or HTTP(S) URL, and provide locator, quote, or matched_text.",
     "rules": [
       "Human verification is strong support when it checks an identified primary source and its relevant statement.",
-      "AI verification reaches primary-source support only when verifier, procedure_version, verified_at, and a checked source locator are present.",
+      "Human verification requires a non-empty attributable verifier.",
+      "AI verification reaches primary-source support only when verifier, tool, tool_version, procedure_version, timezone-aware verified_at, and a checked source locator are present.",
       "Verification is an auditable fact and does not directly assign an E level."
     ]
   },
@@ -265,7 +281,19 @@
     "source_authority": "bundle.json plus canonical cases/facts.sqlite3 and referenced scientific assets.",
     "derived_authority": "One immutable assessment generation produced only by Bundle.synchronize().",
     "audit_rule": "Every Case or new-dataset Gate edit appends an event, advances a revision, makes derived results unavailable as current, and makes any certificate stale.",
-    "separation_rule": "Synchronization assesses; certification serializes and verifies; ingestion publishes. None implicitly performs an earlier step."
+    "separation_rule": "Synchronization assesses; certification serializes and verifies; ingestion publishes. None implicitly performs an earlier step.",
+    "summary_top_level": [
+      "cases",
+      "integrity",
+      "completeness",
+      "evidence",
+      "quality",
+      "benchmark",
+      "attestation",
+      "conflict",
+      "reasons"
+    ],
+    "summary_rule": "Archive-class counts are stored under completeness.archive_class; all other sections report their named status, level, or reason-code counts."
   },
   "runtime_policy": {
     "authority": "The persisted dataset policy contains one complete self-digesting hotpot-ds-runtime-policy/current document.",

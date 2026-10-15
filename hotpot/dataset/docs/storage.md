@@ -60,6 +60,41 @@ Local scientific paths must be safe relative POSIX paths inside the root. A
 missing remote or local asset is a declared negative fact. It is not silently
 downloaded or replaced with fabricated bytes.
 
+## Evidence and verification facts
+
+Evidence classification is explicit. When an Evidence record identifies a
+scientific source, its `source_kind` must use exactly one current value:
+
+- `primary_literature`;
+- `secondary_literature`;
+- `database_record`;
+- `expert_statement`;
+- `other`.
+
+A DOI, scientific-work identifier, or HTTP URL identifies a source; none of
+them implicitly makes that source primary literature. An identified source
+without `source_kind` remains preservable but cannot count as primary support.
+An out-of-vocabulary value is an integrity defect and makes the Case
+incomplete. Evidence also declares its target, relation, and, when it claims an
+explicit report, a usable `locator`, `quote`, or `matched_text`.
+
+File-backed Evidence participates in the same scientific-asset inventory as
+Structure representations. Its asset assessment is usable for EvidenceGate
+only when the declared bytes are present and no declared SHA-256 mismatch is
+found. Missing bytes and hash mismatch produce `evidence_asset_missing` and
+`evidence_asset_hash_mismatch` reasons and remove that Evidence row from the
+support calculation. These negative asset facts are certificate-bound. They do
+not alone force the Case into `incomplete`; if no other usable support remains,
+the affected target receives E0 under the default EvidenceGate.
+
+Human verification requires an attributable non-empty verifier. AI
+verification additionally requires `tool`, `tool_version`,
+`procedure_version`, and a timezone-aware `verified_at`. E3 still requires the
+linked Evidence to identify `primary_literature` and to carry the relevant
+locator, quote, or matched text. E4 additionally requires two independently
+identified scientific works with disjoint primary result-lineage roots.
+Verification facts never assign E0-E4 directly.
+
 The persisted `identity_schema` is the sole cross-Case sample-identity policy.
 It is a closed object containing an array of typed, exactly compared
 components. Ordinary components address `core_info` or `identifiers`;
@@ -130,6 +165,13 @@ governance registry under a lock, reassesses the entire release, and atomically
 publishes a complete generation. A generation becomes current only after every
 manifest-listed file and digest is complete. Derived values are unavailable
 through normal public reads while facts and the current generation disagree.
+
+Every generation summary has one fixed top-level shape: `cases`, `integrity`,
+`completeness`, `evidence`, `quality`, `benchmark`, `attestation`, `conflict`,
+and `reasons`. Archive-class counts are under
+`completeness.archive_class`; the other sections report their own status,
+level, or reason-code counts. This aggregate is derived from the authoritative
+Case assessments and is bound by the generation manifest and certificate.
 
 `Bundle.write_certificate()` accepts only a synchronized Bundle. The root
 certificate binds source and policy revisions/digests, the complete generation
@@ -227,43 +269,28 @@ are the only public opt-ins. Filtering cannot reintroduce classes excluded at
 load time. Persistent public indices and Hotpot IDs never change because a
 class is hidden.
 
-## Current-only migration and cutover
+## Administrative store replacement
 
-Existing oxidation, spin, CSD electronic-state, and other stores require a
-one-time rebuild. Never migrate the only live database in place and never query
-the old database as a fallback.
+The public runtime has no migration or compatibility path. It opens only the
+current schema selected by `store/active`; historical conversion programs are
+not public data-management interfaces and are not used during query, Bundle
+assessment, certification, or ingestion. Conversion inventories, identity
+maps, parity reports, and owner decisions remain release audit artifacts.
 
-The required cutover is:
+An owner-directed schema replacement or recovery is built beside the active
+store. The operation must preserve canonical facts and scientific assets,
+record any identity transformation explicitly, synchronize and certify every
+affected release, ingest into a complete new target and adjacent asset store,
+and compare source facts, assets, identifiers, relationships, stable public
+indices, and assessment-class counts. Any unexplained difference blocks
+activation. `store/active` changes only after integrity and parity checks pass.
 
-1. Snapshot the current store and record database/file digests.
-2. Freeze the exact legacy identity and relationship rows in a
-   certificate-bound migration inventory.
-3. Export each dataset release to one current-format Bundle root.
-4. Verify source assets and preserve structure bytes, stored representations,
-   labels, values, units, conditions, citations, and source relationships.
-5. Emit an explicit identity migration map for every retained, split,
-   replaced, or unresolved legacy relation.
-6. Bootstrap one owner-approved current assessment policy per dataset.
-7. Synchronize every release and generate a new root certificate.
-8. Ingest into a new temporary current-schema target and its asset area.
-9. Compare source-fact counts/digests, persistent indices, Hotpot IDs, assets,
-   labels, sources, identities, relationships, and archive-class counts.
-10. Atomically switch the configured store only after the parity report passes.
-
-Legacy asset-derived entity or Structure IDs remain provenance aliases; they
-are not reused as scientific sample identity without independent support.
-Shared bytes remain deduplicated without merging subjects. Any changed
-operative relationship must be explained by the certificate-bound migration
-map.
-
-Classification changes are expected: invalid/missing required structures,
-missing core data, and significant unresolved conflicts move to incomplete;
-complete Cases are ordinary unless BenchmarkGate admits them. Such changes are
-reported separately from source-content parity. An unexplained source-fact or
-asset difference blocks cutover.
-
-The previous database remains an immutable rollback artifact until acceptance
-finishes. It is never a compatibility backend for the new runtime.
+Identifiers historically derived from asset bytes remain provenance aliases;
+they are not reused as scientific sample or Structure identity without
+independent support. Shared bytes may remain deduplicated without merging
+Cases, subjects, or Structures. The replaced store remains an immutable audit
+or rollback artifact for the retention period and is never queried as a
+fallback backend.
 
 ## Distribution and licensing
 

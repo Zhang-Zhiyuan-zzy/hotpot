@@ -54,9 +54,10 @@ hotpot/dataset/data/store/active/datasets.sqlite3.assets/
 
 Package code resolves these locations through `hotpot.ds._paths`. Scripts must
 not introduce another dataset payload root. `store/active` is a directory
-symlink to one complete directory below `store/generations`; owner migration
-tools replace that pointer atomically only after the database and adjacent
-asset store pass parity checks.
+symlink to one complete directory below `store/generations`; owner cutover or
+recovery operations replace that pointer atomically only after the database and
+adjacent asset store pass parity checks. These are administrative operations,
+not public query-time compatibility paths.
 
 ## Responsibility boundaries
 
@@ -72,8 +73,8 @@ asset store pass parity checks.
 
 Git is the implementation and schema history. Any checkout exposes exactly one
 current Bundle format, target schema, Gate/checker protocol, certificate
-envelope, and CLI communication map. Old stores are migration inputs or
-rollback artifacts, never compatibility backends.
+envelope, and CLI communication map. Superseded stores are retained only as
+explicit audit or rollback artifacts, never as compatibility backends.
 
 ## Data model
 
@@ -95,6 +96,14 @@ Quality and evidence are independent Case assessments. B0-B4 describes
 curation and validation strength; E0-E4 describes the linked support for a
 claim or observation. Neither is assigned directly by a source row. Benchmark
 membership is a third, policy-controlled decision.
+
+Evidence source type is an explicit fact, not something inferred from a URL or
+DOI. The current closed values are `primary_literature`,
+`secondary_literature`, `database_record`, `expert_statement`, and `other`.
+AI verification is usable only when it records the verifier, tool and tool
+version, procedure version, a timezone-aware timestamp, and a locator or quote
+on the linked evidence. Missing or hash-mismatched file-backed evidence is
+retained as a negative asset fact and cannot contribute support until repaired.
 
 Property domains remain independent. Oxidation state, spin state, formal
 charge, stability constants, separation factor, distribution ratio, spectra,
@@ -120,4 +129,4 @@ scientific asset into target-owned content-addressed storage and records an
 authoritative receipt.
 
 See the [public API](../ds/README.md), [CLI reference](../ds/cli_doc.md), and
-[storage and migration contract](docs/storage.md).
+[storage and cutover contract](docs/storage.md).

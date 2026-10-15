@@ -136,6 +136,10 @@ class ConcurrentStateError(BundleStateError):
     """Raised when a compare-and-swap publication observes changed inputs."""
 
 
+class DirtySourceStateError(BundleStateError):
+    """Raised when a complete source proof is required but is not current."""
+
+
 def _trusted_governance_binding() -> tuple[int, str]:
     """Return the current package-trusted registry revision and digest."""
 
@@ -885,9 +889,17 @@ class BundleState:
     @property
     def source_digest(self) -> str:
         with self.connect() as connection:
-            return self._compute_source_digest(
+            control = connection.execute(
+                "SELECT source_digest,source_digest_state FROM control WHERE singleton=1"
+            ).fetchone()
+            if control["source_digest_state"] != "current":
+                raise DirtySourceStateError(
+                    "Bundle source digest is dirty; refresh source state first"
+                )
+            digest = self._compute_source_digest(
                 connection, self._stored_manifest(connection)
             )
+            return digest
 
     @property
     def policy_digest(self) -> str:
@@ -897,9 +909,6 @@ class BundleState:
     def status(self) -> Dict[str, Any]:
         with self.connect() as connection:
             governance_revision, governance_digest = _trusted_governance_binding()
-            source_digest = self._compute_source_digest(
-                connection, self._stored_manifest(connection)
-            )
             policy_value = json.loads(
                 connection.execute(
                     "SELECT policy_json FROM policy WHERE singleton=1"
@@ -907,6 +916,12 @@ class BundleState:
             )
             policy_digest = _digest_json(policy_value)
             row = connection.execute("SELECT * FROM control WHERE singleton=1").fetchone()
+            if row["source_digest_state"] == "current":
+                source_digest = self._compute_source_digest(
+                    connection, self._stored_manifest(connection)
+                )
+            else:
+                source_digest = None
         status = dict(row)
         status["recorded_source_digest"] = status.pop("source_digest")
         status["recorded_policy_digest"] = status.pop("policy_digest")
@@ -917,6 +932,15 @@ class BundleState:
             "governance_registry_digest"
         )
         status["source_digest"] = source_digest
+        status["source_integrity"] = (
+            "dirty"
+            if status["source_digest_state"] == "dirty"
+            else (
+                "current"
+                if source_digest == status["recorded_source_digest"]
+                else "changed_out_of_band"
+            )
+        )
         status["policy_digest"] = policy_digest
         status["governance_registry_revision"] = governance_revision
         status["governance_registry_digest"] = governance_digest
@@ -926,6 +950,7 @@ class BundleState:
         status["is_synchronized"] = bool(
             status["current_generation_id"]
             and status["runtime_policy_current"]
+            and status["source_digest_state"] == "current"
             and status["source_revision"] == status["synchronized_source_revision"]
             and source_digest == status["recorded_source_digest"]
             and source_digest == status["synchronized_source_digest"]
@@ -941,12 +966,22 @@ class BundleState:
             and governance_digest
             == status["synchronized_governance_registry_digest"]
         )
+        projection = self.root / "audit" / "events.jsonl"
+        try:
+            projection_size = projection.stat().st_size
+        except OSError:
+            projection_size = None
+        status["audit_projection_current"] = bool(
+            status["audit_revision"] == status["audit_projection_revision"]
+            and projection_size == status["audit_projection_size"]
+        )
         status.pop("singleton", None)
         return _json_copy(status)
 
     def refresh_source_state(self) -> Dict[str, Any]:
-        """Audit an out-of-band scientific asset change as a source revision."""
+        """Create and persist a complete current source proof."""
 
+        projection_event = None
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
@@ -956,7 +991,10 @@ class BundleState:
                 digest = self._compute_source_digest(
                     connection, self._stored_manifest(connection)
                 )
-                if digest == control["source_digest"]:
+                if (
+                    control["source_digest_state"] == "current"
+                    and digest == control["source_digest"]
+                ):
                     connection.rollback()
                     return {
                         "changed": False,
@@ -964,48 +1002,77 @@ class BundleState:
                         "source_digest": digest,
                         "event_id": None,
                     }
-                revision = control["source_revision"] + 1
-                event_id = f"event-{uuid.uuid4().hex}"
-                connection.execute(
-                    "UPDATE control SET source_revision=?,source_digest=? "
-                    "WHERE singleton=1",
-                    (revision, digest),
-                )
-                connection.execute(
-                    """
-                    INSERT INTO audit_events(
-                        event_id, created_at, action, case_id, details_json,
-                        source_revision, policy_revision
-                    ) VALUES (?, ?, 'scientific_asset_state_changed', NULL, ?, ?, ?)
-                    """,
-                    (
-                        event_id,
-                        _utc_now(),
-                        _canonical_text(
-                            {
-                                "previous_source_digest": control["source_digest"],
-                                "current_source_digest": digest,
-                            }
+                if control["source_digest_state"] == "dirty":
+                    revision = control["source_revision"]
+                    event_id = None
+                    connection.execute(
+                        "UPDATE control SET source_digest=?, "
+                        "source_digest_state='current' WHERE singleton=1",
+                        (digest,),
+                    )
+                else:
+                    revision = control["source_revision"] + 1
+                    audit_revision = control["audit_revision"] + 1
+                    event_id = f"event-{uuid.uuid4().hex}"
+                    created_at = _utc_now()
+                    details = {
+                        "previous_source_digest": control["source_digest"],
+                        "current_source_digest": digest,
+                    }
+                    connection.execute(
+                        "UPDATE control SET source_revision=?,source_digest=?, "
+                        "source_digest_state='current',audit_revision=? "
+                        "WHERE singleton=1",
+                        (revision, digest, audit_revision),
+                    )
+                    connection.execute(
+                        """
+                        INSERT INTO audit_events(
+                            event_id, created_at, action, case_id, details_json,
+                            source_revision, policy_revision
+                        ) VALUES (?, ?, 'scientific_asset_state_changed', NULL, ?, ?, ?)
+                        """,
+                        (
+                            event_id,
+                            created_at,
+                            _canonical_text(details),
+                            revision,
+                            control["policy_revision"],
                         ),
-                        revision,
-                        control["policy_revision"],
-                    ),
-                )
+                    )
+                    projection_event = {
+                        "event_id": event_id,
+                        "created_at": created_at,
+                        "action": "scientific_asset_state_changed",
+                        "case_id": None,
+                        "details": details,
+                        "source_revision": revision,
+                        "policy_revision": control["policy_revision"],
+                    }
                 connection.commit()
             except Exception:
                 connection.rollback()
                 raise
-        self.write_audit_projection()
+        projection_updated = bool(
+            projection_event
+            and self._append_audit_projection_event(
+                projection_event,
+                expected_previous_revision=audit_revision - 1,
+                revision=audit_revision,
+            )
+        )
         return {
             "changed": True,
             "source_revision": revision,
             "source_digest": digest,
             "event_id": event_id,
+            "audit_projection_updated": projection_updated,
         }
 
     def refresh_governance_state(self) -> Dict[str, Any]:
         """Persist the latest trusted registry binding before reassessment."""
 
+        projection_event = None
         with self.connect() as connection:
             revision, digest = _trusted_governance_binding()
             connection.execute("BEGIN IMMEDIATE")
@@ -1032,11 +1099,19 @@ class BundleState:
                         "trusted governance registry digest changed without a revision"
                     )
                 event_id = f"event-{uuid.uuid4().hex}"
+                created_at = _utc_now()
+                audit_revision = control["audit_revision"] + 1
                 connection.execute(
                     "UPDATE control SET governance_registry_revision=?, "
-                    "governance_registry_digest=? WHERE singleton=1",
-                    (revision, digest),
+                    "governance_registry_digest=?,audit_revision=? WHERE singleton=1",
+                    (revision, digest, audit_revision),
                 )
+                details = {
+                    "previous_revision": previous_revision,
+                    "previous_digest": previous_digest,
+                    "current_revision": revision,
+                    "current_digest": digest,
+                }
                 connection.execute(
                     """
                     INSERT INTO audit_events(
@@ -1046,29 +1121,36 @@ class BundleState:
                     """,
                     (
                         event_id,
-                        _utc_now(),
-                        _canonical_text(
-                            {
-                                "previous_revision": previous_revision,
-                                "previous_digest": previous_digest,
-                                "current_revision": revision,
-                                "current_digest": digest,
-                            }
-                        ),
+                        created_at,
+                        _canonical_text(details),
                         control["source_revision"],
                         control["policy_revision"],
                     ),
                 )
+                projection_event = {
+                    "event_id": event_id,
+                    "created_at": created_at,
+                    "action": "governance_registry_advanced",
+                    "case_id": None,
+                    "details": details,
+                    "source_revision": control["source_revision"],
+                    "policy_revision": control["policy_revision"],
+                }
                 connection.commit()
             except Exception:
                 connection.rollback()
                 raise
-        self.write_audit_projection()
+        projection_updated = self._append_audit_projection_event(
+            projection_event,
+            expected_previous_revision=audit_revision - 1,
+            revision=audit_revision,
+        )
         return {
             "changed": True,
             "governance_registry_revision": revision,
             "governance_registry_digest": digest,
             "event_id": event_id,
+            "audit_projection_updated": projection_updated,
         }
 
     def mutate_case(
@@ -1078,6 +1160,7 @@ class BundleState:
         mutation: Callable[[Dict[str, Any]], tuple[Mapping[str, Any], Any]],
     ) -> Dict[str, Any]:
         _nonempty_string(action, "action")
+        projection_event = None
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
@@ -1107,16 +1190,15 @@ class BundleState:
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
                 revision = control["source_revision"] + 1
+                audit_revision = control["audit_revision"] + 1
                 connection.execute(
                     "UPDATE cases SET payload_json=? WHERE case_id=?",
                     (_canonical_text(case), case_id),
                 )
-                digest = self._compute_source_digest(
-                    connection, self._stored_manifest(connection)
-                )
                 connection.execute(
-                    "UPDATE control SET source_revision=?, source_digest=? WHERE singleton=1",
-                    (revision, digest),
+                    "UPDATE control SET source_revision=?,source_digest=NULL,"
+                    "source_digest_state='dirty',audit_revision=? WHERE singleton=1",
+                    (revision, audit_revision),
                 )
                 event_details = _json_copy(dict(details))
                 event_details.update(
@@ -1126,6 +1208,7 @@ class BundleState:
                     }
                 )
                 event_id = f"event-{uuid.uuid4().hex}"
+                created_at = _utc_now()
                 connection.execute(
                     """
                     INSERT INTO audit_events(
@@ -1135,7 +1218,7 @@ class BundleState:
                     """,
                     (
                         event_id,
-                        _utc_now(),
+                        created_at,
                         action,
                         case_id,
                         _canonical_text(event_details),
@@ -1143,16 +1226,31 @@ class BundleState:
                         control["policy_revision"],
                     ),
                 )
+                projection_event = {
+                    "event_id": event_id,
+                    "created_at": created_at,
+                    "action": action,
+                    "case_id": case_id,
+                    "details": event_details,
+                    "source_revision": revision,
+                    "policy_revision": control["policy_revision"],
+                }
                 connection.commit()
             except Exception:
                 connection.rollback()
                 raise
-        self.write_audit_projection()
+        projection_updated = self._append_audit_projection_event(
+            projection_event,
+            expected_previous_revision=audit_revision - 1,
+            revision=audit_revision,
+        )
         return {
             "case_id": case_id,
             "event_id": event_id,
             "source_revision": revision,
-            "source_digest": digest,
+            "source_digest": None,
+            "source_digest_state": "dirty",
+            "audit_projection_updated": projection_updated,
             "result": result,
         }
 
@@ -1185,6 +1283,7 @@ class BundleState:
                     f"persisted {field} cannot differ from the immutable manifest"
                 )
         digest = _digest_json(policy)
+        projection_event = None
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
@@ -1192,15 +1291,19 @@ class BundleState:
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
                 revision = control["policy_revision"] + 1
+                audit_revision = control["audit_revision"] + 1
                 connection.execute(
                     "UPDATE policy SET policy_json=? WHERE singleton=1",
                     (_canonical_text(policy),),
                 )
                 connection.execute(
-                    "UPDATE control SET policy_revision=?, policy_digest=? WHERE singleton=1",
-                    (revision, digest),
+                    "UPDATE control SET policy_revision=?,policy_digest=?,"
+                    "audit_revision=? WHERE singleton=1",
+                    (revision, digest, audit_revision),
                 )
                 event_id = f"event-{uuid.uuid4().hex}"
+                created_at = _utc_now()
+                event_details = _json_copy(dict(details or {}))
                 connection.execute(
                     """
                     INSERT INTO audit_events(
@@ -1210,23 +1313,37 @@ class BundleState:
                     """,
                     (
                         event_id,
-                        _utc_now(),
+                        created_at,
                         action,
-                        _canonical_text(dict(details or {})),
+                        _canonical_text(event_details),
                         control["source_revision"],
                         revision,
                     ),
                 )
+                projection_event = {
+                    "event_id": event_id,
+                    "created_at": created_at,
+                    "action": action,
+                    "case_id": None,
+                    "details": event_details,
+                    "source_revision": control["source_revision"],
+                    "policy_revision": revision,
+                }
                 connection.commit()
             except Exception:
                 connection.rollback()
                 raise
         self.write_policy_projection()
-        self.write_audit_projection()
+        projection_updated = self._append_audit_projection_event(
+            projection_event,
+            expected_previous_revision=audit_revision - 1,
+            revision=audit_revision,
+        )
         return {
             "event_id": event_id,
             "policy_revision": revision,
             "policy_digest": digest,
+            "audit_projection_updated": projection_updated,
         }
 
     def publish_generation(
@@ -1250,6 +1367,10 @@ class BundleState:
                 control = connection.execute(
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
+                if control["source_digest_state"] != "current":
+                    raise ConcurrentStateError(
+                        "Bundle source proof is dirty before generation publication"
+                    )
                 current_source = self._compute_source_digest(
                     connection, self._stored_manifest(connection)
                 )
@@ -1297,6 +1418,7 @@ class BundleState:
                         current_generation_digest=?
                     WHERE singleton=1
                       AND source_revision=? AND source_digest=?
+                      AND source_digest_state='current'
                       AND policy_revision=? AND policy_digest=?
                       AND governance_registry_revision=?
                       AND governance_registry_digest=?
@@ -1335,24 +1457,33 @@ class BundleState:
             "governance_registry_digest": expected_governance_registry_digest,
         }
 
-    def write_audit_projection(self) -> Path:
+    def refresh_audit_projection(self) -> Path:
+        """Atomically rebuild the non-authoritative audit projection."""
+
         with self.connect() as connection:
-            rows = []
-            for row in connection.execute(
-                "SELECT * FROM audit_events ORDER BY rowid"
-            ):
-                rows.append(
-                    {
-                        "event_id": row["event_id"],
-                        "created_at": row["created_at"],
-                        "action": row["action"],
-                        "case_id": row["case_id"],
-                        "details": json.loads(row["details_json"]),
-                        "source_revision": row["source_revision"],
-                        "policy_revision": row["policy_revision"],
-                    }
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                control = connection.execute(
+                    "SELECT audit_revision FROM control WHERE singleton=1"
+                ).fetchone()
+                revision = control["audit_revision"]
+                rows = [
+                    self._audit_projection_value(row)
+                    for row in connection.execute(
+                        "SELECT * FROM audit_events ORDER BY rowid"
+                    )
+                ]
+                path = self._write_audit_projection_rows(rows)
+                connection.execute(
+                    "UPDATE control SET audit_projection_revision=?,"
+                    "audit_projection_size=? WHERE singleton=1",
+                    (revision, path.stat().st_size),
                 )
-        return self._write_audit_projection_rows(rows)
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        return path
 
     def write_policy_projection(self) -> Path:
         return self._write_policy_projection_value(self.policy)
@@ -1362,6 +1493,77 @@ class BundleState:
         content = b"".join(_canonical_bytes(row) + b"\n" for row in rows)
         _atomic_write(path, content)
         return path
+
+    @staticmethod
+    def _audit_projection_value(row: Mapping[str, Any]) -> Dict[str, Any]:
+        details = (
+            row["details_json"]
+            if isinstance(row, sqlite3.Row)
+            else row["details"]
+        )
+        return {
+            "event_id": row["event_id"],
+            "created_at": row["created_at"],
+            "action": row["action"],
+            "case_id": row["case_id"],
+            "details": details if isinstance(details, dict) else json.loads(details),
+            "source_revision": row["source_revision"],
+            "policy_revision": row["policy_revision"],
+        }
+
+    def _append_audit_projection_event(
+        self,
+        event: Mapping[str, Any],
+        *,
+        expected_previous_revision: int,
+        revision: int,
+    ) -> bool:
+        """Append one event only when the projection is provably current."""
+
+        content = _canonical_bytes(dict(event)) + b"\n"
+        path = self.root / "audit" / "events.jsonl"
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                control = connection.execute(
+                    "SELECT audit_revision,audit_projection_revision,"
+                    "audit_projection_size FROM control WHERE singleton=1"
+                ).fetchone()
+                try:
+                    current_size = path.stat().st_size
+                except OSError:
+                    current_size = None
+                if (
+                    control["audit_revision"] != revision
+                    or control["audit_projection_revision"]
+                    != expected_previous_revision
+                    or current_size != control["audit_projection_size"]
+                ):
+                    connection.rollback()
+                    return False
+                with path.open("ab", buffering=0) as stream:
+                    stream.write(content)
+                    os.fsync(stream.fileno())
+                new_size = current_size + len(content)
+                changed = connection.execute(
+                    "UPDATE control SET audit_projection_revision=?,"
+                    "audit_projection_size=? WHERE singleton=1 "
+                    "AND audit_revision=? AND audit_projection_revision=?",
+                    (
+                        revision,
+                        new_size,
+                        revision,
+                        expected_previous_revision,
+                    ),
+                ).rowcount
+                if changed != 1:
+                    connection.rollback()
+                    return False
+                connection.commit()
+                return True
+            except Exception:
+                connection.rollback()
+                raise
 
     def _write_policy_projection_value(self, policy: Mapping[str, Any]) -> Path:
         path = self.root / "policy" / "policy.json"
@@ -1668,4 +1870,5 @@ __all__ = [
     "BundleState",
     "BundleStateError",
     "ConcurrentStateError",
+    "DirtySourceStateError",
 ]

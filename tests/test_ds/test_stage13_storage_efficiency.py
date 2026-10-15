@@ -13,6 +13,7 @@ from hotpot.ds.public._implementation import runtime_policy
 from hotpot.ds.storage import (
     TARGET_SCHEMA_ID,
     AssetIntegrityError,
+    ReceiptConflictError,
     SnapshotError,
     TargetStore,
     asset_inventory_digest,
@@ -124,6 +125,23 @@ def _snapshot(store: TargetStore, cases: list[dict], control_assets=()) -> dict:
         "control_assets": list(control_assets),
         "cases": cases,
     }
+
+
+def _row_counts(database: Path) -> dict[str, int]:
+    with sqlite3.connect(database) as connection:
+        tables = [
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' "
+                "AND name NOT LIKE 'sqlite_%' ORDER BY name"
+            )
+        ]
+        return {
+            table: connection.execute(
+                f'SELECT COUNT(*) FROM "{table}"'
+            ).fetchone()[0]
+            for table in tables
+        }
 
 
 def test_ingest_verifies_and_copies_each_unique_asset_once(
@@ -308,3 +326,77 @@ def test_spool_content_digest_still_binds_published_case_facts(
         store.ingest(snapshot)
 
     assert store.load_release_metadata("spin", "release-1") is None
+
+
+def test_existing_receipt_retry_runs_precommit_once_without_staging(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+    first = store.ingest(snapshot)
+    before = _row_counts(store.path)
+    calls = 0
+
+    def precommit_check() -> None:
+        nonlocal calls
+        calls += 1
+
+    def forbidden_spool(*args, **kwargs):
+        raise AssertionError("an exact receipt retry must not stage Cases or assets")
+
+    monkeypatch.setattr(TargetStore, "_spool_cases", forbidden_spool)
+    retry = store.ingest(snapshot, _precommit_check=precommit_check)
+
+    assert retry == first
+    assert calls == 1
+    assert _row_counts(store.path) == before
+
+
+def test_existing_receipt_retry_rejects_failed_transaction_proof(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+    store.ingest(snapshot)
+    before = _row_counts(store.path)
+    calls = 0
+
+    def failed_proof() -> None:
+        nonlocal calls
+        calls += 1
+        raise RuntimeError("Bundle changed before retry")
+
+    with pytest.raises(RuntimeError, match="Bundle changed"):
+        store.ingest(snapshot, _precommit_check=failed_proof)
+
+    assert calls == 1
+    assert _row_counts(store.path) == before
+
+
+def test_existing_receipt_retry_rejects_conflicting_binding_in_transaction(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+    store.ingest(snapshot)
+    before = _row_counts(store.path)
+    changed = dict(snapshot)
+    changed["digests"] = dict(snapshot["digests"])
+    changed["digests"]["bundle"] = hashlib.sha256(b"conflict").hexdigest()
+    calls = 0
+
+    def precommit_check() -> None:
+        nonlocal calls
+        calls += 1
+
+    with pytest.raises(ReceiptConflictError):
+        store.ingest(changed, _precommit_check=precommit_check)
+
+    assert calls == 1
+    assert _row_counts(store.path) == before

@@ -872,10 +872,15 @@ class TargetStore:
             reason,
         )
 
-        existing = self._read_receipt(header["dataset"], header["release"])
-        if existing is not None:
-            self._assert_receipt(existing, binding)
-            return self._result_from_receipt(existing)
+        retry = self._retry_existing_receipt(
+            header,
+            policy,
+            target_context,
+            binding,
+            _precommit_check,
+        )
+        if retry is not None:
+            return retry
 
         self.asset_root.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(
@@ -1034,12 +1039,74 @@ class TargetStore:
     def _read_receipt(self, dataset: str, release: str) -> Optional[sqlite3.Row]:
         with self._connect() as connection:
             metadata = self._metadata(connection)
-            return connection.execute(
-                "SELECT r.*,d.release_serial FROM ingestion_receipts r "
-                "JOIN releases d USING(dataset_id,release_id) WHERE r.store_uuid=? "
-                "AND r.dataset_id=? AND r.release_id=?",
-                (metadata["store_uuid"], dataset, release),
-            ).fetchone()
+            return self._receipt_row(
+                connection, metadata["store_uuid"], dataset, release
+            )
+
+    @staticmethod
+    def _receipt_row(
+        connection: sqlite3.Connection,
+        store_uuid: str,
+        dataset: str,
+        release: str,
+    ) -> Optional[sqlite3.Row]:
+        return connection.execute(
+            "SELECT r.*,d.release_serial FROM ingestion_receipts r "
+            "JOIN releases d USING(dataset_id,release_id) WHERE r.store_uuid=? "
+            "AND r.dataset_id=? AND r.release_id=?",
+            (store_uuid, dataset, release),
+        ).fetchone()
+
+    def _retry_existing_receipt(
+        self,
+        header: Mapping[str, Any],
+        policy: Mapping[str, Any],
+        target_context: Mapping[str, Any],
+        binding: Mapping[str, Any],
+        precommit_check: Optional[Callable[[], None]],
+    ) -> Optional[TargetIngestResult]:
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            metadata = self._metadata(connection)
+            self._assert_target_context(metadata, target_context)
+            if metadata["store_uuid"] != binding["store_uuid"]:
+                raise ReceiptConflictError(
+                    "target store identity changed before receipt retry"
+                )
+            self._assert_dataset_precondition(
+                connection, header["dataset"], target_context, policy
+            )
+            existing = self._receipt_row(
+                connection,
+                metadata["store_uuid"],
+                header["dataset"],
+                header["release"],
+            )
+            if existing is None:
+                connection.rollback()
+                return None
+            if precommit_check is not None:
+                precommit_check()
+            receipt = self._receipt_row(
+                connection,
+                metadata["store_uuid"],
+                header["dataset"],
+                header["release"],
+            )
+            if receipt is None:
+                raise ReceiptConflictError(
+                    "dataset release disappeared during receipt retry"
+                )
+            self._assert_receipt(receipt, binding)
+            result = self._result_from_receipt(receipt)
+            connection.rollback()
+            return result
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
     @staticmethod
     def _assert_receipt(receipt: sqlite3.Row, binding: Mapping[str, Any]) -> None:

@@ -1,35 +1,153 @@
 {
   "schema": "hotpot-dataset-inventory/current",
-  "generated_on": "2026-10-13",
+  "generated_on": "2026-10-15",
   "payload_root": "hotpot/dataset/data",
   "git_tracked": false,
   "store": {
-    "path": "store/datasets.sqlite3",
-    "sha256": "076096dead161b0689764d275ddd141cdf59e1fe3167881b883877dc8e22b72b",
-    "size_bytes": 1136664576,
-    "schema": "1",
-    "record_standard": "hotpot-dataset/current",
+    "path": "store/active/datasets.sqlite3",
+    "active_link": "store/active",
+    "generation": "store/generations/stage13-current",
+    "assets_path": "store/active/datasets.sqlite3.assets",
+    "sha256": "1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5",
+    "size_bytes": 5093584896,
+    "schema": "hotpot-ds-store/current",
+    "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35",
+    "information_fence": "hotpot-dataset-information-fence/current",
     "integrity_check": "ok",
+    "foreign_key_check": "ok",
     "counts": {
       "datasets": 3,
-      "dataset_releases": 3,
-      "subsets": 10,
-      "records": 252665,
-      "entities": 594631,
-      "entity_relations": 28,
-      "assets": 2280,
-      "structures": 2280,
-      "computed_descriptors": 16310,
-      "observations": 201501,
-      "claims": 69596,
-      "evidence_items": 277072
+      "releases": 3,
+      "dataset_policies": 3,
+      "cases": 252665,
+      "case_assessments": 252665,
+      "identifiers": 592436,
+      "ingestion_receipts": 3,
+      "target_assets": 2317,
+      "structure_asset_refs": 4465,
+      "scientific_asset_refs": 4465,
+      "release_control_asset_refs": 42,
+      "incomplete_case_index": 3568,
+      "ordinary_case_index": 249097,
+      "benchmark_case_index": 0
+    },
+    "assessment_counts": {
+      "archive_class": {
+        "incomplete": 3568,
+        "ordinary": 249097,
+        "benchmark": 0
+      },
+      "quality_level": {
+        "B0": 3568,
+        "B1": 249097
+      },
+      "evidence_level": {
+        "E2": 252665
+      }
     }
   },
-  "shared_structures": {
-    "object_count": 2280,
-    "object_bytes": 7092342,
-    "index_sha256": "df41f588200f4cd7dd096696350cae7525dd4f7761aa5c541743d99fc8908362",
-    "record_link_sha256": "edd1a8c03257fa00e4945405c0d250232229cbfa6184a1f6a6a5275437f4aaa0"
+  "target_assets": {
+    "path": "store/active/datasets.sqlite3.assets",
+    "object_count": 2317,
+    "object_bytes": 7461498309,
+    "inventory_sha256": "0a1598df4fcf19a9c2f9d62a009af6ff605bc246717a2fa3ad9997a186f4b806",
+    "structure_objects": 2280,
+    "structure_bytes": 7092342,
+    "structure_reference_count": 4465,
+    "evidence_objects": 0,
+    "evidence_reference_count": 0,
+    "control_objects": 37,
+    "control_bytes": 7454405967,
+    "control_reference_count": 42
+  },
+  "releases": [
+    {
+      "dataset": "oxidation",
+      "release": "oxidation.v001",
+      "version": "001",
+      "release_serial": 1,
+      "cases": 2175,
+      "archive_class": {
+        "incomplete": 0,
+        "ordinary": 2175,
+        "benchmark": 0
+      },
+      "quality_level": {
+        "B0": 0,
+        "B1": 2175
+      },
+      "evidence_level": {
+        "E2": 2175
+      },
+      "generation_digest": "bc8403fa121d3b0b35486b9066fb4e2759b737742ec0390bb4e82953a11fa69f",
+      "certificate_sha256": "27b5028e216d3067903d20eeff3f3fae6403fc66f68396fa410b5907daeef15e",
+      "receipt_id": "receipt-dde772bebb47624a07681291b86ec5e4b4dd27d71f64993aa7f62228e437f63d"
+    },
+    {
+      "dataset": "spin",
+      "release": "spin.v001",
+      "version": "001",
+      "release_serial": 1,
+      "cases": 2175,
+      "archive_class": {
+        "incomplete": 95,
+        "ordinary": 2080,
+        "benchmark": 0
+      },
+      "quality_level": {
+        "B0": 95,
+        "B1": 2080
+      },
+      "evidence_level": {
+        "E2": 2175
+      },
+      "generation_digest": "65c57c9372e15c4c9427a5c7b61f8e347e550580ea029c3190c72a60c9212f06",
+      "certificate_sha256": "0a49ac2eafcd67d159e16afb94615ac2165c1b62ddb264b606d2166f9fc94763",
+      "receipt_id": "receipt-24da4e3547e8ffc8cd116fa15fa006f9e9571b33d0f8ee761b916f7bf1fdbee3"
+    },
+    {
+      "dataset": "csd-electronic-state",
+      "release": "csd-electronic-state.vreported-text-v1",
+      "version": "reported-text-v1",
+      "release_serial": 1,
+      "cases": 248315,
+      "archive_class": {
+        "incomplete": 3473,
+        "ordinary": 244842,
+        "benchmark": 0
+      },
+      "quality_level": {
+        "B0": 3473,
+        "B1": 244842
+      },
+      "evidence_level": {
+        "E2": 248315
+      },
+      "generation_digest": "097d6599f703a237278a56bcebfdb7d3fece35d5a32513c9b6b72485320a4e2f",
+      "certificate_sha256": "5b3e4c73d63af06f6f903cb670851fc82cdf1f1f0db28b7391de78a8ecbe261d",
+      "receipt_id": "receipt-f28c7abe111a251df4126ad9834f41f0a2d9766a9a19d7ea12b3d87347c21da6"
+    }
+  ],
+  "activation": {
+    "kind": "directory-symlink",
+    "activated_at": "2026-10-15T07:26:28.308200Z",
+    "published_at": "2026-10-15T07:26:02.857075Z",
+    "parity_sha256": "720a27ade4ab1f6c78a85d767fe2ec4d29fb252b1f4a03929aad78bcd676be76",
+    "cutover_report": "audits/stage13-cutover.json",
+    "cutover_report_sha256": "b11abf02a9f1f3520543d84565813b0962aa521e9d99d3bacdf9a559aa09a054",
+    "activation_manifest": "store/generations/stage13-current/cutover-activation.json",
+    "activation_manifest_sha256": "69609456de4dd64e02bc9960abd84b1185b7237678eb7dc6910c01a93bd98d09",
+    "rollback_manifest_sha256": "a1ce928b1a0c1022a3578b6fa0a4c94d552c6adb54b7e64c64f07dd3bbe994cb"
+  },
+  "migration_audit": {
+    "report": "bundles/stage13-migration/migration-report.json",
+    "report_sha256": "efead5b2b8b1bd9d30e475f01621108d588941203429b251db017ec635f4f7b3",
+    "phase": "complete",
+    "passed": true,
+    "owner_bootstraps_sha256": "4fc77956e9ae9a85ac5aa29b8db95e51cf2a9db75b6edfdd3c88be72ba49646f",
+    "migration_tool_sha256": "16c9f1eca5727dffd115d8b0bebfe25f907677c1b500c19bed8052089b9b7268",
+    "legacy_source_sha256": "076096dead161b0689764d275ddd141cdf59e1fe3167881b883877dc8e22b72b",
+    "rollback_database_sha256": "f328ecc317f5b11778d80105106dfb1b795f7becbb2e10503de743f952fd45b4"
   },
   "source_digests": {
     "oxidation/gold/sse17/labels.csv": "4b857d0ee4954cc879c4a7cf709b1a91141b0edfccd2d17afc4a052830fcd9c7",
@@ -44,7 +162,9 @@
     "formal-charge/polar-H-variant-charges.csv": "55c466b8b194f7d72b0672efd50a58b9e2fe0709a3946fbc01e1bcdf1605ef00",
     "formal-charge/structures/extractants.smi": "e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7",
     "formal-charge/structures/Eu-pair.smi": "20bf1b5e1f0a69e3c7f3ced90d8c97e7dbbac715711414f40c8b4058ecad925f",
-    "formal-charge/structures/Am-pair.smi": "fffab41e04b34fed03f1cd2daea361b9d0bc842798b3eaf41c0b86e1b93de90f",
+    "formal-charge/structures/Am-pair.smi": "fffab41e04b34fed03f1cd2daea361b9d0bc842798b3eaf41c0b86e1b93de90f"
+  },
+  "audit_digests": {
     "audits/csd-electronic-state-quality.json": "7b0a280620253b822513828ee18273ae00a038d13443e62028723d52457eff37",
     "audits/evidence_regrade_audit.json": "dac1bc2a0c139274c84390720422ae3567714fae6f73067e48e11eb6ac07d9af"
   }

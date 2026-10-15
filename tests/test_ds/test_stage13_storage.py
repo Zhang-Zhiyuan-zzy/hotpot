@@ -13,9 +13,12 @@ from hotpot.ds.storage import (
     ReceiptConflictError,
     SnapshotError,
     TargetStore,
+    TargetStoreError,
     asset_inventory_digest,
+    case_content_digest,
     case_set_digest,
 )
+from hotpot.ds.public._implementation import runtime_policy
 
 
 def _digest_json(value):
@@ -80,6 +83,11 @@ def _snapshot(
 ):
     cases = list(cases)
     policy = policy or {"gates": {"quality": "default"}}
+    policy = {
+        "schema": "hotpot-ds-policy/current",
+        **policy,
+        "runtime_policy": runtime_policy(),
+    }
     included = [
         case
         for case in cases
@@ -145,6 +153,7 @@ def _snapshot(
             "bundle": hashlib.sha256(f"bundle:{marker}".encode()).hexdigest(),
             "certificate": hashlib.sha256(f"certificate:{marker}".encode()).hexdigest(),
             "generation": hashlib.sha256(f"generation:{marker}".encode()).hexdigest(),
+            "case_content": case_content_digest(cases),
             "included_cases": case_set_digest(case["id"] for case in included),
             "excluded_cases": case_set_digest(case["id"] for case in excluded),
             "asset_inventory": asset_inventory_digest(assets),
@@ -162,6 +171,15 @@ def test_initialize_records_stable_uuid_and_current_schema(tmp_path):
     assert first == second
     assert first["schema_id"] == TARGET_SCHEMA_ID
     assert first["store_uuid"]
+
+
+def test_case_content_must_match_receipt_bound_snapshot(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0)])
+    snapshot["cases"][0]["facts"]["core_info"]["sample"] = "changed"
+
+    with pytest.raises(SnapshotError, match="Case content digest"):
+        store.ingest(snapshot)
 
 
 def test_equal_coordinate_bytes_do_not_merge_case_or_structure_identity(tmp_path):
@@ -188,6 +206,24 @@ def test_equal_coordinate_bytes_do_not_merge_case_or_structure_identity(tmp_path
         "case-a",
         "case-b",
     ]
+
+
+def test_receipt_rejects_tampered_frozen_runtime_policy(tmp_path) -> None:
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    store.ingest(_snapshot(store, [_case("case-a", 0)]))
+    with sqlite3.connect(store.path) as connection:
+        raw = connection.execute(
+            "SELECT binding_json FROM ingestion_receipts"
+        ).fetchone()[0]
+        binding = json.loads(raw)
+        binding["runtime_policy"]["runtime"]["python"]["version"] = "tampered"
+        connection.execute(
+            "UPDATE ingestion_receipts SET binding_json=?",
+            (json.dumps(binding, separators=(",", ":"), sort_keys=True),),
+        )
+
+    with pytest.raises(TargetStoreError, match="runtime policy"):
+        store.load_release_metadata("spin", "release-1")
 
 
 def test_exact_receipt_retry_survives_source_removal_and_digest_change_conflicts(
@@ -329,6 +365,7 @@ def test_target_owns_materialized_evidence_and_withdrawn_assets(tmp_path):
     snapshot["digests"]["asset_inventory"] = asset_inventory_digest(
         snapshot["cases"][0]["assets"] + snapshot["control_assets"]
     )
+    snapshot["digests"]["case_content"] = case_content_digest(snapshot["cases"])
 
     store.ingest(snapshot)
     source.unlink()

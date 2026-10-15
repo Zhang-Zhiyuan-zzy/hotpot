@@ -18,6 +18,11 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterator, Mapping, Optional, Union
 
+from ._implementation import (
+    PolicyProtocolError,
+    require_current_runtime_policy,
+    validate_frozen_runtime_policy,
+)
 from .case import UnsynchronizedBundleError
 
 
@@ -34,6 +39,7 @@ _CERTIFICATE_FIELDS = {
     "source",
     "policy",
     "generation",
+    "runtime_policy",
     "checker_artifacts",
     "scientific_assets",
     "summary",
@@ -404,6 +410,9 @@ def _build_certificate(bundle: Any) -> Dict[str, Any]:
             "digest": generation.digest,
             "manifest": manifest_descriptor,
         },
+        "runtime_policy": validate_frozen_runtime_policy(
+            generation.manifest["runtime_policy"]
+        ),
         "checker_artifacts": checkers,
         "scientific_assets": {"items": assets, "digest": _digest_value(assets)},
         "summary": _json_copy(generation.summary),
@@ -465,6 +474,12 @@ def _validate_certificate_syntax(certificate: Any, root: Path) -> Dict[str, Any]
         generation["manifest"]["path"],
         "certificate.generation.manifest.path",
     )
+    try:
+        runtime_policy = validate_frozen_runtime_policy(value["runtime_policy"])
+    except PolicyProtocolError as error:
+        raise CertificateIntegrityError(
+            "certificate runtime policy is invalid"
+        ) from error
     if not isinstance(value["checker_artifacts"], list):
         raise CertificateFormatError("certificate.checker_artifacts must be a list")
     checker_keys = set()
@@ -659,6 +674,22 @@ def _verify_certificate_against_bundle(
         raise CertificateIntegrityError(
             "certificate assessment generation does not match Bundle"
         )
+    try:
+        frozen_runtime = validate_frozen_runtime_policy(
+            state.policy["runtime_policy"]
+        )
+    except (KeyError, PolicyProtocolError) as error:
+        raise CertificateIntegrityError(
+            "Bundle policy runtime binding is invalid"
+        ) from error
+    if not (
+        certificate["runtime_policy"]
+        == generation.manifest["runtime_policy"]
+        == frozen_runtime
+    ):
+        raise CertificateIntegrityError(
+            "certificate, policy, and generation runtime bindings differ"
+        )
     _verify_file_descriptor(
         root,
         certificate["facts"],
@@ -728,21 +759,24 @@ def write_bundle_certificate(bundle: Any) -> Path:
         raise UnsynchronizedBundleError(
             "Bundle is not synchronized; run bundle.synchronize() first"
         )
+    require_current_runtime_policy(bundle._state.policy["runtime_policy"])
     with _bundle_lock(root):
         if not bundle.is_synchronized:
             raise UnsynchronizedBundleError(
                 "Bundle changed before certification; run bundle.synchronize() first"
             )
-        certificate = _validate_certificate_syntax(_build_certificate(bundle), root)
-        _verify_certificate_against_bundle(bundle, certificate)
-        envelope = {
-            "schema": CERTIFICATE_SCHEMA,
-            "certificate": certificate,
-            "envelope_sha256": _digest_value(certificate),
-        }
-        path = root / "certificate.json"
-        _atomic_write(path, envelope)
-        return path
+        generation = bundle.current_generation
+        with generation.lease():
+            certificate = _validate_certificate_syntax(_build_certificate(bundle), root)
+            _verify_certificate_against_bundle(bundle, certificate)
+            envelope = {
+                "schema": CERTIFICATE_SCHEMA,
+                "certificate": certificate,
+                "envelope_sha256": _digest_value(certificate),
+            }
+            path = root / "certificate.json"
+            _atomic_write(path, envelope)
+            return path
 
 
 def verify_bundle_certificate(
@@ -752,13 +786,15 @@ def verify_bundle_certificate(
 
     root = Path(bundle.root).resolve()
     certificate_path = root / "certificate.json" if path is None else Path(path)
-    envelope = load_certificate_envelope(certificate_path)
-    if certificate_path.expanduser().resolve() != root / "certificate.json":
-        raise CertificatePathError(
-            "certificate path does not name this Bundle's root certificate"
-        )
-    _verify_certificate_against_bundle(bundle, envelope["certificate"])
-    return deepcopy(envelope)
+    generation = bundle.current_generation
+    with generation.lease():
+        envelope = load_certificate_envelope(certificate_path)
+        if certificate_path.expanduser().resolve() != root / "certificate.json":
+            raise CertificatePathError(
+                "certificate path does not name this Bundle's root certificate"
+            )
+        _verify_certificate_against_bundle(bundle, envelope["certificate"])
+        return deepcopy(envelope)
 
 
 def certificate_digest(path: Union[str, Path]) -> str:

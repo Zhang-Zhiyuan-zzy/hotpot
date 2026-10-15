@@ -7,12 +7,15 @@ content-addressed generation directory.
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import os
 import shutil
 import sqlite3
+import stat
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterator, Mapping, Optional, Sequence, Tuple, Union
@@ -24,9 +27,17 @@ from ._assessment import (
     compare_observations,
     identity_key,
     observation_property,
+    observation_with_resolved_entities,
     summarize_assessments,
+    validate_identity_schema,
 )
 from ._bundle_state import BundleState
+from ._implementation import (
+    PolicyProtocolError,
+    parser_binding_for_format,
+    require_current_runtime_policy,
+    validate_frozen_runtime_policy,
+)
 
 
 GENERATION_SCHEMA = "hotpot-ds-assessment-generation/current"
@@ -41,6 +52,7 @@ _MANIFEST_FIELDS = {
     "source",
     "policy",
     "governance",
+    "runtime_policy",
     "ordered_assessment_digest",
     "summary_digest",
     "files",
@@ -57,6 +69,225 @@ class GenerationIntegrityError(AssessmentGenerationError):
 
 class AssetSourceChangedError(AssessmentGenerationError):
     """Raised when a scientific asset changes while it is being observed."""
+
+
+def _validate_generation_id(generation_id: Any) -> str:
+    if (
+        not isinstance(generation_id, str)
+        or not generation_id.startswith("generation-")
+        or "/" in generation_id
+        or "\\" in generation_id
+        or generation_id in {".", ".."}
+    ):
+        raise GenerationIntegrityError("invalid generation id")
+    return generation_id
+
+
+def _lease_directory(root: Path) -> Path:
+    directory = root / "assessments" / "leases"
+    directory.mkdir(parents=True, exist_ok=True)
+    if directory.is_symlink() or not directory.is_dir():
+        raise GenerationIntegrityError("generation lease directory is invalid")
+    return directory
+
+
+def _open_lease_file(root: Path, generation_id: str) -> int:
+    lock_path = _lease_directory(root) / f"{_validate_generation_id(generation_id)}.lock"
+    flags = os.O_CREAT | os.O_RDWR
+    flags |= getattr(os, "O_CLOEXEC", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(lock_path, flags, 0o600)
+    if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+        os.close(descriptor)
+        raise GenerationIntegrityError("generation lease is not a regular file")
+    return descriptor
+
+
+class _GenerationLease:
+    """A process-scoped shared lease for one immutable generation.
+
+    The lease uses an OS lock rather than a timestamp.  A process crash releases
+    the lock automatically, while the harmless lock file remains available for
+    future readers and collectors.
+    """
+
+    def __init__(self, root: Path, generation_id: str):
+        self._root = root.resolve()
+        self._generation_id = _validate_generation_id(generation_id)
+        self._descriptor: Optional[int] = None
+
+    def __enter__(self) -> "_GenerationLease":
+        descriptor = _open_lease_file(self._root, self._generation_id)
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_SH)
+            directory = (
+                self._root
+                / "assessments"
+                / "generations"
+                / self._generation_id
+            )
+            if directory.is_symlink() or not directory.is_dir():
+                raise GenerationIntegrityError("assessment generation no longer exists")
+        except Exception:
+            os.close(descriptor)
+            raise
+        self._descriptor = descriptor
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        descriptor = self._descriptor
+        self._descriptor = None
+        if descriptor is not None:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            os.close(descriptor)
+
+
+def _certificate_generation_reference(
+    root: Path,
+) -> Tuple[Optional[Tuple[str, str]], bool]:
+    """Return the root-certificate generation and whether its reference is unknown."""
+
+    path = root / "certificate.json"
+    if not path.exists():
+        return None, False
+    if path.is_symlink() or not path.is_file():
+        return None, True
+    try:
+        from .certificate import load_certificate_envelope
+
+        envelope = load_certificate_envelope(path)
+        generation = envelope["certificate"]["generation"]
+        generation_id = _validate_generation_id(generation["id"])
+        generation_digest = generation["digest"]
+        if (
+            not isinstance(generation_digest, str)
+            or len(generation_digest) != 64
+            or any(character not in "0123456789abcdef" for character in generation_digest)
+        ):
+            return None, True
+    except Exception:
+        return None, True
+    return (generation_id, generation_digest), False
+
+
+def _generation_disk_reference(directory: Path) -> Optional[Tuple[str, str]]:
+    try:
+        manifest = json.loads(
+            (directory / "generation.json").read_text(encoding="utf-8")
+        )
+        generation_id = _validate_generation_id(manifest["generation_id"])
+        digest = manifest["generation_digest"]
+        if generation_id != directory.name or not isinstance(digest, str):
+            return None
+        if len(digest) != 64 or any(
+            character not in "0123456789abcdef" for character in digest
+        ):
+            return None
+        return generation_id, digest
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        KeyError,
+        TypeError,
+        GenerationIntegrityError,
+    ):
+        return None
+
+
+def _collect_obsolete_generations(
+    root: Union[os.PathLike[str], str],
+    *,
+    current_reference: Optional[Tuple[str, str]],
+    receipt_generation_digests: Sequence[str] = (),
+    receipt_reference_unknown: bool = False,
+) -> Dict[str, Any]:
+    """Remove only generations proven free of durable or active references.
+
+    The caller holds the Bundle's exclusive lock for the whole durable-reference
+    check.  Each candidate must also yield a non-blocking exclusive lease lock;
+    failure to establish that lock is a conservative retain decision.
+    """
+
+    bundle_root = Path(root).resolve()
+    generations = bundle_root / "assessments" / "generations"
+    certificate_reference, certificate_reference_unknown = (
+        _certificate_generation_reference(bundle_root)
+    )
+    receipt_digests = frozenset(receipt_generation_digests)
+    retain_all = bool(
+        certificate_reference_unknown or receipt_reference_unknown
+    )
+    report: Dict[str, Any] = {
+        "removed": [],
+        "retained": {},
+        "temporary_removed": [],
+        "conservative": retain_all,
+    }
+    if not generations.exists():
+        return report
+    if generations.is_symlink() or not generations.is_dir():
+        report["conservative"] = True
+        return report
+
+    for directory in sorted(generations.iterdir(), key=lambda path: path.name):
+        if directory.name.startswith(".generation-"):
+            if retain_all or directory.is_symlink() or not directory.is_dir():
+                continue
+            try:
+                shutil.rmtree(directory)
+                report["temporary_removed"].append(directory.name)
+            except OSError:
+                pass
+            continue
+        if not directory.name.startswith("generation-"):
+            continue
+        if directory.is_symlink() or not directory.is_dir():
+            report["retained"][directory.name] = "invalid_candidate"
+            continue
+
+        disk_reference = _generation_disk_reference(directory)
+        reasons = []
+        if retain_all:
+            reasons.append("unknown_durable_reference")
+        if current_reference is not None and directory.name == current_reference[0]:
+            reasons.append("current")
+        if (
+            certificate_reference is not None
+            and directory.name == certificate_reference[0]
+        ):
+            reasons.append("certificate")
+        if disk_reference is None and receipt_digests:
+            reasons.append("unknown_receipt_binding")
+        elif disk_reference is not None and disk_reference[1] in receipt_digests:
+            reasons.append("receipt")
+        if reasons:
+            report["retained"][directory.name] = ",".join(reasons)
+            continue
+
+        try:
+            descriptor = _open_lease_file(bundle_root, directory.name)
+        except (OSError, GenerationIntegrityError):
+            report["retained"][directory.name] = "lease_unverifiable"
+            continue
+        try:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (BlockingIOError, OSError):
+                report["retained"][directory.name] = "active_reader"
+                continue
+            try:
+                shutil.rmtree(directory)
+                report["removed"].append(directory.name)
+            except OSError:
+                report["retained"][directory.name] = "remove_failed"
+        finally:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            os.close(descriptor)
+
+    if report["removed"] or report["temporary_removed"]:
+        _fsync_directory(generations)
+    return report
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -237,38 +468,20 @@ def _active(rows: Sequence[Mapping[str, Any]]) -> Iterator[Mapping[str, Any]]:
     return (row for row in rows if row.get("status", "active") == "active")
 
 
-def _identity_schema(manifest: Mapping[str, Any]) -> Dict[str, Any]:
-    schema = _json_copy(manifest.get("identity_schema", {}))
-    if "components" not in schema and isinstance(schema.get("fields"), list):
-        schema["components"] = [
-            {
-                "key": field,
-                "path": field,
-                "required": True,
-                "normalizer": "text",
-            }
-            for field in schema["fields"]
-        ]
-    return schema
-
-
 def _gate_info(policy: Mapping[str, Any], gate_name: str) -> Dict[str, Any]:
-    gates = policy.get("gates", {})
-    candidates: Sequence[Any]
-    if isinstance(gates, Mapping):
-        candidates = (
-            gates.get(gate_name),
-            gates.get(gate_name.removesuffix("Gate").lower()),
+    gates = policy.get("gates")
+    if not isinstance(gates, list):
+        raise AssessmentGenerationError("dataset Gate policy is not current")
+    matches = [
+        candidate
+        for candidate in gates
+        if isinstance(candidate, Mapping) and candidate.get("gate") == gate_name
+    ]
+    if len(matches) != 1:
+        raise AssessmentGenerationError(
+            f"dataset Gate policy requires exactly one {gate_name}"
         )
-    elif isinstance(gates, list):
-        candidates = tuple(gates)
-    else:
-        candidates = ()
-    for candidate in candidates:
-        if isinstance(candidate, Mapping) and candidate.get("gate", gate_name) == gate_name:
-            return _json_copy(candidate)
-    direct = policy.get(gate_name.removesuffix("Gate").lower(), {})
-    return _json_copy(direct) if isinstance(direct, Mapping) else {}
+    return _json_copy(matches[0])
 
 
 def _assessment_policy(
@@ -397,6 +610,7 @@ def _assess_asset(
     declaration: Mapping[str, Any],
     required_roles: Sequence[str],
     snapshot_directory: Path,
+    runtime_policy: Mapping[str, Any],
 ) -> Dict[str, Any]:
     relative_path = declaration.get("path")
     path = None
@@ -421,6 +635,7 @@ def _assess_asset(
         fmt = path.suffix.lower().lstrip(".")
     parse_result = "not_run"
     parser = None
+    parser_binding = None
     parse_reason = None
     observed = None
     snapshot_path = None
@@ -436,7 +651,12 @@ def _assess_asset(
                 declaration.get("collection") == "structures"
                 and fmt in _PARSEABLE_FORMATS
             ):
-                parser = "hotpot.Molecule.read_one"
+                parser_binding = parser_binding_for_format(fmt, runtime_policy)
+                if parser_binding is None:
+                    raise AssessmentGenerationError(
+                        f"no frozen parser binding exists for structure format {fmt!r}"
+                    )
+                parser = parser_binding["name"]
                 try:
                     parse_result = (
                         "valid"
@@ -492,9 +712,35 @@ def _assess_asset(
         "parse_result": parse_result,
         "effective_required": bool(
             declaration.get("collection") == "structures"
-            and declaration.get("role") in required_roles
+            and (
+                "*" in required_roles
+                or declaration.get("role") in required_roles
+            )
         ),
         "parser": parser,
+        "parser_binding_digest": (
+            parser_binding["digest"] if parser_binding is not None else None
+        ),
+        "parser_protocol": (
+            _json_copy(parser_binding["protocol"])
+            if parser_binding is not None
+            else None
+        ),
+        "parser_implementation_digest": (
+            parser_binding["source"]["digest"]
+            if parser_binding is not None
+            else None
+        ),
+        "parser_distribution_identity": (
+            _json_copy(parser_binding["distributions"])
+            if parser_binding is not None
+            else None
+        ),
+        "parser_distribution_digest": (
+            canonical_digest(parser_binding["distributions"])
+            if parser_binding is not None
+            else None
+        ),
         "reasons": reasons,
     }
 
@@ -599,6 +845,7 @@ def _stream_inputs(
     identity_schema: Mapping[str, Any],
     required_roles: Sequence[str],
     snapshot_directory: Path,
+    runtime_policy: Mapping[str, Any],
 ) -> None:
     for source_case in state.iter_cases():
         case = _normalize_case(source_case)
@@ -608,22 +855,22 @@ def _stream_inputs(
             "INSERT INTO identity_reasons(case_id,reasons_json) VALUES (?,?)",
             (case_id, canonical_json(reasons)),
         )
-        if key is not None:
-            for offset, observation in enumerate(_active(case.get("observations", []))):
-                value = _json_copy(observation)
-                observation_id = str(
-                    value.get("observation_id") or f"{case_id}:observation:{offset}"
-                )
-                value["observation_id"] = observation_id
-                property_key = str(observation_property(value) or "null")
-                work.execute(
-                    """
-                    INSERT INTO candidates(
-                        sample_key,property_key,case_id,observation_id,observation_json
-                    ) VALUES (?,?,?,?,?)
-                    """,
-                    (key, property_key, case_id, observation_id, canonical_json(value)),
-                )
+        sample_key = key if key is not None else f"case:{case_id}"
+        for offset, observation in enumerate(_active(case.get("observations", []))):
+            value = observation_with_resolved_entities(case, observation)
+            observation_id = str(
+                value.get("observation_id") or f"{case_id}:observation:{offset}"
+            )
+            value["observation_id"] = observation_id
+            property_key = str(observation_property(value) or "null")
+            work.execute(
+                """
+                INSERT INTO candidates(
+                    sample_key,property_key,case_id,observation_id,observation_json
+                ) VALUES (?,?,?,?,?)
+                """,
+                (sample_key, property_key, case_id, observation_id, canonical_json(value)),
+            )
 
         for collection in ("structures", "evidence"):
             for record in _active(case.get(collection, [])):
@@ -633,6 +880,7 @@ def _stream_inputs(
                         declaration,
                         required_roles,
                         snapshot_directory,
+                        runtime_policy,
                     )
                     assessment.execute(
                         """
@@ -658,6 +906,7 @@ def _assess_conflicts(
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     tolerances: Mapping[str, Mapping[str, float]],
+    identity_schema_digest: str,
     property_definitions: Optional[Mapping[str, Any]] = None,
     property_comparators: Optional[Mapping[str, Any]] = None,
 ) -> None:
@@ -710,6 +959,7 @@ def _assess_conflicts(
                     continue
                 pair = {
                     "sample_key": sample_key,
+                    "identity_schema_digest": identity_schema_digest,
                     "property_key": property_key,
                     "left_case_id": left_case_id,
                     "right_case_id": right_case_id,
@@ -759,6 +1009,7 @@ def _assess_conflicts(
                     )
         group = {
             "sample_key": sample_key,
+            "identity_schema_digest": identity_schema_digest,
             "property_key": property_key,
             "candidate_count": candidate_count,
             "consistent_count": consistent_count,
@@ -840,6 +1091,7 @@ def _assess_cases(
             evidence_policy=evidence_policy,
             quality_policy=quality_policy,
             conflict_assessments=conflict_rows,
+            identity_reasons=identity_reasons,
             checker_context={
                 "dataset": {
                     "ds_name": manifest["ds_name"],
@@ -866,7 +1118,6 @@ def _assess_cases(
         result["conflict_assessments"] = conflict_rows
         result["identity_reasons"] = identity_reasons
         result["governance_assessments"] = governance_assessments
-        result["reasons"].extend(identity_reasons)
         assessment.execute(
             """
             INSERT INTO case_assessments(
@@ -959,6 +1210,7 @@ def _logical_manifest(manifest: Mapping[str, Any]) -> Dict[str, Any]:
             "source",
             "policy",
             "governance",
+            "runtime_policy",
             "ordered_assessment_digest",
             "summary_digest",
             "files",
@@ -1003,6 +1255,15 @@ class AssessmentGeneration:
         policy_value = _json_copy(policy)
         if canonical_digest(policy_value) != status["policy_digest"]:
             raise AssessmentGenerationError("supplied policy is not the persisted policy")
+        try:
+            runtime_policy = validate_frozen_runtime_policy(
+                policy_value["runtime_policy"]
+            )
+            require_current_runtime_policy(runtime_policy)
+        except (KeyError, PolicyProtocolError) as exc:
+            raise AssessmentGenerationError(
+                "persisted dataset runtime policy is not current"
+            ) from exc
 
         from ..governance import verify_registry
 
@@ -1010,7 +1271,15 @@ class AssessmentGeneration:
         registry = verified_registry.to_dict()
         registry_digest = verified_registry.digest
         manifest = state.manifest
-        identity_schema = _identity_schema(manifest)
+        try:
+            identity_schema = validate_identity_schema(
+                policy_value["identity_schema"]
+            )
+            required_structure_roles = policy_value["required_structure_roles"]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise AssessmentGenerationError(
+                "persisted dataset identity policy is not current"
+            ) from exc
         (
             evidence_policy,
             quality_policy,
@@ -1038,13 +1307,15 @@ class AssessmentGeneration:
                     assessment,
                     work,
                     identity_schema,
-                    manifest["required_structure_roles"],
+                    required_structure_roles,
                     temporary,
+                    runtime_policy,
                 )
                 _assess_conflicts(
                     assessment,
                     work,
                     tolerances,
+                    canonical_digest(identity_schema),
                     property_definitions,
                     property_comparators,
                 )
@@ -1067,6 +1338,7 @@ class AssessmentGeneration:
                     ("policy_revision", status["policy_revision"]),
                     ("policy_digest", status["policy_digest"]),
                     ("governance_registry_digest", registry_digest),
+                    ("runtime_policy_digest", runtime_policy["digest"]),
                 ):
                     assessment.execute(
                         "INSERT INTO metadata(key,value_json) VALUES (?,?)",
@@ -1120,6 +1392,7 @@ class AssessmentGeneration:
                     "digest": registry_digest,
                     "pinned_genesis_key_id": verified_registry.pinned_genesis_key_id,
                 },
+                "runtime_policy": runtime_policy,
                 "ordered_assessment_digest": ordered_digest,
                 "summary_digest": canonical_digest(summary),
                 "files": files,
@@ -1168,14 +1441,21 @@ class AssessmentGeneration:
         expected_digest: Optional[str] = None,
     ) -> "AssessmentGeneration":
         bundle_root = Path(root).resolve()
-        if (
-            not isinstance(generation_id, str)
-            or not generation_id.startswith("generation-")
-            or "/" in generation_id
-            or "\\" in generation_id
-            or generation_id in {".", ".."}
-        ):
-            raise GenerationIntegrityError("invalid generation id")
+        _validate_generation_id(generation_id)
+        with _GenerationLease(bundle_root, generation_id):
+            return cls._open_without_lease(
+                bundle_root,
+                generation_id,
+                expected_digest,
+            )
+
+    @classmethod
+    def _open_without_lease(
+        cls,
+        bundle_root: Path,
+        generation_id: str,
+        expected_digest: Optional[str],
+    ) -> "AssessmentGeneration":
         directory = bundle_root / "assessments" / "generations" / generation_id
         manifest_path = directory / "generation.json"
         try:
@@ -1201,6 +1481,14 @@ class AssessmentGeneration:
                 raise GenerationIntegrityError(
                     f"generation {field} binding is invalid"
                 )
+        try:
+            runtime_policy = validate_frozen_runtime_policy(
+                manifest["runtime_policy"]
+            )
+        except (KeyError, PolicyProtocolError) as exc:
+            raise GenerationIntegrityError(
+                "generation runtime policy binding is invalid"
+            ) from exc
         if manifest.get("generation_id") != generation_id:
             raise GenerationIntegrityError("generation id does not match its directory")
         digest = _manifest_digest(manifest)
@@ -1259,6 +1547,7 @@ class AssessmentGeneration:
                 "policy_revision": manifest["policy"]["revision"],
                 "policy_digest": manifest["policy"]["digest"],
                 "governance_registry_digest": manifest["governance"]["digest"],
+                "runtime_policy_digest": runtime_policy["digest"],
             }
             if metadata != expected_metadata:
                 raise GenerationIntegrityError(
@@ -1266,6 +1555,47 @@ class AssessmentGeneration:
                 )
             if _ordered_assessment_digest(connection) != manifest["ordered_assessment_digest"]:
                 raise GenerationIntegrityError("ordered assessment digest does not match")
+            for row in connection.execute(
+                "SELECT assessment_json FROM asset_assessments ORDER BY asset_id"
+            ):
+                asset = json.loads(row[0])
+                parser_name = asset.get("parser")
+                parser_fields = {
+                    "parser_binding_digest": asset.get("parser_binding_digest"),
+                    "parser_protocol": asset.get("parser_protocol"),
+                    "parser_implementation_digest": asset.get(
+                        "parser_implementation_digest"
+                    ),
+                    "parser_distribution_identity": asset.get(
+                        "parser_distribution_identity"
+                    ),
+                    "parser_distribution_digest": asset.get(
+                        "parser_distribution_digest"
+                    ),
+                }
+                if parser_name is None:
+                    if any(value is not None for value in parser_fields.values()):
+                        raise GenerationIntegrityError(
+                            "unparsed asset contains a parser binding"
+                        )
+                    continue
+                binding = parser_binding_for_format(
+                    str(asset.get("format") or ""), runtime_policy
+                )
+                if binding is None or (
+                    parser_name != binding["name"]
+                    or parser_fields["parser_binding_digest"] != binding["digest"]
+                    or parser_fields["parser_protocol"] != binding["protocol"]
+                    or parser_fields["parser_implementation_digest"]
+                    != binding["source"]["digest"]
+                    or parser_fields["parser_distribution_identity"]
+                    != binding["distributions"]
+                    or parser_fields["parser_distribution_digest"]
+                    != canonical_digest(binding["distributions"])
+                ):
+                    raise GenerationIntegrityError(
+                        "asset parser binding does not match the frozen runtime policy"
+                    )
             summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
             computed_summary = summarize_assessments(
                 json.loads(row[0])
@@ -1334,46 +1664,60 @@ class AssessmentGeneration:
 
     @property
     def manifest_digest(self) -> str:
-        return _sha256_path(self.manifest_path)
+        with self.lease():
+            return _sha256_path(self.manifest_path)
 
     @property
     def summary(self) -> Dict[str, Any]:
-        return json.loads((self._directory / "summary.json").read_text(encoding="utf-8"))
+        with self.lease():
+            return json.loads(
+                (self._directory / "summary.json").read_text(encoding="utf-8")
+            )
+
+    @contextmanager
+    def lease(self) -> Iterator["AssessmentGeneration"]:
+        """Hold this private generation stable for one complete read operation."""
+
+        with _GenerationLease(self._root, self.id):
+            yield self
 
     def get_case(self, case_id: str) -> Dict[str, Any]:
-        with sqlite3.connect(
-            f"file:{(self._directory / 'assessment.sqlite3').as_posix()}?mode=ro",
-            uri=True,
-        ) as connection:
-            row = connection.execute(
-                "SELECT assessment_json FROM case_assessments WHERE case_id=?",
-                (case_id,),
-            ).fetchone()
+        with self.lease():
+            with sqlite3.connect(
+                f"file:{(self._directory / 'assessment.sqlite3').as_posix()}?mode=ro",
+                uri=True,
+            ) as connection:
+                row = connection.execute(
+                    "SELECT assessment_json FROM case_assessments WHERE case_id=?",
+                    (case_id,),
+                ).fetchone()
         if row is None:
             raise KeyError(case_id)
         return json.loads(row[0])
 
     def iter_cases(self) -> Iterator[Dict[str, Any]]:
-        connection = sqlite3.connect(
-            f"file:{(self._directory / 'assessment.sqlite3').as_posix()}?mode=ro",
-            uri=True,
-        )
-        try:
-            for row in connection.execute(
-                "SELECT assessment_json FROM case_assessments ORDER BY public_index,case_id"
-            ):
-                yield json.loads(row[0])
-        finally:
-            connection.close()
+        with self.lease():
+            connection = sqlite3.connect(
+                f"file:{(self._directory / 'assessment.sqlite3').as_posix()}?mode=ro",
+                uri=True,
+            )
+            try:
+                for row in connection.execute(
+                    "SELECT assessment_json FROM case_assessments ORDER BY public_index,case_id"
+                ):
+                    yield json.loads(row[0])
+            finally:
+                connection.close()
 
     def iter_archive_ids(self, archive_class: str) -> Iterator[str]:
         if archive_class not in _ARCHIVE_CLASSES:
             raise ValueError(f"unknown archive class: {archive_class}")
-        with (self._directory / f"{archive_class}.ids").open(
-            "r", encoding="utf-8"
-        ) as stream:
-            for line in stream:
-                yield line.rstrip("\n")
+        with self.lease():
+            with (self._directory / f"{archive_class}.ids").open(
+                "r", encoding="utf-8"
+            ) as stream:
+                for line in stream:
+                    yield line.rstrip("\n")
 
 
 __all__ = [

@@ -3,15 +3,28 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+import shutil
 
 import pytest
 
 from hotpot.ds.gates import BenchmarkGate, EvidenceGate, QualityGate
-from hotpot.ds.gates._checker import CheckerIsolationUnavailableError
+from hotpot.ds.gates._checker import (
+    CheckerIsolationUnavailableError,
+    OSIsolatedCheckerRunner,
+)
 from hotpot.ds.gates._persistence import serialize_gate_configs
 from hotpot.ds.public._assessment import assess_case
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
 from hotpot.ds.public._generation import AssessmentGeneration
+from hotpot.ds.public._implementation import runtime_policy
+
+
+def _policy(gates) -> dict:
+    return {
+        "schema": "hotpot-ds-policy/current",
+        "gates": serialize_gate_configs(gates),
+        "runtime_policy": runtime_policy(),
+    }
 
 
 def _case(*, attestations=(), with_evidence: bool = False) -> dict:
@@ -36,6 +49,7 @@ def _case(*, attestations=(), with_evidence: bool = False) -> dict:
             {
                 "evidence_id": "evidence-1",
                 "target": "observation-1",
+                "relation": "supports",
                 "scientific_work_id": "doi:10.1/example",
                 "source_lineage_id": "result:one",
                 "locator": "p. 1",
@@ -200,6 +214,35 @@ def test_custom_checker_requires_isolation_and_errors_fail_closed(tmp_path: Path
     assert check["reason"] == "checker_error"
 
 
+def test_runtime_timeout_is_recorded_as_checker_error_by_assessment(
+    tmp_path: Path,
+) -> None:
+    if shutil.which("bwrap") is None:
+        pytest.skip("bubblewrap is not installed on this Linux host")
+    path = tmp_path / "timeout_checker.py"
+    path.write_text(
+        "def never_returns(case, bundle):\n"
+        "    while True:\n"
+        "        pass\n",
+        encoding="utf-8",
+    )
+    specification = importlib.util.spec_from_file_location("timeout_checker", path)
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    gate = BenchmarkGate(
+        checklist={},
+        direct_entry={"timeout": module.never_returns},
+        vetoes=(),
+    )
+
+    result = _assess(_case(), gate, runner=OSIsolatedCheckerRunner())
+
+    check = result["gate_results"]["benchmark_direct_entry"]["timeout"]
+    assert result["benchmark"] is False
+    assert check["status"] == "checker_error"
+    assert check["error_type"] == "CheckerExecutionError"
+
+
 def test_generation_preserves_custom_definition_and_runner_boundary(
     tmp_path: Path,
 ) -> None:
@@ -234,9 +277,8 @@ def test_generation_preserves_custom_definition_and_runner_boundary(
         "required_structure_roles": [],
     }
     (root / "bundle.json").write_text(json.dumps(manifest), encoding="utf-8")
-    policy = {
-        "gates": serialize_gate_configs(
-            (
+    policy = _policy(
+        (
                 EvidenceGate(),
                 QualityGate(),
                 BenchmarkGate(
@@ -244,15 +286,15 @@ def test_generation_preserves_custom_definition_and_runner_boundary(
                     direct_entry={"trusted_repository": module.trusted_repository},
                     vetoes=(),
                 ),
-            )
         )
-    }
+    )
     state = BundleState.build(
         root,
         "demo",
         policy_json=policy,
         target_context={"mode": "new", "store_id": None},
     )
+    policy = state.policy
     from hotpot.ds.governance import default_registry_snapshot
 
     with pytest.raises(CheckerIsolationUnavailableError):
@@ -330,21 +372,20 @@ def test_generation_uses_persisted_numeric_tolerances(tmp_path: Path) -> None:
             "required_structure_roles": [],
         }
         (root / "bundle.json").write_text(json.dumps(manifest), encoding="utf-8")
-        policy = {
-            "gates": serialize_gate_configs(
-                (
+        policy = _policy(
+            (
                     EvidenceGate(),
                     QualityGate(),
                     BenchmarkGate(numeric_tolerances=tolerances),
-                )
             )
-        }
+        )
         state = BundleState.build(
             root,
             name,
             policy_json=policy,
             target_context={"mode": "new", "store_id": None},
         )
+        policy = state.policy
         return AssessmentGeneration.build(
             root, state, policy, default_registry_snapshot()
         ).get_case("case-1")

@@ -22,15 +22,23 @@ from ..gates._persistence import (
     materialize_checker_sources,
     serialize_gate_configs,
 )
+from ..gates._checker import OSIsolatedCheckerRunner
 from ..storage import (
     TARGET_SCHEMA_ID,
     TargetStore,
     TargetSchemaError,
     asset_inventory_digest,
+    case_content_digest,
     case_set_digest,
 )
 from ._assessment import canonical_digest, canonical_json
-from ._bundle_state import BUNDLE_SCHEMA, BundleState, BundleStateError
+from ._bundle_state import (
+    BUNDLE_SCHEMA,
+    BundleState,
+    BundleStateError,
+    _validate_manifest,
+)
+from ._implementation import require_current_runtime_policy, runtime_policy
 from .case import Case, CaseCollection, CaseView, UnsynchronizedBundleError
 
 
@@ -56,11 +64,7 @@ def _read_manifest(root: Path, ds_name: str) -> Dict[str, Any]:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise BundleStateError(f"cannot read current Bundle manifest: {path}") from error
-    if not isinstance(value, dict) or value.get("schema") != BUNDLE_SCHEMA:
-        raise BundleStateError(f"bundle.json.schema must be {BUNDLE_SCHEMA!r}")
-    if value.get("ds_name") != ds_name:
-        raise BundleStateError("bundle.json.ds_name does not match ds_name")
-    return value
+    return _validate_manifest(root, value, ds_name)
 
 
 def _resolved_database(db: Optional[Union[str, Path]]) -> Path:
@@ -127,8 +131,18 @@ def _policy_value(manifest: Mapping[str, Any], gates: Iterable[Any]) -> Dict[str
         "property_comparators": deepcopy(
             manifest.get("property_comparators", {})
         ),
-        "checker_protocol": "hotpot-ds-checker/current",
+        "runtime_policy": runtime_policy(),
     }
+
+
+def _policy_has_custom_checkers(value: Any) -> bool:
+    if isinstance(value, Mapping):
+        if value.get("kind") == "custom":
+            return True
+        return any(_policy_has_custom_checkers(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_policy_has_custom_checkers(item) for item in value)
+    return False
 
 
 class Bundle:
@@ -160,6 +174,13 @@ class Bundle:
                 )
             policy = stored_policy["value"]
             _assert_manifest_policy(manifest, policy)
+            # A successor Bundle is a new folder even though its dataset policy
+            # already exists.  Recreate the content-addressed checker files from
+            # that authoritative persisted policy before the canonical state is
+            # built; callers must not have to resupply executable policy.
+            materialize_checker_sources(
+                deserialize_gate_configs(policy["gates"]), bundle_root
+            )
         else:
             normalized_gates = _gate_set(gates)
             materialize_checker_sources(normalized_gates, bundle_root)
@@ -216,8 +237,14 @@ class Bundle:
 
     @property
     def mode(self) -> str:
-        current = self._current_target()
-        return "existing" if current["dataset_state"] == "present" else "new"
+        # Dataset policy authority is fixed when the Bundle is built.  Deriving
+        # this from the live target would incorrectly turn an existing-dataset
+        # successor into a policy-editable "new" Bundle if that target vanished.
+        return (
+            "existing"
+            if self._state.target_context["dataset_state"] == "present"
+            else "new"
+        )
 
     @property
     def info(self) -> Dict[str, Any]:
@@ -275,6 +302,7 @@ class Bundle:
             and certificate_state == "current"
             and target_ready
             and receipt_integrity == "valid"
+            and state.get("runtime_policy_current", False)
         )
         assessment_governance = (
             None if generation is None else generation.manifest["governance"]
@@ -285,7 +313,11 @@ class Bundle:
             and state["governance_registry_revision"]
             > assessment_governance["revision"]
         )
-        if receipt_integrity == "invalid":
+        if not state.get("runtime_policy_current", False):
+            next_action = (
+                "create_successor_release" if sealed else "owner_policy_migration"
+            )
+        elif receipt_integrity == "invalid":
             next_action = "repair_sealed_integrity"
         elif sealed:
             next_action = "none"
@@ -449,6 +481,11 @@ class Bundle:
                 self._state,
                 self._state.policy,
                 self._governance_registry_snapshot(),
+                isolated_runner=(
+                    OSIsolatedCheckerRunner((self.root, self._database.parent))
+                    if _policy_has_custom_checkers(self._state.policy)
+                    else None
+                ),
             )
             self._state.publish_generation(
                 generation.id,
@@ -464,7 +501,7 @@ class Bundle:
                     "governance_registry_digest"
                 ],
             )
-            return {
+            result = {
                 "generation_id": generation.id,
                 "generation_digest": generation.digest,
                 "archive_counts": deepcopy(
@@ -473,6 +510,8 @@ class Bundle:
                 "summary": deepcopy(generation.summary),
                 "is_synchronized": True,
             }
+            self._collect_generation_garbage()
+            return result
 
     def write_certificate(self) -> Path:
         if self._authoritative_receipt() is not None:
@@ -493,7 +532,10 @@ class Bundle:
             self._state.manifest,
             include_certificate=False,
         )
-        return write_bundle_certificate(self)
+        path = write_bundle_certificate(self)
+        with self._locked():
+            self._collect_generation_garbage()
+        return path
 
     def ingest(
         self,
@@ -502,6 +544,7 @@ class Bundle:
         reason: Optional[str] = None,
     ) -> Dict[str, Any]:
         with self._locked():
+            require_current_runtime_policy(self._state.policy["runtime_policy"])
             if not self.is_synchronized:
                 raise UnsynchronizedBundleError(
                     "Bundle is not synchronized; run bundle.synchronize() first"
@@ -513,21 +556,30 @@ class Bundle:
                 )
             from .certificate import certificate_digest, verify_bundle_certificate
 
-            verify_bundle_certificate(self)
-            snapshot = self._ingestion_snapshot(
-                certificate_digest(self.certificate_path), include_incomplete
-            )
-            verify_bundle_certificate(self)
-            result = TargetStore(self._database).ingest(
-                snapshot,
-                include_incomplete=include_incomplete,
-                reason=reason,
-            )
+            generation = self._require_generation()
+            with generation.lease():
+                verify_bundle_certificate(self)
+                snapshot = self._ingestion_snapshot(
+                    certificate_digest(self.certificate_path),
+                    include_incomplete,
+                    generation=generation,
+                )
+                verify_bundle_certificate(self)
+                result = TargetStore(self._database).ingest(
+                    snapshot,
+                    include_incomplete=include_incomplete,
+                    reason=reason,
+                    _precommit_check=lambda: self._assert_ingestion_snapshot_current(
+                        snapshot,
+                        include_incomplete=include_incomplete,
+                    ),
+                )
             projection = result.to_dict()
             projection["receipt_digest"] = hashlib.sha256(
                 canonical_json(projection).encode("utf-8")
             ).hexdigest()
             _atomic_json(self.root / "ingestion-receipt.json", projection)
+            self._collect_generation_garbage()
             return projection
 
     def _case_ids(self) -> tuple[str, ...]:
@@ -588,6 +640,44 @@ class Bundle:
                 "no current assessment generation; run bundle.synchronize() first"
             )
         return generation
+
+    def _collect_generation_garbage(self) -> Dict[str, Any]:
+        """Run private reference-safe generation maintenance under the Bundle lock."""
+
+        from ._generation import _collect_obsolete_generations
+
+        status = self._state.status
+        current_id = status.get("current_generation_id")
+        current_digest = status.get("current_generation_digest")
+        current_reference = (
+            (current_id, current_digest)
+            if isinstance(current_id, str) and isinstance(current_digest, str)
+            else None
+        )
+        receipt_digests = []
+        receipt_reference_unknown = False
+        local_receipt = self.root / "ingestion-receipt.json"
+        if self._database.is_file():
+            try:
+                release = TargetStore(self._database).load_release_metadata(
+                    self.name,
+                    self._state.manifest["release_id"],
+                )
+                receipt = None if release is None else release.get("receipt")
+                if receipt is not None:
+                    receipt_digests.append(receipt["generation_digest"])
+                elif local_receipt.exists():
+                    receipt_reference_unknown = True
+            except Exception:
+                receipt_reference_unknown = True
+        elif local_receipt.exists():
+            receipt_reference_unknown = True
+        return _collect_obsolete_generations(
+            self.root,
+            current_reference=current_reference,
+            receipt_generation_digests=receipt_digests,
+            receipt_reference_unknown=receipt_reference_unknown,
+        )
 
     def _assert_editable(self) -> None:
         if self._authoritative_receipt() is not None:
@@ -667,6 +757,7 @@ class Bundle:
                 "bundle": receipt["bundle_digest"],
                 "certificate": receipt["certificate_digest"],
                 "generation": receipt["generation_digest"],
+                "case_content": receipt["case_content_digest"],
                 "included_cases": receipt["included_cases_digest"],
                 "excluded_cases": receipt["excluded_cases_digest"],
                 "asset_inventory": receipt["asset_inventory_digest"],
@@ -683,6 +774,14 @@ class Bundle:
             if not isinstance(binding, Mapping) or binding.get("target_context") != self._state.target_context:
                 raise SealedIntegrityError(
                     "sealed release receipt target context does not match Bundle"
+                )
+            frozen_runtime = self._state.policy.get("runtime_policy")
+            if (
+                binding.get("runtime_policy") != frozen_runtime
+                or generation.manifest.get("runtime_policy") != frozen_runtime
+            ):
+                raise SealedIntegrityError(
+                    "sealed release runtime policy binding is inconsistent"
                 )
         except SealedIntegrityError:
             raise
@@ -866,6 +965,9 @@ class Bundle:
             if current_policy is not None
             else self._state.status["policy_revision"] + 1
         )
+        content_digest = case_content_digest(
+            self._iter_ingestion_content(generation)
+        )
         return {
             "target_context": self._state.target_context,
             "bundle": {
@@ -892,6 +994,7 @@ class Bundle:
                 "bundle": bundle_digest,
                 "certificate": certificate_sha256,
                 "generation": generation.digest,
+                "case_content": content_digest,
                 "included_cases": case_set_digest(included_ids),
                 "excluded_cases": case_set_digest(excluded_ids),
                 "asset_inventory": asset_inventory_digest(assets),
@@ -899,6 +1002,36 @@ class Bundle:
             "control_assets": control_assets,
             "cases": self._iter_ingestion_cases(generation),
         }
+
+    def _assert_ingestion_snapshot_current(
+        self,
+        snapshot: Mapping[str, Any],
+        *,
+        include_incomplete: bool,
+    ) -> None:
+        """Compare-and-swap guard executed inside the target transaction.
+
+        The Bundle lock prevents mutations through the supported API while the
+        target spools assets and Cases.  This final check also detects external
+        changes to facts, certificate, generation, policy, Case selection, or
+        bound assets before the target transaction publishes the release.
+        """
+
+        from .certificate import certificate_digest, verify_bundle_certificate
+
+        generation = self._require_generation()
+        verify_bundle_certificate(self)
+        current_certificate_digest = certificate_digest(self.certificate_path)
+        current = self._ingestion_snapshot(
+            current_certificate_digest,
+            include_incomplete,
+            generation=generation,
+        )
+        for section in ("target_context", "bundle", "policy", "digests"):
+            if current[section] != snapshot[section]:
+                raise SealedIntegrityError(
+                    "Bundle changed after ingestion snapshot creation; retry ingest"
+                )
 
     def _iter_ingestion_cases(self, generation: Any) -> Iterator[Dict[str, Any]]:
         for case in self._state.iter_cases():
@@ -916,6 +1049,25 @@ class Bundle:
                 ],
                 "structures": _target_structure_descriptors(self.root, case),
                 "assets": _target_scientific_asset_descriptors(self.root, case),
+            }
+
+    def _iter_ingestion_content(
+        self, generation: Any
+    ) -> Iterator[Dict[str, Any]]:
+        """Project receipt-bound Case content without rehashing asset files."""
+
+        for case in self._state.iter_cases():
+            yield {
+                "id": case["id"],
+                "public_index": case["public_index"],
+                "local_id": case["local_id"],
+                "facts": case,
+                "assessment": generation.get_case(case["id"]),
+                "identifiers": [
+                    {"namespace": str(namespace), "value": str(value)}
+                    for namespace, raw in case.get("identifiers", {}).items()
+                    for value in (raw if isinstance(raw, list) else [raw])
+                ],
             }
 
 

@@ -19,11 +19,19 @@ from hotpot.ds.public._generation import (
     _initialize_assessment_database,
     _initialize_work_database,
 )
-from hotpot.ds.public._assessment import canonical_json, compare_observations
+from hotpot.ds.public._assessment import (
+    canonical_json,
+    compare_observations,
+)
+from hotpot.ds.public._implementation import runtime_policy
 
 
 def _policy() -> dict:
-    return {"gates": serialize_gate_configs(default_gates())}
+    return {
+        "schema": "hotpot-ds-policy/current",
+        "gates": serialize_gate_configs(default_gates()),
+        "runtime_policy": runtime_policy(),
+    }
 
 
 def _structure(case_id: str, path: str, **values) -> dict:
@@ -120,7 +128,7 @@ def _build_state(root: Path) -> tuple[BundleState, dict]:
         policy_json=policy,
         target_context={"mode": "new", "store_id": None},
     )
-    return state, policy
+    return state, state.policy
 
 
 def _registry() -> dict:
@@ -208,9 +216,8 @@ def test_asset_assessments_record_missing_hash_mismatch_and_parse_failure(
     )
     state, policy = _build_state(root)
 
-    result = AssessmentGeneration.build(root, state, policy, _registry()).get_case(
-        "assets"
-    )
+    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    result = generation.get_case("assets")
     assets = {item["role"]: item for item in result["asset_assessments"]}
 
     assert assets["missing"]["presence"] == "missing"
@@ -219,6 +226,15 @@ def test_asset_assessments_record_missing_hash_mismatch_and_parse_failure(
     assert assets["mismatch"]["hash_result"] == "mismatch"
     assert assets["mismatch"]["parse_result"] == "valid"
     assert assets["invalid"]["parse_result"] == "invalid"
+    parser = generation.manifest["runtime_policy"]["parsers"]["entries"][0]
+    parser_digest = parser["source"]["digest"]
+    assert assets["mismatch"]["parser_implementation_digest"] == parser_digest
+    assert assets["invalid"]["parser_implementation_digest"] == parser_digest
+    assert assets["mismatch"]["parser_protocol"] == parser["protocol"]
+    assert assets["mismatch"]["parser_binding_digest"] == parser["digest"]
+    assert assets["mismatch"]["parser_distribution_identity"] == parser[
+        "distributions"
+    ]
 
 
 def test_asset_collections_and_representations_are_all_assessed(tmp_path: Path) -> None:
@@ -311,6 +327,18 @@ def test_generation_exposes_certificate_manifest_binding(tmp_path: Path) -> None
     ).hexdigest()
 
 
+def test_open_rejects_tampered_frozen_runtime_policy(tmp_path: Path) -> None:
+    root = _root(tmp_path, [_case("case-1", 0)])
+    state, policy = _build_state(root)
+    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    manifest = json.loads(generation.manifest_path.read_text(encoding="utf-8"))
+    manifest["runtime_policy"]["runtime"]["python"]["version"] = "tampered"
+    generation.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(GenerationIntegrityError, match="runtime policy"):
+        AssessmentGeneration.open(root, generation.id, generation.digest)
+
+
 def test_hotpot_authority_is_verified_on_a_derived_copy_only(tmp_path: Path) -> None:
     case = _case("claimed-hotpot", 0)
     case["attestations"] = [
@@ -382,7 +410,7 @@ def test_streamed_conflicts_preserve_pair_order_digest_and_case_links() -> None:
         for case_id, observation_id, value in rows
     }
 
-    _assess_conflicts(assessment, work, {})
+    _assess_conflicts(assessment, work, {}, "identity-schema")
 
     ordered_rows = sorted(observations)
     ordered_digest = hashlib.sha256()
@@ -395,6 +423,7 @@ def test_streamed_conflicts_preserve_pair_order_digest_and_case_links() -> None:
             )
             pair = {
                 "sample_key": "sample",
+                "identity_schema_digest": "identity-schema",
                 "property_key": "spin",
                 "left_case_id": left_key[0],
                 "right_case_id": right_key[0],
@@ -417,6 +446,7 @@ def test_streamed_conflicts_preserve_pair_order_digest_and_case_links() -> None:
     )
     assert group == {
         "sample_key": "sample",
+        "identity_schema_digest": "identity-schema",
         "property_key": "spin",
         "candidate_count": 6,
         "consistent_count": consistent,
@@ -454,7 +484,7 @@ def test_large_conflict_group_is_streamed_and_case_lookup_uses_primary_index() -
             "same-value",
         )
 
-    _assess_conflicts(assessment, work, {})
+    _assess_conflicts(assessment, work, {}, "identity-schema")
 
     group = json.loads(
         assessment.execute(
@@ -545,6 +575,7 @@ def test_asset_snapshot_rejects_a_b_a_change_between_hash_and_parse(
             },
             [],
             snapshots,
+            runtime_policy(),
         )
 
     assert parsed["path"] != source

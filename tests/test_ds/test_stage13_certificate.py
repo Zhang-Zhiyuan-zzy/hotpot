@@ -3,11 +3,13 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import pytest
+import hotpot.ds.public.certificate as certificate_module
 
 from hotpot.ds.public.case import UnsynchronizedBundleError
 from hotpot.ds.public.certificate import (
@@ -19,6 +21,8 @@ from hotpot.ds.public.certificate import (
     verify_bundle_certificate,
     write_bundle_certificate,
 )
+from hotpot.ds.gates._checker import CHECKER_PROTOCOL_DIGEST
+from hotpot.ds.public._implementation import runtime_policy
 
 
 def _digest_bytes(value: bytes) -> str:
@@ -59,8 +63,16 @@ class _Generation:
         return _digest_bytes(self.manifest_path.read_bytes())
 
     @property
+    def manifest(self) -> dict:
+        return {"runtime_policy": runtime_policy()}
+
+    @property
     def summary(self) -> dict:
         return {"case_count": 1, "archive_class": {"ordinary": 1}}
+
+    @contextmanager
+    def lease(self):
+        yield self
 
 
 class _State:
@@ -95,7 +107,14 @@ class _Bundle:
     def __init__(self, root: Path, *, assets: list[dict], policy: dict | None = None):
         self.root = root
         self.name = "demo"
-        self._state = _State(root, policy or {"schema": "hotpot-ds-policy/current"})
+        self._state = _State(
+            root,
+            policy
+            or {
+                "schema": "hotpot-ds-policy/current",
+                "runtime_policy": runtime_policy(),
+            },
+        )
         self.current_generation = _Generation(root)
         self.is_synchronized = True
         self._assets = copy.deepcopy(assets)
@@ -176,6 +195,20 @@ def test_root_certificate_round_trip_and_digest(tmp_path: Path) -> None:
         load_certificate_envelope(alternate)
 
 
+def test_certificate_rejects_tampered_frozen_runtime_policy(tmp_path: Path) -> None:
+    bundle = _bundle(tmp_path)
+    path = write_bundle_certificate(bundle)
+    envelope = json.loads(path.read_text(encoding="utf-8"))
+    envelope["certificate"]["runtime_policy"]["runtime"]["python"][
+        "version"
+    ] = "tampered"
+    envelope["envelope_sha256"] = _digest_json(envelope["certificate"])
+    path.write_text(json.dumps(envelope), encoding="utf-8")
+
+    with pytest.raises(CertificateIntegrityError, match="runtime policy"):
+        load_certificate_envelope(path)
+
+
 @pytest.mark.parametrize("target", ["facts", "generation", "asset"])
 def test_bound_positive_file_tampering_is_rejected(
     tmp_path: Path, target: str
@@ -230,12 +263,13 @@ def test_custom_checker_source_is_certificate_bound(tmp_path: Path) -> None:
     root = _bundle_root(tmp_path)
     source = "def checker(case, bundle):\n    return True, 'ok'\n"
     source_digest = _digest_bytes(source.encode("utf-8"))
-    protocol_digest = _digest_bytes(b"checker protocol")
+    protocol_digest = CHECKER_PROTOCOL_DIGEST
     checker_path = root / "policy" / "checkers" / f"{source_digest}.py"
     checker_path.parent.mkdir(parents=True)
     checker_path.write_text(source, encoding="utf-8")
     policy = {
         "schema": "hotpot-ds-policy/current",
+        "runtime_policy": runtime_policy(),
         "gates": [
             {
                 "checks": [

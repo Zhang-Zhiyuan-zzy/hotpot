@@ -19,7 +19,18 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Union
 
-from ._assessment import validate_observation, validate_property_policy
+from ..gates._persistence import deserialize_gate_configs
+from ._assessment import (
+    validate_identity_schema,
+    validate_observation,
+    validate_property_policy,
+)
+from ._implementation import (
+    PolicyProtocolError,
+    require_current_runtime_policy,
+    runtime_policy_is_current,
+    validate_frozen_runtime_policy,
+)
 
 
 BUNDLE_SCHEMA = "hotpot-ds-bundle/current"
@@ -293,8 +304,10 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
         )
     if not isinstance(value["provenance"], dict):
         raise BundleStateError("bundle.json.provenance must be an object")
-    if not isinstance(value["identity_schema"], dict):
-        raise BundleStateError("bundle.json.identity_schema must be an object")
+    try:
+        identity_schema = validate_identity_schema(value["identity_schema"])
+    except ValueError as exc:
+        raise BundleStateError(f"invalid bundle identity schema: {exc}") from exc
     for field in ("property_definitions", "property_comparators"):
         if field in value and not isinstance(value[field], dict):
             raise BundleStateError(f"bundle.json.{field} must be an object")
@@ -328,6 +341,7 @@ def _validate_manifest(root: Path, value: Any, ds_name: str) -> Dict[str, Any]:
     _safe_relative_path(root, intake["path"], "bundle.json.intake.path")
     normalized = _json_copy(value)
     normalized["dataset_id"] = dataset_id
+    normalized["identity_schema"] = identity_schema
     if control_assets:
         normalized["control_assets"] = control_assets
     return normalized
@@ -519,14 +533,28 @@ class BundleState:
         )
         state = cls(bundle_root, ds_name)
         policy = _json_copy(dict(policy_json))
-        for field in ("property_definitions", "property_comparators"):
+        for field in (
+            "identity_schema",
+            "required_structure_roles",
+            "property_definitions",
+            "property_comparators",
+        ):
             manifest_value = manifest.get(field, {})
             if field in policy and policy[field] != manifest_value:
                 raise BundleStateError(
                     f"persisted {field} must equal bundle.json.{field}"
                 )
-            if field in manifest:
-                policy[field] = _json_copy(manifest_value)
+            policy[field] = _json_copy(manifest_value)
+        if policy.get("schema") != "hotpot-ds-policy/current":
+            raise BundleStateError("dataset policy schema is not current")
+        try:
+            deserialize_gate_configs(policy["gates"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise BundleStateError("dataset Gate policy is not current") from exc
+        try:
+            require_current_runtime_policy(policy["runtime_policy"])
+        except (KeyError, PolicyProtocolError) as exc:
+            raise BundleStateError("dataset runtime policy is not current") from exc
         target = _json_copy(dict(target_context))
         policy_digest = _digest_json(policy)
         governance_revision, governance_digest = _trusted_governance_binding()
@@ -682,6 +710,32 @@ class BundleState:
                     ).fetchone()[0]
                 )
                 _validate_manifest(bundle_root, stored_manifest, ds_name)
+                stored_policy = json.loads(
+                    connection.execute(
+                        "SELECT policy_json FROM policy WHERE singleton=1"
+                    ).fetchone()[0]
+                )
+                if stored_policy.get("schema") != "hotpot-ds-policy/current":
+                    raise BundleStateError("dataset policy schema is not current")
+                try:
+                    deserialize_gate_configs(stored_policy["gates"])
+                    validate_identity_schema(stored_policy["identity_schema"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise BundleStateError("dataset assessment policy is invalid") from exc
+                for field in (
+                    "identity_schema",
+                    "required_structure_roles",
+                    "property_definitions",
+                    "property_comparators",
+                ):
+                    if stored_policy.get(field) != stored_manifest.get(field, {}):
+                        raise BundleStateError(
+                            f"persisted {field} differs from the built manifest"
+                        )
+                try:
+                    validate_frozen_runtime_policy(stored_policy["runtime_policy"])
+                except (KeyError, PolicyProtocolError) as exc:
+                    raise BundleStateError("dataset runtime policy is invalid") from exc
                 if stored_manifest != current_manifest:
                     raise BundleStateError(
                         "bundle.json differs from the immutable built manifest"
@@ -783,13 +837,12 @@ class BundleState:
             source_digest = self._compute_source_digest(
                 connection, self._stored_manifest(connection)
             )
-            policy_digest = _digest_json(
-                json.loads(
-                    connection.execute(
-                        "SELECT policy_json FROM policy WHERE singleton=1"
-                    ).fetchone()[0]
-                )
+            policy_value = json.loads(
+                connection.execute(
+                    "SELECT policy_json FROM policy WHERE singleton=1"
+                ).fetchone()[0]
             )
+            policy_digest = _digest_json(policy_value)
             row = connection.execute("SELECT * FROM control WHERE singleton=1").fetchone()
         status = dict(row)
         status["recorded_source_digest"] = status.pop("source_digest")
@@ -804,8 +857,12 @@ class BundleState:
         status["policy_digest"] = policy_digest
         status["governance_registry_revision"] = governance_revision
         status["governance_registry_digest"] = governance_digest
+        status["runtime_policy_current"] = runtime_policy_is_current(
+            policy_value.get("runtime_policy", {})
+        )
         status["is_synchronized"] = bool(
             status["current_generation_id"]
+            and status["runtime_policy_current"]
             and status["source_revision"] == status["synchronized_source_revision"]
             and source_digest == status["recorded_source_digest"]
             and source_digest == status["synchronized_source_digest"]
@@ -1045,6 +1102,12 @@ class BundleState:
     ) -> Dict[str, Any]:
         _nonempty_string(action, "action")
         policy = _json_copy(dict(new_policy))
+        if policy.get("schema") != "hotpot-ds-policy/current":
+            raise BundleStateError("dataset policy schema is not current")
+        try:
+            require_current_runtime_policy(policy["runtime_policy"])
+        except (KeyError, PolicyProtocolError) as exc:
+            raise BundleStateError("dataset runtime policy is not current") from exc
         manifest = self.manifest
         try:
             validate_property_policy(

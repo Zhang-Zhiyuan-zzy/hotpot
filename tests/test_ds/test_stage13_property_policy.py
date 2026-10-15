@@ -15,6 +15,7 @@ from hotpot.ds.public._bundle_state import (
     BundleStateError,
 )
 from hotpot.ds.public._generation import AssessmentGeneration
+from hotpot.ds.public._implementation import runtime_policy
 from hotpot.ds.public.bundle import (
     ExistingDatasetPolicyError,
     _assert_manifest_policy,
@@ -89,11 +90,13 @@ def _policy(definitions: dict, comparators: dict, *, gate_tolerance=()) -> dict:
         )
     )
     return {
+        "schema": "hotpot-ds-policy/current",
         "gates": serialize_gate_configs(
             (EvidenceGate(), QualityGate(), benchmark)
         ),
         "property_definitions": definitions,
         "property_comparators": comparators,
+        "runtime_policy": runtime_policy(),
     }
 
 

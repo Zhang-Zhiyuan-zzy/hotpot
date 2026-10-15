@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 import hotpot.ds.public._bundle_state as bundle_state_module
+from hotpot.ds.gates._persistence import default_gates, serialize_gate_configs
 from hotpot.ds.public._bundle_state import (
     BUNDLE_SCHEMA,
     BundleAlreadyBuiltError,
@@ -15,6 +16,7 @@ from hotpot.ds.public._bundle_state import (
     BundleStateError,
     ConcurrentStateError,
 )
+from hotpot.ds.public._implementation import runtime_policy
 
 
 def _case(
@@ -72,7 +74,16 @@ def _root(tmp_path: Path, cases: list[dict] | None = None) -> Path:
         "core_labels": ["spin"],
         "core_info": ["metal"],
         "intake": {"format": "jsonl", "path": "evidence/intake/cases.jsonl"},
-        "identity_schema": {"fields": ["core_info.metal"]},
+        "identity_schema": {
+            "components": [
+                {
+                    "key": "metal",
+                    "path": "core_info.metal",
+                    "required": True,
+                    "normalizer": "text",
+                }
+            ]
+        },
         "required_structure_roles": [],
     }
     (root / "bundle.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -83,7 +94,11 @@ def _build(root: Path) -> BundleState:
     return BundleState.build(
         root,
         "demo",
-        policy_json={"gates": {"quality": {"name": "default"}}},
+        policy_json={
+            "schema": "hotpot-ds-policy/current",
+            "gates": serialize_gate_configs(default_gates()),
+            "runtime_policy": runtime_policy(),
+        },
         target_context={"mode": "new", "store_id": None},
     )
 

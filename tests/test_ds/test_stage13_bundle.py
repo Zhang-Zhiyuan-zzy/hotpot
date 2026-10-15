@@ -138,6 +138,58 @@ def test_external_asset_change_advances_source_revision_on_sync(tmp_path: Path) 
     assert bundle.is_synchronized is True
 
 
+def test_runtime_policy_drift_requires_owner_migration_for_draft(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = Bundle(_root(tmp_path), "demo", db=tmp_path / "datasets.sqlite3")
+    bundle.synchronize()
+    monkeypatch.setattr(
+        bundle_state_module, "runtime_policy_is_current", lambda policy: False
+    )
+
+    assert bundle.status["runtime_policy_current"] is False
+    assert bundle.status["is_synchronized"] is False
+    assert bundle.status["next_action"] == "owner_policy_migration"
+
+
+def test_runtime_policy_drift_requires_successor_for_sealed_release(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = Bundle(_root(tmp_path), "demo", db=tmp_path / "datasets.sqlite3")
+    bundle.synchronize()
+    bundle.write_certificate()
+    bundle.ingest()
+    monkeypatch.setattr(
+        bundle_state_module, "runtime_policy_is_current", lambda policy: False
+    )
+
+    assert bundle.status["runtime_policy_current"] is False
+    assert bundle.status["release_state"] == "sealed"
+    assert bundle.status["next_action"] == "create_successor_release"
+
+
+def test_stale_certificate_generation_is_retained_until_certificate_replacement(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    bundle = Bundle(root, "demo", db=tmp_path / "datasets.sqlite3")
+    first = bundle.synchronize()["generation_id"]
+    bundle.write_certificate()
+
+    bundle.cases[0].set_core_info("curation_note", "reviewed")
+    second = bundle.synchronize()["generation_id"]
+
+    generations = root / "assessments" / "generations"
+    assert first != second
+    assert (generations / first).is_dir()
+    assert (generations / second).is_dir()
+
+    bundle.write_certificate()
+
+    assert not (generations / first).exists()
+    assert (generations / second).is_dir()
+
+
 def test_certify_ingest_restore_retry_and_seal(tmp_path: Path) -> None:
     root = _root(tmp_path)
     database = tmp_path / "datasets.sqlite3"

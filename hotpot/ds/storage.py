@@ -27,6 +27,7 @@ Snapshot contract
             "bundle": lowercase SHA-256,
             "certificate": lowercase SHA-256,
             "generation": lowercase SHA-256,
+            "case_content": lowercase SHA-256,
             "included_cases": lowercase SHA-256,
             "excluded_cases": lowercase SHA-256,
             "asset_inventory": lowercase SHA-256,
@@ -64,8 +65,11 @@ unique ``{"sha256": ..., "size": ...}`` objects sorted by SHA-256. Helpers
 ``case_set_digest`` and ``asset_inventory_digest`` implement those algorithms.
 
 Cases are spooled to a temporary SQLite file while assets are copied and
-verified. The target transaction then streams that spool, so neither the Case
-collection nor asset bytes are fully materialized in memory.
+verified. ``case_content`` binds the normalized canonical facts, assessment,
+identity, and identifiers in their supplied order; the separately bound asset
+inventory covers materialized bytes. The target transaction then streams that
+spool, so neither the Case collection nor asset bytes are fully materialized
+in memory.
 """
 
 from __future__ import annotations
@@ -80,7 +84,7 @@ import tempfile
 import uuid
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
 
 
 TARGET_SCHEMA_ID = "hotpot-ds-store/current"
@@ -233,6 +237,7 @@ CREATE TABLE IF NOT EXISTS ingestion_receipts(
  certificate_digest TEXT NOT NULL,
  policy_digest TEXT NOT NULL,
  generation_digest TEXT NOT NULL,
+ case_content_digest TEXT NOT NULL,
  included_cases_digest TEXT NOT NULL,
  excluded_cases_digest TEXT NOT NULL,
  asset_inventory_digest TEXT NOT NULL,
@@ -324,6 +329,15 @@ def asset_inventory_digest(assets: Iterable[Mapping[str, Any]]) -> str:
     return _json_digest(inventory)
 
 
+def case_content_digest(cases: Iterable[Mapping[str, Any]]) -> str:
+    """Bind canonical facts and assessments in the supplied Case order."""
+
+    return TargetStore._stream_array_digest(
+        TargetStore._case_content_projection(TargetStore._normalize_case(case))
+        for case in cases
+    )
+
+
 def _require_digest(value: Any, field: str) -> str:
     if not isinstance(value, str) or _SHA256.fullmatch(value) is None:
         raise SnapshotError(f"{field} must be a lowercase SHA-256 digest")
@@ -370,6 +384,14 @@ class TargetStore:
         ).fetchone()
         if row is None or row["schema_id"] != TARGET_SCHEMA_ID:
             raise TargetSchemaError("target store does not use the current Hotpot schema")
+        receipt_columns = {
+            item[1]
+            for item in connection.execute("PRAGMA table_info(ingestion_receipts)")
+        }
+        if "case_content_digest" not in receipt_columns:
+            raise TargetSchemaError(
+                "target store layout is not current; rebuild it with this checkout"
+            )
         return {"store_uuid": row["store_uuid"], "schema_id": row["schema_id"]}
 
     def initialize(self) -> Dict[str, str]:
@@ -420,10 +442,27 @@ class TargetStore:
             ).fetchone()
         if row is None:
             return None
+        return self._policy_mapping(row)
+
+    @staticmethod
+    def _policy_mapping(row: sqlite3.Row) -> Dict[str, Any]:
+        value = json.loads(row["policy_json"])
+        digest = row["policy_digest"]
+        if _json_digest(value) != digest:
+            raise TargetStoreError("persisted dataset policy digest does not match")
+        from .public._implementation import (
+            PolicyProtocolError,
+            validate_frozen_runtime_policy,
+        )
+
+        try:
+            validate_frozen_runtime_policy(value["runtime_policy"])
+        except (KeyError, PolicyProtocolError) as exc:
+            raise TargetStoreError("persisted dataset runtime policy is invalid") from exc
         return {
             "revision": row["revision"],
-            "digest": row["policy_digest"],
-            "value": json.loads(row["policy_json"]),
+            "digest": digest,
+            "value": value,
         }
 
     def inspect_dataset(self, dataset: str) -> Optional[Dict[str, Any]]:
@@ -466,11 +505,7 @@ class TargetStore:
             "description": dataset_row["description"],
             "metadata": json.loads(dataset_row["metadata_json"]),
             "created_at": dataset_row["created_at"],
-            "policy": {
-                "revision": policy_row["revision"],
-                "digest": policy_row["policy_digest"],
-                "value": json.loads(policy_row["policy_json"]),
-            },
+            "policy": self._policy_mapping(policy_row),
             "releases": releases,
         }
 
@@ -519,6 +554,16 @@ class TargetStore:
 
     @staticmethod
     def _receipt_mapping(receipt: sqlite3.Row) -> Dict[str, Any]:
+        binding = json.loads(receipt["binding_json"])
+        from .public._implementation import (
+            PolicyProtocolError,
+            validate_frozen_runtime_policy,
+        )
+
+        try:
+            validate_frozen_runtime_policy(binding["runtime_policy"])
+        except (KeyError, PolicyProtocolError) as exc:
+            raise TargetStoreError("ingestion receipt runtime policy is invalid") from exc
         return {
             "receipt_id": receipt["receipt_id"],
             "store_uuid": receipt["store_uuid"],
@@ -528,6 +573,7 @@ class TargetStore:
             "certificate_digest": receipt["certificate_digest"],
             "policy_digest": receipt["policy_digest"],
             "generation_digest": receipt["generation_digest"],
+            "case_content_digest": receipt["case_content_digest"],
             "included_cases_digest": receipt["included_cases_digest"],
             "excluded_cases_digest": receipt["excluded_cases_digest"],
             "asset_inventory_digest": receipt["asset_inventory_digest"],
@@ -536,7 +582,7 @@ class TargetStore:
             "included_count": receipt["included_count"],
             "excluded_count": receipt["excluded_count"],
             "committed_at": receipt["committed_at"],
-            "binding": json.loads(receipt["binding_json"]),
+            "binding": binding,
         }
 
     def iter_cases(
@@ -715,6 +761,7 @@ class TargetStore:
         *,
         include_incomplete: bool = False,
         reason: Optional[str] = None,
+        _precommit_check: Optional[Callable[[], None]] = None,
     ) -> TargetIngestResult:
         """Ingest one certified release and return its stable receipt projection."""
         if include_incomplete and (not isinstance(reason, str) or not reason.strip()):
@@ -763,6 +810,7 @@ class TargetStore:
                 target_context,
                 binding,
                 counts,
+                _precommit_check,
             )
 
     def _target_context(self, snapshot: Mapping[str, Any]) -> Dict[str, Any]:
@@ -832,6 +880,17 @@ class TargetStore:
             "metadata": dict(bundle.get("metadata", {})),
         }
         policy_value = dict(raw_policy["value"])
+        from .public._implementation import (
+            PolicyProtocolError,
+            require_current_runtime_policy,
+        )
+
+        try:
+            require_current_runtime_policy(policy_value["runtime_policy"])
+        except PolicyProtocolError as exc:
+            raise SnapshotError(
+                "policy runtime is not current"
+            ) from exc
         policy_digest = _require_digest(raw_policy["digest"], "policy.digest")
         if _json_digest(policy_value) != policy_digest:
             raise SnapshotError("policy.digest does not match policy.value")
@@ -845,6 +904,7 @@ class TargetStore:
                 "bundle",
                 "certificate",
                 "generation",
+                "case_content",
                 "included_cases",
                 "excluded_cases",
                 "asset_inventory",
@@ -872,9 +932,11 @@ class TargetStore:
             "target_context": dict(target_context),
             "policy_revision": policy["revision"],
             "policy_digest": policy["digest"],
+            "runtime_policy": dict(policy["value"]["runtime_policy"]),
             "bundle_digest": digests["bundle"],
             "certificate_digest": digests["certificate"],
             "generation_digest": digests["generation"],
+            "case_content_digest": digests["case_content"],
             "included_cases_digest": digests["included_cases"],
             "excluded_cases_digest": digests["excluded_cases"],
             "asset_inventory_digest": digests["asset_inventory"],
@@ -1164,6 +1226,27 @@ class TargetStore:
         return TargetStore._stream_array_digest(values)
 
     @staticmethod
+    def _spool_content_digest(spool: sqlite3.Connection) -> str:
+        values = (
+            TargetStore._case_content_projection(json.loads(row[0]))
+            for row in spool.execute(
+                "SELECT case_json FROM spool_cases ORDER BY sequence"
+            )
+        )
+        return TargetStore._stream_array_digest(values)
+
+    @staticmethod
+    def _case_content_projection(case: Mapping[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": case["id"],
+            "public_index": case["public_index"],
+            "local_id": case["local_id"],
+            "facts": case["facts"],
+            "assessment": case["assessment"],
+            "identifiers": case["identifiers"],
+        }
+
+    @staticmethod
     def _stream_array_digest(values: Iterable[Any]) -> str:
         digest = hashlib.sha256()
         digest.update(b"[")
@@ -1186,6 +1269,9 @@ class TargetStore:
             included = self._spool_case_digest(spool, 1)
             excluded = self._spool_case_digest(spool, 0)
             assets = self._spool_asset_digest(spool)
+            content = self._spool_content_digest(spool)
+        if content != digests["case_content"]:
+            raise SnapshotError("Case content digest does not match the snapshot")
         if included != digests["included_cases"]:
             raise SnapshotError("included Case-set digest does not match the snapshot")
         if excluded != digests["excluded_cases"]:
@@ -1204,6 +1290,7 @@ class TargetStore:
         target_context: Mapping[str, Any],
         binding: Mapping[str, Any],
         counts: Mapping[str, int],
+        precommit_check: Optional[Callable[[], None]],
     ) -> TargetIngestResult:
         connection = self._connect()
         spool = sqlite3.connect(str(spool_path))
@@ -1217,6 +1304,13 @@ class TargetStore:
             self._assert_dataset_precondition(
                 connection, header["dataset"], target_context, policy
             )
+            # Bundle supplies a compare-and-swap guard.  It is intentionally
+            # evaluated after acquiring the target write transaction and before
+            # either an idempotent receipt is accepted or new rows are written.
+            # A failure aborts publication while leaving the immutable spool and
+            # target-owned CAS objects unreferenced.
+            if precommit_check is not None:
+                precommit_check()
             receipt = connection.execute(
                 "SELECT r.*,d.release_serial FROM ingestion_receipts r "
                 "JOIN releases d USING(dataset_id,release_id) WHERE r.store_uuid=? "
@@ -1245,9 +1339,9 @@ class TargetStore:
                 "INSERT INTO ingestion_receipts("
                 "receipt_id,store_uuid,dataset_id,release_id,bundle_digest,"
                 "certificate_digest,policy_digest,generation_digest,"
-                "included_cases_digest,excluded_cases_digest,asset_inventory_digest,"
-                "include_incomplete,reason,included_count,excluded_count,binding_json"
-                ") VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "case_content_digest,included_cases_digest,excluded_cases_digest,"
+                "asset_inventory_digest,include_incomplete,reason,included_count,"
+                "excluded_count,binding_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     receipt_id,
                     metadata["store_uuid"],
@@ -1257,6 +1351,7 @@ class TargetStore:
                     digests["certificate"],
                     policy["digest"],
                     digests["generation"],
+                    digests["case_content"],
                     digests["included_cases"],
                     digests["excluded_cases"],
                     digests["asset_inventory"],
@@ -1538,5 +1633,6 @@ __all__ = [
     "TargetStore",
     "TargetStoreError",
     "asset_inventory_digest",
+    "case_content_digest",
     "case_set_digest",
 ]

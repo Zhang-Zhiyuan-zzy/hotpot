@@ -1,0 +1,3141 @@
+{
+  "active_store": {
+    "active_database": "hotpot/dataset/data/store/generations/stage13-current/datasets.sqlite3",
+    "active_generation": "hotpot/dataset/data/store/generations/stage13-current",
+    "asset_root": "hotpot/dataset/data/store/generations/stage13-current/datasets.sqlite3.assets",
+    "database_file": {
+      "sha256": "1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5",
+      "size": 5093584896
+    },
+    "datasets": {
+      "csd-electronic-state": {
+        "asset_references": {
+          "control": {
+            "count": 14,
+            "sha256": "35b0ba47f6f4cdcb97185d6f888d696fb2373c9dcabe2879954af477127edd5a",
+            "unique_content": {
+              "bytes": 7270062770,
+              "count": 14,
+              "sha256": "d047490d3cd9c74a15cf00bd2f64b5d81e16e36b714be999c166264f56a88b99"
+            }
+          },
+          "scientific": {
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "unique_content": {
+              "bytes": 0,
+              "count": 0,
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            }
+          },
+          "structure": {
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "unique_content": {
+              "bytes": 0,
+              "count": 0,
+              "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            }
+          }
+        },
+        "bundle_parity": {
+          "case_count": true,
+          "case_payload": true,
+          "identifiers": true,
+          "scientific_asset_references": true,
+          "structure_asset_references": true
+        },
+        "cases": {
+          "case_count": 248315,
+          "case_identity_sha256": "8de8bf171229c1a3a797235b667998445cab4aebd5f4c315f2d923441c99dcb2",
+          "columns": [
+            "dataset_id",
+            "release_id",
+            "case_id",
+            "public_index",
+            "local_id",
+            "source_payload_json"
+          ],
+          "order_by": [
+            "public_index"
+          ],
+          "payload_jsonl_sha256": "9d00e7fadb4d570847c312da9cccc2030e09c8012c85a79041cf8a39fa480a6b",
+          "sha256": "6f8d7b3e04a1ccae014967e3b3d63c53bfbc2c3bdb800f3bc01d97fafe258081"
+        },
+        "identifiers": {
+          "by_namespace": {
+            "CSD": 248315,
+            "CSD_site_id": 339686
+          },
+          "count": 588001,
+          "sha256": "9508bee75ad2b19d1ddca03bd50fb8daa2a26f4e4ca06faa3a8cd31493d061b3"
+        },
+        "identity": {
+          "dataset_id": "csd-electronic-state",
+          "release_id": "csd-electronic-state.vreported-text-v1",
+          "release_serial": 1,
+          "version": "reported-text-v1"
+        },
+        "projections": {
+          "benchmark_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 0,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "case_assessments": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id",
+              "quality_level",
+              "evidence_level",
+              "archive_class",
+              "benchmark",
+              "assessment_json"
+            ],
+            "count": 248315,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "3800e735d78829ca55f988bcc0ca22acef3cb4b6af13fa4e1f727ba00d2e98c7"
+          },
+          "dataset_policies": {
+            "columns": [
+              "dataset_id",
+              "revision",
+              "policy_json",
+              "policy_digest"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id"
+            ],
+            "sha256": "97eb4684076f09a4daf5bdf53afdead4069b9d087a1f33e56758f988e0ac0839"
+          },
+          "datasets": {
+            "columns": [
+              "dataset_id",
+              "title",
+              "description",
+              "metadata_json"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id"
+            ],
+            "sha256": "700bb93f79375d835aeb21dcdd473b00121d55ad7e51e4a6cadd90d2cbd78e79"
+          },
+          "incomplete_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 3473,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "789d38b1fdf525da7ec139b4132a151f1bda2d0c6b61fecb706506a55449fa56"
+          },
+          "ordinary_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 244842,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "f9e6751afdb6ca89714fc532bd5257d3fb23981bf81e52069619c7acb54d429f"
+          },
+          "releases": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "version",
+              "release_serial",
+              "metadata_json"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id",
+              "release_id"
+            ],
+            "sha256": "07103b10d708533d915787df7f1c52d8316bb2ed838bc5104bf0ec7303da3f27"
+          }
+        },
+        "receipt": {
+          "database_row": {
+            "asset_inventory_digest": "979bcf294dac28c0281711f843a09faf42be947a2b63096e362d7e9296728a42",
+            "binding": {
+              "asset_inventory_digest": "979bcf294dac28c0281711f843a09faf42be947a2b63096e362d7e9296728a42",
+              "bundle_digest": "728aaaabee9129f7691da62dbaaeee247ce2cf5f404f8213b6a0eb862c28a633",
+              "case_content_digest": "bef4bd82dfed7c1feb43146951685e95f74ca8864461c8cded8f3e934911d24c",
+              "certificate_digest": "5b3e4c73d63af06f6f903cb670851fc82cdf1f1f0db28b7391de78a8ecbe261d",
+              "dataset": "csd-electronic-state",
+              "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "generation_digest": "097d6599f703a237278a56bcebfdb7d3fece35d5a32513c9b6b72485320a4e2f",
+              "include_incomplete": true,
+              "included_cases_digest": "55f91b85a7a846a5c52c8476a4adf01e658ac84719a2ef6deee9eb69353921c6",
+              "policy_digest": "03b94ccc57acd6bc5a0567bc7f998b854f5cd17417789db7caaa08f2f0cde792",
+              "policy_revision": 1,
+              "reason": "Owner-approved one-time migration preserving incomplete legacy Cases.",
+              "release": "csd-electronic-state.vreported-text-v1",
+              "requested_release_serial": 1,
+              "runtime_policy": {
+                "assessment": {
+                  "schema": "hotpot-ds-assessment-runtime/current",
+                  "source": {
+                    "digest": "e88a1fa229cd32d36f43e5f3fb717eeadfb5a5065e56cd4810255293a96b5469",
+                    "files": [
+                      {
+                        "path": "ds/gates/_base.py",
+                        "sha256": "98ddc67e37ed9714f882af942fe49129d9cb5ae4906459cf619ea614bca61d31"
+                      },
+                      {
+                        "path": "ds/gates/_checker.py",
+                        "sha256": "db54f00911d82e3e0e66f1fa346298b60611762c1f9af554fc19a2487a2bd497"
+                      },
+                      {
+                        "path": "ds/gates/_gates.py",
+                        "sha256": "b320401bfaaf965d73fb9f45768ab72db99d3ca97032be0470e4286dbda39d20"
+                      },
+                      {
+                        "path": "ds/gates/_persistence.py",
+                        "sha256": "a6a4d8dae90a340fadb65db96b2a76f76eb5cdcb98f23380abf92e102b4a2373"
+                      },
+                      {
+                        "path": "ds/governance.py",
+                        "sha256": "88365dfd0baef09febc4a5c1c7f48ec5a827ca34000fec9e12f1e6567198b250"
+                      },
+                      {
+                        "path": "ds/public/_assessment.py",
+                        "sha256": "217efb44920da3c49ea6ac6d93e32281d1cef0f59479f196378e0a69e6d13b4f"
+                      },
+                      {
+                        "path": "ds/public/_implementation.py",
+                        "sha256": "d6e48d02354c75b48701dab684eb5380e16a5d63d178fdb78f07c07303ce3526"
+                      }
+                    ],
+                    "semantic_symbols": [
+                      {
+                        "path": "ds/public/_bundle_state.py",
+                        "sha256": "7c50dcf378a7ab1034f33cfbd2576edc092ae98d46f1dfe21aaa0a76226413ce",
+                        "symbols": [
+                          "BUNDLE_SCHEMA",
+                          "_CASE_ALLOWED",
+                          "_CASE_DEFAULTS",
+                          "_ARRAY_FIELDS",
+                          "_ASSET_FIELDS",
+                          "_RECORD_ID_FIELDS",
+                          "_validate_control_assets",
+                          "_validate_manifest",
+                          "_validate_record_list",
+                          "_validate_case",
+                          "_record_asset_paths",
+                          "BundleState._iter_intake",
+                          "BundleState._compute_source_digest"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/_generation.py",
+                        "sha256": "0f11cf6c29d2f038c8fa1a07c4f6dae71b1014850f50045a84d75ed5c232772a",
+                        "symbols": [
+                          "_DATABASE_SCHEMA_VERSION",
+                          "_ARCHIVE_CLASSES",
+                          "_PARSEABLE_FORMATS",
+                          "_canonical_bytes",
+                          "_json_copy",
+                          "_stable_digest",
+                          "_snapshot_asset",
+                          "_structure_is_parseable",
+                          "_normalize_case",
+                          "_case_with_verified_attestations",
+                          "_active",
+                          "_gate_info",
+                          "_assessment_policy",
+                          "_expected_sha256",
+                          "_asset_declarations",
+                          "_assess_asset",
+                          "_initialize_assessment_database",
+                          "_initialize_work_database",
+                          "_stream_inputs",
+                          "_assess_conflicts",
+                          "_assess_cases",
+                          "_ordered_assessment_digest",
+                          "_DIGEST_QUERIES",
+                          "AssessmentGeneration.build"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/bundle.py",
+                        "sha256": "5a25969b697d907fb28793fbf3b013c13bd16e840ac74637420a253e6a140336",
+                        "symbols": [
+                          "_gate_set",
+                          "_policy_value",
+                          "_policy_has_custom_checkers",
+                          "Bundle.use_gate",
+                          "Bundle.synchronize",
+                          "Bundle._mutate_case",
+                          "_assert_manifest_policy"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/case.py",
+                        "sha256": "9c4aa203e400b20aebe3ffd05dfdc8f1fbe619afc3b5039bd70764a36de050a7",
+                        "symbols": [
+                          "_EVIDENCE_DETAIL_FIELDS",
+                          "_VERIFICATION_DETAIL_FIELDS",
+                          "_VERIFICATION_PROCEDURE",
+                          "_evidence_details",
+                          "_verification_details",
+                          "Case"
+                        ]
+                      }
+                    ]
+                  },
+                  "store_protocol": {
+                    "digest": "51f3cc9ea045d40dfada25a19738b8497e50476392c0e8def85da912239c5106",
+                    "ordered_digest_tables": [
+                      "asset_assessments",
+                      "conflict_assessments",
+                      "conflict_groups",
+                      "case_assessments",
+                      "evidence_assessments"
+                    ],
+                    "schema": "hotpot-ds-assessment-store/current",
+                    "sqlite_user_version": 1
+                  }
+                },
+                "checker": {
+                  "digest": "a51d1af3ef9930dd5a5a2febab36c6d762b6555581fe5db16ad312ed856f1ea8",
+                  "protocol": {
+                    "arguments": [
+                      {
+                        "name": "case",
+                        "type": "canonical_deep_read_only_json_mapping"
+                      },
+                      {
+                        "name": "bundle",
+                        "type": "bounded_deep_read_only_json_mapping"
+                      }
+                    ],
+                    "entrypoint": "top_level_python_function",
+                    "imports": [
+                      "__future__",
+                      "decimal",
+                      "itertools",
+                      "math"
+                    ],
+                    "isolation": {
+                      "environment": {
+                        "LANG": "C",
+                        "LC_ALL": "C",
+                        "PYTHONDONTWRITEBYTECODE": "1",
+                        "PYTHONHASHSEED": "0",
+                        "PYTHONNOUSERSITE": "1",
+                        "TZ": "UTC"
+                      },
+                      "filesystem": "empty_root_with_read_only_python_runtime",
+                      "limits": {
+                        "address_space_bytes": 536870912,
+                        "cpu_seconds": 2,
+                        "file_size_bytes": 1048576,
+                        "open_files": 32,
+                        "processes": 16,
+                        "request_bytes": 8388608,
+                        "response_bytes": 65536,
+                        "wall_seconds": 5
+                      },
+                      "network": "dedicated_network_namespace",
+                      "process": "dedicated_pid_user_ipc_uts_namespaces"
+                    },
+                    "request_fields": [
+                      "protocol_digest",
+                      "checker",
+                      "case",
+                      "bundle"
+                    ],
+                    "response_variants": {
+                      "error_fields": [
+                        "ok",
+                        "error"
+                      ],
+                      "success_fields": [
+                        "ok",
+                        "passed",
+                        "reason"
+                      ]
+                    },
+                    "result": [
+                      "exact_bool",
+                      "non_empty_reason_string"
+                    ],
+                    "worker_source_sha256": "ade5c977c635d0784c1b11ff1c36e9e72b968d5bfa4c526bf06dbf018b7da154"
+                  },
+                  "schema": "hotpot-ds-checker/current"
+                },
+                "digest": "ea53c88e16b30c4510b6f735491d280b3bd6f5d98fcd8ed06de88e551d56c853",
+                "parsers": {
+                  "digest": "cc5f0df40716a97e029b7f9c1ee8fe8dbafc56b5911fda2e0b94b6c69cdacc87",
+                  "entries": [
+                    {
+                      "digest": "e3a39133ea529563130a90c2230740403630caa794f7a0660f6b98e816d98aa5",
+                      "distributions": [
+                        {
+                          "installed": true,
+                          "name": "cython",
+                          "version": "3.3.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "hotpot-zzy",
+                          "version": "0.5.4.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "networkx",
+                          "version": "3.6.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "numpy",
+                          "version": "2.4.6"
+                        },
+                        {
+                          "installed": true,
+                          "name": "openbabel",
+                          "version": "3.2.1"
+                        },
+                        {
+                          "installed": false,
+                          "name": "openbabel-wheel",
+                          "version": null
+                        },
+                        {
+                          "installed": true,
+                          "name": "pandas",
+                          "version": "3.0.6"
+                        },
+                        {
+                          "installed": true,
+                          "name": "periodictable",
+                          "version": "2.1.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "pubchempy",
+                          "version": "1.0.5"
+                        },
+                        {
+                          "installed": true,
+                          "name": "rdkit",
+                          "version": "2026.9.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "scipy",
+                          "version": "1.17.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "thermo",
+                          "version": "0.6.1"
+                        }
+                      ],
+                      "formats": [
+                        "mol",
+                        "mol2",
+                        "sdf",
+                        "smi",
+                        "smiles",
+                        "xyz"
+                      ],
+                      "name": "hotpot.Molecule.read_one/openbabel",
+                      "protocol": {
+                        "backend": "openbabel",
+                        "digest": "b791ab4219324db88d84776cc2b6aa02a89695427266d8e915afe6586430f8e1",
+                        "entrypoint": "hotpot.Molecule.read_one",
+                        "format_argument": "normalized-declared-format",
+                        "input": "content-addressed-local-snapshot-path",
+                        "result": "first-hotpot-molecule-without-parser-exception",
+                        "schema": "hotpot-ds-molecule-parser/current"
+                      },
+                      "schema": "hotpot-ds-parser-binding/current",
+                      "source": {
+                        "digest": "f706b906fc19c6a3fc772276158f8877e67c9cec16621fc686221016f9aa4802",
+                        "files": [
+                          {
+                            "path": "__init__.py",
+                            "sha256": "9dcdef2c8846d569030a41137fa41c2349556678e27a322e704ee156b02fa028"
+                          },
+                          {
+                            "path": "cheminfo/__init__.py",
+                            "sha256": "6a583332bcc054303c3c28525c20953197f1bfa1bab53f59f4de178dd5cb8784"
+                          },
+                          {
+                            "path": "cheminfo/_io/__init__.py",
+                            "sha256": "f41092db6f9298e9844052c45421186d05c9cd65306e2f49848452c8e537a3e3"
+                          },
+                          {
+                            "path": "cheminfo/_io/_io.py",
+                            "sha256": "1c676ce0afb4f2d08328f2514e90a560524964fcf4722a78467b0967ea0c8a6f"
+                          },
+                          {
+                            "path": "cheminfo/core.py",
+                            "sha256": "94909ce133da4fb350cf81481848a746485fb1121312cb7aa7d67cb0f0a71d4b"
+                          },
+                          {
+                            "path": "cheminfo/crystal.py",
+                            "sha256": "e863a75cd402ff09650db58bdebc3f4ced64e2f60707b94b3c3954f35ac9bdf6"
+                          },
+                          {
+                            "path": "cheminfo/elements.py",
+                            "sha256": "1a829878bd09a0ba6786754b5d5c3b0582b8a7d3bf0a58a7e54560ef9d6471c1"
+                          },
+                          {
+                            "path": "cheminfo/obconvert.py",
+                            "sha256": "edbe186462a9c7a7fd073ec16d5bf387825d4567d5d7887ec68ef7123d2ba943"
+                          }
+                        ],
+                        "semantic_symbols": []
+                      }
+                    }
+                  ],
+                  "schema": "hotpot-ds-parser-registry/current",
+                  "selection": {
+                    "asset_collection": "structures",
+                    "digest": "b1f19e18699e127473520093382e1d8fcb86ae8582c6331dd4af1bec318ea12e",
+                    "normalization": "strip-leading-dot-and-ascii-lowercase",
+                    "schema": "hotpot-ds-parser-selection/current",
+                    "unknown_format": "unconfigured"
+                  }
+                },
+                "runtime": {
+                  "distributions": [
+                    {
+                      "installed": true,
+                      "name": "cryptography",
+                      "version": "46.0.7"
+                    },
+                    {
+                      "installed": true,
+                      "name": "cython",
+                      "version": "3.3.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "hotpot-zzy",
+                      "version": "0.5.4.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "networkx",
+                      "version": "3.6.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "numpy",
+                      "version": "2.4.6"
+                    },
+                    {
+                      "installed": true,
+                      "name": "openbabel",
+                      "version": "3.2.1"
+                    },
+                    {
+                      "installed": false,
+                      "name": "openbabel-wheel",
+                      "version": null
+                    },
+                    {
+                      "installed": true,
+                      "name": "pandas",
+                      "version": "3.0.6"
+                    },
+                    {
+                      "installed": true,
+                      "name": "periodictable",
+                      "version": "2.1.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "pubchempy",
+                      "version": "1.0.5"
+                    },
+                    {
+                      "installed": true,
+                      "name": "rdkit",
+                      "version": "2026.9.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "scipy",
+                      "version": "1.17.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "thermo",
+                      "version": "0.6.1"
+                    }
+                  ],
+                  "python": {
+                    "cache_tag": "cpython-311",
+                    "hexversion": 51056880,
+                    "implementation": "CPython",
+                    "soabi": "cpython-311-x86_64-linux-gnu",
+                    "version": "3.11.16"
+                  },
+                  "sqlite": {
+                    "version": "3.53.4"
+                  }
+                },
+                "schema": "hotpot-ds-runtime-policy/current"
+              },
+              "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35",
+              "target_context": {
+                "canonical_path": "/home/zhangzhiyuan/hotpot/hotpot/dataset/data/store/generations/stage13-current/datasets.sqlite3",
+                "dataset_policy_digest": null,
+                "dataset_policy_revision": null,
+                "dataset_state": "absent",
+                "schema_id": "hotpot-ds-store/current",
+                "store_state": "existing",
+                "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+              },
+              "version": "reported-text-v1"
+            },
+            "bundle_digest": "728aaaabee9129f7691da62dbaaeee247ce2cf5f404f8213b6a0eb862c28a633",
+            "case_content_digest": "bef4bd82dfed7c1feb43146951685e95f74ca8864461c8cded8f3e934911d24c",
+            "certificate_digest": "5b3e4c73d63af06f6f903cb670851fc82cdf1f1f0db28b7391de78a8ecbe261d",
+            "committed_at": "2026-10-15 07:09:13",
+            "dataset_id": "csd-electronic-state",
+            "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "excluded_count": 0,
+            "generation_digest": "097d6599f703a237278a56bcebfdb7d3fece35d5a32513c9b6b72485320a4e2f",
+            "include_incomplete": 1,
+            "included_cases_digest": "55f91b85a7a846a5c52c8476a4adf01e658ac84719a2ef6deee9eb69353921c6",
+            "included_count": 248315,
+            "policy_digest": "03b94ccc57acd6bc5a0567bc7f998b854f5cd17417789db7caaa08f2f0cde792",
+            "reason": "Owner-approved one-time migration preserving incomplete legacy Cases.",
+            "receipt_id": "receipt-f28c7abe111a251df4126ad9834f41f0a2d9766a9a19d7ea12b3d87347c21da6",
+            "release_id": "csd-electronic-state.vreported-text-v1",
+            "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+          },
+          "recomputed_selection": {
+            "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "excluded_count": 0,
+            "included_cases_digest": "55f91b85a7a846a5c52c8476a4adf01e658ac84719a2ef6deee9eb69353921c6",
+            "included_count": 248315
+          },
+          "selection_binding_matches": true
+        }
+      },
+      "oxidation": {
+        "asset_references": {
+          "control": {
+            "count": 14,
+            "sha256": "5958632985e65571afd348f0df1283f8eb8bdafc5d93d97de1fe7d10fd91f6d1",
+            "unique_content": {
+              "bytes": 91104341,
+              "count": 13,
+              "sha256": "9c6afcdb7479cbb41f7a0123ecca6e22ecaf3f05a2645cd8d0b09104c325b81d"
+            }
+          },
+          "scientific": {
+            "count": 2185,
+            "sha256": "22d1db378e1da7644f66990f3ee1a96ffae66251b007ad29c0511bc864ddc086",
+            "unique_content": {
+              "bytes": 6405787,
+              "count": 2185,
+              "sha256": "cb398a18bbd5013f6bc0cd1fc25717b418e426d3a5ca23b9dcf7f5e27401e9c9"
+            }
+          },
+          "structure": {
+            "count": 2185,
+            "sha256": "da7061df4b203a4ee7a41742522d1ff39badac2324c533be455cc04067cbf92f",
+            "unique_content": {
+              "bytes": 6405787,
+              "count": 2185,
+              "sha256": "cb398a18bbd5013f6bc0cd1fc25717b418e426d3a5ca23b9dcf7f5e27401e9c9"
+            }
+          }
+        },
+        "bundle_parity": {
+          "case_count": true,
+          "case_payload": true,
+          "identifiers": true,
+          "scientific_asset_references": true,
+          "structure_asset_references": true
+        },
+        "cases": {
+          "case_count": 2175,
+          "case_identity_sha256": "ef480ea67a330410161de776cb4c64295790c73f54170a0e588b51c956294c97",
+          "columns": [
+            "dataset_id",
+            "release_id",
+            "case_id",
+            "public_index",
+            "local_id",
+            "source_payload_json"
+          ],
+          "order_by": [
+            "public_index"
+          ],
+          "payload_jsonl_sha256": "989e3b6db231f06bf2cd6d460a35b2bc42b3c4ab045fe97b32cd697b1cbe16f8",
+          "sha256": "e9bee0a407ff166ebd1791c3f53b0eb5de8982f9518a6cb5f77a997f8e869560"
+        },
+        "identifiers": {
+          "by_namespace": {
+            "CSD": 2170
+          },
+          "count": 2170,
+          "sha256": "725fbbae5c4e16a297a5097bbc17fedc13b44af83adb38fee4e7875111e956c2"
+        },
+        "identity": {
+          "dataset_id": "oxidation",
+          "release_id": "oxidation.v001",
+          "release_serial": 1,
+          "version": "001"
+        },
+        "projections": {
+          "benchmark_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 0,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "case_assessments": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id",
+              "quality_level",
+              "evidence_level",
+              "archive_class",
+              "benchmark",
+              "assessment_json"
+            ],
+            "count": 2175,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "4d7cd54387c8fcc7f002206bcb3b99c916c5735d6c9ccf44722931f07e52a820"
+          },
+          "dataset_policies": {
+            "columns": [
+              "dataset_id",
+              "revision",
+              "policy_json",
+              "policy_digest"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id"
+            ],
+            "sha256": "7ec4b91f28ad31b2829b9fb7f5b279e5f6a50c85e11429e9d1cda370a5af5c0f"
+          },
+          "datasets": {
+            "columns": [
+              "dataset_id",
+              "title",
+              "description",
+              "metadata_json"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id"
+            ],
+            "sha256": "68965866acde347871b2832165661fbc4c9b808f13cf3d8f66ba6a4d975b72d1"
+          },
+          "incomplete_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 0,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "ordinary_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 2175,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "28f1ac2336b992f56f3f0ebf4b9d051febaa1c7dfd2644450b132d02e38cae27"
+          },
+          "releases": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "version",
+              "release_serial",
+              "metadata_json"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id",
+              "release_id"
+            ],
+            "sha256": "75e6208859e964931e14f66d32b05c8b7e182012e65f65034a243756625ba322"
+          }
+        },
+        "receipt": {
+          "database_row": {
+            "asset_inventory_digest": "5f25b559d8322f807120ddbeb1206d12c9bf595b341c846d4f8c00ff5538b441",
+            "binding": {
+              "asset_inventory_digest": "5f25b559d8322f807120ddbeb1206d12c9bf595b341c846d4f8c00ff5538b441",
+              "bundle_digest": "5e2a392220ac586cd2dc54f9af0015c3b7d9a30a52eafdc623d514c5f3eea2b2",
+              "case_content_digest": "0747fbd8c79ee4b6c26ef22b4bdbc3cd8befc3ee8018c8926f8e9cd28b53674c",
+              "certificate_digest": "27b5028e216d3067903d20eeff3f3fae6403fc66f68396fa410b5907daeef15e",
+              "dataset": "oxidation",
+              "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "generation_digest": "bc8403fa121d3b0b35486b9066fb4e2759b737742ec0390bb4e82953a11fa69f",
+              "include_incomplete": true,
+              "included_cases_digest": "d9f7e9067f69ab627dd768964b8f983de38afdb73e5a477da6d6fe49ec187e62",
+              "policy_digest": "78f8ea239303cd5a7e72ccf5611761e4724d2460f8800ca6985f18b9598ef253",
+              "policy_revision": 1,
+              "reason": "Owner-approved one-time migration preserving incomplete legacy Cases.",
+              "release": "oxidation.v001",
+              "requested_release_serial": 1,
+              "runtime_policy": {
+                "assessment": {
+                  "schema": "hotpot-ds-assessment-runtime/current",
+                  "source": {
+                    "digest": "e88a1fa229cd32d36f43e5f3fb717eeadfb5a5065e56cd4810255293a96b5469",
+                    "files": [
+                      {
+                        "path": "ds/gates/_base.py",
+                        "sha256": "98ddc67e37ed9714f882af942fe49129d9cb5ae4906459cf619ea614bca61d31"
+                      },
+                      {
+                        "path": "ds/gates/_checker.py",
+                        "sha256": "db54f00911d82e3e0e66f1fa346298b60611762c1f9af554fc19a2487a2bd497"
+                      },
+                      {
+                        "path": "ds/gates/_gates.py",
+                        "sha256": "b320401bfaaf965d73fb9f45768ab72db99d3ca97032be0470e4286dbda39d20"
+                      },
+                      {
+                        "path": "ds/gates/_persistence.py",
+                        "sha256": "a6a4d8dae90a340fadb65db96b2a76f76eb5cdcb98f23380abf92e102b4a2373"
+                      },
+                      {
+                        "path": "ds/governance.py",
+                        "sha256": "88365dfd0baef09febc4a5c1c7f48ec5a827ca34000fec9e12f1e6567198b250"
+                      },
+                      {
+                        "path": "ds/public/_assessment.py",
+                        "sha256": "217efb44920da3c49ea6ac6d93e32281d1cef0f59479f196378e0a69e6d13b4f"
+                      },
+                      {
+                        "path": "ds/public/_implementation.py",
+                        "sha256": "d6e48d02354c75b48701dab684eb5380e16a5d63d178fdb78f07c07303ce3526"
+                      }
+                    ],
+                    "semantic_symbols": [
+                      {
+                        "path": "ds/public/_bundle_state.py",
+                        "sha256": "7c50dcf378a7ab1034f33cfbd2576edc092ae98d46f1dfe21aaa0a76226413ce",
+                        "symbols": [
+                          "BUNDLE_SCHEMA",
+                          "_CASE_ALLOWED",
+                          "_CASE_DEFAULTS",
+                          "_ARRAY_FIELDS",
+                          "_ASSET_FIELDS",
+                          "_RECORD_ID_FIELDS",
+                          "_validate_control_assets",
+                          "_validate_manifest",
+                          "_validate_record_list",
+                          "_validate_case",
+                          "_record_asset_paths",
+                          "BundleState._iter_intake",
+                          "BundleState._compute_source_digest"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/_generation.py",
+                        "sha256": "0f11cf6c29d2f038c8fa1a07c4f6dae71b1014850f50045a84d75ed5c232772a",
+                        "symbols": [
+                          "_DATABASE_SCHEMA_VERSION",
+                          "_ARCHIVE_CLASSES",
+                          "_PARSEABLE_FORMATS",
+                          "_canonical_bytes",
+                          "_json_copy",
+                          "_stable_digest",
+                          "_snapshot_asset",
+                          "_structure_is_parseable",
+                          "_normalize_case",
+                          "_case_with_verified_attestations",
+                          "_active",
+                          "_gate_info",
+                          "_assessment_policy",
+                          "_expected_sha256",
+                          "_asset_declarations",
+                          "_assess_asset",
+                          "_initialize_assessment_database",
+                          "_initialize_work_database",
+                          "_stream_inputs",
+                          "_assess_conflicts",
+                          "_assess_cases",
+                          "_ordered_assessment_digest",
+                          "_DIGEST_QUERIES",
+                          "AssessmentGeneration.build"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/bundle.py",
+                        "sha256": "5a25969b697d907fb28793fbf3b013c13bd16e840ac74637420a253e6a140336",
+                        "symbols": [
+                          "_gate_set",
+                          "_policy_value",
+                          "_policy_has_custom_checkers",
+                          "Bundle.use_gate",
+                          "Bundle.synchronize",
+                          "Bundle._mutate_case",
+                          "_assert_manifest_policy"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/case.py",
+                        "sha256": "9c4aa203e400b20aebe3ffd05dfdc8f1fbe619afc3b5039bd70764a36de050a7",
+                        "symbols": [
+                          "_EVIDENCE_DETAIL_FIELDS",
+                          "_VERIFICATION_DETAIL_FIELDS",
+                          "_VERIFICATION_PROCEDURE",
+                          "_evidence_details",
+                          "_verification_details",
+                          "Case"
+                        ]
+                      }
+                    ]
+                  },
+                  "store_protocol": {
+                    "digest": "51f3cc9ea045d40dfada25a19738b8497e50476392c0e8def85da912239c5106",
+                    "ordered_digest_tables": [
+                      "asset_assessments",
+                      "conflict_assessments",
+                      "conflict_groups",
+                      "case_assessments",
+                      "evidence_assessments"
+                    ],
+                    "schema": "hotpot-ds-assessment-store/current",
+                    "sqlite_user_version": 1
+                  }
+                },
+                "checker": {
+                  "digest": "a51d1af3ef9930dd5a5a2febab36c6d762b6555581fe5db16ad312ed856f1ea8",
+                  "protocol": {
+                    "arguments": [
+                      {
+                        "name": "case",
+                        "type": "canonical_deep_read_only_json_mapping"
+                      },
+                      {
+                        "name": "bundle",
+                        "type": "bounded_deep_read_only_json_mapping"
+                      }
+                    ],
+                    "entrypoint": "top_level_python_function",
+                    "imports": [
+                      "__future__",
+                      "decimal",
+                      "itertools",
+                      "math"
+                    ],
+                    "isolation": {
+                      "environment": {
+                        "LANG": "C",
+                        "LC_ALL": "C",
+                        "PYTHONDONTWRITEBYTECODE": "1",
+                        "PYTHONHASHSEED": "0",
+                        "PYTHONNOUSERSITE": "1",
+                        "TZ": "UTC"
+                      },
+                      "filesystem": "empty_root_with_read_only_python_runtime",
+                      "limits": {
+                        "address_space_bytes": 536870912,
+                        "cpu_seconds": 2,
+                        "file_size_bytes": 1048576,
+                        "open_files": 32,
+                        "processes": 16,
+                        "request_bytes": 8388608,
+                        "response_bytes": 65536,
+                        "wall_seconds": 5
+                      },
+                      "network": "dedicated_network_namespace",
+                      "process": "dedicated_pid_user_ipc_uts_namespaces"
+                    },
+                    "request_fields": [
+                      "protocol_digest",
+                      "checker",
+                      "case",
+                      "bundle"
+                    ],
+                    "response_variants": {
+                      "error_fields": [
+                        "ok",
+                        "error"
+                      ],
+                      "success_fields": [
+                        "ok",
+                        "passed",
+                        "reason"
+                      ]
+                    },
+                    "result": [
+                      "exact_bool",
+                      "non_empty_reason_string"
+                    ],
+                    "worker_source_sha256": "ade5c977c635d0784c1b11ff1c36e9e72b968d5bfa4c526bf06dbf018b7da154"
+                  },
+                  "schema": "hotpot-ds-checker/current"
+                },
+                "digest": "ea53c88e16b30c4510b6f735491d280b3bd6f5d98fcd8ed06de88e551d56c853",
+                "parsers": {
+                  "digest": "cc5f0df40716a97e029b7f9c1ee8fe8dbafc56b5911fda2e0b94b6c69cdacc87",
+                  "entries": [
+                    {
+                      "digest": "e3a39133ea529563130a90c2230740403630caa794f7a0660f6b98e816d98aa5",
+                      "distributions": [
+                        {
+                          "installed": true,
+                          "name": "cython",
+                          "version": "3.3.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "hotpot-zzy",
+                          "version": "0.5.4.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "networkx",
+                          "version": "3.6.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "numpy",
+                          "version": "2.4.6"
+                        },
+                        {
+                          "installed": true,
+                          "name": "openbabel",
+                          "version": "3.2.1"
+                        },
+                        {
+                          "installed": false,
+                          "name": "openbabel-wheel",
+                          "version": null
+                        },
+                        {
+                          "installed": true,
+                          "name": "pandas",
+                          "version": "3.0.6"
+                        },
+                        {
+                          "installed": true,
+                          "name": "periodictable",
+                          "version": "2.1.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "pubchempy",
+                          "version": "1.0.5"
+                        },
+                        {
+                          "installed": true,
+                          "name": "rdkit",
+                          "version": "2026.9.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "scipy",
+                          "version": "1.17.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "thermo",
+                          "version": "0.6.1"
+                        }
+                      ],
+                      "formats": [
+                        "mol",
+                        "mol2",
+                        "sdf",
+                        "smi",
+                        "smiles",
+                        "xyz"
+                      ],
+                      "name": "hotpot.Molecule.read_one/openbabel",
+                      "protocol": {
+                        "backend": "openbabel",
+                        "digest": "b791ab4219324db88d84776cc2b6aa02a89695427266d8e915afe6586430f8e1",
+                        "entrypoint": "hotpot.Molecule.read_one",
+                        "format_argument": "normalized-declared-format",
+                        "input": "content-addressed-local-snapshot-path",
+                        "result": "first-hotpot-molecule-without-parser-exception",
+                        "schema": "hotpot-ds-molecule-parser/current"
+                      },
+                      "schema": "hotpot-ds-parser-binding/current",
+                      "source": {
+                        "digest": "f706b906fc19c6a3fc772276158f8877e67c9cec16621fc686221016f9aa4802",
+                        "files": [
+                          {
+                            "path": "__init__.py",
+                            "sha256": "9dcdef2c8846d569030a41137fa41c2349556678e27a322e704ee156b02fa028"
+                          },
+                          {
+                            "path": "cheminfo/__init__.py",
+                            "sha256": "6a583332bcc054303c3c28525c20953197f1bfa1bab53f59f4de178dd5cb8784"
+                          },
+                          {
+                            "path": "cheminfo/_io/__init__.py",
+                            "sha256": "f41092db6f9298e9844052c45421186d05c9cd65306e2f49848452c8e537a3e3"
+                          },
+                          {
+                            "path": "cheminfo/_io/_io.py",
+                            "sha256": "1c676ce0afb4f2d08328f2514e90a560524964fcf4722a78467b0967ea0c8a6f"
+                          },
+                          {
+                            "path": "cheminfo/core.py",
+                            "sha256": "94909ce133da4fb350cf81481848a746485fb1121312cb7aa7d67cb0f0a71d4b"
+                          },
+                          {
+                            "path": "cheminfo/crystal.py",
+                            "sha256": "e863a75cd402ff09650db58bdebc3f4ced64e2f60707b94b3c3954f35ac9bdf6"
+                          },
+                          {
+                            "path": "cheminfo/elements.py",
+                            "sha256": "1a829878bd09a0ba6786754b5d5c3b0582b8a7d3bf0a58a7e54560ef9d6471c1"
+                          },
+                          {
+                            "path": "cheminfo/obconvert.py",
+                            "sha256": "edbe186462a9c7a7fd073ec16d5bf387825d4567d5d7887ec68ef7123d2ba943"
+                          }
+                        ],
+                        "semantic_symbols": []
+                      }
+                    }
+                  ],
+                  "schema": "hotpot-ds-parser-registry/current",
+                  "selection": {
+                    "asset_collection": "structures",
+                    "digest": "b1f19e18699e127473520093382e1d8fcb86ae8582c6331dd4af1bec318ea12e",
+                    "normalization": "strip-leading-dot-and-ascii-lowercase",
+                    "schema": "hotpot-ds-parser-selection/current",
+                    "unknown_format": "unconfigured"
+                  }
+                },
+                "runtime": {
+                  "distributions": [
+                    {
+                      "installed": true,
+                      "name": "cryptography",
+                      "version": "46.0.7"
+                    },
+                    {
+                      "installed": true,
+                      "name": "cython",
+                      "version": "3.3.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "hotpot-zzy",
+                      "version": "0.5.4.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "networkx",
+                      "version": "3.6.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "numpy",
+                      "version": "2.4.6"
+                    },
+                    {
+                      "installed": true,
+                      "name": "openbabel",
+                      "version": "3.2.1"
+                    },
+                    {
+                      "installed": false,
+                      "name": "openbabel-wheel",
+                      "version": null
+                    },
+                    {
+                      "installed": true,
+                      "name": "pandas",
+                      "version": "3.0.6"
+                    },
+                    {
+                      "installed": true,
+                      "name": "periodictable",
+                      "version": "2.1.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "pubchempy",
+                      "version": "1.0.5"
+                    },
+                    {
+                      "installed": true,
+                      "name": "rdkit",
+                      "version": "2026.9.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "scipy",
+                      "version": "1.17.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "thermo",
+                      "version": "0.6.1"
+                    }
+                  ],
+                  "python": {
+                    "cache_tag": "cpython-311",
+                    "hexversion": 51056880,
+                    "implementation": "CPython",
+                    "soabi": "cpython-311-x86_64-linux-gnu",
+                    "version": "3.11.16"
+                  },
+                  "sqlite": {
+                    "version": "3.53.4"
+                  }
+                },
+                "schema": "hotpot-ds-runtime-policy/current"
+              },
+              "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35",
+              "target_context": {
+                "canonical_path": "/home/zhangzhiyuan/hotpot/hotpot/dataset/data/store/generations/stage13-current/datasets.sqlite3",
+                "dataset_policy_digest": null,
+                "dataset_policy_revision": null,
+                "dataset_state": "absent",
+                "schema_id": "hotpot-ds-store/current",
+                "store_state": "absent",
+                "store_uuid": null
+              },
+              "version": "001"
+            },
+            "bundle_digest": "5e2a392220ac586cd2dc54f9af0015c3b7d9a30a52eafdc623d514c5f3eea2b2",
+            "case_content_digest": "0747fbd8c79ee4b6c26ef22b4bdbc3cd8befc3ee8018c8926f8e9cd28b53674c",
+            "certificate_digest": "27b5028e216d3067903d20eeff3f3fae6403fc66f68396fa410b5907daeef15e",
+            "committed_at": "2026-10-15 05:07:47",
+            "dataset_id": "oxidation",
+            "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "excluded_count": 0,
+            "generation_digest": "bc8403fa121d3b0b35486b9066fb4e2759b737742ec0390bb4e82953a11fa69f",
+            "include_incomplete": 1,
+            "included_cases_digest": "d9f7e9067f69ab627dd768964b8f983de38afdb73e5a477da6d6fe49ec187e62",
+            "included_count": 2175,
+            "policy_digest": "78f8ea239303cd5a7e72ccf5611761e4724d2460f8800ca6985f18b9598ef253",
+            "reason": "Owner-approved one-time migration preserving incomplete legacy Cases.",
+            "receipt_id": "receipt-dde772bebb47624a07681291b86ec5e4b4dd27d71f64993aa7f62228e437f63d",
+            "release_id": "oxidation.v001",
+            "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+          },
+          "recomputed_selection": {
+            "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "excluded_count": 0,
+            "included_cases_digest": "d9f7e9067f69ab627dd768964b8f983de38afdb73e5a477da6d6fe49ec187e62",
+            "included_count": 2175
+          },
+          "selection_binding_matches": true
+        }
+      },
+      "spin": {
+        "asset_references": {
+          "control": {
+            "count": 14,
+            "sha256": "4bf88f40119753dbd59635504cb69bd5ead4c89ed295879ad82be8efb0537e46",
+            "unique_content": {
+              "bytes": 93239756,
+              "count": 14,
+              "sha256": "fcf2cacee0f202d66626040d61e40c2e0065b721fe6c62d7b2937dc53ecedca1"
+            }
+          },
+          "scientific": {
+            "count": 2280,
+            "sha256": "e822c67e436ffda394e1681de05c9282634ce677bfc1df1e637aa573c258190a",
+            "unique_content": {
+              "bytes": 7092342,
+              "count": 2280,
+              "sha256": "714744d3e300fd43326556850e653b90756cba3344616bacd2023f2bb7021d03"
+            }
+          },
+          "structure": {
+            "count": 2280,
+            "sha256": "babc9684ed23bbd5ab51744b5f25e509e15f349d46c7c4473836db8e9a472303",
+            "unique_content": {
+              "bytes": 7092342,
+              "count": 2280,
+              "sha256": "714744d3e300fd43326556850e653b90756cba3344616bacd2023f2bb7021d03"
+            }
+          }
+        },
+        "bundle_parity": {
+          "case_count": true,
+          "case_payload": true,
+          "identifiers": true,
+          "scientific_asset_references": true,
+          "structure_asset_references": true
+        },
+        "cases": {
+          "case_count": 2175,
+          "case_identity_sha256": "d0fc1f1f8bc1d92c40f992a4c480857825d9f26d7bb5f4a8367d840fc41ad997",
+          "columns": [
+            "dataset_id",
+            "release_id",
+            "case_id",
+            "public_index",
+            "local_id",
+            "source_payload_json"
+          ],
+          "order_by": [
+            "public_index"
+          ],
+          "payload_jsonl_sha256": "5d4ece482867177409c0190a3b0225c188cff697aa38d2e0f6b179bcf32034c1",
+          "sha256": "af65cb7640e58f5b3335c39f36150d385b3cb3944437c009bc88528bc008c549"
+        },
+        "identifiers": {
+          "by_namespace": {
+            "CSD": 2265
+          },
+          "count": 2265,
+          "sha256": "5381e2cfb4aa957ca21cb2783660e1963bcbce7031aabe316acfe195fdb066f2"
+        },
+        "identity": {
+          "dataset_id": "spin",
+          "release_id": "spin.v001",
+          "release_serial": 1,
+          "version": "001"
+        },
+        "projections": {
+          "benchmark_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 0,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "case_assessments": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id",
+              "quality_level",
+              "evidence_level",
+              "archive_class",
+              "benchmark",
+              "assessment_json"
+            ],
+            "count": 2175,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "200d03c797578f4a32d3d2ad5a21668121b18160daa604c7ff936db7bdcd5ed9"
+          },
+          "dataset_policies": {
+            "columns": [
+              "dataset_id",
+              "revision",
+              "policy_json",
+              "policy_digest"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id"
+            ],
+            "sha256": "7dbecdb4a8259f0be935b89dca2910607dec241cfd1c84ef3b0709245564b7a7"
+          },
+          "datasets": {
+            "columns": [
+              "dataset_id",
+              "title",
+              "description",
+              "metadata_json"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id"
+            ],
+            "sha256": "a60f20f3139a49bb7d6dec1149c690cb9c1f210a517700d9702d0af305a98bf6"
+          },
+          "incomplete_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 95,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "78012d82526c49a07f1b40bb6070106e512cf52901160bfc6fdc50f35582d988"
+          },
+          "ordinary_case_index": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "count": 2080,
+            "order_by": [
+              "dataset_id",
+              "release_id",
+              "case_id"
+            ],
+            "sha256": "3c2fde889a4bd782982aa04bc6d1fc1f28df41c7745b230c3e53654bf6819435"
+          },
+          "releases": {
+            "columns": [
+              "dataset_id",
+              "release_id",
+              "version",
+              "release_serial",
+              "metadata_json"
+            ],
+            "count": 1,
+            "order_by": [
+              "dataset_id",
+              "release_id"
+            ],
+            "sha256": "64afa04289153c672daca344aa4114c88e01c94fffb3f85af4286dbd1aaa9680"
+          }
+        },
+        "receipt": {
+          "database_row": {
+            "asset_inventory_digest": "ea78aa7d646fa3947a35d744709265be5b52c3ce2453c21f1f347a85010f4823",
+            "binding": {
+              "asset_inventory_digest": "ea78aa7d646fa3947a35d744709265be5b52c3ce2453c21f1f347a85010f4823",
+              "bundle_digest": "51ee8c083c6e3859adaafdf520e7231863ad49245c57ea3a0179c7d8c6a1b110",
+              "case_content_digest": "a2e3c6703d9d65f580e9ec4614bcb2c03f9a672b694960f98d49d1f8ad515dd1",
+              "certificate_digest": "0a49ac2eafcd67d159e16afb94615ac2165c1b62ddb264b606d2166f9fc94763",
+              "dataset": "spin",
+              "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "generation_digest": "65c57c9372e15c4c9427a5c7b61f8e347e550580ea029c3190c72a60c9212f06",
+              "include_incomplete": true,
+              "included_cases_digest": "f5a203ca16becb1c0f66595608649d9e4362355725ebf837d6a220f96315cd95",
+              "policy_digest": "ff5f9203dbe70f2b5dd5c59bc39e647a30175fb1cf581e4f0e0574d1e525e8bd",
+              "policy_revision": 1,
+              "reason": "Owner-approved one-time migration preserving incomplete legacy Cases.",
+              "release": "spin.v001",
+              "requested_release_serial": 1,
+              "runtime_policy": {
+                "assessment": {
+                  "schema": "hotpot-ds-assessment-runtime/current",
+                  "source": {
+                    "digest": "e88a1fa229cd32d36f43e5f3fb717eeadfb5a5065e56cd4810255293a96b5469",
+                    "files": [
+                      {
+                        "path": "ds/gates/_base.py",
+                        "sha256": "98ddc67e37ed9714f882af942fe49129d9cb5ae4906459cf619ea614bca61d31"
+                      },
+                      {
+                        "path": "ds/gates/_checker.py",
+                        "sha256": "db54f00911d82e3e0e66f1fa346298b60611762c1f9af554fc19a2487a2bd497"
+                      },
+                      {
+                        "path": "ds/gates/_gates.py",
+                        "sha256": "b320401bfaaf965d73fb9f45768ab72db99d3ca97032be0470e4286dbda39d20"
+                      },
+                      {
+                        "path": "ds/gates/_persistence.py",
+                        "sha256": "a6a4d8dae90a340fadb65db96b2a76f76eb5cdcb98f23380abf92e102b4a2373"
+                      },
+                      {
+                        "path": "ds/governance.py",
+                        "sha256": "88365dfd0baef09febc4a5c1c7f48ec5a827ca34000fec9e12f1e6567198b250"
+                      },
+                      {
+                        "path": "ds/public/_assessment.py",
+                        "sha256": "217efb44920da3c49ea6ac6d93e32281d1cef0f59479f196378e0a69e6d13b4f"
+                      },
+                      {
+                        "path": "ds/public/_implementation.py",
+                        "sha256": "d6e48d02354c75b48701dab684eb5380e16a5d63d178fdb78f07c07303ce3526"
+                      }
+                    ],
+                    "semantic_symbols": [
+                      {
+                        "path": "ds/public/_bundle_state.py",
+                        "sha256": "7c50dcf378a7ab1034f33cfbd2576edc092ae98d46f1dfe21aaa0a76226413ce",
+                        "symbols": [
+                          "BUNDLE_SCHEMA",
+                          "_CASE_ALLOWED",
+                          "_CASE_DEFAULTS",
+                          "_ARRAY_FIELDS",
+                          "_ASSET_FIELDS",
+                          "_RECORD_ID_FIELDS",
+                          "_validate_control_assets",
+                          "_validate_manifest",
+                          "_validate_record_list",
+                          "_validate_case",
+                          "_record_asset_paths",
+                          "BundleState._iter_intake",
+                          "BundleState._compute_source_digest"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/_generation.py",
+                        "sha256": "0f11cf6c29d2f038c8fa1a07c4f6dae71b1014850f50045a84d75ed5c232772a",
+                        "symbols": [
+                          "_DATABASE_SCHEMA_VERSION",
+                          "_ARCHIVE_CLASSES",
+                          "_PARSEABLE_FORMATS",
+                          "_canonical_bytes",
+                          "_json_copy",
+                          "_stable_digest",
+                          "_snapshot_asset",
+                          "_structure_is_parseable",
+                          "_normalize_case",
+                          "_case_with_verified_attestations",
+                          "_active",
+                          "_gate_info",
+                          "_assessment_policy",
+                          "_expected_sha256",
+                          "_asset_declarations",
+                          "_assess_asset",
+                          "_initialize_assessment_database",
+                          "_initialize_work_database",
+                          "_stream_inputs",
+                          "_assess_conflicts",
+                          "_assess_cases",
+                          "_ordered_assessment_digest",
+                          "_DIGEST_QUERIES",
+                          "AssessmentGeneration.build"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/bundle.py",
+                        "sha256": "5a25969b697d907fb28793fbf3b013c13bd16e840ac74637420a253e6a140336",
+                        "symbols": [
+                          "_gate_set",
+                          "_policy_value",
+                          "_policy_has_custom_checkers",
+                          "Bundle.use_gate",
+                          "Bundle.synchronize",
+                          "Bundle._mutate_case",
+                          "_assert_manifest_policy"
+                        ]
+                      },
+                      {
+                        "path": "ds/public/case.py",
+                        "sha256": "9c4aa203e400b20aebe3ffd05dfdc8f1fbe619afc3b5039bd70764a36de050a7",
+                        "symbols": [
+                          "_EVIDENCE_DETAIL_FIELDS",
+                          "_VERIFICATION_DETAIL_FIELDS",
+                          "_VERIFICATION_PROCEDURE",
+                          "_evidence_details",
+                          "_verification_details",
+                          "Case"
+                        ]
+                      }
+                    ]
+                  },
+                  "store_protocol": {
+                    "digest": "51f3cc9ea045d40dfada25a19738b8497e50476392c0e8def85da912239c5106",
+                    "ordered_digest_tables": [
+                      "asset_assessments",
+                      "conflict_assessments",
+                      "conflict_groups",
+                      "case_assessments",
+                      "evidence_assessments"
+                    ],
+                    "schema": "hotpot-ds-assessment-store/current",
+                    "sqlite_user_version": 1
+                  }
+                },
+                "checker": {
+                  "digest": "a51d1af3ef9930dd5a5a2febab36c6d762b6555581fe5db16ad312ed856f1ea8",
+                  "protocol": {
+                    "arguments": [
+                      {
+                        "name": "case",
+                        "type": "canonical_deep_read_only_json_mapping"
+                      },
+                      {
+                        "name": "bundle",
+                        "type": "bounded_deep_read_only_json_mapping"
+                      }
+                    ],
+                    "entrypoint": "top_level_python_function",
+                    "imports": [
+                      "__future__",
+                      "decimal",
+                      "itertools",
+                      "math"
+                    ],
+                    "isolation": {
+                      "environment": {
+                        "LANG": "C",
+                        "LC_ALL": "C",
+                        "PYTHONDONTWRITEBYTECODE": "1",
+                        "PYTHONHASHSEED": "0",
+                        "PYTHONNOUSERSITE": "1",
+                        "TZ": "UTC"
+                      },
+                      "filesystem": "empty_root_with_read_only_python_runtime",
+                      "limits": {
+                        "address_space_bytes": 536870912,
+                        "cpu_seconds": 2,
+                        "file_size_bytes": 1048576,
+                        "open_files": 32,
+                        "processes": 16,
+                        "request_bytes": 8388608,
+                        "response_bytes": 65536,
+                        "wall_seconds": 5
+                      },
+                      "network": "dedicated_network_namespace",
+                      "process": "dedicated_pid_user_ipc_uts_namespaces"
+                    },
+                    "request_fields": [
+                      "protocol_digest",
+                      "checker",
+                      "case",
+                      "bundle"
+                    ],
+                    "response_variants": {
+                      "error_fields": [
+                        "ok",
+                        "error"
+                      ],
+                      "success_fields": [
+                        "ok",
+                        "passed",
+                        "reason"
+                      ]
+                    },
+                    "result": [
+                      "exact_bool",
+                      "non_empty_reason_string"
+                    ],
+                    "worker_source_sha256": "ade5c977c635d0784c1b11ff1c36e9e72b968d5bfa4c526bf06dbf018b7da154"
+                  },
+                  "schema": "hotpot-ds-checker/current"
+                },
+                "digest": "ea53c88e16b30c4510b6f735491d280b3bd6f5d98fcd8ed06de88e551d56c853",
+                "parsers": {
+                  "digest": "cc5f0df40716a97e029b7f9c1ee8fe8dbafc56b5911fda2e0b94b6c69cdacc87",
+                  "entries": [
+                    {
+                      "digest": "e3a39133ea529563130a90c2230740403630caa794f7a0660f6b98e816d98aa5",
+                      "distributions": [
+                        {
+                          "installed": true,
+                          "name": "cython",
+                          "version": "3.3.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "hotpot-zzy",
+                          "version": "0.5.4.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "networkx",
+                          "version": "3.6.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "numpy",
+                          "version": "2.4.6"
+                        },
+                        {
+                          "installed": true,
+                          "name": "openbabel",
+                          "version": "3.2.1"
+                        },
+                        {
+                          "installed": false,
+                          "name": "openbabel-wheel",
+                          "version": null
+                        },
+                        {
+                          "installed": true,
+                          "name": "pandas",
+                          "version": "3.0.6"
+                        },
+                        {
+                          "installed": true,
+                          "name": "periodictable",
+                          "version": "2.1.0"
+                        },
+                        {
+                          "installed": true,
+                          "name": "pubchempy",
+                          "version": "1.0.5"
+                        },
+                        {
+                          "installed": true,
+                          "name": "rdkit",
+                          "version": "2026.9.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "scipy",
+                          "version": "1.17.1"
+                        },
+                        {
+                          "installed": true,
+                          "name": "thermo",
+                          "version": "0.6.1"
+                        }
+                      ],
+                      "formats": [
+                        "mol",
+                        "mol2",
+                        "sdf",
+                        "smi",
+                        "smiles",
+                        "xyz"
+                      ],
+                      "name": "hotpot.Molecule.read_one/openbabel",
+                      "protocol": {
+                        "backend": "openbabel",
+                        "digest": "b791ab4219324db88d84776cc2b6aa02a89695427266d8e915afe6586430f8e1",
+                        "entrypoint": "hotpot.Molecule.read_one",
+                        "format_argument": "normalized-declared-format",
+                        "input": "content-addressed-local-snapshot-path",
+                        "result": "first-hotpot-molecule-without-parser-exception",
+                        "schema": "hotpot-ds-molecule-parser/current"
+                      },
+                      "schema": "hotpot-ds-parser-binding/current",
+                      "source": {
+                        "digest": "f706b906fc19c6a3fc772276158f8877e67c9cec16621fc686221016f9aa4802",
+                        "files": [
+                          {
+                            "path": "__init__.py",
+                            "sha256": "9dcdef2c8846d569030a41137fa41c2349556678e27a322e704ee156b02fa028"
+                          },
+                          {
+                            "path": "cheminfo/__init__.py",
+                            "sha256": "6a583332bcc054303c3c28525c20953197f1bfa1bab53f59f4de178dd5cb8784"
+                          },
+                          {
+                            "path": "cheminfo/_io/__init__.py",
+                            "sha256": "f41092db6f9298e9844052c45421186d05c9cd65306e2f49848452c8e537a3e3"
+                          },
+                          {
+                            "path": "cheminfo/_io/_io.py",
+                            "sha256": "1c676ce0afb4f2d08328f2514e90a560524964fcf4722a78467b0967ea0c8a6f"
+                          },
+                          {
+                            "path": "cheminfo/core.py",
+                            "sha256": "94909ce133da4fb350cf81481848a746485fb1121312cb7aa7d67cb0f0a71d4b"
+                          },
+                          {
+                            "path": "cheminfo/crystal.py",
+                            "sha256": "e863a75cd402ff09650db58bdebc3f4ced64e2f60707b94b3c3954f35ac9bdf6"
+                          },
+                          {
+                            "path": "cheminfo/elements.py",
+                            "sha256": "1a829878bd09a0ba6786754b5d5c3b0582b8a7d3bf0a58a7e54560ef9d6471c1"
+                          },
+                          {
+                            "path": "cheminfo/obconvert.py",
+                            "sha256": "edbe186462a9c7a7fd073ec16d5bf387825d4567d5d7887ec68ef7123d2ba943"
+                          }
+                        ],
+                        "semantic_symbols": []
+                      }
+                    }
+                  ],
+                  "schema": "hotpot-ds-parser-registry/current",
+                  "selection": {
+                    "asset_collection": "structures",
+                    "digest": "b1f19e18699e127473520093382e1d8fcb86ae8582c6331dd4af1bec318ea12e",
+                    "normalization": "strip-leading-dot-and-ascii-lowercase",
+                    "schema": "hotpot-ds-parser-selection/current",
+                    "unknown_format": "unconfigured"
+                  }
+                },
+                "runtime": {
+                  "distributions": [
+                    {
+                      "installed": true,
+                      "name": "cryptography",
+                      "version": "46.0.7"
+                    },
+                    {
+                      "installed": true,
+                      "name": "cython",
+                      "version": "3.3.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "hotpot-zzy",
+                      "version": "0.5.4.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "networkx",
+                      "version": "3.6.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "numpy",
+                      "version": "2.4.6"
+                    },
+                    {
+                      "installed": true,
+                      "name": "openbabel",
+                      "version": "3.2.1"
+                    },
+                    {
+                      "installed": false,
+                      "name": "openbabel-wheel",
+                      "version": null
+                    },
+                    {
+                      "installed": true,
+                      "name": "pandas",
+                      "version": "3.0.6"
+                    },
+                    {
+                      "installed": true,
+                      "name": "periodictable",
+                      "version": "2.1.0"
+                    },
+                    {
+                      "installed": true,
+                      "name": "pubchempy",
+                      "version": "1.0.5"
+                    },
+                    {
+                      "installed": true,
+                      "name": "rdkit",
+                      "version": "2026.9.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "scipy",
+                      "version": "1.17.1"
+                    },
+                    {
+                      "installed": true,
+                      "name": "thermo",
+                      "version": "0.6.1"
+                    }
+                  ],
+                  "python": {
+                    "cache_tag": "cpython-311",
+                    "hexversion": 51056880,
+                    "implementation": "CPython",
+                    "soabi": "cpython-311-x86_64-linux-gnu",
+                    "version": "3.11.16"
+                  },
+                  "sqlite": {
+                    "version": "3.53.4"
+                  }
+                },
+                "schema": "hotpot-ds-runtime-policy/current"
+              },
+              "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35",
+              "target_context": {
+                "canonical_path": "/home/zhangzhiyuan/hotpot/hotpot/dataset/data/store/generations/stage13-current/datasets.sqlite3",
+                "dataset_policy_digest": null,
+                "dataset_policy_revision": null,
+                "dataset_state": "absent",
+                "schema_id": "hotpot-ds-store/current",
+                "store_state": "existing",
+                "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+              },
+              "version": "001"
+            },
+            "bundle_digest": "51ee8c083c6e3859adaafdf520e7231863ad49245c57ea3a0179c7d8c6a1b110",
+            "case_content_digest": "a2e3c6703d9d65f580e9ec4614bcb2c03f9a672b694960f98d49d1f8ad515dd1",
+            "certificate_digest": "0a49ac2eafcd67d159e16afb94615ac2165c1b62ddb264b606d2166f9fc94763",
+            "committed_at": "2026-10-15 05:11:15",
+            "dataset_id": "spin",
+            "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "excluded_count": 0,
+            "generation_digest": "65c57c9372e15c4c9427a5c7b61f8e347e550580ea029c3190c72a60c9212f06",
+            "include_incomplete": 1,
+            "included_cases_digest": "f5a203ca16becb1c0f66595608649d9e4362355725ebf837d6a220f96315cd95",
+            "included_count": 2175,
+            "policy_digest": "ff5f9203dbe70f2b5dd5c59bc39e647a30175fb1cf581e4f0e0574d1e525e8bd",
+            "reason": "Owner-approved one-time migration preserving incomplete legacy Cases.",
+            "receipt_id": "receipt-24da4e3547e8ffc8cd116fa15fa006f9e9571b33d0f8ee761b916f7bf1fdbee3",
+            "release_id": "spin.v001",
+            "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+          },
+          "recomputed_selection": {
+            "excluded_cases_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "excluded_count": 0,
+            "included_cases_digest": "f5a203ca16becb1c0f66595608649d9e4362355725ebf837d6a220f96315cd95",
+            "included_count": 2175
+          },
+          "selection_binding_matches": true
+        }
+      }
+    },
+    "global_projections": {
+      "store_metadata": {
+        "columns": [
+          "singleton",
+          "store_uuid",
+          "schema_id"
+        ],
+        "count": 1,
+        "order_by": [
+          "singleton"
+        ],
+        "sha256": "506b548d88e1046b4b47336cc640f6bf7db69a0c769c5501737bebe010303a8d"
+      },
+      "target_assets": {
+        "columns": [
+          "content_sha256",
+          "size",
+          "relative_path"
+        ],
+        "count": 2317,
+        "order_by": [
+          "content_sha256"
+        ],
+        "sha256": "953fa0101b0e6b35171a0f57ad3400abe0c29340fc2a7b6526c2d9ebae3581e8"
+      }
+    },
+    "metadata": {
+      "schema_id": "hotpot-ds-store/current",
+      "singleton": 1,
+      "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+    },
+    "sqlite": {
+      "application_id": 0,
+      "encoding": "UTF-8",
+      "schema_version": 22,
+      "user_version": 0
+    },
+    "target_assets": {
+      "bytes": 7461498309,
+      "content_verified_count": 2317,
+      "count": 2317,
+      "failures": [],
+      "filesystem_content_file_count": 2317,
+      "inventory_sha256": "eed3e02ce594b1455387c9001292a88370974f474e36f514da261dc65a8b8514",
+      "lock_file_count": 2317,
+      "unreferenced_content_file_count": 0,
+      "unreferenced_content_paths_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "algorithms": {
+    "canonical_json": "UTF-8 JSON with sorted keys, compact separators, ensure_ascii=false, allow_nan=false",
+    "canonical_json_lines_sha256": "SHA-256 over each canonical JSON record followed by one LF, in the documented query or Case public_index order",
+    "file_sha256": "SHA-256 over exact file bytes",
+    "sqlite_projection_sha256": "sha256-framed-sql-values-v1: rows in documented order; R prefix, N/B/I/F/T value tag, decimal byte length, colon, payload, semicolon row terminator"
+  },
+  "bundles": {
+    "csd-electronic-state": {
+      "assessment": {
+        "asset_result_distribution": [
+          {
+            "count": 272722,
+            "hash_result": "unchecked",
+            "parse_result": "not_run",
+            "presence": "missing"
+          }
+        ],
+        "case_distributions": {
+          "archive_class": {
+            "incomplete": 3473,
+            "ordinary": 244842
+          },
+          "benchmark": {
+            "0": 248315
+          },
+          "evidence_level": {
+            "E2": 248315
+          },
+          "quality_level": {
+            "B0": 3473,
+            "B1": 244842
+          }
+        },
+        "projections": {
+          "asset_assessments": {
+            "columns": [
+              "asset_id",
+              "case_id",
+              "structure_id",
+              "role",
+              "presence",
+              "hash_result",
+              "parse_result",
+              "assessment_json"
+            ],
+            "count": 272722,
+            "order_by": [
+              "asset_id"
+            ],
+            "sha256": "3b684877e45bebda0089207eea90b09aed64474f03abbdbefc31a7a2c4ab3760"
+          },
+          "case_assessments": {
+            "columns": [
+              "case_id",
+              "public_index",
+              "archive_class",
+              "quality_level",
+              "evidence_level",
+              "benchmark",
+              "assessment_json"
+            ],
+            "count": 248315,
+            "order_by": [
+              "case_id"
+            ],
+            "sha256": "71ee3485e2af956203547b5040e967ab0bfed26e4d240a14b17758bafba864f5"
+          },
+          "conflict_assessments": {
+            "columns": [
+              "conflict_id",
+              "sample_key",
+              "property_key",
+              "left_case_id",
+              "right_case_id",
+              "outcome",
+              "assessment_json"
+            ],
+            "count": 3581,
+            "order_by": [
+              "conflict_id"
+            ],
+            "sha256": "923cffc30babc33ba01a40e9f1074b4821ad88fd1a7772e701d5415ae8250307"
+          },
+          "conflict_case_links": {
+            "columns": [
+              "case_id",
+              "conflict_id"
+            ],
+            "count": 3581,
+            "order_by": [
+              "case_id",
+              "conflict_id"
+            ],
+            "sha256": "a35c05b849df33373cb8d02cbbb2ed88f9562e148e0aa1f7ceff0c717dd688e8"
+          },
+          "conflict_groups": {
+            "columns": [
+              "group_id",
+              "sample_key",
+              "property_key",
+              "assessment_json"
+            ],
+            "count": 191423,
+            "order_by": [
+              "group_id"
+            ],
+            "sha256": "71a8b8a4aecc476d9baf697e50485a7c95aaeba60d48d1dff5e6e7974b55a134"
+          },
+          "evidence_assessments": {
+            "columns": [
+              "case_id",
+              "target_id",
+              "evidence_level",
+              "assessment_json"
+            ],
+            "count": 266559,
+            "order_by": [
+              "case_id",
+              "target_id"
+            ],
+            "sha256": "aa92a0f391717d1dbf92d664f37c736972f692310aa9c2d37f9d4f461adab073"
+          }
+        },
+        "sqlite": {
+          "application_id": 0,
+          "encoding": "UTF-8",
+          "schema_version": 9,
+          "user_version": 1
+        }
+      },
+      "bundle_root": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1",
+      "case_stream": {
+        "asset_declarations": {
+          "by_collection": {},
+          "by_state": {},
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "case_count": 248315,
+        "identifiers": {
+          "by_namespace": {
+            "CSD": 248315,
+            "CSD_site_id": 339686
+          },
+          "count": 588001,
+          "sha256": "9508bee75ad2b19d1ddca03bd50fb8daa2a26f4e4ca06faa3a8cd31493d061b3"
+        },
+        "logical_canonical_jsonl_sha256": "9d00e7fadb4d570847c312da9cccc2030e09c8012c85a79041cf8a39fa480a6b",
+        "materialized_assets": {
+          "scientific_references": {
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "structure_references": {
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "unique_content": {
+            "bytes": 0,
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          }
+        },
+        "raw_file": {
+          "sha256": "9d00e7fadb4d570847c312da9cccc2030e09c8012c85a79041cf8a39fa480a6b",
+          "size": 3142624271
+        },
+        "structure_record_count": 0
+      },
+      "declared_control_assets": {
+        "count": 4,
+        "failures": [],
+        "sha256": "457205315d00b102f2e5dcbed6e7583a425cb70f0182aeb4233be5b40adb0060"
+      },
+      "digests": {
+        "generation": "097d6599f703a237278a56bcebfdb7d3fece35d5a32513c9b6b72485320a4e2f",
+        "governance_registry": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+        "ordered_assessment": "8d33aea8baea74fff0430a4240b927f227dbc081ef5e94aa7b0c8065fe5c969b",
+        "policy": "03b94ccc57acd6bc5a0567bc7f998b854f5cd17417789db7caaa08f2f0cde792",
+        "runtime_policy": "ea53c88e16b30c4510b6f735491d280b3bd6f5d98fcd8ed06de88e551d56c853",
+        "source": "9a8d1d5f6f4f27e46a8bca89f4118279d26712bc2dee813450ab49a02def927c"
+      },
+      "facts": {
+        "case_count": 248315,
+        "case_identity_sha256": "8de8bf171229c1a3a797235b667998445cab4aebd5f4c315f2d923441c99dcb2",
+        "control": {
+          "current_generation_digest": "097d6599f703a237278a56bcebfdb7d3fece35d5a32513c9b6b72485320a4e2f",
+          "current_generation_id": "generation-097d6599f703a237278a56bc",
+          "governance_registry_digest": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+          "governance_registry_revision": 0,
+          "policy_digest": "03b94ccc57acd6bc5a0567bc7f998b854f5cd17417789db7caaa08f2f0cde792",
+          "policy_revision": 0,
+          "singleton": 1,
+          "source_digest": "9a8d1d5f6f4f27e46a8bca89f4118279d26712bc2dee813450ab49a02def927c",
+          "source_revision": 0,
+          "synchronized_governance_registry_digest": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+          "synchronized_governance_registry_revision": 0,
+          "synchronized_policy_digest": "03b94ccc57acd6bc5a0567bc7f998b854f5cd17417789db7caaa08f2f0cde792",
+          "synchronized_policy_revision": 0,
+          "synchronized_source_digest": "9a8d1d5f6f4f27e46a8bca89f4118279d26712bc2dee813450ab49a02def927c",
+          "synchronized_source_revision": 0
+        },
+        "invalid_payload_json_count": 0,
+        "payload_jsonl_sha256": "9d00e7fadb4d570847c312da9cccc2030e09c8012c85a79041cf8a39fa480a6b",
+        "sqlite": {
+          "application_id": 0,
+          "encoding": "UTF-8",
+          "schema_version": 5,
+          "user_version": 2
+        }
+      },
+      "generation_summary": {
+        "attestation": {
+          "status": {
+            "none": 248315
+          }
+        },
+        "benchmark": {
+          "status": {
+            "ineligible": 3473,
+            "not_admitted": 244842
+          }
+        },
+        "cases": 248315,
+        "completeness": {
+          "archive_class": {
+            "incomplete": 3473,
+            "ordinary": 244842
+          },
+          "status": {
+            "complete": 244842,
+            "incomplete": 3473
+          }
+        },
+        "conflict": {
+          "status": {
+            "clear": 244842,
+            "conflict": 3473
+          }
+        },
+        "evidence": {
+          "level": {
+            "E2": 248315
+          }
+        },
+        "integrity": {
+          "status": {
+            "valid": 248315
+          }
+        },
+        "quality": {
+          "level": {
+            "B0": 3473,
+            "B1": 244842
+          }
+        },
+        "reasons": {
+          "code": {
+            "scientific_value_conflict": 3473,
+            "structure_not_provided": 248315
+          }
+        }
+      },
+      "identity": {
+        "dataset_id": "csd-electronic-state",
+        "release_id": "csd-electronic-state.vreported-text-v1",
+        "release_serial": 1,
+        "version": "reported-text-v1"
+      },
+      "input_files": [
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/assessment.sqlite3",
+          "sha256": "b41dbd4ec38939a408e4f28cdf964419c2d75cb3e8175d48bb005d4cbb2803f9",
+          "size": 1661300736
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/benchmark.ids",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size": 0
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/generation.json",
+          "sha256": "0003ecadf7bd000e40a3480b655db062fde20230c83863e2eb18263fec92776a",
+          "size": 9089
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/governance-registry.json",
+          "sha256": "350c65e316947e6e0981a140524926f2c7685448b7c0d2cde32dcf6db6cca1d3",
+          "size": 450
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/incomplete.ids",
+          "sha256": "b1945f5153edb7e333ab0a86ab1d581b2774883a755154c8fbc578e375d7c4c5",
+          "size": 125028
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/ordinary.ids",
+          "sha256": "b5c7439d98602046a7d111f93c5df2303f5f06bfc5a2d38fc3030340faa2aa81",
+          "size": 8814312
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/assessments/generations/generation-097d6599f703a237278a56bc/summary.json",
+          "sha256": "bde3ec018320a460e571112f6d6076108dd6a770a14e88991042dad273d3897f",
+          "size": 501
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/bundle.json",
+          "sha256": "9d4e805294299b21e21b5f889a1fe373630c1203c0aa9efb66ca47dc85c2c02c",
+          "size": 4806
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/cases/facts.sqlite3",
+          "sha256": "ee49bb34f7d9cae1b335be24cf637bed506fb6d73db6c7382437498dfb834aad",
+          "size": 3357147136
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/cases.jsonl",
+          "sha256": "9d00e7fadb4d570847c312da9cccc2030e09c8012c85a79041cf8a39fa480a6b",
+          "size": 3142624271
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/certificate.json",
+          "sha256": "5b3e4c73d63af06f6f903cb670851fc82cdf1f1f0db28b7391de78a8ecbe261d",
+          "size": 9677
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/evidence/migration/identity-migration.jsonl",
+          "sha256": "770f31720167c4c716ce0e690a0d066309b3cfdf22934d6e28894a261b9c9013",
+          "size": 1442433012
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/evidence/migration/legacy-identity-relationships.jsonl",
+          "sha256": "a59e8906b6c17f6ff3067950e4c09ee5756ae7adbbe402c6624bda372ba089a5",
+          "size": 800210721
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/evidence/migration/legacy-source-inventory.json",
+          "sha256": "fdf8ed32f7896521ab653a404d80f01c17b084d01b502abbdc380e2a76a7a0b6",
+          "size": 3158
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/evidence/migration/migration-provenance.json",
+          "sha256": "44d9e7cccaf035041786969bbaee46c55506d6c0e2d6c986491982726b7d47ab",
+          "size": 4144
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/ingestion-receipt.json",
+          "sha256": "299f7b5bcd09765411e24aac2990a3e0160bdaeb12de7a6d41291a8d7962ee41",
+          "size": 409
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/csd-electronic-state.vreported-text-v1/policy/policy.json",
+          "sha256": "2eb6fc96b593e6b9a608ea56e7f6095dcdd51ff4280cbbdf54be6ba60a4a9cbd",
+          "size": 11128
+        }
+      ],
+      "internal_parity": {
+        "assessment_count_matches_cases": true,
+        "facts_count_matches_cases": true,
+        "facts_payload_matches_raw": true,
+        "raw_stream_is_canonical_jsonl": true,
+        "summary_case_count_matches": true
+      },
+      "receipt_file": {
+        "committed_at": "2026-10-15 07:09:13",
+        "dataset": "csd-electronic-state",
+        "excluded_count": 0,
+        "included_count": 248315,
+        "receipt_digest": "1cafd0115b0e939f39a2185ece6f2954ee12d086b3a131b316cced457f11b400",
+        "receipt_id": "receipt-f28c7abe111a251df4126ad9834f41f0a2d9766a9a19d7ea12b3d87347c21da6",
+        "release": "csd-electronic-state.vreported-text-v1",
+        "release_serial": 1,
+        "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+      },
+      "revisions": {
+        "governance_registry": 0,
+        "policy": 0,
+        "source": 0
+      },
+      "schemas": {
+        "assessment_runtime": "hotpot-ds-assessment-runtime/current",
+        "assessment_store": "hotpot-ds-assessment-store/current",
+        "bundle": "hotpot-ds-bundle/current",
+        "runtime_policy": "hotpot-ds-runtime-policy/current"
+      }
+    },
+    "oxidation": {
+      "assessment": {
+        "asset_result_distribution": [
+          {
+            "count": 2175,
+            "hash_result": "unchecked",
+            "parse_result": "not_run",
+            "presence": "missing"
+          },
+          {
+            "count": 2185,
+            "hash_result": "match",
+            "parse_result": "valid",
+            "presence": "present"
+          }
+        ],
+        "case_distributions": {
+          "archive_class": {
+            "ordinary": 2175
+          },
+          "benchmark": {
+            "0": 2175
+          },
+          "evidence_level": {
+            "E2": 2175
+          },
+          "quality_level": {
+            "B1": 2175
+          }
+        },
+        "projections": {
+          "asset_assessments": {
+            "columns": [
+              "asset_id",
+              "case_id",
+              "structure_id",
+              "role",
+              "presence",
+              "hash_result",
+              "parse_result",
+              "assessment_json"
+            ],
+            "count": 4360,
+            "order_by": [
+              "asset_id"
+            ],
+            "sha256": "07a72ffe94f321a0b8dfd1d007ef255351f36f954c3a72fb0b4a1216ecc78052"
+          },
+          "case_assessments": {
+            "columns": [
+              "case_id",
+              "public_index",
+              "archive_class",
+              "quality_level",
+              "evidence_level",
+              "benchmark",
+              "assessment_json"
+            ],
+            "count": 2175,
+            "order_by": [
+              "case_id"
+            ],
+            "sha256": "84f7b5a9e4761761840d2eecb2b58505540692e2690a5e31886f21c31ae6dc63"
+          },
+          "conflict_assessments": {
+            "columns": [
+              "conflict_id",
+              "sample_key",
+              "property_key",
+              "left_case_id",
+              "right_case_id",
+              "outcome",
+              "assessment_json"
+            ],
+            "count": 0,
+            "order_by": [
+              "conflict_id"
+            ],
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "conflict_case_links": {
+            "columns": [
+              "case_id",
+              "conflict_id"
+            ],
+            "count": 0,
+            "order_by": [
+              "case_id",
+              "conflict_id"
+            ],
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "conflict_groups": {
+            "columns": [
+              "group_id",
+              "sample_key",
+              "property_key",
+              "assessment_json"
+            ],
+            "count": 2175,
+            "order_by": [
+              "group_id"
+            ],
+            "sha256": "ac271d7afc69da63e37b9927b614ac8f4ef5e157fd9fa551efbee79751a9fca8"
+          },
+          "evidence_assessments": {
+            "columns": [
+              "case_id",
+              "target_id",
+              "evidence_level",
+              "assessment_json"
+            ],
+            "count": 2175,
+            "order_by": [
+              "case_id",
+              "target_id"
+            ],
+            "sha256": "493e3a23c47acf066dd9b206e9cd699a3d5f3c067d0d3b1cde2f3bd2e94a0efd"
+          }
+        },
+        "sqlite": {
+          "application_id": 0,
+          "encoding": "UTF-8",
+          "schema_version": 9,
+          "user_version": 1
+        }
+      },
+      "bundle_root": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001",
+      "case_stream": {
+        "asset_declarations": {
+          "by_collection": {
+            "structures": 2185
+          },
+          "by_state": {
+            "present": 2185
+          },
+          "count": 2185,
+          "sha256": "784b234ad8ea68403bb6769b13a80e038ad4ef104f53576b93d817306886f71a"
+        },
+        "case_count": 2175,
+        "identifiers": {
+          "by_namespace": {
+            "CSD": 2170
+          },
+          "count": 2170,
+          "sha256": "725fbbae5c4e16a297a5097bbc17fedc13b44af83adb38fee4e7875111e956c2"
+        },
+        "logical_canonical_jsonl_sha256": "989e3b6db231f06bf2cd6d460a35b2bc42b3c4ab045fe97b32cd697b1cbe16f8",
+        "materialized_assets": {
+          "scientific_references": {
+            "count": 2185,
+            "sha256": "22d1db378e1da7644f66990f3ee1a96ffae66251b007ad29c0511bc864ddc086"
+          },
+          "structure_references": {
+            "count": 2185,
+            "sha256": "da7061df4b203a4ee7a41742522d1ff39badac2324c533be455cc04067cbf92f"
+          },
+          "unique_content": {
+            "bytes": 6405787,
+            "count": 2185,
+            "sha256": "cb398a18bbd5013f6bc0cd1fc25717b418e426d3a5ca23b9dcf7f5e27401e9c9"
+          }
+        },
+        "raw_file": {
+          "sha256": "989e3b6db231f06bf2cd6d460a35b2bc42b3c4ab045fe97b32cd697b1cbe16f8",
+          "size": 32131606
+        },
+        "structure_record_count": 2185
+      },
+      "declared_control_assets": {
+        "count": 4,
+        "failures": [],
+        "sha256": "22a6cd3556c40c5382f360c06fe3686907631b9a74f05c3619725c73d01dc728"
+      },
+      "digests": {
+        "generation": "bc8403fa121d3b0b35486b9066fb4e2759b737742ec0390bb4e82953a11fa69f",
+        "governance_registry": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+        "ordered_assessment": "1d7be69fdc4a02ace7bf2369ac6d38319ddbaf7138c73f9e512dd6364e4e7009",
+        "policy": "78f8ea239303cd5a7e72ccf5611761e4724d2460f8800ca6985f18b9598ef253",
+        "runtime_policy": "ea53c88e16b30c4510b6f735491d280b3bd6f5d98fcd8ed06de88e551d56c853",
+        "source": "08682d0ee862725ddf635c3498c67a85474a423bcac81fa15529b0f222963192"
+      },
+      "facts": {
+        "case_count": 2175,
+        "case_identity_sha256": "ef480ea67a330410161de776cb4c64295790c73f54170a0e588b51c956294c97",
+        "control": {
+          "current_generation_digest": "bc8403fa121d3b0b35486b9066fb4e2759b737742ec0390bb4e82953a11fa69f",
+          "current_generation_id": "generation-bc8403fa121d3b0b35486b90",
+          "governance_registry_digest": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+          "governance_registry_revision": 0,
+          "policy_digest": "78f8ea239303cd5a7e72ccf5611761e4724d2460f8800ca6985f18b9598ef253",
+          "policy_revision": 0,
+          "singleton": 1,
+          "source_digest": "08682d0ee862725ddf635c3498c67a85474a423bcac81fa15529b0f222963192",
+          "source_revision": 0,
+          "synchronized_governance_registry_digest": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+          "synchronized_governance_registry_revision": 0,
+          "synchronized_policy_digest": "78f8ea239303cd5a7e72ccf5611761e4724d2460f8800ca6985f18b9598ef253",
+          "synchronized_policy_revision": 0,
+          "synchronized_source_digest": "08682d0ee862725ddf635c3498c67a85474a423bcac81fa15529b0f222963192",
+          "synchronized_source_revision": 0
+        },
+        "invalid_payload_json_count": 0,
+        "payload_jsonl_sha256": "989e3b6db231f06bf2cd6d460a35b2bc42b3c4ab045fe97b32cd697b1cbe16f8",
+        "sqlite": {
+          "application_id": 0,
+          "encoding": "UTF-8",
+          "schema_version": 5,
+          "user_version": 2
+        }
+      },
+      "generation_summary": {
+        "attestation": {
+          "status": {
+            "none": 2175
+          }
+        },
+        "benchmark": {
+          "status": {
+            "not_admitted": 2175
+          }
+        },
+        "cases": 2175,
+        "completeness": {
+          "archive_class": {
+            "ordinary": 2175
+          },
+          "status": {
+            "complete": 2175
+          }
+        },
+        "conflict": {
+          "status": {
+            "clear": 2175
+          }
+        },
+        "evidence": {
+          "level": {
+            "E2": 2175
+          }
+        },
+        "integrity": {
+          "status": {
+            "valid": 2175
+          }
+        },
+        "quality": {
+          "level": {
+            "B1": 2175
+          }
+        },
+        "reasons": {
+          "code": {
+            "structure_chemistry_not_checked": 2175
+          }
+        }
+      },
+      "identity": {
+        "dataset_id": "oxidation",
+        "release_id": "oxidation.v001",
+        "release_serial": 1,
+        "version": "001"
+      },
+      "input_files": [
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/assessment.sqlite3",
+          "sha256": "eaf6569502f13f33aa9d4eb9920cc116a640553bc03e01ccbcbcd00f60b5c6ae",
+          "size": 33021952
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/benchmark.ids",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size": 0
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/generation.json",
+          "sha256": "8bae5a98e27db5654553e5405edb795828dbf3cbb2d4646d4eea2dff343f6998",
+          "size": 9080
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/governance-registry.json",
+          "sha256": "350c65e316947e6e0981a140524926f2c7685448b7c0d2cde32dcf6db6cca1d3",
+          "size": 450
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/incomplete.ids",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size": 0
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/ordinary.ids",
+          "sha256": "2c94310a52516aedfba267ec1976b8e6f95a26bf080d359365143084616d948b",
+          "size": 92270
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/assessments/generations/generation-bc8403fa121d3b0b35486b90/summary.json",
+          "sha256": "4aa8d10ed8263d8bc790cdded6b62b93c4b0ed6a4da6d3d59d7e010f7a803c92",
+          "size": 377
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/bundle.json",
+          "sha256": "687f0531057edc46d1dce2f29bfe9bcf2e672b48d00271f813fe66795a8a6b8a",
+          "size": 3573
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/cases/facts.sqlite3",
+          "sha256": "aa97d938d25bc2029ca217eaae6a2ead6a2c601b97b2ee131ea04d5f25b3e4bd",
+          "size": 35975168
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/cases.jsonl",
+          "sha256": "989e3b6db231f06bf2cd6d460a35b2bc42b3c4ab045fe97b32cd697b1cbe16f8",
+          "size": 32131606
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/certificate.json",
+          "sha256": "27b5028e216d3067903d20eeff3f3fae6403fc66f68396fa410b5907daeef15e",
+          "size": 776023
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/evidence/migration/identity-migration.jsonl",
+          "sha256": "b3920687661db878b4ac30af1609530f9fe65a891ec1e1c0a1d966cdd3cc4e3a",
+          "size": 13574559
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/evidence/migration/legacy-identity-relationships.jsonl",
+          "sha256": "cda82d8d0de035c35550dbf882cc73619d4bae1e96d1730fe6a7f53a66683b01",
+          "size": 7644227
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/evidence/migration/legacy-source-inventory.json",
+          "sha256": "3a62697889782dc8fd99e77e32c6e4d402e833ae27f77db319265a24d7548b49",
+          "size": 3107
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/evidence/migration/migration-provenance.json",
+          "sha256": "63b8a0ac0d2b765fe5c3a49be04f5b9a91ceb5321766184e0b51e7c8463dd614",
+          "size": 3555
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/ingestion-receipt.json",
+          "sha256": "ffe5d175d3c93085dc44bc92fd455ba780a2d40f57dc46c1434e83e0b7f0f51d",
+          "size": 372
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/oxidation/oxidation.v001/policy/policy.json",
+          "sha256": "4608ce6b2d0905e8d0eab3899b2ee200485dfb7a0be5b4e79f17f66d0b83beed",
+          "size": 10525
+        }
+      ],
+      "internal_parity": {
+        "assessment_count_matches_cases": true,
+        "facts_count_matches_cases": true,
+        "facts_payload_matches_raw": true,
+        "raw_stream_is_canonical_jsonl": true,
+        "summary_case_count_matches": true
+      },
+      "receipt_file": {
+        "committed_at": "2026-10-15 05:07:47",
+        "dataset": "oxidation",
+        "excluded_count": 0,
+        "included_count": 2175,
+        "receipt_digest": "af456fbc8f309bffc9cdce5a08c54133308677f5a374655986ef58f47f0476f1",
+        "receipt_id": "receipt-dde772bebb47624a07681291b86ec5e4b4dd27d71f64993aa7f62228e437f63d",
+        "release": "oxidation.v001",
+        "release_serial": 1,
+        "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+      },
+      "revisions": {
+        "governance_registry": 0,
+        "policy": 0,
+        "source": 0
+      },
+      "schemas": {
+        "assessment_runtime": "hotpot-ds-assessment-runtime/current",
+        "assessment_store": "hotpot-ds-assessment-store/current",
+        "bundle": "hotpot-ds-bundle/current",
+        "runtime_policy": "hotpot-ds-runtime-policy/current"
+      }
+    },
+    "spin": {
+      "assessment": {
+        "asset_result_distribution": [
+          {
+            "count": 2363,
+            "hash_result": "unchecked",
+            "parse_result": "not_run",
+            "presence": "missing"
+          },
+          {
+            "count": 2280,
+            "hash_result": "match",
+            "parse_result": "valid",
+            "presence": "present"
+          }
+        ],
+        "case_distributions": {
+          "archive_class": {
+            "incomplete": 95,
+            "ordinary": 2080
+          },
+          "benchmark": {
+            "0": 2175
+          },
+          "evidence_level": {
+            "E2": 2175
+          },
+          "quality_level": {
+            "B0": 95,
+            "B1": 2080
+          }
+        },
+        "projections": {
+          "asset_assessments": {
+            "columns": [
+              "asset_id",
+              "case_id",
+              "structure_id",
+              "role",
+              "presence",
+              "hash_result",
+              "parse_result",
+              "assessment_json"
+            ],
+            "count": 4643,
+            "order_by": [
+              "asset_id"
+            ],
+            "sha256": "59d076be5992a18f0a937909f3f9b68efdae4903cda45a90d7e8b126adbda5c7"
+          },
+          "case_assessments": {
+            "columns": [
+              "case_id",
+              "public_index",
+              "archive_class",
+              "quality_level",
+              "evidence_level",
+              "benchmark",
+              "assessment_json"
+            ],
+            "count": 2175,
+            "order_by": [
+              "case_id"
+            ],
+            "sha256": "b71c2562cdb09ded2b7ff92e2f1a5341529c312e0155466036dc5ea444562c5e"
+          },
+          "conflict_assessments": {
+            "columns": [
+              "conflict_id",
+              "sample_key",
+              "property_key",
+              "left_case_id",
+              "right_case_id",
+              "outcome",
+              "assessment_json"
+            ],
+            "count": 95,
+            "order_by": [
+              "conflict_id"
+            ],
+            "sha256": "442f2f1dec27b9db788f35556fc8f37d5b67bdb9f243bd30b6bf7f5372601f0a"
+          },
+          "conflict_case_links": {
+            "columns": [
+              "case_id",
+              "conflict_id"
+            ],
+            "count": 95,
+            "order_by": [
+              "case_id",
+              "conflict_id"
+            ],
+            "sha256": "28f32aa4e74e145fb91a7e5442967440fb0d90a3457f67d86cb35e648827a172"
+          },
+          "conflict_groups": {
+            "columns": [
+              "group_id",
+              "sample_key",
+              "property_key",
+              "assessment_json"
+            ],
+            "count": 2268,
+            "order_by": [
+              "group_id"
+            ],
+            "sha256": "1cc57e36465ff1c1565f8d774a5880dad5066bf8df4756be86d4f94ce1d6b764"
+          },
+          "evidence_assessments": {
+            "columns": [
+              "case_id",
+              "target_id",
+              "evidence_level",
+              "assessment_json"
+            ],
+            "count": 2363,
+            "order_by": [
+              "case_id",
+              "target_id"
+            ],
+            "sha256": "3b2f8b444d0c61df8bfd125e9f763f3572c945cc2c6a3b2ef7c9699f255fb38d"
+          }
+        },
+        "sqlite": {
+          "application_id": 0,
+          "encoding": "UTF-8",
+          "schema_version": 9,
+          "user_version": 1
+        }
+      },
+      "bundle_root": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001",
+      "case_stream": {
+        "asset_declarations": {
+          "by_collection": {
+            "structures": 2280
+          },
+          "by_state": {
+            "present": 2280
+          },
+          "count": 2280,
+          "sha256": "d099bed24891ef12b5d16f08932d77f5598c581b8e266ee47940364022bca1b4"
+        },
+        "case_count": 2175,
+        "identifiers": {
+          "by_namespace": {
+            "CSD": 2265
+          },
+          "count": 2265,
+          "sha256": "5381e2cfb4aa957ca21cb2783660e1963bcbce7031aabe316acfe195fdb066f2"
+        },
+        "logical_canonical_jsonl_sha256": "5d4ece482867177409c0190a3b0225c188cff697aa38d2e0f6b179bcf32034c1",
+        "materialized_assets": {
+          "scientific_references": {
+            "count": 2280,
+            "sha256": "e822c67e436ffda394e1681de05c9282634ce677bfc1df1e637aa573c258190a"
+          },
+          "structure_references": {
+            "count": 2280,
+            "sha256": "babc9684ed23bbd5ab51744b5f25e509e15f349d46c7c4473836db8e9a472303"
+          },
+          "unique_content": {
+            "bytes": 7092342,
+            "count": 2280,
+            "sha256": "714744d3e300fd43326556850e653b90756cba3344616bacd2023f2bb7021d03"
+          }
+        },
+        "raw_file": {
+          "sha256": "5d4ece482867177409c0190a3b0225c188cff697aa38d2e0f6b179bcf32034c1",
+          "size": 32498956
+        },
+        "structure_record_count": 2280
+      },
+      "declared_control_assets": {
+        "count": 4,
+        "failures": [],
+        "sha256": "6ebb9f7805b4c14bc92f4684f38a1b1b16a67d63ad8e3cfc09d5239f233c5885"
+      },
+      "digests": {
+        "generation": "65c57c9372e15c4c9427a5c7b61f8e347e550580ea029c3190c72a60c9212f06",
+        "governance_registry": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+        "ordered_assessment": "554c513e27629f7fb03e0ab49291f463c8e046fa90e87ceacc700d5c18566338",
+        "policy": "ff5f9203dbe70f2b5dd5c59bc39e647a30175fb1cf581e4f0e0574d1e525e8bd",
+        "runtime_policy": "ea53c88e16b30c4510b6f735491d280b3bd6f5d98fcd8ed06de88e551d56c853",
+        "source": "61fd0b828d129c22b8fd88f13ff06bef8dfe206a857e459e1225123ab8932b02"
+      },
+      "facts": {
+        "case_count": 2175,
+        "case_identity_sha256": "d0fc1f1f8bc1d92c40f992a4c480857825d9f26d7bb5f4a8367d840fc41ad997",
+        "control": {
+          "current_generation_digest": "65c57c9372e15c4c9427a5c7b61f8e347e550580ea029c3190c72a60c9212f06",
+          "current_generation_id": "generation-65c57c9372e15c4c9427a5c7",
+          "governance_registry_digest": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+          "governance_registry_revision": 0,
+          "policy_digest": "ff5f9203dbe70f2b5dd5c59bc39e647a30175fb1cf581e4f0e0574d1e525e8bd",
+          "policy_revision": 0,
+          "singleton": 1,
+          "source_digest": "61fd0b828d129c22b8fd88f13ff06bef8dfe206a857e459e1225123ab8932b02",
+          "source_revision": 0,
+          "synchronized_governance_registry_digest": "1b0abbc6abe4e05750c9a7e0db562bbcef5ebc6cdc021a75a0569a056226352f",
+          "synchronized_governance_registry_revision": 0,
+          "synchronized_policy_digest": "ff5f9203dbe70f2b5dd5c59bc39e647a30175fb1cf581e4f0e0574d1e525e8bd",
+          "synchronized_policy_revision": 0,
+          "synchronized_source_digest": "61fd0b828d129c22b8fd88f13ff06bef8dfe206a857e459e1225123ab8932b02",
+          "synchronized_source_revision": 0
+        },
+        "invalid_payload_json_count": 0,
+        "payload_jsonl_sha256": "5d4ece482867177409c0190a3b0225c188cff697aa38d2e0f6b179bcf32034c1",
+        "sqlite": {
+          "application_id": 0,
+          "encoding": "UTF-8",
+          "schema_version": 5,
+          "user_version": 2
+        }
+      },
+      "generation_summary": {
+        "attestation": {
+          "status": {
+            "none": 2175
+          }
+        },
+        "benchmark": {
+          "status": {
+            "ineligible": 95,
+            "not_admitted": 2080
+          }
+        },
+        "cases": 2175,
+        "completeness": {
+          "archive_class": {
+            "incomplete": 95,
+            "ordinary": 2080
+          },
+          "status": {
+            "complete": 2080,
+            "incomplete": 95
+          }
+        },
+        "conflict": {
+          "status": {
+            "clear": 2080,
+            "conflict": 95
+          }
+        },
+        "evidence": {
+          "level": {
+            "E2": 2175
+          }
+        },
+        "integrity": {
+          "status": {
+            "valid": 2175
+          }
+        },
+        "quality": {
+          "level": {
+            "B0": 95,
+            "B1": 2080
+          }
+        },
+        "reasons": {
+          "code": {
+            "scientific_value_conflict": 95,
+            "structure_chemistry_not_checked": 2175
+          }
+        }
+      },
+      "identity": {
+        "dataset_id": "spin",
+        "release_id": "spin.v001",
+        "release_serial": 1,
+        "version": "001"
+      },
+      "input_files": [
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/assessment.sqlite3",
+          "sha256": "5a78f0b2c1f7a41471f6102e36fc0a4de7361f0b95c13afd35f5b04458cc0b08",
+          "size": 34140160
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/benchmark.ids",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size": 0
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/generation.json",
+          "sha256": "35ab60e2c2a0b5b73e326463d9f5b5dca5514c9055d306c29e4b39ecd1104fa6",
+          "size": 9083
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/governance-registry.json",
+          "sha256": "350c65e316947e6e0981a140524926f2c7685448b7c0d2cde32dcf6db6cca1d3",
+          "size": 450
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/incomplete.ids",
+          "sha256": "ea7102e5b222bd1e59df0327c0c1e14658dd6e9f359afaf635c3d78227cf24bf",
+          "size": 3515
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/ordinary.ids",
+          "sha256": "e0774eba73372ad00da236d1c9acbe35a1b7012e667f5472bf1b726a8ab6ff7f",
+          "size": 70666
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/assessments/generations/generation-65c57c9372e15c4c9427a5c7/summary.json",
+          "sha256": "a87c931fc88ca001586f34edd89ad66c2981255607658348a655b3e37d78b4db",
+          "size": 478
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/bundle.json",
+          "sha256": "ca493cde6df951892cfff3f98d6a2db16a1fefb5521b0c559325155f87b47a8c",
+          "size": 4139
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/cases/facts.sqlite3",
+          "sha256": "138337f9b01ca8fb68435fb159bf73761e7bef0fc23b67136704957b3d30ad3b",
+          "size": 36941824
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/cases.jsonl",
+          "sha256": "5d4ece482867177409c0190a3b0225c188cff697aa38d2e0f6b179bcf32034c1",
+          "size": 32498956
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/certificate.json",
+          "sha256": "0a49ac2eafcd67d159e16afb94615ac2165c1b62ddb264b606d2166f9fc94763",
+          "size": 772071
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/evidence/migration/identity-migration.jsonl",
+          "sha256": "6b6072773a589969973ce8643038245bdd879866bf321bdeb51f689dc236ecd9",
+          "size": 13533472
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/evidence/migration/legacy-identity-relationships.jsonl",
+          "sha256": "cb3de88fe78fbb513833b20114a56927a6b195ed42cd156d66c9d8a8c9f7154c",
+          "size": 7756636
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/evidence/migration/legacy-source-inventory.json",
+          "sha256": "a823eaac9c1edc2b86d2703e453d0bbd501ecabeea13cfd4a80f5bb1347ff135",
+          "size": 3097
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/evidence/migration/migration-provenance.json",
+          "sha256": "f86710f2d1ea828dbfabe5f8cbdbee66af7d959bf3dedb87f5ff0639f1f967d7",
+          "size": 4165
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/ingestion-receipt.json",
+          "sha256": "dc493ad643479d786b9aae8dbf39beaa147a0fd78d4e9ed6f65e6b8792e19378",
+          "size": 362
+        },
+        {
+          "path": "hotpot/dataset/data/bundles/stage13-migration/spin/spin.v001/policy/policy.json",
+          "sha256": "34c0cec65a197bc88b5872bcba3b5b06a17bbffe799b7d689c9371ad5aa539b7",
+          "size": 11143
+        }
+      ],
+      "internal_parity": {
+        "assessment_count_matches_cases": true,
+        "facts_count_matches_cases": true,
+        "facts_payload_matches_raw": true,
+        "raw_stream_is_canonical_jsonl": true,
+        "summary_case_count_matches": true
+      },
+      "receipt_file": {
+        "committed_at": "2026-10-15 05:11:15",
+        "dataset": "spin",
+        "excluded_count": 0,
+        "included_count": 2175,
+        "receipt_digest": "33467bef2903c4252dbd73c584205178245ba6a4aeed329adc744bc405251b49",
+        "receipt_id": "receipt-24da4e3547e8ffc8cd116fa15fa006f9e9571b33d0f8ee761b916f7bf1fdbee3",
+        "release": "spin.v001",
+        "release_serial": 1,
+        "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35"
+      },
+      "revisions": {
+        "governance_registry": 0,
+        "policy": 0,
+        "source": 0
+      },
+      "schemas": {
+        "assessment_runtime": "hotpot-ds-assessment-runtime/current",
+        "assessment_store": "hotpot-ds-assessment-store/current",
+        "bundle": "hotpot-ds-bundle/current",
+        "runtime_policy": "hotpot-ds-runtime-policy/current"
+      }
+    }
+  },
+  "capture_constraints": {
+    "hotpot_runtime_imported": false,
+    "sqlite_open_mode": "mode=ro&immutable=1",
+    "writes_to_bundle_or_store": false
+  },
+  "purpose": "Read-only pre-Wave-B semantic and storage parity baseline for clean Bundle and TargetStore rebuild comparison.",
+  "repository_commit_at_capture": "813739bab53d25dc6ad9a81f0b1bff130d107195",
+  "schema": "hotpot-ds-efficiency-runtime-parity-baseline/v1",
+  "validation": {
+    "all_parity_checks_passed": true,
+    "check_count": 37,
+    "failed_check_count": 0
+  }
+}

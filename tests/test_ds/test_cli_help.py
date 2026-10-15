@@ -215,4 +215,7 @@ def test_bundle_locator_and_transitions_have_one_current_layout() -> None:
     explicit = parser.parse_args(
         ["bundle", "--root", "submission", "--dataset", "demo", "status"]
     )
-    assert explicit.root == "submission"
+    assert explicit.bundle_root_option == "submission"
+    assert explicit.bundle_dataset == "demo"
+    with pytest.raises(SystemExit):
+        parser.parse_args(["bundle", "status", "--root", "submission"])

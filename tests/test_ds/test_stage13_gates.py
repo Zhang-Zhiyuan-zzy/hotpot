@@ -214,6 +214,22 @@ def test_non_allowlisted_import_and_wrong_signature_are_rejected(tmp_path):
         BenchmarkGate(checklist={"wrong": module.wrong_name})
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "from math import sqrt\n\ndef checker(case, bundle):\n    return True, str(sqrt(4))\n",
+        "def checker(case, bundle):\n    import math\n    return True, str(math.sqrt(4))\n",
+    ],
+)
+def test_checker_import_grammar_is_rejected_at_admission(
+    tmp_path: Path, source: str
+) -> None:
+    module, _ = _load_checker_module(tmp_path, source)
+
+    with pytest.raises(ValueError, match="allowed|top-level"):
+        BenchmarkGate(checklist={"checker": module.checker})
+
+
 def test_unknown_boolean_checker_and_invalid_tolerances_are_rejected():
     with pytest.raises(ValueError, match="unknown built-in checker"):
         BenchmarkGate(checklist={"typo": True})

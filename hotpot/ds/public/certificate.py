@@ -371,7 +371,7 @@ def _build_certificate(bundle: Any) -> Dict[str, Any]:
     root = Path(bundle.root).resolve()
     state = bundle._state
     status = state.status
-    generation = bundle.current_generation
+    generation = bundle._current_generation
     if generation is None:
         raise UnsynchronizedBundleError(
             "Bundle has no current assessment generation; run bundle.synchronize() first"
@@ -634,7 +634,7 @@ def _verify_certificate_against_bundle(
     root = Path(bundle.root).resolve()
     state = bundle._state
     status = state.status
-    generation = bundle.current_generation
+    generation = bundle._current_generation
     if generation is None:
         raise CertificateIntegrityError(
             "certificate names a Bundle without a current assessment generation"
@@ -765,7 +765,7 @@ def write_bundle_certificate(bundle: Any) -> Path:
             raise UnsynchronizedBundleError(
                 "Bundle changed before certification; run bundle.synchronize() first"
             )
-        generation = bundle.current_generation
+        generation = bundle._current_generation
         with generation.lease():
             certificate = _validate_certificate_syntax(_build_certificate(bundle), root)
             _verify_certificate_against_bundle(bundle, certificate)
@@ -786,7 +786,7 @@ def verify_bundle_certificate(
 
     root = Path(bundle.root).resolve()
     certificate_path = root / "certificate.json" if path is None else Path(path)
-    generation = bundle.current_generation
+    generation = bundle._current_generation
     with generation.lease():
         envelope = load_certificate_envelope(certificate_path)
         if certificate_path.expanduser().resolve() != root / "certificate.json":

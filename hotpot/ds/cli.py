@@ -72,17 +72,25 @@ def _dataset(parser: argparse.ArgumentParser, *, required: bool = True) -> None:
 def _bundle_locator_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--root",
+        dest="bundle_root_option",
         default=argparse.SUPPRESS,
         metavar="BUNDLE_ROOT",
         help="built Bundle root; defaults to the current directory",
     )
     parser.add_argument(
         "--dataset",
+        dest="bundle_dataset",
         default=argparse.SUPPRESS,
         metavar="NAME",
         help="assert the authoritative bundle.json dataset name",
     )
-    _database(parser)
+    parser.add_argument(
+        "--db",
+        dest="bundle_db",
+        default=argparse.SUPPRESS,
+        metavar="PATH",
+        help="current Hotpot dataset store",
+    )
 
 
 def _selection_flags(parser: argparse.ArgumentParser) -> None:
@@ -184,11 +192,9 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
     _database(build)
     for name in ("status", "synchronize"):
-        child = _command(bundle_actions, name, help=name, description=f"Bundle {name}.")
-        _bundle_locator_options(child)
+        _command(bundle_actions, name, help=name, description=f"Bundle {name}.")
 
     bundle_get = _command(bundle_actions, "get", help="query Bundle state", description="Read one allowlisted Bundle view.")
-    _bundle_locator_options(bundle_get)
     bundle_get.add_argument(
         "view",
         choices=("info", "summary", "cases", "case.info", "case.assessment"),
@@ -198,7 +204,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     _selection_flags(bundle_get)
 
     bundle_set = _command(bundle_actions, "set", help="edit Case facts", description="Invoke one allowlisted Case mutation from JSON.")
-    _bundle_locator_options(bundle_set)
     bundle_set.add_argument(
         "method",
         choices=(
@@ -214,11 +219,9 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     bundle_set.add_argument("input", metavar="JSON_FILE", help="closed method-argument JSON object")
 
     gate = _command(bundle_actions, "gate", help="inspect or edit Gates", description="Inspect or atomically replace one new-dataset Gate.")
-    _bundle_locator_options(gate)
     gate_actions = gate.add_subparsers(dest="gate_name", metavar="GATE", required=True)
     for gate_name in ("benchmark", "quality", "evidence"):
         child = _command(gate_actions, gate_name, help=gate_name, description=f"Inspect or edit the {gate_name} Gate.")
-        _bundle_locator_options(child)
         child.add_argument("--show", action="store_true", help="show the current immutable Gate")
         child.add_argument("--add-check", action="append", default=[], metavar="NAME[=BOOL]", help="add or replace an ordinary check")
         child.add_argument("--rm-check", action="append", default=[], metavar="NAME", help="remove an ordinary check")
@@ -298,13 +301,13 @@ def _manifest_dataset(root: Path, asserted: Optional[str]) -> str:
 
 
 def _bundle_root(args: argparse.Namespace) -> Path:
-    return Path(getattr(args, "root", ".")).expanduser().resolve()
+    return Path(getattr(args, "bundle_root_option", ".")).expanduser().resolve()
 
 
 def _open_bundle(args: argparse.Namespace) -> Bundle:
     root = _bundle_root(args)
-    name = _manifest_dataset(root, getattr(args, "dataset", None))
-    return load_bundle(root, name, db=_db(args))
+    name = _manifest_dataset(root, getattr(args, "bundle_dataset", None))
+    return load_bundle(root, name, db=getattr(args, "bundle_db", None))
 
 
 def _load_dataset(args: argparse.Namespace):
@@ -419,19 +422,16 @@ def _protocol_selection(args: argparse.Namespace, consumer: str):
 
 
 def _present(representations: list[dict[str, Any]]) -> None:
-    try:
-        if not representations or not sys.stderr.isatty():
-            return
-        for value in representations:
-            if len(representations) > 1:
-                sys.stderr.write(
-                    f"--- {value['data_id']} {value['structure_id']} [{value['format']}] ---\n"
-                )
-            sys.stderr.write(value["content"])
-            if not value["content"].endswith("\n"):
-                sys.stderr.write("\n")
-    except Exception:
+    if not representations or not sys.stderr.isatty():
         return
+    for value in representations:
+        if len(representations) > 1:
+            sys.stderr.write(
+                f"--- {value['data_id']} {value['structure_id']} [{value['format']}] ---\n"
+            )
+        sys.stderr.write(value["content"])
+        if not value["content"].endswith("\n"):
+            sys.stderr.write("\n")
 
 
 def _export_selection(dataset: Any, args: argparse.Namespace):
@@ -867,12 +867,12 @@ def run(args: argparse.Namespace) -> int:
             minimum_quality = args.quality
             minimum_evidence = args.evidence
             result = result._filtered(
-                lambda item: int(item.quality_level.split("_", 1)[0][1:]) >= minimum_quality
+                lambda item: int(item.quality_level[1:]) >= minimum_quality
                 and (
                     minimum_evidence == 0
                     or (
                         item.evidence_level is not None
-                        and int(item.evidence_level.split("_", 1)[0][1:]) >= minimum_evidence
+                        and int(item.evidence_level[1:]) >= minimum_evidence
                     )
                 )
             )
@@ -982,8 +982,13 @@ def run(args: argparse.Namespace) -> int:
 
         if args.ds_action == "bundle":
             if args.bundle_action == "build":
-                if getattr(args, "root", None) is not None:
-                    raise ValueError("bundle build uses BUNDLE_ROOT and cannot use --root")
+                if any(
+                    hasattr(args, name)
+                    for name in ("bundle_root_option", "bundle_dataset", "bundle_db")
+                ):
+                    raise ValueError(
+                        "bundle build takes BUNDLE_ROOT, --dataset, and --db after build"
+                    )
                 root = Path(args.bundle_root).expanduser().resolve()
                 name = _manifest_dataset(root, getattr(args, "dataset", None))
                 bundle = Bundle(root, name, db=_db(args))

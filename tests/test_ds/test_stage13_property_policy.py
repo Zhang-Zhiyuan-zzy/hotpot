@@ -278,6 +278,7 @@ def test_generation_uses_property_comparator_before_benchmark_fallback(
         policy,
         {"mode": "new", "store_id": None},
     )
+    policy = state.policy
 
     generation = AssessmentGeneration.build(
         root,

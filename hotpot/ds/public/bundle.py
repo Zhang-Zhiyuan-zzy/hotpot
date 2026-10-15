@@ -272,7 +272,7 @@ class Bundle:
         generation_valid = False
         if state.get("current_generation_id"):
             try:
-                generation = self.current_generation
+                generation = self._current_generation
                 generation_valid = generation is not None
             except Exception:
                 generation_valid = False
@@ -368,7 +368,7 @@ class Bundle:
         if not state["is_synchronized"] or not state.get("current_generation_id"):
             return False
         try:
-            return self.current_generation is not None
+            return self._current_generation is not None
         except Exception:
             return False
 
@@ -420,7 +420,7 @@ class Bundle:
         return self.cases.select(archive_class="benchmark")
 
     @property
-    def current_generation(self):
+    def _current_generation(self):
         status = self._state.status
         generation_id = status.get("current_generation_id")
         if not generation_id:
@@ -634,7 +634,7 @@ class Bundle:
             raise UnsynchronizedBundleError(
                 "derived results are stale; run bundle.synchronize() first"
             )
-        generation = self.current_generation
+        generation = self._current_generation
         if generation is None:
             raise UnsynchronizedBundleError(
                 "no current assessment generation; run bundle.synchronize() first"

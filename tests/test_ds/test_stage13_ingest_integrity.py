@@ -188,7 +188,7 @@ def test_ingest_compare_and_swap_rejects_source_change_before_target_commit(
                     ("case-1",),
                 )
         else:
-            with bundle.current_generation.manifest_path.open("ab") as stream:
+            with bundle._current_generation.manifest_path.open("ab") as stream:
                 stream.write(b"\n")
         return result
 

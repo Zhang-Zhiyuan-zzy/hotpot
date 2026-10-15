@@ -115,7 +115,7 @@ class _Bundle:
                 "runtime_policy": runtime_policy(),
             },
         )
-        self.current_generation = _Generation(root)
+        self._current_generation = _Generation(root)
         self.is_synchronized = True
         self._assets = copy.deepcopy(assets)
 
@@ -217,7 +217,7 @@ def test_bound_positive_file_tampering_is_rejected(
     write_bundle_certificate(bundle)
     paths = {
         "facts": bundle.root / "cases" / "facts.sqlite3",
-        "generation": bundle.current_generation.manifest_path,
+        "generation": bundle._current_generation.manifest_path,
         "asset": bundle.root / "structures" / "case-1.smi",
     }
 

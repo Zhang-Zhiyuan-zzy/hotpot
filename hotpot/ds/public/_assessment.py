@@ -1301,7 +1301,10 @@ def _identity_component_value(
     if structure_role is not None:
         matches = []
         for structure in _active(case.get("structures", [])):
-            roles = {structure.get("role"), *structure.get("roles", [])}
+            roles = {structure.get("role")}
+            declared_roles = structure.get("roles", [])
+            if isinstance(declared_roles, list):
+                roles.update(declared_roles)
             if structure_role in roles:
                 matches.append(structure)
         if not matches:
@@ -1416,7 +1419,18 @@ def sample_match(
     compared = False
     for component in schema["components"]:
         key = component["key"]
-        if key not in left_values or key not in right_values:
+        if (key in left_values) != (key in right_values):
+            return {
+                "outcome": "indeterminate",
+                "reasons": [
+                    _reason(
+                        "identity_indeterminate",
+                        "An optional identity component is present on only one Case.",
+                        component=key,
+                    )
+                ],
+            }
+        if key not in left_values:
             continue
         compared = True
         if canonical_json(left_values[key]) == canonical_json(right_values[key]):
@@ -1488,13 +1502,11 @@ def observation_with_resolved_entities(
         entity_id = structure.get("entity_id")
         if not isinstance(entity_id, str) or not entity_id:
             continue
-        roles = sorted(
-            {
-                role
-                for role in (structure.get("role"), *structure.get("roles", []))
-                if isinstance(role, str) and role
-            }
-        )
+        raw_roles = structure.get("roles", [])
+        roles = [structure.get("role")]
+        if isinstance(raw_roles, list):
+            roles.extend(raw_roles)
+        roles = sorted({role for role in roles if isinstance(role, str) and role})
         if roles:
             candidates[entity_id].append({"kind": "structure", "roles": roles})
     for entity in _active(case.get("entities", [])):
@@ -1519,13 +1531,11 @@ def observation_with_resolved_entities(
                 {"kind": "external_identifiers", "values": identifiers}
             ]
             continue
-        roles = sorted(
-            {
-                role
-                for role in (entity.get("role"), *entity.get("roles", []))
-                if isinstance(role, str) and role
-            }
-        )
+        raw_roles = entity.get("roles", [])
+        roles = [entity.get("role")]
+        if isinstance(raw_roles, list):
+            roles.extend(raw_roles)
+        roles = sorted({role for role in roles if isinstance(role, str) and role})
         if roles and not candidates.get(entity_id):
             candidates[entity_id].append(
                 {

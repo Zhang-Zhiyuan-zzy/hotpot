@@ -648,3 +648,78 @@ def test_missing_cross_case_identity_does_not_hide_same_case_conflict():
     assert result["conflicting_cases"] == ["same-case"]
     assert result["exceptions"][0]["reason"] == "scientific_value_conflict"
     assert result["identity_reasons"]["same-case"][0]["code"] == "identity_indeterminate"
+
+
+def test_structure_identity_component_selects_one_declared_role():
+    schema = {
+        "components": [
+            {
+                "key": "primary_graph",
+                "path": "metadata.inchi_key",
+                "structure_role": "primary",
+                "required": True,
+                "normalizer": "casefold",
+            }
+        ]
+    }
+    left = _case("left")
+    right = _case("right")
+    for case in (left, right):
+        case["structures"] = [
+            {
+                "structure_id": f"{case['id']}:structure",
+                "role": "primary",
+                "metadata": {"inchi_key": "ABC-DEF"},
+            }
+        ]
+
+    assert sample_match(left, right, schema)["outcome"] == "same"
+    right["structures"][0]["metadata"]["inchi_key"] = "XYZ-DEF"
+    assert sample_match(left, right, schema)["outcome"] == "different"
+    right["structures"].append(
+        {
+            "structure_id": "right:second",
+            "role": "primary",
+            "metadata": {"inchi_key": "XYZ-DEF"},
+        }
+    )
+    assert sample_match(left, right, schema)["outcome"] == "indeterminate"
+
+
+def test_cross_case_subject_ids_are_resolved_before_value_comparison():
+    left = _case("left", 1)
+    right = _case("right", 2)
+    for case, entity_id in ((left, "left:metal"), (right, "right:metal")):
+        case["entities"] = [
+            {
+                "entity_id": entity_id,
+                "external_identifiers": [
+                    {"namespace": "chemical", "value": "eu-center"}
+                ],
+            }
+        ]
+        case["observations"][0]["subject_entity_id"] = entity_id
+    result = find_conflicts(
+        [left, right],
+        {
+            "components": [
+                {
+                    "key": "sample",
+                    "path": "identifiers.sample",
+                    "required": True,
+                    "normalizer": "text",
+                }
+            ]
+        },
+        {},
+        property_definitions={
+            "oxidation_state": {
+                "type": "integer",
+                "context_fields": ["subject", "phase"],
+            }
+        },
+        property_comparators={"oxidation_state": {"kind": "exact"}},
+    )
+
+    assert result["conflicting_cases"] == ["left", "right"]
+    assert result["exceptions"][0]["reason"] == "scientific_value_conflict"

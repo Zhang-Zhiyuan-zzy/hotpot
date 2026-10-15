@@ -688,8 +688,8 @@ class CaseCollection(CaseView):
             elif name == "attestation":
                 actual = [item.get("authority") for item in case._facts().get("attestations", []) if item.get("status", "active") == "active"]
             elif name == "min_quality":
-                actual_level = str(assessment["quality_level"]).split("_", 1)[0]
-                wanted = str(expected).split("_", 1)[0]
+                actual_level = str(assessment["quality_level"])
+                wanted = str(expected)
                 if cls._B_LEVELS[actual_level] < cls._B_LEVELS[wanted]:
                     return False
                 continue
@@ -697,8 +697,8 @@ class CaseCollection(CaseView):
                 actual_value = assessment.get("evidence_level")
                 if actual_value is None:
                     return False
-                actual_level = str(actual_value).split("_", 1)[0]
-                wanted = str(expected).split("_", 1)[0]
+                actual_level = str(actual_value)
+                wanted = str(expected)
                 if cls._E_LEVELS[actual_level] < cls._E_LEVELS[wanted]:
                     return False
                 continue

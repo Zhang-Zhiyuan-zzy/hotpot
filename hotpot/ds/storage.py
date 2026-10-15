@@ -64,12 +64,13 @@ of sorted Case IDs. The asset inventory digest uses a canonical JSON array of
 unique ``{"sha256": ..., "size": ...}`` objects sorted by SHA-256. Helpers
 ``case_set_digest`` and ``asset_inventory_digest`` implement those algorithms.
 
-Cases are spooled to a temporary SQLite file while assets are copied and
-verified. ``case_content`` binds the normalized canonical facts, assessment,
-identity, and identifiers in their supplied order; the separately bound asset
-inventory covers materialized bytes. The target transaction then streams that
-spool, so neither the Case collection nor asset bytes are fully materialized
-in memory.
+Cases are normalized once into a relational temporary SQLite spool while
+unique assets are copied and verified. ``case_content`` binds the persisted
+canonical facts, assessment, identity, and identifiers in their supplied
+order; the separately bound asset inventory covers materialized bytes. The
+target transaction publishes the verified spool with set-based SQL, so neither
+the Case collection nor asset bytes are fully materialized in memory and Case
+JSON is not reparsed by Python during commit.
 """
 
 from __future__ import annotations
@@ -1079,16 +1080,37 @@ class TargetStore:
                   local_id TEXT NOT NULL UNIQUE,
                   archive_class TEXT NOT NULL,
                   selected INTEGER NOT NULL,
-                  case_json TEXT NOT NULL
+                  content_json TEXT NOT NULL CHECK(json_valid(content_json))
                 );
                 CREATE TABLE spool_assets(
                   sha256 TEXT PRIMARY KEY,
                   size INTEGER NOT NULL
                 );
+                CREATE TABLE spool_structures(
+                  case_id TEXT NOT NULL,
+                  structure_order INTEGER NOT NULL,
+                  structure_id TEXT NOT NULL,
+                  format TEXT NOT NULL,
+                  role TEXT NOT NULL,
+                  is_primary INTEGER NOT NULL,
+                  sha256 TEXT NOT NULL,
+                  PRIMARY KEY(case_id,structure_order)
+                );
+                CREATE TABLE spool_scientific_asset_refs(
+                  case_id TEXT NOT NULL,
+                  reference_order INTEGER NOT NULL,
+                  collection TEXT NOT NULL,
+                  declaration_id TEXT NOT NULL,
+                  asset_index INTEGER NOT NULL,
+                  role TEXT NOT NULL,
+                  status TEXT NOT NULL,
+                  sha256 TEXT NOT NULL,
+                  PRIMARY KEY(case_id,reference_order)
+                );
                 CREATE TABLE spool_control_assets(
                   category TEXT NOT NULL,
                   name TEXT NOT NULL,
-                  asset_json TEXT NOT NULL,
+                  sha256 TEXT NOT NULL,
                   PRIMARY KEY(category,name)
                 );
                 """
@@ -1097,12 +1119,38 @@ class TargetStore:
                 asset = self._normalize_control_asset(item)
                 self._spool_asset(spool, asset)
                 spool.execute(
-                    "INSERT INTO spool_control_assets(category,name,asset_json) "
+                    "INSERT INTO spool_control_assets(category,name,sha256) "
                     "VALUES(?,?,?)",
-                    (asset["category"], asset["name"], _canonical_json(asset)),
+                    (asset["category"], asset["name"], asset["sha256"]),
                 )
             included = 0
             excluded = 0
+            case_rows = []
+            structure_rows = []
+            scientific_rows = []
+
+            def flush_rows() -> None:
+                spool.executemany(
+                    "INSERT INTO spool_cases(case_id,public_index,local_id,"
+                    "archive_class,selected,content_json) VALUES(?,?,?,?,?,?)",
+                    case_rows,
+                )
+                spool.executemany(
+                    "INSERT INTO spool_structures(case_id,structure_order,"
+                    "structure_id,format,role,is_primary,sha256) "
+                    "VALUES(?,?,?,?,?,?,?)",
+                    structure_rows,
+                )
+                spool.executemany(
+                    "INSERT INTO spool_scientific_asset_refs(case_id,reference_order,"
+                    "collection,declaration_id,asset_index,role,status,sha256) "
+                    "VALUES(?,?,?,?,?,?,?,?)",
+                    scientific_rows,
+                )
+                case_rows.clear()
+                structure_rows.clear()
+                scientific_rows.clear()
+
             for case in cases:
                 normalized = self._normalize_case(case)
                 archive_class = normalized["assessment"]["archive_class"]
@@ -1117,18 +1165,52 @@ class TargetStore:
                             self._spool_asset(spool, asset)
                 else:
                     excluded += 1
-                spool.execute(
-                    "INSERT INTO spool_cases(case_id,public_index,local_id,archive_class,"
-                    "selected,case_json) VALUES(?,?,?,?,?,?)",
+                content_json = _canonical_json(
+                    self._case_content_projection(normalized)
+                )
+                case_rows.append(
                     (
                         normalized["id"],
                         normalized["public_index"],
                         normalized["local_id"],
                         archive_class,
                         int(selected),
-                        _canonical_json(normalized),
-                    ),
+                        content_json,
+                    )
                 )
+                if selected:
+                    structure_rows.extend(
+                        (
+                            (
+                                normalized["id"],
+                                index,
+                                structure["structure_id"],
+                                structure["format"],
+                                structure["role"],
+                                int(structure["primary"]),
+                                structure["sha256"],
+                            )
+                            for index, structure in enumerate(normalized["structures"])
+                        )
+                    )
+                    scientific_rows.extend(
+                        (
+                            (
+                                normalized["id"],
+                                index,
+                                asset["collection"],
+                                asset["declaration_id"],
+                                asset["asset_index"],
+                                asset["role"],
+                                asset["status"],
+                                asset["sha256"],
+                            )
+                            for index, asset in enumerate(normalized["assets"])
+                        )
+                    )
+                if len(case_rows) == 1000:
+                    flush_rows()
+            flush_rows()
             spool.commit()
             return {"included": included, "excluded": excluded}
         except sqlite3.IntegrityError as exc:
@@ -1313,12 +1395,12 @@ class TargetStore:
     @staticmethod
     def _spool_content_digest(spool: sqlite3.Connection) -> str:
         values = (
-            TargetStore._case_content_projection(json.loads(row[0]))
+            row[0]
             for row in spool.execute(
-                "SELECT case_json FROM spool_cases ORDER BY sequence"
+                "SELECT content_json FROM spool_cases ORDER BY sequence"
             )
         )
-        return TargetStore._stream_array_digest(values)
+        return TargetStore._stream_canonical_array_digest(values)
 
     @staticmethod
     def _case_content_projection(case: Mapping[str, Any]) -> Dict[str, Any]:
@@ -1333,13 +1415,19 @@ class TargetStore:
 
     @staticmethod
     def _stream_array_digest(values: Iterable[Any]) -> str:
+        return TargetStore._stream_canonical_array_digest(
+            _canonical_json(value) for value in values
+        )
+
+    @staticmethod
+    def _stream_canonical_array_digest(values: Iterable[str]) -> str:
         digest = hashlib.sha256()
         digest.update(b"[")
         first = True
         for value in values:
             if not first:
                 digest.update(b",")
-            digest.update(_canonical_json(value).encode("utf-8"))
+            digest.update(value.encode("utf-8"))
             first = False
         digest.update(b"]")
         return digest.hexdigest()
@@ -1378,9 +1466,8 @@ class TargetStore:
         precommit_check: Optional[Callable[[], None]],
     ) -> TargetIngestResult:
         connection = self._connect()
-        spool = sqlite3.connect(str(spool_path))
-        spool.row_factory = sqlite3.Row
         try:
+            connection.execute("ATTACH DATABASE ? AS ingest_spool", (str(spool_path),))
             connection.execute("BEGIN IMMEDIATE")
             metadata = self._metadata(connection)
             self._assert_target_context(metadata, target_context)
@@ -1409,16 +1496,7 @@ class TargetStore:
 
             self._establish_dataset(connection, header, policy)
             release_serial = self._insert_release(connection, header)
-            for row in spool.execute(
-                "SELECT case_json FROM spool_cases WHERE selected=1 ORDER BY sequence"
-            ):
-                self._insert_case(connection, header, json.loads(row["case_json"]))
-            for row in spool.execute(
-                "SELECT asset_json FROM spool_control_assets ORDER BY category,name"
-            ):
-                self._insert_control_asset(
-                    connection, header, json.loads(row["asset_json"])
-                )
+            self._publish_spool(connection, header)
             receipt_id = "receipt-" + _json_digest(binding)
             connection.execute(
                 "INSERT INTO ingestion_receipts("
@@ -1461,7 +1539,6 @@ class TargetStore:
             connection.rollback()
             raise
         finally:
-            spool.close()
             connection.close()
 
     @staticmethod
@@ -1565,145 +1642,90 @@ class TargetStore:
         )
         return serial
 
-    def _insert_case(
-        self,
+    @staticmethod
+    def _publish_spool(
         connection: sqlite3.Connection,
         header: Mapping[str, Any],
-        case: Mapping[str, Any],
     ) -> None:
-        assessment = case["assessment"]
-        values = (header["dataset"], header["release"], case["id"])
+        dataset = header["dataset"]
+        release = header["release"]
+        connection.execute(
+            "INSERT OR IGNORE INTO target_assets(content_sha256,size,relative_path) "
+            "SELECT sha256,size,'objects/sha256/' || substr(sha256,1,2) || '/' || "
+            "sha256 FROM ingest_spool.spool_assets"
+        )
+        conflict = connection.execute(
+            "SELECT s.sha256 FROM ingest_spool.spool_assets s "
+            "JOIN target_assets t ON t.content_sha256=s.sha256 "
+            "WHERE t.size!=s.size OR t.relative_path!=("
+            "'objects/sha256/' || substr(s.sha256,1,2) || '/' || s.sha256) LIMIT 1"
+        ).fetchone()
+        if conflict is not None:
+            raise AssetIntegrityError(
+                "target asset row conflicts with its content digest"
+            )
+
         connection.execute(
             "INSERT INTO cases(dataset_id,release_id,case_id,public_index,local_id,"
-            "source_payload_json) VALUES(?,?,?,?,?,?)",
-            values
-            + (
-                case["public_index"],
-                case["local_id"],
-                _canonical_json(case["facts"]),
-            ),
+            "source_payload_json) SELECT ?,?,json_extract(content_json,'$.id'),"
+            "json_extract(content_json,'$.public_index'),"
+            "json_extract(content_json,'$.local_id'),"
+            "json_extract(content_json,'$.facts') FROM ingest_spool.spool_cases "
+            "WHERE selected=1 ORDER BY sequence",
+            (dataset, release),
         )
         connection.execute(
             "INSERT INTO case_assessments(dataset_id,release_id,case_id,quality_level,"
             "evidence_level,archive_class,benchmark,assessment_json) "
-            "VALUES(?,?,?,?,?,?,?,?)",
-            values
-            + (
-                assessment.get("quality_level"),
-                assessment.get("evidence_level"),
-                assessment["archive_class"],
-                int(assessment["benchmark"]),
-                _canonical_json(assessment),
-            ),
+            "SELECT ?,?,json_extract(content_json,'$.id'),"
+            "json_extract(content_json,'$.assessment.quality_level'),"
+            "json_extract(content_json,'$.assessment.evidence_level'),"
+            "json_extract(content_json,'$.assessment.archive_class'),"
+            "CAST(json_extract(content_json,'$.assessment.benchmark') AS INTEGER),"
+            "json_extract(content_json,'$.assessment') "
+            "FROM ingest_spool.spool_cases WHERE selected=1 ORDER BY sequence",
+            (dataset, release),
+        )
+        for archive_class in ("ordinary", "benchmark", "incomplete"):
+            connection.execute(
+                f"INSERT INTO {archive_class}_case_index"
+                "(dataset_id,release_id,case_id) "
+                "SELECT ?,?,json_extract(content_json,'$.id') "
+                "FROM ingest_spool.spool_cases WHERE selected=1 AND "
+                "json_extract(content_json,'$.assessment.archive_class')=? "
+                "ORDER BY sequence",
+                (dataset, release, archive_class),
+            )
+        connection.execute(
+            "INSERT INTO identifiers(dataset_id,release_id,case_id,namespace,value) "
+            "SELECT ?,?,json_extract(c.content_json,'$.id'),"
+            "json_extract(i.value,'$.namespace'),json_extract(i.value,'$.value') "
+            "FROM ingest_spool.spool_cases c, "
+            "json_each(c.content_json,'$.identifiers') i WHERE c.selected=1 "
+            "ORDER BY c.sequence,i.key",
+            (dataset, release),
         )
         connection.execute(
-            f"INSERT INTO {assessment['archive_class']}_case_index"
-            "(dataset_id,release_id,case_id) VALUES(?,?,?)",
-            values,
-        )
-        for identifier in case["identifiers"]:
-            connection.execute(
-                "INSERT INTO identifiers(dataset_id,release_id,case_id,namespace,value) "
-                "VALUES(?,?,?,?,?)",
-                values + (identifier["namespace"], identifier["value"]),
-            )
-        for structure in case["structures"]:
-            relative = str(
-                Path("objects")
-                / "sha256"
-                / structure["sha256"][:2]
-                / structure["sha256"]
-            )
-            connection.execute(
-                "INSERT OR IGNORE INTO target_assets(content_sha256,size,relative_path) "
-                "VALUES(?,?,?)",
-                (structure["sha256"], structure["size"], relative),
-            )
-            target = connection.execute(
-                "SELECT size,relative_path FROM target_assets WHERE content_sha256=?",
-                (structure["sha256"],),
-            ).fetchone()
-            if target["size"] != structure["size"] or target["relative_path"] != relative:
-                raise AssetIntegrityError("target asset row conflicts with its content digest")
-            connection.execute(
-                "INSERT INTO structure_asset_refs(dataset_id,release_id,case_id,"
-                "structure_id,format,role,is_primary,content_sha256) "
-                "VALUES(?,?,?,?,?,?,?,?)",
-                values
-                + (
-                    structure["structure_id"],
-                    structure["format"],
-                    structure["role"],
-                    int(structure["primary"]),
-                    structure["sha256"],
-                ),
-            )
-        for asset in case["assets"]:
-            relative = str(
-                Path("objects")
-                / "sha256"
-                / asset["sha256"][:2]
-                / asset["sha256"]
-            )
-            connection.execute(
-                "INSERT OR IGNORE INTO target_assets(content_sha256,size,relative_path) "
-                "VALUES(?,?,?)",
-                (asset["sha256"], asset["size"], relative),
-            )
-            target = connection.execute(
-                "SELECT size,relative_path FROM target_assets WHERE content_sha256=?",
-                (asset["sha256"],),
-            ).fetchone()
-            if target["size"] != asset["size"] or target["relative_path"] != relative:
-                raise AssetIntegrityError("target asset row conflicts with its content digest")
-            connection.execute(
-                "INSERT INTO scientific_asset_refs(dataset_id,release_id,case_id,"
-                "collection,declaration_id,asset_index,role,status,content_sha256) "
-                "VALUES(?,?,?,?,?,?,?,?,?)",
-                values
-                + (
-                    asset["collection"],
-                    asset["declaration_id"],
-                    asset["asset_index"],
-                    asset["role"],
-                    asset["status"],
-                    asset["sha256"],
-                ),
-            )
-
-    @staticmethod
-    def _insert_control_asset(
-        connection: sqlite3.Connection,
-        header: Mapping[str, Any],
-        asset: Mapping[str, Any],
-    ) -> None:
-        relative = str(
-            Path("objects")
-            / "sha256"
-            / asset["sha256"][:2]
-            / asset["sha256"]
+            "INSERT INTO structure_asset_refs(dataset_id,release_id,case_id,"
+            "structure_id,format,role,is_primary,content_sha256) "
+            "SELECT ?,?,case_id,structure_id,format,role,is_primary,sha256 "
+            "FROM ingest_spool.spool_structures ORDER BY case_id,structure_order",
+            (dataset, release),
         )
         connection.execute(
-            "INSERT OR IGNORE INTO target_assets(content_sha256,size,relative_path) "
-            "VALUES(?,?,?)",
-            (asset["sha256"], asset["size"], relative),
+            "INSERT INTO scientific_asset_refs(dataset_id,release_id,case_id,"
+            "collection,declaration_id,asset_index,role,status,content_sha256) "
+            "SELECT ?,?,case_id,collection,declaration_id,asset_index,role,status,"
+            "sha256 "
+            "FROM ingest_spool.spool_scientific_asset_refs "
+            "ORDER BY case_id,reference_order",
+            (dataset, release),
         )
-        target = connection.execute(
-            "SELECT size,relative_path FROM target_assets WHERE content_sha256=?",
-            (asset["sha256"],),
-        ).fetchone()
-        if target["size"] != asset["size"] or target["relative_path"] != relative:
-            raise AssetIntegrityError("target asset row conflicts with its content digest")
         connection.execute(
             "INSERT INTO release_control_asset_refs(dataset_id,release_id,category,"
-            "name,content_sha256) VALUES(?,?,?,?,?)",
-            (
-                header["dataset"],
-                header["release"],
-                asset["category"],
-                asset["name"],
-                asset["sha256"],
-            ),
+            "name,content_sha256) SELECT ?,?,category,name,sha256 "
+            "FROM ingest_spool.spool_control_assets ORDER BY category,name",
+            (dataset, release),
         )
 
 

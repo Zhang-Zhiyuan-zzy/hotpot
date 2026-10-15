@@ -4,10 +4,15 @@ import hashlib
 import json
 import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
+
+import hotpot.ds.storage as storage_module
 from hotpot.ds.public._implementation import runtime_policy
 from hotpot.ds.storage import (
     TARGET_SCHEMA_ID,
+    SnapshotError,
     TargetStore,
     asset_inventory_digest,
     case_content_digest,
@@ -160,3 +165,83 @@ def test_ingest_verifies_and_copies_each_unique_asset_once(
         "scientific_asset_refs": 2,
         "release_control_asset_refs": 1,
     }
+
+
+def test_ingest_commit_does_not_reparse_case_json(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nAm 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+
+    def forbidden_loads(*args, **kwargs):
+        raise AssertionError("ingest reparsed normalized Case JSON")
+
+    monkeypatch.setattr(
+        storage_module,
+        "json",
+        SimpleNamespace(dumps=json.dumps, loads=forbidden_loads),
+    )
+    result = store.ingest(snapshot)
+
+    assert result.included_count == 1
+
+
+def test_ingest_publishes_cases_with_constant_set_based_statements(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    cases = [_case(f"case-{index}", index, source) for index in range(100)]
+    statements = []
+    original_connect = TargetStore._connect
+
+    def traced_connect(self):
+        connection = original_connect(self)
+        connection.set_trace_callback(statements.append)
+        return connection
+
+    monkeypatch.setattr(TargetStore, "_connect", traced_connect)
+    store.ingest(_snapshot(store, cases))
+
+    normalized = [statement.lstrip().upper() for statement in statements]
+    case_inserts = sum(
+        statement.startswith("INSERT INTO CASES(") for statement in normalized
+    )
+    assert case_inserts == 1
+    assert sum(
+        statement.startswith("INSERT INTO CASE_ASSESSMENTS(")
+        for statement in normalized
+    ) == 1
+    assert sum(
+        statement.startswith("INSERT INTO IDENTIFIERS(")
+        for statement in normalized
+    ) == 1
+
+
+def test_spool_content_digest_still_binds_published_case_facts(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+    original_spool = TargetStore._spool_cases
+
+    def tampered_spool(self, spool_path, *args, **kwargs):
+        counts = original_spool(self, spool_path, *args, **kwargs)
+        with sqlite3.connect(spool_path) as spool:
+            spool.execute(
+                "UPDATE spool_cases SET content_json=json_set("
+                "content_json,'$.facts.core_info.sample','tampered')"
+            )
+        return counts
+
+    monkeypatch.setattr(TargetStore, "_spool_cases", tampered_spool)
+
+    with pytest.raises(SnapshotError, match="Case content digest"):
+        store.ingest(snapshot)
+
+    assert store.load_release_metadata("spin", "release-1") is None

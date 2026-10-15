@@ -3,6 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 import io
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,8 @@ from hotpot.ds._communication import CommunicationError, make_envelope
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
 from hotpot.ds.public.bundle import load_bundle
+from hotpot.ds.public.dataset import Dataset
+from hotpot.ds.storage import TargetStore
 
 
 def _case(case_id: str, index: int, *, approved: bool = False, complete: bool = True) -> dict:
@@ -327,6 +330,71 @@ def test_certify_ingest_query_archive_opt_in_and_protocol_pipeline(tmp_path: Pat
     invalid["items"][0]["assessment"]["undeclared_assessment_field"] = True
     with pytest.raises(CommunicationError, match="unknown fields"):
         make_envelope("hotpot.ds.get", invalid)
+
+    loaded_case_ids = []
+    get_case = TargetStore.get_case
+
+    def track_get_case(store, dataset_name, release_id, case_id):
+        loaded_case_ids.append(case_id)
+        return get_case(store, dataset_name, release_id, case_id)
+
+    def reject_full_scan(*args, **kwargs):
+        raise AssertionError("identifier lookup must not call Dataset.subset")
+
+    monkeypatch.setattr(TargetStore, "get_case", track_get_case)
+    monkeypatch.setattr(Dataset, "subset", reject_full_scan)
+    code, selected, _ = _invoke(
+        [
+            "get",
+            "demo",
+            "ORDINARY",
+            "--identifier",
+            "CSD",
+            "--db",
+            str(database),
+        ],
+        capsys,
+    )
+    assert code == 0
+    assert selected["payload"]["items"][0]["record_id"] == "ordinary"
+    assert loaded_case_ids == ["ordinary"]
+
+    code, missing, error = _invoke(
+        [
+            "get",
+            "demo",
+            "MISSING",
+            "--identifier",
+            "CSD",
+            "--db",
+            str(database),
+        ],
+        capsys,
+    )
+    assert code == 2 and missing is None
+    assert "matched 0 records" in error
+
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            "INSERT INTO identifiers(dataset_id,release_id,case_id,namespace,value) "
+            "VALUES('demo','demo-r1','benchmark','CSD','ORDINARY')"
+        )
+    loaded_case_ids.clear()
+    code, duplicate, error = _invoke(
+        [
+            "get",
+            "demo",
+            "ORDINARY",
+            "--identifier",
+            "CSD",
+            "--db",
+            str(database),
+        ],
+        capsys,
+    )
+    assert code == 2 and duplicate is None
+    assert "matched 2 records" in error
+    assert loaded_case_ids == []
 
 
 def test_export_uses_stable_public_indices_and_aligned_names(tmp_path: Path, capsys) -> None:

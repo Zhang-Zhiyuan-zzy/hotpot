@@ -17,6 +17,7 @@ from .gates._checker import CHECKER_PROTOCOL_DIGEST, _CheckerDefinition, _inspec
 from .public.bundle import Bundle, load_bundle
 from .public.catalog import DatasetCatalog, load
 from .public.certificate import certificate_digest
+from .public.dataset import Dataset
 from .public.search import DataSearcher, DatasetSearcher, SmartsSearcher
 from .storage import TargetStore
 
@@ -374,12 +375,24 @@ def _identifier_namespace(dataset: Any, requested: Any) -> str:
 def _select_data(dataset: Any, selector: str, *, identifier: Any, by_id: bool):
     if identifier is not None:
         namespace = _identifier_namespace(dataset, identifier)
-        matches = dataset.subset(**{namespace: selector})
-        if len(matches) != 1:
+        selection = {
+            "kind": "identifier",
+            "namespace": namespace,
+            "value": selector,
+        }
+        try:
+            match = getattr(dataset, f"{namespace}_identifier")[selector]
+        except KeyError:
+            match_count = 0
+        else:
+            if not isinstance(match, Dataset):
+                return match, selection
+            match_count = len(match)
+        if match_count != 1:
             raise ValueError(
-                f"identifier {selector!r} in {namespace!r} matched {len(matches)} records"
+                f"identifier {selector!r} in {namespace!r} matched {match_count} records"
             )
-        return matches[0], {"kind": "identifier", "namespace": namespace, "value": selector}
+        return match[0], selection
     if by_id:
         matches = [item for item in dataset if item.id == selector]
         if len(matches) != 1:

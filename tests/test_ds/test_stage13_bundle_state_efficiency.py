@@ -242,7 +242,7 @@ def test_source_proof_detects_scientific_control_and_payload_changes(
 
 
 def test_source_proof_hashes_each_declared_control_once_and_observes_cases_once(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = tmp_path / "fixture"
     shared = root / "bundle" / "assets" / "shared.smi"
@@ -273,6 +273,13 @@ def test_source_proof_hashes_each_declared_control_once_and_observes_cases_once(
     assert proof == state.status["recorded_source_digest"]
     assert hashed == [shared]
     assert observed == ["case-0", "case-1"]
+
+    def forbidden(path: Path) -> tuple[str, int]:
+        raise AssertionError(f"ordinary state connection hashed {path}")
+
+    monkeypatch.setattr(state_module, "_digest_file", forbidden)
+    assert state.get_case("case-0")["id"] == "case-0"
+    assert state.manifest["control_assets"][0]["path"] == "assets/shared.smi"
 
 
 def test_open_rejects_schema_v2_without_compatibility(tmp_path: Path) -> None:

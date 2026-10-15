@@ -32,6 +32,7 @@ LEGACY_RECORD_STANDARD = "hotpot-dataset/current"
 MIGRATION_SCHEMA = "hotpot-ds-legacy-migration/current"
 CUTOVER_SCHEMA = "hotpot-ds-store-cutover/current"
 BOOTSTRAP_SCHEMA = "hotpot-ds-migration-bootstrap/current"
+MIGRATION_PROVENANCE_SCHEMA = "hotpot-ds-migration-provenance/current"
 
 
 class LegacyMigrationError(RuntimeError):
@@ -66,6 +67,41 @@ class DatasetBootstrap:
     owner: str
     decision: str
     include_incomplete: bool
+
+
+def _bootstrap_info(bootstrap: DatasetBootstrap) -> Dict[str, Any]:
+    """Return the exact normalized owner decision consumed by migration."""
+
+    return {
+        "ds_name": bootstrap.ds_name,
+        "core_labels": list(bootstrap.core_labels),
+        "core_info": list(bootstrap.core_info),
+        "identity_schema": dict(bootstrap.identity_schema),
+        "property_definitions": dict(bootstrap.property_definitions),
+        "property_comparators": dict(bootstrap.property_comparators),
+        "required_structure_roles": list(bootstrap.required_structure_roles),
+        "gates": [gate.info for gate in bootstrap.gates],
+        "owner": bootstrap.owner,
+        "decision": bootstrap.decision,
+        "include_incomplete": bootstrap.include_incomplete,
+    }
+
+
+def _migration_provenance(bootstrap: DatasetBootstrap) -> Dict[str, Any]:
+    bootstrap_info = _bootstrap_info(bootstrap)
+    tool_path = Path(__file__).resolve()
+    tool_sha256, tool_size = _sha256_file(tool_path)
+    return {
+        "schema": MIGRATION_PROVENANCE_SCHEMA,
+        "dataset": bootstrap.ds_name,
+        "owner_bootstrap": bootstrap_info,
+        "owner_bootstrap_sha256": _digest_json(bootstrap_info),
+        "migration_tool": {
+            "name": "hotpot.ds.tools.migrate_legacy_store",
+            "sha256": tool_sha256,
+            "size": tool_size,
+        },
+    }
 
 
 def load_bootstraps(path: Union[str, Path]) -> Dict[str, DatasetBootstrap]:
@@ -1374,6 +1410,12 @@ def _normalize_evidence(rows: Mapping[str, list[Dict[str, Any]]]) -> list[Dict[s
     for target, target_kind, evidence_id, role in sorted(links):
         item = items[evidence_id]
         source = sources[item["source_id"]]
+        source_kind = {
+            "publication": "primary_literature",
+            "reported_database_text": "database_record",
+            "owner_evidence_adjudication": "expert_statement",
+            "cross_dataset_quality_assessment": "other",
+        }.get(source["source_type"], "other")
         child_id = f"{evidence_id}:target:{hashlib.sha256(target.encode('utf-8')).hexdigest()[:16]}"
         result.append(
             {
@@ -1388,6 +1430,7 @@ def _normalize_evidence(rows: Mapping[str, list[Dict[str, Any]]]) -> list[Dict[s
                 "matched_text": item["matched_text"],
                 "source_id": source["source_id"],
                 "source_type": source["source_type"],
+                "source_kind": source_kind,
                 "citation": source["citation"],
                 "doi": source["doi"],
                 "scientific_work_id": source["doi"],
@@ -1425,6 +1468,7 @@ def _migration_control_descriptors(root: Path) -> list[Dict[str, Any]]:
         ("legacy-identity-relationships", root / "evidence" / "migration" / "legacy-identity-relationships.jsonl"),
         ("identity-migration", root / "evidence" / "migration" / "identity-migration.jsonl"),
         ("legacy-source-inventory", root / "evidence" / "migration" / "legacy-source-inventory.json"),
+        ("migration-provenance", root / "evidence" / "migration" / "migration-provenance.json"),
     )
     result = []
     for name, path in paths:
@@ -1580,6 +1624,9 @@ def export_legacy_release(
                 "tables": source_inventory,
             },
         )
+        migration_provenance_path = migration_dir / "migration-provenance.json"
+        migration_provenance = _migration_provenance(bootstrap)
+        _atomic_json(migration_provenance_path, migration_provenance)
         source_inventory_sha, _ = _sha256_file(source_inventory_path)
         identifier_collisions = source.identifier_collisions(connection, release_id)
         migration_controls = _migration_control_descriptors(root)
@@ -1612,6 +1659,8 @@ def export_legacy_release(
                 "owner_bootstrap": {
                     "owner": bootstrap.owner,
                     "decision": bootstrap.decision,
+                    "sha256": migration_provenance["owner_bootstrap_sha256"],
+                    "migration_tool_sha256": migration_provenance["migration_tool"]["sha256"],
                 },
             },
             "core_labels": list(bootstrap.core_labels),
@@ -1674,6 +1723,7 @@ def export_legacy_release(
                 "rows": mapping_count,
             },
             "migration_controls": migration_controls,
+            "migration_provenance": migration_provenance,
         }
         _atomic_json(root / "migration-export.json", report)
         return report
@@ -2656,6 +2706,20 @@ def migrate_legacy_store(
         raise LegacyMigrationError(
             "owner bootstrap set must exactly match the legacy datasets"
         )
+    normalized_bootstraps = {
+        name: _bootstrap_info(bootstraps[name]) for name in sorted(bootstraps)
+    }
+    run_provenance = {
+        "schema": MIGRATION_PROVENANCE_SCHEMA,
+        "owner_bootstraps": normalized_bootstraps,
+        "owner_bootstraps_sha256": _digest_json(normalized_bootstraps),
+        "migration_tool": _migration_provenance(
+            bootstraps[sorted(bootstraps)[0]]
+        )["migration_tool"],
+    }
+    plan = json.loads((work / "migration-plan.json").read_text(encoding="utf-8"))
+    plan["migration_provenance"] = run_provenance
+    _atomic_json(work / "migration-plan.json", plan)
 
     migrated = []
     target_parity_reports = []
@@ -2734,6 +2798,7 @@ def migrate_legacy_store(
         "rollback": rollback,
         "rollback_verification": rollback_verification,
         "release_order": release_order,
+        "migration_provenance": run_provenance,
         "releases": migrated,
         "cutover": cutover,
         "activation": activation,

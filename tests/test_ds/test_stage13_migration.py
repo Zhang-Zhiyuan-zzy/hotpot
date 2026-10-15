@@ -360,6 +360,7 @@ def test_export_preserves_source_rows_ids_indices_and_asset_hash(tmp_path):
     assert case["claims"][0]["resolution_status"] == "unresolved"
     assert case["claims"][0]["claimed_evidence_level"] == "E3_supplier_claim"
     assert case["verifications"] == []
+    assert case["evidence"][0]["source_kind"] == "other"
     assert case["claimed_benchmark"] is True
     assert case["attestations"][0]["authority"] == "Other"
     controls = {
@@ -367,6 +368,13 @@ def test_export_preserves_source_rows_ids_indices_and_asset_hash(tmp_path):
     }
     source_inventory = controls["legacy-source-inventory"]
     assert hashlib.sha256((root / source_inventory["path"]).read_bytes()).hexdigest() == source_inventory["sha256"]
+    migration_provenance = json.loads(
+        (root / controls["migration-provenance"]["path"]).read_text()
+    )
+    assert migration_provenance["owner_bootstrap_sha256"] == report[
+        "migration_provenance"
+    ]["owner_bootstrap_sha256"]
+    assert len(migration_provenance["migration_tool"]["sha256"]) == 64
     identity_mappings = [
         json.loads(line)
         for line in (root / "evidence" / "migration" / "identity-migration.jsonl")
@@ -614,9 +622,13 @@ def test_complete_migration_synchronizes_certifies_ingests_and_then_cuts_over(tm
             "source_case_count": 1,
         }
     ]
-    assert json.loads((tmp_path / "work" / "migration-plan.json").read_text())[
-        "activation"
-    ] == "only_after_all_releases_pass"
+    migration_plan = json.loads(
+        (tmp_path / "work" / "migration-plan.json").read_text()
+    )
+    assert migration_plan["activation"] == "only_after_all_releases_pass"
+    assert result["migration_provenance"] == migration_plan["migration_provenance"]
+    assert result["migration_provenance"]["owner_bootstraps_sha256"]
+    assert result["migration_provenance"]["migration_tool"]["sha256"]
     assert result["releases"][0]["synchronization"]["is_synchronized"] is True
     assert Path(result["releases"][0]["certificate"]).is_file()
     assert result["releases"][0]["receipt"]["included_count"] == 1
@@ -719,6 +731,7 @@ def test_target_parity_accounts_for_certificate_bound_excluded_incomplete_cases(
         "identity-migration",
         "legacy-identity-relationships",
         "legacy-source-inventory",
+        "migration-provenance",
     ]
 
 

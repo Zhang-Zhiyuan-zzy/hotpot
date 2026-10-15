@@ -34,6 +34,10 @@ from ._implementation import (
 
 
 BUNDLE_SCHEMA = "hotpot-ds-bundle/current"
+_DATABASE_SCHEMA_VERSION = 3
+_SOURCE_PROOF_SCHEMA = "hotpot-ds-source-proof/current"
+_SOURCE_DIGEST_STATES = frozenset({"current", "dirty"})
+_CASE_INSERT_BATCH_SIZE = 512
 
 _MANIFEST_REQUIRED = {
     "schema",
@@ -208,6 +212,14 @@ def _read_json(path: Path, name: str) -> Any:
 
 
 def _validate_control_assets(root: Path, value: Any) -> list[Dict[str, Any]]:
+    """Normalize declared controls without reading their payload bytes.
+
+    Byte verification belongs exclusively to a complete source proof.  Keeping
+    manifest validation structural prevents every SQLite connection from
+    rehashing potentially large controls while still rejecting unsafe paths and
+    ambiguous declarations.
+    """
+
     if value is None:
         return []
     if not isinstance(value, list):
@@ -241,16 +253,6 @@ def _validate_control_assets(root: Path, value: Any) -> list[Dict[str, Any]]:
             raise BundleStateError("bundle.json.control_assets contains a duplicate path")
         identities.add(identity)
         paths.add(path_text)
-        if path.is_symlink() or not path.is_file():
-            raise BundleStateError(f"{name}.path must name a regular Bundle file")
-        observed = hashlib.sha256()
-        observed_size = 0
-        with path.open("rb") as stream:
-            for block in iter(lambda: stream.read(1024 * 1024), b""):
-                observed.update(block)
-                observed_size += len(block)
-        if observed.hexdigest() != digest or observed_size != size:
-            raise BundleStateError(f"{name} does not match its declared bytes")
         result.append(
             {
                 "category": category,
@@ -481,13 +483,41 @@ def _frame(hasher: "hashlib._Hash", name: str, payload: bytes) -> None:
     hasher.update(payload)
 
 
-def _hash_file(hasher: "hashlib._Hash", path: Path) -> None:
+def _hash_file(hasher: "hashlib._Hash", path: Path) -> int:
+    size = 0
     with path.open("rb") as stream:
         while True:
             chunk = stream.read(1024 * 1024)
             if not chunk:
                 break
             hasher.update(chunk)
+            size += len(chunk)
+    return size
+
+
+def _digest_file(path: Path) -> tuple[str, int]:
+    hasher = hashlib.sha256()
+    size = _hash_file(hasher, path)
+    return hasher.hexdigest(), size
+
+
+def _control_asset_source_binding(
+    declaration: Mapping[str, Any],
+    *,
+    state: str,
+    sha256: Optional[str],
+    size: Optional[int],
+) -> Dict[str, Any]:
+    """Return the unambiguous control-asset value framed by source proofs."""
+
+    return {
+        "category": declaration["category"],
+        "name": declaration["name"],
+        "path": declaration["path"],
+        "state": state,
+        "sha256": sha256,
+        "size": size,
+    }
 
 
 def _atomic_write(path: Path, content: bytes) -> None:
@@ -596,28 +626,47 @@ class BundleState:
                     "INSERT INTO policy(singleton, policy_json) VALUES (1, ?)",
                     (_canonical_text(policy),),
                 )
+                batch = []
                 for case in state._iter_intake(manifest, intake):
-                    connection.execute(
-                        """
-                        INSERT INTO cases(case_id, public_index, local_id, payload_json)
-                        VALUES (?, ?, ?, ?)
-                        """,
+                    batch.append(
                         (
                             case["id"],
                             case["public_index"],
                             case["local_id"],
                             _canonical_text(case),
-                        ),
+                        )
+                    )
+                    if len(batch) == _CASE_INSERT_BATCH_SIZE:
+                        connection.executemany(
+                            """
+                            INSERT INTO cases(
+                                case_id, public_index, local_id, payload_json
+                            ) VALUES (?, ?, ?, ?)
+                            """,
+                            batch,
+                        )
+                        batch.clear()
+                if batch:
+                    connection.executemany(
+                        """
+                        INSERT INTO cases(
+                            case_id, public_index, local_id, payload_json
+                        ) VALUES (?, ?, ?, ?)
+                        """,
+                        batch,
                     )
                 source_digest = state._compute_source_digest(connection, manifest)
                 connection.execute(
                     """
                     INSERT INTO control(
                         singleton, source_revision, source_digest,
+                        source_digest_state,
                         policy_revision, policy_digest,
                         governance_registry_revision,
-                        governance_registry_digest
-                    ) VALUES (1, 0, ?, 0, ?, ?, ?)
+                        governance_registry_digest,
+                        audit_revision, audit_projection_revision,
+                        audit_projection_size
+                    ) VALUES (1, 0, ?, 'current', 0, ?, ?, ?, 1, 0, 0)
                     """,
                     (
                         source_digest,
@@ -644,11 +693,7 @@ class BundleState:
                         ),
                     ),
                 )
-            connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-            connection.close()
-            connection = None
-            state._write_policy_projection_value(policy)
-            state._write_audit_projection_rows(
+            projection_path = state._write_audit_projection_rows(
                 [
                     {
                         "event_id": event_id,
@@ -664,6 +709,16 @@ class BundleState:
                     }
                 ]
             )
+            connection.execute(
+                "UPDATE control SET audit_projection_revision=1, "
+                "audit_projection_size=? WHERE singleton=1",
+                (projection_path.stat().st_size,),
+            )
+            connection.commit()
+            connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            connection.close()
+            connection = None
+            state._write_policy_projection_value(policy)
             with temporary.open("rb") as stream:
                 os.fsync(stream.fileno())
             os.replace(temporary, state.path)
@@ -702,7 +757,10 @@ class BundleState:
             with state.connect() as connection:
                 if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise BundleStateError("facts.sqlite3 failed integrity_check")
-                if connection.execute("PRAGMA user_version").fetchone()[0] != 2:
+                if (
+                    connection.execute("PRAGMA user_version").fetchone()[0]
+                    != _DATABASE_SCHEMA_VERSION
+                ):
                     raise BundleStateError("facts.sqlite3 is not the current schema")
                 stored_manifest = json.loads(
                     connection.execute(
@@ -772,6 +830,11 @@ class BundleState:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys=ON")
         try:
+            if (
+                connection.execute("PRAGMA user_version").fetchone()[0]
+                != _DATABASE_SCHEMA_VERSION
+            ):
+                raise BundleStateError("facts.sqlite3 is not the current schema")
             self._assert_manifest_unchanged(connection)
             yield connection
         finally:
@@ -1311,7 +1374,7 @@ class BundleState:
             PRAGMA foreign_keys=ON;
             PRAGMA journal_mode=DELETE;
             PRAGMA synchronous=FULL;
-            PRAGMA user_version=2;
+            PRAGMA user_version=3;
 
             CREATE TABLE metadata(
                 key TEXT PRIMARY KEY,
@@ -1321,7 +1384,9 @@ class BundleState:
             CREATE TABLE control(
                 singleton INTEGER PRIMARY KEY CHECK(singleton=1),
                 source_revision INTEGER NOT NULL CHECK(source_revision >= 0),
-                source_digest TEXT NOT NULL,
+                source_digest TEXT,
+                source_digest_state TEXT NOT NULL
+                    CHECK(source_digest_state IN ('current', 'dirty')),
                 policy_revision INTEGER NOT NULL CHECK(policy_revision >= 0),
                 policy_digest TEXT NOT NULL,
                 governance_registry_revision INTEGER NOT NULL
@@ -1334,7 +1399,17 @@ class BundleState:
                 synchronized_governance_registry_revision INTEGER,
                 synchronized_governance_registry_digest TEXT,
                 current_generation_id TEXT,
-                current_generation_digest TEXT
+                current_generation_digest TEXT,
+                audit_revision INTEGER NOT NULL CHECK(audit_revision >= 0),
+                audit_projection_revision INTEGER NOT NULL
+                    CHECK(audit_projection_revision >= 0),
+                audit_projection_size INTEGER NOT NULL
+                    CHECK(audit_projection_size >= 0),
+                CHECK(
+                    (source_digest_state='current' AND source_digest IS NOT NULL)
+                    OR (source_digest_state='dirty' AND source_digest IS NULL)
+                ),
+                CHECK(audit_projection_revision <= audit_revision)
             ) STRICT;
 
             CREATE TABLE cases(
@@ -1470,8 +1545,36 @@ class BundleState:
     def _compute_source_digest(
         self, connection: sqlite3.Connection, manifest: Mapping[str, Any]
     ) -> str:
+        return self._compute_source_proof(connection, manifest)
+
+    def _compute_source_proof(
+        self,
+        connection: sqlite3.Connection,
+        manifest: Mapping[str, Any],
+        *,
+        file_digest: Optional[Callable[[Path], tuple[str, int]]] = None,
+        case_observer: Optional[Callable[[Mapping[str, Any]], None]] = None,
+    ) -> str:
+        """Compute the complete, runtime-bound source proof.
+
+        Framing order is protocol, manifest, ordered canonical Case payloads,
+        declared controls ordered by ``(category, name)``, then unique
+        Case-declared scientific paths in lexical order.  A control frame binds
+        category, name, path, observed state, observed SHA-256, and observed
+        size; its observed bytes must equal the declaration.  A scientific
+        frame binds its path and observed state/digest.  The optional digest
+        callback lets a caller provide stable per-file hashing without changing
+        proof semantics, and the Case observer is invoked during the sole Case
+        scan.
+
+        File observations are cached only for this proof invocation.  Case
+        asset paths are always re-derived from canonical payloads and are never
+        trusted from a persistent path cache.
+        """
+
+        digest_file = _digest_file if file_digest is None else file_digest
         hasher = hashlib.sha256()
-        _frame(hasher, "schema", BUNDLE_SCHEMA.encode("utf-8"))
+        _frame(hasher, "schema", _SOURCE_PROOF_SCHEMA.encode("utf-8"))
         _frame(hasher, "manifest", _canonical_bytes(manifest))
         assets: set[str] = set()
         for row in connection.execute(
@@ -1479,27 +1582,81 @@ class BundleState:
             "ORDER BY public_index, case_id"
         ):
             payload = json.loads(row["payload_json"])
+            if case_observer is not None:
+                case_observer(payload)
             _frame(
                 hasher,
                 f"case:{row['public_index']}:{row['case_id']}",
-                _canonical_bytes(payload),
+                row["payload_json"].encode("utf-8"),
             )
             for field in _ASSET_FIELDS:
                 for record in payload.get(field, []):
                     assets.update(_record_asset_paths(record))
-        for relative in sorted(assets):
+
+        observations: Dict[str, tuple[str, Optional[str], Optional[int]]] = {}
+
+        def observe(relative: str) -> tuple[str, Optional[str], Optional[int]]:
+            observed = observations.get(relative)
+            if observed is not None:
+                return observed
             path = _safe_relative_path(self.root, relative, "asset path")
-            if not path.exists():
-                _frame(hasher, f"asset:{relative}", b"missing")
+            if path.is_symlink():
+                observed = ("not-a-regular-file", None, None)
+            elif not path.exists():
+                observed = ("missing", None, None)
             elif not path.is_file():
+                observed = ("not-a-regular-file", None, None)
+            else:
+                digest, size = digest_file(path)
+                if (
+                    not isinstance(digest, str)
+                    or len(digest) != 64
+                    or any(character not in "0123456789abcdef" for character in digest)
+                    or not isinstance(size, int)
+                    or isinstance(size, bool)
+                    or size < 0
+                ):
+                    raise BundleStateError(
+                        "source proof file digest callback returned an invalid result"
+                    )
+                observed = ("present", digest, size)
+            observations[relative] = observed
+            return observed
+
+        for declaration in manifest.get("control_assets", []):
+            state, digest, size = observe(declaration["path"])
+            binding = _control_asset_source_binding(
+                declaration,
+                state=state,
+                sha256=digest,
+                size=size,
+            )
+            _frame(
+                hasher,
+                f"control:{declaration['category']}:{declaration['name']}",
+                _canonical_bytes(binding),
+            )
+            if (
+                state != "present"
+                or digest != declaration["sha256"]
+                or size != declaration["size"]
+            ):
+                raise BundleStateError(
+                    "declared control asset does not match its current bytes: "
+                    + declaration["path"]
+                )
+
+        for relative in sorted(assets):
+            state, digest, _ = observe(relative)
+            if state == "missing":
+                _frame(hasher, f"asset:{relative}", b"missing")
+            elif state == "not-a-regular-file":
                 _frame(hasher, f"asset:{relative}", b"not-a-regular-file")
             else:
-                asset_hasher = hashlib.sha256()
-                _hash_file(asset_hasher, path)
                 _frame(
                     hasher,
                     f"asset:{relative}",
-                    b"present\0" + asset_hasher.digest(),
+                    b"present\0" + bytes.fromhex(digest or ""),
                 )
         return hasher.hexdigest()
 

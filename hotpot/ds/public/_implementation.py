@@ -60,6 +60,9 @@ _PARSER_IMPLEMENTATION_FILES = (
 _SEMANTIC_SYMBOLS = {
     "ds/public/_bundle_state.py": (
         "BUNDLE_SCHEMA",
+        "_DATABASE_SCHEMA_VERSION",
+        "_SOURCE_PROOF_SCHEMA",
+        "_SOURCE_DIGEST_STATES",
         "_CASE_ALLOWED",
         "_CASE_DEFAULTS",
         "_ARRAY_FIELDS",
@@ -70,7 +73,10 @@ _SEMANTIC_SYMBOLS = {
         "_validate_record_list",
         "_validate_case",
         "_record_asset_paths",
+        "_control_asset_source_binding",
+        "BundleState.build",
         "BundleState._iter_intake",
+        "BundleState._compute_source_proof",
         "BundleState._compute_source_digest",
     ),
     "ds/public/_generation.py": (
@@ -143,6 +149,8 @@ _PARSER_FORMATS = ("mol", "mol2", "sdf", "smi", "smiles", "xyz")
 
 _ASSESSMENT_STORE_PROTOCOL = {
     "schema": ASSESSMENT_STORE_PROTOCOL_SCHEMA,
+    "facts_sqlite_user_version": 3,
+    "source_proof_schema": "hotpot-ds-source-proof/current",
     "sqlite_user_version": 1,
     "ordered_digest_tables": [
         "asset_assessments",
@@ -615,13 +623,24 @@ def validate_frozen_runtime_policy(value: Mapping[str, Any]) -> dict[str, Any]:
     _validate_source(assessment["source"], "assessment source")
     store = _require_object(
         assessment["store_protocol"],
-        {"schema", "sqlite_user_version", "ordered_digest_tables", "digest"},
+        {
+            "schema",
+            "facts_sqlite_user_version",
+            "source_proof_schema",
+            "sqlite_user_version",
+            "ordered_digest_tables",
+            "digest",
+        },
         "assessment store protocol",
     )
     if store["schema"] != ASSESSMENT_STORE_PROTOCOL_SCHEMA:
         raise PolicyProtocolError("assessment store protocol schema is not current")
     if type(store["sqlite_user_version"]) is not int or store["sqlite_user_version"] < 1:
         raise PolicyProtocolError("assessment store version is invalid")
+    if store["facts_sqlite_user_version"] != 3:
+        raise PolicyProtocolError("facts store version is invalid")
+    if store["source_proof_schema"] != "hotpot-ds-source-proof/current":
+        raise PolicyProtocolError("source proof schema is not current")
     tables = store["ordered_digest_tables"]
     if (
         not isinstance(tables, list)

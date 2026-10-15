@@ -90,6 +90,32 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["key", "path"],
+      "allOf": [
+        {
+          "if": {"required": ["normalizer"], "properties": {"normalizer": {"enum": ["text", "casefold"]}}},
+          "then": {"properties": {"value_kind": {"const": "text"}}}
+        },
+        {
+          "if": {"required": ["normalizer"], "properties": {"normalizer": {"const": "number"}}},
+          "then": {"properties": {"value_kind": {"const": "number"}}}
+        },
+        {
+          "if": {"required": ["normalizer"], "properties": {"normalizer": {"const": "boolean"}}},
+          "then": {"properties": {"value_kind": {"const": "boolean"}}}
+        },
+        {
+          "if": {"required": ["normalizer"], "properties": {"normalizer": {"const": "set"}}},
+          "then": {"properties": {"value_kind": {"const": "set"}}}
+        },
+        {
+          "if": {"required": ["normalizer"], "properties": {"normalizer": {"const": "json"}}},
+          "then": {"properties": {"value_kind": {"const": "json"}}}
+        },
+        {
+          "if": {"required": ["value_kind"], "properties": {"value_kind": {"enum": ["number", "boolean", "set", "json"]}}},
+          "then": {"required": ["normalizer"]}
+        }
+      ],
       "properties": {
         "key": {"$ref": "#/$defs/nonempty"},
         "path": {

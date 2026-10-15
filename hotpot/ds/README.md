@@ -278,7 +278,12 @@ bundle.ingest(*, include_incomplete=False, reason=None) -> dict
 
 `bundle.status` and raw facts remain readable while the Bundle is stale.
 Derived levels, classifications, summaries, and derived views require a
-synchronized generation. The lifecycle has no implicit transitions:
+current synchronized generation. `bundle.summary` has only the top-level
+`cases`, `integrity`, `completeness`, `evidence`, `quality`, `benchmark`,
+`attestation`, `conflict`, and `reasons` entries. Each named section contains
+its deterministic status, level, archive-class, or reason-code distribution;
+there are no duplicate top-level distribution aliases.
+The lifecycle has no implicit transitions:
 
 ```text
 fact or new-dataset Gate edit
@@ -379,7 +384,10 @@ evidence_id = case.add_evidence(
     target="observation-1",
     source="doi:10.1000/example",
     locator="Table 2",
-    details={"source_lineage_id": "experiment:example"},
+    details={
+        "source_kind": "primary_literature",
+        "source_lineage_id": "experiment:example",
+    },
 )
 case.verify_evidence(
     evidence_id,
@@ -396,18 +404,33 @@ Gate can use, rather than merely store, the facts required for E3/E4:
 
 ```text
 Evidence details:     doi, url, scientific_work_id, source_lineage_id,
-                      derived_from
-Verification details: procedure_version, verified_at
+                      derived_from, source_kind
+Verification details: tool, tool_version, procedure_version, verified_at
 ```
+
+`source_kind` uses the closed current vocabulary `primary_literature`,
+`secondary_literature`, `database_record`, `expert_statement`, or `other`.
+Only an explicit `primary_literature` value can satisfy primary-source checks;
+an `http://` or `https://` URL never implies primary literature by itself.
+Existing evidence without this fact remains usable at lower evidence levels
+but is not silently upgraded during migration.
 
 `derived_from` is a JSON array of result-lineage IDs. Two E3 evidence chains
 can reach E4 only when both their canonical scientific works and independent
 lineage roots differ. Verification automatically records the current Hotpot
 procedure and a UTC timestamp when those fields are omitted; callers may
 supply the actual procedure and timezone-aware timestamp for an earlier review.
-For AI review, `verifier` names the tool/model and its version. Unknown detail
-keys are rejected, and all accepted fields remain source facts covered by the
-Bundle source digest, synchronization, and certificate.
+For AI review, `verifier` identifies the verifying actor or service, while
+`tool` names the model/tool and `tool_version` records its explicit version.
+Both AI fields are mandatory. Human review remains attributable through its
+non-empty `verifier`. Unknown detail keys are rejected, and all accepted fields
+remain source facts covered by the Bundle source digest, synchronization, and
+certificate.
+
+When Evidence declares a Bundle-local file, its generation AssetAssessment is
+part of EvidenceGate input. Missing bytes or a declared SHA-256 mismatch make
+that Evidence unusable for E1-E4 and are reported explicitly; the failed
+optional evidence asset does not by itself make the Case incomplete.
 
 Evidence and quality levels have no setters. A benchmark opinion uses an
 attributable attestation, not `case.benchmark = True`. Public callers may attest
@@ -538,6 +561,9 @@ The dataset's persisted `identity_schema` is the authority for cross-Case
 sample identity. Its current format is a closed object containing a
 `components` array. Each
 component has a declared value type and normalizer and is compared exactly;
+the allowed pairs are exactly `text/text`, `text/casefold`, `number/number`,
+`boolean/boolean`, `set/set`, and `json/json` (written as
+`value_kind/normalizer`);
 paths address `core_info` or `identifiers`. A structure-based component must
 also name one structure role and one semantic field such as molecular graph,
 stereochemistry, isotope/protonation state, formal charge, or crystal context.

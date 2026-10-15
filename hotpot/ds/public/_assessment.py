@@ -12,6 +12,7 @@ import json
 import math
 from collections import Counter, defaultdict
 from copy import deepcopy
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
@@ -168,6 +169,21 @@ _IDENTITY_COMPONENT_FIELDS = {
 }
 _IDENTITY_VALUE_KINDS = {"text", "number", "boolean", "set", "json"}
 _IDENTITY_NORMALIZERS = {"text", "casefold", "number", "boolean", "set", "json"}
+_IDENTITY_NORMALIZER_VALUE_KINDS = {
+    "text": "text",
+    "casefold": "text",
+    "number": "number",
+    "boolean": "boolean",
+    "set": "set",
+    "json": "json",
+}
+_EVIDENCE_SOURCE_KINDS = {
+    "primary_literature",
+    "secondary_literature",
+    "database_record",
+    "expert_statement",
+    "other",
+}
 _IDENTITY_PATH_ROOTS = {"core_info", "identifiers"}
 _STRUCTURE_IDENTITY_ROOTS = {
     "formal_charge",
@@ -226,18 +242,11 @@ def validate_identity_schema(value: Mapping[str, Any]) -> Dict[str, Any]:
         normalizer = raw.get("normalizer", "text")
         if normalizer not in _IDENTITY_NORMALIZERS:
             raise ValueError(f"{prefix}.normalizer is not current")
-        default_kind = {
-            "text": "text",
-            "casefold": "text",
-            "number": "number",
-            "boolean": "boolean",
-            "set": "set",
-            "json": "json",
-        }[normalizer]
+        default_kind = _IDENTITY_NORMALIZER_VALUE_KINDS[normalizer]
         value_kind = raw.get("value_kind", default_kind)
-        if value_kind not in _IDENTITY_VALUE_KINDS or (
-            normalizer in {"casefold", "number", "boolean", "set"}
-            and value_kind != default_kind
+        if (
+            value_kind not in _IDENTITY_VALUE_KINDS
+            or value_kind != default_kind
         ):
             raise ValueError(f"{prefix}.value_kind does not match its normalizer")
         comparator = raw.get("comparator", "exact")
@@ -687,11 +696,28 @@ def _verification_is_valid(
     verification: Mapping[str, Any], evidence: Mapping[str, Any]
 ) -> bool:
     if verification.get("method") == "Human":
-        return bool(verification.get("verifier"))
-    return verification.get("method") == "AI" and all(
-        verification.get(field)
-        for field in ("verifier", "procedure_version", "verified_at")
-    ) and bool(
+        verifier = verification.get("verifier")
+        return isinstance(verifier, str) and bool(verifier.strip())
+    if verification.get("method") != "AI":
+        return False
+    if any(
+        not isinstance(verification.get(field), str)
+        or not verification[field].strip()
+        for field in (
+            "verifier",
+            "tool",
+            "tool_version",
+            "procedure_version",
+            "verified_at",
+        )
+    ):
+        return False
+    try:
+        timestamp = str(verification["verified_at"]).replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(timestamp)
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None and bool(
         evidence.get("locator")
         or evidence.get("quote")
         or evidence.get("matched_text")
@@ -700,9 +726,12 @@ def _verification_is_valid(
 
 def _identified_primary_source(evidence: Mapping[str, Any]) -> bool:
     return bool(
-        evidence.get("doi")
-        or evidence.get("scientific_work_id")
-        or str(evidence.get("url", "")).startswith(("http://", "https://"))
+        evidence.get("source_kind") == "primary_literature"
+        and (
+            evidence.get("doi")
+            or evidence.get("scientific_work_id")
+            or str(evidence.get("url", "")).startswith(("http://", "https://"))
+        )
     )
 
 
@@ -895,6 +924,16 @@ def _relationship_integrity_reasons(
                     relation=relation,
                 )
             )
+        source_kind = item.get("source_kind")
+        if source_kind is not None and source_kind not in _EVIDENCE_SOURCE_KINDS:
+            reasons.append(
+                _reason(
+                    "evidence_source_kind_invalid",
+                    "Evidence source_kind is outside the closed current vocabulary.",
+                    evidence_id=evidence_id,
+                    source_kind=source_kind,
+                )
+            )
 
         lineage = item.get("source_lineage_id")
         parents = item.get("derived_from", [])
@@ -956,6 +995,27 @@ def _relationship_integrity_reasons(
                     "Active verification does not resolve to active evidence.",
                     verification_id=verification_id,
                     evidence_id=evidence_id or None,
+                )
+            )
+            continue
+        source = ids_by_collection["evidence"][evidence_id]
+        method = item.get("method")
+        if method not in {"AI", "Human"}:
+            reasons.append(
+                _reason(
+                    "verification_method_invalid",
+                    "Verification method is outside the closed current vocabulary.",
+                    verification_id=verification_id,
+                    method=method,
+                )
+            )
+        elif method == "AI" and not _verification_is_valid(item, source):
+            reasons.append(
+                _reason(
+                    "ai_verification_metadata_incomplete",
+                    "AI verification requires explicit tool identity and version, procedure, timezone-aware date, and checked locator.",
+                    verification_id=verification_id,
+                    evidence_id=evidence_id,
                 )
             )
 
@@ -1149,10 +1209,60 @@ _RELATIONSHIP_ID_FIELDS = {
 }
 
 
+def _evidence_declares_file(evidence: Mapping[str, Any]) -> bool:
+    if isinstance(evidence.get("path"), str):
+        return True
+    source = evidence.get("source")
+    if isinstance(source, str) and source.casefold().startswith("file:"):
+        return True
+    assets = evidence.get("assets", [])
+    if isinstance(assets, list) and any(
+        isinstance(item, Mapping) and isinstance(item.get("path"), str)
+        for item in assets
+    ):
+        return True
+    representations = evidence.get("representations", {})
+    values = (
+        representations.values()
+        if isinstance(representations, Mapping)
+        else representations if isinstance(representations, list) else ()
+    )
+    return any(
+        isinstance(item, str)
+        or isinstance(item, Mapping) and isinstance(item.get("path"), str)
+        for item in values
+    )
+
+
+def _evidence_asset_state(
+    evidence: Mapping[str, Any],
+    asset_assessments: Sequence[Mapping[str, Any]],
+) -> Tuple[bool, Tuple[str, ...]]:
+    """Return whether one file-backed Evidence record has usable local bytes."""
+
+    if not _evidence_declares_file(evidence):
+        return True, ()
+    evidence_id = str(evidence.get("evidence_id"))
+    assets = [
+        item
+        for item in asset_assessments
+        if item.get("collection") == "evidence"
+        and str(item.get("record_id")) == evidence_id
+        and isinstance(item.get("path"), str)
+    ]
+    issues = set()
+    if not assets or any(item.get("presence") != "present" for item in assets):
+        issues.add("missing")
+    if any(item.get("hash_result") == "mismatch" for item in assets):
+        issues.add("hash_mismatch")
+    return not issues, tuple(sorted(issues))
+
+
 def assess_evidence(
     case: Mapping[str, Any],
     required_targets: Optional[Iterable[str]] = None,
     *,
+    asset_assessments: Sequence[Mapping[str, Any]] = (),
     policy: Optional[Mapping[str, Any]] = None,
     checker_context: Optional[Mapping[str, Any]] = None,
     isolated_runner: Optional[Any] = None,
@@ -1164,7 +1274,7 @@ def assess_evidence(
     level_checks = configured_policy.get("level_checks", _DEFAULT_EVIDENCE_LEVELS)
 
     targets, target_aliases = _evidence_targets(case)
-    evidence = _active(case.get("evidence", []))
+    evidence = list(_active(case.get("evidence", [])))
     verifications = _active(case.get("verifications", []))
     verification_by_evidence: Dict[str, list[Dict[str, Any]]] = defaultdict(list)
     for verification in verifications:
@@ -1172,14 +1282,43 @@ def assess_evidence(
             verification
         )
 
+    reasons: list[Dict[str, Any]] = []
+    usable_evidence = []
+    for item in evidence:
+        if item.get("source_kind") is None and any(
+            item.get(field) for field in ("doi", "scientific_work_id", "url")
+        ):
+            reasons.append(
+                _reason(
+                    "evidence_source_kind_undeclared",
+                    "An identified source requires explicit source_kind before it can count as primary literature.",
+                    evidence_id=str(item.get("evidence_id")),
+                )
+            )
+        usable, issues = _evidence_asset_state(item, asset_assessments)
+        if usable:
+            usable_evidence.append(item)
+            continue
+        evidence_id = str(item.get("evidence_id"))
+        for issue in issues:
+            reasons.append(
+                _reason(
+                    f"evidence_asset_{issue}",
+                    (
+                        "File-backed evidence bytes are missing."
+                        if issue == "missing"
+                        else "File-backed evidence bytes do not match the declared SHA-256 digest."
+                    ),
+                    evidence_id=evidence_id,
+                )
+            )
     levels: Dict[str, str] = {}
     target_checks: Dict[str, Dict[str, Any]] = {}
-    reasons: list[Dict[str, Any]] = []
     lineage_graph = _lineage_graph(evidence)
     for target_id, _target_kind, _target in targets:
         linked = [
             item
-            for item in evidence
+            for item in usable_evidence
             if _resolve_evidence_target(item.get("target"), target_aliases)
             == [(target_id, _target_kind)]
             and _is_supporting_evidence(item)
@@ -2045,10 +2184,21 @@ def assess_case(
 ) -> Dict[str, Any]:
     """Compute the sole authoritative CaseAssessment for one generation."""
 
-    reasons: list[Dict[str, Any]] = [
+    identity_reason_rows: list[Dict[str, Any]] = [
         deepcopy(dict(reason)) for reason in identity_reasons
     ]
-    reasons.extend(_relationship_integrity_reasons(case))
+    relationship_reasons = _relationship_integrity_reasons(case)
+    reasons = identity_reason_rows + relationship_reasons
+    integrity_status = (
+        "invalid"
+        if relationship_reasons
+        else "indeterminate"
+        if any(
+            item.get("code") == "identity_indeterminate"
+            for item in identity_reason_rows
+        )
+        else "valid"
+    )
     observations = _active(case.get("observations", []))
     active_properties = {
         item.get("property") or item.get("property_type_id") for item in observations
@@ -2166,6 +2316,7 @@ def assess_case(
     evidence = assess_evidence(
         case,
         required_target_ids if core_labels else None,
+        asset_assessments=asset_assessments,
         policy=evidence_policy,
         checker_context=checker_context,
         isolated_runner=isolated_runner,
@@ -2183,10 +2334,13 @@ def assess_case(
         "evidence_target_ambiguous",
         "evidence_target_kind_mismatch",
         "evidence_relation_invalid",
+        "evidence_source_kind_invalid",
         "evidence_lineage_invalid",
         "evidence_lineage_unresolved",
         "evidence_lineage_cycle",
         "verification_evidence_unresolved",
+        "verification_method_invalid",
+        "ai_verification_metadata_incomplete",
         "supersession_reference_unresolved",
         "supersession_relation_inconsistent",
         "entity_reference_unresolved",
@@ -2332,6 +2486,15 @@ def assess_case(
             (str(item.get("authority")), str(item.get("actor")))
         )
     disagreement = bool(actors[True] and actors[False])
+    attestation_status = (
+        "disagreement"
+        if disagreement
+        else "rejected"
+        if rejections
+        else "approved"
+        if approvals
+        else "none"
+    )
     if disagreement:
         reasons.append(
             _reason(
@@ -2340,9 +2503,18 @@ def assess_case(
             )
         )
 
-    primary_verified = _verified_primary_source(case, required_target_ids)
+    primary_verified = _verified_primary_source(
+        case, required_target_ids, asset_assessments
+    )
     comparison_indeterminate = any(
         item.get("outcome") == "indeterminate" for item in conflict_assessments
+    )
+    conflict_status = (
+        "conflict"
+        if conflicting
+        else "indeterminate"
+        if comparison_indeterminate
+        else "clear"
     )
     conflict_free = not conflicting and not comparison_indeterminate
     benchmark_builtins = {
@@ -2440,6 +2612,9 @@ def assess_case(
         "benchmark": benchmark,
         "benchmark_status": benchmark_status,
         "completeness": "incomplete" if incomplete else "complete",
+        "integrity_status": integrity_status,
+        "attestation_status": attestation_status,
+        "conflict_status": conflict_status,
         "checklist": {
             name: item["passed"] for name, item in checklist_results.items()
         },
@@ -2460,7 +2635,9 @@ def assess_case(
 
 
 def _verified_primary_source(
-    case: Mapping[str, Any], required_targets: Sequence[str]
+    case: Mapping[str, Any],
+    required_targets: Sequence[str],
+    asset_assessments: Sequence[Mapping[str, Any]],
 ) -> bool:
     evidence = _active(case.get("evidence", []))
     targets, target_aliases = _evidence_targets(case)
@@ -2484,6 +2661,7 @@ def _verified_primary_source(
             if _resolve_evidence_target(item.get("target"), target_aliases)
             == [(target, target_kind)]
             and _is_supporting_evidence(item)
+            and _evidence_asset_state(item, asset_assessments)[0]
         ]
         if not any(
             _identified_primary_source(item)
@@ -2502,25 +2680,39 @@ def _verified_primary_source(
 
 def summarize_assessments(assessments: Iterable[Mapping[str, Any]]) -> Dict[str, Any]:
     archive = Counter()
+    integrity = Counter()
+    completeness = Counter()
     quality = Counter()
     evidence = Counter()
     benchmark = Counter()
+    attestation = Counter()
+    conflict = Counter()
     reasons = Counter()
     count = 0
     for item in assessments:
         count += 1
         archive[str(item["archive_class"])] += 1
+        integrity[str(item["integrity_status"])] += 1
+        completeness[str(item["completeness"])] += 1
         quality[str(item["quality_level"])] += 1
         evidence[str(item["evidence_level"] or "not_applicable")] += 1
         benchmark[str(item["benchmark_status"])] += 1
+        attestation[str(item["attestation_status"])] += 1
+        conflict[str(item["conflict_status"])] += 1
         reasons.update(reason["code"] for reason in item.get("reasons", []))
     return {
         "cases": count,
-        "archive_class": dict(sorted(archive.items())),
-        "quality": dict(sorted(quality.items())),
-        "evidence": dict(sorted(evidence.items())),
-        "benchmark": dict(sorted(benchmark.items())),
-        "reasons": dict(sorted(reasons.items())),
+        "integrity": {"status": dict(sorted(integrity.items()))},
+        "completeness": {
+            "status": dict(sorted(completeness.items())),
+            "archive_class": dict(sorted(archive.items())),
+        },
+        "evidence": {"level": dict(sorted(evidence.items()))},
+        "quality": {"level": dict(sorted(quality.items()))},
+        "benchmark": {"status": dict(sorted(benchmark.items()))},
+        "attestation": {"status": dict(sorted(attestation.items()))},
+        "conflict": {"status": dict(sorted(conflict.items()))},
+        "reasons": {"code": dict(sorted(reasons.items()))},
     }
 
 

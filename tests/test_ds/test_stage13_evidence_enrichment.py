@@ -87,13 +87,19 @@ def test_public_case_api_can_reach_e4_with_auditable_provenance(
         "observation-1",
         "doi:10.1000/first",
         locator="Table 1",
-        details={"source_lineage_id": "experiment:first"},
+        details={
+            "source_kind": "primary_literature",
+            "source_lineage_id": "experiment:first",
+        },
     )
     second = case.add_evidence(
         "observation-1",
         "https://doi.org/10.1000/second",
         locator="Table 2",
-        details={"source_lineage_id": "experiment:second"},
+        details={
+            "source_kind": "primary_literature",
+            "source_lineage_id": "experiment:second",
+        },
     )
     human = case.verify_evidence(
         first,
@@ -105,6 +111,8 @@ def test_public_case_api_can_reach_e4_with_auditable_provenance(
         method="AI",
         verifier="review-tool/2026-10-14",
         details={
+            "tool": "review-tool",
+            "tool_version": "2026-10-14",
             "procedure_version": "primary-source-review/current",
             "verified_at": "2026-10-14T09:30:00+08:00",
         },
@@ -122,6 +130,8 @@ def test_public_case_api_can_reach_e4_with_auditable_provenance(
     assert verifications[human]["procedure_version"].endswith("/current")
     assert verifications[human]["verified_at"].endswith("Z")
     assert verifications[ai]["procedure_version"] == "primary-source-review/current"
+    assert verifications[ai]["tool"] == "review-tool"
+    assert verifications[ai]["tool_version"] == "2026-10-14"
     assert verifications[ai]["verified_at"] == "2026-10-14T09:30:00+08:00"
 
     bundle.synchronize()

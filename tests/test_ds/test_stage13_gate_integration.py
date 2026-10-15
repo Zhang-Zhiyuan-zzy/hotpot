@@ -50,6 +50,7 @@ def _case(*, attestations=(), with_evidence: bool = False) -> dict:
                 "evidence_id": "evidence-1",
                 "target": "observation-1",
                 "relation": "supports",
+                "source_kind": "primary_literature",
                 "scientific_work_id": "doi:10.1/example",
                 "source_lineage_id": "result:one",
                 "locator": "p. 1",

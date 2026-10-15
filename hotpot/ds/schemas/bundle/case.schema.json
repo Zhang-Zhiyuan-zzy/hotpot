@@ -68,11 +68,41 @@
     },
     "evidenceFacts": {
       "type": "array",
-      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["evidence_id"], "properties": {"evidence_id": {"$ref": "#/$defs/nonempty"}}}]}
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/fact"},
+          {
+            "required": ["evidence_id"],
+            "properties": {
+              "evidence_id": {"$ref": "#/$defs/nonempty"},
+              "source_kind": {
+                "enum": ["primary_literature", "secondary_literature", "database_record", "expert_statement", "other"]
+              }
+            }
+          }
+        ]
+      }
     },
     "verificationFacts": {
       "type": "array",
-      "items": {"allOf": [{"$ref": "#/$defs/fact"}, {"required": ["verification_id"], "properties": {"verification_id": {"$ref": "#/$defs/nonempty"}}}]}
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/fact"},
+          {
+            "required": ["verification_id"],
+            "properties": {
+              "verification_id": {"$ref": "#/$defs/nonempty"},
+              "method": {"enum": ["AI", "Human"]},
+              "tool": {"$ref": "#/$defs/nonempty"},
+              "tool_version": {"$ref": "#/$defs/nonempty"},
+              "procedure_version": {"$ref": "#/$defs/nonempty"},
+              "verified_at": {"type": "string", "format": "date-time"}
+            },
+            "if": {"required": ["method"], "properties": {"method": {"const": "AI"}}},
+            "then": {"required": ["tool", "tool_version", "procedure_version", "verified_at"]}
+          }
+        ]
+      }
     },
     "attestationFacts": {
       "type": "array",

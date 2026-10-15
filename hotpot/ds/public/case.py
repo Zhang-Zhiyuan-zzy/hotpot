@@ -14,13 +14,26 @@ from typing import Any, Dict, Optional, Union
 
 
 _EVIDENCE_DETAIL_FIELDS = {
+    "source_kind",
     "doi",
     "url",
     "scientific_work_id",
     "source_lineage_id",
     "derived_from",
 }
-_VERIFICATION_DETAIL_FIELDS = {"procedure_version", "verified_at"}
+_EVIDENCE_SOURCE_KINDS = {
+    "primary_literature",
+    "secondary_literature",
+    "database_record",
+    "expert_statement",
+    "other",
+}
+_VERIFICATION_DETAIL_FIELDS = {
+    "tool",
+    "tool_version",
+    "procedure_version",
+    "verified_at",
+}
 _VERIFICATION_PROCEDURE = "hotpot.ds.evidence-verification/current"
 
 
@@ -42,6 +55,14 @@ def _evidence_details(
             not isinstance(values[field], str) or not values[field].strip()
         ):
             raise ValueError(f"evidence details.{field} must be a non-empty string")
+    if (
+        "source_kind" in values
+        and values["source_kind"] not in _EVIDENCE_SOURCE_KINDS
+    ):
+        raise ValueError(
+            "evidence details.source_kind must be one of: "
+            + ", ".join(sorted(_EVIDENCE_SOURCE_KINDS))
+        )
     if "derived_from" in values:
         parents = values["derived_from"]
         if isinstance(parents, str) or not isinstance(parents, Sequence):
@@ -91,6 +112,7 @@ def _evidence_details(
 
 
 def _verification_details(
+    method: str,
     details: Optional[Mapping[str, Any]],
 ) -> Dict[str, str]:
     values = deepcopy(dict(details or {}))
@@ -112,6 +134,14 @@ def _verification_details(
             raise ValueError("verification details.verified_at must include a timezone")
     values.setdefault("procedure_version", _VERIFICATION_PROCEDURE)
     values.setdefault("verified_at", _utc_now())
+    if method == "AI":
+        missing = [
+            field for field in ("tool", "tool_version") if field not in values
+        ]
+        if missing:
+            raise ValueError(
+                "AI verification details require: " + ", ".join(missing)
+            )
     return values
 
 
@@ -371,7 +401,7 @@ class Case:
             raise ValueError("evidence verification method must be 'AI' or 'Human'")
         if not isinstance(verifier, str) or not verifier.strip():
             raise ValueError("evidence verifier must be a non-empty string")
-        verification_details = _verification_details(details)
+        verification_details = _verification_details(method, details)
 
         def mutate(facts: Dict[str, Any]) -> tuple[Dict[str, Any], str]:
             self._active_item(facts, "evidence", "evidence_id", evidence_id)

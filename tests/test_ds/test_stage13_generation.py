@@ -164,7 +164,7 @@ def test_build_writes_three_indexes_and_does_not_publish_current_pointer(
     assert list(generation.iter_archive_ids("benchmark")) == ["benchmark"]
     assert generation.get_case("incomplete")["archive_class"] == "incomplete"
     assert generation.get_case("benchmark")["benchmark_status"] == "admitted"
-    assert generation.summary["archive_class"] == {
+    assert generation.summary["completeness"]["archive_class"] == {
         "benchmark": 1,
         "incomplete": 1,
         "ordinary": 1,

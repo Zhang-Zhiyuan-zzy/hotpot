@@ -505,7 +505,7 @@ class Bundle:
                 "generation_id": generation.id,
                 "generation_digest": generation.digest,
                 "archive_counts": deepcopy(
-                    generation.summary.get("archive_class", {})
+                    generation.summary["completeness"]["archive_class"]
                 ),
                 "summary": deepcopy(generation.summary),
                 "is_synchronized": True,

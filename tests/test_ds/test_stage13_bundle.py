@@ -227,6 +227,8 @@ def test_sealed_receipt_mismatch_fails_closed(tmp_path: Path) -> None:
     certificate.write_text(json.dumps(envelope), encoding="utf-8")
 
     assert bundle.status["release_state"] == "sealed_integrity_error"
+    with pytest.raises(UnsynchronizedBundleError):
+        _ = bundle.cases[0].assessment
     with pytest.raises(SealedIntegrityError):
         bundle.cases[0].set_core_info("forbidden", True)
     with pytest.raises(SealedIntegrityError):

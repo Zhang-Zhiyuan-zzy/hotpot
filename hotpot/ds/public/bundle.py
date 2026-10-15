@@ -684,7 +684,12 @@ class Bundle:
         return f"{case_id}:{kind}:{uuid.uuid4().hex}"
 
     def _require_generation(self):
-        receipt = self._authoritative_receipt()
+        try:
+            receipt = self._authoritative_receipt()
+        except SealedIntegrityError as error:
+            raise UnsynchronizedBundleError(
+                "derived results are unavailable because sealed integrity failed"
+            ) from error
         status = self._state.status
         if receipt is None and not status["is_synchronized"]:
             raise UnsynchronizedBundleError(

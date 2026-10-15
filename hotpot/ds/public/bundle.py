@@ -10,6 +10,7 @@ import uuid
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from copy import deepcopy
+from itertools import zip_longest
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Dict, Optional, Union
@@ -612,6 +613,7 @@ class Bundle:
         *,
         include_facts: bool,
     ) -> Iterator[tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
+        missing = object()
         expected_ids = iter(case_ids)
         generation = self._require_generation()
         with generation._reader() as reader:
@@ -622,9 +624,17 @@ class Bundle:
                         "SELECT case_id,payload_json FROM cases "
                         "ORDER BY public_index,case_id"
                     )
-                    for expected_id, assessment_row, fact_row in zip(
-                        expected_ids, assessments, facts, strict=True
+                    for expected_id, assessment_row, fact_row in zip_longest(
+                        expected_ids, assessments, facts, fillvalue=missing
                     ):
+                        if (
+                            expected_id is missing
+                            or assessment_row is missing
+                            or fact_row is missing
+                        ):
+                            raise RuntimeError(
+                                "Bundle facts and assessment counts do not match"
+                            )
                         assessment_id, assessment = assessment_row
                         fact_id = str(fact_row[0])
                         if expected_id != assessment_id or expected_id != fact_id:
@@ -633,9 +643,13 @@ class Bundle:
                             )
                         yield expected_id, assessment, json.loads(fact_row[1])
                 return
-            for expected_id, assessment_row in zip(
-                expected_ids, assessments, strict=True
+            for expected_id, assessment_row in zip_longest(
+                expected_ids, assessments, fillvalue=missing
             ):
+                if expected_id is missing or assessment_row is missing:
+                    raise RuntimeError(
+                        "Bundle cases and assessment counts do not match"
+                    )
                 assessment_id, assessment = assessment_row
                 if expected_id != assessment_id:
                     raise RuntimeError(

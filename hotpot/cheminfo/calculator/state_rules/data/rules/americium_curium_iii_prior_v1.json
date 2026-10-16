@@ -1,0 +1,12 @@
+{
+  "schema_version": "hotpot-oxidation-prior-v1",
+  "rule_id": "OPTIONAL-006",
+  "rule_version": "1.0.0",
+  "source_identity": "OPTIONAL-006:ordinary-americium-curium-iii-domain-v1",
+  "source_locator": "Morss, Edelstein and Fuger, The Chemistry of the Actinide and Transactinide Elements, Springer, 2011",
+  "applicability_schema": "ordinary-nonredox-americium-curium-coordination-v1",
+  "elements": [
+    {"atomic_number": 95, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 96, "candidate_states": [3], "preferred_state": 3}
+  ]
+}

@@ -5,6 +5,10 @@ complete for the declared Eu/GFN-FF/GFN2 scope. Extended-GFN-FF
 fragment-charge/actinide behavior is the remaining explicit scientific
 boundary.
 
+This completion statement applies only to the delivered execution-wrapper
+scope. The later normative scientific-state plan linked below is a target
+design and is not yet claimed as production implementation.
+
 Planning branch: `feature/xtb-workflow`
 
 Planning baseline: `116a255`
@@ -27,6 +31,27 @@ reference implementation over narrow reusable external-process primitives.
 - [Separate compatibility audit](compatibility_audit.md)
 - [Implementation report](xtb_workflow_implementation_report.md)
 - [Validation report](xtb_workflow_validation_report.md)
+- [Normative scientific-state implementation plan](scientific_state_implementation.md)
+- [Complete scientific-state public API signature tree](scientific_state_implementation.md#111-complete-public-api-signature-tree)
+- [Complete staged rule list](scientific_state_implementation.md#15-complete-rule-list)
+- [Individually reviewable hard, default, empirical and AI rules](rules/)
+- [Deterministic scientific-state providers](providers/)
+- [Backend execution-selection policies](execution/)
+- [Optional execution-recovery policies](recovery/)
+- [Superseded state-inference plans and audit sources](older/)
+
+For charge, oxidation-state and electronic-state work, the normative plan and
+its indexed `rules/`, `providers/`, `execution/` and `recovery/`
+specifications are the only implementation instructions. The documents under
+`older/` preserve evidence and design history but are not active plans.
+
+The normative target now distinguishes candidate production from decision:
+hard rules define the legal space, providers and optional rules supply
+attributable candidates/preferences, a factorized joint composer binds
+charge/OS/electronic-state paths, and named default policies make the
+deterministic workflow decision. This decision layer is required for
+unattended high-throughput execution and is not yet a claim about the delivered
+production resolver.
 
 ## Delivered public surfaces
 

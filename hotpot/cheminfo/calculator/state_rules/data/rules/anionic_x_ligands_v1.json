@@ -1,0 +1,14 @@
+{
+  "schema_version": "hotpot-anionic-x-ligand-registry-v1",
+  "registry_version": "1.0.0",
+  "source_identity": "OPTIONAL-004:ordinary-anionic-x-ligands-v1",
+  "reference": "Green, J. Organomet. Chem. 1995, DOI 10.1016/0022-328X(95)00508-N",
+  "motifs": [
+    "halide",
+    "hydride",
+    "hydroxide",
+    "alkoxide",
+    "carboxylate",
+    "cyanide"
+  ]
+}

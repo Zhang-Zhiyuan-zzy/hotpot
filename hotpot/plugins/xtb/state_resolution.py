@@ -11,6 +11,7 @@ from hotpot.cheminfo.calculator.contracts import (
     StatePolicy,
 )
 from hotpot.cheminfo.calculator.execution_selection import (
+    BackendProjectionResult,
     BackendProjectionStatus,
     BackendStateProjection,
     BackendStateRequest,
@@ -39,6 +40,27 @@ class ResolvedXTBState:
 
     scientific_state: ScientificStateBundle
     projection: BackendStateProjection
+
+
+class XTBStateResolutionError(XTBInputError):
+    """Internal typed boundary between science and backend projection."""
+
+    def __init__(
+        self,
+        scientific_state: ScientificStateBundle,
+        projection_result: BackendProjectionResult,
+    ) -> None:
+        self.scientific_state = scientific_state
+        self.projection_result = projection_result
+        details = "; ".join(
+            f"{finding.code}: {finding.message}"
+            for finding in projection_result.findings
+        )
+        super().__init__(
+            "xTB state projection ended as "
+            f"{projection_result.status.value}"
+            + ("" if not details else f": {details}")
+        )
 
 
 def resolve_xtb_state(
@@ -86,14 +108,7 @@ def resolve_xtb_state(
         projection_result.status is not BackendProjectionStatus.PROJECTED
         or projection_result.projection is None
     ):
-        details = "; ".join(
-            f"{finding.code}: {finding.message}"
-            for finding in projection_result.findings
-        )
-        raise XTBInputError(
-            f"xTB state projection ended as {projection_result.status.value}"
-            + ("" if not details else f": {details}")
-        )
+        raise XTBStateResolutionError(scientific_state, projection_result)
 
     projection = projection_result.projection
     if (

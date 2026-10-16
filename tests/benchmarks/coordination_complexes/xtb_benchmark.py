@@ -35,12 +35,14 @@ import numpy as np
 
 from hotpot.cheminfo.calculator.contracts import StatePolicy
 from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
+from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
 from hotpot.plugins._harness import ProcessTimeoutError
 from hotpot.plugins.xtb import (
     GFNXTBMethod,
     XTBApplicabilityError,
     XTBError,
     XTBExecutionError,
+    XTBInputError,
     XTBMethod,
     XTBResultError,
     XTBRunReport,
@@ -49,7 +51,10 @@ from hotpot.plugins.xtb import (
     run_gfn_xtb,
     run_gfnff,
 )
-from hotpot.plugins.xtb.state_resolution import resolve_xtb_state
+from hotpot.plugins.xtb.state_resolution import (
+    XTBStateResolutionError,
+    resolve_xtb_state,
+)
 
 from .backend_comparison import CanonicalCase, _rebuild_complex
 from .cohort import BenchmarkCohort, LigandCase, resolve_cohort
@@ -72,7 +77,7 @@ __all__ = (
 )
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 WORKFLOW_NAME = "xtb_coordination_refinement"
 
 
@@ -399,15 +404,23 @@ def _failure_payload(
     method: XTBMethod,
     error: BaseException,
     elapsed_seconds: float,
+    status: str,
 ) -> dict[str, object]:
     return {
-        "status": "failed_execution",
+        "status": status,
         "method": method.value,
         "elapsed_seconds": elapsed_seconds,
         "error_type": type(error).__name__,
         "error_message": str(error),
         "applicability_rejected": isinstance(error, XTBApplicabilityError),
     }
+
+
+def _state_failure_status(error: XTBStateResolutionError) -> str:
+    action = error.scientific_state.execution_decision.action
+    if action is not StateDecisionAction.SELECT_STATE:
+        return "failed_scientific_state"
+    return "failed_projection"
 
 
 def _requested_state(
@@ -442,16 +455,46 @@ def _run_stage(
         elapsed_seconds = perf_counter() - started
         _write_native_log(stage_directory / "native.log", error.report)
         payload = {
-            **_failure_payload(method, error, elapsed_seconds),
+            **_failure_payload(
+                method,
+                error,
+                elapsed_seconds,
+                "failed_backend",
+            ),
             "report": _run_report_payload(error.report, stage_directory),
         }
         write_json(stage_directory / "report.json", payload)
         raise _RecordedStageFailure(payload) from error
-    except (XTBError, ProcessTimeoutError) as error:
+    except XTBStateResolutionError as error:
         payload = _failure_payload(
             method,
             error,
             perf_counter() - started,
+            _state_failure_status(error),
+        )
+        write_json(stage_directory / "report.json", payload)
+        raise _RecordedStageFailure(payload) from error
+    except XTBError as error:
+        if isinstance(error, XTBApplicabilityError):
+            status = "failed_projection"
+        elif isinstance(error, XTBInputError):
+            status = "failed_input"
+        else:
+            status = "failed_backend"
+        payload = _failure_payload(
+            method,
+            error,
+            perf_counter() - started,
+            status,
+        )
+        write_json(stage_directory / "report.json", payload)
+        raise _RecordedStageFailure(payload) from error
+    except ProcessTimeoutError as error:
+        payload = _failure_payload(
+            method,
+            error,
+            perf_counter() - started,
+            "failed_backend",
         )
         write_json(stage_directory / "report.json", payload)
         raise _RecordedStageFailure(payload) from error
@@ -495,9 +538,11 @@ def _run_route(
         allow_added_hydrogens=False,
     )
     stages = []
+    intermediate_warning_count = 0
     scientific_state = None
     started = perf_counter()
-    for stage_index, method in enumerate(_route_methods(route)):
+    methods = _route_methods(route)
+    for stage_index, method in enumerate(methods):
         stage_directory = route_directory / f"{stage_index:02d}-{method.value}"
         try:
             stage, scientific_state = _run_stage(
@@ -508,6 +553,19 @@ def _run_route(
                 config,
                 stage_directory,
             )
+            if stage_index < len(methods) - 1:
+                intermediate_quality = dict(
+                    _evaluate_quality(
+                        working_mol,
+                        config.quality_level,
+                        topology_reference,
+                    )
+                )
+                stage["intermediate_quality"] = intermediate_quality
+                intermediate_warning_count += int(
+                    not intermediate_quality["passed"]
+                )
+                write_json(stage_directory / "report.json", stage)
             stages.append(stage)
         except _RecordedStageFailure as error:
             stages.append(error.payload)
@@ -519,9 +577,10 @@ def _run_route(
                 )
             payload = {
                 "route": route.value,
-                "status": "failed_execution",
+                "status": error.payload["status"],
                 "total_seconds": perf_counter() - started,
                 "stages": stages,
+                "intermediate_warning_count": intermediate_warning_count,
                 "quality": None,
                 "error_type": error.payload["error_type"],
                 "error_message": error.payload["error_message"],
@@ -546,9 +605,10 @@ def _run_route(
     )
     payload = {
         "route": route.value,
-        "status": "passed" if quality["passed"] else "failed_quality",
+        "status": "passed" if quality["passed"] else "failed_final_quality",
         "total_seconds": perf_counter() - started,
         "stages": stages,
+        "intermediate_warning_count": intermediate_warning_count,
         "quality": quality,
         "error_type": None,
         "error_message": None,
@@ -886,10 +946,25 @@ def _route_summary(
         for stage in route_record.get("stages", ()):
             method = str(stage["method"])
             stage_times.setdefault(method, []).append(float(stage["elapsed_seconds"]))
+    source_statuses = Counter(
+        str(target_record.get("status")) for target_record in eligible_records
+    )
     return {
         "denominator": len(eligible_records),
         "source_available_count": len(completed_routes),
         "status_counts": dict(statuses),
+        "source_status_counts": dict(source_statuses),
+        "source_invalid_count": source_statuses["source_invalid"],
+        "source_unavailable_count": source_statuses["source_unavailable"],
+        "scientific_state_failure_count": statuses["failed_scientific_state"],
+        "projection_failure_count": statuses["failed_projection"],
+        "input_failure_count": statuses["failed_input"],
+        "backend_failure_count": statuses["failed_backend"],
+        "intermediate_warning_count": sum(
+            int(route_record.get("intermediate_warning_count", 0))
+            for route_record in completed_routes
+        ),
+        "final_geometry_failure_count": statuses["failed_final_quality"],
         "quality_pass_count": statuses["passed"],
         "quality_pass_rate": (
             statuses["passed"] / len(eligible_records)

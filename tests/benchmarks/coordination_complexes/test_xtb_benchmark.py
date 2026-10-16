@@ -241,6 +241,54 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
     assert _thread_environment(4)["OMP_NUM_THREADS"] == "4"
 
 
+def test_intermediate_quality_warning_does_not_block_the_next_stage(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    import tests.benchmarks.coordination_complexes.xtb_benchmark as benchmark
+
+    methods = []
+    quality_results = iter((False, True))
+
+    def fake_execute(
+        mol,
+        method,
+        target,
+        scientific_state,
+        config,
+        work_directory,
+    ):
+        methods.append(method)
+        return _fake_report(method), scientific_state or "scientific-state"
+
+    def fake_quality(mol, quality_level, topology_reference):
+        passed = next(quality_results)
+        return {
+            "level": quality_level,
+            "passed": passed,
+            "checks": (),
+            "failures": () if passed else ("intermediate_geometry",),
+            "warnings": (),
+            "metrics": {},
+        }
+
+    monkeypatch.setattr(benchmark, "_execute_xtb_stage", fake_execute)
+    monkeypatch.setattr(benchmark, "_evaluate_quality", fake_quality)
+
+    report = _run_route(
+        _water(),
+        XTBRoute.GFNFF_GFN2,
+        BenchmarkTarget.LIGAND,
+        XTBBenchmarkConfig(workers=1),
+        tmp_path / "chain",
+    )
+
+    assert methods == [XTBMethod.GFNFF, XTBMethod.GFN2_XTB]
+    assert report["status"] == "passed"
+    assert report["intermediate_warning_count"] == 1
+    assert report["stages"][0]["intermediate_quality"]["passed"] is False
+
+
 def test_benchmark_uses_explicit_target_specific_state_requests() -> None:
     config = XTBBenchmarkConfig()
 
@@ -332,9 +380,10 @@ def test_route_summary_keeps_target_denominators_and_missing_sources_visible() -
                     "status": "completed",
                     "routes": {
                         "direct-gfn2": {
-                            "status": "failed_quality",
+                            "status": "failed_final_quality",
                             "total_seconds": 2.0,
                             "applicability_rejected": False,
+                            "intermediate_warning_count": 0,
                             "stages": (
                                 {"method": "gfn2", "elapsed_seconds": 1.7},
                             ),
@@ -346,6 +395,12 @@ def test_route_summary_keeps_target_denominators_and_missing_sources_visible() -
         {
             "targets": {
                 "ligand": {"status": "source_unavailable", "routes": {}},
+                "complex": {"status": "not_eligible", "routes": {}},
+            }
+        },
+        {
+            "targets": {
+                "ligand": {"status": "source_invalid", "routes": {}},
                 "complex": {"status": "not_eligible", "routes": {}},
             }
         },
@@ -362,13 +417,57 @@ def test_route_summary_keeps_target_denominators_and_missing_sources_visible() -
         XTBRoute.DIRECT_GFN2,
     )
 
-    assert ligand["denominator"] == 2
+    assert ligand["denominator"] == 3
     assert ligand["source_available_count"] == 1
     assert ligand["quality_pass_count"] == 1
-    assert ligand["quality_pass_rate"] == pytest.approx(0.5)
+    assert ligand["quality_pass_rate"] == pytest.approx(1.0 / 3.0)
     assert complex_summary["denominator"] == 1
     assert complex_summary["quality_pass_count"] == 0
-    assert complex_summary["status_counts"] == {"failed_quality": 1}
+    assert complex_summary["status_counts"] == {"failed_final_quality": 1}
+    assert complex_summary["final_geometry_failure_count"] == 1
+    assert ligand["source_invalid_count"] == 1
+    assert ligand["source_unavailable_count"] == 1
+    assert ligand["intermediate_warning_count"] == 0
+
+
+def test_route_summary_separates_scientific_projection_and_backend_failures(
+) -> None:
+    statuses = (
+        "failed_scientific_state",
+        "failed_projection",
+        "failed_input",
+        "failed_backend",
+    )
+    records = tuple(
+        {
+            "targets": {
+                "ligand": {
+                    "status": "completed",
+                    "routes": {
+                        "direct-gfn2": {
+                            "status": status,
+                            "total_seconds": 1.0,
+                            "applicability_rejected": False,
+                            "intermediate_warning_count": 0,
+                            "stages": (),
+                        }
+                    },
+                }
+            }
+        }
+        for status in statuses
+    )
+
+    summary = _route_summary(
+        records,
+        BenchmarkTarget.LIGAND,
+        XTBRoute.DIRECT_GFN2,
+    )
+
+    assert summary["scientific_state_failure_count"] == 1
+    assert summary["projection_failure_count"] == 1
+    assert summary["input_failure_count"] == 1
+    assert summary["backend_failure_count"] == 1
 
 
 def test_completed_case_report_is_the_resume_boundary(

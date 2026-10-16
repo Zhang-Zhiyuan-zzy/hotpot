@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from ..charge.contracts import (
     LewisFormalChargeResult,
@@ -48,6 +48,7 @@ from .contracts import (
     ScientificStateCandidateSpace,
     StateCandidate,
 )
+from .decision_search import _DecisionSearchCompiler
 from .expand import _FRONTIER_SCHEMA, _expand_scientific_paths
 
 __all__ = ["compose_scientific_state_space"]
@@ -178,7 +179,7 @@ def _proposal_result_mappings(
                     ).add(proposal.proposal_id)
 
 
-def compose_scientific_state_space(
+def _compose_scientific_state_space(
     facts: MolecularFacts,
     *,
     net_charge_results: Tuple[NetChargeResult, ...],
@@ -192,6 +193,7 @@ def compose_scientific_state_space(
     candidate_proposals: Tuple[CandidateProposal, ...] = (),
     constraints: Tuple[CandidateConstraint, ...] = (),
     candidate_budget: CandidateBudget = DEFAULT_CANDIDATE_BUDGET,
+    decision_search: Optional[_DecisionSearchCompiler] = None,
 ) -> ScientificStateCandidateSpace:
     """Compose hard-valid result envelopes into a factorized state space."""
     subject = _molecular_subject_identity(facts)
@@ -331,6 +333,7 @@ def compose_scientific_state_space(
         tuple(sorted(set(unresolved_electronic_result_ids))),
         max_expanded_paths=candidate_budget.max_expanded_paths,
         max_frontier_paths=candidate_budget.max_frontier_paths,
+        decision_search=decision_search,
     )
     candidate_space = ScientificStateCandidateSpace(
         factors=factors,
@@ -350,3 +353,33 @@ def compose_scientific_state_space(
     )
     _validate_candidate_space_artifacts(candidate_space)
     return candidate_space
+
+
+def compose_scientific_state_space(
+    facts: MolecularFacts,
+    *,
+    net_charge_results: Tuple[NetChargeResult, ...],
+    lewis_results: Tuple[LewisFormalChargeResult, ...] = (),
+    coordination_counting_results: Tuple[
+        CoordinationElectronCountingResult,
+        ...,
+    ] = (),
+    oxidation_state_results: Tuple[OxidationStateInferenceResult, ...] = (),
+    electronic_state_results: Tuple[ElectronicStateInferenceResult, ...] = (),
+    candidate_proposals: Tuple[CandidateProposal, ...] = (),
+    constraints: Tuple[CandidateConstraint, ...] = (),
+    candidate_budget: CandidateBudget = DEFAULT_CANDIDATE_BUDGET,
+) -> ScientificStateCandidateSpace:
+    """Compose hard-valid envelopes without a policy decision compiler."""
+    return _compose_scientific_state_space(
+        facts,
+        net_charge_results=net_charge_results,
+        lewis_results=lewis_results,
+        coordination_counting_results=coordination_counting_results,
+        oxidation_state_results=oxidation_state_results,
+        electronic_state_results=electronic_state_results,
+        candidate_proposals=candidate_proposals,
+        constraints=constraints,
+        candidate_budget=candidate_budget,
+        decision_search=None,
+    )

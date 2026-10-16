@@ -1,6 +1,7 @@
 """Named scientific-state decision policy tests."""
 
 import hotpot
+import pytest
 
 from hotpot.cheminfo.calculator.charge import resolve_net_charge
 from hotpot.cheminfo.calculator.contracts import (
@@ -12,7 +13,10 @@ from hotpot.cheminfo.calculator.contracts import (
     ScientificQuantity,
     StatePolicy,
 )
-from hotpot.cheminfo.calculator.defaults import _decide_scientific_state
+from hotpot.cheminfo.calculator.defaults import (
+    _decide_scientific_state,
+    _decision_search_compiler,
+)
 from hotpot.cheminfo.calculator.electronic_state import (
     infer_electronic_states,
 )
@@ -26,7 +30,7 @@ from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
     extract_molecular_facts,
 )
-from hotpot.cheminfo.calculator.state_rules import RuleSet
+from hotpot.cheminfo.calculator.state_rules import RankAdjustment, RuleSet
 from hotpot.cheminfo.calculator.state_selection import (
     DecisionCertificationStatus,
     StateDecisionAction,
@@ -93,6 +97,42 @@ def test_strict_analysis_returns_not_requested_after_hard_validation() -> None:
 
     assert decision.action is StateDecisionAction.NOT_REQUESTED
     assert decision.selected_state_identity is None
+
+
+def test_inactive_profiles_do_not_invent_a_decision_search_compiler() -> None:
+    requirements = _requirements(ScientificQuantity.NET_CHARGE)
+    screening_eligibility = _static_profile_eligibility(
+        StatePolicy.COORDINATION_SCREENING_V1,
+        requirements,
+        ProviderSet(),
+        RuleSet(),
+        DEFAULT_CANDIDATE_BUDGET,
+    )
+
+    assert _decision_search_compiler(
+        StatePolicy.STRICT,
+        requirements,
+        _eligibility(requirements),
+        (),
+    ) is None
+    assert _decision_search_compiler(
+        StatePolicy.COORDINATION_SCREENING_V1,
+        requirements,
+        screening_eligibility,
+        (RankAdjustment("state", "test", 1.0, "test"),),
+    ) is None
+
+
+def test_strict_policy_never_consumes_rule_rank_adjustments() -> None:
+    requirements = _requirements(ScientificQuantity.NET_CHARGE)
+
+    with pytest.raises(ValueError, match="STRICT"):
+        _decision_search_compiler(
+            StatePolicy.STRICT,
+            requirements,
+            _eligibility(requirements),
+            (RankAdjustment("state", "test", 1.0, "test"),),
+        )
 
 
 def test_strict_execution_selects_one_attributable_explicit_path() -> None:

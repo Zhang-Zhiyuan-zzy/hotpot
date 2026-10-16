@@ -46,7 +46,7 @@ from .state_composition.contracts import (
     ScientificResolutionResult,
     ScientificStateCandidateSpace,
 )
-from .state_rules.contracts import RuleSet, RuleTrace
+from .state_rules.contracts import RankAdjustment, RuleSet, RuleTrace
 from .state_selection import ExecutionStateDecision
 
 __all__ = [
@@ -480,12 +480,15 @@ def resolve_scientific_state(
 ) -> ScientificStateBundle:
     """Resolve, compose and decide one immutable molecular scientific state."""
     from .charge import resolve_net_charge, solve_main_group_lewis
-    from .defaults import _decide_scientific_state
+    from .defaults import (
+        _decide_scientific_state,
+        _decision_search_compiler,
+    )
     from .electronic_state import infer_electronic_states
     from .operation_requirements import _effective_requirements
     from .oxidation_state import infer_oxidation_states
     from .profile_eligibility import _static_profile_eligibility
-    from .state_composition import compose_scientific_state_space
+    from .state_composition.compose import _compose_scientific_state_space
     from .state_composition.constraints import (
         _reconcile_authoritative_results,
     )
@@ -545,10 +548,19 @@ def resolve_scientific_state(
             request.oxidation_overrides,
         )
     )
-    def compose_with_rule_proposals(
+    eligibility = _static_profile_eligibility(
+        policy,
+        effective_requirements,
+        provider_set,
+        rule_set,
+        candidate_budget,
+    )
+
+    def compose_with_rule_outputs(
         candidate_proposals: Tuple[CandidateProposal, ...],
+        rank_adjustments: Tuple[RankAdjustment, ...],
     ) -> ScientificStateCandidateSpace:
-        return compose_scientific_state_space(
+        return _compose_scientific_state_space(
             facts,
             net_charge_results=charge_results,
             lewis_results=lewis_results,
@@ -558,9 +570,15 @@ def resolve_scientific_state(
             candidate_proposals=candidate_proposals,
             constraints=cross_result_constraints,
             candidate_budget=candidate_budget,
+            decision_search=_decision_search_compiler(
+                policy,
+                effective_requirements,
+                eligibility,
+                rank_adjustments,
+            ),
         )
 
-    candidate_space = compose_with_rule_proposals(())
+    candidate_space = compose_with_rule_outputs((), ())
     rule_trace: Tuple[RuleTrace, ...] = ()
     if rule_set.layers:
         from .state_rules.controller import _execute_rule_layers
@@ -571,18 +589,11 @@ def resolve_scientific_state(
             effective_requirements,
             candidate_budget,
             candidate_space,
-            compose_with_rule_proposals,
+            compose_with_rule_outputs,
         )
         candidate_space = rule_execution.candidate_space
         rule_trace = rule_execution.traces
     scientific_resolution = _resolve_candidate_space(candidate_space)
-    eligibility = _static_profile_eligibility(
-        policy,
-        effective_requirements,
-        provider_set,
-        rule_set,
-        candidate_budget,
-    )
     all_results = (
         charge_results
         + lewis_results

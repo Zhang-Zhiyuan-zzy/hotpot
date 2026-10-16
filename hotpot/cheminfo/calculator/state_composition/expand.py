@@ -32,6 +32,7 @@ from .constraints import (
     _validate_coupled_candidate_sets,
 )
 from .derive import _derive_charge_values
+from .decision_search import _DecisionSearchCompiler
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -538,12 +539,14 @@ def _expand_scientific_paths(
     *,
     max_expanded_paths: int,
     max_frontier_paths: int,
+    decision_search: Optional[_DecisionSearchCompiler] = None,
 ) -> Tuple[
     Tuple[CoupledScientificStateCandidate, ...],
     Tuple[RejectedPathSummary, ...],
     Tuple[FrontierBound, ...],
     CandidateSearchStatus,
 ]:
+    del decision_search
     factors = tuple(
         sorted(
             factors,

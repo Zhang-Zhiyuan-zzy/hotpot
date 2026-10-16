@@ -16,6 +16,7 @@ from ..state_composition.contracts import (
 )
 from .contracts import (
     ActivatedRule,
+    RankAdjustment,
     RuleApplicability,
     RuleContext,
     RuleOutcome,
@@ -29,7 +30,7 @@ __all__ = []
 
 
 _CandidateSpaceBuilder = Callable[
-    [Tuple[CandidateProposal, ...]],
+    [Tuple[CandidateProposal, ...], Tuple[RankAdjustment, ...]],
     ScientificStateCandidateSpace,
 ]
 
@@ -39,6 +40,7 @@ class _RuleExecution:
     candidate_space: ScientificStateCandidateSpace
     traces: Tuple[RuleTrace, ...]
     candidate_proposals: Tuple[CandidateProposal, ...]
+    rank_adjustments: Tuple[RankAdjustment, ...]
 
 
 def _dependency_unavailable_outcome(
@@ -94,6 +96,7 @@ def _execute_rule_layers(
     outcome_by_id: Dict[str, RuleOutcome] = {}
     traces = []
     proposals = []
+    rank_adjustments = []
 
     for layer in rule_set.layers:
         if not layer:
@@ -125,12 +128,17 @@ def _execute_rule_layers(
             outcome_by_id[outcome.rule_id] = outcome
             if outcome.candidate_proposal is not None:
                 proposals.append(outcome.candidate_proposal)
+            rank_adjustments.extend(outcome.rank_adjustments)
             traces.append(RuleTrace(phase, outcome))
         prior_outcomes = prior_outcomes + tuple(layer_outcomes)
-        candidate_space = candidate_space_builder(tuple(proposals))
+        candidate_space = candidate_space_builder(
+            tuple(proposals),
+            tuple(rank_adjustments),
+        )
 
     return _RuleExecution(
         candidate_space,
         tuple(traces),
         tuple(proposals),
+        tuple(rank_adjustments),
     )

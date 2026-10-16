@@ -18,6 +18,7 @@ from .state_composition import (
     CoupledScientificStateCandidate,
     ScientificStateCandidateSpace,
 )
+from .state_composition.decision_search import _DecisionSearchCompiler
 from .oxidation_state import OxidationStateCandidateEvidence
 from .state_selection import (
     DecisionCertifiability,
@@ -28,8 +29,28 @@ from .state_selection import (
     StateDecisionSource,
     StaticProfileEligibility,
 )
+from .state_rules import RankAdjustment
 
 __all__ = []
+
+
+def _decision_search_compiler(
+    policy: StatePolicy,
+    requirements: ScientificOperationRequirements,
+    eligibility: StaticProfileEligibility,
+    rank_adjustments: Tuple[RankAdjustment, ...],
+) -> Optional[_DecisionSearchCompiler]:
+    """Return the active profile compiler without inventing inactive policy."""
+    if policy is StatePolicy.STRICT:
+        if rank_adjustments:
+            raise ValueError("STRICT policy cannot consume rule rank adjustments")
+        return None
+    if not eligibility.in_domain:
+        return None
+    raise RuntimeError(
+        "An active screening profile requires a versioned decision-search "
+        f"compiler for operation {requirements.operation_id!r}"
+    )
 
 
 def _terminal_action(

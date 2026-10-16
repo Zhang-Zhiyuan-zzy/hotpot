@@ -16,12 +16,20 @@ from .charge.contracts import (
     NetChargeResult,
 )
 from .contracts import (
+    CandidateBudget,
     ComponentIdentity,
+    DEFAULT_CANDIDATE_BUDGET,
     HydrogenInventory,
     MolecularFacts,
     MolecularFactsIdentity,
+    ProviderSet,
+    ResolutionStatus,
     SemanticBond,
     SemanticBondKind,
+    ScientificAdmissibility,
+    ScientificOperationRequirements,
+    StatePolicy,
+    StateValueAuthority,
 )
 from .electronic_state.contracts import (
     ElectronicStateCandidateEvidence,
@@ -33,11 +41,19 @@ from .oxidation_state.contracts import (
     OxidationStateInferenceResult,
     OxidationStateOverride,
 )
+from .state_composition.contracts import (
+    ScientificResolutionResult,
+    ScientificStateCandidateSpace,
+)
+from .state_rules.contracts import RuleSet, RuleTrace
+from .state_selection import ExecutionStateDecision
 
 __all__ = [
     "extract_molecular_facts",
+    "resolve_scientific_state",
     "StateRequest",
     "ProvidedScientificResults",
+    "ScientificStateBundle",
 ]
 
 
@@ -70,6 +86,25 @@ class ProvidedScientificResults:
     ] = ()
     oxidation_state_results: Tuple[OxidationStateInferenceResult, ...] = ()
     electronic_state_results: Tuple[ElectronicStateInferenceResult, ...] = ()
+
+
+@dataclass(frozen=True)
+class ScientificStateBundle:
+    """Complete attributable output of one scientific-state resolution run."""
+
+    facts: MolecularFacts
+    net_charge_results: Tuple[NetChargeResult, ...]
+    lewis_results: Tuple[LewisFormalChargeResult, ...]
+    coordination_counting_results: Tuple[
+        CoordinationElectronCountingResult,
+        ...,
+    ]
+    oxidation_state_results: Tuple[OxidationStateInferenceResult, ...]
+    electronic_state_results: Tuple[ElectronicStateInferenceResult, ...]
+    candidate_space: ScientificStateCandidateSpace
+    scientific_resolution: ScientificResolutionResult
+    execution_decision: ExecutionStateDecision
+    rule_trace: Tuple[RuleTrace, ...]
 
 
 # Canonical chemical-boundary serialization.
@@ -294,4 +329,259 @@ def extract_molecular_facts(mol: Molecule) -> MolecularFacts:
         semantic_bonds=provisional.semantic_bonds,
         coordinates=provisional.coordinates,
         nuclear_charge_sum=provisional.nuclear_charge_sum,
+    )
+
+
+# Public scientific-state orchestration.
+
+
+_KNOWN_PROVIDER_IDS = frozenset(
+    {
+        "PROVIDER-001",
+        "PROVIDER-002",
+        "PROVIDER-003",
+    }
+)
+
+
+def _enabled_provider_ids(provider_set: ProviderSet) -> frozenset[str]:
+    provider_ids = tuple(toggle.provider_id for toggle in provider_set.toggles)
+    if len(set(provider_ids)) != len(provider_ids):
+        raise ValueError("Provider toggles contain duplicate provider IDs")
+    unknown = set(provider_ids) - _KNOWN_PROVIDER_IDS
+    if unknown:
+        raise ValueError(f"Unknown provider IDs: {tuple(sorted(unknown))}")
+    configured = tuple(
+        toggle.provider_id
+        for toggle in provider_set.toggles
+        if toggle.configuration
+    )
+    if configured:
+        raise ValueError(
+            "Provider configuration is not defined for "
+            f"{tuple(sorted(configured))}"
+        )
+    return frozenset(
+        toggle.provider_id
+        for toggle in provider_set.toggles
+        if toggle.enabled
+    )
+
+
+def _validated_lewis_result(
+    facts: MolecularFacts,
+    result: LewisFormalChargeResult,
+    charge_results: Tuple[NetChargeResult, ...],
+) -> LewisFormalChargeResult:
+    from . import legality
+
+    charge_by_identity = {
+        candidate.provenance.identity: candidate
+        for charge_result in charge_results
+        if charge_result.facts_identity == facts.identity
+        and charge_result.admissibility is ScientificAdmissibility.ADMISSIBLE
+        for candidate in charge_result.candidates
+    }
+    assessments = [
+        legality._validate_facts_identity(
+            facts.identity,
+            result.facts_identity,
+            related_identities=(result.identity,),
+        )
+    ]
+    for candidate in result.candidates:
+        charge = charge_by_identity.get(
+            candidate.net_charge_candidate_identity
+        )
+        assessments.append(
+            legality._validate_lewis_candidate(facts, charge, candidate)
+            if charge is not None
+            else legality._hard_failure(
+                "HARD-007.LEWIS_CHARGE_REFERENCE_MISSING",
+                "Lewis evidence references an unavailable charge candidate.",
+                related_identities=(candidate.provenance.identity,),
+            )
+        )
+    assessment = legality._merge_hard_rule_assessments(tuple(assessments))
+    if assessment.admissibility is ScientificAdmissibility.ADMISSIBLE:
+        return result
+    return LewisFormalChargeResult(
+        identity=result.identity,
+        facts_identity=result.facts_identity,
+        candidates=result.candidates,
+        admissibility=assessment.admissibility,
+        resolution=assessment.terminal_status or ResolutionStatus.UNRESOLVED,
+        confidence=result.confidence,
+        findings=result.findings + assessment.findings,
+    )
+
+
+def _validated_counting_result(
+    facts: MolecularFacts,
+    result: CoordinationElectronCountingResult,
+) -> CoordinationElectronCountingResult:
+    from . import legality
+
+    assessments = (
+        legality._validate_facts_identity(
+            facts.identity,
+            result.facts_identity,
+            related_identities=(result.identity,),
+        ),
+        *tuple(
+            legality._validate_counting_candidate_for_facts(facts, candidate)
+            for candidate in result.candidates
+        ),
+    )
+    assessment = legality._merge_hard_rule_assessments(assessments)
+    if assessment.admissibility is ScientificAdmissibility.ADMISSIBLE:
+        return result
+    return CoordinationElectronCountingResult(
+        identity=result.identity,
+        facts_identity=result.facts_identity,
+        candidates=result.candidates,
+        admissibility=assessment.admissibility,
+        resolution=assessment.terminal_status or ResolutionStatus.UNRESOLVED,
+        confidence=result.confidence,
+        findings=result.findings + assessment.findings,
+    )
+
+
+def _explicit_candidate_ids(
+    charge_results: Tuple[NetChargeResult, ...],
+    oxidation_state_results: Tuple[OxidationStateInferenceResult, ...],
+    electronic_state_results: Tuple[ElectronicStateInferenceResult, ...],
+) -> frozenset[str]:
+    return frozenset(
+        candidate.provenance.identity
+        for results in (
+            charge_results,
+            oxidation_state_results,
+            electronic_state_results,
+        )
+        for result in results
+        for candidate in result.candidates
+        if candidate.provenance.authority
+        is StateValueAuthority.VERIFIED_EXPLICIT
+    )
+
+
+def resolve_scientific_state(
+    facts: MolecularFacts,
+    request: StateRequest = StateRequest(),
+    *,
+    policy: StatePolicy = StatePolicy.STRICT,
+    requirements: Optional[ScientificOperationRequirements] = None,
+    provider_set: ProviderSet = ProviderSet(),
+    provided_results: ProvidedScientificResults = ProvidedScientificResults(),
+    rule_set: RuleSet = RuleSet(),
+    candidate_budget: CandidateBudget = DEFAULT_CANDIDATE_BUDGET,
+) -> ScientificStateBundle:
+    """Resolve, compose and decide one immutable molecular scientific state."""
+    from .charge import resolve_net_charge, solve_main_group_lewis
+    from .defaults import _decide_scientific_state
+    from .electronic_state import infer_electronic_states
+    from .operation_requirements import _effective_requirements
+    from .oxidation_state import infer_oxidation_states
+    from .profile_eligibility import _static_profile_eligibility
+    from .state_composition import compose_scientific_state_space
+    from .state_composition.resolution import _resolve_candidate_space
+
+    if rule_set.layers:
+        raise ValueError(
+            "Optional rule execution requires the dependency-layer controller"
+        )
+    enabled_provider_ids = _enabled_provider_ids(provider_set)
+    effective_requirements = _effective_requirements(policy, requirements)
+
+    charge_results = resolve_net_charge(
+        facts,
+        request,
+        provided=provided_results.net_charge_results,
+    )
+    validated_provided_lewis = tuple(
+        _validated_lewis_result(facts, result, charge_results)
+        for result in provided_results.lewis_results
+    )
+    generated_lewis = (
+        tuple(
+            lewis_result
+            for charge_result in charge_results
+            for lewis_result in solve_main_group_lewis(
+                facts,
+                charge_result,
+                candidate_budget=candidate_budget,
+            )
+        )
+        if "PROVIDER-001" in enabled_provider_ids
+        else ()
+    )
+    lewis_results = validated_provided_lewis + generated_lewis
+    counting_results = tuple(
+        _validated_counting_result(facts, result)
+        for result in provided_results.coordination_counting_results
+    )
+    oxidation_state_results = infer_oxidation_states(
+        facts,
+        request,
+        counting_results=counting_results,
+        provided=provided_results.oxidation_state_results,
+    )
+    electronic_state_results = infer_electronic_states(
+        facts,
+        request,
+        net_charge_results=charge_results,
+        oxidation_state_results=oxidation_state_results,
+        provided=provided_results.electronic_state_results,
+    )
+    candidate_space = compose_scientific_state_space(
+        facts,
+        net_charge_results=charge_results,
+        lewis_results=lewis_results,
+        coordination_counting_results=counting_results,
+        oxidation_state_results=oxidation_state_results,
+        electronic_state_results=electronic_state_results,
+        candidate_budget=candidate_budget,
+    )
+    scientific_resolution = _resolve_candidate_space(candidate_space)
+    eligibility = _static_profile_eligibility(
+        policy,
+        effective_requirements,
+        provider_set,
+        rule_set,
+        candidate_budget,
+    )
+    all_results = (
+        charge_results
+        + lewis_results
+        + counting_results
+        + oxidation_state_results
+        + electronic_state_results
+    )
+    decision = _decide_scientific_state(
+        policy,
+        effective_requirements,
+        candidate_space,
+        eligibility,
+        tuple(
+            (result.admissibility, result.resolution)
+            for result in all_results
+        ),
+        _explicit_candidate_ids(
+            charge_results,
+            oxidation_state_results,
+            electronic_state_results,
+        ),
+    )
+    return ScientificStateBundle(
+        facts=facts,
+        net_charge_results=charge_results,
+        lewis_results=lewis_results,
+        coordination_counting_results=counting_results,
+        oxidation_state_results=oxidation_state_results,
+        electronic_state_results=electronic_state_results,
+        candidate_space=candidate_space,
+        scientific_resolution=scientific_resolution,
+        execution_decision=decision,
+        rule_trace=(),
     )

@@ -100,22 +100,6 @@
         "claimed_benchmark": {"$ref": "#/$defs/jsonValue"}
       }
     },
-    "checkResult": {
-      "type": "object", "additionalProperties": false,
-      "required": ["kind", "status", "passed", "reason"],
-      "properties": {
-        "kind": {"enum": ["builtin", "custom"]},
-        "status": {"enum": ["disabled", "passed", "failed", "checker_error"]},
-        "passed": {"type": "boolean"},
-        "reason": {"$ref": "#/$defs/nonempty"},
-        "error_type": {"$ref": "#/$defs/nonempty"}
-      }
-    },
-    "checkResultMap": {
-      "type": "object", "required": [], "properties": {},
-      "patternProperties": {".+": {"$ref": "#/$defs/checkResult"}},
-      "additionalProperties": false
-    },
     "reasonRecord": {
       "type": "object", "additionalProperties": false,
       "required": ["code", "message"],
@@ -127,53 +111,14 @@
     },
     "caseAssessment": {
       "type": "object", "additionalProperties": false,
-      "required": ["case_id", "quality_level", "evidence_level", "evidence_levels", "archive_class", "benchmark", "benchmark_status", "completeness", "integrity_status", "attestation_status", "conflict_status", "checklist", "direct_entry", "veto_passed", "identity_determinate", "gate_results", "reasons", "input_digest", "asset_assessments", "conflict_assessments", "identity_reasons", "governance_assessments"],
+      "required": ["quality_level", "evidence_level", "archive_class", "benchmark"],
       "properties": {
-        "case_id": {"$ref": "#/$defs/nonempty"},
         "quality_level": {"enum": ["B0", "B1", "B2", "B3", "B4"]},
         "evidence_level": {"enum": [null, "E0", "E1", "E2", "E3", "E4"]},
-        "evidence_levels": {
-          "type": "object", "required": [], "properties": {},
-          "patternProperties": {".+": {"enum": ["E0", "E1", "E2", "E3", "E4"]}},
-          "additionalProperties": false
-        },
         "archive_class": {"enum": ["incomplete", "ordinary", "benchmark"]},
         "benchmark": {"type": "boolean"},
         "benchmark_status": {"enum": ["ineligible", "admitted", "rejected", "vetoed", "not_admitted"]},
-        "completeness": {"enum": ["incomplete", "complete"]},
-        "integrity_status": {"enum": ["valid", "invalid", "indeterminate"]},
-        "attestation_status": {"enum": ["approved", "rejected", "disagreement", "none"]},
-        "conflict_status": {"enum": ["clear", "conflict", "indeterminate"]},
-        "checklist": {
-          "type": "object", "required": [], "properties": {},
-          "patternProperties": {".+": {"type": "boolean"}},
-          "additionalProperties": false
-        },
-        "direct_entry": {"type": "boolean"},
-        "veto_passed": {"type": "boolean"},
-        "identity_determinate": {"type": "boolean"},
-        "gate_results": {
-          "type": "object", "additionalProperties": false,
-          "required": ["evidence", "quality", "structure", "benchmark_checklist", "benchmark_direct_entry", "benchmark_vetoes"],
-          "properties": {
-            "evidence": {
-              "type": "object", "required": [], "properties": {},
-              "patternProperties": {".+": {"$ref": "#/$defs/checkResultMap"}},
-              "additionalProperties": false
-            },
-            "quality": {"$ref": "#/$defs/checkResultMap"},
-            "structure": {"$ref": "#/$defs/checkResultMap"},
-            "benchmark_checklist": {"$ref": "#/$defs/checkResultMap"},
-            "benchmark_direct_entry": {"$ref": "#/$defs/checkResultMap"},
-            "benchmark_vetoes": {"$ref": "#/$defs/checkResultMap"}
-          }
-        },
-        "reasons": {"type": "array", "items": {"$ref": "#/$defs/reasonRecord"}},
-        "input_digest": {"$ref": "#/$defs/sha256"},
-        "asset_assessments": {"type": "array", "items": {"$ref": "#/$defs/jsonMap"}},
-        "conflict_assessments": {"type": "array", "items": {"$ref": "#/$defs/jsonMap"}},
-        "identity_reasons": {"type": "array", "items": {"$ref": "#/$defs/reasonRecord"}},
-        "governance_assessments": {"type": "array", "items": {"$ref": "#/$defs/jsonMap"}}
+        "reasons": {"type": "array", "items": {"$ref": "#/$defs/reasonRecord"}}
       }
     },
     "caseInfo": {
@@ -507,6 +452,18 @@
           "properties": {"incomplete": {"$ref": "#/$defs/count"}, "ordinary": {"$ref": "#/$defs/count"}, "benchmark": {"$ref": "#/$defs/count"}}
         },
         "summary": {"$ref": "#/$defs/bundleSummary"}, "is_synchronized": {"const": true}
+      }
+    },
+    "bundle_cleanup_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bundle", "cleanup_manifest", "already_clean", "removed_count", "removed_bytes", "receipt_id"],
+      "properties": {
+        "bundle": {"$ref": "#/$defs/bundleLocator"},
+        "cleanup_manifest": {"$ref": "#/$defs/nonempty"},
+        "already_clean": {"type": "boolean"},
+        "removed_count": {"$ref": "#/$defs/count"},
+        "removed_bytes": {"$ref": "#/$defs/count"},
+        "receipt_id": {"$ref": "#/$defs/nonempty"}
       }
     },
     "certificate_result": {

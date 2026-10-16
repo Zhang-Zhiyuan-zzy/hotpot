@@ -1064,8 +1064,6 @@ def run(args: argparse.Namespace) -> int:
                 )
                 return 0
             if args.bundle_action == "rm":
-                if not hasattr(args, "bundle_db"):
-                    raise ValueError("bundle rm --all requires an explicit --db target")
                 root = _bundle_root(args)
                 name = _manifest_dataset(
                     root, getattr(args, "bundle_dataset", None)
@@ -1073,7 +1071,11 @@ def run(args: argparse.Namespace) -> int:
                 result = remove_bundle_intermediates(
                     root,
                     name,
-                    Path(args.bundle_db),
+                    (
+                        None
+                        if not hasattr(args, "bundle_db")
+                        else Path(args.bundle_db)
+                    ),
                 )
                 emit_envelope("hotpot.ds.bundle.rm", result)
                 return 0

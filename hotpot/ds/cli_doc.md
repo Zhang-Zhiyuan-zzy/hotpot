@@ -207,7 +207,7 @@ hotpot ds bundle build BUNDLE_ROOT [--dataset NAME] [--db DB]
 
 hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] status
 hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] synchronize
-hotpot ds bundle --root BUNDLE_ROOT --dataset NAME --db DB rm --all
+hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] rm --all
 ```
 
 `build` is the one-time canonical build operation and requires an unbuilt
@@ -384,13 +384,15 @@ fact or Gate edits, then synchronize once.
 ### Remove sealed Bundle intermediates
 
 ```bash
-hotpot ds bundle --root BUNDLE_ROOT --dataset NAME --db DB rm --all
+hotpot ds bundle rm --all
 ```
 
 `rm --all` is an irreversible post-ingestion cleanup operation. It is accepted
 only for a sealed Bundle whose certificate, local ingestion receipt,
 authoritative target receipt, target SQLite database, and target-owned assets
-all pass complete integrity verification. `--db` is therefore mandatory even
+all pass complete integrity verification.  The command uses the target bound
+by the Bundle when `--db` is omitted; an explicit `--db` is a matching
+assertion.  Therefore the short form above works from the Bundle root even
 when the Bundle already records its target.
 
 The command takes an exclusive Bundle lock and deletes only a closed allowlist

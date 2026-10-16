@@ -11,7 +11,7 @@ import uuid
 from contextlib import ExitStack, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterator, Mapping
+from typing import Any, Iterator, Mapping, Optional
 
 from .public.bundle import load_bundle
 from .public.certificate import certificate_digest
@@ -604,18 +604,27 @@ def _result(document: Mapping[str, Any], *, already_clean: bool) -> dict[str, An
 def remove_bundle_intermediates(
     root: Path,
     dataset: str,
-    database: Path,
+    database: Optional[Path] = None,
 ) -> dict[str, Any]:
     """Delete only allowlisted reproducible data from one verified sealed Bundle."""
 
     bundle_root = root.expanduser().resolve()
-    target = database.expanduser().resolve()
+    target = None if database is None else database.expanduser().resolve()
     if not bundle_root.is_dir():
         raise NotADirectoryError(bundle_root)
     cleanup_path = bundle_root / _CLEANUP_FILE
     with _bundle_lock(bundle_root):
         if cleanup_path.is_file():
             document = _read_json(cleanup_path, "Bundle cleanup manifest")
+            if target is None:
+                locator = document.get("bundle")
+                if not isinstance(locator, Mapping) or not isinstance(
+                    locator.get("database"), str
+                ):
+                    raise BundleCleanupError(
+                        "bundle-cleanup.json has no authoritative target path"
+                    )
+                target = Path(locator["database"]).expanduser().resolve()
             _validate_cleanup_manifest(bundle_root, document, dataset, target)
             already_clean = document["state"] == "complete"
             with _generation_locks(bundle_root):
@@ -629,6 +638,7 @@ def remove_bundle_intermediates(
             return _result(document, already_clean=already_clean)
 
         bundle = load_bundle(bundle_root, dataset, db=target)
+        target = bundle._database
         receipt = bundle._authoritative_receipt()
         if receipt is None:
             raise BundleCleanupError(

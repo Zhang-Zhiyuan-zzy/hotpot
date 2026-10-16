@@ -52,7 +52,8 @@ The formal store does not retain:
 
 ## Bundle cleanup
 
-`hotpot ds bundle --root BUNDLE_ROOT --dataset DATASET --db DB rm --all`
+`hotpot ds bundle rm --all` (from the Bundle root), or the fully asserted form
+`hotpot ds bundle --root BUNDLE_ROOT --dataset DATASET --db DB rm --all`,
 is a verified pruning command.  It runs only after a valid authoritative
 ingestion receipt exists.  It acquires the Bundle lock, revalidates the sealed
 release, removes an explicit allowlist of reproducible build products, and

@@ -216,19 +216,23 @@ def test_idempotent_cleanup_manifest_cannot_expand_the_delete_allowlist(
     assert (root / "bundle.json").read_bytes() == bundle_bytes
 
 
-def test_bundle_rm_cli_requires_explicit_target_and_emits_closed_envelope(
+def test_bundle_rm_cli_uses_bound_target_and_emits_closed_envelope(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _bundle, root, database = _sealed_bundle(tmp_path)
     parser = build_parser()
-    missing = parser.parse_args(
-        ["bundle", "--root", str(root), "--dataset", "demo", "rm", "--all"]
-    )
-    assert run(missing) == 2
-    assert "requires an explicit --db" in capsys.readouterr().err
+    monkeypatch.chdir(root)
+    command = parser.parse_args(["bundle", "rm", "--all"])
+    assert run(command) == 0
+    envelope = json.loads(capsys.readouterr().out)
+    assert envelope["key"] == "hotpot.ds.bundle.rm"
+    assert envelope["channel"] == "default"
+    assert envelope["payload"]["bundle"]["dataset"] == "demo"
+    assert envelope["payload"]["already_clean"] is False
 
-    command = parser.parse_args(
+    asserted = parser.parse_args(
         [
             "bundle",
             "--root",
@@ -241,9 +245,6 @@ def test_bundle_rm_cli_requires_explicit_target_and_emits_closed_envelope(
             "--all",
         ]
     )
-    assert run(command) == 0
-    envelope = json.loads(capsys.readouterr().out)
-    assert envelope["key"] == "hotpot.ds.bundle.rm"
-    assert envelope["channel"] == "default"
-    assert envelope["payload"]["bundle"]["dataset"] == "demo"
-    assert envelope["payload"]["already_clean"] is False
+    assert run(asserted) == 0
+    repeated = json.loads(capsys.readouterr().out)
+    assert repeated["payload"]["already_clean"] is True

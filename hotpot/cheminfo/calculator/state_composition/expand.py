@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import hashlib
-import itertools
+import heapq
 import json
-from dataclasses import dataclass
-from typing import Dict, Iterator, Optional, Tuple, Union
+from dataclasses import dataclass, replace
+from typing import Dict, Optional, Tuple, Union
 
 from ..charge.contracts import (
     LewisFormalChargeCandidate,
@@ -32,7 +32,7 @@ from .constraints import (
     _validate_coupled_candidate_sets,
 )
 from .derive import _derive_charge_values
-from .decision_search import _DecisionSearchCompiler
+from .decision_search import _DecisionBound, _DecisionSearchCompiler
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -74,6 +74,14 @@ class _SelectedValues:
     derived_values: Tuple[DerivedStateValue, ...]
     candidate_ids: Tuple[str, ...]
     branch_assignments: Tuple[BranchAssignment, ...]
+
+
+@dataclass(frozen=True)
+class _SearchNode:
+    selected_values: Tuple[FactorCandidateValue, ...]
+    bound: Optional[_DecisionBound]
+    branch_identity: str
+    queue_key: Tuple[str, ...]
 
 
 def _digest(payload: object) -> str:
@@ -508,24 +516,70 @@ def _coupled_path(
     )
 
 
-def _iter_selected_values(
-    domains: Tuple[Tuple[FactorCandidateValue, ...], ...],
-) -> Iterator[Tuple[FactorCandidateValue, ...]]:
-    if not domains or any(not domain for domain in domains):
-        return
-    yield from itertools.product(*domains)
-
-
-def _frontier_for_selection(
+def _candidate_ids(
     selected_values: Tuple[FactorCandidateValue, ...],
-) -> FrontierBound:
-    candidate_ids = tuple(
+) -> Tuple[str, ...]:
+    return tuple(
         value.candidate.provenance.identity for value in selected_values
     )
+
+
+def _search_node(
+    selected_values: Tuple[FactorCandidateValue, ...],
+    factors: Tuple[CandidateFactor, ...],
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> _SearchNode:
+    depth = len(selected_values)
+    candidate_ids = _candidate_ids(selected_values)
+    branch_identity = _digest(
+        {"depth": depth, "candidate_ids": candidate_ids}
+    )
+    bound = (
+        None
+        if decision_search is None
+        else decision_search.optimistic_bound_for_prefix(
+            selected_values,
+            factors[depth:],
+        )
+    )
+    policy_key = (
+        ("0:unboundable",)
+        if bound is None
+        else ("1:bounded",) + decision_search.bound_order_key(bound)
+    )
+    return _SearchNode(
+        selected_values=selected_values,
+        bound=bound,
+        branch_identity=branch_identity,
+        queue_key=policy_key + candidate_ids + (branch_identity,),
+    )
+
+
+def _push_search_node(
+    heap: list[Tuple[Tuple[str, ...], str, _SearchNode]],
+    node: _SearchNode,
+) -> None:
+    heapq.heappush(heap, (node.queue_key, node.branch_identity, node))
+
+
+def _frontier_for_node(
+    node: _SearchNode,
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> FrontierBound:
+    if node.bound is None or decision_search is None:
+        optimistic_key = _UNBOUNDED_FRONTIER_KEY
+    else:
+        optimistic_key = decision_search.encode_bound(node.bound)
+        if not optimistic_key or any(
+            not isinstance(value, str) for value in optimistic_key
+        ):
+            raise ValueError(
+                "Decision-search bounds must encode as non-empty strings"
+            )
     return FrontierBound(
-        branch_identity=_digest(candidate_ids),
+        branch_identity=node.branch_identity,
         schema_version=_FRONTIER_SCHEMA,
-        optimistic_key=_UNBOUNDED_FRONTIER_KEY,
+        optimistic_key=optimistic_key,
     )
 
 
@@ -546,7 +600,11 @@ def _expand_scientific_paths(
     Tuple[FrontierBound, ...],
     CandidateSearchStatus,
 ]:
-    del decision_search
+    if (
+        decision_search is not None
+        and decision_search.frontier_schema_version != _FRONTIER_SCHEMA
+    ):
+        raise ValueError("Decision-search frontier schema is not supported")
     factors = tuple(
         sorted(
             factors,
@@ -566,6 +624,15 @@ def _expand_scientific_paths(
         factors,
         guarded_constraints,
     )
+    domains = tuple(
+        tuple(
+            sorted(
+                domain,
+                key=lambda value: value.candidate.provenance.identity,
+            )
+        )
+        for domain in domains
+    )
     if not factors or any(not domain for domain in domains):
         return (
             (),
@@ -574,25 +641,41 @@ def _expand_scientific_paths(
             CandidateSearchStatus.NOT_EVALUATED,
         )
 
-    iterator = _iter_selected_values(domains)
+    search_factors = tuple(
+        replace(factor, values=domain)
+        for factor, domain in zip(factors, domains)
+    )
+    search_heap: list[Tuple[Tuple[str, ...], str, _SearchNode]] = []
+    _push_search_node(
+        search_heap,
+        _search_node((), search_factors, decision_search),
+    )
     paths: Dict[str, CoupledScientificStateCandidate] = {}
     rejections = list(early_rejections)
     attempted = 0
-    truncated = False
-    first_unexpanded = None
-    for selected_values in iterator:
-        if attempted >= max_expanded_paths:
-            truncated = True
-            first_unexpanded = selected_values
-            break
+    while search_heap and attempted < max_expanded_paths:
+        _, _, node = heapq.heappop(search_heap)
+        depth = len(node.selected_values)
+        if depth < len(domains):
+            for value in domains[depth]:
+                selected_values = node.selected_values + (value,)
+                _push_search_node(
+                    search_heap,
+                    _search_node(
+                        selected_values,
+                        search_factors,
+                        decision_search,
+                    ),
+                )
+            continue
+
+        selected_values = node.selected_values
         attempted += 1
         selected, classification_rejection = _classify_selected_values(
             facts,
             selected_values,
         )
-        selected_ids = tuple(
-            value.candidate.provenance.identity for value in selected_values
-        )
+        selected_ids = _candidate_ids(selected_values)
         if classification_rejection is not None:
             rejections.append(
                 RejectedPathSummary(
@@ -681,15 +764,13 @@ def _expand_scientific_paths(
         is MaterializationStatus.RESOURCE_TRUNCATED
         for factor in factors
     )
-    truncated = truncated or factor_truncation
+    truncated = bool(search_heap) or factor_truncation
     frontier = []
-    if first_unexpanded is not None and max_frontier_paths > 0:
-        frontier.append(_frontier_for_selection(first_unexpanded))
-        for selected_values in itertools.islice(
-            iterator,
-            max_frontier_paths - 1,
-        ):
-            frontier.append(_frontier_for_selection(selected_values))
+    if max_frontier_paths > 0:
+        frontier.extend(
+            _frontier_for_node(node, decision_search)
+            for _, _, node in sorted(search_heap)[:max_frontier_paths]
+        )
     for factor in factors:
         if len(frontier) >= max_frontier_paths:
             break

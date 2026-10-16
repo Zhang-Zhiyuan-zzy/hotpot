@@ -212,6 +212,112 @@ def test_resource_limit_retains_a_frontier_and_refuses_certification() -> None:
     assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
 
 
+def test_prefix_frontier_compacts_an_unexpanded_cartesian_remainder() -> None:
+    facts, _, _ = _scientific_candidates()
+    charges = tuple(
+        NetChargeCandidateEvidence(
+            CandidateProvenance(
+                f"charge:{index:02d}",
+                StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+                "test",
+            ),
+            0,
+        )
+        for index in range(10)
+    )
+    electronic_states = tuple(
+        ElectronicStateCandidate(
+            CandidateProvenance(
+                f"spin:{index:02d}",
+                StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+                "test",
+            ),
+            charge.provenance.identity,
+            None,
+            facts.nuclear_charge_sum,
+            0,
+            1,
+            True,
+        )
+        for index, charge in enumerate(charges)
+    )
+    factors = _merge_candidate_proposals(
+        (
+            CandidateProposal(
+                "test:large-domain",
+                (
+                    ProposedCandidateFactor(
+                        FactorKey(ScientificQuantity.NET_CHARGE, "molecule"),
+                        "charge-domain-v1",
+                        tuple(
+                            ProposedCandidateValue(charge)
+                            for charge in charges
+                        ),
+                        CandidateDomainScope.EXHAUSTIVE,
+                        MaterializationStatus.COMPLETE,
+                        None,
+                    ),
+                    ProposedCandidateFactor(
+                        FactorKey(
+                            ScientificQuantity.ELECTRONIC_STATE,
+                            "molecule",
+                        ),
+                        "spin-domain-v1",
+                        tuple(
+                            ProposedCandidateValue(electronic)
+                            for electronic in electronic_states
+                        ),
+                        CandidateDomainScope.EXHAUSTIVE,
+                        MaterializationStatus.COMPLETE,
+                        None,
+                    ),
+                ),
+                (),
+            ),
+        ),
+        CandidateBudget(16, 128, 128),
+        (),
+    )[0]
+    charge_mapping = {
+        charge.provenance.identity: (f"charge-result:{index}",)
+        for index, charge in enumerate(charges)
+    }
+    electronic_mapping = {
+        electronic.provenance.identity: (f"spin-result:{index}",)
+        for index, electronic in enumerate(electronic_states)
+    }
+
+    paths, rejections, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=128,
+    )
+
+    assert len(paths) + len(rejections) == 1
+    assert 0 < len(frontier) < 99
+    assert len({bound.branch_identity for bound in frontier}) == len(frontier)
+    assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+
+    all_paths, all_rejections, all_frontier, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=128,
+        max_frontier_paths=128,
+    )
+
+    assert len(all_paths) + len(all_rejections) == 100
+    assert all_frontier == ()
+
+
 def test_provider_frontier_bound_reaches_the_expanded_space() -> None:
     facts, charge, electronic = _scientific_candidates()
     bound = FrontierBound(

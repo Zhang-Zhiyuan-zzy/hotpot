@@ -36,6 +36,10 @@ from .constraints import (
     _unconditional_constraint,
     _validate_coupled_candidate_sets,
 )
+from .coupling import (
+    _coupled_two_s_values,
+    _local_spin_subjects_form_partition,
+)
 from .derive import _derive_charge_values
 from .decision_search import (
     _DecisionBound,
@@ -278,6 +282,43 @@ def _active_constraint_rejection(
     return None
 
 
+def _prefix_constraint_rejection(
+    guarded_constraints: Tuple[GuardedCandidateConstraint, ...],
+    selected_values: Tuple[FactorCandidateValue, ...],
+    candidate_locations: Dict[str, int],
+) -> Optional[Tuple[str, str]]:
+    selected_ids = _candidate_ids(selected_values)
+    selected_assignments = tuple(
+        assignment
+        for value in selected_values
+        for assignment in value.branch_assignments
+    )
+    selected_depth = len(selected_values)
+    for guarded in guarded_constraints:
+        if not _guard_matches(
+            guarded,
+            selected_ids,
+            selected_assignments,
+        ):
+            continue
+        constraint = guarded.constraint
+        candidate_ids = _constraint_candidate_ids(constraint)
+        if constraint.constraint_type == "excludes_all":
+            if set(candidate_ids).issubset(selected_ids):
+                return constraint.identity, "CONSTRAINT.EXCLUDES_ALL"
+            continue
+        if constraint.constraint_type != "requires_all":
+            continue
+        for candidate_id in candidate_ids:
+            factor_index = candidate_locations.get(candidate_id)
+            if factor_index is None or (
+                factor_index < selected_depth
+                and candidate_id not in selected_ids
+            ):
+                return constraint.identity, "CONSTRAINT.REQUIRES_ALL"
+    return None
+
+
 def _merge_oxidation_states(
     facts: MolecularFacts,
     candidates: Tuple[OxidationStateCandidateEvidence, ...],
@@ -488,6 +529,28 @@ def _classify_selected_values(
                 oxidation_state,
                 molecular_contribution,
             )
+    local_spin_contributions = tuple(
+        candidate
+        for candidate in spin_contributions
+        if candidate.scope is not SpinContributionScope.MOLECULAR
+    )
+    if (
+        electronic_state is not None
+        and electronic_state.pure_spin
+        and local_spin_contributions
+        and all(candidate.pure_spin for candidate in local_spin_contributions)
+        and _local_spin_subjects_form_partition(
+            facts,
+            local_spin_contributions,
+        )
+        and electronic_state.two_s
+        not in _coupled_two_s_values(
+            tuple(
+                candidate.two_s for candidate in local_spin_contributions
+            )
+        )
+    ):
+        return None, "COMPOSITION.LOCAL_SPIN_COUPLING_CONFLICT"
     candidate_ids = base_candidate_ids + tuple(
         candidate.provenance.identity
         for candidate in computed_derived
@@ -975,6 +1038,11 @@ def _expand_scientific_paths(
         replace(factor, values=domain)
         for factor, domain in zip(factors, domains)
     )
+    candidate_locations = {
+        value.candidate.provenance.identity: factor_index
+        for factor_index, factor in enumerate(search_factors)
+        for value in factor.values
+    }
     search_heap: list[Tuple[Tuple[str, ...], str, _SearchNode]] = []
     _push_search_node(
         search_heap,
@@ -989,6 +1057,21 @@ def _expand_scientific_paths(
         if depth < len(domains):
             for value in domains[depth]:
                 selected_values = node.selected_values + (value,)
+                prefix_rejection = _prefix_constraint_rejection(
+                    guarded_constraints,
+                    selected_values,
+                    candidate_locations,
+                )
+                if prefix_rejection is not None:
+                    constraint_identity, reason = prefix_rejection
+                    rejections.append(
+                        RejectedPathSummary(
+                            _candidate_ids(selected_values),
+                            constraint_identity,
+                            (reason,),
+                        )
+                    )
+                    continue
                 _push_search_node(
                     search_heap,
                     _search_node(

@@ -35,6 +35,7 @@ from ._artifacts import (
 )
 from .candidate_space import _merge_candidate_proposals
 from .constraints import _molecular_subject_identity
+from .coupling import _local_spin_coupling_proposal
 from .contracts import (
     CandidateConstraint,
     CandidateDomainScope,
@@ -327,6 +328,29 @@ def _compose_scientific_state_space(
             direct_guarded_constraints,
         )
     )
+    coupling_proposal = _local_spin_coupling_proposal(
+        facts,
+        factors,
+        candidate_budget,
+    )
+    if coupling_proposal is not None:
+        _validate_candidate_proposal_budget(
+            coupling_proposal,
+            candidate_budget,
+        )
+        proposals.append(coupling_proposal)
+        _proposal_result_mappings(
+            (coupling_proposal,),
+            charge_result_ids,
+            electronic_result_ids,
+        )
+        factors, merged_constraints, all_guarded_constraints = (
+            _merge_candidate_proposals(
+                tuple(proposals),
+                candidate_budget,
+                direct_guarded_constraints,
+            )
+        )
     constraints_by_identity = {}
     for constraint in merged_constraints:
         incumbent = constraints_by_identity.get(constraint.identity)

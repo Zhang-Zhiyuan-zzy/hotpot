@@ -1174,6 +1174,82 @@ def test_atom_spin_contribution_does_not_resolve_molecular_state() -> None:
     assert status is CandidateSearchStatus.NO_CERTIFIED_DECISION
 
 
+def test_molecular_state_must_match_selected_local_spin_coupling() -> None:
+    facts, charge, electronic = _scientific_candidates()
+    atom_contribution = SpinContributionCandidate(
+        CandidateProvenance(
+            "spin:local-doublet",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        SpinContributionScope.ATOM,
+        f"atom:{facts.atom_map[0]}",
+        (),
+        1,
+        True,
+    )
+    closed_atoms = tuple(
+        SpinContributionCandidate(
+            CandidateProvenance(
+                f"spin:closed-atom:{atom_index}",
+                StateValueAuthority.DOMAIN_RULE,
+                "test",
+            ),
+            SpinContributionScope.ATOM,
+            f"atom:{facts.atom_map[atom_index]}",
+            (),
+            0,
+            True,
+        )
+        for atom_index in (1, 2)
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        _factor(ScientificQuantity.ELECTRONIC_STATE, electronic),
+        ProposedCandidateFactor(
+            FactorKey(
+                ScientificQuantity.ELECTRONIC_STATE,
+                atom_contribution.subject_identity,
+            ),
+            "atom-spin-contribution-v1",
+            (ProposedCandidateValue(atom_contribution),),
+            CandidateDomainScope.DOMAIN_BOUNDED,
+            MaterializationStatus.COMPLETE,
+            None,
+        ),
+        *(
+            ProposedCandidateFactor(
+                FactorKey(
+                    ScientificQuantity.ELECTRONIC_STATE,
+                    contribution.subject_identity,
+                ),
+                "atom-spin-contribution-v1",
+                (ProposedCandidateValue(contribution),),
+                CandidateDomainScope.DOMAIN_BOUNDED,
+                MaterializationStatus.COMPLETE,
+                None,
+            )
+            for contribution in closed_atoms
+        ),
+    )
+
+    paths, rejections, _, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {electronic.provenance.identity: ("electronic-result",)},
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert paths == ()
+    assert rejections[0].reason_codes == (
+        "COMPOSITION.LOCAL_SPIN_COUPLING_CONFLICT",
+    )
+
+
 def test_molecular_spin_contribution_preserves_hard_parity_validation() -> None:
     facts, charge, _ = _scientific_candidates()
     subject = f"molecule:{facts.identity.chemical_identity_digest}"

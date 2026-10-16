@@ -22,6 +22,12 @@ from .contracts import (
     ScientificAdmissibility,
     ScientificFinding,
 )
+from .oxidation_state import (
+    CoordinationCountingCandidate,
+    CountingConvention,
+    OxidationStateCandidateEvidence,
+    OxidationStateOverride,
+)
 
 __all__ = []
 
@@ -53,6 +59,25 @@ def _hard_failure(
     return _HardRuleAssessment(
         admissibility=ScientificAdmissibility.INADMISSIBLE,
         terminal_status=ResolutionStatus.CONFLICT if conflict else None,
+        findings=(
+            ScientificFinding(
+                code=code,
+                message=message,
+                related_identities=related_identities,
+            ),
+        ),
+    )
+
+
+def _hard_not_evaluated(
+    code: str,
+    message: str,
+    *,
+    related_identities: Tuple[str, ...] = (),
+) -> _HardRuleAssessment:
+    return _HardRuleAssessment(
+        admissibility=ScientificAdmissibility.NOT_EVALUATED,
+        terminal_status=None,
         findings=(
             ScientificFinding(
                 code=code,
@@ -225,3 +250,179 @@ def _validate_charge_conservation(
     if not assessments:
         return _HARD_PASS
     return _merge_hard_rule_assessments(tuple(assessments))
+
+
+# HARD-005: coordination-counting convention exclusivity.
+
+
+def _validate_counting_candidate(
+    candidate: CoordinationCountingCandidate,
+) -> _HardRuleAssessment:
+    mixed_components = []
+    for fragment in candidate.fragments:
+        mixed = (
+            candidate.convention is CountingConvention.IONIC
+            and fragment.lxz_class is not None
+        ) or (
+            candidate.convention is CountingConvention.DONOR_RETURN
+            and (
+                fragment.ionic_bookkeeping_charge is not None
+                or fragment.lxz_class is not None
+            )
+        ) or (
+            candidate.convention is CountingConvention.CBC
+            and fragment.ionic_bookkeeping_charge is not None
+        )
+        if mixed:
+            mixed_components.append(fragment.component_identity)
+
+    if not mixed_components:
+        return _HARD_PASS
+    return _hard_failure(
+        "HARD-005.MIXED_COUNTING_FIELDS",
+        "One coordination-counting candidate mixes incompatible conventions.",
+        related_identities=(
+            candidate.provenance.identity,
+            *tuple(mixed_components),
+        ),
+    )
+
+
+def _validate_counting_reference(
+    oxidation_candidate: OxidationStateCandidateEvidence,
+    counting_candidates: Tuple[CoordinationCountingCandidate, ...],
+) -> _HardRuleAssessment:
+    reference = oxidation_candidate.coordination_counting_candidate_identity
+    if reference is None:
+        return _HARD_PASS
+
+    matches = tuple(
+        candidate
+        for candidate in counting_candidates
+        if candidate.provenance.identity == reference
+    )
+    if len(matches) != 1:
+        return _hard_failure(
+            "HARD-005.COUNTING_REFERENCE_MISSING",
+            "Oxidation-state evidence does not reference exactly one counting candidate.",
+            related_identities=(
+                oxidation_candidate.provenance.identity,
+                reference,
+            ),
+        )
+    if matches[0].convention is not oxidation_candidate.convention:
+        return _hard_failure(
+            "HARD-005.COUNTING_CONVENTION_MISMATCH",
+            "Oxidation-state and coordination-counting conventions differ.",
+            related_identities=(
+                oxidation_candidate.provenance.identity,
+                reference,
+            ),
+        )
+    return _HARD_PASS
+
+
+# HARD-004: oxidation-state conservation and explicit overrides.
+
+
+def _validate_oxidation_state_conservation(
+    facts: MolecularFacts,
+    net_charge: NetChargeCandidateEvidence,
+    candidate: OxidationStateCandidateEvidence,
+) -> _HardRuleAssessment:
+    atom_states = candidate.atom_states
+    valid_values = all(
+        oxidation_state is None or type(oxidation_state) is int
+        for oxidation_state in atom_states
+    )
+    complete_coverage = (
+        len(atom_states) == len(facts.atomic_numbers)
+        and all(oxidation_state is not None for oxidation_state in atom_states)
+    )
+    if len(atom_states) != len(facts.atomic_numbers) or not valid_values or (
+        candidate.coverage is CoverageStatus.COMPLETE and not complete_coverage
+    ):
+        return _hard_failure(
+            "HARD-004.OS_COVERAGE_INVALID",
+            "Oxidation-state evidence has invalid values or atom coverage.",
+            related_identities=(candidate.provenance.identity,),
+        )
+    if (
+        type(net_charge.charge) is int
+        and candidate.coverage is CoverageStatus.COMPLETE
+        and sum(
+            oxidation_state
+            for oxidation_state in atom_states
+            if oxidation_state is not None
+        )
+        != net_charge.charge
+    ):
+        return _hard_failure(
+            "HARD-004.OS_SUM_MISMATCH",
+            "Complete atom oxidation states do not sum to molecular net charge.",
+            conflict=True,
+            related_identities=(
+                net_charge.provenance.identity,
+                candidate.provenance.identity,
+            ),
+        )
+    return _HARD_PASS
+
+
+def _validate_oxidation_overrides(
+    facts: MolecularFacts,
+    overrides: Tuple[OxidationStateOverride, ...],
+    complete_candidates: Tuple[OxidationStateCandidateEvidence, ...],
+) -> _HardRuleAssessment:
+    override_values = {}
+    for override in overrides:
+        if (
+            type(override.atom_index) is not int
+            or not 0 <= override.atom_index < len(facts.atomic_numbers)
+            or type(override.oxidation_state) is not int
+        ):
+            return _hard_failure(
+                "HARD-004.OS_OVERRIDE_INVALID",
+                "Oxidation-state override has an invalid atom index or value.",
+            )
+        incumbent = override_values.get(override.atom_index)
+        if incumbent is not None and incumbent != override.oxidation_state:
+            return _hard_failure(
+                "HARD-007.OS_OVERRIDE_CONFLICT",
+                "Explicit oxidation-state overrides conflict on one atom.",
+                conflict=True,
+            )
+        override_values[override.atom_index] = override.oxidation_state
+
+    if not overrides:
+        return _HARD_PASS
+
+    eligible_candidates = tuple(
+        candidate
+        for candidate in complete_candidates
+        if candidate.coverage is CoverageStatus.COMPLETE
+        and len(candidate.atom_states) == len(facts.atomic_numbers)
+        and all(state is not None for state in candidate.atom_states)
+    )
+    if not eligible_candidates:
+        return _hard_not_evaluated(
+            "HARD-004.OS_OVERRIDE_EXTENSION_NOT_EVALUATED",
+            "No complete oxidation-state candidate is available to test overrides.",
+        )
+
+    if any(
+        all(
+            candidate.atom_states[atom_index] == oxidation_state
+            for atom_index, oxidation_state in override_values.items()
+        )
+        for candidate in eligible_candidates
+    ):
+        return _HARD_PASS
+    return _hard_failure(
+        "HARD-007.OS_OVERRIDE_EMPTY_INTERSECTION",
+        "No complete oxidation-state candidate extends all explicit overrides.",
+        conflict=True,
+        related_identities=tuple(
+            candidate.provenance.identity for candidate in eligible_candidates
+        ),
+    )

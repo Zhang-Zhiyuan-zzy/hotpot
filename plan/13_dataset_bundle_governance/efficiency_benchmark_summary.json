@@ -1,0 +1,74 @@
+{
+  "schema": "hotpot-ds-efficiency-benchmark-summary/current",
+  "baseline_commit": "80ce620",
+  "optimized_commit": "f3f7207",
+  "configuration": {
+    "cases": 1000,
+    "edits": 8,
+    "python_hash_seed": "0",
+    "trials_per_variant": 3
+  },
+  "reliability": {
+    "assessment_count": 1000,
+    "case_count": 1000,
+    "foreign_key_violations": 0,
+    "integrity_check": "ok",
+    "semantic_sha256": "45baabb87c420460cc485cccd10046b767dd61f671ad64f0593430e2bb5abdb4",
+    "semantic_projection_scope": [
+      "case_count",
+      "assessment_count",
+      "assessment_levels_and_archive_class",
+      "integrity_and_foreign_keys"
+    ],
+    "full_real_data_parity_required_separately": true
+  },
+  "median_wall_seconds": {
+    "build": {
+      "baseline": 1.01310522,
+      "optimized": 1.385554813,
+      "speedup": 0.7311910077425424,
+      "change_percent": 36.763169870943926
+    },
+    "mutation": {
+      "baseline": 0.556340207,
+      "optimized": 0.530541553,
+      "speedup": 1.0486270186644548,
+      "change_percent": -4.637208254121372
+    },
+    "synchronize": {
+      "baseline": 12.817590727,
+      "optimized": 2.317947399,
+      "speedup": 5.5297159601334,
+      "change_percent": -81.91588849753731
+    },
+    "certify": {
+      "baseline": 7.105519153,
+      "optimized": 1.049509056,
+      "speedup": 6.770326670720982,
+      "change_percent": -85.2296639640062
+    },
+    "ingest": {
+      "baseline": 16.393001905,
+      "optimized": 3.576061117,
+      "speedup": 4.584094446001046,
+      "change_percent": -78.18544072816051
+    },
+    "phase_sum": {
+      "baseline": 37.885557212,
+      "optimized": 8.859613938,
+      "speedup": 4.276208588446961,
+      "change_percent": -76.61479838234034
+    }
+  },
+  "median_peak_rss_kib": {
+    "baseline": 230528,
+    "optimized": 224616,
+    "change_percent": -2.5645474736257667
+  },
+  "limitations": [
+    "Wall-clock values are three-trial synthetic medians and are not extrapolated to CSD scale.",
+    "Peak RSS is process-wide rather than phase-specific.",
+    "The synthetic semantic projection is partial; the real rebuild parity artifact is authoritative for full-data reliability."
+  ],
+  "raw_results": "efficiency_benchmark_results.jsonl"
+}

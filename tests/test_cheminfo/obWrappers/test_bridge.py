@@ -22,8 +22,12 @@ from hotpot.cheminfo.obWrappers import (
 
 EXTRACTANT_FILE = (
     Path(__file__).resolve().parents[3]
-    / "molecules"
-    / "extractant"
+    / "hotpot"
+    / "dataset"
+    / "data"
+    / "sources"
+    / "formal-charge"
+    / "structures"
     / "extractants.smi"
 )
 PHOSPHORUS_CASES = frozenset(
@@ -114,6 +118,10 @@ def test_phosphorus_build_rule_preserves_topology_and_removes_linear_geometry():
         ) > 1.0e-3
 
 
+@pytest.mark.skipif(
+    not EXTRACTANT_FILE.is_file(),
+    reason="the governed extractant dataset is not installed locally",
+)
 def test_all_extractant_phosphorus_centers_build_and_optimize_finitely():
     smiles_by_case = {
         index: smiles

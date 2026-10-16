@@ -48,6 +48,18 @@ requires_extractant_dataset = pytest.mark.skipif(
 )
 
 
+def test_builtin_extractant_suite_metadata_is_hermetic() -> None:
+    eu_suite = BUILTIN_SUITES["extractants-eu-187"]
+    am_suite = BUILTIN_SUITES["extractants-am-187"]
+    expected_path = (
+        Path(__file__).resolve().parents[3]
+        / "hotpot/dataset/data/sources/formal-charge/structures/extractants.smi"
+    )
+
+    assert eu_suite.input_path == am_suite.input_path == expected_path
+    assert eu_suite.expected_count == am_suite.expected_count == 187
+
+
 @requires_extractant_dataset
 def test_builtin_extractant_suite_has_187_records() -> None:
     suite = BUILTIN_SUITES["extractants-eu-187"]

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import zlib
 from pathlib import Path
 
 import pytest
@@ -187,6 +188,71 @@ def test_cleanup_rejects_corrupt_compressed_target_facts(tmp_path: Path) -> None
         remove_bundle_intermediates(root, "demo", database)
     assert (root / "cases" / "facts.sqlite3").is_file()
     assert not (root / "bundle-cleanup.json").exists()
+
+
+def test_resumed_cleanup_revalidates_target_before_deletion(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _bundle, root, database = _sealed_bundle(tmp_path)
+    unlink = cleanup_module._unlink_inventory
+    monkeypatch.setattr(
+        cleanup_module,
+        "_unlink_inventory",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("interrupted")),
+    )
+    with pytest.raises(RuntimeError, match="interrupted"):
+        remove_bundle_intermediates(root, "demo", database)
+    cleanup = json.loads((root / "bundle-cleanup.json").read_text(encoding="utf-8"))
+    assert cleanup["state"] == "planned"
+    monkeypatch.setattr(cleanup_module, "_unlink_inventory", unlink)
+
+    store = TargetStore(database)
+    with store._connect() as connection:
+        row = connection.execute(
+            "SELECT source_payload_blob FROM cases"
+        ).fetchone()
+        facts = json.loads(zlib.decompress(row["source_payload_blob"]))
+        facts["core_info"]["sample"] = "changed-after-plan"
+        canonical = cleanup_module._canonical_bytes(facts)
+        connection.execute(
+            "UPDATE cases SET source_payload_blob=?,source_payload_digest=?",
+            (zlib.compress(canonical, level=6), hashlib.sha256(canonical).digest()),
+        )
+        connection.commit()
+
+    with pytest.raises(BundleCleanupError, match="target changed"):
+        remove_bundle_intermediates(root, "demo", database)
+    assert (root / "cases" / "facts.sqlite3").is_file()
+    assert json.loads(
+        (root / "bundle-cleanup.json").read_text(encoding="utf-8")
+    )["state"] == "planned"
+
+
+def test_resumed_cleanup_revalidates_certificate_before_deletion(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _bundle, root, database = _sealed_bundle(tmp_path)
+    unlink = cleanup_module._unlink_inventory
+    monkeypatch.setattr(
+        cleanup_module,
+        "_unlink_inventory",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("interrupted")),
+    )
+    with pytest.raises(RuntimeError, match="interrupted"):
+        remove_bundle_intermediates(root, "demo", database)
+    monkeypatch.setattr(cleanup_module, "_unlink_inventory", unlink)
+
+    certificate = root / "certificate.json"
+    certificate.write_bytes(certificate.read_bytes() + b" ")
+
+    with pytest.raises(BundleCleanupError, match="certificate"):
+        remove_bundle_intermediates(root, "demo", database)
+    assert (root / "cases" / "facts.sqlite3").is_file()
+    assert json.loads(
+        (root / "bundle-cleanup.json").read_text(encoding="utf-8")
+    )["state"] == "planned"
 
 
 def test_idempotent_cleanup_manifest_cannot_expand_the_delete_allowlist(

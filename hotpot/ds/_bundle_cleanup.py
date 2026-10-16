@@ -208,7 +208,28 @@ def _read_json(path: Path, description: str) -> dict[str, Any]:
     return value
 
 
-def _target_audit(store: TargetStore) -> dict[str, Any]:
+def _query_digest(
+    connection,
+    query: str,
+    parameters: tuple[Any, ...],
+) -> str:
+    digest = hashlib.sha256()
+    digest.update(b"[")
+    first = True
+    for row in connection.execute(query, parameters):
+        if not first:
+            digest.update(b",")
+        digest.update(_canonical_bytes(dict(row)))
+        first = False
+    digest.update(b"]")
+    return digest.hexdigest()
+
+
+def _target_audit(
+    store: TargetStore,
+    dataset: str,
+    release_id: str,
+) -> dict[str, Any]:
     if store.asset_root.is_symlink() or not store.asset_root.is_dir():
         raise BundleCleanupError("target asset root is not a regular directory")
     with store._connect() as connection:
@@ -222,9 +243,22 @@ def _target_audit(store: TargetStore) -> dict[str, Any]:
             "SELECT content_sha256,size,relative_path FROM target_assets "
             "ORDER BY content_sha256"
         ).fetchall()
+        release_assets = {
+            row["content_sha256"]
+            for row in connection.execute(
+                "SELECT content_sha256 FROM structure_asset_refs "
+                "WHERE dataset_id=? AND release_id=? UNION "
+                "SELECT content_sha256 FROM scientific_asset_refs "
+                "WHERE dataset_id=? AND release_id=? UNION "
+                "SELECT content_sha256 FROM release_control_asset_refs "
+                "WHERE dataset_id=? AND release_id=?",
+                (dataset, release_id, dataset, release_id, dataset, release_id),
+            )
+        }
         case_count = 0
         for row in connection.execute(
-            "SELECT source_payload_blob,source_payload_digest FROM cases "
+            "SELECT dataset_id,release_id,source_payload_blob,source_payload_digest "
+            "FROM cases "
             "ORDER BY dataset_id,release_id,public_index,case_id"
         ):
             try:
@@ -236,8 +270,66 @@ def _target_audit(store: TargetStore) -> dict[str, Any]:
                 raise BundleCleanupError(
                     "target store contains corrupt compressed Case facts"
                 ) from error
-            case_count += 1
+            if row["dataset_id"] == dataset and row["release_id"] == release_id:
+                case_count += 1
+        release_content_sha256 = _value_digest(
+            {
+                "release": _query_digest(
+                    connection,
+                    "SELECT d.dataset_id,d.title,d.description,d.metadata_json,"
+                    "r.release_id,r.version,r.release_serial,r.metadata_json AS "
+                    "release_metadata_json FROM datasets d JOIN releases r "
+                    "USING(dataset_id) WHERE d.dataset_id=? AND r.release_id=?",
+                    (dataset, release_id),
+                ),
+                "policy": _query_digest(
+                    connection,
+                    "SELECT revision,policy_digest,policy_json FROM dataset_policies "
+                    "WHERE dataset_id=?",
+                    (dataset,),
+                ),
+                "cases": _query_digest(
+                    connection,
+                    "SELECT c.case_id,c.public_index,c.local_id,"
+                    "hex(c.source_payload_digest) AS source_payload_digest,"
+                    "a.quality_level,a.evidence_level,a.archive_class,a.benchmark,"
+                    "a.benchmark_status,a.reasons_json FROM cases c JOIN "
+                    "case_assessments a USING(dataset_id,release_id,case_id) "
+                    "WHERE c.dataset_id=? AND c.release_id=? "
+                    "ORDER BY c.public_index,c.case_id",
+                    (dataset, release_id),
+                ),
+                "identifiers": _query_digest(
+                    connection,
+                    "SELECT case_id,namespace,value FROM identifiers WHERE "
+                    "dataset_id=? AND release_id=? ORDER BY case_id,namespace,value",
+                    (dataset, release_id),
+                ),
+                "structures": _query_digest(
+                    connection,
+                    "SELECT case_id,structure_id,format,role,is_primary,content_sha256 "
+                    "FROM structure_asset_refs WHERE dataset_id=? AND release_id=? "
+                    "ORDER BY case_id,structure_id,format,role,content_sha256",
+                    (dataset, release_id),
+                ),
+                "scientific_assets": _query_digest(
+                    connection,
+                    "SELECT case_id,collection,declaration_id,asset_index,role,status,"
+                    "content_sha256 FROM scientific_asset_refs WHERE dataset_id=? "
+                    "AND release_id=? ORDER BY case_id,collection,declaration_id,"
+                    "asset_index",
+                    (dataset, release_id),
+                ),
+                "control_assets": _query_digest(
+                    connection,
+                    "SELECT category,name,content_sha256 FROM release_control_asset_refs "
+                    "WHERE dataset_id=? AND release_id=? ORDER BY category,name",
+                    (dataset, release_id),
+                ),
+            }
+        )
     total = 0
+    release_asset_count = 0
     for row in assets:
         relative = f"objects/sha256/{row['content_sha256'][:2]}/{row['content_sha256']}"
         if row["relative_path"] != relative:
@@ -246,12 +338,15 @@ def _target_audit(store: TargetStore) -> dict[str, Any]:
         digest, size = _hash_regular_file(path)
         if digest != row["content_sha256"] or size != row["size"]:
             raise BundleCleanupError(f"target-owned asset failed integrity check: {path}")
-        total += size
+        if row["content_sha256"] in release_assets:
+            total += size
+            release_asset_count += 1
     return {
         "store_uuid": metadata["store_uuid"],
-        "asset_count": len(assets),
+        "asset_count": release_asset_count,
         "asset_bytes": total,
         "case_count": case_count,
+        "release_content_sha256": release_content_sha256,
     }
 
 
@@ -281,6 +376,86 @@ def _local_receipt_binding(
     return dict(receipt), hashlib.sha256(
         (root / "ingestion-receipt.json").read_bytes()
     ).hexdigest()
+
+
+def _sealed_target_binding(
+    root: Path,
+    dataset: str,
+    release_id: str,
+    database: Path,
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    str,
+    str,
+]:
+    """Re-prove the durable authority required before deleting Bundle data."""
+
+    if not database.is_file():
+        raise BundleCleanupError("authoritative target store is missing")
+    store = TargetStore(database)
+    try:
+        target_audit = _target_audit(store, dataset, release_id)
+        release = store.load_release_metadata(dataset, release_id)
+        if release is None:
+            raise BundleCleanupError(
+                "authoritative target release disappeared during cleanup"
+            )
+        authoritative, local_receipt_sha256 = _local_receipt_binding(root, release)
+        certificate_sha256 = certificate_digest(root / "certificate.json")
+    except BundleCleanupError:
+        raise
+    except Exception as error:
+        raise BundleCleanupError(
+            "authoritative target, receipt, or certificate failed integrity validation"
+        ) from error
+    if target_audit["store_uuid"] != authoritative.get("store_uuid"):
+        raise BundleCleanupError("authoritative receipt names another target store")
+    if certificate_sha256 != authoritative.get("certificate_digest"):
+        raise BundleCleanupError("certificate does not match the authoritative receipt")
+    return (
+        target_audit,
+        authoritative,
+        local_receipt_sha256,
+        certificate_sha256,
+    )
+
+
+def _revalidate_planned_cleanup(
+    root: Path,
+    document: Mapping[str, Any],
+    dataset: str,
+    database: Path,
+) -> None:
+    """Reject a resumed cleanup unless every durable binding still holds."""
+
+    locator = document["bundle"]
+    (
+        target_audit,
+        authoritative,
+        local_receipt_sha256,
+        certificate_sha256,
+    ) = _sealed_target_binding(
+        root,
+        dataset,
+        str(locator["release_id"]),
+        database,
+    )
+    receipt = document["receipt"]
+    if dict(document["target_audit"]) != target_audit:
+        raise BundleCleanupError(
+            "authoritative target changed after cleanup was planned"
+        )
+    if (
+        receipt["receipt_id"] != authoritative.get("receipt_id")
+        or receipt["receipt_sha256"] != _value_digest(authoritative)
+        or receipt["local_receipt_sha256"] != local_receipt_sha256
+        or receipt["certificate_sha256"] != certificate_sha256
+        or receipt["store_uuid"] != authoritative.get("store_uuid")
+    ):
+        raise BundleCleanupError(
+            "authoritative receipt or certificate changed after cleanup was planned"
+        )
 
 
 def _walk_files(directory: Path) -> Iterator[Path]:
@@ -467,7 +642,11 @@ def _validate_cleanup_manifest(
             raise BundleCleanupError("bundle-cleanup.json receipt digest is invalid")
     target_audit = document["target_audit"]
     if not isinstance(target_audit, Mapping) or set(target_audit) != {
-        "store_uuid", "asset_count", "asset_bytes", "case_count"
+        "store_uuid",
+        "asset_count",
+        "asset_bytes",
+        "case_count",
+        "release_content_sha256",
     }:
         raise BundleCleanupError("bundle-cleanup.json target audit is invalid")
     if target_audit["store_uuid"] != receipt["store_uuid"]:
@@ -479,6 +658,13 @@ def _validate_cleanup_manifest(
         for name in ("asset_count", "asset_bytes", "case_count")
     ):
         raise BundleCleanupError("bundle-cleanup.json target counts are invalid")
+    digest = target_audit["release_content_sha256"]
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+    ):
+        raise BundleCleanupError("bundle-cleanup.json target digest is invalid")
 
     deleted = document["deleted"]
     if (
@@ -628,6 +814,12 @@ def remove_bundle_intermediates(
             _validate_cleanup_manifest(bundle_root, document, dataset, target)
             already_clean = document["state"] == "complete"
             with _generation_locks(bundle_root):
+                _revalidate_planned_cleanup(
+                    bundle_root,
+                    document,
+                    dataset,
+                    target,
+                )
                 _unlink_inventory(bundle_root, document["deleted"])
             if not already_clean:
                 document = dict(document)
@@ -645,17 +837,19 @@ def remove_bundle_intermediates(
                 "Bundle cleanup requires a successfully ingested sealed release"
             )
         release_id = str(bundle._state.manifest["release_id"])
-        store = TargetStore(target)
-        target_audit = _target_audit(store)
-        release = store.load_release_metadata(dataset, release_id)
-        if release is None:
-            raise BundleCleanupError("authoritative target release disappeared during cleanup")
-        authoritative, local_receipt_sha256 = _local_receipt_binding(bundle_root, release)
+        (
+            target_audit,
+            authoritative,
+            local_receipt_sha256,
+            certificate_sha256,
+        ) = _sealed_target_binding(
+            bundle_root,
+            dataset,
+            release_id,
+            target,
+        )
         if authoritative != receipt:
             raise BundleCleanupError("authoritative receipt changed during cleanup validation")
-        certificate_sha256 = certificate_digest(bundle.certificate_path)
-        if certificate_sha256 != receipt["certificate_digest"]:
-            raise BundleCleanupError("certificate does not match the authoritative receipt")
         manifest = bundle._state.manifest
         candidates = _candidate_paths(
             bundle_root,

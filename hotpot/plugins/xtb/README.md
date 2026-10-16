@@ -15,13 +15,13 @@ Run a GFN2-xTB optimization:
 
 ```bash
 $ hotpot xtb input.sdf --method gfn2 --task optimize \
-    --output optimized.sdf --report optimized.json
+    --charge 0 --output optimized.sdf --report optimized.json
 ```
 
 Compose independent GFN-FF and GFN2-xTB nodes through a pure SDF stream:
 
 ```bash
-$ hotpot xtb input.sdf --method gfnff --task optimize \
+$ hotpot xtb input.sdf --method gfnff --task optimize --charge 0 \
     | hotpot xtb - --input-format sdf --method gfn2 --task optimize \
     > refined.sdf
 ```
@@ -32,41 +32,78 @@ Native stdout and stderr are not mixed with the molecular stream. Use
 
 ## Python use
 
-GFN-FF requires a complete explicit-atom 3D structure and a total charge. The
-charge may be explicit or inferred by Hotpot:
+GFN-FF requires a complete explicit-atom 3D structure and a validated backend
+state projection:
 
 <!-- Verified by tests/test_plugin/test_xtb/test_official_integration.py::test_official_gfnff_wrapper_matches_direct_cli_energy -->
 
 ```python
 import hotpot
-from hotpot.plugins.xtb import XTBTask, run_gfnff
+from hotpot.cheminfo.calculator import (
+    StateRequest,
+    extract_molecular_facts,
+    resolve_and_project_state,
+)
+from hotpot.plugins.xtb import (
+    XTBBackendContext,
+    XTBMethod,
+    XTBTask,
+    probe_xtb_backend,
+    run_gfnff,
+)
 
 mol = hotpot.read_mol("input.sdf")
+backend = probe_xtb_backend()
+resolved = resolve_and_project_state(
+    extract_molecular_facts(mol),
+    XTBBackendContext(backend, XTBMethod.GFNFF),
+    StateRequest(net_charge=0),
+)
 report = run_gfnff(
     mol,
+    state=resolved.backend_projection.projection,
     task=XTBTask.OPTIMIZE,
-    charge=0,
+    executable=backend.executable,
 )
 print(report.energy_hartree)
 ```
 
-GFN-xTB additionally requires an unpaired-electron count. Explicit values are
-authoritative; otherwise Hotpot resolves charge and applies its documented
-lowest-spin parity policy:
+GFN-xTB additionally requires a legal UHF projection. An explicit backend UHF
+is separate from the scientific molecular spin:
 
 <!-- Verified by tests/test_plugin/test_xtb/test_official_integration.py::test_official_gfn2_wrapper_matches_direct_cli_energy -->
 
 ```python
 import hotpot
-from hotpot.plugins.xtb import GFNXTBMethod, XTBTask, run_gfn_xtb
+from hotpot.cheminfo.calculator import (
+    BackendStateRequest,
+    StateRequest,
+    extract_molecular_facts,
+    resolve_and_project_state,
+)
+from hotpot.plugins.xtb import (
+    GFNXTBMethod,
+    XTBBackendContext,
+    XTBMethod,
+    XTBTask,
+    probe_xtb_backend,
+    run_gfn_xtb,
+)
 
 mol = hotpot.read_mol("input.sdf")
+backend = probe_xtb_backend()
+resolved = resolve_and_project_state(
+    extract_molecular_facts(mol),
+    XTBBackendContext(backend, XTBMethod.GFN2_XTB),
+    StateRequest(net_charge=0),
+    backend_request=BackendStateRequest(uhf=0),
+)
 report = run_gfn_xtb(
     mol,
+    state=resolved.backend_projection.projection,
     method=GFNXTBMethod.GFN2_XTB,
     task=XTBTask.SINGLEPOINT,
-    charge=0,
-    unpaired_electrons=0,
+    executable=backend.executable,
 )
 ```
 
@@ -78,8 +115,8 @@ commits coordinates.
 
 | API | Purpose |
 |---|---|
-| `run_gfnff(mol, *, ...) -> XTBRunReport` | Execute one independent GFN-FF node with charge inference or an explicit charge. |
-| `run_gfn_xtb(mol, *, ...) -> XTBRunReport` | Execute one independent GFN0/1/2-xTB node with a resolved electronic state. |
+| `run_gfnff(mol, *, state, ...) -> XTBRunReport` | Execute one independent GFN-FF node with a validated backend projection. |
+| `run_gfn_xtb(mol, *, state, ...) -> XTBRunReport` | Execute one independent GFN0/1/2-xTB node with a validated backend projection. |
 | `probe_xtb_backend(executable=None, ...) -> XTBBackendInfo` | Resolve and identify an official executable and its verified capability facts. |
 | `run_xtb(request) -> XTBRunReport` | Perform one low-level native invocation in an existing workspace. It does not parse numerical results or mutate a molecule. |
 | `molecule_to_xtb_geometry(mol) -> XTBGeometry` | Extract immutable symbols and Cartesian coordinates. |
@@ -90,7 +127,7 @@ commits coordinates.
 | `validate_element_support(backend_info, method, atomic_numbers)` | Reject unsupported method/element combinations before execution. |
 
 `XTBRunReport` separates process success, xTB convergence, parsed energy,
-coordinate commit, inferred-state provenance, retained artifacts, and backend
+coordinate commit, scientific-state identity, retained artifacts, and backend
 identity. Failures are explicit subclasses of `XTBError`; methods are never
 silently substituted.
 
@@ -103,6 +140,8 @@ hotpot/plugins/xtb/
 ├── capabilities.py    # Versioned method/element applicability
 ├── adapter.py         # Molecule/XYZ conversion and result parsing
 ├── runner.py          # One low-level native invocation
+├── state_projection.py # Exact xTB backend projection context
+├── state_resolution.py # Shared CLI and pipeline state wiring
 ├── workflow.py        # Independent GFN-FF and GFN-xTB Python nodes
 ├── stream.py          # Versioned SDF metadata and provenance codec
 ├── stage.py           # Controlled-pipeline adapter
@@ -149,8 +188,9 @@ the same abstraction.
   The xTB node does not build a bare SMILES.
 - GFN-FF accepts total charge but no spin option. GFN0/1/2-xTB use both charge
   and unpaired-electron count.
-- Automatic spin resolution is only a lowest-spin parity assumption. It is not
-  oxidation-state or ligand-field inference.
+- The lowest parity-compatible UHF is an execution-only fallback when the
+  selected scientific path has no resolved molecular spin. It is not a
+  scientific oxidation-state or ligand-field inference.
 - The stable official xTB 6.7.1 backend supports GFN0/1/2-xTB and its bundled
   GFN-FF parameters only through radon (`Z <= 86`). An unsupported element is
   rejected before launch.

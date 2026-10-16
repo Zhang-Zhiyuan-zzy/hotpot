@@ -56,7 +56,7 @@ def _stage_specs(
             ),
         ),
     ]
-    xtb_options = _xtb_options(executable)
+    xtb_options = _xtb_options(executable, charge=2)
     if include_gfnff:
         specs.append(
             StageSpec(
@@ -73,10 +73,12 @@ def _stage_specs(
     return tuple(specs)
 
 
-def _xtb_options(executable: Path) -> tuple[str, ...]:
+def _xtb_options(executable: Path, *, charge: int) -> tuple[str, ...]:
     return (
         "--xtb-executable",
         str(executable),
+        "--charge",
+        str(charge),
         "--threads",
         "1",
         "--post-check",
@@ -85,7 +87,7 @@ def _xtb_options(executable: Path) -> tuple[str, ...]:
 
 
 def _readme_stage_specs(executable: Path) -> tuple[StageSpec, ...]:
-    xtb_options = _xtb_options(executable)
+    xtb_options = _xtb_options(executable, charge=3)
     return (
         StageSpec("cbond", ("Eu", "O=C(O)C", "--device", "cpu")),
         StageSpec(
@@ -132,10 +134,8 @@ def test_official_controlled_coordination_pipeline(
     assert result.status.value == "succeeded"
     assert result.payload is not None
     assert len(result.payload.records) == 1
-    state = result.payload.records[0].electronic_state
+    state = result.payload.records[0].scientific_state
     assert state is not None
-    assert state.charge == 2
-    assert state.unpaired_electrons == 0
 
     manifest_path = results_directory / "manifest.json"
     final_path = results_directory / "final.sdf"
@@ -180,10 +180,10 @@ def test_official_controlled_coordination_pipeline(
     assert all(math.isfinite(report["energy_hartree"]) for report in xtb_reports)
     assert all(report["backend"]["version"] for report in xtb_reports)
     assert all(
-        report["electronic_state"]["charge"] == 2 for report in xtb_reports
+        report["charge"] == 2 for report in xtb_reports
     )
     assert all(
-        report["electronic_state"]["unpaired_electrons"] == 0
+        report["unpaired_electrons"] == 0
         for report in xtb_reports
     )
     assert all(
@@ -214,10 +214,8 @@ def test_official_readme_europium_pipeline(tmp_path: Path) -> None:
     assert result.status.value == "succeeded"
     assert result.payload is not None
     assert len(result.payload.records) == 1
-    state = result.payload.records[0].electronic_state
+    state = result.payload.records[0].scientific_state
     assert state is not None
-    assert state.charge == 3
-    assert state.unpaired_electrons == 0
 
     manifest = json.loads(
         (results_directory / "manifest.json").read_text(encoding="utf-8")
@@ -249,10 +247,10 @@ def test_official_readme_europium_pipeline(tmp_path: Path) -> None:
     assert all(report["coordinates_committed"] for report in xtb_reports)
     assert all(math.isfinite(report["energy_hartree"]) for report in xtb_reports)
     assert all(
-        report["electronic_state"]["charge"] == 3 for report in xtb_reports
+        report["charge"] == 3 for report in xtb_reports
     )
     assert all(
-        report["electronic_state"]["unpaired_electrons"] == 0
+        report["unpaired_electrons"] == 0
         for report in xtb_reports
     )
     assert all(

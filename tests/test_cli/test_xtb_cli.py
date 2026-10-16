@@ -102,7 +102,8 @@ def test_parser_defaults_and_documented_choices() -> None:
     assert args.task == "optimize"
     assert args.charge is None
     assert args.unpaired_electrons is None
-    assert args.charge_model == "valence"
+    assert args.state_policy == "strict"
+    assert not hasattr(args, "charge_model")
     assert args.input_format is None
     assert args.output_format == "sdf"
     assert args.output is None
@@ -122,8 +123,8 @@ def test_parser_defaults_and_documented_choices() -> None:
             "gfnff",
             "--task",
             "singlepoint",
-            "--charge-model",
-            "preserve",
+            "--state-policy",
+            "coordination-screening-v1",
             "--post-check",
             "strict",
             "--jobs",
@@ -132,7 +133,7 @@ def test_parser_defaults_and_documented_choices() -> None:
     )
     assert explicit.method == "gfnff"
     assert explicit.task == "singlepoint"
-    assert explicit.charge_model == "preserve"
+    assert explicit.state_policy == "coordination-screening-v1"
     assert explicit.post_check == "strict"
     assert explicit.jobs == 2
 
@@ -142,7 +143,7 @@ def test_parser_defaults_and_documented_choices() -> None:
     (
         ("--method", "unknown"),
         ("--task", "unknown"),
-        ("--charge-model", "unknown"),
+        ("--state-policy", "unknown"),
         ("--post-check", "unknown"),
         ("--jobs", "0"),
         ("--threads", "0"),

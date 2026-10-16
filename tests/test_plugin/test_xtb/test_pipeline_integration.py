@@ -60,6 +60,8 @@ def test_standalone_shell_composes_gfnff_then_gfn2_as_pure_sdf(
         "sdf",
         "--xtb-executable",
         str(executable),
+        "--charge",
+        "0",
     )
     gfnff = subprocess.Popen(
         (*common, "--method", "gfnff", "--task", "optimize"),
@@ -106,7 +108,7 @@ def test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts(
 ) -> None:
     executable = fake_xtb_factory()
     results_directory = tmp_path / f"controlled-results-{include_gfnff}"
-    common = ("--xtb-executable", str(executable))
+    common = ("--xtb-executable", str(executable), "--charge", "0")
     specs = [
         StageSpec(
             "xtb",
@@ -129,8 +131,7 @@ def test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts(
 
     assert result.status.value == "succeeded"
     assert result.payload is not None
-    assert result.payload.records[0].electronic_state is not None
-    assert result.payload.records[0].electronic_state.unpaired_electrons == 0
+    assert result.payload.records[0].scientific_state is not None
     manifest = json.loads(
         (results_directory / "manifest.json").read_text(encoding="utf-8")
     )
@@ -142,5 +143,10 @@ def test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts(
         stage["report"]["xtb"]["requested_method"]
         for stage in manifest["stages"]
     ] == expected_methods
+    assert all(
+        stage["report"]["xtb"]["charge"] == 0
+        for stage in manifest["stages"]
+    )
+    assert manifest["stages"][-1]["report"]["xtb"]["unpaired_electrons"] == 0
     assert (results_directory / "final.sdf").is_file()
     assert all(stage["artifacts"] for stage in manifest["stages"])

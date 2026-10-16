@@ -207,10 +207,14 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from hotpot.cheminfo.calculator.electronic_state import (
-        ChargeInferenceSource,
-        ElectronicState,
-        SpinInferenceSource,
+    from hotpot.cheminfo.calculator.contracts import (
+        ScientificOperationRequirements,
+        ScientificQuantity,
+    )
+    from hotpot.cheminfo.calculator.state_resolver import (
+        StateRequest,
+        extract_molecular_facts,
+        resolve_scientific_state,
     )
     from hotpot.cheminfo.forcefields import acceptance
     from hotpot.pipeline.contracts import (
@@ -220,16 +224,25 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
         StageStatus,
     )
     from hotpot.plugins.xtb import stage as xtb_stage
+    from hotpot.plugins.xtb import state_resolution
     from hotpot.plugins.xtb import workflow
+    from hotpot.plugins.xtb.contracts import XTBBackendInfo
+    from hotpot.plugins._harness import NativeProcessResult
 
-    state = ElectronicState(
-        charge=0,
-        unpaired_electrons=0,
-        multiplicity=1,
-        fragment_charges=(0,),
-        charge_source=ChargeInferenceSource.EXPLICIT,
-        spin_source=SpinInferenceSource.EXPLICIT,
-        assumptions=("explicit test state",),
+    mol = _water()
+    state = resolve_scientific_state(
+        extract_molecular_facts(mol),
+        StateRequest(net_charge=0, two_s=0),
+        requirements=ScientificOperationRequirements(
+            "xtb-stage-test",
+            frozenset(
+                {
+                    ScientificQuantity.NET_CHARGE,
+                    ScientificQuantity.ELECTRONIC_STATE,
+                }
+            ),
+            frozenset(),
+        ),
     )
     calls: list[tuple[object, object]] = []
 
@@ -241,7 +254,26 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
         raise AssertionError("the stage repeated a geometry gate owned by xTB")
 
     monkeypatch.setattr(workflow, "run_gfn_xtb", run_gfn_xtb)
-    monkeypatch.setattr(xtb_stage, "run_gfn_xtb", run_gfn_xtb, raising=False)
+    monkeypatch.setattr(
+        state_resolution,
+        "probe_xtb_backend",
+        lambda *args, **kwargs: XTBBackendInfo(
+            executable=tmp_path / "xtb",
+            version="6.7.1",
+            revision=None,
+            executable_sha256="a" * 64,
+            probe_result=NativeProcessResult(
+                argv=("xtb", "--version"),
+                cwd=tmp_path,
+                return_code=0,
+                stdout="xtb version 6.7.1",
+                stderr="",
+                elapsed_seconds=0.01,
+            ),
+            gfn_xtb_max_atomic_number=86,
+            gfnff_max_atomic_number=86,
+        ),
+    )
     monkeypatch.setattr(
         acceptance,
         "evaluate_structure_acceptance",
@@ -257,16 +289,20 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
         "xtb",
         ("--method", "gfn2", "--task", "optimize", "--post-check", "off"),
     )
-    mol = _water()
     payload = MolecularPayload((MolecularRecord(mol, state),))
     prepared = xtb_stage.get_stage().prepare(spec)
 
     result = prepared.execute(payload, _context(spec, tmp_path))
 
-    assert calls == [(mol, state)]
+    assert len(calls) == 1
+    assert calls[0][0] is mol
+    assert (
+        calls[0][1].scientific_state_identity
+        == state.execution_decision.selected_state_identity
+    )
     assert result.status is StageStatus.SUCCEEDED
     assert result.payload.records[0].molecule is mol
-    assert result.payload.records[0].electronic_state is state
+    assert result.payload.records[0].scientific_state is state
     assert result.report["xtb"]["energy_hartree"] == pytest.approx(-76.0)
 
 
@@ -281,7 +317,10 @@ def test_gfnff_stage_calls_only_gfnff_node(
         StageStatus,
     )
     from hotpot.plugins.xtb import stage as xtb_stage
+    from hotpot.plugins.xtb import state_resolution
     from hotpot.plugins.xtb import workflow
+    from hotpot.plugins.xtb.contracts import XTBBackendInfo
+    from hotpot.plugins._harness import NativeProcessResult
 
     calls: list[str] = []
 
@@ -295,14 +334,30 @@ def test_gfnff_stage_calls_only_gfnff_node(
 
     monkeypatch.setattr(workflow, "run_gfnff", run_gfnff)
     monkeypatch.setattr(workflow, "run_gfn_xtb", must_not_call_gfn_xtb)
-    monkeypatch.setattr(xtb_stage, "run_gfnff", run_gfnff, raising=False)
     monkeypatch.setattr(
-        xtb_stage,
-        "run_gfn_xtb",
-        must_not_call_gfn_xtb,
-        raising=False,
+        state_resolution,
+        "probe_xtb_backend",
+        lambda *args, **kwargs: XTBBackendInfo(
+            executable=tmp_path / "xtb",
+            version="6.7.1",
+            revision=None,
+            executable_sha256="b" * 64,
+            probe_result=NativeProcessResult(
+                argv=("xtb", "--version"),
+                cwd=tmp_path,
+                return_code=0,
+                stdout="xtb version 6.7.1",
+                stderr="",
+                elapsed_seconds=0.01,
+            ),
+            gfn_xtb_max_atomic_number=86,
+            gfnff_max_atomic_number=86,
+        ),
     )
-    spec = StageSpec("xtb", ("--method", "gfnff", "--task", "optimize"))
+    spec = StageSpec(
+        "xtb",
+        ("--method", "gfnff", "--task", "optimize", "--charge", "0"),
+    )
     mol = _water()
     prepared = xtb_stage.get_stage().prepare(spec)
 
@@ -313,8 +368,7 @@ def test_gfnff_stage_calls_only_gfnff_node(
 
     assert calls == ["gfnff"]
     assert result.status is StageStatus.SUCCEEDED
-    state = result.payload.records[0].electronic_state
+    state = result.payload.records[0].scientific_state
     assert state is not None
-    assert state.charge == 0
-    assert state.unpaired_electrons == 0
+    assert state.execution_decision.selected_state_identity is not None
 

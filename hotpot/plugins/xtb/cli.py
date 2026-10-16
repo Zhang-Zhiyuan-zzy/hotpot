@@ -17,15 +17,7 @@ from typing import Mapping, Optional, Sequence, Tuple
 
 from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo._io import MolReader
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceResult,
-    ElectronicState,
-    ElectronicStateError,
-)
-from hotpot.cheminfo.calculator.electronic_state.resolver import (
-    resolve_electronic_state,
-)
-from hotpot.cheminfo.calculator.formal_charges import infer_charge
+from hotpot.cheminfo.calculator.contracts import StatePolicy
 from hotpot.cheminfo.core import Molecule
 
 from .contracts import (
@@ -45,6 +37,7 @@ from .stream import (
     read_sdf_records,
     write_sdf_records,
 )
+from .state_resolution import resolve_xtb_state
 from .workflow import run_gfn_xtb, run_gfnff
 
 
@@ -72,20 +65,11 @@ _TASKS = {
     "singlepoint": XTBTask.SINGLEPOINT,
     "optimize": XTBTask.OPTIMIZE,
 }
-_CHARGE_MODELS = ("valence", "valence-constrained", "preserve")
 _POST_CHECKS = ("off", "basic", "standard", "strict")
 
 
 class _CLIUsageError(ValueError):
     """A command request that is invalid before xTB execution."""
-
-
-@dataclass(frozen=True)
-class _NamedChargeEstimator:
-    model: str
-
-    def infer(self, mol: Molecule) -> ChargeInferenceResult:
-        return infer_charge(mol, model=self.model)
 
 
 @dataclass(frozen=True)
@@ -101,7 +85,7 @@ class _RunOptions:
     task: XTBTask
     charge: Optional[int]
     unpaired_electrons: Optional[int]
-    charge_model: str
+    state_policy: StatePolicy
     output_format: str
     executable: Optional[str]
     threads: Optional[int]
@@ -186,10 +170,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="authoritative xTB UHF/unpaired-electron count",
     )
     parser.add_argument(
-        "--charge-model",
-        choices=_CHARGE_MODELS,
-        default="valence",
-        help="default formal-charge inference model (default: valence)",
+        "--state-policy",
+        choices=("strict", "coordination-screening-v1"),
+        default="strict",
+        help="scientific-state decision policy (default: strict)",
     )
     parser.add_argument(
         "--input-format",
@@ -357,46 +341,20 @@ def _state_values(
     options: _RunOptions,
 ) -> tuple[Optional[int], Optional[int]]:
     metadata = record.metadata
-    charge = options.charge
-    unpaired = options.unpaired_electrons
-    if charge is None and metadata is not None:
-        charge = metadata.total_charge
-    if unpaired is None and metadata is not None:
-        unpaired = metadata.unpaired_electrons
-    return charge, unpaired
-
-
-def _electronic_state(
-    record: _InputRecord,
-    options: _RunOptions,
-    charge: Optional[int],
-    unpaired_electrons: Optional[int],
-) -> ElectronicState:
-    metadata = record.metadata
+    if options.charge is not None:
+        return options.charge, options.unpaired_electrons
     if (
-        metadata is not None
-        and options.charge is None
-        and options.unpaired_electrons is None
-        and metadata.unpaired_electrons is not None
+        metadata is None
+        or metadata.provenance.scientific_state_identity is None
+        or metadata.provenance.facts_identity is None
     ):
-        return ElectronicState(
-            charge=metadata.total_charge,
-            unpaired_electrons=metadata.unpaired_electrons,
-            multiplicity=metadata.unpaired_electrons + 1,
-            fragment_charges=(),
-            charge_source=metadata.provenance.charge_source,
-            spin_source=metadata.provenance.spin_source,
-            assumptions=("Reused validated electronic state from the input SDF record.",),
-        )
-    estimator = (
-        None if charge is not None else _NamedChargeEstimator(options.charge_model)
+        return None, options.unpaired_electrons
+    unpaired = (
+        options.unpaired_electrons
+        if options.unpaired_electrons is not None
+        else metadata.unpaired_electrons
     )
-    return resolve_electronic_state(
-        record.mol,
-        charge=charge,
-        unpaired_electrons=unpaired_electrons,
-        charge_estimator=estimator,
-    )
+    return metadata.total_charge, unpaired
 
 
 def _run_xtb_record(
@@ -404,6 +362,27 @@ def _run_xtb_record(
     options: _RunOptions,
 ) -> XTBRunReport:
     charge, unpaired_electrons = _state_values(record, options)
+    metadata = record.metadata
+    use_stream_state = options.charge is None and metadata is not None
+    expected_scientific_identity = (
+        metadata.provenance.scientific_state_identity
+        if use_stream_state
+        else None
+    )
+    expected_facts_identity = (
+        metadata.provenance.facts_identity if use_stream_state else None
+    )
+    resolved = resolve_xtb_state(
+        record.mol,
+        options.method,
+        executable=options.executable,
+        environment=_environment(options.threads),
+        charge=charge,
+        uhf=unpaired_electrons,
+        policy=options.state_policy,
+        expected_scientific_identity=expected_scientific_identity,
+        expected_facts_identity=expected_facts_identity,
+    )
     common = {
         "task": options.task,
         "executable": options.executable,
@@ -416,24 +395,12 @@ def _run_xtb_record(
             raise _CLIUsageError(
                 "GFN-FF does not accept --unpaired-electrons"
             )
-        if charge is not None:
-            return run_gfnff(record.mol, charge=charge, **common)
-        return run_gfnff(
-            record.mol,
-            charge_state=infer_charge(record.mol, model=options.charge_model),
-            **common,
-        )
+        return run_gfnff(record.mol, state=resolved.projection, **common)
 
-    state = _electronic_state(
-        record,
-        options,
-        charge,
-        unpaired_electrons,
-    )
     return run_gfn_xtb(
         record.mol,
         method=_GFN_XTB_METHODS[options.method.value],
-        state=state,
+        state=resolved.projection,
         **common,
     )
 
@@ -487,7 +454,7 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             native_stdout=report.stdout,
             native_stderr=report.stderr,
         )
-    except (XTBError, XTBStreamError, ElectronicStateError, _CLIUsageError, ValueError) as error:
+    except (XTBError, XTBStreamError, _CLIUsageError, ValueError) as error:
         report = _error_report(error) if isinstance(error, XTBError) else None
         native_stdout = "" if report is None else report.stdout
         native_stderr = "" if report is None else report.stderr
@@ -559,7 +526,7 @@ def _report_payload(outcomes: Sequence[_Outcome]) -> str:
             }
         results.append(result)
     return json.dumps(
-        {"schema_version": 1, "results": results},
+        {"schema_version": 2, "results": results},
         indent=2,
         sort_keys=True,
         allow_nan=False,
@@ -600,7 +567,7 @@ def run(args: argparse.Namespace) -> int:
         task=_TASKS[args.task],
         charge=args.charge,
         unpaired_electrons=args.unpaired_electrons,
-        charge_model=args.charge_model,
+        state_policy=StatePolicy(args.state_policy.replace("-", "_")),
         output_format=_normalized_format(args.output_format),
         executable=args.xtb_executable,
         threads=args.threads,

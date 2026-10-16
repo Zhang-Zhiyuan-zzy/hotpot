@@ -7,7 +7,8 @@ not build a bare SMILES implicitly.
 ## Command synopsis
 
 ```bash
-$ hotpot xtb 3d-input.sdf --method gfn2 --task optimize > optimized.sdf
+$ hotpot xtb 3d-input.sdf --method gfn2 --task optimize --charge 0 \
+    > optimized.sdf
 ```
 
 Use `-` to read molecular records from standard input. The input format must be
@@ -15,7 +16,7 @@ stated because standard input has no file suffix:
 
 ```bash
 $ hotpot ff ligand.smi --route organic --output-format sdf \
-    | hotpot xtb - --input-format sdf --method gfn2 --task optimize \
+    | hotpot xtb - --input-format sdf --method gfn2 --task optimize --charge 0 \
     > optimized.sdf
 ```
 
@@ -29,6 +30,7 @@ GFN-xTB node never invokes GFN-FF.
 
 ```bash
 $ hotpot xtb input.sdf --method gfnff --task optimize \
+    --charge 0 \
     -o gfnff.sdf --report gfnff.json --native-log gfnff.log
 
 $ hotpot xtb gfnff.sdf --method gfn2 --task optimize \
@@ -49,9 +51,16 @@ $ hotpot xtb radical.sdf --method gfn2 --charge 0 \
     --unpaired-electrons 1 -o radical-opt.sdf
 ```
 
-Without explicit values, charge is inferred with `--charge-model` and spin uses
-the documented lowest-spin parity policy. GFN-FF accepts charge but has no spin
-option; passing `--unpaired-electrons` with `--method gfnff` is an error.
+Without an attributable state from an earlier Hotpot SDF record, `--charge` is
+required under the default `strict` policy. `--unpaired-electrons` is a backend
+UHF value, not a scientific multiplicity. When scientific spin remains
+unresolved, xTB execution chooses the lowest parity-compatible UHF as an
+explicit execution-only default. GFN-FF accepts charge but has no spin option;
+passing `--unpaired-electrons` with `--method gfnff` is an error.
+
+`--state-policy coordination-screening-v1` explicitly requests the named
+screening policy. If its registered rules cannot certify one state, execution
+still fails rather than silently assuming a neutral molecule.
 
 ## Multiple records and resources
 
@@ -60,7 +69,7 @@ matches input order:
 
 ```bash
 $ hotpot xtb conformers.sdf --jobs 4 --threads 8 \
-    --method gfn2 --task singlepoint -o energies.sdf
+    --method gfn2 --task singlepoint --charge 0 -o energies.sdf
 ```
 
 `--work-directory` selects the parent of isolated native run directories.
@@ -73,7 +82,7 @@ The xTB node does not repeat Hotpot force-field validation by default. Request
 one explicit post-calculation gate when needed:
 
 ```bash
-$ hotpot xtb input.sdf --post-check standard --report checked.json \
+$ hotpot xtb input.sdf --charge 0 --post-check standard --report checked.json \
     -o checked.sdf
 ```
 

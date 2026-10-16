@@ -11,15 +11,12 @@ from numbers import Integral, Real
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceResult,
-    ElectronicState,
-    ElectronicStateError,
+from hotpot.cheminfo.calculator.contracts import StatePolicy
+from hotpot.cheminfo.calculator.execution_selection import (
+    BackendProjectionStatus,
+    BackendStateProjection,
 )
-from hotpot.cheminfo.calculator.electronic_state.resolver import (
-    resolve_electronic_state,
-)
-from hotpot.cheminfo.calculator.formal_charges import infer_charge
+from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
 from hotpot.cheminfo.core import Molecule
 from hotpot.pipeline.contracts import (
     Artifact,
@@ -47,6 +44,7 @@ from .contracts import (
     XTBRunReport,
     XTBTask,
 )
+from .state_resolution import resolve_xtb_state
 
 
 __all__ = ("STAGE", "get_stage")
@@ -77,28 +75,12 @@ class _StageArgumentParser(argparse.ArgumentParser):
 
 
 @dataclass(frozen=True)
-class _NamedChargeEstimator:
-    model: str
-
-    def infer(self, mol: Molecule) -> ChargeInferenceResult:
-        return infer_charge(mol, model=self.model)
-
-
-@dataclass(frozen=True)
-class _ResolvedChargeEstimator:
-    result: ChargeInferenceResult
-
-    def infer(self, mol: Molecule) -> ChargeInferenceResult:
-        return self.result
-
-
-@dataclass(frozen=True)
 class _XTBStageOptions:
     method: XTBMethod
     task: XTBTask
     charge: Optional[int]
     unpaired_electrons: Optional[int]
-    charge_model: str
+    state_policy: StatePolicy
     executable: Optional[str]
     threads: Optional[int]
     post_check: str
@@ -123,7 +105,7 @@ class _PreparedXTBStage(PreparedMolecularStage):
         quality_failed = False
         for index, record in enumerate(payload.records):
             try:
-                report, state = _run_record(
+                report, state, projection = _run_record(
                     record,
                     self.options,
                     context.stage_directory / "native",
@@ -135,7 +117,7 @@ class _PreparedXTBStage(PreparedMolecularStage):
                 raise StageExecutionError(
                     f"xtb stage record {index} failed: {error}"
                 ) from error
-            except (XTBError, ElectronicStateError, ValueError) as error:
+            except (XTBError, ValueError) as error:
                 native_logs.append(
                     f"=== record {index} failure ===\n{type(error).__name__}: {error}\n"
                 )
@@ -151,6 +133,7 @@ class _PreparedXTBStage(PreparedMolecularStage):
                 _report_summary(
                     report,
                     state,
+                    projection,
                     self.options,
                     context.stage_directory,
                 )
@@ -203,7 +186,7 @@ class _XTBStage(MolecularStage):
                 task=_TASKS[args.task],
                 charge=args.charge,
                 unpaired_electrons=args.unpaired_electrons,
-                charge_model=args.charge_model,
+                state_policy=StatePolicy(args.state_policy.replace("-", "_")),
                 executable=args.xtb_executable,
                 threads=args.threads,
                 post_check=args.post_check,
@@ -240,9 +223,9 @@ def _stage_parser() -> _StageArgumentParser:
     parser.add_argument("--charge", type=int)
     parser.add_argument("--unpaired-electrons", type=_nonnegative_int)
     parser.add_argument(
-        "--charge-model",
-        choices=("valence", "valence-constrained", "preserve"),
-        default="valence",
+        "--state-policy",
+        choices=("strict", "coordination-screening-v1"),
+        default="strict",
     )
     parser.add_argument("--xtb-executable")
     parser.add_argument("--threads", type=_positive_int)
@@ -268,41 +251,30 @@ def _environment(threads: Optional[int]) -> Mapping[str, str]:
     return environment
 
 
-def _resolved_state(
+def _resolved_projection(
     record: MolecularRecord,
     options: _XTBStageOptions,
-) -> ElectronicState:
-    if (
-        record.electronic_state is not None
-        and options.charge is None
-        and options.unpaired_electrons is None
-    ):
-        return record.electronic_state
-
-    carried_state = record.electronic_state
-    charge = options.charge
-    unpaired_electrons = options.unpaired_electrons
-    if carried_state is not None:
-        if charge is None:
-            charge = carried_state.charge
-        if unpaired_electrons is None:
-            unpaired_electrons = carried_state.unpaired_electrons
-    estimator = (
-        None if charge is not None else _NamedChargeEstimator(options.charge_model)
-    )
-    return resolve_electronic_state(
+) -> Tuple[ScientificStateBundle, BackendStateProjection]:
+    environment = _environment(options.threads)
+    resolved = resolve_xtb_state(
         record.molecule,
-        charge=charge,
-        unpaired_electrons=unpaired_electrons,
-        charge_estimator=estimator,
+        options.method,
+        executable=options.executable,
+        environment=environment,
+        charge=options.charge,
+        uhf=options.unpaired_electrons,
+        policy=options.state_policy,
+        carried_state=record.scientific_state,
     )
+    return resolved.scientific_state, resolved.projection
 
 
 def _run_record(
     record: MolecularRecord,
     options: _XTBStageOptions,
     work_directory: Path,
-) -> Tuple[XTBRunReport, Optional[ElectronicState]]:
+) -> Tuple[XTBRunReport, ScientificStateBundle, BackendStateProjection]:
+    scientific_state, projection = _resolved_projection(record, options)
     common = {
         "task": options.task,
         "executable": options.executable,
@@ -311,44 +283,20 @@ def _run_record(
         "keep_work_directory": True,
     }
     if options.method is XTBMethod.GFNFF:
-        if record.electronic_state is not None and options.charge is None:
-            state = record.electronic_state
-            report = workflow.run_gfnff(
-                record.molecule,
-                charge=state.charge,
-                **common,
-            )
-        elif options.charge is not None:
-            state = _resolved_state(record, options)
-            report = workflow.run_gfnff(
-                record.molecule,
-                charge=options.charge,
-                **common,
-            )
-        else:
-            charge_result = infer_charge(
-                record.molecule,
-                model=options.charge_model,
-            )
-            state = resolve_electronic_state(
-                record.molecule,
-                charge_estimator=_ResolvedChargeEstimator(charge_result),
-            )
-            report = workflow.run_gfnff(
-                record.molecule,
-                charge_state=charge_result,
-                **common,
-            )
-        return report, state
+        report = workflow.run_gfnff(
+            record.molecule,
+            state=projection,
+            **common,
+        )
+        return report, scientific_state, projection
 
-    state = _resolved_state(record, options)
     report = workflow.run_gfn_xtb(
         record.molecule,
         method=_GFN_XTB_METHODS[options.method.value],
-        state=state,
+        state=projection,
         **common,
     )
-    return report, state
+    return report, scientific_state, projection
 
 
 def _post_check(mol: Molecule, level: str) -> Optional[object]:
@@ -379,14 +327,25 @@ def _write_native_log(stage_directory: Path, sections: list[str]) -> None:
 
 def _report_summary(
     report: XTBRunReport,
-    state: Optional[ElectronicState],
+    state: ScientificStateBundle,
+    projection: BackendStateProjection,
     options: _XTBStageOptions,
     stage_directory: Path,
 ) -> Mapping[str, JSONValue]:
     summary: dict[str, JSONValue] = {
         "requested_method": options.method.value,
         "task": options.task.value,
-        "electronic_state": _json_value(state),
+        "scientific_state": {
+            "facts_identity": state.facts.identity.chemical_identity_digest,
+            "resolution_status": state.scientific_resolution.status.value,
+            "decision_action": state.execution_decision.action.value,
+            "selected_state_identity": projection.scientific_state_identity.digest,
+        },
+        "backend_projection": {
+            "status": BackendProjectionStatus.PROJECTED.value,
+            "projection_convention": projection.projection_convention,
+            "decision_source": projection.execution_decision.source.value,
+        },
         "energy_hartree": _json_value(getattr(report, "energy_hartree", None)),
         "gradient_norm": _json_value(getattr(report, "gradient_norm", None)),
         "process_succeeded": _json_value(

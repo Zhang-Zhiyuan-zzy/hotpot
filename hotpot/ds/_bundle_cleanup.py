@@ -38,6 +38,19 @@ _CURRENT_ASSESSMENT_PATHS = (
     "assessments/current.json",
 )
 _PRESERVED_ROOTS = ("audit", "policy", "structures")
+_DERIVED_CONTROL_ALLOWLIST = {
+    (
+        "migration",
+        "identity-migration",
+    ): "evidence/migration/identity-migration.jsonl",
+    (
+        "migration",
+        "legacy-identity-relationships",
+    ): "evidence/migration/legacy-identity-relationships.jsonl",
+}
+_PROTECTED_CONTROL_BASENAMES = frozenset(
+    {"legacy-source-inventory.json", "migration-provenance.json"}
+)
 
 
 class BundleCleanupError(RuntimeError):
@@ -481,12 +494,23 @@ def _sqlite_candidate(path: Path) -> bool:
     return any(name.endswith(f".sqlite3{suffix}") for suffix in _SQLITE_SUFFIXES)
 
 
+def _derived_control_paths(manifest: Mapping[str, Any]) -> set[str]:
+    paths = set()
+    for item in manifest.get("control_assets", []):
+        identity = (str(item["category"]), str(item["name"]))
+        path = str(item["path"])
+        if _DERIVED_CONTROL_ALLOWLIST.get(identity) == path:
+            paths.add(path)
+    return paths
+
+
 def _candidate_paths(
     root: Path,
     manifest: Mapping[str, Any],
     scientific_paths: set[str],
 ) -> dict[Path, str]:
     candidates: dict[Path, str] = {}
+    derived_controls = _derived_control_paths(manifest)
     preserved = {
         str(manifest["intake"]["path"]),
         *scientific_paths,
@@ -496,7 +520,7 @@ def _candidate_paths(
         _CLEANUP_FILE,
     }
     for item in manifest.get("control_assets", []):
-        if item["category"] != "migration":
+        if str(item["path"]) not in derived_controls:
             preserved.add(str(item["path"]))
     for prefix in _PRESERVED_ROOTS:
         for path in _walk_files(root / prefix):
@@ -527,10 +551,9 @@ def _candidate_paths(
             if path.is_dir() and not path.is_symlink():
                 raise BundleCleanupError(f"current-generation marker is a directory: {path}")
             candidates[path] = "current-generation-link"
-    for item in manifest.get("control_assets", []):
-        if item["category"] == "migration":
-            path = _safe_relative(root, item["path"])
-            candidates[path] = "migration-control"
+    for value in derived_controls:
+        path = _safe_relative(root, value)
+        candidates[path] = "derived-control"
 
     conflicts = sorted(
         path.relative_to(root).as_posix()
@@ -688,11 +711,7 @@ def _validate_cleanup_manifest(
         or bundle_manifest.get("release_id") != locator["release_id"]
     ):
         raise BundleCleanupError("bundle-cleanup.json conflicts with bundle.json")
-    migration_paths = {
-        str(item["path"])
-        for item in bundle_manifest.get("control_assets", [])
-        if isinstance(item, Mapping) and item.get("category") == "migration"
-    }
+    derived_control_paths = _derived_control_paths(bundle_manifest)
     intake_path = bundle_manifest.get("intake", {}).get("path")
     seen = set()
     for item in deleted:
@@ -715,7 +734,11 @@ def _validate_cleanup_manifest(
             or isinstance(size, bool)
             or size < 0
             or item["kind"] not in {"file", "symlink"}
-            or not _allowed_cleanup_record(path, str(item["category"]), migration_paths)
+            or not _allowed_cleanup_record(
+                path,
+                str(item["category"]),
+                derived_control_paths,
+            )
             or path == intake_path
         ):
             raise BundleCleanupError("bundle-cleanup.json has an unsafe deletion record")
@@ -730,9 +753,11 @@ def _under(path: str, directory: str) -> bool:
 def _allowed_cleanup_record(
     path: str,
     category: str,
-    migration_paths: set[str],
+    derived_control_paths: set[str],
 ) -> bool:
     value = PurePosixPath(path)
+    if value.name in _PROTECTED_CONTROL_BASENAMES:
+        return False
     if category == "canonical-facts":
         return _under(path, "cases") and (
             _sqlite_candidate(Path(value.name))
@@ -745,8 +770,8 @@ def _allowed_cleanup_record(
         return _under(path, "assessments/leases")
     if category == "current-generation-link":
         return path in _CURRENT_ASSESSMENT_PATHS
-    if category == "migration-control":
-        return path in migration_paths
+    if category == "derived-control":
+        return path in derived_control_paths
     return False
 
 

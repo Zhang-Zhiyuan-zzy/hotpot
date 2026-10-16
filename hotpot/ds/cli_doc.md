@@ -398,20 +398,26 @@ when the Bundle already records its target.
 The command takes an exclusive Bundle lock and deletes only a closed allowlist
 of reproducible working material: the canonical facts SQLite files, assessment
 generations and their leases/caches/temporary files, current-generation links,
-and control assets explicitly declared with `category: "migration"`. It keeps
+and the two explicitly recognized derived controls
+`evidence/migration/identity-migration.jsonl` and
+`evidence/migration/legacy-identity-relationships.jsonl`. A free-form
+`category: "migration"` declaration is not deletion authority. In particular,
+`legacy-source-inventory.json` and `migration-provenance.json` are permanent
+source/provenance records and are never removed. The command also keeps
 `bundle.json`, the original intake, scientific structures and evidence,
 persisted policy and checker source, the certificate, the ingestion receipt,
-and audit history. A migration control asset that is also an intake or
-scientific source is rejected as an ambiguous declaration rather than removed.
+and audit history. A derived control that is also an intake or scientific
+source is rejected as an ambiguous declaration rather than removed.
 
 Before deletion the command atomically writes `bundle-cleanup.json` with the
 authoritative receipt binding and the path, SHA-256 digest, and byte count of
 every planned deletion. It marks that manifest complete only after deletion.
-Repeating the same command resumes a planned cleanup or returns the completed
-result idempotently without reopening the now intentionally non-loadable
-Bundle working state. The ingested dataset remains available through the
-Python `ds.load` API and `hotpot ds` query commands because the target store
-owns the release.
+Repeating the same command first revalidates the target schema and integrity,
+release content, authoritative and local receipts, and certificate. It then
+resumes a planned cleanup or returns the completed result idempotently without
+reopening the now intentionally non-loadable Bundle working state. The
+ingested dataset remains available through the Python `ds.load` API and
+`hotpot ds` query commands because the target store owns the release.
 
 ## 3. Certify and ingest
 

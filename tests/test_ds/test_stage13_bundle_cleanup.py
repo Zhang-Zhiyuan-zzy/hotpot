@@ -12,7 +12,7 @@ from hotpot.ds._bundle_cleanup import BundleCleanupError, remove_bundle_intermed
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
 from hotpot.ds.public.bundle import Bundle
-from hotpot.ds.storage import TargetStore
+from hotpot.ds.storage import TargetSchemaError, TargetStore
 
 
 def _digest(payload: bytes) -> str:
@@ -30,8 +30,15 @@ def _sealed_bundle(tmp_path: Path) -> tuple[Bundle, Path, Path]:
     source = root / "evidence" / "original" / "chemist.txt"
     source.parent.mkdir(parents=True)
     source.write_text("curator classification\n", encoding="utf-8")
-    migration = root / "evidence" / "migration.jsonl"
+    migration = root / "evidence" / "migration" / "identity-migration.jsonl"
+    migration.parent.mkdir()
     migration.write_text('{"legacy":"case-1"}\n', encoding="utf-8")
+    source_inventory = migration.parent / "legacy-source-inventory.json"
+    source_inventory.write_text('{"sources":[]}\n', encoding="utf-8")
+    provenance = migration.parent / "migration-provenance.json"
+    provenance.write_text('{"method":"curated"}\n', encoding="utf-8")
+    supplemental = migration.parent / "supplier-notes.json"
+    supplemental.write_text('{"note":"original"}\n', encoding="utf-8")
     case = {
         "id": "case-1",
         "local_id": "local-1",
@@ -51,7 +58,16 @@ def _sealed_bundle(tmp_path: Path) -> tuple[Bundle, Path, Path]:
         ],
     }
     intake.write_text(json.dumps(case) + "\n", encoding="utf-8")
-    migration_bytes = migration.read_bytes()
+    def control_asset(category: str, name: str, path: Path) -> dict:
+        payload = path.read_bytes()
+        return {
+            "category": category,
+            "name": name,
+            "path": path.relative_to(root).as_posix(),
+            "sha256": _digest(payload),
+            "size": len(payload),
+        }
+
     manifest = {
         "schema": BUNDLE_SCHEMA,
         "ds_name": "demo",
@@ -78,13 +94,10 @@ def _sealed_bundle(tmp_path: Path) -> tuple[Bundle, Path, Path]:
         },
         "required_structure_roles": ["primary"],
         "control_assets": [
-            {
-                "category": "migration",
-                "name": "legacy-map",
-                "path": "evidence/migration.jsonl",
-                "sha256": _digest(migration_bytes),
-                "size": len(migration_bytes),
-            }
+            control_asset("migration", "identity-migration", migration),
+            control_asset("migration", "legacy-source-inventory", source_inventory),
+            control_asset("migration", "migration-provenance", provenance),
+            control_asset("migration", "supplier-notes", supplemental),
         ],
     }
     (root / "bundle.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -112,7 +125,9 @@ def test_cleanup_removes_only_allowlisted_reproducible_data_and_is_idempotent(
     assert result["removed_bytes"] > 0
     assert not (root / "cases" / "facts.sqlite3").exists()
     assert not generation.exists()
-    assert not (root / "evidence" / "migration.jsonl").exists()
+    assert not (
+        root / "evidence" / "migration" / "identity-migration.jsonl"
+    ).exists()
     assert not (root / "assessments" / "cache").exists()
     for relative in (
         "bundle.json",
@@ -120,6 +135,9 @@ def test_cleanup_removes_only_allowlisted_reproducible_data_and_is_idempotent(
         "ingestion-receipt.json",
         "evidence/intake/cases.jsonl",
         "evidence/original/chemist.txt",
+        "evidence/migration/legacy-source-inventory.json",
+        "evidence/migration/migration-provenance.json",
+        "evidence/migration/supplier-notes.json",
         "structures/sample.smi",
         "policy/policy.json",
         "audit/events.jsonl",
@@ -185,6 +203,21 @@ def test_cleanup_rejects_corrupt_compressed_target_facts(tmp_path: Path) -> None
         connection.commit()
 
     with pytest.raises(BundleCleanupError, match="corrupt compressed Case facts"):
+        remove_bundle_intermediates(root, "demo", database)
+    assert (root / "cases" / "facts.sqlite3").is_file()
+    assert not (root / "bundle-cleanup.json").exists()
+
+
+def test_cleanup_explicitly_rejects_an_old_target_schema(tmp_path: Path) -> None:
+    _bundle, root, database = _sealed_bundle(tmp_path)
+    store = TargetStore(database)
+    with store._connect() as connection:
+        connection.execute(
+            "UPDATE store_metadata SET schema_id='hotpot-ds-store/legacy'"
+        )
+        connection.commit()
+
+    with pytest.raises(TargetSchemaError, match="current Hotpot schema"):
         remove_bundle_intermediates(root, "demo", database)
     assert (root / "cases" / "facts.sqlite3").is_file()
     assert not (root / "bundle-cleanup.json").exists()
@@ -280,6 +313,39 @@ def test_idempotent_cleanup_manifest_cannot_expand_the_delete_allowlist(
     with pytest.raises(BundleCleanupError, match="unsafe deletion record"):
         remove_bundle_intermediates(root, "demo", database)
     assert (root / "bundle.json").read_bytes() == bundle_bytes
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["legacy-source-inventory.json", "migration-provenance.json"],
+)
+def test_cleanup_manifest_never_deletes_source_inventory_or_provenance(
+    tmp_path: Path,
+    name: str,
+) -> None:
+    _bundle, root, database = _sealed_bundle(tmp_path)
+    remove_bundle_intermediates(root, "demo", database)
+    cleanup_path = root / "bundle-cleanup.json"
+    document = json.loads(cleanup_path.read_text(encoding="utf-8"))
+    protected = root / "evidence" / "migration" / name
+    payload = protected.read_bytes()
+    document["deleted"].append(
+        {
+            "path": protected.relative_to(root).as_posix(),
+            "sha256": _digest(payload),
+            "bytes": len(payload),
+            "kind": "file",
+            "category": "derived-control",
+        }
+    )
+    document["removed_count"] += 1
+    document["removed_bytes"] += len(payload)
+    document["manifest_sha256"] = cleanup_module._manifest_digest(document)
+    cleanup_path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(BundleCleanupError, match="unsafe deletion record"):
+        remove_bundle_intermediates(root, "demo", database)
+    assert protected.read_bytes() == payload
 
 
 def test_bundle_rm_cli_uses_bound_target_and_emits_closed_envelope(

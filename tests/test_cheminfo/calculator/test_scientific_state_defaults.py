@@ -7,6 +7,8 @@ import pytest
 
 from hotpot.cheminfo.calculator.charge import resolve_net_charge
 from hotpot.cheminfo.calculator.contracts import (
+    CandidateProvenance,
+    CoverageStatus,
     DEFAULT_CANDIDATE_BUDGET,
     ProviderSet,
     ResolutionStatus,
@@ -14,6 +16,7 @@ from hotpot.cheminfo.calculator.contracts import (
     ScientificOperationRequirements,
     ScientificQuantity,
     StatePolicy,
+    StateValueAuthority,
 )
 from hotpot.cheminfo.calculator.defaults import (
     _certified_candidate_path,
@@ -27,9 +30,19 @@ from hotpot.cheminfo.calculator.profile_eligibility import (
     _static_profile_eligibility,
 )
 from hotpot.cheminfo.calculator.state_composition import (
+    CandidateDomainScope,
+    CandidateProposal,
     CandidateSearchStatus,
+    FactorKey,
+    MaterializationStatus,
+    ProposedCandidateFactor,
+    ProposedCandidateValue,
     ScientificStateIdentity,
     compose_scientific_state_space,
+)
+from hotpot.cheminfo.calculator.oxidation_state import (
+    CountingConvention,
+    OxidationStateCandidateEvidence,
 )
 from hotpot.cheminfo.calculator.state_composition.decision_search import (
     _AuthorityVector,
@@ -52,6 +65,7 @@ from hotpot.cheminfo.calculator.state_selection import (
     StateDecisionSource,
     StaticProfileEligibility,
 )
+from hotpot.cheminfo.core import BondKind
 
 
 class _ChargePreferenceCompiler:
@@ -142,6 +156,63 @@ def _eligibility(requirements):
         RuleSet(),
         DEFAULT_CANDIDATE_BUDGET,
     )
+
+
+def _coordination_space_with_oxidation_states(atom_states_by_factor):
+    mol = hotpot.read_mol("[Eu].N.[Th].N", "smi")
+    mol.add_bond(0, 1, bond_kind=BondKind.DATIVE)
+    mol.add_bond(2, 3, bond_kind=BondKind.DATIVE)
+    facts = extract_molecular_facts(mol)
+    request = StateRequest(net_charge=0, two_s=1)
+    charge_results = resolve_net_charge(facts, request)
+    electronic_results = infer_electronic_states(
+        facts,
+        request,
+        net_charge_results=charge_results,
+    )
+    factors = tuple(
+        ProposedCandidateFactor(
+            FactorKey(
+                ScientificQuantity.OXIDATION_STATE,
+                f"atom:{facts.atom_map[atom_index]}",
+            ),
+            f"test-os-domain:{atom_index}",
+            (
+                ProposedCandidateValue(
+                    OxidationStateCandidateEvidence(
+                        CandidateProvenance(
+                            f"os:test:{atom_index}",
+                            StateValueAuthority.DOMAIN_RULE,
+                            "test",
+                        ),
+                        CountingConvention.IONIC,
+                        atom_states,
+                        CoverageStatus.PARTIAL,
+                    )
+                ),
+            ),
+            CandidateDomainScope.DOMAIN_BOUNDED,
+            MaterializationStatus.COMPLETE,
+            None,
+        )
+        for atom_index, atom_states in atom_states_by_factor
+    )
+    space = compose_scientific_state_space(
+        facts,
+        net_charge_results=charge_results,
+        electronic_state_results=electronic_results,
+        candidate_proposals=(CandidateProposal("test:partial-os", factors, ()),),
+    )
+    result_states = tuple(
+        (result.admissibility, result.resolution)
+        for result in charge_results + electronic_results
+    )
+    explicit_ids = frozenset(
+        candidate.provenance.identity
+        for result in charge_results + electronic_results
+        for candidate in result.candidates
+    )
+    return facts, space, result_states, explicit_ids
 
 
 def test_strict_analysis_returns_not_requested_after_hard_validation() -> None:
@@ -280,6 +351,93 @@ def test_missing_required_oxidation_state_declines_automatic_selection() -> None
 
     assert decision.action is StateDecisionAction.NO_AUTOMATIC_STATE
     assert decision.selected_state_identity is None
+
+
+def test_screening_requires_oxidation_state_on_every_coordination_center() -> None:
+    facts, space, result_states, explicit_ids = (
+        _coordination_space_with_oxidation_states(
+            ((0, (3, None, None, None)),)
+        )
+    )
+    requirements = _requirements(ScientificQuantity.OXIDATION_STATE)
+    eligibility = StaticProfileEligibility(
+        StatePolicy.COORDINATION_SCREENING_V1.value,
+        "test-screening-profile",
+        True,
+        (),
+    )
+
+    decision = _decide_scientific_state(
+        StatePolicy.COORDINATION_SCREENING_V1,
+        requirements,
+        space,
+        eligibility,
+        result_states,
+        explicit_ids,
+        facts=facts,
+    )
+
+    assert decision.action is StateDecisionAction.NO_AUTOMATIC_STATE
+
+
+def test_screening_accepts_attributable_partial_states_for_all_centers() -> None:
+    facts, space, result_states, explicit_ids = (
+        _coordination_space_with_oxidation_states(
+            (
+                (0, (3, None, None, None)),
+                (2, (None, None, 4, None)),
+            )
+        )
+    )
+    requirements = _requirements(ScientificQuantity.OXIDATION_STATE)
+    eligibility = StaticProfileEligibility(
+        StatePolicy.COORDINATION_SCREENING_V1.value,
+        "test-screening-profile",
+        True,
+        (),
+    )
+
+    decision = _decide_scientific_state(
+        StatePolicy.COORDINATION_SCREENING_V1,
+        requirements,
+        space,
+        eligibility,
+        result_states,
+        explicit_ids,
+        facts=facts,
+    )
+
+    assert decision.action is StateDecisionAction.SELECT_STATE
+
+
+def test_strict_policy_does_not_treat_center_only_states_as_complete() -> None:
+    facts, space, result_states, explicit_ids = (
+        _coordination_space_with_oxidation_states(
+            (
+                (0, (3, None, None, None)),
+                (2, (None, None, 4, None)),
+            )
+        )
+    )
+    requirements = _requirements(ScientificQuantity.OXIDATION_STATE)
+    eligibility = StaticProfileEligibility(
+        StatePolicy.STRICT.value,
+        "test-strict-profile",
+        True,
+        (),
+    )
+
+    decision = _decide_scientific_state(
+        StatePolicy.STRICT,
+        requirements,
+        space,
+        eligibility,
+        result_states,
+        explicit_ids,
+        facts=facts,
+    )
+
+    assert decision.action is StateDecisionAction.NO_AUTOMATIC_STATE
 
 
 def test_default_selects_the_compiler_winner_not_path_order() -> None:

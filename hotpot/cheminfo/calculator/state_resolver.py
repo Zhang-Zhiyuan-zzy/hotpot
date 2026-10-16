@@ -632,6 +632,7 @@ def resolve_scientific_state(
             eligibility,
             final_rank_adjustments,
         ),
+        facts=facts,
     )
     return ScientificStateBundle(
         facts=facts,

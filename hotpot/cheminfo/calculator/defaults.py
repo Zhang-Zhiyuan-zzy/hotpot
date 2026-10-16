@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 
 from .contracts import (
     CoverageStatus,
+    MolecularFacts,
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificOperationRequirements,
@@ -101,7 +102,9 @@ def _complete_oxidation_state_ids(
 def _path_resolves_requirements(
     path: CoupledScientificStateCandidate,
     requirements: ScientificOperationRequirements,
-    complete_oxidation_state_ids: frozenset[str],
+    policy: StatePolicy,
+    candidate_space: ScientificStateCandidateSpace,
+    facts: Optional[MolecularFacts],
 ) -> bool:
     resolved = {
         ScientificQuantity.NET_CHARGE,
@@ -110,11 +113,107 @@ def _path_resolves_requirements(
         resolved.add(ScientificQuantity.LEWIS_FORMAL_CHARGE)
     if path.coordination_assignment_ids:
         resolved.add(ScientificQuantity.COORDINATION_COUNTING)
-    if path.oxidation_state_assignment_id in complete_oxidation_state_ids:
+    if _path_resolves_oxidation_state(
+        path,
+        policy,
+        candidate_space,
+        facts,
+    ):
         resolved.add(ScientificQuantity.OXIDATION_STATE)
     if path.electronic_state_candidate_identity is not None:
         resolved.add(ScientificQuantity.ELECTRONIC_STATE)
     return requirements.required_resolved_quantities.issubset(resolved)
+
+
+def _selected_oxidation_candidates(
+    path: CoupledScientificStateCandidate,
+    candidate_space: ScientificStateCandidateSpace,
+) -> Tuple[OxidationStateCandidateEvidence, ...]:
+    selected_ids = set(path.evidence_ids)
+    return tuple(
+        candidate
+        for factor in candidate_space.factors
+        for value in factor.values
+        for candidate in (value.candidate,)
+        if isinstance(candidate, OxidationStateCandidateEvidence)
+        and candidate.provenance.identity in selected_ids
+    )
+
+
+def _screening_coordination_centers(
+    facts: MolecularFacts,
+) -> frozenset[int]:
+    supported_atomic_numbers = (
+        _coordination_screening_profile().coordination_center_atomic_numbers
+    )
+    coordinated_atoms = frozenset(
+        atom_index
+        for bond in facts.semantic_bonds
+        if bond.kind == "coordination"
+        for atom_index in bond.atom_indices
+    )
+    return frozenset(
+        atom_index
+        for atom_index in coordinated_atoms
+        if facts.atomic_numbers[atom_index] in supported_atomic_numbers
+    )
+
+
+def _oxidation_states_cover_atoms(
+    candidates: Tuple[OxidationStateCandidateEvidence, ...],
+    atom_indices: frozenset[int],
+) -> bool:
+    return bool(atom_indices) and all(
+        any(
+            atom_index < len(candidate.atom_states)
+            and candidate.atom_states[atom_index] is not None
+            for candidate in candidates
+        )
+        for atom_index in atom_indices
+    )
+
+
+def _path_resolves_oxidation_state(
+    path: CoupledScientificStateCandidate,
+    policy: StatePolicy,
+    candidate_space: ScientificStateCandidateSpace,
+    facts: Optional[MolecularFacts],
+) -> bool:
+    selected = _selected_oxidation_candidates(path, candidate_space)
+    if policy is not StatePolicy.COORDINATION_SCREENING_V1:
+        if facts is not None and selected:
+            has_implicit_hydrogen = any(
+                explicit_count == 0 and implicit_count not in (None, 0)
+                for explicit_count, implicit_count in zip(
+                    facts.hydrogen_inventory.explicit_counts,
+                    facts.hydrogen_inventory.implicit_counts,
+                )
+            )
+            return (
+                any(
+                    candidate.coverage is CoverageStatus.COMPLETE
+                    and all(
+                        state is not None
+                        for state in candidate.atom_states
+                    )
+                    for candidate in selected
+                )
+                or (
+                    not has_implicit_hydrogen
+                    and _oxidation_states_cover_atoms(
+                        selected,
+                        frozenset(range(len(facts.atomic_numbers))),
+                    )
+                )
+            )
+        complete_ids = _complete_oxidation_state_ids(candidate_space)
+        return path.oxidation_state_assignment_id in complete_ids
+    if facts is None:
+        return False
+    return _oxidation_states_cover_atoms(
+        selected,
+        _screening_coordination_centers(facts),
+    )
 
 
 def _certifiability(
@@ -236,6 +335,7 @@ def _decide_scientific_state(
     ],
     explicit_candidate_ids: frozenset[str],
     decision_search: Optional[_DecisionSearchCompiler] = None,
+    facts: Optional[MolecularFacts] = None,
 ) -> ExecutionStateDecision:
     terminal_action = _terminal_action(result_states)
     if terminal_action is not None:
@@ -272,11 +372,16 @@ def _decide_scientific_state(
             "The effective profile is outside its static applicability domain.",
         )
 
-    complete_os_ids = _complete_oxidation_state_ids(candidate_space)
     eligible_paths = tuple(
         path
         for path in candidate_space.expanded_paths
-        if _path_resolves_requirements(path, requirements, complete_os_ids)
+        if _path_resolves_requirements(
+            path,
+            requirements,
+            policy,
+            candidate_space,
+            facts,
+        )
     )
     selected = _certified_candidate_path(
         candidate_space,

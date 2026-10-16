@@ -9,6 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 from .cli import build_parser
 from .configuration import (
@@ -41,6 +42,13 @@ from .pipeline import (
 from .runner import _scientific_configuration, _write_or_check_manifest
 
 
+requires_extractant_dataset = pytest.mark.skipif(
+    not BUILTIN_SUITES["extractants-eu-187"].input_path.is_file(),
+    reason="the governed extractant dataset is not installed locally",
+)
+
+
+@requires_extractant_dataset
 def test_builtin_extractant_suite_has_187_records() -> None:
     suite = BUILTIN_SUITES["extractants-eu-187"]
     records = load_smiles(suite.input_path)
@@ -50,6 +58,7 @@ def test_builtin_extractant_suite_has_187_records() -> None:
     assert records[-1][0] == 187
 
 
+@requires_extractant_dataset
 def test_builtin_am_suite_reuses_all_187_extractants() -> None:
     suite = BUILTIN_SUITES["extractants-am-187"]
 
@@ -60,6 +69,7 @@ def test_builtin_am_suite_reuses_all_187_extractants() -> None:
     )
 
 
+@requires_extractant_dataset
 def test_case_134_is_the_counterion_free_tetraanion() -> None:
     from hotpot import read_mol
 

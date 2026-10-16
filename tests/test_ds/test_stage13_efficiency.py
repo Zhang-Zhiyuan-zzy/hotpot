@@ -111,7 +111,7 @@ def test_case_selection_uses_one_generation_reader_independent_of_size(
         "generation": 0,
         "reader": 0,
         "lease": 0,
-        "assessment_scan": 0,
+        "indexed_selection": 0,
     }
 
     original_status = BundleState.status.fget
@@ -119,7 +119,7 @@ def test_case_selection_uses_one_generation_reader_independent_of_size(
     original_generation = Bundle._generation_from_status
     original_reader = AssessmentGeneration._reader
     original_lease = AssessmentGeneration.lease
-    original_scan = _AssessmentReader.iter_cases
+    original_select = _AssessmentReader.select_cases
 
     def counted_status(self):
         calls["status"] += 1
@@ -148,9 +148,9 @@ def test_case_selection_uses_one_generation_reader_independent_of_size(
     def reject_per_case_read(self, case_id):
         raise AssertionError(f"per-Case assessment read used for {case_id}")
 
-    def counted_scan(self):
-        calls["assessment_scan"] += 1
-        yield from original_scan(self)
+    def counted_select(self, criteria):
+        calls["indexed_selection"] += 1
+        yield from original_select(self, criteria)
 
     monkeypatch.setattr(BundleState, "status", property(counted_status))
     monkeypatch.setattr(BundleState, "_compute_source_digest", counted_source_digest)
@@ -158,7 +158,7 @@ def test_case_selection_uses_one_generation_reader_independent_of_size(
     monkeypatch.setattr(AssessmentGeneration, "_reader", counted_reader)
     monkeypatch.setattr(AssessmentGeneration, "lease", counted_lease)
     monkeypatch.setattr(AssessmentGeneration, "get_case", reject_per_case_read)
-    monkeypatch.setattr(_AssessmentReader, "iter_cases", counted_scan)
+    monkeypatch.setattr(_AssessmentReader, "select_cases", counted_select)
 
     selected = collection.select(attestation="User")
 
@@ -172,8 +172,83 @@ def test_case_selection_uses_one_generation_reader_independent_of_size(
         "generation": 1,
         "reader": 1,
         "lease": 1,
-        "assessment_scan": 1,
+        "indexed_selection": 1,
     }
+
+
+def test_derived_case_filters_use_indexed_selection_and_stable_order(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle = _selection_bundle(tmp_path, 12)
+    statements = []
+    original_select = _AssessmentReader.select_cases
+
+    def traced_select(self, criteria):
+        self._connection.set_trace_callback(statements.append)
+        yield from original_select(self, criteria)
+
+    def reject_full_scan(self):
+        raise AssertionError("derived selection used the full assessment iterator")
+
+    monkeypatch.setattr(_AssessmentReader, "select_cases", traced_select)
+    monkeypatch.setattr(_AssessmentReader, "iter_cases", reject_full_scan)
+
+    selected = bundle.cases.select(
+        archive_class="benchmark",
+        quality_level="B0",
+        min_quality="B0",
+        evidence_level="E0",
+        min_evidence="E0",
+        benchmark_status="admitted",
+    )
+
+    assert [case.id for case in selected] == [
+        f"case-{index}" for index in range(0, 12, 2)
+    ]
+    query = next(
+        statement
+        for statement in statements
+        if "FROM case_assessments WHERE" in statement
+    )
+    assert "archive_class=" in query
+    assert "quality_level>=" in query
+    assert "evidence_level>=" in query
+    assert "benchmark_status=" in query
+    assert "ORDER BY public_index,case_id" in query
+    generation = bundle._require_generation()
+    with generation._reader() as reader:
+        plan = reader._connection.execute(
+            "EXPLAIN QUERY PLAN "
+            "SELECT public_index,case_id,assessment_json "
+            "FROM case_assessments WHERE archive_class=? "
+            "ORDER BY public_index,case_id",
+            ("benchmark",),
+        ).fetchall()
+    assert any(
+        "case_assessments_archive_selection" in str(row[3]) for row in plan
+    )
+
+
+def test_case_collection_construction_and_selection_do_not_load_all_ids(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle = _selection_bundle(tmp_path, 8)
+
+    def reject_id_materialization(self):
+        raise AssertionError("CaseCollection eagerly materialized every Case id")
+
+    monkeypatch.setattr(Bundle, "_case_ids", reject_id_materialization)
+    collection = bundle.cases
+    selected = collection.select(archive_class="benchmark")
+
+    assert [case.id for case in selected] == [
+        "case-0",
+        "case-2",
+        "case-4",
+        "case-6",
+    ]
 
 
 def test_ingest_uses_three_bulk_scans_and_two_certificate_boundaries(

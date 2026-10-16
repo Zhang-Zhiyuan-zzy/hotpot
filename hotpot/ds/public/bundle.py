@@ -618,53 +618,38 @@ class Bundle:
 
     def _case_selection_records(
         self,
-        case_ids: Iterable[str],
+        criteria: Mapping[str, Any],
         *,
         include_facts: bool,
     ) -> Iterator[tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
-        missing = object()
-        expected_ids = iter(case_ids)
         generation = self._require_generation()
         with generation._reader() as reader:
-            assessments = reader.iter_cases()
-            if include_facts:
-                with self._state.connect() as connection:
-                    facts = connection.execute(
-                        "SELECT case_id,payload_json FROM cases "
+            assessments = reader.select_cases(criteria)
+            if not include_facts:
+                for _public_index, case_id, assessment in assessments:
+                    yield case_id, assessment, None
+                return
+            with self._state.connect() as connection:
+                facts = iter(
+                    connection.execute(
+                        "SELECT public_index,case_id,payload_json FROM cases "
                         "ORDER BY public_index,case_id"
                     )
-                    for expected_id, assessment_row, fact_row in zip_longest(
-                        expected_ids, assessments, facts, fillvalue=missing
+                )
+                fact_row = next(facts, None)
+                for public_index, case_id, assessment in assessments:
+                    while fact_row is not None and int(fact_row[0]) < public_index:
+                        fact_row = next(facts, None)
+                    if (
+                        fact_row is None
+                        or int(fact_row[0]) != public_index
+                        or str(fact_row[1]) != case_id
                     ):
-                        if (
-                            expected_id is missing
-                            or assessment_row is missing
-                            or fact_row is missing
-                        ):
-                            raise RuntimeError(
-                                "Bundle facts and assessment counts do not match"
-                            )
-                        assessment_id, assessment = assessment_row
-                        fact_id = str(fact_row[0])
-                        if expected_id != assessment_id or expected_id != fact_id:
-                            raise RuntimeError(
-                                "Bundle facts and assessment order do not match"
-                            )
-                        yield expected_id, assessment, json.loads(fact_row[1])
-                return
-            for expected_id, assessment_row in zip_longest(
-                expected_ids, assessments, fillvalue=missing
-            ):
-                if expected_id is missing or assessment_row is missing:
-                    raise RuntimeError(
-                        "Bundle cases and assessment counts do not match"
-                    )
-                assessment_id, assessment = assessment_row
-                if expected_id != assessment_id:
-                    raise RuntimeError(
-                        "Bundle cases and assessment order do not match"
-                    )
-                yield expected_id, assessment, None
+                        raise RuntimeError(
+                            "Bundle facts and assessment order do not match"
+                        )
+                    yield case_id, assessment, json.loads(fact_row[2])
+                    fact_row = next(facts, None)
 
     def _mutate_case(
         self,

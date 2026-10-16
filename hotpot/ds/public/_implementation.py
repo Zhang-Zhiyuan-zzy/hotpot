@@ -181,7 +181,7 @@ _ASSESSMENT_STORE_PROTOCOL = {
     "schema": ASSESSMENT_STORE_PROTOCOL_SCHEMA,
     "facts_sqlite_user_version": 4,
     "source_proof_schema": "hotpot-ds-source-proof/current",
-    "sqlite_user_version": 1,
+    "sqlite_user_version": 2,
     "ordered_digest_tables": [
         "asset_assessments",
         "conflict_assessments",
@@ -665,7 +665,7 @@ def validate_frozen_runtime_policy(value: Mapping[str, Any]) -> dict[str, Any]:
     )
     if store["schema"] != ASSESSMENT_STORE_PROTOCOL_SCHEMA:
         raise PolicyProtocolError("assessment store protocol schema is not current")
-    if type(store["sqlite_user_version"]) is not int or store["sqlite_user_version"] < 1:
+    if store["sqlite_user_version"] != 2:
         raise PolicyProtocolError("assessment store version is invalid")
     if store["facts_sqlite_user_version"] != 4:
         raise PolicyProtocolError("facts store version is invalid")

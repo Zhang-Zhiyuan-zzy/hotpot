@@ -42,7 +42,7 @@ from ._implementation import (
 
 
 GENERATION_SCHEMA = "hotpot-ds-assessment-generation/current"
-_DATABASE_SCHEMA_VERSION = 1
+_DATABASE_SCHEMA_VERSION = 2
 _ARCHIVE_CLASSES = ("incomplete", "ordinary", "benchmark")
 _PARSEABLE_FORMATS = {"smi", "smiles", "mol", "mol2", "sdf", "xyz"}
 _MANIFEST_FIELDS = {
@@ -84,6 +84,67 @@ class _AssessmentReader:
             "ORDER BY public_index,case_id"
         ):
             yield str(row[0]), json.loads(row[1])
+
+    def select_cases(
+        self,
+        criteria: Mapping[str, Any],
+    ) -> Iterator[Tuple[int, str, Dict[str, Any]]]:
+        columns = {
+            "archive_class": "archive_class",
+            "quality_level": "quality_level",
+            "evidence_level": "evidence_level",
+            "benchmark_status": "benchmark_status",
+        }
+        where = []
+        parameters: list[Any] = []
+        for field in (
+            "archive_class",
+            "quality_level",
+            "min_quality",
+            "evidence_level",
+            "min_evidence",
+            "benchmark_status",
+        ):
+            if field not in criteria:
+                continue
+            if field == "min_quality":
+                where.append("quality_level>=?")
+                parameters.append(str(criteria[field]))
+                continue
+            if field == "min_evidence":
+                where.append("evidence_level>=?")
+                parameters.append(str(criteria[field]))
+                continue
+            column = columns[field]
+            expected = criteria[field]
+            if isinstance(expected, (list, set, tuple, frozenset)):
+                options = list(expected)
+                if not options:
+                    where.append("0")
+                    continue
+                non_null = [value for value in options if value is not None]
+                choices = []
+                if non_null:
+                    choices.append(
+                        f"{column} IN ({','.join('?' for _ in non_null)})"
+                    )
+                    parameters.extend(non_null)
+                if len(non_null) != len(options):
+                    choices.append(f"{column} IS NULL")
+                where.append("(" + " OR ".join(choices) + ")")
+            elif expected is None:
+                where.append(f"{column} IS NULL")
+            else:
+                where.append(f"{column}=?")
+                parameters.append(expected)
+        predicate = " AND ".join(where) if where else "1"
+        for row in self._connection.execute(
+            "SELECT public_index,case_id,assessment_json "
+            f"FROM case_assessments WHERE {predicate} "
+            "ORDER BY public_index,case_id",
+            parameters,
+        ):
+            yield int(row[0]), str(row[1]), json.loads(row[2])
 
 
 def _validate_generation_id(generation_id: Any) -> str:
@@ -766,7 +827,7 @@ def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
         PRAGMA journal_mode=DELETE;
         PRAGMA synchronous=FULL;
         PRAGMA foreign_keys=ON;
-        PRAGMA user_version=1;
+        PRAGMA user_version=2;
 
         CREATE TABLE metadata(
             key TEXT PRIMARY KEY,
@@ -780,8 +841,18 @@ def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
             quality_level TEXT NOT NULL,
             evidence_level TEXT,
             benchmark INTEGER NOT NULL,
+            benchmark_status TEXT NOT NULL,
             assessment_json TEXT NOT NULL
         ) WITHOUT ROWID;
+
+        CREATE INDEX case_assessments_archive_selection
+            ON case_assessments(archive_class,public_index,case_id);
+        CREATE INDEX case_assessments_quality_selection
+            ON case_assessments(quality_level,public_index,case_id);
+        CREATE INDEX case_assessments_evidence_selection
+            ON case_assessments(evidence_level,public_index,case_id);
+        CREATE INDEX case_assessments_benchmark_selection
+            ON case_assessments(benchmark_status,public_index,case_id);
 
         CREATE TABLE evidence_assessments(
             case_id TEXT NOT NULL,
@@ -1203,8 +1274,8 @@ def _assess_cases(
             """
             INSERT INTO case_assessments(
                 case_id,public_index,archive_class,quality_level,evidence_level,
-                benchmark,assessment_json
-            ) VALUES (?,?,?,?,?,?,?)
+                benchmark,benchmark_status,assessment_json
+            ) VALUES (?,?,?,?,?,?,?,?)
             """,
             (
                 case_id,
@@ -1213,6 +1284,7 @@ def _assess_cases(
                 result["quality_level"],
                 result["evidence_level"],
                 int(result["benchmark"]),
+                result["benchmark_status"],
                 canonical_json(result),
             ),
         )

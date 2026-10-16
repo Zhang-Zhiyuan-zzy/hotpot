@@ -694,12 +694,39 @@ class CaseCollection(CaseView):
     _E_LEVELS = {f"E{index}": index for index in range(5)}
 
     def __init__(self, owner: Any) -> None:
-        super().__init__(owner, owner._case_ids())
+        self._owner = owner
+        self._ids = None
+
+    def _all_ids(self) -> tuple[str, ...]:
+        if self._ids is None:
+            self._ids = tuple(self._owner._case_ids())
+        return self._ids
+
+    def __len__(self) -> int:
+        return len(self._all_ids())
+
+    def __iter__(self) -> Iterator[Case]:
+        return (
+            self._owner._case_object(case_id)
+            for case_id in self._all_ids()
+        )
+
+    def __getitem__(self, index: Union[int, slice]) -> Union[Case, CaseView]:
+        case_ids = self._all_ids()
+        if isinstance(index, slice):
+            return CaseView(self._owner, case_ids[index])
+        return self._owner._case_object(case_ids[index])
 
     def select(self, **criteria: Any) -> CaseView:
         unknown = sorted(set(criteria) - self._ALLOWED)
         if unknown:
             raise TypeError(f"unknown Case selection fields: {unknown}")
+        for field, levels in (
+            ("min_quality", self._B_LEVELS),
+            ("min_evidence", self._E_LEVELS),
+        ):
+            if field in criteria and str(criteria[field]) not in levels:
+                raise KeyError(str(criteria[field]))
         needs_facts = bool({"verification", "attestation"} & criteria.keys())
         provider = getattr(self._owner, "_case_selection_records", None)
         if provider is None:
@@ -709,10 +736,10 @@ class CaseCollection(CaseView):
                     self._owner._case_assessment(case_id),
                     self._owner._case_payload(case_id) if needs_facts else None,
                 )
-                for case_id in self._ids
+                for case_id in self._all_ids()
             )
         else:
-            records = provider(self._ids, include_facts=needs_facts)
+            records = provider(criteria, include_facts=needs_facts)
         selected = [
             case_id
             for case_id, assessment, facts in records

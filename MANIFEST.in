@@ -28,6 +28,7 @@ include hotpot/cheminfo/graph/README.md
 include hotpot/cheminfo/graph/_relevant_cycles.pyi
 recursive-include hotpot/cheminfo/graph/_native *.cpp *.hpp *.md
 include hotpot/cheminfo/kekulize/Kekulize.md
+recursive-include hotpot/cheminfo/calculator/oxidation_state/data *.json
 recursive-include hotpot/cheminfo/graph/_native LICENSE*
 include hotpot/cheminfo/obWrappers/_ob_native.pyi
 include hotpot/cheminfo/obWrappers/README.md

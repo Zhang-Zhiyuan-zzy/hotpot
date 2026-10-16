@@ -31,8 +31,9 @@ Two boundaries remain intentionally open:
    Its optional scientific rules are not a production default until individual
    expert approval and held-out activation criteria are satisfied.
 2. Phase 10 is incomplete: the stage-resolved coordination benchmark contract
-   is implemented, but the preregistered large-corpus dry-resolution and
-   held-out profile-activation reports have not been produced.
+   and a 2280-record pre-activation baseline are implemented, but the
+   topology-preserving held-out profile-activation report has not been
+   produced.
 
 No neutral-charge, low-spin or alternate-state fallback was introduced to hide
 either boundary.
@@ -90,12 +91,27 @@ state failure or treating a scientific abstention as a backend crash.
 | xTB plugin plus stage-resolved benchmark contracts | 102 passed, 8 skipped |
 | Explicit benchmark-state contract tests | 15 passed |
 | Pre-activation structure registry | 2280 / 2280 resolved, 0 replay mismatches |
+| Current calculator, xTB and state-benchmark integration suite | 519 passed, 8 skipped |
 
 The maintained full-suite script also reached collection and execution. In the
 restricted validation environment its remaining failures were external to this
 change: read-only model-cache paths prevented MCA/CBond downloads, and the
 local extractant corpus was absent. These conditions are not recorded as a
 scientific-state pass.
+
+The current integration suite also closes three previously implicit hard-rule
+acceptance points:
+
+- backend projection uses the backend effective-electron count for ECP UHF
+  bounds and parity, independently of molecular all-electron legality;
+- positive and negative ions receive the same explicit electron-count, $2S$
+  bound and parity checks; and
+- graph, protonation or component-boundary changes invalidate previously bound
+  scientific evidence with `HARD-001.FACTS_IDENTITY_MISMATCH`.
+
+The topology-manifest benchmark path additionally proves that only explicit,
+digest-bound atom pairs are promoted to `DATIVE`. Unlisted unknown metal bonds
+remain unknown.
 
 ## 5. Commit groups
 

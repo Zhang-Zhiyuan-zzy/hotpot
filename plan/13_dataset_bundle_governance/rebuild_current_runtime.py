@@ -16,9 +16,10 @@ the candidate, while ``activate`` is a separate, explicitly confirmed step::
     python plan/13_dataset_bundle_governance/rebuild_current_runtime.py \
         rollback --confirm-activation-id activation-<id>
 
-No source Bundle, source store, or source CAS object is ever opened writable.
-There is no schema adapter here: old policy rows are read with a strict
-read-only SQLite connection solely to recover the persisted Gate definitions.
+No source Bundle or source store is ever opened writable.  The old active
+store is only the rollback anchor and a stable byte-hash input; its schema and
+CAS layout are deliberately irrelevant.  Gate definitions come from each
+Stage 13 migration Bundle's own persisted policy.
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ import sys
 import tempfile
 import uuid
 from dataclasses import dataclass
+from itertools import zip_longest
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, Mapping, Sequence
 
@@ -45,8 +47,8 @@ from typing import Any, Callable, Iterable, Iterator, Mapping, Sequence
 STATE_SCHEMA = "hotpot-ds-current-runtime-rebuild/current"
 EVENT_SCHEMA = "hotpot-ds-current-runtime-rebuild-event/current"
 ACTIVATION_SCHEMA = "hotpot-ds-store-cutover/current"
-SOURCE_GENERATION = "stage13-current"
-RUN_ID = "stage13-efficiency-current"
+SOURCE_GENERATION = "stage13-efficiency-current"
+RUN_ID = "stage13-compact-current"
 INCOMPLETE_REASON = (
     "Owner-approved one-time migration preserving incomplete legacy Cases."
 )
@@ -54,7 +56,9 @@ COPY_CHUNK = 4 * 1024 * 1024
 FICLONE = 0x40049409
 _SAFE_COMPONENT = re.compile(r"[a-z0-9][a-z0-9._-]{0,127}\Z")
 _CAS_LOCK_NAME = re.compile(r"\.([0-9a-f]{64})\.lock\Z")
-_SOURCE_CONTROL_CATEGORIES = ("bundle", "governance", "migration")
+_DURABLE_CONTROL_CATEGORIES = frozenset(
+    {"certificate", "source", "evidence", "provenance", "checker"}
+)
 
 
 @dataclass(frozen=True)
@@ -555,23 +559,56 @@ def _readonly_connection(path: Path) -> sqlite3.Connection:
     return connection
 
 
-def _old_policy(database: Path, dataset: str) -> dict[str, Any]:
-    with _readonly_connection(database) as connection:
-        metadata = connection.execute(
-            "SELECT schema_id FROM store_metadata WHERE singleton=1"
+def _bundle_policy(root: Path, spec: DatasetSpec) -> dict[str, Any]:
+    manifest = _read_json(_bundle_path(root, Path("bundle.json")))
+    if (
+        manifest.get("ds_name") != spec.name
+        or manifest.get("release_id") != spec.release
+    ):
+        raise RebuildError(f"Bundle policy identity differs: {root}")
+    projection = _bundle_path(root, Path("policy/policy.json"))
+    value, projection_digest, projection_size, projection_stamp = _read_stable_json(
+        projection
+    )
+    facts = _bundle_path(root, Path("cases/facts.sqlite3"))
+    with _readonly_connection(facts) as connection:
+        policy_row = connection.execute(
+            "SELECT policy_json FROM policy WHERE singleton=1"
         ).fetchone()
-        if metadata is None or metadata[0] != "hotpot-ds-store/current":
-            raise RebuildError("source store is not the expected managed-store schema")
-        row = connection.execute(
-            "SELECT revision,policy_json,policy_digest FROM dataset_policies WHERE dataset_id=?",
-            (dataset,),
+        control_row = connection.execute(
+            "SELECT policy_revision FROM control WHERE singleton=1"
         ).fetchone()
-    if row is None:
-        raise RebuildError(f"source policy is missing: {dataset}")
-    value = json.loads(row["policy_json"])
-    if _json_digest(value) != row["policy_digest"]:
-        raise RebuildError(f"source policy digest is invalid: {dataset}")
-    return {"revision": row["revision"], "digest": row["policy_digest"], "value": value}
+    if policy_row is None or control_row is None:
+        raise RebuildError(f"source Bundle policy is missing: {spec.name}")
+    stored_value = json.loads(policy_row[0])
+    if stored_value != value:
+        raise RebuildError(f"Bundle policy projection differs from facts: {spec.name}")
+    if not isinstance(value, dict):
+        raise RebuildError(f"source Bundle policy is invalid: {spec.name}")
+    try:
+        from hotpot.ds.gates._persistence import deserialize_gate_configs
+
+        deserialize_gate_configs(value["gates"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise RebuildError(
+            f"source Bundle Gate policy is invalid: {spec.name}"
+        ) from error
+    if _stat_stamp(projection.stat(follow_symlinks=False)) != projection_stamp:
+        raise RebuildError(f"Bundle policy changed while reading: {spec.name}")
+    return {
+        "revision": int(control_row[0]),
+        "digest": _json_digest(value),
+        "projection_sha256": projection_digest,
+        "projection_size": projection_size,
+        "value": value,
+    }
+
+
+def _source_bundle_policy(root: Path, spec: DatasetSpec) -> dict[str, Any]:
+    """Read Gate authority from the migration Bundle, never the old target."""
+
+    _assert_schema_v2_source(root, spec)
+    return _bundle_policy(root, spec)
 
 
 def _assert_schema_v2_source(root: Path, spec: DatasetSpec) -> None:
@@ -714,377 +751,507 @@ def _without_runtime(policy: Mapping[str, Any]) -> dict[str, Any]:
     return value
 
 
-def _row_stream_digest(
-    connection: sqlite3.Connection,
-    query: str,
-    parameters: Sequence[Any],
+def _bundle_projection_rows(
+    root: Path, spec: DatasetSpec
+) -> Iterator[dict[str, Any]]:
+    """Stream the permanent projection of one synchronized Bundle."""
+
+    from hotpot.ds.public._bundle_state import BundleState
+    from hotpot.ds.public._generation import AssessmentGeneration
+    from hotpot.ds.public.bundle import (
+        _target_scientific_asset_descriptors,
+        _target_structure_descriptors,
+    )
+    from hotpot.ds.storage import TargetStore, _restored_facts
+
+    state = BundleState.open(root, spec.name)
+    status = state.status
+    generation_id = status.get("current_generation_id")
+    generation_digest = status.get("current_generation_digest")
+    if not generation_id or not generation_digest:
+        raise RebuildError(f"Bundle has no synchronized assessment: {root}")
+    generation = AssessmentGeneration.open(root, generation_id, generation_digest)
+    facts = state.iter_cases()
+    missing = object()
+    try:
+        with generation._reader() as reader:
+            assessments = reader.iter_cases()
+            for case, assessed in zip_longest(facts, assessments, fillvalue=missing):
+                if case is missing or assessed is missing:
+                    raise RebuildError(f"Bundle fact/assessment count differs: {root}")
+                assessment_id, assessment = assessed
+                if case["id"] != assessment_id:
+                    raise RebuildError(f"Bundle fact/assessment order differs: {root}")
+                structures = _target_structure_descriptors(root, case)
+                assets = _target_scientific_asset_descriptors(root, case)
+                normalized = TargetStore._normalize_case(
+                    {
+                        "id": case["id"],
+                        "public_index": case["public_index"],
+                        "local_id": case["local_id"],
+                        "facts": case,
+                        "assessment": assessment,
+                        "identifiers": [
+                            {"namespace": str(namespace), "value": str(value)}
+                            for namespace, raw in case.get("identifiers", {}).items()
+                            for value in (raw if isinstance(raw, list) else [raw])
+                        ],
+                        "structures": structures,
+                        "assets": assets,
+                    }
+                )
+                identifiers = normalized["identifiers"]
+                public = {
+                    "id": normalized["id"],
+                    "public_index": normalized["public_index"],
+                    "local_id": normalized["local_id"],
+                    "facts": _restored_facts(
+                        normalized["facts"],
+                        case_id=normalized["id"],
+                        public_index=normalized["public_index"],
+                        local_id=normalized["local_id"],
+                        identifiers=identifiers,
+                    ),
+                    "assessment": normalized["assessment"],
+                    "identifiers": identifiers,
+                    "structures": _structure_projection(normalized["structures"]),
+                }
+                metadata = case.get("metadata", {})
+                yield {
+                    "content": TargetStore._case_content_projection(normalized),
+                    "public": public,
+                    "omitted_migration_fields": sorted(
+                        set(metadata)
+                        & {
+                            "migration_rows",
+                            "migration_schema",
+                            "quarantined_entity_relations",
+                            "shared_identifier_relations",
+                        }
+                    ) if isinstance(metadata, Mapping) else [],
+                    "omitted_assessment_fields": sorted(
+                        set(assessment)
+                        - {
+                            "quality_level",
+                            "evidence_level",
+                            "archive_class",
+                            "benchmark",
+                            "benchmark_status",
+                            "reasons",
+                        }
+                    ),
+                    "scientific_assets": _scientific_asset_projection(
+                        normalized["assets"]
+                    ),
+                }
+    finally:
+        close = getattr(facts, "close", None)
+        if close is not None:
+            close()
+
+
+def _structure_projection(values: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        (
+            {
+                "structure_id": str(item["structure_id"]),
+                "format": str(item["format"]),
+                "role": str(item["role"]),
+                "primary": bool(item["primary"]),
+                "sha256": str(item["sha256"]),
+                "size": int(item["size"]),
+            }
+            for item in values
+        ),
+        key=lambda item: (
+            item["structure_id"], item["format"], item["role"], item["sha256"]
+        ),
+    )
+
+
+def _scientific_asset_projection(
+    values: Iterable[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    return sorted(
+        (
+            {
+                "collection": str(item["collection"]),
+                "declaration_id": str(item["declaration_id"]),
+                "asset_index": int(item["asset_index"]),
+                "role": str(item["role"]),
+                "status": str(item["status"]),
+                "sha256": str(item["sha256"]),
+                "size": int(item["size"]),
+            }
+            for item in values
+        ),
+        key=lambda item: (
+            item["collection"], item["declaration_id"], item["asset_index"]
+        ),
+    )
+
+
+def _target_scientific_assets(
+    database: Path, spec: DatasetSpec
+) -> dict[str, list[dict[str, Any]]]:
+    result: dict[str, list[dict[str, Any]]] = {}
+    with _readonly_connection(database) as connection:
+        rows = connection.execute(
+            "SELECT r.case_id,r.collection,r.declaration_id,r.asset_index,r.role,"
+            "r.status,r.content_sha256,t.size FROM scientific_asset_refs r "
+            "JOIN target_assets t USING(content_sha256) WHERE r.dataset_id=? "
+            "AND r.release_id=? ORDER BY r.case_id,r.collection,r.declaration_id,"
+            "r.asset_index",
+            (spec.name, spec.release),
+        )
+        for row in rows:
+            result.setdefault(str(row[0]), []).append(
+                {
+                    "collection": str(row[1]),
+                    "declaration_id": str(row[2]),
+                    "asset_index": int(row[3]),
+                    "role": str(row[4]),
+                    "status": str(row[5]),
+                    "sha256": str(row[6]),
+                    "size": int(row[7]),
+                }
+            )
+    return result
+
+
+def _target_case_projection(case: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "id": case["id"],
+        "public_index": case["public_index"],
+        "local_id": case["local_id"],
+        "facts": case["facts"],
+        "assessment": case["assessment"],
+        "identifiers": case["identifiers"],
+        "structures": _structure_projection(case["structures"]),
+    }
+
+
+def _compare_durable_cases(
+    source_root: Path,
+    output_root: Path,
+    store: Any,
+    spec: DatasetSpec,
 ) -> dict[str, Any]:
-    digest = hashlib.sha256()
+    """Compare source, rebuilt Bundle, and public formal-store reads."""
+
+    from hotpot.ds.storage import case_set_digest
+
+    source = _bundle_projection_rows(source_root, spec)
+    output = _bundle_projection_rows(output_root, spec)
+    target = store.iter_cases(spec.name, spec.release, include_incomplete=True)
+    missing = object()
+    content_digest = hashlib.sha256()
+    content_digest.update(b"[")
+    first = True
+    case_ids = []
+    migration_fields: set[str] = set()
+    assessment_fields: set[str] = set()
+    target_assets = _target_scientific_assets(store.path, spec)
     count = 0
-    for row in connection.execute(query, parameters):
-        payload = _canonical_bytes(list(row))
-        digest.update(len(payload).to_bytes(8, "big"))
-        digest.update(payload)
+    for source_row, output_row, target_case in zip_longest(
+        source, output, target, fillvalue=missing
+    ):
+        if missing in (source_row, output_row, target_case):
+            raise RebuildError(f"durable Case count differs: {spec.name}")
+        if source_row["content"] != output_row["content"]:
+            raise RebuildError(
+                f"durable source/output Case differs: {spec.name}."
+                f"{source_row['public']['id']}"
+            )
+        if source_row["public"]["structures"] != output_row["public"]["structures"]:
+            raise RebuildError(
+                f"source/output structure projection differs: {spec.name}."
+                f"{source_row['public']['id']}"
+            )
+        if source_row["scientific_assets"] != output_row["scientific_assets"]:
+            raise RebuildError(
+                f"source/output scientific assets differ: {spec.name}."
+                f"{source_row['public']['id']}"
+            )
+        case_id = str(output_row["public"]["id"])
+        if output_row["scientific_assets"] != target_assets.pop(case_id, []):
+            raise RebuildError(
+                f"output/target scientific assets differ: {spec.name}.{case_id}"
+            )
+        target_public = _target_case_projection(target_case)
+        if output_row["public"] != target_public:
+            raise RebuildError(
+                f"output/target durable Case differs: {spec.name}."
+                f"{output_row['public']['id']}"
+            )
+        metadata = target_public["facts"].get("metadata", {})
+        if isinstance(metadata, Mapping) and set(metadata) & {
+            "migration_rows",
+            "migration_schema",
+            "quarantined_entity_relations",
+            "shared_identifier_relations",
+        }:
+            raise RebuildError(f"target retained migration projection: {spec.name}")
+        if set(target_public["assessment"]) - {
+            "quality_level",
+            "evidence_level",
+            "archive_class",
+            "benchmark",
+            "benchmark_status",
+            "reasons",
+        }:
+            raise RebuildError(f"target retained assessment traces: {spec.name}")
+        migration_fields.update(source_row["omitted_migration_fields"])
+        assessment_fields.update(source_row["omitted_assessment_fields"])
+        payload = _canonical_bytes(output_row["content"])
+        if not first:
+            content_digest.update(b",")
+        content_digest.update(payload)
+        first = False
+        case_ids.append(str(output_row["public"]["id"]))
         count += 1
-    return {"count": count, "sha256": digest.hexdigest()}
+    if target_assets:
+        raise RebuildError(f"target contains orphan scientific Case refs: {spec.name}")
+    content_digest.update(b"]")
+    return {
+        "count": count,
+        "case_content_sha256": content_digest.hexdigest(),
+        "case_set_sha256": case_set_digest(case_ids),
+        "omitted_migration_fields": sorted(migration_fields),
+        "omitted_assessment_fields": sorted(assessment_fields),
+        "original_facts_compared_in_full": True,
+        "public_target_reads_compared": True,
+    }
 
 
-PARITY_QUERIES = {
-    "dataset": (
-        "SELECT dataset_id,title,description,metadata_json FROM datasets "
-        "WHERE dataset_id=? ORDER BY dataset_id",
-        "dataset",
-    ),
-    "release": (
-        "SELECT dataset_id,release_id,version,release_serial,metadata_json FROM releases "
-        "WHERE dataset_id=? AND release_id=? ORDER BY dataset_id,release_id",
-        "release",
-    ),
-    "cases": (
-        "SELECT case_id,public_index,local_id,source_payload_json FROM cases "
-        "WHERE dataset_id=? AND release_id=? ORDER BY public_index,case_id",
-        "release",
-    ),
-    "assessment_core": (
-        "SELECT case_id,quality_level,evidence_level,archive_class,benchmark,assessment_json "
-        "FROM case_assessments WHERE dataset_id=? AND release_id=? ORDER BY case_id",
-        "release",
-    ),
-    "identifiers": (
-        "SELECT case_id,namespace,value FROM identifiers WHERE dataset_id=? AND release_id=? "
-        "ORDER BY case_id,namespace,value",
-        "release",
-    ),
-    "structure_refs": (
-        "SELECT case_id,structure_id,format,role,is_primary,content_sha256 "
-        "FROM structure_asset_refs WHERE dataset_id=? AND release_id=? "
-        "ORDER BY case_id,structure_id,format,role,content_sha256",
-        "release",
-    ),
-    "scientific_refs": (
-        "SELECT case_id,collection,declaration_id,asset_index,role,status,content_sha256 "
-        "FROM scientific_asset_refs WHERE dataset_id=? AND release_id=? "
-        "ORDER BY case_id,collection,declaration_id,asset_index",
-        "release",
-    ),
-    "stable_control_refs": (
-        "SELECT category,name,content_sha256 FROM release_control_asset_refs "
-        "WHERE dataset_id=? AND release_id=? "
-        "AND category IN ('bundle','governance','migration') "
-        "ORDER BY category,name",
-        "release",
-    ),
-    "stable_generation_refs": (
-        "SELECT category,name,content_sha256 FROM release_control_asset_refs "
-        "WHERE dataset_id=? AND release_id=? AND category='generation' "
-        "AND name IN ('benchmark.ids','incomplete.ids','ordinary.ids','summary.json') "
-        "ORDER BY category,name",
-        "release",
-    ),
-    "control_identities": (
-        "SELECT category,name FROM release_control_asset_refs "
-        "WHERE dataset_id=? AND release_id=? ORDER BY category,name",
-        "release",
-    ),
-    "ordinary_index": (
-        "SELECT case_id FROM ordinary_case_index WHERE dataset_id=? AND release_id=? ORDER BY case_id",
-        "release",
-    ),
-    "benchmark_index": (
-        "SELECT case_id FROM benchmark_case_index WHERE dataset_id=? AND release_id=? ORDER BY case_id",
-        "release",
-    ),
-    "incomplete_index": (
-        "SELECT case_id FROM incomplete_case_index WHERE dataset_id=? AND release_id=? ORDER BY case_id",
-        "release",
-    ),
-}
+def _release_asset_inventory_digest(database: Path, spec: DatasetSpec) -> str:
+    from hotpot.ds.storage import asset_inventory_digest
+
+    with _readonly_connection(database) as connection:
+        rows = connection.execute(
+            "WITH refs(content_sha256) AS ("
+            "SELECT content_sha256 FROM structure_asset_refs WHERE dataset_id=? AND release_id=? "
+            "UNION SELECT content_sha256 FROM scientific_asset_refs "
+            "WHERE dataset_id=? AND release_id=? "
+            "UNION SELECT content_sha256 FROM release_control_asset_refs "
+            "WHERE dataset_id=? AND release_id=?"
+            ") SELECT t.content_sha256,t.size FROM refs "
+            "JOIN target_assets t USING(content_sha256) "
+            "ORDER BY t.content_sha256",
+            (spec.name, spec.release) * 3,
+        )
+        return asset_inventory_digest(
+            {"sha256": row[0], "size": row[1]} for row in rows
+        )
+
+
+def _validate_release_control_assets(
+    root: Path, database: Path, spec: DatasetSpec
+) -> dict[str, Any]:
+    from hotpot.ds.public._bundle_state import BundleState
+    from hotpot.ds.public._generation import AssessmentGeneration
+    from hotpot.ds.public.bundle import _target_control_asset_descriptors
+
+    state = BundleState.open(root, spec.name)
+    status = state.status
+    generation = AssessmentGeneration.open(
+        root,
+        status["current_generation_id"],
+        status["current_generation_digest"],
+    )
+    expected = [
+        {
+            "category": str(item["category"]),
+            "name": str(item["name"]),
+            "sha256": str(item["sha256"]),
+            "size": int(item["size"]),
+        }
+        for item in _target_control_asset_descriptors(
+            root, generation, state.manifest
+        )
+    ]
+    with _readonly_connection(database) as connection:
+        observed = [
+            {
+                "category": str(row[0]),
+                "name": str(row[1]),
+                "sha256": str(row[2]),
+                "size": int(row[3]),
+            }
+            for row in connection.execute(
+                "SELECT r.category,r.name,r.content_sha256,t.size "
+                "FROM release_control_asset_refs r JOIN target_assets t "
+                "USING(content_sha256) WHERE r.dataset_id=? AND r.release_id=? "
+                "ORDER BY r.category,r.name",
+                (spec.name, spec.release),
+            )
+        ]
+    if expected != observed:
+        raise RebuildError(f"candidate durable control assets differ: {spec.name}")
+    return {"count": len(observed), "sha256": _json_digest(observed)}
+
+
+def _validate_target_receipt(
+    store: Any, database: Path, spec: DatasetSpec, cases: Mapping[str, Any]
+) -> dict[str, Any]:
+    release = store.load_release_metadata(spec.name, spec.release)
+    receipt = None if release is None else release.get("receipt")
+    if receipt is None:
+        raise RebuildError(f"candidate receipt is missing: {spec.name}")
+    expected = {
+        "case_content_digest": cases["case_content_sha256"],
+        "included_cases_digest": cases["case_set_sha256"],
+        "excluded_cases_digest": _stream_json_array_digest(()),
+        "asset_inventory_digest": _release_asset_inventory_digest(database, spec),
+        "include_incomplete": True,
+        "reason": INCOMPLETE_REASON,
+        "included_count": cases["count"],
+        "excluded_count": 0,
+    }
+    for field, value in expected.items():
+        if receipt.get(field) != value:
+            raise RebuildError(
+                f"candidate receipt disagrees with durable {field}: {spec.name}"
+            )
+    binding = receipt["binding"]
+    for field in (
+        "store_uuid", "bundle_digest", "certificate_digest", "policy_digest",
+        "generation_digest", "case_content_digest", "included_cases_digest",
+        "excluded_cases_digest", "asset_inventory_digest", "include_incomplete", "reason",
+    ):
+        if binding.get(field) != receipt.get(field):
+            raise RebuildError(
+                f"candidate receipt binding disagrees with {field}: {spec.name}"
+            )
+    if binding.get("dataset") != spec.name or binding.get("release") != spec.release:
+        raise RebuildError(f"candidate receipt binding identity is invalid: {spec.name}")
+    if receipt["receipt_id"] != "receipt-" + _json_digest(binding):
+        raise RebuildError(f"candidate receipt identity is invalid: {spec.name}")
+    return {
+        "included_count": receipt["included_count"],
+        "excluded_count": receipt["excluded_count"],
+        "binding_sha256": _json_digest(binding),
+        "asset_inventory_sha256": receipt["asset_inventory_digest"],
+    }
 
 
 def _database_semantic_parity(
-    source_db: Path, target_db: Path, specs: Sequence[DatasetSpec]
+    source_bundles: Path,
+    output_bundles: Path,
+    target_db: Path,
+    specs: Sequence[DatasetSpec],
 ) -> dict[str, Any]:
     from hotpot.ds.public._implementation import runtime_policy
+    from hotpot.ds.storage import TARGET_SCHEMA_ID, TargetStore
 
-    current_runtime_policy = runtime_policy()
+    store = TargetStore(target_db)
+    if store.metadata()["schema_id"] != TARGET_SCHEMA_ID:
+        raise RebuildError("candidate is not the compact-current target schema")
+    expected_scope = sorted((item.name, item.release) for item in specs)
+    with _readonly_connection(target_db) as connection:
+        if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise RebuildError("candidate store failed SQLite integrity_check")
+        if connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
+            raise RebuildError("candidate store failed SQLite foreign_key_check")
+        scope = [
+            tuple(row) for row in connection.execute(
+                "SELECT dataset_id,release_id FROM releases ORDER BY dataset_id,release_id"
+            )
+        ]
+        datasets = [
+            str(row[0])
+            for row in connection.execute(
+                "SELECT dataset_id FROM datasets ORDER BY dataset_id"
+            )
+        ]
+        policies = [
+            str(row[0])
+            for row in connection.execute(
+                "SELECT dataset_id FROM dataset_policies ORDER BY dataset_id"
+            )
+        ]
+        receipts = [
+            tuple(row)
+            for row in connection.execute(
+                "SELECT dataset_id,release_id FROM ingestion_receipts "
+                "ORDER BY dataset_id,release_id"
+            )
+        ]
+        tables = {
+            row[0] for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+            )
+        }
+        case_columns = {row[1] for row in connection.execute("PRAGMA table_info(cases)")}
+        assessment_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(case_assessments)")
+        }
+    if scope != expected_scope:
+        raise RebuildError("candidate store scope is not exactly the expected releases")
+    expected_datasets = sorted(item.name for item in specs)
+    if (
+        datasets != expected_datasets
+        or policies != expected_datasets
+        or receipts != expected_scope
+    ):
+        raise RebuildError("candidate dataset/policy/receipt scope is not exact")
+    if "source_payload_json" in case_columns or "assessment_json" in assessment_columns:
+        raise RebuildError("candidate retained superseded JSON trace columns")
+    if tables & {"ordinary_case_index", "benchmark_case_index", "incomplete_case_index"}:
+        raise RebuildError("candidate retained reproducible archive index tables")
+
     result: dict[str, Any] = {"datasets": {}}
-    with _readonly_connection(source_db) as source, _readonly_connection(target_db) as target:
-        for connection, label in ((source, "source"), (target, "target")):
-            if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-                raise RebuildError(f"{label} store failed SQLite integrity_check")
-            if connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
-                raise RebuildError(f"{label} store failed SQLite foreign_key_check")
-        expected_scope = sorted((item.name, item.release) for item in specs)
-        source_scope = [
-            tuple(row)
-            for row in source.execute(
-                "SELECT dataset_id,release_id FROM releases "
-                "ORDER BY dataset_id,release_id"
-            )
-        ]
-        target_scope = [
-            tuple(row)
-            for row in target.execute(
-                "SELECT dataset_id,release_id FROM releases "
-                "ORDER BY dataset_id,release_id"
-            )
-        ]
-        for label, connection, scope in (
-            ("source", source, source_scope),
-            ("target", target, target_scope),
+    for spec in specs:
+        source_root = source_bundles / spec.source_relative
+        output_root = output_bundles / spec.name / spec.release
+        source_policy = _source_bundle_policy(source_root, spec)
+        output_policy = _bundle_policy(output_root, spec)
+        target_policy = store.read_policy(spec.name)
+        if target_policy is None:
+            raise RebuildError(f"candidate policy is missing: {spec.name}")
+        expected_policy = _without_runtime(source_policy["value"])
+        if (
+            _without_runtime(output_policy["value"]) != expected_policy
+            or _without_runtime(target_policy["value"]) != expected_policy
         ):
-            datasets = [
-                row[0]
-                for row in connection.execute(
-                    "SELECT dataset_id FROM datasets ORDER BY dataset_id"
-                )
-            ]
-            policies = [
-                row[0]
-                for row in connection.execute(
-                    "SELECT dataset_id FROM dataset_policies ORDER BY dataset_id"
-                )
-            ]
-            receipt_scope = [
-                tuple(row)
-                for row in connection.execute(
-                    "SELECT dataset_id,release_id FROM ingestion_receipts "
-                    "ORDER BY dataset_id,release_id"
-                )
-            ]
-            expected_datasets = sorted(item.name for item in specs)
-            if (
-                scope != expected_scope
-                or datasets != expected_datasets
-                or policies != expected_datasets
-                or receipt_scope != expected_scope
-            ):
-                raise RebuildError(f"{label} store scope is not exactly the expected releases")
-        if source_scope != target_scope:
-            raise RebuildError("source and target release scopes differ")
-        for spec in specs:
-            dataset_result: dict[str, Any] = {}
-            for name, (query, scope) in PARITY_QUERIES.items():
-                parameters = (spec.name,) if scope == "dataset" else (spec.name, spec.release)
-                left = _row_stream_digest(source, query, parameters)
-                right = _row_stream_digest(target, query, parameters)
-                if left != right:
-                    raise RebuildError(f"semantic parity failed: {spec.name}.{name}")
-                dataset_result[name] = left
-            source_policy = _old_policy(source_db, spec.name)
-            target_policy = _old_policy(target_db, spec.name)
-            source_value = _without_runtime(source_policy["value"])
-            target_value = _without_runtime(target_policy["value"])
-            if source_policy["revision"] != target_policy["revision"] or source_value != target_value:
-                raise RebuildError(f"policy parity excluding runtime failed: {spec.name}")
-            if target_policy["value"].get("runtime_policy") != current_runtime_policy:
-                raise RebuildError(
-                    f"candidate policy does not bind the current runtime: {spec.name}"
-                )
-            dataset_result["policy_without_runtime"] = {
-                "revision": source_policy["revision"],
-                "sha256": _json_digest(source_value),
-            }
-            source_receipt = _receipt_semantics(source, spec)
-            target_receipt = _receipt_semantics(target, spec)
-            if source_receipt != target_receipt:
-                raise RebuildError(
-                    f"receipt semantic parity failed: {spec.name}"
-                )
-            dataset_result["receipt_semantics"] = source_receipt
-            dataset_result["regenerated_controls"] = _assert_runtime_controls_regenerated(
-                source, target, spec
-            )
-            dataset_result["receipt"] = _validate_receipt(target, spec)
-            result["datasets"][spec.name] = dataset_result
+            raise RebuildError(f"durable Gate policy differs: {spec.name}")
+        if target_policy["value"].get("runtime_policy") != runtime_policy():
+            raise RebuildError(f"candidate policy is not current: {spec.name}")
+
+        manifest = _read_json(output_root / "bundle.json")
+        dataset = store.inspect_dataset(spec.name)
+        release = store.load_release_metadata(spec.name, spec.release)
+        if dataset is None or release is None:
+            raise RebuildError(f"candidate public metadata is missing: {spec.name}")
+        expected_metadata = {
+            "license": manifest["license"],
+            "access_policy": manifest["access_policy"],
+            "provenance": manifest["provenance"],
+            "core_labels": manifest["core_labels"],
+            "core_info": manifest["core_info"],
+        }
+        if (
+            dataset["title"] != manifest["title"]
+            or dataset["description"] != manifest["description"]
+            or release["version"] != manifest["version"]
+            or release["metadata"] != expected_metadata
+        ):
+            raise RebuildError(f"candidate release metadata differs: {spec.name}")
+
+        cases = _compare_durable_cases(source_root, output_root, store, spec)
+        result["datasets"][spec.name] = {
+            "cases": cases,
+            "policy_without_runtime": {
+                "source_revision": source_policy["revision"],
+                "sha256": _json_digest(expected_policy),
+            },
+            "control_assets": _validate_release_control_assets(
+                output_root, target_db, spec
+            ),
+            "receipt": _validate_target_receipt(store, target_db, spec, cases),
+        }
     result["semantic_digest"] = _json_digest(result["datasets"])
     return result
-
-
-def _receipt_semantics(
-    connection: sqlite3.Connection, spec: DatasetSpec
-) -> dict[str, Any]:
-    row = connection.execute(
-        "SELECT case_content_digest,included_cases_digest,excluded_cases_digest,"
-        "include_incomplete,reason,included_count,excluded_count "
-        "FROM ingestion_receipts WHERE dataset_id=? AND release_id=?",
-        (spec.name, spec.release),
-    ).fetchone()
-    if row is None:
-        raise RebuildError(f"receipt is missing: {spec.name}")
-    result = {
-        "case_content_digest": row["case_content_digest"],
-        "included_cases_digest": row["included_cases_digest"],
-        "excluded_cases_digest": row["excluded_cases_digest"],
-        "include_incomplete": int(row["include_incomplete"]),
-        "reason": row["reason"],
-        "included_count": int(row["included_count"]),
-        "excluded_count": int(row["excluded_count"]),
-    }
-    if result["include_incomplete"] != 1:
-        raise RebuildError(
-            f"current-runtime rebuild requires complete archival: {spec.name}"
-        )
-
-    identifier_rows = iter(
-        connection.execute(
-            "SELECT c.public_index,i.case_id,i.namespace,i.value FROM identifiers i "
-            "JOIN cases c USING(dataset_id,release_id,case_id) "
-            "WHERE i.dataset_id=? AND i.release_id=? "
-            "ORDER BY c.public_index,i.namespace,i.value",
-            (spec.name, spec.release),
-        )
-    )
-    identifier_row = next(identifier_rows, None)
-
-    def content_rows() -> Iterator[dict[str, Any]]:
-        nonlocal identifier_row
-        rows = connection.execute(
-            "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_json,"
-            "a.assessment_json FROM cases c JOIN case_assessments a "
-            "USING(dataset_id,release_id,case_id) WHERE c.dataset_id=? "
-            "AND c.release_id=? ORDER BY c.public_index,c.case_id",
-            (spec.name, spec.release),
-        )
-        for case in rows:
-            identifiers = []
-            while (
-                identifier_row is not None
-                and int(identifier_row[0]) == int(case["public_index"])
-                and str(identifier_row[1]) == str(case["case_id"])
-            ):
-                identifiers.append(
-                    {
-                        "namespace": str(identifier_row[2]),
-                        "value": str(identifier_row[3]),
-                    }
-                )
-                identifier_row = next(identifier_rows, None)
-            yield {
-                "id": str(case["case_id"]),
-                "public_index": int(case["public_index"]),
-                "local_id": str(case["local_id"]),
-                "facts": json.loads(case["source_payload_json"]),
-                "assessment": json.loads(case["assessment_json"]),
-                "identifiers": identifiers,
-            }
-        if identifier_row is not None:
-            raise RebuildError(f"orphan identifier projection: {spec.name}")
-
-    computed = {
-        "case_content_digest": _stream_json_array_digest(content_rows()),
-        "included_cases_digest": _stream_json_array_digest(
-            str(item[0])
-            for item in connection.execute(
-                "SELECT case_id FROM cases WHERE dataset_id=? AND release_id=? "
-                "ORDER BY case_id",
-                (spec.name, spec.release),
-            )
-        ),
-        "excluded_cases_digest": _stream_json_array_digest(()),
-        "included_count": int(
-            connection.execute(
-                "SELECT count(*) FROM cases WHERE dataset_id=? AND release_id=?",
-                (spec.name, spec.release),
-            ).fetchone()[0]
-        ),
-        "excluded_count": 0,
-    }
-    for field, value in computed.items():
-        if result[field] != value:
-            raise RebuildError(
-                f"receipt {field} does not match stored Case content: {spec.name}"
-            )
-    return result
-
-
-def _assert_runtime_controls_regenerated(
-    source: sqlite3.Connection,
-    target: sqlite3.Connection,
-    spec: DatasetSpec,
-) -> dict[str, dict[str, str]]:
-    identities = (
-        ("facts", "facts.sqlite3"),
-        ("generation", "assessment.sqlite3"),
-        ("generation", "generation.json"),
-        ("certificate", "certificate.json"),
-    )
-    result: dict[str, dict[str, str]] = {}
-    for category, name in identities:
-        values = []
-        for connection in (source, target):
-            row = connection.execute(
-                "SELECT content_sha256 FROM release_control_asset_refs "
-                "WHERE dataset_id=? AND release_id=? AND category=? AND name=?",
-                (spec.name, spec.release, category, name),
-            ).fetchone()
-            if row is None:
-                raise RebuildError(
-                    f"required runtime control is missing: {spec.name}.{category}.{name}"
-                )
-            values.append(str(row[0]))
-        if values[0] == values[1]:
-            raise RebuildError(
-                f"runtime control was reused instead of regenerated: "
-                f"{spec.name}.{category}.{name}"
-            )
-        result[f"{category}/{name}"] = {
-            "source_sha256": values[0],
-            "target_sha256": values[1],
-        }
-    return result
-
-
-def _validate_receipt(connection: sqlite3.Connection, spec: DatasetSpec) -> dict[str, Any]:
-    row = connection.execute(
-        "SELECT receipt_id,store_uuid,bundle_digest,certificate_digest,policy_digest,"
-        "generation_digest,case_content_digest,included_cases_digest,"
-        "excluded_cases_digest,asset_inventory_digest,include_incomplete,reason,"
-        "included_count,excluded_count,binding_json "
-        "FROM ingestion_receipts WHERE dataset_id=? AND release_id=?",
-        (spec.name, spec.release),
-    ).fetchone()
-    case_count = connection.execute(
-        "SELECT count(*) FROM cases WHERE dataset_id=? AND release_id=?",
-        (spec.name, spec.release),
-    ).fetchone()[0]
-    if row is None:
-        raise RebuildError(f"candidate receipt is missing: {spec.name}")
-    if (
-        row["include_incomplete"] != 1
-        or row["reason"] != INCOMPLETE_REASON
-        or row["included_count"] != case_count
-        or row["excluded_count"] != 0
-    ):
-        raise RebuildError(f"candidate receipt selection is invalid: {spec.name}")
-    binding = json.loads(row["binding_json"])
-    if binding.get("dataset") != spec.name or binding.get("release") != spec.release:
-        raise RebuildError(f"candidate receipt binding is invalid: {spec.name}")
-    duplicates = {
-        "store_uuid": row["store_uuid"],
-        "bundle_digest": row["bundle_digest"],
-        "certificate_digest": row["certificate_digest"],
-        "policy_digest": row["policy_digest"],
-        "generation_digest": row["generation_digest"],
-        "case_content_digest": row["case_content_digest"],
-        "included_cases_digest": row["included_cases_digest"],
-        "excluded_cases_digest": row["excluded_cases_digest"],
-        "asset_inventory_digest": row["asset_inventory_digest"],
-        "include_incomplete": bool(row["include_incomplete"]),
-        "reason": row["reason"],
-    }
-    for name, expected in duplicates.items():
-        if binding.get(name) != expected:
-            raise RebuildError(
-                f"candidate receipt binding disagrees with {name}: {spec.name}"
-            )
-    if row["receipt_id"] != "receipt-" + _json_digest(binding):
-        raise RebuildError(f"candidate receipt identity is invalid: {spec.name}")
-    return {
-        "included_count": row["included_count"],
-        "excluded_count": row["excluded_count"],
-        "binding_sha256": _json_digest(binding),
-    }
 
 
 def _verify_cas(database: Path) -> dict[str, Any]:
@@ -1108,36 +1275,26 @@ def _verify_cas(database: Path) -> dict[str, Any]:
         ).fetchone()
         if orphan is not None:
             raise RebuildError(f"CAS database contains an unreferenced object: {orphan[0]}")
-        stable_assets = {
+        control_categories = {
             str(row[0])
             for row in connection.execute(
-                "SELECT content_sha256 FROM structure_asset_refs "
-                "UNION SELECT content_sha256 FROM scientific_asset_refs "
-                "UNION SELECT content_sha256 FROM release_control_asset_refs "
-                "WHERE category IN ('bundle','governance','migration')"
+                "SELECT DISTINCT category FROM release_control_asset_refs"
             )
         }
-        runtime_assets = {
-            str(row[0])
-            for row in connection.execute(
-                "SELECT content_sha256 FROM release_control_asset_refs "
-                "WHERE category IN ('facts','generation','certificate')"
+        unsupported = control_categories - _DURABLE_CONTROL_CATEGORIES
+        if unsupported:
+            raise RebuildError(
+                "CAS retained reproducible control categories: "
+                + ", ".join(sorted(unsupported))
             )
-        }
         rows = connection.execute(
             "SELECT content_sha256,size,relative_path FROM target_assets ORDER BY relative_path"
         )
         digest = hashlib.sha256()
-        stable_digest = hashlib.sha256()
-        runtime_digest = hashlib.sha256()
         expected_paths = set()
         observed_assets = set()
         count = 0
         byte_count = 0
-        stable_count = 0
-        stable_bytes = 0
-        runtime_count = 0
-        runtime_bytes = 0
         for content_sha256, size, relative_path in rows:
             relative = _safe_relative(relative_path)
             canonical_relative = (
@@ -1155,20 +1312,10 @@ def _verify_cas(database: Path) -> dict[str, Any]:
             encoded = _canonical_bytes(item)
             framed = len(encoded).to_bytes(8, "big") + encoded
             digest.update(framed)
-            if content_sha256 in stable_assets:
-                stable_digest.update(framed)
-                stable_count += 1
-                stable_bytes += size
-            if content_sha256 in runtime_assets:
-                runtime_digest.update(framed)
-                runtime_count += 1
-                runtime_bytes += size
             expected_paths.add(relative_path)
             observed_assets.add(content_sha256)
             count += 1
             byte_count += size
-        if not stable_assets <= observed_assets or not runtime_assets <= observed_assets:
-            raise RebuildError("CAS references an object absent from target_assets")
     actual_paths = set()
     lock_count = 0
     if asset_root.exists():
@@ -1200,16 +1347,8 @@ def _verify_cas(database: Path) -> dict[str, Any]:
         "bytes": byte_count,
         "sha256": digest.hexdigest(),
         "lock_files": lock_count,
-        "stable": {
-            "count": stable_count,
-            "bytes": stable_bytes,
-            "sha256": stable_digest.hexdigest(),
-        },
-        "runtime": {
-            "count": runtime_count,
-            "bytes": runtime_bytes,
-            "sha256": runtime_digest.hexdigest(),
-        },
+        "durable_only": True,
+        "control_categories": sorted(control_categories),
     }
 
 
@@ -1279,17 +1418,6 @@ class Operator:
                 descriptor = os.open(lock_path, os.O_RDWR)
                 fcntl.flock(descriptor, fcntl.LOCK_EX)
                 lock_descriptors.append(descriptor)
-            source_uri = f"file:{self.source_database.as_posix()}?mode=ro"
-            source = sqlite3.connect(source_uri, uri=True, timeout=60.0)
-            connections.append(source)
-            source.execute("PRAGMA busy_timeout=60000")
-            if source.execute("PRAGMA journal_mode").fetchone()[0].lower() != "delete":
-                raise RebuildError(
-                    "source publication barrier requires DELETE journal mode"
-                )
-            source.execute("BEGIN")
-            source.execute("SELECT store_uuid FROM store_metadata WHERE singleton=1").fetchone()
-
             candidate = sqlite3.connect(str(self.output_database), timeout=60.0)
             connections.append(candidate)
             candidate.execute("PRAGMA busy_timeout=60000")
@@ -1351,7 +1479,7 @@ class Operator:
             manifest = _read_json(source / "bundle.json")
             if manifest.get("ds_name") != spec.name or manifest.get("release_id") != spec.release:
                 raise RebuildError(f"source Bundle identity mismatch: {source}")
-            policy = _old_policy(self.source_database, spec.name)
+            policy = _source_bundle_policy(source, spec)
             datasets.append(
                 {
                     "dataset": spec.name,
@@ -1562,7 +1690,9 @@ class Operator:
     def _current_gates(self, spec: DatasetSpec) -> tuple[Any, ...]:
         from hotpot.ds.gates._persistence import deserialize_gate_configs
 
-        policy = _old_policy(self.source_database, spec.name)
+        policy = _source_bundle_policy(
+            self.source_bundles / spec.source_relative, spec
+        )
         return deserialize_gate_configs(policy["value"]["gates"])
 
     def _process_phase(self, spec: DatasetSpec) -> dict[str, Any]:
@@ -1635,12 +1765,12 @@ class Operator:
             _observe_bundle_closure(self.source_bundles / spec.source_relative, closure)
             _observe_bundle_closure(self._output_root(spec), closure)
         semantic = _database_semantic_parity(
-            self.source_database, self.output_database, DATASETS
+            self.source_bundles,
+            self.output_bundles,
+            self.output_database,
+            DATASETS,
         )
-        source_cas = _verify_cas(self.source_database)
         target_cas = _verify_cas(self.output_database)
-        if source_cas["stable"] != target_cas["stable"]:
-            raise RebuildError("stable scientific/control CAS projection changed")
         source_database_digest, source_database_size, final_stamp = _sha256_file(
             self.source_database
         )
@@ -1655,9 +1785,8 @@ class Operator:
             raise RebuildError("candidate database changed during parity verification")
         result = {
             "semantic": semantic,
-            "source_cas": source_cas,
             "target_cas": target_cas,
-            "source_database": {
+            "source_anchor": {
                 "sha256": source_database_digest, "size": source_database_size
             },
             "target_database": {
@@ -1678,29 +1807,29 @@ class Operator:
         if artifact_value != {
             key: result[key]
             for key in (
-                "semantic", "source_cas", "target_cas",
-                "source_database", "target_database",
+                "semantic", "target_cas", "source_anchor", "target_database",
             )
         }:
             raise RebuildError("parity artifact no longer matches rebuild state")
         current = self._parity_observation()
-        for key in ("semantic", "source_cas", "target_cas", "source_database", "target_database"):
+        for key in ("semantic", "target_cas", "source_anchor", "target_database"):
             if current[key] != result[key]:
                 raise RebuildError(f"completed parity output no longer matches: {key}")
 
     def _parity_observation(self) -> dict[str, Any]:
-        semantic = _database_semantic_parity(self.source_database, self.output_database, DATASETS)
-        source_cas = _verify_cas(self.source_database)
+        semantic = _database_semantic_parity(
+            self.source_bundles,
+            self.output_bundles,
+            self.output_database,
+            DATASETS,
+        )
         target_cas = _verify_cas(self.output_database)
-        if source_cas["stable"] != target_cas["stable"]:
-            raise RebuildError("stable scientific/control CAS projection changed")
         source_digest, source_size, _ = _sha256_file(self.source_database)
         target_digest, target_size, _ = _sha256_file(self.output_database)
         return {
             "semantic": semantic,
-            "source_cas": source_cas,
             "target_cas": target_cas,
-            "source_database": {"sha256": source_digest, "size": source_size},
+            "source_anchor": {"sha256": source_digest, "size": source_size},
             "target_database": {"sha256": target_digest, "size": target_size},
         }
 
@@ -1717,7 +1846,7 @@ class Operator:
             "checked_at": _utc_now(),
             "parity_artifact_sha256": parity["artifact_sha256"],
             "semantic_digest": parity["semantic"]["semantic_digest"],
-            "source_database_sha256": parity["source_database"]["sha256"],
+            "source_database_sha256": parity["source_anchor"]["sha256"],
             "target_database_sha256": parity["target_database"]["sha256"],
             "cas_sha256": parity["target_cas"]["sha256"],
         }

@@ -12,7 +12,7 @@ import hotpot.ds.cli as ds_cli
 from hotpot.ds._communication import CommunicationError, make_envelope
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
-from hotpot.ds.public.bundle import load_bundle
+from hotpot.ds.public.bundle import Bundle, load_bundle
 from hotpot.ds.public.dataset import Dataset
 from hotpot.ds.storage import TargetStore
 
@@ -276,6 +276,16 @@ def test_certify_ingest_query_archive_opt_in_and_protocol_pipeline(tmp_path: Pat
         code, result, _ = _invoke(arguments, capsys)
         assert code == 0 and result is not None
 
+    snapshot_calls = 0
+    original_snapshot = Bundle._ingestion_snapshot
+
+    def counted_snapshot(self, *args, **kwargs):
+        nonlocal snapshot_calls
+        snapshot_calls += 1
+        return original_snapshot(self, *args, **kwargs)
+
+    monkeypatch.setattr(Bundle, "_ingestion_snapshot", counted_snapshot)
+
     code, result, _ = _invoke(
         [
             "ingest",
@@ -292,6 +302,7 @@ def test_certify_ingest_query_archive_opt_in_and_protocol_pipeline(tmp_path: Pat
     assert result["payload"]["included"]["count"] == 3
     assert result["payload"]["excluded"]["count"] == 0
     assert result["payload"]["idempotent"] is False
+    assert snapshot_calls == 2
 
     code, default_subset, _ = _invoke(
         ["subset", "demo", "--db", str(database)], capsys

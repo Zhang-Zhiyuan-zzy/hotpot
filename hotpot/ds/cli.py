@@ -1131,16 +1131,25 @@ def run(args: argparse.Namespace) -> int:
             root = Path(args.bundle_root).expanduser().resolve()
             name = _manifest_dataset(root, getattr(args, "dataset", None))
             bundle = load_bundle(root, name, db=args.db)
-            idempotent = bundle._authoritative_receipt() is not None
-            snapshot = bundle._ingestion_snapshot(
-                certificate_digest(bundle.certificate_path),
-                args.include_incomplete,
+            target = TargetStore(args.db)
+            release_id = bundle._state.manifest["release_id"]
+            previous = (
+                target.load_release_metadata(name, release_id)
+                if target.path.is_file()
+                else None
+            )
+            idempotent = bool(
+                previous is not None and previous.get("receipt") is not None
             )
             result = bundle.ingest(
                 include_incomplete=args.include_incomplete,
                 reason=args.reason,
             )
-            metadata = TargetStore(args.db).metadata()
+            metadata = target.metadata()
+            release = target.load_release_metadata(name, release_id)
+            receipt = None if release is None else release.get("receipt")
+            if receipt is None:
+                raise RuntimeError("ingestion committed without an authoritative receipt")
             emit_envelope(
                 "hotpot.ds.ingest",
                 {
@@ -1153,11 +1162,11 @@ def run(args: argparse.Namespace) -> int:
                     "receipt_digest": result["receipt_digest"],
                     "included": {
                         "count": result["included_count"],
-                        "sha256": snapshot["digests"]["included_cases"],
+                        "sha256": receipt["included_cases_digest"],
                     },
                     "excluded": {
                         "count": result["excluded_count"],
-                        "sha256": snapshot["digests"]["excluded_cases"],
+                        "sha256": receipt["excluded_cases_digest"],
                     },
                     "idempotent": idempotent,
                 },

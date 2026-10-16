@@ -81,6 +81,7 @@ import json
 import os
 import re
 import sqlite3
+import stat
 import tempfile
 import uuid
 from dataclasses import asdict, dataclass
@@ -346,12 +347,48 @@ def _require_digest(value: Any, field: str) -> str:
 
 
 def _sha256_file(path: Path) -> Tuple[str, int]:
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    flags |= getattr(os, "O_NONBLOCK", 0)
+    try:
+        descriptor = os.open(path, flags)
+    except OSError as exc:
+        raise AssetIntegrityError(
+            f"asset cannot be opened as a regular file: {path}"
+        ) from exc
+
     digest = hashlib.sha256()
     size = 0
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-            size += len(block)
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode):
+            raise AssetIntegrityError(f"asset is not a regular file: {path}")
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(block)
+                size += len(block)
+        after = os.fstat(descriptor)
+    finally:
+        os.close(descriptor)
+
+    stable_fields = (
+        "st_dev",
+        "st_ino",
+        "st_mode",
+        "st_size",
+        "st_mtime_ns",
+        "st_ctime_ns",
+    )
+    try:
+        current = os.stat(path, follow_symlinks=False)
+    except OSError as exc:
+        raise AssetIntegrityError(f"asset changed while it was hashed: {path}") from exc
+    if not stat.S_ISREG(current.st_mode) or any(
+        getattr(before, field) != getattr(after, field)
+        or getattr(after, field) != getattr(current, field)
+        for field in stable_fields
+    ):
+        raise AssetIntegrityError(f"asset changed while it was hashed: {path}")
     return digest.hexdigest(), size
 
 
@@ -1441,7 +1478,15 @@ class TargetStore:
         lock_path = parent / f".{expected_digest}.lock"
         with lock_path.open("a+b") as lock:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-            if target.exists():
+            try:
+                target_status = target.lstat()
+            except FileNotFoundError:
+                target_status = None
+            if target_status is not None:
+                if not stat.S_ISREG(target_status.st_mode):
+                    raise AssetIntegrityError(
+                        f"target-owned asset is not a regular file: {target}"
+                    )
                 # This source path still has to be proved independently even
                 # though another ingest already materialized the same digest.
                 self._verify_asset_source(descriptor)

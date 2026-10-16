@@ -235,6 +235,7 @@ def test_ingest_verifies_each_distinct_source_path_once(
     snapshot = _snapshot(store, [_case("case-a", 0, second)], [control])
     source_reads = {first.resolve(): 0, second.resolve(): 0}
     original_open = Path.open
+    original_hash = storage_module._sha256_file
 
     def counted_open(path, mode="r", *args, **kwargs):
         resolved = path.resolve()
@@ -242,7 +243,14 @@ def test_ingest_verifies_each_distinct_source_path_once(
             source_reads[resolved] += 1
         return original_open(path, mode, *args, **kwargs)
 
+    def counted_hash(path):
+        resolved = Path(path).resolve()
+        if resolved in source_reads:
+            source_reads[resolved] += 1
+        return original_hash(path)
+
     monkeypatch.setattr(Path, "open", counted_open)
+    monkeypatch.setattr(storage_module, "_sha256_file", counted_hash)
     store.ingest(snapshot)
 
     assert source_reads == {first.resolve(): 1, second.resolve(): 1}
@@ -308,6 +316,35 @@ def test_existing_target_asset_hashes_source_and_target_once(
     store.ingest(_snapshot(store, [_case("case-a", 0, source)]))
 
     assert hashes == {source: 1, target.resolve(): 1}
+
+
+@pytest.mark.parametrize("target_kind", ["symlink", "dangling-symlink", "directory"])
+def test_existing_target_asset_must_be_a_regular_file(
+    tmp_path: Path, target_kind: str
+) -> None:
+    source = tmp_path / "source.xyz"
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    descriptor = _asset(source)
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    target = (
+        store.asset_root
+        / "objects"
+        / "sha256"
+        / descriptor["sha256"][:2]
+        / descriptor["sha256"]
+    )
+    target.parent.mkdir(parents=True)
+    if target_kind == "symlink":
+        target.symlink_to(source)
+    elif target_kind == "dangling-symlink":
+        target.symlink_to(tmp_path / "missing.xyz")
+    else:
+        target.mkdir()
+
+    with pytest.raises(AssetIntegrityError, match="not a regular file"):
+        store.ingest(_snapshot(store, [_case("case-a", 0, source)]))
+
+    assert store.load_release_metadata("spin", "release-1") is None
 
 
 def test_streaming_asset_copy_rejects_mid_read_tampering(

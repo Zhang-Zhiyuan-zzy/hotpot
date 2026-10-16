@@ -76,6 +76,12 @@ def test_effective_electron_count_includes_stored_implicit_hydrogen() -> None:
             frozenset(),
         )
         projection_convention = "pure_spin_highest_ms"
+        consumes_uhf = True
+        method_supported = True
+
+        @staticmethod
+        def supports_atomic_number(atomic_number: int) -> bool:
+            return atomic_number > 0
 
         @staticmethod
         def effective_nuclear_charge(atomic_number: int) -> int:
@@ -161,7 +167,7 @@ def _projection(backend_identity: BackendIdentity) -> BackendStateProjection:
             backend_identity=backend_identity,
             requested_state=state_values,
             selected_state=state_values,
-            source=BackendDecisionSource.EXPLICIT,
+            source=BackendDecisionSource.SCIENTIFIC_STATE,
             rationale=(),
         ),
         executability=BackendExecutability.SUPPORTED,

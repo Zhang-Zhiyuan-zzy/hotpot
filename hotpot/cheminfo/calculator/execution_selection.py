@@ -26,6 +26,7 @@ from .state_resolver import ScientificStateBundle
 from .state_selection import DecisionReason
 
 __all__ = [
+    "project_state",
     "BackendStateValues",
     "BackendStateRequest",
     "BackendDecisionSource",
@@ -64,6 +65,7 @@ class BackendDecisionSource(Enum):
     """Authority responsible for one backend execution-state choice."""
 
     EXPLICIT = "explicit"
+    SCIENTIFIC_STATE = "scientific_state"
     EXACT_CONTEXT_HISTORY = "exact_context_history"
     EXECUTION_DEFAULT = "execution_default"
 
@@ -294,3 +296,360 @@ def _selected_pure_spin(
     if len(contributions) != 1 or not contributions[0].pure_spin:
         return None
     return contributions[0].two_s, contributions[0].two_s + 1
+
+
+def _projection_result(
+    status: BackendProjectionStatus,
+    backend: BackendContext,
+    request: BackendStateRequest,
+    code: str,
+    message: str,
+    related_identities: Tuple[str, ...] = (),
+) -> BackendProjectionResult:
+    return BackendProjectionResult(
+        status=status,
+        backend_identity=backend.identity,
+        request=request,
+        projection=None,
+        findings=(
+            BackendProjectionFinding(
+                code,
+                message,
+                related_identities,
+            ),
+        ),
+    )
+
+
+def _matching_history(
+    state_identity: ScientificStateIdentity,
+    backend_identity: BackendIdentity,
+    charge: int,
+    electron_count: int,
+    history: Tuple[BackendExecutionEvidence, ...],
+) -> Tuple[BackendExecutionEvidence, ...]:
+    return tuple(
+        evidence
+        for evidence in history
+        if evidence.scientific_state_identity == state_identity
+        and evidence.backend_identity == backend_identity
+        and evidence.executed_state.charge == charge
+        and evidence.executed_state.uhf is not None
+        and _uhf_legality_finding(
+            electron_count,
+            evidence.executed_state.uhf,
+        )
+        is None
+    )
+
+
+def _selected_backend_state(
+    state: ScientificStateBundle,
+    path: CoupledScientificStateCandidate,
+    backend: BackendContext,
+    request: BackendStateRequest,
+    policies: frozenset[str],
+    electron_count: int,
+    execution_history: Tuple[BackendExecutionEvidence, ...],
+) -> Tuple[
+    Optional[BackendStateValues],
+    Optional[BackendDecisionSource],
+    Tuple[DecisionReason, ...],
+    Tuple[BackendProjectionFinding, ...],
+]:
+    charge = path.net_charge.value
+    scientific_spin = _selected_pure_spin(state, path)
+    scientific_uhf = scientific_spin[0] if scientific_spin is not None else None
+    scientific_multiplicity = (
+        scientific_spin[1] if scientific_spin is not None else None
+    )
+
+    if not backend.consumes_uhf:
+        if backend.projection_convention != _CHARGE_ONLY_PROJECTION:
+            raise ValueError(
+                "A charge-only backend must use the charge_only convention"
+            )
+        if request.uhf is not None:
+            return (
+                None,
+                None,
+                (),
+                (
+                    BackendProjectionFinding(
+                        "HARD-008.UHF_NOT_CONSUMED",
+                        "The selected backend context does not consume UHF.",
+                    ),
+                ),
+            )
+        return (
+            BackendStateValues(charge, None, None),
+            BackendDecisionSource.SCIENTIFIC_STATE,
+            (
+                DecisionReason(
+                    "HARD-008.CHARGE_ONLY_PROJECTION",
+                    "The backend context consumes only the selected charge.",
+                ),
+            ),
+            (),
+        )
+
+    if backend.projection_convention != _HIGHEST_MS_PROJECTION:
+        raise ValueError(
+            "Unknown backend projection convention: "
+            f"{backend.projection_convention}"
+        )
+
+    if request.uhf is not None:
+        legality_finding = _uhf_legality_finding(electron_count, request.uhf)
+        if legality_finding is not None:
+            return None, None, (), (legality_finding,)
+        if scientific_uhf is not None and request.uhf != scientific_uhf:
+            return (
+                None,
+                None,
+                (),
+                (
+                    BackendProjectionFinding(
+                        "HARD-013.EXPLICIT_UHF_SCIENTIFIC_SPIN_CONFLICT",
+                        "Explicit UHF conflicts with the selected pure-spin "
+                        "state under the highest-MS projection convention.",
+                        (path.identity.digest,),
+                    ),
+                ),
+            )
+        return (
+            BackendStateValues(
+                charge,
+                request.uhf,
+                scientific_multiplicity,
+            ),
+            BackendDecisionSource.EXPLICIT,
+            (
+                DecisionReason(
+                    "HARD-013.EXPLICIT_UHF",
+                    "A hard-valid explicit backend UHF was selected.",
+                ),
+            ),
+            (),
+        )
+
+    matching_history = (
+        _matching_history(
+            path.identity,
+            backend.identity,
+            charge,
+            electron_count,
+            execution_history,
+        )
+        if "EXECUTION-001" in policies
+        else ()
+    )
+    compatible_history = tuple(
+        evidence
+        for evidence in matching_history
+        if scientific_uhf is None
+        or evidence.executed_state.uhf == scientific_uhf
+    )
+    historical_uhf = frozenset(
+        evidence.executed_state.uhf for evidence in compatible_history
+    )
+    if len(historical_uhf) > 1:
+        return (
+            None,
+            None,
+            (),
+            (
+                BackendProjectionFinding(
+                    "EXECUTION-001.CONFLICTING_HISTORY",
+                    "Exact-context execution history contains conflicting "
+                    "hard-valid UHF values.",
+                    tuple(
+                        digest
+                        for evidence in compatible_history
+                        for digest in evidence.artifact_digests
+                    ),
+                ),
+            ),
+        )
+    if historical_uhf:
+        uhf = next(iter(historical_uhf))
+        if uhf is None:
+            raise RuntimeError("Matched execution history is missing UHF")
+        return (
+            BackendStateValues(
+                charge,
+                uhf,
+                scientific_multiplicity,
+            ),
+            BackendDecisionSource.EXACT_CONTEXT_HISTORY,
+            (
+                DecisionReason(
+                    "EXECUTION-001.EXACT_CONTEXT_HISTORY",
+                    "Verified exact-context history selected the backend UHF.",
+                ),
+            ),
+            (),
+        )
+
+    if scientific_uhf is not None:
+        legality_finding = _uhf_legality_finding(electron_count, scientific_uhf)
+        if legality_finding is not None:
+            return None, None, (), (legality_finding,)
+        return (
+            BackendStateValues(
+                charge,
+                scientific_uhf,
+                scientific_multiplicity,
+            ),
+            BackendDecisionSource.SCIENTIFIC_STATE,
+            (
+                DecisionReason(
+                    "HARD-008.HIGHEST_MS_PROJECTION",
+                    "The selected pure-spin state was projected as UHF=2S.",
+                ),
+            ),
+            (),
+        )
+
+    if "DEFAULT-004" not in policies:
+        return (
+            None,
+            None,
+            (),
+            (
+                BackendProjectionFinding(
+                    "DEFAULT-004.DISABLED",
+                    "No backend UHF is selected and DEFAULT-004 is disabled.",
+                ),
+            ),
+        )
+    uhf = _lowest_legal_uhf(electron_count)
+    return (
+        BackendStateValues(charge, uhf, None),
+        BackendDecisionSource.EXECUTION_DEFAULT,
+        (
+            DecisionReason(
+                "DEFAULT-004.LOWEST_LEGAL_UHF",
+                "The lowest parity-compatible UHF was selected for execution.",
+            ),
+        ),
+        (),
+    )
+
+
+# Public backend projection operation.
+
+
+def project_state(
+    state: ScientificStateBundle,
+    backend: BackendContext,
+    *,
+    request: BackendStateRequest = BackendStateRequest(),
+    execution_policies: ExecutionPolicySet = ExecutionPolicySet(),
+    execution_history: Tuple[BackendExecutionEvidence, ...] = (),
+) -> BackendProjectionResult:
+    """Project one selected scientific state into an exact backend context."""
+    from .state_selection import StateDecisionAction
+
+    policies = _validated_execution_policy_ids(execution_policies)
+    if state.execution_decision.action is not StateDecisionAction.SELECT_STATE:
+        return _projection_result(
+            BackendProjectionStatus.NOT_PROJECTED,
+            backend,
+            request,
+            "HARD-008.SCIENTIFIC_STATE_NOT_SELECTED",
+            "Backend projection requires a SELECT_STATE scientific decision.",
+            (state.execution_decision.action.value,),
+        )
+
+    path = _selected_path(state)
+    if path is None:
+        raise ValueError("Selected scientific-state identity is not materialized")
+    if not backend.method_supported:
+        return _projection_result(
+            BackendProjectionStatus.BACKEND_UNSUPPORTED,
+            backend,
+            request,
+            "HARD-008.UNSUPPORTED_METHOD",
+            "The exact backend context does not support this method.",
+        )
+    unsupported_elements = tuple(
+        sorted(
+            {
+                atomic_number
+                for atomic_number in state.facts.atomic_numbers
+                if not backend.supports_atomic_number(atomic_number)
+            }
+        )
+    )
+    if unsupported_elements:
+        return _projection_result(
+            BackendProjectionStatus.BACKEND_UNSUPPORTED,
+            backend,
+            request,
+            "HARD-008.UNSUPPORTED_ELEMENT",
+            "The exact backend context does not support every input element.",
+            tuple(str(atomic_number) for atomic_number in unsupported_elements),
+        )
+
+    charge = path.net_charge.value
+    electron_count = _effective_electron_count(state.facts, backend, charge)
+    if electron_count < 0:
+        return _projection_result(
+            BackendProjectionStatus.PROJECTION_CONFLICT,
+            backend,
+            request,
+            "HARD-013.NEGATIVE_EFFECTIVE_ELECTRON_COUNT",
+            "The backend effective-electron count is negative.",
+            (path.identity.digest,),
+        )
+
+    selected, source, rationale, findings = _selected_backend_state(
+        state,
+        path,
+        backend,
+        request,
+        policies,
+        electron_count,
+        execution_history,
+    )
+    if selected is None or source is None:
+        return BackendProjectionResult(
+            status=BackendProjectionStatus.PROJECTION_CONFLICT,
+            backend_identity=backend.identity,
+            request=request,
+            projection=None,
+            findings=findings,
+        )
+
+    requested = BackendStateValues(
+        charge=charge,
+        uhf=request.uhf,
+        multiplicity=None,
+    )
+    decision = BackendExecutionDecision(
+        backend_identity=backend.identity,
+        requested_state=requested,
+        selected_state=selected,
+        source=source,
+        rationale=rationale,
+    )
+    projection = BackendStateProjection(
+        scientific_state_identity=path.identity,
+        facts_identity=state.facts.identity,
+        backend_identity=backend.identity,
+        effective_electron_count=electron_count,
+        charge=selected.charge,
+        uhf=selected.uhf,
+        multiplicity=selected.multiplicity,
+        projection_convention=backend.projection_convention,
+        execution_decision=decision,
+        executability=BackendExecutability.SUPPORTED,
+    )
+    return BackendProjectionResult(
+        status=BackendProjectionStatus.PROJECTED,
+        backend_identity=backend.identity,
+        request=request,
+        projection=projection,
+        findings=(),
+    )

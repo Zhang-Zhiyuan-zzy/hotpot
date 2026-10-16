@@ -146,6 +146,135 @@ def test_case_mutation_marks_digest_dirty_without_a_full_source_scan(
     assert reopened.status["recorded_source_digest"] == refreshed["source_digest"]
 
 
+def test_prepare_synchronization_performs_one_source_proof(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    original = BundleState._compute_source_digest
+    proofs = 0
+
+    def counted(self, connection, manifest, **kwargs):
+        nonlocal proofs
+        proofs += 1
+        return original(self, connection, manifest, **kwargs)
+
+    monkeypatch.setattr(BundleState, "_compute_source_digest", counted)
+    snapshot = state.prepare_synchronization()
+
+    assert proofs == 1
+    assert set(snapshot) == {
+        "source_revision",
+        "source_digest",
+        "policy_revision",
+        "policy_digest",
+        "governance_registry_revision",
+        "governance_registry_digest",
+        "manifest",
+        "policy",
+    }
+    assert len(snapshot["source_digest"]) == 64
+    assert snapshot["policy_digest"] == hashlib.sha256(
+        state_module._canonical_bytes(snapshot["policy"])
+    ).hexdigest()
+    assert proofs == 1
+
+
+def test_prepare_synchronization_rejects_policy_digest_mismatch(
+    tmp_path: Path,
+) -> None:
+    state = _build(_root(tmp_path))
+    with sqlite3.connect(state.path) as connection:
+        policy = json.loads(
+            connection.execute(
+                "SELECT policy_json FROM policy WHERE singleton=1"
+            ).fetchone()[0]
+        )
+        policy["tampered"] = True
+        connection.execute(
+            "UPDATE policy SET policy_json=? WHERE singleton=1",
+            (json.dumps(policy, sort_keys=True, separators=(",", ":")),),
+        )
+
+    with pytest.raises(BundleStateError, match="policy digest"):
+        state.prepare_synchronization()
+
+
+def test_synchronization_snapshot_reuses_one_facts_transaction_for_two_scans(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path, cases=[_case(0), _case(1)]))
+    original = BundleState._compute_source_digest
+    proofs = 0
+
+    def counted(self, connection, manifest, **kwargs):
+        nonlocal proofs
+        proofs += 1
+        return original(self, connection, manifest, **kwargs)
+
+    monkeypatch.setattr(BundleState, "_compute_source_digest", counted)
+    with state.synchronization_snapshot() as snapshot:
+        first = list(snapshot.iter_cases())
+        writer = sqlite3.connect(state.path, timeout=0)
+        try:
+            writer.execute(
+                "UPDATE cases SET payload_json=payload_json || ' ' "
+                "WHERE case_id='case-0'"
+            )
+            with pytest.raises(sqlite3.OperationalError, match="locked"):
+                writer.commit()
+            writer.rollback()
+        finally:
+            writer.close()
+        second = list(snapshot.iter_cases())
+        assert snapshot["source_digest"]
+
+    assert proofs == 1
+    assert [case["id"] for case in first] == ["case-0", "case-1"]
+    assert second == first
+
+
+def test_synchronization_snapshot_rejects_asset_aba_without_rehashing(
+    tmp_path: Path,
+) -> None:
+    asset = tmp_path / "bundle" / "assets" / "primary.smi"
+    asset.parent.mkdir(parents=True)
+    asset.write_text("O\n", encoding="utf-8")
+    state = _build(
+        _root(
+            tmp_path,
+            cases=[_case(0, asset="assets/primary.smi")],
+        )
+    )
+
+    with pytest.raises(BundleStateError, match="after aggregate proof"):
+        with state.synchronization_snapshot() as snapshot:
+            assert list(snapshot.iter_cases())[0]["id"] == "case-0"
+            asset.write_text("N\n", encoding="utf-8")
+            asset.write_text("O\n", encoding="utf-8")
+            changed = asset.stat()
+            state_module.os.utime(
+                asset,
+                ns=(changed.st_atime_ns, changed.st_mtime_ns + 1_000_000_000),
+            )
+
+
+def test_synchronization_snapshot_exception_releases_read_transaction(
+    tmp_path: Path,
+) -> None:
+    state = _build(_root(tmp_path))
+
+    with pytest.raises(RuntimeError, match="assessment stopped"):
+        with state.synchronization_snapshot():
+            raise RuntimeError("assessment stopped")
+
+    def edit(case):
+        case["metadata"]["after_failure"] = True
+        return {}, None
+
+    state.mutate_case("case-0", "metadata_changed", edit)
+    assert state.get_case("case-0")["metadata"]["after_failure"] is True
+
+
 def test_invalid_mutation_rolls_back_facts_revision_and_audit(tmp_path: Path) -> None:
     state = _build(_root(tmp_path))
     before = state.status

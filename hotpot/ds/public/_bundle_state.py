@@ -514,6 +514,20 @@ def _source_path_observation(
     return "present", stamp
 
 
+def _assert_source_observations_current(
+    root: Path,
+    observations: Mapping[
+        str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]
+    ],
+) -> None:
+    for relative, observed in sorted(observations.items()):
+        path = _safe_relative_path(root, relative, "asset path")
+        if _source_path_observation(path) != observed:
+            raise BundleStateError(
+                f"source asset changed after aggregate proof: {path}"
+            )
+
+
 def _stable_file_hash(
     path: Path,
 ) -> tuple["hashlib._Hash", int, tuple[int, int, int, int, int, int]]:
@@ -580,6 +594,9 @@ def _compute_source_proof_rows(
     file_digest: Callable[[Path], tuple[str, int]],
     case_observer: Optional[Callable[[Mapping[str, Any]], None]],
     scientific_paths: Optional[Iterator[str]] = None,
+    observation_sink: Optional[
+        Dict[str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]]
+    ] = None,
 ) -> str:
     """Compute the exact source proof from ordered canonical Case rows."""
 
@@ -694,6 +711,12 @@ def _compute_source_proof_rows(
             raise BundleStateError(
                 f"source asset changed during aggregate proof: {path}"
             )
+    if observation_sink is not None:
+        observation_sink.clear()
+        observation_sink.update(
+            (relative, (observed[0], observed[3]))
+            for relative, observed in observations.items()
+        )
     return hasher.hexdigest()
 
 
@@ -714,6 +737,32 @@ def _atomic_write(path: Path, content: bytes) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+class _SynchronizationSnapshot(Mapping[str, Any]):
+    """Immutable synchronization bindings plus repeatable ordered Case scans."""
+
+    def __init__(
+        self, values: Mapping[str, Any], connection: sqlite3.Connection
+    ) -> None:
+        self._values = _json_copy(dict(values))
+        self._connection = connection
+
+    def __getitem__(self, key: str) -> Any:
+        return _json_copy(self._values[key])
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._values)
+
+    def __len__(self) -> int:
+        return len(self._values)
+
+    def iter_cases(self) -> Iterator[Dict[str, Any]]:
+        cursor = self._connection.execute(
+            "SELECT payload_json FROM cases ORDER BY public_index,case_id"
+        )
+        for row in cursor:
+            yield json.loads(row[0])
 
 
 class BundleState:
@@ -1178,7 +1227,13 @@ class BundleState:
         status.pop("singleton", None)
         return _json_copy(status)
 
-    def refresh_source_state(self) -> Dict[str, Any]:
+    def refresh_source_state(
+        self,
+        *,
+        _source_observations: Optional[
+            Dict[str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]]
+        ] = None,
+    ) -> Dict[str, Any]:
         """Create and persist a complete current source proof."""
 
         projection_event = None
@@ -1189,7 +1244,9 @@ class BundleState:
                     "SELECT * FROM control WHERE singleton=1"
                 ).fetchone()
                 digest = self._compute_source_digest(
-                    connection, self._stored_manifest(connection)
+                    connection,
+                    self._stored_manifest(connection),
+                    observation_sink=_source_observations,
                 )
                 if (
                     control["source_digest_state"] == "current"
@@ -1352,6 +1409,149 @@ class BundleState:
             "event_id": event_id,
             "audit_projection_updated": projection_updated,
         }
+
+    def _prepare_synchronization(
+        self,
+        source_observations: Optional[
+            Dict[str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]]
+        ],
+    ) -> Dict[str, Any]:
+        """Return one verified input snapshot without repeating the source proof."""
+
+        prepared_source = self.refresh_source_state(
+            _source_observations=source_observations
+        )
+        prepared_governance = self.refresh_governance_state()
+        trusted_governance = _trusted_governance_binding()
+        with self.connect() as connection:
+            connection.execute("BEGIN")
+            try:
+                manifest = self._stored_manifest(connection)
+                policy = json.loads(
+                    connection.execute(
+                        "SELECT policy_json FROM policy WHERE singleton=1"
+                    ).fetchone()[0]
+                )
+                control = connection.execute(
+                    "SELECT * FROM control WHERE singleton=1"
+                ).fetchone()
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        if control["source_digest_state"] != "current":
+            raise DirtySourceStateError(
+                "Bundle source proof became dirty while synchronization was prepared"
+            )
+        if (
+            control["source_revision"],
+            control["source_digest"],
+        ) != (
+            prepared_source["source_revision"],
+            prepared_source["source_digest"],
+        ):
+            raise ConcurrentStateError(
+                "Bundle source inputs changed while synchronization was prepared"
+            )
+        policy_digest = _digest_json(policy)
+        if policy_digest != control["policy_digest"]:
+            raise BundleStateError(
+                "persisted policy digest does not match the canonical policy"
+            )
+        require_current_runtime_policy(policy["runtime_policy"])
+        governance = (
+            control["governance_registry_revision"],
+            control["governance_registry_digest"],
+        )
+        prepared_binding = (
+            prepared_governance["governance_registry_revision"],
+            prepared_governance["governance_registry_digest"],
+        )
+        if governance != prepared_binding or governance != trusted_governance:
+            raise ConcurrentStateError(
+                "trusted governance changed while synchronization was prepared"
+            )
+        return _json_copy(
+            {
+                "source_revision": control["source_revision"],
+                "source_digest": control["source_digest"],
+                "policy_revision": control["policy_revision"],
+                "policy_digest": policy_digest,
+                "governance_registry_revision": governance[0],
+                "governance_registry_digest": governance[1],
+                "manifest": manifest,
+                "policy": policy,
+            }
+        )
+
+    def prepare_synchronization(self) -> Dict[str, Any]:
+        return self._prepare_synchronization(None)
+
+    @contextmanager
+    def synchronization_snapshot(self) -> Iterator[_SynchronizationSnapshot]:
+        """Hold one repeatable read transaction across assessment input scans."""
+
+        source_observations: Dict[
+            str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]
+        ] = {}
+        prepared = self._prepare_synchronization(source_observations)
+        facts_observation = _source_path_observation(self.path)
+        if facts_observation[0] != "present":
+            raise BundleStateError("canonical facts store is not a regular file")
+        with self.connect() as connection:
+            connection.execute("BEGIN")
+            try:
+                control = connection.execute(
+                    "SELECT * FROM control WHERE singleton=1"
+                ).fetchone()
+                manifest = self._stored_manifest(connection)
+                policy = json.loads(
+                    connection.execute(
+                        "SELECT policy_json FROM policy WHERE singleton=1"
+                    ).fetchone()[0]
+                )
+                current = {
+                    "source_revision": control["source_revision"],
+                    "source_digest": control["source_digest"],
+                    "policy_revision": control["policy_revision"],
+                    "policy_digest": control["policy_digest"],
+                    "governance_registry_revision": control[
+                        "governance_registry_revision"
+                    ],
+                    "governance_registry_digest": control[
+                        "governance_registry_digest"
+                    ],
+                    "manifest": manifest,
+                    "policy": policy,
+                }
+                if (
+                    control["source_digest_state"] != "current"
+                    or current != prepared
+                ):
+                    raise ConcurrentStateError(
+                        "Bundle inputs changed before the synchronization snapshot"
+                    )
+                if _source_path_observation(self.path) != facts_observation:
+                    raise ConcurrentStateError(
+                        "canonical facts changed before the synchronization snapshot"
+                    )
+                _assert_source_observations_current(
+                    self.root, source_observations
+                )
+                try:
+                    yield _SynchronizationSnapshot(prepared, connection)
+                except BaseException:
+                    raise
+                else:
+                    if _source_path_observation(self.path) != facts_observation:
+                        raise ConcurrentStateError(
+                            "canonical facts changed during the synchronization snapshot"
+                        )
+                    _assert_source_observations_current(
+                        self.root, source_observations
+                    )
+            finally:
+                connection.rollback()
 
     def mutate_case(
         self,
@@ -1992,9 +2192,17 @@ class BundleState:
             source.close()
 
     def _compute_source_digest(
-        self, connection: sqlite3.Connection, manifest: Mapping[str, Any]
+        self,
+        connection: sqlite3.Connection,
+        manifest: Mapping[str, Any],
+        *,
+        observation_sink: Optional[
+            Dict[str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]]
+        ] = None,
     ) -> str:
-        return self._compute_source_proof(connection, manifest)
+        return self._compute_source_proof(
+            connection, manifest, observation_sink=observation_sink
+        )
 
     def _compute_source_proof(
         self,
@@ -2003,6 +2211,9 @@ class BundleState:
         *,
         file_digest: Optional[Callable[[Path], tuple[str, int]]] = None,
         case_observer: Optional[Callable[[Mapping[str, Any]], None]] = None,
+        observation_sink: Optional[
+            Dict[str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]]
+        ] = None,
     ) -> str:
         """Compute the complete, runtime-bound source proof.
 
@@ -2031,6 +2242,7 @@ class BundleState:
             ),
             file_digest=digest_file,
             case_observer=case_observer,
+            observation_sink=observation_sink,
         )
 
 

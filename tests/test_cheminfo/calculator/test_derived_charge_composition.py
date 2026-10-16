@@ -283,3 +283,65 @@ def test_incomplete_ionic_accounting_does_not_invent_charge() -> None:
         for factor in space.factors
     )
     assert space.expanded_paths == ()
+
+
+def test_multimetal_ionic_accounting_obeys_global_conservation() -> None:
+    facts = extract_molecular_facts(
+        hotpot.read_mol("[Fe].[Fe].[Cl-]", "smi")
+    )
+    fragments = tuple(
+        CoordinationFragmentAssignment(
+            component.identity,
+            -1
+            if facts.atomic_numbers[component.atom_indices[0]] == 17
+            else None,
+            None,
+            None,
+        )
+        for component in facts.covalent_components
+    )
+    counting = CoordinationCountingCandidate(
+        _provenance("counting:multimetal-ionic"),
+        CountingConvention.IONIC,
+        fragments,
+    )
+    oxidation_state = OxidationStateCandidateEvidence(
+        provenance=_provenance("os:fe-ii-fe-iii"),
+        convention=CountingConvention.IONIC,
+        atom_states=(2, 3, None),
+        coverage=CoverageStatus.PARTIAL,
+        coordination_counting_candidate_identity=(
+            counting.provenance.identity
+        ),
+    )
+    common = {
+        "coordination_counting_results": (
+            _counting_result(facts, counting),
+        ),
+        "oxidation_state_results": (
+            _oxidation_result(facts, oxidation_state),
+        ),
+        "electronic_state_results": (
+            _unresolved_electronic_result(facts),
+        ),
+    }
+
+    derived_space = compose_scientific_state_space(
+        facts,
+        net_charge_results=(),
+        **common,
+    )
+    conflicting_space = compose_scientific_state_space(
+        facts,
+        net_charge_results=resolve_net_charge(
+            facts,
+            StateRequest(net_charge=3),
+        ),
+        **common,
+    )
+
+    assert derived_space.expanded_paths[0].net_charge.value == 4
+    assert conflicting_space.expanded_paths == ()
+    assert conflicting_space.rejected_path_summaries[0].reason_codes == (
+        "HARD-002.DERIVED_CHARGE_CONFLICT",
+    )

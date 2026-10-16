@@ -703,8 +703,8 @@ def _expand_scientific_paths(
         )
 
     ordered_paths = tuple(paths[identity] for identity in sorted(paths))
-    factors_are_exhaustive = all(
-        factor.domain_scope is CandidateDomainScope.EXHAUSTIVE
+    factors_are_certifiable = all(
+        factor.domain_scope is not CandidateDomainScope.OPEN
         and factor.materialization_status is MaterializationStatus.COMPLETE
         for factor in factors
     )
@@ -712,7 +712,7 @@ def _expand_scientific_paths(
         status = CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
     elif (
         len(ordered_paths) == 1
-        and factors_are_exhaustive
+        and factors_are_certifiable
         and ordered_paths[0].electronic_state_candidate_identity is not None
     ):
         status = CandidateSearchStatus.DECISION_CERTIFIED

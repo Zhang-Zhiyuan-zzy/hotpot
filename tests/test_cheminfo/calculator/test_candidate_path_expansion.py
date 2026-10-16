@@ -310,7 +310,7 @@ def test_spin_contribution_factor_is_not_silently_discarded() -> None:
     )
 
     assert contribution.provenance.identity in paths[0].evidence_ids
-    assert status is CandidateSearchStatus.NO_CERTIFIED_DECISION
+    assert status is CandidateSearchStatus.DECISION_CERTIFIED
 
 
 def test_present_but_empty_factor_cannot_produce_a_certified_path() -> None:

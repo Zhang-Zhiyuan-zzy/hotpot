@@ -75,7 +75,7 @@ def test_bounded_lewis_factor_prevents_false_scientific_uniqueness() -> None:
         if factor.factor_key.quantity.value == "lewis_formal_charge"
     )
     assert lewis_factor.domain_scope is CandidateDomainScope.DOMAIN_BOUNDED
-    assert space.search_status is CandidateSearchStatus.NO_CERTIFIED_DECISION
+    assert space.search_status is CandidateSearchStatus.DECISION_CERTIFIED
     resolution = _resolve_candidate_space(space)
     assert resolution.status is ResolutionStatus.AMBIGUOUS
     assert resolution.exhaustive is False

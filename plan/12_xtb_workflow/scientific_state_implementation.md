@@ -821,6 +821,7 @@ class BackendStateValues:
 
 class BackendDecisionSource(Enum):
     EXPLICIT = "explicit"
+    SCIENTIFIC_STATE = "scientific_state"
     EXACT_CONTEXT_HISTORY = "exact_context_history"
     EXECUTION_DEFAULT = "execution_default"
 
@@ -2789,6 +2790,7 @@ hotpot.cheminfo.calculator.execution_selection
 |- BackendStateRequest(uhf: int | None = None)      # [constructible], frozen
 |- BackendDecisionSource                            # [enum]
 |  |- EXPLICIT
+|  |- SCIENTIFIC_STATE
 |  |- EXACT_CONTEXT_HISTORY
 |  `- EXECUTION_DEFAULT
 |- BackendExecutability                             # [enum]

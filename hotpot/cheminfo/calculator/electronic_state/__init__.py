@@ -26,6 +26,7 @@ from .spin import (
     require_complete_explicit_atoms,
 )
 from .neutral_atom import neutral_atom_reference
+from .inference import infer_electronic_states
 
 __all__ = [
     "AmbiguousHydrogenRepresentationError",
@@ -50,5 +51,6 @@ __all__ = [
     "infer_lowest_spin",
     "require_complete_explicit_atoms",
     "neutral_atom_reference",
+    "infer_electronic_states",
 ]
 

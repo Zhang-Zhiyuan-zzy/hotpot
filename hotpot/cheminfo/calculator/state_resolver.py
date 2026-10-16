@@ -23,11 +23,11 @@ from .contracts import (
     SemanticBond,
     SemanticBondKind,
 )
-from .electronic_state import (
+from .electronic_state.contracts import (
     ElectronicStateCandidateEvidence,
     ElectronicStateInferenceResult,
 )
-from .oxidation_state import (
+from .oxidation_state.contracts import (
     CoordinationElectronCountingResult,
     OxidationStateCandidateEvidence,
     OxidationStateInferenceResult,

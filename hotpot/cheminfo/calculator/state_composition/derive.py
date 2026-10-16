@@ -105,20 +105,25 @@ def _charge_from_complete_oxidation_state(
 
 def _ionic_component_charge(
     facts: MolecularFacts,
-    oxidation_state: OxidationStateCandidateEvidence,
+    oxidation_state: Optional[OxidationStateCandidateEvidence],
     counting_candidates: Tuple[CoordinationCountingCandidate, ...],
 ) -> Optional[DerivedStateValue]:
     if (
-        oxidation_state.convention is not CountingConvention.IONIC
-        or not counting_candidates
+        not counting_candidates
         or any(
             candidate.convention is not CountingConvention.IONIC
             for candidate in counting_candidates
         )
+        or (
+            oxidation_state is not None
+            and oxidation_state.convention is not CountingConvention.IONIC
+        )
     ):
         return None
     referenced_counting = (
-        oxidation_state.coordination_counting_candidate_identity
+        None
+        if oxidation_state is None
+        else oxidation_state.coordination_counting_candidate_identity
     )
     if referenced_counting is not None and referenced_counting not in {
         candidate.provenance.identity for candidate in counting_candidates
@@ -136,11 +141,15 @@ def _ionic_component_charge(
         return None
     component_charge = 0
     for component in facts.covalent_components:
-        states = tuple(
-            oxidation_state.atom_states[index]
-            for index in component.atom_indices
+        states = (
+            ()
+            if oxidation_state is None
+            else tuple(
+                oxidation_state.atom_states[index]
+                for index in component.atom_indices
+            )
         )
-        if all(state is not None for state in states):
+        if states and all(state is not None for state in states):
             if _has_implicit_hydrogen(facts, component.atom_indices):
                 return None
             component_charge += sum(
@@ -155,7 +164,11 @@ def _ionic_component_charge(
         component_charge += fragment.ionic_bookkeeping_charge
     parents = tuple(
         sorted(
-            (oxidation_state.provenance.identity,)
+            (
+                ()
+                if oxidation_state is None
+                else (oxidation_state.provenance.identity,)
+            )
             + tuple(
                 candidate.provenance.identity
                 for candidate in counting_candidates
@@ -176,11 +189,13 @@ def _derive_charge_values(
     counting_candidates: Tuple[CoordinationCountingCandidate, ...],
     oxidation_state: Optional[OxidationStateCandidateEvidence],
 ) -> Tuple[DerivedStateValue, ...]:
-    if oxidation_state is None:
-        return ()
-    complete_value = _charge_from_complete_oxidation_state(
-        facts,
-        oxidation_state,
+    complete_value = (
+        None
+        if oxidation_state is None
+        else _charge_from_complete_oxidation_state(
+            facts,
+            oxidation_state,
+        )
     )
     if complete_value is not None:
         return (complete_value,)

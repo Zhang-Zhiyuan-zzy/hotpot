@@ -1,0 +1,24 @@
+{
+  "schema_version": "hotpot-monoatomic-ion-registry-v1",
+  "registry_version": "1.0.0",
+  "source_identity": "OPTIONAL-002:curated-common-monoatomic-ions-v1",
+  "entries": [
+    {"atomic_number": 3, "charges": [1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 4, "charges": [2], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 9, "charges": [-1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 11, "charges": [1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 12, "charges": [2], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 17, "charges": [-1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 19, "charges": [1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 20, "charges": [2], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 35, "charges": [-1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 37, "charges": [1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 38, "charges": [2], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 53, "charges": [-1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 55, "charges": [1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 56, "charges": [2], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 85, "charges": [-1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 87, "charges": [1], "references": ["CRC Handbook, common ions"]},
+    {"atomic_number": 88, "charges": [2], "references": ["CRC Handbook, common ions"]}
+  ]
+}

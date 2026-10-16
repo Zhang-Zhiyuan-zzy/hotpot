@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from .corpus import load_corpus
+from .corpus import DryStateSourceKind, load_corpus, load_structure_registry
 
 
 def test_load_corpus_preserves_order_ids_and_source_identity(tmp_path: Path) -> None:
@@ -20,10 +20,23 @@ def test_load_corpus_preserves_order_ids_and_source_identity(tmp_path: Path) -> 
     assert corpus.source == source.resolve()
     assert corpus.source_sha256 == hashlib.sha256(encoded).hexdigest()
     assert tuple(
-        (case.index, case.case_id, case.smiles) for case in corpus.cases
+        (
+            case.index,
+            case.case_id,
+            case.source_kind,
+            case.source,
+            case.format,
+        )
+        for case in corpus.cases
     ) == (
-        (2, "water", "O"),
-        (3, "case-000003", "[Eu].N"),
+        (2, "water", DryStateSourceKind.SMILES, "O", "smi"),
+        (
+            3,
+            "case-000003",
+            DryStateSourceKind.SMILES,
+            "[Eu].N",
+            "smi",
+        ),
     )
 
 
@@ -37,3 +50,28 @@ def test_load_corpus_rejects_empty_and_duplicate_identity(
 
     with pytest.raises(ValueError):
         load_corpus(source)
+
+
+def test_load_structure_registry_preserves_file_topology_provenance(
+    tmp_path: Path,
+) -> None:
+    structure_root = tmp_path / "store"
+    structure = structure_root / "structures/objects/a.mol2"
+    structure.parent.mkdir(parents=True)
+    structure.write_text("@<TRIPOS>MOLECULE\n", encoding="utf-8")
+    digest = hashlib.sha256(structure.read_bytes()).hexdigest()
+    registry = tmp_path / "structures.csv"
+    registry.write_text(
+        "structure_id,format,store_path,canonical_file_sha256\n"
+        f"structure-a,mol2,structures/objects/a.mol2,{digest}\n",
+        encoding="utf-8",
+    )
+
+    corpus = load_structure_registry(registry, structure_root)
+
+    case = corpus.cases[0]
+    assert case.case_id == "structure-a"
+    assert case.source_kind is DryStateSourceKind.FILE
+    assert Path(case.source) == structure.resolve()
+    assert case.format == "mol2"
+    assert case.source_sha256 == digest

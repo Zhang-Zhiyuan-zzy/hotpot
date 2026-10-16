@@ -96,3 +96,11 @@ class ExecutionStateDecision:
     static_profile_eligibility: StaticProfileEligibility
     decision_certifiability: DecisionCertifiability
     rationale: Tuple[DecisionReason, ...]
+
+    def __post_init__(self) -> None:
+        has_selection = self.selected_state_identity is not None
+        selects_state = self.action is StateDecisionAction.SELECT_STATE
+        if has_selection != selects_state:
+            raise ValueError(
+                "Only SELECT_STATE decisions may carry a selected identity"
+            )

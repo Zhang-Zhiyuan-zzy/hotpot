@@ -54,3 +54,31 @@ def test_selection_identity_is_separate_from_decision_source() -> None:
 
     assert decision.selected_state_identity == identity
     assert decision.source is StateDecisionSource.EXPLICIT
+
+
+def test_selection_identity_and_action_must_agree() -> None:
+    with pytest.raises(ValueError, match="Only SELECT_STATE"):
+        ExecutionStateDecision(
+            selected_state_identity=None,
+            action=StateDecisionAction.SELECT_STATE,
+            source=StateDecisionSource.EXPLICIT,
+            static_profile_eligibility=_eligibility(),
+            decision_certifiability=DecisionCertifiability(
+                DecisionCertificationStatus.CERTIFIED,
+                (),
+            ),
+            rationale=(),
+        )
+
+    with pytest.raises(ValueError, match="Only SELECT_STATE"):
+        ExecutionStateDecision(
+            selected_state_identity=ScientificStateIdentity("state"),
+            action=StateDecisionAction.NO_AUTOMATIC_STATE,
+            source=StateDecisionSource.NOT_SELECTED,
+            static_profile_eligibility=_eligibility(),
+            decision_certifiability=DecisionCertifiability(
+                DecisionCertificationStatus.NON_EQUIVALENT_TIE,
+                (),
+            ),
+            rationale=(),
+        )

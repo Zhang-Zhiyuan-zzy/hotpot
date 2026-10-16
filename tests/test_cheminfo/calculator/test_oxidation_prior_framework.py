@@ -30,9 +30,10 @@ from hotpot.cheminfo.calculator.state_rules.oxidation_priors import (
 from hotpot.cheminfo.core import BondKind
 
 
-def _facts():
-    mol = hotpot.read_mol("[Eu].N", "smi")
-    mol.add_bond(0, 1, bond_kind=BondKind.DATIVE)
+def _facts(smiles="[Eu].N", coordination_bonds=((0, 1),)):
+    mol = hotpot.read_mol(smiles, "smi")
+    for begin, end in coordination_bonds:
+        mol.add_bond(begin, end, bond_kind=BondKind.DATIVE)
     return extract_molecular_facts(mol)
 
 
@@ -132,3 +133,100 @@ def test_prior_marks_budgeted_domain_as_resource_truncated() -> None:
     factor = outcome.candidate_proposal.factors[0]
     assert len(factor.materialized_candidates) == 1
     assert factor.unexpanded_domain_summary.remaining_count_upper_bound == 1
+
+
+def test_prior_emits_one_independent_factor_per_metal_center() -> None:
+    facts = _facts(
+        "[Eu].N.[Eu].N",
+        ((0, 1), (2, 3)),
+    )
+    outcome = _OxidationStatePriorRule(_artifact()).evaluate(
+        RuleToggle("OPTIONAL-TEST-OS", True),
+        _context(facts),
+    )
+
+    factors = outcome.candidate_proposal.factors
+    assert tuple(factor.factor_key.subject_identity for factor in factors) == (
+        f"atom:{facts.atom_map[0]}",
+        f"atom:{facts.atom_map[2]}",
+    )
+    assert all(
+        {
+            next(
+                state
+                for state in value.candidate.atom_states
+                if state is not None
+            )
+            for value in factor.materialized_candidates
+        }
+        == {2, 3}
+        for factor in factors
+    )
+    assert all(
+        sum(state is not None for state in value.candidate.atom_states) == 1
+        for factor in factors
+        for value in factor.materialized_candidates
+    )
+    assert len(outcome.rank_adjustments) == 2
+
+
+def test_each_center_has_an_independent_truncated_domain_summary() -> None:
+    facts = _facts(
+        "[Eu].N.[Eu].N",
+        ((0, 1), (2, 3)),
+    )
+    outcome = _OxidationStatePriorRule(_artifact()).evaluate(
+        RuleToggle("OPTIONAL-TEST-OS", True),
+        _context(facts, CandidateBudget(1, 32, 16)),
+    )
+
+    factors = outcome.candidate_proposal.factors
+    summaries = tuple(factor.unexpanded_domain_summary for factor in factors)
+    assert all(summary.remaining_count_upper_bound == 1 for summary in summaries)
+    assert len({summary.continuation_identity for summary in summaries}) == 2
+
+
+def test_different_local_prior_families_remain_composable() -> None:
+    facts = _facts(
+        "[Eu].N.[Th].N",
+        ((0, 1), (2, 3)),
+    )
+    context = _context(facts)
+    europium = _OxidationStatePriorRule(_artifact()).evaluate(
+        RuleToggle("OPTIONAL-TEST-OS", True),
+        context,
+    )
+    thorium_artifact = _OxidationPriorArtifact(
+        rule_id="OPTIONAL-TEST-TH",
+        rule_version="1.0.0",
+        source_identity="test-th-prior",
+        source_locator="test://th-prior",
+        content_digest="test-th-prior-digest",
+        applicability_schema="test-th-prior-v1",
+        elements=(_ElementOxidationPrior(90, (4,), 4),),
+    )
+    thorium = _OxidationStatePriorRule(thorium_artifact).evaluate(
+        RuleToggle("OPTIONAL-TEST-TH", True),
+        context,
+    )
+
+    candidate_space = compose_scientific_state_space(
+        facts,
+        net_charge_results=(),
+        candidate_proposals=(
+            europium.candidate_proposal,
+            thorium.candidate_proposal,
+        ),
+    )
+
+    oxidation_factors = tuple(
+        factor
+        for factor in candidate_space.factors
+        if factor.factor_key.quantity is ScientificQuantity.OXIDATION_STATE
+    )
+    assert tuple(
+        factor.factor_key.subject_identity for factor in oxidation_factors
+    ) == (
+        f"atom:{facts.atom_map[0]}",
+        f"atom:{facts.atom_map[2]}",
+    )

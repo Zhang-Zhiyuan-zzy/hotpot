@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import itertools
 import json
 from dataclasses import dataclass
 from importlib import resources
@@ -232,104 +231,98 @@ class _OxidationStatePriorRule(InferenceRule):
         domains = {
             entry.atomic_number: entry for entry in self._artifact.elements
         }
-        state_domains = tuple(
-            domains[context.facts.atomic_numbers[index]].candidate_states
-            for index in centers
-        )
-        state_combinations = itertools.product(*state_domains)
         limit = context.candidate_budget.max_materialized_values_per_factor
-        materialized = tuple(itertools.islice(state_combinations, limit + 1))
-        truncated = len(materialized) > limit
-        retained = materialized[:limit]
-        candidates = []
+        factors = []
         rank_adjustments = []
-        for states in retained:
-            atom_states = [None] * len(context.facts.atomic_numbers)
-            for atom_index, state in zip(centers, states):
+        for atom_index in centers:
+            element_domain = domains[
+                context.facts.atomic_numbers[atom_index]
+            ]
+            retained_states = element_domain.candidate_states[:limit]
+            candidates = []
+            for state in retained_states:
+                atom_states = [None] * len(context.facts.atomic_numbers)
                 atom_states[atom_index] = state
-            identity = _digest(
-                {
-                    "rule": self._artifact.rule_id,
-                    "version": self._artifact.rule_version,
-                    "artifact": self._artifact.content_digest,
-                    "facts": context.facts.identity.chemical_identity_digest,
-                    "atom_states": atom_states,
-                }
-            )
-            candidate = OxidationStateCandidateEvidence(
-                provenance=CandidateProvenance(
-                    identity=identity,
-                    authority=StateValueAuthority.DOMAIN_RULE,
-                    source_identity=self._artifact.source_identity,
-                    evidence_ids=(self._artifact.content_digest,),
-                    assumption_ids=(
-                        f"domain_template:{self._artifact.rule_id.lower()}",
-                    ),
-                ),
-                convention=CountingConvention.IONIC,
-                atom_states=tuple(atom_states),
-                coverage=CoverageStatus.PARTIAL,
-            )
-            candidates.append(ProposedCandidateValue(candidate))
-            preferred = all(
-                state
-                == domains[
-                    context.facts.atomic_numbers[atom_index]
-                ].preferred_state
-                for atom_index, state in zip(centers, states)
-            )
-            if preferred:
-                rank_adjustments.append(
-                    RankAdjustment(
-                        target_identity=identity,
-                        rank_dimension="oxidation_state_commonality",
-                        value=1.0,
-                        reason=(
-                            f"{self._artifact.rule_id} reviewed common-state prior"
-                        ),
-                    )
-                )
-        subject = f"molecule:{context.facts.identity.chemical_identity_digest}"
-        summary = (
-            CandidateDomainSummary(
-                remaining_count_upper_bound=(
-                    None
-                    if not state_domains
-                    else _integer_product(
-                        tuple(len(domain) for domain in state_domains)
-                    )
-                    - limit
-                ),
-                continuation_identity=_digest(
+                identity = _digest(
                     {
                         "rule": self._artifact.rule_id,
-                        "facts": context.facts.identity.chemical_identity_digest,
-                        "offset": limit,
+                        "version": self._artifact.rule_version,
+                        "artifact": self._artifact.content_digest,
+                        "facts": (
+                            context.facts.identity.chemical_identity_digest
+                        ),
+                        "atom_states": atom_states,
                     }
-                ),
-                frontier_bound=None,
-            )
-            if truncated
-            else None
-        )
-        factor = ProposedCandidateFactor(
-            factor_key=FactorKey(
-                ScientificQuantity.OXIDATION_STATE,
-                subject,
-            ),
-            domain_definition_id=(
-                f"{self._artifact.applicability_schema}:"
-                f"{self._artifact.content_digest}"
-            ),
-            materialized_candidates=tuple(candidates),
-            domain_scope=CandidateDomainScope.DOMAIN_BOUNDED,
-            materialization_status=(
-                MaterializationStatus.RESOURCE_TRUNCATED
+                )
+                candidate = OxidationStateCandidateEvidence(
+                    provenance=CandidateProvenance(
+                        identity=identity,
+                        authority=StateValueAuthority.DOMAIN_RULE,
+                        source_identity=self._artifact.source_identity,
+                        evidence_ids=(self._artifact.content_digest,),
+                        assumption_ids=(
+                            f"domain_template:{self._artifact.rule_id.lower()}",
+                        ),
+                    ),
+                    convention=CountingConvention.IONIC,
+                    atom_states=tuple(atom_states),
+                    coverage=CoverageStatus.PARTIAL,
+                )
+                candidates.append(ProposedCandidateValue(candidate))
+                if state == element_domain.preferred_state:
+                    rank_adjustments.append(
+                        RankAdjustment(
+                            target_identity=identity,
+                            rank_dimension="oxidation_state_commonality",
+                            value=1.0,
+                            reason=(
+                                f"{self._artifact.rule_id} reviewed "
+                                "common-state prior"
+                            ),
+                        )
+                    )
+            subject = f"atom:{context.facts.atom_map[atom_index]}"
+            truncated = len(element_domain.candidate_states) > limit
+            summary = (
+                CandidateDomainSummary(
+                    remaining_count_upper_bound=(
+                        len(element_domain.candidate_states) - limit
+                    ),
+                    continuation_identity=_digest(
+                        {
+                            "rule": self._artifact.rule_id,
+                            "facts": (
+                                context.facts.identity.chemical_identity_digest
+                            ),
+                            "subject": subject,
+                            "offset": limit,
+                        }
+                    ),
+                    frontier_bound=None,
+                )
                 if truncated
-                else MaterializationStatus.COMPLETE
-            ),
-            unexpanded_domain_summary=summary,
-        )
+                else None
+            )
+            factors.append(
+                ProposedCandidateFactor(
+                    factor_key=FactorKey(
+                        ScientificQuantity.OXIDATION_STATE,
+                        subject,
+                    ),
+                    domain_definition_id=(
+                        f"{self._artifact.applicability_schema}:"
+                        f"{self._artifact.content_digest}"
+                    ),
+                    materialized_candidates=tuple(candidates),
+                    domain_scope=CandidateDomainScope.DOMAIN_BOUNDED,
+                    materialization_status=(
+                        MaterializationStatus.RESOURCE_TRUNCATED
+                        if truncated
+                        else MaterializationStatus.COMPLETE
+                    ),
+                    unexpanded_domain_summary=summary,
+                )
+            )
         proposal = CandidateProposal(
             proposal_id=_digest(
                 {
@@ -339,7 +332,7 @@ class _OxidationStatePriorRule(InferenceRule):
                     "centers": centers,
                 }
             ),
-            factors=(factor,),
+            factors=tuple(factors),
             constraints=(),
         )
         evidence = EvidenceItem(
@@ -361,10 +354,3 @@ class _OxidationStatePriorRule(InferenceRule):
             ),
             warnings=(),
         )
-
-
-def _integer_product(values: Tuple[int, ...]) -> int:
-    result = 1
-    for value in values:
-        result *= value
-    return result

@@ -1,0 +1,25 @@
+{
+  "schema_version": "hotpot-oxidation-prior-v1",
+  "rule_id": "OPTIONAL-005",
+  "rule_version": "1.0.0",
+  "source_identity": "OPTIONAL-005:ordinary-lanthanide-oxidation-domain-v1",
+  "source_locator": "Cotton, Lanthanide and Actinide Chemistry, Wiley, 2006",
+  "applicability_schema": "ordinary-nonredox-lanthanide-coordination-v1",
+  "elements": [
+    {"atomic_number": 57, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 58, "candidate_states": [3, 4], "preferred_state": 3},
+    {"atomic_number": 59, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 60, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 61, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 62, "candidate_states": [2, 3], "preferred_state": 3},
+    {"atomic_number": 63, "candidate_states": [2, 3], "preferred_state": 3},
+    {"atomic_number": 64, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 65, "candidate_states": [3, 4], "preferred_state": 3},
+    {"atomic_number": 66, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 67, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 68, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 69, "candidate_states": [3], "preferred_state": 3},
+    {"atomic_number": 70, "candidate_states": [2, 3], "preferred_state": 3},
+    {"atomic_number": 71, "candidate_states": [3], "preferred_state": 3}
+  ]
+}

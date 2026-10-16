@@ -208,6 +208,25 @@ def _chemical_identity_payload(facts: MolecularFacts) -> object:
     }
 
 
+def _nuclear_charge_sum(
+    atomic_numbers: Tuple[int, ...],
+    hydrogen_inventory: HydrogenInventory,
+) -> int:
+    explicit_nuclear_charge = sum(atomic_numbers)
+    implicit_hydrogen_count = sum(
+        implicit_count
+        for atomic_number, explicit_count, implicit_count in zip(
+            atomic_numbers,
+            hydrogen_inventory.explicit_counts,
+            hydrogen_inventory.implicit_counts,
+        )
+        if atomic_number != 1
+        and explicit_count == 0
+        and implicit_count is not None
+    )
+    return explicit_nuclear_charge + implicit_hydrogen_count
+
+
 # Public fact extraction.
 
 
@@ -256,7 +275,10 @@ def extract_molecular_facts(mol: Molecule) -> MolecularFacts:
         hydrogen_inventory=hydrogen_inventory,
         semantic_bonds=semantic_bonds,
         coordinates=coordinates,
-        nuclear_charge_sum=sum(atomic_numbers),
+        nuclear_charge_sum=_nuclear_charge_sum(
+            atomic_numbers,
+            hydrogen_inventory,
+        ),
     )
     return MolecularFacts(
         identity=MolecularFactsIdentity(

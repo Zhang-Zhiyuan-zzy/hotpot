@@ -27,7 +27,7 @@ def test_extract_molecular_facts_is_immutable_and_non_mutating() -> None:
     )
     assert before == after
     assert facts.atomic_numbers == (6, 6, 8)
-    assert facts.nuclear_charge_sum == 20
+    assert facts.nuclear_charge_sum == 26
     assert isinstance(facts.identity, MolecularFactsIdentity)
     with pytest.raises(FrozenInstanceError):
         facts.nuclear_charge_sum = 0

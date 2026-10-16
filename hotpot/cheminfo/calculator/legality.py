@@ -22,6 +22,7 @@ from .contracts import (
     ScientificAdmissibility,
     ScientificFinding,
 )
+from .electronic_state import ElectronicStateCandidate
 from .oxidation_state import (
     CoordinationCountingCandidate,
     CountingConvention,
@@ -425,4 +426,90 @@ def _validate_oxidation_overrides(
         related_identities=tuple(
             candidate.provenance.identity for candidate in eligible_candidates
         ),
+    )
+
+
+# HARD-006: backend-independent molecular electron and spin legality.
+
+
+def _validate_molecular_spin(
+    facts: MolecularFacts,
+    net_charge: NetChargeCandidateEvidence,
+    *,
+    electron_count: int,
+    two_s: int,
+    multiplicity: Optional[int],
+    pure_spin: bool,
+    related_identities: Tuple[str, ...] = (),
+) -> _HardRuleAssessment:
+    if type(net_charge.charge) is not int or type(electron_count) is not int:
+        return _hard_failure(
+            "HARD-006.NON_INTEGER_ELECTRON_COUNT",
+            "Charge and molecular electron count must be integers.",
+            related_identities=related_identities,
+        )
+
+    expected_electron_count = facts.nuclear_charge_sum - net_charge.charge
+    if expected_electron_count < 0:
+        return _hard_failure(
+            "HARD-006.NEGATIVE_ELECTRON_COUNT",
+            "Molecular charge leaves a negative all-electron count.",
+            related_identities=related_identities,
+        )
+    if electron_count != expected_electron_count:
+        return _hard_failure(
+            "HARD-006.ELECTRON_COUNT_MISMATCH",
+            "Reported electron count does not equal nuclear charge minus net charge.",
+            related_identities=related_identities,
+        )
+    if type(two_s) is not int or not 0 <= two_s <= electron_count:
+        return _hard_failure(
+            "HARD-006.TWO_S_OUT_OF_RANGE",
+            "Molecular two_s must be an integer between zero and electron count.",
+            related_identities=related_identities,
+        )
+    if (electron_count - two_s) % 2:
+        return _hard_failure(
+            "HARD-006.PARITY_MISMATCH",
+            "Molecular two_s has parity inconsistent with electron count.",
+            related_identities=related_identities,
+        )
+    if multiplicity is not None and type(multiplicity) is not int:
+        return _hard_failure(
+            "HARD-006.MULTIPLICITY_INVALID",
+            "Molecular multiplicity must be an integer when supplied.",
+            related_identities=related_identities,
+        )
+    if pure_spin and multiplicity is not None and multiplicity != two_s + 1:
+        return _hard_failure(
+            "HARD-006.MULTIPLICITY_MISMATCH",
+            "Pure-spin multiplicity must equal two_s plus one.",
+            related_identities=related_identities,
+        )
+    return _HARD_PASS
+
+
+def _validate_electronic_state_candidate(
+    facts: MolecularFacts,
+    net_charge: NetChargeCandidateEvidence,
+    candidate: ElectronicStateCandidate,
+) -> _HardRuleAssessment:
+    related_identities = (
+        net_charge.provenance.identity,
+        candidate.provenance.identity,
+    )
+    if candidate.net_charge_candidate_identity != net_charge.provenance.identity:
+        return _hard_failure(
+            "HARD-007.NET_CHARGE_REFERENCE_MISMATCH",
+            "Electronic-state candidate references a different net-charge candidate.",
+            related_identities=related_identities,
+        )
+    return _validate_molecular_spin(
+        facts,
+        net_charge,
+        electron_count=candidate.electron_count,
+        two_s=candidate.two_s,
+        multiplicity=candidate.multiplicity,
+        pure_spin=candidate.pure_spin,
+        related_identities=related_identities,
     )

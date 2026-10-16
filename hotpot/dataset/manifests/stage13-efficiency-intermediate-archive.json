@@ -1,0 +1,47 @@
+{
+  "schema": "hotpot-stage13-intermediate-archive/current",
+  "created_at": "2026-10-16T06:24:17Z",
+  "archive": {
+    "path": ".backups/stage13-efficiency-intermediates-20261016.tpxz",
+    "sha256": "2f098d618bbf3b3d8352d3137e2ad776ac24153bd387e735c5b80cd29e6721fb",
+    "size_bytes": 640061800,
+    "format": "indexed-tar-xz"
+  },
+  "source": {
+    "file_count": 4534,
+    "archive_member_count_including_directories": 5084,
+    "logical_bytes": 10860141495,
+    "targets": [
+      "hotpot/dataset/data/bundles/stage13-efficiency-current",
+      "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/activation-intent.json",
+      "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/events.jsonl",
+      "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-csd-electronic-state-closure.json",
+      "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-oxidation-closure.json",
+      "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-spin-closure.json",
+      "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/state.json"
+    ]
+  },
+  "compression": {
+    "tool": "pixz",
+    "version": "1.0.7",
+    "level": 9,
+    "threads": 64,
+    "wall_seconds": 112.01,
+    "user_cpu_seconds": 2804.04,
+    "system_cpu_seconds": 64.05,
+    "maximum_rss_kib": 54184076,
+    "compression_ratio": 16.9673326779,
+    "size_reduction_percent": 94.1063217243
+  },
+  "validation": {
+    "xz_stream_test": "passed",
+    "indexed_member_listing": "passed",
+    "full_decompressed_tar_compare": "passed",
+    "source_removed_after_validation": true,
+    "source_removed_at": "2026-10-16T06:24:57Z"
+  },
+  "excluded_permanent_evidence": [
+    "hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/parity.json",
+    "hotpot/dataset/data/store/generations/stage13-efficiency-current/cutover-activation.json"
+  ]
+}

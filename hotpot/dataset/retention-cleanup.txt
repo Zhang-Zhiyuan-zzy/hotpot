@@ -38,19 +38,14 @@
 # owner ends the rollback retention period.
 /hotpot/dataset/data/store/generations/stage13-current/
 
-# Resumable operator state that is no longer required after the activated
-# efficiency generation and rollback decision are final. Keep parity.json as
-# permanent release evidence; it is intentionally absent from this list.
-/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/activation-intent.json
-/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/events.jsonl
-/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-csd-electronic-state-closure.json
-/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-oxidation-closure.json
-/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-spin-closure.json
-/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/state.json
+# The resumable efficiency-rebuild state and current Bundle working tree were
+# archived and removed on 2026-10-16. The permanent parity.json remains online.
+# See hotpot/dataset/manifests/stage13-efficiency-intermediate-archive.json.
 
-# Local safety archive created before efficiency remediation. Delete only
-# after an independent retained archive exists or restoration is explicitly
-# waived; it is outside the Git-tracked dataset payload.
+# Local safety archive created before efficiency remediation. The dataset owner
+# scheduled this archive for deletion on 2026-11-01 (Asia/Shanghai), not before.
+# At deletion time, first rerun the active-store audit and either retain an
+# independent archive or explicitly record the restoration waiver.
 /.backups/dataset-pre-efficiency-20261015.tar.xz
 
 # One-time rebuild/rollback operator and its focused tests. They are tracked

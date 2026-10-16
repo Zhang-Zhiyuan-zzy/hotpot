@@ -53,6 +53,7 @@ INCOMPLETE_REASON = (
 COPY_CHUNK = 4 * 1024 * 1024
 FICLONE = 0x40049409
 _SAFE_COMPONENT = re.compile(r"[a-z0-9][a-z0-9._-]{0,127}\Z")
+_CAS_LOCK_NAME = re.compile(r"\.([0-9a-f]{64})\.lock\Z")
 _SOURCE_CONTROL_CATEGORIES = ("bundle", "governance", "migration")
 
 
@@ -1169,11 +1170,25 @@ def _verify_cas(database: Path) -> dict[str, Any]:
         if not stable_assets <= observed_assets or not runtime_assets <= observed_assets:
             raise RebuildError("CAS references an object absent from target_assets")
     actual_paths = set()
+    lock_count = 0
     if asset_root.exists():
         for path in asset_root.rglob("*"):
             metadata = path.lstat()
             if stat.S_ISREG(metadata.st_mode):
-                actual_paths.add(path.relative_to(asset_root).as_posix())
+                relative_path = path.relative_to(asset_root)
+                lock_match = _CAS_LOCK_NAME.fullmatch(path.name)
+                if lock_match is not None:
+                    content_sha256 = lock_match.group(1)
+                    expected_parent = Path("objects") / "sha256" / content_sha256[:2]
+                    if (
+                        relative_path.parent != expected_parent
+                        or content_sha256 not in observed_assets
+                        or metadata.st_size != 0
+                    ):
+                        raise RebuildError(f"CAS contains an invalid lock node: {path}")
+                    lock_count += 1
+                    continue
+                actual_paths.add(relative_path.as_posix())
             elif not stat.S_ISDIR(metadata.st_mode):
                 raise RebuildError(f"CAS contains a non-regular node: {path}")
     if actual_paths != expected_paths:
@@ -1184,6 +1199,7 @@ def _verify_cas(database: Path) -> dict[str, Any]:
         "count": count,
         "bytes": byte_count,
         "sha256": digest.hexdigest(),
+        "lock_files": lock_count,
         "stable": {
             "count": stable_count,
             "bytes": stable_bytes,

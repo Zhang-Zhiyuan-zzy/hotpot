@@ -370,10 +370,17 @@ def test_cas_verification_is_bidirectional(tmp_path, rebuild_module):
     result = rebuild_module._verify_cas(database)
     assert result["count"] == 1
     assert result["bytes"] == len(payload)
+    lock = path.with_name(f".{digest}.lock")
+    lock.touch()
+    assert rebuild_module._verify_cas(database)["lock_files"] == 1
 
     extra = asset_root / "extra"
     extra.write_bytes(b"not in database")
     with pytest.raises(rebuild_module.RebuildError, match="database/filesystem"):
+        rebuild_module._verify_cas(database)
+    extra.unlink()
+    lock.write_bytes(b"not a valid lock")
+    with pytest.raises(rebuild_module.RebuildError, match="invalid lock"):
         rebuild_module._verify_cas(database)
 
 

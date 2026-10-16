@@ -338,7 +338,7 @@ def test_certify_ingest_query_archive_opt_in_and_protocol_pipeline(tmp_path: Pat
         make_envelope("hotpot.ds.get", invalid)
 
     invalid = deepcopy(piped["payload"])
-    invalid["items"][0]["assessment"]["undeclared_assessment_field"] = True
+    invalid["items"][0]["assessment"]["gate_results"] = {}
     with pytest.raises(CommunicationError, match="unknown fields"):
         make_envelope("hotpot.ds.get", invalid)
 

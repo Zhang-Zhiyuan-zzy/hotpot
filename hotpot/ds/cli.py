@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional
 
+from ._bundle_cleanup import remove_bundle_intermediates
 from ._communication import emit_envelope, read_input
 from ._export import export_records, render_structure_record
 from ._paths import DEFAULT_STORE_PATH
@@ -19,13 +20,21 @@ from .public.catalog import DatasetCatalog, load
 from .public.certificate import certificate_digest
 from .public.dataset import Dataset
 from .public.search import DataSearcher, DatasetSearcher, SmartsSearcher
-from .storage import TargetStore
+from .storage import TargetStore, TargetStoreError, _decode_facts
 
 
 HELP_FORMATTER = argparse.ArgumentDefaultsHelpFormatter
 _AUTO_IDENTIFIER = object()
 _B_LEVELS = tuple(f"B{index}" for index in range(5))
 _E_LEVELS = tuple(f"E{index}" for index in range(5))
+_PUBLIC_ASSESSMENT_FIELDS = (
+    "quality_level",
+    "evidence_level",
+    "archive_class",
+    "benchmark",
+    "benchmark_status",
+    "reasons",
+)
 
 
 def _command(subparsers, name: str, *, help: str, description: str):
@@ -195,6 +204,19 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     for name in ("status", "synchronize"):
         _command(bundle_actions, name, help=name, description=f"Bundle {name}.")
 
+    bundle_rm = _command(
+        bundle_actions,
+        "rm",
+        help="remove reproducible working data",
+        description="Remove allowlisted intermediates from one verified sealed Bundle.",
+    )
+    bundle_rm.add_argument(
+        "--all",
+        action="store_true",
+        required=True,
+        help="remove every allowlisted reproducible intermediate",
+    )
+
     bundle_get = _command(bundle_actions, "get", help="query Bundle state", description="Read one allowlisted Bundle view.")
     bundle_get.add_argument(
         "view",
@@ -286,6 +308,14 @@ def _bundle_locator(bundle: Bundle) -> dict[str, Any]:
         "dataset": bundle.name,
         "release_id": str(bundle._state.manifest["release_id"]),
         "database": str(bundle._database),
+    }
+
+
+def _public_assessment(value: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        name: value[name]
+        for name in _PUBLIC_ASSESSMENT_FIELDS
+        if name in value
     }
 
 
@@ -748,6 +778,19 @@ def _store_audit(store: TargetStore) -> list[dict[str, Any]]:
         assets = connection.execute(
             "SELECT content_sha256,size,relative_path FROM target_assets ORDER BY content_sha256"
         ).fetchall()
+        cases = connection.execute(
+            "SELECT case_id,source_payload_blob,source_payload_digest "
+            "FROM cases ORDER BY dataset_id,release_id,public_index"
+        )
+        for row in cases:
+            try:
+                _decode_facts(
+                    row["source_payload_blob"], row["source_payload_digest"]
+                )
+            except TargetStoreError:
+                issues.append(
+                    {"code": "case_fact_integrity", "case_id": row["case_id"]}
+                )
     for row in assets:
         path = store.asset_root / row["relative_path"]
         if not path.is_file():
@@ -769,7 +812,8 @@ def _claim_rows(store: TargetStore, dataset: Optional[str], evidence_level: Opti
         conditions.append("a.evidence_level=?")
         values.append(evidence_level)
     query = (
-        "SELECT c.dataset_id,c.release_id,c.case_id,c.source_payload_json,a.evidence_level "
+        "SELECT c.dataset_id,c.release_id,c.case_id,c.source_payload_blob,"
+        "c.source_payload_digest,a.evidence_level "
         "FROM cases c JOIN case_assessments a USING(dataset_id,release_id,case_id)"
     )
     if conditions:
@@ -779,7 +823,9 @@ def _claim_rows(store: TargetStore, dataset: Optional[str], evidence_level: Opti
     with store._connect() as connection:
         store._metadata(connection)
         for row in connection.execute(query, values):
-            facts = json.loads(row["source_payload_json"])
+            facts = _decode_facts(
+                row["source_payload_blob"], row["source_payload_digest"]
+            )
             for claim in facts.get("claims", []):
                 rows.append(
                     {
@@ -1017,6 +1063,20 @@ def run(args: argparse.Namespace) -> int:
                     },
                 )
                 return 0
+            if args.bundle_action == "rm":
+                if not hasattr(args, "bundle_db"):
+                    raise ValueError("bundle rm --all requires an explicit --db target")
+                root = _bundle_root(args)
+                name = _manifest_dataset(
+                    root, getattr(args, "bundle_dataset", None)
+                )
+                result = remove_bundle_intermediates(
+                    root,
+                    name,
+                    Path(args.bundle_db),
+                )
+                emit_envelope("hotpot.ds.bundle.rm", result)
+                return 0
             bundle = _open_bundle(args)
             if args.bundle_action == "status":
                 status = bundle.status
@@ -1050,15 +1110,24 @@ def run(args: argparse.Namespace) -> int:
                         raise ValueError(f"{args.view} requires CASE_ID")
                     case = _case_by_id(bundle, args.case_id)
                     if args.view == "case.info":
+                        info = case.info
+                        if "assessment" in info:
+                            info["assessment"] = _public_assessment(
+                                info["assessment"]
+                            )
                         emit_envelope(
                             "hotpot.ds.bundle.get",
-                            {"bundle": locator, "case_id": case.id, "info": case.info},
+                            {"bundle": locator, "case_id": case.id, "info": info},
                             channel="case_info",
                         )
                     else:
                         emit_envelope(
                             "hotpot.ds.bundle.get",
-                            {"bundle": locator, "case_id": case.id, "assessment": case.assessment},
+                            {
+                                "bundle": locator,
+                                "case_id": case.id,
+                                "assessment": _public_assessment(case.assessment),
+                            },
                             channel="case_assessment",
                         )
                     return 0

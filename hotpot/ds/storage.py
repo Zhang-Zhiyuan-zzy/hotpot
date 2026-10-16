@@ -789,6 +789,9 @@ class TargetStore:
                             "path": self.asset_root / item["relative_path"],
                         }
                     )
+                evidence_assets = self._evidence_asset_refs(
+                    connection, dataset, release, row["case_id"]
+                )
                 yield {
                     "id": row["case_id"],
                     "public_index": row["public_index"],
@@ -806,6 +809,7 @@ class TargetStore:
                     "assessment": _assessment_from_row(row),
                     "identifiers": identifiers,
                     "structures": structures,
+                    "evidence_assets": evidence_assets,
                 }
         finally:
             connection.close()
@@ -942,7 +946,7 @@ class TargetStore:
     def get_case(
         self, dataset: str, release: str, case_id: str
     ) -> Dict[str, Any]:
-        """Load one stored Case and its target-owned structure references."""
+        """Load one stored Case and its target-owned scientific references."""
 
         connection = self._connect()
         try:
@@ -985,6 +989,9 @@ class TargetStore:
                     (dataset, release, case_id),
                 )
             ]
+            evidence_assets = self._evidence_asset_refs(
+                connection, dataset, release, case_id
+            )
             return {
                 "id": row["case_id"],
                 "public_index": row["public_index"],
@@ -1001,9 +1008,48 @@ class TargetStore:
                 "assessment": _assessment_from_row(row),
                 "identifiers": identifiers,
                 "structures": structures,
+                "evidence_assets": evidence_assets,
             }
         finally:
             connection.close()
+
+    def _evidence_asset_refs(
+        self,
+        connection: sqlite3.Connection,
+        dataset: str,
+        release: str,
+        case_id: str,
+    ) -> list[Dict[str, Any]]:
+        """Return evidence bytes through their target-owned CAS locations."""
+
+        result = []
+        for item in connection.execute(
+            "SELECT r.declaration_id,r.asset_index,r.role,r.status,"
+            "r.content_sha256,t.size,t.relative_path "
+            "FROM scientific_asset_refs r JOIN target_assets t "
+            "USING(content_sha256) WHERE r.dataset_id=? AND r.release_id=? "
+            "AND r.case_id=? AND r.collection='evidence' "
+            "ORDER BY r.declaration_id,r.asset_index",
+            (dataset, release, case_id),
+        ):
+            digest = str(item["content_sha256"])
+            expected = Path("objects") / "sha256" / digest[:2] / digest
+            if Path(item["relative_path"]) != expected:
+                raise TargetStoreError(
+                    "stored evidence asset has a non-canonical target path"
+                )
+            result.append(
+                {
+                    "evidence_id": item["declaration_id"],
+                    "asset_index": item["asset_index"],
+                    "role": item["role"],
+                    "status": item["status"],
+                    "sha256": digest,
+                    "size": item["size"],
+                    "path": self.asset_root / expected,
+                }
+            )
+        return result
 
     def ingest(
         self,

@@ -384,6 +384,21 @@ def test_target_owns_materialized_evidence_and_withdrawn_assets(tmp_path):
     assert control == ("checker", "checker.py", checker_digest)
     owned = store.asset_root / "objects" / "sha256" / digest[:2] / digest
     assert owned.read_text(encoding="utf-8") == "reported spin = 3\n"
+    expected_ref = {
+        "evidence_id": "evidence-1",
+        "asset_index": 0,
+        "role": "supplier_text",
+        "status": "withdrawn",
+        "sha256": digest,
+        "size": size,
+        "path": owned,
+    }
+    assert store.get_case("spin", "release-1", "case-a")[
+        "evidence_assets"
+    ] == [expected_ref]
+    assert list(store.iter_cases("spin", "release-1"))[0][
+        "evidence_assets"
+    ] == [expected_ref]
     owned_checker = (
         store.asset_root
         / "objects"

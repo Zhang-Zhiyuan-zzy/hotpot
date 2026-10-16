@@ -159,6 +159,19 @@
         "path": {"$ref": "#/$defs/nonempty"}
       }
     },
+    "targetEvidenceAsset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_id", "asset_index", "role", "status", "sha256", "size", "path"],
+      "properties": {
+        "evidence_id": {"$ref": "#/$defs/nonempty"},
+        "asset_index": {"$ref": "#/$defs/count"},
+        "role": {"$ref": "#/$defs/nonempty"},
+        "status": {"$ref": "#/$defs/nonempty"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size": {"$ref": "#/$defs/count"},
+        "path": {"$ref": "#/$defs/nonempty"}
+      }
+    },
     "stringCountMap": {
       "type": "object", "required": [], "properties": {},
       "patternProperties": {".+": {"type": "integer", "minimum": 0}},
@@ -309,6 +322,7 @@
         "identifiers": {"$ref": "#/$defs/identifierMap"},
         "entities": {"type": "array", "items": {"$ref": "#/$defs/entityFact"}},
         "structures": {"type": "array", "items": {"$ref": "#/$defs/targetStructure"}},
+        "evidence_assets": {"type": "array", "items": {"$ref": "#/$defs/targetEvidenceAsset"}},
         "quality_level": {"enum": ["B0", "B1", "B2", "B3", "B4"]},
         "evidence_level": {"enum": [null, "E0", "E1", "E2", "E3", "E4"]},
         "archive_class": {"enum": ["incomplete", "ordinary", "benchmark"]},

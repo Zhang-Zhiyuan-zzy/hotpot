@@ -51,38 +51,45 @@ def _all_path_values(value):
             yield from _all_path_values(item)
 
 
-def test_payload_hash_covers_geometry_topology_and_electronic_state() -> None:
-    from hotpot.cheminfo.calculator.electronic_state import (
-        ChargeInferenceSource,
-        ElectronicState,
-        SpinInferenceSource,
+def test_payload_hash_covers_geometry_topology_and_scientific_state() -> None:
+    from hotpot.cheminfo.calculator.contracts import (
+        ScientificOperationRequirements,
+        ScientificQuantity,
+    )
+    from hotpot.cheminfo.calculator.state_resolver import (
+        StateRequest,
+        extract_molecular_facts,
+        resolve_scientific_state,
     )
     from hotpot.pipeline.artifacts import payload_sha256
     from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
 
-    state = ElectronicState(
-        charge=0,
-        unpaired_electrons=0,
-        multiplicity=1,
-        fragment_charges=(0,),
-        charge_source=ChargeInferenceSource.EXPLICIT,
-        spin_source=SpinInferenceSource.EXPLICIT,
-        assumptions=("test state",),
-    )
     mol = _water()
+    requirements = ScientificOperationRequirements(
+        "pipeline-artifact-test",
+        frozenset(
+            {
+                ScientificQuantity.NET_CHARGE,
+                ScientificQuantity.ELECTRONIC_STATE,
+            }
+        ),
+        frozenset(),
+    )
+    facts = extract_molecular_facts(mol)
+    state = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=0, two_s=0),
+        requirements=requirements,
+    )
     payload = MolecularPayload((MolecularRecord(mol, state),))
     identical = MolecularPayload((MolecularRecord(mol.copy(), state),))
     moved_mol = mol.copy()
     moved_mol.atoms[0].coordinates = (-0.70, 0.0, 0.0)
     moved = MolecularPayload((MolecularRecord(moved_mol, state),))
-    charged_state = ElectronicState(
-        charge=1,
-        unpaired_electrons=1,
-        multiplicity=2,
-        fragment_charges=(1,),
-        charge_source=ChargeInferenceSource.EXPLICIT,
-        spin_source=SpinInferenceSource.EXPLICIT,
-        assumptions=("test state",),
+    charged_state = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=1, two_s=1),
+        requirements=requirements,
     )
     charged = MolecularPayload((MolecularRecord(mol.copy(), charged_state),))
 

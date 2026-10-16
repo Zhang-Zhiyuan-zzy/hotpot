@@ -16,7 +16,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.calculator.electronic_state import ElectronicState
+    from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
     from hotpot.cheminfo.core import Molecule
 
 
@@ -80,10 +80,10 @@ class StageSpec:
 
 @dataclass(frozen=True)
 class MolecularRecord:
-    """One molecule and the electronic state carried between stages."""
+    """One molecule and its attributable scientific state between stages."""
 
     molecule: "Molecule"
-    electronic_state: Optional["ElectronicState"] = None
+    scientific_state: Optional["ScientificStateBundle"] = None
 
 
 @dataclass(frozen=True)

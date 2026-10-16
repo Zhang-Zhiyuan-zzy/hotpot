@@ -138,7 +138,7 @@ class _PreparedForceFieldStage(PreparedMolecularStage):
             quality_failed = quality_failed or not report.quality_report.passed
             reports.append(json_value(report))
             output_records.append(
-                MolecularRecord(record.molecule, record.electronic_state)
+                MolecularRecord(record.molecule, record.scientific_state)
             )
 
         artifacts = _artifacts_under(context.stage_directory / "trajectory", context)

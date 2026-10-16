@@ -71,7 +71,7 @@ caller may provide `initial_payload=MolecularPayload(...)`.
 | API | Purpose |
 |---|---|
 | `StageSpec(name, argv)` | Immutable registered-stage name and ordered, uninterpreted arguments. |
-| `MolecularRecord(molecule, electronic_state=None)` | One molecule and its optional resolved electronic state. |
+| `MolecularRecord(molecule, scientific_state=None)` | One molecule and its optional attributable scientific-state bundle. |
 | `MolecularPayload(records)` | Ordered records passed between stages. |
 | `StageContext` | Run directory, private temporary stage directory, index, and specification. |
 | `StageResult` | Stage status, output payload, verified artifacts, structured report, and stderr. |

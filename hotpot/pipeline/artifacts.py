@@ -16,7 +16,7 @@ from .contracts import (
 )
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.calculator.electronic_state import ElectronicState
+    from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
     from hotpot.cheminfo.core import Atom, Bond
 
 
@@ -36,18 +36,29 @@ def _float_token(value: float) -> str:
 
 
 def _state_document(
-    state: Optional["ElectronicState"],
+    state: Optional["ScientificStateBundle"],
 ) -> Optional[Mapping[str, JSONValue]]:
     if state is None:
         return None
+    decision = state.execution_decision
     return {
-        "assumptions": tuple(state.assumptions),
-        "charge": state.charge,
-        "charge_source": state.charge_source.value,
-        "fragment_charges": tuple(state.fragment_charges),
-        "multiplicity": state.multiplicity,
-        "spin_source": state.spin_source.value,
-        "unpaired_electrons": state.unpaired_electrons,
+        "decision_action": decision.action.value,
+        "decision_source": decision.source.value,
+        "effective_profile_identity": (
+            decision.static_profile_eligibility.effective_profile_identity
+        ),
+        "facts_identity": state.facts.identity.chemical_identity_digest,
+        "resolution_equivalent_states": tuple(
+            identity.digest
+            for identity in state.scientific_resolution.equivalent_state_identities
+        ),
+        "resolution_exhaustive": state.scientific_resolution.exhaustive,
+        "resolution_status": state.scientific_resolution.status.value,
+        "selected_state_identity": (
+            None
+            if decision.selected_state_identity is None
+            else decision.selected_state_identity.digest
+        ),
     }
 
 
@@ -87,11 +98,11 @@ def _payload_document(payload: MolecularPayload) -> Mapping[str, JSONValue]:
             {
                 "atoms": tuple(_atom_document(atom) for atom in mol.atoms),
                 "bonds": tuple(bonds),
-                "electronic_state": _state_document(record.electronic_state),
+                "scientific_state": _state_document(record.scientific_state),
                 "molecular_charge": int(mol.charge),
             }
         )
-    return {"records": tuple(records), "schema_version": 1}
+    return {"records": tuple(records), "schema_version": 2}
 
 
 # Molecular and JSON persistence.

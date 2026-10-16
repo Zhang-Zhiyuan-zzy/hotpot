@@ -7,23 +7,34 @@ from pathlib import Path
 
 import pytest
 
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceSource,
-    ElectronicState,
-    SpinInferenceSource,
+import hotpot
+from hotpot.cheminfo.calculator.contracts import (
+    ScientificOperationRequirements,
+    ScientificQuantity,
+)
+from hotpot.cheminfo.calculator.state_resolver import (
+    ScientificStateBundle,
+    StateRequest,
+    extract_molecular_facts,
+    resolve_scientific_state,
 )
 from hotpot.cheminfo.core import Molecule
 
 
-def _state(charge: int, unpaired_electrons: int) -> ElectronicState:
-    return ElectronicState(
-        charge=charge,
-        unpaired_electrons=unpaired_electrons,
-        multiplicity=unpaired_electrons + 1,
-        fragment_charges=(charge,),
-        charge_source=ChargeInferenceSource.EXPLICIT,
-        spin_source=SpinInferenceSource.EXPLICIT,
-        assumptions=(),
+def _state(mol: Molecule, charge: int, two_s: int) -> ScientificStateBundle:
+    return resolve_scientific_state(
+        extract_molecular_facts(mol),
+        StateRequest(net_charge=charge, two_s=two_s),
+        requirements=ScientificOperationRequirements(
+            "pipeline-contract-test",
+            frozenset(
+                {
+                    ScientificQuantity.NET_CHARGE,
+                    ScientificQuantity.ELECTRONIC_STATE,
+                }
+            ),
+            frozenset(),
+        ),
     )
 
 
@@ -58,21 +69,21 @@ def test_stage_spec_is_frozen_and_preserves_argv_order() -> None:
 def test_molecular_payload_preserves_record_and_state_order() -> None:
     from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
 
-    first_mol = Molecule()
-    second_mol = Molecule()
-    first_state = _state(0, 0)
-    second_state = _state(1, 1)
+    first_mol = hotpot.read_mol("[He]", "smi")
+    second_mol = hotpot.read_mol("[H]", "smi")
+    first_state = _state(first_mol, 0, 0)
+    second_state = _state(second_mol, 0, 1)
     first_record = MolecularRecord(first_mol, first_state)
     second_record = MolecularRecord(second_mol, second_state)
     payload = MolecularPayload((first_record, second_record))
 
     assert payload.records == (first_record, second_record)
     assert payload.records[0].molecule is first_mol
-    assert payload.records[0].electronic_state is first_state
+    assert payload.records[0].scientific_state is first_state
     assert payload.records[1].molecule is second_mol
-    assert payload.records[1].electronic_state is second_state
+    assert payload.records[1].scientific_state is second_state
     with pytest.raises(FrozenInstanceError):
-        first_record.electronic_state = second_state
+        first_record.scientific_state = second_state
     with pytest.raises(FrozenInstanceError):
         payload.records = ()
 

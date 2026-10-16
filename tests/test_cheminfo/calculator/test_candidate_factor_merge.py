@@ -21,6 +21,7 @@ from hotpot.cheminfo.calculator.state_composition.contracts import (
     CandidateProposal,
     ConstraintGuard,
     FactorKey,
+    FrontierBound,
     GuardedCandidateConstraint,
     MaterializationStatus,
     ProposedCandidateFactor,
@@ -80,6 +81,18 @@ def test_merge_deduplicates_candidates_and_retains_sources() -> None:
     assert constraints == guarded == ()
 
 
+def test_same_candidate_identity_cannot_change_payload() -> None:
+    with pytest.raises(ValueError, match="different candidate payloads"):
+        _merge_candidate_proposals(
+            (
+                _proposal("source:a", (_charge("shared", 0),)),
+                _proposal("source:b", (_charge("shared", 1),)),
+            ),
+            CandidateBudget(8, 8, 8),
+            (),
+        )
+
+
 def test_factor_budget_records_unmaterialized_remainder() -> None:
     factors, _, _ = _merge_candidate_proposals(
         (_proposal("source", (_charge("q0", 0), _charge("q1", 1))),),
@@ -91,6 +104,76 @@ def test_factor_budget_records_unmaterialized_remainder() -> None:
     assert factor.materialization_status is MaterializationStatus.RESOURCE_TRUNCATED
     assert factor.unexpanded_domain_summary is not None
     assert factor.unexpanded_domain_summary.remaining_count_upper_bound == 1
+
+
+def test_unknown_source_remainder_stays_unknown_after_merge() -> None:
+    source_summary = CandidateDomainSummary(None, "source:next", None)
+
+    factors, _, _ = _merge_candidate_proposals(
+        (
+            _proposal(
+                "source",
+                (_charge("q0", 0),),
+                status=MaterializationStatus.RESOURCE_TRUNCATED,
+                summary=source_summary,
+            ),
+        ),
+        CandidateBudget(8, 8, 8),
+        (),
+    )
+
+    assert (
+        factors[0].unexpanded_domain_summary.remaining_count_upper_bound
+        is None
+    )
+
+
+def test_single_provider_frontier_bound_survives_merge() -> None:
+    bound = FrontierBound(
+        "source:branch",
+        "scientific-state-frontier-v1",
+        ("best",),
+    )
+    source_summary = CandidateDomainSummary(1, "source:next", bound)
+
+    factors, _, _ = _merge_candidate_proposals(
+        (
+            _proposal(
+                "source",
+                (_charge("q0", 0),),
+                status=MaterializationStatus.RESOURCE_TRUNCATED,
+                summary=source_summary,
+            ),
+        ),
+        CandidateBudget(8, 8, 8),
+        (),
+    )
+
+    assert factors[0].unexpanded_domain_summary.frontier_bound == bound
+
+
+def test_local_budget_omission_cannot_reuse_provider_frontier_bound() -> None:
+    bound = FrontierBound(
+        "source:branch",
+        "scientific-state-frontier-v1",
+        ("best",),
+    )
+    source_summary = CandidateDomainSummary(1, "source:next", bound)
+
+    factors, _, _ = _merge_candidate_proposals(
+        (
+            _proposal(
+                "source",
+                (_charge("q0", 0), _charge("q1", 1)),
+                status=MaterializationStatus.RESOURCE_TRUNCATED,
+                summary=source_summary,
+            ),
+        ),
+        CandidateBudget(1, 8, 8),
+        (),
+    )
+
+    assert factors[0].unexpanded_domain_summary.frontier_bound is None
 
 
 def test_declared_truncation_requires_remainder_summary() -> None:

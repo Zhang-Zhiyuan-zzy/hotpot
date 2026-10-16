@@ -30,10 +30,12 @@ from hotpot.cheminfo.calculator.state_composition.contracts import (
     CandidateConstraint,
     CandidateDomainScope,
     CandidateFactor,
+    CandidateDomainSummary,
     CandidateProposal,
     CandidateSearchStatus,
     ConstraintGuard,
     FactorKey,
+    FrontierBound,
     GuardedCandidateConstraint,
     MaterializationStatus,
     ProposedCandidateFactor,
@@ -207,6 +209,41 @@ def test_resource_limit_retains_a_frontier_and_refuses_certification() -> None:
 
     assert paths == ()
     assert len(frontier) == 1
+    assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+
+
+def test_provider_frontier_bound_reaches_the_expanded_space() -> None:
+    facts, charge, electronic = _scientific_candidates()
+    bound = FrontierBound(
+        "provider:next",
+        "scientific-state-frontier-v1",
+        ("best",),
+    )
+    charge_factor = ProposedCandidateFactor(
+        FactorKey(ScientificQuantity.NET_CHARGE, "molecule"),
+        "charge-domain-v1",
+        (ProposedCandidateValue(charge),),
+        CandidateDomainScope.DOMAIN_BOUNDED,
+        MaterializationStatus.RESOURCE_TRUNCATED,
+        CandidateDomainSummary(1, "provider:continuation", bound),
+    )
+    factors = _merged_factors(
+        charge_factor,
+        _factor(ScientificQuantity.ELECTRONIC_STATE, electronic),
+    )
+
+    _, _, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {electronic.provenance.identity: ("electronic-result",)},
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert bound in frontier
     assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
 
 

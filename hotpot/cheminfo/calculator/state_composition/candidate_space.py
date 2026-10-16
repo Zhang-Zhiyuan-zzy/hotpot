@@ -75,7 +75,26 @@ def _merged_summary(
         for summary in summaries
         if summary.remaining_count_upper_bound is not None
     )
-    remaining = omitted_count + sum(known_remaining)
+    remaining = (
+        None
+        if any(
+            summary.remaining_count_upper_bound is None
+            for summary in summaries
+        )
+        else omitted_count + sum(known_remaining)
+    )
+    frontier_bounds = tuple(
+        summary.frontier_bound for summary in summaries
+    )
+    unique_frontier_bounds = frozenset(frontier_bounds)
+    frontier_bound = (
+        frontier_bounds[0]
+        if omitted_count == 0
+        and frontier_bounds
+        and None not in unique_frontier_bounds
+        and len(unique_frontier_bounds) == 1
+        else None
+    )
     continuation_payload = {
         "factor": (factor_key.quantity.value, factor_key.subject_identity),
         "continuations": tuple(
@@ -86,7 +105,7 @@ def _merged_summary(
     return CandidateDomainSummary(
         remaining_count_upper_bound=remaining,
         continuation_identity=_digest(continuation_payload),
-        frontier_bound=None,
+        frontier_bound=frontier_bound,
     )
 
 
@@ -123,6 +142,11 @@ def _merge_factor(
                     set(proposed.branch_assignments),
                 )
             else:
+                if incumbent[0] != proposed.candidate:
+                    raise ValueError(
+                        "One candidate identity cannot describe different "
+                        "candidate payloads"
+                    )
                 incumbent[1].add(proposal_id)
                 incumbent[2].update(proposed.branch_assignments)
 

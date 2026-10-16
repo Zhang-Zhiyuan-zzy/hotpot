@@ -1,0 +1,12 @@
+{
+  "schema_version": "hotpot-f-block-hund-prior-v1",
+  "registry_version": "1.0.0",
+  "source_identity": "OPTIONAL-011:localized-f-block-hund-prior-v1",
+  "source_locator": "NIST Atomic Spectra Database; Cotton, Lanthanide and Actinide Chemistry, Wiley, 2006",
+  "applicable_ions": [
+    [57, 3], [58, 3], [58, 4], [59, 3], [60, 3], [61, 3],
+    [62, 2], [62, 3], [63, 2], [63, 3], [64, 3], [65, 3],
+    [65, 4], [66, 3], [67, 3], [68, 3], [69, 3], [70, 2],
+    [70, 3], [71, 3], [90, 4], [95, 3], [96, 3]
+  ]
+}

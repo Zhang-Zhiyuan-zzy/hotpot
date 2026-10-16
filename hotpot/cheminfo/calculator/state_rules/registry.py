@@ -64,10 +64,24 @@ class InferenceRuleRegistry:
         if unknown:
             raise ValueError(f"Unknown rule IDs: {unknown}")
 
+        enabled_ids = {
+            rule_id for rule_id, toggle in toggle_by_id.items() if toggle.enabled
+        }
+        included_ids = set(enabled_ids)
+        for rule_id in enabled_ids:
+            for dependency in self._rules[rule_id].specification.requires:
+                if dependency.rule_id not in toggle_by_id:
+                    raise ValueError(
+                        f"Rule {rule_id!r} requires configured rule "
+                        f"{dependency.rule_id!r}"
+                    )
+                included_ids.add(dependency.rule_id)
         activated = {
-            rule_id: ActivatedRule(self._rules[rule_id], toggle)
-            for rule_id, toggle in toggle_by_id.items()
-            if toggle.enabled
+            rule_id: ActivatedRule(
+                self._rules[rule_id],
+                toggle_by_id[rule_id],
+            )
+            for rule_id in included_ids
         }
         self._validate_dependencies(activated)
         return RuleSet(self._topological_layers(activated))
@@ -77,6 +91,8 @@ class InferenceRuleRegistry:
         activated: Dict[str, ActivatedRule],
     ) -> None:
         for rule_id, activated_rule in activated.items():
+            if not activated_rule.toggle.enabled:
+                continue
             specification = activated_rule.rule.specification
             for dependency in specification.requires:
                 required = activated.get(dependency.rule_id)
@@ -119,7 +135,8 @@ class InferenceRuleRegistry:
                     sorted(
                         rule_id
                         for rule_id in pending
-                        if all(
+                        if not activated[rule_id].toggle.enabled
+                        or all(
                             dependency.rule_id in completed
                             for dependency in activated[
                                 rule_id

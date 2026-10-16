@@ -105,7 +105,7 @@ def test_missing_or_wrong_version_dependency_is_rejected() -> None:
         )
     )
 
-    with pytest.raises(ValueError, match="requires enabled rule"):
+    with pytest.raises(ValueError, match="requires configured rule"):
         registry.activate(StatePolicy.STRICT, _enabled("B"))
     with pytest.raises(ValueError, match="not 1.0.0"):
         registry.activate(StatePolicy.STRICT, _enabled("A", "B"))

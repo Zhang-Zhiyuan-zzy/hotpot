@@ -1,0 +1,11 @@
+{
+  "schema_version": "hotpot-oxidation-prior-v1",
+  "rule_id": "OPTIONAL-007",
+  "rule_version": "1.0.0",
+  "source_identity": "OPTIONAL-007:ordinary-thorium-iv-domain-v1",
+  "source_locator": "Morss, Edelstein and Fuger, The Chemistry of the Actinide and Transactinide Elements, Springer, 2011",
+  "applicability_schema": "ordinary-nonredox-thorium-coordination-v1",
+  "elements": [
+    {"atomic_number": 90, "candidate_states": [4], "preferred_state": 4}
+  ]
+}

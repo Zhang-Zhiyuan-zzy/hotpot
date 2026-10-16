@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Iterable, Optional, Tuple
 
 from ..core import Bond, BondKind, Molecule
-from .charge import (
+from .charge.contracts import (
     AtomFormalChargeEvidence,
     ComponentChargeEvidence,
     LewisFormalChargeResult,

@@ -8,8 +8,10 @@ from .contracts import (
     NetChargeCandidateEvidence,
     NetChargeResult,
 )
+from .net_charge import resolve_net_charge
 
 __all__ = [
+    "resolve_net_charge",
     "NetChargeCandidateEvidence",
     "AtomFormalChargeEvidence",
     "ComponentChargeEvidence",

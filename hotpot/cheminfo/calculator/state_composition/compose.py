@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from typing import Dict, Tuple
 
 from ..charge.contracts import (
@@ -29,6 +27,11 @@ from ..oxidation_state.contracts import (
     CoordinationElectronCountingResult,
     OxidationStateInferenceResult,
 )
+from ._artifacts import (
+    _FRONTIER_SCHEMA,
+    _candidate_budget_artifact_id,
+    _validate_candidate_space_artifacts,
+)
 from .candidate_space import _merge_candidate_proposals
 from .constraints import _molecular_subject_identity
 from .contracts import (
@@ -50,7 +53,6 @@ from .expand import _FRONTIER_SCHEMA, _expand_scientific_paths
 __all__ = ["compose_scientific_state_space"]
 
 
-_BUDGET_SCHEMA = "scientific-state-candidate-budget-v1"
 _RESULT_EXHAUSTIVE_AUTHORITIES = frozenset(
     {
         StateValueAuthority.VERIFIED_EXPLICIT,
@@ -58,16 +60,6 @@ _RESULT_EXHAUSTIVE_AUTHORITIES = frozenset(
         StateValueAuthority.EXACT_IDENTITY_TRUSTED_SOURCE,
     }
 )
-
-
-def _digest(payload: object) -> str:
-    encoded = json.dumps(
-        payload,
-        ensure_ascii=True,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
 
 
 def _is_resource_truncated(
@@ -184,19 +176,6 @@ def _proposal_result_mappings(
                         candidate.provenance.identity,
                         set(),
                     ).add(proposal.proposal_id)
-
-
-def _budget_artifact_id(candidate_budget: CandidateBudget) -> str:
-    return _digest(
-        {
-            "schema": _BUDGET_SCHEMA,
-            "max_materialized_values_per_factor": (
-                candidate_budget.max_materialized_values_per_factor
-            ),
-            "max_expanded_paths": candidate_budget.max_expanded_paths,
-            "max_frontier_paths": candidate_budget.max_frontier_paths,
-        }
-    )
 
 
 def compose_scientific_state_space(
@@ -353,17 +332,21 @@ def compose_scientific_state_space(
         max_expanded_paths=candidate_budget.max_expanded_paths,
         max_frontier_paths=candidate_budget.max_frontier_paths,
     )
-    return ScientificStateCandidateSpace(
+    candidate_space = ScientificStateCandidateSpace(
         factors=factors,
         constraints=tuple(
             constraints_by_identity[identity]
             for identity in sorted(constraints_by_identity)
         ),
         candidate_budget=candidate_budget,
-        candidate_budget_artifact_id=_budget_artifact_id(candidate_budget),
+        candidate_budget_artifact_id=_candidate_budget_artifact_id(
+            candidate_budget
+        ),
         frontier_bound_schema_version=_FRONTIER_SCHEMA,
         expanded_paths=paths,
         rejected_path_summaries=rejections,
         frontier=frontier,
         search_status=search_status,
     )
+    _validate_candidate_space_artifacts(candidate_space)
+    return candidate_space

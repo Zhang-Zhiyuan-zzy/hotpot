@@ -25,6 +25,7 @@ from ..oxidation_state.contracts import (
     CoordinationCountingCandidate,
     OxidationStateCandidateEvidence,
 )
+from ._artifacts import _FRONTIER_SCHEMA
 from .constraints import (
     _constraint_candidate_ids,
     _unconditional_constraint,
@@ -55,7 +56,6 @@ __all__ = []
 
 
 _HARD_CONSTRAINT_ID = "hard-scientific-consistency-v1"
-_FRONTIER_SCHEMA = "scientific-state-frontier-v1"
 _UNBOUNDED_FRONTIER_KEY = ("unbounded",)
 
 

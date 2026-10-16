@@ -3,9 +3,12 @@
   "source": {
     "name": "NIST Atomic Spectra Database, Ground States and Ionization Energies",
     "citation": "Kramida, A.; Ralchenko, Yu.; Reader, J.; NIST ASD Team (2024), NIST Atomic Spectra Database (ver. 5.12).",
-    "url": "https://physics.nist.gov/cgi-bin/ASD/ie.pl",
-    "query": "neutral spectra H-Og I; atomic number, ground shells and ground level",
-    "access_date": "2026-10-16"
+    "url": "https://physics.nist.gov/cgi-bin/ASD/ie.pl?spectra=H-Ds%20I&units=1&format=2&order=0&at_num_out=on&sp_name_out=on&shells_out=on&level_out=on",
+    "query": "neutral spectra H-Ds I; atomic number, spectrum, ground shells and ground level; CSV output",
+    "release_date": "2024-11-07",
+    "access_date": "2026-10-16",
+    "source_snapshot_sha256": "e5840c9673ce08e44f96edc9bb382159c07448749e2a6f668d576c6a1b60c40b",
+    "two_s_derivation": "Explicit reviewed LS term multiplicity minus one; unresolved for non-LS or missing ground terms."
   },
   "records": [
     {

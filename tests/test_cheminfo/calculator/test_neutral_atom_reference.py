@@ -1,8 +1,20 @@
 """PROVIDER-003 isolated-neutral-atom registry tests."""
 
+import json
+from importlib.resources import files
+
+import hotpot
 import pytest
 
+from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.calculator.contracts import (
+    CandidateProvenance,
+    ScientificAdmissibility,
+    StateValueAuthority,
+)
 from hotpot.cheminfo.calculator.electronic_state import neutral_atom_reference
+from hotpot.cheminfo.calculator.legality import _validate_molecular_spin
+from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
 
 
 @pytest.mark.parametrize(
@@ -50,3 +62,43 @@ def test_registry_covers_every_atomic_number() -> None:
 
     assert len(results) == 118
     assert sum(reference is not None for reference in results) == 104
+
+
+def test_registry_records_exact_source_snapshot() -> None:
+    resource = files(
+        "hotpot.cheminfo.calculator.electronic_state"
+    ).joinpath("data", "neutral_atom_references.json")
+    payload = json.loads(resource.read_text(encoding="utf-8"))
+
+    assert tuple(record["atomic_number"] for record in payload["records"]) == (
+        tuple(range(1, 119))
+    )
+    assert payload["source"]["source_snapshot_sha256"] == (
+        "e5840c9673ce08e44f96edc9bb382159c07448749e2a6f668d576c6a1b60c40b"
+    )
+    assert "H-Ds%20I" in payload["source"]["url"]
+
+
+def test_atomic_reference_passes_molecular_spin_legality_before_projection() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("[C]", "smi"))
+    reference = neutral_atom_reference(6)
+    assert reference is not None
+    charge = NetChargeCandidateEvidence(
+        CandidateProvenance(
+            "carbon-neutral",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "PROVIDER-003",
+        ),
+        0,
+    )
+
+    assessment = _validate_molecular_spin(
+        facts,
+        charge,
+        electron_count=reference.electron_count,
+        two_s=reference.two_s,
+        multiplicity=reference.two_s + 1,
+        pure_spin=True,
+    )
+
+    assert assessment.admissibility is ScientificAdmissibility.ADMISSIBLE

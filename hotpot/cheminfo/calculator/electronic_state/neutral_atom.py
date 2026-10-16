@@ -31,6 +31,29 @@ def _content_digest(payload: dict) -> str:
 
 
 _REGISTRY = _registry_payload()
+
+
+def _validate_registry(payload: dict) -> None:
+    records = payload["records"]
+    atomic_numbers = tuple(record["atomic_number"] for record in records)
+    if atomic_numbers != tuple(range(1, 119)):
+        raise RuntimeError(
+            "Neutral-atom registry must contain ordered unique Z=1..118 records"
+        )
+    for record in records:
+        if record["available"] and not (
+            record["electron_count"] == record["atomic_number"]
+            and isinstance(record["ground_configuration"], str)
+            and bool(record["ground_configuration"])
+            and type(record["two_s"]) is int
+            and record["two_s"] >= 0
+        ):
+            raise RuntimeError(
+                "Available neutral-atom references require complete reviewed fields"
+            )
+
+
+_validate_registry(_REGISTRY)
 _REGISTRY_DIGEST = _content_digest(_REGISTRY)
 _RECORDS: Dict[int, dict] = {
     int(record["atomic_number"]): record for record in _REGISTRY["records"]

@@ -32,7 +32,12 @@ from .constraints import (
     _validate_coupled_candidate_sets,
 )
 from .derive import _derive_charge_values
-from .decision_search import _DecisionBound, _DecisionSearchCompiler
+from .decision_search import (
+    _DecisionBound,
+    _DecisionSearchCompiler,
+    _record_beats_frontier,
+    _select_decision_record,
+)
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -642,6 +647,61 @@ def _compact_frontier_entries(
     )
 
 
+def _candidate_search_status(
+    paths: Tuple[CoupledScientificStateCandidate, ...],
+    factors: Tuple[CandidateFactor, ...],
+    frontier: Tuple[_FrontierEntry, ...],
+    truncated: bool,
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> CandidateSearchStatus:
+    if decision_search is None:
+        factors_are_certifiable = all(
+            factor.domain_scope is not CandidateDomainScope.OPEN
+            and factor.materialization_status
+            is MaterializationStatus.COMPLETE
+            for factor in factors
+        )
+        if truncated:
+            return CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+        if (
+            len(paths) == 1
+            and factors_are_certifiable
+            and paths[0].electronic_state_candidate_identity is not None
+        ):
+            return CandidateSearchStatus.DECISION_CERTIFIED
+        return CandidateSearchStatus.NO_CERTIFIED_DECISION
+
+    selected_record = _select_decision_record(
+        paths,
+        factors,
+        decision_search,
+    )
+    certifiable_factors = all(
+        factor.domain_scope is not CandidateDomainScope.OPEN
+        for factor in factors
+    )
+    frontier_certified = (
+        selected_record is not None
+        and certifiable_factors
+        and _record_beats_frontier(
+            selected_record,
+            tuple(entry.decision_bound for entry in frontier),
+            decision_search,
+        )
+    )
+    if truncated:
+        return (
+            CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED
+            if frontier_certified
+            else CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+        )
+    return (
+        CandidateSearchStatus.DECISION_CERTIFIED
+        if selected_record is not None and certifiable_factors
+        else CandidateSearchStatus.NO_CERTIFIED_DECISION
+    )
+
+
 def _expand_scientific_paths(
     facts: MolecularFacts,
     factors: Tuple[CandidateFactor, ...],
@@ -835,17 +895,19 @@ def _expand_scientific_paths(
         summary = factor.unexpanded_domain_summary
         if summary is None:
             continue
+        serialized_bound = summary.frontier_bound or FrontierBound(
+            branch_identity=summary.continuation_identity or factor.identity,
+            schema_version=_FRONTIER_SCHEMA,
+            optimistic_key=_UNBOUNDED_FRONTIER_KEY,
+        )
+        decision_bound = (
+            decision_search.decode_bound(serialized_bound)
+            if decision_search is not None
+            and summary.frontier_bound is not None
+            else None
+        )
         frontier_entries.append(
-            _FrontierEntry(
-                summary.frontier_bound
-                or FrontierBound(
-                    branch_identity=summary.continuation_identity
-                    or factor.identity,
-                    schema_version=_FRONTIER_SCHEMA,
-                    optimistic_key=_UNBOUNDED_FRONTIER_KEY,
-                ),
-                None,
-            )
+            _FrontierEntry(serialized_bound, decision_bound)
         )
     compact_frontier = (
         _compact_frontier_entries(
@@ -859,19 +921,11 @@ def _expand_scientific_paths(
     frontier = tuple(entry.serialized for entry in compact_frontier)
 
     ordered_paths = tuple(paths[identity] for identity in sorted(paths))
-    factors_are_certifiable = all(
-        factor.domain_scope is not CandidateDomainScope.OPEN
-        and factor.materialization_status is MaterializationStatus.COMPLETE
-        for factor in factors
+    status = _candidate_search_status(
+        ordered_paths,
+        factors,
+        compact_frontier,
+        truncated,
+        decision_search,
     )
-    if truncated:
-        status = CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
-    elif (
-        len(ordered_paths) == 1
-        and factors_are_certifiable
-        and ordered_paths[0].electronic_state_candidate_identity is not None
-    ):
-        status = CandidateSearchStatus.DECISION_CERTIFIED
-    else:
-        status = CandidateSearchStatus.NO_CERTIFIED_DECISION
     return ordered_paths, tuple(rejections), frontier, status

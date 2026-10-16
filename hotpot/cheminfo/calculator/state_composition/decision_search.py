@@ -10,6 +10,7 @@ from .contracts import (
     CandidateFactor,
     CoupledScientificStateCandidate,
     FactorCandidateValue,
+    FrontierBound,
     ScientificStateIdentity,
 )
 
@@ -121,6 +122,12 @@ class _DecisionSearchCompiler(Protocol):
     def encode_bound(self, bound: _DecisionBound) -> Tuple[str, ...]:
         """Encode one bound under ``frontier_schema_version``."""
 
+    def decode_bound(
+        self,
+        bound: FrontierBound,
+    ) -> Optional[_DecisionBound]:
+        """Decode one compatible serialized bound, or return ``None``."""
+
 
 def _authority_relation(
     left: _AuthorityVector,
@@ -157,3 +164,51 @@ def _authority_relation(
     if right_at_least:
         return _DecisionRelation.DOMINATED
     return _DecisionRelation.INCOMPARABLE
+
+
+def _non_dominated_records(
+    records: Tuple[_DecisionRecord, ...],
+    compiler: _DecisionSearchCompiler,
+) -> Tuple[_DecisionRecord, ...]:
+    return tuple(
+        record
+        for record in records
+        if not any(
+            compiler.compare_records(other, record)
+            is _DecisionRelation.DOMINATES
+            for other in records
+            if other.state_identity != record.state_identity
+        )
+    )
+
+
+def _select_decision_record(
+    paths: Tuple[CoupledScientificStateCandidate, ...],
+    factors: Tuple[CandidateFactor, ...],
+    compiler: _DecisionSearchCompiler,
+) -> Optional[_DecisionRecord]:
+    records = tuple(
+        compiler.record_for_path(path, factors) for path in paths
+    )
+    non_dominated = _non_dominated_records(records, compiler)
+    if not non_dominated:
+        return None
+    equivalence = non_dominated[0].equivalence
+    if any(record.equivalence != equivalence for record in non_dominated[1:]):
+        return None
+    return min(
+        non_dominated,
+        key=lambda record: record.state_identity.digest,
+    )
+
+
+def _record_beats_frontier(
+    record: _DecisionRecord,
+    frontier_bounds: Tuple[Optional[_DecisionBound], ...],
+    compiler: _DecisionSearchCompiler,
+) -> bool:
+    return all(
+        bound is not None
+        and compiler.record_strictly_beats_bound(record, bound)
+        for bound in frontier_bounds
+    )

@@ -44,6 +44,14 @@ from hotpot.cheminfo.calculator.state_composition.contracts import (
 from hotpot.cheminfo.calculator.state_composition.expand import (
     _expand_scientific_paths,
 )
+from hotpot.cheminfo.calculator.state_composition.decision_search import (
+    _AuthorityVector,
+    _DecisionBound,
+    _DecisionEquivalenceKey,
+    _DecisionRecord,
+    _DecisionRelation,
+    _PreferenceKey,
+)
 from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
     extract_molecular_facts,
@@ -106,6 +114,180 @@ def _factors(charge, electronic, *, charge_branches=(), spin_branches=()):
             electronic,
             branch_assignments=spin_branches,
         ),
+    )
+
+
+class _RankedSearchCompiler:
+    def __init__(self, lower_rank: float = 1.0) -> None:
+        self._lower_rank = lower_rank
+
+    @property
+    def identity(self):
+        return "test-ranked-search-v1"
+
+    @property
+    def frontier_schema_version(self):
+        return "scientific-state-frontier-v1"
+
+    def _rank_for_candidate_ids(self, candidate_ids):
+        zero = {"charge:zero", "spin:zero"}
+        one = {"charge:one", "spin:one"}
+        selected = set(candidate_ids)
+        if selected.intersection(zero) and selected.intersection(one):
+            return 0.0
+        if selected.intersection(zero):
+            return 2.0
+        if selected.intersection(one):
+            return self._lower_rank
+        return max(2.0, self._lower_rank)
+
+    def record_for_path(self, path, factors):
+        del factors
+        rank = 2.0 if path.net_charge.value == 0 else self._lower_rank
+        return _DecisionRecord(
+            path.identity,
+            _AuthorityVector((("state", 1),)),
+            _PreferenceKey((rank,), ()),
+            _DecisionEquivalenceKey(
+                path.net_charge.value,
+                "none",
+                path.net_charge.value,
+            ),
+        )
+
+    def optimistic_bound_for_prefix(self, selected_values, remaining_factors):
+        del remaining_factors
+        rank = self._rank_for_candidate_ids(
+            tuple(
+                value.candidate.provenance.identity
+                for value in selected_values
+            )
+        )
+        return _DecisionBound(
+            _AuthorityVector((("state", 1),)),
+            (rank,),
+            (),
+            None,
+            None,
+        )
+
+    def compare_records(self, left, right):
+        left_rank = left.preference.rank_values
+        right_rank = right.preference.rank_values
+        if left_rank > right_rank:
+            return _DecisionRelation.DOMINATES
+        if left_rank < right_rank:
+            return _DecisionRelation.DOMINATED
+        return _DecisionRelation.EQUIVALENT
+
+    def record_strictly_beats_bound(self, record, bound):
+        return record.preference.rank_values > bound.rank_upper
+
+    def aggregate_bounds(self, bounds):
+        return max(bounds, key=lambda bound: bound.rank_upper)
+
+    def bound_order_key(self, bound):
+        return (f"{1000.0 - bound.rank_upper[0]:012.6f}",)
+
+    def encode_bound(self, bound):
+        return (f"rank:{bound.rank_upper[0]:.6f}",)
+
+    def decode_bound(self, bound):
+        if bound.schema_version != self.frontier_schema_version:
+            return None
+        prefix = "rank:"
+        if len(bound.optimistic_key) != 1 or not bound.optimistic_key[0].startswith(
+            prefix
+        ):
+            return None
+        return _DecisionBound(
+            _AuthorityVector((("state", 1),)),
+            (float(bound.optimistic_key[0][len(prefix) :]),),
+            (),
+            None,
+            None,
+        )
+
+
+def _ranked_search_fixture():
+    facts, _, _ = _scientific_candidates()
+    zero_charge = NetChargeCandidateEvidence(
+        CandidateProvenance(
+            "charge:zero",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        0,
+    )
+    one_charge = NetChargeCandidateEvidence(
+        CandidateProvenance(
+            "charge:one",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        1,
+    )
+    zero_spin = ElectronicStateCandidate(
+        CandidateProvenance(
+            "spin:zero",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        zero_charge.provenance.identity,
+        None,
+        facts.nuclear_charge_sum,
+        0,
+        1,
+        True,
+    )
+    one_spin = ElectronicStateCandidate(
+        CandidateProvenance(
+            "spin:one",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        one_charge.provenance.identity,
+        None,
+        facts.nuclear_charge_sum - 1,
+        1,
+        2,
+        True,
+    )
+    factors = _merged_factors(
+        ProposedCandidateFactor(
+            FactorKey(ScientificQuantity.NET_CHARGE, "molecule"),
+            "charge-domain-v1",
+            tuple(
+                ProposedCandidateValue(candidate)
+                for candidate in (zero_charge, one_charge)
+            ),
+            CandidateDomainScope.EXHAUSTIVE,
+            MaterializationStatus.COMPLETE,
+            None,
+        ),
+        ProposedCandidateFactor(
+            FactorKey(ScientificQuantity.ELECTRONIC_STATE, "molecule"),
+            "spin-domain-v1",
+            tuple(
+                ProposedCandidateValue(candidate)
+                for candidate in (zero_spin, one_spin)
+            ),
+            CandidateDomainScope.EXHAUSTIVE,
+            MaterializationStatus.COMPLETE,
+            None,
+        ),
+    )
+    return (
+        facts,
+        factors,
+        {
+            zero_charge.provenance.identity: ("charge-result:zero",),
+            one_charge.provenance.identity: ("charge-result:one",),
+        },
+        {
+            zero_spin.provenance.identity: ("spin-result:zero",),
+            one_spin.provenance.identity: ("spin-result:one",),
+        },
     )
 
 
@@ -210,6 +392,75 @@ def test_resource_limit_retains_a_frontier_and_refuses_certification() -> None:
     assert paths == ()
     assert len(frontier) == 1
     assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+
+
+def test_policy_bound_certifies_a_truncated_best_first_decision() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+
+    paths, _, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=8,
+        decision_search=_RankedSearchCompiler(),
+    )
+
+    assert len(paths) == 1
+    assert paths[0].net_charge.value == 0
+    assert frontier
+    assert status is (
+        CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED
+    )
+
+
+def test_equal_non_equivalent_frontier_prevents_truncated_certification() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+
+    paths, _, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=8,
+        decision_search=_RankedSearchCompiler(lower_rank=2.0),
+    )
+
+    assert len(paths) == 1
+    assert frontier
+    assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+
+
+def test_complete_non_equivalent_tie_is_not_decision_certified() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+
+    paths, _, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+        decision_search=_RankedSearchCompiler(lower_rank=2.0),
+    )
+
+    assert len(paths) == 2
+    assert frontier == ()
+    assert status is CandidateSearchStatus.NO_CERTIFIED_DECISION
 
 
 def test_prefix_frontier_compacts_an_unexpanded_cartesian_remainder() -> None:

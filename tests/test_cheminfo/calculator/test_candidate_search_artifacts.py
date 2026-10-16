@@ -48,6 +48,23 @@ def test_candidate_budget_identity_covers_every_limit() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    "limits",
+    (
+        (0, 1, 1),
+        (1, -1, 1),
+        (1, 1, 0),
+        (True, 1, 1),
+        (1.0, 1, 1),
+    ),
+)
+def test_candidate_budget_requires_positive_integer_limits(
+    limits: tuple[object, object, object],
+) -> None:
+    with pytest.raises(ValueError, match="positive integers"):
+        CandidateBudget(*limits)
+
+
 def test_candidate_space_rejects_mismatched_budget_identity() -> None:
     space = _space(CandidateBudget(8, 16, 4))
 

@@ -219,6 +219,15 @@ class CandidateBudget:
     max_expanded_paths: int
     max_frontier_paths: int
 
+    def __post_init__(self) -> None:
+        values = (
+            self.max_materialized_values_per_factor,
+            self.max_expanded_paths,
+            self.max_frontier_paths,
+        )
+        if any(type(value) is not int or value <= 0 for value in values):
+            raise ValueError("Candidate-budget limits must be positive integers")
+
 
 DEFAULT_CANDIDATE_BUDGET = CandidateBudget(
     max_materialized_values_per_factor=64,

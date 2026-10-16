@@ -43,6 +43,8 @@ assert actual == expected
             --exclude-warning-annotations \
             --import-mode=importlib \
             tests/mca tests/cbond \
+            tests/test_cheminfo/calculator \
+            tests/test_cheminfo/test_calculator.py \
             tests/test_cheminfo/test_mca_calculator.py \
             tests/test_cheminfo/test_molecule_conversion.py \
             tests/test_cheminfo/test_ob2chem_compat.py \

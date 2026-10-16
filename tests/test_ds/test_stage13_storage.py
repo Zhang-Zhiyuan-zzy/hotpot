@@ -384,6 +384,21 @@ def test_target_owns_materialized_evidence_and_withdrawn_assets(tmp_path):
     assert control == ("checker", "checker.py", checker_digest)
     owned = store.asset_root / "objects" / "sha256" / digest[:2] / digest
     assert owned.read_text(encoding="utf-8") == "reported spin = 3\n"
+    expected_ref = {
+        "evidence_id": "evidence-1",
+        "asset_index": 0,
+        "role": "supplier_text",
+        "status": "withdrawn",
+        "sha256": digest,
+        "size": size,
+        "path": owned,
+    }
+    assert store.get_case("spin", "release-1", "case-a")[
+        "evidence_assets"
+    ] == [expected_ref]
+    assert list(store.iter_cases("spin", "release-1"))[0][
+        "evidence_assets"
+    ] == [expected_ref]
     owned_checker = (
         store.asset_root
         / "objects"
@@ -420,3 +435,71 @@ def test_one_external_identifier_may_name_several_cases(tmp_path):
         assert connection.execute(
             "SELECT COUNT(*) FROM identifiers WHERE namespace='CSD' AND value='DOQRAC'"
         ).fetchone()[0] == 2
+
+
+def test_formal_store_keeps_original_basis_and_drops_reproducible_traces(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    case = _case("case-a", 0)
+    case["facts"].update(
+        {
+            "metadata": {
+                "supplier_grade": "gold",
+                "migration_schema": "legacy-v1",
+                "migration_rows": {"records": ["large generated projection"] * 200},
+                "shared_identifier_relations": [{"derived": True}],
+            },
+            "observations": [{"property": "spin", "value": 3}],
+            "evidence": [{"quote": "S = 3", "doi": "10.1/example"}],
+            "attestations": [{"authority": "User", "decision": "approve"}],
+        }
+    )
+    case["assessment"].update(
+        {
+            "benchmark_status": "not_admitted",
+            "gate_results": {"verbose": ["derived"] * 200},
+            "asset_assessments": [{"derived": True}],
+        }
+    )
+
+    store.ingest(_snapshot(store, [case]))
+    loaded = store.get_case("spin", "release-1", "case-a")
+
+    assert loaded["facts"]["metadata"] == {"supplier_grade": "gold"}
+    assert loaded["facts"]["evidence"] == [
+        {"quote": "S = 3", "doi": "10.1/example"}
+    ]
+    assert loaded["facts"]["attestations"][0]["authority"] == "User"
+    assert loaded["facts"]["identifiers"] == {"CSD": "CASE-A"}
+    assert loaded["assessment"] == {
+        "quality_level": "B2",
+        "evidence_level": "E2",
+        "archive_class": "ordinary",
+        "benchmark": False,
+        "benchmark_status": "not_admitted",
+    }
+    with sqlite3.connect(store.path) as connection:
+        case_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(cases)")
+        }
+        assessment_columns = {
+            row[1]
+            for row in connection.execute("PRAGMA table_info(case_assessments)")
+        }
+        stored_size = connection.execute(
+            "SELECT length(source_payload_blob) FROM cases"
+        ).fetchone()[0]
+        tables = {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }
+    assert {"source_payload_blob", "source_payload_digest"} <= case_columns
+    assert "source_payload_json" not in case_columns
+    assert "assessment_json" not in assessment_columns
+    assert not {
+        "ordinary_case_index",
+        "benchmark_case_index",
+        "incomplete_case_index",
+    } & tables
+    assert stored_size < len(json.dumps(case["facts"]).encode("utf-8"))

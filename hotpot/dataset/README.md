@@ -120,13 +120,18 @@ current-format intake folder
     -> root certificate
     -> certificate-required target ingestion
     -> immutable sealed release
+    -> optional verified removal of reproducible Bundle intermediates
 ```
 
 New datasets may propose Gates and comparison policy. First ingestion persists
 that policy. Later releases of an established dataset must use the stored
 policy; Bundle cannot replace it. Successful ingestion copies every positive
 scientific asset into target-owned content-addressed storage and records an
-authoritative receipt.
+authoritative receipt. The formal store keeps compact original facts and final
+governance labels, not Bundle fact/generation/migration copies. After receipt
+verification, `hotpot ds bundle rm --all` removes only allowlisted reproducible
+Bundle products and preserves the intake, original evidence, policy,
+certificate, receipt, and audit history.
 
 See the [public API](../ds/README.md), [CLI reference](../ds/cli_doc.md), and
 [storage and cutover contract](docs/storage.md).

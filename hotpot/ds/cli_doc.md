@@ -207,6 +207,7 @@ hotpot ds bundle build BUNDLE_ROOT [--dataset NAME] [--db DB]
 
 hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] status
 hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] synchronize
+hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] rm --all
 ```
 
 `build` is the one-time canonical build operation and requires an unbuilt
@@ -380,6 +381,44 @@ Synchronization evaluates all Cases and atomically publishes a new immutable
 assessment generation. It does not write a certificate. Users can make several
 fact or Gate edits, then synchronize once.
 
+### Remove sealed Bundle intermediates
+
+```bash
+hotpot ds bundle rm --all
+```
+
+`rm --all` is an irreversible post-ingestion cleanup operation. It is accepted
+only for a sealed Bundle whose certificate, local ingestion receipt,
+authoritative target receipt, target SQLite database, and target-owned assets
+all pass complete integrity verification.  The command uses the target bound
+by the Bundle when `--db` is omitted; an explicit `--db` is a matching
+assertion.  Therefore the short form above works from the Bundle root even
+when the Bundle already records its target.
+
+The command takes an exclusive Bundle lock and deletes only a closed allowlist
+of reproducible working material: the canonical facts SQLite files, assessment
+generations and their leases/caches/temporary files, current-generation links,
+and the two explicitly recognized derived controls
+`evidence/migration/identity-migration.jsonl` and
+`evidence/migration/legacy-identity-relationships.jsonl`. A free-form
+`category: "migration"` declaration is not deletion authority. In particular,
+`legacy-source-inventory.json` and `migration-provenance.json` are permanent
+source/provenance records and are never removed. The command also keeps
+`bundle.json`, the original intake, scientific structures and evidence,
+persisted policy and checker source, the certificate, the ingestion receipt,
+and audit history. A derived control that is also an intake or scientific
+source is rejected as an ambiguous declaration rather than removed.
+
+Before deletion the command atomically writes `bundle-cleanup.json` with the
+authoritative receipt binding and the path, SHA-256 digest, and byte count of
+every planned deletion. It marks that manifest complete only after deletion.
+Repeating the same command first revalidates the target schema and integrity,
+release content, authoritative and local receipts, and certificate. It then
+resumes a planned cleanup or returns the completed result idempotently without
+reopening the now intentionally non-loadable Bundle working state. The
+ingested dataset remains available through the Python `ds.load` API and
+`hotpot ds` query commands because the target store owns the release.
+
 ## 3. Certify and ingest
 
 ### Certify
@@ -512,6 +551,7 @@ are recursively JSON-validated; they are not unvalidated object escapes.
 | `hotpot.ds.bundle.gate` | `default -> bundle_gate_result` |
 | `hotpot.ds.bundle.status` | `default -> bundle_status_result` |
 | `hotpot.ds.bundle.synchronize` | `default -> bundle_synchronize_result` |
+| `hotpot.ds.bundle.rm` | `default -> bundle_cleanup_result` |
 | `hotpot.ds.certify` | `default -> certificate_result` |
 | `hotpot.ds.ingest` | `default -> ingestion_result` |
 

@@ -335,6 +335,11 @@ class Data:
             structure = deepcopy(dict(item))
             structure["path"] = str(structure["path"])
             target_structures.append(structure)
+        evidence_assets = []
+        for item in self._value.get("evidence_assets", []):
+            asset = deepcopy(dict(item))
+            asset["path"] = str(asset["path"])
+            evidence_assets.append(asset)
         return {
             "id": self.id,
             "record_id": self.record_id,
@@ -347,6 +352,7 @@ class Data:
             "identifiers": self.identifiers,
             "entities": self.entities,
             "structures": target_structures,
+            "evidence_assets": evidence_assets,
             "quality_level": self.quality_level,
             "evidence_level": self.evidence_level,
             "archive_class": self.archive_class,

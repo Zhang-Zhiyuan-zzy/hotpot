@@ -102,9 +102,11 @@ def _database(
     water = tmp_path / "water.smi"
     nitrogen = tmp_path / "nitrogen.smi"
     alternative = tmp_path / "alternative.mol2"
+    evidence_note = tmp_path / "chemist.txt"
     water.write_text("O\n", encoding="utf-8")
     nitrogen.write_text("N\n", encoding="utf-8")
     alternative.write_text("@<TRIPOS>MOLECULE\nalternative\n", encoding="utf-8")
+    evidence_note.write_text("chemist assigned spin = 1\n", encoding="utf-8")
 
     cases = [
         _case(
@@ -128,6 +130,14 @@ def _database(
         ),
         _case("broken", 11, "incomplete", 5, "unknown", []),
     ]
+    cases[0]["facts"]["evidence"] = [
+        {
+            "evidence_id": "evidence-aaaksi",
+            "source_kind": "expert_statement",
+            "path": "evidence/original/chemist.txt",
+            "quote": "chemist assigned spin = 1",
+        }
+    ]
     if shared_identifier:
         for case in cases[:2]:
             case["identifiers"].append(
@@ -150,6 +160,20 @@ def _database(
                     "source_path": structure["source_path"],
                     "sha256": structure["sha256"],
                     "size": structure["size"],
+                }
+            )
+        if case["id"] == "aaaksi":
+            content = evidence_note.read_bytes()
+            scientific_assets.append(
+                {
+                    "collection": "evidence",
+                    "declaration_id": "evidence-aaaksi",
+                    "asset_index": 0,
+                    "role": "supplier_text",
+                    "status": "active",
+                    "source_path": evidence_note,
+                    "sha256": hashlib.sha256(content).hexdigest(),
+                    "size": len(content),
                 }
             )
         case["assets"] = scientific_assets
@@ -206,7 +230,7 @@ def _database(
         include_incomplete=True,
         reason="Retain an intentionally incomplete query fixture.",
     )
-    return database, [water, nitrogen, alternative]
+    return database, [water, nitrogen, alternative, evidence_note]
 
 
 def test_catalog_identifier_subset_and_archive_opt_in(tmp_path: Path) -> None:
@@ -288,7 +312,8 @@ def test_identifier_lookup_uses_index_and_respects_the_current_view(
 
 
 def test_data_info_is_json_and_contains_full_fact_projection(tmp_path: Path) -> None:
-    database, _ = _database(tmp_path)
+    database, sources = _database(tmp_path)
+    sources[-1].unlink()
     data = load("spin", db=database)[0]
 
     assert data.record_id == "aaaksi"
@@ -297,6 +322,17 @@ def test_data_info_is_json_and_contains_full_fact_projection(tmp_path: Path) -> 
     assert data.info["facts"]["core_info"] == {"sample": "aaaksi"}
     assert data.info["structures"][0]["sha256"]
     assert isinstance(data.info["structures"][0]["path"], str)
+    assert data.info["facts"]["evidence"][0]["path"] == (
+        "evidence/original/chemist.txt"
+    )
+    evidence_asset = data.info["evidence_assets"][0]
+    assert evidence_asset["evidence_id"] == "evidence-aaaksi"
+    assert Path(evidence_asset["path"]).read_text(encoding="utf-8") == (
+        "chemist assigned spin = 1\n"
+    )
+    assert Path(evidence_asset["path"]).is_relative_to(
+        database.with_name(database.name + ".assets")
+    )
     json.dumps(data.info)
 
 

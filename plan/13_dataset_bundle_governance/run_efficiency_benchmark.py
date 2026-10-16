@@ -25,6 +25,7 @@ from hotpot.ds.public._assessment import canonical_json
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
 from hotpot.ds.public.bundle import Bundle
 from hotpot.ds.public.certificate import verify_bundle_certificate
+from hotpot.ds.storage import TargetStore
 
 
 def _case(index: int) -> dict[str, Any]:
@@ -106,40 +107,37 @@ def _measure(action: Callable[[], Any]) -> tuple[Any, dict[str, float]]:
 
 def _semantic_result(database: Path, edits: int) -> dict[str, Any]:
     digest = hashlib.sha256()
+    store = TargetStore(database)
+    case_count = 0
+    first_note = None
+    for case in store.iter_cases(
+        "efficiency-benchmark",
+        "efficiency-benchmark.v001",
+        include_incomplete=True,
+    ):
+        facts = case["facts"]
+        assessment = case["assessment"]
+        observations = facts.get("observations", [])
+        value = {
+            "case_id": case["id"],
+            "core_info": facts.get("core_info", {}),
+            "observations": [
+                [item.get("property"), item.get("value")]
+                for item in observations
+                if item.get("status", "active") == "active"
+            ],
+            "quality_level": assessment.get("quality_level"),
+            "evidence_level": assessment.get("evidence_level"),
+            "archive_class": assessment.get("archive_class"),
+            "benchmark": bool(assessment.get("benchmark")),
+        }
+        encoded = canonical_json(value).encode("utf-8")
+        digest.update(len(encoded).to_bytes(8, "big"))
+        digest.update(encoded)
+        if case_count == 0:
+            first_note = facts.get("core_info", {}).get("perf_note")
+        case_count += 1
     with sqlite3.connect(database) as connection:
-        rows = connection.execute(
-            "SELECT cases.case_id,cases.source_payload_json,"
-            "case_assessments.assessment_json FROM cases "
-            "JOIN case_assessments USING(dataset_id,release_id,case_id) "
-            "WHERE cases.dataset_id='efficiency-benchmark' "
-            "AND cases.release_id='efficiency-benchmark.v001' "
-            "ORDER BY cases.public_index,cases.case_id"
-        )
-        case_count = 0
-        first_note = None
-        for case_id, facts_json, assessment_json in rows:
-            facts = json.loads(facts_json)
-            assessment = json.loads(assessment_json)
-            observations = facts.get("observations", [])
-            value = {
-                "case_id": case_id,
-                "core_info": facts.get("core_info", {}),
-                "observations": [
-                    [item.get("property"), item.get("value")]
-                    for item in observations
-                    if item.get("status", "active") == "active"
-                ],
-                "quality_level": assessment.get("quality_level"),
-                "evidence_level": assessment.get("evidence_level"),
-                "archive_class": assessment.get("archive_class"),
-                "benchmark": bool(assessment.get("benchmark")),
-            }
-            encoded = canonical_json(value).encode("utf-8")
-            digest.update(len(encoded).to_bytes(8, "big"))
-            digest.update(encoded)
-            if case_count == 0:
-                first_note = facts.get("core_info", {}).get("perf_note")
-            case_count += 1
         assessment_count = connection.execute(
             "SELECT COUNT(*) FROM case_assessments "
             "WHERE dataset_id='efficiency-benchmark' "

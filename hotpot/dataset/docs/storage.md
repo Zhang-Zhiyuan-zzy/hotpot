@@ -192,10 +192,25 @@ below `store/generations`. The database and its adjacent asset directory are
 therefore selected by one atomic pointer replacement; they are never switched
 independently.
 
-The SQLite target owns normalized dataset/release metadata, one canonical Case
-fact copy, assessment headers, persistent dataset policy, Gate/checker
-artifacts, class indexes, and authoritative ingestion receipts. Ordinary,
-benchmark, and incomplete indexes refer to the same canonical facts.
+The SQLite target owns normalized dataset/release metadata, one compact Case
+fact copy, final assessment labels, persistent dataset policy with embedded
+custom-checker source, identifiers, asset references, and authoritative
+ingestion receipts. Canonical Case facts are stored as deterministic
+zlib-compressed JSON and verified against the SHA-256 digest of their
+uncompressed canonical value. Archive-class selection uses the final
+assessment index; the target does not duplicate Cases into class tables.
+
+The permanent fact projection retains original observations, claims, evidence,
+verifications, attestations, entities, source classifications, `core_info`, and
+dataset-owned metadata. Storage identities and identifiers are normalized and
+reconstructed by the read API. Migration row mirrors and migration
+implementation metadata are not permanent scientific facts.
+
+Only final `quality_level`, `evidence_level`, `archive_class`, benchmark
+decision/status, and concise reason records are stored as assessments. Full
+Gate traces, parser working assessments, conflict-pair products, generation
+databases, class-ID files, and summaries are reproducible Bundle products and
+are not copied into the formal target.
 
 Every positively materialized scientific asset is streamed into target-owned
 content-addressed storage before the target transaction:
@@ -214,6 +229,21 @@ establishes sample, entity, or Structure identity. Certified missing,
 invalid, hash-mismatched, or remote-not-materialized declarations do not create
 objects.
 
+Target CAS contains irreplaceable scientific structure/evidence bytes,
+explicit original source/provenance control assets, and the compact
+certificate. It does not contain copies of Bundle `facts.sqlite3`, assessment
+generations, or generated migration identity/relationship databases. For a
+Stage 13 migrated release, `legacy-source-inventory` and
+`migration-provenance` are retained as provenance controls; the large
+`identity-migration` and `legacy-identity-relationships` projections are not.
+
+Stored Case reads expose each materialized Evidence file in
+`Data.info["evidence_assets"]`. These references resolve only into the formal
+target CAS and include the Evidence ID, asset index, role, status, SHA-256,
+size, and path. They never retain the Bundle source path as the readable byte
+location. The unmodified source declaration remains in
+`Data.info["facts"]["evidence"]` for provenance.
+
 Ingestion requires a current root certificate and rechecks the source, policy,
 generation, certificate, target identity, release identity, and selected Case
 set inside one write transaction. The authoritative receipt is unique for one
@@ -225,6 +255,24 @@ Cases that were excluded from storage. Incomplete data can be force-archived
 only with explicit opt-in and a reason, and remains in its own derived
 partition. A later correction creates a successor release; published facts are
 not repaired in place.
+
+After successful ingestion, the Bundle root can be pruned with:
+
+```bash
+hotpot ds bundle rm --all
+```
+
+The short form uses the target already bound by the Bundle; `--root`,
+`--dataset`, and `--db` may be supplied as matching assertions. Cleanup first
+verifies the authoritative receipt, certificate, target database, every
+compressed Case fact, and every target-owned asset. A resumed cleanup repeats
+those checks before deleting another byte. It then deletes only a closed
+allowlist of reproducible facts/generation/cache products and the two exactly
+named generated migration maps, and writes `bundle-cleanup.json`. Intake data,
+original scientific assets, policy and checker source, certificate, receipt,
+audit history, source inventory, and migration provenance remain. The cleaned
+Bundle is an archived intake record and is no longer editable or reassessable
+without rebuilding its derived products.
 
 ## Policy ownership
 

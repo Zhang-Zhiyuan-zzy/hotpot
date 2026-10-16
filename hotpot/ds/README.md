@@ -163,6 +163,12 @@ example `hp-oxidation[001]-0`. Slicing and filtering never renumber them.
 If a Data item contains several Structure IDs, the accessor uses the unique
 `primary` Structure; no unique primary raises an ambiguity error instead of
 silently choosing a variant.
+
+`data.info["evidence_assets"]` lists materialized evidence files by Evidence
+ID, role, status, SHA-256, size, and target-owned CAS path. The original
+Evidence declaration remains unchanged under `data.info["facts"]["evidence"]`;
+the CAS reference is the durable byte location after ingestion.
+
 `data.molecule` returns a fresh `hotpot.Molecule` and attaches the originating
 Data as `.data`, or `.ds_data` if the object already owns `.data`.
 `data.crystal` requires crystallographic information and otherwise raises.
@@ -663,6 +669,15 @@ than replaced with invented content.
 root. Synchronization creates an immutable assessment generation with separate
 derived indexes for incomplete, ordinary, and benchmark Cases. The root
 certificate is always `certificate.json`.
+
+After the release has an authoritative target receipt, run
+`hotpot ds bundle rm --all` from the Bundle root to remove reproducible working
+facts, assessment generations, caches, and declared migration products. The
+command proves the compact formal-store facts and assets before deletion,
+retains original intake/evidence and governance records, and writes
+`bundle-cleanup.json`. A cleaned Bundle is deliberately not a live editable
+Bundle; the installed `Dataset`/`Data` release remains fully readable from the
+formal store.
 
 Generation leases and garbage collection are private lifecycle details, not
 additional public API. Reads, certification, and ingestion hold shared OS

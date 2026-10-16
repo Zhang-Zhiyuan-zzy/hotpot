@@ -368,7 +368,8 @@ def run_pipeline(
         stage_documents.append(stage_document)
         stage_results.append(result)
         current_payload = result.payload
-        if result.status is StageStatus.QUALITY_FAILED:
+        is_final_stage = index == len(specs) - 1
+        if result.status is StageStatus.QUALITY_FAILED and is_final_stage:
             _write_json_atomic(
                 manifest_path,
                 _run_document(

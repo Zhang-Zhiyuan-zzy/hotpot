@@ -107,8 +107,10 @@ created only when every stage succeeds.
 An invalid definition fails during preflight without creating the result root.
 An execution failure persists the current stage with a `.failed` suffix,
 prevents downstream execution, and raises `PipelineExecutionError` through the
-Python API. A scientific quality failure retains its inspectable stage output,
-returns `PipelineStatus.FAILED`, and also prevents downstream execution.
+Python API. A finite scientific quality failure retains its inspectable stage
+output and is recorded as an intermediate warning when another stage follows.
+A quality failure at the final acceptance boundary returns
+`PipelineStatus.FAILED` and does not create `final.sdf`.
 
 ## Adding a stage
 

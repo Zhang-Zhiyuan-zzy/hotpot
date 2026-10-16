@@ -194,7 +194,7 @@ def test_execution_failure_is_persisted_and_stops_downstream(
     )
 
 
-def test_quality_failure_returns_terminal_evidence_and_stops_downstream(
+def test_intermediate_quality_failure_is_retained_and_downstream_continues(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -208,14 +208,14 @@ def test_quality_failure_returns_terminal_evidence_and_stops_downstream(
     )
     from hotpot.pipeline import runner
 
-    terminal_payload: list[MolecularPayload] = []
+    warning_payload: list[MolecularPayload] = []
     downstream_calls = 0
 
     def quality_fail(spec, payload, context):
         output = MolecularPayload(
             (MolecularRecord(payload.records[0].molecule.copy()),)
         )
-        terminal_payload.append(output)
+        warning_payload.append(output)
         return StageResult(
             StageStatus.QUALITY_FAILED,
             output,
@@ -241,12 +241,66 @@ def test_quality_failure_returns_terminal_evidence_and_stops_downstream(
         initial_payload=MolecularPayload((MolecularRecord(_water()),)),
     )
 
+    assert result.status is PipelineStatus.SUCCEEDED
+    assert result.payload is warning_payload[0]
+    assert result.failed_stage_index is None
+    assert len(result.stage_results) == 2
+    assert result.stage_results[0].status is StageStatus.QUALITY_FAILED
+    assert result.stage_results[1].status is StageStatus.SUCCEEDED
+    assert downstream_calls == 1
+    assert (results_directory / "final.sdf").is_file()
+    manifest = json.loads(
+        (results_directory / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["status"] == "succeeded"
+    assert "failed_stage_index" not in manifest
+    assert manifest["stages"][0]["status"] == "quality-failed"
+    assert manifest["stages"][1]["status"] == "succeeded"
+
+
+def test_final_quality_failure_retains_evidence_and_fails_pipeline(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from hotpot.pipeline.contracts import (
+        MolecularPayload,
+        MolecularRecord,
+        PipelineStatus,
+        StageResult,
+        StageSpec,
+        StageStatus,
+    )
+    from hotpot.pipeline import runner
+
+    terminal_payload: list[MolecularPayload] = []
+
+    def quality_fail(spec, payload, context):
+        output = MolecularPayload(
+            (MolecularRecord(payload.records[0].molecule.copy()),)
+        )
+        terminal_payload.append(output)
+        return StageResult(
+            StageStatus.QUALITY_FAILED,
+            output,
+            report={"quality_gate": "failed"},
+            stderr="terminal geometry did not pass\n",
+        )
+
+    stage = _fake_stage_factory(quality_fail)
+    monkeypatch.setattr(runner, "get_stage", lambda name: stage)
+    results_directory = tmp_path / "quality-failed"
+
+    result = runner.run_pipeline(
+        (StageSpec("gate", ()),),
+        results_directory=results_directory,
+        initial_payload=MolecularPayload((MolecularRecord(_water()),)),
+    )
+
     assert result.status is PipelineStatus.FAILED
     assert result.payload is terminal_payload[0]
     assert result.failed_stage_index == 0
     assert len(result.stage_results) == 1
     assert result.stage_results[0].status is StageStatus.QUALITY_FAILED
-    assert downstream_calls == 0
     assert not (results_directory / "final.sdf").exists()
     manifest = json.loads(
         (results_directory / "manifest.json").read_text(encoding="utf-8")

@@ -65,9 +65,10 @@ results/eu-001/
 ```
 
 The manifest records stage argv, relative artifact paths, SHA-256 digests and
-the input/output molecular-payload lineage. `final.sdf` is created only after
-every stage succeeds. A scientific quality failure retains its inspectable
-stage structure but returns nonzero and does not run downstream stages.
+the input/output molecular-payload lineage. A finite scientific quality failure
+is retained as an intermediate warning when another stage follows. A quality
+failure at the final acceptance boundary returns nonzero and does not create
+`final.sdf`.
 
 The controller returns `0` only when the complete workflow succeeds, `1` for an
 execution or scientific-quality failure, and `2` for an invalid definition or

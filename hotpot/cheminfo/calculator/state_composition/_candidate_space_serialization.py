@@ -22,6 +22,7 @@ from ._serialization import (
 )
 from .contracts import (
     BranchAssignment,
+    CandidateProposal,
     CandidateConstraint,
     CandidateDomainScope,
     CandidateDomainSummary,
@@ -34,7 +35,11 @@ from .contracts import (
     FactorDomainContribution,
     FactorKey,
     FrontierBound,
+    ConstraintGuard,
+    GuardedCandidateConstraint,
     MaterializationStatus,
+    ProposedCandidateFactor,
+    ProposedCandidateValue,
     RejectedPathSummary,
     ScientificStateCandidateSpace,
     ScientificStateIdentity,
@@ -224,6 +229,83 @@ def _factor_candidate_from_payload(value: object) -> FactorCandidateValue:
     )
 
 
+def _proposed_candidate_to_payload(
+    value: ProposedCandidateValue,
+) -> Dict[str, object]:
+    return {
+        "candidate": _state_candidate_to_payload(value.candidate),
+        "branch_assignments": [
+            _branch_assignment_to_payload(assignment)
+            for assignment in value.branch_assignments
+        ],
+    }
+
+
+def _proposed_candidate_from_payload(
+    value: object,
+) -> ProposedCandidateValue:
+    payload = _mapping(value)
+    _require_keys(payload, ("candidate", "branch_assignments"))
+    return ProposedCandidateValue(
+        candidate=_state_candidate_from_payload(payload["candidate"]),
+        branch_assignments=tuple(
+            _branch_assignment_from_payload(item)
+            for item in _sequence(payload["branch_assignments"])
+        ),
+    )
+
+
+def _proposed_factor_to_payload(
+    factor: ProposedCandidateFactor,
+) -> Dict[str, object]:
+    return {
+        "factor_key": _factor_key_to_payload(factor.factor_key),
+        "domain_definition_id": factor.domain_definition_id,
+        "materialized_candidates": [
+            _proposed_candidate_to_payload(value)
+            for value in factor.materialized_candidates
+        ],
+        "domain_scope": factor.domain_scope.value,
+        "materialization_status": factor.materialization_status.value,
+        "unexpanded_domain_summary": (
+            None
+            if factor.unexpanded_domain_summary is None
+            else _domain_summary_to_payload(factor.unexpanded_domain_summary)
+        ),
+    }
+
+
+def _proposed_factor_from_payload(value: object) -> ProposedCandidateFactor:
+    payload = _mapping(value)
+    _require_keys(
+        payload,
+        (
+            "factor_key",
+            "domain_definition_id",
+            "materialized_candidates",
+            "domain_scope",
+            "materialization_status",
+            "unexpanded_domain_summary",
+        ),
+    )
+    summary = payload["unexpanded_domain_summary"]
+    return ProposedCandidateFactor(
+        factor_key=_factor_key_from_payload(payload["factor_key"]),
+        domain_definition_id=_string(payload["domain_definition_id"]),
+        materialized_candidates=tuple(
+            _proposed_candidate_from_payload(item)
+            for item in _sequence(payload["materialized_candidates"])
+        ),
+        domain_scope=CandidateDomainScope(_string(payload["domain_scope"])),
+        materialization_status=MaterializationStatus(
+            _string(payload["materialization_status"])
+        ),
+        unexpanded_domain_summary=(
+            None if summary is None else _domain_summary_from_payload(summary)
+        ),
+    )
+
+
 def _domain_contribution_to_payload(
     contribution: FactorDomainContribution,
 ) -> Dict[str, object]:
@@ -378,6 +460,82 @@ def _constraint_from_payload(value: object) -> CandidateConstraint:
             for item in _sequence(payload["factor_keys"])
         ),
         parameters=tuple(parameters),
+    )
+
+
+def _constraint_guard_to_payload(
+    guard: ConstraintGuard,
+) -> Dict[str, object]:
+    return {
+        "all_candidate_ids": list(guard.all_candidate_ids),
+        "branch_assignments": [
+            _branch_assignment_to_payload(assignment)
+            for assignment in guard.branch_assignments
+        ],
+    }
+
+
+def _constraint_guard_from_payload(value: object) -> ConstraintGuard:
+    payload = _mapping(value)
+    _require_keys(payload, ("all_candidate_ids", "branch_assignments"))
+    return ConstraintGuard(
+        all_candidate_ids=_strings(payload["all_candidate_ids"]),
+        branch_assignments=tuple(
+            _branch_assignment_from_payload(item)
+            for item in _sequence(payload["branch_assignments"])
+        ),
+    )
+
+
+def _guarded_constraint_to_payload(
+    guarded: GuardedCandidateConstraint,
+) -> Dict[str, object]:
+    return {
+        "guard": _constraint_guard_to_payload(guarded.guard),
+        "constraint": _constraint_to_payload(guarded.constraint),
+    }
+
+
+def _guarded_constraint_from_payload(
+    value: object,
+) -> GuardedCandidateConstraint:
+    payload = _mapping(value)
+    _require_keys(payload, ("guard", "constraint"))
+    return GuardedCandidateConstraint(
+        guard=_constraint_guard_from_payload(payload["guard"]),
+        constraint=_constraint_from_payload(payload["constraint"]),
+    )
+
+
+def _candidate_proposal_to_payload(
+    proposal: CandidateProposal,
+) -> Dict[str, object]:
+    return {
+        "proposal_id": proposal.proposal_id,
+        "factors": [
+            _proposed_factor_to_payload(factor)
+            for factor in proposal.factors
+        ],
+        "constraints": [
+            _guarded_constraint_to_payload(constraint)
+            for constraint in proposal.constraints
+        ],
+    }
+
+
+def _candidate_proposal_from_payload(value: object) -> CandidateProposal:
+    payload = _mapping(value)
+    _require_keys(payload, ("proposal_id", "factors", "constraints"))
+    return CandidateProposal(
+        proposal_id=_string(payload["proposal_id"]),
+        factors=tuple(
+            _proposed_factor_from_payload(item)
+            for item in _sequence(payload["factors"])
+        ),
+        constraints=tuple(
+            _guarded_constraint_from_payload(item)
+            for item in _sequence(payload["constraints"])
+        ),
     )
 
 

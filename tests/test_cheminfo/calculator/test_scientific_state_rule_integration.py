@@ -1,5 +1,6 @@
 """Resolver integration of dependency-layered optional rules."""
 
+import json
 from typing import Tuple
 
 import hotpot
@@ -20,6 +21,10 @@ from hotpot.cheminfo.calculator.state_composition import (
     MaterializationStatus,
     ProposedCandidateFactor,
     ProposedCandidateValue,
+)
+from hotpot.cheminfo.calculator.state_composition._decision_snapshot import (
+    _decision_snapshot_from_json,
+    _decision_snapshot_to_json,
 )
 from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
@@ -135,3 +140,47 @@ def test_strict_resolver_rejects_a_nonempty_rule_set() -> None:
 
     with pytest.raises(ValueError, match="STRICT"):
         resolve_scientific_state(facts, rule_set=_rule_set())
+
+
+def test_resolver_rule_trace_survives_decision_snapshot() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("CO", "smi"))
+    bundle = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=0, two_s=0),
+        policy=StatePolicy.COORDINATION_SCREENING_V1,
+        rule_set=_rule_set(),
+    )
+
+    snapshot = _decision_snapshot_to_json(
+        bundle.candidate_space,
+        bundle.scientific_resolution,
+        bundle.execution_decision,
+        bundle.rule_trace,
+    )
+    _, _, _, rule_trace = _decision_snapshot_from_json(snapshot)
+
+    assert rule_trace == bundle.rule_trace
+
+
+def test_snapshot_rejects_a_trace_detached_from_candidate_space() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("CO", "smi"))
+    bundle = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=0, two_s=0),
+        policy=StatePolicy.COORDINATION_SCREENING_V1,
+        rule_set=_rule_set(),
+    )
+    payload = json.loads(
+        _decision_snapshot_to_json(
+            bundle.candidate_space,
+            bundle.scientific_resolution,
+            bundle.execution_decision,
+            bundle.rule_trace,
+        )
+    )
+    payload["rule_trace"][0]["outcome"]["candidate_proposal"][
+        "proposal_id"
+    ] = "detached"
+
+    with pytest.raises(ValueError, match="absent from candidate factors"):
+        _decision_snapshot_from_json(json.dumps(payload))

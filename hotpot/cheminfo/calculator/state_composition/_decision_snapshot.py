@@ -16,6 +16,11 @@ from ..state_selection import (
     StaticEligibilityFinding,
     StaticProfileEligibility,
 )
+from ..state_rules._serialization import (
+    _rule_traces_from_payload,
+    _rule_traces_to_payload,
+)
+from ..state_rules.contracts import RulePhase, RuleTrace
 from ._candidate_space_serialization import (
     _candidate_space_from_payload,
     _candidate_space_to_payload,
@@ -38,7 +43,7 @@ from .resolution import _resolve_candidate_space
 __all__ = []
 
 
-_DECISION_SNAPSHOT_SCHEMA_VERSION = "scientific-state-decision-snapshot-v1"
+_DECISION_SNAPSHOT_SCHEMA_VERSION = "scientific-state-decision-snapshot-v2"
 
 
 def _optional_identity(value: object) -> Optional[ScientificStateIdentity]:
@@ -237,6 +242,7 @@ def _validate_decision_snapshot(
     candidate_space: ScientificStateCandidateSpace,
     resolution: ScientificResolutionResult,
     decision: ExecutionStateDecision,
+    rule_trace: Tuple[RuleTrace, ...],
 ) -> None:
     if resolution != _resolve_candidate_space(candidate_space):
         raise ValueError(
@@ -253,19 +259,52 @@ def _validate_decision_snapshot(
         raise ValueError(
             "Selected scientific-state identity is absent from candidate space"
         )
+    trace_ids = tuple(trace.outcome.rule_id for trace in rule_trace)
+    if len(set(trace_ids)) != len(trace_ids):
+        raise ValueError("Rule trace contains duplicate rule identities")
+    phase_index = {phase: index for index, phase in enumerate(RulePhase)}
+    phase_order = tuple(phase_index[trace.phase] for trace in rule_trace)
+    if phase_order != tuple(sorted(phase_order)):
+        raise ValueError("Rule trace phases are not ordered")
+    contribution_ids = frozenset(
+        contribution.proposal_id
+        for factor in candidate_space.factors
+        for contribution in factor.domain_contributions
+    )
+    constraint_ids = frozenset(
+        constraint.identity for constraint in candidate_space.constraints
+    )
+    for trace in rule_trace:
+        proposal = trace.outcome.candidate_proposal
+        if proposal is None:
+            continue
+        if proposal.factors and proposal.proposal_id not in contribution_ids:
+            raise ValueError("Rule proposal is absent from candidate factors")
+        proposed_constraint_ids = frozenset(
+            guarded.constraint.identity for guarded in proposal.constraints
+        )
+        if not proposed_constraint_ids.issubset(constraint_ids):
+            raise ValueError("Rule proposal constraints are absent from space")
 
 
 def _decision_snapshot_to_payload(
     candidate_space: ScientificStateCandidateSpace,
     resolution: ScientificResolutionResult,
     decision: ExecutionStateDecision,
+    rule_trace: Tuple[RuleTrace, ...],
 ) -> Dict[str, object]:
-    _validate_decision_snapshot(candidate_space, resolution, decision)
+    _validate_decision_snapshot(
+        candidate_space,
+        resolution,
+        decision,
+        rule_trace,
+    )
     return {
         "schema_version": _DECISION_SNAPSHOT_SCHEMA_VERSION,
         "candidate_space": _candidate_space_to_payload(candidate_space),
         "scientific_resolution": _resolution_to_payload(resolution),
         "execution_decision": _execution_decision_to_payload(decision),
+        "rule_trace": _rule_traces_to_payload(rule_trace),
     }
 
 
@@ -275,6 +314,7 @@ def _decision_snapshot_from_payload(
     ScientificStateCandidateSpace,
     ScientificResolutionResult,
     ExecutionStateDecision,
+    Tuple[RuleTrace, ...],
 ]:
     payload = _mapping(value)
     _require_keys(
@@ -284,6 +324,7 @@ def _decision_snapshot_from_payload(
             "candidate_space",
             "scientific_resolution",
             "execution_decision",
+            "rule_trace",
         ),
     )
     schema_version = _string(payload["schema_version"])
@@ -298,20 +339,28 @@ def _decision_snapshot_from_payload(
     decision = _execution_decision_from_payload(
         payload["execution_decision"]
     )
-    _validate_decision_snapshot(candidate_space, resolution, decision)
-    return candidate_space, resolution, decision
+    rule_trace = _rule_traces_from_payload(payload["rule_trace"])
+    _validate_decision_snapshot(
+        candidate_space,
+        resolution,
+        decision,
+        rule_trace,
+    )
+    return candidate_space, resolution, decision, rule_trace
 
 
 def _decision_snapshot_to_json(
     candidate_space: ScientificStateCandidateSpace,
     resolution: ScientificResolutionResult,
     decision: ExecutionStateDecision,
+    rule_trace: Tuple[RuleTrace, ...],
 ) -> str:
     return json.dumps(
         _decision_snapshot_to_payload(
             candidate_space,
             resolution,
             decision,
+            rule_trace,
         ),
         allow_nan=False,
         ensure_ascii=True,
@@ -326,5 +375,6 @@ def _decision_snapshot_from_json(
     ScientificStateCandidateSpace,
     ScientificResolutionResult,
     ExecutionStateDecision,
+    Tuple[RuleTrace, ...],
 ]:
     return _decision_snapshot_from_payload(json.loads(value))

@@ -46,19 +46,22 @@ def test_decision_snapshot_round_trip_preserves_selected_identity() -> None:
         bundle.candidate_space,
         bundle.scientific_resolution,
         bundle.execution_decision,
+        bundle.rule_trace,
     )
-    candidate_space, resolution, decision = _decision_snapshot_from_json(
-        serialized
+    candidate_space, resolution, decision, rule_trace = (
+        _decision_snapshot_from_json(serialized)
     )
 
     assert candidate_space == bundle.candidate_space
     assert resolution == bundle.scientific_resolution
     assert decision == bundle.execution_decision
+    assert rule_trace == bundle.rule_trace
     assert decision.selected_state_identity is not None
     assert _decision_snapshot_to_json(
         candidate_space,
         resolution,
         decision,
+        rule_trace,
     ) == serialized
 
 
@@ -69,6 +72,7 @@ def test_decision_snapshot_rejects_unknown_selected_identity() -> None:
             bundle.candidate_space,
             bundle.scientific_resolution,
             bundle.execution_decision,
+            bundle.rule_trace,
         )
     )
     payload["execution_decision"]["selected_state_identity"] = "unknown"
@@ -84,6 +88,7 @@ def test_decision_snapshot_rejects_resolution_drift() -> None:
             bundle.candidate_space,
             bundle.scientific_resolution,
             bundle.execution_decision,
+            bundle.rule_trace,
         )
     )
     payload["scientific_resolution"]["status"] = "unresolved"

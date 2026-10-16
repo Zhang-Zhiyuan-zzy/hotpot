@@ -1383,39 +1383,12 @@ def _target_control_asset_descriptors(
     file_cache: Optional[_FileDigestCache] = None,
 ) -> list[Dict[str, Any]]:
     cache = _FileDigestCache() if file_cache is None else file_cache
-    paths = [
-        ("bundle", "bundle.json", root / "bundle.json", None),
-        ("facts", "facts.sqlite3", root / "cases" / "facts.sqlite3", None),
-        (
-            "governance",
-            "governance-registry.json",
-            generation.manifest_path.parent / "governance-registry.json",
-            None,
-        ),
-    ]
+    paths = []
     if include_certificate:
         paths.append(
             ("certificate", "certificate.json", root / "certificate.json", None)
         )
-    generation_root = generation.manifest_path.parent
-    paths.extend(
-        (
-            "generation",
-            path.relative_to(generation_root).as_posix(),
-            path,
-            None,
-        )
-        for path in sorted(generation_root.rglob("*"))
-        if path.is_file()
-        and path != generation_root / "governance-registry.json"
-    )
-    checker_root = root / "policy" / "checkers"
-    if checker_root.is_dir():
-        paths.extend(
-            ("checker", path.relative_to(checker_root).as_posix(), path, None)
-            for path in sorted(checker_root.rglob("*.py"))
-            if path.is_file()
-        )
+    permanent_categories = {"source", "evidence", "provenance"}
     paths.extend(
         (
             str(item["category"]),
@@ -1424,6 +1397,7 @@ def _target_control_asset_descriptors(
             item,
         )
         for item in manifest.get("control_assets", [])
+        if str(item["category"]) in permanent_categories
     )
     result = []
     identities = set()

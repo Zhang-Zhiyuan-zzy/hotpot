@@ -84,12 +84,13 @@ import sqlite3
 import stat
 import tempfile
 import uuid
+import zlib
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Iterator, Mapping, Optional, Tuple, Union
 
 
-TARGET_SCHEMA_ID = "hotpot-ds-store/current"
+TARGET_SCHEMA_ID = "hotpot-ds-store/compact-current"
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _ARCHIVE_CLASSES = frozenset({"ordinary", "benchmark", "incomplete"})
@@ -132,7 +133,8 @@ CREATE TABLE IF NOT EXISTS cases(
  case_id TEXT NOT NULL,
  public_index INTEGER NOT NULL CHECK(public_index>=0),
  local_id TEXT NOT NULL,
- source_payload_json TEXT NOT NULL,
+ source_payload_blob BLOB NOT NULL,
+ source_payload_digest BLOB NOT NULL CHECK(length(source_payload_digest)=32),
  PRIMARY KEY(dataset_id,release_id,case_id),
  UNIQUE(dataset_id,release_id,public_index),
  UNIQUE(dataset_id,release_id,local_id),
@@ -146,31 +148,8 @@ CREATE TABLE IF NOT EXISTS case_assessments(
  evidence_level TEXT,
  archive_class TEXT NOT NULL CHECK(archive_class IN ('ordinary','benchmark','incomplete')),
  benchmark INTEGER NOT NULL CHECK(benchmark IN (0,1)),
- assessment_json TEXT NOT NULL,
- PRIMARY KEY(dataset_id,release_id,case_id),
- FOREIGN KEY(dataset_id,release_id,case_id)
-   REFERENCES cases(dataset_id,release_id,case_id)
-);
-CREATE TABLE IF NOT EXISTS ordinary_case_index(
- dataset_id TEXT NOT NULL,
- release_id TEXT NOT NULL,
- case_id TEXT NOT NULL,
- PRIMARY KEY(dataset_id,release_id,case_id),
- FOREIGN KEY(dataset_id,release_id,case_id)
-   REFERENCES cases(dataset_id,release_id,case_id)
-);
-CREATE TABLE IF NOT EXISTS benchmark_case_index(
- dataset_id TEXT NOT NULL,
- release_id TEXT NOT NULL,
- case_id TEXT NOT NULL,
- PRIMARY KEY(dataset_id,release_id,case_id),
- FOREIGN KEY(dataset_id,release_id,case_id)
-   REFERENCES cases(dataset_id,release_id,case_id)
-);
-CREATE TABLE IF NOT EXISTS incomplete_case_index(
- dataset_id TEXT NOT NULL,
- release_id TEXT NOT NULL,
- case_id TEXT NOT NULL,
+ benchmark_status TEXT,
+ reasons_json TEXT NOT NULL CHECK(json_valid(reasons_json)),
  PRIMARY KEY(dataset_id,release_id,case_id),
  FOREIGN KEY(dataset_id,release_id,case_id)
    REFERENCES cases(dataset_id,release_id,case_id)
@@ -255,7 +234,9 @@ CREATE TABLE IF NOT EXISTS ingestion_receipts(
 CREATE INDEX IF NOT EXISTS ix_releases_dataset ON releases(dataset_id);
 CREATE INDEX IF NOT EXISTS ix_cases_release ON cases(dataset_id,release_id,public_index);
 CREATE INDEX IF NOT EXISTS ix_assessments_levels
- ON case_assessments(dataset_id,release_id,quality_level,evidence_level);
+ ON case_assessments(
+   dataset_id,release_id,archive_class,quality_level,evidence_level
+ );
 CREATE INDEX IF NOT EXISTS ix_identifiers_lookup
  ON identifiers(dataset_id,namespace,value);
 CREATE INDEX IF NOT EXISTS ix_structure_refs_asset
@@ -314,6 +295,115 @@ def _canonical_json(value: Any) -> str:
 
 def _json_digest(value: Any) -> str:
     return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+_RECONSTRUCTED_FACT_FIELDS = frozenset(
+    {"id", "public_index", "local_id", "identifiers"}
+)
+_DERIVED_MIGRATION_METADATA = frozenset(
+    {
+        "migration_rows",
+        "migration_schema",
+        "quarantined_entity_relations",
+        "shared_identifier_relations",
+    }
+)
+_FINAL_ASSESSMENT_FIELDS = (
+    "quality_level",
+    "evidence_level",
+    "archive_class",
+    "benchmark",
+    "benchmark_status",
+    "reasons",
+)
+
+
+def _compact_case_facts(value: Mapping[str, Any]) -> Dict[str, Any]:
+    """Return the permanent scientific-fact projection for one Case."""
+
+    facts = {
+        key: item
+        for key, item in value.items()
+        if key not in _RECONSTRUCTED_FACT_FIELDS
+    }
+    metadata = facts.get("metadata")
+    if isinstance(metadata, Mapping):
+        retained = {
+            key: item
+            for key, item in metadata.items()
+            if key not in _DERIVED_MIGRATION_METADATA
+        }
+        facts["metadata"] = retained
+    return facts
+
+
+def _compact_assessment(value: Mapping[str, Any]) -> Dict[str, Any]:
+    """Return final labels and concise decision reasons, never Gate traces."""
+
+    return {
+        key: value[key]
+        for key in _FINAL_ASSESSMENT_FIELDS
+        if key in value
+    }
+
+
+def _encode_facts(value: Mapping[str, Any]) -> tuple[bytes, bytes]:
+    canonical = _canonical_json(value).encode("utf-8")
+    return zlib.compress(canonical, level=6), hashlib.sha256(canonical).digest()
+
+
+def _decode_facts(payload: bytes, expected_digest: bytes) -> Dict[str, Any]:
+    try:
+        canonical = zlib.decompress(payload)
+        value = json.loads(canonical)
+    except (zlib.error, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise TargetStoreError("stored Case facts are corrupt") from exc
+    if hashlib.sha256(canonical).digest() != expected_digest:
+        raise TargetStoreError("stored Case fact digest does not match")
+    if not isinstance(value, dict) or _canonical_json(value).encode("utf-8") != canonical:
+        raise TargetStoreError("stored Case facts are not canonical JSON")
+    return value
+
+
+def _restored_facts(
+    facts: Mapping[str, Any],
+    *,
+    case_id: str,
+    public_index: int,
+    local_id: str,
+    identifiers: Iterable[Mapping[str, str]],
+) -> Dict[str, Any]:
+    value = dict(facts)
+    value.update(
+        {
+            "id": case_id,
+            "public_index": public_index,
+            "local_id": local_id,
+        }
+    )
+    grouped: Dict[str, list[str]] = {}
+    for item in identifiers:
+        grouped.setdefault(str(item["namespace"]), []).append(str(item["value"]))
+    value["identifiers"] = {
+        namespace: values[0] if len(values) == 1 else values
+        for namespace, values in grouped.items()
+    }
+    return value
+
+
+def _assessment_from_row(row: Mapping[str, Any]) -> Dict[str, Any]:
+    value = {
+        "quality_level": row["quality_level"],
+        "evidence_level": row["evidence_level"],
+        "archive_class": row["archive_class"],
+        "benchmark": bool(row["benchmark"]),
+    }
+    if row["benchmark_status"] is not None:
+        value["benchmark_status"] = row["benchmark_status"]
+    reasons = json.loads(row["reasons_json"])
+    if reasons:
+        value["reasons"] = reasons
+    return value
 
 
 def case_set_digest(case_ids: Iterable[str]) -> str:
@@ -429,6 +519,22 @@ class TargetStore:
         if "case_content_digest" not in receipt_columns:
             raise TargetSchemaError(
                 "target store layout is not current; rebuild it with this checkout"
+            )
+        case_columns = {
+            item[1] for item in connection.execute("PRAGMA table_info(cases)")
+        }
+        assessment_columns = {
+            item[1]
+            for item in connection.execute("PRAGMA table_info(case_assessments)")
+        }
+        if (
+            {"source_payload_blob", "source_payload_digest"} - case_columns
+            or {"benchmark_status", "reasons_json"} - assessment_columns
+            or "source_payload_json" in case_columns
+            or "assessment_json" in assessment_columns
+        ):
+            raise TargetSchemaError(
+                "target store layout is not compact-current; rebuild it"
             )
         return {"store_uuid": row["store_uuid"], "schema_id": row["schema_id"]}
 
@@ -551,13 +657,13 @@ class TargetStore:
     def _archive_counts(
         connection: sqlite3.Connection, dataset: str, release: str
     ) -> Dict[str, int]:
-        counts = {}
-        for archive_class in ("ordinary", "benchmark", "incomplete"):
-            table = f"{archive_class}_case_index"
-            counts[archive_class] = connection.execute(
-                f"SELECT COUNT(*) FROM {table} WHERE dataset_id=? AND release_id=?",
-                (dataset, release),
-            ).fetchone()[0]
+        counts = {item: 0 for item in _ARCHIVE_CLASSES}
+        for row in connection.execute(
+            "SELECT archive_class,COUNT(*) AS count FROM case_assessments "
+            "WHERE dataset_id=? AND release_id=? GROUP BY archive_class",
+            (dataset, release),
+        ):
+            counts[row["archive_class"]] = row["count"]
         return counts
 
     def load_release_metadata(
@@ -645,9 +751,10 @@ class TargetStore:
             elif not include_incomplete:
                 clauses.append("a.archive_class!='incomplete'")
             rows = connection.execute(
-                "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_json,"
+                "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_blob,"
+                "c.source_payload_digest,"
                 "a.quality_level,a.evidence_level,a.archive_class,a.benchmark,"
-                "a.assessment_json FROM cases c JOIN case_assessments a "
+                "a.benchmark_status,a.reasons_json FROM cases c JOIN case_assessments a "
                 "USING(dataset_id,release_id,case_id) WHERE "
                 + " AND ".join(clauses)
                 + " ORDER BY c.public_index",
@@ -686,8 +793,17 @@ class TargetStore:
                     "id": row["case_id"],
                     "public_index": row["public_index"],
                     "local_id": row["local_id"],
-                    "facts": json.loads(row["source_payload_json"]),
-                    "assessment": json.loads(row["assessment_json"]),
+                    "facts": _restored_facts(
+                        _decode_facts(
+                            row["source_payload_blob"],
+                            row["source_payload_digest"],
+                        ),
+                        case_id=row["case_id"],
+                        public_index=row["public_index"],
+                        local_id=row["local_id"],
+                        identifiers=identifiers,
+                    ),
+                    "assessment": _assessment_from_row(row),
                     "identifiers": identifiers,
                     "structures": structures,
                 }
@@ -832,8 +948,10 @@ class TargetStore:
         try:
             self._metadata(connection)
             row = connection.execute(
-                "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_json,"
-                "a.assessment_json FROM cases c JOIN case_assessments a "
+                "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_blob,"
+                "c.source_payload_digest,a.quality_level,a.evidence_level,"
+                "a.archive_class,a.benchmark,a.benchmark_status,a.reasons_json "
+                "FROM cases c JOIN case_assessments a "
                 "USING(dataset_id,release_id,case_id) WHERE c.dataset_id=? "
                 "AND c.release_id=? AND c.case_id=?",
                 (dataset, release, case_id),
@@ -871,8 +989,16 @@ class TargetStore:
                 "id": row["case_id"],
                 "public_index": row["public_index"],
                 "local_id": row["local_id"],
-                "facts": json.loads(row["source_payload_json"]),
-                "assessment": json.loads(row["assessment_json"]),
+                "facts": _restored_facts(
+                    _decode_facts(
+                        row["source_payload_blob"], row["source_payload_digest"]
+                    ),
+                    case_id=row["case_id"],
+                    public_index=row["public_index"],
+                    local_id=row["local_id"],
+                    identifiers=identifiers,
+                ),
+                "assessment": _assessment_from_row(row),
                 "identifiers": identifiers,
                 "structures": structures,
             }
@@ -1183,9 +1309,23 @@ class TargetStore:
                   case_id TEXT NOT NULL UNIQUE,
                   public_index INTEGER NOT NULL UNIQUE,
                   local_id TEXT NOT NULL UNIQUE,
+                  quality_level TEXT,
+                  evidence_level TEXT,
                   archive_class TEXT NOT NULL,
+                  benchmark INTEGER NOT NULL,
+                  benchmark_status TEXT,
+                  reasons_json TEXT NOT NULL CHECK(json_valid(reasons_json)),
+                  facts_blob BLOB NOT NULL,
+                  facts_digest BLOB NOT NULL CHECK(length(facts_digest)=32),
                   selected INTEGER NOT NULL,
                   content_json TEXT NOT NULL CHECK(json_valid(content_json))
+                );
+                CREATE TABLE spool_identifiers(
+                  case_id TEXT NOT NULL,
+                  identifier_order INTEGER NOT NULL,
+                  namespace TEXT NOT NULL,
+                  value TEXT NOT NULL,
+                  PRIMARY KEY(case_id,identifier_order)
                 );
                 CREATE TABLE spool_assets(
                   sha256 TEXT PRIMARY KEY,
@@ -1236,14 +1376,22 @@ class TargetStore:
             included = 0
             excluded = 0
             case_rows = []
+            identifier_rows = []
             structure_rows = []
             scientific_rows = []
 
             def flush_rows() -> None:
                 spool.executemany(
                     "INSERT INTO spool_cases(case_id,public_index,local_id,"
-                    "archive_class,selected,content_json) VALUES(?,?,?,?,?,?)",
+                    "quality_level,evidence_level,archive_class,benchmark,"
+                    "benchmark_status,reasons_json,facts_blob,facts_digest,selected,"
+                    "content_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     case_rows,
+                )
+                spool.executemany(
+                    "INSERT INTO spool_identifiers(case_id,identifier_order,"
+                    "namespace,value) VALUES(?,?,?,?)",
+                    identifier_rows,
                 )
                 spool.executemany(
                     "INSERT INTO spool_structures(case_id,structure_order,"
@@ -1258,6 +1406,7 @@ class TargetStore:
                     scientific_rows,
                 )
                 case_rows.clear()
+                identifier_rows.clear()
                 structure_rows.clear()
                 scientific_rows.clear()
 
@@ -1278,17 +1427,35 @@ class TargetStore:
                 content_json = _canonical_json(
                     self._case_content_projection(normalized)
                 )
+                facts_blob, facts_digest = _encode_facts(normalized["facts"])
+                assessment = normalized["assessment"]
                 case_rows.append(
                     (
                         normalized["id"],
                         normalized["public_index"],
                         normalized["local_id"],
+                        assessment.get("quality_level"),
+                        assessment.get("evidence_level"),
                         archive_class,
+                        int(assessment["benchmark"]),
+                        assessment.get("benchmark_status"),
+                        _canonical_json(assessment.get("reasons", [])),
+                        sqlite3.Binary(facts_blob),
+                        sqlite3.Binary(facts_digest),
                         int(selected),
                         content_json,
                     )
                 )
                 if selected:
+                    identifier_rows.extend(
+                        (
+                            normalized["id"],
+                            index,
+                            identifier["namespace"],
+                            identifier["value"],
+                        )
+                        for index, identifier in enumerate(normalized["identifiers"])
+                    )
                     structure_rows.extend(
                         (
                             (
@@ -1443,8 +1610,8 @@ class TargetStore:
             "id": str(case["id"]),
             "public_index": int(case["public_index"]),
             "local_id": str(case["local_id"]),
-            "facts": dict(case["facts"]),
-            "assessment": assessment,
+            "facts": _compact_case_facts(dict(case["facts"])),
+            "assessment": _compact_assessment(assessment),
             "identifiers": identifiers,
             "structures": structures,
             "assets": assets,
@@ -1836,42 +2003,26 @@ class TargetStore:
 
         connection.execute(
             "INSERT INTO cases(dataset_id,release_id,case_id,public_index,local_id,"
-            "source_payload_json) SELECT ?,?,json_extract(content_json,'$.id'),"
-            "json_extract(content_json,'$.public_index'),"
-            "json_extract(content_json,'$.local_id'),"
-            "json_extract(content_json,'$.facts') FROM ingest_spool.spool_cases "
+            "source_payload_blob,source_payload_digest) SELECT ?,?,case_id,"
+            "public_index,local_id,facts_blob,facts_digest "
+            "FROM ingest_spool.spool_cases "
             "WHERE selected=1 ORDER BY sequence",
             (dataset, release),
         )
         connection.execute(
             "INSERT INTO case_assessments(dataset_id,release_id,case_id,quality_level,"
-            "evidence_level,archive_class,benchmark,assessment_json) "
-            "SELECT ?,?,json_extract(content_json,'$.id'),"
-            "json_extract(content_json,'$.assessment.quality_level'),"
-            "json_extract(content_json,'$.assessment.evidence_level'),"
-            "json_extract(content_json,'$.assessment.archive_class'),"
-            "CAST(json_extract(content_json,'$.assessment.benchmark') AS INTEGER),"
-            "json_extract(content_json,'$.assessment') "
+            "evidence_level,archive_class,benchmark,benchmark_status,reasons_json) "
+            "SELECT ?,?,case_id,quality_level,evidence_level,archive_class,benchmark,"
+            "benchmark_status,reasons_json "
             "FROM ingest_spool.spool_cases WHERE selected=1 ORDER BY sequence",
             (dataset, release),
         )
-        for archive_class in ("ordinary", "benchmark", "incomplete"):
-            connection.execute(
-                f"INSERT INTO {archive_class}_case_index"
-                "(dataset_id,release_id,case_id) "
-                "SELECT ?,?,json_extract(content_json,'$.id') "
-                "FROM ingest_spool.spool_cases WHERE selected=1 AND "
-                "json_extract(content_json,'$.assessment.archive_class')=? "
-                "ORDER BY sequence",
-                (dataset, release, archive_class),
-            )
         connection.execute(
             "INSERT INTO identifiers(dataset_id,release_id,case_id,namespace,value) "
-            "SELECT ?,?,json_extract(c.content_json,'$.id'),"
-            "json_extract(i.value,'$.namespace'),json_extract(i.value,'$.value') "
-            "FROM ingest_spool.spool_cases c, "
-            "json_each(c.content_json,'$.identifiers') i WHERE c.selected=1 "
-            "ORDER BY c.sequence,i.key",
+            "SELECT ?,?,i.case_id,i.namespace,i.value "
+            "FROM ingest_spool.spool_identifiers i "
+            "JOIN ingest_spool.spool_cases c USING(case_id) WHERE c.selected=1 "
+            "ORDER BY c.sequence,i.identifier_order",
             (dataset, release),
         )
         connection.execute(

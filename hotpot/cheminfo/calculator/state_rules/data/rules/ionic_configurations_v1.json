@@ -1,0 +1,33 @@
+{
+  "schema_version": "hotpot-ionic-configuration-registry-v1",
+  "registry_version": "1.0.0",
+  "source_identity": "OPTIONAL-009:reviewed-ionic-configurations-v1",
+  "source_locator": "NIST Atomic Spectra Database; Cotton, Lanthanide and Actinide Chemistry, Wiley, 2006",
+  "records": [
+    {"atomic_number": 26, "oxidation_state": 2, "shell": "d", "occupancy": 6},
+    {"atomic_number": 26, "oxidation_state": 3, "shell": "d", "occupancy": 5},
+    {"atomic_number": 57, "oxidation_state": 3, "shell": "f", "occupancy": 0},
+    {"atomic_number": 58, "oxidation_state": 3, "shell": "f", "occupancy": 1},
+    {"atomic_number": 58, "oxidation_state": 4, "shell": "f", "occupancy": 0},
+    {"atomic_number": 59, "oxidation_state": 3, "shell": "f", "occupancy": 2},
+    {"atomic_number": 60, "oxidation_state": 3, "shell": "f", "occupancy": 3},
+    {"atomic_number": 61, "oxidation_state": 3, "shell": "f", "occupancy": 4},
+    {"atomic_number": 62, "oxidation_state": 2, "shell": "f", "occupancy": 6},
+    {"atomic_number": 62, "oxidation_state": 3, "shell": "f", "occupancy": 5},
+    {"atomic_number": 63, "oxidation_state": 2, "shell": "f", "occupancy": 7},
+    {"atomic_number": 63, "oxidation_state": 3, "shell": "f", "occupancy": 6},
+    {"atomic_number": 64, "oxidation_state": 3, "shell": "f", "occupancy": 7},
+    {"atomic_number": 65, "oxidation_state": 3, "shell": "f", "occupancy": 8},
+    {"atomic_number": 65, "oxidation_state": 4, "shell": "f", "occupancy": 7},
+    {"atomic_number": 66, "oxidation_state": 3, "shell": "f", "occupancy": 9},
+    {"atomic_number": 67, "oxidation_state": 3, "shell": "f", "occupancy": 10},
+    {"atomic_number": 68, "oxidation_state": 3, "shell": "f", "occupancy": 11},
+    {"atomic_number": 69, "oxidation_state": 3, "shell": "f", "occupancy": 12},
+    {"atomic_number": 70, "oxidation_state": 2, "shell": "f", "occupancy": 14},
+    {"atomic_number": 70, "oxidation_state": 3, "shell": "f", "occupancy": 13},
+    {"atomic_number": 71, "oxidation_state": 3, "shell": "f", "occupancy": 14},
+    {"atomic_number": 90, "oxidation_state": 4, "shell": "f", "occupancy": 0},
+    {"atomic_number": 95, "oxidation_state": 3, "shell": "f", "occupancy": 6},
+    {"atomic_number": 96, "oxidation_state": 3, "shell": "f", "occupancy": 7}
+  ]
+}

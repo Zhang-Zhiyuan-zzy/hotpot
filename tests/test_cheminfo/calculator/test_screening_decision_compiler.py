@@ -13,6 +13,8 @@ from hotpot.cheminfo.calculator.contracts import (
 )
 from hotpot.cheminfo.calculator.electronic_state import (
     ElectronicStateCandidate,
+    SpinContributionCandidate,
+    SpinContributionScope,
 )
 from hotpot.cheminfo.calculator.state_composition import (
     CandidateDomainScope,
@@ -171,6 +173,49 @@ def test_profile_rank_resolves_a_cross_quantity_authority_tradeoff() -> None:
     assert compiler.compare_records(zero, one) is _DecisionRelation.DOMINATES
     assert zero.equivalence.net_charge == 0
     assert zero.equivalence.molecular_two_s == 0
+
+
+def test_profile_reads_two_s_from_a_molecular_spin_contribution() -> None:
+    charge = NetChargeCandidateEvidence(
+        _provenance("charge:derived-spin", StateValueAuthority.DOMAIN_RULE),
+        0,
+    )
+    contribution = SpinContributionCandidate(
+        _provenance(
+            "spin:derived-contribution",
+            StateValueAuthority.DOMAIN_RULE,
+        ),
+        SpinContributionScope.MOLECULAR,
+        "molecule:test",
+        (charge.provenance.identity,),
+        2,
+        True,
+    )
+    factors = (
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        _factor(ScientificQuantity.ELECTRONIC_STATE, contribution),
+    )
+    path = CoupledScientificStateCandidate(
+        ScientificStateIdentity("state:derived-spin"),
+        StateValueRef(
+            ScientificQuantity.NET_CHARGE,
+            0,
+            StateValueOrigin.RESULT,
+            "charge-result:derived-spin",
+        ),
+        (),
+        (),
+        None,
+        "rule:derived-spin",
+        "electronic:derived-spin",
+        (),
+        (charge.provenance.identity, contribution.provenance.identity),
+        (),
+    )
+
+    record = _compiler().record_for_path(path, factors)
+
+    assert record.equivalence.molecular_two_s == 2
 
 
 def test_unknown_assumption_marks_a_record_uncertifiable() -> None:

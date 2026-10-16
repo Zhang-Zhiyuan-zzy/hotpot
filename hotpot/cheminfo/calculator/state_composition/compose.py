@@ -22,6 +22,7 @@ from ..contracts import (
 from ..electronic_state.contracts import (
     ElectronicStateCandidate,
     ElectronicStateInferenceResult,
+    SpinContributionCandidate,
 )
 from ..oxidation_state.contracts import (
     CoordinationElectronCountingResult,
@@ -182,7 +183,10 @@ def _proposal_result_mappings(
                 elif (
                     factor.factor_key.quantity
                     is ScientificQuantity.ELECTRONIC_STATE
-                    and isinstance(candidate, ElectronicStateCandidate)
+                    and isinstance(
+                        candidate,
+                        (ElectronicStateCandidate, SpinContributionCandidate),
+                    )
                 ):
                     electronic_mapping.setdefault(
                         candidate.provenance.identity,

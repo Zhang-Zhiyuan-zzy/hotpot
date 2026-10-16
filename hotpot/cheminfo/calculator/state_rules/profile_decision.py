@@ -21,6 +21,7 @@ from ..contracts import (
 from ..electronic_state.contracts import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
+    SpinContributionScope,
 )
 from ..oxidation_state.contracts import (
     CoordinationCountingCandidate,
@@ -192,12 +193,24 @@ def _molecular_two_s(
     candidates: Dict[str, Tuple[ScientificQuantity, str, StateCandidate]],
 ) -> Optional[int]:
     identity = path.electronic_state_candidate_identity
-    if identity is None:
-        return None
-    indexed = candidates.get(identity)
-    if indexed is None or not isinstance(indexed[2], ElectronicStateCandidate):
-        return None
-    return indexed[2].two_s
+    if identity is not None:
+        indexed = candidates.get(identity)
+        if indexed is not None and isinstance(
+            indexed[2],
+            ElectronicStateCandidate,
+        ):
+            return indexed[2].two_s
+    molecular_contributions = tuple(
+        indexed[2]
+        for evidence_id in path.evidence_ids
+        for indexed in (candidates.get(evidence_id),)
+        if indexed is not None
+        and isinstance(indexed[2], SpinContributionCandidate)
+        and indexed[2].scope is SpinContributionScope.MOLECULAR
+    )
+    if len(molecular_contributions) == 1:
+        return molecular_contributions[0].two_s
+    return None
 
 
 def _sortable_float(value: float) -> int:

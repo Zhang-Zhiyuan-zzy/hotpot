@@ -925,6 +925,145 @@ def test_spin_contribution_factor_is_not_silently_discarded() -> None:
     assert status is CandidateSearchStatus.DECISION_CERTIFIED
 
 
+def test_molecular_spin_contribution_is_coupled_into_electronic_state() -> None:
+    facts, charge, _ = _scientific_candidates()
+    subject = f"molecule:{facts.identity.chemical_identity_digest}"
+    contribution = SpinContributionCandidate(
+        CandidateProvenance(
+            "spin:molecular-singlet",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+            assumption_ids=("domain_template:test",),
+        ),
+        SpinContributionScope.MOLECULAR,
+        subject,
+        (charge.provenance.identity,),
+        0,
+        True,
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        ProposedCandidateFactor(
+            FactorKey(ScientificQuantity.ELECTRONIC_STATE, subject),
+            "molecular-spin-contribution-v1",
+            (ProposedCandidateValue(contribution),),
+            CandidateDomainScope.DOMAIN_BOUNDED,
+            MaterializationStatus.COMPLETE,
+            None,
+        ),
+    )
+
+    paths, rejections, _, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {contribution.provenance.identity: ("rule:optional-001",)},
+        ("unresolved-electronic-result",),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert rejections == ()
+    assert len(paths) == 1
+    assert paths[0].electronic_state_result_id == "rule:optional-001"
+    assert paths[0].electronic_state_candidate_identity is not None
+    assert contribution.provenance.identity in paths[0].evidence_ids
+    assert paths[0].assumption_ids == ("domain_template:test",)
+    assert status is CandidateSearchStatus.DECISION_CERTIFIED
+
+
+def test_atom_spin_contribution_does_not_resolve_molecular_state() -> None:
+    facts, charge, _ = _scientific_candidates()
+    contribution = SpinContributionCandidate(
+        CandidateProvenance(
+            "spin:atom",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        SpinContributionScope.ATOM,
+        f"atom:{facts.atom_map[0]}",
+        (),
+        0,
+        True,
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        ProposedCandidateFactor(
+            FactorKey(
+                ScientificQuantity.ELECTRONIC_STATE,
+                contribution.subject_identity,
+            ),
+            "atom-spin-contribution-v1",
+            (ProposedCandidateValue(contribution),),
+            CandidateDomainScope.DOMAIN_BOUNDED,
+            MaterializationStatus.COMPLETE,
+            None,
+        ),
+    )
+
+    paths, rejections, _, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {contribution.provenance.identity: ("rule:optional-009",)},
+        ("unresolved-electronic-result",),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert rejections == ()
+    assert len(paths) == 1
+    assert paths[0].electronic_state_result_id == (
+        "unresolved-electronic-result"
+    )
+    assert paths[0].electronic_state_candidate_identity is None
+    assert status is CandidateSearchStatus.NO_CERTIFIED_DECISION
+
+
+def test_molecular_spin_contribution_preserves_hard_parity_validation() -> None:
+    facts, charge, _ = _scientific_candidates()
+    subject = f"molecule:{facts.identity.chemical_identity_digest}"
+    contribution = SpinContributionCandidate(
+        CandidateProvenance(
+            "spin:molecular-doublet",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        SpinContributionScope.MOLECULAR,
+        subject,
+        (charge.provenance.identity,),
+        1,
+        True,
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        ProposedCandidateFactor(
+            FactorKey(ScientificQuantity.ELECTRONIC_STATE, subject),
+            "molecular-spin-contribution-v1",
+            (ProposedCandidateValue(contribution),),
+            CandidateDomainScope.DOMAIN_BOUNDED,
+            MaterializationStatus.COMPLETE,
+            None,
+        ),
+    )
+
+    paths, rejections, _, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {contribution.provenance.identity: ("rule:optional-001",)},
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert paths == ()
+    assert rejections[0].reason_codes == ("HARD-006.PARITY_MISMATCH",)
+
+
 def test_present_but_empty_factor_cannot_produce_a_certified_path() -> None:
     facts, charge, electronic = _scientific_candidates()
     populated = _factors(charge, electronic)

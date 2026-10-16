@@ -13,13 +13,16 @@ from ..charge.contracts import (
     NetChargeCandidateEvidence,
 )
 from ..contracts import (
+    CandidateProvenance,
     MolecularFacts,
     ScientificAdmissibility,
     ScientificQuantity,
+    StateValueAuthority,
 )
 from ..electronic_state.contracts import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
+    SpinContributionScope,
 )
 from ..oxidation_state.contracts import (
     CoordinationCountingCandidate,
@@ -28,6 +31,7 @@ from ..oxidation_state.contracts import (
 from ._artifacts import _FRONTIER_SCHEMA
 from .constraints import (
     _constraint_candidate_ids,
+    _molecular_subject_identity,
     _unconditional_constraint,
     _validate_coupled_candidate_sets,
 )
@@ -63,6 +67,9 @@ __all__ = []
 
 _HARD_CONSTRAINT_ID = "hard-scientific-consistency-v1"
 _UNBOUNDED_FRONTIER_KEY = ("unbounded",)
+_MOLECULAR_SPIN_COUPLING_SOURCE = (
+    "state-composition:molecular-spin-coupling-v1"
+)
 
 
 _ChargeValue = Union[NetChargeCandidateEvidence, DerivedStateValue]
@@ -299,16 +306,38 @@ def _classify_selected_values(
         for candidate in candidates
         if isinstance(candidate, ElectronicStateCandidate)
     )
+    spin_contributions = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, SpinContributionCandidate)
+    )
+    molecular_spin_contributions = tuple(
+        candidate
+        for candidate in spin_contributions
+        if candidate.scope is SpinContributionScope.MOLECULAR
+    )
     if unsupported_derived:
         return None, "COMPOSITION.STRUCTURED_DERIVATION_UNSUPPORTED"
     if len(oxidation_states) > 1:
         return None, "COMPOSITION.OXIDATION_STATE_CARDINALITY"
     if len(electronic_states) > 1:
         return None, "COMPOSITION.ELECTRONIC_STATE_CARDINALITY"
+    if len(molecular_spin_contributions) > 1:
+        return None, "COMPOSITION.MOLECULAR_SPIN_CARDINALITY"
+    if molecular_spin_contributions and (
+        molecular_spin_contributions[0].subject_identity
+        != _molecular_subject_identity(facts)
+    ):
+        return None, "COMPOSITION.MOLECULAR_SPIN_SUBJECT_MISMATCH"
 
     base_candidate_ids = tuple(
         candidate.provenance.identity for candidate in candidates
     )
+    if any(
+        not set(candidate.parent_candidate_ids).issubset(base_candidate_ids)
+        for candidate in spin_contributions
+    ):
+        return None, "COMPOSITION.SPIN_CONTRIBUTION_PARENT_MISSING"
     counting = tuple(
         candidate
         for candidate in candidates
@@ -348,6 +377,21 @@ def _classify_selected_values(
         charge = derived_values[0]
     else:
         return None, "COMPOSITION.NET_CHARGE_CARDINALITY"
+    electronic_state = electronic_states[0] if electronic_states else None
+    if molecular_spin_contributions:
+        molecular_contribution = molecular_spin_contributions[0]
+        if electronic_state is not None and (
+            electronic_state.two_s != molecular_contribution.two_s
+            or electronic_state.pure_spin != molecular_contribution.pure_spin
+        ):
+            return None, "COMPOSITION.MOLECULAR_SPIN_CONFLICT"
+        if electronic_state is None:
+            electronic_state = _couple_molecular_spin_contribution(
+                facts,
+                charge,
+                oxidation_state,
+                molecular_contribution,
+            )
     candidate_ids = base_candidate_ids + tuple(
         candidate.provenance.identity
         for candidate in computed_derived
@@ -363,14 +407,8 @@ def _classify_selected_values(
             ),
             counting=counting,
             oxidation_state=oxidation_state,
-            spin_contributions=tuple(
-                candidate
-                for candidate in candidates
-                if isinstance(candidate, SpinContributionCandidate)
-            ),
-            electronic_state=(
-                electronic_states[0] if electronic_states else None
-            ),
+            spin_contributions=spin_contributions,
+            electronic_state=electronic_state,
             derived_values=derived_values,
             candidate_ids=candidate_ids,
             branch_assignments=tuple(
@@ -380,6 +418,62 @@ def _classify_selected_values(
             ),
         ),
         None,
+    )
+
+
+def _charge_value(charge: _ChargeValue) -> int:
+    if isinstance(charge, NetChargeCandidateEvidence):
+        return charge.charge
+    return charge.value
+
+
+def _couple_molecular_spin_contribution(
+    facts: MolecularFacts,
+    charge: _ChargeValue,
+    oxidation_state: Optional[OxidationStateCandidateEvidence],
+    contribution: SpinContributionCandidate,
+) -> ElectronicStateCandidate:
+    charge_identity = charge.provenance.identity
+    oxidation_identity = (
+        oxidation_state.provenance.identity
+        if oxidation_state is not None
+        else None
+    )
+    identity = _digest(
+        {
+            "source": _MOLECULAR_SPIN_COUPLING_SOURCE,
+            "facts": facts.identity.chemical_identity_digest,
+            "charge": charge_identity,
+            "oxidation_state": oxidation_identity,
+            "contribution": contribution.provenance.identity,
+        }
+    )
+    evidence_ids = tuple(
+        sorted(
+            {
+                charge_identity,
+                contribution.provenance.identity,
+                *contribution.parent_candidate_ids,
+                *((oxidation_identity,) if oxidation_identity else ()),
+            }
+        )
+    )
+    return ElectronicStateCandidate(
+        provenance=CandidateProvenance(
+            identity=identity,
+            authority=StateValueAuthority.DERIVED_CONSTRAINT,
+            source_identity=_MOLECULAR_SPIN_COUPLING_SOURCE,
+            evidence_ids=evidence_ids,
+            assumption_ids=contribution.provenance.assumption_ids,
+        ),
+        net_charge_candidate_identity=charge_identity,
+        oxidation_state_candidate_identity=oxidation_identity,
+        electron_count=facts.nuclear_charge_sum - _charge_value(charge),
+        two_s=contribution.two_s,
+        multiplicity=(
+            contribution.two_s + 1 if contribution.pure_spin else None
+        ),
+        pure_spin=contribution.pure_spin,
     )
 
 
@@ -399,9 +493,28 @@ def _electronic_result_ids(
 ) -> Tuple[str, ...]:
     if selected.electronic_state is None:
         return unresolved_electronic_result_ids
-    return electronic_result_by_candidate.get(
+    result_ids = electronic_result_by_candidate.get(
         selected.electronic_state.provenance.identity,
         (),
+    )
+    if result_ids:
+        return result_ids
+    molecular_contribution_ids = tuple(
+        candidate.provenance.identity
+        for candidate in selected.spin_contributions
+        if candidate.scope is SpinContributionScope.MOLECULAR
+    )
+    return tuple(
+        sorted(
+            {
+                result_id
+                for candidate_id in molecular_contribution_ids
+                for result_id in electronic_result_by_candidate.get(
+                    candidate_id,
+                    (),
+                )
+            }
+        )
     )
 
 

@@ -163,6 +163,12 @@ example `hp-oxidation[001]-0`. Slicing and filtering never renumber them.
 If a Data item contains several Structure IDs, the accessor uses the unique
 `primary` Structure; no unique primary raises an ambiguity error instead of
 silently choosing a variant.
+
+`data.info["evidence_assets"]` lists materialized evidence files by Evidence
+ID, role, status, SHA-256, size, and target-owned CAS path. The original
+Evidence declaration remains unchanged under `data.info["facts"]["evidence"]`;
+the CAS reference is the durable byte location after ingestion.
+
 `data.molecule` returns a fresh `hotpot.Molecule` and attaches the originating
 Data as `.data`, or `.ds_data` if the object already owns `.data`.
 `data.crystal` requires crystallographic information and otherwise raises.

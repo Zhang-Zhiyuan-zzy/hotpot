@@ -234,6 +234,13 @@ explicit original source/provenance control assets, and the compact
 certificate. It does not contain copies of Bundle `facts.sqlite3`, assessment
 generations, or migration relationship databases.
 
+Stored Case reads expose each materialized Evidence file in
+`Data.info["evidence_assets"]`. These references resolve only into the formal
+target CAS and include the Evidence ID, asset index, role, status, SHA-256,
+size, and path. They never retain the Bundle source path as the readable byte
+location. The unmodified source declaration remains in
+`Data.info["facts"]["evidence"]` for provenance.
+
 Ingestion requires a current root certificate and rechecks the source, policy,
 generation, certificate, target identity, release identity, and selected Case
 set inside one write transaction. The authoritative receipt is unique for one

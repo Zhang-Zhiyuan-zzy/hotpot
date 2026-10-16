@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional, Protocol
 
@@ -9,6 +10,8 @@ import pytest
 
 import hotpot
 from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
+from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
 
 
 from hotpot.plugins.xtb.contracts import (
@@ -221,3 +224,28 @@ def test_simultaneous_runs_use_isolated_workspaces(
     assert len(set(work_directories)) == len(work_directories)
     assert all(path.is_dir() for path in work_directories)
     assert all(report.coordinates_committed for report in reports)
+
+
+def test_report_projection_binding_is_atomic(
+    fake_xtb_factory: FakeXTBFactory,
+) -> None:
+    report = _run(
+        "gfn2",
+        XTBTask.SINGLEPOINT,
+        _molecule(),
+        fake_xtb_factory(),
+    )
+
+    with pytest.raises(ValueError, match="wholly present or absent"):
+        replace(
+            report,
+            scientific_state_identity=ScientificStateIdentity("state"),
+        )
+
+    bound = replace(
+        report,
+        scientific_state_identity=ScientificStateIdentity("state"),
+        facts_identity=MolecularFactsIdentity("facts"),
+        projection_convention="pure_spin_highest_ms",
+    )
+    assert bound.scientific_state_identity == ScientificStateIdentity("state")

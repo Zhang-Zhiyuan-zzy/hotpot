@@ -7,10 +7,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
+from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
 from hotpot.cheminfo.calculator.electronic_state import (
     ChargeInferenceSource,
     SpinInferenceSource,
 )
+from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
 from hotpot.plugins._harness import NativeProcessResult, ProcessProvenance
 
 
@@ -143,7 +145,23 @@ class XTBRunReport:
     spin_source: Optional[SpinInferenceSource] = None
     state_assumptions: Tuple[str, ...] = ()
     fragment_charges: Tuple[int, ...] = ()
+    scientific_state_identity: Optional[ScientificStateIdentity] = None
+    facts_identity: Optional[MolecularFactsIdentity] = None
+    projection_convention: Optional[str] = None
     workspace_retained: bool = False
+
+    def __post_init__(self) -> None:
+        projection_binding = (
+            self.scientific_state_identity,
+            self.facts_identity,
+            self.projection_convention,
+        )
+        if any(value is None for value in projection_binding) and any(
+            value is not None for value in projection_binding
+        ):
+            raise ValueError(
+                "xTB report projection provenance must be wholly present or absent"
+            )
 
 
 class XTBError(RuntimeError):

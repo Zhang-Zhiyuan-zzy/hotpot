@@ -14,9 +14,25 @@ import numpy as np
 import pytest
 
 import hotpot
+from hotpot.cheminfo.calculator.execution_selection import (
+    BackendProjectionStatus,
+    BackendStateProjection,
+    BackendStateRequest,
+    resolve_and_project_state,
+)
+from hotpot.cheminfo.calculator.state_resolver import (
+    StateRequest,
+    extract_molecular_facts,
+)
 from hotpot.cheminfo.core import Molecule
 from hotpot.plugins.xtb.adapter import prepare_xtb_input
-from hotpot.plugins.xtb.contracts import GFNXTBMethod, XTBTask
+from hotpot.plugins.xtb.backend import probe_xtb_backend
+from hotpot.plugins.xtb.contracts import (
+    GFNXTBMethod,
+    XTBMethod,
+    XTBTask,
+)
+from hotpot.plugins.xtb.state_projection import XTBBackendContext
 from hotpot.plugins.xtb.workflow import run_gfn_xtb, run_gfnff
 
 
@@ -79,7 +95,9 @@ def _direct_run(
     charge: int,
     unpaired_electrons: Optional[int],
 ) -> subprocess.CompletedProcess[str]:
-    input_path = work_directory / "input.xyz"
+    input_path = work_directory / (
+        "input.sdf" if "--gfnff" in method_arguments else "input.xyz"
+    )
     prepare_xtb_input(mol, input_path)
     spin_arguments = (
         ()
@@ -105,6 +123,29 @@ def _direct_run(
     )
 
 
+def _projection(
+    mol: Molecule,
+    executable: Path,
+    method: XTBMethod,
+    *,
+    charge: int,
+    uhf: Optional[int],
+) -> BackendStateProjection:
+    backend_info = probe_xtb_backend(
+        executable,
+        environment=_single_thread_environment(),
+    )
+    result = resolve_and_project_state(
+        extract_molecular_facts(mol),
+        XTBBackendContext(backend_info, method),
+        StateRequest(net_charge=charge),
+        backend_request=BackendStateRequest(uhf=uhf),
+    ).backend_projection
+    assert result.status is BackendProjectionStatus.PROJECTED
+    assert result.projection is not None
+    return result.projection
+
+
 def _xyz_symbols_and_coordinates(path: Path) -> tuple[tuple[str, ...], np.ndarray]:
     lines = path.read_text(encoding="utf-8").splitlines()
     atom_count = int(lines[0])
@@ -122,12 +163,18 @@ def _xyz_symbols_and_coordinates(path: Path) -> tuple[tuple[str, ...], np.ndarra
 
 def test_official_gfn2_wrapper_matches_direct_cli_energy(tmp_path: Path) -> None:
     executable = _official_executable()
+    mol = _methanol()
     report = run_gfn_xtb(
-        _methanol(),
+        mol,
+        state=_projection(
+            mol,
+            executable,
+            XTBMethod.GFN2_XTB,
+            charge=0,
+            uhf=0,
+        ),
         method=GFNXTBMethod.GFN2_XTB,
         task=XTBTask.SINGLEPOINT,
-        charge=0,
-        unpaired_electrons=0,
         executable=executable,
         environment=_single_thread_environment(),
     )
@@ -159,10 +206,17 @@ def test_official_gfn2_wrapper_matches_direct_cli_energy(tmp_path: Path) -> None
 
 def test_official_gfnff_wrapper_matches_direct_cli_energy(tmp_path: Path) -> None:
     executable = _official_executable()
+    mol = _methanol()
     report = run_gfnff(
-        _methanol(),
+        mol,
+        state=_projection(
+            mol,
+            executable,
+            XTBMethod.GFNFF,
+            charge=0,
+            uhf=None,
+        ),
         task=XTBTask.SINGLEPOINT,
-        charge=0,
         executable=executable,
         environment=_single_thread_environment(),
     )
@@ -200,10 +254,15 @@ def test_official_gfn2_optimization_matches_direct_cli_result(
     optimized_mol = _methanol()
     report = run_gfn_xtb(
         optimized_mol,
+        state=_projection(
+            optimized_mol,
+            executable,
+            XTBMethod.GFN2_XTB,
+            charge=0,
+            uhf=0,
+        ),
         method=GFNXTBMethod.GFN2_XTB,
         task=XTBTask.OPTIMIZE,
-        charge=0,
-        unpaired_electrons=0,
         executable=executable,
         environment=_single_thread_environment(),
     )
@@ -255,12 +314,18 @@ def test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_sta
     unpaired_electrons: int,
 ) -> None:
     executable = _official_executable()
+    mol = _single_atom(smiles)
     report = run_gfn_xtb(
-        _single_atom(smiles),
+        mol,
+        state=_projection(
+            mol,
+            executable,
+            XTBMethod.GFN2_XTB,
+            charge=charge,
+            uhf=unpaired_electrons,
+        ),
         method=GFNXTBMethod.GFN2_XTB,
         task=XTBTask.SINGLEPOINT,
-        charge=charge,
-        unpaired_electrons=unpaired_electrons,
         executable=executable,
         environment=_single_thread_environment(),
     )

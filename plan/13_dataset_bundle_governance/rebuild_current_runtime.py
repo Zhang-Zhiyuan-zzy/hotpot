@@ -12,7 +12,7 @@ the candidate, while ``activate`` is a separate, explicitly confirmed step::
     python plan/13_dataset_bundle_governance/rebuild_current_runtime.py run
     python plan/13_dataset_bundle_governance/rebuild_current_runtime.py status
     python plan/13_dataset_bundle_governance/rebuild_current_runtime.py \
-        activate --confirm-run-id stage13-efficiency-current
+        activate --confirm-run-id stage13-compact-current
     python plan/13_dataset_bundle_governance/rebuild_current_runtime.py \
         rollback --confirm-activation-id activation-<id>
 
@@ -59,6 +59,7 @@ _CAS_LOCK_NAME = re.compile(r"\.([0-9a-f]{64})\.lock\Z")
 _DURABLE_CONTROL_CATEGORIES = frozenset(
     {"certificate", "source", "evidence", "provenance", "checker"}
 )
+MAX_CANDIDATE_BYTES = 1024**3
 
 
 @dataclass(frozen=True)
@@ -754,11 +755,12 @@ def _without_runtime(policy: Mapping[str, Any]) -> dict[str, Any]:
 def _bundle_projection_rows(
     root: Path, spec: DatasetSpec
 ) -> Iterator[dict[str, Any]]:
-    """Stream the permanent projection of one synchronized Bundle."""
+    """Stream the permanent projection of one current synchronized Bundle."""
 
     from hotpot.ds.public._bundle_state import BundleState
     from hotpot.ds.public._generation import AssessmentGeneration
     from hotpot.ds.public.bundle import (
+        _FileDigestCache,
         _target_scientific_asset_descriptors,
         _target_structure_descriptors,
     )
@@ -772,6 +774,7 @@ def _bundle_projection_rows(
         raise RebuildError(f"Bundle has no synchronized assessment: {root}")
     generation = AssessmentGeneration.open(root, generation_id, generation_digest)
     facts = state.iter_cases()
+    file_cache = _FileDigestCache()
     missing = object()
     try:
         with generation._reader() as reader:
@@ -782,8 +785,12 @@ def _bundle_projection_rows(
                 assessment_id, assessment = assessed
                 if case["id"] != assessment_id:
                     raise RebuildError(f"Bundle fact/assessment order differs: {root}")
-                structures = _target_structure_descriptors(root, case)
-                assets = _target_scientific_asset_descriptors(root, case)
+                structures = _target_structure_descriptors(
+                    root, case, file_cache=file_cache
+                )
+                assets = _target_scientific_asset_descriptors(
+                    root, case, file_cache=file_cache
+                )
                 normalized = TargetStore._normalize_case(
                     {
                         "id": case["id"],
@@ -848,6 +855,190 @@ def _bundle_projection_rows(
         close = getattr(facts, "close", None)
         if close is not None:
             close()
+
+
+def _source_intake_projection_rows(
+    root: Path, spec: DatasetSpec
+) -> Iterator[dict[str, Any]]:
+    """Stream compact facts from the immutable Stage 13 JSONL intake.
+
+    The source Bundle is deliberately an older working-state schema.  This
+    one-time rebuild reads its declared original intake rather than adding an
+    old Bundle schema reader to the package runtime.
+    """
+
+    from hotpot.ds.public.bundle import (
+        _FileDigestCache,
+        _target_scientific_asset_descriptors,
+        _target_structure_descriptors,
+    )
+    from hotpot.ds.public._bundle_state import _validate_case
+    from hotpot.ds.storage import TargetStore, _restored_facts
+
+    manifest = _read_json(root / "bundle.json")
+    intake = manifest["intake"]
+    if intake.get("format") != "jsonl":
+        raise RebuildError(f"Stage 13 source intake is not JSONL: {root}")
+    path = _bundle_path(root, _safe_relative(intake["path"]))
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    before = os.fstat(descriptor)
+    if not stat.S_ISREG(before.st_mode):
+        os.close(descriptor)
+        raise RebuildError(f"source intake is not a regular file: {path}")
+    file_cache = _FileDigestCache()
+    try:
+        with os.fdopen(descriptor, "r", encoding="utf-8", closefd=False) as stream:
+            for line_number, line in enumerate(stream, 1):
+                try:
+                    case = json.loads(line)
+                except json.JSONDecodeError as error:
+                    raise RebuildError(
+                        f"invalid source intake JSON at {path}:{line_number}"
+                    ) from error
+                if not isinstance(case, dict):
+                    raise RebuildError(
+                        f"source intake Case is not an object at {path}:{line_number}"
+                    )
+                case = _validate_case(
+                    root,
+                    case,
+                    supplied_public_index=line_number - 1,
+                    property_definitions=manifest.get("property_definitions", {}),
+                    property_comparators=manifest.get("property_comparators", {}),
+                )
+                structures = _target_structure_descriptors(
+                    root, case, file_cache=file_cache
+                )
+                assets = _target_scientific_asset_descriptors(
+                    root, case, file_cache=file_cache
+                )
+                normalized = TargetStore._normalize_case(
+                    {
+                        "id": case["id"],
+                        "public_index": case["public_index"],
+                        "local_id": case["local_id"],
+                        "facts": case,
+                        "assessment": {
+                            "archive_class": "ordinary",
+                            "benchmark": False,
+                        },
+                        "identifiers": [
+                            {"namespace": str(namespace), "value": str(value)}
+                            for namespace, raw in case.get("identifiers", {}).items()
+                            for value in (raw if isinstance(raw, list) else [raw])
+                        ],
+                        "structures": structures,
+                        "assets": assets,
+                    }
+                )
+                identifiers = normalized["identifiers"]
+                metadata = case.get("metadata", {})
+                yield {
+                    "facts": _restored_facts(
+                        normalized["facts"],
+                        case_id=normalized["id"],
+                        public_index=normalized["public_index"],
+                        local_id=normalized["local_id"],
+                        identifiers=identifiers,
+                    ),
+                    "identifiers": identifiers,
+                    "structures": _structure_projection(normalized["structures"]),
+                    "scientific_assets": _scientific_asset_projection(
+                        normalized["assets"]
+                    ),
+                    "omitted_migration_fields": sorted(
+                        set(metadata)
+                        & {
+                            "migration_rows",
+                            "migration_schema",
+                            "quarantined_entity_relations",
+                            "shared_identifier_relations",
+                        }
+                    )
+                    if isinstance(metadata, Mapping)
+                    else [],
+                }
+        after = os.fstat(descriptor)
+        if _stat_stamp(before) != _stat_stamp(after):
+            raise RebuildError(f"source intake changed while reading: {path}")
+    finally:
+        os.close(descriptor)
+
+
+def _source_assessment_rows(
+    root: Path, spec: DatasetSpec
+) -> Iterator[dict[str, Any]]:
+    """Read the final scalar labels from the sealed schema-v2 source.
+
+    This migration-only reader is intentionally kept outside ``hotpot.ds``;
+    the package itself supports only the single current Bundle schema.
+    """
+
+    facts = _bundle_path(root, Path("cases/facts.sqlite3"))
+    with _readonly_connection(facts) as connection:
+        control = connection.execute(
+            "SELECT current_generation_id,current_generation_digest "
+            "FROM control WHERE singleton=1"
+        ).fetchone()
+    if control is None or not control[0] or not control[1]:
+        raise RebuildError(f"source assessment generation is missing: {spec.name}")
+    generation_id = str(control[0])
+    generation_digest = str(control[1])
+    generation_root = _bundle_path(
+        root, Path("assessments") / "generations" / _safe_relative(generation_id)
+    )
+    manifest_path = _bundle_path(generation_root, Path("generation.json"))
+    manifest, _, _, manifest_stamp = _read_stable_json(manifest_path)
+    if (
+        manifest.get("generation_id") != generation_id
+        or manifest.get("generation_digest") != generation_digest
+    ):
+        raise RebuildError(f"source assessment generation binding differs: {spec.name}")
+    declared = {}
+    for item in manifest.get("files", []):
+        relative = _safe_relative(item["path"])
+        path = _bundle_path(generation_root, relative)
+        digest, size, stamp = _sha256_file(path)
+        if (digest, size) != (item.get("sha256"), item.get("size")):
+            raise RebuildError(f"source assessment artifact differs: {path}")
+        declared[str(relative)] = (path, stamp)
+    if "assessment.sqlite3" not in declared:
+        raise RebuildError(f"source assessment database is undeclared: {spec.name}")
+    assessment_path, assessment_stamp = declared["assessment.sqlite3"]
+    with _readonly_connection(assessment_path) as connection:
+        if connection.execute("PRAGMA user_version").fetchone()[0] != 1:
+            raise RebuildError(
+                f"source assessment is not the expected schema-v1 layout: {spec.name}"
+            )
+        if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise RebuildError(f"source assessment failed integrity_check: {spec.name}")
+        for row in connection.execute(
+            "SELECT case_id,public_index,quality_level,evidence_level,"
+            "archive_class,benchmark,assessment_json FROM case_assessments "
+            "ORDER BY public_index,case_id"
+        ):
+            assessment = json.loads(row[6])
+            expected = {
+                "quality_level": row[2],
+                "evidence_level": row[3],
+                "archive_class": row[4],
+                "benchmark": bool(row[5]),
+            }
+            if any(assessment.get(key) != value for key, value in expected.items()):
+                raise RebuildError(
+                    f"source assessment scalar projection differs: {spec.name}.{row[0]}"
+                )
+            yield {
+                "id": str(row[0]),
+                "public_index": int(row[1]),
+                "assessment": expected,
+            }
+    if _stat_stamp(assessment_path.stat(follow_symlinks=False)) != assessment_stamp:
+        raise RebuildError(f"source assessment changed while reading: {spec.name}")
+    if _stat_stamp(manifest_path.stat(follow_symlinks=False)) != manifest_stamp:
+        raise RebuildError(
+            f"source assessment manifest changed while reading: {spec.name}"
+        )
 
 
 def _structure_projection(values: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -941,7 +1132,8 @@ def _compare_durable_cases(
 
     from hotpot.ds.storage import case_set_digest
 
-    source = _bundle_projection_rows(source_root, spec)
+    source = _source_intake_projection_rows(source_root, spec)
+    source_assessments = _source_assessment_rows(source_root, spec)
     output = _bundle_projection_rows(output_root, spec)
     target = store.iter_cases(spec.name, spec.release, include_incomplete=True)
     missing = object()
@@ -953,25 +1145,48 @@ def _compare_durable_cases(
     assessment_fields: set[str] = set()
     target_assets = _target_scientific_assets(store.path, spec)
     count = 0
-    for source_row, output_row, target_case in zip_longest(
-        source, output, target, fillvalue=missing
+    for source_row, source_assessment, output_row, target_case in zip_longest(
+        source, source_assessments, output, target, fillvalue=missing
     ):
-        if missing in (source_row, output_row, target_case):
+        if missing in (source_row, source_assessment, output_row, target_case):
             raise RebuildError(f"durable Case count differs: {spec.name}")
-        if source_row["content"] != output_row["content"]:
+        output_facts = output_row["public"]
+        if (
+            source_row["facts"] != output_facts["facts"]
+            or source_row["identifiers"] != output_facts["identifiers"]
+        ):
             raise RebuildError(
-                f"durable source/output Case differs: {spec.name}."
-                f"{source_row['public']['id']}"
+                f"retained source/output Case facts differ: {spec.name}."
+                f"{output_row['public']['id']}"
             )
-        if source_row["public"]["structures"] != output_row["public"]["structures"]:
+        if (
+            source_assessment["id"] != output_row["public"]["id"]
+            or source_assessment["public_index"]
+            != output_row["public"]["public_index"]
+            or source_assessment["assessment"]
+            != {
+                key: output_row["public"]["assessment"].get(key)
+                for key in (
+                    "quality_level",
+                    "evidence_level",
+                    "archive_class",
+                    "benchmark",
+                )
+            }
+        ):
+            raise RebuildError(
+                f"source/output final assessment differs: {spec.name}."
+                f"{output_row['public']['id']}"
+            )
+        if source_row["structures"] != output_row["public"]["structures"]:
             raise RebuildError(
                 f"source/output structure projection differs: {spec.name}."
-                f"{source_row['public']['id']}"
+                f"{output_row['public']['id']}"
             )
         if source_row["scientific_assets"] != output_row["scientific_assets"]:
             raise RebuildError(
                 f"source/output scientific assets differ: {spec.name}."
-                f"{source_row['public']['id']}"
+                f"{output_row['public']['id']}"
             )
         case_id = str(output_row["public"]["id"])
         if output_row["scientific_assets"] != target_assets.pop(case_id, []):
@@ -1002,7 +1217,7 @@ def _compare_durable_cases(
         }:
             raise RebuildError(f"target retained assessment traces: {spec.name}")
         migration_fields.update(source_row["omitted_migration_fields"])
-        assessment_fields.update(source_row["omitted_assessment_fields"])
+        assessment_fields.update(output_row["omitted_assessment_fields"])
         payload = _canonical_bytes(output_row["content"])
         if not first:
             content_digest.update(b",")
@@ -1019,7 +1234,10 @@ def _compare_durable_cases(
         "case_set_sha256": case_set_digest(case_ids),
         "omitted_migration_fields": sorted(migration_fields),
         "omitted_assessment_fields": sorted(assessment_fields),
-        "original_facts_compared_in_full": True,
+        "retained_facts_compared_in_full": True,
+        "original_intake_compared_after_declared_compaction": True,
+        "original_facts_compared_in_full": False,
+        "source_final_assessments_compared": True,
         "public_target_reads_compared": True,
     }
 
@@ -1088,6 +1306,17 @@ def _validate_release_control_assets(
         ]
     if expected != observed:
         raise RebuildError(f"candidate durable control assets differ: {spec.name}")
+    required_provenance = {
+        ("provenance", "legacy-source-inventory"),
+        ("provenance", "migration-provenance"),
+    }
+    observed_identities = {
+        (item["category"], item["name"]) for item in observed
+    }
+    if not required_provenance <= observed_identities:
+        raise RebuildError(
+            f"candidate omitted durable migration provenance: {spec.name}"
+        )
     return {"count": len(observed), "sha256": _json_digest(observed)}
 
 
@@ -1418,10 +1647,11 @@ class Operator:
                 descriptor = os.open(lock_path, os.O_RDWR)
                 fcntl.flock(descriptor, fcntl.LOCK_EX)
                 lock_descriptors.append(descriptor)
-            candidate = sqlite3.connect(str(self.output_database), timeout=60.0)
-            connections.append(candidate)
-            candidate.execute("PRAGMA busy_timeout=60000")
-            candidate.execute("BEGIN IMMEDIATE")
+            for database in (self.source_database, self.output_database):
+                connection = sqlite3.connect(str(database), timeout=60.0)
+                connections.append(connection)
+                connection.execute("PRAGMA busy_timeout=60000")
+                connection.execute("BEGIN IMMEDIATE")
             yield
         finally:
             for connection in reversed(connections):
@@ -1783,6 +2013,12 @@ class Operator:
             self.output_database.stat(follow_symlinks=False)
         ):
             raise RebuildError("candidate database changed during parity verification")
+        formal_bytes = target_database_size + target_cas["bytes"]
+        if formal_bytes > MAX_CANDIDATE_BYTES:
+            raise RebuildError(
+                "candidate formal store exceeds the 1 GiB compact-release limit: "
+                f"{formal_bytes} > {MAX_CANDIDATE_BYTES}"
+            )
         result = {
             "semantic": semantic,
             "target_cas": target_cas,
@@ -1791,6 +2027,13 @@ class Operator:
             },
             "target_database": {
                 "sha256": target_database_digest, "size": target_database_size
+            },
+            "compact_size": {
+                "database_bytes": target_database_size,
+                "cas_object_bytes": target_cas["bytes"],
+                "formal_bytes": formal_bytes,
+                "limit_bytes": MAX_CANDIDATE_BYTES,
+                "within_limit": True,
             },
         }
         artifact = self.state_root / "parity.json"
@@ -1808,11 +2051,15 @@ class Operator:
             key: result[key]
             for key in (
                 "semantic", "target_cas", "source_anchor", "target_database",
+                "compact_size",
             )
         }:
             raise RebuildError("parity artifact no longer matches rebuild state")
         current = self._parity_observation()
-        for key in ("semantic", "target_cas", "source_anchor", "target_database"):
+        for key in (
+            "semantic", "target_cas", "source_anchor", "target_database",
+            "compact_size",
+        ):
             if current[key] != result[key]:
                 raise RebuildError(f"completed parity output no longer matches: {key}")
 
@@ -1826,11 +2073,19 @@ class Operator:
         target_cas = _verify_cas(self.output_database)
         source_digest, source_size, _ = _sha256_file(self.source_database)
         target_digest, target_size, _ = _sha256_file(self.output_database)
+        formal_bytes = target_size + target_cas["bytes"]
         return {
             "semantic": semantic,
             "target_cas": target_cas,
             "source_anchor": {"sha256": source_digest, "size": source_size},
             "target_database": {"sha256": target_digest, "size": target_size},
+            "compact_size": {
+                "database_bytes": target_size,
+                "cas_object_bytes": target_cas["bytes"],
+                "formal_bytes": formal_bytes,
+                "limit_bytes": MAX_CANDIDATE_BYTES,
+                "within_limit": formal_bytes <= MAX_CANDIDATE_BYTES,
+            },
         }
 
     def _preactivation_recheck(self, state: Mapping[str, Any]) -> dict[str, Any]:

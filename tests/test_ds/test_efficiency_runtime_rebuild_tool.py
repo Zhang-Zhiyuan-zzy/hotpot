@@ -563,7 +563,7 @@ def test_compact_receipt_binds_retained_facts_and_final_labels(
 
 
 def test_bundle_to_compact_store_parity_is_casewise_and_drops_only_derived_data(
-    tmp_path, rebuild_module
+    tmp_path, rebuild_module, monkeypatch
 ):
     from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA
     from hotpot.ds.public.bundle import Bundle
@@ -657,6 +657,27 @@ def test_bundle_to_compact_store_parity_is_casewise_and_drops_only_derived_data(
     output.synchronize()
     output.write_certificate()
     output.ingest(include_incomplete=True, reason=rebuild_module.INCOMPLETE_REASON)
+    source_assessments = [
+        {
+            "id": row["public"]["id"],
+            "public_index": row["public"]["public_index"],
+            "assessment": {
+                key: row["public"]["assessment"].get(key)
+                for key in (
+                    "quality_level",
+                    "evidence_level",
+                    "archive_class",
+                    "benchmark",
+                )
+            },
+        }
+        for row in rebuild_module._bundle_projection_rows(source_root, spec)
+    ]
+    monkeypatch.setattr(
+        rebuild_module,
+        "_source_assessment_rows",
+        lambda root, source_spec: iter(source_assessments),
+    )
 
     result = rebuild_module._compare_durable_cases(
         source_root,
@@ -670,6 +691,8 @@ def test_bundle_to_compact_store_parity_is_casewise_and_drops_only_derived_data(
 
     assert result["count"] == 1
     assert result["public_target_reads_compared"] is True
+    assert result["source_final_assessments_compared"] is True
+    assert result["original_facts_compared_in_full"] is False
     assert {"migration_rows", "migration_schema"} <= set(
         result["omitted_migration_fields"]
     )
@@ -685,6 +708,83 @@ def test_bundle_to_compact_store_parity_is_casewise_and_drops_only_derived_data(
             )
         }
     assert collections == {"evidence", "structures"}
+
+
+def test_schema_v2_source_assessment_reader_is_migration_local(
+    tmp_path, rebuild_module
+):
+    spec = rebuild_module.DatasetSpec("fixture", "fixture.v001", "fixture")
+    root = tmp_path / "fixture"
+    (root / "cases").mkdir(parents=True)
+    generation_id = "generation-legacy"
+    generation_digest = "a" * 64
+    with sqlite3.connect(root / "cases" / "facts.sqlite3") as connection:
+        connection.execute(
+            "CREATE TABLE control(singleton INTEGER PRIMARY KEY,"
+            "current_generation_id TEXT,current_generation_digest TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO control VALUES(1,?,?)",
+            (generation_id, generation_digest),
+        )
+    generation = root / "assessments" / "generations" / generation_id
+    generation.mkdir(parents=True)
+    assessment_path = generation / "assessment.sqlite3"
+    assessment = {
+        "quality_level": "B2",
+        "evidence_level": "E3",
+        "archive_class": "benchmark",
+        "benchmark": True,
+        "reasons": ["verified source"],
+    }
+    with sqlite3.connect(assessment_path) as connection:
+        connection.executescript(
+            "PRAGMA user_version=1;"
+            "CREATE TABLE case_assessments("
+            "case_id TEXT,public_index INTEGER,quality_level TEXT,"
+            "evidence_level TEXT,archive_class TEXT,benchmark INTEGER,"
+            "assessment_json TEXT);"
+        )
+        connection.execute(
+            "INSERT INTO case_assessments VALUES(?,?,?,?,?,?,?)",
+            (
+                "case-1",
+                0,
+                "B2",
+                "E3",
+                "benchmark",
+                1,
+                json.dumps(assessment, sort_keys=True, separators=(",", ":")),
+            ),
+        )
+    payload = assessment_path.read_bytes()
+    _write_json(
+        generation / "generation.json",
+        {
+            "generation_id": generation_id,
+            "generation_digest": generation_digest,
+            "files": [
+                {
+                    "path": "assessment.sqlite3",
+                    "sha256": rebuild_module.hashlib.sha256(payload).hexdigest(),
+                    "size": len(payload),
+                }
+            ],
+        },
+    )
+
+    assert list(rebuild_module._source_assessment_rows(root, spec)) == [
+        {
+            "id": "case-1",
+            "public_index": 0,
+            "assessment": {
+                "quality_level": "B2",
+                "evidence_level": "E3",
+                "archive_class": "benchmark",
+                "benchmark": True,
+            },
+        }
+    ]
 
 
 def test_compact_receipt_binding_duplicates_must_match_columns(
@@ -813,7 +913,7 @@ def _minimal_operator_tree(tmp_path, rebuild_module):
     return operator
 
 
-def test_publication_barrier_excludes_candidate_and_bundle_writers_only(
+def test_publication_barrier_excludes_source_candidate_and_bundle_writers(
     tmp_path, rebuild_module
 ):
     operator = _minimal_operator_tree(tmp_path, rebuild_module)
@@ -827,9 +927,8 @@ def test_publication_barrier_excludes_candidate_and_bundle_writers_only(
             competing.close()
         source_writer = sqlite3.connect(operator.source_database, timeout=0)
         try:
-            source_writer.execute("BEGIN IMMEDIATE")
-            source_writer.execute("INSERT INTO marker VALUES(1)")
-            source_writer.commit()
+            with pytest.raises(sqlite3.OperationalError, match="locked"):
+                source_writer.execute("BEGIN IMMEDIATE")
         finally:
             source_writer.close()
         lock_path = operator._output_root(rebuild_module.DATASETS[0]) / ".bundle.lock"

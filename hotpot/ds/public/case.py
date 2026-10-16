@@ -727,9 +727,11 @@ class CaseCollection(CaseView):
         ):
             if field in criteria and str(criteria[field]) not in levels:
                 raise KeyError(str(criteria[field]))
-        needs_facts = bool({"verification", "attestation"} & criteria.keys())
         provider = getattr(self._owner, "_case_selection_records", None)
         if provider is None:
+            needs_facts = bool(
+                {"verification", "attestation"} & criteria.keys()
+            )
             records = (
                 (
                     case_id,
@@ -738,13 +740,13 @@ class CaseCollection(CaseView):
                 )
                 for case_id in self._all_ids()
             )
+            selected = [
+                case_id
+                for case_id, assessment, facts in records
+                if self._matches(assessment, criteria, facts=facts)
+            ]
         else:
-            records = provider(criteria, include_facts=needs_facts)
-        selected = [
-            case_id
-            for case_id, assessment, facts in records
-            if self._matches(assessment, criteria, facts=facts)
-        ]
+            selected = [case_id for case_id, _assessment in provider(criteria)]
         return CaseView(self._owner, selected)
 
     @classmethod

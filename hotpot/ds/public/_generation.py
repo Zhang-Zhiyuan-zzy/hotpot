@@ -10,6 +10,7 @@ from __future__ import annotations
 import fcntl
 import hashlib
 import json
+import math
 import os
 import shutil
 import sqlite3
@@ -17,6 +18,7 @@ import stat
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from fractions import Fraction
 from pathlib import Path, PurePosixPath
 from itertools import zip_longest
 from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Sequence, Tuple, Union
@@ -42,7 +44,7 @@ from ._implementation import (
 
 
 GENERATION_SCHEMA = "hotpot-ds-assessment-generation/current"
-_DATABASE_SCHEMA_VERSION = 2
+_DATABASE_SCHEMA_VERSION = 3
 _ARCHIVE_CLASSES = ("incomplete", "ordinary", "benchmark")
 _PARSEABLE_FORMATS = {"smi", "smiles", "mol", "mol2", "sdf", "xyz"}
 _MANIFEST_FIELDS = {
@@ -70,6 +72,17 @@ class GenerationIntegrityError(AssessmentGenerationError):
 
 class AssetSourceChangedError(AssessmentGenerationError):
     """Raised when a scientific asset changes while it is being observed."""
+
+
+def _facet_value_key(value: Any) -> Optional[str]:
+    """Return a stable key with the equality used by public facet selection."""
+
+    if isinstance(value, (bool, int, float)):
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        number = Fraction(value)
+        return f"number:{number.numerator}/{number.denominator}"
+    return "json:" + canonical_json(value)
 
 
 class _AssessmentReader:
@@ -137,6 +150,40 @@ class _AssessmentReader:
             else:
                 where.append(f"{column}=?")
                 parameters.append(expected)
+        facets = {
+            "reason": "case_reason_codes",
+            "verification": "case_verifications",
+            "attestation": "case_attestations",
+        }
+        for field, table in facets.items():
+            if field not in criteria:
+                continue
+            expected = criteria[field]
+            options = (
+                list(expected)
+                if isinstance(expected, (list, set, tuple, frozenset))
+                else [expected]
+            )
+            if not options:
+                where.append("0")
+                continue
+            value_keys = [
+                key
+                for key in (_facet_value_key(value) for value in options)
+                if key is not None
+            ]
+            if not value_keys:
+                where.append("0")
+                continue
+            placeholders = ",".join("?" for _ in value_keys)
+            where.append(
+                "EXISTS (SELECT 1 FROM "
+                f"{table} AS facet WHERE "
+                "facet.public_index=case_assessments.public_index "
+                "AND facet.case_id=case_assessments.case_id "
+                f"AND facet.value_key IN ({placeholders}))"
+            )
+            parameters.extend(value_keys)
         predicate = " AND ".join(where) if where else "1"
         for row in self._connection.execute(
             "SELECT public_index,case_id,assessment_json "
@@ -1036,7 +1083,7 @@ def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
         PRAGMA journal_mode=DELETE;
         PRAGMA synchronous=FULL;
         PRAGMA foreign_keys=ON;
-        PRAGMA user_version=2;
+        PRAGMA user_version=3;
 
         CREATE TABLE metadata(
             key TEXT PRIMARY KEY,
@@ -1062,6 +1109,27 @@ def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
             ON case_assessments(evidence_level,public_index,case_id);
         CREATE INDEX case_assessments_benchmark_selection
             ON case_assessments(benchmark_status,public_index,case_id);
+
+        CREATE TABLE case_reason_codes(
+            value_key TEXT NOT NULL,
+            public_index INTEGER NOT NULL,
+            case_id TEXT NOT NULL,
+            PRIMARY KEY(value_key,public_index,case_id)
+        ) WITHOUT ROWID;
+
+        CREATE TABLE case_verifications(
+            value_key TEXT NOT NULL,
+            public_index INTEGER NOT NULL,
+            case_id TEXT NOT NULL,
+            PRIMARY KEY(value_key,public_index,case_id)
+        ) WITHOUT ROWID;
+
+        CREATE TABLE case_attestations(
+            value_key TEXT NOT NULL,
+            public_index INTEGER NOT NULL,
+            case_id TEXT NOT NULL,
+            PRIMARY KEY(value_key,public_index,case_id)
+        ) WITHOUT ROWID;
 
         CREATE TABLE evidence_assessments(
             case_id TEXT NOT NULL,
@@ -1164,6 +1232,22 @@ def _stream_inputs(
             assessment.execute(
                 "INSERT INTO case_order(public_index,case_id) VALUES (?,?)",
                 (public_index, case_id),
+            )
+            assessment.executemany(
+                "INSERT OR IGNORE INTO case_verifications(value_key,public_index,case_id) "
+                "VALUES (?,?,?)",
+                (
+                    (_facet_value_key(item.get("method")), public_index, case_id)
+                    for item in _active(case.get("verifications", []))
+                ),
+            )
+            assessment.executemany(
+                "INSERT OR IGNORE INTO case_attestations(value_key,public_index,case_id) "
+                "VALUES (?,?,?)",
+                (
+                    (_facet_value_key(item.get("authority")), public_index, case_id)
+                    for item in _active(case.get("attestations", []))
+                ),
             )
             key, reasons = identity_key(case, identity_schema)
             work.execute(
@@ -1499,6 +1583,19 @@ def _assess_cases(
                 canonical_json(result),
             ),
         )
+        assessment.executemany(
+            "INSERT OR IGNORE INTO case_reason_codes(value_key,public_index,case_id) "
+            "VALUES (?,?,?)",
+            (
+                (
+                    _facet_value_key(item.get("code")),
+                    int(case["public_index"]),
+                    case_id,
+                )
+                for item in result.get("reasons", [])
+                if isinstance(item, Mapping)
+            ),
+        )
         for target_id, level in sorted(result["evidence_levels"].items()):
             evidence = {
                 "case_id": case_id,
@@ -1516,11 +1613,44 @@ def _assess_cases(
 
 
 _DIGEST_QUERIES = (
-    ("asset_assessments", "SELECT asset_id,assessment_json FROM asset_assessments ORDER BY asset_id"),
-    ("conflict_assessments", "SELECT conflict_id,assessment_json FROM conflict_assessments ORDER BY conflict_id"),
-    ("conflict_groups", "SELECT group_id,assessment_json FROM conflict_groups ORDER BY group_id"),
-    ("case_assessments", "SELECT case_id,assessment_json FROM case_assessments ORDER BY public_index,case_id"),
-    ("evidence_assessments", "SELECT case_id,target_id,assessment_json FROM evidence_assessments ORDER BY case_id,target_id"),
+    (
+        "asset_assessments",
+        "SELECT asset_id,assessment_json FROM asset_assessments ORDER BY asset_id",
+    ),
+    (
+        "case_attestations",
+        "SELECT value_key,public_index,case_id FROM case_attestations "
+        "ORDER BY value_key,public_index,case_id",
+    ),
+    (
+        "case_reason_codes",
+        "SELECT value_key,public_index,case_id FROM case_reason_codes "
+        "ORDER BY value_key,public_index,case_id",
+    ),
+    (
+        "case_verifications",
+        "SELECT value_key,public_index,case_id FROM case_verifications "
+        "ORDER BY value_key,public_index,case_id",
+    ),
+    (
+        "conflict_assessments",
+        "SELECT conflict_id,assessment_json FROM conflict_assessments "
+        "ORDER BY conflict_id",
+    ),
+    (
+        "conflict_groups",
+        "SELECT group_id,assessment_json FROM conflict_groups ORDER BY group_id",
+    ),
+    (
+        "case_assessments",
+        "SELECT case_id,assessment_json FROM case_assessments "
+        "ORDER BY public_index,case_id",
+    ),
+    (
+        "evidence_assessments",
+        "SELECT case_id,target_id,assessment_json FROM evidence_assessments "
+        "ORDER BY case_id,target_id",
+    ),
 )
 
 
@@ -2140,15 +2270,22 @@ class AssessmentGeneration:
     def _reader(self) -> Iterator[_AssessmentReader]:
         """Hold one lease and one read-only connection for a batch read."""
 
-        assessment_path = self._directory / "assessment.sqlite3"
         with self.lease():
-            connection = sqlite3.connect(
-                f"file:{assessment_path.as_posix()}?mode=ro", uri=True
-            )
-            try:
-                yield _AssessmentReader(connection)
-            finally:
-                connection.close()
+            with self._reader_without_lease() as reader:
+                yield reader
+
+    @contextmanager
+    def _reader_without_lease(self) -> Iterator[_AssessmentReader]:
+        """Open one batch reader while the caller retains this generation's lease."""
+
+        assessment_path = self._directory / "assessment.sqlite3"
+        connection = sqlite3.connect(
+            f"file:{assessment_path.as_posix()}?mode=ro", uri=True
+        )
+        try:
+            yield _AssessmentReader(connection)
+        finally:
+            connection.close()
 
     def iter_cases(self) -> Iterator[Dict[str, Any]]:
         with self.lease():

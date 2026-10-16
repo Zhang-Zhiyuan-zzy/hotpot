@@ -606,42 +606,16 @@ class Bundle:
         return self._state.get_case(case_id)
 
     def _case_assessment(self, case_id: str) -> Dict[str, Any]:
-        return deepcopy(self._require_generation().get_case(case_id))
+        with self._locked(), self._verified_generation() as generation:
+            return deepcopy(generation.get_case(case_id))
 
     def _case_selection_records(
         self,
         criteria: Mapping[str, Any],
-        *,
-        include_facts: bool,
-    ) -> Iterator[tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
-        generation = self._require_generation()
-        with generation._reader() as reader:
-            assessments = reader.select_cases(criteria)
-            if not include_facts:
-                for _public_index, case_id, assessment in assessments:
-                    yield case_id, assessment, None
-                return
-            with self._state.connect() as connection:
-                facts = iter(
-                    connection.execute(
-                        "SELECT public_index,case_id,payload_json FROM cases "
-                        "ORDER BY public_index,case_id"
-                    )
-                )
-                fact_row = next(facts, None)
-                for public_index, case_id, assessment in assessments:
-                    while fact_row is not None and int(fact_row[0]) < public_index:
-                        fact_row = next(facts, None)
-                    if (
-                        fact_row is None
-                        or int(fact_row[0]) != public_index
-                        or str(fact_row[1]) != case_id
-                    ):
-                        raise RuntimeError(
-                            "Bundle facts and assessment order do not match"
-                        )
-                    yield case_id, assessment, json.loads(fact_row[2])
-                    fact_row = next(facts, None)
+    ) -> Iterator[tuple[str, Dict[str, Any]]]:
+        with self._locked(), self._verified_selection_reader() as reader:
+            for _public_index, case_id, assessment in reader.select_cases(criteria):
+                yield case_id, assessment
 
     def _mutate_case(
         self,
@@ -670,23 +644,8 @@ class Bundle:
         return f"{case_id}:{kind}:{uuid.uuid4().hex}"
 
     def _require_generation(self):
-        try:
-            receipt = self._authoritative_receipt()
-        except SealedIntegrityError as error:
-            raise UnsynchronizedBundleError(
-                "derived results are unavailable because sealed integrity failed"
-            ) from error
-        status = self._state.status
-        if receipt is None and not status["is_synchronized"]:
-            raise UnsynchronizedBundleError(
-                "derived results are stale; run bundle.synchronize() first"
-            )
-        generation = self._generation_from_status(status)
-        if generation is None:
-            raise UnsynchronizedBundleError(
-                "no current assessment generation; run bundle.synchronize() first"
-            )
-        return generation
+        with self._verified_generation() as generation:
+            return generation
 
     def _collect_generation_garbage(
         self,
@@ -768,7 +727,7 @@ class Bundle:
             )
         return True
 
-    def _authoritative_receipt(self) -> Optional[Dict[str, Any]]:
+    def _load_authoritative_receipt(self) -> Optional[Dict[str, Any]]:
         local_receipt_exists = (self.root / "ingestion-receipt.json").is_file()
         if not self._database.is_file():
             if local_receipt_exists:
@@ -791,123 +750,118 @@ class Bundle:
                     "the authoritative target has lost the locally recorded sealed release"
                 )
             return None
-        try:
-            if not self.certificate_path.is_file():
-                raise SealedIntegrityError(
-                    "sealed release root certificate is missing"
-                )
-            certificate_sha256, _ = _hash_file(self.certificate_path)
-            generation = self._frozen_generation()
-            snapshot = self._ingestion_snapshot(
-                certificate_sha256,
-                bool(receipt["include_incomplete"]),
-                generation=generation,
+        return receipt
+
+    def _validate_receipt_snapshot(
+        self,
+        receipt: Mapping[str, Any],
+        snapshot: Mapping[str, Any],
+        generation: Any,
+    ) -> None:
+        expected = snapshot["digests"]
+        actual = {
+            "bundle": receipt["bundle_digest"],
+            "certificate": receipt["certificate_digest"],
+            "generation": receipt["generation_digest"],
+            "case_content": receipt["case_content_digest"],
+            "included_cases": receipt["included_cases_digest"],
+            "excluded_cases": receipt["excluded_cases_digest"],
+            "asset_inventory": receipt["asset_inventory_digest"],
+        }
+        if actual != expected:
+            raise SealedIntegrityError(
+                "sealed release receipt does not match current certified content"
             )
-            expected = snapshot["digests"]
-            actual = {
-                "bundle": receipt["bundle_digest"],
-                "certificate": receipt["certificate_digest"],
-                "generation": receipt["generation_digest"],
-                "case_content": receipt["case_content_digest"],
-                "included_cases": receipt["included_cases_digest"],
-                "excluded_cases": receipt["excluded_cases_digest"],
-                "asset_inventory": receipt["asset_inventory_digest"],
-            }
-            if actual != expected:
-                raise SealedIntegrityError(
-                    "sealed release receipt does not match current certified content"
-                )
-            if receipt["policy_digest"] != snapshot["policy"]["digest"]:
-                raise SealedIntegrityError(
-                    "sealed release receipt policy does not match current policy"
-                )
-            binding = receipt.get("binding")
-            if not isinstance(binding, Mapping) or binding.get("target_context") != self._state.target_context:
-                raise SealedIntegrityError(
-                    "sealed release receipt target context does not match Bundle"
-                )
-            frozen_runtime = self._state.policy.get("runtime_policy")
-            if (
-                binding.get("runtime_policy") != frozen_runtime
-                or generation.manifest.get("runtime_policy") != frozen_runtime
-            ):
-                raise SealedIntegrityError(
-                    "sealed release runtime policy binding is inconsistent"
-                )
+        if receipt["policy_digest"] != snapshot["policy"]["digest"]:
+            raise SealedIntegrityError(
+                "sealed release receipt policy does not match current policy"
+            )
+        binding = receipt.get("binding")
+        if (
+            not isinstance(binding, Mapping)
+            or binding.get("target_context") != self._state.target_context
+        ):
+            raise SealedIntegrityError(
+                "sealed release receipt target context does not match Bundle"
+            )
+        frozen_runtime = self._state.policy.get("runtime_policy")
+        if (
+            binding.get("runtime_policy") != frozen_runtime
+            or generation.manifest.get("runtime_policy") != frozen_runtime
+        ):
+            raise SealedIntegrityError(
+                "sealed release runtime policy binding is inconsistent"
+            )
+
+    @contextmanager
+    def _sealed_generation(
+        self, receipt: Mapping[str, Any]
+    ) -> Iterator[Any]:
+        try:
+            with self._certified_ingestion_boundary(
+                bool(receipt["include_incomplete"]),
+                frozen_governance=True,
+            ) as (snapshot, generation):
+                self._validate_receipt_snapshot(receipt, snapshot, generation)
+                yield generation
         except SealedIntegrityError:
             raise
         except Exception as error:
             raise SealedIntegrityError(
                 "sealed release receipt binding cannot be verified"
             ) from error
+
+    def _authoritative_receipt(self) -> Optional[Dict[str, Any]]:
+        receipt = self._load_authoritative_receipt()
+        if receipt is None:
+            return None
+        with self._sealed_generation(receipt):
+            pass
         return receipt
 
-    def _frozen_generation(self):
-        """Return the receipt-bound generation without consulting live governance."""
+    @contextmanager
+    def _verified_generation(self) -> Iterator[Any]:
+        try:
+            receipt = self._load_authoritative_receipt()
+            if receipt is not None:
+                with self._sealed_generation(receipt) as generation:
+                    yield generation
+                return
+        except SealedIntegrityError as error:
+            raise UnsynchronizedBundleError(
+                "derived results are unavailable because sealed integrity failed"
+            ) from error
+        yield self._unsealed_generation()
 
-        with self._state.connect() as connection:
-            control = dict(
-                connection.execute(
-                    "SELECT * FROM control WHERE singleton=1"
-                ).fetchone()
+    def _unsealed_generation(self) -> Any:
+        status = self._state.status
+        if not status["is_synchronized"]:
+            raise UnsynchronizedBundleError(
+                "derived results are stale; run bundle.synchronize() first"
             )
-            source_digest = self._state._compute_source_digest(
-                connection, self._state._stored_manifest(connection)
-            )
-            policy_digest = canonical_digest(
-                json.loads(
-                    connection.execute(
-                        "SELECT policy_json FROM policy WHERE singleton=1"
-                    ).fetchone()[0]
-                )
-            )
-        generation_id = control.get("current_generation_id")
-        if not generation_id:
-            raise SealedIntegrityError(
-                "sealed release has no complete assessment generation"
-            )
-        from ._generation import AssessmentGeneration
-
-        generation = AssessmentGeneration.open(
-            self.root,
-            generation_id,
-            expected_digest=control.get("current_generation_digest"),
-        )
-        manifest = generation.manifest
-        source_matches = (
-            control["source_revision"] == control["synchronized_source_revision"]
-            and source_digest == control["source_digest"]
-            and source_digest == control["synchronized_source_digest"]
-            and manifest["source"]
-            == {
-                "revision": control["source_revision"],
-                "digest": source_digest,
-            }
-        )
-        policy_matches = (
-            control["policy_revision"] == control["synchronized_policy_revision"]
-            and policy_digest == control["policy_digest"]
-            and policy_digest == control["synchronized_policy_digest"]
-            and manifest["policy"]
-            == {
-                "revision": control["policy_revision"],
-                "digest": policy_digest,
-            }
-        )
-        frozen_governance = manifest["governance"]
-        governance_matches = (
-            control["governance_registry_revision"]
-            == control["synchronized_governance_registry_revision"]
-            == frozen_governance["revision"]
-            and control["governance_registry_digest"]
-            == control["synchronized_governance_registry_digest"]
-            == frozen_governance["digest"]
-        )
-        if not (source_matches and policy_matches and governance_matches):
-            raise SealedIntegrityError(
-                "sealed release state does not match its frozen assessment generation"
+        generation = self._generation_from_status(status)
+        if generation is None:
+            raise UnsynchronizedBundleError(
+                "no current assessment generation; run bundle.synchronize() first"
             )
         return generation
+
+    @contextmanager
+    def _verified_selection_reader(self) -> Iterator[Any]:
+        try:
+            receipt = self._load_authoritative_receipt()
+            if receipt is not None:
+                with self._sealed_generation(receipt) as generation:
+                    with generation._reader_without_lease() as reader:
+                        yield reader
+                return
+        except SealedIntegrityError as error:
+            raise UnsynchronizedBundleError(
+                "derived results are unavailable because sealed integrity failed"
+            ) from error
+        generation = self._unsealed_generation()
+        with generation._reader() as reader:
+            yield reader
 
     def _governance_registry_snapshot(self) -> Dict[str, Any]:
         from ..governance import default_registry_snapshot, verify_registry
@@ -978,13 +932,25 @@ class Bundle:
     def _certified_ingestion_snapshot(
         self, include_incomplete: bool
     ) -> Dict[str, Any]:
+        with self._certified_ingestion_boundary(include_incomplete) as value:
+            return value[0]
+
+    @contextmanager
+    def _certified_ingestion_boundary(
+        self,
+        include_incomplete: bool,
+        *,
+        frozen_governance: Optional[bool] = None,
+    ) -> Iterator[tuple[Dict[str, Any], Any]]:
         from .certificate import _verified_certificate_boundary
 
+        if frozen_governance is None:
+            frozen_governance = self._ingestion_uses_frozen_governance()
         with _verified_certificate_boundary(
             self,
-            frozen_governance=self._ingestion_uses_frozen_governance(),
+            frozen_governance=frozen_governance,
         ) as boundary:
-            return self._ingestion_snapshot(
+            snapshot = self._ingestion_snapshot(
                 boundary.certificate_digest,
                 include_incomplete,
                 generation=boundary.generation,
@@ -995,6 +961,7 @@ class Bundle:
                 policy_revision=int(boundary.control["policy_revision"]),
                 file_cache=boundary.file_cache,
             )
+            yield snapshot, boundary.generation
 
     def _ingestion_uses_frozen_governance(self) -> bool:
         local_receipt = (self.root / "ingestion-receipt.json").is_file()

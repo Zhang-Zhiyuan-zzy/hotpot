@@ -54,6 +54,23 @@ def _selection_bundle(tmp_path: Path, size: int) -> Bundle:
                     "approved": True,
                 }
             ]
+        elif index == 1:
+            case["attestations"] = [
+                {
+                    "attestation_id": "attestation-missing-authority",
+                    "actor": "supplier@example.test",
+                    "approved": False,
+                }
+            ]
+        elif index == 3:
+            case["attestations"] = [
+                {
+                    "attestation_id": "attestation-numeric-authority",
+                    "authority": 1,
+                    "actor": "supplier@example.test",
+                    "approved": False,
+                }
+            ]
         cases.append(case)
     intake.write_text(
         "".join(json.dumps(case) + "\n" for case in cases),
@@ -228,6 +245,110 @@ def test_derived_case_filters_use_indexed_selection_and_stable_order(
         ).fetchall()
     assert any(
         "case_assessments_archive_selection" in str(row[3]) for row in plan
+    )
+
+
+def test_sealed_selection_uses_one_complete_operation_boundary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 12)
+    bundle.write_certificate()
+    bundle.ingest()
+    calls = Counter()
+    original_source = BundleState._compute_source_proof
+    original_open = AssessmentGeneration._open_without_lease.__func__
+    original_snapshot = Bundle._ingestion_snapshot
+    original_reader = AssessmentGeneration._reader_without_lease
+    original_select = _AssessmentReader.select_cases
+
+    def counted_source(*args, **kwargs):
+        calls["source"] += 1
+        return original_source(*args, **kwargs)
+
+    def counted_open(cls, *args, **kwargs):
+        calls["generation"] += 1
+        return original_open(cls, *args, **kwargs)
+
+    def counted_snapshot(self, *args, **kwargs):
+        calls["receipt_projection"] += 1
+        return original_snapshot(self, *args, **kwargs)
+
+    @contextmanager
+    def counted_reader(self):
+        calls["reader"] += 1
+        with original_reader(self) as reader:
+            yield reader
+
+    def counted_select(self, criteria):
+        calls["indexed_selection"] += 1
+        yield from original_select(self, criteria)
+
+    monkeypatch.setattr(BundleState, "_compute_source_proof", counted_source)
+    monkeypatch.setattr(
+        AssessmentGeneration, "_open_without_lease", classmethod(counted_open)
+    )
+    monkeypatch.setattr(Bundle, "_ingestion_snapshot", counted_snapshot)
+    monkeypatch.setattr(
+        AssessmentGeneration, "_reader_without_lease", counted_reader
+    )
+    monkeypatch.setattr(_AssessmentReader, "select_cases", counted_select)
+
+    selected = bundle.cases.select(archive_class="benchmark")
+
+    assert [case.id for case in selected] == [
+        f"case-{index}" for index in range(0, 12, 2)
+    ]
+    assert calls == {
+        "source": 1,
+        "generation": 1,
+        "receipt_projection": 1,
+        "reader": 2,
+        "indexed_selection": 1,
+    }
+
+
+def test_fact_facets_are_filtered_by_generation_indexes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 12)
+    statements = []
+    original_select = _AssessmentReader.select_cases
+
+    def traced_select(self, criteria):
+        self._connection.set_trace_callback(statements.append)
+        yield from original_select(self, criteria)
+
+    def reject_payload(_case_id):
+        raise AssertionError("facet selection loaded canonical Case payloads")
+
+    monkeypatch.setattr(_AssessmentReader, "select_cases", traced_select)
+    monkeypatch.setattr(bundle, "_case_payload", reject_payload)
+
+    attested = bundle.cases.select(attestation="User")
+    reasoned = bundle.cases.select(reason="structure_chemistry_not_checked")
+
+    assert [case.id for case in attested] == [
+        f"case-{index}" for index in range(0, 12, 2)
+    ]
+    assert [case.id for case in bundle.cases.select(attestation=None)] == ["case-1"]
+    assert [case.id for case in bundle.cases.select(attestation=True)] == ["case-3"]
+    assert len(reasoned) == 12
+    assert any("case_attestations AS facet" in statement for statement in statements)
+    assert any("case_reason_codes AS facet" in statement for statement in statements)
+
+    generation = bundle._require_generation()
+    with generation._reader() as reader:
+        plan = reader._connection.execute(
+            "EXPLAIN QUERY PLAN "
+            "SELECT case_id FROM case_assessments WHERE EXISTS ("
+            "SELECT 1 FROM case_attestations AS facet WHERE "
+            "facet.public_index=case_assessments.public_index AND "
+            "facet.case_id=case_assessments.case_id AND facet.value_key IN (?))",
+            ("json:\"User\"",),
+        ).fetchall()
+    assert any(
+        "value_key=? AND public_index=? AND case_id=?" in str(row[3])
+        for row in plan
     )
 
 

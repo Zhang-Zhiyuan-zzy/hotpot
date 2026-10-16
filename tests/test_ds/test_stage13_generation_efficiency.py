@@ -176,6 +176,9 @@ class _SelectCounter:
             self.selects.append(" ".join(statement.split()))
         return self.connection.execute(statement, parameters)
 
+    def executemany(self, statement: str, parameters):
+        return self.connection.executemany(statement, parameters)
+
 
 @pytest.mark.parametrize("size", [3, 24])
 def test_case_support_queries_are_bounded_independent_of_case_count(
@@ -481,6 +484,18 @@ def _reference_ordered_digest(connection: sqlite3.Connection) -> str:
             digest.update(len(encoded).to_bytes(8, "big"))
             digest.update(encoded)
     return digest.hexdigest()
+
+
+def test_runtime_protocol_matches_generation_schema_and_digest_order() -> None:
+    protocol = runtime_policy()["assessment"]["store_protocol"]
+
+    assert (
+        protocol["sqlite_user_version"]
+        == generation_module._DATABASE_SCHEMA_VERSION
+    )
+    assert protocol["ordered_digest_tables"] == [
+        table for table, _query in _DIGEST_QUERIES
+    ]
 
 
 def test_generation_products_match_reference_with_two_case_scans_and_no_vacuum(

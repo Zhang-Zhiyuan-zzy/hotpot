@@ -664,6 +664,15 @@ root. Synchronization creates an immutable assessment generation with separate
 derived indexes for incomplete, ordinary, and benchmark Cases. The root
 certificate is always `certificate.json`.
 
+After the release has an authoritative target receipt, run
+`hotpot ds bundle rm --all` from the Bundle root to remove reproducible working
+facts, assessment generations, caches, and declared migration products. The
+command proves the compact formal-store facts and assets before deletion,
+retains original intake/evidence and governance records, and writes
+`bundle-cleanup.json`. A cleaned Bundle is deliberately not a live editable
+Bundle; the installed `Dataset`/`Data` release remains fully readable from the
+formal store.
+
 Generation leases and garbage collection are private lifecycle details, not
 additional public API. Reads, certification, and ingestion hold shared OS
 locks. Maintenance retains the current, certificate-bound, receipt-bound, and

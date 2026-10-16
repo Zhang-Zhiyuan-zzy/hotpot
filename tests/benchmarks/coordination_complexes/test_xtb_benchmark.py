@@ -11,7 +11,10 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
+from hotpot.cheminfo.calculator.contracts import (
+    MolecularFactsIdentity,
+    StatePolicy,
+)
 from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
 from hotpot.plugins.xtb import XTBMethod, XTBTask
 
@@ -22,6 +25,8 @@ from .xtb_benchmark import (
     XTBBenchmarkConfig,
     XTBRoute,
     _route_summary,
+    _requested_state,
+    _execute_xtb_stage,
     _run_route,
     _thread_environment,
     _validate_source_identity,
@@ -169,6 +174,7 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
     def fake_execute(
         mol,
         method,
+        target,
         scientific_state,
         config,
         work_directory,
@@ -201,12 +207,14 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
     direct = _run_route(
         source_mol,
         XTBRoute.DIRECT_GFN2,
+        BenchmarkTarget.LIGAND,
         config,
         tmp_path / "direct",
     )
     chain = _run_route(
         source_mol,
         XTBRoute.GFNFF_GFN2,
+        BenchmarkTarget.LIGAND,
         config,
         tmp_path / "chain",
     )
@@ -231,6 +239,76 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
         (tmp_path / "chain/report.json").read_text(encoding="utf-8")
     )["quality"]["passed"] is True
     assert _thread_environment(4)["OMP_NUM_THREADS"] == "4"
+
+
+def test_benchmark_uses_explicit_target_specific_state_requests() -> None:
+    config = XTBBenchmarkConfig()
+
+    assert _requested_state(config, BenchmarkTarget.LIGAND) == (0, 0)
+    assert _requested_state(config, BenchmarkTarget.COMPLEX) == (3, 6)
+
+
+@pytest.mark.parametrize(
+    (
+        "method",
+        "target",
+        "carried_state",
+        "expected_charge",
+        "expected_uhf",
+    ),
+    (
+        (XTBMethod.GFN2_XTB, BenchmarkTarget.LIGAND, None, 0, 0),
+        (XTBMethod.GFNFF, BenchmarkTarget.COMPLEX, None, 3, None),
+        (XTBMethod.GFN2_XTB, BenchmarkTarget.COMPLEX, "carried", None, 6),
+    ),
+)
+def test_benchmark_resolves_strict_explicit_state_before_execution(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    method: XTBMethod,
+    target: BenchmarkTarget,
+    carried_state,
+    expected_charge,
+    expected_uhf,
+) -> None:
+    import tests.benchmarks.coordination_complexes.xtb_benchmark as benchmark
+
+    observed = {}
+    projection = object()
+
+    def fake_resolve(mol, selected_method, **options):
+        observed.update(method=selected_method, **options)
+        return SimpleNamespace(
+            scientific_state="resolved",
+            projection=projection,
+        )
+
+    def fake_run(mol, **options):
+        assert options["state"] is projection
+        return _fake_report(method)
+
+    monkeypatch.setattr(benchmark, "resolve_xtb_state", fake_resolve)
+    monkeypatch.setattr(
+        benchmark,
+        "run_gfnff" if method is XTBMethod.GFNFF else "run_gfn_xtb",
+        fake_run,
+    )
+
+    _, resolved_state = _execute_xtb_stage(
+        _water(),
+        method,
+        target,
+        carried_state,
+        XTBBenchmarkConfig(executable=Path("/opt/xtb/bin/xtb")),
+        tmp_path,
+    )
+
+    assert resolved_state == "resolved"
+    assert observed["method"] is method
+    assert observed["charge"] == expected_charge
+    assert observed["uhf"] == expected_uhf
+    assert observed["policy"] is StatePolicy.STRICT
+    assert observed["carried_state"] == carried_state
 
 
 def test_route_summary_keeps_target_denominators_and_missing_sources_visible() -> None:

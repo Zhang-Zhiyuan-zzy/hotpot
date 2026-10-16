@@ -110,6 +110,10 @@ class XTBBenchmarkConfig:
     threads: int = 4
     timeout_seconds: float = 1000.0
     quality_level: str = "standard"
+    ligand_charge: int = 0
+    ligand_uhf: int = 0
+    complex_charge: int = 3
+    complex_uhf: int = 6
     executable: Optional[Path] = None
 
 
@@ -154,6 +158,13 @@ def _positive_int(value: str) -> int:
     parsed = int(value)
     if parsed < 1:
         raise argparse.ArgumentTypeError("value must be a positive integer")
+    return parsed
+
+
+def _nonnegative_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("value must be a nonnegative integer")
     return parsed
 
 
@@ -270,19 +281,21 @@ def _evaluate_quality(
 def _execute_xtb_stage(
     mol: "Molecule",
     method: XTBMethod,
+    target: BenchmarkTarget,
     scientific_state: Optional[ScientificStateBundle],
     config: XTBBenchmarkConfig,
     work_directory: Path,
 ) -> tuple[XTBRunReport, ScientificStateBundle]:
     environment = _thread_environment(config.threads)
+    charge, uhf = _requested_state(config, target)
     resolved = resolve_xtb_state(
         mol,
         method,
         executable=config.executable,
         environment=environment,
-        charge=None,
-        uhf=None,
-        policy=StatePolicy.COORDINATION_SCREENING_V1,
+        charge=charge if scientific_state is None else None,
+        uhf=uhf if method is not XTBMethod.GFNFF else None,
+        policy=StatePolicy.STRICT,
         carried_state=scientific_state,
     )
     common_options = {
@@ -397,9 +410,19 @@ def _failure_payload(
     }
 
 
+def _requested_state(
+    config: XTBBenchmarkConfig,
+    target: BenchmarkTarget,
+) -> tuple[int, int]:
+    if target is BenchmarkTarget.LIGAND:
+        return config.ligand_charge, config.ligand_uhf
+    return config.complex_charge, config.complex_uhf
+
+
 def _run_stage(
     mol: "Molecule",
     method: XTBMethod,
+    target: BenchmarkTarget,
     scientific_state: Optional[ScientificStateBundle],
     config: XTBBenchmarkConfig,
     stage_directory: Path,
@@ -410,6 +433,7 @@ def _run_stage(
         report, scientific_state = _execute_xtb_stage(
             mol,
             method,
+            target,
             scientific_state,
             config,
             stage_directory / "native",
@@ -458,6 +482,7 @@ def _route_methods(route: XTBRoute) -> tuple[XTBMethod, ...]:
 def _run_route(
     source_mol: "Molecule",
     route: XTBRoute,
+    target: BenchmarkTarget,
     config: XTBBenchmarkConfig,
     route_directory: Path,
 ) -> dict[str, object]:
@@ -478,6 +503,7 @@ def _run_route(
             stage, scientific_state = _run_stage(
                 working_mol,
                 method,
+                target,
                 scientific_state,
                 config,
                 stage_directory,
@@ -588,6 +614,7 @@ def _target_record(
         route.value: _run_route(
             source_mol,
             route,
+            target,
             config,
             target_directory / route.value,
         )
@@ -597,7 +624,10 @@ def _target_record(
         "status": "completed",
         "source": str(source_path),
         "atom_count": len(source_mol.atoms),
-        "state_policy": StatePolicy.COORDINATION_SCREENING_V1.value,
+        "state_policy": StatePolicy.STRICT.value,
+        "requested_state": dict(
+            zip(("charge", "uhf"), _requested_state(config, target))
+        ),
         "routes": routes,
     }
     write_json(target_directory / "report.json", payload)
@@ -764,6 +794,10 @@ def _manifest_payload(
             "threads_per_worker": config.threads,
             "timeout_seconds": config.timeout_seconds,
             "quality_level": config.quality_level,
+            "ligand_charge": config.ligand_charge,
+            "ligand_uhf": config.ligand_uhf,
+            "complex_charge": config.complex_charge,
+            "complex_uhf": config.complex_uhf,
             "task": XTBTask.OPTIMIZE.value,
         },
     }
@@ -930,6 +964,10 @@ def run_benchmark(
         threads=config.threads,
         timeout_seconds=config.timeout_seconds,
         quality_level=config.quality_level,
+        ligand_charge=config.ligand_charge,
+        ligand_uhf=config.ligand_uhf,
+        complex_charge=config.complex_charge,
+        complex_uhf=config.complex_uhf,
         executable=backend_info.executable,
     )
 
@@ -1058,6 +1096,10 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("basic", "standard", "strict"),
         default="standard",
     )
+    parser.add_argument("--ligand-charge", type=int, default=0)
+    parser.add_argument("--ligand-uhf", type=_nonnegative_int, default=0)
+    parser.add_argument("--complex-charge", type=int, default=3)
+    parser.add_argument("--complex-uhf", type=_nonnegative_int, default=6)
     parser.add_argument("--xtb-executable", type=Path)
     parser.add_argument("--resume", action="store_true")
     return parser
@@ -1088,6 +1130,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         threads=arguments.threads,
         timeout_seconds=arguments.timeout,
         quality_level=arguments.quality,
+        ligand_charge=arguments.ligand_charge,
+        ligand_uhf=arguments.ligand_uhf,
+        complex_charge=arguments.complex_charge,
+        complex_uhf=arguments.complex_uhf,
         executable=arguments.xtb_executable,
     )
     summary = run_benchmark(

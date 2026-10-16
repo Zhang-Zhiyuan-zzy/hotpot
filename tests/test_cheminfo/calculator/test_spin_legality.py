@@ -92,6 +92,38 @@ def test_illegal_spin_states_return_reason_coded_findings(
     assert assessment.findings[0].code == code
 
 
+@pytest.mark.parametrize(
+    ("smiles", "charge", "two_s", "code"),
+    (
+        ("[H+]", 2, 0, "HARD-006.NEGATIVE_ELECTRON_COUNT"),
+        ("[NH4+]", 1, 11, "HARD-006.TWO_S_OUT_OF_RANGE"),
+        ("[O-]", -1, 10, "HARD-006.TWO_S_OUT_OF_RANGE"),
+        ("[NH4+]", 1, 1, "HARD-006.PARITY_MISMATCH"),
+        ("[O-]", -1, 0, "HARD-006.PARITY_MISMATCH"),
+    ),
+)
+def test_ionic_spin_states_obey_electron_bounds_and_parity(
+    smiles: str,
+    charge: int,
+    two_s: int,
+    code: str,
+) -> None:
+    facts = extract_molecular_facts(hotpot.read_mol(smiles, "smi"))
+    electron_count = facts.nuclear_charge_sum - charge
+
+    assessment = _validate_molecular_spin(
+        facts,
+        _charge(charge),
+        electron_count=electron_count,
+        two_s=two_s,
+        multiplicity=two_s + 1,
+        pure_spin=True,
+    )
+
+    assert assessment.admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert assessment.findings[0].code == code
+
+
 def test_non_pure_spin_candidate_does_not_invent_multiplicity() -> None:
     facts = extract_molecular_facts(hotpot.read_mol("[N]", "smi"))
 

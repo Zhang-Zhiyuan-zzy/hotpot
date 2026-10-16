@@ -78,6 +78,7 @@ _SEMANTIC_SYMBOLS = {
         "_frame",
         "_file_stamp",
         "_source_path_observation",
+        "_stable_file_hash",
         "_digest_file",
         "_control_asset_source_binding",
         "_compute_source_proof_rows",
@@ -169,7 +170,7 @@ _PARSER_FORMATS = ("mol", "mol2", "sdf", "smi", "smiles", "xyz")
 
 _ASSESSMENT_STORE_PROTOCOL = {
     "schema": ASSESSMENT_STORE_PROTOCOL_SCHEMA,
-    "facts_sqlite_user_version": 3,
+    "facts_sqlite_user_version": 4,
     "source_proof_schema": "hotpot-ds-source-proof/current",
     "sqlite_user_version": 1,
     "ordered_digest_tables": [
@@ -657,7 +658,7 @@ def validate_frozen_runtime_policy(value: Mapping[str, Any]) -> dict[str, Any]:
         raise PolicyProtocolError("assessment store protocol schema is not current")
     if type(store["sqlite_user_version"]) is not int or store["sqlite_user_version"] < 1:
         raise PolicyProtocolError("assessment store version is invalid")
-    if store["facts_sqlite_user_version"] != 3:
+    if store["facts_sqlite_user_version"] != 4:
         raise PolicyProtocolError("facts store version is invalid")
     if store["source_proof_schema"] != "hotpot-ds-source-proof/current":
         raise PolicyProtocolError("source proof schema is not current")

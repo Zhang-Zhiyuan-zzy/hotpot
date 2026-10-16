@@ -191,6 +191,34 @@ def test_projection_append_fails_closed_and_explicit_refresh_repairs_it(
     assert projected[-1]["action"] == "metadata_changed"
 
 
+def test_same_size_projection_tamper_is_stale_and_cannot_be_appended(
+    tmp_path: Path,
+) -> None:
+    state = _build(_root(tmp_path))
+    projection = state.root / "audit" / "events.jsonl"
+    original = projection.read_bytes()
+    replacement = bytes([original[0] ^ 1]) + original[1:]
+    assert len(replacement) == len(original)
+    projection.write_bytes(replacement)
+
+    assert state.status["audit_projection_current"] is False
+
+    def edit(case):
+        case["metadata"]["note"] = "committed"
+        return {}, None
+
+    result = state.mutate_case("case-0", "metadata_changed", edit)
+    assert result["audit_projection_updated"] is False
+    assert state.status["audit_projection_current"] is False
+
+    state.refresh_audit_projection()
+    status = state.status
+    assert status["audit_projection_current"] is True
+    assert status["audit_projection_digest"] == hashlib.sha256(
+        projection.read_bytes()
+    ).hexdigest()
+
+
 def test_projection_is_stale_if_process_stops_before_append(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -334,10 +362,10 @@ def test_source_proof_hashes_each_declared_control_once_and_observes_cases_once(
     assert state.manifest["control_assets"][0]["path"] == "assets/shared.smi"
 
 
-def test_open_rejects_schema_v2_without_compatibility(tmp_path: Path) -> None:
+def test_open_rejects_schema_v3_without_compatibility(tmp_path: Path) -> None:
     state = _build(_root(tmp_path))
     with sqlite3.connect(state.path) as connection:
-        connection.execute("PRAGMA user_version=2")
+        connection.execute("PRAGMA user_version=3")
 
     with pytest.raises(BundleStateError, match="current schema"):
         BundleState.open(state.root, "state-efficiency")
@@ -498,7 +526,7 @@ def test_batched_build_publishes_canonical_equivalent_facts(
     assert build_proofs == [True]
 
     with state.connect() as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 4
         rows = connection.execute(
             "SELECT case_id,public_index,payload_json FROM cases "
             "ORDER BY public_index,case_id"

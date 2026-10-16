@@ -35,7 +35,7 @@ from ._implementation import (
 
 
 BUNDLE_SCHEMA = "hotpot-ds-bundle/current"
-_DATABASE_SCHEMA_VERSION = 3
+_DATABASE_SCHEMA_VERSION = 4
 _SOURCE_PROOF_SCHEMA = "hotpot-ds-source-proof/current"
 _SOURCE_DIGEST_STATES = frozenset({"current", "dirty"})
 _CASE_INSERT_BATCH_SIZE = 512
@@ -514,7 +514,9 @@ def _source_path_observation(
     return "present", stamp
 
 
-def _digest_file(path: Path) -> tuple[str, int]:
+def _stable_file_hash(
+    path: Path,
+) -> tuple["hashlib._Hash", int, tuple[int, int, int, int, int, int]]:
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
     try:
         descriptor = os.open(path, flags)
@@ -543,6 +545,11 @@ def _digest_file(path: Path) -> tuple[str, int]:
         or live_stamp != after_stamp
     ):
         raise BundleStateError(f"source asset changed while hashing: {path}")
+    return hasher, size, after_stamp
+
+
+def _digest_file(path: Path) -> tuple[str, int]:
+    hasher, size, _ = _stable_file_hash(path)
     return hasher.hexdigest(), size
 
 
@@ -873,6 +880,7 @@ class BundleState:
                 projection_path = state._write_audit_projection_rows(
                     [projection_row]
                 )
+                projection_digest, projection_size = _digest_file(projection_path)
                 connection.execute(
                     """
                     INSERT INTO control(
@@ -882,15 +890,16 @@ class BundleState:
                         governance_registry_revision,
                         governance_registry_digest,
                         audit_revision, audit_projection_revision,
-                        audit_projection_size
-                    ) VALUES (1, 0, ?, 'current', 0, ?, ?, ?, 1, 1, ?)
+                        audit_projection_size, audit_projection_digest
+                    ) VALUES (1, 0, ?, 'current', 0, ?, ?, ?, 1, 1, ?, ?)
                     """,
                     (
                         source_digest,
                         policy_digest,
                         governance_revision,
                         governance_digest,
-                        projection_path.stat().st_size,
+                        projection_size,
+                        projection_digest,
                     ),
                 )
                 connection.execute(
@@ -1157,12 +1166,14 @@ class BundleState:
         )
         projection = self.root / "audit" / "events.jsonl"
         try:
-            projection_size = projection.stat().st_size
-        except OSError:
+            projection_digest, projection_size = _digest_file(projection)
+        except BundleStateError:
+            projection_digest = None
             projection_size = None
         status["audit_projection_current"] = bool(
             status["audit_revision"] == status["audit_projection_revision"]
             and projection_size == status["audit_projection_size"]
+            and projection_digest == status["audit_projection_digest"]
         )
         status.pop("singleton", None)
         return _json_copy(status)
@@ -1663,10 +1674,12 @@ class BundleState:
                     )
                 ]
                 path = self._write_audit_projection_rows(rows)
+                digest, size = _digest_file(path)
                 connection.execute(
                     "UPDATE control SET audit_projection_revision=?,"
-                    "audit_projection_size=? WHERE singleton=1",
-                    (revision, path.stat().st_size),
+                    "audit_projection_size=?,audit_projection_digest=? "
+                    "WHERE singleton=1",
+                    (revision, size, digest),
                 )
                 connection.commit()
             except Exception:
@@ -1716,33 +1729,73 @@ class BundleState:
             try:
                 control = connection.execute(
                     "SELECT audit_revision,audit_projection_revision,"
-                    "audit_projection_size FROM control WHERE singleton=1"
+                    "audit_projection_size,audit_projection_digest "
+                    "FROM control WHERE singleton=1"
                 ).fetchone()
                 try:
-                    current_size = path.stat().st_size
-                except OSError:
+                    current_hasher, current_size, current_stamp = _stable_file_hash(
+                        path
+                    )
+                    current_digest = current_hasher.hexdigest()
+                except BundleStateError:
+                    current_digest = None
                     current_size = None
+                    current_stamp = None
                 if (
                     control["audit_revision"] != revision
                     or control["audit_projection_revision"]
                     != expected_previous_revision
                     or current_size != control["audit_projection_size"]
+                    or current_digest != control["audit_projection_digest"]
                 ):
                     connection.rollback()
                     return False
-                with path.open("ab", buffering=0) as stream:
-                    stream.write(content)
-                    os.fsync(stream.fileno())
-                new_size = current_size + len(content)
+                flags = os.O_WRONLY | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0)
+                try:
+                    descriptor = os.open(path, flags)
+                except OSError:
+                    connection.rollback()
+                    return False
+                try:
+                    if _file_stamp(os.fstat(descriptor)) != current_stamp:
+                        connection.rollback()
+                        return False
+                    with os.fdopen(
+                        descriptor, "ab", buffering=0, closefd=False
+                    ) as stream:
+                        written = stream.write(content)
+                        os.fsync(stream.fileno())
+                finally:
+                    os.close(descriptor)
+                expected_hasher = current_hasher.copy()
+                expected_hasher.update(content)
+                try:
+                    new_digest, new_size = _digest_file(path)
+                except BundleStateError:
+                    connection.rollback()
+                    return False
+                if (
+                    written != len(content)
+                    or new_size != current_size + len(content)
+                    or new_digest != expected_hasher.hexdigest()
+                ):
+                    connection.rollback()
+                    return False
                 changed = connection.execute(
                     "UPDATE control SET audit_projection_revision=?,"
-                    "audit_projection_size=? WHERE singleton=1 "
-                    "AND audit_revision=? AND audit_projection_revision=?",
+                    "audit_projection_size=?,audit_projection_digest=? "
+                    "WHERE singleton=1 AND audit_revision=? "
+                    "AND audit_projection_revision=? "
+                    "AND audit_projection_size=? "
+                    "AND audit_projection_digest=?",
                     (
                         revision,
                         new_size,
+                        new_digest,
                         revision,
                         expected_previous_revision,
+                        current_size,
+                        current_digest,
                     ),
                 ).rowcount
                 if changed != 1:
@@ -1765,7 +1818,7 @@ class BundleState:
             PRAGMA foreign_keys=ON;
             PRAGMA journal_mode=DELETE;
             PRAGMA synchronous=FULL;
-            PRAGMA user_version=3;
+            PRAGMA user_version=4;
 
             CREATE TABLE metadata(
                 key TEXT PRIMARY KEY,
@@ -1796,6 +1849,11 @@ class BundleState:
                     CHECK(audit_projection_revision >= 0),
                 audit_projection_size INTEGER NOT NULL
                     CHECK(audit_projection_size >= 0),
+                audit_projection_digest TEXT NOT NULL
+                    CHECK(
+                        length(audit_projection_digest)=64
+                        AND audit_projection_digest NOT GLOB '*[^0-9a-f]*'
+                    ),
                 CHECK(
                     (source_digest_state='current' AND source_digest IS NOT NULL)
                     OR (source_digest_state='dirty' AND source_digest IS NULL)

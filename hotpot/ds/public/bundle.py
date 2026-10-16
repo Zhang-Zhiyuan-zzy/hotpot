@@ -562,37 +562,29 @@ class Bundle:
         reason: Optional[str] = None,
     ) -> Dict[str, Any]:
         with self._locked():
-            require_current_runtime_policy(self._state.policy["runtime_policy"])
             if not self.certificate_path.is_file():
                 raise MissingCertificateError(
                     "No current Bundle certificate exists; run bundle.write_certificate() "
                     "or hotpot ds certify first."
                 )
-            from .certificate import certificate_digest, verify_bundle_certificate
-
-            generation = self._require_generation()
-            with generation.lease():
-                verify_bundle_certificate(self)
-                snapshot = self._ingestion_snapshot(
-                    certificate_digest(self.certificate_path),
-                    include_incomplete,
-                    generation=generation,
-                )
-                result = TargetStore(self._database).ingest(
+            snapshot = self._certified_ingestion_snapshot(include_incomplete)
+            result = TargetStore(self._database).ingest(
+                snapshot,
+                include_incomplete=include_incomplete,
+                reason=reason,
+                _precommit_check=lambda: self._assert_ingestion_snapshot_current(
                     snapshot,
                     include_incomplete=include_incomplete,
-                    reason=reason,
-                    _precommit_check=lambda: self._assert_ingestion_snapshot_current(
-                        snapshot,
-                        include_incomplete=include_incomplete,
-                    ),
-                )
+                ),
+            )
             projection = result.to_dict()
             projection["receipt_digest"] = hashlib.sha256(
                 canonical_json(projection).encode("utf-8")
             ).hexdigest()
             _atomic_json(self.root / "ingestion-receipt.json", projection)
-            self._collect_generation_garbage()
+            self._collect_generation_garbage(
+                current_reference=tuple(snapshot["generation_reference"])
+            )
             return projection
 
     def _case_ids(self) -> tuple[str, ...]:
@@ -983,19 +975,84 @@ class Bundle:
             ),
         )
 
+    def _certified_ingestion_snapshot(
+        self, include_incomplete: bool
+    ) -> Dict[str, Any]:
+        from .certificate import _verified_certificate_boundary
+
+        with _verified_certificate_boundary(
+            self,
+            frozen_governance=self._ingestion_uses_frozen_governance(),
+        ) as boundary:
+            return self._ingestion_snapshot(
+                boundary.certificate_digest,
+                include_incomplete,
+                generation=boundary.generation,
+                manifest=boundary.manifest,
+                policy=boundary.policy,
+                target_context=boundary.target_context,
+                source_digest=boundary.source_digest,
+                policy_revision=int(boundary.control["policy_revision"]),
+                file_cache=boundary.file_cache,
+            )
+
+    def _ingestion_uses_frozen_governance(self) -> bool:
+        local_receipt = (self.root / "ingestion-receipt.json").is_file()
+        if not self._database.is_file():
+            if local_receipt:
+                raise SealedIntegrityError(
+                    "the authoritative target for a locally recorded sealed "
+                    "release is missing"
+                )
+            return False
+        try:
+            release = TargetStore(self._database).load_release_metadata(
+                self.name, self._state.manifest["release_id"]
+            )
+        except Exception as error:
+            raise SealedIntegrityError(
+                "the authoritative target store cannot be verified"
+            ) from error
+        receipt = None if release is None else release.get("receipt")
+        if receipt is None and local_receipt:
+            raise SealedIntegrityError(
+                "the authoritative target has lost the locally recorded "
+                "sealed release"
+            )
+        return receipt is not None
+
     def _ingestion_snapshot(
         self,
         certificate_sha256: str,
         include_incomplete: bool,
         *,
         generation: Optional[Any] = None,
+        manifest: Optional[Mapping[str, Any]] = None,
+        policy: Optional[Mapping[str, Any]] = None,
+        target_context: Optional[Mapping[str, Any]] = None,
+        source_digest: Optional[str] = None,
+        policy_revision: Optional[int] = None,
+        file_cache: Optional[Any] = None,
     ) -> Dict[str, Any]:
         generation = self._require_generation() if generation is None else generation
+        state_status = None
+        if (
+            manifest is None
+            or policy is None
+            or target_context is None
+            or source_digest is None
+            or policy_revision is None
+        ):
+            state_status = self._state.status
+            manifest = self._state.manifest
+            policy = self._state.policy
+            target_context = self._state.target_context
+            source_digest = state_status["source_digest"]
+            policy_revision = state_status["policy_revision"]
         included_ids = []
         excluded_ids = []
         asset_inventory: Dict[str, int] = {}
-        file_cache = _FileDigestCache()
-        manifest = self._state.manifest
+        file_cache = _FileDigestCache() if file_cache is None else file_cache
         control_assets = _target_control_asset_descriptors(
             self.root, generation, manifest, file_cache=file_cache
         )
@@ -1019,26 +1076,24 @@ class Bundle:
                     yield self._ingestion_case_projection(case, assessment)
 
         content_digest = case_content_digest(content_rows())
-        state_status = self._state.status
         bundle_digest = canonical_digest(
             {
                 "manifest": manifest,
-                "source_digest": state_status["source_digest"],
-                "policy_digest": state_status["policy_digest"],
+                "source_digest": source_digest,
+                "policy_digest": canonical_digest(policy),
                 "generation_digest": generation.digest,
             }
         )
-        policy = self._state.policy
         current_policy = None
         if self._database.is_file():
             current_policy = TargetStore(self._database).read_policy(self.name)
-        policy_revision = (
+        target_policy_revision = (
             current_policy["revision"]
             if current_policy is not None
-            else state_status["policy_revision"] + 1
+            else policy_revision + 1
         )
         return {
-            "target_context": self._state.target_context,
+            "target_context": target_context,
             "bundle": {
                 "dataset": self.name,
                 "release": manifest["release_id"],
@@ -1055,7 +1110,7 @@ class Bundle:
                 },
             },
             "policy": {
-                "revision": policy_revision,
+                "revision": target_policy_revision,
                 "digest": canonical_digest(policy),
                 "value": policy,
             },
@@ -1072,6 +1127,7 @@ class Bundle:
                 ),
             },
             "control_assets": control_assets,
+            "generation_reference": (generation.id, generation.digest),
             "cases": self._iter_ingestion_cases(
                 generation, file_cache=file_cache
             ),
@@ -1091,16 +1147,7 @@ class Bundle:
         bound assets before the target transaction publishes the release.
         """
 
-        from .certificate import certificate_digest, verify_bundle_certificate
-
-        generation = self._require_generation()
-        verify_bundle_certificate(self)
-        current_certificate_digest = certificate_digest(self.certificate_path)
-        current = self._ingestion_snapshot(
-            current_certificate_digest,
-            include_incomplete,
-            generation=generation,
-        )
+        current = self._certified_ingestion_snapshot(include_incomplete)
         for section in ("target_context", "bundle", "policy", "digests"):
             if current[section] != snapshot[section]:
                 raise SealedIntegrityError(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -251,15 +252,28 @@ def test_case_collection_construction_and_selection_do_not_load_all_ids(
     ]
 
 
-def test_ingest_uses_three_bulk_scans_and_two_certificate_boundaries(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize("sealed_retry", [False, True])
+def test_ingest_uses_two_independent_consolidated_certificate_boundaries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sealed_retry: bool
 ) -> None:
     bundle = _selection_bundle(tmp_path, 6)
     bundle.write_certificate()
+    if sealed_retry:
+        bundle.ingest()
     scans = 0
-    certificate_proofs = 0
+    public_certificate_proofs = 0
+    source_proofs = 0
+    generation_opens = 0
+    canonical_captures = 0
+    bound_hashes: Counter[Path] = Counter()
+    state_status_reads = 0
     original_scan = _AssessmentReader.iter_cases
     original_verify = certificate_module.verify_bundle_certificate
+    original_source_proof = BundleState._compute_source_proof
+    original_open = AssessmentGeneration._open_without_lease.__func__
+    original_capture = certificate_module._capture_canonical_state
+    original_hash = certificate_module._stable_hash_file
+    original_status = BundleState.status.fget
 
     def counted_scan(self):
         nonlocal scans
@@ -267,9 +281,33 @@ def test_ingest_uses_three_bulk_scans_and_two_certificate_boundaries(
         yield from original_scan(self)
 
     def counted_verify(*args, **kwargs):
-        nonlocal certificate_proofs
-        certificate_proofs += 1
+        nonlocal public_certificate_proofs
+        public_certificate_proofs += 1
         return original_verify(*args, **kwargs)
+
+    def counted_source_proof(*args, **kwargs):
+        nonlocal source_proofs
+        source_proofs += 1
+        return original_source_proof(*args, **kwargs)
+
+    def counted_open(cls, *args, **kwargs):
+        nonlocal generation_opens
+        generation_opens += 1
+        return original_open(cls, *args, **kwargs)
+
+    def counted_capture(*args, **kwargs):
+        nonlocal canonical_captures
+        canonical_captures += 1
+        return original_capture(*args, **kwargs)
+
+    def counted_hash(path: Path):
+        bound_hashes[Path(path).resolve()] += 1
+        return original_hash(path)
+
+    def counted_status(self):
+        nonlocal state_status_reads
+        state_status_reads += 1
+        return original_status(self)
 
     def reject_point_read(self, case_id):
         raise AssertionError(f"per-Case assessment read used for {case_id}")
@@ -278,14 +316,31 @@ def test_ingest_uses_three_bulk_scans_and_two_certificate_boundaries(
     monkeypatch.setattr(
         certificate_module, "verify_bundle_certificate", counted_verify
     )
+    monkeypatch.setattr(BundleState, "_compute_source_proof", counted_source_proof)
+    monkeypatch.setattr(
+        AssessmentGeneration, "_open_without_lease", classmethod(counted_open)
+    )
+    monkeypatch.setattr(
+        certificate_module, "_capture_canonical_state", counted_capture
+    )
+    monkeypatch.setattr(certificate_module, "_stable_hash_file", counted_hash)
+    monkeypatch.setattr(BundleState, "status", property(counted_status))
     monkeypatch.setattr(AssessmentGeneration, "get_case", reject_point_read)
 
     result = bundle.ingest()
 
     assert result["included_count"] == 6
     assert result["excluded_count"] == 0
-    assert scans == 3
-    assert certificate_proofs == 2
+    assert scans == (2 if sealed_retry else 3)
+    assert canonical_captures == 2
+    assert source_proofs == 2
+    assert generation_opens == 2
+    assert public_certificate_proofs == 0
+    assert state_status_reads == 0
+    assert max(bound_hashes.values()) == 2
+    assert bound_hashes[(bundle.root / "certificate.json").resolve()] == 2
+    assert bound_hashes[(bundle.root / "cases" / "facts.sqlite3").resolve()] == 2
+    assert bound_hashes[(bundle.root / "structures" / "shared.smi").resolve()] == 2
 
     scans = 0
     assert bundle._authoritative_receipt() is not None
@@ -312,6 +367,24 @@ def test_ingestion_snapshot_hashes_one_shared_asset_once(
     list(snapshot["cases"])
 
     assert calls == 1
+
+
+def test_consolidated_ingest_boundary_still_requires_current_runtime_policy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 2)
+    bundle.write_certificate()
+
+    def reject_runtime(_policy):
+        raise RuntimeError("runtime policy is not current")
+
+    monkeypatch.setattr(
+        certificate_module, "require_current_runtime_policy", reject_runtime
+    )
+
+    with pytest.raises(RuntimeError, match="runtime policy is not current"):
+        bundle.ingest()
+    assert not bundle._database.exists()
 
 
 def test_ingestion_rejects_fact_assessment_count_mismatch(

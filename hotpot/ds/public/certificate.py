@@ -147,8 +147,12 @@ class _CertificationSnapshot:
     issued_at: str
     generation_directory: Optional[Path]
     generation_tree: tuple[tuple[str, _FileStamp], ...]
-    observed_files: tuple[_ObservedFile, ...]
-    absent_paths: tuple[Path, ...]
+    manifest: Mapping[str, Any]
+    policy: Mapping[str, Any]
+    control: Mapping[str, Any]
+    generation: Any
+    hasher: "_SnapshotHasher"
+    frozen_governance: bool
 
     def certificate(self) -> Dict[str, Any]:
         assets = json.loads(self.scientific_assets)
@@ -181,6 +185,42 @@ class _CertificationSnapshot:
             "issuer": self.issuer,
             "issued_at": self.issued_at,
         }
+
+
+@dataclass(frozen=True)
+class _VerifiedCertificateBoundary:
+    """One complete, immutable proof for a single caller trust boundary."""
+
+    certificate_digest: str
+    snapshot: _CertificationSnapshot
+
+    @property
+    def generation(self) -> Any:
+        return self.snapshot.generation
+
+    @property
+    def manifest(self) -> Mapping[str, Any]:
+        return self.snapshot.manifest
+
+    @property
+    def policy(self) -> Mapping[str, Any]:
+        return self.snapshot.policy
+
+    @property
+    def target_context(self) -> Mapping[str, Any]:
+        return json.loads(self.snapshot.target_context)
+
+    @property
+    def control(self) -> Mapping[str, Any]:
+        return self.snapshot.control
+
+    @property
+    def source_digest(self) -> str:
+        return self.snapshot.source_digest
+
+    @property
+    def file_cache(self) -> "_SnapshotHasher":
+        return self.snapshot.hasher
 
 
 def _file_stamp(metadata: os.stat_result) -> _FileStamp:
@@ -275,6 +315,29 @@ class _SnapshotHasher:
             )
         if existing is None:
             self._files[key] = ("", stamp.size, stamp)
+
+    def observe_prehashed(
+        self, path: Path, digest: str, size: int, stamp: _FileStamp
+    ) -> None:
+        """Record bytes already proved by an immutable-format validator."""
+
+        key = self._key(path)
+        existing = self._files.get(key)
+        if (
+            stamp.size != size
+            or (
+                existing is not None
+                and (
+                    existing[2] != stamp
+                    or existing[1] != size
+                    or (existing[0] and existing[0] != digest)
+                )
+            )
+        ):
+            raise CertificateIntegrityError(
+                f"certificate-bound file changed during validation: {path}"
+            )
+        self._files[key] = (digest, size, stamp)
 
     def observe_absent(self, path: Path) -> None:
         key = self._key(path)
@@ -648,7 +711,7 @@ def _manifest_snapshot(
 
 
 def _capture_canonical_state(
-    bundle: Any, hasher: _SnapshotHasher
+    bundle: Any, hasher: _SnapshotHasher, *, frozen_governance: bool = False
 ) -> tuple[
     Mapping[str, Any],
     Mapping[str, Any],
@@ -744,7 +807,11 @@ def _capture_canonical_state(
     hasher.observe_validated(bundle_manifest_path, manifest_after)
     assets = _asset_inventory_from_declarations(root, declarations, hasher)
     policy_digest = _digest_value(policy)
-    governance_revision, governance_digest = _trusted_governance_binding()
+    if frozen_governance:
+        governance_revision = control["synchronized_governance_registry_revision"]
+        governance_digest = control["synchronized_governance_registry_digest"]
+    else:
+        governance_revision, governance_digest = _trusted_governance_binding()
     synchronized = bool(
         control["current_generation_id"]
         and control["source_digest_state"] == "current"
@@ -822,8 +889,18 @@ def _capture_current_generation(
             raise CertificateIntegrityError(
                 "assessment generation changed during certification"
             )
+        declared = {
+            str(item["path"]): (str(item["sha256"]), int(item["size"]))
+            for item in generation.manifest["files"]
+        }
         for relative, stamp_value in after:
-            hasher.observe_validated(directory / relative, stamp_value)
+            binding = declared.get(relative)
+            if binding is None:
+                hasher.observe_validated(directory / relative, stamp_value)
+            else:
+                hasher.observe_prehashed(
+                    directory / relative, binding[0], binding[1], stamp_value
+                )
         yield generation, directory, after
 
 
@@ -912,12 +989,16 @@ def _capture_supplied_state(
 @contextmanager
 def _capture_certification_snapshot(
     bundle: Any,
+    *,
+    frozen_governance: bool = False,
 ) -> Iterator[_CertificationSnapshot]:
     root = Path(bundle.root).resolve()
     state = bundle._state
     hasher = _SnapshotHasher(root)
     if hasattr(state, "connect") and hasattr(state, "_stored_manifest"):
-        captured = _capture_canonical_state(bundle, hasher)
+        captured = _capture_canonical_state(
+            bundle, hasher, frozen_governance=frozen_governance
+        )
     else:
         captured = _capture_supplied_state(bundle, hasher)
     (
@@ -1002,8 +1083,12 @@ def _capture_certification_snapshot(
             issued_at=_utc_now(),
             generation_directory=generation_directory,
             generation_tree=generation_tree,
-            observed_files=hasher.observed_files,
-            absent_paths=hasher.absent_paths,
+            manifest=_json_copy(manifest),
+            policy=_json_copy(policy),
+            control=_json_copy(control),
+            generation=generation,
+            hasher=hasher,
+            frozen_governance=frozen_governance,
         )
         yield snapshot
 
@@ -1317,12 +1402,12 @@ def _assert_observations_current(snapshot: _CertificationSnapshot) -> None:
         raise CertificateIntegrityError(
             "assessment generation tree changed before certificate publication"
         )
-    for observed in snapshot.observed_files:
+    for observed in snapshot.hasher.observed_files:
         if _current_file_stamp(observed.path) != observed.stamp:
             raise CertificateIntegrityError(
                 f"certificate-bound file changed before publication: {observed.path}"
             )
-    for path in snapshot.absent_paths:
+    for path in snapshot.hasher.absent_paths:
         if os.path.lexists(path):
             raise CertificateIntegrityError(
                 f"certified-missing scientific asset appeared: {path}"
@@ -1368,7 +1453,15 @@ def _current_state_token(bundle: Any, snapshot: _CertificationSnapshot) -> _Stat
         finally:
             if "connection" in locals():
                 connection.close()
-        governance_revision, governance_digest = _trusted_governance_binding()
+        if snapshot.frozen_governance:
+            governance_revision = control[
+                "synchronized_governance_registry_revision"
+            ]
+            governance_digest = control[
+                "synchronized_governance_registry_digest"
+            ]
+        else:
+            governance_revision, governance_digest = _trusted_governance_binding()
         return _StateToken(
             manifest=_canonical_bytes(manifest),
             policy=_canonical_bytes(policy),
@@ -1467,6 +1560,41 @@ def write_bundle_certificate(bundle: Any) -> Path:
                 before_replace=lambda: _assert_snapshot_current(bundle, snapshot),
             )
             return path
+
+
+@contextmanager
+def _verified_certificate_boundary(
+    bundle: Any,
+    path: Optional[Union[str, Path]] = None,
+    *,
+    frozen_governance: bool = False,
+) -> Iterator[_VerifiedCertificateBoundary]:
+    """Prove certificate, source, and generation once for one trust boundary."""
+
+    root = Path(bundle.root).resolve()
+    supplied = root / "certificate.json" if path is None else Path(path)
+    certificate_root, certificate_path = _root_certificate(supplied)
+    if certificate_root != root:
+        raise CertificatePathError(
+            "certificate path does not name this Bundle's root certificate"
+        )
+    with _capture_certification_snapshot(
+        bundle, frozen_governance=frozen_governance
+    ) as snapshot:
+        certificate_sha256, _ = snapshot.hasher.digest(certificate_path)
+        envelope = load_certificate_envelope(certificate_path)
+        expected = snapshot.certificate()
+        expected["issued_at"] = envelope["certificate"]["issued_at"]
+        if envelope["certificate"] != expected:
+            raise CertificateIntegrityError(
+                "certificate differs from the current certified Bundle snapshot"
+            )
+        boundary = _VerifiedCertificateBoundary(
+            certificate_digest=certificate_sha256,
+            snapshot=snapshot,
+        )
+        yield boundary
+        _assert_snapshot_current(bundle, snapshot)
 
 
 def verify_bundle_certificate(

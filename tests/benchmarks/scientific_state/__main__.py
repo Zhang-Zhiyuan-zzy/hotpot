@@ -6,7 +6,11 @@ import argparse
 from pathlib import Path
 from typing import Optional, Sequence
 
-from .corpus import load_corpus, load_structure_registry
+from .corpus import (
+    load_corpus,
+    load_structure_registry,
+    load_topology_manifest,
+)
 from .runner import run_benchmark
 
 
@@ -19,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--smiles-corpus", type=Path)
     source.add_argument("--structure-registry", type=Path)
+    source.add_argument("--topology-manifest", type=Path)
     parser.add_argument("--structure-root", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
@@ -35,16 +40,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     parser = build_parser()
     arguments = parser.parse_args(argv)
-    if arguments.structure_registry is not None:
+    uses_structure_root = (
+        arguments.structure_registry is not None
+        or arguments.topology_manifest is not None
+    )
+    if uses_structure_root:
         if arguments.structure_root is None:
-            parser.error("--structure-registry requires --structure-root")
-        corpus = load_structure_registry(
-            arguments.structure_registry,
-            arguments.structure_root,
-        )
+            parser.error("file-backed corpora require --structure-root")
+        if arguments.structure_registry is not None:
+            corpus = load_structure_registry(
+                arguments.structure_registry,
+                arguments.structure_root,
+            )
+        else:
+            corpus = load_topology_manifest(
+                arguments.topology_manifest,
+                arguments.structure_root,
+            )
     else:
         if arguments.structure_root is not None:
-            parser.error("--structure-root is valid only with --structure-registry")
+            parser.error("--structure-root is valid only for file-backed corpora")
         corpus = load_corpus(arguments.smiles_corpus)
     summary = run_benchmark(
         corpus,

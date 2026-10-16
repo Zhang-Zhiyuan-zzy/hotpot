@@ -30,6 +30,26 @@ $ python -m tests.benchmarks.scientific_state \
     --output /tmp/hotpot-state-structures
 ```
 
+Run an independently reviewed topology manifest:
+
+```bash
+$ python -m tests.benchmarks.scientific_state \
+    --topology-manifest /path/to/coordination-topology.jsonl \
+    --structure-root /path/to/structure-assets \
+    --output /tmp/hotpot-state-topology
+```
+
+Each non-empty JSON Lines record must have exactly this structure:
+
+```json
+{"case_id":"eu-n","format":"mol2","store_path":"eu-n.mol2","source_sha256":"<64-hex-digest>","coordination_bonds":[[0,7],[0,12]]}
+```
+
+The atom pairs are zero-based indices into the digest-bound source file. Only
+these explicitly reviewed pairs are reconstructed as `DATIVE`; an existing
+edge on a declared pair is replaced, while all unlisted unknown metal bonds
+remain unknown. The manifest itself is also SHA-256-bound in `manifest.json`.
+
 Deterministic replay is enabled by default. `--no-replay` measures only the
 primary pass. `python_peak_bytes` is measured by `tracemalloc` and excludes
 Open Babel and other native allocations.

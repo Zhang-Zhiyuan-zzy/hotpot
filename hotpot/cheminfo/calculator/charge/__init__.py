@@ -9,9 +9,11 @@ from .contracts import (
     NetChargeResult,
 )
 from .net_charge import resolve_net_charge
+from .lewis import solve_main_group_lewis
 
 __all__ = [
     "resolve_net_charge",
+    "solve_main_group_lewis",
     "NetChargeCandidateEvidence",
     "AtomFormalChargeEvidence",
     "ComponentChargeEvidence",

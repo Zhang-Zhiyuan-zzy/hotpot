@@ -348,6 +348,42 @@ def test_same_size_projection_tamper_is_stale_and_cannot_be_appended(
     ).hexdigest()
 
 
+def test_policy_projection_status_detects_missing_and_same_size_tamper(
+    tmp_path: Path,
+) -> None:
+    state = _build(_root(tmp_path))
+    projection = state.root / "policy" / "policy.json"
+    original = projection.read_bytes()
+    assert state.status["policy_projection_current"] is True
+
+    projection.unlink()
+    assert state.status["policy_projection_current"] is False
+    state.write_policy_projection()
+    assert state.status["policy_projection_current"] is True
+
+    projection.write_bytes(bytes([original[0] ^ 1]) + original[1:])
+    assert projection.stat().st_size == len(original)
+    assert state.status["policy_projection_current"] is False
+
+
+def test_policy_projection_is_stale_if_database_commit_precedes_write_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    policy = state.policy
+    policy["gates"][0]["require_locator"] = False
+
+    def fail_projection_write(value):
+        raise OSError("simulated projection write failure")
+
+    monkeypatch.setattr(state, "_write_policy_projection_value", fail_projection_write)
+    with pytest.raises(OSError, match="projection write failure"):
+        state.mutate_policy(policy)
+
+    assert state.policy["gates"][0]["require_locator"] is False
+    assert state.status["policy_projection_current"] is False
+
+
 def test_projection_is_stale_if_process_stops_before_append(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

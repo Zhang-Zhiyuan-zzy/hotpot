@@ -1194,6 +1194,20 @@ class BundleState:
         status["runtime_policy_current"] = runtime_policy_is_current(
             policy_value.get("runtime_policy", {})
         )
+        policy_projection = self.root / "policy" / "policy.json"
+        expected_policy_projection = _canonical_bytes(policy_value) + b"\n"
+        try:
+            policy_projection_digest, policy_projection_size = _digest_file(
+                policy_projection
+            )
+        except BundleStateError:
+            policy_projection_digest = None
+            policy_projection_size = None
+        status["policy_projection_current"] = bool(
+            policy_projection_size == len(expected_policy_projection)
+            and policy_projection_digest
+            == hashlib.sha256(expected_policy_projection).hexdigest()
+        )
         status["is_synchronized"] = bool(
             status["current_generation_id"]
             and status["runtime_policy_current"]

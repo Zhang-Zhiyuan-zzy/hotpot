@@ -1562,8 +1562,13 @@ class TargetStore:
             raise SnapshotError("benchmark assessment must match archive_class")
         assessment["benchmark"] = benchmark
         identifiers = [
-            {"namespace": str(item["namespace"]), "value": str(item["value"])}
-            for item in case.get("identifiers", ())
+            {"namespace": namespace, "value": value}
+            for namespace, value in sorted(
+                {
+                    (str(item["namespace"]), str(item["value"]))
+                    for item in case.get("identifiers", ())
+                }
+            )
         ]
         structures = []
         for item in case.get("structures", ()):

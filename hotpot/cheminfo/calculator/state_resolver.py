@@ -549,6 +549,7 @@ def resolve_scientific_state(
         )
     )
     eligibility = _static_profile_eligibility(
+        facts,
         policy,
         effective_requirements,
         provider_set,

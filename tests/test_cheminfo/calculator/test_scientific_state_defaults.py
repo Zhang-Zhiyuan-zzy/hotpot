@@ -124,6 +124,7 @@ def _requirements(*quantities):
 
 def _eligibility(requirements):
     return _static_profile_eligibility(
+        extract_molecular_facts(hotpot.read_mol("CCO", "smi")),
         StatePolicy.STRICT,
         requirements,
         ProviderSet(),
@@ -152,6 +153,7 @@ def test_strict_analysis_returns_not_requested_after_hard_validation() -> None:
 def test_inactive_profiles_do_not_invent_a_decision_search_compiler() -> None:
     requirements = _requirements(ScientificQuantity.NET_CHARGE)
     screening_eligibility = _static_profile_eligibility(
+        extract_molecular_facts(hotpot.read_mol("CCO", "smi")),
         StatePolicy.COORDINATION_SCREENING_V1,
         requirements,
         ProviderSet(),

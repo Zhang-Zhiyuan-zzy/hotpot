@@ -14,6 +14,7 @@ def test_screening_profile_artifact_freezes_decision_context() -> None:
     profile = _coordination_screening_profile()
 
     assert profile.profile_id == StatePolicy.COORDINATION_SCREENING_V1.value
+    assert profile.activation_status == "planned"
     assert profile.required_quantities == frozenset(
         {
             ScientificQuantity.NET_CHARGE,
@@ -26,7 +27,7 @@ def test_screening_profile_artifact_freezes_decision_context() -> None:
     )
     assert len(profile.required_rule_versions) == 10
     assert profile.content_digest == (
-        "40693f1381ae34cc5cf3dcf7c6c20d20311aaa74e94eff46eb17e1a4598f377e"
+        "574ed32272b9af9ac3f1f2ff879082bd37ba78e4d67f3305a46bf8091bff8ab5"
     )
 
 

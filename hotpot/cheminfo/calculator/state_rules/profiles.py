@@ -24,9 +24,11 @@ _PROFILE_RESOURCE = (
 class _ScientificStateProfileArtifact:
     profile_id: str
     profile_version: str
+    activation_status: str
     required_quantities: frozenset[ScientificQuantity]
     allowed_unresolved_quantities: frozenset[ScientificQuantity]
     required_provider_ids: frozenset[str]
+    coordination_center_atomic_numbers: frozenset[int]
     required_rule_versions: Tuple[Tuple[str, str], ...]
     decision_rank_dimensions: Tuple[str, ...]
     assumption_severity: Tuple[Tuple[str, int], ...]
@@ -100,6 +102,17 @@ def _candidate_budget(value: object) -> CandidateBudget:
     )
 
 
+def _atomic_numbers(value: object) -> frozenset[int]:
+    if not isinstance(value, list) or any(
+        type(item) is not int or item <= 0 for item in value
+    ):
+        raise ValueError("Profile coordination centers must be atomic numbers")
+    atomic_numbers = frozenset(value)
+    if len(atomic_numbers) != len(value):
+        raise ValueError("Profile coordination centers contain duplicates")
+    return atomic_numbers
+
+
 @lru_cache(maxsize=1)
 def _coordination_screening_profile() -> _ScientificStateProfileArtifact:
     encoded, payload = _profile_payload()
@@ -107,9 +120,11 @@ def _coordination_screening_profile() -> _ScientificStateProfileArtifact:
         "schema_version",
         "profile_id",
         "profile_version",
+        "activation_status",
         "required_quantities",
         "allowed_unresolved_quantities",
         "required_provider_ids",
+        "coordination_center_atomic_numbers",
         "required_rule_versions",
         "decision_rank_dimensions",
         "assumption_severity",
@@ -149,15 +164,24 @@ def _coordination_screening_profile() -> _ScientificStateProfileArtifact:
     frontier_schema = payload["frontier_schema_version"]
     tie_policy = payload["tie_policy"]
     profile_version = payload["profile_version"]
+    activation_status = payload["activation_status"]
     if any(
         not isinstance(value, str) or not value
-        for value in (frontier_schema, tie_policy, profile_version)
+        for value in (
+            frontier_schema,
+            tie_policy,
+            profile_version,
+            activation_status,
+        )
     ):
         raise ValueError("Profile version and policy fields must be strings")
+    if activation_status not in {"planned", "active"}:
+        raise ValueError("Profile activation status is unsupported")
 
     return _ScientificStateProfileArtifact(
         profile_id=payload["profile_id"],
         profile_version=profile_version,
+        activation_status=activation_status,
         required_quantities=required,
         allowed_unresolved_quantities=allowed,
         required_provider_ids=frozenset(
@@ -165,6 +189,9 @@ def _coordination_screening_profile() -> _ScientificStateProfileArtifact:
                 payload["required_provider_ids"],
                 "required_provider_ids",
             )
+        ),
+        coordination_center_atomic_numbers=_atomic_numbers(
+            payload["coordination_center_atomic_numbers"]
         ),
         required_rule_versions=_string_mapping(
             payload["required_rule_versions"],

@@ -1,5 +1,7 @@
 """Static scientific-profile identity and eligibility tests."""
 
+import hotpot
+
 from hotpot.cheminfo.calculator.contracts import (
     DEFAULT_CANDIDATE_BUDGET,
     CandidateBudget,
@@ -13,6 +15,11 @@ from hotpot.cheminfo.calculator.profile_eligibility import (
     _static_profile_eligibility,
 )
 from hotpot.cheminfo.calculator.state_rules import RuleSet
+from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+
+
+def _facts():
+    return extract_molecular_facts(hotpot.read_mol("CCO", "smi"))
 
 
 def _requirements() -> ScientificOperationRequirements:
@@ -28,6 +35,7 @@ def _eligibility(
     candidate_budget: CandidateBudget = DEFAULT_CANDIDATE_BUDGET,
 ):
     return _static_profile_eligibility(
+        _facts(),
         StatePolicy.STRICT,
         _requirements(),
         provider_set,
@@ -66,8 +74,31 @@ def test_profile_override_changes_effective_identity() -> None:
     )
 
 
+def test_effective_profile_identity_is_bound_to_molecular_facts() -> None:
+    first = _static_profile_eligibility(
+        _facts(),
+        StatePolicy.STRICT,
+        _requirements(),
+        ProviderSet(),
+        RuleSet(),
+        DEFAULT_CANDIDATE_BUDGET,
+    )
+    other_facts = extract_molecular_facts(hotpot.read_mol("CO", "smi"))
+    second = _static_profile_eligibility(
+        other_facts,
+        StatePolicy.STRICT,
+        _requirements(),
+        ProviderSet(),
+        RuleSet(),
+        DEFAULT_CANDIDATE_BUDGET,
+    )
+
+    assert first.effective_profile_identity != second.effective_profile_identity
+
+
 def test_unactivated_screening_artifact_is_machine_readable_out_of_domain() -> None:
     eligibility = _static_profile_eligibility(
+        _facts(),
         StatePolicy.COORDINATION_SCREENING_V1,
         _requirements(),
         ProviderSet(),
@@ -76,6 +107,8 @@ def test_unactivated_screening_artifact_is_machine_readable_out_of_domain() -> N
     )
 
     assert eligibility.in_domain is False
-    assert eligibility.findings[0].code == (
-        "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE"
-    )
+    finding_codes = {finding.code for finding in eligibility.findings}
+    assert "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE" in finding_codes
+    assert "PROFILE.REQUIRED_PROVIDER_MISSING" in finding_codes
+    assert "PROFILE.RULE_SET_MISMATCH" in finding_codes
+    assert "PROFILE.COORDINATION_BOUNDARY_REQUIRED" in finding_codes

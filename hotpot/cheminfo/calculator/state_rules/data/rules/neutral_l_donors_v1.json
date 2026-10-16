@@ -1,0 +1,14 @@
+{
+  "schema_version": "hotpot-neutral-l-donor-registry-v1",
+  "registry_version": "1.0.0",
+  "source_identity": "OPTIONAL-003:green-cbc-neutral-l-donors-v1",
+  "reference": "Green, J. Organomet. Chem. 1995, DOI 10.1016/0022-328X(95)00508-N",
+  "atom_signatures": [
+    {"atomic_number": 7, "covalent_valence": 3.0, "label": "neutral-nitrogen-donor"},
+    {"atomic_number": 8, "covalent_valence": 2.0, "label": "neutral-oxygen-donor"},
+    {"atomic_number": 15, "covalent_valence": 3.0, "label": "neutral-phosphorus-donor"}
+  ],
+  "component_signatures": [
+    {"atomic_numbers": [6, 8], "bond_orders": [3.0], "donor_atomic_number": 6, "label": "carbon-monoxide"}
+  ]
+}

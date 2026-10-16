@@ -6,12 +6,14 @@ rank, repair, or select scientific states.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from .charge.contracts import (
     AtomFormalChargeEvidence,
     ComponentChargeEvidence,
+    LewisFormalChargeCandidate,
     NetChargeCandidateEvidence,
 )
 from .contracts import (
@@ -253,6 +255,105 @@ def _validate_charge_conservation(
     return _merge_hard_rule_assessments(tuple(assessments))
 
 
+def _validate_lewis_candidate(
+    facts: MolecularFacts,
+    net_charge: NetChargeCandidateEvidence,
+    candidate: LewisFormalChargeCandidate,
+) -> _HardRuleAssessment:
+    related = (
+        net_charge.provenance.identity,
+        candidate.provenance.identity,
+    )
+    atom_count = len(facts.atomic_numbers)
+    if candidate.net_charge_candidate_identity != net_charge.provenance.identity:
+        return _hard_failure(
+            "HARD-007.LEWIS_CHARGE_REFERENCE_MISMATCH",
+            "Lewis candidate references a different net-charge candidate.",
+            related_identities=related,
+        )
+    atom_vectors = (
+        candidate.atom_formal_charges,
+        candidate.nonbonding_electrons,
+        candidate.radical_electrons,
+    )
+    if any(len(values) != atom_count for values in atom_vectors) or any(
+        type(value) is not int
+        for values in atom_vectors
+        for value in values
+    ):
+        return _hard_failure(
+            "HARD-002.LEWIS_ATOM_COVERAGE_INVALID",
+            "Lewis candidate must provide integer values for every atom.",
+            related_identities=related,
+        )
+    if any(
+        value < 0
+        for values in (
+            candidate.nonbonding_electrons,
+            candidate.radical_electrons,
+        )
+        for value in values
+    ):
+        return _hard_failure(
+            "HARD-002.LEWIS_ELECTRON_COUNT_INVALID",
+            "Lewis nonbonding and radical electron counts cannot be negative.",
+            related_identities=related,
+        )
+    if sum(candidate.atom_formal_charges) != net_charge.charge:
+        return _hard_failure(
+            "HARD-002.LEWIS_ATOM_CHARGE_SUM_MISMATCH",
+            "Lewis atom formal charges do not sum to molecular net charge.",
+            conflict=True,
+            related_identities=related,
+        )
+
+    expected_component_ids = tuple(
+        component.identity for component in facts.covalent_components
+    )
+    supplied_component_ids = tuple(
+        identity for identity, _ in candidate.component_charges
+    )
+    if (
+        len(set(supplied_component_ids)) != len(supplied_component_ids)
+        or set(supplied_component_ids) != set(expected_component_ids)
+        or any(type(charge) is not int for _, charge in candidate.component_charges)
+    ):
+        return _hard_failure(
+            "HARD-002.LEWIS_COMPONENT_COVERAGE_INVALID",
+            "Lewis component charges must cover every covalent component once.",
+            related_identities=related,
+        )
+    charge_by_component = dict(candidate.component_charges)
+    if any(
+        charge_by_component[component.identity]
+        != sum(
+            candidate.atom_formal_charges[index]
+            for index in component.atom_indices
+        )
+        for component in facts.covalent_components
+    ):
+        return _hard_failure(
+            "HARD-002.LEWIS_COMPONENT_CHARGE_MISMATCH",
+            "Lewis component charges disagree with its atom formal charges.",
+            conflict=True,
+            related_identities=related,
+        )
+
+    covalent_bond_count = sum(
+        bond.kind == "covalent" for bond in facts.semantic_bonds
+    )
+    if len(candidate.bond_orders) != covalent_bond_count or any(
+        not math.isfinite(order) or order <= 0.0
+        for order in candidate.bond_orders
+    ):
+        return _hard_failure(
+            "HARD-002.LEWIS_BOND_COVERAGE_INVALID",
+            "Lewis bond orders must cover every covalent bond with finite values.",
+            related_identities=related,
+        )
+    return _HARD_PASS
+
+
 # HARD-005: coordination-counting convention exclusivity.
 
 
@@ -289,6 +390,31 @@ def _validate_counting_candidate(
     )
 
 
+def _validate_counting_candidate_for_facts(
+    facts: MolecularFacts,
+    candidate: CoordinationCountingCandidate,
+) -> _HardRuleAssessment:
+    convention_assessment = _validate_counting_candidate(candidate)
+    if convention_assessment.admissibility is not ScientificAdmissibility.ADMISSIBLE:
+        return convention_assessment
+    known_component_ids = {
+        component.identity for component in facts.covalent_components
+    }
+    supplied_component_ids = tuple(
+        fragment.component_identity for fragment in candidate.fragments
+    )
+    if (
+        len(set(supplied_component_ids)) != len(supplied_component_ids)
+        or not set(supplied_component_ids).issubset(known_component_ids)
+    ):
+        return _hard_failure(
+            "HARD-005.COUNTING_COMPONENT_INVALID",
+            "Coordination counting references duplicate or unknown components.",
+            related_identities=(candidate.provenance.identity,),
+        )
+    return _HARD_PASS
+
+
 def _validate_counting_reference(
     oxidation_candidate: OxidationStateCandidateEvidence,
     counting_candidates: Tuple[CoordinationCountingCandidate, ...],
@@ -305,7 +431,10 @@ def _validate_counting_reference(
     if len(matches) != 1:
         return _hard_failure(
             "HARD-005.COUNTING_REFERENCE_MISSING",
-            "Oxidation-state evidence does not reference exactly one counting candidate.",
+            (
+                "Oxidation-state evidence does not reference exactly one "
+                "counting candidate."
+            ),
             related_identities=(
                 oxidation_candidate.provenance.identity,
                 reference,
@@ -555,6 +684,9 @@ def _validate_electronic_oxidation_reference(
         return _HARD_PASS
     return _hard_failure(
         "HARD-007.OXIDATION_STATE_REFERENCE_MISSING",
-        "Electronic-state evidence references an unavailable oxidation-state candidate.",
+        (
+            "Electronic-state evidence references an unavailable "
+            "oxidation-state candidate."
+        ),
         related_identities=(candidate.provenance.identity, reference),
     )

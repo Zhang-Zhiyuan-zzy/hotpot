@@ -11,11 +11,23 @@ from hotpot.cheminfo.calculator.charge import (
     solve_main_group_lewis,
 )
 from hotpot.cheminfo.calculator.contracts import (
+    CandidateProvenance,
+    CoverageStatus,
     ProviderSet,
     ProviderToggle,
     ScientificOperationRequirements,
     ScientificQuantity,
     StatePolicy,
+    StateValueAuthority,
+)
+from hotpot.cheminfo.calculator.electronic_state import (
+    infer_electronic_states,
+)
+from hotpot.cheminfo.calculator.oxidation_state import (
+    CountingConvention,
+    OxidationStateCandidateEvidence,
+    OxidationStateOverride,
+    infer_oxidation_states,
 )
 from hotpot.cheminfo.calculator.state_resolver import (
     ProvidedScientificResults,
@@ -135,3 +147,79 @@ def test_unknown_provider_is_a_malformed_api_request() -> None:
             _facts(),
             provider_set=ProviderSet((ProviderToggle("UNKNOWN", True),)),
         )
+
+
+def test_conflicting_authoritative_charge_envelopes_do_not_form_a_union() -> None:
+    facts = _facts()
+    provided_charge = resolve_net_charge(
+        facts,
+        StateRequest(net_charge=1),
+    )[0]
+
+    bundle = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=0, two_s=0),
+        provided_results=ProvidedScientificResults(
+            net_charge_results=(provided_charge,),
+        ),
+    )
+
+    assert bundle.execution_decision.action is StateDecisionAction.CONFLICT
+    assert bundle.candidate_space.expanded_paths == ()
+    assert bundle.candidate_space.constraints
+
+
+def test_conflicting_authoritative_spin_envelopes_do_not_form_a_union() -> None:
+    facts = _facts()
+    charge_results = resolve_net_charge(
+        facts,
+        StateRequest(net_charge=0),
+    )
+    provided_spin = infer_electronic_states(
+        facts,
+        StateRequest(two_s=2),
+        net_charge_results=charge_results,
+    )[0]
+
+    bundle = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=0, two_s=0),
+        provided_results=ProvidedScientificResults(
+            electronic_state_results=(provided_spin,),
+        ),
+    )
+
+    assert bundle.execution_decision.action is StateDecisionAction.CONFLICT
+    assert bundle.candidate_space.expanded_paths == ()
+
+
+def test_explicit_oxidation_override_constrains_provided_envelope() -> None:
+    facts = _facts()
+    oxidation_candidate = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:all-zero",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        CountingConvention.IONIC,
+        (0, 0, 0),
+        CoverageStatus.COMPLETE,
+    )
+    provided_oxidation = infer_oxidation_states(
+        facts,
+        StateRequest(oxidation_candidates=(oxidation_candidate,)),
+    )[0]
+
+    bundle = resolve_scientific_state(
+        facts,
+        StateRequest(
+            net_charge=0,
+            oxidation_overrides=(OxidationStateOverride(0, 1),),
+        ),
+        provided_results=ProvidedScientificResults(
+            oxidation_state_results=(provided_oxidation,),
+        ),
+    )
+
+    assert bundle.execution_decision.action is StateDecisionAction.CONFLICT
+    assert bundle.candidate_space.constraints

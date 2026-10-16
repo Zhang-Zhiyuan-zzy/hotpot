@@ -30,6 +30,7 @@ from ..oxidation_state.contracts import (
     OxidationStateInferenceResult,
 )
 from .candidate_space import _merge_candidate_proposals
+from .constraints import _molecular_subject_identity
 from .contracts import (
     CandidateConstraint,
     CandidateDomainScope,
@@ -67,10 +68,6 @@ def _digest(payload: object) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
-
-
-def _molecular_subject(facts: MolecularFacts) -> str:
-    return f"molecule:{facts.identity.chemical_identity_digest}"
 
 
 def _is_resource_truncated(
@@ -218,7 +215,7 @@ def compose_scientific_state_space(
     candidate_budget: CandidateBudget = DEFAULT_CANDIDATE_BUDGET,
 ) -> ScientificStateCandidateSpace:
     """Compose hard-valid result envelopes into a factorized state space."""
-    subject = _molecular_subject(facts)
+    subject = _molecular_subject_identity(facts)
     proposals = list(candidate_proposals)
     charge_result_ids: Dict[str, set[str]] = {}
     electronic_result_ids: Dict[str, set[str]] = {}

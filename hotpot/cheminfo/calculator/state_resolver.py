@@ -485,6 +485,9 @@ def resolve_scientific_state(
     from .oxidation_state import infer_oxidation_states
     from .profile_eligibility import _static_profile_eligibility
     from .state_composition import compose_scientific_state_space
+    from .state_composition.constraints import (
+        _reconcile_authoritative_results,
+    )
     from .state_composition.resolution import _resolve_candidate_space
 
     if rule_set.layers:
@@ -534,6 +537,15 @@ def resolve_scientific_state(
         oxidation_state_results=oxidation_state_results,
         provided=provided_results.electronic_state_results,
     )
+    cross_result_constraints, cross_result_conflict = (
+        _reconcile_authoritative_results(
+            facts,
+            charge_results,
+            oxidation_state_results,
+            electronic_state_results,
+            request.oxidation_overrides,
+        )
+    )
     candidate_space = compose_scientific_state_space(
         facts,
         net_charge_results=charge_results,
@@ -541,6 +553,7 @@ def resolve_scientific_state(
         coordination_counting_results=counting_results,
         oxidation_state_results=oxidation_state_results,
         electronic_state_results=electronic_state_results,
+        constraints=cross_result_constraints,
         candidate_budget=candidate_budget,
     )
     scientific_resolution = _resolve_candidate_space(candidate_space)
@@ -558,15 +571,23 @@ def resolve_scientific_state(
         + oxidation_state_results
         + electronic_state_results
     )
+    result_states = tuple(
+        (result.admissibility, result.resolution)
+        for result in all_results
+    )
+    if cross_result_conflict:
+        result_states += (
+            (
+                ScientificAdmissibility.INADMISSIBLE,
+                ResolutionStatus.CONFLICT,
+            ),
+        )
     decision = _decide_scientific_state(
         policy,
         effective_requirements,
         candidate_space,
         eligibility,
-        tuple(
-            (result.admissibility, result.resolution)
-            for result in all_results
-        ),
+        result_states,
         _explicit_candidate_ids(
             charge_results,
             oxidation_state_results,

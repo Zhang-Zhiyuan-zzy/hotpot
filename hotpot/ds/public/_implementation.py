@@ -76,6 +76,8 @@ _SEMANTIC_SYMBOLS = {
         "_validate_case",
         "_record_asset_paths",
         "_frame",
+        "_file_stamp",
+        "_source_path_observation",
         "_digest_file",
         "_control_asset_source_binding",
         "_compute_source_proof_rows",

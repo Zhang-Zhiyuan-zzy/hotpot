@@ -371,6 +371,88 @@ def test_default_source_hasher_rejects_a_file_changed_during_read(
         state_module._digest_file(asset)
 
 
+def test_default_source_hasher_rejects_same_inode_change_after_second_fstat(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    asset = tmp_path / "asset.smi"
+    asset.write_text("O\n", encoding="utf-8")
+    real_stat = state_module.os.stat
+
+    def changed_live_stamp(path, *, follow_symlinks=True):
+        observed = real_stat(path, follow_symlinks=follow_symlinks)
+        return SimpleNamespace(
+            st_dev=observed.st_dev,
+            st_ino=observed.st_ino,
+            st_mode=observed.st_mode,
+            st_size=observed.st_size,
+            st_mtime_ns=observed.st_mtime_ns + 1,
+            st_ctime_ns=observed.st_ctime_ns + 1,
+        )
+
+    monkeypatch.setattr(state_module.os, "stat", changed_live_stamp)
+    with pytest.raises(BundleStateError, match="changed while hashing"):
+        state_module._digest_file(asset)
+
+
+def test_source_proof_rechecks_earlier_file_after_later_file_hash(
+    tmp_path: Path,
+) -> None:
+    earlier = tmp_path / "a.smi"
+    later = tmp_path / "b.smi"
+    earlier.write_text("O\n", encoding="utf-8")
+    later.write_text("N\n", encoding="utf-8")
+
+    def digest(path: Path) -> tuple[str, int]:
+        result = state_module._digest_file(path)
+        if path == later:
+            earlier.write_text("C\n", encoding="utf-8")
+            changed = earlier.stat()
+            state_module.os.utime(
+                earlier,
+                ns=(changed.st_atime_ns, changed.st_mtime_ns + 1_000_000_000),
+            )
+        return result
+
+    with pytest.raises(BundleStateError, match="aggregate proof"):
+        state_module._compute_source_proof_rows(
+            tmp_path,
+            {},
+            iter(()),
+            file_digest=digest,
+            case_observer=None,
+            scientific_paths=iter(("a.smi", "b.smi")),
+        )
+
+
+@pytest.mark.parametrize("initial_state", ["missing", "not-a-regular-file"])
+def test_source_proof_rechecks_non_present_path_states(
+    tmp_path: Path, initial_state: str
+) -> None:
+    target = tmp_path / "a-target"
+    trigger = tmp_path / "z-trigger.smi"
+    trigger.write_text("O\n", encoding="utf-8")
+    if initial_state == "not-a-regular-file":
+        target.mkdir()
+
+    def digest(path: Path) -> tuple[str, int]:
+        result = state_module._digest_file(path)
+        if path == trigger:
+            if target.is_dir():
+                target.rmdir()
+            target.write_text("N\n", encoding="utf-8")
+        return result
+
+    with pytest.raises(BundleStateError, match="aggregate proof"):
+        state_module._compute_source_proof_rows(
+            tmp_path,
+            {},
+            iter(()),
+            file_digest=digest,
+            case_observer=None,
+            scientific_paths=iter(("a-target", "z-trigger.smi")),
+        )
+
+
 def test_dirty_bundle_rejects_derived_reads_certificate_and_ingest(
     tmp_path: Path,
 ) -> None:

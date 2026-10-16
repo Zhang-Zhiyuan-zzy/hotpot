@@ -488,6 +488,32 @@ def _frame(hasher: "hashlib._Hash", name: str, payload: bytes) -> None:
     hasher.update(payload)
 
 
+def _file_stamp(metadata: os.stat_result) -> tuple[int, int, int, int, int, int]:
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_mode,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
+def _source_path_observation(
+    path: Path,
+) -> tuple[str, Optional[tuple[int, int, int, int, int, int]]]:
+    try:
+        metadata = os.stat(path, follow_symlinks=False)
+    except FileNotFoundError:
+        return "missing", None
+    except OSError as exc:
+        raise BundleStateError(f"cannot observe source asset: {path}") from exc
+    stamp = _file_stamp(metadata)
+    if not stat.S_ISREG(metadata.st_mode):
+        return "not-a-regular-file", stamp
+    return "present", stamp
+
+
 def _digest_file(path: Path) -> tuple[str, int]:
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
     try:
@@ -507,31 +533,14 @@ def _digest_file(path: Path) -> tuple[str, int]:
         after = os.fstat(descriptor)
     finally:
         os.close(descriptor)
-    before_identity = (
-        before.st_dev,
-        before.st_ino,
-        before.st_mode,
-        before.st_size,
-        before.st_mtime_ns,
-        before.st_ctime_ns,
-    )
-    after_identity = (
-        after.st_dev,
-        after.st_ino,
-        after.st_mode,
-        after.st_size,
-        after.st_mtime_ns,
-        after.st_ctime_ns,
-    )
-    try:
-        live = os.stat(path, follow_symlinks=False)
-    except OSError as exc:
-        raise BundleStateError(f"source asset changed while hashing: {path}") from exc
+    before_stamp = _file_stamp(before)
+    after_stamp = _file_stamp(after)
+    live_state, live_stamp = _source_path_observation(path)
     if (
-        before_identity != after_identity
+        before_stamp != after_stamp
         or size != after.st_size
-        or not stat.S_ISREG(live.st_mode)
-        or (live.st_dev, live.st_ino) != (after.st_dev, after.st_ino)
+        or live_state != "present"
+        or live_stamp != after_stamp
     ):
         raise BundleStateError(f"source asset changed while hashing: {path}")
     return hasher.hexdigest(), size
@@ -589,20 +598,19 @@ def _compute_source_proof_rows(
                 for record in payload.get(field, []):
                     discovered_paths.update(_record_asset_paths(record))
 
-    observations: Dict[str, tuple[str, Optional[str], Optional[int]]] = {}
+    FileStamp = tuple[int, int, int, int, int, int]
+    observations: Dict[
+        str,
+        tuple[str, Optional[str], Optional[int], Optional[FileStamp]],
+    ] = {}
 
     def observe(relative: str) -> tuple[str, Optional[str], Optional[int]]:
         observed = observations.get(relative)
         if observed is not None:
-            return observed
+            return observed[:3]
         path = _safe_relative_path(root, relative, "asset path")
-        if path.is_symlink():
-            observed = ("not-a-regular-file", None, None)
-        elif not path.exists():
-            observed = ("missing", None, None)
-        elif not path.is_file():
-            observed = ("not-a-regular-file", None, None)
-        else:
+        state, stamp = _source_path_observation(path)
+        if state == "present":
             digest, size = file_digest(path)
             if (
                 not isinstance(digest, str)
@@ -617,9 +625,20 @@ def _compute_source_proof_rows(
                 raise BundleStateError(
                     "source proof file digest callback returned an invalid result"
                 )
-            observed = ("present", digest, size)
+            current_state, current_stamp = _source_path_observation(path)
+            if (
+                current_state != "present"
+                or current_stamp != stamp
+                or size != stamp[3]
+            ):
+                raise BundleStateError(
+                    f"source asset changed during aggregate proof: {path}"
+                )
+            observed = ("present", digest, size, stamp)
+        else:
+            observed = (state, None, None, stamp)
         observations[relative] = observed
-        return observed
+        return observed[:3]
 
     for declaration in manifest.get("control_assets", []):
         state, digest, size = observe(declaration["path"])
@@ -660,6 +679,13 @@ def _compute_source_proof_rows(
                 hasher,
                 f"asset:{relative}",
                 b"present\0" + bytes.fromhex(digest or ""),
+            )
+    for relative, observed in sorted(observations.items()):
+        path = _safe_relative_path(root, relative, "asset path")
+        current_state, current_stamp = _source_path_observation(path)
+        if (current_state, current_stamp) != (observed[0], observed[3]):
+            raise BundleStateError(
+                f"source asset changed during aggregate proof: {path}"
             )
     return hasher.hexdigest()
 

@@ -72,6 +72,21 @@ class _AllElectronBackend:
         return atomic_number
 
 
+class _EffectiveElectronBackend(_AllElectronBackend):
+    def __init__(self, effective_nuclear_charge: int) -> None:
+        super().__init__()
+        self._effective_nuclear_charge = effective_nuclear_charge
+
+    @property
+    def identity(self) -> BackendIdentity:
+        return BackendIdentity(f"test:ecp:{self._effective_nuclear_charge}")
+
+    def effective_nuclear_charge(self, atomic_number: int) -> int:
+        if atomic_number == 54:
+            return self._effective_nuclear_charge
+        return atomic_number
+
+
 def _state(
     smiles: str = "C",
     *,
@@ -229,3 +244,37 @@ def test_combined_workflow_resolves_backend_requirements_before_projection() -> 
     )
     assert result.backend_projection.projection is not None
     assert result.backend_projection.projection.uhf == 0
+
+
+def test_ecp_projection_uses_backend_effective_electrons() -> None:
+    result = project_state(
+        _state("[Xe]", two_s=0),
+        _EffectiveElectronBackend(effective_nuclear_charge=8),
+    )
+
+    assert result.status is BackendProjectionStatus.PROJECTED
+    assert result.projection is not None
+    assert result.projection.effective_electron_count == 8
+    assert result.projection.uhf == 0
+
+
+def test_ecp_projection_rejects_molecularly_legal_out_of_range_uhf() -> None:
+    result = project_state(
+        _state("[Xe]", two_s=10),
+        _EffectiveElectronBackend(effective_nuclear_charge=8),
+    )
+
+    assert result.status is BackendProjectionStatus.PROJECTION_CONFLICT
+    assert result.projection is None
+    assert result.findings[0].code == "HARD-013.UHF_OUT_OF_RANGE"
+
+
+def test_ecp_projection_rejects_molecularly_legal_effective_parity() -> None:
+    result = project_state(
+        _state("[Xe]", two_s=2),
+        _EffectiveElectronBackend(effective_nuclear_charge=7),
+    )
+
+    assert result.status is BackendProjectionStatus.PROJECTION_CONFLICT
+    assert result.projection is None
+    assert result.findings[0].code == "HARD-013.UHF_PARITY"

@@ -11,10 +11,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceSource,
-    SpinInferenceSource,
-)
+from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
+from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
 from hotpot.plugins.xtb import XTBMethod, XTBTask
 
 from .cohort import BenchmarkCohort, LigandCase
@@ -73,14 +71,13 @@ def _fake_report(method: XTBMethod):
         task=XTBTask.OPTIMIZE,
         charge=0,
         unpaired_electrons=None if method is XTBMethod.GFNFF else 0,
-        charge_source=ChargeInferenceSource.VALENCE,
-        spin_source=(
-            None
+        scientific_state_identity=ScientificStateIdentity("state"),
+        facts_identity=MolecularFactsIdentity("facts"),
+        projection_convention=(
+            "charge_only"
             if method is XTBMethod.GFNFF
-            else SpinInferenceSource.LOWEST_SPIN_PARITY
+            else "pure_spin_highest_ms"
         ),
-        state_assumptions=(),
-        fragment_charges=(0,),
         argv=("xtb", "input.xyz"),
         return_code=0,
         elapsed_seconds=0.25,
@@ -172,14 +169,13 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
     def fake_execute(
         mol,
         method,
-        charge_state,
-        electronic_state,
+        scientific_state,
         config,
         work_directory,
     ):
         calls.append((method, np.asarray(mol.coordinates, dtype=float).copy()))
         mol.coordinates = np.asarray(mol.coordinates, dtype=float) + 0.01
-        return _fake_report(method)
+        return _fake_report(method), scientific_state or "scientific-state"
 
     monkeypatch.setattr(benchmark, "_execute_xtb_stage", fake_execute)
     monkeypatch.setattr(
@@ -195,8 +191,6 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
         },
     )
     source_mol = _water()
-    charge_state = benchmark.infer_charge(source_mol)
-    electronic_state = benchmark.resolve_electronic_state(source_mol)
     config = XTBBenchmarkConfig(
         routes=(XTBRoute.DIRECT_GFN2, XTBRoute.GFNFF_GFN2),
         targets=(BenchmarkTarget.LIGAND,),
@@ -207,16 +201,12 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
     direct = _run_route(
         source_mol,
         XTBRoute.DIRECT_GFN2,
-        charge_state,
-        electronic_state,
         config,
         tmp_path / "direct",
     )
     chain = _run_route(
         source_mol,
         XTBRoute.GFNFF_GFN2,
-        charge_state,
-        electronic_state,
         config,
         tmp_path / "chain",
     )

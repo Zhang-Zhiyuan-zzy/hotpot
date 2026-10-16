@@ -33,14 +33,8 @@ from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceResult,
-    ElectronicState,
-)
-from hotpot.cheminfo.calculator.electronic_state.resolver import (
-    resolve_electronic_state,
-)
-from hotpot.cheminfo.calculator.formal_charges import infer_charge
+from hotpot.cheminfo.calculator.contracts import StatePolicy
+from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
 from hotpot.plugins._harness import ProcessTimeoutError
 from hotpot.plugins.xtb import (
     GFNXTBMethod,
@@ -55,6 +49,7 @@ from hotpot.plugins.xtb import (
     run_gfn_xtb,
     run_gfnff,
 )
+from hotpot.plugins.xtb.state_resolution import resolve_xtb_state
 
 from .backend_comparison import CanonicalCase, _rebuild_complex
 from .cohort import BenchmarkCohort, LigandCase, resolve_cohort
@@ -77,7 +72,7 @@ __all__ = (
 )
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 WORKFLOW_NAME = "xtb_coordination_refinement"
 
 
@@ -275,31 +270,41 @@ def _evaluate_quality(
 def _execute_xtb_stage(
     mol: "Molecule",
     method: XTBMethod,
-    charge_state: ChargeInferenceResult,
-    electronic_state: ElectronicState,
+    scientific_state: Optional[ScientificStateBundle],
     config: XTBBenchmarkConfig,
     work_directory: Path,
-) -> XTBRunReport:
+) -> tuple[XTBRunReport, ScientificStateBundle]:
+    environment = _thread_environment(config.threads)
+    resolved = resolve_xtb_state(
+        mol,
+        method,
+        executable=config.executable,
+        environment=environment,
+        charge=None,
+        uhf=None,
+        policy=StatePolicy.COORDINATION_SCREENING_V1,
+        carried_state=scientific_state,
+    )
     common_options = {
         "task": XTBTask.OPTIMIZE,
         "executable": config.executable,
-        "environment": _thread_environment(config.threads),
+        "environment": environment,
         "timeout_seconds": config.timeout_seconds,
         "work_directory": work_directory,
         "keep_work_directory": True,
     }
     if method is XTBMethod.GFNFF:
-        return run_gfnff(
+        report = run_gfnff(
+            mol, state=resolved.projection, **common_options
+        )
+    else:
+        report = run_gfn_xtb(
             mol,
-            charge_state=charge_state,
+            method=GFNXTBMethod.GFN2_XTB,
+            state=resolved.projection,
             **common_options,
         )
-    return run_gfn_xtb(
-        mol,
-        method=GFNXTBMethod.GFN2_XTB,
-        state=electronic_state,
-        **common_options,
-    )
+    return report, resolved.scientific_state
 
 
 def _artifact_payload(
@@ -341,14 +346,17 @@ def _run_report_payload(
         "task": report.task.value,
         "charge": report.charge,
         "unpaired_electrons": report.unpaired_electrons,
-        "charge_source": (
-            None if report.charge_source is None else report.charge_source.value
+        "scientific_state_identity": (
+            None
+            if report.scientific_state_identity is None
+            else report.scientific_state_identity.digest
         ),
-        "spin_source": (
-            None if report.spin_source is None else report.spin_source.value
+        "facts_identity": (
+            None
+            if report.facts_identity is None
+            else report.facts_identity.chemical_identity_digest
         ),
-        "state_assumptions": report.state_assumptions,
-        "fragment_charges": report.fragment_charges,
+        "projection_convention": report.projection_convention,
         "argv": report.argv,
         "return_code": report.return_code,
         "native_elapsed_seconds": report.elapsed_seconds,
@@ -392,19 +400,17 @@ def _failure_payload(
 def _run_stage(
     mol: "Molecule",
     method: XTBMethod,
-    charge_state: ChargeInferenceResult,
-    electronic_state: ElectronicState,
+    scientific_state: Optional[ScientificStateBundle],
     config: XTBBenchmarkConfig,
     stage_directory: Path,
-) -> dict[str, object]:
+) -> tuple[dict[str, object], ScientificStateBundle]:
     stage_directory.mkdir(parents=True, exist_ok=True)
     started = perf_counter()
     try:
-        report = _execute_xtb_stage(
+        report, scientific_state = _execute_xtb_stage(
             mol,
             method,
-            charge_state,
-            electronic_state,
+            scientific_state,
             config,
             stage_directory / "native",
         )
@@ -440,7 +446,7 @@ def _run_stage(
     }
     _write_native_log(stage_directory / "native.log", report)
     write_json(stage_directory / "report.json", payload)
-    return payload
+    return payload, scientific_state
 
 
 def _route_methods(route: XTBRoute) -> tuple[XTBMethod, ...]:
@@ -452,8 +458,6 @@ def _route_methods(route: XTBRoute) -> tuple[XTBMethod, ...]:
 def _run_route(
     source_mol: "Molecule",
     route: XTBRoute,
-    charge_state: ChargeInferenceResult,
-    electronic_state: ElectronicState,
     config: XTBBenchmarkConfig,
     route_directory: Path,
 ) -> dict[str, object]:
@@ -466,20 +470,19 @@ def _run_route(
         allow_added_hydrogens=False,
     )
     stages = []
+    scientific_state = None
     started = perf_counter()
     for stage_index, method in enumerate(_route_methods(route)):
         stage_directory = route_directory / f"{stage_index:02d}-{method.value}"
         try:
-            stages.append(
-                _run_stage(
-                    working_mol,
-                    method,
-                    charge_state,
-                    electronic_state,
-                    config,
-                    stage_directory,
-                )
+            stage, scientific_state = _run_stage(
+                working_mol,
+                method,
+                scientific_state,
+                config,
+                stage_directory,
             )
+            stages.append(stage)
         except _RecordedStageFailure as error:
             stages.append(error.payload)
             if np.all(np.isfinite(working_mol.coordinates)):
@@ -570,8 +573,6 @@ def _target_record(
             overwrite=True,
             write_single=True,
         )
-        charge_state = infer_charge(source_mol)
-        electronic_state = resolve_electronic_state(source_mol)
     except (OSError, ValueError) as error:
         payload = {
             "status": "source_invalid",
@@ -587,8 +588,6 @@ def _target_record(
         route.value: _run_route(
             source_mol,
             route,
-            charge_state,
-            electronic_state,
             config,
             target_directory / route.value,
         )
@@ -598,9 +597,7 @@ def _target_record(
         "status": "completed",
         "source": str(source_path),
         "atom_count": len(source_mol.atoms),
-        "charge": electronic_state.charge,
-        "unpaired_electrons": electronic_state.unpaired_electrons,
-        "state_assumptions": electronic_state.assumptions,
+        "state_policy": StatePolicy.COORDINATION_SCREENING_V1.value,
         "routes": routes,
     }
     write_json(target_directory / "report.json", payload)

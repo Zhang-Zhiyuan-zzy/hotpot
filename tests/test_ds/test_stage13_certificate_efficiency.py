@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+import hotpot.ds.public.bundle as bundle_module
 import hotpot.ds.public.certificate as certificate_module
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
 from hotpot.ds.public._generation import AssessmentGeneration
@@ -112,7 +113,7 @@ def _bundle(tmp_path: Path) -> Bundle:
     return bundle
 
 
-def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
+def test_public_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     bundle = _bundle(tmp_path)
@@ -127,6 +128,10 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     original_hash = certificate_module._stable_hash_file
     original_source_digest = BundleState._compute_source_digest
     original_source_proof = BundleState._compute_source_proof
+    original_state_connect = BundleState.connect
+    original_public_preflight_hash = bundle_module._hash_file
+    public_preflight_hashes = 0
+    state_connects = 0
 
     def counted_open(cls, *args, **kwargs):
         nonlocal generation_opens
@@ -152,8 +157,15 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
         source_proof_calls += 1
         return original_source_proof(*args, **kwargs)
 
-    def forbidden_state_connect(*args, **kwargs):
-        raise AssertionError("certificate capture must not call BundleState.connect")
+    def counted_public_preflight_hash(*args, **kwargs):
+        nonlocal public_preflight_hashes
+        public_preflight_hashes += 1
+        return original_public_preflight_hash(*args, **kwargs)
+
+    def counted_state_connect(*args, **kwargs):
+        nonlocal state_connects
+        state_connects += 1
+        return original_state_connect(*args, **kwargs)
 
     with monkeypatch.context() as patch:
         patch.setattr(
@@ -167,8 +179,9 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
         patch.setattr(certificate_module, "_stable_hash_file", counted_hash)
         patch.setattr(BundleState, "_compute_source_digest", counted_source_digest)
         patch.setattr(BundleState, "_compute_source_proof", counted_source_proof)
-        patch.setattr(BundleState, "connect", forbidden_state_connect)
-        path = write_bundle_certificate(bundle)
+        patch.setattr(bundle_module, "_hash_file", counted_public_preflight_hash)
+        patch.setattr(BundleState, "connect", counted_state_connect)
+        path = bundle.write_certificate()
 
     envelope = load_certificate_envelope(path)
     generation_manifest = bundle.root / envelope["certificate"]["generation"][
@@ -181,6 +194,8 @@ def test_certificate_uses_one_locked_snapshot_and_one_hash_per_unique_asset(
     assert source_captures == 1
     assert source_digest_calls == 0
     assert source_proof_calls == 1
+    assert public_preflight_hashes == 0
+    assert state_connects == 1
     assert generation_opens == 1
     assert bound_hashes[facts] == 1
     assert bound_hashes[generation_manifest] == 1

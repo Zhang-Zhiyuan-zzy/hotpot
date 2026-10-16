@@ -543,15 +543,16 @@ class Bundle:
             return self.certificate_path
         from .certificate import write_bundle_certificate
 
-        _target_control_asset_descriptors(
-            self.root,
-            self._require_generation(),
-            self._state.manifest,
-            include_certificate=False,
-        )
         path = write_bundle_certificate(self)
         with self._locked():
-            self._collect_generation_garbage()
+            with self._state.connect() as connection:
+                generation = connection.execute(
+                    "SELECT current_generation_id,current_generation_digest "
+                    "FROM control WHERE singleton=1"
+                ).fetchone()
+            self._collect_generation_garbage(
+                current_reference=(generation[0], generation[1])
+            )
         return path
 
     def ingest(

@@ -5,15 +5,13 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional, Protocol
 
 import pytest
 
 import hotpot
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceSource,
-    SpinInferenceSource,
-)
+from hotpot.cheminfo.calculator.execution_selection import BackendStateProjection
+from hotpot.cheminfo.core import Molecule
 from hotpot.plugins.xtb.contracts import GFNXTBMethod, XTBMethod, XTBTask
 from hotpot.plugins.xtb.stream import (
     XTBStreamError,
@@ -28,6 +26,17 @@ from hotpot.plugins.xtb.workflow import run_gfn_xtb, run_gfnff
 
 
 FakeXTBFactory = Callable[[str, str], Path]
+
+
+class XTBProjectionFactory(Protocol):
+    def __call__(
+        self,
+        mol: Molecule,
+        executable: Path,
+        method: XTBMethod,
+        charge: int = 0,
+        uhf: Optional[int] = None,
+    ) -> BackendStateProjection: ...
 
 
 def _water():
@@ -62,8 +71,6 @@ def _metadata(
             backend_version="6.7.1",
             backend_revision=None,
             executable_sha256="a" * 64,
-            charge_source=ChargeInferenceSource.EXPLICIT,
-            spin_source=SpinInferenceSource.EXPLICIT,
         ),
     )
 
@@ -192,23 +199,37 @@ def test_non_sdf_text_is_rejected_by_the_narrow_codec() -> None:
 
 def test_report_metadata_preserves_spin_through_gfnff(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
 ) -> None:
     mol = _water()
+    gfn_xtb_executable = fake_xtb_factory("success", "gfn2_xtb")
+    gfn_xtb_state = xtb_projection_factory(
+        mol,
+        gfn_xtb_executable,
+        XTBMethod.GFN2_XTB,
+        0,
+        0,
+    )
     xtb_report = run_gfn_xtb(
         mol,
+        state=gfn_xtb_state,
         method=GFNXTBMethod.GFN2_XTB,
         task=XTBTask.SINGLEPOINT,
-        charge=0,
-        unpaired_electrons=0,
-        executable=fake_xtb_factory("success", "gfn2_xtb"),
+        executable=gfn_xtb_executable,
         environment=dict(os.environ),
     )
     electronic_metadata = metadata_from_report(xtb_report)
+    gfnff_executable = fake_xtb_factory("success", "gfnff")
+    gfnff_state = xtb_projection_factory(
+        mol,
+        gfnff_executable,
+        XTBMethod.GFNFF,
+    )
     gfnff_report = run_gfnff(
         mol,
+        state=gfnff_state,
         task=XTBTask.SINGLEPOINT,
-        charge=0,
-        executable=fake_xtb_factory("success", "gfnff"),
+        executable=gfnff_executable,
         environment=dict(os.environ),
     )
 
@@ -216,4 +237,11 @@ def test_report_metadata_preserves_spin_through_gfnff(
 
     assert gfnff_metadata.method is XTBMethod.GFNFF
     assert gfnff_metadata.unpaired_electrons == 0
-    assert gfnff_metadata.provenance.spin_source is SpinInferenceSource.EXPLICIT
+    assert (
+        gfnff_metadata.provenance.scientific_state_identity
+        == electronic_metadata.provenance.scientific_state_identity
+    )
+    assert (
+        gfnff_metadata.provenance.projection_convention
+        == "pure_spin_highest_ms"
+    )

@@ -11,10 +11,9 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from hotpot.cheminfo._io import MolReader
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceSource,
-    SpinInferenceSource,
-)
+from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
+from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
+from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
 
 from .contracts import XTBMethod, XTBRunReport
@@ -42,8 +41,22 @@ class XTBStreamProvenance:
     backend_version: str
     backend_revision: Optional[str]
     executable_sha256: str
-    charge_source: ChargeInferenceSource
-    spin_source: Optional[SpinInferenceSource]
+    scientific_state_identity: Optional[ScientificStateIdentity] = None
+    facts_identity: Optional[MolecularFactsIdentity] = None
+    projection_convention: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        binding = (
+            self.scientific_state_identity,
+            self.facts_identity,
+            self.projection_convention,
+        )
+        if any(value is None for value in binding) and any(
+            value is not None for value in binding
+        ):
+            raise ValueError(
+                "xTB stream state provenance must be wholly present or absent"
+            )
 
 
 @dataclass(frozen=True)
@@ -68,7 +81,7 @@ class XTBStreamRecord:
 # Reserved SDF metadata schema.
 
 
-_SCHEMA_VERSION = "1"
+_SCHEMA_VERSION = "2"
 _TAG_PREFIX = "HOTPOT_XTB_"
 _TAG_SCHEMA = f"{_TAG_PREFIX}SCHEMA"
 _TAG_RECORD_SHA256 = f"{_TAG_PREFIX}RECORD_SHA256"
@@ -229,8 +242,9 @@ def _parse_provenance(value: str) -> XTBStreamProvenance:
         "backend_version",
         "backend_revision",
         "executable_sha256",
-        "charge_source",
-        "spin_source",
+        "scientific_state_identity",
+        "facts_identity",
+        "projection_convention",
     }
     if set(payload) != expected:
         raise XTBStreamError("Reserved xTB provenance fields are incomplete")
@@ -238,25 +252,32 @@ def _parse_provenance(value: str) -> XTBStreamProvenance:
     executable_sha256 = _required_string(payload, "executable_sha256")
     if _SHA256.fullmatch(executable_sha256) is None:
         raise XTBStreamError("xTB provenance executable SHA-256 is malformed")
-    charge_source_text = _required_string(payload, "charge_source")
-    spin_source_text = _optional_string(payload, "spin_source")
+    scientific_identity = _optional_string(
+        payload,
+        "scientific_state_identity",
+    )
+    facts_identity = _optional_string(payload, "facts_identity")
+    projection_convention = _optional_string(payload, "projection_convention")
+
     try:
-        charge_source = ChargeInferenceSource(charge_source_text)
-        spin_source = (
-            None
-            if spin_source_text is None
-            else SpinInferenceSource(spin_source_text)
+        return XTBStreamProvenance(
+            backend_version=_required_string(payload, "backend_version"),
+            backend_revision=_optional_string(payload, "backend_revision"),
+            executable_sha256=executable_sha256,
+            scientific_state_identity=(
+                None
+                if scientific_identity is None
+                else ScientificStateIdentity(scientific_identity)
+            ),
+            facts_identity=(
+                None
+                if facts_identity is None
+                else MolecularFactsIdentity(facts_identity)
+            ),
+            projection_convention=projection_convention,
         )
     except ValueError as error:
-        raise XTBStreamError("xTB provenance contains an unknown state source") from error
-
-    return XTBStreamProvenance(
-        backend_version=_required_string(payload, "backend_version"),
-        backend_revision=_optional_string(payload, "backend_revision"),
-        executable_sha256=executable_sha256,
-        charge_source=charge_source,
-        spin_source=spin_source,
-    )
+        raise XTBStreamError(str(error)) from error
 
 
 def _validate_metadata(mol: Molecule, metadata: XTBStreamMetadata) -> None:
@@ -269,14 +290,34 @@ def _validate_metadata(mol: Molecule, metadata: XTBStreamMetadata) -> None:
     if _SHA256.fullmatch(metadata.provenance.executable_sha256) is None:
         raise XTBStreamError("xTB provenance executable SHA-256 is malformed")
 
+    facts = extract_molecular_facts(mol)
+    provenance = metadata.provenance
+    if (
+        provenance.facts_identity is not None
+        and provenance.facts_identity != facts.identity
+    ):
+        raise XTBStreamError(
+            "xTB state provenance does not match the SDF molecular facts"
+        )
+
     unpaired = metadata.unpaired_electrons
     if metadata.method is not XTBMethod.GFNFF and unpaired is None:
         raise XTBStreamError("GFN-xTB stream metadata requires unpaired electrons")
-    if (unpaired is None) != (metadata.provenance.spin_source is None):
-        raise XTBStreamError(
-            "xTB spin provenance and unpaired-electron metadata are inconsistent"
+    electron_count = (
+        sum(facts.atomic_numbers)
+        + sum(
+            implicit_count
+            for atomic_number, explicit_count, implicit_count in zip(
+                facts.atomic_numbers,
+                facts.hydrogen_inventory.explicit_counts,
+                facts.hydrogen_inventory.implicit_counts,
+            )
+            if atomic_number != 1
+            and explicit_count == 0
+            and implicit_count is not None
         )
-    electron_count = sum(atom.atomic_number for atom in mol.atoms) - metadata.total_charge
+        - metadata.total_charge
+    )
     if electron_count < 0:
         raise XTBStreamError("xTB total-charge metadata implies a negative electron count")
     if unpaired is None:
@@ -343,10 +384,17 @@ def _provenance_value(provenance: XTBStreamProvenance) -> str:
             "backend_version": provenance.backend_version,
             "backend_revision": provenance.backend_revision,
             "executable_sha256": provenance.executable_sha256,
-            "charge_source": provenance.charge_source.value,
-            "spin_source": (
-                None if provenance.spin_source is None else provenance.spin_source.value
+            "scientific_state_identity": (
+                None
+                if provenance.scientific_state_identity is None
+                else provenance.scientific_state_identity.digest
             ),
+            "facts_identity": (
+                None
+                if provenance.facts_identity is None
+                else provenance.facts_identity.chemical_identity_digest
+            ),
+            "projection_convention": provenance.projection_convention,
         },
         ensure_ascii=True,
         allow_nan=False,
@@ -369,20 +417,34 @@ def metadata_from_report(
     """Create portable metadata, preserving prior spin across a GFN-FF node."""
     if report.energy_hartree is None or not math.isfinite(report.energy_hartree):
         raise XTBStreamError("A streamable xTB report requires finite energy")
-    if report.charge_source is None:
-        raise XTBStreamError("A streamable xTB report requires charge provenance")
-    if (
-        report.unpaired_electrons is None
-        and previous is not None
-        and previous.total_charge != report.charge
-    ):
-        raise XTBStreamError("GFN-FF cannot preserve spin across a charge change")
 
     unpaired = report.unpaired_electrons
-    spin_source = report.spin_source
-    if unpaired is None and previous is not None:
+    scientific_identity = report.scientific_state_identity
+    facts_identity = report.facts_identity
+    projection_convention = report.projection_convention
+    if (
+        unpaired is None
+        and previous is not None
+        and previous.unpaired_electrons is not None
+    ):
+        previous_provenance = previous.provenance
+        compatible = (
+            scientific_identity is not None
+            and facts_identity is not None
+            and projection_convention == "charge_only"
+            and previous.total_charge == report.charge
+            and previous_provenance.scientific_state_identity
+            == scientific_identity
+            and previous_provenance.facts_identity == facts_identity
+            and previous_provenance.projection_convention
+            == "pure_spin_highest_ms"
+        )
+        if not compatible:
+            raise XTBStreamError(
+                "GFN-FF cannot preserve spin across incompatible state provenance"
+            )
         unpaired = previous.unpaired_electrons
-        spin_source = previous.provenance.spin_source
+        projection_convention = previous_provenance.projection_convention
     return XTBStreamMetadata(
         total_charge=report.charge,
         unpaired_electrons=unpaired,
@@ -392,8 +454,9 @@ def metadata_from_report(
             backend_version=report.backend_info.version,
             backend_revision=report.backend_info.revision,
             executable_sha256=report.backend_info.executable_sha256,
-            charge_source=report.charge_source,
-            spin_source=spin_source,
+            scientific_state_identity=scientific_identity,
+            facts_identity=facts_identity,
+            projection_convention=projection_convention,
         ),
     )
 

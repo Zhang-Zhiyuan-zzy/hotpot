@@ -8,10 +8,6 @@ from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
 from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceSource,
-    SpinInferenceSource,
-)
 from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
 from hotpot.plugins._harness import NativeProcessResult, ProcessProvenance
 
@@ -141,10 +137,6 @@ class XTBRunReport:
     gradient_norm: Optional[float] = None
     atom_order_verified: bool = False
     coordinates_committed: bool = False
-    charge_source: Optional[ChargeInferenceSource] = None
-    spin_source: Optional[SpinInferenceSource] = None
-    state_assumptions: Tuple[str, ...] = ()
-    fragment_charges: Tuple[int, ...] = ()
     scientific_state_identity: Optional[ScientificStateIdentity] = None
     facts_identity: Optional[MolecularFactsIdentity] = None
     projection_convention: Optional[str] = None

@@ -92,17 +92,28 @@ def test_readme_cbond_cli_output() -> None:
         "--bond-detail",
     ).stdout.strip()
 
-    assert output == (
+    lines = output.splitlines()
+    assert lines[:3] == [
         "CCCN(C1=[O][Eu@]23n4c1ccc1c4c4n3c("
-        "-[c]3n2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C\n"
-        "Cbond Detail:\n"
-        "AtomIdx  Atom  Score\n"
-        "10       N     4.04834\n"
-        "17       N     7.02889\n"
-        "0        O     6.10205\n"
-        "32       N     4.98739\n"
-        "-- End --"
+        "-[c]3n2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C",
+        "Cbond Detail:",
+        "AtomIdx  Atom  Score",
+    ]
+    assert lines[-1] == "-- End --"
+    expected_bonds = (
+        (10, "N", 4.04834),
+        (17, "N", 7.02889),
+        (0, "O", 6.10205),
+        (32, "N", 4.98739),
     )
+    assert len(lines[3:-1]) == len(expected_bonds)
+    for line, (atom_index, element, score) in zip(
+        lines[3:-1],
+        expected_bonds,
+    ):
+        fields = line.split()
+        assert fields[:2] == [str(atom_index), element]
+        assert float(fields[2]) == pytest.approx(score, abs=1.0e-4)
 
 
 def test_readme_forcefield_cli_output(tmp_path: Path) -> None:

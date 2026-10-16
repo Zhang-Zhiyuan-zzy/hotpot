@@ -1429,10 +1429,11 @@ class TargetStore:
             raise AssetIntegrityError(f"source asset does not match its declaration: {source}")
 
     def _store_asset(self, descriptor: Mapping[str, Any]) -> None:
-        self._verify_asset_source(descriptor)
         source = Path(descriptor["source_path"])
         expected_digest = descriptor["sha256"]
         expected_size = descriptor["size"]
+        if not source.is_file():
+            raise AssetIntegrityError(f"materialized source asset is missing: {source}")
 
         parent = self.asset_root / "objects" / "sha256" / expected_digest[:2]
         parent.mkdir(parents=True, exist_ok=True)
@@ -1441,6 +1442,9 @@ class TargetStore:
         with lock_path.open("a+b") as lock:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
             if target.exists():
+                # This source path still has to be proved independently even
+                # though another ingest already materialized the same digest.
+                self._verify_asset_source(descriptor)
                 target_digest, target_size = _sha256_file(target)
                 if target_digest != expected_digest or target_size != expected_size:
                     raise AssetIntegrityError(
@@ -1452,13 +1456,30 @@ class TargetStore:
                 digest = hashlib.sha256()
                 size = 0
                 with source.open("rb") as input_stream, temporary.open("xb") as output_stream:
+                    source_before = os.fstat(input_stream.fileno())
                     for block in iter(lambda: input_stream.read(1024 * 1024), b""):
                         output_stream.write(block)
                         digest.update(block)
                         size += len(block)
+                    source_after = os.fstat(input_stream.fileno())
                     output_stream.flush()
                     os.fsync(output_stream.fileno())
                 if digest.hexdigest() != expected_digest or size != expected_size:
+                    raise AssetIntegrityError(
+                        f"source asset changed while it was copied: {source}"
+                    )
+                try:
+                    source_at_publish = source.stat()
+                except OSError as exc:
+                    raise AssetIntegrityError(
+                        f"source asset changed while it was copied: {source}"
+                    ) from exc
+                stable_fields = ("st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
+                if any(
+                    getattr(source_before, field) != getattr(source_after, field)
+                    or getattr(source_after, field) != getattr(source_at_publish, field)
+                    for field in stable_fields
+                ):
                     raise AssetIntegrityError(
                         f"source asset changed while it was copied: {source}"
                     )

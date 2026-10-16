@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 from pathlib import Path
 from types import SimpleNamespace
@@ -186,6 +187,37 @@ def test_ingest_verifies_and_copies_each_unique_asset_once(
     }
 
 
+def test_absent_target_asset_reads_first_source_once(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = (tmp_path / "source.xyz").resolve()
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    descriptor = _asset(source)
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+    source_reads = 0
+    original_open = Path.open
+
+    def counted_open(path, mode="r", *args, **kwargs):
+        nonlocal source_reads
+        if path.resolve() == source and mode == "rb":
+            source_reads += 1
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", counted_open)
+    store.ingest(snapshot)
+
+    assert source_reads == 1
+    target = (
+        store.asset_root
+        / "objects"
+        / "sha256"
+        / descriptor["sha256"][:2]
+        / descriptor["sha256"]
+    )
+    assert target.read_bytes() == source.read_bytes()
+
+
 def test_ingest_verifies_each_distinct_source_path_once(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -200,21 +232,20 @@ def test_ingest_verifies_each_distinct_source_path_once(
         **_asset(first),
     }
     store = TargetStore(tmp_path / "datasets.sqlite3")
-    verified_paths = []
-    original = TargetStore._verify_asset_source
+    snapshot = _snapshot(store, [_case("case-a", 0, second)], [control])
+    source_reads = {first.resolve(): 0, second.resolve(): 0}
+    original_open = Path.open
 
-    def counted_verify(descriptor):
-        verified_paths.append(Path(descriptor["source_path"]))
-        return original(descriptor)
+    def counted_open(path, mode="r", *args, **kwargs):
+        resolved = path.resolve()
+        if resolved in source_reads and mode == "rb":
+            source_reads[resolved] += 1
+        return original_open(path, mode, *args, **kwargs)
 
-    monkeypatch.setattr(
-        TargetStore,
-        "_verify_asset_source",
-        staticmethod(counted_verify),
-    )
-    store.ingest(_snapshot(store, [_case("case-a", 0, second)], [control]))
+    monkeypatch.setattr(Path, "open", counted_open)
+    store.ingest(snapshot)
 
-    assert verified_paths == [first.resolve(), second.resolve()]
+    assert source_reads == {first.resolve(): 1, second.resolve(): 1}
     with sqlite3.connect(store.path) as connection:
         asset_count = connection.execute(
             "SELECT COUNT(*) FROM target_assets"
@@ -246,6 +277,91 @@ def test_digest_dedup_does_not_trust_an_unverified_source_path(
         store.ingest(_snapshot(store, [case], [control]))
 
     assert store.load_release_metadata("spin", "release-1") is None
+
+
+def test_existing_target_asset_hashes_source_and_target_once(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = (tmp_path / "source.xyz").resolve()
+    source.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    descriptor = _asset(source)
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    target = (
+        store.asset_root
+        / "objects"
+        / "sha256"
+        / descriptor["sha256"][:2]
+        / descriptor["sha256"]
+    )
+    target.parent.mkdir(parents=True)
+    target.write_bytes(source.read_bytes())
+    hashes = {source: 0, target.resolve(): 0}
+    original_hash = storage_module._sha256_file
+
+    def counted_hash(path):
+        resolved = Path(path).resolve()
+        if resolved in hashes:
+            hashes[resolved] += 1
+        return original_hash(path)
+
+    monkeypatch.setattr(storage_module, "_sha256_file", counted_hash)
+    store.ingest(_snapshot(store, [_case("case-a", 0, source)]))
+
+    assert hashes == {source: 1, target.resolve(): 1}
+
+
+def test_streaming_asset_copy_rejects_mid_read_tampering(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = (tmp_path / "source.bin").resolve()
+    source.write_bytes(b"a" * (2 * 1024 * 1024))
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, source)])
+    expected = _asset(source)["sha256"]
+    original_open = Path.open
+    source_reads = 0
+
+    class TamperingReader:
+        def __init__(self, stream):
+            self._stream = stream
+            self._tampered = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return self._stream.__exit__(*args)
+
+        def fileno(self):
+            return self._stream.fileno()
+
+        def read(self, size=-1):
+            block = self._stream.read(size)
+            if block and not self._tampered:
+                self._tampered = True
+                write_fd = os.open(source, os.O_WRONLY)
+                try:
+                    os.pwrite(write_fd, b"b", len(block))
+                finally:
+                    os.close(write_fd)
+            return block
+
+    def tampering_open(path, mode="r", *args, **kwargs):
+        nonlocal source_reads
+        stream = original_open(path, mode, *args, **kwargs)
+        if path.resolve() == source and mode == "rb":
+            source_reads += 1
+            return TamperingReader(stream)
+        return stream
+
+    monkeypatch.setattr(Path, "open", tampering_open)
+    with pytest.raises(AssetIntegrityError, match="changed while it was copied"):
+        store.ingest(snapshot)
+
+    target_parent = store.asset_root / "objects" / "sha256" / expected[:2]
+    assert source_reads == 1
+    assert not (target_parent / expected).exists()
+    assert not tuple(target_parent.glob("*.tmp"))
 
 
 def test_ingest_commit_does_not_reparse_case_json(

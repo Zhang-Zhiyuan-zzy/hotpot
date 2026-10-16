@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from .. import legality
 from ..charge.contracts import (
@@ -28,14 +28,64 @@ def _validate_coupled_candidates(
     oxidation_state: Optional[OxidationStateCandidateEvidence] = None,
     electronic_state: Optional[ElectronicStateCandidate] = None,
 ) -> legality._HardRuleAssessment:
+    return _validate_coupled_candidate_sets(
+        facts,
+        net_charge,
+        lewis_candidates=(lewis,) if lewis is not None else (),
+        counting_candidates=(counting,) if counting is not None else (),
+        oxidation_state=oxidation_state,
+        electronic_state=electronic_state,
+    )
+
+
+def _validate_coupled_candidate_sets(
+    facts: MolecularFacts,
+    net_charge: NetChargeCandidateEvidence,
+    *,
+    lewis_candidates: Tuple[LewisFormalChargeCandidate, ...] = (),
+    counting_candidates: Tuple[CoordinationCountingCandidate, ...] = (),
+    oxidation_state: Optional[OxidationStateCandidateEvidence] = None,
+    electronic_state: Optional[ElectronicStateCandidate] = None,
+) -> legality._HardRuleAssessment:
     assessments = [legality._validate_charge_conservation(facts, net_charge)]
-    if lewis is not None:
+    assessments.extend(
+        legality._validate_lewis_candidate(facts, net_charge, candidate)
+        for candidate in lewis_candidates
+    )
+    assessments.extend(
+        legality._validate_counting_candidate_for_facts(facts, candidate)
+        for candidate in counting_candidates
+    )
+    if len({candidate.convention for candidate in counting_candidates}) > 1:
         assessments.append(
-            legality._validate_lewis_candidate(facts, net_charge, lewis)
+            legality._hard_failure(
+                "HARD-005.COUNTING_CONVENTION_MISMATCH",
+                "One coupled path cannot mix coordination-counting conventions.",
+                related_identities=tuple(
+                    candidate.provenance.identity
+                    for candidate in counting_candidates
+                ),
+            )
         )
-    if counting is not None:
+    if oxidation_state is not None and any(
+        candidate.convention is not oxidation_state.convention
+        for candidate in counting_candidates
+    ):
         assessments.append(
-            legality._validate_counting_candidate_for_facts(facts, counting)
+            legality._hard_failure(
+                "HARD-005.COUNTING_CONVENTION_MISMATCH",
+                (
+                    "Oxidation-state and coordination-counting candidates in "
+                    "one path must use the same convention."
+                ),
+                related_identities=(
+                    oxidation_state.provenance.identity,
+                    *tuple(
+                        candidate.provenance.identity
+                        for candidate in counting_candidates
+                    ),
+                ),
+            )
         )
     if oxidation_state is not None:
         assessments.append(
@@ -48,7 +98,7 @@ def _validate_coupled_candidates(
         assessments.append(
             legality._validate_counting_reference(
                 oxidation_state,
-                (counting,) if counting is not None else (),
+                counting_candidates,
             )
         )
     if electronic_state is not None:

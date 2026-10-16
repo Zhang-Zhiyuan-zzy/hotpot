@@ -5,8 +5,8 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
-import math
-from typing import Dict, Optional, Tuple
+from dataclasses import dataclass
+from typing import Dict, Iterator, Optional, Tuple, Union
 
 from ..charge.contracts import (
     LewisFormalChargeCandidate,
@@ -17,12 +17,15 @@ from ..contracts import (
     ScientificAdmissibility,
     ScientificQuantity,
 )
-from ..electronic_state.contracts import ElectronicStateCandidate
+from ..electronic_state.contracts import (
+    ElectronicStateCandidate,
+    SpinContributionCandidate,
+)
 from ..oxidation_state.contracts import (
     CoordinationCountingCandidate,
     OxidationStateCandidateEvidence,
 )
-from .constraints import _validate_coupled_candidates
+from .constraints import _validate_coupled_candidate_sets
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -30,11 +33,15 @@ from .contracts import (
     CandidateFactor,
     CandidateSearchStatus,
     CoupledScientificStateCandidate,
+    DerivedStateValue,
+    FactorCandidateValue,
+    FactorKey,
     FrontierBound,
     GuardedCandidateConstraint,
     MaterializationStatus,
     RejectedPathSummary,
     ScientificStateIdentity,
+    StateCandidate,
     StateValueOrigin,
     StateValueRef,
 )
@@ -44,6 +51,24 @@ __all__ = []
 
 _HARD_CONSTRAINT_ID = "hard-scientific-consistency-v1"
 _FRONTIER_SCHEMA = "scientific-state-frontier-v1"
+_CONSTRAINT_SCHEMA = "candidate-constraint-v1"
+_UNBOUNDED_FRONTIER_KEY = ("unbounded",)
+
+
+_ChargeValue = Union[NetChargeCandidateEvidence, DerivedStateValue]
+
+
+@dataclass(frozen=True)
+class _SelectedValues:
+    charge: _ChargeValue
+    lewis: Tuple[LewisFormalChargeCandidate, ...]
+    counting: Tuple[CoordinationCountingCandidate, ...]
+    oxidation_state: Optional[OxidationStateCandidateEvidence]
+    spin_contributions: Tuple[SpinContributionCandidate, ...]
+    electronic_state: Optional[ElectronicStateCandidate]
+    derived_values: Tuple[DerivedStateValue, ...]
+    candidate_ids: Tuple[str, ...]
+    branch_assignments: Tuple[BranchAssignment, ...]
 
 
 def _digest(payload: object) -> str:
@@ -56,68 +81,164 @@ def _digest(payload: object) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _candidate_collections(
-    factors: Tuple[CandidateFactor, ...],
-) -> Tuple[
-    Tuple[NetChargeCandidateEvidence, ...],
-    Tuple[LewisFormalChargeCandidate, ...],
-    Tuple[CoordinationCountingCandidate, ...],
-    Tuple[OxidationStateCandidateEvidence, ...],
-    Tuple[ElectronicStateCandidate, ...],
-    Dict[str, Tuple[BranchAssignment, ...]],
-]:
-    charges = []
-    lewis_candidates = []
-    counting_candidates = []
-    oxidation_candidates = []
-    electronic_candidates = []
-    branches = {}
+def _candidate_matches_factor(
+    factor_key: FactorKey,
+    candidate: StateCandidate,
+) -> bool:
+    if isinstance(candidate, DerivedStateValue):
+        return candidate.quantity is factor_key.quantity
+    candidate_types = {
+        ScientificQuantity.NET_CHARGE: (NetChargeCandidateEvidence,),
+        ScientificQuantity.LEWIS_FORMAL_CHARGE: (
+            LewisFormalChargeCandidate,
+        ),
+        ScientificQuantity.COORDINATION_COUNTING: (
+            CoordinationCountingCandidate,
+        ),
+        ScientificQuantity.OXIDATION_STATE: (
+            OxidationStateCandidateEvidence,
+        ),
+        ScientificQuantity.ELECTRONIC_STATE: (
+            SpinContributionCandidate,
+            ElectronicStateCandidate,
+        ),
+    }
+    return isinstance(candidate, candidate_types[factor_key.quantity])
+
+
+def _validate_factors(factors: Tuple[CandidateFactor, ...]) -> None:
+    factor_keys = tuple(factor.factor_key for factor in factors)
+    if len(set(factor_keys)) != len(factor_keys):
+        raise ValueError("Candidate factor keys must be unique after merging")
+
+    candidate_factor_by_identity: Dict[str, FactorKey] = {}
     for factor in factors:
         for value in factor.values:
             candidate = value.candidate
-            branches[candidate.provenance.identity] = value.branch_assignments
-            if isinstance(candidate, NetChargeCandidateEvidence):
-                charges.append(candidate)
-            elif isinstance(candidate, LewisFormalChargeCandidate):
-                lewis_candidates.append(candidate)
-            elif isinstance(candidate, CoordinationCountingCandidate):
-                counting_candidates.append(candidate)
-            elif isinstance(candidate, OxidationStateCandidateEvidence):
-                if all(state is not None for state in candidate.atom_states):
-                    oxidation_candidates.append(candidate)
-            elif isinstance(candidate, ElectronicStateCandidate):
-                electronic_candidates.append(candidate)
-    return (
-        tuple(charges),
-        tuple(lewis_candidates),
-        tuple(counting_candidates),
-        tuple(oxidation_candidates),
-        tuple(electronic_candidates),
-        branches,
+            if not _candidate_matches_factor(factor.factor_key, candidate):
+                raise ValueError(
+                    "Candidate type does not match its scientific factor"
+                )
+            identity = candidate.provenance.identity
+            incumbent = candidate_factor_by_identity.get(identity)
+            if incumbent is not None and incumbent != factor.factor_key:
+                raise ValueError(
+                    "One candidate identity cannot belong to multiple factors"
+                )
+            candidate_factor_by_identity[identity] = factor.factor_key
+
+
+def _constraint_candidate_ids(
+    constraint: CandidateConstraint,
+) -> Tuple[str, ...]:
+    if constraint.schema_version != _CONSTRAINT_SCHEMA:
+        raise ValueError("Unsupported candidate-constraint schema version")
+    parameter_names = tuple(name for name, _ in constraint.parameters)
+    if len(set(parameter_names)) != len(parameter_names):
+        raise ValueError("Candidate-constraint parameters must be unique")
+    parameters = dict(constraint.parameters)
+    candidate_ids = parameters.get("candidate_ids")
+    if (
+        not isinstance(candidate_ids, tuple)
+        or not candidate_ids
+        or any(not isinstance(identity, str) for identity in candidate_ids)
+    ):
+        raise ValueError(
+            "Candidate constraints require a non-empty candidate_ids tuple"
+        )
+    return candidate_ids
+
+
+def _unconditional_constraint(
+    guarded: GuardedCandidateConstraint,
+) -> bool:
+    return not (
+        guarded.guard.all_candidate_ids
+        or guarded.guard.branch_assignments
     )
 
 
-def _selected_candidate_ids(
-    charge: NetChargeCandidateEvidence,
-    lewis: Optional[LewisFormalChargeCandidate],
-    counting: Optional[CoordinationCountingCandidate],
-    oxidation: Optional[OxidationStateCandidateEvidence],
-    electronic: Optional[ElectronicStateCandidate],
-) -> Tuple[str, ...]:
-    return tuple(
-        candidate.provenance.identity
-        for candidate in (charge, lewis, counting, oxidation, electronic)
-        if candidate is not None
+def _prune_factor_domains(
+    factors: Tuple[CandidateFactor, ...],
+    guarded_constraints: Tuple[GuardedCandidateConstraint, ...],
+) -> Tuple[
+    Tuple[Tuple[FactorCandidateValue, ...], ...],
+    Tuple[RejectedPathSummary, ...],
+]:
+    domains = [factor.values for factor in factors]
+    candidate_locations = {
+        value.candidate.provenance.identity: factor_index
+        for factor_index, factor in enumerate(factors)
+        for value in factor.values
+    }
+    required_by_factor: Dict[int, str] = {}
+    excluded_singletons = set()
+    early_rejections = []
+    for guarded in guarded_constraints:
+        if not _unconditional_constraint(guarded):
+            continue
+        constraint = guarded.constraint
+        candidate_ids = _constraint_candidate_ids(constraint)
+        if constraint.constraint_type == "requires_all":
+            for candidate_id in candidate_ids:
+                factor_index = candidate_locations.get(candidate_id)
+                if factor_index is None:
+                    early_rejections.append(
+                        RejectedPathSummary(
+                            (candidate_id,),
+                            constraint.identity,
+                            ("CONSTRAINT.REQUIRES_ALL",),
+                        )
+                    )
+                    return (
+                        tuple(() for _ in factors),
+                        tuple(early_rejections),
+                    )
+                incumbent = required_by_factor.get(factor_index)
+                if incumbent is not None and incumbent != candidate_id:
+                    early_rejections.append(
+                        RejectedPathSummary(
+                            (incumbent, candidate_id),
+                            constraint.identity,
+                            ("CONSTRAINT.REQUIRES_ALL",),
+                        )
+                    )
+                    return (
+                        tuple(() for _ in factors),
+                        tuple(early_rejections),
+                    )
+                required_by_factor[factor_index] = candidate_id
+        elif constraint.constraint_type == "excludes_all" and len(
+            candidate_ids
+        ) == 1:
+            excluded_singletons.add(candidate_ids[0])
+
+    for factor_index, required_id in required_by_factor.items():
+        domains[factor_index] = tuple(
+            value
+            for value in domains[factor_index]
+            if value.candidate.provenance.identity == required_id
+        )
+    return (
+        tuple(
+            tuple(
+                value
+                for value in domain
+                if value.candidate.provenance.identity
+                not in excluded_singletons
+            )
+            for domain in domains
+        ),
+        tuple(early_rejections),
     )
 
 
 def _branch_conflict(
-    selected_ids: Tuple[str, ...],
-    branches: Dict[str, Tuple[BranchAssignment, ...]],
+    selected_values: Tuple[FactorCandidateValue, ...],
 ) -> bool:
     selected_options: Dict[str, str] = {}
-    for candidate_id in selected_ids:
-        for assignment in branches.get(candidate_id, ()):
+    for value in selected_values:
+        for assignment in value.branch_assignments:
             incumbent = selected_options.get(assignment.group_id)
             if incumbent is not None and incumbent != assignment.option_id:
                 return True
@@ -128,41 +249,48 @@ def _branch_conflict(
 def _guard_matches(
     guarded: GuardedCandidateConstraint,
     selected_ids: Tuple[str, ...],
-    branches: Dict[str, Tuple[BranchAssignment, ...]],
+    selected_assignments: Tuple[BranchAssignment, ...],
 ) -> bool:
-    selected_id_set = set(selected_ids)
-    if not set(guarded.guard.all_candidate_ids).issubset(selected_id_set):
-        return False
-    selected_assignments = {
-        assignment
-        for candidate_id in selected_ids
-        for assignment in branches.get(candidate_id, ())
-    }
-    return set(guarded.guard.branch_assignments).issubset(selected_assignments)
+    return (
+        set(guarded.guard.all_candidate_ids).issubset(selected_ids)
+        and set(guarded.guard.branch_assignments).issubset(
+            selected_assignments
+        )
+    )
 
 
 def _constraint_rejection(
     constraint: CandidateConstraint,
     selected_ids: Tuple[str, ...],
 ) -> Optional[str]:
-    parameters = dict(constraint.parameters)
-    candidate_ids = parameters.get("candidate_ids", ())
+    candidate_ids = set(_constraint_candidate_ids(constraint))
     selected = set(selected_ids)
-    required = set(candidate_ids) if isinstance(candidate_ids, tuple) else set()
     if constraint.constraint_type == "requires_all":
-        return None if required.issubset(selected) else "CONSTRAINT.REQUIRES_ALL"
+        return (
+            None
+            if candidate_ids.issubset(selected)
+            else "CONSTRAINT.REQUIRES_ALL"
+        )
     if constraint.constraint_type == "excludes_all":
-        return "CONSTRAINT.EXCLUDES_ALL" if required.issubset(selected) else None
+        return (
+            "CONSTRAINT.EXCLUDES_ALL"
+            if candidate_ids.issubset(selected)
+            else None
+        )
     return "CONSTRAINT.UNSUPPORTED_TYPE"
 
 
 def _active_constraint_rejection(
     guarded_constraints: Tuple[GuardedCandidateConstraint, ...],
     selected_ids: Tuple[str, ...],
-    branches: Dict[str, Tuple[BranchAssignment, ...]],
+    selected_assignments: Tuple[BranchAssignment, ...],
 ) -> Optional[Tuple[str, str]]:
     for guarded in guarded_constraints:
-        if not _guard_matches(guarded, selected_ids, branches):
+        if not _guard_matches(
+            guarded,
+            selected_ids,
+            selected_assignments,
+        ):
             continue
         reason = _constraint_rejection(guarded.constraint, selected_ids)
         if reason is not None:
@@ -170,16 +298,130 @@ def _active_constraint_rejection(
     return None
 
 
+def _classify_selected_values(
+    selected_values: Tuple[FactorCandidateValue, ...],
+) -> Tuple[Optional[_SelectedValues], Optional[str]]:
+    candidates = tuple(value.candidate for value in selected_values)
+    charges = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, NetChargeCandidateEvidence)
+        or (
+            isinstance(candidate, DerivedStateValue)
+            and candidate.quantity is ScientificQuantity.NET_CHARGE
+        )
+    )
+    unsupported_derived = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, DerivedStateValue)
+        and candidate.quantity is not ScientificQuantity.NET_CHARGE
+    )
+    oxidation_states = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, OxidationStateCandidateEvidence)
+    )
+    electronic_states = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, ElectronicStateCandidate)
+    )
+    if unsupported_derived:
+        return None, "COMPOSITION.STRUCTURED_DERIVATION_UNSUPPORTED"
+    if len(charges) != 1:
+        return None, "COMPOSITION.NET_CHARGE_CARDINALITY"
+    if len(oxidation_states) > 1:
+        return None, "COMPOSITION.OXIDATION_STATE_CARDINALITY"
+    if len(electronic_states) > 1:
+        return None, "COMPOSITION.ELECTRONIC_STATE_CARDINALITY"
+
+    candidate_ids = tuple(
+        candidate.provenance.identity for candidate in candidates
+    )
+    if any(
+        not set(candidate.parent_candidate_ids).issubset(candidate_ids)
+        for candidate in tuple(
+            candidate
+            for candidate in candidates
+            if isinstance(candidate, DerivedStateValue)
+        )
+    ):
+        return None, "COMPOSITION.DERIVED_PARENT_MISSING"
+    return (
+        _SelectedValues(
+            charge=charges[0],
+            lewis=tuple(
+                candidate
+                for candidate in candidates
+                if isinstance(candidate, LewisFormalChargeCandidate)
+            ),
+            counting=tuple(
+                candidate
+                for candidate in candidates
+                if isinstance(candidate, CoordinationCountingCandidate)
+            ),
+            oxidation_state=(
+                oxidation_states[0] if oxidation_states else None
+            ),
+            spin_contributions=tuple(
+                candidate
+                for candidate in candidates
+                if isinstance(candidate, SpinContributionCandidate)
+            ),
+            electronic_state=(
+                electronic_states[0] if electronic_states else None
+            ),
+            derived_values=tuple(
+                candidate
+                for candidate in candidates
+                if isinstance(candidate, DerivedStateValue)
+            ),
+            candidate_ids=candidate_ids,
+            branch_assignments=tuple(
+                assignment
+                for value in selected_values
+                for assignment in value.branch_assignments
+            ),
+        ),
+        None,
+    )
+
+
+def _charge_evidence(selected: _SelectedValues) -> NetChargeCandidateEvidence:
+    if isinstance(selected.charge, NetChargeCandidateEvidence):
+        return selected.charge
+    return NetChargeCandidateEvidence(
+        selected.charge.provenance,
+        selected.charge.value,
+    )
+
+
+def _electronic_result_ids(
+    selected: _SelectedValues,
+    electronic_result_by_candidate: Dict[str, Tuple[str, ...]],
+    unresolved_electronic_result_ids: Tuple[str, ...],
+) -> Tuple[str, ...]:
+    if selected.electronic_state is None:
+        return unresolved_electronic_result_ids
+    return electronic_result_by_candidate.get(
+        selected.electronic_state.provenance.identity,
+        (),
+    )
+
+
 def _path_identity(
     facts: MolecularFacts,
-    selected_ids: Tuple[str, ...],
+    selected: _SelectedValues,
+    charge_origin_identity: str,
     electronic_result_id: str,
 ) -> ScientificStateIdentity:
     return ScientificStateIdentity(
         _digest(
             {
                 "facts": facts.identity.chemical_identity_digest,
-                "candidate_ids": selected_ids,
+                "candidate_ids": selected.candidate_ids,
+                "charge_origin_identity": charge_origin_identity,
                 "electronic_result_id": electronic_result_id,
             }
         )
@@ -188,49 +430,76 @@ def _path_identity(
 
 def _coupled_path(
     facts: MolecularFacts,
-    charge: NetChargeCandidateEvidence,
-    lewis: Optional[LewisFormalChargeCandidate],
-    counting: Optional[CoordinationCountingCandidate],
-    oxidation: Optional[OxidationStateCandidateEvidence],
-    electronic: Optional[ElectronicStateCandidate],
+    selected: _SelectedValues,
+    charge_result_by_candidate: Dict[str, Tuple[str, ...]],
     electronic_result_id: str,
-) -> CoupledScientificStateCandidate:
-    selected = tuple(
-        candidate
-        for candidate in (charge, lewis, counting, oxidation, electronic)
-        if candidate is not None
-    )
-    selected_ids = tuple(
-        candidate.provenance.identity for candidate in selected
-    )
-    return CoupledScientificStateCandidate(
-        identity=_path_identity(facts, selected_ids, electronic_result_id),
-        net_charge=StateValueRef(
+) -> Optional[CoupledScientificStateCandidate]:
+    charge = selected.charge
+    if isinstance(charge, DerivedStateValue):
+        charge_ref = StateValueRef(
+            ScientificQuantity.NET_CHARGE,
+            charge.value,
+            StateValueOrigin.DERIVED_CONSTRAINT,
+            charge.provenance.identity,
+        )
+    else:
+        result_ids = charge_result_by_candidate.get(
+            charge.provenance.identity,
+            (),
+        )
+        if not result_ids:
+            return None
+        charge_ref = StateValueRef(
             ScientificQuantity.NET_CHARGE,
             charge.charge,
             StateValueOrigin.RESULT,
-            charge.provenance.identity,
+            result_ids[0],
+        )
+    selected_candidates = (
+        (
+            (selected.charge,)
+            if isinstance(selected.charge, NetChargeCandidateEvidence)
+            else ()
+        )
+        + selected.lewis
+        + selected.counting
+        + ((selected.oxidation_state,) if selected.oxidation_state else ())
+        + selected.spin_contributions
+        + ((selected.electronic_state,) if selected.electronic_state else ())
+        + selected.derived_values
+    )
+    return CoupledScientificStateCandidate(
+        identity=_path_identity(
+            facts,
+            selected,
+            charge_ref.origin_identity,
+            electronic_result_id,
         ),
-        component_assignment_ids=(
-            (lewis.provenance.identity,) if lewis is not None else ()
+        net_charge=charge_ref,
+        component_assignment_ids=tuple(
+            candidate.provenance.identity for candidate in selected.lewis
         ),
-        coordination_assignment_ids=(
-            (counting.provenance.identity,) if counting is not None else ()
+        coordination_assignment_ids=tuple(
+            candidate.provenance.identity for candidate in selected.counting
         ),
         oxidation_state_assignment_id=(
-            oxidation.provenance.identity if oxidation is not None else None
+            selected.oxidation_state.provenance.identity
+            if selected.oxidation_state is not None
+            else None
         ),
         electronic_state_result_id=electronic_result_id,
         electronic_state_candidate_identity=(
-            electronic.provenance.identity if electronic is not None else None
+            selected.electronic_state.provenance.identity
+            if selected.electronic_state is not None
+            else None
         ),
-        derived_values=(),
-        evidence_ids=selected_ids,
+        derived_values=selected.derived_values,
+        evidence_ids=selected.candidate_ids,
         assumption_ids=tuple(
             sorted(
                 {
                     assumption
-                    for candidate in selected
+                    for candidate in selected_candidates
                     for assumption in candidate.provenance.assumption_ids
                 }
             )
@@ -238,11 +507,33 @@ def _coupled_path(
     )
 
 
+def _iter_selected_values(
+    domains: Tuple[Tuple[FactorCandidateValue, ...], ...],
+) -> Iterator[Tuple[FactorCandidateValue, ...]]:
+    if not domains or any(not domain for domain in domains):
+        return
+    yield from itertools.product(*domains)
+
+
+def _frontier_for_selection(
+    selected_values: Tuple[FactorCandidateValue, ...],
+) -> FrontierBound:
+    candidate_ids = tuple(
+        value.candidate.provenance.identity for value in selected_values
+    )
+    return FrontierBound(
+        branch_identity=_digest(candidate_ids),
+        schema_version=_FRONTIER_SCHEMA,
+        optimistic_key=_UNBOUNDED_FRONTIER_KEY,
+    )
+
+
 def _expand_scientific_paths(
     facts: MolecularFacts,
     factors: Tuple[CandidateFactor, ...],
     guarded_constraints: Tuple[GuardedCandidateConstraint, ...],
-    electronic_result_by_candidate: Dict[str, str],
+    charge_result_by_candidate: Dict[str, Tuple[str, ...]],
+    electronic_result_by_candidate: Dict[str, Tuple[str, ...]],
     unresolved_electronic_result_ids: Tuple[str, ...],
     *,
     max_expanded_paths: int,
@@ -253,62 +544,61 @@ def _expand_scientific_paths(
     Tuple[FrontierBound, ...],
     CandidateSearchStatus,
 ]:
-    (
-        charges,
-        lewis_candidates,
-        counting_candidates,
-        oxidation_candidates,
-        electronic_candidates,
-        branches,
-    ) = _candidate_collections(factors)
-    if not charges:
-        return (), (), (), CandidateSearchStatus.NOT_EVALUATED
-
-    lewis_domain = lewis_candidates or (None,)
-    counting_domain = counting_candidates or (None,)
-    oxidation_domain = oxidation_candidates or (None,)
-    if electronic_candidates:
-        electronic_domain = tuple(
-            (
-                candidate,
-                electronic_result_by_candidate[candidate.provenance.identity],
-            )
-            for candidate in electronic_candidates
-            if candidate.provenance.identity in electronic_result_by_candidate
+    factors = tuple(
+        sorted(
+            factors,
+            key=lambda factor: (
+                factor.factor_key.quantity.value,
+                factor.factor_key.subject_identity,
+            ),
         )
-    else:
-        electronic_domain = tuple(
-            (None, result_id) for result_id in unresolved_electronic_result_ids
-        )
-    if not electronic_domain:
-        return (), (), (), CandidateSearchStatus.NOT_EVALUATED
-
-    domains = (
-        charges,
-        lewis_domain,
-        counting_domain,
-        oxidation_domain,
-        electronic_domain,
     )
-    total_combinations = math.prod(len(domain) for domain in domains)
+    _validate_factors(factors)
+    factor_keys = {factor.factor_key for factor in factors}
+    for guarded in guarded_constraints:
+        if not set(guarded.constraint.factor_keys).issubset(factor_keys):
+            raise ValueError("Candidate constraint references an unknown factor")
+
+    domains, early_rejections = _prune_factor_domains(
+        factors,
+        guarded_constraints,
+    )
+    if not factors or any(not domain for domain in domains):
+        return (
+            (),
+            early_rejections,
+            (),
+            CandidateSearchStatus.NOT_EVALUATED,
+        )
+
+    iterator = _iter_selected_values(domains)
     paths: Dict[str, CoupledScientificStateCandidate] = {}
-    rejections = []
+    rejections = list(early_rejections)
     attempted = 0
-    for charge, lewis, counting, oxidation, electronic_entry in itertools.product(
-        *domains
-    ):
+    truncated = False
+    first_unexpanded = None
+    for selected_values in iterator:
         if attempted >= max_expanded_paths:
+            truncated = True
+            first_unexpanded = selected_values
             break
         attempted += 1
-        electronic, electronic_result_id = electronic_entry
-        selected_ids = _selected_candidate_ids(
-            charge,
-            lewis,
-            counting,
-            oxidation,
-            electronic,
+        selected, classification_rejection = _classify_selected_values(
+            selected_values
         )
-        if _branch_conflict(selected_ids, branches):
+        selected_ids = tuple(
+            value.candidate.provenance.identity for value in selected_values
+        )
+        if classification_rejection is not None:
+            rejections.append(
+                RejectedPathSummary(
+                    selected_ids,
+                    _HARD_CONSTRAINT_ID,
+                    (classification_rejection,),
+                )
+            )
+            continue
+        if _branch_conflict(selected_values):
             rejections.append(
                 RejectedPathSummary(
                     selected_ids,
@@ -319,69 +609,99 @@ def _expand_scientific_paths(
             continue
         constraint_rejection = _active_constraint_rejection(
             guarded_constraints,
-            selected_ids,
-            branches,
+            selected.candidate_ids,
+            selected.branch_assignments,
         )
         if constraint_rejection is not None:
             constraint_identity, reason = constraint_rejection
             rejections.append(
                 RejectedPathSummary(
-                    selected_ids,
+                    selected.candidate_ids,
                     constraint_identity,
                     (reason,),
                 )
             )
             continue
-        assessment = _validate_coupled_candidates(
+        electronic_result_ids = _electronic_result_ids(
+            selected,
+            electronic_result_by_candidate,
+            unresolved_electronic_result_ids,
+        )
+        if not electronic_result_ids:
+            rejections.append(
+                RejectedPathSummary(
+                    selected.candidate_ids,
+                    _HARD_CONSTRAINT_ID,
+                    ("COMPOSITION.ELECTRONIC_RESULT_ENVELOPE_MISSING",),
+                )
+            )
+            continue
+        charge_evidence = _charge_evidence(selected)
+        assessment = _validate_coupled_candidate_sets(
             facts,
-            charge,
-            lewis=lewis,
-            counting=counting,
-            oxidation_state=oxidation,
-            electronic_state=electronic,
+            charge_evidence,
+            lewis_candidates=selected.lewis,
+            counting_candidates=selected.counting,
+            oxidation_state=selected.oxidation_state,
+            electronic_state=selected.electronic_state,
         )
         if assessment.admissibility is not ScientificAdmissibility.ADMISSIBLE:
             rejections.append(
                 RejectedPathSummary(
-                    selected_ids,
+                    selected.candidate_ids,
                     _HARD_CONSTRAINT_ID,
                     tuple(finding.code for finding in assessment.findings),
                 )
             )
             continue
-        path = _coupled_path(
-            facts,
-            charge,
-            lewis,
-            counting,
-            oxidation,
-            electronic,
-            electronic_result_id,
-        )
-        paths[path.identity.digest] = path
+        for electronic_result_id in electronic_result_ids:
+            path = _coupled_path(
+                facts,
+                selected,
+                charge_result_by_candidate,
+                electronic_result_id,
+            )
+            if path is None:
+                rejections.append(
+                    RejectedPathSummary(
+                        selected.candidate_ids,
+                        _HARD_CONSTRAINT_ID,
+                        ("COMPOSITION.CHARGE_RESULT_ENVELOPE_MISSING",),
+                    )
+                )
+                continue
+            paths[path.identity.digest] = path
 
-    truncated = attempted < total_combinations or any(
+    factor_truncation = any(
         factor.materialization_status
         is MaterializationStatus.RESOURCE_TRUNCATED
         for factor in factors
     )
-    frontier = (
-        (
-            FrontierBound(
-                branch_identity=_digest(
-                    {
-                        "facts": facts.identity.chemical_identity_digest,
-                        "attempted": attempted,
-                        "total": total_combinations,
-                    }
-                ),
+    truncated = truncated or factor_truncation
+    frontier = []
+    if first_unexpanded is not None and max_frontier_paths > 0:
+        frontier.append(_frontier_for_selection(first_unexpanded))
+        for selected_values in itertools.islice(
+            iterator,
+            max_frontier_paths - 1,
+        ):
+            frontier.append(_frontier_for_selection(selected_values))
+    for factor in factors:
+        if len(frontier) >= max_frontier_paths:
+            break
+        summary = factor.unexpanded_domain_summary
+        if summary is None:
+            continue
+        frontier.append(
+            summary.frontier_bound
+            or FrontierBound(
+                branch_identity=summary.continuation_identity
+                or factor.identity,
                 schema_version=_FRONTIER_SCHEMA,
-                optimistic_key=(),
-            ),
+                optimistic_key=_UNBOUNDED_FRONTIER_KEY,
+            )
         )
-        if truncated and max_frontier_paths > 0
-        else ()
-    )
+
     ordered_paths = tuple(paths[identity] for identity in sorted(paths))
     factors_are_exhaustive = all(
         factor.domain_scope is CandidateDomainScope.EXHAUSTIVE
@@ -394,4 +714,4 @@ def _expand_scientific_paths(
         status = CandidateSearchStatus.DECISION_CERTIFIED
     else:
         status = CandidateSearchStatus.NO_CERTIFIED_DECISION
-    return ordered_paths, tuple(rejections), frontier, status
+    return ordered_paths, tuple(rejections), tuple(frontier), status

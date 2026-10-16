@@ -118,3 +118,26 @@ def test_dangling_electronic_os_reference_is_rejected() -> None:
     assert assessment.findings[-1].code == (
         "HARD-007.OXIDATION_STATE_REFERENCE_MISSING"
     )
+
+
+def test_path_cannot_mix_counting_and_oxidation_conventions() -> None:
+    facts, charge, lewis, counting, oxidation_state, electronic_state = (
+        _path_inputs()
+    )
+    mismatched = replace(
+        oxidation_state,
+        convention=CountingConvention.CBC,
+        coordination_counting_candidate_identity=None,
+    )
+
+    assessment = _validate_coupled_candidates(
+        facts,
+        charge,
+        counting=counting,
+        oxidation_state=mismatched,
+    )
+
+    assert assessment.admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert assessment.findings[0].code == (
+        "HARD-005.COUNTING_CONVENTION_MISMATCH"
+    )

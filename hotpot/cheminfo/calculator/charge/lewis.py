@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from bisect import bisect_left
 from typing import Dict, List, Optional, Tuple
 
 from .. import legality
@@ -51,6 +52,9 @@ _MAIN_GROUP_ELECTRON_MODELS = {
 
 _PROVIDER_ID = "PROVIDER-001"
 _PROVIDER_VERSION = "fixed-bond-main-group-v2"
+
+
+_LewisAssignment = Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]
 
 
 def _digest(payload: object) -> str:
@@ -107,6 +111,22 @@ def _atom_charge_candidates(
     return tuple(candidates)
 
 
+def _retain_bounded_assignment(
+    assignments: List[_LewisAssignment],
+    assignment: _LewisAssignment,
+    limit: int,
+) -> bool:
+    """Insert one sorted unique assignment and report whether one was omitted."""
+    position = bisect_left(assignments, assignment)
+    if position < len(assignments) and assignments[position] == assignment:
+        return False
+    assignments.insert(position, assignment)
+    if len(assignments) <= limit:
+        return False
+    assignments.pop()
+    return True
+
+
 def _enumerate_assignments(
     facts: MolecularFacts,
     bond_valences: Tuple[int, ...],
@@ -116,35 +136,32 @@ def _enumerate_assignments(
     Tuple[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]], ...],
     bool,
 ]:
-    states: Dict[
-        int,
-        List[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]],
-    ] = {0: [((), (), ())]}
+    states: Dict[int, List[_LewisAssignment]] = {0: [((), (), ())]}
     truncated = False
     for atomic_number, bond_valence in zip(facts.atomic_numbers, bond_valences):
-        next_states: Dict[
-            int,
-            List[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]],
-        ] = {}
+        next_states: Dict[int, List[_LewisAssignment]] = {}
+        atom_candidates = _atom_charge_candidates(
+            atomic_number,
+            bond_valence,
+        )
         for accumulated_charge, assignments in states.items():
             for charges, nonbonding, radicals in assignments:
-                for atom_charge, atom_nonbonding, atom_radicals in (
-                    _atom_charge_candidates(atomic_number, bond_valence)
-                ):
+                for (
+                    atom_charge,
+                    atom_nonbonding,
+                    atom_radicals,
+                ) in atom_candidates:
                     charge = accumulated_charge + atom_charge
-                    next_states.setdefault(charge, []).append(
+                    truncated = _retain_bounded_assignment(
+                        next_states.setdefault(charge, []),
                         (
                             charges + (atom_charge,),
                             nonbonding + (atom_nonbonding,),
                             radicals + (atom_radicals,),
-                        )
-                    )
-        states = {}
-        for charge, assignments in next_states.items():
-            ordered = sorted(set(assignments))
-            if len(ordered) > limit:
-                truncated = True
-            states[charge] = ordered[:limit]
+                        ),
+                        limit,
+                    ) or truncated
+        states = next_states
 
     target_assignments = tuple(states.get(target_charge, ()))
     return target_assignments, truncated

@@ -19,6 +19,12 @@ contains exactly 187 records and stores its SHA-256 digest in `manifest.json`.
 The manifest also records the Git commit and whether the worktree was dirty.
 It is deliberately not a default pytest test.
 
+Dataset payloads under `hotpot/dataset/data/` are local governed resources and
+are not distributed through Git or the Python package. Install the authorized
+extractant payload at the path above before running this benchmark. Unit tests
+that exercise only benchmark contracts remain runnable without the payload;
+corpus-content checks are reported as skipped when it is absent.
+
 The recorded CBond policy is intentionally asymmetric: the first bond uses a
 raw-score threshold of `-0.5`, while every subsequent bond uses `-0.125`.
 

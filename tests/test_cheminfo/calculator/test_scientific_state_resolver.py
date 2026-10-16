@@ -80,6 +80,18 @@ def test_strict_execution_selects_explicit_charge_and_spin() -> None:
     assert bundle.execution_decision.selected_state_identity is not None
 
 
+def test_charge_only_operation_selects_path_with_unresolved_spin() -> None:
+    bundle = resolve_scientific_state(
+        _facts("[N]"),
+        StateRequest(net_charge=0),
+        requirements=_requirements(ScientificQuantity.NET_CHARGE),
+    )
+
+    assert bundle.scientific_resolution.status is ResolutionStatus.UNRESOLVED
+    assert bundle.execution_decision.action is StateDecisionAction.SELECT_STATE
+    assert bundle.execution_decision.selected_state_identity is not None
+
+
 def test_missing_required_charge_returns_no_automatic_state() -> None:
     bundle = resolve_scientific_state(
         _facts(),

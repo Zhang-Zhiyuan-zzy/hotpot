@@ -17,6 +17,7 @@ from .state_composition import (
     CandidateDomainScope,
     CandidateSearchStatus,
     CoupledScientificStateCandidate,
+    MaterializationStatus,
     ScientificStateCandidateSpace,
 )
 from .state_composition.decision_search import (
@@ -257,11 +258,7 @@ def _certifiability(
                 ),
             ),
         )
-    if (
-        candidate_space.search_status
-        is CandidateSearchStatus.NO_CERTIFIED_DECISION
-        or selected_path is None
-    ):
+    if selected_path is None:
         return DecisionCertifiability(
             DecisionCertificationStatus.NON_EQUIVALENT_TIE,
             (
@@ -283,13 +280,24 @@ def _certified_candidate_path(
     eligible_paths: Tuple[CoupledScientificStateCandidate, ...],
     decision_search: Optional[_DecisionSearchCompiler],
 ) -> Optional[CoupledScientificStateCandidate]:
+    if decision_search is None:
+        factors_are_certifiable = all(
+            factor.domain_scope is not CandidateDomainScope.OPEN
+            and factor.materialization_status is MaterializationStatus.COMPLETE
+            for factor in candidate_space.factors
+        )
+        return (
+            eligible_paths[0]
+            if len(eligible_paths) == 1
+            and factors_are_certifiable
+            and not candidate_space.frontier
+            else None
+        )
     if candidate_space.search_status not in (
         CandidateSearchStatus.DECISION_CERTIFIED,
         CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED,
     ):
         return None
-    if decision_search is None:
-        return eligible_paths[0] if len(eligible_paths) == 1 else None
     record = _select_decision_record(
         eligible_paths,
         candidate_space.factors,

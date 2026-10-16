@@ -186,6 +186,28 @@ def test_unknown_assumption_marks_a_record_uncertifiable() -> None:
     assert record.certifiable is False
 
 
+def test_rank_assumptions_participate_in_severity_and_prefix_bounds() -> None:
+    factors, zero_path, _ = _fixture()
+    compiler = _compiler(
+        RankAdjustment(
+            "charge:zero",
+            "oxidation_state_commonality",
+            1.0,
+            "execution prior",
+            ("execution_prior:test",),
+        )
+    )
+
+    record = compiler.record_for_path(zero_path, factors)
+    bound = compiler.optimistic_bound_for_prefix(
+        (factors[0].values[0],),
+        (factors[1],),
+    )
+
+    assert record.preference.assumption_severity[0] == 1
+    assert bound.assumption_severity_lower[0] == 1
+
+
 def test_prefix_bound_round_trip_and_aggregation_are_stable() -> None:
     factors, _, _ = _fixture()
     compiler = _compiler(

@@ -67,6 +67,7 @@ def _rank_adjustment_to_payload(
         "rank_dimension": adjustment.rank_dimension,
         "value": _number(adjustment.value),
         "reason": adjustment.reason,
+        "assumption_ids": list(adjustment.assumption_ids),
     }
 
 
@@ -74,13 +75,20 @@ def _rank_adjustment_from_payload(value: object) -> RankAdjustment:
     payload = _mapping(value)
     _require_keys(
         payload,
-        ("target_identity", "rank_dimension", "value", "reason"),
+        (
+            "target_identity",
+            "rank_dimension",
+            "value",
+            "reason",
+            "assumption_ids",
+        ),
     )
     return RankAdjustment(
         target_identity=_string(payload["target_identity"]),
         rank_dimension=_string(payload["rank_dimension"]),
         value=_number(payload["value"]),
         reason=_string(payload["reason"]),
+        assumption_ids=_strings(payload["assumption_ids"]),
     )
 
 

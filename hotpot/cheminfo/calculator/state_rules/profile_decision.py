@@ -231,6 +231,7 @@ class _CoordinationScreeningDecisionCompiler(_DecisionSearchCompiler):
                     item.target_identity,
                     item.value,
                     item.reason,
+                    item.assumption_ids,
                 ),
             )
         )
@@ -252,6 +253,7 @@ class _CoordinationScreeningDecisionCompiler(_DecisionSearchCompiler):
                     item.rank_dimension,
                     item.value,
                     item.reason,
+                    item.assumption_ids,
                 )
                 for item in self._rank_adjustments
             ),
@@ -302,6 +304,21 @@ class _CoordinationScreeningDecisionCompiler(_DecisionSearchCompiler):
             for dimension in self._profile.decision_rank_dimensions
         )
 
+    def _rank_assumptions(
+        self,
+        candidate_ids: frozenset[str],
+    ) -> Tuple[str, ...]:
+        return tuple(
+            sorted(
+                {
+                    assumption
+                    for adjustment in self._rank_adjustments
+                    if adjustment.target_identity in candidate_ids
+                    for assumption in adjustment.assumption_ids
+                }
+            )
+        )
+
     def record_for_path(
         self,
         path: CoupledScientificStateCandidate,
@@ -323,12 +340,21 @@ class _CoordinationScreeningDecisionCompiler(_DecisionSearchCompiler):
                 for quantity in quantities
             )
         )
-        severity = self._severity.vector(path.assumption_ids)
+        candidate_ids = frozenset(path.evidence_ids)
+        severity = self._severity.vector(
+            tuple(
+                sorted(
+                    set(path.assumption_ids).union(
+                        self._rank_assumptions(candidate_ids)
+                    )
+                )
+            )
+        )
         return _DecisionRecord(
             path.identity,
             authority,
             _PreferenceKey(
-                self._rank_values(frozenset(path.evidence_ids)),
+                self._rank_values(candidate_ids),
                 severity
                 if severity is not None
                 else tuple(0 for _ in self._severity.ordered_categories),
@@ -354,9 +380,13 @@ class _CoordinationScreeningDecisionCompiler(_DecisionSearchCompiler):
             for candidate in selected_candidates
         )
         selected_assumptions = tuple(
-            assumption
-            for candidate in selected_candidates
-            for assumption in candidate.provenance.assumption_ids
+            sorted(
+                {
+                    assumption
+                    for candidate in selected_candidates
+                    for assumption in candidate.provenance.assumption_ids
+                }.union(self._rank_assumptions(selected_ids))
+            )
         )
         severity_lower = self._severity.vector(selected_assumptions)
         if severity_lower is None:

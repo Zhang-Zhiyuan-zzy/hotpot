@@ -124,6 +124,7 @@ class RankAdjustment:
     rank_dimension: str
     value: float
     reason: str
+    assumption_ids: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

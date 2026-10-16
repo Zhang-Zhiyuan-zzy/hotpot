@@ -97,7 +97,15 @@ def _trace() -> RuleTrace:
                 "doi:test",
             ),
         ),
-        (RankAdjustment("charge:0", "authority", 1.25, "test"),),
+        (
+            RankAdjustment(
+                "charge:0",
+                "authority",
+                1.25,
+                "test",
+                ("execution_prior:test",),
+            ),
+        ),
         ("assumption:1",),
         ("warning:1",),
     )

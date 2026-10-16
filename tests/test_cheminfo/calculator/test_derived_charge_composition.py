@@ -24,7 +24,13 @@ from hotpot.cheminfo.calculator.oxidation_state import (
     OxidationStateInferenceResult,
 )
 from hotpot.cheminfo.calculator.state_composition import (
+    CandidateDomainScope,
+    CandidateProposal,
     DerivedStateValue,
+    FactorKey,
+    MaterializationStatus,
+    ProposedCandidateFactor,
+    ProposedCandidateValue,
     StateValueOrigin,
     compose_scientific_state_space,
 )
@@ -345,3 +351,72 @@ def test_multimetal_ionic_accounting_obeys_global_conservation() -> None:
     assert conflicting_space.rejected_path_summaries[0].reason_codes == (
         "HARD-002.DERIVED_CHARGE_CONFLICT",
     )
+
+
+def test_partial_counting_factors_combine_before_charge_derivation() -> None:
+    mol = hotpot.read_mol("[Eu].O.[Cl-]", "smi")
+    mol.add_bond(0, 1, bond_kind=BondKind.DATIVE)
+    facts = extract_molecular_facts(mol)
+    ligand_components = tuple(
+        component
+        for component in facts.covalent_components
+        if facts.atomic_numbers[component.atom_indices[0]] != 63
+    )
+    counting_candidates = tuple(
+        CoordinationCountingCandidate(
+            _provenance(f"counting:{component.identity}"),
+            CountingConvention.IONIC,
+            (
+                CoordinationFragmentAssignment(
+                    component.identity,
+                    -1,
+                    None,
+                    None,
+                ),
+            ),
+        )
+        for component in ligand_components
+    )
+    proposal = CandidateProposal(
+        "proposal:partial-ionic-fragments",
+        tuple(
+            ProposedCandidateFactor(
+                FactorKey(
+                    ScientificQuantity.COORDINATION_COUNTING,
+                    candidate.fragments[0].component_identity,
+                ),
+                "partial-ionic-fragment-v1",
+                (ProposedCandidateValue(candidate),),
+                CandidateDomainScope.DOMAIN_BOUNDED,
+                MaterializationStatus.COMPLETE,
+                None,
+            )
+            for candidate in counting_candidates
+        ),
+        (),
+    )
+    oxidation_state = OxidationStateCandidateEvidence(
+        provenance=_provenance("os:eu-iii-partial-factors"),
+        convention=CountingConvention.IONIC,
+        atom_states=(3, None, None),
+        coverage=CoverageStatus.PARTIAL,
+    )
+
+    space = compose_scientific_state_space(
+        facts,
+        net_charge_results=(),
+        oxidation_state_results=(
+            _oxidation_result(facts, oxidation_state),
+        ),
+        electronic_state_results=(
+            _unresolved_electronic_result(facts),
+        ),
+        candidate_proposals=(proposal,),
+    )
+
+    path = space.expanded_paths[0]
+    assert path.net_charge.value == 1
+    assert set(path.derived_values[0].parent_candidate_ids) == {
+        "os:eu-iii-partial-factors",
+        *(candidate.provenance.identity for candidate in counting_candidates),
+    }

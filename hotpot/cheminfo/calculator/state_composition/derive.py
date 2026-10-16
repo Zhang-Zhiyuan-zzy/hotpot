@@ -106,24 +106,33 @@ def _charge_from_complete_oxidation_state(
 def _ionic_component_charge(
     facts: MolecularFacts,
     oxidation_state: OxidationStateCandidateEvidence,
-    counting: CoordinationCountingCandidate,
+    counting_candidates: Tuple[CoordinationCountingCandidate, ...],
 ) -> Optional[DerivedStateValue]:
     if (
         oxidation_state.convention is not CountingConvention.IONIC
-        or counting.convention is not CountingConvention.IONIC
-        or (
-            oxidation_state.coordination_counting_candidate_identity
-            is not None
-            and oxidation_state.coordination_counting_candidate_identity
-            != counting.provenance.identity
+        or not counting_candidates
+        or any(
+            candidate.convention is not CountingConvention.IONIC
+            for candidate in counting_candidates
         )
     ):
         return None
+    referenced_counting = (
+        oxidation_state.coordination_counting_candidate_identity
+    )
+    if referenced_counting is not None and referenced_counting not in {
+        candidate.provenance.identity for candidate in counting_candidates
+    }:
+        return None
+    all_fragments = tuple(
+        fragment
+        for candidate in counting_candidates
+        for fragment in candidate.fragments
+    )
     fragments = {
-        fragment.component_identity: fragment
-        for fragment in counting.fragments
+        fragment.component_identity: fragment for fragment in all_fragments
     }
-    if len(fragments) != len(counting.fragments):
+    if len(fragments) != len(all_fragments):
         return None
     component_charge = 0
     for component in facts.covalent_components:
@@ -146,9 +155,10 @@ def _ionic_component_charge(
         component_charge += fragment.ionic_bookkeeping_charge
     parents = tuple(
         sorted(
-            (
-                oxidation_state.provenance.identity,
-                counting.provenance.identity,
+            (oxidation_state.provenance.identity,)
+            + tuple(
+                candidate.provenance.identity
+                for candidate in counting_candidates
             )
         )
     )
@@ -174,14 +184,12 @@ def _derive_charge_values(
     )
     if complete_value is not None:
         return (complete_value,)
-    values = tuple(
-        value
-        for counting in counting_candidates
-        for value in (
-            _ionic_component_charge(facts, oxidation_state, counting),
-        )
-        if value is not None
+    value = _ionic_component_charge(
+        facts,
+        oxidation_state,
+        counting_candidates,
     )
+    values = () if value is None else (value,)
     values_by_identity = {
         value.provenance.identity: value for value in values
     }

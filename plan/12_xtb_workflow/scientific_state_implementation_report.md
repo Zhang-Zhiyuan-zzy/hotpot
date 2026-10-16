@@ -5,6 +5,9 @@ Date: 2026-10-17
 Normative plan:
 [`scientific_state_implementation.md`](scientific_state_implementation.md)
 
+Measured pre-activation baseline:
+[`scientific_state_pre_activation_baseline.md`](scientific_state_pre_activation_baseline.md)
+
 Branch: `feature/scientific-state-resolution`
 
 ## 1. Outcome
@@ -48,7 +51,7 @@ either boundary.
 | 7 | complete | Backend execution decisions, exact xTB contexts, projections, GFN-FF SDF and GFN-xTB XYZ adapters |
 | 8 | complete for safe continuation | Intermediate finite geometry is a warning; final acceptance remains authoritative; typed recovery decisions exist, while unapproved alternate-state retry stops explicitly |
 | 9 | complete for xTB consumers | CLI, pipeline, stream and benchmark share one resolver; obsolete flat estimators removed; public exports and runtime matrix tested |
-| 10 | partial | Explicit-state coordination benchmark and stage-resolved failure schema delivered; large-corpus dry resolution and held-out profile activation remain outstanding |
+| 10 | partial | Explicit-state coordination benchmark, stage-resolved failure schema and a 2280-record pre-activation baseline delivered; topology-preserving held-out profile activation remains outstanding |
 
 ## 3. Execution and failure semantics
 
@@ -86,6 +89,7 @@ state failure or treating a scientific abstention as a backend crash.
 | Installed/runtime compatibility target covering the calculator package | 411 passed |
 | xTB plugin plus stage-resolved benchmark contracts | 102 passed, 8 skipped |
 | Explicit benchmark-state contract tests | 15 passed |
+| Pre-activation structure registry | 2280 / 2280 resolved, 0 replay mismatches |
 
 The maintained full-suite script also reached collection and execution. In the
 restricted validation environment its remaining failures were external to this

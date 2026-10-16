@@ -63,6 +63,7 @@ class DryResolutionRecord:
     facts_identity: str
     atom_count: int
     coordination_bond_count: int
+    unknown_bond_count: int
     profile_id: str
     profile_version: str
     profile_activation_status: str
@@ -183,6 +184,9 @@ def resolve_case(case: DryStateCase) -> DryResolutionRecord:
         coordination_bond_count=sum(
             bond.kind == "coordination" for bond in facts.semantic_bonds
         ),
+        unknown_bond_count=sum(
+            bond.kind == "unknown" for bond in facts.semantic_bonds
+        ),
         profile_id=manifest.profile_id,
         profile_version=manifest.profile_version,
         profile_activation_status=manifest.activation_status,
@@ -302,6 +306,8 @@ def run_benchmark(
     certification_counts: Counter[str] = Counter()
     search_status_counts: Counter[str] = Counter()
     format_counts: Counter[str] = Counter()
+    coordination_record_counts: Counter[str] = Counter()
+    unknown_bond_record_counts: Counter[str] = Counter()
     profile_finding_counts: Counter[str] = Counter()
     resolved_count = 0
     failed_count = 0
@@ -335,6 +341,10 @@ def run_benchmark(
             _increment(certification_counts, record.certification_status)
             _increment(search_status_counts, record.search_status)
             _increment(format_counts, record.format)
+            if record.coordination_bond_count:
+                _increment(coordination_record_counts, record.format)
+            if record.unknown_bond_count:
+                _increment(unknown_bond_record_counts, record.format)
             for finding_code in record.profile_finding_codes:
                 _increment(profile_finding_counts, finding_code)
             truncated_count += int(record.truncated)
@@ -423,6 +433,16 @@ def run_benchmark(
         "certification_status_counts": dict(sorted(certification_counts.items())),
         "search_status_counts": dict(sorted(search_status_counts.items())),
         "format_counts": dict(sorted(format_counts.items())),
+        "topology_by_format": {
+            format_name: {
+                "record_count": count,
+                "with_coordination_bonds": coordination_record_counts[
+                    format_name
+                ],
+                "with_unknown_bonds": unknown_bond_record_counts[format_name],
+            }
+            for format_name, count in sorted(format_counts.items())
+        },
         "profile_finding_counts": dict(sorted(profile_finding_counts.items())),
         "activation_coverage_is_final": False,
     }

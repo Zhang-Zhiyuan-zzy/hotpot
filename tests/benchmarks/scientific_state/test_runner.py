@@ -40,6 +40,7 @@ def test_resolve_case_records_only_the_real_profile_blockers(
 
     assert record.profile_activation_status == "planned"
     assert record.coordination_bond_count == 1
+    assert record.unknown_bond_count == 0
     assert record.profile_in_domain is False
     assert record.profile_finding_codes == (
         "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE",
@@ -53,6 +54,7 @@ def test_unknown_metal_bond_remains_an_explicit_profile_boundary() -> None:
     record = resolve_case(_case("[Eu]N"))
 
     assert record.coordination_bond_count == 0
+    assert record.unknown_bond_count == 1
     assert "PROFILE.COORDINATION_BOUNDARY_REQUIRED" in (
         record.profile_finding_codes
     )
@@ -86,6 +88,7 @@ def _record(case: DryStateCase, snapshot: str) -> DryResolutionRecord:
         facts_identity=f"facts-{case.case_id}",
         atom_count=2,
         coordination_bond_count=1,
+        unknown_bond_count=0,
         profile_id="coordination_screening_v1",
         profile_version="1.0.0",
         profile_activation_status="planned",
@@ -158,6 +161,13 @@ def test_run_benchmark_streams_records_summary_and_replay(
     assert summary["automatic_selection_fraction"] == pytest.approx(0.0)
     assert summary["replay_checked_count"] == 2
     assert summary["replay_mismatch_count"] == 1
+    assert summary["topology_by_format"] == {
+        "smi": {
+            "record_count": 2,
+            "with_coordination_bonds": 2,
+            "with_unknown_bonds": 0,
+        }
+    }
     records = tuple(
         json.loads(line)
         for line in (tmp_path / "output/records.jsonl")

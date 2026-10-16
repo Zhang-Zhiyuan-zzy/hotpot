@@ -994,6 +994,28 @@ def _source_assessment_rows(
         or manifest.get("generation_digest") != generation_digest
     ):
         raise RebuildError(f"source assessment generation binding differs: {spec.name}")
+    logical_fields = (
+        "schema",
+        "source",
+        "policy",
+        "governance",
+        "runtime_policy",
+        "ordered_assessment_digest",
+        "summary_digest",
+        "files",
+    )
+    if any(field not in manifest for field in logical_fields):
+        raise RebuildError(f"source assessment manifest is incomplete: {spec.name}")
+    computed_digest = _json_digest(
+        {field: manifest[field] for field in logical_fields}
+    )
+    if (
+        computed_digest != generation_digest
+        or generation_id != "generation-" + generation_digest[:24]
+    ):
+        raise RebuildError(
+            f"source assessment logical digest differs: {spec.name}"
+        )
     declared = {}
     for item in manifest.get("files", []):
         relative = _safe_relative(item["path"])

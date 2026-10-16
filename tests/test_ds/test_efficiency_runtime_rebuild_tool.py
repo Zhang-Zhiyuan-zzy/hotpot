@@ -715,19 +715,7 @@ def test_schema_v2_source_assessment_reader_is_migration_local(
 ):
     spec = rebuild_module.DatasetSpec("fixture", "fixture.v001", "fixture")
     root = tmp_path / "fixture"
-    (root / "cases").mkdir(parents=True)
-    generation_id = "generation-legacy"
-    generation_digest = "a" * 64
-    with sqlite3.connect(root / "cases" / "facts.sqlite3") as connection:
-        connection.execute(
-            "CREATE TABLE control(singleton INTEGER PRIMARY KEY,"
-            "current_generation_id TEXT,current_generation_digest TEXT)"
-        )
-        connection.execute(
-            "INSERT INTO control VALUES(1,?,?)",
-            (generation_id, generation_digest),
-        )
-    generation = root / "assessments" / "generations" / generation_id
+    generation = root / "assessments" / "generations" / "pending"
     generation.mkdir(parents=True)
     assessment_path = generation / "assessment.sqlite3"
     assessment = {
@@ -758,20 +746,44 @@ def test_schema_v2_source_assessment_reader_is_migration_local(
             ),
         )
     payload = assessment_path.read_bytes()
+    logical = {
+        "schema": "hotpot-ds-assessment-generation/current",
+        "source": {"revision": 1, "digest": "1" * 64},
+        "policy": {"revision": 1, "digest": "2" * 64},
+        "governance": {"revision": 1, "digest": "3" * 64},
+        "runtime_policy": {"schema": "legacy-test"},
+        "ordered_assessment_digest": "4" * 64,
+        "summary_digest": "5" * 64,
+        "files": [
+            {
+                "path": "assessment.sqlite3",
+                "sha256": rebuild_module.hashlib.sha256(payload).hexdigest(),
+                "size": len(payload),
+            }
+        ],
+    }
+    generation_digest = rebuild_module._json_digest(logical)
+    generation_id = "generation-" + generation_digest[:24]
+    final_generation = generation.with_name(generation_id)
+    generation.rename(final_generation)
     _write_json(
-        generation / "generation.json",
+        final_generation / "generation.json",
         {
+            **logical,
             "generation_id": generation_id,
             "generation_digest": generation_digest,
-            "files": [
-                {
-                    "path": "assessment.sqlite3",
-                    "sha256": rebuild_module.hashlib.sha256(payload).hexdigest(),
-                    "size": len(payload),
-                }
-            ],
         },
     )
+    (root / "cases").mkdir(parents=True)
+    with sqlite3.connect(root / "cases" / "facts.sqlite3") as connection:
+        connection.execute(
+            "CREATE TABLE control(singleton INTEGER PRIMARY KEY,"
+            "current_generation_id TEXT,current_generation_digest TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO control VALUES(1,?,?)",
+            (generation_id, generation_digest),
+        )
 
     assert list(rebuild_module._source_assessment_rows(root, spec)) == [
         {
@@ -785,6 +797,12 @@ def test_schema_v2_source_assessment_reader_is_migration_local(
             },
         }
     ]
+    manifest_path = final_generation / "generation.json"
+    tampered = json.loads(manifest_path.read_text(encoding="utf-8"))
+    tampered["summary_digest"] = "9" * 64
+    _write_json(manifest_path, tampered)
+    with pytest.raises(rebuild_module.RebuildError, match="logical digest"):
+        list(rebuild_module._source_assessment_rows(root, spec))
 
 
 def test_compact_receipt_binding_duplicates_must_match_columns(

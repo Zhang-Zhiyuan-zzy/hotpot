@@ -1,0 +1,47 @@
+{
+  "schema_version": "hotpot-scientific-state-profile-v1",
+  "profile_id": "coordination_screening_v1",
+  "profile_version": "1.0.0",
+  "required_quantities": [
+    "net_charge",
+    "oxidation_state"
+  ],
+  "allowed_unresolved_quantities": [
+    "lewis_formal_charge",
+    "coordination_counting",
+    "electronic_state"
+  ],
+  "required_provider_ids": [
+    "PROVIDER-001"
+  ],
+  "required_rule_versions": {
+    "OPTIONAL-001": "1.0.0",
+    "OPTIONAL-002": "1.0.0",
+    "OPTIONAL-003": "1.0.0",
+    "OPTIONAL-004": "1.0.0",
+    "OPTIONAL-005": "1.0.0",
+    "OPTIONAL-006": "1.0.0",
+    "OPTIONAL-007": "1.0.0",
+    "OPTIONAL-009": "1.0.0",
+    "OPTIONAL-011": "1.0.0",
+    "OPTIONAL-014": "1.0.0"
+  },
+  "decision_rank_dimensions": [
+    "exact_identity_history",
+    "oxidation_state_commonality",
+    "f_block_hund"
+  ],
+  "assumption_severity": {
+    "representation_default": 1,
+    "domain_template": 2,
+    "ionic_approximation": 3,
+    "execution_prior": 4
+  },
+  "candidate_budget": {
+    "max_materialized_values_per_factor": 64,
+    "max_expanded_paths": 4096,
+    "max_frontier_paths": 1024
+  },
+  "frontier_schema_version": "scientific-state-frontier-v1",
+  "tie_policy": "canonical_identity_within_decision_equivalence"
+}

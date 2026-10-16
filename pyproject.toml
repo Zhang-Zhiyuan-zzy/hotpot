@@ -149,6 +149,7 @@ include-package-data = true
 ]
 "hotpot.cheminfo.calculator.oxidation_state" = ["data/*.json"]
 "hotpot.cheminfo.calculator.electronic_state" = ["data/*.json"]
+"hotpot.cheminfo.calculator.state_rules" = ["data/profiles/*.json"]
 
 [tool.setuptools.packages.find]
 include = ["hotpot*"]

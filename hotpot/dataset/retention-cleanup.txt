@@ -52,3 +52,10 @@
 # after an independent retained archive exists or restoration is explicitly
 # waived; it is outside the Git-tracked dataset payload.
 /.backups/dataset-pre-efficiency-20261015.tar.xz
+
+# One-time rebuild/rollback operator and its focused tests. They are tracked
+# source files outside the installed package and must remain while the previous
+# generation is an advertised rollback target. Git history preserves them
+# after owner-approved retirement.
+/plan/13_dataset_bundle_governance/rebuild_current_runtime.py
+/tests/test_ds/test_efficiency_runtime_rebuild_tool.py

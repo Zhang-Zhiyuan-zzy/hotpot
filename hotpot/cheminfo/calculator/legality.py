@@ -537,3 +537,24 @@ def _validate_electronic_state_candidate(
         pure_spin=candidate.pure_spin,
         related_identities=related_identities,
     )
+
+
+def _validate_electronic_oxidation_reference(
+    candidate: ElectronicStateCandidate,
+    oxidation_candidates: Tuple[OxidationStateCandidateEvidence, ...],
+) -> _HardRuleAssessment:
+    reference = candidate.oxidation_state_candidate_identity
+    if reference is None:
+        return _HARD_PASS
+    matches = tuple(
+        oxidation_candidate
+        for oxidation_candidate in oxidation_candidates
+        if oxidation_candidate.provenance.identity == reference
+    )
+    if len(matches) == 1:
+        return _HARD_PASS
+    return _hard_failure(
+        "HARD-007.OXIDATION_STATE_REFERENCE_MISSING",
+        "Electronic-state evidence references an unavailable oxidation-state candidate.",
+        related_identities=(candidate.provenance.identity, reference),
+    )

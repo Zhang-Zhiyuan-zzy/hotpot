@@ -18,10 +18,16 @@ from ..contracts import (
 )
 from ..legality import (
     _merge_hard_rule_assessments,
+    _validate_charge_conservation,
+    _validate_electronic_oxidation_reference,
     _validate_electronic_state_candidate,
     _validate_facts_identity,
+    _validate_oxidation_state_evidence,
 )
-from ..oxidation_state.contracts import OxidationStateInferenceResult
+from ..oxidation_state.contracts import (
+    OxidationStateCandidateEvidence,
+    OxidationStateInferenceResult,
+)
 from ..state_resolver import StateRequest
 from .contracts import (
     ElectronicStateCandidate,
@@ -189,6 +195,8 @@ def _request_result(
         if result.facts_identity == facts.identity
         and result.admissibility is ScientificAdmissibility.ADMISSIBLE
         for candidate in result.candidates
+        if _validate_charge_conservation(facts, candidate).admissibility
+        is ScientificAdmissibility.ADMISSIBLE
     )
     candidates = tuple(
         _candidate(facts, charge, item)
@@ -266,6 +274,7 @@ def _revalidate_provided_result(
     facts: MolecularFacts,
     result: ElectronicStateInferenceResult,
     charge_candidates: Tuple[NetChargeCandidateEvidence, ...],
+    oxidation_candidates: Tuple[OxidationStateCandidateEvidence, ...],
 ) -> ElectronicStateInferenceResult:
     charge_by_identity = {
         candidate.provenance.identity: candidate
@@ -301,7 +310,15 @@ def _revalidate_provided_result(
                 findings,
             )
         assessments.append(
-            _validate_electronic_state_candidate(facts, charge, candidate)
+            _merge_hard_rule_assessments(
+                (
+                    _validate_electronic_state_candidate(facts, charge, candidate),
+                    _validate_electronic_oxidation_reference(
+                        candidate,
+                        oxidation_candidates,
+                    ),
+                )
+            )
         )
     assessment = _merge_hard_rule_assessments(tuple(assessments))
     if assessment.admissibility is ScientificAdmissibility.ADMISSIBLE:
@@ -326,15 +343,31 @@ def infer_electronic_states(
     provided: Tuple[ElectronicStateInferenceResult, ...] = (),
 ) -> Tuple[ElectronicStateInferenceResult, ...]:
     """Resolve explicit/source molecular spin without applying defaults."""
-    del oxidation_state_results
     request_result = _request_result(facts, request, net_charge_results)
     charge_candidates = tuple(
         candidate
         for result in net_charge_results
         if result.facts_identity == facts.identity
+        and result.admissibility is ScientificAdmissibility.ADMISSIBLE
         for candidate in result.candidates
+        if _validate_charge_conservation(facts, candidate).admissibility
+        is ScientificAdmissibility.ADMISSIBLE
+    )
+    oxidation_candidates = tuple(
+        candidate
+        for result in oxidation_state_results
+        if result.facts_identity == facts.identity
+        and result.admissibility is ScientificAdmissibility.ADMISSIBLE
+        for candidate in result.candidates
+        if _validate_oxidation_state_evidence(facts, candidate).admissibility
+        is ScientificAdmissibility.ADMISSIBLE
     )
     return (request_result,) + tuple(
-        _revalidate_provided_result(facts, result, charge_candidates)
+        _revalidate_provided_result(
+            facts,
+            result,
+            charge_candidates,
+            oxidation_candidates,
+        )
         for result in provided
     )

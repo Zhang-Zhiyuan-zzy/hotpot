@@ -1,17 +1,30 @@
 """Independent explicit molecular electronic-state inference tests."""
 
+from dataclasses import replace
+from typing import Optional
+
 import hotpot
 
 from hotpot.cheminfo.calculator.charge import resolve_net_charge
 from hotpot.cheminfo.calculator.contracts import (
     CandidateProvenance,
+    ChemicalConfidence,
+    CoverageStatus,
+    MolecularFacts,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
 from hotpot.cheminfo.calculator.electronic_state import (
+    ElectronicStateCandidate,
     ElectronicStateCandidateEvidence,
+    ElectronicStateInferenceResult,
     infer_electronic_states,
+)
+from hotpot.cheminfo.calculator.oxidation_state import (
+    CountingConvention,
+    OxidationStateCandidateEvidence,
+    OxidationStateInferenceResult,
 )
 from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
@@ -33,6 +46,31 @@ def _evidence(identity: str, two_s: int) -> ElectronicStateCandidateEvidence:
         two_s=two_s,
         multiplicity=two_s + 1,
         pure_spin=True,
+    )
+
+
+def _provided_electronic_result(
+    facts: MolecularFacts,
+    charge_identity: str,
+    oxidation_identity: Optional[str] = None,
+) -> ElectronicStateInferenceResult:
+    candidate = ElectronicStateCandidate(
+        provenance=_evidence("provided-spin", 1).provenance,
+        net_charge_candidate_identity=charge_identity,
+        oxidation_state_candidate_identity=oxidation_identity,
+        electron_count=7,
+        two_s=1,
+        multiplicity=2,
+        pure_spin=True,
+    )
+    return ElectronicStateInferenceResult(
+        "provided-result",
+        facts.identity,
+        (candidate,),
+        ScientificAdmissibility.ADMISSIBLE,
+        ResolutionStatus.UNIQUE,
+        ChemicalConfidence.AUTHORITATIVE,
+        (),
     )
 
 
@@ -128,3 +166,85 @@ def test_illegal_spin_is_rejected_instead_of_falling_back() -> None:
     assert result.admissibility is ScientificAdmissibility.INADMISSIBLE
     assert result.candidates == ()
     assert result.findings[0].code == "HARD-006.PARITY_MISMATCH"
+
+
+def test_provided_spin_cannot_use_inadmissible_charge_envelope() -> None:
+    facts = _facts("[N]")
+    charge_result = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
+    provided = _provided_electronic_result(
+        facts,
+        charge_result.candidates[0].provenance.identity,
+    )
+
+    results = infer_electronic_states(
+        facts,
+        net_charge_results=(
+            replace(
+                charge_result,
+                admissibility=ScientificAdmissibility.INADMISSIBLE,
+            ),
+        ),
+        provided=(provided,),
+    )
+
+    assert results[1].admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert results[1].findings[-1].code == (
+        "HARD-007.NET_CHARGE_REFERENCE_MISSING"
+    )
+
+
+def test_provided_spin_requires_live_oxidation_candidate_reference() -> None:
+    facts = _facts("[N]")
+    charge_result = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
+    charge_identity = charge_result.candidates[0].provenance.identity
+    provided = _provided_electronic_result(facts, charge_identity, "os:missing")
+
+    results = infer_electronic_states(
+        facts,
+        net_charge_results=(charge_result,),
+        provided=(provided,),
+    )
+
+    assert results[1].admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert results[1].findings[-1].code == (
+        "HARD-007.OXIDATION_STATE_REFERENCE_MISSING"
+    )
+
+
+def test_provided_spin_accepts_hard_valid_oxidation_reference() -> None:
+    facts = _facts("[N]")
+    charge_result = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
+    charge_identity = charge_result.candidates[0].provenance.identity
+    oxidation_candidate = OxidationStateCandidateEvidence(
+        provenance=CandidateProvenance(
+            "os:nitrogen",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        convention=CountingConvention.IONIC,
+        atom_states=(0,),
+        coverage=CoverageStatus.COMPLETE,
+    )
+    oxidation_result = OxidationStateInferenceResult(
+        "os-result",
+        facts.identity,
+        (oxidation_candidate,),
+        ScientificAdmissibility.ADMISSIBLE,
+        ResolutionStatus.UNIQUE,
+        ChemicalConfidence.AUTHORITATIVE,
+        (),
+    )
+    provided = _provided_electronic_result(
+        facts,
+        charge_identity,
+        oxidation_candidate.provenance.identity,
+    )
+
+    results = infer_electronic_states(
+        facts,
+        net_charge_results=(charge_result,),
+        oxidation_state_results=(oxidation_result,),
+        provided=(provided,),
+    )
+
+    assert results[1] == provided

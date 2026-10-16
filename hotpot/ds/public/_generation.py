@@ -461,6 +461,220 @@ def _snapshot_asset(
         raise
 
 
+def _asset_path_observation(
+    path: Path,
+) -> Tuple[str, Optional[Tuple[Tuple[int, ...], Tuple[int, ...]]]]:
+    try:
+        link_signature = _stat_signature(path.lstat())
+    except FileNotFoundError:
+        return "missing", None
+    try:
+        target_signature = _stat_signature(path.stat())
+    except FileNotFoundError:
+        return "not-a-regular-file", (link_signature, ())
+    signature = (link_signature, target_signature)
+    return (
+        ("present" if stat.S_ISREG(target_signature[2]) else "not-a-regular-file"),
+        signature,
+    )
+
+
+class _AssetAssessmentCache:
+    """One synchronization-scoped snapshot and parse cache per source path."""
+
+    def __init__(
+        self,
+        snapshot_directory: Path,
+        runtime_policy: Mapping[str, Any],
+    ):
+        self._snapshot_directory = snapshot_directory
+        self._runtime_policy = _json_copy(runtime_policy)
+        self._runtime_key = canonical_digest(runtime_policy)
+        self._snapshots: Dict[str, Dict[str, Any]] = {}
+        self._parses: Dict[Tuple[str, str, str, str], str] = {}
+        self._parser_bindings: Dict[
+            str, Tuple[Optional[Dict[str, Any]], Optional[str]]
+        ] = {}
+
+    def __enter__(self) -> "_AssetAssessmentCache":
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        self.close(verify=exc_type is None)
+
+    def observe(self, relative_path: str, path: Path) -> Dict[str, Any]:
+        try:
+            current = _asset_path_observation(path)
+        except OSError as exc:
+            raise AssetSourceChangedError(
+                "scientific asset became unavailable while it was being assessed"
+            ) from exc
+        cached = self._snapshots.get(relative_path)
+        if cached is not None:
+            if current != cached["source_observation"]:
+                raise AssetSourceChangedError(
+                    "scientific asset changed while its cached snapshot was reused"
+                )
+            return cached
+
+        if current[0] != "present":
+            cached = {
+                "source_path": path,
+                "source_observation": current,
+                "snapshot_path": None,
+                "snapshot_signature": None,
+                "observed_sha256": None,
+            }
+        else:
+            try:
+                (
+                    snapshot_path,
+                    observed,
+                    source_signature,
+                    snapshot_signature,
+                ) = _snapshot_asset(path, self._snapshot_directory)
+            except OSError as exc:
+                raise AssetSourceChangedError(
+                    "scientific asset became unavailable while it was being assessed"
+                ) from exc
+            if current != ("present", source_signature):
+                snapshot_path.unlink(missing_ok=True)
+                raise AssetSourceChangedError(
+                    "scientific asset changed while its snapshot was cached"
+                )
+            cached = {
+                "source_path": path,
+                "source_observation": current,
+                "snapshot_path": snapshot_path,
+                "snapshot_signature": snapshot_signature,
+                "observed_sha256": observed,
+            }
+        self._snapshots[relative_path] = cached
+        return cached
+
+    def parser_binding(
+        self,
+        fmt: str,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+        if fmt not in self._parser_bindings:
+            binding = parser_binding_for_format(fmt, self._runtime_policy)
+            binding_key = (
+                canonical_digest(
+                    {
+                        "runtime_policy": self._runtime_key,
+                        "parser_binding": binding,
+                    }
+                )
+                if binding is not None
+                else None
+            )
+            self._parser_bindings[fmt] = (binding, binding_key)
+        return self._parser_bindings[fmt]
+
+    def parse(
+        self,
+        relative_path: str,
+        observation: Mapping[str, Any],
+        fmt: str,
+        parser_binding_key: str,
+    ) -> str:
+        key = (
+            relative_path,
+            str(observation["observed_sha256"]),
+            fmt,
+            parser_binding_key,
+        )
+        cached = self._parses.get(key)
+        if cached is not None:
+            return cached
+        if observation["snapshot_path"] is None:
+            try:
+                (
+                    snapshot_path,
+                    observed,
+                    source_signature,
+                    snapshot_signature,
+                ) = _snapshot_asset(
+                    observation["source_path"], self._snapshot_directory
+                )
+            except OSError as exc:
+                raise AssetSourceChangedError(
+                    "scientific asset became unavailable while it was being assessed"
+                ) from exc
+            if (
+                ("present", source_signature) != observation["source_observation"]
+                or observed != observation["observed_sha256"]
+            ):
+                snapshot_path.unlink(missing_ok=True)
+                raise AssetSourceChangedError(
+                    "scientific asset changed before its cached bytes were parsed"
+                )
+            observation["snapshot_path"] = snapshot_path
+            observation["snapshot_signature"] = snapshot_signature
+        try:
+            result = (
+                "valid"
+                if _structure_is_parseable(observation["snapshot_path"], fmt)
+                else "invalid"
+            )
+        except Exception:
+            result = "invalid"
+        self._parses[key] = result
+        return result
+
+    def release(self, relative_path: str, *, verify: bool = True) -> None:
+        cached = self._snapshots[relative_path]
+        try:
+            if verify:
+                try:
+                    current = _asset_path_observation(cached["source_path"])
+                except OSError as exc:
+                    raise AssetSourceChangedError(
+                        "scientific asset became unavailable while cached assessments were produced"
+                    ) from exc
+                if current != cached["source_observation"]:
+                    raise AssetSourceChangedError(
+                        "scientific asset changed while cached assessments were produced"
+                    )
+                snapshot_path = cached["snapshot_path"]
+                if snapshot_path is not None:
+                    try:
+                        snapshot_digest, snapshot_signature = _stable_digest(
+                            snapshot_path
+                        )
+                    except OSError as exc:
+                        raise AssetSourceChangedError(
+                            "scientific asset snapshot became unavailable while cached assessments were produced"
+                        ) from exc
+                    if (
+                        snapshot_digest != cached["observed_sha256"]
+                        or snapshot_signature != cached["snapshot_signature"]
+                    ):
+                        raise AssetSourceChangedError(
+                            "scientific asset snapshot changed while cached assessments were produced"
+                        )
+        finally:
+            snapshot_path = cached["snapshot_path"]
+            if snapshot_path is not None:
+                snapshot_path.unlink(missing_ok=True)
+            cached["snapshot_path"] = None
+            cached["snapshot_signature"] = None
+
+    def close(self, *, verify: bool) -> None:
+        failure: Optional[BaseException] = None
+        for relative_path in tuple(self._snapshots):
+            try:
+                self.release(relative_path, verify=verify)
+            except BaseException as exc:
+                if failure is None:
+                    failure = exc
+        self._snapshots.clear()
+        self._parses.clear()
+        self._parser_bindings.clear()
+        if failure is not None:
+            raise failure
+
+
 def _structure_is_parseable(path: Path, fmt: str) -> bool:
     from hotpot import Molecule
 
@@ -687,7 +901,19 @@ def _assess_asset(
     required_roles: Sequence[str],
     snapshot_directory: Path,
     runtime_policy: Mapping[str, Any],
+    asset_cache: Optional[_AssetAssessmentCache] = None,
 ) -> Dict[str, Any]:
+    if asset_cache is None:
+        with _AssetAssessmentCache(snapshot_directory, runtime_policy) as owned_cache:
+            return _assess_asset(
+                root,
+                declaration,
+                required_roles,
+                snapshot_directory,
+                runtime_policy,
+                owned_cache,
+            )
+
     relative_path = declaration.get("path")
     path = None
     if isinstance(relative_path, str):
@@ -704,64 +930,44 @@ def _assess_asset(
         except ValueError as exc:
             raise AssessmentGenerationError("asset path escapes the Bundle root") from exc
 
-    present = bool(path is not None and path.is_file())
     declared_format = declaration.get("format")
     fmt = str(declared_format).lower().lstrip(".") if declared_format else ""
     if not fmt and path is not None:
         fmt = path.suffix.lower().lstrip(".")
+    observation = (
+        asset_cache.observe(relative_path, path)
+        if isinstance(relative_path, str) and path is not None
+        else {
+            "source_observation": ("missing", None),
+            "snapshot_path": None,
+            "observed_sha256": None,
+        }
+    )
+    present = observation["source_observation"][0] == "present"
     parse_result = "not_run"
     parser = None
     parser_binding = None
     parse_reason = None
-    observed = None
-    snapshot_path = None
+    observed = observation["observed_sha256"]
     if present:
-        try:
-            (
-                snapshot_path,
-                observed,
-                source_signature,
-                snapshot_signature,
-            ) = _snapshot_asset(path, snapshot_directory)
-            if (
-                declaration.get("collection") == "structures"
-                and fmt in _PARSEABLE_FORMATS
-            ):
-                parser_binding = parser_binding_for_format(fmt, runtime_policy)
-                if parser_binding is None:
-                    raise AssessmentGenerationError(
-                        f"no frozen parser binding exists for structure format {fmt!r}"
-                    )
-                parser = parser_binding["name"]
-                try:
-                    parse_result = (
-                        "valid"
-                        if _structure_is_parseable(snapshot_path, fmt)
-                        else "invalid"
-                    )
-                except Exception:
-                    parse_result = "invalid"
-                if parse_result == "invalid":
-                    parse_reason = "structure_parse_failed"
-
-            snapshot_after, snapshot_signature_after = _stable_digest(snapshot_path)
-            source_after, signature_after = _stable_digest(path)
-            if (
-                snapshot_after != observed
-                or snapshot_signature_after != snapshot_signature
-                or source_after != observed
-                or signature_after != source_signature
-            ):
-                raise AssetSourceChangedError(
-                    "scientific asset changed while it was being assessed"
+        if (
+            declaration.get("collection") == "structures"
+            and fmt in _PARSEABLE_FORMATS
+        ):
+            parser_binding, parser_binding_key = asset_cache.parser_binding(fmt)
+            if parser_binding is None or parser_binding_key is None:
+                raise AssessmentGenerationError(
+                    f"no frozen parser binding exists for structure format {fmt!r}"
                 )
-        except OSError as exc:
-            raise AssetSourceChangedError(
-                "scientific asset became unavailable while it was being assessed"
-            ) from exc
-        finally:
-            if snapshot_path is not None:
-                snapshot_path.unlink(missing_ok=True)
+            parser = parser_binding["name"]
+            parse_result = asset_cache.parse(
+                relative_path,
+                observation,
+                fmt,
+                parser_binding_key,
+            )
+            if parse_result == "invalid":
+                parse_reason = "structure_parse_failed"
 
     expected = declaration.get("expected_sha256")
     if expected is None or not present:
@@ -779,7 +985,7 @@ def _assess_asset(
     if present and declaration.get("collection") == "structures" and fmt not in _PARSEABLE_FORMATS:
         reasons.append("structure_parser_not_configured")
 
-    return {
+    result = {
         **_json_copy(declaration),
         "format": fmt or None,
         "presence": "present" if present else "missing",
@@ -819,6 +1025,9 @@ def _assess_asset(
         ),
         "reasons": reasons,
     }
+    if isinstance(relative_path, str) and path is not None:
+        asset_cache.release(relative_path)
+    return result
 
 
 def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
@@ -943,68 +1152,70 @@ def _stream_inputs(
     snapshot_directory: Path,
     runtime_policy: Mapping[str, Any],
 ) -> None:
-    for source_case in case_source.iter_cases():
-        case = _normalize_case(source_case)
-        case_id = str(case["id"])
-        public_index = int(case["public_index"])
-        work.execute(
-            "INSERT INTO case_order(case_id,public_index) VALUES (?,?)",
-            (case_id, public_index),
-        )
-        assessment.execute(
-            "INSERT INTO case_order(public_index,case_id) VALUES (?,?)",
-            (public_index, case_id),
-        )
-        key, reasons = identity_key(case, identity_schema)
-        work.execute(
-            "INSERT INTO identity_reasons(case_id,reasons_json) VALUES (?,?)",
-            (case_id, canonical_json(reasons)),
-        )
-        sample_key = key if key is not None else f"case:{case_id}"
-        for offset, observation in enumerate(_active(case.get("observations", []))):
-            value = observation_with_resolved_entities(case, observation)
-            observation_id = str(
-                value.get("observation_id") or f"{case_id}:observation:{offset}"
-            )
-            value["observation_id"] = observation_id
-            property_key = str(observation_property(value) or "null")
+    with _AssetAssessmentCache(snapshot_directory, runtime_policy) as asset_cache:
+        for source_case in case_source.iter_cases():
+            case = _normalize_case(source_case)
+            case_id = str(case["id"])
+            public_index = int(case["public_index"])
             work.execute(
-                """
-                INSERT INTO candidates(
-                    sample_key,property_key,case_id,observation_id,observation_json
-                ) VALUES (?,?,?,?,?)
-                """,
-                (sample_key, property_key, case_id, observation_id, canonical_json(value)),
+                "INSERT INTO case_order(case_id,public_index) VALUES (?,?)",
+                (case_id, public_index),
             )
+            assessment.execute(
+                "INSERT INTO case_order(public_index,case_id) VALUES (?,?)",
+                (public_index, case_id),
+            )
+            key, reasons = identity_key(case, identity_schema)
+            work.execute(
+                "INSERT INTO identity_reasons(case_id,reasons_json) VALUES (?,?)",
+                (case_id, canonical_json(reasons)),
+            )
+            sample_key = key if key is not None else f"case:{case_id}"
+            for offset, observation in enumerate(_active(case.get("observations", []))):
+                value = observation_with_resolved_entities(case, observation)
+                observation_id = str(
+                    value.get("observation_id") or f"{case_id}:observation:{offset}"
+                )
+                value["observation_id"] = observation_id
+                property_key = str(observation_property(value) or "null")
+                work.execute(
+                    """
+                    INSERT INTO candidates(
+                        sample_key,property_key,case_id,observation_id,observation_json
+                    ) VALUES (?,?,?,?,?)
+                    """,
+                    (sample_key, property_key, case_id, observation_id, canonical_json(value)),
+                )
 
-        for collection in ("structures", "evidence"):
-            for record in _active(case.get(collection, [])):
-                for declaration in _asset_declarations(case_id, collection, record):
-                    asset = _assess_asset(
+            for collection in ("structures", "evidence"):
+                for record in _active(case.get(collection, [])):
+                    for declaration in _asset_declarations(case_id, collection, record):
+                        asset = _assess_asset(
                             root,
-                        declaration,
-                        required_roles,
-                        snapshot_directory,
-                        runtime_policy,
-                    )
-                    assessment.execute(
-                        """
-                        INSERT INTO asset_assessments(
-                            asset_id,case_id,structure_id,role,presence,hash_result,
-                            parse_result,assessment_json
-                        ) VALUES (?,?,?,?,?,?,?,?)
-                        """,
-                        (
-                            asset["asset_id"],
-                            case_id,
-                            asset.get("structure_id"),
-                            asset.get("role"),
-                            asset["presence"],
-                            asset["hash_result"],
-                            asset["parse_result"],
-                            canonical_json(asset),
-                        ),
-                    )
+                            declaration,
+                            required_roles,
+                            snapshot_directory,
+                            runtime_policy,
+                            asset_cache,
+                        )
+                        assessment.execute(
+                            """
+                            INSERT INTO asset_assessments(
+                                asset_id,case_id,structure_id,role,presence,hash_result,
+                                parse_result,assessment_json
+                            ) VALUES (?,?,?,?,?,?,?,?)
+                            """,
+                            (
+                                asset["asset_id"],
+                                case_id,
+                                asset.get("structure_id"),
+                                asset.get("role"),
+                                asset["presence"],
+                                asset["hash_result"],
+                                asset["parse_result"],
+                                canonical_json(asset),
+                            ),
+                        )
 
 
 def _assess_conflicts(

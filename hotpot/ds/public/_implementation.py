@@ -113,6 +113,8 @@ _SEMANTIC_SYMBOLS = {
         "_json_copy",
         "_stable_digest",
         "_snapshot_asset",
+        "_asset_path_observation",
+        "_AssetAssessmentCache",
         "_structure_is_parseable",
         "_normalize_case",
         "_case_with_verified_attestations",

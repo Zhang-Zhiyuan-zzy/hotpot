@@ -317,6 +317,31 @@ def test_prefix_frontier_compacts_an_unexpanded_cartesian_remainder() -> None:
     assert len(all_paths) + len(all_rejections) == 100
     assert all_frontier == ()
 
+    _, _, compact_frontier, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=2,
+    )
+    _, _, repeated_frontier, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=2,
+    )
+
+    assert len(compact_frontier) == 2
+    assert compact_frontier == repeated_frontier
+    assert compact_frontier[-1].optimistic_key == ("unbounded",)
+
 
 def test_provider_frontier_bound_reaches_the_expanded_space() -> None:
     facts, charge, electronic = _scientific_candidates()

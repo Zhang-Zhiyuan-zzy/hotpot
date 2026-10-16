@@ -84,6 +84,12 @@ class _SearchNode:
     queue_key: Tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class _FrontierEntry:
+    serialized: FrontierBound
+    decision_bound: Optional[_DecisionBound]
+
+
 def _digest(payload: object) -> str:
     encoded = json.dumps(
         payload,
@@ -583,6 +589,59 @@ def _frontier_for_node(
     )
 
 
+def _aggregate_frontier_entries(
+    entries: Tuple[_FrontierEntry, ...],
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> _FrontierEntry:
+    branch_identity = _digest(
+        {
+            "aggregate": tuple(
+                entry.serialized.branch_identity for entry in entries
+            )
+        }
+    )
+    decision_bound = None
+    if decision_search is not None and all(
+        entry.decision_bound is not None for entry in entries
+    ):
+        decision_bound = decision_search.aggregate_bounds(
+            tuple(
+                entry.decision_bound
+                for entry in entries
+                if entry.decision_bound is not None
+            )
+        )
+    optimistic_key = (
+        _UNBOUNDED_FRONTIER_KEY
+        if decision_bound is None or decision_search is None
+        else decision_search.encode_bound(decision_bound)
+    )
+    return _FrontierEntry(
+        FrontierBound(
+            branch_identity=branch_identity,
+            schema_version=_FRONTIER_SCHEMA,
+            optimistic_key=optimistic_key,
+        ),
+        decision_bound,
+    )
+
+
+def _compact_frontier_entries(
+    entries: Tuple[_FrontierEntry, ...],
+    max_frontier_paths: int,
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> Tuple[_FrontierEntry, ...]:
+    if len(entries) <= max_frontier_paths:
+        return entries
+    explicit_count = max_frontier_paths - 1
+    return entries[:explicit_count] + (
+        _aggregate_frontier_entries(
+            entries[explicit_count:],
+            decision_search,
+        ),
+    )
+
+
 def _expand_scientific_paths(
     facts: MolecularFacts,
     factors: Tuple[CandidateFactor, ...],
@@ -765,27 +824,39 @@ def _expand_scientific_paths(
         for factor in factors
     )
     truncated = bool(search_heap) or factor_truncation
-    frontier = []
-    if max_frontier_paths > 0:
-        frontier.extend(
-            _frontier_for_node(node, decision_search)
-            for _, _, node in sorted(search_heap)[:max_frontier_paths]
+    frontier_entries = [
+        _FrontierEntry(
+            _frontier_for_node(node, decision_search),
+            node.bound,
         )
+        for _, _, node in sorted(search_heap)
+    ]
     for factor in factors:
-        if len(frontier) >= max_frontier_paths:
-            break
         summary = factor.unexpanded_domain_summary
         if summary is None:
             continue
-        frontier.append(
-            summary.frontier_bound
-            or FrontierBound(
-                branch_identity=summary.continuation_identity
-                or factor.identity,
-                schema_version=_FRONTIER_SCHEMA,
-                optimistic_key=_UNBOUNDED_FRONTIER_KEY,
+        frontier_entries.append(
+            _FrontierEntry(
+                summary.frontier_bound
+                or FrontierBound(
+                    branch_identity=summary.continuation_identity
+                    or factor.identity,
+                    schema_version=_FRONTIER_SCHEMA,
+                    optimistic_key=_UNBOUNDED_FRONTIER_KEY,
+                ),
+                None,
             )
         )
+    compact_frontier = (
+        _compact_frontier_entries(
+            tuple(frontier_entries),
+            max_frontier_paths,
+            decision_search,
+        )
+        if max_frontier_paths > 0
+        else ()
+    )
+    frontier = tuple(entry.serialized for entry in compact_frontier)
 
     ordered_paths = tuple(paths[identity] for identity in sorted(paths))
     factors_are_certifiable = all(
@@ -803,4 +874,4 @@ def _expand_scientific_paths(
         status = CandidateSearchStatus.DECISION_CERTIFIED
     else:
         status = CandidateSearchStatus.NO_CERTIFIED_DECISION
-    return ordered_paths, tuple(rejections), tuple(frontier), status
+    return ordered_paths, tuple(rejections), frontier, status

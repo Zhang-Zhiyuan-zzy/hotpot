@@ -1086,6 +1086,7 @@ class TargetStore:
             if existing is None:
                 connection.rollback()
                 return None
+            self._assert_receipt(existing, binding)
             if precommit_check is not None:
                 precommit_check()
             receipt = self._receipt_row(

@@ -398,5 +398,5 @@ def test_existing_receipt_retry_rejects_conflicting_binding_in_transaction(
     with pytest.raises(ReceiptConflictError):
         store.ingest(changed, _precommit_check=precommit_check)
 
-    assert calls == 1
+    assert calls == 0
     assert _row_counts(store.path) == before

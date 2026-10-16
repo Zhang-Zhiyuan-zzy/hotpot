@@ -1,0 +1,1074 @@
+{
+  "registry_version": "nist-asd-2024-accessed-2026-10-16",
+  "source": {
+    "name": "NIST Atomic Spectra Database, Ground States and Ionization Energies",
+    "citation": "Kramida, A.; Ralchenko, Yu.; Reader, J.; NIST ASD Team (2024), NIST Atomic Spectra Database (ver. 5.12).",
+    "url": "https://physics.nist.gov/cgi-bin/ASD/ie.pl",
+    "query": "neutral spectra H-Og I; atomic number, ground shells and ground level",
+    "access_date": "2026-10-16"
+  },
+  "records": [
+    {
+      "atomic_number": 1,
+      "symbol": "H",
+      "available": true,
+      "electron_count": 1,
+      "ground_configuration": "1s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 2,
+      "symbol": "He",
+      "available": true,
+      "electron_count": 2,
+      "ground_configuration": "1s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 3,
+      "symbol": "Li",
+      "available": true,
+      "electron_count": 3,
+      "ground_configuration": "1s^22s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 4,
+      "symbol": "Be",
+      "available": true,
+      "electron_count": 4,
+      "ground_configuration": "1s^22s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 5,
+      "symbol": "B",
+      "available": true,
+      "electron_count": 5,
+      "ground_configuration": "1s^22s^22p",
+      "ground_level": "^2P\u00b0^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 6,
+      "symbol": "C",
+      "available": true,
+      "electron_count": 6,
+      "ground_configuration": "1s^22s^22p^2",
+      "ground_level": "^3P0",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 7,
+      "symbol": "N",
+      "available": true,
+      "electron_count": 7,
+      "ground_configuration": "1s^22s^22p^3",
+      "ground_level": "^4S\u00b0^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 8,
+      "symbol": "O",
+      "available": true,
+      "electron_count": 8,
+      "ground_configuration": "1s^22s^22p^4",
+      "ground_level": "^3P2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 9,
+      "symbol": "F",
+      "available": true,
+      "electron_count": 9,
+      "ground_configuration": "1s^22s^22p^5",
+      "ground_level": "^2P\u00b0^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 10,
+      "symbol": "Ne",
+      "available": true,
+      "electron_count": 10,
+      "ground_configuration": "1s^22s^22p^6",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 11,
+      "symbol": "Na",
+      "available": true,
+      "electron_count": 11,
+      "ground_configuration": "[Ne]3s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 12,
+      "symbol": "Mg",
+      "available": true,
+      "electron_count": 12,
+      "ground_configuration": "[Ne]3s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 13,
+      "symbol": "Al",
+      "available": true,
+      "electron_count": 13,
+      "ground_configuration": "[Ne]3s^23p",
+      "ground_level": "^2P\u00b0^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 14,
+      "symbol": "Si",
+      "available": true,
+      "electron_count": 14,
+      "ground_configuration": "[Ne]3s^23p^2",
+      "ground_level": "^3P0",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 15,
+      "symbol": "P",
+      "available": true,
+      "electron_count": 15,
+      "ground_configuration": "[Ne]3s^23p^3",
+      "ground_level": "^4S\u00b0^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 16,
+      "symbol": "S",
+      "available": true,
+      "electron_count": 16,
+      "ground_configuration": "[Ne]3s^23p^4",
+      "ground_level": "^3P2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 17,
+      "symbol": "Cl",
+      "available": true,
+      "electron_count": 17,
+      "ground_configuration": "[Ne]3s^23p^5",
+      "ground_level": "^2P\u00b0^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 18,
+      "symbol": "Ar",
+      "available": true,
+      "electron_count": 18,
+      "ground_configuration": "[Ne]3s^23p^6",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 19,
+      "symbol": "K",
+      "available": true,
+      "electron_count": 19,
+      "ground_configuration": "[Ar]4s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 20,
+      "symbol": "Ca",
+      "available": true,
+      "electron_count": 20,
+      "ground_configuration": "[Ar]4s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 21,
+      "symbol": "Sc",
+      "available": true,
+      "electron_count": 21,
+      "ground_configuration": "[Ar]3d4s^2",
+      "ground_level": "^2D^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 22,
+      "symbol": "Ti",
+      "available": true,
+      "electron_count": 22,
+      "ground_configuration": "[Ar]3d^24s^2",
+      "ground_level": "^3F2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 23,
+      "symbol": "V",
+      "available": true,
+      "electron_count": 23,
+      "ground_configuration": "[Ar]3d^34s^2",
+      "ground_level": "^4F^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 24,
+      "symbol": "Cr",
+      "available": true,
+      "electron_count": 24,
+      "ground_configuration": "[Ar]3d^54s",
+      "ground_level": "^7S3",
+      "two_s": 6
+    },
+    {
+      "atomic_number": 25,
+      "symbol": "Mn",
+      "available": true,
+      "electron_count": 25,
+      "ground_configuration": "[Ar]3d^54s^2",
+      "ground_level": "^6S^5/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 26,
+      "symbol": "Fe",
+      "available": true,
+      "electron_count": 26,
+      "ground_configuration": "[Ar]3d^64s^2",
+      "ground_level": "^5D4",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 27,
+      "symbol": "Co",
+      "available": true,
+      "electron_count": 27,
+      "ground_configuration": "[Ar]3d^74s^2",
+      "ground_level": "^4F^9/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 28,
+      "symbol": "Ni",
+      "available": true,
+      "electron_count": 28,
+      "ground_configuration": "[Ar]3d^84s^2",
+      "ground_level": "^3F4",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 29,
+      "symbol": "Cu",
+      "available": true,
+      "electron_count": 29,
+      "ground_configuration": "[Ar]3d^104s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 30,
+      "symbol": "Zn",
+      "available": true,
+      "electron_count": 30,
+      "ground_configuration": "[Ar]3d^104s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 31,
+      "symbol": "Ga",
+      "available": true,
+      "electron_count": 31,
+      "ground_configuration": "[Ar]3d^104s^24p",
+      "ground_level": "^2P\u00b0^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 32,
+      "symbol": "Ge",
+      "available": true,
+      "electron_count": 32,
+      "ground_configuration": "[Ar]3d^104s^24p^2",
+      "ground_level": "^3P0",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 33,
+      "symbol": "As",
+      "available": true,
+      "electron_count": 33,
+      "ground_configuration": "[Ar]3d^104s^24p^3",
+      "ground_level": "^4S\u00b0^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 34,
+      "symbol": "Se",
+      "available": true,
+      "electron_count": 34,
+      "ground_configuration": "[Ar]3d^104s^24p^4",
+      "ground_level": "^3P2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 35,
+      "symbol": "Br",
+      "available": true,
+      "electron_count": 35,
+      "ground_configuration": "[Ar]3d^104s^24p^5",
+      "ground_level": "^2P\u00b0^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 36,
+      "symbol": "Kr",
+      "available": true,
+      "electron_count": 36,
+      "ground_configuration": "[Ar]3d^104s^24p^6",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 37,
+      "symbol": "Rb",
+      "available": true,
+      "electron_count": 37,
+      "ground_configuration": "[Kr]5s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 38,
+      "symbol": "Sr",
+      "available": true,
+      "electron_count": 38,
+      "ground_configuration": "[Kr]5s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 39,
+      "symbol": "Y",
+      "available": true,
+      "electron_count": 39,
+      "ground_configuration": "[Kr]4d5s^2",
+      "ground_level": "^2D^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 40,
+      "symbol": "Zr",
+      "available": true,
+      "electron_count": 40,
+      "ground_configuration": "[Kr]4d^25s^2",
+      "ground_level": "^3F2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 41,
+      "symbol": "Nb",
+      "available": true,
+      "electron_count": 41,
+      "ground_configuration": "[Kr]4d^45s",
+      "ground_level": "^6D^1/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 42,
+      "symbol": "Mo",
+      "available": true,
+      "electron_count": 42,
+      "ground_configuration": "[Kr]4d^55s",
+      "ground_level": "^7S3",
+      "two_s": 6
+    },
+    {
+      "atomic_number": 43,
+      "symbol": "Tc",
+      "available": true,
+      "electron_count": 43,
+      "ground_configuration": "[Kr]4d^55s^2",
+      "ground_level": "^6S^5/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 44,
+      "symbol": "Ru",
+      "available": true,
+      "electron_count": 44,
+      "ground_configuration": "[Kr]4d^75s",
+      "ground_level": "^5F5",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 45,
+      "symbol": "Rh",
+      "available": true,
+      "electron_count": 45,
+      "ground_configuration": "[Kr]4d^85s",
+      "ground_level": "^4F^9/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 46,
+      "symbol": "Pd",
+      "available": true,
+      "electron_count": 46,
+      "ground_configuration": "[Kr]4d^10",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 47,
+      "symbol": "Ag",
+      "available": true,
+      "electron_count": 47,
+      "ground_configuration": "[Kr]4d^105s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 48,
+      "symbol": "Cd",
+      "available": true,
+      "electron_count": 48,
+      "ground_configuration": "[Kr]4d^105s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 49,
+      "symbol": "In",
+      "available": true,
+      "electron_count": 49,
+      "ground_configuration": "[Cd]5p",
+      "ground_level": "^2P\u00b0^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 50,
+      "symbol": "Sn",
+      "available": true,
+      "electron_count": 50,
+      "ground_configuration": "[Cd]5p^2",
+      "ground_level": "^3P0",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 51,
+      "symbol": "Sb",
+      "available": true,
+      "electron_count": 51,
+      "ground_configuration": "[Cd]5p^3",
+      "ground_level": "^4S\u00b0^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 52,
+      "symbol": "Te",
+      "available": true,
+      "electron_count": 52,
+      "ground_configuration": "[Cd]5p^4",
+      "ground_level": "^3P2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 53,
+      "symbol": "I",
+      "available": true,
+      "electron_count": 53,
+      "ground_configuration": "[Cd]5p^5",
+      "ground_level": "^2P\u00b0^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 54,
+      "symbol": "Xe",
+      "available": true,
+      "electron_count": 54,
+      "ground_configuration": "[Cd]5p^6",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 55,
+      "symbol": "Cs",
+      "available": true,
+      "electron_count": 55,
+      "ground_configuration": "[Xe]6s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 56,
+      "symbol": "Ba",
+      "available": true,
+      "electron_count": 56,
+      "ground_configuration": "[Xe]6s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 57,
+      "symbol": "La",
+      "available": true,
+      "electron_count": 57,
+      "ground_configuration": "[Xe]5d6s^2",
+      "ground_level": "^2D^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 58,
+      "symbol": "Ce",
+      "available": true,
+      "electron_count": 58,
+      "ground_configuration": "[Xe]4f5d6s^2",
+      "ground_level": "^1G\u00b04",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 59,
+      "symbol": "Pr",
+      "available": true,
+      "electron_count": 59,
+      "ground_configuration": "[Xe]4f^36s^2",
+      "ground_level": "^4I\u00b0^9/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 60,
+      "symbol": "Nd",
+      "available": true,
+      "electron_count": 60,
+      "ground_configuration": "[Xe]4f^46s^2",
+      "ground_level": "^5I4",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 61,
+      "symbol": "Pm",
+      "available": true,
+      "electron_count": 61,
+      "ground_configuration": "[Xe]4f^56s^2",
+      "ground_level": "^6H\u00b0^5/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 62,
+      "symbol": "Sm",
+      "available": true,
+      "electron_count": 62,
+      "ground_configuration": "[Xe]4f^66s^2",
+      "ground_level": "^7F0",
+      "two_s": 6
+    },
+    {
+      "atomic_number": 63,
+      "symbol": "Eu",
+      "available": true,
+      "electron_count": 63,
+      "ground_configuration": "[Xe]4f^76s^2",
+      "ground_level": "^8S\u00b0^7/2",
+      "two_s": 7
+    },
+    {
+      "atomic_number": 64,
+      "symbol": "Gd",
+      "available": true,
+      "electron_count": 64,
+      "ground_configuration": "[Xe]4f^75d6s^2",
+      "ground_level": "^9D\u00b02",
+      "two_s": 8
+    },
+    {
+      "atomic_number": 65,
+      "symbol": "Tb",
+      "available": true,
+      "electron_count": 65,
+      "ground_configuration": "[Xe]4f^96s^2",
+      "ground_level": "^6H\u00b0^15/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 66,
+      "symbol": "Dy",
+      "available": true,
+      "electron_count": 66,
+      "ground_configuration": "[Xe]4f^106s^2",
+      "ground_level": "^5I8",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 67,
+      "symbol": "Ho",
+      "available": true,
+      "electron_count": 67,
+      "ground_configuration": "[Xe]4f^116s^2",
+      "ground_level": "^4I\u00b0^15/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 68,
+      "symbol": "Er",
+      "available": true,
+      "electron_count": 68,
+      "ground_configuration": "[Xe]4f^126s^2",
+      "ground_level": "^3H6",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 69,
+      "symbol": "Tm",
+      "available": true,
+      "electron_count": 69,
+      "ground_configuration": "[Xe]4f^136s^2",
+      "ground_level": "^2F\u00b0^7/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 70,
+      "symbol": "Yb",
+      "available": true,
+      "electron_count": 70,
+      "ground_configuration": "[Xe]4f^146s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 71,
+      "symbol": "Lu",
+      "available": true,
+      "electron_count": 71,
+      "ground_configuration": "[Xe]4f^145d6s^2",
+      "ground_level": "^2D^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 72,
+      "symbol": "Hf",
+      "available": true,
+      "electron_count": 72,
+      "ground_configuration": "[Xe]4f^145d^26s^2",
+      "ground_level": "^3F2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 73,
+      "symbol": "Ta",
+      "available": true,
+      "electron_count": 73,
+      "ground_configuration": "[Xe]4f^145d^36s^2",
+      "ground_level": "^4F^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 74,
+      "symbol": "W",
+      "available": true,
+      "electron_count": 74,
+      "ground_configuration": "[Xe]4f^145d^46s^2",
+      "ground_level": "^5D0",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 75,
+      "symbol": "Re",
+      "available": true,
+      "electron_count": 75,
+      "ground_configuration": "[Xe]4f^145d^56s^2",
+      "ground_level": "^6S^5/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 76,
+      "symbol": "Os",
+      "available": true,
+      "electron_count": 76,
+      "ground_configuration": "[Xe]4f^145d^66s^2",
+      "ground_level": "^5D4",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 77,
+      "symbol": "Ir",
+      "available": true,
+      "electron_count": 77,
+      "ground_configuration": "[Xe]4f^145d^76s^2",
+      "ground_level": "^4F^9/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 78,
+      "symbol": "Pt",
+      "available": true,
+      "electron_count": 78,
+      "ground_configuration": "[Xe]4f^145d^96s",
+      "ground_level": "^3D3",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 79,
+      "symbol": "Au",
+      "available": true,
+      "electron_count": 79,
+      "ground_configuration": "[Xe]4f^145d^106s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 80,
+      "symbol": "Hg",
+      "available": true,
+      "electron_count": 80,
+      "ground_configuration": "[Xe]4f^145d^106s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 81,
+      "symbol": "Tl",
+      "available": true,
+      "electron_count": 81,
+      "ground_configuration": "[Hg]6p",
+      "ground_level": "^2P\u00b0^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 82,
+      "symbol": "Pb",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": "[Hg]6p^2",
+      "ground_level": "(^1/2,^1/2)0",
+      "two_s": null
+    },
+    {
+      "atomic_number": 83,
+      "symbol": "Bi",
+      "available": true,
+      "electron_count": 83,
+      "ground_configuration": "[Hg]6p^3",
+      "ground_level": "^4S\u00b0^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 84,
+      "symbol": "Po",
+      "available": true,
+      "electron_count": 84,
+      "ground_configuration": "[Hg]6p^4",
+      "ground_level": "^3P2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 85,
+      "symbol": "At",
+      "available": true,
+      "electron_count": 85,
+      "ground_configuration": "[Hg]6p^5",
+      "ground_level": "^2P\u00b0^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 86,
+      "symbol": "Rn",
+      "available": true,
+      "electron_count": 86,
+      "ground_configuration": "[Hg]6p^6",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 87,
+      "symbol": "Fr",
+      "available": true,
+      "electron_count": 87,
+      "ground_configuration": "[Rn]7s",
+      "ground_level": "^2S^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 88,
+      "symbol": "Ra",
+      "available": true,
+      "electron_count": 88,
+      "ground_configuration": "[Rn]7s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 89,
+      "symbol": "Ac",
+      "available": true,
+      "electron_count": 89,
+      "ground_configuration": "[Rn]6d7s^2",
+      "ground_level": "^2D^3/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 90,
+      "symbol": "Th",
+      "available": true,
+      "electron_count": 90,
+      "ground_configuration": "[Rn]6d^27s^2",
+      "ground_level": "^3F2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 91,
+      "symbol": "Pa",
+      "available": true,
+      "electron_count": 91,
+      "ground_configuration": "[Rn]5f^26d7s^2",
+      "ground_level": "^4K^11/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 92,
+      "symbol": "U",
+      "available": true,
+      "electron_count": 92,
+      "ground_configuration": "[Rn]5f^36d7s^2",
+      "ground_level": "^5L\u00b06",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 93,
+      "symbol": "Np",
+      "available": true,
+      "electron_count": 93,
+      "ground_configuration": "[Rn]5f^46d7s^2",
+      "ground_level": "^6L^11/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 94,
+      "symbol": "Pu",
+      "available": true,
+      "electron_count": 94,
+      "ground_configuration": "[Rn]5f^67s^2",
+      "ground_level": "^7F0",
+      "two_s": 6
+    },
+    {
+      "atomic_number": 95,
+      "symbol": "Am",
+      "available": true,
+      "electron_count": 95,
+      "ground_configuration": "[Rn]5f^77s^2",
+      "ground_level": "^8S\u00b0^7/2",
+      "two_s": 7
+    },
+    {
+      "atomic_number": 96,
+      "symbol": "Cm",
+      "available": true,
+      "electron_count": 96,
+      "ground_configuration": "[Rn]5f^76d7s^2",
+      "ground_level": "^9D\u00b02",
+      "two_s": 8
+    },
+    {
+      "atomic_number": 97,
+      "symbol": "Bk",
+      "available": true,
+      "electron_count": 97,
+      "ground_configuration": "[Rn]5f^97s^2",
+      "ground_level": "^6H\u00b0^15/2",
+      "two_s": 5
+    },
+    {
+      "atomic_number": 98,
+      "symbol": "Cf",
+      "available": true,
+      "electron_count": 98,
+      "ground_configuration": "[Rn]5f^107s^2",
+      "ground_level": "^5I8",
+      "two_s": 4
+    },
+    {
+      "atomic_number": 99,
+      "symbol": "Es",
+      "available": true,
+      "electron_count": 99,
+      "ground_configuration": "[Rn]5f^117s^2",
+      "ground_level": "^4I\u00b0^15/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 100,
+      "symbol": "Fm",
+      "available": true,
+      "electron_count": 100,
+      "ground_configuration": "[Rn]5f^127s^2",
+      "ground_level": "^3H6",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 101,
+      "symbol": "Md",
+      "available": true,
+      "electron_count": 101,
+      "ground_configuration": "[Rn]5f^137s^2",
+      "ground_level": "^2F\u00b0^7/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 102,
+      "symbol": "No",
+      "available": true,
+      "electron_count": 102,
+      "ground_configuration": "[Rn]5f^147s^2",
+      "ground_level": "^1S0",
+      "two_s": 0
+    },
+    {
+      "atomic_number": 103,
+      "symbol": "Lr",
+      "available": true,
+      "electron_count": 103,
+      "ground_configuration": "[Rn]5f^147s^27p",
+      "ground_level": "^2P\u00b0^1/2",
+      "two_s": 1
+    },
+    {
+      "atomic_number": 104,
+      "symbol": "Rf",
+      "available": true,
+      "electron_count": 104,
+      "ground_configuration": "[Rn]5f^146d^27s^2",
+      "ground_level": "^3F2",
+      "two_s": 2
+    },
+    {
+      "atomic_number": 105,
+      "symbol": "Db",
+      "available": true,
+      "electron_count": 105,
+      "ground_configuration": "[Rn]5f^146d^37s^2",
+      "ground_level": "^4F^3/2",
+      "two_s": 3
+    },
+    {
+      "atomic_number": 106,
+      "symbol": "Sg",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": "[Rn]5f^146d^47s^2",
+      "ground_level": "0",
+      "two_s": null
+    },
+    {
+      "atomic_number": 107,
+      "symbol": "Bh",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": "[Rn]5f^146d^57s^2",
+      "ground_level": "^5/2",
+      "two_s": null
+    },
+    {
+      "atomic_number": 108,
+      "symbol": "Hs",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": "[Rn]5f^146d^67s^2",
+      "ground_level": "4",
+      "two_s": null
+    },
+    {
+      "atomic_number": 109,
+      "symbol": "Mt",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 110,
+      "symbol": "Ds",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 111,
+      "symbol": "Rg",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 112,
+      "symbol": "Cn",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 113,
+      "symbol": "Nh",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 114,
+      "symbol": "Fl",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 115,
+      "symbol": "Mc",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 116,
+      "symbol": "Lv",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 117,
+      "symbol": "Ts",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    },
+    {
+      "atomic_number": 118,
+      "symbol": "Og",
+      "available": false,
+      "electron_count": null,
+      "ground_configuration": null,
+      "ground_level": null,
+      "two_s": null
+    }
+  ]
+}

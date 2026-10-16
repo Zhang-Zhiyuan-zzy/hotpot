@@ -148,6 +148,7 @@ include-package-data = true
     "schemas/cli/*.json",
 ]
 "hotpot.cheminfo.calculator.oxidation_state" = ["data/*.json"]
+"hotpot.cheminfo.calculator.electronic_state" = ["data/*.json"]
 
 [tool.setuptools.packages.find]
 include = ["hotpot*"]

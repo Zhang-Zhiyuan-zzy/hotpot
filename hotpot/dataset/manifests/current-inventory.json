@@ -6,12 +6,14 @@
   "store": {
     "path": "store/active/datasets.sqlite3",
     "active_link": "store/active",
-    "generation": "store/generations/stage13-efficiency-current",
+    "generation": "store/generations/stage13-compact-current",
     "assets_path": "store/active/datasets.sqlite3.assets",
-    "sha256": "e31b1baed33d55a6b74296b08604653147d561fa1b9273afc9d61b76c8c093f9",
-    "size_bytes": 5093584896,
-    "schema": "hotpot-ds-store/current",
-    "store_uuid": "af3dda86-08de-450e-b5d8-35619ad7a7ce",
+    "sha256": "641e6222570ad77e4cb7e22bf91f591d42a2d7e41333204b2a410b8aa9fb01f3",
+    "size_bytes": 951156736,
+    "formal_size_bytes": 959831795,
+    "formal_size_limit_bytes": 1073741824,
+    "schema": "hotpot-ds-store/compact-current",
+    "store_uuid": "01627718-e567-454f-a65d-176e6c66ff8d",
     "information_fence": "hotpot-dataset-information-fence/current",
     "integrity_check": "ok",
     "foreign_key_check": "ok",
@@ -23,13 +25,10 @@
       "case_assessments": 252665,
       "identifiers": 592436,
       "ingestion_receipts": 3,
-      "target_assets": 2317,
+      "target_assets": 2289,
       "structure_asset_refs": 4465,
       "scientific_asset_refs": 4465,
-      "release_control_asset_refs": 42,
-      "incomplete_case_index": 3568,
-      "ordinary_case_index": 249097,
-      "benchmark_case_index": 0
+      "release_control_asset_refs": 9
     },
     "assessment_counts": {
       "archive_class": {
@@ -48,20 +47,20 @@
   },
   "target_assets": {
     "path": "store/active/datasets.sqlite3.assets",
-    "object_count": 2317,
-    "object_bytes": 7645485715,
-    "inventory_sha256": "4877eb2ffff212082d85ba2c1f567f4af5b9fc69b99ce4b9d3c2313b908a1c36",
+    "object_count": 2289,
+    "object_bytes": 8675059,
+    "inventory_sha256": "216e01fac632e74368d6b9bc69f828c5ac8a9eed3e6bb144023e207657a4cb1b",
     "inventory_sha256_algorithm": "canonical JSONL of content_sha256,size,relative_path ordered by content_sha256",
-    "filesystem_verification_sha256": "dbc78120f75b1aedadff2fa2a17475b69e572e00928640796341e7badea5147f",
+    "filesystem_verification_sha256": "25ce2b7d24c39dd312e74dc553c05dc0cdfa78115aac250ab655b544d4fce29c",
     "filesystem_verification_sha256_algorithm": "length-framed canonical JSON of sha256,size,path ordered by relative_path",
     "structure_objects": 2280,
     "structure_bytes": 7092342,
     "structure_reference_count": 4465,
     "evidence_objects": 0,
     "evidence_reference_count": 0,
-    "control_objects": 37,
-    "control_bytes": 7638393373,
-    "control_reference_count": 42
+    "control_objects": 9,
+    "control_bytes": 1582717,
+    "control_reference_count": 9
   },
   "releases": [
     {
@@ -83,8 +82,8 @@
         "E2": 2175
       },
       "generation_digest": "949cfbba227d310f13aa02bd8b80e79d1178561c724fec8a63a556294b6ca37f",
-      "certificate_sha256": "ecf8e3ef09efb8c20c5490afc35a1262731f5c62dde271a085f05ceaca854fcf",
-      "receipt_id": "receipt-83fd8d0316e259a6103a6e76dc0e3ccd97ab85b0a115f2430d6486de78b8eefe"
+      "certificate_sha256": "cba00babaa219f4c1967505618fed277e466f836dffba2236cd2c3a4f9a17233",
+      "receipt_id": "receipt-eb461853833466af47e05b5a5f6e7967fb52665f5f840bbe4683b3ebee2d62bf"
     },
     {
       "dataset": "spin",
@@ -105,8 +104,8 @@
         "E2": 2175
       },
       "generation_digest": "ea90ec788dcc2abc0093db84498df7fa712ec1ee105c6ef1ba6bd1adfdb06ec6",
-      "certificate_sha256": "ff82204dcc148cb3e014abe532254e78b031ebb740777423c2f09954fefe8105",
-      "receipt_id": "receipt-d458c16b32d71fe0c4b82ed8904b93b0fb3ea905e3342370fba6c9098287e5b2"
+      "certificate_sha256": "0e1f91deffd2fac95f0f2fe90b1d2038035e7e4adb883b355a4bc81aa7a288fd",
+      "receipt_id": "receipt-41e194a8bce62d054f70bc4d218890717891ae6708e2dfe6a96de8f3a622575d"
     },
     {
       "dataset": "csd-electronic-state",
@@ -127,24 +126,24 @@
         "E2": 248315
       },
       "generation_digest": "dba7c9b9035f3bd5fa931c66c8d5e0b28c57244badae3a6b2adee9962b19e5ab",
-      "certificate_sha256": "1bfc8c6567efa5d8f1d3bcb3eb3f53e5cd84ea345dc3b3cbf1cc2210dbfc5d97",
-      "receipt_id": "receipt-b6fd0bbe3bbf431f4863f00e1e7a8731032708ebfe09fa14304ee1dd5f47748d"
+      "certificate_sha256": "0e3fc8d827af49a77a99494dcd875e429ae6ef159f22c32fca140c0bcaeea21f",
+      "receipt_id": "receipt-6c7c58ea0b18b96a8e56ec9e6321cc4685bdb3d87da4eb78cf2db46498f80775"
     }
   ],
   "activation": {
     "kind": "directory-symlink",
-    "run_id": "stage13-efficiency-current",
-    "activated_at": "2026-10-16T05:07:00.068761Z",
-    "previous_generation": "store/generations/stage13-current",
-    "semantic_digest": "ffb944dbabbd3e5ca0488a967ae6864350c9408e95d9b07853c4757b25d954e0",
-    "parity_artifact": "store/rebuilds/stage13-efficiency-current/parity.json",
-    "parity_artifact_sha256": "a3858d9922892b24494fecad9e3b5cc039af6ca33b584f935f04a962ecac98cb",
-    "activation_manifest": "store/generations/stage13-efficiency-current/cutover-activation.json",
-    "activation_manifest_sha256": "9dc64591ac3b92d9a08ed3d01075f71af2affd2771659e2d6fa4acf8ee2f3eae",
-    "source_database_sha256": "1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5",
-    "target_database_sha256": "e31b1baed33d55a6b74296b08604653147d561fa1b9273afc9d61b76c8c093f9",
-    "target_cas_sha256": "dbc78120f75b1aedadff2fa2a17475b69e572e00928640796341e7badea5147f",
-    "rollback_generation": "store/generations/stage13-current"
+    "run_id": "stage13-compact-current",
+    "activated_at": "2026-10-16T11:08:32.289731Z",
+    "previous_generation": "store/generations/stage13-efficiency-current",
+    "semantic_digest": "5d0402fd76e1dcf55128c8395b45cbef805df940d4bdc1e68f1d00399adf78ad",
+    "parity_artifact": "store/rebuilds/stage13-compact-current/parity.json",
+    "parity_artifact_sha256": "6e07e5add1f939f652e2f5896216bf0ae1ab7ab6042bfed0071c1e237acb9eef",
+    "activation_manifest": "store/generations/stage13-compact-current/cutover-activation.json",
+    "activation_manifest_sha256": "9ecfde80201f3ddf3f099e4bcc7a82dafca36fee1bd368e21fef48f350b28435",
+    "source_database_sha256": "e31b1baed33d55a6b74296b08604653147d561fa1b9273afc9d61b76c8c093f9",
+    "target_database_sha256": "641e6222570ad77e4cb7e22bf91f591d42a2d7e41333204b2a410b8aa9fb01f3",
+    "target_cas_sha256": "25ce2b7d24c39dd312e74dc553c05dc0cdfa78115aac250ab655b544d4fce29c",
+    "rollback_generation": "store/generations/stage13-efficiency-current"
   },
   "migration_audit": {
     "report": "bundles/stage13-migration/migration-report.json",

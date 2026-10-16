@@ -48,6 +48,10 @@
 11. Built the three candidate releases and completed full parity. The candidate
     contains 252,665 Cases and occupies 959,831,795 bytes (0.894 GiB):
     951,156,736 database bytes plus 8,675,059 CAS object bytes.
+12. Revalidated every completed phase with the final code, then repeated full
+    parity under source/candidate SQLite write locks and atomically activated
+    `stage13-compact-current` at 2026-10-16T11:08:32.289731Z. The previous
+    `stage13-efficiency-current` generation remains the direct rollback target.
 
 ## Unexpected findings and required adjustments
 
@@ -96,12 +100,14 @@ then reads the final scalar labels. This closes a same-manifest tampering gap.
 
 ## Verification state
 
-- Candidate build phases: complete.
-- Candidate semantic parity: complete.
-- Candidate size gate: passed (`959831795 <= 1073741824`).
+- Active generation: `stage13-compact-current`.
+- Build phases and semantic parity: complete.
+- Formal size gate: passed (`959831795 <= 1073741824`).
 - SQLite integrity and foreign keys: passed by the rebuild parity gate.
 - CAS inventory: 2,289 objects, 8,675,059 bytes, no missing or orphan object.
 - Public API/CLI and Bundle-deleted end-to-end tests: passed.
+- Atomic activation record SHA-256:
+  `9ecfde80201f3ddf3f099e4bcc7a82dafca36fee1bd368e21fef48f350b28435`.
 - Cleanup was not run against the real candidate Bundles during the rollback
   acceptance window. The command and its destructive boundary are tested; the
   retained source and candidate Bundles remain available for revalidation.

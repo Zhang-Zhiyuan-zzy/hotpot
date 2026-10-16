@@ -2,8 +2,8 @@
 
 ## Result
 
-The current 252,665-Case corpus was rebuilt into the single current compact
-formal-store schema. The candidate formal release occupies 959,831,795 bytes
+The current 252,665-Case corpus was rebuilt and activated in the single current
+compact formal-store schema. The active formal release occupies 959,831,795 bytes
 (0.894 GiB), compared with approximately 11.86 GiB for the prior active
 database and control CAS. Scientific facts, original evidence and structures,
 supplier/owner classification facts, Gate policy, final quality/evidence and
@@ -18,7 +18,7 @@ formal target.
 
 ## Reliability conclusion
 
-The candidate passed:
+The active release passed:
 
 - exact Case counts for oxidation (2,175), spin (2,175), and
   csd-electronic-state (248,315);

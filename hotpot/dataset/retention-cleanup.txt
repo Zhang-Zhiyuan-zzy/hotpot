@@ -11,8 +11,8 @@
 # 4. run `hotpot ds detail audit` successfully;
 # 5. accepted that deleting a migration Bundle prevents loading that Bundle or
 #    reconstructing it from its root certificate without restoring the archive;
-# 6. preserved current-inventory.json, the efficiency rebuild parity and
-#    activation records, stage13-cutover.json, migration-report.json,
+# 6. preserved current-inventory.json, the compact and efficiency rebuild
+#    parity/activation records, stage13-cutover.json, migration-report.json,
 #    migration-plan.json, and store/certificates/; and
 # 7. recorded the deletion as an owner-approved retention event.
 #

@@ -26,6 +26,7 @@ from ..oxidation_state.contracts import (
     OxidationStateCandidateEvidence,
 )
 from .constraints import _validate_coupled_candidate_sets
+from .derive import _derive_charge_values
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -299,17 +300,20 @@ def _active_constraint_rejection(
 
 
 def _classify_selected_values(
+    facts: MolecularFacts,
     selected_values: Tuple[FactorCandidateValue, ...],
 ) -> Tuple[Optional[_SelectedValues], Optional[str]]:
     candidates = tuple(value.candidate for value in selected_values)
-    charges = tuple(
+    result_charges = tuple(
         candidate
         for candidate in candidates
         if isinstance(candidate, NetChargeCandidateEvidence)
-        or (
-            isinstance(candidate, DerivedStateValue)
-            and candidate.quantity is ScientificQuantity.NET_CHARGE
-        )
+    )
+    supplied_derived = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, DerivedStateValue)
+        and candidate.quantity is ScientificQuantity.NET_CHARGE
     )
     unsupported_derived = tuple(
         candidate
@@ -329,41 +333,68 @@ def _classify_selected_values(
     )
     if unsupported_derived:
         return None, "COMPOSITION.STRUCTURED_DERIVATION_UNSUPPORTED"
-    if len(charges) != 1:
-        return None, "COMPOSITION.NET_CHARGE_CARDINALITY"
     if len(oxidation_states) > 1:
         return None, "COMPOSITION.OXIDATION_STATE_CARDINALITY"
     if len(electronic_states) > 1:
         return None, "COMPOSITION.ELECTRONIC_STATE_CARDINALITY"
 
-    candidate_ids = tuple(
+    base_candidate_ids = tuple(
         candidate.provenance.identity for candidate in candidates
     )
+    counting = tuple(
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, CoordinationCountingCandidate)
+    )
+    oxidation_state = oxidation_states[0] if oxidation_states else None
+    computed_derived = _derive_charge_values(
+        facts,
+        counting,
+        oxidation_state,
+    )
+    derived_by_identity = {
+        candidate.provenance.identity: candidate
+        for candidate in supplied_derived + computed_derived
+    }
+    derived_values = tuple(
+        derived_by_identity[identity]
+        for identity in sorted(derived_by_identity)
+    )
     if any(
-        not set(candidate.parent_candidate_ids).issubset(candidate_ids)
-        for candidate in tuple(
-            candidate
-            for candidate in candidates
-            if isinstance(candidate, DerivedStateValue)
-        )
+        not set(candidate.parent_candidate_ids).issubset(base_candidate_ids)
+        for candidate in derived_values
     ):
         return None, "COMPOSITION.DERIVED_PARENT_MISSING"
+    if len(result_charges) > 1:
+        return None, "COMPOSITION.NET_CHARGE_CARDINALITY"
+    derived_charge_values = {candidate.value for candidate in derived_values}
+    if len(derived_charge_values) > 1:
+        return None, "HARD-002.DERIVED_CHARGE_CONFLICT"
+    if result_charges and derived_charge_values and (
+        result_charges[0].charge not in derived_charge_values
+    ):
+        return None, "HARD-002.DERIVED_CHARGE_CONFLICT"
+    if result_charges:
+        charge: _ChargeValue = result_charges[0]
+    elif derived_values:
+        charge = derived_values[0]
+    else:
+        return None, "COMPOSITION.NET_CHARGE_CARDINALITY"
+    candidate_ids = base_candidate_ids + tuple(
+        candidate.provenance.identity
+        for candidate in computed_derived
+        if candidate.provenance.identity not in base_candidate_ids
+    )
     return (
         _SelectedValues(
-            charge=charges[0],
+            charge=charge,
             lewis=tuple(
                 candidate
                 for candidate in candidates
                 if isinstance(candidate, LewisFormalChargeCandidate)
             ),
-            counting=tuple(
-                candidate
-                for candidate in candidates
-                if isinstance(candidate, CoordinationCountingCandidate)
-            ),
-            oxidation_state=(
-                oxidation_states[0] if oxidation_states else None
-            ),
+            counting=counting,
+            oxidation_state=oxidation_state,
             spin_contributions=tuple(
                 candidate
                 for candidate in candidates
@@ -372,11 +403,7 @@ def _classify_selected_values(
             electronic_state=(
                 electronic_states[0] if electronic_states else None
             ),
-            derived_values=tuple(
-                candidate
-                for candidate in candidates
-                if isinstance(candidate, DerivedStateValue)
-            ),
+            derived_values=derived_values,
             candidate_ids=candidate_ids,
             branch_assignments=tuple(
                 assignment
@@ -584,7 +611,8 @@ def _expand_scientific_paths(
             break
         attempted += 1
         selected, classification_rejection = _classify_selected_values(
-            selected_values
+            facts,
+            selected_values,
         )
         selected_ids = tuple(
             value.candidate.provenance.identity for value in selected_values

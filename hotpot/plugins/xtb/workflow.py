@@ -7,16 +7,11 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Mapping, Optional, Union
 
-from hotpot.cheminfo.calculator.electronic_state import (
-    ChargeInferenceResult,
-    ChargeInferenceSource,
-    ElectronicState,
-    SpinInferenceSource,
+from hotpot.cheminfo.calculator.execution_selection import (
+    BackendExecutability,
+    BackendStateProjection,
 )
-from hotpot.cheminfo.calculator.electronic_state.resolver import (
-    resolve_electronic_state,
-)
-from hotpot.cheminfo.calculator.formal_charges import infer_charge
+from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
 from hotpot.plugins._harness import isolated_workspace
 
@@ -38,6 +33,7 @@ from .contracts import (
     XTBTask,
 )
 from .runner import run_xtb
+from .state_projection import XTBBackendContext
 
 
 __all__ = ["run_gfn_xtb", "run_gfnff"]
@@ -63,20 +59,60 @@ def _workspace_parent(work_directory: Optional[Path]) -> Optional[Path]:
 def _enrich_report(
     report: XTBRunReport,
     *,
-    charge_source: ChargeInferenceSource,
-    spin_source: Optional[SpinInferenceSource],
-    state_assumptions: tuple[str, ...],
-    fragment_charges: tuple[int, ...],
+    state: BackendStateProjection,
     workspace_retained: bool,
 ) -> XTBRunReport:
     return replace(
         report,
-        charge_source=charge_source,
-        spin_source=spin_source,
-        state_assumptions=state_assumptions,
-        fragment_charges=fragment_charges,
+        scientific_state_identity=state.scientific_state_identity,
+        facts_identity=state.facts_identity,
+        projection_convention=state.projection_convention,
         workspace_retained=workspace_retained,
     )
+
+
+def _validate_projection(
+    mol: Molecule,
+    state: BackendStateProjection,
+    context: XTBBackendContext,
+) -> None:
+    facts = extract_molecular_facts(mol)
+    if state.facts_identity != facts.identity:
+        raise XTBInputError(
+            "Backend projection does not describe the input molecule facts"
+        )
+    if state.backend_identity != context.identity:
+        raise XTBInputError(
+            "Backend projection does not match the probed xTB context"
+        )
+    if state.projection_convention != context.projection_convention:
+        raise XTBInputError("Backend projection convention does not match xTB")
+    if state.executability is not BackendExecutability.SUPPORTED:
+        raise XTBInputError("Backend projection is not executable")
+    if state.execution_decision.backend_identity != state.backend_identity:
+        raise XTBInputError("Backend execution decision identity is inconsistent")
+    selected = state.execution_decision.selected_state
+    if (selected.charge, selected.uhf, selected.multiplicity) != (
+        state.charge,
+        state.uhf,
+        state.multiplicity,
+    ):
+        raise XTBInputError("Backend projection values are internally inconsistent")
+
+    electron_count = sum(facts.atomic_numbers) - state.charge
+    if electron_count != state.effective_electron_count or electron_count < 0:
+        raise XTBInputError("Backend projection electron count is inconsistent")
+    if context.consumes_uhf:
+        if state.uhf is None:
+            raise XTBInputError("GFN-xTB requires a projected UHF value")
+        if (
+            state.uhf < 0
+            or state.uhf > electron_count
+            or (electron_count - state.uhf) % 2
+        ):
+            raise XTBInputError("Projected UHF fails backend electron legality")
+    elif state.uhf is not None:
+        raise XTBInputError("GFN-FF does not consume a projected UHF value")
 
 
 def _execute_workflow(
@@ -84,12 +120,7 @@ def _execute_workflow(
     *,
     method: XTBMethod,
     task: XTBTask,
-    charge: int,
-    unpaired_electrons: Optional[int],
-    charge_source: ChargeInferenceSource,
-    spin_source: Optional[SpinInferenceSource],
-    state_assumptions: tuple[str, ...],
-    fragment_charges: tuple[int, ...],
+    state: BackendStateProjection,
     executable: Optional[_ExecutablePath],
     environment: Optional[Mapping[str, str]],
     timeout_seconds: Optional[float],
@@ -118,14 +149,16 @@ def _execute_workflow(
             method,
             (atom.atomic_number for atom in mol.atoms),
         )
+        context = XTBBackendContext(backend_info, method)
+        _validate_projection(mol, state, context)
         request = XTBRequest(
             backend_info=backend_info,
             method=method,
             task=task,
             input_path=input_path,
             work_directory=workspace,
-            charge=charge,
-            unpaired_electrons=unpaired_electrons,
+            charge=state.charge,
+            unpaired_electrons=state.uhf,
             environment=process_environment,
             timeout_seconds=timeout_seconds,
         )
@@ -136,10 +169,7 @@ def _execute_workflow(
                 str(error),
                 _enrich_report(
                     error.report,
-                    charge_source=charge_source,
-                    spin_source=spin_source,
-                    state_assumptions=state_assumptions,
-                    fragment_charges=fragment_charges,
+                    state=state,
                     workspace_retained=keep_work_directory,
                 ),
             ) from error
@@ -148,20 +178,14 @@ def _execute_workflow(
                 str(error),
                 _enrich_report(
                     error.report,
-                    charge_source=charge_source,
-                    spin_source=spin_source,
-                    state_assumptions=state_assumptions,
-                    fragment_charges=fragment_charges,
+                    state=state,
                     workspace_retained=keep_work_directory,
                 ),
             ) from error
 
         report = _enrich_report(
             report,
-            charge_source=charge_source,
-            spin_source=spin_source,
-            state_assumptions=state_assumptions,
-            fragment_charges=fragment_charges,
+            state=state,
             workspace_retained=keep_work_directory,
         )
         try:
@@ -191,9 +215,8 @@ def _execute_workflow(
 def run_gfnff(
     mol: Molecule,
     *,
+    state: BackendStateProjection,
     task: XTBTask = XTBTask.OPTIMIZE,
-    charge_state: Optional[ChargeInferenceResult] = None,
-    charge: Optional[int] = None,
     executable: Optional[_ExecutablePath] = None,
     environment: Optional[Mapping[str, str]] = None,
     timeout_seconds: Optional[float] = None,
@@ -201,42 +224,11 @@ def run_gfnff(
     keep_work_directory: bool = False,
 ) -> XTBRunReport:
     """Run an independent official GFN-FF node on ``mol``."""
-    if charge_state is not None and charge is not None:
-        raise XTBInputError(
-            "charge_state and an explicit charge cannot be supplied together"
-        )
-
-    if charge_state is not None:
-        resolved_charge = charge_state.total_charge
-        charge_source = charge_state.source
-        assumptions = charge_state.assumptions
-        fragment_charges = tuple(
-            fragment.charge for fragment in charge_state.fragments
-        )
-    elif charge is not None:
-        resolved_charge = charge
-        charge_source = ChargeInferenceSource.EXPLICIT
-        assumptions = (f"Used explicit total charge {charge}.",)
-        fragment_charges = ()
-    else:
-        inferred_charge = infer_charge(mol)
-        resolved_charge = inferred_charge.total_charge
-        charge_source = inferred_charge.source
-        assumptions = inferred_charge.assumptions
-        fragment_charges = tuple(
-            fragment.charge for fragment in inferred_charge.fragments
-        )
-
     return _execute_workflow(
         mol,
         method=XTBMethod.GFNFF,
         task=task,
-        charge=resolved_charge,
-        unpaired_electrons=None,
-        charge_source=charge_source,
-        spin_source=None,
-        state_assumptions=assumptions,
-        fragment_charges=fragment_charges,
+        state=state,
         executable=executable,
         environment=environment,
         timeout_seconds=timeout_seconds,
@@ -248,11 +240,9 @@ def run_gfnff(
 def run_gfn_xtb(
     mol: Molecule,
     *,
+    state: BackendStateProjection,
     method: GFNXTBMethod = GFNXTBMethod.GFN2_XTB,
     task: XTBTask = XTBTask.OPTIMIZE,
-    state: Optional[ElectronicState] = None,
-    charge: Optional[int] = None,
-    unpaired_electrons: Optional[int] = None,
     executable: Optional[_ExecutablePath] = None,
     environment: Optional[Mapping[str, str]] = None,
     timeout_seconds: Optional[float] = None,
@@ -260,28 +250,11 @@ def run_gfn_xtb(
     keep_work_directory: bool = False,
 ) -> XTBRunReport:
     """Run an independent official GFN-xTB node on ``mol``."""
-    if state is not None and (
-        charge is not None or unpaired_electrons is not None
-    ):
-        raise XTBInputError(
-            "state and explicit charge or spin overrides cannot be mixed"
-        )
-
-    resolved_state = state or resolve_electronic_state(
-        mol,
-        charge=charge,
-        unpaired_electrons=unpaired_electrons,
-    )
     return _execute_workflow(
         mol,
         method=XTBMethod(method.value),
         task=task,
-        charge=resolved_state.charge,
-        unpaired_electrons=resolved_state.unpaired_electrons,
-        charge_source=resolved_state.charge_source,
-        spin_source=resolved_state.spin_source,
-        state_assumptions=resolved_state.assumptions,
-        fragment_charges=resolved_state.fragment_charges,
+        state=state,
         executable=executable,
         environment=environment,
         timeout_seconds=timeout_seconds,

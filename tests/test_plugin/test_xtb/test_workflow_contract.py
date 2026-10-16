@@ -10,13 +10,13 @@ import pytest
 
 import hotpot
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
-from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
+from hotpot.cheminfo.calculator.execution_selection import BackendStateProjection
 
 
 from hotpot.plugins.xtb.contracts import (
     GFNXTBMethod,
     XTBExecutionError,
+    XTBMethod,
     XTBResultError,
     XTBRunReport,
     XTBTask,
@@ -30,6 +30,17 @@ class FakeXTBFactory(Protocol):
         scenario: str = "success",
         directory_name: str = "fake_xtb",
     ) -> Path: ...
+
+
+class XTBProjectionFactory(Protocol):
+    def __call__(
+        self,
+        mol: Molecule,
+        executable: Path,
+        method: XTBMethod,
+        charge: int = 0,
+        uhf: Optional[int] = None,
+    ) -> BackendStateProjection: ...
 
 
 def _molecule() -> Molecule:
@@ -53,14 +64,23 @@ def _run(
     task: XTBTask,
     mol: Molecule,
     executable: Path,
+    projection_factory: XTBProjectionFactory,
     work_directory: Optional[Path] = None,
     keep_work_directory: bool = False,
 ) -> XTBRunReport:
+    method = XTBMethod.GFNFF if workflow == "gfnff" else XTBMethod.GFN2_XTB
+    state = projection_factory(
+        mol,
+        executable,
+        method,
+        0,
+        0 if method is not XTBMethod.GFNFF else None,
+    )
     if workflow == "gfnff":
         return run_gfnff(
             mol,
             task=task,
-            charge=0,
+            state=state,
             executable=executable,
             work_directory=work_directory,
             keep_work_directory=keep_work_directory,
@@ -69,8 +89,7 @@ def _run(
         mol,
         method=GFNXTBMethod.GFN2_XTB,
         task=task,
-        charge=0,
-        unpaired_electrons=0,
+        state=state,
         executable=executable,
         work_directory=work_directory,
         keep_work_directory=keep_work_directory,
@@ -81,6 +100,7 @@ def _run(
 @pytest.mark.parametrize("task_name", ("SINGLEPOINT", "OPTIMIZE"))
 def test_gfn_workflows_accept_complete_success_artifacts(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
     workflow: str,
     task_name: str,
 ) -> None:
@@ -88,7 +108,13 @@ def test_gfn_workflows_accept_complete_success_artifacts(
     initial_coordinates = mol.coordinates.copy()
     task = getattr(XTBTask, task_name)
 
-    report = _run(workflow, task, mol, fake_xtb_factory())
+    report = _run(
+        workflow,
+        task,
+        mol,
+        fake_xtb_factory(),
+        xtb_projection_factory,
+    )
 
     assert report.return_code == 0
     assert report.energy_hartree == pytest.approx(-5.123456789)
@@ -119,12 +145,14 @@ def test_gfn_workflows_accept_complete_success_artifacts(
 
 def test_nonempty_stderr_does_not_turn_success_into_failure(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
 ) -> None:
     report = _run(
         "gfn2",
         XTBTask.SINGLEPOINT,
         _molecule(),
         fake_xtb_factory("stderr_success"),
+        xtb_projection_factory,
     )
 
     assert report.return_code == 0
@@ -134,6 +162,7 @@ def test_nonempty_stderr_does_not_turn_success_into_failure(
 
 def test_nonzero_exit_is_execution_failure(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
 ) -> None:
     mol = _molecule()
     initial_coordinates = mol.coordinates.copy()
@@ -144,6 +173,7 @@ def test_nonzero_exit_is_execution_failure(
             XTBTask.SINGLEPOINT,
             mol,
             fake_xtb_factory("nonzero"),
+            xtb_projection_factory,
         )
 
     assert error.value.report.return_code == 17
@@ -165,6 +195,7 @@ def test_nonzero_exit_is_execution_failure(
 )
 def test_invalid_or_incomplete_results_are_rejected_without_coordinate_commit(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
     scenario: str,
     task: str,
     workflow: str,
@@ -178,6 +209,7 @@ def test_invalid_or_incomplete_results_are_rejected_without_coordinate_commit(
             getattr(XTBTask, task),
             mol,
             fake_xtb_factory(scenario),
+            xtb_projection_factory,
         )
 
     assert error.value.report.coordinates_committed is False
@@ -186,6 +218,7 @@ def test_invalid_or_incomplete_results_are_rejected_without_coordinate_commit(
 
 def test_executable_and_workspace_paths_may_contain_spaces(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
     tmp_path: Path,
 ) -> None:
     report = _run(
@@ -193,6 +226,7 @@ def test_executable_and_workspace_paths_may_contain_spaces(
         XTBTask.OPTIMIZE,
         _molecule(),
         fake_xtb_factory("success", "fake xtb with spaces"),
+        xtb_projection_factory,
         work_directory=tmp_path / "retained workspace with spaces",
         keep_work_directory=True,
     )
@@ -205,6 +239,7 @@ def test_executable_and_workspace_paths_may_contain_spaces(
 
 def test_simultaneous_runs_use_isolated_workspaces(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
 ) -> None:
     executable = fake_xtb_factory()
 
@@ -214,6 +249,7 @@ def test_simultaneous_runs_use_isolated_workspaces(
             XTBTask.OPTIMIZE,
             _molecule(),
             executable,
+            xtb_projection_factory,
             keep_work_directory=True,
         )
 
@@ -228,24 +264,22 @@ def test_simultaneous_runs_use_isolated_workspaces(
 
 def test_report_projection_binding_is_atomic(
     fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
 ) -> None:
     report = _run(
         "gfn2",
         XTBTask.SINGLEPOINT,
         _molecule(),
         fake_xtb_factory(),
+        xtb_projection_factory,
     )
 
     with pytest.raises(ValueError, match="wholly present or absent"):
         replace(
             report,
-            scientific_state_identity=ScientificStateIdentity("state"),
+            facts_identity=None,
         )
 
-    bound = replace(
-        report,
-        scientific_state_identity=ScientificStateIdentity("state"),
-        facts_identity=MolecularFactsIdentity("facts"),
-        projection_convention="pure_spin_highest_ms",
-    )
-    assert bound.scientific_state_identity == ScientificStateIdentity("state")
+    assert report.scientific_state_identity is not None
+    assert report.facts_identity is not None
+    assert report.projection_convention == "pure_spin_highest_ms"

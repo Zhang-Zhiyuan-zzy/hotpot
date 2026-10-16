@@ -43,6 +43,9 @@ from hotpot.cheminfo.calculator.state_resolver import (
     extract_molecular_facts,
 )
 from hotpot.cheminfo.calculator.state_rules import RankAdjustment, RuleSet
+from hotpot.cheminfo.calculator.state_rules.profile_decision import (
+    _CoordinationScreeningDecisionCompiler,
+)
 from hotpot.cheminfo.calculator.state_selection import (
     DecisionCertificationStatus,
     StateDecisionAction,
@@ -181,6 +184,33 @@ def test_inactive_profiles_do_not_invent_a_decision_search_compiler() -> None:
         screening_eligibility,
         (RankAdjustment("state", "test", 1.0, "test"),),
     ) is None
+
+
+def test_eligible_screening_profile_uses_the_versioned_compiler() -> None:
+    requirements = _requirements(ScientificQuantity.NET_CHARGE)
+    eligibility = StaticProfileEligibility(
+        StatePolicy.COORDINATION_SCREENING_V1.value,
+        "test-effective-profile",
+        True,
+        (),
+    )
+
+    compiler = _decision_search_compiler(
+        StatePolicy.COORDINATION_SCREENING_V1,
+        requirements,
+        eligibility,
+        (),
+    )
+
+    assert isinstance(compiler, _CoordinationScreeningDecisionCompiler)
+    assert compiler.identity == (
+        _decision_search_compiler(
+            StatePolicy.COORDINATION_SCREENING_V1,
+            requirements,
+            eligibility,
+            (),
+        ).identity
+    )
 
 
 def test_strict_policy_never_consumes_rule_rank_adjustments() -> None:

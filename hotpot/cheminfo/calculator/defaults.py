@@ -33,6 +33,10 @@ from .state_selection import (
     StaticProfileEligibility,
 )
 from .state_rules import RankAdjustment
+from .state_rules.profile_decision import (
+    _CoordinationScreeningDecisionCompiler,
+)
+from .state_rules.profiles import _coordination_screening_profile
 
 __all__ = []
 
@@ -50,9 +54,10 @@ def _decision_search_compiler(
         return None
     if not eligibility.in_domain:
         return None
-    raise RuntimeError(
-        "An active screening profile requires a versioned decision-search "
-        f"compiler for operation {requirements.operation_id!r}"
+    return _CoordinationScreeningDecisionCompiler(
+        _coordination_screening_profile(),
+        requirements,
+        rank_adjustments,
     )
 
 

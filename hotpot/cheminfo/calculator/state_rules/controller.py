@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Tuple
 
 from ..contracts import (
     CandidateBudget,
@@ -36,7 +36,7 @@ _CandidateSpaceBuilder = Callable[
 
 @dataclass(frozen=True)
 class _RuleExecution:
-    candidate_space: Optional[ScientificStateCandidateSpace]
+    candidate_space: ScientificStateCandidateSpace
     traces: Tuple[RuleTrace, ...]
     candidate_proposals: Tuple[CandidateProposal, ...]
 
@@ -85,7 +85,7 @@ def _execute_rule_layers(
     facts: MolecularFacts,
     requirements: ScientificOperationRequirements,
     candidate_budget: CandidateBudget,
-    initial_candidate_space: Optional[ScientificStateCandidateSpace],
+    initial_candidate_space: ScientificStateCandidateSpace,
     candidate_space_builder: _CandidateSpaceBuilder,
 ) -> _RuleExecution:
     """Evaluate immutable rule layers and compose after each committed layer."""

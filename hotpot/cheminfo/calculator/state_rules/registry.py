@@ -56,7 +56,6 @@ class InferenceRuleRegistry:
         toggles: Tuple[RuleToggle, ...],
     ) -> RuleSet:
         """Validate enabled rules and return phase-respecting DAG layers."""
-        del profile
         toggle_by_id = {toggle.rule_id: toggle for toggle in toggles}
         if len(toggle_by_id) != len(toggles):
             raise ValueError("Rule toggles contain duplicate rule IDs")
@@ -67,6 +66,9 @@ class InferenceRuleRegistry:
         enabled_ids = {
             rule_id for rule_id, toggle in toggle_by_id.items() if toggle.enabled
         }
+        if profile is StatePolicy.STRICT and enabled_ids:
+            raise ValueError("STRICT policy cannot activate optional rules")
+
         included_ids = set(enabled_ids)
         for rule_id in enabled_ids:
             for dependency in self._rules[rule_id].specification.requires:

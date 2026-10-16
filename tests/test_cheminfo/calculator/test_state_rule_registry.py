@@ -106,9 +106,15 @@ def test_missing_or_wrong_version_dependency_is_rejected() -> None:
     )
 
     with pytest.raises(ValueError, match="requires configured rule"):
-        registry.activate(StatePolicy.STRICT, _enabled("B"))
+        registry.activate(
+            StatePolicy.COORDINATION_SCREENING_V1,
+            _enabled("B"),
+        )
     with pytest.raises(ValueError, match="not 1.0.0"):
-        registry.activate(StatePolicy.STRICT, _enabled("A", "B"))
+        registry.activate(
+            StatePolicy.COORDINATION_SCREENING_V1,
+            _enabled("A", "B"),
+        )
 
 
 def test_dependency_cycle_is_rejected() -> None:
@@ -121,7 +127,18 @@ def test_dependency_cycle_is_rejected() -> None:
     )
 
     with pytest.raises(ValueError, match="cycle"):
-        registry.activate(StatePolicy.STRICT, _enabled("A", "B"))
+        registry.activate(
+            StatePolicy.COORDINATION_SCREENING_V1,
+            _enabled("A", "B"),
+        )
+
+
+def test_strict_policy_rejects_enabled_optional_rules() -> None:
+    registry = InferenceRuleRegistry()
+    registry.register(_Rule("A", RulePhase.SOURCE_EVIDENCE))
+
+    with pytest.raises(ValueError, match="STRICT"):
+        registry.activate(StatePolicy.STRICT, _enabled("A"))
 
 
 def test_disabled_rules_produce_empty_rule_set() -> None:

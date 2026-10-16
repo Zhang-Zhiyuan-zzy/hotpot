@@ -42,6 +42,7 @@ from .oxidation_state.contracts import (
     OxidationStateOverride,
 )
 from .state_composition.contracts import (
+    CandidateProposal,
     ScientificResolutionResult,
     ScientificStateCandidateSpace,
 )
@@ -490,10 +491,8 @@ def resolve_scientific_state(
     )
     from .state_composition.resolution import _resolve_candidate_space
 
-    if rule_set.layers:
-        raise ValueError(
-            "Optional rule execution requires the dependency-layer controller"
-        )
+    if policy is StatePolicy.STRICT and rule_set.layers:
+        raise ValueError("STRICT policy cannot execute optional rules")
     enabled_provider_ids = _enabled_provider_ids(provider_set)
     effective_requirements = _effective_requirements(policy, requirements)
 
@@ -546,16 +545,36 @@ def resolve_scientific_state(
             request.oxidation_overrides,
         )
     )
-    candidate_space = compose_scientific_state_space(
-        facts,
-        net_charge_results=charge_results,
-        lewis_results=lewis_results,
-        coordination_counting_results=counting_results,
-        oxidation_state_results=oxidation_state_results,
-        electronic_state_results=electronic_state_results,
-        constraints=cross_result_constraints,
-        candidate_budget=candidate_budget,
-    )
+    def compose_with_rule_proposals(
+        candidate_proposals: Tuple[CandidateProposal, ...],
+    ) -> ScientificStateCandidateSpace:
+        return compose_scientific_state_space(
+            facts,
+            net_charge_results=charge_results,
+            lewis_results=lewis_results,
+            coordination_counting_results=counting_results,
+            oxidation_state_results=oxidation_state_results,
+            electronic_state_results=electronic_state_results,
+            candidate_proposals=candidate_proposals,
+            constraints=cross_result_constraints,
+            candidate_budget=candidate_budget,
+        )
+
+    candidate_space = compose_with_rule_proposals(())
+    rule_trace: Tuple[RuleTrace, ...] = ()
+    if rule_set.layers:
+        from .state_rules.controller import _execute_rule_layers
+
+        rule_execution = _execute_rule_layers(
+            rule_set,
+            facts,
+            effective_requirements,
+            candidate_budget,
+            candidate_space,
+            compose_with_rule_proposals,
+        )
+        candidate_space = rule_execution.candidate_space
+        rule_trace = rule_execution.traces
     scientific_resolution = _resolve_candidate_space(candidate_space)
     eligibility = _static_profile_eligibility(
         policy,
@@ -604,5 +623,5 @@ def resolve_scientific_state(
         candidate_space=candidate_space,
         scientific_resolution=scientific_resolution,
         execution_decision=decision,
-        rule_trace=(),
+        rule_trace=rule_trace,
     )

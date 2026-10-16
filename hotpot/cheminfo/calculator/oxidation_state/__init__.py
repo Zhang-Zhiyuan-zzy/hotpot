@@ -12,8 +12,10 @@ from .contracts import (
 )
 from .registry import element_oxidation_state_domain
 from .inference import infer_oxidation_states
+from .coordination_counting import infer_coordination_electron_counting
 
 __all__ = [
+    "infer_coordination_electron_counting",
     "infer_oxidation_states",
     "element_oxidation_state_domain",
     "CountingConvention",

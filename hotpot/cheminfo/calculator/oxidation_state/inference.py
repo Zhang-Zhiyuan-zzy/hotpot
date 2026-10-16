@@ -238,6 +238,7 @@ def infer_oxidation_states(
         candidate
         for result in counting_results
         if result.facts_identity == facts.identity
+        and result.admissibility is ScientificAdmissibility.ADMISSIBLE
         for candidate in result.candidates
         if legality._validate_counting_candidate(candidate).admissibility
         is ScientificAdmissibility.ADMISSIBLE

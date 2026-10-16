@@ -1242,17 +1242,119 @@ _DIGEST_QUERIES = (
 
 
 def _ordered_assessment_digest(connection: sqlite3.Connection) -> str:
+    return _assessment_products(connection)[0]
+
+
+def _assessment_products(
+    connection: sqlite3.Connection,
+    *,
+    case_observer: Optional[
+        Callable[[str, str, Mapping[str, Any]], None]
+    ] = None,
+) -> Tuple[str, Dict[str, Any]]:
     digest = hashlib.sha256()
+    summary: Optional[Dict[str, Any]] = None
     for table, query in _DIGEST_QUERIES:
         table_bytes = table.encode("utf-8")
         digest.update(len(table_bytes).to_bytes(8, "big"))
         digest.update(table_bytes)
-        for row in connection.execute(query):
-            value = [table, *row]
-            encoded = _canonical_bytes(value)
-            digest.update(len(encoded).to_bytes(8, "big"))
-            digest.update(encoded)
-    return digest.hexdigest()
+        if table != "case_assessments":
+            for row in connection.execute(query):
+                value = [table, *row]
+                encoded = _canonical_bytes(value)
+                digest.update(len(encoded).to_bytes(8, "big"))
+                digest.update(encoded)
+            continue
+
+        def assessments() -> Iterator[Dict[str, Any]]:
+            for case_id, assessment_json, archive_class in connection.execute(
+                "SELECT case_id,assessment_json,archive_class "
+                "FROM case_assessments ORDER BY public_index,case_id"
+            ):
+                value = [table, case_id, assessment_json]
+                encoded = _canonical_bytes(value)
+                digest.update(len(encoded).to_bytes(8, "big"))
+                digest.update(encoded)
+                assessment = json.loads(assessment_json)
+                if case_observer is not None:
+                    case_observer(str(case_id), str(archive_class), assessment)
+                yield assessment
+
+        summary = summarize_assessments(assessments())
+    if summary is None:
+        raise AssessmentGenerationError("assessment digest omitted Case assessments")
+    return digest.hexdigest(), summary
+
+
+def _write_assessment_products(
+    connection: sqlite3.Connection,
+    directory: Path,
+) -> Tuple[str, Dict[str, Any]]:
+    streams = {
+        archive_class: (directory / f"{archive_class}.ids").open("wb")
+        for archive_class in _ARCHIVE_CLASSES
+    }
+    try:
+        def write_case(
+            case_id: str,
+            archive_class: str,
+            _assessment: Mapping[str, Any],
+        ) -> None:
+            streams[archive_class].write(f"{case_id}\n".encode("utf-8"))
+
+        result = _assessment_products(connection, case_observer=write_case)
+        for stream in streams.values():
+            stream.flush()
+            os.fsync(stream.fileno())
+        return result
+    finally:
+        for stream in streams.values():
+            stream.close()
+
+
+def _validate_assessment_products(
+    connection: sqlite3.Connection,
+    directory: Path,
+    manifest: Mapping[str, Any],
+) -> Dict[str, Any]:
+    streams = {
+        archive_class: (directory / f"{archive_class}.ids").open(
+            "r", encoding="utf-8"
+        )
+        for archive_class in _ARCHIVE_CLASSES
+    }
+    indexes_match = True
+    try:
+        def check_case(
+            case_id: str,
+            archive_class: str,
+            _assessment: Mapping[str, Any],
+        ) -> None:
+            nonlocal indexes_match
+            stream = streams.get(archive_class)
+            if stream is None or stream.readline() != f"{case_id}\n":
+                indexes_match = False
+
+        ordered_digest, computed_summary = _assessment_products(
+            connection, case_observer=check_case
+        )
+        if any(stream.readline() != "" for stream in streams.values()):
+            indexes_match = False
+    finally:
+        for stream in streams.values():
+            stream.close()
+
+    if ordered_digest != manifest["ordered_assessment_digest"]:
+        raise GenerationIntegrityError("ordered assessment digest does not match")
+    if not indexes_match:
+        raise GenerationIntegrityError("archive indexes do not match assessments")
+    summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
+    if (
+        summary != computed_summary
+        or canonical_digest(summary) != manifest["summary_digest"]
+    ):
+        raise GenerationIntegrityError("generation summary does not match assessments")
+    return summary
 
 
 def _inventory(directory: Path) -> list[Dict[str, Any]]:
@@ -1265,22 +1367,6 @@ def _inventory(directory: Path) -> list[Dict[str, Any]]:
             {"path": relative, "size": path.stat().st_size, "sha256": _sha256_path(path)}
         )
     return result
-
-
-def _write_archive_index(path: Path, rows: Iterator[Sequence[Any]]) -> None:
-    with path.open("wb") as stream:
-        for row in rows:
-            stream.write(f"{row[0]}\n".encode("utf-8"))
-        stream.flush()
-        os.fsync(stream.fileno())
-
-
-def _archive_index_matches(path: Path, rows: Iterator[Sequence[Any]]) -> bool:
-    with path.open("r", encoding="utf-8") as stream:
-        for row in rows:
-            if stream.readline() != f"{row[0]}\n":
-                return False
-        return stream.readline() == ""
 
 
 def _logical_manifest(manifest: Mapping[str, Any]) -> Dict[str, Any]:
@@ -1454,14 +1540,9 @@ class AssessmentGeneration:
                         "INSERT INTO metadata(key,value_json) VALUES (?,?)",
                         (key, canonical_json(value)),
                     )
-            ordered_digest = _ordered_assessment_digest(assessment)
-            summary = summarize_assessments(
-                json.loads(row[0])
-                for row in assessment.execute(
-                    "SELECT assessment_json FROM case_assessments ORDER BY public_index,case_id"
-                )
+            ordered_digest, summary = _write_assessment_products(
+                assessment, temporary
             )
-            assessment.execute("VACUUM")
             assessment.close()
             assessment = None
             work.close()
@@ -1475,17 +1556,6 @@ class AssessmentGeneration:
                 temporary / "governance-registry.json",
                 _canonical_bytes(registry) + b"\n",
             )
-            for archive_class in _ARCHIVE_CLASSES:
-                with sqlite3.connect(assessment_path) as connection:
-                    _write_archive_index(
-                        temporary / f"{archive_class}.ids",
-                        connection.execute(
-                            "SELECT case_id FROM case_assessments "
-                            "WHERE archive_class=? ORDER BY public_index,case_id",
-                            (archive_class,),
-                        ),
-                    )
-
             files = _inventory(temporary)
             generation_manifest = {
                 "schema": GENERATION_SCHEMA,
@@ -1663,8 +1733,7 @@ class AssessmentGeneration:
                 raise GenerationIntegrityError(
                     "assessment metadata does not match generation bindings"
                 )
-            if _ordered_assessment_digest(connection) != manifest["ordered_assessment_digest"]:
-                raise GenerationIntegrityError("ordered assessment digest does not match")
+            _validate_assessment_products(connection, directory, manifest)
             for row in connection.execute(
                 "SELECT assessment_json FROM asset_assessments ORDER BY asset_id"
             ):
@@ -1705,27 +1774,6 @@ class AssessmentGeneration:
                 ):
                     raise GenerationIntegrityError(
                         "asset parser binding does not match the frozen runtime policy"
-                    )
-            summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
-            computed_summary = summarize_assessments(
-                json.loads(row[0])
-                for row in connection.execute(
-                    "SELECT assessment_json FROM case_assessments ORDER BY public_index,case_id"
-                )
-            )
-            if summary != computed_summary or canonical_digest(summary) != manifest["summary_digest"]:
-                raise GenerationIntegrityError("generation summary does not match assessments")
-            for archive_class in _ARCHIVE_CLASSES:
-                if not _archive_index_matches(
-                    directory / f"{archive_class}.ids",
-                    connection.execute(
-                        "SELECT case_id FROM case_assessments "
-                        "WHERE archive_class=? ORDER BY public_index,case_id",
-                        (archive_class,),
-                    ),
-                ):
-                    raise GenerationIntegrityError(
-                        f"{archive_class} index does not match assessments"
                     )
         except (sqlite3.Error, OSError, UnicodeError, json.JSONDecodeError) as exc:
             if isinstance(exc, GenerationIntegrityError):

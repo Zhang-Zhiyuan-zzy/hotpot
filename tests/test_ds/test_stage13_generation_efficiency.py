@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 from pathlib import Path
@@ -8,6 +9,8 @@ import pytest
 
 from hotpot.ds.gates._persistence import default_gates, serialize_gate_configs
 from hotpot.ds.governance import default_registry_snapshot, verify_registry
+from hotpot.ds.public import _generation as generation_module
+from hotpot.ds.public._assessment import canonical_json, summarize_assessments
 from hotpot.ds.public._bundle_state import (
     BUNDLE_SCHEMA,
     BundleState,
@@ -15,6 +18,7 @@ from hotpot.ds.public._bundle_state import (
 )
 from hotpot.ds.public._generation import (
     AssessmentGeneration,
+    _DIGEST_QUERIES,
     _assess_cases,
     _assess_conflicts,
     _assessment_policy,
@@ -217,3 +221,77 @@ def test_bundle_synchronize_performs_exactly_prepare_and_publish_source_proofs(
 
     assert result["is_synchronized"] is True
     assert proof_calls == 2
+
+
+def _reference_ordered_digest(connection: sqlite3.Connection) -> str:
+    digest = hashlib.sha256()
+    for table, query in _DIGEST_QUERIES:
+        encoded_table = table.encode("utf-8")
+        digest.update(len(encoded_table).to_bytes(8, "big"))
+        digest.update(encoded_table)
+        for row in connection.execute(query):
+            encoded = canonical_json([table, *row]).encode("utf-8")
+            digest.update(len(encoded).to_bytes(8, "big"))
+            digest.update(encoded)
+    return digest.hexdigest()
+
+
+def test_generation_products_match_reference_with_two_case_scans_and_no_vacuum(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _state(tmp_path, 18)
+    statements: list[str] = []
+    original_connect = generation_module.sqlite3.connect
+
+    def traced_connect(*args, **kwargs):
+        connection = original_connect(*args, **kwargs)
+        connection.set_trace_callback(statements.append)
+        return connection
+
+    monkeypatch.setattr(generation_module.sqlite3, "connect", traced_connect)
+    with state.synchronization_snapshot() as input_snapshot:
+        generation = AssessmentGeneration.build(
+            state.root,
+            state,
+            state.policy,
+            default_registry_snapshot(),
+            input_snapshot=input_snapshot,
+        )
+
+    case_scans = [
+        statement
+        for statement in statements
+        if "FROM case_assessments ORDER BY public_index,case_id" in statement
+    ]
+    assert len(case_scans) == 2
+    assert not any(
+        statement.lstrip().upper().startswith("VACUUM")
+        for statement in statements
+    )
+
+    database = generation.manifest_path.parent / "assessment.sqlite3"
+    with original_connect(database) as connection:
+        assert _reference_ordered_digest(connection) == generation.manifest[
+            "ordered_assessment_digest"
+        ]
+        reference_summary = summarize_assessments(
+            json.loads(row[0])
+            for row in connection.execute(
+                "SELECT assessment_json FROM case_assessments "
+                "ORDER BY public_index,case_id"
+            )
+        )
+        for archive_class in ("incomplete", "ordinary", "benchmark"):
+            expected = [
+                row[0]
+                for row in connection.execute(
+                    "SELECT case_id FROM case_assessments "
+                    "WHERE archive_class=? ORDER BY public_index,case_id",
+                    (archive_class,),
+                )
+            ]
+            observed = (
+                generation.manifest_path.parent / f"{archive_class}.ids"
+            ).read_text(encoding="utf-8").splitlines()
+            assert observed == expected
+    assert generation.summary == reference_summary

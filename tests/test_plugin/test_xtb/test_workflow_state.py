@@ -268,7 +268,7 @@ def test_gfnff_am_input_is_rejected_before_numerical_run(
 
     workspaces = tuple(workspace_parent.iterdir())
     assert len(workspaces) == 1
-    assert (workspaces[0] / "input.xyz").is_file()
+    assert (workspaces[0] / "input.sdf").is_file()
     assert not (workspaces[0] / "argv.json").exists()
 
 

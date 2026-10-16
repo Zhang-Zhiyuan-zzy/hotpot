@@ -26,9 +26,14 @@ def _record_arguments(arguments: list[str], *, version_probe: bool) -> None:
 def _input_path(arguments: list[str]) -> Path:
     for argument in arguments:
         path = Path(argument)
-        if path.is_file() and path.suffix.lower() in {".xyz", ".coord"}:
+        if path.is_file() and path.suffix.lower() in {
+            ".xyz",
+            ".coord",
+            ".sdf",
+            ".mol",
+        }:
             return path
-    raise RuntimeError("fake xTB did not receive an XYZ or coord input")
+    raise RuntimeError("fake xTB did not receive a supported molecular input")
 
 
 def _read_xyz(path: Path) -> tuple[list[str], list[list[float]]]:
@@ -44,6 +49,19 @@ def _read_xyz(path: Path) -> tuple[list[str], list[list[float]]]:
     return symbols, coordinates
 
 
+def _read_sdf(path: Path) -> tuple[list[str], list[list[float]]]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    atom_count = int(lines[3][:3])
+    symbols = []
+    coordinates = []
+    for line in lines[4 : 4 + atom_count]:
+        symbols.append(line[31:34].strip())
+        coordinates.append(
+            [float(line[0:10]), float(line[10:20]), float(line[20:30])]
+        )
+    return symbols, coordinates
+
+
 def _write_xyz(
     path: Path,
     symbols: list[str],
@@ -54,6 +72,26 @@ def _write_xyz(
         f"{symbol} {x:.12f} {y:.12f} {z:.12f}"
         for symbol, (x, y, z) in zip(symbols, coordinates)
     )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_sdf(
+    path: Path,
+    symbols: list[str],
+    coordinates: list[list[float]],
+) -> None:
+    lines = [
+        "fake xTB optimized geometry",
+        "  fake xTB",
+        "",
+        f"{len(symbols):>3}{0:>3}  0  0  0  0            999 V2000",
+    ]
+    lines.extend(
+        f"{x:>10.4f}{y:>10.4f}{z:>10.4f} "
+        f"{symbol:<3} 0  0  0  0  0  0  0  0  0  0  0  0"
+        for symbol, (x, y, z) in zip(symbols, coordinates)
+    )
+    lines.extend(("M  END", "$$$$"))
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -99,7 +137,11 @@ def main() -> int:
 
     _record_arguments(arguments, version_probe=False)
     input_path = _input_path(arguments)
-    symbols, coordinates = _read_xyz(input_path)
+    symbols, coordinates = (
+        _read_sdf(input_path)
+        if input_path.suffix.lower() in {".sdf", ".mol"}
+        else _read_xyz(input_path)
+    )
     is_optimization = "--opt" in arguments
     is_gfnff = "--gfnff" in arguments
 
@@ -129,11 +171,18 @@ def main() -> int:
         elif scenario == "reordered_elements":
             optimized_symbols = list(reversed(optimized_symbols))
 
-        _write_xyz(
-            Path("xtbopt.xyz"),
-            optimized_symbols,
-            optimized_coordinates,
-        )
+        if is_gfnff and input_path.suffix.lower() in {".sdf", ".mol"}:
+            _write_sdf(
+                Path(f"xtbopt{input_path.suffix.lower()}"),
+                optimized_symbols,
+                optimized_coordinates,
+            )
+        else:
+            _write_xyz(
+                Path("xtbopt.xyz"),
+                optimized_symbols,
+                optimized_coordinates,
+            )
         Path("xtbopt.log").write_text(
             "fake xTB optimization trajectory\n",
             encoding="utf-8",

@@ -105,7 +105,10 @@ def test_gfn_workflows_accept_complete_success_artifacts(
     assert absent_result not in report.artifacts
     if task is XTBTask.OPTIMIZE:
         assert ".xtboptok" in report.artifacts
-        assert "xtbopt.xyz" in report.artifacts
+        expected_geometry = (
+            "xtbopt.sdf" if workflow == "gfnff" else "xtbopt.xyz"
+        )
+        assert expected_geometry in report.artifacts
         assert not np.array_equal(mol.coordinates, initial_coordinates)
     else:
         np.testing.assert_array_equal(mol.coordinates, initial_coordinates)

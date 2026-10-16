@@ -77,7 +77,8 @@ def _collect_artifacts(work_directory: Path) -> Dict[str, Path]:
 def _required_artifacts(request: XTBRequest) -> Tuple[str, ...]:
     required = (_RESULT_ARTIFACT[request.method],)
     if request.task is XTBTask.OPTIMIZE:
-        return (*required, ".xtboptok", "xtbopt.xyz", "xtbopt.log")
+        optimized_geometry = f"xtbopt{request.input_path.suffix.lower()}"
+        return (*required, ".xtboptok", optimized_geometry, "xtbopt.log")
     return required
 
 

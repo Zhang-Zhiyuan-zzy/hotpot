@@ -14,7 +14,7 @@ from hotpot.cheminfo.calculator.electronic_state import (
     IncompleteExplicitAtomError,
     require_complete_explicit_atoms,
 )
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.core import BondKind, Molecule
 
 from .contracts import (
     XTBGeometry,
@@ -78,6 +78,53 @@ def _write_xyz(geometry: XTBGeometry, path: Path) -> None:
     path.write_text("\n".join((*lines, *atom_lines)) + "\n", encoding="utf-8")
 
 
+def _sdf_bond_order(bond_kind: BondKind, bond_order: float) -> int:
+    if bond_kind is BondKind.AROMATIC or bond_order == 1.5:
+        return 4
+    rounded = int(round(bond_order))
+    return rounded if rounded in {1, 2, 3} else 1
+
+
+def _write_sdf(mol: Molecule, geometry: XTBGeometry, path: Path) -> None:
+    atoms = tuple(mol.atoms)
+    bonds = tuple(mol.bonds)
+    if len(atoms) > 999 or len(bonds) > 999:
+        raise XTBInputError("GFN-FF SDF input currently supports V2000 limits")
+
+    lines = [
+        "Hotpot GFN-FF input",
+        "  Hotpot",
+        "",
+        f"{len(atoms):>3}{len(bonds):>3}  0  0  0  0            999 V2000",
+    ]
+    for symbol, (x, y, z) in zip(geometry.symbols, geometry.coordinates):
+        lines.append(
+            f"{x:>10.4f}{y:>10.4f}{z:>10.4f} "
+            f"{symbol:<3} 0  0  0  0  0  0  0  0  0  0  0  0"
+        )
+    for bond in bonds:
+        lines.append(
+            f"{bond.a1idx + 1:>3}{bond.a2idx + 1:>3}"
+            f"{_sdf_bond_order(bond.bond_kind, bond.bond_order):>3}"
+            "  0  0  0  0"
+        )
+
+    charged_atoms = tuple(
+        (index + 1, int(atom.formal_charge))
+        for index, atom in enumerate(atoms)
+        if atom.formal_charge
+    )
+    for offset in range(0, len(charged_atoms), 8):
+        group = charged_atoms[offset : offset + 8]
+        charge_fields = "".join(
+            f"{atom_index:>4}{formal_charge:>4}"
+            for atom_index, formal_charge in group
+        )
+        lines.append(f"M  CHG{len(group):>3}{charge_fields}")
+    lines.extend(("M  END", "$$$$"))
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _read_xyz(path: Path) -> XTBGeometry:
     lines = path.read_text(encoding="utf-8").splitlines()
     if len(lines) < 2:
@@ -97,6 +144,37 @@ def _read_xyz(path: Path) -> XTBGeometry:
             raise ValueError("XYZ atom records must contain symbol, x, y and z")
         symbols.append(fields[0])
         coordinates.append(tuple(float(value) for value in fields[1:]))
+    return XTBGeometry(tuple(symbols), tuple(coordinates))
+
+
+def _read_sdf(path: Path) -> XTBGeometry:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if len(lines) < 4 or "V2000" not in lines[3]:
+        raise ValueError("SDF optimization output must contain one V2000 record")
+    try:
+        atom_count = int(lines[3][:3])
+        bond_count = int(lines[3][3:6])
+    except ValueError as error:
+        raise ValueError("SDF counts line is malformed") from error
+    if len(lines) < 4 + atom_count + bond_count:
+        raise ValueError("SDF atom or bond records are truncated")
+
+    symbols = []
+    coordinates = []
+    for line in lines[4 : 4 + atom_count]:
+        try:
+            coordinate = (
+                float(line[0:10]),
+                float(line[10:20]),
+                float(line[20:30]),
+            )
+        except ValueError as error:
+            raise ValueError("SDF atom coordinates are malformed") from error
+        symbol = line[31:34].strip()
+        if not symbol:
+            raise ValueError("SDF atom symbol is empty")
+        symbols.append(symbol)
+        coordinates.append(coordinate)
     return XTBGeometry(tuple(symbols), tuple(coordinates))
 
 
@@ -231,12 +309,20 @@ def molecule_to_xtb_geometry(mol: Molecule) -> XTBGeometry:
 
 
 def prepare_xtb_input(mol: Molecule, input_path: Path) -> XTBGeometry:
-    """Validate ``mol``, write a strict XYZ input, and return expected order."""
+    """Write method-native input selected by the explicit file suffix."""
     geometry = molecule_to_xtb_geometry(mol)
     try:
-        _write_xyz(geometry, input_path)
+        suffix = input_path.suffix.lower()
+        if suffix == ".xyz":
+            _write_xyz(geometry, input_path)
+        elif suffix in {".sdf", ".mol"}:
+            _write_sdf(mol, geometry, input_path)
+        else:
+            raise XTBInputError(
+                "xTB input suffix must be .xyz, .sdf, or .mol"
+            )
     except OSError as error:
-        raise XTBInputError(f"Cannot write xTB input XYZ: {input_path}") from error
+        raise XTBInputError(f"Cannot write xTB input: {input_path}") from error
     return geometry
 
 
@@ -276,8 +362,15 @@ def parse_xtb_artifacts(
 
         optimized_geometry = None
         if report.task is XTBTask.OPTIMIZE:
-            optimized_geometry = _read_xyz(
-                _artifact_path(report, "xtbopt.xyz")
+            input_suffix = Path(report.argv[1]).suffix.lower()
+            optimized_path = _artifact_path(
+                report,
+                f"xtbopt{input_suffix}",
+            )
+            optimized_geometry = (
+                _read_sdf(optimized_path)
+                if input_suffix in {".sdf", ".mol"}
+                else _read_xyz(optimized_path)
             )
             _validate_geometry(optimized_geometry)
             if optimized_geometry.symbols != expected_geometry.symbols:

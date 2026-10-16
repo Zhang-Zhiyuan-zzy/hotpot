@@ -62,7 +62,10 @@ def _run_fake(
     task: XTBTask,
 ) -> Tuple[XTBGeometry, XTBRunReport]:
     work_directory.mkdir()
-    expected = prepare_xtb_input(mol, work_directory / "input.xyz")
+    input_path = work_directory / (
+        "input.sdf" if method is XTBMethod.GFNFF else "input.xyz"
+    )
+    expected = prepare_xtb_input(mol, input_path)
     report = run_xtb(
         XTBRequest(
             backend_info=probe_xtb_backend(
@@ -71,7 +74,7 @@ def _run_fake(
             ),
             method=method,
             task=task,
-            input_path=work_directory / "input.xyz",
+            input_path=input_path,
             work_directory=work_directory,
             charge=0,
             unpaired_electrons=None if method is XTBMethod.GFNFF else 0,
@@ -102,6 +105,32 @@ def test_prepare_writes_complete_strict_xyz(tmp_path: Path) -> None:
     assert len(lines) == len(mol.atoms) + 2
     assert tuple(line.split()[0] for line in lines[2:]) == geometry.symbols
     assert all(len(line.split()) == 4 for line in lines[2:])
+
+
+def test_prepare_gfnff_sdf_preserves_every_bond_endpoint(
+    tmp_path: Path,
+) -> None:
+    mol = _explicit_methanol()
+
+    geometry = prepare_xtb_input(mol, tmp_path / "input.sdf")
+    lines = (tmp_path / "input.sdf").read_text(
+        encoding="utf-8"
+    ).splitlines()
+    atom_count = int(lines[3][:3])
+    bond_count = int(lines[3][3:6])
+    bond_lines = lines[4 + atom_count : 4 + atom_count + bond_count]
+    endpoints = {
+        tuple(sorted((int(line[:3]) - 1, int(line[3:6]) - 1)))
+        for line in bond_lines
+    }
+
+    assert geometry.symbols == tuple(atom.symbol for atom in mol.atoms)
+    assert atom_count == len(mol.atoms)
+    assert bond_count == len(mol.bonds)
+    assert endpoints == {
+        tuple(sorted((bond.a1idx, bond.a2idx))) for bond in mol.bonds
+    }
+    assert lines[-2:] == ["M  END", "$$$$"]
 
 
 def test_prepare_accepts_a_finite_single_atom_geometry(tmp_path: Path) -> None:

@@ -104,7 +104,9 @@ def _execute_workflow(
         prefix="hotpot-xtb-",
         retain=keep_work_directory,
     ) as workspace:
-        input_path = workspace / "input.xyz"
+        input_path = workspace / (
+            "input.sdf" if method is XTBMethod.GFNFF else "input.xyz"
+        )
         expected_geometry = prepare_xtb_input(mol, input_path)
         backend_info = probe_xtb_backend(
             executable,

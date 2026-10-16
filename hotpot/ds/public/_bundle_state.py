@@ -205,7 +205,16 @@ def _safe_relative_path(root: Path, value: Any, name: str) -> Path:
         resolved.relative_to(root_resolved)
     except ValueError as exc:
         raise BundleStateError(f"{name} escapes the Bundle root") from exc
-    return root / Path(*path.parts)
+    candidate = root
+    for part in path.parts:
+        candidate = candidate / part
+        try:
+            metadata = candidate.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(metadata.st_mode):
+            raise BundleStateError(f"{name} cannot traverse a symbolic link")
+    return candidate
 
 
 def _read_json(path: Path, name: str) -> Any:

@@ -18,6 +18,7 @@ from hotpot.ds.public._bundle_state import (
 )
 from hotpot.ds.public.bundle import Bundle
 from hotpot.ds.public.case import UnsynchronizedBundleError
+from hotpot.ds.public.certificate import CertificateIntegrityError
 from hotpot.ds.public._implementation import runtime_policy
 
 
@@ -745,6 +746,54 @@ def test_source_proof_rechecks_non_present_path_states(
             case_observer=None,
             scientific_paths=iter(("a-target", "z-trigger.smi")),
         )
+
+
+@pytest.mark.parametrize("link_kind", ["final", "intermediate"])
+def test_bundle_rejects_scientific_asset_symlink_components(
+    tmp_path: Path, link_kind: str
+) -> None:
+    relative = (
+        "assets/shared.smi"
+        if link_kind == "final"
+        else "assets/current/shared.smi"
+    )
+    root = _root(tmp_path, cases=[_case(0, asset=relative)])
+    assets = root / "assets"
+    assets.mkdir()
+    if link_kind == "final":
+        target = assets / "target.smi"
+        target.write_text("O\n", encoding="utf-8")
+        (assets / "shared.smi").symlink_to(target.name)
+    else:
+        actual = assets / "actual"
+        actual.mkdir()
+        (actual / "shared.smi").write_text("O\n", encoding="utf-8")
+        (assets / "current").symlink_to(actual.name, target_is_directory=True)
+
+    with pytest.raises(BundleStateError, match="symbolic link"):
+        _build(root)
+
+
+def test_asset_replaced_by_symlink_cannot_be_synchronized_or_certified(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path, cases=[_case(0, asset="assets/shared.smi")])
+    assets = root / "assets"
+    assets.mkdir()
+    asset = assets / "shared.smi"
+    asset.write_text("O\n", encoding="utf-8")
+    bundle = Bundle(root, "state-efficiency", db=tmp_path / "datasets.sqlite3")
+    bundle.synchronize()
+
+    target = assets / "replacement.smi"
+    target.write_text("N\n", encoding="utf-8")
+    asset.unlink()
+    asset.symlink_to(target.name)
+
+    with pytest.raises(BundleStateError, match="symbolic link"):
+        bundle.synchronize()
+    with pytest.raises(CertificateIntegrityError, match="canonical Bundle state"):
+        bundle.write_certificate()
 
 
 def test_dirty_bundle_rejects_derived_reads_certificate_and_ingest(

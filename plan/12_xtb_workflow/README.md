@@ -1,13 +1,13 @@
 # Stage 12: composable xTB workflow
 
-Status: production implementation and stable-xTB scientific acceptance are
-complete for the declared Eu/GFN-FF/GFN2 scope. Extended-GFN-FF
-fragment-charge/actinide behavior is the remaining explicit scientific
-boundary.
+Status: the execution wrapper and the canonical scientific-state architecture
+are implemented through consumer migration. The screening profile remains
+inactive until its reviewed scientific rules and held-out activation criteria
+are approved; the large-corpus Phase 10 validation is also outstanding.
 
-This completion statement applies only to the delivered execution-wrapper
-scope. The later normative scientific-state plan linked below is a target
-design and is not yet claimed as production implementation.
+Stable-xTB scientific acceptance remains complete for the declared
+Eu/GFN-FF/GFN2 execution scope. Extended-GFN-FF fragment-charge/actinide
+behavior remains an explicit backend boundary.
 
 Planning branch: `feature/xtb-workflow`
 
@@ -32,6 +32,7 @@ reference implementation over narrow reusable external-process primitives.
 - [Implementation report](xtb_workflow_implementation_report.md)
 - [Validation report](xtb_workflow_validation_report.md)
 - [Normative scientific-state implementation plan](scientific_state_implementation.md)
+- [Scientific-state implementation and validation status](scientific_state_implementation_report.md)
 - [Complete scientific-state public API signature tree](scientific_state_implementation.md#111-complete-public-api-signature-tree)
 - [Complete staged rule list](scientific_state_implementation.md#15-complete-rule-list)
 - [Individually reviewable hard, default, empirical and AI rules](rules/)
@@ -45,18 +46,20 @@ its indexed `rules/`, `providers/`, `execution/` and `recovery/`
 specifications are the only implementation instructions. The documents under
 `older/` preserve evidence and design history but are not active plans.
 
-The normative target now distinguishes candidate production from decision:
+The implemented architecture distinguishes candidate production from decision:
 hard rules define the legal space, providers and optional rules supply
 attributable candidates/preferences, a factorized joint composer binds
 charge/OS/electronic-state paths, and named default policies make the
-deterministic workflow decision. This decision layer is required for
-unattended high-throughput execution and is not yet a claim about the delivered
-production resolver.
+deterministic workflow decision. Its profile artifact, rules and typed
+abstention paths are available, but `COORDINATION_SCREENING_V1` is deliberately
+not activated as a production default before scientific approval and Phase 10
+held-out validation.
 
 ## Delivered public surfaces
 
-- `hotpot.cheminfo.calculator`: the canonical calculator package, including
-  independent charge and spin inference contracts;
+- `hotpot.cheminfo.calculator`: canonical molecular facts, charge, oxidation,
+  electronic-state, coupled-candidate, rule, policy and backend-projection
+  contracts;
 - `hotpot.plugins.xtb`: typed official-backend probe, runner, adapters,
   independent GFN-FF/GFN-xTB operations, strict SDF stream, CLI, and pipeline
   stage;

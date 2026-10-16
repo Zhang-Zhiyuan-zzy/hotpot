@@ -77,6 +77,17 @@ class _ChargePreferenceCompiler:
         return _DecisionRelation.EQUIVALENT
 
 
+class _EquivalentStateCompiler(_ChargePreferenceCompiler):
+    def record_for_path(self, path, factors):
+        del factors
+        return _DecisionRecord(
+            path.identity,
+            _AuthorityVector((("charge", 1),)),
+            _PreferenceKey((0.0,), ()),
+            _DecisionEquivalenceKey(0, "none", 0),
+        )
+
+
 def _resolved_space():
     facts = extract_molecular_facts(hotpot.read_mol("CCO", "smi"))
     request = StateRequest(net_charge=0, two_s=0)
@@ -292,3 +303,28 @@ def test_truncated_certified_status_remains_selectable() -> None:
     )
 
     assert selected == candidate_space.expanded_paths[0]
+
+
+def test_canonical_identity_only_breaks_a_decision_equivalent_tie() -> None:
+    _, space, _, _ = _resolved_space()
+    later = replace(
+        space.expanded_paths[0],
+        identity=ScientificStateIdentity("z-equivalent"),
+    )
+    earlier = replace(
+        later,
+        identity=ScientificStateIdentity("a-equivalent"),
+    )
+    candidate_space = replace(
+        space,
+        expanded_paths=(later, earlier),
+        search_status=CandidateSearchStatus.DECISION_CERTIFIED,
+    )
+
+    selected = _certified_candidate_path(
+        candidate_space,
+        candidate_space.expanded_paths,
+        _EquivalentStateCompiler(),
+    )
+
+    assert selected is earlier

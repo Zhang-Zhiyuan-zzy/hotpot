@@ -211,6 +211,19 @@ class _RankedSearchCompiler:
         )
 
 
+class _PartlyUnboundableCompiler(_RankedSearchCompiler):
+    def optimistic_bound_for_prefix(self, selected_values, remaining_factors):
+        if any(
+            value.candidate.provenance.identity == "spin:one"
+            for value in selected_values
+        ):
+            return None
+        return super().optimistic_bound_for_prefix(
+            selected_values,
+            remaining_factors,
+        )
+
+
 def _ranked_search_fixture():
     facts, _, _ = _scientific_candidates()
     zero_charge = NetChargeCandidateEvidence(
@@ -567,6 +580,79 @@ def test_complete_non_equivalent_tie_is_not_decision_certified() -> None:
     assert len(paths) == 2
     assert frontier == ()
     assert status is CandidateSearchStatus.NO_CERTIFIED_DECISION
+
+
+def test_best_first_full_search_matches_all_combinations_and_input_order() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+    reversed_factors = tuple(
+        replace(factor, values=tuple(reversed(factor.values)))
+        for factor in reversed(factors)
+    )
+
+    result = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+        decision_search=_RankedSearchCompiler(),
+    )
+    reversed_result = _expand_scientific_paths(
+        facts,
+        reversed_factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+        decision_search=_RankedSearchCompiler(),
+    )
+    paths, rejections, frontier, status = result
+
+    assert result == reversed_result
+    assert len(paths) == 2
+    assert len(rejections) == 2
+    assert {
+        frozenset(rejection.candidate_identities)
+        for rejection in rejections
+    } == {
+        frozenset(("charge:zero", "spin:one")),
+        frozenset(("charge:one", "spin:zero")),
+    }
+    assert tuple(path.identity.digest for path in paths) == tuple(
+        sorted(path.identity.digest for path in paths)
+    )
+    assert frontier == ()
+    assert status is CandidateSearchStatus.DECISION_CERTIFIED
+
+
+def test_unboundable_branch_is_exhausted_before_bounded_certification() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+
+    paths, rejections, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=8,
+        decision_search=_PartlyUnboundableCompiler(),
+    )
+
+    assert len(paths) + len(rejections) == 1
+    assert paths[0].net_charge.value == 1
+    assert frontier
+    assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
 
 
 def test_prefix_frontier_compacts_an_unexpanded_cartesian_remainder() -> None:

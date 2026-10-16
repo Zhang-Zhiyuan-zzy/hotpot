@@ -386,26 +386,13 @@ def _validate_oxidation_overrides(
     overrides: Tuple[OxidationStateOverride, ...],
     complete_candidates: Tuple[OxidationStateCandidateEvidence, ...],
 ) -> _HardRuleAssessment:
-    override_values = {}
-    for override in overrides:
-        if (
-            type(override.atom_index) is not int
-            or not 0 <= override.atom_index < len(facts.atomic_numbers)
-            or type(override.oxidation_state) is not int
-        ):
-            return _hard_failure(
-                "HARD-004.OS_OVERRIDE_INVALID",
-                "Oxidation-state override has an invalid atom index or value.",
-            )
-        incumbent = override_values.get(override.atom_index)
-        if incumbent is not None and incumbent != override.oxidation_state:
-            return _hard_failure(
-                "HARD-007.OS_OVERRIDE_CONFLICT",
-                "Explicit oxidation-state overrides conflict on one atom.",
-                conflict=True,
-            )
-        override_values[override.atom_index] = override.oxidation_state
+    validity = _validate_oxidation_override_values(facts, overrides)
+    if validity.admissibility is not ScientificAdmissibility.ADMISSIBLE:
+        return validity
 
+    override_values = {
+        override.atom_index: override.oxidation_state for override in overrides
+    }
     if not overrides:
         return _HARD_PASS
 
@@ -438,6 +425,32 @@ def _validate_oxidation_overrides(
             candidate.provenance.identity for candidate in eligible_candidates
         ),
     )
+
+
+def _validate_oxidation_override_values(
+    facts: MolecularFacts,
+    overrides: Tuple[OxidationStateOverride, ...],
+) -> _HardRuleAssessment:
+    override_values = {}
+    for override in overrides:
+        if (
+            type(override.atom_index) is not int
+            or not 0 <= override.atom_index < len(facts.atomic_numbers)
+            or type(override.oxidation_state) is not int
+        ):
+            return _hard_failure(
+                "HARD-004.OS_OVERRIDE_INVALID",
+                "Oxidation-state override has an invalid atom index or value.",
+            )
+        incumbent = override_values.get(override.atom_index)
+        if incumbent is not None and incumbent != override.oxidation_state:
+            return _hard_failure(
+                "HARD-007.OS_OVERRIDE_CONFLICT",
+                "Explicit oxidation-state overrides conflict on one atom.",
+                conflict=True,
+            )
+        override_values[override.atom_index] = override.oxidation_state
+    return _HARD_PASS
 
 
 # HARD-006: backend-independent molecular electron and spin legality.

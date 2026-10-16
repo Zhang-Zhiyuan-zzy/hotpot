@@ -114,3 +114,37 @@ def test_partial_candidate_remains_ambiguous() -> None:
 
     assert result.admissibility is ScientificAdmissibility.ADMISSIBLE
     assert result.resolution is ResolutionStatus.AMBIGUOUS
+
+
+def test_invalid_override_indices_return_typed_results() -> None:
+    facts = _facts("[Eu]")
+
+    for atom_index in (-2, 1):
+        result = infer_oxidation_states(
+            facts,
+            StateRequest(
+                oxidation_overrides=(
+                    OxidationStateOverride(atom_index, 3),
+                ),
+                oxidation_candidates=(_candidate("eu-iii", (3,)),),
+            ),
+        )[0]
+
+        assert result.admissibility is ScientificAdmissibility.INADMISSIBLE
+        assert result.findings[0].code == "HARD-004.OS_OVERRIDE_INVALID"
+
+
+def test_conflicting_duplicate_overrides_return_conflict() -> None:
+    facts = _facts("[Eu]")
+    request = StateRequest(
+        oxidation_overrides=(
+            OxidationStateOverride(0, 2),
+            OxidationStateOverride(0, 3),
+        ),
+        oxidation_candidates=(_candidate("eu-iii", (3,)),),
+    )
+
+    result = infer_oxidation_states(facts, request)[0]
+
+    assert result.resolution is ResolutionStatus.CONFLICT
+    assert result.findings[0].code == "HARD-007.OS_OVERRIDE_CONFLICT"

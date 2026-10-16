@@ -70,10 +70,19 @@ def _request_result(
     counting_candidates: Tuple[CoordinationCountingCandidate, ...],
 ) -> OxidationStateInferenceResult:
     requested_candidates = request.oxidation_candidates
-    compatible_candidates = tuple(
-        candidate
-        for candidate in requested_candidates
-        if _candidate_matches_overrides(candidate, request)
+    override_validity = legality._validate_oxidation_override_values(
+        facts,
+        request.oxidation_overrides,
+    )
+    compatible_candidates = (
+        tuple(
+            candidate
+            for candidate in requested_candidates
+            if _candidate_matches_overrides(candidate, request)
+        )
+        if override_validity.admissibility
+        is ScientificAdmissibility.ADMISSIBLE
+        else ()
     )
     assessments = tuple(
         legality._merge_hard_rule_assessments(
@@ -93,12 +102,21 @@ def _request_result(
         finding for assessment in assessments for finding in assessment.findings
     )
 
-    override_assessment = legality._validate_oxidation_overrides(
-        facts,
-        request.oxidation_overrides,
-        legal_candidates,
+    override_assessment = (
+        legality._validate_oxidation_overrides(
+            facts,
+            request.oxidation_overrides,
+            legal_candidates,
+        )
+        if override_validity.admissibility
+        is ScientificAdmissibility.ADMISSIBLE
+        else override_validity
     )
-    if requested_candidates and not compatible_candidates:
+    if override_validity.admissibility is ScientificAdmissibility.INADMISSIBLE:
+        admissibility = override_validity.admissibility
+        resolution = override_validity.terminal_status or ResolutionStatus.UNRESOLVED
+        findings += override_validity.findings
+    elif requested_candidates and not compatible_candidates:
         admissibility = ScientificAdmissibility.INADMISSIBLE
         resolution = ResolutionStatus.CONFLICT
         findings += (

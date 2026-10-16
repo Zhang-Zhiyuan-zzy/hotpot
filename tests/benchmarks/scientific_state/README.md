@@ -26,7 +26,7 @@ Run the canonical structure registry without copying or rewriting its assets:
 ```bash
 $ python -m tests.benchmarks.scientific_state \
     --structure-registry hotpot/dataset/data/structures/structures.csv \
-    --structure-root hotpot/dataset/data/store \
+    --structure-root hotpot/dataset/data \
     --output /tmp/hotpot-state-structures
 ```
 

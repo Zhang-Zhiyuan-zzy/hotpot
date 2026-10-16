@@ -10,10 +10,6 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from hotpot.cheminfo.calculator.electronic_state import (
-    IncompleteExplicitAtomError,
-    require_complete_explicit_atoms,
-)
 from hotpot.cheminfo.core import BondKind, Molecule
 
 from .contracts import (
@@ -64,6 +60,19 @@ def _validate_geometry(geometry: XTBGeometry) -> None:
         raise XTBInputError("xTB geometry contains non-finite coordinates")
     if atom_count > 1 and len(set(geometry.coordinates)) == 1:
         raise XTBInputError("xTB geometry has all atoms at the same position")
+
+
+def _require_complete_explicit_atoms(mol: Molecule) -> None:
+    for atom in mol.heavy_atoms:
+        explicit_hydrogen_count = len(atom.hydrogens)
+        if atom.implicit_hydrogens and (
+            explicit_hydrogen_count != atom.implicit_hydrogens
+        ):
+            raise XTBInputError(
+                f"Atom {atom.idx} ({atom.symbol}) stores "
+                f"{atom.implicit_hydrogens} implicit hydrogens but has "
+                f"{explicit_hydrogen_count} explicit hydrogen atoms"
+            )
 
 
 def _write_xyz(geometry: XTBGeometry, path: Path) -> None:
@@ -293,10 +302,7 @@ def _artifact_path(report: XTBRunReport, name: str) -> Path:
 
 def molecule_to_xtb_geometry(mol: Molecule) -> XTBGeometry:
     """Return a validated immutable xTB geometry without changing ``mol``."""
-    try:
-        require_complete_explicit_atoms(mol)
-    except IncompleteExplicitAtomError as error:
-        raise XTBInputError(str(error)) from error
+    _require_complete_explicit_atoms(mol)
     geometry = XTBGeometry(
         symbols=tuple(atom.symbol for atom in mol.atoms),
         coordinates=tuple(

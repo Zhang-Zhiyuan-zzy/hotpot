@@ -22,8 +22,8 @@ from .contracts import (
     ScientificAdmissibility,
     ScientificFinding,
 )
-from .electronic_state import ElectronicStateCandidate
-from .oxidation_state import (
+from .electronic_state.contracts import ElectronicStateCandidate
+from .oxidation_state.contracts import (
     CoordinationCountingCandidate,
     CountingConvention,
     OxidationStateCandidateEvidence,
@@ -326,9 +326,8 @@ def _validate_counting_reference(
 # HARD-004: oxidation-state conservation and explicit overrides.
 
 
-def _validate_oxidation_state_conservation(
+def _validate_oxidation_state_evidence(
     facts: MolecularFacts,
-    net_charge: NetChargeCandidateEvidence,
     candidate: OxidationStateCandidateEvidence,
 ) -> _HardRuleAssessment:
     atom_states = candidate.atom_states
@@ -348,6 +347,18 @@ def _validate_oxidation_state_conservation(
             "Oxidation-state evidence has invalid values or atom coverage.",
             related_identities=(candidate.provenance.identity,),
         )
+    return _HARD_PASS
+
+
+def _validate_oxidation_state_conservation(
+    facts: MolecularFacts,
+    net_charge: NetChargeCandidateEvidence,
+    candidate: OxidationStateCandidateEvidence,
+) -> _HardRuleAssessment:
+    structure_assessment = _validate_oxidation_state_evidence(facts, candidate)
+    if structure_assessment.admissibility is not ScientificAdmissibility.ADMISSIBLE:
+        return structure_assessment
+    atom_states = candidate.atom_states
     if (
         type(net_charge.charge) is int
         and candidate.coverage is CoverageStatus.COMPLETE

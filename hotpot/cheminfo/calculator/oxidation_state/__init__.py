@@ -11,8 +11,10 @@ from .contracts import (
     OxidationStateOverride,
 )
 from .registry import element_oxidation_state_domain
+from .inference import infer_oxidation_states
 
 __all__ = [
+    "infer_oxidation_states",
     "element_oxidation_state_domain",
     "CountingConvention",
     "OxidationStateOverride",

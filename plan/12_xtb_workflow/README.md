@@ -34,6 +34,7 @@ reference implementation over narrow reusable external-process primitives.
 - [Normative scientific-state implementation plan](scientific_state_implementation.md)
 - [Scientific-state implementation and validation status](scientific_state_implementation_report.md)
 - [Scientific-state pre-activation resolver baseline](scientific_state_pre_activation_baseline.md)
+- [Legacy scientific-state consumer audit](legacy_scientific_state_consumer_audit.md)
 - [Complete scientific-state public API signature tree](scientific_state_implementation.md#111-complete-public-api-signature-tree)
 - [Complete staged rule list](scientific_state_implementation.md#15-complete-rule-list)
 - [Individually reviewable hard, default, empirical and AI rules](rules/)

@@ -231,10 +231,15 @@ def _merge_candidate_proposals(
             key=lambda guarded: guarded.constraint.identity,
         )
     )
-    constraints_by_identity = {
-        guarded.constraint.identity: guarded.constraint
-        for guarded in ordered_guarded_constraints
-    }
+    constraints_by_identity = {}
+    for guarded in ordered_guarded_constraints:
+        constraint = guarded.constraint
+        incumbent = constraints_by_identity.get(constraint.identity)
+        if incumbent is not None and incumbent != constraint:
+            raise ValueError(
+                "One constraint identity cannot describe different constraints"
+            )
+        constraints_by_identity[constraint.identity] = constraint
     return (
         factors,
         tuple(

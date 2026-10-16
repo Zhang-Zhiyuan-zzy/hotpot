@@ -1,5 +1,6 @@
 """Factorized scientific-state composition contracts and operations."""
 
+from .compose import compose_scientific_state_space
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -30,6 +31,7 @@ from .contracts import (
 )
 
 __all__ = [
+    "compose_scientific_state_space",
     "CandidateDomainScope",
     "MaterializationStatus",
     "CandidateSearchStatus",

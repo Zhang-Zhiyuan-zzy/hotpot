@@ -710,7 +710,11 @@ def _expand_scientific_paths(
     )
     if truncated:
         status = CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
-    elif len(ordered_paths) == 1 and factors_are_exhaustive:
+    elif (
+        len(ordered_paths) == 1
+        and factors_are_exhaustive
+        and ordered_paths[0].electronic_state_candidate_identity is not None
+    ):
         status = CandidateSearchStatus.DECISION_CERTIFIED
     else:
         status = CandidateSearchStatus.NO_CERTIFIED_DECISION

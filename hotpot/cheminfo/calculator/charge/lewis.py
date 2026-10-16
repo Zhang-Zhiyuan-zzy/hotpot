@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Dict, List, Optional, Tuple
 
+from .. import legality
 from ..contracts import (
     CandidateBudget,
     CandidateProvenance,
@@ -49,7 +50,7 @@ _MAIN_GROUP_ELECTRON_MODELS = {
 }
 
 _PROVIDER_ID = "PROVIDER-001"
-_PROVIDER_VERSION = "fixed-bond-main-group-v1"
+_PROVIDER_VERSION = "fixed-bond-main-group-v2"
 
 
 def _digest(payload: object) -> str:
@@ -65,6 +66,8 @@ def _digest(payload: object) -> str:
 def _bond_valences(facts: MolecularFacts) -> Optional[Tuple[int, ...]]:
     values = [0.0] * len(facts.atomic_numbers)
     for bond in facts.semantic_bonds:
+        if bond.kind == "coordination":
+            continue
         if bond.kind != "covalent" or bond.order is None:
             return None
         begin, end = bond.atom_indices
@@ -87,7 +90,7 @@ def _bond_valences(facts: MolecularFacts) -> Optional[Tuple[int, ...]]:
 def _atom_charge_candidates(
     atomic_number: int,
     bond_valence: int,
-) -> Tuple[Tuple[int, int, int, int], ...]:
+) -> Tuple[Tuple[int, int, int], ...]:
     valence_electrons, preferred_shells = _MAIN_GROUP_ELECTRON_MODELS[
         atomic_number
     ]
@@ -97,20 +100,10 @@ def _atom_charge_candidates(
         if nonbonding_electrons < 0:
             continue
         shell_electrons = nonbonding_electrons + 2 * bond_valence
-        shell_distance, shell_rank = min(
-            (abs(shell_electrons - shell), rank)
-            for rank, shell in enumerate(preferred_shells)
-        )
+        if shell_electrons not in preferred_shells:
+            continue
         radical_electrons = nonbonding_electrons % 2
-        score = (
-            100 * shell_distance
-            + 20 * radical_electrons
-            + 4 * abs(charge)
-            + shell_rank
-        )
-        candidates.append(
-            (charge, nonbonding_electrons, radical_electrons, score)
-        )
+        candidates.append((charge, nonbonding_electrons, radical_electrons))
     return tuple(candidates)
 
 
@@ -119,44 +112,42 @@ def _enumerate_assignments(
     bond_valences: Tuple[int, ...],
     target_charge: int,
     limit: int,
-) -> Tuple[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]], ...]:
+) -> Tuple[
+    Tuple[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]], ...],
+    bool,
+]:
     states: Dict[
         int,
-        List[Tuple[int, Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]],
-    ] = {0: [(0, (), (), ())]}
+        List[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]],
+    ] = {0: [((), (), ())]}
+    truncated = False
     for atomic_number, bond_valence in zip(facts.atomic_numbers, bond_valences):
         next_states: Dict[
             int,
-            List[Tuple[int, Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]],
+            List[Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]],
         ] = {}
         for accumulated_charge, assignments in states.items():
-            for score, charges, nonbonding, radicals in assignments:
-                for atom_charge, atom_nonbonding, atom_radicals, atom_score in (
+            for charges, nonbonding, radicals in assignments:
+                for atom_charge, atom_nonbonding, atom_radicals in (
                     _atom_charge_candidates(atomic_number, bond_valence)
                 ):
                     charge = accumulated_charge + atom_charge
                     next_states.setdefault(charge, []).append(
                         (
-                            score + atom_score,
                             charges + (atom_charge,),
                             nonbonding + (atom_nonbonding,),
                             radicals + (atom_radicals,),
                         )
                     )
-        states = {
-            charge: sorted(assignments)[:limit]
-            for charge, assignments in next_states.items()
-        }
+        states = {}
+        for charge, assignments in next_states.items():
+            ordered = sorted(set(assignments))
+            if len(ordered) > limit:
+                truncated = True
+            states[charge] = ordered[:limit]
 
-    target_assignments = states.get(target_charge, [])
-    if not target_assignments:
-        return ()
-    minimum_score = target_assignments[0][0]
-    return tuple(
-        (charges, nonbonding, radicals)
-        for score, charges, nonbonding, radicals in target_assignments
-        if score == minimum_score
-    )
+    target_assignments = tuple(states.get(target_charge, ()))
+    return target_assignments, truncated
 
 
 def _component_charges(
@@ -172,29 +163,71 @@ def _component_charges(
     )
 
 
-def _unresolved_result(
+def _empty_result(
     facts: MolecularFacts,
-    net_candidate: NetChargeCandidateEvidence,
     code: str,
     message: str,
+    *,
+    related_identities: Tuple[str, ...] = (),
+    admissibility: ScientificAdmissibility = ScientificAdmissibility.NOT_EVALUATED,
+    resolution: ResolutionStatus = ResolutionStatus.OUT_OF_DOMAIN,
 ) -> LewisFormalChargeResult:
     identity = _digest(
         {
             "provider": _PROVIDER_ID,
             "version": _PROVIDER_VERSION,
             "facts": facts.identity.chemical_identity_digest,
-            "net_charge_candidate": net_candidate.provenance.identity,
             "status": code,
+            "related": related_identities,
         }
     )
     return LewisFormalChargeResult(
         identity=identity,
         facts_identity=facts.identity,
         candidates=(),
-        admissibility=ScientificAdmissibility.NOT_EVALUATED,
-        resolution=ResolutionStatus.OUT_OF_DOMAIN,
+        admissibility=admissibility,
+        resolution=resolution,
         confidence=ChemicalConfidence.UNRESOLVED,
-        findings=(ScientificFinding(code=code, message=message),),
+        findings=(
+            ScientificFinding(
+                code=code,
+                message=message,
+                related_identities=related_identities,
+            ),
+        ),
+    )
+
+
+def _unresolved_result(
+    facts: MolecularFacts,
+    net_candidate: NetChargeCandidateEvidence,
+    code: str,
+    message: str,
+) -> LewisFormalChargeResult:
+    return _empty_result(
+        facts,
+        code,
+        message,
+        related_identities=(net_candidate.provenance.identity,),
+    )
+
+
+def _solve_validated_candidate(
+    facts: MolecularFacts,
+    candidate: NetChargeCandidateEvidence,
+    candidate_budget: CandidateBudget,
+) -> LewisFormalChargeResult:
+    assessment = legality._validate_charge_conservation(facts, candidate)
+    if assessment.admissibility is ScientificAdmissibility.ADMISSIBLE:
+        return _solve_candidate(facts, candidate, candidate_budget)
+    finding = assessment.findings[0]
+    return _empty_result(
+        facts,
+        finding.code,
+        finding.message,
+        related_identities=finding.related_identities,
+        admissibility=assessment.admissibility,
+        resolution=assessment.terminal_status or ResolutionStatus.UNRESOLVED,
     )
 
 
@@ -229,13 +262,23 @@ def _solve_candidate(
             "Lewis provider requires known covalent fixed bond orders.",
         )
 
-    assignments = _enumerate_assignments(
+    assignments, truncated = _enumerate_assignments(
         facts,
         bond_valences,
         net_candidate.charge,
         candidate_budget.max_materialized_values_per_factor,
     )
     if not assignments:
+        if truncated:
+            return _unresolved_result(
+                facts,
+                net_candidate,
+                "PROVIDER-001.RESOURCE_TRUNCATED",
+                (
+                    "Lewis search budget was exhausted before a satisfying "
+                    "allocation was retained."
+                ),
+            )
         return _unresolved_result(
             facts,
             net_candidate,
@@ -246,7 +289,7 @@ def _solve_candidate(
     bond_orders = tuple(
         float(bond.order)
         for bond in facts.semantic_bonds
-        if bond.order is not None
+        if bond.kind == "covalent" and bond.order is not None
     )
     candidates = []
     for atom_charges, nonbonding, radicals in assignments:
@@ -285,6 +328,7 @@ def _solve_candidate(
             "candidate_ids": tuple(
                 candidate.provenance.identity for candidate in candidates
             ),
+            "truncated": truncated,
         }
     )
     return LewisFormalChargeResult(
@@ -294,11 +338,26 @@ def _solve_candidate(
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=(
             ResolutionStatus.UNIQUE
-            if len(candidates) == 1
+            if len(candidates) == 1 and not truncated
             else ResolutionStatus.AMBIGUOUS
         ),
         confidence=ChemicalConfidence.MEDIUM,
-        findings=(),
+        findings=(
+            (
+                ScientificFinding(
+                    code="PROVIDER-001.RESOURCE_TRUNCATED",
+                    message=(
+                        "Lewis candidate materialization reached the configured "
+                        "per-factor budget; scientific uniqueness is not claimed."
+                    ),
+                    related_identities=tuple(
+                        candidate.provenance.identity for candidate in candidates
+                    ),
+                ),
+            )
+            if truncated
+            else ()
+        ),
     )
 
 
@@ -313,16 +372,40 @@ def solve_main_group_lewis(
 ) -> Tuple[LewisFormalChargeResult, ...]:
     """Solve fixed-bond Lewis allocations for hard-valid charge candidates."""
     if net_charge.facts_identity != facts.identity:
-        return tuple(
-            _unresolved_result(
+        return (
+            _empty_result(
                 facts,
-                candidate,
                 "HARD-001.FACTS_IDENTITY_MISMATCH",
                 "Net-charge result is bound to different molecular facts.",
-            )
-            for candidate in net_charge.candidates
+                related_identities=(net_charge.identity,),
+                admissibility=ScientificAdmissibility.INADMISSIBLE,
+                resolution=ResolutionStatus.CONFLICT,
+            ),
+        )
+    if net_charge.admissibility is not ScientificAdmissibility.ADMISSIBLE:
+        return (
+            _empty_result(
+                facts,
+                "PROVIDER-001.NET_CHARGE_RESULT_UNAVAILABLE",
+                "Lewis solving requires a hard-valid net-charge result.",
+                related_identities=(net_charge.identity,),
+                admissibility=ScientificAdmissibility.INADMISSIBLE,
+                resolution=(
+                    ResolutionStatus.CONFLICT
+                    if net_charge.resolution is ResolutionStatus.CONFLICT
+                    else ResolutionStatus.UNRESOLVED
+                ),
+            ),
+        )
+    if not net_charge.candidates:
+        return (
+            _empty_result(
+                facts,
+                "PROVIDER-001.NET_CHARGE_CANDIDATE_MISSING",
+                "Lewis solving requires at least one net-charge candidate.",
+            ),
         )
     return tuple(
-        _solve_candidate(facts, candidate, candidate_budget)
+        _solve_validated_candidate(facts, candidate, candidate_budget)
         for candidate in net_charge.candidates
     )

@@ -1,5 +1,7 @@
 """PROVIDER-001 fixed-bond main-group Lewis tests."""
 
+from dataclasses import replace
+
 import hotpot
 
 from hotpot.cheminfo.calculator.charge import (
@@ -7,9 +9,11 @@ from hotpot.cheminfo.calculator.charge import (
     solve_main_group_lewis,
 )
 from hotpot.cheminfo.calculator.contracts import (
+    CandidateBudget,
     ResolutionStatus,
     ScientificAdmissibility,
 )
+from hotpot.cheminfo.core import BondKind
 from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
     extract_molecular_facts,
@@ -56,3 +60,49 @@ def test_provider_does_not_change_the_net_charge_result() -> None:
     solve_main_group_lewis(facts, net_charge)
 
     assert net_charge == before
+
+
+def test_inadmissible_charge_envelope_cannot_feed_lewis_solver() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("CCO", "smi"))
+    net_charge = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
+
+    result = solve_main_group_lewis(
+        facts,
+        replace(
+            net_charge,
+            admissibility=ScientificAdmissibility.INADMISSIBLE,
+        ),
+    )[0]
+
+    assert result.admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert result.candidates == ()
+    assert result.findings[0].code == (
+        "PROVIDER-001.NET_CHARGE_RESULT_UNAVAILABLE"
+    )
+
+
+def test_declared_coordination_edge_is_excluded_from_covalent_valence() -> None:
+    mol = hotpot.read_mol("B.N", "smi")
+    mol.add_bond(0, 1, bond_kind=BondKind.DATIVE)
+    facts = extract_molecular_facts(mol)
+    net_charge = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
+
+    result = solve_main_group_lewis(facts, net_charge)[0]
+
+    assert result.admissibility is ScientificAdmissibility.ADMISSIBLE
+    assert result.candidates[0].bond_orders == ()
+    assert result.findings == ()
+
+
+def test_resource_truncation_never_claims_scientific_uniqueness() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("B.B", "smi"))
+    net_charge = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
+
+    result = solve_main_group_lewis(
+        facts,
+        net_charge,
+        candidate_budget=CandidateBudget(1, 1, 1),
+    )[0]
+
+    assert result.resolution is ResolutionStatus.AMBIGUOUS
+    assert result.findings[0].code == "PROVIDER-001.RESOURCE_TRUNCATED"

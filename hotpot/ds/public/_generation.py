@@ -18,7 +18,8 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterator, Mapping, Optional, Sequence, Tuple, Union
+from itertools import zip_longest
+from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Sequence, Tuple, Union
 
 from ._assessment import (
     assess_case,
@@ -826,6 +827,11 @@ def _initialize_assessment_database(connection: sqlite3.Connection) -> None:
             property_key TEXT NOT NULL,
             assessment_json TEXT NOT NULL
         ) WITHOUT ROWID;
+
+        CREATE TEMP TABLE case_order(
+            public_index INTEGER PRIMARY KEY,
+            case_id TEXT NOT NULL UNIQUE
+        ) WITHOUT ROWID;
         """
     )
 
@@ -835,6 +841,11 @@ def _initialize_work_database(connection: sqlite3.Connection) -> None:
         """
         PRAGMA journal_mode=DELETE;
         PRAGMA synchronous=OFF;
+        CREATE TABLE case_inputs(
+            case_id TEXT PRIMARY KEY,
+            public_index INTEGER NOT NULL UNIQUE,
+            payload_json TEXT NOT NULL
+        ) WITHOUT ROWID;
         CREATE TABLE candidates(
             sample_key TEXT NOT NULL,
             property_key TEXT NOT NULL,
@@ -864,6 +875,15 @@ def _stream_inputs(
     for source_case in state.iter_cases():
         case = _normalize_case(source_case)
         case_id = str(case["id"])
+        public_index = int(case["public_index"])
+        work.execute(
+            "INSERT INTO case_inputs(case_id,public_index,payload_json) VALUES (?,?,?)",
+            (case_id, public_index, canonical_json(source_case)),
+        )
+        assessment.execute(
+            "INSERT INTO case_order(public_index,case_id) VALUES (?,?)",
+            (public_index, case_id),
+        )
         key, reasons = identity_key(case, identity_schema)
         work.execute(
             "INSERT INTO identity_reasons(case_id,reasons_json) VALUES (?,?)",
@@ -1043,8 +1063,24 @@ def _assess_conflicts(
         )
 
 
+def _grouped_support_rows(
+    rows: Iterator[Sequence[Any]],
+) -> Iterator[Tuple[Tuple[int, str], list[Dict[str, Any]]]]:
+    current: Optional[Tuple[int, str]] = None
+    values: list[Dict[str, Any]] = []
+    for public_index, case_id, value_json in rows:
+        key = (int(public_index), str(case_id))
+        if current is not None and key != current:
+            yield current, values
+            values = []
+        current = key
+        if value_json is not None:
+            values.append(json.loads(value_json))
+    if current is not None:
+        yield current, values
+
+
 def _assess_cases(
-    state: BundleState,
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     manifest: Mapping[str, Any],
@@ -1056,51 +1092,72 @@ def _assess_cases(
     governance_registry: Any,
     isolated_runner: Optional[Any],
 ) -> None:
-    for source_case in state.iter_cases():
+    case_rows = work.execute(
+        """
+        SELECT case_inputs.public_index,case_inputs.case_id,
+               case_inputs.payload_json,identity_reasons.reasons_json,
+               CASE WHEN conflicting_cases.case_id IS NULL THEN 0 ELSE 1 END
+        FROM case_inputs
+        JOIN identity_reasons USING(case_id)
+        LEFT JOIN conflicting_cases USING(case_id)
+        ORDER BY case_inputs.public_index,case_inputs.case_id
+        """
+    )
+    asset_groups = _grouped_support_rows(
+        assessment.execute(
+            """
+            SELECT case_order.public_index,case_order.case_id,
+                   asset_assessments.assessment_json
+            FROM case_order
+            LEFT JOIN asset_assessments USING(case_id)
+            ORDER BY case_order.public_index,case_order.case_id,
+                     asset_assessments.asset_id
+            """
+        )
+    )
+    conflict_groups = _grouped_support_rows(
+        assessment.execute(
+            """
+            SELECT case_order.public_index,case_order.case_id,
+                   conflict_assessments.assessment_json
+            FROM case_order
+            LEFT JOIN conflict_case_links USING(case_id)
+            LEFT JOIN conflict_assessments USING(conflict_id)
+            ORDER BY case_order.public_index,case_order.case_id,
+                     conflict_case_links.conflict_id
+            """
+        )
+    )
+    for case_row, asset_group, conflict_group in zip_longest(
+        case_rows, asset_groups, conflict_groups
+    ):
+        if case_row is None or asset_group is None or conflict_group is None:
+            raise AssessmentGenerationError(
+                "ordered Case support streams have different lengths"
+            )
+        public_index, row_case_id, source_json, reasons_json, conflicting = case_row
+        expected = (int(public_index), str(row_case_id))
+        if asset_group[0] != expected or conflict_group[0] != expected:
+            raise AssessmentGenerationError(
+                "ordered Case support streams are not aligned"
+            )
+        source_case = json.loads(source_json)
         case, governance_assessments = _case_with_verified_attestations(
             source_case, manifest, governance_registry
         )
         case_id = str(case["id"])
-        assets = [
-            json.loads(row[0])
-            for row in assessment.execute(
-                "SELECT assessment_json FROM asset_assessments "
-                "WHERE case_id=? ORDER BY asset_id",
-                (case_id,),
-            )
-        ]
-        conflict_rows = [
-            json.loads(row[0])
-            for row in assessment.execute(
-                """
-                SELECT conflict_assessments.assessment_json
-                FROM conflict_case_links
-                JOIN conflict_assessments USING(conflict_id)
-                WHERE conflict_case_links.case_id=?
-                ORDER BY conflict_case_links.conflict_id
-                """,
-                (case_id,),
-            )
-        ]
-        identity_reasons = json.loads(
-            work.execute(
-                "SELECT reasons_json FROM identity_reasons WHERE case_id=?",
-                (case_id,),
-            ).fetchone()[0]
-        )
-        conflicting = (
-            work.execute(
-                "SELECT 1 FROM conflicting_cases WHERE case_id=?", (case_id,)
-            ).fetchone()
-            is not None
-        )
+        if case_id != expected[1]:
+            raise AssessmentGenerationError("Case input stream identity changed")
+        assets = asset_group[1]
+        conflict_rows = conflict_group[1]
+        identity_reasons = json.loads(reasons_json)
         result = assess_case(
             case,
             core_labels=manifest["core_labels"],
             core_info=manifest["core_info"],
             required_structure_roles=manifest["required_structure_roles"],
             asset_assessments=assets,
-            conflicting=conflicting,
+            conflicting=bool(conflicting),
             benchmark_policy=benchmark_policy,
             evidence_policy=evidence_policy,
             quality_policy=quality_policy,
@@ -1334,7 +1391,6 @@ class AssessmentGeneration:
                     property_comparators,
                 )
                 _assess_cases(
-                    state,
                     assessment,
                     work,
                     manifest,

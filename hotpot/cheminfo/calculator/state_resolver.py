@@ -4,9 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass
 from typing import Iterable, Optional, Tuple
 
 from ..core import Bond, BondKind, Molecule
+from .charge import (
+    AtomFormalChargeEvidence,
+    ComponentChargeEvidence,
+    LewisFormalChargeResult,
+    NetChargeCandidateEvidence,
+    NetChargeResult,
+)
 from .contracts import (
     ComponentIdentity,
     HydrogenInventory,
@@ -15,8 +23,53 @@ from .contracts import (
     SemanticBond,
     SemanticBondKind,
 )
+from .electronic_state import (
+    ElectronicStateCandidateEvidence,
+    ElectronicStateInferenceResult,
+)
+from .oxidation_state import (
+    CoordinationElectronCountingResult,
+    OxidationStateCandidateEvidence,
+    OxidationStateInferenceResult,
+    OxidationStateOverride,
+)
 
-__all__ = ["extract_molecular_facts"]
+__all__ = [
+    "extract_molecular_facts",
+    "StateRequest",
+    "ProvidedScientificResults",
+]
+
+
+# Orchestrator inputs.
+
+
+@dataclass(frozen=True)
+class StateRequest:
+    """Explicit constraints and attributable allowed candidate domains."""
+
+    net_charge: Optional[int] = None
+    atom_formal_charges: Optional[AtomFormalChargeEvidence] = None
+    component_charges: Optional[ComponentChargeEvidence] = None
+    oxidation_overrides: Tuple[OxidationStateOverride, ...] = ()
+    two_s: Optional[int] = None
+    multiplicity: Optional[int] = None
+    charge_candidates: Tuple[NetChargeCandidateEvidence, ...] = ()
+    oxidation_candidates: Tuple[OxidationStateCandidateEvidence, ...] = ()
+    electronic_candidates: Tuple[ElectronicStateCandidateEvidence, ...] = ()
+
+
+@dataclass(frozen=True)
+class ProvidedScientificResults:
+    """Precomputed scientific results admitted to one resolution run."""
+
+    net_charge_results: Tuple[NetChargeResult, ...] = ()
+    lewis_results: Tuple[LewisFormalChargeResult, ...] = ()
+    coordination_counting_results: Tuple[
+        CoordinationElectronCountingResult, ...
+    ] = ()
+    oxidation_state_results: Tuple[OxidationStateInferenceResult, ...] = ()
+    electronic_state_results: Tuple[ElectronicStateInferenceResult, ...] = ()
 
 
 # Canonical chemical-boundary serialization.

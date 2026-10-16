@@ -1,5 +1,7 @@
 """Named scientific-state decision policy tests."""
 
+from dataclasses import replace
+
 import hotpot
 import pytest
 
@@ -14,6 +16,7 @@ from hotpot.cheminfo.calculator.contracts import (
     StatePolicy,
 )
 from hotpot.cheminfo.calculator.defaults import (
+    _certified_candidate_path,
     _decide_scientific_state,
     _decision_search_compiler,
 )
@@ -24,7 +27,16 @@ from hotpot.cheminfo.calculator.profile_eligibility import (
     _static_profile_eligibility,
 )
 from hotpot.cheminfo.calculator.state_composition import (
+    CandidateSearchStatus,
+    ScientificStateIdentity,
     compose_scientific_state_space,
+)
+from hotpot.cheminfo.calculator.state_composition.decision_search import (
+    _AuthorityVector,
+    _DecisionEquivalenceKey,
+    _DecisionRecord,
+    _DecisionRelation,
+    _PreferenceKey,
 )
 from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
@@ -35,7 +47,34 @@ from hotpot.cheminfo.calculator.state_selection import (
     DecisionCertificationStatus,
     StateDecisionAction,
     StateDecisionSource,
+    StaticProfileEligibility,
 )
+
+
+class _ChargePreferenceCompiler:
+    identity = "test-charge-preference-v1"
+    frontier_schema_version = "scientific-state-frontier-v1"
+
+    def record_for_path(self, path, factors):
+        del factors
+        rank = float(-abs(path.net_charge.value))
+        return _DecisionRecord(
+            path.identity,
+            _AuthorityVector((("charge", 1),)),
+            _PreferenceKey((rank,), ()),
+            _DecisionEquivalenceKey(
+                path.net_charge.value,
+                "none",
+                None,
+            ),
+        )
+
+    def compare_records(self, left, right):
+        if left.preference.rank_values > right.preference.rank_values:
+            return _DecisionRelation.DOMINATES
+        if left.preference.rank_values < right.preference.rank_values:
+            return _DecisionRelation.DOMINATED
+        return _DecisionRelation.EQUIVALENT
 
 
 def _resolved_space():
@@ -190,3 +229,66 @@ def test_missing_required_oxidation_state_declines_automatic_selection() -> None
 
     assert decision.action is StateDecisionAction.NO_AUTOMATIC_STATE
     assert decision.selected_state_identity is None
+
+
+def test_default_selects_the_compiler_winner_not_path_order() -> None:
+    _, space, result_states, explicit_ids = _resolved_space()
+    preferred = replace(
+        space.expanded_paths[0],
+        identity=ScientificStateIdentity("preferred-neutral"),
+    )
+    other = replace(
+        preferred,
+        identity=ScientificStateIdentity("first-but-charged"),
+        net_charge=replace(preferred.net_charge, value=1),
+    )
+    candidate_space = replace(
+        space,
+        expanded_paths=(other, preferred),
+        search_status=CandidateSearchStatus.DECISION_CERTIFIED,
+    )
+    compiler = _ChargePreferenceCompiler()
+    requirements = _requirements(ScientificQuantity.NET_CHARGE)
+    eligibility = StaticProfileEligibility(
+        "coordination-screening-v1",
+        "test-profile",
+        True,
+        (),
+    )
+
+    selected = _certified_candidate_path(
+        candidate_space,
+        candidate_space.expanded_paths,
+        compiler,
+    )
+    decision = _decide_scientific_state(
+        StatePolicy.COORDINATION_SCREENING_V1,
+        requirements,
+        candidate_space,
+        eligibility,
+        result_states,
+        explicit_ids,
+        compiler,
+    )
+
+    assert selected is preferred
+    assert decision.selected_state_identity == preferred.identity
+    assert decision.source is StateDecisionSource.EXECUTION_DEFAULT
+
+
+def test_truncated_certified_status_remains_selectable() -> None:
+    _, space, _, _ = _resolved_space()
+    candidate_space = replace(
+        space,
+        search_status=(
+            CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED
+        ),
+    )
+
+    selected = _certified_candidate_path(
+        candidate_space,
+        candidate_space.expanded_paths,
+        _ChargePreferenceCompiler(),
+    )
+
+    assert selected == candidate_space.expanded_paths[0]

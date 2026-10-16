@@ -580,6 +580,7 @@ def resolve_scientific_state(
 
     candidate_space = compose_with_rule_outputs((), ())
     rule_trace: Tuple[RuleTrace, ...] = ()
+    final_rank_adjustments: Tuple[RankAdjustment, ...] = ()
     if rule_set.layers:
         from .state_rules.controller import _execute_rule_layers
 
@@ -593,6 +594,7 @@ def resolve_scientific_state(
         )
         candidate_space = rule_execution.candidate_space
         rule_trace = rule_execution.traces
+        final_rank_adjustments = rule_execution.rank_adjustments
     scientific_resolution = _resolve_candidate_space(candidate_space)
     all_results = (
         charge_results
@@ -622,6 +624,12 @@ def resolve_scientific_state(
             charge_results,
             oxidation_state_results,
             electronic_state_results,
+        ),
+        _decision_search_compiler(
+            policy,
+            effective_requirements,
+            eligibility,
+            final_rank_adjustments,
         ),
     )
     return ScientificStateBundle(

@@ -18,7 +18,10 @@ from .state_composition import (
     CoupledScientificStateCandidate,
     ScientificStateCandidateSpace,
 )
-from .state_composition.decision_search import _DecisionSearchCompiler
+from .state_composition.decision_search import (
+    _DecisionSearchCompiler,
+    _select_decision_record,
+)
 from .oxidation_state import OxidationStateCandidateEvidence
 from .state_selection import (
     DecisionCertifiability,
@@ -112,6 +115,7 @@ def _path_resolves_requirements(
 def _certifiability(
     candidate_space: ScientificStateCandidateSpace,
     eligible_paths: Tuple[CoupledScientificStateCandidate, ...],
+    selected_path: Optional[CoupledScientificStateCandidate],
 ) -> DecisionCertifiability:
     if candidate_space.search_status is CandidateSearchStatus.NOT_EVALUATED:
         return DecisionCertifiability(
@@ -149,7 +153,11 @@ def _certifiability(
                 ),
             ),
         )
-    if len(eligible_paths) != 1:
+    if (
+        candidate_space.search_status
+        is CandidateSearchStatus.NO_CERTIFIED_DECISION
+        or selected_path is None
+    ):
         return DecisionCertifiability(
             DecisionCertificationStatus.NON_EQUIVALENT_TIE,
             (
@@ -163,6 +171,35 @@ def _certifiability(
     return DecisionCertifiability(
         DecisionCertificationStatus.CERTIFIED,
         (),
+    )
+
+
+def _certified_candidate_path(
+    candidate_space: ScientificStateCandidateSpace,
+    eligible_paths: Tuple[CoupledScientificStateCandidate, ...],
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> Optional[CoupledScientificStateCandidate]:
+    if candidate_space.search_status not in (
+        CandidateSearchStatus.DECISION_CERTIFIED,
+        CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED,
+    ):
+        return None
+    if decision_search is None:
+        return eligible_paths[0] if len(eligible_paths) == 1 else None
+    record = _select_decision_record(
+        eligible_paths,
+        candidate_space.factors,
+        decision_search,
+    )
+    if record is None:
+        return None
+    return next(
+        (
+            path
+            for path in eligible_paths
+            if path.identity == record.state_identity
+        ),
+        None,
     )
 
 
@@ -193,6 +230,7 @@ def _decide_scientific_state(
         ...,
     ],
     explicit_candidate_ids: frozenset[str],
+    decision_search: Optional[_DecisionSearchCompiler] = None,
 ) -> ExecutionStateDecision:
     terminal_action = _terminal_action(result_states)
     if terminal_action is not None:
@@ -235,7 +273,16 @@ def _decide_scientific_state(
         for path in candidate_space.expanded_paths
         if _path_resolves_requirements(path, requirements, complete_os_ids)
     )
-    certifiability = _certifiability(candidate_space, eligible_paths)
+    selected = _certified_candidate_path(
+        candidate_space,
+        eligible_paths,
+        decision_search,
+    )
+    certifiability = _certifiability(
+        candidate_space,
+        eligible_paths,
+        selected,
+    )
     if certifiability.status is not DecisionCertificationStatus.CERTIFIED:
         return _unselected_decision(
             StateDecisionAction.NO_AUTOMATIC_STATE,
@@ -245,7 +292,8 @@ def _decide_scientific_state(
             "No unique operation-complete scientific path is certified.",
         )
 
-    selected = eligible_paths[0]
+    if selected is None:
+        raise RuntimeError("Certified decision is missing its selected path")
     if policy is StatePolicy.COORDINATION_SCREENING_V1:
         source = StateDecisionSource.EXECUTION_DEFAULT
     elif explicit_candidate_ids.intersection(selected.evidence_ids):

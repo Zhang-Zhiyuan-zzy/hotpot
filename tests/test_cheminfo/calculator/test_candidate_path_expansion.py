@@ -1,5 +1,7 @@
 """Budgeted expansion tests for coupled scientific-state paths."""
 
+from dataclasses import replace
+
 import hotpot
 
 from hotpot.cheminfo.calculator.charge import (
@@ -438,6 +440,110 @@ def test_equal_non_equivalent_frontier_prevents_truncated_certification() -> Non
 
     assert len(paths) == 1
     assert frontier
+    assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
+
+
+def test_compacted_frontier_preserves_a_safe_decision_bound() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+
+    paths, _, frontier, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=1,
+        max_frontier_paths=1,
+        decision_search=_RankedSearchCompiler(),
+    )
+
+    assert len(paths) == 1
+    assert len(frontier) == 1
+    assert frontier[0].optimistic_key != ("unbounded",)
+    assert status is (
+        CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED
+    )
+
+
+def test_provider_remainder_bound_participates_in_certification() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+    bounded_factors = tuple(
+        replace(
+            factor,
+            domain_scope=CandidateDomainScope.DOMAIN_BOUNDED,
+            materialization_status=MaterializationStatus.RESOURCE_TRUNCATED,
+            unexpanded_domain_summary=CandidateDomainSummary(
+                1,
+                "provider:next",
+                FrontierBound(
+                    "provider:next",
+                    "scientific-state-frontier-v1",
+                    ("rank:0.500000",),
+                ),
+            ),
+        )
+        if factor.factor_key.quantity is ScientificQuantity.NET_CHARGE
+        else factor
+        for factor in factors
+    )
+
+    paths, _, frontier, status = _expand_scientific_paths(
+        facts,
+        bounded_factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+        decision_search=_RankedSearchCompiler(),
+    )
+
+    assert len(paths) == 2
+    assert frontier[0].optimistic_key == ("rank:0.500000",)
+    assert status is (
+        CandidateSearchStatus.TRUNCATED_BUT_DECISION_CERTIFIED
+    )
+
+
+def test_unknown_provider_remainder_prevents_certification() -> None:
+    facts, factors, charge_mapping, electronic_mapping = (
+        _ranked_search_fixture()
+    )
+    unknown_factors = tuple(
+        replace(
+            factor,
+            domain_scope=CandidateDomainScope.DOMAIN_BOUNDED,
+            materialization_status=MaterializationStatus.RESOURCE_TRUNCATED,
+            unexpanded_domain_summary=CandidateDomainSummary(
+                None,
+                "provider:unknown",
+                None,
+            ),
+        )
+        if factor.factor_key.quantity is ScientificQuantity.NET_CHARGE
+        else factor
+        for factor in factors
+    )
+
+    _, _, frontier, status = _expand_scientific_paths(
+        facts,
+        unknown_factors,
+        (),
+        charge_mapping,
+        electronic_mapping,
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=1,
+        decision_search=_RankedSearchCompiler(),
+    )
+
+    assert frontier[0].optimistic_key == ("unbounded",)
     assert status is CandidateSearchStatus.RESOURCE_LIMIT_NO_CERTIFIED_DECISION
 
 

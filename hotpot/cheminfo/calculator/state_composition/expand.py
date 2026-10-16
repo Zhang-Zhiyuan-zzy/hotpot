@@ -580,18 +580,45 @@ def _frontier_for_node(
     if node.bound is None or decision_search is None:
         optimistic_key = _UNBOUNDED_FRONTIER_KEY
     else:
-        optimistic_key = decision_search.encode_bound(node.bound)
-        if not optimistic_key or any(
-            not isinstance(value, str) for value in optimistic_key
-        ):
-            raise ValueError(
-                "Decision-search bounds must encode as non-empty strings"
-            )
+        optimistic_key = _encode_decision_bound(decision_search, node.bound)
     return FrontierBound(
         branch_identity=node.branch_identity,
         schema_version=_FRONTIER_SCHEMA,
         optimistic_key=optimistic_key,
     )
+
+
+def _encode_decision_bound(
+    decision_search: _DecisionSearchCompiler,
+    bound: _DecisionBound,
+) -> Tuple[str, ...]:
+    optimistic_key = decision_search.encode_bound(bound)
+    if (
+        not optimistic_key
+        or optimistic_key == _UNBOUNDED_FRONTIER_KEY
+        or any(not isinstance(value, str) for value in optimistic_key)
+    ):
+        raise ValueError(
+            "Decision-search bounds must use non-empty typed encodings"
+        )
+    return optimistic_key
+
+
+def _decoded_frontier_bound(
+    serialized: FrontierBound,
+    decision_search: Optional[_DecisionSearchCompiler],
+) -> Optional[_DecisionBound]:
+    if serialized.schema_version != _FRONTIER_SCHEMA:
+        raise ValueError("Candidate frontier uses an unsupported schema")
+    if decision_search is None:
+        return None
+    decoded = decision_search.decode_bound(serialized)
+    if decoded is not None and (
+        _encode_decision_bound(decision_search, decoded)
+        != serialized.optimistic_key
+    ):
+        raise ValueError("Decoded decision bound does not reproduce its key")
+    return decoded
 
 
 def _aggregate_frontier_entries(
@@ -619,7 +646,7 @@ def _aggregate_frontier_entries(
     optimistic_key = (
         _UNBOUNDED_FRONTIER_KEY
         if decision_bound is None or decision_search is None
-        else decision_search.encode_bound(decision_bound)
+        else _encode_decision_bound(decision_search, decision_bound)
     )
     return _FrontierEntry(
         FrontierBound(
@@ -901,9 +928,8 @@ def _expand_scientific_paths(
             optimistic_key=_UNBOUNDED_FRONTIER_KEY,
         )
         decision_bound = (
-            decision_search.decode_bound(serialized_bound)
-            if decision_search is not None
-            and summary.frontier_bound is not None
+            _decoded_frontier_bound(serialized_bound, decision_search)
+            if summary.frontier_bound is not None
             else None
         )
         frontier_entries.append(

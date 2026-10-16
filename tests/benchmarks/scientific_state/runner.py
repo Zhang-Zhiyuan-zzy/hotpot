@@ -26,7 +26,7 @@ from hotpot.cheminfo.calculator.state_composition._decision_snapshot import (
 from hotpot.cheminfo.calculator.state_rules.manifest import (
     _coordination_screening_manifest,
 )
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.core import BondKind, Molecule
 
 from .corpus import DryStateCase, DryStateCorpus, DryStateSourceKind
 
@@ -109,7 +109,24 @@ def _load_molecule(case: DryStateCase) -> Molecule:
         if case.source_kind is DryStateSourceKind.FILE
         else case.source
     )
-    return hotpot.read_mol(source, case.format)
+    mol = hotpot.read_mol(source, case.format)
+    for begin, end in case.coordination_bonds:
+        if max(begin, end) >= len(mol.atoms):
+            raise ValueError(
+                f"Coordination atom index is outside case {case.case_id!r}"
+            )
+        existing = next(
+            (
+                bond
+                for bond in mol.bonds
+                if {bond.a1idx, bond.a2idx} == {begin, end}
+            ),
+            None,
+        )
+        if existing is not None:
+            mol.remove_bond(existing)
+        mol.add_bond(begin, end, bond_kind=BondKind.DATIVE)
+    return mol
 
 
 def _snapshot_digest(bundle: ScientificStateBundle) -> str:

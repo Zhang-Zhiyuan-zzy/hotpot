@@ -61,6 +61,28 @@ def test_unknown_metal_bond_remains_an_explicit_profile_boundary() -> None:
     assert record.static_profile_ready_except_activation is False
 
 
+def test_explicit_manifest_bond_is_the_only_topology_promotion(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "complex.smi"
+    source.write_text("[Eu].N\n", encoding="utf-8")
+    case = DryStateCase(
+        index=1,
+        case_id="curated-eu-n",
+        source_kind=DryStateSourceKind.FILE,
+        source=str(source),
+        format="smi",
+        source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+        coordination_bonds=((0, 1),),
+    )
+
+    record = resolve_case(case)
+
+    assert record.coordination_bond_count == 1
+    assert record.unknown_bond_count == 0
+    assert record.static_profile_ready_except_activation is True
+
+
 def test_resolve_case_rejects_changed_structure_asset(tmp_path: Path) -> None:
     source = tmp_path / "structure.xyz"
     source.write_text("1\nrecord\nH 0 0 0\n", encoding="utf-8")

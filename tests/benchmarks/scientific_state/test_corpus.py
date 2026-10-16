@@ -7,7 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from .corpus import DryStateSourceKind, load_corpus, load_structure_registry
+from .corpus import (
+    DryStateSourceKind,
+    load_corpus,
+    load_structure_registry,
+    load_topology_manifest,
+)
 
 
 def test_load_corpus_preserves_order_ids_and_source_identity(tmp_path: Path) -> None:
@@ -75,3 +80,26 @@ def test_load_structure_registry_preserves_file_topology_provenance(
     assert Path(case.source) == structure.resolve()
     assert case.format == "mol2"
     assert case.source_sha256 == digest
+
+
+def test_load_topology_manifest_requires_explicit_digest_bound_bonds(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "complex.smi"
+    source.write_text("[Eu].N\n", encoding="utf-8")
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    manifest = tmp_path / "topology.jsonl"
+    manifest.write_text(
+        "{"
+        '"case_id":"eu-n",'
+        '"format":"smi",'
+        '"store_path":"complex.smi",'
+        f'"source_sha256":"{digest}",'
+        '"coordination_bonds":[[0,1]]'
+        "}\n",
+        encoding="utf-8",
+    )
+
+    corpus = load_topology_manifest(manifest, tmp_path)
+
+    assert corpus.cases[0].coordination_bonds == ((0, 1),)

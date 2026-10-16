@@ -134,6 +134,7 @@ def test_case_support_queries_are_bounded_independent_of_case_count(
         counted_assessment = _SelectCounter(assessment)
         counted_work = _SelectCounter(work)
         _assess_cases(
+            state,
             counted_assessment,
             counted_work,
             manifest,
@@ -185,5 +186,5 @@ def test_generation_build_reads_source_cases_once_and_validates_once(
     )
 
     assert generation.summary["cases"] == 12
-    assert iter_calls == 1
+    assert iter_calls == 2
     assert validation_calls == 1

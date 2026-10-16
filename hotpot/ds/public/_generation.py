@@ -841,10 +841,9 @@ def _initialize_work_database(connection: sqlite3.Connection) -> None:
         """
         PRAGMA journal_mode=DELETE;
         PRAGMA synchronous=OFF;
-        CREATE TABLE case_inputs(
+        CREATE TABLE case_order(
             case_id TEXT PRIMARY KEY,
-            public_index INTEGER NOT NULL UNIQUE,
-            payload_json TEXT NOT NULL
+            public_index INTEGER NOT NULL UNIQUE
         ) WITHOUT ROWID;
         CREATE TABLE candidates(
             sample_key TEXT NOT NULL,
@@ -877,8 +876,8 @@ def _stream_inputs(
         case_id = str(case["id"])
         public_index = int(case["public_index"])
         work.execute(
-            "INSERT INTO case_inputs(case_id,public_index,payload_json) VALUES (?,?,?)",
-            (case_id, public_index, canonical_json(source_case)),
+            "INSERT INTO case_order(case_id,public_index) VALUES (?,?)",
+            (case_id, public_index),
         )
         assessment.execute(
             "INSERT INTO case_order(public_index,case_id) VALUES (?,?)",
@@ -1081,6 +1080,7 @@ def _grouped_support_rows(
 
 
 def _assess_cases(
+    state: BundleState,
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     manifest: Mapping[str, Any],
@@ -1092,15 +1092,15 @@ def _assess_cases(
     governance_registry: Any,
     isolated_runner: Optional[Any],
 ) -> None:
-    case_rows = work.execute(
+    identity_rows = work.execute(
         """
-        SELECT case_inputs.public_index,case_inputs.case_id,
-               case_inputs.payload_json,identity_reasons.reasons_json,
+        SELECT case_order.public_index,case_order.case_id,
+               identity_reasons.reasons_json,
                CASE WHEN conflicting_cases.case_id IS NULL THEN 0 ELSE 1 END
-        FROM case_inputs
+        FROM case_order
         JOIN identity_reasons USING(case_id)
         LEFT JOIN conflicting_cases USING(case_id)
-        ORDER BY case_inputs.public_index,case_inputs.case_id
+        ORDER BY case_order.public_index,case_order.case_id
         """
     )
     asset_groups = _grouped_support_rows(
@@ -1128,20 +1128,29 @@ def _assess_cases(
             """
         )
     )
-    for case_row, asset_group, conflict_group in zip_longest(
-        case_rows, asset_groups, conflict_groups
+    for source_case, identity_row, asset_group, conflict_group in zip_longest(
+        state.iter_cases(), identity_rows, asset_groups, conflict_groups
     ):
-        if case_row is None or asset_group is None or conflict_group is None:
+        if (
+            source_case is None
+            or identity_row is None
+            or asset_group is None
+            or conflict_group is None
+        ):
             raise AssessmentGenerationError(
                 "ordered Case support streams have different lengths"
             )
-        public_index, row_case_id, source_json, reasons_json, conflicting = case_row
+        public_index, row_case_id, reasons_json, conflicting = identity_row
         expected = (int(public_index), str(row_case_id))
         if asset_group[0] != expected or conflict_group[0] != expected:
             raise AssessmentGenerationError(
                 "ordered Case support streams are not aligned"
             )
-        source_case = json.loads(source_json)
+        source_key = (int(source_case["public_index"]), str(source_case["id"]))
+        if source_key != expected:
+            raise AssessmentGenerationError(
+                "ordered Case input and support streams are not aligned"
+            )
         case, governance_assessments = _case_with_verified_attestations(
             source_case, manifest, governance_registry
         )
@@ -1391,6 +1400,7 @@ class AssessmentGeneration:
                     property_comparators,
                 )
                 _assess_cases(
+                    state,
                     assessment,
                     work,
                     manifest,

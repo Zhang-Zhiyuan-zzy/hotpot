@@ -7,10 +7,15 @@ from enum import Enum
 from typing import Dict, Optional, Tuple
 
 from .contracts import (
+    CandidateBudget,
     BackendContext,
     BackendIdentity,
+    DEFAULT_CANDIDATE_BUDGET,
     MolecularFacts,
     MolecularFactsIdentity,
+    ProviderSet,
+    ScientificOperationRequirements,
+    StatePolicy,
 )
 from .electronic_state import (
     ElectronicStateCandidate,
@@ -22,11 +27,17 @@ from .state_composition import (
     ScientificStateIdentity,
     StateCandidate,
 )
-from .state_resolver import ScientificStateBundle
+from .state_resolver import (
+    ProvidedScientificResults,
+    ScientificStateBundle,
+    StateRequest,
+)
+from .state_rules import RuleSet
 from .state_selection import DecisionReason
 
 __all__ = [
     "project_state",
+    "resolve_and_project_state",
     "BackendStateValues",
     "BackendStateRequest",
     "BackendDecisionSource",
@@ -653,3 +664,46 @@ def project_state(
         projection=projection,
         findings=(),
     )
+
+
+def resolve_and_project_state(
+    facts: MolecularFacts,
+    backend: BackendContext,
+    request: StateRequest = StateRequest(),
+    *,
+    policy: StatePolicy = StatePolicy.STRICT,
+    requirements: Optional[ScientificOperationRequirements] = None,
+    provider_set: ProviderSet = ProviderSet(),
+    provided_results: ProvidedScientificResults = ProvidedScientificResults(),
+    rule_set: RuleSet = RuleSet(),
+    candidate_budget: CandidateBudget = DEFAULT_CANDIDATE_BUDGET,
+    backend_request: BackendStateRequest = BackendStateRequest(),
+    execution_policies: ExecutionPolicySet = ExecutionPolicySet(),
+    execution_history: Tuple[BackendExecutionEvidence, ...] = (),
+) -> ScientificStateWorkflowResult:
+    """Resolve scientific state once, then project it for one backend."""
+    from .operation_requirements import _workflow_requirements
+    from .state_resolver import resolve_scientific_state
+
+    workflow_requirements = _workflow_requirements(
+        requirements,
+        backend.scientific_operation_requirements,
+    )
+    scientific_state = resolve_scientific_state(
+        facts,
+        request,
+        policy=policy,
+        requirements=workflow_requirements,
+        provider_set=provider_set,
+        provided_results=provided_results,
+        rule_set=rule_set,
+        candidate_budget=candidate_budget,
+    )
+    projection = project_state(
+        scientific_state,
+        backend,
+        request=backend_request,
+        execution_policies=execution_policies,
+        execution_history=execution_history,
+    )
+    return ScientificStateWorkflowResult(scientific_state, projection)

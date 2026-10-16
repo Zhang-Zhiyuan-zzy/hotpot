@@ -96,3 +96,27 @@ def _effective_requirements(
         required_resolved_quantities=required,
         allowed_unresolved_quantities=allowed_unresolved,
     )
+
+
+def _workflow_requirements(
+    caller: Optional[ScientificOperationRequirements],
+    backend: ScientificOperationRequirements,
+) -> ScientificOperationRequirements:
+    inputs = tuple(item for item in (caller, backend) if item is not None)
+    required = frozenset(
+        quantity
+        for item in inputs
+        for quantity in item.required_resolved_quantities
+    )
+    allowed_unresolved = frozenset(
+        quantity
+        for item in inputs
+        for quantity in item.allowed_unresolved_quantities
+        if quantity not in required
+    )
+    identity = _requirements_identity(inputs, required, allowed_unresolved)
+    return ScientificOperationRequirements(
+        operation_id=f"WORKFLOW:{identity}",
+        required_resolved_quantities=required,
+        allowed_unresolved_quantities=allowed_unresolved,
+    )

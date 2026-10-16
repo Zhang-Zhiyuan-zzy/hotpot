@@ -17,6 +17,7 @@ from hotpot.cheminfo.calculator.execution_selection import (
     BackendStateValues,
     ExecutionPolicySet,
     project_state,
+    resolve_and_project_state,
 )
 from hotpot.cheminfo.calculator.state_resolver import (
     StateRequest,
@@ -210,3 +211,21 @@ def test_backend_support_is_reported_without_fabricating_a_projection() -> None:
     assert element_result.status is BackendProjectionStatus.BACKEND_UNSUPPORTED
     assert element_result.projection is None
     assert element_result.findings[0].related_identities == ("95",)
+
+
+def test_combined_workflow_resolves_backend_requirements_before_projection() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("C", "smi"))
+
+    result = resolve_and_project_state(
+        facts,
+        _AllElectronBackend(),
+        StateRequest(net_charge=0),
+    )
+
+    assert result.scientific_state.execution_decision.selected_state_identity
+    assert (
+        result.backend_projection.status
+        is BackendProjectionStatus.PROJECTED
+    )
+    assert result.backend_projection.projection is not None
+    assert result.backend_projection.projection.uhf == 0

@@ -7,6 +7,7 @@ from hotpot.cheminfo.calculator.contracts import (
 )
 from hotpot.cheminfo.calculator.operation_requirements import (
     _effective_requirements,
+    _workflow_requirements,
 )
 
 
@@ -81,3 +82,26 @@ def test_normalization_is_deterministic() -> None:
     second = _effective_requirements(StatePolicy.STRICT, caller)
 
     assert first == second
+
+
+def test_workflow_requirements_unite_caller_and_backend_before_profile() -> None:
+    caller = _requirements(
+        "caller",
+        frozenset({ScientificQuantity.ELECTRONIC_STATE}),
+        frozenset({ScientificQuantity.NET_CHARGE}),
+    )
+    backend = _requirements(
+        "backend",
+        frozenset({ScientificQuantity.NET_CHARGE}),
+        frozenset({ScientificQuantity.ELECTRONIC_STATE}),
+    )
+
+    workflow = _workflow_requirements(caller, backend)
+
+    assert workflow.required_resolved_quantities == frozenset(
+        {
+            ScientificQuantity.NET_CHARGE,
+            ScientificQuantity.ELECTRONIC_STATE,
+        }
+    )
+    assert workflow.allowed_unresolved_quantities == frozenset()

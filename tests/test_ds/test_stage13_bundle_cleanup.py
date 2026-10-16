@@ -152,6 +152,22 @@ def test_cleanup_removes_only_allowlisted_reproducible_data_and_is_idempotent(
     assert cleanup["removed_bytes"] == sum(item["bytes"] for item in cleanup["deleted"])
     stored = TargetStore(database).get_case("demo", "demo-r1", "case-1")
     assert stored["facts"]["observations"][0]["value"] == 1
+    with TargetStore(database)._connect() as connection:
+        controls = {
+            (row["category"], row["name"])
+            for row in connection.execute(
+                "SELECT category,name FROM release_control_asset_refs"
+            )
+        }
+    assert {
+        ("provenance", "legacy-source-inventory"),
+        ("provenance", "migration-provenance"),
+    } <= controls
+    assert not {
+        name
+        for category, name in controls
+        if category == "migration" or name == "identity-migration"
+    }
 
     monkeypatch.setattr(
         cleanup_module,

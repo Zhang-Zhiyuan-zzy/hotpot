@@ -1389,15 +1389,28 @@ def _target_control_asset_descriptors(
             ("certificate", "certificate.json", root / "certificate.json", None)
         )
     permanent_categories = {"source", "evidence", "provenance"}
+    migration_provenance_names = {
+        "legacy-source-inventory",
+        "migration-provenance",
+    }
     paths.extend(
         (
-            str(item["category"]),
+            (
+                "provenance"
+                if str(item["category"]) == "migration"
+                and str(item["name"]) in migration_provenance_names
+                else str(item["category"])
+            ),
             str(item["name"]),
             root / item["path"],
             item,
         )
         for item in manifest.get("control_assets", [])
         if str(item["category"]) in permanent_categories
+        or (
+            str(item["category"]) == "migration"
+            and str(item["name"]) in migration_provenance_names
+        )
     )
     result = []
     identities = set()

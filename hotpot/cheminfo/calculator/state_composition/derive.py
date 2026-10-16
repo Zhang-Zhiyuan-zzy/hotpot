@@ -74,7 +74,8 @@ def _has_implicit_hydrogen(
     atom_indices: Tuple[int, ...],
 ) -> bool:
     return any(
-        facts.hydrogen_inventory.implicit_counts[index] not in (None, 0)
+        facts.hydrogen_inventory.explicit_counts[index] == 0
+        and facts.hydrogen_inventory.implicit_counts[index] not in (None, 0)
         for index in atom_indices
     )
 

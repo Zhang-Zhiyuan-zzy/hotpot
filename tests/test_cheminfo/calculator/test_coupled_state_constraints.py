@@ -32,7 +32,12 @@ from hotpot.cheminfo.calculator.state_resolver import (
 
 
 def _path_inputs():
-    facts = extract_molecular_facts(hotpot.read_mol("CCO", "smi"))
+    facts = extract_molecular_facts(
+        hotpot.read_mol(
+            "[H]C([H])([H])C([H])([H])O[H]",
+            "smi",
+        )
+    )
     net_result = resolve_net_charge(facts, StateRequest(net_charge=0))[0]
     charge = net_result.candidates[0]
     lewis = solve_main_group_lewis(facts, net_result)[0].candidates[0]
@@ -48,7 +53,7 @@ def _path_inputs():
             "test",
         ),
         convention=CountingConvention.IONIC,
-        atom_states=(0, 0, 0),
+        atom_states=tuple(0 for _ in facts.atomic_numbers),
         coverage=CoverageStatus.COMPLETE,
         coordination_counting_candidate_identity=counting.provenance.identity,
     )
@@ -89,7 +94,10 @@ def test_individually_structured_but_charge_incompatible_os_is_rejected() -> Non
     facts, charge, lewis, counting, oxidation_state, electronic_state = (
         _path_inputs()
     )
-    incompatible = replace(oxidation_state, atom_states=(1, 0, 0))
+    incompatible = replace(
+        oxidation_state,
+        atom_states=(1,) + oxidation_state.atom_states[1:],
+    )
 
     assessment = _validate_coupled_candidates(
         facts,

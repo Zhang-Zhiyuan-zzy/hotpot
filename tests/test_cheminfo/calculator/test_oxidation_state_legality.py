@@ -16,6 +16,7 @@ from hotpot.cheminfo.calculator.legality import (
     _validate_counting_candidate,
     _validate_counting_reference,
     _validate_oxidation_overrides,
+    _validate_oxidation_state_evidence,
     _validate_oxidation_state_conservation,
 )
 from hotpot.cheminfo.calculator.oxidation_state import (
@@ -87,6 +88,22 @@ def test_partial_oxidation_states_are_not_forced_to_sum() -> None:
     )
 
     assert assessment.admissibility is ScientificAdmissibility.ADMISSIBLE
+
+
+def test_complete_oxidation_state_cannot_omit_implicit_hydrogen() -> None:
+    facts = extract_molecular_facts(hotpot.read_mol("O", "smi"))
+    candidate = _oxidation_candidate(
+        "oxygen-only",
+        (-2,),
+        CoverageStatus.COMPLETE,
+    )
+
+    assessment = _validate_oxidation_state_evidence(facts, candidate)
+
+    assert assessment.admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert assessment.findings[0].code == (
+        "HARD-004.OS_IMPLICIT_HYDROGEN_UNCOVERED"
+    )
 
 
 def test_counting_candidate_rejects_mixed_convention_fields() -> None:

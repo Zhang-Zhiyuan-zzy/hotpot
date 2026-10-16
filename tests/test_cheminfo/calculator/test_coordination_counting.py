@@ -97,7 +97,7 @@ def test_inadmissible_lewis_envelope_cannot_feed_counting() -> None:
 
 
 def test_inadmissible_counting_envelope_cannot_feed_oxidation_state() -> None:
-    facts, lewis = _lewis("CCO")
+    facts, lewis = _lewis("[H]C([H])([H])C([H])([H])O[H]")
     counting = infer_coordination_electron_counting(
         facts,
         lewis_results=(lewis,),
@@ -110,7 +110,7 @@ def test_inadmissible_counting_envelope_cannot_feed_oxidation_state() -> None:
             "test",
         ),
         convention=CountingConvention.IONIC,
-        atom_states=(0, 0, 0),
+        atom_states=tuple(0 for _ in facts.atomic_numbers),
         coverage=CoverageStatus.COMPLETE,
         coordination_counting_candidate_identity=(
             counting.candidates[0].provenance.identity

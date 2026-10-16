@@ -476,6 +476,21 @@ def _validate_oxidation_state_evidence(
             "Oxidation-state evidence has invalid values or atom coverage.",
             related_identities=(candidate.provenance.identity,),
         )
+    if candidate.coverage is CoverageStatus.COMPLETE and any(
+        explicit_count == 0 and implicit_count not in (None, 0)
+        for explicit_count, implicit_count in zip(
+            facts.hydrogen_inventory.explicit_counts,
+            facts.hydrogen_inventory.implicit_counts,
+        )
+    ):
+        return _hard_failure(
+            "HARD-004.OS_IMPLICIT_HYDROGEN_UNCOVERED",
+            (
+                "Complete oxidation-state evidence must explicitly cover "
+                "every hydrogen in the molecular boundary."
+            ),
+            related_identities=(candidate.provenance.identity,),
+        )
     return _HARD_PASS
 
 

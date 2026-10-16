@@ -194,7 +194,7 @@ def test_conflicting_authoritative_spin_envelopes_do_not_form_a_union() -> None:
 
 
 def test_explicit_oxidation_override_constrains_provided_envelope() -> None:
-    facts = _facts()
+    facts = _facts("[Fe].[Fe]")
     oxidation_candidate = OxidationStateCandidateEvidence(
         CandidateProvenance(
             "os:all-zero",
@@ -202,7 +202,7 @@ def test_explicit_oxidation_override_constrains_provided_envelope() -> None:
             "test",
         ),
         CountingConvention.IONIC,
-        (0, 0, 0),
+            (2, 3),
         CoverageStatus.COMPLETE,
     )
     provided_oxidation = infer_oxidation_states(
@@ -213,8 +213,8 @@ def test_explicit_oxidation_override_constrains_provided_envelope() -> None:
     bundle = resolve_scientific_state(
         facts,
         StateRequest(
-            net_charge=0,
-            oxidation_overrides=(OxidationStateOverride(0, 1),),
+            net_charge=5,
+            oxidation_overrides=(OxidationStateOverride(0, 3),),
         ),
         provided_results=ProvidedScientificResults(
             oxidation_state_results=(provided_oxidation,),

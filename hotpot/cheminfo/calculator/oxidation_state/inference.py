@@ -7,7 +7,9 @@ import json
 from typing import Tuple
 
 from ..contracts import (
+    CandidateProvenance,
     ChemicalConfidence,
+    CoverageStatus,
     MolecularFacts,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -64,6 +66,67 @@ def _candidate_matches_overrides(
     )
 
 
+def _candidate_with_overrides(
+    facts: MolecularFacts,
+    candidate: OxidationStateCandidateEvidence,
+    request: StateRequest,
+) -> OxidationStateCandidateEvidence:
+    states = list(candidate.atom_states)
+    changed = False
+    for override in request.oxidation_overrides:
+        if states[override.atom_index] is None:
+            states[override.atom_index] = override.oxidation_state
+            changed = True
+    if not changed:
+        return candidate
+    atom_states = tuple(states)
+    override_identity = _digest(
+        {
+            "facts": facts.identity.chemical_identity_digest,
+            "overrides": tuple(
+                sorted(
+                    (
+                        override.atom_index,
+                        override.oxidation_state,
+                    )
+                    for override in request.oxidation_overrides
+                )
+            ),
+        }
+    )
+    identity = _digest(
+        {
+            "facts": facts.identity.chemical_identity_digest,
+            "parent": candidate.provenance.identity,
+            "override_artifact": override_identity,
+            "atom_states": atom_states,
+            "convention": candidate.convention.value,
+        }
+    )
+    return OxidationStateCandidateEvidence(
+        provenance=CandidateProvenance(
+            identity=identity,
+            authority=StateValueAuthority.DERIVED_CONSTRAINT,
+            source_identity="HARD-007.oxidation-override-intersection-v1",
+            evidence_ids=(
+                candidate.provenance.identity,
+                f"oxidation-overrides:{override_identity}",
+            ),
+            assumption_ids=candidate.provenance.assumption_ids,
+        ),
+        convention=candidate.convention,
+        atom_states=atom_states,
+        coverage=(
+            CoverageStatus.COMPLETE
+            if all(state is not None for state in atom_states)
+            else CoverageStatus.PARTIAL
+        ),
+        coordination_counting_candidate_identity=(
+            candidate.coordination_counting_candidate_identity
+        ),
+    )
+
+
 def _request_result(
     facts: MolecularFacts,
     request: StateRequest,
@@ -76,7 +139,7 @@ def _request_result(
     )
     compatible_candidates = (
         tuple(
-            candidate
+            _candidate_with_overrides(facts, candidate, request)
             for candidate in requested_candidates
             if _candidate_matches_overrides(candidate, request)
         )
@@ -146,6 +209,14 @@ def _request_result(
         assessment = legality._merge_hard_rule_assessments(assessments)
         admissibility = assessment.admissibility
         resolution = assessment.terminal_status or ResolutionStatus.UNRESOLVED
+    elif (
+        request.oxidation_overrides
+        and override_assessment.admissibility
+        is ScientificAdmissibility.NOT_EVALUATED
+    ):
+        findings += override_assessment.findings
+        admissibility = ScientificAdmissibility.NOT_EVALUATED
+        resolution = ResolutionStatus.UNRESOLVED
     elif override_assessment.admissibility is ScientificAdmissibility.INADMISSIBLE:
         findings += override_assessment.findings
         admissibility = override_assessment.admissibility
@@ -183,7 +254,11 @@ def _request_result(
         candidates=legal_candidates,
         admissibility=admissibility,
         resolution=resolution,
-        confidence=_confidence(legal_candidates),
+        confidence=(
+            _confidence(legal_candidates)
+            if admissibility is ScientificAdmissibility.ADMISSIBLE
+            else ChemicalConfidence.UNRESOLVED
+        ),
         findings=findings,
     )
 

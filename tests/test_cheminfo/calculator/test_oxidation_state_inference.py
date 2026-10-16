@@ -116,6 +116,57 @@ def test_partial_candidate_remains_ambiguous() -> None:
     assert result.resolution is ResolutionStatus.AMBIGUOUS
 
 
+def test_override_completes_a_partial_candidate_with_lineage() -> None:
+    facts = _facts("[Fe].[Fe]")
+    request = StateRequest(
+        oxidation_overrides=(OxidationStateOverride(0, 2),),
+        oxidation_candidates=(
+            _candidate(
+                "partial-mixed-valence",
+                (None, 3),
+                CoverageStatus.PARTIAL,
+            ),
+        ),
+    )
+
+    result = infer_oxidation_states(facts, request)[0]
+
+    assert result.admissibility is ScientificAdmissibility.ADMISSIBLE
+    assert result.resolution is ResolutionStatus.UNIQUE
+    assert result.candidates[0].atom_states == (2, 3)
+    assert result.candidates[0].coverage is CoverageStatus.COMPLETE
+    assert (
+        result.candidates[0].provenance.authority
+        is StateValueAuthority.DERIVED_CONSTRAINT
+    )
+    assert "partial-mixed-valence" in (
+        result.candidates[0].provenance.evidence_ids
+    )
+
+
+def test_override_that_leaves_partial_domain_is_not_resolved() -> None:
+    facts = _facts("[Fe].[Fe].[Cl-]")
+    request = StateRequest(
+        oxidation_overrides=(OxidationStateOverride(0, 2),),
+        oxidation_candidates=(
+            _candidate(
+                "still-partial",
+                (None, 3, None),
+                CoverageStatus.PARTIAL,
+            ),
+        ),
+    )
+
+    result = infer_oxidation_states(facts, request)[0]
+
+    assert result.admissibility is ScientificAdmissibility.NOT_EVALUATED
+    assert result.resolution is ResolutionStatus.UNRESOLVED
+    assert result.candidates[0].atom_states == (2, 3, None)
+    assert result.findings[-1].code == (
+        "HARD-004.OS_OVERRIDE_EXTENSION_NOT_EVALUATED"
+    )
+
+
 def test_invalid_override_indices_return_typed_results() -> None:
     facts = _facts("[Eu]")
 

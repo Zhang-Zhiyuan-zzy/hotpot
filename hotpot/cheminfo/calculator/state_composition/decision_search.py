@@ -58,6 +58,7 @@ class _DecisionRecord:
     authority: _AuthorityVector
     preference: _PreferenceKey
     equivalence: _DecisionEquivalenceKey
+    certifiable: bool = True
 
 
 @dataclass(frozen=True)
@@ -192,6 +193,8 @@ def _select_decision_record(
     )
     non_dominated = _non_dominated_records(records, compiler)
     if not non_dominated:
+        return None
+    if any(not record.certifiable for record in non_dominated):
         return None
     equivalence = non_dominated[0].equivalence
     if any(record.equivalence != equivalence for record in non_dominated[1:]):

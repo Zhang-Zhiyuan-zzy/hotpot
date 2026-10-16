@@ -88,6 +88,14 @@ class _EquivalentStateCompiler(_ChargePreferenceCompiler):
         )
 
 
+class _UncertifiableCompiler(_ChargePreferenceCompiler):
+    def record_for_path(self, path, factors):
+        return replace(
+            super().record_for_path(path, factors),
+            certifiable=False,
+        )
+
+
 def _resolved_space():
     facts = extract_molecular_facts(hotpot.read_mol("CCO", "smi"))
     request = StateRequest(net_charge=0, two_s=0)
@@ -330,3 +338,15 @@ def test_canonical_identity_only_breaks_a_decision_equivalent_tie() -> None:
     )
 
     assert selected is earlier
+
+
+def test_uncertifiable_path_cannot_become_an_automatic_default() -> None:
+    _, space, _, _ = _resolved_space()
+
+    selected = _certified_candidate_path(
+        space,
+        space.expanded_paths,
+        _UncertifiableCompiler(),
+    )
+
+    assert selected is None

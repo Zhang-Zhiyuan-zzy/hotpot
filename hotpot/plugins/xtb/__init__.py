@@ -26,6 +26,7 @@ from .contracts import (
     XTBTask,
 )
 from .runner import run_xtb
+from .state_projection import XTBBackendContext
 from .stream import (
     XTBStreamError,
     XTBStreamMetadata,
@@ -70,4 +71,5 @@ __all__ = [
     "read_sdf_records",
     "validate_element_support",
     "write_sdf_records",
+    "XTBBackendContext",
 ]

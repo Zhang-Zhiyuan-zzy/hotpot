@@ -1,0 +1,24 @@
+{
+  "schema_version": "hotpot-main-group-closed-shell-registry-v1",
+  "registry_version": "1.0.0",
+  "source_identity": "OPTIONAL-001:reviewed-main-group-closed-shell-v1",
+  "source_locator": "plan/12_xtb_workflow/rules/OPTIONAL-001-main-group-closed-shell.md",
+  "shell_domains": [
+    {"atomic_number": 1, "allowed_electrons": [2]},
+    {"atomic_number": 5, "allowed_electrons": [6, 8]},
+    {"atomic_number": 6, "allowed_electrons": [8]},
+    {"atomic_number": 7, "allowed_electrons": [8]},
+    {"atomic_number": 8, "allowed_electrons": [8]},
+    {"atomic_number": 9, "allowed_electrons": [8]},
+    {"atomic_number": 14, "allowed_electrons": [8]},
+    {"atomic_number": 15, "allowed_electrons": [8]},
+    {"atomic_number": 16, "allowed_electrons": [8]},
+    {"atomic_number": 17, "allowed_electrons": [8]},
+    {"atomic_number": 33, "allowed_electrons": [8]},
+    {"atomic_number": 34, "allowed_electrons": [8]},
+    {"atomic_number": 35, "allowed_electrons": [8]},
+    {"atomic_number": 52, "allowed_electrons": [8]},
+    {"atomic_number": 53, "allowed_electrons": [8]}
+  ],
+  "excluded_neutral_homonuclear_diatomics": [8, 16, 34, 52]
+}

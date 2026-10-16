@@ -53,10 +53,10 @@ from .contracts import (
     MaterializationStatus,
     RejectedPathSummary,
     ScientificStateIdentity,
-    StateCandidate,
     StateValueOrigin,
     StateValueRef,
 )
+from .validation import _candidate_matches_factor
 
 __all__ = []
 
@@ -103,31 +103,6 @@ def _digest(payload: object) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
-
-
-def _candidate_matches_factor(
-    factor_key: FactorKey,
-    candidate: StateCandidate,
-) -> bool:
-    if isinstance(candidate, DerivedStateValue):
-        return candidate.quantity is factor_key.quantity
-    candidate_types = {
-        ScientificQuantity.NET_CHARGE: (NetChargeCandidateEvidence,),
-        ScientificQuantity.LEWIS_FORMAL_CHARGE: (
-            LewisFormalChargeCandidate,
-        ),
-        ScientificQuantity.COORDINATION_COUNTING: (
-            CoordinationCountingCandidate,
-        ),
-        ScientificQuantity.OXIDATION_STATE: (
-            OxidationStateCandidateEvidence,
-        ),
-        ScientificQuantity.ELECTRONIC_STATE: (
-            SpinContributionCandidate,
-            ElectronicStateCandidate,
-        ),
-    }
-    return isinstance(candidate, candidate_types[factor_key.quantity])
 
 
 def _validate_factors(factors: Tuple[CandidateFactor, ...]) -> None:

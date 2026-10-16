@@ -1,18 +1,30 @@
 """Public scientific-state composition and resolution tests."""
 
+from dataclasses import replace
+
 import hotpot
+import pytest
 
 from hotpot.cheminfo.calculator.charge import (
     resolve_net_charge,
     solve_main_group_lewis,
 )
-from hotpot.cheminfo.calculator.contracts import ResolutionStatus
+from hotpot.cheminfo.calculator.contracts import (
+    CandidateBudget,
+    ResolutionStatus,
+    ScientificQuantity,
+)
 from hotpot.cheminfo.calculator.electronic_state import (
     infer_electronic_states,
 )
 from hotpot.cheminfo.calculator.state_composition import (
+    CandidateProposal,
     CandidateDomainScope,
     CandidateSearchStatus,
+    FactorKey,
+    MaterializationStatus,
+    ProposedCandidateFactor,
+    ProposedCandidateValue,
     StateValueOrigin,
     compose_scientific_state_space,
 )
@@ -122,3 +134,38 @@ def test_foreign_result_envelopes_do_not_enter_candidate_factors() -> None:
     assert space.factors == ()
     assert space.expanded_paths == ()
     assert space.search_status is CandidateSearchStatus.NOT_EVALUATED
+
+
+def test_direct_candidate_proposal_cannot_bypass_producer_budget() -> None:
+    facts, net_charge_results, _ = _explicit_results()
+    charge = net_charge_results[0].candidates[0]
+    other_charge = replace(
+        charge,
+        provenance=replace(charge.provenance, identity="charge:other"),
+        charge=1,
+    )
+    proposal = CandidateProposal(
+        "direct:over-budget",
+        (
+            ProposedCandidateFactor(
+                FactorKey(ScientificQuantity.NET_CHARGE, "molecule"),
+                "direct-charge-domain-v1",
+                tuple(
+                    ProposedCandidateValue(candidate)
+                    for candidate in (charge, other_charge)
+                ),
+                CandidateDomainScope.DOMAIN_BOUNDED,
+                MaterializationStatus.COMPLETE,
+                None,
+            ),
+        ),
+        (),
+    )
+
+    with pytest.raises(ValueError, match="materialization budget"):
+        compose_scientific_state_space(
+            facts,
+            net_charge_results=net_charge_results,
+            candidate_proposals=(proposal,),
+            candidate_budget=CandidateBudget(1, 8, 8),
+        )

@@ -26,6 +26,7 @@ from .contracts import (
     ProposedCandidateFactor,
     StateCandidate,
 )
+from .validation import _validate_candidate_proposals
 
 __all__ = []
 
@@ -239,6 +240,7 @@ def _merge_candidate_proposals(
     Tuple[CandidateConstraint, ...],
     Tuple[GuardedCandidateConstraint, ...],
 ]:
+    _validate_candidate_proposals(proposals)
     proposal_ids = tuple(proposal.proposal_id for proposal in proposals)
     if len(set(proposal_ids)) != len(proposal_ids):
         raise ValueError("Candidate proposal IDs must be unique")

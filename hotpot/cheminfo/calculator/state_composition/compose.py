@@ -50,6 +50,7 @@ from .contracts import (
 )
 from .decision_search import _DecisionSearchCompiler
 from .expand import _FRONTIER_SCHEMA, _expand_scientific_paths
+from .validation import _validate_candidate_proposal_budget
 
 __all__ = ["compose_scientific_state_space"]
 
@@ -63,10 +64,20 @@ _RESULT_EXHAUSTIVE_AUTHORITIES = frozenset(
 )
 
 
+_RESOURCE_TRUNCATION_CODES = {
+    "lewis": frozenset({"PROVIDER-001.RESOURCE_TRUNCATED"}),
+}
+
+
 def _is_resource_truncated(
+    result_kind: str,
     findings: Tuple[ScientificFinding, ...],
 ) -> bool:
-    return any("RESOURCE_TRUNCATED" in finding.code for finding in findings)
+    truncation_codes = _RESOURCE_TRUNCATION_CODES.get(
+        result_kind,
+        frozenset(),
+    )
+    return any(finding.code in truncation_codes for finding in findings)
 
 
 def _result_domain_scope(
@@ -94,7 +105,7 @@ def _result_proposal(
     *,
     bounded_provider: bool,
 ) -> CandidateProposal:
-    truncated = _is_resource_truncated(findings)
+    truncated = _is_resource_truncated(result_kind, findings)
     summary = (
         CandidateDomainSummary(
             remaining_count_upper_bound=None,
@@ -197,6 +208,8 @@ def _compose_scientific_state_space(
 ) -> ScientificStateCandidateSpace:
     """Compose hard-valid result envelopes into a factorized state space."""
     subject = _molecular_subject_identity(facts)
+    for proposal in candidate_proposals:
+        _validate_candidate_proposal_budget(proposal, candidate_budget)
     proposals = list(candidate_proposals)
     charge_result_ids: Dict[str, set[str]] = {}
     electronic_result_ids: Dict[str, set[str]] = {}

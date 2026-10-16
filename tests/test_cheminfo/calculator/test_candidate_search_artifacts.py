@@ -4,7 +4,10 @@ from dataclasses import replace
 
 import pytest
 
-from hotpot.cheminfo.calculator.contracts import CandidateBudget
+from hotpot.cheminfo.calculator.contracts import (
+    CandidateBudget,
+    DEFAULT_CANDIDATE_BUDGET,
+)
 from hotpot.cheminfo.calculator.state_composition._artifacts import (
     _FRONTIER_SCHEMA,
     _candidate_budget_artifact_id,
@@ -45,6 +48,13 @@ def test_candidate_budget_identity_covers_every_limit() -> None:
     assert len(identities) == 4
     assert _candidate_budget_artifact_id(baseline) == (
         _candidate_budget_artifact_id(baseline)
+    )
+
+
+def test_default_candidate_budget_is_a_frozen_profile_artifact() -> None:
+    assert DEFAULT_CANDIDATE_BUDGET == CandidateBudget(64, 4096, 1024)
+    assert _candidate_budget_artifact_id(DEFAULT_CANDIDATE_BUDGET) == (
+        "b7ede39068d370473685afbe0f50e71717df270f667b08dd4a041bed400f9679"
     )
 
 

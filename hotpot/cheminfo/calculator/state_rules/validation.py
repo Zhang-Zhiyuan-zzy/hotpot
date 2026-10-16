@@ -5,8 +5,9 @@ from __future__ import annotations
 import math
 
 from ..contracts import CandidateBudget
-from ..state_composition.contracts import MaterializationStatus
-from ..state_composition.expand import _candidate_matches_factor
+from ..state_composition.validation import (
+    _validate_candidate_proposal_budget,
+)
 from .contracts import ResultType, RuleOutcome, RuleSpecification
 
 __all__ = []
@@ -45,28 +46,7 @@ def _validate_candidate_proposal(
     proposal = outcome.candidate_proposal
     if proposal is None:
         return
-    for factor in proposal.factors:
-        if (
-            len(factor.materialized_candidates)
-            > candidate_budget.max_materialized_values_per_factor
-        ):
-            raise ValueError("Rule candidate factor exceeds its materialization budget")
-        truncated = (
-            factor.materialization_status
-            is MaterializationStatus.RESOURCE_TRUNCATED
-        )
-        if truncated != (factor.unexpanded_domain_summary is not None):
-            raise ValueError(
-                "Rule factor truncation and remainder summary must agree"
-            )
-        for proposed in factor.materialized_candidates:
-            if not _candidate_matches_factor(
-                factor.factor_key,
-                proposed.candidate,
-            ):
-                raise ValueError(
-                    "Rule candidate type does not match its factor key"
-                )
+    _validate_candidate_proposal_budget(proposal, candidate_budget)
 
 
 def _validate_rule_outcome(

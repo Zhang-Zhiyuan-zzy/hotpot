@@ -191,6 +191,54 @@ def test_declared_truncation_requires_remainder_summary() -> None:
         )
 
 
+def test_complete_factor_cannot_carry_a_remainder_summary() -> None:
+    proposal = _proposal(
+        "source",
+        (_charge("q0", 0),),
+        summary=CandidateDomainSummary(1, "source:next", None),
+    )
+
+    with pytest.raises(ValueError, match="truncation and remainder"):
+        _merge_candidate_proposals(
+            (proposal,),
+            CandidateBudget(8, 8, 8),
+            (),
+        )
+
+
+@pytest.mark.parametrize("remaining", (0, -1, True, 1.0))
+def test_remainder_count_must_be_a_positive_integer(remaining: object) -> None:
+    proposal = _proposal(
+        "source",
+        (_charge("q0", 0),),
+        status=MaterializationStatus.RESOURCE_TRUNCATED,
+        summary=CandidateDomainSummary(remaining, "source:next", None),
+    )
+
+    with pytest.raises(ValueError, match="positive integer"):
+        _merge_candidate_proposals(
+            (proposal,),
+            CandidateBudget(8, 8, 8),
+            (),
+        )
+
+
+def test_remainder_requires_an_auditable_locator() -> None:
+    proposal = _proposal(
+        "source",
+        (_charge("q0", 0),),
+        status=MaterializationStatus.RESOURCE_TRUNCATED,
+        summary=CandidateDomainSummary(None, None, None),
+    )
+
+    with pytest.raises(ValueError, match="continuation or frontier"):
+        _merge_candidate_proposals(
+            (proposal,),
+            CandidateBudget(8, 8, 8),
+            (),
+        )
+
+
 def test_merge_is_independent_of_proposal_order() -> None:
     proposals = (
         _proposal("b", (_charge("q1", 1),)),

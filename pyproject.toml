@@ -147,6 +147,7 @@ include-package-data = true
     "schemas/bundle/*.sql",
     "schemas/cli/*.json",
 ]
+"hotpot.cheminfo.calculator.oxidation_state" = ["data/*.json"]
 
 [tool.setuptools.packages.find]
 include = ["hotpot*"]

@@ -1,0 +1,4639 @@
+{
+  "applicability": "bounded candidate-domain expansion; never automatic selection",
+  "elements": [
+    {
+      "atomic_number": 1,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "H"
+    },
+    {
+      "atomic_number": 2,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        }
+      ],
+      "symbol": "He"
+    },
+    {
+      "atomic_number": 3,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "Li"
+    },
+    {
+      "atomic_number": 4,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Be"
+    },
+    {
+      "atomic_number": 5,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "B"
+    },
+    {
+      "atomic_number": 6,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "C"
+    },
+    {
+      "atomic_number": 7,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "N"
+    },
+    {
+      "atomic_number": 8,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        }
+      ],
+      "symbol": "O"
+    },
+    {
+      "atomic_number": 9,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        }
+      ],
+      "symbol": "F"
+    },
+    {
+      "atomic_number": 10,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        }
+      ],
+      "symbol": "Ne"
+    },
+    {
+      "atomic_number": 11,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "Na"
+    },
+    {
+      "atomic_number": 12,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Mg"
+    },
+    {
+      "atomic_number": 13,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Al"
+    },
+    {
+      "atomic_number": 14,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Si"
+    },
+    {
+      "atomic_number": 15,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "P"
+    },
+    {
+      "atomic_number": 16,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "S"
+    },
+    {
+      "atomic_number": 17,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "Cl"
+    },
+    {
+      "atomic_number": 18,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        }
+      ],
+      "symbol": "Ar"
+    },
+    {
+      "atomic_number": 19,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "K"
+    },
+    {
+      "atomic_number": 20,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Ca"
+    },
+    {
+      "atomic_number": 21,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Sc"
+    },
+    {
+      "atomic_number": 22,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Ti"
+    },
+    {
+      "atomic_number": 23,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "V"
+    },
+    {
+      "atomic_number": 24,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Cr"
+    },
+    {
+      "atomic_number": 25,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "Mn"
+    },
+    {
+      "atomic_number": 26,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        }
+      ],
+      "symbol": "Fe"
+    },
+    {
+      "atomic_number": 27,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        }
+      ],
+      "symbol": "Co"
+    },
+    {
+      "atomic_number": 28,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Ni"
+    },
+    {
+      "atomic_number": 29,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Cu"
+    },
+    {
+      "atomic_number": 30,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Zn"
+    },
+    {
+      "atomic_number": 31,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Ga"
+    },
+    {
+      "atomic_number": 32,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Ge"
+    },
+    {
+      "atomic_number": 33,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "As"
+    },
+    {
+      "atomic_number": 34,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Se"
+    },
+    {
+      "atomic_number": 35,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        }
+      ],
+      "symbol": "Br"
+    },
+    {
+      "atomic_number": 36,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        }
+      ],
+      "symbol": "Kr"
+    },
+    {
+      "atomic_number": 37,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "Rb"
+    },
+    {
+      "atomic_number": 38,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Sr"
+    },
+    {
+      "atomic_number": 39,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Y"
+    },
+    {
+      "atomic_number": 40,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Zr"
+    },
+    {
+      "atomic_number": 41,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Nb"
+    },
+    {
+      "atomic_number": 42,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Mo"
+    },
+    {
+      "atomic_number": 43,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "Tc"
+    },
+    {
+      "atomic_number": 44,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 8
+        }
+      ],
+      "symbol": "Ru"
+    },
+    {
+      "atomic_number": 45,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        }
+      ],
+      "symbol": "Rh"
+    },
+    {
+      "atomic_number": 46,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        }
+      ],
+      "symbol": "Pd"
+    },
+    {
+      "atomic_number": 47,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        }
+      ],
+      "symbol": "Ag"
+    },
+    {
+      "atomic_number": 48,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Cd"
+    },
+    {
+      "atomic_number": 49,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "In"
+    },
+    {
+      "atomic_number": 50,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Sn"
+    },
+    {
+      "atomic_number": 51,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Sb"
+    },
+    {
+      "atomic_number": 52,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Te"
+    },
+    {
+      "atomic_number": 53,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "I"
+    },
+    {
+      "atomic_number": 54,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 8
+        }
+      ],
+      "symbol": "Xe"
+    },
+    {
+      "atomic_number": 55,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "Cs"
+    },
+    {
+      "atomic_number": 56,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Ba"
+    },
+    {
+      "atomic_number": 57,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "La"
+    },
+    {
+      "atomic_number": 58,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Ce"
+    },
+    {
+      "atomic_number": 59,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        }
+      ],
+      "symbol": "Pr"
+    },
+    {
+      "atomic_number": 60,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Nd"
+    },
+    {
+      "atomic_number": 61,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Pm"
+    },
+    {
+      "atomic_number": 62,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Sm"
+    },
+    {
+      "atomic_number": 63,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Eu"
+    },
+    {
+      "atomic_number": 64,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Gd"
+    },
+    {
+      "atomic_number": 65,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Tb"
+    },
+    {
+      "atomic_number": 66,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Dy"
+    },
+    {
+      "atomic_number": 67,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Ho"
+    },
+    {
+      "atomic_number": 68,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Er"
+    },
+    {
+      "atomic_number": 69,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Tm"
+    },
+    {
+      "atomic_number": 70,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Yb"
+    },
+    {
+      "atomic_number": 71,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Lu"
+    },
+    {
+      "atomic_number": 72,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Hf"
+    },
+    {
+      "atomic_number": 73,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Ta"
+    },
+    {
+      "atomic_number": 74,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "W"
+    },
+    {
+      "atomic_number": 75,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "Re"
+    },
+    {
+      "atomic_number": 76,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 8
+        }
+      ],
+      "symbol": "Os"
+    },
+    {
+      "atomic_number": 77,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 8
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 9
+        }
+      ],
+      "symbol": "Ir"
+    },
+    {
+      "atomic_number": 78,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        }
+      ],
+      "symbol": "Pt"
+    },
+    {
+      "atomic_number": 79,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        }
+      ],
+      "symbol": "Au"
+    },
+    {
+      "atomic_number": 80,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Hg"
+    },
+    {
+      "atomic_number": 81,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Tl"
+    },
+    {
+      "atomic_number": 82,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Pb"
+    },
+    {
+      "atomic_number": 83,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Bi"
+    },
+    {
+      "atomic_number": 84,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        }
+      ],
+      "symbol": "Po"
+    },
+    {
+      "atomic_number": 85,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "At"
+    },
+    {
+      "atomic_number": 86,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        }
+      ],
+      "symbol": "Rn"
+    },
+    {
+      "atomic_number": 87,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        }
+      ],
+      "symbol": "Fr"
+    },
+    {
+      "atomic_number": 88,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        }
+      ],
+      "symbol": "Ra"
+    },
+    {
+      "atomic_number": 89,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Ac"
+    },
+    {
+      "atomic_number": 90,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Th"
+    },
+    {
+      "atomic_number": 91,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Pa"
+    },
+    {
+      "atomic_number": 92,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "U"
+    },
+    {
+      "atomic_number": 93,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        }
+      ],
+      "symbol": "Np"
+    },
+    {
+      "atomic_number": 94,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 8
+        }
+      ],
+      "symbol": "Pu"
+    },
+    {
+      "atomic_number": 95,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 7
+        }
+      ],
+      "symbol": "Am"
+    },
+    {
+      "atomic_number": 96,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 6
+        }
+      ],
+      "symbol": "Cm"
+    },
+    {
+      "atomic_number": 97,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        }
+      ],
+      "symbol": "Bk"
+    },
+    {
+      "atomic_number": 98,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 5
+        }
+      ],
+      "symbol": "Cf"
+    },
+    {
+      "atomic_number": 99,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Es"
+    },
+    {
+      "atomic_number": 100,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Fm"
+    },
+    {
+      "atomic_number": 101,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Md"
+    },
+    {
+      "atomic_number": 102,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "No"
+    },
+    {
+      "atomic_number": 103,
+      "evidence_boundary": "compiled; environment required",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "compiled",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Lr"
+    },
+    {
+      "atomic_number": 104,
+      "evidence_boundary": "limited observations + prediction",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Rf"
+    },
+    {
+      "atomic_number": 105,
+      "evidence_boundary": "limited observations + prediction",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Db"
+    },
+    {
+      "atomic_number": 106,
+      "evidence_boundary": "limited observations + prediction",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Sg"
+    },
+    {
+      "atomic_number": 107,
+      "evidence_boundary": "limited observations + prediction",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 7
+        }
+      ],
+      "symbol": "Bh"
+    },
+    {
+      "atomic_number": 108,
+      "evidence_boundary": "limited observations + prediction",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "limited",
+          "source_class": "pubchem_compiled",
+          "value": 8
+        }
+      ],
+      "symbol": "Hs"
+    },
+    {
+      "atomic_number": 109,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 8
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 9
+        }
+      ],
+      "symbol": "Mt"
+    },
+    {
+      "atomic_number": 110,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 8
+        }
+      ],
+      "symbol": "Ds"
+    },
+    {
+      "atomic_number": 111,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Rg"
+    },
+    {
+      "atomic_number": 112,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "secondary",
+          "source_class": "secondary_registry",
+          "value": 4
+        }
+      ],
+      "symbol": "Cn"
+    },
+    {
+      "atomic_number": 113,
+      "evidence_boundary": "predominantly predicted",
+      "states": [],
+      "symbol": "Nh"
+    },
+    {
+      "atomic_number": 114,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Fl"
+    },
+    {
+      "atomic_number": 115,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        }
+      ],
+      "symbol": "Mc"
+    },
+    {
+      "atomic_number": 116,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        }
+      ],
+      "symbol": "Lv"
+    },
+    {
+      "atomic_number": 117,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 3
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 5
+        }
+      ],
+      "symbol": "Ts"
+    },
+    {
+      "atomic_number": 118,
+      "evidence_boundary": "predominantly predicted",
+      "states": [
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 0
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 1
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 2
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 4
+        },
+        {
+          "applicability": "candidate-domain expansion only",
+          "evidence_tier": "predicted",
+          "source_class": "pubchem_compiled",
+          "value": 6
+        }
+      ],
+      "symbol": "Og"
+    }
+  ],
+  "registry_id": "hotpot-element-oxidation-domain",
+  "registry_version": "2026-10-12.seed-v1",
+  "schema_version": 1,
+  "sources": [
+    {
+      "access_date": "2026-10-12",
+      "name": "PubChem PUG REST periodic table CSV",
+      "sha256": "efcadb3dd180bd06fc0fa069a81082e86553ba2b8b5d679b7827bb8c03afd3ce",
+      "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/periodictable/CSV"
+    },
+    {
+      "access_date": "2026-10-12",
+      "name": "pymatgen-core oxidation_states.yaml",
+      "sha256": "2d9f78d23b69fe1c7c9c38fdc6efad1b528c236d9a421cf15e20f4ae6f523aee",
+      "url": "https://github.com/materialsproject/pymatgen"
+    },
+    {
+      "access_date": "2026-10-12",
+      "name": "Mendeleev elements.db",
+      "sha256": "8a6312b57603e22c58ab28005bb8cacfbff721bc859eea8ddc2b784c17ffd717",
+      "url": "https://github.com/lmmentel/mendeleev"
+    }
+  ]
+}

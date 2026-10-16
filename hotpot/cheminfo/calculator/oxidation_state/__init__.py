@@ -10,8 +10,10 @@ from .contracts import (
     OxidationStateInferenceResult,
     OxidationStateOverride,
 )
+from .registry import element_oxidation_state_domain
 
 __all__ = [
+    "element_oxidation_state_domain",
     "CountingConvention",
     "OxidationStateOverride",
     "CoordinationFragmentAssignment",

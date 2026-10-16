@@ -14,6 +14,7 @@ from hotpot.ds.public._bundle_state import (
     BUNDLE_SCHEMA,
     BundleState,
     BundleStateError,
+    ConcurrentStateError,
 )
 from hotpot.ds.public.bundle import Bundle
 from hotpot.ds.public.case import UnsynchronizedBundleError
@@ -216,12 +217,11 @@ def test_synchronization_snapshot_reuses_one_facts_transaction_for_two_scans(
         first = list(snapshot.iter_cases())
         writer = sqlite3.connect(state.path, timeout=0)
         try:
-            writer.execute(
-                "UPDATE cases SET payload_json=payload_json || ' ' "
-                "WHERE case_id='case-0'"
-            )
             with pytest.raises(sqlite3.OperationalError, match="locked"):
-                writer.commit()
+                writer.execute(
+                    "UPDATE cases SET payload_json=payload_json || ' ' "
+                    "WHERE case_id='case-0'"
+                )
             writer.rollback()
         finally:
             writer.close()
@@ -231,6 +231,61 @@ def test_synchronization_snapshot_reuses_one_facts_transaction_for_two_scans(
     assert proofs == 1
     assert [case["id"] for case in first] == ["case-0", "case-1"]
     assert second == first
+
+
+def test_synchronization_proof_and_case_cursors_share_one_write_lock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    original = BundleState._compute_source_digest
+    attack_blocked = False
+
+    def proof_then_attack(self, connection, manifest, **kwargs):
+        nonlocal attack_blocked
+        digest = original(self, connection, manifest, **kwargs)
+        attacker = sqlite3.connect(state.path, timeout=0)
+        try:
+            with pytest.raises(sqlite3.OperationalError, match="locked"):
+                attacker.execute(
+                    "UPDATE cases SET payload_json=payload_json || ' ' "
+                    "WHERE case_id='case-0'"
+                )
+            attacker.rollback()
+            attack_blocked = True
+        finally:
+            attacker.close()
+        return digest
+
+    monkeypatch.setattr(BundleState, "_compute_source_digest", proof_then_attack)
+    with state.synchronization_snapshot() as snapshot:
+        assert list(snapshot.iter_cases())[0]["id"] == "case-0"
+
+    assert attack_blocked is True
+
+
+def test_synchronization_rejects_facts_aba_stamp_before_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _build(_root(tmp_path))
+    original = state_module._source_path_observation
+    facts_observations = 0
+
+    def observe(path: Path):
+        nonlocal facts_observations
+        value = original(path)
+        if Path(path) == state.path:
+            facts_observations += 1
+            if facts_observations == 2:
+                status, stamp = value
+                return status, (*stamp[:-1], stamp[-1] + 1)
+        return value
+
+    monkeypatch.setattr(state_module, "_source_path_observation", observe)
+    with pytest.raises(ConcurrentStateError, match="facts changed"):
+        with state.synchronization_snapshot() as snapshot:
+            assert list(snapshot.iter_cases())[0]["id"] == "case-0"
+
+    assert facts_observations == 2
 
 
 def test_synchronization_snapshot_rejects_asset_aba_without_rehashing(
@@ -263,9 +318,18 @@ def test_synchronization_snapshot_exception_releases_read_transaction(
 ) -> None:
     state = _build(_root(tmp_path))
 
+    def dirty_edit(case):
+        case["metadata"]["dirty"] = True
+        return {}, None
+
+    state.mutate_case("case-0", "metadata_changed", dirty_edit)
+    assert state.status["source_digest_state"] == "dirty"
+
     with pytest.raises(RuntimeError, match="assessment stopped"):
         with state.synchronization_snapshot():
             raise RuntimeError("assessment stopped")
+
+    assert state.status["source_digest_state"] == "dirty"
 
     def edit(case):
         case["metadata"]["after_failure"] = True
@@ -273,6 +337,43 @@ def test_synchronization_snapshot_exception_releases_read_transaction(
 
     state.mutate_case("case-0", "metadata_changed", edit)
     assert state.get_case("case-0")["metadata"]["after_failure"] is True
+
+
+def test_synchronization_commits_source_and_governance_audit_batch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    asset = tmp_path / "bundle" / "assets" / "primary.smi"
+    asset.parent.mkdir(parents=True)
+    asset.write_text("O\n", encoding="utf-8")
+    state = _build(
+        _root(
+            tmp_path,
+            cases=[_case(0, asset="assets/primary.smi")],
+        )
+    )
+    before = state.status
+    asset.write_text("N\n", encoding="utf-8")
+    monkeypatch.setattr(
+        state_module, "_trusted_governance_binding", lambda: (1, "a" * 64)
+    )
+
+    with state.synchronization_snapshot() as snapshot:
+        assert list(snapshot.iter_cases())[0]["id"] == "case-0"
+
+    after = state.status
+    assert after["source_revision"] == before["source_revision"] + 1
+    assert after["governance_registry_revision"] == 1
+    assert after["audit_revision"] == before["audit_revision"] + 2
+    assert after["audit_projection_revision"] == after["audit_revision"]
+    assert after["audit_projection_current"] is True
+    events = [
+        json.loads(line)
+        for line in (state.root / "audit" / "events.jsonl").read_text().splitlines()
+    ]
+    assert [event["action"] for event in events[-2:]] == [
+        "scientific_asset_state_changed",
+        "governance_registry_advanced",
+    ]
 
 
 def test_invalid_mutation_rolls_back_facts_revision_and_audit(tmp_path: Path) -> None:

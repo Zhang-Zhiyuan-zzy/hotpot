@@ -1424,134 +1424,124 @@ class BundleState:
             "audit_projection_updated": projection_updated,
         }
 
-    def _prepare_synchronization(
-        self,
-        source_observations: Optional[
-            Dict[str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]]
-        ],
-    ) -> Dict[str, Any]:
-        """Return one verified input snapshot without repeating the source proof."""
-
-        prepared_source = self.refresh_source_state(
-            _source_observations=source_observations
-        )
-        prepared_governance = self.refresh_governance_state()
-        trusted_governance = _trusted_governance_binding()
-        with self.connect() as connection:
-            connection.execute("BEGIN")
-            try:
-                manifest = self._stored_manifest(connection)
-                policy = json.loads(
-                    connection.execute(
-                        "SELECT policy_json FROM policy WHERE singleton=1"
-                    ).fetchone()[0]
-                )
-                control = connection.execute(
-                    "SELECT * FROM control WHERE singleton=1"
-                ).fetchone()
-                connection.commit()
-            except Exception:
-                connection.rollback()
-                raise
-        if control["source_digest_state"] != "current":
-            raise DirtySourceStateError(
-                "Bundle source proof became dirty while synchronization was prepared"
-            )
-        if (
-            control["source_revision"],
-            control["source_digest"],
-        ) != (
-            prepared_source["source_revision"],
-            prepared_source["source_digest"],
-        ):
-            raise ConcurrentStateError(
-                "Bundle source inputs changed while synchronization was prepared"
-            )
-        policy_digest = _digest_json(policy)
-        if policy_digest != control["policy_digest"]:
-            raise BundleStateError(
-                "persisted policy digest does not match the canonical policy"
-            )
-        require_current_runtime_policy(policy["runtime_policy"])
-        governance = (
-            control["governance_registry_revision"],
-            control["governance_registry_digest"],
-        )
-        prepared_binding = (
-            prepared_governance["governance_registry_revision"],
-            prepared_governance["governance_registry_digest"],
-        )
-        if governance != prepared_binding or governance != trusted_governance:
-            raise ConcurrentStateError(
-                "trusted governance changed while synchronization was prepared"
-            )
-        return _json_copy(
-            {
-                "source_revision": control["source_revision"],
-                "source_digest": control["source_digest"],
-                "policy_revision": control["policy_revision"],
-                "policy_digest": policy_digest,
-                "governance_registry_revision": governance[0],
-                "governance_registry_digest": governance[1],
-                "manifest": manifest,
-                "policy": policy,
-            }
-        )
-
     def prepare_synchronization(self) -> Dict[str, Any]:
-        return self._prepare_synchronization(None)
+        with self.synchronization_snapshot() as snapshot:
+            return dict(snapshot)
 
     @contextmanager
     def synchronization_snapshot(self) -> Iterator[_SynchronizationSnapshot]:
-        """Hold one repeatable read transaction across assessment input scans."""
+        """Atomically prove and hold the facts consumed by assessment scans."""
 
         source_observations: Dict[
             str, tuple[str, Optional[tuple[int, int, int, int, int, int]]]
         ] = {}
-        prepared = self._prepare_synchronization(source_observations)
-        facts_observation = _source_path_observation(self.path)
-        if facts_observation[0] != "present":
-            raise BundleStateError("canonical facts store is not a regular file")
+        projection_events: list[Dict[str, Any]] = []
+        previous_audit_revision = 0
+        final_audit_revision = 0
         with self.connect() as connection:
-            connection.execute("BEGIN")
+            connection.execute("BEGIN IMMEDIATE")
             try:
-                control = connection.execute(
-                    "SELECT * FROM control WHERE singleton=1"
-                ).fetchone()
+                facts_observation = _source_path_observation(self.path)
+                if facts_observation[0] != "present":
+                    raise BundleStateError(
+                        "canonical facts store is not a regular file"
+                    )
                 manifest = self._stored_manifest(connection)
+                control = dict(
+                    connection.execute(
+                        "SELECT * FROM control WHERE singleton=1"
+                    ).fetchone()
+                )
+                previous_audit_revision = control["audit_revision"]
+                source_digest = self._compute_source_digest(
+                    connection,
+                    manifest,
+                    observation_sink=source_observations,
+                )
+                source_changed = source_digest != control["source_digest"]
+                if control["source_digest_state"] == "current" and source_changed:
+                    old_digest = control["source_digest"]
+                    control["source_revision"] += 1
+                    control["audit_revision"] += 1
+                    event_id = f"event-{uuid.uuid4().hex}"
+                    created_at = _utc_now()
+                    details = {
+                        "previous_source_digest": old_digest,
+                        "current_source_digest": source_digest,
+                    }
+                    projection_events.append(
+                        {
+                            "event_id": event_id,
+                            "created_at": created_at,
+                            "action": "scientific_asset_state_changed",
+                            "case_id": None,
+                            "details": details,
+                            "source_revision": control["source_revision"],
+                            "policy_revision": control["policy_revision"],
+                        }
+                    )
+
+                governance_revision, governance_digest = _trusted_governance_binding()
+                previous_governance_revision = control[
+                    "governance_registry_revision"
+                ]
+                previous_governance_digest = control["governance_registry_digest"]
+                if governance_revision < previous_governance_revision:
+                    raise BundleStateError(
+                        "trusted governance registry revision cannot regress"
+                    )
+                if (
+                    governance_revision == previous_governance_revision
+                    and governance_digest != previous_governance_digest
+                ):
+                    raise BundleStateError(
+                        "trusted governance registry digest changed without a revision"
+                    )
+                if governance_revision > previous_governance_revision:
+                    control["governance_registry_revision"] = governance_revision
+                    control["governance_registry_digest"] = governance_digest
+                    control["audit_revision"] += 1
+                    event_id = f"event-{uuid.uuid4().hex}"
+                    created_at = _utc_now()
+                    details = {
+                        "previous_revision": previous_governance_revision,
+                        "previous_digest": previous_governance_digest,
+                        "current_revision": governance_revision,
+                        "current_digest": governance_digest,
+                    }
+                    projection_events.append(
+                        {
+                            "event_id": event_id,
+                            "created_at": created_at,
+                            "action": "governance_registry_advanced",
+                            "case_id": None,
+                            "details": details,
+                            "source_revision": control["source_revision"],
+                            "policy_revision": control["policy_revision"],
+                        }
+                    )
+
                 policy = json.loads(
                     connection.execute(
                         "SELECT policy_json FROM policy WHERE singleton=1"
                     ).fetchone()[0]
                 )
-                current = {
+                policy_digest = _digest_json(policy)
+                if policy_digest != control["policy_digest"]:
+                    raise BundleStateError(
+                        "persisted policy digest does not match the canonical policy"
+                    )
+                require_current_runtime_policy(policy["runtime_policy"])
+                prepared = {
                     "source_revision": control["source_revision"],
-                    "source_digest": control["source_digest"],
+                    "source_digest": source_digest,
                     "policy_revision": control["policy_revision"],
-                    "policy_digest": control["policy_digest"],
-                    "governance_registry_revision": control[
-                        "governance_registry_revision"
-                    ],
-                    "governance_registry_digest": control[
-                        "governance_registry_digest"
-                    ],
+                    "policy_digest": policy_digest,
+                    "governance_registry_revision": governance_revision,
+                    "governance_registry_digest": governance_digest,
                     "manifest": manifest,
                     "policy": policy,
                 }
-                if (
-                    control["source_digest_state"] != "current"
-                    or current != prepared
-                ):
-                    raise ConcurrentStateError(
-                        "Bundle inputs changed before the synchronization snapshot"
-                    )
-                if _source_path_observation(self.path) != facts_observation:
-                    raise ConcurrentStateError(
-                        "canonical facts changed before the synchronization snapshot"
-                    )
-                _assert_source_observations_current(
-                    self.root, source_observations
-                )
                 try:
                     yield _SynchronizationSnapshot(prepared, connection)
                 except BaseException:
@@ -1559,13 +1549,61 @@ class BundleState:
                 else:
                     if _source_path_observation(self.path) != facts_observation:
                         raise ConcurrentStateError(
-                            "canonical facts changed during the synchronization snapshot"
+                            "canonical facts changed during synchronization"
                         )
                     _assert_source_observations_current(
                         self.root, source_observations
                     )
-            finally:
+                    if _trusted_governance_binding() != (
+                        governance_revision,
+                        governance_digest,
+                    ):
+                        raise ConcurrentStateError(
+                            "trusted governance changed during synchronization"
+                        )
+                    final_audit_revision = control["audit_revision"]
+                    connection.execute(
+                        "UPDATE control SET source_revision=?,source_digest=?,"
+                        "source_digest_state='current',"
+                        "governance_registry_revision=?,"
+                        "governance_registry_digest=?,audit_revision=? "
+                        "WHERE singleton=1",
+                        (
+                            control["source_revision"],
+                            source_digest,
+                            governance_revision,
+                            governance_digest,
+                            final_audit_revision,
+                        ),
+                    )
+                    for event in projection_events:
+                        connection.execute(
+                            """
+                            INSERT INTO audit_events(
+                                event_id,created_at,action,case_id,details_json,
+                                source_revision,policy_revision
+                            ) VALUES (?,?,?,?,?,?,?)
+                            """,
+                            (
+                                event["event_id"],
+                                event["created_at"],
+                                event["action"],
+                                event["case_id"],
+                                _canonical_text(event["details"]),
+                                event["source_revision"],
+                                event["policy_revision"],
+                            ),
+                        )
+                    connection.commit()
+            except BaseException:
                 connection.rollback()
+                raise
+        if projection_events:
+            self._append_audit_projection_events(
+                projection_events,
+                expected_previous_revision=previous_audit_revision,
+                revision=final_audit_revision,
+            )
 
     def mutate_case(
         self,
@@ -1936,7 +1974,24 @@ class BundleState:
     ) -> bool:
         """Append one event only when the projection is provably current."""
 
-        content = _canonical_bytes(dict(event)) + b"\n"
+        return self._append_audit_projection_events(
+            [event],
+            expected_previous_revision=expected_previous_revision,
+            revision=revision,
+        )
+
+    def _append_audit_projection_events(
+        self,
+        events: list[Mapping[str, Any]],
+        *,
+        expected_previous_revision: int,
+        revision: int,
+    ) -> bool:
+        """Atomically append one committed contiguous audit-event batch."""
+
+        content = b"".join(
+            _canonical_bytes(dict(event)) + b"\n" for event in events
+        )
         path = self.root / "audit" / "events.jsonl"
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")

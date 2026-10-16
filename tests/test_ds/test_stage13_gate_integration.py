@@ -298,8 +298,15 @@ def test_generation_preserves_custom_definition_and_runner_boundary(
     policy = state.policy
     from hotpot.ds.governance import default_registry_snapshot
 
-    with pytest.raises(CheckerIsolationUnavailableError):
-        AssessmentGeneration.build(root, state, policy, default_registry_snapshot())
+    with state.synchronization_snapshot() as input_snapshot:
+        with pytest.raises(CheckerIsolationUnavailableError):
+            AssessmentGeneration.build(
+                root,
+                state,
+                policy,
+                default_registry_snapshot(),
+                input_snapshot=input_snapshot,
+            )
 
     class PassingRunner:
         os_isolation_verified = True
@@ -309,13 +316,15 @@ def test_generation_preserves_custom_definition_and_runner_boundary(
             assert bundle["dataset"]["ds_name"] == "demo"
             return True, "isolated approval"
 
-    generation = AssessmentGeneration.build(
-        root,
-        state,
-        policy,
-        default_registry_snapshot(),
-        isolated_runner=PassingRunner(),
-    )
+    with state.synchronization_snapshot() as input_snapshot:
+        generation = AssessmentGeneration.build(
+            root,
+            state,
+            policy,
+            default_registry_snapshot(),
+            input_snapshot=input_snapshot,
+            isolated_runner=PassingRunner(),
+        )
     assert generation.get_case("case-1")["benchmark"] is True
 
 
@@ -387,9 +396,14 @@ def test_generation_uses_persisted_numeric_tolerances(tmp_path: Path) -> None:
             target_context={"mode": "new", "store_id": None},
         )
         policy = state.policy
-        return AssessmentGeneration.build(
-            root, state, policy, default_registry_snapshot()
-        ).get_case("case-1")
+        with state.synchronization_snapshot() as input_snapshot:
+            return AssessmentGeneration.build(
+                root,
+                state,
+                policy,
+                default_registry_snapshot(),
+                input_snapshot=input_snapshot,
+            ).get_case("case-1")
 
     assert build("strict", {})["benchmark_status"] == "vetoed"
     assert build("tolerant", {"spin": {"absolute": 0.1}})["benchmark"] is True

@@ -475,22 +475,33 @@ class Bundle:
     def synchronize(self) -> Dict[str, Any]:
         with self._locked():
             self._assert_editable()
-            self._state.refresh_source_state()
-            self._state.refresh_governance_state()
-            status = self._state.status
             from ._generation import AssessmentGeneration
 
-            generation = AssessmentGeneration.build(
-                self.root,
-                self._state,
-                self._state.policy,
-                self._governance_registry_snapshot(),
-                isolated_runner=(
-                    OSIsolatedCheckerRunner((self.root, self._database.parent))
-                    if _policy_has_custom_checkers(self._state.policy)
-                    else None
-                ),
-            )
+            with self._state.synchronization_snapshot() as input_snapshot:
+                policy = input_snapshot["policy"]
+                generation = AssessmentGeneration.build(
+                    self.root,
+                    self._state,
+                    policy,
+                    self._governance_registry_snapshot(),
+                    input_snapshot=input_snapshot,
+                    isolated_runner=(
+                        OSIsolatedCheckerRunner((self.root, self._database.parent))
+                        if _policy_has_custom_checkers(policy)
+                        else None
+                    ),
+                )
+                status = {
+                    key: input_snapshot[key]
+                    for key in (
+                        "source_revision",
+                        "source_digest",
+                        "policy_revision",
+                        "policy_digest",
+                        "governance_registry_revision",
+                        "governance_registry_digest",
+                    )
+                }
             self._state.publish_generation(
                 generation.id,
                 generation.digest,
@@ -514,7 +525,9 @@ class Bundle:
                 "summary": deepcopy(generation.summary),
                 "is_synchronized": True,
             }
-            self._collect_generation_garbage()
+            self._collect_generation_garbage(
+                current_reference=(generation.id, generation.digest)
+            )
             return result
 
     def write_certificate(self) -> Path:
@@ -697,19 +710,23 @@ class Bundle:
             )
         return generation
 
-    def _collect_generation_garbage(self) -> Dict[str, Any]:
+    def _collect_generation_garbage(
+        self,
+        current_reference: Optional[tuple[str, str]] = None,
+    ) -> Dict[str, Any]:
         """Run private reference-safe generation maintenance under the Bundle lock."""
 
         from ._generation import _collect_obsolete_generations
 
-        status = self._state.status
-        current_id = status.get("current_generation_id")
-        current_digest = status.get("current_generation_digest")
-        current_reference = (
-            (current_id, current_digest)
-            if isinstance(current_id, str) and isinstance(current_digest, str)
-            else None
-        )
+        if current_reference is None:
+            status = self._state.status
+            current_id = status.get("current_generation_id")
+            current_digest = status.get("current_generation_digest")
+            current_reference = (
+                (current_id, current_digest)
+                if isinstance(current_id, str) and isinstance(current_digest, str)
+                else None
+            )
         receipt_digests = []
         receipt_reference_unknown = False
         local_receipt = self.root / "ingestion-receipt.json"

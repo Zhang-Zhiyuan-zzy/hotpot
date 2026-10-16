@@ -863,7 +863,8 @@ def _initialize_work_database(connection: sqlite3.Connection) -> None:
 
 
 def _stream_inputs(
-    state: BundleState,
+    root: Path,
+    case_source: Any,
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     identity_schema: Mapping[str, Any],
@@ -871,7 +872,7 @@ def _stream_inputs(
     snapshot_directory: Path,
     runtime_policy: Mapping[str, Any],
 ) -> None:
-    for source_case in state.iter_cases():
+    for source_case in case_source.iter_cases():
         case = _normalize_case(source_case)
         case_id = str(case["id"])
         public_index = int(case["public_index"])
@@ -909,7 +910,7 @@ def _stream_inputs(
             for record in _active(case.get(collection, [])):
                 for declaration in _asset_declarations(case_id, collection, record):
                     asset = _assess_asset(
-                        state.root,
+                            root,
                         declaration,
                         required_roles,
                         snapshot_directory,
@@ -1080,7 +1081,7 @@ def _grouped_support_rows(
 
 
 def _assess_cases(
-    state: BundleState,
+    case_source: Any,
     assessment: sqlite3.Connection,
     work: sqlite3.Connection,
     manifest: Mapping[str, Any],
@@ -1129,7 +1130,7 @@ def _assess_cases(
         )
     )
     for source_case, identity_row, asset_group, conflict_group in zip_longest(
-        state.iter_cases(), identity_rows, asset_groups, conflict_groups
+        case_source.iter_cases(), identity_rows, asset_groups, conflict_groups
     ):
         if (
             source_case is None
@@ -1318,21 +1319,42 @@ class AssessmentGeneration:
         policy: Mapping[str, Any],
         governance_registry: Mapping[str, Any],
         *,
+        input_snapshot: Mapping[str, Any],
         isolated_runner: Optional[Any] = None,
     ) -> "AssessmentGeneration":
         bundle_root = Path(root).resolve()
         if bundle_root != state.root:
             raise AssessmentGenerationError("generation root does not match BundleState")
-        status = state.status
-        if status["source_digest"] != status["recorded_source_digest"]:
+        snapshot_fields = {
+            "source_revision",
+            "source_digest",
+            "policy_revision",
+            "policy_digest",
+            "governance_registry_revision",
+            "governance_registry_digest",
+            "manifest",
+            "policy",
+        }
+        if set(input_snapshot) != snapshot_fields or not callable(
+            getattr(input_snapshot, "iter_cases", None)
+        ):
             raise AssessmentGenerationError(
-                "source assets changed; refresh BundleState before synchronization"
+                "generation requires a current synchronization input snapshot"
             )
-        if status["policy_digest"] != status["recorded_policy_digest"]:
+        status = {
+            key: input_snapshot[key]
+            for key in snapshot_fields - {"manifest", "policy"}
+        }
+        manifest = _json_copy(input_snapshot["manifest"])
+        if manifest.get("ds_name") != state.ds_name:
             raise AssessmentGenerationError(
-                "policy changed outside BundleState; persist it before synchronization"
+                "synchronization snapshot dataset does not match BundleState"
             )
         policy_value = _json_copy(policy)
+        if policy_value != _json_copy(input_snapshot["policy"]):
+            raise AssessmentGenerationError(
+                "supplied policy is not the synchronization snapshot policy"
+            )
         if canonical_digest(policy_value) != status["policy_digest"]:
             raise AssessmentGenerationError("supplied policy is not the persisted policy")
         try:
@@ -1350,7 +1372,14 @@ class AssessmentGeneration:
         verified_registry = verify_registry(governance_registry)
         registry = verified_registry.to_dict()
         registry_digest = verified_registry.digest
-        manifest = state.manifest
+        if (
+            verified_registry.revision
+            != status["governance_registry_revision"]
+            or registry_digest != status["governance_registry_digest"]
+        ):
+            raise AssessmentGenerationError(
+                "governance registry is not the synchronization snapshot registry"
+            )
         try:
             identity_schema = validate_identity_schema(
                 policy_value["identity_schema"]
@@ -1383,7 +1412,8 @@ class AssessmentGeneration:
             _initialize_work_database(work)
             with assessment, work:
                 _stream_inputs(
-                    state,
+                    bundle_root,
+                    input_snapshot,
                     assessment,
                     work,
                     identity_schema,
@@ -1400,7 +1430,7 @@ class AssessmentGeneration:
                     property_comparators,
                 )
                 _assess_cases(
-                    state,
+                    input_snapshot,
                     assessment,
                     work,
                     manifest,

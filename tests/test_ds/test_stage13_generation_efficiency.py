@@ -8,7 +8,11 @@ import pytest
 
 from hotpot.ds.gates._persistence import default_gates, serialize_gate_configs
 from hotpot.ds.governance import default_registry_snapshot, verify_registry
-from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
+from hotpot.ds.public._bundle_state import (
+    BUNDLE_SCHEMA,
+    BundleState,
+    _SynchronizationSnapshot,
+)
 from hotpot.ds.public._generation import (
     AssessmentGeneration,
     _assess_cases,
@@ -19,6 +23,7 @@ from hotpot.ds.public._generation import (
     _stream_inputs,
 )
 from hotpot.ds.public._implementation import runtime_policy
+from hotpot.ds.public.bundle import Bundle
 
 
 def _case(index: int) -> dict:
@@ -107,6 +112,7 @@ def test_case_support_queries_are_bounded_independent_of_case_count(
     manifest = state.manifest
     with assessment, work:
         _stream_inputs(
+            state.root,
             state,
             assessment,
             work,
@@ -152,13 +158,13 @@ def test_case_support_queries_are_bounded_independent_of_case_count(
     assert assessment.execute("SELECT COUNT(*) FROM case_assessments").fetchone()[0] == size
 
 
-def test_generation_build_reads_source_cases_once_and_validates_once(
+def test_generation_build_uses_two_ordered_case_passes_and_validates_once(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     state = _state(tmp_path, 12)
     iter_calls = 0
     validation_calls = 0
-    original_iter = BundleState.iter_cases
+    original_iter = _SynchronizationSnapshot.iter_cases
     original_open = AssessmentGeneration._open_without_lease.__func__
 
     def counted_iter(self):
@@ -171,20 +177,43 @@ def test_generation_build_reads_source_cases_once_and_validates_once(
         validation_calls += 1
         return original_open(cls, *args, **kwargs)
 
-    monkeypatch.setattr(BundleState, "iter_cases", counted_iter)
+    monkeypatch.setattr(_SynchronizationSnapshot, "iter_cases", counted_iter)
     monkeypatch.setattr(
         AssessmentGeneration,
         "_open_without_lease",
         classmethod(counted_open),
     )
 
-    generation = AssessmentGeneration.build(
-        state.root,
-        state,
-        state.policy,
-        default_registry_snapshot(),
-    )
+    with state.synchronization_snapshot() as input_snapshot:
+        generation = AssessmentGeneration.build(
+            state.root,
+            state,
+            state.policy,
+            default_registry_snapshot(),
+            input_snapshot=input_snapshot,
+        )
 
     assert generation.summary["cases"] == 12
     assert iter_calls == 2
     assert validation_calls == 1
+
+
+def test_bundle_synchronize_performs_exactly_prepare_and_publish_source_proofs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state = _state(tmp_path, 10)
+    bundle = Bundle._from_state(state, tmp_path / "target.sqlite3")
+    proof_calls = 0
+    original = BundleState._compute_source_digest
+
+    def counted_proof(self, connection, manifest, **kwargs):
+        nonlocal proof_calls
+        proof_calls += 1
+        return original(self, connection, manifest, **kwargs)
+
+    monkeypatch.setattr(BundleState, "_compute_source_digest", counted_proof)
+
+    result = bundle.synchronize()
+
+    assert result["is_synchronized"] is True
+    assert proof_calls == 2

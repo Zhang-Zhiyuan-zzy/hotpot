@@ -137,6 +137,21 @@ def _registry() -> dict:
     return default_registry_snapshot()
 
 
+def _build_generation(
+    root: Path,
+    state: BundleState,
+    policy: dict,
+) -> AssessmentGeneration:
+    with state.synchronization_snapshot() as input_snapshot:
+        return AssessmentGeneration.build(
+            root,
+            state,
+            policy,
+            _registry(),
+            input_snapshot=input_snapshot,
+        )
+
+
 def test_build_writes_three_indexes_and_does_not_publish_current_pointer(
     tmp_path: Path,
 ) -> None:
@@ -157,7 +172,7 @@ def test_build_writes_three_indexes_and_does_not_publish_current_pointer(
     (structures / "b.smi").write_text("N\n", encoding="utf-8")
     state, policy = _build_state(root)
 
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
 
     assert list(generation.iter_archive_ids("incomplete")) == ["incomplete"]
     assert list(generation.iter_archive_ids("ordinary")) == ["ordinary"]
@@ -180,8 +195,8 @@ def test_generation_digest_is_deterministic_and_existing_generation_is_reused(
     root = _root(tmp_path, [_case("case-1", 0)])
     state, policy = _build_state(root)
 
-    first = AssessmentGeneration.build(root, state, policy, _registry())
-    second = AssessmentGeneration.build(root, state, policy, _registry())
+    first = _build_generation(root, state, policy)
+    second = _build_generation(root, state, policy)
 
     assert first.id == second.id
     assert first.digest == second.digest
@@ -216,7 +231,7 @@ def test_asset_assessments_record_missing_hash_mismatch_and_parse_failure(
     )
     state, policy = _build_state(root)
 
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
     result = generation.get_case("assets")
     assets = {item["role"]: item for item in result["asset_assessments"]}
 
@@ -260,9 +275,9 @@ def test_asset_collections_and_representations_are_all_assessed(tmp_path: Path) 
     )
     state, policy = _build_state(root)
 
-    assets = AssessmentGeneration.build(
-        root, state, policy, _registry()
-    ).get_case("multi")["asset_assessments"]
+    assets = _build_generation(root, state, policy).get_case("multi")[
+        "asset_assessments"
+    ]
 
     assert sorted((item["format"], item["presence"]) for item in assets) == [
         ("smi", "present"),
@@ -273,7 +288,7 @@ def test_asset_collections_and_representations_are_all_assessed(tmp_path: Path) 
 def test_open_rejects_inventory_and_database_tampering(tmp_path: Path) -> None:
     root = _root(tmp_path, [_case("case-1", 0)])
     state, policy = _build_state(root)
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
     directory = root / "assessments" / "generations" / generation.id
 
     (directory / "summary.json").write_text("{}\n", encoding="utf-8")
@@ -284,7 +299,7 @@ def test_open_rejects_inventory_and_database_tampering(tmp_path: Path) -> None:
 def test_open_rejects_incomplete_manifest_inventory(tmp_path: Path) -> None:
     root = _root(tmp_path, [_case("case-1", 0)])
     state, policy = _build_state(root)
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
     directory = root / "assessments" / "generations" / generation.id
     unexpected = directory / "unlisted.txt"
     unexpected.write_text("not in generation.json", encoding="utf-8")
@@ -296,7 +311,7 @@ def test_open_rejects_incomplete_manifest_inventory(tmp_path: Path) -> None:
 def test_open_checks_expected_digest_and_get_case_errors(tmp_path: Path) -> None:
     root = _root(tmp_path, [_case("case-1", 0)])
     state, policy = _build_state(root)
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
 
     reopened = AssessmentGeneration.open(root, generation.id, generation.digest)
     assert reopened.manifest["source"]["digest"] == state.source_digest
@@ -317,7 +332,7 @@ def test_open_checks_expected_digest_and_get_case_errors(tmp_path: Path) -> None
 def test_generation_exposes_certificate_manifest_binding(tmp_path: Path) -> None:
     root = _root(tmp_path, [_case("case-1", 0)])
     state, policy = _build_state(root)
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
 
     assert generation.manifest_path == (
         root / "assessments" / "generations" / generation.id / "generation.json"
@@ -330,7 +345,7 @@ def test_generation_exposes_certificate_manifest_binding(tmp_path: Path) -> None
 def test_open_rejects_tampered_frozen_runtime_policy(tmp_path: Path) -> None:
     root = _root(tmp_path, [_case("case-1", 0)])
     state, policy = _build_state(root)
-    generation = AssessmentGeneration.build(root, state, policy, _registry())
+    generation = _build_generation(root, state, policy)
     manifest = json.loads(generation.manifest_path.read_text(encoding="utf-8"))
     manifest["runtime_policy"]["runtime"]["python"]["version"] = "tampered"
     generation.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -352,9 +367,7 @@ def test_hotpot_authority_is_verified_on_a_derived_copy_only(tmp_path: Path) -> 
     root = _root(tmp_path, [case])
     state, policy = _build_state(root)
 
-    assessed = AssessmentGeneration.build(
-        root, state, policy, _registry()
-    ).get_case("claimed-hotpot")
+    assessed = _build_generation(root, state, policy).get_case("claimed-hotpot")
 
     assert assessed["benchmark"] is False
     assert assessed["governance_assessments"] == [

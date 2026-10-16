@@ -280,12 +280,14 @@ def test_generation_uses_property_comparator_before_benchmark_fallback(
     )
     policy = state.policy
 
-    generation = AssessmentGeneration.build(
-        root,
-        state,
-        policy,
-        default_registry_snapshot(),
-    )
+    with state.synchronization_snapshot() as input_snapshot:
+        generation = AssessmentGeneration.build(
+            root,
+            state,
+            policy,
+            default_registry_snapshot(),
+            input_snapshot=input_snapshot,
+        )
 
     for case_id in ("case-0", "case-1"):
         assessment = generation.get_case(case_id)

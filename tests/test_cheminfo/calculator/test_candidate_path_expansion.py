@@ -880,6 +880,158 @@ def test_partial_oxidation_state_factor_is_retained_in_the_path() -> None:
     assert paths[0].oxidation_state_assignment_id == "os:partial"
 
 
+def _partial_oxidation_factor(subject, candidate):
+    return ProposedCandidateFactor(
+        FactorKey(ScientificQuantity.OXIDATION_STATE, subject),
+        "partial-os-domain-v1",
+        (ProposedCandidateValue(candidate),),
+        CandidateDomainScope.DOMAIN_BOUNDED,
+        MaterializationStatus.COMPLETE,
+        None,
+    )
+
+
+def test_compatible_partial_oxidation_states_are_merged_per_path() -> None:
+    facts, charge, electronic = _scientific_candidates()
+    first = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:first",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        CountingConvention.IONIC,
+        (0, None, None),
+        CoverageStatus.PARTIAL,
+    )
+    second = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:second",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        CountingConvention.IONIC,
+        (None, 0, None),
+        CoverageStatus.PARTIAL,
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        _partial_oxidation_factor("atom:0", first),
+        _partial_oxidation_factor("atom:1", second),
+        _factor(ScientificQuantity.ELECTRONIC_STATE, electronic),
+    )
+
+    paths, rejections, _, status = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {electronic.provenance.identity: ("electronic-result",)},
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert rejections == ()
+    assert len(paths) == 1
+    assert paths[0].oxidation_state_assignment_id not in {
+        first.provenance.identity,
+        second.provenance.identity,
+    }
+    assert first.provenance.identity in paths[0].evidence_ids
+    assert second.provenance.identity in paths[0].evidence_ids
+    assert status is CandidateSearchStatus.DECISION_CERTIFIED
+
+
+def test_conflicting_partial_oxidation_states_reject_the_path() -> None:
+    facts, charge, electronic = _scientific_candidates()
+    first = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:first",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        CountingConvention.IONIC,
+        (2, None, None),
+        CoverageStatus.PARTIAL,
+    )
+    conflicting = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:conflicting",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        CountingConvention.IONIC,
+        (3, None, None),
+        CoverageStatus.PARTIAL,
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        _partial_oxidation_factor("source:first", first),
+        _partial_oxidation_factor("source:second", conflicting),
+        _factor(ScientificQuantity.ELECTRONIC_STATE, electronic),
+    )
+
+    paths, rejections, _, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {electronic.provenance.identity: ("electronic-result",)},
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert paths == ()
+    assert rejections[0].reason_codes == ("HARD-004.OS_PARTIAL_CONFLICT",)
+
+
+def test_partial_oxidation_states_cannot_mix_counting_conventions() -> None:
+    facts, charge, electronic = _scientific_candidates()
+    ionic = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:ionic",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        CountingConvention.IONIC,
+        (0, None, None),
+        CoverageStatus.PARTIAL,
+    )
+    cbc = OxidationStateCandidateEvidence(
+        CandidateProvenance(
+            "os:cbc",
+            StateValueAuthority.DOMAIN_RULE,
+            "test",
+        ),
+        CountingConvention.CBC,
+        (None, 0, None),
+        CoverageStatus.PARTIAL,
+    )
+    factors = _merged_factors(
+        _factor(ScientificQuantity.NET_CHARGE, charge),
+        _partial_oxidation_factor("atom:0", ionic),
+        _partial_oxidation_factor("atom:1", cbc),
+        _factor(ScientificQuantity.ELECTRONIC_STATE, electronic),
+    )
+
+    paths, rejections, _, _ = _expand_scientific_paths(
+        facts,
+        factors,
+        (),
+        {charge.provenance.identity: ("charge-result",)},
+        {electronic.provenance.identity: ("electronic-result",)},
+        (),
+        max_expanded_paths=8,
+        max_frontier_paths=8,
+    )
+
+    assert paths == ()
+    assert rejections[0].reason_codes == (
+        "HARD-005.COUNTING_CONVENTION_MISMATCH",
+    )
+
+
 def test_spin_contribution_factor_is_not_silently_discarded() -> None:
     facts, charge, electronic = _scientific_candidates()
     contribution = SpinContributionCandidate(

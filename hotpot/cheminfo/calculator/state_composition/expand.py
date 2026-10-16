@@ -14,6 +14,7 @@ from ..charge.contracts import (
 )
 from ..contracts import (
     CandidateProvenance,
+    CoverageStatus,
     MolecularFacts,
     ScientificAdmissibility,
     ScientificQuantity,
@@ -69,6 +70,9 @@ _HARD_CONSTRAINT_ID = "hard-scientific-consistency-v1"
 _UNBOUNDED_FRONTIER_KEY = ("unbounded",)
 _MOLECULAR_SPIN_COUPLING_SOURCE = (
     "state-composition:molecular-spin-coupling-v1"
+)
+_PARTIAL_OXIDATION_MERGE_SOURCE = (
+    "state-composition:partial-oxidation-merge-v1"
 )
 
 
@@ -274,6 +278,95 @@ def _active_constraint_rejection(
     return None
 
 
+def _merge_oxidation_states(
+    facts: MolecularFacts,
+    candidates: Tuple[OxidationStateCandidateEvidence, ...],
+) -> Tuple[Optional[OxidationStateCandidateEvidence], Optional[str]]:
+    if not candidates:
+        return None, None
+    if len(candidates) == 1:
+        return candidates[0], None
+    conventions = {candidate.convention for candidate in candidates}
+    if len(conventions) != 1:
+        return None, "HARD-005.COUNTING_CONVENTION_MISMATCH"
+    atom_count = len(facts.atomic_numbers)
+    if any(len(candidate.atom_states) != atom_count for candidate in candidates):
+        return None, "HARD-004.OS_COVERAGE_INVALID"
+    merged_states = []
+    for atom_index in range(atom_count):
+        values = {
+            candidate.atom_states[atom_index]
+            for candidate in candidates
+            if candidate.atom_states[atom_index] is not None
+        }
+        if len(values) > 1:
+            return None, "HARD-004.OS_PARTIAL_CONFLICT"
+        merged_states.append(next(iter(values)) if values else None)
+    parent_ids = tuple(
+        sorted(candidate.provenance.identity for candidate in candidates)
+    )
+    convention = candidates[0].convention
+    identity = _digest(
+        {
+            "source": _PARTIAL_OXIDATION_MERGE_SOURCE,
+            "facts": facts.identity.chemical_identity_digest,
+            "parents": parent_ids,
+            "convention": convention.value,
+            "atom_states": merged_states,
+        }
+    )
+    counting_references = {
+        candidate.coordination_counting_candidate_identity
+        for candidate in candidates
+        if candidate.coordination_counting_candidate_identity is not None
+    }
+    has_implicit_hydrogen = any(
+        explicit_count == 0 and implicit_count not in (None, 0)
+        for explicit_count, implicit_count in zip(
+            facts.hydrogen_inventory.explicit_counts,
+            facts.hydrogen_inventory.implicit_counts,
+        )
+    )
+    declared_complete = any(
+        candidate.coverage is CoverageStatus.COMPLETE
+        for candidate in candidates
+    )
+    all_atoms_covered = all(state is not None for state in merged_states)
+    coverage = (
+        CoverageStatus.COMPLETE
+        if declared_complete or (all_atoms_covered and not has_implicit_hydrogen)
+        else CoverageStatus.PARTIAL
+    )
+    return (
+        OxidationStateCandidateEvidence(
+            provenance=CandidateProvenance(
+                identity=identity,
+                authority=StateValueAuthority.DERIVED_CONSTRAINT,
+                source_identity=_PARTIAL_OXIDATION_MERGE_SOURCE,
+                evidence_ids=parent_ids,
+                assumption_ids=tuple(
+                    sorted(
+                        {
+                            assumption
+                            for candidate in candidates
+                            for assumption in candidate.provenance.assumption_ids
+                        }
+                    )
+                ),
+            ),
+            convention=convention,
+            atom_states=tuple(merged_states),
+            coverage=coverage,
+            coordination_counting_candidate_identity=(
+                next(iter(counting_references))
+                if len(counting_references) == 1
+                else None
+            ),
+        ),
+        None,
+    )
+
+
 def _classify_selected_values(
     facts: MolecularFacts,
     selected_values: Tuple[FactorCandidateValue, ...],
@@ -318,8 +411,6 @@ def _classify_selected_values(
     )
     if unsupported_derived:
         return None, "COMPOSITION.STRUCTURED_DERIVATION_UNSUPPORTED"
-    if len(oxidation_states) > 1:
-        return None, "COMPOSITION.OXIDATION_STATE_CARDINALITY"
     if len(electronic_states) > 1:
         return None, "COMPOSITION.ELECTRONIC_STATE_CARDINALITY"
     if len(molecular_spin_contributions) > 1:
@@ -343,7 +434,12 @@ def _classify_selected_values(
         for candidate in candidates
         if isinstance(candidate, CoordinationCountingCandidate)
     )
-    oxidation_state = oxidation_states[0] if oxidation_states else None
+    oxidation_state, oxidation_rejection = _merge_oxidation_states(
+        facts,
+        oxidation_states,
+    )
+    if oxidation_rejection is not None:
+        return None, oxidation_rejection
     computed_derived = _derive_charge_values(
         facts,
         counting,

@@ -172,17 +172,41 @@ def _oxidation_equivalence(
     candidates: Dict[str, Tuple[ScientificQuantity, str, StateCandidate]],
 ) -> str:
     identity = path.oxidation_state_assignment_id
-    if identity is None:
-        return "unresolved"
-    indexed = candidates.get(identity)
-    if indexed is None or not isinstance(
+    indexed = None if identity is None else candidates.get(identity)
+    if indexed is not None and isinstance(
         indexed[2],
         OxidationStateCandidateEvidence,
     ):
+        candidate = indexed[2]
+        return json.dumps(
+            (candidate.convention.value, candidate.atom_states),
+            ensure_ascii=True,
+            separators=(",", ":"),
+        )
+    selected = tuple(
+        indexed[2]
+        for evidence_id in path.evidence_ids
+        for indexed in (candidates.get(evidence_id),)
+        if indexed is not None
+        and isinstance(indexed[2], OxidationStateCandidateEvidence)
+    )
+    if not selected or len({candidate.convention for candidate in selected}) != 1:
         return "unresolved"
-    candidate = indexed[2]
+    atom_count = len(selected[0].atom_states)
+    if any(len(candidate.atom_states) != atom_count for candidate in selected):
+        return "unresolved"
+    merged_states = []
+    for atom_index in range(atom_count):
+        values = {
+            candidate.atom_states[atom_index]
+            for candidate in selected
+            if candidate.atom_states[atom_index] is not None
+        }
+        if len(values) > 1:
+            return "unresolved"
+        merged_states.append(next(iter(values)) if values else None)
     return json.dumps(
-        (candidate.convention.value, candidate.atom_states),
+        (selected[0].convention.value, tuple(merged_states)),
         ensure_ascii=True,
         separators=(",", ":"),
     )

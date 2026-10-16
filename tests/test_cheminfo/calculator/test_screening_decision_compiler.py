@@ -7,6 +7,7 @@ import pytest
 from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
 from hotpot.cheminfo.calculator.contracts import (
     CandidateProvenance,
+    CoverageStatus,
     ScientificOperationRequirements,
     ScientificQuantity,
     StateValueAuthority,
@@ -34,9 +35,14 @@ from hotpot.cheminfo.calculator.state_composition.decision_search import (
 from hotpot.cheminfo.calculator.state_rules import RankAdjustment
 from hotpot.cheminfo.calculator.state_rules.profile_decision import (
     _CoordinationScreeningDecisionCompiler,
+    _oxidation_equivalence,
 )
 from hotpot.cheminfo.calculator.state_rules.profiles import (
     _coordination_screening_profile,
+)
+from hotpot.cheminfo.calculator.oxidation_state import (
+    CountingConvention,
+    OxidationStateCandidateEvidence,
 )
 
 
@@ -216,6 +222,66 @@ def test_profile_reads_two_s_from_a_molecular_spin_contribution() -> None:
     record = _compiler().record_for_path(path, factors)
 
     assert record.equivalence.molecular_two_s == 2
+
+
+def test_profile_reconstructs_merged_partial_oxidation_equivalence() -> None:
+    first = OxidationStateCandidateEvidence(
+        _provenance("oxidation:first", StateValueAuthority.DOMAIN_RULE),
+        CountingConvention.IONIC,
+        (2, None, None),
+        CoverageStatus.PARTIAL,
+    )
+    second = OxidationStateCandidateEvidence(
+        _provenance("oxidation:second", StateValueAuthority.DOMAIN_RULE),
+        CountingConvention.IONIC,
+        (None, 3, None),
+        CoverageStatus.PARTIAL,
+    )
+    factors = (
+        _factor(ScientificQuantity.OXIDATION_STATE, first),
+        CandidateFactor(
+            "factor:oxidation-state:second",
+            FactorKey(ScientificQuantity.OXIDATION_STATE, "atom:1"),
+            "domain:oxidation-state:second",
+            (FactorCandidateValue(second, ("test",), ()),),
+            (),
+            None,
+            CandidateDomainScope.DOMAIN_BOUNDED,
+            MaterializationStatus.COMPLETE,
+        ),
+    )
+    path = CoupledScientificStateCandidate(
+        ScientificStateIdentity("state:merged-oxidation"),
+        StateValueRef(
+            ScientificQuantity.NET_CHARGE,
+            0,
+            StateValueOrigin.RESULT,
+            "charge-result:merged-oxidation",
+        ),
+        (),
+        (),
+        "oxidation:transient-aggregate",
+        "electronic-result:merged-oxidation",
+        "electronic:merged-oxidation",
+        (),
+        (first.provenance.identity, second.provenance.identity),
+        (),
+    )
+
+    equivalence = _oxidation_equivalence(
+        path,
+        {
+            value.candidate.provenance.identity: (
+                factor.factor_key.quantity,
+                factor.factor_key.subject_identity,
+                value.candidate,
+            )
+            for factor in factors
+            for value in factor.values
+        },
+    )
+
+    assert equivalence == '["ionic",[2,3,null]]'
 
 
 def test_unknown_assumption_marks_a_record_uncertifiable() -> None:

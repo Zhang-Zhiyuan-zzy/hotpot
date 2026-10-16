@@ -318,23 +318,19 @@ def compose_scientific_state_space(
         charge_result_ids,
         electronic_result_ids,
     )
-    factors, merged_constraints, guarded_constraints = (
-        _merge_candidate_proposals(tuple(proposals), candidate_budget)
-        if proposals
-        else ((), (), ())
-    )
     direct_guarded_constraints = tuple(
         GuardedCandidateConstraint(ConstraintGuard(), constraint)
         for constraint in constraints
     )
-    all_guarded_constraints = tuple(
-        sorted(
-            guarded_constraints + direct_guarded_constraints,
-            key=lambda guarded: guarded.constraint.identity,
+    factors, merged_constraints, all_guarded_constraints = (
+        _merge_candidate_proposals(
+            tuple(proposals),
+            candidate_budget,
+            direct_guarded_constraints,
         )
     )
     constraints_by_identity = {}
-    for constraint in merged_constraints + constraints:
+    for constraint in merged_constraints:
         incumbent = constraints_by_identity.get(constraint.identity)
         if incumbent is not None and incumbent != constraint:
             raise ValueError(

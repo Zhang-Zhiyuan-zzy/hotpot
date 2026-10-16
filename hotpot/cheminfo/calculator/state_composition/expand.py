@@ -25,7 +25,11 @@ from ..oxidation_state.contracts import (
     CoordinationCountingCandidate,
     OxidationStateCandidateEvidence,
 )
-from .constraints import _validate_coupled_candidate_sets
+from .constraints import (
+    _constraint_candidate_ids,
+    _unconditional_constraint,
+    _validate_coupled_candidate_sets,
+)
 from .derive import _derive_charge_values
 from .contracts import (
     BranchAssignment,
@@ -52,7 +56,6 @@ __all__ = []
 
 _HARD_CONSTRAINT_ID = "hard-scientific-consistency-v1"
 _FRONTIER_SCHEMA = "scientific-state-frontier-v1"
-_CONSTRAINT_SCHEMA = "candidate-constraint-v1"
 _UNBOUNDED_FRONTIER_KEY = ("unbounded",)
 
 
@@ -127,36 +130,6 @@ def _validate_factors(factors: Tuple[CandidateFactor, ...]) -> None:
                     "One candidate identity cannot belong to multiple factors"
                 )
             candidate_factor_by_identity[identity] = factor.factor_key
-
-
-def _constraint_candidate_ids(
-    constraint: CandidateConstraint,
-) -> Tuple[str, ...]:
-    if constraint.schema_version != _CONSTRAINT_SCHEMA:
-        raise ValueError("Unsupported candidate-constraint schema version")
-    parameter_names = tuple(name for name, _ in constraint.parameters)
-    if len(set(parameter_names)) != len(parameter_names):
-        raise ValueError("Candidate-constraint parameters must be unique")
-    parameters = dict(constraint.parameters)
-    candidate_ids = parameters.get("candidate_ids")
-    if (
-        not isinstance(candidate_ids, tuple)
-        or not candidate_ids
-        or any(not isinstance(identity, str) for identity in candidate_ids)
-    ):
-        raise ValueError(
-            "Candidate constraints require a non-empty candidate_ids tuple"
-        )
-    return candidate_ids
-
-
-def _unconditional_constraint(
-    guarded: GuardedCandidateConstraint,
-) -> bool:
-    return not (
-        guarded.guard.all_candidate_ids
-        or guarded.guard.branch_assignments
-    )
 
 
 def _prune_factor_domains(

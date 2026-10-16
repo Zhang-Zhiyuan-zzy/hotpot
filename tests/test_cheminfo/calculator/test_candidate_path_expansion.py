@@ -88,6 +88,7 @@ def _merged_factors(*factors):
     return _merge_candidate_proposals(
         (CandidateProposal("test:proposal", factors, ()),),
         CandidateBudget(8, 8, 8),
+        (),
     )[0]
 
 

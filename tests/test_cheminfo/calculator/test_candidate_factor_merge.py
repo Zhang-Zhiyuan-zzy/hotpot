@@ -17,8 +17,11 @@ from hotpot.cheminfo.calculator.state_composition.candidate_space import (
 from hotpot.cheminfo.calculator.state_composition.contracts import (
     CandidateDomainScope,
     CandidateDomainSummary,
+    CandidateConstraint,
     CandidateProposal,
+    ConstraintGuard,
     FactorKey,
+    GuardedCandidateConstraint,
     MaterializationStatus,
     ProposedCandidateFactor,
     ProposedCandidateValue,
@@ -65,6 +68,7 @@ def test_merge_deduplicates_candidates_and_retains_sources() -> None:
     factors, constraints, guarded = _merge_candidate_proposals(
         (_proposal("source:b", (shared,)), _proposal("source:a", (shared,))),
         CandidateBudget(8, 8, 8),
+        (),
     )
 
     assert len(factors) == 1
@@ -80,6 +84,7 @@ def test_factor_budget_records_unmaterialized_remainder() -> None:
     factors, _, _ = _merge_candidate_proposals(
         (_proposal("source", (_charge("q0", 0), _charge("q1", 1))),),
         CandidateBudget(1, 8, 8),
+        (),
     )
 
     factor = factors[0]
@@ -96,7 +101,11 @@ def test_declared_truncation_requires_remainder_summary() -> None:
     )
 
     with pytest.raises(ValueError, match="remainder summary"):
-        _merge_candidate_proposals((proposal,), CandidateBudget(8, 8, 8))
+        _merge_candidate_proposals(
+            (proposal,),
+            CandidateBudget(8, 8, 8),
+            (),
+        )
 
 
 def test_merge_is_independent_of_proposal_order() -> None:
@@ -108,10 +117,73 @@ def test_merge_is_independent_of_proposal_order() -> None:
     forward = _merge_candidate_proposals(
         proposals,
         CandidateBudget(8, 8, 8),
+        (),
     )[0]
     reverse = _merge_candidate_proposals(
         tuple(reversed(proposals)),
         CandidateBudget(8, 8, 8),
+        (),
     )[0]
 
     assert forward == reverse
+
+
+def test_unconditional_exclusion_precedes_factor_budget() -> None:
+    excluded = _charge("0-excluded", 1)
+    retained = _charge("z-retained", 0)
+    factor_key = FactorKey(ScientificQuantity.NET_CHARGE, "molecule")
+    constraint = CandidateConstraint(
+        "exclude-q1",
+        "excludes_all",
+        "candidate-constraint-v1",
+        (factor_key,),
+        (("candidate_ids", (excluded.provenance.identity,)),),
+    )
+
+    factors, constraints, guarded = _merge_candidate_proposals(
+        (_proposal("source", (excluded, retained)),),
+        CandidateBudget(1, 8, 8),
+        (
+            GuardedCandidateConstraint(
+                ConstraintGuard(),
+                constraint,
+            ),
+        ),
+    )
+
+    assert tuple(
+        value.candidate.provenance.identity for value in factors[0].values
+    ) == ("z-retained",)
+    assert factors[0].materialization_status is MaterializationStatus.COMPLETE
+    assert factors[0].unexpanded_domain_summary is None
+    assert constraints == (constraint,)
+    assert guarded[0].constraint == constraint
+
+
+def test_unconditional_requirement_precedes_factor_budget() -> None:
+    skipped = _charge("a-skipped", 0)
+    retained = _charge("z-required", 1)
+    factor_key = FactorKey(ScientificQuantity.NET_CHARGE, "molecule")
+    constraint = CandidateConstraint(
+        "require-q1",
+        "requires_all",
+        "candidate-constraint-v1",
+        (factor_key,),
+        (("candidate_ids", (retained.provenance.identity,)),),
+    )
+
+    factors, _, _ = _merge_candidate_proposals(
+        (_proposal("source", (skipped, retained)),),
+        CandidateBudget(1, 8, 8),
+        (
+            GuardedCandidateConstraint(
+                ConstraintGuard(),
+                constraint,
+            ),
+        ),
+    )
+
+    assert tuple(
+        value.candidate.provenance.identity for value in factors[0].values
+    ) == ("z-required",)
+    assert factors[0].materialization_status is MaterializationStatus.COMPLETE

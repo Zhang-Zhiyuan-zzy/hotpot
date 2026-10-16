@@ -1,20 +1,23 @@
 """End-to-end strict scientific-state resolver tests."""
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 
 import hotpot
 import pytest
 
 from hotpot.cheminfo.calculator import resolve_scientific_state
 from hotpot.cheminfo.calculator.charge import (
+    NetChargeCandidateEvidence,
     resolve_net_charge,
     solve_main_group_lewis,
 )
 from hotpot.cheminfo.calculator.contracts import (
     CandidateProvenance,
+    CandidateBudget,
     CoverageStatus,
     ProviderSet,
     ProviderToggle,
+    ResolutionStatus,
     ScientificOperationRequirements,
     ScientificQuantity,
     StatePolicy,
@@ -191,6 +194,43 @@ def test_conflicting_authoritative_spin_envelopes_do_not_form_a_union() -> None:
 
     assert bundle.execution_decision.action is StateDecisionAction.CONFLICT
     assert bundle.candidate_space.expanded_paths == ()
+
+
+def test_authoritative_charge_constraint_precedes_factor_budget() -> None:
+    facts = _facts()
+    explicit_result = resolve_net_charge(
+        facts,
+        StateRequest(net_charge=0),
+    )[0]
+    q0 = explicit_result.candidates[0]
+    q1 = NetChargeCandidateEvidence(
+        CandidateProvenance(
+            "0-excluded-q1",
+            StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
+            "test",
+        ),
+        1,
+    )
+    provided_result = replace(
+        explicit_result,
+        identity="provided:q0-or-q1",
+        candidates=(q1, q0),
+        resolution=ResolutionStatus.AMBIGUOUS,
+    )
+
+    bundle = resolve_scientific_state(
+        facts,
+        StateRequest(net_charge=0),
+        provided_results=ProvidedScientificResults(
+            net_charge_results=(provided_result,),
+        ),
+        candidate_budget=CandidateBudget(1, 8, 8),
+    )
+
+    assert tuple(
+        path.net_charge.value
+        for path in bundle.candidate_space.expanded_paths
+    ) == (0,)
 
 
 def test_explicit_oxidation_override_constrains_provided_envelope() -> None:

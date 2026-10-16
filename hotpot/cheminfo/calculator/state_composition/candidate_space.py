@@ -7,6 +7,10 @@ import json
 from typing import Dict, List, Tuple
 
 from ..contracts import CandidateBudget
+from .constraints import (
+    _constraint_candidate_ids,
+    _unconditional_constraint,
+)
 from .contracts import (
     BranchAssignment,
     CandidateConstraint,
@@ -90,6 +94,8 @@ def _merge_factor(
     factor_key: FactorKey,
     entries: Tuple[Tuple[str, ProposedCandidateFactor], ...],
     candidate_budget: CandidateBudget,
+    excluded_candidate_ids: frozenset[str],
+    required_candidate_ids: frozenset[str],
 ) -> CandidateFactor:
     factors = tuple(factor for _, factor in entries)
     values_by_identity: Dict[
@@ -107,6 +113,8 @@ def _merge_factor(
             )
         for proposed in factor.materialized_candidates:
             identity = _candidate_identity(proposed.candidate)
+            if identity in excluded_candidate_ids:
+                continue
             incumbent = values_by_identity.get(identity)
             if incumbent is None:
                 values_by_identity[identity] = (
@@ -118,7 +126,15 @@ def _merge_factor(
                 incumbent[1].add(proposal_id)
                 incumbent[2].update(proposed.branch_assignments)
 
-    ordered_identities = tuple(sorted(values_by_identity))
+    required_in_factor = required_candidate_ids.intersection(
+        values_by_identity
+    )
+    eligible_identities = (
+        required_in_factor
+        if required_in_factor
+        else values_by_identity.keys()
+    )
+    ordered_identities = tuple(sorted(eligible_identities))
     limit = candidate_budget.max_materialized_values_per_factor
     retained_identities = ordered_identities[:limit]
     omitted_count = len(ordered_identities) - len(retained_identities)
@@ -193,6 +209,7 @@ def _merge_factor(
 def _merge_candidate_proposals(
     proposals: Tuple[CandidateProposal, ...],
     candidate_budget: CandidateBudget,
+    direct_guarded_constraints: Tuple[GuardedCandidateConstraint, ...],
 ) -> Tuple[
     Tuple[CandidateFactor, ...],
     Tuple[CandidateConstraint, ...],
@@ -206,7 +223,7 @@ def _merge_candidate_proposals(
         FactorKey,
         List[Tuple[str, ProposedCandidateFactor]],
     ] = {}
-    guarded_constraints = []
+    guarded_constraints = list(direct_guarded_constraints)
     for proposal in proposals:
         for factor in proposal.factors:
             entries_by_key.setdefault(factor.factor_key, []).append(
@@ -214,21 +231,40 @@ def _merge_candidate_proposals(
             )
         guarded_constraints.extend(proposal.constraints)
 
+    ordered_guarded_constraints = tuple(
+        sorted(
+            guarded_constraints,
+            key=lambda guarded: guarded.constraint.identity,
+        )
+    )
+    excluded_candidate_ids = frozenset(
+        candidate_ids[0]
+        for guarded in ordered_guarded_constraints
+        if _unconditional_constraint(guarded)
+        and guarded.constraint.constraint_type == "excludes_all"
+        for candidate_ids in (
+            _constraint_candidate_ids(guarded.constraint),
+        )
+        if len(candidate_ids) == 1
+    )
+    required_candidate_ids = frozenset(
+        candidate_id
+        for guarded in ordered_guarded_constraints
+        if _unconditional_constraint(guarded)
+        and guarded.constraint.constraint_type == "requires_all"
+        for candidate_id in _constraint_candidate_ids(guarded.constraint)
+    )
     factors = tuple(
         _merge_factor(
             factor_key,
             tuple(entries_by_key[factor_key]),
             candidate_budget,
+            excluded_candidate_ids,
+            required_candidate_ids,
         )
         for factor_key in sorted(
             entries_by_key,
             key=lambda key: (key.quantity.value, key.subject_identity),
-        )
-    )
-    ordered_guarded_constraints = tuple(
-        sorted(
-            guarded_constraints,
-            key=lambda guarded: guarded.constraint.identity,
         )
     )
     constraints_by_identity = {}

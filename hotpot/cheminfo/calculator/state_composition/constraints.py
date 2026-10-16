@@ -28,7 +28,11 @@ from ..oxidation_state.contracts import (
     OxidationStateInferenceResult,
     OxidationStateOverride,
 )
-from .contracts import CandidateConstraint, FactorKey
+from .contracts import (
+    CandidateConstraint,
+    FactorKey,
+    GuardedCandidateConstraint,
+)
 
 __all__ = []
 
@@ -51,6 +55,35 @@ def _digest(payload: object) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _constraint_candidate_ids(
+    constraint: CandidateConstraint,
+) -> Tuple[str, ...]:
+    if constraint.schema_version != _CONSTRAINT_SCHEMA:
+        raise ValueError("Unsupported candidate-constraint schema version")
+    parameter_names = tuple(name for name, _ in constraint.parameters)
+    if len(set(parameter_names)) != len(parameter_names):
+        raise ValueError("Candidate-constraint parameters must be unique")
+    candidate_ids = dict(constraint.parameters).get("candidate_ids")
+    if (
+        not isinstance(candidate_ids, tuple)
+        or not candidate_ids
+        or any(not isinstance(identity, str) for identity in candidate_ids)
+    ):
+        raise ValueError(
+            "Candidate constraints require a non-empty candidate_ids tuple"
+        )
+    return candidate_ids
+
+
+def _unconditional_constraint(
+    guarded: GuardedCandidateConstraint,
+) -> bool:
+    return not (
+        guarded.guard.all_candidate_ids
+        or guarded.guard.branch_assignments
+    )
 
 
 def _molecular_factor_key(

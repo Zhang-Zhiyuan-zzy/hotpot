@@ -7,7 +7,7 @@
 # These paths become eligible for deletion only after the dataset owner has:
 # 1. ended the applicable retention period;
 # 2. retained an external archive, or explicitly waived restoration;
-# 3. verified that store/active resolves to stage13-efficiency-current;
+# 3. verified that store/active resolves to stage13-compact-current;
 # 4. run `hotpot ds detail audit` successfully;
 # 5. accepted that deleting a migration Bundle prevents loading that Bundle or
 #    reconstructing it from its root certificate without restoring the archive;
@@ -33,10 +33,21 @@
 /hotpot/dataset/data/bundles/stage13-migration/spin/
 /hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/
 
-# Superseded pre-efficiency managed-store generation. This is the active
-# rollback target recorded by the efficiency cutover and must remain until the
-# owner ends the rollback retention period.
+# Superseded pre-efficiency managed-store generation. It remains the nested
+# rollback target recorded by the efficiency cutover and must remain while
+# either later generation still advertises that rollback chain.
 /hotpot/dataset/data/store/generations/stage13-current/
+
+# Superseded pre-compaction managed-store generation. This is the direct
+# rollback target recorded by the compact-store cutover and must remain until
+# the owner ends the compact release acceptance and rollback retention period.
+/hotpot/dataset/data/store/generations/stage13-efficiency-current/
+
+# The compact rebuild Bundles retain the source intake and original assets.
+# During the rollback window, use neither recursive deletion nor
+# `hotpot ds bundle rm --all`; full revalidation depends on their generated
+# facts and assessment generations. After acceptance, `bundle rm --all` may
+# prune only its verified allowlist, while the archived Bundle roots remain.
 
 # The resumable efficiency-rebuild state and current Bundle working tree were
 # archived and removed on 2026-10-16. The permanent parity.json remains online.

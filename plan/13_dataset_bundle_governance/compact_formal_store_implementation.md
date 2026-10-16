@@ -21,6 +21,8 @@ The formal store retains:
 - final `quality_level`, `evidence_level`, `archive_class`, benchmark decision,
   benchmark status, and concise reason codes;
 - the dataset Gate policy, including persisted custom-checker source;
+- the compact legacy source inventory and migration-provenance decision record,
+  when a release was admitted from the Stage 13 migration;
 - the certificate, ingestion receipt, logical content digests, and release
   metadata.
 
@@ -31,7 +33,8 @@ The formal store does not retain:
 - assessment-generation databases, class ID lists, summaries, or Gate traces;
 - per-Case asset/conflict working assessments and other values reproducible
   from retained facts and the persisted policy;
-- generated migration relationship reports.
+- generated migration identity and relationship maps. Their small source
+  inventory and owner/tool provenance records remain permanent.
 
 ## Storage model
 
@@ -44,9 +47,10 @@ The formal store does not retain:
 3. Store the final assessment fields relationally and retain only canonical
    reason-code JSON instead of the complete assessment trace.
 4. Keep identifiers and scientific asset references normalized and indexed.
-5. Store only irreplaceable scientific assets and the compact certificate in
-   target CAS.  Bundle facts, generations, and migration reports are never
-   target assets.
+5. Store only irreplaceable scientific assets, the compact certificate, and
+   small original provenance controls in target CAS. Bundle facts,
+   generations, and the large generated migration identity/relationship maps
+   are never target assets.
 6. Bind ingestion to the compact logical Case projection.  Physical SQLite
    page layout and compressed bytes are not scientific identities.
 
@@ -56,13 +60,16 @@ The formal store does not retain:
 `hotpot ds bundle --root BUNDLE_ROOT --dataset DATASET --db DB rm --all`,
 is a verified pruning command.  It runs only after a valid authoritative
 ingestion receipt exists.  It acquires the Bundle lock, revalidates the sealed
-release, removes an explicit allowlist of reproducible build products, and
+release on both first execution and crash-resume, removes an explicit
+allowlist of reproducible build products, and
 writes `bundle-cleanup.json` with removed paths, sizes, digests, and receipt
 binding.  It never recursively deletes the Bundle root or unknown user files.
 
 The command retains the intake, original structures/evidence, `bundle.json`,
-Gate policy/checkers, certificate, ingestion receipt, audit history, and the
-cleanup manifest.  A pruned Bundle is an archived intake record; editing,
+Gate policy/checkers, certificate, ingestion receipt, audit history, compact
+source inventory, migration provenance, and the cleanup manifest. Only the
+specifically named generated identity maps are removable migration controls.
+A pruned Bundle is an archived intake record; editing,
 synchronization, and recertification require rebuilding its derived products.
 
 ## Verification gates

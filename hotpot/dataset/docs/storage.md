@@ -232,7 +232,10 @@ objects.
 Target CAS contains irreplaceable scientific structure/evidence bytes,
 explicit original source/provenance control assets, and the compact
 certificate. It does not contain copies of Bundle `facts.sqlite3`, assessment
-generations, or migration relationship databases.
+generations, or generated migration identity/relationship databases. For a
+Stage 13 migrated release, `legacy-source-inventory` and
+`migration-provenance` are retained as provenance controls; the large
+`identity-migration` and `legacy-identity-relationships` projections are not.
 
 Stored Case reads expose each materialized Evidence file in
 `Data.info["evidence_assets"]`. These references resolve only into the formal
@@ -262,10 +265,12 @@ hotpot ds bundle rm --all
 The short form uses the target already bound by the Bundle; `--root`,
 `--dataset`, and `--db` may be supplied as matching assertions. Cleanup first
 verifies the authoritative receipt, certificate, target database, every
-compressed Case fact, and every target-owned asset. It then deletes only a
-closed allowlist of reproducible facts/generation/cache/migration products and
-writes `bundle-cleanup.json`. Intake data, original scientific assets, policy
-and checker source, certificate, receipt, and audit history remain. The cleaned
+compressed Case fact, and every target-owned asset. A resumed cleanup repeats
+those checks before deleting another byte. It then deletes only a closed
+allowlist of reproducible facts/generation/cache products and the two exactly
+named generated migration maps, and writes `bundle-cleanup.json`. Intake data,
+original scientific assets, policy and checker source, certificate, receipt,
+audit history, source inventory, and migration provenance remain. The cleaned
 Bundle is an archived intake record and is no longer editable or reassessable
 without rebuilding its derived products.
 

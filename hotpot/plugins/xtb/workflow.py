@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Mapping, Optional, Union
 
 from hotpot.cheminfo.calculator.execution_selection import (
-    BackendExecutability,
     BackendStateProjection,
+    _projection_validation_findings,
 )
 from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
@@ -77,42 +77,11 @@ def _validate_projection(
     context: XTBBackendContext,
 ) -> None:
     facts = extract_molecular_facts(mol)
-    if state.facts_identity != facts.identity:
+    findings = _projection_validation_findings(facts, context, state)
+    if findings:
         raise XTBInputError(
-            "Backend projection does not describe the input molecule facts"
+            "; ".join(f"{finding.code}: {finding.message}" for finding in findings)
         )
-    if state.backend_identity != context.identity:
-        raise XTBInputError(
-            "Backend projection does not match the probed xTB context"
-        )
-    if state.projection_convention != context.projection_convention:
-        raise XTBInputError("Backend projection convention does not match xTB")
-    if state.executability is not BackendExecutability.SUPPORTED:
-        raise XTBInputError("Backend projection is not executable")
-    if state.execution_decision.backend_identity != state.backend_identity:
-        raise XTBInputError("Backend execution decision identity is inconsistent")
-    selected = state.execution_decision.selected_state
-    if (selected.charge, selected.uhf, selected.multiplicity) != (
-        state.charge,
-        state.uhf,
-        state.multiplicity,
-    ):
-        raise XTBInputError("Backend projection values are internally inconsistent")
-
-    electron_count = sum(facts.atomic_numbers) - state.charge
-    if electron_count != state.effective_electron_count or electron_count < 0:
-        raise XTBInputError("Backend projection electron count is inconsistent")
-    if context.consumes_uhf:
-        if state.uhf is None:
-            raise XTBInputError("GFN-xTB requires a projected UHF value")
-        if (
-            state.uhf < 0
-            or state.uhf > electron_count
-            or (electron_count - state.uhf) % 2
-        ):
-            raise XTBInputError("Projected UHF fails backend electron legality")
-    elif state.uhf is not None:
-        raise XTBInputError("GFN-FF does not consume a projected UHF value")
 
 
 def _execute_workflow(

@@ -248,6 +248,130 @@ def _lowest_legal_uhf(effective_electron_count: int) -> int:
     return effective_electron_count % 2
 
 
+def _projection_validation_findings(
+    facts: MolecularFacts,
+    backend: BackendContext,
+    projection: BackendStateProjection,
+) -> Tuple[BackendProjectionFinding, ...]:
+    """Return all hard-contract violations in a constructed projection."""
+    findings = []
+    if projection.facts_identity != facts.identity:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.FACTS_IDENTITY_MISMATCH",
+                "Backend projection does not describe the supplied molecular facts.",
+            )
+        )
+    if projection.backend_identity != backend.identity:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.BACKEND_IDENTITY_MISMATCH",
+                "Backend projection does not match the exact backend context.",
+            )
+        )
+    if projection.projection_convention != backend.projection_convention:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.PROJECTION_CONVENTION_MISMATCH",
+                "Backend projection convention does not match the backend context.",
+            )
+        )
+    if not backend.method_supported:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.UNSUPPORTED_METHOD",
+                "The exact backend context does not support this method.",
+            )
+        )
+    unsupported_elements = tuple(
+        sorted(
+            {
+                atomic_number
+                for atomic_number in facts.atomic_numbers
+                if not backend.supports_atomic_number(atomic_number)
+            }
+        )
+    )
+    if unsupported_elements:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.UNSUPPORTED_ELEMENT",
+                "The exact backend context does not support every input element.",
+                tuple(str(value) for value in unsupported_elements),
+            )
+        )
+    if projection.executability is not BackendExecutability.SUPPORTED:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.NOT_EXECUTABLE",
+                "Backend projection is not marked executable.",
+            )
+        )
+    decision = projection.execution_decision
+    if decision.backend_identity != projection.backend_identity:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.DECISION_BACKEND_MISMATCH",
+                "Backend execution decision identifies another backend context.",
+            )
+        )
+    selected = decision.selected_state
+    if (selected.charge, selected.uhf, selected.multiplicity) != (
+        projection.charge,
+        projection.uhf,
+        projection.multiplicity,
+    ):
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.DECISION_VALUE_MISMATCH",
+                "Backend execution decision and projection values differ.",
+            )
+        )
+
+    electron_count = _effective_electron_count(
+        facts,
+        backend,
+        projection.charge,
+    )
+    if projection.effective_electron_count != electron_count:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-013.ELECTRON_COUNT_MISMATCH",
+                "Backend projection carries an inconsistent electron count.",
+            )
+        )
+    if electron_count < 0:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-013.NEGATIVE_EFFECTIVE_ELECTRON_COUNT",
+                "The backend effective-electron count is negative.",
+            )
+        )
+    if backend.consumes_uhf:
+        if projection.uhf is None:
+            findings.append(
+                BackendProjectionFinding(
+                    "HARD-013.MISSING_UHF",
+                    "The backend context requires a projected UHF value.",
+                )
+            )
+        elif electron_count >= 0:
+            legality_finding = _uhf_legality_finding(
+                electron_count,
+                projection.uhf,
+            )
+            if legality_finding is not None:
+                findings.append(legality_finding)
+    elif projection.uhf is not None:
+        findings.append(
+            BackendProjectionFinding(
+                "HARD-008.UHF_NOT_CONSUMED",
+                "The backend context does not consume UHF.",
+            )
+        )
+    return tuple(findings)
+
+
 def _validated_execution_policy_ids(
     policies: ExecutionPolicySet,
 ) -> frozenset[str]:

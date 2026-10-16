@@ -14,7 +14,9 @@ from hotpot.cheminfo.core import Molecule
 from hotpot.plugins.xtb import workflow as xtb_workflow
 from hotpot.plugins.xtb.contracts import (
     GFNXTBMethod,
+    XTBApplicabilityError,
     XTBBackendInfo,
+    XTBExecutionError,
     XTBInputError,
     XTBMethod,
     XTBTask,
@@ -125,7 +127,7 @@ def test_projection_for_another_molecule_is_rejected(
         dtype=float,
     )
 
-    with pytest.raises(XTBInputError, match="input molecule facts"):
+    with pytest.raises(XTBInputError, match="molecular facts"):
         xtb_workflow.run_gfn_xtb(
             other,
             state=state,
@@ -237,3 +239,94 @@ def test_retained_workspace_is_a_unique_child_of_requested_parent(
     assert first.work_directory.parent == workspace_parent.resolve()
     assert second.work_directory.parent == workspace_parent.resolve()
     assert first.work_directory != second.work_directory
+    assert first.workspace_retained is True
+    assert second.workspace_retained is True
+    assert first.work_directory.is_dir()
+    assert second.work_directory.is_dir()
+
+
+def test_gfnff_am_input_is_rejected_before_numerical_run(
+    fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
+    tmp_path: Path,
+) -> None:
+    executable = fake_xtb_factory()
+    state = xtb_projection_factory(_molecule(), executable, XTBMethod.GFNFF)
+    mol = hotpot.read_mol("[Am+3]", "smi")
+    mol.coordinates = np.zeros((1, 3), dtype=float)
+    workspace_parent = tmp_path / "am-preflight"
+
+    with pytest.raises(XTBApplicabilityError, match="unsupported input"):
+        xtb_workflow.run_gfnff(
+            mol,
+            state=state,
+            task=XTBTask.SINGLEPOINT,
+            executable=executable,
+            work_directory=workspace_parent,
+            keep_work_directory=True,
+        )
+
+    workspaces = tuple(workspace_parent.iterdir())
+    assert len(workspaces) == 1
+    assert (workspaces[0] / "input.sdf").is_file()
+    assert not (workspaces[0] / "argv.json").exists()
+
+
+def test_default_workspace_is_removed_after_success(
+    fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
+    tmp_path: Path,
+) -> None:
+    mol = _molecule()
+    executable = fake_xtb_factory()
+    state = xtb_projection_factory(
+        mol,
+        executable,
+        XTBMethod.GFN2_XTB,
+        0,
+        0,
+    )
+    workspace_parent = tmp_path / "workflow parent"
+
+    report = xtb_workflow.run_gfn_xtb(
+        mol,
+        state=state,
+        task=XTBTask.SINGLEPOINT,
+        executable=executable,
+        work_directory=workspace_parent,
+    )
+
+    assert report.work_directory.parent == workspace_parent.resolve()
+    assert report.workspace_retained is False
+    assert not report.work_directory.exists()
+    assert tuple(workspace_parent.iterdir()) == ()
+
+
+def test_failed_run_removes_workspace_unless_retention_is_requested(
+    fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
+    tmp_path: Path,
+) -> None:
+    mol = _molecule()
+    executable = fake_xtb_factory("nonzero")
+    state = xtb_projection_factory(
+        mol,
+        executable,
+        XTBMethod.GFN2_XTB,
+        0,
+        0,
+    )
+    workspace_parent = tmp_path / "failed-run-parent"
+
+    with pytest.raises(XTBExecutionError) as error:
+        xtb_workflow.run_gfn_xtb(
+            mol,
+            state=state,
+            task=XTBTask.SINGLEPOINT,
+            executable=executable,
+            work_directory=workspace_parent,
+        )
+
+    assert error.value.report.workspace_retained is False
+    assert not error.value.report.work_directory.exists()
+    assert tuple(workspace_parent.iterdir()) == ()

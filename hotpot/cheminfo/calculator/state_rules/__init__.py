@@ -18,6 +18,7 @@ from .contracts import (
     RuleValue,
 )
 from .base import InferenceRule
+from .registry import InferenceRuleRegistry
 
 __all__ = [
     "RuleKind",
@@ -36,4 +37,5 @@ __all__ = [
     "ActivatedRule",
     "RuleSet",
     "InferenceRule",
+    "InferenceRuleRegistry",
 ]

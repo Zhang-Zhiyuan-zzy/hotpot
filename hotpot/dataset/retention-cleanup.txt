@@ -7,12 +7,13 @@
 # These paths become eligible for deletion only after the dataset owner has:
 # 1. ended the applicable retention period;
 # 2. retained an external archive, or explicitly waived restoration;
-# 3. verified that store/active resolves to stage13-current;
+# 3. verified that store/active resolves to stage13-efficiency-current;
 # 4. run `hotpot ds detail audit` successfully;
 # 5. accepted that deleting a migration Bundle prevents loading that Bundle or
 #    reconstructing it from its root certificate without restoring the archive;
-# 6. preserved current-inventory.json, stage13-cutover.json,
-#    migration-report.json, migration-plan.json, and store/certificates/; and
+# 6. preserved current-inventory.json, the efficiency rebuild parity and
+#    activation records, stage13-cutover.json, migration-report.json,
+#    migration-plan.json, and store/certificates/; and
 # 7. recorded the deletion as an owner-approved retention event.
 #
 # Never add the active generation, its asset store, source datasets, structure
@@ -31,3 +32,23 @@
 /hotpot/dataset/data/bundles/stage13-migration/oxidation/
 /hotpot/dataset/data/bundles/stage13-migration/spin/
 /hotpot/dataset/data/bundles/stage13-migration/csd-electronic-state/
+
+# Superseded pre-efficiency managed-store generation. This is the active
+# rollback target recorded by the efficiency cutover and must remain until the
+# owner ends the rollback retention period.
+/hotpot/dataset/data/store/generations/stage13-current/
+
+# Resumable operator state that is no longer required after the activated
+# efficiency generation and rollback decision are final. Keep parity.json as
+# permanent release evidence; it is intentionally absent from this list.
+/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/activation-intent.json
+/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/events.jsonl
+/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-csd-electronic-state-closure.json
+/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-oxidation-closure.json
+/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/source-spin-closure.json
+/hotpot/dataset/data/store/rebuilds/stage13-efficiency-current/state.json
+
+# Local safety archive created before efficiency remediation. Delete only
+# after an independent retained archive exists or restoration is explicitly
+# waived; it is outside the Git-tracked dataset payload.
+/.backups/dataset-pre-efficiency-20261015.tar.xz

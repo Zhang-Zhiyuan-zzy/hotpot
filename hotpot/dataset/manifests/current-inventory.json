@@ -1,17 +1,17 @@
 {
   "schema": "hotpot-dataset-inventory/current",
-  "generated_on": "2026-10-15",
+  "generated_on": "2026-10-16",
   "payload_root": "hotpot/dataset/data",
   "git_tracked": false,
   "store": {
     "path": "store/active/datasets.sqlite3",
     "active_link": "store/active",
-    "generation": "store/generations/stage13-current",
+    "generation": "store/generations/stage13-efficiency-current",
     "assets_path": "store/active/datasets.sqlite3.assets",
-    "sha256": "1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5",
+    "sha256": "e31b1baed33d55a6b74296b08604653147d561fa1b9273afc9d61b76c8c093f9",
     "size_bytes": 5093584896,
     "schema": "hotpot-ds-store/current",
-    "store_uuid": "62db5feb-0f62-413c-aae7-08542f93ff35",
+    "store_uuid": "af3dda86-08de-450e-b5d8-35619ad7a7ce",
     "information_fence": "hotpot-dataset-information-fence/current",
     "integrity_check": "ok",
     "foreign_key_check": "ok",
@@ -49,15 +49,15 @@
   "target_assets": {
     "path": "store/active/datasets.sqlite3.assets",
     "object_count": 2317,
-    "object_bytes": 7461498309,
-    "inventory_sha256": "0a1598df4fcf19a9c2f9d62a009af6ff605bc246717a2fa3ad9997a186f4b806",
+    "object_bytes": 7645485715,
+    "inventory_sha256": "4877eb2ffff212082d85ba2c1f567f4af5b9fc69b99ce4b9d3c2313b908a1c36",
     "structure_objects": 2280,
     "structure_bytes": 7092342,
     "structure_reference_count": 4465,
     "evidence_objects": 0,
     "evidence_reference_count": 0,
     "control_objects": 37,
-    "control_bytes": 7454405967,
+    "control_bytes": 7638393373,
     "control_reference_count": 42
   },
   "releases": [
@@ -79,9 +79,9 @@
       "evidence_level": {
         "E2": 2175
       },
-      "generation_digest": "bc8403fa121d3b0b35486b9066fb4e2759b737742ec0390bb4e82953a11fa69f",
-      "certificate_sha256": "27b5028e216d3067903d20eeff3f3fae6403fc66f68396fa410b5907daeef15e",
-      "receipt_id": "receipt-dde772bebb47624a07681291b86ec5e4b4dd27d71f64993aa7f62228e437f63d"
+      "generation_digest": "949cfbba227d310f13aa02bd8b80e79d1178561c724fec8a63a556294b6ca37f",
+      "certificate_sha256": "ecf8e3ef09efb8c20c5490afc35a1262731f5c62dde271a085f05ceaca854fcf",
+      "receipt_id": "receipt-83fd8d0316e259a6103a6e76dc0e3ccd97ab85b0a115f2430d6486de78b8eefe"
     },
     {
       "dataset": "spin",
@@ -101,9 +101,9 @@
       "evidence_level": {
         "E2": 2175
       },
-      "generation_digest": "65c57c9372e15c4c9427a5c7b61f8e347e550580ea029c3190c72a60c9212f06",
-      "certificate_sha256": "0a49ac2eafcd67d159e16afb94615ac2165c1b62ddb264b606d2166f9fc94763",
-      "receipt_id": "receipt-24da4e3547e8ffc8cd116fa15fa006f9e9571b33d0f8ee761b916f7bf1fdbee3"
+      "generation_digest": "ea90ec788dcc2abc0093db84498df7fa712ec1ee105c6ef1ba6bd1adfdb06ec6",
+      "certificate_sha256": "ff82204dcc148cb3e014abe532254e78b031ebb740777423c2f09954fefe8105",
+      "receipt_id": "receipt-d458c16b32d71fe0c4b82ed8904b93b0fb3ea905e3342370fba6c9098287e5b2"
     },
     {
       "dataset": "csd-electronic-state",
@@ -123,21 +123,25 @@
       "evidence_level": {
         "E2": 248315
       },
-      "generation_digest": "097d6599f703a237278a56bcebfdb7d3fece35d5a32513c9b6b72485320a4e2f",
-      "certificate_sha256": "5b3e4c73d63af06f6f903cb670851fc82cdf1f1f0db28b7391de78a8ecbe261d",
-      "receipt_id": "receipt-f28c7abe111a251df4126ad9834f41f0a2d9766a9a19d7ea12b3d87347c21da6"
+      "generation_digest": "dba7c9b9035f3bd5fa931c66c8d5e0b28c57244badae3a6b2adee9962b19e5ab",
+      "certificate_sha256": "1bfc8c6567efa5d8f1d3bcb3eb3f53e5cd84ea345dc3b3cbf1cc2210dbfc5d97",
+      "receipt_id": "receipt-b6fd0bbe3bbf431f4863f00e1e7a8731032708ebfe09fa14304ee1dd5f47748d"
     }
   ],
   "activation": {
     "kind": "directory-symlink",
-    "activated_at": "2026-10-15T07:26:28.308200Z",
-    "published_at": "2026-10-15T07:26:02.857075Z",
-    "parity_sha256": "720a27ade4ab1f6c78a85d767fe2ec4d29fb252b1f4a03929aad78bcd676be76",
-    "cutover_report": "audits/stage13-cutover.json",
-    "cutover_report_sha256": "b11abf02a9f1f3520543d84565813b0962aa521e9d99d3bacdf9a559aa09a054",
-    "activation_manifest": "store/generations/stage13-current/cutover-activation.json",
-    "activation_manifest_sha256": "69609456de4dd64e02bc9960abd84b1185b7237678eb7dc6910c01a93bd98d09",
-    "rollback_manifest_sha256": "a1ce928b1a0c1022a3578b6fa0a4c94d552c6adb54b7e64c64f07dd3bbe994cb"
+    "run_id": "stage13-efficiency-current",
+    "activated_at": "2026-10-16T05:07:00.068761Z",
+    "previous_generation": "store/generations/stage13-current",
+    "semantic_digest": "ffb944dbabbd3e5ca0488a967ae6864350c9408e95d9b07853c4757b25d954e0",
+    "parity_artifact": "store/rebuilds/stage13-efficiency-current/parity.json",
+    "parity_artifact_sha256": "a3858d9922892b24494fecad9e3b5cc039af6ca33b584f935f04a962ecac98cb",
+    "activation_manifest": "store/generations/stage13-efficiency-current/cutover-activation.json",
+    "activation_manifest_sha256": "9dc64591ac3b92d9a08ed3d01075f71af2affd2771659e2d6fa4acf8ee2f3eae",
+    "source_database_sha256": "1a2f02acf77068924d4d9d761220d8c6cb6a2d027930281a8adb1e7c40ab2ee5",
+    "target_database_sha256": "e31b1baed33d55a6b74296b08604653147d561fa1b9273afc9d61b76c8c093f9",
+    "target_cas_sha256": "dbc78120f75b1aedadff2fa2a17475b69e572e00928640796341e7badea5147f",
+    "rollback_generation": "store/generations/stage13-current"
   },
   "migration_audit": {
     "report": "bundles/stage13-migration/migration-report.json",

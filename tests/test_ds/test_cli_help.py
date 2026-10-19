@@ -353,3 +353,40 @@ def test_bundle_locator_and_transitions_have_one_current_layout() -> None:
     assert explicit.bundle_dataset == "demo"
     with pytest.raises(SystemExit):
         parser.parse_args(["bundle", "status", "--root", "submission"])
+
+
+def test_bundle_build_handler_defaults_to_the_command_working_directory(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "bundle.json").write_text(
+        json.dumps({"ds_name": "demo"}), encoding="utf-8"
+    )
+    observed: dict[str, object] = {}
+
+    class FakeBundle:
+        root = tmp_path.resolve()
+        name = "demo"
+        mode = "new"
+        _database = (tmp_path / "datasets.sqlite3").resolve()
+        _state = SimpleNamespace(manifest={"release_id": "demo.v001"})
+        status = {
+            "source_revision": 0,
+            "policy_revision": 0,
+            "policy_digest": "0" * 64,
+        }
+
+        def __init__(self, root, name, *, db):
+            observed["arguments"] = (root, name, db)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(ds_cli, "Bundle", FakeBundle)
+    monkeypatch.setattr(
+        ds_cli,
+        "emit_envelope",
+        lambda key, payload, **kwargs: observed.update(key=key, payload=payload),
+    )
+
+    args = build_ds_parser().parse_args(["bundle", "build"])
+    assert ds_cli.run(args) == 0
+    assert observed["arguments"] == (tmp_path.resolve(), "demo", None)
+    assert observed["key"] == "hotpot.ds.bundle.build"

@@ -29,7 +29,7 @@ from ..storage import (
     TargetStore,
     TargetSchemaError,
     asset_inventory_digest,
-    case_content_digest,
+    case_content_digests,
     case_set_digest,
 )
 from ._assessment import canonical_digest, canonical_json
@@ -764,6 +764,9 @@ class Bundle:
             "certificate": receipt["certificate_digest"],
             "generation": receipt["generation_digest"],
             "case_content": receipt["case_content_digest"],
+            "included_case_content": receipt[
+                "included_case_content_digest"
+            ],
             "included_cases": receipt["included_cases_digest"],
             "excluded_cases": receipt["excluded_cases_digest"],
             "asset_inventory": receipt["asset_inventory_digest"],
@@ -1042,7 +1045,9 @@ class Bundle:
                         )
                     yield self._ingestion_case_projection(case, assessment)
 
-        content_digest = case_content_digest(content_rows())
+        content_digest, included_content_digest = case_content_digests(
+            content_rows(), include_incomplete=include_incomplete
+        )
         bundle_digest = canonical_digest(
             {
                 "manifest": manifest,
@@ -1086,6 +1091,7 @@ class Bundle:
                 "certificate": certificate_sha256,
                 "generation": generation.digest,
                 "case_content": content_digest,
+                "included_case_content": included_content_digest,
                 "included_cases": case_set_digest(included_ids),
                 "excluded_cases": case_set_digest(excluded_ids),
                 "asset_inventory": asset_inventory_digest(

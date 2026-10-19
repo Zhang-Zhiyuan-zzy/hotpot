@@ -204,3 +204,28 @@ def test_ingest_compare_and_swap_rejects_source_change_before_target_commit(
         bundle.ingest()
 
     assert TargetStore(database).load_release_metadata("demo", "demo-r1") is None
+
+
+def test_sealed_receipt_binds_included_case_content_digest(tmp_path: Path) -> None:
+    root = _bundle_root(
+        tmp_path, release_id="demo-r1", release_serial=1, version="1.0"
+    )
+    database = tmp_path / "datasets.sqlite3"
+    bundle = _ingest_first_release(root, database)
+    receipt = bundle._authoritative_receipt()
+
+    assert receipt is not None
+    assert len(receipt["included_case_content_digest"]) == 64
+
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            "UPDATE ingestion_receipts SET included_case_content_digest=? "
+            "WHERE dataset_id=? AND release_id=?",
+            ("0" * 64, "demo", "demo-r1"),
+        )
+
+    with pytest.raises(
+        SealedIntegrityError,
+        match="receipt does not match current certified content",
+    ):
+        bundle._authoritative_receipt()

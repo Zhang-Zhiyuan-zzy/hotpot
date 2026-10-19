@@ -12,6 +12,7 @@ import hotpot.ds.public.certificate as certificate_module
 from hotpot.ds.public._bundle_state import BUNDLE_SCHEMA, BundleState
 from hotpot.ds.public._generation import AssessmentGeneration, _AssessmentReader
 from hotpot.ds.public.bundle import Bundle, SealedIntegrityError
+from hotpot.ds.storage import included_case_content_digest
 
 
 def _selection_bundle(tmp_path: Path, size: int) -> Bundle:
@@ -488,6 +489,41 @@ def test_ingestion_snapshot_hashes_one_shared_asset_once(
     list(snapshot["cases"])
 
     assert calls == 1
+
+
+def test_ingestion_snapshot_streams_included_content_digest_in_one_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _selection_bundle(tmp_path, 4)
+    bundle.cases[1].remove_core_info("sample", reason="test incomplete Case")
+    bundle.synchronize()
+    assert bundle.cases[1].archive_class == "incomplete"
+    bundle.write_certificate()
+    generation = bundle._require_generation()
+    with bundle._ingestion_records(generation) as records:
+        expected = included_case_content_digest(
+            bundle._ingestion_case_projection(case, assessment)
+            for case, assessment in records
+        )
+
+    calls = 0
+    original_projection = Bundle._ingestion_case_projection
+
+    def counted_projection(case, assessment):
+        nonlocal calls
+        calls += 1
+        return original_projection(case, assessment)
+
+    monkeypatch.setattr(
+        Bundle,
+        "_ingestion_case_projection",
+        staticmethod(counted_projection),
+    )
+    snapshot = bundle._ingestion_snapshot("0" * 64, False)
+
+    assert calls == len(bundle.cases)
+    assert snapshot["digests"]["included_case_content"] == expected
+    assert snapshot["digests"]["case_content"] != expected
 
 
 def test_consolidated_ingest_boundary_still_requires_current_runtime_policy(

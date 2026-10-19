@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+import hotpot.ds.storage as storage_module
 from hotpot.ds.storage import (
     TARGET_SCHEMA_ID,
     PolicyMismatchError,
@@ -14,9 +15,12 @@ from hotpot.ds.storage import (
     SnapshotError,
     TargetStore,
     TargetStoreError,
+    TargetSchemaError,
     asset_inventory_digest,
     case_content_digest,
+    case_content_digests,
     case_set_digest,
+    persisted_included_case_content_digest,
 )
 from hotpot.ds.public._implementation import runtime_policy
 
@@ -110,6 +114,9 @@ def _snapshot(
             for index, structure in enumerate(case["structures"])
         ]
     assets = [asset for case in included for asset in case["assets"]]
+    all_content, included_content = case_content_digests(
+        cases, include_incomplete=include_incomplete
+    )
     if store.path.is_file():
         metadata = store.metadata()
         established = store.read_policy("spin")
@@ -153,7 +160,8 @@ def _snapshot(
             "bundle": hashlib.sha256(f"bundle:{marker}".encode()).hexdigest(),
             "certificate": hashlib.sha256(f"certificate:{marker}".encode()).hexdigest(),
             "generation": hashlib.sha256(f"generation:{marker}".encode()).hexdigest(),
-            "case_content": case_content_digest(cases),
+            "case_content": all_content,
+            "included_case_content": included_content,
             "included_cases": case_set_digest(case["id"] for case in included),
             "excluded_cases": case_set_digest(case["id"] for case in excluded),
             "asset_inventory": asset_inventory_digest(assets),
@@ -180,6 +188,33 @@ def test_case_content_must_match_receipt_bound_snapshot(tmp_path):
 
     with pytest.raises(SnapshotError, match="Case content digest"):
         store.ingest(snapshot)
+
+
+def test_included_case_content_must_match_selected_spool(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(
+        store,
+        [_case("case-a", 0), _case("broken", 1, "incomplete")],
+    )
+    snapshot["digests"]["included_case_content"] = hashlib.sha256(
+        b"different"
+    ).hexdigest()
+
+    with pytest.raises(SnapshotError, match="included Case content digest"):
+        store.ingest(snapshot)
+
+
+def test_current_schema_requires_included_case_content_receipt_column(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    store.initialize()
+    with sqlite3.connect(store.path) as connection:
+        connection.execute(
+            "ALTER TABLE ingestion_receipts "
+            "DROP COLUMN included_case_content_digest"
+        )
+
+    with pytest.raises(TargetSchemaError, match="layout is not current"):
+        store.metadata()
 
 
 def test_equal_coordinate_bytes_do_not_merge_case_or_structure_identity(tmp_path):
@@ -311,6 +346,90 @@ def test_excluded_incomplete_cases_are_receipt_bound_but_not_stored(tmp_path):
     ] == ["ordinary"]
     release = store.load_release_metadata("spin", "release-1")
     assert release["receipt"]["excluded_cases_digest"] == case_set_digest(["broken"])
+
+
+def test_persisted_included_content_digest_covers_formal_case_rows(tmp_path):
+    cases = [_case("ordinary", 2), _case("broken", 8, "incomplete")]
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    store.ingest(_snapshot(store, cases))
+    receipt = store.load_release_metadata("spin", "release-1")["receipt"]
+    expected = receipt["included_case_content_digest"]
+
+    with sqlite3.connect(store.path) as connection:
+        assert persisted_included_case_content_digest(
+            connection, "spin", "release-1"
+        ) == expected
+
+        connection.execute(
+            "UPDATE case_assessments SET evidence_level='E3' "
+            "WHERE dataset_id='spin' AND release_id='release-1'"
+        )
+        assert persisted_included_case_content_digest(
+            connection, "spin", "release-1"
+        ) != expected
+        connection.execute(
+            "UPDATE case_assessments SET evidence_level='E2' "
+            "WHERE dataset_id='spin' AND release_id='release-1'"
+        )
+
+        connection.execute(
+            "UPDATE identifiers SET value='REPLACED' "
+            "WHERE dataset_id='spin' AND release_id='release-1'"
+        )
+        assert persisted_included_case_content_digest(
+            connection, "spin", "release-1"
+        ) != expected
+        connection.execute(
+            "UPDATE identifiers SET value='ORDINARY' "
+            "WHERE dataset_id='spin' AND release_id='release-1'"
+        )
+
+        facts_blob, facts_digest = storage_module._encode_facts(
+            {"core_info": {"sample": "substituted"}}
+        )
+        connection.execute(
+            "UPDATE cases SET source_payload_blob=?,source_payload_digest=? "
+            "WHERE dataset_id='spin' AND release_id='release-1'",
+            (facts_blob, facts_digest),
+        )
+        assert persisted_included_case_content_digest(
+            connection, "spin", "release-1"
+        ) != expected
+
+
+def test_persisted_content_digest_requires_one_assessment_per_case(tmp_path):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    store.ingest(_snapshot(store, [_case("case-a", 0)]))
+    with sqlite3.connect(store.path) as connection:
+        connection.execute("DELETE FROM case_assessments")
+        with pytest.raises(TargetStoreError, match="exactly one assessment"):
+            persisted_included_case_content_digest(
+                connection, "spin", "release-1"
+            )
+
+
+def test_ingest_recomputes_included_content_after_formal_publication(
+    tmp_path, monkeypatch
+):
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0)])
+    original_publish = TargetStore._publish_spool
+
+    def tampered_publish(connection, header):
+        original_publish(connection, header)
+        connection.execute(
+            "UPDATE case_assessments SET quality_level='B4' "
+            "WHERE dataset_id=? AND release_id=?",
+            (header["dataset"], header["release"]),
+        )
+
+    monkeypatch.setattr(
+        TargetStore, "_publish_spool", staticmethod(tampered_publish)
+    )
+
+    with pytest.raises(SnapshotError, match="published included Case content"):
+        store.ingest(snapshot)
+    assert store.load_release_metadata("spin", "release-1") is None
 
 
 def test_release_serial_and_public_indexes_remain_stable(tmp_path):

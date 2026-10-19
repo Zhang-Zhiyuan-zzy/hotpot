@@ -28,6 +28,7 @@ Snapshot contract
             "certificate": lowercase SHA-256,
             "generation": lowercase SHA-256,
             "case_content": lowercase SHA-256,
+            "included_case_content": lowercase SHA-256,
             "included_cases": lowercase SHA-256,
             "excluded_cases": lowercase SHA-256,
             "asset_inventory": lowercase SHA-256,
@@ -67,10 +68,13 @@ unique ``{"sha256": ..., "size": ...}`` objects sorted by SHA-256. Helpers
 Cases are normalized once into a relational temporary SQLite spool while
 unique assets are copied and verified. ``case_content`` binds the persisted
 canonical facts, assessment, identity, and identifiers in their supplied
-order; the separately bound asset inventory covers materialized bytes. The
-target transaction publishes the verified spool with set-based SQL, so neither
-the Case collection nor asset bytes are fully materialized in memory and Case
-JSON is not reparsed by Python during commit.
+order, including Cases excluded from formal storage. ``included_case_content``
+separately binds the exact persisted projection of selected Cases and is
+recomputed from the formal tables before the transaction commits. The
+separately bound asset inventory covers materialized bytes. The target
+transaction publishes the verified spool with set-based SQL, so neither the
+Case collection nor asset bytes are fully materialized in memory and Case JSON
+is not reparsed by Python during commit.
 """
 
 from __future__ import annotations
@@ -219,6 +223,7 @@ CREATE TABLE IF NOT EXISTS ingestion_receipts(
  policy_digest TEXT NOT NULL,
  generation_digest TEXT NOT NULL,
  case_content_digest TEXT NOT NULL,
+ included_case_content_digest TEXT NOT NULL,
  included_cases_digest TEXT NOT NULL,
  excluded_cases_digest TEXT NOT NULL,
  asset_inventory_digest TEXT NOT NULL,
@@ -365,6 +370,19 @@ def _decode_facts(payload: bytes, expected_digest: bytes) -> Dict[str, Any]:
     return value
 
 
+def _fact_canonical_json(payload: bytes, expected_digest: bytes) -> str:
+    """Return digest-verified canonical fact bytes without reparsing JSON."""
+
+    try:
+        canonical = zlib.decompress(payload)
+        value = canonical.decode("utf-8")
+    except (zlib.error, UnicodeDecodeError) as exc:
+        raise TargetStoreError("stored Case facts are corrupt") from exc
+    if hashlib.sha256(canonical).digest() != expected_digest:
+        raise TargetStoreError("stored Case fact digest does not match")
+    return value
+
+
 def _restored_facts(
     facts: Mapping[str, Any],
     *,
@@ -428,6 +446,139 @@ def case_content_digest(cases: Iterable[Mapping[str, Any]]) -> str:
         TargetStore._case_content_projection(TargetStore._normalize_case(case))
         for case in cases
     )
+
+
+def case_content_digests(
+    cases: Iterable[Mapping[str, Any]],
+    *,
+    include_incomplete: bool = False,
+) -> Tuple[str, str]:
+    """Return all-Case and formally included-Case content digests in one pass."""
+
+    all_content = hashlib.sha256(b"[")
+    included_content = hashlib.sha256(b"[")
+    all_first = True
+    included_first = True
+    for case in cases:
+        normalized = TargetStore._normalize_case(case)
+        canonical = _canonical_json(TargetStore._case_content_projection(normalized))
+        if not all_first:
+            all_content.update(b",")
+        all_content.update(canonical.encode("utf-8"))
+        all_first = False
+        if (
+            normalized["assessment"]["archive_class"] != "incomplete"
+            or include_incomplete
+        ):
+            persisted = _canonical_json(
+                TargetStore._persisted_case_content_projection(normalized)
+            )
+            if not included_first:
+                included_content.update(b",")
+            included_content.update(persisted.encode("utf-8"))
+            included_first = False
+    all_content.update(b"]")
+    included_content.update(b"]")
+    return all_content.hexdigest(), included_content.hexdigest()
+
+
+def included_case_content_digest(
+    cases: Iterable[Mapping[str, Any]],
+    *,
+    include_incomplete: bool = False,
+) -> str:
+    """Bind the exact formal-store projection of selected Cases."""
+
+    return case_content_digests(
+        cases, include_incomplete=include_incomplete
+    )[1]
+
+
+def persisted_included_case_content_digest(
+    connection: sqlite3.Connection,
+    dataset: str,
+    release: str,
+) -> str:
+    """Recompute included Case content from the authoritative formal tables."""
+
+    invalid = connection.execute(
+        "SELECT c.case_id,COUNT(a.case_id) AS assessment_count FROM cases c "
+        "LEFT JOIN case_assessments a USING(dataset_id,release_id,case_id) "
+        "WHERE c.dataset_id=? AND c.release_id=? GROUP BY c.case_id "
+        "HAVING COUNT(a.case_id)!=1 LIMIT 1",
+        (dataset, release),
+    ).fetchone()
+    if invalid is not None:
+        raise TargetStoreError(
+            "every persisted Case must have exactly one assessment"
+        )
+
+    identifiers = iter(
+        connection.execute(
+            "SELECT i.case_id,i.namespace,i.value FROM cases c JOIN identifiers i "
+            "USING(dataset_id,release_id,case_id) WHERE c.dataset_id=? "
+            "AND c.release_id=? ORDER BY c.public_index,i.namespace,i.value",
+            (dataset, release),
+        )
+    )
+    next_identifier = next(identifiers, None)
+
+    def projections() -> Iterator[str]:
+        nonlocal next_identifier
+        rows = connection.execute(
+            "SELECT c.case_id,c.public_index,c.local_id,c.source_payload_blob,"
+            "c.source_payload_digest,a.quality_level,a.evidence_level,"
+            "a.archive_class,a.benchmark,a.benchmark_status,a.reasons_json "
+            "FROM cases c JOIN case_assessments a "
+            "USING(dataset_id,release_id,case_id) WHERE c.dataset_id=? "
+            "AND c.release_id=? ORDER BY c.public_index",
+            (dataset, release),
+        )
+        for row in rows:
+            case_identifiers = []
+            while (
+                next_identifier is not None
+                and next_identifier[0] == row[0]
+            ):
+                case_identifiers.append(
+                    {
+                        "namespace": next_identifier[1],
+                        "value": next_identifier[2],
+                    }
+                )
+                next_identifier = next(identifiers, None)
+            assessment = (
+                '{"archive_class":'
+                + _canonical_json(row[7])
+                + ',"benchmark":'
+                + _canonical_json(bool(row[8]))
+                + ',"benchmark_status":'
+                + _canonical_json(row[9])
+                + ',"evidence_level":'
+                + _canonical_json(row[6])
+                + ',"quality_level":'
+                + _canonical_json(row[5])
+                + ',"reasons":'
+                + row[10]
+                + "}"
+            )
+            yield (
+                '{"assessment":'
+                + assessment
+                + ',"facts":'
+                + _fact_canonical_json(row[3], row[4])
+                + ',"id":'
+                + _canonical_json(row[0])
+                + ',"identifiers":'
+                + _canonical_json(case_identifiers)
+                + ',"local_id":'
+                + _canonical_json(row[2])
+                + ',"public_index":'
+                + _canonical_json(row[1])
+                + "}"
+            )
+
+    return TargetStore._stream_canonical_array_digest(projections())
 
 
 def _require_digest(value: Any, field: str) -> str:
@@ -516,7 +667,10 @@ class TargetStore:
             item[1]
             for item in connection.execute("PRAGMA table_info(ingestion_receipts)")
         }
-        if "case_content_digest" not in receipt_columns:
+        if {
+            "case_content_digest",
+            "included_case_content_digest",
+        } - receipt_columns:
             raise TargetSchemaError(
                 "target store layout is not current; rebuild it with this checkout"
             )
@@ -718,6 +872,9 @@ class TargetStore:
             "policy_digest": receipt["policy_digest"],
             "generation_digest": receipt["generation_digest"],
             "case_content_digest": receipt["case_content_digest"],
+            "included_case_content_digest": receipt[
+                "included_case_content_digest"
+            ],
             "included_cases_digest": receipt["included_cases_digest"],
             "excluded_cases_digest": receipt["excluded_cases_digest"],
             "asset_inventory_digest": receipt["asset_inventory_digest"],
@@ -1206,6 +1363,7 @@ class TargetStore:
                 "certificate",
                 "generation",
                 "case_content",
+                "included_case_content",
                 "included_cases",
                 "excluded_cases",
                 "asset_inventory",
@@ -1238,6 +1396,9 @@ class TargetStore:
             "certificate_digest": digests["certificate"],
             "generation_digest": digests["generation"],
             "case_content_digest": digests["case_content"],
+            "included_case_content_digest": digests[
+                "included_case_content"
+            ],
             "included_cases_digest": digests["included_cases"],
             "excluded_cases_digest": digests["excluded_cases"],
             "asset_inventory_digest": digests["asset_inventory"],
@@ -1364,7 +1525,9 @@ class TargetStore:
                   facts_blob BLOB NOT NULL,
                   facts_digest BLOB NOT NULL CHECK(length(facts_digest)=32),
                   selected INTEGER NOT NULL,
-                  content_json TEXT NOT NULL CHECK(json_valid(content_json))
+                  content_json TEXT NOT NULL CHECK(json_valid(content_json)),
+                  included_content_json TEXT NOT NULL
+                    CHECK(json_valid(included_content_json))
                 );
                 CREATE TABLE spool_identifiers(
                   case_id TEXT NOT NULL,
@@ -1431,7 +1594,8 @@ class TargetStore:
                     "INSERT INTO spool_cases(case_id,public_index,local_id,"
                     "quality_level,evidence_level,archive_class,benchmark,"
                     "benchmark_status,reasons_json,facts_blob,facts_digest,selected,"
-                    "content_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "content_json,included_content_json) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     case_rows,
                 )
                 spool.executemany(
@@ -1473,6 +1637,9 @@ class TargetStore:
                 content_json = _canonical_json(
                     self._case_content_projection(normalized)
                 )
+                included_content_json = _canonical_json(
+                    self._persisted_case_content_projection(normalized)
+                )
                 facts_blob, facts_digest = _encode_facts(normalized["facts"])
                 assessment = normalized["assessment"]
                 case_rows.append(
@@ -1490,6 +1657,7 @@ class TargetStore:
                         sqlite3.Binary(facts_digest),
                         int(selected),
                         content_json,
+                        included_content_json,
                     )
                 )
                 if selected:
@@ -1790,6 +1958,17 @@ class TargetStore:
         return TargetStore._stream_canonical_array_digest(values)
 
     @staticmethod
+    def _spool_included_content_digest(spool: sqlite3.Connection) -> str:
+        values = (
+            row[0]
+            for row in spool.execute(
+                "SELECT included_content_json FROM spool_cases "
+                "WHERE selected=1 ORDER BY sequence"
+            )
+        )
+        return TargetStore._stream_canonical_array_digest(values)
+
+    @staticmethod
     def _case_content_projection(case: Mapping[str, Any]) -> Dict[str, Any]:
         return {
             "id": case["id"],
@@ -1797,6 +1976,27 @@ class TargetStore:
             "local_id": case["local_id"],
             "facts": case["facts"],
             "assessment": case["assessment"],
+            "identifiers": case["identifiers"],
+        }
+
+    @staticmethod
+    def _persisted_case_content_projection(
+        case: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        assessment = case["assessment"]
+        return {
+            "id": case["id"],
+            "public_index": case["public_index"],
+            "local_id": case["local_id"],
+            "facts": case["facts"],
+            "assessment": {
+                "quality_level": assessment.get("quality_level"),
+                "evidence_level": assessment.get("evidence_level"),
+                "archive_class": assessment["archive_class"],
+                "benchmark": bool(assessment["benchmark"]),
+                "benchmark_status": assessment.get("benchmark_status"),
+                "reasons": assessment.get("reasons", []),
+            },
             "identifiers": case["identifiers"],
         }
 
@@ -1830,8 +2030,13 @@ class TargetStore:
             excluded = self._spool_case_digest(spool, 0)
             assets = self._spool_asset_digest(spool)
             content = self._spool_content_digest(spool)
+            included_content = self._spool_included_content_digest(spool)
         if content != digests["case_content"]:
             raise SnapshotError("Case content digest does not match the snapshot")
+        if included_content != digests["included_case_content"]:
+            raise SnapshotError(
+                "included Case content digest does not match the snapshot"
+            )
         if included != digests["included_cases"]:
             raise SnapshotError("included Case-set digest does not match the snapshot")
         if excluded != digests["excluded_cases"]:
@@ -1884,14 +2089,23 @@ class TargetStore:
             self._establish_dataset(connection, header, policy)
             release_serial = self._insert_release(connection, header)
             self._publish_spool(connection, header)
+            persisted_content = persisted_included_case_content_digest(
+                connection, header["dataset"], header["release"]
+            )
+            if persisted_content != digests["included_case_content"]:
+                raise SnapshotError(
+                    "published included Case content digest does not match the snapshot"
+                )
             receipt_id = "receipt-" + _json_digest(binding)
             connection.execute(
                 "INSERT INTO ingestion_receipts("
                 "receipt_id,store_uuid,dataset_id,release_id,bundle_digest,"
                 "certificate_digest,policy_digest,generation_digest,"
-                "case_content_digest,included_cases_digest,excluded_cases_digest,"
+                "case_content_digest,included_case_content_digest,"
+                "included_cases_digest,excluded_cases_digest,"
                 "asset_inventory_digest,include_incomplete,reason,included_count,"
-                "excluded_count,binding_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "excluded_count,binding_json) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     receipt_id,
                     metadata["store_uuid"],
@@ -1902,6 +2116,7 @@ class TargetStore:
                     policy["digest"],
                     digests["generation"],
                     digests["case_content"],
+                    digests["included_case_content"],
                     digests["included_cases"],
                     digests["excluded_cases"],
                     digests["asset_inventory"],
@@ -2112,5 +2327,8 @@ __all__ = [
     "TargetStoreError",
     "asset_inventory_digest",
     "case_content_digest",
+    "case_content_digests",
     "case_set_digest",
+    "included_case_content_digest",
+    "persisted_included_case_content_digest",
 ]

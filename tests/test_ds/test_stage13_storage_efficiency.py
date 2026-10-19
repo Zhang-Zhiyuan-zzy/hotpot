@@ -18,7 +18,7 @@ from hotpot.ds.storage import (
     SnapshotError,
     TargetStore,
     asset_inventory_digest,
-    case_content_digest,
+    case_content_digests,
     case_set_digest,
 )
 
@@ -85,6 +85,7 @@ def _snapshot(store: TargetStore, cases: list[dict], control_assets=()) -> dict:
     }
     all_assets = [asset for case in cases for asset in case["assets"]]
     all_assets.extend(control_assets)
+    all_content, included_content = case_content_digests(cases)
     marker = "release-1:1.0"
     return {
         "target_context": {
@@ -118,7 +119,8 @@ def _snapshot(store: TargetStore, cases: list[dict], control_assets=()) -> dict:
             "generation": hashlib.sha256(
                 f"generation:{marker}".encode()
             ).hexdigest(),
-            "case_content": case_content_digest(cases),
+            "case_content": all_content,
+            "included_case_content": included_content,
             "included_cases": case_set_digest(case["id"] for case in cases),
             "excluded_cases": case_set_digest(()),
             "asset_inventory": asset_inventory_digest(all_assets),

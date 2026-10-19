@@ -17,7 +17,7 @@ from hotpot.ds.storage import (
     TARGET_SCHEMA_ID,
     TargetStore,
     asset_inventory_digest,
-    case_content_digest,
+    case_content_digests,
     case_set_digest,
 )
 
@@ -186,6 +186,9 @@ def _database(
         "runtime_policy": runtime_policy(),
     }
     assets = [asset for case in cases for asset in case["assets"]]
+    all_content, included_content = case_content_digests(
+        cases, include_incomplete=True
+    )
     snapshot = {
         "target_context": {
             "canonical_path": str(database.resolve()),
@@ -218,7 +221,8 @@ def _database(
             "bundle": hashlib.sha256(b"bundle").hexdigest(),
             "certificate": hashlib.sha256(b"certificate").hexdigest(),
             "generation": hashlib.sha256(b"generation").hexdigest(),
-            "case_content": case_content_digest(cases),
+            "case_content": all_content,
+            "included_case_content": included_content,
             "included_cases": case_set_digest(case["id"] for case in cases),
             "excluded_cases": case_set_digest([]),
             "asset_inventory": asset_inventory_digest(assets),

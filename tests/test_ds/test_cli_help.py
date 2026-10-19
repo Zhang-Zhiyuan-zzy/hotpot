@@ -48,6 +48,7 @@ def test_hotpot_ds_top_level_help(capsys: pytest.CaptureFixture[str]) -> None:
         "subset",
         "search",
         "export",
+        "copy",
         "bundle",
         "certify",
         "ingest",
@@ -66,6 +67,7 @@ def test_hotpot_ds_top_level_help(capsys: pytest.CaptureFixture[str]) -> None:
         "subset",
         "search",
         "export",
+        "copy",
         "bundle",
         "certify",
         "ingest",
@@ -170,6 +172,65 @@ def test_export_selection_modes_are_exclusive() -> None:
         parser.parse_args(
             ["export", "demo", "destination", "0", "--range", "0", "1"]
         )
+
+
+def test_copy_uses_one_unambiguous_target_package_and_optional_source() -> None:
+    parser = build_ds_parser()
+
+    default_source = parser.parse_args(["copy", "/opt/hotpot"])
+    assert default_source.target_package == "/opt/hotpot"
+    assert not hasattr(default_source, "db")
+
+    explicit_source = parser.parse_args(
+        ["copy", "/opt/hotpot", "--db", "source/datasets.sqlite3"]
+    )
+    assert explicit_source.db == "source/datasets.sqlite3"
+
+
+def test_copy_handler_defaults_to_the_imported_package_store(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = (tmp_path / "imported" / "datasets.sqlite3").resolve()
+    target = tmp_path / "target" / "hotpot"
+    observed: dict[str, object] = {}
+    result = {
+        "source_database": str(source),
+        "destination_database": str(
+            target / "dataset/data/store/active/datasets.sqlite3"
+        ),
+        "generation_database": str(
+            target / "dataset/data/store/generations/replica/datasets.sqlite3"
+        ),
+        "target_package": str(target),
+        "store_uuid": "uuid",
+        "schema_id": "schema",
+        "counts": {
+            "datasets": 0,
+            "releases": 0,
+            "cases": 0,
+            "assets": 0,
+            "asset_bytes": 0,
+        },
+        "idempotent": False,
+        "audit": {"passed": True},
+    }
+
+    def fake_copy_store(source_db, target_package):
+        observed["arguments"] = (source_db, target_package)
+        return result
+
+    monkeypatch.setattr(ds_cli, "DEFAULT_STORE_PATH", source)
+    monkeypatch.setattr(ds_cli, "copy_store", fake_copy_store)
+    monkeypatch.setattr(
+        ds_cli,
+        "emit_envelope",
+        lambda key, payload, **kwargs: observed.update(key=key, payload=payload),
+    )
+
+    assert ds_cli.run(build_ds_parser().parse_args(["copy", str(target)])) == 0
+    assert observed["arguments"] == (source, str(target))
+    assert observed["key"] == "hotpot.ds.copy"
+    assert observed["payload"] == result
 
 
 def test_certify_and_ingest_expose_the_certificate_gate(

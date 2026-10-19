@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from hotpot.ds._store_copy import StoreCopyError, copy_store
+from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._implementation import runtime_policy
 from hotpot.ds.public.catalog import load
 from hotpot.ds.storage import (
@@ -186,6 +187,35 @@ def test_copy_store_publishes_relocatable_current_store(tmp_path: Path) -> None:
     assert json.loads(copied_binding)["target_context"]["canonical_path"] == (
         historical_path
     )
+
+
+def test_copy_cli_emits_the_closed_store_replica_contract(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _, source_database, _, _ = _source_package(tmp_path)
+    target_package = _target_package(tmp_path)
+
+    args = build_parser().parse_args(
+        ["copy", str(target_package), "--db", str(source_database)]
+    )
+    assert run(args) == 0
+
+    envelope = json.loads(capsys.readouterr().out)
+    assert envelope["key"] == "hotpot.ds.copy"
+    assert envelope["channel"] == "default"
+    payload = envelope["payload"]
+    assert payload["target_package"] == str(target_package.resolve())
+    assert payload["destination_database"] == str(
+        _destination_database(target_package)
+    )
+    assert payload["counts"] == {
+        "datasets": 1,
+        "releases": 1,
+        "cases": 1,
+        "assets": 1,
+        "asset_bytes": len(b"1\n\nEu 0 0 0\n"),
+    }
+    assert payload["audit"] == {"passed": True}
 
 
 @pytest.mark.parametrize(

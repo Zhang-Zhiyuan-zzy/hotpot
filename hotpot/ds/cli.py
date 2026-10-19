@@ -13,6 +13,7 @@ from ._bundle_cleanup import remove_bundle_intermediates
 from ._communication import emit_envelope, read_input
 from ._export import export_records, render_structure_record
 from ._paths import DEFAULT_STORE_PATH
+from ._store_copy import copy_store
 from .gates import BenchmarkGate, EvidenceGate, QualityGate
 from .gates._checker import CHECKER_PROTOCOL_DIGEST, _CheckerDefinition, _inspect_source
 from .public.bundle import Bundle, load_bundle
@@ -175,6 +176,19 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     modes.add_argument("--id", action="store_true", help="interpret ITEM as a Hotpot ID")
     modes.add_argument("--identifier", nargs="?", const=_AUTO_IDENTIFIER, metavar="NAMESPACE", help="interpret ITEM as an external identifier")
     export.add_argument("--format", metavar="FORMAT", help="convert structures to FORMAT")
+
+    copy = _command(
+        actions,
+        "copy",
+        help="replicate an ingested store",
+        description="Install one verified exact store replica into another Hotpot package.",
+    )
+    copy.add_argument(
+        "target_package",
+        metavar="TARGET_HOTPOT_PACKAGE",
+        help="target hotpot package directory containing __init__.py and dataset/",
+    )
+    _database(copy)
 
     detail = _command(actions, "detail", help="inspect current storage", description="Current-store diagnostics.")
     detail_actions = detail.add_subparsers(dest="detail_action", metavar="COMMAND")
@@ -1012,6 +1026,11 @@ def run(args: argparse.Namespace) -> int:
                     "requested_format": summary["requested_format"],
                 },
             )
+            return 0
+
+        if args.ds_action == "copy":
+            result = copy_store(_active_database(args), args.target_package)
+            emit_envelope("hotpot.ds.copy", result)
             return 0
 
         if args.ds_action == "detail":

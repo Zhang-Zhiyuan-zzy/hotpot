@@ -56,6 +56,7 @@ def test_protocol_inventory_is_closed_and_every_route_has_a_schema() -> None:
         "hotpot.ds.bundle.rm",
         "hotpot.ds.certify",
         "hotpot.ds.ingest",
+        "hotpot.ds.copy",
     }
     assert all(
         contract in protocol["contracts"]

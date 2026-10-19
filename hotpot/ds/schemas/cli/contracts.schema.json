@@ -497,6 +497,35 @@
         "receipt_digest": {"$ref": "#/$defs/sha256"}, "included": {"$ref": "#/$defs/caseSetDigest"},
         "excluded": {"$ref": "#/$defs/caseSetDigest"}, "idempotent": {"type": "boolean"}
       }
+    },
+    "store_copy_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_database", "destination_database", "generation_database", "target_package", "store_uuid", "schema_id", "counts", "idempotent", "audit"],
+      "properties": {
+        "source_database": {"$ref": "#/$defs/nonempty"},
+        "destination_database": {"$ref": "#/$defs/nonempty"},
+        "generation_database": {"$ref": "#/$defs/nonempty"},
+        "target_package": {"$ref": "#/$defs/nonempty"},
+        "store_uuid": {"$ref": "#/$defs/nonempty"},
+        "schema_id": {"$ref": "#/$defs/nonempty"},
+        "counts": {
+          "type": "object", "additionalProperties": false,
+          "required": ["datasets", "releases", "cases", "assets", "asset_bytes"],
+          "properties": {
+            "datasets": {"$ref": "#/$defs/count"},
+            "releases": {"$ref": "#/$defs/count"},
+            "cases": {"$ref": "#/$defs/count"},
+            "assets": {"$ref": "#/$defs/count"},
+            "asset_bytes": {"$ref": "#/$defs/count"}
+          }
+        },
+        "idempotent": {"const": false},
+        "audit": {
+          "type": "object", "additionalProperties": false,
+          "required": ["passed"],
+          "properties": {"passed": {"const": true}}
+        }
+      }
     }
   }
 }

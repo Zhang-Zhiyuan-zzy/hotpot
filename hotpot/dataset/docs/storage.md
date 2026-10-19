@@ -199,10 +199,14 @@ ingestion receipts. Canonical Case facts are stored as deterministic
 zlib-compressed JSON and verified against the SHA-256 digest of their
 uncompressed canonical value. Archive-class selection uses the final
 assessment index; the target does not duplicate Cases into class tables.
-Each receipt separately binds the complete certified Bundle Case content and
-the exact persisted projection of included facts, assessments, and identifiers.
-The second root is recomputable from the formal store and prevents a copied or
-cleaned store from accepting locally self-consistent row substitutions.
+Each receipt separately binds the complete certified Bundle Case content, the
+exact persisted projection of included facts, assessments, and identifiers,
+and a formal-content root. The formal-content root also covers dataset policy
+and metadata, release metadata, and every structure, scientific, and
+release-control asset-reference row. Both persisted roots are recomputable
+from the formal store, so copying, auditing, and cleanup reject locally
+self-consistent substitutions or reassociations rather than trusting row-level
+checks alone.
 
 The default target is derived from the package actually imported by the
 running process, not from the console-script path. An editable install therefore

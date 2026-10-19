@@ -2305,10 +2305,13 @@ Target resolution uses these rules inside that transaction:
    still unused; this is the sole permitted `new -> existing` policy transition.
 4. If the store already contains an ingestion receipt for the same dataset and
    release whose complete binding matches target, policy/runtime, Bundle,
-   certificate, generation, Case content, included/excluded sets, asset
-   inventory, and incomplete-selection reason, ingestion is idempotent and
-   returns that receipt. The same release identity with any different field is
-   a conflict and is never overwritten.
+   certificate, generation, Case content, formal content, included/excluded
+   sets, asset inventory, and incomplete-selection reason, ingestion is
+   idempotent and returns that receipt. Formal content binds the exact persisted
+   Case projection together with dataset policy and metadata, release metadata,
+   and all structure, scientific, and release-control asset-reference rows.
+   The same release identity with any different field is a conflict and is
+   never overwritten.
 
 The authoritative ingestion receipt is inserted in the target transaction and
 has a uniqueness key of `(store_uuid, dataset_id, release_id)`. The row stores
@@ -2316,8 +2319,8 @@ the Bundle, certificate, and selection digests; equality makes a retry
 idempotent and inequality makes the occupied release a conflict. It also records
 final store schema, complete frozen runtime-policy document, policy digest,
 assessment-generation digest, Case-content digest, included/excluded set
-digests, asset-inventory digest, incomplete-selection reason, deterministic
-receipt ID, and commit timestamp.
+digests, formal-content digest, asset-inventory digest,
+incomplete-selection reason, deterministic receipt ID, and commit timestamp.
 Only after target commit does Hotpot write the optional local
 `ingestion-receipt.json` projection. If that local write fails, the ingestion is
 still committed; the next `load_bundle()` or `from_certificate()` query finds

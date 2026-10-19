@@ -480,9 +480,11 @@ rejected instead of invoking a compatibility path.
 
 The command takes a consistent SQLite snapshot, copies exactly the referenced
 content-addressed assets while verifying their sizes and SHA-256 digests,
-recomputes the receipt-bound content root for persisted facts, assessments, and
-identifiers, audits the staged store, and atomically activates one target
-generation. It
+recomputes both receipt-bound persisted roots, and audits the staged store
+before atomically activating one target generation. Those roots cover Case
+facts, assessments, identifiers, dataset policy and metadata, release metadata,
+and the exact structure, scientific, and release-control asset-reference
+relationships. It
 does not rebuild, recertify, re-ingest, merge, or overwrite. An existing target
 `store/active` is rejected. Historical receipt paths remain the signed facts
 from original ingestion; ordinary reads resolve assets from the replica's

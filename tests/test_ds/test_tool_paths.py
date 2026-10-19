@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+import hotpot
 from hotpot.ds import _paths
 from hotpot.ds.tools import analyze_structure_composition
 from hotpot.ds.tools.electronic_state import assess_quality, build_database
@@ -20,6 +21,7 @@ DATASET_ROOT = _paths.DATASET_ROOT
 
 
 def test_tool_defaults_use_canonical_dataset_layout() -> None:
+    assert _paths.HOTPOT_PACKAGE_ROOT == Path(hotpot.__file__).resolve().parent
     assert _paths.STORE_GENERATIONS_ROOT == _paths.STORE_ROOT / "generations"
     assert _paths.ACTIVE_STORE_ROOT == _paths.STORE_ROOT / "active"
     assert _paths.DEFAULT_STORE_PATH == (

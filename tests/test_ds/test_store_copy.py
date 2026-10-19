@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 import hotpot
+import hotpot.ds._store_copy as store_copy_module
 from hotpot.ds._store_copy import StoreCopyError, copy_store
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._implementation import runtime_policy
@@ -375,6 +376,30 @@ def test_copy_store_rejects_a_different_ds_runtime(tmp_path: Path) -> None:
         copy_store(source_database, target_package)
 
     assert not (target_package / "dataset" / "data").exists()
+
+
+def test_copy_store_revalidates_target_runtime_before_publication(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, source_database, _, _ = _source_package(tmp_path)
+    target_package = _target_package(tmp_path)
+    original_audit = store_copy_module._audit_cas
+
+    def alter_runtime_after_copy(root, assets):
+        original_audit(root, assets)
+        with (target_package / "ds" / "storage.py").open(
+            "a", encoding="utf-8"
+        ) as stream:
+            stream.write("\n# changed while the store was copied\n")
+
+    monkeypatch.setattr(store_copy_module, "_audit_cas", alter_runtime_after_copy)
+
+    with pytest.raises(StoreCopyError, match="runtime changed during store copy"):
+        copy_store(source_database, target_package)
+
+    store_root = target_package / "dataset" / "data" / "store"
+    assert not (store_root / "active").exists()
+    assert list((store_root / "generations").iterdir()) == []
 
 
 @pytest.mark.parametrize(

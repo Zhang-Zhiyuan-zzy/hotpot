@@ -469,7 +469,7 @@ def _backup_database(source: Path, destination: Path) -> None:
         os.close(descriptor)
 
 
-def _package_root(value: str | Path) -> Path:
+def _package_root(value: str | Path) -> tuple[Path, str]:
     package = Path(value).expanduser().resolve()
     if (
         not package.is_dir()
@@ -481,11 +481,12 @@ def _package_root(value: str | Path) -> Path:
             "__init__.py and dataset/"
         )
     running_package = Path(__file__).resolve().parents[1]
-    if _runtime_contract(package) != _runtime_contract(running_package):
+    contract = _runtime_contract(package)
+    if contract != _runtime_contract(running_package):
         raise StoreCopyError(
             "target Hotpot package does not use this exact current ds runtime"
         )
-    return package
+    return package, contract
 
 
 def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, Any]:
@@ -495,7 +496,7 @@ def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, A
     if not source.is_file():
         raise StoreCopyError("source database does not exist")
     source_assets = Path(str(source) + ".assets").resolve()
-    package = _package_root(target_package)
+    package, target_runtime_contract = _package_root(target_package)
     store_root = package / "dataset" / "data" / "store"
     active = store_root / "active"
     generations = store_root / "generations"
@@ -536,6 +537,10 @@ def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, A
 
             staging.rename(final)
             _fsync_directory(generations)
+            if _runtime_contract(package) != target_runtime_contract:
+                raise StoreCopyError(
+                    "target Hotpot ds runtime changed during store copy"
+                )
             relative_generation = Path("generations") / final.name
             try:
                 active.symlink_to(relative_generation, target_is_directory=True)

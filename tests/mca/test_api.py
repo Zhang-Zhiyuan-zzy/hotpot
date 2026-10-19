@@ -1,11 +1,16 @@
+from copy import copy
+
+import numpy as np
 import pytest
-from openbabel import openbabel as ob, pybel
+from mca import MoleculeGraph, MoleculePrediction
+from mca import api as api_module
+from mca.conformer import ensure_3d_conformer
+from mca.runtime import MCARuntime
+from openbabel import openbabel as ob
+from openbabel import pybel
 from rdkit import Chem
 
 from hotpot import read_mol
-
-from mca import MoleculeGraph, MoleculePrediction
-from mca import api as api_module
 
 
 def test_existing_result_constructor_remains_compatible():
@@ -20,6 +25,7 @@ def test_cpu_smiles_and_batch_prediction(predictor):
     batch = predictor.predict(["C1CCCCN1", "c1ccncc1"])
 
     assert predictor.runtime.device == "cpu"
+    assert predictor.runtime.prediction_layout == "all_atoms"
     assert len(single.atom_predictions) == 6
     assert [atom.atom_index for atom in single.atom_predictions] == list(range(6))
     assert len(single.sites) == 1
@@ -32,19 +38,58 @@ def test_cpu_smiles_and_batch_prediction(predictor):
     assert [len(item.atom_predictions) for item in batch] == [6, 6]
 
 
-def test_all_atom_rows_are_collated_in_bounded_batches(predictor, monkeypatch):
-    original = api_module.collate_site_rows
+def test_repeated_molecule_rows_are_collapsed_within_each_batch(
+    predictor, monkeypatch
+):
+    original = api_module.collate_molecule_rows
     row_counts = []
 
-    def record_rows(features, molecule_indices, atom_indices):
-        row_counts.append(len(atom_indices))
-        return original(features, molecule_indices, atom_indices)
+    def record_rows(features, molecule_indices, max_atoms=None):
+        row_counts.append(len(molecule_indices))
+        return original(features, molecule_indices, max_atoms)
 
-    monkeypatch.setattr(api_module, "collate_site_rows", record_rows)
+    monkeypatch.setattr(api_module, "collate_molecule_rows", record_rows)
     monkeypatch.setattr(predictor, "batch_size", 3)
     predictor.predict(["C1CCCCN1", "c1ccncc1"])
 
-    assert row_counts == [3, 3, 3, 3]
+    assert row_counts == [1, 1]
+
+
+def test_optimized_runtime_is_bitwise_equal_across_legacy_batch_boundaries(
+    predictor,
+):
+    molecules = [
+        ensure_3d_conformer(Chem.MolFromSmiles(smiles))
+        for smiles in (
+            "C",
+            "C1CCCCN1",
+            "CC(=O)C",
+            "c1ccncc1",
+            "CCCCCCCCCC",
+        )
+    ]
+    optimized_predictor = copy(predictor)
+    legacy_predictor = copy(predictor)
+    legacy_predictor.runtime = MCARuntime(device="cpu", optimize_all_atoms=False)
+
+    for batch_size in (5, 8, 64):
+        legacy_predictor.batch_size = batch_size
+        optimized_predictor.batch_size = batch_size
+        legacy_results = legacy_predictor.predict(molecules)
+        optimized_results = optimized_predictor.predict(molecules)
+
+        for legacy, optimized in zip(legacy_results, optimized_results):
+            assert np.array_equal(
+                [atom.mca_kj_mol for atom in legacy.atom_predictions],
+                [atom.mca_kj_mol for atom in optimized.atom_predictions],
+            )
+            assert [
+                (site.atom_index, site.element, site.site_type, site.mca_kj_mol)
+                for site in legacy.sites
+            ] == [
+                (site.atom_index, site.element, site.site_type, site.mca_kj_mol)
+                for site in optimized.sites
+            ]
 
 
 def test_supported_inputs_keep_atom_and_site_indices_aligned(predictor):

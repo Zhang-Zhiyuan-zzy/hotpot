@@ -25,6 +25,15 @@ CUDA runtime in place of `onnxruntime`. `device="auto"` selects an initialized
 CUDA provider when available and otherwise uses CPU. Model hashes are checked
 when the ONNX session is created.
 
+On first use, Hotpot derives an equivalent all-atom ONNX graph from the pinned
+release graph. The derived graph reuses the verified model weights and computes
+the shared molecular encoding once per distinct padding context instead of once
+per target atom. It is stored below `HOTPOT_DERIVED_MODEL_HOME`, or below the
+regular Hotpot model cache when that variable is unset. Read-only model bundles
+remain supported; if the derived cache is also read-only, a temporary graph is
+used. Original atom-row batch boundaries and padding are retained so existing
+MCA values remain unchanged.
+
 ## Python API
 
 Direct SMILES and batch inference:

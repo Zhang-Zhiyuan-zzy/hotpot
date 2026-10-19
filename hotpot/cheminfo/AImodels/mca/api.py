@@ -10,7 +10,7 @@ from hotpot.cheminfo.convert import is_molecule_input, to_hotpot_mol
 from hotpot.cheminfo.core import Molecule as HotpotMolecule
 
 from .conformer import ensure_3d_conformer
-from .featurizer import collate_site_rows, mol_to_unimolv2
+from .featurizer import collate_molecule_rows, collate_site_rows, mol_to_unimolv2
 from .result_types import AtomPrediction, MoleculePrediction, SitePrediction
 from .runtime import MCARuntime
 from .site_detection import find_nucleophilic_sites
@@ -108,15 +108,55 @@ class MCAPredictor:
             for atom_index in range(len(mol.atoms))
         ]
         predictions = []
+        all_atom_cache = {}
+        # Keep legacy atom-row batch boundaries and their padding context while
+        # encoding each molecule only once for each distinct padded width.
         for start in range(0, len(atom_indices), self.batch_size):
             stop = start + self.batch_size
-            arrays = collate_site_rows(
-                features,
-                molecule_indices[start:stop],
-                atom_indices[start:stop],
+            chunk_molecule_indices = molecule_indices[start:stop]
+            chunk_atom_indices = atom_indices[start:stop]
+            if self.runtime.prediction_layout == "selected_atom":
+                arrays = collate_site_rows(
+                    features,
+                    chunk_molecule_indices,
+                    chunk_atom_indices,
+                )
+                predictions.extend(
+                    self.runtime.predict(arrays, self.batch_size).tolist()
+                )
+                continue
+
+            chunk_max_atoms = max(
+                features[index]["atom_feat"].shape[0]
+                for index in chunk_molecule_indices
             )
+            unique_molecule_indices = list(dict.fromkeys(chunk_molecule_indices))
+            missing_molecule_indices = [
+                index
+                for index in unique_molecule_indices
+                if (index, chunk_max_atoms) not in all_atom_cache
+            ]
+            if missing_molecule_indices:
+                arrays = collate_molecule_rows(
+                    features,
+                    missing_molecule_indices,
+                    max_atoms=chunk_max_atoms,
+                )
+                chunk_predictions = self.runtime.predict(arrays, self.batch_size)
+                all_atom_cache.update(
+                    {
+                        (molecule_index, chunk_max_atoms): chunk_predictions[row]
+                        for row, molecule_index in enumerate(
+                            missing_molecule_indices
+                        )
+                    }
+                )
             predictions.extend(
-                self.runtime.predict(arrays, self.batch_size).tolist()
+                all_atom_cache[(molecule_index, chunk_max_atoms)][atom_index]
+                for molecule_index, atom_index in zip(
+                    chunk_molecule_indices,
+                    chunk_atom_indices,
+                )
             )
 
         cursor = 0

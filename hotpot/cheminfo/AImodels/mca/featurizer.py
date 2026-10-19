@@ -9,7 +9,6 @@ from __future__ import annotations
 import numpy as np
 from rdkit import Chem
 
-
 ALLOWABLE = {
     "atomic_num": list(range(1, 119)) + ["misc"],
     "chirality": [
@@ -131,9 +130,12 @@ def mol_to_unimolv2(mol: Chem.Mol, max_atoms: int = 512):
     }
 
 
-def collate_site_rows(features, molecule_indices, atom_indices):
-    batch_size = len(atom_indices)
-    max_atoms = max(features[index]["atom_feat"].shape[0] for index in molecule_indices)
+def collate_molecule_rows(features, molecule_indices, max_atoms=None):
+    batch_size = len(molecule_indices)
+    if max_atoms is None:
+        max_atoms = max(
+            features[index]["atom_feat"].shape[0] for index in molecule_indices
+        )
     arrays = {
         "atom_feat": np.zeros((batch_size, max_atoms, 8), dtype=np.int32),
         "atom_mask": np.zeros((batch_size, max_atoms), dtype=np.int64),
@@ -144,7 +146,6 @@ def collate_site_rows(features, molecule_indices, atom_indices):
         "attn_bias": np.zeros((batch_size, max_atoms + 1, max_atoms + 1), dtype=np.float32),
         "src_tokens": np.zeros((batch_size, max_atoms), dtype=np.int64),
         "src_coord": np.zeros((batch_size, max_atoms, 3), dtype=np.float32),
-        "atom_index": np.asarray(atom_indices, dtype=np.int64),
     }
     for row, molecule_index in enumerate(molecule_indices):
         feature = features[molecule_index]
@@ -158,4 +159,10 @@ def collate_site_rows(features, molecule_indices, atom_indices):
         arrays["attn_bias"][row, : atom_count + 1, : atom_count + 1] = feature["attn_bias"]
         arrays["src_tokens"][row, :atom_count] = feature["src_tokens"]
         arrays["src_coord"][row, :atom_count] = feature["src_coord"]
+    return arrays
+
+
+def collate_site_rows(features, molecule_indices, atom_indices):
+    arrays = collate_molecule_rows(features, molecule_indices)
+    arrays["atom_index"] = np.asarray(atom_indices, dtype=np.int64)
     return arrays

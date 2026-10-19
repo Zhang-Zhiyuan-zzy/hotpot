@@ -2750,9 +2750,10 @@ hotpot ds ingest BUNDLE_ROOT [--db DB] [--dataset NAME]
 `build` is the CLI counterpart of `Bundle(...)`: it accepts only an unbuilt
 current-format intake root, publishes canonical facts once, and never
 synchronizes. All other Bundle commands use validation-only `load_bundle(...)`.
-`BUNDLE_ROOT` and `--root` default to the current directory for their respective
-Bundle forms. A
-successful source/Gate mutation reports `is_synchronized: false`; users may
+The positional `BUNDLE_ROOT` accepted by `build` is optional; omitting it uses
+the CLI process's current working directory. For all other Bundle forms,
+omitting `--root` likewise uses the current working directory. A successful
+source/Gate mutation reports `is_synchronized: false`; users may
 perform several edits and synchronize once. `synchronize` never writes a
 certificate. `certify` rejects an unsynchronized Bundle, writes only the root
 certificate, and never ingests. `ingest` requires a current synchronized
@@ -2855,9 +2856,11 @@ Owner/admin Hotpot attestations use the private trusted governance path; normal
 CLI attestations are `User` or `Other`.
 
 `--root`, `--dataset`, and `--db` are options of the `bundle` parent command.
-`--root` defaults to the current directory for every command except `build`;
-`build` requires its one `BUNDLE_ROOT` positional and rejects simultaneous
-`--root`. This single layout avoids command-specific locator variants.
+For every command except `build`, omitting `--root` selects the CLI process's
+current working directory. `build` instead accepts one optional positional
+`[BUNDLE_ROOT]`; omitting it selects the same current working directory, while
+supplying both the positional and `--root` is rejected. This single layout
+avoids command-specific locator variants.
 
 ### 12.3 Complete communication contract
 

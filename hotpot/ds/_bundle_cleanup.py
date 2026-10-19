@@ -15,7 +15,11 @@ from typing import Any, Iterator, Mapping, Optional
 
 from .public.bundle import load_bundle
 from .public.certificate import certificate_digest
-from .storage import TargetStore, _decode_facts
+from .storage import (
+    TargetStore,
+    _decode_facts,
+    persisted_included_case_content_digest,
+)
 
 
 _CLEANUP_SCHEMA = "hotpot-ds-bundle-cleanup/current"
@@ -341,6 +345,19 @@ def _target_audit(
                 ),
             }
         )
+        receipt = connection.execute(
+            "SELECT included_case_content_digest FROM ingestion_receipts "
+            "WHERE dataset_id=? AND release_id=?",
+            (dataset, release_id),
+        ).fetchone()
+        if receipt is None or receipt["included_case_content_digest"] != (
+            persisted_included_case_content_digest(
+                connection, dataset, release_id
+            )
+        ):
+            raise BundleCleanupError(
+                "target changed: persisted Case content does not match its receipt"
+            )
     total = 0
     release_asset_count = 0
     for row in assets:

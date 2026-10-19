@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import sqlite3
+import zlib
 from pathlib import Path
 
 import pytest
 
+import hotpot
 from hotpot.ds._store_copy import StoreCopyError, copy_store
 from hotpot.ds.cli import build_parser, run
 from hotpot.ds.public._implementation import runtime_policy
@@ -17,6 +20,7 @@ from hotpot.ds.storage import (
     asset_inventory_digest,
     case_content_digest,
     case_set_digest,
+    included_case_content_digest,
 )
 
 
@@ -113,6 +117,7 @@ def _source_package(tmp_path: Path) -> tuple[Path, Path, Path, bytes]:
                 "certificate": hashlib.sha256(b"certificate").hexdigest(),
                 "generation": hashlib.sha256(b"generation").hexdigest(),
                 "case_content": case_content_digest([case]),
+                "included_case_content": case_content_digest([case]),
                 "included_cases": case_set_digest([case["id"]]),
                 "excluded_cases": case_set_digest([]),
                 "asset_inventory": asset_inventory_digest(case["assets"]),
@@ -132,8 +137,20 @@ def _destination_database(package: Path) -> Path:
 
 def _target_package(tmp_path: Path) -> Path:
     package = tmp_path / "target" / "hotpot"
+    running = Path(hotpot.__file__).resolve().parent
     (package / "dataset").mkdir(parents=True)
-    (package / "__init__.py").write_text("", encoding="utf-8")
+    shutil.copy2(running / "__init__.py", package / "__init__.py")
+    shutil.copy2(running / "__version__.py", package / "__version__.py")
+    shutil.copy2(
+        running / "dataset" / "__init__.py",
+        package / "dataset" / "__init__.py",
+    )
+    (package / "cheminfo").mkdir()
+    shutil.copy2(
+        running / "cheminfo" / "__init__.py",
+        package / "cheminfo" / "__init__.py",
+    )
+    shutil.copytree(running / "ds", package / "ds")
     return package
 
 
@@ -189,6 +206,80 @@ def test_copy_store_publishes_relocatable_current_store(tmp_path: Path) -> None:
     )
 
 
+def test_copied_store_can_become_the_single_target_for_a_later_ingest(
+    tmp_path: Path,
+) -> None:
+    _, source_database, _, _ = _source_package(tmp_path)
+    target_package = _target_package(tmp_path)
+    copy_store(source_database, target_package)
+    destination = _destination_database(target_package)
+    store = TargetStore(destination)
+    metadata = store.metadata()
+    case = {
+        "id": "case-oxidation",
+        "public_index": 0,
+        "local_id": "local-oxidation",
+        "facts": {"labels": {"oxidation_state": 3}},
+        "assessment": {
+            "archive_class": "ordinary",
+            "quality_level": "B2",
+            "evidence_level": "E2",
+            "benchmark": False,
+            "reasons": [],
+        },
+        "identifiers": [{"namespace": "CSD", "value": "OXCASE"}],
+        "structures": [],
+        "assets": [],
+    }
+    policy = {
+        "schema": "hotpot-ds-policy/current",
+        "gates": {"quality": "test"},
+        "runtime_policy": runtime_policy(),
+    }
+    store.ingest(
+        {
+            "target_context": {
+                "canonical_path": str(store.path),
+                "store_state": "existing",
+                "store_uuid": metadata["store_uuid"],
+                "schema_id": TARGET_SCHEMA_ID,
+                "dataset_state": "absent",
+                "dataset_policy_revision": None,
+                "dataset_policy_digest": None,
+            },
+            "bundle": {
+                "dataset": "oxidation",
+                "release": "oxidation.v001",
+                "version": "1.0",
+                "release_serial": 1,
+                "title": "Oxidation states",
+                "description": "Post-copy ingest fixture",
+                "metadata": {"core_labels": ["oxidation_state"]},
+            },
+            "policy": {
+                "revision": 1,
+                "digest": _json_digest(policy),
+                "value": policy,
+            },
+            "digests": {
+                "bundle": hashlib.sha256(b"oxidation-bundle").hexdigest(),
+                "certificate": hashlib.sha256(b"oxidation-certificate").hexdigest(),
+                "generation": hashlib.sha256(b"oxidation-generation").hexdigest(),
+                "case_content": case_content_digest([case]),
+                "included_case_content": included_case_content_digest([case]),
+                "included_cases": case_set_digest([case["id"]]),
+                "excluded_cases": case_set_digest([]),
+                "asset_inventory": asset_inventory_digest([]),
+            },
+            "cases": [case],
+        }
+    )
+
+    assert load("oxidation", db=destination).CSD_identifier["OXCASE"].label == {
+        "oxidation_state": 3
+    }
+
+
 def test_copy_cli_emits_the_closed_store_replica_contract(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -216,6 +307,88 @@ def test_copy_cli_emits_the_closed_store_replica_contract(
         "asset_bytes": len(b"1\n\nEu 0 0 0\n"),
     }
     assert payload["audit"] == {"passed": True}
+
+
+def test_copy_store_rejects_a_directory_that_is_not_the_current_hotpot_runtime(
+    tmp_path: Path,
+) -> None:
+    _, source_database, _, _ = _source_package(tmp_path)
+    package = tmp_path / "fake" / "hotpot"
+    (package / "dataset").mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+
+    with pytest.raises(StoreCopyError, match="Hotpot package|runtime|importable"):
+        copy_store(source_database, package)
+
+    assert not (package / "dataset" / "data").exists()
+
+
+def test_copy_store_rejects_noncurrent_schema_definitions(tmp_path: Path) -> None:
+    _, source_database, source_generation_db, _ = _source_package(tmp_path)
+    with sqlite3.connect(source_generation_db) as connection:
+        connection.execute(
+            "CREATE TRIGGER altered_current_schema AFTER INSERT ON identifiers "
+            "BEGIN SELECT 1; END"
+        )
+    target_package = _target_package(tmp_path)
+
+    with pytest.raises(StoreCopyError, match="schema"):
+        copy_store(source_database, target_package)
+
+    assert not (
+        target_package / "dataset" / "data" / "store" / "active"
+    ).exists()
+
+
+def test_copy_store_rejects_a_different_ds_runtime(tmp_path: Path) -> None:
+    _, source_database, _, _ = _source_package(tmp_path)
+    target_package = _target_package(tmp_path)
+    with (target_package / "ds" / "storage.py").open("a", encoding="utf-8") as stream:
+        stream.write("\n# different checkout\n")
+
+    with pytest.raises(StoreCopyError, match="exact current ds runtime"):
+        copy_store(source_database, target_package)
+
+    assert not (target_package / "dataset" / "data").exists()
+
+
+@pytest.mark.parametrize(
+    "tamper", ["facts_with_matching_row_digest", "identifier", "assessment"]
+)
+def test_copy_store_rejects_unbound_persisted_case_content(
+    tmp_path: Path, tamper: str
+) -> None:
+    _, source_database, source_generation_db, _ = _source_package(tmp_path)
+    with sqlite3.connect(source_generation_db) as connection:
+        if tamper == "facts_with_matching_row_digest":
+            facts = {
+                "core_info": {"sample": "eu-complex"},
+                "labels": {"spin": 99},
+            }
+            canonical = json.dumps(
+                facts,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+            connection.execute(
+                "UPDATE cases SET source_payload_blob=?,source_payload_digest=?",
+                (zlib.compress(canonical, level=6), hashlib.sha256(canonical).digest()),
+            )
+        elif tamper == "identifier":
+            connection.execute(
+                "UPDATE identifiers SET value='ALTERED-CSD-IDENTIFIER'"
+            )
+        else:
+            connection.execute("DELETE FROM case_assessments")
+    target_package = _target_package(tmp_path)
+
+    with pytest.raises(StoreCopyError, match="Case|content|assessment|receipt"):
+        copy_store(source_database, target_package)
+
+    assert not (
+        target_package / "dataset" / "data" / "store" / "active"
+    ).exists()
 
 
 @pytest.mark.parametrize(

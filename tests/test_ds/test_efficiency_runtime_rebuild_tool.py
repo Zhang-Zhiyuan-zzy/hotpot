@@ -445,6 +445,7 @@ def _compact_receipt_store(path, rebuild_module):
         asset_inventory_digest,
         case_content_digest,
         case_set_digest,
+        included_case_content_digest,
     )
 
     spec = rebuild_module.DatasetSpec("fixture", "fixture.v001", "fixture")
@@ -517,6 +518,9 @@ def _compact_receipt_store(path, rebuild_module):
             "certificate": "2" * 64,
             "generation": "3" * 64,
             "case_content": case_content_digest([case]),
+            "included_case_content": included_case_content_digest(
+                [case], include_incomplete=True
+            ),
             "included_cases": case_set_digest(["case-1"]),
             "excluded_cases": case_set_digest([]),
             "asset_inventory": asset_inventory_digest([]),

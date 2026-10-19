@@ -29,9 +29,9 @@ from .storage import (
     TargetStore,
     TargetStoreError,
     _canonical_json,
-    _decode_facts,
     _json_digest,
     case_set_digest,
+    persisted_included_case_content_digest,
 )
 
 
@@ -45,6 +45,7 @@ _BINDING_DIGEST_KEYS = {
     "policy_digest": "policy_digest",
     "generation_digest": "generation_digest",
     "case_content_digest": "case_content_digest",
+    "included_case_content_digest": "included_case_content_digest",
     "included_cases_digest": "included_cases_digest",
     "excluded_cases_digest": "excluded_cases_digest",
     "asset_inventory_digest": "asset_inventory_digest",
@@ -68,27 +69,56 @@ def _fsync_directory(path: Path) -> None:
         os.close(descriptor)
 
 
-def _schema_inventory(connection: sqlite3.Connection) -> tuple[set[str], set[str]]:
-    tables = {
-        row[0]
-        for row in connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' "
-            "AND name NOT LIKE 'sqlite_%'"
-        )
-    }
-    indexes = {
-        row[0]
-        for row in connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL"
-        )
-    }
-    return tables, indexes
+def _fsync_directory_tree(root: Path) -> None:
+    directories = [root]
+    directories.extend(path for path in root.rglob("*") if path.is_dir())
+    for path in sorted(directories, key=lambda item: len(item.parts), reverse=True):
+        _fsync_directory(path)
 
 
-def _expected_schema_inventory() -> tuple[set[str], set[str]]:
+def _schema_inventory(
+    connection: sqlite3.Connection,
+) -> tuple[tuple[str, str, str, str | None], ...]:
+    return tuple(
+        tuple(row)
+        for row in connection.execute(
+            "SELECT type,name,tbl_name,sql FROM sqlite_master "
+            "WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name"
+        )
+    )
+
+
+def _expected_schema_inventory() -> tuple[tuple[str, str, str, str | None], ...]:
     with sqlite3.connect(":memory:") as reference:
         reference.executescript(SCHEMA)
         return _schema_inventory(reference)
+
+
+def _runtime_contract(package: Path) -> str:
+    required = (
+        package / "__init__.py",
+        package / "__version__.py",
+        package / "dataset" / "__init__.py",
+        package / "cheminfo" / "__init__.py",
+        package / "ds" / "__init__.py",
+    )
+    if any(not path.is_file() for path in required):
+        raise StoreCopyError("target is not a complete importable Hotpot package")
+    ds_root = package / "ds"
+    files = [package / "__init__.py", package / "__version__.py"]
+    files.extend(
+        path
+        for path in ds_root.rglob("*")
+        if path.is_file() and path.suffix in {".py", ".json", ".sql"}
+    )
+    inventory = [
+        {
+            "path": path.relative_to(package).as_posix(),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+        for path in sorted(files)
+    ]
+    return _json_digest(inventory)
 
 
 def _release_asset_digest(
@@ -197,6 +227,14 @@ def _audit_receipt(
     )
     if row["included_cases_digest"] != included_digest:
         raise StoreCopyError("ingestion receipt included-Case digest is invalid")
+    try:
+        persisted_content = persisted_included_case_content_digest(
+            connection, dataset, release
+        )
+    except TargetStoreError as exc:
+        raise StoreCopyError("persisted Case content audit failed") from exc
+    if row["included_case_content_digest"] != persisted_content:
+        raise StoreCopyError("ingestion receipt included-Case content is invalid")
     if row["excluded_count"] < 0:
         raise StoreCopyError("ingestion receipt excluded-Case count is invalid")
     if row["excluded_count"] == 0 and row["excluded_cases_digest"] != case_set_digest(()):
@@ -245,14 +283,6 @@ def _audit_database(database: Path) -> tuple[dict[str, str], list[dict[str, Any]
             policies[row["dataset_id"]] = policy
         if set(policies) != datasets:
             raise StoreCopyError("every dataset must have exactly one policy")
-
-        for row in connection.execute(
-            "SELECT source_payload_blob,source_payload_digest FROM cases"
-        ):
-            try:
-                _decode_facts(row["source_payload_blob"], row["source_payload_digest"])
-            except TargetStoreError as exc:
-                raise StoreCopyError("compressed Case fact audit failed") from exc
 
         missing_receipt = connection.execute(
             "SELECT 1 FROM releases r LEFT JOIN ingestion_receipts i "
@@ -440,6 +470,11 @@ def _package_root(value: str | Path) -> Path:
             "target must be an existing Hotpot package directory containing "
             "__init__.py and dataset/"
         )
+    running_package = Path(__file__).resolve().parents[1]
+    if _runtime_contract(package) != _runtime_contract(running_package):
+        raise StoreCopyError(
+            "target Hotpot package does not use this exact current ds runtime"
+        )
     return package
 
 
@@ -486,7 +521,7 @@ def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, A
                     asset["size"],
                 )
             _audit_cas(staged_assets, assets)
-            _fsync_directory(staged_assets)
+            _fsync_directory_tree(staged_assets)
             _fsync_directory(staging)
 
             staging.rename(final)
@@ -506,7 +541,6 @@ def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, A
                 "store_uuid": metadata["store_uuid"],
                 "schema_id": metadata["schema_id"],
                 "counts": counts,
-                "idempotent": False,
                 "audit": {"passed": True},
             }
         finally:

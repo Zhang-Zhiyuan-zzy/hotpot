@@ -1345,12 +1345,19 @@ def _validate_release_control_assets(
 def _validate_target_receipt(
     store: Any, database: Path, spec: DatasetSpec, cases: Mapping[str, Any]
 ) -> dict[str, Any]:
+    from hotpot.ds.storage import persisted_included_case_content_digest
+
     release = store.load_release_metadata(spec.name, spec.release)
     receipt = None if release is None else release.get("receipt")
     if receipt is None:
         raise RebuildError(f"candidate receipt is missing: {spec.name}")
+    with store._connect() as connection:
+        included_content = persisted_included_case_content_digest(
+            connection, spec.name, spec.release
+        )
     expected = {
         "case_content_digest": cases["case_content_sha256"],
+        "included_case_content_digest": included_content,
         "included_cases_digest": cases["case_set_sha256"],
         "excluded_cases_digest": _stream_json_array_digest(()),
         "asset_inventory_digest": _release_asset_inventory_digest(database, spec),
@@ -1367,7 +1374,8 @@ def _validate_target_receipt(
     binding = receipt["binding"]
     for field in (
         "store_uuid", "bundle_digest", "certificate_digest", "policy_digest",
-        "generation_digest", "case_content_digest", "included_cases_digest",
+        "generation_digest", "case_content_digest",
+        "included_case_content_digest", "included_cases_digest",
         "excluded_cases_digest", "asset_inventory_digest", "include_incomplete", "reason",
     ):
         if binding.get(field) != receipt.get(field):

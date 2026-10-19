@@ -211,7 +211,6 @@ def test_copy_handler_defaults_to_the_imported_package_store(
             "assets": 0,
             "asset_bytes": 0,
         },
-        "idempotent": False,
         "audit": {"passed": True},
     }
 

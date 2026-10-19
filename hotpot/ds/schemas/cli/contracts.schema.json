@@ -500,7 +500,7 @@
     },
     "store_copy_result": {
       "type": "object", "additionalProperties": false,
-      "required": ["source_database", "destination_database", "generation_database", "target_package", "store_uuid", "schema_id", "counts", "idempotent", "audit"],
+      "required": ["source_database", "destination_database", "generation_database", "target_package", "store_uuid", "schema_id", "counts", "audit"],
       "properties": {
         "source_database": {"$ref": "#/$defs/nonempty"},
         "destination_database": {"$ref": "#/$defs/nonempty"},
@@ -519,7 +519,6 @@
             "asset_bytes": {"$ref": "#/$defs/count"}
           }
         },
-        "idempotent": {"const": false},
         "audit": {
           "type": "object", "additionalProperties": false,
           "required": ["passed"],

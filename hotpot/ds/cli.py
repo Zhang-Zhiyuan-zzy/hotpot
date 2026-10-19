@@ -21,7 +21,12 @@ from .public.catalog import DatasetCatalog, load
 from .public.certificate import certificate_digest
 from .public.dataset import Dataset
 from .public.search import DataSearcher, DatasetSearcher, SmartsSearcher
-from .storage import TargetStore, TargetStoreError, _decode_facts
+from .storage import (
+    TargetStore,
+    TargetStoreError,
+    _decode_facts,
+    persisted_included_case_content_digest,
+)
 
 
 HELP_FORMATTER = argparse.ArgumentDefaultsHelpFormatter
@@ -122,7 +127,9 @@ def _selection_flags(parser: argparse.ArgumentParser) -> None:
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.description = "Discover, query, assess, certify, and ingest current datasets."
+    parser.description = (
+        "Discover, query, assess, certify, ingest, and replicate current datasets."
+    )
     parser.formatter_class = HELP_FORMATTER
     actions = parser.add_subparsers(dest="ds_action", metavar="COMMAND", required=True)
 
@@ -188,7 +195,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         metavar="TARGET_HOTPOT_PACKAGE",
         help="target hotpot package directory containing __init__.py and dataset/",
     )
-    _database(copy)
+    copy.add_argument(
+        "--db",
+        default=argparse.SUPPRESS,
+        metavar="PATH",
+        help="source ingested store; defaults to the imported package store",
+    )
 
     detail = _command(actions, "detail", help="inspect current storage", description="Current-store diagnostics.")
     detail_actions = detail.add_subparsers(dest="detail_action", metavar="COMMAND")
@@ -810,6 +822,34 @@ def _store_audit(store: TargetStore) -> list[dict[str, Any]]:
             except TargetStoreError:
                 issues.append(
                     {"code": "case_fact_integrity", "case_id": row["case_id"]}
+                )
+        for row in connection.execute(
+            "SELECT r.dataset_id,r.release_id,i.included_case_content_digest "
+            "FROM releases r LEFT JOIN ingestion_receipts i "
+            "USING(dataset_id,release_id) ORDER BY r.dataset_id,r.release_id"
+        ):
+            if row["included_case_content_digest"] is None:
+                issues.append(
+                    {
+                        "code": "missing_receipt",
+                        "dataset": row["dataset_id"],
+                        "release": row["release_id"],
+                    }
+                )
+                continue
+            try:
+                persisted = persisted_included_case_content_digest(
+                    connection, row["dataset_id"], row["release_id"]
+                )
+            except TargetStoreError:
+                persisted = None
+            if persisted != row["included_case_content_digest"]:
+                issues.append(
+                    {
+                        "code": "case_content_integrity",
+                        "dataset": row["dataset_id"],
+                        "release": row["release_id"],
+                    }
                 )
     for row in assets:
         path = store.asset_root / row["relative_path"]

@@ -2737,33 +2737,35 @@ explicit assertion at construction.
 ### 12.1 Status, synchronization, certification, and ingestion
 
 ```text
-hotpot ds bundle build BUNDLE_ROOT [--dataset NAME] [--db DB]
+hotpot ds bundle build [BUNDLE_ROOT] [--dataset NAME] [--db DB]
 hotpot ds bundle status
 hotpot ds bundle synchronize
 hotpot ds bundle --root BUNDLE_ROOT [--dataset NAME] [--db DB] status
 hotpot ds bundle --root BUNDLE_ROOT [--dataset NAME] [--db DB] synchronize
 
 hotpot ds certify BUNDLE_ROOT [--dataset NAME] [--db DB]
-hotpot ds ingest BUNDLE_ROOT --db DB [--dataset NAME]
+hotpot ds ingest BUNDLE_ROOT [--db DB] [--dataset NAME]
 ```
 
 `build` is the CLI counterpart of `Bundle(...)`: it accepts only an unbuilt
 current-format intake root, publishes canonical facts once, and never
 synchronizes. All other Bundle commands use validation-only `load_bundle(...)`.
-`--root` defaults to the current directory for the concise Bundle forms. A
+`BUNDLE_ROOT` and `--root` default to the current directory for their respective
+Bundle forms. A
 successful source/Gate mutation reports `is_synchronized: false`; users may
 perform several edits and synchronize once. `synchronize` never writes a
 certificate. `certify` rejects an unsynchronized Bundle, writes only the root
-certificate, and never ingests. `ingest` requires an explicit target `--db`, a
-current synchronized generation, and a current certificate; it never performs
-either preceding operation. Omitting `certify --db` reuses the canonical target
-already persisted by the Bundle; it never silently retargets to a package
-default. The resolved store context is recorded in the certificate.
+certificate, and never ingests. `ingest` requires a current synchronized
+generation and a current certificate; it never performs either preceding
+operation. `--db` is an explicit target assertion. When omitted, the CLI uses
+the default store inside the Hotpot package actually imported by the running
+process. Omitting `certify --db` reuses the canonical target already persisted
+by the Bundle. The resolved store context is recorded in the certificate.
 
 Forced incomplete archival remains explicit:
 
 ```text
-hotpot ds ingest BUNDLE_ROOT --db DATASETS.sqlite3 \
+hotpot ds ingest BUNDLE_ROOT [--db DATASETS.sqlite3] \
   --include-incomplete --reason "Preserve pending repair"
 ```
 
@@ -3158,8 +3160,9 @@ Tasks:
    results unless requested.
 7. Keep `build`, `synchronize`, `certify`, and `ingest` separate and add the
    `hotpot ds bundle` build/status/get/set/gate/synchronize command family.
-8. Require explicit `ingest --db`; keep CLI dataset identity manifest-driven
-   with optional `--dataset` assertion.
+8. Default ingestion to the store inside the imported Hotpot package while
+   retaining `--db` as an explicit target assertion; keep CLI dataset identity
+   manifest-driven with optional `--dataset` assertion.
 9. Preserve JSON stdout/human stderr separation and replace the communication
    map atomically with every exact key/channel/named-payload/consumer
    declaration.
@@ -3508,8 +3511,8 @@ Exit criteria:
   remains available.
 - a custom `--checker NAME=FILE:ENTRYPOINT` source is copied, hashed, audited,
   and represented in the eventual certificate.
-- `ingest` without explicit `--db` is rejected by argument parsing;
-  `--dataset` is optional and a mismatching assertion fails.
+- `ingest` without explicit `--db` selects the imported package's default
+  store; `--dataset` is optional and a mismatching assertion fails.
 - every new command emits the exact declared key/channel/payload; no Bundle
   mutation accepts raw stdin or an undeclared `-` envelope.
 - every terminal producer uses a named, closed payload contract; no `null`
@@ -3705,7 +3708,8 @@ commented on are accepted as written:
     generation, synchronization-result, or certificate implementation class is
     added.
 11. CLI reads authoritative `ds_name` from `bundle.json`; `--dataset` is only an
-    optional assertion. `ingest --db` is mandatory.
+    optional assertion. `ingest --db` overrides the imported package's default
+    store.
 12. Hotpot authority cannot be created by an ordinary caller-supplied string.
 13. Users may preserve ordinary or forced-incomplete data without accepting
     Hotpot benchmark membership as their own classification.

@@ -63,7 +63,7 @@ not public query-time compatibility paths.
 
 | Area | Responsibility |
 | --- | --- |
-| `hotpot.ds` | Query, search, build Bundles, assess, certify, ingest, and export |
+| `hotpot.ds` | Query, search, build Bundles, assess, certify, ingest, replicate formal stores, and export |
 | `hotpot.ds.gates` | Persistent dataset-specific evidence, quality, and benchmark policy |
 | `hotpot.ds.providers` | Private readers for upstream distributions |
 | `hotpot.dataset/docs` | Scientific scope, evidence limits, licenses, provenance, and storage contracts |
@@ -121,6 +121,7 @@ current-format intake folder
     -> certificate-required target ingestion
     -> immutable sealed release
     -> optional verified removal of reproducible Bundle intermediates
+    -> optional exact replication into another Hotpot package
 ```
 
 New datasets may propose Gates and comparison policy. First ingestion persists
@@ -132,6 +133,11 @@ governance labels, not Bundle fact/generation/migration copies. After receipt
 verification, `hotpot ds bundle rm --all` removes only allowlisted reproducible
 Bundle products and preserves the intake, original evidence, policy,
 certificate, receipt, and audit history.
+
+`hotpot ds copy TARGET_HOTPOT_PACKAGE` can publish an exact verified replica of
+the complete formal store into another current Hotpot package. This operation
+preserves the store identity and does not rerun Bundle build, certification, or
+ingestion; it never performs an implicit merge or overwrite.
 
 See the [public API](../ds/README.md), [CLI reference](../ds/cli_doc.md), and
 [storage and cutover contract](docs/storage.md).

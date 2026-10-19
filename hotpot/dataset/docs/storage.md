@@ -199,6 +199,15 @@ ingestion receipts. Canonical Case facts are stored as deterministic
 zlib-compressed JSON and verified against the SHA-256 digest of their
 uncompressed canonical value. Archive-class selection uses the final
 assessment index; the target does not duplicate Cases into class tables.
+Each receipt separately binds the complete certified Bundle Case content and
+the exact persisted projection of included facts, assessments, and identifiers.
+The second root is recomputable from the formal store and prevents a copied or
+cleaned store from accepting locally self-consistent row substitutions.
+
+The default target is derived from the package actually imported by the
+running process, not from the console-script path. An editable install therefore
+writes to its source checkout and a regular installation writes to its installed
+package directory, subject to normal filesystem permissions.
 
 The permanent fact projection retains original observations, claims, evidence,
 verifications, attestations, entities, source classifications, `core_info`, and
@@ -255,6 +264,32 @@ Cases that were excluded from storage. Incomplete data can be force-archived
 only with explicit opt-in and a reason, and remains in its own derived
 partition. A later correction creates a successor release; published facts are
 not repaired in place.
+
+## Exact store replication
+
+`hotpot ds copy TARGET_HOTPOT_PACKAGE [--db SOURCE_DB]` installs an exact
+replica of one current formal store into another concrete Hotpot package. This
+is a publication-copy operation, not dataset ingestion or schema migration. It
+copies the whole SQLite store and the complete referenced CAS closure; copying
+only `datasets.sqlite3` is invalid. The target must contain the same exact
+current `hotpot.ds` runtime as the command performing the copy.
+
+The command uses SQLite online backup to obtain one consistent source snapshot,
+streams and verifies every referenced CAS object, validates the current schema,
+SQLite integrity, foreign keys, compact Case facts, persistent policies,
+one-to-one Case assessments, receipt-bound included content, receipts, and
+asset closure, and then atomically activates one target
+generation. A nonempty or dangling target `store/active` location is rejected.
+There is no implicit merge or overwrite.
+
+Replication preserves the store UUID, policies, releases, receipts, stable
+indices, and historical target path recorded at original ingestion. Signed
+receipt or certificate fields are never rewritten to describe the replica's
+filesystem. Query paths are reconstructed from the replica's current database
+location, so it is immediately readable without Bundle build, certification,
+or ingestion. Equal store UUIDs identify replicas of one publication lineage;
+operators must not accept independent writes to both copies and later treat
+them as automatically mergeable.
 
 After successful ingestion, the Bundle root can be pruned with:
 

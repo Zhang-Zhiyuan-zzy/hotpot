@@ -12,6 +12,7 @@ The public workflow is arranged by purpose:
 Query:       list, info, get, labels, subset, search, export
 Prepare:     bundle build, bundle status/get/set/gate, bundle synchronize
 Publish:     certify, ingest
+Replicate:   copy
 ```
 
 Every successful command writes one validated JSON envelope to stdout. Human
@@ -203,7 +204,7 @@ implicitly.
 ### Build and locate
 
 ```text
-hotpot ds bundle build BUNDLE_ROOT [--dataset NAME] [--db DB]
+hotpot ds bundle build [BUNDLE_ROOT] [--dataset NAME] [--db DB]
 
 hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] status
 hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] synchronize
@@ -211,15 +212,18 @@ hotpot ds bundle [--root BUNDLE_ROOT] [--dataset NAME] [--db DB] rm --all
 ```
 
 `build` is the one-time canonical build operation and requires an unbuilt
-current-format root. Every other Bundle command opens an already built Bundle
-without importing or repairing it. `--root` defaults to the current directory
-except for `build`, where `BUNDLE_ROOT` is required and `--root` is invalid.
+current-format root. `BUNDLE_ROOT` defaults to the command's current working
+directory. Every other Bundle command opens an already built Bundle without
+importing or repairing it. Their `--root` option has the same current-directory
+default; `--root` is invalid after `bundle build` because its positional root
+already names the intake.
 
 The required `bundle.json.ds_name` is authoritative. `--dataset NAME` is an
 optional assertion and must match it; it never changes the dataset name.
 Build also binds one canonical target store. Later Bundle commands inherit
 that target when `--db` is omitted and treat an explicit `--db` as a matching
-assertion. The publish operation `ingest` still requires the target explicitly.
+assertion. When `ingest --db` is omitted, the target is the default store inside
+the Hotpot package imported by the running command.
 `bundle status` remains available while unsynchronized and reports the next
 valid action. Its machine payload includes `runtime_policy_current`, which is
 true only when the Bundle's persisted assessment, checker, parser, and runtime
@@ -435,15 +439,19 @@ generation. It neither evaluates Gates nor ingests data.
 ### Ingest
 
 ```text
-hotpot ds ingest BUNDLE_ROOT --db DB [--dataset NAME]
+hotpot ds ingest BUNDLE_ROOT [--db DB] [--dataset NAME]
                  [--include-incomplete --reason TEXT]
 ```
 
-`--db` is mandatory. Ingestion requires the current root certificate and
-rechecks the Bundle, generation, target, and policy inside the target
-transaction. It copies materialized scientific assets into the target-owned
-content-addressed asset area, records one authoritative receipt, and seals the
-release.
+Ingestion requires the current root certificate and rechecks the Bundle,
+generation, target, and policy inside the target transaction. It copies
+materialized scientific assets into the target-owned content-addressed asset
+area, records one authoritative receipt, and seals the release. `--db` selects
+an explicit target. If omitted, the target is
+`<imported-hotpot-package>/dataset/data/store/active/datasets.sqlite3`. An
+editable installation therefore uses its source checkout, while a regular pip
+installation uses its installed package directory. A non-writable package
+directory is an error; Hotpot never silently redirects publication elsewhere.
 
 Incomplete Cases are excluded unless both `--include-incomplete` and a
 non-empty `--reason` are supplied:
@@ -455,6 +463,31 @@ hotpot ds ingest submission --db work/datasets.sqlite3 \
 
 An exact retry returns the existing receipt. Reusing the same release identity
 with different content, policy, certificate, or selected Case sets is an error.
+
+### Copy an ingested store
+
+```text
+hotpot ds copy TARGET_HOTPOT_PACKAGE [--db SOURCE_DB]
+```
+
+`copy` replicates the complete already-ingested store used by the running
+Hotpot package into another concrete `hotpot/` package directory. The source
+defaults to the imported package store; `--db` selects a different source
+store. The target argument is the package directory itself, not a project root
+or a database filename. Its `hotpot.ds` runtime must exactly match the running
+command; copying into an old, newer, partial, or otherwise different package is
+rejected instead of invoking a compatibility path.
+
+The command takes a consistent SQLite snapshot, copies exactly the referenced
+content-addressed assets while verifying their sizes and SHA-256 digests,
+recomputes the receipt-bound content root for persisted facts, assessments, and
+identifiers, audits the staged store, and atomically activates one target
+generation. It
+does not rebuild, recertify, re-ingest, merge, or overwrite. An existing target
+`store/active` is rejected. Historical receipt paths remain the signed facts
+from original ingestion; ordinary reads resolve assets from the replica's
+current database location. Both replicas retain the same store UUID and must
+not be developed independently as competing publication authorities.
 
 ## 4. JSON stdin/stdout protocol
 
@@ -554,6 +587,7 @@ are recursively JSON-validated; they are not unvalidated object escapes.
 | `hotpot.ds.bundle.rm` | `default -> bundle_cleanup_result` |
 | `hotpot.ds.certify` | `default -> certificate_result` |
 | `hotpot.ds.ingest` | `default -> ingestion_result` |
+| `hotpot.ds.copy` | `default -> store_copy_result` |
 
 The machine-readable authority is `hotpot/ds/cli_communication.json`; the
 repository protocol specification is

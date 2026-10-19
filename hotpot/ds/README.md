@@ -74,9 +74,13 @@ explicit `archive_class` opt-in. A filtered Dataset cannot reintroduce archive
 classes excluded by its original `load`.
 
 The default local store is
-`hotpot/dataset/data/store/active/datasets.sqlite3`. Dataset payloads are not
-bundled with source distributions, so a clean installation commonly needs
-`db=`.
+`<imported-hotpot-package>/dataset/data/store/active/datasets.sqlite3`. It is
+derived from the package actually imported by the process, not from the path
+of the console-script wrapper. An editable installation therefore selects its
+source checkout, while an ordinary pip installation selects its installed
+package directory. Dataset payloads are not bundled with source distributions,
+so a clean installation commonly needs `db=` until a release is ingested or an
+existing formal store is replicated there with `hotpot ds copy`.
 
 ## 2. `Dataset` and `Data`
 

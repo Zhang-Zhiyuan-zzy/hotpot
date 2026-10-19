@@ -75,6 +75,7 @@ def test_cli_documentation_uses_the_installed_console_entrypoint() -> None:
         "search",
         "certify",
         "ingest",
+        "copy",
         "detail",
     ):
         assert f"hotpot ds {command}" in text

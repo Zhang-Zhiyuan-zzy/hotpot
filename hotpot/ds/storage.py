@@ -70,8 +70,10 @@ unique assets are copied and verified. ``case_content`` binds the persisted
 canonical facts, assessment, identity, and identifiers in their supplied
 order, including Cases excluded from formal storage. ``included_case_content``
 separately binds the exact persisted projection of selected Cases and is
-recomputed from the formal tables before the transaction commits. The
-separately bound asset inventory covers materialized bytes. The target
+recomputed from the formal tables before the transaction commits.
+``formal_content`` additionally binds all dataset and release metadata plus
+the exact structure, scientific, and release-control asset-reference rows.
+The separately bound asset inventory covers materialized bytes. The target
 transaction publishes the verified spool with set-based SQL, so neither the
 Case collection nor asset bytes are fully materialized in memory and Case JSON
 is not reparsed by Python during commit.
@@ -224,6 +226,7 @@ CREATE TABLE IF NOT EXISTS ingestion_receipts(
  generation_digest TEXT NOT NULL,
  case_content_digest TEXT NOT NULL,
  included_case_content_digest TEXT NOT NULL,
+ formal_content_digest TEXT NOT NULL,
  included_cases_digest TEXT NOT NULL,
  excluded_cases_digest TEXT NOT NULL,
  asset_inventory_digest TEXT NOT NULL,
@@ -581,6 +584,145 @@ def persisted_included_case_content_digest(
     return TargetStore._stream_canonical_array_digest(projections())
 
 
+def _formal_content_digest(
+    *,
+    dataset: Mapping[str, Any],
+    release: Mapping[str, Any],
+    included_case_content: str,
+    structure_refs: str,
+    scientific_refs: str,
+    control_refs: str,
+) -> str:
+    """Return the canonical digest of one complete formal release projection."""
+
+    return _json_digest(
+        {
+            "dataset": dict(dataset),
+            "release": dict(release),
+            "included_case_content_digest": included_case_content,
+            "structure_asset_refs_digest": structure_refs,
+            "scientific_asset_refs_digest": scientific_refs,
+            "release_control_asset_refs_digest": control_refs,
+        }
+    )
+
+
+def _persisted_dataset_projection(
+    connection: sqlite3.Connection, dataset: str
+) -> Dict[str, Any]:
+    row = connection.execute(
+        "SELECT d.dataset_id,d.title,d.description,d.metadata_json,p.revision,"
+        "p.policy_json,p.policy_digest FROM datasets d JOIN dataset_policies p "
+        "USING(dataset_id) WHERE d.dataset_id=?",
+        (dataset,),
+    ).fetchone()
+    if row is None:
+        raise TargetStoreError("formal release has no dataset metadata or policy")
+    if hashlib.sha256(row[5].encode("utf-8")).hexdigest() != row[6]:
+        raise TargetStoreError("stored dataset policy digest does not match")
+    return {
+        "dataset_id": row[0],
+        "title": row[1],
+        "description": row[2],
+        "metadata_json": row[3],
+        "policy": {
+            "revision": row[4],
+            "policy_json": row[5],
+            "digest": row[6],
+        },
+    }
+
+
+def _persisted_release_projection(
+    connection: sqlite3.Connection, dataset: str, release: str
+) -> Dict[str, Any]:
+    row = connection.execute(
+        "SELECT release_id,version,release_serial,metadata_json FROM releases "
+        "WHERE dataset_id=? AND release_id=?",
+        (dataset, release),
+    ).fetchone()
+    if row is None:
+        raise TargetStoreError("formal release metadata is missing")
+    return {
+        "release_id": row[0],
+        "version": row[1],
+        "release_serial": row[2],
+        "metadata_json": row[3],
+    }
+
+
+def persisted_formal_content_digest(
+    connection: sqlite3.Connection,
+    dataset: str,
+    release: str,
+) -> str:
+    """Recompute the complete formal release projection from authoritative rows."""
+
+    included_content = persisted_included_case_content_digest(
+        connection, dataset, release
+    )
+    structure_refs = TargetStore._stream_array_digest(
+        {
+            "case_id": row[0],
+            "structure_id": row[1],
+            "format": row[2],
+            "role": row[3],
+            "is_primary": bool(row[4]),
+            "content_sha256": row[5],
+            "size": row[6],
+        }
+        for row in connection.execute(
+            "SELECT r.case_id,r.structure_id,r.format,r.role,r.is_primary,"
+            "r.content_sha256,t.size FROM structure_asset_refs r JOIN target_assets t "
+            "USING(content_sha256) WHERE r.dataset_id=? AND r.release_id=? ORDER BY "
+            "r.case_id,r.structure_id,r.format,r.role,r.content_sha256",
+            (dataset, release),
+        )
+    )
+    scientific_refs = TargetStore._stream_array_digest(
+        {
+            "case_id": row[0],
+            "collection": row[1],
+            "declaration_id": row[2],
+            "asset_index": row[3],
+            "role": row[4],
+            "status": row[5],
+            "content_sha256": row[6],
+            "size": row[7],
+        }
+        for row in connection.execute(
+            "SELECT r.case_id,r.collection,r.declaration_id,r.asset_index,r.role,"
+            "r.status,r.content_sha256,t.size FROM scientific_asset_refs r JOIN "
+            "target_assets t USING(content_sha256) WHERE r.dataset_id=? AND "
+            "r.release_id=? ORDER BY r.case_id,r.collection,r.declaration_id,"
+            "r.asset_index",
+            (dataset, release),
+        )
+    )
+    control_refs = TargetStore._stream_array_digest(
+        {
+            "category": row[0],
+            "name": row[1],
+            "content_sha256": row[2],
+            "size": row[3],
+        }
+        for row in connection.execute(
+            "SELECT r.category,r.name,r.content_sha256,t.size FROM "
+            "release_control_asset_refs r JOIN target_assets t USING(content_sha256) "
+            "WHERE r.dataset_id=? AND r.release_id=? ORDER BY r.category,r.name",
+            (dataset, release),
+        )
+    )
+    return _formal_content_digest(
+        dataset=_persisted_dataset_projection(connection, dataset),
+        release=_persisted_release_projection(connection, dataset, release),
+        included_case_content=included_content,
+        structure_refs=structure_refs,
+        scientific_refs=scientific_refs,
+        control_refs=control_refs,
+    )
+
+
 def _require_digest(value: Any, field: str) -> str:
     if not isinstance(value, str) or _SHA256.fullmatch(value) is None:
         raise SnapshotError(f"{field} must be a lowercase SHA-256 digest")
@@ -670,6 +812,7 @@ class TargetStore:
         if {
             "case_content_digest",
             "included_case_content_digest",
+            "formal_content_digest",
         } - receipt_columns:
             raise TargetSchemaError(
                 "target store layout is not current; rebuild it with this checkout"
@@ -875,6 +1018,7 @@ class TargetStore:
             "included_case_content_digest": receipt[
                 "included_case_content_digest"
             ],
+            "formal_content_digest": receipt["formal_content_digest"],
             "included_cases_digest": receipt["included_cases_digest"],
             "excluded_cases_digest": receipt["excluded_cases_digest"],
             "asset_inventory_digest": receipt["asset_inventory_digest"],
@@ -1237,7 +1381,6 @@ class TargetStore:
             include_incomplete,
             reason,
         )
-
         retry = self._retry_existing_receipt(
             header,
             policy,
@@ -1456,7 +1599,16 @@ class TargetStore:
             if existing is None:
                 connection.rollback()
                 return None
-            self._assert_receipt(existing, binding)
+            formal_content = persisted_formal_content_digest(
+                connection, header["dataset"], header["release"]
+            )
+            if existing["formal_content_digest"] != formal_content:
+                raise ReceiptConflictError(
+                    "persisted formal release content differs from its receipt"
+                )
+            expected_binding = dict(binding)
+            expected_binding["formal_content_digest"] = formal_content
+            self._assert_receipt(existing, expected_binding)
             if precommit_check is not None:
                 precommit_check()
             receipt = self._receipt_row(
@@ -1469,7 +1621,7 @@ class TargetStore:
                 raise ReceiptConflictError(
                     "dataset release disappeared during receipt retry"
                 )
-            self._assert_receipt(receipt, binding)
+            self._assert_receipt(receipt, expected_binding)
             result = self._result_from_receipt(receipt)
             connection.rollback()
             return result
@@ -1481,7 +1633,13 @@ class TargetStore:
 
     @staticmethod
     def _assert_receipt(receipt: sqlite3.Row, binding: Mapping[str, Any]) -> None:
-        if receipt["binding_json"] != _canonical_json(binding):
+        canonical = _canonical_json(binding)
+        if (
+            receipt["binding_json"] != canonical
+            or receipt["receipt_id"] != "receipt-" + _json_digest(binding)
+            or receipt["formal_content_digest"]
+            != binding["formal_content_digest"]
+        ):
             raise ReceiptConflictError(
                 "dataset release is already bound to a different ingestion receipt"
             )
@@ -1710,7 +1868,9 @@ class TargetStore:
             spool.close()
 
     def _spool_asset(
-        self, spool: sqlite3.Connection, descriptor: Mapping[str, Any]
+        self,
+        spool: sqlite3.Connection,
+        descriptor: Mapping[str, Any],
     ) -> None:
         source_inserted = spool.execute(
             "INSERT OR IGNORE INTO spool_asset_sources(source_path,sha256,size) "
@@ -1969,6 +2129,102 @@ class TargetStore:
         return TargetStore._stream_canonical_array_digest(values)
 
     @staticmethod
+    def _spool_formal_content_digest(
+        connection: sqlite3.Connection,
+        header: Mapping[str, Any],
+        policy: Mapping[str, Any],
+        release_serial: int,
+    ) -> str:
+        dataset_row = connection.execute(
+            "SELECT 1 FROM datasets WHERE dataset_id=?", (header["dataset"],)
+        ).fetchone()
+        if dataset_row is None:
+            dataset = {
+                "dataset_id": header["dataset"],
+                "title": header["title"],
+                "description": header["description"],
+                "metadata_json": _canonical_json(header["metadata"]),
+                "policy": {
+                    "revision": policy["revision"],
+                    "policy_json": _canonical_json(policy["value"]),
+                    "digest": policy["digest"],
+                },
+            }
+        else:
+            dataset = _persisted_dataset_projection(connection, header["dataset"])
+        release = {
+            "release_id": header["release"],
+            "version": header["version"],
+            "release_serial": release_serial,
+            "metadata_json": _canonical_json(header["metadata"]),
+        }
+        included_content = TargetStore._stream_canonical_array_digest(
+            row[0]
+            for row in connection.execute(
+                "SELECT included_content_json FROM ingest_spool.spool_cases "
+                "WHERE selected=1 ORDER BY sequence"
+            )
+        )
+        structure_refs = TargetStore._stream_array_digest(
+            {
+                "case_id": row[0],
+                "structure_id": row[1],
+                "format": row[2],
+                "role": row[3],
+                "is_primary": bool(row[4]),
+                "content_sha256": row[5],
+                "size": row[6],
+            }
+            for row in connection.execute(
+                "SELECT r.case_id,r.structure_id,r.format,r.role,r.is_primary,"
+                "r.sha256,a.size FROM ingest_spool.spool_structures r JOIN "
+                "ingest_spool.spool_assets a USING(sha256) ORDER BY r.case_id,"
+                "r.structure_id,r.format,r.role,r.sha256"
+            )
+        )
+        scientific_refs = TargetStore._stream_array_digest(
+            {
+                "case_id": row[0],
+                "collection": row[1],
+                "declaration_id": row[2],
+                "asset_index": row[3],
+                "role": row[4],
+                "status": row[5],
+                "content_sha256": row[6],
+                "size": row[7],
+            }
+            for row in connection.execute(
+                "SELECT r.case_id,r.collection,r.declaration_id,r.asset_index,r.role,"
+                "r.status,r.sha256,a.size FROM "
+                "ingest_spool.spool_scientific_asset_refs r JOIN "
+                "ingest_spool.spool_assets a USING(sha256) ORDER BY r.case_id,"
+                "r.collection,r.declaration_id,r.asset_index"
+            )
+        )
+        control_refs = TargetStore._stream_array_digest(
+            {
+                "category": row[0],
+                "name": row[1],
+                "content_sha256": row[2],
+                "size": row[3],
+            }
+            for row in connection.execute(
+                "SELECT r.category,r.name,r.sha256,a.size FROM "
+                "ingest_spool.spool_control_assets r JOIN "
+                "ingest_spool.spool_assets a USING(sha256) ORDER BY "
+                "r.category,r.name"
+            )
+        )
+        return _formal_content_digest(
+            dataset=dataset,
+            release=release,
+            included_case_content=included_content,
+            structure_refs=structure_refs,
+            scientific_refs=scientific_refs,
+            control_refs=control_refs,
+        )
+
+    @staticmethod
     def _case_content_projection(case: Mapping[str, Any]) -> Dict[str, Any]:
         return {
             "id": case["id"],
@@ -2075,19 +2331,55 @@ class TargetStore:
             # target-owned CAS objects unreferenced.
             if precommit_check is not None:
                 precommit_check()
+            release_row = connection.execute(
+                "SELECT release_serial FROM releases WHERE dataset_id=? AND release_id=?",
+                (header["dataset"], header["release"]),
+            ).fetchone()
             receipt = connection.execute(
                 "SELECT r.*,d.release_serial FROM ingestion_receipts r "
                 "JOIN releases d USING(dataset_id,release_id) WHERE r.store_uuid=? "
                 "AND r.dataset_id=? AND r.release_id=?",
                 (metadata["store_uuid"], header["dataset"], header["release"]),
             ).fetchone()
+            if release_row is not None and receipt is None:
+                raise ReceiptConflictError(
+                    "dataset release exists without an authoritative receipt"
+                )
+            release_serial = (
+                release_row["release_serial"]
+                if release_row is not None
+                else header["release_serial"]
+            )
+            if release_serial is None:
+                release_serial = connection.execute(
+                    "SELECT COALESCE(MAX(release_serial),0)+1 FROM releases "
+                    "WHERE dataset_id=?",
+                    (header["dataset"],),
+                ).fetchone()[0]
+            formal_content = self._spool_formal_content_digest(
+                connection, header, policy, release_serial
+            )
+            binding = dict(binding)
+            binding["formal_content_digest"] = formal_content
             if receipt is not None:
                 self._assert_receipt(receipt, binding)
+                if (
+                    receipt["formal_content_digest"] != formal_content
+                    or persisted_formal_content_digest(
+                        connection, header["dataset"], header["release"]
+                    )
+                    != formal_content
+                ):
+                    raise ReceiptConflictError(
+                        "persisted formal release content differs from its receipt"
+                    )
                 connection.rollback()
                 return self._result_from_receipt(receipt)
 
             self._establish_dataset(connection, header, policy)
-            release_serial = self._insert_release(connection, header)
+            inserted_serial = self._insert_release(connection, header)
+            if inserted_serial != release_serial:
+                raise ReceiptConflictError("release serial changed before publication")
             self._publish_spool(connection, header)
             persisted_content = persisted_included_case_content_digest(
                 connection, header["dataset"], header["release"]
@@ -2096,16 +2388,22 @@ class TargetStore:
                 raise SnapshotError(
                     "published included Case content digest does not match the snapshot"
                 )
+            if persisted_formal_content_digest(
+                connection, header["dataset"], header["release"]
+            ) != formal_content:
+                raise SnapshotError(
+                    "published formal release content does not match the verified spool"
+                )
             receipt_id = "receipt-" + _json_digest(binding)
             connection.execute(
                 "INSERT INTO ingestion_receipts("
                 "receipt_id,store_uuid,dataset_id,release_id,bundle_digest,"
                 "certificate_digest,policy_digest,generation_digest,"
-                "case_content_digest,included_case_content_digest,"
+                "case_content_digest,included_case_content_digest,formal_content_digest,"
                 "included_cases_digest,excluded_cases_digest,"
                 "asset_inventory_digest,include_incomplete,reason,included_count,"
                 "excluded_count,binding_json) "
-                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     receipt_id,
                     metadata["store_uuid"],
@@ -2117,6 +2415,7 @@ class TargetStore:
                     digests["generation"],
                     digests["case_content"],
                     digests["included_case_content"],
+                    formal_content,
                     digests["included_cases"],
                     digests["excluded_cases"],
                     digests["asset_inventory"],
@@ -2131,7 +2430,7 @@ class TargetStore:
             stored = self._read_receipt(header["dataset"], header["release"])
             if stored is None:
                 raise TargetStoreError("committed ingestion receipt cannot be reloaded")
-            if stored["release_serial"] != release_serial:
+            if stored["release_serial"] != inserted_serial:
                 raise TargetStoreError("committed release serial changed unexpectedly")
             return self._result_from_receipt(stored)
         except sqlite3.IntegrityError as exc:
@@ -2330,5 +2629,6 @@ __all__ = [
     "case_content_digests",
     "case_set_digest",
     "included_case_content_digest",
+    "persisted_formal_content_digest",
     "persisted_included_case_content_digest",
 ]

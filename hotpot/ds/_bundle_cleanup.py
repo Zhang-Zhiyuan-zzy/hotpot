@@ -17,7 +17,10 @@ from .public.bundle import load_bundle
 from .public.certificate import certificate_digest
 from .storage import (
     TargetStore,
+    _canonical_json,
     _decode_facts,
+    _json_digest,
+    persisted_formal_content_digest,
     persisted_included_case_content_digest,
 )
 
@@ -346,7 +349,9 @@ def _target_audit(
             }
         )
         receipt = connection.execute(
-            "SELECT included_case_content_digest FROM ingestion_receipts "
+            "SELECT receipt_id,binding_json,included_case_content_digest,"
+            "formal_content_digest "
+            "FROM ingestion_receipts "
             "WHERE dataset_id=? AND release_id=?",
             (dataset, release_id),
         ).fetchone()
@@ -357,6 +362,28 @@ def _target_audit(
         ):
             raise BundleCleanupError(
                 "target changed: persisted Case content does not match its receipt"
+            )
+        try:
+            binding = json.loads(receipt["binding_json"])
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise BundleCleanupError(
+                "target changed: authoritative receipt binding is invalid"
+            ) from exc
+        if (
+            not isinstance(binding, dict)
+            or receipt["binding_json"] != _canonical_json(binding)
+            or binding.get("formal_content_digest")
+            != receipt["formal_content_digest"]
+            or receipt["receipt_id"] != "receipt-" + _json_digest(binding)
+        ):
+            raise BundleCleanupError(
+                "target changed: authoritative receipt binding is invalid"
+            )
+        if receipt["formal_content_digest"] != persisted_formal_content_digest(
+            connection, dataset, release_id
+        ):
+            raise BundleCleanupError(
+                "target changed: formal release content does not match its receipt"
             )
     total = 0
     release_asset_count = 0

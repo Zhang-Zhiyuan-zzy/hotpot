@@ -20,6 +20,7 @@ from hotpot.ds.storage import (
     case_content_digest,
     case_content_digests,
     case_set_digest,
+    persisted_formal_content_digest,
     persisted_included_case_content_digest,
 )
 from hotpot.ds.public._implementation import runtime_policy
@@ -408,6 +409,29 @@ def test_persisted_content_digest_requires_one_assessment_per_case(tmp_path):
             )
 
 
+def test_formal_content_digest_covers_metadata_and_asset_reference_rows(tmp_path):
+    asset = tmp_path / "source.xyz"
+    asset.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    store.ingest(_snapshot(store, [_case("case-a", 0, asset=asset)]))
+    receipt = store.load_release_metadata("spin", "release-1")["receipt"]
+    expected = receipt["formal_content_digest"]
+
+    with sqlite3.connect(store.path) as connection:
+        assert persisted_formal_content_digest(
+            connection, "spin", "release-1"
+        ) == expected
+        connection.execute("UPDATE structure_asset_refs SET role='computed'")
+        assert persisted_formal_content_digest(
+            connection, "spin", "release-1"
+        ) != expected
+        connection.execute("UPDATE structure_asset_refs SET role='experimental'")
+        connection.execute("UPDATE datasets SET title='Altered title'")
+        assert persisted_formal_content_digest(
+            connection, "spin", "release-1"
+        ) != expected
+
+
 def test_ingest_recomputes_included_content_after_formal_publication(
     tmp_path, monkeypatch
 ):
@@ -428,6 +452,32 @@ def test_ingest_recomputes_included_content_after_formal_publication(
     )
 
     with pytest.raises(SnapshotError, match="published included Case content"):
+        store.ingest(snapshot)
+    assert store.load_release_metadata("spin", "release-1") is None
+
+
+def test_ingest_recomputes_asset_reference_binding_after_publication(
+    tmp_path, monkeypatch
+):
+    asset = tmp_path / "source.xyz"
+    asset.write_text("1\n\nEu 0 0 0\n", encoding="utf-8")
+    store = TargetStore(tmp_path / "datasets.sqlite3")
+    snapshot = _snapshot(store, [_case("case-a", 0, asset=asset)])
+    original_publish = TargetStore._publish_spool
+
+    def tampered_publish(connection, header):
+        original_publish(connection, header)
+        connection.execute(
+            "UPDATE structure_asset_refs SET role='computed' "
+            "WHERE dataset_id=? AND release_id=?",
+            (header["dataset"], header["release"]),
+        )
+
+    monkeypatch.setattr(
+        TargetStore, "_publish_spool", staticmethod(tampered_publish)
+    )
+
+    with pytest.raises(SnapshotError, match="formal release content"):
         store.ingest(snapshot)
     assert store.load_release_metadata("spin", "release-1") is None
 

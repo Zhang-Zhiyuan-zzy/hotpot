@@ -31,6 +31,7 @@ from .storage import (
     _canonical_json,
     _json_digest,
     case_set_digest,
+    persisted_formal_content_digest,
     persisted_included_case_content_digest,
 )
 
@@ -46,6 +47,7 @@ _BINDING_DIGEST_KEYS = {
     "generation_digest": "generation_digest",
     "case_content_digest": "case_content_digest",
     "included_case_content_digest": "included_case_content_digest",
+    "formal_content_digest": "formal_content_digest",
     "included_cases_digest": "included_cases_digest",
     "excluded_cases_digest": "excluded_cases_digest",
     "asset_inventory_digest": "asset_inventory_digest",
@@ -235,6 +237,14 @@ def _audit_receipt(
         raise StoreCopyError("persisted Case content audit failed") from exc
     if row["included_case_content_digest"] != persisted_content:
         raise StoreCopyError("ingestion receipt included-Case content is invalid")
+    try:
+        formal_content = persisted_formal_content_digest(
+            connection, dataset, release
+        )
+    except TargetStoreError as exc:
+        raise StoreCopyError("persisted formal release audit failed") from exc
+    if row["formal_content_digest"] != formal_content:
+        raise StoreCopyError("ingestion receipt formal release content is invalid")
     if row["excluded_count"] < 0:
         raise StoreCopyError("ingestion receipt excluded-Case count is invalid")
     if row["excluded_count"] == 0 and row["excluded_cases_digest"] != case_set_digest(()):

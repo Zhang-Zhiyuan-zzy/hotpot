@@ -24,7 +24,10 @@ from .public.search import DataSearcher, DatasetSearcher, SmartsSearcher
 from .storage import (
     TargetStore,
     TargetStoreError,
+    _canonical_json,
     _decode_facts,
+    _json_digest,
+    persisted_formal_content_digest,
     persisted_included_case_content_digest,
 )
 
@@ -824,7 +827,8 @@ def _store_audit(store: TargetStore) -> list[dict[str, Any]]:
                     {"code": "case_fact_integrity", "case_id": row["case_id"]}
                 )
         for row in connection.execute(
-            "SELECT r.dataset_id,r.release_id,i.included_case_content_digest "
+            "SELECT r.dataset_id,r.release_id,i.receipt_id,i.binding_json,"
+            "i.included_case_content_digest,i.formal_content_digest "
             "FROM releases r LEFT JOIN ingestion_receipts i "
             "USING(dataset_id,release_id) ORDER BY r.dataset_id,r.release_id"
         ):
@@ -832,6 +836,25 @@ def _store_audit(store: TargetStore) -> list[dict[str, Any]]:
                 issues.append(
                     {
                         "code": "missing_receipt",
+                        "dataset": row["dataset_id"],
+                        "release": row["release_id"],
+                    }
+                )
+                continue
+            try:
+                binding = json.loads(row["binding_json"])
+            except (TypeError, json.JSONDecodeError):
+                binding = None
+            if (
+                not isinstance(binding, dict)
+                or row["binding_json"] != _canonical_json(binding)
+                or binding.get("formal_content_digest")
+                != row["formal_content_digest"]
+                or row["receipt_id"] != "receipt-" + _json_digest(binding)
+            ):
+                issues.append(
+                    {
+                        "code": "receipt_binding_integrity",
                         "dataset": row["dataset_id"],
                         "release": row["release_id"],
                     }
@@ -847,6 +870,21 @@ def _store_audit(store: TargetStore) -> list[dict[str, Any]]:
                 issues.append(
                     {
                         "code": "case_content_integrity",
+                        "dataset": row["dataset_id"],
+                        "release": row["release_id"],
+                    }
+                )
+                continue
+            try:
+                formal = persisted_formal_content_digest(
+                    connection, row["dataset_id"], row["release_id"]
+                )
+            except TargetStoreError:
+                formal = None
+            if formal != row["formal_content_digest"]:
+                issues.append(
+                    {
+                        "code": "formal_content_integrity",
                         "dataset": row["dataset_id"],
                         "release": row["release_id"],
                     }

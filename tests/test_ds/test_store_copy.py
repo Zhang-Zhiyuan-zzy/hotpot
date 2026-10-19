@@ -40,6 +40,10 @@ def _source_package(tmp_path: Path) -> tuple[Path, Path, Path, bytes]:
     structure_bytes = b"1\n\nEu 0 0 0\n"
     source_structure.write_bytes(structure_bytes)
     digest = hashlib.sha256(structure_bytes).hexdigest()
+    source_evidence = tmp_path / "chemist-note.txt"
+    evidence_bytes = b"chemist-verified spin assignment\n"
+    source_evidence.write_bytes(evidence_bytes)
+    evidence_digest = hashlib.sha256(evidence_bytes).hexdigest()
     case = {
         "id": "case-eu",
         "public_index": 4,
@@ -78,7 +82,17 @@ def _source_package(tmp_path: Path) -> tuple[Path, Path, Path, bytes]:
                 "source_path": source_structure,
                 "sha256": digest,
                 "size": len(structure_bytes),
-            }
+            },
+            {
+                "collection": "evidence",
+                "declaration_id": "chemist-note",
+                "asset_index": 0,
+                "role": "annotation",
+                "status": "active",
+                "source_path": source_evidence,
+                "sha256": evidence_digest,
+                "size": len(evidence_bytes),
+            },
         ],
     }
     policy = {
@@ -122,6 +136,15 @@ def _source_package(tmp_path: Path) -> tuple[Path, Path, Path, bytes]:
                 "excluded_cases": case_set_digest([]),
                 "asset_inventory": asset_inventory_digest(case["assets"]),
             },
+            "control_assets": [
+                {
+                    "category": "provenance",
+                    "name": "chemist-note",
+                    "source_path": source_evidence,
+                    "sha256": evidence_digest,
+                    "size": len(evidence_bytes),
+                }
+            ],
             "cases": [case],
         }
     )
@@ -158,7 +181,8 @@ def _only_cas_path(database: Path) -> Path:
     store = TargetStore(database)
     with store._connect() as connection:
         relative_path = connection.execute(
-            "SELECT relative_path FROM target_assets"
+            "SELECT t.relative_path FROM target_assets t JOIN structure_asset_refs r "
+            "USING(content_sha256) WHERE r.structure_id='structure-eu'"
         ).fetchone()[0]
     return store.asset_root / relative_path
 
@@ -303,8 +327,9 @@ def test_copy_cli_emits_the_closed_store_replica_contract(
         "datasets": 1,
         "releases": 1,
         "cases": 1,
-        "assets": 1,
-        "asset_bytes": len(b"1\n\nEu 0 0 0\n"),
+        "assets": 2,
+        "asset_bytes": len(b"1\n\nEu 0 0 0\n")
+        + len(b"chemist-verified spin assignment\n"),
     }
     assert payload["audit"] == {"passed": True}
 
@@ -384,6 +409,71 @@ def test_copy_store_rejects_unbound_persisted_case_content(
     target_package = _target_package(tmp_path)
 
     with pytest.raises(StoreCopyError, match="Case|content|assessment|receipt"):
+        copy_store(source_database, target_package)
+
+    assert not (
+        target_package / "dataset" / "data" / "store" / "active"
+    ).exists()
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "UPDATE structure_asset_refs SET role='computed'",
+        "UPDATE structure_asset_refs SET format='mol2'",
+        "UPDATE structure_asset_refs SET is_primary=0",
+        "UPDATE structure_asset_refs SET content_sha256=(SELECT content_sha256 "
+        "FROM scientific_asset_refs WHERE declaration_id='chemist-note')",
+        "UPDATE scientific_asset_refs SET role='reclassified' "
+        "WHERE declaration_id='chemist-note'",
+        "UPDATE scientific_asset_refs SET content_sha256=(SELECT content_sha256 "
+        "FROM structure_asset_refs) WHERE declaration_id='chemist-note'",
+        "UPDATE release_control_asset_refs SET name='other-provenance'",
+    ],
+    ids=[
+        "structure-role",
+        "structure-format",
+        "structure-primary",
+        "structure-object-reassociation",
+        "scientific-role",
+        "scientific-object-reassociation",
+        "release-control-reference",
+    ],
+)
+def test_copy_store_rejects_tampered_asset_reference_relationships(
+    tmp_path: Path, statement: str
+) -> None:
+    _, source_database, source_generation_db, _ = _source_package(tmp_path)
+    with sqlite3.connect(source_generation_db) as connection:
+        connection.execute(statement)
+    target_package = _target_package(tmp_path)
+
+    with pytest.raises(StoreCopyError, match="formal release content|receipt"):
+        copy_store(source_database, target_package)
+
+    assert not (
+        target_package / "dataset" / "data" / "store" / "active"
+    ).exists()
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "UPDATE datasets SET title='Altered dataset title'",
+        "UPDATE datasets SET metadata_json='{}'",
+        "UPDATE releases SET metadata_json='{}'",
+    ],
+    ids=["dataset-title", "dataset-metadata", "release-metadata"],
+)
+def test_copy_store_rejects_tampered_dataset_or_release_metadata(
+    tmp_path: Path, statement: str
+) -> None:
+    _, source_database, source_generation_db, _ = _source_package(tmp_path)
+    with sqlite3.connect(source_generation_db) as connection:
+        connection.execute(statement)
+    target_package = _target_package(tmp_path)
+
+    with pytest.raises(StoreCopyError, match="formal release content|receipt"):
         copy_store(source_database, target_package)
 
     assert not (

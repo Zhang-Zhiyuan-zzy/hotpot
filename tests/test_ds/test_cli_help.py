@@ -1,8 +1,11 @@
 import argparse
+import json
+from types import SimpleNamespace
 
 import pytest
 
 from hotpot.__main__ import build_parser as build_hotpot_parser
+from hotpot.ds import cli as ds_cli
 from hotpot.ds.cli import HELP_FORMATTER, build_parser as build_ds_parser
 
 
@@ -183,8 +186,77 @@ def test_certify_and_ingest_expose_the_certificate_gate(
     assert "BUNDLE_ROOT" in ingest
     assert "--db PATH" in ingest
 
-    with pytest.raises(SystemExit):
-        build_ds_parser().parse_args(["ingest", "submission"])
+    default_store = build_ds_parser().parse_args(["ingest", "submission"])
+    assert default_store.bundle_root == "submission"
+    assert not hasattr(default_store, "db")
+
+    explicit_store = build_ds_parser().parse_args(
+        ["ingest", "submission", "--db", "store.sqlite3"]
+    )
+    assert explicit_store.db == "store.sqlite3"
+
+
+def test_ingest_handler_uses_the_active_default_store_consistently(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle_root = tmp_path / "submission"
+    bundle_root.mkdir()
+    (bundle_root / "bundle.json").write_text(
+        json.dumps({"ds_name": "demo"}), encoding="utf-8"
+    )
+    default_store = (tmp_path / "package" / "datasets.sqlite3").resolve()
+    observed: dict[str, object] = {}
+
+    class FakeBundle:
+        root = bundle_root.resolve()
+        name = "demo"
+        _database = default_store
+        _state = SimpleNamespace(manifest={"release_id": "demo.v001"})
+
+        def ingest(self, **kwargs):
+            observed["ingest_kwargs"] = kwargs
+            return {
+                "receipt_digest": "receipt",
+                "included_count": 1,
+                "excluded_count": 0,
+            }
+
+    class FakeTarget:
+        def __init__(self, path):
+            observed["target_path"] = path
+            self.path = path
+
+        def metadata(self):
+            return {"store_uuid": "uuid", "schema_id": "schema"}
+
+        def load_release_metadata(self, dataset, release_id):
+            return {
+                "receipt": {
+                    "included_cases_digest": "included",
+                    "excluded_cases_digest": "excluded",
+                }
+            }
+
+    def fake_load_bundle(root, name, *, db):
+        observed["load_bundle"] = (root, name, db)
+        return FakeBundle()
+
+    emitted: dict[str, object] = {}
+    monkeypatch.setattr(ds_cli, "DEFAULT_STORE_PATH", default_store)
+    monkeypatch.setattr(ds_cli, "load_bundle", fake_load_bundle)
+    monkeypatch.setattr(ds_cli, "TargetStore", FakeTarget)
+    monkeypatch.setattr(
+        ds_cli,
+        "emit_envelope",
+        lambda key, payload, **kwargs: emitted.update(key=key, payload=payload),
+    )
+
+    args = build_ds_parser().parse_args(["ingest", str(bundle_root)])
+    assert ds_cli.run(args) == 0
+    assert observed["load_bundle"] == (bundle_root.resolve(), "demo", default_store)
+    assert observed["target_path"] == default_store
+    assert emitted["key"] == "hotpot.ds.ingest"
+    assert emitted["payload"]["store"]["canonical_path"] == str(default_store)
 
 
 @pytest.mark.parametrize(
@@ -206,6 +278,8 @@ def test_removed_certification_policy_options_are_not_parseable(
 
 def test_bundle_locator_and_transitions_have_one_current_layout() -> None:
     parser = build_ds_parser()
+    default_build = parser.parse_args(["bundle", "build"])
+    assert default_build.bundle_root == "."
     build = parser.parse_args(
         ["bundle", "build", "submission", "--dataset", "demo", "--db", "store.sqlite3"]
     )

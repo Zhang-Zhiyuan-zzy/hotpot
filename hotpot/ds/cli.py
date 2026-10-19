@@ -193,7 +193,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     _bundle_locator_options(bundle)
     bundle_actions = bundle.add_subparsers(dest="bundle_action", metavar="COMMAND", required=True)
     build = _command(bundle_actions, "build", help="build canonical facts", description="Build an unbuilt current intake root once.")
-    build.add_argument("bundle_root", metavar="BUNDLE_ROOT", help="unbuilt current-format intake root")
+    build.add_argument(
+        "bundle_root",
+        nargs="?",
+        default=".",
+        metavar="BUNDLE_ROOT",
+        help="unbuilt current-format intake root; defaults to the current directory",
+    )
     build.add_argument(
         "--dataset",
         default=argparse.SUPPRESS,
@@ -271,7 +277,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     ingest = _command(actions, "ingest", help="ingest a certified Bundle", description="Ingest without implicit build, synchronize, or certify.")
     ingest.add_argument("bundle_root", metavar="BUNDLE_ROOT", help="built synchronized certified Bundle root")
     ingest.add_argument("--dataset", default=argparse.SUPPRESS, metavar="NAME", help="assert bundle.json.ds_name")
-    _database(ingest, required=True)
+    _database(ingest)
     ingest.add_argument("--include-incomplete", action="store_true", help="force incomplete archival into its separate partition")
     ingest.add_argument("--reason", help="required justification for --include-incomplete")
 
@@ -1201,8 +1207,9 @@ def run(args: argparse.Namespace) -> int:
         if args.ds_action == "ingest":
             root = Path(args.bundle_root).expanduser().resolve()
             name = _manifest_dataset(root, getattr(args, "dataset", None))
-            bundle = load_bundle(root, name, db=args.db)
-            target = TargetStore(args.db)
+            database = _active_database(args)
+            bundle = load_bundle(root, name, db=database)
+            target = TargetStore(database)
             release_id = bundle._state.manifest["release_id"]
             previous = (
                 target.load_release_metadata(name, release_id)
@@ -1226,7 +1233,7 @@ def run(args: argparse.Namespace) -> int:
                 {
                     "bundle": _bundle_locator(bundle),
                     "store": {
-                        "canonical_path": _resolved(args.db),
+                        "canonical_path": str(database),
                         "store_uuid": metadata["store_uuid"],
                         "schema_id": metadata["schema_id"],
                     },

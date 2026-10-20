@@ -1,6 +1,6 @@
 # Plan 15：MCA GPU 流水线
 
-状态：实施中。
+状态：已完成。
 
 工作分支：`perf/mca-gpu-pipeline`
 
@@ -12,7 +12,7 @@ MCA 数值语义、位点顺序及 `is_Nuc_site` 判定不变。
 
 - [实施方案](mca_gpu_pipeline_implementation_plan.md)
 - [实施日志](implementation_log.md)
-- [实施报告](implementation_report.md)（完成后生成）
+- [实施报告](implementation_report.md)
 
 本计划不引入 profile。这里的 profile 指“一组有名字的参数预设”，例如
 `throughput`、`balanced`、`low_memory`。它会让同一入口因预设名产生隐含配置，

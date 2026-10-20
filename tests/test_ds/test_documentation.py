@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 
 import hotpot.ds as ds
+from hotpot.ds.cli import load_cli_documentation
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -65,6 +66,7 @@ def test_cli_documentation_uses_the_installed_console_entrypoint() -> None:
 
     assert 'hotpot = "hotpot.__main__:main"' in project_configuration
     assert "hotpot ds --help" in text
+    assert "hotpot ds --doc" in text
     assert "python -m hotpot ds" not in text
     for command in (
         "list",
@@ -79,6 +81,36 @@ def test_cli_documentation_uses_the_installed_console_entrypoint() -> None:
         "detail",
     ):
         assert f"hotpot ds {command}" in text
+
+
+def test_cli_documentation_contains_a_complete_direct_ingestion_guide() -> None:
+    text = CLI_DOCUMENTATION.read_text(encoding="utf-8")
+
+    for required in (
+        "## Fastest complete publication example",
+        "hotpot ds bundle build submission",
+        "hotpot ds bundle --root submission synchronize",
+        "hotpot ds certify submission",
+        "hotpot ds ingest submission",
+        "## 5. Bundle intake layout",
+        "bundle.json",
+        "cases.jsonl",
+        "intake.sqlite3",
+        "structures[].representations",
+        "## 6. Troubleshooting",
+    ):
+        assert required in text
+
+    assert load_cli_documentation() == text
+
+
+def test_cli_documentation_json_examples_are_valid() -> None:
+    text = CLI_DOCUMENTATION.read_text(encoding="utf-8")
+
+    blocks = text.split("```json")[1:]
+    assert blocks
+    for fragment in blocks:
+        json.loads(fragment.split("```", 1)[0])
 
 
 def test_python_documentation_blocks_are_valid_python() -> None:

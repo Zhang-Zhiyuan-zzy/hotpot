@@ -17,6 +17,14 @@ def _hotpot_help(arguments: list[str], capsys: pytest.CaptureFixture[str]) -> st
     return " ".join(capsys.readouterr().out.split())
 
 
+def _hotpot_doc(arguments: list[str], capsys: pytest.CaptureFixture[str]) -> str:
+    parser = build_hotpot_parser(selected_command="ds")
+    with pytest.raises(SystemExit) as exit_info:
+        parser.parse_args(["ds", *arguments, "--doc"])
+    assert exit_info.value.code == 0
+    return " ".join(capsys.readouterr().out.split())
+
+
 def _walk_parsers(parser: argparse.ArgumentParser):
     yield parser
     for action in parser._actions:
@@ -35,10 +43,76 @@ def test_every_ds_command_and_argument_has_help() -> None:
             assert action.help not in (None, argparse.SUPPRESS)
 
 
+def test_every_ds_parser_has_one_loadable_documentation_action() -> None:
+    for parser in _walk_parsers(build_ds_parser()):
+        actions = [
+            action for action in parser._actions if "--doc" in action.option_strings
+        ]
+        assert len(actions) == 1
+        document = actions[0]._document_loader()
+        assert "hotpot ds" in document
+        assert "```" in document
+
+
+@pytest.mark.parametrize(
+    ("route", "title"),
+    (
+        ((), "hotpot ds command-line reference"),
+        (("list",), "hotpot ds list detailed guide"),
+        (("info",), "hotpot ds info detailed guide"),
+        (("labels",), "hotpot ds labels detailed guide"),
+        (("get",), "hotpot ds get detailed guide"),
+        (("subset",), "hotpot ds subset detailed guide"),
+        (("search",), "hotpot ds search detailed guide"),
+        (("export",), "hotpot ds export detailed guide"),
+        (("copy",), "hotpot ds copy detailed guide"),
+        (("detail",), "hotpot ds detail detailed guide"),
+        (("detail", "status"), "hotpot ds detail status detailed guide"),
+        (("detail", "audit"), "hotpot ds detail audit detailed guide"),
+        (("detail", "query"), "hotpot ds detail query detailed guide"),
+        (
+            ("detail", "query", "claims"),
+            "hotpot ds detail query claims detailed guide",
+        ),
+        (("bundle",), "hotpot ds bundle detailed guide"),
+        (("bundle", "build"), "hotpot ds bundle build detailed guide"),
+        (("bundle", "status"), "hotpot ds bundle status detailed guide"),
+        (
+            ("bundle", "synchronize"),
+            "hotpot ds bundle synchronize detailed guide",
+        ),
+        (("bundle", "rm"), "hotpot ds bundle rm detailed guide"),
+        (("bundle", "get"), "hotpot ds bundle get detailed guide"),
+        (("bundle", "set"), "hotpot ds bundle set detailed guide"),
+        (("bundle", "gate"), "hotpot ds bundle gate detailed guide"),
+        (
+            ("bundle", "gate", "benchmark"),
+            "hotpot ds bundle gate benchmark detailed guide",
+        ),
+        (
+            ("bundle", "gate", "quality"),
+            "hotpot ds bundle gate quality detailed guide",
+        ),
+        (
+            ("bundle", "gate", "evidence"),
+            "hotpot ds bundle gate evidence detailed guide",
+        ),
+        (("certify",), "hotpot ds certify detailed guide"),
+        (("ingest",), "hotpot ds ingest detailed guide"),
+    ),
+)
+def test_every_ds_command_path_renders_documentation_without_required_arguments(
+    route: tuple[str, ...],
+    title: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert title in _hotpot_doc(list(route), capsys)
+
+
 def test_hotpot_ds_top_level_help(capsys: pytest.CaptureFixture[str]) -> None:
     output = _hotpot_help(["--help"], capsys)
 
-    assert output.startswith("usage: hotpot ds [-h] COMMAND")
+    assert output.startswith("usage: hotpot ds [-h] [--doc] COMMAND")
     assert "datasets" in output.lower()
     for command in (
         "list",

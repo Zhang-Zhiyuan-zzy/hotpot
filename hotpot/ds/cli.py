@@ -6,8 +6,12 @@ import argparse
 import hashlib
 import json
 import sys
+from functools import partial
+from importlib import resources
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional
+
+from hotpot._cli import MarkdownDocumentationAction
 
 from ._bundle_cleanup import remove_bundle_intermediates
 from ._communication import emit_envelope, read_input
@@ -45,14 +49,103 @@ _PUBLIC_ASSESSMENT_FIELDS = (
     "reasons",
 )
 
+_DOCUMENTATION_HEADINGS = {
+    "list": "### List datasets",
+    "info": "### Inspect a dataset",
+    "labels": "### Inspect a dataset",
+    "get": "### Get data",
+    "subset": "### Filter and search",
+    "search": "### Filter and search",
+    "export": "### Export",
+    "copy": "### Copy an ingested store",
+    "detail": "### Current-store diagnostics",
+    "detail.status": "### Current-store diagnostics",
+    "detail.audit": "### Current-store diagnostics",
+    "detail.query": "### Current-store diagnostics",
+    "detail.query.claims": "### Current-store diagnostics",
+    "bundle": "## 2. Bundle commands",
+    "bundle.build": "### Build and locate",
+    "bundle.status": "### Build and locate",
+    "bundle.synchronize": "### Synchronize",
+    "bundle.rm": "### Remove sealed Bundle intermediates",
+    "bundle.get": "### Inspect",
+    "bundle.set": "### Edit Case facts",
+    "bundle.gate": "### Inspect or edit Gates",
+    "bundle.gate.benchmark": "### Inspect or edit Gates",
+    "bundle.gate.quality": "### Inspect or edit Gates",
+    "bundle.gate.evidence": "### Inspect or edit Gates",
+    "certify": "### Certify",
+    "ingest": "### Ingest",
+}
 
-def _command(subparsers, name: str, *, help: str, description: str):
-    return subparsers.add_parser(
+
+def _documentation_section(document: str, heading: str) -> str:
+    lines = document.splitlines()
+    try:
+        start = lines.index(heading)
+    except ValueError as exc:
+        raise RuntimeError(f"missing CLI documentation heading: {heading}") from exc
+    level = len(heading) - len(heading.lstrip("#"))
+    end = len(lines)
+    fenced = False
+    for index in range(start + 1, len(lines)):
+        candidate = lines[index]
+        if candidate.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+            continue
+        if fenced or not candidate.startswith("#"):
+            continue
+        candidate_level = len(candidate) - len(candidate.lstrip("#"))
+        if candidate_level <= level:
+            end = index
+            break
+    return "\n".join(lines[start:end]).strip()
+
+
+def load_cli_documentation(topic: Optional[str] = None) -> str:
+    """Return the packaged full guide or one command-focused section."""
+
+    document = (
+        resources.files(__package__)
+        .joinpath("cli_doc.md")
+        .read_text(encoding="utf-8")
+    )
+    if topic is None:
+        return document
+    heading = _DOCUMENTATION_HEADINGS[topic]
+    command = topic.replace(".", " ")
+    return (
+        f"# `hotpot ds {command}` detailed guide\n\n"
+        f"{_documentation_section(document, heading)}\n"
+    )
+
+
+def _add_documentation(parser: argparse.ArgumentParser, topic: Optional[str]) -> None:
+    parser.add_argument(
+        "--doc",
+        action=MarkdownDocumentationAction,
+        nargs=0,
+        document_loader=partial(load_cli_documentation, topic),
+        help="show detailed Markdown usage documentation and exit",
+    )
+
+
+def _command(
+    subparsers,
+    name: str,
+    *,
+    help: str,
+    description: str,
+    doc_topic: str,
+):
+    parser = subparsers.add_parser(
         name,
         help=help,
         description=description,
         formatter_class=HELP_FORMATTER,
     )
+    _add_documentation(parser, doc_topic)
+    return parser
 
 
 def _database(parser: argparse.ArgumentParser, *, required: bool = False) -> None:
@@ -134,18 +227,19 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "Discover, query, assess, certify, ingest, and replicate current datasets."
     )
     parser.formatter_class = HELP_FORMATTER
+    _add_documentation(parser, None)
     actions = parser.add_subparsers(dest="ds_action", metavar="COMMAND", required=True)
 
-    listing = _command(actions, "list", help="list datasets", description="List current datasets.")
+    listing = _command(actions, "list", help="list datasets", description="List current datasets.", doc_topic="list")
     _database(listing)
 
-    info = _command(actions, "info", help="show dataset information", description="Show one dataset release.")
+    info = _command(actions, "info", help="show dataset information", description="Show one dataset release.", doc_topic="info")
     _dataset(info)
 
-    labels = _command(actions, "labels", help="show label coverage", description="Show structured label counts.")
+    labels = _command(actions, "labels", help="show label coverage", description="Show structured label counts.", doc_topic="labels")
     _dataset(labels)
 
-    get = _command(actions, "get", help="get data", description="Get data by index, Hotpot ID, or identifier.")
+    get = _command(actions, "get", help="get data", description="Get data by index, Hotpot ID, or identifier.", doc_topic="get")
     _dataset(get)
     get.add_argument("selector", metavar="SELECTOR", help="index, identifier, Hotpot ID, or - for protocol stdin")
     modes = get.add_mutually_exclusive_group()
@@ -160,21 +254,21 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     structures.add_argument("--structure-role", metavar="ROLE", help="select the unique structure with ROLE")
     structures.add_argument("--structure-id", metavar="ID", help="select an exact attached structure ID")
 
-    subset = _command(actions, "subset", help="filter data", description="Select data by facts and quality thresholds.")
+    subset = _command(actions, "subset", help="filter data", description="Select data by facts and quality thresholds.", doc_topic="subset")
     _dataset(subset)
     subset.add_argument("--where", action="append", default=[], metavar="FIELD=JSON", help="field equality or IN filter; repeat to combine")
     subset.add_argument("-q", "--quality", type=int, choices=range(5), default=0, metavar="LEVEL", help="minimum B level; zero disables the threshold")
     subset.add_argument("-e", "--evidence", type=int, choices=range(5), default=0, metavar="LEVEL", help="minimum E level; zero preserves not-applicable records")
     subset.add_argument("--limit", type=int, metavar="N", help="emit at most N records")
 
-    search = _command(actions, "search", help="search data", description="Search dataset metadata, facts, or SMARTS.")
+    search = _command(actions, "search", help="search data", description="Search dataset metadata, facts, or SMARTS.", doc_topic="search")
     _dataset(search, required=False)
     search.add_argument("--scope", choices=("data", "dataset", "smarts"), default="data", help="object class to search")
     search.add_argument("--where", action="append", default=[], metavar="FIELD=JSON", help="field equality or IN filter")
     search.add_argument("--smarts", metavar="PATTERN", help="SMARTS query for smarts scope")
     search.add_argument("--limit", type=int, metavar="N", help="emit at most N matches")
 
-    export = _command(actions, "export", help="export structures", description="Export one selection atomically.")
+    export = _command(actions, "export", help="export structures", description="Export one selection atomically.", doc_topic="export")
     _dataset(export)
     export.add_argument("output", metavar="OUTPUT", help="new export directory")
     scope = export.add_mutually_exclusive_group()
@@ -192,6 +286,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "copy",
         help="replicate an ingested store",
         description="Install one verified exact store replica into another Hotpot package.",
+        doc_topic="copy",
     )
     copy.add_argument(
         "target_package",
@@ -205,23 +300,23 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="source ingested store; defaults to the imported package store",
     )
 
-    detail = _command(actions, "detail", help="inspect current storage", description="Current-store diagnostics.")
+    detail = _command(actions, "detail", help="inspect current storage", description="Current-store diagnostics.", doc_topic="detail")
     detail_actions = detail.add_subparsers(dest="detail_action", metavar="COMMAND")
     for name in ("status", "audit"):
-        child = _command(detail_actions, name, help=name, description=f"Current-store {name}.")
+        child = _command(detail_actions, name, help=name, description=f"Current-store {name}.", doc_topic=f"detail.{name}")
         _database(child)
-    query = _command(detail_actions, "query", help="query facts", description="Query current stored facts.")
+    query = _command(detail_actions, "query", help="query facts", description="Query current stored facts.", doc_topic="detail.query")
     targets = query.add_subparsers(dest="detail_query_target", metavar="TARGET", required=True)
-    claims = _command(targets, "claims", help="query claims", description="Query Case claims.")
+    claims = _command(targets, "claims", help="query claims", description="Query Case claims.", doc_topic="detail.query.claims")
     _database(claims)
     claims.add_argument("--dataset", metavar="NAME", help="restrict claims to one dataset")
     claims.add_argument("--evidence-level", metavar="LEVEL", help="restrict claims to one Case E level")
     claims.add_argument("--limit", type=int, metavar="N", help="return at most N claims")
 
-    bundle = _command(actions, "bundle", help="manage a Bundle", description="Build, inspect, edit, and synchronize one Bundle.")
+    bundle = _command(actions, "bundle", help="manage a Bundle", description="Build, inspect, edit, and synchronize one Bundle.", doc_topic="bundle")
     _bundle_locator_options(bundle)
     bundle_actions = bundle.add_subparsers(dest="bundle_action", metavar="COMMAND", required=True)
-    build = _command(bundle_actions, "build", help="build canonical facts", description="Build an unbuilt current intake root once.")
+    build = _command(bundle_actions, "build", help="build canonical facts", description="Build an unbuilt current intake root once.", doc_topic="bundle.build")
     build.add_argument(
         "bundle_root",
         nargs="?",
@@ -237,13 +332,14 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
     _database(build)
     for name in ("status", "synchronize"):
-        _command(bundle_actions, name, help=name, description=f"Bundle {name}.")
+        _command(bundle_actions, name, help=name, description=f"Bundle {name}.", doc_topic=f"bundle.{name}")
 
     bundle_rm = _command(
         bundle_actions,
         "rm",
         help="remove reproducible working data",
         description="Remove allowlisted intermediates from one verified sealed Bundle.",
+        doc_topic="bundle.rm",
     )
     bundle_rm.add_argument(
         "--all",
@@ -252,7 +348,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="remove every allowlisted reproducible intermediate",
     )
 
-    bundle_get = _command(bundle_actions, "get", help="query Bundle state", description="Read one allowlisted Bundle view.")
+    bundle_get = _command(bundle_actions, "get", help="query Bundle state", description="Read one allowlisted Bundle view.", doc_topic="bundle.get")
     bundle_get.add_argument(
         "view",
         choices=("info", "summary", "cases", "case.info", "case.assessment"),
@@ -261,7 +357,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     bundle_get.add_argument("case_id", nargs="?", metavar="CASE_ID", help="Case ID for a case.* view")
     _selection_flags(bundle_get)
 
-    bundle_set = _command(bundle_actions, "set", help="edit Case facts", description="Invoke one allowlisted Case mutation from JSON.")
+    bundle_set = _command(bundle_actions, "set", help="edit Case facts", description="Invoke one allowlisted Case mutation from JSON.", doc_topic="bundle.set")
     bundle_set.add_argument(
         "method",
         choices=(
@@ -276,10 +372,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
     bundle_set.add_argument("input", metavar="JSON_FILE", help="closed method-argument JSON object")
 
-    gate = _command(bundle_actions, "gate", help="inspect or edit Gates", description="Inspect or atomically replace one new-dataset Gate.")
+    gate = _command(bundle_actions, "gate", help="inspect or edit Gates", description="Inspect or atomically replace one new-dataset Gate.", doc_topic="bundle.gate")
     gate_actions = gate.add_subparsers(dest="gate_name", metavar="GATE", required=True)
     for gate_name in ("benchmark", "quality", "evidence"):
-        child = _command(gate_actions, gate_name, help=gate_name, description=f"Inspect or edit the {gate_name} Gate.")
+        child = _command(gate_actions, gate_name, help=gate_name, description=f"Inspect or edit the {gate_name} Gate.", doc_topic=f"bundle.gate.{gate_name}")
         child.add_argument("--show", action="store_true", help="show the current immutable Gate")
         child.add_argument("--add-check", action="append", default=[], metavar="NAME[=BOOL]", help="add or replace an ordinary check")
         child.add_argument("--rm-check", action="append", default=[], metavar="NAME", help="remove an ordinary check")
@@ -298,12 +394,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
             child.add_argument("--set-tolerance", action="append", default=[], metavar="PROPERTY=ABS[,REL]", help="set numeric conflict tolerances")
             child.add_argument("--rm-tolerance", action="append", default=[], metavar="PROPERTY", help="remove numeric conflict tolerances")
 
-    certify = _command(actions, "certify", help="write the Bundle certificate", description="Certify one synchronized built Bundle.")
+    certify = _command(actions, "certify", help="write the Bundle certificate", description="Certify one synchronized built Bundle.", doc_topic="certify")
     certify.add_argument("bundle_root", metavar="BUNDLE_ROOT", help="built synchronized Bundle root")
     certify.add_argument("--dataset", default=argparse.SUPPRESS, metavar="NAME", help="assert bundle.json.ds_name")
     _database(certify)
 
-    ingest = _command(actions, "ingest", help="ingest a certified Bundle", description="Ingest without implicit build, synchronize, or certify.")
+    ingest = _command(actions, "ingest", help="ingest a certified Bundle", description="Ingest without implicit build, synchronize, or certify.", doc_topic="ingest")
     ingest.add_argument("bundle_root", metavar="BUNDLE_ROOT", help="built synchronized certified Bundle root")
     ingest.add_argument("--dataset", default=argparse.SUPPRESS, metavar="NAME", help="assert bundle.json.ds_name")
     _database(ingest)

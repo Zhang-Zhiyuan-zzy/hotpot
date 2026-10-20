@@ -63,18 +63,22 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
   - **`AIModel.cbond`**: Surpasses traditional valence rules by using deep learning to predict 
   coordinate bonds in complex transition metal environments.
 + **Site-resolved methyl cation affinity**:
-  - **`MCAPredictor`**: Predicts MCA values in kJ/mol for every heavy atom and
+  - **`MCACpuPredictor` / `MCAGpuPredictor`**: Predict MCA values in kJ/mol for every heavy atom and
     separately identifies important nucleophilic sites from a SMILES string, an RDKit molecule, a hotpot
-    `Molecule`, or a lightweight molecular graph. CPU inference is always
-    available and CUDA is selected automatically when a compatible ONNX
-    Runtime provider is installed.
+    `Molecule`, or a lightweight molecular graph. Backend selection is explicit;
+    the GPU predictor owns persistent CPU pools and one CUDA session per card.
+    It defaults to 9 site workers and 7 feature/inference workers per GPU.
+    When no GPU batch is supplied, total card memory selects an atom-row batch
+    tier (`64/128/256/512/1024/2048`); heterogeneous cards use the smallest
+    selected-card tier. CUDA OOM reports the active and next lower batch tier
+    without retrying or falling back to CPU.
   - Predictions can be attached directly to atoms through the calculator API:
     ```python
     from hotpot import read_mol
     from hotpot.calculator import mca
 
     mol = read_mol("c1ccccc1CN")
-    mca(mol)
+    mca(mol, backend="cpu")
     for atom in mol.atoms:
         print(atom.mca)  # all-atom MCA prediction in kJ/mol
     for atom, value in mol.mca_sites.items():
@@ -83,10 +87,10 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
   - The same predictor is available from the command line. Output is a plain
     atom table suitable for terminal display or redirection:
     ```bash
-    hotpot mca 'c1ccccc1CN'
-    hotpot mca molecules.sdf -o mca.txt
-    hotpot mca 'c1ccccc1CN' --plot mca.png
-    hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
+    hotpot mca 'c1ccccc1CN' --backend cpu
+    hotpot mca molecules.sdf --backend gpu -o mca.txt
+    hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png
+    hotpot mca 'c1ccccc1CN' --backend gpu --plot mca-all.png --all-site
     ```
 + **Coordination-bond CLI**:
   - Build a metal-ligand coordination graph from a ligand SMILES or molecule
@@ -239,6 +243,9 @@ For GPU ONNX inference, replace the CPU runtime after installation:
 python -m pip uninstall -y onnxruntime
 python -m pip install onnxruntime-gpu
 ```
+
+MCA still requires an explicit CPU or GPU backend after the GPU runtime is
+installed; installing it does not enable automatic GPU selection.
 ---
 ## 📌 Usage examples
 ### 1.Building a metal-ligand pair

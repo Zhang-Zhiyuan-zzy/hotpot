@@ -1,46 +1,27 @@
-"""MCA inference façade with lazy model-runtime loading."""
+"""Attach explicit-backend MCA inference results to Hotpot molecules."""
 
-import os
-from functools import lru_cache
+from typing import Literal
 
 from ..core import Molecule
 
 __all__ = ["mca"]
 
 
-@lru_cache(maxsize=8)
-def _get_mca_predictor(
-    device: str,
-    allow_charged: bool,
-    model_source: str = None,
-    model_dir: str = None,
-):
-    from ..AImodels.mca import MCAPredictor
-
-    return MCAPredictor(
-        device=device,
-        allow_charged=allow_charged,
-        model_source=model_source,
-        model_dir=model_dir,
-    )
-
-
 def mca(
     mol: Molecule,
     *,
-    device: str = None,
-    allow_charged: bool = False,
-    model_source: str = None,
-    model_dir: str = None,
+    backend: Literal["cpu", "gpu"],
+    **predictor_options,
 ):
     """Predict every atom's MCA and identify important nucleophilic sites."""
-    selected_device = device or os.environ.get("HOTPOT_MCA_DEVICE", "auto")
-    prediction = _get_mca_predictor(
-        selected_device,
-        allow_charged,
-        model_source,
-        model_dir,
-    ).predict(mol)
+
+    from ..AImodels.mca import predict_mca
+
+    prediction = predict_mca(
+        mol,
+        backend=backend,
+        **predictor_options,
+    )
     atom_values = {
         atom.atom_index: atom.mca_kj_mol
         for atom in prediction.atom_predictions
@@ -56,4 +37,3 @@ def mca(
     )
     mol.properties["mca"] = prediction
     return prediction
-

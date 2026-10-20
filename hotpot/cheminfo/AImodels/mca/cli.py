@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import itertools
 import os
+import sys
+from contextlib import ExitStack, nullcontext
 from importlib import resources
 from pathlib import Path
 
@@ -12,7 +15,9 @@ import numpy as np
 from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo._io import MolReader
 
-from .api import MCAPredictor
+from .api import MCACpuPredictor, MCAGpuPredictor
+from .gpu_memory import SUPPORTED_GPU_BATCH_SIZES
+from .pipeline import DEFAULT_CONFORMER_SEED
 
 
 def load_cli_documentation() -> str:
@@ -63,14 +68,41 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="model source policy (default: HOTPOT_MODEL_SOURCE or auto)",
     )
     parser.add_argument(
-        "--device",
-        choices=("auto", "cpu", "cuda"),
-        default="auto",
-        help="inference device (default: auto)",
+        "--backend",
+        choices=("cpu", "gpu"),
+        required=True,
+        help="explicit inference backend",
     )
     parser.add_argument("--variant", choices=("fp32", "fp16"))
-    parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--conformer-seed", type=int, default=42)
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        help="CPU atom-row batch size (default: 64)",
+    )
+    gpu_selection = parser.add_mutually_exclusive_group()
+    gpu_selection.add_argument(
+        "--gpu-count",
+        type=int,
+        help="use logical GPUs 0 through N-1",
+    )
+    gpu_selection.add_argument(
+        "--gpu-indices",
+        type=lambda value: tuple(int(index) for index in value.split(",")),
+        help="comma-separated logical GPU indices, such as 0,2",
+    )
+    parser.add_argument("--site-cpu-per-gpu", type=int)
+    parser.add_argument("--infer-cpu-per-gpu", type=int)
+    parser.add_argument(
+        "--gpu-batch-size",
+        type=int,
+        choices=SUPPORTED_GPU_BATCH_SIZES,
+        help="override the total-VRAM-derived GPU atom-row batch",
+    )
+    parser.add_argument(
+        "--conformer-seed",
+        type=int,
+        default=DEFAULT_CONFORMER_SEED,
+    )
     parser.add_argument(
         "--allow-charged",
         action="store_true",
@@ -79,15 +111,17 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def _read_molecules(sources: list[str], input_format: str | None):
-    molecules = []
+    found = False
     for source in sources:
         if os.path.isfile(source):
-            molecules.extend(MolReader(source, fmt=input_format))
+            for molecule in MolReader(source, fmt=input_format):
+                found = True
+                yield molecule
         else:
-            molecules.append(next(MolReader(source, fmt=input_format or "smi")))
-    if not molecules:
+            found = True
+            yield next(MolReader(source, fmt=input_format or "smi"))
+    if not found:
         raise ValueError("No molecules were found in the input")
-    return molecules
 
 
 def _format_table(prediction) -> str:
@@ -111,16 +145,6 @@ def _format_table(prediction) -> str:
         return "  ".join(value.ljust(width) for value, width in zip(row, widths)).rstrip()
 
     return "\n".join((format_row(headers), *(format_row(row) for row in rows)))
-
-
-def format_predictions(predictions) -> str:
-    predictions = list(predictions)
-    if len(predictions) == 1:
-        return _format_table(predictions[0])
-    return "\n\n".join(
-        f"Molecule {index}: {prediction.smiles}\n{_format_table(prediction)}"
-        for index, prediction in enumerate(predictions, start=1)
-    )
 
 
 def _plot_data(molecules, predictions, all_sites: bool):
@@ -197,25 +221,87 @@ def save_plot(molecules, predictions, path: str, all_sites: bool) -> None:
 
 def run(args: argparse.Namespace) -> int:
     molecules = _read_molecules(args.inputs, args.input_format)
-    predictor = MCAPredictor(
-        model_dir=args.model_dir,
-        device=args.device,
-        variant=args.variant,
-        batch_size=args.batch_size,
-        conformer_seed=args.conformer_seed,
-        allow_charged=args.allow_charged,
-        model_source=args.model_source,
-    )
-    predictions = predictor.predict(molecules)
-    text = format_predictions(predictions)
+    predictor_options = {
+        "model_dir": args.model_dir,
+        "variant": args.variant,
+        "conformer_seed": args.conformer_seed,
+        "allow_charged": args.allow_charged,
+        "model_source": args.model_source,
+    }
+    plot_molecules = []
 
-    if args.output:
-        Path(args.output).write_text(f"{text}\n", encoding="utf-8")
-    else:
-        print(text)
+    def tracked_molecules():
+        for molecule in molecules:
+            if args.plot:
+                plot_molecules.append(molecule)
+            yield molecule
+
+    plot_predictions = []
+    with ExitStack() as stack:
+        if args.backend == "cpu":
+            if any(
+                value is not None
+                for value in (
+                    args.gpu_count,
+                    args.gpu_indices,
+                    args.gpu_batch_size,
+                    args.site_cpu_per_gpu,
+                    args.infer_cpu_per_gpu,
+                )
+            ):
+                raise ValueError("GPU options require --backend gpu")
+            cpu_options = (
+                {} if args.batch_size is None else {"batch_size": args.batch_size}
+            )
+            predictor = MCACpuPredictor(**cpu_options, **predictor_options)
+        else:
+            if args.batch_size is not None:
+                raise ValueError("--batch-size is CPU-only; use --gpu-batch-size")
+            gpu_options = {
+                name: value
+                for name, value in (
+                    ("site_cpu_per_gpu", args.site_cpu_per_gpu),
+                    ("infer_cpu_per_gpu", args.infer_cpu_per_gpu),
+                )
+                if value is not None
+            }
+            predictor = MCAGpuPredictor(
+                gpu_count=args.gpu_count,
+                gpu_indices=args.gpu_indices,
+                gpu_batch_size=args.gpu_batch_size,
+                **gpu_options,
+                **predictor_options,
+            )
+        stack.enter_context(predictor)
+        output_context = (
+            Path(args.output).open("w", encoding="utf-8")
+            if args.output
+            else nullcontext(sys.stdout)
+        )
+        stream = stack.enter_context(output_context)
+        predictions = iter(predictor.iter_predict(tracked_molecules()))
+        first = next(predictions, None)
+        second = next(predictions, None)
+        if first is not None and second is None:
+            stream.write(f"{_format_table(first)}\n")
+            if args.plot:
+                plot_predictions.append(first)
+        elif first is not None:
+            for index, prediction in enumerate(
+                itertools.chain((first, second), predictions),
+                start=1,
+            ):
+                if index > 1:
+                    stream.write("\n")
+                stream.write(
+                    f"Molecule {index}: {prediction.smiles}\n"
+                    f"{_format_table(prediction)}\n"
+                )
+                if args.plot:
+                    plot_predictions.append(prediction)
 
     if args.plot:
-        save_plot(molecules, predictions, args.plot, args.all_site)
+        save_plot(plot_molecules, plot_predictions, args.plot, args.all_site)
     return 0
 
 

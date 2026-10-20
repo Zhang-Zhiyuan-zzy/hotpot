@@ -77,7 +77,7 @@ protocol in the current Git revision; superseded implementations are not retaine
 <!-- Verified by tests/readme/test_readme_examples.py::test_readme_mca_cli_output -->
 
 ```bash
-$ hotpot mca 'c1ccccc1CN' --device cpu
+$ hotpot mca 'c1ccccc1CN' --backend cpu
 ```
 
 ```text
@@ -268,10 +268,11 @@ for version selection, interactive use, and image export.
 PyMOL 3.1 requires `numpy>=1.26.4,<2`. Use the `pymol` profile in an isolated
 environment if PyMOL is required.
 
-ONNX inference uses CPU by default and automatically selects an available GPU
-provider. GPU users must install an `onnxruntime-gpu` build compatible with
-the machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
-compatible with every installed CUDA version.
+GPU ONNX inference requires an `onnxruntime-gpu` build compatible with the
+machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
+compatible with every installed CUDA version. MCA never chooses a provider
+automatically: select its required `--backend cpu` or `--backend gpu`
+explicitly. A GPU request fails without retrying on CPU.
 
 The xTB integration requires a separately installed official `xtb`
 executable. Select it with `--xtb-executable`, `HOTPOT_XTB_EXECUTABLE`, or
@@ -292,7 +293,7 @@ from hotpot import read_mol
 from hotpot.cheminfo.calculator import mca
 
 mol = read_mol("c1ccccc1CN")
-mca(mol, device="cpu")
+mca(mol, backend="cpu")
 for atom, value in mol.mca_sites.items():
     print(atom.label, f"{value:.2f}")
 ```

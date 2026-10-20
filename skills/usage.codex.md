@@ -53,8 +53,8 @@ not exposed by a documented command. Do not emulate missing CLI features with ad
   deliberately required.
 - Do not assume stdin input, `-o -`, JSON, JSON Lines, or TSV support unless the installed `--help` documents it.
   Current well-documented commands primarily accept positional inputs and emit plain text.
-- Preserve user-selected thresholds, devices, model directories, variants, seeds, and search modes. Never change one
-  merely to make a failed invocation return a result.
+- Preserve user-selected thresholds, MCA backends, CBond devices, model directories, variants, seeds, and search
+  modes. Never change one merely to make a failed invocation return a result.
 
 ## Use stdout, stderr, and pipelines correctly
 
@@ -84,10 +84,10 @@ as supported merely because the shell can connect the processes.
 Canonical forms include:
 
 ```bash
-hotpot mca 'c1ccccc1CN'
-hotpot mca molecules.sdf --output results.txt
-hotpot mca inputs/*.mol2 --device cpu --batch-size 256
-hotpot mca 'c1ccccc1CN' --plot mca.png
+hotpot mca 'c1ccccc1CN' --backend cpu
+hotpot mca molecules.sdf --backend gpu --output results.txt
+hotpot mca inputs/*.mol2 --backend cpu --batch-size 256
+hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png
 ```
 
 Observe these rules:
@@ -99,8 +99,11 @@ Observe these rules:
   MCA prediction.
 - Charged molecules are outside the validated release domain and are rejected unless the user explicitly requests
   `--allow-charged`. Report such results as out-of-domain estimates.
-- `--device cuda` is strict and must fail if CUDA cannot be initialized. Only `--device auto` may select another
-  available provider.
+- `--backend` is required. GPU is strict and must fail if CUDA cannot be initialized; there is no automatic provider
+  selection or CPU fallback.
+- GPU defaults to 9 site workers and 7 feature/inference workers per card. Without an explicit GPU atom-row batch,
+  total VRAM selects `64/128/256/512/1024/2048`, and heterogeneous cards use the smallest selected-card tier. CUDA
+  OOM reports the current and next lower tier without retrying or falling back to CPU.
 - Existing usable coordinates are retained; otherwise conformer generation uses `--conformer-seed`.
 
 Do not remove units, convert values, redefine site membership, or generalize a prediction beyond the documented model
@@ -152,10 +155,11 @@ out-of-domain prediction, increase a state limit, or switch models without makin
 
 - State which command and scientifically relevant options were used.
 - Separate raw Hotpot output from subsequent interpretation.
-- Preserve units, index basis, model variant/device when relevant, and applicability warnings.
+- Preserve units, index basis, MCA model variant/backend or CBond device when relevant, and applicability warnings.
 - Say when a claim is limited to a focused command, fixture, backend, or installed version.
 - Never fabricate example output or describe an unexecuted command as verified.
-- When reproducibility matters, record input identity, Hotpot version, model selection, device, seed, and output path.
+- When reproducibility matters, record input identity, Hotpot version, model selection, MCA backend or CBond device,
+  seed, and output path.
 
 ## Completion checklist
 

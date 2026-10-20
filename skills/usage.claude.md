@@ -34,7 +34,8 @@
 6. **`build3d` / 复合物构建会派生子进程**。可执行脚本 MUST 使用 `if __name__ == "__main__":` 保护。
 7. **Shell 中给 SMILES 加引号**（含 `()=#` 等元字符）。
 8. **不要混装 Open Babel**：PyPI `openbabel`、`openbabel-wheel`、Conda `openbabel` 互斥，三选一。
-9. **显式后端严格执行**：`--device cuda` 不可用即失败，不会静默回退到 CPU；只有 `auto` 允许自动选择。
+9. **区分 MCA 与 CBond 的设备接口**：MCA 必须显式传 `--backend cpu` 或 `--backend gpu`，GPU 不可用即失败，
+   不会自动选卡或静默回退到 CPU。`--device` / `auto` 是 CBond 的接口，不适用于 MCA。
 
 ---
 
@@ -61,7 +62,7 @@ python -m pip install hotpot-zzy      # 或源码目录内 pip install -e .
 - 可选依赖组：`optimize`、`datasets`、`complexformer`、`onnx-export`、`legacy-search`、`dev`、`all`
   （如 `pip install 'hotpot-zzy[optimize]'`）。
 - GPU 推理：安装后 `pip uninstall onnxruntime && pip install onnxruntime-gpu`。
-- 相关环境变量：`HOTPOT_MCA_DEVICE`、`HOTPOT_MCA_MODEL_DIR`、`HOTPOT_CBOND_MODEL_DIR`。
+- 相关环境变量：`HOTPOT_MCA_MODEL_DIR`、`HOTPOT_CBOND_MODEL_DIR`。
 
 ---
 
@@ -328,14 +329,14 @@ from hotpot import read_mol
 from hotpot.cheminfo.calculator import mca
 
 mol = read_mol("c1ccccc1CN")
-prediction = mca(mol)                       # 就地把结果挂到原子/分子上
+prediction = mca(mol, backend="cpu")        # 就地把结果挂到原子/分子上
 for atom in mol.atoms:
     print(atom.idx, atom.symbol, atom.mca)  # 全原子 MCA（kJ/mol），atom.idx 为 0-based
 for atom, value in mol.mca_sites.items():
     print(atom, value)                      # 经适用域规则筛出的可靠亲核位点
 ```
 
-`mca(mol, *, device=None, allow_charged=False)`：`device` 缺省读 `HOTPOT_MCA_DEVICE`（默认 `auto`）。
+`mca(mol, *, backend, **predictor_options)`：`backend` 必须显式为 `"cpu"` 或 `"gpu"`；不自动切换后端。
 **适用域**：模型在中性分子上验证；带电分子默认拒绝，`allow_charged=True` 得到的是显式域外估计，须
 谨慎。显式氢不是有效预测目标；单分子最多 512 个原子。**全原子输出**与**可靠位点选择**是两件事——
 后者刻意排除金属及直接连金属的原子。
@@ -430,25 +431,27 @@ hotpot optimize --help          # 权威参数以此为准
 
 - **stdout 只放承诺的结果数据**；日志、警告、进度、ONNX telemetry 一律走 stderr。
 - `-o/--output FILE` 写入的 payload 与默认 stdout 相同，且用 `-o` 时 stdout 为空；文本输出 UTF-8。
-- 退出码：成功 0，失败非零。`--device cuda` 严格，不可用即失败。
+- 退出码：成功 0，失败非零。MCA 的 `--backend gpu` 严格且不回退；CBond 的 `--device cuda` 不可用即失败。
 - `--help` 简明、随包可得；`mca` / `cbond` 另有 `--doc` 展示详细 Markdown 文档，且缺业务参数时仍可退出。
 
 ### 12.2 `hotpot mca` — 原子级 MCA 预测
 
 ```bash
-hotpot mca 'c1ccccc1CN'                       # 单分子（SMILES 要加引号）
-hotpot mca 'CN' 'CCO' mols.smi inputs/*.mol2  # 多 SMILES / 文件 / 多记录混合，批量推理
-hotpot mca mols.sdf -o mca.txt                # 保存文本表
-hotpot mca 'c1ccccc1CN' --plot mca.png        # 仅着色检出的亲核位点
-hotpot mca 'c1ccccc1CN' --plot all.png --all-site   # 着色全部原子
-hotpot mca '[NH4+]' --allow-charged           # 显式请求域外估计
+hotpot mca 'c1ccccc1CN' --backend cpu                       # 单分子（SMILES 要加引号）
+hotpot mca 'CN' 'CCO' mols.smi inputs/*.mol2 --backend gpu  # 多输入，GPU 批量推理
+hotpot mca mols.sdf --backend gpu -o mca.txt                # 保存文本表
+hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png        # 仅着色检出的亲核位点
+hotpot mca 'c1ccccc1CN' --backend gpu --plot all.png --all-site
+hotpot mca '[NH4+]' --backend cpu --allow-charged           # 显式请求域外估计
 ```
 
 输出表：`No.`（**1-based** 原子序号）、`Atom`、`MCA(kJ/mol)`、`is_Nuc_site`。`is_Nuc_site=True` 只表示
 命中亲核规则，不影响是否给出 MCA 值。选项：`-o/--output`、`--plot IMAGE`、`--all-site`、
-`--input-format`、`--device {auto,cpu,cuda}`、`--variant {fp32,fp16}`（默认打包 fp16）、
-`--batch-size 64`（每次 ONNX 调用的原子-位点行数）、`--conformer-seed 42`、`--model-dir`、
-`--allow-charged`。
+`--input-format`、必选 `--backend {cpu,gpu}`、`--variant {fp32,fp16}`（默认打包 fp16）、
+CPU `--batch-size 64`；GPU 可用 `--gpu-count` 或 `--gpu-indices`、每卡默认 9/7 worker，
+并按总显存选择 `64/128/256/512/1024/2048` 的 `--gpu-batch-size` 原子行档位；异构卡取所选卡的
+最小档位。CUDA OOM 会报告当前档位及建议的下一低档，不重试或回退 CPU。另有
+`--conformer-seed 42`、`--model-dir`、`--allow-charged`。
 
 ### 12.3 `hotpot cbond` — 金属-配体配位键构建
 
@@ -519,5 +522,5 @@ CLI 选项、默认值、单位与退出语义可能随版本演进。**面向�
 - ❌ 在无 `if __name__ == "__main__":` 的脚本里跑 `build3d` / 复合物构建。
 - ❌ 对带电分子直接跑 MCA 而不提适用域，或把 `--allow-charged` 结果当可靠值。
 - ❌ 在 shell 里不加引号传含 `()=#` 的 SMILES。
-- ❌ 假设 `--device cuda` 会在无 GPU 时回退到 CPU。
+- ❌ 给 MCA 传 CBond 专用的 `--device` / `auto`，或假设 MCA 的 `--backend gpu` 会在无 GPU 时回退到 CPU。
 - ❌ 需要具体数字时凭记忆编造，而不实际调用 API / 命令。

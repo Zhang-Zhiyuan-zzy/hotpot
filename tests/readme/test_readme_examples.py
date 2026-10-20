@@ -59,7 +59,9 @@ def test_readme_pipeline_documentation_surface() -> None:
 
 
 def test_readme_mca_cli_output() -> None:
-    output = _run_hotpot("mca", "c1ccccc1CN", "--device", "cpu").stdout.strip()
+    output = _run_hotpot(
+        "mca", "c1ccccc1CN", "--backend", "cpu"
+    ).stdout.strip()
     lines = output.splitlines()
     expected = (
         (1, "C", 319.00, False),
@@ -204,7 +206,7 @@ def test_readme_cbond_forcefield_pipeline(tmp_path: Path) -> None:
 def test_readme_mca_python_api_output() -> None:
     molecule = hp.read_mol("c1ccccc1CN")
 
-    mca(molecule, device="cpu")
+    mca(molecule, backend="cpu")
 
     assert molecule.atoms[7].mca == pytest.approx(489.5)
     assert molecule.atoms[7].label == "N7"

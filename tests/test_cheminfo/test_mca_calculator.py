@@ -1,8 +1,8 @@
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.AImodels.mca import predict_mca_cpu
 from hotpot.cheminfo.calculator import mca
-from hotpot.cheminfo.calculator.mca_inference import _get_mca_predictor
 
 
 def test_mca_is_attached_to_atoms_as_a_read_only_property():
@@ -13,7 +13,7 @@ def test_mca_is_attached_to_atoms_as_a_read_only_property():
     with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
         _ = mol.mca_sites
 
-    prediction = mca(mol, device="cpu")
+    prediction = mca(mol, backend="cpu")
     atom_values = {
         atom.atom_index: atom.mca_kj_mol
         for atom in prediction.atom_predictions
@@ -42,8 +42,8 @@ def test_mca_is_attached_to_atoms_as_a_read_only_property():
 
 def test_hotpot_and_smiles_inputs_produce_identical_atom_predictions():
     mol = read_mol("C1CCCCN1")
-    hotpot_prediction = mca(mol, device="cpu")
-    smiles_prediction = _get_mca_predictor("cpu", False).predict("C1CCCCN1")
+    hotpot_prediction = mca(mol, backend="cpu")
+    smiles_prediction = predict_mca_cpu("C1CCCCN1")
 
     assert [atom.mca_kj_mol for atom in hotpot_prediction.atom_predictions] == pytest.approx(
         [atom.mca_kj_mol for atom in smiles_prediction.atom_predictions],
@@ -59,8 +59,8 @@ def test_molecule_mca_sites_supports_empty_and_multiple_results():
     no_sites = read_mol("C")
     multiple_sites = read_mol("CC(=O)C")
 
-    mca(no_sites, device="cpu")
-    mca(multiple_sites, device="cpu")
+    mca(no_sites, backend="cpu")
+    mca(multiple_sites, backend="cpu")
 
     assert no_sites.mca_sites == {}
     assert len(multiple_sites.mca_sites) == 2

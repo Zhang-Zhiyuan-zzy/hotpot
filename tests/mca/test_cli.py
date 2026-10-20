@@ -29,13 +29,21 @@ def _prediction(smiles="CN"):
 class _Predictor:
     def __init__(self, **kwargs):
         self.options = kwargs
+        self.closed = False
 
-    def predict(self, molecules):
-        return [_prediction(molecule.smiles) for molecule in molecules]
+    def iter_predict(self, molecules):
+        return (_prediction(molecule.smiles) for molecule in molecules)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.closed = True
+        return None
 
 
 def test_single_prediction_table_contract():
-    assert cli.format_predictions([_prediction()]) == (
+    assert cli._format_table(_prediction()) == (
         "No.  Atom  MCA(kJ/mol)  is_Nuc_site\n"
         "1    C     102.12       False\n"
         "2    N     314.45       True"
@@ -43,9 +51,9 @@ def test_single_prediction_table_contract():
 
 
 def test_top_level_mca_prints_to_stdout(monkeypatch, capsys):
-    monkeypatch.setattr(cli, "MCAPredictor", _Predictor)
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
 
-    assert hotpot_main.main(["mca", "CN", "--device", "cpu"]) == 0
+    assert hotpot_main.main(["mca", "CN", "--backend", "cpu"]) == 0
 
     output = capsys.readouterr().out
     assert "MCA(kJ/mol)" in output
@@ -62,28 +70,30 @@ def test_top_level_mca_doc_prints_packaged_markdown_without_input(capsys):
     assert not output.startswith("# ")
     assert "hotpot mca" in output
     assert "Command synopsis" in output
-    assert "$ hotpot mca inputs/*.mol2 -o results.txt" in output
+    assert "$ hotpot mca inputs/*.mol2 --backend gpu -o results.txt" in output
     assert "Charged molecules and applicability" in output
 
 
 def test_output_option_writes_table(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(cli, "MCAPredictor", _Predictor)
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
     output_path = tmp_path / "result.txt"
 
-    assert hotpot_main.main(["mca", "CN", "-o", str(output_path)]) == 0
+    assert hotpot_main.main(
+        ["mca", "CN", "--backend", "cpu", "-o", str(output_path)]
+    ) == 0
 
     assert capsys.readouterr().out == ""
     assert output_path.read_text(encoding="utf-8") == (
-        f"{cli.format_predictions([_prediction()])}\n"
+        f"{cli._format_table(_prediction())}\n"
     )
 
 
 def test_multimolecule_file_is_read_and_reported(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(cli, "MCAPredictor", _Predictor)
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
     input_path = tmp_path / "molecules.smi"
     input_path.write_text("CN first\nCN second\n", encoding="utf-8")
 
-    assert hotpot_main.main(["mca", str(input_path)]) == 0
+    assert hotpot_main.main(["mca", str(input_path), "--backend", "cpu"]) == 0
 
     output = capsys.readouterr().out
     assert "Molecule 1:" in output
@@ -119,7 +129,7 @@ def test_all_site_plot_data_marks_every_atom():
 
 
 def test_plot_option_delegates_to_plot_backend(monkeypatch, tmp_path):
-    monkeypatch.setattr(cli, "MCAPredictor", _Predictor)
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
     observed = []
 
     def record_plot(molecules, predictions, path, all_sites):
@@ -129,7 +139,15 @@ def test_plot_option_delegates_to_plot_backend(monkeypatch, tmp_path):
     plot_path = tmp_path / "mca.png"
 
     assert hotpot_main.main(
-        ["mca", "CN", "--plot", str(plot_path), "--all-site"]
+        [
+            "mca",
+            "CN",
+            "--backend",
+            "cpu",
+            "--plot",
+            str(plot_path),
+            "--all-site",
+        ]
     ) == 0
 
     assert observed == [(1, 1, plot_path, True)]
@@ -146,3 +164,43 @@ def test_plot_backend_writes_png(tmp_path):
 def test_plot_range_expands_a_single_value():
     assert cli._plot_range([]) == (None, None)
     assert cli._plot_range([100.0]) == (95.0, 105.0)
+
+
+def test_old_device_option_is_not_accepted():
+    with pytest.raises(SystemExit):
+        cli.build_parser().parse_args(["CN", "--device", "cpu"])
+
+
+def test_cpu_backend_rejects_gpu_worker_options():
+    args = cli.build_parser().parse_args(
+        ["CN", "--backend", "cpu", "--site-cpu-per-gpu", "1"]
+    )
+
+    with pytest.raises(ValueError, match="GPU options"):
+        cli.run(args)
+
+
+def test_output_open_failure_closes_constructed_predictor(monkeypatch, tmp_path):
+    predictors = []
+
+    class RecordingPredictor(_Predictor):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            predictors.append(self)
+
+    monkeypatch.setattr(cli, "MCACpuPredictor", RecordingPredictor)
+    args = cli.build_parser().parse_args(
+        [
+            "CN",
+            "--backend",
+            "cpu",
+            "--output",
+            str(tmp_path / "missing" / "result.txt"),
+        ]
+    )
+
+    with pytest.raises(FileNotFoundError):
+        cli.run(args)
+
+    assert len(predictors) == 1
+    assert predictors[0].closed

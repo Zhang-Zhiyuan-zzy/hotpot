@@ -7,7 +7,7 @@ important nucleophilic sites selected by Hotpot's curated site-detection rules.
 ## Command synopsis
 
 ```bash
-$ hotpot mca [options] <SMILES/FILE> [<SMILES/FILE> ...]
+$ hotpot mca --backend {cpu,gpu} [options] <SMILES/FILE> [<SMILES/FILE> ...]
 ```
 
 Each positional input may be a SMILES string or a molecule file. Multiple
@@ -19,7 +19,7 @@ Quote SMILES strings to prevent the shell from interpreting special
 characters:
 
 ```bash
-$ hotpot mca 'c1ccccc1CN'
+$ hotpot mca 'c1ccccc1CN' --backend cpu
 ```
 
 The table contains a one-based atom number, element, predicted MCA and the
@@ -40,7 +40,7 @@ atoms receive values regardless of site classification.
 Pass several SMILES strings as positional arguments:
 
 ```bash
-$ hotpot mca 'CN' 'CCO' 'c1ccccc1N'
+$ hotpot mca 'CN' 'CCO' 'c1ccccc1N' --backend cpu
 ```
 
 Alternatively, provide a SMILES file with one record per line. An optional
@@ -53,7 +53,7 @@ c1ccccc1N aniline
 ```
 
 ```bash
-$ hotpot mca molecules.smi -o results.txt
+$ hotpot mca molecules.smi --backend gpu -o results.txt
 ```
 
 ## Batch molecule files
@@ -61,22 +61,22 @@ $ hotpot mca molecules.smi -o results.txt
 Shell globs expand to multiple positional file arguments:
 
 ```bash
-$ hotpot mca inputs/*.mol2 -o results.txt
-$ hotpot mca structures/*.sdf structures/*.mol2 -o results.txt
+$ hotpot mca inputs/*.mol2 --backend gpu -o results.txt
+$ hotpot mca structures/*.sdf structures/*.mol2 --backend gpu -o results.txt
 ```
 
 A multi-record file such as SDF or SMI is expanded into its individual
 molecules. File inputs and direct SMILES may also be mixed:
 
 ```bash
-$ hotpot mca 'CN' inputs/example.mol2 collection.sdf
+$ hotpot mca 'CN' inputs/example.mol2 collection.sdf --backend gpu
 ```
 
 The file format is normally inferred from the extension. Override it when the
 extension is absent or non-standard:
 
 ```bash
-$ hotpot mca molecule.data --input-format mol2
+$ hotpot mca molecule.data --backend cpu --input-format mol2
 ```
 
 ## Saving text output
@@ -84,13 +84,13 @@ $ hotpot mca molecule.data --input-format mol2
 Write the complete report with Hotpot's output option:
 
 ```bash
-$ hotpot mca inputs/*.mol2 -o results.txt
+$ hotpot mca inputs/*.mol2 --backend gpu -o results.txt
 ```
 
 Standard shell redirection is equivalent:
 
 ```bash
-$ hotpot mca inputs/*.mol2 > results.txt
+$ hotpot mca inputs/*.mol2 --backend gpu > results.txt
 ```
 
 For multiple molecules, the report contains a numbered heading and atom table
@@ -101,49 +101,56 @@ for every molecule.
 By default, only detected nucleophilic sites are coloured and labelled:
 
 ```bash
-$ hotpot mca 'c1ccccc1CN' --plot mca.png
+$ hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png
 ```
 
 Use `--all-site` to colour every predicted atom:
 
 ```bash
-$ hotpot mca 'c1ccccc1CN' --plot mca-all.png --all-site
+$ hotpot mca 'c1ccccc1CN' --backend cpu --plot mca-all.png --all-site
 ```
 
 Multiple input molecules are drawn as a grid in one output image:
 
 ```bash
-$ hotpot mca molecules.smi --plot mca-grid.png
+$ hotpot mca molecules.smi --backend gpu --plot mca-grid.png
 ```
 
-## Device selection and batching
+## Backend, GPU resources and batching
 
-`--device auto` is the default. It uses a working ONNX Runtime CUDA provider
-when one is available and otherwise uses CPU inference.
+`--backend` is required. CPU and GPU are separate current implementations;
+there is no automatic provider selection or CPU fallback.
 
 ```bash
-$ hotpot mca molecules.smi --device cpu
-$ hotpot mca molecules.smi --device cuda
-$ hotpot mca molecules.smi --device auto --batch-size 256
+$ hotpot mca molecules.smi --backend cpu --batch-size 64
+$ hotpot mca molecules.smi --backend gpu --gpu-count 2
+$ hotpot mca molecules.smi --backend gpu --gpu-indices 0,2
 ```
 
-`--device cuda` is strict and fails if the CUDA execution provider cannot be
-initialized. GPU inference requires `onnxruntime-gpu` and CUDA/cuDNN versions
-compatible with that package. `--batch-size` controls the number of atom-site
-rows submitted per ONNX call rather than the number of molecules read at once.
+The GPU backend defaults to 9 site workers and 7 conformer/feature workers per
+card. These are direct defaults, not a named profile. Override them with
+`--site-cpu-per-gpu` and `--infer-cpu-per-gpu`. Hotpot calculates the required
+CPU count from the selected GPUs and these values, then fails before startup if
+the process affinity contains too few CPUs.
+
+GPU atom-row batch defaults come from total card memory: less than 8 GiB uses
+64; 8/16/24/40/80 GiB boundaries select 128/256/512/1024/2048. Heterogeneous
+cards use the smallest selected-card tier. `--gpu-batch-size` may explicitly
+select one of those values. If CUDA runs out of memory, Hotpot reports the
+current batch and next lower tier without retrying or switching to CPU.
 
 ## Model selection
 
 The pinned FP16 model is selected by default:
 
 ```bash
-$ hotpot mca molecules.smi --variant fp16
+$ hotpot mca molecules.smi --backend cpu --variant fp16
 ```
 
 A local compatible model bundle can be selected explicitly:
 
 ```bash
-$ hotpot mca molecules.smi --model-dir /absolute/path/to/mca/models
+$ hotpot mca molecules.smi --backend gpu --model-dir /absolute/path/to/mca/models
 ```
 
 The directory must contain a compatible `manifest.json` and all ONNX external
@@ -165,7 +172,7 @@ The released model was validated on neutral molecules. Charged inputs are
 rejected by default. To request an explicitly out-of-domain estimate, use:
 
 ```bash
-$ hotpot mca '[NH4+]' --allow-charged
+$ hotpot mca '[NH4+]' --backend cpu --allow-charged
 ```
 
 Treat such values cautiously. Explicit hydrogen atoms are not valid prediction
@@ -178,7 +185,7 @@ Existing usable 3D coordinates are retained. Otherwise Hotpot creates a 3D
 conformer with a deterministic seed. Change that seed when required:
 
 ```bash
-$ hotpot mca molecules.smi --conformer-seed 123
+$ hotpot mca molecules.smi --backend cpu --conformer-seed 123
 ```
 
 ## Complete option reference

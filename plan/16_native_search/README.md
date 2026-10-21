@@ -7,10 +7,12 @@ Planning branch: `perf/native-search`
 Planning baseline: `2cf0893`
 
 This stage proposes replacing the NetworkX-backed execution path of
-`hotpot.cheminfo.search` with one native subgraph-monomorphism engine. The
-public `Query`, `QueryAtom`, `QueryBond`, `Substructure`, `Searcher`, `Hits`,
-and `Hit` interfaces remain the product boundary. MCA is an acceptance
-consumer, not the owner of a second search implementation.
+`hotpot.cheminfo.search` with one in-tree C++17 deterministic RI-style
+subgraph-monomorphism engine bound through pybind11. No third-party graph
+matcher becomes the production executor. The public query, SMARTS, search,
+result, semantics, exception, and `Molecule.search_substructure()` interfaces
+are frozen explicitly in the normative plan. MCA is an acceptance consumer,
+not the owner of a second search implementation.
 
 The complete embedding set for stable predicates and every chemical/query
 predicate retain the current Hotpot meaning. The legacy NetworkX enumeration

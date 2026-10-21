@@ -132,7 +132,11 @@ The following behavior remains normative:
 
 - an empty constraint accepts a compatible target object;
 - a set-valued constraint performs current attribute-membership semantics;
+- non-callable constructor values become mutable sets, with an empty set acting
+  as a wildcard;
 - a missing target attribute rejects the candidate;
+- constraints are ANDed and evaluated in `Query.kwargs` insertion order with
+  current short-circuit behavior whenever their leaf is reached;
 - `QueryAtom.map_number` remains metadata and never becomes a matching
   condition;
 - SMARTS Boolean expression order and short-circuit behavior are retained;
@@ -159,14 +163,19 @@ Python.
 
 ### 3.3 Mapping and result objects
 
-The native executor emits mappings as compact target-index tuples in query
-index order. The Python facade reconstructs the existing read-only mapping
-views and result objects.
+Each native cursor owns an immutable sorted `query_keys` vector and emits
+compact target-index tuples aligned with that vector. The Python facade always
+reconstructs a mapping with `dict(zip(query_keys, target_values))`, never by
+enumerating tuple positions. This preserves sparse normalized keys such as
+`{0, 2}` before producing the existing read-only query-key-to-target-index
+mapping views and result objects.
 
 The following remain unchanged:
 
-- mapping direction is query index to target index;
+- public mapping direction is normalized query-node key to target index;
 - complete search retains every raw automorphism;
+- no symmetry breaking or target-atom-set uniquification occurs in the native
+  enumerator, and every complete injective query-index mapping is emitted once;
 - `Hits` groups mappings by the mapped target atom set;
 - mappings within a `Hit` are not discarded;
 - `mapped_bonds()` follows query-edge mappings;
@@ -183,19 +192,34 @@ Native-produced `Hits` must also retain the complete current object behavior:
 - length, truth value, membership, indexing, `_get_nodes_set()`, and lazy
   `.hits` materialization retain their current meaning; and
 - the `graph_matcher` attribute becomes a private native mapping-source
-  adapter with a repeatable `subgraph_monomorphisms_iter()` protocol rather
-  than a NetworkX `GraphMatcher` instance.
+  adapter rather than a NetworkX `GraphMatcher` instance.
 
-The adapter preserves the behavior consumed by `Hits` and current repository
-callers; it is not a second search engine. Depending on the concrete NetworkX
-class through `Hits.graph_matcher` was never a Hotpot search abstraction and is
-explicitly replaced by this adapter.
+The public `Hits(...)` constructor accepts a possibly one-shot provider and
+calls `subgraph_monomorphisms_iter()` exactly once while eagerly materializing
+mapping groups. That provider yields the legacy NetworkX direction,
+target/molecule index to query index; `Hits` reverses it into the public
+query-to-target direction. Repeated iteration applies to the materialized
+`Hits`, not to the provider. A Searcher-created native adapter may be
+repeatable, but repeatability is not a constructor requirement. The adapter
+preserves the behavior consumed by `Hits`; it is not a second search engine.
+Depending on the concrete NetworkX class through `Hits.graph_matcher` was never
+a Hotpot search abstraction and is explicitly replaced by this adapter.
 
 `max_matches` continues to count raw embeddings. `truncated` remains true only
 when an additional raw embedding exists beyond the requested bound. Because
 legacy enumeration order is released, a bounded search may return a different
 valid N-prefix than NetworkX. Its count, validity, determinism, and truncation
 meaning must remain unchanged.
+
+The exact bounded cases remain:
+
+- `max_matches=0` exposes no mapping, probes the first embedding, and sets
+  `truncated=True` only when that embedding exists;
+- fewer than or exactly `N` embeddings require exhaustion and leave
+  `truncated=False`;
+- more than `N` embeddings consume result `N + 1` internally, expose only the
+  first `N`, and set `truncated=True`; and
+- the probe embedding is never exposed through iteration or `Hits`.
 
 ### 3.4 Mutation, reuse, and errors
 
@@ -229,21 +253,35 @@ after a separately reviewed future algorithm change.
 
 The initial native executor must use an explicit total order:
 
-1. query components are ordered by their smallest original query index;
-2. each component chooses its initial query vertex from a static selectivity
-   tuple ending with the original query index as the final tie-break;
-3. subsequent frontier selection uses a documented total tuple containing
-   mapped-neighbor count, query degree, predicate selectivity, and query index;
-4. target candidates are visited in ascending stable target atom index;
-5. target adjacency is stored and visited in ascending stable target index;
-6. complete mappings are emitted as target-index tuples ordered by original
-   query index; and
-7. no unordered-container iteration or parallel enumeration may affect the
-   emitted sequence.
+1. normalize the programmatic query to the current simple-graph semantics in
+   Section 6.3;
+2. discover connected components by scanning normalized query-node keys and
+   sorted adjacency in ascending integer order, then order components by their
+   smallest query-node key;
+3. choose each nonempty component root by full-topology query degree
+   descending, then query-node key ascending;
+4. process one complete component before the next and repeatedly select only
+   an unchosen vertex adjacent to the already ordered prefix, using the exact
+   key: number of already ordered query neighbors descending, full-topology
+   query degree descending, then query-node key ascending;
+5. assign each non-root vertex's search parent to its already ordered neighbor
+   with the greatest query-order position;
+6. visit target candidates, candidate-domain bitsets, and target adjacency in
+   ascending stable target atom index;
+7. check edges to earlier query neighbors, including multiple required checks,
+   in ascending normalized query-neighbor and edge-key order;
+8. emit complete mappings aligned with ascending normalized query-node keys;
+   and
+9. never allow unordered-container iteration, parallel enumeration, or pointer
+   values to affect the emitted sequence or predicate-check order.
 
-The exact selectivity tuple and field weights must be frozen in a versioned
-native constant and documented before Stage 2 is merged. They are performance
-policy, not chemical semantics.
+The query order is prepared once from the normalized query before target DFS;
+"already ordered" refers to that compilation prefix, not runtime mapping
+success. Full-topology degree here is graph degree in the topology traversed by
+the matcher, with a self-loop counted twice. It is not SMARTS `D`,
+ligand-skeleton degree, valence, ring membership, or a predicate selectivity
+score. Degree pruning uses only the safe lower bound `query_degree <=
+target_degree`, because additional target edges are allowed.
 
 For built-in predicates, identical query/target content and the same native
 implementation version must produce the same mapping byte sequence across
@@ -322,13 +360,124 @@ existing public Query/Substructure/Searcher API
               existing Hit/Hits facade
 ```
 
-### 6.2 Query program
+### 6.2 Selected implementation: in-tree C++17 RI-style kernel
 
-`compile_query(Substructure)` produces an immutable private `QueryProgram`
+The proposed production matcher is a Hotpot-owned C++17 kernel in
+`_search_native`. It uses the C++ standard library for storage and pybind11
+only for the extension boundary and opaque-predicate trampoline. It does not
+delegate topology enumeration to Boost.Graph, igraph, RDKit, Open Babel,
+NetworkX, or another graph-matching library.
+
+The kernel is a deterministic, component-aware, RI-style domain-filtered
+backtracking monomorphism search. "RI-style" describes the ordered-query and
+parent-neighbor candidate scheme; this is not a claim that Hotpot embeds or
+forks the RI reference implementation. Its initial algorithm is fixed as
+follows:
+
+1. pack the target as compact sorted adjacency offsets, neighbor indices, and
+   edge indices;
+2. build conservative native unary candidate bitsets from safe full-topology
+   degree lower bounds and typed atom predicates; an opaque callable, custom
+   Python-attribute leaf, or not-yet-resolved Boolean branch must remain in the
+   domain rather than being evaluated speculatively;
+3. compile the total query order specified in Section 4 and assign every
+   non-component-root query vertex an earlier ordered query neighbor as its
+   search parent;
+4. let a component root scan its candidate domain in ascending target index,
+   and let every other query vertex scan the sorted neighbors of its mapped
+   parent intersected with its domain and the unused-target set;
+5. for each candidate, check in order: unused target; the complete ordered atom
+   expression with its current short-circuit semantics; every normalized query
+   self-loop and edge to an earlier mapped query vertex in the Section 4 order,
+   including typed and opaque bond predicates; then the forward checks;
+6. apply only these initial forward checks: (a) for the newly bound `(q, t)`,
+   the number of distinct unmapped neighbors of `q` must not exceed the number
+   of unused neighbors of `t` in the full traversal topology; and (b) every
+   remaining query vertex must have a nonempty intersection of its conservative
+   native domain, unused target vertices, and the target adjacency required by
+   each already mapped query neighbor, including only native bond filters that
+   can safely reject a pair. A not-yet-started component root uses its global
+   unused domain. Forward checking must not invoke an opaque callable or custom
+   Python-attribute leaf;
+7. recurse and stream each complete target-index tuple in ascending normalized
+   query-node-key order; and
+8. expose a lazy raw-embedding cursor that pauses after each yielded mapping
+   and performs no independent public `max_matches` truncation.
+
+Disconnected components remain inside the same DFS and share one injectivity
+state. They are not searched independently and combined by a Python Cartesian
+product. Standard typed predicates execute in C++; an opaque callable is
+invoked lazily at the candidate/predicate leaf defined in Section 5. Native
+recursive SMARTS invokes this same kernel with an anchored initial binding.
+No symmetry breaking is applied: distinct query-index mappings, including
+automorphisms later grouped into one `Hit`, are each emitted exactly once.
+Hall-set, label-count, or stronger pruning may be added only after a separate
+brute-force parity proof demonstrates that it cannot remove an embedding.
+
+There is exactly one bounded-iteration owner. The existing Python facade
+limiter retains `max_matches`, `yielded`, the `N + 1` probe, and `truncated` for
+both `Searcher.iter_mappings()` and `Hits`. It pulls at most `N + 1` raw
+embeddings from the native cursor and never exposes the probe. The native
+cursor must not hide or pre-consume its own probe result. `has_match()` pulls
+exactly one raw embedding and stops. This avoids nested limiters producing an
+incorrect `truncated` value while still stopping native DFS as soon as the
+facade stops requesting results.
+
+This choice is deliberate rather than an unqualified preference for custom
+code:
+
+| Candidate | Decision and reason |
+| --- | --- |
+| Boost.Graph `vf2_subgraph_mono` | Strongest generic alternative and adaptable through its visitor/comparator facilities, but Boost is not a current build dependency and does not contractually provide Hotpot's cross-version order. Hotpot would still own disconnected ordering, typed/recursive state, callback/GIL behavior, and the exact streaming-prefix/adapter contract. |
+| igraph or another evaluated packaged VF2/VF3 engine | Its callbacks and early-stop facilities can be adapted, but the evaluated API does not jointly guarantee Hotpot's deterministic order, typed predicate VM, anchored recursion, Python-leaf behavior, and mapping-source protocol; it also adds an ABI/runtime dependency. |
+| RDKit or Open Babel | Rejected because their matchers couple traversal to their own molecular query, aromaticity, and SMARTS semantics and do not implement arbitrary Hotpot attribute/callable predicates. |
+| Glasgow-style constraint solver | Not selected because integrating its solver model adds substantial scope while Hotpot would still own predicate callbacks, deterministic all-mapping order, and streaming result adaptation. |
+| In-tree deterministic RI-style kernel | Selected because it keeps the small topology kernel, predicate VM, deterministic order, recursion, early stop, and callable boundary under one testable contract with no new graph-library dependency. |
+
+Authoritative Hotpot ring, coordination, atom, and bond facts may be packed as
+inputs. Reusing those facts is not delegating graph matching. A later proposal
+to replace the in-tree kernel with a third-party matcher requires a reviewed
+plan amendment and complete semantic, deterministic-order, packaging, and
+performance requalification.
+
+The custom-kernel correctness risk is controlled by the independent
+brute-force injection oracle, exhaustive small-graph comparison, frozen
+NetworkX-era fixtures, native sanitizers, and exact cross-process/platform
+sequence digests required below. No pruning rule may enter production solely
+because it improves a benchmark.
+
+### 6.3 Query program
+
+`compile_query(Substructure)` first reproduces the simple undirected query
+projection currently built by `Substructure.construct_graph()`, without using
+that NetworkX object as the production executor input:
+
+- a node key is the current `QueryAtom.idx`, which is derived by
+  `sub.query_atoms.index(atom)`; adding the same `QueryAtom` object more than
+  once therefore collapses to its first key and may leave sparse integer keys;
+- query bonds are inserted in list order into one undirected edge per endpoint
+  pair, including self-loops; repeated bonds on the same unordered pair
+  overwrite the matching predicate so the last `QueryBond` wins;
+- the original `query_bonds` list remains unchanged for result construction,
+  so `Hit.mapped_bonds()` continues to include one result entry per original
+  list item even when matching used one collapsed edge;
+- an empty normalized query makes `has_match()` true, makes
+  `iter_mappings()` yield one read-only empty mapping, and makes `search()`
+  yield one `Hit` whose `atom_indices` is an empty `frozenset` and whose
+  mapping is empty; and
+- a normalized query self-loop requires a compatible target self-loop, with
+  the current predicate and error behavior.
+
+Malformed direct list/end-point mutations retain their current failure rather
+than being silently repaired. Stage 0 freezes these degenerate programmatic
+cases explicitly. Changing or rejecting them later requires separate API
+approval; nativeization must not reinterpret the lists as a multigraph.
+
+The normalized form is compiled into an immutable private `QueryProgram`
 containing:
 
 - query vertex and edge topology;
-- stable original query indices;
+- stable normalized query-node keys and sorted key-to-program-position maps;
 - typed atom and bond predicate bytecode;
 - ordered Boolean operations with explicit short-circuit structure;
 - recursively compiled query programs;
@@ -339,7 +488,7 @@ containing:
 The IR is a private implementation format with an explicit schema version. It
 is not a new public query language.
 
-### 6.3 Target graph
+### 6.4 Target graph
 
 `pack_target(Molecule)` produces an indexed private `TargetGraph` containing
 at least:
@@ -355,28 +504,270 @@ at least:
 
 Packing copies values once per search invocation. C++ must not depend on
 `Molecule`, `Atom`, or `Bond` Python object layout for native-only predicates.
+The packed topology must reproduce the current undirected simple
+`Molecule.atom_bond_graph` node/edge meaning, including any representable
+self-loop and stable Hotpot atom/bond indices, without importing RDKit or Open
+Babel graph perception into matching.
 
-### 6.4 Recursive queries
+### 6.5 Recursive queries
 
 Recursive SMARTS compiles to nested native `QueryProgram` objects. Anchored
-existence is memoized by `(recursive program, target atom index)` within one
-search invocation. It must not invoke NetworkX or be represented as an opaque
-Python callable.
+execution prebinds normalized nested-query node `0` to the candidate target
+atom, validates node `0`'s complete atom predicate and self-loop, and marks the
+target atom used. The component containing node `0` is ordered from the prefix
+`{0}` using the remaining Section 4 frontier rule; every edge back to node `0`
+is checked normally. Other disconnected components then scan their global
+domains under the same injectivity state. Anchored existence is memoized by
+`(recursive program identity, target atom index)` only within the same
+immutable `TargetGraph` search snapshot. It must not invoke NetworkX or be
+represented as an opaque Python callable.
 
-### 6.5 Generic multi-query reuse
+### 6.6 Generic multi-query reuse
 
 After the single-query executor is correct, add a private generic prepared
 target/multi-query operation. It packs one target graph once and evaluates an
 ordered sequence of compiled queries. MCA may use that operation for its 24
-rules, but the operation belongs to `hotpot.search` and contains no MCA site
-names, precedence, metal eligibility, or output assembly.
+rules, but the operation belongs to `hotpot.cheminfo.search` and contains no
+MCA site names, precedence, metal eligibility, or output assembly.
 
-## 7. Public API, source, and packaging impact
+## 7. Frozen public API, source, and packaging impact
 
-Public signatures and result classes remain unchanged. No `backend`,
-`device`, `profile`, or `native=True` option is added.
+No `backend`, `device`, `profile`, `native=True`, or other search-mode option
+is added. The freeze below covers parameter names and order,
+positional-versus-keyword-only status, defaults, return protocols, exported
+aliases, enum/error identities, and documented mutable object state. It is not
+limited to retaining class names.
 
-Proposed private source layout:
+### 7.1 Public API tree and signatures
+
+The canonical definitions live under `hotpot.cheminfo.search`. The same
+classes, enum, and exception objects are re-exported through
+`hotpot.cheminfo` and the top-level `hotpot` facade. Native implementation
+work must not introduce replacement wrapper class identities at those import
+paths.
+
+The formal facade export set is exactly `Query`, `QueryAtom`, `QueryBond`,
+`Substructure`, `Searcher`, `Hits`, `Hit`, `SmartsSemantics`,
+`SmartsSyntaxError`, and `UnsupportedSmartsError`. Names that happen to leak
+through a package lacking `__all__` are not promoted into this contract. This
+is an intended export classification: `hotpot.cheminfo.search` does not
+currently define its own `__all__`, while `search.py.__all__` contains the
+seven query/search/result classes.
+
+```text
+hotpot.cheminfo.search                 [also re-exported by hotpot.cheminfo and hotpot]
+├── Query(**kwargs: Union[Container, Any])
+│   ├── match(obj)
+│   ├── __repr__()
+│   ├── label                          [abstract-decorated getter; base remains instantiable]
+│   └── kwargs                         [public mutable mapping]
+├── QueryAtom(sub=None, map_number=None, **attrs)
+│   ├── from_atom(atom, include_attrs=None, exclude_attrs=None) [classmethod]
+│   ├── map_number                     [read-only property]
+│   ├── idx                            [read-only property]
+│   ├── label                          [read-only property]
+│   └── sub                            [public state]
+├── QueryBond(atom1, atom2, **attrs)
+│   ├── match(obj)
+│   ├── a1idx / a2idx / sub / label   [read-only properties]
+│   └── atom1 / atom2                  [public state]
+├── Substructure()
+│   ├── from_mol(mol, addition_atom_attr=None, addition_bond_attr=None) [classmethod]
+│   ├── from_smarts(smarts, *, semantics=SmartsSemantics.FULL_GRAPH) [classmethod]
+│   ├── from_smiles(smiles, addition_atom_attr=None, addition_bond_attr=None) [classmethod]
+│   ├── add_atom(atom_query)
+│   ├── add_bond(atom1, atom2, **bond_attrs)
+│   ├── construct_graph()
+│   ├── __repr__()
+│   └── query_atoms / query_bonds / query_graph
+├── Searcher(substructure)
+│   ├── has_match(mol)
+│   ├── iter_mappings(mol, max_matches=None)
+│   ├── search(mol, max_matches=None)
+│   └── substructure                   [public state]
+├── Hits(sub, mol, graph_matcher, get_hit=True, max_matches=None)
+│   ├── hits                           [getter-only; lazy cached mutable list]
+│   ├── __iter__() / __len__() / __bool__()
+│   ├── __getitem__(item) / __contains__(item)
+│   └── sub / mol / graph_matcher / get_hit / max_matches / truncated
+├── Hit(mol, sub, atom_indices, mappings=())
+│   ├── mapped_bonds(mapping_index=0)
+│   ├── mapped_atom_indices(query_idx)
+│   ├── mapped_atoms(query_idx)
+│   ├── mappings                       [getter-only tuple of read-only mappings]
+│   ├── induced_bonds                  [getter-only tuple]
+│   ├── atom_indices                   [frozenset]
+│   └── mol / sub / atoms / bonds      [atoms and bonds are mutable lists]
+├── SmartsSemantics(str, Enum)
+│   ├── FULL_GRAPH = "full_graph"
+│   ├── LIGAND_SKELETON = "ligand_skeleton"
+│   ├── rings_for(atom) / bonds_for(atom)
+│   └── degree(atom) / connectivity(atom) / valence(atom)
+├── SmartsSyntaxError(ValueError)
+└── UnsupportedSmartsError(NotImplementedError)
+
+hotpot.cheminfo.search.smarts
+├── substructure_from_smarts(smarts, *, semantics=SmartsSemantics.FULL_GRAPH)
+├── parse_bracket_atom(expr_text, *, semantics=SmartsSemantics.FULL_GRAPH)
+├── tokenize(smarts)
+└── TokenType(str, Enum)              [ATOM="ATOM", BRACKET="BRACKET",
+                                      BOND="BOND", BRANCH_L="BRANCH_L",
+                                      BRANCH_R="BRANCH_R", RING="RING",
+                                      DOT="DOT"]
+
+hotpot.Molecule / hotpot.cheminfo.Molecule
+└── search_substructure(smarts, *, semantics="full_graph")
+```
+
+The exact frozen callable signatures are:
+
+```python
+Query(**kwargs: Union[Container, Any])
+Query.match(self, obj)
+Query.__repr__(self)
+Query.label.fget(self)
+
+QueryAtom(sub: "Substructure" = None, map_number: int = None, **attrs)
+QueryAtom.from_atom(atom: Atom, include_attrs: Sequence[str] = None,
+                    exclude_attrs: Sequence[Literal["atomic_number", "is_aromatic"]] = None)
+QueryAtom.map_number.fget(self)
+QueryAtom.label.fget(self)
+QueryAtom.idx.fget(self) -> int
+
+QueryBond(atom1: QueryAtom, atom2: QueryAtom, **attrs)
+QueryBond.match(self, obj)
+QueryBond.label.fget(self)
+QueryBond.a1idx.fget(self) -> int
+QueryBond.a2idx.fget(self) -> int
+QueryBond.sub.fget(self)
+
+Substructure()
+Substructure.from_mol(
+    mol: Molecule,
+    addition_atom_attr: dict[int, dict[str, set]] = None,
+    addition_bond_attr: dict[Union[int, tuple[int, int]], dict[str, set]] = None,
+) -> "Substructure"
+Substructure.from_smarts(smarts: str, *,
+                         semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH) -> "Substructure"
+Substructure.from_smiles(
+    smiles: str,
+    addition_atom_attr: dict[int, dict[str, set]] = None,
+    addition_bond_attr: dict[Union[int, tuple[int, int]], dict[str, set]] = None,
+)
+Substructure.add_atom(self, atom_query: Union[Atom, QueryAtom])
+Substructure.add_bond(self, atom1: Union[int, QueryAtom],
+                      atom2: Union[int, QueryAtom], **bond_attrs)
+Substructure.construct_graph(self)
+Substructure.__repr__(self)
+
+Searcher(substructure: "Substructure")
+Searcher.has_match(self, mol: Molecule) -> bool
+Searcher.iter_mappings(self, mol: Molecule,
+                       max_matches: int = None) -> Iterator[MappingProxyType]
+Searcher.search(self, mol: Molecule, max_matches: int = None) -> "Hits"
+
+Hits(sub, mol, graph_matcher, get_hit: bool = True,
+     max_matches: int = None)
+Hits.__iter__(self)
+Hits.__getitem__(self, item: int) -> Union[frozenset[int], "Hit"]
+Hits.__len__(self)
+Hits.__bool__(self)
+Hits.__contains__(self, item: Union[Iterable[int], "Hit"])
+Hits.hits.fget(self) -> list["Hit"]
+Hit(mol, sub, atom_indices, mappings=())
+Hit.mapped_bonds(self, mapping_index: int = 0)
+Hit.mapped_atom_indices(self, query_idx: int) -> tuple[int, ...]
+Hit.mapped_atoms(self, query_idx: int) -> tuple[Atom, ...]
+Hit.induced_bonds.fget(self)
+Hit.mappings.fget(self)
+
+SmartsSemantics.rings_for(self, atom)
+SmartsSemantics.bonds_for(self, atom)
+SmartsSemantics.degree(self, atom) -> int
+SmartsSemantics.connectivity(self, atom) -> int
+SmartsSemantics.valence(self, atom) -> float
+
+substructure_from_smarts(smarts: str, *,
+                         semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH) -> Substructure
+parse_bracket_atom(expr_text: str, *,
+                   semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH) -> Dict[str, object]
+tokenize(smarts: str) -> List[Tuple[TokenType, str]]
+Molecule.search_substructure(self, smarts: str, *, semantics="full_graph")
+```
+
+The existing difference between SMARTS defaults is intentional compatibility:
+parser helpers and `Substructure.from_smarts()` expose the enum default, while
+`Molecule.search_substructure()` exposes the string default. Both forms still
+resolve to `FULL_GRAPH`; the native work must not normalize the public
+signatures as incidental cleanup.
+
+`QueryAtom.from_atom()` and the three `Substructure.from_*()` factories remain
+`classmethod` descriptors and construct through `cls`; the method kind is part
+of the freeze even though a bound `inspect.signature()` omits `cls`.
+`Query.label` remains abstract-decorated, but `Query` does not use `ABCMeta`
+and is currently instantiable; native dispatch must not introduce abstract-base
+enforcement.
+
+`parse_bracket_atom()` retains its usable `{"predicate": callable_expression}`
+return shape and predicate behavior; the private concrete expression class is
+not frozen. `tokenize()` retains its historical ordered list of
+`(TokenType, text)` pairs and the exact `TokenType` values shown in the tree.
+Other non-underscore names exposed incidentally by `smarts.py` lacking an
+`__all__` -- including `BondOrder`, `AromaticFlag`, token constants, imported
+query classes, typing names, and module imports -- are not frozen as public
+native-search API. Adding a restrictive `smarts.__all__` is also out of scope
+because it would itself change wildcard-import behavior.
+
+`Searcher.iter_mappings()` continues to return an iterator of read-only
+query-index-to-target-index mappings. Its concrete private class name is not
+frozen, but it retains `__iter__()`, `__next__()`, and the observable public
+state `max_matches`, `yielded`, and `truncated`. `truncated` becomes
+authoritative after the bound/exhaustion check under the current protocol.
+
+`Hits` retains its matcher-like constructor protocol: `graph_matcher` accepts
+an object whose `subgraph_monomorphisms_iter()` may be one-shot and is invoked
+exactly once per `Hits` construction. Its yielded dictionaries use
+target-index-to-query-index direction. Searcher-created instances make the one
+explicit concrete-type substitution in this plan: `graph_matcher` becomes a
+native mapping-source adapter instead of a NetworkX `GraphMatcher`. The
+attribute, one-shot-compatible constructor protocol, repeated iteration of the
+materialized `Hits`, mutable `get_hit`, lazy cached mutable `hits` list,
+grouping, and collection behavior remain frozen.
+
+`Substructure.construct_graph()` continues to return the cached undirected
+NetworkX `Graph` compatibility projection even though production `Searcher`
+no longer consumes it. Its nodes use the current normalized integer keys and
+hold the original `QueryAtom` under `"qa"`; each simple query edge holds the
+last inserted `QueryBond` under `"qb"`. Repeated calls return the same graph
+object whenever the existing cache-validity conditions hold; detected or
+degenerate structural states retain their current rebuild behavior.
+
+`Hit(..., mappings=())` retains its exact signature, but an empty `mappings`
+argument is not promoted into a valid construction promise: current
+construction calls `mapped_bonds()` and raises `IndexError`. Likewise,
+`Substructure.from_mol(..., addition_bond_attr=caller_dict)` currently mutates
+that dictionary when converting tuple endpoint keys to bond indices. This is
+an observable but incidental factory quirk outside the native executor; this
+stage leaves it unchanged, and any cleanup requires separate approval.
+
+The following are implementation-private and are not added to the public
+contract: `_MappingIterator` class identity; `Searcher._graph_matcher()`,
+`_node_match()`, and `_edge_match()`; `resolve_smarts_semantics()`; parser
+`_Predicate` classes; typed query IR classes; `_smarts.py`; and
+`smarts_parser/`. Existing private compatibility such as
+`Hits._get_nodes_set()` is regression-tested where currently consumed but is
+not promoted into a new public API.
+
+Stage 0 records an executable signature/export manifest using
+`inspect.signature`, alias identity checks across all three facades, enum
+value checks, exception-base checks, and result-protocol fixtures. It checks
+presence and identity of the ten intended facade exports and the seven names
+in `search.py.__all__`; it does not assert that the package defines an
+`__all__` or that `dir()` contains only ten names. Any required signature
+change discovered during implementation stops the stage and requires a plan
+amendment rather than being hidden in the native cutover.
+
+### 7.2 Proposed private source layout
 
 ```text
 hotpot/cheminfo/search/
@@ -394,21 +785,18 @@ hotpot/cheminfo/search/
         python_predicate.hpp/.cpp
 ```
 
-`Substructure.construct_graph()` remains available for public compatibility,
-but `Searcher` stops using it for execution. `Hits` retains its current
-matcher-consuming constructor and mutable `get_hit` behavior. Native
-`Searcher` supplies a private native mapping-source adapter as
-`Hits.graph_matcher`; this adapter can create the deterministic native mapping
-iterator repeatedly. Neither retained surface is a production search
-fallback.
+NetworkX may remain a Hotpot dependency for `construct_graph()` and unrelated
+public graph surfaces. The cutover claim is specifically that production
+`hotpot.cheminfo.search` execution does not construct or invoke a NetworkX
+`GraphMatcher`.
 
-NetworkX may remain a Hotpot dependency for unrelated/public graph surfaces.
-The cutover claim is specifically that production `hotpot.search` execution
-does not construct or invoke a NetworkX `GraphMatcher`.
+### 7.3 Packaging boundary
 
-The extension uses C++17 and pybind11 and must build in the supported CPython
-3.9 through 3.14 matrix. Import failure is explicit; the package must not
-silently select the old matcher.
+The in-tree kernel becomes a new `Pybind11Extension` declaration in
+`setup.py`. It uses C++17 and the already required pybind11 build dependency;
+it adds no linked or runtime graph-search library. It must build in the
+supported CPython 3.9 through 3.14 matrix. Import failure is explicit, and the
+package must not silently select the old matcher.
 
 ## 8. Implementation stages and atomic commit sequence
 
@@ -421,20 +809,27 @@ Tasks:
 
 1. inventory every public query/search/result behavior and repository
    consumer;
-2. run and record the complete current search, SMARTS conformance, and consumer
+2. freeze the Section 7.1 signature/export manifest, enum/error identities,
+   mapping-iterator protocol, and matcher-provider compatibility fixtures;
+3. run and record the complete current search, SMARTS conformance, and consumer
    suites;
-3. generate immutable NetworkX-era oracle fixtures containing target/query
+4. generate immutable NetworkX-era oracle fixtures containing target/query
    inputs, complete raw mapping sets, grouped hits, mapped bonds, bounded
-   results, truncation, and expected errors;
-4. add an independent brute-force oracle for small labeled graphs;
-5. record current generic-search and MCA P1 performance, RSS, and result
+   results, truncation, expected errors, empty queries, self-loops, duplicate
+   query bonds, and duplicate `QueryAtom` object insertion;
+5. add an independent brute-force oracle for small labeled graphs;
+6. record current generic-search and MCA P1 performance, RSS, and result
    digests; and
-6. record Python, NetworkX, Open Babel, RDKit, compiler, CPU, and operating
+7. record Python, NetworkX, Open Babel, RDKit, compiler, CPU, and operating
    system metadata.
 
 Exit criteria:
 
 - the semantic inventory covers every item in Section 3;
+- every Section 7.1 signature, default, keyword-only marker, export alias, and
+  return protocol is captured by a failing-on-change test;
+- a single-use `Hits` provider fixture proves exactly one provider call and
+  target-to-query input direction;
 - mapping-set oracle fixtures use built-in/typed or pure deterministic
   predicates and are deterministic and reviewable;
 - stateful callable fixtures verify only the explicitly retained invocation
@@ -465,20 +860,31 @@ Exit criteria:
 
 Tasks:
 
-1. add typed target/query topology bindings;
-2. implement injective subgraph monomorphism, disconnected queries, and raw
-   automorphism enumeration;
-3. freeze deterministic selection/candidate-order constants;
-4. implement `has_match`, unbounded iteration, `max_matches`, and one-extra
-   truncation detection; and
-5. compare direct extension output with the independent brute-force oracle.
+1. add the in-tree C++17/pybind11 extension and compact target/query topology
+   bindings without adding a third-party graph-matcher dependency;
+2. make the topology kernel accept precomputed synthetic node/edge
+   compatibility tables so Stage 2 can be proved independently of the Hotpot
+   predicate VM introduced in Stage 3;
+3. implement the Section 6.2 RI-style candidate domains, ordered-parent DFS,
+   injective subgraph monomorphism, disconnected queries, safe forward checks,
+   and raw automorphism enumeration;
+4. freeze deterministic selection/candidate-order constants and prohibit
+   unordered-container iteration from affecting emitted order;
+5. implement the lazy raw native cursor and one-result `has_match` pull without
+   a second native `max_matches` owner;
+6. prove the existing facade limiter's `0`, fewer-than-`N`, exactly-`N`, and
+   greater-than-`N` behavior over the native cursor; and
+7. compare direct extension output with the independent brute-force oracle.
 
 Exit criteria:
 
 - exhaustive small labeled graphs have identical complete embedding sets;
+- empty, disconnected, self-loop, and normalized duplicate-node/edge query
+  cases match their Stage 0 fixtures, including exact sparse query keys rebuilt
+  with `zip(query_keys, target_values)`;
 - repeated and cross-process mapping sequences are byte-identical;
 - bounded searches are valid, deterministic, and report truncation correctly;
-  and
+- extension linkage inspection shows no external graph-matcher library; and
 - production `Searcher` is not yet switched.
 
 ### Stage 3 - Implement predicates and Python leaf callbacks
@@ -496,6 +902,8 @@ Tasks:
 Exit criteria:
 
 - all programmatic `QueryAtom`/`QueryBond` tests pass against the extension;
+- the complete predicate VM replaces Stage 2 synthetic compatibility tables
+  without changing any kernel mapping sequence for equivalent tables;
 - instrumented callable tests prove that no NetworkX matcher is constructed;
 - only opaque predicate leaves enter Python; and
 - sanitizer/refcount checks show no leak or use-after-free.
@@ -517,7 +925,9 @@ Exit criteria:
 - complete unbounded mapping sets match every applicable stable-predicate
   Stage 0 oracle;
 - supported/unsupported syntax boundaries and error categories match;
-- no recursive expression uses the opaque-callable branch; and
+- no recursive expression uses the opaque-callable branch;
+- anchored node-0, disconnected nested components, self-loops, and per-target
+  snapshot memoization pass focused fixtures; and
 - all existing search conformance tests pass.
 
 ### Stage 5 - Atomic public cutover
@@ -531,12 +941,16 @@ Tasks:
 4. preserve the native mapping-source `graph_matcher` adapter, mutable
    `get_hit`, bounded state, lazy `.hits`, and collection protocols;
 5. keep public `construct_graph()` and direct `Hits` construction behavior;
-   and
-6. run every direct and downstream consumer suite.
+6. run the frozen signature/export/return-protocol manifest; and
+7. verify facade-owned `N + 1` probing through both `iter_mappings()` and
+   `search()`/`Hits`, with no hidden native probe; and
+8. run every direct and downstream consumer suite.
 
 Exit criteria:
 
-- public signatures and schemas are unchanged;
+- every Section 7.1 public signature, alias identity, enum/error identity,
+  schema, and return protocol is unchanged except for the approved concrete
+  `Hits.graph_matcher` adapter type;
 - all semantic, consumer, and determinism gates pass;
 - source inspection and sabotage tests prove there is no runtime GraphMatcher
   fallback; and
@@ -564,11 +978,13 @@ Exit criteria:
 Tasks:
 
 1. build clean wheels for every supported Python version;
-2. run native sanitizers and leak checks;
-3. run frozen generic and MCA performance workloads;
-4. update search/SMARTS documentation and the implementation log/report;
-5. remove temporary executable oracle code; and
-6. retain only immutable fixtures, independent brute-force tests, and Git
+2. inspect wheels and extension linkage to prove that no new graph-search
+   library or undeclared native dependency is present;
+3. run native sanitizers and leak checks;
+4. run frozen generic and MCA performance workloads;
+5. update search/SMARTS documentation and the implementation log/report;
+6. remove temporary executable oracle code; and
+7. retain only immutable fixtures, independent brute-force tests, and Git
    history as reference evidence.
 
 Exit criteria:
@@ -585,10 +1001,11 @@ Correctness gates precede performance claims.
 
 | Area | Required evidence |
 | --- | --- |
-| Graph kernel | Exhaustive small labeled graphs against an independent brute-force oracle |
+| Public API | Exact signatures/defaults/keyword-only markers, three-facade alias identities, SMARTS helper/token protocol, enum values, error bases, and mapping/result protocols |
+| Graph kernel | Exhaustive small labeled graphs against an independent brute-force oracle, including empty, disconnected, self-loop, duplicate-node, and duplicate-edge normalization cases |
 | Complete parity | Exact unbounded raw embedding sets for built-in/typed and pure deterministic callable predicates |
 | Enumeration | Repeated, cross-process, worker-count, and supported-platform sequence stability |
-| Bounded search | Every limit boundary, raw-embedding counts, valid deterministic prefix, and one-extra truncation |
+| Bounded search | Facade-owned `N + 1`, every `0`/`<N`/`=N`/`>N` boundary through iterator and Hits paths, raw counts, deterministic prefix, and no double limiter |
 | Automorphisms | Symmetric chains, cycles, disconnected queries, duplicate target atom-set grouping |
 | Results | Read-only mappings, mapped/induced bonds, mutable `get_hit`, lazy `.hits`, collection behavior, native `graph_matcher` adapter, legacy `Hits` construction |
 | SMARTS | Strict feature matrix, full corpus, regressions, invalid syntax, supported/unsupported boundary |
@@ -664,6 +1081,8 @@ traversal remains active.
 
 | Risk | Required mitigation |
 | --- | --- |
+| Project-owned matcher contains a faulty pruning rule | Begin with only the Section 6.2 safe checks; require exhaustive brute-force equivalence before adding every stronger pruning rule |
+| A third-party matcher becomes an undeclared semantic dependency | Linkage/source inspection and a plan amendment before any topology executor other than the approved in-tree kernel |
 | Standard SMARTS accidentally remains Python | Typed parser-owned IR and a gate asserting zero opaque leaves for standard corpus queries |
 | Native and current complete match sets diverge | Frozen oracle fixtures plus independent exhaustive small-graph testing for stable predicates |
 | New sequence varies by platform | Explicit total order, sorted adjacency/candidates, no unordered iteration, cross-platform digests |
@@ -683,9 +1102,9 @@ traversal remains active.
 The implementation is complete only when all of the following are true:
 
 1. one generic native executor backs every `Searcher` method;
-2. public search signatures, result schemas, and `Hits` collection/state
-   behavior are unchanged, with `graph_matcher` represented by the approved
-   native adapter;
+2. the complete Section 7.1 API tree, signatures, aliases, defaults, result
+   schemas, iterator protocol, and `Hits` collection/state behavior are
+   unchanged, with `graph_matcher` represented by the approved native adapter;
 3. complete unbounded embedding sets for built-in/typed and pure deterministic
    callable predicates match the frozen Hotpot semantics;
 4. the native sequence is deterministic under Section 4;
@@ -701,7 +1120,9 @@ The implementation is complete only when all of the following are true:
 13. native memory, object lifetime, threading, and exception behavior pass their
     diagnostics;
 14. every Section 10 performance gate passes; and
-15. production code contains no legacy matcher or runtime backend selection.
+15. the shipped executor is the approved Section 6.2 in-tree kernel, source and
+    wheel linkage contain no third-party graph matcher, and production code
+    contains no legacy matcher or runtime backend selection.
 
 ## 14. Explicit non-goals
 
@@ -727,10 +1148,15 @@ Owner-confirmed decisions already incorporated:
 - [x] the native implementation has deterministic repeatable enumeration;
 - [x] Python callables remain supported as predicate-only Python execution;
 - [x] callable use never degrades the full matcher to Python; and
-- [x] the project targets generic `hotpot.search`, not only MCA.
+- [x] the project targets generic `hotpot.cheminfo.search`, not only MCA; and
+- [x] the plan freezes the existing API at class/function/method signature
+  level rather than redesigning it during nativeization.
 
 Derived consequences requiring review with this plan:
 
+- [ ] the production topology executor is the Section 6.2 in-tree C++17
+  deterministic RI-style kernel, with pybind11 as its binding layer and no
+  third-party graph-matcher dependency;
 - [ ] bounded `max_matches=N` may return a different valid N-prefix than the
   NetworkX implementation because the approved order changes;
 - [ ] callable result/exception semantics remain supported, but invocation

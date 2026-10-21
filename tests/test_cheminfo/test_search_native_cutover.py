@@ -1,3 +1,8 @@
+from concurrent.futures import ThreadPoolExecutor
+import os
+import subprocess
+import sys
+
 import networkx as nx
 import pytest
 
@@ -81,3 +86,50 @@ def test_native_mapping_views_remain_read_only():
 
     with pytest.raises(TypeError):
         mapping[0] = 1
+
+
+def test_native_mapping_sequence_is_stable_across_workers():
+    searcher = hp.Searcher(hp.Substructure.from_smarts("*.*.*.*"))
+    molecule = hp.read_mol("C.C.C.C", "smi")
+
+    def sequence():
+        return tuple(
+            tuple(mapping[index] for index in range(4))
+            for mapping in searcher.iter_mappings(molecule)
+        )
+
+    expected = sequence()
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        observed = tuple(executor.map(lambda _: sequence(), range(8)))
+
+    assert expected
+    assert all(result == expected for result in observed)
+
+
+def test_native_mapping_sequence_is_stable_across_process_hash_seeds():
+    program = """
+import json
+import hotpot as hp
+
+query = hp.Substructure.from_smarts("*.*.*.*")
+molecule = hp.read_mol("C.C.C.C", "smi")
+sequence = [
+    [mapping[index] for index in range(4)]
+    for mapping in hp.Searcher(query).iter_mappings(molecule)
+]
+print(json.dumps(sequence, separators=(",", ":")))
+"""
+    outputs = []
+    for seed in ("1", "7", "41"):
+        environment = os.environ.copy()
+        environment["PYTHONHASHSEED"] = seed
+        outputs.append(
+            subprocess.check_output(
+                [sys.executable, "-c", program],
+                env=environment,
+                text=True,
+            ).strip()
+        )
+
+    assert outputs[0]
+    assert len(set(outputs)) == 1

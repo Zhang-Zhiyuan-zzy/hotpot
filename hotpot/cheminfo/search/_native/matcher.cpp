@@ -1,7 +1,6 @@
 #include "matcher.hpp"
 
 #include <algorithm>
-#include <limits>
 #include <queue>
 #include <stdexcept>
 
@@ -200,43 +199,6 @@ QueryPlan build_query_plan(
         plan.parent[query_node] = parent;
     }
     return plan;
-}
-
-SyntheticProblem::SyntheticProblem(
-    std::vector<std::int64_t> query_keys,
-    const std::vector<std::pair<std::int64_t, std::int64_t>>& query_edges,
-    std::vector<std::int64_t> target_keys,
-    const std::vector<std::pair<std::int64_t, std::int64_t>>& target_edges,
-    const std::vector<std::vector<std::uint8_t>>& node_compatible,
-    const std::vector<std::vector<std::uint8_t>>& edge_compatible
-) : query_(std::move(query_keys), query_edges),
-    target_(std::move(target_keys), target_edges),
-    plan_(build_query_plan(query_)),
-    compatibility_(
-        query_.node_count(),
-        target_.node_count(),
-        query_.edge_count(),
-        target_.edge_count(),
-        node_compatible,
-        edge_compatible
-    ) {
-    const std::size_t word_count = (target_.node_count() + 63) / 64;
-    domains_.assign(
-        query_.node_count(),
-        std::vector<std::uint64_t>(word_count, 0)
-    );
-    for (Position query_node = 0; query_node < query_.node_count(); ++query_node) {
-        for (Position target_node = 0; target_node < target_.node_count(); ++target_node) {
-            if (
-                query_.degrees()[query_node] <= target_.degrees()[target_node]
-                && compatibility_.may_accept_node(query_node, target_node)
-            ) {
-                domains_[query_node][target_node / 64] |= (
-                    std::uint64_t{1} << (target_node % 64)
-                );
-            }
-        }
-    }
 }
 
 MappingCursor::MappingCursor(

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from importlib import import_module
 from types import ModuleType
-from typing import Iterable, Sequence
+from typing import Iterable
 
 from .query_ir import (
     _compile_query,
@@ -36,24 +36,6 @@ def _native_module() -> ModuleType:
             "the hotpot.cheminfo.search native extension is unavailable; "
             "install a compatible Hotpot wheel or rebuild Hotpot from source"
         ) from exc
-
-
-def _synthetic_problem(
-    query_keys: Sequence[int],
-    query_edges: Sequence[tuple[int, int]],
-    target_keys: Sequence[int],
-    target_edges: Sequence[tuple[int, int]],
-    node_compatible: Sequence[Sequence[bool]],
-    edge_compatible: Sequence[Sequence[bool]],
-):
-    return _native_module().SyntheticProblem(
-        query_keys,
-        query_edges,
-        target_keys,
-        target_edges,
-        node_compatible,
-        edge_compatible,
-    )
 
 
 def _compile_problem(substructure, mol):

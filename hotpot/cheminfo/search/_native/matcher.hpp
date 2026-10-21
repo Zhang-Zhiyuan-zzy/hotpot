@@ -2,7 +2,6 @@
 
 #include "compatibility.hpp"
 #include "graph_data.hpp"
-#include "synthetic_compatibility.hpp"
 
 #include <atomic>
 #include <cstddef>
@@ -34,35 +33,6 @@ public:
     virtual const QueryPlan& plan() const noexcept = 0;
     virtual const Compatibility& compatibility() const noexcept = 0;
     virtual const std::vector<std::vector<std::uint64_t>>& domains() const noexcept = 0;
-};
-
-class SyntheticProblem final : public SearchProblem {
-public:
-    SyntheticProblem(
-        std::vector<std::int64_t> query_keys,
-        const std::vector<std::pair<std::int64_t, std::int64_t>>& query_edges,
-        std::vector<std::int64_t> target_keys,
-        const std::vector<std::pair<std::int64_t, std::int64_t>>& target_edges,
-        const std::vector<std::vector<std::uint8_t>>& node_compatible,
-        const std::vector<std::vector<std::uint8_t>>& edge_compatible
-    );
-
-    const GraphData& query() const noexcept override { return query_; }
-    const GraphData& target() const noexcept override { return target_; }
-    const QueryPlan& plan() const noexcept override { return plan_; }
-    const SyntheticCompatibility& compatibility() const noexcept override {
-        return compatibility_;
-    }
-    const std::vector<std::vector<std::uint64_t>>& domains() const noexcept override {
-        return domains_;
-    }
-
-private:
-    GraphData query_;
-    GraphData target_;
-    QueryPlan plan_;
-    SyntheticCompatibility compatibility_;
-    std::vector<std::vector<std::uint64_t>> domains_;
 };
 
 class MappingCursor {

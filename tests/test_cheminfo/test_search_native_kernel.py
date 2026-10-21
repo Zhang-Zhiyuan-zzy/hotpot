@@ -2,11 +2,15 @@ from itertools import combinations, permutations
 
 import pytest
 
-from hotpot.cheminfo.search.native import (
-    _NativeMappingSource,
-    _synthetic_problem,
-)
+from hotpot.cheminfo.search import _search_native
+from hotpot.cheminfo.search._search_native import NativeProblem, NativeTarget
+from hotpot.cheminfo.search.native import _NativeMappingSource
 from hotpot.cheminfo.search.search import Hits, _MappingIterator
+
+
+_NODE_VALUE_BASE = 10_000
+_EDGE_VALUE_BASE = 20_000
+_NEVER_VALUE = -1
 
 
 def _edges(node_count, mask):
@@ -14,8 +18,84 @@ def _edges(node_count, mask):
     return tuple(pair for index, pair in enumerate(pairs) if mask & (1 << index))
 
 
+def _semantic():
+    return {
+        "degree": 0,
+        "connectivity": 0,
+        "valence": 0.0,
+        "ring_count": 0,
+        "ring_sizes": (),
+    }
+
+
+def _target_atom(position):
+    return {
+        "fields": {"atomic_number": _NODE_VALUE_BASE + position},
+        "full": _semantic(),
+        "ligand": _semantic(),
+        "object": None,
+    }
+
+
+def _target_bond(position):
+    return {
+        "fields": {"bond_order": _EDGE_VALUE_BASE + position},
+        "bond_kind": "single",
+        "is_aromatic": False,
+        "object": None,
+    }
+
+
+def _allowed_values(row, base):
+    values = tuple(base + position for position, accepted in enumerate(row) if accepted)
+    return values or (_NEVER_VALUE,)
+
+
+def _query_node(row):
+    return {
+        "preflight": ("atomic_number",),
+        "leaves": (
+            ("native_set", "atomic_number", _allowed_values(row, _NODE_VALUE_BASE)),
+        ),
+    }
+
+
+def _query_bond(row):
+    return {
+        "preflight": ("bond_order",),
+        "leaves": (
+            ("native_set", "bond_order", _allowed_values(row, _EDGE_VALUE_BASE)),
+        ),
+        "exclude_aromatic": False,
+        "bond_kind": None,
+    }
+
+
+def _native_problem(
+    query_keys,
+    query_edges,
+    target_keys,
+    target_edges,
+    node_compatible,
+    edge_compatible,
+):
+    query = {
+        "keys": tuple(query_keys),
+        "edges": tuple(query_edges),
+        "nodes": tuple(_query_node(row) for row in node_compatible),
+        "bonds": tuple(_query_bond(row) for row in edge_compatible),
+    }
+    target = {
+        "keys": tuple(target_keys),
+        "edges": tuple(target_edges),
+        "atoms": tuple(_target_atom(position) for position in range(len(target_keys))),
+        "bonds": tuple(_target_bond(position) for position in range(len(target_edges))),
+    }
+    return NativeProblem(query, NativeTarget(target))
+
+
 def _all_compatible_problem(query_keys, query_edges, target_keys, target_edges):
-    return _synthetic_problem(
+    return _native_problem(
         query_keys,
         query_edges,
         target_keys,
@@ -37,6 +117,10 @@ def _brute_force(query_count, query_edges, target_count, target_edges):
     }
 
 
+def test_temporary_synthetic_problem_interface_is_removed():
+    assert not hasattr(_search_native, "SyntheticProblem")
+
+
 def test_empty_query_emits_one_empty_mapping():
     problem = _all_compatible_problem((), (), (0, 1), ((0, 1),))
     cursor = problem.cursor()
@@ -54,9 +138,7 @@ def test_sparse_query_keys_survive_the_legacy_mapping_adapter():
         ((10, 11),),
     )
     mappings = tuple(
-        _MappingIterator(
-            _NativeMappingSource(problem).subgraph_monomorphisms_iter()
-        )
+        _MappingIterator(_NativeMappingSource(problem).subgraph_monomorphisms_iter())
     )
 
     assert {tuple(mapping.items()) for mapping in mappings} == {
@@ -92,7 +174,7 @@ def test_disconnected_query_shares_injectivity_and_allows_cross_component_edges(
 
 
 def test_self_loop_requires_a_compatible_target_self_loop():
-    accepted = _synthetic_problem(
+    accepted = _native_problem(
         (0,),
         ((0, 0),),
         (4, 5),
@@ -100,7 +182,7 @@ def test_self_loop_requires_a_compatible_target_self_loop():
         ((True, True),),
         ((True,),),
     )
-    rejected = _synthetic_problem(
+    rejected = _native_problem(
         (0,),
         ((0, 0),),
         (4,),
@@ -113,8 +195,8 @@ def test_self_loop_requires_a_compatible_target_self_loop():
     assert list(rejected.cursor()) == []
 
 
-def test_synthetic_node_and_edge_compatibility_filter_candidates():
-    problem = _synthetic_problem(
+def test_native_node_and_edge_predicates_filter_candidates():
+    problem = _native_problem(
         (0, 1),
         ((0, 1),),
         (0, 1, 2),
@@ -128,7 +210,7 @@ def test_synthetic_node_and_edge_compatibility_filter_candidates():
 
     assert list(problem.cursor()) == []
 
-    accepted = _synthetic_problem(
+    accepted = _native_problem(
         (0, 1),
         ((0, 1),),
         (0, 1, 2),
@@ -176,20 +258,32 @@ def test_hits_consumes_the_same_unbounded_native_source_once():
 def test_problem_copies_inputs_and_cursor_owns_problem_lifetime():
     query_keys = [0]
     target_keys = [7, 8]
-    node_compatible = [[True, True]]
-    problem = _synthetic_problem(
-        query_keys,
-        (),
-        target_keys,
-        (),
-        node_compatible,
-        (),
-    )
+    accepted_values = [_NODE_VALUE_BASE, _NODE_VALUE_BASE + 1]
+    query = {
+        "keys": query_keys,
+        "edges": [],
+        "nodes": [
+            {
+                "preflight": ["atomic_number"],
+                "leaves": [("native_set", "atomic_number", accepted_values)],
+            }
+        ],
+        "bonds": [],
+    }
+    target_atoms = [_target_atom(0), _target_atom(1)]
+    target = {
+        "keys": target_keys,
+        "edges": [],
+        "atoms": target_atoms,
+        "bonds": [],
+    }
+    problem = NativeProblem(query, NativeTarget(target))
     cursor = problem.cursor()
 
     query_keys[0] = 99
     target_keys[:] = [42]
-    node_compatible[0][0] = False
+    accepted_values[0] = _NEVER_VALUE
+    target_atoms[1]["fields"]["atomic_number"] = _NEVER_VALUE
     del problem
 
     assert list(cursor) == [(7,), (8,)]

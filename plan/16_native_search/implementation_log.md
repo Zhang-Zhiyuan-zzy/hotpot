@@ -140,12 +140,59 @@ Adjustment:
 - do not invent an MCA performance claim where the repository lacks a frozen
   reproducible input.
 
-Git checkpoint: recorded in the Stage 0 contract commit immediately following
-this log entry.
+Git checkpoint: `a4547f7` (`test(search): freeze native migration contracts`).
 
 ### Step 2 - Introduce typed parser predicate IR
 
-Status: pending
+Status: complete
+
+Planned:
+
+- replace only parser-owned Python closures with immutable typed predicates;
+- preserve direct callability, exact representations, Boolean order,
+  aromatic-state inference, recursive cache behavior, and existing bare
+  set/private bond constraints; and
+- keep arbitrary programmatic callables opaque and untouched.
+
+Performed:
+
+- added private typed atom and bond operation/field nodes with frozen identity
+  semantics;
+- represented every active atom primitive, Boolean operation, recursive leaf,
+  multi-bond alternative, and implicit single-or-aromatic bond without
+  changing parser output shapes outside parser-owned callables;
+- retained left-to-right short circuiting, recursive molecule-state cache
+  invalidation, exact `repr`, and callable behavior; and
+- added focused tests covering every typed operation family, aromatic hints,
+  hydrogen ambiguity, direct `parse_bracket_atom()` use, immutable identity,
+  opaque-callable separation, mutation visibility, and recursive atom/bond
+  invalidation.
+
+Verification:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/smarts_conformance \
+  tests/test_cheminfo/test_search.py \
+  tests/test_cheminfo/test_search_mapping.py \
+  tests/test_cheminfo/test_smarts.py \
+  tests/test_cheminfo/test_search_native_contract.py
+```
+
+Result: 398 passed, 49 subtests passed in 2.36 s.
+
+Unexpected finding: the active parser has a deliberately mixed output model:
+bare atom and explicit single-bond constraints are sets/private guards, while
+compound atom and multi/implicit bond expressions are parser-owned callables.
+Uniformly converting all constraints would have changed the current public
+query representation, so the implementation keeps that boundary.
+
+Adjustment: native query compilation must recognize typed IR positively by
+its private class, then separately compile existing set/guard constraints and
+arbitrary opaque callables. It must never classify every `Callable` as typed.
+
+Git checkpoint: recorded in the typed-IR commit immediately following this log
+entry.
 
 ### Step 3 - Implement and prove the deterministic native topology kernel
 

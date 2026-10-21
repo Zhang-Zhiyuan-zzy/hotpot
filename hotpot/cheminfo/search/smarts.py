@@ -11,12 +11,19 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 from weakref import WeakKeyDictionary
 
 from networkx.algorithms import isomorphism
 
 from ..core import BondKind
+from ._predicate_ir import (
+    _AtomExpression,
+    _AtomField,
+    _AtomOp,
+    _BondExpression,
+    _BondOp,
+)
 from ._smarts_syntax import (
     AROMATIC_LOWER,
     TokenType,
@@ -55,32 +62,7 @@ class AromaticFlag(Enum):
     UNSET = "unset"
 
 
-class _Predicate:
-    """A named callable which keeps query representations deterministic."""
-
-    def __init__(self, func: Callable[[object], bool], description: str):
-        self._func = func
-        self.description = description
-
-    def __call__(self, obj: object) -> bool:
-        return bool(self._func(obj))
-
-    def __repr__(self) -> str:
-        return self.description
-
-
-class _AtomExpression(_Predicate):
-    def __init__(
-        self,
-        func: Callable[[object], bool],
-        description: str,
-        aromatic_states: Set[bool] = frozenset((False, True)),
-    ):
-        super().__init__(func, description)
-        self.aromatic_states = frozenset(aromatic_states)
-
-
-class _RecursivePredicate:
+class _RecursiveEvaluator:
     """Anchored recursive SMARTS with per-molecule/per-atom result caching."""
 
     def __init__(self, smarts: str, semantics: SmartsSemantics):
@@ -449,8 +431,16 @@ def _parse_atom_primitive(
         recursive_smarts = expr[index + 2 : end]
         if not recursive_smarts.strip():
             raise SmartsSyntaxError("Recursive SMARTS body must contain an atom")
-        recursive = _RecursivePredicate(recursive_smarts, semantics)
-        return _AtomExpression(recursive, repr(recursive)), end + 1, False
+        recursive = _RecursiveEvaluator(recursive_smarts, semantics)
+        return (
+            _AtomExpression(
+                _AtomOp.RECURSIVE,
+                repr(recursive),
+                value=recursive,
+            ),
+            end + 1,
+            False,
+        )
 
     if index >= len(expr):
         raise SmartsSyntaxError(f"Missing atom primitive in {expr!r}")
@@ -558,11 +548,10 @@ def _parse_hotpot_extension(
         if not values or min(values) < 1 or max(values) > 7:
             raise SmartsSyntaxError("Hotpot period extension must be within 1-7")
         return (
-            _atom_predicate(
-                lambda atom, allowed=frozenset(values): (
-                    _period_number(atom.atomic_number) in allowed
-                ),
+            _AtomExpression(
+                _AtomOp.PERIOD_IN,
                 f"NP{min(values)}-{max(values)}",
+                value=frozenset(values),
             ),
             index + len(match.group(0)),
             True,
@@ -603,9 +592,11 @@ def _parse_numeric_atom_primitive(
     if code == "D":
         value = int(digits) if digits else 1
         return (
-            _atom_predicate(
-                lambda atom, n=value, profile=semantics: profile.degree(atom) == n,
+            _AtomExpression(
+                _AtomOp.DEGREE_EQ,
                 f"D{value}",
+                value=value,
+                semantics=semantics,
             ),
             end,
             False,
@@ -613,11 +604,11 @@ def _parse_numeric_atom_primitive(
     if code == "X":
         value = int(digits) if digits else 1
         return (
-            _atom_predicate(
-                lambda atom, n=value, profile=semantics: (
-                    profile.connectivity(atom) == n
-                ),
+            _AtomExpression(
+                _AtomOp.CONNECTIVITY_EQ,
                 f"X{value}",
+                value=value,
+                semantics=semantics,
             ),
             end,
             False,
@@ -625,9 +616,11 @@ def _parse_numeric_atom_primitive(
     if code == "v":
         value = int(digits) if digits else 1
         return (
-            _atom_predicate(
-                lambda atom, n=value, profile=semantics: profile.valence(atom) == n,
+            _AtomExpression(
+                _AtomOp.VALENCE_EQ,
                 f"v{value}",
+                value=value,
+                semantics=semantics,
             ),
             end,
             False,
@@ -635,29 +628,31 @@ def _parse_numeric_atom_primitive(
     if code == "R":
         if not digits:
             return (
-                _atom_predicate(
-                    lambda atom, profile=semantics: bool(profile.rings_for(atom)),
+                _AtomExpression(
+                    _AtomOp.RING_ANY,
                     "R",
+                    semantics=semantics,
                 ),
                 end,
                 False,
             )
         count = int(digits)
         return (
-            _atom_predicate(
-                lambda atom, n=count, profile=semantics: (
-                    len(profile.rings_for(atom)) == n
-                ),
+            _AtomExpression(
+                _AtomOp.RING_COUNT_EQ,
                 f"R{count}",
+                value=count,
+                semantics=semantics,
             ),
             end,
             False,
         )
     if not digits:
         return (
-            _atom_predicate(
-                lambda atom, profile=semantics: bool(profile.rings_for(atom)),
+            _AtomExpression(
+                _AtomOp.RING_ANY,
                 "r",
+                semantics=semantics,
             ),
             end,
             False,
@@ -665,19 +660,20 @@ def _parse_numeric_atom_primitive(
     size = int(digits)
     if size == 0:
         return (
-            _atom_predicate(
-                lambda atom, profile=semantics: not profile.rings_for(atom),
+            _AtomExpression(
+                _AtomOp.RING_NONE,
                 "r0",
+                semantics=semantics,
             ),
             end,
             False,
         )
     return (
-        _atom_predicate(
-            lambda atom, n=size, profile=semantics: any(
-                len(ring) == n for ring in profile.rings_for(atom)
-            ),
+        _AtomExpression(
+            _AtomOp.RING_SIZE_EQ,
             f"r{size}",
+            value=size,
+            semantics=semantics,
         ),
         end,
         False,
@@ -691,11 +687,10 @@ def _parse_hydrogen_primitive(
     count = int(match.group(1)) if match.group(1) else 1
     end = index + len(match.group(0))
     return (
-        _atom_predicate(
-            lambda atom, n=count: (
-                atom.explicit_hydrogens + atom.implicit_hydrogens == n
-            ),
+        _AtomExpression(
+            _AtomOp.TOTAL_H_EQ,
             f"H{count}",
+            value=count,
         ),
         end,
         False,
@@ -746,21 +741,8 @@ def _integer_range(start: str, end: Optional[str]) -> Set[int]:
     return set(range(low, high + 1))
 
 
-def _period_number(atomic_number: int) -> int:
-    for period, upper_bound in enumerate((2, 10, 18, 36, 54, 86, 118), start=1):
-        if atomic_number <= upper_bound:
-            return period
-    return 0
-
-
-def _atom_predicate(
-    func: Callable[[object], bool], description: str
-) -> _AtomExpression:
-    return _AtomExpression(func, description)
-
-
 def _always_true(description: str) -> _AtomExpression:
-    return _AtomExpression(lambda atom: True, description)
+    return _AtomExpression(_AtomOp.TRUE, description)
 
 
 def _equals(
@@ -770,17 +752,20 @@ def _equals(
     aromatic_states: Set[bool] = frozenset((False, True)),
 ) -> _AtomExpression:
     return _AtomExpression(
-        lambda atom, name=attr, expected=value: getattr(atom, name) == expected,
+        _AtomOp.FIELD_EQ,
         description,
-        aromatic_states,
+        field=_AtomField(attr),
+        value=value,
+        aromatic_states=frozenset(aromatic_states),
     )
 
 
 def _in_values(attr: str, values: Set[int], description: str) -> _AtomExpression:
-    accepted = frozenset(values)
     return _AtomExpression(
-        lambda atom, name=attr, allowed=accepted: getattr(atom, name) in allowed,
+        _AtomOp.FIELD_IN,
         description,
+        field=_AtomField(attr),
+        value=frozenset(values),
     )
 
 
@@ -793,9 +778,10 @@ def _combine_and(expressions: List[_AtomExpression]) -> _AtomExpression:
     for expression in expressions:
         states.intersection_update(expression.aromatic_states)
     return _AtomExpression(
-        lambda atom, predicates=tuple(expressions): all(p(atom) for p in predicates),
+        _AtomOp.AND,
         "(" + " & ".join(map(repr, expressions)) + ")",
-        states,
+        children=tuple(expressions),
+        aromatic_states=frozenset(states),
     )
 
 
@@ -806,16 +792,18 @@ def _combine_or(expressions: List[_AtomExpression]) -> _AtomExpression:
     for expression in expressions:
         states.update(expression.aromatic_states)
     return _AtomExpression(
-        lambda atom, predicates=tuple(expressions): any(p(atom) for p in predicates),
+        _AtomOp.OR,
         "(" + " | ".join(map(repr, expressions)) + ")",
-        states,
+        children=tuple(expressions),
+        aromatic_states=frozenset(states),
     )
 
 
 def _negate(expression: _AtomExpression) -> _AtomExpression:
     return _AtomExpression(
-        lambda atom, predicate=expression: not predicate(atom),
+        _AtomOp.NOT,
         f"!{expression!r}",
+        children=(expression,),
     )
 
 
@@ -906,28 +894,29 @@ def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
         raise SmartsSyntaxError(f"Unsupported bond symbol: {symbol}")
     predicates = tuple(_bond_predicate(token) for token in alternatives)
     return {
-        "predicate": _Predicate(
-            lambda bond, choices=predicates: any(choice(bond) for choice in choices),
+        "predicate": _BondExpression(
+            _BondOp.OR,
             symbol,
+            children=predicates,
         )
     }
 
 
-def _bond_predicate(symbol: str) -> Callable[[object], bool]:
+def _bond_predicate(symbol: str) -> _BondExpression:
     if symbol in {UP_BOND_TOKEN, DOWN_BOND_TOKEN}:
         raise UnsupportedSmartsError(
             "SMARTS directional bonds '/' and '\\' are not implemented"
         )
     if symbol == SINGLE_BOND_TOKEN:
-        return lambda bond: bond.bond_kind is BondKind.SINGLE
+        return _BondExpression(_BondOp.KIND_IS, symbol, kind=BondKind.SINGLE)
     if symbol == DOUBLE_BOND_TOKEN:
-        return lambda bond: bond.bond_kind is BondKind.DOUBLE
+        return _BondExpression(_BondOp.KIND_IS, symbol, kind=BondKind.DOUBLE)
     if symbol == TRIPLE_BOND_TOKEN:
-        return lambda bond: bond.bond_kind is BondKind.TRIPLE
+        return _BondExpression(_BondOp.KIND_IS, symbol, kind=BondKind.TRIPLE)
     if symbol == AROMATIC_BOND_TOKEN:
-        return lambda bond: bond.is_aromatic
+        return _BondExpression(_BondOp.AROMATIC, symbol)
     if symbol == ANY_BOND_TOKEN:
-        return lambda bond: True
+        return _BondExpression(_BondOp.TRUE, symbol)
     raise SmartsSyntaxError(f"Unsupported bond symbol: {symbol}")
 
 
@@ -957,9 +946,17 @@ def _infer_bond_attrs(
     if first_state is second_state is AromaticFlag.AROMATIC:
         return {"is_aromatic": {True}}
     return {
-        "predicate": _Predicate(
-            lambda bond: bond.bond_kind is BondKind.SINGLE or bond.is_aromatic,
+        "predicate": _BondExpression(
+            _BondOp.OR,
             "single-or-aromatic",
+            children=(
+                _BondExpression(
+                    _BondOp.KIND_IS,
+                    SINGLE_BOND_TOKEN,
+                    kind=BondKind.SINGLE,
+                ),
+                _BondExpression(_BondOp.AROMATIC, AROMATIC_BOND_TOKEN),
+            ),
         )
     }
 

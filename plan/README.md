@@ -16,5 +16,7 @@ This directory preserves Hotpot design, audit, implementation, and validation re
 | 10 | [Coordination benchmark](10_coordination_benchmark/) | Reusable 187-case benchmark and failure analysis |
 | 11 | [Native geometry and force-field pipeline](11_native_geometry_forcefields/) | Dual-entry C++ geometry kernels and independent staged coordination workflow |
 | 12 | [Composable xTB workflow](12_xtb_workflow/) | Calculator split, independent GFN-FF/GFN-xTB nodes, reusable process primitives, and controlled result pipelines |
+| 13 | [Bundle-centered dataset governance](13_dataset_bundle_governance/) | Interactive Cases, evidence/quality gates, owner-controlled benchmark admission, and lossless certificates |
+| 14 | [Geometry reconstruction](14_geometry_reconstruction/) | Deferred post-processing of topology-free xTB/ORCA coordinates into auditable graph candidates |
 
 Each topic README records the Git commits associated with that stage. Files under `artifacts/` are diagram sources, rendered HTML, or visual-review evidence. A `visual-check.json` whose status is `pending` is retained as provenance and is not evidence of a successful visual review.

@@ -85,6 +85,14 @@ Reassessment changed only derived incomplete/ordinary/benchmark organization.
 - [Complete first-level API signature tree](bundle_gate_certificate_implementation.md#41-complete-first-level-public-api-signature-tree)
 - [Implementation log](implementation_log.md)
 - [Implementation report](implementation_report.md)
+- [Long-term workflow efficiency audit](efficiency_audit_report.md)
+- [Long-term and temporary code separation audit](long_term_temporary_code_separation_audit.md)
+
+These two uncommitted audit drafts are post-Stage-13 follow-up proposals, not
+Stage 13 release criteria. Their pre-cutover observations must be rebaselined
+against the activated store before any recommendation is implemented. They do
+not reopen the completed cutover or the already completed schema-1 migration
+path retirement.
 
 This is a current-version replacement plan. Git owns implementation history;
 the implementation must not preserve the superseded certification workflow as

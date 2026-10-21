@@ -14,8 +14,6 @@ from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
 from weakref import WeakKeyDictionary
 
-from networkx.algorithms import isomorphism
-
 from ..core import BondKind
 from ._predicate_ir import (
     _AtomExpression,
@@ -31,7 +29,7 @@ from ._smarts_syntax import (
     tokenize,
 )
 from .errors import SmartsSyntaxError, UnsupportedSmartsError
-from .search import QueryAtom, Searcher, Substructure
+from .search import QueryAtom, Substructure
 from .semantics import SmartsSemantics, resolve_smarts_semantics
 
 METAL_TOKEN = "M"
@@ -75,17 +73,14 @@ class _RecursiveEvaluator:
         state_signature = _molecule_search_signature(atom.mol)
         cached = self._cache.get(atom.mol)
         if cached is None or cached[0] != state_signature:
-            matcher = isomorphism.GraphMatcher(
-                atom.mol.atom_bond_graph,
-                self.substructure.construct_graph(),
-                node_match=Searcher._node_match,
-                edge_match=Searcher._edge_match,
-            )
+            from .native import _compile_problem
+
+            problem = _compile_problem(self.substructure, atom.mol)
+            query_keys = tuple(problem.query_keys)
+            anchor_position = query_keys.index(0)
             anchored_indices = {
-                mol_index
-                for mapping in matcher.subgraph_monomorphisms_iter()
-                for mol_index, query_index in mapping.items()
-                if query_index == 0
+                mapping[anchor_position]
+                for mapping in problem.cursor()
             }
             cached = (
                 state_signature,

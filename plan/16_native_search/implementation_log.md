@@ -347,12 +347,73 @@ Adjustment: keep public `Searcher` on its historical executor until this full
 predicate/SMARTS checkpoint is committed. The next step performs the three
 public method changes atomically and removes production `GraphMatcher` use.
 
-Git checkpoint: recorded in the native-predicate commit immediately following
-this log entry.
+Git checkpoint: `c704bd6` (`feat(search): execute predicates in native RI
+kernel`).
 
 ### Step 6 - Perform the atomic public cutover
 
-Status: pending
+Status: complete
+
+Planned:
+
+- switch all three public `Searcher` methods together;
+- retain the Python facade as the only limit/truncation and result owner;
+- remove every production `GraphMatcher` invocation from generic and recursive
+  search; and
+- run the frozen API plus direct and downstream consumer matrix.
+
+Performed:
+
+- routed `has_match()`, `iter_mappings()`, and `search()` through one freshly
+  compiled `NativeProblem` and the existing private mapping-source adapter;
+- retained `_MappingIterator`, `Hits`, `Hit`, direct one-shot `Hits` provider
+  construction, grouping, mapped/induced bonds, read-only mappings, mutable
+  `get_hit`, and the facade-owned `N + 1` probe unchanged;
+- left public `Substructure.construct_graph()` and its NetworkX compatibility
+  graph untouched while removing NetworkX isomorphism imports from production
+  search execution; and
+- changed direct `_RecursiveEvaluator.__call__` compatibility behavior to
+  collect anchor results from the native cursor, while compiled search uses
+  the anchored nested native program directly.
+
+Verification:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/smarts_conformance \
+  tests/test_cheminfo/test_search.py \
+  tests/test_cheminfo/test_search_mapping.py \
+  tests/test_cheminfo/test_smarts.py \
+  tests/test_cheminfo/test_search_native_contract.py \
+  tests/test_cheminfo/test_search_native_kernel.py \
+  tests/test_cheminfo/test_search_native_compiler.py \
+  tests/test_cheminfo/test_search_native_production_kernel.py \
+  tests/test_cheminfo/test_search_native_predicate_parity.py \
+  tests/test_cheminfo/test_search_native_cutover.py \
+  tests/mca \
+  tests/test_cheminfo/test_bond_metadata.py \
+  tests/test_cheminfo/test_ligand_rings.py \
+  tests/test_cheminfo/test_relevant_ring_integration.py \
+  tests/test_cheminfo/test_mol_assemble.py \
+  tests/test_cheminfo/test_mca_calculator.py \
+  tests/test_ds/test_stage13_query.py \
+  tests/test_cheminfo/test_import_safety.py \
+  tests/test_main/test_command_loading.py
+```
+
+Result: 739 passed, 49 subtests passed in 32.28 s.
+
+Five explicit cutover tests sabotage `NetworkX GraphMatcher` and exercise all
+three public methods plus direct recursive-predicate evaluation. They also
+prove first-result termination, mutation visibility between calls, the native
+`Hits.graph_matcher` adapter, and read-only mappings. Source inspection finds
+no `GraphMatcher` or isomorphism import under `hotpot.cheminfo.search`.
+
+Unexpected finding: none. The retained NetworkX dependency is now limited to
+the public compatibility graph and unrelated graph facilities, as planned.
+
+Git checkpoint: recorded in the public-cutover commit immediately following
+this log entry.
 
 ### Step 7 - Add generic target reuse and verify MCA integration
 

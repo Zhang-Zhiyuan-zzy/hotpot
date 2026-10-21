@@ -10,10 +10,10 @@ from abc import abstractmethod
 from types import MappingProxyType
 from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Iterator
 import networkx as nx
-from networkx.algorithms import isomorphism
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
 from ..core_utils import atom_idx_pair_to_bond_idx, read_mol
+from .native import _NativeMappingSource, _compile_problem
 from .semantics import SmartsSemantics
 
 
@@ -519,17 +519,12 @@ class Searcher:
     def __init__(self, substructure: "Substructure"):
         self.substructure = substructure
 
-    def _graph_matcher(self, mol: Molecule):
-        return isomorphism.GraphMatcher(
-            mol.atom_bond_graph,
-            self.substructure.construct_graph(),
-            node_match=self._node_match,
-            edge_match=self._edge_match,
-        )
+    def _mapping_source(self, mol: Molecule):
+        return _NativeMappingSource(_compile_problem(self.substructure, mol))
 
     def has_match(self, mol: Molecule) -> bool:
         """Return after the first matching embedding without materializing hits."""
-        mappings = self._graph_matcher(mol).subgraph_monomorphisms_iter()
+        mappings = self._mapping_source(mol).subgraph_monomorphisms_iter()
         return next(mappings, None) is not None
 
     def iter_mappings(
@@ -540,7 +535,7 @@ class Searcher:
         ``max_matches`` bounds raw embeddings, including query automorphisms.
         The returned iterator exposes ``truncated`` after it reaches the bound.
         """
-        mappings = self._graph_matcher(mol).subgraph_monomorphisms_iter()
+        mappings = self._mapping_source(mol).subgraph_monomorphisms_iter()
         return _MappingIterator(mappings, max_matches=max_matches)
 
     def search(self, mol: Molecule, max_matches: int = None) -> "Hits":
@@ -564,7 +559,7 @@ class Searcher:
         return Hits(
             self.substructure,
             mol,
-            self._graph_matcher(mol),
+            self._mapping_source(mol),
             max_matches=max_matches,
         )
 

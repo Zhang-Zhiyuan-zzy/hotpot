@@ -1,6 +1,8 @@
 """Frozen public and behavioral contracts for the native-search migration."""
 
 import inspect
+import types
+import typing
 from types import MappingProxyType
 
 import pytest
@@ -41,17 +43,92 @@ PUBLIC_SEARCH_NAMES = (
 )
 
 
-def _signature_text(obj):
-    """Keep public types visible without coupling to their defining module path."""
-    signature = str(inspect.signature(obj))
+def _clean_annotation_text(annotation):
+    """Keep public types visible without coupling to defining module paths."""
     for prefix in (
         "hotpot.cheminfo.search.search.",
         "hotpot.cheminfo.search.semantics.",
         "hotpot.cheminfo.core.",
         "typing.",
     ):
-        signature = signature.replace(prefix, "")
-    return signature
+        annotation = annotation.replace(prefix, "")
+    return annotation
+
+
+def _annotation_text(annotation):
+    if isinstance(annotation, str):
+        return repr(annotation)
+    if annotation is Ellipsis:
+        return "..."
+
+    origin = typing.get_origin(annotation)
+    union_type = getattr(types, "UnionType", object())
+    if origin in (typing.Union, union_type):
+        arguments = ", ".join(
+            _annotation_text(argument) for argument in typing.get_args(annotation)
+        )
+        return f"Union[{arguments}]"
+
+    if origin is not None:
+        formatted = _clean_annotation_text(inspect.formatannotation(annotation))
+        annotation_arguments = typing.get_args(annotation)
+        if not annotation_arguments:
+            return formatted
+        base = formatted.split("[", 1)[0]
+        arguments = ", ".join(
+            _annotation_text(argument) for argument in annotation_arguments
+        )
+        return f"{base}[{arguments}]"
+
+    return _clean_annotation_text(inspect.formatannotation(annotation))
+
+
+def _signature_text(obj):
+    """Render signatures canonically across supported Python versions."""
+    signature = inspect.signature(obj)
+    parts = []
+    positional_only = 0
+    has_varargs = False
+    keyword_marker_added = False
+
+    for parameter in signature.parameters.values():
+        if parameter.kind is inspect.Parameter.POSITIONAL_ONLY:
+            positional_only += 1
+        elif positional_only:
+            parts.insert(positional_only, "/")
+            positional_only = 0
+
+        if (
+            parameter.kind is inspect.Parameter.KEYWORD_ONLY
+            and not has_varargs
+            and not keyword_marker_added
+        ):
+            parts.append("*")
+            keyword_marker_added = True
+
+        prefix = ""
+        if parameter.kind is inspect.Parameter.VAR_POSITIONAL:
+            prefix = "*"
+            has_varargs = True
+        elif parameter.kind is inspect.Parameter.VAR_KEYWORD:
+            prefix = "**"
+
+        text = f"{prefix}{parameter.name}"
+        has_annotation = parameter.annotation is not inspect.Parameter.empty
+        if has_annotation:
+            text += f": {_annotation_text(parameter.annotation)}"
+        if parameter.default is not inspect.Parameter.empty:
+            separator = " = " if has_annotation else "="
+            text += f"{separator}{parameter.default!r}"
+        parts.append(text)
+
+    if positional_only:
+        parts.append("/")
+
+    rendered = f"({', '.join(parts)})"
+    if signature.return_annotation is not inspect.Signature.empty:
+        rendered += f" -> {_annotation_text(signature.return_annotation)}"
+    return rendered
 
 
 SIGNATURES = (

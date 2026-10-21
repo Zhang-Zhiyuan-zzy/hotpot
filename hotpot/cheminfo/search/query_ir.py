@@ -163,16 +163,19 @@ def _query_derived_requirements(query_spec):
     """Return semantic-view fields and bond facts consumed by a query."""
     views = {"full": [], "ligand": []}
     atom_fields = []
+    bond_fields = []
     needs_bond_aromatic = False
     needs_total_h = False
     for program in query_spec["nodes"]:
         for leaf in program["leaves"]:
+            if leaf[0] == "native_set" and leaf[1] not in atom_fields:
+                atom_fields.append(leaf[1])
             if leaf[0] == "atom_expr":
                 (
                     nested_aromatic,
                     nested_total_h,
                 ) = _append_atom_derived_requirements(
-                    leaf[1], views, atom_fields
+                    leaf[1], views, atom_fields, bond_fields
                 )
                 needs_bond_aromatic = (
                     needs_bond_aromatic or nested_aromatic
@@ -189,6 +192,8 @@ def _query_derived_requirements(query_spec):
             )
         )
         for leaf in program["leaves"]:
+            if leaf[0] == "native_set" and leaf[1] not in bond_fields:
+                bond_fields.append(leaf[1])
             if leaf[0] == "bond_expr" and _bond_expression_needs_aromatic(
                 leaf[1]
             ):
@@ -197,12 +202,15 @@ def _query_derived_requirements(query_spec):
         "full": tuple(views["full"]),
         "ligand": tuple(views["ligand"]),
         "atom_fields": tuple(atom_fields),
+        "bond_fields": tuple(bond_fields),
         "bond_aromatic": needs_bond_aromatic,
         "total_h": needs_total_h,
     }
 
 
-def _append_atom_derived_requirements(expression, views, atom_fields):
+def _append_atom_derived_requirements(
+    expression, views, atom_fields, bond_fields
+):
     operation_to_field = {
         _AtomOp.DEGREE_EQ.value: "degree",
         _AtomOp.CONNECTIVITY_EQ.value: "connectivity",
@@ -229,6 +237,11 @@ def _append_atom_derived_requirements(expression, views, atom_fields):
         field = expression["field"]
         if field not in atom_fields:
             atom_fields.append(field)
+    if (
+        expression["op"] == _AtomOp.PERIOD_IN.value
+        and "atomic_number" not in atom_fields
+    ):
+        atom_fields.append("atomic_number")
 
     needs_bond_aromatic = False
     needs_total_h = expression["op"] == _AtomOp.TOTAL_H_EQ.value
@@ -241,11 +254,14 @@ def _append_atom_derived_requirements(expression, views, atom_fields):
         for nested_field in nested["atom_fields"]:
             if nested_field not in atom_fields:
                 atom_fields.append(nested_field)
+        for nested_field in nested["bond_fields"]:
+            if nested_field not in bond_fields:
+                bond_fields.append(nested_field)
         needs_bond_aromatic = nested["bond_aromatic"]
         needs_total_h = nested["total_h"]
     for child in expression["children"]:
         child_aromatic, child_total_h = _append_atom_derived_requirements(
-            child, views, atom_fields
+            child, views, atom_fields, bond_fields
         )
         needs_bond_aromatic = child_aromatic or needs_bond_aromatic
         needs_total_h = child_total_h or needs_total_h

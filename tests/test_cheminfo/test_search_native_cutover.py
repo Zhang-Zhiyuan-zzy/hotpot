@@ -63,6 +63,48 @@ def test_native_has_match_stops_after_the_first_accepted_embedding():
     assert calls == [0]
 
 
+def test_native_has_match_does_not_materialize_legacy_direction_mappings(
+    monkeypatch,
+):
+    def reject_mapping_materialization(_source):
+        raise AssertionError("existence probe materialized a mapping")
+        yield
+
+    monkeypatch.setattr(
+        _NativeMappingSource,
+        "subgraph_monomorphisms_iter",
+        reject_mapping_materialization,
+    )
+
+    assert hp.Searcher(hp.Substructure.from_smarts("C")).has_match(
+        hp.read_mol("C", "smi")
+    )
+
+
+def test_zero_limit_uses_existence_probe_without_materializing_a_mapping(
+    monkeypatch,
+):
+    def reject_mapping_materialization(_source):
+        raise AssertionError("zero-limit probe materialized a mapping")
+        yield
+
+    monkeypatch.setattr(
+        _NativeMappingSource,
+        "subgraph_monomorphisms_iter",
+        reject_mapping_materialization,
+    )
+    searcher = hp.Searcher(hp.Substructure.from_smarts("C"))
+    molecule = hp.read_mol("C", "smi")
+
+    mappings = searcher.iter_mappings(molecule, max_matches=0)
+    assert tuple(mappings) == ()
+    assert mappings.truncated
+
+    hits = searcher.search(molecule, max_matches=0)
+    assert len(hits) == 0
+    assert hits.truncated
+
+
 def test_query_and_target_mutation_are_resnapshotted_between_calls():
     query = hp.Substructure()
     query.add_atom(hp.QueryAtom(atomic_number={6}))

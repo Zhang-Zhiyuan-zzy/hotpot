@@ -39,8 +39,16 @@ def _native_module() -> ModuleType:
 
 
 def _compile_problem(substructure, mol):
-    source = next(_iter_mapping_sources((_prepare_query(substructure),), mol))
-    return source._problem
+    query = _prepare_query(substructure)
+    target_spec = _pack_target_snapshot(
+        mol,
+        needs_atom_objects=query.needs_atom_objects,
+        needs_bond_objects=query.needs_bond_objects,
+        derived_requirements=query.derived_requirements,
+    )
+    native_module = _native_module()
+    target = native_module.NativeTarget(target_spec)
+    return native_module.NativeProblem(query.query_spec, target)
 
 
 def _prepare_query(substructure) -> _PreparedQuery:
@@ -86,7 +94,7 @@ def _merge_derived_requirements(requirements):
                 for value in requirement[name]
             )
         )
-        for name in ("full", "ligand", "atom_fields")
+        for name in ("full", "ligand", "atom_fields", "bond_fields")
     } | {
         "bond_aromatic": any(
             requirement["bond_aromatic"] for requirement in requirements
@@ -125,6 +133,7 @@ def _pack_target(mol, *, needs_atom_objects, needs_bond_objects):
                 "is_actinide",
                 "is_metal",
             ),
+            "bond_fields": ("bond_order", "is_aromatic"),
             "bond_aromatic": True,
             "total_h": True,
         },
@@ -187,6 +196,7 @@ def _pack_target_snapshot(
             _pack_bond(
                 bonds_by_edge[edge],
                 needs_bond_objects,
+                derived_requirements["bond_fields"],
                 edge in aromatic_edges,
             )
             for edge in edges
@@ -201,37 +211,14 @@ def _pack_atom(
     full_ring_sizes,
     ligand_ring_sizes,
 ):
+    field_names = derived_requirements["atom_fields"]
     fields = {
-        "atomic_number": int(atom.atomic_number),
-        "formal_charge": int(atom.formal_charge),
-        "is_aromatic": bool(atom.is_aromatic),
-        "group": (
-            int(atom.group)
-            if "group" in derived_requirements["atom_fields"]
-            else 0
-        ),
-        "is_lanthanide": (
-            bool(atom.is_lanthanide)
-            if "is_lanthanide" in derived_requirements["atom_fields"]
-            else False
-        ),
-        "is_actinide": (
-            bool(atom.is_actinide)
-            if "is_actinide" in derived_requirements["atom_fields"]
-            else False
-        ),
-        "is_metal": (
-            bool(atom.is_metal)
-            if "is_metal" in derived_requirements["atom_fields"]
-            else False
-        ),
-        "implicit_hydrogens": int(atom.implicit_hydrogens),
-        "explicit_hydrogens": (
-            int(atom.explicit_hydrogens)
-            if derived_requirements["total_h"]
-            else 0
-        ),
+        name: _pack_atom_field(atom, name)
+        for name in field_names
     }
+    if derived_requirements["total_h"]:
+        fields["implicit_hydrogens"] = int(atom.implicit_hydrogens)
+        fields["explicit_hydrogens"] = int(atom.explicit_hydrogens)
     return {
         "fields": fields,
         "full": _pack_semantics(
@@ -251,37 +238,41 @@ def _pack_atom(
 
 
 def _pack_semantics(atom, semantics, required_fields, ring_sizes):
-    return {
-        "degree": (
-            int(semantics.degree(atom)) if "degree" in required_fields else 0
-        ),
-        "connectivity": (
-            int(semantics.connectivity(atom))
-            if "connectivity" in required_fields
-            else 0
-        ),
-        "valence": (
-            _native_number(semantics.valence(atom))
-            if "valence" in required_fields
-            else 0.0
-        ),
-        "ring_count": (
-            len(ring_sizes) if "ring_count" in required_fields else 0
-        ),
-        "ring_sizes": ring_sizes if "ring_sizes" in required_fields else (),
-    }
+    record = {}
+    if "degree" in required_fields:
+        record["degree"] = int(semantics.degree(atom))
+    if "connectivity" in required_fields:
+        record["connectivity"] = int(semantics.connectivity(atom))
+    if "valence" in required_fields:
+        record["valence"] = _native_number(semantics.valence(atom))
+    if "ring_count" in required_fields:
+        record["ring_count"] = len(ring_sizes)
+    if "ring_sizes" in required_fields:
+        record["ring_sizes"] = ring_sizes
+    return record
 
 
-def _pack_bond(bond, needs_object, is_aromatic):
+def _pack_bond(bond, needs_object, required_fields, is_aromatic):
+    fields = {}
+    if "bond_order" in required_fields:
+        fields["bond_order"] = float(bond.bond_order)
+    if "is_aromatic" in required_fields:
+        fields["is_aromatic"] = bool(is_aromatic)
     return {
-        "fields": {
-            "bond_order": float(bond.bond_order),
-            "is_aromatic": bool(is_aromatic),
-        },
+        "fields": fields,
         "bond_kind": bond.bond_kind.value,
         "is_aromatic": bool(is_aromatic),
         "object": bond if needs_object else None,
     }
+
+
+def _pack_atom_field(atom, name):
+    value = getattr(atom, name)
+    if isinstance(value, bool):
+        return bool(value)
+    if isinstance(value, int):
+        return int(value)
+    return _native_number(value)
 
 
 def _needs_rings(required_fields):
@@ -323,6 +314,10 @@ class _NativeMappingSource:
                 target: query
                 for query, target in zip(query_keys, target_values)
             }
+
+    def has_match(self) -> bool:
+        """Probe one native embedding without materializing a mapping."""
+        return self._problem.has_match()
 
     def mapped_target_indices(self, query_key: int) -> Iterable[int]:
         """Project one query key directly from each raw native embedding."""

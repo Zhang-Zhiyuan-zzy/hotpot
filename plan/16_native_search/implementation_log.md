@@ -493,9 +493,122 @@ molecule call still takes a fresh target snapshot, so mutations are visible on
 the next call. The native extension contains no MCA name, rule, site type,
 eligibility policy, or result type.
 
-Git checkpoint: recorded in the generic-reuse commit immediately following
-this log entry.
+Git checkpoint: `fd21cc7` (`perf(search): share prepared targets across
+queries`). Production-only synthetic compatibility bindings were then removed
+in `f152b63` (`refactor(search): remove synthetic test executor`); exhaustive
+kernel coverage continues through the independent Python brute-force oracle
+and the production `NativeTarget`/`NativeProblem` path.
 
 ### Step 8 - Close packaging, performance, and final validation
 
-Status: pending
+Status: in progress
+
+Planned:
+
+- add one reproducible generic performance/resource gate and run it unchanged
+  against the historical executor and the native candidate;
+- close short-query regressions without adding a cache, fallback, selector, or
+  second topology executor;
+- validate sanitizers, packaging, supported Python versions, downstream
+  consumers, and MCA CPU/GPU scientific parity; and
+- update public documentation and write the final implementation report.
+
+Performed so far:
+
+- added the committed gate runner in `ab18152`; it covers public existence,
+  bounded `0`/`1`/`64`/unbounded search, 5,040 complete embeddings, recursive
+  SMARTS, mixed Python-callable leaves, repeated calls, phase timings,
+  `tracemalloc`, current/max RSS, substantive unordered mapping digests, and
+  ordered-repeat determinism;
+- ran the historical `2cf0893` implementation and the first native candidate
+  on the same host, Python 3.11.16, CPU 0 affinity, and
+  `PYTHONHASHSEED=0`. The first candidate passed semantic parity, achieved a
+  2.208x ten-workload geometric mean and a 7.787x complete-enumeration
+  speedup, but failed the non-regression gate for existence hit, existence
+  miss, and bounded zero;
+- traced those failures to fixed Python-to-C++ snapshot/record construction,
+  not RI traversal. Added a bool-only native existence probe, reused it for
+  the facade-owned zero-limit truncation probe, removed the single-query
+  multi-query detour, packed only fields and semantic records required by the
+  compiled query, and stopped duplicating native scalar fields into a second
+  C++ Python-object map;
+- retained a fresh target and query snapshot on every public invocation, and
+  added focused tests proving query/target mutation visibility, zero-limit
+  truncation, no mapping materialization in existence probes, exact sparse
+  requirements, and production predicate parity; and
+- removed Python 3.10-only `dataclass(slots=True)` use after the clean Python
+  3.9 matrix exposed it. Commit `92859b0` records that compatibility fix.
+
+Performance requalification:
+
+| Workload | NetworkX baseline median | Final native median | Speedup |
+| --- | ---: | ---: | ---: |
+| existence hit | 0.196333 ms | 0.133673 ms | 1.469x |
+| existence miss | 0.169952 ms | 0.163490 ms | 1.040x |
+| bounded zero | 0.197355 ms | 0.144014 ms | 1.370x |
+| bounded one | 0.238252 ms | 0.164793 ms | 1.446x |
+| bounded 64 | 2.872069 ms | 0.493045 ms | 5.825x |
+| complete 5,040 mappings | 215.118008 ms | 27.440589 ms | 7.839x |
+| recursive complete | 1.381150 ms | 0.451948 ms | 3.056x |
+| repeated bounded 64 | 2.863868 ms | 0.495280 ms | 5.782x |
+
+The final native ten-workload geometric mean is 2.747x; the five required
+categories weighted equally produce 3.018x. No native-only representative is
+more than 5% slower than baseline. Mixed-callable complete enumeration is
+1.409x faster; mixed-callable existence is 15.4% slower and is reported
+separately as required. It remains the same RI traversal with only individual
+callable leaves entering Python.
+
+Both reports pass every semantic check and share substantive mapping-set
+SHA-256
+`3453a51f80ebf2e998d453dadb75e3bac65f88fb5292d3db84adb300b6489ce8`.
+The historical JSON/rusage SHA-256 values are
+`5835f0e331d399fb8e96a6fce8055691ba0af27563147afcc868e0ba4bbd5383`
+and `69f4d09bbff24c1d8a10c4acfa89a510ae4fb48c8056f505751e5db15bf75a0f`;
+the final candidate values are
+`6b556e8df046f8aca16ccc59fdf5b80d79ba894e487624278aa41fc98103870d`
+and `3312bc4cdf831034e698d533611f4439f896a29062f3e04c2332e0d1eda3a037`.
+Fifty repeated composite cycles retained 4,308 traced bytes versus 12,263 at
+baseline, showed zero current/max RSS growth, and were 3.007x faster.
+
+Validation already completed:
+
+- focused post-correction native/compiler/predicate/cutover/prepared/contract
+  suite: 171 passed in 4.62 s;
+- broad native search, SMARTS/conformance, MCA, molecule assembly and
+  conversion suite: 736 passed plus 49 subtests in 24.84 s before the final
+  sparse-record correction; the same broad suite will be repeated at the
+  final checkpoint;
+- exact-production UBSAN build: 182 passed in 4.70 s with no diagnostic;
+- exact-production ASAN build: a fixed-count RI/predicate/recursive/callable/
+  lifetime harness passed with no diagnostic. Full ASAN pytest cannot be
+  claimed because ASAN plus this pybind11/toolchain combination stalls while
+  translating the exhausted cursor's C++ `py::stop_iteration`; normal and
+  UBSAN builds exhaust the same cursor correctly;
+- clean CPython 3.11 wheel and sdist, isolated install, native import and real
+  `[C]-[O]` public search passed. Wheel linkage contains only standard runtime
+  libraries and no third-party graph matcher;
+- ai-14 CPU routing at 255 sites retained exact MCA/site/joint hashes and did
+  not start GPU resources; the 256-site four-A800 path retained exact
+  MCA/site/joint hashes. The joint digest covers `is_Nuc_site` and site type.
+
+Unexpected findings and adjustments:
+
+- the first strict performance run was intentionally treated as a gate
+  failure, not averaged away. Sparse requirement-complete records fixed the
+  overhead while retaining one implementation and per-call mutation
+  visibility;
+- the first Python 3.9 matrix build compiled the extension but failed import
+  on `dataclass(slots=True)`, which is unavailable before Python 3.10. The
+  private predicate records do not require slots, so the unsupported option
+  was removed rather than adding a compatibility branch; and
+- ASAN's exhausted-cursor exception-translation limitation is recorded as a
+  sanitizer coverage deviation. UBSAN, ordinary pytest exhaustion tests,
+  weak-reference lifetime tests, repeated resource measurements, and the
+  bounded ASAN harness remain independent evidence, but are not mislabeled as
+  a complete leak-sanitizer pass.
+
+Remaining before closure: repeat the broad suite on the final sparse-record
+implementation, finish CPython 3.9--3.14 clean builds/tests, rerun sanitizer
+checks on the final source, finish the 4,096-molecule ai-14 workload, complete
+source/docs/package audits, and record the final Git checkpoints.

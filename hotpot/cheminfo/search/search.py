@@ -455,7 +455,12 @@ class Substructure:
 class _MappingIterator(Iterator):
     """Stream read-only query-to-molecule mappings with an explicit bound."""
 
-    def __init__(self, mappings: Iterable[dict[int, int]], max_matches: int = None):
+    def __init__(
+        self,
+        mappings: Iterable[dict[int, int]],
+        max_matches: int = None,
+        empty_limit_probe=None,
+    ):
         if max_matches is not None:
             if isinstance(max_matches, bool) or not isinstance(max_matches, int):
                 raise TypeError("max_matches must be an integer or None")
@@ -467,6 +472,7 @@ class _MappingIterator(Iterator):
         self.yielded = 0
         self.truncated = False
         self._limit_checked = False
+        self._empty_limit_probe = empty_limit_probe
 
     @staticmethod
     def _query_to_molecule(mol_to_query: dict[int, int]):
@@ -477,7 +483,11 @@ class _MappingIterator(Iterator):
     def _check_limit(self):
         if not self._limit_checked:
             self._limit_checked = True
-            self.truncated = next(self._mappings, None) is not None
+            if self.yielded == 0 and self._empty_limit_probe is not None:
+                self.truncated = self._empty_limit_probe()
+            else:
+                self.truncated = next(self._mappings, None) is not None
+            self._empty_limit_probe = None
 
     def __iter__(self):
         return self
@@ -524,8 +534,7 @@ class Searcher:
 
     def has_match(self, mol: Molecule) -> bool:
         """Return after the first matching embedding without materializing hits."""
-        mappings = self._mapping_source(mol).subgraph_monomorphisms_iter()
-        return next(mappings, None) is not None
+        return self._mapping_source(mol).has_match()
 
     def iter_mappings(
         self, mol: Molecule, max_matches: int = None
@@ -535,8 +544,13 @@ class Searcher:
         ``max_matches`` bounds raw embeddings, including query automorphisms.
         The returned iterator exposes ``truncated`` after it reaches the bound.
         """
-        mappings = self._mapping_source(mol).subgraph_monomorphisms_iter()
-        return _MappingIterator(mappings, max_matches=max_matches)
+        source = self._mapping_source(mol)
+        mappings = source.subgraph_monomorphisms_iter()
+        return _MappingIterator(
+            mappings,
+            max_matches=max_matches,
+            empty_limit_probe=source.has_match if max_matches == 0 else None,
+        )
 
     def search(self, mol: Molecule, max_matches: int = None) -> "Hits":
         """
@@ -621,6 +635,12 @@ class Hits:
         mappings = _MappingIterator(
             self.graph_matcher.subgraph_monomorphisms_iter(),
             max_matches=max_matches,
+            empty_limit_probe=(
+                self.graph_matcher.has_match
+                if max_matches == 0
+                and isinstance(self.graph_matcher, _NativeMappingSource)
+                else None
+            ),
         )
         self._mapping_groups = self._materialize_mapping_groups(mappings)
         self.truncated = mappings.truncated

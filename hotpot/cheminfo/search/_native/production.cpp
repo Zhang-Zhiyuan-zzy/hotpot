@@ -275,26 +275,43 @@ bool python_contains(
 }
 
 SemanticRecord parse_semantic_record(const py::dict& record) {
-    return {
-        py::cast<std::int64_t>(get_item(record, "degree")),
-        py::cast<std::int64_t>(get_item(record, "connectivity")),
-        py::cast<double>(get_item(record, "valence")),
-        py::cast<std::int64_t>(get_item(record, "ring_count")),
-        py::cast<std::vector<std::int64_t>>(get_item(record, "ring_sizes")),
-    };
+    SemanticRecord result;
+    if (record.contains("degree")) {
+        result.degree = py::cast<std::int64_t>(get_item(record, "degree"));
+    }
+    if (record.contains("connectivity")) {
+        result.connectivity = py::cast<std::int64_t>(
+            get_item(record, "connectivity")
+        );
+    }
+    if (record.contains("valence")) {
+        result.valence = py::cast<double>(get_item(record, "valence"));
+    }
+    if (record.contains("ring_count")) {
+        result.ring_count = py::cast<std::int64_t>(
+            get_item(record, "ring_count")
+        );
+    }
+    if (record.contains("ring_sizes")) {
+        result.ring_sizes = py::cast<std::vector<std::int64_t>>(
+            get_item(record, "ring_sizes")
+        );
+    }
+    return result;
 }
 
 template <typename Record>
 void parse_fields(Record& record, const py::dict& fields) {
     for (const auto& item : fields) {
         const std::string name = string_value(item.first);
-        record.host_fields.emplace(
-            name,
-            py::reinterpret_borrow<py::object>(item.second)
-        );
         const std::optional<NativeValue> value = native_value(item.second);
         if (value.has_value()) {
             record.native_fields.emplace(name, *value);
+        } else {
+            record.host_fields.emplace(
+                name,
+                py::reinterpret_borrow<py::object>(item.second)
+            );
         }
     }
 }
@@ -736,7 +753,10 @@ bool accept_preflight_matches(
     const Target& target
 ) {
     for (const std::string& name : preflight) {
-        if (target.host_fields.find(name) != target.host_fields.end()) {
+        if (
+            target.native_fields.find(name) != target.native_fields.end()
+            || target.host_fields.find(name) != target.host_fields.end()
+        ) {
             continue;
         }
         py::gil_scoped_acquire acquire;

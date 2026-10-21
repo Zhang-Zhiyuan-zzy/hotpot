@@ -45,6 +45,20 @@ PYBIND11_MODULE(_search_native, module) {
                     std::static_pointer_cast<const SearchProblem>(problem)
                 );
             }
+        )
+        .def(
+            "has_match",
+            [](const std::shared_ptr<NativeProblem>& problem) {
+                bool matched;
+                {
+                    py::gil_scoped_release release;
+                    MappingCursor cursor(
+                        std::static_pointer_cast<const SearchProblem>(problem)
+                    );
+                    matched = cursor.next_mapping().has_value();
+                }
+                return matched;
+            }
         );
 
     py::class_<MappingCursor>(module, "MappingCursor")

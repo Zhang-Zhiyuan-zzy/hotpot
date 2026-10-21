@@ -94,6 +94,7 @@ def test_prepared_group_unions_all_target_requirements(monkeypatch):
         "full": (),
         "ligand": (),
         "atom_fields": (),
+        "bond_fields": (),
         "bond_aromatic": False,
         "total_h": False,
     }
@@ -112,6 +113,7 @@ def test_prepared_group_unions_all_target_requirements(monkeypatch):
             | {
                 "full": ("connectivity", "degree"),
                 "atom_fields": ("formal_charge",),
+                "bond_fields": (),
                 "bond_aromatic": True,
                 "total_h": True,
             },
@@ -147,10 +149,53 @@ def test_prepared_group_unions_all_target_requirements(monkeypatch):
             "full": ("degree", "connectivity"),
             "ligand": ("ring_sizes",),
             "atom_fields": ("formal_charge",),
+            "bond_fields": (),
             "bond_aromatic": True,
             "total_h": True,
         },
     }
+
+
+def test_target_snapshot_packs_only_query_required_scalar_fields():
+    substructure = hp.Substructure()
+    substructure.add_atom(hp.QueryAtom(atomic_number={6}))
+    substructure.add_atom(hp.QueryAtom(atomic_number={8}))
+    substructure.add_bond(0, 1, bond_order={1.0})
+    prepared = native._prepare_query(substructure)
+
+    packed = native._pack_target_snapshot(
+        hp.read_mol("CO", "smi"),
+        needs_atom_objects=prepared.needs_atom_objects,
+        needs_bond_objects=prepared.needs_bond_objects,
+        derived_requirements=prepared.derived_requirements,
+    )
+
+    assert prepared.derived_requirements["atom_fields"] == (
+        "atomic_number",
+    )
+    assert prepared.derived_requirements["bond_fields"] == ("bond_order",)
+    assert tuple(atom["fields"] for atom in packed["atoms"]) == (
+        {"atomic_number": 6},
+        {"atomic_number": 8},
+    )
+    assert all(atom["full"] == atom["ligand"] == {} for atom in packed["atoms"])
+    assert packed["bonds"][0]["fields"] == {"bond_order": 1.0}
+
+
+def test_unconstrained_target_snapshot_omits_unused_predicate_records():
+    prepared = native._prepare_query(hp.Substructure.from_smarts("*"))
+
+    packed = native._pack_target_snapshot(
+        hp.read_mol("CC", "smi"),
+        needs_atom_objects=prepared.needs_atom_objects,
+        needs_bond_objects=prepared.needs_bond_objects,
+        derived_requirements=prepared.derived_requirements,
+    )
+
+    assert all(
+        atom["fields"] == atom["full"] == atom["ligand"] == {}
+        for atom in packed["atoms"]
+    )
 
 
 def test_mapped_target_projection_matches_public_mapping_order():

@@ -58,6 +58,8 @@ def _clean_annotation_text(annotation):
 def _annotation_text(annotation):
     if isinstance(annotation, str):
         return repr(annotation)
+    if isinstance(annotation, typing.ForwardRef):
+        return annotation.__forward_arg__
     if annotation is Ellipsis:
         return "..."
 
@@ -196,13 +198,13 @@ SIGNATURES = (
     (Hits.__iter__, "(self)"),
     (
         Hits.__getitem__,
-        "(self, item: int) -> Union[frozenset[int], ForwardRef('Hit')]",
+        "(self, item: int) -> Union[frozenset[int], Hit]",
     ),
     (Hits.__len__, "(self)"),
     (Hits.__bool__, "(self)"),
     (
         Hits.__contains__,
-        "(self, item: Union[Iterable[int], ForwardRef('Hit')])",
+        "(self, item: Union[Iterable[int], Hit])",
     ),
     (Hits.hits.fget, "(self) -> list['Hit']"),
     (Hit, "(mol, sub, atom_indices, mappings=())"),

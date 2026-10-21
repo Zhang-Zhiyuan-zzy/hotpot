@@ -39,7 +39,7 @@ class _AtomOp(str, Enum):
     NOT = "not"
 
 
-@dataclass(frozen=True, slots=True, eq=False)
+@dataclass(frozen=True, eq=False)
 class _AtomExpression:
     op: _AtomOp
     description: str
@@ -97,7 +97,7 @@ class _BondOp(str, Enum):
     OR = "or"
 
 
-@dataclass(frozen=True, slots=True, eq=False)
+@dataclass(frozen=True, eq=False)
 class _BondExpression:
     op: _BondOp
     description: str

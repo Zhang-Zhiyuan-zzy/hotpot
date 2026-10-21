@@ -1,6 +1,6 @@
 # Stage 16: Native substructure search
 
-Status: proposed; implementation is not authorized.
+Status: approved; implementation in progress.
 
 Planning branch: `perf/native-search`
 
@@ -27,6 +27,8 @@ backtracking, and all other predicates stay in the single native matcher. No
 runtime backend flag, profile, or whole-search Python fallback is introduced.
 
 - [Normative implementation plan](native_search_implementation.md)
+- [Implementation log](implementation_log.md)
 
-No native search code, implementation log, or implementation report will be
-created until this plan is reviewed and approved.
+Native implementation is authorized and recorded incrementally in the
+implementation log. The final implementation report is added only after all
+correctness, packaging, and performance gates have completed.

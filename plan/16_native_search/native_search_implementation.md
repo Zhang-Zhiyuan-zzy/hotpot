@@ -1,6 +1,6 @@
 # Native Hotpot search execution implementation plan
 
-Status: proposed; implementation is not authorized.
+Status: approved for implementation on 2026-10-21.
 
 Planning branch: `perf/native-search`
 
@@ -23,8 +23,8 @@ The owner has made these decisions:
 2. Arbitrary Python callables remain supported. A callable is a Python
    predicate leaf inside the native traversal; its presence must never route
    the complete search through NetworkX or another Python graph matcher.
-3. Planning precedes implementation. No native search code is authorized by
-   this document until the plan receives a separate approval.
+3. Planning precedes implementation. The owner approved this plan and selected
+   the single RI-style implementation on 2026-10-21.
 
 The implementation must retain one public interface and one topology-search
 engine. It must not expose backend selection, named profiles, compatibility
@@ -1154,7 +1154,7 @@ Owner-confirmed decisions already incorporated:
 
 Derived consequences requiring review with this plan:
 
-- [ ] the production topology executor is the Section 6.2 in-tree C++17
+- [x] the production topology executor is the Section 6.2 in-tree C++17
   deterministic RI-style kernel, with pybind11 as its binding layer and no
   third-party graph-matcher dependency;
 - [ ] bounded `max_matches=N` may return a different valid N-prefix than the
@@ -1172,5 +1172,6 @@ Derived consequences requiring review with this plan:
 - [ ] MCA symmetry representative selection remains MCA-owned rather than
   becoming generic `Searcher` behavior.
 
-Approval of this document authorizes planning closure only. Native search code
-must begin only after an explicit implementation instruction.
+The owner explicitly authorized implementation after approving the single
+RI-style topology executor. Execution evidence belongs in the implementation
+log and final report rather than changing this normative contract silently.

@@ -84,10 +84,10 @@ as supported merely because the shell can connect the processes.
 Canonical forms include:
 
 ```bash
-hotpot mca 'c1ccccc1CN' --backend cpu
+hotpot mca 'c1ccccc1CN'
 hotpot mca molecules.sdf --backend gpu --output results.txt
-hotpot mca inputs/*.mol2 --backend cpu --batch-size 256
-hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png
+hotpot mca inputs/*.mol2 --batch-size 256
+hotpot mca 'c1ccccc1CN' --plot mca.png
 ```
 
 Observe these rules:
@@ -99,8 +99,8 @@ Observe these rules:
   MCA prediction.
 - Charged molecules are outside the validated release domain and are rejected unless the user explicitly requests
   `--allow-charged`. Report such results as out-of-domain estimates.
-- `--backend` is required. GPU is strict and must fail if CUDA cannot be initialized; there is no automatic provider
-  selection or CPU fallback.
+- `--backend` defaults to `cpu`. GPU must be requested explicitly and must fail if CUDA cannot be initialized; there
+  is no automatic GPU-to-CPU fallback.
 - GPU defaults to 9 site workers and 7 feature/inference workers per card. Without an explicit GPU atom-row batch,
   total VRAM selects `64/128/256/512/1024/2048`, and heterogeneous cards use the smallest selected-card tier. CUDA
   OOM reports the current and next lower tier without retrying or falling back to CPU.

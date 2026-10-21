@@ -34,7 +34,7 @@
 6. **`build3d` / 复合物构建会派生子进程**。可执行脚本 MUST 使用 `if __name__ == "__main__":` 保护。
 7. **Shell 中给 SMILES 加引号**（含 `()=#` 等元字符）。
 8. **不要混装 Open Babel**：PyPI `openbabel`、`openbabel-wheel`、Conda `openbabel` 互斥，三选一。
-9. **区分 MCA 与 CBond 的设备接口**：MCA 必须显式传 `--backend cpu` 或 `--backend gpu`，GPU 不可用即失败，
+9. **区分 MCA 与 CBond 的设备接口**：MCA CLI 默认使用 CPU；GPU 必须显式传 `--backend gpu`，不可用即失败，
    不会自动选卡或静默回退到 CPU。`--device` / `auto` 是 CBond 的接口，不适用于 MCA。
 
 ---
@@ -437,17 +437,17 @@ hotpot optimize --help          # 权威参数以此为准
 ### 12.2 `hotpot mca` — 原子级 MCA 预测
 
 ```bash
-hotpot mca 'c1ccccc1CN' --backend cpu                       # 单分子（SMILES 要加引号）
+hotpot mca 'c1ccccc1CN'                                     # 单分子，默认 CPU（SMILES 要加引号）
 hotpot mca 'CN' 'CCO' mols.smi inputs/*.mol2 --backend gpu  # 多输入，GPU 批量推理
 hotpot mca mols.sdf --backend gpu -o mca.txt                # 保存文本表
-hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png        # 仅着色检出的亲核位点
+hotpot mca 'c1ccccc1CN' --plot mca.png                      # 仅着色检出的亲核位点
 hotpot mca 'c1ccccc1CN' --backend gpu --plot all.png --all-site
-hotpot mca '[NH4+]' --backend cpu --allow-charged           # 显式请求域外估计
+hotpot mca '[NH4+]' --allow-charged                         # 显式请求域外估计
 ```
 
 输出表：`No.`（**1-based** 原子序号）、`Atom`、`MCA(kJ/mol)`、`is_Nuc_site`。`is_Nuc_site=True` 只表示
 命中亲核规则，不影响是否给出 MCA 值。选项：`-o/--output`、`--plot IMAGE`、`--all-site`、
-`--input-format`、必选 `--backend {cpu,gpu}`、`--variant {fp32,fp16}`（默认打包 fp16）、
+`--input-format`、`--backend {cpu,gpu}`（默认 CPU）、`--variant {fp32,fp16}`（默认打包 fp16）、
 CPU `--batch-size 64`；GPU 可用 `--gpu-count` 或 `--gpu-indices`、每卡默认 9/7 worker，
 并按总显存选择 `64/128/256/512/1024/2048` 的 `--gpu-batch-size` 原子行档位；异构卡取所选卡的
 最小档位。CUDA OOM 会报告当前档位及建议的下一低档，不重试或回退 CPU。另有

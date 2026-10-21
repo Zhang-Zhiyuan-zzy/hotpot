@@ -70,8 +70,8 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--backend",
         choices=("cpu", "gpu"),
-        required=True,
-        help="explicit inference backend",
+        default="cpu",
+        help="inference backend (default: cpu)",
     )
     parser.add_argument("--variant", choices=("fp32", "fp16"))
     parser.add_argument(

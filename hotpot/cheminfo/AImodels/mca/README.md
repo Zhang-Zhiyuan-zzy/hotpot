@@ -132,9 +132,9 @@ directory or pass `model_dir`.
 ## CLI
 
 ```bash
-hotpot mca 'C1CCCCN1' --backend cpu
+hotpot mca 'C1CCCCN1'
 hotpot mca molecules.sdf --backend gpu -o result.txt
-hotpot mca 'C1CCCCN1' --backend cpu --plot mca.png
+hotpot mca 'C1CCCCN1' --plot mca.png
 hotpot mca 'C1CCCCN1' --backend gpu --plot mca-all.png --all-site
 ```
 
@@ -144,6 +144,7 @@ molecule file may contain multiple records. By default a plot labels and
 colours only detected nucleophilic sites; `--all-site` includes every predicted
 atom. The same interface remains available as
 `python -m hotpot.cheminfo.AImodels.mca.cli`.
+The CLI uses CPU when `--backend` is omitted; GPU use is always explicit.
 
 On GPU, `--gpu-count N` selects logical indices `0..N-1`, while
 `--gpu-indices 0,2` selects exact logical indices. If `--gpu-batch-size` is

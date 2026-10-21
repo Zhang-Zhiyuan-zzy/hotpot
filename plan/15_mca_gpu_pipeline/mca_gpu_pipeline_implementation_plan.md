@@ -147,8 +147,9 @@ def predict_mca(molecules, *, backend: Literal["cpu", "gpu"], **kwargs): ...
 `iter_predict/predict` 不可重入；运行异常必须清理子进程和队列。一次性函数用
 `try/finally` 关闭资源。
 
-CLI 删除 `--device`，改为必选 `--backend {cpu,gpu}`。GPU 参数与上述构造器一一
-对应；CPU 只接受 `--batch-size`。CLI 消费 `iter_predict()`，不预先读取全部输入。
+CLI 删除 `--device`，使用 `--backend {cpu,gpu}` 且默认 CPU；GPU 必须显式指定。
+GPU 参数与上述构造器一一对应；CPU 只接受 `--batch-size`。CLI 消费
+`iter_predict()`，不预先读取全部输入。
 
 calculator 采用显式 backend，不用 LRU 缓存持有重型 GPU pool。批量使用者应
 显式持有 predictor 生命周期。

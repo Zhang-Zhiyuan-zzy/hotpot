@@ -201,7 +201,7 @@ CPU 超限检查：运行中枚举完整进程树，coordinator/resource tracker
   `predict_mca_gpu` 和要求显式 backend 的 `predict_mca`；
 - 删除 `MCAPredictor`、`device=auto/cpu/cuda`、`HOTPOT_MCA_DEVICE`、calculator
   LRU runtime cache 和旧调用约定；
-- CLI 改为必选 `--backend`，CPU/GPU 参数严格分离，并流式读取、推理和写出；
+- CLI 使用 `--backend` 严格分离 CPU/GPU 参数，并流式读取、推理和写出；
 - calculator 改为显式 `backend` 的 one-shot 调用；批量 GPU 使用者显式持有
   predictor；
 - 更新根 README、MCA README/CLI 文档、model pointer 和两份 usage 文档。
@@ -278,4 +278,19 @@ ai-14 最终验收（A800、自动 batch=2048、`hp-gpu`）：
 
 提交：核心实现为 `676bc31 perf(mca): add bounded multi-GPU inference pipeline`；
 最终报告位于本日志的收尾文档提交中。
+
+### 阶段 7 — CLI 默认 CPU
+
+状态：完成
+
+根据 2026-10-21 补充批复，CLI 的 `--backend` 从必选项改为默认 `cpu`；只有 GPU
+路径需要显式写 `--backend gpu`。Python `predict_mca()` 与 calculator 的 backend
+参数继续保持显式，未扩大本次修改范围。同步更新根 README、MCA CLI 文档、usage
+文档、实施方案和实施报告，并用无 `--backend` 的真实顶层 CLI 回归覆盖默认行为。
+
+验证：
+
+- CLI 与 README MCA 聚焦测试：`14 passed in 6.12s`；
+- 完整 MCA 测试：`172 passed in 13.31s`；
+- `git diff --check` 通过。
 

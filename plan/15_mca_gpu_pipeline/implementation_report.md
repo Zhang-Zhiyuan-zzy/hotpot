@@ -1,7 +1,7 @@
 # Plan 15 实施报告
 
 状态：已完成
-完成日期：2026-10-20
+完成日期：2026-10-21
 
 ## 1. 结论
 
@@ -83,11 +83,12 @@ CPU 路径使用相同的 stateful batch planner 和结果构造逻辑，以有�
 - `predict_mca(..., backend="cpu" | "gpu")`
 
 已删除 `MCAPredictor`、`device=auto/cpu/cuda`、`--device`、
-`HOTPOT_MCA_DEVICE` 和 calculator 中持有重型 predictor 的 LRU cache。CLI 必须显式
-指定 `--backend`，并对输入、推理和输出全程流式处理。
+`HOTPOT_MCA_DEVICE` 和 calculator 中持有重型 predictor 的 LRU cache。CLI 的
+`--backend` 默认使用 CPU，GPU 必须显式指定，并对输入、推理和输出全程流式处理。
 
-这是按“单一接口”批复实施的有意破坏性切换：旧调用方必须改用显式 backend，
-没有过渡期别名、弃用代理或双实现。
+这是按“单一接口”批复实施的有意破坏性切换：旧 Python 调用方必须改用显式
+backend；CLI 调用方省略 `--backend` 时稳定使用 CPU。没有过渡期别名、弃用代理
+或双实现。
 
 GPU 可以通过 `gpu_count` 或有序的 `gpu_indices` 指定，二者互斥；均未给出时使用
 逻辑 GPU 0。CPU 预算为：

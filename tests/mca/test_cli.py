@@ -50,10 +50,10 @@ def test_single_prediction_table_contract():
     )
 
 
-def test_top_level_mca_prints_to_stdout(monkeypatch, capsys):
+def test_top_level_mca_defaults_to_cpu_and_prints_to_stdout(monkeypatch, capsys):
     monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
 
-    assert hotpot_main.main(["mca", "CN", "--backend", "cpu"]) == 0
+    assert hotpot_main.main(["mca", "CN"]) == 0
 
     output = capsys.readouterr().out
     assert "MCA(kJ/mol)" in output

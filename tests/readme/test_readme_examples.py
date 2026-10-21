@@ -59,9 +59,7 @@ def test_readme_pipeline_documentation_surface() -> None:
 
 
 def test_readme_mca_cli_output() -> None:
-    output = _run_hotpot(
-        "mca", "c1ccccc1CN", "--backend", "cpu"
-    ).stdout.strip()
+    output = _run_hotpot("mca", "c1ccccc1CN").stdout.strip()
     lines = output.splitlines()
     expected = (
         (1, "C", 319.00, False),

@@ -7,7 +7,7 @@ important nucleophilic sites selected by Hotpot's curated site-detection rules.
 ## Command synopsis
 
 ```bash
-$ hotpot mca --backend {cpu,gpu} [options] <SMILES/FILE> [<SMILES/FILE> ...]
+$ hotpot mca [--backend {cpu,gpu}] [options] <SMILES/FILE> [<SMILES/FILE> ...]
 ```
 
 Each positional input may be a SMILES string or a molecule file. Multiple
@@ -19,7 +19,7 @@ Quote SMILES strings to prevent the shell from interpreting special
 characters:
 
 ```bash
-$ hotpot mca 'c1ccccc1CN' --backend cpu
+$ hotpot mca 'c1ccccc1CN'
 ```
 
 The table contains a one-based atom number, element, predicted MCA and the
@@ -40,7 +40,7 @@ atoms receive values regardless of site classification.
 Pass several SMILES strings as positional arguments:
 
 ```bash
-$ hotpot mca 'CN' 'CCO' 'c1ccccc1N' --backend cpu
+$ hotpot mca 'CN' 'CCO' 'c1ccccc1N'
 ```
 
 Alternatively, provide a SMILES file with one record per line. An optional
@@ -118,11 +118,11 @@ $ hotpot mca molecules.smi --backend gpu --plot mca-grid.png
 
 ## Backend, GPU resources and batching
 
-`--backend` is required. CPU and GPU are separate current implementations;
-there is no automatic provider selection or CPU fallback.
+`--backend` defaults to `cpu`. CPU and GPU are separate current
+implementations; request GPU explicitly. A GPU request never falls back to CPU.
 
 ```bash
-$ hotpot mca molecules.smi --backend cpu --batch-size 64
+$ hotpot mca molecules.smi --batch-size 64
 $ hotpot mca molecules.smi --backend gpu --gpu-count 2
 $ hotpot mca molecules.smi --backend gpu --gpu-indices 0,2
 ```

@@ -87,11 +87,12 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
   - The same predictor is available from the command line. Output is a plain
     atom table suitable for terminal display or redirection:
     ```bash
-    hotpot mca 'c1ccccc1CN' --backend cpu
+    hotpot mca 'c1ccccc1CN'
     hotpot mca molecules.sdf --backend gpu -o mca.txt
-    hotpot mca 'c1ccccc1CN' --backend cpu --plot mca.png
+    hotpot mca 'c1ccccc1CN' --plot mca.png
     hotpot mca 'c1ccccc1CN' --backend gpu --plot mca-all.png --all-site
     ```
+    CPU is the CLI default; GPU use must be requested with `--backend gpu`.
 + **Coordination-bond CLI**:
   - Build a metal-ligand coordination graph from a ligand SMILES or molecule
     file and print its canonical SMILES:

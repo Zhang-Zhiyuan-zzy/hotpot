@@ -77,7 +77,7 @@ protocol in the current Git revision; superseded implementations are not retaine
 <!-- Verified by tests/readme/test_readme_examples.py::test_readme_mca_cli_output -->
 
 ```bash
-$ hotpot mca 'c1ccccc1CN' --backend cpu
+$ hotpot mca 'c1ccccc1CN'
 ```
 
 ```text
@@ -270,9 +270,9 @@ environment if PyMOL is required.
 
 GPU ONNX inference requires an `onnxruntime-gpu` build compatible with the
 machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
-compatible with every installed CUDA version. MCA never chooses a provider
-automatically: select its required `--backend cpu` or `--backend gpu`
-explicitly. A GPU request fails without retrying on CPU.
+compatible with every installed CUDA version. The MCA CLI defaults to CPU;
+select `--backend gpu` explicitly to use CUDA. A GPU request fails without
+retrying on CPU.
 
 The xTB integration requires a separately installed official `xtb`
 executable. Select it with `--xtb-executable`, `HOTPOT_XTB_EXECUTABLE`, or

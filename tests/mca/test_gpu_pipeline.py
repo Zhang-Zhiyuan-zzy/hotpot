@@ -2,6 +2,7 @@ import queue
 import subprocess
 import sys
 import time
+from collections import deque
 from types import SimpleNamespace
 
 import numpy as np
@@ -269,9 +270,28 @@ def test_rolling_admission_refills_released_atom_credit(
             )
 
     submitted = []
-    result_queue = queue.Queue()
 
-    class ImmediateGpuQueue:
+    class GatedResultQueue:
+        def __init__(self):
+            self.results = deque()
+
+        def put(self, result):
+            self.results.append(result)
+
+        def get_nowait(self):
+            if ("site-submitted", 2) not in events or not self.results:
+                raise queue.Empty
+            return self.results.popleft()
+
+        def get(self, timeout=None):
+            assert ("site-submitted", 2) in events
+            if not self.results:
+                raise queue.Empty
+            return self.results.popleft()
+
+    result_queue = GatedResultQueue()
+
+    class GatedGpuQueue:
         @staticmethod
         def put(request):
             submitted.append(request)
@@ -304,7 +324,7 @@ def test_rolling_admission_refills_released_atom_credit(
     predictor._feature_pool = FeaturePool()
     predictor._next_request_id = 0
     predictor._next_gpu_position = 0
-    predictor._request_queues = [ImmediateGpuQueue()]
+    predictor._request_queues = [GatedGpuQueue()]
     predictor._result_queue = result_queue
     predictor._gpu_processes = []
 

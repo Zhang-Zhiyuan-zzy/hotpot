@@ -80,6 +80,8 @@ class _MoleculeState:
     values: np.ndarray
     filled: np.ndarray
     sites: tuple[tuple[int, str], ...] | None = None
+    feature_consumed: bool = False
+    admission_credit_released: bool = False
 
 
 @dataclass
@@ -371,7 +373,8 @@ class MCAGpuPredictor:
         pending_cpu_started = {"site": {}, "feature": {}}
         next_input_index = 0
         next_output_index = 0
-        admitted_atom_count = 0
+        admission_atom_count = 0
+        resident_atom_count = 0
         input_exhausted = False
         planner_finished = False
         max_inflight = max(1, 2 * len(self.gpu_indices))
@@ -382,6 +385,9 @@ class MCAGpuPredictor:
         window_atom_budget = gpu_window_atom_budget(
             self.gpu_batch_size,
             worker_count,
+        )
+        resident_atom_capacity = window_atom_budget + max_inflight * (
+            self.gpu_batch_size + 2 * self.max_atoms
         )
         molecule_iterator = iter(molecules)
         pool_state = {
@@ -398,7 +404,11 @@ class MCAGpuPredictor:
         }
 
         while next_output_index < next_input_index or not input_exhausted:
-            while not input_exhausted and admitted_atom_count < window_atom_budget:
+            while (
+                not input_exhausted
+                and admission_atom_count < window_atom_budget
+                and resident_atom_count < resident_atom_capacity
+            ):
                 try:
                     value = next(molecule_iterator)
                 except StopIteration:
@@ -419,7 +429,8 @@ class MCAGpuPredictor:
                     filled=np.zeros(molecule.atom_count, dtype=bool),
                     sites=sites,
                 )
-                admitted_atom_count += molecule.atom_count
+                admission_atom_count += molecule.atom_count
+                resident_atom_count += molecule.atom_count
                 pending_batches.extend(
                     planner.push(((molecule_index, molecule.atom_count),))
                 )
@@ -502,7 +513,11 @@ class MCAGpuPredictor:
                         waiting_chunks,
                         pending_requests,
                     )
-                    self._release_submitted_features(batch, states, features)
+                    admission_atom_count -= self._release_submitted_features(
+                        batch,
+                        states,
+                        features,
+                    )
                     made_progress = True
 
                 while pending_requests and self._try_drain_gpu_result(
@@ -521,7 +536,7 @@ class MCAGpuPredictor:
                     next_output_index,
                 )
                 if ready:
-                    admitted_atom_count -= sum(
+                    resident_atom_count -= sum(
                         len(result.atom_predictions) for result in ready
                     )
                     next_output_index = new_output_index
@@ -531,12 +546,19 @@ class MCAGpuPredictor:
             if next_output_index == next_input_index and input_exhausted:
                 break
 
+            if (
+                not input_exhausted
+                and admission_atom_count < window_atom_budget
+                and resident_atom_count < resident_atom_capacity
+            ):
+                continue
+
             try:
                 stage, succeeded, result = completion_queue.get_nowait()
             except queue.Empty:
                 stage = None
             if stage is not None:
-                self._handle_cpu_completion(
+                admission_atom_count -= self._handle_cpu_completion(
                     stage,
                     succeeded,
                     result,
@@ -569,7 +591,7 @@ class MCAGpuPredictor:
                             pool, expected_pids, operation = pool_state[stage]
                             self._check_pool_health(pool, expected_pids, operation)
                     continue
-                self._handle_cpu_completion(
+                admission_atom_count -= self._handle_cpu_completion(
                     stage,
                     succeeded,
                     result,
@@ -592,9 +614,6 @@ class MCAGpuPredictor:
                 )
                 continue
 
-            if not input_exhausted and admitted_atom_count < window_atom_budget:
-                continue
-
             raise RuntimeError("MCA GPU pipeline stopped making progress")
 
         if next_output_index != next_input_index:
@@ -603,11 +622,28 @@ class MCAGpuPredictor:
             )
 
     @staticmethod
-    def _release_submitted_features(batch, states, features) -> None:
+    def _release_submitted_features(batch, states, features) -> int:
+        released_atoms = 0
         for row in batch.rows:
             state = states[row.molecule_index]
             if row.atom_index == state.molecule.atom_count - 1:
                 features.pop(row.molecule_index, None)
+                state.feature_consumed = True
+                released_atoms += MCAGpuPredictor._release_admission_credit(
+                    state
+                )
+        return released_atoms
+
+    @staticmethod
+    def _release_admission_credit(state: _MoleculeState) -> int:
+        if (
+            state.admission_credit_released
+            or state.sites is None
+            or not state.feature_consumed
+        ):
+            return 0
+        state.admission_credit_released = True
+        return state.molecule.atom_count
 
     @staticmethod
     def _remaining_cpu_timeout(pending_cpu_started) -> float:
@@ -628,7 +664,7 @@ class MCAGpuPredictor:
         pending_cpu,
         pending_cpu_started,
         pool_state,
-    ) -> None:
+    ) -> int:
         for pool, expected_pids, operation in pool_state.values():
             self._check_pool_health(pool, expected_pids, operation)
         pending_cpu[stage] -= 1
@@ -637,8 +673,10 @@ class MCAGpuPredictor:
         pending_cpu_started[stage].pop(result.molecule_index)
         if stage == "feature":
             features[result.molecule_index] = result.feature
-        else:
-            states[result.molecule_index].sites = result.sites
+            return 0
+        state = states[result.molecule_index]
+        state.sites = result.sites
+        return self._release_admission_credit(state)
 
     def _submit_batch(
         self,

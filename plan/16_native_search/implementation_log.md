@@ -191,12 +191,69 @@ Adjustment: native query compilation must recognize typed IR positively by
 its private class, then separately compile existing set/guard constraints and
 arbitrary opaque callables. It must never classify every `Callable` as typed.
 
-Git checkpoint: recorded in the typed-IR commit immediately following this log
-entry.
+Git checkpoint: `f97ef7c` (`refactor(search): add typed SMARTS predicate IR`).
 
 ### Step 3 - Implement and prove the deterministic native topology kernel
 
-Status: pending
+Status: complete
+
+Planned:
+
+- add the mandatory in-tree C++17 extension with no graph-library dependency;
+- implement the reviewed deterministic, component-aware RI-style traversal;
+- prove the topology kernel independently through synthetic compatibility
+  matrices and an independent injection oracle; and
+- retain the Python facade as the sole bounded-iteration owner.
+
+Performed:
+
+- added compact sorted-key graph storage, canonical undirected edges, CSR
+  adjacency, degree data, self-loop lookup, and edge lookup;
+- implemented the fixed component/root/frontier/parent query order, ascending
+  target candidate order, injectivity, non-induced edge checks, disconnected
+  queries, self-loops, raw automorphism enumeration, conservative domains,
+  and the approved safe forward checks;
+- added a lazy native cursor whose lifetime owns an immutable problem snapshot
+  and which releases the GIL while advancing;
+- exposed only a private synthetic compatibility-table boundary for this
+  proof stage, plus a private adapter from query-aligned native tuples to the
+  legacy target-to-query mapping-provider protocol; and
+- registered the extension sources, type stub, and source-distribution files.
+
+Verification:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/test_cheminfo/test_search_native_kernel.py \
+  tests/test_cheminfo/test_search_native_contract.py \
+  tests/test_cheminfo/test_search_mapping.py
+```
+
+Result: 83 passed in 0.99 s, including 14 native-kernel tests. The kernel
+suite exhaustively compared all simple query graphs through three vertices
+against all simple target graphs through four vertices using an independent
+permutation oracle. It also covered empty and disconnected queries,
+self-loops, non-induced matching, every automorphism, sparse keys, input and
+cursor lifetimes, synthetic node/edge rejection, and every facade bound.
+
+The isolated `uv` build compiled and linked the four search translation units
+into `_search_native.cpython-311-x86_64-linux-gnu.so` without warnings or
+errors. The repository-wide forced build was stopped only after the search
+extension had linked and setup had moved on to recompiling unrelated existing
+extensions. `ldd` showed only the platform C/C++ runtime libraries and no
+graph or chemistry toolkit dependency.
+
+Unexpected finding: the repository setup builds every native extension even
+when only the search extension changed. A focused search build is therefore
+useful during development, while the final packaging gate must still exercise
+the complete clean wheel build.
+
+Adjustment: keep the synthetic compatibility boundary private and temporary;
+the next step replaces it with the production predicate program without
+switching public `Searcher` prematurely.
+
+Git checkpoint: recorded in the native-kernel commit immediately following
+this log entry.
 
 ### Step 4 - Add native predicates and leaf-only Python callbacks
 

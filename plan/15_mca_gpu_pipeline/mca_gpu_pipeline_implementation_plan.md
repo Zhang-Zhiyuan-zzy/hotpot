@@ -81,7 +81,7 @@ CPU backend 不公开 `cpu_limit`。ONNX Runtime 使用显式线程配置和顺�
 ## 3. 单一执行架构
 
 ```text
-固定 credit 的滚动准入窗口（带全局 index）
+双门控滚动准入窗口（带全局 index）
     -> P1 全局 site worker pool：GPU 数 * site_cpu_per_gpu
     -> P2 全局 conformer/feature worker pool：GPU 数 * infer_cpu_per_gpu
     -> coordinator 按输入顺序冻结全局 atom-row logical batches
@@ -97,11 +97,19 @@ CPU backend 不公开 `cpu_limit`。ONNX Runtime 使用显式线程配置和顺�
 P1、P2 是全局池而非每卡嵌套池。队列与重排缓冲区有界。`iter_predict()` 是
 真正的流式 API；`predict()` 只是将其 materialize 为列表的便捷入口。
 
-窗口不再采用“整窗完成后再准入下一窗”的 barrier。coordinator 在结果按序完成
-并释放 atom-row credit 后立即读取后续输入，同时保持原有 window atom budget、
-worker 数、GPU request 最大 in-flight 数和峰值准入 credit 不变。因此该优化不以
-增加 CPU、GPU session 或内存上限换取吞吐，也不改变 logical batch、padding、
-缓存 key、输出顺序、MCA 数值或 `is_Nuc_site`。
+窗口不再采用“整窗完成后再准入下一窗”的 barrier，而使用双门控：preprocessing
+credit 仍以原 window atom budget 为上限，只有 P1 site detection 完成且覆盖该
+分子最后 atom row 的 feature batch 已 handoff 后才释放；resident atom credit
+只有在结果按输入顺序输出后才释放，并设置 hard cap：
+
+```text
+resident_cap = window_budget
+             + max_inflight * (gpu_batch_size + 2 * max_atoms)
+```
+
+该上限约束在旧实现的名义资源包络内。worker 数、每卡 CUDA session、request
+queue 和 GPU request 最大 in-flight 均不变；这里不宣称严格总内存字节数不变。
+logical batch、padding、缓存 key、输出顺序、MCA 数值及 `is_Nuc_site` 不变。
 
 ### 3.1 序列化边界
 
@@ -239,8 +247,8 @@ calculator 采用显式 backend，不用 LRU 缓存持有重型 GPU pool。批�
 
 ### 阶段 8 — 滚动准入与 GPU 启动阈值
 
-- 把离散窗口 barrier 改为固定 credit 的滚动准入，不增加 worker、GPU in-flight
-  或峰值 credit；
+- 把离散窗口 barrier 改为 preprocessing credit + resident hard cap 的双门控滚动
+  准入，不增加 worker、CUDA session、request queue 或 GPU in-flight；
 - 为 GPU-preferred 调用增加 256 个预测位点的启动阈值，阈值以下走 CPU 且默认
   静默，debug 模式报告；
 - 达到阈值才建立 GPU 资源，保持启动/OOM 错误严格且不回退；
@@ -257,5 +265,5 @@ calculator 采用显式 backend，不用 LRU 缓存持有重型 GPU pool。批�
 5. 实施 log 记录每一阶段的实际变更、证据与偏差；
 6. 最终实施报告列出提交、文件、测试、性能结果和剩余边界。
 7. GPU-preferred 的 `<256` CPU 路由与 `>=256` GPU 启动边界可验证，且默认输出
-   不新增警告；滚动准入不突破既有资源上限。
+   不新增警告；滚动准入受双门控约束在旧实现的名义资源包络内。
 

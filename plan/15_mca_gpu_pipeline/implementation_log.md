@@ -294,16 +294,17 @@ ai-14 最终验收（A800、自动 batch=2048、`hp-gpu`）：
 - 完整 MCA 测试：`172 passed in 13.31s`；
 - `git diff --check` 通过。
 
-### 阶段 8 — 固定 credit 滚动准入与 GPU 启动阈值
+### 阶段 8 — 双门控滚动准入与 GPU 启动阈值
 
-状态：本地完成，ai-14 验收进行中。
+状态：已完成本地回归与 ai-14 验收。
 
 根据 2026-10-21 补充批复，本阶段不增加硬件或并发资源，实施两项优化：
 
 1. 保留既有 atom-row window budget，但去除“整窗完成才继续读取”的 barrier。
-   coordinator 在有序结果完成后归还 atom credit 并立即准入后续输入；9/7 worker、
-   每卡 CUDA session、request queue、`2 × GPU 数` 的最大 in-flight 和峰值 credit
-   均不增加。
+   coordinator 使用 preprocessing credit 与 resident hard cap 双门控：P1 site
+   detection 和最后一个 feature batch handoff 都完成后即可复用 preprocessing
+   credit；resident credit 直到结果按序输出才归还。9/7 worker、每卡 CUDA
+   session、request queue 和 `2 × GPU 数` 的最大 in-flight 均不增加。
 2. `backend="gpu"` 改为 GPU-preferred。每次调用先规范化并检测位点；累计少于
    256 个位点且输入结束时，复用已准备的 DTO/site 直接进行 CPU 推理，不初始化
    CUDA，默认不输出警告；debug 日志记录 requested/effective backend、实际位点数
@@ -318,9 +319,13 @@ ai-14 最终验收（A800、自动 batch=2048、`hp-gpu`）：
   完成的规范化与 site detection，不重复业务计算；
 - 阈值前缀以 `SpooledTemporaryFile` 保存，内存上限 8 MiB，超过后转临时文件，
   避免低位点长输入无界占用内存；达到阈值后不额外预读生成器；
-- 滚动 coordinator 维持全局 planner、completion queue 与 pending batch deque，
-  feature 在覆盖其最后 atom row 的 logical batch 提交后释放，atom credit 在结果
-  按输入顺序输出后归还；
+- 滚动 coordinator 维持全局 planner、completion queue 与 pending batch deque；
+  preprocessing credit 只有在 P1 完成且覆盖最后 atom row 的 logical feature batch
+  已提交后才释放，resident atom credit 在结果按输入顺序输出后归还；
+- resident hard cap 为
+  `window_budget + max_inflight * (gpu_batch_size + 2 * max_atoms)`，防止 GPU 结果
+  乱序或首结果阻塞时轻量状态无界累积；该上限位于旧实现的名义资源包络内，但
+  不宣称严格总内存字节数不变；
 - 顶层 `-d/--debug` 现在把日志等级真实配置为 DEBUG，使默认静默的 CPU 路由可在
   高信息模式下观察；普通 stdout 与 MCA 表格不受影响；
 - 根 README、MCA README/CLI 文档、usage/development skill 和 Plan 15 文档同步
@@ -328,13 +333,41 @@ ai-14 最终验收（A800、自动 batch=2048、`hp-gpu`）：
 
 本地验证：
 
-- 滚动准入聚焦测试确认上一批慢 site 任务尚未完成时，已释放 credit 可接纳后续
-  分子，同时保持 batch ordinal、输出顺序和值：`18 passed`；
+- 滚动准入聚焦测试以延迟 GPU 结果的门控队列确认：前一批 GPU 结果尚未返回时，
+  已完成 CPU 预处理的 credit 可以接纳后续分子，同时保持 batch ordinal、输出
+  顺序和值；测试同时覆盖慢 site 与即时 site 两种完成顺序；
 - 阈值测试覆盖 `<256` CPU、`=256` GPU、CUDA 惰性启动、前缀复用、生成器不预吞、
   默认静默/debug 日志和启动错误不回退；
-- `python -m pytest tests/mca -q`：`182 passed`；
+- `PYTHONPATH=. python -m pytest -q tests/mca`：`183 passed in 13.43s`；
 - `git diff --check`：通过；当前环境没有 Ruff，未执行该可选检查。
 
-待完成：在 ai-14 上验证 `<256` CPU 路由、`>=256` GPU 路径、联合结果/
-`is_Nuc_site` 与滚动窗口性能，并记录提交。
+实现期间的 ai-14 首轮运行暴露了一个边界：一轮 resident state 已完全输出而输入
+尚未结束时，coordinator 会错误进入阻塞读取并报告 stopped making progress。
+提交 `9011f87` 在所有阻塞式 queue 读取前优先回到准入循环，并增加参数化回归。
+首版 credit 直到有序输出才释放，4096 分子稳态仅为 `29.864 mol/s`（相对旧实现
+`+3.67%`）；随后提交 `9494657` 按上述安全边界提前复用 preprocessing credit，
+并用独立 resident hard cap 保持有界。
+
+ai-14 最终验收使用 4 张 A800、64 个 CPU（CPU 64–127）、9/7 workers/card、
+batch 2048，源码提交 `9494657`，环境 `hp-gpu`：
+
+- 255 个预测位点：GPU-preferred 与显式 CPU 结果完全一致；`gpu_started=false`、
+  无 resource plan、无 GPU 子进程。默认静默，debug 精确记录
+  `requested=gpu effective=cpu site_count=255 threshold=256`；
+- 256 个预测位点：确实启动 4 卡 GPU；MCA、site 与联合 hash 与优化前完全一致；
+- 4096 分子（103,776 atom rows、30,640 sites）：首轮含惰性启动
+  `99.481 s / 41.174 mol/s`，warm 稳态 `92.002 s / 44.521 mol/s`；旧实现相同配置
+  稳态均值为 `28.808 mol/s`，因此吞吐提高 `54.55%`、耗时降低 `35.29%`；
+- 最终 4096 分子的 MCA/site/joint hashes 分别为
+  `ad00da4e45c7e4462f7d5b9eab1ed6918989e18dec8a6a4a1299659084b81544`、
+  `a7339ccdce12c9f53ac13ddebe650868d82332ae748f27202eeee063232482e2`、
+  `b81031d437b6766bf96282dac21410f1b0e55fda2117f5c856ff88b67c18d7eb`，
+  与优化前逐项一致；joint hash 覆盖 `is_Nuc_site`、site type 以及 atom/site MCA；
+- 四卡平均利用率为 74.26%–77.78%，四卡同时 busy 为 75.17%，四卡同时不低于
+  90% 为 55.17%；选定 64 CPU 平均 busy 为 45.72%。测试前后四卡显存读数完全
+  相同，无 OOM、无残留进程，CPU affinity 恢复正常。
+
+远端结果保存在 `~/mca_test/results/rolling_13b836f/`；实现提交依次为
+`13b836f`（滚动准入与阈值主体）、`9011f87`（空转边界修复）和 `9494657`
+（提前复用 preprocessing credit 与 resident hard cap）。
 

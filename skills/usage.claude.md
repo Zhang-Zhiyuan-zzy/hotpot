@@ -454,10 +454,10 @@ hotpot mca '[NH4+]' --allow-charged                         # 显式请求域外
 CPU `--batch-size 64`；GPU 可用 `--gpu-count` 或 `--gpu-indices`、每卡默认 9/7 worker，
 并按总显存选择 `64/128/256/512/1024/2048` 的 `--gpu-batch-size` 原子行档位；异构卡取所选卡的
 最小档位。CUDA OOM 会报告当前档位及建议的下一低档，不重试或回退 CPU。另有
-`--conformer-seed 42`、`--model-dir`、`--allow-charged`。GPU pipeline 使用固定 credit 的滚动窗口：释放
-容量后立即准入后续任务，但不增加 worker、最大 in-flight 请求或峰值 credit；logical batch、顺序、MCA 值和
-`is_Nuc_site` 不变。显式 GPU 调用的累计预测位点少于 256 时不启动 CUDA、默认静默使用 CPU；用顶层
-`hotpot -d mca ...` 查看该路由决定。
+`--conformer-seed 42`、`--model-dir`、`--allow-charged`。GPU pipeline 使用双门控滚动准入：P1 与最后 P2
+handoff 后释放 preprocessing credit，有序输出后才释放独立的 resident credit；不增加 worker、CUDA session、
+request queue 或最大 in-flight 请求。logical batch、顺序、MCA 值和 `is_Nuc_site` 不变。显式 GPU 调用的累计
+预测位点少于 256 时不启动 CUDA、默认静默使用 CPU；用顶层 `hotpot -d mca ...` 查看该路由决定。
 
 ### 12.3 `hotpot cbond` — 金属-配体配位键构建
 

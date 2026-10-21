@@ -145,11 +145,13 @@ card. These are direct defaults, not a named profile. Override them with
 CPU count from the selected GPUs and these values, then fails before startup if
 the process affinity contains too few CPUs.
 
-GPU preprocessing uses a fixed-credit rolling admission window. As capacity is
-released, the coordinator admits more work without waiting for every task in a
-discrete window to finish. It does not increase configured workers, maximum
-in-flight GPU requests or peak admission credit. Logical atom-row batches,
-result order, MCA values and `is_Nuc_site` semantics are unchanged.
+GPU preprocessing uses rolling admission with two bounds. Preprocessing credit
+is released only after site detection and the last feature batch handoff both
+finish; resident atom credit is released only when ordered output leaves the
+pipeline. This avoids a discrete whole-window barrier without increasing
+configured workers, CUDA sessions, request-queue capacity or maximum in-flight
+GPU requests. Logical atom-row batches, result order, MCA values and
+`is_Nuc_site` semantics are unchanged.
 
 GPU atom-row batch defaults come from total card memory: less than 8 GiB uses
 64; 8/16/24/40/80 GiB boundaries select 128/256/512/1024/2048. Heterogeneous

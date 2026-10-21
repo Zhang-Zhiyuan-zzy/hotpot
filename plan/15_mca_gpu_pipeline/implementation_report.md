@@ -239,6 +239,9 @@ GPU 进程阶段总等待最坏约 15 秒，而不是每卡约 15 秒。
 | --- | --- |
 | `8935208` | 创建 Plan 15、批准方案、实时日志和报告入口 |
 | `676bc31` | 完整 CPU/GPU pipeline、接口切换、测试与文档 |
+| `13b836f` | 增加滚动准入、GPU 256-site 阈值与惰性启动 |
+| `9011f87` | 修复滚动准入轮次清空后的空转边界 |
+| `9494657` | 提前复用 preprocessing credit，并增加 resident hard cap |
 | 本报告所在提交 | 完成状态、最终实施日志和实施报告 |
 
 回退旧实现应通过 Git 选择历史提交完成，不在产品代码中维护双路径。当前分支可以在
@@ -271,13 +274,25 @@ GPU 进程阶段总等待最坏约 15 秒，而不是每卡约 15 秒。
 仍按需消费。
 
 GPU pipeline 的 window atom budget 仍是固定的
-`max(4 × gpu_batch_size, 100 × total_cpu_workers)`。变更只把离散 barrier 改成滚动
-credit：结果按序输出后归还对应 atom rows 并继续准入。以下资源上限全部不变：
+`max(4 × gpu_batch_size, 100 × total_cpu_workers)`。离散 barrier 改为双门控滚动
+准入：preprocessing credit 只有在 P1 site detection 与最后一个 feature batch
+handoff 都完成后才归还；独立 resident atom credit 直到结果按序输出才归还。
+resident hard cap 为：
+
+```text
+window_budget + max_inflight * (gpu_batch_size + 2 * max_atoms)
+```
+
+这样可以在 GPU 结果返回前继续填充 CPU 预处理，同时阻止乱序结果和轻量 state
+无界累积。以下并发资源与队列边界不变：
 
 - 每卡 9 个 site worker 与 7 个 feature worker 的默认值；
 - 每卡一个 CUDA process/session；
 - request queue 容量与 `2 × GPU 数` 的最大 in-flight request；
-- window atom budget 和峰值 atom credit。
+- preprocessing window atom budget。
+
+resident hard cap 位于旧实现一个 window、planner 尾部和最大 GPU in-flight request
+组成的名义资源包络内；本报告不把该关系表述为严格总内存字节数不变。
 
 logical atom-row batch、padding/cache key、batch ordinal、输入/输出顺序和唯一的
 `build_prediction()` join 均未改变。因此滚动调度不改变 MCA 数值、site 顺序或
@@ -286,14 +301,63 @@ logical atom-row batch、padding/cache key、batch ordinal、输入/输出顺序
 
 ### 11.3 本地验证
 
-- `python -m pytest tests/mca -q`：`182 passed`；
+- `PYTHONPATH=. python -m pytest -q tests/mca`：`183 passed in 13.43s`；
 - 新增阈值边界、惰性启动、CPU 路由、debug、生成器不预吞和错误不回退测试；
-- 新增滚动 credit 回填测试，在旧窗口仍有慢 site 任务时验证后续输入可准入，且
-  batch ordinal、输出顺序和值保持一致；
+- 新增延迟 GPU 返回的滚动 credit 回填测试，验证 GPU 结果完成前后续输入已经准入，
+  并覆盖慢 site/即时 site 两种时序、batch ordinal、输出顺序和值；
 - `git diff --check` 通过；当前环境未安装 Ruff。
 
 ### 11.4 ai-14 验收
 
-待记录本次提交在 ai-14 上的 CPU 阈值路由、GPU 联合结果与吞吐验证；原报告第 6–7
-节的历史 hash 和性能表不代表本追加实现的验收结果。
+最终验收使用 ai-14 的 4 张 A800、64 个 CPU（CPU 64–127）、默认 9/7 workers/card
+与自动 batch 2048，运行源码为 `9494657`，环境为已有 CUDA 环境 `hp-gpu`。`hp`
+环境仍是 CPU-only ONNX Runtime，因此没有修改其软件栈来伪装 GPU 验收。
+
+#### 阈值与业务结果
+
+| 用例 | 实际路径 | 关键证据 |
+| --- | --- | --- |
+| 255 sites | CPU | 未启动 GPU、无 resource plan/子进程；默认静默，debug 报告 255/256 路由 |
+| 256 sites | GPU | 4 卡 consumer 确实启动；MCA/site/joint hash 与旧实现相同 |
+
+255-site GPU-preferred 路径与显式 CPU 路径的 hashes 完全相同：
+
+- MCA：`98c18f01a0584a6558d958622015c63de83e512e0bca276e7f750fde10de1363`；
+- site：`3a7e755ce3f0dcf891ec304f6201a7a034a82ddcc56ab2d33f5facbb3b69bdd2`；
+- joint：`87d0417b1b19258f125b763499ad0accc4615772fd87412c763e4213293d7336`。
+
+256-site GPU 路径与旧实现 hashes 完全相同：
+
+- MCA：`71a50dcf8e33bef6b50a385769251be6c15d84c745fb924b1a97e6abfdd10ec9`；
+- site：`33519e36432b580e6c3e79500c4e906279c3f74536fe44232d3bab266c621813`；
+- joint：`4bd05408483946e518058f7f7d096ff6eb309bc1e182847ffa6ee7abfdd459a1`。
+
+joint hash 包含 `is_Nuc_site`、site type、atom MCA 与 site MCA，因此不是只比较
+分子数量或输出外形。
+
+#### 4 卡/64 CPU 吞吐
+
+4096 分子样本包含 103,776 atom rows、30,640 sites，跨越 13 个 preprocessing
+credit cycles。配置、输入和 hash 算法与旧实现相同。
+
+| 实现/轮次 | 时间 (s) | 吞吐 (mol/s) | 说明 |
+| --- | ---: | ---: | --- |
+| 旧实现稳态均值 | 142.183 | 28.808 | 两轮 142.059/142.307 s |
+| 新实现首轮 | 99.481 | 41.174 | 包含惰性 GPU 启动 |
+| 新实现 warm 稳态 | 92.002 | 44.521 | 相对旧实现 `+54.55%` |
+
+稳态耗时降低 `35.29%`。最终 4096 分子的 MCA/site/joint hashes 为：
+
+- MCA：`ad00da4e45c7e4462f7d5b9eab1ed6918989e18dec8a6a4a1299659084b81544`；
+- site：`a7339ccdce12c9f53ac13ddebe650868d82332ae748f27202eeee063232482e2`；
+- joint：`b81031d437b6766bf96282dac21410f1b0e55fda2117f5c856ff88b67c18d7eb`。
+
+三者与优化前逐项一致。四张 GPU 的平均利用率为 74.26%–77.78%，四卡同时 busy
+占 75.17%，四卡同时不低于 90% 占 55.17%；64 个选定 CPU 平均 busy 为 45.72%。
+测试前后各卡显存读数完全相同，无 OOM、无子进程残留，CPU affinity 已恢复。
+
+首版保守滚动 credit 直到有序输出才释放，warm 吞吐仅 `29.864 mol/s`（`+3.67%`）。
+ai-14 还发现并促成修复了“轮次完全清空但输入未结束”的 coordinator 空转边界。
+最终双门控实现解决这两个问题。远端原始结果保存在
+`~/mca_test/results/rolling_13b836f/`。
 

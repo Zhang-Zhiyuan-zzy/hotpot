@@ -77,10 +77,10 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
     When no GPU batch is supplied, total card memory selects an atom-row batch
     tier (`64/128/256/512/1024/2048`); heterogeneous cards use the smallest
     selected-card tier. CUDA OOM reports the active and next lower batch tier
-    without retrying or falling back to CPU after GPU startup. The pipeline
-    reuses fixed admission credit as work completes; rolling admission adds no
-    workers, in-flight requests or peak credit and preserves result order,
-    values and `is_Nuc_site`.
+    without retrying or falling back to CPU after GPU startup. The rolling
+    pipeline separately bounds preprocessing work and total resident atoms;
+    it adds no workers, CUDA sessions, queue capacity or in-flight requests and
+    preserves result order, values and `is_Nuc_site`.
   - Predictions can be attached directly to atoms through the calculator API:
     ```python
     from hotpot import read_mol

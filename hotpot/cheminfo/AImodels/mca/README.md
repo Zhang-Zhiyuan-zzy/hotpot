@@ -77,11 +77,13 @@ The GPU default is 9 site workers plus 7 conformer/feature workers per card.
 There is no named configuration profile: change `site_cpu_per_gpu` and
 `infer_cpu_per_gpu` directly when a job needs different allocation. The
 predictor checks the process CPU affinity before starting and requires exactly
-the configured number of distinct worker CPUs. Its fixed resource budget is
-used as a rolling admission window: capacity released by completed CPU/GPU
-work is reused immediately instead of waiting for an entire window barrier.
-This does not add workers, in-flight GPU requests or peak admission credit, and
-does not change logical batches, MCA values, output order or `is_Nuc_site`.
+the configured number of distinct worker CPUs. Its rolling pipeline has two
+bounds: preprocessing credit is released only after site detection and the
+last feature batch handoff both finish, while a separate resident-atom cap is
+released only by ordered output. This removes the whole-window barrier without
+adding workers, CUDA sessions, request-queue capacity or in-flight GPU
+requests. It does not change logical batches, MCA values, output order or
+`is_Nuc_site`.
 
 Hotpot object integration:
 
